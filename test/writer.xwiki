@@ -1,0 +1,650 @@
+This is a set of tests for pandoc. Most of them are adapted from John Gruber’s markdown test suite.
+
+
+----
+
+= Headers {{id name="headers" /}}=
+
+== Level 2 with an [[embedded link>>/url]] {{id name="level-2-with-an-embedded-link" /}}==
+
+=== Level 3 with //emphasis// {{id name="level-3-with-emphasis" /}}===
+
+==== Level 4 {{id name="level-4" /}}====
+
+===== Level 5 {{id name="level-5" /}}=====
+
+= Level 1 {{id name="level-1" /}}=
+
+== Level 2 with //emphasis// {{id name="level-2-with-emphasis" /}}==
+
+=== Level 3 {{id name="level-3" /}}===
+
+with no blank line
+
+== Level 2 {{id name="level-2" /}}==
+
+with no blank line
+
+
+----
+
+= Paragraphs {{id name="paragraphs" /}}=
+
+Here’s a regular paragraph.
+
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.
+
+Here’s one with a bullet. * criminey.
+
+There should be a hard line break\\here.
+
+
+----
+
+= Block Quotes {{id name="block-quotes" /}}=
+
+E-mail style:
+
+>This is a block quote. It is pretty short.
+>
+>Code in a block quote:
+>
+>
+>{{code}}
+>sub status {
+>    print "working";
+>}
+>{{/code}}
+>
+>A list:
+>
+>1. item one
+>1. item two
+>
+>Nested block quotes:
+>
+>>nested
+>>
+>>nested
+>>
+This should not be a block quote: 2 > 1.
+
+And a following paragraph.
+
+
+----
+
+= Code Blocks {{id name="code-blocks" /}}=
+
+Code:
+
+
+{{code}}
+---- (should be four hyphens)
+
+sub status {
+    print "working";
+}
+
+this code block is indented by one tab
+{{/code}}
+
+And:
+
+
+{{code}}
+    this code block is indented by two tabs
+
+These should not be escaped:  \$ \\ \> \[ \{
+{{/code}}
+
+
+----
+
+= Lists {{id name="lists" /}}=
+
+== Unordered {{id name="unordered" /}}==
+
+Asterisks tight:
+
+*. asterisk 1
+*. asterisk 2
+*. asterisk 3
+
+Asterisks loose:
+
+*. asterisk 1
+*. asterisk 2
+*. asterisk 3
+
+Pluses tight:
+
+*. Plus 1
+*. Plus 2
+*. Plus 3
+
+Pluses loose:
+
+*. Plus 1
+*. Plus 2
+*. Plus 3
+
+Minuses tight:
+
+*. Minus 1
+*. Minus 2
+*. Minus 3
+
+Minuses loose:
+
+*. Minus 1
+*. Minus 2
+*. Minus 3
+
+== Ordered {{id name="ordered" /}}==
+
+Tight:
+
+1. First
+1. Second
+1. Third
+
+and:
+
+1. One
+1. Two
+1. Three
+
+Loose using tabs:
+
+1. First
+1. Second
+1. Third
+
+and using spaces:
+
+1. One
+1. Two
+1. Three
+
+Multiple paragraphs:
+
+1. Item 1, graf one.
+
+Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
+1. Item 2.
+1. Item 3.
+
+== Nested {{id name="nested" /}}==
+
+*. Tab
+**. Tab
+***. Tab
+
+Here’s another:
+
+1. First
+1. Second:
+1*. Fee
+1*. Fie
+1*. Foe
+1. Third
+
+Same thing but with paragraphs:
+
+1. First
+1. Second:
+
+1*. Fee
+1*. Fie
+1*. Foe
+1. Third
+
+== Tabs and spaces {{id name="tabs-and-spaces" /}}==
+
+*. this is a list item indented with tabs
+*. this is a list item indented with spaces
+
+**. this is an example list item indented with tabs
+**. this is an example list item indented with spaces
+
+== Fancy list markers {{id name="fancy-list-markers" /}}==
+
+1. begins with 2
+1. and now 3
+
+with a continuation
+
+11. sublist with roman numerals, starting with 4
+11. more items
+111. a subsublist
+111. a subsublist
+
+Nesting:
+
+1. Upper Alpha
+11. Upper Roman.
+111. Decimal start with 6
+1111. Lower alpha with paren
+
+Autonumbering:
+
+1. Autonumber.
+1. More.
+11. Nested.
+
+Should not be a list item:
+
+M.A. 2007
+
+B. Williams
+
+
+----
+
+= Definition Lists {{id name="definition-lists" /}}=
+
+Tight using spaces:
+
+; apple
+: red fruit
+; orange
+: orange fruit
+; banana
+: yellow fruit
+
+Tight using tabs:
+
+; apple
+: red fruit
+; orange
+: orange fruit
+; banana
+: yellow fruit
+
+Loose:
+
+; apple
+: red fruit
+
+; orange
+: orange fruit
+
+; banana
+: yellow fruit
+
+
+Multiple blocks with italics:
+
+; //apple//
+: red fruit
+
+contains seeds, crisp, pleasant to taste
+
+; //orange//
+: orange fruit
+
+
+{{code}}
+{ orange code block }
+{{/code}}
+
+>orange block quote
+>
+
+Multiple definitions, tight:
+
+; apple
+: red fruit
+: computer
+; orange
+: orange fruit
+: bank
+
+Multiple definitions, loose:
+
+; apple
+: red fruit
+
+: computer
+
+; orange
+: orange fruit
+
+: bank
+
+
+Blank line after term, indented marker, alternate markers:
+
+; apple
+: red fruit
+
+: computer
+
+; orange
+: orange fruit
+
+;1. sublist
+;1. sublist
+
+= HTML Blocks {{id name="html-blocks" /}}=
+
+Simple block on one line:
+
+foo
+And nested without indentation:
+
+foo
+
+bar
+Interpreted markdown in a table:
+
+
+
+
+This is //emphasized//
+
+
+And this is **strong**
+
+
+
+
+Here’s a simple block:
+
+foo
+
+This should be a code block, though:
+
+
+{{code}}
+<div>
+    foo
+</div>
+{{/code}}
+
+As should this:
+
+
+{{code}}
+<div>foo</div>
+{{/code}}
+
+Now, nested:
+
+foo
+This should just be an HTML comment:
+
+
+Multiline:
+
+
+
+Code block:
+
+
+{{code}}
+<!-- Comment -->
+{{/code}}
+
+Just plain comment, with trailing spaces on the line:
+
+
+Code:
+
+
+{{code}}
+<hr />
+{{/code}}
+
+Hr’s:
+
+
+
+
+
+
+
+
+
+
+
+----
+
+= Inline Markup {{id name="inline-markup" /}}=
+
+This is //emphasized//, and so //is this//.
+
+This is **strong**, and so **is this**.
+
+An //[[emphasized link>>/url]]//.
+
+**//This is strong and em.//**
+
+So is **//this//** word.
+
+**//This is strong and em.//**
+
+So is **//this//** word.
+
+This is code: {{code}}>{{/code}}, {{code}}${{/code}}, {{code}}\{{/code}}, {{code}}\${{/code}}, {{code}}<html>{{/code}}.
+
+--This is //strikeout//.--
+
+Superscripts: a^^bc^^d a^^//hello//^^ a^^hello there^^.
+
+Subscripts: H,,2,,O, H,,23,,O, H,,many of them,,O.
+
+These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~~b c~~d.
+
+
+----
+
+= Smart quotes, ellipses, dashes {{id name="smart-quotes-ellipses-dashes" /}}=
+
+“Hello,” said the spider. “‘Shelob’ is my name.”
+
+‘A’, ‘B’, and ‘C’ are letters.
+
+‘Oak,’ ‘elm,’ and ‘beech’ are names of trees. So is ‘pine.’
+
+‘He said, “I want to go.”’ Were you alive in the 70’s?
+
+Here is some quoted ‘{{code}}code{{/code}}’ and a “[[quoted link>>http://example.com/?foo=1&bar=2]]”.
+
+Some dashes: one—two — three—four — five.
+
+Dashes between numbers: 5–7, 255–66, 1987–1999.
+
+Ellipses…and…and….
+
+
+----
+
+= LaTeX {{id name="latex" /}}=
+
+*. 
+*. {{formula}}2+2=4{{/formula}}
+*. {{formula}}x \in y{{/formula}}
+*. {{formula}}\alpha \wedge \omega{{/formula}}
+*. {{formula}}223{{/formula}}
+*. {{formula}}p{{/formula}}-Tree
+*. Here’s some display math: {{formula}}\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}{{/formula}}
+*. Here’s one that has a line break in it: {{formula}}\alpha + \omega \times x^2{{/formula}}.
+
+These shouldn’t be math:
+
+*. To get the famous equation, write {{code}}$e = mc^2${{/code}}.
+*. $22,000 is a //lot// of money. So is $34,000. (It worked if “lot” is emphasized.)
+*. Shoes ($20) and socks ($5).
+*. Escaped {{code}}${{/code}}: $73 //this should be emphasized// 23$.
+
+Here’s a LaTeX table:
+
+
+
+----
+
+= Special Characters {{id name="special-characters" /}}=
+
+Here is some unicode:
+
+*. I hat: Î
+*. o umlaut: ö
+*. section: §
+*. set membership: ∈
+*. copyright: ©
+
+AT&T has an ampersand in their name.
+
+AT&T is another way to write it.
+
+This & that.
+
+4 < 5.
+
+6 > 5.
+
+Backslash: \
+
+Backtick: `
+
+Asterisk: *
+
+Underscore: _
+
+Left brace: {
+
+Right brace: }
+
+Left bracket: [
+
+Right bracket: ]
+
+Left paren: (
+
+Right paren: )
+
+Greater-than: >
+
+Hash: #
+
+Period: .
+
+Bang: !
+
+Plus: +
+
+Minus: -
+
+
+----
+
+= Links {{id name="links" /}}=
+
+== Explicit {{id name="explicit" /}}==
+
+Just a [[URL>>/url/]].
+
+[[URL and title>>/url/]].
+
+[[URL and title>>/url/]].
+
+[[URL and title>>/url/]].
+
+[[URL and title>>/url/]]
+
+[[URL and title>>/url/]]
+
+[[with_underscore>>/url/with_underscore]]
+
+[[Email link>>mailto:nobody@nowhere.net]]
+
+[[Empty>>]].
+
+== Reference {{id name="reference" /}}==
+
+Foo [[bar>>/url/]].
+
+With [[embedded [brackets]>>/url/]].
+
+[[b>>/url/]] by itself should be a link.
+
+Indented [[once>>/url]].
+
+Indented [[twice>>/url]].
+
+Indented [[thrice>>/url]].
+
+This should [not][] be a link.
+
+
+{{code}}
+[not]: /url
+{{/code}}
+
+Foo [[bar>>/url/]].
+
+Foo [[biz>>/url/]].
+
+== With ampersands {{id name="with-ampersands" /}}==
+
+Here’s a [[link with an ampersand in the URL>>http://example.com/?foo=1&bar=2]].
+
+Here’s a link with an amersand in the link text: [[AT&T>>http://att.com/]].
+
+Here’s an [[inline link>>/script?foo=1&bar=2]].
+
+Here’s an [[inline link in pointy braces>>/script?foo=1&bar=2]].
+
+== Autolinks {{id name="autolinks" /}}==
+
+With an ampersand: http://example.com/?foo=1&bar=2
+
+*. In a list?
+*. http://example.com/
+*. It should.
+
+An e-mail address: [[nobody@nowhere.net>>mailto:nobody@nowhere.net]]
+
+>Blockquoted: http://example.com/
+>
+Auto-links should not occur here: {{code}}<http://example.com/>{{/code}}
+
+
+{{code}}
+or here: <http://example.com/>
+{{/code}}
+
+
+----
+
+= Images {{id name="images" /}}=
+
+From “Voyage dans la Lune” by Georges Melies (1902):
+
+[[image:lalune.jpg||alt="lalune" title="fig:Voyage dans la Lune"]]
+
+Here is a movie [[image:movie.jpg||alt="movie"]] icon.
+
+
+----
+
+= Footnotes {{id name="footnotes" /}}=
+
+Here is a footnote reference,{{footnote}}Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.{{/footnote}} and another.{{footnote}}Here’s the long note. This one contains multiple blocks.
+
+Subsequent blocks are indented to show that they belong to the footnote (as with list items).
+
+
+{{code}}
+  { <code> }
+{{/code}}
+
+If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.{{/footnote}} This should //not// be a footnote reference, because it contains a space.[^my note] Here is an inline note.{{footnote}}This is //easier// to type. Inline notes may contain [[links>>http://google.com]] and {{code}}]{{/code}} verbatim characters, as well as [bracketed text].{{/footnote}}
+
+>Notes can go in quotes.{{footnote}}In quote.{{/footnote}}
+>
+1. And in list items.{{footnote}}In list.{{/footnote}}
+
+This paragraph should not be part of the note, as it is not indented.

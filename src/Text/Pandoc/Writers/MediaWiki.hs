@@ -12,7 +12,7 @@ Conversion of 'Pandoc' documents to MediaWiki markup.
 
 MediaWiki:  <http://www.mediawiki.org/wiki/MediaWiki>
 -}
-module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki ) where
+module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki, highlightingLangs ) where
 import Prelude
 import Control.Monad.Reader
 import Control.Monad.State.Strict
