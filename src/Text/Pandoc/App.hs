@@ -256,11 +256,11 @@ convertWithOpts opts = do
            case reader of
                 TextReader r
                   | optFileScope opts || readerName == "json" ->
-                      mconcat <$> mapM (readSource >=> r readerOpts) sources
+                      mconcat <$> mapM (readSource >=> r readerOpts) sources'
                   | otherwise ->
                       readSources sources' >>= r readerOpts
                 ByteStringReader r ->
-                  mconcat <$> mapM (readFile' >=> r readerOpts) sources
+                  mconcat <$> mapM (readFile' >=> r readerOpts) sources'
 
 
     when (readerName == "markdown_github" ||
