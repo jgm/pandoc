@@ -24,10 +24,11 @@ description:     Pandoc is a Haskell library for converting from one markup
                  roff man, and Textile, and it can write Markdown,
                  reStructuredText, XHTML, HTML 5, LaTeX, ConTeXt, DocBook,
                  JATS, OPML, TEI, OpenDocument, ODT, Word docx,
-                 PowerPoint pptx, RTF, MediaWiki, DokuWiki, ZimWiki, Textile,
-                 roff man, roff ms, plain text, Emacs Org-Mode,
-                 AsciiDoc, Haddock markup, EPUB (v2 and v3), ipynb,
-                 FictionBook2, InDesign ICML, Muse, LaTeX beamer slides,
+                 PowerPoint pptx, RTF, MediaWiki, DokuWiki, XWiki,
+                 ZimWiki, Textile, roff man, roff ms, plain text,
+                 Emacs Org-Mode, AsciiDoc, Haddock markup,
+                 EPUB (v2 and v3), ipynb, FictionBook2,
+                 InDesign ICML, Muse, LaTeX beamer slides,
                  and several kinds of HTML/JavaScript slide shows
                  (S5, Slidy, Slideous, DZSlides, reveal.js).
                  .
