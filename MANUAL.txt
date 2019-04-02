@@ -327,6 +327,7 @@ General options {.options}
     - `revealjs` ([reveal.js] HTML5 + JavaScript slide show)
     - `s5` ([S5] HTML and JavaScript slide show)
     - `tei` ([TEI Simple])
+    - `xwiki` ([XWiki markup])
     - `zimwiki` ([ZimWiki markup])
     - the path of a custom lua writer, see [Custom writers] below
     :::
@@ -450,6 +451,7 @@ General options {.options}
 [MediaWiki markup]: https://www.mediawiki.org/wiki/Help:Formatting
 [DokuWiki markup]: https://www.dokuwiki.org/dokuwiki
 [ZimWiki markup]: http://zim-wiki.org/manual/Help/Wiki_Syntax.html
+[XWiki markup]: https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/
 [TWiki markup]: http://twiki.org/cgi-bin/view/TWiki/TextFormattingRules
 [TikiWiki markup]: https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax
 [Haddock markup]: https://www.haskell.org/haddock/doc/html/ch03s08.html
@@ -3526,6 +3528,9 @@ LaTeX
 Markdown, Emacs Org mode, ConTeXt, ZimWiki
   ~ It will appear verbatim surrounded by `$...$` (for inline
     math) or `$$...$$` (for display math).
+
+XWiki
+  ~ It will appear verbatim surrounded by `{{formula}}..{{/formula}}`.
 
 reStructuredText
   ~ It will be rendered using an [interpreted text role `:math:`].
