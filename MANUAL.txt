@@ -436,7 +436,7 @@ General options {.options}
 [XHTML]: http://www.w3.org/TR/xhtml1/
 [LaTeX]: http://latex-project.org
 [`beamer`]: https://ctan.org/pkg/beamer
-[Beamer User's Guide]: http://ctan.math.utah.edu/ctan/tex-archive/macros/latex/contrib/beamer/doc/beameruserguide.pdf
+[Beamer User's Guide]: http://mirrors.ctan.org/macros/latex/contrib/beamer/doc/beameruserguide.pdf
 [ConTeXt]: http://www.contextgarden.net/
 [Rich Text Format]: http://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook]: http://docbook.org
@@ -1548,17 +1548,51 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 
 ### Layout
 
+`block-headings`
+:   make `\paragraph` and `\subparagraph` (fourth- and fifth-level headings, or
+    fifth- and sixth-level with book classes) free-standing rather than run-in;
+    requires further formatting to distinguish from `\subsubsection` (third- or
+    fourth-level headings). Instead of using this option, [KOMA-Script] can adjust
+    headings more extensively:
+
+        ---
+        documentclass: scrartcl
+        header-includes: |
+          \RedeclareSectionCommand[
+            beforeskip=-10pt plus -2pt minus -1pt,
+            afterskip=1sp plus -1sp minus 1sp,
+            font=\normalfont\itshape]{paragraph}
+          \RedeclareSectionCommand[
+            beforeskip=-10pt plus -2pt minus -1pt,
+            afterskip=1sp plus -1sp minus 1sp,
+            font=\normalfont\scshape,
+            indent=0pt]{subparagraph}
+        ...
+
 `classoption`
-:   option for document class, e.g. `oneside`; repeat for multiple options
+:   option for document class, e.g. `oneside`; repeat for multiple options:
+
+        ---
+        classoption:
+        - twocolumn
+        - landscape
+        ...
 
 `documentclass`
-:   document class: usually one of the standard classes, [`article`], [`report`],
-    and [`book`]; the [KOMA-Script] equivalents, `scrartcl`, `scrreprt`,
-    and `scrbook`, which default to smaller margins; or [`memoir`]
+:   document class: usually one of the standard classes, [`article`], [`book`],
+    and [`report`]; the [KOMA-Script] equivalents, `scrartcl`, `scrbook`,
+    and `scrreprt`, which default to smaller margins; or [`memoir`]
 
 `geometry`
 :   option for [`geometry`] package, e.g. `margin=1in`;
-    repeat for multiple options
+    repeat for multiple options:
+
+        ---
+        geometry:
+        - top=30mm
+        - left=20mm
+        - heightrounded
+        ...
 
 `indent`
 :   uses document class settings for indentation (the default LaTeX template
@@ -1583,10 +1617,6 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 `secnumdepth`
 :   numbering depth for sections (with `--number-sections` option
     or `numbersections` variable)
-
-`subparagraph`
-:   disables default behavior of LaTeX template that redefines (sub)paragraphs
-    as sections, changing the appearance of nested headings in some classes
 
 ### Fonts
 
