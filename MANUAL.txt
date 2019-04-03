@@ -754,7 +754,7 @@ General writer options {.options}
 `--toc-depth=`*NUMBER*
 
 :   Specify the number of section levels to include in the table
-    of contents.  The default is 3 (which means that level 1, 2, and 3
+    of contents.  The default is 3 (which means that level-1, -2, and -3
     headings will be listed in the contents).
 
 `--strip-comments`
@@ -908,7 +908,7 @@ Options affecting specific writers {.options}
 `--atx-headers`
 
 :   Use ATX-style headings in Markdown output. The default is
-    to use setext-style headings for levels 1-2, and then ATX headings.
+    to use setext-style headings for levels 1 to 2, and then ATX headings.
     (Note: for `gfm` output, ATX headings are always used.)
     This option also affects markdown cells in `ipynb` output.
 
@@ -1183,11 +1183,11 @@ Options affecting specific writers {.options}
 `--epub-chapter-level=`*NUMBER*
 
 :   Specify the heading level at which to split the EPUB into separate
-    "chapter" files. The default is to split into chapters at level 1
+    "chapter" files. The default is to split into chapters at level-1
     headings. This option only affects the internal composition of the
     EPUB, not the way chapters and sections are displayed to users. Some
     readers may be slow if the chapter files are too large, so for large
-    documents with few level 1 headings, one might want to use a chapter
+    documents with few level-1 headings, one might want to use a chapter
     level of 2 or 3.
 
 `--epub-subdirectory=`*DIRNAME*
@@ -4572,13 +4572,13 @@ rules:
 
 These rules are designed to support many different styles of slide show. If
 you don't care about structuring your slides into sections and subsections,
-you can just use level 1 headings for all each slide. (In that case, level 1
+you can just use level-1 headings for all each slide. (In that case, level-1
 will be the slide level.) But you can also structure the slide show into
 sections, as in the example above.
 
 Note:  in reveal.js slide shows, if slide level is 2, a two-dimensional
-layout will be produced, with level 1 headings building horizontally
-and level 2 headings building vertically.  It is not recommended that
+layout will be produced, with level-1 headings building horizontally
+and level-2 headings building vertically.  It is not recommended that
 you use deeper nesting of section levels with reveal.js.
 
 Incremental lists
