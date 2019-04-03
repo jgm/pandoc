@@ -368,7 +368,9 @@ General options {.options}
 :   Generate a bash completion script.  To enable bash completion
     with pandoc, add this to your `.bashrc`:
 
-        eval "$(pandoc --bash-completion)"
+    ~~~bash
+    eval "$(pandoc --bash-completion)"
+    ~~~
 
 `--verbose`
 
@@ -562,15 +564,17 @@ Reader options {.options}
 
     The following is an example lua script for macro-expansion:
 
-        function expand_hello_world(inline)
-          if inline.c == '{{helloworld}}' then
-            return pandoc.Emph{ pandoc.Str "Hello, World" }
-          else
-            return inline
-          end
-        end
+    ~~~lua
+    function expand_hello_world(inline)
+      if inline.c == '{{helloworld}}' then
+        return pandoc.Emph{ pandoc.Str "Hello, World" }
+      else
+        return inline
+      end
+    end
 
-        return {{Str = expand_hello_world}}
+    return {{Str = expand_hello_world}}
+    ~~~
 
     In order of preference, pandoc will look for lua filters in
 
@@ -1128,9 +1132,11 @@ Options affecting specific writers {.options}
 :   Look in the specified XML file for metadata for the EPUB.
     The file should contain a series of [Dublin Core elements].
     For example:
-
-         <dc:rights>Creative Commons</dc:rights>
-         <dc:language>es-AR</dc:language>
+    
+    ~~~html
+    <dc:rights>Creative Commons</dc:rights>
+    <dc:language>es-AR</dc:language>
+    ~~~
 
     By default, pandoc will include the following metadata elements:
     `<dc:title>` (from the document title), `<dc:creator>` (from the
@@ -1154,31 +1160,33 @@ Options affecting specific writers {.options}
     embedded fonts, you will need to add declarations like the following
     to your CSS (see `--css`):
 
-        @font-face {
-        font-family: DejaVuSans;
-        font-style: normal;
-        font-weight: normal;
-        src:url("DejaVuSans-Regular.ttf");
-        }
-        @font-face {
-        font-family: DejaVuSans;
-        font-style: normal;
-        font-weight: bold;
-        src:url("DejaVuSans-Bold.ttf");
-        }
-        @font-face {
-        font-family: DejaVuSans;
-        font-style: italic;
-        font-weight: normal;
-        src:url("DejaVuSans-Oblique.ttf");
-        }
-        @font-face {
-        font-family: DejaVuSans;
-        font-style: italic;
-        font-weight: bold;
-        src:url("DejaVuSans-BoldOblique.ttf");
-        }
-        body { font-family: "DejaVuSans"; }
+    ~~~css
+    @font-face {
+    font-family: DejaVuSans;
+    font-style: normal;
+    font-weight: normal;
+    src:url("DejaVuSans-Regular.ttf");
+    }
+    @font-face {
+    font-family: DejaVuSans;
+    font-style: normal;
+    font-weight: bold;
+    src:url("DejaVuSans-Bold.ttf");
+    }
+    @font-face {
+    font-family: DejaVuSans;
+    font-style: italic;
+    font-weight: normal;
+    src:url("DejaVuSans-Oblique.ttf");
+    }
+    @font-face {
+    font-family: DejaVuSans;
+    font-style: italic;
+    font-weight: bold;
+    src:url("DejaVuSans-BoldOblique.ttf");
+    }
+    body { font-family: "DejaVuSans"; }
+    ~~~
 
 `--epub-chapter-level=`*NUMBER*
 
@@ -1391,11 +1399,13 @@ Metadata variables
     through a [pandoc title block][Extension: `pandoc_title_block`],
     which allows for multiple authors, or through a YAML metadata block:
 
-        ---
-        author:
-        - Aristotle
-        - Peter Abelard
-        ...
+    ~~~yaml
+    ---
+    author:
+    - Aristotle
+    - Peter Abelard
+    ...
+    ~~~
 
 `subtitle`
 :   document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, and docx
@@ -1424,18 +1434,20 @@ any root-level string metadata, not included in ODT, docx
 or pptx metadata is added as a *custom property*.
 The following YAML metadata block for instance:
 
-    ---
-    title:  'This is the title'
-    subtitle: "This is the subtitle"
-    author:
-    - Author One
-    - Author Two
-    description: |
-        This is a long
-        description.
+~~~yaml
+---
+title:  'This is the title'
+subtitle: "This is the subtitle"
+author:
+- Author One
+- Author Two
+description: |
+    This is a long
+    description.
 
-        It consists of two paragraphs
-    ...
+    It consists of two paragraphs
+...
+~~~
 
 will include `title`, `author` and `description` as standard document
 properties and `subtitle` as a custom property when converting to docx,
@@ -1454,17 +1466,19 @@ Language variables
     Use native pandoc [Divs and Spans] with the `lang` attribute to
     switch the language:
 
-        ---
-        lang: en-GB
-        ...
+    ~~~markdown
+    ---
+    lang: en-GB
+    ...
 
-        Text in the main document language (British English).
+    Text in the main document language (British English).
 
-        ::: {lang=fr-CA}
-        > Cette citation est écrite en français canadien.
-        :::
+    ::: {lang=fr-CA}
+    > Cette citation est écrite en français canadien.
+    :::
 
-        More text in English. ['Zitat auf Deutsch.']{lang=de}
+    More text in English. ['Zitat auf Deutsch.']{lang=de}
+    ~~~
 
 `dir`
 :   the base script direction, either `rtl` (right-to-left)
@@ -1557,28 +1571,32 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
     fourth-level headings). Instead of using this option, [KOMA-Script] can adjust
     headings more extensively:
 
-        ---
-        documentclass: scrartcl
-        header-includes: |
-          \RedeclareSectionCommand[
-            beforeskip=-10pt plus -2pt minus -1pt,
-            afterskip=1sp plus -1sp minus 1sp,
-            font=\normalfont\itshape]{paragraph}
-          \RedeclareSectionCommand[
-            beforeskip=-10pt plus -2pt minus -1pt,
-            afterskip=1sp plus -1sp minus 1sp,
-            font=\normalfont\scshape,
-            indent=0pt]{subparagraph}
-        ...
+    ~~~yaml
+    ---
+    documentclass: scrartcl
+    header-includes: |
+      \RedeclareSectionCommand[
+        beforeskip=-10pt plus -2pt minus -1pt,
+        afterskip=1sp plus -1sp minus 1sp,
+        font=\normalfont\itshape]{paragraph}
+      \RedeclareSectionCommand[
+        beforeskip=-10pt plus -2pt minus -1pt,
+        afterskip=1sp plus -1sp minus 1sp,
+        font=\normalfont\scshape,
+        indent=0pt]{subparagraph}
+    ...
+    ~~~
 
 `classoption`
 :   option for document class, e.g. `oneside`; repeat for multiple options:
 
-        ---
-        classoption:
-        - twocolumn
-        - landscape
-        ...
+    ~~~yaml
+    ---
+    classoption:
+    - twocolumn
+    - landscape
+    ...
+    ~~~
 
 `documentclass`
 :   document class: usually one of the standard classes, [`article`], [`book`],
@@ -1589,12 +1607,14 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 :   option for [`geometry`] package, e.g. `margin=1in`;
     repeat for multiple options:
 
-        ---
-        geometry:
-        - top=30mm
-        - left=20mm
-        - heightrounded
-        ...
+    ~~~yaml
+    ---
+    geometry:
+    - top=30mm
+    - left=20mm
+    - heightrounded
+    ...
+    ~~~
 
 `indent`
 :   uses document class settings for indentation (the default LaTeX template
@@ -1636,12 +1656,14 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
     For example, to use the Libertine font with proportional lowercase
     (old-style) figures through the [`libertinus`] package:
 
-        ---
-        fontfamily: libertinus
-        fontfamilyoptions:
-        - osf
-        - p
-        ...
+    ~~~yaml
+    ---
+    fontfamily: libertinus
+    fontfamilyoptions:
+    - osf
+    - p
+    ...
+    ~~~
 
 `fontsize`
 :   font size for body text. The standard classes allow 10pt, 11pt, and 12pt.
@@ -1659,12 +1681,14 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
     available through [`fontspec`]; repeat for multiple options. For example,
     to use the [TeX Gyre] version of Palatino with lowercase figures:
 
-        ---
-        mainfont: TeX Gyre Pagella
-        mainfontoptions:
-        - Numbers=Lowercase
-        - Numbers=Proportional
-        ...
+    ~~~yaml
+    ---
+    mainfont: TeX Gyre Pagella
+    mainfontoptions:
+    - Numbers=Lowercase
+    - Numbers=Proportional
+    ...
+    ~~~
 
 `microtypeoptions`
 :    options to pass to the microtype package
@@ -2349,11 +2373,13 @@ There are two kinds of headings: Setext and ATX.
 A setext-style heading is a line of text "underlined" with a row of `=` signs
 (for a level-one heading) or `-` signs (for a level-two heading):
 
-    A level-one heading
-    ===================
+~~~markdown
+A level-one heading
+===================
 
-    A level-two heading
-    -------------------
+A level-two heading
+-------------------
+~~~
 
 The heading text can contain inline formatting, such as emphasis (see
 [Inline formatting], below).
@@ -2365,13 +2391,17 @@ An ATX-style heading consists of one to six `#` signs and a line of
 text, optionally followed by any number of `#` signs.  The number of
 `#` signs at the beginning of the line is the heading level:
 
-    ## A level-two heading
+~~~markdown
+## A level-two heading
 
-    ### A level-three heading ###
+### A level-three heading ###
+~~~
 
 As with setext-style headings, the heading text can contain formatting:
 
-    # A level-one heading with a [link](/url) and *emphasis*
+~~~markdown
+# A level-one heading with a [link](/url) and *emphasis*
+~~~
 
 #### Extension: `blank_before_header` ####
 
@@ -2381,8 +2411,10 @@ document). The reason for the requirement is that it is all too easy for a
 `#` to end up at the beginning of a line by accident (perhaps through line
 wrapping). Consider, for example:
 
-    I like several of their flavors of ice cream:
-    #22, for example, and #5.
+~~~markdown
+I like several of their flavors of ice cream:
+#22, for example, and #5.
+~~~
 
 #### Extension: `space_in_atx_header` ####
 
@@ -2405,12 +2437,14 @@ of the line containing the heading text:
 Thus, for example, the following headings will all be assigned the identifier
 `foo`:
 
-    # My heading {#foo}
+~~~markdown
+# My heading {#foo}
 
-    ## My heading ##    {#foo}
+## My heading ##    {#foo}
 
-    My other heading   {#foo}
-    ---------------
+My other heading   {#foo}
+----------------
+~~~
 
 (This syntax is compatible with [PHP Markdown Extra].)
 
@@ -2425,35 +2459,48 @@ Headings with the class `unnumbered` will not be numbered, even if
 context is equivalent to `.unnumbered`, and preferable in non-English
 documents.  So,
 
-    # My heading {-}
+~~~markdown
+# My heading {-}
+~~~
 
 is just the same as
 
-    # My heading {.unnumbered}
+~~~markdown
+# My heading {.unnumbered}
+~~~
 
 #### Extension: `implicit_header_references` ####
 
 Pandoc behaves as if reference links have been defined for each heading.
 So, to link to a heading
 
-    # Heading identifiers in HTML
+~~~markdown
+# Heading identifiers in HTML
+~~~
 
 you can simply write
 
-    [Heading identifiers in HTML]
+~~~markdown
+[Heading identifiers in HTML]
+~~~
 
 or
 
-    [Heading identifiers in HTML][]
+~~~markdown
+[Heading identifiers in HTML][]
+~~~
 
 or
 
-    [the section on heading identifiers][heading identifiers in
-    HTML]
+~~~markdown
+[the section on heading identifiers][heading identifiers in HTML]
+~~~
 
 instead of giving the identifier explicitly:
 
-    [Heading identifiers in HTML](#heading-identifiers-in-html)
+~~~markdown
+[Heading identifiers in HTML](#heading-identifiers-in-html)
+~~~
 
 If there are multiple headings with identical text, the corresponding
 reference will link to the first one only, and you will need to use explicit
@@ -2465,11 +2512,13 @@ Explicit link reference definitions always take priority over
 implicit heading references.  So, in the following example, the
 link will point to `bar`, not to `#foo`:
 
-    # Foo
+~~~markdown
+# Foo
 
-    [foo]: bar
+[foo]: bar
 
-    See [foo]
+See [foo]
+~~~
 
 Block quotations
 ----------------
@@ -2480,34 +2529,42 @@ A block quotation is one or more paragraphs or other block elements
 and an optional space. (The `>` need not start at the left margin, but
 it should not be indented more than three spaces.)
 
-    > This is a block quote. This
-    > paragraph has two lines.
-    >
-    > 1. This is a list inside a block quote.
-    > 2. Second item.
+~~~markdown
+> This is a block quote. This
+> paragraph has two lines.
+>
+> 1. This is a list inside a block quote.
+> 2. Second item.
+~~~
 
 A "lazy" form, which requires the `>` character only on the first
 line of each block, is also allowed:
 
-    > This is a block quote. This
-    paragraph has two lines.
+~~~markdown
+> This is a block quote. This
+paragraph has two lines.
 
-    > 1. This is a list inside a block quote.
-    2. Second item.
+> 1. This is a list inside a block quote.
+2. Second item.
+~~~
 
 Among the block elements that can be contained in a block quote are
 other block quotes. That is, block quotes can be nested:
 
-    > This is a block quote.
-    >
-    > > A block quote within a block quote.
+~~~markdown
+> This is a block quote.
+>
+> > A block quote within a block quote.
+~~~
 
 If the `>` character is followed by an optional space, that space
 will be considered part of the block quote marker and not part of
 the indentation of the contents.  Thus, to put an indented code
 block in a block quote, you need five spaces after the `>`:
 
-    >     code
+~~~markdown
+>     code
+~~~
 
 #### Extension: `blank_before_blockquote` ####
 
@@ -2518,9 +2575,10 @@ document). The reason for the requirement is that it is all too easy for a
 wrapping). So, unless the `markdown_strict` format is used, the following does
 not produce a nested block quote in pandoc:
 
-    > This is a block quote.
-    >> Nested.
-
+~~~markdown
+> This is a block quote.
+>> Nested.
+~~~
 
 Verbatim (code) blocks
 ----------------------
@@ -2531,9 +2589,11 @@ A block of text indented four spaces (or one tab) is treated as verbatim
 text: that is, special characters do not trigger special formatting,
 and all spaces and line breaks are preserved.  For example,
 
-        if (a > 3) {
-          moveShip(5 * gravity, DOWN);
-        }
+~~~haskell
+if (a > 3) {
+  moveShip(5 * gravity, DOWN);
+}
+~~~
 
 The initial (four space or one tab) indentation is not considered part
 of the verbatim text, and is removed in the output.
@@ -2594,11 +2654,13 @@ block above will appear highlighted, with numbered lines. (To see which
 languages are supported, type `pandoc --list-highlight-languages`.) Otherwise,
 the code block above will appear as follows:
 
-    <pre id="mycode" class="haskell numberLines" startFrom="100">
-      <code>
-      ...
-      </code>
-    </pre>
+~~~html
+<pre id="mycode" class="haskell numberLines" startFrom="100">
+  <code>
+  ...
+  </code>
+</pre>
+~~~
 
 The `numberLines` (or `number-lines`) class will cause the lines
 of the code block to be numbered, starting with `1` or the value
@@ -2639,22 +2701,26 @@ followed by a space.  The division into lines will be preserved in
 the output, as will any leading spaces; otherwise, the lines will
 be formatted as Markdown.  This is useful for verse and addresses:
 
-    | The limerick packs laughs anatomical
-    | In space that is quite economical.
-    |    But the good ones I've seen
-    |    So seldom are clean
-    | And the clean ones so seldom are comical
+~~~markdown
+| The limerick packs laughs anatomical
+| In space that is quite economical.
+|    But the good ones I've seen
+|    So seldom are clean
+| And the clean ones so seldom are comical
 
-    | 200 Main St.
-    | Berkeley, CA 94718
+| 200 Main St.
+| Berkeley, CA 94718
+~~~
 
 The lines can be hard-wrapped if needed, but the continuation
 line must begin with a space.
 
-    | The Right Honorable Most Venerable and Righteous Samuel L.
-      Constable, Jr.
-    | 200 Main St.
-    | Berkeley, CA 94718
+~~~markdown
+| The Right Honorable Most Venerable and Righteous Samuel L.
+  Constable, Jr.
+| 200 Main St.
+| Berkeley, CA 94718
+~~~
 
 This syntax is borrowed from [reStructuredText].
 
@@ -2667,18 +2733,22 @@ A bullet list is a list of bulleted list items.  A bulleted list
 item begins with a bullet (`*`, `+`, or `-`).  Here is a simple
 example:
 
-    * one
-    * two
-    * three
+~~~markdown
+* one
+* two
+* three
+~~~
 
 This will produce a "compact" list. If you want a "loose" list, in which
 each item is formatted as a paragraph, put spaces between the items:
 
-    * one
+~~~markdown
+* one
 
-    * two
+* two
 
-    * three
+* three
+~~~
 
 The bullets need not be flush with the left margin; they may be
 indented one, two, or three spaces. The bullet must be followed
@@ -2687,15 +2757,19 @@ by whitespace.
 List items look best if subsequent lines are flush with the first
 line (after the bullet):
 
-    * here is my first
-      list item.
-    * and my second.
+~~~markdown
+* here is my first
+  list item.
+* and my second.
+~~~
 
 But Markdown also allows a "lazy" format:
 
-    * here is my first
-    list item.
-    * and my second.
+~~~markdown
+* here is my first
+list item.
+* and my second.
+~~~
 
 ### Block content in list items ###
 
@@ -2704,51 +2778,59 @@ content. However, subsequent paragraphs must be preceded by a blank line
 and indented to line up with the first non-space content after
 the list marker.
 
-      * First paragraph.
+~~~markdown
+* First paragraph.
 
-        Continued.
+  Continued.
 
-      * Second paragraph. With a code block, which must be indented
-        eight spaces:
+* Second paragraph. With a code block, which must be indented
+  eight spaces:
 
-            { code }
+      { code }
+~~~
 
 Exception: if the list marker is followed by an indented code
 block, which must begin 5 spaces after the list marker, then
 subsequent paragraphs must begin two columns after the last
 character of the list marker:
 
-    *     code
+~~~markdown
+*     code
 
-      continuation paragraph
+  continuation paragraph
+~~~
 
 List items may include other lists.  In this case the preceding blank
 line is optional.  The nested list must be indented to line up with
 the first non-space character after the list marker of the
 containing list item.
 
-    * fruits
-      + apples
-        - macintosh
-        - red delicious
-      + pears
-      + peaches
-    * vegetables
-      + broccoli
-      + chard
+~~~markdown
+* fruits
+  + apples
+    - McIntosh
+    - red delicious
+  + pears
+  + peaches
+* vegetables
+  + broccoli
+  + chard
+~~~
 
 As noted above, Markdown allows you to write list items "lazily," instead of
 indenting continuation lines. However, if there are multiple paragraphs or
 other blocks in a list item, the first line of each must be indented.
 
-    + A lazy, lazy, list
-    item.
+~~~markdown
++ A lazy, lazy, list
+item.
 
-    + Another one; this looks
-    bad but is legal.
++ Another one; this looks
+bad but is legal.
 
-        Second paragraph of second
-    list item.
+    Second paragraph of second
+list item.
+~~~
 
 ### Ordered lists ###
 
@@ -2759,15 +2841,19 @@ In standard Markdown, enumerators are decimal numbers followed
 by a period and a space.  The numbers themselves are ignored, so
 there is no difference between this list:
 
-    1.  one
-    2.  two
-    3.  three
+~~~markdown
+1.  one
+2.  two
+3.  three
+~~~
 
 and this one:
 
-    5.  one
-    7.  two
-    1.  three
+~~~markdown
+5.  one
+7.  two
+1.  three
+~~~
 
 #### Extension: `fancy_lists` ####
 
@@ -2797,8 +2883,10 @@ capital letter with a period, by at least two spaces.[^2]
 The `fancy_lists` extension also allows '`#`' to be used as an
 ordered list marker in place of a numeral:
 
-    #. one
-    #. two
+~~~markdown
+#. one
+#. two
+~~~
 
 #### Extension: `startnum` ####
 
@@ -2808,33 +2896,41 @@ output format. Thus, the following yields a list with numbers followed
 by a single parenthesis, starting with 9, and a sublist with lowercase
 roman numerals:
 
-     9)  Ninth
-    10)  Tenth
-    11)  Eleventh
-           i. subone
-          ii. subtwo
-         iii. subthree
+~~~markdown
+ 9)  Ninth
+10)  Tenth
+11)  Eleventh
+       i. subone
+      ii. subtwo
+     iii. subthree
+~~~
 
 Pandoc will start a new list each time a different type of list
 marker is used.  So, the following will create three lists:
 
-    (2) Two
-    (5) Three
-    1.  Four
-    *   Five
+~~~markdown
+(2) Two
+(5) Three
+1.  Four
+*   Five
+~~~
 
 If default list markers are desired, use `#.`:
 
-    #.  one
-    #.  two
-    #.  three
+~~~markdown
+#.  one
+#.  two
+#.  three
+~~~
 
 #### Extension: `task_lists` ####
 
 Pandoc supports task lists, using the syntax of GitHub-Flavored Markdown.
 
-    - [ ] an unchecked task list item
-    - [x] checked item
+~~~markdown
+- [ ] an unchecked task list item
+- [x] checked item
+~~~
 
 ### Definition lists ###
 
@@ -2843,17 +2939,19 @@ Pandoc supports task lists, using the syntax of GitHub-Flavored Markdown.
 Pandoc supports definition lists, using the syntax of
 [PHP Markdown Extra] with some extensions.[^3]
 
-    Term 1
+~~~markdown
+Term 1
 
-    :   Definition 1
+:   Definition 1
 
-    Term 2 with *inline markup*
+Term 2 with *inline markup*
 
-    :   Definition 2
+:   Definition 2
 
-            { some code, part of Definition 2 }
+        { some code, part of Definition 2 }
 
-        Third paragraph of definition 2.
+    Third paragraph of definition 2.
+~~~
 
 Each term must fit on one line, which may optionally be followed by
 a blank line, and must be followed by one or more definitions.
@@ -2867,12 +2965,14 @@ aside from the colon or tilde) should be indented four spaces. However,
 as with other Markdown lists, you can "lazily" omit indentation except
 at the beginning of a paragraph or other block element:
 
-    Term 1
+~~~markdown
+Term 1
 
-    :   Definition
-    with lazy continuation.
+:   Definition
+with lazy continuation.
 
-        Second paragraph of the definition.
+    Second paragraph of the definition.
+~~~
 
 If you leave space before the definition (as in the example above),
 the text of the definition will be treated as a paragraph.  In some
@@ -2880,12 +2980,14 @@ output formats, this will mean greater spacing between term/definition
 pairs. For a more compact definition list, omit the space before the
 definition:
 
-    Term 1
-      ~ Definition 1
+~~~markdown
+Term 1
+  ~ Definition 1
 
-    Term 2
-      ~ Definition 2a
-      ~ Definition 2b
+Term 2
+  ~ Definition 2a
+  ~ Definition 2b
+~~~
 
 Note that space between items in a definition list is required.
 (A variant that loosens this requirement, but disallows "lazy"
@@ -2904,19 +3006,23 @@ the next '2', and so on, throughout the document. The numbered examples
 need not occur in a single list; each new list using `@` will take up
 where the last stopped. So, for example:
 
-    (@)  My first example will be numbered (1).
-    (@)  My second example will be numbered (2).
+~~~markdown
+(@)  My first example will be numbered (1).
+(@)  My second example will be numbered (2).
 
-    Explanation of examples.
+Explanation of examples.
 
-    (@)  My third example will be numbered (3).
+(@)  My third example will be numbered (3).
+~~~
 
 Numbered examples can be labeled and referred to elsewhere in the
 document:
 
-    (@good)  This is a good example.
+~~~markdown
+(@good)  This is a good example.
 
-    As (@good) illustrates, ...
+As (@good) illustrates, ...
+~~~
 
 The label can be any string of alphanumeric characters, underscores,
 or hyphens.
@@ -2933,13 +3039,15 @@ first non-space character after the label would be awkward.
 Pandoc behaves differently from `Markdown.pl` on some "edge
 cases" involving lists.  Consider this source:
 
-    +   First
-    +   Second:
-        -   Fee
-        -   Fie
-        -   Foe
+~~~markdown
++   First
++   Second:
+    -   Fee
+    -   Fie
+    -   Foe
 
-    +   Third
++   Third
+~~~
 
 Pandoc transforms this into a "compact list" (with no `<p>` tags around
 "First", "Second", or "Third"), while Markdown puts `<p>` tags around
@@ -2957,10 +3065,12 @@ even though it is different from that of `Markdown.pl`.)
 
 What if you want to put an indented code block after a list?
 
-    -   item one
-    -   item two
+~~~markdown
+-   item one
+-   item two
 
-        { my code block }
+    { my code block }
+~~~
 
 Trouble! Here pandoc (like other Markdown implementations) will treat
 `{ my code block }` as the second paragraph of item two, and not as
@@ -2970,25 +3080,29 @@ To "cut off" the list after item two, you can insert some non-indented
 content, like an HTML comment, which won't produce visible output in
 any format:
 
-    -   item one
-    -   item two
+~~~markdown
+-   item one
+-   item two
 
-    <!-- end of list -->
+<!-- end of list -->
 
-        { my code block }
+    { my code block }
+~~~
 
 You can use the same trick if you want two consecutive lists instead
 of one big list:
 
-    1.  one
-    2.  two
-    3.  three
+~~~markdown
+1.  one
+2.  two
+3.  three
 
-    <!-- -->
+<!-- -->
 
-    1.  uno
-    2.  dos
-    3.  tres
+1.  uno
+2.  dos
+3.  tres
+~~~
 
 Horizontal rules
 ----------------
@@ -2996,9 +3110,11 @@ Horizontal rules
 A line containing a row of three or more `*`, `-`, or `_` characters
 (optionally separated by spaces) produces a horizontal rule:
 
-    *  *  *  *
+~~~markdown
+*  *  *  *
 
-    ---------------
+---------------
+~~~
 
 
 Tables
@@ -3019,13 +3135,15 @@ It may appear either before or after the table.
 
 Simple tables look like this:
 
-      Right     Left     Center     Default
-    -------     ------ ----------   -------
-         12     12        12            12
-        123     123       123          123
-          1     1          1             1
+~~~markdown
+  Right     Left     Center     Default
+-------     ------ ----------   -------
+     12     12        12            12
+    123     123       123          123
+      1     1          1             1
 
-    Table:  Demonstration of simple table syntax.
+Table:  Demonstration of simple table syntax.
+~~~
 
 The header and table rows must each fit on one line.  Column
 alignments are determined by the position of the header text relative
@@ -3049,11 +3167,13 @@ a blank line.
 The column header row may be omitted, provided a dashed line is used
 to end the table. For example:
 
-    -------     ------ ----------   -------
-         12     12        12             12
-        123     123       123           123
-          1     1          1              1
-    -------     ------ ----------   -------
+~~~markdown
+-------     ------ ----------   -------
+     12     12        12             12
+    123     123       123           123
+      1     1          1              1
+-------     ------ ----------   -------
+~~~
 
 When the header row is omitted, column alignments are determined on the basis
 of the first line of the table body. So, in the tables above, the columns
@@ -3065,20 +3185,22 @@ Multiline tables allow header and table rows to span multiple lines
 of text (but cells that span multiple columns or rows of the table are
 not supported).  Here is an example:
 
-    -------------------------------------------------------------
-     Centered   Default           Right Left
-      Header    Aligned         Aligned Aligned
-    ----------- ------- --------------- -------------------------
-       First    row                12.0 Example of a row that
-                                        spans multiple lines.
+~~~markdown
+-------------------------------------------------------------
+ Centered   Default           Right Left
+  Header    Aligned         Aligned Aligned
+----------- ------- --------------- -------------------------
+   First    row                12.0 Example of a row that
+                                    spans multiple lines.
 
-      Second    row                 5.0 Here's another one. Note
-                                        the blank line between
-                                        rows.
-    -------------------------------------------------------------
+  Second    row                 5.0 Here's another one. Note
+                                    the blank line between
+                                    rows.
+-------------------------------------------------------------
 
-    Table: Here's the caption. It, too, may span
-    multiple lines.
+Table: Here's the caption. It, too, may span
+multiple lines.
+~~~
 
 These work like simple tables, but with the following differences:
 
@@ -3094,16 +3216,18 @@ output, try widening it in the Markdown source.
 
 The header may be omitted in multiline tables as well as simple tables:
 
-    ----------- ------- --------------- -------------------------
-       First    row                12.0 Example of a row that
-                                        spans multiple lines.
+~~~markdown
+----------- ------- --------------- -------------------------
+   First    row                12.0 Example of a row that
+                                    spans multiple lines.
 
-      Second    row                 5.0 Here's another one. Note
-                                        the blank line between
-                                        rows.
-    ----------- ------- --------------- -------------------------
+  Second    row                 5.0 Here's another one. Note
+                                    the blank line between
+                                    rows.
+----------- ------- --------------- -------------------------
 
-    : Here's a multiline table without a header.
+: Here's a multiline table without a header.
+~~~
 
 It is possible for a multiline table to have just one row, but the row
 should be followed by a blank line (and then the row of dashes that ends
@@ -3113,17 +3237,19 @@ the table), or the table may be interpreted as a simple table.
 
 Grid tables look like this:
 
-    : Sample grid table.
+~~~markdown
+: Sample grid table.
 
-    +---------------+---------------+--------------------+
-    | Fruit         | Price         | Advantages         |
-    +===============+===============+====================+
-    | Bananas       | $1.34         | - built-in wrapper |
-    |               |               | - bright color     |
-    +---------------+---------------+--------------------+
-    | Oranges       | $2.10         | - cures scurvy     |
-    |               |               | - tasty            |
-    +---------------+---------------+--------------------+
++---------------+---------------+--------------------+
+| Fruit         | Price         | Advantages         |
++===============+===============+====================+
+| Bananas       | $1.34         | - built-in wrapper |
+|               |               | - bright color     |
++---------------+---------------+--------------------+
+| Oranges       | $2.10         | - cures scurvy     |
+|               |               | - tasty            |
++---------------+---------------+--------------------+
+~~~
 
 The row of `=`s separates the header from the table body, and can be
 omitted for a headerless table. The cells of grid tables may contain
@@ -3137,17 +3263,21 @@ Alignments can be specified as with pipe tables, by putting
 colons at the boundaries of the separator line after the
 header:
 
-    +---------------+---------------+--------------------+
-    | Right         | Left          | Centered           |
-    +==============:+:==============+:==================:+
-    | Bananas       | $1.34         | built-in wrapper   |
-    +---------------+---------------+--------------------+
+~~~markdown
++---------------+---------------+--------------------+
+| Right         | Left          | Centered           |
++==============:+:==============+:==================:+
+| Bananas       | $1.34         | built-in wrapper   |
++---------------+---------------+--------------------+
+~~~
 
 For headerless tables, the colons go on the top line instead:
 
-    +--------------:+:--------------+:------------------:+
-    | Right         | Left          | Centered           |
-    +---------------+---------------+--------------------+
+~~~markdown
++--------------:+:--------------+:------------------:+
+| Right         | Left          | Centered           |
++---------------+---------------+--------------------+
+~~~
 
 ##### Grid Table Limitations #####
 
@@ -3166,13 +3296,15 @@ Pandoc.
 
 Pipe tables look like this:
 
-    | Right | Left | Default | Center |
-    |------:|:-----|---------|:------:|
-    |   12  |  12  |    12   |    12  |
-    |  123  |  123 |   123   |   123  |
-    |    1  |    1 |     1   |     1  |
+~~~markdown
+| Right | Left | Default | Center |
+|------:|:-----|---------|:------:|
+|   12  |  12  |    12   |    12  |
+|  123  |  123 |   123   |   123  |
+|    1  |    1 |     1   |     1  |
 
-      : Demonstration of pipe table syntax.
+  : Demonstration of pipe table syntax.
+~~~
 
 The syntax is identical to [PHP Markdown Extra tables].  The beginning and
 ending pipe characters are optional, but pipes are required between all
@@ -3184,11 +3316,13 @@ Since the pipes indicate column boundaries, columns need not be vertically
 aligned, as they are in the above example.  So, this is a perfectly
 legal (though ugly) pipe table:
 
-    fruit| price
-    -----|-----:
-    apple|2.05
-    pear|1.37
-    orange|3.09
+~~~markdown
+fruit| price
+-----|-----:
+apple|2.05
+pear|1.37
+orange|3.09
+~~~
 
 The cells of pipe tables cannot contain block elements like paragraphs
 and lists, and cannot span multiple lines.  If a pipe table contains a
@@ -3205,10 +3339,12 @@ to their contents.
 Note:  pandoc also recognizes pipe tables of the following
 form, as can be produced by Emacs' orgtbl-mode:
 
-    | One | Two   |
-    |-----+-------|
-    | my  | table |
-    | is  | nice  |
+~~~markdown
+| One | Two   |
+|-----+-------|
+| my  | table |
+| is  | nice  |
+~~~
 
 The difference is that `+` is used instead of `|`. Other orgtbl features
 are not supported. In particular, to get non-default column alignment,
@@ -3223,9 +3359,11 @@ Metadata blocks
 
 If the file begins with a title block
 
-    % title
-    % author(s) (separated by semicolons)
-    % date
+~~~markdown
+% title
+% author(s) (separated by semicolons)
+% date
+~~~
 
 it will be parsed as bibliographic information, not regular text.  (It
 will be used, for example, in the title of standalone LaTeX or HTML
@@ -3233,30 +3371,36 @@ output.)  The block may contain just a title, a title and an author,
 or all three elements. If you want to include an author but no
 title, or a title and a date but no author, you need a blank line:
 
-    %
-    % Author
+~~~markdown
+%
+% Author
 
-    % My title
-    %
-    % June 15, 2006
+% My title
+%
+% June 15, 2006
+~~~
 
 The title may occupy multiple lines, but continuation lines must
 begin with leading space, thus:
 
-    % My title
-      on multiple lines
+~~~markdown
+% My title
+  on multiple lines
+~~~
 
 If a document has multiple authors, the authors may be put on
 separate lines with leading space, or separated by semicolons, or
 both.  So, all of the following are equivalent:
 
-    % Author One
-      Author Two
+~~~markdown
+% Author One
+  Author Two
 
-    % Author One; Author Two
+% Author One; Author Two
 
-    % Author One;
-      Author Two
+% Author One;
+  Author Two
+~~~
 
 The date must fit on one line.
 
@@ -3283,15 +3427,21 @@ this is assumed to be additional footer and header text. A single pipe
 character (`|`) should be used to separate the footer text from the header
 text.  Thus,
 
-    % PANDOC(1)
+~~~markdown
+% PANDOC(1)
+~~~
 
 will yield a man page with the title `PANDOC` and section 1.
 
-    % PANDOC(1) Pandoc User Manuals
+~~~markdown
+% PANDOC(1) Pandoc User Manuals
+~~~
 
 will also have "Pandoc User Manuals" in the footer.
 
-    % PANDOC(1) Pandoc User Manuals | Version 4.0
+~~~markdown
+% PANDOC(1) Pandoc User Manuals | Version 4.0
+~~~
 
 will also have "Version 4.0" in the header.
 
@@ -3335,24 +3485,28 @@ if a title contains a colon, it must be quoted.  The pipe character
 literally, without need for escaping.  This form is necessary
 when the field contains blank lines or block-level formatting:
 
-    ---
-    title:  'This is the title: it contains a colon'
-    author:
-    - Author One
-    - Author Two
-    keywords: [nothing, nothingness]
-    abstract: |
-      This is the abstract.
+~~~yaml
+---
+title:  'This is the title: it contains a colon'
+author:
+- Author One
+- Author Two
+keywords: [nothing, nothingness]
+abstract: |
+  This is the abstract.
 
-      It consists of two paragraphs.
-    ...
+  It consists of two paragraphs.
+...
+~~~
 
 Template variables will be set automatically from the metadata.  Thus, for
 example, in writing HTML, the variable `abstract` will be set to the HTML
 equivalent of the Markdown in the `abstract` field:
 
-    <p>This is the abstract.</p>
-    <p>It consists of two paragraphs.</p>
+~~~html
+<p>This is the abstract.</p>
+<p>It consists of two paragraphs.</p>
+~~~
 
 Variables can contain arbitrary YAML structures, but the template must match
 this structure.  The `author` variable in the default templates expects a
@@ -3360,14 +3514,16 @@ simple list or string, but can be changed to support more complicated
 structures.  The following combination, for example, would add an affiliation
 to the author if one is given:
 
-    ---
-    title: The document title
-    author:
-    - name: Author One
-      affiliation: University of Somewhere
-    - name: Author Two
-      affiliation: University of Nowhere
-    ...
+~~~yaml
+---
+title: The document title
+author:
+- name: Author One
+  affiliation: University of Somewhere
+- name: Author Two
+  affiliation: University of Nowhere
+...
+~~~
 
 To use the structured authors in the example above, you would need a custom
 template:
@@ -3386,12 +3542,16 @@ this content as raw code for a particular output format, using
 the [`raw_attribute` extension](#extension-raw_attribute)), or it
 will be interpreted as markdown. For example:
 
-    header-includes:
-    - |
-      ```{=latex}
-      \let\oldsection\section
-      \renewcommand{\section}[1]{\clearpage\oldsection{#1}}
-      ```
+~~~yaml
+---
+header-includes:
+- |
+  ```{=latex}
+  \let\oldsection\section
+  \renewcommand{\section}[1]{\clearpage\oldsection{#1}}
+  ```
+...
+~~~
 
 Backslash escapes
 -----------------
@@ -3402,15 +3562,21 @@ Except inside a code block or inline code, any punctuation or space
 character preceded by a backslash will be treated literally, even if it
 would normally indicate formatting.  Thus, for example, if one writes
 
-    *\*hello\**
+~~~markdown
+*\*hello\**
+~~~
 
 one will get
 
-    <em>*hello*</em>
+~~~html
+<em>*hello*</em>
+~~~
 
 instead of
 
-    <strong>hello</strong>
+~~~html
+<strong>hello</strong>
+~~~
 
 This rule is easier to remember than standard Markdown's rule,
 which allows only the following characters to be backslash-escaped:
@@ -3439,17 +3605,23 @@ Inline formatting
 
 To *emphasize* some text, surround it with `*`s or `_`, like this:
 
-    This text is _emphasized with underscores_, and this
-    is *emphasized with asterisks*.
+~~~markdown
+This text is _emphasized with underscores_, and this
+is *emphasized with asterisks*.
+~~~
 
 Double `*` or `_` produces **strong emphasis**:
 
-    This is **strong emphasis** and __with underscores__.
+~~~markdown
+This is **strong emphasis** and __with underscores__.
+~~~
 
 A `*` or `_` character surrounded by spaces, or backslash-escaped,
 will not trigger emphasis:
 
-    This is * not emphasized *, and \*neither is this\*.
+~~~markdown
+This is * not emphasized *, and \*neither is this\*.
+~~~
 
 #### Extension: `intraword_underscores` ####
 
@@ -3458,7 +3630,9 @@ pandoc does not interpret a `_` surrounded by alphanumeric
 characters as an emphasis marker.  If you want to emphasize
 just part of a word, use `*`:
 
-    feas*ible*, not feas*able*.
+~~~markdown
+feas*ible*, not feas*able*.
+~~~
 
 
 ### Strikeout ###
@@ -3468,7 +3642,9 @@ just part of a word, use `*`:
 To strikeout a section of text with a horizontal line, begin and end it
 with `~~`. Thus, for example,
 
-    This ~~is deleted text.~~
+~~~markdown
+This ~~is deleted text.~~
+~~~
 
 
 ### Superscripts and subscripts ###
@@ -3479,7 +3655,9 @@ Superscripts may be written by surrounding the superscripted text by `^`
 characters; subscripts may be written by surrounding the subscripted
 text by `~` characters.  Thus, for example,
 
-    H~2~O is a liquid.  2^10^ is 1024.
+~~~markdown
+H~2~O is a liquid.  2^10^ is 1024.
+~~~
 
 If the superscripted or subscripted text contains spaces, these spaces
 must be escaped with backslashes.  (This is to prevent accidental
@@ -3492,11 +3670,15 @@ Thus, if you want the letter P with 'a cat' in subscripts, use
 
 To make a short span of text verbatim, put it inside backticks:
 
-    What is the difference between `>>=` and `>>`?
+~~~markdown
+What is the difference between `>>=` and `>>`?
+~~~
 
 If the verbatim text includes a backtick, use double backticks:
 
-    Here is a literal backtick `` ` ``.
+~~~markdown
+Here is a literal backtick `` ` ``.
+~~~
 
 (The spaces after the opening backticks and before the closing
 backticks will be ignored.)
@@ -3509,28 +3691,38 @@ preceded by a space).
 Note that backslash-escapes (and other Markdown constructs) do not
 work in verbatim contexts:
 
-    This is a backslash followed by an asterisk: `\*`.
+~~~markdown
+This is a backslash followed by an asterisk: `\*`.
+~~~
 
 #### Extension: `inline_code_attributes` ####
 
 Attributes can be attached to verbatim text, just as with
 [fenced code blocks]:
 
-    `<$>`{.haskell}
+~~~markdown
+`<$>`{.haskell}
+~~~
 
 ### Small caps ###
 
 To write small caps, use the `smallcaps` class:
 
-    [Small caps]{.smallcaps}
+~~~markdown
+[Small caps]{.smallcaps}
+~~~
 
 Or, without the `bracketed_spans` extension:
 
-    <span class="smallcaps">Small caps</span>
+~~~html
+<span class="smallcaps">Small caps</span>
+~~~
 
 For compatibility with other Markdown flavors, CSS is also supported:
 
-    <span style="font-variant:small-caps;">Small caps</span>
+~~~html
+<span style="font-variant:small-caps;">Small caps</span>
+~~~
 
 This will work in all output formats that support small caps.
 
@@ -3647,21 +3839,25 @@ Pandoc behaves this way when the `markdown_strict` format is used; but
 by default, pandoc interprets material between HTML block tags as Markdown.
 Thus, for example, pandoc will turn
 
-    <table>
-    <tr>
-    <td>*one*</td>
-    <td>[a link](http://google.com)</td>
-    </tr>
-    </table>
+~~~html
+<table>
+<tr>
+<td>*one*</td>
+<td>[a link](http://google.com)</td>
+</tr>
+</table>
+~~~
 
 into
 
-    <table>
-    <tr>
-    <td><em>one</em></td>
-    <td><a href="http://google.com">a link</a></td>
-    </tr>
-    </table>
+~~~html
+<table>
+<tr>
+<td><em>one</em></td>
+<td><a href="http://google.com">a link</a></td>
+</tr>
+</table>
+~~~
 
 whereas `Markdown.pl` will preserve it as is.
 
@@ -3694,16 +3890,20 @@ included in a document. Inline TeX commands will be preserved and passed
 unchanged to the LaTeX and ConTeXt writers. Thus, for example, you can use
 LaTeX to include BibTeX citations:
 
-    This result was proved in \cite{jones.1967}.
+~~~latex
+This result was proved in \cite{jones.1967}.
+~~~
 
 Note that in LaTeX environments, like
 
-    \begin{tabular}{|l|l|}\hline
-    Age & Frequency \\ \hline
-    18--25  & 15 \\
-    26--35  & 33 \\
-    36--45  & 22 \\ \hline
-    \end{tabular}
+~~~latex
+\begin{tabular}{|l|l|}\hline
+Age & Frequency \\ \hline
+18--25  & 15 \\
+26--35  & 33 \\
+36--45  & 22 \\ \hline
+\end{tabular}
+~~~
 
 the material between the begin and end tags will be interpreted as raw
 LaTeX, not as Markdown.
@@ -3728,6 +3928,7 @@ roff `ms` block:
     .MYMACRO
     blah blah
     ```
+
 And the following produces a raw `html` inline element:
 
     This is `<a>html</a>`{=html}
@@ -3768,9 +3969,11 @@ macro definitions and apply the resulting macros to all LaTeX
 math and raw LaTeX.  So, for example, the following will work in
 all output formats, not just LaTeX:
 
-    \newcommand{\tuple}[1]{\langle #1 \rangle}
+~~~latex
+\newcommand{\tuple}[1]{\langle #1 \rangle}
 
-    $\tuple{a, b, c}$
+$\tuple{a, b, c}$
+~~~
 
 Note that LaTeX macros will not be applied if they occur
 inside inside a raw span or block marked with the
@@ -3793,8 +3996,10 @@ Markdown allows links to be specified in several ways.
 If you enclose a URL or email address in pointy brackets, it
 will become a link:
 
-    <http://google.com>
-    <sam@green.eggs.ham>
+~~~markdown
+<http://google.com>
+<sam@green.eggs.ham>
+~~~
 
 ### Inline links ###
 
@@ -3802,8 +4007,10 @@ An inline link consists of the link text in square brackets,
 followed by the URL in parentheses. (Optionally, the URL can
 be followed by a link title, in quotes.)
 
-    This is an [inline link](/url), and here's [one with
-    a title](http://fsf.org "click here for a good time!").
+~~~markdown
+This is an [inline link](/url), and here's [one with
+a title](http://fsf.org "click here for a good time!").
+~~~
 
 There can be no space between the bracketed part and the parenthesized part.
 The link text can contain formatting (such as emphasis), but the title cannot.
@@ -3811,7 +4018,9 @@ The link text can contain formatting (such as emphasis), but the title cannot.
 Email addresses in inline links are not autodetected, so they have to be
 prefixed with `mailto`:
 
-    [Write me!](mailto:sam@green.eggs.ham)
+~~~markdown
+[Write me!](mailto:sam@green.eggs.ham)
+~~~
 
 ### Reference links ###
 
@@ -3830,32 +4039,42 @@ link labels.
 
 Here are some examples:
 
-    [my label 1]: /foo/bar.html  "My title, optional"
-    [my label 2]: /foo
-    [my label 3]: http://fsf.org (The free software foundation)
-    [my label 4]: /bar#special  'A title in single quotes'
+~~~markdown
+[my label 1]: /foo/bar.html  "My title, optional"
+[my label 2]: /foo
+[my label 3]: http://fsf.org (The free software foundation)
+[my label 4]: /bar#special  'A title in single quotes'
+~~~
 
 The URL may optionally be surrounded by angle brackets:
 
-    [my label 5]: <http://foo.bar.baz>
+~~~markdown
+[my label 5]: <http://foo.bar.baz>
+~~~
 
 The title may go on the next line:
 
-    [my label 3]: http://fsf.org
-      "The free software foundation"
+~~~markdown
+[my label 3]: http://fsf.org
+  "The free software foundation"
+~~~
 
 Note that link labels are not case sensitive.  So, this will work:
 
-    Here is [my link][FOO]
+~~~markdown
+Here is [my link][FOO]
 
-    [Foo]: /bar/baz
+[Foo]: /bar/baz
+~~~
 
 In an *implicit* reference link, the second pair of brackets is
 empty:
 
-    See [my website][].
+~~~markdown
+See [my website][].
 
-    [my website]: http://foo.bar.baz
+[my website]: http://foo.bar.baz
+~~~
 
 Note:  In `Markdown.pl` and most other Markdown implementations,
 reference link definitions cannot occur in nested constructions
@@ -3863,31 +4082,39 @@ such as list items or block quotes.  Pandoc lifts this arbitrary
 seeming restriction.  So the following is fine in pandoc, though
 not in most other implementations:
 
-    > My block [quote].
-    >
-    > [quote]: /foo
+~~~markdown
+> My block [quote].
+>
+> [quote]: /foo
+~~~
 
 #### Extension: `shortcut_reference_links` ####
 
 In a *shortcut* reference link, the second pair of brackets may
 be omitted entirely:
 
-    See [my website].
+~~~markdown
+See [my website].
 
-    [my website]: http://foo.bar.baz
+[my website]: http://foo.bar.baz
+~~~
 
 ### Internal links ###
 
 To link to another section of the same document, use the automatically
 generated identifier (see [Heading identifiers]). For example:
 
-    See the [Introduction](#introduction).
+~~~markdown
+See the [Introduction](#introduction).
+~~~
 
 or
 
-    See the [Introduction].
+~~~markdown
+See the [Introduction].
 
-    [Introduction]: #introduction
+[Introduction]: #introduction
+~~~
 
 Internal links are currently supported for HTML formats (including
 HTML slide shows and EPUB), LaTeX, and ConTeXt.
@@ -3898,11 +4125,13 @@ Images
 A link immediately preceded by a `!` will be treated as an image.
 The link text will be used as the image's alt text:
 
-    ![la lune](lalune.jpg "Voyage to the moon")
+~~~markdown
+![la lune](lalune.jpg "Voyage to the moon")
 
-    ![movie reel]
+![movie reel]
 
-    [movie reel]: movie.gif
+[movie reel]: movie.gif
+~~~
 
 #### Extension: `implicit_figures` ####
 
@@ -3910,7 +4139,9 @@ An image with nonempty alt text, occurring by itself in a
 paragraph, will be rendered as a figure with a caption.  The
 image's alt text will be used as the caption.
 
-    ![This is the caption](/url/of/image.png)
+~~~markdown
+![This is the caption](/url/of/image.png)
+~~~
 
 How this is rendered depends on the output format. Some output
 formats (e.g. RTF) do not yet support figures.  In those
@@ -3921,7 +4152,9 @@ If you just want a regular inline image, just make sure it is not
 the only thing in the paragraph. One way to do this is to insert a
 nonbreaking space after the image:
 
-    ![This image won't be a figure](/url/of/image.png)\
+~~~markdown
+![This image won't be a figure](/url/of/image.png)\
+~~~
 
 Note that in reveal.js slide shows, an image in a paragraph
 by itself that has the `stretch` class will fill the screen,
@@ -3931,10 +4164,12 @@ and the caption and figure tags will be omitted.
 
 Attributes can be set on links and images:
 
-    An inline ![image](foo.jpg){#id .class width=30 height=20px}
-    and a reference ![image][ref] with attributes.
+~~~markdown
+An inline ![image](foo.jpg){#id .class width=30 height=20px}
+and a reference ![image][ref] with attributes.
 
-    [ref]: foo.jpg "optional title" {#id .class key=val key2="val 2"}
+[ref]: foo.jpg "optional title" {#id .class key=val key2="val 2"}
+~~~
 
 (This syntax is compatible with [PHP Markdown Extra] when only `#id`
 and `.class` are used.)
@@ -3950,9 +4185,9 @@ the following unit identifiers can be used: `px`, `cm`, `mm`, `in`, `inch`
 and `%`. There must not be any spaces between the number and the unit.
 For example:
 
-```
+~~~markdown
 ![](file.jpg){ width=50% }
-```
+~~~
 
 - Dimensions are converted to inches for output in page-based formats like
   LaTeX. Dimensions are converted to pixels for output in HTML-like
@@ -3997,22 +4232,26 @@ separated by blank lines from preceding and following blocks.
 
 Example:
 
-    ::::: {#special .sidebar}
-    Here is a paragraph.
+~~~markdown
+::::: {#special .sidebar}
+Here is a paragraph.
 
-    And another.
-    :::::
+And another.
+:::::
+~~~
 
 Fenced divs can be nested.  Opening fences are distinguished
 because they *must* have attributes:
 
-    ::: Warning ::::::
-    This is a warning.
+~~~markdown
+::: Warning ::::::
+This is a warning.
 
-    ::: Danger
-    This is a warning within a warning.
-    :::
-    ::::::::::::::::::
+::: Danger
+This is a warning within a warning.
+:::
+::::::::::::::::::
+~~~
 
 Fences without attributes are always closing fences.  Unlike
 with fenced code blocks, the number of colons in the closing
@@ -4027,7 +4266,9 @@ A bracketed sequence of inlines, as one would use to begin
 a link, will be treated as a `Span` with attributes if it is
 followed immediately by attributes:
 
-    [This is *some text*]{.class key="val"}
+~~~markdown
+[This is *some text*]{.class key="val"}
+~~~
 
 Footnotes
 ---------
@@ -4036,23 +4277,25 @@ Footnotes
 
 Pandoc's Markdown allows footnotes, using the following syntax:
 
-    Here is a footnote reference,[^1] and another.[^longnote]
+~~~markdown
+Here is a footnote reference,[^1] and another.[^longnote]
 
-    [^1]: Here is the footnote.
+[^1]: Here is the footnote.
 
-    [^longnote]: Here's one with multiple blocks.
+[^longnote]: Here's one with multiple blocks.
 
-        Subsequent paragraphs are indented to show that they
-    belong to the previous footnote.
+    Subsequent paragraphs are indented to show that they
+belong to the previous footnote.
 
-            { some.code }
+        { some.code }
 
-        The whole paragraph can be indented, or just the first
-        line.  In this way, multi-paragraph footnotes work like
-        multi-paragraph list items.
+    The whole paragraph can be indented, or just the first
+    line.  In this way, multi-paragraph footnotes work like
+    multi-paragraph list items.
 
-    This paragraph won't be part of the note, because it
-    isn't indented.
+This paragraph won't be part of the note, because it
+isn't indented.
+~~~
 
 The identifiers in footnote references may not contain spaces, tabs,
 or newlines.  These identifiers are used only to correlate the
@@ -4070,9 +4313,11 @@ by blank lines.
 Inline footnotes are also allowed (though, unlike regular notes,
 they cannot contain multiple paragraphs).  The syntax is as follows:
 
-    Here is an inline note.^[Inlines notes are easier to write, since
-    you don't have to pick an identifier and move down to type the
-    note.]
+~~~markdown
+Here is an inline note.^[Inline notes are easier to write, since
+you don't have to pick an identifier and move down to type the
+note.]
+~~~
 
 Inline and regular footnotes may be mixed freely.
 
@@ -4145,31 +4390,33 @@ the citation data directly in the `references` field of the
 document's YAML metadata. The field should contain an array of
 YAML-encoded references, for example:
 
-    ---
-    references:
-    - type: article-journal
-      id: WatsonCrick1953
-      author:
-      - family: Watson
-        given: J. D.
-      - family: Crick
-        given: F. H. C.
-      issued:
-        date-parts:
-        - - 1953
-          - 4
-          - 25
-      title: 'Molecular structure of nucleic acids: a structure for deoxyribose
-        nucleic acid'
-      title-short: Molecular structure of nucleic acids
-      container-title: Nature
-      volume: 171
-      issue: 4356
-      page: 737-738
-      DOI: 10.1038/171737a0
-      URL: http://www.nature.com/nature/journal/v171/n4356/abs/171737a0.html
-      language: en-GB
-    ...
+~~~yaml
+---
+references:
+- type: article-journal
+  id: WatsonCrick1953
+  author:
+  - family: Watson
+    given: J. D.
+  - family: Crick
+    given: F. H. C.
+  issued:
+    date-parts:
+    - - 1953
+      - 4
+      - 25
+  title: 'Molecular structure of nucleic acids: a structure for deoxyribose
+    nucleic acid'
+  title-short: Molecular structure of nucleic acids
+  container-title: Nature
+  volume: 171
+  issue: 4356
+  page: 737-738
+  DOI: 10.1038/171737a0
+  URL: http://www.nature.com/nature/journal/v171/n4356/abs/171737a0.html
+  language: en-GB
+...
+~~~
 
 (`pandoc-citeproc --bib2yaml` can produce these from a bibliography file in one
 of the supported formats.)
@@ -4190,11 +4437,13 @@ a locator, and a suffix.  The citation key must begin with a letter, digit,
 or `_`, and may contain alphanumerics, `_`, and internal punctuation
 characters (`:.#$%&-+?<>~/`).  Here are some examples:
 
-    Blah blah [see @doe99, pp. 33-35; also @smith04, chap. 1].
+~~~markdown
+Blah blah [see @doe99, pp. 33-35; also @smith04, chap. 1].
 
-    Blah blah [@doe99, pp. 33-35, 38-39 and *passim*].
+Blah blah [@doe99, pp. 33-35, 38-39 and *passim*].
 
-    Blah blah [@smith04; @doe99].
+Blah blah [@smith04; @doe99].
+~~~
 
 `pandoc-citeproc` detects locator terms in the [CSL locale files].
 Either abbreviated or unabbreviated forms are accepted. In the `en-US`
@@ -4211,26 +4460,34 @@ locator term is used, "page" is assumed.
 from the suffix. In complex cases, the locator can be enclosed
 in curly braces (using `pandoc-citeproc` 0.15 and higher only):
 
-    [@smith{ii, A, D-Z}, with a suffix]
-    [@smith, {pp. iv, vi-xi, (xv)-(xvii)} with suffix here]
+~~~markdown
+[@smith{ii, A, D-Z}, with a suffix]
+[@smith, {pp. iv, vi-xi, (xv)-(xvii)} with suffix here]
+~~~
 
 A minus sign (`-`) before the `@` will suppress mention of
 the author in the citation.  This can be useful when the
 author is already mentioned in the text:
 
-    Smith says blah [-@smith04].
+~~~markdown
+Smith says blah [-@smith04].
+~~~
 
 You can also write an in-text citation, as follows:
 
-    @smith04 says blah.
+~~~markdown
+@smith04 says blah.
 
-    @smith04 [p. 33] says blah.
+@smith04 [p. 33] says blah.
+~~~
 
 If the style calls for a list of works cited, it will be placed
 in a div with id `refs`, if one exists:
 
-    ::: {#refs}
-    :::
+~~~markdown
+::: {#refs}
+:::
+~~~
 
 Otherwise, it will be placed at the end of the document.
 Generation of the bibliography can be suppressed by setting
@@ -4241,9 +4498,11 @@ set `reference-section-title` in the metadata, or put the heading
 at the beginning of the div with id `refs` (if you are using it)
 or at the end of your document:
 
-    last paragraph...
+~~~markdown
+last paragraph...
 
-    # References
+# References
+~~~
 
 The bibliography will be inserted after this heading.  Note that
 the `unnumbered` class will be added to this heading, so that the
@@ -4253,12 +4512,14 @@ If you want to include items in the bibliography without actually
 citing them in the body text, you can define a dummy `nocite` metadata
 field and put the citations there:
 
-    ---
-    nocite: |
-      @item1, @item2
-    ...
+~~~markdown
+---
+nocite: |
+  @item1, @item2
+...
 
-    @item3
+@item3
+~~~
 
 In this example, the document will contain a citation for `item3`
 only, but the bibliography will contain entries for `item1`, `item2`, and
@@ -4267,10 +4528,12 @@ only, but the bibliography will contain entries for `item1`, `item2`, and
 It is possible to create a bibliography with all the citations,
 whether or not they appear in the document, by using a wildcard:
 
-    ---
-    nocite: |
-      @*
-    ...
+~~~yaml
+---
+nocite: |
+  @*
+...
+~~~
 
 For LaTeX output, you can also use [`natbib`] or [`biblatex`] to
 render the bibliography. In order to do so, specify bibliography
@@ -4376,11 +4639,13 @@ inside block-level tags if the tags have the attribute `markdown=1`.
 Enables a [MultiMarkdown] style title block at the top of
 the document, for example:
 
-    Title:   My title
-    Author:  John Doe
-    Date:    September 1, 2008
-    Comment: This is a sample mmd title block, with
-             a field spanning multiple lines.
+~~~markdown
+Title:   My title
+Author:  John Doe
+Date:    September 1, 2008
+Comment: This is a sample mmd title block, with
+         a field spanning multiple lines.
+~~~
 
 See the MultiMarkdown documentation for details.  If `pandoc_title_block` or
 `yaml_metadata_block` is enabled, it will take precedence over
@@ -4390,7 +4655,9 @@ See the MultiMarkdown documentation for details.  If `pandoc_title_block` or
 
 Parses PHP Markdown Extra abbreviation keys, like
 
-    *[HTML]: Hypertext Markup Language
+~~~markdown
+*[HTML]: Hypertext Markup Language
+~~~
 
 Note that the pandoc document model does not support
 abbreviations, so if this extension is enabled, abbreviation keys are
@@ -4407,10 +4674,12 @@ Parses multimarkdown style key-value attributes on link
 and image references. This extension should not be confused with the
 [`link_attributes`](#extension-link_attributes) extension.
 
-    This is a reference ![image][ref] with multimarkdown attributes.
+~~~markdown
+This is a reference ![image][ref] with multimarkdown attributes.
 
-    [ref]: http://path.to/image "Image title" width=20px height=30px
-           id=myId class="myClass1 myClass2"
+[ref]: http://path.to/image "Image title" width=20px height=30px
+       id=myId class="myClass1 myClass2"
+~~~
 
 #### Extension: `mmd_header_identifiers` ####
 
@@ -4433,11 +4702,13 @@ in several respects:
 
 [^6]:  To see why laziness is incompatible with relaxing the requirement
     of a blank line between items, consider the following example:
-
-        bar
-        :    definition
-        foo
-        :    definition
+    
+    ~~~markdown
+    bar
+    :    definition
+    foo
+    :    definition
+    ~~~
 
     Is this a single list item with two definitions of "bar," the first of
     which is lazily wrapped, or two list items?  To remove the ambiguity
@@ -4507,37 +4778,39 @@ slides shows in Microsoft [PowerPoint] format.
 
 Here's the Markdown source for a simple slide show, `habits.txt`:
 
-    % Habits
-    % John Doe
-    % March 22, 2005
+~~~markdown
+% Habits
+% John Doe
+% March 22, 2005
 
-    # In the morning
+# In the morning
 
-    ## Getting up
+## Getting up
 
-    - Turn off alarm
-    - Get out of bed
+- Turn off alarm
+- Get out of bed
 
-    ## Breakfast
+## Breakfast
 
-    - Eat eggs
-    - Drink coffee
+- Eat eggs
+- Drink coffee
 
-    # In the evening
+# In the evening
 
-    ## Dinner
+## Dinner
 
-    - Eat spaghetti
-    - Drink wine
+- Eat spaghetti
+- Drink wine
 
-    ------------------
+------------------
 
-    ![picture of spaghetti](images/spaghetti.jpg)
+![picture of spaghetti](images/spaghetti.jpg)
 
-    ## Going to sleep
+## Going to sleep
 
-    - Get in bed
-    - Count sheep
+- Get in bed
+- Count sheep
+~~~
 
 To produce an HTML/JavaScript slide show, simply type
 
@@ -4621,21 +4894,25 @@ default, put it in a `div` block with class `incremental` or
 `nonincremental`. So, for example, using the `fenced div` syntax, the
 following would be incremental regardless of the document default:
 
-    ::: incremental
+~~~markdown
+::: incremental
 
-    - Eat spaghetti
-    - Drink wine
+- Eat spaghetti
+- Drink wine
 
-    :::
+:::
+~~~
 
 or
 
-    ::: nonincremental
+~~~markdown
+::: nonincremental
 
-    - Eat spaghetti
-    - Drink wine
+- Eat spaghetti
+- Drink wine
 
-    :::
+:::
+~~~
 
 While using `incremental` and `nonincremental` divs are the
 recommended method of setting incremental lists on a per-case basis,
@@ -4644,8 +4921,10 @@ will depart from the document default (that is, it will display
 incrementally without the `-i` option and all at once with the `-i`
 option):
 
-    > - Eat spaghetti
-    > - Drink wine
+~~~markdown
+> - Eat spaghetti
+> - Drink wine
+~~~
 
 Both methods allow incremental and nonincremental lists to be mixed
 in a single document.
@@ -4656,13 +4935,15 @@ Inserting pauses
 You can add "pauses" within a slide by including a paragraph containing
 three dots, separated by spaces:
 
-    # Slide with a pause
+~~~markdown
+# Slide with a pause
 
-    content before the pause
+content before the pause
 
-    . . .
+. . .
 
-    content after the pause
+content after the pause
+~~~
 
 Styling the slides
 ------------------
@@ -4698,7 +4979,9 @@ that affects slides is the `allowframebreaks` class, which sets the
 if the content overfills the frame.  This is recommended especially for
 bibliographies:
 
-    # References {.allowframebreaks}
+~~~markdown
+# References {.allowframebreaks}
+~~~
 
 Speaker notes
 -------------
@@ -4706,14 +4989,16 @@ Speaker notes
 Speaker notes are supported in reveal.js and PowerPoint (pptx)
 output. You can add notes to your Markdown document thus:
 
-    ::: notes
+~~~markdown
+::: notes
 
-    This is my note.
+This is my note.
 
-    - It can contain Markdown
-    - like this list
+- It can contain Markdown
+- like this list
 
-    :::
+:::
+~~~
 
 To show the notes window in reveal.js, press `s` while viewing the
 presentation. Speaker notes in PowerPoint will be available, as usual,
@@ -4725,18 +5010,20 @@ will not appear on the slides themselves.
 Columns
 -------
 
-To put material in side by side columns, you can use a native
+To put material in side-by-side columns, you can use a native
 div container with class `columns`, containing two or more div
 containers with class `column` and a `width` attribute:
 
-    :::::::::::::: {.columns}
-    ::: {.column width="40%"}
-    contents...
-    :::
-    ::: {.column width="60%"}
-    contents...
-    :::
-    ::::::::::::::
+~~~markdown
+:::::::::::::: {.columns}
+::: {.column width="40%"}
+contents...
+:::
+::: {.column width="60%"}
+contents...
+:::
+::::::::::::::
+~~~
 
 Frame attributes in beamer
 --------------------------
@@ -4786,7 +5073,7 @@ for more details.
 
 For example in reveal.js:
 
-```
+~~~markdown
 ---
 title: My Slideshow
 parallaxBackgroundImage: /path/to/my/background_image.png
@@ -4799,7 +5086,7 @@ Slide 1 has background_image.png as its background.
 ## {data-background-image="/path/to/special_image.jpg"}
 
 Slide 2 has a special image for its background, even though the heading has no content.
-```
+~~~
 
 Creating EPUBs with pandoc
 ==========================
@@ -4811,25 +5098,27 @@ EPUB metadata may be specified using the `--epub-metadata` option, but
 if the source document is Markdown, it is better to use a [YAML metadata
 block][Extension: `yaml_metadata_block`].  Here is an example:
 
-    ---
-    title:
-    - type: main
-      text: My Book
-    - type: subtitle
-      text: An investigation of metadata
-    creator:
-    - role: author
-      text: John Smith
-    - role: editor
-      text: Sarah Jones
-    identifier:
-    - scheme: DOI
-      text: doi:10.234234.234/33
-    publisher:  My Press
-    rights: © 2007 John Smith, CC BY-NC
-    ibooks:
-      version: 1.3.4
-    ...
+~~~yaml
+---
+title:
+- type: main
+  text: My Book
+- type: subtitle
+  text: An investigation of metadata
+creator:
+- role: author
+  text: John Smith
+- role: editor
+  text: Sarah Jones
+identifier:
+- scheme: DOI
+  text: doi:10.234234.234/33
+publisher:  My Press
+rights: © 2007 John Smith, CC BY-NC
+ibooks:
+  version: 1.3.4
+...
+~~~
 
 The following fields are recognized:
 
@@ -4914,13 +5203,17 @@ For `epub3` output, you can mark up the heading that corresponds to an EPUB
 chapter using the [`epub:type` attribute][epub-type]. For example, to set
 the attribute to the value `prologue`, use this markdown:
 
-    # My chapter {epub:type=prologue}
+~~~markdown
+# My chapter {epub:type=prologue}
+~~~
 
 Which will result in:
 
-    <body epub:type="frontmatter">
-      <section epub:type="prologue">
-        <h1>My chapter</h1>
+~~~html
+<body epub:type="frontmatter">
+  <section epub:type="prologue">
+    <h1>My chapter</h1>
+~~~
 
 Pandoc will output `<body epub:type="bodymatter">`, unless
 you use one of the following values, in which case either
@@ -4957,11 +5250,13 @@ self-contained EPUB.  If you want to link to external media resources
 instead, use raw HTML in your source and add `data-external="1"` to the tag
 with the `src` attribute.  For example:
 
-    <audio controls="1">
-      <source src="http://example.com/music/toccata.mp3"
-              data-external="1" type="audio/mpeg">
-      </source>
-    </audio>
+~~~html
+<audio controls="1">
+  <source src="http://example.com/music/toccata.mp3"
+          data-external="1" type="audio/mpeg">
+  </source>
+</audio>
+~~~
 
 Creating Jupyter notebooks with pandoc
 ======================================
@@ -4973,7 +5268,7 @@ Markdown cells.  Attachments will automatically be created for
 images in Markdown cells. Metadata will be taken from the
 `jupyter` metadata field.  For example:
 
-````
+~~~markdown
 ---
 title: My notebook
 jupyter:
@@ -5020,7 +5315,7 @@ console.log("hello");
 
 This image ![image](myimage.png) will be
 included as a cell attachment.
-````
+~~~
 
 If you want to add cell attributes, group cells differently, or
 add output to code cells, then you need to include divs to
@@ -5028,7 +5323,7 @@ indicate the structure. You can use either [fenced
 divs][Extension: `fenced_divs`] or [native divs][Extension:
 `native_divs`] for this.  Here is an example:
 
-````
+~~~markdown
 :::::: {.cell .markdown}
 # Lorem
 
@@ -5069,7 +5364,7 @@ hello
 ```
 :::
 ::::::
-````
+~~~
 
 If you include raw HTML or TeX in an output cell, use the
 [raw attribute][Extension: `fenced_attribute`], as shown
@@ -5146,17 +5441,21 @@ If you define a `div` or `span` with the attribute `custom-style`,
 pandoc will apply your specified style to the contained elements. So,
 for example using the `bracketed_spans` syntax,
 
-    [Get out]{custom-style="Emphatically"}, he said.
+~~~markdown
+[Get out]{custom-style="Emphatically"}, he said.
+~~~
 
 would produce a docx file with "Get out" styled with character
 style `Emphatically`. Similarly, using the `fenced_divs` syntax,
 
-    Dickinson starts the poem simply:
+~~~markdown
+Dickinson starts the poem simply:
 
-    ::: {custom-style="Poetry"}
-    | A Bird came down the Walk---
-    | He did not know I saw---
-    :::
+::: {custom-style="Poetry"}
+| A Bird came down the Walk---
+| He did not know I saw---
+:::
+~~~
 
 would style the two contained lines with the `Poetry` paragraph style.
 
@@ -5195,31 +5494,35 @@ directory, we have the following different outputs:
 
 Without the `+styles` extension:
 
-    $ pandoc test/docx/custom-style-reference.docx -f docx -t markdown
-    This is some text.
+~~~markdown
+$ pandoc test/docx/custom-style-reference.docx -f docx -t markdown
+This is some text.
 
-    This is text with an *emphasized* text style. And this is text with a
-    **strengthened** text style.
+This is text with an *emphasized* text style. And this is text with a
+**strengthened** text style.
 
-    > Here is a styled paragraph that inherits from Block Text.
+> Here is a styled paragraph that inherits from Block Text.
+~~~
 
 And with the extension:
 
-    $ pandoc test/docx/custom-style-reference.docx -f docx+styles -t markdown
+~~~markdown
+$ pandoc test/docx/custom-style-reference.docx -f docx+styles -t markdown
 
-    ::: {custom-style="FirstParagraph"}
-    This is some text.
-    :::
+::: {custom-style="FirstParagraph"}
+This is some text.
+:::
 
-    ::: {custom-style="BodyText"}
-    This is text with an [emphasized]{custom-style="Emphatic"} text style.
-    And this is text with a [strengthened]{custom-style="Strengthened"}
-    text style.
-    :::
+::: {custom-style="BodyText"}
+This is text with an [emphasized]{custom-style="Emphatic"} text style.
+And this is text with a [strengthened]{custom-style="Strengthened"}
+text style.
+:::
 
-    ::: {custom-style="MyBlockStyle"}
-    > Here is a styled paragraph that inherits from Block Text.
-    :::
+::: {custom-style="MyBlockStyle"}
+> Here is a styled paragraph that inherits from Block Text.
+:::
+~~~
 
 With these custom styles, you can use your input document as a
 reference-doc while creating docx output (see below), and maintain the
