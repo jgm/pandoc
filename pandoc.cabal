@@ -62,6 +62,7 @@ data-files:
                  data/templates/default.plain
                  data/templates/default.mediawiki
                  data/templates/default.dokuwiki
+                 data/templates/default.xwiki
                  data/templates/default.zimwiki
                  data/templates/default.rtf
                  data/templates/default.s5
