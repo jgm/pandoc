@@ -754,7 +754,7 @@ General writer options {.options}
 `--toc-depth=`*NUMBER*
 
 :   Specify the number of section levels to include in the table
-    of contents.  The default is 3 (which means that level-1, -2, and -3
+    of contents.  The default is 3 (which means that level-1, 2, and 3
     headings will be listed in the contents).
 
 `--strip-comments`
@@ -5056,7 +5056,7 @@ Note that options and extensions that affect reading and
 writing of Markdown will also affect Markdown cells in ipynb
 notebooks.  For example, `--wrap=preserve` will preserve
 soft line breaks in Markdown cells; `--atx-headers` will
-cause ATX style headings to be used; and `--preserve-tabs` will
+cause ATX-style headings to be used; and `--preserve-tabs` will
 prevent tabs from being turned to spaces.
 
 Syntax highlighting
