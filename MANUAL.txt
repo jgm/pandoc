@@ -1098,8 +1098,8 @@ Options affecting specific writers {.options}
         `.pptx` or `.potx` extension) are known to work, as are most
         templates derived from these.
 
-        The specific requirement is that the template should contain
-        the following four layouts as its first four layouts:
+        The specific requirement is that the template should begin with
+        the following first four layouts:
 
         1. Title Slide
         2. Title and Content
@@ -2317,7 +2317,7 @@ There are two kinds of headings: Setext and ATX.
 ### Setext-style headings ###
 
 A setext-style heading is a line of text "underlined" with a row of `=` signs
-(for a level-one heading) or `-` signs (for a level two heading):
+(for a level-one heading) or `-` signs (for a level-two heading):
 
     A level-one heading
     ===================
@@ -3530,7 +3530,7 @@ Markdown, Emacs Org mode, ConTeXt, ZimWiki
     math) or `$$...$$` (for display math).
 
 XWiki
-	  ~ It will appear verbatim surrounded by `{{formula}}..{{/formula}}`.
+  ~ It will appear verbatim surrounded by `{{formula}}..{{/formula}}`.
 
 reStructuredText
   ~ It will be rendered using an [interpreted text role `:math:`].
@@ -4544,9 +4544,9 @@ Structuring the slide show
 
 By default, the *slide level* is the highest heading level in
 the hierarchy that is followed immediately by content, and not another
-heading, somewhere in the document. In the example above, level 1 headings
-are always followed by level 2 headings, which are followed by content,
-so 2 is the slide level.  This default can be overridden using
+heading, somewhere in the document. In the example above, level-1 headings
+are always followed by level-2 headings, which are followed by content,
+so the slide level is 2.  This default can be overridden using
 the `--slide-level` option.
 
 The document is carved up into slides according to the following
