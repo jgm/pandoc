@@ -139,6 +139,7 @@ langsList =
   ("gap","GAP"),
   ("gcl","GCL"),
   ("gnuplot","Gnuplot"),
+  ("go","Go"),
   ("hansl","hansl"),
   ("haskell","Haskell"),
   ("html","HTML"),
