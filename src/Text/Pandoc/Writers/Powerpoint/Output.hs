@@ -166,7 +166,6 @@ alwaysInheritedPatterns =
               , "ppt/theme/theme1.xml"
               , "ppt/theme/_rels/theme1.xml.rels"
               , "ppt/presProps.xml"
-              , "ppt/viewProps.xml"
               , "ppt/tableStyles.xml"
               , "ppt/media/image*"
               ]
@@ -213,7 +212,6 @@ requiredFiles = [ "docProps/app.xml"
                 , "ppt/slideMasters/slideMaster1.xml"
                 , "ppt/slideMasters/_rels/slideMaster1.xml.rels"
                 , "ppt/theme/theme1.xml"
-                , "ppt/viewProps.xml"
                 , "ppt/tableStyles.xml"
                 ]
 
@@ -231,6 +229,8 @@ presentationToArchiveP p@(Presentation docProps slides) = do
     )
 
   newArch' <- foldM copyFileToArchive emptyArchive filePaths
+  -- we make a modified ppt/viewProps.xml out of the presentation viewProps
+  viewPropsEntry <- makeViewPropsEntry
   -- we make a docProps/core.xml entry out of the presentation docprops
   docPropsEntry <- docPropsToEntry docProps
   -- we make a docProps/custom.xml entry out of the custom properties
@@ -258,7 +258,7 @@ presentationToArchiveP p@(Presentation docProps slides) = do
     spkNotesRelEntries ++
     mediaEntries ++
     [contentTypesEntry, docPropsEntry, docCustomPropsEntry, relsEntry,
-     presEntry, presRelsEntry]
+     presEntry, presRelsEntry, viewPropsEntry]
 
 makeSlideIdMap :: Presentation -> M.Map SlideId Int
 makeSlideIdMap (Presentation _ slides) =
@@ -1701,6 +1701,23 @@ docCustomPropsToEntry :: PandocMonad m => DocProps -> P m Entry
 docCustomPropsToEntry docProps = docCustomPropsElement docProps >>=
                            elemToEntry "docProps/custom.xml"
 
+-- We read from the template, but we remove the lastView, so it always
+-- opens on slide view. Templates will sometimes be open in master
+-- view for editing.
+viewPropsElement :: PandocMonad m => P m Element
+viewPropsElement = do
+  refArchive <- asks envRefArchive
+  distArchive <- asks envDistArchive
+  viewPrElement <- parseXml refArchive distArchive "ppt/viewProps.xml"
+  -- remove  "lastView" if it exists:
+  let notLastView :: Text.XML.Light.Attr -> Bool
+      notLastView attr = (qName $ attrKey attr) /= "lastView"
+  return $
+    viewPrElement {elAttribs = filter notLastView (elAttribs viewPrElement)}
+
+makeViewPropsEntry :: PandocMonad m => P m Entry
+makeViewPropsEntry = viewPropsElement >>= elemToEntry "ppt/viewProps.xml"
+
 defaultContentTypeToElem :: DefaultContentType -> Element
 defaultContentTypeToElem dct =
   mknode "Default"
@@ -1787,9 +1804,11 @@ presentationToContentTypes p@(Presentation _ slides) = do
                       (mapMaybe mediaFileContentType $ mediaFps)
 
       inheritedOverrides = mapMaybe pathToOverride filePaths
-      docPropsOverride = mapMaybe pathToOverride ["docProps/core.xml"]
-      docCustomPropsOverride = mapMaybe pathToOverride ["docProps/custom.xml"]
-      presOverride = mapMaybe pathToOverride ["ppt/presentation.xml"]
+      createdOverrides = mapMaybe pathToOverride [ "docProps/core.xml"
+                                                 , "docProps/custom.xml"
+                                                 , "ppt/presentation.xml"
+                                                 , "ppt/viewProps.xml"
+                                                 ]
   relativePaths <- mapM slideToFilePath slides
   let slideOverrides = mapMaybe
                        (\fp -> pathToOverride $ "ppt/slides/" ++ fp)
@@ -1797,8 +1816,7 @@ presentationToContentTypes p@(Presentation _ slides) = do
   speakerNotesOverrides <- (mapMaybe pathToOverride) <$> getSpeakerNotesFilePaths
   return $ ContentTypes
     (defaults ++ mediaDefaults)
-    (inheritedOverrides ++ docPropsOverride ++ docCustomPropsOverride ++
-     presOverride ++ slideOverrides ++ speakerNotesOverrides)
+    (inheritedOverrides ++ createdOverrides ++ slideOverrides ++ speakerNotesOverrides)
 
 presML :: String
 presML = "application/vnd.openxmlformats-officedocument.presentationml"
