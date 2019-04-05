@@ -51,7 +51,8 @@ import qualified Data.Text.Normalize as Normalize
 data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note
               , stInQuote       :: Bool          -- true if in a blockquote
-              , stInMinipage    :: Bool          -- true if in minipage
+              , stExternalNotes :: Bool          -- true if in context where
+                                                 -- we need to store footnotes
               , stInHeading     :: Bool          -- true if in a section heading
               , stInItem        :: Bool          -- true if in \item[..]
               , stNotes         :: [Doc]         -- notes in a minipage
@@ -76,7 +77,7 @@ startingState :: WriterOptions -> WriterState
 startingState options = WriterState {
                   stInNote = False
                 , stInQuote = False
-                , stInMinipage = False
+                , stExternalNotes = False
                 , stInHeading = False
                 , stInItem = False
                 , stNotes = []
@@ -606,7 +607,7 @@ blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = d
                  "\\centering" $$ img $$ caption <> cr
   let figure = cr <> "\\begin{figure}" $$ innards $$ "\\end{figure}"
   st <- get
-  return $ if stInNote st || stInMinipage st
+  return $ if stExternalNotes st
               -- can't have figures in notes or minipage (here, table cell)
               -- http://www.tex.ac.uk/FAQ-ouparmd.html
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
@@ -826,11 +827,11 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
 
 getCaption :: PandocMonad m => Bool -> [Inline] -> LW m (Doc, Doc, Doc)
 getCaption externalNotes txt = do
-  oldIsMinipage <- gets stInMinipage
-  modify $ \st -> st{ stInMinipage = externalNotes, stNotes = [] }
+  oldExternalNotes <- gets stExternalNotes
+  modify $ \st -> st{ stExternalNotes = externalNotes, stNotes = [] }
   capt <- inlineListToLaTeX txt
   notes <- gets stNotes
-  modify $ \st -> st{ stInMinipage = oldIsMinipage, stNotes = [] }
+  modify $ \st -> st{ stExternalNotes = oldExternalNotes, stNotes = [] }
   -- We can't have footnotes in the list of figures/tables, so remove them:
   captForLof <- if null notes
                    then return empty
@@ -904,12 +905,12 @@ tableCellToLaTeX _      (0,     _,     blocks) =
   blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
 tableCellToLaTeX header (width, align, blocks) = do
   beamer <- gets stBeamer
-  oldInMinipage <- gets stInMinipage
+  externalNotes <- gets stExternalNotes
   -- See #5367 -- footnotehyper/footnote don't work in beamer,
   -- so we need to produce the notes outside the table...
-  modify $ \st -> st{ stInMinipage = beamer }
+  modify $ \st -> st{ stExternalNotes = beamer }
   cellContents <- blockListToLaTeX blocks
-  modify $ \st -> st{ stInMinipage = oldInMinipage }
+  modify $ \st -> st{ stExternalNotes = externalNotes }
   let valign = text $ if header then "[b]" else "[t]"
   let halign = case align of
                AlignLeft    -> "\\raggedright"
@@ -1286,10 +1287,10 @@ inlineToLaTeX (Image attr _ (source, _)) = do
     dims <> braces (text source'')
 inlineToLaTeX (Note contents) = do
   setEmptyLine False
-  inMinipage <- gets stInMinipage
-  modify (\s -> s{stInNote = True})
+  externalNotes <- gets stExternalNotes
+  modify (\s -> s{stInNote = True, stExternalNotes = True})
   contents' <- blockListToLaTeX contents
-  modify (\s -> s {stInNote = False})
+  modify (\s -> s {stInNote = False, stExternalNotes = externalNotes})
   let optnl = case reverse contents of
                    (CodeBlock _ _ : _) -> cr
                    _                   -> empty
@@ -1301,7 +1302,7 @@ inlineToLaTeX (Note contents) = do
                       else empty
   modify $ \st -> st{ stNotes = noteContents : stNotes st }
   return $
-    if inMinipage
+    if externalNotes
        then "\\footnotemark{}"
        -- note: a \n before } needed when note ends with a Verbatim environment
        else "\\footnote" <> beamerMark <> braces noteContents
