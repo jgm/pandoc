@@ -1,3 +1,166 @@
+pandoc (2.7.2)
+
+  * Add XWiki writer (#1800, Derek Chen-Becker).
+    Add `Text.Pandoc.Writers.XWiki`, exporting `writeXWiki` [API change].
+
+  * Dokuwiki Reader: parse single curly brace (#5416, Mauro Bieg).
+
+  * Vimwiki reader: improve handling of internal links (#5414).
+    We no longer append `.html` to link targets, and we add a title
+    `wikilink`.  This mirrors behavior of other wiki readers.  Generally
+    the `.html` extension is not wanted.  It may be important for output
+    to HTML in certain circumstances, but it can always be added using a
+    filter that matches on links with title `wikilink`.
+
+    If your workflow requires the current behavior, here is a lua filter
+    that will add the `.html` extension:
+
+    ```lua
+    function Link(el)
+      if el.title == 'wikilink' then
+        el.target = el.target .. ".html"
+      end
+      return el
+    end
+    ```
+  * ipynb reader:
+
+    + Use format `ipynb` for raw cell where no format given.
+    + Avoid introducing spurious `.0` on integers in metadata.
+
+  * Markdown reader: fenced div takes priority over setext header.
+
+  * HTML reader: read `data-foo` attribute into `foo` (#5392).
+    The HTML writer adds the `data-` prefix for HTML5 for nonstandard
+    attributes.  But the attributes are represented in the AST without
+    the `data-` prefix, so we should strip this when reading HTML.
+
+  * LaTeX reader: Improve autolink detection (#5340).
+
+  * PowerPoint writer (Jesse Rosenthal):
+
+    + Expand builtin reference doc to model all layouts.
+      The previous built-in reference doc had only title and content
+      layouts. Add in a section-header slide and a two-content slide, so
+      users can more easily modify it to build their own templates.
+    + Always open up in slide view.  When editing a
+      template/reference-doc, the user might be in Master view, but when
+      producing a slide show, it is assumed that slide view will be
+      desired.
+    + Remove `handoutsMasterList` from template presentation.xml
+    + Build sp trees correctly (#5402)
+    + Correct application of reference doc for content.
+    + Make default placeholder type for template lookup.
+    + Apply speaker notes to metadata slide if applicable.
+    + Test for speaker notes after breaking header.
+    + Correctly handle notes after section-title header.
+      Previously, if notes came after a section-title header (ie, a level-1
+      header in a slide-level=2 presentation), they would go on the next
+      slide. This keeps them on the slide with the header.
+    + Internal improvements.
+
+  * ipynb writer:
+
+    + Use format `ipynb` for raw cell where no format given.
+      According to nbformat docs, this is supposed to render in every
+      format.  We don't do that, but we at least preserve it as a raw
+      block in markdown, so you can round-trip.
+    + Consolidate adjacent raw blocks.  Sometimes pandoc creates two
+      HTML blocks, e.g. one for the open tag and one for a close tag.
+      If these aren't consolidated, only one will show up in output cell.
+    + Fixed carry-over of nbformat from metadata.
+    + Preserve `nbformat_minor` if it's given.  This helps with round-tripping.
+
+  * LaTeX writer:
+
+    + Avoid inadvertently creating ?` or !` ligatures (#5407).
+      These are upside down ? and !, resp.
+    + Fix footnotes in table caption and cells (#5367).  This fixes a
+      bug wherein footnotes appeared in the wrong order, and with
+      duplicate numbers, when in table captions and cells.
+      We now use regular `\footnote` commands, even in the table
+      caption and the minipages containing cells. Apparently
+      longtable knows how to handle this.
+
+  * HTML writer: Don't add data- prefix to RDFa attributes (#5403).
+
+  * JATS writer: Ensure that plain strings go inside `<pub-id>` tag (#5397).
+
+  * Markdown writer:
+
+    + Better rendering of numbers (#5398).  If the number is integral,
+      we render it as an integral not a float.
+    + Proper rendering of empty map in YAML metadata (#5398).  Should
+      be `{}`, not empty string.
+    + Properly escape attributes in Markdown writer (#5369).
+    + Be sure implicit figures work in list contexts (#5368).
+      Previously they would sometimes not work: e.g., when they
+      occured in final paragraphs in lists that were originally
+      parsed as Plain and converted later using PlainToPara.
+
+  * Docx writer: Use `w:br` without attributes for line breaks (#5377).
+    We previously added the attribute `type="textWrapping"`, but
+    this causes problems on Word Online.
+
+  * LaTeX template (Andrew Dunning):
+
+    + Ensure correct heading/table order (#5365).  Improve workaround
+      (#1658) for tables following headings.  The new solution works whether
+      or not the `indent` variable is enabled.
+    + Remove `subparagraph` variable. The default is now to use run-in
+      style for level 4 and 5 headings (`\paragraph` and `\subparagraph`).
+      To get the previous default behavior (where these were formatted as
+      blocks, like `\subsubsection`), set the `block-headings` variable.
+    + Add pandoc to PDF metadata (#5388).
+    + Group graphics-related code (#5389).
+    + Move `\setstretch` after front matter (#5179).  Ensures that
+      `\maketitle`, `\tableofcontents`, and so forth are not affected by
+      changes to line spacing.
+
+  * Update data/jats.csl to avoid commas between name-part elements
+    (#5397).
+
+  * Add support for golang (`go`) with `--listings` (#5427).
+
+  * Text.Pandoc.Shared - improve `metaToJSON` behavior with numbers.
+    We now do a better job marshalling numbers from MetaString
+    or MetaInlines into JSON Number.
+
+  * Text.Pandoc.Writers.Shared: `metaValueToJSON`: use Number Values for
+    integers.  Pandoc's MetaValue doesn't have a distinguished number type,
+    so numbers are put in MetaStrings.  If the MetaString consists
+    entirely of digits, we convert it to a Number.  We should probably
+    consider adding a MetaNumber constructor to MetaValue, for better
+    round-tripping with JSON etc.  This change aids round-tripping in
+    ipynb metadata fields, like `toc_depth`.
+
+  * Text.Pandoc.Class: `fetchItem`: don't treat UNC paths as
+    protocol-relative URLs (#5127).  These are paths beginning `//?/UNC/...`.
+
+  * Text.Pandoc.ImageSize: Improve `pdfSize` so it handles
+    a wider range of PDFs (#4322, with help from Richard Davis).
+
+  * Text.Pandoc.Pretty: avoid stack overflow by using strict sum (#5401).
+
+  * Fix harmless error in file-scope code (#5422).
+
+  * MANUAL.txt:
+
+    + Improve 'header' and 'heading' usage (#5423, Andrew
+      Dunning).  The term 'header' was being used where 'heading'
+      is more appropriate.
+    + Add paragraph on options affecting markdown in ipynb.
+
+  * stack.yaml - remove -Wmissing-home-modules
+    This seems to cause problems with stack ghci.  Remove RTS options.
+
+  * Add ghc-options to cabal.project.
+
+  * appveyor.yml - use ghc 8.6.4.  Fixes segfault issues on Windows (#5037).
+
+  * linux build process: Remove clone of pandoc-citeproc (#5366).
+    It wasn't being used; cabal.project specifies the version to use.
+
 pandoc (2.7.1)
 
   * Add tectonic as an option for --pdf-engine (#5345, Cormac Relf).
