@@ -74,7 +74,8 @@ import Text.Pandoc.Parsing (ParserState, ParserT, blanklines, emailAddress,
                             many1Till, orderedListMarker, readWithM,
                             registerHeader, spaceChar, stateMeta,
                             stateOptions, uri)
-import Text.Pandoc.Shared (crFilter, splitBy, stringify, stripFirstAndLast)
+import Text.Pandoc.Shared (crFilter, splitBy, stringify, stripFirstAndLast,
+                           isURI)
 import Text.Parsec.Char (alphaNum, anyChar, char, newline, noneOf, oneOf, space,
                          spaces, string)
 import Text.Parsec.Combinator (between, choice, count, eof, lookAhead, many1,
@@ -544,11 +545,17 @@ link = try $ do
                   False -> do
                     manyTill anyChar (string "]]")
 -- not using try here because [[hell]o]] is not rendered as a link in vimwiki
-                    return $ B.link (procLink contents) "" (B.str contents)
+                    let tit = if isURI contents
+                                 then ""
+                                 else "wikilink"
+                    return $ B.link (procLink contents) tit (B.str contents)
                   True  -> do
                     url <- manyTill anyChar $ char '|'
                     lab <- mconcat <$> manyTill inline (string "]]")
-                    return $ B.link (procLink url) "" lab
+                    let tit = if isURI url
+                                 then ""
+                                 else "wikilink"
+                    return $ B.link (procLink url) tit lab
 
 image :: PandocMonad m => VwParser m Inlines
 image = try $ do
@@ -580,13 +587,13 @@ images k
 procLink' :: String -> String
 procLink' s
   | take 6 s == "local:" = "file" ++ drop 5 s
-  | take 6 s == "diary:" = "diary/" ++ drop 6 s ++ ".html"
+  | take 6 s == "diary:" = "diary/" ++ drop 6 s
   | or ((`isPrefixOf` s) <$> [ "http:", "https:", "ftp:", "file:", "mailto:",
                               "news:", "telnet:" ])
                              = s
   | s == ""                  = ""
   | last s == '/'          = s
-  | otherwise                = s ++ ".html"
+  | otherwise                = s
 
 procLink :: String -> String
 procLink s = procLink' x ++ y
