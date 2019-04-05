@@ -183,20 +183,15 @@ newtype SlideId = SlideId String
 newtype SpeakerNotes = SpeakerNotes {fromSpeakerNotes :: [Paragraph]}
   deriving (Show, Eq, Monoid, Semigroup)
 
-data Layout = MetadataSlide { metadataSlideTitle :: [ParaElem]
-                            , metadataSlideSubtitle :: [ParaElem]
-                            , metadataSlideAuthors :: [[ParaElem]]
-                            , metadataSlideDate :: [ParaElem]
-                            }
-           | TitleSlide { titleSlideHeader :: [ParaElem]}
-           | ContentSlide { contentSlideHeader :: [ParaElem]
-                          , contentSlideContent :: [Shape]
-                          }
-           | TwoColumnSlide { twoColumnSlideHeader :: [ParaElem]
-                            , twoColumnSlideLeft   :: [Shape]
-                            , twoColumnSlideRight  :: [Shape]
-                            }
-           deriving (Show, Eq)
+data Layout = MetadataSlide [ParaElem] [ParaElem] [[ParaElem]] [ParaElem]
+            --              title      subtitle   authors      date
+            | TitleSlide [ParaElem]
+            --           heading
+            | ContentSlide [ParaElem] [Shape]
+            --             heading    content
+            | TwoColumnSlide [ParaElem] [Shape] [Shape]
+            --               heading    left    right
+            deriving (Show, Eq)
 
 data Shape = Pic PicProps FilePath [ParaElem]
            | GraphicFrame [Graphic] [ParaElem]
@@ -621,7 +616,7 @@ blocksToSlide' lvl (Header n (ident, _, _) ils : blks) spkNotes
       registerAnchorId ident
       sldId <- asks envCurSlideId
       hdr <- inlinesToParElems ils
-      return $ Slide sldId TitleSlide {titleSlideHeader = hdr} spkNotes
+      return $ Slide sldId (TitleSlide hdr) spkNotes
   | n == lvl = do
       registerAnchorId ident
       hdr <- inlinesToParElems ils
@@ -652,10 +647,7 @@ blocksToSlide' _ (blk : blks) spkNotes
       sldId <- asks envCurSlideId
       return $ Slide
         sldId
-        TwoColumnSlide { twoColumnSlideHeader = []
-                       , twoColumnSlideLeft = shapesL
-                       , twoColumnSlideRight = shapesR
-                       }
+        (TwoColumnSlide [] shapesL shapesR)
         spkNotes
 blocksToSlide' _ (blk : blks) spkNotes = do
       inNoteSlide <- asks envInNoteSlide
@@ -666,18 +658,14 @@ blocksToSlide' _ (blk : blks) spkNotes = do
       return $
         Slide
         sldId
-        ContentSlide { contentSlideHeader = []
-                     , contentSlideContent = shapes
-                     }
+        (ContentSlide [] shapes)
         spkNotes
 blocksToSlide' _ [] spkNotes = do
   sldId <- asks envCurSlideId
   return $
     Slide
     sldId
-    ContentSlide { contentSlideHeader = []
-                 , contentSlideContent = []
-                 }
+    (ContentSlide [] [])
     spkNotes
 
 blockToSpeakerNotes :: Block -> Pres SpeakerNotes
@@ -756,11 +744,7 @@ getMetaSlide  = do
          Just $
          Slide
          metadataSlideId
-         MetadataSlide { metadataSlideTitle = title
-                       , metadataSlideSubtitle = subtitle
-                       , metadataSlideAuthors = authors
-                       , metadataSlideDate = date
-                       }
+         (MetadataSlide title subtitle authors date)
          mempty
 
 addSpeakerNotesToMetaSlide :: Slide -> [Block] -> Pres (Slide, [Block])
