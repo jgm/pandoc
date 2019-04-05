@@ -903,7 +903,13 @@ tableCellToLaTeX :: PandocMonad m => Bool -> (Double, Alignment, [Block])
 tableCellToLaTeX _      (0,     _,     blocks) =
   blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
 tableCellToLaTeX header (width, align, blocks) = do
+  beamer <- gets stBeamer
+  oldInMinipage <- gets stInMinipage
+  -- See #5367 -- footnotehyper/footnote don't work in beamer,
+  -- so we need to produce the notes outside the table...
+  modify $ \st -> st{ stInMinipage = beamer }
   cellContents <- blockListToLaTeX blocks
+  modify $ \st -> st{ stInMinipage = oldInMinipage }
   let valign = text $ if header then "[b]" else "[t]"
   let halign = case align of
                AlignLeft    -> "\\raggedright"
