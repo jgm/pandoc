@@ -20,6 +20,7 @@ module Text.Pandoc.Writers.LaTeX (
 import Prelude
 import Control.Applicative ((<|>))
 import Control.Monad.State.Strict
+import Data.Monoid (Any(..))
 import Data.Aeson (FromJSON, object, (.=))
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isSpace,
                   isPunctuation, ord, toLower)
@@ -792,7 +793,7 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = False}
   return hdr
 blockToLaTeX (Table caption aligns widths heads rows) = do
-  (captionText, captForLof, footnotes) <- getCaption False caption
+  (captionText, captForLof, captNotes) <- getCaption False caption
   let toHeaders hs = do contents <- tableRowToLaTeX True aligns widths hs
                         return ("\\toprule" $$ contents $$ "\\midrule")
   let removeNote (Note _) = Span ("", [], []) []
@@ -813,6 +814,7 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let colDescriptors = text $ concatMap toColDescriptor aligns
   modify $ \s -> s{ stTable = True }
+  notes <- notesToLaTeX <$> gets stNotes
   return $ "\\begin{longtable}[]" <>
               braces ("@{}" <> colDescriptors <> "@{}")
               -- the @{} removes extra space at beginning and end
@@ -823,22 +825,25 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
          $$ vcat rows'
          $$ "\\bottomrule"
          $$ "\\end{longtable}"
-         $$ footnotes
+         $$ captNotes
+         $$ notes
 
 getCaption :: PandocMonad m => Bool -> [Inline] -> LW m (Doc, Doc, Doc)
 getCaption externalNotes txt = do
   oldExternalNotes <- gets stExternalNotes
   modify $ \st -> st{ stExternalNotes = externalNotes, stNotes = [] }
   capt <- inlineListToLaTeX txt
-  notes <- gets stNotes
   modify $ \st -> st{ stExternalNotes = oldExternalNotes, stNotes = [] }
   -- We can't have footnotes in the list of figures/tables, so remove them:
-  captForLof <- if null notes
-                   then return empty
-                   else brackets <$> inlineListToLaTeX (walk deNote txt)
-  let footnotes = if externalNotes
-                     then notesToLaTeX notes
-                     else empty
+  let getNote (Note _) = Any True
+      getNote _        = Any False
+  let hasNotes = getAny . query getNote
+  captForLof <- if hasNotes txt
+                   then brackets <$> inlineListToLaTeX (walk deNote txt)
+                   else return empty
+  footnotes <- if externalNotes
+                  then notesToLaTeX <$> gets stNotes
+                  else return empty
   return (capt, captForLof, footnotes)
 
 toColDescriptor :: Alignment -> String
@@ -1300,12 +1305,12 @@ inlineToLaTeX (Note contents) = do
   let beamerMark = if beamer
                       then text "<.->"
                       else empty
-  modify $ \st -> st{ stNotes = noteContents : stNotes st }
-  return $
-    if externalNotes
-       then "\\footnotemark{}"
+  if externalNotes
+     then do
+       modify $ \st -> st{ stNotes = noteContents : stNotes st }
+       return "\\footnotemark{}"
        -- note: a \n before } needed when note ends with a Verbatim environment
-       else "\\footnote" <> beamerMark <> braces noteContents
+       else return $ "\\footnote" <> beamerMark <> braces noteContents
 
 -- A comment at the end of math needs to be followed by a newline,
 -- or the closing delimiter gets swallowed.
