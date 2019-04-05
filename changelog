@@ -48,8 +48,10 @@ pandoc (2.7.2)
       producing a slide show, it is assumed that slide view will be
       desired.
     + Remove `handoutsMasterList` from template presentation.xml
-    + Build sp trees correctly (#5402)
-    + Correct application of reference doc for content.
+    + Fix numerous errors in templating (#5402). Previously, some templates
+      produced by Office 365 (MacOS) would not render with `--reference-doc`
+      correctly. We now apply correct shapes for content, and build
+      shape trees correctly.
     + Make default placeholder type for template lookup.
     + Apply speaker notes to metadata slide if applicable.
     + Test for speaker notes after breaking header.
