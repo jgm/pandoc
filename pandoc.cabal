@@ -139,6 +139,10 @@ data-files:
                  data/pptx/ppt/slides/_rels/slide2.xml.rels
                  data/pptx/ppt/slides/slide2.xml
                  data/pptx/ppt/slides/slide1.xml
+                 data/pptx/ppt/slides/_rels/slide3.xml.rels
+                 data/pptx/ppt/slides/_rels/slide4.xml.rels
+                 data/pptx/ppt/slides/slide3.xml
+                 data/pptx/ppt/slides/slide4.xml
                  data/pptx/ppt/viewProps.xml
                  data/pptx/ppt/tableStyles.xml
                  data/pptx/ppt/slideMasters/_rels/slideMaster1.xml.rels
