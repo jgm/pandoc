@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "March 12, 2019" "pandoc 2.7.1"
+.TH PANDOC 1 "April 5, 2019" "pandoc 2.7.2"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -393,6 +393,8 @@ HTML5/XHTML polyglot markup)
 .IP \[bu] 2
 \f[C]tei\f[R] (TEI Simple)
 .IP \[bu] 2
+\f[C]xwiki\f[R] (XWiki markup)
+.IP \[bu] 2
 \f[C]zimwiki\f[R] (ZimWiki markup)
 .IP \[bu] 2
 the path of a custom lua writer, see Custom writers below
@@ -488,7 +490,7 @@ Show usage message.
 .SS Reader options
 .TP
 .B \f[C]--base-header-level=\f[R]\f[I]NUMBER\f[R]
-Specify the base level for headers (defaults to 1).
+Specify the base level for headings (defaults to 1).
 .TP
 .B \f[C]--strip-empty-paragraphs\f[R]
 \f[I]Deprecated. Use the \f[CI]+empty_paragraphs\f[I] extension
@@ -767,7 +769,7 @@ it has no effect on \f[C]man\f[R], \f[C]docbook4\f[R],
 .B \f[C]--toc-depth=\f[R]\f[I]NUMBER\f[R]
 Specify the number of section levels to include in the table of
 contents.
-The default is 3 (which means that level 1, 2, and 3 headers will be
+The default is 3 (which means that level-1, 2, and 3 headings will be
 listed in the contents).
 .TP
 .B \f[C]--strip-comments\f[R]
@@ -919,17 +921,17 @@ The default is \f[C]document\f[R].
 Currently only affects the markdown writer.
 .TP
 .B \f[C]--atx-headers\f[R]
-Use ATX-style headers in Markdown output.
-The default is to use setext-style headers for levels 1-2, and then ATX
-headers.
-(Note: for \f[C]gfm\f[R] output, ATX headers are always used.) This
+Use ATX-style headings in Markdown output.
+The default is to use setext-style headings for levels 1 to 2, and then
+ATX headings.
+(Note: for \f[C]gfm\f[R] output, ATX headings are always used.) This
 option also affects markdown cells in \f[C]ipynb\f[R] output.
 .TP
 .B \f[C]--top-level-division=[default|section|chapter|part]\f[R]
-Treat top-level headers as the given division type in LaTeX, ConTeXt,
+Treat top-level headings as the given division type in LaTeX, ConTeXt,
 DocBook, and TEI output.
-The hierarchy order is part, chapter, then section; all headers are
-shifted such that the top-level header becomes the specified type.
+The hierarchy order is part, chapter, then section; all headings are
+shifted such that the top-level heading becomes the specified type.
 The default behavior is to determine the best division type via
 heuristics: unless other conditions apply, \f[C]section\f[R] is chosen.
 When the LaTeX document class is set to \f[C]report\f[R],
@@ -937,8 +939,8 @@ When the LaTeX document class is set to \f[C]report\f[R],
 is specified), \f[C]chapter\f[R] is implied as the setting for this
 option.
 If \f[C]beamer\f[R] is the output format, specifying either
-\f[C]chapter\f[R] or \f[C]part\f[R] will cause top-level headers to
-become \f[C]\[rs]part{..}\f[R], while second-level headers remain as
+\f[C]chapter\f[R] or \f[C]part\f[R] will cause top-level headings to
+become \f[C]\[rs]part{..}\f[R], while second-level headings remain as
 their default type.
 .TP
 .B \f[C]-N\f[R], \f[C]--number-sections\f[R]
@@ -950,11 +952,12 @@ Sections with class \f[C]unnumbered\f[R] will never be numbered, even if
 .B \f[C]--number-offset=\f[R]\f[I]NUMBER\f[R][\f[C],\f[R]\f[I]NUMBER\f[R]\f[C],\f[R]\f[I]...\f[R]]
 Offset for section headings in HTML output (ignored in other output
 formats).
-The first number is added to the section number for top-level headers,
-the second for second-level headers, and so on.
-So, for example, if you want the first top-level header in your document
-to be numbered \[dq]6\[dq], specify \f[C]--number-offset=5\f[R].
-If your document starts with a level-2 header which you want to be
+The first number is added to the section number for top-level headings,
+the second for second-level headings, and so on.
+So, for example, if you want the first top-level heading in your
+document to be numbered \[dq]6\[dq], specify
+\f[C]--number-offset=5\f[R].
+If your document starts with a level-2 heading which you want to be
 numbered \[dq]1.5\[dq], specify \f[C]--number-offset=1,4\f[R].
 Offsets are 0 by default.
 Implies \f[C]--number-sections\f[R].
@@ -971,13 +974,13 @@ Make list items in slide shows display incrementally (one by one).
 The default is for lists to be displayed all at once.
 .TP
 .B \f[C]--slide-level=\f[R]\f[I]NUMBER\f[R]
-Specifies that headers with the specified level create slides (for
+Specifies that headings with the specified level create slides (for
 \f[C]beamer\f[R], \f[C]s5\f[R], \f[C]slidy\f[R], \f[C]slideous\f[R],
 \f[C]dzslides\f[R]).
-Headers above this level in the hierarchy are used to divide the slide
-show into sections; headers below this level create subheads within a
+Headings above this level in the hierarchy are used to divide the slide
+show into sections; headings below this level create subheads within a
 slide.
-Note that content that is not contained under slide-level headers will
+Note that content that is not contained under slide-level headings will
 not appear in the slide show.
 The default is to set the slide level based on the contents of the
 document; see Structuring the slide show.
@@ -985,8 +988,8 @@ document; see Structuring the slide show.
 .B \f[C]--section-divs\f[R]
 Wrap sections in \f[C]<section>\f[R] tags (or \f[C]<div>\f[R] tags for
 \f[C]html4\f[R]), and attach identifiers to the enclosing
-\f[C]<section>\f[R] (or \f[C]<div>\f[R]) rather than the header itself.
-See Header identifiers, below.
+\f[C]<section>\f[R] (or \f[C]<div>\f[R]) rather than the heading itself.
+See Heading identifiers, below.
 .TP
 .B \f[C]--email-obfuscation=none\f[R]|\f[C]javascript\f[R]|\f[C]references\f[R]
 Specify a method for obfuscating \f[C]mailto:\f[R] links in HTML
@@ -1145,13 +1148,13 @@ styles as you wish, and save the file.
 .RE
 .TP
 .B PowerPoint
-Any template included with a recent install of Microsoft PowerPoint
-(either with \f[C].pptx\f[R] or \f[C].potx\f[R] extension) should work,
-as will most templates derived from these.
+Templates included with Microsoft PowerPoint 2013 (either with
+\f[C].pptx\f[R] or \f[C].potx\f[R] extension) are known to work, as are
+most templates derived from these.
 .RS
 .PP
-The specific requirement is that the template should contain the
-following four layouts as its first four layouts:
+The specific requirement is that the template should begin with the
+following first four layouts:
 .IP "1." 3
 Title Slide
 .IP "2." 3
@@ -1251,13 +1254,13 @@ body { font-family: \[dq]DejaVuSans\[dq]; }
 .RE
 .TP
 .B \f[C]--epub-chapter-level=\f[R]\f[I]NUMBER\f[R]
-Specify the header level at which to split the EPUB into separate
+Specify the heading level at which to split the EPUB into separate
 \[dq]chapter\[dq] files.
-The default is to split into chapters at level 1 headers.
+The default is to split into chapters at level-1 headings.
 This option only affects the internal composition of the EPUB, not the
 way chapters and sections are displayed to users.
 Some readers may be slow if the chapter files are too large, so for
-large documents with few level 1 headers, one might want to use a
+large documents with few level-1 headings, one might want to use a
 chapter level of 2 or 3.
 .TP
 .B \f[C]--epub-subdirectory=\f[R]\f[I]DIRNAME\f[R]
@@ -1646,19 +1649,73 @@ image for title slide
 Pandoc uses these variables when creating a PDF with a LaTeX engine.
 .SS Layout
 .TP
+.B \f[C]block-headings\f[R]
+make \f[C]\[rs]paragraph\f[R] and \f[C]\[rs]subparagraph\f[R] (fourth-
+and fifth-level headings, or fifth- and sixth-level with book classes)
+free-standing rather than run-in; requires further formatting to
+distinguish from \f[C]\[rs]subsubsection\f[R] (third- or fourth-level
+headings).
+Instead of using this option, KOMA-Script can adjust headings more
+extensively:
+.RS
+.IP
+.nf
+\f[C]
+---
+documentclass: scrartcl
+header-includes: |
+  \[rs]RedeclareSectionCommand[
+    beforeskip=-10pt plus -2pt minus -1pt,
+    afterskip=1sp plus -1sp minus 1sp,
+    font=\[rs]normalfont\[rs]itshape]{paragraph}
+  \[rs]RedeclareSectionCommand[
+    beforeskip=-10pt plus -2pt minus -1pt,
+    afterskip=1sp plus -1sp minus 1sp,
+    font=\[rs]normalfont\[rs]scshape,
+    indent=0pt]{subparagraph}
+\&...
+\f[R]
+.fi
+.RE
+.TP
 .B \f[C]classoption\f[R]
 option for document class, e.g.
-\f[C]oneside\f[R]; repeat for multiple options
+\f[C]oneside\f[R]; repeat for multiple options:
+.RS
+.IP
+.nf
+\f[C]
+---
+classoption:
+- twocolumn
+- landscape
+\&...
+\f[R]
+.fi
+.RE
 .TP
 .B \f[C]documentclass\f[R]
 document class: usually one of the standard classes, \f[C]article\f[R],
-\f[C]report\f[R], and \f[C]book\f[R]; the KOMA-Script equivalents,
-\f[C]scrartcl\f[R], \f[C]scrreprt\f[R], and \f[C]scrbook\f[R], which
+\f[C]book\f[R], and \f[C]report\f[R]; the KOMA-Script equivalents,
+\f[C]scrartcl\f[R], \f[C]scrbook\f[R], and \f[C]scrreprt\f[R], which
 default to smaller margins; or \f[C]memoir\f[R]
 .TP
 .B \f[C]geometry\f[R]
 option for \f[C]geometry\f[R] package, e.g.
-\f[C]margin=1in\f[R]; repeat for multiple options
+\f[C]margin=1in\f[R]; repeat for multiple options:
+.RS
+.IP
+.nf
+\f[C]
+---
+geometry:
+- top=30mm
+- left=20mm
+- heightrounded
+\&...
+\f[R]
+.fi
+.RE
 .TP
 .B \f[C]indent\f[R]
 uses document class settings for indentation (the default LaTeX template
@@ -1684,11 +1741,6 @@ paper size, e.g.
 .B \f[C]secnumdepth\f[R]
 numbering depth for sections (with \f[C]--number-sections\f[R] option or
 \f[C]numbersections\f[R] variable)
-.TP
-.B \f[C]subparagraph\f[R]
-disables default behavior of LaTeX template that redefines
-(sub)paragraphs as sections, changing the appearance of nested headings
-in some classes
 .SS Fonts
 .TP
 .B \f[C]fontenc\f[R]
@@ -2145,11 +2197,11 @@ these characters literally.
 In writing LaTeX, enabling \f[C]smart\f[R] tells pandoc to use the
 ligatures when possible; if \f[C]smart\f[R] is disabled pandoc will use
 unicode quotation mark and dash characters.
-.SS Headers and sections
+.SS Headings and sections
 .SS Extension: \f[C]auto_identifiers\f[R]
 .PP
-A header without an explicitly specified identifier will be
-automatically assigned a unique identifier based on the header text.
+A heading without an explicitly specified identifier will be
+automatically assigned a unique identifier based on the heading text.
 .PP
 This extension can be enabled/disabled for the following formats:
 .TP
@@ -2163,8 +2215,8 @@ This extension can be enabled/disabled for the following formats:
 .B enabled by default in
 \f[C]markdown\f[R], \f[C]muse\f[R]
 .PP
-The default algorithm used to derive the identifier from the header text
-is:
+The default algorithm used to derive the identifier from the heading
+text is:
 .IP \[bu] 2
 Remove all formatting, links, etc.
 .IP \[bu] 2
@@ -2188,15 +2240,15 @@ Thus, for example,
 tab(@);
 l l.
 T{
-Header
+Heading
 T}@T{
 Identifier
 T}
 _
 T{
-\f[C]Header identifiers in HTML\f[R]
+\f[C]Heading identifiers in HTML\f[R]
 T}@T{
-\f[C]header-identifiers-in-html\f[R]
+\f[C]heading-identifiers-in-html\f[R]
 T}
 T{
 \f[C]Ma\[^i]tre d\[aq]h\[^o]tel\f[R]
@@ -2226,8 +2278,8 @@ T}
 .TE
 .PP
 These rules should, in most cases, allow one to determine the identifier
-from the header text.
-The exception is when several headers have the same text; in this case,
+from the heading text.
+The exception is when several headings have the same text; in this case,
 the first will get an identifier as described above; the second will get
 the same identifier with \f[C]-1\f[R] appended; the third with
 \f[C]-2\f[R]; and so on.
@@ -2244,7 +2296,7 @@ A link to this section, for example, might look like this:
 .nf
 \f[C]
 See the section on
-[header identifiers](#header-identifiers-in-html-latex-and-context).
+[heading identifiers](#heading-identifiers-in-html-latex-and-context).
 \f[R]
 .fi
 .PP
@@ -2255,7 +2307,7 @@ If the \f[C]--section-divs\f[R] option is specified, then each section
 will be wrapped in a \f[C]section\f[R] (or a \f[C]div\f[R], if
 \f[C]html4\f[R] was specified), and the identifier will be attached to
 the enclosing \f[C]<section>\f[R] (or \f[C]<div>\f[R]) tag rather than
-the header itself.
+the heading itself.
 This allows entire sections to be manipulated using JavaScript or
 treated differently in CSS.
 .SS Extension: \f[C]ascii_identifiers\f[R]
@@ -2354,14 +2406,14 @@ In Markdown input, \[dq]bird track\[dq] sections will be parsed as
 Haskell code rather than block quotations.
 Text between \f[C]\[rs]begin{code}\f[R] and \f[C]\[rs]end{code}\f[R]
 will also be treated as Haskell code.
-For ATX-style headers the character \[aq]=\[aq] will be used instead of
+For ATX-style headings the character \[aq]=\[aq] will be used instead of
 \[aq]#\[aq].
 .IP \[bu] 2
 In Markdown output, code blocks with classes \f[C]haskell\f[R] and
 \f[C]literate\f[R] will be rendered using bird tracks, and block
 quotations will be indented one space, so they will not be treated as
 Haskell code.
-In addition, headers will be rendered setext-style (with underlines)
+In addition, headings will be rendered setext-style (with underlines)
 rather than ATX-style (with \[aq]#\[aq] characters).
 (This is because ghc treats \[aq]#\[aq] characters in column 1 as
 introducing line numbers.)
@@ -2490,52 +2542,52 @@ line.
 A backslash followed by a newline is also a hard line break.
 Note: in multiline and grid table cells, this is the only way to create
 a hard line break, since trailing spaces in the cells are ignored.
-.SS Headers
+.SS Headings
 .PP
-There are two kinds of headers: Setext and ATX.
-.SS Setext-style headers
+There are two kinds of headings: Setext and ATX.
+.SS Setext-style headings
 .PP
-A setext-style header is a line of text \[dq]underlined\[dq] with a row
-of \f[C]=\f[R] signs (for a level one header) or \f[C]-\f[R] signs (for
-a level two header):
+A setext-style heading is a line of text \[dq]underlined\[dq] with a row
+of \f[C]=\f[R] signs (for a level-one heading) or \f[C]-\f[R] signs (for
+a level-two heading):
 .IP
 .nf
 \f[C]
-A level-one header
-==================
+A level-one heading
+===================
 
-A level-two header
-------------------
+A level-two heading
+-------------------
 \f[R]
 .fi
 .PP
-The header text can contain inline formatting, such as emphasis (see
+The heading text can contain inline formatting, such as emphasis (see
 Inline formatting, below).
-.SS ATX-style headers
+.SS ATX-style headings
 .PP
-An ATX-style header consists of one to six \f[C]#\f[R] signs and a line
+An ATX-style heading consists of one to six \f[C]#\f[R] signs and a line
 of text, optionally followed by any number of \f[C]#\f[R] signs.
 The number of \f[C]#\f[R] signs at the beginning of the line is the
-header level:
+heading level:
 .IP
 .nf
 \f[C]
-## A level-two header
+## A level-two heading
 
-### A level-three header ###
+### A level-three heading ###
 \f[R]
 .fi
 .PP
-As with setext-style headers, the header text can contain formatting:
+As with setext-style headings, the heading text can contain formatting:
 .IP
 .nf
 \f[C]
-# A level-one header with a [link](/url) and *emphasis*
+# A level-one heading with a [link](/url) and *emphasis*
 \f[R]
 .fi
 .SS Extension: \f[C]blank_before_header\f[R]
 .PP
-Standard Markdown syntax does not require a blank line before a header.
+Standard Markdown syntax does not require a blank line before a heading.
 Pandoc does require this (except, of course, at the beginning of the
 document).
 The reason for the requirement is that it is all too easy for a
@@ -2552,16 +2604,16 @@ I like several of their flavors of ice cream:
 .SS Extension: \f[C]space_in_atx_header\f[R]
 .PP
 Many Markdown implementations do not require a space between the opening
-\f[C]#\f[R]s of an ATX header and the header text, so that
-\f[C]#5 bolt\f[R] and \f[C]#hashtag\f[R] count as headers.
+\f[C]#\f[R]s of an ATX heading and the heading text, so that
+\f[C]#5 bolt\f[R] and \f[C]#hashtag\f[R] count as headings.
 With this extension, pandoc does require the space.
-.SS Header identifiers
+.SS Heading identifiers
 .PP
 See also the \f[C]auto_identifiers\f[R] extension above.
 .SS Extension: \f[C]header_attributes\f[R]
 .PP
-Headers can be assigned attributes using this syntax at the end of the
-line containing the header text:
+Headings can be assigned attributes using this syntax at the end of the
+line containing the heading text:
 .IP
 .nf
 \f[C]
@@ -2569,16 +2621,16 @@ line containing the header text:
 \f[R]
 .fi
 .PP
-Thus, for example, the following headers will all be assigned the
+Thus, for example, the following headings will all be assigned the
 identifier \f[C]foo\f[R]:
 .IP
 .nf
 \f[C]
-# My header {#foo}
+# My heading {#foo}
 
-## My header ##    {#foo}
+## My heading ##    {#foo}
 
-My other header   {#foo}
+My other heading   {#foo}
 ---------------
 \f[R]
 .fi
@@ -2593,7 +2645,7 @@ HTML-based formats such as EPUB and slidy.
 Identifiers are used for labels and link anchors in the LaTeX, ConTeXt,
 Textile, and AsciiDoc writers.
 .PP
-Headers with the class \f[C]unnumbered\f[R] will not be numbered, even
+Headings with the class \f[C]unnumbered\f[R] will not be numbered, even
 if \f[C]--number-sections\f[R] is specified.
 A single hyphen (\f[C]-\f[R]) in an attribute context is equivalent to
 \f[C].unnumbered\f[R], and preferable in non-English documents.
@@ -2601,7 +2653,7 @@ So,
 .IP
 .nf
 \f[C]
-# My header {-}
+# My heading {-}
 \f[R]
 .fi
 .PP
@@ -2609,17 +2661,17 @@ is just the same as
 .IP
 .nf
 \f[C]
-# My header {.unnumbered}
+# My heading {.unnumbered}
 \f[R]
 .fi
 .SS Extension: \f[C]implicit_header_references\f[R]
 .PP
-Pandoc behaves as if reference links have been defined for each header.
-So, to link to a header
+Pandoc behaves as if reference links have been defined for each heading.
+So, to link to a heading
 .IP
 .nf
 \f[C]
-# Header identifiers in HTML
+# Heading identifiers in HTML
 \f[R]
 .fi
 .PP
@@ -2627,7 +2679,7 @@ you can simply write
 .IP
 .nf
 \f[C]
-[Header identifiers in HTML]
+[Heading identifiers in HTML]
 \f[R]
 .fi
 .PP
@@ -2635,7 +2687,7 @@ or
 .IP
 .nf
 \f[C]
-[Header identifiers in HTML][]
+[Heading identifiers in HTML][]
 \f[R]
 .fi
 .PP
@@ -2643,7 +2695,7 @@ or
 .IP
 .nf
 \f[C]
-[the section on header identifiers][header identifiers in
+[the section on heading identifiers][heading identifiers in
 HTML]
 \f[R]
 .fi
@@ -2652,18 +2704,18 @@ instead of giving the identifier explicitly:
 .IP
 .nf
 \f[C]
-[Header identifiers in HTML](#header-identifiers-in-html)
+[Heading identifiers in HTML](#heading-identifiers-in-html)
 \f[R]
 .fi
 .PP
-If there are multiple headers with identical text, the corresponding
+If there are multiple headings with identical text, the corresponding
 reference will link to the first one only, and you will need to use
 explicit links to link to the others, as described above.
 .PP
 Like regular reference links, these references are case-insensitive.
 .PP
 Explicit link reference definitions always take priority over implicit
-header references.
+heading references.
 So, in the following example, the link will point to \f[C]bar\f[R], not
 to \f[C]#foo\f[R]:
 .IP
@@ -2680,7 +2732,7 @@ See [foo]
 .PP
 Markdown uses email conventions for quoting blocks of text.
 A block quotation is one or more paragraphs or other block elements
-(such as lists or headers), with each line preceded by a \f[C]>\f[R]
+(such as lists or headings), with each line preceded by a \f[C]>\f[R]
 character and an optional space.
 (The \f[C]>\f[R] need not start at the left margin, but it should not be
 indented more than three spaces.)
@@ -3373,7 +3425,7 @@ Table:  Demonstration of simple table syntax.
 \f[R]
 .fi
 .PP
-The headers and table rows must each fit on one line.
+The header and table rows must each fit on one line.
 Column alignments are determined by the position of the header text
 relative to the dashed line below it:
 .IP \[bu] 2
@@ -3392,8 +3444,8 @@ default alignment is used (in most cases, this will be left).
 The table must end with a blank line, or a line of dashes followed by a
 blank line.
 .PP
-The column headers may be omitted, provided a dashed line is used to end
-the table.
+The column header row may be omitted, provided a dashed line is used to
+end the table.
 For example:
 .IP
 .nf
@@ -3406,13 +3458,13 @@ For example:
 \f[R]
 .fi
 .PP
-When headers are omitted, column alignments are determined on the basis
-of the first line of the table body.
+When the header row is omitted, column alignments are determined on the
+basis of the first line of the table body.
 So, in the tables above, the columns would be right, left, center, and
 right aligned, respectively.
 .SS Extension: \f[C]multiline_tables\f[R]
 .PP
-Multiline tables allow headers and table rows to span multiple lines of
+Multiline tables allow header and table rows to span multiple lines of
 text (but cells that span multiple columns or rows of the table are not
 supported).
 Here is an example:
@@ -3439,7 +3491,7 @@ multiple lines.
 These work like simple tables, but with the following differences:
 .IP \[bu] 2
 They must begin with a row of dashes, before the header text (unless the
-headers are omitted).
+header row is omitted).
 .IP \[bu] 2
 They must end with a row of dashes, then a blank line.
 .IP \[bu] 2
@@ -3451,7 +3503,7 @@ the output.
 So, if you find that one of the columns is too narrow in the output, try
 widening it in the Markdown source.
 .PP
-Headers may be omitted in multiline tables as well as simple tables:
+The header may be omitted in multiline tables as well as simple tables:
 .IP
 .nf
 \f[C]
@@ -3464,7 +3516,7 @@ Headers may be omitted in multiline tables as well as simple tables:
                                     rows.
 ----------- ------- --------------- -------------------------
 
-: Here\[aq]s a multiline table without headers.
+: Here\[aq]s a multiline table without a header.
 \f[R]
 .fi
 .PP
@@ -4057,6 +4109,10 @@ inline math) or \f[C]\[rs][...\[rs]]\f[R] (for display math).
 It will appear verbatim surrounded by \f[C]$...$\f[R] (for inline math)
 or \f[C]$$...$$\f[R] (for display math).
 .TP
+.B XWiki
+It will appear verbatim surrounded by
+\f[C]{{formula}}..{{/formula}}\f[R].
+.TP
 .B reStructuredText
 It will be rendered using an interpreted text role \f[C]:math:\f[R].
 .TP
@@ -4439,7 +4495,7 @@ See [my website].
 .SS Internal links
 .PP
 To link to another section of the same document, use the automatically
-generated identifier (see Header identifiers).
+generated identifier (see Heading identifiers).
 For example:
 .IP
 .nf
@@ -4949,8 +5005,8 @@ Otherwise, it will be placed at the end of the document.
 Generation of the bibliography can be suppressed by setting
 \f[C]suppress-bibliography: true\f[R] in the YAML metadata.
 .PP
-If you wish the bibliography to have a section header, you can set
-\f[C]reference-section-title\f[R] in the metadata, or put the header at
+If you wish the bibliography to have a section heading, you can set
+\f[C]reference-section-title\f[R] in the metadata, or put the heading at
 the beginning of the div with id \f[C]refs\f[R] (if you are using it) or
 at the end of your document:
 .IP
@@ -4962,8 +5018,8 @@ last paragraph...
 \f[R]
 .fi
 .PP
-The bibliography will be inserted after this header.
-Note that the \f[C]unnumbered\f[R] class will be added to this header,
+The bibliography will be inserted after this heading.
+Note that the \f[C]unnumbered\f[R] class will be added to this heading,
 so that the section will not be numbered.
 .PP
 If you want to include items in the bibliography without actually citing
@@ -5136,8 +5192,9 @@ This is a reference ![image][ref] with multimarkdown attributes.
 .fi
 .SS Extension: \f[C]mmd_header_identifiers\f[R]
 .PP
-Parses multimarkdown style header identifiers (in square brackets, after
-the header but before any trailing \f[C]#\f[R]s in an ATX header).
+Parses multimarkdown style heading identifiers (in square brackets,
+after the heading but before any trailing \f[C]#\f[R]s in an ATX
+heading).
 .SS Extension: \f[C]compact_definition_lists\f[R]
 .PP
 Activates the definition list syntax of pandoc 1.12.x and earlier.
@@ -5306,26 +5363,26 @@ pandoc habits.txt -o habits.pptx
 .fi
 .SS Structuring the slide show
 .PP
-By default, the \f[I]slide level\f[R] is the highest header level in the
-hierarchy that is followed immediately by content, and not another
-header, somewhere in the document.
-In the example above, level 1 headers are always followed by level 2
-headers, which are followed by content, so 2 is the slide level.
+By default, the \f[I]slide level\f[R] is the highest heading level in
+the hierarchy that is followed immediately by content, and not another
+heading, somewhere in the document.
+In the example above, level-1 headings are always followed by level-2
+headings, which are followed by content, so the slide level is 2.
 This default can be overridden using the \f[C]--slide-level\f[R] option.
 .PP
 The document is carved up into slides according to the following rules:
 .IP \[bu] 2
 A horizontal rule always starts a new slide.
 .IP \[bu] 2
-A header at the slide level always starts a new slide.
+A heading at the slide level always starts a new slide.
 .IP \[bu] 2
-Headers \f[I]below\f[R] the slide level in the hierarchy create headers
-\f[I]within\f[R] a slide.
+Headings \f[I]below\f[R] the slide level in the hierarchy create
+headings \f[I]within\f[R] a slide.
 .IP \[bu] 2
-Headers \f[I]above\f[R] the slide level in the hierarchy create
+Headings \f[I]above\f[R] the slide level in the hierarchy create
 \[dq]title slides,\[dq] which just contain the section title and help to
 break the slide show into sections.
-Non-slide content under these headers will be included on the title
+Non-slide content under these headings will be included on the title
 slide (for HTML slide shows) or in a subsequent slide with the same
 title (for beamer).
 .IP \[bu] 2
@@ -5336,13 +5393,13 @@ lines in the default template.)
 .PP
 These rules are designed to support many different styles of slide show.
 If you don\[aq]t care about structuring your slides into sections and
-subsections, you can just use level 1 headers for all each slide.
-(In that case, level 1 will be the slide level.) But you can also
+subsections, you can just use level-1 headings for all each slide.
+(In that case, level-1 will be the slide level.) But you can also
 structure the slide show into sections, as in the example above.
 .PP
 Note: in reveal.js slide shows, if slide level is 2, a two-dimensional
-layout will be produced, with level 1 headers building horizontally and
-level 2 headers building vertically.
+layout will be produced, with level-1 headings building horizontally and
+level-2 headings building vertically.
 It is not recommended that you use deeper nesting of section levels with
 reveal.js.
 .SS Incremental lists
@@ -5448,10 +5505,10 @@ pandoc -t beamer habits.txt -V theme:Warsaw -o habits.pdf
 \f[R]
 .fi
 .PP
-Note that header attributes will turn into slide attributes (on a
+Note that heading attributes will turn into slide attributes (on a
 \f[C]<div>\f[R] or \f[C]<section>\f[R]) in HTML slide formats, allowing
 you to style individual slides.
-In beamer, the only header attribute that affects slides is the
+In beamer, the only heading attribute that affects slides is the
 \f[C]allowframebreaks\f[R] class, which sets the
 \f[C]allowframebreaks\f[R] option, causing multiple slides to be created
 if the content overfills the frame.
@@ -5510,7 +5567,7 @@ contents...
 Sometimes it is necessary to add the LaTeX \f[C][fragile]\f[R] option to
 a frame in beamer (for example, when using the \f[C]minted\f[R]
 environment).
-This can be forced by adding the \f[C]fragile\f[R] class to the header
+This can be forced by adding the \f[C]fragile\f[R] class to the heading
 introducing the slide:
 .IP
 .nf
@@ -5543,7 +5600,7 @@ You can also set \f[C]parallaxBackgroundHorizontal\f[R] and
 .PP
 To set an image for a particular reveal.js slide, add
 \f[C]{data-background-image=\[dq]/path/to/image\[dq]}\f[R] to the first
-slide-level header on the slide (which may even be empty).
+slide-level heading on the slide (which may even be empty).
 .PP
 In reveal.js\[aq]s overview mode, the parallaxBackgroundImage will show
 up only on the first slide.
@@ -5570,7 +5627,7 @@ Slide 1 has background_image.png as its background.
 
 ## {data-background-image=\[dq]/path/to/special_image.jpg\[dq]}
 
-Slide 2 has a special image for its background, even though the header has no content.
+Slide 2 has a special image for its background, even though the heading has no content.
 \f[R]
 .fi
 .SH CREATING EPUBS WITH PANDOC
@@ -5697,7 +5754,7 @@ iBooks-specific metadata, with the following fields:
 .RE
 .SS The \f[C]epub:type\f[R] attribute
 .PP
-For \f[C]epub3\f[R] output, you can mark up the header that corresponds
+For \f[C]epub3\f[R] output, you can mark up the heading that corresponds
 to an EPUB chapter using the \f[C]epub:type\f[R] attribute.
 For example, to set the attribute to the value \f[C]prologue\f[R], use
 this markdown:
@@ -5954,6 +6011,13 @@ To avoid using raw HTML or TeX except when marked explicitly using raw
 attributes, we recommend specifying the extensions
 \f[C]-raw_html-raw_tex+raw_attribute\f[R] when translating between
 Markdown and ipynb notebooks.
+.PP
+Note that options and extensions that affect reading and writing of
+Markdown will also affect Markdown cells in ipynb notebooks.
+For example, \f[C]--wrap=preserve\f[R] will preserve soft line breaks in
+Markdown cells; \f[C]--atx-headers\f[R] will cause ATX-style headings to
+be used; and \f[C]--preserve-tabs\f[R] will prevent tabs from being
+turned to spaces.
 .SH SYNTAX HIGHLIGHTING
 .PP
 Pandoc will automatically highlight syntax in fenced code blocks that
@@ -6168,7 +6232,7 @@ The HTML generated by pandoc is not guaranteed to be safe.
 If \f[C]raw_html\f[R] is enabled for the Markdown input, users can
 inject arbitrary HTML.
 Even if \f[C]raw_html\f[R] is disabled, users can include dangerous
-content in attributes for headers, spans, and code blocks.
+content in attributes for headings, spans, and code blocks.
 To be safe, you should run all the generated HTML through an HTML
 sanitizer.
 .SH AUTHORS

@@ -154,6 +154,8 @@ It can convert *to*
   - `s5` ([S5](http://meyerweb.com/eric/tools/s5/) HTML and JavaScript
     slide show)
   - `tei` ([TEI Simple](https://github.com/TEIC/TEI-Simple))
+  - `xwiki` ([XWiki
+    markup](https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/))
   - `zimwiki` ([ZimWiki
     markup](http://zim-wiki.org/manual/Help/Wiki_Syntax.html))
   - the path of a custom lua writer, see [Custom
