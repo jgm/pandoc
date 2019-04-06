@@ -51,6 +51,7 @@
 - David Lazar
 - David Röthlisberger
 - Denis Laxalde
+- Derek Chen-Becker
 - Douglas Calvert
 - Emanuel Evans
 - Emily Eisenberg
