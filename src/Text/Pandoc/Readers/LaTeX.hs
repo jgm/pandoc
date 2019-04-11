@@ -1559,10 +1559,11 @@ newcommand = do
          case mtype of
               "DeclareMathOperator" ->
                  Tok pos (CtrlSeq "mathop") "\\mathop"
+                 : Tok pos Symbol "{"
                  : Tok pos (CtrlSeq "mathrm") "\\mathrm"
                  : Tok pos Symbol "{"
                  : (contents' ++
-                   [ Tok pos Symbol "}" ])
+                   [ Tok pos Symbol "}", Tok pos Symbol "}" ])
               _                     -> contents'
     when (mtype == "newcommand") $ do
       macros <- sMacros <$> getState
