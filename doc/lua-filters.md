@@ -550,8 +550,8 @@ end
 
 This filter converts raw LaTeX tikz environments into images. It
 works with both PDF and HTML output. The tikz code is compiled
-to an image using `pdflatex`, and the image is converted (if
-necessary) from pdf to png format using ImageMagick's `convert`,
+to an image using `pdflatex`, and the image is converted from pdf
+to svg format using [`pdf2svg`](https://github.com/dawbarton/pdf2svg),
 so both of these must be in the system path. Converted images
 are cached in the working directory and given filenames based on
 a hash of the source, so that they need not be regenerated each
@@ -563,7 +563,7 @@ local function tikz2image(src, filetype, outfile)
     local tmp = os.tmpname()
     local tmpdir = string.match(tmp, "^(.*[\\/])") or "."
     local f = io.open(tmp .. ".tex", 'w')
-    f:write("\\documentclass{standalone}\n\\usepackage{tikz}\n\\begin{document}\n")
+    f:write("\\documentclass{standalone}\n\\usepackage{xcolor}\n\\usepackage{tikz}\n\\begin{document}\n\\nopagecolor\n")
     f:write(src)
     f:write("\n\\end{document}\n")
     f:close()
@@ -571,7 +571,7 @@ local function tikz2image(src, filetype, outfile)
     if filetype == 'pdf' then
         os.rename(tmp .. ".pdf", outfile)
     else
-        os.execute("convert " .. tmp .. ".pdf " .. outfile)
+        os.execute("pdf2svg " .. tmp .. ".pdf " .. outfile)
     end
     os.remove(tmp .. ".tex")
     os.remove(tmp .. ".pdf")
@@ -580,9 +580,9 @@ local function tikz2image(src, filetype, outfile)
 end
 
 extension_for = {
-    html = 'png',
-    html4 = 'png',
-    html5 = 'png',
+    html = 'svg',
+    html4 = 'svg',
+    html5 = 'svg',
     latex = 'pdf',
     beamer = 'pdf' }
 
@@ -596,13 +596,22 @@ local function file_exists(name)
     end
 end
 
+local function starts_with(start, str)
+   return str:sub(1, #start) == start
+end
+
+
 function RawBlock(el)
-    local filetype = extension_for[FORMAT] or "png"
-    local fname = pandoc.sha1(el.text) .. "." .. filetype
-    if not file_exists(fname) then
-        tikz2image(el.text, filetype, fname)
+    if starts_with("\\begin{tikzpicture}", el.text) then
+        local filetype = extension_for[FORMAT] or "svg"
+        local fname = pandoc.sha1(el.text) .. "." .. filetype
+        if not file_exists(fname) then
+            tikz2image(el.text, filetype, fname)
+        end
+        return pandoc.Para({pandoc.Image({}, fname)})
+    else
+       return el
     end
-    return pandoc.Para({pandoc.Image({}, fname)})
 end
 ```
 
