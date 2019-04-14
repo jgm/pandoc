@@ -256,7 +256,6 @@ inlineToHaddock opts (Link _ txt (src, _)) = do
                       _       -> False
   if useAuto
     then return $ nowrap $ "<" <> text src <> ">"
-    -- else "[" <> linktext <> "]" <> "(" <> text src <> ")"
     else do
       t <- inlineListToHaddock opts txt
       pure $ "[" <> t <> "]" <> "(" <> text src <> ")"
