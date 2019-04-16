@@ -473,8 +473,8 @@ flatten outer
           (Quoted _ _, _)          -> keep f i
           (_, Quoted _ _)          -> keep f i
           -- spans are not rendered using RST inlines, so we can keep them
-          (Span _ _, _)            -> keep f i
-          (_, Span _ _)            -> keep f i
+          (Span ("",[],[]) _, _)   -> keep f i
+          (_, Span ("",[],[]) _)   -> keep f i
           -- inlineToRST handles this case properly so it's safe to keep
           (Link _ _ _, Image _ _ _) -> keep f i
           -- parent inlines would prevent links from being correctly
