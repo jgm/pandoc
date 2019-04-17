@@ -360,7 +360,7 @@ flag trypandoc
   Default:       False
 
 library
-  build-depends: base >= 4.8 && < 5,
+  build-depends: base >= 4.9 && < 5,
                  syb >= 0.1 && < 0.8,
                  containers >= 0.4.2.1 && < 0.7,
                  unordered-containers >= 0.2 && < 0.3,
