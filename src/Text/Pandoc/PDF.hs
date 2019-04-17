@@ -297,7 +297,7 @@ runTectonic verbosity program args' tmpDir' source = do
       putStrLn "[makePDF] Running"
       BL.hPutStr stdout out
       putStr "\n"
-    let pdfFile = tmpDir </> "texput.pdf"
+    let pdfFile = tmpDir ++ "/texput.pdf"
     (_, pdf) <- getResultingPDF Nothing pdfFile
     return (exit, out, pdf)
 
@@ -335,7 +335,7 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir' source = do
             [x] -> drop 8 x
             _   -> tmpDir'
     liftIO $ createDirectoryIfMissing True tmpDir
-    let file = tmpDir </> "input.tex"
+    let file = tmpDir ++ "/input.tex"  -- note: tmpDir has / path separators
     exists <- liftIO $ doesFileExist file
     unless exists $ liftIO $ BS.writeFile file $ UTF8.fromText source
     let isLatexMk = takeBaseName program == "latexmk"
