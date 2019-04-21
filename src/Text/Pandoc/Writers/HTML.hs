@@ -836,7 +836,7 @@ blockToHtml opts (Header level attr@(_,classes,_) lst) = do
               4 -> H.h4 contents'
               5 -> H.h5 contents'
               6 -> H.h6 contents'
-              _ -> H.p contents'
+              _ -> H.p ! A.class_ "heading" $ contents'
 blockToHtml opts (BulletList lst) = do
   contents <- mapM (listItemToHtml opts) lst
   unordList opts contents
