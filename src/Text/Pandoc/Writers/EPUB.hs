@@ -656,11 +656,11 @@ pandocToEPUB version opts doc = do
                                ,("media-type","application/xhtml+xml")] ++
                                [("properties","nav") | epub3 ]) $ ()
              ] ++
-             [ unode "item" ! [("id","style"), ("href",fp)
+             [ unode "item" ! [("id","stylesheet" ++ show n), ("href",fp)
                               ,("media-type","text/css")] $ () |
-                             fp <- map
+                             (n :: Int, fp) <- zip [1..] (map
                                (makeRelative epubSubdir . eRelativePath)
-                               stylesheetEntries ] ++
+                               stylesheetEntries) ] ++
              map chapterNode (cpgEntry ++ (tpEntry : chapterEntries)) ++
              (case cpicEntry of
                     []    -> []
