@@ -47,7 +47,7 @@ import Text.Pandoc.Writers.Shared (getField, metaToJSON)
 #ifdef _WINDOWS
 import Data.List (intercalate)
 #endif
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, find)
 import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getCommonState,
                           getVerbosity, putCommonState, report,
                           runIOorExplode, setVerbosity)
@@ -330,10 +330,12 @@ getResultingPDF logFile pdfFile = do
 runTeXProgram :: Verbosity -> String -> [String] -> Int -> Int -> FilePath
               -> Text -> PandocIO (ExitCode, ByteString, Maybe ByteString)
 runTeXProgram verbosity program args runNumber numRuns tmpDir' source = do
+    let isOutdirArg x = "-outdir=" `isPrefixOf` x ||
+                        "-output-directory=" `isPrefixOf` x
     let tmpDir =
-          case [x | x <- args, "-outdir=" `isPrefixOf` x] of
-            [x] -> drop 8 x
-            _   -> tmpDir'
+          case find isOutdirArg args of
+            Just x  -> drop 1 $ dropWhile (/='=') x
+            Nothing -> tmpDir'
     liftIO $ createDirectoryIfMissing True tmpDir
     let file = tmpDir ++ "/input.tex"  -- note: tmpDir has / path separators
     exists <- liftIO $ doesFileExist file
