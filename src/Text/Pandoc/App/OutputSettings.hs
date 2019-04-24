@@ -28,6 +28,7 @@ import Data.List (find, isPrefixOf, isSuffixOf)
 import Data.Maybe (fromMaybe)
 import Skylighting (defaultSyntaxMap)
 import Skylighting.Parser (addSyntaxDefinition, parseSyntaxDefinition)
+import System.Directory (getCurrentDirectory)
 import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
@@ -133,6 +134,9 @@ optToOutputSettings opts = do
              (optIncludeInHeader opts)
     >>=
     withList (addStringAsVariable "css") (optCss opts)
+    >>=
+    maybe return (addStringAsVariable "pwd")
+                 (getCurrentDirectory opts)
     >>=
     maybe return (addStringAsVariable "title-prefix")
                  (optTitlePrefix opts)
