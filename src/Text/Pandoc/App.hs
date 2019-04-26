@@ -241,13 +241,13 @@ convertWithOpts opts = do
                        "all"    -> id
                        "none"   -> (filterIpynbOutput Nothing :)
                        "best"   -> (filterIpynbOutput (Just $
-                                     if htmlFormat writerName
+                                     if htmlFormat format
                                         then Format "html"
                                         else
-                                          case writerName of
+                                          case format of
                                             "latex"  -> Format "latex"
                                             "beamer" -> Format "latex"
-                                            _        -> Format writerName) :)
+                                            _        -> Format format) :)
                        _  -> id)  -- should not happen
                      $ []
 
@@ -299,7 +299,7 @@ convertWithOpts opts = do
                                else (<> T.singleton '\n')
                 output <- addNl <$> f writerOptions doc
                 writerFn eol outputFile =<<
-                  if optSelfContained opts && htmlFormat writerName
+                  if optSelfContained opts && htmlFormat format
                      -- TODO not maximally efficient; change type
                      -- of makeSelfContained so it works w/ Text
                      then T.pack <$> makeSelfContained (T.unpack output)
