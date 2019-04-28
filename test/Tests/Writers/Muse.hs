@@ -2,8 +2,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.Muse (tests) where
 
-import Prelude
-import Data.Text (unpack)
+import Prelude hiding (unlines)
+import Data.Text (Text, unlines)
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
@@ -15,15 +15,15 @@ defopts = def{ writerWrapText = WrapPreserve,
                writerExtensions = extensionsFromList [Ext_amuse,
                                                       Ext_auto_identifiers] }
 
-muse :: (ToPandoc a) => a -> String
+muse :: (ToPandoc a) => a -> Text
 muse = museWithOpts defopts
 
-museWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
-museWithOpts opts = unpack . purely (writeMuse opts) . toPandoc
+museWithOpts :: (ToPandoc a) => WriterOptions -> a -> Text
+museWithOpts opts = purely (writeMuse opts) . toPandoc
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> TestTree
+     => String -> (a, Text) -> TestTree
 (=:) = test muse
 
 noteLocationTestDoc :: Blocks
