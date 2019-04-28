@@ -25,6 +25,7 @@ import Text.Pandoc.Class (readDataFile, runIO, setUserDataDir)
 import qualified Foreign.Lua as Lua
 import Text.Pandoc.Lua.Module.Pandoc as Pandoc
 import Text.Pandoc.Lua.Module.MediaBag as MediaBag
+import Text.Pandoc.Lua.Module.System as System
 import Text.Pandoc.Lua.Module.Utils as Utils
 
 -- | Parameters used to create lua packages/modules.
@@ -52,6 +53,7 @@ pandocPackageSearcher pkgParams pkgName =
     "pandoc"          -> let datadir = luaPkgDataDir pkgParams
                          in pushWrappedHsFun (Pandoc.pushModule datadir)
     "pandoc.mediabag" -> pushWrappedHsFun MediaBag.pushModule
+    "pandoc.system"   -> pushWrappedHsFun System.pushModule
     "pandoc.utils"    -> let datadir = luaPkgDataDir pkgParams
                          in pushWrappedHsFun (Utils.pushModule datadir)
     _ -> searchPureLuaLoader
