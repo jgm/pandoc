@@ -105,7 +105,7 @@ language: en-US
 ...
 ```
 
-See the [User's Guide](MANUAL.html#epub-metadata) for more information
+See the [User's Guide](http://pandoc.org/MANUAL.html#epub-metadata) for more information
 above these fields.
 
 Now run pandoc to make the ebook, using our title page and modified
@@ -152,5 +152,5 @@ or target readers that don't support MathML. Then you should try using the
 [github site]: http://github.com/progit/progit
 [git]: http://git-scm.com
 [Dublin Core metadata elements]: http://dublincore.org/documents/dces/
-[User's Guide]: MANUAL.html
+[User's Guide]: http://pandoc.org/MANUAL.html
 
