@@ -11,7 +11,7 @@ title: Pandoc Lua Filters
 Pandoc has long supported filters, which allow the pandoc
 abstract syntax tree (AST) to be manipulated between the parsing
 and the writing phase. [Traditional pandoc
-filters](filters.html) accept a JSON representation of the
+filters](https://pandoc.org/filters.html) accept a JSON representation of the
 pandoc AST and produce an altered JSON representation of the
 AST. They may be written in any programming language, and
 invoked from pandoc using the `--filter` option.

@@ -111,9 +111,9 @@ use an interface built directly into pandoc, and must be written
 in the Lua language).  If you are writing your own filters, it
 is best to use Lua filters, which are more portable (they
 require only pandoc itself) and more efficient.  See [Lua
-filters](lua-filters.html) for documentation and examples.  If
+filters](https://pandoc.org/lua-filters.html) for documentation and examples.  If
 you would prefer to write your filter in another language, see
-[Filters](filters.html) for a gentle introduction to JSON
+[Filters](https://pandoc.org/filters.html) for a gentle introduction to JSON
 filters.
 
 There's a repository of lua filters at

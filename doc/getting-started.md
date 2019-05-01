@@ -10,7 +10,7 @@ Guide](https://pandoc.org/MANUAL.html) or the pandoc man page.
 # Step 1:  Install pandoc
 
 First, install pandoc, following the [instructions for
-your platform](installing.html).
+your platform](https://pandoc.org/installing.html).
 
 # Step 2:  Open a terminal
 
@@ -281,7 +281,7 @@ package in linux.)  Then do
 
 You now know the basics.  Pandoc has a lot of options.  At this point
 you can start to learn more about them by reading the
-[User's Guide](README.html).
+[User's Guide](https://pandoc.org/MANUAL.html).
 
 Here's an example.  The `--mathml` option causes pandoc to
 convert TeX math into MathML.  Type
@@ -312,7 +312,7 @@ in the User's Guide.
 
 If you get stuck, you can always ask questions on the
 [pandoc-discuss](https://groups.google.com/group/pandoc-discuss)
-mailing list.  But be sure to check the [FAQs](faqs.html) first,
+mailing list.  But be sure to check the [FAQs](https://pandoc.org/faqs.html) first,
 and search through the mailing list to see if your question has
 been answered before.
 

@@ -322,7 +322,7 @@ Starting with pandoc 2.0, pandoc includes built-in support for
 writing filters in lua.  The lua interpreter is built in to
 pandoc, so a lua filter does not require any additional software
 to run.  See the [documentation on lua
-filters](lua-filters.html).
+filters](https://pandoc.org/lua-filters.html).
 
 # Include files
 
