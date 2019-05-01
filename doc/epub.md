@@ -144,7 +144,7 @@ Of course, this isn't much help if you want EPUB2 output (`pandoc -t epub2`)
 or target readers that don't support MathML. Then you should try using the
 `--webtex` option, which will use a web service to convert the TeX to an image.
 
-[KindleGen]: https://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000234621
+[KindleGen]: https://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000765211
 [EPUB]:  https://en.wikipedia.org/wiki/EPUB
 [Pro Git]: https://git-scm.com/book/en/v2
 [Creative Commons]: https://creativecommons.org/
