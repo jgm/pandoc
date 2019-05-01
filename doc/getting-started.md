@@ -5,7 +5,7 @@ author: John MacFarlane
 
 This document is for people who are unfamiliar with command line
 tools.  Command-line experts can go straight to the [User's
-Guide](README.html) or the pandoc man page.
+Guide](http://pandoc.org/MANUAL.html) or the pandoc man page.
 
 # Step 1:  Install pandoc
 
