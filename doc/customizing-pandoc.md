@@ -46,14 +46,14 @@ There are several ways to set template variables:
 | accessible by filters: | no        | yes               | yes                         |
 
 
-[`--variable`]:      http://pandoc.org/MANUAL.html#option--variable
-[`--metadata`]:      http://pandoc.org/MANUAL.html#option--metadata
-[YAML metadata]:     http://pandoc.org/MANUAL.html#extension-yaml_metadata_block
-[`--metadata-file`]: http://pandoc.org/MANUAL.html#option--metadata-file
+[`--variable`]:      https://pandoc.org/MANUAL.html#option--variable
+[`--metadata`]:      https://pandoc.org/MANUAL.html#option--metadata
+[YAML metadata]:     https://pandoc.org/MANUAL.html#extension-yaml_metadata_block
+[`--metadata-file`]: https://pandoc.org/MANUAL.html#option--metadata-file
 
 
 
-For more information, see [Templates](http://pandoc.org/MANUAL.html#templates) in
+For more information, see [Templates](https://pandoc.org/MANUAL.html#templates) in
 the pandoc manual.
 
 ### Example: adding structured author data to HTML
@@ -73,7 +73,7 @@ For `docx`, `pptx` or `odt` documents, things are a bit more
 complicated. Instead of a single template file, you need to
 provide a customized `reference.docx/pptx/odt`.
 See the manual for the
-[`--reference-doc`](http://pandoc.org/MANUAL.html#option--reference-doc) option.
+[`--reference-doc`](https://pandoc.org/MANUAL.html#option--reference-doc) option.
 
 ### Example: changing the font and line spacing in a Word docx
 
@@ -136,7 +136,7 @@ TODO
 ## Generic Divs and Spans
 
 TODO
-[Divs and Spans](http://pandoc.org/MANUAL.html#divs-and-spans): generic blocks
+[Divs and Spans](https://pandoc.org/MANUAL.html#divs-and-spans): generic blocks
 that can be transformed with filters
 
 ### Example: colored text
@@ -144,23 +144,23 @@ that can be transformed with filters
 
 ### Example: custom styles in docx
 
-[Custom Styles in Docx](http://pandoc.org/MANUAL.html#custom-styles-in-docx)
+[Custom Styles in Docx](https://pandoc.org/MANUAL.html#custom-styles-in-docx)
 
 ## Raw attributes
 
 TODO
-[Generic raw attributes](http://pandoc.org/MANUAL.html#generic-raw-attribute):
+[Generic raw attributes](https://pandoc.org/MANUAL.html#generic-raw-attribute):
 to include raw snippets
 
 ## Custom writers
 
 TODO
-[Custom writers](http://pandoc.org/MANUAL.html#custom-writers)
+[Custom writers](https://pandoc.org/MANUAL.html#custom-writers)
 
 ## Custom syntax highlighting
 
 TODO
-[Custom syntax highlighting](http://pandoc.org/MANUAL.html#syntax-highlighting),
+[Custom syntax highlighting](https://pandoc.org/MANUAL.html#syntax-highlighting),
 provided by the [skylighting
 library](https://github.com/jgm/skylighting)
 

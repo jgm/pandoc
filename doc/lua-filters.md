@@ -508,7 +508,7 @@ end
 This filter replaces code blocks with class `abc` with images
 created by running their contents through `abcm2ps` and
 ImageMagick's `convert`. (For more on ABC notation, see
-<http://abcnotation.com>.)
+<https://abcnotation.com>.)
 
 Images are added to the mediabag. For output to binary formats,
 pandoc will use images in the mediabag. For textual formats, use
