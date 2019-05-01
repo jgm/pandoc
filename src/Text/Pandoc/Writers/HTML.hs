@@ -108,10 +108,19 @@ defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
 strToHtml :: String -> Html
 strToHtml ('\'':xs) = preEscapedString "\'" `mappend` strToHtml xs
 strToHtml ('"' :xs) = preEscapedString "\"" `mappend` strToHtml xs
-strToHtml xs@(_:_)  = case break (\c -> c == '\'' || c == '"') xs of
+strToHtml (x:xs) | needsVariationSelector x
+                    = preEscapedString [x, '\xFE0E'] `mappend` strToHtml xs
+strToHtml xs@(_:_)  = case break (\c -> c == '\'' || c == '"' ||
+                                        needsVariationSelector c) xs of
                            (_ ,[]) -> toHtml xs
                            (ys,zs) -> toHtml ys `mappend` strToHtml zs
 strToHtml [] = ""
+
+-- See #5469: this prevents iOS from substituting emojis.
+needsVariationSelector :: Char -> Bool
+needsVariationSelector '↩' = True
+needsVariationSelector '↔' = True
+needsVariationSelector _   = False
 
 -- | Hard linebreak.
 nl :: WriterOptions -> Html
