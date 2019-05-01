@@ -54,6 +54,7 @@ data WriterState =
               , stInQuote       :: Bool          -- true if in a blockquote
               , stExternalNotes :: Bool          -- true if in context where
                                                  -- we need to store footnotes
+              , stInMinipage    :: Bool          -- true if in minipage 
               , stInHeading     :: Bool          -- true if in a section heading
               , stInItem        :: Bool          -- true if in \item[..]
               , stNotes         :: [Doc]         -- notes in a minipage
@@ -80,6 +81,7 @@ startingState options = WriterState {
                 , stInQuote = False
                 , stExternalNotes = False
                 , stInHeading = False
+                , stInMinipage = False
                 , stInItem = False
                 , stNotes = []
                 , stOLLevel = 1
@@ -608,11 +610,12 @@ blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = d
                  "\\centering" $$ img $$ caption <> cr
   let figure = cr <> "\\begin{figure}" $$ innards $$ "\\end{figure}"
   st <- get
-  return $ if stExternalNotes st
-              -- can't have figures in notes or minipage (here, table cell)
-              -- http://www.tex.ac.uk/FAQ-ouparmd.html
-              then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
-              else figure $$ footnotes
+  return $ (if stInMinipage st
+               -- can't have figures in notes or minipage (here, table cell)
+               -- http://www.tex.ac.uk/FAQ-ouparmd.html
+               then cr <> "\\begin{center}" $$ img $+$ capt $$
+                    "\\end{center}"
+               else figure) $$ footnotes
 -- . . . indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- gets stBeamer
@@ -833,6 +836,9 @@ getCaption externalNotes txt = do
   oldExternalNotes <- gets stExternalNotes
   modify $ \st -> st{ stExternalNotes = externalNotes, stNotes = [] }
   capt <- inlineListToLaTeX txt
+  footnotes <- if externalNotes
+                  then notesToLaTeX <$> gets stNotes
+                  else return empty
   modify $ \st -> st{ stExternalNotes = oldExternalNotes, stNotes = [] }
   -- We can't have footnotes in the list of figures/tables, so remove them:
   let getNote (Note _) = Any True
@@ -841,9 +847,6 @@ getCaption externalNotes txt = do
   captForLof <- if hasNotes txt
                    then brackets <$> inlineListToLaTeX (walk deNote txt)
                    else return empty
-  footnotes <- if externalNotes
-                  then notesToLaTeX <$> gets stNotes
-                  else return empty
   return (capt, captForLof, footnotes)
 
 toColDescriptor :: Alignment -> String
@@ -911,11 +914,14 @@ tableCellToLaTeX _      (0,     _,     blocks) =
 tableCellToLaTeX header (width, align, blocks) = do
   beamer <- gets stBeamer
   externalNotes <- gets stExternalNotes
+  inMinipage <- gets stInMinipage
   -- See #5367 -- footnotehyper/footnote don't work in beamer,
   -- so we need to produce the notes outside the table...
-  modify $ \st -> st{ stExternalNotes = beamer }
+  modify $ \st -> st{ stExternalNotes = beamer,
+                      stInMinipage = True }
   cellContents <- blockListToLaTeX blocks
-  modify $ \st -> st{ stExternalNotes = externalNotes }
+  modify $ \st -> st{ stExternalNotes = externalNotes,
+                      stInMinipage = inMinipage }
   let valign = text $ if header then "[b]" else "[t]"
   let halign = case align of
                AlignLeft    -> "\\raggedright"
