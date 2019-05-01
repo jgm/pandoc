@@ -74,11 +74,11 @@ commands:
 #-----------------------------------------------------------------------------
 
 jobs:
-  cabal-ghc-8_6_4:
+  cabal-ghc-8_6_5:
       <<: *env
       steps:
           - cabal_build:
-              ghcversion: 8.6.4
+              ghcversion: 8.6.5
 
   cabal-ghc-8_4_4:
       <<: *env
@@ -106,7 +106,7 @@ jobs:
         - *restore
         - run: |
             set -e
-            apt-get install -y ghc-8.6.3
+            apt-get install -y ghc-8.6.5
             stack update
             stack test --system-ghc --fast --ghc-options="-Werror" .
         - *save
@@ -115,7 +115,7 @@ workflows:
   version: "2.1"
   build:
     jobs:
-      - cabal-ghc-8_6_4
+      - cabal-ghc-8_6_5
       - cabal-ghc-8_4_4
       - cabal-ghc-8_2_2
       - cabal-ghc-8_0_2
