@@ -40,6 +40,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
 import Text.Pandoc.Shared (capitalize, isURI, orderedListMarkers, hierarchicalize)
+import Text.Pandoc.Writers.Shared (lookupMetaString)
 import qualified Text.Pandoc.Shared as Shared (Element(Blk, Sec))
 
 -- | Data to be written at the end of the document:
@@ -96,7 +97,9 @@ pandocToFB2 opts (Pandoc meta blocks) = do
 
 description :: PandocMonad m => Meta -> FBM m Content
 description meta' = do
-  let genre = el "genre" "unrecognised"
+  let genre = case lookupMetaString "genre" meta' of
+                "" -> el "genre" "unrecognised"
+                s  -> el "genre" s
   bt <- booktitle meta'
   let as = authors meta'
   dd <- docdate meta'
