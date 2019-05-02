@@ -104,7 +104,7 @@ metadata like title, authors, and date) and a list of `Block`
 Each has as its content a list of `Inline` elements.  For more details on
 the pandoc AST, see the [haddock documentation for `Text.Pandoc.Definition`].
 
-[haddock documentation for `Text.Pandoc.Definition`]: http://hackage.haskell.org/package/pandoc-types
+[haddock documentation for `Text.Pandoc.Definition`]: https://hackage.haskell.org/package/pandoc-types
 
 Here's a short Haskell script that reads markdown, changes level
 2+ headers to regular paragraphs, and writes the result as markdown.
@@ -141,7 +141,7 @@ our `behead` function (a function from `Block` to `Block`) to
 a transformation on whole `Pandoc` documents.
 (See the [haddock documentation for `Text.Pandoc.Walk`].)
 
-[haddock documentation for `Text.Pandoc.Walk`]: http://hackage.haskell.org/package/pandoc-types
+[haddock documentation for `Text.Pandoc.Walk`]: https://hackage.haskell.org/package/pandoc-types
 
 # Queries: listing URLs
 
@@ -307,10 +307,10 @@ Note that, although these parameters are not used in this example,
 the document's metadata.
 
 There are many examples of python filters in [the pandocfilters
-repository](http://github.com/jgm/pandocfilters).
+repository](https://github.com/jgm/pandocfilters).
 
 For a more Pythonic alternative to pandocfilters, see
-the [panflute](http://scorreia.com/software/panflute/) library.
+the [panflute](https://pypi.org/project/panflute) library.
 Don't like Python?   There are also ports of pandocfilters in
 [PHP](https://github.com/vinai/pandocfilters-php),
 [perl](https://metacpan.org/pod/Pandoc::Filter),
@@ -322,7 +322,7 @@ Starting with pandoc 2.0, pandoc includes built-in support for
 writing filters in lua.  The lua interpreter is built in to
 pandoc, so a lua filter does not require any additional software
 to run.  See the [documentation on lua
-filters](lua-filters.html).
+filters](https://pandoc.org/lua-filters.html).
 
 # Include files
 
@@ -382,7 +382,7 @@ from an `Inline` element to a list of `Inline` elements.
 # A filter for ruby text
 
 Finally, here's a nice real-world example, developed on the
-[pandoc-discuss](http://groups.google.com/group/pandoc-discuss/browse_thread/thread/7baea325565878c8) list.  Qubyte wrote:
+[pandoc-discuss](https://groups.google.com/group/pandoc-discuss/browse_thread/thread/7baea325565878c8) list.  Qubyte wrote:
 
 > I'm interested in using pandoc to turn my markdown notes on Japanese
 > into nicely set HTML and (Xe)LaTeX. With HTML5, ruby (typically used to

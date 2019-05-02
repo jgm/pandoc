@@ -11,7 +11,7 @@ title: Pandoc Lua Filters
 Pandoc has long supported filters, which allow the pandoc
 abstract syntax tree (AST) to be manipulated between the parsing
 and the writing phase. [Traditional pandoc
-filters](filters.html) accept a JSON representation of the
+filters](https://pandoc.org/filters.html) accept a JSON representation of the
 pandoc AST and produce an altered JSON representation of the
 AST. They may be written in any programming language, and
 invoked from pandoc using the `--filter` option.
@@ -508,7 +508,7 @@ end
 This filter replaces code blocks with class `abc` with images
 created by running their contents through `abcm2ps` and
 ImageMagick's `convert`. (For more on ABC notation, see
-<http://abcnotation.com>.)
+<https://abcnotation.com>.)
 
 Images are added to the mediabag. For output to binary formats,
 pandoc will use images in the mediabag. For textual formats, use

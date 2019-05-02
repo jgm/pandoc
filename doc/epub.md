@@ -53,7 +53,7 @@ please consider [buying a copy] to help support his excellent work.)
 You can find the markdown source for the book on its
 [github site].  Let's get a copy of the whole repository:[^1]
 
-    git clone http://github.com/progit/progit.git
+    git clone https://github.com/progit/progit.git
 
 [^1]: If you don't have [git], you can browse to the [github site] and
 click "Download Source" to get the same files in a zip or tar archive.
@@ -105,7 +105,7 @@ language: en-US
 ...
 ```
 
-See the [User's Guide](MANUAL.html#epub-metadata) for more information
+See the [User's Guide](https://pandoc.org/MANUAL.html#epub-metadata) for more information
 above these fields.
 
 Now run pandoc to make the ebook, using our title page and modified
@@ -144,13 +144,13 @@ Of course, this isn't much help if you want EPUB2 output (`pandoc -t epub2`)
 or target readers that don't support MathML. Then you should try using the
 `--webtex` option, which will use a web service to convert the TeX to an image.
 
-[KindleGen]: http://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000234621
-[EPUB]:  http://en.wikipedia.org/wiki/EPUB
+[KindleGen]: https://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000765211
+[EPUB]:  https://en.wikipedia.org/wiki/EPUB
 [Pro Git]: https://git-scm.com/book/en/v2
-[Creative Commons]: http://creativecommons.org/
+[Creative Commons]: https://creativecommons.org/
 [buying a copy]: https://git-scm.com/book/en/v2
-[github site]: http://github.com/progit/progit
-[git]: http://git-scm.com
-[Dublin Core metadata elements]: http://dublincore.org/documents/dces/
-[User's Guide]: MANUAL.html
+[github site]: https://github.com/progit/progit
+[git]: https://git-scm.com
+[Dublin Core metadata elements]: https://dublincore.org/documents/dces/
+[User's Guide]: https://pandoc.org/MANUAL.html
 

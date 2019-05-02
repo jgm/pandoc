@@ -459,4 +459,4 @@ structure and calling this function.
 [Text.Pandoc.Logging]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Logging.html
 [Text.Pandoc.App]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-App.html
 [Text.Pandoc.Error]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Error.html
-[Text.Pandoc.Writers.Shared]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Writers.Shared.html
+[Text.Pandoc.Writers.Shared]: https://hackage.haskell.org/package/pandoc/docs/Text-Pandoc-Writers-Shared.html

@@ -5,12 +5,12 @@ author: John MacFarlane
 
 This document is for people who are unfamiliar with command line
 tools.  Command-line experts can go straight to the [User's
-Guide](README.html) or the pandoc man page.
+Guide](https://pandoc.org/MANUAL.html) or the pandoc man page.
 
 # Step 1:  Install pandoc
 
 First, install pandoc, following the [instructions for
-your platform](installing.html).
+your platform](https://pandoc.org/installing.html).
 
 # Step 2:  Open a terminal
 
@@ -212,9 +212,9 @@ Now save your file as `test1.md` in the directory
 
 Note:  If you use plain text a lot, you'll want a better editor than
 `Notepad` or `TextEdit`.  You might want to look at
-[Sublime Text](http://www.sublimetext.com/) or (if you're willing
+[Sublime Text](https://www.sublimetext.com/) or (if you're willing
 to put in some time learning an unfamiliar interface)
-[Vim](http://www.vim.org) or [Emacs](http://www.gnu.org/software/emacs).
+[Vim](https://www.vim.org) or [Emacs](https://www.gnu.org/software/emacs).
 
 # Step 6:  Converting a file
 
@@ -271,8 +271,8 @@ Pandoc knows you're trying to create a LaTeX document, because of the
 Now try creating a Word document (with extension `docx`).
 
 If you want to create a PDF, you'll need to have LaTeX installed.
-(See [MacTeX](http://tug.org/mactex/) on OS X,
-[MiKTeX](http://miktex.org) on Windows, or install the texlive
+(See [MacTeX](https://tug.org/mactex/) on OS X,
+[MiKTeX](https://miktex.org) on Windows, or install the texlive
 package in linux.)  Then do
 
     pandoc test1.md -s -o test1.pdf
@@ -281,7 +281,7 @@ package in linux.)  Then do
 
 You now know the basics.  Pandoc has a lot of options.  At this point
 you can start to learn more about them by reading the
-[User's Guide](README.html).
+[User's Guide](https://pandoc.org/MANUAL.html).
 
 Here's an example.  The `--mathml` option causes pandoc to
 convert TeX math into MathML.  Type
@@ -311,8 +311,8 @@ to get the pandoc manual page.  All of this information is also
 in the User's Guide.
 
 If you get stuck, you can always ask questions on the
-[pandoc-discuss](http://groups.google.com/group/pandoc-discuss)
-mailing list.  But be sure to check the [FAQs](faqs.html) first,
+[pandoc-discuss](https://groups.google.com/group/pandoc-discuss)
+mailing list.  But be sure to check the [FAQs](https://pandoc.org/faqs.html) first,
 and search through the mailing list to see if your question has
 been answered before.
 
