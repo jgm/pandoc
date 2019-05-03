@@ -511,11 +511,11 @@ doverb = do
               _            -> mzero
   withVerbatimMode $
     (code . T.unpack . untokenize) <$>
-      manyTill (verbTok marker) (symbol marker)
+      manyTill (notFollowedBy newlineTok >> verbTok marker) (symbol marker)
 
 verbTok :: PandocMonad m => Char -> LP m Tok
 verbTok stopchar = do
-  t@(Tok pos toktype txt) <- satisfyTok (not . isNewlineTok)
+  t@(Tok pos toktype txt) <- anyTok
   case T.findIndex (== stopchar) txt of
        Nothing -> return t
        Just i  -> do
@@ -545,8 +545,12 @@ doinlinecode classes = do
               _            -> mzero
   let stopchar = if marker == '{' then '}' else marker
   withVerbatimMode $
-    (codeWith ("",classes,[]) . T.unpack . untokenize) <$>
+    (codeWith ("",classes,[]) . map nlToSpace . T.unpack . untokenize) <$>
       manyTill (verbTok stopchar) (symbol stopchar)
+
+nlToSpace :: Char -> Char
+nlToSpace '\n' = ' '
+nlToSpace x    = x
 
 keyval :: PandocMonad m => LP m (String, String)
 keyval = try $ do
