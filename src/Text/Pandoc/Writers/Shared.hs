@@ -109,6 +109,9 @@ metaValueToJSON blockWriter inlineWriter (MetaMap metamap) = toJSON <$>
 metaValueToJSON blockWriter inlineWriter (MetaList xs) = toJSON <$>
   Traversable.mapM (metaValueToJSON blockWriter inlineWriter) xs
 metaValueToJSON _ _ (MetaBool b) = return $ toJSON b
+metaValueToJSON _ inlineWriter (MetaString s@('0':_)) =
+   -- don't treat string with leading 0 as string (#5479)
+   toJSON <$> inlineWriter (Builder.toList (Builder.text s))
 metaValueToJSON _ inlineWriter (MetaString s) =
   case safeRead s of
      Just (n :: Scientific) -> return $ Aeson.Number n
