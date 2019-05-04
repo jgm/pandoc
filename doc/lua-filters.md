@@ -2618,3 +2618,111 @@ Parameters:
 
 Returns: a new list containing all items for which \`test\`
 was true.
+
+# Module pandoc.system
+
+Access to system information and functionality.
+
+## Static Fields {#system-fields}
+
+### arch {#system-arch}
+
+The machine architecture on which the program is running.
+
+### os {#system-os}
+
+The operating system on which the program is running.
+
+## Functions {#system-functions}
+
+### environment {#system-environment}
+
+`environment ()`
+
+Retrieve the entire environment as a string-indexed table.
+
+Returns:
+
+- A table mapping environment variables names to their string value
+  (table).
+
+### get\_working\_directory {#system-get_working_directory}
+
+`get_working_directory ()`
+
+Obtain the current working directory as an absolute path.
+
+Returns:
+
+- The current working directory (string).
+
+### with\_environment {#system-with_environment}
+
+`with_environment (environment, callback)`
+
+Run an action within a custom environment. Only the environment
+variables given by `environment` will be set, when `callback` is
+called. The original environment is restored after this function
+finishes, even if an error occurs while running the callback
+action.
+
+Parameters:
+
+`environment`
+:   Environment variables and their values to be set before
+    running `callback`. (table with string keys and string
+    values)
+
+`callback`
+:   Action to execute in the custom environment (function)
+
+Returns:
+
+-   The result(s) of the call to `callback`
+
+### with\_temporary\_directory {#system-with_temporary_directory}
+
+`with_temporary_directory ([parent_dir,] templ, callback)`
+
+Create and use a temporary directory inside the given directory.
+The directory is deleted after the callback returns.
+
+Parameters:
+
+`parent_dir`
+:   Parent directory to create the directory in (string). If this
+    parameter is omitted, the system's canonical temporary
+    directory is used.
+
+`templ`
+:   Directory name template (string).
+
+`callback`
+:   Function which takes the name of the temporary directory as its
+    first argument (function).
+
+Returns:
+
+-   The result of the call to `callback`.
+
+### with\_working\_directory {#system-with_working_directory}
+
+`with_working_directory (directory, callback)`
+
+Run an action within a different directory. This function will
+change the working directory to `directory`, execute `callback`,
+then switch back to the original working directory, even if an
+error occurs while running the callback action.
+
+Parameters:
+
+`directory`
+:   Directory in which the given `callback` should be executed
+    (string)
+
+`callback`
+:   Action to execute in the given directory (function)
+
+Returns:
+
+-   The result(s) of the call to `callback`

@@ -185,6 +185,11 @@ tests = map (localOption (QuickCheckTests 20))
       Lua.liftIO . assertEqual "no accessor" (("hi", ["moin"], []) :: Attr)
         =<< Lua.peek Lua.stackTop
 
+  , testCase "module `pandoc.system` is present" . runLua' $ do
+      Lua.getglobal' "pandoc.system"
+      ty <- Lua.ltype Lua.stackTop
+      Lua.liftIO $ assertEqual "module should be a table" Lua.TypeTable ty
+
   , testCase "informative error messages" . runLua' $ do
       Lua.pushboolean True
       err <- Lua.peekEither Lua.stackTop
