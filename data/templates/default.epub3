@@ -20,7 +20,7 @@ $highlighting-css$
   </style>
 $endif$
 $for(css)$
-  <link rel="stylesheet" href="$css$" />
+  <link rel="stylesheet" type="text/css" href="$css$" />
 $endfor$
 $for(header-includes)$
   $header-includes$
