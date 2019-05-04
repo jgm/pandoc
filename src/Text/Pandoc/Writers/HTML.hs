@@ -109,7 +109,10 @@ strToHtml :: String -> Html
 strToHtml ('\'':xs) = preEscapedString "\'" `mappend` strToHtml xs
 strToHtml ('"' :xs) = preEscapedString "\"" `mappend` strToHtml xs
 strToHtml (x:xs) | needsVariationSelector x
-                    = preEscapedString [x, '\xFE0E'] `mappend` strToHtml xs
+                 = preEscapedString [x, '\xFE0E'] `mappend`
+                   case xs of
+                     ('\xFE0E':ys) -> strToHtml ys
+                     _             -> strToHtml xs
 strToHtml xs@(_:_)  = case break (\c -> c == '\'' || c == '"' ||
                                         needsVariationSelector c) xs of
                            (_ ,[]) -> toHtml xs
