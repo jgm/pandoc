@@ -64,7 +64,7 @@
       <if type="book" match="any">
         <group prefix="{{jats}}&lt;source&gt;{{/jats}}" suffix="{{jats}}&lt;/source&gt;{{/jats}}">
 	        <text variable="title"/>
-				</group>			
+				</group>
 			</if>
       <else>
         <group prefix="{{jats}}&lt;article-title&gt;{{/jats}}" suffix="{{jats}}&lt;/article-title&gt;{{/jats}}">
@@ -90,8 +90,7 @@
     </choose>
     <choose>
       <if match="any" variable="PMID">
-        <group prefix="{{jats}}&lt;ext-link ext-link-type=&quot;pmid&quot; {{/jats}}" suffix="{{jats}}&lt;/ext-link&gt;{{/jats}}">
-          <text variable="PMID" prefix="{{jats}}xlink:href=&quot;http://www.ncbi.nlm.nih.gov/pubmed/{{/jats}}" suffix="{{jats}}&quot; xlink:type=&quot;simple&quot;&gt;{{/jats}}"/>
+        <group prefix="{{jats}}&lt;pub-id pub-id-type=&quot;pmid&quot;&gt;{{/jats}}" suffix="{{jats}}&lt;/pub-id&gt;{{/jats}}">
           <text variable="PMID"/>
         </group>
       </if>
@@ -202,4 +201,3 @@
     </layout>
   </bibliography>
 </style>
-

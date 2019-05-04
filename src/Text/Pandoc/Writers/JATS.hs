@@ -18,7 +18,7 @@ import Prelude
 import Control.Monad.Reader
 import Data.Char (toLower)
 import Data.Generics (everywhere, mkT)
-import Data.List (isSuffixOf, partition)
+import Data.List (isSuffixOf, partition, isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Text.Pandoc.Class (PandocMonad, report)
@@ -322,11 +322,15 @@ inlinesToJATS :: PandocMonad m => WriterOptions -> [Inline] -> JATS m Doc
 inlinesToJATS opts lst = hcat <$> mapM (inlineToJATS opts) (fixCitations lst)
   where
    fixCitations [] = []
-   fixCitations (x@(RawInline (Format "jats") "<pub-id pub-id-type=\"doi\">") : xs) =
-     let isRawInline (RawInline{}) = True
-         isRawInline _             = False
-         (ys,zs)                   = break isRawInline xs
-         in x : Str (stringify ys) : fixCitations zs
+   fixCitations (x:xs) | needsFixing x =
+     x : Str (stringify ys) : fixCitations zs
+     where
+       needsFixing (RawInline (Format "jats") z) =
+           "<pub-id pub-id-type=" `isPrefixOf` z
+       needsFixing _             = False
+       isRawInline (RawInline{}) = True
+       isRawInline _             = False
+       (ys,zs)                   = break isRawInline xs
    fixCitations (x:xs) = x : fixCitations xs
 
 -- | Convert an inline element to JATS.
