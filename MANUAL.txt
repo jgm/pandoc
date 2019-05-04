@@ -1905,6 +1905,11 @@ on the output format, and include the following:
 
     Similarly, `outputfile` can be `-` if output goes to the terminal.
 
+    If you need absolute paths, use e.g. `$curdir$/$sourcefile$`.
+
+`curdir`
+:   working directory from which pandoc is run.
+
 `toc`
 :   non-null value if `--toc/--table-of-contents` was specified
 

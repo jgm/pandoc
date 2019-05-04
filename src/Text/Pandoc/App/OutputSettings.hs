@@ -28,6 +28,7 @@ import Data.List (find, isPrefixOf, isSuffixOf)
 import Data.Maybe (fromMaybe)
 import Skylighting (defaultSyntaxMap)
 import Skylighting.Parser (addSyntaxDefinition, parseSyntaxDefinition)
+import System.Directory (getCurrentDirectory)
 import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
@@ -113,6 +114,8 @@ optToOutputSettings opts = do
         s <- UTF8.toString . fst <$> fetchItem fp
         return $ (varname, s) : vars
 
+  curdir <- liftIO getCurrentDirectory
+
   variables <-
     withList (addStringAsVariable "sourcefile")
              (reverse $ optInputFiles opts)
@@ -139,6 +142,8 @@ optToOutputSettings opts = do
     >>=
     maybe return (addStringAsVariable "epub-cover-image")
                  (optEpubCoverImage opts)
+    >>=
+    addStringAsVariable "curdir" curdir
     >>=
     (\vars ->  if format == "dzslides"
                   then do
