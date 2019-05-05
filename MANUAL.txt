@@ -1784,8 +1784,8 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
     details.
 
 `title-meta`
-:   sets a title for the document. Can be used to skip generating a titlepage
-    while still setting a document name.
+:   sets a title for the document. If used instead of `title`, no titlepage is
+    generated, but the document is still titled.
 
 `toc`
 :   include table of contents (can also be set using `--toc/--table-of-contents`)
