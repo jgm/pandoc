@@ -560,13 +560,13 @@ blockToLaTeX (Div (identifier,classes,kvs) bs)
               _ -> linkAnchor'
       let align dir txt = inCmd "begin" dir $$ txt $$ inCmd "end" dir
       lang <- toLang $ lookup "lang" kvs
-      let wrapColumns = if "columns" `elem` classes
+      let wrapColumns = if beamer && "columns" `elem` classes
                         then \contents ->
                                inCmd "begin" "columns" <> brackets "T"
                                $$ contents
                                $$ inCmd "end" "columns"
                         else id
-          wrapColumn  = if "column" `elem` classes
+          wrapColumn  = if beamer && "column" `elem` classes
                         then \contents ->
                                let w = maybe "0.48" fromPct (lookup "width" kvs)
                                in  inCmd "begin" "column" <>
