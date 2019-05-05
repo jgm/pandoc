@@ -328,9 +328,13 @@ tests =
       "\\emph{Emphasis mine}" =?>
       para (emph "Emphasis mine")
 
-  , "Inline LaTeX math symbol" =:
-      "\\tau" =?>
-      para (emph "τ")
+  , "Inline math symbols" =:
+      "\\tau \\oplus \\alpha" =?>
+      para "τ ⊕ α"
+
+  , "Inline LaTeX math command" =:
+      "\\crarr" =?>
+      para "↵"
 
   , "Unknown inline LaTeX command" =:
       "\\notacommand{foo}" =?>

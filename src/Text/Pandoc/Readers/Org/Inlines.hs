@@ -791,7 +791,7 @@ inlineLaTeX = try $ do
   cmd <- inlineLaTeXCommand
   ils <- (lift . lift) $ parseAsInlineLaTeX cmd
   maybe mzero returnF $
-     parseAsMath cmd `mplus` parseAsMathMLSym cmd `mplus` ils
+     parseAsMathMLSym cmd `mplus` parseAsMath cmd `mplus` ils
  where
    parseAsMath :: String -> Maybe Inlines
    parseAsMath cs = B.fromList <$> texMathToPandoc cs
