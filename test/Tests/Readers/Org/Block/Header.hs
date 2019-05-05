@@ -87,6 +87,13 @@ tests =
         let todoSpan = spanWith ("", ["done", "DONE"], []) "DONE"
         in headerWith ("header", [], []) 1 (todoSpan <> space <> "header")
 
+    , "emphasis in first word" =:
+        "** TODO /fix/ this" =?>
+        let todoSpan = spanWith ("", ["todo", "TODO"], []) "TODO"
+        in headerWith ("fix-this", [], [])
+                      2
+                      (todoSpan <> space <> emph "fix" <> space <> "this")
+
     , "Header with unknown todo keyword" =:
         "* WAITING header" =?>
         headerWith ("waiting-header", [], []) 1 "WAITING header"

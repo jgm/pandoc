@@ -273,7 +273,9 @@ headlineToHeader hdln = do
 todoKeyword :: Monad m => OrgParser m TodoMarker
 todoKeyword = try $ do
   taskStates <- activeTodoMarkers <$> getState
-  let kwParser tdm = try (tdm <$ string (todoMarkerName tdm) <* spaceChar)
+  let kwParser tdm = try (tdm <$ string (todoMarkerName tdm)
+                              <* spaceChar
+                              <* updateLastPreCharPos)
   choice (map kwParser taskStates)
 
 todoKeywordToInlines :: TodoMarker -> Inlines
