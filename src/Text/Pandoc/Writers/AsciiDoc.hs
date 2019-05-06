@@ -425,10 +425,16 @@ inlineToAsciiDoc opts (Subscript lst) = do
   contents <- inlineListToAsciiDoc opts lst
   return $ "~" <> contents <> "~"
 inlineToAsciiDoc opts (SmallCaps lst) = inlineListToAsciiDoc opts lst
-inlineToAsciiDoc opts (Quoted SingleQuote lst) =
-  inlineListToAsciiDoc opts (Str "`" : lst ++ [Str "'"])
-inlineToAsciiDoc opts (Quoted DoubleQuote lst) =
-  inlineListToAsciiDoc opts (Str "``" : lst ++ [Str "''"])
+inlineToAsciiDoc opts (Quoted qt lst) = do
+  isAsciidoctor <- gets asciidoctorVariant
+  inlineListToAsciiDoc opts $
+    case qt of
+      SingleQuote
+        | isAsciidoctor -> [Str "'`"] ++ lst ++ [Str "`'"]
+        | otherwise     -> [Str "`"] ++ lst ++ [Str "'"]
+      DoubleQuote
+        | isAsciidoctor -> [Str "\"`"] ++ lst ++ [Str "`\""]
+        | otherwise     -> [Str "``"] ++ lst ++ [Str "''"]
 inlineToAsciiDoc _ (Code _ str) = return $
   text "`" <> text (escapeStringUsing (backslashEscapes "`") str) <> "`"
 inlineToAsciiDoc _ (Str str) = return $ text $ escapeString str
