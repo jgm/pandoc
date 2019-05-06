@@ -2036,7 +2036,13 @@ $endif$
 .PP
 Similarly, \f[C]outputfile\f[R] can be \f[C]-\f[R] if output goes to the
 terminal.
+.PP
+If you need absolute paths, use e.g.
+\f[C]$curdir$/$sourcefile$\f[R].
 .RE
+.TP
+.B \f[C]curdir\f[R]
+working directory from which pandoc is run.
 .TP
 .B \f[C]toc\f[R]
 non-null value if \f[C]--toc/--table-of-contents\f[R] was specified
@@ -4350,8 +4356,8 @@ $\[rs]tuple{a, b, c}$
 \f[R]
 .fi
 .PP
-Note that LaTeX macros will not be applied if they occur inside inside a
-raw span or block marked with the \f[C]raw_attribute\f[R] extension.
+Note that LaTeX macros will not be applied if they occur inside a raw
+span or block marked with the \f[C]raw_attribute\f[R] extension.
 .PP
 When \f[C]latex_macros\f[R] is disabled, the raw LaTeX and math will not
 have macros applied.
