@@ -436,7 +436,7 @@ inlineToAsciiDoc opts (Quoted qt lst) = do
         | isAsciidoctor -> [Str "\"`"] ++ lst ++ [Str "`\""]
         | otherwise     -> [Str "``"] ++ lst ++ [Str "''"]
 inlineToAsciiDoc _ (Code _ str) = return $
-  text "`" <> text (escapeStringUsing (backslashEscapes "`") str) <> "`"
+  text "`+" <> text (escapeStringUsing (backslashEscapes "`") str) <> "+`"
 inlineToAsciiDoc _ (Str str) = return $ text $ escapeString str
 inlineToAsciiDoc _ (Math InlineMath str) = do
   isAsciidoctor <- gets asciidoctorVariant
