@@ -3778,7 +3778,7 @@ all output formats, not just LaTeX:
     $\tuple{a, b, c}$
 
 Note that LaTeX macros will not be applied if they occur
-inside inside a raw span or block marked with the
+inside a raw span or block marked with the
 [`raw_attribute` extension](#extension-raw_attribute).
 
 When `latex_macros` is disabled, the raw LaTeX and math will
