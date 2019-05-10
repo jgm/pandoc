@@ -696,25 +696,15 @@ So is ‘pine.’</p>
 <title>
 <p>Footnotes</p>
 </title>
-<p>Here is a footnote reference,<a l:href="#n1" type="note">
-<sup>[1]</sup>
-</a> and another.<a l:href="#n2" type="note">
-<sup>[2]</sup>
-</a>
+<p>Here is a footnote reference,<a l:href="#n1" type="note">[1]</a> and another.<a l:href="#n2" type="note">[2]</a>
 This should <emphasis>not</emphasis> be a footnote reference, because it
-contains a space.[^my note] Here is an inline note.<a l:href="#n3" type="note">
-<sup>[3]</sup>
-</a>
+contains a space.[^my note] Here is an inline note.<a l:href="#n3" type="note">[3]</a>
 </p>
 <cite>
-<p>Notes can go in quotes.<a l:href="#n4" type="note">
-<sup>[4]</sup>
-</a>
+<p>Notes can go in quotes.<a l:href="#n4" type="note">[4]</a>
 </p>
 </cite>
-<p>1. And in list items.<a l:href="#n5" type="note">
-<sup>[5]</sup>
-</a>
+<p>1. And in list items.<a l:href="#n5" type="note">[5]</a>
 </p>
 <p>This paragraph should not be part of the note, as it is not indented.</p>
 </section>

@@ -444,7 +444,7 @@ toXml (Note bs) = do
   let fn_id = footnoteID n
   fn_desc <- cMapM blockToXml bs
   modify (\s -> s { footnotes = (n, fn_id, fn_desc) : fns })
-  let fn_ref = el "sup" . txt $ "[" ++ show n ++ "]"
+  let fn_ref = txt $ "[" ++ show n ++ "]"
   return . list $ el "a" ( [ attr ("l","href") ('#':fn_id)
                            , uattr "type" "note" ]
                          , fn_ref )
