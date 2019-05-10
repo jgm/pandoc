@@ -55,9 +55,7 @@ citatons.</p>
 <empty-line />
 <p>
 <strikethrough>Strikeout</strikethrough> is Pandoc’s extension.
-Superscript and subscripts too: H<sub>2</sub>O is a liquid<a l:href="#n1" type="note">
-<sup>[1]</sup>
-</a>.
+Superscript and subscripts too: H<sub>2</sub>O is a liquid<a l:href="#n1" type="note">[1]</a>.
 2<sup>10</sup> is 1024.</p>
 <p>Math is another Pandoc extension: <code>E = m c^2</code>.</p>
 </section>
