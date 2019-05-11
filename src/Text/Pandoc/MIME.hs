@@ -11,12 +11,13 @@
 Mime type lookup for ODT writer.
 -}
 module Text.Pandoc.MIME ( MimeType, getMimeType, getMimeTypeDef,
-                          extensionFromMimeType )where
+                          extensionFromMimeType, mediaCategory ) where
 import Prelude
 import Data.Char (toLower)
 import Data.List (isPrefixOf, isSuffixOf)
+import Data.List.Split (splitOn)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, listToMaybe)
 import System.FilePath
 
 type MimeType = String
@@ -41,6 +42,12 @@ extensionFromMimeType :: MimeType -> Maybe String
 extensionFromMimeType mimetype =
   M.lookup (takeWhile (/=';') mimetype) reverseMimeTypes
   -- note:  we just look up the basic mime type, dropping the content-encoding etc.
+
+-- | Determine general media category for file path, e.g.
+--
+-- prop> mediaCategory "foo.jpg" = Just "image"
+mediaCategory :: FilePath -> Maybe String
+mediaCategory fp = getMimeType fp >>= listToMaybe . splitOn "/"
 
 reverseMimeTypes :: M.Map MimeType String
 reverseMimeTypes = M.fromList $ map (\(k,v) -> (v,k)) mimeTypesList
