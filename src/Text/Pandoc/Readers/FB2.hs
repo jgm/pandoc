@@ -61,14 +61,15 @@ instance HasMeta FB2State where
   deleteMeta field s = s {fb2Meta = deleteMeta field (fb2Meta s)}
 
 readFB2 :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
-readFB2 _ inp  = do
-  let parsedXml = parseXML $ crFilter inp
-
-  (bs, st) <- runStateT (mapM parseBlock $ parsedXml) def
-  let authors = if null $ fb2Authors st
-                then id
-                else setMeta "author" (map text $ reverse $ fb2Authors st)
-  pure $ Pandoc (authors $ fb2Meta st) (toList . mconcat $ bs)
+readFB2 _ inp =
+  case parseXMLDoc $ crFilter inp of
+    Nothing -> throwError $ PandocParseError "Not an XML document"
+    Just e ->  do
+      (bs, st) <- runStateT (parseRootElement e) def
+      let authors = if null $ fb2Authors st
+                    then id
+                    else setMeta "author" (map text $ reverse $ fb2Authors st)
+      pure $ Pandoc (authors $ fb2Meta st) $ toList bs
 
 -- * Utility functions
 
@@ -103,13 +104,11 @@ parseSubtitle e = headerWith ("", ["unnumbered"], []) <$> gets fb2SectionLevel <
 
 -- * Root element parser
 
-parseBlock :: PandocMonad m => Content -> FB2 m Blocks
-parseBlock (Elem e) =
+parseRootElement :: PandocMonad m => Element -> FB2 m Blocks
+parseRootElement e =
   case qName $ elName e of
-    "?xml"  -> pure mempty
     "FictionBook" -> mconcat <$> mapM parseFictionBookChild (elChildren e)
     name -> report (UnexpectedXmlElement name "root") $> mempty
-parseBlock _ = pure mempty
 
 -- | Parse a child of @\<FictionBook>@ element.
 parseFictionBookChild :: PandocMonad m => Element -> FB2 m Blocks
