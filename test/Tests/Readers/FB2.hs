@@ -36,4 +36,5 @@ tests = [ fb2Test "Emphasis" "fb2/reader/emphasis.fb2"
         , fb2Test "Epigraph" "fb2/reader/epigraph.fb2"
         , fb2Test "Poem" "fb2/reader/poem.fb2"
         , fb2Test "Meta" "fb2/reader/meta.fb2"
+        , fb2Test "Notes" "fb2/reader/notes.fb2"
         ]
