@@ -31,6 +31,7 @@ import Data.Char (isSpace, toUpper)
 import Data.Functor
 import Data.List (dropWhileEnd, intersperse)
 import Data.List.Split (splitOn)
+import qualified Data.Map as M
 import Data.Text (Text)
 import Data.Default
 import Data.Maybe
@@ -48,12 +49,14 @@ type FB2 m = StateT FB2State m
 data FB2State = FB2State{ fb2SectionLevel :: Int
                         , fb2Meta :: Meta
                         , fb2Authors :: [String]
+                        , fb2Notes :: M.Map String Blocks
                         } deriving Show
 
 instance Default FB2State where
   def = FB2State{ fb2SectionLevel = 1
                 , fb2Meta = mempty
                 , fb2Authors = []
+                , fb2Notes = M.empty
                 }
 
 instance HasMeta FB2State where
@@ -107,8 +110,46 @@ parseSubtitle e = headerWith ("", ["unnumbered"], []) <$> gets fb2SectionLevel <
 parseRootElement :: PandocMonad m => Element -> FB2 m Blocks
 parseRootElement e =
   case qName $ elName e of
-    "FictionBook" -> mconcat <$> mapM parseFictionBookChild (elChildren e)
+    "FictionBook" -> do
+      -- Parse notes before parsing the rest of the content.
+      case filterChild isNotesBody e of
+        Nothing -> pure ()
+        Just notesBody -> parseNotesBody notesBody
+      -- Parse metadata and content
+      mconcat <$> mapM parseFictionBookChild (elChildren e)
     name -> report (UnexpectedXmlElement name "root") $> mempty
+
+-- | Parse notes
+parseNotesBody :: PandocMonad m => Element -> FB2 m ()
+parseNotesBody e = mempty <$ mapM parseNotesBodyChild (elChildren e)
+
+-- | Parse a child of @\<body name="notes">@ element.
+parseNotesBodyChild :: PandocMonad m => Element -> FB2 m ()
+parseNotesBodyChild e =
+  case qName $ elName e of
+    "section" -> parseNote e
+    _ -> pure ()
+
+isNotesBody :: Element -> Bool
+isNotesBody e =
+  qName (elName e) == "body" &&
+  findAttr (unqual "name") e == Just "notes"
+
+parseNote :: PandocMonad m => Element -> FB2 m ()
+parseNote e =
+  case findAttr (unqual "id") e of
+    Nothing -> pure ()
+    Just sectionId -> do
+      content <- mconcat <$> mapM parseSectionChild (dropTitle $ elChildren e)
+      oldNotes <- gets fb2Notes
+      modify $ \s -> s { fb2Notes = M.insert ("#" ++ sectionId) content oldNotes }
+      pure ()
+  where
+    isTitle x = qName (elName x) == "title"
+    dropTitle (x:xs) = if isTitle x
+                         then xs -- Drop note section <title> if present
+                         else (x:xs)
+    dropTitle [] = []
 
 -- | Parse a child of @\<FictionBook>@ element.
 parseFictionBookChild :: PandocMonad m => Element -> FB2 m Blocks
@@ -116,7 +157,9 @@ parseFictionBookChild e =
   case qName $ elName e of
     "stylesheet" -> pure mempty -- stylesheet is ignored
     "description" -> mempty <$ mapM_ parseDescriptionChild (elChildren e)
-    "body" -> mconcat <$> mapM parseBodyChild (elChildren e)
+    "body" -> if isNotesBody e
+                then pure mempty
+                else mconcat <$> mapM parseBodyChild (elChildren e)
     "binary" -> mempty <$ parseBinaryElement e
     name -> report (UnexpectedXmlElement name "FictionBook") $> mempty
 
@@ -333,8 +376,13 @@ parseNamedStyleChild x = parseInline x
 parseLinkType :: PandocMonad m => Element -> FB2 m Inlines
 parseLinkType e = do
   content <- mconcat <$> mapM parseStyleLinkType (elContent e)
+  notes <- gets fb2Notes
   case findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e of
-    Just href -> pure $ link href "" content
+    Just href -> case findAttr (QName "type" Nothing Nothing) e of
+                   Just "note" -> case M.lookup href notes of
+                                    Nothing -> pure $ link href "" content
+                                    Just contents -> pure $ note contents
+                   _ -> pure $ link href "" content
     Nothing -> throwError $ PandocParseError "Couldn't parse FB2 file: link without required href."
 
 -- | Parse @styleLinkType@
