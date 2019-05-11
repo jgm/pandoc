@@ -65,18 +65,21 @@ import Text.Blaze.Internal (preEscapedString, preEscapedText)
 #endif
 #if MIN_VERSION_blaze_html(0,5,1)
 import qualified Text.Blaze.XHtml5 as H5
+import qualified Text.Blaze.XHtml5.Attributes as A5
 #else
 import qualified Text.Blaze.Html5 as H5
+import qualified Text.Blaze.Html5.Attributes as A5
 #endif
 import Control.Monad.Except (throwError)
 import Data.Aeson (Value)
-import System.FilePath (takeBaseName, takeExtension)
+import System.FilePath (takeBaseName)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
 import Text.Pandoc.Class (PandocMonad, report, runPure)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
+import Text.Pandoc.MIME (mediaCategory)
 import Text.TeXMath
 import Text.XML.Light (elChildren, unode, unqual)
 import qualified Text.XML.Light as XML
@@ -665,18 +668,6 @@ dimensionsToAttrList attr = consolidateStyles $ go Width ++ go Height
                (Just x)         -> [("style", show dir ++ ":" ++ show x)]
                Nothing          -> []
 
-imageExts :: [String]
-imageExts = [ "art", "bmp", "cdr", "cdt", "cpt", "cr2", "crw", "djvu", "erf",
-              "gif", "ico", "ief", "jng", "jpg", "jpeg", "nef", "orf", "pat", "pbm",
-              "pcx", "pgm", "png", "pnm", "ppm", "psd", "ras", "rgb", "svg", "tiff",
-              "wbmp", "xbm", "xpm", "xwd" ]
-
-treatAsImage :: FilePath -> Bool
-treatAsImage fp =
-  let path = maybe fp uriPath (parseURIReference fp)
-      ext  = map toLower $ drop 1 $ takeExtension path
-  in  null ext || ext `elem` imageExts
-
 figure :: PandocMonad m
        => WriterOptions -> Attr -> [Inline] -> (String, String)
        -> StateT WriterState m Html
@@ -1135,8 +1126,8 @@ inlineToHtml opts inline = do
                         return $ if null tit
                                     then link'
                                     else link' ! A.title (toValue tit)
-    (Image attr txt (s,tit)) | treatAsImage s -> do
-                        let alternate' = stringify txt
+    (Image attr txt (s,tit)) -> do
+                        let alternate = stringify txt
                         slideVariant <- gets stSlideVariant
                         let isReveal = slideVariant == RevealJsSlides
                         attrs <- imgAttrsToHtml opts attr
@@ -1146,22 +1137,23 @@ inlineToHtml opts inline = do
                                   then customAttribute "data-src" $ toValue s
                                   else A.src $ toValue s) :
                               [A.title $ toValue tit | not (null tit)] ++
-                              [A.alt $ toValue alternate' | not (null txt)] ++
                               attrs
-                        let tag = if html5 then H5.img else H.img
-                        return $ foldl (!) tag attributes
-                        -- note:  null title included, as in Markdown.pl
-    (Image attr _ (s,tit)) -> do
-                        slideVariant <- gets stSlideVariant
-                        let isReveal = slideVariant == RevealJsSlides
-                        attrs <- imgAttrsToHtml opts attr
-                        let attributes =
-                              (if isReveal
-                                  then customAttribute "data-src" $ toValue s
-                                  else A.src $ toValue s) :
-                              [A.title $ toValue tit | not (null tit)] ++
-                              attrs
-                        return $ foldl (!) H5.embed attributes
+                            imageTag = (if html5 then H5.img else H.img
+                              , [A.alt $ toValue alternate | not (null txt)] )
+                            mediaTag tg fallbackTxt =
+                              let linkTxt = if null txt
+                                            then fallbackTxt
+                                            else alternate
+                              in (tg $ H.a ! A.href (toValue s) $ toHtml linkTxt
+                                 , [A5.controls ""] )
+                            normSrc = maybe s uriPath (parseURIReference s)
+                            (tag, specAttrs) = case mediaCategory normSrc of
+                              Just "image" -> imageTag
+                              Just "video" -> mediaTag H5.video "Video"
+                              Just "audio" -> mediaTag H5.audio "Audio"
+                              Just _       -> (H5.embed, [])
+                              _            -> imageTag
+                        return $ foldl (!) tag $ attributes ++ specAttrs
                         -- note:  null title included, as in Markdown.pl
     (Note contents) -> do
                         notes <- gets stNotes

@@ -55,9 +55,13 @@ reverseMimeTypes = M.fromList $ map (\(k,v) -> (v,k)) mimeTypesList
 mimeTypes :: M.Map String MimeType
 mimeTypes = M.fromList mimeTypesList
 
+-- | Collection of common mime types.
+-- Except for first entry, list borrowed from
+-- <https://github.com/Happstack/happstack-server/blob/master/src/Happstack/Server/FileServe/BuildingBlocks.hs happstack-server>
 mimeTypesList :: [(String, MimeType)]
-mimeTypesList = -- List borrowed from happstack-server.
-           [("gz","application/x-gzip")
+mimeTypesList =
+           [("cpt","image/x-corelphotopaint")
+           ,("gz","application/x-gzip")
            ,("cabal","application/x-cabal")
            ,("%","application/x-trash")
            ,("323","text/h323")
