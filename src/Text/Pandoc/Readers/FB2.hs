@@ -144,7 +144,7 @@ parseBodyChild e =
 -- | Parse a @\<binary>@ element.
 parseBinaryElement :: PandocMonad m => Element -> FB2 m ()
 parseBinaryElement e =
-  case (findAttr (QName "id" Nothing Nothing) e, findAttr (QName "content-type" Nothing Nothing) e) of
+  case (findAttr (unqual "id") e, findAttr (unqual "content-type") e) of
     (Nothing, _) -> throwError $ PandocParseError "<binary> element must have an \"id\" attribute"
     (Just _, Nothing) -> throwError $ PandocParseError "<binary> element must have a \"content-type\" attribute"
     (Just filename, contentType) -> insertMedia filename contentType (decodeLenient (pack (strContent e)))
@@ -187,9 +187,9 @@ parseImageElement e =
   case href of
     Just src -> pure $ para $ imageWith (imgId, [], []) (removeHash src) title alt
     Nothing -> throwError $ PandocParseError "Couldn't parse FB2 file: image without href."
-  where alt = maybe mempty str $ findAttr (QName "alt" Nothing Nothing) e
-        title = fromMaybe "" $ findAttr (QName "title" Nothing Nothing) e
-        imgId = fromMaybe "" $ findAttr (QName "id" Nothing Nothing) e
+  where alt = maybe mempty str $ findAttr (unqual "alt") e
+        title = fromMaybe "" $ findAttr (unqual "title") e
+        imgId = fromMaybe "" $ findAttr (unqual "id") e
         href = findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e
 
 -- | Parse @pType@
@@ -247,7 +247,7 @@ parseStanzaChild e =
 parseEpigraph :: PandocMonad m => Element -> FB2 m Blocks
 parseEpigraph e =
   divWith (divId, ["epigraph"], []) . mconcat <$> mapM parseEpigraphChild (elChildren e)
-  where divId = fromMaybe "" $ findAttr (QName "id" Nothing Nothing) e
+  where divId = fromMaybe "" $ findAttr (unqual "id") e
 
 parseEpigraphChild :: PandocMonad m => Element -> FB2 m Blocks
 parseEpigraphChild e =
@@ -279,7 +279,7 @@ parseSection :: PandocMonad m => Element -> FB2 m Blocks
 parseSection e = do
   n <- gets fb2SectionLevel
   modify $ \st -> st{ fb2SectionLevel = n + 1 }
-  let sectionId = fromMaybe "" $ findAttr (QName "id" Nothing Nothing) e
+  let sectionId = fromMaybe "" $ findAttr (unqual "id") e
   bs <- divWith (sectionId, ["section"], []) . mconcat <$> mapM parseSectionChild (elChildren e)
   modify $ \st -> st{ fb2SectionLevel = n }
   pure bs
@@ -309,7 +309,7 @@ parseNamedStyle :: PandocMonad m => Element -> FB2 m Inlines
 parseNamedStyle e = do
   content <- mconcat <$> mapM parseNamedStyleChild (elContent e)
   let lang = maybeToList $ ("lang",) <$> findAttr (QName "lang" Nothing (Just "xml")) e
-  case findAttr (QName "name" Nothing Nothing) e of
+  case findAttr (unqual "name") e of
     Just name -> pure $ spanWith ("", [name], lang) content
     Nothing -> throwError $ PandocParseError "Couldn't parse FB2 file: link without required name."
 
@@ -382,5 +382,5 @@ parseInlineImageElement e =
   case href of
     Just src -> pure $ imageWith ("", [], []) (removeHash src) "" alt
     Nothing -> throwError $ PandocParseError "Couldn't parse FB2 file: inline image without href."
-  where alt = maybe mempty str $ findAttr (QName "alt" Nothing Nothing) e
+  where alt = maybe mempty str $ findAttr (unqual "alt") e
         href = findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e
