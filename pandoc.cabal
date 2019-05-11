@@ -266,6 +266,7 @@ extra-source-files:
                  test/tables.fb2
                  test/tables.muse
                  test/tables.custom
+                 test/tables.xwiki
                  test/testsuite.txt
                  test/writer.latex
                  test/writer.context
