@@ -62,7 +62,9 @@ instance HasMeta FB2State where
 
 readFB2 :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readFB2 _ inp  = do
-  (bs, st) <- runStateT (mapM parseBlock $ parseXML (crFilter inp)) def
+  let parsedXml = parseXML $ crFilter inp
+
+  (bs, st) <- runStateT (mapM parseBlock $ parsedXml) def
   let authors = if null $ fb2Authors st
                 then id
                 else setMeta "author" (map text $ reverse $ fb2Authors st)
