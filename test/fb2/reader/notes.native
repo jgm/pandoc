@@ -1,0 +1,4 @@
+Pandoc (Meta {unMeta = fromList []})
+[Div ("",["section"],[])
+ [Para [Str "Note",Space,Note [Para [Str "Note",Space,Str "contents"]],Str "."]
+ ,Para [Str "Second",Space,Str "note",Space,Note [Para [Str "Second",Space,Str "note",Space,Str "contents."]],Str "."]]]
