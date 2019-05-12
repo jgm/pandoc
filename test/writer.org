@@ -92,9 +92,9 @@ E-mail style:
   Code in a block quote:
 
   #+BEGIN_EXAMPLE
-      sub status {
-          print "working";
-      }
+    sub status {
+        print "working";
+    }
   #+END_EXAMPLE
 
   A list:
@@ -127,21 +127,21 @@ And a following paragraph.
 Code:
 
 #+BEGIN_EXAMPLE
-    ---- (should be four hyphens)
+  ---- (should be four hyphens)
 
-    sub status {
-        print "working";
-    }
+  sub status {
+      print "working";
+  }
 
-    this code block is indented by one tab
+  this code block is indented by one tab
 #+END_EXAMPLE
 
 And:
 
 #+BEGIN_EXAMPLE
-        this code block is indented by two tabs
+      this code block is indented by two tabs
 
-    These should not be escaped:  \$ \\ \> \[ \{
+  These should not be escaped:  \$ \\ \> \[ \{
 #+END_EXAMPLE
 
 --------------
@@ -364,7 +364,7 @@ Multiple blocks with italics:
 - /orange/ :: orange fruit
 
   #+BEGIN_EXAMPLE
-      { orange code block }
+    { orange code block }
   #+END_EXAMPLE
 
   #+BEGIN_QUOTE
@@ -463,15 +463,15 @@ foo
 This should be a code block, though:
 
 #+BEGIN_EXAMPLE
-    <div>
-        foo
-    </div>
+  <div>
+      foo
+  </div>
 #+END_EXAMPLE
 
 As should this:
 
 #+BEGIN_EXAMPLE
-    <div>foo</div>
+  <div>foo</div>
 #+END_EXAMPLE
 
 Now, nested:
@@ -502,7 +502,7 @@ Multiline:
 Code block:
 
 #+BEGIN_EXAMPLE
-    <!-- Comment -->
+  <!-- Comment -->
 #+END_EXAMPLE
 
 Just plain comment, with trailing spaces on the line:
@@ -514,7 +514,7 @@ Just plain comment, with trailing spaces on the line:
 Code:
 
 #+BEGIN_EXAMPLE
-    <hr />
+  <hr />
 #+END_EXAMPLE
 
 Hr's:
@@ -751,7 +751,7 @@ Indented [[/url][thrice]].
 This should [not][] be a link.
 
 #+BEGIN_EXAMPLE
-    [not]: /url
+  [not]: /url
 #+END_EXAMPLE
 
 Foo [[/url/][bar]].
@@ -792,7 +792,7 @@ An e-mail address: [[mailto:nobody@nowhere.net][nobody@nowhere.net]]
 Auto-links should not occur here: =<http://example.com/>=
 
 #+BEGIN_EXAMPLE
-    or here: <http://example.com/>
+  or here: <http://example.com/>
 #+END_EXAMPLE
 
 --------------
@@ -837,7 +837,7 @@ This paragraph should not be part of the note, as it is not indented.
        (as with list items).
 
        #+BEGIN_EXAMPLE
-             { <code> }
+           { <code> }
        #+END_EXAMPLE
 
        If you want, you can indent every line, but you can also be lazy and

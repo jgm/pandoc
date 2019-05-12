@@ -169,8 +169,6 @@ blockToOrg (Header level attr inlines) = do
                   else cr <> nest (level + 1) (propertiesDrawer attr)
   return $ headerStr <> " " <> contents <> drawerStr <> blankline
 blockToOrg (CodeBlock (_,classes,kvs) str) = do
-  opts <- gets stOptions
-  let tabstop = writerTabStop opts
   let startnum = maybe "" (\x -> ' ' : trimr x) $ lookup "startFrom" kvs
   let numberlines = if "numberLines" `elem` classes
                       then if "continuedSourceBlock" `elem` classes
@@ -181,7 +179,7 @@ blockToOrg (CodeBlock (_,classes,kvs) str) = do
   let (beg, end) = case at of
                       []    -> ("#+BEGIN_EXAMPLE" ++ numberlines, "#+END_EXAMPLE")
                       (x:_) -> ("#+BEGIN_SRC " ++ x ++ numberlines, "#+END_SRC")
-  return $ text beg $$ nest tabstop (text str) $$ text end $$ blankline
+  return $ text beg $$ nest 2 (text str) $$ text end $$ blankline
 blockToOrg (BlockQuote blocks) = do
   contents <- blockListToOrg blocks
   return $ blankline $$ "#+BEGIN_QUOTE" $$
