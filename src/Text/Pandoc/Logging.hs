@@ -86,6 +86,7 @@ data LogMessage =
   | NoTranslation String
   | CouldNotLoadTranslations String String
   | UnexpectedXmlElement String String
+  | UnknownOrgExportOption String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -201,6 +202,8 @@ instance ToJSON LogMessage where
       UnexpectedXmlElement element parent ->
            ["element" .= Text.pack element,
             "parent" .= Text.pack parent]
+      UnknownOrgExportOption option ->
+           ["option" .= Text.pack option]
 
 
 showPos :: SourcePos -> String
@@ -300,6 +303,8 @@ showLogMessage msg =
            if null m then "" else '\n' : m
        UnexpectedXmlElement element parent ->
          "Unexpected XML element " ++ element ++ " in " ++ parent
+       UnknownOrgExportOption option ->
+         "Ignoring unknown Org export option: " ++ option
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -339,3 +344,4 @@ messageVerbosity msg =
        NoTranslation{}              -> WARNING
        CouldNotLoadTranslations{}   -> WARNING
        UnexpectedXmlElement {}      -> WARNING
+       UnknownOrgExportOption {}    -> WARNING

@@ -184,6 +184,24 @@ tests =
                   ] =?>
         headerWith ("wichtig", mempty, mempty) 1 "Wichtig"
       ]
+
+    , testGroup "unknown options"
+      [ "unknown options are ignored" =:
+          T.unlines [ "#+OPTIONS: does-not-exist:t "] =?>
+          (mempty :: Pandoc)
+
+      , "highlighting after unknown option" =:
+          T.unlines [ "#+OPTIONS: nope"
+                    , "/yup/"
+                    ] =?>
+          para (emph "yup")
+
+      , "unknown option interleaved with known" =:
+          T.unlines [ "#+OPTIONS: tags:nil foo:bar todo:nil"
+                    , "* DONE ignore things  :easy:"
+                    ] =?>
+          headerWith ("ignore-things", [], mempty) 1 "ignore things"
+      ]
     ]
 
   , testGroup "Include"

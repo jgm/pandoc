@@ -13,6 +13,8 @@ module Text.Pandoc.Readers.Org.ExportSettings
   ) where
 
 import Prelude
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging (LogMessage (UnknownOrgExportOption))
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 
@@ -21,14 +23,14 @@ import Data.Char (toLower)
 import Data.Maybe (listToMaybe)
 
 -- | Read and handle space separated org-mode export settings.
-exportSettings :: Monad m => OrgParser m ()
-exportSettings = void $ sepBy spaces exportSetting
+exportSettings :: PandocMonad m => OrgParser m ()
+exportSettings = void $ sepBy skipSpaces exportSetting
 
 -- | Setter function for export settings.
 type ExportSettingSetter a = a -> ExportSettings -> ExportSettings
 
 -- | Read and process a single org-mode export option.
-exportSetting :: Monad m => OrgParser m ()
+exportSetting :: PandocMonad m => OrgParser m ()
 exportSetting = choice
   [ booleanSetting "^" (\val es -> es { exportSubSuperscripts = val })
   , booleanSetting "'" (\val es -> es { exportSmartQuotes = val })
@@ -63,6 +65,7 @@ exportSetting = choice
   , ignoredSetting "toc"
   , booleanSetting "todo" (\val es -> es { exportWithTodoKeywords = val })
   , ignoredSetting "|"
+  , ignoreAndWarn
   ] <?> "export setting"
 
 genericExportSetting :: Monad m
@@ -143,6 +146,13 @@ complementableListSetting = genericExportSetting $ choice
 -- | Read but ignore the export setting.
 ignoredSetting :: Monad m => String -> OrgParser m ()
 ignoredSetting s = try (() <$ string s <* char ':' <* many1 nonspaceChar)
+
+-- | Read any setting string, but ignore it and emit a warning.
+ignoreAndWarn :: PandocMonad m => OrgParser m ()
+ignoreAndWarn = try $ do
+  opt <- many1 nonspaceChar
+  report (UnknownOrgExportOption opt)
+  return ()
 
 -- | Read an elisp boolean.  Only NIL is treated as false, non-NIL values are
 -- interpreted as true.

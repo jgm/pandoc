@@ -131,7 +131,7 @@ accumulatingList key p = do
 --
 -- export options
 --
-optionLine :: Monad m => OrgParser m ()
+optionLine :: PandocMonad m => OrgParser m ()
 optionLine = try $ do
   key <- metaKey
   case key of
