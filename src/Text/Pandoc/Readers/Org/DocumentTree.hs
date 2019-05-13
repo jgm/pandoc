@@ -235,8 +235,8 @@ headlineToHeaderWithList hdln = do
                    else flattenHeader header
   return . mconcat $
     [ headerText
-    , headlineContents hdln
     , planningBlock
+    , headlineContents hdln
     , listBlock
     ]
  where

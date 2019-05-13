@@ -236,5 +236,29 @@ tests =
                 , "  :END:"
                 ] =?>
       headerWith ("look", [], []) 1 "important"
+
+    , "third and forth level headers" =:
+      T.unlines [ "#+OPTIONS: p:t h:3"
+                , "*** Third"
+                , "    CLOSED: [2018-09-05 Wed 13:58]"
+                , "    Text 3"
+                , "**** Fourth"
+                , "SCHEDULED: <2019-05-13 Mon 22:42>"
+                , "Text 4"
+                ] =?>
+      mconcat
+      [ headerWith ("third", [], mempty) 3 "Third"
+      , plain $
+        strong "CLOSED:" <> space <> emph (str "[2018-09-05 Wed 13:58]")
+      , para "Text 3"
+      , orderedList [
+          mconcat
+          [ para "Fourth"
+          , plain $ strong "SCHEDULED:"
+                    <> space
+                    <> emph (str "<2019-05-13 Mon 22:42>")
+          , para "Text 4"
+          ]]
+      ]
     ]
   ]
