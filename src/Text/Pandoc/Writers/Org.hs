@@ -405,7 +405,7 @@ pandocLangToOrg cs =
 orgLangIdentifiers :: [String]
 orgLangIdentifiers =
   [ "asymptote", "awk", "C", "C++", "clojure", "css", "d", "ditaa", "dot"
-  , "calc", "diff", "emacs-lisp", "fortran", "gnuplot", "go", "haskell", "java", "js"
+  , "calc", "emacs-lisp", "fortran", "gnuplot", "haskell", "java", "js"
   , "latex", "ledger", "lisp", "lilypond", "matlab", "mscgen", "ocaml"
   , "octave", "org", "oz", "perl", "plantuml", "processing", "python", "R"
   , "ruby", "sass", "scheme", "screen", "sed", "sh", "sql", "sqlite", "yaml"
