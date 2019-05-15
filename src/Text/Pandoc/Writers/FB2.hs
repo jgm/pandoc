@@ -21,7 +21,7 @@ module Text.Pandoc.Writers.FB2 (writeFB2)  where
 import Prelude
 import Control.Monad (zipWithM)
 import Control.Monad.Except (catchError)
-import Control.Monad.State.Strict (StateT, evalStateT, get, lift, liftM, modify)
+import Control.Monad.State.Strict (StateT, evalStateT, get, gets, lift, liftM, modify)
 import Data.ByteString.Base64 (encode)
 import qualified Data.ByteString.Char8 as B8
 import Data.Char (isAscii, isControl, isSpace, toLower)
@@ -104,7 +104,7 @@ description meta' = do
   let as = authors meta'
   dd <- docdate meta'
   annotation <- case lookupMeta "abstract" meta' of
-                  Just (MetaBlocks bs) -> (list . el "annotation") <$> cMapM blockToXml (map unPlain bs)
+                  Just (MetaBlocks bs) -> list . el "annotation" <$> cMapM blockToXml (map unPlain bs)
                   _ -> pure mempty
   let lang = case lookupMeta "lang" meta' of
                Just (MetaInlines [Str s]) -> [el "lang" $ iso639 s]
@@ -182,8 +182,8 @@ renderSection lvl (Shared.Sec _ _num (id',_,_) title elements) = do
             else list . el "title" <$> formatTitle title
   let sectionContent = if null id'
       then el "section" (title' ++ content)
-      else el "section" ([uattr "id" id'], (title' ++ content))
-  return $ [sectionContent]
+      else el "section" ([uattr "id" id'], title' ++ content)
+  return [sectionContent]
 
 -- | Only <p> and <empty-line> are allowed within <title> in FB2.
 formatTitle :: PandocMonad m => [Inline] -> FBM m [Content]
@@ -290,6 +290,15 @@ isMimeType s =
 footnoteID :: Int -> String
 footnoteID i = "n" ++ show i
 
+mkitem :: PandocMonad m => String -> [Block] -> FBM m [Content]
+mkitem mrk bs = do
+  pmrk <- gets parentListMarker
+  let nmrk = pmrk ++ mrk ++ " "
+  modify (\s -> s { parentListMarker = nmrk})
+  item <- cMapM blockToXml $ plainToPara $ indentBlocks nmrk bs
+  modify (\s -> s { parentListMarker = pmrk }) -- old parent marker
+  return item
+
 -- | Convert a block-level Pandoc's element to FictionBook XML representation.
 blockToXml :: PandocMonad m => Block -> FBM m [Content]
 blockToXml (Plain ss) = cMapM toXml ss  -- FIXME: can lead to malformed FB2
@@ -297,40 +306,26 @@ blockToXml (Para [Math DisplayMath formula]) = insertMath NormalImage formula
 -- title beginning with fig: indicates that the image is a figure
 blockToXml (Para [Image atr alt (src,'f':'i':'g':':':tit)]) =
   insertImage NormalImage (Image atr alt (src,tit))
-blockToXml (Para ss) = (list . el "p") <$> cMapM toXml ss
+blockToXml (Para ss) = list . el "p" <$> cMapM toXml ss
 blockToXml (CodeBlock _ s) = return . spaceBeforeAfter .
                              map (el "p" . el "code") . lines $ s
-blockToXml (RawBlock f str) = do
+blockToXml (RawBlock f str) =
   if f == Format "fb2"
     then return $ XI.parseXML str
     else return []
 blockToXml (Div _ bs) = cMapM blockToXml bs
-blockToXml (BlockQuote bs) = (list . el "cite") <$> cMapM blockToXml bs
+blockToXml (BlockQuote bs) = list . el "cite" <$> cMapM blockToXml bs
 blockToXml (LineBlock lns) =
-  (list . el "poem") <$> mapM stanza (split null lns)
+  list . el "poem" <$> mapM stanza (split null lns)
   where
     v xs = el "v" <$> cMapM toXml xs
     stanza xs = el "stanza" <$> mapM v xs
-blockToXml (OrderedList a bss) = do
-    state <- get
-    let pmrk = parentListMarker state
-    let markers = (pmrk ++) <$> orderedListMarkers a
-    let mkitem mrk bs = do
-          modify (\s -> s { parentListMarker = mrk ++ " "})
-          item <- cMapM blockToXml $ plainToPara $ indentBlocks (mrk ++ " ") bs
-          modify (\s -> s { parentListMarker = pmrk }) -- old parent marker
-          return item
+blockToXml (OrderedList a bss) =
     concat <$> zipWithM mkitem markers bss
-blockToXml (BulletList bss) = do
-    state <- get
-    let pmrk = parentListMarker state
-    let mrk = pmrk ++ "•"
-    let mkitem bs = do
-          modify (\s -> s { parentListMarker = mrk ++ " "})
-          item <- cMapM blockToXml $ plainToPara $ indentBlocks (mrk ++ " ") bs
-          modify (\s -> s { parentListMarker = pmrk }) -- old parent marker
-          return item
-    cMapM mkitem bss
+    where
+      markers = orderedListMarkers a
+blockToXml (BulletList bss) =
+    cMapM (mkitem "•") bss
 blockToXml (DefinitionList defs) =
     cMapM mkdef defs
     where
