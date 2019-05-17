@@ -86,9 +86,7 @@ tests = [ testGroup "inline code"
             headerWith ("foo",["unnumbered"],[]) 1
               (text "Header 1" <> note (plain $ text "note")) =?>
             "<sec id=\"foo\">\n\
-            \  <title>Header 1<fn>\n\
-            \    <p>note</p>\n\
-            \  </fn></title>\n\
+            \  <title>Header 1<xref ref-type=\"fn\" rid=\"fn1\">1</xref></title>\n\
             \</sec>"
           , "unnumbered sub header" =:
             headerWith ("foo",["unnumbered"],[]) 1

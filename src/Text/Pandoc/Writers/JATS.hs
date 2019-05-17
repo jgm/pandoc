@@ -16,6 +16,7 @@ https://jats.nlm.nih.gov/publishing/tag-library
 module Text.Pandoc.Writers.JATS ( writeJATS ) where
 import Prelude
 import Control.Monad.Reader
+import Control.Monad.State
 import Data.Char (toLower)
 import Data.Generics (everywhere, mkT)
 import Data.List (isSuffixOf, partition, isPrefixOf)
@@ -39,11 +40,16 @@ import qualified Text.XML.Light as Xml
 data JATSVersion = JATS1_1
      deriving (Eq, Show)
 
-type JATS = ReaderT JATSVersion
+data JATSState = JATSState
+  { jatsNotes :: [(Int, Doc)] }
+
+type JATS a = StateT JATSState (ReaderT JATSVersion a)
 
 writeJATS :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeJATS opts d =
-  runReaderT (docToJATS opts d) JATS1_1
+  runReaderT (evalStateT (docToJATS opts d)
+     (JATSState{ jatsNotes = [] }))
+     JATS1_1
 
 -- | Convert Pandoc document to string in JATS format.
 docToJATS :: PandocMonad m => WriterOptions -> Pandoc -> JATS m Text
@@ -52,7 +58,7 @@ docToJATS opts (Pandoc meta blocks) = do
       isBackBlock _                    = False
   let (backblocks, bodyblocks) = partition isBackBlock blocks
   let elements = hierarchicalize bodyblocks
-  let backElements = hierarchicalize backblocks
+  let backElements = hierarchicalize $ backblocks
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
@@ -77,8 +83,10 @@ docToJATS opts (Pandoc meta blocks) = do
                  meta
   main <- (render' . vcat) <$>
             mapM (elementToJATS opts' startLvl) elements
-  back <- (render' . vcat) <$>
-            mapM (elementToJATS opts' startLvl) backElements
+  notes <- reverse . map snd <$> gets jatsNotes
+  backs <- mapM (elementToJATS opts' startLvl) backElements
+  let fns = inTagsIndented "fn-group" $ vcat notes
+  let back = render' $ vcat backs $$ fns
   let context = defField "body" main
               $ defField "back" back
               $ defField "mathml" (case writerHTMLMathMethod opts of
@@ -368,9 +376,18 @@ inlineToJATS _ Space = return space
 inlineToJATS opts SoftBreak
   | writerWrapText opts == WrapPreserve = return cr
   | otherwise = return space
-inlineToJATS opts (Note contents) =
+inlineToJATS opts (Note contents) = do
   -- TODO technically only <p> tags are allowed inside
-  inTagsIndented "fn" <$> blocksToJATS opts contents
+  notes <- gets jatsNotes
+  let notenum = case notes of
+                  (n, _):_ -> n + 1
+                  []       -> 1
+  thenote <- inTags True "fn" [("id","fn" ++ show notenum)]
+                <$> blocksToJATS opts contents
+  modify $ \st -> st{ jatsNotes = (notenum, thenote) : notes }
+  return $ inTags False "xref" [("ref-type", "fn"),
+                                ("rid", "fn" ++ show notenum)]
+         $ text (show notenum)
 inlineToJATS opts (Cite _ lst) =
   -- TODO revisit this after examining the jats.csl pipeline
   inlinesToJATS opts lst
