@@ -275,6 +275,7 @@ multimarkdownExtensions = extensionsFromList
   -- Note: MMD's raw TeX syntax requires raw TeX to be
   -- enclosed in HTML comment
   , Ext_tex_math_double_backslash
+  , Ext_tex_math_dollars
   , Ext_intraword_underscores
   , Ext_mmd_title_block
   , Ext_footnotes
