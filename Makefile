@@ -83,7 +83,7 @@ pandoc-$(version)-windows-%.zip: pandoc-$(version)-windows-%.msi
 	rm -rf $$TEMPDIR
 
 pandoc-$(version)-windows-%.msi: pandoc-windows-%.msi
-	osslsigncode sign -pkcs12 ~/Private/ComodoCodeSigning.exp2019.p12 -in $< -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
+	osslsigncode sign -pkcs12 ~/Private/SectigoCodeSigning.exp2023.p12 -in $< -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
 	rm $<
 
 .INTERMEDIATE: pandoc-windows-i386.msi pandoc-windows-x86_64.msi
