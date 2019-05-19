@@ -17,7 +17,6 @@ module Text.Pandoc.Lua.Global
 
 import Prelude
 import Data.Data (Data)
-import Data.Version (Version (versionBranch))
 import Foreign.Lua (Lua, Peekable, Pushable)
 import Foreign.Lua.Userdata ( ensureUserdataMetatable, pushAnyWithMetatable
                             , metatableName)
@@ -52,7 +51,7 @@ setGlobal global = case global of
     Lua.push format
     Lua.setglobal "FORMAT"
   PANDOC_API_VERSION -> do
-    Lua.push (versionBranch pandocTypesVersion)
+    Lua.push pandocTypesVersion
     Lua.setglobal "PANDOC_API_VERSION"
   PANDOC_DOCUMENT doc -> do
     Lua.push (LazyPandoc doc)
@@ -67,7 +66,7 @@ setGlobal global = case global of
     Lua.push commonState
     Lua.setglobal "PANDOC_STATE"
   PANDOC_VERSION              -> do
-    Lua.push (versionBranch version)
+    Lua.push version
     Lua.setglobal "PANDOC_VERSION"
 
 -- | Readonly and lazy pandoc objects.

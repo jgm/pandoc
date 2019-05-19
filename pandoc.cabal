@@ -339,8 +339,7 @@ extra-source-files:
                  test/odt/markdown/*.md
                  test/odt/native/*.native
                  test/lua/*.lua
-                 test/lua/module/pandoc.lua
-                 test/lua/module/pandoc.utils.lua
+                 test/lua/module/*.lua
 source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
@@ -593,9 +592,11 @@ library
                    Text.Pandoc.Lua.Marshaling.AnyValue,
                    Text.Pandoc.Lua.Marshaling.CommonState,
                    Text.Pandoc.Lua.Marshaling.ReaderOptions,
+                   Text.Pandoc.Lua.Marshaling.Version,
                    Text.Pandoc.Lua.Module.MediaBag,
                    Text.Pandoc.Lua.Module.Pandoc,
                    Text.Pandoc.Lua.Module.System,
+                   Text.Pandoc.Lua.Module.Types,
                    Text.Pandoc.Lua.Module.Utils,
                    Text.Pandoc.Lua.Packages,
                    Text.Pandoc.Lua.Util,

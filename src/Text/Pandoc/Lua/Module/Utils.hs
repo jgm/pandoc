@@ -17,6 +17,7 @@ import Prelude
 import Control.Applicative ((<|>))
 import Data.Char (toLower)
 import Data.Default (def)
+import Data.Version (Version)
 import Foreign.Lua (Peekable, Lua, NumResults)
 import Text.Pandoc.Class (runIO, setUserDataDir)
 import Text.Pandoc.Definition ( Pandoc, Meta, MetaValue (..), Block, Inline
@@ -43,6 +44,7 @@ pushModule mbDatadir = do
   addFunction "sha1" sha1
   addFunction "stringify" stringify
   addFunction "to_roman_numeral" toRomanNumeral
+  addFunction "Version" (return :: Version -> Lua Version)
   return 1
 
 -- | Squashes a list of blocks into inlines.
