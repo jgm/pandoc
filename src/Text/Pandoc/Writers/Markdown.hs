@@ -75,6 +75,7 @@ instance Default WriterEnv
                         }
 
 data WriterState = WriterState { stNotes   :: Notes
+                               , stPrevRefs :: Refs
                                , stRefs    :: Refs
                                , stKeys    :: M.Map Key
                                                 (M.Map (Target, Attr) Int)
@@ -85,6 +86,7 @@ data WriterState = WriterState { stNotes   :: Notes
 
 instance Default WriterState
   where def = WriterState{ stNotes = []
+                         , stPrevRefs = []
                          , stRefs = []
                          , stKeys = M.empty
                          , stLastIdx = 0
@@ -355,7 +357,8 @@ notesAndRefs opts = do
   notes' <- reverse <$> gets stNotes >>= notesToMarkdown opts
   modify $ \s -> s { stNotes = [] }
   refs' <- reverse <$> gets stRefs >>= refsToMarkdown opts
-  modify $ \s -> s { stRefs = [] }
+  modify $ \s -> s { stPrevRefs = stPrevRefs s ++ stRefs s
+                   , stRefs = []}
 
   let endSpacing =
         if | writerReferenceLocation opts == EndOfDocument -> empty
@@ -867,6 +870,20 @@ blockListToMarkdown opts blocks = do
 getKey :: Doc -> Key
 getKey = toKey . render Nothing
 
+findUsableIndex :: [Doc] -> Int -> Int
+findUsableIndex lbls i = do
+  if (text (show i)) `elem` lbls
+    then findUsableIndex lbls (i + 1)
+    else i
+
+getNextIndex :: PandocMonad m => MD m Int
+getNextIndex = do
+  prevRefs <- gets stPrevRefs
+  refs <- gets stRefs
+  i <- (+ 1) <$> gets stLastIdx
+  let refLbls = map (\(r,_,_) -> r) $ prevRefs ++ refs
+  return $ findUsableIndex refLbls i
+
 -- | Get reference for target; if none exists, create unique one and return.
 --   Prefer label if possible; otherwise, generate a unique key.
 getReference :: PandocMonad m => Attr -> Doc -> Target -> MD m Doc
@@ -880,7 +897,7 @@ getReference attr label target = do
            Nothing -> do -- no other refs with this label
              (lab', idx) <- if isEmpty label
                                then do
-                                 i <- (+ 1) <$> gets stLastIdx
+                                 i <- getNextIndex
                                  modify $ \s -> s{ stLastIdx = i }
                                  return (text (show i), i)
                                else return (label, 0)
@@ -905,7 +922,7 @@ getReference attr label target = do
                          stRefs = (lab', target, attr) : refs })
                     return lab'
                   Nothing -> do -- but this one is to a new target
-                    i <- (+ 1) <$> gets stLastIdx
+                    i <- getNextIndex
                     modify $ \s -> s{ stLastIdx = i }
                     let lab' = text (show i)
                     modify (\s -> s{
