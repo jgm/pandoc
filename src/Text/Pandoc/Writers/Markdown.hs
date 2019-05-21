@@ -871,10 +871,9 @@ getKey :: Doc -> Key
 getKey = toKey . render Nothing
 
 findUsableIndex :: [Doc] -> Int -> Int
-findUsableIndex lbls i = do
-  if (text (show i)) `elem` lbls
-    then findUsableIndex lbls (i + 1)
-    else i
+findUsableIndex lbls i = if (text (show i)) `elem` lbls
+                         then findUsableIndex lbls (i + 1)
+                         else i
 
 getNextIndex :: PandocMonad m => MD m Int
 getNextIndex = do
