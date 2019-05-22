@@ -681,7 +681,7 @@ figure :: PandocMonad m
        => WriterOptions -> Attr -> [Inline] -> (String, String)
        -> StateT WriterState m Html
 figure opts attr txt (s,tit) = do
-  img <- inlineToHtml opts (Image attr txt (s,tit))
+  img <- inlineToHtml opts (Image attr [Str ""] (s,tit))
   html5 <- gets stHtml5
   let tocapt = if html5
                   then H5.figcaption
