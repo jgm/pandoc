@@ -24,21 +24,21 @@ full-cabal:
 	cabal new-run test-pandoc --disable-optimization -- --hide-successes $(TESTARGS)
 
 full:
-	stack install --resolver=$(RESOLVER) --flag 'pandoc:embed_data_files' --flag 'pandoc:weigh-pandoc' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 -j4 $(GHCOPTS)'
+	stack install --flag 'pandoc:embed_data_files' --flag 'pandoc:weigh-pandoc' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 -j4 $(GHCOPTS)'
 
 haddock:
-	stack haddock --resolver=$(RESOLVER)
+	stack haddock
 
 # Note:  to accept current results of golden tests,
 # make test TESTARGS='--accept'
 test:
-	stack test --resolver=$(RESOLVER) --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes $(TESTARGS)' --ghc-options '$(GHCOPTS)'
+	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes $(TESTARGS)' --ghc-options '$(GHCOPTS)'
 
 bench:
-	stack bench --benchmark-arguments='$(BENCHARGS)' --resolver=$(RESOLVER) --ghc-options '$(GHCOPTS)'
+	stack bench --benchmark-arguments='$(BENCHARGS)' --ghc-options '$(GHCOPTS)'
 
 weigh:
-	stack build --resolver=$(RESOLVER) --ghc-options '$(GHCOPTS)' --flag 'pandoc:weigh-pandoc' && stack exec weigh-pandoc
+	stack build --ghc-options '$(GHCOPTS)' --flag 'pandoc:weigh-pandoc' && stack exec weigh-pandoc
 
 reformat:
 	for f in $(SOURCEFILES); do echo $$f; stylish-haskell -i $$f ; done
