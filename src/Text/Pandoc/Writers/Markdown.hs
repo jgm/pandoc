@@ -23,7 +23,8 @@ import Control.Monad.State.Strict
 import Data.Char (isPunctuation, isSpace, isAlphaNum)
 import Data.Default
 import qualified Data.HashMap.Strict as H
-import Data.List (find, group, intersperse, sortBy, stripPrefix, transpose)
+import Data.List (find, group, intersperse, sortBy, stripPrefix, transpose,
+                  isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Any (..))
@@ -544,16 +545,14 @@ blockToMarkdown' opts (CodeBlock attribs str) = return $
            | isEnabled Ext_fenced_code_blocks opts ->
           tildes <> attrs <> cr <> text str <> cr <> tildes <> blankline
      _ -> nest (writerTabStop opts) (text str) <> blankline
-   where tildes    = text $ case [ln | ln <- lines str, all (=='~') ln] of
-                               [] -> "~~~~"
-                               xs -> case maximum $ map length xs of
-                                          n | n < 3 -> "~~~~"
-                                            | otherwise -> replicate (n+1) '~'
-         backticks = text $ case [ln | ln <- lines str, all (=='`') ln] of
-                               [] -> "```"
-                               xs -> case maximum $ map length xs of
-                                          n | n < 3 -> "```"
-                                            | otherwise -> replicate (n+1) '`'
+   where endline c = text $ case [length ln
+                                   | ln <- map trim (lines str)
+                                   , [c,c,c] `isPrefixOf` ln
+                                   , all (== c) ln] of
+                               [] -> replicate 3 c
+                               xs -> replicate (maximum xs + 1) c
+         backticks = endline '`'
+         tildes = endline '~'
          attrs  = if isEnabled Ext_fenced_code_attributes opts
                      then nowrap $ " " <> attrsToMarkdown attribs
                      else case attribs of
