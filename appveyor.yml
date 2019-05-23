@@ -66,9 +66,9 @@ test_script:
   - if not exist "%CABAL_PACKAGE_DB%" ( mkdir "%CABAL_PACKAGE_DB%" )
   - cabal --store-dir="%CABAL_STORE%" --version
   - cabal --store-dir="%CABAL_STORE%" new-update
-  - cabal --store-dir="%CABAL_STORE%" new-configure -w %GHC% --enable-tests %CABAL_OPTS% --ghc-options="%GHC_OPTS%" . pandoc-citeproc
-  - cabal --store-dir="%CABAL_STORE%" new-build . pandoc-citeproc
-  - cabal --store-dir="%CABAL_STORE%" new-test . pandoc-citeproc
+  - cabal --store-dir="%CABAL_STORE%" new-configure -w %GHC% --enable-tests %CABAL_OPTS% --ghc-options="%GHC_OPTS%" . # pandoc-citeproc
+  - cabal --store-dir="%CABAL_STORE%" new-build . # pandoc-citeproc
+  - cabal --store-dir="%CABAL_STORE%" new-test . # pandoc-citeproc
   - forfiles /P .\dist-newstyle /M pandoc*.exe /S /C "cmd /C copy @path C:\pandoc\windows"
 
 after_test:
@@ -77,7 +77,7 @@ after_test:
   - .\pandoc.exe -s --toc ..\MANUAL.txt -o MANUAL.html
   - .\pandoc.exe -s ..\COPYING.md -o COPYING.rtf
   - copy ..\COPYRIGHT COPYRIGHT.txt
-  - 7z a "pandoc-%OSARCH%.zip" pandoc.exe pandoc-citeproc.exe MANUAL.html COPYING.rtf
+  - 7z a "pandoc-%OSARCH%.zip" pandoc.exe MANUAL.html COPYING.rtf # pandoc-citeproc.exe
   - |
       set VERSION=
       for /f "tokens=1-2 delims= " %%a in ('.\pandoc.exe --version') do ( if not defined VERSION set "VERSION=%%b" )
