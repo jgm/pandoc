@@ -903,10 +903,7 @@ symbol = pure . B.str . pure <$> nonspaceChar
 
 -- | Parse a link or image.
 linkOrImage :: PandocMonad m => MuseParser m (F Inlines)
-linkOrImage = try $ do
-  inLink <- asks museInLink
-  guard $ not inLink
-  local (\s -> s { museInLink = True }) (link "URL:" <|> image <|> link "")
+linkOrImage = try $ link "URL:" <|> image <|> link ""
 
 linkContent :: PandocMonad m => MuseParser m (F Inlines)
 linkContent = trimInlinesF . mconcat
@@ -916,9 +913,11 @@ linkContent = trimInlinesF . mconcat
 -- | Parse a link starting with (possibly null) prefix
 link :: PandocMonad m => String -> MuseParser m (F Inlines)
 link prefix = try $ do
+  inLink <- asks museInLink
+  guard $ not inLink
   string $ "[[" ++ prefix
   url <- manyTill anyChar $ char ']'
-  content <- option (pure $ B.str url) linkContent
+  content <- option (pure $ B.str url) (local (\s -> s { museInLink = True }) linkContent)
   char ']'
   return $ B.link url "" <$> content
 

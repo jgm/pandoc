@@ -289,6 +289,9 @@ tests =
         , "No footnotes inside links" =:
           "[[https://amusewiki.org/][foo[1]]" =?>
           para (link "https://amusewiki.org/" "" (text "foo[1"))
+        , "Image inside link" =:
+          "[[https://amusewiki.org/][Image [[image.png][with it's own description]] inside link description]]" =?>
+          para (link "https://amusewiki.org/" "" (text "Image " <> (image "image.png" "" (text "with it's own description")) <> text " inside link description"))
         ]
 
       , testGroup "Literal"
