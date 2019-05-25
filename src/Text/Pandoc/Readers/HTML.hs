@@ -336,7 +336,7 @@ pDefListItem = try $ do
   terms <- many1 (try $ skipMany nonItem >> pInTags "dt" inline)
   defs  <- many1 (try $ skipMany nonItem >> pInTags "dd" block)
   skipMany nonItem
-  let term = foldl1 (\x y ->  x <> B.linebreak <> y) terms
+  let term = foldl1 (\x y -> x <> B.linebreak <> y) $ map trimInlines terms
   return (term, map (fixPlains True) defs)
 
 fixPlains :: Bool -> Blocks -> Blocks
