@@ -21,17 +21,16 @@ import Control.Monad.State.Strict (State, get, modify, runState)
 import Data.Char (isAscii)
 import Data.Foldable (foldrM)
 import Data.List (transpose)
-import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.HTTP (urlEncode)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (isTightList, taskListItemToAscii, linesToPara,
-                           substitute, capitalize, isHeaderBlock)
+import Text.Pandoc.Shared (capitalize, isHeaderBlock, isTightList,
+    linesToPara, onlySimpleTableCells, substitute, taskListItemToAscii)
 import Text.Pandoc.Templates (renderTemplate')
-import Text.Pandoc.Walk (query, walk, walkM)
+import Text.Pandoc.Walk (walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtml5String, tagWithAttributes)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML (toHtml5Entities)
@@ -159,16 +158,7 @@ blockToNodes opts (DefinitionList items) ns =
         dlToBullet (term, xs) =
           Para term : concat xs
 blockToNodes opts t@(Table capt aligns _widths headers rows) ns = do
-  let allcells = concat (headers:rows)
-  let isLineBreak LineBreak = Any True
-      isLineBreak _         = Any False
-  let isPlainOrPara [Para _]  = True
-      isPlainOrPara [Plain _] = True
-      isPlainOrPara []        = True
-      isPlainOrPara _         = False
-  let isSimple = all isPlainOrPara allcells &&
-                 not ( getAny (query isLineBreak allcells) )
-  if isEnabled Ext_pipe_tables opts && isSimple
+  if isEnabled Ext_pipe_tables opts && onlySimpleTableCells (headers:rows)
      then do
        -- We construct a table manually as a CUSTOM_BLOCK, for
        -- two reasons:  (1) cmark-gfm currently doesn't support

@@ -61,7 +61,7 @@ import Text.Pandoc.Options (
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
-                           extractSpaces, safeRead, underlineSpan)
+    extractSpaces, onlySimpleTableCells, safeRead, underlineSpan)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
@@ -488,14 +488,9 @@ pTable = try $ do
   TagClose _ <- pSatisfy (matchTagClose "table")
   let rows'' = concat rowsLs <> topfoot <> bottomfoot
   let rows''' = map (map snd) rows''
-  -- let rows''' = map (map snd) rows''
   -- fail on empty table
   guard $ not $ null head' && null rows'''
-  let isSinglePlain x = case B.toList x of
-                             []        -> True
-                             [Plain _] -> True
-                             _         -> False
-  let isSimple = all isSinglePlain $ concat (head':rows''')
+  let isSimple = onlySimpleTableCells $ fmap B.toList <$> head':rows'''
   let cols = if null head'
                 then maximum (map length rows''')
                 else length head'

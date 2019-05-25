@@ -59,6 +59,7 @@ module Text.Pandoc.Shared (
                      isHeaderBlock,
                      headerShift,
                      stripEmptyParagraphs,
+                     onlySimpleTableCells,
                      isTightList,
                      taskListItemFromAscii,
                      taskListItemToAscii,
@@ -108,6 +109,7 @@ import Data.List (find, intercalate, intersperse, stripPrefix, sortBy)
 import Data.Ord (comparing)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
+import Data.Monoid (Any (..))
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
 import qualified Data.Set as Set
 import qualified Data.Text as T
@@ -570,6 +572,19 @@ stripEmptyParagraphs = walk go
         go = filter (not . isEmptyParagraph)
         isEmptyParagraph (Para []) = True
         isEmptyParagraph _         = False
+
+-- | Detect if table rows contain only cells consisting of a single
+-- paragraph that has no @LineBreak@.
+onlySimpleTableCells :: [[TableCell]] -> Bool
+onlySimpleTableCells = all isSimpleCell . concat
+  where
+    isSimpleCell [Plain ils] = not (hasLineBreak ils)
+    isSimpleCell [Para ils ] = not (hasLineBreak ils)
+    isSimpleCell []          = True
+    isSimpleCell _           = False
+    hasLineBreak = getAny . query isLineBreak
+    isLineBreak LineBreak = Any True
+    isLineBreak _         = Any False
 
 -- | Detect if a list is tight.
 isTightList :: [[Block]] -> Bool

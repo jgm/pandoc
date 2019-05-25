@@ -27,7 +27,6 @@ import Data.List (find, group, intersperse, sortBy, stripPrefix, transpose,
                   isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
-import Data.Monoid (Any (..))
 import Data.Ord (comparing)
 import qualified Data.Set as Set
 import qualified Data.Scientific as Scientific
@@ -574,14 +573,7 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
   let caption'' = if null caption || not (isEnabled Ext_table_captions opts)
                      then blankline
                      else blankline $$ (": " <> caption') $$ blankline
-  let isLineBreak LineBreak = Any True
-      isLineBreak _         = Any False
-  let hasLineBreak = getAny . query isLineBreak
-  let isSimpleCell [Plain ils] = not (hasLineBreak ils)
-      isSimpleCell [Para ils ] = not (hasLineBreak ils)
-      isSimpleCell []          = True
-      isSimpleCell _           = False
-  let hasSimpleCells = all isSimpleCell (concat (headers:rows))
+  let hasSimpleCells = onlySimpleTableCells $ headers:rows
   let isSimple = hasSimpleCells && all (==0) widths
   let isPlainBlock (Plain _) = True
       isPlainBlock _         = False
