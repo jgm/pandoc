@@ -510,9 +510,7 @@ inlineListStartsWithAlnum _ = return False
 renderInlineList :: PandocMonad m
                  => [Inline]
                  -> Muse m Doc
-renderInlineList [] = do
-  start <- asks envInlineStart
-  pure $ if start then "<verbatim></verbatim>" else ""
+renderInlineList [] = pure ""
 renderInlineList (x:xs) = do
   start <- asks envInlineStart
   afterSpace <- asks envAfterSpace
@@ -545,8 +543,11 @@ inlineListToMuse :: PandocMonad m
 inlineListToMuse lst = do
   lst' <- normalizeInlineList . fixNotes <$> preprocessInlineList (map (removeKeyValues . replaceSmallCaps) lst)
   insideAsterisks <- asks envInsideAsterisks
+  start <- asks envInlineStart
   modify $ \st -> st { stUseTags = False } -- Previous character is likely a '>' or some other markup
-  local (\env -> env { envNearAsterisks = insideAsterisks }) $ renderInlineList lst'
+  if start && null lst'
+    then pure "<verbatim></verbatim>"
+    else local (\env -> env { envNearAsterisks = insideAsterisks }) $ renderInlineList lst'
 
 inlineListToMuse' :: PandocMonad m => [Inline] -> Muse m Doc
 inlineListToMuse' lst = do

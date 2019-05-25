@@ -545,6 +545,7 @@ tests = [ testGroup "block elements"
                    "remove soft break" $ "a" <> softbreak <> "b"
                    =?> ("a b" :: String)
             , "line break" =: "a" <> linebreak <> "b" =?> "a<br>\nb"
+            , "line break at the end" =: "a" <> linebreak =?> "a<br>"
             , "no newline after line break in header" =: header 1 ("a" <> linebreak <> "b") =?> "* a<br>b"
             , "no softbreak in header" =: header 1 ("a" <> softbreak <> "b") =?> "* a b"
             ]
