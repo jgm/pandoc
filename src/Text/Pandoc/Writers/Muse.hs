@@ -31,7 +31,6 @@ import Control.Monad.State.Strict
 import Data.Char (isAlphaNum, isAsciiLower, isAsciiUpper, isDigit, isSpace)
 import Data.Default
 import Data.List (intersperse, isInfixOf, transpose)
-import Data.Monoid (Any (..))
 import qualified Data.Set as Set
 import Data.Text (Text)
 import System.FilePath (takeExtension)
@@ -44,7 +43,6 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate')
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Walk
 
 type Notes = [[Block]]
 
@@ -269,15 +267,7 @@ blockToMuse (Table caption aligns widths headers rows) =
     blocksToDoc opts blocks =
       local (\env -> env { envOptions = opts }) $ blockListToMuse blocks
     numcols = maximum (length aligns : length widths : map length (headers:rows))
-    hasSimpleCells = all isSimpleCell (concat (headers:rows))
-    isLineBreak LineBreak = Any True
-    isLineBreak _         = Any False
-    hasLineBreak = getAny . query isLineBreak
-    isSimple = hasSimpleCells && all (== 0) widths
-    isSimpleCell [Plain ils] = not (hasLineBreak ils)
-    isSimpleCell [Para ils ] = not (hasLineBreak ils)
-    isSimpleCell []          = True
-    isSimpleCell _           = False
+    isSimple = onlySimpleTableCells (headers:rows) && all (== 0) widths
 blockToMuse (Div _ bs) = flatBlockListToMuse bs
 blockToMuse Null = return empty
 
