@@ -572,10 +572,10 @@ downloadOrRead s = do
             Nothing -> openURL s' -- will throw error
     (Nothing, s') ->
        case parseURI s' of  -- requires absolute URI
-            -- We don't want to treat C:/ as a scheme:
-            Just u' | length (uriScheme u') > 2 -> openURL (show u')
             Just u' | uriScheme u' == "file:" ->
                  readLocalFile $ uriPathToPath (uriPath u')
+            -- We don't want to treat C:/ as a scheme:
+            Just u' | length (uriScheme u') > 2 -> openURL (show u')
             _ -> readLocalFile fp -- get from local file system
    where readLocalFile f = do
              resourcePath <- getResourcePath
