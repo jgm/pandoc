@@ -1397,6 +1397,12 @@ Metadata variables
         - Peter Abelard
         ...
 
+    Note that if you just want to set PDF or HTML metadata, without
+    including a title block in the document itself, you can
+    set the `title-meta`, `author-meta`, and `date-meta`
+    variables.  (By default these are set automatically, based
+    on `title`, `author`, and `date`.)
+
 `subtitle`
 :   document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, and docx
     documents
