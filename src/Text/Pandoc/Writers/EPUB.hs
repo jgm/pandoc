@@ -793,13 +793,8 @@ pandocToEPUB version opts doc = do
                                    [("id","toc")]) $
                     [ unode "h1" ! [("id","toc-title")] $ tocTitle
                     , unode "ol" ! [("class","toc")] $ tocBlocks ]]
-  let landmarks = if epub3
-                     then [RawBlock (Format "html") $ ppElement $
-                            unode "nav" ! [("epub:type","landmarks")
-                                          ,("id","landmarks")
-                                          ,("hidden","hidden")] $
-                            [ unode "ol" $
-                              [ unode "li"
+  let landmarkItems = if epub3
+                         then [ unode "li"
                                 [ unode "a" ! [("href", "text/cover.xhtml")
                                               ,("epub:type", "cover")] $
                                   "Cover"] |
@@ -811,9 +806,15 @@ pandocToEPUB version opts doc = do
                                     "Table of contents"
                                 ] | writerTableOfContents opts
                               ]
-                            ]
+                         else []
+  let landmarks = if null landmarkItems
+                     then []
+                     else [RawBlock (Format "html") $ ppElement $
+                            unode "nav" ! [("epub:type","landmarks")
+                                          ,("id","landmarks")
+                                          ,("hidden","hidden")] $
+                            [ unode "ol" landmarkItems ]
                           ]
-                     else []
   navData <- lift $ writeHtml opts'{ writerVariables = ("navpage","true"):
                      cssvars False ++ vars }
             (Pandoc (setMeta "title"
