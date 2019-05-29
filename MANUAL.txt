@@ -1591,6 +1591,9 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
     and [`report`]; the [KOMA-Script] equivalents, `scrartcl`, `scrbook`,
     and `scrreprt`, which default to smaller margins; or [`memoir`]
 
+`draft`
+:   adds draft watermark to all pages
+
 `geometry`
 :   option for [`geometry`] package, e.g. `margin=1in`;
     repeat for multiple options:

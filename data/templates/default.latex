@@ -390,6 +390,9 @@ $if(logo)$
 \logo{\includegraphics{$logo$}}
 $endif$
 $endif$
+$if(draft)$
+\usepackage{draftwatermark}
+$endif$
 
 \begin{document}
 $if(has-frontmatter)$
