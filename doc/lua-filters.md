@@ -1375,11 +1375,30 @@ Comparisons are performed element-wise, i.e.
 `must_be_at_least(actual, expected [, error_message])`
 
 Raise an error message if the actual version is older than the
-expected version.
+expected version; does nothing if actual is equal to or newer
+than the expected version.
+
+Parameters:
+
+`actual`
+:   actual version specifier ([Version](#type-ref-Version))
+
+`expected`
+:   minimum expected version ([Version](#type-ref-Version))
+
+`error_message`
+:   optional error message template. The string is used as format
+    string, with the expected and actual versions as arguments.
+    Defaults to `"expected version %s or newer, got %s"`.
 
 Usage:
 
-    PANDOC_VERSION:must_be_at_least('2.7.3')
+    PANDOC_VERSION:must_be_at_least '2.7.3'
+    PANDOC_API_VERSION:must_be_at_least(
+      '1.17.4',
+      'pandoc-types is too old: expected version %s, got %s'
+    )
+
 
 [Block]: #type-ref-Block
 [List]: #module-pandoc.list
@@ -2759,3 +2778,20 @@ Returns:
 # Module pandoc.types
 
 Constructors for types which are not part of the pandoc AST.
+
+### Version {#pandoc.types.Version}
+
+`Version (version_specifier)`
+
+Creates a Version object.
+
+Parameters:
+
+`version`:
+:   Version specifier: this can be a version string like
+    `'2.7.3'`, a list of integers like `{2, 7, 3}`, a single
+    integer, or a [Version](#type-ref-Version).
+
+Returns:
+
+-   A new [Version](#type-ref-Version) object.
