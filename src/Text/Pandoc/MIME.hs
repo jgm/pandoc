@@ -11,12 +11,13 @@
 Mime type lookup for ODT writer.
 -}
 module Text.Pandoc.MIME ( MimeType, getMimeType, getMimeTypeDef,
-                          extensionFromMimeType )where
+                          extensionFromMimeType, mediaCategory ) where
 import Prelude
 import Data.Char (toLower)
 import Data.List (isPrefixOf, isSuffixOf)
+import Data.List.Split (splitOn)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, listToMaybe)
 import System.FilePath
 
 type MimeType = String
@@ -42,15 +43,25 @@ extensionFromMimeType mimetype =
   M.lookup (takeWhile (/=';') mimetype) reverseMimeTypes
   -- note:  we just look up the basic mime type, dropping the content-encoding etc.
 
+-- | Determine general media category for file path, e.g.
+--
+-- prop> mediaCategory "foo.jpg" = Just "image"
+mediaCategory :: FilePath -> Maybe String
+mediaCategory fp = getMimeType fp >>= listToMaybe . splitOn "/"
+
 reverseMimeTypes :: M.Map MimeType String
 reverseMimeTypes = M.fromList $ map (\(k,v) -> (v,k)) mimeTypesList
 
 mimeTypes :: M.Map String MimeType
 mimeTypes = M.fromList mimeTypesList
 
+-- | Collection of common mime types.
+-- Except for first entry, list borrowed from
+-- <https://github.com/Happstack/happstack-server/blob/master/src/Happstack/Server/FileServe/BuildingBlocks.hs happstack-server>
 mimeTypesList :: [(String, MimeType)]
-mimeTypesList = -- List borrowed from happstack-server.
-           [("gz","application/x-gzip")
+mimeTypesList =
+           [("cpt","image/x-corelphotopaint")
+           ,("gz","application/x-gzip")
            ,("cabal","application/x-cabal")
            ,("%","application/x-trash")
            ,("323","text/h323")
