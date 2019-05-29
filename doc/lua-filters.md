@@ -151,21 +151,21 @@ variables.
 :   Table of the options which were provided to the parser.
 
 `PANDOC_VERSION`
-:   Contains the pandoc version as a numerically indexed table,
-    most significant number first. E.g., for pandoc 2.1.1, the
-    value of the variable is a table `{2, 1, 1}`. Use
-    `table.concat(PANDOC_VERSION, '.')` to produce a version
-    string. This variable is also set in custom writers.
+:   Contains the pandoc version as a [Version object] which
+    behaves like a numerically indexed table, most significant
+    number first. E.g., for pandoc 2.7.3, the value of the
+    variable is equivalent to a table `{2, 7, 3}`. Use
+    `tostring(PANDOC_VERSION)` to produce a version string. This
+    variable is also set in custom writers.
 
 `PANDOC_API_VERSION`
 :   Contains the version of the pandoc-types API against which
     pandoc was compiled. It is given as a numerically indexed
     table, most significant number first. E.g., if pandoc was
     compiled against pandoc-types 1.17.3, then the value of the
-    variable will be a table `{1, 17, 3}`. Use
-    `table.concat(PANDOC_API_VERSION, '.')` to produce a version
-    string from this table. This variable is also set in custom
-    writers.
+    variable will behave like the table `{1, 17, 3}`. Use
+    `tostring(PANDOC_API_VERSION)` to produce a version string.
+    This variable is also set in custom writers.
 
 `PANDOC_SCRIPT_FILE`
 :   The name used to involve the filter. This value can be used
@@ -177,6 +177,8 @@ variables.
     pandoc to collect and pass information. The value of this
     variable is of type [CommonState](#type-ref-CommonState) and
     is read-only.
+
+[Version object]: #type-ref-Version
 
 # Pandoc Module
 
@@ -1352,6 +1354,32 @@ available to readers and writers.
 
 A pandoc log message. Object have no fields, but can be converted
 to a string via `tostring`.
+
+## Version {#type-ref-Version}
+
+A version object. This represents a software version like
+"2.7.3". The object behaves like a numerically indexed table,
+i.e., if `version` represents the version `2.7.3`, then
+
+    version[1] == 2
+    version[2] == 7
+    version[3] == 3
+    #version == 3   -- length
+
+Comparisons are performed element-wise, i.e.
+
+    Version '1.12' > Version '1.9'
+
+### `must_be_at_least`
+
+`must_be_at_least(actual, expected [, error_message])`
+
+Raise an error message if the actual version is older than the
+expected version.
+
+Usage:
+
+    PANDOC_VERSION:must_be_at_least('2.7.3')
 
 [Block]: #type-ref-Block
 [List]: #module-pandoc.list
@@ -2726,3 +2754,8 @@ Parameters:
 Returns:
 
 -   The result(s) of the call to `callback`
+
+
+# Module pandoc.types
+
+Constructors for types which are not part of the pandoc AST.

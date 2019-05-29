@@ -15,7 +15,6 @@ module Tests.Lua ( runLuaTest, tests ) where
 
 import Prelude
 import Control.Monad (when)
-import Data.Version (Version (versionBranch))
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, localOption)
 import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
@@ -34,6 +33,7 @@ import Text.Pandoc.Options (def)
 import Text.Pandoc.Shared (pandocVersion)
 
 import qualified Foreign.Lua as Lua
+import qualified Data.ByteString.Char8 as BS
 
 tests :: [TestTree]
 tests = map (localOption (QuickCheckTests 20))
@@ -135,17 +135,14 @@ tests = map (localOption (QuickCheckTests 20))
       (doc $ para (str $ "lua" </> "script-name.lua"))
 
   , testCase "Pandoc version is set" . runLuaTest $ do
-      Lua.getglobal' "table.concat"
       Lua.getglobal "PANDOC_VERSION"
-      Lua.push ("." :: String) -- separator
-      Lua.call 2 1
-      Lua.liftIO . assertEqual "pandoc version is wrong" pandocVersion
-        =<< Lua.peek Lua.stackTop
+      Lua.liftIO .
+        assertEqual "pandoc version is wrong" (BS.pack pandocVersion)
+        =<< Lua.tostring' Lua.stackTop
 
   , testCase "Pandoc types version is set" . runLuaTest $ do
-      let versionNums = versionBranch pandocTypesVersion
       Lua.getglobal "PANDOC_API_VERSION"
-      Lua.liftIO . assertEqual "pandoc-types version is wrong" versionNums
+      Lua.liftIO . assertEqual "pandoc-types version is wrong" pandocTypesVersion
         =<< Lua.peek Lua.stackTop
 
   , testCase "Allow singleton inline in constructors" . runLuaTest $ do
