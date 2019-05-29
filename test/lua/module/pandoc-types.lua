@@ -94,7 +94,7 @@ return {
         local expected = Version {2, 9}
         assert.error_matches(
           function () actual:must_be_at_least(expected) end,
-          'version too old: expected version 2.9 or newer, got 2.8'
+          'expected version 2.9 or newer, got 2.8'
         )
       end),
       test('does nothing if expected version is older than actual', function ()

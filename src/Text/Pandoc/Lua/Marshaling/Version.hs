@@ -134,7 +134,7 @@ __tostring v = return (showVersion v)
 -- | Default error message when a version is too old. This message is
 -- formatted in Lua with the expected and actual versions as arguments.
 versionTooOldMessage :: String
-versionTooOldMessage = "version too old: expected version %s or newer, got %s"
+versionTooOldMessage = "expected version %s or newer, got %s"
 
 -- | Throw an error if this version is older than the given version.
 -- FIXME: This function currently requires the string library to be
