@@ -19,9 +19,14 @@ import Tests.Lua (runLuaTest)
 
 tests :: [TestTree]
 tests =
-  [ testPandocLua "pandoc" ("lua" </> "module" </> "pandoc.lua")
-  , testPandocLua "pandoc.types" ("lua" </> "module" </> "pandoc-types.lua")
-  , testPandocLua "pandoc.util" ("lua" </> "module" </> "pandoc-utils.lua")
+  [ testPandocLua "pandoc"
+                  ("lua" </> "module" </> "pandoc.lua")
+  , testPandocLua "pandoc.mediabag"
+                  ("lua" </> "module" </> "pandoc-mediabag.lua")
+  , testPandocLua "pandoc.types"
+                  ("lua" </> "module" </> "pandoc-types.lua")
+  , testPandocLua "pandoc.util"
+                  ("lua" </> "module" </> "pandoc-utils.lua")
   ]
 
 testPandocLua :: TestName -> FilePath -> TestTree

@@ -20,6 +20,7 @@ import Foreign.Lua (Lua, NumResults, Optional, liftIO)
 import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
                           runIOorExplode, setMediaBag)
 import Text.Pandoc.Lua.Marshaling ()
+import Text.Pandoc.Lua.Marshaling.MediaBag (pushIterator)
 import Text.Pandoc.Lua.Util (addFunction)
 import Text.Pandoc.MIME (MimeType)
 
@@ -33,7 +34,10 @@ import qualified Text.Pandoc.MediaBag as MB
 pushModule :: Lua NumResults
 pushModule = do
   Lua.newtable
+  addFunction "delete" delete
+  addFunction "empty" empty
   addFunction "insert" insertMediaFn
+  addFunction "items" items
   addFunction "lookup" lookupMediaFn
   addFunction "list" mediaDirectoryFn
   addFunction "fetch" fetch
@@ -58,6 +62,16 @@ setCommonState st = do
 modifyCommonState :: (CommonState -> CommonState) -> Lua ()
 modifyCommonState f = getCommonState >>= setCommonState . f
 
+-- | Delete a single item from the media bag.
+delete :: FilePath -> Lua NumResults
+delete fp = 0 <$ modifyCommonState
+  (\st -> st { stMediaBag = MB.deleteMedia fp (stMediaBag st) })
+
+-- | Delete all items from the media bag.
+empty :: Lua NumResults
+empty = 0 <$ modifyCommonState (\st -> st { stMediaBag = mempty })
+
+-- | Insert a new item into the media bag.
 insertMediaFn :: FilePath
               -> Optional MimeType
               -> BL.ByteString
@@ -66,15 +80,19 @@ insertMediaFn fp optionalMime contents = do
   modifyCommonState $ \st ->
     let mb = MB.insertMedia fp (Lua.fromOptional optionalMime) contents
                                (stMediaBag st)
-    in st { stMediaBag = mb}
+    in st { stMediaBag = mb }
   return 0
+
+-- | Returns iterator values to be used with a Lua @for@ loop.
+items :: Lua NumResults
+items = stMediaBag <$> getCommonState >>= pushIterator
 
 lookupMediaFn :: FilePath
               -> Lua NumResults
 lookupMediaFn fp = do
   res <- MB.lookupMedia fp . stMediaBag <$> getCommonState
   case res of
-    Nothing -> Lua.pushnil *> return 1
+    Nothing -> 1 <$ Lua.pushnil
     Just (mimeType, contents) -> do
       Lua.push mimeType
       Lua.push contents
