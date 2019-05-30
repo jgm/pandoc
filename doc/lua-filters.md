@@ -2490,9 +2490,9 @@ Usage:
     local fp = "media/hello.txt"
     local mt = "text/plain"
     local contents = "Hello, World!"
-    pandoc.mediabag(fp, mt, contents)
+    pandoc.mediabag.insert(fp, mt, contents)
 
-### iter {#mediabag-iter}
+### items {#mediabag-items}
 
 `items ()`
 
