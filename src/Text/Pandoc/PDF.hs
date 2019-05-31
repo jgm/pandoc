@@ -27,6 +27,8 @@ import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Text.Printf (printf)
+import Data.Char (ord, isAscii)
 import System.Directory
 import System.Environment
 import System.Exit (ExitCode (..))
@@ -243,7 +245,12 @@ missingCharacterWarnings :: Verbosity -> ByteString -> PandocIO ()
 missingCharacterWarnings verbosity log' = do
   let ls = BC.lines log'
   let isMissingCharacterWarning = BC.isPrefixOf "Missing character: "
-  let warnings = [ UTF8.toStringLazy (BC.drop 19 l)
+  let addCodePoint [] = []
+      addCodePoint (c:cs)
+        | isAscii c   = c : addCodePoint cs
+        | otherwise   = c : " (U+" ++ printf "%04X" (ord c) ++ ")" ++
+                            addCodePoint cs
+  let warnings = [ addCodePoint (UTF8.toStringLazy (BC.drop 19 l))
                  | l <- ls
                  , isMissingCharacterWarning l
                  ]
