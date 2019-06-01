@@ -53,6 +53,7 @@ data-files:
                  data/templates/default.latex
                  data/templates/default.context
                  data/templates/default.texinfo
+                 data/templates/default.jira
                  data/templates/default.man
                  data/templates/default.ms
                  data/templates/default.markdown
@@ -242,6 +243,7 @@ extra-source-files:
                  test/tables.docbook4
                  test/tables.docbook5
                  test/tables.jats
+                 test/tables.jira
                  test/tables.dokuwiki
                  test/tables.zimwiki
                  test/tables.icml
@@ -273,6 +275,7 @@ extra-source-files:
                  test/writer.docbook4
                  test/writer.docbook5
                  test/writer.jats
+                 test/writer.jira
                  test/writer.html4
                  test/writer.html5
                  test/writer.man
@@ -500,6 +503,7 @@ library
                    Text.Pandoc.Writers.HTML,
                    Text.Pandoc.Writers.Ipynb,
                    Text.Pandoc.Writers.ICML,
+                   Text.Pandoc.Writers.Jira,
                    Text.Pandoc.Writers.LaTeX,
                    Text.Pandoc.Writers.ConTeXt,
                    Text.Pandoc.Writers.OpenDocument,

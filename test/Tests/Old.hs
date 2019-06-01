@@ -96,6 +96,9 @@ tests pandocPath =
     , test' "reader" ["-r", "jats", "-w", "native", "-s"]
       "jats-reader.xml" "jats-reader.native"
     ]
+  , testGroup "jira"
+    [ testGroup "writer" $ writerTests' "jira"
+    ]
   , testGroup "native"
     [ testGroup "writer" $ writerTests' "native"
     , test' "reader" ["-r", "native", "-w", "native", "-s"]
