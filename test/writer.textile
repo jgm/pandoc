@@ -523,13 +523,13 @@ Ellipses...and...and....
 h1(#latex). LaTeX
 
 * 
-* <span class="math">2+2=4</math>
-* <span class="math">x \in y</math>
-* <span class="math">\alpha \wedge \omega</math>
-* <span class="math">223</math>
-* <span class="math">p</math>&#45;Tree
-* Here's some display math: <span class="math">\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</math>
-* Here's one that has a line break in it: <span class="math">\alpha + \omega \times x^2</math>.
+* <span class="math">2+2=4</span>
+* <span class="math">x \in y</span>
+* <span class="math">\alpha \wedge \omega</span>
+* <span class="math">223</span>
+* <span class="math">p</span>&#45;Tree
+* Here's some display math: <span class="math">\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}</span>
+* Here's one that has a line break in it: <span class="math">\alpha + \omega \times x^2</span>.
 
 These shouldn't be math:
 

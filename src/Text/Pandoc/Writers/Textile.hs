@@ -428,7 +428,7 @@ inlineToTextile _ (Code _ str) =
 inlineToTextile _ (Str str) = return $ escapeStringForTextile str
 
 inlineToTextile _ (Math _ str) =
-  return $ "<span class=\"math\">" ++ escapeStringForXML str ++ "</math>"
+  return $ "<span class=\"math\">" ++ escapeStringForXML str ++ "</span>"
 
 inlineToTextile opts il@(RawInline f str)
   | f == Format "html" || f == Format "textile" = return str
