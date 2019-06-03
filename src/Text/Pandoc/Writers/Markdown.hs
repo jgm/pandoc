@@ -783,7 +783,7 @@ definitionListItemToMarkdown :: PandocMonad m
                              -> ([Inline],[[Block]])
                              -> MD m Doc
 definitionListItemToMarkdown opts (label, defs) = do
-  labelText <- inlineListToMarkdown opts label
+  labelText <- blockToMarkdown opts (Plain label)
   defs' <- mapM (mapM (blockToMarkdown opts)) defs
   if isEnabled Ext_definition_lists opts
      then do
@@ -804,10 +804,10 @@ definitionListItemToMarkdown opts (label, defs) = do
             let isTight = case defs of
                                ((Plain _ : _): _) -> True
                                _                  -> False
-            return $ blankline <> nowrap labelText <>
-                     (if isTight then cr else blankline) <> contents <> blankline
+            return $ blankline <> nowrap labelText $$
+                     (if isTight then empty else blankline) <> contents <> blankline
      else do
-       return $ nowrap labelText <> text "  " <> cr <>
+       return $ nowrap (chomp labelText <> text "  " <> cr) <>
                 vsep (map vsep defs') <> blankline
 
 -- | Convert list of Pandoc block elements to markdown.
