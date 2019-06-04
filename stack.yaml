@@ -17,8 +17,8 @@ extra-deps:
 - hslua-1.0.3.1
 - hslua-module-system-0.2.0
 - tasty-lua-0.2.0
-- skylighting-core-0.8
-- skylighting-0.8
+- skylighting-core-0.8.1
+- skylighting-0.8.1
 ghc-options:
    "$locals": -Wall -fno-warn-unused-do-bind -Wincomplete-record-updates -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances -Wincomplete-uni-patterns -Widentities -Wcpp-undef -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-13.17
