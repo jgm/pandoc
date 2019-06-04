@@ -252,13 +252,17 @@ resolveDependentRunStyle rPr
                            , isStrike = case isStrike rPr of
                                Just bool -> Just bool
                                Nothing   -> isStrike rPr'
+                           , isRTL = case isRTL rPr of
+                               Just bool -> Just bool
+                               Nothing   -> isRTL rPr'
                            , rVertAlign = case rVertAlign rPr of
                                Just valign -> Just valign
                                Nothing     -> rVertAlign rPr'
                            , rUnderline = case rUnderline rPr of
                                Just ulstyle -> Just ulstyle
                                Nothing      -> rUnderline rPr'
-                           , rStyle = rStyle rPr }
+                           , rStyle = rStyle rPr
+                           }
   | otherwise = return rPr
 
 runStyleToTransform :: PandocMonad m => RunStyle -> DocxContext m (Inlines -> Inlines)
@@ -286,6 +290,12 @@ runStyleToTransform rPr
   | Just True <- isStrike rPr = do
       transform <- runStyleToTransform rPr{isStrike = Nothing}
       return $ strikeout . transform
+  | Just True <- isRTL rPr = do
+      transform <- runStyleToTransform rPr{isRTL = Nothing}
+      return $ spanWith ("",[],[("dir","rtl")]) . transform
+  | Just False <- isRTL rPr = do
+      transform <- runStyleToTransform rPr{isRTL = Nothing}
+      return $ spanWith ("",[],[("dir","ltr")]) . transform
   | Just SupScrpt <- rVertAlign rPr = do
       transform <- runStyleToTransform rPr{rVertAlign = Nothing}
       return $ superscript . transform

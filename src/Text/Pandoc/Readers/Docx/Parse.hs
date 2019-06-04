@@ -289,9 +289,11 @@ data RunStyle = RunStyle { isBold      :: Maybe Bool
                          , isItalic    :: Maybe Bool
                          , isSmallCaps :: Maybe Bool
                          , isStrike    :: Maybe Bool
+                         , isRTL       :: Maybe Bool
                          , rVertAlign  :: Maybe VertAlign
                          , rUnderline  :: Maybe String
-                         , rStyle      :: Maybe CharStyle}
+                         , rStyle      :: Maybe CharStyle
+                         }
                 deriving Show
 
 data ParStyleData = ParStyleData { headingLev   :: Maybe (String, Int)
@@ -305,9 +307,11 @@ defaultRunStyle = RunStyle { isBold = Nothing
                            , isItalic = Nothing
                            , isSmallCaps = Nothing
                            , isStrike = Nothing
+                           , isRTL = Nothing
                            , rVertAlign = Nothing
                            , rUnderline = Nothing
-                           , rStyle = Nothing}
+                           , rStyle = Nothing
+                           }
 
 type Target = String
 type Anchor = String
@@ -1106,6 +1110,7 @@ elemToRunStyle ns element parentStyle
                    checkOnOff ns rPr (elemName ns "w" "iCs")
       , isSmallCaps = checkOnOff ns rPr (elemName ns "w" "smallCaps")
       , isStrike = checkOnOff ns rPr (elemName ns "w" "strike")
+      , isRTL = checkOnOff ns rPr (elemName ns "w" "rtl")
       , rVertAlign =
            findChildByName ns "w" "vertAlign" rPr >>=
            findAttrByName ns "w" "val" >>=
@@ -1117,7 +1122,7 @@ elemToRunStyle ns element parentStyle
           findChildByName ns "w" "u" rPr >>=
           findAttrByName ns "w" "val"
       , rStyle = parentStyle
-        }
+      }
 elemToRunStyle _ _ _ = defaultRunStyle
 
 getHeaderLevel :: NameSpaces -> Element -> Maybe (String,Int)
