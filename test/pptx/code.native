@@ -1,0 +1,21 @@
+[Header 1 ("header-with-inline-code",[],[]) [Str "Header",Space,Str "with",Space,Code ("",[],[]) "inline code"]
+,CodeBlock ("",[],[]) "Code at level 0"
+,BulletList
+ [[Para [Str "Bullet",Space,Str "item",Space,Str "with",Space,Code ("",[],[]) "inline code"]
+  ,CodeBlock ("",[],[]) "Code block at level 1"
+  ,BulletList
+   [[Para [Str "with",Space,Code ("",[],[]) "nested"]
+    ,CodeBlock ("",[],[]) "lvl2\nlvl2\nlvl2"
+    ,Header 2 ("second-heading-level-with-code",[],[]) [Str "Second",Space,Str "heading",Space,Str "level",Space,Str "with",Space,Code ("",[],[]) "code"]]]]]
+,Header 1 ("syntax-highlighting",[],[]) [Str "Syntax",Space,Str "highlighting"]
+,CodeBlock ("",["haskell"],[]) "id :: a -> a\nid x = x"
+,BulletList
+ [[Para [Str "Nested"]
+  ,CodeBlock ("",["haskell"],[]) "g :: Int -> Int\ng x = x * 3"]]
+,Header 1 ("two-column-slide",[],[]) [Str "Two",Space,Str "column",Space,Str "slide"]
+,Div ("",["columns"],[])
+ [Div ("",["column"],[("width","50%")])
+  [BulletList
+   [[Plain [Str "A",Space,Str "total",Space,Str "alternative",Space,Str "for",Space,Code ("",[],[]) "head"]]]]
+ ,Div ("",["column"],[("width","50%")])
+  [CodeBlock ("",[],[]) "safeHead :: [a] -> Maybe a\nsafeHead [] = Nothing\nsafeHead (x:_) = Just x"]]]

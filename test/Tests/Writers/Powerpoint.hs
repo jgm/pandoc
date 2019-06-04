@@ -115,4 +115,12 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          def
                          "pptx/document-properties-short-desc.native"
                          "pptx/document-properties-short-desc.pptx"
+                       , pptxTests "inline code and code blocks"
+                         def
+                         "pptx/code.native"
+                         "pptx/code.pptx"
+                       , pptxTests "inline code and code blocks, custom formatting"
+                         def { writerVariables = [("monofont", "Consolas")] }
+                         "pptx/code.native"
+                         "pptx/code-custom.pptx"
                        ]
