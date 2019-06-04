@@ -4944,17 +4944,24 @@ abstract                          frontmatter
 acknowledgments                   frontmatter
 copyright-page                    frontmatter
 dedication                        frontmatter
+credits                           frontmatter
+keywords                          frontmatter
+imprint                           frontmatter
+contributors                      frontmatter
+other-credits                     frontmatter
+errata                            frontmatter
+revision-history                  frontmatter
+titlepage                         frontmatter
+halftitlepage                     frontmatter
+seriespage                        frontmatter
 foreword                          frontmatter
-halftitle,                        frontmatter
-introduction                      frontmatter
 preface                           frontmatter
 seriespage                        frontmatter
 titlepage                         frontmatter
-afterword                         backmatter
 appendix                          backmatter
 colophon                          backmatter
-conclusion                        backmatter
-epigraph                          backmatter
+bibliography                      backmatter
+index                             backmatter
 
 [epub-type]: http://www.idpf.org/epub/31/spec/epub-contentdocs.html#sec-epub-type-attribute
 

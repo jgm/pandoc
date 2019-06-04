@@ -584,11 +584,14 @@ pandocToEPUB version opts doc = do
                      _                   -> (Pandoc nullMeta bs, "bodymatter")
                frontMatterTypes = ["prologue", "abstract", "acknowledgments",
                                    "copyright-page", "dedication",
-                                   "foreword", "halftitle",
-                                   "introduction", "preface",
+                                   "credits", "keywords", "imprint",
+                                   "contributors", "other-credits",
+                                   "errata", "revision-history",
+                                   "titlepage", "halftitlepage", "seriespage",
+                                   "foreword", "preface",
                                    "seriespage", "titlepage"]
-               backMatterTypes = ["afterword", "appendix", "colophon",
-                                  "conclusion", "epigraph"]
+               backMatterTypes = ["appendix", "colophon", "bibliography",
+                                  "index"]
 
   chapterEntries <- zipWithM chapToEntry [1..] chapters
 
