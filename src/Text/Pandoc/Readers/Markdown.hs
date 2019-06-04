@@ -589,10 +589,13 @@ setextHeader = try $ do
   return $ B.headerWith attr' level <$> text
 
 registerImplicitHeader :: PandocMonad m => String -> Attr -> MarkdownParser m ()
-registerImplicitHeader raw attr@(ident, _, _) = do
-  let key = toKey $ "[" ++ raw ++ "]"
-  updateState (\s -> s { stateHeaderKeys =
-                         M.insert key (('#':ident,""), attr) (stateHeaderKeys s) })
+registerImplicitHeader raw attr@(ident, _, _)
+  | null raw  = return ()
+  | otherwise = do
+      let key = toKey $ "[" ++ raw ++ "]"
+      updateState $ \s ->
+        s { stateHeaderKeys = M.insert key (('#':ident,""), attr)
+                                     (stateHeaderKeys s) }
 
 --
 -- hrule block
