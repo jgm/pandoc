@@ -1048,7 +1048,7 @@ Hyperlink: alt text (list of inlines), target
 ### Math {#type-ref-Math}
 TeX math (literal)
 
-`mathype`
+`mathtype`
 :   specifier determining whether the math content should be
     shown inline (`InlineMath`) or on a separate line
     (`DisplayMath`) (string)
