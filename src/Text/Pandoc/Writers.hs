@@ -41,6 +41,7 @@ module Text.Pandoc.Writers
     , writeICML
     , writeJATS
     , writeJSON
+    , writeJira
     , writeLaTeX
     , writeMan
     , writeMarkdown
@@ -91,6 +92,7 @@ import Text.Pandoc.Writers.Haddock
 import Text.Pandoc.Writers.HTML
 import Text.Pandoc.Writers.ICML
 import Text.Pandoc.Writers.JATS
+import Text.Pandoc.Writers.Jira
 import Text.Pandoc.Writers.LaTeX
 import Text.Pandoc.Writers.Man
 import Text.Pandoc.Writers.Markdown
@@ -141,6 +143,7 @@ writers = [
   ,("docbook4"     , TextWriter writeDocbook4)
   ,("docbook5"     , TextWriter writeDocbook5)
   ,("jats"         , TextWriter writeJATS)
+  ,("jira"         , TextWriter writeJira)
   ,("opml"         , TextWriter writeOPML)
   ,("opendocument" , TextWriter writeOpenDocument)
   ,("latex"        , TextWriter writeLaTeX)
