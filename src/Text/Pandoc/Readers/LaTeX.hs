@@ -155,10 +155,15 @@ rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => ParserT String s m String
 rawLaTeXInline = do
   lookAhead (try (char '\\' >> letter))
-  snd <$> (  rawLaTeXParser True
+  raw <- snd <$>
+          (   rawLaTeXParser True
               (mempty <$ (controlSeq "input" >> skipMany opt >> braced))
               inlines
-        <|> rawLaTeXParser True (inlineEnvironment <|> inlineCommand') inlines)
+          <|> rawLaTeXParser True (inlineEnvironment <|> inlineCommand')
+              inlines
+          )
+  finalbraces <- mconcat <$> many (try (string "{}")) -- see #5439
+  return $ raw <> finalbraces
 
 inlineCommand :: PandocMonad m => ParserT String ParserState m Inlines
 inlineCommand = do
