@@ -300,6 +300,7 @@ General options {.options}
     - `icml` ([InDesign ICML])
     - `ipynb` ([Jupyter notebook])
     - `jats` ([JATS] XML)
+    - `jira` ([Jira] wiki markup)
     - `json` (JSON version of native AST)
     - `latex` ([LaTeX])
     - `man` ([roff man])
@@ -442,6 +443,7 @@ General options {.options}
 [Rich Text Format]: http://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook]: http://docbook.org
 [JATS]: https://jats.nlm.nih.gov
+[Jira]: https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all
 [txt2tags]: http://txt2tags.org
 [EPUB]: http://idpf.org/epub
 [OPML]: http://dev.opml.org/spec2.html
@@ -2429,7 +2431,7 @@ Note that although this syntax allows assignment of classes and key/value
 attributes, writers generally don't use all of this information.  Identifiers,
 classes, and key/value attributes are used in HTML and HTML-based formats such
 as EPUB and slidy.  Identifiers are used for labels and link anchors in the
-LaTeX, ConTeXt, Textile, and AsciiDoc writers.
+LaTeX, ConTeXt, Textile, Jira markup, and AsciiDoc writers.
 
 Headings with the class `unnumbered` will not be numbered, even if
 `--number-sections` is specified.  A single hyphen (`-`) in an attribute
@@ -3586,7 +3588,7 @@ AsciiDoc
 Texinfo
   ~ It will be rendered inside a `@math` command.
 
-roff man
+roff man, Jira markup
   ~ It will be rendered verbatim without `$`'s.
 
 MediaWiki, DokuWiki
