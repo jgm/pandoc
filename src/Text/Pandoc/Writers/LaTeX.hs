@@ -1148,14 +1148,22 @@ inlineToLaTeX (Cite cits lst) = do
      Biblatex -> citationsToBiblatex cits
      _        -> inlineListToLaTeX lst
 
-inlineToLaTeX (Code (_,classes,_) str) = do
+inlineToLaTeX (Code (_,classes,kvs) str) = do
   opts <- gets stOptions
   inHeading <- gets stInHeading
   inItem <- gets stInItem
   let listingsCode = do
-        let listingsopt = case getListingsLanguage classes of
-                               Just l  -> "[language=" ++ mbBraced l ++ "]"
-                               Nothing -> ""
+        let listingsopts = (case getListingsLanguage classes of
+                                Just l  -> (("language", mbBraced l):)
+                                Nothing -> id) $
+                           [(k,v) | (k,v) <- kvs
+                                  , k `notElem` ["exports","tangle","results"]]
+        let listingsopt = if null listingsopts
+                             then ""
+                             else "[" ++
+                                  intercalate ", "
+                                  (map (\(k,v) -> k ++ "=" ++ v)
+                                   listingsopts) ++ "]"
         inNote <- gets stInNote
         when inNote $ modify $ \s -> s{ stVerbInNote = True }
         let chr = case "!\"'()*,-./:;?@" \\ str of
