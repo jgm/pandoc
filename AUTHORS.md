@@ -45,6 +45,7 @@
 - Craig S. Bosma
 - Damien Clochard
 - Daniel Bergey
+- Daniel Maslowski
 - Daniel T. Staal
 - Daniele D'Orazio
 - David A Roberts
@@ -57,6 +58,7 @@
 - Emily Eisenberg
 - Eric Kow
 - Eric Seidel
+- Eric Schrijver
 - Étienne Bersac
 - Felix Yan
 - Florian Eitel
@@ -129,6 +131,7 @@
 - Mathias Schenner
 - Mathias Walter
 - Mathieu Duponchelle
+- Matthew Doty
 - Matthew Eddey
 - Matthew Pickering
 - Matthias C. M. Troffaes
@@ -177,6 +180,7 @@
 - Sergey Astanin
 - Shahbaz Youssefi
 - Shaun Attfield
+- Shim Myeongseob
 - Sidarth Kapur
 - Sidharth Kapur
 - Simon Hengel
@@ -201,14 +205,17 @@
 - Wandmalfarbe
 - Waldir Pimenta
 - Wikiwide
+- Winnie Hellmann
 - Xavier Olive
 - Yan Pashkovsky
 - Yoan Blanc
 - Yuchen Pei
 - bucklereed
 - bumper314
+- chinapedia
 - csforste
 - d-dorazio
+- ebiim
 - iandol
 - infinity0x
 - kaizshang91
