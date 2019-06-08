@@ -63,8 +63,8 @@
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="Table">Table <text:sequence text:ref-name="refTable0" text:name="Table" text:formula="ooow:Table+1" style:num-format="1">1</text:sequence>: Demonstration
-of simple table syntax.</text:p>
+<text:p text:style-name="TableCaption">Demonstration of simple table
+syntax.</text:p>
 <text:p text:style-name="First_20_paragraph">Simple table without
 caption:</text:p>
 <table:table table:name="Table2" table:style-name="Table2">
@@ -197,8 +197,8 @@ spaces:</text:p>
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="Table">Table <text:sequence text:ref-name="refTable1" text:name="Table" text:formula="ooow:Table+1" style:num-format="1">2</text:sequence>: Demonstration
-of simple table syntax.</text:p>
+<text:p text:style-name="TableCaption">Demonstration of simple table
+syntax.</text:p>
 <text:p text:style-name="First_20_paragraph">Multiline table with
 caption:</text:p>
 <table:table table:name="Table4" table:style-name="Table4">
@@ -253,8 +253,8 @@ caption:</text:p>
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="Table">Table <text:sequence text:ref-name="refTable2" text:name="Table" text:formula="ooow:Table+1" style:num-format="1">3</text:sequence>: Here’s
-the caption. It may span multiple lines.</text:p>
+<text:p text:style-name="TableCaption">Here’s the caption. It may span
+multiple lines.</text:p>
 <text:p text:style-name="First_20_paragraph">Multiline table without
 caption:</text:p>
 <table:table table:name="Table5" table:style-name="Table5">

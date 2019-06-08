@@ -393,7 +393,10 @@ blockToOpenDocument o bs
         mapM_ addParaStyle . newPara $ paraHStyles ++ paraStyles
         captionDoc <- if null c
                       then return empty
-                      else inlinesToOpenDocument o c >>= numberedTableCaption
+                      else inlinesToOpenDocument o c >>=
+                             if True -- temporary: see #5474
+                                then unNumberedCaption "TableCaption"
+                                else numberedTableCaption
         th <- if all null h
                  then return empty
                  else colHeadsToOpenDocument o (map fst paraHStyles) h
@@ -405,7 +408,10 @@ blockToOpenDocument o bs
         withParagraphStyle o "Figure" [Para [Image attr caption (source,title)]]
                                   | otherwise    = do
         imageDoc <- withParagraphStyle o "FigureWithCaption" [Para [Image attr caption (source,title)]]
-        captionDoc <- inlinesToOpenDocument o caption >>= numberedFigureCaption
+        captionDoc <- inlinesToOpenDocument o caption >>=
+                         if True -- temporary: see #5474
+                            then unNumberedCaption "FigureCaption"
+                            else numberedFigureCaption
         return $ imageDoc $$ captionDoc
 
 
@@ -433,6 +439,9 @@ numberedCaption style term name num caption =
                                            ("style:num-format", "1") ] $ text $ show num
         c = text ": "
     in inParagraphTagsWithStyle style $ hcat [ t, text " ", s, c, caption ]
+
+unNumberedCaption :: Monad m => String -> Doc -> OD m Doc
+unNumberedCaption style caption = return $ inParagraphTagsWithStyle style caption
 
 colHeadsToOpenDocument :: PandocMonad m
                        => WriterOptions -> [String] -> [[Block]]
