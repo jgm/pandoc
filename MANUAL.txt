@@ -753,6 +753,12 @@ General writer options {.options}
     unless `-s/--standalone` is used, and it has no effect
     on `man`, `docbook4`, `docbook5`, or `jats` output.
 
+    Note that if you are producing a PDF via `ms`, the table
+    of contents will appear at the beginning of the
+    document, before the title.  If you would prefer it to
+    be at the end of the document, use the option
+    `--pdf-engine-opt=--no-toc-relocation`.
+
 `--toc-depth=`*NUMBER*
 
 :   Specify the number of section levels to include in the table

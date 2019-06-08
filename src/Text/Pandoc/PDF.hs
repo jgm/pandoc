@@ -77,8 +77,8 @@ makePDF program pdfargs writer opts doc =
       liftIO $ html2pdf verbosity program pdfargs source
     "pdfroff" -> do
       source <- writer opts doc
-      let args   = ["-ms", "-mpdfmark", "-e", "-t", "-k", "-KUTF-8", "-i",
-                    "--no-toc-relocation"] ++ pdfargs
+      let args   = ["-ms", "-mpdfmark", "-mspdf",
+                    "-e", "-t", "-k", "-KUTF-8", "-i"] ++ pdfargs
       verbosity <- getVerbosity
       liftIO $ generic2pdf verbosity program args source
     baseProg -> do
