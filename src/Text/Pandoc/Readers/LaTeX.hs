@@ -530,10 +530,16 @@ verbTok stopchar = do
                   : totoks (incSourceColumn pos (i + 1)) (T.drop 1 t2) ++ inp
          return $ Tok pos toktype t1
 
+listingsLanguage :: [(String, String)] -> Maybe String
+listingsLanguage opts =
+  case lookup "language" opts of
+    Nothing  -> Nothing
+    Just l   -> fromListingsLanguage l `mplus` Just l
+
 dolstinline :: PandocMonad m => LP m Inlines
 dolstinline = do
   options <- option [] keyvals
-  let classes = maybeToList $ lookup "language" options >>= fromListingsLanguage
+  let classes = maybeToList $ listingsLanguage options
   doinlinecode classes
 
 domintinline :: PandocMonad m => LP m Inlines
@@ -2041,8 +2047,7 @@ parseListingsOptions options =
                   else k, v) | (k,v) <- options ]
       classes = [ "numberLines" |
                   lookup "numbers" options == Just "left" ]
-             ++ maybeToList (lookup "language" options
-                     >>= fromListingsLanguage)
+             ++ maybeToList (listingsLanguage options)
   in  (fromMaybe "" (lookup "label" options), classes, kvs)
 
 inputListing :: PandocMonad m => LP m Blocks
@@ -2058,15 +2063,16 @@ inputListing = do
                         report $ CouldNotLoadIncludeFile f pos
                         return []
   let (ident,classes,kvs) = parseListingsOptions options
-  let language = case lookup "language" options >>= fromListingsLanguage of
-                      Just l -> [l]
-                      Nothing -> take 1 $ languagesByExtension (takeExtension f)
+  let classes' =
+        (case listingsLanguage options of
+           Nothing -> (take 1 (languagesByExtension (takeExtension f)) ++)
+           Just _  -> id) classes
   let firstline = fromMaybe 1 $ lookup "firstline" options >>= safeRead
   let lastline = fromMaybe (length codeLines) $
                        lookup "lastline" options >>= safeRead
   let codeContents = intercalate "\n" $ take (1 + lastline - firstline) $
                        drop (firstline - 1) codeLines
-  return $ codeBlockWith (ident,ordNub (classes ++ language),kvs) codeContents
+  return $ codeBlockWith (ident,classes',kvs) codeContents
 
 -- lists
 
