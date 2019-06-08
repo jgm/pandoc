@@ -1,66 +1,22 @@
 pandoc (2.7.3)
 
-  PROVISIONAL - NEEDS EDITING
+  * Add `jira` (Atlassian's Jira wiki markup) as output format (#2497,
+    Albert Krewinkel).
 
-  * Roll back automatic figure/table numbering in ODT/OpenDocument
-    (#5474).  This was added in pandoc 2.7.2, but it makes it impossible
-    to use pandoc-crossref. So this has been rolled back for now,
-    until we find a good solution to make this behavior optional
-    (or a creative way to let pandoc-crossref and this feature
-    to coexist).
+  * Add `tex_math_dollars` to `multimarkdownExtensions` (#5512).
+    This form is now supported in multimarkdown,
+    in addition to `tex_math_double_backslash`.
 
-  * LaTeX reader: pass through unknown listings language as class (#5540).
-    Previously if the language was not in the list of languages supported
-    by listings, it would not be added as a class, so highlighting
-    would not be triggered.
+  * Fix `--self-contained` so it works when output format has extensions.
+    Previously if you used `--self-contained` with `html-smart` or
+    `html+smart`, it wouldn't work.
 
-  * PDF via ms/pdfroff: make TOC appear at beginning and in PDF bookmarks
-    (#5553).  Previously the TOC appeared at the end of the document, and
-    was not bookmarked.  To keep it at the end, add
-    `--pdf-engine-opt=--no-toc-relocation` to your command line.
-
-  * LaTeX writer: Include inline code attributes with `--listings` (#5420).
-
-  * Add jira writer (#2497, Albert Krewinkel).  This adds support for Atlassian's
-    jira markup.
-
-  * Fix typo in lua documentation (#5552).
-
-  * Include trailing `{}`s in raw latex commands (#5439).
-    Change is in `rawLaTeXInline` in LaTeX reader, but it affects the markdown
-    reader and other readers that allow raw LaTeX.  Previously, trailing `{}`
-    would be included for unknown commands, but not for known commands.
-    However, they are sometimes used to avoid a trailing space after the
-    command.  The chances that a `{}` after a LaTeX command is not part of
-    the command are very small.
-
-  * Docx reader: Add support for `w:rtl` (#5545).  Elements with this
-    property are put into Span inlines with `dir="rtl"`.
-
-  * Fix document section assignments in EPUB writer (#5546).
-    For example, introduction should go in bodymatter, not frontmatter, and
-    epigraph, conclusion, and afterward should go in bodymatter, not
-    backmatter.  For the full list of assignments, see the manual.
-
-  * Update pandoc-citeproc and skylighting versions.
+  * Add template variable `curdir` with working directory
+    from which pandoc is run (#5464).
 
   * Markdown reader: don't create implicit reference for empty header (#5549).
 
-  * Markdown writer: Add backslashes to avoid unwanted interpretation of
-    definition list terms as other kinds of block (#554).
-
-  * Textile writer: fix closing tag for math output (Albert Krewinkel).
-    Opening and closing tag for math output match now.
-
-  * Add unicode code point in "Missing character" warning (#5538).
-    If the character isn't in the console font, the message is pretty useless,
-    so we show the code point for anything non-ASCII.
-
-  * pandoc.mediabag lua module (Albert Krewinkel):
-
-    + Add function `delete` for deleting a single item.
-    + Add function `empty` for removing all entries.
-    + Add function `items` for iterating over mediabag.
+  * Muse reader: allow images inside link descriptions (Alexander Krotov).
 
   * HTML reader: epub related fixes.
 
@@ -69,6 +25,158 @@ pandoc (2.7.3)
       content to be eaten with the noteref.
     + Rename `pAnyTag` to `pAny`.
     + Refactor note resolution.
+    + Trim definition list terms (Alexander Krotov).
+
+  * LaTeX reader:
+
+    + Add braces when resolving `\DeclareMathOperator`
+      (#5441).  These seem to be needed for xelatex but not pdflatex.
+    + Allow newlines in `\mintinline`.
+    + Pass through unknown listings language as class (#5540).
+      Previously if the language was not in the list of languages supported
+      by listings, it would not be added as a class, so highlighting
+      would not be triggered.
+    + `rawLaTeXInline`: Include trailing `{}`s in raw latex commands (#5439).
+      This change affects the markdown reader and other readers that allow raw
+      LaTeX.  Previously, trailing `{}` would be included for unknown
+      commands, but not for known commands.  However, they are sometimes used
+      to avoid a trailing space after the command.  The chances that a `{}`
+      after a LaTeX command is not part of the command are very small.
+
+  * MediaWiki reader: handle multiple attributes in table row (#5471,
+    chinapedia).
+
+  * Docx reader: Add support for `w:rtl` (#5545).  Elements with this
+    property are put into Span inlines with `dir="rtl"`.
+
+  * Org reader (Albert Krewinkel):
+
+    + Fix planning elements in headers level 3 and higher
+      (#5494).  Planning info is now always placed before
+      the subtree contents.  Previously, the planning info was placed after
+      the content if the header's subtree was converted to a list, which
+      happens with headers of level 3 and higher per default.
+    + Omit, but warn about unknown export options.  Unknown export
+      options are properly ignored and omitted from the output.
+    + Prefer plain symbols over math symbols (#5483).
+      Symbols like `\alpha` are output plain and unemphasized, not as math.
+    + Recognize emphasis after TODO/DONE keyword (#5484).
+
+  * FB2 reader (Alexander Krotov):
+
+    + Parse notes (#5493).
+    + Internal improvements.
+
+  * OpenDocument writer:  Roll back automatic figure/table numbering
+    (#5474).  This was added in pandoc 2.7.2, but it makes it impossible
+    to use pandoc-crossref. So this has been rolled back for now,
+    until we find a good solution to make this behavior optional
+    (or a creative way to let pandoc-crossref and this feature
+    to coexist).
+
+  * New module Text.Pandoc.Writers.Jira, exporting `writeJira` [API
+    change] (Albert Krewinkel).
+
+  * EPUB writer:
+
+    + Don't include 'landmarks' if there aren't any.
+      Previously we could get an empty ol element, which caused
+      validation errors with epubcheck.
+    + Ensure unique ids for styleesheets in content.opf (#5463).
+    + Make stylesheet link compatible with kindlegen (#5466,
+      Eric Schrijver).  Pandoc omitted `type="text/css"` from both
+      `<style>` and `<rel="stylesheet">` elements in all templates, which
+      is valid according to the spec. However, Amazon’s kindlegen software
+      relies on this attribute on `<link>` elements when detecting
+      stylesheets to include.
+
+
+  * HTML writer:
+
+    + Output video and audio elements depending on file
+      extension of the image path (Mauro Bieg).
+    + Emit empty alt tag in figures (#5518, Mauro Bieg).
+      The same text is already in the <figcaption> and
+      screen-readers would read it twice, see #4737.
+    + Don't add variation selector if it's already there.
+      This fixes round-trip failures.
+    + Prevent gratuitious emojification on iOS (#5469).
+      iOS chooses to render a number of Unicode entities, including '↩', as
+      big colorful emoji.  This can be defeated by appending Unicode VARIATION
+      SELECTOR-15'/'VARIATION SELECTOR-16'.  So we now append this character
+      when escaping strings, for both '↩' and '↔'.  If other characters prove
+      problematic, they can simply be added to `needsVariationSelector`.
+    + Add `class="heading"` to level 7+ Headers rendered as `<p>` elements
+      (#5457).
+
+  * RST writer: treat Span with no attributes as transparent (#5446).
+    Previously an Emph inside a Span was being treated as
+    nested markup and ignored.  With this patch, the Span
+    is just ignored.
+
+  * LaTeX writer:
+
+    + Include inline code attributes with `--listings` (#5420).
+    + Don't produce columns environment unless beamer (#5485).
+    + Fix footnote in image caption.  Regression: the fix for #4683 broke
+      this case.
+
+  * EPUB writer: Fix document section assignments (#5546).
+    For example, introduction should go in bodymatter, not frontmatter, and
+    epigraph, conclusion, and afterward should go in bodymatter, not
+    backmatter.  For the full list of assignments, see the manual.
+
+  * Markdown writer:
+
+    + Add backslashes to avoid unwanted interpretation of
+      definition list terms as other kinds of block (#554).
+    + Ensure the code fence is long enough (#5519).
+      Previously too few backticks were used when the code block
+      contained an indented line of backticks.  (Ditto tildes.)
+    + Handle labels with integer names (Jesse Rosenthal, #5495).
+      Previously if labels had integer names, it could produce a conflict
+      with auto-labeled reference links. Now we test for a conflict and
+      find the next available integer.  This involves adding a new state
+      variable `stPrevRefs` to keep track of refs used in other document
+      parts when using `--reference-location=block|section`
+
+  * Textile writer: fix closing tag for math output (Albert Krewinkel).
+    Opening and closing tag for math output match now.
+
+  * Org writer: always indent src blocks content by 2 spaces (#5440, Albert
+    Krewinkel).  Emacs always uses two spaces when indenting the content of
+    src blocks, e.g., when exiting a `C-c '` edit-buffer. Pandoc used to
+    indent contents by the space-equivalent of one tab, but now always uses
+    two spaces, too.
+
+  * Asciidoc writer:
+
+    + Use `` `+...+` `` form for inline code.
+      The old `` `a__b__c` `` yields emphasis inside code in asciidoc.
+      To get a pure literal code span, use `` `+a__b__c+` ``.
+    + Use proper smart quotes with asciidoctor (#5487).
+      Asciidoctor has a different format for smart quotes.
+
+  * JATS writer:
+
+    + Properly handle footnotes (#5511) according to "best practice."
+      (Group them at the end in `<fn-group>` and use `<xref>` elements
+      to link them.)
+    + Fix citations with PMID so they validate (#5481).  This includes
+      an update to data/jats.csl.
+
+  * FB2 writer:
+
+    + Do not wrap note references into `<sup>` and brackets
+      (Alexander Krotov).  Existing FB2 readers, such as FBReader, already
+      display links with type="note" as a superscript.
+    + Use genre metadata field (#5478).
+
+  * Muse writer: do not escape empty line after `<br>` (Alexander Krotov).
+
+  * Add unicode code point in "Missing character" warning (#5538).
+    If the character isn't in the console font, the message is pretty useless,
+    so we show the code point for anything non-ASCII.
 
   * Lua: add Version type to simplify comparisons (Albert Krewinkel).
     Version specifiers like `PANDOC_VERSION` and `PANDOC_API_VERSION` are
@@ -78,156 +186,35 @@ pandoc (2.7.3)
     introduced module `pandoc.types`, allowing users to create version
     objects in scripts.
 
-  * HTML writer: output video and audio elements depending on file
-    extension of the image path (Mauro Bieg).
+  * pandoc.mediabag lua module (Albert Krewinkel):
+
+    + Add function `delete` for deleting a single item.
+    + Add function `empty` for removing all entries.
+    + Add function `items` for iterating over mediabag.
+
+  * Text.Pandoc.Class: Fix handling of `file:` URL scheme in
+    `downloadOrRead` (#5517, Mauro Bieg).  Previously `file:/`
+    URLs were handled wrongly and pandoc attempted to make HTTP
+    requests, which failed.
 
   * Text.Pandoc.MIME: add `mediaCategory` [API change] (Mauro Bieg).
 
-  * HTML writer: emit empty alt tag in figures (#5518, Mauro Bieg).
-    The same text is already in the <figcaption> and
-    screen-readers would read it twice, see #4737.
+  * Text.Pandoc.Shared:
 
-  * MANUAL: add note about `title-meta`, `author-meta`, `date-meta`
-    (#5486).
+    + Add `onlySimpleTableCells` [API change]
+      (Mauro Bieg) and use this to consolidate simple-table detection
+      (#5524).  This fixes an inconsistency in the HTML reader, which did not
+      treat tables with `<p>` inside cells as simple.
+    + `metaToJSON`: treat digits starting with 0 as a string, not a number
+      (#5479).  This fixes a regression in YAML metadata in pandoc 2.7.2.
 
-  * Fix handling of `file:` URL scheme in `downloadOrRead` (#5517, Mauro Bieg).
-    Previously `file:/` URLs were handled wrongly and pandoc attempted
-    to make HTTP requests, which failed.
-
-  * EPUB writer: don't include 'landmarks' if there aren't any.
-    Previously we could get an empty ol element, which caused
-    validation errors with epubcheck.
-
-  * Consolidate simple-table detection (#5524, Mauro Bieg).
-    Add `onlySimpleTableCells` to `Text.Pandoc.Shared` [API change].
-    This fixes an inconsistency in the HTML reader, which did not treat
-    tables with `<p>` inside cells as simple.
-
-  * Muse reader: allow images inside link descriptions (Alexander Krotov).
-
-  * HTML reader: trim definition list terms (Alexander Krotov).
-
-  * Muse writer: do not escape empty line after `<br>` (Alexander Krotov).
-
-  * Disable missing-home-modules warning in `stack.yaml`.
-    Otherwise `stack ghci` fails.
-
-  * Markdown writer: Ensure the code fence is long enough (#5519).
-    Previously too few backticks were used when the code block
-    contained an indented line of backticks.  (Ditto tildes.)
-
-  * Makefile: remove `--resolver=` from targets.
-    This causes unnecessary recompilation.
-
-  * Markdown writer: Handle labels with integer names (Jesse Rosenthal,
-    #5495).  Previously if labels had integer names, it could produce a
-    conflict with auto-labeled reference links. Now we test for a conflict
-    and find the next available integer.  This involves adding a new state
-    variable `stPrevRefs` to keep track of refs used in other document
-    parts when using `--reference-location=block|section`
+  * Text.Pandoc.Asciify: Add Turkish undotted-i (#5433, Mauro Bieg).
 
   * Improve output of Lua tests (#5499, Albert Krewinkel).
     This makes use of tasty-lua, a package to write tests in Lua
     and integrate the results into Tasty output. Test output becomes
     more informative: individual tests and test groups become visible
     in test output. Failures are reported with helpful error messages.
-
-  * Add `tex_math_dollars` to `multimarkdownExtensions` (#5512).
-    This form is now supported in multimarkdown,
-    in addition to `tex_math_double_backslash`.
-
-  * JATS writer: properly handle footnotes (#5511).
-    "Best Practice: When footnotes are grouped at the end of an article,
-    wrap them in a `<fn-group>` and use an `<xref>` element in the text, as
-    usual, to tie each footnote in the list to a particular location in the
-    text."
-
-  * FB2 writer: do not wrap note references into `<sup>` and brackets
-    (Alexander Krotov).  Existing FB2 readers, such as FBReader, already
-    display links with type="note" as a superscript.
-
-  * Fix using Beamer with geometry (#5505, Daniel Maslowski).
-    Beamer already loads geometry, so we need to use the `\geometry`
-    command to set geometry options.
-
-  * Org reader: fix planning elements in headers level 3 and higher
-    (#5494, Albert Krewinkel).  Planning info is now always placed before
-    the subtree contents.  Previously, the planning info was placed after
-    the content if the header's subtree was converted to a list, which
-    happens with headers of level 3 and higher per default.
-
-  * Org reader: omit, but warn about unknown export options (Albert
-    Krewinkel).  Unknown export options are properly ignored and omitted
-    from the output.
-
-  * add test/tables.xwiki to git and pandoc.cabal (#5498, Mauro Bieg).
-
-  * Org writer: always indent src blocks content by 2 spaces (#5440, Albert
-    Krewinkel).  Emacs always uses two spaces when indenting the content of
-    src blocks, e.g., when exiting a `C-c '` edit-buffer. Pandoc used to
-    indent contents by the space-equivalent of one tab, but now always uses
-    two spaces, too.
-
-  * FB2 reader: parse notes (#5493, Alexander Krotov).
-
-  * FB2 reader: use XML.Light.Input.parseXMLDoc to parse the root element
-    (Alexander Krotov).
-
-  * Reduce the amount of state in FB2 reader (Alexander Krotov).
-
-  * FB2 reader: use Text.XML.Light.unqual where possible (Alexander Krotov).
-
-  * MANUAL.txt: removes double 'inside' (#5489, Christian Krause).
-
-  * Asciidoc writer: use `` `+...+` `` form for inline code.
-    The old `` `a__b__c` `` yields emphasis inside code in asciidoc.
-    To get a pure literal code span, use `` `+a__b__c+` ``.
-
-  * Asciidoc writer:  use proper smart quotes with asciidoctor (#5487).
-    Asciidoctor has a different format for smart quotes.
-
-  * LaTeX writer: don't produce columns environment unless beamer (#5485).
-    The environment is beamer-only and as far as I'm aware there's no latex
-    package that provides it for non-beamer use.
-
-  * Org reader: prefer plain symbols over math symbols (#5483, Albert
-    Krewinkel).  Symbols like `\alpha` are output plain and unemphasized,
-    not as math.
-
-  * Org reader: recognize emphasis after TODO/DONE keyword (#5484,
-    Albert Krewinkel).
-
-  * HTML writer: don't add variation selector if it's already there.
-    This fixes round-trip failures.
-
-  * Add template variable `curdir` with working directory
-    from which pandoc is run (#5464).
-
-  * FB2 writer: use genre metadata field (#5478).
-
-  * JATS writer: fix citations with PMID so they validate (#5481).
-    This includes an update to data/jats.csl.
-
-  * metaToJSON: treat digits starting with 0 as a string, not a number
-    (#5479).
-
-  * EPUB2/3 templates: Move inline styles to default epub.css (#5466).
-    Those who use a custom CSS stylesheet with EPUB should
-    add these lines:
-    ```css
-    code{ white-space: pre-wrap; }
-    span.smallcaps{ font-variant: small-caps; }
-    span.underline{ text-decoration: underline; }
-    q { quotes: "“" "”" "‘" "’"; }
-    div.column{ display: inline-block; vertical-align: top; width: 50%; }
-    ```
-
-  * Epub3 stylesheet link compatible with kindlegen (#5466,
-    Eric Schrijver).  Pandoc omitted `type="text/css"` from both `<style>`
-    and `<rel="stylesheet">` elements in all templates, which is
-    valid according to the spec. However, Amazon’s kindlegen software
-    relies on this attribute on `<link>` elements when detecting
-    stylesheets to include.
 
   * Lua: add `pandoc.system` module (#5468, Albert Krewinkel).
     The `system` Lua module provides utility functions to interact with the
@@ -240,56 +227,51 @@ pandoc (2.7.3)
         end)
     ```
 
-  * LaTeX reader: Allow newlines in `\mintinline`.
+  * LaTeX template: Add pdflang to hypersetup if lang is set (#5443).
 
-  * MediaWiki reader: handle multiple attributes in table row (#5471,
-    chinapedia).
+  * beamer template: Fix using Beamer with geometry (#5505, Daniel Maslowski).
+    Beamer already loads geometry, so we need to use the `\geometry`
+    command to set geometry options.
+
+  * EPUB2/3 templates: Move inline styles to default epub.css (#5466).
+    NOTE: Those who use a custom CSS stylesheet with EPUB should
+    add these lines:
+
+        code{ white-space: pre-wrap; }
+        span.smallcaps{ font-variant: small-caps; }
+        span.underline{ text-decoration: underline; }
+        q { quotes: "“" "”" "‘" "’"; }
+        div.column{ display: inline-block; vertical-align: top; width: 50%; }
+
+  * reveal.js template:
+
+    + Updates for revealjs 3.8.0 (#5435, ebiim).
+    + Remove reference to head.min.js (#5448, Winnie Hellmann).
+      NOTE: users will need to update reveal.js to at least 3.8.0
+      for their presentations generated with this version of pandoc
+      to work correctly.
+
+  * Text.Pandoc.PDF:
+
+    + Replace `</>` with literal `/` (#5451).
+      We use forward-slash for a directory separator in tmpDir,
+      even on Windows (because that's what tex likes).  So we
+      should not put a backslash between the tmpDir and the
+      filename on Windows.  This is harmless enough in normal
+      Windows setups, but it breaks on Cygwin.
+      Thanks to @cc2x for noticing and diagnosing the problem.
+    + Allow use of `-output-directory` in `--pdf-engine-opt` (#5462).
+      This is currently possible with `mklatex` and `-outdir`, but
+      was not yet possible with xelatex and `-output-directory`.
+    + For PDF via ms/pdfroff, make TOC appear at beginning and in
+      PDF bookmarks (#5553).  Previously the TOC appeared at the end
+      of the document, and was not bookmarked.  To keep it at the end,
+      add `--pdf-engine-opt=--no-toc-relocation` to your command line.
 
   * Fix broken links in documents (#5473, Shim Myeongseob).
-    Fix broken links in doc/epub.md, doc/getting-started.md,
-    doc/customizing-pandoc.md, doc/using-the-pandoc-api.md.
     Also, use absolute links to pandoc.org when possible, so that
     the links can be followed by people viewing these documents
     on GitHub.
-
-  * LaTeX writer: Fix footnote in image caption.  Regression:
-    the fix for #4683 broke this case.
-
-  * reveal.js template: remove reference to head.min.js (#5448,
-    Winnie Hellmann).
-    This file has been removed in 3.8.0.
-    NOTE: users will need to update reveal.js to at least 3.8.0
-    for their presentations generated with this version of pandoc
-    to work correctly.
-
-  * HTML writer: prevent gratuitious emojification on iOS (#5469).
-    iOS chooses to render a number of Unicode entities,
-    including '↩', as big colorful emoji.  This can be defeated by appending
-    Unicode VARIATION SELECTOR-15'/'VARIATION SELECTOR-16'.  So we now append
-    this character when escaping strings, for both '↩' and '↔'.  If other
-    characters prove problematic, they can simply be added to
-    `needsVariationSelector`.
-
-  * Fix `--self-contained` so it works when output format has extensions.
-    Previously if you used `--self-contained` with `html-smart` or
-    `html+smart`, it wouldn't work.
-
-  * Allow use of `-output-directory` in `--pdf-engine-opt` (#5462).
-    This is currently possible with `mklatex` and `-outdir`, but
-    was not yet possible with xelatex and `-output-directory`.
-
-  * EPUB writer: Ensure unique ids for styleesheets in content.opf (#5463).
-
-  * HTML writer: Add `class="heading"` to level 7+ Headers
-    rendered as `<p>` elements (#5457).
-
-  * Text.Pandoc.PDF: replace `</>` with literal `/` (#5451).
-    We use forward-slash for a directory separator in tmpDir,
-    even on Windows (because that's what tex likes).  So we
-    should not put a backslash between the tmpDir and the
-    filename on Windows.  This is harmless enough in normal
-    Windows setups, but it breaks on Cygwin.
-    Thanks to @cc2x for noticing and diagnosing the problem.
 
   * Improved sample lua tikz filter in lua-filters docs (#5445,
     Matthew Doty).  There are three changes:
@@ -298,19 +280,15 @@ pandoc (2.7.3)
     + It uses pdf2svg instead of imagemagick to preserve fidelity
     + The images produced have transparent backgrounds
 
-  * RST writer: treat Span with no attributes as transparent (#5446).
-    Previously an Emph inside a Span was being treated as
-    nested markup and ignored.  With this patch, the Span
-    is just ignored.
+  * MANUAL.txt:
 
-  * LaTeX template: Add pdflang to hypersetup if lang is set (#5443).
+    + Add note about `title-meta`, `author-meta`, `date-meta` (#5486).
+    + Fix typo (#5489, Christian Krause).
 
-  * LaTeX reader: add braces when resolving `\DeclareMathOperator`
-    (#5441).  These seem to be needed for xelatex but not pdflatex.
+  * add test/tables.xwiki to git and pandoc.cabal (#5498, Mauro Bieg).
 
-  * reveal.js template: updates for revealjs 3.8.0 (#5435, ebiim).
-
-  * Asciify.hs: add Turkish undotted-i (#5433, Mauro Bieg).
+  * Disable missing-home-modules warning in `stack.yaml`.
+    Otherwise `stack ghci` fails.
 
 
 pandoc (2.7.2)
