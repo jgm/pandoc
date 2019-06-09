@@ -54,6 +54,7 @@ instance FromJSON Verbosity where
 
 data LogMessage =
     SkippedContent String SourcePos
+  | IgnoredElement String
   | CouldNotParseYamlMetadata String SourcePos
   | DuplicateLinkReference String SourcePos
   | DuplicateNoteReference String SourcePos
@@ -99,6 +100,8 @@ instance ToJSON LogMessage where
             "source" .= Text.pack (sourceName pos),
             "line" .= sourceLine pos,
             "column" .= sourceColumn pos]
+      IgnoredElement s ->
+           ["contents" .= Text.pack s]
       CouldNotParseYamlMetadata s pos ->
            ["message" .= Text.pack s,
             "source" .= Text.pack (sourceName pos),
@@ -224,6 +227,8 @@ showLogMessage msg =
   case msg of
        SkippedContent s pos ->
          "Skipped '" ++ s ++ "' at " ++ showPos pos
+       IgnoredElement s ->
+         "Ignored element " ++ s
        CouldNotParseYamlMetadata s pos ->
          "Could not parse YAML metadata at " ++ showPos pos ++
            if null s then "" else ": " ++ s
@@ -310,6 +315,7 @@ messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
   case msg of
        SkippedContent{}             -> INFO
+       IgnoredElement{}             -> INFO
        CouldNotParseYamlMetadata{}  -> WARNING
        DuplicateLinkReference{}     -> WARNING
        DuplicateNoteReference{}     -> WARNING
