@@ -98,7 +98,9 @@ parseInline (Elem e) =
     "sup" -> superscript <$> parseStyleType e
     "code" -> pure $ code $ strContent e
     "image" -> parseInlineImageElement e
-    name -> throwError $ PandocParseError ("Couldn't parse FB2 file: unexpected element " ++ name ++ ".")
+    name -> do
+      report $ IgnoredElement name
+      pure mempty
 parseInline (Text x) = pure $ text $ cdData x
 parseInline (CRef r) = pure $ str $ convertEntity r
 
@@ -173,7 +175,9 @@ parseDescriptionChild e =
     "publish-info" -> pure ()
     "custom-info" -> pure ()
     "output" -> pure ()
-    name -> throwError $ PandocParseError ("Couldn't parse FB2 file: unexpected element " ++ name ++ "in description.")
+    name -> do
+      report $ IgnoredElement $ name ++ " in description"
+      pure mempty
 
 -- | Parse a child of @\<body>@ element.
 parseBodyChild :: PandocMonad m => Element -> FB2 m Blocks
@@ -189,26 +193,29 @@ parseBodyChild e =
 parseBinaryElement :: PandocMonad m => Element -> FB2 m ()
 parseBinaryElement e =
   case (findAttr (unqual "id") e, findAttr (unqual "content-type") e) of
-    (Nothing, _) -> throwError $ PandocParseError "<binary> element must have an \"id\" attribute"
-    (Just _, Nothing) -> throwError $ PandocParseError "<binary> element must have a \"content-type\" attribute"
+    (Nothing, _) -> report $ IgnoredElement "binary without id attribute"
+    (Just _, Nothing) ->
+      report $ IgnoredElement "binary without content-type attribute"
     (Just filename, contentType) -> insertMedia filename contentType (decodeLenient (pack (strContent e)))
 
 -- * Type parsers
 
 -- | Parse @authorType@
 parseAuthor :: PandocMonad m => Element -> FB2 m String
-parseAuthor e = unwords <$> mapM parseAuthorChild (elChildren e)
+parseAuthor e = unwords . catMaybes <$> mapM parseAuthorChild (elChildren e)
 
-parseAuthorChild :: PandocMonad m => Element -> FB2 m String
+parseAuthorChild :: PandocMonad m => Element -> FB2 m (Maybe String)
 parseAuthorChild e =
   case qName $ elName e of
-    "first-name" -> pure $ strContent e
-    "middle-name" -> pure $ strContent e
-    "last-name" -> pure $ strContent e
-    "nickname" -> pure $ strContent e
-    "home-page" -> pure $ strContent e
-    "email" -> pure $ strContent e
-    name -> throwError $ PandocParseError ("Couldn't parse FB2 file: unexpected element " ++ name ++ " in author.")
+    "first-name" -> pure $ Just $ strContent e
+    "middle-name" -> pure $ Just $ strContent e
+    "last-name" -> pure $ Just $ strContent e
+    "nickname" -> pure $ Just $ strContent e
+    "home-page" -> pure $ Just $ strContent e
+    "email" -> pure $ Just $ strContent e
+    name -> do
+      report $ IgnoredElement $ name ++ " in author"
+      pure Nothing
 
 -- | Parse @titleType@
 parseTitle :: PandocMonad m => Element -> FB2 m Blocks
@@ -230,7 +237,9 @@ parseImageElement :: PandocMonad m => Element -> FB2 m Blocks
 parseImageElement e =
   case href of
     Just src -> pure $ para $ imageWith (imgId, [], []) (removeHash src) title alt
-    Nothing -> throwError $ PandocParseError "Couldn't parse FB2 file: image without href."
+    Nothing -> do
+      report $ IgnoredElement " image without href"
+      pure mempty
   where alt = maybe mempty str $ findAttr (unqual "alt") e
         title = fromMaybe "" $ findAttr (unqual "title") e
         imgId = fromMaybe "" $ findAttr (unqual "id") e
@@ -355,7 +364,9 @@ parseNamedStyle e = do
   let lang = maybeToList $ ("lang",) <$> findAttr (QName "lang" Nothing (Just "xml")) e
   case findAttr (unqual "name") e of
     Just name -> pure $ spanWith ("", [name], lang) content
-    Nothing -> throwError $ PandocParseError "Couldn't parse FB2 file: link without required name."
+    Nothing -> do
+      report $ IgnoredElement "link without required name"
+      pure mempty
 
 parseNamedStyleChild :: PandocMonad m => Content -> FB2 m Inlines
 parseNamedStyleChild (Elem e) =
@@ -369,7 +380,9 @@ parseNamedStyleChild (Elem e) =
     "sup" -> superscript <$> parseStyleType e
     "code" -> pure $ code $ strContent e
     "image" -> parseInlineImageElement e
-    name -> throwError $ PandocParseError ("Couldn't parse FB2 file: unexpected element " ++ name ++ ".")
+    name -> do
+      report $ IgnoredElement $ name ++ " in style"
+      pure mempty
 parseNamedStyleChild x = parseInline x
 
 -- | Parse @linkType@
@@ -383,13 +396,17 @@ parseLinkType e = do
                                     Nothing -> pure $ link href "" content
                                     Just contents -> pure $ note contents
                    _ -> pure $ link href "" content
-    Nothing -> throwError $ PandocParseError "Couldn't parse FB2 file: link without required href."
+    Nothing -> do
+      report $ IgnoredElement "link without required href"
+      pure mempty
 
 -- | Parse @styleLinkType@
 parseStyleLinkType :: PandocMonad m => Content -> FB2 m Inlines
 parseStyleLinkType x@(Elem e) =
   case qName (elName e) of
-    "a" -> throwError $ PandocParseError "Couldn't parse FB2 file: links cannot be nested."
+    "a" -> do
+      report $ IgnoredElement "nested link"
+      pure mempty
     _ -> parseInline x
 parseStyleLinkType x = parseInline x
 
@@ -412,7 +429,7 @@ parseTitleInfoChild e =
     "src-lang" -> pure ()
     "translator" -> pure ()
     "sequence" -> pure ()
-    name -> throwError $ PandocParseError ("Couldn't parse FB2 file: unexpected element " ++ name ++ " in title-info.")
+    name -> report $ IgnoredElement $ name ++ " in title-info"
 
 parseCoverPage :: PandocMonad m => Element -> FB2 m ()
 parseCoverPage e =
@@ -430,6 +447,8 @@ parseInlineImageElement :: PandocMonad m
 parseInlineImageElement e =
   case href of
     Just src -> pure $ imageWith ("", [], []) (removeHash src) "" alt
-    Nothing -> throwError $ PandocParseError "Couldn't parse FB2 file: inline image without href."
+    Nothing -> do
+      report $ IgnoredElement "inline image without href"
+      pure mempty
   where alt = maybe mempty str $ findAttr (unqual "alt") e
         href = findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e
