@@ -520,9 +520,11 @@ inlineToAsciiDoc opts (Note [Plain inlines]) = do
 inlineToAsciiDoc _ (Note _) = return "[multiblock footnote omitted]"
 inlineToAsciiDoc opts (Span (ident,classes,_) ils) = do
   contents <- inlineListToAsciiDoc opts ils
+  isIntraword <- gets intraword
+  let marker = if isIntraword then "##" else "#"
   if null ident && null classes
      then return contents
      else do
        let modifier = brackets $ text $ unwords $
             [ '#':ident | not (null ident)] ++ map ('.':) classes
-       return $ modifier <> "#" <> contents <> "#"
+       return $ modifier <> marker <> contents <> marker
