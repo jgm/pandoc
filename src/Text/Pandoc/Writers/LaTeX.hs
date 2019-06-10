@@ -1131,7 +1131,9 @@ inlineToLaTeX (Strong lst) =
 inlineToLaTeX (Strikeout lst) = do
   -- we need to protect VERB in an mbox or we get an error
   -- see #1294
-  contents <- inlineListToLaTeX $ protectCode lst
+  -- with regular texttt we don't get an error, but we get
+  -- incorrect results if there is a space, see #5529
+  contents <- inlineListToLaTeX $ walk (concatMap protectCode) lst
   modify $ \s -> s{ stStrikeout = True }
   return $ inCmd "sout" contents
 inlineToLaTeX (Superscript lst) =
@@ -1336,12 +1338,10 @@ handleMathComment s =
          '%':_      -> s ++ "\n"
          _          -> s
 
-protectCode :: [Inline] -> [Inline]
-protectCode [] = []
-protectCode (x@(Code ("",[],[]) _) : xs) = x : protectCode xs
-protectCode (x@(Code _ _) : xs) = ltx "\\mbox{" : x : ltx "}" : xs
+protectCode :: Inline -> [Inline]
+protectCode x@(Code _ _) = [ltx "\\mbox{" , x , ltx "}"]
   where ltx = RawInline (Format "latex")
-protectCode (x : xs) = x : protectCode xs
+protectCode x = [x]
 
 setEmptyLine :: PandocMonad m => Bool -> LW m ()
 setEmptyLine b = modify $ \st -> st{ stEmptyLine = b }

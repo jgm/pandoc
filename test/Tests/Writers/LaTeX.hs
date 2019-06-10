@@ -81,7 +81,7 @@ tests = [ testGroup "code blocks"
           , "struck out and not highlighted" =:
             strikeout (code "foo" <> space
               <> str "bar") =?>
-            "\\sout{\\texttt{foo} bar}"
+            "\\sout{\\mbox{\\texttt{foo}} bar}"
           , "single quotes" =:
               code "dog's" =?> "\\texttt{dog\\textquotesingle{}s}"
           , "backtick" =:
