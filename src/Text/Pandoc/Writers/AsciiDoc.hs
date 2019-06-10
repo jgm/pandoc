@@ -405,6 +405,8 @@ withIntraword p = setIntraword True *> p <* setIntraword False
 
 -- | Convert Pandoc inline element to asciidoc.
 inlineToAsciiDoc :: PandocMonad m => WriterOptions -> Inline -> ADW m Doc
+inlineToAsciiDoc opts (Emph [Strong xs]) =
+  inlineToAsciiDoc opts (Strong [Emph xs])  -- see #5565
 inlineToAsciiDoc opts (Emph lst) = do
   contents <- inlineListToAsciiDoc opts lst
   isIntraword <- gets intraword
