@@ -87,6 +87,44 @@ return {
       end)
     },
   },
+
+  group 'clone' {
+    test('clones Attr', function ()
+      local attr = pandoc.Attr('test', {'my-class'}, {foo = 'bar'})
+      local cloned = attr:clone()
+      attr.identifier = ''
+      attr.classes = {}
+      attr.attributes = {}
+      assert.are_same(cloned.identifier, 'test')
+      assert.are_same(cloned.classes, {'my-class'})
+      assert.are_same(cloned.attributes.foo, 'bar')
+    end),
+    test('clones ListAttributes', function ()
+      local la = pandoc.ListAttributes(2, pandoc.DefaultStyle, pandoc.Period)
+      local cloned = la:clone()
+      la.start = 9
+      assert.are_same(cloned.start, 2)
+    end),
+    test('clones Para', function ()
+      local para = pandoc.Para {pandoc.Str 'Hello'}
+      local cloned = para:clone()
+      para.content[1].text = 'bye'
+      assert.are_same(cloned, pandoc.Para {pandoc.Str 'Hello'})
+    end),
+    test('clones Str', function ()
+      local str = pandoc.Str 'Hello'
+      local cloned = str:clone()
+      str.text = 'bye'
+      assert.are_same(cloned.text, 'Hello')
+    end),
+    test('clones Citation', function ()
+      local cite = pandoc.Citation('leibniz', pandoc.AuthorInText)
+      local cloned = cite:clone()
+      cite.id = 'newton'
+      assert.are_same(cloned.id, 'leibniz')
+    end),
+  },
+
   group 'pipe' {
     test('external string processing', function ()
       if os_is_windows() then

@@ -15,8 +15,11 @@ module Text.Pandoc.Lua.Module.Types
 import Prelude
 import Data.Version (Version)
 import Foreign.Lua (Lua, NumResults)
+import Text.Pandoc.Definition
+import Text.Pandoc.Lua.Marshaling.AST (LuaAttr, LuaListAttributes)
 import Text.Pandoc.Lua.Marshaling.Version ()
 import Text.Pandoc.Lua.Util (addFunction)
+import Text.Pandoc.Shared (Element (..))
 
 import qualified Foreign.Lua as Lua
 
@@ -25,4 +28,47 @@ pushModule :: Lua NumResults
 pushModule = do
   Lua.newtable
   addFunction "Version" (return :: Version -> Lua Version)
+  pushCloneTable
+  Lua.setfield (Lua.nthFromTop 2) "clone"
   return 1
+
+pushCloneTable :: Lua NumResults
+pushCloneTable = do
+  Lua.newtable
+  addFunction "Attr" cloneAttr
+  addFunction "Block" cloneBlock
+  addFunction "Citation" cloneCitation
+  addFunction "Element" cloneElement
+  addFunction "Inline" cloneInline
+  addFunction "Meta" cloneMeta
+  addFunction "MetaValue" cloneMetaValue
+  addFunction "ListAttributes" cloneListAttributes
+  addFunction "Pandoc" clonePandoc
+  return 1
+
+cloneAttr :: LuaAttr -> Lua LuaAttr
+cloneAttr = return
+
+cloneBlock :: Block -> Lua Block
+cloneBlock = return
+
+cloneCitation :: Citation -> Lua Citation
+cloneCitation = return
+
+cloneElement :: Element -> Lua Element
+cloneElement = return
+
+cloneInline :: Inline -> Lua Inline
+cloneInline = return
+
+cloneListAttributes :: LuaListAttributes -> Lua LuaListAttributes
+cloneListAttributes = return
+
+cloneMeta :: Meta -> Lua Meta
+cloneMeta = return
+
+cloneMetaValue :: MetaValue -> Lua MetaValue
+cloneMetaValue = return
+
+clonePandoc :: Pandoc -> Lua Pandoc
+clonePandoc = return
