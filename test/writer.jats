@@ -68,7 +68,8 @@ Gruber’s markdown test suite.</p>
   item. Because a hard-wrapped line in the middle of a paragraph looked like a
   list item.</p>
   <p>Here’s one with a bullet. * criminey.</p>
-  <p>There should be a hard line break<break />here.</p>
+  <p>There should be a hard line break
+  here.</p>
 </sec>
 <sec id="block-quotes">
   <title>Block Quotes</title>
