@@ -846,7 +846,10 @@ local AttributeList = {
 
   __newindex = function (t, k, v)
     local cur, idx = List.find_if(t, assoc_key_equals(k))
-    if v == nil then
+    if v == nil and not cur then
+      -- deleted key does not exists in list
+      return
+    elseif v == nil then
       table.remove(t, idx)
     elseif cur then
       cur[2] = v

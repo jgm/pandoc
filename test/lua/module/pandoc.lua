@@ -62,6 +62,12 @@ return {
         local assoc_list = setmetatable(attributes, nil)
         assert.are_same(assoc_list, {{'b', '2'}})
       end),
+      test('remains unchanged if deleted key did not exist', function ()
+        local assoc_list = pandoc.List:new {{'alpha', 'x'}, {'beta', 'y'}}
+        local attributes = pandoc.Attr('', {}, assoc_list:clone()).attributes
+        attributes.a = nil
+        assert.are_same(pandoc.List:new(attributes), assoc_list)
+      end),
       test('gives key-value pairs when iterated-over', function ()
         local attributes = {width = '11', height = '22', name = 'test'}
         local attr = pandoc.Attr('', {}, attributes)
