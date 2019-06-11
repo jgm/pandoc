@@ -27,6 +27,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (languages, languagesByExtension)
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (getMimeType)
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
@@ -111,7 +112,22 @@ elementToJATS opts lvl (Sec _ _num (id',_,kvs) title elements) = do
 
 -- | Convert a list of Pandoc blocks to JATS.
 blocksToJATS :: PandocMonad m => WriterOptions -> [Block] -> JATS m Doc
-blocksToJATS opts = fmap vcat . mapM (blockToJATS opts)
+blocksToJATS = wrappedBlocksToJATS (const False)
+
+wrappedBlocksToJATS :: PandocMonad m
+                    => (Block -> Bool)
+                    -> WriterOptions
+                    -> [Block]
+                    -> JATS m Doc
+wrappedBlocksToJATS needsWrap opts =
+  fmap vcat . mapM wrappedBlockToJATS
+  where
+    wrappedBlockToJATS b = do
+      inner <- blockToJATS opts b
+      return $
+        if needsWrap b
+           then inTags True "p" [("specific-use","wrapper")] inner
+           else inner
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -130,7 +146,9 @@ deflistItemToJATS :: PandocMonad m
                      => WriterOptions -> [Inline] -> [[Block]] -> JATS m Doc
 deflistItemToJATS opts term defs = do
   term' <- inlinesToJATS opts term
-  def' <- blocksToJATS opts $ concatMap (map plainToPara) defs
+  def' <- wrappedBlocksToJATS (not . isPara)
+              opts $ concatMap (walk demoteHeaderAndRefs .
+                                map plainToPara) defs
   return $ inTagsIndented "def-item" $
       inTagsSimple "term" term' $$
       inTagsIndented "def" def'
@@ -147,7 +165,8 @@ listItemsToJATS opts markers items =
 listItemToJATS :: PandocMonad m
                => WriterOptions -> Maybe String -> [Block] -> JATS m Doc
 listItemToJATS opts mbmarker item = do
-  contents <- blocksToJATS opts item
+  contents <- wrappedBlocksToJATS (not . isParaOrList) opts
+                 (walk demoteHeaderAndRefs item)
   return $ inTagsIndented "list-item" $
            maybe empty (\lbl -> inTagsSimple "label" (text lbl)) mbmarker
            $$ contents
@@ -377,13 +396,13 @@ inlineToJATS opts SoftBreak
   | writerWrapText opts == WrapPreserve = return cr
   | otherwise = return space
 inlineToJATS opts (Note contents) = do
-  -- TODO technically only <p> tags are allowed inside
   notes <- gets jatsNotes
   let notenum = case notes of
                   (n, _):_ -> n + 1
                   []       -> 1
   thenote <- inTags True "fn" [("id","fn" ++ show notenum)]
-                <$> blocksToJATS opts contents
+                <$> wrappedBlocksToJATS (not . isPara) opts
+                     (walk demoteHeaderAndRefs contents)
   modify $ \st -> st{ jatsNotes = (notenum, thenote) : notes }
   return $ inTags False "xref" [("ref-type", "fn"),
                                 ("rid", "fn" ++ show notenum)]
@@ -466,3 +485,22 @@ inlineToJATS _ (Image (ident,_,kvs) _ (src, tit)) = do
                         "xlink:href", "xlink:role", "xlink:show",
                         "xlink:type"]]
   return $ selfClosingTag "inline-graphic" attr
+
+isParaOrList :: Block -> Bool
+isParaOrList Para{}           = True
+isParaOrList Plain{}          = True
+isParaOrList BulletList{}     = True
+isParaOrList OrderedList{}    = True
+isParaOrList DefinitionList{} = True
+isParaOrList _                = False
+
+isPara :: Block -> Bool
+isPara Para{}  = True
+isPara Plain{} = True
+isPara _       = False
+
+demoteHeaderAndRefs :: Block -> Block
+demoteHeaderAndRefs (Header _ _ ils) = Para ils
+demoteHeaderAndRefs (Div ("refs",cls,kvs) bs) =
+                       Div ("",cls,kvs) bs
+demoteHeaderAndRefs x = x

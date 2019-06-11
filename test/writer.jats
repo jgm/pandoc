@@ -498,10 +498,14 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <term><italic>orange</italic></term>
       <def>
         <p>orange fruit</p>
-        <preformat>{ orange code block }</preformat>
-        <disp-quote>
-          <p>orange block quote</p>
-        </disp-quote>
+        <p specific-use="wrapper">
+          <preformat>{ orange code block }</preformat>
+        </p>
+        <p specific-use="wrapper">
+          <disp-quote>
+            <p>orange block quote</p>
+          </disp-quote>
+        </p>
       </def>
     </def-item>
   </def-list>
@@ -552,14 +556,16 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <term>orange</term>
       <def>
         <p>orange fruit</p>
-        <list list-type="order">
-          <list-item>
-            <p>sublist</p>
-          </list-item>
-          <list-item>
-            <p>sublist</p>
-          </list-item>
-        </list>
+        <p specific-use="wrapper">
+          <list list-type="order">
+            <list-item>
+              <p>sublist</p>
+            </list-item>
+            <list-item>
+              <p>sublist</p>
+            </list-item>
+          </list>
+        </p>
       </def>
     </def-item>
   </def-list>
@@ -870,7 +876,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
     <p>Here’s the long note. This one contains multiple blocks.</p>
     <p>Subsequent blocks are indented to show that they belong to the footnote
     (as with list items).</p>
-    <preformat>  { &lt;code&gt; }</preformat>
+    <p specific-use="wrapper">
+      <preformat>  { &lt;code&gt; }</preformat>
+    </p>
     <p>If you want, you can indent every line, but you can also be lazy and
     just indent the first line of each block.</p>
   </fn>
