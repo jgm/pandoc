@@ -20,16 +20,23 @@ return {
       test(
         'accepts string-indexed table or list of pairs as attributes',
         function ()
-          local attributes_table = {one = '1', two = '2'}
           local attributes_list = pandoc.List:new {{'one', '1'}, {'two', '2'}}
-          local attr_from_table = pandoc.Attr('', {}, attributes_table)
           local attr_from_list = pandoc.Attr('', {}, attributes_list:clone())
-          assert.are_same(
-            pandoc.List:new(attr_from_table.attributes),
-            attributes_list
-          )
+
           assert.are_same(
             pandoc.List:new(attr_from_list.attributes),
+            attributes_list
+          )
+
+          local attributes_table = {one = '1', two = '2'}
+          local attr_from_table = pandoc.Attr('', {}, attributes_table)
+
+          local assoc_list_from_table =
+            pandoc.List:new(attr_from_table.attributes)
+          -- won't work in general, but does in this special case
+          table.sort(assoc_list_from_table, function(x, y) return x[1]<y[1] end)
+          assert.are_same(
+            assoc_list_from_table,
             attributes_list
           )
         end
