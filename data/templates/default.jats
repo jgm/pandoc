@@ -83,14 +83,14 @@ $for(author)$
 $if(author.orcid)$
 <contrib-id contrib-id-type="orcid">$author.orcid$</contrib-id>
 $endif$
-<name>
 $if(author.surname)$
+<name>
 <surname>$author.surname$</surname>
 <given-names>$author.given-names$</given-names>
+</name>
 $else$
 <string-name>$author$</string-name>
 $endif$
-</name>
 $if(author.email)$
 <email>$author.email$</email>
 $endif$
