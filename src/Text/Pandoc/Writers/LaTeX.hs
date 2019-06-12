@@ -1190,10 +1190,11 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
                Right h -> modify (\st -> st{ stHighlighting = True }) >>
                           return (text (T.unpack h))
   case () of
-     _ | writerListings opts  && not (inHeading || inItem) -> listingsCode
+     _ | inHeading || inItem  -> rawCode  -- see #5574
+       | writerListings opts  -> listingsCode
        | isJust (writerHighlightStyle opts) && not (null classes)
-                                                    -> highlightCode
-       | otherwise                                  -> rawCode
+                              -> highlightCode
+       | otherwise            -> rawCode
 inlineToLaTeX (Quoted qt lst) = do
   contents <- inlineListToLaTeX lst
   csquotes <- liftM stCsquotes get
