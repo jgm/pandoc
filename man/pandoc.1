@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "April 5, 2019" "pandoc 2.7.2"
+.TH PANDOC 1 "June 11, 2019" "pandoc 2.7.3"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -338,6 +338,8 @@ HTML5/XHTML polyglot markup)
 \f[C]ipynb\f[R] (Jupyter notebook)
 .IP \[bu] 2
 \f[C]jats\f[R] (JATS XML)
+.IP \[bu] 2
+\f[C]jira\f[R] (Jira wiki markup)
 .IP \[bu] 2
 \f[C]json\f[R] (JSON version of native AST)
 .IP \[bu] 2
@@ -765,6 +767,13 @@ to create one) in the output document.
 This option has no effect unless \f[C]-s/--standalone\f[R] is used, and
 it has no effect on \f[C]man\f[R], \f[C]docbook4\f[R],
 \f[C]docbook5\f[R], or \f[C]jats\f[R] output.
+.RS
+.PP
+Note that if you are producing a PDF via \f[C]ms\f[R], the table of
+contents will appear at the beginning of the document, before the title.
+If you would prefer it to be at the end of the document, use the option
+\f[C]--pdf-engine-opt=--no-toc-relocation\f[R].
+.RE
 .TP
 .B \f[C]--toc-depth=\f[R]\f[I]NUMBER\f[R]
 Specify the number of section levels to include in the table of
@@ -1493,6 +1502,13 @@ author:
 \&...
 \f[R]
 .fi
+.PP
+Note that if you just want to set PDF or HTML metadata, without
+including a title block in the document itself, you can set the
+\f[C]title-meta\f[R], \f[C]author-meta\f[R], and \f[C]date-meta\f[R]
+variables.
+(By default these are set automatically, based on \f[C]title\f[R],
+\f[C]author\f[R], and \f[C]date\f[R].)
 .RE
 .TP
 .B \f[C]subtitle\f[R]
@@ -2649,7 +2665,7 @@ information.
 Identifiers, classes, and key/value attributes are used in HTML and
 HTML-based formats such as EPUB and slidy.
 Identifiers are used for labels and link anchors in the LaTeX, ConTeXt,
-Textile, and AsciiDoc writers.
+Textile, Jira markup, and AsciiDoc writers.
 .PP
 Headings with the class \f[C]unnumbered\f[R] will not be numbered, even
 if \f[C]--number-sections\f[R] is specified.
@@ -4132,7 +4148,7 @@ delimiters (\f[C]$..$\f[R] and \f[C]\[rs][..\[rs]]\f[R]) are omitted.
 .B Texinfo
 It will be rendered inside a \f[C]\[at]math\f[R] command.
 .TP
-.B roff man
+.B roff man, Jira markup
 It will be rendered verbatim without \f[C]$\f[R]\[aq]s.
 .TP
 .B MediaWiki, DokuWiki
@@ -5820,17 +5836,57 @@ T}@T{
 frontmatter
 T}
 T{
+credits
+T}@T{
+frontmatter
+T}
+T{
+keywords
+T}@T{
+frontmatter
+T}
+T{
+imprint
+T}@T{
+frontmatter
+T}
+T{
+contributors
+T}@T{
+frontmatter
+T}
+T{
+other-credits
+T}@T{
+frontmatter
+T}
+T{
+errata
+T}@T{
+frontmatter
+T}
+T{
+revision-history
+T}@T{
+frontmatter
+T}
+T{
+titlepage
+T}@T{
+frontmatter
+T}
+T{
+halftitlepage
+T}@T{
+frontmatter
+T}
+T{
+seriespage
+T}@T{
+frontmatter
+T}
+T{
 foreword
-T}@T{
-frontmatter
-T}
-T{
-halftitle,
-T}@T{
-frontmatter
-T}
-T{
-introduction
 T}@T{
 frontmatter
 T}
@@ -5850,11 +5906,6 @@ T}@T{
 frontmatter
 T}
 T{
-afterword
-T}@T{
-backmatter
-T}
-T{
 appendix
 T}@T{
 backmatter
@@ -5865,12 +5916,12 @@ T}@T{
 backmatter
 T}
 T{
-conclusion
+bibliography
 T}@T{
 backmatter
 T}
 T{
-epigraph
+index
 T}@T{
 backmatter
 T}
