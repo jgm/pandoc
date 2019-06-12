@@ -89,6 +89,12 @@ summary of issues can be found on [GitHub labels].
 Issues related to a specific format are tagged accordingly, e.g. feature request
 or bug reports related to Markdown are labelled with [format:markdown].
 
+Issue triage [![Open Source Helpers](https://www.codetriage.com/jgm/pandoc/badges/users.svg)](https://www.codetriage.com/jgm/pandoc)
+--------------------------------------------------
+
+You can contribute by triaging issues which may include reproducing bug reports or asking for vital information, such as version numbers or reproduction instructions. If you would like to start triaging issues, one easy way to get started is to [subscribe to pandoc on CodeTriage](https://www.codetriage.com/jgm/pandoc).
+
+
 Have an idea for a new feature?
 -------------------------------
 
