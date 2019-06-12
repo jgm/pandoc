@@ -14,7 +14,8 @@ pandoc (2.7.3)
   * Add template variable `curdir` with working directory
     from which pandoc is run (#5464).
 
-  * Markdown reader: don't create implicit reference for empty header (#5549).
+  * Markdown reader: don't create implicit reference for empty header
+    (#5549).
 
   * Muse reader: allow images inside link descriptions (Alexander Krotov).
 
@@ -49,6 +50,8 @@ pandoc (2.7.3)
   * Docx reader: Add support for `w:rtl` (#5545).  Elements with this
     property are put into Span inlines with `dir="rtl"`.
 
+  * DocBook reader: Issue `IgnoredElement` warnings.
+
   * Org reader (Albert Krewinkel):
 
     + Fix planning elements in headers level 3 and higher
@@ -62,10 +65,14 @@ pandoc (2.7.3)
       Symbols like `\alpha` are output plain and unemphasized, not as math.
     + Recognize emphasis after TODO/DONE keyword (#5484).
 
-  * FB2 reader (Alexander Krotov):
+  * FB2 reader:
 
-    + Parse notes (#5493).
-    + Internal improvements.
+    + Skip unknown elements rather than throwing errors (#5560).
+      Sometimes custom elements are used (e.g. `id` element
+      inside `author`); previously the reader would halt with an error.
+      Now it skips the element and issues an `IgnoredElement` warning.
+    + Parse notes (#5493, Alexander Krotov).
+    + Internal improvements (Alexander Krotov).
 
   * OpenDocument writer:  Roll back automatic figure/table numbering
     (#5474).  This was added in pandoc 2.7.2, but it makes it impossible
@@ -89,7 +96,6 @@ pandoc (2.7.3)
       is valid according to the spec. However, Amazon’s kindlegen software
       relies on this attribute on `<link>` elements when detecting
       stylesheets to include.
-
 
   * HTML writer:
 
@@ -120,6 +126,9 @@ pandoc (2.7.3)
     + Don't produce columns environment unless beamer (#5485).
     + Fix footnote in image caption.  Regression: the fix for #4683 broke
       this case.
+    + Don't highlight code in headings (#5574).  This causes
+      compilation errors.
+    + Use `\mbox` to get proper behavior inside `\sout` (#5529).
 
   * EPUB writer: Fix document section assignments (#5546).
     For example, introduction should go in bodymatter, not frontmatter, and
@@ -156,14 +165,26 @@ pandoc (2.7.3)
       To get a pure literal code span, use `` `+a__b__c+` ``.
     + Use proper smart quotes with asciidoctor (#5487).
       Asciidoctor has a different format for smart quotes.
+    + Use doubled ## when necessary for spans (#5566).
+    + Ensure correct nesting of strong/emph (#5565): strong
+      must be the outer element.
 
   * JATS writer:
 
+    + Wrap elements with p when needed (#5570).  The JATS spec restricts
+      what elements can go inside `fn` and `list-item`.  So we wrap other
+      elements inside `<p specific-use="wrapper">` when needed.
     + Properly handle footnotes (#5511) according to "best practice."
       (Group them at the end in `<fn-group>` and use `<xref>` elements
       to link them.)
     + Fix citations with PMID so they validate (#5481).  This includes
       an update to data/jats.csl.
+    + Ensure validity of `<pub-date>` by parsing the date and
+      extracting year, month, and day, as expected.  Also add an
+      iso-8601-date attribute automatically.
+    + Don't use `<break>` element for LineBreak. It is only
+      allowed in a few special contexts, and not in `<p>` elements.
+    + Don't make `<string-name>` a child of `<string>`, which is illegal.
 
   * FB2 writer:
 
@@ -186,6 +207,11 @@ pandoc (2.7.3)
     introduced module `pandoc.types`, allowing users to create version
     objects in scripts.
 
+  * pandoc lua module (Albert Krewinkel):
+
+    - Fix deletion of nonexistent attributes (#5569).
+    - Better tests for Attr and AttributeList.
+
   * pandoc.mediabag lua module (Albert Krewinkel):
 
     + Add function `delete` for deleting a single item.
@@ -207,6 +233,10 @@ pandoc (2.7.3)
       treat tables with `<p>` inside cells as simple.
     + `metaToJSON`: treat digits starting with 0 as a string, not a number
       (#5479).  This fixes a regression in YAML metadata in pandoc 2.7.2.
+
+  * Text.Pandoc.Logging: Add `IgnoredElement` constructor for
+    `LogMessage`.  `SkippedConetnt` doesn't work for some XML-based
+    readers which don't have access to parsec source positions.
 
   * Text.Pandoc.Asciify: Add Turkish undotted-i (#5433, Mauro Bieg).
 
