@@ -14,7 +14,10 @@
 
 Marshaling/unmarshaling instances for document AST elements.
 -}
-module Text.Pandoc.Lua.Marshaling.AST () where
+module Text.Pandoc.Lua.Marshaling.AST
+  ( LuaAttr (..)
+  , LuaListAttributes (..)
+  ) where
 
 import Prelude
 import Control.Applicative ((<|>))

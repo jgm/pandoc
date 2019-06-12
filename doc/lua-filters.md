@@ -644,6 +644,20 @@ This section describes the types of objects available to Lua
 filters. See the [pandoc module](#module-pandoc}) for functions
 to create these objects.
 
+## Shared Properties
+
+### `clone`
+
+`clone ()`
+
+All instances of the types listed here, with the exception of
+read-only objects, can be cloned via the `clone()` method.
+
+Usage:
+
+    local emph = pandoc.Emph {pandoc.Str 'important'}
+    local cloned_emph = emph:clone()  -- note the colon
+
 ## Pandoc {#type-ref-pandoc}
 
 Pandoc document
@@ -1246,6 +1260,7 @@ Object equality is determined via
 `delimiter`
 :   delimiter of list numbers; one of `DefaultDelim`, `Period`,
     `OneParen`, and `TwoParens` (string)
+
 
 ## Hierarchical Element {#type-ref-Element}
 

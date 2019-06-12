@@ -28,6 +28,7 @@ local M = {}
 M.List = require 'pandoc.List'
 M.mediabag = require 'pandoc.mediabag'
 M.system = require 'pandoc.system'
+M.types = require 'pandoc.types'
 M.utils = require 'pandoc.utils'
 M.text = require 'text'
 
@@ -280,6 +281,7 @@ end
 -- @tparam      {Block,...} blocks      document content
 -- @tparam[opt] Meta        meta        document meta data
 M.Pandoc = AstElement:make_subtype'Pandoc'
+M.Pandoc.behavior.clone = M.types.clone.Pandoc
 function M.Pandoc:new (blocks, meta)
   return {
     blocks = ensureList(blocks),
@@ -299,6 +301,7 @@ M.Doc = M.Pandoc
 -- @function Meta
 -- @tparam meta table table containing document meta information
 M.Meta = AstElement:make_subtype'Meta'
+M.Meta.behavior.clone = M.types.clone.Meta
 function M.Meta:new (meta) return meta end
 
 
@@ -306,6 +309,7 @@ function M.Meta:new (meta) return meta end
 -- MetaValue
 -- @section MetaValue
 M.MetaValue = AstElement:make_subtype('MetaValue')
+M.MetaValue.behavior.clone = M.types.clone.MetaValue
 
 --- Meta blocks
 -- @function MetaBlocks
@@ -369,6 +373,7 @@ end
 
 --- Block elements
 M.Block = AstElement:make_subtype'Block'
+M.Block.behavior.clone = M.types.clone.Block
 
 --- Creates a block quote element
 -- @function BlockQuote
@@ -542,6 +547,7 @@ M.Table = M.Block:create_constructor(
 
 --- Inline element class
 M.Inline = AstElement:make_subtype'Inline'
+M.Inline.behavior.clone = M.types.clone.Inline
 
 --- Creates a Cite inline element
 -- @function Cite
@@ -898,6 +904,7 @@ function M.Attr:new (identifier, classes, attributes)
   attributes = setmetatable(to_alist(attributes or {}), AttributeList)
   return {identifier, classes, attributes}
 end
+M.Attr.behavior.clone = M.types.clone.Attr
 M.Attr.behavior._field_names = {identifier = 1, classes = 2, attributes = 3}
 M.Attr.behavior.__eq = utils.equals
 M.Attr.behavior.__index = function(t, k)
@@ -922,6 +929,7 @@ end
 
 -- Citation
 M.Citation = AstElement:make_subtype'Citation'
+M.Citation.behavior.clone = M.types.clone.Citation
 
 --- Creates a single citation.
 -- @function Citation
@@ -944,6 +952,7 @@ end
 
 -- ListAttributes
 M.ListAttributes = AstElement:make_subtype 'ListAttributes'
+M.ListAttributes.behavior.clone = M.types.clone.ListAttributes
 
 --- Creates a set of list attributes.
 -- @function ListAttributes
