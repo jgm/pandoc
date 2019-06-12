@@ -20,7 +20,9 @@ import Control.Monad.State
 import Data.Char (toLower)
 import Data.Generics (everywhere, mkT)
 import Data.List (isSuffixOf, partition, isPrefixOf)
+import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
+import Data.Time (toGregorian, Day, parseTimeM, defaultTimeLocale, formatTime)
 import Data.Text (Text)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
@@ -88,8 +90,21 @@ docToJATS opts (Pandoc meta blocks) = do
   backs <- mapM (elementToJATS opts' startLvl) backElements
   let fns = inTagsIndented "fn-group" $ vcat notes
   let back = render' $ vcat backs $$ fns
+  let date = case  getField "date" metadata -- an object
+               `mplus`
+                   (getField "date" metadata >>= parseDate) of
+               Nothing  -> mempty
+               Just day ->
+                 let (y,m,d) = toGregorian day
+                 in  M.insert ("year" :: String) (show y)
+                      $ M.insert "month" (show m)
+                      $ M.insert "day" (show d)
+                      $ M.insert "iso-8601"
+                         (formatTime defaultTimeLocale "%F" day)
+                      $ mempty
   let context = defField "body" main
               $ defField "back" back
+              $ resetField ("date" :: String) date
               $ defField "mathml" (case writerHTMLMathMethod opts of
                                         MathML -> True
                                         _      -> False) metadata
@@ -505,3 +520,10 @@ demoteHeaderAndRefs (Header _ _ ils) = Para ils
 demoteHeaderAndRefs (Div ("refs",cls,kvs) bs) =
                        Div ("",cls,kvs) bs
 demoteHeaderAndRefs x = x
+
+parseDate :: String -> Maybe Day
+parseDate s = msum (map (\fs -> parsetimeWith fs s) formats) :: Maybe Day
+  where parsetimeWith = parseTimeM True defaultTimeLocale
+        formats = ["%x","%m/%d/%Y", "%D","%F", "%d %b %Y",
+                    "%e %B %Y", "%b. %e, %Y", "%B %e, %Y",
+                    "%Y%m%d", "%Y%m", "%Y"]

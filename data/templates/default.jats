@@ -120,22 +120,14 @@ $endif$
 </author-notes>
 $endif$
 $if(date)$
-$if(date.iso-8601)$
-<pub-date pub-type="epub" iso-8601-date="$date.iso-8601$">
-$else$
-<pub-date pub-type="epub">
-$endif$
+<pub-date pub-type="epub"$if(date.iso-8601)$ iso-8601-date="$date.iso-8601$"$endif$>
 $if(date.day)$
-<day>$pub-date.day$</day>
+<day>$date.day$</day>
 $endif$
 $if(date.month)$
-<month>$pub-date.month$</month>
+<month>$date.month$</month>
 $endif$
-$if(date.year)$
-<year>$pub-date.year$</year>
-$else$
-<string-date>$date$</string-date>
-$endif$
+<year>$date.year$</year>
 </pub-date>
 $endif$
 $if(article.volume)$
