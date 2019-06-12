@@ -10,7 +10,6 @@ $else$
 <article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.0" article-type="other">
 $endif$
 <front>
-$if(journal)$
 <journal-meta>
 $if(journal.publisher-id)$
 <journal-id journal-id-type="publisher-id">$journal.publisher-id$</journal-id>
@@ -42,7 +41,6 @@ $if(journal.publisher-loc)$
 $endif$
 </publisher>
 </journal-meta>
-$endif$
 <article-meta>
 $if(article.publisher-id)$
 <article-id pub-id-type="publisher-id">$article.publisher-id$</article-id>

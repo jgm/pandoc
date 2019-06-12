@@ -3,6 +3,13 @@
                   "JATS-journalpublishing1.dtd">
 <article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.0" article-type="other">
 <front>
+<journal-meta>
+<journal-title-group>
+</journal-title-group>
+<publisher>
+<publisher-name></publisher-name>
+</publisher>
+</journal-meta>
 <article-meta>
 <title-group>
 <article-title>Pandoc Test Suite</article-title>
