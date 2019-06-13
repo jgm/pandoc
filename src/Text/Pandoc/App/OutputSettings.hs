@@ -165,7 +165,16 @@ optToOutputSettings opts = do
                                    "" -> tp <.> format
                                    _  -> tp
                     Just . UTF8.toString <$>
-                          ((fst <$> fetchItem tp') `catchError`
+                          ((do surl <- stSourceURL <$> getCommonState
+                               -- we don't want to look for templates remotely
+                               -- unless the full URL is specified:
+                               modifyCommonState $ \st -> st{
+                                  stSourceURL = Nothing }
+                               (bs, _) <- fetchItem tp'
+                               modifyCommonState $ \st -> st{
+                                  stSourceURL = surl }
+                               return bs)
+                           `catchError`
                            (\e ->
                                case e of
                                     PandocResourceNotFound _ ->
