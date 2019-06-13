@@ -1011,7 +1011,7 @@
     </text:list-style>
     <style:style style:name="T1" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T2" style:family="text"><style:text-properties fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold" /></style:style>
-    <style:style style:name="T3" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold" /></style:style>
+    <style:style style:name="T3" style:family="text"><style:text-properties fo:font-style="italic" fo:font-weight="bold" style:font-style-asian="italic" style:font-style-complex="italic" style:font-weight-asian="bold" style:font-weight-complex="bold" /></style:style>
     <style:style style:name="T4" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
     <style:style style:name="T5" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" style:text-line-through-style="solid" /></style:style>
     <style:style style:name="T6" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>

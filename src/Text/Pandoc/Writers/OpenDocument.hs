@@ -18,7 +18,7 @@ import Prelude
 import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Strict hiding (when)
 import Data.Char (chr)
-import Data.List (sortBy)
+import Data.List (sortBy, foldl')
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
 import Data.Ord (comparing)
@@ -159,7 +159,8 @@ inTextStyle d = do
                        [("style:name", styleName)
                        ,("style:family", "text")]
                        $ selfClosingTag "style:text-properties"
-                          (concatMap textStyleAttr (Set.toList at)))
+                          (sortBy (comparing fst) . Map.toList
+                                $ foldl' textStyleAttr mempty (Set.toList at)))
               return $ inTags False
                   "text:span" [("text:style-name",styleName)] d
 
@@ -692,25 +693,27 @@ data TextStyle = Italic
                | Language Lang
                deriving ( Eq,Ord )
 
-textStyleAttr :: TextStyle -> [(String,String)]
-textStyleAttr s
-    | Italic <- s = [("fo:font-style"                ,"italic"    )
-                    ,("style:font-style-asian"       ,"italic"    )
-                    ,("style:font-style-complex"     ,"italic"    )]
-    | Bold   <- s = [("fo:font-weight"               ,"bold"      )
-                    ,("style:font-weight-asian"      ,"bold"      )
-                    ,("style:font-weight-complex"    ,"bold"      )]
-    | Strike <- s = [("style:text-line-through-style", "solid"    )]
-    | Sub    <- s = [("style:text-position"          ,"sub 58%"   )]
-    | Sup    <- s = [("style:text-position"          ,"super 58%" )]
-    | SmallC <- s = [("fo:font-variant"              ,"small-caps")]
-    | Pre    <- s = [("style:font-name"              ,"Courier New")
-                    ,("style:font-name-asian"        ,"Courier New")
-                    ,("style:font-name-complex"      ,"Courier New")]
+textStyleAttr :: Map.Map String String
+              -> TextStyle
+              -> Map.Map String String
+textStyleAttr m s
+    | Italic <- s = Map.insert "fo:font-style" "italic" .
+                    Map.insert "style:font-style-asian" "italic" .
+                    Map.insert "style:font-style-complex" "italic" $ m
+    | Bold   <- s = Map.insert "fo:font-weight" "bold" .
+                    Map.insert "style:font-weight-asian" "bold" .
+                    Map.insert "style:font-weight-complex" "bold" $ m
+    | Strike <- s = Map.insert "style:text-line-through-style" "solid" m
+    | Sub    <- s = Map.insert "style:text-position" "sub 58%" m
+    | Sup    <- s = Map.insert "style:text-position" "super 58%" m
+    | SmallC <- s = Map.insert "fo:font-variant" "small-caps" m
+    | Pre    <- s = Map.insert "style:font-name" "Courier New" .
+                    Map.insert "style:font-name-asian" "Courier New" .
+                    Map.insert "style:font-name-complex" "Courier New" $ m
     | Language lang <- s
-                  = [("fo:language"                  ,langLanguage lang)
-                    ,("fo:country"                   ,langRegion lang)]
-    | otherwise   = []
+                  = Map.insert "fo:language" (langLanguage lang) .
+                    Map.insert "fo:country" (langRegion lang) $ m
+    | otherwise   = m
 
 withLangFromAttr :: PandocMonad m => Attr -> OD m a -> OD m a
 withLangFromAttr (_,_,kvs) action =
