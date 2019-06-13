@@ -105,6 +105,11 @@ $endif$
 \setupxtable[body][]
 \setupxtable[foot][bottomframe=on]
 
+$if(includesource)$
+$for(sourcefile)$
+\attachment[file=$curdir$/$sourcefile$,method=hidden]
+$endfor$
+$endif$
 $for(header-includes)$
 $header-includes$
 $endfor$
