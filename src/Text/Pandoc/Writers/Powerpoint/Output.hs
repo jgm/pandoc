@@ -48,6 +48,14 @@ import Text.Pandoc.Writers.Math (convertMath)
 import Text.Pandoc.Writers.Powerpoint.Presentation
 import Skylighting (fromColor)
 
+-- |The 'EMU' type is used to specify sizes in English Metric Units.
+type EMU = Integer
+
+-- |The 'pixelsToEmu' function converts a size in pixels to one
+-- in English Metric Units. It assumes a DPI of 72.
+pixelsToEmu :: Pixels -> EMU
+pixelsToEmu = (12700 *)
+
 -- This populates the global ids map with images already in the
 -- template, so the ids won't be used by images introduced by the
 -- user.
@@ -147,6 +155,18 @@ runP :: Monad m => WriterEnv -> WriterState -> P m a -> m a
 runP env st p = evalStateT (runReaderT p env) st
 
 --------------------------------------------------------------------
+
+monospaceFont :: Monad m => P m String
+monospaceFont = do
+  vars <- writerVariables <$> asks envOpts
+  case lookup "monofont" vars of
+    Just s -> return s
+    Nothing -> return "Courier"
+
+fontSizeAttributes :: Monad m => RunProps -> P m [(String, String)]
+fontSizeAttributes RunProps { rPropForceSize = Just sz } =
+  return [("sz", (show $ sz * 100))]
+fontSizeAttributes _ = return []
 
 copyFileToArchive :: PandocMonad m => Archive -> FilePath -> P m Archive
 copyFileToArchive arch fp = do
@@ -721,13 +741,8 @@ makePicElements layout picProps mInfo alt = do
 paraElemToElements :: PandocMonad m => ParaElem -> P m [Element]
 paraElemToElements Break = return [mknode "a:br" [] ()]
 paraElemToElements (Run rpr s) = do
-  let sizeAttrs = case rPropForceSize rpr of
-                    Just n -> [("sz", (show $ n * 100))]
-                    Nothing -> if rPropCode rpr
-                               -- hardcoded size for code for now
-                               then [("sz", "1800")]
-                               else []
-      attrs = sizeAttrs ++
+  sizeAttrs <- fontSizeAttributes rpr
+  let attrs = sizeAttrs ++
         (if rPropBold rpr then [("b", "1")] else []) ++
         (if rPropItalics rpr then [("i", "1")] else []) ++
         (if rPropUnderline rpr then [("u", "sng")] else []) ++
@@ -773,8 +788,9 @@ paraElemToElements (Run rpr s) = do
                                        ]
                             _ -> []
                         Nothing -> []
+  codeFont <- monospaceFont
   let codeContents = if rPropCode rpr
-                     then [mknode "a:latin" [("typeface", "Courier")] ()]
+                     then [mknode "a:latin" [("typeface", codeFont)] ()]
                      else []
   let propContents = linkProps ++ colorContents ++ codeContents
   return [mknode "a:r" [] [ mknode "a:rPr" attrs $ propContents
@@ -821,7 +837,11 @@ paragraphToElement par = do
   let
     attrs = [("lvl", show $ pPropLevel $ paraProps par)] ++
             (case pPropMarginLeft (paraProps par) of
-               Just px -> [("marL", show $ 12700 * px), ("indent", "0")]
+               Just px -> [("marL", show $ pixelsToEmu px)]
+               Nothing -> []
+            ) ++
+            (case pPropIndent (paraProps par) of
+               Just px -> [("indent", show $ pixelsToEmu px)]
                Nothing -> []
             ) ++
             (case pPropAlign (paraProps par) of
