@@ -895,6 +895,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("vref", rawInlineOr "vref" $ doref "ref+page")  -- from varioref.sty
   , ("eqref", rawInlineOr "eqref" $ doref "eqref")   -- from amsmath.sty
   , ("mbox", rawInlineOr "mbox" $ spanWith ("",["mbox"],[]) . dropLineBreaks <$> tok)
+  , ("hbox", rawInlineOr "hbox" $ spanWith ("",["hbox"],[]) . dropLineBreaks <$> tok)
   , ("lettrine", optional opt >> extractSpaces (spanWith ("",["lettrine"],[])) <$> tok)
   , ("(", mathInline . toksToString <$> manyTill anyTok (controlSeq ")"))
   , ("[", mathDisplay . toksToString <$> manyTill anyTok (controlSeq "]"))
