@@ -1557,6 +1557,15 @@ These variables change the appearance of PDF slides using [`beamer`].
 `titlegraphic`
 :   image for title slide
 
+Variables for PowerPoint slide shows
+--------------------------------------
+
+These variables control the visual aspects of a slide show that are not easily
+controled via templates.
+
+`monofont`
+:   font to use for code.
+
 Variables for LaTeX
 -------------------
 

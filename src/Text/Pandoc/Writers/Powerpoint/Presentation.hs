@@ -33,6 +33,7 @@ module Text.Pandoc.Writers.Powerpoint.Presentation ( documentToPresentation
                                                    , TableProps(..)
                                                    , Strikethrough(..)
                                                    , Capitals(..)
+                                                   , Pixels
                                                    , PicProps(..)
                                                    , URL
                                                    , TeXString(..)
@@ -226,6 +227,7 @@ data ParaProps = ParaProps { pPropMarginLeft :: Maybe Pixels
                            , pPropBullet :: Maybe BulletType
                            , pPropAlign :: Maybe Algnment
                            , pPropSpaceBefore :: Maybe Pixels
+                           , pPropIndent :: Maybe Pixels
                            } deriving (Show, Eq)
 
 instance Default ParaProps where
@@ -235,6 +237,7 @@ instance Default ParaProps where
                   , pPropBullet = Nothing
                   , pPropAlign = Nothing
                   , pPropSpaceBefore = Nothing
+                  , pPropIndent = Just 0
                   }
 
 newtype TeXString = TeXString {unTeXString :: String}
@@ -411,18 +414,23 @@ blockToParagraphs (LineBlock ilsList) = do
   pProps <- asks envParaProps
   return [Paragraph pProps parElems]
 -- TODO: work out the attributes
-blockToParagraphs (CodeBlock attr str) =
-  local (\r -> r{ envParaProps = def{pPropMarginLeft = Just 100}
+blockToParagraphs (CodeBlock attr str) = do
+  pProps <- asks envParaProps
+  local (\r -> r{ envParaProps = def{ pPropMarginLeft = Nothing
+                                    , pPropBullet = Nothing
+                                    , pPropLevel = pPropLevel pProps
+                                    , pPropIndent = Just 0
+                                    }
                 , envRunProps = (envRunProps r){rPropCode = True}}) $ do
-  mbSty <- writerHighlightStyle <$> asks envOpts
-  synMap <- writerSyntaxMap <$> asks envOpts
-  case mbSty of
-    Just sty ->
-      case highlight synMap (formatSourceLines sty) attr str of
-        Right pElems -> do pProps <- asks envParaProps
-                           return [Paragraph pProps pElems]
-        Left _ -> blockToParagraphs $ Para [Str str]
-    Nothing -> blockToParagraphs $ Para [Str str]
+    mbSty <- writerHighlightStyle <$> asks envOpts
+    synMap <- writerSyntaxMap <$> asks envOpts
+    case mbSty of
+      Just sty ->
+        case highlight synMap (formatSourceLines sty) attr str of
+          Right pElems -> do pPropsNew <- asks envParaProps
+                             return [Paragraph pPropsNew pElems]
+          Left _ -> blockToParagraphs $ Para [Str str]
+      Nothing -> blockToParagraphs $ Para [Str str]
 -- We can't yet do incremental lists, but we should render a
 -- (BlockQuote List) as a list to maintain compatibility with other
 -- formats.
@@ -431,7 +439,9 @@ blockToParagraphs (BlockQuote (blk : blks)) | isListType blk = do
   ps' <- blockToParagraphs $ BlockQuote blks
   return $ ps ++ ps'
 blockToParagraphs (BlockQuote blks) =
-  local (\r -> r{ envParaProps = (envParaProps r){pPropMarginLeft = Just 100}
+  local (\r -> r{ envParaProps = (envParaProps r){ pPropMarginLeft = Just 100
+                                                 , pPropIndent = Just 0
+                                                 }
                 , envRunProps = (envRunProps r){rPropForceSize = Just blockQuoteSize}})$
   concatMapM blockToParagraphs blks
 -- TODO: work out the format
@@ -455,6 +465,7 @@ blockToParagraphs (BulletList blksLst) = do
                     , envParaProps = pProps{ pPropLevel = lvl + 1
                                            , pPropBullet = Just Bullet
                                            , pPropMarginLeft = Nothing
+                                           , pPropIndent = Nothing
                                            }}) $
     concatMapM multiParBullet blksLst
 blockToParagraphs (OrderedList listAttr blksLst) = do
@@ -464,6 +475,7 @@ blockToParagraphs (OrderedList listAttr blksLst) = do
                     , envParaProps = pProps{ pPropLevel = lvl + 1
                                            , pPropBullet = Just (AutoNumbering listAttr)
                                            , pPropMarginLeft = Nothing
+                                           , pPropIndent = Nothing
                                            }}) $
     concatMapM multiParBullet blksLst
 blockToParagraphs (DefinitionList entries) = do
