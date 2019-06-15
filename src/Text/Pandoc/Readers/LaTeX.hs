@@ -1640,6 +1640,12 @@ looseItem = do
   skipopts
   return mempty
 
+epigraph :: PandocMonad m => LP m Blocks
+epigraph = do
+  p1 <- grouped blocks
+  p2 <- grouped blocks
+  return $ divWith ("", ["epigraph"], []) (fromList $ concat $ map toList [p1, p2])
+
 resetCaption :: PandocMonad m => LP m ()
 resetCaption = updateState $ \st -> st{ sCaption = (Nothing, Nothing) }
 
@@ -1795,6 +1801,8 @@ blockCommands = M.fromList
    , ("usepackage", include "usepackage")
    -- preamble
    , ("PackageError", mempty <$ (braced >> braced >> braced))
+   -- epigraph package
+   , ("epigraph", epigraph)
    ]
 
 
