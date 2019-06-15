@@ -61,6 +61,7 @@ import qualified Text.Pandoc.Translations as Translations
 import Text.Pandoc.Walk
 import qualified Text.Pandoc.Builder as B
 import qualified Data.Text.Normalize as Normalize
+import qualified Data.Sequence
 
 -- for debugging:
 -- import Text.Pandoc.Extensions (getDefaultExtensions)
@@ -893,6 +894,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("cref", rawInlineOr "cref" $ doref "ref")       -- from cleveref.sty
   , ("vref", rawInlineOr "vref" $ doref "ref+page")  -- from varioref.sty
   , ("eqref", rawInlineOr "eqref" $ doref "eqref")   -- from amsmath.sty
+  , ("mbox", rawInlineOr "mbox" $ spanWith ("",["mbox"],[]) . dropLineBreaks <$> tok)
   , ("lettrine", optional opt >> extractSpaces (spanWith ("",["lettrine"],[])) <$> tok)
   , ("(", mathInline . toksToString <$> manyTill anyTok (controlSeq ")"))
   , ("[", mathDisplay . toksToString <$> manyTill anyTok (controlSeq "]"))
@@ -1286,6 +1288,12 @@ rawInlineOr name' fallback = do
   if parseRaw
      then rawInline "latex" <$> getRawCommand name' ("\\" <> name')
      else fallback
+
+dropLineBreaks :: Inlines -> Inlines
+dropLineBreaks = Many . Data.Sequence.filter isNotLineBreak . unMany
+    where
+        isNotLineBreak LineBreak = False
+        isNotLineBreak _         = True
 
 getRawCommand :: PandocMonad m => Text -> Text -> LP m String
 getRawCommand name txt = do
