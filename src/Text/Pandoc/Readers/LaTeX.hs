@@ -1644,7 +1644,7 @@ epigraph :: PandocMonad m => LP m Blocks
 epigraph = do
   p1 <- grouped blocks
   p2 <- grouped blocks
-  return $ divWith ("", ["epigraph"], []) (fromList $ concat $ map toList [p1, p2])
+  return $ divWith ("", ["epigraph"], []) (p1 <> p2)
 
 resetCaption :: PandocMonad m => LP m ()
 resetCaption = updateState $ \st -> st{ sCaption = (Nothing, Nothing) }
