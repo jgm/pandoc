@@ -623,7 +623,7 @@ blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
      then blockToLaTeX (RawBlock "latex" "\\pause")
      else inlineListToLaTeX [Str ".",Space,Str ".",Space,Str "."]
 blockToLaTeX (Para lst) =
-  inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
+  inlineListToLaTeX $ lst
 blockToLaTeX (LineBlock lns) =
   blockToLaTeX $ linesToPara lns
 blockToLaTeX (BlockQuote lst) = do
@@ -1240,7 +1240,7 @@ inlineToLaTeX il@(RawInline f str) = do
 inlineToLaTeX LineBreak = do
   emptyLine <- gets stEmptyLine
   setEmptyLine True
-  return $ (if emptyLine then "~" else "") <> "\\\\" <> cr
+  return $ (if emptyLine then "~" else "") <> "\\hfill\\break" <> cr
 inlineToLaTeX SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
   case wrapText of
