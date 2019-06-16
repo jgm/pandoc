@@ -29,7 +29,7 @@ import Prelude
 import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (isDigit, isLetter, toLower, toUpper)
+import Data.Char (isDigit, isLetter, toLower, toUpper, chr)
 import Data.Default
 import Data.List (intercalate, isPrefixOf)
 import qualified Data.Map as M
@@ -61,7 +61,6 @@ import qualified Text.Pandoc.Translations as Translations
 import Text.Pandoc.Walk
 import qualified Text.Pandoc.Builder as B
 import qualified Data.Text.Normalize as Normalize
-import qualified Data.Sequence
 
 -- for debugging:
 -- import Text.Pandoc.Extensions (getDefaultExtensions)
@@ -894,8 +893,8 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("cref", rawInlineOr "cref" $ doref "ref")       -- from cleveref.sty
   , ("vref", rawInlineOr "vref" $ doref "ref+page")  -- from varioref.sty
   , ("eqref", rawInlineOr "eqref" $ doref "eqref")   -- from amsmath.sty
-  , ("mbox", rawInlineOr "mbox" $ spanWith ("",["mbox"],[]) . dropLineBreaks <$> tok)
-  , ("hbox", rawInlineOr "hbox" $ spanWith ("",["hbox"],[]) . dropLineBreaks <$> tok)
+  , ("mbox", rawInlineOr "mbox" $ processHBox <$> tok)
+  , ("hbox", rawInlineOr "hbox" $ processHBox <$> tok)
   , ("lettrine", optional opt >> extractSpaces (spanWith ("",["lettrine"],[])) <$> tok)
   , ("(", mathInline . toksToString <$> manyTill anyTok (controlSeq ")"))
   , ("[", mathDisplay . toksToString <$> manyTill anyTok (controlSeq "]"))
@@ -1290,11 +1289,13 @@ rawInlineOr name' fallback = do
      then rawInline "latex" <$> getRawCommand name' ("\\" <> name')
      else fallback
 
-dropLineBreaks :: Inlines -> Inlines
-dropLineBreaks = Many . Data.Sequence.filter isNotLineBreak . unMany
-    where
-        isNotLineBreak LineBreak = False
-        isNotLineBreak _         = True
+processHBox :: Inlines -> Inlines
+processHBox = walk convert
+  where
+    convert Space     = Str [chr 160] -- non-breakable space
+    convert SoftBreak = Str [chr 160] -- non-breakable space
+    convert LineBreak = Str ""
+    convert x         = x
 
 getRawCommand :: PandocMonad m => Text -> Text -> LP m String
 getRawCommand name txt = do
