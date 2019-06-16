@@ -26,7 +26,7 @@ import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL (ByteString)
 import Data.List (isInfixOf, isPrefixOf)
 import qualified Data.Map as M (Map, elems, fromList, lookup)
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (fromMaybe, mapMaybe, isJust)
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Network.URI (unEscapeString)
@@ -131,11 +131,15 @@ parseManifest content = do
   manifest <- findElementE (dfName "manifest") content
   let items = findChildren (dfName "item") manifest
   r <- mapM parseItem items
-  let cover = findAttr (emptyName "href") =<< filterChild findCover manifest
+  let coverEpub3 = findAttr (emptyName "href") =<< filterChild findCoverEpub3 manifest
+  let coverEpub2 = findAttr (emptyName "href") =<< filterChild findCoverEpub2 manifest
+  let cover = if (isJust coverEpub3) then coverEpub3 else coverEpub2
   return (cover, M.fromList r)
   where
-    findCover e = maybe False (isInfixOf "cover")
-                  (findAttr (emptyName "id") e)
+    findCoverEpub3 e = maybe False (isInfixOf "cover-image")
+                      (findAttr (emptyName "properties") e)
+    findCoverEpub2 e = maybe False (isInfixOf "cover")
+                      (findAttr (emptyName "id") e)
     parseItem e = do
       uid <- findAttrE (emptyName "id") e
       href <- findAttrE (emptyName "href") e
