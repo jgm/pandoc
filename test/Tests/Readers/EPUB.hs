@@ -44,10 +44,15 @@ featuresBag = [("img/check.gif","image/gif",1340)
               ,("img/multiscripts_and_greek_alphabet.png","image/png",10060)
               ]
 
+epub2CoverBag :: [(String, String, Int)]
+epub2CoverBag = [("wasteland-cover.jpg","image/jpeg",103477)]
+
 tests :: [TestTree]
 tests =
   [ testGroup "EPUB Mediabag"
     [ testCase "features bag"
-      (testMediaBag "epub/img.epub" featuresBag)
+      (testMediaBag "epub/img.epub" featuresBag),
+      testCase "EPUB2 cover bag"
+      (testMediaBag "epub/wasteland.epub" featuresBag)
     ]
   ]
