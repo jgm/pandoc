@@ -21,7 +21,7 @@ import Prelude
 import Codec.Archive.Zip (Archive (..), Entry, findEntryByPath, fromEntry,
                           toArchiveOrFail)
 import Control.DeepSeq (NFData, deepseq)
-import Control.Monad (guard, liftM)
+import Control.Monad (guard, liftM, liftM2)
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL (ByteString)
 import Data.List (isInfixOf, isPrefixOf)
@@ -62,8 +62,8 @@ archiveToEPUB :: (PandocMonad m) => ReaderOptions -> Archive -> m Pandoc
 archiveToEPUB os archive = do
   -- root is path to folder with manifest file in
   (root, content) <- getManifest archive
-  meta  <- parseMeta content
-  (cover, items) <- parseManifest content
+  (coverId, meta) <- parseMeta content
+  (cover, items)  <- parseManifest content coverId
   -- No need to collapse here as the image path is from the manifest file
   let coverDoc = fromMaybe mempty (imageToPandoc <$> cover)
   spine <- parseSpine items content
@@ -124,10 +124,12 @@ imageToPandoc s = B.doc . B.para $ B.image s "" mempty
 imageMimes :: [MimeType]
 imageMimes = ["image/gif", "image/jpeg", "image/png"]
 
+type CoverId = String
+
 type CoverImage = FilePath
 
-parseManifest :: (PandocMonad m) => Element -> m (Maybe CoverImage, Items)
-parseManifest content = do
+parseManifest :: (PandocMonad m) => Element -> Maybe CoverId -> m (Maybe CoverImage, Items)
+parseManifest content coverId = do
   manifest <- findElementE (dfName "manifest") content
   let items = findChildren (dfName "item") manifest
   r <- mapM parseItem items
@@ -136,6 +138,8 @@ parseManifest content = do
   where
     findCover e = maybe False (isInfixOf "cover-image")
                   (findAttr (emptyName "properties") e)
+               || fromMaybe False
+                  (liftM2 (==) coverId (findAttr (emptyName "id") e))
     parseItem e = do
       uid <- findAttrE (emptyName "id") e
       href <- findAttrE (emptyName "href") e
@@ -153,14 +157,17 @@ parseSpine is e = do
       guard linear
       findAttr (emptyName "idref") ref
 
-parseMeta :: PandocMonad m => Element -> m Meta
+parseMeta :: PandocMonad m => Element -> m (Maybe CoverId, Meta)
 parseMeta content = do
   meta <- findElementE (dfName "metadata") content
   let dcspace (QName _ (Just "http://purl.org/dc/elements/1.1/") (Just "dc")) = True
       dcspace _ = False
   let dcs = filterChildrenName dcspace meta
   let r = foldr parseMetaItem nullMeta dcs
-  return r
+  let coverId = findAttr (emptyName "content") =<< filterChild findCover meta
+  return (coverId, r)
+  where
+    findCover e = maybe False (== "cover") (findAttr (emptyName "name") e)
 
 -- http://www.idpf.org/epub/30/spec/epub30-publications.html#sec-metadata-elem
 parseMetaItem :: Element -> Meta -> Meta
