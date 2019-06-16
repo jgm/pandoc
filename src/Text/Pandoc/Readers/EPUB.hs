@@ -134,7 +134,7 @@ parseManifest content = do
   let cover = findAttr (emptyName "href") =<< filterChild findCover manifest
   return (cover, M.fromList r)
   where
-    findCover e = maybe False (isInfixOf "cover-image")
+    findCover e = maybe False (isInfixOf "cover")
                   (findAttr (emptyName "properties") e)
     parseItem e = do
       uid <- findAttrE (emptyName "id") e
