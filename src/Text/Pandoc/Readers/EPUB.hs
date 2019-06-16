@@ -135,7 +135,7 @@ parseManifest content = do
   return (cover, M.fromList r)
   where
     findCover e = maybe False (isInfixOf "cover")
-                  (findAttr (emptyName "properties") e)
+                  (findAttr (emptyName "id") e)
     parseItem e = do
       uid <- findAttrE (emptyName "id") e
       href <- findAttrE (emptyName "href") e
