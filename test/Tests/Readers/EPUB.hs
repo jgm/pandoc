@@ -53,6 +53,6 @@ tests =
     [ testCase "features bag"
       (testMediaBag "epub/img.epub" featuresBag),
       testCase "EPUB2 cover bag"
-      (testMediaBag "epub/wasteland.epub" featuresBag)
+      (testMediaBag "epub/wasteland.epub" epub2CoverBag)
     ]
   ]
