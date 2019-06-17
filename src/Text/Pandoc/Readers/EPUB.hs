@@ -21,7 +21,7 @@ import Prelude
 import Codec.Archive.Zip (Archive (..), Entry, findEntryByPath, fromEntry,
                           toArchiveOrFail)
 import Control.DeepSeq (NFData, deepseq)
-import Control.Monad (guard, liftM, liftM2)
+import Control.Monad (guard, liftM, liftM2, mplus)
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL (ByteString)
 import Data.List (isInfixOf, isPrefixOf)
@@ -134,7 +134,7 @@ parseManifest content coverId = do
   let items = findChildren (dfName "item") manifest
   r <- mapM parseItem items
   let cover = findAttr (emptyName "href") =<< filterChild findCover manifest
-  return (cover, M.fromList r)
+  return (cover `mplus` coverId, M.fromList r)
   where
     findCover e = maybe False (isInfixOf "cover-image")
                   (findAttr (emptyName "properties") e)
