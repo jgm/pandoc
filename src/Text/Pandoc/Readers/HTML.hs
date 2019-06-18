@@ -435,7 +435,7 @@ eSection = try $ do
   TagOpen tag _ <- lookAhead $ pSatisfy sectTag
   setInChapter (pInTags tag block)
 
-headerLevel :: PandocMonad m => Text -> TagParser m Int
+headerLevel :: Text -> TagParser m Int
 headerLevel tagtype =
   case safeRead (T.unpack (T.drop 1 tagtype)) of
         Just level ->
@@ -1129,7 +1129,7 @@ _ `closes` _ = False
 --- parsers for use in markdown, textile readers
 
 -- | Matches a stretch of HTML in balanced tags.
-htmlInBalanced :: (HasReaderOptions st, Monad m)
+htmlInBalanced :: Monad m
                => (Tag String -> Bool)
                -> ParserT String st m String
 htmlInBalanced f = try $ do

@@ -46,7 +46,7 @@ pushModule datadir = do
   LuaUtil.addFunction "walk_inline" walkInline
   return 1
 
-walkElement :: (Pushable a, Walkable [Inline] a, Walkable [Block] a)
+walkElement :: (Walkable [Inline] a, Walkable [Block] a)
             => a -> LuaFilter -> Lua a
 walkElement x f = walkInlines f x >>= walkBlocks f
 

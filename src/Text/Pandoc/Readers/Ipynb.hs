@@ -53,7 +53,7 @@ readIpynb opts t = do
         Right (notebook3 :: Notebook NbV3) -> notebookToPandoc opts notebook3
         Left err -> throwError $ PandocIpynbDecodingError err
 
-notebookToPandoc :: (PandocMonad m, FromJSON (Notebook a))
+notebookToPandoc :: PandocMonad m
                  => ReaderOptions -> Notebook a -> m Pandoc
 notebookToPandoc opts notebook = do
   let cells = notebookCells notebook

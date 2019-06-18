@@ -1379,7 +1379,7 @@ doref cls = do
                     ""
                     (inBrackets $ str refstr)
 
-lookupListDefault :: (Show k, Ord k) => v -> [k] -> M.Map k v -> v
+lookupListDefault :: (Ord k) => v -> [k] -> M.Map k v -> v
 lookupListDefault d = (fromMaybe d .) . lookupList
   where lookupList l m = msum $ map (`M.lookup` m) l
 

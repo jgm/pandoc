@@ -323,8 +323,7 @@ parseItalic [] = do
 parseItalic args = return $
   emph $ mconcat $ intersperse B.space $ map linePartsToInlines args
 
-parseAlternatingFonts :: PandocMonad m
-                      => [Inlines -> Inlines]
+parseAlternatingFonts :: [Inlines -> Inlines]
                       -> [Arg]
                       -> ManParser m Inlines
 parseAlternatingFonts constructors args = return $ mconcat $

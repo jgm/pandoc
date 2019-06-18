@@ -192,7 +192,7 @@ assertFilterConversion msg filterPath docIn expectedDoc = do
 roundtripEqual :: (Eq a, Lua.Peekable a, Lua.Pushable a) => a -> IO Bool
 roundtripEqual x = (x ==) <$> roundtripped
  where
-  roundtripped :: (Lua.Peekable a, Lua.Pushable a) => IO a
+  roundtripped :: Lua.Peekable a => IO a
   roundtripped = runLuaTest $ do
     oldSize <- Lua.gettop
     Lua.push x
