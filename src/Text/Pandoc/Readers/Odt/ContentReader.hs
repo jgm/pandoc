@@ -1,5 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE Arrows          #-}
+{-# LANGUAGE DeriveFoldable  #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternGuards   #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
@@ -26,9 +28,11 @@ import Control.Applicative hiding (liftA, liftA2, liftA3)
 import Control.Arrow
 
 import qualified Data.ByteString.Lazy as B
+import Data.Foldable (fold)
 import Data.List (find, intercalate)
 import qualified Data.Map as M
 import Data.Maybe
+import Data.Semigroup (First(..), Option(..))
 
 import qualified Text.XML.Light as XML
 
@@ -41,6 +45,7 @@ import Text.Pandoc.Readers.Odt.Base
 import Text.Pandoc.Readers.Odt.Namespaces
 import Text.Pandoc.Readers.Odt.StyleReader
 
+import Text.Pandoc.Readers.Odt.Arrows.State (foldS)
 import Text.Pandoc.Readers.Odt.Arrows.Utils
 import Text.Pandoc.Readers.Odt.Generic.Fallible
 import Text.Pandoc.Readers.Odt.Generic.Utils
@@ -498,6 +503,13 @@ type InlineMatcher = ElementMatcher Inlines
 type BlockMatcher  = ElementMatcher Blocks
 
 
+newtype FirstMatch a = FirstMatch (Option (First a))
+                     deriving (Foldable, Monoid, Semigroup)
+
+firstMatch :: a -> FirstMatch a
+firstMatch = FirstMatch . Option . Just . First
+
+
 --
 matchingElement :: (Monoid e)
                 => Namespace -> ElementName
@@ -755,13 +767,13 @@ read_frame =
    let exts = extensionsFromList [Ext_auto_identifiers]
    w          <- ( findAttr' NsSVG "width" )                 -< ()
    h          <- ( findAttr' NsSVG "height" )                -< ()
-   titleNodes <- ( matchChildContent' [ read_frame_title ] ) -< blocks
-   src        <-  matchChildContent' [ read_image_src ]      -< blocks
-   resource   <- lookupResource                              -< src
+   titleNodes <- matchChildContent' [ read_frame_title ]     -< blocks
+   src        <- matchChildContent' [ read_image_src ]       -< blocks
+   resource   <- foldS lookupResource                        -< src
    _          <- updateMediaWithResource                     -< resource
    alt        <- (matchChildContent [] read_plain_text)      -< blocks
    arr (uncurry4 imageWith ) -<
-                (image_attributes w h, src,
+                (image_attributes w h, fold src,
                    inlineListToIdentifier exts (toList titleNodes), alt)
 
 image_attributes :: Maybe String -> Maybe String -> Attr
@@ -772,13 +784,13 @@ image_attributes x y =
     dim name (Just v) = [(name, v)]
     dim _ Nothing     = []
 
-read_image_src :: (Namespace, ElementName, OdtReader Anchor Anchor)
+read_image_src :: ElementMatcher (FirstMatch Anchor)
 read_image_src = matchingElement NsDraw "image"
                  $ proc _ -> do
                     imgSrc <- findAttr NsXLink "href" -< ()
                     case imgSrc of
-                      Right src -> returnV src -<< ()
-                      Left _    -> returnV ""  -< ()
+                      Left _    -> returnV mempty -< ()
+                      Right src -> returnV (firstMatch src) -<< ()
 
 read_frame_title :: InlineMatcher
 read_frame_title = matchingElement NsSVG "title" (matchChildContent [] read_plain_text)
