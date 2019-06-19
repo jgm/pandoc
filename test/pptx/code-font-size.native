@@ -1,0 +1,4 @@
+[Header 1 ("without-syntax-highlighting",[],[]) [Str "Without",Space,Str "syntax",Space,Str "highlighting"]
+,CodeBlock ("",[],[("font-size","12")]) "id :: a -> a\nid x = x"
+,Header 1 ("with-syntax-highlighting",[],[]) [Str "With",Space,Str "syntax",Space,Str "highlighting"]
+,CodeBlock ("",["haskell"],[("font-size","12")]) "id :: a -> a\nid x = x"]

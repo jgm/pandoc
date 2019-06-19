@@ -52,6 +52,7 @@ import Text.Pandoc.Slides (getSlideLevel)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging
 import Text.Pandoc.Walk
+import Text.Read (readMaybe)
 import Data.Time (UTCTime)
 import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
 import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
@@ -414,23 +415,32 @@ blockToParagraphs (LineBlock ilsList) = do
   pProps <- asks envParaProps
   return [Paragraph pProps parElems]
 -- TODO: work out the attributes
-blockToParagraphs (CodeBlock attr str) = do
+blockToParagraphs (CodeBlock attr@(_, _, keyval) str) = do
   pProps <- asks envParaProps
   local (\r -> r{ envParaProps = def{ pPropMarginLeft = Nothing
                                     , pPropBullet = Nothing
                                     , pPropLevel = pPropLevel pProps
                                     , pPropIndent = Just 0
                                     }
-                , envRunProps = (envRunProps r){rPropCode = True}}) $ do
+                , envRunProps = (envRunProps r){ rPropCode = True
+                                               , rPropForceSize = codeFontSize
+                                               }}) $ do
     mbSty <- writerHighlightStyle <$> asks envOpts
     synMap <- writerSyntaxMap <$> asks envOpts
     case mbSty of
       Just sty ->
         case highlight synMap (formatSourceLines sty) attr str of
           Right pElems -> do pPropsNew <- asks envParaProps
-                             return [Paragraph pPropsNew pElems]
+                             return [Paragraph pPropsNew $ fixFontSize <$> pElems]
           Left _ -> blockToParagraphs $ Para [Str str]
       Nothing -> blockToParagraphs $ Para [Str str]
+  where
+    codeFontSize = lookup "font-size" keyval >>= readMaybe
+    fixFontSize :: ParaElem -> ParaElem
+    fixFontSize (Run p txt) =
+      let newP = p { rPropForceSize = codeFontSize }
+      in Run newP txt
+    fixFontSize el = el
 -- We can't yet do incremental lists, but we should render a
 -- (BlockQuote List) as a list to maintain compatibility with other
 -- formats.

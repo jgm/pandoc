@@ -123,4 +123,8 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          def { writerVariables = [("monofont", "Consolas")] }
                          "pptx/code.native"
                          "pptx/code-custom.pptx"
+                       , pptxTests "customize font size for code blocks"
+                         def
+                         "pptx/code-font-size.native"
+                         "pptx/code-font-size.pptx"
                        ]

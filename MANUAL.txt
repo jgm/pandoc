@@ -4829,6 +4829,24 @@ Slide 1 has background_image.png as its background.
 Slide 2 has a special image for its background, even though the heading has no content.
 ```
 
+Code font size in PowerPoint slide shows
+----------------------------------------
+
+By default the font size of code blocks is determined by the master
+slides of the reference document. However, the font size of an
+individual code block may be customized by setting the `font-size`
+attribute.
+
+For example:
+
+````
+## Slide 1
+
+```{font-size="18"}
+This is rendered at 18 pt size
+```
+````
+
 Creating EPUBs with pandoc
 ==========================
 
