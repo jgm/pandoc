@@ -167,6 +167,11 @@ $if(copyright.text)$
 </permissions>
 $endif$
 $endif$
+$if(abstract)$
+<abstract>
+$abstract$
+</abstract>
+$endif$
 $if(tags)$
 <kwd-group kwd-group-type="author">
 $for(tags)$
