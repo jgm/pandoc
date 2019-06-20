@@ -1,5 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE Arrows          #-}
+{-# LANGUAGE DeriveFoldable  #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternGuards   #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
@@ -26,21 +28,26 @@ import Control.Applicative hiding (liftA, liftA2, liftA3)
 import Control.Arrow
 
 import qualified Data.ByteString.Lazy as B
-import Data.List (find, intercalate)
+import Data.Foldable (fold)
+import Data.List (find, intercalate, stripPrefix)
 import qualified Data.Map as M
 import Data.Maybe
+import Data.Semigroup (First(..), Option(..))
 
+import Text.TeXMath (readMathML, writeTeX)
 import qualified Text.XML.Light as XML
 
 import Text.Pandoc.Builder
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Shared
 import Text.Pandoc.Extensions (extensionsFromList, Extension(..))
+import qualified Text.Pandoc.UTF8 as UTF8
 
 import Text.Pandoc.Readers.Odt.Base
 import Text.Pandoc.Readers.Odt.Namespaces
 import Text.Pandoc.Readers.Odt.StyleReader
 
+import Text.Pandoc.Readers.Odt.Arrows.State (foldS)
 import Text.Pandoc.Readers.Odt.Arrows.Utils
 import Text.Pandoc.Readers.Odt.Generic.Fallible
 import Text.Pandoc.Readers.Odt.Generic.Utils
@@ -498,6 +505,13 @@ type InlineMatcher = ElementMatcher Inlines
 type BlockMatcher  = ElementMatcher Blocks
 
 
+newtype FirstMatch a = FirstMatch (Option (First a))
+                     deriving (Foldable, Monoid, Semigroup)
+
+firstMatch :: a -> FirstMatch a
+firstMatch = FirstMatch . Option . Just . First
+
+
 --
 matchingElement :: (Monoid e)
                 => Namespace -> ElementName
@@ -598,7 +612,7 @@ read_paragraph    = matchingElement NsText "p"
                                         , read_reference_start
                                         , read_bookmark_ref
                                         , read_reference_ref
-                                        , read_maybe_nested_img_frame
+                                        , read_frame
                                         , read_text_seq
                                         ] read_plain_text
 
@@ -624,7 +638,7 @@ read_header       = matchingElement NsText "h"
                                   , read_reference_start
                                   , read_bookmark_ref
                                   , read_reference_ref
-                                  , read_maybe_nested_img_frame
+                                  , read_frame
                                   ] read_plain_text
               ) -< blocks
   anchor   <- getHeaderAnchor -< children
@@ -737,32 +751,43 @@ read_table_cell    = matchingElement NsTable "table-cell"
                                           ]
 
 ----------------------
--- Images
+-- Frames
 ----------------------
 
 --
-read_maybe_nested_img_frame  :: InlineMatcher
-read_maybe_nested_img_frame   = matchingElement NsDraw "frame"
-                                $ proc blocks -> do
-                                   img <- (findChild' NsDraw "image") -< ()
-                                   case img of
-                                     Just _  ->  read_frame                                 -< blocks
-                                     Nothing ->  matchChildContent' [ read_frame_text_box ] -< blocks
+read_frame :: InlineMatcher
+read_frame = matchingElement NsDraw "frame"
+             $ filterChildrenName' NsDraw (`elem` ["image", "object", "text-box"])
+           >>> foldS read_frame_child
+           >>> arr fold
 
-read_frame :: OdtReaderSafe Inlines Inlines
-read_frame =
-  proc blocks -> do
-   let exts = extensionsFromList [Ext_auto_identifiers]
-   w          <- ( findAttr' NsSVG "width" )                 -< ()
-   h          <- ( findAttr' NsSVG "height" )                -< ()
-   titleNodes <- ( matchChildContent' [ read_frame_title ] ) -< blocks
-   src        <-  matchChildContent' [ read_image_src ]      -< blocks
-   resource   <- lookupResource                              -< src
-   _          <- updateMediaWithResource                     -< resource
-   alt        <- (matchChildContent [] read_plain_text)      -< blocks
-   arr (uncurry4 imageWith ) -<
-                (image_attributes w h, src,
-                   inlineListToIdentifier exts (toList titleNodes), alt)
+read_frame_child :: OdtReaderSafe XML.Element (FirstMatch Inlines)
+read_frame_child =
+  proc child -> case elName child of
+    "image"    -> read_frame_img      -< child
+    "object"   -> read_frame_mathml   -< child
+    "text-box" -> read_frame_text_box -< child
+    _          -> returnV mempty      -< ()
+
+read_frame_img :: OdtReaderSafe XML.Element (FirstMatch Inlines)
+read_frame_img =
+  proc img -> do
+    src <- executeIn (findAttr' NsXLink "href") -< img
+    case fold src of
+      ""   -> returnV mempty -< ()
+      src' -> do
+        let exts = extensionsFromList [Ext_auto_identifiers]
+        resource   <- lookupResource                          -< src'
+        _          <- updateMediaWithResource                 -< resource
+        w          <- findAttr' NsSVG "width"                 -< ()
+        h          <- findAttr' NsSVG "height"                -< ()
+        titleNodes <- matchChildContent' [ read_frame_title ] -< ()
+        alt        <- matchChildContent [] read_plain_text    -< ()
+        arr (firstMatch . uncurry4 imageWith)                 -<
+          (image_attributes w h, src', inlineListToIdentifier exts (toList titleNodes), alt)
+
+read_frame_title :: InlineMatcher
+read_frame_title = matchingElement NsSVG "title" (matchChildContent [] read_plain_text)
 
 image_attributes :: Maybe String -> Maybe String -> Attr
 image_attributes x y =
@@ -772,28 +797,29 @@ image_attributes x y =
     dim name (Just v) = [(name, v)]
     dim _ Nothing     = []
 
-read_image_src :: (Namespace, ElementName, OdtReader Anchor Anchor)
-read_image_src = matchingElement NsDraw "image"
-                 $ proc _ -> do
-                    imgSrc <- findAttr NsXLink "href" -< ()
-                    case imgSrc of
-                      Right src -> returnV src -<< ()
-                      Left _    -> returnV ""  -< ()
+read_frame_mathml :: OdtReaderSafe XML.Element (FirstMatch Inlines)
+read_frame_mathml =
+  proc obj -> do
+    src <- executeIn (findAttr' NsXLink "href") -< obj
+    case fold src of
+      ""   -> returnV mempty -< ()
+      src' -> do
+        let path = fromMaybe src' (stripPrefix "./" src') ++ "/content.xml"
+        (_, mathml) <- lookupResource -< path
+        case readMathML (UTF8.toString $ B.toStrict mathml) of
+          Left _     -> returnV mempty -< ()
+          Right exps -> arr (firstMatch . displayMath . writeTeX) -< exps
 
-read_frame_title :: InlineMatcher
-read_frame_title = matchingElement NsSVG "title" (matchChildContent [] read_plain_text)
+read_frame_text_box :: OdtReaderSafe XML.Element (FirstMatch Inlines)
+read_frame_text_box = proc box -> do
+    paragraphs <- executeIn (matchChildContent' [ read_paragraph ]) -< box
+    arr read_img_with_caption -< toList paragraphs
 
-read_frame_text_box :: InlineMatcher
-read_frame_text_box = matchingElement NsDraw "text-box"
-                      $ proc blocks -> do
-                         paragraphs <- (matchChildContent' [ read_paragraph ]) -< blocks
-                         arr read_img_with_caption                             -< toList paragraphs
-
-read_img_with_caption :: [Block] -> Inlines
+read_img_with_caption :: [Block] -> FirstMatch Inlines
 read_img_with_caption (Para [Image attr alt (src,title)] : _) =
-  singleton (Image attr alt (src, 'f':'i':'g':':':title))   -- no text, default caption
+  firstMatch $ singleton (Image attr alt (src, 'f':'i':'g':':':title))   -- no text, default caption
 read_img_with_caption (Para (Image attr _ (src,title) : txt) : _) =
-  singleton (Image attr txt (src, 'f':'i':'g':':':title) )  -- override caption with the text that follows
+  firstMatch $ singleton (Image attr txt (src, 'f':'i':'g':':':title) )  -- override caption with the text that follows
 read_img_with_caption  ( Para (_ : xs) : ys) =
   read_img_with_caption (Para xs : ys)
 read_img_with_caption _ =
@@ -901,8 +927,8 @@ post_process' (Table _ a w h r : Div ("", ["caption"], _) [Para inlines] : xs) =
 post_process' bs = bs
 
 read_body :: OdtReader _x (Pandoc, MediaBag)
-read_body = executeIn NsOffice "body"
-          $ executeIn NsOffice "text"
+read_body = executeInSub NsOffice "body"
+          $ executeInSub NsOffice "text"
           $ liftAsSuccess
           $ proc inlines -> do
              txt   <- read_text     -< inlines

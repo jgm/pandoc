@@ -113,7 +113,7 @@ type StyleReaderSafe a b  = XMLReaderSafe FontPitches a b
 
 -- | A reader for font pitches
 fontPitchReader :: XMLReader _s _x FontPitches
-fontPitchReader = executeIn NsOffice "font-face-decls" (
+fontPitchReader = executeInSub NsOffice "font-face-decls" (
                           withEveryL NsStyle "font-face" (liftAsSuccess (
                               findAttr' NsStyle "name"
                               &&&
@@ -423,7 +423,7 @@ readAllStyles = (      readFontPitches
 
 --
 readStyles :: StyleReader _x Styles
-readStyles = executeIn NsOffice "styles" $ liftAsSuccess
+readStyles = executeInSub NsOffice "styles" $ liftAsSuccess
   $ liftA3 Styles
     ( tryAll NsStyle "style"         readStyle        >>^ M.fromList )
     ( tryAll NsText  "list-style"    readListStyle    >>^ M.fromList )
@@ -431,7 +431,7 @@ readStyles = executeIn NsOffice "styles" $ liftAsSuccess
 
 --
 readAutomaticStyles :: StyleReader _x Styles
-readAutomaticStyles = executeIn NsOffice "automatic-styles" $ liftAsSuccess
+readAutomaticStyles = executeInSub NsOffice "automatic-styles" $ liftAsSuccess
   $ liftA3 Styles
     ( tryAll NsStyle "style"         readStyle        >>^ M.fromList )
     ( tryAll NsText  "list-style"    readListStyle    >>^ M.fromList )
@@ -462,7 +462,7 @@ readStyleProperties = liftA2 SProps
 --
 readTextProperties :: StyleReader _x TextProperties
 readTextProperties =
-  executeIn NsStyle "text-properties" $ liftAsSuccess
+  executeInSub NsStyle "text-properties" $ liftAsSuccess
     ( liftA6 PropT
        ( searchAttr   NsXSL_FO "font-style"  False isFontEmphasised )
        ( searchAttr   NsXSL_FO "font-weight" False isFontBold       )
@@ -501,7 +501,7 @@ readLineMode modeAttr styleAttr = proc x -> do
 --
 readParaProperties :: StyleReader _x ParaProperties
 readParaProperties =
-   executeIn NsStyle "paragraph-properties" $ liftAsSuccess
+   executeInSub NsStyle "paragraph-properties" $ liftAsSuccess
      ( liftA3 PropP
        ( liftA2 readNumbering
          ( isSet'           NsText   "number-lines"           )

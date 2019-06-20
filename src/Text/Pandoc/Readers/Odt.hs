@@ -86,9 +86,8 @@ archiveToOdt archive
     where
       filePathIsOdtMedia :: FilePath -> Bool
       filePathIsOdtMedia fp =
-        let (dir, _) = splitFileName fp
-        in
-         (dir == "Pictures/")
+        let (dir, name) = splitFileName fp
+        in  (dir == "Pictures/") || (dir /= "./" && name == "content.xml")
 
 
 --
