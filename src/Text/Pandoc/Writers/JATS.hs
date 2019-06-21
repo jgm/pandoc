@@ -88,7 +88,9 @@ docToJATS opts (Pandoc meta blocks) = do
             mapM (elementToJATS opts' startLvl) elements
   notes <- reverse . map snd <$> gets jatsNotes
   backs <- mapM (elementToJATS opts' startLvl) backElements
-  let fns = inTagsIndented "fn-group" $ vcat notes
+  let fns = if null notes
+            then mempty
+            else inTagsIndented "fn-group" $ vcat notes
   let back = render' $ vcat backs $$ fns
   let date = case  getField "date" metadata -- an object
                `mplus`
