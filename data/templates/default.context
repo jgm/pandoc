@@ -27,7 +27,6 @@ $endif$
 % make chapter, section bookmarks visible when opening document
 \placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
 \setupinteractionscreen[option=bookmark]
-\setuptagging[state=start]
 
 $if(papersize)$
 \setuppapersize[$for(papersize)$$papersize$$sep$,$endfor$]
@@ -41,10 +40,13 @@ $endif$
 $if(pdfa)$
 % attempt to generate PDF/A
 \setupbackend
-  [format=PDF/A-1b:2005,
+  [format=PDF/A-$pdfa$,
    intent=sRGB IEC61966-2.1,
    profile=sRGB.icc]
 $endif$
+
+\setupbackend[export=yes]
+\setupstructure[state=start,method=auto]
 
 % use microtypography
 \definefontfeature[default][default][script=latn, protrusion=quality, expansion=quality, itlc=yes, textitalics=yes, onum=yes, pnum=yes]

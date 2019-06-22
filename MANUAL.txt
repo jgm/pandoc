@@ -1799,7 +1799,9 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
     repeat for multiple options
 
 `pdfa`
-:   adds to the preamble the setup necessary to generate PDF/A-1b:2005.
+:   adds to the preamble the setup necessary to generate PDF/A of the type
+    specified, e.g. `1a:2005`, `2a`. If no type is specified (i.e. the value
+    is set to True), `1b:2005` will be used as default.
     To successfully generate PDF/A the required ICC color profiles have to
     be available and the content and all included files (such as images)
     have to be standard conforming.  The ICC profiles can be obtained

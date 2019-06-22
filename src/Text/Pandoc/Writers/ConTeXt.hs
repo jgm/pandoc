@@ -93,6 +93,9 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                         Just (('a':d:ds) :: String)
                           | all isDigit (d:ds) -> resetField "papersize"
                                                      (('A':d:ds) :: String)
+                        _                     -> id)
+                $ (case getField "pdfa" metadata of
+                        Just ("true" :: String) -> resetField "pdfa" ("1b:2005" :: String)
                         _                     -> id) metadata
   let context' = defField "context-dir" (toContextDir
                                          $ getField "dir" context) context
