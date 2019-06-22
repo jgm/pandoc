@@ -44,7 +44,6 @@ $if(pdfa)$
    intent=sRGB IEC61966-2.1,
    profile=sRGB.icc]
 $endif$
-
 \setupbackend[export=yes]
 \setupstructure[state=start,method=auto]
 
