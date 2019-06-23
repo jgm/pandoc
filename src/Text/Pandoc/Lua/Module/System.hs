@@ -27,8 +27,8 @@ pushModule = do
   addField "arch" arch
   addField "os" os
   addFunction "environment" env
-  addFunction "get_current_directory" getwd
+  addFunction "get_working_directory" getwd
   addFunction "with_environment" with_env
-  addFunction "with_temp_directory" with_tmpdir
+  addFunction "with_temporary_directory" with_tmpdir
   addFunction "with_working_directory" with_wd
   return 1
