@@ -41,8 +41,8 @@ $if(pdfa)$
 % attempt to generate PDF/A
 \setupbackend
   [format=PDF/A-$pdfa$,
-   intent=sRGB IEC61966-2.1,
-   profile=sRGB.icc]
+   profile={default_cmyk.icc,default_rgb.icc,default_gray.icc},
+   intent=ISO coated v2 300\letterpercent\space (ECI)]
 $endif$
 \setupbackend[export=yes]
 \setupstructure[state=start,method=auto]
