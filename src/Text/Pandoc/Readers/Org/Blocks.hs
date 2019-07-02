@@ -772,7 +772,7 @@ bulletList = try $ do
   fmap (B.bulletList . compactify) . sequence
     <$> many1 (listItem (bulletListStart `indented` indent))
 
-indented :: Monad m => OrgParser m Int -> Int -> OrgParser m Int
+indented :: OrgParser m Int -> Int -> OrgParser m Int
 indented indentedMarker minIndent = try $ do
   n <- indentedMarker
   guard (minIndent <= n)

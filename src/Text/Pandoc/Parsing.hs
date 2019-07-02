@@ -313,8 +313,7 @@ many1Till p end = do
          return (first:rest)
 
 -- | Like @manyTill@, but also returns the result of end parser.
-manyUntil :: (Stream s m t)
-          => ParserT s u m a
+manyUntil :: ParserT s u m a
           -> ParserT s u m b
           -> ParserT s u m ([a], b)
 manyUntil p end = scan
@@ -328,8 +327,7 @@ manyUntil p end = scan
 
 -- | Like @sepBy1@ from Parsec,
 -- but does not fail if it @sep@ succeeds and @p@ fails.
-sepBy1' :: (Stream s m t)
-        => ParsecT s u m a
+sepBy1' :: ParsecT s u m a
         -> ParsecT s u m sep
         -> ParsecT s u m [a]
 sepBy1' p sep = (:) <$> p <*> many (try $ sep >> p)
@@ -440,7 +438,7 @@ stringAnyCase (x:xs) = do
   return (firstChar:rest)
 
 -- | Parse contents of 'str' using 'parser' and return result.
-parseFromString :: (Monad m, Stream s m Char, IsString s)
+parseFromString :: (Stream s m Char, IsString s)
                 => ParserT s st m r
                 -> String
                 -> ParserT s st m r
@@ -458,7 +456,7 @@ parseFromString parser str = do
 
 -- | Like 'parseFromString' but specialized for 'ParserState'.
 -- This resets 'stateLastStrPos', which is almost always what we want.
-parseFromString' :: (Monad m, Stream s m Char, IsString s)
+parseFromString' :: (Stream s m Char, IsString s)
                  => ParserT s ParserState m a
                  -> String
                  -> ParserT s ParserState m a
@@ -1019,7 +1017,7 @@ gridTableFooter = blanklines
 ---
 
 -- | Removes the ParsecT layer from the monad transformer stack
-readWithM :: (Monad m, Stream s m Char, ToString s)
+readWithM :: (Stream s m Char, ToString s)
           => ParserT s st m a    -- ^ parser
           -> st                  -- ^ initial state
           -> s                   -- ^ input
@@ -1410,7 +1408,7 @@ extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
                Nothing -> cls
     kvs'  = filter (\(k,_) -> k /= "id" || k /= "class") kvs
 
-insertIncludedFile' :: (PandocMonad m, HasIncludeFiles st, Monad mf)
+insertIncludedFile' :: (PandocMonad m, HasIncludeFiles st)
                     => ParserT [a] st m (mf Blocks)
                     -> (String -> [a])
                     -> [FilePath] -> FilePath

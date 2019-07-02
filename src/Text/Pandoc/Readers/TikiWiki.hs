@@ -54,10 +54,10 @@ type TikiWikiParser = ParserT [Char] ParserState
 -- utility functions
 --
 
-tryMsg :: PandocMonad m => String -> TikiWikiParser m a -> TikiWikiParser m a
+tryMsg :: String -> TikiWikiParser m a -> TikiWikiParser m a
 tryMsg msg p = try p <?> msg
 
-skip :: PandocMonad m => TikiWikiParser m a -> TikiWikiParser m ()
+skip :: TikiWikiParser m a -> TikiWikiParser m ()
 skip parser = Control.Monad.void parser
 
 nested :: PandocMonad m => TikiWikiParser m a -> TikiWikiParser m a

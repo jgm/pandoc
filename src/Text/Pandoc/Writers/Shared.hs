@@ -63,7 +63,7 @@ import Text.Pandoc.XML (escapeStringForXML)
 -- Variables overwrite metadata fields with the same names.
 -- If multiple variables are set with the same name, a list is
 -- assigned.  Does nothing if 'writerTemplate' is Nothing.
-metaToJSON :: (Functor m, Monad m, ToJSON a)
+metaToJSON :: (Monad m, ToJSON a)
            => WriterOptions
            -> ([Block] -> m a)
            -> ([Inline] -> m a)
@@ -76,7 +76,7 @@ metaToJSON opts blockWriter inlineWriter meta
 
 -- | Like 'metaToJSON', but does not include variables and is
 -- not sensitive to 'writerTemplate'.
-metaToJSON' :: (Functor m, Monad m, ToJSON a)
+metaToJSON' :: (Monad m, ToJSON a)
            => ([Block] -> m a)
            -> ([Inline] -> m a)
            -> Meta
@@ -99,7 +99,7 @@ addVariablesToJSON opts metadata =
   where combineMetadata (Object o1) (Object o2) = Object $ H.union o1 o2
         combineMetadata x _                     = x
 
-metaValueToJSON :: (Functor m, Monad m, ToJSON a)
+metaValueToJSON :: (Monad m, ToJSON a)
                 => ([Block] -> m a)
                 -> ([Inline] -> m a)
                 -> MetaValue
