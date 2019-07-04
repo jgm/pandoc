@@ -12,7 +12,7 @@ $endif$
 $if(hyphenate)$
 .hy
 $else$
-.nh \" Turn off hyphenation by default.
+.nh
 $endif$
 $for(header-includes)$
 $header-includes$

@@ -71,7 +71,7 @@ $endif$
 $if(hyphenate)$
 .hy
 $else$
-.nh \" Turn off hyphenation by default.
+.nh
 $endif$
 $if(has-inline-math)$
 .EQ
