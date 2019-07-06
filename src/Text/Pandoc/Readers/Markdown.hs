@@ -857,7 +857,8 @@ listLine continuationIndent = try $ do
 
 listLineCommon :: PandocMonad m => MarkdownParser m String
 listLineCommon = concat <$> manyTill
-              (  many1 (satisfy $ \c -> c /= '\n' && c /= '<')
+              (  many1 (satisfy $ \c -> c `notElem` ['\n', '<', '`'])
+             <|> fmap snd (withRaw code)
              <|> fmap snd (htmlTag isCommentTag)
              <|> count 1 anyChar
               ) newline
@@ -932,14 +933,14 @@ listItem :: PandocMonad m
          -> MarkdownParser m a
          -> MarkdownParser m (F Blocks)
 listItem fourSpaceRule start = try $ do
-  (first, continuationIndent) <- rawListItem fourSpaceRule start
-  continuations <- many (listContinuation continuationIndent)
   -- parsing with ListItemState forces markers at beginning of lines to
   -- count as list item markers, even if not separated by blank space.
   -- see definition of "endline"
   state <- getState
   let oldContext = stateParserContext state
   setState $ state {stateParserContext = ListItemState}
+  (first, continuationIndent) <- rawListItem fourSpaceRule start
+  continuations <- many (listContinuation continuationIndent)
   -- parse the extracted block, which may contain various block elements:
   let raw = concat (first:continuations)
   contents <- parseFromString' parseBlocks raw
@@ -1583,8 +1584,9 @@ code = try $ do
   starts <- many1 (char '`')
   skipSpaces
   result <- (trim . concat) <$>
-            manyTill (many1 (noneOf "`\n") <|> many1 (char '`') <|>
-                       (char '\n' >> notFollowedBy' blankline >> return " "))
+            manyTill (notFollowedBy (inList >> listStart) >>
+                      (many1 (noneOf "`\n") <|> many1 (char '`') <|>
+                       (char '\n' >> notFollowedBy' blankline >> return " ")))
                       (try (skipSpaces >> count (length starts) (char '`') >>
                       notFollowedBy (char '`')))
   rawattr <-
