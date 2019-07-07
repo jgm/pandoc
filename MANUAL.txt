@@ -1,6 +1,6 @@
 % Pandoc User's Guide
 % John MacFarlane
-% June 25, 2019
+% July 6, 2019
 
 Synopsis
 ========
@@ -1801,7 +1801,9 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
 `pdfa`
 :   adds to the preamble the setup necessary to generate PDF/A of the type
     specified, e.g. `1a:2005`, `2a`. If no type is specified (i.e. the value
-    is set to True), `1b:2005` will be used as default.
+    is set to True, by e.g. `--metadata=pdfa` or `pdfa: true` in a YAML metadata
+    block), `1b:2005` will be used as default, for reasons of backwards
+    compatibility. Using `--variable=pdfa` without specified value is not supported.
     To successfully generate PDF/A the required ICC color profiles have to
     be available and the content and all included files (such as images)
     have to be standard conforming.  The ICC profiles and output intent
