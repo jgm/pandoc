@@ -139,6 +139,7 @@ data Extension =
     | Ext_raw_attribute           -- ^ Allow explicit raw blocks/inlines
     | Ext_raw_html            -- ^ Allow raw HTML
     | Ext_raw_tex             -- ^ Allow raw TeX (other than math)
+    | Ext_sequential_tables   -- ^ Allow sequential tables
     | Ext_shortcut_reference_links -- ^ Shortcut reference links
     | Ext_simple_tables       -- ^ Pandoc-style simple tables
     | Ext_smart               -- ^ "Smart" quotes, apostrophes, ellipses, dashes
@@ -168,6 +169,7 @@ pandocExtensions = extensionsFromList
   , Ext_implicit_figures
   , Ext_simple_tables
   , Ext_multiline_tables
+  , Ext_sequential_tables
   , Ext_grid_tables
   , Ext_pipe_tables
   , Ext_citations
@@ -227,7 +229,7 @@ plainExtensions = extensionsFromList
   , Ext_strikeout
   ]
 
--- | Extensions to be used with github-flavored markdown.
+-- | Extensions to be used with php-flavored markdown.
 phpMarkdownExtraExtensions :: Extensions
 phpMarkdownExtraExtensions = extensionsFromList
   [ Ext_footnotes

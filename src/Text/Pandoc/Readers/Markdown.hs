@@ -18,6 +18,7 @@ module Text.Pandoc.Readers.Markdown ( readMarkdown, yamlToMeta ) where
 import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
+import Data.Functor (($>))
 import qualified Data.ByteString.Lazy as BS
 import Data.Char (isAlphaNum, isPunctuation, isSpace, toLower)
 import Data.List (intercalate, sortBy, transpose, elemIndex)
@@ -1361,6 +1362,88 @@ gridTable :: PandocMonad m => Bool -- ^ Headerless table
           -> MarkdownParser m ([Alignment], [Double], F [Blocks], F [[Blocks]])
 gridTable headless = gridTableWith' parseBlocks headless
 
+
+data SequentialTablePart
+  = SequentialTableAligns [Alignment]
+  | SequentialTableWidths [Double]
+  | SequentialTableHeader [F Blocks]
+  | SequentialTableRow    [F Blocks]
+
+sequentialTable :: forall m
+                 . PandocMonad m
+                => MarkdownParser m ([Alignment], [Double], F [Blocks], F [[Blocks]])
+sequentialTable = try $ do
+  string "----sequentialtable"
+  blanklines
+  parts <- many1 $ choice
+    [ SequentialTableHeader <$> do
+      try $ string "header"
+      blanklines
+      parseCells
+    , SequentialTableRow <$> do
+      try $ string "row"
+      blanklines
+      parseCells
+    , SequentialTableWidths <$> do
+      try $ string "width"
+      blanklines
+      parseWidths
+    , SequentialTableAligns <$> do
+      try $ string "align"
+      blanklines
+      parseAligns
+    ]
+  string "----"
+  newline
+  let rows = [ rs | SequentialTableRow rs <- parts ]
+  guard (not $ null rows)
+  alignMay <- case [ as | SequentialTableAligns as <- parts ] of
+    []  -> pure Nothing
+    [x] -> pure (Just x)
+    _   -> fail "more than one align"
+  headerMay <- case [ hs | SequentialTableHeader hs <- parts ] of
+    []  -> pure Nothing
+    [x] -> pure (Just x)
+    _   -> fail "more than one header"
+  widthMay <- case [ ws | SequentialTableWidths ws <- parts ] of
+    []  -> pure Nothing
+    [x] -> pure (Just x)
+    _   -> fail "more than one width"
+  let columnCount = case headerMay of
+        Just cells -> length cells
+        Nothing    -> maximum $ map length rows
+  pure
+    ( fromMaybe (replicate columnCount AlignDefault) alignMay
+    , fromMaybe (replicate columnCount 1) widthMay
+    , maybe (pure $ repeat mempty) sequence headerMay
+    , sequence $ fmap sequence rows
+    )
+ where
+  parseCells :: MarkdownParser m [F Blocks]
+  parseCells = many1 $ do
+    try $ string "- "
+    line1  <- anyLine
+    lines' <- many $ (try (string "  ") *> anyLine <|> blankline $> "")
+    parseFromString parseBlocks (unlines $ line1 : lines')
+  parseWidths :: MarkdownParser m ([Double])
+  parseWidths = many $ do
+    try (string "- ")
+    r <- many1 digit
+    blanklines
+    pure $ read r
+  parseAligns :: MarkdownParser m [Alignment]
+  parseAligns = many $ do
+    try $ string "- "
+    r <- choice
+      [ string "default" $> AlignDefault
+      , string "left" $> AlignLeft
+      , string "right" $> AlignRight
+      , string "center" $> AlignCenter
+      ]
+    blanklines
+    pure r
+
+
 pipeBreak :: PandocMonad m => MarkdownParser m ([Alignment], [Int])
 pipeBreak = try $ do
   nonindentSpaces
@@ -1473,7 +1556,9 @@ table = try $ do
          try (guardEnabled Ext_multiline_tables >>
                 multilineTable True) <|>
          try (guardEnabled Ext_grid_tables >>
-                (gridTable False <|> gridTable True)) <?> "table"
+                (gridTable False <|> gridTable True)) <|>
+         try (guardEnabled Ext_sequential_tables >>
+                sequentialTable) <?> "table"
   optional blanklines
   caption <- case frontCaption of
                   Nothing -> option (return mempty) tableCaption

@@ -3244,6 +3244,104 @@ you'll need to add colons as above.
 
 [PHP Markdown Extra tables]: https://michelf.ca/projects/php-markdown/extra/#table
 
+#### Extension: `sequential_tables` ####
+
+Sequential tables look like this:
+
+    ----sequentialtable
+    header
+    - One
+    - Two
+    align
+    - left
+    - right
+    width
+    - 10
+    - 10
+    row
+    - my
+    - table
+    row
+    - is
+    - nice
+    ----
+
+producing
+
+    One    Two
+    ----------
+    my   table
+    is    nice
+
+The most important advantage of this format over other markdown table
+parsers is that it makes handling complex or large table contents easy,
+without needing to resort to special editor functionality such as
+[Emacs table mode].
+
+----sequentialtable
+width
+- 10
+- 1
+- 10
+row
+- ~~~~.hs
+  test1 = evalContT $ do
+    resetT $ do
+      moveToNewThread
+      k -- must be `m ()` due to types
+    o   -- of resetT and moveToNewThread
+  ~~~~
+- ~
+- ~~~~.hs
+  test1 = do
+    void $ forkIO $ evalContT k
+    evalContT o
+  ~~~~
+----
+
+It might also be the only table format that allows nesting without much
+of a hassle:
+
+    ----sequentialtable
+    row
+    - ----sequentialtable
+      row
+      - a
+      - b
+      row
+      - c
+      - d
+      ----
+    - ----sequentialtable
+      row
+      - e
+      - f
+      row
+      - g
+      - h
+      ----
+    ----
+
+produces
+
+    a b  e f
+    c d  g h
+
+The parser for sequential tables is a bit strict (requires exactly
+`----sequentialtable` and `----`, and `- ` for list elements) but
+due to the approach of this table type, does not need to parse any
+of the contents, because indentation alone determines when the next
+cell starts.
+Everything to the right of the first two columns is part of the
+current cell and forwarded recursively to the markdown parser.
+
+parts of a table definition are be:
+
+  - zero or one `width` definitions with integer contents,
+  - zero or one `align` definitions which are `default|left|center|right`,
+  - zero or one `header`s with markdown content,
+  - one or more `row`s with markdown content.
+
 Metadata blocks
 ---------------
 
