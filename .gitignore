@@ -1,6 +1,7 @@
 *~
 deb/.vagrant
 dist/*
+dist-newstyle/
 MANUAL.*
 !MANUAL.txt
 .configure-stamp
