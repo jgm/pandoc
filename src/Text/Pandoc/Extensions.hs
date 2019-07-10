@@ -227,7 +227,7 @@ plainExtensions = extensionsFromList
   , Ext_strikeout
   ]
 
--- | Extensions to be used with github-flavored markdown.
+-- | Extensions to be used with PHP Markdown Extra.
 phpMarkdownExtraExtensions :: Extensions
 phpMarkdownExtraExtensions = extensionsFromList
   [ Ext_footnotes
