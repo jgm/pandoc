@@ -645,7 +645,7 @@ directive' = do
       name = trim $ fromMaybe "" (lookup "name" fields)
       classes = words $ maybe "" trim (lookup "class" fields)
       keyvals = [(k, trim v) | (k, v) <- fields, k /= "name", k /= "class"]
-      imgAttr cl = ("", classes ++ alignClasses, widthAttr ++ heightAttr)
+      imgAttr cl = (name, classes ++ alignClasses, widthAttr ++ heightAttr)
         where
           alignClasses = words $ maybe "" trim (lookup cl fields) ++
                           maybe "" (\x -> "align-" ++ trim x)
