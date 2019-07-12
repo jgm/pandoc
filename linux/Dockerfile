@@ -15,7 +15,7 @@ CMD cabal --version && \
     git checkout -b work $TREE && \
     cabal new-update && \
     cabal new-clean && \
-    cabal new-configure --enable-tests -f-export-dynamic -fstatic -fembed_data_files -fbibutils --ghc-options '-optc-Os -optl=-pthread -optl=-static -fPIC' . pandoc-citeproc && \
+    cabal new-configure --enable-tests -f-export-dynamic -fstatic -fembed_data_files -fbibutils --ghc-options '-optc-Os -optl=-pthread -optl=-static -fPIC -split-sections' . pandoc-citeproc && \
     cabal new-build . pandoc-citeproc && \
     cabal new-test -j1 . pandoc-citeproc && \
     for f in $(find dist-newstyle -name 'pandoc*' -type f -perm +400); do cp $f /artifacts/; done && \
