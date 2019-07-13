@@ -377,6 +377,7 @@ shouldEscapeString s = do
            "::" `isInfixOf` s ||
            "~~" `isInfixOf` s ||
            "[[" `isInfixOf` s ||
+           ">>>" `isInfixOf` s ||
            ("]" `isInfixOf` s && insideLink) ||
            containsNotes '[' ']' s ||
            containsNotes '{' '}' s
@@ -412,7 +413,7 @@ removeKeyValues :: Inline -> Inline
 removeKeyValues (Code (i, cls, _) xs) = Code (i, cls, []) xs
 -- Do not remove attributes from Link
 -- Do not remove attributes, such as "width", from Image
-removeKeyValues (Span (i, cls, _) xs) = Span (i, cls, []) xs
+-- Do not remove attributes, such as "dir", from Span
 removeKeyValues x                     = x
 
 normalizeInlineList :: [Inline] -> [Inline]
@@ -682,14 +683,17 @@ inlineToMuse (Note contents) = do
   n <- gets stNoteNum
   let ref = show $ n + length notes
   return $ "[" <> text ref <> "]"
-inlineToMuse (Span (anchor,names,_) inlines) = do
+inlineToMuse (Span (anchor,names,kvs) inlines) = do
   contents <- inlineListToMuse inlines
+  let (contents', hasDir) = case lookup "dir" kvs of
+                              Just "rtl" -> ("<<<" <> contents <> ">>>", True)
+                              Just "ltr" -> (">>>" <> contents <> "<<<", True)
+                              _ -> (contents, False)
   let anchorDoc = if null anchor
                      then mempty
                      else text ('#':anchor) <> space
   modify $ \st -> st { stUseTags = False }
   return $ anchorDoc <> (if null inlines && not (null anchor)
                          then mempty
-                         else (if null names
-                               then "<class>"
-                               else "<class name=\"" <> text (head names) <> "\">") <> contents <> "</class>")
+                         else (if null names then (if hasDir then contents' else "<class>" <> contents' <> "</class>")
+                               else "<class name=\"" <> text (head names) <> "\">" <> contents' <> "</class>"))

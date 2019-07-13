@@ -236,6 +236,9 @@ tests =
       , "Class tag" =: "<class name=\"foo\">bar</class>" =?> para (spanWith ("", ["foo"], []) "bar")
       , "Class tag without name" =: "<class>foobar</class>" =?> para (spanWith ("", [], []) "foobar")
 
+      , "RTL" =: "<<<foo bar>>>" =?> para (spanWith ("", [], [("dir", "rtl")]) "foo bar")
+      , "LTR" =: ">>>foo bar<<<" =?> para (spanWith ("", [], [("dir", "ltr")]) "foo bar")
+
       -- <em> tag should match with the last </em> tag, not verbatim one
       , "Nested \"</em>\" inside em tag" =: "<em>foo<verbatim></em></verbatim>bar</em>" =?> para (emph "foo</em>bar")
 

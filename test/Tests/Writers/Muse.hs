@@ -620,6 +620,13 @@ tests = [ testGroup "block elements"
           , "adjacent spans" =: spanWith ("", ["syllable"], []) (str "wa") <>
                                 spanWith ("", ["syllable"], []) (str "ter")
                              =?> "<class name=\"syllable\">wa</class><class name=\"syllable\">ter</class>"
+          , testGroup "RTL"
+            [ "RTL span" =: spanWith ("",[],[("dir", "rtl")]) (text "foo bar") =?> "<<<foo bar>>>"
+            , "LTR span" =: spanWith ("",[],[("dir", "ltr")]) (text "foo bar") =?> ">>>foo bar<<<"
+            , "RTL span with a class" =: spanWith ("",["foobar"],[("dir", "rtl")]) (text "foo bar") =?> "<class name=\"foobar\"><<<foo bar>>></class>"
+            , "LTR span with a class" =: spanWith ("",["foobar"],[("dir", "ltr")]) (text "foo bar") =?> "<class name=\"foobar\">>>>foo bar<<<</class>"
+            , "Escape <<< and >>>" =: plain (text "<<< foo bar >>>") =?> "<verbatim><<<</verbatim> foo bar <verbatim>>>></verbatim>"
+            ]
           , testGroup "combined"
             [ "emph word before" =:
                 para ("foo" <> emph "bar") =?>

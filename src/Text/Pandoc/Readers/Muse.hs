@@ -746,6 +746,8 @@ inline' = whitespace
       <|> strikeoutTag
       <|> verbatimTag
       <|> classTag
+      <|> inlineRtl
+      <|> inlineLtr
       <|> nbsp
       <|> linkOrImage
       <|> code
@@ -862,6 +864,16 @@ classTag :: PandocMonad m => MuseParser m (F Inlines)
 classTag = do
   classes <- maybe [] words . lookup "name" <$> openTag "class"
   fmap (B.spanWith ("", classes, [])) . mconcat <$> manyTill inline (closeTag "class")
+
+-- | Parse @\<\<\<RTL>>>@ text.
+inlineRtl :: PandocMonad m => MuseParser m (F Inlines)
+inlineRtl = try $
+  fmap (B.spanWith ("", [], [("dir", "rtl")])) . mconcat <$ string "<<<" <*> manyTill inline (string ">>>")
+
+-- | Parse @\<\<\<LTR>>>@ text.
+inlineLtr :: PandocMonad m => MuseParser m (F Inlines)
+inlineLtr = try $
+  fmap (B.spanWith ("", [], [("dir", "ltr")])) . mconcat <$ string ">>>" <*> manyTill inline (string "<<<")
 
 -- | Parse "~~" as nonbreaking space.
 nbsp :: PandocMonad m => MuseParser m (F Inlines)
