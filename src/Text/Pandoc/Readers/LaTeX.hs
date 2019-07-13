@@ -29,7 +29,7 @@ import Prelude
 import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (isDigit, isLetter, toLower, toUpper)
+import Data.Char (isDigit, isLetter, toLower, toUpper, chr)
 import Data.Default
 import Data.List (intercalate, isPrefixOf)
 import qualified Data.Map as M
@@ -893,6 +893,8 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("cref", rawInlineOr "cref" $ doref "ref")       -- from cleveref.sty
   , ("vref", rawInlineOr "vref" $ doref "ref+page")  -- from varioref.sty
   , ("eqref", rawInlineOr "eqref" $ doref "eqref")   -- from amsmath.sty
+  , ("mbox", rawInlineOr "mbox" $ processHBox <$> tok)
+  , ("hbox", rawInlineOr "hbox" $ processHBox <$> tok)
   , ("lettrine", optional opt >> extractSpaces (spanWith ("",["lettrine"],[])) <$> tok)
   , ("(", mathInline . toksToString <$> manyTill anyTok (controlSeq ")"))
   , ("[", mathDisplay . toksToString <$> manyTill anyTok (controlSeq "]"))
@@ -1286,6 +1288,14 @@ rawInlineOr name' fallback = do
   if parseRaw
      then rawInline "latex" <$> getRawCommand name' ("\\" <> name')
      else fallback
+
+processHBox :: Inlines -> Inlines
+processHBox = walk convert
+  where
+    convert Space     = Str [chr 160] -- non-breakable space
+    convert SoftBreak = Str [chr 160] -- non-breakable space
+    convert LineBreak = Str ""
+    convert x         = x
 
 getRawCommand :: PandocMonad m => Text -> Text -> LP m String
 getRawCommand name txt = do
