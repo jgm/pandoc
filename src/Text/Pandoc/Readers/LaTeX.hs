@@ -1502,12 +1502,15 @@ macroDef =
           guardDisabled Ext_latex_macros <|>
            updateState (\s -> s{ sMacros = M.insert name macro' (sMacros s) })
         environmentDef = do
-          (name, macro1, macro2) <- newenvironment
-          guardDisabled Ext_latex_macros <|>
-            do updateState $ \s -> s{ sMacros =
-                M.insert name macro1 (sMacros s) }
-               updateState $ \s -> s{ sMacros =
-                M.insert ("end" <> name) macro2 (sMacros s) }
+          mbenv <- newenvironment
+          case mbenv of
+            Nothing -> return ()
+            Just (name, macro1, macro2) -> do
+              guardDisabled Ext_latex_macros <|>
+                do updateState $ \s -> s{ sMacros =
+                    M.insert name macro1 (sMacros s) }
+                   updateState $ \s -> s{ sMacros =
+                    M.insert ("end" <> name) macro2 (sMacros s) }
         -- @\newenvironment{envname}[n-args][default]{begin}{end}@
         -- is equivalent to
         -- @\newcommand{\envname}[n-args][default]{begin}@
@@ -1580,14 +1583,16 @@ newcommand = do
                  : (contents' ++
                    [ Tok pos Symbol "}", Tok pos Symbol "}" ])
               _                     -> contents'
-    when (mtype == "newcommand") $ do
-      macros <- sMacros <$> getState
-      case M.lookup name macros of
-           Just _  -> report $ MacroAlreadyDefined (T.unpack txt) pos
-           Nothing -> return ()
-    return (name, Macro ExpandWhenUsed argspecs optarg contents)
+    macros <- sMacros <$> getState
+    case M.lookup name macros of
+        Just macro
+          | mtype == "newcommand" -> do
+              report $ MacroAlreadyDefined (T.unpack txt) pos
+              return (name, macro)
+          | mtype == "providecommand" -> return (name, macro)
+        _ -> return (name, Macro ExpandWhenUsed argspecs optarg contents)
 
-newenvironment :: PandocMonad m => LP m (Text, Macro, Macro)
+newenvironment :: PandocMonad m => LP m (Maybe (Text, Macro, Macro))
 newenvironment = do
   pos <- getPosition
   Tok _ (CtrlSeq mtype) _ <- controlSeq "newenvironment" <|>
@@ -1604,13 +1609,17 @@ newenvironment = do
     let argspecs = map (\i -> ArgNum i) [1..numargs]
     startcontents <- spaces >> bracedOrToken
     endcontents <- spaces >> bracedOrToken
-    when (mtype == "newenvironment") $ do
-      macros <- sMacros <$> getState
-      case M.lookup name macros of
-           Just _  -> report $ MacroAlreadyDefined (T.unpack name) pos
-           Nothing -> return ()
-    return (name, Macro ExpandWhenUsed argspecs optarg startcontents,
-             Macro ExpandWhenUsed [] Nothing endcontents)
+    macros <- sMacros <$> getState
+    case M.lookup name macros of
+         Just _
+           | mtype == "newenvironment" -> do
+               report $ MacroAlreadyDefined (T.unpack name) pos
+               return Nothing
+           | mtype == "provideenvironment" -> do
+               return Nothing
+         _ -> return $ Just (name,
+                      Macro ExpandWhenUsed argspecs optarg startcontents,
+                      Macro ExpandWhenUsed [] Nothing endcontents)
 
 bracketedNum :: PandocMonad m => LP m Int
 bracketedNum = do
