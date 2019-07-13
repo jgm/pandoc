@@ -621,6 +621,7 @@ toAttrs kvs = do
                   if x `Set.member` (html5Attributes <> rdfaAttributes)
                      || ':' `elem` x -- e.g. epub: namespace
                      || "data-" `isPrefixOf` x
+                     || "aria-" `isPrefixOf` x
                      then Just $ customAttribute (fromString x) (toValue y)
                      else Just $ customAttribute (fromString ("data-" ++ x))
                                   (toValue y)

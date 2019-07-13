@@ -3967,10 +3967,11 @@ Attributes can be set on links and images:
 (This syntax is compatible with [PHP Markdown Extra] when only `#id`
 and `.class` are used.)
 
-For HTML and EPUB, all attributes except `width` and `height` (but
-including `srcset` and `sizes`) are passed through as is. The other
-writers ignore attributes that are not supported by their output
-format.
+For HTML and EPUB, all known HTML5 attributes except `width` and
+`height` (but including `srcset` and `sizes`) are passed through
+as is. Unknown attributes are passed through as custom
+attributes, with `data-` prepended. The other writers ignore
+attributes that are not specifically supported by their output format.
 
 The `width` and `height` attributes on images are treated specially. When
 used without a unit, the unit is assumed to be pixels. However, any of
