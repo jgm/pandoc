@@ -41,6 +41,7 @@ import qualified Text.Pandoc.Class as P
 import Data.Time
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
+import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType)
 import Text.Pandoc.Options (EPUBVersion (..), HTMLMathMethod (..),
@@ -450,14 +451,23 @@ pandocToEPUB version opts doc = do
                      Nothing   -> return ([],[])
                      Just img  -> do
                        let coverImage = takeFileName img
+                       imgContent <- lift $ P.readFileLazy img
+                       (coverImageWidth, coverImageHeight) <-
+                             case imageSize opts' (B.toStrict imgContent) of
+                               Right sz  -> return $ sizeInPixels sz
+                               Left err' -> (0, 0) <$ report
+                                 (CouldNotDetermineImageSize img err')
                        cpContent <- lift $ writeHtml
                             opts'{ writerVariables =
                                     ("coverpage","true"):
                                     ("pagetitle",
                                        escapeStringForXML plainTitle):
+                                    ("cover-image", coverImage):
+                                    ("cover-image-width", show coverImageWidth):
+                                    ("cover-image-height",
+                                       show coverImageHeight):
                                      cssvars True ++ vars }
-                            (Pandoc meta [RawBlock (Format "html") $ "<div id=\"cover-image\">\n<img src=\"../media/" ++ coverImage ++ "\" alt=\"cover image\" />\n</div>"])
-                       imgContent <- lift $ P.readFileLazy img
+                            (Pandoc meta [])
                        coverEntry <- mkEntry "text/cover.xhtml" cpContent
                        coverImageEntry <- mkEntry ("media/" ++ coverImage)
                                              imgContent
