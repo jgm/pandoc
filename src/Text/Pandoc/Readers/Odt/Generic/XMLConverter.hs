@@ -29,8 +29,10 @@ module Text.Pandoc.Readers.Odt.Generic.XMLConverter
 , modifyExtraState
 , producingExtraState
 , findChild'
+, filterChildrenName'
 , isSet'
 , isSetWithDefault
+, elName
 , searchAttr
 , lookupAttr
 , lookupAttr'
@@ -43,6 +45,7 @@ module Text.Pandoc.Readers.Odt.Generic.XMLConverter
 , readAttrWithDefault
 , getAttr
 , executeIn
+, executeInSub
 , withEveryL
 , tryAll
 , matchContent'
@@ -309,26 +312,36 @@ readNSattributes         = fromState $ \state -> maybe (state, failEmpty     )
 
 -- | Given a namespace id and an element name, creates a 'XML.QName' for
 -- internal use
-elemName                 :: (NameSpaceID nsID)
+qualifyName              :: (NameSpaceID nsID)
                          => nsID -> ElementName
                          -> XMLConverter nsID extraState x XML.QName
-elemName nsID name       =         lookupNSiri nsID
+qualifyName nsID name    =         lookupNSiri nsID
                                &&& lookupNSprefix nsID
                            >>% XML.QName name
+
+-- | Checks if a given element matches both a specified namespace id
+-- and a predicate
+elemNameMatches          :: (NameSpaceID nsID)
+                         => nsID -> (ElementName -> Bool)
+                         -> XMLConverter nsID extraState XML.Element Bool
+elemNameMatches nsID f    = keepingTheValue (lookupNSiri nsID) >>% hasMatchingName
+  where hasMatchingName e iri = let name = XML.elName e
+                                in     f (XML.qName name)
+                                    && XML.qURI name == iri
 
 -- | Checks if a given element matches both a specified namespace id
 -- and a specified element name
 elemNameIs               :: (NameSpaceID nsID)
                          => nsID -> ElementName
                          -> XMLConverter nsID extraState XML.Element Bool
-elemNameIs nsID name     = keepingTheValue (lookupNSiri nsID) >>% hasThatName
-  where hasThatName e iri = let elName = XML.elName e
-                            in     XML.qName elName == name
-                                && XML.qURI  elName == iri
+elemNameIs nsID name     = elemNameMatches nsID (== name)
 
 --------------------------------------------------------------------------------
 -- General content
 --------------------------------------------------------------------------------
+
+elName :: XML.Element -> ElementName
+elName = XML.qName . XML.elName
 
 --
 elContent               :: XMLConverter nsID extraState x [XML.Content]
@@ -336,7 +349,7 @@ elContent               =     getCurrentElement
                            >>^ XML.elContent
 
 --------------------------------------------------------------------------------
--- Chilren
+-- Children
 --------------------------------------------------------------------------------
 
 --
@@ -344,7 +357,7 @@ elContent               =     getCurrentElement
 findChildren             :: (NameSpaceID nsID)
                          => nsID -> ElementName
                          -> XMLConverter nsID extraState x [XML.Element]
-findChildren nsID name   =         elemName nsID name
+findChildren nsID name   =         qualifyName nsID name
                                &&& getCurrentElement
                            >>% XML.findChildren
 
@@ -353,7 +366,7 @@ findChild'              :: (NameSpaceID nsID)
                         => nsID
                         -> ElementName
                         -> XMLConverter nsID extraState x (Maybe XML.Element)
-findChild' nsID name    =         elemName nsID name
+findChild' nsID name    =         qualifyName nsID name
                               &&& getCurrentElement
                           >>% XML.findChild
 
@@ -364,6 +377,14 @@ findChild              :: (NameSpaceID nsID)
 findChild nsID name    =     findChild' nsID name
                          >>> maybeToChoice
 
+filterChildrenName'        :: (NameSpaceID nsID)
+                           => nsID
+                           -> (ElementName -> Bool)
+                           -> XMLConverter nsID extraState x [XML.Element]
+filterChildrenName' nsID f =     getCurrentElement
+                             >>> arr XML.elChildren
+                             >>> iterateS (keepingTheValue (elemNameMatches nsID f))
+                             >>> arr (catMaybes . fmap (uncurry $ bool Nothing . Just))
 
 --------------------------------------------------------------------------------
 -- Attributes
@@ -441,7 +462,7 @@ lookupDefaultingAttr nsID attrName
 findAttr'               :: (NameSpaceID nsID)
                         => nsID -> AttributeName
                         -> XMLConverter nsID extraState x (Maybe AttributeValue)
-findAttr' nsID attrName =         elemName nsID attrName
+findAttr' nsID attrName =         qualifyName nsID attrName
                               &&& getCurrentElement
                           >>% XML.findAttr
 
@@ -537,15 +558,21 @@ executeThere a         =      second jumpThere
                           >>> jumpBack -- >>? jumpBack  would not ensure the jump.
                           >>^ collapseEither
 
--- | Do something in a sub-element, tnen come back
-executeIn              :: (NameSpaceID nsID)
-                       => nsID -> ElementName
-                       -> FallibleXMLConverter nsID extraState f s
-                       -> FallibleXMLConverter nsID extraState f s
-executeIn nsID name a  =     keepingTheValue
-                               (findChild nsID name)
-                         >>> ignoringState liftFailure
-                         >>? switchingTheStack a
+
+-- | Do something in a specific element, then come back
+executeIn   :: XMLConverter nsID extraState XML.Element s
+            -> XMLConverter nsID extraState XML.Element s
+executeIn a = duplicate >>> switchingTheStack a
+
+-- | Do something in a sub-element, then come back
+executeInSub              :: (NameSpaceID nsID)
+                          => nsID -> ElementName
+                          -> FallibleXMLConverter nsID extraState f s
+                          -> FallibleXMLConverter nsID extraState f s
+executeInSub nsID name a  =     keepingTheValue
+                                  (findChild nsID name)
+                            >>> ignoringState liftFailure
+                            >>? switchingTheStack a
   where liftFailure (_, (Left  f)) = Left  f
         liftFailure (x, (Right e)) = Right (x, e)
 
