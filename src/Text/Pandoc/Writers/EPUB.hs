@@ -68,6 +68,7 @@ data Chapter = Chapter (Maybe [Int]) [Block]
 
 data EPUBState = EPUBState {
         stMediaPaths  :: [(FilePath, (FilePath, Maybe Entry))]
+      , stMediaNextId :: Int
       , stEpubSubdir  :: String
       }
 
@@ -391,7 +392,7 @@ writeEPUB epubVersion opts doc = do
   -- sanity check on epubSubdir
   unless (all (\c -> isAscii c && isAlphaNum c) epubSubdir) $
     throwError $ PandocEpubSubdirectoryError epubSubdir
-  let initState = EPUBState { stMediaPaths = [], stEpubSubdir = epubSubdir }
+  let initState = EPUBState { stMediaPaths = [], stMediaNextId = 0, stEpubSubdir = epubSubdir }
   evalStateT (pandocToEPUB epubVersion opts doc) initState
 
 pandocToEPUB :: PandocMonad m
@@ -1004,16 +1005,24 @@ modifyMediaRef oldsrc = do
          Just (n,_) -> return n
          Nothing    -> catchError
            (do (img, mbMime) <- P.fetchItem oldsrc
-               let new = "media/file" ++ show (length media) ++
-                          fromMaybe (takeExtension (takeWhile (/='?') oldsrc))
-                          (('.':) <$> (mbMime >>= extensionFromMimeType))
-               entry <- mkEntry new (B.fromChunks . (:[]) $ img)
+               let ext = fromMaybe (takeExtension (takeWhile (/='?') oldsrc))
+                         (('.':) <$> (mbMime >>= extensionFromMimeType))
+               newName <- getMediaNextNewName ext
+               let newPath = "media/" ++ newName
+               entry <- mkEntry newPath (B.fromChunks . (:[]) $ img)
                modify $ \st -> st{ stMediaPaths =
-                            (oldsrc, (new, Just entry)):media}
-               return new)
+                            (oldsrc, (newPath, Just entry)):media}
+               return newPath)
            (\e -> do
                 report $ CouldNotFetchResource oldsrc (show e)
                 return oldsrc)
+
+getMediaNextNewName :: PandocMonad m => String -> E m String
+getMediaNextNewName ext = do
+  nextId <- gets stMediaNextId
+  modify $ \st -> st { stMediaNextId = nextId + 1 }
+  let nextName = "file" ++ show nextId ++ ext
+  (P.fetchItem nextName >> getMediaNextNewName ext) `catchError` const (return nextName)
 
 transformBlock  :: PandocMonad m
                 => Block
