@@ -26,6 +26,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Templates
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
@@ -228,7 +229,9 @@ definitionListItemToMan :: PandocMonad m
                         -> ([Inline],[[Block]])
                         -> StateT WriterState m Doc
 definitionListItemToMan opts (label, defs) = do
-  labelText <- withFontFeature 'B' (inlineListToMan opts label)
+  -- in most man pages, option and other code in option lists is boldface,
+  -- but not other things, so we try to reproduce this style:
+  labelText <- inlineListToMan opts $ makeCodeBold label
   contents <- if null defs
                  then return empty
                  else liftM vcat $ forM defs $ \blocks ->
@@ -245,7 +248,12 @@ definitionListItemToMan opts (label, defs) = do
                                         then empty
                                         else text ".RS" $$ rest' $$ text ".RE"
                           [] -> return empty
-  return $ text ".TP" $$ labelText $$ contents
+  return $ text ".TP" $$ nowrap labelText $$ contents
+
+makeCodeBold :: [Inline] -> [Inline]
+makeCodeBold = walk go
+  where go x@(Code{}) = Strong [x]
+        go x          = x
 
 -- | Convert list of Pandoc block elements to man.
 blockListToMan :: PandocMonad m

@@ -318,47 +318,47 @@ Williams
 .PP
 Tight using spaces:
 .TP
-\f[B]apple\f[R]
+apple
 red fruit
 .TP
-\f[B]orange\f[R]
+orange
 orange fruit
 .TP
-\f[B]banana\f[R]
+banana
 yellow fruit
 .PP
 Tight using tabs:
 .TP
-\f[B]apple\f[R]
+apple
 red fruit
 .TP
-\f[B]orange\f[R]
+orange
 orange fruit
 .TP
-\f[B]banana\f[R]
+banana
 yellow fruit
 .PP
 Loose:
 .TP
-\f[B]apple\f[R]
+apple
 red fruit
 .TP
-\f[B]orange\f[R]
+orange
 orange fruit
 .TP
-\f[B]banana\f[R]
+banana
 yellow fruit
 .PP
 Multiple blocks with italics:
 .TP
-\f[B]\f[BI]apple\f[B]\f[R]
+\f[I]apple\f[R]
 red fruit
 .RS
 .PP
 contains seeds, crisp, pleasant to taste
 .RE
 .TP
-\f[B]\f[BI]orange\f[B]\f[R]
+\f[I]orange\f[R]
 orange fruit
 .RS
 .IP
@@ -375,31 +375,31 @@ orange block quote
 .PP
 Multiple definitions, tight:
 .TP
-\f[B]apple\f[R]
+apple
 red fruit
 computer
 .TP
-\f[B]orange\f[R]
+orange
 orange fruit
 bank
 .PP
 Multiple definitions, loose:
 .TP
-\f[B]apple\f[R]
+apple
 red fruit
 computer
 .TP
-\f[B]orange\f[R]
+orange
 orange fruit
 bank
 .PP
 Blank line after term, indented marker, alternate markers:
 .TP
-\f[B]apple\f[R]
+apple
 red fruit
 computer
 .TP
-\f[B]orange\f[R]
+orange
 orange fruit
 .RS
 .IP "1." 3
