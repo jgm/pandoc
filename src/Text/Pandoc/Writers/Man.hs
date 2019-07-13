@@ -228,7 +228,7 @@ definitionListItemToMan :: PandocMonad m
                         -> ([Inline],[[Block]])
                         -> StateT WriterState m Doc
 definitionListItemToMan opts (label, defs) = do
-  labelText <- inlineListToMan opts label
+  labelText <- withFontFeature 'B' (inlineListToMan opts label)
   contents <- if null defs
                  then return empty
                  else liftM vcat $ forM defs $ \blocks ->
@@ -245,7 +245,7 @@ definitionListItemToMan opts (label, defs) = do
                                         then empty
                                         else text ".RS" $$ rest' $$ text ".RE"
                           [] -> return empty
-  return $ text ".TP" $$ nowrap (text ".B " <> labelText) $$ contents
+  return $ text ".TP" $$ labelText $$ contents
 
 -- | Convert list of Pandoc block elements to man.
 blockListToMan :: PandocMonad m
