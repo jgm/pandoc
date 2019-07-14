@@ -70,9 +70,15 @@ optToOutputSettings opts = do
     if pdfOutput
        then liftIO $ pdfWriterAndProg (optWriter opts) (optPdfEngine opts)
        else case optWriter opts of
-              Nothing  ->
-                return (fromMaybe "html" $ formatFromFilePaths [outputFile],
-                        Nothing)
+              Nothing
+                | outputFile == "-" -> return ("html", Nothing)
+                | otherwise ->
+                    case formatFromFilePaths [outputFile] of
+                           Nothing -> do
+                             report $ UnknownExtensions
+                                [takeExtension outputFile] "html"
+                             return ("html", Nothing)
+                           Just f  -> return (f, Nothing)
               Just f   -> return (f, Nothing)
 
   let format = if ".lua" `isSuffixOf` writerName

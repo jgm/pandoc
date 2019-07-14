@@ -26,6 +26,7 @@ import Prelude
 import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.Trans
+import Control.Monad.Except (throwError)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import Data.Char (toLower)
@@ -101,40 +102,6 @@ convertWithOpts opts = do
                     selectUserDataDir ds
                   Just _    -> return $ optDataDir opts
 
-  -- assign reader and writer based on options and filenames
-  let readerName = case optReader opts of
-                     Just f  -> f
-                     Nothing -> fromMaybe fallback $
-                                  formatFromFilePaths sources
-                       where fallback = if any isURI sources
-                                           then "html"
-                                           else "markdown"
-
-  let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
-
-  -- TODO: we have to get the input and the output into the state for
-  -- the sake of the text2tags reader.
-  (reader, readerExts) <-
-           case getReader readerName of
-                Right (r, es) -> return (r :: Reader PandocIO, es)
-                Left e   -> E.throwIO $ PandocAppError e'
-                  where e' = case readerName of
-                                  "pdf" -> e ++
-                                     "\nPandoc can convert to PDF, but not from PDF."
-                                  "doc" -> e ++
-                                     "\nPandoc can convert from DOCX, but not from DOC.\nTry using Word to save your DOC file as DOCX, and convert that with pandoc."
-                                  _ -> e
-
-  let convertTabs = tabFilter (if optPreserveTabs opts ||
-                                    readerName == "t2t" ||
-                                    readerName == "man"
-                                  then 0
-                                  else optTabStop opts)
-
-      readSources :: [FilePath] -> PandocIO Text
-      readSources srcs = convertTabs . T.intercalate (T.pack "\n") <$>
-                            mapM readSource srcs
-
   let runIO' :: PandocIO a -> IO a
       runIO' f = do
         (res, reports) <- runIOorExplode $ do
@@ -161,6 +128,43 @@ convertWithOpts opts = do
     setInputFiles (optInputFiles opts)
     setOutputFile (optOutputFile opts)
 
+    -- assign reader and writer based on options and filenames
+    readerName <- case optReader opts of
+                       Just f  -> return f
+                       Nothing -> case formatFromFilePaths sources of
+                           Just f' -> return f'
+                           Nothing | sources == ["-"] -> return "markdown"
+                                   | any isURI sources -> return "html"
+                                   | otherwise -> do
+                             report $ UnknownExtensions
+                                 (map takeExtension sources) "markdown"
+                             return "markdown"
+
+    let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
+
+    (reader, readerExts) <-
+             case getReader readerName of
+                  Right (r, es) -> return (r :: Reader PandocIO, es)
+                  Left e   -> throwError $ PandocAppError e'
+                    where e' = case readerName of
+                                    "pdf" -> e ++
+                                       "\nPandoc can convert to PDF, but not from PDF."
+                                    "doc" -> e ++
+                                       "\nPandoc can convert from DOCX, but not from DOC.\nTry using Word to save your DOC file as DOCX, and convert that with pandoc."
+                                    _ -> e
+
+    let convertTabs = tabFilter (if optPreserveTabs opts ||
+                                      readerName == "t2t" ||
+                                      readerName == "man"
+                                    then 0
+                                    else optTabStop opts)
+
+
+    let readSources :: [FilePath] -> PandocIO Text
+        readSources srcs = convertTabs . T.intercalate (T.pack "\n") <$>
+                              mapM readSource srcs
+
+
     outputSettings <- optToOutputSettings opts
     let format = outputFormat outputSettings
     let writer = outputWriter outputSettings
@@ -180,7 +184,7 @@ convertWithOpts opts = do
     istty <- liftIO $ queryTerminal stdOutput
 #endif
     when (not (isTextFormat format) && istty && isNothing ( optOutputFile opts)) $
-      liftIO $ E.throwIO $ PandocAppError $
+      throwError $ PandocAppError $
               "Cannot write " ++ format ++ " output to terminal.\n" ++
               "Specify an output file using the -o option, or " ++
               "use '-o -' to force output to stdout."

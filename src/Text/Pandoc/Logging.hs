@@ -30,7 +30,7 @@ import Data.Aeson.Encode.Pretty (Config (..), defConfig, encodePretty',
                                  keyOrder)
 import qualified Data.ByteString.Lazy as BL
 import Data.Data (Data, toConstr)
-import Data.List (isSuffixOf)
+import Data.List (isSuffixOf, intercalate)
 import qualified Data.Text as Text
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
@@ -88,6 +88,7 @@ data LogMessage =
   | CouldNotLoadTranslations String String
   | UnexpectedXmlElement String String
   | UnknownOrgExportOption String
+  | UnknownExtensions [String] String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -207,6 +208,9 @@ instance ToJSON LogMessage where
             "parent" .= Text.pack parent]
       UnknownOrgExportOption option ->
            ["option" .= Text.pack option]
+      UnknownExtensions exts format ->
+           ["extensions" .= map Text.pack exts
+           ,"format" .= Text.pack format]
 
 
 showPos :: SourcePos -> String
@@ -310,6 +314,10 @@ showLogMessage msg =
          "Unexpected XML element " ++ element ++ " in " ++ parent
        UnknownOrgExportOption option ->
          "Ignoring unknown Org export option: " ++ option
+       UnknownExtensions exts format ->
+         "Could not deduce format from file extension " ++
+         intercalate " or " exts ++ "\n" ++
+         "Defaulting to " ++ format
 
 messageVerbosity:: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -351,3 +359,4 @@ messageVerbosity msg =
        CouldNotLoadTranslations{}   -> WARNING
        UnexpectedXmlElement {}      -> WARNING
        UnknownOrgExportOption {}    -> WARNING
+       UnknownExtensions{}          -> WARNING
