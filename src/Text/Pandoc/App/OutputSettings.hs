@@ -71,7 +71,8 @@ optToOutputSettings opts = do
        then liftIO $ pdfWriterAndProg (optWriter opts) (optPdfEngine opts)
        else case optWriter opts of
               Nothing  ->
-                return (formatFromFilePaths "html" [outputFile], Nothing)
+                return (fromMaybe "html" $ formatFromFilePaths [outputFile],
+                        Nothing)
               Just f   -> return (f, Nothing)
 
   let format = if ".lua" `isSuffixOf` writerName

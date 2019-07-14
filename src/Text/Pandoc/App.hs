@@ -104,7 +104,8 @@ convertWithOpts opts = do
   -- assign reader and writer based on options and filenames
   let readerName = case optReader opts of
                      Just f  -> f
-                     Nothing -> formatFromFilePaths fallback sources
+                     Nothing -> fromMaybe fallback $
+                                  formatFromFilePaths sources
                        where fallback = if any isURI sources
                                            then "html"
                                            else "markdown"

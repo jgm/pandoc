@@ -18,13 +18,13 @@ import Prelude
 import Data.Char (toLower)
 import System.FilePath (takeExtension)
 
--- Determine default reader based on source file extensions.
-formatFromFilePaths :: String -> [FilePath] -> String
-formatFromFilePaths fallback [] = fallback
-formatFromFilePaths fallback (x:xs) =
+-- Determine default format based on file extensions.
+formatFromFilePaths :: [FilePath] -> Maybe String
+formatFromFilePaths [] = Nothing
+formatFromFilePaths (x:xs) =
   case formatFromFilePath x of
-    Just f     -> f
-    Nothing    -> formatFromFilePaths fallback xs
+    Just f     -> Just f
+    Nothing    -> formatFromFilePaths xs
 
 -- Determine format based on file extension
 formatFromFilePath :: FilePath -> Maybe String
