@@ -646,18 +646,17 @@ dimenarg :: PandocMonad m => LP m Text
 dimenarg = try $ do
   optional sp
   ch  <- option False $ True <$ symbol '='
+  minus <- option "" $ "-" <$ symbol '-'
   Tok _ _ s1 <- satisfyTok isWordTok
   s2 <- option "" $ try $ do
           symbol '.'
           Tok _ _ t <-  satisfyTok isWordTok
           return ("." <> t)
   let s = s1 <> s2
-  guard $ T.takeEnd 2 s `elem`
-           ["pt","pc","in","bp","cm","mm","dd","cc","sp"]
-  let num = T.dropEnd 2 s
+  let (num, rest) = T.span (\c -> isDigit c || c == '.') s
   guard $ T.length num > 0
-  guard $ T.all (\c -> isDigit c || c == '.') num
-  return $ T.pack ['=' | ch] <> s
+  guard $ rest `elem` ["", "pt","pc","in","bp","cm","mm","dd","cc","sp"]
+  return $ T.pack ['=' | ch] <> minus <> s
 
 ignore :: (Monoid a, PandocMonad m) => String -> ParserT s u m a
 ignore raw = do
