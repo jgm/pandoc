@@ -309,31 +309,17 @@ definitionListItemToDokuWiki opts (label, items) = do
 isSimpleList :: Block -> Bool
 isSimpleList x =
   case x of
-       BulletList items                 -> all isSimpleListItem items
-       OrderedList (num, sty, _) items  -> all isSimpleListItem items &&
-                                            num == 1 && sty `elem` [DefaultStyle, Decimal]
-       DefinitionList items             -> all isSimpleListItem $ concatMap snd items
-       _                                -> False
+       BulletList items            -> all isSimpleListItem items
+       OrderedList (1, _, _) items -> all isSimpleListItem items
+       DefinitionList items        -> all (all isSimpleListItem . snd) items
+       _                           -> False
 
 -- | True if list item can be handled with the simple wiki syntax.  False if
 --   HTML tags will be needed.
 isSimpleListItem :: [Block] -> Bool
 isSimpleListItem []  = True
-isSimpleListItem [x] =
-  case x of
-       Plain _          -> True
-       Para  _          -> True
-       BulletList _     -> isSimpleList x
-       OrderedList _ _  -> isSimpleList x
-       DefinitionList _ -> isSimpleList x
-       _                -> False
-isSimpleListItem [x, y] | isPlainOrPara x =
-  case y of
-       BulletList _     -> isSimpleList y
-       OrderedList _ _  -> isSimpleList y
-       DefinitionList _ -> isSimpleList y
-       CodeBlock _ _    -> True
-       _                -> False
+isSimpleListItem [x, CodeBlock{}] | isPlainOrPara x = True
+isSimpleListItem (x:ys) | isPlainOrPara x = all isSimpleList ys
 isSimpleListItem _ = False
 
 isPlainOrPara :: Block -> Bool
