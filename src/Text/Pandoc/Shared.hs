@@ -688,7 +688,8 @@ splitSentences xs =
 
 -- | Process ipynb output cells.  If mode is Nothing,
 -- remove all output.  If mode is Just format, select
--- best output for the format.
+-- best output for the format.  If format is not ipynb,
+-- strip out ANSI escape sequences from CodeBlocks (see #5633).
 filterIpynbOutput :: Maybe Format -> Pandoc -> Pandoc
 filterIpynbOutput mode = walk go
   where go (Div (ident, ("output":os), kvs) bs) =
@@ -699,6 +700,7 @@ filterIpynbOutput mode = walk go
               | fmt == Format "ipynb"
                           -> Div (ident, ("output":os), kvs) bs
               | otherwise -> Div (ident, ("output":os), kvs) $
+                              walk removeANSI $
                               take 1 $ sortBy (comparing rank) bs
                  where
                   rank (RawBlock (Format "html") _)
@@ -714,6 +716,13 @@ filterIpynbOutput mode = walk go
                     | otherwise = 3
                   rank (Para [Image{}]) = 1
                   rank _ = 2
+                  removeANSI (CodeBlock attr code) =
+                    CodeBlock attr (removeANSIEscapes code)
+                  removeANSI x = x
+                  removeANSIEscapes [] = []
+                  removeANSIEscapes ('\x1b':'[':cs) =
+                    removeANSIEscapes (drop 1 $ dropWhile (/='m') cs)
+                  removeANSIEscapes (c:cs) = c : removeANSIEscapes cs
         go x = x
 
 --
