@@ -1828,6 +1828,9 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
 `whitespace`
 :   spacing between paragraphs, e.g. `none`, `small` (using [`setupwhitespace`])
 
+`includesource`
+:   include all source documents as file attachments in the PDF file
+
 [ConTeXt Paper Setup]: https://wiki.contextgarden.net/PaperSetup
 [ConTeXt Layout]: https://wiki.contextgarden.net/Layout
 [ConTeXt Font Switching]: https://wiki.contextgarden.net/Font_Switching
