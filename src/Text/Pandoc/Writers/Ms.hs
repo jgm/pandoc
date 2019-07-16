@@ -209,7 +209,7 @@ blockToMs opts (CodeBlock attr str) = do
     text "\\f[]" $$
     text ".fi"
 blockToMs opts (LineBlock ls) = do
-  resetFirstPara
+  setFirstPara  -- use .LP, see #5588
   blockToMs opts $ Para $ intercalate [LineBreak] ls
 blockToMs opts (BlockQuote blocks) = do
   setFirstPara
