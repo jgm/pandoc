@@ -4,6 +4,13 @@
 # containers, ignoring insignificant formatting differences
 # in the XML contents.
 
+UNAME=$(uname)
+if [ "$UNAME" = "Darwin" ]; then
+    FIND="find -E"
+else
+    FIND="find -regextype posix-extended"
+fi
+
 f1="$1"
 f2="$2"
 test -f "$f1" -a -f "$f2" || {
@@ -17,7 +24,7 @@ cd "$WORKDIR"
 mkdir tidy
 for x in a b; do
     cp -r $x tidy/
-    find $x -regextype posix-extended -iregex '.*\.(xhtml|xml|rdf|rels)' -exec sh -c 'mkdir -p "$(dirname tidy/$1)" && tidy -q -xml -utf8 -i "$1" > "tidy/$1"' _ {} \;
+    $FIND $x -iregex '.*\.(xhtml|xml|rdf|rels)' -exec sh -c 'mkdir -p "$(dirname tidy/$1)" && tidy -q -xml -utf8 -i "$1" > "tidy/$1"' _ {} \;
 done
 cd tidy
 mkdir c
