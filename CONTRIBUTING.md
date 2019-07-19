@@ -185,7 +185,8 @@ the pattern of the existing tests. The test suite code is in
 probably easiest to add some data files to the `test` directory, and
 modify `test/Tests/Old.hs`. Otherwise, it is better to modify the module
 under the `test/Tests` hierarchy corresponding to the pandoc module you
-are changing.
+are changing.  Alternatively, you may add a "command test" to
+the `/test/command/` hierarchy, following the pattern of the tests there.
 
 For `docx` tests, you can rebuild the golden tests by passing `--accept`
 to the test script (so if you're using stack,
