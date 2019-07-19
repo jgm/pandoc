@@ -1082,9 +1082,9 @@ getParaProps displayMathPara = do
   listLevel <- asks envListLevel
   numid <- asks envListNumId
   let listPr = [mknode "w:numPr" []
-                [ mknode "w:numId" [("w:val",show numid)] ()
-                , mknode "w:ilvl" [("w:val",show listLevel)] () ] | listLevel >= 0 && not displayMathPara]
-  return $ case props ++ listPr of
+                [ mknode "w:ilvl" [("w:val",show listLevel)] ()
+                , mknode "w:numId" [("w:val",show numid)] () ] | listLevel >= 0 && not displayMathPara]
+  return $ case listPr ++ props of
                 [] -> []
                 ps -> [mknode "w:pPr" [] ps]
 
