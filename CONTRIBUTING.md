@@ -188,12 +188,14 @@ under the `test/Tests` hierarchy corresponding to the pandoc module you
 are changing.  Alternatively, you may add a "command test" to
 the `/test/command/` hierarchy, following the pattern of the tests there.
 
-For `docx` tests, you can rebuild the golden tests by passing `--accept`
-to the test script (so if you're using stack,
-`stack test --test-arguments "-p Docx --accept"`. Then just make sure to
-commit the changed golden files in their own commit with a line that you
-checked them in Word (mentioning Word version and OS), that they weren't
-corrupted, and that they had the expected output.
+You can rebuild the golden tests in `tests/` by passing
+`--accept` to the test script. (If you're using stack, `stack
+test --test-arguments "--accept"`; or `make TESTARGS=--accept`).
+Then check the changed golden files for accuracy, and
+commit the changes.  For docx or pptx tests, open the files in Word
+or Powerpoint to ensure that they weren't corrupted and that
+they had the expected result, and mention the Word/Powerpoint
+version and OS in your commit comment.
 
 Benchmarks
 ----------
