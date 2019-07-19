@@ -165,6 +165,35 @@ or, if you're using [stack],
 
 The test program is `test/test-pandoc.hs`.
 
+To run particular tests (pattern-matching on their names), use
+the `-p` option:
+
+    cabal install pandoc --enable-tests
+    cabal test --test-options='-p markdown'
+
+Or with stack:
+
+    stack test --test-arguments='-p markdown'
+
+It is often helpful to add `-j4` (run tests in parallel)
+and `--hide-successes` (don't clutter output with successes)
+to the test arguments as well.
+
+If you add a new feature to pandoc, please add tests as well, following
+the pattern of the existing tests. The test suite code is in
+`test/test-pandoc.hs`. If you are adding a new reader or writer, it is
+probably easiest to add some data files to the `test` directory, and
+modify `test/Tests/Old.hs`. Otherwise, it is better to modify the module
+under the `test/Tests` hierarchy corresponding to the pandoc module you
+are changing.
+
+For `docx` tests, you can rebuild the golden tests by passing `--accept`
+to the test script (so if you're using stack,
+`stack test --test-arguments "-p Docx --accept"`. Then just make sure to
+commit the changed golden files in their own commit with a line that you
+checked them in Word (mentioning Word version and OS), that they weren't
+corrupted, and that they had the expected output.
+
 Benchmarks
 ----------
 
