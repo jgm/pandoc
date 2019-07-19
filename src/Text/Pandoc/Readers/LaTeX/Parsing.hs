@@ -226,7 +226,16 @@ rawLaTeXParser retokenize parser valParser = do
               Right ((val, raw), st) -> do
                 updateState (updateMacros (sMacros st <>))
                 _ <- takeP (T.length (untokenize toks'))
-                return (val, T.unpack (untokenize raw))
+                let result = untokenize raw
+                -- ensure we end with space if input did, see #4442
+                let result' =
+                      case reverse toks' of
+                        (Tok _ (CtrlSeq _) t : _)
+                         | " " `T.isSuffixOf` t
+                         , not (" " `T.isSuffixOf` result)
+                          -> result <> " "
+                        _ -> result
+                return (val, T.unpack result')
 
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
             => String -> ParserT String s m String
