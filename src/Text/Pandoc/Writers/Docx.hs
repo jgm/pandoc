@@ -1084,7 +1084,7 @@ getParaProps displayMathPara = do
   let listPr = [mknode "w:numPr" []
                 [ mknode "w:ilvl" [("w:val",show listLevel)] ()
                 , mknode "w:numId" [("w:val",show numid)] () ] | listLevel >= 0 && not displayMathPara]
-  return $ case props ++ listPr of
+  return $ case listPr ++ props of
                 [] -> []
                 ps -> [mknode "w:pPr" [] ps]
 
