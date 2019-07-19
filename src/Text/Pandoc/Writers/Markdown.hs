@@ -467,6 +467,7 @@ blockToMarkdown' opts b@(RawBlock f str) = do
   let renderEmpty = mempty <$ report (BlockNotRendered b)
   case () of
     _ | plain -> renderEmpty
+      | isEnabled Ext_raw_attribute opts -> rawAttribBlock
       | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
                   "markdown_mmd", "markdown_strict"] ->
             return $ text str <> text "\n"
@@ -484,7 +485,6 @@ blockToMarkdown' opts b@(RawBlock f str) = do
                     text str <> text "\n"
                 | isEnabled Ext_raw_attribute opts -> rawAttribBlock
                 | otherwise -> renderEmpty
-      | isEnabled Ext_raw_attribute opts -> rawAttribBlock
       | otherwise -> renderEmpty
 blockToMarkdown' opts HorizontalRule = do
   return $ blankline <> text (replicate (writerColumns opts) '-') <> blankline
@@ -1152,6 +1152,7 @@ inlineToMarkdown opts il@(RawInline f str) = do
       | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
                   "markdown_mmd", "markdown_strict"] ->
             return $ text str
+      | isEnabled Ext_raw_attribute opts -> rawAttribInline
       | f `elem` ["html", "html5", "html4"] ->
             case () of
               _ | isEnabled Ext_raw_html opts -> return $ text str
@@ -1162,7 +1163,6 @@ inlineToMarkdown opts il@(RawInline f str) = do
               _ | isEnabled Ext_raw_tex opts -> return $ text str
                 | isEnabled Ext_raw_attribute opts -> rawAttribInline
                 | otherwise -> renderEmpty
-      | isEnabled Ext_raw_attribute opts -> rawAttribInline
       | otherwise -> renderEmpty
 inlineToMarkdown opts (LineBreak) = do
   plain <- asks envPlain

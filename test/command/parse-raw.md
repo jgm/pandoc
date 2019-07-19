@@ -2,7 +2,7 @@
 % pandoc -f latex+raw_tex -t markdown
 \emph{Hi \foo{there}}
 ^D
-*Hi \foo{there}*
+*Hi `\foo{there}`{=latex}*
 ```
 
 ```
@@ -16,7 +16,7 @@
 % pandoc -f html+raw_html -t markdown
 <em>Hi <blink>there</blink></em>
 ^D
-*Hi <blink>there</blink>*
+*Hi `<blink>`{=html}there`</blink>`{=html}*
 ```
 
 ```
