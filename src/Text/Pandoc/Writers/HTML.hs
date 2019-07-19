@@ -776,8 +776,8 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
              then do
                modify $ \st -> st{ stCodeBlockNum = stCodeBlockNum st + 1 }
                codeblocknum <- gets stCodeBlockNum
-               return ("cb" ++ show codeblocknum)
-             else return id'
+               return (writerIdentifierPrefix opts ++ "cb" ++ show codeblocknum)
+             else return (writerIdentifierPrefix opts ++ id')
   let tolhs = isEnabled Ext_literate_haskell opts &&
                 any (\c -> map toLower c == "haskell") classes &&
                 any (\c -> map toLower c == "literate") classes
@@ -800,7 +800,9 @@ blockToHtml opts (CodeBlock (id',classes,keyvals) rawCode) = do
            addAttrs opts (id',classes,keyvals)
              $ H.pre $ H.code $ toHtml adjCode
          Right h -> modify (\st -> st{ stHighlighting = True }) >>
-                    addAttrs opts (id'',[],keyvals) h
+                    -- we set writerIdentifierPrefix to "" since id'' already
+                    -- includes it:
+                    addAttrs opts{writerIdentifierPrefix = ""} (id'',[],keyvals) h
 blockToHtml opts (BlockQuote blocks) = do
   -- in S5, treat list in blockquote specially
   -- if default is incremental, make it nonincremental;
