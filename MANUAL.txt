@@ -1502,7 +1502,9 @@ Variables for HTML slides
 -------------------------
 
 These affect HTML output when [producing slide shows with pandoc].
+
 All [reveal.js configuration options] are available as variables.
+To turn off boolean flags that default to true in reveal.js, use `0`.
 
 `revealjs-url`
 :   base URL for reveal.js documents (defaults to `reveal.js`)
