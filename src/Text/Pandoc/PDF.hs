@@ -42,7 +42,6 @@ import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
 import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
 import Text.Pandoc.Process (pipeProcess)
-import System.Process (readProcess)
 import Text.Pandoc.Shared (inDirectory, stringify)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (walkM)
@@ -90,9 +89,7 @@ makePDF program pdfargs writer opts doc =
       -- user names (see #777)
       let withTempDir templ action = do
             tmp <- getTemporaryDirectory
-            uname <- E.catch (readProcess "uname" ["-o"] "")
-                      (\(_ :: E.SomeException) -> return "")
-            if '~' `elem` tmp || uname == "Cygwin" -- see #5451
+            if '~' `elem` tmp
                    then withTempDirectory "." templ action
                    else withSystemTempDirectory templ action
       (newCommonState, res) <- liftIO $ withTempDir "tex2pdf." $ \tmpdir' -> do
