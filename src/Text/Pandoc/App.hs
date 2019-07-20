@@ -122,6 +122,11 @@ convertWithOpts opts = do
                  CRLF   -> IO.CRLF
                  LF     -> IO.LF
                  Native -> nativeNewline
+#ifdef _WINDOWS
+  let istty = True
+#else
+  istty <- liftIO $ queryTerminal stdOutput
+#endif
 
   runIO' $ do
     setUserDataDir datadir
@@ -178,11 +183,6 @@ convertWithOpts opts = do
     -- force this with '-o -'.  On posix systems, we detect
     -- when stdout is being piped and allow output to stdout
     -- in that case, but on Windows we can't.
-#ifdef _WINDOWS
-    let istty = True
-#else
-    istty <- liftIO $ queryTerminal stdOutput
-#endif
     when (not (isTextFormat format) && istty && isNothing ( optOutputFile opts)) $
       throwError $ PandocAppError $
               "Cannot write " ++ format ++ " output to terminal.\n" ++
