@@ -28,7 +28,7 @@ import Control.Monad
 import Control.Monad.Trans
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString.Lazy as BL
 import Data.Char (toLower)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
@@ -112,7 +112,7 @@ convertWithOpts opts = do
                              return (x, rs)
         case optLogFile opts of
              Nothing      -> return ()
-             Just logfile -> B.writeFile logfile (encodeLogMessages reports)
+             Just logfile -> BL.writeFile logfile (encodeLogMessages reports)
         let isWarning msg = messageVerbosity msg == WARNING
         when (optFailIfWarnings opts && any isWarning reports) $
             E.throwIO PandocFailOnWarningError
@@ -376,13 +376,13 @@ readSource src = case parseURI src of
 readURI :: FilePath -> PandocIO Text
 readURI src = UTF8.toText . fst <$> openURL src
 
-readFile' :: MonadIO m => FilePath -> m B.ByteString
-readFile' "-" = liftIO B.getContents
-readFile' f   = liftIO $ B.readFile f
+readFile' :: MonadIO m => FilePath -> m BL.ByteString
+readFile' "-" = liftIO BL.getContents
+readFile' f   = liftIO $ BL.readFile f
 
-writeFnBinary :: MonadIO m => FilePath -> B.ByteString -> m ()
-writeFnBinary "-" = liftIO . B.putStr
-writeFnBinary f   = liftIO . B.writeFile (UTF8.encodePath f)
+writeFnBinary :: MonadIO m => FilePath -> BL.ByteString -> m ()
+writeFnBinary "-" = liftIO . BL.putStr
+writeFnBinary f   = liftIO . BL.writeFile (UTF8.encodePath f)
 
 writerFn :: MonadIO m => IO.Newline -> FilePath -> Text -> m ()
 -- TODO this implementation isn't maximally efficient:
