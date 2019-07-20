@@ -43,7 +43,7 @@ import Text.Pandoc.BCP47 (Lang (..), renderLang)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class (PandocMonad, PandocPure, getResourcePath, lookupEnv,
                           readFileFromDirs, report, setResourcePath,
-                          setTranslations, translateTerm, trace)
+                          setTranslations, translateTerm, trace, fileExists)
 import Text.Pandoc.Error (PandocError ( PandocParseError, PandocParsecError))
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
@@ -205,11 +205,21 @@ mkImage options src = do
              $ filter (\(k,_) -> k `elem` ["width", "height"]) options
    let attr = ("",[], kvs)
    let alt = str "image"
-   case takeExtension src of
-        "" -> do
-              defaultExt <- getOption readerDefaultImageExtension
-              return $ imageWith attr (addExtension src defaultExt) "" alt
-        _  -> return $ imageWith attr src "" alt
+   defaultExt <- getOption readerDefaultImageExtension
+   let exts' = [".pdf", ".png", ".jpg", ".mps", ".jpeg", ".jbig2", ".jb2"]
+   let exts  = exts' ++ map (map toUpper) exts'
+   let findFile s [] = return s
+       findFile s (e:es) = do
+         let s' = addExtension s e
+         exists <- fileExists s'
+         if exists
+            then return s'
+            else findFile s es
+   src' <- case takeExtension src of
+               "" | not (null defaultExt) -> return $ addExtension src defaultExt
+                  | otherwise -> findFile src exts
+               _  -> return src
+   return $ imageWith attr src' "" alt
 
 doxspace :: PandocMonad m => LP m Inlines
 doxspace =
