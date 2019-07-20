@@ -294,8 +294,7 @@ convertWithOpts opts = do
                         writerOptions doc
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
-                     Left err' -> liftIO $
-                       E.throwIO $ PandocPDFError $
+                     Left err' -> throwError $ PandocPDFError $
                                      TL.unpack (TE.decodeUtf8With TE.lenientDecode err')
 
         Nothing -> do
