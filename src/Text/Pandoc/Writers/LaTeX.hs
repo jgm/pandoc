@@ -516,12 +516,6 @@ isListBlock (OrderedList _ _)  = True
 isListBlock (DefinitionList _) = True
 isListBlock _                  = False
 
-isLineBreakOrSpace :: Inline -> Bool
-isLineBreakOrSpace LineBreak = True
-isLineBreakOrSpace SoftBreak = True
-isLineBreakOrSpace Space     = True
-isLineBreakOrSpace _         = False
-
 -- | Convert Pandoc block element to LaTeX.
 blockToLaTeX :: PandocMonad m
              => Block     -- ^ Block to convert
@@ -599,7 +593,7 @@ blockToLaTeX (Div (identifier,classes,kvs) bs)
       (wrapColumns . wrapColumn . wrapDir . wrapLang . wrapNotes)
         <$> blockListToLaTeX bs
 blockToLaTeX (Plain lst) =
-  inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
+  inlineListToLaTeX lst
 -- title beginning with fig: indicates that the image is a figure
 blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,'f':'i':'g':':':tit)]) = do
   (capt, captForLof, footnotes) <- getCaption True txt
@@ -623,7 +617,7 @@ blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
      then blockToLaTeX (RawBlock "latex" "\\pause")
      else inlineListToLaTeX [Str ".",Space,Str ".",Space,Str "."]
 blockToLaTeX (Para lst) =
-  inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
+  inlineListToLaTeX lst
 blockToLaTeX (LineBlock lns) =
   blockToLaTeX $ linesToPara lns
 blockToLaTeX (BlockQuote lst) = do
@@ -1083,7 +1077,7 @@ inlineListToLaTeX :: PandocMonad m
                   => [Inline]  -- ^ Inlines to convert
                   -> LW m Doc
 inlineListToLaTeX lst =
-  mapM inlineToLaTeX (fixLineInitialSpaces lst)
+  mapM inlineToLaTeX (fixLineInitialSpaces . fixInitialLineBreaks $ lst)
     >>= return . hcat
     -- nonbreaking spaces (~) in LaTeX don't work after line breaks,
     -- so we turn nbsps after hard breaks to \hspace commands.
@@ -1095,6 +1089,12 @@ inlineListToLaTeX lst =
        fixNbsps s = let (ys,zs) = span (=='\160') s
                     in  replicate (length ys) hspace ++ [Str zs]
        hspace = RawInline "latex" "\\hspace*{0.333em}"
+       -- We need \hfill\break for a line break at the start
+       -- of a paragraph. See #5591.
+       fixInitialLineBreaks (LineBreak:xs) =
+         RawInline (Format "latex") "\\hfill\\break\n" :
+           fixInitialLineBreaks xs
+       fixInitialLineBreaks xs = xs
 
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
