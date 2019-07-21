@@ -115,10 +115,14 @@ stringyMetaAttribute = try $ do
   attrValue <- anyLine <|> ("" <$ newline)
   return (attrName, attrValue)
 
+-- | Parse a set of block attributes. Block attributes are given through
+-- lines like @#+CAPTION: block caption@ or @#+ATTR_HTML: :width 20@.
+-- Parsing will fail if any line contains an attribute different from
+-- those attributes known to work on blocks.
 blockAttributes :: PandocMonad m => OrgParser m BlockAttributes
 blockAttributes = try $ do
   kv <- many stringyMetaAttribute
-  guard $ all (attrCheck . fst) kv
+  guard $ all (isBlockAttr . fst) kv
   let caption = foldl' (appendValues "CAPTION") Nothing kv
   let kvAttrs = foldl' (appendValues "ATTR_HTML") Nothing kv
   let name    = lookup "NAME" kv
@@ -134,8 +138,12 @@ blockAttributes = try $ do
            , blockAttrKeyValues = kvAttrs'
            }
  where
-   attrCheck :: String -> Bool
-   attrCheck x = x `elem` ["NAME", "LABEL", "CAPTION", "ATTR_HTML", "RESULTS"]
+   isBlockAttr :: String -> Bool
+   isBlockAttr = flip elem
+                 [ "NAME", "LABEL", "CAPTION"
+                 , "ATTR_HTML", "ATTR_LATEX"
+                 , "RESULTS"
+                 ]
 
    appendValues :: String -> Maybe String -> (String, String) -> Maybe String
    appendValues attrName accValue (key, value) =

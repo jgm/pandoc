@@ -54,6 +54,13 @@ tests =
           caption = "mah brain just explodid"
       in para (imageWith (mempty, mempty, kv) "lambdacat.jpg" name caption)
 
+  , "LaTeX attributes are ignored" =:
+      T.unlines [ "#+CAPTION: Attribute after caption"
+                , "#+ATTR_LATEX: :float nil"
+                , "[[file:test.png]]"
+                ] =?>
+      para (image "test.png" "fig:" "Attribute after caption")
+
   , "Labelled figure" =:
       T.unlines [ "#+CAPTION: My figure"
                 , "#+LABEL: fig:myfig"
