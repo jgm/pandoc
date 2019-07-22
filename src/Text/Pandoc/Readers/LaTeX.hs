@@ -924,6 +924,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("it", extractSpaces emph <$> inlines)
   , ("sl", extractSpaces emph <$> inlines)
   , ("bf", extractSpaces strong <$> inlines)
+  , ("tt", code . stringify . toList <$> inlines)
   , ("rm", inlines)
   , ("itshape", extractSpaces emph <$> inlines)
   , ("slshape", extractSpaces emph <$> inlines)
