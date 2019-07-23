@@ -138,6 +138,10 @@ $if(rtl)$
         // Change the presentation direction to be RTL
         rtl: $rtl$,
 $endif$
+$if(navigationMode)$
+        // see https://github.com/hakimel/reveal.js/#navigation-mode
+        navigationMode: '$navigationMode$',
+$endif$
 $if(fragments)$
         // Turns fragments on and off globally
         fragments: $fragments$,
