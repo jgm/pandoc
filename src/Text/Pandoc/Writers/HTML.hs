@@ -1062,8 +1062,11 @@ inlineToHtml opts inline = do
       case writerHTMLMathMethod opts of
            WebTeX url -> do
               let imtag = if html5 then H5.img else H.img
+              let s = case t of
+                           InlineMath  -> "\\textstyle "
+                           DisplayMath -> ""
               let m = imtag ! A.style "vertical-align:middle"
-                            ! A.src (toValue $ url ++ urlEncode str)
+                            ! A.src (toValue $ url ++ urlEncode (s ++ str))
                             ! A.alt (toValue str)
                             ! A.title (toValue str)
               let brtag = if html5 then H5.br else H.br
