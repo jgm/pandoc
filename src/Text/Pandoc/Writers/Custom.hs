@@ -114,7 +114,7 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
        Just tpl ->
          case applyTemplate (pack tpl) $ setField "body" body context of
               Left e  -> throw (PandocTemplateError e)
-              Right r -> return (pack r)
+              Right r -> return r
 
 docToCustom :: WriterOptions -> Pandoc -> Lua String
 docToCustom opts (Pandoc (Meta metamap) blocks) = do

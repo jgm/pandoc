@@ -22,7 +22,7 @@ import Control.Monad.Except (throwError)
 import Data.Aeson (ToJSON (..))
 import qualified Data.Text as T
 import System.FilePath ((<.>), (</>))
-import Text.DocTemplates (Template, TemplateTarget, applyTemplate,
+import Text.DocTemplates (Template, applyTemplate,
                           compileTemplate, renderTemplate, varListToJSON)
 import Text.Pandoc.Class (PandocMonad, readDataFile)
 import Text.Pandoc.Error
@@ -57,8 +57,8 @@ getDefaultTemplate writer = do
 
 -- | Like 'applyTemplate', but runs in PandocMonad and
 -- raises an error if compilation fails.
-renderTemplate' :: (PandocMonad m, ToJSON a, TemplateTarget b)
-                => String -> a -> m b
+renderTemplate' :: (PandocMonad m, ToJSON a)
+                => String -> a -> m T.Text
 renderTemplate' template context =
   case applyTemplate (T.pack template) context of
        Left e  -> throwError (PandocTemplateError e)

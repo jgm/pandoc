@@ -112,13 +112,12 @@ writeRTF options doc = do
                         -- of the toc rather than a boolean:
                         . defField "toc" toc
                    else id) metadata
-  T.pack <$>
-      case writerTemplate options of
-           Just tpl -> renderTemplate' tpl context
-           Nothing  -> return $
-                       case reverse body of
-                            ('\n':_) -> body
-                            _        -> body ++ "\n"
+  case writerTemplate options of
+       Just tpl -> renderTemplate' tpl context
+       Nothing  -> return $ T.pack $
+                   case reverse body of
+                        ('\n':_) -> body
+                        _        -> body ++ "\n"
 
 -- | Convert unicode characters (> 127) into rich text format representation.
 handleUnicode :: String -> String
