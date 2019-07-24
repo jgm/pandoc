@@ -1064,7 +1064,7 @@ inlineToHtml opts inline = do
               let imtag = if html5 then H5.img else H.img
               let s = case t of
                            InlineMath  -> "\\textstyle "
-                           DisplayMath -> ""
+                           DisplayMath -> "\\displaystyle "
               let m = imtag ! A.style "vertical-align:middle"
                             ! A.src (toValue $ url ++ urlEncode (s ++ str))
                             ! A.alt (toValue str)
