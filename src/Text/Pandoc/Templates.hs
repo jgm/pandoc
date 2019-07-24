@@ -23,7 +23,7 @@ import Data.Aeson (ToJSON (..))
 import qualified Data.Text as T
 import System.FilePath ((<.>), (</>))
 import Text.DocTemplates (Template, applyTemplate,
-                          compileTemplate, renderTemplate, varListToJSON)
+                          compileTemplate, renderTemplate)
 import Text.Pandoc.Class (PandocMonad, readDataFile)
 import Text.Pandoc.Error
 import qualified Text.Pandoc.UTF8 as UTF8
