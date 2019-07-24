@@ -994,6 +994,8 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("textgreater", lit ">")
   , ("thanks", skipopts >> note <$> grouped block)
   , ("footnote", skipopts >> note <$> grouped block)
+  , ("passthrough", tok) -- \passthrough macro used by latex writer
+                         -- for listings
   , ("verb", doverb)
   , ("lstinline", dolstinline)
   , ("mintinline", domintinline)
