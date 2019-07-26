@@ -31,7 +31,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
 
@@ -82,9 +82,10 @@ pandocToTexinfo options (Pandoc meta blocks) = do
               $ defField "titlepage" titlePage
               $
         defField "strikeout" (stStrikeout st) metadata
-  case writerTemplate options of
-       Nothing  -> return body
-       Just tpl -> renderTemplate' tpl context
+  return $
+    case writerTemplate options of
+       Nothing  -> body
+       Just tpl -> renderTemplate tpl context
 
 -- | Escape things as needed for Texinfo.
 stringToTexinfo :: String -> String

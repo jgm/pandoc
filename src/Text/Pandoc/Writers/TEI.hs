@@ -25,7 +25,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
 
@@ -54,9 +54,10 @@ writeTEI opts (Pandoc meta blocks) = do
                   defField "mathml" (case writerHTMLMathMethod opts of
                                           MathML -> True
                                           _      -> False) metadata
-  case writerTemplate opts of
-       Nothing  -> return main
-       Just tpl -> renderTemplate' tpl context
+  return $
+    case writerTemplate opts of
+       Nothing  -> main
+       Just tpl -> renderTemplate tpl context
 
 -- | Convert an Element to TEI.
 elementToTEI :: PandocMonad m => WriterOptions -> Int -> Element -> m Doc

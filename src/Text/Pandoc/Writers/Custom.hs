@@ -25,7 +25,6 @@ import Data.Typeable
 import Foreign.Lua (Lua, Pushable)
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition
-import Text.Pandoc.Error
 import Text.Pandoc.Lua (Global (..), LuaException (LuaException),
                         runLua, setGlobals)
 import Text.Pandoc.Lua.Util (addField, dofileWithTraceback)
@@ -109,12 +108,10 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
   let (body, context) = case res of
         Left (LuaException msg) -> throw (PandocLuaException msg)
         Right x -> x
-  case writerTemplate opts of
-       Nothing  -> return $ pack body
-       Just tpl ->
-         case applyTemplate (pack tpl) $ setField "body" body context of
-              Left e  -> throw (PandocTemplateError e)
-              Right r -> return r
+  return $
+    case writerTemplate opts of
+       Nothing  -> pack body
+       Just tpl -> renderTemplate tpl $ setField "body" body context
 
 docToCustom :: WriterOptions -> Pandoc -> Lua String
 docToCustom opts (Pandoc (Meta metamap) blocks) = do

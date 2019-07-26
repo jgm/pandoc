@@ -32,7 +32,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared (linesToPara)
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import qualified Text.Pandoc.Translations as Term (Term(Figure, Table))
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
@@ -240,9 +240,10 @@ writeOpenDocument opts (Pandoc meta blocks) = do
   let context = defField "body" body
               $ defField "toc" (writerTableOfContents opts)
               $defField "automatic-styles" (render' automaticStyles) metadata
-  case writerTemplate opts of
-       Nothing  -> return body
-       Just tpl -> renderTemplate' tpl context
+  return $
+    case writerTemplate opts of
+       Nothing  -> body
+       Just tpl -> renderTemplate tpl context
 
 withParagraphStyle :: PandocMonad m
                    => WriterOptions -> String -> [Block] -> OD m Doc

@@ -36,7 +36,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
 import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, isURI, linesToPara,
                            removeFormatting, substitute, trimr)
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared (defField, metaToJSON)
 
 data WriterState = WriterState {
@@ -78,9 +78,10 @@ pandocToDokuWiki opts (Pandoc meta blocks) = do
   let main = pack body
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts) metadata
-  case writerTemplate opts of
-       Nothing  -> return main
-       Just tpl -> renderTemplate' tpl context
+  return $
+    case writerTemplate opts of
+       Nothing  -> main
+       Just tpl -> renderTemplate tpl context
 
 -- | Escape special characters for DokuWiki.
 escapeString :: String -> String

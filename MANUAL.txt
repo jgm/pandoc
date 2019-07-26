@@ -152,18 +152,17 @@ the PDF engine requires [`fontspec`].  `xelatex` uses
 `xelatex` will use [`mathspec`] instead of [`unicode-math`].
 The [`upquote`] and [`microtype`] packages are used if
 available, and [`csquotes`] will be used for [typography]
-if `\usepackage{csquotes}` is present in the template or
-included via `/H/--include-in-header`.  The [`natbib`],
-[`biblatex`], [`bibtex`], and [`biber`] packages can optionally
-be used for [citation rendering].  The following packages
-will be used to improve output quality if present, but
-pandoc does not require them to be present:
-[`upquote`] (for straight quotes in verbatim environments),
-[`microtype`] (for better spacing adjustments),
-[`parskip`] (for better inter-paragraph spaces),
-[`xurl`] (for better line breaks in URLs),
-[`bookmark`] (for better PDF bookmarks),
-and [`footnotehyper`] or [`footnote`] (to allow footnotes in tables).
+if the `csquotes` variable or metadata field is set to a
+true value.  The [`natbib`], [`biblatex`], [`bibtex`], and
+[`biber`] packages can optionally be used for [citation
+rendering].  The following packages will be used to improve
+output quality if present, but pandoc does not require them to
+be present: [`upquote`] (for straight quotes in verbatim
+environments), [`microtype`] (for better spacing adjustments),
+[`parskip`] (for better inter-paragraph spaces), [`xurl`] (for
+better line breaks in URLs), [`bookmark`] (for better PDF
+bookmarks), and [`footnotehyper`] or [`footnote`] (to allow
+footnotes in tables).
 
 [TeX Live]: http://www.tug.org/texlive/
 [`amsfonts`]: https://ctan.org/pkg/amsfonts
@@ -927,7 +926,7 @@ Options affecting specific writers {.options}
     all headings are shifted such that the top-level heading becomes the specified
     type. The default behavior is to determine the best division type via
     heuristics: unless other conditions apply, `section` is chosen. When the
-    LaTeX document class is set to `report`, `book`, or `memoir` (unless the
+    `documentclass` variable is set to `report`, `book`, or `memoir` (unless the
     `article` option is specified), `chapter` is implied as the setting for this
     option. If `beamer` is the output format, specifying either `chapter` or
     `part` will cause top-level headings to become `\part{..}`, while

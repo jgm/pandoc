@@ -26,7 +26,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty (render)
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML (escapeStringForXML)
 
@@ -66,9 +66,10 @@ pandocToMediaWiki (Pandoc meta blocks) = do
   let main = body ++ notes
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts) metadata
-  case writerTemplate opts of
-         Nothing  -> return $ pack main
-         Just tpl -> renderTemplate' tpl context
+  return $
+    case writerTemplate opts of
+         Nothing  -> pack main
+         Just tpl -> renderTemplate tpl context
 
 -- | Escape special characters for MediaWiki.
 escapeString :: String -> String

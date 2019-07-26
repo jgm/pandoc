@@ -90,6 +90,7 @@ import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
 import qualified Data.Time as IO (getCurrentTime)
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
 import Text.Pandoc.Definition
+import Text.DocTemplates (TemplateMonad(..))
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.Maybe (fromMaybe)
 import Data.Time.Clock.POSIX ( utcTimeToPOSIXSeconds
@@ -312,6 +313,18 @@ readFileFromDirs [] _ = return Nothing
 readFileFromDirs (d:ds) f = catchError
     ((Just . UTF8.toStringLazy) <$> readFileLazy (d </> f))
     (\_ -> readFileFromDirs ds f)
+
+instance TemplateMonad PandocIO where
+  getPartial fp =
+    lift $ UTF8.toText <$>
+      catchError (readFileStrict fp)
+        (\_ -> readDataFile ("templates" </> fp))
+
+instance TemplateMonad PandocPure where
+  getPartial fp =
+    lift $ UTF8.toText <$>
+      catchError (readFileStrict fp)
+        (\_ -> readDataFile ("templates" </> fp))
 
 --
 

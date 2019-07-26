@@ -25,7 +25,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 
 type Notes = [[Block]]
@@ -58,9 +58,10 @@ pandocToHaddock opts (Pandoc meta blocks) = do
                (fmap render' . inlineListToHaddock opts)
                meta
   let context  = defField "body" main metadata
-  case writerTemplate opts of
-          Nothing  -> return main
-          Just tpl -> renderTemplate' tpl context
+  return $
+    case writerTemplate opts of
+          Nothing  -> main
+          Just tpl -> renderTemplate tpl context
 
 -- | Return haddock representation of notes.
 notesToHaddock :: PandocMonad m

@@ -25,7 +25,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty (render)
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML (escapeStringForXML)
 
@@ -57,9 +57,10 @@ pandocToTextile opts (Pandoc meta blocks) = do
   notes <- gets $ unlines . reverse . stNotes
   let main = pack $ body ++ if null notes then "" else "\n\n" ++ notes
   let context = defField "body" main metadata
-  case writerTemplate opts of
-         Nothing  -> return main
-         Just tpl -> renderTemplate' tpl context
+  return $
+    case writerTemplate opts of
+         Nothing  -> main
+         Just tpl -> renderTemplate tpl context
 
 withUseTags :: PandocMonad m => TW m a -> TW m a
 withUseTags action = do

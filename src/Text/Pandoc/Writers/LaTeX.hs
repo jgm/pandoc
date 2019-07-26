@@ -21,10 +21,10 @@ import Prelude
 import Control.Applicative ((<|>))
 import Control.Monad.State.Strict
 import Data.Monoid (Any(..))
-import Data.Aeson (FromJSON, object, (.=))
+import Data.Aeson (object, (.=))
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isSpace,
                   isPunctuation, ord, toLower)
-import Data.List (foldl', intercalate, intersperse, isInfixOf, nubBy,
+import Data.List (foldl', intercalate, intersperse, nubBy,
                   stripPrefix, (\\), uncons)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
 import qualified Data.Map as M
@@ -45,7 +45,6 @@ import Text.Pandoc.Slides
 import Text.Pandoc.Templates
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared
-import qualified Text.Parsec as P
 import Text.Printf (printf)
 import qualified Data.Text.Normalize as Normalize
 
@@ -131,7 +130,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let isInternalLink (Link _ _ ('#':xs,_)) = [xs]
       isInternalLink _                     = []
   modify $ \s -> s{ stInternalLinks = query isInternalLink blocks' }
-  let template = fromMaybe "" $ writerTemplate options
   let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
                     else Nothing
@@ -149,26 +147,17 @@ pandocToLaTeX options (Pandoc meta blocks) = do
         case lookup "documentclass" (writerVariables options) `mplus`
               fmap stringify (lookupMeta "documentclass" meta) of
                  Just x -> x
-                 Nothing ->
-                  case P.parse pDocumentClass "template" template of
-                     Right r -> r
-                     Left _
-                      | beamer    -> "beamer"
-                      | otherwise -> case writerTopLevelDivision options of
-                                       TopLevelPart    -> "book"
-                                       TopLevelChapter -> "book"
-                                       _               -> "article"
+                 Nothing | beamer    -> "beamer"
+                         | otherwise -> case writerTopLevelDivision options of
+                                          TopLevelPart    -> "book"
+                                          TopLevelChapter -> "book"
+                                          _               -> "article"
   when (documentClass `elem` chaptersClasses) $
      modify $ \s -> s{ stHasChapters = True }
-  -- check for \usepackage...{csquotes}; if present, we'll use
-  -- \enquote{...} for smart quotes:
-  let headerIncludesField :: FromJSON a => Maybe a
-      headerIncludesField = getField "header-includes" metadata
-  let headerIncludes = fromMaybe [] $ mplus
-                       (fmap return headerIncludesField)
-                       headerIncludesField
-  when (any (isInfixOf "{csquotes}") (template : headerIncludes)) $
-    modify $ \s -> s{stCsquotes = True}
+  case T.toLower <$> getField "csquotes" metadata of
+     Nothing      -> return ()
+     Just "false" -> return ()
+     Just _       -> modify $ \s -> s{stCsquotes = True}
   let (blocks'', lastHeader) = if writerCiteMethod options == Citeproc then
                                  (blocks', [])
                                else case reverse blocks' of
@@ -288,9 +277,10 @@ pandocToLaTeX options (Pandoc meta blocks) = do
         $
                   defField "latex-dir-rtl"
            (getField "dir" context == Just ("rtl" :: String)) context
-  case writerTemplate options of
-       Nothing  -> return main
-       Just tpl -> renderTemplate' tpl context'
+  return $
+    case writerTemplate options of
+       Nothing  -> main
+       Just tpl -> renderTemplate tpl context'
 
 -- | Convert Elements to LaTeX
 elementToLaTeX :: PandocMonad m => WriterOptions -> Element -> LW m Doc
@@ -1658,22 +1648,3 @@ commonFromBcp47 (Lang l _ _ _) = fromIso l
     fromIso "vi"  = "vietnamese"
     fromIso _     = ""
 
-pDocumentOptions :: P.Parsec String () [String]
-pDocumentOptions = do
-  P.char '['
-  opts <- P.sepBy
-    (P.many $ P.spaces *> P.noneOf (" ,]" :: String) <* P.spaces)
-    (P.char ',')
-  P.char ']'
-  return opts
-
-pDocumentClass :: P.Parsec String () String
-pDocumentClass =
-  do P.skipMany (P.satisfy (/='\\'))
-     P.string "\\documentclass"
-     classOptions <- pDocumentOptions <|> return []
-     if ("article" :: String) `elem` classOptions
-       then return "article"
-       else do P.skipMany (P.satisfy (/='{'))
-               P.char '{'
-               P.manyTill P.letter (P.char '}')

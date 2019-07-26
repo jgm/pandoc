@@ -163,7 +163,7 @@ optToOutputSettings opts = do
                       return $ ("dzslides-core", dzcore) : vars
                   else return vars)
 
-  templ <- case optTemplate opts of
+  templStr <- case optTemplate opts of
                   _ | not standalone -> return Nothing
                   Nothing -> Just <$> getDefaultTemplate format
                   Just tp -> do
@@ -171,7 +171,7 @@ optToOutputSettings opts = do
                     let tp' = case takeExtension tp of
                                    "" -> tp <.> format
                                    _  -> tp
-                    Just . UTF8.toString <$>
+                    Just . UTF8.toText <$>
                           ((do surl <- stSourceURL <$> getCommonState
                                -- we don't want to look for templates remotely
                                -- unless the full URL is specified:
@@ -187,6 +187,16 @@ optToOutputSettings opts = do
                                     PandocResourceNotFound _ ->
                                        readDataFile ("templates" </> tp')
                                     _ -> throwError e))
+
+  let templatePath = fromMaybe "" $ optTemplate opts
+
+  templ <- case templStr of
+             Nothing -> return Nothing
+             Just ts -> do
+               res <- compileTemplate templatePath ts
+               case res of
+                 Left  e -> throwError $ PandocTemplateError e
+                 Right t -> return $ Just t
 
   case lookup "lang" (optMetadata opts) of
          Just l  -> case parseBCP47 l of

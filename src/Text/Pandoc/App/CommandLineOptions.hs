@@ -794,10 +794,11 @@ options =
                                 setUserDataDir Nothing
                                 getDefaultTemplate arg
                      case templ of
-                          Right "" -> -- e.g. for docx, odt, json:
-                            E.throwIO $ PandocCouldNotFindDataFileError
-                               ("templates/default." ++ arg)
-                          Right t -> write t
+                          Right t
+                            | T.null t -> -- e.g. for docx, odt, json:
+                                E.throwIO $ PandocCouldNotFindDataFileError
+                                  ("templates/default." ++ arg)
+                            | otherwise -> write . T.unpack $ t
                           Left e  -> E.throwIO e
                      exitSuccess)
                   "FORMAT")

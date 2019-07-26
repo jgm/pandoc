@@ -11,7 +11,7 @@ import Text.Pandoc.Arbitrary ()
 
 p_write_rt :: Pandoc -> Bool
 p_write_rt d =
-  read (unpack $ purely (writeNative def{ writerTemplate = Just "" }) d) == d
+  read (unpack $ purely (writeNative def{ writerTemplate = Just mempty }) d) == d
 
 p_write_blocks_rt :: [Block] -> Bool
 p_write_blocks_rt bs =

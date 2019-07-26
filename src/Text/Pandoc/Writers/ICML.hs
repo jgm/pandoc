@@ -33,7 +33,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared (isURI, linesToPara, splitBy)
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
@@ -149,10 +149,11 @@ writeICML opts (Pandoc meta blocks) = do
               $ defField "charStyles" (render' $ charStylesToDoc st)
               $ defField "parStyles"  (render' $ parStylesToDoc st)
               $ defField "hyperlinks" (render' $ hyperlinksToDoc $ links st) metadata
-  (if writerPreferAscii opts then toEntities else id) <$>
+  return $
+    (if writerPreferAscii opts then toEntities else id) $
     case writerTemplate opts of
-       Nothing  -> return main
-       Just tpl -> renderTemplate' tpl context
+       Nothing  -> main
+       Just tpl -> renderTemplate tpl context
 
 -- | Auxiliary functions for parStylesToDoc and charStylesToDoc.
 contains :: String -> (String, (String, String)) -> [(String, String)]

@@ -25,7 +25,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Logging (LogMessage (BlockNotRendered, InlineNotRendered))
 import Text.Pandoc.Options (WriterOptions (writerTemplate))
 import Text.Pandoc.Shared (blocksToInlines, linesToPara)
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared (metaToJSON, defField)
 import qualified Data.Text as T
@@ -59,9 +59,10 @@ pandocToJira opts (Pandoc meta blocks) = do
   notes <- gets $ T.intercalate "\n" . reverse . stNotes
   let main = body <> if T.null notes then "" else "\n\n" <> notes
   let context = defField "body" main metadata
-  case writerTemplate opts of
-    Nothing  -> return main
-    Just tpl -> renderTemplate' tpl context
+  return $
+    case writerTemplate opts of
+      Nothing  -> main
+      Just tpl -> renderTemplate tpl context
 
 -- | Escape one character as needed for Jira.
 escapeCharForJira :: Char -> Text

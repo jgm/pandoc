@@ -76,9 +76,10 @@ pandocToMan opts (Pandoc meta blocks) = do
               $ defField "has-tables" hasTables
               $ defField "hyphenate" True
               $ defField "pandoc-version" pandocVersion metadata
-  case writerTemplate opts of
-       Nothing  -> return main
-       Just tpl -> renderTemplate' tpl context
+  return $
+    case writerTemplate opts of
+       Nothing  -> main
+       Just tpl -> renderTemplate tpl context
 
 escString :: WriterOptions -> String -> String
 escString _ = escapeString AsciiOnly -- for better portability

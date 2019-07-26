@@ -12,26 +12,23 @@ A simple templating system with variable substitution and conditionals.
 
 -}
 
-module Text.Pandoc.Templates ( module Text.DocTemplates
-                             , renderTemplate'
+module Text.Pandoc.Templates ( Template
+                             , compileTemplate
+                             , renderTemplate
                              , getDefaultTemplate
                              ) where
 
 import Prelude
-import Control.Monad.Except (throwError)
-import Data.Aeson (ToJSON (..))
-import qualified Data.Text as T
 import System.FilePath ((<.>), (</>))
-import Text.DocTemplates (Template, applyTemplate,
-                          compileTemplate, renderTemplate)
+import Text.DocTemplates (Template, compileTemplate, renderTemplate)
 import Text.Pandoc.Class (PandocMonad, readDataFile)
-import Text.Pandoc.Error
 import qualified Text.Pandoc.UTF8 as UTF8
+import Data.Text (Text)
 
 -- | Get default template for the specified writer.
 getDefaultTemplate :: PandocMonad m
                    => String           -- ^ Name of writer
-                   -> m String
+                   -> m Text
 getDefaultTemplate writer = do
   let format = takeWhile (`notElem` ("+-" :: String)) writer  -- strip off extensions
   case format of
@@ -52,14 +49,6 @@ getDefaultTemplate writer = do
        "markdown_mmd"      -> getDefaultTemplate "markdown"
        "markdown_phpextra" -> getDefaultTemplate "markdown"
        "gfm"               -> getDefaultTemplate "commonmark"
-       _        -> let fname = "templates" </> "default" <.> format
-                   in  UTF8.toString <$> readDataFile fname
-
--- | Like 'applyTemplate', but runs in PandocMonad and
--- raises an error if compilation fails.
-renderTemplate' :: (PandocMonad m, ToJSON a)
-                => String -> a -> m T.Text
-renderTemplate' template context =
-  case applyTemplate (T.pack template) context of
-       Left e  -> throwError (PandocTemplateError e)
-       Right r -> return r
+       _        -> do
+         let fname = "templates" </> "default" <.> format
+         UTF8.toText <$> readDataFile fname

@@ -41,6 +41,7 @@ import GHC.Generics (Generic)
 import Skylighting (SyntaxMap, defaultSyntaxMap)
 import Text.Pandoc.Extensions
 import Text.Pandoc.Highlighting (Style, pygments)
+import Text.DocTemplates (Template)
 
 #ifdef DERIVE_JSON_VIA_TH
 import Data.Aeson.TH (deriveJSON, defaultOptions)
@@ -151,7 +152,7 @@ data ReferenceLocation = EndOfBlock    -- ^ End of block
 
 -- | Options for writers
 data WriterOptions = WriterOptions
-  { writerTemplate          :: Maybe String -- ^ Template to use
+  { writerTemplate          :: Maybe Template -- ^ Template to use
   , writerVariables         :: [(String, String)] -- ^ Variables to set in template
   , writerTabStop           :: Int    -- ^ Tabstop for conversion btw spaces and tabs
   , writerTableOfContents   :: Bool   -- ^ Include table of contents

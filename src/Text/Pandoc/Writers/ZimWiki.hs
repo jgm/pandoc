@@ -29,7 +29,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
 import Text.Pandoc.Shared (escapeURI, isURI, linesToPara, removeFormatting,
                            substitute, trimr)
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared (defField, metaToJSON)
 
 data WriterState = WriterState {
@@ -59,9 +59,10 @@ pandocToZimWiki opts (Pandoc meta blocks) = do
   let main = body
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts) metadata
-  case writerTemplate opts of
-       Just tpl -> renderTemplate' tpl context
-       Nothing  -> return main
+  return $
+    case writerTemplate opts of
+       Just tpl -> renderTemplate tpl context
+       Nothing  -> main
 
 -- | Escape special characters for ZimWiki.
 escapeString :: String -> String

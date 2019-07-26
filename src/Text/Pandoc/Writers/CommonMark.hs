@@ -29,7 +29,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (capitalize, isHeaderBlock, isTightList,
     linesToPara, onlySimpleTableCells, substitute, taskListItemToAscii)
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk (walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtml5String, tagWithAttributes)
 import Text.Pandoc.Writers.Shared
@@ -59,9 +59,10 @@ writeCommonMark opts (Pandoc meta blocks) = do
           defField "toc" toc
         $ defField "table-of-contents" toc
         $ defField "body" main metadata
-  case writerTemplate opts of
-       Nothing  -> return main
-       Just tpl -> renderTemplate' tpl context
+  return $
+    case writerTemplate opts of
+       Nothing  -> main
+       Just tpl -> renderTemplate tpl context
 
 softBreakToSpace :: Inline -> Inline
 softBreakToSpace SoftBreak = Space

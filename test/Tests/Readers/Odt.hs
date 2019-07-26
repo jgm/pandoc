@@ -61,7 +61,7 @@ instance ToString NoNormPandoc where
    where s = case d of
                   NoNormPandoc (Pandoc (Meta m) _)
                     | M.null m  -> Nothing
-                    | otherwise -> Just "" -- need this for Meta output
+                    | otherwise -> Just mempty -- need this for Meta output
 
 instance ToPandoc NoNormPandoc where
   toPandoc = unNoNorm

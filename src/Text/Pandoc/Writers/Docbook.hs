@@ -17,7 +17,7 @@ import Prelude
 import Control.Monad.Reader
 import Data.Char (toLower)
 import Data.Generics (everywhere, mkT)
-import Data.List (isPrefixOf, isSuffixOf, stripPrefix)
+import Data.List (isPrefixOf, stripPrefix)
 import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Text.Pandoc.Builder as B
@@ -29,7 +29,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
@@ -83,13 +83,8 @@ writeDocbook opts (Pandoc meta blocks) = do
                     else Nothing
   let render' :: Doc -> Text
       render' = render colwidth
-  let opts'    = if maybe False (("/book>" `isSuffixOf`) . trimr)
-                            (writerTemplate opts) &&
-                     TopLevelDefault == writerTopLevelDivision opts
-                    then opts{ writerTopLevelDivision = TopLevelChapter }
-                    else opts
   -- The numbering here follows LaTeX's internal numbering
-  let startLvl = case writerTopLevelDivision opts' of
+  let startLvl = case writerTopLevelDivision opts of
                    TopLevelPart    -> -1
                    TopLevelChapter -> 0
                    TopLevelSection -> 1
@@ -98,20 +93,21 @@ writeDocbook opts (Pandoc meta blocks) = do
   let meta' = B.setMeta "author" auths' meta
   metadata <- metaToJSON opts
                  (fmap (render' . vcat) .
-                          mapM (elementToDocbook opts' startLvl) .
+                          mapM (elementToDocbook opts startLvl) .
                             hierarchicalize)
-                 (fmap render' . inlinesToDocbook opts')
+                 (fmap render' . inlinesToDocbook opts)
                  meta'
-  main <- (render' . vcat) <$> mapM (elementToDocbook opts' startLvl) elements
+  main <- (render' . vcat) <$> mapM (elementToDocbook opts startLvl) elements
   let context = defField "body" main
               $
                   defField "mathml" (case writerHTMLMathMethod opts of
                                           MathML -> True
                                           _      -> False) metadata
-  (if writerPreferAscii opts then toEntities else id) <$>
+  return $
+    (if writerPreferAscii opts then toEntities else id) $
     case writerTemplate opts of
-         Nothing  -> return main
-         Just tpl -> renderTemplate' tpl context
+         Nothing  -> main
+         Just tpl -> renderTemplate tpl context
 
 -- | Convert an Element to Docbook.
 elementToDocbook :: PandocMonad m => WriterOptions -> Int -> Element -> DB m Doc

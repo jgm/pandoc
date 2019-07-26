@@ -35,7 +35,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, space)
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 
 data WriterState = WriterState { defListMarker       :: String
@@ -94,9 +94,10 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
                    isJust (writerTemplate opts))
                $ defField "math" (hasMath st)
                $ defField "titleblock" titleblock metadata
-  case writerTemplate opts of
-       Nothing  -> return main
-       Just tpl -> renderTemplate' tpl context
+  return $
+    case writerTemplate opts of
+       Nothing  -> main
+       Just tpl -> renderTemplate tpl context
 
 elementToAsciiDoc :: PandocMonad m
                   => Int -> WriterOptions -> Element -> ADW m Doc

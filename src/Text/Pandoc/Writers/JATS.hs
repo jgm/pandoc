@@ -19,7 +19,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.Char (toLower)
 import Data.Generics (everywhere, mkT)
-import Data.List (isSuffixOf, partition, isPrefixOf)
+import Data.List (partition, isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Data.Time (toGregorian, Day, parseTimeM, defaultTimeLocale, formatTime)
@@ -33,7 +33,7 @@ import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
@@ -67,27 +67,22 @@ docToJATS opts (Pandoc meta blocks) = do
                     else Nothing
   let render'  :: Doc -> Text
       render'  = render colwidth
-  let opts'    = if maybe False (("/book>" `isSuffixOf`) . trimr)
-                            (writerTemplate opts) &&
-                     TopLevelDefault == writerTopLevelDivision opts
-                    then opts{ writerTopLevelDivision = TopLevelChapter }
-                    else opts
   -- The numbering here follows LaTeX's internal numbering
-  let startLvl = case writerTopLevelDivision opts' of
+  let startLvl = case writerTopLevelDivision opts of
                    TopLevelPart    -> -1
                    TopLevelChapter -> 0
                    TopLevelSection -> 1
                    TopLevelDefault -> 1
   metadata <- metaToJSON opts
                  (fmap (render' . vcat) .
-                          mapM (elementToJATS opts' startLvl) .
+                          mapM (elementToJATS opts startLvl) .
                             hierarchicalize)
-                 (fmap render' . inlinesToJATS opts')
+                 (fmap render' . inlinesToJATS opts)
                  meta
   main <- (render' . vcat) <$>
-            mapM (elementToJATS opts' startLvl) elements
+            mapM (elementToJATS opts startLvl) elements
   notes <- reverse . map snd <$> gets jatsNotes
-  backs <- mapM (elementToJATS opts' startLvl) backElements
+  backs <- mapM (elementToJATS opts startLvl) backElements
   let fns = if null notes
             then mempty
             else inTagsIndented "fn-group" $ vcat notes
@@ -110,10 +105,11 @@ docToJATS opts (Pandoc meta blocks) = do
               $ defField "mathml" (case writerHTMLMathMethod opts of
                                         MathML -> True
                                         _      -> False) metadata
-  (if writerPreferAscii opts then toEntities else id) <$>
+  return $
+    (if writerPreferAscii opts then toEntities else id) $
     case writerTemplate opts of
-       Nothing  -> return main
-       Just tpl -> renderTemplate' tpl context
+       Nothing  -> main
+       Just tpl -> renderTemplate tpl context
 
 -- | Convert an Element to JATS.
 elementToJATS :: PandocMonad m => WriterOptions -> Int -> Element -> JATS m Doc

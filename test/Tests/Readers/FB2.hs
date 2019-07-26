@@ -24,7 +24,7 @@ import Data.Text.Lazy (fromStrict)
 import System.FilePath (replaceExtension)
 
 fb2ToNative :: Text -> Text
-fb2ToNative = purely (writeNative def{ writerTemplate = Just "" }) . purely (readFB2 def)
+fb2ToNative = purely (writeNative def{ writerTemplate = Just mempty }) . purely (readFB2 def)
 
 fb2Test :: TestName -> FilePath -> TestTree
 fb2Test name path = goldenVsString name native (fromTextLazy . fromStrict . fb2ToNative . toText <$> BS.readFile path)

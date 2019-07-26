@@ -40,7 +40,7 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 
@@ -114,9 +114,10 @@ pandocToMuse (Pandoc meta blocks) = do
   notes <- currentNotesToMuse
   let main = render colwidth $ body $+$ notes
   let context = defField "body" main metadata
-  case writerTemplate opts of
-       Nothing  -> return main
-       Just tpl -> renderTemplate' tpl context
+  return $
+    case writerTemplate opts of
+       Nothing  -> main
+       Just tpl -> renderTemplate tpl context
 
 -- | Helper function for flatBlockListToMuse
 -- | Render all blocks and insert blank lines between the first two

@@ -30,7 +30,7 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
@@ -112,9 +112,10 @@ writeRTF options doc = do
                         -- of the toc rather than a boolean:
                         . defField "toc" toc
                    else id) metadata
-  case writerTemplate options of
-       Just tpl -> renderTemplate' tpl context
-       Nothing  -> return $ T.pack $
+  return $
+    case writerTemplate options of
+       Just tpl -> renderTemplate tpl context
+       Nothing  -> T.pack $
                    case reverse body of
                         ('\n':_) -> body
                         _        -> body ++ "\n"

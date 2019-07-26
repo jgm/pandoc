@@ -24,7 +24,7 @@ import Text.Pandoc.Error
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Markdown (writeMarkdown)
 import Text.Pandoc.Writers.Shared
@@ -44,10 +44,11 @@ writeOPML opts (Pandoc meta blocks) = do
               meta'
   main <- (render colwidth . vcat) <$> mapM (elementToOPML opts) elements
   let context = defField "body" main metadata
-  (if writerPreferAscii opts then toEntities else id) <$>
+  return $
+    (if writerPreferAscii opts then toEntities else id) $
     case writerTemplate opts of
-       Nothing  -> return main
-       Just tpl -> renderTemplate' tpl context
+       Nothing  -> main
+       Just tpl -> renderTemplate tpl context
 
 
 writeHtmlInlines :: PandocMonad m => [Inline] -> m Text

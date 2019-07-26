@@ -83,9 +83,10 @@ pandocToMs opts (Pandoc meta blocks) = do
               $ defField "title-meta" titleMeta
               $ defField "author-meta" (intercalate "; " authorsMeta)
               $ defField "highlighting-macros" highlightingMacros metadata
-  case writerTemplate opts of
-       Nothing  -> return main
-       Just tpl -> renderTemplate' tpl context
+  return $
+    case writerTemplate opts of
+       Nothing  -> main
+       Just tpl -> renderTemplate tpl context
 
 escapeStr :: WriterOptions -> String -> String
 escapeStr opts =

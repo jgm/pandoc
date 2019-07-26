@@ -28,7 +28,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Pretty
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates (renderTemplate')
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk (query)
 import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
@@ -99,9 +99,10 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                         _                     -> id) metadata
   let context' = defField "context-dir" (toContextDir
                                          $ getField "dir" context) context
-  case writerTemplate options of
-       Nothing  -> return main
-       Just tpl -> renderTemplate' tpl context'
+  return $
+    case writerTemplate options of
+       Nothing  -> main
+       Just tpl -> renderTemplate tpl context'
 
 toContextDir :: Maybe String -> String
 toContextDir (Just "rtl") = "r2l"
