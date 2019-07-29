@@ -81,8 +81,23 @@ listMarkerToId (NumberMarker sty delim n) =
                       OneParen     -> '2'
                       TwoParens    -> '3'
 
-data WriterEnv = WriterEnv{ envTextProperties :: [Element]
-                          , envParaProperties :: [Element]
+data EnvProps = EnvProps{ styleElement  :: Maybe Element
+                        , otherElements :: [Element]
+                        }
+
+instance Semigroup EnvProps where
+  EnvProps Nothing es <> EnvProps s es' = EnvProps s (es ++ es')
+  EnvProps s       es <> EnvProps _ es' = EnvProps s (es ++ es')
+
+instance Monoid EnvProps where
+  mempty = EnvProps Nothing []
+
+squashProps :: EnvProps -> [Element]
+squashProps (EnvProps Nothing es) = es
+squashProps (EnvProps (Just e) es) = e : es
+
+data WriterEnv = WriterEnv{ envTextProperties :: EnvProps
+                          , envParaProperties :: EnvProps
                           , envRTL            :: Bool
                           , envListLevel      :: Int
                           , envListNumId      :: Int
@@ -93,8 +108,8 @@ data WriterEnv = WriterEnv{ envTextProperties :: [Element]
                           }
 
 defaultWriterEnv :: WriterEnv
-defaultWriterEnv = WriterEnv{ envTextProperties = []
-                            , envParaProperties = []
+defaultWriterEnv = WriterEnv{ envTextProperties = mempty
+                            , envParaProperties = mempty
                             , envRTL = False
                             , envListLevel = -1
                             , envListNumId = 1
@@ -115,6 +130,7 @@ data WriterState = WriterState{
        , stDelId          :: Int
        , stStyleMaps      :: StyleMaps
        , stFirstPara      :: Bool
+       , stInTable        :: Bool
        , stTocTitle       :: [Inline]
        , stDynamicParaProps :: Set.Set String
        , stDynamicTextProps :: Set.Set String
@@ -133,6 +149,7 @@ defaultWriterState = WriterState{
       , stDelId          = 1
       , stStyleMaps      = defaultStyleMaps
       , stFirstPara      = False
+      , stInTable        = False
       , stTocTitle       = [Str "Table of Contents"]
       , stDynamicParaProps = Set.empty
       , stDynamicTextProps = Set.empty
@@ -496,7 +513,7 @@ writeDocx opts doc@(Pandoc meta _) = do
         case key' of
              "description"    -> intercalate "_x000d_\n" (map stringify $ lookupMetaBlocks "description" meta')
              _                -> lookupMetaString key' meta'
-  
+
   let docProps = mknode "cp:coreProperties"
           [("xmlns:cp","http://schemas.openxmlformats.org/package/2006/metadata/core-properties")
           ,("xmlns:dc","http://purl.org/dc/elements/1.1/")
@@ -901,8 +918,12 @@ blockToOpenXML' opts (Header lev (ident,_,_) lst) = do
                                       $ stSectionIds s }
        bookmarkedContents <- wrapBookmark bookmarkName contents
        return [mknode "w:p" [] (paraProps ++ bookmarkedContents)]
-blockToOpenXML' opts (Plain lst) = withParaProp (pCustomStyle "Compact")
-  $ blockToOpenXML opts (Para lst)
+blockToOpenXML' opts (Plain lst) = do
+  isInTable <- gets stInTable
+  let block = blockToOpenXML opts (Para lst)
+  para <- if isInTable then withParaProp (pCustomStyle "Compact") block else block
+  return $ para
+
 -- title beginning with fig: indicates that the image is a figure
 blockToOpenXML' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
   setFirstPara
@@ -910,7 +931,7 @@ blockToOpenXML' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
         if null alt
         then "Figure"
         else "CaptionedFigure"
-  paraProps <- local (\env -> env { envParaProperties = prop : envParaProperties env }) (getParaProps False)
+  paraProps <- local (\env -> env { envParaProperties = EnvProps (Just prop) [] <> envParaProperties env }) (getParaProps False)
   contents <- inlinesToOpenXML opts [Image attr alt (src,tit)]
   captionNode <- withParaProp (pCustomStyle "ImageCaption")
                  $ blockToOpenXML opts (Para alt)
@@ -939,7 +960,8 @@ blockToOpenXML' _ b@(RawBlock format str)
       report $ BlockNotRendered b
       return []
 blockToOpenXML' opts (BlockQuote blocks) = do
-  p <- withParaPropM (pStyleM "Block Text") $ blocksToOpenXML opts blocks
+  p <- withParaPropM (pStyleM "Block Text")
+       $ blocksToOpenXML opts blocks
   setFirstPara
   return p
 blockToOpenXML' opts (CodeBlock attrs@(ident, _, _) str) = do
@@ -955,6 +977,7 @@ blockToOpenXML' _ HorizontalRule = do
                        ("o:hrstd","t"),("o:hr","t")] () ]
 blockToOpenXML' opts (Table caption aligns widths headers rows) = do
   setFirstPara
+  modify $ \s -> s { stInTable = True }
   let captionStr = stringify caption
   caption' <- if null caption
                  then return []
@@ -990,6 +1013,7 @@ blockToOpenXML' opts (Table caption aligns widths headers rows) = do
   let mkgridcol w = mknode "w:gridCol"
                        [("w:w", show (floor (textwidth * w) :: Integer))] ()
   let hasHeader = not (all null headers)
+  modify $ \s -> s { stInTable = False }
   return $
     caption' ++
     [mknode "w:tbl" []
@@ -1063,16 +1087,22 @@ withNumId numid = local $ \env -> env{ envListNumId = numid }
 asList :: (PandocMonad m) => WS m a -> WS m a
 asList = local $ \env -> env{ envListLevel = envListLevel env + 1 }
 
+isStyle :: Element -> Bool
+isStyle e = isElem [] "w" "rStyle" e ||
+            isElem [] "w" "pStyle" e
+
 getTextProps :: (PandocMonad m) => WS m [Element]
 getTextProps = do
   props <- asks envTextProperties
-  return $ if null props
+  let squashed = squashProps props
+  return $ if null squashed
               then []
-              else [mknode "w:rPr" [] props]
+              else [mknode "w:rPr" [] squashed]
 
 withTextProp :: PandocMonad m => Element -> WS m a -> WS m a
 withTextProp d p =
-  local (\env -> env {envTextProperties = d : envTextProperties env}) p
+  local (\env -> env {envTextProperties = ep <> envTextProperties env}) p
+  where ep = if isStyle d then EnvProps (Just d) [] else EnvProps Nothing [d]
 
 withTextPropM :: PandocMonad m => WS m Element -> WS m a -> WS m a
 withTextPropM = (. flip withTextProp) . (>>=)
@@ -1085,13 +1115,14 @@ getParaProps displayMathPara = do
   let listPr = [mknode "w:numPr" []
                 [ mknode "w:ilvl" [("w:val",show listLevel)] ()
                 , mknode "w:numId" [("w:val",show numid)] () ] | listLevel >= 0 && not displayMathPara]
-  return $ case listPr ++ props of
+  return $ case listPr ++ squashProps props of
                 [] -> []
                 ps -> [mknode "w:pPr" [] ps]
 
 withParaProp :: PandocMonad m => Element -> WS m a -> WS m a
 withParaProp d p =
-  local (\env -> env {envParaProperties = d : envParaProperties env}) p
+  local (\env -> env {envParaProperties = ep <> envParaProperties env}) p
+  where ep = if isStyle d then EnvProps (Just d) [] else EnvProps Nothing [d]
 
 withParaPropM :: PandocMonad m => WS m Element -> WS m a -> WS m a
 withParaPropM = (. flip withParaProp) . (>>=)
@@ -1264,8 +1295,8 @@ inlineToOpenXML' opts (Note bs) = do
       insertNoteRef xs               = Para [notemarkerXml] : xs
 
   contents <- local (\env -> env{ envListLevel = -1
-                                , envParaProperties = []
-                                , envTextProperties = [] })
+                                , envParaProperties = mempty
+                                , envTextProperties = mempty })
               (withParaPropM (pStyleM "Footnote Text") $ blocksToOpenXML opts
                 $ insertNoteRef bs)
   let newnote = mknode "w:footnote" [("w:id", notenum)] contents
@@ -1417,16 +1448,18 @@ withDirection x = do
   -- We want to clean all bidirection (bidi) and right-to-left (rtl)
   -- properties from the props first. This is because we don't want
   -- them to stack up.
-  let paraProps' = filter (\e -> (qName . elName) e /= "bidi") paraProps
-      textProps' = filter (\e -> (qName . elName) e /= "rtl") textProps
+  let paraProps' = filter (\e -> (qName . elName) e /= "bidi") (otherElements paraProps)
+      textProps' = filter (\e -> (qName . elName) e /= "rtl") (otherElements textProps)
+      paraStyle = styleElement paraProps
+      textStyle = styleElement textProps
   if isRTL
     -- if we are going right-to-left, we (re?)add the properties.
     then flip local x $
-         \env -> env { envParaProperties = mknode "w:bidi" [] () : paraProps'
-                     , envTextProperties = mknode "w:rtl" [] () : textProps'
+         \env -> env { envParaProperties = EnvProps paraStyle $ mknode "w:bidi" [] () : paraProps'
+                     , envTextProperties = EnvProps textStyle $ mknode "w:rtl" [] () : textProps'
                      }
-    else flip local x $ \env -> env { envParaProperties = paraProps'
-                                    , envTextProperties = textProps'
+    else flip local x $ \env -> env { envParaProperties = EnvProps paraStyle paraProps'
+                                    , envTextProperties = EnvProps textStyle textProps'
                                     }
 
 wrapBookmark :: (PandocMonad m) => String -> [Element] -> WS m [Element]
