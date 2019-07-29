@@ -1,5 +1,5 @@
 $if(author)$
-#author $author$
+#author $for(author)$$author$$sep$; $endfor$
 $endif$
 $if(title)$
 #title $title$

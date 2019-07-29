@@ -1,4 +1,4 @@
-#author John MacFarlane, Anonymous
+#author John MacFarlane; Anonymous
 #title Pandoc Test Suite
 #date July 17, 2006
 
