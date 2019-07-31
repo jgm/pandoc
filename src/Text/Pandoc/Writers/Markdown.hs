@@ -51,7 +51,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML (toHtml5Entities)
 
 type Notes = [[Block]]
-type Ref   = (Doc, Target, Attr)
+type Ref   = (String, Target, Attr)
 type Refs  = [Ref]
 
 type MD m = ReaderT WriterEnv (StateT WriterState m)
@@ -242,7 +242,7 @@ keyToMarkdown opts (label', (src, tit), attr) = do
                 then empty
                 else space <> "\"" <> text tit <> "\""
   return $ nest 2 $ hang 2
-            ("[" <> label' <> "]:" <> space) (text src <> tit')
+            ("[" <> text label' <> "]:" <> space) (text src <> tit')
             <+> linkAttributes opts attr
 
 -- | Return markdown representation of notes.
@@ -862,8 +862,8 @@ blockListToMarkdown opts blocks = do
 getKey :: Doc -> Key
 getKey = toKey . render Nothing
 
-findUsableIndex :: [Doc] -> Int -> Int
-findUsableIndex lbls i = if (text (show i)) `elem` lbls
+findUsableIndex :: [String] -> Int -> Int
+findUsableIndex lbls i = if (show i) `elem` lbls
                          then findUsableIndex lbls (i + 1)
                          else i
 
@@ -877,7 +877,7 @@ getNextIndex = do
 
 -- | Get reference for target; if none exists, create unique one and return.
 --   Prefer label if possible; otherwise, generate a unique key.
-getReference :: PandocMonad m => Attr -> Doc -> Target -> MD m Doc
+getReference :: PandocMonad m => Attr -> Doc -> Target -> MD m String
 getReference attr label target = do
   refs <- gets stRefs
   case find (\(_,t,a) -> t == target && a == attr) refs of
@@ -890,8 +890,8 @@ getReference attr label target = do
                                then do
                                  i <- getNextIndex
                                  modify $ \s -> s{ stLastIdx = i }
-                                 return (text (show i), i)
-                               else return (label, 0)
+                                 return (show i, i)
+                               else return (render Nothing label, 0)
              modify (\s -> s{
                stRefs = (lab', target, attr) : refs,
                stKeys = M.insert (getKey label)
@@ -902,7 +902,8 @@ getReference attr label target = do
            Just km -> do -- we have refs with this label
              case M.lookup (target, attr) km of
                   Just i -> do
-                    let lab' = label <> if i == 0
+                    let lab' = render Nothing $
+                               label <> if i == 0
                                            then mempty
                                            else text (show i)
                     -- make sure it's in stRefs; it may be
@@ -915,7 +916,7 @@ getReference attr label target = do
                   Nothing -> do -- but this one is to a new target
                     i <- getNextIndex
                     modify $ \s -> s{ stLastIdx = i }
-                    let lab' = text (show i)
+                    let lab' = show i
                     modify (\s -> s{
                        stRefs = (lab', target, attr) : refs,
                        stKeys = M.insert (getKey label)
@@ -1234,8 +1235,9 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
   shortcutable <- asks envRefShortcutable
   let useShortcutRefLinks = shortcutable &&
                             isEnabled Ext_shortcut_reference_links opts
-  reftext <- if useRefLinks then getReference attr linktext (src, tit)
-                            else return empty
+  reftext <- if useRefLinks
+                then text <$> getReference attr linktext (src, tit)
+                else return mempty
   return $ if useAuto
               then if plain
                       then text srcSuffix
