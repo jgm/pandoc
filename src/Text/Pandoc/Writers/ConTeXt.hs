@@ -295,10 +295,10 @@ tableColToConTeXt tabl (align, width, blocks) = do
         then empty
         else "width=" <> braces (text (printf "%.2f\\textwidth" width))
   let halign = alignToConTeXt align
-  let options = (if keys == empty
+  let options = (if isEmpty keys
                  then empty
                  else brackets keys) <> space
-        where keys = hcat $ intersperse "," $ filter (empty /=) [halign, colwidth]
+        where keys = hcat $ intersperse "," $ filter (not . isEmpty) [halign, colwidth]
   tableCellToConTeXt tabl options cellContents
 
 tableCellToConTeXt :: PandocMonad m => Tabl -> Doc -> Doc -> WM m Doc
@@ -482,13 +482,13 @@ sectionHeader (ident,classes,kvs) hdrLevel lst = do
   let ident' = if null ident
                then empty
                else "reference=" <> braces (text (toLabel ident))
-  let contents' = if contents == empty
+  let contents' = if isEmpty contents
                   then empty
                   else "title=" <> braces contents
-  let options = if keys == empty || levelText == empty
+  let options = if isEmpty keys || isEmpty levelText
                 then empty
                 else brackets keys
-        where keys = hcat $ intersperse "," $ filter (empty /=) [contents', ident']
+        where keys = hcat $ intersperse "," $ filter (not . isEmpty) [contents', ident']
   let starter = if writerSectionDivs opts
                 then "\\start"
                 else "\\"
