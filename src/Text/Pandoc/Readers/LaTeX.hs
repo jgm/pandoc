@@ -1875,6 +1875,7 @@ environments = M.fromList
    , ("obeylines", obeylines)
    , ("tikzpicture", rawVerbEnv "tikzpicture")
    , ("lilypond", rawVerbEnv "lilypond")
+   , ("ly", rawVerbEnv "ly")
    -- etoolbox
    , ("ifstrequal", ifstrequal)
    , ("newtoggle", braced >>= newToggle)
