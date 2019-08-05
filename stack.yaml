@@ -10,8 +10,12 @@ flags:
     debug: false
 packages:
 - '.'
+- location:
+    git: https://github.com/jgm/pandoc-citeproc
+    commit: 6d62678ece91bbb4fe4f5a99695006e1d53c3bae
+    extra-dep: true
 extra-deps:
-- pandoc-citeproc-0.16.2
+# - pandoc-citeproc-0.16.2
 - ipynb-0.1
 - cmark-gfm-0.2.0
 - hslua-1.0.3.1
