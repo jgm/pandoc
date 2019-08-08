@@ -2068,7 +2068,7 @@ Lua functions for pandoc scripts.
 
     Returns: strong element
 
-## Element components {#element-components}
+## Element components {#element-components-create}
 
 [`Attr ([identifier[, classes[, attributes]]])`]{#Attr}
 
