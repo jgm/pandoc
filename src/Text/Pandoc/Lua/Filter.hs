@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TypeApplications #-}
 {- |
 Module      : Text.Pandoc.Lua.Filter
 Copyright   : © 2012–2019 John MacFarlane,
@@ -20,6 +21,7 @@ module Text.Pandoc.Lua.Filter ( LuaFilterFunction
                               , walkBlocks
                               , blockElementNames
                               , inlineElementNames
+                              , module Text.Pandoc.Lua.Walk
                               ) where
 import Prelude
 import Control.Monad (mplus, (>=>))
@@ -31,7 +33,8 @@ import Data.Map (Map)
 import Foreign.Lua (Lua, Peekable, Pushable)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.Marshaling ()
-import Text.Pandoc.Walk (walkM, Walkable)
+import Text.Pandoc.Lua.Walk (SingletonsList (..))
+import Text.Pandoc.Walk (Walkable (walkM))
 
 import qualified Data.Map.Strict as Map
 import qualified Foreign.Lua as Lua
@@ -115,6 +118,12 @@ tryFilter (LuaFilter fnMap) x =
     Just fn -> runFilterFunction fn x *> elementOrList x
     Nothing -> return [x]
 
+-- | Apply filter on a sequence of AST elements.
+runOnSequence :: (Data a, Peekable a, Pushable a)
+              => LuaFilter -> SingletonsList a -> Lua (SingletonsList a)
+runOnSequence lf (SingletonsList xs) =
+  SingletonsList <$> mconcatMapM (tryFilter lf) xs
+
 -- | Push a value to the stack via a lua filter function. The filter function is
 -- called with given element as argument and is expected to return an element.
 -- Alternatively, the function can return nothing or nil, in which case the
@@ -135,16 +144,18 @@ mconcatMapM f = fmap mconcat . mapM f
 hasOneOf :: LuaFilter -> [String] -> Bool
 hasOneOf (LuaFilter fnMap) = any (\k -> Map.member k fnMap)
 
-walkInlines :: Walkable [Inline] a => LuaFilter -> a -> Lua a
-walkInlines f =
-  if f `hasOneOf` inlineElementNames
-     then walkM (mconcatMapM (tryFilter f :: Inline -> Lua [Inline]))
+walkInlines :: Walkable (SingletonsList Inline) a => LuaFilter -> a -> Lua a
+walkInlines lf =
+  let f = runOnSequence @Inline lf
+  in if lf `hasOneOf` inlineElementNames
+     then walkM f
      else return
 
-walkBlocks :: Walkable [Block] a => LuaFilter -> a -> Lua a
-walkBlocks f =
-  if f `hasOneOf` blockElementNames
-     then walkM (mconcatMapM (tryFilter f :: Block -> Lua [Block]))
+walkBlocks :: Walkable (SingletonsList Block) a => LuaFilter -> a -> Lua a
+walkBlocks lf =
+  let f = runOnSequence @Block lf
+  in if lf `hasOneOf` blockElementNames
+     then walkM f
      else return
 
 walkMeta :: LuaFilter -> Pandoc -> Lua Pandoc

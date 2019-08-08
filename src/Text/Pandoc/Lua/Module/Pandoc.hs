@@ -23,7 +23,7 @@ import Foreign.Lua (Lua, NumResults, Optional, Peekable, Pushable)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Class (runIO)
 import Text.Pandoc.Definition (Block, Inline)
-import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter)
+import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter, SingletonsList (..))
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Walk (Walkable)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
@@ -46,7 +46,8 @@ pushModule datadir = do
   LuaUtil.addFunction "walk_inline" walkInline
   return 1
 
-walkElement :: (Walkable [Inline] a, Walkable [Block] a)
+walkElement :: (Walkable (SingletonsList Inline) a,
+                Walkable (SingletonsList Block) a)
             => a -> LuaFilter -> Lua a
 walkElement x f = walkInlines f x >>= walkBlocks f
 
