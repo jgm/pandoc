@@ -605,6 +605,7 @@ library
                    Text.Pandoc.Lua.Module.Utils,
                    Text.Pandoc.Lua.Packages,
                    Text.Pandoc.Lua.Util,
+                   Text.Pandoc.Lua.Walk,
                    Text.Pandoc.CSS,
                    Text.Pandoc.CSV,
                    Text.Pandoc.RoffChar,
