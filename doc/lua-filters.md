@@ -61,17 +61,17 @@ replace it with a SmallCaps element with the same content.
 To run it, save it in a file, say `smallcaps.lua`, and invoke
 pandoc with `--lua-filter=smallcaps.lua`.
 
-Here's a quick performance comparison, using a version of the
-pandoc manual, MANUAL.txt, and versions of the same filter
-written in compiled Haskell (`smallcaps`) and interpreted Python
-(`smallcaps.py`):
+Here's a quick performance comparison, converting the pandoc
+manual (MANUAL.txt) to HTML, with versions of the same JSON
+filter written in compiled Haskell (`smallcaps`) and interpreted
+Python (`smallcaps.py`):
 
-  Command                                               Time
-  -------------------------------------------------- -------
-  `pandoc MANUAL.txt`                                  1.01s
-  `pandoc MANUAL.txt --filter ./smallcaps`             1.36s
-  `pandoc MANUAL.txt --filter ./smallcaps.py`          1.40s
-  `pandoc MANUAL.txt --lua-filter ./smallcaps.lua`     1.03s
+  Command                                   Time
+  ----------------------------------------- -------
+  `pandoc`                                  1.01s
+  `pandoc --filter ./smallcaps`             1.36s
+  `pandoc --filter ./smallcaps.py`          1.40s
+  `pandoc --lua-filter ./smallcaps.lua`     1.03s
 
 As you can see, the lua filter avoids the substantial overhead
 associated with marshalling to and from JSON over a pipe.
