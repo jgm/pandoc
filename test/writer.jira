@@ -50,8 +50,8 @@ bq. This is a block quote. It is pretty short.
 Code in a block quote:
 
 {code}
-sub status \{
-    print &quot;working&quot;;
+sub status {
+    print "working";
 }
 {code}
 
@@ -81,10 +81,10 @@ h1. {anchor:code-blocks}Code Blocks
 Code:
 
 {code}
-&hyphen;&hyphen;&hyphen;&hyphen; (should be four hyphens)
+---- (should be four hyphens)
 
-sub status \{
-    print &quot;working&quot;;
+sub status {
+    print "working";
 }
 
 this code block is indented by one tab
@@ -95,7 +95,7 @@ And:
 {code}
     this code block is indented by two tabs
 
-These should not be escaped:  \$ \\ \&gt; \[ \\{
+These should not be escaped:  \$ \\ \> \[ \{
 {code}
 
 ----
@@ -272,7 +272,7 @@ contains seeds, crisp, pleasant to taste
 * *_orange_*
 orange fruit
 {code}
-\{ orange code block }
+{ orange code block }
 {code}
 bq. orange block quote
 
@@ -334,15 +334,15 @@ foo
 This should be a code block, though:
 
 {code}
-&lt;div&gt;
+<div>
     foo
-&lt;/div&gt;
+</div>
 {code}
 
 As should this:
 
 {code}
-&lt;div&gt;foo&lt;/div&gt;
+<div>foo</div>
 {code}
 
 Now, nested:
@@ -358,7 +358,7 @@ Multiline:
 Code block:
 
 {code}
-&lt;!&hyphen;&hyphen; Comment &hyphen;&hyphen;&gt;
+<!-- Comment -->
 {code}
 
 Just plain comment, with trailing spaces on the line:
@@ -367,7 +367,7 @@ Just plain comment, with trailing spaces on the line:
 Code:
 
 {code}
-&lt;hr /&gt;
+<hr />
 {code}
 
 Hr's:
@@ -399,7 +399,7 @@ So is *_this_* word.
 
 So is *_this_* word.
 
-This is code: {{&gt;}}, {{$}}, {{\}}, {{\$}}, {{&lt;html&gt;}}.
+This is code: {{>}}, {{$}}, {{\}}, {{\$}}, {{<html>}}.
 
 -This is _strikeout_.-
 
@@ -577,10 +577,10 @@ An e&hyphen;mail address: [nobody&commat;nowhere.net|mailto:nobody@nowhere.net]
 bq. Blockquoted: [http://example.com/|http://example.com/]
 
 
-Auto&hyphen;links should not occur here: {{&lt;http://example.com/&gt;}}
+Auto&hyphen;links should not occur here: {{<http://example.com/>}}
 
 {code}
-or here: &lt;http://example.com/&gt;
+or here: <http://example.com/>
 {code}
 
 ----
@@ -615,7 +615,7 @@ This paragraph should not be part of the note, as it is not indented.
 Subsequent blocks are indented to show that they belong to the footnote (as with list items).
 
 {code}
-  \{ &lt;code&gt; }
+  { <code> }
 {code}
 
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
