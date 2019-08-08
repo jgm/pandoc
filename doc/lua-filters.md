@@ -1611,7 +1611,7 @@ Parameters:
 :   string (the code)
 
 `attr`:
-:   [Attr]{#Attr} (code attributes)
+:   [Attr](#Attr) (code attributes)
 
 Returns: CodeBlock element
 
@@ -1643,7 +1643,7 @@ Parameters:
 :   list of [Blocks]
 
 `attr`:
-:   [Attr]{#Attr} (Div attributes)
+:   [Attr](#Attr) (Div attributes)
 
 Returns: Div element
 
@@ -1662,7 +1662,7 @@ Parameters:
 :   list of [Inlines] (header title)
 
 `attr`:
-:   [Attr]{#Attr} (header attributes)
+:   [Attr](#Attr) (header attributes)
 
 Returns: Header element
 
@@ -1814,7 +1814,7 @@ Parameters:
 :   string (the code)
 
 `attr`:
-:   [Attr]{#Attr} (code attributes)
+:   [Attr](#Attr) (code attributes)
 
 Returns: Code element
 
@@ -1850,7 +1850,7 @@ Parameters:
 :   string: title attribute
 
 `attr`:
-:   [Attr]{#Attr}: additional image attributes
+:   [Attr](#Attr): additional image attributes
 
 Returns: Image element
 
@@ -1880,7 +1880,7 @@ Parameters:
 :   string: the title attribute
 
 `attr`:
-:   [Attr]{#Attr}: additional link attributes
+:   [Attr](#Attr): additional link attributes
 
 Returns: image element
 
@@ -2037,7 +2037,7 @@ Parameters:
 :   list of [Inlines]
 
 `attr`:
-:   [Attr]{#Attr}: span attributes
+:   [Attr](#Attr): span attributes
 
 Returns: Span element
 
