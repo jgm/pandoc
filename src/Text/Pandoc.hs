@@ -28,7 +28,6 @@ inline links:
 > mdToRST txt = runIOorExplode $
 >   readMarkdown def txt
 >   >>= writeRST def{ writerReferenceLinks = True }
-
 >
 > main :: IO ()
 > main = do
