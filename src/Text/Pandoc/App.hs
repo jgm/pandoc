@@ -34,16 +34,15 @@ import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.IO as TIO
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
-import qualified Data.Text.Lazy.Encoding as TLE
+import qualified Data.Text.Encoding.Error as TSE
 import Network.URI (URI (..), parseURI)
 import System.Directory (doesDirectoryExist)
 import System.Exit (exitSuccess)
 import System.FilePath
-import System.IO (nativeNewline, stdout, hSetNewlineMode, hSetEncoding,
-                  NewlineMode(..), utf8)
+import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
@@ -296,7 +295,7 @@ convertWithOpts opts = do
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
                      Left err' -> throwError $ PandocPDFError $
-                                     TL.unpack (TLE.decodeUtf8With TE.lenientDecode err')
+                                     TL.unpack (TE.decodeUtf8With TE.lenientDecode err')
 
         Nothing -> do
                 let addNl = if standalone
@@ -366,7 +365,7 @@ readSource src = case parseURI src of
                    else BS.readFile fp
           E.catch (return $! UTF8.toText bs)
              (\e -> case e of
-                         TE.DecodeError _ (Just w) -> do
+                         TSE.DecodeError _ (Just w) -> do
                            case BS.elemIndex w bs of
                              Just offset -> E.throwIO $
                                   PandocUTF8DecodingError fp offset w
@@ -385,11 +384,6 @@ writeFnBinary "-" = liftIO . BL.putStr
 writeFnBinary f   = liftIO . BL.writeFile (UTF8.encodePath f)
 
 writerFn :: MonadIO m => IO.Newline -> FilePath -> Text -> m ()
-writerFn eol "-" t = liftIO $ do
-  hSetNewlineMode stdout (NewlineMode eol eol)
-  hSetEncoding stdout utf8
-  TIO.putStr t
-writerFn eol f   t = liftIO $ do
-  hSetNewlineMode stdout (NewlineMode eol eol)
-  hSetEncoding stdout utf8
-  TIO.writeFile f t
+-- TODO this implementation isn't maximally efficient:
+writerFn eol "-" = liftIO . UTF8.putStrWith eol . T.unpack
+writerFn eol f   = liftIO . UTF8.writeFileWith eol f . T.unpack
