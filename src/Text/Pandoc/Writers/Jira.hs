@@ -144,7 +144,7 @@ blockToJira _ (CodeBlock attr@(_,classes,_) str) = do
   let anchorMacro = anchor attr
   appendNewlineUnlessInList . T.intercalate "\n" $
     (if anchorMacro == "" then id else (anchorMacro :))
-    [start, escapeStringForJira (pack str), "{code}"]
+    [start, pack str, "{code}"]
 
 blockToJira opts (BlockQuote [p@(Para _)]) = do
   contents <- blockToJira opts p
@@ -270,7 +270,7 @@ inlineToJira opts (Quoted DoubleQuote lst) = do
 inlineToJira opts (Cite _  lst) = inlineListToJira opts lst
 
 inlineToJira _ (Code attr str) =
-  return (anchor attr <> "{{" <> escapeStringForJira (pack str) <> "}}")
+  return (anchor attr <> "{{" <> pack str <> "}}")
 
 inlineToJira _ (Str str) = return $ escapeStringForJira (pack str)
 
