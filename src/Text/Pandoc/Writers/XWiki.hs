@@ -139,9 +139,11 @@ formRow row = do
 tableCellXWiki :: PandocMonad m => Bool -> [Block] -> XWikiReader m Text
 tableCellXWiki isHeader cell = do
   contents <- blockListToXWiki cell
+  let isMultiline = (length . split (== '\n')) contents > 1
+  let contents' = intercalate contents $ if isMultiline then [pack "(((", pack ")))"] else [mempty, mempty]
   let cellBorder = if isHeader then "|=" else "|"
-  return $ cellBorder <> contents
-  
+  return $ cellBorder <> contents'
+
 
 inlineListToXWiki :: PandocMonad m => [Inline] -> XWikiReader m Text
 inlineListToXWiki lst =
