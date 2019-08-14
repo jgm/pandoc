@@ -333,6 +333,11 @@ stringToLaTeX context zs = do
                 | ctx == TextString
                              -> cs <> xs
             _ -> cs <> "{}" <> xs
+        emitquote cs = do
+          case xs of
+            '`':_  -> cs <> "\\," <> xs -- add thin space
+            '\'':_ -> cs <> "\\," <> xs -- add thin space
+            _      -> cs <> xs
     in case x of
          '?' | ligatures ->  -- avoid ?` ligature
            case xs of
@@ -367,10 +372,10 @@ stringToLaTeX context zs = do
          '\160' -> emits "~"
          '\x202F' -> emits "\\,"
          '\x2026' -> emitcseq "\\ldots"
-         '\x2018' | ligatures -> emits "`"
-         '\x2019' | ligatures -> emits "'"
-         '\x201C' | ligatures -> emits "``"
-         '\x201D' | ligatures -> emits "''"
+         '\x2018' | ligatures -> emitquote "`"
+         '\x2019' | ligatures -> emitquote "'"
+         '\x201C' | ligatures -> emitquote "``"
+         '\x201D' | ligatures -> emitquote "''"
          '\x2014' | ligatures -> emits "---"
          '\x2013' | ligatures -> emits "--"
          _ | writerPreferAscii opts
