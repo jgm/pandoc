@@ -1396,7 +1396,8 @@ Metadata variables
 :   allow identification of basic aspects of the document.  Included
     in PDF metadata through LaTeX and ConTeXt.  These can be set
     through a [pandoc title block][Extension: `pandoc_title_block`],
-    which allows for multiple authors, or through a YAML metadata block:
+    which allows for multiple authors, or through a
+    [YAML metadata block][Extension: `yaml_metadata_block`]:
 
         ---
         author:
@@ -1435,7 +1436,7 @@ Metadata variables
 Additionally,
 any root-level string metadata, not included in ODT, docx
 or pptx metadata is added as a *custom property*.
-The following YAML metadata block for instance:
+The following [YAML] metadata block for instance:
 
     ---
     title:  'This is the title'
@@ -3345,7 +3346,7 @@ will also have "Version 4.0" in the header.
 
 #### Extension: `yaml_metadata_block` ####
 
-A YAML metadata block is a valid YAML object, delimited by a line of three
+A [YAML] metadata block is a valid YAML object, delimited by a line of three
 hyphens (`---`) at the top and a line of three hyphens (`---`) or three dots
 (`...`) at the bottom.  A YAML metadata block may occur anywhere in the
 document, but if it is not at the beginning, it must be preceded by a blank
@@ -3377,7 +3378,7 @@ a YAML metadata block will be produced only if the `-s/--standalone`
 option is used.  All of the metadata will appear in a single block
 at the beginning of the document.
 
-Note that YAML escaping rules must be followed. Thus, for example,
+Note that [YAML] escaping rules must be followed. Thus, for example,
 if a title contains a colon, it must be quoted.  The pipe character
 (`|`) can be used to begin an indented block that will be interpreted
 literally, without need for escaping.  This form is necessary
@@ -5343,3 +5344,4 @@ warranty notices.) For a full list of contributors, see the file
 AUTHORS.md in the pandoc source code.
 
 [GPL]: http://www.gnu.org/copyleft/gpl.html "GNU General Public License"
+[YAML]: https://yaml.org/spec/1.2/spec.html "YAML v1.2 Spec"
