@@ -677,6 +677,7 @@ withRaw :: PandocMonad m => LP m a -> LP m (a, [Tok])
 withRaw parser = do
   inp <- getInput
   result <- parser
-  nxt <- option (Tok (initialPos "source") Word "") (lookAhead anyTok)
-  let raw = takeWhile (/= nxt) inp
+  nxtpos <- option Nothing ((\(Tok pos' _ _) -> Just pos') <$> lookAhead anyTok)
+  let raw = takeWhile (\(Tok pos _ _) -> maybe True
+                  (\p -> sourceName p /= sourceName pos || pos < p) nxtpos) inp
   return (result, raw)
