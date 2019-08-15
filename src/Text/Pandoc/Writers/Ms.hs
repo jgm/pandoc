@@ -37,9 +37,9 @@ import Text.Pandoc.Highlighting
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Pretty
+import Text.DocLayout
 import Text.Pandoc.Shared
-import Text.Pandoc.Templates
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Writers.Roff
@@ -57,14 +57,11 @@ pandocToMs opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  let render' :: Doc -> Text
-      render' = render colwidth
-  metadata <- metaToJSON opts
-              (fmap render' . blockListToMs opts)
-              (fmap render' . inlineListToMs' opts)
+  metadata <- metaToContext opts
+              (blockListToMs opts)
+              (fmap chomp . inlineListToMs' opts)
               meta
-  body <- blockListToMs opts blocks
-  let main = render' body
+  main <- blockListToMs opts blocks
   hasInlineMath <- gets stHasInlineMath
   let titleMeta = (escapeStr opts . stringify) $ docTitle meta
   let authorsMeta = map (escapeStr opts . stringify) $ docAuthors meta
@@ -72,18 +69,18 @@ pandocToMs opts (Pandoc meta blocks) = do
   let highlightingMacros = if hasHighlighting
                               then case writerHighlightStyle opts of
                                         Nothing  -> mempty
-                                        Just sty -> render' $ styleToMs sty
+                                        Just sty -> styleToMs sty
                               else mempty
 
   let context = defField "body" main
               $ defField "has-inline-math" hasInlineMath
               $ defField "hyphenate" True
-              $ defField "pandoc-version" pandocVersion
+              $ defField "pandoc-version" (T.pack pandocVersion)
               $ defField "toc" (writerTableOfContents opts)
-              $ defField "title-meta" titleMeta
-              $ defField "author-meta" (intercalate "; " authorsMeta)
+              $ defField "title-meta" (T.pack titleMeta)
+              $ defField "author-meta" (T.pack $ intercalate "; " authorsMeta)
               $ defField "highlighting-macros" highlightingMacros metadata
-  return $
+  return $ render colwidth $
     case writerTemplate opts of
        Nothing  -> main
        Just tpl -> renderTemplate tpl context
@@ -112,7 +109,7 @@ toSmallCaps opts (c:cs)
 blockToMs :: PandocMonad m
           => WriterOptions -- ^ Options
           -> Block         -- ^ Block element
-          -> MS m Doc
+          -> MS m (Doc Text)
 blockToMs _ Null = return empty
 blockToMs opts (Div (ident,_,_) bs) = do
   let anchor = if null ident
@@ -264,7 +261,7 @@ blockToMs opts (DefinitionList items) = do
   return (vcat contents)
 
 -- | Convert bullet list item (list of blocks) to ms.
-bulletListItemToMs :: PandocMonad m => WriterOptions -> [Block] -> MS m Doc
+bulletListItemToMs :: PandocMonad m => WriterOptions -> [Block] -> MS m (Doc Text)
 bulletListItemToMs _ [] = return empty
 bulletListItemToMs opts (Para first:rest) =
   bulletListItemToMs opts (Plain first:rest)
@@ -287,7 +284,7 @@ orderedListItemToMs :: PandocMonad m
                     -> String   -- ^ order marker for list item
                     -> Int      -- ^ number of spaces to indent
                     -> [Block]  -- ^ list item (list of blocks)
-                    -> MS m Doc
+                    -> MS m (Doc Text)
 orderedListItemToMs _ _ _ [] = return empty
 orderedListItemToMs opts num indent (Para first:rest) =
   orderedListItemToMs opts num indent (Plain first:rest)
@@ -306,7 +303,7 @@ orderedListItemToMs opts num indent (first:rest) = do
 definitionListItemToMs :: PandocMonad m
                        => WriterOptions
                        -> ([Inline],[[Block]])
-                       -> MS m Doc
+                       -> MS m (Doc Text)
 definitionListItemToMs opts (label, defs) = do
   labelText <- inlineListToMs' opts $ map breakToSpace label
   contents <- if null defs
@@ -327,26 +324,26 @@ definitionListItemToMs opts (label, defs) = do
 blockListToMs :: PandocMonad m
               => WriterOptions -- ^ Options
               -> [Block]       -- ^ List of block elements
-              -> MS m Doc
+              -> MS m (Doc Text)
 blockListToMs opts blocks =
   vcat <$> mapM (blockToMs opts) blocks
 
 -- | Convert list of Pandoc inline elements to ms.
-inlineListToMs :: PandocMonad m => WriterOptions -> [Inline] -> MS m Doc
+inlineListToMs :: PandocMonad m => WriterOptions -> [Inline] -> MS m (Doc Text)
 -- if list starts with ., insert a zero-width character \& so it
 -- won't be interpreted as markup if it falls at the beginning of a line.
 inlineListToMs opts lst = hcat <$> mapM (inlineToMs opts) lst
 
 -- This version to be used when there is no further inline content;
 -- forces a note at the end.
-inlineListToMs' :: PandocMonad m => WriterOptions -> [Inline] -> MS m Doc
+inlineListToMs' :: PandocMonad m => WriterOptions -> [Inline] -> MS m (Doc Text)
 inlineListToMs' opts lst = do
   x <- hcat <$> mapM (inlineToMs opts) lst
   y <- handleNotes opts empty
   return $ x <> y
 
 -- | Convert Pandoc inline element to ms.
-inlineToMs :: PandocMonad m => WriterOptions -> Inline -> MS m Doc
+inlineToMs :: PandocMonad m => WriterOptions -> Inline -> MS m (Doc Text)
 inlineToMs opts (Span _ ils) = inlineListToMs opts ils
 inlineToMs opts (Emph lst) =
   withFontFeature 'I' (inlineListToMs opts lst)
@@ -382,7 +379,7 @@ inlineToMs opts (Code attr str) = do
   withFontFeature 'C' (return hlCode)
 inlineToMs opts (Str str) = do
   let shim = case str of
-                  '.':_ -> afterBreak "\\&"
+                  '.':_ -> afterBreak (T.pack "\\&")
                   _     -> empty
   smallcaps <- gets stSmallCaps
   if smallcaps
@@ -437,7 +434,7 @@ inlineToMs _ (Note contents) = do
   modify $ \st -> st{ stNotes = contents : stNotes st }
   return $ text "\\**"
 
-handleNotes :: PandocMonad m => WriterOptions -> Doc -> MS m Doc
+handleNotes :: PandocMonad m => WriterOptions -> Doc Text -> MS m (Doc Text)
 handleNotes opts fallback = do
   notes <- gets stNotes
   if null notes
@@ -446,7 +443,7 @@ handleNotes opts fallback = do
        modify $ \st -> st{ stNotes = [] }
        vcat <$> mapM (handleNote opts) notes
 
-handleNote :: PandocMonad m => WriterOptions -> Note -> MS m Doc
+handleNote :: PandocMonad m => WriterOptions -> Note -> MS m (Doc Text)
 handleNote opts bs = do
   -- don't start with Paragraph or we'll get a spurious blank
   -- line after the note ref:
@@ -469,7 +466,7 @@ breakToSpace x         = x
 
 -- Highlighting
 
-styleToMs :: Style -> Doc
+styleToMs :: Style -> Doc Text
 styleToMs sty = vcat $ colordefs ++ map (toMacro sty) alltoktypes
   where alltoktypes = enumFromTo KeywordTok NormalTok
         colordefs = map toColorDef allcolors
@@ -484,7 +481,7 @@ styleToMs sty = vcat $ colordefs ++ map (toMacro sty) alltoktypes
 hexColor :: Color -> String
 hexColor (RGB r g b) = printf "%02x%02x%02x" r g b
 
-toMacro :: Style -> TokenType -> Doc
+toMacro :: Style -> TokenType -> Doc Text
 toMacro sty toktype =
   nowrap (text ".ds " <> text (show toktype) <> text " " <>
             setbg <> setcolor <> setfont <>
@@ -512,7 +509,7 @@ toMacro sty toktype =
         -- lnColor = lineNumberColor sty
         -- lnBkgColor = lineNumberBackgroundColor sty
 
-msFormatter :: WriterOptions -> FormatOptions -> [SourceLine] -> Doc
+msFormatter :: WriterOptions -> FormatOptions -> [SourceLine] -> Doc Text
 msFormatter opts _fmtopts =
   vcat . map fmtLine
   where fmtLine = hcat . map fmtToken
@@ -520,7 +517,7 @@ msFormatter opts _fmtopts =
            brackets (text (show toktype) <> text " \""
              <> text (escapeStr opts (T.unpack tok)) <> text "\"")
 
-highlightCode :: PandocMonad m => WriterOptions -> Attr -> String -> MS m Doc
+highlightCode :: PandocMonad m => WriterOptions -> Attr -> String -> MS m (Doc Text)
 highlightCode opts attr str =
   case highlight (writerSyntaxMap opts) (msFormatter opts) attr str of
          Left msg -> do

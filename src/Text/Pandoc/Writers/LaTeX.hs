@@ -21,7 +21,6 @@ import Prelude
 import Control.Applicative ((<|>))
 import Control.Monad.State.Strict
 import Data.Monoid (Any(..))
-import Data.Aeson (object, (.=))
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isSpace,
                   isPunctuation, ord, toLower)
 import Data.List (foldl', intercalate, intersperse, nubBy,
@@ -39,10 +38,11 @@ import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Pretty
+import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Slides
-import Text.Pandoc.Templates
+import Text.Pandoc.Templates (renderTemplate)
+import Text.DocTemplates (Val(..), Context(..))
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
@@ -56,7 +56,7 @@ data WriterState =
               , stInMinipage    :: Bool          -- true if in minipage 
               , stInHeading     :: Bool          -- true if in a section heading
               , stInItem        :: Bool          -- true if in \item[..]
-              , stNotes         :: [Doc]         -- notes in a minipage
+              , stNotes         :: [Doc Text]    -- notes in a minipage
               , stOLLevel       :: Int           -- level of ordered list nesting
               , stOptions       :: WriterOptions -- writer options, so they don't have to be parameter
               , stVerbInNote    :: Bool          -- true if document has verbatim text in note
@@ -133,11 +133,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
                     else Nothing
-  let render' :: Doc -> Text
-      render' = render colwidth
-  metadata <- metaToJSON options
-              (fmap render' . blockListToLaTeX)
-              (fmap render' . inlineListToLaTeX)
+  metadata <- metaToContext options
+              blockListToLaTeX
+              (fmap chomp . inlineListToLaTeX)
               meta
   let chaptersClasses = ["memoir","book","report","scrreprt","scrbook","extreport","extbook","tufte-book"]
   let frontmatterClasses = ["memoir","book","scrbook","extbook","tufte-book"]
@@ -154,7 +152,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                           _               -> "article"
   when (documentClass `elem` chaptersClasses) $
      modify $ \s -> s{ stHasChapters = True }
-  case T.toLower <$> getField "csquotes" metadata of
+  case T.toLower . render Nothing <$> getField "csquotes" metadata of
      Nothing      -> return ()
      Just "false" -> return ()
      Just _       -> modify $ \s -> s{stCsquotes = True}
@@ -167,23 +165,26 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   then toSlides blocks''
                   else return blocks''
   body <- mapM (elementToLaTeX options) $ hierarchicalize blocks'''
-  (biblioTitle :: Text) <- render' <$> inlineListToLaTeX lastHeader
-  let main = render' $ vsep body
+  biblioTitle <- inlineListToLaTeX lastHeader
+  let main = vsep body
   st <- get
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
   docLangs <- catMaybes <$>
       mapM (toLang . Just) (ordNub (query (extract "lang") blocks))
-  let hasStringValue x = isJust (getField x metadata :: Maybe String)
-  let geometryFromMargins = intercalate [','] $ mapMaybe (\(x,y) ->
-                                ((x ++ "=") ++) <$> getField y metadata)
+  let hasStringValue x = isJust (getField x metadata :: Maybe (Doc Text))
+  let geometryFromMargins = mconcat $ intersperse ("," :: Doc Text) $
+                            mapMaybe (\(x,y) ->
+                                ((x <> "=") <>) <$> getField y metadata)
                               [("lmargin","margin-left")
                               ,("rmargin","margin-right")
                               ,("tmargin","margin-top")
                               ,("bmargin","margin-bottom")
                               ]
-  let toPolyObj lang = object [ "name"    .= T.pack name
-                              , "options" .= T.pack opts ]
+  let toPolyObj :: Lang -> Val (Doc Text)
+      toPolyObj lang = MapVal $ Context $
+                        M.fromList [ ("name" , SimpleVal $ text name)
+                                   , ("options" , SimpleVal $ text opts) ]
         where
           (name, opts) = toPolyglossia lang
   mblang <- toLang $ case getLang options meta of
@@ -195,14 +196,16 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let dirs = query (extract "dir") blocks
 
   let context  =  defField "toc" (writerTableOfContents options) $
-                  defField "toc-depth" (show (writerTOCDepth options -
+                  defField "toc-depth" (T.pack .  show $
+                                        (writerTOCDepth options -
                                               if stHasChapters st
                                                  then 1
                                                  else 0)) $
                   defField "body" main $
-                  defField "title-meta" titleMeta $
-                  defField "author-meta" (intercalate "; " authorsMeta) $
-                  defField "documentclass" documentClass $
+                  defField "title-meta" (T.pack titleMeta) $
+                  defField "author-meta"
+                        (T.pack $ intercalate "; " authorsMeta) $
+                  defField "documentclass" (T.pack documentClass) $
                   defField "verbatim-in-note" (stVerbInNote st) $
                   defField "tables" (stTable st) $
                   defField "strikeout" (stStrikeout st) $
@@ -218,7 +221,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                       then case writerHighlightStyle options of
                                 Just sty ->
                                    defField "highlighting-macros"
-                                      (styleToLaTeX sty)
+                                      (T.stripEnd $ styleToLaTeX sty)
                                 Nothing -> id
                       else id) $
                   (case writerCiteMethod options of
@@ -232,23 +235,28 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                             "filecolor"]) $
                   (if null dirs
                      then id
-                     else defField "dir" ("ltr" :: String)) $
+                     else defField "dir" ("ltr" :: Text)) $
                   defField "section-titles" True $
                   defField "geometry" geometryFromMargins $
-                  (case getField "papersize" metadata of
+                  (case T.unpack . render Nothing <$>
+                        getField "papersize" metadata of
                         -- uppercase a4, a5, etc.
                         Just (('A':d:ds) :: String)
                           | all isDigit (d:ds) -> resetField "papersize"
-                                                    (('a':d:ds) :: String)
+                                                    (T.pack ('a':d:ds))
                         _                     -> id)
                   metadata
   let context' =
           -- note: lang is used in some conditionals in the template,
           -- so we need to set it if we have any babel/polyglossia:
-          maybe id (defField "lang" . renderLang) mblang
-        $ maybe id (defField "babel-lang" . toBabel) mblang
-        $ defField "babel-otherlangs" (map toBabel docLangs)
-        $ defField "babel-newcommands" (concatMap (\(poly, babel) ->
+          maybe id (\l -> defField "lang"
+                      ((text $ renderLang l) :: Doc Text)) mblang
+        $ maybe id (\l -> defField "babel-lang"
+                      ((text $ toBabel l) :: Doc Text)) mblang
+        $ defField "babel-otherlangs"
+             (map ((text . toBabel) :: Lang -> Doc Text) docLangs)
+        $ defField "babel-newcommands" (vcat $
+           map (\(poly, babel) -> (text :: String -> Doc Text) $
             -- \textspanish and \textgalician are already used by babel
             -- save them as \oritext... and let babel use that
             if poly `elem` ["spanish", "galician"]
@@ -258,14 +266,14 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                       ++ poly ++ "}}\n" ++
                     "\\AddBabelHook{" ++ poly ++ "}{afterextras}" ++
                       "{\\renewcommand{\\text" ++ poly ++ "}[2][]{\\foreignlanguage{"
-                      ++ poly ++ "}{##2}}}\n"
+                      ++ poly ++ "}{##2}}}"
                else (if poly == "latin" -- see #4161
                         then "\\providecommand{\\textlatin}{}\n\\renewcommand"
                         else "\\newcommand") ++ "{\\text" ++ poly ++
                     "}[2][]{\\foreignlanguage{" ++ babel ++ "}{#2}}\n" ++
                     "\\newenvironment{" ++ poly ++
                     "}[2][]{\\begin{otherlanguage}{" ++
-                    babel ++ "}}{\\end{otherlanguage}}\n"
+                    babel ++ "}}{\\end{otherlanguage}}"
             )
             -- eliminate duplicates that have same polyglossia name
             $ nubBy (\a b -> fst a == fst b)
@@ -273,17 +281,19 @@ pandocToLaTeX options (Pandoc meta blocks) = do
             $ map (\l -> (fst $ toPolyglossia l, toBabel l)) docLangs
           )
         $ maybe id (defField "polyglossia-lang" . toPolyObj) mblang
-        $ defField "polyglossia-otherlangs" (map toPolyObj docLangs)
+        $ defField "polyglossia-otherlangs"
+             (ListVal (map toPolyObj docLangs :: [Val (Doc Text)]))
         $
                   defField "latex-dir-rtl"
-           (getField "dir" context == Just ("rtl" :: String)) context
-  return $
+           ((render Nothing <$> getField "dir" context) ==
+               Just ("rtl" :: Text)) context
+  return $ render colwidth $
     case writerTemplate options of
        Nothing  -> main
        Just tpl -> renderTemplate tpl context'
 
 -- | Convert Elements to LaTeX
-elementToLaTeX :: PandocMonad m => WriterOptions -> Element -> LW m Doc
+elementToLaTeX :: PandocMonad m => WriterOptions -> Element -> LW m (Doc Text)
 elementToLaTeX _ (Blk block) = blockToLaTeX block
 elementToLaTeX opts (Sec level _ (id',classes,_) title' elements) = do
   modify $ \s -> s{stInHeading = True}
@@ -435,7 +445,7 @@ toLabel z = go `fmap` stringToLaTeX URLString z
          | otherwise = "ux" ++ printf "%x" (ord x) ++ go xs
 
 -- | Puts contents into LaTeX command.
-inCmd :: String -> Doc -> Doc
+inCmd :: String -> Doc Text -> Doc Text
 inCmd cmd contents = char '\\' <> text cmd <> braces contents
 
 toSlides :: PandocMonad m => [Block] -> LW m [Block]
@@ -514,7 +524,7 @@ isListBlock _                  = False
 -- | Convert Pandoc block element to LaTeX.
 blockToLaTeX :: PandocMonad m
              => Block     -- ^ Block to convert
-             -> LW m Doc
+             -> LW m (Doc Text)
 blockToLaTeX Null = return empty
 blockToLaTeX (Div (identifier,classes,kvs) bs)
   | "incremental" `elem` classes = do
@@ -820,7 +830,8 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
          $$ captNotes
          $$ notes
 
-getCaption :: PandocMonad m => Bool -> [Inline] -> LW m (Doc, Doc, Doc)
+getCaption :: PandocMonad m
+           => Bool -> [Inline] -> LW m (Doc Text, Doc Text, Doc Text)
 getCaption externalNotes txt = do
   oldExternalNotes <- gets stExternalNotes
   modify $ \st -> st{ stExternalNotes = externalNotes, stNotes = [] }
@@ -846,7 +857,7 @@ toColDescriptor align =
          AlignCenter  -> "c"
          AlignDefault -> "l"
 
-blockListToLaTeX :: PandocMonad m => [Block] -> LW m Doc
+blockListToLaTeX :: PandocMonad m => [Block] -> LW m (Doc Text)
 blockListToLaTeX lst =
   vsep `fmap` mapM (\b -> setEmptyLine True >> blockToLaTeX b) lst
 
@@ -855,7 +866,7 @@ tableRowToLaTeX :: PandocMonad m
                 -> [Alignment]
                 -> [Double]
                 -> [[Block]]
-                -> LW m Doc
+                -> LW m (Doc Text)
 tableRowToLaTeX header aligns widths cols = do
   -- scale factor compensates for extra space between columns
   -- so the whole table isn't larger than columnwidth
@@ -897,7 +908,7 @@ displayMathToInline (Math DisplayMath x) = Math InlineMath x
 displayMathToInline x                    = x
 
 tableCellToLaTeX :: PandocMonad m => Bool -> (Double, Alignment, [Block])
-                 -> LW m Doc
+                 -> LW m (Doc Text)
 tableCellToLaTeX _      (0,     _,     blocks) =
   blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
 tableCellToLaTeX header (width, align, blocks) = do
@@ -922,7 +933,7 @@ tableCellToLaTeX header (width, align, blocks) = do
             (halign <> cr <> cellContents <> "\\strut" <> cr) <>
             "\\end{minipage}")
 
-notesToLaTeX :: [Doc] -> Doc
+notesToLaTeX :: [Doc Text] -> Doc Text
 notesToLaTeX [] = empty
 notesToLaTeX ns = (case length ns of
                               n | n > 1 -> "\\addtocounter" <>
@@ -935,7 +946,7 @@ notesToLaTeX ns = (case length ns of
                      $ map (\x -> "\\footnotetext" <> braces x)
                      $ reverse ns)
 
-listItemToLaTeX :: PandocMonad m => [Block] -> LW m Doc
+listItemToLaTeX :: PandocMonad m => [Block] -> LW m (Doc Text)
 listItemToLaTeX lst
   -- we need to put some text before a header if it's the first
   -- element in an item. This will look ugly in LaTeX regardless, but
@@ -957,7 +968,7 @@ listItemToLaTeX lst
       return $ "\\item" <> brackets checkbox
         $$ nest 2 (isContents $+$ bsContents)
 
-defListItemToLaTeX :: PandocMonad m => ([Inline], [[Block]]) -> LW m Doc
+defListItemToLaTeX :: PandocMonad m => ([Inline], [[Block]]) -> LW m (Doc Text)
 defListItemToLaTeX (term, defs) = do
     -- needed to turn off 'listings' because it breaks inside \item[...]:
     modify $ \s -> s{stInItem = True}
@@ -985,7 +996,7 @@ sectionHeader :: PandocMonad m
               -> [Char]
               -> Int
               -> [Inline]
-              -> LW m Doc
+              -> LW m (Doc Text)
 sectionHeader unnumbered ident level lst = do
   txt <- inlineListToLaTeX lst
   plain <- stringToLaTeX TextString $ concatMap stringify lst
@@ -1002,7 +1013,7 @@ sectionHeader unnumbered ident level lst = do
                  then return empty
                  else
                    return $ brackets txtNoNotes
-  let contents = if render Nothing txt == plain
+  let contents = if render Nothing txt == T.pack plain
                     then braces txt
                     else braces (text "\\texorpdfstring"
                          <> braces txt
@@ -1051,7 +1062,7 @@ sectionHeader unnumbered ident level lst = do
                                 braces txtNoNotes
                          else empty
 
-hypertarget :: PandocMonad m => Bool -> String -> Doc -> LW m Doc
+hypertarget :: PandocMonad m => Bool -> String -> Doc Text -> LW m (Doc Text)
 hypertarget _ "" x    = return x
 hypertarget addnewline ident x = do
   ref <- text `fmap` toLabel ident
@@ -1061,7 +1072,7 @@ hypertarget addnewline ident x = do
                              then ("%" <> cr)
                              else empty) <> x)
 
-labelFor :: PandocMonad m => String -> LW m Doc
+labelFor :: PandocMonad m => String -> LW m (Doc Text)
 labelFor ""    = return empty
 labelFor ident = do
   ref <- text `fmap` toLabel ident
@@ -1070,7 +1081,7 @@ labelFor ident = do
 -- | Convert list of inline elements to LaTeX.
 inlineListToLaTeX :: PandocMonad m
                   => [Inline]  -- ^ Inlines to convert
-                  -> LW m Doc
+                  -> LW m (Doc Text)
 inlineListToLaTeX lst =
   mapM inlineToLaTeX (fixLineInitialSpaces . fixInitialLineBreaks $ lst)
     >>= return . hcat
@@ -1098,7 +1109,7 @@ isQuoted _            = False
 -- | Convert inline element to LaTeX
 inlineToLaTeX :: PandocMonad m
               => Inline    -- ^ Inline to convert
-              -> LW m Doc
+              -> LW m (Doc Text)
 inlineToLaTeX (Span (id',classes,kvs) ils) = do
   linkAnchor <- hypertarget False id' empty
   lang <- toLang $ lookup "lang" kvs
@@ -1293,7 +1304,7 @@ inlineToLaTeX (Image attr _ (source, _)) = do
       dimList = showDim Width ++ showDim Height
       dims = if null dimList
                 then empty
-                else brackets $ cat (intersperse "," dimList)
+                else brackets $ mconcat (intersperse "," dimList)
       source' = if isURI source
                    then source
                    else unEscapeString source
@@ -1342,7 +1353,7 @@ protectCode x = [x]
 setEmptyLine :: PandocMonad m => Bool -> LW m ()
 setEmptyLine b = modify $ \st -> st{ stEmptyLine = b }
 
-citationsToNatbib :: PandocMonad m => [Citation] -> LW m Doc
+citationsToNatbib :: PandocMonad m => [Citation] -> LW m (Doc Text)
 citationsToNatbib
             [one]
   = citeCommand c p s k
@@ -1393,13 +1404,13 @@ citationsToNatbib cits = do
                NormalCitation -> citeCommand "citealp"  p s k
 
 citeCommand :: PandocMonad m
-            => String -> [Inline] -> [Inline] -> String -> LW m Doc
+            => String -> [Inline] -> [Inline] -> String -> LW m (Doc Text)
 citeCommand c p s k = do
   args <- citeArguments p s k
   return $ text ("\\" ++ c) <> args
 
 citeArguments :: PandocMonad m
-              => [Inline] -> [Inline] -> String -> LW m Doc
+              => [Inline] -> [Inline] -> String -> LW m (Doc Text)
 citeArguments p s k = do
   let s' = case s of
         (Str
@@ -1414,7 +1425,7 @@ citeArguments p s k = do
                      (_   , _    ) -> brackets pdoc <> brackets sdoc
   return $ optargs <> braces (text k)
 
-citationsToBiblatex :: PandocMonad m => [Citation] -> LW m Doc
+citationsToBiblatex :: PandocMonad m => [Citation] -> LW m (Doc Text)
 citationsToBiblatex
             [one]
   = citeCommand cmd p s k

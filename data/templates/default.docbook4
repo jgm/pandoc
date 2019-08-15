@@ -23,10 +23,10 @@ $if(date)$
 $endif$
   </articleinfo>
 $for(include-before)$
-$include-before$
+  $include-before$
 $endfor$
-$body$
+  $body$
 $for(include-after)$
-$include-after$
+  $include-after$
 $endfor$
 </article>

@@ -14,7 +14,7 @@ Conversion of 'Pandoc' documents to OPML XML.
 module Text.Pandoc.Writers.OPML ( writeOPML) where
 import Prelude
 import Control.Monad.Except (throwError)
-import Data.Text (Text, unpack)
+import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad)
@@ -22,7 +22,7 @@ import Data.Time
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Options
-import Text.Pandoc.Pretty
+import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.HTML (writeHtml5String)
@@ -38,7 +38,7 @@ writeOPML opts (Pandoc meta blocks) = do
                     then Just $ writerColumns opts
                     else Nothing
       meta' = B.setMeta "date" (B.str $ convertDate $ docDate meta) meta
-  metadata <- metaToJSON opts
+  metadata <- metaToContext opts
               (writeMarkdown def . Pandoc nullMeta)
               (\ils -> T.stripEnd <$> writeMarkdown def (Pandoc nullMeta [Plain ils]))
               meta'
@@ -64,7 +64,7 @@ convertDate ils = maybe "" showDateTimeRFC822 $
   parseTimeM True defaultTimeLocale "%F" =<< normalizeDate (stringify ils)
 
 -- | Convert an Element to OPML.
-elementToOPML :: PandocMonad m => WriterOptions -> Element -> m Doc
+elementToOPML :: PandocMonad m => WriterOptions -> Element -> m (Doc Text)
 elementToOPML _ (Blk _) = return empty
 elementToOPML opts (Sec _ _num _ title elements) = do
   let isBlk :: Element -> Bool
@@ -81,7 +81,7 @@ elementToOPML opts (Sec _ _num _ title elements) = do
         then return mempty
         else do blks <- mapM fromBlk blocks
                 writeMarkdown def $ Pandoc nullMeta blks
-  let attrs = ("text", unpack htmlIls) :
-              [("_note", unpack md) | not (null blocks)]
+  let attrs = ("text", T.unpack htmlIls) :
+              [("_note", T.unpack $ T.stripEnd md) | not (null blocks)]
   o <- mapM (elementToOPML opts) rest
   return $ inTags True "outline" attrs $ vcat o

@@ -36,6 +36,7 @@ import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, mapMaybe)
 import qualified Data.Set as Set
 import Data.String (fromString)
 import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Network.HTTP (urlEncode)
 import Network.URI (URI (..), parseURIReference)
@@ -53,7 +54,8 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Slides
-import Text.Pandoc.Templates
+import Text.Pandoc.Templates (renderTemplate)
+import Text.DocTemplates (Context(..))
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
@@ -71,7 +73,6 @@ import qualified Text.Blaze.Html5 as H5
 import qualified Text.Blaze.Html5.Attributes as A5
 #endif
 import Control.Monad.Except (throwError)
-import Data.Aeson (Value)
 import System.FilePath (takeBaseName)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import qualified Text.Blaze.XHtml1.Transitional as H
@@ -215,17 +216,17 @@ writeHtmlString' st opts d = do
        Nothing -> return $ renderHtml' body
        Just tpl -> do
          -- warn if empty lang
-         when (isNothing (getField "lang" context :: Maybe String)) $
+         when (isNothing (getField "lang" context :: Maybe Text)) $
            report NoLangSpecified
          -- check for empty pagetitle
          context' <-
             case getField "pagetitle" context of
-                 Just (s :: String) | not (null s) -> return context
+                 Just (s :: Text) | not (T.null s) -> return context
                  _ -> do
-                   let fallback = fromMaybe "Untitled" $ takeBaseName <$>
+                   let fallback = maybe "Untitled" takeBaseName $
                            lookup "sourcefile" (writerVariables opts)
                    report $ NoTitleElement fallback
-                   return $ resetField "pagetitle" fallback context
+                   return $ resetField "pagetitle" (T.pack fallback) context
          return $ renderTemplate tpl
              (defField "body" (renderHtml' body) context')
 
@@ -244,9 +245,9 @@ writeHtml' st opts d =
 pandocToHtml :: PandocMonad m
              => WriterOptions
              -> Pandoc
-             -> StateT WriterState m (Html, Value)
+             -> StateT WriterState m (Html, Context Text)
 pandocToHtml opts (Pandoc meta blocks) = do
-  metadata <- metaToJSON opts
+  metadata <- metaToContext opts
               (fmap renderHtml' . blockListToHtml opts)
               (fmap renderHtml' . inlineListToHtml opts)
               meta
@@ -298,7 +299,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
   let context =   (if stHighlighting st
                       then case writerHighlightStyle opts of
                                 Just sty -> defField "highlighting-css"
-                                              (styleToCss sty)
+                                              (T.pack $ styleToCss sty)
                                 Nothing  -> id
                       else id) $
                   (if stMath st
@@ -307,7 +308,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   (case writerHTMLMathMethod opts of
                         MathJax u -> defField "mathjax" True .
                                      defField "mathjaxurl"
-                                       (takeWhile (/='?') u)
+                                       (T.pack $ takeWhile (/='?') u)
                         _         -> defField "mathjax" False) $
                   defField "quotes" (stQuotes st) $
                   -- for backwards compatibility we populate toc
@@ -315,16 +316,18 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   -- boolean:
                   maybe id (defField "toc") toc $
                   maybe id (defField "table-of-contents") toc $
-                  defField "author-meta" authsMeta $
-                  maybe id (defField "date-meta") (normalizeDate dateMeta) $
-                  defField "pagetitle" (stringifyHTML (docTitle meta)) $
-                  defField "idprefix" (writerIdentifierPrefix opts) $
+                  defField "author-meta" (map T.pack authsMeta) $
+                  maybe id (defField "date-meta" . T.pack)
+                    (normalizeDate dateMeta) $
+                  defField "pagetitle"
+                      (T.pack . stringifyHTML . docTitle $ meta) $
+                  defField "idprefix" (T.pack $ writerIdentifierPrefix opts) $
                   -- these should maybe be set in pandoc.hs
                   defField "slidy-url"
-                    ("https://www.w3.org/Talks/Tools/Slidy2" :: String) $
-                  defField "slideous-url" ("slideous" :: String) $
-                  defField "revealjs-url" ("reveal.js" :: String) $
-                  defField "s5-url" ("s5/default" :: String) $
+                    ("https://www.w3.org/Talks/Tools/Slidy2" :: Text) $
+                  defField "slideous-url" ("slideous" :: Text) $
+                  defField "revealjs-url" ("reveal.js" :: Text) $
+                  defField "s5-url" ("s5/default" :: Text) $
                   defField "html5" (stHtml5 st)
                   metadata
   return (thebody, context)

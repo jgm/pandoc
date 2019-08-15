@@ -315,18 +315,14 @@ readFileFromDirs (d:ds) f = catchError
     (\_ -> readFileFromDirs ds f)
 
 instance TemplateMonad PandocIO where
-  getPartial fp =
-    lift $ UTF8.toText <$>
-      catchError (readFileStrict fp)
-        (\_ -> readDataFile ("templates" </> fp))
+  getPartial fp = UTF8.toText <$> catchError
+                      (readFileStrict fp)
+                      (\_ -> readDataFile ("templates" </> fp))
 
 instance TemplateMonad PandocPure where
-  getPartial fp =
-    lift $ UTF8.toText <$>
-      catchError (readFileStrict fp)
-        (\_ -> readDataFile ("templates" </> fp))
-
---
+  getPartial fp = UTF8.toText <$> catchError
+                      (readFileStrict fp)
+                      (\_ -> readDataFile ("templates" </> fp))
 
 -- | 'CommonState' represents state that is used by all
 -- instances of 'PandocMonad'.  Normally users should not

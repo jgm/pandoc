@@ -128,7 +128,7 @@ import Text.Pandoc.Asciify (toAsciiChar)
 import Text.Pandoc.Definition
 import Text.Pandoc.Extensions (Extensions, Extension(..), extensionEnabled)
 import Text.Pandoc.Generic (bottomUp)
-import Text.Pandoc.Pretty (charWidth)
+import Text.DocLayout (charWidth)
 import Text.Pandoc.Walk
 
 -- | Version number of pandoc library.

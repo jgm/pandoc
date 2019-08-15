@@ -19,15 +19,15 @@ import Data.Text (Text)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
-import Text.Pandoc.Pretty
+import Text.DocLayout
 
-prettyList :: [Doc] -> Doc
+prettyList :: [Doc Text] -> Doc Text
 prettyList ds =
   "[" <>
-  cat (intersperse (cr <> ",") $ map (nest 1) ds) <> "]"
+  mconcat (intersperse (cr <> ",") $ map (nest 1) ds) <> "]"
 
 -- | Prettyprint Pandoc block element.
-prettyBlock :: Block -> Doc
+prettyBlock :: Block -> Doc Text
 prettyBlock (LineBlock lines') =
   "LineBlock" $$ prettyList (map (text . show) lines')
 prettyBlock (BlockQuote blocks) =

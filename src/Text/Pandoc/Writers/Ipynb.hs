@@ -33,7 +33,7 @@ import qualified Data.Text as T
 import Data.Aeson as Aeson
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Shared (safeRead, isURI)
-import Text.Pandoc.Writers.Shared (metaToJSON')
+import Text.Pandoc.Writers.Shared (metaToContext')
 import Text.Pandoc.Writers.Markdown (writeMarkdown)
 import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString.Lazy as BL
@@ -73,9 +73,10 @@ pandocToNotebook opts (Pandoc meta blocks) = do
                         Just z  -> (4, z)
                         Nothing -> (4, 5)
                _                -> (4, 5) -- write as v4.5
-  metadata' <- metaToJSON' blockWriter inlineWriter $
-                 B.deleteMeta "nbformat" $
-                 B.deleteMeta "nbformat_minor" $ jupyterMeta
+  metadata' <- toJSON <$> metaToContext' blockWriter inlineWriter
+                 (B.deleteMeta "nbformat" $
+                  B.deleteMeta "nbformat_minor" $
+                  jupyterMeta)
   -- convert from a Value (JSON object) to a M.Map Text Value:
   let metadata = case fromJSON metadata' of
                    Error _ -> mempty -- TODO warning here? shouldn't happen
@@ -109,7 +110,7 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
       source <- writeMarkdown opts{ writerTemplate = Nothing } newdoc
       (Cell{
           cellType = Markdown
-        , cellSource = Source $ breakLines source
+        , cellSource = Source $ breakLines $ T.stripEnd source
         , cellMetadata = meta
         , cellAttachments = if M.null attachments
                                then Nothing

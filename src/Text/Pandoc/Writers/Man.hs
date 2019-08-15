@@ -24,10 +24,10 @@ import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Pretty
+import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk (walk)
-import Text.Pandoc.Templates
+import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Writers.Roff
@@ -44,10 +44,8 @@ pandocToMan opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  let render' :: Doc -> Text
-      render' = render colwidth
   titleText <- inlineListToMan opts $ docTitle meta
-  let title' = render' titleText
+  let title' = render Nothing titleText
   let setFieldsFromTitle =
        case T.break (== ' ') title' of
            (cmdName, rest) -> case T.break (=='(') cmdName of
@@ -62,21 +60,21 @@ pandocToMan opts (Pandoc meta blocks) = do
                                                (T.strip $ mconcat hds)
                                           [] -> id
                                    _  -> defField "title" title'
-  metadata <- metaToJSON opts
-              (fmap render' . blockListToMan opts)
-              (fmap render' . inlineListToMan opts)
+  metadata <- metaToContext opts
+              (blockListToMan opts)
+              (fmap chomp . inlineListToMan opts)
               $ deleteMeta "title" meta
   body <- blockListToMan opts blocks
   notes <- gets stNotes
   notes' <- notesToMan opts (reverse notes)
-  let main = render' $ body $$ notes' $$ text ""
+  let main = body $$ notes' $$ text ""
   hasTables <- gets stHasTables
   let context = defField "body" main
               $ setFieldsFromTitle
               $ defField "has-tables" hasTables
               $ defField "hyphenate" True
-              $ defField "pandoc-version" pandocVersion metadata
-  return $
+              $ defField "pandoc-version" (T.pack pandocVersion) metadata
+  return $ render colwidth $
     case writerTemplate opts of
        Nothing  -> main
        Just tpl -> renderTemplate tpl context
@@ -85,7 +83,7 @@ escString :: WriterOptions -> String -> String
 escString _ = escapeString AsciiOnly -- for better portability
 
 -- | Return man representation of notes.
-notesToMan :: PandocMonad m => WriterOptions -> [[Block]] -> StateT WriterState m Doc
+notesToMan :: PandocMonad m => WriterOptions -> [[Block]] -> StateT WriterState m (Doc Text)
 notesToMan opts notes =
   if null notes
      then return empty
@@ -93,7 +91,7 @@ notesToMan opts notes =
           return . (text ".SH NOTES" $$) . vcat
 
 -- | Return man representation of a note.
-noteToMan :: PandocMonad m => WriterOptions -> Int -> [Block] -> StateT WriterState m Doc
+noteToMan :: PandocMonad m => WriterOptions -> Int -> [Block] -> StateT WriterState m (Doc Text)
 noteToMan opts num note = do
   contents <- blockListToMan opts note
   let marker = cr <> text ".SS " <> brackets (text (show num))
@@ -107,7 +105,7 @@ noteToMan opts num note = do
 blockToMan :: PandocMonad m
            => WriterOptions -- ^ Options
            -> Block         -- ^ Block element
-           -> StateT WriterState m Doc
+           -> StateT WriterState m (Doc Text)
 blockToMan _ Null = return empty
 blockToMan opts (Div _ bs) = blockListToMan opts bs
 blockToMan opts (Plain inlines) =
@@ -187,7 +185,7 @@ blockToMan opts (DefinitionList items) = do
   return (vcat contents)
 
 -- | Convert bullet list item (list of blocks) to man.
-bulletListItemToMan :: PandocMonad m => WriterOptions -> [Block] -> StateT WriterState m Doc
+bulletListItemToMan :: PandocMonad m => WriterOptions -> [Block] -> StateT WriterState m (Doc Text)
 bulletListItemToMan _ [] = return empty
 bulletListItemToMan opts (Para first:rest) =
   bulletListItemToMan opts (Plain first:rest)
@@ -210,7 +208,7 @@ orderedListItemToMan :: PandocMonad m
                      -> String   -- ^ order marker for list item
                      -> Int      -- ^ number of spaces to indent
                      -> [Block]  -- ^ list item (list of blocks)
-                     -> StateT WriterState m Doc
+                     -> StateT WriterState m (Doc Text)
 orderedListItemToMan _ _ _ [] = return empty
 orderedListItemToMan opts num indent (Para first:rest) =
   orderedListItemToMan opts num indent (Plain first:rest)
@@ -228,7 +226,7 @@ orderedListItemToMan opts num indent (first:rest) = do
 definitionListItemToMan :: PandocMonad m
                         => WriterOptions
                         -> ([Inline],[[Block]])
-                        -> StateT WriterState m Doc
+                        -> StateT WriterState m (Doc Text)
 definitionListItemToMan opts (label, defs) = do
   -- in most man pages, option and other code in option lists is boldface,
   -- but not other things, so we try to reproduce this style:
@@ -260,16 +258,16 @@ makeCodeBold = walk go
 blockListToMan :: PandocMonad m
                => WriterOptions -- ^ Options
                -> [Block]       -- ^ List of block elements
-               -> StateT WriterState m Doc
+               -> StateT WriterState m (Doc Text)
 blockListToMan opts blocks =
   vcat <$> mapM (blockToMan opts) blocks
 
 -- | Convert list of Pandoc inline elements to man.
-inlineListToMan :: PandocMonad m => WriterOptions -> [Inline] -> StateT WriterState m Doc
+inlineListToMan :: PandocMonad m => WriterOptions -> [Inline] -> StateT WriterState m (Doc Text)
 inlineListToMan opts lst = hcat <$> mapM (inlineToMan opts) lst
 
 -- | Convert Pandoc inline element to man.
-inlineToMan :: PandocMonad m => WriterOptions -> Inline -> StateT WriterState m Doc
+inlineToMan :: PandocMonad m => WriterOptions -> Inline -> StateT WriterState m (Doc Text)
 inlineToMan opts (Span _ ils) = inlineListToMan opts ils
 inlineToMan opts (Emph lst) =
   withFontFeature 'I' (inlineListToMan opts lst)

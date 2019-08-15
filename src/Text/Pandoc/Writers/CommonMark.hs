@@ -49,9 +49,9 @@ writeCommonMark opts (Pandoc meta blocks) = do
                then []
                else [OrderedList (1, Decimal, Period) $ reverse notes]
   main <-  blocksToCommonMark opts (blocks' ++ notes')
-  metadata <- metaToJSON opts
-              (blocksToCommonMark opts)
-              (inlinesToCommonMark opts)
+  metadata <- metaToContext opts
+              (fmap T.stripEnd . blocksToCommonMark opts)
+              (fmap T.stripEnd . inlinesToCommonMark opts)
               meta
   let context =
           -- for backwards compatibility we populate toc

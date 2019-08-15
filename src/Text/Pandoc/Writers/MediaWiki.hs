@@ -24,7 +24,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Pretty (render)
+import Text.DocLayout (render)
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
@@ -54,9 +54,9 @@ writeMediaWiki opts document =
 pandocToMediaWiki :: PandocMonad m => Pandoc -> MediaWikiWriter m Text
 pandocToMediaWiki (Pandoc meta blocks) = do
   opts <- asks options
-  metadata <- metaToJSON opts
+  metadata <- metaToContext opts
               (fmap trimr . blockListToMediaWiki)
-              inlineListToMediaWiki
+              (fmap trimr . inlineListToMediaWiki)
               meta
   body <- blockListToMediaWiki blocks
   notesExist <- gets stNotes
@@ -66,9 +66,9 @@ pandocToMediaWiki (Pandoc meta blocks) = do
   let main = body ++ notes
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts) metadata
-  return $
+  return $ pack $
     case writerTemplate opts of
-         Nothing  -> pack main
+         Nothing  -> main
          Just tpl -> renderTemplate tpl context
 
 -- | Escape special characters for MediaWiki.

@@ -25,7 +25,7 @@ import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Pretty
+import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
@@ -53,31 +53,29 @@ pandocToOrg (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  let render' :: Doc -> Text
-      render' = render colwidth
-  metadata <- metaToJSON opts
-               (fmap render' . blockListToOrg)
-               (fmap render' . inlineListToOrg)
+  metadata <- metaToContext opts
+               blockListToOrg
+               (fmap chomp . inlineListToOrg)
                meta
   body <- blockListToOrg blocks
   notes <- gets (reverse . stNotes) >>= notesToOrg
   hasMath <- gets stHasMath
-  let main = render colwidth . foldl ($+$) empty $ [body, notes]
+  let main = body $+$ notes
   let context = defField "body" main
               . defField "math" hasMath
               $ metadata
-  return $
+  return $ render colwidth $
     case writerTemplate opts of
        Nothing  -> main
        Just tpl -> renderTemplate tpl context
 
 -- | Return Org representation of notes.
-notesToOrg :: PandocMonad m => [[Block]] -> Org m Doc
+notesToOrg :: PandocMonad m => [[Block]] -> Org m (Doc Text)
 notesToOrg notes =
   vsep <$> zipWithM noteToOrg [1..] notes
 
 -- | Return Org representation of a note.
-noteToOrg :: PandocMonad m => Int -> [Block] -> Org m Doc
+noteToOrg :: PandocMonad m => Int -> [Block] -> Org m (Doc Text)
 noteToOrg num note = do
   contents <- blockListToOrg note
   let marker = "[fn:" ++ show num ++ "] "
@@ -99,7 +97,7 @@ isRawFormat f =
 -- | Convert Pandoc block element to Org.
 blockToOrg :: PandocMonad m
            => Block         -- ^ Block element
-           -> Org m Doc
+           -> Org m (Doc Text)
 blockToOrg Null = return empty
 blockToOrg (Div (_,classes@(cls:_),kvs) bs) | "drawer" `elem` classes = do
   contents <- blockListToOrg bs
@@ -198,10 +196,9 @@ blockToOrg (Table caption' _ _ headers rows) =  do
        map ((+2) . numChars) $ transpose (headers' : rawRows)
   -- FIXME: Org doesn't allow blocks with height more than 1.
   let hpipeBlocks blocks = hcat [beg, middle, end]
-        where h      = maximum (1 : map height blocks)
-              sep'   = lblock 3 $ vcat (replicate h (text " | "))
-              beg    = lblock 2 $ vcat (replicate h (text "| "))
-              end    = lblock 2 $ vcat (replicate h (text " |"))
+        where sep'   = vfill " | "
+              beg    = vfill "| "
+              end    = vfill " |"
               middle = hcat $ intersperse sep' blocks
   let makeRow = hpipeBlocks . zipWith lblock widthsInChars
   let head' = makeRow headers'
@@ -219,7 +216,9 @@ blockToOrg (Table caption' _ _ headers rows) =  do
 blockToOrg (BulletList items) = do
   contents <- mapM bulletListItemToOrg items
   -- ensure that sublists have preceding blank line
-  return $ blankline $+$ vcat contents $$ blankline
+  return $ blankline $$
+           (if isTightList items then vcat else vsep) contents $$
+           blankline
 blockToOrg (OrderedList (start, _, delim) items) = do
   let delim' = case delim of
                     TwoParens -> OneParen
@@ -231,36 +230,48 @@ blockToOrg (OrderedList (start, _, delim) items) = do
                             in  m ++ replicate s ' ') markers
   contents <- zipWithM orderedListItemToOrg markers' items
   -- ensure that sublists have preceding blank line
-  return $ blankline $$ vcat contents $$ blankline
+  return $ blankline $$
+           (if isTightList items then vcat else vsep) contents $$
+           blankline
 blockToOrg (DefinitionList items) = do
   contents <- mapM definitionListItemToOrg items
   return $ vcat contents $$ blankline
 
 -- | Convert bullet list item (list of blocks) to Org.
-bulletListItemToOrg :: PandocMonad m => [Block] -> Org m Doc
+bulletListItemToOrg :: PandocMonad m => [Block] -> Org m (Doc Text)
 bulletListItemToOrg items = do
   contents <- blockListToOrg items
-  return $ hang 2 "- " (contents <> cr)
+  return $ hang 2 "- " contents $$
+          if endsWithPlain items
+             then cr
+             else blankline
+
 
 -- | Convert ordered list item (a list of blocks) to Org.
 orderedListItemToOrg :: PandocMonad m
                      => String   -- ^ marker for list item
                      -> [Block]  -- ^ list item (list of blocks)
-                     -> Org m Doc
+                     -> Org m (Doc Text)
 orderedListItemToOrg marker items = do
   contents <- blockListToOrg items
-  return $ hang (length marker + 1) (text marker <> space) (contents <> cr)
+  return $ hang (length marker + 1) (text marker <> space) contents $$
+          if endsWithPlain items
+             then cr
+             else blankline
 
 -- | Convert definition list item (label, list of blocks) to Org.
 definitionListItemToOrg :: PandocMonad m
-                        => ([Inline], [[Block]]) -> Org m Doc
+                        => ([Inline], [[Block]]) -> Org m (Doc Text)
 definitionListItemToOrg (label, defs) = do
   label' <- inlineListToOrg label
   contents <- vcat <$> mapM blockListToOrg defs
-  return . hang 2 "- " $ label' <> " :: " <> (contents <> cr)
+  return $ hang 2 "- " (label' <> " :: " <> contents) $$
+      if isTightList defs
+         then cr
+         else blankline
 
 -- | Convert list of key/value pairs to Org :PROPERTIES: drawer.
-propertiesDrawer :: Attr -> Doc
+propertiesDrawer :: Attr -> Doc Text
 propertiesDrawer (ident, classes, kv) =
   let
     drawerStart = text ":PROPERTIES:"
@@ -271,11 +282,11 @@ propertiesDrawer (ident, classes, kv) =
   in
     drawerStart <> cr <> properties <> cr <> drawerEnd
  where
-   kvToOrgProperty :: (String, String) -> Doc
+   kvToOrgProperty :: (String, String) -> Doc Text
    kvToOrgProperty (key, value) =
      text ":" <> text key <> text ": " <> text value <> cr
 
-attrHtml :: Attr -> Doc
+attrHtml :: Attr -> Doc Text
 attrHtml (""   , []     , []) = mempty
 attrHtml (ident, classes, kvs) =
   let
@@ -288,13 +299,13 @@ attrHtml (ident, classes, kvs) =
 -- | Convert list of Pandoc block elements to Org.
 blockListToOrg :: PandocMonad m
                => [Block]       -- ^ List of block elements
-               -> Org m Doc
+               -> Org m (Doc Text)
 blockListToOrg blocks = vcat <$> mapM blockToOrg blocks
 
 -- | Convert list of Pandoc inline elements to Org.
 inlineListToOrg :: PandocMonad m
                 => [Inline]
-                -> Org m Doc
+                -> Org m (Doc Text)
 inlineListToOrg lst = hcat <$> mapM inlineToOrg (fixMarkers lst)
   where fixMarkers [] = []  -- prevent note refs and list markers from wrapping, see #4171
         fixMarkers (Space : x : rest) | shouldFix x =
@@ -309,7 +320,7 @@ inlineListToOrg lst = hcat <$> mapM inlineToOrg (fixMarkers lst)
         shouldFix _ = False
 
 -- | Convert Pandoc inline element to Org.
-inlineToOrg :: PandocMonad m => Inline -> Org m Doc
+inlineToOrg :: PandocMonad m => Inline -> Org m (Doc Text)
 inlineToOrg (Span (uid, [], []) []) =
   return $ "<<" <> text uid <> ">>"
 inlineToOrg (Span _ lst) =

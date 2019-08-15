@@ -25,8 +25,9 @@ import Data.Char (isAscii, isSpace, ord)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup.Entity (lookupEntity, htmlEntities)
-import Text.Pandoc.Pretty
+import Text.DocLayout
 import qualified Data.Map as M
+import Data.String
 
 -- | Escape one character as needed for XML.
 escapeCharForXML :: Char -> String
@@ -54,14 +55,15 @@ escapeNls (x:xs)
 escapeNls []     = []
 
 -- | Return a text object with a string of formatted XML attributes.
-attributeList :: [(String, String)] -> Doc
+attributeList :: IsString a => [(String, String)] -> Doc a
 attributeList = hcat . map
   (\(a, b) -> text (' ' : escapeStringForXML a ++ "=\"" ++
   escapeNls (escapeStringForXML b) ++ "\""))
 
 -- | Put the supplied contents between start and end tags of tagType,
 --   with specified attributes and (if specified) indentation.
-inTags:: Bool -> String -> [(String, String)] -> Doc -> Doc
+inTags:: IsString a
+      => Bool -> String -> [(String, String)] -> Doc a -> Doc a
 inTags isIndented tagType attribs contents =
   let openTag = char '<' <> text tagType <> attributeList attribs <>
                 char '>'
@@ -71,16 +73,16 @@ inTags isIndented tagType attribs contents =
          else openTag <> contents <> closeTag
 
 -- | Return a self-closing tag of tagType with specified attributes
-selfClosingTag :: String -> [(String, String)] -> Doc
+selfClosingTag :: IsString a => String -> [(String, String)] -> Doc a
 selfClosingTag tagType attribs =
   char '<' <> text tagType <> attributeList attribs <> text " />"
 
 -- | Put the supplied contents between start and end tags of tagType.
-inTagsSimple :: String -> Doc -> Doc
+inTagsSimple :: IsString a => String -> Doc a -> Doc a
 inTagsSimple tagType = inTags False tagType []
 
 -- | Put the supplied contents in indented block btw start and end tags.
-inTagsIndented :: String -> Doc -> Doc
+inTagsIndented :: IsString a => String -> Doc a -> Doc a
 inTagsIndented tagType = inTags True tagType []
 
 -- | Escape all non-ascii characters using numerical entities.

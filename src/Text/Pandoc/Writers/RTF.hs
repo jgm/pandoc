@@ -96,7 +96,7 @@ writeRTF options doc = do
                     . M.adjust toPlain "author"
                     . M.adjust toPlain "date"
                     $ metamap
-  metadata <- metaToJSON options
+  metadata <- metaToContext options
               (fmap concat . mapM (blockToRTF 0 AlignDefault))
               inlinesToRTF
               meta'
@@ -112,11 +112,10 @@ writeRTF options doc = do
                         -- of the toc rather than a boolean:
                         . defField "toc" toc
                    else id) metadata
-  return $
+  return $ T.pack $
     case writerTemplate options of
        Just tpl -> renderTemplate tpl context
-       Nothing  -> T.pack $
-                   case reverse body of
+       Nothing  -> case reverse body of
                         ('\n':_) -> body
                         _        -> body ++ "\n"
 

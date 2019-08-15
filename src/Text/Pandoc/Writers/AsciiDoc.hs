@@ -26,6 +26,7 @@ import Data.Char (isPunctuation, isSpace, toLower, toUpper)
 import Data.List (intercalate, intersperse, stripPrefix)
 import Data.Maybe (fromMaybe, isJust, listToMaybe)
 import qualified Data.Set as Set
+import qualified Data.Text as T
 import Data.Text (Text)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
@@ -33,7 +34,7 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, space)
-import Text.Pandoc.Pretty
+import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
@@ -79,14 +80,11 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  let render' :: Doc -> Text
-      render' = render colwidth
-  metadata <- metaToJSON opts
-              (fmap render' . blockListToAsciiDoc opts)
-              (fmap render' . inlineListToAsciiDoc opts)
+  metadata <- metaToContext opts
+              (blockListToAsciiDoc opts)
+              (fmap chomp . inlineListToAsciiDoc opts)
               meta
-  body <- vcat <$> mapM (elementToAsciiDoc 1 opts) (hierarchicalize blocks)
-  let main = render colwidth body
+  main <- vcat <$> mapM (elementToAsciiDoc 1 opts) (hierarchicalize blocks)
   st <- get
   let context  = defField "body" main
                $ defField "toc"
@@ -94,13 +92,13 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
                    isJust (writerTemplate opts))
                $ defField "math" (hasMath st)
                $ defField "titleblock" titleblock metadata
-  return $
+  return $ render colwidth $
     case writerTemplate opts of
        Nothing  -> main
        Just tpl -> renderTemplate tpl context
 
 elementToAsciiDoc :: PandocMonad m
-                  => Int -> WriterOptions -> Element -> ADW m Doc
+                  => Int -> WriterOptions -> Element -> ADW m (Doc Text)
 elementToAsciiDoc _ opts (Blk b) = blockToAsciiDoc opts b
 elementToAsciiDoc nestlevel opts (Sec _lvl _num attr label children) = do
   hdr <- blockToAsciiDoc opts (Header nestlevel attr label)
@@ -137,7 +135,7 @@ needsEscaping s = beginsWithOrderedListMarker s || isBracketed s
 blockToAsciiDoc :: PandocMonad m
                 => WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
-                -> ADW m Doc
+                -> ADW m (Doc Text)
 blockToAsciiDoc _ Null = return empty
 blockToAsciiDoc opts (Plain inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
@@ -147,7 +145,7 @@ blockToAsciiDoc opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
 blockToAsciiDoc opts (Para inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   -- escape if para starts with ordered list marker
-  let esc = if needsEscaping (render Nothing contents)
+  let esc = if needsEscaping (T.unpack $ render Nothing contents)
                then text "{empty}"
                else empty
   return $ esc <> contents <> blankline
@@ -257,7 +255,7 @@ blockToAsciiDoc opts (BulletList items) = do
   modify $ \st -> st{ inList = True }
   contents <- mapM (bulletListItemToAsciiDoc opts) items
   modify $ \st -> st{ inList = inlist }
-  return $ cat contents <> blankline
+  return $ mconcat contents <> blankline
 blockToAsciiDoc opts (OrderedList (start, sty, _delim) items) = do
   let listStyle = case sty of
                        DefaultStyle -> []
@@ -272,13 +270,13 @@ blockToAsciiDoc opts (OrderedList (start, sty, _delim) items) = do
   modify $ \st -> st{ inList = True }
   contents <- mapM (orderedListItemToAsciiDoc opts) items
   modify $ \st -> st{ inList = inlist }
-  return $ listoptions $$ cat contents <> blankline
+  return $ listoptions $$ mconcat contents <> blankline
 blockToAsciiDoc opts (DefinitionList items) = do
   inlist <- gets inList
   modify $ \st -> st{ inList = True }
   contents <- mapM (definitionListItemToAsciiDoc opts) items
   modify $ \st -> st{ inList = inlist }
-  return $ cat contents <> blankline
+  return $ mconcat contents <> blankline
 blockToAsciiDoc opts (Div (ident,classes,_) bs) = do
   let identifier = if null ident then empty else "[[" <> text ident <> "]]"
   let admonitions = ["attention","caution","danger","error","hint",
@@ -305,7 +303,7 @@ blockToAsciiDoc opts (Div (ident,classes,_) bs) = do
 
 -- | Convert bullet list item (list of blocks) to asciidoc.
 bulletListItemToAsciiDoc :: PandocMonad m
-                         => WriterOptions -> [Block] -> ADW m Doc
+                         => WriterOptions -> [Block] -> ADW m (Doc Text)
 bulletListItemToAsciiDoc opts blocks = do
   lev <- gets bulletListLevel
   modify $ \s -> s{ bulletListLevel = lev + 1 }
@@ -315,7 +313,8 @@ bulletListItemToAsciiDoc opts blocks = do
   return $ marker <> text " " <> listBegin blocks <>
     contents <> cr
 
-addBlock :: PandocMonad m => WriterOptions -> Doc -> Block -> ADW m Doc
+addBlock :: PandocMonad m
+         => WriterOptions -> Doc Text -> Block -> ADW m (Doc Text)
 addBlock opts d b = do
   x <- chomp <$> blockToAsciiDoc opts b
   return $
@@ -328,7 +327,7 @@ addBlock opts d b = do
         Plain{} | isEmpty d -> x
         _ -> d <> cr <> text "+" <> cr <> x
 
-listBegin :: [Block] -> Doc
+listBegin :: [Block] -> Doc Text
 listBegin blocks =
         case blocks of
           Para (Math DisplayMath _:_) : _  -> "{blank}"
@@ -342,7 +341,7 @@ listBegin blocks =
 orderedListItemToAsciiDoc :: PandocMonad m
                           => WriterOptions -- ^ options
                           -> [Block]       -- ^ list item (list of blocks)
-                          -> ADW m Doc
+                          -> ADW m (Doc Text)
 orderedListItemToAsciiDoc opts blocks = do
   lev <- gets orderedListLevel
   modify $ \s -> s{ orderedListLevel = lev + 1 }
@@ -355,7 +354,7 @@ orderedListItemToAsciiDoc opts blocks = do
 definitionListItemToAsciiDoc :: PandocMonad m
                              => WriterOptions
                              -> ([Inline],[[Block]])
-                             -> ADW m Doc
+                             -> ADW m (Doc Text)
 definitionListItemToAsciiDoc opts (label, defs) = do
   labelText <- inlineListToAsciiDoc opts label
   marker <- gets defListMarker
@@ -363,7 +362,7 @@ definitionListItemToAsciiDoc opts (label, defs) = do
      then modify (\st -> st{ defListMarker = ";;"})
      else modify (\st -> st{ defListMarker = "::"})
   let divider = cr <> text "+" <> cr
-  let defsToAsciiDoc :: PandocMonad m => [Block] -> ADW m Doc
+  let defsToAsciiDoc :: PandocMonad m => [Block] -> ADW m (Doc Text)
       defsToAsciiDoc ds = (vcat . intersperse divider . map chomp)
            `fmap` mapM (blockToAsciiDoc opts) ds
   defs' <- mapM defsToAsciiDoc defs
@@ -375,13 +374,14 @@ definitionListItemToAsciiDoc opts (label, defs) = do
 blockListToAsciiDoc :: PandocMonad m
                     => WriterOptions -- ^ Options
                     -> [Block]       -- ^ List of block elements
-                    -> ADW m Doc
-blockListToAsciiDoc opts blocks = cat `fmap` mapM (blockToAsciiDoc opts) blocks
+                    -> ADW m (Doc Text)
+blockListToAsciiDoc opts blocks =
+  mconcat `fmap` mapM (blockToAsciiDoc opts) blocks
 
 data SpacyLocation = End | Start
 
 -- | Convert list of Pandoc inline elements to asciidoc.
-inlineListToAsciiDoc :: PandocMonad m => WriterOptions -> [Inline] -> ADW m Doc
+inlineListToAsciiDoc :: PandocMonad m => WriterOptions -> [Inline] -> ADW m (Doc Text)
 inlineListToAsciiDoc opts lst = do
   oldIntraword <- gets intraword
   setIntraword False
@@ -424,7 +424,7 @@ withIntraword :: PandocMonad m => ADW m a -> ADW m a
 withIntraword p = setIntraword True *> p <* setIntraword False
 
 -- | Convert Pandoc inline element to asciidoc.
-inlineToAsciiDoc :: PandocMonad m => WriterOptions -> Inline -> ADW m Doc
+inlineToAsciiDoc :: PandocMonad m => WriterOptions -> Inline -> ADW m (Doc Text)
 inlineToAsciiDoc opts (Emph [Strong xs]) =
   inlineToAsciiDoc opts (Strong [Emph xs])  -- see #5565
 inlineToAsciiDoc opts (Emph lst) = do
@@ -529,7 +529,7 @@ inlineToAsciiDoc opts (Image attr alternate (src, tit)) = do
       dimList = showDim Width ++ showDim Height
       dims = if null dimList
                 then empty
-                else "," <> cat (intersperse "," dimList)
+                else "," <> mconcat (intersperse "," dimList)
   return $ "image:" <> text src <> "[" <> linktext <> linktitle <> dims <> "]"
 inlineToAsciiDoc opts (Note [Para inlines]) =
   inlineToAsciiDoc opts (Note [Plain inlines])

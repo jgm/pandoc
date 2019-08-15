@@ -29,7 +29,7 @@ import Text.Pandoc.Lua (Global (..), LuaException (LuaException),
                         runLua, setGlobals)
 import Text.Pandoc.Lua.Util (addField, dofileWithTraceback)
 import Text.Pandoc.Options
-import Text.Pandoc.Templates
+import Text.Pandoc.Templates (renderTemplate)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Writers.Shared
 
@@ -100,7 +100,7 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
     when (stat /= Lua.OK) $
       Lua.tostring' (-1) >>= throw . PandocLuaException . UTF8.toString
     rendered <- docToCustom opts doc
-    context <- metaToJSON opts
+    context <- metaToContext opts
                blockListToCustom
                inlineListToCustom
                meta
@@ -108,9 +108,9 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
   let (body, context) = case res of
         Left (LuaException msg) -> throw (PandocLuaException msg)
         Right x -> x
-  return $
+  return $ pack $
     case writerTemplate opts of
-       Nothing  -> pack body
+       Nothing  -> body
        Just tpl -> renderTemplate tpl $ setField "body" body context
 
 docToCustom :: WriterOptions -> Pandoc -> Lua String

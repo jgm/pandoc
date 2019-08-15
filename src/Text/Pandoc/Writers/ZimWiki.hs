@@ -30,7 +30,7 @@ import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContent
 import Text.Pandoc.Shared (escapeURI, isURI, linesToPara, removeFormatting,
                            substitute, trimr)
 import Text.Pandoc.Templates (renderTemplate)
-import Text.Pandoc.Writers.Shared (defField, metaToJSON)
+import Text.Pandoc.Writers.Shared (defField, metaToContext)
 
 data WriterState = WriterState {
     stIndent  :: String,         -- Indent after the marker at the beginning of list items
@@ -50,16 +50,15 @@ writeZimWiki opts document = evalStateT (pandocToZimWiki opts document) def
 -- | Return ZimWiki representation of document.
 pandocToZimWiki :: PandocMonad m => WriterOptions -> Pandoc -> ZW m Text
 pandocToZimWiki opts (Pandoc meta blocks) = do
-  metadata <- metaToJSON opts
+  metadata <- metaToContext opts
               (fmap trimr . blockListToZimWiki opts)
-              (inlineListToZimWiki opts)
+              (fmap trimr . inlineListToZimWiki opts)
               meta
-  body <- pack <$> blockListToZimWiki opts blocks
+  main <- blockListToZimWiki opts blocks
   --let header = "Content-Type: text/x-zim-wiki\nWiki-Format: zim 0.4\n"
-  let main = body
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts) metadata
-  return $
+  return $ pack $
     case writerTemplate opts of
        Just tpl -> renderTemplate tpl context
        Nothing  -> main

@@ -32,13 +32,14 @@ import Data.Char (isAlphaNum, isAsciiLower, isAsciiUpper, isDigit, isSpace)
 import Data.Default
 import Data.List (intersperse, isInfixOf, transpose)
 import qualified Data.Set as Set
+import qualified Data.Text as T
 import Data.Text (Text)
 import System.FilePath (takeExtension)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
-import Text.Pandoc.Pretty
+import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
@@ -104,17 +105,15 @@ pandocToMuse (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  let render' :: Doc -> Text
-      render' = render Nothing
-  metadata <- metaToJSON opts
-               (fmap render' . blockListToMuse)
-               (fmap render' . inlineListToMuse)
+  metadata <- metaToContext opts
+               blockListToMuse
+               (fmap chomp . inlineListToMuse)
                meta
   body <- blockListToMuse blocks
   notes <- currentNotesToMuse
-  let main = render colwidth $ body $+$ notes
+  let main = body $+$ notes
   let context = defField "body" main metadata
-  return $
+  return $ render colwidth $
     case writerTemplate opts of
        Nothing  -> main
        Just tpl -> renderTemplate tpl context
@@ -124,7 +123,7 @@ pandocToMuse (Pandoc meta blocks) = do
 catWithBlankLines :: PandocMonad m
                   => [Block]       -- ^ List of block elements
                   -> Int           -- ^ Number of blank lines
-                  -> Muse m Doc
+                  -> Muse m (Doc Text)
 catWithBlankLines (b : bs) n = do
   b' <- blockToMuseWithNotes b
   bs' <- flatBlockListToMuse bs
@@ -135,7 +134,7 @@ catWithBlankLines _ _ = error "Expected at least one block"
 -- | without setting envTopLevel.
 flatBlockListToMuse :: PandocMonad m
                 => [Block]       -- ^ List of block elements
-                -> Muse m Doc
+                -> Muse m (Doc Text)
 flatBlockListToMuse bs@(BulletList _ : BulletList _ : _) = catWithBlankLines bs 2
 flatBlockListToMuse bs@(OrderedList (_, style1, _) _ : OrderedList (_, style2, _) _ : _) =
   catWithBlankLines bs (if style1' == style2' then 2 else 0)
@@ -152,7 +151,7 @@ simpleTable :: PandocMonad m
             => [Inline]
             -> [TableCell]
             -> [[TableCell]]
-            -> Muse m Doc
+            -> Muse m (Doc Text)
 simpleTable caption headers rows = do
   topLevel <- asks envTopLevel
   caption' <- inlineListToMuse caption
@@ -175,7 +174,7 @@ simpleTable caption headers rows = do
 -- | Convert list of Pandoc block elements to Muse.
 blockListToMuse :: PandocMonad m
                 => [Block]       -- ^ List of block elements
-                -> Muse m Doc
+                -> Muse m (Doc Text)
 blockListToMuse =
   local (\env -> env { envTopLevel = not (envInsideBlock env)
                      , envInsideBlock = True
@@ -184,7 +183,7 @@ blockListToMuse =
 -- | Convert Pandoc block element to Muse.
 blockToMuse :: PandocMonad m
             => Block         -- ^ Block element
-            -> Muse m Doc
+            -> Muse m (Doc Text)
 blockToMuse (Plain inlines) = inlineListToMuse' inlines
 blockToMuse (Para inlines) = do
   contents <- inlineListToMuse' inlines
@@ -213,7 +212,7 @@ blockToMuse (OrderedList (start, style, _) items) = do
   where orderedListItemToMuse :: PandocMonad m
                               => String   -- ^ marker for list item
                               -> [Block]  -- ^ list item (list of blocks)
-                              -> Muse m Doc
+                              -> Muse m (Doc Text)
         orderedListItemToMuse marker item = hang (length marker + 1) (text marker <> space)
           <$> blockListToMuse item
 blockToMuse (BulletList items) = do
@@ -222,7 +221,7 @@ blockToMuse (BulletList items) = do
   return $ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
   where bulletListItemToMuse :: PandocMonad m
                              => [Block]
-                             -> Muse m Doc
+                             -> Muse m (Doc Text)
         bulletListItemToMuse item = do
           modify $ \st -> st { stUseTags = False }
           hang 2 "- " <$> blockListToMuse item
@@ -232,16 +231,17 @@ blockToMuse (DefinitionList items) = do
   return $ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
   where definitionListItemToMuse :: PandocMonad m
                                  => ([Inline], [[Block]])
-                                 -> Muse m Doc
+                                 -> Muse m (Doc Text)
         definitionListItemToMuse (label, defs) = do
           modify $ \st -> st { stUseTags = False }
           label' <- local (\env -> env { envOneLine = True, envAfterSpace = True }) $ inlineListToMuse' label
-          let ind = offset' label' -- using Text.Pandoc.Pretty.offset results in round trip failures
+          let ind = offset' label' -- using Text.DocLayout.offset results in round trip failures
           hang ind (nowrap label') . vcat <$> mapM descriptionToMuse defs
-          where offset' d = maximum (0: map length (lines $ render Nothing d))
+          where offset' d = maximum (0: map T.length
+                                         (T.lines $ render Nothing d))
         descriptionToMuse :: PandocMonad m
                           => [Block]
-                          -> Muse m Doc
+                          -> Muse m (Doc Text)
         descriptionToMuse desc = hang 4 " :: " <$> blockListToMuse desc
 blockToMuse (Header level (ident,_,_) inlines) = do
   opts <- asks envOptions
@@ -274,7 +274,7 @@ blockToMuse Null = return empty
 
 -- | Return Muse representation of notes collected so far.
 currentNotesToMuse :: PandocMonad m
-                   => Muse m Doc
+                   => Muse m (Doc Text)
 currentNotesToMuse = do
   notes <- reverse <$> gets stNotes
   modify $ \st -> st { stNotes = mempty }
@@ -283,7 +283,7 @@ currentNotesToMuse = do
 -- | Return Muse representation of notes.
 notesToMuse :: PandocMonad m
             => Notes
-            -> Muse m Doc
+            -> Muse m (Doc Text)
 notesToMuse notes = do
   n <- gets stNoteNum
   modify $ \st -> st { stNoteNum = stNoteNum st + length notes }
@@ -293,7 +293,7 @@ notesToMuse notes = do
 noteToMuse :: PandocMonad m
            => Int
            -> [Block]
-           -> Muse m Doc
+           -> Muse m (Doc Text)
 noteToMuse num note = do
   res <- hang (length marker) (text marker) <$>
     local (\env -> env { envInsideBlock = True
@@ -307,7 +307,7 @@ noteToMuse num note = do
 -- | Return Muse representation of block and accumulated notes.
 blockToMuseWithNotes :: PandocMonad m
                      => Block
-                     -> Muse m Doc
+                     -> Muse m (Doc Text)
 blockToMuseWithNotes blk = do
   topLevel <- asks envTopLevel
   opts <- asks envOptions
@@ -501,7 +501,7 @@ inlineListStartsWithAlnum _ = return False
 -- | Convert list of Pandoc inline elements to Muse
 renderInlineList :: PandocMonad m
                  => [Inline]
-                 -> Muse m Doc
+                 -> Muse m (Doc Text)
 renderInlineList [] = pure ""
 renderInlineList (x:xs) = do
   start <- asks envInlineStart
@@ -531,7 +531,7 @@ renderInlineList (x:xs) = do
 -- | Normalize and convert list of Pandoc inline elements to Muse.
 inlineListToMuse :: PandocMonad m
                  => [Inline]
-                 -> Muse m Doc
+                 -> Muse m (Doc Text)
 inlineListToMuse lst = do
   lst' <- normalizeInlineList . fixNotes <$> preprocessInlineList (map (removeKeyValues . replaceSmallCaps) lst)
   insideAsterisks <- asks envInsideAsterisks
@@ -541,7 +541,7 @@ inlineListToMuse lst = do
     then pure "<verbatim></verbatim>"
     else local (\env -> env { envNearAsterisks = insideAsterisks }) $ renderInlineList lst'
 
-inlineListToMuse' :: PandocMonad m => [Inline] -> Muse m Doc
+inlineListToMuse' :: PandocMonad m => [Inline] -> Muse m (Doc Text)
 inlineListToMuse' lst = do
   topLevel <- asks envTopLevel
   afterSpace <- asks envAfterSpace
@@ -549,7 +549,7 @@ inlineListToMuse' lst = do
                      , envAfterSpace = afterSpace || not topLevel
                      }) $ inlineListToMuse lst
 
-emphasis :: PandocMonad m => String -> String -> [Inline] -> Muse m Doc
+emphasis :: PandocMonad m => String -> String -> [Inline] -> Muse m (Doc Text)
 emphasis b e lst = do
   contents <- local (\env -> env { envInsideAsterisks = inAsterisks }) $ inlineListToMuse lst
   modify $ \st -> st { stUseTags = useTags }
@@ -560,7 +560,7 @@ emphasis b e lst = do
 -- | Convert Pandoc inline element to Muse.
 inlineToMuse :: PandocMonad m
              => Inline
-             -> Muse m Doc
+             -> Muse m (Doc Text)
 inlineToMuse (Str str) = do
   escapedStr <- conditionalEscapeString $ replaceNewlines str
   let useTags = isAlphaNum $ last escapedStr -- escapedStr is never empty because empty strings are escaped

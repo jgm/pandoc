@@ -23,7 +23,7 @@ import Text.Pandoc.Highlighting (languages, languagesByExtension)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Pretty
+import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
@@ -36,31 +36,28 @@ writeTEI opts (Pandoc meta blocks) = do
       colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-      render' :: Doc -> Text
-      render' = render colwidth
       startLvl = case writerTopLevelDivision opts of
                    TopLevelPart    -> -1
                    TopLevelChapter -> 0
                    TopLevelSection -> 1
                    TopLevelDefault -> 1
-  metadata <- metaToJSON opts
-                 (fmap (render' . vcat) .
+  metadata <- metaToContext opts
+                 (fmap vcat .
                    mapM (elementToTEI opts startLvl) . hierarchicalize)
-                 (fmap render' . inlinesToTEI opts)
+                 (fmap chomp . inlinesToTEI opts)
                  meta
-  main    <- (render' . vcat) <$> mapM (elementToTEI opts startLvl) elements
+  main    <- vcat <$> mapM (elementToTEI opts startLvl) elements
   let context = defField "body" main
-              $
-                  defField "mathml" (case writerHTMLMathMethod opts of
+              $ defField "mathml" (case writerHTMLMathMethod opts of
                                           MathML -> True
                                           _      -> False) metadata
-  return $
+  return $ render colwidth $
     case writerTemplate opts of
        Nothing  -> main
        Just tpl -> renderTemplate tpl context
 
 -- | Convert an Element to TEI.
-elementToTEI :: PandocMonad m => WriterOptions -> Int -> Element -> m Doc
+elementToTEI :: PandocMonad m => WriterOptions -> Int -> Element -> m (Doc Text)
 elementToTEI opts _   (Blk block) = blockToTEI opts block
 elementToTEI opts lvl (Sec _ _num attr title elements) = do
   -- TEI doesn't allow sections with no content, so insert some if needed
@@ -79,7 +76,7 @@ elementToTEI opts lvl (Sec _ _num attr title elements) = do
       inTagsSimple "head" titleContents $$ contents
 
 -- | Convert a list of Pandoc blocks to TEI.
-blocksToTEI :: PandocMonad m => WriterOptions -> [Block] -> m Doc
+blocksToTEI :: PandocMonad m => WriterOptions -> [Block] -> m (Doc Text)
 blocksToTEI opts bs = vcat <$> mapM (blockToTEI opts) bs
 
 -- | Auxiliary function to convert Plain block to Para.
@@ -90,13 +87,13 @@ plainToPara x         = x
 -- | Convert a list of pairs of terms and definitions into a TEI
 -- list with labels and items.
 deflistItemsToTEI :: PandocMonad m
-                  => WriterOptions -> [([Inline],[[Block]])] -> m Doc
+                  => WriterOptions -> [([Inline],[[Block]])] -> m (Doc Text)
 deflistItemsToTEI opts items =
  vcat <$> mapM (uncurry (deflistItemToTEI opts)) items
 
 -- | Convert a term and a list of blocks into a TEI varlistentry.
 deflistItemToTEI :: PandocMonad m
-                 => WriterOptions -> [Inline] -> [[Block]] -> m Doc
+                 => WriterOptions -> [Inline] -> [[Block]] -> m (Doc Text)
 deflistItemToTEI opts term defs = do
   term' <- inlinesToTEI opts term
   defs' <- blocksToTEI opts $ concatMap (map plainToPara) defs
@@ -104,15 +101,15 @@ deflistItemToTEI opts term defs = do
            inTagsIndented "item" defs'
 
 -- | Convert a list of lists of blocks to a list of TEI list items.
-listItemsToTEI :: PandocMonad m => WriterOptions -> [[Block]] -> m Doc
+listItemsToTEI :: PandocMonad m => WriterOptions -> [[Block]] -> m (Doc Text)
 listItemsToTEI opts items = vcat <$> mapM (listItemToTEI opts) items
 
 -- | Convert a list of blocks into a TEI list item.
-listItemToTEI :: PandocMonad m => WriterOptions -> [Block] -> m Doc
+listItemToTEI :: PandocMonad m => WriterOptions -> [Block] -> m (Doc Text)
 listItemToTEI opts item =
   inTagsIndented "item" <$> blocksToTEI opts (map plainToPara item)
 
-imageToTEI :: PandocMonad m => WriterOptions -> Attr -> String -> m Doc
+imageToTEI :: PandocMonad m => WriterOptions -> Attr -> String -> m (Doc Text)
 imageToTEI opts attr src = return $ selfClosingTag "graphic" $
   ("url", src) : idFromAttr opts attr ++ dims
   where
@@ -122,7 +119,7 @@ imageToTEI opts attr src = return $ selfClosingTag "graphic" $
                     Nothing -> []
 
 -- | Convert a Pandoc block element to TEI.
-blockToTEI :: PandocMonad m => WriterOptions -> Block -> m Doc
+blockToTEI :: PandocMonad m => WriterOptions -> Block -> m (Doc Text)
 blockToTEI _ Null = return empty
 -- Add ids to paragraphs in divs with ids - this is needed for
 -- pandoc-citeproc to get link anchors in bibliographies:
@@ -212,14 +209,14 @@ blockToTEI opts (Table _ _ _ headers rows) = do
 tableRowToTEI :: PandocMonad m
               => WriterOptions
               -> [[Block]]
-              -> m Doc
+              -> m (Doc Text)
 tableRowToTEI opts cols =
   (inTagsIndented "row" . vcat) <$> mapM (tableItemToTEI opts) cols
 
 tableHeadersToTEI :: PandocMonad m
                   => WriterOptions
                   -> [[Block]]
-                  -> m Doc
+                  -> m (Doc Text)
 tableHeadersToTEI opts cols =
   (inTags True "row" [("role","label")] . vcat) <$>
     mapM (tableItemToTEI opts) cols
@@ -227,16 +224,16 @@ tableHeadersToTEI opts cols =
 tableItemToTEI :: PandocMonad m
                => WriterOptions
                -> [Block]
-               -> m Doc
+               -> m (Doc Text)
 tableItemToTEI opts item =
   (inTags False "cell" [] . vcat) <$> mapM (blockToTEI opts) item
 
 -- | Convert a list of inline elements to TEI.
-inlinesToTEI :: PandocMonad m => WriterOptions -> [Inline] -> m Doc
+inlinesToTEI :: PandocMonad m => WriterOptions -> [Inline] -> m (Doc Text)
 inlinesToTEI opts lst = hcat <$> mapM (inlineToTEI opts) lst
 
 -- | Convert an inline element to TEI.
-inlineToTEI :: PandocMonad m => WriterOptions -> Inline -> m Doc
+inlineToTEI :: PandocMonad m => WriterOptions -> Inline -> m (Doc Text)
 inlineToTEI _ (Str str) = return $ text $ escapeStringForXML str
 inlineToTEI opts (Emph lst) =
   inTags False "hi" [("rendition","simple:italic")] <$> inlinesToTEI opts lst

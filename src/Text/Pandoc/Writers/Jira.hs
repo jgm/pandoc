@@ -27,7 +27,7 @@ import Text.Pandoc.Options (WriterOptions (writerTemplate))
 import Text.Pandoc.Shared (blocksToInlines, linesToPara)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
-import Text.Pandoc.Writers.Shared (metaToJSON, defField)
+import Text.Pandoc.Writers.Shared (metaToContext, defField)
 import qualified Data.Text as T
 
 data WriterState = WriterState
@@ -53,7 +53,7 @@ writeJira opts document =
 pandocToJira :: PandocMonad m
              => WriterOptions -> Pandoc -> JiraWriter m Text
 pandocToJira opts (Pandoc meta blocks) = do
-  metadata <- metaToJSON opts (blockListToJira opts)
+  metadata <- metaToContext opts (blockListToJira opts)
                  (inlineListToJira opts) meta
   body <- blockListToJira opts blocks
   notes <- gets $ T.intercalate "\n" . reverse . stNotes

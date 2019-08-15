@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -13,9 +14,9 @@
 Shared utility functions for pandoc writers.
 -}
 module Text.Pandoc.Writers.Shared (
-                       metaToJSON
-                     , metaToJSON'
-                     , addVariablesToJSON
+                       metaToContext
+                     , metaToContext'
+                     , addVariablesToContext
                      , getField
                      , setField
                      , resetField
@@ -33,149 +34,118 @@ module Text.Pandoc.Writers.Shared (
                      , toSubscript
                      , toSuperscript
                      , toTableOfContents
+                     , endsWithPlain
                      )
 where
 import Prelude
+import Safe (lastMay)
 import Control.Monad (zipWithM)
-import qualified Data.Aeson as Aeson
-import Data.Aeson (FromJSON (..), Result (..), ToJSON (..), Value (Object),
-                   encode, fromJSON)
+import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace)
-import qualified Data.HashMap.Strict as H
 import Data.List (groupBy, intersperse, transpose, foldl')
-import Data.Scientific (Scientific)
 import qualified Data.Map as M
-import Data.Maybe (isJust)
 import qualified Data.Text as T
-import qualified Data.Traversable as Traversable
 import qualified Text.Pandoc.Builder as Builder
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Pretty
-import Text.Pandoc.Shared (stringify, hierarchicalize, Element(..), deNote,
-                            safeRead)
+import Text.DocLayout
+import Text.Pandoc.Shared (stringify, hierarchicalize, Element(..), deNote)
 import Text.Pandoc.Walk (walk)
-import Text.Pandoc.UTF8 (toStringLazy)
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (escapeStringForXML)
+import Text.DocTemplates (Context(..), Val(..), TemplateTarget(..),
+                          ToContext(..), FromContext(..))
 
--- | Create JSON value for template from a 'Meta' and an association list
+-- | Create template Context from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
 -- Variables overwrite metadata fields with the same names.
 -- If multiple variables are set with the same name, a list is
 -- assigned.  Does nothing if 'writerTemplate' is Nothing.
-metaToJSON :: (Monad m, ToJSON a)
-           => WriterOptions
-           -> ([Block] -> m a)
-           -> ([Inline] -> m a)
-           -> Meta
-           -> m Value
-metaToJSON opts blockWriter inlineWriter meta
-  | isJust (writerTemplate opts) =
-    addVariablesToJSON opts <$> metaToJSON' blockWriter inlineWriter meta
-  | otherwise = return (Object H.empty)
+metaToContext :: (Monad m, TemplateTarget a)
+              => WriterOptions
+              -> ([Block] -> m a)
+              -> ([Inline] -> m a)
+              -> Meta
+              -> m (Context a)
+metaToContext opts blockWriter inlineWriter meta =
+  case writerTemplate opts of
+    Nothing -> return mempty
+    Just _  -> addVariablesToContext opts <$>
+                metaToContext' blockWriter inlineWriter meta
 
--- | Like 'metaToJSON', but does not include variables and is
+-- | Like 'metaToContext, but does not include variables and is
 -- not sensitive to 'writerTemplate'.
-metaToJSON' :: (Monad m, ToJSON a)
+metaToContext' :: (Monad m, TemplateTarget a)
            => ([Block] -> m a)
            -> ([Inline] -> m a)
            -> Meta
-           -> m Value
-metaToJSON' blockWriter inlineWriter (Meta metamap) = do
-  renderedMap <- Traversable.mapM
-                 (metaValueToJSON blockWriter inlineWriter)
-                 metamap
-  return $ M.foldrWithKey defField (Object H.empty) renderedMap
+           -> m (Context a)
+metaToContext' blockWriter inlineWriter (Meta metamap) = do
+  renderedMap <- mapM (metaValueToVal blockWriter inlineWriter) metamap
+  return $ Context
+         $ M.foldrWithKey (\k v x -> M.insert (T.pack k) v x) mempty
+         $ renderedMap
 
--- | Add variables to JSON object, replacing any existing values.
--- Also include @meta-json@, a field containing a string representation
--- of the original JSON object itself, prior to addition of variables.
-addVariablesToJSON :: WriterOptions -> Value -> Value
-addVariablesToJSON opts metadata =
-  foldl (\acc (x,y) -> setField x y acc)
-       (defField "meta-json" (toStringLazy $ encode metadata) (Object mempty))
-       (writerVariables opts)
-    `combineMetadata` metadata
-  where combineMetadata (Object o1) (Object o2) = Object $ H.union o1 o2
-        combineMetadata x _                     = x
+-- | Add variables to a template Context, replacing any existing values.
+addVariablesToContext :: TemplateTarget a
+                      => WriterOptions -> Context a -> Context a
+addVariablesToContext opts (Context m1) = Context (m1 `M.union` m2)
+ where
+   m2 = M.fromList $ map (\(k,v)
+                           -> (T.pack k,SimpleVal (fromText (T.pack v)))) $
+           ("meta-json", jsonrep) : writerVariables opts
+   jsonrep = UTF8.toStringLazy $ encode $ toJSON m1
 
-metaValueToJSON :: (Monad m, ToJSON a)
-                => ([Block] -> m a)
-                -> ([Inline] -> m a)
-                -> MetaValue
-                -> m Value
-metaValueToJSON blockWriter inlineWriter (MetaMap metamap) = toJSON <$>
-  Traversable.mapM (metaValueToJSON blockWriter inlineWriter) metamap
-metaValueToJSON blockWriter inlineWriter (MetaList xs) = toJSON <$>
-  Traversable.mapM (metaValueToJSON blockWriter inlineWriter) xs
-metaValueToJSON _ _ (MetaBool b) = return $ toJSON b
-metaValueToJSON _ inlineWriter (MetaString s@('0':_:_)) =
-   -- don't treat string with leading 0 as string (#5479)
-   toJSON <$> inlineWriter (Builder.toList (Builder.text s))
-metaValueToJSON _ inlineWriter (MetaString s) =
-  case safeRead s of
-     Just (n :: Scientific) -> return $ Aeson.Number n
-     Nothing -> toJSON <$> inlineWriter (Builder.toList (Builder.text s))
-metaValueToJSON blockWriter _ (MetaBlocks bs) = toJSON <$> blockWriter bs
-metaValueToJSON blockWriter inlineWriter (MetaInlines [Str s]) =
-  metaValueToJSON blockWriter inlineWriter (MetaString s)
-metaValueToJSON _ inlineWriter (MetaInlines is) = toJSON <$> inlineWriter is
+metaValueToVal :: (Monad m, TemplateTarget a)
+               => ([Block] -> m a)
+               -> ([Inline] -> m a)
+               -> MetaValue
+               -> m (Val a)
+metaValueToVal blockWriter inlineWriter (MetaMap metamap) =
+  MapVal . Context . M.mapKeys T.pack  <$>
+    mapM (metaValueToVal blockWriter inlineWriter) metamap
+metaValueToVal blockWriter inlineWriter (MetaList xs) = ListVal <$>
+  mapM (metaValueToVal blockWriter inlineWriter) xs
+metaValueToVal _ _ (MetaBool True) = return $ SimpleVal $ fromText "true"
+metaValueToVal _ _ (MetaBool False) = return NullVal
+metaValueToVal _ inlineWriter (MetaString s) =
+   SimpleVal <$> inlineWriter (Builder.toList (Builder.text s))
+metaValueToVal blockWriter _ (MetaBlocks bs) = SimpleVal <$> blockWriter bs
+metaValueToVal _ inlineWriter (MetaInlines is) = SimpleVal <$> inlineWriter is
 
--- | Retrieve a field value from a JSON object.
-getField :: FromJSON a
-         => String
-         -> Value
-         -> Maybe a
-getField field (Object hashmap) = do
-  result <- H.lookup (T.pack field) hashmap
-  case fromJSON result of
-       Success x -> return x
-       _         -> fail "Could not convert from JSON"
-getField _ _ = fail "Not a JSON object"
 
-setField :: ToJSON a
-         => String
-         -> a
-         -> Value
-         -> Value
--- | Set a field of a JSON object.  If the field already has a value,
+-- | Retrieve a field value from a template context.
+getField   :: FromContext a b => String -> Context a -> Maybe b
+getField field (Context m) = M.lookup (T.pack field) m >>= fromVal
+
+-- | Set a field of a template context.  If the field already has a value,
 -- convert it into a list with the new value appended to the old value(s).
 -- This is a utility function to be used in preparing template contexts.
-setField field val (Object hashmap) =
-  Object $ H.insertWith combine (T.pack field) (toJSON val) hashmap
-  where combine newval oldval =
-          case fromJSON oldval of
-                Success xs -> toJSON $ xs ++ [newval]
-                _          -> toJSON [oldval, newval]
-setField _ _  x = x
+setField   :: ToContext a b => String -> b -> Context a -> Context a
+setField field val (Context m) =
+  Context $ M.insertWith combine (T.pack field) (toVal val) m
+ where
+  combine newval (ListVal xs)   = ListVal (xs ++ [newval])
+  combine newval x              = ListVal [x, newval]
 
-resetField :: ToJSON a
-           => String
-           -> a
-           -> Value
-           -> Value
--- | Reset a field of a JSON object.  If the field already has a value,
--- the new value replaces it.
+-- | Reset a field of a template context.  If the field already has a
+-- value, the new value replaces it.
 -- This is a utility function to be used in preparing template contexts.
-resetField field val (Object hashmap) =
-  Object $ H.insert (T.pack field) (toJSON val) hashmap
-resetField _ _  x = x
+resetField :: ToContext a b => String -> b -> Context a -> Context a
+resetField field val (Context m) =
+  Context (M.insert (T.pack field) (toVal val) m)
 
-defField :: ToJSON a
-         => String
-         -> a
-         -> Value
-         -> Value
--- | Set a field of a JSON object if it currently has no value.
+-- | Set a field of a template context if it currently has no value.
 -- If it has a value, do nothing.
 -- This is a utility function to be used in preparing template contexts.
-defField field val (Object hashmap) =
-  Object $ H.insertWith f (T.pack field) (toJSON val) hashmap
-    where f _newval oldval = oldval
-defField _ _  x = x
+defField   :: ToContext a b => String -> b -> Context a -> Context a
+defField field val (Context m) =
+  Context (M.insertWith f (T.pack field) (toVal val) m)
+  where
+    f _newval oldval = oldval
 
 -- Produce an HTML tag with the given pandoc attributes.
-tagWithAttrs :: String -> Attr -> Doc
+tagWithAttrs :: HasChars a => String -> Attr -> Doc a
 tagWithAttrs tag (ident,classes,kvs) = hsep
   ["<" <> text tag
   ,if null ident
@@ -236,15 +206,15 @@ unsmartify opts ('\8216':xs) = '\'' : unsmartify opts xs
 unsmartify opts (x:xs) = x : unsmartify opts xs
 unsmartify _ [] = []
 
-gridTable :: Monad m
+gridTable :: (Monad m, HasChars a)
           => WriterOptions
-          -> (WriterOptions -> [Block] -> m Doc)
+          -> (WriterOptions -> [Block] -> m (Doc a))
           -> Bool -- ^ headless
           -> [Alignment]
           -> [Double]
           -> [[Block]]
           -> [[[Block]]]
-          -> m Doc
+          -> m (Doc a)
 gridTable opts blocksToDoc headless aligns widths headers rows = do
   -- the number of columns will be used in case of even widths
   let numcols = maximum (length aligns : length widths :
@@ -299,10 +269,9 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
         | otherwise                          = handleGivenWidths widths
   (widthsInChars, rawHeaders, rawRows) <- handleWidths
   let hpipeBlocks blocks = hcat [beg, middle, end]
-        where h       = maximum (1 : map height blocks)
-              sep'    = lblock 3 $ vcat (replicate h (text " | "))
-              beg     = lblock 2 $ vcat (replicate h (text "| "))
-              end     = lblock 2 $ vcat (replicate h (text " |"))
+        where sep'    = vfill " | "
+              beg     = vfill "| "
+              end     = vfill " |"
               middle  = chomp $ hcat $ intersperse sep' blocks
   let makeRow = hpipeBlocks . zipWith lblock widthsInChars
   let head' = makeRow rawHeaders
@@ -427,3 +396,9 @@ elementToListItem opts (Sec lev _nums (ident,_,_) headerText subsecs)
                    else [Link nullAttr headerText' ('#':ident, "")]
    listContents = map (elementToListItem opts) subsecs
 elementToListItem _ (Blk _) = []
+
+endsWithPlain :: [Block] -> Bool
+endsWithPlain xs =
+  case lastMay xs of
+    Just (Plain{}) -> True
+    _              -> False

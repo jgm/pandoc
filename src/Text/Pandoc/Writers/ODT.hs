@@ -32,7 +32,7 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
-import Text.Pandoc.Pretty
+import Text.DocLayout
 import Text.Pandoc.Shared (stringify, pandocVersion)
 import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
                                    fixDisplayMath)

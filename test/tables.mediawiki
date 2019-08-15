@@ -143,4 +143,3 @@ Multiline table without column headers:
 |align="right"| 5.0
 | Here’s another one. Note the blank line between rows.
 |}
-

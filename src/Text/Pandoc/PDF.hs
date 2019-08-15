@@ -46,7 +46,7 @@ import System.Process (readProcessWithExitCode)
 import Text.Pandoc.Shared (inDirectory, stringify)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (walkM)
-import Text.Pandoc.Writers.Shared (getField, metaToJSON)
+import Text.Pandoc.Writers.Shared (getField, metaToContext)
 #ifdef _WINDOWS
 import Data.List (intercalate)
 #endif
@@ -134,22 +134,22 @@ makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
                       MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
                                     "--window-status", "mathjax_loaded"]
                       _ -> []
-  meta' <- metaToJSON opts (return . stringify) (return . stringify) meta
+  meta' <- metaToContext opts (return . stringify) (return . stringify) meta
   let toArgs (f, mbd) = maybe [] (\d -> ['-':'-':f, d]) mbd
   let args   = pdfargs ++ mathArgs ++ concatMap toArgs
                  [("page-size", getField "papersize" meta')
                  ,("title", getField "title" meta')
-                 ,("margin-bottom", fromMaybe (Just "1.2in")
+                 ,("margin-bottom", maybe (Just "1.2in") Just
                             (getField "margin-bottom" meta'))
-                 ,("margin-top", fromMaybe (Just "1.25in")
+                 ,("margin-top", maybe (Just "1.25in") Just
                             (getField "margin-top" meta'))
-                 ,("margin-right", fromMaybe (Just "1.25in")
+                 ,("margin-right", maybe (Just "1.25in") Just
                             (getField "margin-right" meta'))
-                 ,("margin-left", fromMaybe (Just "1.25in")
+                 ,("margin-left", maybe (Just "1.25in") Just
                             (getField "margin-left" meta'))
-                 ,("footer-html", fromMaybe Nothing
+                 ,("footer-html", maybe Nothing Just
                             (getField "footer-html" meta'))
-                 ,("header-html", fromMaybe Nothing
+                 ,("header-html", maybe Nothing Just
                             (getField "header-html" meta'))
                  ]
   source <- writer opts doc

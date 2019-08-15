@@ -411,7 +411,7 @@ library
                  JuicyPixels >= 3.1.6.1 && < 3.4,
                  Glob >= 0.7 && < 0.11,
                  cmark-gfm >= 0.2 && < 0.3,
-                 doctemplates >= 0.3 && < 0.4,
+                 doctemplates >= 0.5 && < 0.6,
                  network-uri >= 2.6 && < 2.7,
                  network >= 2.6,
                  http-client >= 0.4.30 && < 0.7,
@@ -420,6 +420,7 @@ library
                  case-insensitive >= 1.2 && < 1.3,
                  unicode-transforms >= 0.3 && < 0.4,
                  HsYAML >= 0.1.1.1 && < 0.2,
+                 doclayout >= 0.1 && < 0.2,
                  ipynb >= 0.1 && < 0.2,
                  attoparsec >= 0.12 && < 0.14
   if impl(ghc < 8.0)
@@ -465,7 +466,6 @@ library
                    Text.Pandoc.App,
                    Text.Pandoc.Options,
                    Text.Pandoc.Extensions,
-                   Text.Pandoc.Pretty,
                    Text.Pandoc.Shared,
                    Text.Pandoc.MediaBag,
                    Text.Pandoc.Error,

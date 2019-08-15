@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Templates
@@ -8,8 +10,7 @@
    Stability   : alpha
    Portability : portable
 
-A simple templating system with variable substitution and conditionals.
-
+Utility functions for working with pandoc templates.
 -}
 
 module Text.Pandoc.Templates ( Template
@@ -52,3 +53,5 @@ getDefaultTemplate writer = do
        _        -> do
          let fname = "templates" </> "default" <.> format
          UTF8.toText <$> readDataFile fname
+
+
