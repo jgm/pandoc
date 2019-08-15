@@ -93,7 +93,10 @@ pushFilterFunction :: LuaFilterFunction -> Lua ()
 pushFilterFunction (LuaFilterFunction fnRef) =
   Lua.getref Lua.registryindex fnRef
 
-
+-- | Fetch either a list of elements from the stack. If there is a single
+-- element instead of a list, fetch that element as a singleton list. If the top
+-- of the stack is nil, return the default element that was passed to this
+-- function. If none of these apply, raise an error.
 elementOrList :: Peekable a => a -> Lua [a]
 elementOrList x = do
   let topOfStack = Lua.stackTop
