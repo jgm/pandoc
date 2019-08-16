@@ -4,7 +4,7 @@ env: &env
     environment:
       LC_ALL: "C.UTF-8"
     docker:
-      - image: fpco/stack-build:lts
+      - image: fpco/stack-build:lts-13
 
 #-----------------------------------------------------------------------------
 # Common utility stuff, not to be modified usually
