@@ -444,7 +444,9 @@ library
                    -Wincomplete-record-updates
                    -Wnoncanonical-monad-instances
                    -Wnoncanonical-monadfail-instances
-  if impl(ghc > 8.4)
+  if impl(ghc >= 8.2)
+    ghc-options:     -Wcpp-undef
+  if impl(ghc >= 8.4)
     ghc-options:     -Wincomplete-uni-patterns
                      -Widentities
                      -Werror=missing-home-modules
