@@ -450,6 +450,8 @@ library
     ghc-options:     -Wincomplete-uni-patterns
                      -Widentities
                      -Werror=missing-home-modules
+                     -fhide-source-paths
+
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
   hs-source-dirs:  src
