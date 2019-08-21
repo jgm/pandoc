@@ -299,10 +299,11 @@ convertWithOpts opts = do
                                      TL.unpack (TE.decodeUtf8With TE.lenientDecode err')
 
         Nothing -> do
-                let addNl = if standalone
-                               then id
-                               else (<> T.singleton '\n')
-                output <- addNl <$> f writerOptions doc
+                let ensureNl t
+                      | standalone = t
+                      | T.null t || T.last t /= '\n' = t <> T.singleton '\n'
+                      | otherwise = t
+                output <- ensureNl <$> f writerOptions doc
                 writerFn eol outputFile =<<
                   if optSelfContained opts && htmlFormat format
                      -- TODO not maximally efficient; change type
