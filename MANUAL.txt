@@ -597,13 +597,13 @@ Reader options {.options}
 
 `--metadata-file=`*FILE*
 
-:   Read metadata from the supplied YAML (or JSON) file. Several file may be
-    provided. This option can be used with every input format, but string
-    scalars in the YAML file will always be parsed as Markdown.
-    Generally, the input will be handled the same as in
-    [YAML metadata blocks][Extension: `yaml_metadata_block`].
-    Metadata values specified inside the document, or by using `-M`,
-    overwrite values specified with this option.
+:   Read metadata from the supplied YAML (or JSON) file. This option can be used
+    with every input format, but string scalars in the YAML file will always be
+    parsed as Markdown. Generally, the input will be handled the same as in
+    [YAML metadata blocks][Extension: `yaml_metadata_block`]. This option can be
+    used repeatedly to include multiple metadata files. Metadata values
+    specified inside the document, or by using `-M`, overwrite values specified
+    with this option.
 
 `-p`, `--preserve-tabs`
 
