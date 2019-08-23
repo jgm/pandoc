@@ -556,6 +556,7 @@ writeDocx opts doc@(Pandoc meta _) = do
                      , "w:hyphenationZone"
                      , "w:doNotHyphenateCap"
                      , "w:evenAndOddHeaders"
+                     , "w:proofState"
                      ]
   settingsEntry <- copyChildren refArchive distArchive settingsPath epochtime settingsList
 
