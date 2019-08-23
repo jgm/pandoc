@@ -695,7 +695,7 @@ directive' = do
            do bod <- parseFromString' parseBlocks $ top ++ "\n\n" ++ body'
               let lab = case label of
                              "admonition" -> mempty
-                             (l:ls) -> B.divWith ("",["admonition-title"],[])
+                             (l:ls) -> B.divWith ("",["title"],[])
                                           (B.para (B.str (toUpper l : ls)))
                              [] -> mempty
               return $ B.divWith (name,label:classes,keyvals) (lab <> bod)
