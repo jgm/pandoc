@@ -28,6 +28,7 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.YAML as YAML
+import qualified Data.YAML.Event as YE
 import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines)
@@ -244,22 +245,22 @@ yamlBsToMeta :: PandocMonad m => BS.ByteString -> MarkdownParser m (F Meta)
 yamlBsToMeta bstr = do
   pos <- getPosition
   case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
-       Right ((YAML.Doc (YAML.Mapping _ o)):_) -> (fmap Meta) <$> yamlMap o
+       Right ((YAML.Doc (YAML.Mapping _ _ o)):_) -> (fmap Meta) <$> yamlMap o
        Right [] -> return . return $ mempty
-       Right [YAML.Doc (YAML.Scalar YAML.SNull)] -> return . return $ mempty
+       Right [YAML.Doc (YAML.Scalar _ YAML.SNull)] -> return . return $ mempty
        Right _ -> do
                   logMessage $
                      CouldNotParseYamlMetadata "not an object"
                      pos
                   return . return $ mempty
-       Left err' -> do
+       Left (_pos, err') -> do
                     logMessage $ CouldNotParseYamlMetadata
                                  err' pos
                     return . return $ mempty
 
-nodeToKey :: Monad m => YAML.Node -> m Text
-nodeToKey (YAML.Scalar (YAML.SStr t))       = return t
-nodeToKey (YAML.Scalar (YAML.SUnknown _ t)) = return t
+nodeToKey :: Monad m => YAML.Node YE.Pos -> m Text
+nodeToKey (YAML.Scalar _ (YAML.SStr t))       = return t
+nodeToKey (YAML.Scalar _ (YAML.SUnknown _ t)) = return t
 nodeToKey _                                 = fail "Non-string key in YAML mapping"
 
 toMetaValue :: PandocMonad m
@@ -291,8 +292,8 @@ checkBoolean t =
              else Nothing
 
 yamlToMetaValue :: PandocMonad m
-                => YAML.Node -> MarkdownParser m (F MetaValue)
-yamlToMetaValue (YAML.Scalar x) =
+                => YAML.Node YE.Pos-> MarkdownParser m (F MetaValue)
+yamlToMetaValue (YAML.Scalar _ x) =
   case x of
        YAML.SStr t       -> toMetaValue t
        YAML.SBool b      -> return $ return $ MetaBool b
@@ -303,16 +304,16 @@ yamlToMetaValue (YAML.Scalar x) =
            Just b        -> return $ return $ MetaBool b
            Nothing       -> toMetaValue t
        YAML.SNull        -> return $ return $ MetaString ""
-yamlToMetaValue (YAML.Sequence _ xs) = do
+yamlToMetaValue (YAML.Sequence _ _ xs) = do
   xs' <- mapM yamlToMetaValue xs
   return $ do
     xs'' <- sequence xs'
     return $ B.toMetaValue xs''
-yamlToMetaValue (YAML.Mapping _ o) = fmap B.toMetaValue <$> yamlMap o
+yamlToMetaValue (YAML.Mapping _ _ o) = fmap B.toMetaValue <$> yamlMap o
 yamlToMetaValue _ = return $ return $ MetaString ""
 
 yamlMap :: PandocMonad m
-        => M.Map YAML.Node YAML.Node
+        => M.Map (YAML.Node YE.Pos) (YAML.Node YE.Pos)
         -> MarkdownParser m (F (M.Map String MetaValue))
 yamlMap o = do
     kvs <- forM (M.toList o) $ \(key, v) -> do

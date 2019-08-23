@@ -17,3 +17,8 @@ source-repository-package
     type: git
     location: https://github.com/jgm/pandoc-types
     tag: 996a61018e406aa1e333e9085e84a04c83804c34
+
+source-repository-package
+    type: git
+    location: https://github.com/vijayphoenix/HsYAML.git
+    tag: 9354f53c69e9178a8e7c5c17b47137e23d4179df

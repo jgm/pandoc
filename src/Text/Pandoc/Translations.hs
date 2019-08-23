@@ -76,7 +76,7 @@ instance FromJSON Term where
   parseJSON invalid = Aeson.typeMismatch "Term" invalid
 
 instance YAML.FromYAML Term where
-  parseYAML (YAML.Scalar (YAML.SStr t)) =
+  parseYAML (YAML.Scalar _ (YAML.SStr t)) =
                          case safeRead (T.unpack t) of
                                Just t' -> pure t'
                                Nothing -> fail $ "Invalid Term name " ++
@@ -99,12 +99,12 @@ instance FromJSON Translations where
 instance YAML.FromYAML Translations where
   parseYAML = YAML.withMap "Translations" $
     \tr -> Translations .M.fromList <$> mapM addItem (M.toList tr)
-   where addItem (n@(YAML.Scalar (YAML.SStr k)), v) =
+   where addItem (n@(YAML.Scalar _ (YAML.SStr k)), v) =
             case safeRead (T.unpack k) of
                  Nothing -> YAML.typeMismatch "Term" n
                  Just t  ->
                    case v of
-                        (YAML.Scalar (YAML.SStr s)) ->
+                        (YAML.Scalar _ (YAML.SStr s)) ->
                           return (t, T.unpack (T.strip s))
                         n' -> YAML.typeMismatch "String" n'
          addItem (n, _) = YAML.typeMismatch "String" n
