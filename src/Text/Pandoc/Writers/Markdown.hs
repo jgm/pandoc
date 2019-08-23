@@ -768,15 +768,18 @@ orderedListItemToMarkdown :: PandocMonad m
 orderedListItemToMarkdown opts marker bs = do
   let exts = writerExtensions opts
   contents <- blockListToMarkdown opts $ taskListItemToAscii exts bs
-  let sps = case length marker - writerTabStop opts of
+  let sps = case writerTabStop opts - length marker of
                    n | n > 0 -> text $ replicate n ' '
                    _ -> text " "
+  let ind = if isEnabled Ext_four_space_rule opts
+               then writerTabStop opts
+               else max (writerTabStop opts) (length marker + 1)
   let start = text marker <> sps
   -- remove trailing blank line if item ends with a tight list
   let contents' = if itemEndsWithTightList bs
                      then chomp contents <> cr
                      else contents
-  return $ hang (writerTabStop opts) start $ contents' <> cr
+  return $ hang ind start $ contents' <> cr
 
 -- | Convert definition list item (label, list of blocks) to markdown.
 definitionListItemToMarkdown :: PandocMonad m
