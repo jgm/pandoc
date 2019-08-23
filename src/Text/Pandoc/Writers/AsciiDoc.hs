@@ -22,7 +22,7 @@ AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc, writeAsciiDoctor) where
 import Prelude
 import Control.Monad.State.Strict
-import Data.Char (isPunctuation, isSpace, toLower)
+import Data.Char (isPunctuation, isSpace, toLower, toUpper)
 import Data.List (intercalate, intersperse, stripPrefix)
 import Data.Maybe (fromMaybe, isJust, listToMaybe)
 import qualified Data.Set as Set
@@ -279,9 +279,28 @@ blockToAsciiDoc opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToAsciiDoc opts) items
   modify $ \st -> st{ inList = inlist }
   return $ cat contents <> blankline
-blockToAsciiDoc opts (Div (ident,_,_) bs) = do
+blockToAsciiDoc opts (Div (ident,classes,_) bs) = do
   let identifier = if null ident then empty else "[[" <> text ident <> "]]"
-  contents <- blockListToAsciiDoc opts bs
+  let admonitions = ["attention","caution","danger","error","hint",
+                     "important","note","tip","warning"]
+  contents <-
+       case classes of
+         (l:_) | l `elem` admonitions -> do
+             let (titleBs, bodyBs) =
+                     case bs of
+                       (Div (_,["title"],_) ts : rest) -> (ts, rest)
+                       _ -> ([], bs)
+             admonitionTitle <- if null titleBs
+                                   then return mempty
+                                   else ("." <>) <$>
+                                         blockListToAsciiDoc opts titleBs
+             admonitionBody <- blockListToAsciiDoc opts bodyBs
+             return $ "[" <> text (map toUpper l) <> "]" $$
+                      chomp admonitionTitle $$
+                      "====" $$
+                      chomp admonitionBody $$
+                      "===="
+         _ -> blockListToAsciiDoc opts bs
   return $ identifier $$ contents
 
 -- | Convert bullet list item (list of blocks) to asciidoc.
