@@ -619,19 +619,23 @@ instance HasMeta DBState where
   deleteMeta field s = s {dbMeta = deleteMeta field (dbMeta s)}
 
 isBlockElement :: Content -> Bool
-isBlockElement (Elem e) = qName (elName e) `elem` blocktags
-  where blocktags = ["toc","index","para","formalpara","simpara",
+isBlockElement (Elem e) = qName (elName e) `elem` blockTags
+isBlockElement _ = False
+
+blockTags :: [String]
+blockTags = ["toc","index","para","formalpara","simpara",
            "ackno","epigraph","blockquote","bibliography","bibliodiv",
            "biblioentry","glossee","glosseealso","glossary",
            "glossdiv","glosslist","chapter","appendix","preface",
            "bridgehead","sect1","sect2","sect3","sect4","sect5","section",
-           "refsect1","refsect2","refsect3","refsection",
-           "important","caution","note","tip","warning","qandadiv",
+           "refsect1","refsect2","refsect3","refsection", "qandadiv",
            "question","answer","abstract","itemizedlist","orderedlist",
            "variablelist","article","book","table","informaltable",
            "informalexample", "linegroup",
-           "screen","programlisting","example","calloutlist"]
-isBlockElement _ = False
+           "screen","programlisting","example","calloutlist"] ++ admonitionTags
+
+admonitionTags :: [String]
+admonitionTags = ["important","caution","note","tip","warning"]
 
 -- Trim leading and trailing newline characters
 trimNl :: String -> String
@@ -736,16 +740,7 @@ parseBlock (Elem e) =
         "refsect2" -> sect 2
         "refsect3" -> sect 3
         "refsection" -> gets dbSectionLevel >>= sect . (+1)
-        "important" -> blockQuote . (para (strong $ str "Important") <>)
-                        <$> getBlocks e
-        "caution" -> blockQuote . (para (strong $ str "Caution") <>)
-                        <$> getBlocks e
-        "note" -> blockQuote . (para (strong $ str "Note") <>)
-                        <$> getBlocks e
-        "tip" -> blockQuote . (para (strong $ str "Tip") <>)
-                        <$> getBlocks e
-        "warning" -> blockQuote . (para (strong $ str "Warning") <>)
-                        <$> getBlocks e
+        l@_ | l `elem` admonitionTags -> parseAdmonition l
         "area" -> skip
         "areaset" -> skip
         "areaspec" -> skip
@@ -913,6 +908,22 @@ parseBlock (Elem e) =
                      modify $ \st -> st{ dbSectionLevel = n - 1 }
                      return $ headerWith (ident,[],[]) n' headerText <> b
          lineItems = mapM getInlines $ filterChildren (named "line") e
+         -- | Admonitions are parsed into a div. Following other Docbook tools that output HTML,
+         -- we parse the optional title as a div with the @title@ class, and give the
+         -- block itself a class corresponding to the admonition name.
+         parseAdmonition label = do
+           -- <title> elements can be directly nested inside an admonition block, use
+           -- it if it's there. It is unclear whether we should include the label in
+           -- the title: docbook references are ambiguous on that, and some implementations of admonitions
+           -- (e.g. asciidoctor) just use an icon in all cases. To be conservative, we don't
+           -- include the label and leave it to styling.
+           title <- case filterChild (named "title") e of
+                        Just t  -> divWith ("", ["title"], []) . plain <$> getInlines t
+                        Nothing -> return $ mempty
+           -- this will ignore the title element if it is present
+           b <- getBlocks e
+           -- we also attach the label as a class, so it can be styled properly
+           return $ divWith (attrValue "id" e,[label],[]) (title <> b)
 
 getInlines :: PandocMonad m => Element -> DB m Inlines
 getInlines e' = (trimInlines . mconcat) <$>
