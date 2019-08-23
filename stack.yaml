@@ -14,8 +14,7 @@ extra-deps:
 # - pandoc-citeproc-0.16.2
 - git: https://github.com/jgm/pandoc-citeproc
   commit: 6d62678ece91bbb4fe4f5a99695006e1d53c3bae
-- git: https://github.com/tarleb/pandoc-types
-  commit: a087b0174a597b92c5fec4d633c46887c188b496
+- pandoc-types-1.17.6
 - ipynb-0.1
 - cmark-gfm-0.2.0
 - hslua-1.0.3.1
