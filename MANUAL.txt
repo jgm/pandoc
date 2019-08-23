@@ -601,7 +601,8 @@ Reader options {.options}
     with every input format, but string scalars in the YAML file will always be
     parsed as Markdown. Generally, the input will be handled the same as in
     [YAML metadata blocks][Extension: `yaml_metadata_block`]. This option can be
-    used repeatedly to include multiple metadata files. Metadata values
+    used repeatedly to include multiple metadata files; values in files specified
+    first will be preferred over those specified in later files. Metadata values
     specified inside the document, or by using `-M`, overwrite values specified
     with this option.
 
