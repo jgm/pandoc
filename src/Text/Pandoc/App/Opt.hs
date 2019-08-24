@@ -54,7 +54,7 @@ data Opt = Opt
     , optTemplate              :: Maybe FilePath  -- ^ Custom template
     , optVariables             :: [(String,String)] -- ^ Template variables to set
     , optMetadata              :: [(String, String)] -- ^ Metadata fields to set
-    , optMetadataFile          :: Maybe FilePath  -- ^ Name of YAML metadata file
+    , optMetadataFile          :: [FilePath]  -- ^ Name of YAML metadata file
     , optOutputFile            :: Maybe FilePath  -- ^ Name of output file
     , optInputFiles            :: [FilePath] -- ^ Names of input files
     , optNumberSections        :: Bool    -- ^ Number sections in LaTeX
@@ -128,7 +128,7 @@ defaultOpts = Opt
     , optTemplate              = Nothing
     , optVariables             = []
     , optMetadata              = []
-    , optMetadataFile          = Nothing
+    , optMetadataFile          = []
     , optOutputFile            = Nothing
     , optInputFiles            = []
     , optNumberSections        = False

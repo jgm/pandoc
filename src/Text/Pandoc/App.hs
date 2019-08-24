@@ -226,8 +226,9 @@ convertWithOpts opts = do
 
     metadataFromFile <-
       case optMetadataFile opts of
-        Nothing   -> return mempty
-        Just file -> readFileLazy file >>= yamlToMeta readerOpts
+        []    -> return mempty
+        paths -> mapM readFileLazy paths >>= mapM (yamlToMeta readerOpts)
+                   >>= return . (foldr1 (<>))
 
     let transforms = (case optBaseHeaderLevel opts of
                           x | x > 1     -> (headerShift (x - 1) :)

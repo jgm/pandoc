@@ -198,6 +198,8 @@ extra-source-files:
                  test/command/3533-rst-csv-tables.csv
                  test/command/3880.txt
                  test/command/5182.txt
+                 test/command/5700-metadata-file-1.yml
+                 test/command/5700-metadata-file-2.yml
                  test/command/abbrevs
                  test/command/SVG_logo-without-xml-declaration.svg
                  test/command/SVG_logo.svg
