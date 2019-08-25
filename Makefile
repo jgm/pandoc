@@ -34,6 +34,9 @@ haddock:
 test:
 	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes $(TESTARGS)' --ghc-options '$(GHCOPTS)'
 
+ghcid:
+	ghcid -c "stack repl --flag 'pandoc:embed_data_files'"
+
 bench:
 	stack bench --benchmark-arguments='$(BENCHARGS)' --ghc-options '$(GHCOPTS)'
 
@@ -137,4 +140,4 @@ update-website:
 clean:
 	stack clean
 
-.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages pandoc-templates trypandoc update-website debpkg macospkg winpkg checkdocs
+.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages pandoc-templates trypandoc update-website debpkg macospkg winpkg checkdocs ghcid
