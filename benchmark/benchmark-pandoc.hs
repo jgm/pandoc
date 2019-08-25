@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 import Prelude
 import Text.Pandoc
+import Text.Pandoc.MIME
 import Text.Pandoc.Error (PandocError(..))
 import Control.Monad.Except (throwError)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -28,6 +29,7 @@ import Criterion.Types (Config(..))
 import Data.List (intersect)
 import Data.Maybe (mapMaybe)
 import System.Environment (getArgs)
+import qualified Data.ByteString.Lazy as BL
 
 readerBench :: Pandoc
             -> String
@@ -43,11 +45,19 @@ readerBench doc name =
           case (getReader name, getWriter name) of
             (Right (TextReader r, rexts),
              Right (TextWriter w, wexts)) -> do
+               setResourcePath ["../test"]
                inp <- w def{ writerWrapText = WrapAuto
                            , writerExtensions = wexts } doc
                return $ (r def{ readerExtensions = rexts }, inp)
             _ -> throwError $ PandocSomeError
                  $ "could not get text reader and writer for " ++ name
+
+getImages :: IO [(FilePath, MimeType, BL.ByteString)]
+getImages = do
+  ll <- BL.readFile "test/lalune.jpg"
+  mv <- BL.readFile "test/movie.jpg"
+  return [("lalune.jpg", "image/jpg", ll)
+         ,("movie.jpg", "image/jpg", mv)]
 
 writerBench :: Pandoc
             -> String
@@ -55,9 +65,14 @@ writerBench :: Pandoc
 writerBench doc name =
   case res of
        Right writerFun ->
-          Just $ bench (name ++ " writer")
+          Just $ env getImages $ \imgs ->
+            bench (name ++ " writer")
                $ nf (\d -> either (error . show) id $
-                            runPure (writerFun d)) doc
+                            runPure (do mapM_
+                                          (\(fp, mt, bs) ->
+                                              insertMedia fp (Just mt) bs)
+                                          imgs
+                                        writerFun d)) doc
        Left _ -> Nothing
   where res = runPure $ do
           case (getWriter name) of
