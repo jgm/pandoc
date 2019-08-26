@@ -462,6 +462,7 @@ parseFromString' :: (Stream s m Char, IsString s, HasLastStrPosition u)
                  -> ParserT s u m a
 parseFromString' parser str = do
   oldLastStrPos <- getLastStrPos <$> getState
+  updateState $ setLastStrPos Nothing
   res <- parseFromString parser str
   updateState $ setLastStrPos oldLastStrPos
   return res
