@@ -133,7 +133,7 @@ instance HasReaderOptions OrgParserState where
 
 instance HasLastStrPosition OrgParserState where
   getLastStrPos = orgStateLastStrPos
-  setLastStrPos pos st = st{ orgStateLastStrPos = Just pos }
+  setLastStrPos pos st = st{ orgStateLastStrPos = pos }
 
 instance Monad m => HasQuoteContext st (ReaderT OrgParserLocal m) where
   getQuoteContext = asks orgLocalQuoteContext

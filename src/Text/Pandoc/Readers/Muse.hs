@@ -93,7 +93,7 @@ instance HasIdentifierList MuseState where
   updateIdentifierList f st = st{ museIdentifierList = f $ museIdentifierList st }
 
 instance HasLastStrPosition MuseState where
-  setLastStrPos pos st = st{ museLastStrPos = Just pos }
+  setLastStrPos pos st = st{ museLastStrPos = pos }
   getLastStrPos st     = museLastStrPos st
 
 instance HasLogMessages MuseState where

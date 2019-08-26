@@ -456,14 +456,14 @@ parseFromString parser str = do
 
 -- | Like 'parseFromString' but specialized for 'ParserState'.
 -- This resets 'stateLastStrPos', which is almost always what we want.
-parseFromString' :: (Stream s m Char, IsString s)
-                 => ParserT s ParserState m a
+parseFromString' :: (Stream s m Char, IsString s, HasLastStrPosition u)
+                 => ParserT s u m a
                  -> String
-                 -> ParserT s ParserState m a
+                 -> ParserT s u m a
 parseFromString' parser str = do
-  oldStrPos <- stateLastStrPos <$> getState
+  oldLastStrPos <- getLastStrPos <$> getState
   res <- parseFromString parser str
-  updateState $ \st -> st{ stateLastStrPos = oldStrPos }
+  updateState $ setLastStrPos oldLastStrPos
   return res
 
 -- | Parse raw line block up to and including blank lines.
@@ -908,7 +908,8 @@ widthsFromIndices numColumns' indices =
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTableWith :: (Stream s m Char, HasReaderOptions st, Monad mf, IsString s)
+gridTableWith :: (Stream s m Char, HasReaderOptions st, HasLastStrPosition st,
+                  Monad mf, IsString s)
               => ParserT s st m (mf Blocks)  -- ^ Block list parser
               -> Bool                        -- ^ Headerless table
               -> ParserT s st m (mf Blocks)
@@ -916,7 +917,8 @@ gridTableWith blocks headless =
   tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
             (gridTableSep '-') gridTableFooter
 
-gridTableWith' :: (Stream s m Char, HasReaderOptions st, Monad mf, IsString s)
+gridTableWith' :: (Stream s m Char, HasReaderOptions st, HasLastStrPosition st,
+                   Monad mf, IsString s)
                => ParserT s st m (mf Blocks)  -- ^ Block list parser
                -> Bool                        -- ^ Headerless table
                -> ParserT s st m (TableComponents mf)
@@ -955,7 +957,7 @@ gridTableSep :: Stream s m Char => Char -> ParserT s st m Char
 gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
-gridTableHeader :: (Stream s m Char, Monad mf, IsString s)
+gridTableHeader :: (Stream s m Char, Monad mf, IsString s, HasLastStrPosition st)
                 => Bool -- ^ Headerless table
                 -> ParserT s st m (mf Blocks)
                 -> ParserT s st m (mf [Blocks], [Alignment], [Int])
@@ -978,7 +980,7 @@ gridTableHeader headless blocks = try $ do
                     then replicate (length underDashes) ""
                     else map (unlines . map trim) $ transpose
                        $ map (gridTableSplitLine indices) rawContent
-  heads <- sequence <$> mapM (parseFromString blocks . trim) rawHeads
+  heads <- sequence <$> mapM (parseFromString' blocks . trim) rawHeads
   return (heads, aligns, indices)
 
 gridTableRawLine :: Stream s m Char => [Int] -> ParserT s st m [String]
@@ -988,7 +990,7 @@ gridTableRawLine indices = do
   return (gridTableSplitLine indices line)
 
 -- | Parse row of grid table.
-gridTableRow :: (Stream s m Char, Monad mf, IsString s)
+gridTableRow :: (Stream s m Char, Monad mf, IsString s, HasLastStrPosition st)
              => ParserT s st m (mf Blocks)
              -> [Int]
              -> ParserT s st m (mf [Blocks])
@@ -999,7 +1001,7 @@ gridTableRow blocks indices = do
       compactifyCell bs = case compactify [bs] of
                             []  -> mempty
                             x:_ -> x
-  cells <- sequence <$> mapM (parseFromString blocks) cols
+  cells <- sequence <$> mapM (parseFromString' blocks) cols
   return $ fmap (map compactifyCell) cells
 
 removeOneLeadingSpace :: [String] -> [String]
@@ -1124,11 +1126,11 @@ instance HasMacros ParserState where
   updateMacros f st    = st{ stateMacros = f $ stateMacros st }
 
 class HasLastStrPosition st where
-  setLastStrPos  :: SourcePos -> st -> st
+  setLastStrPos  :: Maybe SourcePos -> st -> st
   getLastStrPos  :: st -> Maybe SourcePos
 
 instance HasLastStrPosition ParserState where
-  setLastStrPos pos st = st{ stateLastStrPos = Just pos }
+  setLastStrPos pos st = st{ stateLastStrPos = pos }
   getLastStrPos st     = stateLastStrPos st
 
 class HasLogMessages st where
@@ -1202,7 +1204,7 @@ guardDisabled ext = getOption readerExtensions >>= guard . not . extensionEnable
 
 -- | Update the position on which the last string ended.
 updateLastStrPos :: (Stream s m a, HasLastStrPosition st) => ParserT s st m ()
-updateLastStrPos = getPosition >>= updateState . setLastStrPos
+updateLastStrPos = getPosition >>= updateState . setLastStrPos . Just
 
 -- | Whether we are right after the end of a string.
 notAfterString :: (Stream s m a, HasLastStrPosition st) => ParserT s st m Bool
