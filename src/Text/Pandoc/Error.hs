@@ -98,7 +98,7 @@ handleError (Left e) =
         "Could not find data file " ++ fn
     PandocResourceNotFound fn -> err 99 $
         "File " ++ fn ++ " not found in resource path"
-    PandocTemplateError s -> err 5 s
+    PandocTemplateError s -> err 5 $ "Error compiling template " ++ s
     PandocAppError s -> err 1 s
     PandocEpubSubdirectoryError s -> err 31 $
       "EPUB subdirectory name '" ++ s ++ "' contains illegal characters"
