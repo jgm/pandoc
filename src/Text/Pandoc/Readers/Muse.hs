@@ -676,7 +676,7 @@ museGridTableRow indent indices = try $ do
   lns <- many1 $ try (indentWith indent *> museGridTableRawLine indices)
   let cols = map (unlines . map trimr) $ transpose lns
   indentWith indent *> museGridTableHeader
-  sequence <$> mapM (parseFromString parseBlocks) cols
+  sequence <$> mapM (parseFromString' parseBlocks) cols
 
 museGridTableRawLine :: PandocMonad m
                      => [Int]
