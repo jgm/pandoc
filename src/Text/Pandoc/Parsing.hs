@@ -1049,6 +1049,7 @@ data ParserState = ParserState
       stateParserContext     :: ParserContext, -- ^ Inside list?
       stateQuoteContext      :: QuoteContext,  -- ^ Inside quoted environment?
       stateAllowLinks        :: Bool,          -- ^ Allow parsing of links
+      stateAllowLineBreaks   :: Bool,          -- ^ Allow parsing of line breaks
       stateMaxNestingLevel   :: Int,           -- ^ Max # of nested Strong/Emph
       stateLastStrPos        :: Maybe SourcePos, -- ^ Position after last str parsed
       stateKeys              :: KeyTable,      -- ^ List of reference keys
@@ -1158,6 +1159,7 @@ defaultParserState =
                   stateParserContext   = NullState,
                   stateQuoteContext    = NoQuote,
                   stateAllowLinks      = True,
+                  stateAllowLineBreaks = True,
                   stateMaxNestingLevel = 6,
                   stateLastStrPos      = Nothing,
                   stateKeys            = M.empty,
