@@ -1749,10 +1749,21 @@ closing = do
                   _ -> mempty
   return $ para (trimInlines contents) <> sigs
 
+parbox :: PandocMonad m => LP m Blocks
+parbox = try $ do
+  skipopts
+  braced -- size
+  oldInTableCell <- sInTableCell <$> getState
+  -- see #5711
+  updateState $ \st -> st{ sInTableCell = False }
+  res <- grouped blocks
+  updateState $ \st -> st{ sInTableCell = oldInTableCell }
+  return res
+
 blockCommands :: PandocMonad m => M.Map Text (LP m Blocks)
 blockCommands = M.fromList
    [ ("par", mempty <$ skipopts)
-   , ("parbox",  skipopts >> braced >> grouped blocks)
+   , ("parbox",  parbox)
    , ("title", mempty <$ (skipopts *>
                              (grouped inline >>= addMeta "title")
                          <|> (grouped block >>= addMeta "title")))
@@ -2269,9 +2280,13 @@ parseTableRow envname prefsufs = do
   -- add prefixes and suffixes in token stream:
   let celltoks (pref, suff) = do
         prefpos <- getPosition
-        contents <- many (notFollowedBy
+        contents <- mconcat <$>
+            many ( snd <$> withRaw (controlSeq "parbox" >> parbox) -- #5711
+                  <|>
+                   (do notFollowedBy
                          (() <$ amp <|> () <$ lbreak <|> end_ envname)
-                         >> anyTok)
+                       count 1 anyTok) )
+
         suffpos <- getPosition
         option [] (count 1 amp)
         return $ map (setpos prefpos) pref ++ contents ++ map (setpos suffpos) suff
