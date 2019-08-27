@@ -59,6 +59,10 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          def
                          "pptx/lists.native"
                          "pptx/lists.pptx"
+                       , pptxTests "start ordered list at specified num"
+                         def
+                         "pptx/start_numbering_at.native"
+                         "pptx/start_numbering_at.pptx"
                        , pptxTests "tables"
                          def
                          "pptx/tables.native"

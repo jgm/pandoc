@@ -861,7 +861,7 @@ paragraphToElement par = do
             (case pPropBullet $ paraProps par of
                Just Bullet -> []
                Just (AutoNumbering attrs') ->
-                 [mknode "a:buAutoNum" [("type", autoNumberingToType attrs')] ()]
+                 [mknode "a:buAutoNum" (autoNumAttrs attrs') ()]
                Nothing -> [mknode "a:buNone" [] ()]
             )
   paras <- concat <$> mapM paraElemToElements (paraElems par)
@@ -1872,10 +1872,14 @@ getContentType fp
       Just $ presML ++ ".slideLayout+xml"
   | otherwise = Nothing
 
-autoNumberingToType :: ListAttributes -> String
-autoNumberingToType (_, numStyle, numDelim) =
-  typeString ++ delimString
+autoNumAttrs :: ListAttributes -> [(String, String)]
+autoNumAttrs (startNum, numStyle, numDelim) =
+  numAttr ++ typeAttr
   where
+    numAttr = if startNum == 1
+              then []
+              else [("startAt", show startNum)]
+    typeAttr = [("type", typeString ++ delimString)]
     typeString = case numStyle of
       Decimal -> "arabic"
       UpperAlpha -> "alphaUc"

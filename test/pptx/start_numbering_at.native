@@ -1,0 +1,9 @@
+[Header 2 ("example-numbering-mwe",[],[]) [Str "Example",Space,Str "numbering",Space,Str "MWE"]
+,Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "slide",Space,Str "with",Space,Str "examples",Space,Str "in",Space,Str "(1)",Space,Str "and",Space,Str "(2)"]
+,OrderedList (1,Example,TwoParens)
+ [[Plain [Str "First"]]
+ ,[Plain [Str "Second"]]]
+,Header 2 ("a-second-slide",[],[]) [Str "A",Space,Str "second",Space,Str "slide"]
+,Para [Str "This",Space,Str "second",Space,Str "slide",Space,Str "has",Space,Str "a",Space,Str "third",Space,Str "example",Space,Str "in",Space,Str "(3)."]
+,OrderedList (3,Example,TwoParens)
+ [[Plain [Str "Third"]]]]
