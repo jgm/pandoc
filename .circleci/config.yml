@@ -121,9 +121,10 @@ workflows:
   version: "2.1"
   build:
     jobs:
-      - cabal-ghc-8_8_1
       - cabal-ghc-8_6_5
       - cabal-ghc-8_4_4
       - cabal-ghc-8_2_2
       - cabal-ghc-8_0_2
       - stack-ghc-8_6
+      # - cabal-ghc-8_8_1
+
