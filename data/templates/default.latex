@@ -390,6 +390,9 @@ $if(logo)$
 \logo{\includegraphics{$logo$}}
 $endif$
 $endif$
+$if(hyphenation)$
+\hyphenation{$hyphenation$}
+$endif§
 
 \begin{document}
 $if(has-frontmatter)$
