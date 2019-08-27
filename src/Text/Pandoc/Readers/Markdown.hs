@@ -532,8 +532,13 @@ atxHeader = try $ do
                   (char '.' <|> char ')') -- this would be a list
   guardDisabled Ext_space_in_atx_header <|> notFollowedBy nonspaceChar
   skipSpaces
-  (text, raw) <- withRaw $
-          trimInlinesF . mconcat <$> many (notFollowedBy atxClosing >> inline)
+  (text, raw) <- withRaw $ do
+    oldAllowLineBreaks <- stateAllowLineBreaks <$> getState
+    updateState $ \st -> st{ stateAllowLineBreaks = False }
+    res <- trimInlinesF . mconcat <$>
+               many (notFollowedBy atxClosing >> inline)
+    updateState $ \st -> st{ stateAllowLineBreaks = oldAllowLineBreaks }
+    return res
   attr <- atxClosing
   attr' <- registerHeader attr (runF text defaultParserState)
   guardDisabled Ext_implicit_header_references
@@ -576,8 +581,13 @@ setextHeader = try $ do
   -- unless necessary -- it gives a significant performance boost.
   lookAhead $ anyLine >> many1 (oneOf setextHChars) >> blankline
   skipSpaces
-  (text, raw) <- withRaw $
-       trimInlinesF . mconcat <$> many1 (notFollowedBy setextHeaderEnd >> inline)
+  (text, raw) <- withRaw $ do
+    oldAllowLineBreaks <- stateAllowLineBreaks <$> getState
+    updateState $ \st -> st{ stateAllowLineBreaks = False }
+    res <- trimInlinesF . mconcat <$>
+               many (notFollowedBy setextHeaderEnd >> inline)
+    updateState $ \st -> st{ stateAllowLineBreaks = oldAllowLineBreaks }
+    return res
   attr <- setextHeaderEnd
   underlineChar <- oneOf setextHChars
   many (char underlineChar)
@@ -1730,6 +1740,7 @@ endline :: PandocMonad m => MarkdownParser m (F Inlines)
 endline = try $ do
   newline
   notFollowedBy blankline
+  getState >>= guard . stateAllowLineBreaks
   -- parse potential list-starts differently if in a list:
   notFollowedBy (inList >> listStart)
   guardDisabled Ext_lists_without_preceding_blankline <|> notFollowedBy listStart
