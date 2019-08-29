@@ -10,18 +10,6 @@ A paragraph with a single line.
 ```
 
 
-Render a paragraph with multiple lines
-
-```
-% pandoc -t asciidoc
-First line of paragraph.
-Second line of paragraph.
-^D
-First line of paragraph.
-Second line of paragraph.
-```
-
-
 Render multiple paragraphs seperated by a blank line
 
 ```

@@ -26,7 +26,7 @@ Render linked text with comma
 % pandoc -t asciidoc
 This is [a very, very cool](http://example.com/) inline link.
 ^D
-This is http://example.com/["a very, very cool"] inline link.
+This is http://example.com/[a very, very cool] inline link.
 ```
 
 
@@ -34,11 +34,12 @@ Render a reference style link with link definition
 
 ```
 % pandoc -t asciidoc
-The [syntax page] [s] provides complete, detailed documentation for
+The [syntax page][s] provides complete, detailed documentation for
 
 [s]: /projects/markdown/syntax  "Markdown Syntax"
 ^D
-The link:/projects/markdown/syntax[syntax page] provides complete, detailed documentation for
+The link:/projects/markdown/syntax[syntax page] provides complete,
+detailed documentation for
 ```
 
 
@@ -46,21 +47,21 @@ Render a reference style link with link text
 
 ```
 % pandoc -t asciidoc
-The [syntax page] provides complete, detailed documentation for
+The [syntax page] provides documentation
 
 [syntax page]: http://www.syntaxpage.com
 ^D
-The http://www.syntaxpage.com[syntax page] provides complete, detailed documentation for
+The http://www.syntaxpage.com[syntax page] provides documentation
 ```
 
 
-Render an internal link using the cross reference syntax
+Render an internal link
 
 ```
 % pandoc -t asciidoc
 Refer to [Quick start](#quick-start) to learn how to get started.
 ^D
-Refer to <<quick-start,Quick start>> to learn how to get started.
+Refer to link:#quick-start[Quick start] to learn how to get started.
 ```
 
 

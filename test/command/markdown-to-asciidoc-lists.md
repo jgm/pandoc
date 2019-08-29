@@ -14,20 +14,6 @@ Render an unordered list
 ```
 
 
-Render an unordered list of paragraphs
-
-```
-% pandoc -t asciidoc
-* Paragraph 1
-
-* Paragraph 2
-^D
-* Paragraph 1
-
-* Paragraph 2
-```
-
-
 Render an unordered nested list
 
 ```
@@ -107,11 +93,8 @@ Render an ordered list combined with a nested unordered list
 3. Item 3
 ^D
 . Item 1
-
 . Item 2
-
 ** Subitem of Item 2
-
 . Item 3
 ```
 
@@ -147,34 +130,41 @@ There is a Maven example project available.
 Render 4 numbered items with a code block
 
 ```
-% pandoc -t asciidoc
+% pandoc -f markdown-smart -t asciidoc
 1. Use the `browser` object explicitly (made available by the testing adapters)
 2. Use the page instance returned by the `to()` and `at()` methods instead of calling through the browser
 3. Use methods on the `Page` classes instead of the `content {}` block and dynamic properties
 4. If you need to use content definition options like `required:` and `wait:` then you can still reference content elements defined using the DSL in methods on `Page` and `Module` classes as usual, e.g.:
 
-    static content = {
-        async(wait: true) { $(".async") }
-    }
+       static content = {
+           async(wait: true) { $(".async") }
+       }
 
-    String asyncText() {
-        async.text() // Wait here for the async definition to return a non-empty Navigator...
-    }
+       String asyncText() {
+           async.text() // Wait here for the async definition to return a non-empty Navigator...
+       }
 Using this “typed” style is not an all or nothing proposition.
 ^D
-. Use the `browser` object explicitly (made available by the testing adapters)
-. Use the page instance returned by the `to()` and `at()` methods instead of calling through the browser
-. Use methods on the `Page` classes instead of the `content {}` block and dynamic properties
-. If you need to use content definition options like `required:` and `wait:` then you can still reference content elements defined using the DSL in methods on `Page` and `Module` classes as usual, e.g.:
+. Use the `+browser+` object explicitly (made available by the testing
+adapters)
+. Use the page instance returned by the `+to()+` and `+at()+` methods
+instead of calling through the browser
+. Use methods on the `+Page+` classes instead of the `+content {}+`
+block and dynamic properties
+. If you need to use content definition options like `+required:+` and
+`+wait:+` then you can still reference content elements defined using
+the DSL in methods on `+Page+` and `+Module+` classes as usual, e.g.:
++
+....
+static content = {
+    async(wait: true) { $(".async") }
+}
 
-    static content = {
-        async(wait: true) { $(".async") }
-    }
-
-    String asyncText() {
-        async.text() // Wait here for the async definition to return a non-empty Navigator...
-    }
-
+String asyncText() {
+    async.text() // Wait here for the async definition to return a non-empty Navigator...
+}
+....
++
 Using this “typed” style is not an all or nothing proposition.
 ```
 

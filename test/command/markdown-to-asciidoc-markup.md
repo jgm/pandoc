@@ -1,41 +1,5 @@
 converted from: <https://github.com/bodiam/markdown-to-asciidoc/tree/9bd90bc405a7d25b03822cc91154bcb315ab39bf/src/test/resources/nl/jworks/markdown_to_asciidoc/markup.feature>
 
-Don't apply formatting
-
-```
-% pandoc -t asciidoc
-Normal text
-^D
-Normal text
-```
-
-
-Don't apply formatting for one line over multiple lines
-
-```
-% pandoc -t asciidoc
-Normal text
-Normal text
-^D
-Normal text
-Normal text
-```
-
-
-Don't apply formatting for multiple lines
-
-```
-% pandoc -t asciidoc
-Normal text
-
-Normal text
-^D
-Normal text
-
-Normal text
-```
-
-
 Text, lists, text
 
 ```
@@ -50,11 +14,15 @@ This effectively enables more authoring support with less explicit type informat
 ^D
 The support provides:
 
-* Understanding of implicit browser methods (e.g. `to()`, `at()`) in test classes (e.g. `extends GebSpec`)
-* Understanding of content defined via the Content DSL (within `Page` and `Module` classes only)
-* Completion in `at {}` and `content {}` blocks
+* Understanding of implicit browser methods (e.g. `+to()+`, `+at()+`) in
+test classes (e.g. `+extends GebSpec+`)
+* Understanding of content defined via the Content DSL (within `+Page+`
+and `+Module+` classes only)
+* Completion in `+at {}+` and `+content {}+` blocks
 
-This effectively enables more authoring support with less explicit type information. The Geb development team would like to thank the good folks at JetBrains for adding this explicit support for Geb to IDEA.
+This effectively enables more authoring support with less explicit type
+information. The Geb development team would like to thank the good folks
+at JetBrains for adding this explicit support for Geb to IDEA.
 ```
 
 
@@ -73,9 +41,7 @@ Make text bold
 ```
 % pandoc -t asciidoc
 **Bold text**
-__Bold text__
 ^D
-*Bold text*
 *Bold text*
 ```
 
@@ -85,9 +51,7 @@ Make text italic
 ```
 % pandoc -t asciidoc
 *Italic text*
-_Italic text_
 ^D
-_Italic text_
 _Italic text_
 ```
 
@@ -98,7 +62,7 @@ Make text mono
 % pandoc -t asciidoc
 `Mono text`
 ^D
-`Mono text`
+`+Mono text+`
 ```
 
 
@@ -115,7 +79,7 @@ This is *_bold and italic_* text
 Blockquotes
 
 ```
-% pandoc -t asciidoc
+% pandoc -f markdown-smart -t asciidoc
 > Blockquotes are very handy in email to emulate reply text.
 > This line is part of the same quote.
 
@@ -124,18 +88,17 @@ Quote break.
 > This is a very long line that will still be quoted properly when it wraps. Oh boy let's keep writing to make sure this is long enough to actually wrap for everyone. Oh, you can *put* **Markdown** into a blockquote.
 ^D
 ____
-
-Blockquotes are very handy in email to emulate reply text.
-This line is part of the same quote.
-
+Blockquotes are very handy in email to emulate reply text. This line is
+part of the same quote.
 ____
 
 Quote break.
 
 ____
-
-This is a very long line that will still be quoted properly when it wraps. Oh boy let's keep writing to make sure this is long enough to actually wrap for everyone. Oh, you can _put_ *Markdown* into a blockquote.
-
+This is a very long line that will still be quoted properly when it
+wraps. Oh boy let's keep writing to make sure this is long enough to
+actually wrap for everyone. Oh, you can _put_ *Markdown* into a
+blockquote.
 ____
 ```
 
@@ -143,7 +106,7 @@ ____
 Nested Blockquotes
 
 ```
-% pandoc -t asciidoc
+% pandoc -f markdown-smart -t asciidoc
 > > What's new?
 >
 > I've got Markdown in my AsciiDoc!
@@ -210,20 +173,11 @@ CO~2~
 ```
 
 
-Double angle bracket quoting
-
-```
-% pandoc -t asciidoc
-<<hello>>
-^D
-«hello»
-```
-
 
 Double quoting
 
 ```
-% pandoc -t asciidoc
+% pandoc -f markdown-smart -t asciidoc
 "hello"
 ^D
 "hello"
@@ -233,7 +187,7 @@ Double quoting
 Single quoting
 
 ```
-% pandoc -t asciidoc
+% pandoc -f markdown-smart -t asciidoc
 'hello'
 ^D
 'hello'
@@ -243,7 +197,7 @@ Single quoting
 Apostroph
 
 ```
-% pandoc -t asciidoc
+% pandoc -f markdown-smart -t asciidoc
 a'a
 ^D
 a'a
@@ -255,9 +209,7 @@ Ellipsis two
 ```
 % pandoc -t asciidoc
 a...a
-a. . .a
 ^D
-a…a
 a…a
 ```
 
@@ -296,15 +248,11 @@ Should recognize a hard line break
 
 ```
 % pandoc -t asciidoc
-Roses are red,{sp}{sp}
-Violets are blue.{sp}
-Sort of blue.
-More like violet.
+Roses are red,\
+Violets are blue.
 ^D
 Roses are red, +
 Violets are blue.
-Sort of blue.
-More like violet.
 ```
 
 
