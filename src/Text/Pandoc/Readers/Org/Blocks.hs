@@ -186,7 +186,7 @@ orgBlock = try $ do
       "html"    -> rawBlockLines (return . B.rawBlock (lowercase blkType))
       "latex"   -> rawBlockLines (return . B.rawBlock (lowercase blkType))
       "ascii"   -> rawBlockLines (return . B.rawBlock (lowercase blkType))
-      "example" -> rawBlockLines (return . exampleCode)
+      "example" -> exampleBlock blockAttrs
       "quote"   -> parseBlockLines (fmap B.blockQuote)
       "verse"   -> verseBlock
       "src"     -> codeBlock blockAttrs
@@ -199,6 +199,16 @@ orgBlock = try $ do
 
    lowercase :: String -> String
    lowercase = map toLower
+
+exampleBlock :: PandocMonad m => BlockAttributes -> String -> OrgParser m (F Blocks)
+exampleBlock blockAttrs _label = do
+  skipSpaces
+  (classes, kv) <- switchesAsAttributes
+  newline
+  content <- rawBlockContent "example"
+  let id' = fromMaybe mempty $ blockAttrName blockAttrs
+  let codeBlck = B.codeBlockWith (id', "example":classes, kv) content
+  return . return $ codeBlck
 
 rawBlockLines :: Monad m => (String   -> F Blocks) -> String -> OrgParser m (F Blocks)
 rawBlockLines f blockType = ignHeaders *> (f <$> rawBlockContent blockType)
@@ -216,20 +226,19 @@ rawBlockContent :: Monad m => String -> OrgParser m String
 rawBlockContent blockType = try $ do
   blkLines <- manyTill rawLine blockEnder
   tabLen <- getOption readerTabStop
-  return
-    . unlines
-    . stripIndent
-    . map (tabsToSpaces tabLen . commaEscaped)
-    $ blkLines
+  trimP <- orgStateTrimLeadBlkIndent <$> getState
+  let stripIndent strs = if trimP then map (drop (shortestIndent strs)) strs else strs
+  (unlines
+   . stripIndent
+   . map (tabsToSpaces tabLen . commaEscaped)
+   $ blkLines)
+   <$ updateState (\s -> s { orgStateTrimLeadBlkIndent = True })
  where
    rawLine :: Monad m => OrgParser m String
    rawLine = try $ ("" <$ blankline) <|> anyLine
 
    blockEnder :: Monad m => OrgParser m ()
    blockEnder = try $ skipSpaces <* stringAnyCase ("#+end_" <> blockType)
-
-   stripIndent :: [String] -> [String]
-   stripIndent strs = map (drop (shortestIndent strs)) strs
 
    shortestIndent :: [String] -> Int
    shortestIndent = foldr (min . length . takeWhile isSpace) maxBound
@@ -357,11 +366,18 @@ switchPolarity = (SwitchMinus <$ char '-') <|> (SwitchPlus <$ char '+')
 
 -- | Parses a source block switch option.
 switch :: Monad m => OrgParser m (Char, Maybe String, SwitchPolarity)
-switch = try $ lineNumberSwitch <|> labelSwitch <|> simpleSwitch
+switch = try $ lineNumberSwitch <|> labelSwitch
+               <|> whitespaceSwitch <|> simpleSwitch
  where
    simpleSwitch = (\pol c -> (c, Nothing, pol)) <$> switchPolarity <*> letter
    labelSwitch = genericSwitch 'l' $
      char '"' *> many1Till nonspaceChar (char '"')
+
+whitespaceSwitch :: Monad m => OrgParser m (Char, Maybe String, SwitchPolarity)
+whitespaceSwitch = do
+  string "-i"
+  updateState $ \s -> s { orgStateTrimLeadBlkIndent = False }
+  return ('i', Nothing, SwitchMinus)
 
 -- | Generic source block switch-option parser.
 genericSwitch :: Monad m

@@ -117,6 +117,7 @@ data OrgParserState = OrgParserState
   , orgStateSelectTags           :: Set.Set Tag
   , orgStateSelectTagsChanged    :: Bool
   , orgStateTodoSequences        :: [TodoSequence]
+  , orgStateTrimLeadBlkIndent    :: Bool
   , orgLogMessages               :: [LogMessage]
   , orgMacros                    :: M.Map Text Macro
   }
@@ -184,6 +185,7 @@ defaultOrgParserState = OrgParserState
   , orgStateParserContext = NullState
   , orgStateSelectTags = Set.singleton $ Tag "export"
   , orgStateSelectTagsChanged = False
+  , orgStateTrimLeadBlkIndent = True
   , orgStateTodoSequences = []
   , orgLogMessages = []
   , orgMacros = M.empty
