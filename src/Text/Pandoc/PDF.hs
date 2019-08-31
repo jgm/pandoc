@@ -33,7 +33,7 @@ import System.Directory
 import System.Environment
 import System.Exit (ExitCode (..))
 import System.FilePath
-import System.IO (stdout)
+import System.IO (stdout, hClose)
 import System.IO.Temp (withSystemTempDirectory, withTempDirectory,
                        withTempFile)
 import System.IO.Error (IOError, isDoesNotExistError)
@@ -418,39 +418,40 @@ html2pdf verbosity program args source = do
   -- write HTML to temp file so we don't have to rewrite
   -- all links in `a`, `img`, `style`, `script`, etc. tags,
   -- and piping to weasyprint didn't work on Windows either.
-  file    <- withTempFile "." "html2pdf.html" $ \fp _ -> return fp
-  pdfFile <- withTempFile "." "html2pdf.pdf" $ \fp _ -> return fp
-  BS.writeFile file $ UTF8.fromText source
-  let pdfFileArgName = ["-o" | takeBaseName program == "prince"]
-  let programArgs = args ++ [file] ++ pdfFileArgName ++ [pdfFile]
-  env' <- getEnvironment
-  when (verbosity >= INFO) $
-    UTF8.readFile file >>=
-      showVerboseInfo Nothing program programArgs env'
-  (exit, out) <- E.catch
-    (pipeProcess (Just env') program programArgs BL.empty)
-    (\(e :: IOError) -> if isDoesNotExistError e
-                           then E.throwIO $
-                                  PandocPDFProgramNotFoundError program
-                           else E.throwIO e)
-  removeFile file
-  when (verbosity >= INFO) $ do
-    BL.hPutStr stdout out
-    putStr "\n"
-  pdfExists <- doesFileExist pdfFile
-  mbPdf <- if pdfExists
-            -- We read PDF as a strict bytestring to make sure that the
-            -- temp directory is removed on Windows.
-            -- See https://github.com/jgm/pandoc/issues/1192.
-            then do
-              res <- (Just . BL.fromChunks . (:[])) `fmap` BS.readFile pdfFile
-              removeFile pdfFile
-              return res
-            else return Nothing
-  return $ case (exit, mbPdf) of
-             (ExitFailure _, _)      -> Left out
-             (ExitSuccess, Nothing)  -> Left ""
-             (ExitSuccess, Just pdf) -> Right pdf
+  withTempFile "." "html2pdf.html" $ \file h1 ->
+    withTempFile "." "html2pdf.pdf" $ \pdfFile h2 -> do
+      hClose h1
+      hClose h2
+      BS.writeFile file $ UTF8.fromText source
+      let pdfFileArgName = ["-o" | takeBaseName program == "prince"]
+      let programArgs = args ++ [file] ++ pdfFileArgName ++ [pdfFile]
+      env' <- getEnvironment
+      when (verbosity >= INFO) $
+        UTF8.readFile file >>=
+          showVerboseInfo Nothing program programArgs env'
+      (exit, out) <- E.catch
+        (pipeProcess (Just env') program programArgs BL.empty)
+        (\(e :: IOError) -> if isDoesNotExistError e
+                               then E.throwIO $
+                                      PandocPDFProgramNotFoundError program
+                               else E.throwIO e)
+      when (verbosity >= INFO) $ do
+        BL.hPutStr stdout out
+        putStr "\n"
+      pdfExists <- doesFileExist pdfFile
+      mbPdf <- if pdfExists
+                -- We read PDF as a strict bytestring to make sure that the
+                -- temp directory is removed on Windows.
+                -- See https://github.com/jgm/pandoc/issues/1192.
+                then do
+                  res <- Just . BL.fromChunks . (:[]) <$>
+                            BS.readFile pdfFile
+                  return res
+                else return Nothing
+      return $ case (exit, mbPdf) of
+                 (ExitFailure _, _)      -> Left out
+                 (ExitSuccess, Nothing)  -> Left ""
+                 (ExitSuccess, Just pdf) -> Right pdf
 
 context2pdf :: Verbosity    -- ^ Verbosity level
             -> String       -- ^ "context" or path to it
