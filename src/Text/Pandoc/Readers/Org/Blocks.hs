@@ -821,11 +821,22 @@ listItem parseIndentedMarker = try . withContext ListItemState $ do
 
 -- continuation of a list item - indented and separated by blankline or endline.
 -- Note: nested lists are parsed as continuations.
-listContinuation :: Monad m => Int
-                 -> OrgParser m String
+listContinuation :: PandocMonad m => Int -> OrgParser m String
 listContinuation markerLength = try $ do
   notFollowedBy' blankline
-  mappend <$> (concat <$> many1 listLine)
+  mappend <$> (concat <$> many1 (listContinuation' markerLength))
           <*> many blankline
  where
-   listLine = try $ indentWith markerLength *> anyLineNewline
+   listContinuation' indentation =
+      blockLines indentation <|> listLine indentation
+   listLine indentation = try $ indentWith indentation *> anyLineNewline
+  -- The block attributes and start must be appropriately indented,
+  -- but the contents, and end do not.
+   blockLines indentation =
+      try $ lookAhead (indentWith indentation
+                       >> blockAttributes
+                       >>= (\blockAttrs ->
+                              case attrFromBlockAttributes blockAttrs of
+                                ("", [], []) -> count 1 anyChar
+                                _ -> indentWith indentation))
+            >> (snd <$> withRaw orgBlock)
