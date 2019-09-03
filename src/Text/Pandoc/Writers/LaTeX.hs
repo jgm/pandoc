@@ -72,6 +72,8 @@ data WriterState =
               , stInternalLinks :: [String]      -- list of internal link targets
               , stBeamer        :: Bool          -- produce beamer
               , stEmptyLine     :: Bool          -- true if no content on line
+              , stHasCslRefs    :: Bool          -- has a Div with class refs
+              , stCslHangingIndent :: Bool       -- use hanging indent for bib
               }
 
 startingState :: WriterOptions -> WriterState
@@ -100,7 +102,9 @@ startingState options = WriterState {
                 , stIncremental = writerIncremental options
                 , stInternalLinks = []
                 , stBeamer = False
-                , stEmptyLine = True }
+                , stEmptyLine = True
+                , stHasCslRefs = False
+                , stCslHangingIndent = False }
 
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -237,6 +241,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                      then id
                      else defField "dir" ("ltr" :: Text)) $
                   defField "section-titles" True $
+                  defField "csl-refs" (stHasCslRefs st) $
+                  defField "csl-hanging-indent" (stCslHangingIndent st) $
                   defField "geometry" geometryFromMargins $
                   (case T.unpack . render Nothing <$>
                         getField "papersize" metadata of
@@ -456,10 +462,11 @@ toSlides bs = do
   concat `fmap` mapM (elementToBeamer slideLevel) (hierarchicalize bs')
 
 elementToBeamer :: PandocMonad m => Int -> Element -> LW m [Block]
-elementToBeamer _slideLevel (Blk (Div attr bs)) = do
+elementToBeamer _slideLevel (Blk (Div attrs bs)) = do
   -- make sure we support "blocks" inside divs
   bs' <- concat `fmap` mapM (elementToBeamer 0) (hierarchicalize bs)
-  return [Div attr bs']
+  return [Div attrs bs']
+
 elementToBeamer _slideLevel (Blk b) = return [b]
 elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
   | lvl >  slideLevel = do
@@ -547,6 +554,14 @@ blockToLaTeX (Div (identifier,classes,kvs) bs)
                 modify $ \s -> s{ stIncremental = oldIncremental }
                 return result
         else blockToLaTeX $ Div (identifier,classes',kvs) bs
+  | identifier == "refs" = do
+       modify $ \st -> st{ stHasCslRefs = True
+                         , stCslHangingIndent =
+                            "hanging-indent" `elem` classes }
+       contents <- blockListToLaTeX bs
+       return $ "\\begin{cslreferences}" $$
+                contents $$
+                "\\end{cslreferences}"
   | otherwise = do
       beamer <- gets stBeamer
       linkAnchor' <- hypertarget True identifier empty

@@ -359,6 +359,13 @@ $for(bibliography)$
 \addbibresource{$bibliography$}
 $endfor$
 $endif$
+$if(csl-refs)$
+\newlength{\cslhangindent}       % set up new length
+\setlength{\cslhangindent}{$if(csl-hanging-indent)$2em$else$0em$endif$}
+\newenvironment{cslreferences}%
+  {\everypar{\setlength{\hangindent}{\cslhangindent}}}%
+  {\par} % by default, this env does not change anything
+$endif$
 
 $if(title)$
 \title{$title$$if(thanks)$\thanks{$thanks$}$endif$}
