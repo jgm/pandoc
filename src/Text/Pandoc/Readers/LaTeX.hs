@@ -1152,7 +1152,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   -- babel
   , ("foreignlanguage", foreignlanguage)
   -- include
-  , ("input", include "input")
+  , ("input", rawInlineOr "input" $ include "input")
   -- soul package
   , ("ul", underlineSpan <$> tok)
   -- ulem package
@@ -1467,6 +1467,14 @@ paragraph = do
   if x == mempty
      then return mempty
      else return $ para x
+
+rawBlockOr :: PandocMonad m => Text -> LP m Blocks -> LP m Blocks
+rawBlockOr name fallback = do
+  -- if raw_tex allowed, don't process
+  parseRaw <- extensionEnabled Ext_raw_tex <$> getOption readerExtensions
+  if parseRaw
+     then rawBlock "latex" <$> getRawCommand name ("\\" <> name)
+     else fallback
 
 include :: (PandocMonad m, Monoid a) => Text -> LP m a
 include name = do
@@ -1838,10 +1846,10 @@ blockCommands = M.fromList
    , ("hyphenblockquote", braced >>= blockquote False . Just . untokenize)
    , ("hyphenblockcquote", braced >>= blockquote True . Just . untokenize)
    -- include
-   , ("include", include "include")
-   , ("input", include "input")
-   , ("subfile", include "subfile")
-   , ("usepackage", include "usepackage")
+   , ("include", rawBlockOr "include" $ include "include")
+   , ("input", rawBlockOr "input" $ include "input")
+   , ("subfile", rawBlockOr "subfile" $ include "subfile")
+   , ("usepackage", rawBlockOr "usepackage" $ include "usepackage")
    -- preamble
    , ("PackageError", mempty <$ (braced >> braced >> braced))
    -- epigraph package
