@@ -448,7 +448,7 @@ doMacros' n inp = do
                              Nothing -> getargs M.empty argspecs
                              Just o  -> do
                                 x <- option o bracketedToks
-                                getargs (M.singleton 1 x) argspecs
+                                getargs (M.singleton 1 x) $ drop 1 argspecs
                    rest <- getInput
                    return (args, rest)
              lstate <- getState

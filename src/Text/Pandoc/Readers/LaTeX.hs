@@ -1591,7 +1591,7 @@ newcommand = do
         (symbol '{' *> spaces *> anyControlSeq <* spaces <* symbol '}')
     spaces
     numargs <- option 0 $ try bracketedNum
-    let argspecs = map (\i -> ArgNum i) [1..numargs]
+    let argspecs = map ArgNum [1..numargs]
     spaces
     optarg <- option Nothing $ Just <$> try bracketedToks
     spaces
