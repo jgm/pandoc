@@ -360,11 +360,14 @@ $for(bibliography)$
 $endfor$
 $endif$
 $if(csl-refs)$
-\newlength{\cslhangindent}       % set up new length
-\setlength{\cslhangindent}{$if(csl-hanging-indent)$2em$else$0em$endif$}
+$if(csl-hanging-indent)$
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+$endif$
 \newenvironment{cslreferences}%
-  {\everypar{\setlength{\hangindent}{\cslhangindent}}}%
-  {\par} % by default, this env does not change anything
+  {$if(csl-hanging-indent)$\setlength{\parindent}{0pt}%
+  \everypar{\setlength{\hangindent}{\cslhangindent}}\ignorespaces$endif$}%
+  {\par}
 $endif$
 
 $if(title)$
