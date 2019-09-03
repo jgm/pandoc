@@ -26,6 +26,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup.Entity (lookupEntity, htmlEntities)
 import Text.DocLayout
+import Text.Printf (printf)
 import qualified Data.Map as M
 import Data.String
 
@@ -89,7 +90,7 @@ inTagsIndented tagType = inTags True tagType []
 toEntities :: Text -> Text
 toEntities = T.concatMap go
   where go c | isAscii c = T.singleton c
-             | otherwise = T.pack ("&#" ++ show (ord c) ++ ";")
+             | otherwise = T.pack (printf "&#x%X;" (ord c))
 
 -- | Escape all non-ascii characters using HTML5 entities, falling
 -- back to numerical entities.

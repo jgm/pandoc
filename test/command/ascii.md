@@ -2,7 +2,7 @@
 pandoc -t html --ascii
 äéıå
 ^D
-<p>&#228;&#233;&#305;&#229;</p>
+<p>&#xE4;&#xE9;&#x131;&#xE5;</p>
 ```
 
 ```
@@ -33,7 +33,7 @@ pandoc -t docbook --ascii
 äéıå
 ^D
 <para>
-  &#228;&#233;&#305;&#229;
+  &#xE4;&#xE9;&#x131;&#xE5;
 </para>
 ```
 
@@ -41,7 +41,7 @@ pandoc -t docbook --ascii
 pandoc -t jats --ascii
 äéıå
 ^D
-<p>&#228;&#233;&#305;&#229;</p>
+<p>&#xE4;&#xE9;&#x131;&#xE5;</p>
 ```
 
 ```
