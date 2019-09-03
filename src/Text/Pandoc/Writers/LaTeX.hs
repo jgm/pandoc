@@ -1412,7 +1412,7 @@ citeCommand c p s k = do
 citeArguments :: PandocMonad m
               => [Inline] -> [Inline] -> String -> LW m (Doc Text)
 citeArguments p s k = do
-  let s' = case s of
+  let s' = stripLocatorBraces $ case s of
         (Str
                     [x] : r) | isPunctuation x -> dropWhile (== Space) r
         (Str (x:xs) : r) | isPunctuation x -> Str xs : r
@@ -1424,6 +1424,12 @@ citeArguments p s k = do
                      (True, False) -> brackets sdoc
                      (_   , _    ) -> brackets pdoc <> brackets sdoc
   return $ optargs <> braces (text k)
+
+-- strip off {} used to define locator in pandoc-citeproc; see #5722
+stripLocatorBraces :: [Inline] -> [Inline]
+stripLocatorBraces = walk go
+  where go (Str xs) = Str $ filter (\c -> c /= '{' && c /= '}') xs
+        go x        = x
 
 citationsToBiblatex :: PandocMonad m => [Citation] -> LW m (Doc Text)
 citationsToBiblatex
