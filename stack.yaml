@@ -13,7 +13,7 @@ packages:
 extra-deps:
 # - pandoc-citeproc-0.16.2
 - git: https://github.com/jgm/pandoc-citeproc
-  commit: 6d62678ece91bbb4fe4f5a99695006e1d53c3bae
+  commit: 63498fb22ae6f394f19f6d62312350b566c4aebd
 - pandoc-types-1.17.6
 - ipynb-0.1
 - cmark-gfm-0.2.0
