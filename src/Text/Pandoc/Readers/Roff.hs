@@ -33,7 +33,7 @@ import Control.Monad.Except (throwError)
 import Text.Pandoc.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
 import Data.Char (isLower, toLower, toUpper, chr,
-                  isAscii, isAlphaNum, isSpace)
+                  isAscii, isAlphaNum)
 import Data.Default (Default)
 import qualified Data.Map as M
 import Data.List (intercalate)
@@ -130,7 +130,7 @@ type RoffLexer m = ParserT [Char] RoffState m
 --
 
 eofline :: Stream s m Char => ParsecT s u m ()
-eofline = void newline <|> eof
+eofline = void newline <|> eof <|> () <$ lookAhead (string "\\}")
 
 spacetab :: Stream s m Char => ParsecT s u m Char
 spacetab = char ' ' <|> char '\t'
@@ -144,7 +144,7 @@ combiningAccentsMap =
   M.fromList $ map (\(x,y) -> (y,x)) combiningAccents
 
 escape :: PandocMonad m => RoffLexer m [LinePart]
-escape = do
+escape = try $ do
   backslash
   escapeGlyph <|> escapeNormal
 
@@ -193,7 +193,7 @@ readUnicodeChar _ = Nothing
 
 escapeNormal :: PandocMonad m => RoffLexer m [LinePart]
 escapeNormal = do
-  c <- anyChar
+  c <- noneOf "{}"
   optional expandString
   case c of
     ' ' -> return [RoffStr " "]
@@ -256,9 +256,7 @@ escapeNormal = do
     'w' -> escIgnore 'w' [quoteArg]
     'x' -> escIgnore 'x' [quoteArg]
     'z' -> escIgnore 'z' [count 1 anyChar]
-    '{' -> return mempty
     '|' -> return [RoffStr "\x2006"] --1/6 em space
-    '}' -> return mempty
     '~' -> return [RoffStr "\160"] -- nonbreaking space
     '\\' -> do
       mode <- roffMode <$> getState
@@ -350,7 +348,7 @@ lexMacro = do
   guard $ sourceColumn pos == 1 || afterConditional st
   char '.' <|> char '\''
   skipMany spacetab
-  macroName <- many (satisfy (not . isSpace))
+  macroName <- many (satisfy isAlphaNum)
   case macroName of
     "nop" -> return mempty
     "ie"  -> lexConditional "ie"
@@ -361,8 +359,6 @@ lexMacro = do
        args <- lexArgs
        case macroName of
          ""     -> return mempty
-         "\\\"" -> return mempty
-         "\\#"  -> return mempty
          "TS"   -> lexTable pos
          "de"   -> lexMacroDef args
          "de1"  -> lexMacroDef args

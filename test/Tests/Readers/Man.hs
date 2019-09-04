@@ -74,7 +74,7 @@ tests = [
       =?> para (text "hi " <> emph (text "there " <> strong (text "bold")) <>
                                    text " ok")
     , "skip" =:
-      "a\\%\\{\\}\\\n\\:b\\0"
+      "a\\%\\\n\\:b\\0"
       =?> (para $ str "ab\8199")
     , "replace" =:
       "\\-\\ \\\\\\[lq]\\[rq]\\[em]\\[en]\\*(lq\\*(rq"
