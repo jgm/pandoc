@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 {- |
    Module      : Text.Pandoc.SelfContained
    Copyright   : Copyright (C) 2011-2019 John MacFarlane
@@ -112,7 +113,7 @@ convertTags (t@(TagOpen "link" as):ts) =
                       rest <- convertTags $
                                  dropWhile (==TagClose "link") ts
                       return $
-                       TagOpen "style" [("type", mime)]
+                       TagOpen "style" [("type", "text/css")] -- see #5725
                        : TagText (toString bs)
                        : TagClose "style"
                        : rest
@@ -210,12 +211,14 @@ handleCSSUrl d (url, fallback) =
                res <- lift $ getData "" url'
                case res of
                     Left uri -> return $ Left (B.pack $ "url(" ++ uri ++ ")")
-                    Right (mt, raw) -> do
+                    Right (mt', raw) -> do
                       -- note that the downloaded CSS may
                       -- itself contain url(...).
-                      b <- if "text/css" `isPrefixOf` mt
-                              then cssURLs d raw
-                              else return raw
+                      (mt, b) <- if "text/css" `isPrefixOf` mt'
+                                    -- see #5725: in HTML5, content type
+                                    -- isn't allowed on style type attribute
+                                    then ("text/css",) <$> cssURLs d raw
+                                    else return (mt', raw)
                       return $ Right (mt, b)
 
 getDataURI :: PandocMonad m => MimeType -> String -> m String
