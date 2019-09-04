@@ -441,6 +441,7 @@ library
      other-modules: Text.Pandoc.Data
   if flag(derive_json_via_th)
      cpp-options:   -DDERIVE_JSON_VIA_TH
+     other-extensions: TemplateHaskell
   if os(windows)
     cpp-options:      -D_WINDOWS
   ghc-options:     -Wall -fno-warn-unused-do-bind
