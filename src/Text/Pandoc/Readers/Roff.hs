@@ -32,8 +32,7 @@ import Control.Monad (void, mzero, mplus, guard)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
-import Data.Char (isLower, toLower, toUpper, chr,
-                  isAscii, isAlphaNum)
+import Data.Char (isLower, toLower, toUpper, chr, isAscii, isAlphaNum)
 import Data.Default (Default)
 import qualified Data.Map as M
 import Data.List (intercalate)
@@ -488,7 +487,9 @@ lexConditional mname = do
                else expression
   skipMany spacetab
   st <- getState -- save state, so we can reset it
-  ifPart <- lexGroup <|> ((try (char '\\' >> newline)) >> manToken)
+  ifPart <- do
+      optional $ try $ char '\\' >> newline
+      lexGroup
        <|> do modifyState $ \s -> s{ afterConditional = True }
               t <- manToken
               modifyState $ \s -> s{ afterConditional = False }
