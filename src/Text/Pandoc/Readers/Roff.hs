@@ -42,7 +42,6 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared (safeRead, substitute)
 import Text.Parsec hiding (tokenPrim)
-import qualified Text.Parsec as Parsec
 import Text.Pandoc.RoffChar (characterCodes, combiningAccents)
 import qualified Data.Sequence as Seq
 import qualified Data.Foldable as Foldable
@@ -335,7 +334,6 @@ escFont = do
 lexComment :: PandocMonad m => RoffLexer m RoffTokens
 lexComment = do
   try $ string ".\\\""
-  many Parsec.space
   skipMany $ noneOf "\n"
   eofline
   return mempty
