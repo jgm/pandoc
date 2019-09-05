@@ -13,19 +13,8 @@ $if(keywords)$
 $endif$
   <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
   <style>
-      code{white-space: pre-wrap;}
-      span.smallcaps{font-variant: small-caps;}
-      span.underline{text-decoration: underline;}
-      div.column{display: inline-block; vertical-align: top; width: 50%;}
-$if(quotes)$
-      q { quotes: "“" "”" "‘" "’"; }
-$endif$
+    $styles.html()$
   </style>
-$if(highlighting-css)$
-  <style>
-$highlighting-css$
-  </style>
-$endif$
 $if(css)$
 $for(css)$
   <link rel="stylesheet" href="$css$">
