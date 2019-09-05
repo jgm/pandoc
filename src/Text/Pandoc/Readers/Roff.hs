@@ -522,10 +522,8 @@ lexGroup = do
   groupstart
   mconcat <$> manyTill manToken groupend
   where
-    groupstart = try $ string "\\{\\" >> newline
-    groupend   = try $ optional (char '.' >> many spacetab) >>
-                       string "\\}" >> (lexLine <|> lexEmptyLine)
-                       -- could be comment
+    groupstart = try $ string "\\{" <* optional (try (string "\\\n"))
+    groupend   = try $ string "\\}"
 
 lexIncludeFile :: PandocMonad m => [Arg] -> RoffLexer m RoffTokens
 lexIncludeFile args = do
