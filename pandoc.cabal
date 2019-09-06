@@ -448,6 +448,10 @@ library
                    -Wincomplete-record-updates
                    -Wnoncanonical-monad-instances
                    -Wnoncanonical-monadfail-instances
+  -- Later:
+  -- -Wpartial-fields        (currently used in Powerpoint writer)
+  -- -Wmissing-export-lists  (currently some Odt modules violate this)
+  -- -Wredundant-constraints (problematic if we want to support older base)
   if impl(ghc >= 8.2)
     ghc-options:     -Wcpp-undef
   if impl(ghc >= 8.4)

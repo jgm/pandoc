@@ -4,10 +4,6 @@ SOURCEFILES?=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
 RESOLVER?=lts-13
 GHCOPTS=-fdiagnostics-color=always
-# Later:
-# -Wpartial-fields        (currently used in Powerpoint writer)
-# -Wmissing-export-lists  (currently some Odt modules violate this)
-# -Wredundant-constraints (problematic if we want to support older base)
 WEBSITE=../../web/pandoc.org
 
 quick:
