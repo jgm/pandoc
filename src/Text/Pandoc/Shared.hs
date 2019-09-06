@@ -523,10 +523,21 @@ hierarchicalizeWithIds (Header level attr@(_,classes,_) title':xs) = do
   sectionContents' <- hierarchicalizeWithIds sectionContents
   rest' <- hierarchicalizeWithIds rest
   return $ Sec level newnum attr title' sectionContents' : rest'
-hierarchicalizeWithIds (Div ("refs",classes',kvs')
-                         (Header level (ident,classes,kvs) title' : xs):ys) =
-  hierarchicalizeWithIds (Header level (ident,"references":classes,kvs)
-                           title' : Div ("refs",classes',kvs') xs : ys)
+hierarchicalizeWithIds (Div attr@(_,classes',_)
+                         (Header level (_,classes,_) title' : xs):ys)
+  | not ("columns" `elem` classes')
+  , not ("column" `elem` classes') = do
+  lastnum <- S.get
+  let lastnum' = take level lastnum
+  let newnum = case length lastnum' of
+                    x | "unnumbered" `elem` classes -> []
+                      | x >= level -> init lastnum' ++ [last lastnum' + 1]
+                      | otherwise -> lastnum ++
+                           replicate (level - length lastnum - 1) 0 ++ [1]
+  unless (null newnum) $ S.put newnum
+  sectionContents' <- hierarchicalizeWithIds xs
+  rest' <- hierarchicalizeWithIds ys
+  return $ Sec level newnum attr title' sectionContents' : rest'
 hierarchicalizeWithIds (x:rest) = do
   rest' <- hierarchicalizeWithIds rest
   return $ Blk x : rest'
