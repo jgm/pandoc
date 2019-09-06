@@ -351,6 +351,9 @@ lexMacro = do
     "ie"  -> lexConditional "ie"
     "if"  -> lexConditional "if"
     "el"  -> lexConditional "el"
+    "while" -> lexConditional "while"
+               -- this doesn't get the semantics right but
+               -- avoids parse errors
 
     _ -> do
        args <- lexArgs
