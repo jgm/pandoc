@@ -544,7 +544,8 @@ hierarchicalizeWithIds (x:rest) = do
 
 headerLtEq :: Int -> Block -> Bool
 headerLtEq level (Header l _ _)                                  = l <= level
-headerLtEq level (Div ("",["references"],[]) (Header l _ _ : _)) = l <= level
+headerLtEq level (Div ("",classes,[]) (Header l _ _ : _))        =
+  l <= level && "column" `notElem` classes && "columns" `notElem` classes
 headerLtEq _ _                                                   = False
 
 -- | Generate a unique identifier from a list of inlines.
