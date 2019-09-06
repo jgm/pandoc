@@ -523,19 +523,23 @@ hierarchicalizeWithIds (Header level attr@(_,classes,_) title':xs) = do
   sectionContents' <- hierarchicalizeWithIds sectionContents
   rest' <- hierarchicalizeWithIds rest
   return $ Sec level newnum attr title' sectionContents' : rest'
-hierarchicalizeWithIds (Div attr@(_,classes',_)
-                         (Header level (_,classes,_) title' : xs):ys)
-  | not ("columns" `elem` classes')
-  , not ("column" `elem` classes') = do
+hierarchicalizeWithIds (Div (dident,dclasses,dkvs)
+                      (Header level (hident,hclasses,hkvs) title' : xs):ys)
+  | not ("columns" `elem` dclasses)
+  , not ("column" `elem` dclasses) = do
   lastnum <- S.get
   let lastnum' = take level lastnum
   let newnum = case length lastnum' of
-                    x | "unnumbered" `elem` classes -> []
+                    x | "unnumbered" `elem` hclasses -> []
                       | x >= level -> init lastnum' ++ [last lastnum' + 1]
                       | otherwise -> lastnum ++
                            replicate (level - length lastnum - 1) 0 ++ [1]
   unless (null newnum) $ S.put newnum
-  sectionContents' <- hierarchicalizeWithIds xs
+  let attr = (hident, dclasses ++ hclasses, dkvs ++ hkvs)
+  sectionContents' <- hierarchicalizeWithIds $
+                        if null dident  -- ensure we don't lose an id
+                           then xs
+                           else [Div (dident,[],[]) xs]
   rest' <- hierarchicalizeWithIds ys
   return $ Sec level newnum attr title' sectionContents' : rest'
 hierarchicalizeWithIds (x:rest) = do
