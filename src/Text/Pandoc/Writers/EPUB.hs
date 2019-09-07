@@ -26,7 +26,7 @@ import Control.Monad.State.Strict (State, StateT, evalState, evalStateT, get,
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import Data.Char (isAlphaNum, isAscii, isDigit, toLower)
-import Data.List (intercalate, isInfixOf, isPrefixOf)
+import Data.List (isInfixOf, isPrefixOf)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, isJust)
 import qualified Data.Set as Set
@@ -47,9 +47,8 @@ import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType)
 import Text.Pandoc.Options (EPUBVersion (..), HTMLMathMethod (..),
                             ObfuscationMethod (NoObfuscation), WrapOption (..),
                             WriterOptions (..))
-import Text.Pandoc.Shared (hierarchicalize, normalizeDate, renderTags',
+import Text.Pandoc.Shared (makeSections, normalizeDate, renderTags',
                            safeRead, stringify, trim, uniqueIdent)
-import qualified Text.Pandoc.Shared as S (Element (..))
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.UUID (getUUID)
 import Text.Pandoc.Walk (query, walk, walkM)
@@ -712,31 +711,34 @@ pandocToEPUB version opts doc = do
   contentsEntry <- mkEntry "content.opf" contentsData
 
   -- toc.ncx
-  let secs = hierarchicalize blocks'
+  let secs = makeSections True (Just 1) blocks'
 
   let tocLevel = writerTOCDepth opts
 
   let navPointNode :: PandocMonad m
                    => (Int -> [Inline] -> String -> [Element] -> Element)
-                   -> S.Element -> StateT Int m Element
-      navPointNode formatter (S.Sec _ nums (ident,_,_) ils children) = do
-        n <- get
-        modify (+1)
-        let showNums :: [Int] -> String
-            showNums = intercalate "." . map show
-        let tit = if writerNumberSections opts && not (null nums)
-                     then Span ("", ["section-header-number"], [])
-                           [Str (showNums nums)] : Space : ils
-                     else ils
-        src <- case lookup ident reftable of
-                 Just x  -> return x
-                 Nothing -> throwError $ PandocSomeError $ ident ++ " not found in reftable"
-        let isSec (S.Sec lev _ _ _ _) = lev <= tocLevel
-            isSec _                   = False
-        let subsecs = filter isSec children
-        subs <- mapM (navPointNode formatter) subsecs
-        return $ formatter n tit src subs
-      navPointNode _ (S.Blk _) = throwError $ PandocSomeError "navPointNode encountered Blk"
+                   -> Block -> StateT Int m [Element]
+      navPointNode formatter (Div (ident,"section":_,_)
+                                (Header lvl (_,_,kvs) ils : children)) = do
+        if lvl > tocLevel
+           then return []
+           else do
+             n <- get
+             modify (+1)
+             let num = fromMaybe "" $ lookup "number" kvs
+             let tit = if writerNumberSections opts && not (null num)
+                          then Span ("", ["section-header-number"], [])
+                                [Str num] : Space : ils
+                          else ils
+             src <- case lookup ident reftable of
+                      Just x  -> return x
+                      Nothing -> throwError $ PandocSomeError $
+                                    ident ++ " not found in reftable"
+             subs <- concat <$> mapM (navPointNode formatter) children
+             return [formatter n tit src subs]
+      navPointNode formatter (Div _ bs) =
+        concat <$> mapM (navPointNode formatter) bs
+      navPointNode _ _ = return []
 
   let navMapFormatter :: Int -> [Inline] -> String -> [Element] -> Element
       navMapFormatter n tit src subs = unode "navPoint" !
@@ -750,7 +752,8 @@ pandocToEPUB version opts doc = do
                   , unode "content" ! [("src", "text/title_page.xhtml")]
                   $ () ]
 
-  navMap <- lift $ evalStateT (mapM (navPointNode navMapFormatter) secs) 1
+  navMap <- lift $ evalStateT
+             (concat <$> mapM (navPointNode navMapFormatter) secs) 1
   let tocData = UTF8.fromStringLazy $ ppTopElement $
         unode "ncx" ! [("version","2005-1")
                        ,("xmlns","http://www.daisy.org/z3986/2005/ncx/")] $
@@ -800,7 +803,8 @@ pandocToEPUB version opts doc = do
                 clean x              = x
 
   let navtag = if epub3 then "nav" else "div"
-  tocBlocks <- lift $ evalStateT (mapM (navPointNode navXhtmlFormatter) secs) 1
+  tocBlocks <- lift $ evalStateT
+                 (concat <$> mapM (navPointNode navXhtmlFormatter) secs) 1
   let navBlocks = [RawBlock (Format "html")
                   $ showElement $ -- prettyprinting introduces bad spaces
                    unode navtag ! ([("epub:type","toc") | epub3] ++

@@ -442,7 +442,6 @@ Blah
 <li>Escaped <code>$</code>: $73 <em>this should be emphasized</em> 23$.</li>
 </ul>
 <p>Here’s a LaTeX table:</p>
-
 <hr />
 <h1 id="special-characters">Special Characters</h1>
 <p>Here is some unicode:</p>

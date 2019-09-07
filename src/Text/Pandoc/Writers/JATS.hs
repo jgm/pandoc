@@ -63,30 +63,27 @@ docToJATS opts (Pandoc meta blocks) = do
   let isBackBlock (Div ("refs",_,_) _) = True
       isBackBlock _                    = False
   let (backblocks, bodyblocks) = partition isBackBlock blocks
-  let elements = hierarchicalize bodyblocks
-  let backElements = hierarchicalize $ backblocks
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
   -- The numbering here follows LaTeX's internal numbering
   let startLvl = case writerTopLevelDivision opts of
                    TopLevelPart    -> -1
                    TopLevelChapter -> 0
                    TopLevelSection -> 1
                    TopLevelDefault -> 1
+  let fromBlocks = blocksToJATS opts . makeSections False (Just startLvl)
+  let colwidth = if writerWrapText opts == WrapAuto
+                    then Just $ writerColumns opts
+                    else Nothing
   metadata <- metaToContext opts
-                 (fmap vcat .
-                          mapM (elementToJATS opts startLvl) .
-                            hierarchicalize)
+                 fromBlocks
                  (fmap chomp . inlinesToJATS opts)
                  meta
-  main <- vcat <$> mapM (elementToJATS opts startLvl) elements
+  main <- fromBlocks bodyblocks
   notes <- reverse . map snd <$> gets jatsNotes
-  backs <- mapM (elementToJATS opts startLvl) backElements
+  backs <- fromBlocks backblocks
   let fns = if null notes
             then mempty
             else inTagsIndented "fn-group" $ vcat notes
-  let back = vcat backs $$ fns
+  let back = backs $$ fns
   let date =
         case getField "date" metadata of
           Nothing -> NullVal
@@ -115,18 +112,6 @@ docToJATS opts (Pandoc meta blocks) = do
     case writerTemplate opts of
        Nothing  -> main
        Just tpl -> renderTemplate tpl context
-
--- | Convert an Element to JATS.
-elementToJATS :: PandocMonad m => WriterOptions -> Int -> Element -> JATS m (Doc Text)
-elementToJATS opts _   (Blk block) = blockToJATS opts block
-elementToJATS opts lvl (Sec _ _num (id',_,kvs) title elements) = do
-  let idAttr = [("id", writerIdentifierPrefix opts ++ id') | not (null id')]
-  let otherAttrs = ["sec-type", "specific-use"]
-  let attribs = idAttr ++ [(k,v) | (k,v) <- kvs, k `elem` otherAttrs]
-  contents <- mapM (elementToJATS opts (lvl + 1)) elements
-  title' <- inlinesToJATS opts title
-  return $ inTags True "sec" attribs $
-      inTagsSimple "title" title' $$ vcat contents
 
 -- | Convert a list of Pandoc blocks to JATS.
 blocksToJATS :: PandocMonad m => WriterOptions -> [Block] -> JATS m (Doc Text)
@@ -225,6 +210,14 @@ codeAttr (ident,classes,kvs) = (lang, attr)
 -- | Convert a Pandoc block element to JATS.
 blockToJATS :: PandocMonad m => WriterOptions -> Block -> JATS m (Doc Text)
 blockToJATS _ Null = return empty
+blockToJATS opts (Div (id',"section":_,kvs) (Header _lvl _ ils : xs)) = do
+  let idAttr = [("id", writerIdentifierPrefix opts ++ id') | not (null id')]
+  let otherAttrs = ["sec-type", "specific-use"]
+  let attribs = idAttr ++ [(k,v) | (k,v) <- kvs, k `elem` otherAttrs]
+  title' <- inlinesToJATS opts ils
+  contents <- blocksToJATS opts xs
+  return $ inTags True "sec" attribs $
+      inTagsSimple "title" title' $$ contents
 -- Bibliography reference:
 blockToJATS opts (Div ('r':'e':'f':'-':_,_,_) [Para lst]) =
   inlinesToJATS opts lst

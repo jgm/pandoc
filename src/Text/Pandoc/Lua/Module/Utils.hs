@@ -38,7 +38,7 @@ pushModule mbDatadir = do
   Lua.newtable
   addFunction "blocks_to_inlines" blocksToInlines
   addFunction "equals" equals
-  addFunction "hierarchicalize" hierarchicalize
+  addFunction "make_sections" makeSections
   addFunction "normalize_date" normalizeDate
   addFunction "run_json_filter" (runJSONFilter mbDatadir)
   addFunction "sha1" sha1
@@ -55,9 +55,10 @@ blocksToInlines blks optSep = do
               Nothing -> Shared.defaultBlocksSeparator
   return $ B.toList (Shared.blocksToInlinesWithSep sep blks)
 
--- | Convert list of Pandoc blocks into (hierarchical) list of Elements.
-hierarchicalize :: [Block] -> Lua [Shared.Element]
-hierarchicalize = return . Shared.hierarchicalize
+-- | Convert list of Pandoc blocks into sections using Divs.
+makeSections :: Bool -> Lua.Optional Int -> [Block] -> Lua [Block]
+makeSections number baselevel =
+  return . Shared.makeSections number (Lua.fromOptional baselevel)
 
 -- | Parse a date and convert (if possible) to "YYYY-MM-DD" format. We
 -- limit years to the range 1601-9999 (ISO 8601 accepts greater than

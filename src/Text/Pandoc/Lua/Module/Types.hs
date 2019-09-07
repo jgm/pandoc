@@ -19,7 +19,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Lua.Marshaling.AST (LuaAttr, LuaListAttributes)
 import Text.Pandoc.Lua.Marshaling.Version ()
 import Text.Pandoc.Lua.Util (addFunction)
-import Text.Pandoc.Shared (Element (..))
 
 import qualified Foreign.Lua as Lua
 
@@ -38,7 +37,6 @@ pushCloneTable = do
   addFunction "Attr" cloneAttr
   addFunction "Block" cloneBlock
   addFunction "Citation" cloneCitation
-  addFunction "Element" cloneElement
   addFunction "Inline" cloneInline
   addFunction "Meta" cloneMeta
   addFunction "MetaValue" cloneMetaValue
@@ -54,9 +52,6 @@ cloneBlock = return
 
 cloneCitation :: Citation -> Lua Citation
 cloneCitation = return
-
-cloneElement :: Element -> Lua Element
-cloneElement = return
 
 cloneInline :: Inline -> Lua Inline
 cloneInline = return

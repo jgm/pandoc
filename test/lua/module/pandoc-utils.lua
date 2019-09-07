@@ -39,20 +39,17 @@ return {
     end)
   },
 
-  group 'hierarchicalize' {
+  group 'make_sections' {
     test('sanity check', function ()
       local blks = {
         pandoc.Header(1, {pandoc.Str 'First'}),
         pandoc.Header(2, {pandoc.Str 'Second'}),
         pandoc.Header(2, {pandoc.Str 'Third'}),
       }
-      local hblks = utils.hierarchicalize(blks)
-      -- cannot create Elements directly; performing only an approximate
-      -- sanity checking instead of a full equality comparison.
-      assert.are_equal('Sec', hblks[1].t)
-      assert.are_equal('Sec', hblks[1].contents[1].t)
-      assert.are_equal(1, hblks[1].contents[2].numbering[1])
-      assert.are_equal(2, hblks[1].contents[2].numbering[2])
+      local hblks = utils.make_sections(true, 1, blks)
+      assert.are_equal('Div', hblks[1].t)
+      assert.are_equal('Header', hblks[1].content[1].t)
+      assert.are_equal('1', hblks[1].content[1].attributes['number'])
     end)
   },
 

@@ -39,6 +39,7 @@ module Text.Pandoc.Writers.Shared (
 where
 import Prelude
 import Safe (lastMay)
+import Data.Maybe (fromMaybe)
 import Control.Monad (zipWithM)
 import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace)
@@ -49,7 +50,7 @@ import qualified Text.Pandoc.Builder as Builder
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.DocLayout
-import Text.Pandoc.Shared (stringify, hierarchicalize, Element(..), deNote)
+import Text.Pandoc.Shared (stringify, makeSections, deNote, deLink)
 import Text.Pandoc.Walk (walk)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (escapeStringForXML)
@@ -382,20 +383,28 @@ toTableOfContents :: WriterOptions
                   -> [Block]
                   -> Block
 toTableOfContents opts bs =
-  BulletList $ map (elementToListItem opts) (hierarchicalize bs)
+  BulletList $ filter (not . null)
+             $ map (sectionToListItem opts)
+             $ makeSections (writerNumberSections opts) Nothing bs
 
 -- | Converts an Element to a list item for a table of contents,
-elementToListItem :: WriterOptions -> Element -> [Block]
-elementToListItem opts (Sec lev _nums (ident,_,_) headerText subsecs)
-  = Plain headerLink : [BulletList listContents | not (null subsecs)
-                                                , lev < writerTOCDepth opts]
+sectionToListItem :: WriterOptions -> Block -> [Block]
+sectionToListItem opts (Div (ident,_,_)
+                         (Header lev (_,_,kvs) ils : subsecs)) =
+  Plain headerLink : [BulletList listContents | not (null listContents)
+                                              , lev < writerTOCDepth opts]
  where
-   headerText' = walk deNote headerText
+   num = fromMaybe "" $ lookup "number" kvs
+   addNumber  = if null num
+                   then id
+                   else (Span ("",["toc-section-number"],[])
+                           [Str num] :) . (Space :)
+   headerText' = addNumber $ walk (deLink . deNote) ils
    headerLink = if null ident
                    then headerText'
                    else [Link nullAttr headerText' ('#':ident, "")]
-   listContents = map (elementToListItem opts) subsecs
-elementToListItem _ (Blk _) = []
+   listContents = filter (not . null) $ map (sectionToListItem opts) subsecs
+sectionToListItem _ _ = []
 
 endsWithPlain :: [Block] -> Bool
 endsWithPlain xs =

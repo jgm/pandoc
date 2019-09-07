@@ -37,8 +37,6 @@
 [Para [Str "hi"], Para [], Para [], Para [Str "lo"]]
 ^D
 <p>hi</p>
-
-
 <p>lo</p>
 ```
 

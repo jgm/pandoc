@@ -22,12 +22,9 @@ module Text.Pandoc.Lua.Marshaling.AST
 import Prelude
 import Control.Applicative ((<|>))
 import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
-import Foreign.Lua.Userdata ( ensureUserdataMetatable, pushAnyWithMetatable
-                            , metatableName)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.Util (defineHowTo, pushViaConstructor)
 import Text.Pandoc.Lua.Marshaling.CommonState ()
-import Text.Pandoc.Shared (Element (Blk, Sec))
 
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
@@ -285,31 +282,3 @@ instance Pushable LuaListAttributes where
 instance Peekable LuaListAttributes where
   peek = defineHowTo "get ListAttributes value" .
          fmap LuaListAttributes . Lua.peek
-
---
--- Hierarchical elements
---
-instance Pushable Element where
-  push (Blk blk) = Lua.push blk
-  push sec = pushAnyWithMetatable pushElementMetatable sec
-   where
-    pushElementMetatable = ensureUserdataMetatable (metatableName sec) $
-                           LuaUtil.addFunction "__index" indexElement
-
-instance Peekable Element where
-  peek idx = Lua.ltype idx >>= \case
-    Lua.TypeUserdata -> Lua.peekAny idx
-    _                -> Blk <$> Lua.peek idx
-
-indexElement :: Element -> String -> Lua Lua.NumResults
-indexElement = \case
-  (Blk _) -> const (1 <$ Lua.pushnil) -- this shouldn't happen
-  (Sec lvl num attr label contents) -> fmap (return 1) . \case
-    "level"     -> Lua.push lvl
-    "numbering" -> Lua.push num
-    "attr"      -> Lua.push (LuaAttr attr)
-    "label"     -> Lua.push label
-    "contents"  -> Lua.push contents
-    "tag"       -> Lua.push "Sec"
-    "t"         -> Lua.push "Sec"
-    _           -> Lua.pushnil

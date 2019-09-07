@@ -78,7 +78,6 @@ writeDocbook5 opts d =
 -- | Convert Pandoc document to string in Docbook format.
 writeDocbook :: PandocMonad m => WriterOptions -> Pandoc -> DB m Text
 writeDocbook opts (Pandoc meta blocks) = do
-  let elements = hierarchicalize blocks
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
@@ -88,15 +87,15 @@ writeDocbook opts (Pandoc meta blocks) = do
                    TopLevelChapter -> 0
                    TopLevelSection -> 1
                    TopLevelDefault -> 1
+  let fromBlocks = blocksToDocbook opts .
+                   makeSections False (Just startLvl)
   auths' <- mapM (authorToDocbook opts) $ docAuthors meta
   let meta' = B.setMeta "author" auths' meta
   metadata <- metaToContext opts
-                 (fmap vcat .
-                          mapM (elementToDocbook opts startLvl) .
-                            hierarchicalize)
+                 (fromBlocks)
                  (inlinesToDocbook opts)
                  meta'
-  main <- vcat <$> mapM (elementToDocbook opts startLvl) elements
+  main <- fromBlocks blocks
   let context = defField "body" main
               $ defField "mathml" (case writerHTMLMathMethod opts of
                                           MathML -> True
@@ -106,34 +105,6 @@ writeDocbook opts (Pandoc meta blocks) = do
     case writerTemplate opts of
          Nothing  -> main
          Just tpl -> renderTemplate tpl context
-
--- | Convert an Element to Docbook.
-elementToDocbook :: PandocMonad m => WriterOptions -> Int -> Element -> DB m (Doc Text)
-elementToDocbook opts _   (Blk block) = blockToDocbook opts block
-elementToDocbook opts lvl (Sec _ _num (id',_,_) title elements) = do
-  version <- ask
-  -- Docbook doesn't allow sections with no content, so insert some if needed
-  let elements' = if null elements
-                    then [Blk (Para [])]
-                    else elements
-      tag = case lvl of
-                 -1                   -> "part"
-                 0                    -> "chapter"
-                 n | n >= 1 && n <= 5 -> if version == DocBook5
-                                              then "section"
-                                              else "sect" ++ show n
-                 _                    -> "simplesect"
-      idName = if version == DocBook5
-                 then "xml:id"
-                 else "id"
-      idAttr = [(idName, writerIdentifierPrefix opts ++ id') | not (null id')]
-      nsAttr = if version == DocBook5 && lvl == 0 then [("xmlns", "http://docbook.org/ns/docbook"),("xmlns:xlink", "http://www.w3.org/1999/xlink")]
-                                      else []
-      attribs = nsAttr ++ idAttr
-  contents <- mapM (elementToDocbook opts (lvl + 1)) elements'
-  title' <- inlinesToDocbook opts title
-  return $ inTags True tag attribs $
-      inTagsSimple "title" title' $$ vcat contents
 
 -- | Convert a list of Pandoc blocks to Docbook.
 blocksToDocbook :: PandocMonad m => WriterOptions -> [Block] -> DB m (Doc Text)
@@ -184,6 +155,29 @@ blockToDocbook :: PandocMonad m => WriterOptions -> Block -> DB m (Doc Text)
 blockToDocbook _ Null = return empty
 -- Add ids to paragraphs in divs with ids - this is needed for
 -- pandoc-citeproc to get link anchors in bibliographies:
+blockToDocbook opts (Div (id',"section":_,_) (Header lvl _ ils : xs)) = do
+  version <- ask
+  -- Docbook doesn't allow sections with no content, so insert some if needed
+  let bs = if null xs
+              then [Para []]
+              else xs
+      tag = case lvl of
+                 -1                   -> "part"
+                 0                    -> "chapter"
+                 n | n >= 1 && n <= 5 -> if version == DocBook5
+                                              then "section"
+                                              else "sect" ++ show n
+                 _                    -> "simplesect"
+      idName = if version == DocBook5
+                 then "xml:id"
+                 else "id"
+      idAttr = [(idName, writerIdentifierPrefix opts ++ id') | not (null id')]
+      nsAttr = if version == DocBook5 && lvl == 0 then [("xmlns", "http://docbook.org/ns/docbook"),("xmlns:xlink", "http://www.w3.org/1999/xlink")]
+                                      else []
+      attribs = nsAttr ++ idAttr
+  title' <- inlinesToDocbook opts ils
+  contents <- blocksToDocbook opts bs
+  return $ inTags True tag attribs $ inTagsSimple "title" title' $$ contents
 blockToDocbook opts (Div (ident,_,_) [Para lst]) =
   let attribs = [("id", ident) | not (null ident)] in
   if hasLineBreaks lst
@@ -197,7 +191,7 @@ blockToDocbook opts (Div (ident,_,_) bs) = do
         then mempty
         else selfClosingTag "anchor" [("id", ident)]) $$ contents
 blockToDocbook _ h@Header{} = do
-  -- should not occur after hierarchicalize, except inside lists/blockquotes
+  -- should be handled by Div section above, except inside lists/blockquotes
   report $ BlockNotRendered h
   return empty
 blockToDocbook opts (Plain lst) = inlinesToDocbook opts lst

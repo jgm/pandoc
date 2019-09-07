@@ -1314,40 +1314,6 @@ Object equality is determined via
 :   delimiter of list numbers; one of `DefaultDelim`, `Period`,
     `OneParen`, and `TwoParens` (string)
 
-## Hierarchical Element {#type-ref-Element}
-
-Hierarchical elements can be either *Sec* (sections) or *Blk*
-(blocks). *Blk* elements are treated like
-[Block](#type-ref-Block)s.
-
-### Sec {#type-ref-Sec}
-
-Section elements used to provide hierarchical information on
-document contents.
-
-**Objects of this type are read-only.**
-
-`level`
-:   header level (integer)
-
-`numbering`
-:   section numbering ([list](#module-pandoc.list) of integers)
-
-`attr`
-:   header attributes ([Attr](#type-ref-Attr))
-
-`label`
-:   header content ([list](#module-pandoc.list) of
-    [Inline](#type-ref-Inline)s)
-
-`contents`
-:   list of contents in this section
-    ([list](#module-pandoc.list) of [hierarchical
-    element](#Element)s)
-
-`tag`, `t`
-:   constant `Sec` (string)
-
 ## ReaderOptions {#type-ref-ReaderOptions}
 
 Pandoc reader options
@@ -2392,23 +2358,23 @@ Returns:
 
 -   Whether the two objects represent the same element (boolean)
 
-### hierarchicalize {#utils-hierarchicalize}
+### make\_sections {#utils-make_sections}
 
-`hierarchicalize (blocks)`
+`make_sections (number_sections, base_level, blocks)`
 
-Convert list of [Blocks](#Blocks) into an hierarchical list. An
-hierarchical elements is either a normal block (but no Header),
-or a `Sec` element. The latter has the following fields:
-
--   level: level in the document hierarchy;
--   numbering: list of integers of length `level`, specifying
-    the absolute position of the section in the document;
--   attr: section attributes (see [Attr](#Attr));
--   contents: nested list of hierarchical elements.
+Converst list of [Blocks](#Blocks) into sections.
+`Div`s will be created beginning at each `Header`
+and containing following content until the next `Header`
+of comparable level.  If `number_sections` is true,
+a `number` attribute will be added to each `Header`
+containing the section number. If `base_level` is
+non-null, `Header` levels will be reorganized so
+that there are no gaps, and so that the base level
+is the level specified.
 
 Returns:
 
--   List of hierarchical elements.
+-   List of [Blocks](#Blocks).
 
 Usage:
 
@@ -2416,9 +2382,7 @@ Usage:
       pandoc.Header(2, pandoc.Str 'first'),
       pandoc.Header(2, pandoc.Str 'second'),
     }
-    local elements = pandoc.utils.hierarchicalize(blocks)
-    print(table.concat(elements[1].numbering, '.')) -- 0.1
-    print(table.concat(elements[2].numbering, '.')) -- 0.2
+    local newblocks = pandoc.utils.make_sections(true, 1, blocks)
 
 ### run\_json\_filter {#utils-run_json_filter}
 

@@ -65,8 +65,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
               blockListToConTeXt
               (fmap chomp . inlineListToConTeXt)
               meta
-  body <- mapM (elementToConTeXt options) $ hierarchicalize blocks
-  let main = vcat body
+  main <- blockListToConTeXt $ makeSections False Nothing blocks
   let layoutFromMargins = mconcat $ intersperse ("," :: Doc Text) $
                           mapMaybe (\(x,y) ->
                                 ((x <> "=") <>) <$> getField y metadata)
@@ -147,18 +146,15 @@ toLabel z = concatMap go z
          | x `elem` ("\\#[]\",{}%()|=" :: String) = "ux" ++ printf "%x" (ord x)
          | otherwise = [x]
 
--- | Convert Elements to ConTeXt
-elementToConTeXt :: PandocMonad m => WriterOptions -> Element -> WM m (Doc Text)
-elementToConTeXt _ (Blk block) = blockToConTeXt block
-elementToConTeXt opts (Sec level _ attr title' elements) = do
-  header' <- sectionHeader attr level title'
-  footer' <- sectionFooter attr level
-  innerContents <- mapM (elementToConTeXt opts) elements
-  return $ header' $$ vcat innerContents $$ footer'
-
 -- | Convert Pandoc block element to ConTeXt.
 blockToConTeXt :: PandocMonad m => Block -> WM m (Doc Text)
 blockToConTeXt Null = return empty
+blockToConTeXt (Div attr@(_,"section":_,_)
+                 (Header level _ title' : xs)) = do
+  header' <- sectionHeader attr level title'
+  footer' <- sectionFooter attr level
+  innerContents <- blockListToConTeXt xs
+  return $ header' $$ innerContents $$ footer'
 blockToConTeXt (Plain lst) = inlineListToConTeXt lst
 -- title beginning with fig: indicates that the image is a figure
 blockToConTeXt (Para [Image attr txt (src,'f':'i':'g':':':_)]) = do

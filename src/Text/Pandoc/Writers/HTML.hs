@@ -32,9 +32,10 @@ import Prelude
 import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
 import Data.List (intercalate, intersperse, isPrefixOf, partition)
-import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, mapMaybe)
+import Data.Maybe (fromMaybe, isJust, isNothing, mapMaybe)
 import qualified Data.Set as Set
 import Data.String (fromString)
+import Data.List.Split (splitWhen)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -90,20 +91,20 @@ data WriterState = WriterState
     , stMath         :: Bool    -- ^ Math is used in document
     , stQuotes       :: Bool    -- ^ <q> tag is used
     , stHighlighting :: Bool    -- ^ Syntax highlighting is used
-    , stSecNum       :: [Int]   -- ^ Number of current section
-    , stElement      :: Bool    -- ^ Processing an Element
     , stHtml5        :: Bool    -- ^ Use HTML5
     , stEPUBVersion  :: Maybe EPUBVersion -- ^ EPUB version if for epub
     , stSlideVariant :: HTMLSlideVariant
+    , stSlideLevel   :: Int     -- ^ Slide level
     , stCodeBlockNum :: Int     -- ^ Number of code block
     }
 
 defaultWriterState :: WriterState
 defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
-                                  stHighlighting = False, stSecNum = [],
-                                  stElement = False, stHtml5 = False,
+                                  stHighlighting = False,
+                                  stHtml5 = False,
                                   stEPUBVersion = Nothing,
                                   stSlideVariant = NoSlides,
+                                  stSlideLevel = 1,
                                   stCodeBlockNum = 0}
 
 -- Helpers to render HTML with the appropriate function.
@@ -243,6 +244,8 @@ pandocToHtml :: PandocMonad m
              -> Pandoc
              -> StateT WriterState m (Html, Context Text)
 pandocToHtml opts (Pandoc meta blocks) = do
+  let slideLevel = fromMaybe (getSlideLevel blocks) $ writerSlideLevel opts
+  modify $ \st -> st{ stSlideLevel = slideLevel }
   metadata <- metaToContext opts
               (fmap renderHtml' . blockListToHtml opts)
               (fmap renderHtml' . inlineListToHtml opts)
@@ -250,17 +253,15 @@ pandocToHtml opts (Pandoc meta blocks) = do
   let stringifyHTML = escapeStringForXML . stringify
   let authsMeta = map stringifyHTML $ docAuthors meta
   let dateMeta  = stringifyHTML $ docDate meta
-  let slideLevel = fromMaybe (getSlideLevel blocks) $ writerSlideLevel opts
   slideVariant <- gets stSlideVariant
-  let sects = hierarchicalize $
+  let sects = makeSections (writerNumberSections opts) Nothing $
               if slideVariant == NoSlides
                  then blocks
                  else prepSlides slideLevel blocks
   toc <- if writerTableOfContents opts && slideVariant /= S5Slides
             then fmap renderHtml' <$> tableOfContents opts sects
             else return Nothing
-  blocks' <- liftM (mconcat . intersperse (nl opts)) $
-                 mapM (elementToHtml Nothing slideLevel opts) sects
+  blocks' <- blockListToHtml opts sects
   st <- get
   notes <- footnoteSection opts (reverse (stNotes st))
   let thebody = blocks' >> notes
@@ -380,130 +381,20 @@ listItemToHtml opts bls
       return $ constr (checkbox >> isContents) >> bsContents
 
 -- | Construct table of contents from list of elements.
-tableOfContents :: PandocMonad m => WriterOptions -> [Element]
+tableOfContents :: PandocMonad m => WriterOptions -> [Block]
                 -> StateT WriterState m (Maybe Html)
 tableOfContents _ [] = return Nothing
 tableOfContents opts sects = do
-  contents  <- mapM (elementToListItem opts) sects
-  let tocList = catMaybes contents
-  if null tocList
-     then return Nothing
-     else Just <$> unordList opts tocList
-
--- | Convert section number to string
-showSecNum :: [Int] -> String
-showSecNum = intercalate "." . map show
-
--- | Converts an Element to a list item for a table of contents,
--- retrieving the appropriate identifier from state.
-elementToListItem :: PandocMonad m => WriterOptions -> Element
-                  -> StateT WriterState m (Maybe Html)
--- Don't include the empty headers created in slide shows
--- shows when an hrule is used to separate slides without a new title:
-elementToListItem _ (Sec _ _ _ [Str "\0"] _) = return Nothing
-elementToListItem opts (Sec lev num (id',classes,_) headerText subsecs)
-  | lev <= writerTOCDepth opts = do
-  let num' = zipWith (+) num (writerNumberOffset opts ++ repeat 0)
-  let sectnum = if writerNumberSections opts && not (null num) &&
-                   "unnumbered" `notElem` classes
-                   then (H.span ! A.class_ "toc-section-number"
-                        $ toHtml $ showSecNum num') >> preEscapedString " "
-                   else mempty
-  txt <- liftM (sectnum >>) $
-         inlineListToHtml opts $ walk (deLink . deNote) headerText
-  subHeads <- mapM (elementToListItem opts) subsecs >>= return . catMaybes
-  subList <- if null subHeads
-                then return mempty
-                else unordList opts subHeads
   -- in reveal.js, we need #/apples, not #apples:
   slideVariant <- gets stSlideVariant
-  let revealSlash = ['/' | slideVariant== RevealJsSlides]
-  return $ Just
-         $ if null id'
-              then  H.a (toHtml txt) >> subList
-              else (H.a ! A.href (toValue $ "#" ++ revealSlash ++
-                    writerIdentifierPrefix opts ++ id')
-                       $ toHtml txt) >> subList
-elementToListItem _ _ = return Nothing
-
-deLink :: Inline -> Inline
-deLink (Link _ ils _) = Span nullAttr ils
-deLink x              = x
-
--- | Convert an Element to Html.
-elementToHtml :: PandocMonad m => Maybe Int -> Int -> WriterOptions -> Element
-              -> StateT WriterState m Html
-elementToHtml _ _ opts (Blk block) = blockToHtml opts block
-elementToHtml mbparentlevel slideLevel opts
-      (Sec level num (id',classes,keyvals) title' elements)
-  = do
-  slideVariant <- gets stSlideVariant
-  let slide = slideVariant /= NoSlides &&
-               (level <= slideLevel ||
-                -- we're missing a header at slide level (see #5168)
-                maybe False (< slideLevel) mbparentlevel)
-  let num' = zipWith (+) num (writerNumberOffset opts ++ repeat 0)
-  modify $ \st -> st{stSecNum = num'}  -- update section number
-  html5 <- gets stHtml5
-  let titleSlide = slide && level < slideLevel
-  header' <- if title' == [Str "\0"]  -- marker for hrule
-                then return mempty
-                else do
-                  modify (\st -> st{ stElement = True})
-                  let level' = if level <= slideLevel &&
-                                  slideVariant == SlidySlides
-                                  then 1 -- see #3566
-                                  else level
-                  res <- blockToHtml opts
-                           (Header level' (id',classes,keyvals) title')
-                  modify (\st -> st{ stElement = False})
-                  return res
-
-  let isSec Sec{} = True
-      isSec (Blk _) = False
-  let isPause (Blk x) = x == Para [Str ".",Space,Str ".",Space,Str "."]
-      isPause _       = False
-  let fragmentClass = case slideVariant of
-                           RevealJsSlides -> "fragment"
-                           _              -> "incremental"
-  let inDiv xs = Blk (RawBlock (Format "html") ("<div class=\""
-                       ++ fragmentClass ++ "\">")) :
-                   (xs ++ [Blk (RawBlock (Format "html") "</div>")])
-  let (titleBlocks, innerSecs) =
-                     if titleSlide
-                        -- title slides have no content of their own
-                        then ([x | Blk x <- elements],
-                              filter isSec elements)
-                        else case splitBy isPause elements of
-                                  []     -> ([],[])
-                                  (x:xs) -> ([],x ++ concatMap inDiv xs)
-  titleContents <- blockListToHtml opts titleBlocks
-  innerContents <- mapM (elementToHtml (Just level) slideLevel opts) innerSecs
-  let inNl x = mconcat $ nl opts : intersperse (nl opts) x ++ [nl opts]
-  let classes' = ["title-slide" | titleSlide] ++ ["slide" | slide] ++
-                  ["section" | (slide || writerSectionDivs opts) &&
-                               not html5 ] ++
-                  ["level" ++ show level | slide || writerSectionDivs opts ]
-                  ++ classes
-  let secttag  = if html5
-                    then H5.section
-                    else H.div
-  let attr = (id',classes',keyvals)
-  if titleSlide
-     then do
-       t <- addAttrs opts attr $ secttag $ header' <> titleContents
-       return $
-         (if slideVariant == RevealJsSlides && not (null innerContents)
-             -- revealjs doesn't like more than one level of section nesting:
-             && isNothing mbparentlevel
-                then H5.section
-                else id) $ mconcat $ t : innerContents
-     else if writerSectionDivs opts || slide
-          then addAttrs opts attr
-               $ secttag $ inNl $ header' : innerContents
-          else do
-            t <- addAttrs opts attr header'
-            return $ mconcat $ intersperse (nl opts) (t : innerContents)
+  let opts' = case slideVariant of
+                RevealJsSlides ->
+                  opts{ writerIdentifierPrefix =
+                          '/' : writerIdentifierPrefix opts }
+                _ -> opts
+  case toTableOfContents opts sects of
+    bl@(BulletList (_:_)) -> Just <$> blockToHtml opts' bl
+    _ -> return Nothing
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
@@ -686,6 +577,16 @@ figure opts attr txt (s,tit) = do
               else H.div ! A.class_ "figure" $ mconcat
                     [nl opts, img, nl opts, capt, nl opts]
 
+showSecNum :: [Int] -> String
+showSecNum = intercalate "." . map show
+
+getNumber :: WriterOptions -> Attr -> String
+getNumber opts (_,_,kvs) =
+  showSecNum $ zipWith (+) num (writerNumberOffset opts ++ repeat 0)
+  where
+   num = maybe [] (map (fromMaybe 0 . safeRead) . splitWhen (=='.')) $
+          lookup "number" kvs
+
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: PandocMonad m => WriterOptions -> Block -> StateT WriterState m Html
 blockToHtml _ Null = return mempty
@@ -713,6 +614,73 @@ blockToHtml opts (LineBlock lns) =
   else do
     htmlLines <- inlineListToHtml opts $ intercalate [LineBreak] lns
     return $ H.div ! A.class_ "line-block" $ htmlLines
+blockToHtml opts (Div (ident, "section":dclasses, dkvs)
+                   (Header level hattr ils : xs)) = do
+  slideVariant <- gets stSlideVariant
+  slideLevel <- gets stSlideLevel
+  let slide = slideVariant /= NoSlides &&
+               level <= slideLevel {- DROPPED old fix for #5168 here -}
+  html5 <- gets stHtml5
+  let titleSlide = slide && level < slideLevel
+  let level' = if level <= slideLevel && slideVariant == SlidySlides
+                  then 1 -- see #3566
+                  else level
+  header' <- if ils == [Str "\0"]  -- marker for hrule
+                then return mempty
+                else blockToHtml opts (Header level' hattr ils)
+  let isSec (Div (_,"section":_,_) _) = True
+      isSec (Div _ zs)                = any isSec zs
+      isSec _                         = False
+  let isPause (Para [Str ".",Space,Str ".",Space,Str "."]) = True
+      isPause _ = False
+  let fragmentClass = case slideVariant of
+                           RevealJsSlides -> "fragment"
+                           _              -> "incremental"
+  let inDiv zs = (RawBlock (Format "html") ("<div class=\""
+                       ++ fragmentClass ++ "\">")) :
+                   (zs ++ [RawBlock (Format "html") "</div>"])
+  let (titleBlocks, innerSecs) =
+        if titleSlide
+           -- title slides have no content of their own
+           then break isSec xs
+           else case splitBy isPause xs of
+                     []     -> ([],[])
+                     (z:zs) -> ([],z ++ concatMap inDiv zs)
+  titleContents <- blockListToHtml opts titleBlocks
+  innerContents <- blockListToHtml opts innerSecs
+  let classes' = ["title-slide" | titleSlide] ++ ["slide" | slide] ++
+                  ["section" | (slide || writerSectionDivs opts) &&
+                               not html5 ] ++
+                  ["level" ++ show level | slide || writerSectionDivs opts ]
+                  ++ dclasses
+  let secttag  = if html5
+                    then H5.section
+                    else H.div
+  let attr = (ident, classes', dkvs)
+  if titleSlide
+     then do
+       t <- addAttrs opts attr $ secttag $ header' <> titleContents
+       return $
+         (if slideVariant == RevealJsSlides && not (null innerSecs)
+             -- revealjs doesn't like more than one level of section nesting:
+               {- REMOVED && isNothing mbparentlevel -}
+                then H5.section
+                else id) $ t <> if null innerSecs
+                                   then mempty
+                                   else nl opts <> innerContents
+     else if writerSectionDivs opts || slide || not (null dclasses) ||
+              not (null dkvs)
+          then addAttrs opts attr
+               $ secttag
+               $ nl opts <> header' <> nl opts <>
+                 if null innerSecs
+                    then mempty
+                    else innerContents <> nl opts
+          else do
+            t <- addAttrs opts attr header'
+            return $ t <> if null innerSecs
+                             then mempty
+                             else nl opts <> innerContents
 blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
   html5 <- gets stHtml5
   slideVariant <- gets stSlideVariant
@@ -826,14 +794,13 @@ blockToHtml opts (BlockQuote blocks) = do
        return $ H.blockquote $ nl opts >> contents >> nl opts
 blockToHtml opts (Header level attr@(_,classes,_) lst) = do
   contents <- inlineListToHtml opts lst
-  secnum <- liftM stSecNum get
+  let secnum = getNumber opts attr
   let contents' = if writerNumberSections opts && not (null secnum)
                      && "unnumbered" `notElem` classes
-                     then (H.span ! A.class_ "header-section-number" $ toHtml
-                          $ showSecNum secnum) >> strToHtml " " >> contents
+                     then (H.span ! A.class_ "header-section-number"
+                             $ toHtml secnum) >> strToHtml " " >> contents
                      else contents
-  inElement <- gets stElement
-  (if inElement then return else addAttrs opts attr)
+  addAttrs opts attr
          $ case level of
               1 -> H.h1 contents'
               2 -> H.h2 contents'

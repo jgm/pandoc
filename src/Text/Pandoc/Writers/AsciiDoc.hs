@@ -84,7 +84,7 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
               (blockListToAsciiDoc opts)
               (fmap chomp . inlineListToAsciiDoc opts)
               meta
-  main <- vcat <$> mapM (elementToAsciiDoc 1 opts) (hierarchicalize blocks)
+  main <- blockListToAsciiDoc opts $ makeSections False (Just 1) blocks
   st <- get
   let context  = defField "body" main
                $ defField "toc"
@@ -96,14 +96,6 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
     case writerTemplate opts of
        Nothing  -> main
        Just tpl -> renderTemplate tpl context
-
-elementToAsciiDoc :: PandocMonad m
-                  => Int -> WriterOptions -> Element -> ADW m (Doc Text)
-elementToAsciiDoc _ opts (Blk b) = blockToAsciiDoc opts b
-elementToAsciiDoc nestlevel opts (Sec _lvl _num attr label children) = do
-  hdr <- blockToAsciiDoc opts (Header nestlevel attr label)
-  rest <- vcat <$> mapM (elementToAsciiDoc (nestlevel + 1) opts) children
-  return $ hdr $$ rest
 
 -- | Escape special characters for AsciiDoc.
 escapeString :: String -> String
@@ -137,6 +129,11 @@ blockToAsciiDoc :: PandocMonad m
                 -> Block         -- ^ Block element
                 -> ADW m (Doc Text)
 blockToAsciiDoc _ Null = return empty
+blockToAsciiDoc opts (Div (id',"section":_,_)
+                       (Header level (_,cls,kvs) ils : xs)) = do
+  hdr <- blockToAsciiDoc opts (Header level (id',cls,kvs) ils)
+  rest <- blockListToAsciiDoc opts xs
+  return $ hdr $$ rest
 blockToAsciiDoc opts (Plain inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   return $ contents <> blankline

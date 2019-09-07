@@ -168,9 +168,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   blocks''' <- if beamer
                   then toSlides blocks''
                   else return blocks''
-  body <- mapM (elementToLaTeX options) $ hierarchicalize blocks'''
+  main <- blockListToLaTeX $ makeSections False Nothing blocks'''
   biblioTitle <- inlineListToLaTeX lastHeader
-  let main = vsep body
   st <- get
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
@@ -297,16 +296,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
     case writerTemplate options of
        Nothing  -> main
        Just tpl -> renderTemplate tpl context'
-
--- | Convert Elements to LaTeX
-elementToLaTeX :: PandocMonad m => WriterOptions -> Element -> LW m (Doc Text)
-elementToLaTeX _ (Blk block) = blockToLaTeX block
-elementToLaTeX opts (Sec level _ (id',classes,_) title' elements) = do
-  modify $ \s -> s{stInHeading = True}
-  header' <- sectionHeader ("unnumbered" `elem` classes) id' level title'
-  modify $ \s -> s{stInHeading = False}
-  innerContents <- mapM (elementToLaTeX opts) elements
-  return $ vsep (header' : innerContents)
 
 data StringContext = TextString
                    | URLString
@@ -459,68 +448,16 @@ toSlides bs = do
   opts <- gets stOptions
   let slideLevel = fromMaybe (getSlideLevel bs) $ writerSlideLevel opts
   let bs' = prepSlides slideLevel bs
-  concat `fmap` mapM (elementToBeamer slideLevel) (hierarchicalize bs')
+  walkM (elementToBeamer slideLevel) (makeSections False Nothing bs')
 
-elementToBeamer :: PandocMonad m => Int -> Element -> LW m [Block]
-elementToBeamer _slideLevel (Blk (Div attrs bs)) = do
-  -- make sure we support "blocks" inside divs
-  bs' <- concat `fmap` mapM (elementToBeamer 0) (hierarchicalize bs)
-  return [Div attrs bs']
-
-elementToBeamer _slideLevel (Blk b) = return [b]
-elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
-  | lvl >  slideLevel = do
-      bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
-      return $ Para ( RawInline "latex" "\\begin{block}{"
-                    : tit ++ [RawInline "latex" "}"] )
-             : bs ++ [RawBlock "latex" "\\end{block}"]
-  | lvl <  slideLevel = do
-      let isSec Sec{} = True
-          isSec _     = False
-      let (contentElts, secElts) = break isSec elts
-      let elts' = if null contentElts
-                     then secElts
-                     else Sec slideLevel [] nullAttr tit contentElts :
-                          secElts
-      bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts'
-      return $ Header lvl (ident,classes,kvs) tit : bs
-  | otherwise = do -- lvl == slideLevel
-      -- note: [fragile] is required or verbatim breaks
-      let hasCodeBlock (CodeBlock _ _) = [True]
-          hasCodeBlock _               = []
-      let hasCode (Code _ _) = [True]
-          hasCode _          = []
-      let fragile = "fragile" `elem` classes ||
-                    not (null $ query hasCodeBlock elts ++ query hasCode elts)
-      let frameoptions = ["allowdisplaybreaks", "allowframebreaks", "fragile",
-                          "b", "c", "t", "environment",
-                          "label", "plain", "shrink", "standout",
-                          "noframenumbering"]
-      let optionslist = ["fragile" | fragile
-                                   , isNothing (lookup "fragile" kvs)
-                                   , "fragile" `notElem` classes] ++
-                        [k | k <- classes, k `elem` frameoptions] ++
-                        [k ++ "=" ++ v | (k,v) <- kvs, k `elem` frameoptions]
-      let options = if null optionslist
-                       then ""
-                       else "[" ++ intercalate "," optionslist ++ "]"
-      let latex = RawInline (Format "latex")
-      slideTitle <-
-            if tit == [Str "\0"] -- marker for hrule
-               then return []
-               else return $ latex "{" : tit ++ [latex "}"]
-      ref <- toLabel ident
-      let slideAnchor = if null ident
-                           then []
-                           else [latex ("\n\\protect\\hypertarget{" ++
-                                  ref ++ "}{}")]
-      let slideStart = Para $
-              RawInline "latex" ("\\begin{frame}" ++ options) :
-                 slideTitle ++ slideAnchor
-      let slideEnd = RawBlock "latex" "\\end{frame}"
-      -- now carve up slide into blocks if there are sections inside
-      bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
-      return $ slideStart : bs ++ [slideEnd]
+-- this creates section slides and marks slides with class "slide","block"
+elementToBeamer :: PandocMonad m => Int -> Block -> LW m Block
+elementToBeamer slideLevel d@(Div (ident,dclasses,dkvs)
+                              xs@(Header lvl _ _ : _))
+  | lvl >  slideLevel = return $ Div (ident,"block":dclasses,dkvs) xs
+  | lvl <  slideLevel = return d
+  | otherwise = return $ Div (ident,"slide":dclasses,dkvs) xs
+elementToBeamer _ x = return x
 
 isListBlock :: Block -> Bool
 isListBlock (BulletList _)     = True
@@ -533,85 +470,87 @@ blockToLaTeX :: PandocMonad m
              => Block     -- ^ Block to convert
              -> LW m (Doc Text)
 blockToLaTeX Null = return empty
-blockToLaTeX (Div (identifier,classes,kvs) bs)
-  | "incremental" `elem` classes = do
-      let classes' = filter ("incremental"/=) classes
-      beamer <- gets stBeamer
-      if beamer
-        then do oldIncremental <- gets stIncremental
-                modify $ \s -> s{ stIncremental = True }
-                result <- blockToLaTeX $ Div (identifier,classes',kvs) bs
-                modify $ \s -> s{ stIncremental = oldIncremental }
-                return result
-        else blockToLaTeX $ Div (identifier,classes',kvs) bs
-  | "nonincremental" `elem` classes = do
-      let classes' = filter ("nonincremental"/=) classes
-      beamer <- gets stBeamer
-      if beamer
-        then do oldIncremental <- gets stIncremental
-                modify $ \s -> s{ stIncremental = False }
-                result <- blockToLaTeX $ Div (identifier,classes',kvs) bs
-                modify $ \s -> s{ stIncremental = oldIncremental }
-                return result
-        else blockToLaTeX $ Div (identifier,classes',kvs) bs
-  | identifier == "refs" = do
-       modify $ \st -> st{ stHasCslRefs = True
-                         , stCslHangingIndent =
-                            "hanging-indent" `elem` classes }
-       contents <- blockListToLaTeX bs
-       return $ "\\begin{cslreferences}" $$
-                contents $$
-                "\\end{cslreferences}"
-  | otherwise = do
-      beamer <- gets stBeamer
-      linkAnchor' <- hypertarget True identifier empty
-    -- see #2704 for the motivation for adding \leavevmode:
-      let linkAnchor =
-            case bs of
-              Para _ : _
-                | not (isEmpty linkAnchor')
-                  -> "\\leavevmode" <> linkAnchor' <> "%"
-              _ -> linkAnchor'
-      let align dir txt = inCmd "begin" dir $$ txt $$ inCmd "end" dir
-      lang <- toLang $ lookup "lang" kvs
-      let wrapColumns = if beamer && "columns" `elem` classes
-                        then \contents ->
-                               inCmd "begin" "columns" <> brackets "T"
-                               $$ contents
-                               $$ inCmd "end" "columns"
-                        else id
-          wrapColumn  = if beamer && "column" `elem` classes
-                        then \contents ->
-                               let w = maybe "0.48" fromPct (lookup "width" kvs)
-                               in  inCmd "begin" "column" <>
-                                   braces (text w <> "\\textwidth")
-                                   $$ contents
-                                   $$ inCmd "end" "column"
-                        else id
-          fromPct xs =
-            case reverse xs of
-              '%':ds -> case safeRead (reverse ds) of
-                          Just digits -> showFl (digits / 100 :: Double)
-                          Nothing -> xs
-              _      -> xs
-          wrapDir = case lookup "dir" kvs of
-                      Just "rtl" -> align "RTL"
-                      Just "ltr" -> align "LTR"
-                      _          -> id
-          wrapLang txt = case lang of
-                           Just lng -> let (l, o) = toPolyglossiaEnv lng
-                                           ops = if null o
-                                                 then ""
-                                                 else brackets $ text o
-                                       in  inCmd "begin" (text l) <> ops
-                                           $$ blankline <> txt <> blankline
-                                           $$ inCmd "end" (text l)
-                           Nothing  -> txt
-          wrapNotes txt = if beamer && "notes" `elem` classes
-                          then "\\note" <> braces txt -- speaker notes
-                          else linkAnchor $$ txt
-      (wrapColumns . wrapColumn . wrapDir . wrapLang . wrapNotes)
-        <$> blockListToLaTeX bs
+blockToLaTeX (Div attr@(identifier,"block":_,_) (Header _ _ ils : bs)) = do
+  ref <- toLabel identifier
+  let anchor = if null identifier
+                  then empty
+                  else cr <> "\\protect\\hypertarget" <>
+                       braces (text ref) <> braces empty
+  title' <- inlineListToLaTeX ils
+  contents <- blockListToLaTeX bs
+  wrapDiv attr $ ("\\begin{block}" <> braces title' <> anchor) $$
+                 contents $$ "\\end{block}"
+blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
+               (Header _ (_,hclasses,hkvs) ils : bs)) = do
+  -- note: [fragile] is required or verbatim breaks
+  let hasCodeBlock (CodeBlock _ _) = [True]
+      hasCodeBlock _               = []
+  let hasCode (Code _ _) = [True]
+      hasCode _          = []
+  let classes = dclasses ++ hclasses
+  let kvs = dkvs ++ hkvs
+  let fragile = "fragile" `elem` classes ||
+                not (null $ query hasCodeBlock bs ++ query hasCode bs)
+  let frameoptions = ["allowdisplaybreaks", "allowframebreaks", "fragile",
+                      "b", "c", "t", "environment",
+                      "label", "plain", "shrink", "standout",
+                      "noframenumbering"]
+  let optionslist = ["fragile" | fragile
+                               , isNothing (lookup "fragile" kvs)
+                               , "fragile" `notElem` classes] ++
+                    [k | k <- classes, k `elem` frameoptions] ++
+                    [k ++ "=" ++ v | (k,v) <- kvs, k `elem` frameoptions]
+  let options = if null optionslist
+                   then empty
+                   else brackets (text (intercalate "," optionslist))
+  slideTitle <- if ils == [Str "\0"] -- marker for hrule
+                   then return empty
+                   else braces <$> inlineListToLaTeX ils
+  ref <- toLabel identifier
+  let slideAnchor = if null identifier
+                       then empty
+                       else cr <> "\\protect\\hypertarget" <>
+                            braces (text ref) <> braces empty
+  contents <- blockListToLaTeX bs >>= wrapDiv (identifier,classes,kvs)
+  return $ ("\\begin{frame}" <> options <> slideTitle <> slideAnchor) $$
+           contents $$
+           "\\end{frame}"
+blockToLaTeX (Div (identifier@(_:_),dclasses,dkvs)
+               (Header lvl ("",hclasses,hkvs) ils : bs)) = do
+  -- move identifier from div to header
+  blockToLaTeX (Div ("",dclasses,dkvs)
+               (Header lvl (identifier,hclasses,hkvs) ils : bs))
+blockToLaTeX (Div (identifier,classes,kvs) bs) = do
+  beamer <- gets stBeamer
+  oldIncremental <- gets stIncremental
+  if beamer && "incremental" `elem` classes
+     then modify $ \st -> st{ stIncremental = True }
+     else if beamer && "nonincremental" `elem` classes
+             then modify $ \st -> st { stIncremental = False }
+             else return ()
+  result <- if identifier == "refs"
+               then do
+                 inner <- blockListToLaTeX bs
+                 modify $ \st -> st{ stHasCslRefs = True
+                                   , stCslHangingIndent =
+                                      "hanging-indent" `elem` classes }
+                 return $ "\\begin{cslreferences}" $$
+                          inner $$
+                          "\\end{cslreferences}"
+               else blockListToLaTeX bs
+  modify $ \st -> st{ stIncremental = oldIncremental }
+  linkAnchor' <- hypertarget True identifier empty
+  -- see #2704 for the motivation for adding \leavevmode:
+  let linkAnchor =
+        case bs of
+          Para _ : _
+            | not (isEmpty linkAnchor')
+              -> "\\leavevmode" <> linkAnchor' <> "%"
+          _ -> linkAnchor'
+      wrapNotes txt = if beamer && "notes" `elem` classes
+                         then "\\note" <> braces txt -- speaker notes
+                         else linkAnchor $$ txt
+  wrapNotes <$> wrapDiv (identifier,classes,kvs) result
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX lst
 -- title beginning with fig: indicates that the image is a figure
@@ -1076,6 +1015,46 @@ sectionHeader unnumbered ident level lst = do
                                 braces (text sectionType) <>
                                 braces txtNoNotes
                          else empty
+
+wrapDiv :: PandocMonad m => Attr -> Doc Text -> LW m (Doc Text)
+wrapDiv (_,classes,kvs) t = do
+  beamer <- gets stBeamer
+  let align dir txt = inCmd "begin" dir $$ txt $$ inCmd "end" dir
+  lang <- toLang $ lookup "lang" kvs
+  let wrapColumns = if beamer && "columns" `elem` classes
+                    then \contents ->
+                           inCmd "begin" "columns" <> brackets "T"
+                           $$ contents
+                           $$ inCmd "end" "columns"
+                    else id
+      wrapColumn  = if beamer && "column" `elem` classes
+                    then \contents ->
+                           let w = maybe "0.48" fromPct (lookup "width" kvs)
+                           in  inCmd "begin" "column" <>
+                               braces (text w <> "\\textwidth")
+                               $$ contents
+                               $$ inCmd "end" "column"
+                    else id
+      fromPct xs =
+        case reverse xs of
+          '%':ds -> case safeRead (reverse ds) of
+                      Just digits -> showFl (digits / 100 :: Double)
+                      Nothing -> xs
+          _      -> xs
+      wrapDir = case lookup "dir" kvs of
+                  Just "rtl" -> align "RTL"
+                  Just "ltr" -> align "LTR"
+                  _          -> id
+      wrapLang txt = case lang of
+                       Just lng -> let (l, o) = toPolyglossiaEnv lng
+                                       ops = if null o
+                                             then ""
+                                             else brackets $ text o
+                                   in  inCmd "begin" (text l) <> ops
+                                       $$ blankline <> txt <> blankline
+                                       $$ inCmd "end" (text l)
+                       Nothing  -> txt
+  return $ wrapColumns . wrapColumn . wrapDir . wrapLang $ t
 
 hypertarget :: PandocMonad m => Bool -> String -> Doc Text -> LW m (Doc Text)
 hypertarget _ "" x    = return x

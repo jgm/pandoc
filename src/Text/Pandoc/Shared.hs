@@ -47,13 +47,13 @@ module Text.Pandoc.Shared (
                      extractSpaces,
                      removeFormatting,
                      deNote,
+                     deLink,
                      stringify,
                      capitalize,
                      compactify,
                      compactifyDL,
                      linesToPara,
-                     Element (..),
-                     hierarchicalize,
+                     makeSections,
                      uniqueIdent,
                      inlineListToIdentifier,
                      isHeaderBlock,
@@ -104,11 +104,10 @@ import qualified Data.Bifunctor as Bifunctor
 import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
-import Data.Data (Data, Typeable)
 import Data.List (find, intercalate, intersperse, stripPrefix, sortBy)
 import Data.Ord (comparing)
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe)
+import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Monoid (Any (..))
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
 import qualified Data.Set as Set
@@ -366,6 +365,10 @@ deNote :: Inline -> Inline
 deNote (Note _) = Str ""
 deNote x        = x
 
+deLink :: Inline -> Inline
+deLink (Link _ ils _) = Span nullAttr ils
+deLink x              = x
+
 deQuote :: Inline -> Inline
 deQuote (Quoted SingleQuote xs) =
   Span ("",[],[]) (Str "\8216" : xs ++ [Str "\8217"])
@@ -449,34 +452,6 @@ isPara :: Block -> Bool
 isPara (Para _) = True
 isPara _        = False
 
--- | Data structure for defining hierarchical Pandoc documents
-data Element = Blk Block
-             | Sec Int [Int] Attr [Inline] [Element]
-             --    lvl  num attributes label    contents
-             deriving (Eq, Read, Show, Typeable, Data)
-
-instance Walkable Inline Element where
-  walk f (Blk x) = Blk (walk f x)
-  walk f (Sec lev nums attr ils elts) = Sec lev nums attr (walk f ils) (walk f elts)
-  walkM f (Blk x) = Blk `fmap` walkM f x
-  walkM f (Sec lev nums attr ils elts) = do
-    ils' <- walkM f ils
-    elts' <- walkM f elts
-    return $ Sec lev nums attr ils' elts'
-  query f (Blk x)              = query f x
-  query f (Sec _ _ _ ils elts) = query f ils `mappend` query f elts
-
-instance Walkable Block Element where
-  walk f (Blk x) = Blk (walk f x)
-  walk f (Sec lev nums attr ils elts) = Sec lev nums attr (walk f ils) (walk f elts)
-  walkM f (Blk x) = Blk `fmap` walkM f x
-  walkM f (Sec lev nums attr ils elts) = do
-    ils' <- walkM f ils
-    elts' <- walkM f elts
-    return $ Sec lev nums attr ils' elts'
-  query f (Blk x)              = query f x
-  query f (Sec _ _ _ ils elts) = query f ils `mappend` query f elts
-
 -- | Convert Pandoc inline list to plain text identifier.  HTML
 -- identifiers must start with a letter, and may contain only
 -- letters, digits, and the characters _-.
@@ -504,37 +479,67 @@ inlineListToIdentifier exts =
       | otherwise = c == '_' || c == '-' || c == '.'
     spaceToDash = map (\c -> if isSpace c then '-' else c)
 
--- | Convert list of Pandoc blocks into (hierarchical) list of Elements
-hierarchicalize :: [Block] -> [Element]
-hierarchicalize blocks = S.evalState (hierarchicalizeWithIds blocks) []
 
-hierarchicalizeWithIds :: [Block] -> S.State [Int] [Element]
-hierarchicalizeWithIds [] = return []
-hierarchicalizeWithIds (Header level attr@(_,classes,_) title':xs) = do
-  lastnum <- S.get
-  let lastnum' = take level lastnum
-  let newnum = case length lastnum' of
-                    x | "unnumbered" `elem` classes -> []
-                      | x >= level -> init lastnum' ++ [last lastnum' + 1]
-                      | otherwise -> lastnum ++
-                           replicate (level - length lastnum - 1) 0 ++ [1]
-  unless (null newnum) $ S.put newnum
-  let (sectionContents, rest) = break (headerLtEq level) xs
-  sectionContents' <- hierarchicalizeWithIds sectionContents
-  rest' <- hierarchicalizeWithIds rest
-  return $ Sec level newnum attr title' sectionContents' : rest'
-hierarchicalizeWithIds (Div ("refs",classes',kvs')
-                         (Header level (ident,classes,kvs) title' : xs):ys) =
-  hierarchicalizeWithIds (Header level (ident,"references":classes,kvs)
-                           title' : Div ("refs",classes',kvs') xs : ys)
-hierarchicalizeWithIds (x:rest) = do
-  rest' <- hierarchicalizeWithIds rest
-  return $ Blk x : rest'
+-- | Put a list of Pandoc blocks into a hierarchical structure:
+-- a list of sections (each a Div with class "section" and first
+-- element a Header).  If the 'numbering' parameter is True, Header
+-- numbers are added via the number attribute on the header.
+-- If the baseLevel parameter is Just n, Header levels are
+-- adjusted to be gapless starting at level n.
+makeSections :: Bool -> Maybe Int -> [Block] -> [Block]
+makeSections numbering mbBaseLevel bs =
+  S.evalState (go bs) (mbBaseLevel, [])
+ where
+  go :: [Block] -> S.State (Maybe Int, [Int]) [Block]
+  go (Header level (ident,classes,kvs) title':xs) = do
+    (mbLevel, lastnum) <- S.get
+    let level' = fromMaybe level mbLevel
+    let lastnum' = take level' lastnum
+    let newnum =
+          if level' > 0
+             then case length lastnum' of
+                      x | "unnumbered" `elem` classes -> []
+                        | x >= level' -> init lastnum' ++ [last lastnum' + 1]
+                        | otherwise -> lastnum ++
+                             replicate (level' - length lastnum - 1) 0 ++ [1]
+             else []
+    unless (null newnum) $ S.modify $ \(mbl, _) -> (mbl, newnum)
+    let (sectionContents, rest) = break (headerLtEq level) xs
+    S.modify $ \(_, ln) -> (fmap (+ 1) mbLevel, ln)
+    sectionContents' <- go sectionContents
+    S.modify $ \(_, ln) -> (mbLevel, ln)
+    rest' <- go rest
+    let divattr = (ident, ["section"], [])
+    let attr = ("",classes,kvs ++
+                   [("number", intercalate "." (map show newnum))
+                     | numbering])
+    return $
+      Div divattr (Header level' attr title' : sectionContents') : rest'
+  go (Div (dident,dclasses,dkvs)
+       (Header level (ident,classes,kvs) title':ys) : xs) = do
+    inner <- go (Header level (ident,classes,kvs) title':ys)
+    let inner' =
+          case inner of
+            (Div (dident',dclasses',dkvs') zs@(Header{}:zs') : ws)
+              | null dident ->
+                Div (dident',dclasses' ++ dclasses,dkvs' ++ dkvs) zs : ws
+              | otherwise -> -- keep id on header so we don't lose anchor
+                Div (dident,dclasses ++ dclasses',dkvs ++ dkvs')
+                  (Header level (dident',classes,kvs) title':zs') : ws
+            _ -> inner  -- shouldn't happen
+    rest <- go xs
+    return $ inner' ++ rest
+  go (Div attr xs : rest) = do
+    xs' <- go xs
+    rest' <- go rest
+    return $ Div attr xs' : rest'
+  go (x:xs) = (x :) <$> go xs
+  go [] = return []
 
 headerLtEq :: Int -> Block -> Bool
-headerLtEq level (Header l _ _)                                  = l <= level
-headerLtEq level (Div ("",["references"],[]) (Header l _ _ : _)) = l <= level
-headerLtEq _ _                                                   = False
+headerLtEq level (Header l _ _)  = l <= level
+headerLtEq level (Div _ (b:_))   = headerLtEq level b
+headerLtEq _ _                   = False
 
 -- | Generate a unique identifier from a list of inlines.
 -- Second argument is a list of already used identifiers.

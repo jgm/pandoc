@@ -28,7 +28,7 @@ getSlideLevel = go 6
         nonHOrHR HorizontalRule = False
         nonHOrHR _              = True
 
--- | Prepare a block list to be passed to hierarchicalize.
+-- | Prepare a block list to be passed to makeSections.
 prepSlides :: Int -> [Block] -> [Block]
 prepSlides slideLevel = ensureStartWithH . splitHrule . extractRefsHeader
   where splitHrule (HorizontalRule : Header n attr xs : ys)

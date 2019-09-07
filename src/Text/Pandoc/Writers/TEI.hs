@@ -32,21 +32,20 @@ import Text.Pandoc.XML
 -- | Convert Pandoc document to string in Docbook format.
 writeTEI :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTEI opts (Pandoc meta blocks) = do
-  let elements = hierarchicalize blocks
-      colwidth = if writerWrapText opts == WrapAuto
+  let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-      startLvl = case writerTopLevelDivision opts of
+  let startLvl = case writerTopLevelDivision opts of
                    TopLevelPart    -> -1
                    TopLevelChapter -> 0
                    TopLevelSection -> 1
                    TopLevelDefault -> 1
+  let fromBlocks = blocksToTEI opts . makeSections False (Just startLvl)
   metadata <- metaToContext opts
-                 (fmap vcat .
-                   mapM (elementToTEI opts startLvl) . hierarchicalize)
+                 fromBlocks
                  (fmap chomp . inlinesToTEI opts)
                  meta
-  main    <- vcat <$> mapM (elementToTEI opts startLvl) elements
+  main    <- fromBlocks blocks
   let context = defField "body" main
               $ defField "mathml" (case writerHTMLMathMethod opts of
                                           MathML -> True
@@ -55,25 +54,6 @@ writeTEI opts (Pandoc meta blocks) = do
     case writerTemplate opts of
        Nothing  -> main
        Just tpl -> renderTemplate tpl context
-
--- | Convert an Element to TEI.
-elementToTEI :: PandocMonad m => WriterOptions -> Int -> Element -> m (Doc Text)
-elementToTEI opts _   (Blk block) = blockToTEI opts block
-elementToTEI opts lvl (Sec _ _num attr title elements) = do
-  -- TEI doesn't allow sections with no content, so insert some if needed
-  let elements' = if null elements
-                    then [Blk (Para [])]
-                    else elements
-      -- level numbering correspond to LaTeX internals
-      divType = case lvl of
-                 n | n == -1          -> "part"
-                   | n == 0           -> "chapter"
-                   | n >= 1 && n <= 5 -> "level" ++ show n
-                   | otherwise        -> "section"
-  contents <- vcat <$> mapM (elementToTEI opts (lvl + 1)) elements'
-  titleContents <- inlinesToTEI opts title
-  return $ inTags True "div" (("type", divType) : idFromAttr opts attr) $
-      inTagsSimple "head" titleContents $$ contents
 
 -- | Convert a list of Pandoc blocks to TEI.
 blocksToTEI :: PandocMonad m => WriterOptions -> [Block] -> m (Doc Text)
@@ -121,6 +101,22 @@ imageToTEI opts attr src = return $ selfClosingTag "graphic" $
 -- | Convert a Pandoc block element to TEI.
 blockToTEI :: PandocMonad m => WriterOptions -> Block -> m (Doc Text)
 blockToTEI _ Null = return empty
+blockToTEI opts (Div attr@(_,"section":_,_) (Header lvl _ ils : xs)) =
+  do
+  -- TEI doesn't allow sections with no content, so insert some if needed
+  let xs' = if null xs
+               then [Para []]
+               else xs
+      -- level numbering correspond to LaTeX internals
+      divType = case lvl of
+                 n | n == -1          -> "part"
+                   | n == 0           -> "chapter"
+                   | n >= 1 && n <= 5 -> "level" ++ show n
+                   | otherwise        -> "section"
+  titleContents <- inlinesToTEI opts ils
+  contents <- blocksToTEI opts xs'
+  return $ inTags True "div" (("type", divType) : idFromAttr opts attr) $
+      inTagsSimple "head" titleContents $$ contents
 -- Add ids to paragraphs in divs with ids - this is needed for
 -- pandoc-citeproc to get link anchors in bibliographies:
 blockToTEI opts (Div attr [Para lst]) = do
@@ -128,7 +124,7 @@ blockToTEI opts (Div attr [Para lst]) = do
   inTags False "p" attribs <$> inlinesToTEI opts lst
 blockToTEI opts (Div _ bs) = blocksToTEI opts $ map plainToPara bs
 blockToTEI _ h@Header{} = do
-  -- should not occur after hierarchicalize, except inside lists/blockquotes
+  -- should not occur after makeSections, except inside lists/blockquotes
   report $ BlockNotRendered h
   return empty
 -- For TEI simple, text must be within containing block element, so

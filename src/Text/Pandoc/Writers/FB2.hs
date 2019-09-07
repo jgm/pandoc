@@ -39,9 +39,9 @@ import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
-import Text.Pandoc.Shared (capitalize, isURI, orderedListMarkers, hierarchicalize)
+import Text.Pandoc.Shared (capitalize, isURI, orderedListMarkers,
+                           makeSections)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
-import qualified Text.Pandoc.Shared as Shared (Element(Blk, Sec))
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.
@@ -162,28 +162,27 @@ docdate meta' = do
 -- representation.
 renderSections :: PandocMonad m => Int -> [Block] -> FBM m [Content]
 renderSections level blocks = do
-    let elements = hierarchicalize blocks
-    let isSection Shared.Sec{} = True
+    let blocks' = makeSections False Nothing blocks
+    let isSection (Div (_,"section":_,_) (Header{}:_)) = True
         isSection _ = False
-    let (initialBlocks, secs) = break isSection elements
-    let elements' = if null initialBlocks
-        then secs
-        else Shared.Sec 1 [] nullAttr mempty initialBlocks : secs
-    cMapM (renderSection level) elements'
+    let (initialBlocks, secs) = break isSection blocks'
+    let blocks'' = if null initialBlocks
+        then blocks'
+        else Div ("",["section"],[])
+               (Header 1 nullAttr mempty : initialBlocks) : secs
+    cMapM (renderSection level) blocks''
 
-
-
-renderSection :: PandocMonad m =>  Int -> Shared.Element -> FBM m [Content]
-renderSection _   (Shared.Blk block) = blockToXml block
-renderSection lvl (Shared.Sec _ _num (id',_,_) title elements) = do
-  content <- cMapM (renderSection (lvl + 1)) elements
+renderSection :: PandocMonad m =>  Int -> Block -> FBM m [Content]
+renderSection lvl (Div (id',"section":_,_) (Header _ _ title : xs)) = do
   title' <- if null title
             then return []
             else list . el "title" <$> formatTitle title
+  content <- cMapM (renderSection (lvl + 1)) xs
   let sectionContent = if null id'
       then el "section" (title' ++ content)
       else el "section" ([uattr "id" id'], title' ++ content)
   return [sectionContent]
+renderSection _ b = blockToXml b
 
 -- | Only <p> and <empty-line> are allowed within <title> in FB2.
 formatTitle :: PandocMonad m => [Inline] -> FBM m [Content]
@@ -334,7 +333,7 @@ blockToXml (DefinitionList defs) =
           t <- wrap "strong" term
           return (el "p" t : items)
 blockToXml h@Header{} = do
-  -- should not occur after hierarchicalize, except inside lists/blockquotes
+  -- should not occur after makeSections, except inside lists/blockquotes
   report $ BlockNotRendered h
   return []
 blockToXml HorizontalRule = return [ el "empty-line" () ]
