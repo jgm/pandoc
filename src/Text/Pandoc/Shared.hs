@@ -523,33 +523,17 @@ hierarchicalizeWithIds (Header level attr@(_,classes,_) title':xs) = do
   sectionContents' <- hierarchicalizeWithIds sectionContents
   rest' <- hierarchicalizeWithIds rest
   return $ Sec level newnum attr title' sectionContents' : rest'
-hierarchicalizeWithIds (Div (dident,dclasses,dkvs)
-                      (Header level (hident,hclasses,hkvs) title' : xs):ys)
-  | not ("columns" `elem` dclasses)
-  , not ("column" `elem` dclasses) = do
-  lastnum <- S.get
-  let lastnum' = take level lastnum
-  let newnum = case length lastnum' of
-                    x | "unnumbered" `elem` hclasses -> []
-                      | x >= level -> init lastnum' ++ [last lastnum' + 1]
-                      | otherwise -> lastnum ++
-                           replicate (level - length lastnum - 1) 0 ++ [1]
-  unless (null newnum) $ S.put newnum
-  let attr = (hident, dclasses ++ hclasses, dkvs ++ hkvs)
-  sectionContents' <- hierarchicalizeWithIds $
-                        if null dident  -- ensure we don't lose an id
-                           then xs
-                           else [Div (dident,[],[]) xs]
-  rest' <- hierarchicalizeWithIds ys
-  return $ Sec level newnum attr title' sectionContents' : rest'
+hierarchicalizeWithIds (Div ("refs",classes',kvs')
+                         (Header level (ident,classes,kvs) title' : xs):ys) =
+  hierarchicalizeWithIds (Header level (ident,"references":classes,kvs)
+                           title' : Div ("refs",classes',kvs') xs : ys)
 hierarchicalizeWithIds (x:rest) = do
   rest' <- hierarchicalizeWithIds rest
   return $ Blk x : rest'
 
 headerLtEq :: Int -> Block -> Bool
 headerLtEq level (Header l _ _)                                  = l <= level
-headerLtEq level (Div ("",classes,[]) (Header l _ _ : _))        =
-  l <= level && "column" `notElem` classes && "columns" `notElem` classes
+headerLtEq level (Div ("",["references"],[]) (Header l _ _ : _)) = l <= level
 headerLtEq _ _                                                   = False
 
 -- | Generate a unique identifier from a list of inlines.
