@@ -5265,17 +5265,17 @@ And with the extension:
 
     $ pandoc test/docx/custom-style-reference.docx -f docx+styles -t markdown
 
-    ::: {custom-style="FirstParagraph"}
+    ::: {custom-style="First Paragraph"}
     This is some text.
     :::
 
-    ::: {custom-style="BodyText"}
+    ::: {custom-style="Body Text"}
     This is text with an [emphasized]{custom-style="Emphatic"} text style.
     And this is text with a [strengthened]{custom-style="Strengthened"}
     text style.
     :::
 
-    ::: {custom-style="MyBlockStyle"}
+    ::: {custom-style="My Block Style"}
     > Here is a styled paragraph that inherits from Block Text.
     :::
 
