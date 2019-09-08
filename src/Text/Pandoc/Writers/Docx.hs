@@ -208,7 +208,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   let doc' = walk fixDisplayMath doc
   username <- P.lookupEnv "USERNAME"
   utctime <- P.getCurrentTime
-  distArchive <- (toArchive . BL.fromStrict) <$> do
+  distArchive <- toArchive . BL.fromStrict <$> do
     oldUserDataDir <- P.getUserDataDir
     P.setUserDataDir Nothing
     res <- P.readDefaultDataFile "reference.docx"
@@ -216,7 +216,7 @@ writeDocx opts doc@(Pandoc meta _) = do
     return res
   refArchive <- case writerReferenceDoc opts of
                      Just f  -> toArchive <$> P.readFileLazy f
-                     Nothing -> (toArchive . BL.fromStrict) <$>
+                     Nothing -> toArchive . BL.fromStrict <$>
                         P.readDataFile "reference.docx"
 
   parsedDoc <- parseXml refArchive distArchive "word/document.xml"
@@ -237,7 +237,7 @@ writeDocx opts doc@(Pandoc meta _) = do
                        >>= subtrct mbAttrMarRight
                        >>= subtrct mbAttrMarLeft
         where
-          subtrct mbStr = \x -> mbStr >>= safeRead >>= (\y -> Just $ x - y)
+          subtrct mbStr x = mbStr >>= safeRead >>= (\y -> Just $ x - y)
 
   -- styles
   mblang <- toLang $ getLang opts meta
@@ -285,7 +285,7 @@ writeDocx opts doc@(Pandoc meta _) = do
           envRTL = isRTLmeta
         , envChangesAuthor = fromMaybe "unknown" username
         , envChangesDate   = formatTime defaultTimeLocale "%FT%XZ" utctime
-        , envPrintWidth = maybe 420 (\x -> quot x 20) pgContentWidth
+        , envPrintWidth = maybe 420 (`quot` 20) pgContentWidth
         }
 
 
@@ -366,7 +366,7 @@ writeDocx opts doc@(Pandoc meta _) = do
                   map (\x -> (maybe "" ("/word/" ++) $ extractTarget x,
                        "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml")) footers) ++
                     map mkImageOverride imgs ++
-                    map mkMediaOverride [ eRelativePath e | e <- zEntries refArchive
+                    [ mkMediaOverride (eRelativePath e) | e <- zEntries refArchive
                                         , "word/media/" `isPrefixOf` eRelativePath e ]
 
   let defaultnodes = [mknode "Default"
@@ -589,8 +589,8 @@ writeDocx opts doc@(Pandoc meta _) = do
                      mapMaybe (fmap ("word/" ++) . extractTarget)
                      (headers ++ footers)
   let miscRelEntries = [ e | e <- zEntries refArchive
-                       , "word/_rels/" `isPrefixOf` (eRelativePath e)
-                       , ".xml.rels" `isSuffixOf` (eRelativePath e)
+                       , "word/_rels/" `isPrefixOf` eRelativePath e
+                       , ".xml.rels" `isSuffixOf` eRelativePath e
                        , eRelativePath e /= "word/_rels/document.xml.rels"
                        , eRelativePath e /= "word/_rels/footnotes.xml.rels" ]
   let otherMediaEntries = [ e | e <- zEntries refArchive
@@ -778,24 +778,24 @@ makeTOC opts = do
   tocTitle <- gets stTocTitle
   title <- withParaPropM (pStyleM "TOC Heading") (blocksToOpenXML opts [Para tocTitle])
   return
-    [mknode "w:sdt" [] ([
+    [mknode "w:sdt" [] [
       mknode "w:sdtPr" [] (
-        mknode "w:docPartObj" [] (
+        mknode "w:docPartObj" [] 
           [mknode "w:docPartGallery" [("w:val","Table of Contents")] (),
           mknode "w:docPartUnique" [] ()]
-        ) -- w:docPartObj
+         -- w:docPartObj
       ), -- w:sdtPr
       mknode "w:sdtContent" [] (title++[
         mknode "w:p" [] (
-          mknode "w:r" [] ([
+          mknode "w:r" [] [
             mknode "w:fldChar" [("w:fldCharType","begin"),("w:dirty","true")] (),
             mknode "w:instrText" [("xml:space","preserve")] tocCmd,
             mknode "w:fldChar" [("w:fldCharType","separate")] (),
             mknode "w:fldChar" [("w:fldCharType","end")] ()
-          ]) -- w:r
+          ] -- w:r
         ) -- w:p
       ])
-    ])] -- w:sdt
+    ]] -- w:sdt
 
 -- | Convert Pandoc document to two lists of
 -- OpenXML elements (the main document and footnotes).
@@ -1030,20 +1030,17 @@ blockToOpenXML' opts (Table caption aligns widths headers rows) = do
       : [ mkrow True headers' | hasHeader ] ++
       map (mkrow False) rows'
       )]
-blockToOpenXML' opts (BulletList lst) = do
-  let marker = BulletMarker
-  addList marker
-  numid  <- getNumId
-  l <- asList $ concat `fmap` mapM (listItemToOpenXML opts numid) lst
-  setFirstPara
-  return l
-blockToOpenXML' opts (OrderedList (start, numstyle, numdelim) lst) = do
-  let marker = NumberMarker numstyle numdelim start
-  addList marker
-  numid  <- getNumId
-  l <- asList $ concat `fmap` mapM (listItemToOpenXML opts numid) lst
-  setFirstPara
-  return l
+blockToOpenXML' opts el
+  | BulletList lst <- el = addOpenXMLList BulletMarker lst
+  | OrderedList (start, numstyle, numdelim) lst <- el
+  = addOpenXMLList (NumberMarker numstyle numdelim start) lst
+  where
+    addOpenXMLList marker lst = do
+      addList marker
+      numid  <- getNumId
+      l <- asList $ concat `fmap` mapM (listItemToOpenXML opts numid) lst
+      setFirstPara
+      return l
 blockToOpenXML' opts (DefinitionList items) = do
   l <- concat `fmap` mapM (definitionListItemToOpenXML opts) items
   setFirstPara
@@ -1159,7 +1156,7 @@ inlineToOpenXML' _ (Str str) =
   formattedString str
 inlineToOpenXML' opts Space = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
-inlineToOpenXML' opts (Span (_,["underline"],_) ils) = do
+inlineToOpenXML' opts (Span (_,["underline"],_) ils) =
   withTextProp (mknode "w:u" [("w:val","single")] ()) $
     inlinesToOpenXML opts ils
 inlineToOpenXML' _ (Span (ident,["comment-start"],kvs) ils) = do
@@ -1192,18 +1189,21 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
                  Just "rtl" -> local (\env -> env { envRTL = True })
                  Just "ltr" -> local (\env -> env { envRTL = False })
                  _          -> id
-  let off x = withTextProp (mknode x [("w:val","0")] ())
-  let pmod =  (if "csl-no-emph" `elem` classes then off "w:i" else id) .
+      off x = withTextProp (mknode x [("w:val","0")] ())
+      pmod =  (if "csl-no-emph" `elem` classes then off "w:i" else id) .
               (if "csl-no-strong" `elem` classes then off "w:b" else id) .
               (if "csl-no-smallcaps" `elem` classes
                   then off "w:smallCaps"
                   else id)
+      getChangeAuthorDate = do
+        defaultAuthor <- asks envChangesAuthor
+        defaultDate <- asks envChangesDate
+        let author = fromMaybe defaultAuthor (lookup "author" kvs)
+            date   = fromMaybe defaultDate (lookup "date" kvs)
+        return (author, date)
   insmod <- if "insertion" `elem` classes
                then do
-                 defaultAuthor <- asks envChangesAuthor
-                 defaultDate <- asks envChangesDate
-                 let author = fromMaybe defaultAuthor (lookup "author" kvs)
-                     date   = fromMaybe defaultDate (lookup "date" kvs)
+                 (author, date) <- getChangeAuthorDate
                  insId <- gets stInsId
                  modify $ \s -> s{stInsId = insId + 1}
                  return $ \f -> do
@@ -1215,10 +1215,7 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
                else return id
   delmod <- if "deletion" `elem` classes
                then do
-                 defaultAuthor <- asks envChangesAuthor
-                 defaultDate <- asks envChangesDate
-                 let author = fromMaybe defaultAuthor (lookup "author" kvs)
-                     date   = fromMaybe defaultDate (lookup "date" kvs)
+                 (author, date) <- getChangeAuthorDate
                  delId <- gets stDelId
                  modify $ \s -> s{stDelId = delId + 1}
                  return $ \f -> local (\env->env{envInDel=True}) $ do
@@ -1431,12 +1428,12 @@ defaultFootnotes :: [Element]
 defaultFootnotes = [ mknode "w:footnote"
                      [("w:type", "separator"), ("w:id", "-1")]
                      [ mknode "w:p" []
-                       [mknode "w:r" [] $
+                       [mknode "w:r" []
                         [ mknode "w:separator" [] ()]]]
                    , mknode "w:footnote"
                      [("w:type", "continuationSeparator"), ("w:id", "0")]
                      [ mknode "w:p" []
-                       [ mknode "w:r" [] $
+                       [ mknode "w:r" []
                          [ mknode "w:continuationSeparator" [] ()]]]]
 
 
