@@ -2,6 +2,7 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
+{-# LANGUAGE MultiWayIf        #-}
 {- |
    Module      : Text.Pandoc.Readers.Docx
    Copyright   : Copyright (C) 2014-2019 Jesse Rosenthal
@@ -129,7 +130,7 @@ instance Default DEnv where
 type DocxContext m = ReaderT DEnv (StateT DState m)
 
 evalDocxContext :: PandocMonad m => DocxContext m a -> DEnv -> DState -> m a
-evalDocxContext ctx env st = flip evalStateT st $flip runReaderT env ctx
+evalDocxContext ctx env st = flip evalStateT st $ runReaderT ctx env
 
 -- This is empty, but we put it in for future-proofing.
 spansToKeep :: [String]
@@ -537,15 +538,6 @@ parStyleToTransform pPr
       let pPr' = pPr { pStyle = cs, indentation = Nothing}
       transform <- parStyleToTransform pPr'
       return $ divWith ("", [c], []) . transform
-  | (c:cs) <- pStyle pPr
-  , Just True <- pBlockQuote pPr = do
-      opts <- asks docxOptions
-      let pPr' = pPr { pStyle = cs }
-      transform <- parStyleToTransform pPr'
-      let extraInfo = if isEnabled Ext_styles opts
-                      then divWith ("", [], [("custom-style", c)])
-                      else id
-      return $ extraInfo . blockQuote . transform
   | (c:cs) <- pStyle pPr = do
       opts <- asks docxOptions
       let pPr' = pPr { pStyle = cs}
@@ -553,22 +545,15 @@ parStyleToTransform pPr
       let extraInfo = if isEnabled Ext_styles opts
                       then divWith ("", [], [("custom-style", c)])
                       else id
-      return $ extraInfo . transform
+      return $ extraInfo . (if fromMaybe False (pBlockQuote pPr) then blockQuote else id) . transform
   | null (pStyle pPr)
-  , Just left <- indentation pPr >>= leftParIndent
-  , Just hang <- indentation pPr >>= hangingParIndent = do
+  , Just left <- indentation pPr >>= leftParIndent = do
     let pPr' = pPr { indentation = Nothing }
+        hang = fromMaybe 0 $ indentation pPr >>= hangingParIndent
     transform <- parStyleToTransform pPr'
-    return $ case (left - hang) > 0 of
-               True  -> blockQuote . transform
-               False -> transform
-  | null (pStyle pPr),
-    Just left <- indentation pPr >>= leftParIndent = do
-      let pPr' = pPr { indentation = Nothing }
-      transform <- parStyleToTransform pPr'
-      return $ case left > 0 of
-         True  -> blockQuote . transform
-         False -> transform
+    return $ if (left - hang) > 0 
+             then blockQuote . transform
+             else transform
 parStyleToTransform _ = return id
 
 bodyPartToBlocks :: PandocMonad m => BodyPart -> DocxContext m Blocks
@@ -585,7 +570,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
     makeHeaderAnchor $
       headerWith ("", delete style (pStyle pPr), []) n ils
   | otherwise = do
-    ils <- (trimSps . smushInlines) <$> mapM parPartToInlines parparts
+    ils <- trimSps . smushInlines <$> mapM parPartToInlines parparts
     prevParaIls <- gets docxPrevPara
     dropIls <- gets docxDropCap
     let ils' = dropIls <> ils
@@ -596,21 +581,21 @@ bodyPartToBlocks (Paragraph pPr parparts)
               let ils'' = prevParaIls <>
                           (if isNull prevParaIls then mempty else space) <>
                           ils'
+                  handleInsertion = do
+                    modify $ \s -> s {docxPrevPara = mempty}
+                    transform <- parStyleToTransform pPr
+                    return $ transform $ para ils''
               opts <- asks docxOptions
-              case () of
-
-                _ | isNull ils'' && not (isEnabled Ext_empty_paragraphs opts) ->
+              if  | isNull ils'' && not (isEnabled Ext_empty_paragraphs opts) ->
                     return mempty
-                _ | Just (TrackedChange Insertion _) <- pChange pPr
-                  , AcceptChanges <- readerTrackChanges opts -> do
-                      modify $ \s -> s {docxPrevPara = mempty}
-                      transform <- parStyleToTransform pPr
-                      return $ transform $ para ils''
-                _ | Just (TrackedChange Insertion _) <- pChange pPr
+                  | Just (TrackedChange Insertion _) <- pChange pPr
+                  , AcceptChanges <- readerTrackChanges opts ->
+                      handleInsertion
+                  | Just (TrackedChange Insertion _) <- pChange pPr
                   , RejectChanges <- readerTrackChanges opts -> do
                       modify $ \s -> s {docxPrevPara = ils''}
                       return mempty
-                _ | Just (TrackedChange Insertion cInfo) <- pChange pPr
+                  | Just (TrackedChange Insertion cInfo) <- pChange pPr
                   , AllChanges <- readerTrackChanges opts
                   , ChangeInfo _ cAuthor cDate <- cInfo -> do
                       let attr = ("", ["paragraph-insertion"], [("author", cAuthor), ("date", cDate)])
@@ -618,16 +603,14 @@ bodyPartToBlocks (Paragraph pPr parparts)
                       transform <- parStyleToTransform pPr
                       return $ transform $
                         para $ ils'' <> insertMark
-                _ | Just (TrackedChange Deletion _) <- pChange pPr
+                  | Just (TrackedChange Deletion _) <- pChange pPr
                   , AcceptChanges <- readerTrackChanges opts -> do
                       modify $ \s -> s {docxPrevPara = ils''}
                       return mempty
-                _ | Just (TrackedChange Deletion _) <- pChange pPr
-                  , RejectChanges <- readerTrackChanges opts -> do
-                      modify $ \s -> s {docxPrevPara = mempty}
-                      transform <- parStyleToTransform pPr
-                      return $ transform $ para ils''
-                _ | Just (TrackedChange Deletion cInfo) <- pChange pPr
+                  | Just (TrackedChange Deletion _) <- pChange pPr
+                  , RejectChanges <- readerTrackChanges opts ->
+                      handleInsertion
+                  | Just (TrackedChange Deletion cInfo) <- pChange pPr
                   , AllChanges <- readerTrackChanges opts
                   , ChangeInfo _ cAuthor cDate <- cInfo -> do
                       let attr = ("", ["paragraph-deletion"], [("author", cAuthor), ("date", cDate)])
@@ -635,10 +618,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
                       transform <- parStyleToTransform pPr
                       return $ transform $
                         para $ ils'' <> insertMark
-                _ | otherwise -> do
-                      modify $ \s -> s {docxPrevPara = mempty}
-                      transform <- parStyleToTransform pPr
-                      return $ transform $ para ils''
+                  | otherwise -> handleInsertion
 bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
   -- We check whether this current numId has previously been used,
   -- since Docx expects us to pick up where we left off.

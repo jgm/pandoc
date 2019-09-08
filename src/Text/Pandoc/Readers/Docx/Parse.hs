@@ -121,9 +121,9 @@ unwrap :: NameSpaces -> Content -> [Content]
 unwrap ns (Elem element)
   | isElem ns "w" "sdt" element
   , Just sdtContent <- findChildByName ns "w" "sdtContent" element
-  = concatMap ((unwrap ns) . Elem) (elChildren sdtContent)
+  = concatMap (unwrap ns . Elem) (elChildren sdtContent)
   | isElem ns "w" "smartTag" element
-  = concatMap ((unwrap ns) . Elem) (elChildren element)
+  = concatMap (unwrap ns . Elem) (elChildren element)
 unwrap _ content = [content]
 
 unwrapChild :: NameSpaces -> Content -> Content
@@ -149,13 +149,13 @@ walkDocument ns element =
       _             -> Nothing
 
 
-data Docx = Docx Document
+newtype Docx = Docx Document
           deriving Show
 
 data Document = Document NameSpaces Body
           deriving Show
 
-data Body = Body [BodyPart]
+newtype Body = Body [BodyPart]
           deriving Show
 
 type Media = [(FilePath, B.ByteString)]
@@ -242,16 +242,16 @@ data BodyPart = Paragraph ParagraphStyle [ParPart]
 
 type TblGrid = [Integer]
 
-data TblLook = TblLook {firstRowFormatting::Bool}
+newtype TblLook = TblLook {firstRowFormatting::Bool}
               deriving Show
 
 defaultTblLook :: TblLook
 defaultTblLook = TblLook{firstRowFormatting = False}
 
-data Row = Row [Cell]
+newtype Row = Row [Cell]
            deriving Show
 
-data Cell = Cell [BodyPart]
+newtype Cell = Cell [BodyPart]
             deriving Show
 
 -- (width, height) in EMUs
@@ -495,7 +495,7 @@ filePathToRelType "word/_rels/endnotes.xml.rels" _ = Just InEndnote
 -- -- to see if it's a documentPath, we have to check against the dynamic
 -- -- docPath specified in "_rels/.rels"
 filePathToRelType path docXmlPath =
-  if path == "word/_rels/" ++ (takeFileName docXmlPath) ++ ".rels"
+  if path == "word/_rels/" ++ takeFileName docXmlPath ++ ".rels"
   then Just InDocument
   else Nothing
 
@@ -537,7 +537,7 @@ lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
   case lvlOverride of
     Just (LevelOverride _ _ (Just lvl')) -> Just lvl'
     Just (LevelOverride _ (Just strt) _) ->
-      lookup ilvl $ map (\(Level i fmt s _) -> (i, (Level i fmt s (Just strt)))) lvls
+      lookup ilvl $ map (\(Level i fmt s _) -> (i, Level i fmt s (Just strt))) lvls
     _ ->
       lookup ilvl $ map (\l@(Level i _ _ _) -> (i, l)) lvls
 
@@ -703,23 +703,19 @@ elemToBodyPart ns element
 elemToBodyPart ns element
   | isElem ns "w" "p" element
   , Just (numId, lvl) <- getNumInfo ns element = do
-    sty <- asks envParStyles
-    let parstyle = elemToParagraphStyle ns element sty
+    parstyle <- elemToParagraphStyle ns element <$> asks envParStyles
     parparts <- mapD (elemToParPart ns) (elChildren element)
-    num <- asks envNumbering
-    let levelInfo = lookupLevel numId lvl num
+    levelInfo <- lookupLevel numId lvl <$> asks envNumbering
     return $ ListItem parstyle numId lvl levelInfo parparts
 elemToBodyPart ns element
   | isElem ns "w" "p" element = do
-      sty <- asks envParStyles
-      let parstyle = elemToParagraphStyle ns element sty
+      parstyle <- elemToParagraphStyle ns element <$> asks envParStyles
       parparts <- mapD (elemToParPart ns) (elChildren element)
       -- Word uses list enumeration for numbered headings, so we only
       -- want to infer a list from the styles if it is NOT a heading.
       case pHeading parstyle of
         Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
-                    num <- asks envNumbering
-                    let levelInfo = lookupLevel numId lvl num
+                    levelInfo <- lookupLevel numId lvl <$> asks envNumbering
                     return $ ListItem parstyle numId lvl levelInfo parparts
         _ -> return $ Paragraph parstyle parparts
 elemToBodyPart ns element
@@ -727,7 +723,7 @@ elemToBodyPart ns element
     let caption' = findChildByName ns "w" "tblPr" element
                    >>= findChildByName ns "w" "tblCaption"
                    >>= findAttrByName ns "w" "val"
-        caption = (fromMaybe "" caption')
+        caption = fromMaybe "" caption'
         grid' = case findChildByName ns "w" "tblGrid" element of
           Just g  -> elemToTblGrid ns g
           Nothing -> return []
