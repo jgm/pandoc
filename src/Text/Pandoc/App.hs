@@ -147,6 +147,14 @@ convertWithOpts opts = do
 
     let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
 
+    when (pdfOutput && readerName == "latex") $
+      case (optInputFiles opts) of
+        (inputFile:_) -> report $ UnusualConversion $
+          "to convert a .tex file to PDF, you get better results by using pdflatex "
+            <> "(or lualatex or xelatex) directly, try `pdflatex " <> inputFile
+            <> "` instead of `pandoc " <> inputFile <> " -o " <> outputFile <> "`."
+        _ -> return ()
+
     (reader, readerExts) <-
              case getReader readerName of
                   Right (r, es) -> return (r :: Reader PandocIO, es)
