@@ -86,6 +86,7 @@ data LogMessage =
   | Deprecated String String
   | NoTranslation String
   | CouldNotLoadTranslations String String
+  | UnusualConversion String
   | UnexpectedXmlElement String String
   | UnknownOrgExportOption String
   | UnknownExtensions [String] String
@@ -203,6 +204,8 @@ instance ToJSON LogMessage where
       CouldNotLoadTranslations lang msg ->
            ["lang" .= Text.pack lang,
             "message" .= Text.pack msg]
+      UnusualConversion msg ->
+           ["message" .= Text.pack msg]
       UnexpectedXmlElement element parent ->
            ["element" .= Text.pack element,
             "parent" .= Text.pack parent]
@@ -310,6 +313,8 @@ showLogMessage msg =
        CouldNotLoadTranslations lang m ->
          "Could not load translations for " ++ lang ++
            if null m then "" else '\n' : m
+       UnusualConversion m ->
+         "Unusual conversion: " ++ m
        UnexpectedXmlElement element parent ->
          "Unexpected XML element " ++ element ++ " in " ++ parent
        UnknownOrgExportOption option ->
@@ -357,6 +362,7 @@ messageVerbosity msg =
        Deprecated{}                 -> WARNING
        NoTranslation{}              -> WARNING
        CouldNotLoadTranslations{}   -> WARNING
+       UnusualConversion {}         -> WARNING
        UnexpectedXmlElement {}      -> WARNING
        UnknownOrgExportOption {}    -> WARNING
        UnknownExtensions{}          -> WARNING
