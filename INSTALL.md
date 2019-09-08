@@ -241,9 +241,10 @@ The easiest way to build pandoc from source is to use [stack][stack]:
     vary by platform.  Here is how it might work on macOS with Homebrew:
 
         brew install icu4c
-        cabal install --extra-lib-dirs=/usr/local/Cellar/icu4c/51.1/lib \
-          --extra-include-dirs=/usr/local/Cellar/icu4c/51.1/include \
-          -funicode_collation text-icu pandoc-citeproc
+        stack install pandoc-citeproc \
+          --flag "pandoc-citeproc:unicode_collation" \
+          --extra-lib-dirs=/usr/local/opt/icu4c/lib \
+          --extra-include-dirs=/usr/local/opt/icu4c/include
 
 6.  The `pandoc.1` man page will be installed automatically.  cabal shows
     you where it is installed: you may need to set your `MANPATH`
