@@ -549,7 +549,7 @@ Reader options {.options}
     Filters and lua-filters are applied in the order specified
     on the command line.
 
-`--lua-filter=`*SCRIPT*
+`-L` *SCRIPT*, `--lua-filter=`*SCRIPT*
 
 :   Transform the document in a similar fashion as JSON filters (see
     `--filter`), but use pandoc's build-in lua filtering system.  The given

@@ -428,7 +428,7 @@ options =
                   "PROGRAM")
                  "" -- "External JSON filter"
 
-    , Option "" ["lua-filter"]
+    , Option "L" ["lua-filter"]
                  (ReqArg
                   (\arg opt -> return opt { optFilters =
                                     LuaFilter (normalizePath arg) :
