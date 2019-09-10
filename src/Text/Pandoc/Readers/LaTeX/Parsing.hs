@@ -93,8 +93,6 @@ import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
 import Text.Pandoc.Shared
 import Text.Parsec.Pos
 
--- import Debug.Trace (traceShowId)
-
 newtype DottedNum = DottedNum [Int]
   deriving (Show)
 
@@ -447,7 +445,7 @@ doMacros' n inp = do
                    args <- case optarg of
                              Nothing -> getargs M.empty argspecs
                              Just o  -> do
-                                x <- option o bracketedToks
+                                x <- option o $ bracketedToks
                                 getargs (M.singleton 1 x) $ drop 1 argspecs
                    rest <- getInput
                    return (args, rest)
@@ -644,7 +642,8 @@ bracketed parser = try $ do
 bracketedToks :: PandocMonad m => LP m [Tok]
 bracketedToks = do
   symbol '['
-  mconcat <$> manyTill (braced <|> (:[]) <$> anyTok) (symbol ']')
+  concat <$> manyTill ((snd <$> withRaw (try braced)) <|> count 1 anyTok)
+                      (symbol ']')
 
 parenWrapped :: PandocMonad m => Monoid a => LP m a -> LP m a
 parenWrapped parser = try $ do
