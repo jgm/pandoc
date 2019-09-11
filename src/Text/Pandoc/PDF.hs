@@ -108,7 +108,7 @@ makePDF program pdfargs writer opts doc =
 #endif
         runIOorExplode $ do
           putCommonState commonState
-          doc' <- handleImages tmpdir doc
+          doc' <- handleImages opts tmpdir doc
           source <- writer opts doc'
           res <- case baseProg of
             "context" -> context2pdf verbosity program pdfargs tmpdir source
@@ -156,17 +156,18 @@ makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
   verbosity <- getVerbosity
   liftIO $ html2pdf verbosity program args source
 
-handleImages :: FilePath      -- ^ temp dir to store images
+handleImages :: WriterOptions
+             -> FilePath      -- ^ temp dir to store images
              -> Pandoc        -- ^ document
              -> PandocIO Pandoc
-handleImages tmpdir doc =
+handleImages opts tmpdir doc =
   fillMediaBag doc >>=
     extractMedia tmpdir >>=
-    walkM (convertImages tmpdir)
+    walkM (convertImages opts tmpdir)
 
-convertImages :: FilePath -> Inline -> PandocIO Inline
-convertImages tmpdir (Image attr ils (src, tit)) = do
-  img <- liftIO $ convertImage tmpdir src
+convertImages :: WriterOptions -> FilePath -> Inline -> PandocIO Inline
+convertImages opts tmpdir (Image attr ils (src, tit)) = do
+  img <- liftIO $ convertImage opts tmpdir src
   newPath <-
     case img of
       Left e -> do
@@ -174,11 +175,13 @@ convertImages tmpdir (Image attr ils (src, tit)) = do
         return src
       Right fp -> return fp
   return (Image attr ils (newPath, tit))
-convertImages _ x = return x
+convertImages _ _ x = return x
 
 -- Convert formats which do not work well in pdf to png
-convertImage :: FilePath -> FilePath -> IO (Either String FilePath)
-convertImage tmpdir fname =
+convertImage :: WriterOptions -> FilePath -> FilePath
+             -> IO (Either String FilePath)
+convertImage opts tmpdir fname = do
+  let dpi = show $ writerDpi opts
   case mime of
     Just "image/png" -> doNothing
     Just "image/jpeg" -> doNothing
@@ -187,7 +190,8 @@ convertImage tmpdir fname =
     Just "application/eps" -> doNothing
     Just "image/svg+xml" -> E.catch (do
       (exit, _) <- pipeProcess Nothing "rsvg-convert"
-                     ["-f","pdf","-a","-o",pdfOut,fname] BL.empty
+                     ["-f","pdf","-a","--dpi-x",dpi,"--dpi-y",dpi,
+                      "-o",pdfOut,fname] BL.empty
       if exit == ExitSuccess
          then return $ Right pdfOut
          else return $ Left "conversion from SVG failed")
