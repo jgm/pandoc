@@ -565,10 +565,23 @@ isHeaderBlock _        = False
 
 -- | Shift header levels up or down.
 headerShift :: Int -> Pandoc -> Pandoc
-headerShift n = walk shift
-  where shift :: Block -> Block
-        shift (Header level attr inner) = Header (level + n) attr inner
-        shift x                         = x
+headerShift n (Pandoc meta (Header m _ ils : bs))
+  | n < 0
+  , m + n == 0 = headerShift n $
+                 B.setTitle (B.fromList ils) $ Pandoc meta bs
+headerShift n (Pandoc meta bs)
+  | n > 0
+  , not (null (docTitle meta))
+    = Pandoc meta' (Header n nullAttr (docTitle meta) : bs')
+ where
+   Pandoc meta' bs' = headerShift n $ B.deleteMeta "title" $ Pandoc meta bs
+headerShift n (Pandoc meta bs) = Pandoc meta (walk shift bs)
+ where
+   shift :: Block -> Block
+   shift (Header level attr inner)
+     | level + n > 0  = Header (level + n) attr inner
+     | otherwise      = Para inner
+   shift x            = x
 
 -- | Remove empty paragraphs.
 stripEmptyParagraphs :: Pandoc -> Pandoc

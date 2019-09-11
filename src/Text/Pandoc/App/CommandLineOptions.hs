@@ -436,9 +436,22 @@ options =
                   "SCRIPTPATH")
                  "" -- "Lua filter"
 
-    , Option "" ["base-header-level"]
+    , Option "" ["shift-heading-level-by"]
                  (ReqArg
                   (\arg opt ->
+                      case safeRead arg of
+                           Just t ->
+                               return opt{ optShiftHeadingLevel = t }
+                           _              -> E.throwIO $ PandocOptionError
+                                               "shift-heading-level-by takes an integer argument")
+                  "NUMBER")
+                 "" -- "Shift heading level"
+
+    , Option "" ["base-header-level"]
+                 (ReqArg
+                  (\arg opt -> do
+                      deprecatedOption "--base-header-level"
+                        "Use --shift-heading-level-by instead."
                       case safeRead arg of
                            Just t | t > 0 && t < 6 ->
                                return opt{ optBaseHeaderLevel = t }
@@ -450,7 +463,7 @@ options =
     , Option "" ["strip-empty-paragraphs"]
                  (NoArg
                   (\opt -> do
-                      deprecatedOption "--stripEmptyParagraphs"
+                      deprecatedOption "--strip-empty-paragraphs"
                         "Use +empty_paragraphs extension."
                       return opt{ optStripEmptyParagraphs = True }))
                  "" -- "Strip empty paragraphs"

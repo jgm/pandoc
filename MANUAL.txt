@@ -479,9 +479,26 @@ General options {.options}
 Reader options {.options}
 --------------
 
+`--shift-heading-level-by=`*NUMBER*
+
+    Shift heading levels by a positive or negative integer.
+    For example, with `--shift-heading-level-by=-1`, level 2
+    headings become level 1 headings, and level 3 headings
+    become level 2 headings.  Headings cannot have a level
+    less than 1, so a heading that would be shifted below level 1
+    becomes a regular paragraph.  Exception: with a shift of -1,
+    a level-1 heading at the beginning of the document
+    replaces the metadata title. Conversely, with a shift
+    of +1, a nonempty metadata title becomes a level-1 heading at
+    the beginning of the document.  `--shift-heading-level-by=-1`
+    is a good choice when converting HTML or Markdown documents that
+    use an initial level-1 heading for the document title and
+    level-2+ headings for sections.
+
 `--base-header-level=`*NUMBER*
 
-:   Specify the base level for headings (defaults to 1).
+:   *Deprecated.  Use `--shift-heading-level-by` instead.*
+    Specify the base level for headings (defaults to 1).
 
 `--strip-empty-paragraphs`
 
