@@ -66,7 +66,9 @@ handleError (Left e) =
     PandocIOError _ err' -> ioError err'
     PandocHttpError u err' -> err 61 $
       "Could not fetch " ++ u ++ "\n" ++ show err'
-    PandocShouldNeverHappenError s -> err 62 s
+    PandocShouldNeverHappenError s -> err 62 $
+      "Something we thought was impossible happened!\n" ++
+      "Please report this to pandoc's developers: " ++ s
     PandocSomeError s -> err 63 s
     PandocParseError s -> err 64 s
     PandocParsecError input err' ->
