@@ -86,6 +86,22 @@ return {
         assert.are_equal(count, 3)
       end)
     },
+    group 'alternative representation' {
+      test('HTML-like attributes', function ()
+        local html_attributes = {
+          id = 'the-id',
+          class = 'class1 class2',
+          width = 11,
+          height = 12
+        }
+        local cloned = pandoc.types.clone.Attr(html_attributes)
+        assert.are_equal(cloned.identifier, 'the-id')
+        assert.are_equal(cloned.classes[1], 'class1')
+        assert.are_equal(cloned.classes[2], 'class2')
+        assert.are_equal(cloned.attributes.width, '11')
+        assert.are_equal(cloned.attributes.height, '12')
+      end)
+    }
   },
 
   group 'clone' {

@@ -21,11 +21,13 @@ module Text.Pandoc.Lua.Marshaling.AST
 
 import Prelude
 import Control.Applicative ((<|>))
+import Data.Maybe (fromMaybe)
 import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.Util (defineHowTo, pushViaConstructor)
 import Text.Pandoc.Lua.Marshaling.CommonState ()
 
+import qualified Data.Map as Map
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
 
@@ -270,7 +272,15 @@ instance Pushable LuaAttr where
     pushViaConstructor "Attr" id' classes kv
 
 instance Peekable LuaAttr where
-  peek idx = defineHowTo "get Attr value" (LuaAttr <$> Lua.peek idx)
+  peek idx = defineHowTo "get Attr value" $
+    (LuaAttr <$> Lua.peek idx) <|> (LuaAttr . fromMap <$> Lua.peek idx)
+    where
+      fromMap :: Map.Map String String -> Attr
+      fromMap m = let ident   = fromMaybe ""   $ Map.lookup "id" m
+                      classes = maybe [] words $ Map.lookup "class" m
+                      keyvals = filter ((`notElem` ["id", "class"]) . fst)
+                                $ Map.toList m
+                  in (ident, classes, keyvals)
 
 -- | Wrapper for ListAttributes
 newtype LuaListAttributes = LuaListAttributes  ListAttributes
