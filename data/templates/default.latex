@@ -1,3 +1,5 @@
+%&preamble
+% the first line above loads a custom format file preamble.fmt if existent
 % Options for packages loaded elsewhere
 \PassOptionsToPackage{unicode$for(hyperrefoptions)$,$hyperrefoptions$$endfor$}{hyperref}
 \PassOptionsToPackage{hyphens}{url}
