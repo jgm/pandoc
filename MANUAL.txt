@@ -1382,10 +1382,10 @@ Exit codes
 If pandoc completes successfully, it will return exit code 0.
 Nonzero exit codes have the following meanings:
 
-     1 PandocAppError
-     2 PandocOptionError
      3 PandocFailOnWarningError
+     4 PandocAppError
      5 PandocTemplateError
+     6 PandocOptionError
     31 PandocEpubSubdirectoryError
     43 PandocPDFError
     47 PandocPDFProgramNotFoundError
@@ -1394,7 +1394,7 @@ Nonzero exit codes have the following meanings:
     63 PandocSomeError
     64 PandocParseError
     65 PandocParsecError
-    65 PandocMakePDFError TODO DUP
+    66 PandocMakePDFError
     67 PandocSyntaxMapError
     83 PandocFilterError
     91 PandocMacroLoop
