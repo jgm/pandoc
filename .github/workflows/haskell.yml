@@ -9,8 +9,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    - name: Install recent cabal/ghc
+      run: add-apt-repository ppa:hvr/ghc && apt-get update && apt-get install ghc-8.6.4 cabal-install-2.4
     - name: Install dependencies
-      run: stack update && stack build --only-dependencies
-    - name: Build and test
+      run: cabal v2-update && cabal v2-build --dependencies-only --enable-tests
+    - name: Build
       run: |
-        stack test
+        cabal v2-build --enable-tests
+    - name: Run tests
+      run: cabal v2-test
