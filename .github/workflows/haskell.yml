@@ -3,7 +3,7 @@ name: Haskell CI
 on: [push]
 
 jobs:
-  build:
+  linux:
 
     runs-on: ubuntu-latest
 
@@ -27,3 +27,19 @@ jobs:
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
           cabal v2-test
+
+  windows:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install stack
+      shell: cmd
+      run: |
+          choco install haskell-stack
+    - name: Build and test
+      shell: cmd
+      run: |
+          stack update
+          stack test
