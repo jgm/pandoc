@@ -14,15 +14,16 @@ jobs:
           sudo add-apt-repository ppa:hvr/ghc
           sudo apt-get update
           sudo apt-get install ghc-8.6.4 cabal-install-2.4
-    - name: Set path to include new ghc and cabal
-          export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
     - name: Install dependencies
       run: |
+          export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
           cabal v2-update
           cabal v2-build --dependencies-only --enable-tests
     - name: Build
       run: |
+          export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
           cabal v2-build --enable-tests
     - name: Run tests
       run: |
+          export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
           cabal v2-test
