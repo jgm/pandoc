@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Install recent cabal/ghc
-      run: add-apt-repository ppa:hvr/ghc && apt-get update && apt-get install ghc-8.6.4 cabal-install-2.4
+      run: sudo add-apt-repository ppa:hvr/ghc && sudo apt-get update && sudo apt-get install ghc-8.6.4 cabal-install-2.4
     - name: Install dependencies
       run: cabal v2-update && cabal v2-build --dependencies-only --enable-tests
     - name: Build
