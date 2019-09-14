@@ -726,6 +726,11 @@ options =
                   (\opt -> return opt { optFailIfWarnings = True }))
                  "" -- "Exit with error status if there were  warnings."
 
+    , Option "" ["sandboxed"]
+                 (NoArg
+                  (\opt -> return opt { optSandboxed = True }))
+                 "" -- "Sandbox IO"
+
     , Option "" ["log"]
                  (ReqArg
                   (\arg opt -> return opt{ optLogFile = Just arg })

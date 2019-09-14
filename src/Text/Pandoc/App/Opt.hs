@@ -114,6 +114,7 @@ data Opt = Opt
     , optRequestHeaders        :: [(String, String)] -- ^ Headers for HTTP requests
     , optEol                   :: LineEnding -- ^ Style of line-endings to use
     , optStripComments         :: Bool       -- ^ Skip HTML comments
+    , optSandboxed             :: Bool       -- ^ Sandbox IO
     } deriving (Generic, Show)
 
 -- | Defaults for command-line options.
@@ -188,7 +189,8 @@ defaultOpts = Opt
     , optResourcePath          = ["."]
     , optRequestHeaders        = []
     , optEol                   = Native
-    , optStripComments          = False
+    , optStripComments         = False
+    , optSandboxed             = False
     }
 
 #ifdef DERIVE_JSON_VIA_TH
