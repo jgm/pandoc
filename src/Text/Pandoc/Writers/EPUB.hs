@@ -522,7 +522,7 @@ pandocToEPUB version opts doc = do
       toChapters []     = return []
       toChapters (Div _ bs@(Header 1 _ _:_) : rest) =
         toChapters (bs ++ rest)
-      toChapters (Header n attr@(_,classes,_) ils : bs) = do
+      toChapters (Header n (ident,classes,kvs) ils : bs) = do
         nums <- get
         mbnum <- if "unnumbered" `elem` classes
                     then return Nothing
@@ -537,10 +537,12 @@ pandocToEPUB version opts doc = do
                                 put nums'
                                 return $ Just ks
         let (xs,ys) = break isChapterHeader bs
-        (Chapter mbnum (Header n attr ils : xs) :) `fmap` toChapters ys
+        (Chapter mbnum
+          (Header n (ident,"chapter-title":classes,kvs) ils : xs) :) <$>
+            toChapters ys
       toChapters (b:bs) = do
         let (xs,ys) = break isChapterHeader bs
-        (Chapter Nothing (b:xs) :) `fmap` toChapters ys
+        (Chapter Nothing (b:xs) :) <$> toChapters ys
 
   let chapters' = evalState (toChapters blocks') []
 
