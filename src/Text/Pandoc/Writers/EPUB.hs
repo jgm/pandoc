@@ -520,7 +520,7 @@ pandocToEPUB version opts doc = do
 
   let toChapters :: [Block] -> State [Int] [Chapter]
       toChapters []     = return []
-      toChapters (Div ("refs",_,_) bs@(Header 1 _ _:_) : rest) =
+      toChapters (Div _ bs@(Header 1 _ _:_) : rest) =
         toChapters (bs ++ rest)
       toChapters (Header n attr@(_,classes,_) ils : bs) = do
         nums <- get
