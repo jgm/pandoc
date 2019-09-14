@@ -38,8 +38,11 @@ jobs:
       shell: cmd
       run: |
           choco install haskell-stack
+    - name: Install dependencies
+      run: |
+          stack update
+          stack test --dependencies-only
     - name: Build and test
       shell: cmd
       run: |
-          stack update
           stack test
