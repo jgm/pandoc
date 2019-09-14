@@ -35,6 +35,7 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , getPOSIXTime
                          , getZonedTime
                          , readFileFromDirs
+                         , readTextFile
                          , report
                          , setTrace
                          , setRequestHeader
@@ -83,6 +84,9 @@ import Data.List (stripPrefix)
 import qualified Data.Unique as IO (newUnique)
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified System.Directory as Directory
+import Data.Text (Text)
+import Data.Text.Encoding (decodeUtf8')
+import qualified Data.Text.Encoding.Error as TSE
 import Data.Time (UTCTime)
 import Text.Pandoc.Logging
 import Text.Pandoc.Shared (uriPathToPath)
@@ -172,6 +176,9 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   -- | Read the strict ByteString contents from a file path,
   -- raising an error on failure.
   readFileStrict :: FilePath -> m B.ByteString
+  -- | Read from stdin as a strict ByteString, raising an
+  -- error on failure.
+  readStdinStrict :: m B.ByteString
   -- | Return a list of paths that match a glob, relative to
   -- the working directory.  See 'System.FilePath.Glob' for
   -- the glob syntax.
@@ -230,6 +237,27 @@ report msg = do
   let level = messageVerbosity msg
   when (level <= verbosity) $ logOutput msg
   modifyCommonState $ \st -> st{ stLog = msg : stLog st }
+
+-- | Read file as Text, raising informative decoding errors if it is
+-- not UTF-8 encoded.  If file path is "-", stdin is read instead.
+readTextFile :: PandocMonad m => FilePath -> m Text
+readTextFile fp = do
+  bs <- if fp == "-"
+           then readStdinStrict
+           else readFileStrict fp
+  case decodeUtf8' . filterCRs . dropBOM $ bs of
+         Right t -> return t
+         Left (TSE.DecodeError _ (Just w)) -> throwError $
+           case B.elemIndex w bs of
+              Just offset -> PandocUTF8DecodingError fp offset w
+              _           -> PandocUTF8DecodingError fp 0 w
+         Left (TSE.DecodeError s Nothing) -> throwError $ PandocSomeError s
+         e -> throwError $ PandocShouldNeverHappenError (show e)
+  where dropBOM bs =
+         if B.pack [0xEF, 0xBB, 0xBF] `B.isPrefixOf` bs
+            then B.drop 3 bs
+            else bs
+        filterCRs = B.filter (/= 13)
 
 -- | Determine whether tracing is enabled.  This affects
 -- the behavior of 'trace'.  If tracing is not enabled,
@@ -506,7 +534,7 @@ instance PandocMonad PandocIO where
 
   readFileLazy s = liftIOError BL.readFile s
   readFileStrict s = liftIOError B.readFile s
-
+  readStdinStrict = liftIOError (\_ -> B.getContents) "stdin"
   glob = liftIOError IO.glob
   fileExists = liftIOError Directory.doesFileExist
 #ifdef EMBED_DATA_FILES
@@ -886,6 +914,7 @@ data PureState = PureState { stStdGen     :: StdGen
                            , stReferencePptx :: Archive
                            , stReferenceODT :: Archive
                            , stFiles :: FileTree
+                           , stStdin :: B.ByteString
                            , stUserDataFiles :: FileTree
                            , stCabalDataFiles :: FileTree
                            }
@@ -901,6 +930,7 @@ instance Default PureState where
                   , stReferencePptx = emptyArchive
                   , stReferenceODT = emptyArchive
                   , stFiles = mempty
+                  , stStdin = mempty
                   , stUserDataFiles = mempty
                   , stCabalDataFiles = mempty
                   }
@@ -1002,6 +1032,7 @@ instance PandocMonad PandocPure where
     case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return bs
       Nothing -> throwError $ PandocResourceNotFound fp
+  readStdinStrict = getsPureState stStdin
 
   glob s = do
     FileTree ftmap <- getsPureState stFiles
@@ -1042,6 +1073,7 @@ instance (MonadTrans t, PandocMonad m, Functor (t m),
   openURL = lift . openURL
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
+  readStdinStrict = lift readStdinStrict
   glob = lift . glob
   fileExists = lift . fileExists
   getDataFileName = lift . getDataFileName
@@ -1059,6 +1091,7 @@ instance {-# OVERLAPS #-} PandocMonad m => PandocMonad (ParsecT s st m) where
   openURL = lift . openURL
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
+  readStdinStrict = lift readStdinStrict
   glob = lift . glob
   fileExists = lift . fileExists
   getDataFileName = lift . getDataFileName
