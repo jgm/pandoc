@@ -171,11 +171,6 @@ convertWithOpts opts = do
                                     else optTabStop opts)
 
 
-    let readSources :: [FilePath] -> PandocIO Text
-        readSources srcs = convertTabs . T.intercalate (T.pack "\n") <$>
-                              mapM readSource srcs
-
-
     outputSettings <- optToOutputSettings opts
     let format = outputFormat outputSettings
     let writer = outputWriter outputSettings
@@ -266,16 +261,19 @@ convertWithOpts opts = do
                        _  -> id)  -- should not happen
                      $ []
 
-    let sourceToDoc :: [FilePath] -> PandocIO Pandoc
-        sourceToDoc sources' =
+    let sourceToDoc sources' =
            case reader of
                 TextReader r
                   | optFileScope opts || readerName == "json" ->
-                      mconcat <$> mapM (readSource >=> r readerOpts) sources'
+                      mconcat <$> mapM
+                        (\f -> readSource f >>= r readerOpts . convertTabs)
+                        sources'
                   | otherwise ->
-                      readSources sources' >>= r readerOpts
+                      readSources sources' >>=
+                        r readerOpts . convertTabs
                 ByteStringReader r ->
-                  mconcat <$> mapM (readFile' >=> r readerOpts) sources'
+                  mconcat <$> mapM
+                      (readFile' >=> r readerOpts) sources'
 
 
     when (readerName == "markdown_github" ||
@@ -370,12 +368,15 @@ readSource src = case parseURI src of
                                  readTextFile (uriPathToPath $ uriPath u)
                       _       -> readTextFile src
 
+readSources :: PandocMonad m => [FilePath] -> m Text
+readSources srcs = T.intercalate (T.pack "\n") <$> mapM readSource srcs
+
 readURI :: PandocMonad m => FilePath -> m Text
 readURI src = UTF8.toText . fst <$> openURL src
 
-readFile' :: MonadIO m => FilePath -> m BL.ByteString
-readFile' "-" = liftIO BL.getContents
-readFile' f   = liftIO $ BL.readFile f
+readFile' :: PandocMonad m => FilePath -> m BL.ByteString
+readFile' "-" = BL.fromStrict <$> readStdinStrict
+readFile' f   = readFileLazy f
 
 writeFnBinary :: MonadIO m => FilePath -> BL.ByteString -> m ()
 writeFnBinary "-" = liftIO . BL.putStr
