@@ -256,6 +256,10 @@ tests = [ testGroup "document"
             "docx/lists.docx"
             "docx/lists.native"
           , testCompare
+            "compact lists"
+            "docx/lists-compact.docx"
+            "docx/lists-compact.native"
+          , testCompare
             "lists with level overrides"
             "docx/lists_level_override.docx"
             "docx/lists_level_override.native"
@@ -425,6 +429,11 @@ tests = [ testGroup "document"
             "custom styles (`+styles`) enabled"
             "docx/custom-style-reference.docx"
             "docx/custom-style-with-styles.native"
+          , testCompareWithOpts
+            def{readerExtensions=extensionsFromList [Ext_styles]}
+            "custom styles (`+styles`): Compact style is removed from output"
+            "docx/compact-style-removal.docx"
+            "docx/compact-style-removal.native"
           ]
         , testGroup "metadata"
           [ testCompareWithOpts def{readerStandalone=True}
