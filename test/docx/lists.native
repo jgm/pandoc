@@ -15,4 +15,4 @@
       ,Para [Str "Sub",Space,Str "paragraph"]]]]]]
  ,[Para [Str "Same",Space,Str "list"]]]
 ,BulletList
- [[Para [Str "Different",Space,Str "list",Space,Str "adjacent",Space,Str "to",Space,Str "the",Space,Str "one",Space,Str "above."]]]]
+ [[Plain [Str "Different",Space,Str "list",Space,Str "adjacent",Space,Str "to",Space,Str "the",Space,Str "one",Space,Str "above."]]]]
