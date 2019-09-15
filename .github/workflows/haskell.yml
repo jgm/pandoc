@@ -18,11 +18,11 @@ jobs:
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
           cabal v2-update
-          cabal v2-build --dependencies-only --enable-tests
+          cabal v2-build --dependencies-only --enable-tests --disable-optimization
     - name: Build
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
-          cabal v2-build --enable-tests
+          cabal v2-build --enable-tests --disable-optimization
     - name: Run tests
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
@@ -41,8 +41,8 @@ jobs:
     - name: Install dependencies
       run: |
           stack update
-          stack test --dependencies-only
+          stack test --dependencies-only --fast
     - name: Build and test
       shell: cmd
       run: |
-          stack test
+          stack test --fast
