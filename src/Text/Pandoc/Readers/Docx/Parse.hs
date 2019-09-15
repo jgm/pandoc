@@ -51,7 +51,6 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , HasParentStyle(..)
                                       , archiveToDocx
                                       , archiveToDocxWithWarnings
-                                      , getStyleNames
                                       , pHeading
                                       , constructBogusParStyleData
                                       , leftBiasedMergeRunStyle
@@ -227,17 +226,19 @@ data ChangeInfo = ChangeInfo ChangeId Author ChangeDate
 data TrackedChange = TrackedChange ChangeType ChangeInfo
                    deriving Show
 
-data ParagraphStyle = ParagraphStyle { pStyle      :: [ParStyle]
+data ParagraphStyle = ParagraphStyle { pStyle      :: Maybe ParStyle
                                      , indentation :: Maybe ParIndentation
                                      , dropCap     :: Bool
+                                     , isListPara  :: Bool
                                      , pChange     :: Maybe TrackedChange
                                      }
                       deriving Show
 
 defaultParagraphStyle :: ParagraphStyle
-defaultParagraphStyle = ParagraphStyle { pStyle = []
+defaultParagraphStyle = ParagraphStyle { pStyle = Nothing
                                        , indentation = Nothing
                                        , dropCap     = False
+                                       , isListPara  = False
                                        , pChange     = Nothing
                                        }
 
@@ -498,9 +499,6 @@ instance HasParentStyle CharStyle where
 
 instance HasParentStyle ParStyle where
   getParentStyle = psParentStyle
-
-getStyleNames :: (Functor t, HasStyleName a) => t a -> t (StyleName a)
-getStyleNames = fmap getStyleName
 
 constructBogusParStyleData :: ParaStyleName -> ParStyle
 constructBogusParStyleData stName = ParStyle
@@ -1115,11 +1113,8 @@ getParentStyleValue field style
                       = getParentStyleValue field parentStyle
 getParentStyleValue _ _ = Nothing
 
-getParStyleField :: (ParStyle -> Maybe a) -> [ParStyle] -> Maybe a
-getParStyleField field styles
-  | (y:_) <- mapMaybe (getParentStyleValue field) styles
-           = Just y
-getParStyleField _ _ = Nothing
+getParStyleField :: (ParStyle -> Maybe a) -> Maybe ParStyle -> Maybe a
+getParStyleField field mstyle = getParentStyleValue field =<< mstyle
 
 getTrackedChange :: NameSpaces -> Element -> Maybe TrackedChange
 getTrackedChange ns element
@@ -1136,15 +1131,19 @@ getTrackedChange ns element
       Just $ TrackedChange Deletion (ChangeInfo cId cAuthor cDate)
 getTrackedChange _ _ = Nothing
 
+safeLast :: [a] -> Maybe a
+safeLast [] = Nothing
+safeLast xs = Just $ last xs
+
 elemToParagraphStyle :: NameSpaces -> Element -> ParStyleMap -> ParagraphStyle
 elemToParagraphStyle ns element sty
   | Just pPr <- findChildByName ns "w" "pPr" element =
-    let style =
+    let style = safeLast $
           mapMaybe
           (fmap ParaStyleId . findAttrByName ns "w" "val")
           (findChildrenByName ns "w" "pStyle" pPr)
     in ParagraphStyle
-      {pStyle = mapMaybe (`M.lookup` sty) style
+      {pStyle = (`M.lookup` sty) =<< style
       , indentation =
           findChildByName ns "w" "ind" pPr >>=
           elemToParIndentation ns
@@ -1156,6 +1155,7 @@ elemToParagraphStyle ns element sty
             Just "none" -> False
             Just _      -> True
             Nothing     -> False
+      , isListPara  = False
       , pChange     = findChildByName ns "w" "rPr" pPr >>=
                       filterChild (\e -> isElem ns "w" "ins" e ||
                                          isElem ns "w" "moveTo" e ||

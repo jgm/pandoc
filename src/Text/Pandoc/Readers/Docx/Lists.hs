@@ -15,16 +15,13 @@ Functions for converting flat docx paragraphs into nested lists.
 module Text.Pandoc.Readers.Docx.Lists ( blocksToBullets
                                       , blocksToDefinitions
                                       , listParagraphDivs
-                                      , listParagraphStyles
                                       ) where
 
 import Prelude
 import Data.List
 import Data.Maybe
-import Data.String (fromString)
 import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.JSON
-import Text.Pandoc.Readers.Docx.Parse (ParaStyleName)
 import Text.Pandoc.Shared (trim, safeRead)
 
 isListItem :: Block -> Bool
@@ -84,9 +81,6 @@ getListType _ = Nothing
 
 listParagraphDivs :: [String]
 listParagraphDivs = ["list-paragraph"]
-
-listParagraphStyles :: [ParaStyleName]
-listParagraphStyles = map fromString listParagraphDivs
 
 -- This is a first stab at going through and attaching meaning to list
 -- paragraphs, without an item marker, following a list item. We
