@@ -389,8 +389,11 @@ General options {.options}
 :   Run in a sandbox that prevents all IO operations except:
 
     - reading files explicitly specified on the command line
-      (or *stdin*), writing to the output file (or *stdout*),
-   -  writing warnings and error messages to *stderr*,
+      (or *stdin*),
+    - writing to the output file (or *stdout*),
+    - writing media files to the directory specified by
+      `--extract-media`, if used,
+    - writing warnings and error messages to *stderr*,
     - reading data files distributed with pandoc,
     - IO done by filters explicitly specified on the command
       line.
