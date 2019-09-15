@@ -391,7 +391,9 @@ General options {.options}
     - reading files explicitly specified on the command line
       (or *stdin*), writing to the output file (or *stdout*),
    -  writing warnings and error messages to *stderr*,
-    - reading data files distributed with pandoc.
+    - reading data files distributed with pandoc,
+    - IO done by filters explicitly specified on the command
+      line.
 
     All other IO is disabled, including:
 
@@ -5422,7 +5424,10 @@ application, here are some things to keep in mind:
    `![](mysecretfile.txt)` will leak the contents of
    `mysecretfile.txt`.
 
-5. For maximum security, use pandoc with the `--sandboxed` option,
+5. Filters can perform IO, so any filters that are used should
+   be carefully audited.
+
+6. For maximum security, use pandoc with the `--sandboxed` option,
    which limits the IO operations pandoc can perform to reading
    input files (and data files explicitly specified on the
    command line) and writing the output file.  If your
