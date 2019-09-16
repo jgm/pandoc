@@ -28,7 +28,7 @@ import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Printf (printf)
-import Data.Char (ord, isAscii)
+import Data.Char (ord, isAscii, isSpace)
 import System.Directory
 import System.Environment
 import System.Exit (ExitCode (..))
@@ -93,7 +93,7 @@ makePDF program pdfargs writer opts doc =
             uname <- E.catch
               (do (ec, sout, _) <- readProcessWithExitCode "uname" ["-o"] ""
                   if ec == ExitSuccess
-                     then return $ Just sout
+                     then return $ Just $ filter (not . isSpace) sout
                      else return Nothing)
               (\(_ :: E.SomeException) -> return Nothing)
             if '~' `elem` tmp || uname == Just "Cygwin" -- see #5451
