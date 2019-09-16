@@ -31,7 +31,7 @@ jobs:
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
           mkdir -p ./bin
-          cabal v2-install --bindir=./bin
+          cabal v2-install --bindir=./bin exe:pandoc
     - uses: actions/upload-artifact@master
       with:
         name: pandoc-linux
