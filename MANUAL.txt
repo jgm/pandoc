@@ -721,6 +721,11 @@ General writer options {.options}
     `-o`/`--output` must come before `--print-default-template`
     on the command line.
 
+    Note that some of the default templates use partials, for
+    example `styles.html`.  To print the partials, use
+    `--print-default-data-file`: for example,
+    `--print-default-data-file=templates/styles.html`.
+
 `--print-default-data-file=`*FILE*
 
 :   Print a system default data file.  Files in the user data directory
