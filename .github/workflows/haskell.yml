@@ -4,6 +4,7 @@ on:
     push:
         paths:
         - '*'
+        - '.github/workflows/haskell.yml'
         - '!MANUAL.txt'
         - '!/doc/*'
         - '!/tools/*'
