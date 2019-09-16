@@ -30,12 +30,12 @@ jobs:
     - name: Install artifact
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
-          mkdir -p ./bin
-          cabal v2-install exe:pandoc
+          mkdir -p ./artifacts
+          for f in $(find dist-newstyle -name 'pandoc*' -type f -perm +400); do cp $f ./artifacts/; done
     - uses: actions/upload-artifact@master
       with:
         name: pandoc-linux
-        path: $HOME/.cabal/bin/pandoc
+        path: ./artifacts/pandoc
 
   windows:
 
