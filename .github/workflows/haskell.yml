@@ -27,15 +27,22 @@ jobs:
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
           cabal v2-test
-    - name: Install artifact
-      run: |
-          export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
-          mkdir -p ./artifacts
-          for f in $(find dist-newstyle -name 'pandoc*' -type f -executable); do cp $f ./artifacts/; done
-    - uses: actions/upload-artifact@master
-      with:
-        name: pandoc-linux
-        path: ./artifacts/pandoc
+
+# ARTIFACTS:  Currently disabled. The executables are large and
+# if we do produce artifacts, we should zip them.  We also
+# might consider doing this only nightly, compiling
+# with -split-sections and stripping the executable.
+# The code is included below in case we want to re-enable it.
+#
+#   - name: Install artifact
+#     run: |
+#         export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
+#         mkdir -p ./artifacts
+#         for f in $(find dist-newstyle -name 'pandoc*' -type f -executable); do cp $f ./artifacts/; done
+#   - uses: actions/upload-artifact@master
+#     with:
+#       name: pandoc-linux
+#       path: ./artifacts/pandoc
 
   windows:
 
