@@ -1,6 +1,34 @@
 name: Haskell CI
 
-on: [push]
+on:
+    push:
+        paths:
+        - '*'
+        - '!MANUAL.txt'
+        - '!/doc/*'
+        - '!/tools/*'
+        - '!/linux/*'
+        - '!/macos/*'
+        - '!/windows/*'
+        - '!/man/*'
+        - '!.mailmap'
+        - '!/.circleci/*'
+        - '!.editorconfig'
+        - '!.gitignore'
+        - '!.github/ISSUE_TEMPLATE'
+        - '!.hlint.yaml'
+        - '!.stylish-haskell.yaml'
+        - '!AUTHORS.md'
+        - '!BUGS'
+        - '!CONTRIBUTING.md'
+        - '!README.md'
+        - '!INSTALL.md'
+        - '!COPYRIGHT'
+        - '!COPYING.md'
+        - '!README.template'
+        - '!RELEASE_CHECKLIST'
+        - '!appveyor.yml'
+        - '!changelog'
 
 jobs:
   linux:
