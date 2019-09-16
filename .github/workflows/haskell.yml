@@ -33,9 +33,9 @@ jobs:
           mkdir -p ./bin
           cabal v2-install --bindir=./bin
     - uses: actions/upload-artifact@master
-        with:
-          name: pandoc-linux
-          path: ./bin/pandoc
+      with:
+        name: pandoc-linux
+        path: ./bin/pandoc
 
   windows:
 
