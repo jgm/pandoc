@@ -27,6 +27,15 @@ jobs:
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
           cabal v2-test
+    - name: Install artifact
+      run: |
+          export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
+          mkdir -p ./bin
+          cabal v2-install --bindir=./bin
+    - uses: actions/upload-artifact@master
+        with:
+          name: pandoc-linux
+          path: ./bin/pandoc
 
   windows:
 
