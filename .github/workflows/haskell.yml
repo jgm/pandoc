@@ -94,13 +94,11 @@ jobs:
     - name: Install stack
       run: |
           curl -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz -o stack.tar.gz
-          tar xzvf stack.tar.gz
+          tar xzvf stack.tar.gz --strip-components=1 'stack*/stack'
     - name: Install dependencies
       run: |
-          export PATH=stack-*-osx-x86_64:$PATH
-          stack update
-          stack test --dependencies-only
+          ./stack update
+          ./stack test --dependencies-only
     - name: Build and test
       run: |
-          export PATH=stack-*-osx-x86_64:$PATH
-          stack test
+          ./stack test
