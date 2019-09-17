@@ -84,3 +84,23 @@ jobs:
       shell: cmd
       run: |
           stack test
+
+  macos:
+
+    runs-on: macOS-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install stack
+      run: |
+          curl -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz -o stack.tar.gz
+          tar xzvf stack.tar.gz
+    - name: Install dependencies
+      run: |
+          export PATH=stack-*-osx-x86_64:$PATH
+          stack update
+          stack test --dependencies-only
+    - name: Build and test
+      run: |
+          export PATH=stack-*-osx-x86_64:$PATH
+          stack test
