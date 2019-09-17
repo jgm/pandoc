@@ -29,6 +29,7 @@ jobs:
 
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         versions:
           - ghc: '8.0.2'
