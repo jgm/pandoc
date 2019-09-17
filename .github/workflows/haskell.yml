@@ -28,32 +28,36 @@ jobs:
   linux:
 
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        ghcversion:
+        - 8.0.2
+        - 8.2.2
+        - 8.4.4
+        - 8.6.5
+        - 8.8.1
     steps:
     - uses: actions/checkout@v1
     - name: Install recent cabal/ghc
       run: |
           sudo add-apt-repository ppa:hvr/ghc
           sudo apt-get update
-          sudo apt-get install ghc-8.6.4 cabal-install-2.4
+          sudo apt-get install ghc-${{ matrix.ghcversion }} cabal-install-2.4
     - name: Install dependencies
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
           cabal v2-update
           cabal v2-build --dependencies-only --enable-tests
-    - name: Build
+    - name: Build and test
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
-          cabal v2-build --enable-tests
-    - name: Run tests
-      run: |
-          export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
-          cabal v2-test
+          cabal v2-install --enable-tests --run-tests 2>&1 | tee build.log
+          # fail if warnings in local build
+          ! grep -q "[Ww]arning:" build.log
 
 # ARTIFACTS:  Currently disabled. The executables are large and
 # if we do produce artifacts, we should zip them.  We also
-# might consider doing this only nightly, compiling
-# with -split-sections and stripping the executable.
+# might consider doing this only nightly and stripping.
 # The code is included below in case we want to re-enable it.
 #
 #   - name: Install artifact
