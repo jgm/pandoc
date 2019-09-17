@@ -29,7 +29,7 @@ jobs:
 
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         versions:
           - ghc: '8.0.2'
@@ -40,8 +40,8 @@ jobs:
             cabal: '2.4'
           - ghc: '8.6.5'
             cabal: '2.4'
-          - ghc: '8.8.1'
-            cabal: '3.0'
+#         - ghc: '8.8.1'
+#           cabal: '3.0'
     steps:
     - uses: actions/checkout@v1
     - name: Install recent cabal/ghc
