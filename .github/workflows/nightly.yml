@@ -1,0 +1,101 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: '30 3 * * *'
+
+jobs:
+  linux:
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install recent cabal/ghc
+      run: |
+          sudo add-apt-repository ppa:hvr/ghc
+          sudo apt-get update
+          sudo apt-get install ghc-8.6.5 cabal-install-2.4
+    - name: Install dependencies
+      run: |
+          export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
+          cabal v2-update
+          cabal v2-build --dependencies-only --enable-tests . pandoc-citeproc
+    - name: Build and test
+      run: |
+          export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
+          cabal v2-install --enable-tests --run-tests . pandoc-citeproc
+    - name: Install artifact
+      run: |
+          export ARTIFACTS=./pandoc-nightly-linux-$(date +%Y-%m%-d)-${GITHUB_SHA}
+          mkdir -p ${ARTIFACTS}
+          for f in $(find dist-newstyle -name 'pandoc*' -type f -executable); do cp $f ${ARTIFACTS}/; done
+          cp COPYRIGHT ${ARTIFACTS}/
+          tar cvzf nightly-linux.tgz ${ARTIFACTS}
+    - uses: actions/upload-artifact@master
+      with:
+        name: nightly-linux-x86_64
+        path: nightly-linux-x86_64.tgz
+
+  windows:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install stack
+      shell: cmd
+      run: |
+          choco install haskell-stack
+    - name: Install dependencies
+      run: |
+          stack update
+          stack test --dependencies-only pandoc pandoc-citeproc
+    - name: Build and test
+      shell: cmd
+      run: |
+          stack install --test pandoc pandoc-citeproc
+    - name: Install artifact
+      run: |
+          for /f "delims=" %%a in ('stack path --local-bin-path') do @set BINPATH=%%a
+          set ARTIFACTS=pandoc-nightly-windows-$(date +%Y-%m%-d)-${GITHUB_SHA}
+          mkdir %ARTIFACTS%
+          copy %BINPATH%\pandoc.exe %ARTIFACTS%/
+          copy %BINPATH%\pandoc-citeproc.exe %ARTIFACTS%/
+          copy COPYRIGHT %ARTIFACTS%/COPYRIGHT.txt
+          7z a nightly-windows.zip %ARTIFACTS%
+    - uses: actions/upload-artifact@master
+      with:
+        name: nightly-windows
+        path: nightly-windows.tgz
+
+  macos:
+
+    runs-on: macOS-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install stack
+      run: |
+          curl -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz -o stack.tar.gz
+          tar xzvf stack.tar.gz --strip-components=1 'stack*/stack'
+    - name: Install dependencies
+      run: |
+          ./stack update
+          ./stack test --dependencies-only pandoc pandoc-citeproc
+    - name: Build and test
+      run: |
+          ./stack install --test pandoc pandoc-citeproc
+    - name: Install artifact
+      run: |
+          export ARTIFACTS=./pandoc-nightly-macos-$(date +%Y-%m%-d)-${GITHUB_SHA}
+          mkdir -p ${ARTIFACTS}
+          cp $HOME/.local/bin/pandoc ${ARTIFACTS}/
+          cp $HOME/.local/bin/pandoc-citeproc ${ARTIFACTS}/
+          cp COPYRIGHT ${ARTIFACTS}/
+          for f in $(find dist-newstyle -name 'pandoc*' -type f -executable); do cp $f ${ARTIFACTS}/; done
+          zip -r nightly-macos.zip ${ARTIFACTS}
+    - uses: actions/upload-artifact@master
+      with:
+        name: nightly-macos
+        path: nightly-macos.zip
+

@@ -1,4 +1,4 @@
-name: Haskell CI
+name: CI tests
 
 on:
     push:
@@ -53,11 +53,11 @@ jobs:
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
           cabal v2-update
-          cabal v2-build --dependencies-only --enable-tests
+          cabal v2-build --dependencies-only --enable-tests --disable-optimization
     - name: Build and test
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
-          cabal v2-install --enable-tests --run-tests 2>&1 | tee build.log
+          cabal v2-install --enable-tests --run-tests --disable-optimization 2>&1 | tee build.log
           # fail if warnings in local build
           ! grep -q "[Ww]arning:" build.log
 
@@ -89,11 +89,11 @@ jobs:
     - name: Install dependencies
       run: |
           stack update
-          stack test --dependencies-only
+          stack test --dependencies-only --fast
     - name: Build and test
       shell: cmd
       run: |
-          stack test
+          stack test --fast
 
   macos:
 
@@ -108,7 +108,7 @@ jobs:
     - name: Install dependencies
       run: |
           ./stack update
-          ./stack test --dependencies-only
+          ./stack test --dependencies-only --fast
     - name: Build and test
       run: |
-          ./stack test
+          ./stack test --fast
