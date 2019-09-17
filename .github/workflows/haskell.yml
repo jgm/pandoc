@@ -30,30 +30,24 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ghcversion:
-        - '8.0.2'
-        - '8.2.2'
-        - '8.4.4'
-        - '8.6.5'
-        - '8.8.1'
-        include:
-        - ghcversion: '8.0.2'
-          cabalversion: '2.4'
-        - ghcversion: '8.2.2'
-          cabalversion: '2.4'
-        - ghcversion: '8.4.4'
-          cabalversion: '2.4'
-        - ghcversion: '8.6.5'
-          cabalversion: '2.4'
-        - ghcversion: '8.8.1'
-          cabalversion: '3.0'
+        versions:
+          - ghc: '8.0.2'
+            cabal: '2.4'
+          - ghc: '8.2.2'
+            cabal: '2.4'
+          - ghc: '8.4.4'
+            cabal: '2.4'
+          - ghc: '8.6.5'
+            cabal: '2.4'
+          - ghc: '8.8.1'
+            cabal: '3.0'
     steps:
     - uses: actions/checkout@v1
     - name: Install recent cabal/ghc
       run: |
           sudo add-apt-repository ppa:hvr/ghc
           sudo apt-get update
-          sudo apt-get install ghc-${{ matrix.ghcversion }} cabal-install-${{ matrix.cabalversion }}
+          sudo apt-get install ghc-${{ matrix.versions.ghc }} cabal-install-${{ matrix.versions.cabal }}
     - name: Install dependencies
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
