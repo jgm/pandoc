@@ -2,7 +2,7 @@ name: Nightly
 
 on:
   schedule:
-    - cron: '21 7 * * *'
+    - cron: '21 */6 * * *'
 
 jobs:
   linux:
@@ -59,7 +59,8 @@ jobs:
           export SUFFIX=nightly-%OURDATE%
           export ARTIFACTS=nightly-windows
           mkdir %ARTIFACTS%
-          stack install --local-bin-path %ARTIFACTS% pandoc pandoc-citeproc
+          stack build pandoc pandoc-citeproc
+          forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C copy @path %ARTIFACTS%"
           rename %ARTIFACTS%/pandoc %ARTIFACTS%/pandoc-%SUFFIX%
           rename %ARTIFACTS%/pandoc-citeproc %ARTIFACTS%/pandoc-citeproc-%SUFFIX%
           copy COPYRIGHT %ARTIFACTS%/COPYRIGHT.txt
@@ -88,7 +89,8 @@ jobs:
           export SUFFIX=nightly-$(date +%Y-%m-%d)
           export ARTIFACTS=nightly-macos
           mkdir -p ${ARTIFACTS}
-          ./stack install --local-bin-path ${ARTIFACTS}/ pandoc pandoc-citeproc
+          ./stack build pandoc pandoc-citeproc
+          for f in $(find .stack-work/install -name 'pandoc-*' -executable -type f); do cp $f ${ARTIFACTS}/; done
           mv ${ARTIFACTS}/pandoc ${ARTIFACTS}/pandoc-${SUFFIX}
           mv ${ARTIFACTS}/pandoc-citeproc ${ARTIFACTS}/pandoc-citeproc-${SUFFIX}
           cp COPYRIGHT ${ARTIFACTS}/
