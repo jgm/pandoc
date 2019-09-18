@@ -2,7 +2,7 @@ name: Nightly
 
 on:
   schedule:
-    - cron: '30 3 * * *'
+    - cron: '21 4 * * *'
 
 jobs:
   linux:
@@ -19,11 +19,11 @@ jobs:
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
           cabal v2-update
-          cabal v2-build --dependencies-only --enable-tests . pandoc-citeproc
-    - name: Build and test
+          cabal v2-build --dependencies-only . pandoc-citeproc
+    - name: Build
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
-          cabal v2-install --enable-tests --run-tests . pandoc-citeproc
+          cabal v2-install . pandoc-citeproc
     - name: Install artifact
       run: |
           export ARTIFACTS=./pandoc-nightly-linux-$(date +%Y-%m%-d)-${GITHUB_SHA}
@@ -49,18 +49,13 @@ jobs:
     - name: Install dependencies
       run: |
           stack update
-          stack test --dependencies-only pandoc pandoc-citeproc
-    - name: Build and test
+          stack build --dependencies-only pandoc pandoc-citeproc
+    - name: Build artifacts
       shell: cmd
       run: |
-          stack install --test pandoc pandoc-citeproc
-    - name: Install artifact
-      run: |
-          for /f "delims=" %%a in ('stack path --local-bin-path') do @set BINPATH=%%a
           set ARTIFACTS=pandoc-nightly-windows-$(date +%Y-%m%-d)-${GITHUB_SHA}
           mkdir %ARTIFACTS%
-          copy %BINPATH%\pandoc.exe %ARTIFACTS%/
-          copy %BINPATH%\pandoc-citeproc.exe %ARTIFACTS%/
+          stack install --local-bin-path %ARTIFACTS% pandoc pandoc-citeproc
           copy COPYRIGHT %ARTIFACTS%/COPYRIGHT.txt
           7z a nightly-windows.zip %ARTIFACTS%
     - uses: actions/upload-artifact@master
@@ -81,18 +76,13 @@ jobs:
     - name: Install dependencies
       run: |
           ./stack update
-          ./stack test --dependencies-only pandoc pandoc-citeproc
-    - name: Build and test
-      run: |
-          ./stack install --test pandoc pandoc-citeproc
-    - name: Install artifact
+          ./stack build --dependencies-only pandoc pandoc-citeproc
+    - name: Build artifacts
       run: |
           export ARTIFACTS=./pandoc-nightly-macos-$(date +%Y-%m%-d)-${GITHUB_SHA}
           mkdir -p ${ARTIFACTS}
-          cp $HOME/.local/bin/pandoc ${ARTIFACTS}/
-          cp $HOME/.local/bin/pandoc-citeproc ${ARTIFACTS}/
+          ./stack install --local-bin-path ${ARTIFACTS}/ pandoc pandoc-citeproc
           cp COPYRIGHT ${ARTIFACTS}/
-          for f in $(find dist-newstyle -name 'pandoc*' -type f -executable); do cp $f ${ARTIFACTS}/; done
           zip -r nightly-macos.zip ${ARTIFACTS}
     - uses: actions/upload-artifact@master
       with:
