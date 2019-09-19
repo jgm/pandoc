@@ -63,10 +63,10 @@ jobs:
           mkdir %ARTIFACTS%
           stack build pandoc pandoc-citeproc
           forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C copy @path %ARTIFACTS%"
-          rename %ARTIFACTS%/pandoc %ARTIFACTS%/pandoc-%SUFFIX%
-          rename %ARTIFACTS%/pandoc-citeproc %ARTIFACTS%/pandoc-citeproc-%SUFFIX%
-          copy COPYRIGHT %ARTIFACTS%/COPYRIGHT.txt
-          echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
+          ren %ARTIFACTS%\pandoc %ARTIFACTS%\pandoc-%SUFFIX%
+          ren %ARTIFACTS%\pandoc-citeproc %ARTIFACTS%\pandoc-citeproc-%SUFFIX%
+          copy COPYRIGHT %ARTIFACTS%\COPYRIGHT.txt
+          echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}\README.nightly.txt
     - uses: actions/upload-artifact@master
       with:
         name: nightly-windows
