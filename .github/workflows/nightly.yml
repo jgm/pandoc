@@ -24,6 +24,8 @@ jobs:
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
           cabal v2-install . pandoc-citeproc
+          strip $HOME/.cabal/bin/pandoc
+          strip $HOME/.cabal/bin/pandoc-citeproc
     - name: Install artifact
       run: |
           export SUFFIX=nightly-$(date +%Y-%m-%d)
