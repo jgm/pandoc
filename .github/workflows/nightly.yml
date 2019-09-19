@@ -55,7 +55,7 @@ jobs:
     - name: Build artifacts
       shell: cmd
       run: |
-          for /f "tokens=2,3,4 usebackq delims=:/ " %a in ('%date%') do set OURDATE=%c-%a-%b
+          for /f "tokens=2,3,4 usebackq delims=:/ " %a in ('%date%') do set OURDATE=%%c-%%a-%%b
           export SUFFIX=nightly-%OURDATE%
           export ARTIFACTS=nightly-windows
           mkdir %ARTIFACTS%
@@ -90,7 +90,7 @@ jobs:
           export ARTIFACTS=nightly-macos
           mkdir -p ${ARTIFACTS}
           ./stack build pandoc pandoc-citeproc
-          for f in $(find .stack-work/install -name 'pandoc-*' -executable -type f); do cp $f ${ARTIFACTS}/; done
+          for f in $(find .stack-work/install -name 'pandoc-*' -perm +400 -type f); do cp $f ${ARTIFACTS}/; done
           mv ${ARTIFACTS}/pandoc ${ARTIFACTS}/pandoc-${SUFFIX}
           mv ${ARTIFACTS}/pandoc-citeproc ${ARTIFACTS}/pandoc-citeproc-${SUFFIX}
           cp COPYRIGHT ${ARTIFACTS}/
