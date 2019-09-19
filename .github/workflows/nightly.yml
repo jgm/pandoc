@@ -90,7 +90,7 @@ jobs:
           export ARTIFACTS=nightly-macos
           mkdir -p ${ARTIFACTS}
           ./stack build pandoc pandoc-citeproc
-          for f in $(find .stack-work/install -name 'pandoc-*' -perm +400 -type f); do cp $f ${ARTIFACTS}/; done
+          for f in $(find .stack-work/install -name 'pandoc*' -perm +001 -type f); do cp $f ${ARTIFACTS}/; done
           mv ${ARTIFACTS}/pandoc ${ARTIFACTS}/pandoc-${SUFFIX}
           mv ${ARTIFACTS}/pandoc-citeproc ${ARTIFACTS}/pandoc-citeproc-${SUFFIX}
           cp COPYRIGHT ${ARTIFACTS}/
