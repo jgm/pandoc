@@ -55,9 +55,9 @@ jobs:
     - name: Build artifacts
       shell: cmd
       run: |
-          for /f "tokens=2,3,4 usebackq delims=:/ " %a in ('%date%') do set OURDATE=%%c-%%a-%%b
-          export SUFFIX=nightly-%OURDATE%
-          export ARTIFACTS=nightly-windows
+          for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
+          set SUFFIX=nightly-%THEDATE%
+          set ARTIFACTS=nightly-windows
           mkdir %ARTIFACTS%
           stack build pandoc pandoc-citeproc
           forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C copy @path %ARTIFACTS%"
