@@ -1,28 +1,28 @@
 name: CI tests
 
-on:
-    push:
-        paths:
-        - '*'
-        - '.github/workflows/haskell.yml'
-        - '!MANUAL.txt'
-        - '!/doc/*'
-        - '!/tools/*'
-        - '!/linux/*'
-        - '!/macos/*'
-        - '!/windows/*'
-        - '!/man/*'
-        - '!AUTHORS.md'
-        - '!BUGS'
-        - '!CONTRIBUTING.md'
-        - '!README.md'
-        - '!INSTALL.md'
-        - '!COPYRIGHT'
-        - '!COPYING.md'
-        - '!README.template'
-        - '!RELEASE_CHECKLIST'
-        - '!appveyor.yml'
-        - '!changelog'
+on: [push]
+#   push:
+#       paths:
+#       - '*'
+#       - '.github/workflows/haskell.yml'
+#       - '!MANUAL.txt'
+#       - '!/doc/*'
+#       - '!/tools/*'
+#       - '!/linux/*'
+#       - '!/macos/*'
+#       - '!/windows/*'
+#       - '!/man/*'
+#       - '!AUTHORS.md'
+#       - '!BUGS'
+#       - '!CONTRIBUTING.md'
+#       - '!README.md'
+#       - '!INSTALL.md'
+#       - '!COPYRIGHT'
+#       - '!COPYING.md'
+#       - '!README.template'
+#       - '!RELEASE_CHECKLIST'
+#       - '!appveyor.yml'
+#       - '!changelog'
 
 jobs:
   linux:
