@@ -67,7 +67,7 @@ jobs:
           ren %ARTIFACTS%\pandoc pandoc-%SUFFIX%
           ren %ARTIFACTS%\pandoc-citeproc pandoc-citeproc-%SUFFIX%
           ren %ARTIFACTS%\COPYRIGHT COPYRIGHT.txt
-          echo "Built from %GITHUB_SHA%" > %ARTIFACTS%\README.nightly.txt
+          echo Built from %GITHUB_SHA% > %ARTIFACTS%\README.nightly.txt
     - uses: actions/upload-artifact@master
       with:
         name: nightly-windows
