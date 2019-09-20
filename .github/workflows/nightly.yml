@@ -2,7 +2,7 @@ name: Nightly
 
 on:
   schedule:
-    - cron: '21 4 * * *'
+    - cron: '21 */6 * * *'
 
 jobs:
   linux:
@@ -61,7 +61,9 @@ jobs:
           set SUFFIX=nightly-%THEDATE%
           set ARTIFACTS=nightly-windows
           mkdir %ARTIFACTS%
+          stack path
           stack build pandoc pandoc-citeproc
+          forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C echo @path %ARTIFACTS%"
           forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C copy @path %ARTIFACTS%"
           copy COPYRIGHT %ARTIFACTS%
           ren %ARTIFACTS%\pandoc pandoc-%SUFFIX%
