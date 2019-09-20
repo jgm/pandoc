@@ -510,9 +510,12 @@ makeSections numbering mbBaseLevel bs =
     S.modify $ \(_, ln) -> (mbLevel, ln)
     rest' <- go rest
     let divattr = (ident, ["section"], [])
-    let attr = ("",classes,kvs ++
-                   [("number", intercalate "." (map show newnum))
-                     | numbering])
+    let attr = ("",classes,
+                   -- don't touch number if already present
+                   case lookup "number" kvs of
+                     Nothing | numbering ->
+                        ("number", intercalate "." (map show newnum)) : kvs
+                     _ -> kvs)
     return $
       Div divattr (Header level' attr title' : sectionContents') : rest'
   go (Div (dident,dclasses,dkvs)

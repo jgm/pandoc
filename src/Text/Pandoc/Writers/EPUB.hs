@@ -21,12 +21,13 @@ import Codec.Archive.Zip (Entry, addEntryToArchive, eRelativePath, emptyArchive,
 import Control.Applicative ( (<|>) )
 import Control.Monad (mplus, unless, when, zipWithM)
 import Control.Monad.Except (catchError, throwError)
-import Control.Monad.State.Strict (State, StateT, evalState, evalStateT, get,
-                                   gets, lift, modify, put)
+import Control.Monad.State.Strict (StateT, evalState, evalStateT, get,
+                                   gets, lift, modify)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import Data.Char (isAlphaNum, isAscii, isDigit, toLower)
 import Data.List (isInfixOf, isPrefixOf)
+import Data.List.Split (splitWhen)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, isJust)
 import qualified Data.Set as Set
@@ -513,38 +514,24 @@ pandocToEPUB version opts doc = do
 
   let chapterHeaderLevel = writerEpubChapterLevel opts
 
-  let isChapterHeader (Header n _ _) = n <= chapterHeaderLevel
-      isChapterHeader (Div ("refs",_,_) (Header n _ _:_)) =
-        n <= chapterHeaderLevel
+  let isChapterHeader (Div _ (Header n _ _:_)) = n <= chapterHeaderLevel
       isChapterHeader _ = False
 
-  let toChapters :: [Block] -> State [Int] [Chapter]
-      toChapters []     = return []
-      toChapters (Div _ bs@(Header 1 _ _:_) : rest) =
-        toChapters (bs ++ rest)
-      toChapters (Header n (ident,classes,kvs) ils : bs) = do
-        nums <- get
-        mbnum <- if "unnumbered" `elem` classes
-                    then return Nothing
-                    else case splitAt (n - 1) nums of
-                              (ks, m:_) -> do
-                                let nums' = ks ++ [m+1]
-                                put nums'
-                                return $ Just (ks ++ [m])
-                                -- note, this is the offset not the sec number
-                              (ks, []) -> do
-                                let nums' = ks ++ [1]
-                                put nums'
-                                return $ Just ks
-        let (xs,ys) = break isChapterHeader bs
-        (Chapter mbnum
-          (Header n (ident,"chapter-title":classes,kvs) ils : xs) :) <$>
-            toChapters ys
-      toChapters (b:bs) = do
-        let (xs,ys) = break isChapterHeader bs
-        (Chapter Nothing (b:xs) :) <$> toChapters ys
+  let secsToChapters :: [Block] -> [Chapter]
+      secsToChapters [] = []
+      secsToChapters (d@(Div (_,"section":_,_) bs) : rest)
+        | isChapterHeader d =
+        Chapter mbnum [d] : secsToChapters rest
+            where mbnum = case bs of
+                            (Header _ (_,_,kvs) _ : _) ->
+                              map (fromMaybe 0 . safeRead) .
+                                splitWhen (=='.') <$> lookup "number" kvs
+                            _ -> Nothing
+      secsToChapters bs =
+        Chapter Nothing xs : secsToChapters ys
+            where (xs, ys) = break isChapterHeader bs
 
-  let chapters' = evalState (toChapters blocks') []
+  let chapters' = secsToChapters $ makeSections True Nothing blocks'
 
   let extractLinkURL' :: Int -> Inline -> [(String, String)]
       extractLinkURL' num (Span (ident, _, _) _)
@@ -576,11 +563,11 @@ pandocToEPUB version opts doc = do
                          Chapter mbnum $ walk fixInternalReferences bs)
                  chapters'
 
-  let chapToEntry num (Chapter mbnum bs) =
+  let chapToEntry num (Chapter _ bs) =
         mkEntry ("text/" ++ showChapter num) =<<
-        writeHtml opts'{ writerNumberOffset = fromMaybe [] mbnum
-                       , writerVariables = ("body-type", bodyType) :
-                                           cssvars True ++ vars } pdoc
+        writeHtml opts'{ writerVariables = ("body-type", bodyType) :
+                                            ("pagetitle", showChapter num) :
+                                             cssvars True ++ vars } pdoc
          where (pdoc, bodyType) =
                  case bs of
                      (Header _ (_,_,kvs) xs : _) ->
