@@ -61,14 +61,14 @@ jobs:
           set SUFFIX=nightly-%THEDATE%
           set ARTIFACTS=nightly-windows
           mkdir %ARTIFACTS%
-          stack path
           stack build pandoc pandoc-citeproc
-          forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C echo @path %ARTIFACTS%"
           forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C copy @path %ARTIFACTS%"
           copy COPYRIGHT %ARTIFACTS%
-          ren %ARTIFACTS%\pandoc pandoc-%SUFFIX%
-          ren %ARTIFACTS%\pandoc-citeproc pandoc-citeproc-%SUFFIX%
           ren %ARTIFACTS%\COPYRIGHT COPYRIGHT.txt
+          dir %ARTIFACTS%
+          ren %ARTIFACTS%\pandoc.exe pandoc-%SUFFIX%.exe
+          ren %ARTIFACTS%\pandoc-citeproc.exe pandoc-citeproc-%SUFFIX%.exe
+          dir %ARTIFACTS%
           echo Built from %GITHUB_SHA% > %ARTIFACTS%\README.nightly.txt
     - uses: actions/upload-artifact@master
       with:
