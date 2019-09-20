@@ -28,11 +28,10 @@ jobs:
           strip $HOME/.cabal/bin/pandoc-citeproc
     - name: Install artifact
       run: |
-          export SUFFIX=nightly-$(date +%Y-%m-%d)
-          export ARTIFACTS=nightly-linux
+          export ARTIFACTS=nightly-linux/pandoc-nightly-linux-$(date +%Y-%m-%d)
           mkdir -p ${ARTIFACTS}
-          cp $HOME/.cabal/bin/pandoc ${ARTIFACTS}/pandoc-${SUFFIX}
-          cp $HOME/.cabal/bin/pandoc-citeproc ${ARTIFACTS}/pandoc-citeproc-${SUFFIX}
+          cp $HOME/.cabal/bin/pandoc ${ARTIFACTS}/
+          cp $HOME/.cabal/bin/pandoc-citeproc ${ARTIFACTS}/
           cp COPYRIGHT ${ARTIFACTS}/
           echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
     - uses: actions/upload-artifact@master
@@ -58,16 +57,12 @@ jobs:
       shell: cmd
       run: |
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
-          set SUFFIX=nightly-%THEDATE%
-          set ARTIFACTS=nightly-windows
+          set ARTIFACTS=nightly-windows\pandoc-nightly-windows-%THEDATE%
           mkdir %ARTIFACTS%
           stack build pandoc pandoc-citeproc
           forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C copy @path %ARTIFACTS%"
           copy COPYRIGHT %ARTIFACTS%
           ren %ARTIFACTS%\COPYRIGHT COPYRIGHT.txt
-          dir %ARTIFACTS%
-          ren %ARTIFACTS%\pandoc.exe pandoc-%SUFFIX%.exe
-          ren %ARTIFACTS%\pandoc-citeproc.exe pandoc-citeproc-%SUFFIX%.exe
           dir %ARTIFACTS%
           echo Built from %GITHUB_SHA% > %ARTIFACTS%\README.nightly.txt
     - uses: actions/upload-artifact@master
@@ -91,13 +86,12 @@ jobs:
           ./stack build --dependencies-only pandoc pandoc-citeproc
     - name: Build artifacts
       run: |
-          export SUFFIX=nightly-$(date +%Y-%m-%d)
-          export ARTIFACTS=nightly-macos
+          export ARTIFACTS=nightly-macos/pandoc-nightly-macos-$(date +%Y-%m-%d)
           mkdir -p ${ARTIFACTS}
           ./stack build pandoc pandoc-citeproc
           for f in $(find .stack-work/install -name 'pandoc*' -perm +001 -type f); do cp $f ${ARTIFACTS}/; done
-          mv ${ARTIFACTS}/pandoc ${ARTIFACTS}/pandoc-${SUFFIX}
-          mv ${ARTIFACTS}/pandoc-citeproc ${ARTIFACTS}/pandoc-citeproc-${SUFFIX}
+          mv ${ARTIFACTS}/pandoc ${ARTIFACTS}/pandoc
+          mv ${ARTIFACTS}/pandoc-citeproc ${ARTIFACTS}/pandoc-citeproc
           cp COPYRIGHT ${ARTIFACTS}/
           echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
     - uses: actions/upload-artifact@master
