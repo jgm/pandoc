@@ -27,7 +27,6 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import Data.Char (isAlphaNum, isAscii, isDigit, toLower)
 import Data.List (isInfixOf, isPrefixOf)
-import Data.List.Split (splitWhen)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, isJust)
 import qualified Data.Set as Set
@@ -60,11 +59,8 @@ import Text.XML.Light (Attr (..), Element (..), Node (..), QName (..),
                        ppElement, showElement, strContent, unode, unqual)
 import Text.Pandoc.XML (escapeStringForXML)
 
--- A Chapter includes a list of blocks and maybe a section
--- number offset.  Note, some chapters are unnumbered. The section
--- number is different from the index number, which will be used
--- in filenames, chapter0003.xhtml.
-data Chapter = Chapter (Maybe [Int]) [Block]
+-- A Chapter includes a list of blocks.
+data Chapter = Chapter [Block]
 
 data EPUBState = EPUBState {
         stMediaPaths  :: [(FilePath, (FilePath, Maybe Entry))]
@@ -519,16 +515,16 @@ pandocToEPUB version opts doc = do
 
   let secsToChapters :: [Block] -> [Chapter]
       secsToChapters [] = []
-      secsToChapters (d@(Div (_,"section":_,_) bs) : rest)
-        | isChapterHeader d =
-        Chapter mbnum [d] : secsToChapters rest
-            where mbnum = case bs of
-                            (Header _ (_,_,kvs) _ : _) ->
-                              map (fromMaybe 0 . safeRead) .
-                                splitWhen (=='.') <$> lookup "number" kvs
-                            _ -> Nothing
+      secsToChapters (d@(Div attr@(_,"section":_,_)
+                         (h@(Header lvl _ _) : bs)) : rest)
+        | chapterHeaderLevel == lvl =
+          Chapter [d] : secsToChapters rest
+        | chapterHeaderLevel > lvl =
+           Chapter [Div attr (h:xs)] :
+           secsToChapters ys ++ secsToChapters rest
+             where (xs, ys) = break isChapterHeader bs
       secsToChapters bs =
-        Chapter Nothing xs : secsToChapters ys
+        Chapter xs : secsToChapters ys
             where (xs, ys) = break isChapterHeader bs
 
   let chapters' = secsToChapters $ makeSections True Nothing blocks'
@@ -545,7 +541,7 @@ pandocToEPUB version opts doc = do
         | not (null ident) = [(ident, showChapter num ++ ('#':ident))]
       extractLinkURL num b = query (extractLinkURL' num) b
 
-  let reftable = concat $ zipWith (\(Chapter _ bs) num ->
+  let reftable = concat $ zipWith (\(Chapter bs) num ->
                                     query (extractLinkURL num) bs)
                           chapters' [1..]
 
@@ -559,11 +555,11 @@ pandocToEPUB version opts doc = do
   -- internal reference IDs change when we chunk the file,
   -- so that '#my-header-1' might turn into 'chap004.xhtml#my-header'.
   -- this fixes that:
-  let chapters = map (\(Chapter mbnum bs) ->
-                         Chapter mbnum $ walk fixInternalReferences bs)
+  let chapters = map (\(Chapter bs) ->
+                         Chapter $ walk fixInternalReferences bs)
                  chapters'
 
-  let chapToEntry num (Chapter _ bs) =
+  let chapToEntry num (Chapter bs) =
         mkEntry ("text/" ++ showChapter num) =<<
         writeHtml opts'{ writerVariables = ("body-type", bodyType) :
                                             ("pagetitle", showChapter num) :
