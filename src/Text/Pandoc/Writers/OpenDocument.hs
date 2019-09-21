@@ -397,9 +397,9 @@ blockToOpenDocument o bs
         captionDoc <- if null c
                       then return empty
                       else inlinesToOpenDocument o c >>=
-                             if True -- temporary: see #5474
-                                then unNumberedCaption "TableCaption"
-                                else numberedTableCaption
+                             if isEnabled Ext_native_numbering o
+                                then numberedTableCaption
+                                else unNumberedCaption "TableCaption"
         th <- if all null h
                  then return empty
                  else colHeadsToOpenDocument o (map fst paraHStyles) h
@@ -412,9 +412,9 @@ blockToOpenDocument o bs
                                   | otherwise    = do
         imageDoc <- withParagraphStyle o "FigureWithCaption" [Para [Image attr caption (source,title)]]
         captionDoc <- inlinesToOpenDocument o caption >>=
-                         if True -- temporary: see #5474
-                            then unNumberedCaption "FigureCaption"
-                            else numberedFigureCaption
+                         if isEnabled Ext_native_numbering o
+                            then numberedFigureCaption
+                            else unNumberedCaption "FigureCaption"
         return $ imageDoc $$ captionDoc
 
 
@@ -423,7 +423,7 @@ numberedTableCaption caption = do
     id' <- gets stTableCaptionId
     modify (\st -> st{ stTableCaptionId = id' + 1 })
     capterm <- translateTerm Term.Table
-    return $ numberedCaption "Table" capterm "Table" id' caption
+    return $ numberedCaption "TableCaption" capterm "Table" id' caption
 
 numberedFigureCaption :: PandocMonad m => Doc Text -> OD m (Doc Text)
 numberedFigureCaption caption = do
