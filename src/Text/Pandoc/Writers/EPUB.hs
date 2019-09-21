@@ -61,6 +61,7 @@ import Text.Pandoc.XML (escapeStringForXML)
 
 -- A Chapter includes a list of blocks.
 data Chapter = Chapter [Block]
+  deriving (Show)
 
 data EPUBState = EPUBState {
         stMediaPaths  :: [(FilePath, (FilePath, Maybe Entry))]
@@ -501,13 +502,6 @@ pandocToEPUB version opts doc = do
 
   -- body pages
 
-  -- add level 1 header to beginning if none there
-  let blocks' = addIdentifiers opts
-                $ case blocks of
-                      (Header 1 _ _ : _) -> blocks
-                      _                  -> Header 1 ("",["unnumbered"],[])
-                                                 (docTitle' meta) : blocks
-
   let chapterHeaderLevel = writerEpubChapterLevel opts
 
   let isChapterHeader (Div _ (Header n _ _:_)) = n <= chapterHeaderLevel
@@ -515,19 +509,28 @@ pandocToEPUB version opts doc = do
 
   let secsToChapters :: [Block] -> [Chapter]
       secsToChapters [] = []
-      secsToChapters (d@(Div attr@(_,"section":_,_)
-                         (h@(Header lvl _ _) : bs)) : rest)
+      secsToChapters (d@(Div attr (h@(Header lvl _ _) : bs)) : rest)
         | chapterHeaderLevel == lvl =
-          Chapter [d] : secsToChapters rest
+           Chapter [d] : secsToChapters rest
         | chapterHeaderLevel > lvl =
            Chapter [Div attr (h:xs)] :
            secsToChapters ys ++ secsToChapters rest
              where (xs, ys) = break isChapterHeader bs
       secsToChapters bs =
-        Chapter xs : secsToChapters ys
+          (if null xs then id else (Chapter xs :)) $ secsToChapters ys
             where (xs, ys) = break isChapterHeader bs
 
-  let chapters' = secsToChapters $ makeSections True Nothing blocks'
+  -- add level 1 header to beginning if none there
+  let secs = makeSections True Nothing
+              $ addIdentifiers opts
+              $ case blocks of
+                  (Div _
+                    (Header{}:_) : _) -> blocks
+                  (Header 1 _ _ : _)  -> blocks
+                  _                   -> Header 1 ("",["unnumbered"],[])
+                                             (docTitle' meta) : blocks
+
+  let chapters' = secsToChapters secs
 
   let extractLinkURL' :: Int -> Inline -> [(String, String)]
       extractLinkURL' num (Span (ident, _, _) _)
@@ -696,14 +699,12 @@ pandocToEPUB version opts doc = do
   contentsEntry <- mkEntry "content.opf" contentsData
 
   -- toc.ncx
-  let secs = makeSections True (Just 1) blocks'
-
   let tocLevel = writerTOCDepth opts
 
   let navPointNode :: PandocMonad m
                    => (Int -> [Inline] -> String -> [Element] -> Element)
                    -> Block -> StateT Int m [Element]
-      navPointNode formatter (Div (ident,"section":_,_)
+      navPointNode formatter (Div (ident,_,_)
                                 (Header lvl (_,_,kvs) ils : children)) = do
         if lvl > tocLevel
            then return []
