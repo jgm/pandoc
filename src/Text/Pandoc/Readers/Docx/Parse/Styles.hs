@@ -56,14 +56,14 @@ import Text.Pandoc.Readers.Docx.Util
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.XML.Light
 
-newtype CharStyleId   = CharStyleId { fromCharStyleId :: String }
-  deriving (Show, Eq, Ord, FromStyleId)
-newtype ParaStyleId   = ParaStyleId { fromParaStyleId  :: String }
-  deriving (Show, Eq, Ord, FromStyleId)
+newtype CharStyleId   = CharStyleId String
+  deriving (Show, Eq, Ord, IsString, FromStyleId)
+newtype ParaStyleId   = ParaStyleId String
+  deriving (Show, Eq, Ord, IsString, FromStyleId)
 
-newtype CharStyleName = CharStyleName { fromCharStyleName :: CIString }
+newtype CharStyleName = CharStyleName CIString
   deriving (Show, Eq, Ord, IsString, FromStyleName)
-newtype ParaStyleName = ParaStyleName { fromParaStyleName :: CIString }
+newtype ParaStyleName = ParaStyleName CIString
   deriving (Show, Eq, Ord, IsString, FromStyleName)
 
 -- Case-insensitive comparisons
