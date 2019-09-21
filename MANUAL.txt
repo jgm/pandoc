@@ -5255,8 +5255,10 @@ styles, pandoc allows you to define custom styles for blocks and text
 using `div`s and `span`s, respectively.
 
 If you define a `div` or `span` with the attribute `custom-style`,
-pandoc will apply your specified style to the contained elements. So,
-for example using the `bracketed_spans` syntax,
+pandoc will apply your specified style to the contained elements (with
+the exception of elements whose function depends on a style, like
+headings, code blocks, block quotes, or links). So, for example, using
+the `bracketed_spans` syntax,
 
     [Get out]{custom-style="Emphatically"}, he said.
 
