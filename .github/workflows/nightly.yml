@@ -57,13 +57,14 @@ jobs:
       shell: cmd
       run: |
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
-          set ARTIFACTS=nightly-windows\pandoc-nightly-windows-%THEDATE%
+          set ARTIFACTS=.\nightly-windows\pandoc-nightly-windows-%THEDATE%
+          setlocal enableextensions
           mkdir %ARTIFACTS%
+          endlocal
           stack build pandoc pandoc-citeproc
           forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C echo @path && dir @path && echo %ARTIFACTS% && dir %ARTIFACTS% && copy @path %ARTIFACTS%"
           copy COPYRIGHT %ARTIFACTS%
           ren %ARTIFACTS%\COPYRIGHT COPYRIGHT.txt
-          dir %ARTIFACTS%
           echo Built from %GITHUB_SHA% > %ARTIFACTS%\README.nightly.txt
     - uses: actions/upload-artifact@master
       with:
