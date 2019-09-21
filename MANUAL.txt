@@ -2361,6 +2361,16 @@ input formats
 output formats
 :  `docx`, `odt`, `opendocument`, `html`
 
+#### Extension: `native_numbering` ####
+
+Enables native numbering of figures and tables. Enumeration
+starts at 1.
+
+This extension can be enabled/disabled for the following formats:
+
+output formats
+:  `odt`, `opendocument`
+
 #### Extension: `styles` #### {#ext-styles}
 
 When converting from docx, read all docx styles as divs (for
