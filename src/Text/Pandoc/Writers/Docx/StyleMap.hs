@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {- |
-   Module : Text.Pandoc.Readers.Docx.StyleMap
+   Module : Text.Pandoc.Writers.Docx.StyleMap
    Copyright   : © 2014-2019 Jesse Rosenthal <jrosenthal@jhu.edu>,
                    2014-2019 John MacFarlane <jgm@berkeley.edu>,
                    2015-2019 Nikolay Yakimov <root@livid.pp.ru>
@@ -14,7 +14,7 @@
 Mappings of element styles (word to pandoc-internal).
 -}
 
-module Text.Pandoc.Readers.Docx.StyleMap ( StyleMaps(..)
+module Text.Pandoc.Writers.Docx.StyleMap ( StyleMaps(..)
                                          , ParaStyleName
                                          , CharStyleName
                                          , getStyleMaps

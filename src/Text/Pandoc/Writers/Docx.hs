@@ -48,7 +48,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType,
                          getMimeTypeDef)
 import Text.Pandoc.Options
-import Text.Pandoc.Readers.Docx.StyleMap
+import Text.Pandoc.Writers.Docx.StyleMap
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
