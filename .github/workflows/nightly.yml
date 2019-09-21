@@ -2,7 +2,7 @@ name: Nightly
 
 on:
   schedule:
-    - cron: '53 */1 * * *'
+    - cron: '53 */2 * * *'
 
 jobs:
   linux:
@@ -60,7 +60,7 @@ jobs:
           set ARTIFACTS=nightly-windows\pandoc-nightly-windows-%THEDATE%
           mkdir %ARTIFACTS%
           stack build pandoc pandoc-citeproc
-          forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C echo @path && echo %ARTIFACTS% && copy @path %ARTIFACTS%"
+          forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C echo @path && dir @path && echo %ARTIFACTS% && dir %ARTIFACTS% && copy @path %ARTIFACTS%"
           copy COPYRIGHT %ARTIFACTS%
           ren %ARTIFACTS%\COPYRIGHT COPYRIGHT.txt
           dir %ARTIFACTS%
