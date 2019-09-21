@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Docx.Lists
    Copyright   : Copyright (C) 2014-2019 Jesse Rosenthal
@@ -14,13 +15,16 @@ Functions for converting flat docx paragraphs into nested lists.
 module Text.Pandoc.Readers.Docx.Lists ( blocksToBullets
                                       , blocksToDefinitions
                                       , listParagraphDivs
+                                      , listParagraphStyles
                                       ) where
 
 import Prelude
 import Data.List
 import Data.Maybe
+import Data.String (fromString)
 import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.JSON
+import Text.Pandoc.Readers.Docx.Parse (ParaStyleName)
 import Text.Pandoc.Shared (trim, safeRead)
 
 isListItem :: Block -> Bool
@@ -79,7 +83,10 @@ getListType b@(Div (_, _, kvs) _) | isListItem b =
 getListType _ = Nothing
 
 listParagraphDivs :: [String]
-listParagraphDivs = ["ListParagraph"]
+listParagraphDivs = ["list-paragraph"]
+
+listParagraphStyles :: [ParaStyleName]
+listParagraphStyles = map fromString listParagraphDivs
 
 -- This is a first stab at going through and attaching meaning to list
 -- paragraphs, without an item marker, following a list item. We
@@ -160,7 +167,7 @@ blocksToDefinitions' defAcc acc [] =
   reverse $ DefinitionList (reverse defAcc) : acc
 blocksToDefinitions' defAcc acc
   (Div (_, classes1, _) blks1 : Div (ident2, classes2, kvs2) blks2 : blks)
-  | "DefinitionTerm" `elem` classes1 && "Definition"  `elem` classes2 =
+  | "Definition-Term" `elem` classes1 && "Definition"  `elem` classes2 =
     let remainingAttr2 = (ident2, delete "Definition" classes2, kvs2)
         pair = if remainingAttr2 == ("", [], []) then (concatMap plainParaInlines blks1, [blks2]) else (concatMap plainParaInlines blks1, [[Div remainingAttr2 blks2]])
     in
@@ -169,12 +176,12 @@ blocksToDefinitions' ((defTerm, defItems):defs) acc
   (Div (ident2, classes2, kvs2) blks2 : blks)
   | "Definition"  `elem` classes2 =
     let remainingAttr2 = (ident2, delete "Definition" classes2, kvs2)
-        defItems2 = case remainingAttr2 == ("", [], []) of
-          True  -> blks2
-          False -> [Div remainingAttr2 blks2]
-        defAcc' = case null defItems of
-          True -> (defTerm, [defItems2]) : defs
-          False -> (defTerm, init defItems ++ [last defItems ++ defItems2]) : defs
+        defItems2 = if remainingAttr2 == ("", [], [])
+          then blks2
+          else [Div remainingAttr2 blks2]
+        defAcc' = if null defItems
+          then (defTerm, [defItems2]) : defs
+          else (defTerm, init defItems ++ [last defItems ++ defItems2]) : defs
     in
      blocksToDefinitions' defAcc' acc blks
 blocksToDefinitions' [] acc (b:blks) =
@@ -197,8 +204,6 @@ removeListDivs' blk = [blk]
 
 removeListDivs :: [Block] -> [Block]
 removeListDivs = concatMap removeListDivs'
-
-
 
 blocksToDefinitions :: [Block] -> [Block]
 blocksToDefinitions = blocksToDefinitions' [] []
