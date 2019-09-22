@@ -25,7 +25,8 @@ extra-deps:
 - skylighting-core-0.8.2
 - skylighting-0.8.2
 - doclayout-0.1
-  #- doctemplates-0.6
+- HsYAML-0.2.0.0
+#- doctemplates-0.6
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-13.17
