@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -204,6 +205,10 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   -- Output a debug message to sterr, using 'Debug.Trace.trace',
   -- if tracing is enabled.  Note: this writes to stderr even in
   -- pure instances.
+  -- | Run an IO action if the monad permits it; otherwise
+  -- return a default.
+  io :: (forall m1. PandocMonad m1 => m1 a) -> IO a -> m a
+  io fallback = \_ -> fallback
   trace :: String -> m ()
   trace msg = do
     tracing <- getsCommonState stTrace
@@ -545,6 +550,7 @@ instance PandocMonad PandocIO where
     UTF8.hPutStr stderr $
         "[" ++ show (messageVerbosity msg) ++ "] "
     alertIndent $ lines $ showLogMessage msg
+  io _ = liftIO
 
 alertIndent :: [String] -> IO ()
 alertIndent [] = return ()
@@ -1051,6 +1057,8 @@ instance PandocMonad PandocPure where
 
   logOutput _msg = return ()
 
+  io fallback _ = fallback
+
 -- This requires UndecidableInstances.  We could avoid that
 -- by repeating the definitions below for every monad transformer
 -- we use: ReaderT, WriterT, StateT, RWST.  But this seems to
@@ -1073,6 +1081,7 @@ instance (MonadTrans t, PandocMonad m, Functor (t m),
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
   logOutput = lift . logOutput
+  io fallback = lift . io fallback
 
 instance {-# OVERLAPS #-} PandocMonad m => PandocMonad (ParsecT s st m) where
   lookupEnv = lift . lookupEnv
@@ -1101,3 +1110,4 @@ instance {-# OVERLAPS #-} PandocMonad m => PandocMonad (ParsecT s st m) where
                else "")
         (return ())
   logOutput = lift . logOutput
+  io fallback = lift . io fallback
