@@ -3,6 +3,7 @@
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.Writers.Docx
    Copyright   : Copyright (C) 2012-2019 John MacFarlane
@@ -23,8 +24,9 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-import Data.Char (isSpace, ord, toLower, isLetter)
+import Data.Char (isSpace, ord, isLetter)
 import Data.List (intercalate, isPrefixOf, isSuffixOf)
+import Data.String (fromString)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, maybeToList)
 import qualified Data.Set as Set
@@ -46,7 +48,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType,
                          getMimeTypeDef)
 import Text.Pandoc.Options
-import Text.Pandoc.Readers.Docx.StyleMap
+import Text.Pandoc.Writers.Docx.StyleMap
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
@@ -132,8 +134,8 @@ data WriterState = WriterState{
        , stFirstPara      :: Bool
        , stInTable        :: Bool
        , stTocTitle       :: [Inline]
-       , stDynamicParaProps :: Set.Set String
-       , stDynamicTextProps :: Set.Set String
+       , stDynamicParaProps :: Set.Set ParaStyleName
+       , stDynamicTextProps :: Set.Set CharStyleName
        , stCurId          :: Int
        }
 
@@ -147,7 +149,7 @@ defaultWriterState = WriterState{
       , stLists          = [NoMarker]
       , stInsId          = 1
       , stDelId          = 1
-      , stStyleMaps      = defaultStyleMaps
+      , stStyleMaps      = StyleMaps M.empty M.empty
       , stFirstPara      = False
       , stInTable        = False
       , stTocTitle       = [Str "Table of Contents"]
@@ -265,7 +267,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   styledoc <- addLang <$> parseXml refArchive distArchive stylepath
 
   -- parse styledoc for heading styles
-  let styleMaps = getStyleMaps styledoc
+  let styleMaps = getStyleMaps refArchive
 
   let tocTitle = case lookupMetaInlines "toc-title" meta of
                    [] -> stTocTitle defaultWriterState
@@ -462,11 +464,11 @@ writeDocx opts doc@(Pandoc meta _) = do
   -- are not already in the style map. Note that keys in the stylemap
   -- are normalized as lowercase.
   let newDynamicParaProps = filter
-        (\sty -> isNothing $ M.lookup (toLower <$> sty) $ getMap $ sParaStyleMap styleMaps)
+        (\sty -> not $ hasStyleName sty $ smParaStyle styleMaps)
         (Set.toList $ stDynamicParaProps st)
 
       newDynamicTextProps = filter
-        (\sty -> isNothing $ M.lookup (toLower <$> sty) $ getMap $ sCharStyleMap styleMaps)
+        (\sty -> not $ hasStyleName sty $ smCharStyle styleMaps)
         (Set.toList $ stDynamicTextProps st)
 
   let newstyles = map newParaPropToOpenXml newDynamicParaProps ++
@@ -609,8 +611,8 @@ writeDocx opts doc@(Pandoc meta _) = do
   return $ fromArchive archive
 
 
-newParaPropToOpenXml :: String -> Element
-newParaPropToOpenXml s =
+newParaPropToOpenXml :: ParaStyleName -> Element
+newParaPropToOpenXml (fromStyleName -> s) =
   let styleId = filter (not . isSpace) s
   in mknode "w:style" [ ("w:type", "paragraph")
                       , ("w:customStyle", "1")
@@ -620,8 +622,8 @@ newParaPropToOpenXml s =
      , mknode "w:qFormat" [] ()
      ]
 
-newTextPropToOpenXml :: String -> Element
-newTextPropToOpenXml s =
+newTextPropToOpenXml :: CharStyleName -> Element
+newTextPropToOpenXml (fromStyleName -> s) =
   let styleId = filter (not . isSpace) s
   in mknode "w:style" [ ("w:type", "character")
                       , ("w:customStyle", "1")
@@ -634,7 +636,7 @@ styleToOpenXml :: StyleMaps -> Style -> [Element]
 styleToOpenXml sm style =
   maybeToList parStyle ++ mapMaybe toStyle alltoktypes
   where alltoktypes = enumFromTo KeywordTok NormalTok
-        toStyle toktype | hasStyleName (show toktype) (sCharStyleMap sm) = Nothing
+        toStyle toktype | hasStyleName (fromString $ show toktype) (smCharStyle sm) = Nothing
                         | otherwise = Just $
                           mknode "w:style" [("w:type","character"),
                            ("w:customStyle","1"),("w:styleId",show toktype)]
@@ -657,7 +659,7 @@ styleToOpenXml sm style =
         tokBg toktype = maybe "auto" (drop 1 . fromColor)
                          $ (tokenBackground =<< M.lookup toktype tokStyles)
                            `mplus` backgroundColor style
-        parStyle | hasStyleName "Source Code" (sParaStyleMap sm) = Nothing
+        parStyle | hasStyleName "Source Code" (smParaStyle sm) = Nothing
                  | otherwise = Just $
                    mknode "w:style" [("w:type","paragraph"),
                            ("w:customStyle","1"),("w:styleId","SourceCode")]
@@ -848,17 +850,17 @@ writeOpenXML opts (Pandoc meta blocks) = do
 blocksToOpenXML :: (PandocMonad m) => WriterOptions -> [Block] -> WS m [Element]
 blocksToOpenXML opts bls = concat `fmap` mapM (blockToOpenXML opts) bls
 
-pStyleM :: (PandocMonad m) => String -> WS m XML.Element
+pStyleM :: (PandocMonad m) => ParaStyleName -> WS m XML.Element
 pStyleM styleName = do
-  styleMaps <- gets stStyleMaps
-  let sty' = getStyleId styleName $ sParaStyleMap styleMaps
-  return $ mknode "w:pStyle" [("w:val",sty')] ()
+  pStyleMap <- gets (smParaStyle . stStyleMaps)
+  let sty' = getStyleIdFromName styleName pStyleMap
+  return $ mknode "w:pStyle" [("w:val", fromStyleId sty')] ()
 
-rStyleM :: (PandocMonad m) => String -> WS m XML.Element
+rStyleM :: (PandocMonad m) => CharStyleName -> WS m XML.Element
 rStyleM styleName = do
-  styleMaps <- gets stStyleMaps
-  let sty' = getStyleId styleName $ sCharStyleMap styleMaps
-  return $ mknode "w:rStyle" [("w:val",sty')] ()
+  cStyleMap <- gets (smCharStyle . stStyleMaps)
+  let sty' = getStyleIdFromName styleName cStyleMap
+  return $ mknode "w:rStyle" [("w:val", fromStyleId sty')] ()
 
 getUniqueId :: (PandocMonad m) => WS m String
 -- the + 20 is to ensure that there are no clashes with the rIds
@@ -880,7 +882,7 @@ blockToOpenXML' :: (PandocMonad m) => WriterOptions -> Block -> WS m [Element]
 blockToOpenXML' _ Null = return []
 blockToOpenXML' opts (Div (ident,_classes,kvs) bs) = do
   stylemod <- case lookup dynamicStyleKey kvs of
-                   Just sty -> do
+                   Just (fromString -> sty) -> do
                       modify $ \s ->
                         s{stDynamicParaProps = Set.insert sty
                              (stDynamicParaProps s)}
@@ -901,7 +903,7 @@ blockToOpenXML' opts (Div (ident,_classes,kvs) bs) = do
   wrapBookmark ident $ header ++ contents
 blockToOpenXML' opts (Header lev (ident,_,_) lst) = do
   setFirstPara
-  paraProps <- withParaPropM (pStyleM ("Heading "++show lev)) $
+  paraProps <- withParaPropM (pStyleM (fromString $ "Heading "++show lev)) $
                     getParaProps False
   contents <- inlinesToOpenXML opts lst
   if null ident
@@ -916,8 +918,7 @@ blockToOpenXML' opts (Plain lst) = do
   isInTable <- gets stInTable
   let block = blockToOpenXML opts (Para lst)
   prop <- pStyleM "Compact"
-  para <- if isInTable then withParaProp prop block else block
-  return $ para
+  if isInTable then withParaProp prop block else block
 -- title beginning with fig: indicates that the image is a figure
 blockToOpenXML' opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) = do
   setFirstPara
@@ -1087,9 +1088,7 @@ getTextProps :: (PandocMonad m) => WS m [Element]
 getTextProps = do
   props <- asks envTextProperties
   let squashed = squashProps props
-  return $ if null squashed
-              then []
-              else [mknode "w:rPr" [] squashed]
+  return [mknode "w:rPr" [] squashed | (not . null) squashed]
 
 withTextProp :: PandocMonad m => Element -> WS m a -> WS m a
 withTextProp d p =
@@ -1174,7 +1173,7 @@ inlineToOpenXML' _ (Span (ident,["comment-end"],kvs) _) =
            ]
 inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
   stylemod <- case lookup dynamicStyleKey kvs of
-                   Just sty -> do
+                   Just (fromString -> sty) -> do
                       modify $ \s ->
                         s{stDynamicTextProps = Set.insert sty
                               (stDynamicTextProps s)}
@@ -1259,7 +1258,7 @@ inlineToOpenXML' opts (Math mathType str) = do
 inlineToOpenXML' opts (Cite _ lst) = inlinesToOpenXML opts lst
 inlineToOpenXML' opts (Code attrs str) = do
   let alltoktypes = [KeywordTok ..]
-  tokTypesMap <- mapM (\tt -> (,) tt <$> rStyleM (show tt)) alltoktypes
+  tokTypesMap <- mapM (\tt -> (,) tt <$> rStyleM (fromString $ show tt)) alltoktypes
   let unhighlighted = intercalate [br] `fmap`
                        mapM formattedString (lines str)
       formatOpenXML _fmtOpts = intercalate [br] . map (map toHlTok)
