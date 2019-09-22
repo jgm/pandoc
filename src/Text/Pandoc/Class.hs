@@ -201,16 +201,14 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   modifyCommonState f = getCommonState >>= putCommonState . f
   -- Output a log message.
   logOutput :: LogMessage -> m ()
-  -- Write the contents of a media bag to a path.
-  writeMedia :: FilePath -> MediaBag -> FilePath -> m ()
+  -- Output a debug message to sterr, using 'Debug.Trace.trace',
+  -- if tracing is enabled.  Note: this writes to stderr even in
+  -- pure instances.
   -- | Run an IO action if the monad permits it; otherwise
   -- return a default.
   io :: Either String a -> IO a -> m a
   io (Right res) _ = return res
   io (Left msg)  _ = throwError (PandocSandboxError msg)
-  -- Output a debug message to sterr, using 'Debug.Trace.trace',
-  -- if tracing is enabled.  Note: this writes to stderr even in
-  -- pure instances.
   trace :: String -> m ()
   trace msg = do
     tracing <- getsCommonState stTrace
@@ -548,17 +546,6 @@ instance PandocMonad PandocIO where
   getModificationTime = liftIOError IO.getModificationTime
   getCommonState = PandocIO $ lift get
   putCommonState x = PandocIO $ lift $ put x
-  writeMedia dir mediabag subpath = do
-    -- we join and split to convert a/b/c to a\b\c on Windows;
-    -- in zip containers all paths use /
-    let fullpath = dir </> unEscapeString (normalise subpath)
-    let mbcontents = lookupMedia subpath mediabag
-    case mbcontents of
-         Nothing -> throwError $ PandocResourceNotFound subpath
-         Just (_, bs) -> do
-           report $ Extracting fullpath
-           liftIOError (createDirectoryIfMissing True) (takeDirectory fullpath)
-           logIOError $ BL.writeFile fullpath bs
   logOutput msg = liftIO $ do
     UTF8.hPutStr stderr $
         "[" ++ show (messageVerbosity msg) ++ "] "
@@ -883,7 +870,7 @@ fillMediaBag d = walkM handleImage d
         handleImage x = return x
 
 -- | Extract media from the mediabag into a directory.
-extractMedia :: PandocMonad m => FilePath -> Pandoc -> m Pandoc
+extractMedia :: FilePath -> Pandoc -> PandocIO Pandoc
 extractMedia dir d = do
   media <- getMediaBag
   case [fp | (fp, _, _) <- mediaDirectory media] of
@@ -891,6 +878,20 @@ extractMedia dir d = do
         fps -> do
           mapM_ (writeMedia dir media) fps
           return $ walk (adjustImagePath dir fps) d
+
+-- Write the contents of a media bag to a path.
+writeMedia :: FilePath -> MediaBag -> FilePath -> PandocIO ()
+writeMedia dir mediabag subpath = do
+  -- we join and split to convert a/b/c to a\b\c on Windows;
+  -- in zip containers all paths use /
+  let fullpath = dir </> unEscapeString (normalise subpath)
+  let mbcontents = lookupMedia subpath mediabag
+  case mbcontents of
+       Nothing -> throwError $ PandocResourceNotFound subpath
+       Just (_, bs) -> do
+         report $ Extracting fullpath
+         liftIOError (createDirectoryIfMissing True) (takeDirectory fullpath)
+         logIOError $ BL.writeFile fullpath bs
 
 adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
 adjustImagePath dir paths (Image attr lab (src, tit))
@@ -1053,7 +1054,7 @@ instance PandocMonad PandocPure where
 
   getCommonState = PandocPure $ lift get
   putCommonState x = PandocPure $ lift $ put x
-  writeMedia _ _ _ = throwError $ PandocSandboxError "writeMedia"
+
   logOutput _msg = return ()
 
 -- This requires UndecidableInstances.  We could avoid that
@@ -1077,7 +1078,6 @@ instance (MonadTrans t, PandocMonad m, Functor (t m),
   getModificationTime = lift . getModificationTime
   getCommonState = lift getCommonState
   putCommonState = lift . putCommonState
-  writeMedia dir mediabag subpath = lift $ writeMedia dir mediabag subpath
   logOutput = lift . logOutput
   io fallback = lift . io fallback
 
@@ -1107,6 +1107,5 @@ instance {-# OVERLAPS #-} PandocMonad m => PandocMonad (ParsecT s st m) where
                then " of chunk"
                else "")
         (return ())
-  writeMedia dir mediabag subpath = lift $ writeMedia dir mediabag subpath
   logOutput = lift . logOutput
   io fallback = lift . io fallback
