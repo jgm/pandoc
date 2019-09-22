@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -206,9 +207,8 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   -- pure instances.
   -- | Run an IO action if the monad permits it; otherwise
   -- return a default.
-  io :: Either String a -> IO a -> m a
-  io (Right res) _ = return res
-  io (Left msg)  _ = throwError (PandocSandboxError msg)
+  io :: (forall m1. PandocMonad m1 => m1 a) -> IO a -> m a
+  io fallback = \_ -> fallback
   trace :: String -> m ()
   trace msg = do
     tracing <- getsCommonState stTrace
@@ -1056,6 +1056,8 @@ instance PandocMonad PandocPure where
   putCommonState x = PandocPure $ lift $ put x
 
   logOutput _msg = return ()
+
+  io fallback _ = fallback
 
 -- This requires UndecidableInstances.  We could avoid that
 -- by repeating the definitions below for every monad transformer
