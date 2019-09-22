@@ -63,7 +63,9 @@ handleError :: Either PandocError a -> IO a
 handleError (Right r) = return r
 handleError (Left e) =
   case e of
-    PandocIOError _ err' -> ioError err'
+    PandocIOError fp err' -> do
+      UTF8.hPutStrLn stderr $ "IO Error (" ++ show fp ++ ")"
+      ioError err'
     PandocHttpError u err' -> err 61 $
       "Could not fetch " ++ u ++ "\n" ++ show err'
     PandocShouldNeverHappenError s -> err 62 $

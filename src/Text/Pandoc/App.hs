@@ -275,7 +275,7 @@ convertWithOpts opts = do
                         r readerOpts . convertTabs
                 ByteStringReader r ->
                   mconcat <$> mapM
-                      (readFile' >=> r readerOpts) sources'
+                      (readFileLazy >=> r readerOpts) sources'
 
 
     when (readerName == "markdown_github" ||
@@ -375,10 +375,6 @@ readSources srcs = T.intercalate (T.pack "\n") <$> mapM readSource srcs
 
 readURI :: PandocMonad m => FilePath -> m Text
 readURI src = UTF8.toText . fst <$> openURL src
-
-readFile' :: PandocMonad m => FilePath -> m BL.ByteString
-readFile' "-" = BL.fromStrict <$> readStdinStrict
-readFile' f   = readFileLazy f
 
 writeFnBinary :: MonadIO m => FilePath -> BL.ByteString -> m ()
 writeFnBinary "-" = liftIO . BL.putStr
