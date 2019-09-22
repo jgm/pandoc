@@ -54,7 +54,6 @@ data PandocError = PandocIOError String IOError
                  | PandocMacroLoop String
                  | PandocUTF8DecodingError String Int Word8
                  | PandocIpynbDecodingError String
-                 | PandocSandboxError String
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
@@ -115,8 +114,6 @@ handleError (Left e) =
       "The input must be a UTF-8 encoded text."
     PandocIpynbDecodingError w -> err 93 $
       "ipynb decoding error: " ++ w
-    PandocSandboxError msg -> err 94 $
-      "Attempted IO action in sandbox: " ++ msg
 
 err :: Int -> String -> IO a
 err exitCode msg = do
