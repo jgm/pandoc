@@ -51,7 +51,8 @@ import Text.Pandoc.Writers.Shared (getField, metaToContext)
 import Data.List (intercalate)
 #endif
 import Data.List (isPrefixOf, find)
-import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getCommonState,
+import Text.Pandoc.Class (PandocMonad(..), PandocIO,
+                          extractMedia, fillMediaBag, getCommonState,
                           getVerbosity, putCommonState, report,
                           runIOorExplode, setVerbosity)
 import Text.Pandoc.Logging
@@ -165,9 +166,10 @@ handleImages opts tmpdir doc =
     extractMedia tmpdir >>=
     walkM (convertImages opts tmpdir)
 
-convertImages :: WriterOptions -> FilePath -> Inline -> PandocIO Inline
+convertImages :: PandocMonad m
+              => WriterOptions -> FilePath -> Inline -> m Inline
 convertImages opts tmpdir (Image attr ils (src, tit)) = do
-  img <- liftIO $ convertImage opts tmpdir src
+  img <- convertImage opts tmpdir src
   newPath <-
     case img of
       Left e -> do
@@ -178,8 +180,9 @@ convertImages opts tmpdir (Image attr ils (src, tit)) = do
 convertImages _ _ x = return x
 
 -- Convert formats which do not work well in pdf to png
-convertImage :: WriterOptions -> FilePath -> FilePath
-             -> IO (Either String FilePath)
+convertImage :: PandocMonad m
+             => WriterOptions -> FilePath -> FilePath
+             -> m (Either String FilePath)
 convertImage opts tmpdir fname = do
   let dpi = show $ writerDpi opts
   case mime of
@@ -188,23 +191,26 @@ convertImage opts tmpdir fname = do
     Just "application/pdf" -> doNothing
     -- Note: eps is converted by pdflatex using epstopdf.pl
     Just "application/eps" -> doNothing
-    Just "image/svg+xml" -> E.catch (do
-      (exit, _) <- pipeProcess Nothing "rsvg-convert"
-                     ["-f","pdf","-a","--dpi-x",dpi,"--dpi-y",dpi,
-                      "-o",pdfOut,fname] BL.empty
-      if exit == ExitSuccess
-         then return $ Right pdfOut
-         else return $ Left "conversion from SVG failed")
-      (\(e :: E.SomeException) -> return $ Left $
-          "check that rsvg-convert is in path.\n" ++
-          show e)
-    _ -> JP.readImage fname >>= \res ->
+    Just "image/svg+xml" -> io sandboxError $
+       E.catch (do
+        (exit, _) <- pipeProcess Nothing "rsvg-convert"
+                       ["-f","pdf","-a","--dpi-x",dpi,"--dpi-y",dpi,
+                        "-o",pdfOut,fname] BL.empty
+        if exit == ExitSuccess
+           then return $ Right pdfOut
+           else return $ Left "conversion from SVG failed")
+        (\(e :: E.SomeException) -> return $ Left $
+            "check that rsvg-convert is in path.\n" ++
+            show e)
+    _ -> io sandboxError $
+         JP.readImage fname >>= \res ->
           case res of
                Left e    -> return $ Left e
                Right img ->
                  E.catch (Right pngOut <$ JP.savePngImage pngOut img) $
                      \(e :: E.SomeException) -> return (Left (show e))
   where
+    sandboxError = Left $ "Cannot convert image " ++ fname ++ " in a sandbox"
     pngOut = replaceDirectory (replaceExtension fname ".png") tmpdir
     pdfOut = replaceDirectory (replaceExtension fname ".pdf") tmpdir
     mime = getMimeType fname
