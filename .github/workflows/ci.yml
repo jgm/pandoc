@@ -1,7 +1,6 @@
 name: CI tests
 
-on: [push]
-#   push:
+on: [push, pull_request]
 #       paths:
 #       - '*'
 #       - '.github/workflows/haskell.yml'
