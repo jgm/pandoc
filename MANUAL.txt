@@ -4544,6 +4544,14 @@ in several respects:
     we must either disallow lazy wrapping or require a blank line between
     list items.
 
+#### Extension: `gutenberg` ####
+
+Use [Project Gutenberg] conventions for `plain` output:
+all-caps for strong emphasis, surround by underscores
+for regular emphasis, add extra blank space around headings.
+
+  [Project Gutenberg]: https://www.gutenberg.org
+
 Markdown variants
 -----------------
 

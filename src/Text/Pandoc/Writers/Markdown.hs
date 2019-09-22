@@ -523,16 +523,22 @@ blockToMarkdown' opts (Header level attr inlines) = do
   contents <- inlineListToMarkdown opts $
                  -- ensure no newlines; see #3736
                  walk lineBreakToSpace $
-                 if level == 1 && plain
+                 if level == 1 && plain && isEnabled Ext_gutenberg opts
                     then capitalize inlines
                     else inlines
   let setext = writerSetextHeaders opts
       hdr = nowrap $ case level of
-            1 | plain -> blanklines 3 <> contents <> blanklines 2
+            1 | plain ->
+                if isEnabled Ext_gutenberg opts
+                   then blanklines 3 <> contents <> blanklines 2
+                   else contents <> blankline
               | setext ->
                   contents <> attr' <> cr <> text (replicate (offset contents) '=') <>
                   blankline
-            2 | plain -> blanklines 2 <> contents <> blankline
+            2 | plain ->
+                if isEnabled Ext_gutenberg opts
+                   then blanklines 2 <> contents <> blankline
+                   else contents <> blankline
               | setext ->
                   contents <> attr' <> cr <> text (replicate (offset contents) '-') <>
                   blankline
@@ -1036,13 +1042,18 @@ inlineToMarkdown opts (Emph lst) = do
   plain <- asks envPlain
   contents <- inlineListToMarkdown opts lst
   return $ if plain
-              then "_" <> contents <> "_"
+              then if isEnabled Ext_gutenberg opts
+                      then "_" <> contents <> "_"
+                      else contents
               else "*" <> contents <> "*"
 inlineToMarkdown _ (Strong []) = return empty
 inlineToMarkdown opts (Strong lst) = do
   plain <- asks envPlain
   if plain
-     then inlineListToMarkdown opts $ capitalize lst
+     then inlineListToMarkdown opts $
+          if isEnabled Ext_gutenberg opts
+             then capitalize lst
+             else lst
      else do
        contents <- inlineListToMarkdown opts lst
        return $ "**" <> contents <> "**"

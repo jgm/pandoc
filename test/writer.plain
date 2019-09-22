@@ -7,30 +7,23 @@ markdown test suite.
 
 ------------------------------------------------------------------------------
 
-
-
-HEADERS
-
+Headers
 
 Level 2 with an embedded link
 
-Level 3 with _emphasis_
+Level 3 with emphasis
 
 Level 4
 
 Level 5
 
+Level 1
 
-
-LEVEL 1
-
-
-Level 2 with _emphasis_
+Level 2 with emphasis
 
 Level 3
 
 with no blank line
-
 
 Level 2
 
@@ -38,10 +31,7 @@ with no blank line
 
 ------------------------------------------------------------------------------
 
-
-
-PARAGRAPHS
-
+Paragraphs
 
 Here’s a regular paragraph.
 
@@ -56,10 +46,7 @@ here.
 
 ------------------------------------------------------------------------------
 
-
-
-BLOCK QUOTES
-
+Block Quotes
 
 E-mail style:
 
@@ -88,10 +75,7 @@ And a following paragraph.
 
 ------------------------------------------------------------------------------
 
-
-
-CODE BLOCKS
-
+Code Blocks
 
 Code:
 
@@ -111,10 +95,7 @@ And:
 
 ------------------------------------------------------------------------------
 
-
-
-LISTS
-
+Lists
 
 Unordered
 
@@ -160,7 +141,6 @@ Minuses loose:
 
 -   Minus 3
 
-
 Ordered
 
 Tight:
@@ -201,7 +181,6 @@ Multiple paragraphs:
 
 3.  Item 3.
 
-
 Nested
 
 -   Tab
@@ -229,7 +208,6 @@ Same thing but with paragraphs:
 
 3.  Third
 
-
 Tabs and spaces
 
 -   this is a list item indented with tabs
@@ -239,7 +217,6 @@ Tabs and spaces
     -   this is an example list item indented with tabs
 
     -   this is an example list item indented with spaces
-
 
 Fancy list markers
 
@@ -275,10 +252,7 @@ B. Williams
 
 ------------------------------------------------------------------------------
 
-
-
-DEFINITION LISTS
-
+Definition Lists
 
 Tight using spaces:
 
@@ -318,13 +292,13 @@ banana
 
 Multiple blocks with italics:
 
-_apple_
+apple
 
     red fruit
 
     contains seeds, crisp, pleasant to taste
 
-_orange_
+orange
 
     orange fruit
 
@@ -371,10 +345,7 @@ orange
     1.  sublist
     2.  sublist
 
-
-
-HTML BLOCKS
-
+HTML Blocks
 
 Simple block on one line:
 
@@ -388,8 +359,8 @@ bar
 
 Interpreted markdown in a table:
 
-This is _emphasized_
-And this is STRONG
+This is emphasized
+And this is strong
 Here’s a simple block:
 
 foo
@@ -426,30 +397,27 @@ Hr’s:
 
 ------------------------------------------------------------------------------
 
+Inline Markup
 
+This is emphasized, and so is this.
 
-INLINE MARKUP
+This is strong, and so is this.
 
+An emphasized link.
 
-This is _emphasized_, and so _is this_.
+This is strong and em.
 
-This is STRONG, and so IS THIS.
+So is this word.
 
-An _emphasized link_.
+This is strong and em.
 
-_THIS IS STRONG AND EM._
-
-So is _THIS_ word.
-
-_THIS IS STRONG AND EM._
-
-So is _THIS_ word.
+So is this word.
 
 This is code: >, $, \, \$, <html>.
 
-~~This is _strikeout_.~~
+~~This is strikeout.~~
 
-Superscripts: a^(bc)d a^(_hello_) a^(hello there).
+Superscripts: a^(bc)d a^(hello) a^(hello there).
 
 Subscripts: H₂O, H₂₃O, H_(many of them)O.
 
@@ -458,10 +426,7 @@ spaces: a^b c^d, a~b c~d.
 
 ------------------------------------------------------------------------------
 
-
-
-SMART QUOTES, ELLIPSES, DASHES
-
+Smart quotes, ellipses, dashes
 
 “Hello,” said the spider. “‘Shelob’ is my name.”
 
@@ -481,10 +446,7 @@ Ellipses…and…and….
 
 ------------------------------------------------------------------------------
 
-
-
-LATEX
-
+LaTeX
 
 -   
 -   2 + 2 = 4
@@ -499,19 +461,16 @@ LATEX
 These shouldn’t be math:
 
 -   To get the famous equation, write $e = mc^2$.
--   $22,000 is a _lot_ of money. So is $34,000. (It worked if “lot” is
+-   $22,000 is a lot of money. So is $34,000. (It worked if “lot” is
     emphasized.)
 -   Shoes ($20) and socks ($5).
--   Escaped $: $73 _this should be emphasized_ 23$.
+-   Escaped $: $73 this should be emphasized 23$.
 
 Here’s a LaTeX table:
 
 ------------------------------------------------------------------------------
 
-
-
-SPECIAL CHARACTERS
-
+Special Characters
 
 Here is some unicode:
 
@@ -565,10 +524,7 @@ Minus: -
 
 ------------------------------------------------------------------------------
 
-
-
-LINKS
-
+Links
 
 Explicit
 
@@ -589,7 +545,6 @@ with_underscore
 Email link
 
 Empty.
-
 
 Reference
 
@@ -613,7 +568,6 @@ Foo bar.
 
 Foo biz.
 
-
 With ampersands
 
 Here’s a link with an ampersand in the URL.
@@ -623,7 +577,6 @@ Here’s a link with an amersand in the link text: AT&T.
 Here’s an inline link.
 
 Here’s an inline link in pointy braces.
-
 
 Autolinks
 
@@ -643,10 +596,7 @@ Auto-links should not occur here: <http://example.com/>
 
 ------------------------------------------------------------------------------
 
-
-
-IMAGES
-
+Images
 
 From “Voyage dans la Lune” by Georges Melies (1902):
 
@@ -656,14 +606,10 @@ Here is a movie [movie] icon.
 
 ------------------------------------------------------------------------------
 
+Footnotes
 
-
-FOOTNOTES
-
-
-Here is a footnote reference,[1] and another.[2] This should _not_ be a
-footnote reference, because it contains a space.[^my note] Here is an inline
-note.[3]
+Here is a footnote reference,[1] and another.[2] This should not be a footnote
+reference, because it contains a space.[^my note] Here is an inline note.[3]
 
   Notes can go in quotes.[4]
 
@@ -684,7 +630,7 @@ with list items).
 If you want, you can indent every line, but you can also be lazy and just
 indent the first line of each block.
 
-[3] This is _easier_ to type. Inline notes may contain links and ] verbatim
+[3] This is easier to type. Inline notes may contain links and ] verbatim
 characters, as well as [bracketed text].
 
 [4] In quote.

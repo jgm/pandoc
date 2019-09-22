@@ -13,7 +13,9 @@ import Text.Pandoc.Builder
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
      => String -> (a, String) -> TestTree
-(=:) = test (purely (writePlain def) . toPandoc)
+(=:) = test (purely (writePlain def{ writerExtensions =
+                          enableExtension Ext_gutenberg plainExtensions }) .
+                      toPandoc)
 
 
 tests :: [TestTree]

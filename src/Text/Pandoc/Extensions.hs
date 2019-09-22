@@ -155,6 +155,7 @@ data Extension =
     | Ext_tex_math_double_backslash  -- ^ TeX math btw \\(..\\) \\[..\\]
     | Ext_tex_math_single_backslash  -- ^ TeX math btw \(..\) \[..\]
     | Ext_yaml_metadata_block -- ^ YAML metadata block
+    | Ext_gutenberg           -- ^ Use Project Gutenberg conventions for plain
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
 
 -- | Extensions to be used with pandoc-flavored markdown.
