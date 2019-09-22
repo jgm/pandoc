@@ -171,11 +171,14 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   -- an error on failure.
   openURL :: String -> m (B.ByteString, Maybe MimeType)
   -- | Read the lazy ByteString contents from a file path,
-  -- raising an error on failure.  The path "-" is treated as stdin.
+  -- raising an error on failure.
   readFileLazy :: FilePath -> m BL.ByteString
   -- | Read the strict ByteString contents from a file path,
-  -- raising an error on failure.  The path "-" is treated as stdin.
+  -- raising an error on failure.
   readFileStrict :: FilePath -> m B.ByteString
+  -- | Read from stdin as a strict ByteString, raising an
+  -- error on failure.
+  readStdinStrict :: m B.ByteString
   -- | Return a list of paths that match a glob, relative to
   -- the working directory.  See 'System.FilePath.Glob' for
   -- the glob syntax.
@@ -239,7 +242,9 @@ report msg = do
 -- not UTF-8 encoded.  If file path is "-", stdin is read instead.
 readTextFile :: PandocMonad m => FilePath -> m Text
 readTextFile fp = do
-  bs <- readFileStrict fp
+  bs <- if fp == "-"
+           then readStdinStrict
+           else readFileStrict fp
   case decodeUtf8' . filterCRs . dropBOM $ bs of
          Right t -> return t
          Left (TSE.DecodeError _ (Just w)) -> throwError $
@@ -527,10 +532,9 @@ instance PandocMonad PandocIO where
             Right r -> return r
             Left e  -> throwError $ PandocHttpError u e
 
-  readFileLazy "-" = liftIOError (\_ -> BL.getContents) "stdin"
-  readFileLazy s   = liftIOError BL.readFile s
-  readFileStrict "-" = liftIOError (\_ -> B.getContents) "stdin"
-  readFileStrict s   = liftIOError B.readFile s
+  readFileLazy s = liftIOError BL.readFile s
+  readFileStrict s = liftIOError B.readFile s
+  readStdinStrict = liftIOError (\_ -> B.getContents) "stdin"
   glob = liftIOError IO.glob
   fileExists = liftIOError Directory.doesFileExist
 #ifdef EMBED_DATA_FILES
@@ -910,6 +914,7 @@ data PureState = PureState { stStdGen     :: StdGen
                            , stReferencePptx :: Archive
                            , stReferenceODT :: Archive
                            , stFiles :: FileTree
+                           , stStdin :: B.ByteString
                            , stUserDataFiles :: FileTree
                            , stCabalDataFiles :: FileTree
                            }
@@ -925,6 +930,7 @@ instance Default PureState where
                   , stReferencePptx = emptyArchive
                   , stReferenceODT = emptyArchive
                   , stFiles = mempty
+                  , stStdin = mempty
                   , stUserDataFiles = mempty
                   , stCabalDataFiles = mempty
                   }
@@ -1026,6 +1032,7 @@ instance PandocMonad PandocPure where
     case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return bs
       Nothing -> throwError $ PandocResourceNotFound fp
+  readStdinStrict = getsPureState stStdin
 
   glob s = do
     FileTree ftmap <- getsPureState stFiles
@@ -1066,6 +1073,7 @@ instance (MonadTrans t, PandocMonad m, Functor (t m),
   openURL = lift . openURL
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
+  readStdinStrict = lift readStdinStrict
   glob = lift . glob
   fileExists = lift . fileExists
   getDataFileName = lift . getDataFileName
@@ -1083,6 +1091,7 @@ instance {-# OVERLAPS #-} PandocMonad m => PandocMonad (ParsecT s st m) where
   openURL = lift . openURL
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
+  readStdinStrict = lift readStdinStrict
   glob = lift . glob
   fileExists = lift . fileExists
   getDataFileName = lift . getDataFileName
