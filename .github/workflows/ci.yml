@@ -1,27 +1,36 @@
 name: CI tests
 
-on: [push, pull_request]
-#       paths:
-#       - '*'
-#       - '.github/workflows/haskell.yml'
-#       - '!MANUAL.txt'
-#       - '!/doc/*'
-#       - '!/tools/*'
-#       - '!/linux/*'
-#       - '!/macos/*'
-#       - '!/windows/*'
-#       - '!/man/*'
-#       - '!AUTHORS.md'
-#       - '!BUGS'
-#       - '!CONTRIBUTING.md'
-#       - '!README.md'
-#       - '!INSTALL.md'
-#       - '!COPYRIGHT'
-#       - '!COPYING.md'
-#       - '!README.template'
-#       - '!RELEASE_CHECKLIST'
-#       - '!appveyor.yml'
-#       - '!changelog'
+on:
+  push:
+    paths-ignore:
+    - 'doc/**'
+    - 'MANUAL.txt'
+    - '*.md'
+    - 'RELEASE_CHECKLIST'
+    - 'BUGS'
+    - 'changelog'
+    - 'README.template'
+    - 'appveyor.yml'
+    - 'tools/**'
+    - 'linux/**'
+    - 'macos/**'
+    - 'windows/**'
+    - 'man/**'
+  pull_request:
+    paths_ignore:
+    - 'doc/**'
+    - 'MANUAL.txt'
+    - '*.md'
+    - 'RELEASE_CHECKLIST'
+    - 'BUGS'
+    - 'changelog'
+    - 'README.template'
+    - 'appveyor.yml'
+    - 'tools/**'
+    - 'linux/**'
+    - 'macos/**'
+    - 'windows/**'
+    - 'man/**'
 
 jobs:
   linux:
@@ -59,21 +68,6 @@ jobs:
           cabal v2-install --enable-tests --run-tests --disable-optimization 2>&1 | tee build.log
           # fail if warnings in local build
           ! grep -q "[Ww]arning:" build.log
-
-# ARTIFACTS:  Currently disabled. The executables are large and
-# if we do produce artifacts, we should zip them.  We also
-# might consider doing this only nightly and stripping.
-# The code is included below in case we want to re-enable it.
-#
-#   - name: Install artifact
-#     run: |
-#         export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
-#         mkdir -p ./artifacts
-#         for f in $(find dist-newstyle -name 'pandoc*' -type f -executable); do cp $f ./artifacts/; done
-#   - uses: actions/upload-artifact@master
-#     with:
-#       name: pandoc-linux
-#       path: ./artifacts/pandoc
 
   windows:
 
