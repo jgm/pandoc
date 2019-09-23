@@ -13,7 +13,7 @@ packages:
 extra-deps:
 # - pandoc-citeproc-0.16.2
 - git: https://github.com/jgm/pandoc-citeproc
-  commit: 3d4cfb7f26725186df96f672720663e49eda5239
+  commit: 860788f105cc9b3fec2ab062d993b7aebd68c9c0
 - doclayout-0.1
 - HsYAML-0.2.0.0
 - HsYAML-aeson-0.2.0.0
