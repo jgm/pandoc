@@ -16,6 +16,7 @@ extra-deps:
   commit: 3d4cfb7f26725186df96f672720663e49eda5239
 - doclayout-0.1
 - HsYAML-0.2.0.0
+- HsYAML-aeson-0.2.0.0
 - doctemplates-0.6.1
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
