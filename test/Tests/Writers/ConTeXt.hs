@@ -44,7 +44,7 @@ tests :: [TestTree]
 tests = [ testGroup "inline code"
           [ "with '}'" =: code "}" =?> "\\mono{\\}}"
           , "without '}'" =: code "]" =?> "\\type{]}"
-          , testProperty "code property" $ \s -> null s ||
+          , testProperty "code property" $ \s -> null s || '\n' `elem` s ||
                 if '{' `elem` s || '}' `elem` s
                    then context' (code s) == "\\mono{" ++
                              context' (str s) ++ "}"
