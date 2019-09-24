@@ -721,6 +721,11 @@ General writer options {.options}
     `-o`/`--output` must come before `--print-default-template`
     on the command line.
 
+    Note that some of the default templates use partials, for
+    example `styles.html`.  To print the partials, use
+    `--print-default-data-file`: for example,
+    `--print-default-data-file=templates/styles.html`.
+
 `--print-default-data-file=`*FILE*
 
 :   Print a system default data file.  Files in the user data directory
@@ -1375,6 +1380,33 @@ Options for wrapper scripts {.options}
     is equivalent to
 
         pandoc -o foo.html -s
+
+Exit codes
+==========
+
+If pandoc completes successfully, it will return exit code 0.
+Nonzero exit codes have the following meanings:
+
+     3 PandocFailOnWarningError
+     4 PandocAppError
+     5 PandocTemplateError
+     6 PandocOptionError
+    31 PandocEpubSubdirectoryError
+    43 PandocPDFError
+    47 PandocPDFProgramNotFoundError
+    61 PandocHttpError
+    62 PandocShouldNeverHappenError
+    63 PandocSomeError
+    64 PandocParseError
+    65 PandocParsecError
+    66 PandocMakePDFError
+    67 PandocSyntaxMapError
+    83 PandocFilterError
+    91 PandocMacroLoop
+    92 PandocUTF8DecodingError
+    93 PandocIpynbDecodingError
+    97 PandocCouldNotFindDataFileError
+    99 PandocResourceNotFound
 
 Templates
 =========
@@ -4512,6 +4544,14 @@ in several respects:
     we must either disallow lazy wrapping or require a blank line between
     list items.
 
+#### Extension: `gutenberg` ####
+
+Use [Project Gutenberg] conventions for `plain` output:
+all-caps for strong emphasis, surround by underscores
+for regular emphasis, add extra blank space around headings.
+
+  [Project Gutenberg]: https://www.gutenberg.org
+
 Markdown variants
 -----------------
 
@@ -5223,8 +5263,10 @@ styles, pandoc allows you to define custom styles for blocks and text
 using `div`s and `span`s, respectively.
 
 If you define a `div` or `span` with the attribute `custom-style`,
-pandoc will apply your specified style to the contained elements. So,
-for example using the `bracketed_spans` syntax,
+pandoc will apply your specified style to the contained elements (with
+the exception of elements whose function depends on a style, like
+headings, code blocks, block quotes, or links). So, for example, using
+the `bracketed_spans` syntax,
 
     [Get out]{custom-style="Emphatically"}, he said.
 
@@ -5287,17 +5329,17 @@ And with the extension:
 
     $ pandoc test/docx/custom-style-reference.docx -f docx+styles -t markdown
 
-    ::: {custom-style="FirstParagraph"}
+    ::: {custom-style="First Paragraph"}
     This is some text.
     :::
 
-    ::: {custom-style="BodyText"}
+    ::: {custom-style="Body Text"}
     This is text with an [emphasized]{custom-style="Emphatic"} text style.
     And this is text with a [strengthened]{custom-style="Strengthened"}
     text style.
     :::
 
-    ::: {custom-style="MyBlockStyle"}
+    ::: {custom-style="My Block Style"}
     > Here is a styled paragraph that inherits from Block Text.
     :::
 

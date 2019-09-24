@@ -21,8 +21,8 @@ import Codec.Archive.Zip (Entry, addEntryToArchive, eRelativePath, emptyArchive,
 import Control.Applicative ( (<|>) )
 import Control.Monad (mplus, unless, when, zipWithM)
 import Control.Monad.Except (catchError, throwError)
-import Control.Monad.State.Strict (State, StateT, evalState, evalStateT, get,
-                                   gets, lift, modify, put)
+import Control.Monad.State.Strict (StateT, evalState, evalStateT, get,
+                                   gets, lift, modify)
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as B8
 import Data.Char (isAlphaNum, isAscii, isDigit, toLower)
@@ -59,11 +59,9 @@ import Text.XML.Light (Attr (..), Element (..), Node (..), QName (..),
                        ppElement, showElement, strContent, unode, unqual)
 import Text.Pandoc.XML (escapeStringForXML)
 
--- A Chapter includes a list of blocks and maybe a section
--- number offset.  Note, some chapters are unnumbered. The section
--- number is different from the index number, which will be used
--- in filenames, chapter0003.xhtml.
-data Chapter = Chapter (Maybe [Int]) [Block]
+-- A Chapter includes a list of blocks.
+data Chapter = Chapter [Block]
+  deriving (Show)
 
 data EPUBState = EPUBState {
         stMediaPaths  :: [(FilePath, (FilePath, Maybe Entry))]
@@ -504,45 +502,35 @@ pandocToEPUB version opts doc = do
 
   -- body pages
 
-  -- add level 1 header to beginning if none there
-  let blocks' = addIdentifiers opts
-                $ case blocks of
-                      (Header 1 _ _ : _) -> blocks
-                      _                  -> Header 1 ("",["unnumbered"],[])
-                                                 (docTitle' meta) : blocks
-
   let chapterHeaderLevel = writerEpubChapterLevel opts
 
-  let isChapterHeader (Header n _ _) = n <= chapterHeaderLevel
-      isChapterHeader (Div ("refs",_,_) (Header n _ _:_)) =
-        n <= chapterHeaderLevel
+  let isChapterHeader (Div _ (Header n _ _:_)) = n <= chapterHeaderLevel
       isChapterHeader _ = False
 
-  let toChapters :: [Block] -> State [Int] [Chapter]
-      toChapters []     = return []
-      toChapters (Div ("refs",_,_) bs@(Header 1 _ _:_) : rest) =
-        toChapters (bs ++ rest)
-      toChapters (Header n attr@(_,classes,_) ils : bs) = do
-        nums <- get
-        mbnum <- if "unnumbered" `elem` classes
-                    then return Nothing
-                    else case splitAt (n - 1) nums of
-                              (ks, m:_) -> do
-                                let nums' = ks ++ [m+1]
-                                put nums'
-                                return $ Just (ks ++ [m])
-                                -- note, this is the offset not the sec number
-                              (ks, []) -> do
-                                let nums' = ks ++ [1]
-                                put nums'
-                                return $ Just ks
-        let (xs,ys) = break isChapterHeader bs
-        (Chapter mbnum (Header n attr ils : xs) :) `fmap` toChapters ys
-      toChapters (b:bs) = do
-        let (xs,ys) = break isChapterHeader bs
-        (Chapter Nothing (b:xs) :) `fmap` toChapters ys
+  let secsToChapters :: [Block] -> [Chapter]
+      secsToChapters [] = []
+      secsToChapters (d@(Div attr (h@(Header lvl _ _) : bs)) : rest)
+        | chapterHeaderLevel == lvl =
+           Chapter [d] : secsToChapters rest
+        | chapterHeaderLevel > lvl =
+           Chapter [Div attr (h:xs)] :
+           secsToChapters ys ++ secsToChapters rest
+             where (xs, ys) = break isChapterHeader bs
+      secsToChapters bs =
+          (if null xs then id else (Chapter xs :)) $ secsToChapters ys
+            where (xs, ys) = break isChapterHeader bs
 
-  let chapters' = evalState (toChapters blocks') []
+  -- add level 1 header to beginning if none there
+  let secs = makeSections True Nothing
+              $ addIdentifiers opts
+              $ case blocks of
+                  (Div _
+                    (Header{}:_) : _) -> blocks
+                  (Header 1 _ _ : _)  -> blocks
+                  _                   -> Header 1 ("",["unnumbered"],[])
+                                             (docTitle' meta) : blocks
+
+  let chapters' = secsToChapters secs
 
   let extractLinkURL' :: Int -> Inline -> [(String, String)]
       extractLinkURL' num (Span (ident, _, _) _)
@@ -556,7 +544,7 @@ pandocToEPUB version opts doc = do
         | not (null ident) = [(ident, showChapter num ++ ('#':ident))]
       extractLinkURL num b = query (extractLinkURL' num) b
 
-  let reftable = concat $ zipWith (\(Chapter _ bs) num ->
+  let reftable = concat $ zipWith (\(Chapter bs) num ->
                                     query (extractLinkURL num) bs)
                           chapters' [1..]
 
@@ -570,15 +558,15 @@ pandocToEPUB version opts doc = do
   -- internal reference IDs change when we chunk the file,
   -- so that '#my-header-1' might turn into 'chap004.xhtml#my-header'.
   -- this fixes that:
-  let chapters = map (\(Chapter mbnum bs) ->
-                         Chapter mbnum $ walk fixInternalReferences bs)
+  let chapters = map (\(Chapter bs) ->
+                         Chapter $ walk fixInternalReferences bs)
                  chapters'
 
-  let chapToEntry num (Chapter mbnum bs) =
+  let chapToEntry num (Chapter bs) =
         mkEntry ("text/" ++ showChapter num) =<<
-        writeHtml opts'{ writerNumberOffset = fromMaybe [] mbnum
-                       , writerVariables = ("body-type", bodyType) :
-                                           cssvars True ++ vars } pdoc
+        writeHtml opts'{ writerVariables = ("body-type", bodyType) :
+                                            ("pagetitle", showChapter num) :
+                                             cssvars True ++ vars } pdoc
          where (pdoc, bodyType) =
                  case bs of
                      (Header _ (_,_,kvs) xs : _) ->
@@ -711,14 +699,12 @@ pandocToEPUB version opts doc = do
   contentsEntry <- mkEntry "content.opf" contentsData
 
   -- toc.ncx
-  let secs = makeSections True (Just 1) blocks'
-
   let tocLevel = writerTOCDepth opts
 
   let navPointNode :: PandocMonad m
                    => (Int -> [Inline] -> String -> [Element] -> Element)
                    -> Block -> StateT Int m [Element]
-      navPointNode formatter (Div (ident,"section":_,_)
+      navPointNode formatter (Div (ident,_,_)
                                 (Header lvl (_,_,kvs) ils : children)) = do
         if lvl > tocLevel
            then return []

@@ -375,6 +375,7 @@ stringToLaTeX context zs = do
          ']' -> emits "{]}"  -- optional arguments
          '\'' | ctx == CodeString -> emitcseq "\\textquotesingle"
          '\160' -> emits "~"
+         '\x200B' -> emits "\\hspace{0pt}"  -- zero-width space
          '\x202F' -> emits "\\,"
          '\x2026' -> emitcseq "\\ldots"
          '\x2018' | ligatures -> emitquote "`"

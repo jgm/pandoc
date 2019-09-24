@@ -86,6 +86,47 @@ return {
         assert.are_equal(count, 3)
       end)
     },
+    group 'HTML-like attribute tables' {
+      test('in element constructor', function ()
+        local html_attributes = {
+          id = 'the-id',
+          class = 'class1 class2',
+          width = '11',
+          height = '12'
+        }
+        local attr = pandoc.Span('test', html_attributes).attr
+        assert.are_equal(attr.identifier, 'the-id')
+        assert.are_equal(attr.classes[1], 'class1')
+        assert.are_equal(attr.classes[2], 'class2')
+        assert.are_equal(attr.attributes.width, '11')
+        assert.are_equal(attr.attributes.height, '12')
+      end),
+      test('element attr setter', function ()
+        local html_attributes = {
+          id = 'the-id',
+          class = 'class1 class2',
+          width = "11",
+          height = "12"
+        }
+        local span = pandoc.Span 'test'
+        span.attr = html_attributes
+        assert.are_equal(span.attr.identifier, 'the-id')
+        assert.are_equal(span.attr.classes[1], 'class1')
+        assert.are_equal(span.attr.classes[2], 'class2')
+        assert.are_equal(span.attr.attributes.width, '11')
+        assert.are_equal(span.attr.attributes.height, '12')
+      end),
+      test('element attrbutes setter', function ()
+        local attributes = {
+          width = "11",
+          height = "12"
+        }
+        local span = pandoc.Span 'test'
+        span.attributes = attributes
+        assert.are_equal(span.attr.attributes.width, '11')
+        assert.are_equal(span.attr.attributes.height, '12')
+      end)
+    }
   },
 
   group 'clone' {

@@ -208,6 +208,7 @@ table = do
   styles <- option [] $
                parseAttrs <* skipMany spaceChar <* optional (char '|')
   skipMany spaceChar
+  optional $ template >> skipMany spaceChar
   optional blanklines
   let tableWidth = case lookup "width" styles of
                          Just w  -> fromMaybe 1.0 $ parseWidth w

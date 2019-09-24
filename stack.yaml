@@ -13,19 +13,12 @@ packages:
 extra-deps:
 # - pandoc-citeproc-0.16.2
 - git: https://github.com/jgm/pandoc-citeproc
-  commit: 63498fb22ae6f394f19f6d62312350b566c4aebd
-- git: https://github.com/jgm/doctemplates
-  commit: 37ac859e3c88493ac62ce5f9e32a943d37529b98
-- pandoc-types-1.17.6
-- ipynb-0.1
-- cmark-gfm-0.2.0
-- hslua-1.0.3.1
-- hslua-module-system-0.2.0
-- tasty-lua-0.2.0
-- skylighting-core-0.8.2
-- skylighting-0.8.2
+  commit: 860788f105cc9b3fec2ab062d993b7aebd68c9c0
+- pandoc-types-1.17.6.1
 - doclayout-0.1
-  #- doctemplates-0.6
+- HsYAML-0.2.0.0
+- HsYAML-aeson-0.2.0.0
+- doctemplates-0.6.1
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-13.17
+resolver: lts-14.6

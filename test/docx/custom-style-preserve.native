@@ -1,0 +1,15 @@
+[Para [Span ("",[],[("custom-style","MyStyle")]) [Str "This",Space,Str "span",Note [Para [Str "Neither",Space,Str "footnote",Space,Str "nor",Space,Str "footnote",Space,Str "reference",Space,Str "should",Space,Str "get",Space,Str "a",Space,Str "custom",Space,Str "style",Space,Str "from",Space,Str "its",Space,Str "span."]],Space,Str "should",Space,Str "have",Space,Str "a",Space,Str "custom",Space,Str "style",Space,Str "(",Link ("",[],[]) [Str "link"] ("http://example.com/",""),Str "),"],Space,Str "but",Space,Str "the",Space,Str "text",Space,Str "after",Space,Str "the",Space,Str "comma",Space,Str "shouldn\8217t,",Space,Str "nor",Space,Str "should",Space,Str "the",Space,Str "link."]
+,Div ("",[],[("custom-style","MyOtherStyle")])
+ [Para [Str "The",Space,Str "contents",Space,Str "of",Space,Str "this",Space,Str "div",Space,Str "should",Space,Str "have",Space,Str "a",Space,Str "custom",Space,Str "style,",Space,Str "but",Space,Link ("",[],[]) [Str "this",Space,Str "link",Space,Str "should",Space,Str "not"] ("http://example.com/",""),Str "."]
+ ,Header 2 ("this-header-should-not-have-the-divs-custom-style",[],[]) [Str "This",Space,Str "header",Space,Str "should",Space,Str "not",Space,Str "have",Space,Str "the",Space,Str "div\8217s",Space,Str "custom",Space,Str "style"]
+ ,BlockQuote
+  [Para [Str "This",Space,Str "blockquote",Space,Str "should",Space,Str "not."]]
+ ,CodeBlock ("",[],[]) "# This code block should not."
+ ,Para [Str "But",Space,Str "this",Space,Str "paragraph",Space,Str "should.",Note [Para [Str "Neither",Space,Str "footnote",Space,Str "nor",Space,Str "footnote",Space,Str "reference",Space,Str "should",Space,Str "get",Space,Str "a",Space,Str "custom",Space,Str "style",Space,Str "from",Space,Str "its",Space,Str "div."]]]]
+,Div ("",[],[("custom-style","MyOuterStyle")])
+ [Div ("",[],[("custom-style","MyInnerStyle")])
+  [Para [Str "This",Space,Str "should",Space,Str "have",Space,Str "MyInnerStyle."]
+  ,Header 3 ("this-heading-should-not",[],[]) [Str "This",Space,Str "heading",Space,Str "should",Space,Str "not"]]
+ ,Para [Str "This",Space,Str "should",Space,Str "have",Space,Str "MyOuterStyle,",Space,Str "but",Space,Str "the",Space,Str "following",Space,Str "elision",Space,Str "should",Space,Str "have",Space,Str "its",SoftBreak,Str "own",Space,Str "style.",Space,Span ("",[],[("custom-style","Elision")]) [Str "..."]]
+ ,BlockQuote
+  [Para [Str "This",Space,Str "blockquote",Space,Str "should",Space,Str "include",Space,Strong [Str "bold",Space,Str "text",Space,Str "with",Space,Str "an",Space,Str "elision:",SoftBreak,Span ("",[],[("custom-style","Elision")]) [Str "..."]]]]]]

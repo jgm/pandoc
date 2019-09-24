@@ -155,6 +155,10 @@ tests = [ testGroup "inlines"
             def{writerReferenceDoc = Just "docx/custom-style-reference.docx"}
             "docx/custom_style.native"
             "docx/golden/custom_style_reference.docx"
+          , docxTest "suppress custom style for headers and blockquotes"
+            def
+            "docx/custom-style-preserve.native"
+            "docx/golden/custom_style_preserve.docx"
           ]
         , testGroup "metadata"
           [ docxTest "document properties (core, custom)"

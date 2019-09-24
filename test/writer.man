@@ -6,7 +6,7 @@ Most of them are adapted from John Gruber\[cq]s markdown test suite.
 .PP
    *   *   *   *   *
 .SH Headers
-.SS Level 2 with an embedded link (/url)
+.SS Level 2 with an embedded link
 .SS Level 3 with \f[I]emphasis\f[R]
 .SS Level 4
 .SS Level 5
@@ -477,7 +477,7 @@ This is \f[I]emphasized\f[R], and so \f[I]is this\f[R].
 .PP
 This is \f[B]strong\f[R], and so \f[B]is this\f[R].
 .PP
-An \f[I]emphasized link (/url)\f[R].
+An \f[I]emphasized link\f[R].
 .PP
 \f[B]\f[BI]This is strong and em.\f[B]\f[R]
 .PP
@@ -618,36 +618,36 @@ Minus: -
 .SH Links
 .SS Explicit
 .PP
-Just a URL (/url/).
+Just a URL.
 .PP
-URL and title (/url/).
+URL and title.
 .PP
-URL and title (/url/).
+URL and title.
 .PP
-URL and title (/url/).
+URL and title.
 .PP
-URL and title (/url/)
+URL and title
 .PP
-URL and title (/url/)
+URL and title
 .PP
-with_underscore (/url/with_underscore)
+with_underscore
 .PP
 Email link (mailto:nobody@nowhere.net)
 .PP
-Empty ().
+Empty.
 .SS Reference
 .PP
-Foo bar (/url/).
+Foo bar.
 .PP
-With embedded [brackets] (/url/).
+With embedded [brackets].
 .PP
-b (/url/) by itself should be a link.
+b by itself should be a link.
 .PP
-Indented once (/url).
+Indented once.
 .PP
-Indented twice (/url).
+Indented twice.
 .PP
-Indented thrice (/url).
+Indented thrice.
 .PP
 This should [not][] be a link.
 .IP
@@ -657,9 +657,9 @@ This should [not][] be a link.
 \f[R]
 .fi
 .PP
-Foo bar (/url/).
+Foo bar.
 .PP
-Foo biz (/url/).
+Foo biz.
 .SS With ampersands
 .PP
 Here\[cq]s a link with an ampersand in the
@@ -667,9 +667,9 @@ URL (http://example.com/?foo=1&bar=2).
 .PP
 Here\[cq]s a link with an amersand in the link text: AT&T (http://att.com/).
 .PP
-Here\[cq]s an inline link (/script?foo=1&bar=2).
+Here\[cq]s an inline link.
 .PP
-Here\[cq]s an inline link in pointy braces (/script?foo=1&bar=2).
+Here\[cq]s an inline link in pointy braces.
 .SS Autolinks
 .PP
 With an ampersand: <http://example.com/?foo=1&bar=2>
@@ -699,9 +699,9 @@ or here: <http://example.com/>
 .PP
 From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
 .PP
-[IMAGE: lalune (lalune.jpg)]
+[IMAGE: lalune]
 .PP
-Here is a movie [IMAGE: movie (movie.jpg)] icon.
+Here is a movie [IMAGE: movie] icon.
 .PP
    *   *   *   *   *
 .SH Footnotes

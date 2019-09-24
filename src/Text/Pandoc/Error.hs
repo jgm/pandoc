@@ -66,7 +66,9 @@ handleError (Left e) =
     PandocIOError _ err' -> ioError err'
     PandocHttpError u err' -> err 61 $
       "Could not fetch " ++ u ++ "\n" ++ show err'
-    PandocShouldNeverHappenError s -> err 62 s
+    PandocShouldNeverHappenError s -> err 62 $
+      "Something we thought was impossible happened!\n" ++
+      "Please report this to pandoc's developers: " ++ s
     PandocSomeError s -> err 63 s
     PandocParseError s -> err 64 s
     PandocParsecError input err' ->
@@ -85,8 +87,8 @@ handleError (Left e) =
                      if sourceName errPos == "source"
                         then errorInFile
                         else ""
-    PandocMakePDFError s -> err 65 s
-    PandocOptionError s -> err 2 s
+    PandocMakePDFError s -> err 66 s
+    PandocOptionError s -> err 6 s
     PandocSyntaxMapError s -> err 67 s
     PandocFailOnWarningError -> err 3 "Failing because there were warnings."
     PandocPDFProgramNotFoundError pdfprog -> err 47 $
@@ -99,7 +101,7 @@ handleError (Left e) =
     PandocResourceNotFound fn -> err 99 $
         "File " ++ fn ++ " not found in resource path"
     PandocTemplateError s -> err 5 $ "Error compiling template " ++ s
-    PandocAppError s -> err 1 s
+    PandocAppError s -> err 4 s
     PandocEpubSubdirectoryError s -> err 31 $
       "EPUB subdirectory name '" ++ s ++ "' contains illegal characters"
     PandocMacroLoop s -> err 91 $

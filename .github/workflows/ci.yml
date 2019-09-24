@@ -1,0 +1,108 @@
+name: CI tests
+
+on:
+  push:
+    paths-ignore:
+    - 'doc/**'
+    - 'MANUAL.txt'
+    - '*.md'
+    - 'RELEASE_CHECKLIST'
+    - 'BUGS'
+    - 'changelog'
+    - 'README.template'
+    - 'appveyor.yml'
+    - 'tools/**'
+    - 'linux/**'
+    - 'macos/**'
+    - 'windows/**'
+    - 'man/**'
+  pull_request:
+    paths_ignore:
+    - 'doc/**'
+    - 'MANUAL.txt'
+    - '*.md'
+    - 'RELEASE_CHECKLIST'
+    - 'BUGS'
+    - 'changelog'
+    - 'README.template'
+    - 'appveyor.yml'
+    - 'tools/**'
+    - 'linux/**'
+    - 'macos/**'
+    - 'windows/**'
+    - 'man/**'
+
+jobs:
+  linux:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        versions:
+          - ghc: '8.0.2'
+            cabal: '2.4'
+          - ghc: '8.2.2'
+            cabal: '2.4'
+          - ghc: '8.4.4'
+            cabal: '2.4'
+          - ghc: '8.6.5'
+            cabal: '2.4'
+#         - ghc: '8.8.1'
+#           cabal: '3.0'
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install recent cabal/ghc
+      run: |
+          sudo add-apt-repository ppa:hvr/ghc
+          sudo apt-get update
+          sudo apt-get install ghc-${{ matrix.versions.ghc }} cabal-install-${{ matrix.versions.cabal }}
+    - name: Install dependencies
+      run: |
+          export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
+          cabal v2-update
+          cabal v2-build --dependencies-only --enable-tests --disable-optimization
+    - name: Build and test
+      run: |
+          export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
+          cabal v2-build --enable-tests --disable-optimization 2>&1 | tee build.log
+          # fail if warnings in local build
+          ! grep -q "[Ww]arning:" build.log
+          cabal v2-test --disable-optimization
+
+  windows:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install stack
+      shell: cmd
+      run: |
+          choco install haskell-stack
+    - name: Install dependencies
+      run: |
+          stack update
+          stack test --dependencies-only --fast
+    - name: Build and test
+      shell: cmd
+      run: |
+          stack test --fast
+
+  macos:
+
+    runs-on: macOS-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install stack
+      run: |
+          curl -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz -o stack.tar.gz
+          tar xzvf stack.tar.gz --strip-components=1 'stack*/stack'
+    - name: Install dependencies
+      run: |
+          ./stack update
+          ./stack test --dependencies-only --fast
+    - name: Build and test
+      run: |
+          ./stack test --fast

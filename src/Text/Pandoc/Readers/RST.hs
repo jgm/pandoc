@@ -363,16 +363,19 @@ hrule = try $ do
 --
 
 -- read a line indented by a given string
-indentedLine :: Monad m => String -> ParserT [Char] st m [Char]
+indentedLine :: (HasReaderOptions st, Monad m)
+             => Int -> ParserT [Char] st m [Char]
 indentedLine indents = try $ do
-  string indents
+  lookAhead spaceChar
+  gobbleAtMostSpaces indents
   anyLine
 
 -- one or more indented lines, possibly separated by blank lines.
 -- any amount of indentation will work.
-indentedBlock :: Monad m => ParserT [Char] st m [Char]
+indentedBlock :: (HasReaderOptions st, Monad m)
+              => ParserT [Char] st m [Char]
 indentedBlock = try $ do
-  indents <- lookAhead $ many1 spaceChar
+  indents <- length <$> lookAhead (many1 spaceChar)
   lns <- many1 $ try $ do b <- option "" blanklines
                           l <- indentedLine indents
                           return (b ++ l)
@@ -389,10 +392,10 @@ quotedBlock = try $ do
 codeBlockStart :: Monad m => ParserT [Char] st m Char
 codeBlockStart = string "::" >> blankline >> blankline
 
-codeBlock :: Monad m => ParserT [Char] st m Blocks
+codeBlock :: (HasReaderOptions st, Monad m) => ParserT [Char] st m Blocks
 codeBlock = try $ codeBlockStart >> codeBlockBody
 
-codeBlockBody :: Monad m => ParserT [Char] st m Blocks
+codeBlockBody :: (HasReaderOptions st, Monad m) => ParserT [Char] st m Blocks
 codeBlockBody = try $ B.codeBlock . stripTrailingNewlines <$>
                 (indentedBlock <|> quotedBlock)
 

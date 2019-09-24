@@ -23,3 +23,5 @@ windows/*.wixobj
 data/reference.docx
 data/reference.odt
 .stack-work
+cabal.project.local
+/dist-newstyle/

@@ -1247,7 +1247,19 @@ Superscripted text
 
 ### Attr {#type-ref-Attr}
 
-A set of element attributes
+A set of element attributes. Values of this type can be created
+with the [`pandoc.Attr`](#Attr) constructor. For convenience, it
+is usually not necessary to construct the value directly if it is
+part of an element, and it is sufficient to pass an HTML-like
+table. E.g., to create a span with identifier "text" and classes
+"a" and "b", on can write:
+
+    local span = pandoc.Span('text', {id = 'text', class = 'a b'})
+
+This also works when using the `attr` setter:
+
+    local span = pandoc.Span 'text'
+    span.attr = {id = 'text', class = 'a b', other_attribute = '1'}
 
 Object equality is determined via
 [`pandoc.utils.equals`](#utils-equals).

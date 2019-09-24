@@ -1,10 +1,9 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE ViewPatterns      #-}
 {- |
  Module : Text.Pandoc.Readers.Docx.Parse
  Copyright : Copyright (C) 2014-2019 Jesse Rosenthal
+                           2019 Nikolay Yakimov <root@livid.pp.ru>
  License : GNU GPL, version 2 or above
 
  Maintainer : Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -31,6 +30,8 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , VertAlign(..)
                                       , ParIndentation(..)
                                       , ParagraphStyle(..)
+                                      , ParStyle
+                                      , CharStyle(cStyleData)
                                       , Row(..)
                                       , Cell(..)
                                       , TrackedChange(..)
@@ -38,10 +39,20 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , ChangeInfo(..)
                                       , FieldInfo(..)
                                       , Level(..)
+                                      , ParaStyleName
+                                      , CharStyleName
+                                      , FromStyleName(..)
+                                      , HasStyleName(..)
+                                      , HasParentStyle(..)
                                       , archiveToDocx
                                       , archiveToDocxWithWarnings
+                                      , getStyleNames
+                                      , pHeading
+                                      , constructBogusParStyleData
+                                      , leftBiasedMergeRunStyle
                                       ) where
 import Prelude
+import Text.Pandoc.Readers.Docx.Parse.Styles
 import Codec.Archive.Zip
 import Control.Applicative ((<|>))
 import Control.Monad.Except
@@ -121,9 +132,9 @@ unwrap :: NameSpaces -> Content -> [Content]
 unwrap ns (Elem element)
   | isElem ns "w" "sdt" element
   , Just sdtContent <- findChildByName ns "w" "sdtContent" element
-  = concatMap ((unwrap ns) . Elem) (elChildren sdtContent)
+  = concatMap (unwrap ns . Elem) (elChildren sdtContent)
   | isElem ns "w" "smartTag" element
-  = concatMap ((unwrap ns) . Elem) (elChildren element)
+  = concatMap (unwrap ns . Elem) (elChildren element)
 unwrap _ content = [content]
 
 unwrapChild :: NameSpaces -> Content -> Content
@@ -149,24 +160,20 @@ walkDocument ns element =
       _             -> Nothing
 
 
-data Docx = Docx Document
+newtype Docx = Docx Document
           deriving Show
 
 data Document = Document NameSpaces Body
           deriving Show
 
-data Body = Body [BodyPart]
+newtype Body = Body [BodyPart]
           deriving Show
 
 type Media = [(FilePath, B.ByteString)]
 
-type CharStyle = (String, RunStyle)
+type CharStyleMap = M.Map CharStyleId CharStyle
 
-type ParStyle = (String, ParStyleData)
-
-type CharStyleMap = M.Map String RunStyle
-
-type ParStyleMap = M.Map String ParStyleData
+type ParStyleMap = M.Map ParaStyleId ParStyle
 
 data Numbering = Numbering NameSpaces [Numb] [AbstractNumb]
                  deriving Show
@@ -213,12 +220,9 @@ data ChangeInfo = ChangeInfo ChangeId Author ChangeDate
 data TrackedChange = TrackedChange ChangeType ChangeInfo
                    deriving Show
 
-data ParagraphStyle = ParagraphStyle { pStyle      :: [String]
+data ParagraphStyle = ParagraphStyle { pStyle      :: [ParStyle]
                                      , indentation :: Maybe ParIndentation
                                      , dropCap     :: Bool
-                                     , pHeading    :: Maybe (String, Int)
-                                     , pNumInfo    :: Maybe (String, String)
-                                     , pBlockQuote :: Maybe Bool
                                      , pChange     :: Maybe TrackedChange
                                      }
                       deriving Show
@@ -227,9 +231,6 @@ defaultParagraphStyle :: ParagraphStyle
 defaultParagraphStyle = ParagraphStyle { pStyle = []
                                        , indentation = Nothing
                                        , dropCap     = False
-                                       , pHeading    = Nothing
-                                       , pNumInfo    = Nothing
-                                       , pBlockQuote = Nothing
                                        , pChange     = Nothing
                                        }
 
@@ -242,17 +243,29 @@ data BodyPart = Paragraph ParagraphStyle [ParPart]
 
 type TblGrid = [Integer]
 
-data TblLook = TblLook {firstRowFormatting::Bool}
+newtype TblLook = TblLook {firstRowFormatting::Bool}
               deriving Show
 
 defaultTblLook :: TblLook
 defaultTblLook = TblLook{firstRowFormatting = False}
 
-data Row = Row [Cell]
+newtype Row = Row [Cell]
            deriving Show
 
-data Cell = Cell [BodyPart]
+newtype Cell = Cell [BodyPart]
             deriving Show
+
+leftBiasedMergeRunStyle :: RunStyle -> RunStyle -> RunStyle
+leftBiasedMergeRunStyle a b = RunStyle
+    { isBold = isBold a <|> isBold b
+    , isItalic = isItalic a <|> isItalic b
+    , isSmallCaps = isSmallCaps a <|> isSmallCaps b
+    , isStrike = isStrike a <|> isStrike b
+    , isRTL = isRTL a <|> isRTL b
+    , rVertAlign = rVertAlign a <|> rVertAlign b
+    , rUnderline = rUnderline a <|> rUnderline b
+    , rParentStyle = rParentStyle a
+    }
 
 -- (width, height) in EMUs
 type Extent = Maybe (Double, Double)
@@ -281,37 +294,6 @@ data Run = Run RunStyle [RunElem]
 
 data RunElem = TextRun String | LnBrk | Tab | SoftHyphen | NoBreakHyphen
              deriving Show
-
-data VertAlign = BaseLn | SupScrpt | SubScrpt
-               deriving Show
-
-data RunStyle = RunStyle { isBold      :: Maybe Bool
-                         , isItalic    :: Maybe Bool
-                         , isSmallCaps :: Maybe Bool
-                         , isStrike    :: Maybe Bool
-                         , isRTL       :: Maybe Bool
-                         , rVertAlign  :: Maybe VertAlign
-                         , rUnderline  :: Maybe String
-                         , rStyle      :: Maybe CharStyle
-                         }
-                deriving Show
-
-data ParStyleData = ParStyleData { headingLev   :: Maybe (String, Int)
-                                 , isBlockQuote :: Maybe Bool
-                                 , numInfo      :: Maybe (String, String)
-                                 , psStyle      :: Maybe ParStyle}
-                    deriving Show
-
-defaultRunStyle :: RunStyle
-defaultRunStyle = RunStyle { isBold = Nothing
-                           , isItalic = Nothing
-                           , isSmallCaps = Nothing
-                           , isStrike = Nothing
-                           , isRTL = Nothing
-                           , rVertAlign = Nothing
-                           , rUnderline = Nothing
-                           , rStyle = Nothing
-                           }
 
 type Target = String
 type Anchor = String
@@ -390,73 +372,28 @@ elemToBody ns element | isElem ns "w" "body" element =
 elemToBody _ _ = throwError WrongElem
 
 archiveToStyles :: Archive -> (CharStyleMap, ParStyleMap)
-archiveToStyles zf =
-  let stylesElem = findEntryByPath "word/styles.xml" zf >>=
-                   (parseXMLDoc . UTF8.toStringLazy . fromEntry)
-  in
-   case stylesElem of
-     Nothing -> (M.empty, M.empty)
-     Just styElem ->
-       let namespaces = elemToNameSpaces styElem
-       in
-        ( M.fromList $ buildBasedOnList namespaces styElem
-            (Nothing :: Maybe CharStyle),
-          M.fromList $ buildBasedOnList namespaces styElem
-            (Nothing :: Maybe ParStyle) )
+archiveToStyles = archiveToStyles' getStyleId getStyleId
 
-isBasedOnStyle :: (ElemToStyle a) => NameSpaces -> Element -> Maybe a -> Bool
-isBasedOnStyle ns element parentStyle
-  | isElem ns "w" "style" element
-  , Just styleType <- findAttrByName ns "w" "type" element
-  , styleType == cStyleType parentStyle
-  , Just basedOnVal <- findChildByName ns "w" "basedOn" element >>=
-                       findAttrByName ns "w" "val"
-  , Just ps <- parentStyle = basedOnVal == getStyleId ps
-  | isElem ns "w" "style" element
-  , Just styleType <- findAttrByName ns "w" "type" element
-  , styleType == cStyleType parentStyle
-  , Nothing <- findChildByName ns "w" "basedOn" element
-  , Nothing <- parentStyle = True
-  | otherwise = False
+class HasParentStyle a where
+  getParentStyle :: a -> Maybe a
 
-class ElemToStyle a where
-  cStyleType  :: Maybe a -> String
-  elemToStyle :: NameSpaces -> Element -> Maybe a -> Maybe a
-  getStyleId     :: a -> String
+instance HasParentStyle CharStyle where
+  getParentStyle = rParentStyle . cStyleData
 
-instance ElemToStyle CharStyle where
-  cStyleType _ = "character"
-  elemToStyle ns element parentStyle
-    | isElem ns "w" "style" element
-    , Just "character" <- findAttrByName ns "w" "type" element
-    , Just styleId <- findAttrByName ns "w" "styleId" element =
-      Just (styleId, elemToRunStyle ns element parentStyle)
-    | otherwise = Nothing
-  getStyleId s = fst s
+instance HasParentStyle ParStyle where
+  getParentStyle = psParentStyle
 
-instance ElemToStyle ParStyle where
-  cStyleType _ = "paragraph"
-  elemToStyle ns element parentStyle
-    | isElem ns "w" "style" element
-    , Just "paragraph" <- findAttrByName ns "w" "type" element
-    , Just styleId <- findAttrByName ns "w" "styleId" element =
-      Just (styleId, elemToParStyleData ns element parentStyle)
-    | otherwise = Nothing
-  getStyleId s = fst s
+getStyleNames :: (Functor t, HasStyleName a) => t a -> t (StyleName a)
+getStyleNames = fmap getStyleName
 
-getStyleChildren :: (ElemToStyle a) => NameSpaces -> Element -> Maybe a -> [a]
-getStyleChildren ns element parentStyle
-  | isElem ns "w" "styles" element =
-    mapMaybe (\e -> elemToStyle ns e parentStyle) $
-    filterChildren (\e' -> isBasedOnStyle ns e' parentStyle) element
-  | otherwise = []
-
-buildBasedOnList :: (ElemToStyle a) => NameSpaces -> Element -> Maybe a -> [a]
-buildBasedOnList ns element rootStyle =
-  case getStyleChildren ns element rootStyle of
-    [] -> []
-    stys -> stys ++
-            concatMap (buildBasedOnList ns element . Just) stys
+constructBogusParStyleData :: ParaStyleName -> ParStyle
+constructBogusParStyleData stName = ParStyle
+  { headingLev = Nothing
+  , numInfo = Nothing
+  , psParentStyle = Nothing
+  , pStyleName = stName
+  , pStyleId = ParaStyleId . filter (/=' ') . fromStyleName $ stName
+  }
 
 archiveToNotes :: Archive -> Notes
 archiveToNotes zf =
@@ -495,7 +432,7 @@ filePathToRelType "word/_rels/endnotes.xml.rels" _ = Just InEndnote
 -- -- to see if it's a documentPath, we have to check against the dynamic
 -- -- docPath specified in "_rels/.rels"
 filePathToRelType path docXmlPath =
-  if path == "word/_rels/" ++ (takeFileName docXmlPath) ++ ".rels"
+  if path == "word/_rels/" ++ takeFileName docXmlPath ++ ".rels"
   then Just InDocument
   else Nothing
 
@@ -537,7 +474,7 @@ lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
   case lvlOverride of
     Just (LevelOverride _ _ (Just lvl')) -> Just lvl'
     Just (LevelOverride _ (Just strt) _) ->
-      lookup ilvl $ map (\(Level i fmt s _) -> (i, (Level i fmt s (Just strt)))) lvls
+      lookup ilvl $ map (\(Level i fmt s _) -> (i, Level i fmt s (Just strt))) lvls
     _ ->
       lookup ilvl $ map (\l@(Level i _ _ _) -> (i, l)) lvls
 
@@ -690,8 +627,11 @@ testBitMask bitMaskS n =
     []            -> False
     ((n', _) : _) -> (n' .|. n) /= 0
 
-stringToInteger :: String -> Maybe Integer
-stringToInteger s = listToMaybe $ map fst (reads s :: [(Integer, String)])
+pHeading :: ParagraphStyle -> Maybe (ParaStyleName, Int)
+pHeading = getParStyleField headingLev . pStyle
+
+pNumInfo :: ParagraphStyle -> Maybe (String, String)
+pNumInfo = getParStyleField numInfo . pStyle
 
 elemToBodyPart :: NameSpaces -> Element -> D BodyPart
 elemToBodyPart ns element
@@ -703,23 +643,19 @@ elemToBodyPart ns element
 elemToBodyPart ns element
   | isElem ns "w" "p" element
   , Just (numId, lvl) <- getNumInfo ns element = do
-    sty <- asks envParStyles
-    let parstyle = elemToParagraphStyle ns element sty
+    parstyle <- elemToParagraphStyle ns element <$> asks envParStyles
     parparts <- mapD (elemToParPart ns) (elChildren element)
-    num <- asks envNumbering
-    let levelInfo = lookupLevel numId lvl num
+    levelInfo <- lookupLevel numId lvl <$> asks envNumbering
     return $ ListItem parstyle numId lvl levelInfo parparts
 elemToBodyPart ns element
   | isElem ns "w" "p" element = do
-      sty <- asks envParStyles
-      let parstyle = elemToParagraphStyle ns element sty
+      parstyle <- elemToParagraphStyle ns element <$> asks envParStyles
       parparts <- mapD (elemToParPart ns) (elChildren element)
       -- Word uses list enumeration for numbered headings, so we only
       -- want to infer a list from the styles if it is NOT a heading.
       case pHeading parstyle of
         Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
-                    num <- asks envNumbering
-                    let levelInfo = lookupLevel numId lvl num
+                    levelInfo <- lookupLevel numId lvl <$> asks envNumbering
                     return $ ListItem parstyle numId lvl levelInfo parparts
         _ -> return $ Paragraph parstyle parparts
 elemToBodyPart ns element
@@ -727,7 +663,7 @@ elemToBodyPart ns element
     let caption' = findChildByName ns "w" "tblPr" element
                    >>= findChildByName ns "w" "tblCaption"
                    >>= findAttrByName ns "w" "val"
-        caption = (fromMaybe "" caption')
+        caption = fromMaybe "" caption'
         grid' = case findChildByName ns "w" "tblGrid" element of
           Just g  -> elemToTblGrid ns g
           Nothing -> return []
@@ -1007,20 +943,18 @@ elemToRun ns element
     return $ Run runStyle runElems
 elemToRun _ _ = throwError WrongElem
 
-getParentStyleValue :: (ParStyleData -> Maybe a) -> ParStyleData -> Maybe a
+getParentStyleValue :: (ParStyle -> Maybe a) -> ParStyle -> Maybe a
 getParentStyleValue field style
   | Just value <- field style = Just value
-  | Just parentStyle <- psStyle style
-                      = getParentStyleValue field (snd parentStyle)
+  | Just parentStyle <- psParentStyle style
+                      = getParentStyleValue field parentStyle
 getParentStyleValue _ _ = Nothing
 
-getParStyleField :: (ParStyleData -> Maybe a) -> ParStyleMap -> [String] ->
-                                                                        Maybe a
-getParStyleField field stylemap styles
-  | x     <- mapMaybe (\x -> M.lookup x stylemap) styles
-  , (y:_) <- mapMaybe (getParentStyleValue field) x
+getParStyleField :: (ParStyle -> Maybe a) -> [ParStyle] -> Maybe a
+getParStyleField field styles
+  | (y:_) <- mapMaybe (getParentStyleValue field) styles
            = Just y
-getParStyleField _ _ _ = Nothing
+getParStyleField _ _ = Nothing
 
 getTrackedChange :: NameSpaces -> Element -> Maybe TrackedChange
 getTrackedChange ns element
@@ -1042,10 +976,10 @@ elemToParagraphStyle ns element sty
   | Just pPr <- findChildByName ns "w" "pPr" element =
     let style =
           mapMaybe
-          (findAttrByName ns "w" "val")
+          (fmap ParaStyleId . findAttrByName ns "w" "val")
           (findChildrenByName ns "w" "pStyle" pPr)
     in ParagraphStyle
-      {pStyle = style
+      {pStyle = mapMaybe (`M.lookup` sty) style
       , indentation =
           findChildByName ns "w" "ind" pPr >>=
           elemToParIndentation ns
@@ -1057,9 +991,6 @@ elemToParagraphStyle ns element sty
             Just "none" -> False
             Just _      -> True
             Nothing     -> False
-      , pHeading = getParStyleField headingLev sty style
-      , pNumInfo = getParStyleField numInfo sty style
-      , pBlockQuote = getParStyleField isBlockQuote sty style
       , pChange     = findChildByName ns "w" "rPr" pPr >>=
                       filterChild (\e -> isElem ns "w" "ins" e ||
                                          isElem ns "w" "moveTo" e ||
@@ -1070,112 +1001,16 @@ elemToParagraphStyle ns element sty
       }
 elemToParagraphStyle _ _ _ =  defaultParagraphStyle
 
-checkOnOff :: NameSpaces -> Element -> QName -> Maybe Bool
-checkOnOff ns rPr tag
-  | Just t <-  findChild tag rPr
-  , Just val <- findAttrByName ns "w" "val" t =
-    Just $ case val of
-      "true"  -> True
-      "false" -> False
-      "on"    -> True
-      "off"   -> False
-      "1"     -> True
-      "0"     -> False
-      _       -> False
-  | Just _ <- findChild tag rPr = Just True
-checkOnOff _ _ _ = Nothing
-
 elemToRunStyleD :: NameSpaces -> Element -> D RunStyle
 elemToRunStyleD ns element
   | Just rPr <- findChildByName ns "w" "rPr" element = do
     charStyles <- asks envCharStyles
-    let parentSty = case
+    let parentSty =
           findChildByName ns "w" "rStyle" rPr >>=
-          findAttrByName ns "w" "val"
-          of
-            Just styName | Just style <- M.lookup styName charStyles ->
-              Just (styName, style)
-            _            -> Nothing
+          findAttrByName ns "w" "val" >>=
+          flip M.lookup charStyles . CharStyleId
     return $ elemToRunStyle ns element parentSty
 elemToRunStyleD _ _ = return defaultRunStyle
-
-elemToRunStyle :: NameSpaces -> Element -> Maybe CharStyle -> RunStyle
-elemToRunStyle ns element parentStyle
-  | Just rPr <- findChildByName ns "w" "rPr" element =
-    RunStyle
-      {
-        isBold = checkOnOff ns rPr (elemName ns "w" "b") `mplus`
-                 checkOnOff ns rPr (elemName ns "w" "bCs")
-      , isItalic = checkOnOff ns rPr (elemName ns "w" "i") `mplus`
-                   checkOnOff ns rPr (elemName ns "w" "iCs")
-      , isSmallCaps = checkOnOff ns rPr (elemName ns "w" "smallCaps")
-      , isStrike = checkOnOff ns rPr (elemName ns "w" "strike")
-      , isRTL = checkOnOff ns rPr (elemName ns "w" "rtl")
-      , rVertAlign =
-           findChildByName ns "w" "vertAlign" rPr >>=
-           findAttrByName ns "w" "val" >>=
-           \v -> Just $ case v of
-             "superscript" -> SupScrpt
-             "subscript"   -> SubScrpt
-             _             -> BaseLn
-      , rUnderline =
-          findChildByName ns "w" "u" rPr >>=
-          findAttrByName ns "w" "val"
-      , rStyle = parentStyle
-      }
-elemToRunStyle _ _ _ = defaultRunStyle
-
-getHeaderLevel :: NameSpaces -> Element -> Maybe (String,Int)
-getHeaderLevel ns element
-  | Just styleId <- findAttrByName ns "w" "styleId" element
-  , Just index   <- stripPrefix "Heading" styleId
-  , Just n       <- stringToInteger index
-  , n > 0 = Just (styleId, fromInteger n)
-  | Just styleId <- findAttrByName ns "w" "styleId" element
-  , Just index   <- findChildByName ns "w" "name" element >>=
-                    findAttrByName ns "w" "val" >>=
-                    stripPrefix "heading "
-  , Just n <- stringToInteger index
-  , n > 0 = Just (styleId, fromInteger n)
-getHeaderLevel _ _ = Nothing
-
-blockQuoteStyleIds :: [String]
-blockQuoteStyleIds = ["Quote", "BlockQuote", "BlockQuotation"]
-
-blockQuoteStyleNames :: [String]
-blockQuoteStyleNames = ["Quote", "Block Text"]
-
-getBlockQuote :: NameSpaces -> Element -> Maybe Bool
-getBlockQuote ns element
-  | Just styleId <- findAttrByName ns "w" "styleId" element
-  , styleId `elem` blockQuoteStyleIds = Just True
-  | Just styleName <- findChildByName ns "w" "name" element >>=
-                      findAttrByName ns "w" "val"
-  , styleName `elem` blockQuoteStyleNames = Just True
-getBlockQuote _ _ = Nothing
-
-getNumInfo :: NameSpaces -> Element -> Maybe (String, String)
-getNumInfo ns element = do
-  let numPr = findChildByName ns "w" "pPr" element >>=
-              findChildByName ns "w" "numPr"
-      lvl = fromMaybe "0" (numPr >>=
-                           findChildByName ns "w" "ilvl" >>=
-                           findAttrByName ns "w" "val")
-  numId <- numPr >>=
-           findChildByName ns "w" "numId" >>=
-           findAttrByName ns "w" "val"
-  return (numId, lvl)
-
-
-elemToParStyleData :: NameSpaces -> Element -> Maybe ParStyle -> ParStyleData
-elemToParStyleData ns element parentStyle =
-    ParStyleData
-      {
-        headingLev = getHeaderLevel ns element
-      , isBlockQuote = getBlockQuote ns element
-      , numInfo = getNumInfo ns element
-      , psStyle = parentStyle
-        }
 
 elemToRunElem :: NameSpaces -> Element -> D RunElem
 elemToRunElem ns element
