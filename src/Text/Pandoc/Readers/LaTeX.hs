@@ -1893,6 +1893,7 @@ environments = M.fromList
    , ("minted", minted)
    , ("obeylines", obeylines)
    , ("tikzpicture", rawVerbEnv "tikzpicture")
+   , ("tikzcd", rawVerbEnv "tikzcd")
    , ("lilypond", rawVerbEnv "lilypond")
    , ("ly", rawVerbEnv "ly")
    -- etoolbox
