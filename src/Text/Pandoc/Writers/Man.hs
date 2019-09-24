@@ -310,9 +310,9 @@ inlineToMan _ LineBreak = return $
   cr <> text ".PD 0" $$ text ".P" $$ text ".PD" <> cr
 inlineToMan _ SoftBreak = return space
 inlineToMan _ Space = return space
-inlineToMan opts (Link _ txt ('#':_, _)) =
-  inlineListToMan opts txt -- skip internal links
-inlineToMan opts (Link _ txt (src, _)) = do
+inlineToMan opts (Link _ txt (src, _))
+  | not (isURI src) = inlineListToMan opts txt -- skip relative links
+  | otherwise       = do
   linktext <- inlineListToMan opts txt
   let srcSuffix = fromMaybe src (stripPrefix "mailto:" src)
   return $ case txt of
