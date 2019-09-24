@@ -4,7 +4,7 @@ env: &env
     environment:
       LC_ALL: "C.UTF-8"
     docker:
-      - image: fpco/stack-build:lts-13
+      - image: fpco/stack-build:lts
 
 #-----------------------------------------------------------------------------
 # Common utility stuff, not to be modified usually
@@ -127,4 +127,3 @@ workflows:
       - cabal-ghc-8_0_2
       - stack-ghc-8_6
       # - cabal-ghc-8_8_1
-
