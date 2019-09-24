@@ -2282,9 +2282,41 @@ When converting HTML to Markdown, for example, you may want to drop all
 
 Analogous to `native_divs` above.
 
+Literate Programming Support
+----------------------------
 
-Literate Haskell support
-------------------------
+#### Extension: `code_block_source_position`
+
+Insert attributes into `CodeBlock` elements describing their position in the
+source at read time.
+
+This extension can be enabled/disabled for the following formats:
+
+input formats
+:   `markdown`
+
+If you append `+code_block_source_position` to the above readers, pandoc will
+add the following key/value pairs to the `CodeBlock`s in the input:
+
+-   `sourceName`: Name of original file read from. TODO: NOT TRUE.
+
+-   `sourceLine`: Line that `CodeBlock` starts on in source.
+
+-   `sourceCol`: Column that `CodeBlock` starts on in source.
+
+Example:
+
+    echo -e '\n\n```\nsome code\n```' \
+        | pandoc --from markdown+code_block_source_position --to native
+
+produces output:
+
+    [ CodeBlock ("",[], [ ("sourceName","source")
+                        , ("sourceLine","3")
+                        , ("sourceColumn","1")
+                        ]
+                ) "some code"
+    ]
 
 #### Extension: `literate_haskell` ####
 

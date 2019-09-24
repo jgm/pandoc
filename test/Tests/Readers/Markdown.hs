@@ -336,6 +336,18 @@ tests = [ testGroup "inline code"
                   <>
                   rawBlock "html" "<div>\n\n"
           ]
+        , testGroup "codeblock source attrs"
+          [ test (purely $ readMarkdown def{ readerExtensions = enableExtension
+                        Ext_code_block_source_position pandocExtensions
+                                           })
+              "codeblock source attributes" $
+              "\n\n```\nsome code here\n```"
+              =?> codeBlockWith ("", [], [ ("sourceName", "source")
+                                         , ("sourceLine", "3")
+                                         , ("sourceColumn", "1")
+                                         ]
+                                ) "some code here"
+          ]
 -- the round-trip properties frequently fail
 --        , testGroup "round trip"
 --          [ property "p_markdown_round_trip" p_markdown_round_trip

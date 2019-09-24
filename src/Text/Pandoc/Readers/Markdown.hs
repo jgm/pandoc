@@ -701,6 +701,13 @@ rawAttribute = do
 
 codeBlockFenced :: PandocMonad m => MarkdownParser m (F Blocks)
 codeBlockFenced = try $ do
+  rOpts <- getState >>= return . extractReaderOptions
+  pos   <- getPosition
+  let sAttrs = [ ("sourceName"   , sourceName pos)
+               , ("sourceLine"   , show $ sourceLine pos)
+               , ("sourceColumn" , show $ sourceColumn pos)
+               ]
+      sAttrsEnabled = isEnabled Ext_code_block_source_position rOpts
   indentchars <- nonindentSpaces
   let indentLevel = length indentchars
   c <- try (guardEnabled Ext_fenced_code_blocks >> lookAhead (char '~'))
@@ -721,8 +728,11 @@ codeBlockFenced = try $ do
                             blanklines)
   return $ return $
     case rawattr of
-          Left syn   -> B.rawBlock syn contents
-          Right attr -> B.codeBlockWith attr contents
+      Left syn             -> B.rawBlock syn contents
+      Right (bId, cs, kvs) -> let newKvs = if sAttrsEnabled
+                                            then sAttrs ++ kvs
+                                            else kvs
+                               in B.codeBlockWith (bId, cs, newKvs) contents
 
 -- correctly handle github language identifiers
 toLanguageId :: String -> String
