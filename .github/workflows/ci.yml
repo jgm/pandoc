@@ -2,35 +2,40 @@ name: CI tests
 
 on:
   push:
-    paths-ignore:
-    - 'doc/**'
-    - 'MANUAL.txt'
-    - '*.md'
-    - 'RELEASE_CHECKLIST'
-    - 'BUGS'
-    - 'changelog'
-    - 'README.template'
-    - 'appveyor.yml'
-    - 'tools/**'
-    - 'linux/**'
-    - 'macos/**'
-    - 'windows/**'
-    - 'man/**'
+    branches:
+    - '*'
+    - '!rc/*'
+    paths:
+    - '*'
+    - '!doc/**'
+    - '!MANUAL.txt'
+    - '!*.md'
+    - '!RELEASE_CHECKLIST'
+    - '!BUGS'
+    - '!changelog'
+    - '!README.template'
+    - '!appveyor.yml'
+    - '!tools/**'
+    - '!linux/**'
+    - '!macos/**'
+    - '!windows/**'
+    - '!man/**'
   pull_request:
-    paths_ignore:
-    - 'doc/**'
-    - 'MANUAL.txt'
-    - '*.md'
-    - 'RELEASE_CHECKLIST'
-    - 'BUGS'
-    - 'changelog'
-    - 'README.template'
-    - 'appveyor.yml'
-    - 'tools/**'
-    - 'linux/**'
-    - 'macos/**'
-    - 'windows/**'
-    - 'man/**'
+    paths:
+    - '*'
+    - '!doc/**'
+    - '!MANUAL.txt'
+    - '!*.md'
+    - '!RELEASE_CHECKLIST'
+    - '!BUGS'
+    - '!changelog'
+    - '!README.template'
+    - '!appveyor.yml'
+    - '!tools/**'
+    - '!linux/**'
+    - '!macos/**'
+    - '!windows/**'
+    - '!man/**'
 
 jobs:
   linux:
