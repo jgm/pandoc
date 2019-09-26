@@ -16,6 +16,8 @@ extra-deps:
   commit: 860788f105cc9b3fec2ab062d993b7aebd68c9c0
 - pandoc-types-1.17.6.1
 - texmath-0.11.2.3
+- skylighting-0.8.2.1
+- skylighting-core-0.8.2.1
 - doclayout-0.1
 - HsYAML-0.2.0.0
 - HsYAML-aeson-0.2.0.0
