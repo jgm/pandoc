@@ -11,9 +11,7 @@ flags:
 packages:
 - '.'
 extra-deps:
-# - pandoc-citeproc-0.16.2
-- git: https://github.com/jgm/pandoc-citeproc
-  commit: 860788f105cc9b3fec2ab062d993b7aebd68c9c0
+- pandoc-citeproc-0.16.3
 - pandoc-types-1.17.6.1
 - texmath-0.11.2.3
 - skylighting-0.8.2.1
