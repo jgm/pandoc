@@ -1,4 +1,5 @@
 packages: pandoc.cabal
+allow-newer: regex-base
 
 package pandoc
   flags: +embed_data_files -trypandoc
@@ -12,3 +13,8 @@ source-repository-package
     type: git
     location: https://github.com/jgm/pandoc-citeproc
     tag: 0.16.3
+
+source-repository-package
+    type: git
+    location: https://github.com/lierdakil/regex-pcre-builtin
+    tag: v0.95.0.0-beta
