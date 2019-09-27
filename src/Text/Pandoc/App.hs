@@ -141,7 +141,7 @@ convertWithOpts opts = do
                            Nothing | sources == ["-"] -> return "markdown"
                                    | any isURI sources -> return "html"
                                    | otherwise -> do
-                             report $ UnknownExtensions
+                             report $ CouldNotDeduceFormat
                                  (map takeExtension sources) "markdown"
                              return "markdown"
 

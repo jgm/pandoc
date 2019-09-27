@@ -89,7 +89,7 @@ data LogMessage =
   | UnusualConversion String
   | UnexpectedXmlElement String String
   | UnknownOrgExportOption String
-  | UnknownExtensions [String] String
+  | CouldNotDeduceFormat [String] String
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -211,7 +211,7 @@ instance ToJSON LogMessage where
             "parent" .= Text.pack parent]
       UnknownOrgExportOption option ->
            ["option" .= Text.pack option]
-      UnknownExtensions exts format ->
+      CouldNotDeduceFormat exts format ->
            ["extensions" .= map Text.pack exts
            ,"format" .= Text.pack format]
 
@@ -319,7 +319,7 @@ showLogMessage msg =
          "Unexpected XML element " ++ element ++ " in " ++ parent
        UnknownOrgExportOption option ->
          "Ignoring unknown Org export option: " ++ option
-       UnknownExtensions exts format ->
+       CouldNotDeduceFormat exts format ->
          "Could not deduce format from file extension " ++
          intercalate " or " exts ++ "\n" ++
          "Defaulting to " ++ format
@@ -365,4 +365,4 @@ messageVerbosity msg =
        UnusualConversion {}         -> WARNING
        UnexpectedXmlElement {}      -> WARNING
        UnknownOrgExportOption {}    -> WARNING
-       UnknownExtensions{}          -> WARNING
+       CouldNotDeduceFormat{}       -> WARNING

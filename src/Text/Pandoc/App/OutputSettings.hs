@@ -75,7 +75,7 @@ optToOutputSettings opts = do
                 | otherwise ->
                     case formatFromFilePaths [outputFile] of
                            Nothing -> do
-                             report $ UnknownExtensions
+                             report $ CouldNotDeduceFormat
                                 [takeExtension outputFile] "html"
                              return ("html", Nothing)
                            Just f  -> return (f, Nothing)
