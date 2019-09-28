@@ -54,6 +54,9 @@ data PandocError = PandocIOError String IOError
                  | PandocMacroLoop String
                  | PandocUTF8DecodingError String Int Word8
                  | PandocIpynbDecodingError String
+                 | PandocUnknownReaderError String
+                 | PandocUnknownWriterError String
+                 | PandocUnsupportedExtensionError String String
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
@@ -112,6 +115,26 @@ handleError (Left e) =
       "The input must be a UTF-8 encoded text."
     PandocIpynbDecodingError w -> err 93 $
       "ipynb decoding error: " ++ w
+    PandocUnknownReaderError r -> err 21 $
+      "Unknown input format " ++ r ++
+      case r of
+        "doc" -> "\nPandoc can convert from DOCX, but not from DOC." ++
+                 "\nTry using Word to save your DOC file as DOCX," ++
+                 " and convert that with pandoc."
+        "pdf" -> "\nPandoc can convert to PDF, but not from PDF."
+        _     -> ""
+    PandocUnknownWriterError w -> err 22 $
+       "Unknown output format " ++ w ++
+       case w of
+         "pdf" -> "To create a pdf using pandoc, use" ++
+                  " -t latex|beamer|context|ms|html5" ++
+                 "\nand specify an output file with " ++
+                 ".pdf extension (-o filename.pdf)."
+         "doc" -> "\nPandoc can convert to DOCX, but not from DOC."
+         _     -> ""
+    PandocUnsupportedExtensionError ext f -> err 23 $
+      "The extension " ++ ext ++ " is not supported " ++
+      "for " ++ f
 
 err :: Int -> String -> IO a
 err exitCode msg = do

@@ -55,6 +55,7 @@ module Text.Pandoc.Readers
   ) where
 
 import Prelude
+import Control.Monad (unless)
 import Control.Monad.Except (throwError)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
@@ -134,15 +135,28 @@ readers = [ ("native"       , TextReader readNative)
            ]
 
 -- | Retrieve reader, extensions based on formatSpec (format+extensions).
-getReader :: PandocMonad m => String -> Either String (Reader m, Extensions)
+getReader :: PandocMonad m => String -> m (Reader m, Extensions)
 getReader s =
   case parseFormatSpec s of
-       Left e  -> Left $ intercalate "\n" [m | Message m <- errorMessages e]
-       Right (readerName, setExts) ->
+       Left e  -> throwError $ PandocAppError
+                    $ intercalate "\n" [m | Message m <- errorMessages e]
+       Right (readerName, extsToEnable, extsToDisable) ->
            case lookup readerName readers of
-                   Nothing  -> Left $ "Unknown reader: " ++ readerName
-                   Just  r  -> Right (r, setExts $
-                                        getDefaultExtensions readerName)
+                   Nothing  -> throwError $ PandocUnknownReaderError
+                                             readerName
+                   Just  r  -> do
+                     let allExts = getAllExtensions readerName
+                     let exts = foldr disableExtension
+                           (foldr enableExtension
+                             (getDefaultExtensions readerName)
+                                   extsToEnable) extsToDisable
+                     mapM_ (\ext ->
+                              unless (extensionEnabled ext allExts) $
+                                throwError $
+                                   PandocUnsupportedExtensionError
+                                   (drop 4 $ show ext) readerName)
+                          (extsToEnable ++ extsToDisable)
+                     return (r, exts)
 
 -- | Read pandoc document from JSON format.
 readJSON :: PandocMonad m

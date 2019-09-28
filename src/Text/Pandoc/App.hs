@@ -155,16 +155,7 @@ convertWithOpts opts = do
             <> "` instead of `pandoc " <> inputFile <> " -o " <> outputFile <> "`."
         _ -> return ()
 
-    (reader, readerExts) <-
-             case getReader readerName of
-                  Right (r, es) -> return (r :: Reader PandocIO, es)
-                  Left e   -> throwError $ PandocAppError e'
-                    where e' = case readerName of
-                                    "pdf" -> e ++
-                                       "\nPandoc can convert to PDF, but not from PDF."
-                                    "doc" -> e ++
-                                       "\nPandoc can convert from DOCX, but not from DOC.\nTry using Word to save your DOC file as DOCX, and convert that with pandoc."
-                                    _ -> e
+    (reader :: Reader PandocIO, readerExts) <- getReader readerName
 
     let convertTabs = tabFilter (if optPreserveTabs opts ||
                                       readerName == "t2t" ||

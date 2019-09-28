@@ -399,7 +399,7 @@ General options {.options}
 
 `--list-extensions`[`=`*FORMAT*]
 
-:   List supported extensions, one per line, preceded
+:   List supported extensions for *FORMAT*, one per line, preceded
     by a `+` or `-` indicating whether it is enabled by default
     in *FORMAT*. If *FORMAT* is not specified, defaults for
     pandoc's Markdown are given.
@@ -1391,6 +1391,9 @@ Nonzero exit codes have the following meanings:
      4 PandocAppError
      5 PandocTemplateError
      6 PandocOptionError
+    21 PandocUnknownReaderError
+    22 PandocUnknownWriterError
+    23 PandocUnsupportedExtensionError
     31 PandocEpubSubdirectoryError
     43 PandocPDFError
     47 PandocPDFProgramNotFoundError

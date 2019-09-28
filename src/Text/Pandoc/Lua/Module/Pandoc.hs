@@ -16,6 +16,7 @@ module Text.Pandoc.Lua.Module.Pandoc
 
 import Prelude
 import Control.Monad (when)
+import Control.Monad.Except (throwError)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
 import Data.Text (pack)
@@ -34,6 +35,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
+import Text.Pandoc.Error
 
 -- | Push the "pandoc" on the lua stack. Requires the `list` module to be
 -- loaded.
@@ -60,17 +62,20 @@ walkBlock = walkElement
 readDoc :: String -> Optional String -> Lua NumResults
 readDoc content formatSpecOrNil = do
   let formatSpec = fromMaybe "markdown" (Lua.fromOptional formatSpecOrNil)
-  case getReader formatSpec of
-    Left  s      -> Lua.raiseError s -- Unknown reader
-    Right (reader, es) ->
-      case reader of
-        TextReader r -> do
-          res <- Lua.liftIO . runIO $
+  res <- Lua.liftIO . runIO $
+           getReader formatSpec >>= \(rdr,es) ->
+             case rdr of
+               TextReader r ->
                  r def{ readerExtensions = es } (pack content)
-          case res of
-            Right pd -> (1 :: NumResults) <$ Lua.push pd -- success, push Pandoc
-            Left s   -> Lua.raiseError (show s)          -- error while reading
-        _  -> Lua.raiseError "Only string formats are supported at the moment."
+               _ -> throwError $ PandocSomeError $
+                      "Only textual formats are supported"
+  case res of
+    Right pd -> (1 :: NumResults) <$ Lua.push pd -- success, push Pandoc
+    Left  (PandocUnknownReaderError f) -> Lua.raiseError $
+       "Unknown reader: " ++ f
+    Left  (PandocUnsupportedExtensionError e f) -> Lua.raiseError $
+       "Extension " ++ e ++ " not supported for " ++ f
+    Left  e      -> Lua.raiseError $ show e
 
 -- | Pipes input through a command.
 pipeFn :: String

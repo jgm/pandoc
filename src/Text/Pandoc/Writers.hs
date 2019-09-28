@@ -70,6 +70,8 @@ module Text.Pandoc.Writers
     ) where
 
 import Prelude
+import Control.Monad.Except (throwError)
+import Control.Monad (unless)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
@@ -78,6 +80,7 @@ import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Error
 import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.ConTeXt
@@ -176,15 +179,29 @@ writers = [
   ]
 
 -- | Retrieve writer, extensions based on formatSpec (format+extensions).
-getWriter :: PandocMonad m => String -> Either String (Writer m, Extensions)
-getWriter s
-  = case parseFormatSpec s of
-         Left e  -> Left $ intercalate "\n" [m | Message m <- errorMessages e]
-         Right (writerName, setExts) ->
-             case lookup writerName writers of
-                     Nothing -> Left $ "Unknown writer: " ++ writerName
-                     Just r -> Right (r, setExts $
-                                  getDefaultExtensions writerName)
+getWriter :: PandocMonad m => String -> m (Writer m, Extensions)
+getWriter s =
+  case parseFormatSpec s of
+        Left e  -> throwError $ PandocAppError
+                    $ intercalate "\n" [m | Message m <- errorMessages e]
+        Right (writerName, extsToEnable, extsToDisable) ->
+           case lookup writerName writers of
+                   Nothing  -> throwError $
+                                 PandocUnknownWriterError writerName
+                   Just  w  -> do
+                     let allExts = getAllExtensions writerName
+                     let exts = foldr disableExtension
+                           (foldr enableExtension
+                             (getDefaultExtensions writerName)
+                                   extsToEnable) extsToDisable
+                     mapM_ (\ext ->
+                              unless (extensionEnabled ext allExts) $
+                                throwError $
+                                   PandocUnsupportedExtensionError
+                                   (drop 4 $ show ext) writerName)
+                          (extsToEnable ++ extsToDisable)
+                     return (w, exts)
+
 
 writeJSON :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeJSON _ = return . UTF8.toText . BL.toStrict . encode

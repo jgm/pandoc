@@ -85,18 +85,12 @@ optToOutputSettings opts = do
                   then writerName
                   else map toLower $ baseWriterName writerName
 
-  (writer, writerExts) <-
+  (writer :: Writer PandocIO, writerExts) <-
             if ".lua" `isSuffixOf` format
                then return (TextWriter
                        (\o d -> writeCustom writerName o d)
                                :: Writer PandocIO, mempty)
-               else case getWriter (map toLower writerName) of
-                         Left e  -> throwError $ PandocAppError $
-                           if format == "pdf"
-                              then e ++ "\n" ++ pdfIsNoWriterErrorMsg
-                              else e
-                         Right (w, es) -> return (w :: Writer PandocIO, es)
-
+               else getWriter (map toLower writerName)
 
   let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
 
@@ -249,13 +243,6 @@ optToOutputSettings opts = do
 baseWriterName :: String -> String
 baseWriterName = takeWhile (\c -> c /= '+' && c /= '-')
 
-pdfIsNoWriterErrorMsg :: String
-pdfIsNoWriterErrorMsg =
-  "To create a pdf using pandoc, use " ++
-  "-t latex|beamer|context|ms|html5" ++
-  "\nand specify an output file with " ++
-  ".pdf extension (-o filename.pdf)."
-
 pdfWriterAndProg :: Maybe String              -- ^ user-specified writer name
                  -> Maybe String              -- ^ user-specified pdf-engine
                  -> IO (String, Maybe String) -- ^ IO (writerName, maybePdfEngineProg)
@@ -263,6 +250,8 @@ pdfWriterAndProg mWriter mEngine = do
   let panErr msg = liftIO $ E.throwIO $ PandocAppError msg
   case go mWriter mEngine of
       Right (writ, prog) -> return (writ, Just prog)
+      Left "pdf writer"  -> liftIO $ E.throwIO $
+                               PandocUnknownWriterError "pdf"
       Left err           -> panErr err
     where
       go Nothing Nothing       = Right ("latex", "pdflatex")
@@ -279,7 +268,7 @@ pdfWriterAndProg mWriter mEngine = do
                                  []      -> Left $
                                    "pdf-engine " ++ eng ++ " not known"
 
-      engineForWriter "pdf" = Left pdfIsNoWriterErrorMsg
+      engineForWriter "pdf" = Left "pdf writer"
       engineForWriter w = case [e |  (f,e) <- engines, f == baseWriterName w] of
                                 eng : _ -> Right eng
                                 []      -> Left $

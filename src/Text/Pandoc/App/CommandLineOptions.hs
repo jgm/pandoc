@@ -768,12 +768,25 @@ options =
     , Option "" ["list-extensions"]
                  (OptArg
                   (\arg _ -> do
-                     let exts = getDefaultExtensions (fromMaybe "markdown" arg)
-                     let showExt x = (if extensionEnabled x exts
-                                         then '+'
-                                         else '-') : drop 4 (show x)
+                     let extList :: [Extension]
+                         extList = [minBound..maxBound]
+                     let allExts =
+                           case arg of
+                             Nothing  -> extensionsFromList extList
+                             Just fmt -> getAllExtensions fmt
+                     let defExts =
+                           case arg of
+                             Nothing   -> getDefaultExtensions
+                                           "markdown"
+                             Just fmt  -> getDefaultExtensions fmt
+                     let showExt x =
+                           (if extensionEnabled x defExts
+                               then '+'
+                               else if extensionEnabled x allExts
+                                       then '-'
+                                       else ' ') : drop 4 (show x)
                      mapM_ (UTF8.hPutStrLn stdout . showExt)
-                               ([minBound..maxBound] :: [Extension])
+                       [ex | ex <- extList, extensionEnabled ex allExts]
                      exitSuccess )
                   "FORMAT")
                  ""
