@@ -173,7 +173,8 @@ copyFileToArchive arch fp = do
   refArchive <- asks envRefArchive
   distArchive <- asks envDistArchive
   case findEntryByPath fp refArchive `mplus` findEntryByPath fp distArchive of
-    Nothing -> Prelude.fail $ fp ++ " missing in reference file"
+    Nothing -> throwError $ PandocSomeError
+                          $ fp ++ " missing in reference file"
     Just e -> return $ addEntryToArchive e arch
 
 alwaysInheritedPatterns :: [Pattern]

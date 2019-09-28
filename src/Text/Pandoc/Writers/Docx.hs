@@ -3,6 +3,7 @@
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.Writers.Docx
@@ -19,7 +20,7 @@ module Text.Pandoc.Writers.Docx ( writeDocx ) where
 import Prelude
 import Codec.Archive.Zip
 import Control.Applicative ((<|>))
-import Control.Monad.Except (catchError)
+import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import qualified Data.ByteString as B
@@ -43,6 +44,7 @@ import Text.Pandoc.UTF8 (fromStringLazy)
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Highlighting (highlight)
+import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType,
@@ -580,7 +582,8 @@ writeDocx opts doc@(Pandoc meta _) = do
   settingsEntry <- copyChildren refArchive distArchive settingsPath epochtime settingsList
 
   let entryFromArchive arch path =
-         maybe (Prelude.fail $ path ++ " missing in reference docx")
+         maybe (throwError $ PandocSomeError
+                           $ path ++ " missing in reference docx")
                return
                (findEntryByPath path arch `mplus` findEntryByPath path distArchive)
   docPropsAppEntry <- entryFromArchive refArchive "docProps/app.xml"
