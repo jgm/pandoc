@@ -1859,20 +1859,20 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
     To successfully generate PDF/A the required ICC color profiles have to
     be available and the content and all included files (such as images)
     have to be standard conforming.  The ICC profiles and output intent
-    may be specified using the variables `pdfaiccprofile` and `pdfaintent'.
+    may be specified using the variables `pdfaiccprofile` and `pdfaintent`.
     See also [ConTeXt PDFA] for more details.
 
 `pdfaiccprofile`
-:   when used in conjunction with `pdfa', specifies the ICC profile to use
-    in the PDF, e.g. `default.cmyk'. If left unspecified, `sRGB.icc' is
+:   when used in conjunction with `pdfa`, specifies the ICC profile to use
+    in the PDF, e.g. `default.cmyk`. If left unspecified, `sRGB.icc` is
     used as default. May be repeated to include multiple profiles. Note that
     the profiles have to be available on the system. They can be obtained
     from [ConTeXt ICC Profiles].
 
-`pdfaintent'
-:   when used in conjunction with `pdfa', specifies the output intent for
-    the colors, e.g. `ISO coated v2 300\letterpercent\space (ECI)'
-    If left unspecified, `sRGB IEC61966-2.1' is used as default.
+`pdfaintent`
+:   when used in conjunction with `pdfa`, specifies the output intent for
+    the colors, e.g. `ISO coated v2 300\letterpercent\space (ECI)`
+    If left unspecified, `sRGB IEC61966-2.1` is used as default.
 
 `toc`
 :   include table of contents (can also be set using `--toc/--table-of-contents`)
