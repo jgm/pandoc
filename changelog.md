@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.8 PROVISIONAL (DATE)
+## pandoc 2.8 PROVISIONAL (YYYY-MM-DD)
 
   * Add `-L` option as shortcut for `--lua-filter`.
 
@@ -557,7 +557,7 @@
   * CONTRIBUTING.md: add information on tests (Agustín Martín
     Barbero, #5652).
 
-## pandoc 2.7.3 (11 June 2019)
+## pandoc 2.7.3 (2019-06-11)
 
   * Add `jira` (Atlassian's Jira wiki markup) as output format (#2497,
     Albert Krewinkel).
@@ -880,7 +880,7 @@
     Otherwise `stack ghci` fails.
 
 
-## pandoc 2.7.2 ( 5 April 2019)
+## pandoc 2.7.2 (2019-04-05)
 
   * Add XWiki writer (#1800, Derek Chen-Becker).
     Add `Text.Pandoc.Writers.XWiki`, exporting `writeXWiki` [API change].
@@ -1045,7 +1045,7 @@
   * linux build process: Remove clone of pandoc-citeproc (#5366).
     It wasn't being used; cabal.project specifies the version to use.
 
-## pandoc 2.7.1 (14 March 2019)
+## pandoc 2.7.1 (2019-03-14)
 
   * Add tectonic as an option for --pdf-engine (#5345, Cormac Relf).
     Runs tectonic on STDIN instead of a temporary .tex file, so that it
@@ -1121,7 +1121,7 @@
   * Use latest pandoc-citeproc, texmath.
 
 
-## pandoc 2.7 ( 3 March 2019)
+## pandoc 2.7 (2019-03-03)
 
   * Use XDG data directory for user data directory (#3582). Instead of
     `$HOME/.pandoc`, the default user data directory is now
@@ -1366,7 +1366,7 @@
       Agustín Martín Barbero).
     + Reorder custom-styles section (#5324, Mauro Bieg).
 
-## pandoc 2.6 (30 January 2019)
+## pandoc 2.6 (2019-01-30)
 
   * Support ipynb (Jupyter notebook) as input and output format.
 
@@ -1718,7 +1718,7 @@
 
   * trypandoc: Fix CSS and viewport.
 
-## pandoc 2.5 (27 November 2018)
+## pandoc 2.5 (2018-11-27)
 
   * Text.Pandoc.App: split into several unexported submodules (Albert
     Krewinkel):  Text.Pandoc.App.FormatHeuristics,
@@ -1912,7 +1912,7 @@
   * doc/customizing-pandoc.md: various improvements (Mauro Bieg).
 
 
-## pandoc 2.4 ( 3 November 2018)
+## pandoc 2.4 (2018-11-03)
 
 ### New features
 
@@ -2393,7 +2393,7 @@
 
   * Added test/grofftest.sh for testing the man reader on real man pages.
 
-## pandoc 2.3.1 (28 September 2018)
+## pandoc 2.3.1 (2018-09-28)
 
   * RST reader:
 
@@ -2498,7 +2498,7 @@
   * Build Windows binary using ghc 8.6.1 and cabal new-build. This
     fixes issues with segfaults in the 32-bit Windows binaries (#4283).
 
-## pandoc 2.3 (16 September 2018)
+## pandoc 2.3 (2018-09-16)
 
   * Add `--metadata-file` option (Mauro Bieg, #1960), which allows
     users to specify metadata in a YAML file, regardless of the
@@ -2735,7 +2735,7 @@
 
   * Added additional compiler warnings in Makefile and CI builds.
 
-## pandoc 2.2.3.2 (7 August 2018)
+## pandoc 2.2.3.2 (2018-08-07)
 
   * Markdown reader: Properly handle boolean values in YAML metadata (#4819).
     This fixes a regression in 2.2.3, which cause boolean values to
@@ -2745,13 +2745,13 @@
     numerical metadata fields are now parsed as MetaInlines rather than
     MetaString.
 
-## pandoc 2.2.3.1 (6 August 2018)
+## pandoc 2.2.3.1 (2018-08-06)
 
   * Markdown reader: Fix parsing of embedded mappings in YAML metadata
     (#4817).  This fixes a regression in 2.2.3 which caused embedded
     mappings (e.g. mappings in sequences) not to work in YAML metadata.
 
-## pandoc 2.2.3 (5 August 2018)
+## pandoc 2.2.3 (2018-08-05)
 
   * RST reader: improve parsing of inline interpreted text roles (#4811).
 
@@ -2837,7 +2837,7 @@
       effect (see #4527).
 
 
-## pandoc 2.2.2.1 (19 July 2018)
+## pandoc 2.2.2.1 (2018-07-19)
 
   * Fix regression finding templates in user data directory (#4777).
     Under version 2.2.1 and prior pandoc found latex templates in the
@@ -2859,7 +2859,7 @@
   * Add missing `rollingLinks` option to revealjs template (#4778,
     Igor Khorlo).
 
-## pandoc 2.2.2 (16 July 2018)
+## pandoc 2.2.2 (2018-07-16)
 
   * Use HsYAML instead of yaml for translations and YAML metadata (#4747).
     yaml wraps a C library; HsYAML is pure Haskell.  Advances #4535.
@@ -3033,7 +3033,7 @@
 
 
 
-## pandoc 2.2.1 (10 May 2018)
+## pandoc 2.2.1 (2018-05-10)
 
   * Restored and undeprecated gladtex for HTML math (#4607).
 
@@ -3104,7 +3104,7 @@
     characters in math (#4642).
 
 
-## pandoc 2.2 (27 April 2018)
+## pandoc 2.2 (2018-04-27)
 
   * New input format: `fb2` (FictionBook2) (Alexander Krotov).
 
@@ -3387,7 +3387,7 @@
 
   * Create 64- and 32-bit versions of Windows binary packages.
 
-## pandoc 2.1.3 (18 March 2018)
+## pandoc 2.1.3 (2018-03-18)
 
   * Docx reader (Jesse Rosenthal):
 
@@ -3533,7 +3533,7 @@
 
   * appveyor: use VS 2013 environment instead of VS 2015 for Windows builds.
 
-## pandoc 2.1.2 (2 March, 2018)
+## pandoc 2.1.2 (2018-03-02)
 
   * Markdown reader:
 
@@ -3804,7 +3804,7 @@
   * Update default.nix to current nixpkgs-unstable for hslua-0.9.5 (#4348,
     jarlg).
 
-## pandoc 2.1.1 (18 January 2018)
+## pandoc 2.1.1 (2018-01-18)
 
   * Markdown reader:
 
@@ -3989,7 +3989,7 @@
 
   * Reduce compiler noise (exact paths for compiled modules).
 
-## pandoc 2.1 ( 7 January 2018)
+## pandoc 2.1 (2018-01-07)
 
   * Allow filters and lua filters to be interspersed (#4196).  Previously
     we ran all lua filters before JSON filters.  Now we run filters in
@@ -4153,7 +4153,7 @@
 
   * Update copyright notices to include 2018 (Albert Krewinkel).
 
-## pandoc 2.0.6 (28 December 2017)
+## pandoc 2.0.6 (2017-12-28)
 
   * Added `jats` as an input format.
 
@@ -4421,7 +4421,7 @@
 
   * epub.md: Delete removed `-S` option from command (#4151, Georger Araújo).
 
-## pandoc 2.0.5 (12 December 2017)
+## pandoc 2.0.5 (2017-12-12)
 
   * Fix a bug in 2.0.4, whereby pandoc could not read the theme files
     generated with `--print-highlight-style` (#4133).  Improve JSON
@@ -4519,7 +4519,7 @@
     error on linux).
 
 
-## pandoc 2.0.4 (03 December 2017)
+## pandoc 2.0.4 (2017-12-03)
 
   * Add `--print-highlight-style` option.  This generates a JSON version
     of a highlighting style, which can be saved as a `.theme` file, modified,
@@ -4679,7 +4679,7 @@
 
   * Bump bounds for binary, http-types, tasty-hunit
 
-## pandoc 2.0.3 (20 November 2017)
+## pandoc 2.0.3 (2017-11-20)
 
   * Lua filters: preload text module (Albert Krewinkel, #4077).
     The `text` module is preloaded in lua. The module contains some UTF-8
@@ -4772,7 +4772,7 @@
   * Added examples to lua filters documentation.
 
 
-## pandoc 2.0.2 (12 November 2017)
+## pandoc 2.0.2 (2017-11-12)
 
   * Deprecated ancient HTML math methods: `--latexmathml`, `--gladtex`,
     `--mimetex`, `--jsmath`.
@@ -4834,7 +4834,7 @@
   * Update commands to extract deb archive on Linux (#4043, Salim B).
 
 
-## pandoc 2.0.1.1 (04 November 2017)
+## pandoc 2.0.1.1 (2017-11-04)
 
   * Improved fix to #3989 (parsing of HTML tags containing
     `>` in an attribute or comment). The previous fix (in 2.0.1) only
@@ -4894,7 +4894,7 @@
       with different settings.
 
 
-## pandoc 2.0.1 (31 October 2017)
+## pandoc 2.0.1 (2017-10-31)
 
   * Fixed regression in parsing of HTML comments in markdown and other
     non-HTML formats (`Text.Pandoc.Readers.HTML.htmlTag`) (#4019).
@@ -4953,7 +4953,7 @@
     Also documented this feature in MANUAL.txt.
 
 
-## pandoc 2.0.0.1 (30 Oct 2017)
+## pandoc 2.0.0.1 (2017-10-30)
 
   * EPUB writer:
 
@@ -4978,7 +4978,7 @@
   * trypandoc: add native, ms.
 
 
-## pandoc 2.0 (29 Oct 2017)
+## pandoc 2.0 (2017-10-29)
 
 ### New features
 
@@ -6778,17 +6778,17 @@
     (Václav Haisman, #3889). `tools/pandoc-template-mode.el`
 
 
-## pandoc 1.19.2.4 (10 Sep 2017)
+## pandoc 1.19.2.4 (2017-09-10)
 
   * Add dependencies on texmath and skylighting to the executable.
     This is needed for dependency version numbers to be available,
     with Cabal > 2.
 
-## pandoc 1.19.2.3 (09 Sep 2017)
+## pandoc 1.19.2.3 (2017-09-09) 
 
   * Add CPP to Setup.hs so it works with Cabal >= 2 and < 2.
 
-## pandoc 1.19.2.2 (08 Sep 2017)
+## pandoc 1.19.2.2 (2017-09-08)
 
   * Fix build with GHC 8.2.1 (#3876, Peter Simons).  Setup.hs does not
     compile with Cabal 2.x, so we require an earlier version via
@@ -6796,13 +6796,13 @@
     GHC 8.2.1 and had their constraints relaxed accordingly:
     executable-path, process, syb, and time.
 
-## pandoc 1.19.2.1 (31 Jan 2017)
+## pandoc 1.19.2.1 (2017-01-31)
 
   * Require skylighting >= 0.1.1.4.
   * Adjust test output for skylighting version.
   * Relax upper bounds on blaze-html and blaze-markup.
 
-## pandoc 1.19.2 (29 Jan 2017)
+## pandoc 1.19.2 (2017-01-29)
 
   * Use skylighting library instead of highlighting-kate for syntax
     highlighting. Skylighting is faster and more accurate (#3363).
@@ -6923,7 +6923,7 @@
   * Bumped version bounds for dependencies.
 
 
-## pandoc 1.19.1 (10 Dec 2016)
+## pandoc 1.19.1 (2016-12-10)
 
   * Set `PANDOC_VERSION` environment variable for filters (#2640).
     This allows filters to check the pandoc version that produced
@@ -6960,15 +6960,17 @@
     (#3270).
 
   * LaTeX writer: Fix unnumbered headers when used with `--top-level`
-    (#3272, Albert Krewinkel).  Fix interaction of top-level divisions
-    `part` or `chapter` with unnumbered headers when emitting LaTeX.  Headers
-    are ensured to be written using stared commands (like `\subsection*{}`).
+    (#3272, Albert Krewinkel). Fix interaction of top-level
+    divisions `part` or `chapter` with unnumbered headers when
+    emitting LaTeX. Headers are ensured to be written using
+    stared commands (like `\subsection*{}`).
 
   * LaTeX template: use comma not semicolon to separate keywords for
     `pdfkeywords`.  Thanks to Wandmalfarbe.
 
-  * Markdown writer: Fixed incorrect word wrapping (#3277).  Previously pandoc
-    would sometimes wrap lines too early due to this bug.
+  * Markdown writer: Fixed incorrect word wrapping (#3277).
+    Previously pandoc would sometimes wrap lines too early due to
+    this bug.
 
   * Text.Pandoc.Pretty:  Added `afterBreak` [API change].  This makes it
     possible to insert escape codes for content that needs escaping at the
@@ -6984,11 +6986,12 @@
 
   * Fixed bash completion of filenames with space (#2749).
 
-  * MANUAL: improved documentation on how to create a custom `reference.docx`.
+  * MANUAL: improved documentation on how to create a custom
+    `reference.docx`.
 
   * Fix minor spelling typos in the manual (#3273, Anthony Geoghegan)
 
-## pandoc 1.19 (01 Dec 2016)
+## pandoc 1.19 (2016-12-01)
 
   * Changed resolution of filter paths.
 
@@ -7270,7 +7273,7 @@
 
 
 
-## pandoc 1.18 (26 Oct 2016)
+## pandoc 1.18 (2016-10-26)
 
   * Added `--list-input-formats`, `--list-output-formats`,
     `--list-extensions`, `--list-highlight-languages`, and
@@ -7698,7 +7701,7 @@
     + Remove blaze-html CPP conditional.
     + Remove unnecessary CPP in custom Prelude.
 
-## pandoc 1.17.2 (17 Jul 2016)
+## pandoc 1.17.2 (2016-07-17)
 
   * Added Zim Wiki writer, template and tests. `zimwiki` is now
     a valid output format. (Alex Ivkin)
@@ -7956,7 +7959,7 @@
 
   * Update library dependency versions.
 
-## pandoc 1.17.1 (4 Jun 2016)
+## pandoc 1.17.1 (2016-06-04)
 
   * New output format: `docbook5` (Ivo Clarysse).
 
@@ -8182,7 +8185,7 @@
 
 
 
-## pandoc 1.17.0.3 (24 Mar 2016)
+## pandoc 1.17.0.3 (2016-03-24)
 
   * LaTeX writer: Fixed position of label in figures (#2813).
     Previously the label wasn't in the right place, and `\ref`
@@ -8191,13 +8194,13 @@
     in tarball (#2811).
   * Updated copyright dates.
 
-## pandoc 1.17.0.2 (23 Mar 2016)
+## pandoc 1.17.0.2 (2016-03-23)
 
   * Fixed serious regression in `htmlInBalanced`, which caused
     newlines to be omitted in some raw HTML blocks in Markdown
     (#2804).
 
-## pandoc 1.17.0.1 (21 Mar 2016)
+## pandoc 1.17.0.1 (2016-03-21)
 
   * File scope is no longer used when there are no input files (i.e.,
     when input comes from stdin).  Previously file scope was triggered
@@ -8206,7 +8209,7 @@
     thanks to Fedor Sheremetyev for calling the bug to our attention.)
   * Improved documentation of templates (#2797).
 
-## pandoc 1.17 (20 Mar 2016)
+## pandoc 1.17 (2016-03-20)
 
   * Added `--file-scope` option (Jesse Rosenthal).
     By default pandoc operates on multiple files by first concatenating
@@ -8349,7 +8352,7 @@
 
   * Allow `aeson` 0.11.
 
-## pandoc (1.16.0.2)
+## pandoc 1.16.0.2 (2016-01-12)
 
   * Depend on deepseq rather than deepseq-generics (fpco/stackage#1096).
 
@@ -8357,20 +8360,10 @@
     In cases where a match was not found for a quote, everything
     from the open quote to the end of the paragraph was being dropped.
 
+## pandoc 1.16.0.1 (2016-01-10)
 
-
-## pandoc 1.16.0.2 (12 Jan 2016)
-
-  * Depend on deepseq rather than deepseq-generics (fpco/stackage#1096).
-
-  * Fixed regression in latex smart quote parsing (#2645).
-    In cases where a match was not found for a quote, everything
-    from the open quote to the end of the paragraph was being dropped.
-
-## pandoc 1.16.0.1 (10 Jan 2016)
-
-  * Fixed regression with `--latex-engine` (#2618).  In 1.16 `--latex-engine`
-    raises an error if a full path is given.
+  * Fixed regression with `--latex-engine` (#2618). In 1.16
+    `--latex-engine` raises an error if a full path is given.
 
   * Org reader: Fix function dropping subtrees tagged `:noexport`
     (Albert Krewinkel, #2628):
@@ -8424,7 +8417,7 @@
     `TREE=1.16.0.1 DPKGVER=2 make deb`.
 
 
-## pandoc 1.16 (02 Jan 2016)
+## pandoc 1.16 (2016-01-02)
 
   * Added `Attr` field to `Link` and `Image` (Mauro Bieg, #261, API change).
 
@@ -8733,7 +8726,7 @@
 
   * Bump version bounds for dependencies.
 
-## pandoc 1.15.2.1 (16 Nov 2015)
+## pandoc 1.15.2.1 (2015-11-16)
 
   * Added two missing test files, and `stack.yaml`, to
     `extra-source-files` so they're included in the source tarball.
@@ -8742,7 +8735,7 @@
     `parallaxBackgroundHorizontal` and `parallaxBackgroundVertical`
     need integer values, not strings.  (Vaughn Iverson)
 
-## pandoc 1.15.2 (15 Nov 2015)
+## pandoc 1.15.2 (2015-11-15)
 
   * `pandoc my.md -t context -o my.pdf` will now create a PDF using
     ConTeXt rather than LaTeX (#2463).
@@ -8948,7 +8941,7 @@
     + Fixed `auto_identifiers` examples (Benoit Schweblin).
     + Improved documentation of template variables (Andrew Dunning).
 
-## pandoc 1.15.1 (15 Oct 2015)
+## pandoc 1.15.1 (2015-10-15)
 
   * `pandocVersion` is now defined in `Text.Pandoc.Shared`
     and reexported from `Text.Pandoc` (Alex Vong).  This allows
@@ -9239,12 +9232,12 @@
     `make .travis.yml` regenerates it based on the tested-with
     field of the cabal file.
 
-## pandoc 1.15.0.6 (15 Jul 2015)
+## pandoc 1.15.0.6 (2015-07-15)
 
-  * `--self-contained`:  Fixed overaggressive CSS minimization (#2301, 2286).
-    Previously `--self-contained` wiped out all spaces in CSS,
-    including semantically significant spaces.  This was a regression
-    from 1.14.x.
+  * `--self-contained`: Fixed overaggressive CSS minimization
+    (#2301, 2286). Previously `--self-contained` wiped out all
+    spaces in CSS, including semantically significant spaces.
+    This was a regression from 1.14.x.
 
   * Markdown reader: don't allow bare URI links or autolinks in link
     label (#2300).  Added test cases.
@@ -9281,7 +9274,7 @@
 
   * Require cmark > 0.4.
 
-## pandoc 1.15.0.5 (10 Jul 2015)
+## pandoc 1.15.0.5 (2015-07-10)
 
   * HTML writer: Fixed email javascript obfuscation with `mailto:`
     URLs (#2280).  This fixes a potential security issue.  Because
@@ -9316,7 +9309,7 @@
 
   * Improved documentation on where user templates go (#2272).
 
-## pandoc 1.15.0.4 (03 Jul 2015)
+## pandoc 1.15.0.4 (2015-07-03)
 
   * Added pandoc.1 man page to the repository.  It is no longer
     built as part of the cabal build process. (This proved too
@@ -9329,20 +9322,20 @@
     the filter requires an interpreter that isn't found in the path,
     or if the filter returns an error status.
 
-## pandoc 1.15.0.3 (02 Jul 2015)
+## pandoc 1.15.0.3 (2015-07-02)
 
   * Ensure target directory is created when installing man page.
 
-## pandoc 1.15.0.2 (02 Jul 2015)
+## pandoc 1.15.0.2 (2015-07-02)
 
   * Added files needed for building man page to Extra-Source-Files.
 
-## pandoc 1.15.0.1 (01 Jul 2015)
+## pandoc 1.15.0.1 (2015-07-01)
 
   * Man page is now built and installed as part of the cabal build
     process. Removed Makefile target for man page.
 
-## pandoc 1.15 (01 Jul 2015)
+## pandoc 1.15 (2015-07-01)
 
   * Man page changes:
 
@@ -9369,16 +9362,18 @@
 
   * Ignore sandbox on 'make quick'
 
-## pandoc 1.14.1 (30 Jun 2015)
+## pandoc 1.14.1 (2015-06-30)
 
-  * Added `--man1` and `--man5` options to pandoc, allowing pandoc
-    to generate its own man pages.  Man pages are no longer automatically
-    generated in the build process (the process for this was too complex
-    and prone to failure, #2190).  The `make-pandoc-man-pages` executable
-    has been removed.  The `man/` directory has been removed, and man page
-    templates have been moved to `data/`.  NOTE TO PACKAGERS:  You will no
-    longer find pandoc's man pages in `man/`, but you can generate them using
-    `pandoc --man1 > pandoc.1` and `pandoc --man5 > pandoc_markdown.5`.
+  * Added `--man1` and `--man5` options to pandoc, allowing
+    pandoc to generate its own man pages. Man pages are no longer
+    automatically generated in the build process (the process for
+    this was too complex and prone to failure, #2190). The
+    `make-pandoc-man-pages` executable has been removed. The
+    `man/` directory has been removed, and man page templates
+    have been moved to `data/`. NOTE TO PACKAGERS: You will no
+    longer find pandoc's man pages in `man/`, but you can
+    generate them using `pandoc --man1 > pandoc.1` and `pandoc
+    --man5 > pandoc_markdown.5`.
 
   * Added new unexported module:  `Text.Pandoc.ManPages`.
 
@@ -9457,23 +9452,23 @@
 
   * Added `download_stats` target to Makefile.
 
-## pandoc 1.14.0.4 (02 Jun 2015)
+## pandoc 1.14.0.4 (2015-06-02)
 
   * Added missing commonmark template.
 
   * Improved try pandoc (moved button, show raw command).
 
-## pandoc 1.14.0.3 (01 Jun 2015)
+## pandoc 1.14.0.3 (2015-06-01)
 
   * Allow compilation with syb 0.5.*.
 
   * Custom writer:  fixed some compiler warnings for ghc < 7.10.
 
-## pandoc 1.14.0.2 (31 May 2015)
+## pandoc 1.14.0.2 (2015-05-31)
 
   * Allow building with hslua 0.4.
 
-## pandoc 1.14.0.1 (28 May 2015)
+## pandoc 1.14.0.1 (2015-05-28)
 
   * Fixed problem with building of `reference.docx` and `reference.odt`
     when the `embed_data_files` flag is used.  Instead of having a phase
@@ -9494,7 +9489,7 @@
   * ConTeXt writer:  create internal link anchors for Div elements with
     identifiers.  (This is needed for linked citations to work.)
 
-## pandoc 1.14 (27 May 2015)
+## pandoc 1.14 (2015-05-27)
 
 ### New features
 
@@ -10037,13 +10032,13 @@
     + Added section on syntax highlighting.
     + Documented `toccolor` variable.
 
-## pandoc 1.13.2.1 (15 Apr 2015)
+## pandoc 1.13.2.1 (2015-04-15)
 
   * Updated to build with ghc 7.10.1.
 
   * Bumped package upper bounds for filepath, blaze-html, blaze-markup.
 
-## pandoc 1.13.2 (20 Dec 2014)
+## pandoc 1.13.2 (2014-12-20)
 
   * TWiki Reader: add new new twiki reader (API chaneg, Alexander Sulfrian).
 
@@ -10385,7 +10380,7 @@
   * Added `track` to list of tags treated by `--self-contained` (#1664).
 
 
-## pandoc 1.13.1 (30 Aug 2014)
+## pandoc 1.13.1 (2014-08-30)
 
   * Fixed `--self-contained` with Windows paths (#1558).
     Previously `C:\foo.js` was being wrongly interpreted as a URI.
@@ -10488,7 +10483,7 @@
   * Updated README to remove outdated claim that `--self-contained`
     looks in the user data directory for missing files.
 
-## pandoc 1.13.0.1 (17 August 2014)
+## pandoc 1.13.0.1 (2014-08-17)
 
   * Docx writer:
 
@@ -11085,7 +11080,7 @@
       (#1412).
 
 
-## pandoc 1.12.4.2 (14 May 2014)
+## pandoc 1.12.4.2 (2014-05-14)
 
   * Require highlighting-kate >= 0.5.8.  Fixes a performance regression.
 
@@ -11129,14 +11124,15 @@
     + Added OSX package uninstall script, included in the zip container
       (thanks to Daniel T. Staal).
 
-## pandoc 1.12.4 (07 May 2014)
+## pandoc 1.12.4 (2014-05-07)
 
-  * Made it possible to run filters that aren't executable (#1096).
-    Pandoc first tries to find the executable (searching the path
-    if path isn't given).  If it fails, but the file exists and has
-    a `.py`, `.pl`, `.rb`, `.hs`, or `.php` extension, pandoc runs the filter
-    using the appropriate interpreter.  This should make it easier to
-    use filters on Windows, and make it more convenient for everyone.
+  * Made it possible to run filters that aren't executable
+    (#1096). Pandoc first tries to find the executable (searching
+    the path if path isn't given). If it fails, but the file
+    exists and has a `.py`, `.pl`, `.rb`, `.hs`, or `.php`
+    extension, pandoc runs the filter using the appropriate
+    interpreter. This should make it easier to use filters on
+    Windows, and make it more convenient for everyone.
 
   * Added Emacs org-mode reader (Albert Krewinkel).
 
@@ -11425,12 +11421,12 @@
 
   * Use cabal sandboxes in Windows build script.
 
-## pandoc 1.12.3.3 (03 Feb 2014)
+## pandoc 1.12.3.3 (2014-02-03)
 
   * To changes to source; recompiled tarball with latest alex and
     happy, so they will work with GHC 7.8.
 
-## pandoc 1.12.3.2 (03 Feb 2014)
+## pandoc 1.12.3.2 (2014-02-03)
 
   * Bumped version bounds for blaze-html, blaze-markup.
 
@@ -11444,12 +11440,12 @@
   * Added support for LaTeX style literate Haskell code blocks in rST
     (Merijn Verstraaten).
 
-## pandoc 1.12.3.1 (14 Jan 2014)
+## pandoc 1.12.3.1 (2014-01-14)
 
   * Relaxed version constraint on binary, allowing the use of binary 0.5.
 
 
-## pandoc 1.12.3 (10 Jan 2014)
+## pandoc 1.12.3 (2014-01-10)
 
   * The `--bibliography` option now sets the `biblio-files` variable.
     So, if you're using `--natbib` or `--biblatex`, you can just use
@@ -15500,7 +15496,7 @@
   which version of the compiler to use, when multiple versions are
   installed.
 
-## pandoc 0.44 (03 September 2007)
+## pandoc 0.44 (2007-09-03)
 
   [ John MacFarlane ]
 
@@ -15523,7 +15519,7 @@
 
     This causes a serious FTBFS bug.  Closes: #440668.
 
-## pandoc 0.43 (02 September 2007)
+## pandoc 0.43 (2007-09-02)
 
   [ John MacFarlane ]
 
@@ -15659,7 +15655,7 @@
     + Removed local references to Portfile, since pandoc is now in the
       MacPorts repository.
 
-## pandoc 0.42 (26 August 2007)
+## pandoc 0.42 (2007-08-26)
 
   [ John MacFarlane ]
 
@@ -15718,7 +15714,7 @@
 
   * Do not forget to close pandoc's ITP.  Closes: #391666
 
-## pandoc 0.41 (19 August 2007)
+## pandoc 0.41 (2007-08-19)
 
   [ John MacFarlane ]
 
@@ -15751,7 +15747,7 @@
   * Added note to INSTALL about variations in versions of the xhtml
     library that can lead to failed tests (thanks to Leif LeBaron).
 
-## pandoc 0.4 (16 January 2007)
+## pandoc 0.4 (2007-01-16)
 
   [ John MacFarlane ]
 
@@ -16159,7 +16155,7 @@
       tetex-bin.  This brings in fancyvrb and unicode support.
 
 
-## pandoc 0.3 (05 January 2007)
+## pandoc 0.3 (2007-01-05)
 
   [ John MacFarlane ]
 
@@ -16381,11 +16377,11 @@
       configurable and verbose.  Added '-e', '-g' options.
 
 
-## pandoc 0.2 (14 August 2006)
+## pandoc 0.2 (2006-08-14)
 
   * Fixed unicode/utf-8 translation
 
-## pandoc 0.1 (14 August 2006)
+## pandoc 0.1 (2006-08-14)
 
   * Initial creation of debian package
 
