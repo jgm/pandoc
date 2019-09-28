@@ -244,7 +244,7 @@ applyMacros s = (guardDisabled Ext_latex_macros >> return s) <|>
                       , sMacros  = extractMacros pstate }
       res <- runParserT retokenize lstate "math" (tokenize "math" (T.pack s))
       case res of
-           Left e   -> fail (show e)
+           Left e   -> Prelude.fail (show e)
            Right s' -> return s'
 
 tokenize :: SourceName -> Text -> [Tok]
@@ -452,7 +452,7 @@ doMacros' n inp = do
              lstate <- getState
              res <- lift $ runParserT getargs' lstate "args" ts
              case res of
-               Left _ -> fail $ "Could not parse arguments for " ++
+               Left _ -> Prelude.fail $ "Could not parse arguments for " ++
                                 T.unpack name
                Right (args, rest) -> do
                  -- first boolean param is true if we're tokenizing
@@ -576,11 +576,11 @@ primEscape = do
                     Just (c, _)
                       | c >= '\64' && c <= '\127' -> return (chr (ord c - 64))
                       | otherwise                 -> return (chr (ord c + 64))
-                    Nothing -> fail "Empty content of Esc1"
+                    Nothing -> Prelude.fail "Empty content of Esc1"
        Esc2 -> case safeRead ('0':'x':T.unpack (T.drop 2 t)) of
                     Just x  -> return (chr x)
-                    Nothing -> fail $ "Could not read: " ++ T.unpack t
-       _    -> fail "Expected an Esc1 or Esc2 token" -- should not happen
+                    Nothing -> Prelude.fail $ "Could not read: " ++ T.unpack t
+       _    -> Prelude.fail "Expected an Esc1 or Esc2 token" -- should not happen
 
 bgroup :: PandocMonad m => LP m Tok
 bgroup = try $ do

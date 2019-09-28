@@ -312,7 +312,7 @@ doubleHeader' = try $ do
   txt <- trimInlines . mconcat <$> many1 (notFollowedBy blankline >> inline)
   pos <- getPosition
   let len = sourceColumn pos - 1
-  when (len > lenTop) $ fail "title longer than border"
+  when (len > lenTop) $ Prelude.fail "title longer than border"
   blankline              -- spaces and newline
   count lenTop (char c)  -- the bottom line
   blanklines

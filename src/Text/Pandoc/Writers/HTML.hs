@@ -429,7 +429,7 @@ parseMailto s =
          let (name', rest) = span (/='@') addr
          let domain = drop 1 rest
          return (name', domain)
-       _ -> fail "not a mailto: URL"
+       _ -> Prelude.fail "not a mailto: URL"
 
 -- | Obfuscate a "mailto:" link.
 obfuscateLink :: PandocMonad m

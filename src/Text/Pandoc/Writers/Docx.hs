@@ -580,7 +580,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   settingsEntry <- copyChildren refArchive distArchive settingsPath epochtime settingsList
 
   let entryFromArchive arch path =
-         maybe (fail $ path ++ " missing in reference docx")
+         maybe (Prelude.fail $ path ++ " missing in reference docx")
                return
                (findEntryByPath path arch `mplus` findEntryByPath path distArchive)
   docPropsAppEntry <- entryFromArchive refArchive "docProps/app.xml"

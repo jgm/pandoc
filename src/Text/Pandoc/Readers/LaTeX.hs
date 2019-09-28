@@ -1239,7 +1239,7 @@ romanNumeralArg = spaces *> (parser <|> inBraces)
       Tok _ Word s <- satisfyTok isWordTok
       let (digits, rest) = T.span isDigit s
       unless (T.null rest) $
-        fail "Non-digits in argument to \\Rn or \\RN"
+        Prelude.fail "Non-digits in argument to \\Rn or \\RN"
       safeRead $ T.unpack digits
 
 newToggle :: (Monoid a, PandocMonad m) => [Tok] -> LP m a
@@ -2268,7 +2268,7 @@ parseAligns = try $ do
         case safeRead ds of
              Just n  ->
                getInput >>= setInput . (mconcat (replicate n spec) ++)
-             Nothing -> fail $ "Could not parse " ++ ds ++ " as number"
+             Nothing -> Prelude.fail $ "Could not parse " ++ ds ++ " as number"
   bgroup
   spaces
   maybeBar

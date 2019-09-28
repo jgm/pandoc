@@ -484,7 +484,7 @@ note = try $ do
   ref <- char '[' *> many1 digit <* char ']'
   notes <- stateNotes <$> getState
   case lookup ref notes of
-    Nothing  -> fail "note not found"
+    Nothing  -> Prelude.fail "note not found"
     Just raw -> B.note <$> parseFromString' parseBlocks raw
 
 -- | Special chars

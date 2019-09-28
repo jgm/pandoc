@@ -131,7 +131,7 @@ parseTable = do
       Left _  -> do
         res' <- lift $ readWithMTokens blockstcell st ts'
         case res' of
-          Left _  -> fail "Could not parse table cell"
+          Left _  -> Prelude.fail "Could not parse table cell"
           Right x -> do
             modifyState $ \s -> s{ tableCellsPlain = False }
             return x
@@ -492,4 +492,4 @@ skipUnknownMacro = do
     ControlLine mkind _ pos -> do
       report $ SkippedContent ('.':mkind) pos
       return mempty
-    _                 -> fail "the impossible happened"
+    _                 -> Prelude.fail "the impossible happened"

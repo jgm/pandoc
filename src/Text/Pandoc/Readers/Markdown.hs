@@ -261,7 +261,7 @@ yamlBsToMeta bstr = do
 nodeToKey :: Monad m => YAML.Node YE.Pos -> m Text
 nodeToKey (YAML.Scalar _ (YAML.SStr t))       = return t
 nodeToKey (YAML.Scalar _ (YAML.SUnknown _ t)) = return t
-nodeToKey _                                 = fail "Non-string key in YAML mapping"
+nodeToKey _                                 = Prelude.fail "Non-string key in YAML mapping"
 
 toMetaValue :: PandocMonad m
             => Text -> MarkdownParser m (F MetaValue)
@@ -767,7 +767,7 @@ lhsCodeBlockInverseBird = lhsCodeBlockBirdWith '<'
 lhsCodeBlockBirdWith :: PandocMonad m => Char -> MarkdownParser m String
 lhsCodeBlockBirdWith c = try $ do
   pos <- getPosition
-  when (sourceColumn pos /= 1) $ fail "Not in first column"
+  when (sourceColumn pos /= 1) $ Prelude.fail "Not in first column"
   lns <- many1 $ birdTrackLine c
   -- if (as is normal) there is always a space after >, drop it
   let lns' = if all (\ln -> null ln || take 1 ln == " ") lns

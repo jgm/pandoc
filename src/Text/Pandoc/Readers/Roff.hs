@@ -180,7 +180,7 @@ resolveGlyph delimChar glyph = do
             '['  -> escUnknown ("\\[" ++ glyph ++ "]")
             '('  -> escUnknown ("\\(" ++ glyph)
             '\'' -> escUnknown ("\\C'" ++ glyph ++ "'")
-            _    -> fail "resolveGlyph: unknown glyph delimiter"
+            _    -> Prelude.fail "resolveGlyph: unknown glyph delimiter"
 
 readUnicodeChar :: String -> Maybe Char
 readUnicodeChar ('u':cs@(_:_:_:_:_)) =
@@ -562,7 +562,7 @@ resolveMacro macroName args pos = do
 lexStringDef :: PandocMonad m => [Arg] -> RoffLexer m RoffTokens
 lexStringDef args = do -- string definition
    case args of
-     []     -> fail "No argument to .ds"
+     []     -> Prelude.fail "No argument to .ds"
      (x:ys) -> do
        let ts = singleTok $ TextLine (intercalate [RoffStr " " ] ys)
        let stringName = linePartsToString x
@@ -578,7 +578,7 @@ lexMacroDef args = do -- macro definition
        (x : y : _) -> return (linePartsToString x, linePartsToString y)
                       -- optional second arg
        (x:_)       -> return (linePartsToString x, ".")
-       []          -> fail "No argument to .de"
+       []          -> Prelude.fail "No argument to .de"
    let stop = try $ do
          char '.' <|> char '\''
          skipMany spacetab

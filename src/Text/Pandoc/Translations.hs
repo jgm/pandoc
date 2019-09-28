@@ -71,7 +71,7 @@ newtype Translations = Translations (M.Map Term String)
 instance FromJSON Term where
   parseJSON (String t) = case safeRead (T.unpack t) of
                                Just t' -> pure t'
-                               Nothing -> fail $ "Invalid Term name " ++
+                               Nothing -> Prelude.fail $ "Invalid Term name " ++
                                                  show t
   parseJSON invalid = Aeson.typeMismatch "Term" invalid
 
@@ -79,7 +79,7 @@ instance YAML.FromYAML Term where
   parseYAML (YAML.Scalar _ (YAML.SStr t)) =
                          case safeRead (T.unpack t) of
                                Just t' -> pure t'
-                               Nothing -> fail $ "Invalid Term name " ++
+                               Nothing -> Prelude.fail $ "Invalid Term name " ++
                                                  show t
   parseYAML invalid = YAML.typeMismatch "Term" invalid
 
@@ -89,7 +89,7 @@ instance FromJSON Translations where
     return $ Translations (M.fromList xs)
     where addItem (k,v) =
             case safeRead (T.unpack k) of
-                 Nothing -> fail $ "Invalid Term name " ++ show k
+                 Nothing -> Prelude.fail $ "Invalid Term name " ++ show k
                  Just t  ->
                    case v of
                         (String s) -> return (t, T.unpack $ T.strip s)

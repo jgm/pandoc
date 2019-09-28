@@ -343,16 +343,16 @@ notFollowedBy' p  = try $ join $  do  a <- try p
 -- (This version due to Andrew Pimlott on the Haskell mailing list.)
 
 oneOfStrings' :: Stream s m Char => (Char -> Char -> Bool) -> [String] -> ParserT s st m String
-oneOfStrings' _ []   = fail "no strings"
+oneOfStrings' _ []   = Prelude.fail "no strings"
 oneOfStrings' matches strs = try $ do
   c <- anyChar
   let strs' = [xs | (x:xs) <- strs, x `matches` c]
   case strs' of
-       []  -> fail "not found"
+       []  -> Prelude.fail "not found"
        _   -> (c:) <$> oneOfStrings' matches strs'
                <|> if "" `elem` strs'
                       then return [c]
-                      else fail "not found"
+                      else Prelude.fail "not found"
 
 -- | Parses one of a list of strings.  If the list contains
 -- two strings one of which is a prefix of the other, the longer
@@ -525,7 +525,7 @@ romanNumeral upperCase = do
                 hundreds + nineties + fifties + forties + tens + nines +
                 fives + fours + ones
     if total == 0
-       then fail "not a roman numeral"
+       then Prelude.fail "not a roman numeral"
        else return total
 
 -- Parsers for email addresses and URIs
@@ -698,7 +698,7 @@ characterReference = try $ do
                   _          -> ent ++ ";"
   case lookupEntity ent' of
        Just (c : _) -> return c
-       _            -> fail "entity not found"
+       _            -> Prelude.fail "entity not found"
 
 -- | Parses an uppercase roman numeral and returns (UpperRoman, number).
 upperRoman :: Stream s m Char => ParserT s st m (ListNumberStyle, Int)
@@ -1312,7 +1312,7 @@ failIfInQuoteContext :: (HasQuoteContext st m, Stream s m t)
                      -> ParserT s st m ()
 failIfInQuoteContext context = do
   context' <- getQuoteContext
-  when (context' == context) $ fail "already inside quotes"
+  when (context' == context) $ Prelude.fail "already inside quotes"
 
 charOrRef :: Stream s m Char => String -> ParserT s st m Char
 charOrRef cs =

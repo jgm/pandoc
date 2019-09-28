@@ -445,7 +445,7 @@ headerLevel tagtype =
 --            return (level - 1))
 --            <|>
               return level
-        Nothing -> fail "Could not retrieve header level"
+        Nothing -> Prelude.fail "Could not retrieve header level"
 
 eTitlePage :: PandocMonad m => TagParser m ()
 eTitlePage = try $ do
@@ -1238,7 +1238,7 @@ htmlTag f = try $ do
           if stripComments
              then return (next, "")
              else return (next, "<!--" <> s <> "-->")
-         | otherwise -> fail "bogus comment mode, HTML5 parse error"
+         | otherwise -> Prelude.fail "bogus comment mode, HTML5 parse error"
        TagOpen tagname attr -> do
          guard $ isPI tagname || all (isName . fst) attr
          handleTag tagname

@@ -496,7 +496,7 @@ amuseNoteBlockUntil end = try $ do
   ref <- noteMarker
   pos <- getPosition
   void spaceChar <|> lookAhead eol
-  (content, e) <- allowPara $ listItemContentsUntil (sourceColumn pos) (fail "x") end
+  (content, e) <- allowPara $ listItemContentsUntil (sourceColumn pos) (Prelude.fail "x") end
   addNote ref pos content
   return (mempty, e)
 
@@ -558,7 +558,7 @@ museOrderedListMarker style =
               LowerRoman -> lowerRoman
               UpperAlpha -> upperAlpha
               LowerAlpha -> lowerAlpha
-              _          -> fail "Unhandled case"
+              _          -> Prelude.fail "Unhandled case"
 
 orderedListItemsUntil :: PandocMonad m
                       => Int

@@ -54,9 +54,9 @@ parseXml :: (PandocMonad m) => Archive -> Archive -> String -> m Element
 parseXml refArchive distArchive relpath =
   case findEntryByPath relpath refArchive `mplus`
          findEntryByPath relpath distArchive of
-            Nothing -> fail $ relpath ++ " missing in reference file"
+            Nothing -> Prelude.fail $ relpath ++ " missing in reference file"
             Just e  -> case parseXMLDoc . UTF8.toStringLazy . fromEntry $ e of
-                       Nothing -> fail $ relpath ++ " corrupt in reference file"
+                       Nothing -> Prelude.fail $ relpath ++ " corrupt in reference file"
                        Just d  -> return d
 
 -- Copied from Util

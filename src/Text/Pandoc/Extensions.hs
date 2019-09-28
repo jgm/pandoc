@@ -397,7 +397,7 @@ parseFormatSpec = parse formatSpec ""
                        Just n  -> return n
                        Nothing
                          | name == "lhs" -> return Ext_literate_haskell
-                         | otherwise -> fail $ "Unknown extension: " ++ name
+                         | otherwise -> Prelude.fail $ "Unknown extension: " ++ name
           return $ case polarity of
                         '-' -> disableExtension ext
                         _   -> enableExtension ext

@@ -607,7 +607,7 @@ inlineToMuse (Subscript lst) = do
   modify $ \st -> st { stUseTags = False }
   return $ "<sub>" <> contents <> "</sub>"
 inlineToMuse SmallCaps {} =
-  fail "SmallCaps should be expanded before normalization"
+  Prelude.fail "SmallCaps should be expanded before normalization"
 inlineToMuse (Quoted SingleQuote lst) = do
   contents <- inlineListToMuse lst
   modify $ \st -> st { stUseTags = False }
@@ -617,7 +617,7 @@ inlineToMuse (Quoted DoubleQuote lst) = do
   modify $ \st -> st { stUseTags = False }
   return $ "“" <> contents <> "”"
 inlineToMuse Cite {} =
-  fail "Citations should be expanded before normalization"
+  Prelude.fail "Citations should be expanded before normalization"
 inlineToMuse (Code _ str) = do
   useTags <- gets stUseTags
   modify $ \st -> st { stUseTags = False }
@@ -625,7 +625,7 @@ inlineToMuse (Code _ str) = do
              then "<code>" <> text (substitute "</code>" "<</code><code>/code>" str) <> "</code>"
              else "=" <> text str <> "="
 inlineToMuse Math{} =
-  fail "Math should be expanded before normalization"
+  Prelude.fail "Math should be expanded before normalization"
 inlineToMuse (RawInline (Format f) str) = do
   modify $ \st -> st { stUseTags = False }
   return $ "<literal style=\"" <> text f <> "\">" <> text str <> "</literal>"
