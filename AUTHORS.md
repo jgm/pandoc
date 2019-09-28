@@ -2,6 +2,7 @@
 
 - Anabra
 - Arata Mizuki
+- Arfon Smith
 - Aaron Wolen
 - Albert Krewinkel
 - Alex Ivkin
@@ -24,6 +25,7 @@
 - B. Scott Michel
 - Ben Firshman
 - Ben Gamari
+- Ben Steinberg
 - Beni Cherniavsky-Paskin
 - Benoit Schweblin
 - Bjorn Buckwalter
@@ -54,6 +56,7 @@
 - Denis Laxalde
 - Derek Chen-Becker
 - Douglas Calvert
+- Eigil Rischel
 - Emanuel Evans
 - Emily Eisenberg
 - Eric Kow
@@ -92,11 +95,13 @@
 - Jamie F. Olson
 - Jan Larres
 - Jan Schulz
+- Jan-Otto Kröpke
 - Jason Ronallo
 - Jeff Arnold
 - Jeff Runningen
 - Jens Getreu
 - Jens Petersen
+- Jeroen de Haas
 - Jesse Rosenthal
 - Joe Hermaszewski
 - Joe Hillenbrand
@@ -114,13 +119,16 @@
 - Juliusz Gonera
 - Justin Bogner
 - Jérémy Bobbio
+- Karl Pettersson
 - Keiichiro Shikano
 - Kelsey Hightower
 - Kolen Cheung
 - Konstantin Zudov
 - Kristof Bastiaensen
+- Krystof Beuermann
 - Herwig Stuetz
 - Lars-Dominik Braun
+- Leif Metcalf
 - Luke Plant
 - Marc Schreiber
 - Mark Szepieniec
@@ -141,6 +149,7 @@
 - Merijn Verstraaten
 - Michael Beaumont
 - Michael Chladek
+- Michael Peyton Jones
 - Michael Snoyman
 - Michael Thompson
 - MinRK
@@ -157,12 +166,15 @@
 - Ophir Lifshitz
 - Or Neeman
 - OvidiusCicero
+- Owen McGrath
 - Pablo Rodríguez
 - Pascal Wagler
 - Paul Tilley
 - Paul Rivier
 - Paulo Tanimoto
+- Pete Ryland
 - Peter Wang
+- Philip Pesca
 - Philippe Ombredanne
 - Phillip Alday
 - Prayag Verma
@@ -196,12 +208,16 @@
 - Tiziano Müller
 - Todd Sifleet
 - Tom Leese
+- Tristan Stenner
 - Uli Köhler
+- Urs Liska
 - Václav Zeman
+- Vanessa McHale
 - Viktor Kronvall
 - Vincent
 - Václav Haisman
 - Václav Zeman
+- Vasily Alferov
 - Wandmalfarbe
 - Waldir Pimenta
 - Wikiwide
@@ -210,6 +226,8 @@
 - Yan Pashkovsky
 - Yoan Blanc
 - Yuchen Pei
+- Zihang Chen
+- blmage
 - bucklereed
 - bumper314
 - chinapedia
@@ -222,6 +240,7 @@
 - lux-lth
 - lwolfsonkin
 - nkalvi
+- niszet
 - oltolm
 - quasicomputational
 - qerub
