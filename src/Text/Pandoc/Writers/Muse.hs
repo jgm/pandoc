@@ -629,7 +629,8 @@ inlineToMuse (Code _ str) = do
              then "<code>" <> text (substitute "</code>" "<</code><code>/code>" str) <> "</code>"
              else "=" <> text str <> "="
 inlineToMuse Math{} =
-  Prelude.fail "Math should be expanded before normalization"
+  throwError $ PandocShouldNeverHappenError
+    "Math should be expanded before normalization"
 inlineToMuse (RawInline (Format f) str) = do
   modify $ \st -> st { stUseTags = False }
   return $ "<literal style=\"" <> text f <> "\">" <> text str <> "</literal>"

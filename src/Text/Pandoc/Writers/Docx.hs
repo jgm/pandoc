@@ -95,6 +95,7 @@ instance Semigroup EnvProps where
 
 instance Monoid EnvProps where
   mempty = EnvProps Nothing []
+  mappend = (<>)
 
 squashProps :: EnvProps -> [Element]
 squashProps (EnvProps Nothing es) = es
