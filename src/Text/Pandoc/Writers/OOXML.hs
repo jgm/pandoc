@@ -25,6 +25,8 @@ module Text.Pandoc.Writers.OOXML ( mknode
 import Prelude
 import Codec.Archive.Zip
 import Control.Monad.Reader
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Error
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
@@ -50,13 +52,15 @@ renderXml :: Element -> BL.ByteString
 renderXml elt = BL8.pack "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" <>
   UTF8.fromStringLazy (showElement elt)
 
-parseXml :: (PandocMonad m) => Archive -> Archive -> String -> m Element
+parseXml :: PandocMonad m => Archive -> Archive -> String -> m Element
 parseXml refArchive distArchive relpath =
   case findEntryByPath relpath refArchive `mplus`
          findEntryByPath relpath distArchive of
-            Nothing -> Prelude.fail $ relpath ++ " missing in reference file"
+            Nothing -> throwError $ PandocSomeError $
+                        relpath ++ " missing in reference file"
             Just e  -> case parseXMLDoc . UTF8.toStringLazy . fromEntry $ e of
-                       Nothing -> Prelude.fail $ relpath ++ " corrupt in reference file"
+                       Nothing -> throwError $ PandocSomeError $
+                                   relpath ++ " corrupt in reference file"
                        Just d  -> return d
 
 -- Copied from Util

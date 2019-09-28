@@ -26,6 +26,7 @@ even though it is supported only in Emacs Muse.
 -}
 module Text.Pandoc.Writers.Muse (writeMuse) where
 import Prelude
+import Control.Monad.Except (throwError)
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Char (isAlphaNum, isAsciiLower, isAsciiUpper, isDigit, isSpace)
@@ -37,6 +38,7 @@ import Data.Text (Text)
 import System.FilePath (takeExtension)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
+import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
 import Text.DocLayout
@@ -607,7 +609,8 @@ inlineToMuse (Subscript lst) = do
   modify $ \st -> st { stUseTags = False }
   return $ "<sub>" <> contents <> "</sub>"
 inlineToMuse SmallCaps {} =
-  Prelude.fail "SmallCaps should be expanded before normalization"
+  throwError $ PandocShouldNeverHappenError
+    "SmallCaps should be expanded before normalization"
 inlineToMuse (Quoted SingleQuote lst) = do
   contents <- inlineListToMuse lst
   modify $ \st -> st { stUseTags = False }

@@ -258,10 +258,11 @@ yamlBsToMeta bstr = do
                                  err' pos
                     return . return $ mempty
 
-nodeToKey :: Monad m => YAML.Node YE.Pos -> m Text
+nodeToKey :: PandocMonad m => YAML.Node YE.Pos -> m Text
 nodeToKey (YAML.Scalar _ (YAML.SStr t))       = return t
 nodeToKey (YAML.Scalar _ (YAML.SUnknown _ t)) = return t
-nodeToKey _                                 = Prelude.fail "Non-string key in YAML mapping"
+nodeToKey _  = throwError $ PandocParseError
+                              "Non-string key in YAML mapping"
 
 toMetaValue :: PandocMonad m
             => Text -> MarkdownParser m (F MetaValue)
