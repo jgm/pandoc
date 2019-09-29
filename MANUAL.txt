@@ -1426,7 +1426,8 @@ command line using the `-V/--variable` option. If a variable is not set,
 pandoc will look for the key in the document's metadata, which can be set
 using either [YAML metadata blocks][Extension: `yaml_metadata_block`]
 or with the `-M/--metadata` option.  In addition, some variables
-are given default values by pandoc.
+are given default values by pandoc.  See [Variables] below for
+a list of variables used in pandoc's default templates.
 
 If you use custom templates, you may need to revise them as pandoc
 changes.  We recommend tracking the changes in the default templates,
@@ -1684,8 +1685,9 @@ $for(article)$
 $endfor$
 ```
 
+## Variables
 
-## Metadata variables
+### Metadata variables
 
 `title`, `author`, `date`
 :   allow identification of basic aspects of the document.  Included
@@ -1750,7 +1752,7 @@ will include `title`, `author` and `description` as standard document
 properties and `subtitle` as a custom property when converting to docx,
 ODT or pptx.
 
-## Language variables
+### Language variables
 
 `lang`
 :   identifies the main language of the document using IETF language
@@ -1792,7 +1794,7 @@ ODT or pptx.
 [Unicode Bidirectional Algorithm]: http://www.w3.org/International/articles/inline-bidi-markup/uba-basics
 [Language subtag lookup]: https://r12a.github.io/app-subtags/
 
-## Variables for HTML slides
+### Variables for HTML slides
 
 These affect HTML output when [producing slide shows with pandoc].
 
@@ -1814,7 +1816,7 @@ To turn off boolean flags that default to true in reveal.js, use `0`.
 
 [reveal.js configuration options]: https://github.com/hakimel/reveal.js#configuration
 
-## Variables for Beamer slides
+### Variables for Beamer slides
 
 These variables change the appearance of PDF slides using [`beamer`].
 
@@ -1843,7 +1845,7 @@ These variables change the appearance of PDF slides using [`beamer`].
 :   enables "title pages" for new sections (default is true)
 
 `theme`, `colortheme`, `fonttheme`, `innertheme`, `outertheme`
-:   beamer themes: 
+:   beamer themes
 
 `themeoptions`
 :   options for LaTeX beamer themes (a list).
@@ -1851,26 +1853,27 @@ These variables change the appearance of PDF slides using [`beamer`].
 `titlegraphic`
 :   image for title slide
 
-## Variables for PowerPoint slide shows
+### Variables for PowerPoint
 
-These variables control the visual aspects of a slide show that are not easily
-controled via templates.
+These variables control the visual aspects of a slide show that
+are not easily controled via templates.
 
 `monofont`
 :   font to use for code.
 
-## Variables for LaTeX
+### Variables for LaTeX
 
 Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 
-### Layout
+#### Layout
 
 `block-headings`
-:   make `\paragraph` and `\subparagraph` (fourth- and fifth-level headings, or
-    fifth- and sixth-level with book classes) free-standing rather than run-in;
-    requires further formatting to distinguish from `\subsubsection` (third- or
-    fourth-level headings). Instead of using this option, [KOMA-Script] can adjust
-    headings more extensively:
+:   make `\paragraph` and `\subparagraph` (fourth- and
+    fifth-level headings, or fifth- and sixth-level with book
+    classes) free-standing rather than run-in; requires further
+    formatting to distinguish from `\subsubsection` (third- or
+    fourth-level headings). Instead of using this option,
+    [KOMA-Script] can adjust headings more extensively:
 
         ---
         documentclass: scrartcl
@@ -1935,7 +1938,7 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 :   numbering depth for sections (with `--number-sections` option
     or `numbersections` variable)
 
-### Fonts
+#### Fonts
 
 `fontenc`
 :   allows font encoding to be specified through `fontenc` package (with `pdflatex`);
@@ -1959,9 +1962,9 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
         ...
 
 `fontsize`
-:   font size for body text. The standard classes allow 10pt, 11pt, and 12pt.
-    To use another size, set `documentclass` to one of the [KOMA-Script] classes,
-    such as `scrartcl` or `scrbook`.
+:   font size for body text. The standard classes allow 10pt, 11pt, and
+    12pt.  To use another size, set `documentclass` to one of
+    the [KOMA-Script] classes, such as `scrartcl` or `scrbook`.
 
 `mainfont`, `sansfont`, `monofont`, `mathfont`, `CJKmainfont`
 :   font families for use with `xelatex` or
@@ -1970,9 +1973,10 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 
 `mainfontoptions`, `sansfontoptions`, `monofontoptions`, `mathfontoptions`, `CJKoptions`
 :   options to use with `mainfont`, `sansfont`, `monofont`, `mathfont`,
-    `CJKmainfont` in `xelatex` and `lualatex`.  Allow for any choices
-    available through [`fontspec`]; repeat for multiple options. For example,
-    to use the [TeX Gyre] version of Palatino with lowercase figures:
+    `CJKmainfont` in `xelatex` and `lualatex`.  Allow for any
+    choices available through [`fontspec`]; repeat for multiple
+    options. For example, to use the [TeX Gyre] version of
+    Palatino with lowercase figures:
 
         ---
         mainfont: TeX Gyre Pagella
@@ -1984,7 +1988,7 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 `microtypeoptions`
 :    options to pass to the microtype package
 
-### Links
+#### Links
 
 `colorlinks`
 :   add color to link text; automatically enabled if any of
@@ -1999,7 +2003,7 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 `links-as-notes`
 :   causes links to be printed as footnotes
 
-### Front matter
+#### Front matter
 
 `lof`, `lot`
 :   include list of figures, list of tables
@@ -2013,7 +2017,7 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 `toc-depth`
 :   level of section to include in table of contents
 
-### BibLaTeX Bibliographies
+#### BibLaTeX Bibliographies
 
 These variables function when using BibLaTeX for [citation rendering].
 
@@ -2042,7 +2046,7 @@ These variables function when using BibLaTeX for [citation rendering].
 [`memoir`]: https://ctan.org/pkg/memoir
 [`report`]: https://ctan.org/pkg/report
 
-## Variables for ConTeXt
+### Variables for ConTeXt
 
 Pandoc uses these variables when [creating a PDF] with ConTeXt.
 
@@ -2134,7 +2138,7 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
 [`setupinterlinespace`]: https://wiki.contextgarden.net/Command/setupinterlinespace
 [`setuppagenumbering`]: https://wiki.contextgarden.net/Command/setuppagenumbering
 
-## Variables for `wkhtmltopdf`
+### Variables for `wkhtmltopdf`
 
 Pandoc uses these variables when [creating a PDF] with [`wkhtmltopdf`].
 The `--css` option also affects the output.
@@ -2148,7 +2152,7 @@ The `--css` option also affects the output.
 `papersize`
 :   sets the PDF paper size
 
-## Variables for man pages
+### Variables for man pages
 
 `adjusting`
 :   adjusts text to left (`l`), right (`r`), center (`c`),
@@ -2166,7 +2170,7 @@ The `--css` option also affects the output.
 `section`
 :   section number in man pages
 
-## Variables for ms
+### Variables for ms
 
 `fontfamily`
 :    font family (e.g. `T` or `P`)
@@ -2180,7 +2184,7 @@ The `--css` option also affects the output.
 `pointsize`
 :    point size (e.g. `10p`)
 
-## Structural variables
+### Variables set automatically
 
 Pandoc sets these variables automatically in response to [options] or
 document contents; users can also modify them. These vary depending
@@ -2220,9 +2224,9 @@ on the output format, and include the following:
 
 `sourcefile`, `outputfile`
 :   source and destination filenames, as given on the command line.
-    `sourcefile` can also be a list if input comes from multiple files, or empty
-    if input is from stdin. You can use the following snippet in your template
-    to distinguish them:
+    `sourcefile` can also be a list if input comes from multiple files,
+    or empty if input is from stdin. You can use the following snippet in
+    your template to distinguish them:
 
         $if(sourcefile)$
         $for(sourcefile)$
