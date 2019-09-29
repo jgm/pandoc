@@ -1,14 +1,14 @@
-% Pandoc User's Guide
-% John MacFarlane
-% July 6, 2019
+---
+title: Pandoc User's Guide
+author: John MacFarlane
+date: September 29, 2019
+---
 
-Synopsis
-========
+# Synopsis
 
 `pandoc` [*options*] [*input-file*]...
 
-Description
-===========
+# Description
 
 Pandoc is a [Haskell] library for converting from one markup format to
 another, and a command-line tool that uses this library.
@@ -40,8 +40,7 @@ model.  While conversions from pandoc's Markdown to all formats aspire
 to be perfect, conversions from formats more expressive than pandoc's
 Markdown can be expected to be lossy.
 
-Using pandoc
-------------
+## Using pandoc
 
 If no *input-files* are specified, input is read from *stdin*.
 Output goes to *stdout* by default. For output to a file,
@@ -62,8 +61,7 @@ If multiple input files are given, `pandoc` will concatenate them all (with
 blank lines between them) before parsing. (Use `--file-scope` to parse files
 individually.)
 
-Specifying formats
-------------------
+## Specifying formats
 
 The format of the input and output can be specified explicitly using
 command-line options.  The input format can be specified using the
@@ -95,8 +93,7 @@ If no input file is specified (so that input comes from *stdin*), or
 if the input files' extensions are unknown, the input format will
 be assumed to be Markdown.
 
-Character encoding
-------------------
+## Character encoding
 
 Pandoc uses the UTF-8 character encoding for both input and output.
 If your local character encoding is not UTF-8, you
@@ -111,8 +108,7 @@ will only be included if you use the `-s/--standalone` option.
 
 [`iconv`]: http://www.gnu.org/software/libiconv/
 
-Creating a PDF
---------------
+## Creating a PDF
 
 To produce a PDF, specify an output file with a `.pdf` extension:
 
@@ -206,8 +202,7 @@ footnotes in tables).
 
 
 
-Reading from the Web
---------------------
+## Reading from the Web
 
 Instead of an input file, an absolute URI may be given.  In this case
 pandoc will fetch the content using HTTP:
@@ -220,11 +215,9 @@ header when requesting a document from a URL:
     pandoc -f html -t markdown --request-header User-Agent:"Mozilla/5.0" \
       http://www.fsf.org
 
-Options
-=======
+# Options
 
-General options {.options}
----------------
+## General options {.options}
 
 `-f` *FORMAT*, `-r` *FORMAT*, `--from=`*FORMAT*, `--read=`*FORMAT*
 
@@ -476,8 +469,7 @@ General options {.options}
 [PowerPoint]: https://en.wikipedia.org/wiki/Microsoft_PowerPoint
 [Vimwiki]: https://vimwiki.github.io
 
-Reader options {.options}
---------------
+## Reader options {.options}
 
 `--shift-heading-level-by=`*NUMBER*
 
@@ -680,8 +672,7 @@ Reader options {.options}
 [perl]: https://metacpan.org/pod/Pandoc::Filter
 [JavaScript/node.js]: https://github.com/mvhenderson/pandoc-filter-node
 
-General writer options {.options}
-----------------------
+## General writer options {.options}
 
 `-s`, `--standalone`
 
@@ -884,8 +875,7 @@ General writer options {.options}
     downloaded). If you're behind a proxy, you also need to set
     the environment variable `http_proxy` to `http://...`.
 
-Options affecting specific writers {.options}
-----------------------------------
+## Options affecting specific writers {.options}
 
 `--self-contained`
 
@@ -1255,8 +1245,7 @@ Options affecting specific writers {.options}
 [Encoding issue with the listings package]:
   https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings#Encoding_issue
 
-Citation rendering {.options}
-------------------
+## Citation rendering {.options}
 
 `--bibliography=`*FILE*
 
@@ -1295,8 +1284,7 @@ Citation rendering {.options}
     with the `pandoc-citeproc` filter or with PDF output. It is intended for
     use in producing a LaTeX file that can be processed with [`bibtex`] or [`biber`].
 
-Math rendering in HTML {.options}
-----------------------
+## Math rendering in HTML {.options}
 
 The default is to render TeX math as far as possible using Unicode characters.
 Formulas are put inside a `span` with `class="math"`, so that they may be styled
@@ -1356,8 +1344,7 @@ of the following options.
 [KaTeX]: https://github.com/Khan/KaTeX
 [GladTeX]: http://humenda.github.io/GladTeX/
 
-Options for wrapper scripts {.options}
----------------------------
+## Options for wrapper scripts {.options}
 
 `--dump-args`
 
@@ -1381,8 +1368,7 @@ Options for wrapper scripts {.options}
 
         pandoc -o foo.html -s
 
-Exit codes
-==========
+# Exit codes
 
 If pandoc completes successfully, it will return exit code 0.
 Nonzero exit codes have the following meanings:
@@ -1411,8 +1397,7 @@ Nonzero exit codes have the following meanings:
     97 PandocCouldNotFindDataFileError
     99 PandocResourceNotFound
 
-Templates
-=========
+# Templates
 
 When the `-s/--standalone` option is used, pandoc uses a template to
 add header and footer material that is needed for a self-standing
@@ -1451,8 +1436,7 @@ changes after each pandoc release.
 
   [pandoc-templates]: https://github.com/jgm/pandoc-templates
 
-Template syntax
----------------
+## Template syntax
 
 To mark variables and control structures in the template, either
 `$`...`$` or `${`...`}` may be used as delimiters.  The styles
@@ -1701,8 +1685,7 @@ $endfor$
 ```
 
 
-Metadata variables
-------------------
+## Metadata variables
 
 `title`, `author`, `date`
 :   allow identification of basic aspects of the document.  Included
@@ -1767,8 +1750,7 @@ will include `title`, `author` and `description` as standard document
 properties and `subtitle` as a custom property when converting to docx,
 ODT or pptx.
 
-Language variables
-------------------
+## Language variables
 
 `lang`
 :   identifies the main language of the document using IETF language
@@ -1810,8 +1792,7 @@ Language variables
 [Unicode Bidirectional Algorithm]: http://www.w3.org/International/articles/inline-bidi-markup/uba-basics
 [Language subtag lookup]: https://r12a.github.io/app-subtags/
 
-Variables for HTML slides
--------------------------
+## Variables for HTML slides
 
 These affect HTML output when [producing slide shows with pandoc].
 
@@ -1833,8 +1814,7 @@ To turn off boolean flags that default to true in reveal.js, use `0`.
 
 [reveal.js configuration options]: https://github.com/hakimel/reveal.js#configuration
 
-Variables for Beamer slides
----------------------------
+## Variables for Beamer slides
 
 These variables change the appearance of PDF slides using [`beamer`].
 
@@ -1871,8 +1851,7 @@ These variables change the appearance of PDF slides using [`beamer`].
 `titlegraphic`
 :   image for title slide
 
-Variables for PowerPoint slide shows
---------------------------------------
+## Variables for PowerPoint slide shows
 
 These variables control the visual aspects of a slide show that are not easily
 controled via templates.
@@ -1880,8 +1859,7 @@ controled via templates.
 `monofont`
 :   font to use for code.
 
-Variables for LaTeX
--------------------
+## Variables for LaTeX
 
 Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 
@@ -2064,8 +2042,7 @@ These variables function when using BibLaTeX for [citation rendering].
 [`memoir`]: https://ctan.org/pkg/memoir
 [`report`]: https://ctan.org/pkg/report
 
-Variables for ConTeXt
----------------------
+## Variables for ConTeXt
 
 Pandoc uses these variables when [creating a PDF] with ConTeXt.
 
@@ -2157,8 +2134,7 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
 [`setupinterlinespace`]: https://wiki.contextgarden.net/Command/setupinterlinespace
 [`setuppagenumbering`]: https://wiki.contextgarden.net/Command/setuppagenumbering
 
-Variables for `wkhtmltopdf`
----------------------------
+## Variables for `wkhtmltopdf`
 
 Pandoc uses these variables when [creating a PDF] with [`wkhtmltopdf`].
 The `--css` option also affects the output.
@@ -2172,8 +2148,7 @@ The `--css` option also affects the output.
 `papersize`
 :   sets the PDF paper size
 
-Variables for man pages
------------------------
+## Variables for man pages
 
 `adjusting`
 :   adjusts text to left (`l`), right (`r`), center (`c`),
@@ -2191,8 +2166,7 @@ Variables for man pages
 `section`
 :   section number in man pages
 
-Variables for ms
-----------------
+## Variables for ms
 
 `fontfamily`
 :    font family (e.g. `T` or `P`)
@@ -2206,8 +2180,7 @@ Variables for ms
 `pointsize`
 :    point size (e.g. `10p`)
 
-Structural variables
---------------------
+## Structural variables
 
 Pandoc sets these variables automatically in response to [options] or
 document contents; users can also modify them. These vary depending
@@ -2275,8 +2248,7 @@ on the output format, and include the following:
 
 [pandoc-templates]: https://github.com/jgm/pandoc-templates
 
-Extensions
-==========
+# Extensions
 
 The behavior of some of the readers and writers can be adjusted by
 enabling or disabling various extensions.
@@ -2297,8 +2269,7 @@ Note that markdown extensions added to the `ipynb` format
 affect Markdown cells in Jupyter notebooks (as do command-line
 options like `--atx-headers`).
 
-Typography
-----------
+## Typography
 
 #### Extension: `smart` ####
 
@@ -2330,8 +2301,7 @@ literally.  In writing LaTeX, enabling `smart` tells pandoc
 to use the ligatures when possible; if `smart` is disabled
 pandoc will use unicode quotation mark and dash characters.
 
-Headings and sections
----------------------
+## Headings and sections
 
 #### Extension: `auto_identifiers` ####
 
@@ -2413,8 +2383,7 @@ GitHub's method.  Spaces are converted to dashes (`-`),
 uppercase characters to lowercase characters, and punctuation
 characters other than `-` and `_` are removed.
 
-Math Input
-----------
+## Math Input
 
 The extensions [`tex_math_dollars`](#extension-tex_math_dollars),
 [`tex_math_single_backslash`](#extension-tex_math_single_backslash), and
@@ -2424,8 +2393,7 @@ are described in the section about Pandoc's Markdown.
 However, they can also be used with HTML input. This is handy for
 reading web pages formatted using MathJax, for example.
 
-Raw HTML/TeX
-------------
+## Raw HTML/TeX
 
 The following extensions (especially how they affect Markdown
 input/output) are also described in more detail in their respective
@@ -2475,8 +2443,7 @@ When converting HTML to Markdown, for example, you may want to drop all
 Analogous to `native_divs` above.
 
 
-Literate Haskell support
-------------------------
+## Literate Haskell support
 
 #### Extension: `literate_haskell` ####
 
@@ -2537,8 +2504,7 @@ Note that GHC expects the bird tracks in the first column, so indented
 literate code blocks (e.g. inside an itemized environment) will not be
 picked up by the Haskell compiler.
 
-Other extensions
-----------------
+## Other extensions
 
 #### Extension: `empty_paragraphs` ####
 
@@ -2593,8 +2559,7 @@ Natural tables allow more fine-grained global customization but come
 at a performance penalty compared to extreme tables.
 
 
-Pandoc's Markdown
-=================
+# Pandoc's Markdown
 
 Pandoc understands an extended and slightly revised version of
 John Gruber's [Markdown] syntax.  This document explains the syntax,
@@ -2604,8 +2569,7 @@ of `markdown`. Extensions can be enabled or disabled to specify the
 behavior more granularly. They are described in the following. See also
 [Extensions] above, for extensions that work also on other formats.
 
-Philosophy
-----------
+## Philosophy
 
 Markdown is designed to be easy to write, and, even more importantly,
 easy to read:
@@ -2626,8 +2590,7 @@ it discourages it, and provides other, non-HTMLish ways of representing
 important document elements like definition lists, tables, mathematics, and
 footnotes.
 
-Paragraphs
-----------
+## Paragraphs
 
 A paragraph is one or more lines of text followed by one or more blank lines.
 Newlines are treated as spaces, so you can reflow your paragraphs as you like.
@@ -2640,8 +2603,7 @@ Note:  in multiline and grid table cells, this is the only way
 to create a hard line break, since trailing spaces in the cells
 are ignored.
 
-Headings
---------
+## Headings
 
 There are two kinds of headings: Setext and ATX.
 
@@ -2772,8 +2734,7 @@ link will point to `bar`, not to `#foo`:
 
     See [foo]
 
-Block quotations
-----------------
+## Block quotations
 
 Markdown uses email conventions for quoting blocks of text.
 A block quotation is one or more paragraphs or other block elements
@@ -2823,8 +2784,7 @@ not produce a nested block quote in pandoc:
     >> Nested.
 
 
-Verbatim (code) blocks
-----------------------
+## Verbatim (code) blocks
 
 ### Indented code blocks ###
 
@@ -2930,8 +2890,7 @@ To set the highlighting style, use `--highlight-style`.
 For more information on highlighting, see [Syntax highlighting],
 below.
 
-Line blocks
------------
+## Line blocks
 
 #### Extension: `line_blocks` ####
 
@@ -2959,8 +2918,7 @@ line must begin with a space.
 
 This syntax is borrowed from [reStructuredText].
 
-Lists
------
+## Lists
 
 ### Bullet lists ###
 
@@ -3291,8 +3249,7 @@ of one big list:
     2.  dos
     3.  tres
 
-Horizontal rules
-----------------
+## Horizontal rules
 
 A line containing a row of three or more `*`, `-`, or `_` characters
 (optionally separated by spaces) produces a horizontal rule:
@@ -3302,8 +3259,7 @@ A line containing a row of three or more `*`, `-`, or `_` characters
     ---------------
 
 
-Tables
-------
+## Tables
 
 Four kinds of tables may be used. The first three kinds presuppose the use of
 a fixed-width font, such as Courier. The fourth kind can be used with
@@ -3517,8 +3473,7 @@ you'll need to add colons as above.
 
 [PHP Markdown Extra tables]: https://michelf.ca/projects/php-markdown/extra/#table
 
-Metadata blocks
----------------
+## Metadata blocks
 
 #### Extension: `pandoc_title_block` ####
 
@@ -3694,8 +3649,7 @@ will be interpreted as markdown. For example:
       \renewcommand{\section}[1]{\clearpage\oldsection{#1}}
       ```
 
-Backslash escapes
------------------
+## Backslash escapes
 
 #### Extension: `all_symbols_escapable` ####
 
@@ -3733,8 +3687,7 @@ two trailing spaces on a line.
 
 Backslash escapes do not work in verbatim contexts.
 
-Inline formatting
------------------
+## Inline formatting
 
 ### Emphasis ###
 
@@ -3836,8 +3789,7 @@ For compatibility with other Markdown flavors, CSS is also supported:
 This will work in all output formats that support small caps.
 
 
-Math
-----
+## Math
 
 #### Extension: `tex_math_dollars` ####
 
@@ -3912,8 +3864,7 @@ HTML, Slidy, DZSlides, S5, EPUB
 
 [interpreted text role `:math:`]: http://docutils.sourceforge.net/docs/ref/rst/roles.html#math
 
-Raw HTML
---------
+## Raw HTML
 
 #### Extension: `raw_html` ####
 
@@ -4059,8 +4010,7 @@ example, to use a raw attribute with a backtick code block,
 
 The raw attribute cannot be combined with regular attributes.
 
-LaTeX macros
-------------
+## LaTeX macros
 
 #### Extension: `latex_macros` ####
 
@@ -4084,8 +4034,7 @@ you are targeting LaTeX or PDF.
 Whether or not `latex_macros` is enabled, the macro definitions
 will still be passed through as raw LaTeX.
 
-Links
------
+## Links
 
 Markdown allows links to be specified in several ways.
 
@@ -4193,8 +4142,7 @@ or
 Internal links are currently supported for HTML formats (including
 HTML slide shows and EPUB), LaTeX, and ConTeXt.
 
-Images
-------
+## Images
 
 A link immediately preceded by a `!` will be treated as an image.
 The link text will be used as the image's alt text:
@@ -4274,8 +4222,7 @@ For example:
   is to look at the image resolution and the dpi metadata embedded in
   the image file.
 
-Divs and Spans
---------------
+## Divs and Spans
 
 Using the `native_divs` and `native_spans` extensions
 (see [above][Extension: `native_divs`]), HTML syntax can
@@ -4331,8 +4278,7 @@ followed immediately by attributes:
 
     [This is *some text*]{.class key="val"}
 
-Footnotes
----------
+## Footnotes
 
 #### Extension: `footnotes` ####
 
@@ -4378,8 +4324,7 @@ they cannot contain multiple paragraphs).  The syntax is as follows:
 
 Inline and regular footnotes may be mixed freely.
 
-Citations
----------
+## Citations
 
 #### Extension: `citations` ####
 
@@ -4591,8 +4536,7 @@ For more information, see the [pandoc-citeproc man page].
 [CSL locale files]: https://github.com/citation-style-language/locales
 [pandoc-citeproc man page]: https://github.com/jgm/pandoc-citeproc/blob/master/man/pandoc-citeproc.1.md
 
-Non-pandoc extensions
----------------------
+## Non-pandoc extensions
 
 The following Markdown syntax extensions are not enabled by default
 in pandoc, but may be enabled by adding `+EXTENSION` to the format
@@ -4754,8 +4698,7 @@ for regular emphasis, add extra blank space around headings.
 
   [Project Gutenberg]: https://www.gutenberg.org
 
-Markdown variants
------------------
+## Markdown variants
 
 In addition to pandoc's extended Markdown, the following Markdown
 variants are supported:
@@ -4806,8 +4749,7 @@ only affects `gfm` output, not input.
     `lists_without_preceding_blankline`.
 
 
-Producing slide shows with pandoc
-=================================
+# Producing slide shows with pandoc
 
 You can use pandoc to produce an HTML + JavaScript slide presentation
 that can be viewed via a web browser.  There are five ways to do this,
@@ -4879,8 +4821,7 @@ To produce a Powerpoint slide show, type
 
     pandoc habits.txt -o habits.pptx
 
-Structuring the slide show
---------------------------
+## Structuring the slide show
 
 By default, the *slide level* is the highest heading level in
 the hierarchy that is followed immediately by content, and not another
@@ -4921,8 +4862,7 @@ layout will be produced, with level-1 headings building horizontally
 and level-2 headings building vertically.  It is not recommended that
 you use deeper nesting of section levels with reveal.js.
 
-Incremental lists
------------------
+## Incremental lists
 
 By default, these writers produce lists that display "all at once."
 If you want your lists to display incrementally (one item at a time),
@@ -4963,8 +4903,7 @@ in a single document.
 Note: Neither the `-i/--incremental` option nor any of the
 methods described here currently works for PowerPoint output.
 
-Inserting pauses
-----------------
+## Inserting pauses
 
 You can add "pauses" within a slide by including a paragraph containing
 three dots, separated by spaces:
@@ -4979,8 +4918,7 @@ three dots, separated by spaces:
 
 Note: this feature is not yet implemented for PowerPoint output.
 
-Styling the slides
-------------------
+## Styling the slides
 
 You can change the style of HTML slides by putting customized CSS files
 in `$DATADIR/s5/default` (for S5), `$DATADIR/slidy` (for Slidy),
@@ -5015,8 +4953,7 @@ bibliographies:
 
     # References {.allowframebreaks}
 
-Speaker notes
--------------
+## Speaker notes
 
 Speaker notes are supported in reveal.js and PowerPoint (pptx)
 output. You can add notes to your Markdown document thus:
@@ -5037,8 +4974,7 @@ in handouts and presenter view.
 Notes are not yet supported for other slide formats, but the notes
 will not appear on the slides themselves.
 
-Columns
--------
+## Columns
 
 To put material in side by side columns, you can use a native
 div container with class `columns`, containing two or more div
@@ -5053,8 +4989,7 @@ containers with class `column` and a `width` attribute:
     :::
     ::::::::::::::
 
-Frame attributes in beamer
---------------------------
+## Frame attributes in beamer
 
 Sometimes it is necessary to add the LaTeX `[fragile]` option to
 a frame in beamer (for example, when using the `minted` environment).
@@ -5068,8 +5003,7 @@ the [Beamer User's Guide] may also be used: `allowdisplaybreaks`,
 `allowframebreaks`, `b`, `c`, `t`, `environment`, `label`, `plain`,
 `shrink`, `standout`, `noframenumbering`.
 
-Background in reveal.js and beamer
-----------------------------------
+## Background in reveal.js and beamer
 
 Background images can be added to self-contained reveal.js slideshows and 
 to beamer slideshows.
@@ -5116,11 +5050,9 @@ Slide 1 has background_image.png as its background.
 Slide 2 has a special image for its background, even though the heading has no content.
 ```
 
-Creating EPUBs with pandoc
-==========================
+# Creating EPUBs with pandoc
 
-EPUB Metadata
--------------
+## EPUB Metadata
 
 EPUB metadata may be specified using the `--epub-metadata` option, but
 if the source document is Markdown, it is better to use a [YAML metadata
@@ -5222,8 +5154,7 @@ The following fields are recognized:
 [MARC relators]: http://loc.gov/marc/relators/relaterm.html
 [`spine` element]: http://idpf.org/epub/301/spec/epub-publications.html#sec-spine-elem
 
-The `epub:type` attribute
--------------------------
+## The `epub:type` attribute
 
 For `epub3` output, you can mark up the heading that corresponds to an EPUB
 chapter using the [`epub:type` attribute][epub-type]. For example, to set
@@ -5269,8 +5200,7 @@ index                             backmatter
 
 [epub-type]: http://www.idpf.org/epub/31/spec/epub-contentdocs.html#sec-epub-type-attribute
 
-Linked media
-------------
+## Linked media
 
 By default, pandoc will download media referenced from any `<img>`, `<audio>`,
 `<video>` or `<source>` element present in the generated EPUB,
@@ -5285,8 +5215,7 @@ with the `src` attribute.  For example:
       </source>
     </audio>
 
-Creating Jupyter notebooks with pandoc
-======================================
+# Creating Jupyter notebooks with pandoc
 
 When creating a [Jupyter notebook], pandoc will try to infer the
 notebook structure.  Code blocks with the class `code` will be
@@ -5411,8 +5340,7 @@ soft line breaks in Markdown cells; `--atx-headers` will
 cause ATX-style headings to be used; and `--preserve-tabs` will
 prevent tabs from being turned to spaces.
 
-Syntax highlighting
-===================
+# Syntax highlighting
 
 Pandoc will automatically highlight syntax in [fenced code blocks] that
 are marked with a language name.  The Haskell library [skylighting] is
@@ -5448,13 +5376,11 @@ To disable highlighting, use the `--no-highlight` option.
 
 [skylighting]: https://github.com/jgm/skylighting
 
-Custom Styles
-=============
+# Custom Styles
 
 Custom styles can be used in the docx and ICML formats.
 
-Output
-------
+## Output
 
 By default, pandoc's docx and ICML output applies a predefined set of styles
 for blocks such as paragraphs and block quotes, and uses largely default
@@ -5501,8 +5427,7 @@ custom styles to work.
 
 [pandoc filters]: http://pandoc.org/filters.html
 
-Input
------
+## Input
 
 The docx reader, by default, only reads those styles that it can
 convert into pandoc elements, either by direct conversion or
@@ -5549,8 +5474,7 @@ With these custom styles, you can use your input document as a
 reference-doc while creating docx output (see below), and maintain the
 same styles in your input and output files.
 
-Custom writers
-==============
+# Custom writers
 
 Pandoc can be extended with custom writers written in [lua].  (Pandoc
 includes a lua interpreter, so lua need not be installed separately.)
@@ -5568,8 +5492,7 @@ which you can modify according to your needs, do
 
 [lua]: http://www.lua.org
 
-A note on security
-==================
+# A note on security
 
 If you use pandoc to convert user-contributed content in a web
 application, here are some things to keep in mind:
@@ -5601,8 +5524,7 @@ application, here are some things to keep in mind:
    headings, spans, and code blocks.  To be safe, you should
    run all the generated HTML through an HTML sanitizer.
 
-Authors
-=======
+# Authors
 
 Copyright 2006--2019 John MacFarlane (jgm@berkeley.edu). Released
 under the [GPL], version 2 or greater.  This software carries no
