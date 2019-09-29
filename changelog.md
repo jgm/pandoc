@@ -2,6 +2,11 @@
 
 ## pandoc 2.8 PROVISIONAL (YYYY-MM-DD)
 
+  * Raise error on unsupported extensions (#4338).
+
+  * The `--list-extensions[=FORMAT]` option now lists only
+    extensions that affect the given FORMAT.
+
   * Add `-L` option as shortcut for `--lua-filter`.
 
   * Add `--shift-heading-level-by` option and deprecate
@@ -44,6 +49,7 @@
       consistent indentation, but this isn't required by RST.
     + Use title, not admonition-title, for admonition title.
       This puts RST reader into alignment with docbook reader.
+    + Don't strip final underscore from absolute URI (#5763).
 
   * Org reader:
 
@@ -77,6 +83,10 @@
       Instead of parsing admonitions as blockquotes, we now parse
       them as Divs with an appropriate class. We also handle titles
       for admonitions as a nested Div with the "title" class.
+
+  * MediaWiki reader:
+
+    + Skip optional `{{table}}` template (#5757).
 
   * Markdown writer:
 
@@ -288,18 +298,28 @@
 
   * Text.Pandoc.Extensions:
 
+    + Export new function `getAllExtensions`, which returns the
+      extensions that affect a given format (whether enabled by default
+      or not) [API change].
+    + Change type of `parseFormatSpec` from
+      `Either ParseError (String, Extensions -> Extensions)`
+      to `Either ParseError (String, [Extension], [Extension])`
+      [API change].
     + Add `Ext_gutenberg` constructor to `Extension` [API change].
     + Add `Ext_native_numbering` constructor to `Extension` [API change]
       (Nils Carlson).
+
+  * Text.Pandoc.Readers, Text.Pandoc.Writers:
+
+    + Change type of `getReader` and `getWriter` so they return
+      a value in the PandocMonad instance rather than an Either
+      [API change].  Exceptions for unknown formats and unsupported
+      extensions are now raised by these functions.
 
   * Text.Pandoc.App
 
     + Change `optMetadataFile` type from `Maybe FilePath` to `[FilePath]`
       (Owen McGrath, #5702) [API change].
-
-  * MediaWiki reader:
-
-    + Skip optional `{{table}}` template (#5757).
 
   * Text.Pandoc.Logging:
 
@@ -358,6 +378,9 @@
 
   * Text.Pandoc.Error:
 
+    + Add constructors `PandocUnknownReaderError`,
+      `PandocUnknownWriterError`, `PandocUnsupportedExtensionError`.
+      [API change].
     + Better message for `PandocShouldNeverHappenError`.
     + Better message for `PandocTemplateError`.
 
@@ -530,6 +553,10 @@
   * Benchmarks: fix failure on ipynb.
 
   * Fix redundant constraint compiler warnings (Pete Ryland, #5625).
+
+  * Use throwError instead of fail when appropriate.
+
+  * Use Prelude.fail to avoid ambiguity with fail from GHC.Base.
 
   * Add `diff-zip.sh` to tools (John MacFarlane, Agustín Martín Barbero).
     This is intended to make it easier to test differences in zip
