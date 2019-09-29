@@ -498,20 +498,21 @@
   * Improvements in templates system (from doctemplates-0.6.1):
 
    + Pandoc templates now support a number of new features that
-     have been added in doctemplates: notably, partials and keywords
-     to control nesting and reflowing of text.
+     have been added in doctemplates: notably, `elseif`, `it`,
+     partials and keywords to control nesting and reflowing of
+     text.
    + We now used templates parameterized on doclayout Doc types.
-     The main impact of this change is better reflowing of content
-     interpolated into templates.  Previously, interpolated variables
-     were rendered independently and intepolated as strings,
-     which could lead to overly long lines. Now the templates
-     interpolated as Doc values which may include breaking
-     spaces, and reflowing occurs after template interpolation
-     rather than before.
+     The main impact of this change is better reflowing of
+     content interpolated into templates.  Previously,
+     interpolated variables were rendered independently and
+     intepolated as strings, which could lead to overly long
+     lines. Now the templates interpolated as Doc values which
+     may include breaking spaces, and reflowing occurs after
+     template interpolation rather than before.
    + Remove code from the LaTeX, Docbook, and JATS writers that
-     looked in the template for strings to determine whether it is a
-     book or an article, or whether csquotes is used. This was
-     always kludgy and unreliable.
+     looked in the template for strings to determine whether it
+     is a book or an article, or whether csquotes is used. This
+     was always kludgy and unreliable.
    + Change template code to use new API for doctemplates.
 
   * Template changes:
