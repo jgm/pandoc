@@ -1497,9 +1497,13 @@ explicitLink = try $ do
                    then B.str src
                    else label'
   -- `link <google_>` is a reference link to _google!
-  ((src',tit),attr) <- case reverse src of
-                          '_':xs -> lookupKey [] (toKey (reverse xs))
-                          _      -> return ((src, ""), nullAttr)
+  ((src',tit),attr) <-
+    if isURI src
+       then return ((src, ""), nullAttr)
+       else
+         case reverse src of
+            '_':xs -> lookupKey [] (toKey (reverse xs))
+            _      -> return ((src, ""), nullAttr)
   return $ B.linkWith attr (escapeURI src') tit label''
 
 citationName :: PandocMonad m => RSTParser m String
