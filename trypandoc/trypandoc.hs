@@ -41,12 +41,12 @@ app req respond = do
   text <- getParam "text" >>= checkLength . fromMaybe T.empty
   fromFormat <- fromMaybe "" <$> getParam "from"
   toFormat <- fromMaybe "" <$> getParam "to"
-  let reader = case getReader (T.unpack fromFormat) of
+  let reader = case runPure $ getReader (T.unpack fromFormat) of
                     Right (TextReader r, es) -> r readerOpts{
                        readerExtensions = es }
                     _ -> error $ "could not find reader for "
                                   ++ T.unpack fromFormat
-  let writer = case getWriter (T.unpack toFormat) of
+  let writer = case runPure $ getWriter (T.unpack toFormat) of
                     Right (TextWriter w, es) -> w writerOpts{
                        writerExtensions = es }
                     _ -> error $ "could not find writer for " ++
