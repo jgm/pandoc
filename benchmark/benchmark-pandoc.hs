@@ -41,16 +41,17 @@ readerBench doc name =
                $ nf (\i -> either (error . show) id $ runPure (readerFun i))
                  inp
        Left _ -> Nothing
-  where res = runPure $
-          case (getReader name, getWriter name) of
-            (Right (TextReader r, rexts),
-             Right (TextWriter w, wexts)) -> do
-               setResourcePath ["../test"]
-               inp <- w def{ writerWrapText = WrapAuto
-                           , writerExtensions = wexts } doc
-               return $ (r def{ readerExtensions = rexts }, inp)
-            _ -> throwError $ PandocSomeError
-                 $ "could not get text reader and writer for " ++ name
+  where res = runPure $ do
+          (rdr, rexts) <- getReader name
+          (wtr, wexts) <- getWriter name
+          case (rdr, wtr) of
+            (TextReader r, TextWriter w) -> do
+                     setResourcePath ["../test"]
+                     inp <- w def{ writerWrapText = WrapAuto
+                                 , writerExtensions = wexts } doc
+                     return $ (r def{ readerExtensions = rexts }, inp)
+            _ -> throwError $ PandocSomeError $ "not a text format: "
+                                 ++ name
 
 getImages :: IO [(FilePath, MimeType, BL.ByteString)]
 getImages = do
@@ -75,11 +76,12 @@ writerBench doc name =
                                         writerFun d)) doc
        Left _ -> Nothing
   where res = runPure $ do
-          case (getWriter name) of
-            Right (TextWriter w, wexts) ->
+          (wtr, wexts) <- getWriter name
+          case wtr of
+            TextWriter w ->
               return $ w def{ writerExtensions = wexts }
             _ -> throwError $ PandocSomeError
-                 $ "could not get text reader and writer for " ++ name
+                 $ "could not get text writer for " ++ name
 
 main :: IO ()
 main = do
