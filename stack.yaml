@@ -14,7 +14,7 @@ extra-deps:
 - pandoc-citeproc-0.16.3
 - pandoc-types-1.17.6.1
 - texmath-0.11.2.3
-- skylighting-0.8.2.1
+- skylighting-0.8.2.2
 - skylighting-core-0.8.2.1
 - doclayout-0.1
 - HsYAML-0.2.0.0
