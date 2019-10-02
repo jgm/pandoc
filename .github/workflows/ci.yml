@@ -55,11 +55,6 @@ jobs:
 #           cabal: '3.0'
     steps:
     - uses: actions/checkout@v1
-    - name: Install recent cabal/ghc
-      run: |
-          sudo add-apt-repository ppa:hvr/ghc
-          sudo apt-get update
-          sudo apt-get install ghc-${{ matrix.versions.ghc }} cabal-install-${{ matrix.versions.cabal }}
     - name: Install dependencies
       run: |
           export PATH=/opt/cabal/${{ matrix.versions.cabal }}/bin:/opt/ghc/${{ matrix.versions.ghc }}/bin:$PATH
