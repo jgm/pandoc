@@ -16,11 +16,13 @@ extra-deps:
 - texmath-0.11.2.3
 - skylighting-0.8.2.2
 - skylighting-core-0.8.2.2
-- regex-pcre-builtin-0.95.0.8.8.35
 - doclayout-0.1
 - HsYAML-0.2.0.0
 - HsYAML-aeson-0.2.0.0
 - doctemplates-0.6.1
+- github: lierdakil/regex-pcre-builtin
+  commit: 56209034dcb72b6361fcfc36bc870c590ce238e0
+- regex-base-0.94.0.0
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-14.6
