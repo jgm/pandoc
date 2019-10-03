@@ -1922,7 +1922,7 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
     repeat for multiple options:
 
         ---
-        hyperref:
+        hyperrefoptions:
         - linktoc=all
         - pdfwindowui
         - pdfpagemode=FullScreen
