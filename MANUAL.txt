@@ -1917,6 +1917,17 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
         - heightrounded
         ...
 
+`hyperrefoptions`
+:   option for [`hyperref`] package, e.g. `linktoc=all`;
+    repeat for multiple options:
+
+        ---
+        hyperref:
+        - linktoc=all
+        - pdfwindowui
+        - pdfpagemode=FullScreen
+        ...
+
 `indent`
 :   uses document class settings for indentation (the default LaTeX template
     otherwise removes indentation and adds space between paragraphs)
