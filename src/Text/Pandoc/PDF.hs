@@ -36,7 +36,7 @@ import System.FilePath
 import System.IO (stdout, hClose)
 import System.IO.Temp (withSystemTempDirectory, withTempDirectory,
                        withTempFile)
-import System.IO.Error (IOError, isDoesNotExistError)
+import qualified System.IO.Error as IE
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
 import Text.Pandoc.MIME (getMimeType)
@@ -307,10 +307,7 @@ runTectonic verbosity program args' tmpDir' source = do
       showVerboseInfo (Just tmpDir) program programArgs env (UTF8.toStringLazy sourceBL)
     (exit, out) <- liftIO $ E.catch
       (pipeProcess (Just env) program programArgs sourceBL)
-      (\(e :: IOError) -> if isDoesNotExistError e
-                             then E.throwIO $ PandocPDFProgramNotFoundError
-                                   program
-                             else E.throwIO e)
+      (handlePDFProgramNotFound program)
     when (verbosity >= INFO) $ liftIO $ do
       putStrLn "[makePDF] Running"
       BL.hPutStr stdout out
@@ -376,10 +373,7 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir' source = do
        showVerboseInfo (Just tmpDir) program programArgs env''
     (exit, out) <- liftIO $ E.catch
       (pipeProcess (Just env'') program programArgs BL.empty)
-      (\(e :: IOError) -> if isDoesNotExistError e
-                             then E.throwIO $ PandocPDFProgramNotFoundError
-                                   program
-                             else E.throwIO e)
+      (handlePDFProgramNotFound program)
     when (verbosity >= INFO) $ liftIO $ do
       putStrLn $ "[makePDF] Run #" ++ show runNumber
       BL.hPutStr stdout out
@@ -404,10 +398,7 @@ generic2pdf verbosity program args source = do
   (exit, out) <- E.catch
     (pipeProcess (Just env') program args
                      (BL.fromStrict $ UTF8.fromText source))
-    (\(e :: IOError) -> if isDoesNotExistError e
-                           then E.throwIO $
-                                  PandocPDFProgramNotFoundError program
-                           else E.throwIO e)
+    (handlePDFProgramNotFound program)
   return $ case exit of
              ExitFailure _ -> Left out
              ExitSuccess   -> Right out
@@ -435,10 +426,7 @@ html2pdf verbosity program args source = do
           showVerboseInfo Nothing program programArgs env'
       (exit, out) <- E.catch
         (pipeProcess (Just env') program programArgs BL.empty)
-        (\(e :: IOError) -> if isDoesNotExistError e
-                               then E.throwIO $
-                                      PandocPDFProgramNotFoundError program
-                               else E.throwIO e)
+        (handlePDFProgramNotFound program)
       when (verbosity >= INFO) $ do
         BL.hPutStr stdout out
         putStr "\n"
@@ -474,10 +462,7 @@ context2pdf verbosity program pdfargs tmpDir source =
         showVerboseInfo (Just tmpDir) program programArgs env'
     (exit, out) <- E.catch
       (pipeProcess (Just env') program programArgs BL.empty)
-      (\(e :: IOError) -> if isDoesNotExistError e
-                             then E.throwIO $
-                                    PandocPDFProgramNotFoundError "context"
-                             else E.throwIO e)
+      (handlePDFProgramNotFound program)
     when (verbosity >= INFO) $ do
       BL.hPutStr stdout out
       putStr "\n"
@@ -517,3 +502,9 @@ showVerboseInfo mbTmpDir program programArgs env source = do
   putStr "\n"
   putStrLn $ "[makePDF] Source:"
   putStrLn source
+
+handlePDFProgramNotFound :: String -> IE.IOError -> IO a
+handlePDFProgramNotFound program e
+  | IE.isDoesNotExistError e =
+      E.throwIO $ PandocPDFProgramNotFoundError program
+  | otherwise = E.throwIO e
