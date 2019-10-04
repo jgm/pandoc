@@ -150,7 +150,7 @@ parseNote e =
     isTitle x = qName (elName x) == "title"
     dropTitle (x:xs) = if isTitle x
                          then xs -- Drop note section <title> if present
-                         else (x:xs)
+                         else x:xs
     dropTitle [] = []
 
 -- | Parse a child of @\<FictionBook>@ element.
