@@ -51,8 +51,8 @@ jobs:
             cabal: '2.4'
           - ghc: '8.6.5'
             cabal: '2.4'
-#         - ghc: '8.8.1'
-#           cabal: '3.0'
+          - ghc: '8.8.1'
+            cabal: '3.0'
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies
