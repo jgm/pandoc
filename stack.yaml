@@ -13,7 +13,7 @@ packages:
 extra-deps:
 - pandoc-citeproc-0.16.3
 - pandoc-types-1.17.6.1
-- texmath-0.11.2.3
+- texmath-0.11.3
 - skylighting-0.8.2.3
 - skylighting-core-0.8.2.3
 - regex-pcre-builtin-0.95.0.8.8.35
