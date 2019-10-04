@@ -11,7 +11,6 @@ import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 import Text.Pandoc.Writers.RST
-import Text.Pandoc.Templates (compileTemplate)
 import qualified Data.Text as T
 
 infix 4 =:

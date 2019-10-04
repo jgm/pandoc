@@ -127,7 +127,6 @@ import System.FilePath
 import qualified System.FilePath.Glob as IO (glob)
 import qualified System.FilePath.Posix as Posix
 import qualified System.Directory as IO (getModificationTime)
-import Control.Monad as M (fail)
 import Control.Monad.State.Strict
 import Control.Monad.Except
 import Data.Word (Word8)
@@ -990,7 +989,8 @@ instance PandocMonad PandocPure where
       u : us -> do
         modifyPureState $ \st -> st { stUniqStore = us }
         return u
-      _ -> M.fail "uniq store ran out of elements"
+      _ -> throwError $ PandocShouldNeverHappenError
+                        "uniq store ran out of elements"
   openURL u = throwError $ PandocResourceNotFound u
   readFileLazy fp = do
     fps <- getsPureState stFiles

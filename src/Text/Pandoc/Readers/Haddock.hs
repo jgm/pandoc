@@ -117,7 +117,10 @@ docHToInlines isCode d' =
                               $ map B.code $ splitBy (=='\n') s
       | otherwise  -> B.text s
     DocParagraph _ -> mempty
-    DocIdentifier (_,s,_) -> B.codeWith ("",["haskell","identifier"],[]) s
+    DocIdentifier ident ->
+        case toRegular (DocIdentifier ident) of
+          DocIdentifier s -> B.codeWith ("",["haskell","identifier"],[]) s
+          _               -> mempty
     DocIdentifierUnchecked s -> B.codeWith ("",["haskell","identifier"],[]) s
     DocModule s -> B.codeWith ("",["haskell","module"],[]) s
     DocWarning _ -> mempty -- TODO
@@ -133,7 +136,8 @@ docHToInlines isCode d' =
     DocDefList _ -> mempty
     DocCodeBlock _ -> mempty
     DocHyperlink h -> B.link (hyperlinkUrl h) (hyperlinkUrl h)
-             (maybe (B.text $ hyperlinkUrl h) B.text $ hyperlinkLabel h)
+             (maybe (B.text $ hyperlinkUrl h) (docHToInlines isCode)
+               (hyperlinkLabel h))
     DocPic p -> B.image (pictureUri p) (fromMaybe (pictureUri p) $ pictureTitle p)
                         (maybe mempty B.text $ pictureTitle p)
     DocAName s -> B.spanWith (s,["anchor"],[]) mempty
