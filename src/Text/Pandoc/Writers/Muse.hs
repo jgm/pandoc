@@ -621,7 +621,7 @@ inlineToMuse (Quoted DoubleQuote lst) = do
   return $ "“" <> contents <> "”"
 inlineToMuse Cite {} =
   throwError $ PandocShouldNeverHappenError
-             $ "Citations should be expanded before normalization"
+               "Citations should be expanded before normalization"
 inlineToMuse (Code _ str) = do
   useTags <- gets stUseTags
   modify $ \st -> st { stUseTags = False }
