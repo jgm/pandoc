@@ -642,7 +642,7 @@ data MuseTableElement = MuseHeaderRow [Blocks]
 museToPandocTable :: MuseTable -> Blocks
 museToPandocTable (MuseTable caption headers body footers) =
   B.table caption attrs headRow (rows ++ body ++ footers)
-  where attrs = const (AlignDefault, 0.0) <$> transpose (headers ++ body ++ footers)
+  where attrs = (AlignDefault, 0.0) <$ transpose (headers ++ body ++ footers)
         (headRow, rows) = fromMaybe ([], []) $ uncons headers
 
 museAppendElement :: MuseTableElement
@@ -690,7 +690,7 @@ museGridTable = try $ do
   indices <- museGridTableHeader
   fmap rowsToTable . sequence <$> many1 (museGridTableRow indent indices)
   where rowsToTable rows = B.table mempty attrs [] rows
-                           where attrs = const (AlignDefault, 0.0) <$> transpose rows
+                           where attrs = (AlignDefault, 0.0) <$ transpose rows
 
 -- | Parse a table.
 table :: PandocMonad m => MuseParser m (F Blocks)
