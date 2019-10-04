@@ -294,7 +294,7 @@ tests =
           para (link "https://amusewiki.org/" "" (text "foo[1"))
         , "Image inside link" =:
           "[[https://amusewiki.org/][Image [[image.png][with it's own description]] inside link description]]" =?>
-          para (link "https://amusewiki.org/" "" (text "Image " <> (image "image.png" "" (text "with it's own description")) <> text " inside link description"))
+          para (link "https://amusewiki.org/" "" (text "Image " <> image "image.png" "" (text "with it's own description") <> text " inside link description"))
         , "Link inside image description" =:
           "[[image.jpg][Image from [[https://amusewiki.org/]]]]" =?>
           para (image "image.jpg" "" (text "Image from " <> link "https://amusewiki.org/" "" (str "https://amusewiki.org/")))
