@@ -15,5 +15,5 @@ strip $TARGET/bin/pandoc
 strip $TARGET/bin/pandoc-citeproc
 gzip -9 $TARGET/share/man/man1/pandoc.1
 gzip -9 $TARGET/share/man/man1/pandoc-citeproc.1
-tar cvzf $TARGET-linux.tar.gz $TARGET
+tar cvzf $TARGET-linux-amd64.tar.gz $TARGET
 rm -r $TARGET
