@@ -14,10 +14,13 @@ jobs:
     - name: Create linux package
       run: |
           make debpkg
+          mkdir linux-release-candidate
+          cp linux/artifacts/*.deb linux-release-candidate/
+          cp linux/artifacts/*.tar.gz linux-release-candidate/
     - uses: actions/upload-artifact@master
       with:
         name: linux-release-candidate
-        path: linux-artifacts
+        path: linux-release-candidate
 
   windows:
 
@@ -25,31 +28,33 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-      - osarch: "windows-x86_64"
-        arch: "x86"
-        choco_opts: "--x86"
-        stack_opts: ""
-      - osarch: "windows-i386"
-        arch: "x64"
-        choco_opts: ""
-        stack_opts: "--flag hslua:lua_32bits"
+        versions:
+          - osarch: "windows-x86_64"
+            arch: "x64"
+            choco_opts: ""
+            stack_opts: ""
+          - osarch: "windows-i386"
+            arch: "x86"
+            choco_opts: "--x86"
+            stack_opts: "--flag hslua:lua_32bits"
 
     steps:
     - uses: actions/checkout@v1
     - name: Install stack
       shell: cmd
       run: |
-          choco install haskell-stack ${{ matrix.choco_opts }}
+          choco install haskell-stack ${{ matrix.versions.choco_opts }}
     - name: Install dependencies
       run: |
           stack update
-          stack build ${{ matrix.stack_opts }} --dependencies-only pandoc pandoc-citeproc
-    - name: Build artifacts
+          stack build ${{ matrix.versions.stack_opts }} --dependencies-only pandoc pandoc-citeproc
+    - name: Create windows package
       shell: cmd
       run: |
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
-          stack build  ${{ matrix.stack_opts }}pandoc pandoc-citeproc
-          forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C copy @path windows"
+          stack build  ${{ matrix.versions.stack_opts }}pandoc pandoc-citeproc
+          @set WINDOWS=%CD%\windows
+          forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C echo @path && echo %%WINDOWS%% && copy @path %%WINDOWS%%"
           stack exec pandoc -- -s --toc MANUAL.txt -o windows\MANUAL.html
           stack exec pandoc -- -s COPYING.md -t rtf -o windows\COPYING.rtf
           copy COPYRIGHT windows\COPYRIGHT.txt
@@ -65,43 +70,77 @@ jobs:
           )
           echo Detected version %VERSION%
           echo Creating msi...
-          candle -arch ${{ matrix.arch }} -dVERSION=%VERSION% -dBINPATH=%BINPATH% *.wxs -out wixobj\
+          dir
+          @set WIXBIN="c:\Program Files (x86)\WiX Toolset v3.11\bin"
+          @set WORKDIR=%CD%
+          echo Running candle...
+          %WIXBIN%\candle -arch ${{ matrix.versions.arch }} -dVERSION=%VERSION% -dBINPATH=%WORKDIR% *.wxs -out wixobj\
           if %errorlevel% neq 0 exit /b %errorlevel%
-          light  -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out pandoc-%VERSION%-${{ matrix.osarch }}.msi wixobj\*.wixobj
+          echo Running light...
+          %WIXBIN%\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out %WORKDIR%\pandoc-%VERSION%-${{ matrix.versions.osarch }}.msi wixobj\*.wixobj
           cd ..
           mkdir windows-release-candidate
-          copy windows\pandoc-%VERSION%-${{ matrix.osarch }}.msi windows-release-candidate
+          copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.msi windows-release-candidate
     - uses: actions/upload-artifact@master
       with:
         name: windows-release-candidate
         path: windows-release-candidate
 
-# macos:
+  macos:
 
-#   runs-on: macOS-latest
+    runs-on: macOS-latest
 
-#   steps:
-#   - uses: actions/checkout@v1
-#   - name: Install stack
-#     run: |
-#         curl -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz -o stack.tar.gz
-#         tar xzvf stack.tar.gz --strip-components=1 'stack*/stack'
-#   - name: Install dependencies
-#     run: |
-#         ./stack update
-#         ./stack build --dependencies-only pandoc pandoc-citeproc
-#   - name: Build artifacts
-#     run: |
-#         export ARTIFACTS=nightly-macos/pandoc-nightly-macos-$(date +%Y-%m-%d)
-#         mkdir -p ${ARTIFACTS}
-#         ./stack build pandoc pandoc-citeproc
-#         for f in $(find .stack-work/install -name 'pandoc*' -perm +001 -type f); do cp $f ${ARTIFACTS}/; done
-#         mv ${ARTIFACTS}/pandoc ${ARTIFACTS}/pandoc
-#         mv ${ARTIFACTS}/pandoc-citeproc ${ARTIFACTS}/pandoc-citeproc
-#         cp COPYRIGHT ${ARTIFACTS}/
-#         echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
-#   - uses: actions/upload-artifact@master
-#     with:
-#       name: nightly-macos
-#       path: nightly-macos
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install stack
+      run: |
+          curl -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz -o stack.tar.gz
+          tar xzvf stack.tar.gz --strip-components=1 'stack*/stack'
+    - name: Install dependencies
+      run: |
+          ./stack update
+          ./stack build --dependencies-only pandoc pandoc-citeproc
+    - name: Create macOS package
+      run: |
+          export VERSION=$(grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
+          export BASEDIR=$(pwd)
+          export ARTIFACTS=${BASEDIR}/macos-release-candidate
+          export DIST=${BASEDIR}/macos_package
+          export RESOURCES=${ARTIFACTS}/Resources
+          export ROOT=${DIST}/pandoc
+          export DEST=${ROOT}/usr/local
+          export ME=$(whoami)
+          export BASE=pandoc-$VERSION
+          mkdir -p ${ARTIFACTS}
+          mkdir -p ${DIST}
+          mkdir -p ${RESOURCES}
+          mkdir -p ${DEST}/bin
+          mkdir -p ${DEST}/share/man/man1
+          ./stack build pandoc pandoc-citeproc
+          for f in $(find .stack-work/install -name 'pandoc*' -perm +001 -type f); do cp $f ${DEST}/bin/; done
+          strip ${DEST}/bin/pandoc
+          strip ${DEST}/bin/pandoc-citeproc
+          ${DEST}/bin/pandoc -f markdown-smart -t man -s \
+            --template man/pandoc.1.template --lua-filter man/manfilter.lua \
+            --variable version="pandoc ${VERSION}" \
+            -o ${DEST}/share/man/man1/pandoc.1
+          ${DEST}/bin/pandoc-citeproc --man > \
+            $DEST/share/man/man1/pandoc-citeproc.1
+          ${DEST}/bin/pandoc -t html5 -s COPYING.md -Vpagetitle=License \
+            -o ${RESOURCES}/license.html
+          sed -e "s/PANDOCVERSION/${VERSION}/" macos/distribution.xml.in > ${ARTIFACTS}/distribution.xml
+
+          chown -R $ME:staff ${DIST}
+          echo Creating pkg...
+          pkgbuild --root $ROOT --identifier net.johnmacfarlane.pandoc --version $VERSION --ownership recommended ${ARTIFACTS}/pandoc.pkg
+          echo Creating zip...
+          cd ${DEST}
+          cd ..
+          mv local ${BASE}
+          zip -r ${ARTIFACTS}/${BASE}-macOS.zip ${BASE}
+          echo -e "${BASE}-macOS.pkg: pandoc.pkg\n\tproductbuild --distribution distribution.xml --resources Resources --package-path $< --version ${VERSION} --sign 'Developer ID Installer: John Macfarlane' -o \$@\n" > ${ARTIFACTS}/Makefile
+    - uses: actions/upload-artifact@master
+      with:
+        name: macos-release-candidate
+        path: macos-release-candidate
 
