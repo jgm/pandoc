@@ -31,11 +31,11 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             ReferenceLocation (EndOfDocument),
                             ObfuscationMethod (NoObfuscation),
                             CiteMethod (Citeproc))
-
+import Text.Pandoc.Shared (camelCaseToHyphenated)
 #ifdef DERIVE_JSON_VIA_TH
-import Data.Aeson.TH (deriveJSON, defaultOptions)
+import Data.Aeson.TH (deriveJSON, defaultOptions, Options(..))
 #else
-import Data.Aeson (FromJSON (..), ToJSON (..),
+import Data.Aeson (FromJSON (..), ToJSON (..), Options(..)
                    defaultOptions, genericToEncoding)
 #endif
 
@@ -195,13 +195,17 @@ defaultOpts = Opt
 -- see https://github.com/jgm/pandoc/pull/4083
 -- using generic deriving caused long compilation times
 $(deriveJSON defaultOptions ''LineEnding)
-$(deriveJSON defaultOptions ''Opt)
+$(deriveJSON
+   defaultOptions{ fieldLabelModifier =
+                      camelCaseToHyphenated . drop 3 } ''Opt)
 #else
 instance ToJSON LineEnding where
   toEncoding = genericToEncoding defaultOptions
 instance FromJSON LineEnding
 
 instance ToJSON Opt where
-  toEncoding = genericToEncoding defaultOptions
+  toEncoding = genericToEncoding
+               defaultOptions{ fieldLabelModifier =
+                                  camelCaseToHyphenated . drop 3 }
 instance FromJSON Opt
 #endif
