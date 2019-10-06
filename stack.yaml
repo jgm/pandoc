@@ -2,6 +2,8 @@ flags:
   pandoc:
     trypandoc: false
     embed_data_files: true
+    derive_json_via_th: true
+    static: false
   pandoc-citeproc:
     bibutils: true
     embed_data_files: true
