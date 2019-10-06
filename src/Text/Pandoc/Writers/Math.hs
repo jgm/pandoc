@@ -52,7 +52,7 @@ convertMath writer mt str =
                    InlineMath  -> DisplayInline
 
 defaultMathJaxURL :: String
-defaultMathJaxURL = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/"
+defaultMathJaxURL = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/"
 
 defaultKaTeXURL :: String
 defaultKaTeXURL = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/"
