@@ -232,7 +232,7 @@ convertWithOpts opts = do
     let transforms = (case optBaseHeaderLevel opts of
                           x | x > 1     -> (headerShift (x - 1) :)
                             | otherwise -> id) .
-                     (case optShiftHeadingLevel opts of
+                     (case optShiftHeadingLevelBy opts of
                           0             -> id
                           x             -> (headerShift x :)) .
                      (if optStripEmptyParagraphs opts

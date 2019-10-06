@@ -441,7 +441,7 @@ options =
                   (\arg opt ->
                       case safeRead arg of
                            Just t ->
-                               return opt{ optShiftHeadingLevel = t }
+                               return opt{ optShiftHeadingLevelBy = t }
                            _              -> E.throwIO $ PandocOptionError
                                                "shift-heading-level-by takes an integer argument")
                   "NUMBER")
