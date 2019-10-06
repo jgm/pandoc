@@ -699,7 +699,7 @@ options =
                  (OptArg
                   (\arg opt -> do
                       let url' = fromMaybe (defaultMathJaxURL ++
-                                  "MathJax.js?config=TeX-AMS_CHTML-full") arg
+                                  "tex-mml-chtml.js") arg
                       return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
                  "" -- "Use MathJax for HTML math"
