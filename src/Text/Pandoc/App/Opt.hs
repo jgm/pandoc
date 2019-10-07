@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DeriveGeneric       #-}
@@ -31,15 +32,28 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             ObfuscationMethod (NoObfuscation),
                             CiteMethod (Citeproc))
 import Text.Pandoc.Shared (camelCaseToHyphenated)
+import qualified Data.Text as T
+import Data.Aeson (defaultOptions, Options(..), FromJSON(..), ToJSON(..),
+                  Value(..))
 #ifdef DERIVE_JSON_VIA_TH
-import Data.Aeson.TH (deriveJSON, defaultOptions, Options(..))
+import Data.Aeson.TH (deriveJSON)
 #else
-import Data.Aeson (FromJSON (..), ToJSON (..), Options(..)
-                   defaultOptions, genericToEncoding)
+import Data.Aeson (genericToEncoding)
 #endif
 
 -- | The type of line-endings to be used when writing plain-text.
 data LineEnding = LF | CRLF | Native deriving (Show, Generic)
+
+instance ToJSON LineEnding
+
+instance FromJSON LineEnding where
+  parseJSON (String t) =
+    case T.toLower t of
+      "lf"     -> return LF
+      "crlf"   -> return CRLF
+      "native" -> return Native
+      _        -> fail "Expecting LF, CRLF, or Native"
+  parseJSON _ = fail "Expecting string"
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -191,15 +205,10 @@ defaultOpts = Opt
 #ifdef DERIVE_JSON_VIA_TH
 -- see https://github.com/jgm/pandoc/pull/4083
 -- using generic deriving caused long compilation times
-$(deriveJSON defaultOptions ''LineEnding)
 $(deriveJSON
    defaultOptions{ fieldLabelModifier =
                       camelCaseToHyphenated . drop 3 } ''Opt)
 #else
-instance ToJSON LineEnding where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON LineEnding
-
 instance ToJSON Opt where
   toEncoding = genericToEncoding
                defaultOptions{ fieldLabelModifier =
