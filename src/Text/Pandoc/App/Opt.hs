@@ -51,7 +51,6 @@ data Opt = Opt
     , optWriter                :: Maybe String  -- ^ Writer format
     , optTableOfContents       :: Bool    -- ^ Include table of contents
     , optShiftHeadingLevelBy   :: Int     -- ^ Shift heading level by
-    , optBaseHeaderLevel       :: Int     -- ^ Base header level
     , optTemplate              :: Maybe FilePath  -- ^ Custom template
     , optVariables             :: [(String,String)] -- ^ Template variables to set
     , optMetadata              :: [(String, String)] -- ^ Metadata fields to set
@@ -126,7 +125,6 @@ defaultOpts = Opt
     , optWriter                = Nothing
     , optTableOfContents       = False
     , optShiftHeadingLevelBy   = 0
-    , optBaseHeaderLevel       = 1
     , optTemplate              = Nothing
     , optVariables             = []
     , optMetadata              = []

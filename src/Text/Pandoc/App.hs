@@ -229,10 +229,7 @@ convertWithOpts opts = do
         paths -> mapM readFileLazy paths >>= mapM (yamlToMeta readerOpts)
                    >>= return . (foldr1 (<>))
 
-    let transforms = (case optBaseHeaderLevel opts of
-                          x | x > 1     -> (headerShift (x - 1) :)
-                            | otherwise -> id) .
-                     (case optShiftHeadingLevelBy opts of
+    let transforms = (case optShiftHeadingLevelBy opts of
                           0             -> id
                           x             -> (headerShift x :)) .
                      (if optStripEmptyParagraphs opts

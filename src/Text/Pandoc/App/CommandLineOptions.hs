@@ -454,7 +454,7 @@ options =
                         "Use --shift-heading-level-by instead."
                       case safeRead arg of
                            Just t | t > 0 && t < 6 ->
-                               return opt{ optBaseHeaderLevel = t }
+                               return opt{ optShiftHeadingLevelBy = t - 1 }
                            _              -> E.throwIO $ PandocOptionError
                                                "base-header-level must be 1-5")
                   "NUMBER")
