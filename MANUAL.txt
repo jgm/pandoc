@@ -697,11 +697,8 @@ header when requesting a document from a URL:
 `-V` *KEY*[`=`*VAL*], `--variable=`*KEY*[`:`*VAL*]
 
 :   Set the template variable *KEY* to the value *VAL* when rendering the
-    document in standalone mode. This is generally only useful when the
-    `--template` option is used to specify a custom template, since
-    pandoc automatically sets the variables used in the default
-    templates.  If no *VAL* is specified, the key will be given the
-    value `true`.
+    document in standalone mode. If no *VAL* is specified, the
+    key will be given the value `true`.
 
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
 
