@@ -35,6 +35,7 @@ import Text.Pandoc.Shared (camelCaseToHyphenated)
 import qualified Data.Text as T
 import Data.Aeson (defaultOptions, Options(..), FromJSON(..), ToJSON(..),
                   Value(..))
+import Data.Aeson.Types (typeMismatch)
 #ifdef DERIVE_JSON_VIA_TH
 import Data.Aeson.TH (deriveJSON)
 #else
@@ -53,7 +54,7 @@ instance FromJSON LineEnding where
       "crlf"   -> return CRLF
       "native" -> return Native
       _        -> fail "Expecting LF, CRLF, or Native"
-  parseJSON _ = fail "Expecting string"
+  parseJSON v = typeMismatch "String" v
 
 -- | Data structure for command line options.
 data Opt = Opt
