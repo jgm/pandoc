@@ -23,7 +23,6 @@ module Text.Pandoc.App.Opt (
 import Prelude
 import GHC.Generics
 import Text.Pandoc.Filter (Filter (..))
-import Text.Pandoc.Highlighting (Style, pygments)
 import Text.Pandoc.Logging (Verbosity (WARNING))
 import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             TrackChanges (AcceptChanges),
@@ -63,7 +62,7 @@ data Opt = Opt
     , optIncremental           :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
     , optSelfContained         :: Bool    -- ^ Make HTML accessible offline
     , optHtmlQTags             :: Bool    -- ^ Use <q> tags in HTML
-    , optHighlightStyle        :: Maybe Style -- ^ Style to use for highlighted code
+    , optHighlightStyle        :: Maybe String -- ^ Style to use for highlighted code
     , optSyntaxDefinitions     :: [FilePath]  -- ^ xml syntax defs to load
     , optTopLevelDivision      :: TopLevelDivision -- ^ Type of the top-level divisions
     , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
@@ -137,7 +136,7 @@ defaultOpts = Opt
     , optIncremental           = False
     , optSelfContained         = False
     , optHtmlQTags             = False
-    , optHighlightStyle        = Just pygments
+    , optHighlightStyle        = Just "pygments"
     , optSyntaxDefinitions     = []
     , optTopLevelDivision      = TopLevelDefault
     , optHTMLMathMethod        = PlainMath

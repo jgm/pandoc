@@ -35,7 +35,7 @@ import System.IO (stdout)
 import Text.Pandoc
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..))
-import Text.Pandoc.App.CommandLineOptions (engines)
+import Text.Pandoc.App.CommandLineOptions (engines, lookupHighlightStyle)
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -104,6 +104,9 @@ optToOutputSettings opts = do
 
   syntaxMap <- foldM addSyntaxMap defaultSyntaxMap
                      (optSyntaxDefinitions opts)
+
+  hlStyle <- maybe (return Nothing) (fmap Just . lookupHighlightStyle)
+                (optHighlightStyle opts)
 
   -- note: this reverses the list constructed in option parsing,
   -- which in turn was reversed from the command-line order,
@@ -221,7 +224,7 @@ optToOutputSettings opts = do
         , writerTopLevelDivision = optTopLevelDivision opts
         , writerListings         = optListings opts
         , writerSlideLevel       = optSlideLevel opts
-        , writerHighlightStyle   = optHighlightStyle opts
+        , writerHighlightStyle   = hlStyle
         , writerSetextHeaders    = optSetextHeaders opts
         , writerEpubSubdirectory = optEpubSubdirectory opts
         , writerEpubMetadata     = epubMetadata

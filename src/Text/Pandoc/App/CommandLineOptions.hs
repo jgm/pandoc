@@ -20,10 +20,12 @@ module Text.Pandoc.App.CommandLineOptions (
             parseOptions
           , options
           , engines
+          , lookupHighlightStyle
           ) where
 import Prelude
 import Control.Monad
 import Control.Monad.Trans
+import Control.Monad.Except (throwError)
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
 import Data.Char (toLower)
@@ -34,8 +36,7 @@ import Data.List (isPrefixOf)
 #endif
 #endif
 import Data.Maybe (fromMaybe)
-import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme,
-                    pygments)
+import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)
 import System.Console.GetOpt
 import System.Environment (getArgs, getProgName)
 import System.Exit (exitSuccess)
@@ -47,6 +48,7 @@ import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
 import Text.Pandoc.Shared (ordNub, safeRead, defaultUserDataDirs)
+import Text.Pandoc.Class (PandocMonad(..), runIOorExplode)
 import Text.Printf
 
 #ifdef EMBED_DATA_FILES
@@ -101,20 +103,6 @@ engines = map ("html",) htmlEngines ++
 
 pdfEngines :: [String]
 pdfEngines = ordNub $ map snd engines
-
-lookupHighlightStyle :: String -> IO (Maybe Style)
-lookupHighlightStyle s
-  | takeExtension s == ".theme" = -- attempt to load KDE theme
-    do contents <- B.readFile s
-       case parseTheme contents of
-            Left _    -> E.throwIO $ PandocOptionError $
-                           "Could not read highlighting theme " ++ s
-            Right sty -> return (Just sty)
-  | otherwise =
-  case lookup (map toLower s) highlightingStyles of
-       Just sty -> return (Just sty)
-       Nothing  -> E.throwIO $ PandocOptionError $
-                      "Unknown highlight-style " ++ s
 
 -- | A list of functions, each transforming the options data structure
 --   in response to a command-line option.
@@ -296,8 +284,8 @@ options =
 
     , Option "" ["highlight-style"]
                 (ReqArg
-                 (\arg opt -> lookupHighlightStyle arg >>= \style ->
-                     return opt{ optHighlightStyle = style })
+                 (\arg opt ->
+                     return opt{ optHighlightStyle = Just arg })
                  "STYLE|FILE")
                  "" -- "Style for highlighted code"
 
@@ -856,7 +844,7 @@ options =
                      let write = case optOutputFile opt of
                                         Just f  -> B.writeFile f
                                         Nothing -> B.putStr
-                     sty <- fromMaybe pygments <$> lookupHighlightStyle arg
+                     sty <- runIOorExplode $ lookupHighlightStyle arg
                      write $ encodePretty'
                        defConfig{confIndent = Spaces 4
                                 ,confCompare = keyOrder
@@ -964,6 +952,20 @@ splitField s =
   case break (`elem` ":=") s of
        (k,_:v) -> (k,v)
        (k,[])  -> (k,"true")
+
+lookupHighlightStyle :: PandocMonad m => String -> m Style
+lookupHighlightStyle s
+  | takeExtension s == ".theme" = -- attempt to load KDE theme
+    do contents <- readFileLazy s
+       case parseTheme contents of
+            Left _    -> throwError $ PandocOptionError $
+                           "Could not read highlighting theme " ++ s
+            Right sty -> return sty
+  | otherwise =
+  case lookup (map toLower s) highlightingStyles of
+       Just sty -> return sty
+       Nothing  -> throwError $ PandocOptionError $
+                      "Unknown highlight-style " ++ s
 
 deprecatedOption :: String -> String -> IO ()
 deprecatedOption o msg =
