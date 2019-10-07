@@ -26,7 +26,7 @@ import Control.Monad
 import Control.Monad.Trans
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
-import Data.Char (toLower, toUpper)
+import Data.Char (toLower)
 import Data.List (intercalate, sort)
 #ifdef _WINDOWS
 #if MIN_VERSION_base(4,12,0)
@@ -143,10 +143,12 @@ options =
     , Option "" ["wrap"]
                  (ReqArg
                   (\arg opt ->
-                    case safeRead ("Wrap" ++ uppercaseFirstLetter arg) of
-                          Just o   -> return opt { optWrapText = o }
-                          Nothing  -> E.throwIO $ PandocOptionError
-                                     "--wrap must be auto, none, or preserve")
+                    case arg of
+                      "auto" -> return opt{ optWrapText = WrapAuto }
+                      "none" -> return opt{ optWrapText = WrapNone }
+                      "preserve" -> return opt{ optWrapText = WrapPreserve }
+                      _      -> E.throwIO $ PandocOptionError
+                                 "--wrap must be auto, none, or preserve")
                  "auto|none|preserve")
                  "" -- "Option for wrapping text in output"
 
@@ -209,15 +211,15 @@ options =
                       case safeRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optTOCDepth = t }
-                           _      -> E.throwIO $ PandocOptionError
-                                    "TOC level must be a number between 1 and 6")
+                           _ -> E.throwIO $ PandocOptionError
+                                "TOC level must be a number 1-6")
                  "NUMBER")
                  "" -- "Number of levels to include in TOC"
 
     , Option "N" ["number-sections"]
                  (NoArg
                   (\opt -> return opt { optNumberSections = True }))
-                 "" -- "Number sections in LaTeX"
+                 "" -- "Number sections"
 
     , Option "" ["number-offset"]
                  (ReqArg
@@ -232,13 +234,19 @@ options =
 
     , Option "" ["top-level-division"]
                  (ReqArg
-                  (\arg opt -> do
-                      let tldName = "TopLevel" ++ uppercaseFirstLetter arg
-                      case safeRead tldName of
-                        Just tlDiv -> return opt { optTopLevelDivision = tlDiv }
-                        _       -> E.throwIO $ PandocOptionError
-                                     ("Top-level division must be " ++
-                                      "section,  chapter, part, or default"))
+                  (\arg opt ->
+                      case arg of
+                        "section" -> return opt{ optTopLevelDivision =
+                                        TopLevelSection }
+                        "chapter" -> return opt{ optTopLevelDivision =
+                                        TopLevelChapter }
+                        "part"    -> return opt{ optTopLevelDivision =
+                                        TopLevelPart }
+                        "default" -> return opt{ optTopLevelDivision =
+                                        TopLevelDefault }
+                        _ -> E.throwIO $ PandocOptionError $
+                                "Top-level division must be " ++
+                                "section,  chapter, part, or default" )
                    "section|chapter|part")
                  "" -- "Use top-level division type in LaTeX, ConTeXt, DocBook"
 
@@ -944,10 +952,6 @@ handleUnrecognizedOption "--epub-stylesheet" =
 handleUnrecognizedOption "-R" = handleUnrecognizedOption "--parse-raw"
 handleUnrecognizedOption x =
   (("Unknown option " ++ x ++ ".") :)
-
-uppercaseFirstLetter :: String -> String
-uppercaseFirstLetter (c:cs) = toUpper c : cs
-uppercaseFirstLetter []     = []
 
 readersNames :: [String]
 readersNames = sort (map fst (readers :: [(String, Reader PandocIO)]))
