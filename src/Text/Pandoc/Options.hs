@@ -31,6 +31,7 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , isEnabled
                            ) where
 import Prelude
+import Data.Char (toLower)
 import Data.Data (Data)
 import Data.Default
 import qualified Data.Set as Set
@@ -39,8 +40,10 @@ import GHC.Generics (Generic)
 import Skylighting (SyntaxMap, defaultSyntaxMap)
 import Text.Pandoc.Extensions
 import Text.Pandoc.Highlighting (Style, pygments)
+import Text.Pandoc.Shared (camelCaseToHyphenated)
 import Text.DocTemplates (Template)
-import Data.Aeson.TH (deriveJSON, defaultOptions)
+import Data.Aeson.TH (deriveJSON, defaultOptions, Options(..),
+                      SumEncoding(..))
 
 class HasSyntaxExtensions a where
   getExtensions :: a -> Extensions
@@ -223,11 +226,32 @@ isEnabled :: HasSyntaxExtensions a => Extension -> a -> Bool
 isEnabled ext opts = ext `extensionEnabled` getExtensions opts
 
 $(deriveJSON defaultOptions ''ReaderOptions)
-$(deriveJSON defaultOptions ''HTMLMathMethod)
-$(deriveJSON defaultOptions ''CiteMethod)
-$(deriveJSON defaultOptions ''ObfuscationMethod)
+$(deriveJSON defaultOptions{
+   constructorTagModifier = map toLower,
+   sumEncoding = TaggedObject{
+                    tagFieldName = "method",
+                    contentsFieldName = "url" }
+                           } ''HTMLMathMethod)
+$(deriveJSON defaultOptions{ constructorTagModifier =
+                               camelCaseToHyphenated
+                           } ''CiteMethod)
+$(deriveJSON defaultOptions{ constructorTagModifier =
+                            \t -> case t of
+                                    "NoObfuscation"         -> "none"
+                                    "ReferenceObfuscation"  -> "references"
+                                    "JavascriptObfuscation" -> "javascript"
+                                    _                       -> "none"
+                           } ''ObfuscationMethod)
 $(deriveJSON defaultOptions ''HTMLSlideVariant)
-$(deriveJSON defaultOptions ''TrackChanges)
-$(deriveJSON defaultOptions ''WrapOption)
-$(deriveJSON defaultOptions ''TopLevelDivision)
-$(deriveJSON defaultOptions ''ReferenceLocation)
+$(deriveJSON defaultOptions{ constructorTagModifier =
+                               camelCaseToHyphenated
+                           } ''TrackChanges)
+$(deriveJSON defaultOptions{ constructorTagModifier =
+                               camelCaseToHyphenated
+                           } ''WrapOption)
+$(deriveJSON defaultOptions{ constructorTagModifier =
+                               camelCaseToHyphenated . drop 8
+                           } ''TopLevelDivision)
+$(deriveJSON defaultOptions{ constructorTagModifier =
+                               camelCaseToHyphenated
+                           } ''ReferenceLocation)

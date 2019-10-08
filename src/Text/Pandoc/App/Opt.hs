@@ -20,6 +20,7 @@ module Text.Pandoc.App.Opt (
           , defaultOpts
           ) where
 import Prelude
+import Data.Char (isLower)
 import GHC.Generics
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Logging (Verbosity (WARNING))
@@ -201,4 +202,5 @@ defaultOpts = Opt
 -- using generic deriving caused long compilation times
 $(deriveJSON
    defaultOptions{ fieldLabelModifier =
-                      camelCaseToHyphenated . drop 3 } ''Opt)
+                      camelCaseToHyphenated . dropWhile isLower
+                 } ''Opt)
