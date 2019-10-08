@@ -6,6 +6,9 @@ import Tests.Writers.OOXML (ooxmlTest)
 import Text.Pandoc
 import Test.Tasty
 import System.FilePath
+import Text.DocTemplates (ToContext(toVal), Context(..))
+import qualified Data.Map as M
+import Data.Text (pack)
 
 -- templating is important enough, and can break enough things, that
 -- we want to run all our tests with both default formatting and a
@@ -124,7 +127,8 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          "pptx/code.native"
                          "pptx/code.pptx"
                        , pptxTests "inline code and code blocks, custom formatting"
-                         def { writerVariables = [("monofont", "Consolas")] }
+                         def { writerVariables = Context $ M.fromList
+                                 [(pack "monofont", toVal $ pack "Consolas")] }
                          "pptx/code.native"
                          "pptx/code-custom.pptx"
                        ]

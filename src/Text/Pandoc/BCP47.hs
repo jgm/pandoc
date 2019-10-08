@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.BCP47
@@ -24,6 +25,8 @@ import Data.Char (isAlphaNum, isAscii, isLetter, isLower, isUpper, toLower,
 import Data.List (intercalate)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
+import Text.DocTemplates (FromContext(..))
+import qualified Data.Text as T
 import qualified Text.Parsec as P
 
 -- | Represents BCP 47 language/country code.
@@ -41,8 +44,8 @@ renderLang lang = intercalate "-" (langLanguage lang : filter (not . null)
 -- | Get the contents of the `lang` metadata field or variable.
 getLang :: WriterOptions -> Meta -> Maybe String
 getLang opts meta =
-  case lookup "lang" (writerVariables opts) of
-        Just s -> Just s
+  case lookupContext "lang" (writerVariables opts) of
+        Just s -> Just $ T.unpack s
         _      ->
           case lookupMeta "lang" meta of
                Just (MetaInlines [Str s]) -> Just s

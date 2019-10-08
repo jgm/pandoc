@@ -34,6 +34,8 @@ import Prelude
 import Data.Char (toLower)
 import Data.Data (Data)
 import Data.Default
+import Data.Text (Text)
+import Text.DocTemplates (Context(..))
 import qualified Data.Set as Set
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
@@ -148,7 +150,7 @@ data ReferenceLocation = EndOfBlock    -- ^ End of block
 -- | Options for writers
 data WriterOptions = WriterOptions
   { writerTemplate          :: Maybe Template -- ^ Template to use
-  , writerVariables         :: [(String, String)] -- ^ Variables to set in template
+  , writerVariables         :: Context Text -- ^ Variables to set in template
   , writerTabStop           :: Int    -- ^ Tabstop for conversion btw spaces and tabs
   , writerTableOfContents   :: Bool   -- ^ Include table of contents
   , writerIncremental       :: Bool   -- ^ True if lists should be incremental
@@ -185,7 +187,7 @@ data WriterOptions = WriterOptions
 
 instance Default WriterOptions where
   def = WriterOptions { writerTemplate         = Nothing
-                      , writerVariables        = []
+                      , writerVariables        = mempty
                       , writerTabStop          = 4
                       , writerTableOfContents  = False
                       , writerIncremental      = False

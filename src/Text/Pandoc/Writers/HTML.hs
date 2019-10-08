@@ -39,6 +39,7 @@ import Data.List.Split (splitWhen)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
+import Text.DocTemplates (FromContext(lookupContext))
 import Network.HTTP (urlEncode)
 import Network.URI (URI (..), parseURIReference)
 import Numeric (showHex)
@@ -220,8 +221,8 @@ writeHtmlString' st opts d = do
             case getField "pagetitle" context of
                  Just (s :: Text) | not (T.null s) -> return context
                  _ -> do
-                   let fallback = maybe "Untitled" takeBaseName $
-                           lookup "sourcefile" (writerVariables opts)
+                   let fallback = maybe "Untitled" (takeBaseName . T.unpack) $
+                           lookupContext "sourcefile" (writerVariables opts)
                    report $ NoTitleElement fallback
                    return $ resetField "pagetitle" (T.pack fallback) context
          return $ renderTemplate tpl
@@ -286,11 +287,13 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          H.link ! A.rel "stylesheet" !
                            A.href (toValue $ url ++ "katex.min.css")
 
-                      _ -> case lookup "mathml-script" (writerVariables opts) of
+                      _ -> case lookupContext "mathml-script"
+                                (writerVariables opts) of
                                  Just s | not (stHtml5 st) ->
                                    H.script ! A.type_ "text/javascript"
                                       $ preEscapedString
-                                       ("/*<![CDATA[*/\n" ++ s ++ "/*]]>*/\n")
+                                       ("/*<![CDATA[*/\n" ++ T.unpack s ++
+                                       "/*]]>*/\n")
                                         | otherwise -> mempty
                                  Nothing -> mempty
   let context =   (if stHighlighting st

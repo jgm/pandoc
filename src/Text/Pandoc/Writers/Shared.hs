@@ -39,6 +39,7 @@ module Text.Pandoc.Writers.Shared (
 where
 import Prelude
 import Safe (lastMay)
+import qualified Data.ByteString.Lazy as BL
 import Data.Maybe (fromMaybe)
 import Control.Monad (zipWithM)
 import Data.Aeson (ToJSON (..), encode)
@@ -90,12 +91,15 @@ metaToContext' blockWriter inlineWriter (Meta metamap) = do
 -- | Add variables to a template Context, replacing any existing values.
 addVariablesToContext :: TemplateTarget a
                       => WriterOptions -> Context a -> Context a
-addVariablesToContext opts (Context m1) = Context (m1 `M.union` m2)
+addVariablesToContext opts (Context m1) =
+  Context (m1 `M.union` m2 `M.union` m3)
  where
-   m2 = M.fromList $ map (\(k,v)
-                           -> (T.pack k,SimpleVal (fromText (T.pack v)))) $
-           ("meta-json", jsonrep) : writerVariables opts
-   jsonrep = UTF8.toStringLazy $ encode $ toJSON m1
+   m2 = case traverse go (writerVariables opts) of
+                  Just (Context x) -> x
+                  Nothing -> mempty
+   m3 = M.insert "meta-json" (SimpleVal $ fromText jsonrep) mempty
+   go = Just . fromText
+   jsonrep = UTF8.toText $ BL.toStrict $ encode $ toJSON m1
 
 metaValueToVal :: (Monad m, TemplateTarget a)
                => ([Block] -> m a)

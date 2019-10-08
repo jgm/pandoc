@@ -30,6 +30,7 @@ import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
+import Text.DocTemplates (FromContext(lookupContext))
 import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang)
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import Text.Pandoc.Definition
@@ -146,8 +147,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   -- these have \frontmatter etc.
   beamer <- gets stBeamer
   let documentClass =
-        case lookup "documentclass" (writerVariables options) `mplus`
-              fmap stringify (lookupMeta "documentclass" meta) of
+        case (lookupContext "documentclass"
+                  (writerVariables options)) `mplus`
+              (T.pack . stringify <$> lookupMeta "documentclass" meta) of
                  Just x -> x
                  Nothing | beamer    -> "beamer"
                          | otherwise -> case writerTopLevelDivision options of
@@ -208,7 +210,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "title-meta" (T.pack titleMeta) $
                   defField "author-meta"
                         (T.pack $ intercalate "; " authorsMeta) $
-                  defField "documentclass" (T.pack documentClass) $
+                  defField "documentclass" documentClass $
                   defField "verbatim-in-note" (stVerbInNote st) $
                   defField "tables" (stTable st) $
                   defField "strikeout" (stStrikeout st) $

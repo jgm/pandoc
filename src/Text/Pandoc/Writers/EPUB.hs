@@ -2,6 +2,7 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE PatternGuards       #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Writers.EPUB
@@ -58,6 +59,8 @@ import Text.XML.Light (Attr (..), Element (..), Node (..), QName (..),
                        add_attrs, lookupAttr, node, onlyElems, parseXML,
                        ppElement, showElement, strContent, unode, unqual)
 import Text.Pandoc.XML (escapeStringForXML)
+import Text.DocTemplates (FromContext(lookupContext), Context(..),
+                          ToContext(toVal), Val(..))
 
 -- A Chapter includes a list of blocks.
 data Chapter = Chapter [Block]
@@ -136,6 +139,9 @@ removeNote :: Inline -> Inline
 removeNote (Note _) = Str ""
 removeNote x        = x
 
+toVal' :: String -> Val TS.Text
+toVal' = toVal . TS.pack
+
 mkEntry :: PandocMonad m => FilePath -> B.ByteString -> E m Entry
 mkEntry path content = do
   epubSubdir <- gets stEpubSubdir
@@ -163,8 +169,8 @@ getEPUBMetadata opts meta = do
           else return m
   let addLanguage m =
        if null (epubLanguage m)
-          then case lookup "lang" (writerVariables opts) of
-                     Just x  -> return m{ epubLanguage = x }
+          then case lookupContext "lang" (writerVariables opts) of
+                     Just x  -> return m{ epubLanguage = TS.unpack x }
                      Nothing -> do
                        mLang <- lift $ P.lookupEnv "LANG"
                        let localeLang =
@@ -345,11 +351,14 @@ metadataFromMeta opts meta = EPUBMetadata{
         relation = metaValueToString <$> lookupMeta "relation" meta
         coverage = metaValueToString <$> lookupMeta "coverage" meta
         rights = metaValueToString <$> lookupMeta "rights" meta
-        coverImage = lookup "epub-cover-image" (writerVariables opts) `mplus`
-             (metaValueToString <$> lookupMeta "cover-image" meta)
+        coverImage =
+            (TS.unpack <$> lookupContext "epub-cover-image"
+                              (writerVariables opts))
+            `mplus` (metaValueToString <$> lookupMeta "cover-image" meta)
         mCss = lookupMeta "css" meta <|> lookupMeta "stylesheet" meta
         stylesheets = fromMaybe [] (metaValueToPaths <$> mCss) ++
-                        [f | ("css",f) <- writerVariables opts]
+                      maybe [] (\t -> [TS.unpack t])
+                        (lookupContext "css" (writerVariables opts))
         pageDirection = case map toLower . metaValueToString <$>
                              lookupMeta "page-progression-direction" meta of
                               Just "ltr" -> Just LTR
@@ -424,10 +433,13 @@ pandocToEPUB version opts doc = do
         (\bs n -> mkEntry ("styles/stylesheet" ++ show n ++ ".css") bs)
         stylesheets [(1 :: Int)..]
 
-  let vars = ("epub3", if epub3 then "true" else "false")
-             : [(x,y) | (x,y) <- writerVariables opts, x /= "css"]
+  let vars = Context $
+             M.delete "css" . M.insert "epub3"
+                 (toVal' $ if epub3 then "true" else "false") $
+             unContext $ writerVariables opts
 
-  let cssvars useprefix = map (\e -> ("css",
+  let cssvars useprefix = Context $ M.fromList $ map
+                       (\e -> ("css", toVal' $
                                (if useprefix
                                    then "../"
                                    else "")
@@ -457,14 +469,16 @@ pandocToEPUB version opts doc = do
                                  (CouldNotDetermineImageSize img err')
                        cpContent <- lift $ writeHtml
                             opts'{ writerVariables =
-                                    ("coverpage","true"):
-                                    ("pagetitle",
-                                       escapeStringForXML plainTitle):
-                                    ("cover-image", coverImage):
-                                    ("cover-image-width", show coverImageWidth):
-                                    ("cover-image-height",
-                                       show coverImageHeight):
-                                     cssvars True ++ vars }
+                                   Context (M.fromList [
+                                    ("coverpage", toVal' "true"),
+                                    ("pagetitle", toVal' $
+                                      escapeStringForXML plainTitle),
+                                    ("cover-image", toVal' coverImage),
+                                    ("cover-image-width", toVal' $
+                                       show coverImageWidth),
+                                    ("cover-image-height", toVal' $
+                                       show coverImageHeight)]) <>
+                                     cssvars True <> vars }
                             (Pandoc meta [])
                        coverEntry <- mkEntry "text/cover.xhtml" cpContent
                        coverImageEntry <- mkEntry ("media/" ++ coverImage)
@@ -474,10 +488,13 @@ pandocToEPUB version opts doc = do
 
   -- title page
   tpContent <- lift $ writeHtml opts'{
-                                  writerVariables = ("titlepage","true"):
-                                  ("body-type", "frontmatter"):
-                                  ("pagetitle", escapeStringForXML plainTitle):
-                                  cssvars True ++ vars }
+                                  writerVariables =
+                                      Context (M.fromList [
+                                        ("titlepage", toVal' "true"),
+                                        ("body-type",  toVal' "frontmatter"),
+                                        ("pagetitle", toVal' $
+                                            escapeStringForXML plainTitle)])
+                                      <> cssvars True <> vars }
                                (Pandoc meta [])
   tpEntry <- mkEntry "text/title_page.xhtml" tpContent
 
@@ -564,9 +581,12 @@ pandocToEPUB version opts doc = do
 
   let chapToEntry num (Chapter bs) =
         mkEntry ("text/" ++ showChapter num) =<<
-        writeHtml opts'{ writerVariables = ("body-type", bodyType) :
-                                            ("pagetitle", showChapter num) :
-                                             cssvars True ++ vars } pdoc
+        writeHtml opts'{ writerVariables =
+                            Context (M.fromList
+                                     [("body-type", toVal' bodyType),
+                                      ("pagetitle", toVal' $
+                                           showChapter num)])
+                            <> cssvars True <> vars } pdoc
          where (pdoc, bodyType) =
                  case bs of
                      (Header _ (_,_,kvs) xs : _) ->
@@ -776,9 +796,10 @@ pandocToEPUB version opts doc = do
                                (writeHtmlStringForEPUB version
                                  opts{ writerTemplate = Nothing
                                      , writerVariables =
-                                       ("pagetitle",
-                                         escapeStringForXML plainTitle):
-                                       writerVariables opts}
+                                         Context (M.fromList
+                                           [("pagetitle", toVal' $
+                                             escapeStringForXML plainTitle)])
+                                       <> writerVariables opts}
                                  (Pandoc nullMeta
                                    [Plain $ walk clean tit])) of
                                 Left _  -> TS.pack $ stringify tit
@@ -801,13 +822,13 @@ pandocToEPUB version opts doc = do
                          then [ unode "li"
                                 [ unode "a" ! [("href", "text/cover.xhtml")
                                               ,("epub:type", "cover")] $
-                                  "Cover"] |
+                                  ("Cover" :: String)] |
                                   isJust (epubCoverImage metadata)
                               ] ++
                               [ unode "li"
                                 [ unode "a" ! [("href", "#toc")
                                               ,("epub:type", "toc")] $
-                                    "Table of contents"
+                                    ("Table of contents" :: String)
                                 ] | writerTableOfContents opts
                               ]
                          else []
@@ -819,8 +840,9 @@ pandocToEPUB version opts doc = do
                                           ,("hidden","hidden")] $
                             [ unode "ol" landmarkItems ]
                           ]
-  navData <- lift $ writeHtml opts'{ writerVariables = ("navpage","true"):
-                     cssvars False ++ vars }
+  navData <- lift $ writeHtml opts'{ writerVariables =
+                     Context (M.fromList [("navpage", toVal' "true")])
+                     <> cssvars False <> vars }
             (Pandoc (setMeta "title"
                      (walk removeNote $ fromList $ docTitle' meta) nullMeta)
                (navBlocks ++ landmarks))
@@ -846,7 +868,7 @@ pandocToEPUB version opts doc = do
   let apple = UTF8.fromStringLazy $ ppTopElement $
         unode "display_options" $
           unode "platform" ! [("name","*")] $
-            unode "option" ! [("name","specified-fonts")] $ "true"
+            unode "option" ! [("name","specified-fonts")] $ ("true" :: String)
   appleEntry <- mkEntry "META-INF/com.apple.ibooks.display-options.xml" apple
 
   -- construct archive
@@ -949,6 +971,7 @@ metadataElement version md currentTime =
              (("id",id') :
                 maybe [] (\x -> [("opf:event",x)]) (dateEvent date)) $
                  dateText date]
+        schemeToOnix :: String -> String
         schemeToOnix "ISBN-10"              = "02"
         schemeToOnix "GTIN-13"              = "03"
         schemeToOnix "UPC"                  = "04"

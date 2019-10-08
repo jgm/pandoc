@@ -20,6 +20,9 @@ module Text.Pandoc.App.OutputSettings
   ) where
 import Prelude
 import qualified Control.Exception as E
+import qualified Data.Text as T
+import qualified Data.Map as M
+import Text.DocTemplates (Context(..), ToContext(toVal))
 import Control.Monad
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Trans
@@ -159,6 +162,8 @@ optToOutputSettings opts = do
                                  $ lines dztempl
                       return $ ("dzslides-core", dzcore) : vars
                   else return vars)
+    >>= fmap (Context . M.fromList) .
+          traverse (\(x,y) -> return (T.pack x, toVal (T.pack y)))
 
   templStr <- case optTemplate opts of
                   _ | not standalone -> return Nothing

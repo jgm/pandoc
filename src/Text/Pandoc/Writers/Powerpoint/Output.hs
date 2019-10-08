@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PatternGuards #-}
 {- |
@@ -24,6 +25,7 @@ import Codec.Archive.Zip
 import Data.Char (toUpper)
 import Data.List (intercalate, stripPrefix, nub, union, isPrefixOf, intersperse)
 import Data.Default
+import qualified Data.Text as T
 import Data.Time (formatTime, defaultTimeLocale)
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds, posixSecondsToUTCTime)
@@ -43,6 +45,7 @@ import Data.Maybe (mapMaybe, listToMaybe, fromMaybe, maybeToList, catMaybes, isN
 import Text.Pandoc.ImageSize
 import Control.Applicative ((<|>))
 import System.FilePath.Glob
+import Text.DocTemplates (FromContext(lookupContext))
 import Text.TeXMath
 import Text.Pandoc.Writers.Math (convertMath)
 import Text.Pandoc.Writers.Powerpoint.Presentation
@@ -159,8 +162,8 @@ runP env st p = evalStateT (runReaderT p env) st
 monospaceFont :: Monad m => P m String
 monospaceFont = do
   vars <- writerVariables <$> asks envOpts
-  case lookup "monofont" vars of
-    Just s -> return s
+  case lookupContext "monofont" vars of
+    Just s -> return (T.unpack s)
     Nothing -> return "Courier"
 
 fontSizeAttributes :: Monad m => RunProps -> P m [(String, String)]

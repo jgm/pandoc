@@ -14,4 +14,5 @@ module Text.Pandoc.Lua.Marshaling () where
 import Text.Pandoc.Lua.Marshaling.AST ()
 import Text.Pandoc.Lua.Marshaling.CommonState ()
 import Text.Pandoc.Lua.Marshaling.ReaderOptions ()
+import Text.Pandoc.Lua.Marshaling.Context ()
 import Text.Pandoc.Lua.Marshaling.Version ()
