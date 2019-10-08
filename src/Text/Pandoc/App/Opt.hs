@@ -20,7 +20,7 @@ module Text.Pandoc.App.Opt (
           , defaultOpts
           ) where
 import Prelude
-import Data.Char (isLower)
+import Data.Char (isLower, toLower)
 import GHC.Generics
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Logging (Verbosity (WARNING))
@@ -31,25 +31,11 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             ObfuscationMethod (NoObfuscation),
                             CiteMethod (Citeproc))
 import Text.Pandoc.Shared (camelCaseToHyphenated)
-import qualified Data.Text as T
-import Data.Aeson (defaultOptions, Options(..), FromJSON(..), ToJSON(..),
-                  Value(..))
-import Data.Aeson.Types (typeMismatch)
+import Data.Aeson (defaultOptions, Options(..))
 import Data.Aeson.TH (deriveJSON)
 
 -- | The type of line-endings to be used when writing plain-text.
 data LineEnding = LF | CRLF | Native deriving (Show, Generic)
-
-instance ToJSON LineEnding
-
-instance FromJSON LineEnding where
-  parseJSON (String t) =
-    case T.toLower t of
-      "lf"     -> return LF
-      "crlf"   -> return CRLF
-      "native" -> return Native
-      _        -> fail "Expecting LF, CRLF, or Native"
-  parseJSON v = typeMismatch "String" v
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -200,6 +186,8 @@ defaultOpts = Opt
 
 -- see https://github.com/jgm/pandoc/pull/4083
 -- using generic deriving caused long compilation times
+$(deriveJSON
+   defaultOptions{ fieldLabelModifier = map toLower } ''LineEnding)
 $(deriveJSON
    defaultOptions{ fieldLabelModifier =
                       camelCaseToHyphenated . dropWhile isLower
