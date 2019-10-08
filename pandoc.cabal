@@ -362,7 +362,7 @@ flag embed_data_files
 flag derive_json_via_th
   Description:   Use Template Haskell instead of GHC Generics to derive ToJSON
                  and FromJSON instances.
-  Default:       True
+  Default:       False
 
 flag trypandoc
   Description:   Build trypandoc cgi executable.

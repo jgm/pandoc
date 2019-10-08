@@ -2,7 +2,7 @@ flags:
   pandoc:
     trypandoc: false
     embed_data_files: true
-    derive_json_via_th: true
+    derive_json_via_th: false
     static: false
   pandoc-citeproc:
     bibutils: true
