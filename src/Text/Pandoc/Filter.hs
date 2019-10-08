@@ -1,9 +1,7 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-#ifdef DERIVE_JSON_VIA_TH
 {-# LANGUAGE TemplateHaskell   #-}
-#endif
 {- |
    Module      : Text.Pandoc.Filter
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -21,12 +19,7 @@ module Text.Pandoc.Filter
   ) where
 
 import Prelude
-#ifdef DERIVE_JSON_VIA_TH
 import Data.Aeson.TH (deriveJSON, defaultOptions)
-#else
-import Data.Aeson (FromJSON (..), ToJSON (..),
-                   defaultOptions, genericToEncoding)
-#endif
 import Data.Foldable (foldrM)
 import GHC.Generics (Generic)
 import Text.Pandoc.Class (PandocIO)
@@ -59,10 +52,4 @@ expandFilterPath :: Filter -> PandocIO Filter
 expandFilterPath (LuaFilter fp) = LuaFilter <$> Path.expandFilterPath fp
 expandFilterPath (JSONFilter fp) = JSONFilter <$> Path.expandFilterPath fp
 
-#ifdef DERIVE_JSON_VIA_TH
 $(deriveJSON defaultOptions ''Filter)
-#else
-instance ToJSON Filter where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON Filter
-#endif

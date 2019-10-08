@@ -2,9 +2,6 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
-#ifdef DERIVE_JSON_VIA_TH
-{-# LANGUAGE TemplateHaskell     #-}
-#endif
 {- |
    Module      : Text.Pandoc.App.CommandLineOptions
    Copyright   : Copyright (C) 2006-2019 John MacFarlane

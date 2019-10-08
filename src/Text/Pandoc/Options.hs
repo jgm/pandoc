@@ -2,9 +2,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
-#ifdef DERIVE_JSON_VIA_TH
 {-# LANGUAGE TemplateHaskell    #-}
-#endif
 {- |
    Module      : Text.Pandoc.Options
    Copyright   : Copyright (C) 2012-2019 John MacFarlane
@@ -42,13 +40,7 @@ import Skylighting (SyntaxMap, defaultSyntaxMap)
 import Text.Pandoc.Extensions
 import Text.Pandoc.Highlighting (Style, pygments)
 import Text.DocTemplates (Template)
-
-#ifdef DERIVE_JSON_VIA_TH
 import Data.Aeson.TH (deriveJSON, defaultOptions)
-#else
-import Data.Aeson (FromJSON (..), ToJSON (..),
-                   defaultOptions, genericToEncoding)
-#endif
 
 class HasSyntaxExtensions a where
   getExtensions :: a -> Extensions
@@ -230,7 +222,6 @@ instance HasSyntaxExtensions WriterOptions where
 isEnabled :: HasSyntaxExtensions a => Extension -> a -> Bool
 isEnabled ext opts = ext `extensionEnabled` getExtensions opts
 
-#ifdef DERIVE_JSON_VIA_TH
 $(deriveJSON defaultOptions ''ReaderOptions)
 $(deriveJSON defaultOptions ''HTMLMathMethod)
 $(deriveJSON defaultOptions ''CiteMethod)
@@ -240,40 +231,3 @@ $(deriveJSON defaultOptions ''TrackChanges)
 $(deriveJSON defaultOptions ''WrapOption)
 $(deriveJSON defaultOptions ''TopLevelDivision)
 $(deriveJSON defaultOptions ''ReferenceLocation)
-#else
-instance ToJSON CiteMethod where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON CiteMethod
-
-instance ToJSON ReaderOptions where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON ReaderOptions
-
-instance ToJSON ObfuscationMethod where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON ObfuscationMethod
-
-instance ToJSON WrapOption where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON WrapOption
-
-instance ToJSON HTMLMathMethod where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON HTMLMathMethod
-
-instance ToJSON HTMLSlideVariant where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON HTMLSlideVariant
-
-instance ToJSON TopLevelDivision where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON TopLevelDivision
-
-instance ToJSON ReferenceLocation where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON ReferenceLocation
-
-instance ToJSON TrackChanges where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON TrackChanges
-#endif

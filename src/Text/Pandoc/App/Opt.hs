@@ -2,9 +2,7 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DeriveGeneric       #-}
-#ifdef DERIVE_JSON_VIA_TH
 {-# LANGUAGE TemplateHaskell     #-}
-#endif
 {- |
    Module      : Text.Pandoc.App.Opt
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -36,11 +34,7 @@ import qualified Data.Text as T
 import Data.Aeson (defaultOptions, Options(..), FromJSON(..), ToJSON(..),
                   Value(..))
 import Data.Aeson.Types (typeMismatch)
-#ifdef DERIVE_JSON_VIA_TH
 import Data.Aeson.TH (deriveJSON)
-#else
-import Data.Aeson (genericToEncoding)
-#endif
 
 -- | The type of line-endings to be used when writing plain-text.
 data LineEnding = LF | CRLF | Native deriving (Show, Generic)
@@ -203,16 +197,8 @@ defaultOpts = Opt
     , optStripComments          = False
     }
 
-#ifdef DERIVE_JSON_VIA_TH
 -- see https://github.com/jgm/pandoc/pull/4083
 -- using generic deriving caused long compilation times
 $(deriveJSON
    defaultOptions{ fieldLabelModifier =
                       camelCaseToHyphenated . drop 3 } ''Opt)
-#else
-instance ToJSON Opt where
-  toEncoding = genericToEncoding
-               defaultOptions{ fieldLabelModifier =
-                                  camelCaseToHyphenated . drop 3 }
-instance FromJSON Opt
-#endif

@@ -2,10 +2,8 @@
 {-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DeriveGeneric              #-}
-#ifdef DERIVE_JSON_VIA_TH
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TemplateHaskell            #-}
-#endif
 {- |
    Module      : Text.Pandoc.Extensions
    Copyright   : Copyright (C) 2012-2019 John MacFarlane
@@ -41,13 +39,7 @@ import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Safe (readMay)
 import Text.Parsec
-
-#ifdef DERIVE_JSON_VIA_TH
 import Data.Aeson.TH (deriveJSON, defaultOptions)
-#else
-import Data.Aeson (FromJSON (..), ToJSON (..),
-                   defaultOptions, genericToEncoding)
-#endif
 
 newtype Extensions = Extensions Integer
   deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
@@ -538,15 +530,5 @@ parseFormatSpec = parse formatSpec ""
                         '+' -> (ext : extsToEnable, extsToDisable)
                         _   -> (extsToEnable, ext : extsToDisable)
 
-#ifdef DERIVE_JSON_VIA_TH
 $(deriveJSON defaultOptions ''Extension)
 $(deriveJSON defaultOptions ''Extensions)
-#else
-instance ToJSON Extension where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON Extension
-
-instance ToJSON Extensions where
-  toEncoding = genericToEncoding defaultOptions
-instance FromJSON Extensions
-#endif
