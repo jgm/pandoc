@@ -242,8 +242,14 @@ stripFirstAndLast str =
 -- | Change CamelCase word to hyphenated lowercase (e.g., camel-case).
 camelCaseToHyphenated :: String -> String
 camelCaseToHyphenated [] = ""
-camelCaseToHyphenated (a:b:rest) | isLower a && isUpper b =
-  a:'-':toLower b:camelCaseToHyphenated rest
+camelCaseToHyphenated (a:b:rest)
+  | isLower a
+  , isUpper b = a:'-':toLower b:camelCaseToHyphenated rest
+-- handle ABCDef = abc-def
+camelCaseToHyphenated (a:b:c:rest)
+  | isUpper a
+  , isUpper b
+  , isLower c = toLower a:'-':toLower b:camelCaseToHyphenated (c:rest)
 camelCaseToHyphenated (a:rest) = toLower a:camelCaseToHyphenated rest
 
 -- | Convert number < 4000 to uppercase roman numeral.
