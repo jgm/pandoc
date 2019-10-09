@@ -72,7 +72,7 @@ writerOpts :: WriterOptions
 writerOpts = def { writerReferenceLinks = True,
                    writerEmailObfuscation = NoObfuscation,
                    writerHTMLMathMethod = MathJax (defaultMathJaxURL ++
-                       "MathJax.js?config=TeX-AMS_CHTML-full"),
+                       "tex-mml-chtml.js"),
                    writerHighlightStyle = Just pygments }
 
 readerOpts :: ReaderOptions
