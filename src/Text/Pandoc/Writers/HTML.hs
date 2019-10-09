@@ -1,9 +1,9 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP                 #-}
+{-# LANGUAGE MultiWayIf          #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
-{-# LANGUAGE MultiWayIf          #-}
 {- |
    Module      : Text.Pandoc.Writers.HTML
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -28,27 +28,28 @@ module Text.Pandoc.Writers.HTML (
   writeRevealJs,
   tagWithAttributes
   ) where
-import Prelude
 import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
 import Data.List (intercalate, intersperse, isPrefixOf, partition)
+import Data.List.Split (splitWhen)
 import Data.Maybe (fromMaybe, isJust, isNothing, mapMaybe)
 import qualified Data.Set as Set
 import Data.String (fromString)
-import Data.List.Split (splitWhen)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Text.DocTemplates (FromContext(lookupContext))
 import Network.HTTP (urlEncode)
 import Network.URI (URI (..), parseURIReference)
 import Numeric (showHex)
-import Text.Blaze.Internal (customLeaf, customParent, MarkupM(Empty))
+import Prelude
+import Text.Blaze.Internal (MarkupM (Empty), customLeaf, customParent)
+import Text.DocTemplates (FromContext (lookupContext))
 #if MIN_VERSION_blaze_markup(0,6,3)
 #else
 import Text.Blaze.Internal (preEscapedString, preEscapedText)
 #endif
 import Text.Blaze.Html hiding (contents)
+import Text.DocTemplates (Context (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtmlInline, highlight,
                                  styleToCss)
@@ -57,7 +58,6 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Slides
 import Text.Pandoc.Templates (renderTemplate)
-import Text.DocTemplates (Context(..))
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
@@ -412,7 +412,7 @@ tableOfContents opts sects = do
                 _ -> opts
   case toTableOfContents opts sects of
     bl@(BulletList (_:_)) -> Just <$> blockToHtml opts' bl
-    _ -> return Nothing
+    _                     -> return Nothing
 
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
@@ -650,7 +650,7 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
       isSec (Div _ zs)                = any isSec zs
       isSec _                         = False
   let isPause (Para [Str ".",Space,Str ".",Space,Str "."]) = True
-      isPause _ = False
+      isPause _                                            = False
   let fragmentClass = case slideVariant of
                            RevealJsSlides -> "fragment"
                            _              -> "incremental"
@@ -907,9 +907,9 @@ tableRowToHtml :: PandocMonad m
 tableRowToHtml opts aligns rownum cols' = do
   let mkcell = if rownum == 0 then H.th else H.td
   let rowclass = case rownum of
-                      0 -> "header"
+                      0                  -> "header"
                       x | x `rem` 2 == 1 -> "odd"
-                      _ -> "even"
+                      _                  -> "even"
   cols'' <- zipWithM
             (\alignment item -> tableItemToHtml opts mkcell alignment item)
             aligns cols'
@@ -980,7 +980,7 @@ inlineToHtml :: PandocMonad m
 inlineToHtml opts inline = do
   html5 <- gets stHtml5
   case inline of
-    (Str str)        -> return $ strToHtml str
+    (Str str)      -> return $ strToHtml str
     Space          -> return $ strToHtml " "
     SoftBreak      -> return $ case writerWrapText opts of
                                      WrapNone     -> preEscapedString " "
@@ -989,22 +989,36 @@ inlineToHtml opts inline = do
     LineBreak      -> return $ do
                         if html5 then H5.br else H.br
                         strToHtml "\n"
-    (Span (id',classes,kvs) ils)
-                     -> inlineListToHtml opts ils >>=
-                           addAttrs opts attr' . H.span
-                        where attr' = (id',classes',kvs')
-                              classes' = filter (`notElem` ["csl-no-emph",
-                                              "csl-no-strong",
-                                              "csl-no-smallcaps"]) classes
+
+    (Span (id',classes,kvs) ils) ->
+                        let spanLikeTag = case classes of
+                                [c] -> do
+                                  let c' = T.pack c
+                                  guard (c' `Set.member` htmlSpanLikeElements)
+                                  pure $ customParent (textTag c')
+                                _   -> Nothing
+                        in case spanLikeTag of
+                            Just tag -> tag <$> inlineListToHtml opts ils
+                            Nothing -> do
+                              h <- inlineListToHtml opts ils
+                              addAttrs opts (id',classes',kvs') (H.span h)
+                            where
+                              styles = ["font-style:normal;"
+                                       | "csl-no-emph" `elem` classes]
+                                    ++ ["font-weight:normal;"
+                                       | "csl-no-strong" `elem` classes]
+                                    ++ ["font-variant:normal;"
+                                       | "csl-no-smallcaps" `elem` classes]
                               kvs' = if null styles
                                         then kvs
                                         else ("style", concat styles) : kvs
-                              styles = ["font-style:normal;"
-                                         | "csl-no-emph" `elem` classes]
-                                    ++ ["font-weight:normal;"
-                                         | "csl-no-strong" `elem` classes]
-                                    ++ ["font-variant:normal;"
-                                         | "csl-no-smallcaps" `elem` classes]
+                              classes' = [ c | c <- classes
+                                         , c `notElem` [ "csl-no-emph"
+                                                       , "csl-no-strong"
+                                                       , "csl-no-smallcaps"
+                                                       ]
+                                         ]
+
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
     (Code attr str)  -> case hlCode of
