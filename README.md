@@ -4,7 +4,7 @@ pandoc --lua-filter tools/update-readme.lua README.template -o README.md
 -->
 
 # Pandoc
-
+========++++=======
 [![github
 release](https://img.shields.io/github/release/jgm/pandoc.svg?label=current+release)](https://github.com/jgm/pandoc/releases)
 [![hackage
