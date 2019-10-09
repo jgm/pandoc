@@ -18,6 +18,7 @@ module Text.Pandoc.App.CommandLineOptions (
           , options
           , engines
           , lookupHighlightStyle
+          , setVariable
           ) where
 import Prelude
 import Control.Monad
@@ -59,6 +60,8 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import qualified Data.Text as T
+import Data.Text (Text)
+import Text.DocTemplates (ToContext(toVal), Context(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
@@ -175,7 +178,8 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      let (key, val) = splitField arg
-                     return opt{ optVariables = (key, val) : optVariables opt })
+                     return opt{ optVariables =
+                                  setVariable key val $ optVariables opt })
                   "KEY[:VALUE]")
                  ""
 
@@ -554,10 +558,11 @@ options =
 
     , Option "T" ["title-prefix"]
                  (ReqArg
-                  (\arg opt -> do
-                    let newvars = ("title-prefix", arg) : optVariables opt
-                    return opt { optVariables = newvars,
-                                 optStandalone = True })
+                  (\arg opt ->
+                    return opt {
+                       optVariables =
+                         setVariable "title-prefix" arg $ optVariables opt,
+                       optStandalone = True })
                   "STRING")
                  "" -- "String to prefix to HTML window title"
 
@@ -579,7 +584,8 @@ options =
                  (ReqArg
                   (\arg opt ->
                      return opt { optVariables =
-                                 ("epub-cover-image", arg) : optVariables opt })
+                       setVariable "epub-cover-image" arg $
+                         optVariables opt })
                   "FILE")
                  "" -- "Path of epub cover image"
 
@@ -969,6 +975,11 @@ deprecatedOption o msg =
     \r -> case r of
        Right () -> return ()
        Left e   -> E.throwIO e
+
+-- | Set text value in text context.
+setVariable :: String -> String -> Context Text -> Context Text
+setVariable key val (Context ctx) =
+  Context $ M.insert (T.pack key) (toVal (T.pack val)) ctx
 
 -- On Windows with ghc 8.6+, we need to rewrite paths
 -- beginning with \\ to \\?\UNC\. -- See #5127.

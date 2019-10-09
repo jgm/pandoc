@@ -20,9 +20,6 @@ module Text.Pandoc.App.OutputSettings
   ) where
 import Prelude
 import qualified Control.Exception as E
-import qualified Data.Text as T
-import qualified Data.Map as M
-import Text.DocTemplates (Context(..), ToContext(toVal))
 import Control.Monad
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Trans
@@ -38,7 +35,8 @@ import System.IO (stdout)
 import Text.Pandoc
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..))
-import Text.Pandoc.App.CommandLineOptions (engines, lookupHighlightStyle)
+import Text.Pandoc.App.CommandLineOptions (engines, lookupHighlightStyle,
+                                          setVariable)
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -97,8 +95,6 @@ optToOutputSettings opts = do
 
   let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
 
-  let addStringAsVariable varname s vars = return $ (varname, s) : vars
-
   let addSyntaxMap existingmap f = do
         res <- liftIO (parseSyntaxDefinition f)
         case res of
@@ -117,21 +113,24 @@ optToOutputSettings opts = do
   let withList _ [] vars     = return vars
       withList f (x:xs) vars = f x vars >>= withList f xs
 
+  let setVariableM k v = return . setVariable k v
+
   let addContentsAsVariable varname fp vars = do
         s <- UTF8.toString . fst <$> fetchItem fp
-        return $ (varname, s) : vars
+        setVariableM varname s vars
 
   curdir <- liftIO getCurrentDirectory
 
   variables <-
-    withList (addStringAsVariable "sourcefile")
-             (reverse $ optInputFiles opts)
-             (("outputfile", fromMaybe "-" (optOutputFile opts))
-              : optVariables opts)
+    withList (setVariableM "sourcefile")
              -- we reverse this list because, unlike
              -- the other option lists here, it is
              -- not reversed when parsed from CLI arguments.
              -- See withList, above.
+             (reverse $ optInputFiles opts)
+             (optVariables opts)
+    >>=
+    setVariableM "outputfile" (fromMaybe "-" (optOutputFile opts))
     >>=
     withList (addContentsAsVariable "include-before")
              (optIncludeBeforeBody opts)
@@ -142,15 +141,15 @@ optToOutputSettings opts = do
     withList (addContentsAsVariable "header-includes")
              (optIncludeInHeader opts)
     >>=
-    withList (addStringAsVariable "css") (optCss opts)
+    withList (setVariableM "css") (optCss opts)
     >>=
-    maybe return (addStringAsVariable "title-prefix")
+    maybe return (setVariableM "title-prefix")
                  (optTitlePrefix opts)
     >>=
-    maybe return (addStringAsVariable "epub-cover-image")
+    maybe return (setVariableM "epub-cover-image")
                  (optEpubCoverImage opts)
     >>=
-    addStringAsVariable "curdir" curdir
+    setVariableM "curdir" curdir
     >>=
     (\vars ->  if format == "dzslides"
                   then do
@@ -160,10 +159,8 @@ optToOutputSettings opts = do
                       let dzcore = unlines
                                  $ dropWhile (not . (dzline `isPrefixOf`))
                                  $ lines dztempl
-                      return $ ("dzslides-core", dzcore) : vars
+                      setVariableM "dzslides-core" dzcore vars
                   else return vars)
-    >>= fmap (Context . M.fromList) .
-          traverse (\(x,y) -> return (T.pack x, toVal (T.pack y)))
 
   templStr <- case optTemplate opts of
                   _ | not standalone -> return Nothing

@@ -31,6 +31,8 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             ObfuscationMethod (NoObfuscation),
                             CiteMethod (Citeproc))
 import Text.Pandoc.Shared (camelCaseToHyphenated)
+import Text.DocTemplates (Context(..))
+import Data.Text (Text)
 import Data.Aeson (defaultOptions, Options(..))
 import Data.Aeson.TH (deriveJSON)
 
@@ -47,7 +49,7 @@ data Opt = Opt
     , optTableOfContents       :: Bool    -- ^ Include table of contents
     , optShiftHeadingLevelBy   :: Int     -- ^ Shift heading level by
     , optTemplate              :: Maybe FilePath  -- ^ Custom template
-    , optVariables             :: [(String,String)] -- ^ Template variables to set
+    , optVariables             :: Context Text    -- ^ Template variables to set
     , optMetadata              :: [(String, String)] -- ^ Metadata fields to set
     , optMetadataFile          :: [FilePath]  -- ^ Name of YAML metadata file
     , optOutputFile            :: Maybe FilePath  -- ^ Name of output file
@@ -121,7 +123,7 @@ defaultOpts = Opt
     , optTableOfContents       = False
     , optShiftHeadingLevelBy   = 0
     , optTemplate              = Nothing
-    , optVariables             = []
+    , optVariables             = mempty
     , optMetadata              = []
     , optMetadataFile          = []
     , optOutputFile            = Nothing
