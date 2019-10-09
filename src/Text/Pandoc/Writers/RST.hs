@@ -140,9 +140,12 @@ pictToRST (label, (attr, src, _, mbtarget)) = do
   label' <- inlineListToRST label
   dims   <- imageDimsToRST attr
   let (_, cls, _) = attr
-      classes = if null cls
-                   then empty
-                   else ":class: " <> text (unwords cls)
+      classes = case cls of
+                   []               -> empty
+                   ["align-right"]  -> ":align: right"
+                   ["align-left"]   -> ":align: left"
+                   ["align-center"] -> ":align: center"
+                   _                -> ":class: " <> text (unwords cls)
   return $ nowrap
          $ ".. |" <> label' <> "| image:: " <> text src $$ hang 3 empty (classes $$ dims)
          $$ case mbtarget of
@@ -218,9 +221,12 @@ blockToRST (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
   let fig = "figure:: " <> text src
       alt = ":alt: " <> if null tit then capt else text tit
       (_,cls,_) = attr
-      classes = if null cls
-                   then empty
-                   else ":figclass: " <> text (unwords cls)
+      classes = case cls of
+                   []               -> empty
+                   ["align-right"]  -> ":align: right"
+                   ["align-left"]   -> ":align: left"
+                   ["align-center"] -> ":align: center"
+                   _                -> ":figclass: " <> text (unwords cls)
   return $ hang 3 ".. " (fig $$ alt $$ classes $$ dims $+$ capt) $$ blankline
 blockToRST (Para inlines)
   | LineBreak `elem` inlines =
