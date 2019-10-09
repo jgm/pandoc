@@ -62,7 +62,8 @@ import Text.Pandoc.Options (
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
-    extractSpaces, onlySimpleTableCells, safeRead, underlineSpan)
+                           extractSpaces, htmlSpanLikeElements,
+                           onlySimpleTableCells, safeRead, underlineSpan)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
@@ -643,6 +644,7 @@ inline = choice
            , pStrong
            , pSuperscript
            , pSubscript
+           , pSpanLike
            , pSmall
            , pStrikeout
            , pUnderline
@@ -706,6 +708,12 @@ pSuperscript = pInlinesInTags "sup" B.superscript
 
 pSubscript :: PandocMonad m => TagParser m Inlines
 pSubscript = pInlinesInTags "sub" B.subscript
+
+pSpanLike :: PandocMonad m => TagParser m Inlines
+pSpanLike = Set.foldr
+  (\tag acc -> acc <|> pInlinesInTags tag (B.spanWith ("",[T.unpack tag],[])))
+  mzero
+  htmlSpanLikeElements
 
 pSmall :: PandocMonad m => TagParser m Inlines
 pSmall = pInlinesInTags "small" (B.spanWith ("",["small"],[]))
