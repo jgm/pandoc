@@ -42,7 +42,7 @@ import System.FilePath
 import System.IO (stdout)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.App.Opt (Opt (..), LineEnding (..))
+import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts)
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
@@ -64,6 +64,8 @@ import qualified Data.Text as T
 import Data.Text (Text)
 import Text.DocTemplates (ToContext(toVal), Context(..))
 import qualified Text.Pandoc.UTF8 as UTF8
+import qualified Data.YAML.Aeson as YA
+import qualified Data.YAML as Y
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
@@ -108,7 +110,26 @@ pdfEngines = ordNub $ map snd engines
 --   in response to a command-line option.
 options :: [OptDescr (Opt -> IO Opt)]
 options =
-    [ Option "fr" ["from","read"]
+    [ Option "" ["defaults"]
+                 (ReqArg
+                  (\arg _opt -> do
+                    let defaults = YA.encode1 defaultOpts
+                    inp <- E.catch (B.readFile arg)
+                             (\e -> E.throwIO $ PandocIOError
+                                      "Error reading defaults file" e)
+                    case YA.decode1 (defaults <> inp) of
+                          Right (newopts :: Opt) -> do
+                            return newopts
+                          Left (errpos, errmsg)  -> E.throwIO $
+                            PandocParseError $ "Error parsing " ++ arg ++
+                             " (line " ++ show (Y.posLine errpos) ++
+                             " column " ++ show (Y.posColumn errpos) ++ ")\n"
+                             ++ errmsg
+                  )
+                  "FILE")
+                ""
+
+    , Option "fr" ["from","read"]
                  (ReqArg
                   (\arg opt -> return opt { optReader =
                                               Just (map toLower arg) })

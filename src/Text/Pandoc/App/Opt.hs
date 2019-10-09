@@ -184,7 +184,7 @@ defaultOpts = Opt
     , optResourcePath          = ["."]
     , optRequestHeaders        = []
     , optEol                   = Native
-    , optStripComments          = False
+    , optStripComments         = False
     }
 
 -- see https://github.com/jgm/pandoc/pull/4083
