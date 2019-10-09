@@ -21,7 +21,7 @@ module Text.Pandoc.App.Opt (
           ) where
 import Prelude
 import Data.Char (isLower, toLower)
-import GHC.Generics
+import GHC.Generics hiding (Meta)
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Logging (Verbosity (WARNING))
 import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
@@ -35,6 +35,7 @@ import Text.DocTemplates (Context(..))
 import Data.Text (Text)
 import Data.Aeson (defaultOptions, Options(..))
 import Data.Aeson.TH (deriveJSON)
+import Text.Pandoc.Definition (Meta)
 
 -- | The type of line-endings to be used when writing plain-text.
 data LineEnding = LF | CRLF | Native deriving (Show, Generic)
@@ -50,7 +51,7 @@ data Opt = Opt
     , optShiftHeadingLevelBy   :: Int     -- ^ Shift heading level by
     , optTemplate              :: Maybe FilePath  -- ^ Custom template
     , optVariables             :: Context Text    -- ^ Template variables to set
-    , optMetadata              :: [(String, String)] -- ^ Metadata fields to set
+    , optMetadata              :: Meta -- ^ Metadata fields to set
     , optMetadataFile          :: [FilePath]  -- ^ Name of YAML metadata file
     , optOutputFile            :: Maybe FilePath  -- ^ Name of output file
     , optInputFiles            :: [FilePath] -- ^ Names of input files
@@ -124,7 +125,7 @@ defaultOpts = Opt
     , optShiftHeadingLevelBy   = 0
     , optTemplate              = Nothing
     , optVariables             = mempty
-    , optMetadata              = []
+    , optMetadata              = mempty
     , optMetadataFile          = []
     , optOutputFile            = Nothing
     , optInputFiles            = []

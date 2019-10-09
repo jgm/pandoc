@@ -50,7 +50,7 @@ import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts)
 import Text.Pandoc.App.CommandLineOptions (parseOptions, options)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
-import Text.Pandoc.Builder (setMeta, deleteMeta)
+import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), applyFilters)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
@@ -58,6 +58,7 @@ import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
          headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput,
          defaultUserDataDirs)
+import Text.Pandoc.Writers.Shared (lookupMetaString)
 import qualified Text.Pandoc.UTF8 as UTF8
 #ifndef _WINDOWS
 import System.Posix.IO (stdOutput)
@@ -79,7 +80,8 @@ convertWithOpts opts = do
   let isPandocCiteproc (JSONFilter f) = takeBaseName f == "pandoc-citeproc"
       isPandocCiteproc _              = False
   -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
-  let needsCiteproc = isJust (lookup "bibliography" (optMetadata opts)) &&
+  let needsCiteproc = isJust (lookupMeta "bibliography"
+                                (optMetadata opts)) &&
                       optCiteMethod opts `notElem` [Natbib, Biblatex] &&
                       all (not . isPandocCiteproc) filters
   let filters' = if needsCiteproc then JSONFilter "pandoc-citeproc" : filters
@@ -195,20 +197,21 @@ convertWithOpts opts = do
                     Just f  -> UTF8.toString <$> readFileStrict f
 
     metadata <- if format == "jats" &&
-                   isNothing (lookup "csl" (optMetadata opts)) &&
-                   isNothing (lookup "citation-style" (optMetadata opts))
+                   isNothing (lookupMeta "csl" (optMetadata opts)) &&
+                   isNothing (lookupMeta "citation-style"
+                                               (optMetadata opts))
                    then do
                      jatsCSL <- readDataFile "jats.csl"
                      let jatsEncoded = makeDataURI
                                          ("application/xml", jatsCSL)
-                     return $ ("csl", jatsEncoded) : optMetadata opts
+                     return $ setMeta "csl" jatsEncoded $ optMetadata opts
                    else return $ optMetadata opts
 
-    case lookup "lang" (optMetadata opts) of
-           Just l  -> case parseBCP47 l of
-                           Left _   -> return ()
+    case lookupMetaString "lang" (optMetadata opts) of
+           ""      -> setTranslations $ Lang "en" "" "US" []
+           l       -> case parseBCP47 l of
+                           Left _   -> report $ InvalidLang l
                            Right l' -> setTranslations l'
-           Nothing -> setTranslations $ Lang "en" "" "US" []
 
     let readerOpts = def{
             readerStandalone = standalone
@@ -279,8 +282,8 @@ convertWithOpts opts = do
               (   (if isJust (optExtractMedia opts)
                       then fillMediaBag
                       else return)
-              >=> return . addNonPresentMetadata metadataFromFile
-              >=> return . addMetadata metadata
+              >=> return . adjustMetadata (<> metadataFromFile)
+              >=> return . adjustMetadata (metadata <>)
               >=> applyTransforms transforms
               >=> applyFilters readerOpts filters' [format]
               >=> maybe return extractMedia (optExtractMedia opts)
@@ -319,33 +322,8 @@ htmlFormat = (`elem` ["html","html4","html5","s5","slidy",
 isTextFormat :: String -> Bool
 isTextFormat s = s `notElem` ["odt","docx","epub2","epub3","epub","pptx"]
 
-addNonPresentMetadata :: Text.Pandoc.Meta -> Pandoc -> Pandoc
-addNonPresentMetadata newmeta (Pandoc meta bs) = Pandoc (meta <> newmeta) bs
-
-addMetadata :: [(String, String)] -> Pandoc -> Pandoc
-addMetadata kvs pdc = foldr addMeta (removeMetaKeys kvs pdc) kvs
-
-addMeta :: (String, String) -> Pandoc -> Pandoc
-addMeta (k, v) (Pandoc meta bs) = Pandoc meta' bs
-  where meta' = case lookupMeta k meta of
-                      Nothing -> setMeta k v' meta
-                      Just (MetaList xs) ->
-                                 setMeta k (MetaList (xs ++ [v'])) meta
-                      Just x  -> setMeta k (MetaList [x, v']) meta
-        v' = readMetaValue v
-
-removeMetaKeys :: [(String,String)] -> Pandoc -> Pandoc
-removeMetaKeys kvs pdc = foldr (deleteMeta . fst) pdc kvs
-
-readMetaValue :: String -> MetaValue
-readMetaValue s
-  | s == "true"  = MetaBool True
-  | s == "True"  = MetaBool True
-  | s == "TRUE"  = MetaBool True
-  | s == "false" = MetaBool False
-  | s == "False" = MetaBool False
-  | s == "FALSE" = MetaBool False
-  | otherwise    = MetaString s
+adjustMetadata :: (Meta -> Meta) -> Pandoc -> Pandoc
+adjustMetadata f (Pandoc meta bs) = Pandoc (f meta) bs
 
 -- Transformations of a Pandoc document post-parsing:
 

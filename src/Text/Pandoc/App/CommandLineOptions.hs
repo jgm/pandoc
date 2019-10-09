@@ -41,6 +41,7 @@ import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
 import Text.Pandoc
+import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..))
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
@@ -163,7 +164,8 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      let (key, val) = splitField arg
-                     return opt{ optMetadata = (key, val) : optMetadata opt })
+                     return opt{ optMetadata = addMeta key val $
+                                                 optMetadata opt })
                   "KEY[:VALUE]")
                  ""
 
@@ -626,7 +628,8 @@ options =
     , Option "" ["bibliography"]
                  (ReqArg
                   (\arg opt -> return opt{ optMetadata =
-                                 ("bibliography", arg) : optMetadata opt })
+                                            addMeta "bibliography" arg $
+                                              optMetadata opt })
                    "FILE")
                  ""
 
@@ -634,7 +637,7 @@ options =
                  (ReqArg
                   (\arg opt ->
                      return opt{ optMetadata =
-                                   ("csl", arg) : optMetadata opt })
+                                   addMeta "csl" arg $ optMetadata opt })
                    "FILE")
                  ""
 
@@ -642,7 +645,8 @@ options =
                  (ReqArg
                   (\arg opt ->
                      return opt{ optMetadata =
-                              ("citation-abbreviations", arg): optMetadata opt })
+                                  addMeta "citation-abbreviations" arg $
+                                    optMetadata opt })
                    "FILE")
                  ""
 
@@ -980,6 +984,26 @@ deprecatedOption o msg =
 setVariable :: String -> String -> Context Text -> Context Text
 setVariable key val (Context ctx) =
   Context $ M.insert (T.pack key) (toVal (T.pack val)) ctx
+
+addMeta :: String -> String -> Meta -> Meta
+addMeta k v meta =
+  case lookupMeta k meta of
+       Nothing -> setMeta k v' meta
+       Just (MetaList xs) ->
+                  setMeta k (MetaList (xs ++ [v'])) meta
+       Just x  -> setMeta k (MetaList [x, v']) meta
+ where
+  v' = readMetaValue v
+
+readMetaValue :: String -> MetaValue
+readMetaValue s
+  | s == "true"  = MetaBool True
+  | s == "True"  = MetaBool True
+  | s == "TRUE"  = MetaBool True
+  | s == "false" = MetaBool False
+  | s == "False" = MetaBool False
+  | s == "FALSE" = MetaBool False
+  | otherwise    = MetaString s
 
 -- On Windows with ghc 8.6+, we need to rewrite paths
 -- beginning with \\ to \\?\UNC\. -- See #5127.

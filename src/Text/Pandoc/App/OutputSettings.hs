@@ -37,7 +37,6 @@ import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..))
 import Text.Pandoc.App.CommandLineOptions (engines, lookupHighlightStyle,
                                           setVariable)
-import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import qualified Text.Pandoc.UTF8 as UTF8
 
 -- | Settings specifying how document output should be produced.
@@ -196,12 +195,6 @@ optToOutputSettings opts = do
                case res of
                  Left  e -> throwError $ PandocTemplateError e
                  Right t -> return $ Just t
-
-  case lookup "lang" (optMetadata opts) of
-         Just l  -> case parseBCP47 l of
-                         Left _   -> return ()
-                         Right l' -> setTranslations l'
-         Nothing -> setTranslations $ Lang "en" "" "US" []
 
   let writerOpts = def {
           writerTemplate         = templ
