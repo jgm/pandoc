@@ -1497,8 +1497,8 @@ top-level-division: default
 trace: false
 track-changes: accept-changes
 variables:
-  - documentclass: book
-  - classoptions:
+  documentclass: book
+  classoptions:
     - twosides
     - draft
 verbosity: WARNING
