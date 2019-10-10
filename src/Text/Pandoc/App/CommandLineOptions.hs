@@ -86,7 +86,7 @@ parseOptions options' defaults = do
 
   -- thread option data structure through all supplied option actions
   opts <- foldl (>>=) (return defaults) actions
-  return (opts{ optInputFiles = map normalizePath args })
+  return (opts{ optInputFiles = map normalizePath $ optInputFiles opts ++ args })
 
 latexEngines :: [String]
 latexEngines  = ["pdflatex", "lualatex", "xelatex", "latexmk", "tectonic"]
