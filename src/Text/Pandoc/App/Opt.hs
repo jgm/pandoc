@@ -45,8 +45,8 @@ data Opt = Opt
     { optTabStop               :: Int     -- ^ Number of spaces per tab
     , optPreserveTabs          :: Bool    -- ^ Preserve tabs instead of converting to spaces
     , optStandalone            :: Bool    -- ^ Include header, footer
-    , optReader                :: Maybe String  -- ^ Reader format
-    , optWriter                :: Maybe String  -- ^ Writer format
+    , optFrom                  :: Maybe String  -- ^ Reader format
+    , optTo                    :: Maybe String  -- ^ Writer format
     , optTableOfContents       :: Bool    -- ^ Include table of contents
     , optShiftHeadingLevelBy   :: Int     -- ^ Shift heading level by
     , optTemplate              :: Maybe FilePath  -- ^ Custom template
@@ -119,8 +119,8 @@ defaultOpts = Opt
     { optTabStop               = 4
     , optPreserveTabs          = False
     , optStandalone            = False
-    , optReader                = Nothing
-    , optWriter                = Nothing
+    , optFrom                  = Nothing
+    , optTo                    = Nothing
     , optTableOfContents       = False
     , optShiftHeadingLevelBy   = 0
     , optTemplate              = Nothing

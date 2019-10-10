@@ -131,14 +131,14 @@ options =
 
     , Option "fr" ["from","read"]
                  (ReqArg
-                  (\arg opt -> return opt { optReader =
+                  (\arg opt -> return opt { optFrom =
                                               Just (map toLower arg) })
                   "FORMAT")
                  ""
 
     , Option "tw" ["to","write"]
                  (ReqArg
-                  (\arg opt -> return opt { optWriter = Just arg })
+                  (\arg opt -> return opt { optTo = Just arg })
                   "FORMAT")
                  ""
 

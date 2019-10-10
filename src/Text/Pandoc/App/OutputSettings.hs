@@ -68,8 +68,8 @@ optToOutputSettings opts = do
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
   (writerName, maybePdfProg) <-
     if pdfOutput
-       then liftIO $ pdfWriterAndProg (optWriter opts) (optPdfEngine opts)
-       else case optWriter opts of
+       then liftIO $ pdfWriterAndProg (optTo opts) (optPdfEngine opts)
+       else case optTo opts of
               Nothing
                 | outputFile == "-" -> return ("html", Nothing)
                 | otherwise ->

@@ -136,7 +136,7 @@ convertWithOpts opts = do
     setOutputFile (optOutputFile opts)
 
     -- assign reader and writer based on options and filenames
-    readerName <- case optReader opts of
+    readerName <- case optFrom opts of
                        Just f  -> return f
                        Nothing -> case formatFromFilePaths sources of
                            Just f' -> return f'
