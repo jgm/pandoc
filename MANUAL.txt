@@ -606,14 +606,16 @@ header when requesting a document from a URL:
 
 `--metadata-file=`*FILE*
 
-:   Read metadata from the supplied YAML (or JSON) file. This option can be used
-    with every input format, but string scalars in the YAML file will always be
-    parsed as Markdown. Generally, the input will be handled the same as in
-    [YAML metadata blocks][Extension: `yaml_metadata_block`]. This option can be
-    used repeatedly to include multiple metadata files; values in files specified
-    first will be preferred over those specified in later files. Metadata values
-    specified inside the document, or by using `-M`, overwrite values specified
-    with this option.
+:   Read metadata from the supplied YAML (or JSON) file. This
+    option can be used with every input format, but string scalars
+    in the YAML file will always be parsed as Markdown. Generally,
+    the input will be handled the same as in [YAML metadata
+    blocks][Extension: `yaml_metadata_block`]. This option can be
+    used repeatedly to include multiple metadata files; values in
+    files specified later on the command line will be preferred
+    over those specified in earlier files. Metadata values
+    specified inside the document, or by using `-M`, overwrite
+    values specified with this option.
 
 `-p`, `--preserve-tabs`
 

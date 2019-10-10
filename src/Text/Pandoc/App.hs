@@ -231,6 +231,10 @@ convertWithOpts opts = do
         []    -> return mempty
         paths -> mapM readFileLazy paths >>= mapM (yamlToMeta readerOpts)
                    >>= return . (foldr1 (<>))
+        -- Note: this list is in reverse order from the order on the
+        -- command line.  So this code ensures that metadata files
+        -- specified later in the command line take precedence over
+        -- those specified earlier.
 
     let transforms = (case optShiftHeadingLevelBy opts of
                           0             -> id

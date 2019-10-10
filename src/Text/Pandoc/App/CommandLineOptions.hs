@@ -209,7 +209,7 @@ options =
     , Option "" ["metadata-file"]
                  (ReqArg
                   (\arg opt -> return opt{ optMetadataFile =
-                    (optMetadataFile opt) <> [normalizePath arg] })
+                    normalizePath arg : optMetadataFile opt })
                   "FILE")
                  ""
 
