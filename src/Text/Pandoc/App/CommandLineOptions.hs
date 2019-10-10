@@ -48,7 +48,6 @@ import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
 import Text.Pandoc.Shared (ordNub, safeRead, defaultUserDataDirs)
 import Text.Printf
-import Text.Pandoc.Class (runIOorExplode, PandocMonad(..))
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
