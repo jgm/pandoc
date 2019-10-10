@@ -42,12 +42,13 @@ import System.FilePath
 import System.IO (stdout)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts)
+import Text.Pandoc.App.Opt (Opt (..), LineEnding (..))
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
 import Text.Pandoc.Shared (ordNub, safeRead, defaultUserDataDirs)
 import Text.Printf
+import Text.Pandoc.Class (runIOorExplode, PandocMonad(..))
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
@@ -106,25 +107,41 @@ engines = map ("html",) htmlEngines ++
 pdfEngines :: [String]
 pdfEngines = ordNub $ map snd engines
 
+findFile :: PandocMonad m => [FilePath] -> m (Maybe FilePath)
+findFile [] = return Nothing
+findFile (f:fs) = do
+  exists <- fileExists f
+  if exists
+     then return $ Just f
+     else findFile fs
+
 -- | A list of functions, each transforming the options data structure
 --   in response to a command-line option.
 options :: [OptDescr (Opt -> IO Opt)]
 options =
     [ Option "" ["defaults"]
                  (ReqArg
-                  (\arg _opt -> do
-                    let defaults = YA.encode1 defaultOpts
-                    inp <- E.catch (B.readFile arg)
-                             (\e -> E.throwIO $ PandocIOError
-                                      "Error reading defaults file" e)
+                  (\arg opt -> runIOorExplode $ do
+                    setVerbosity $ optVerbosity opt
+                    let fp = if null (takeExtension arg)
+                                then addExtension arg "yaml"
+                                else arg
+                    dataDirs <- liftIO defaultUserDataDirs
+                    let fps = case optDataDir opt of
+                                Nothing -> (fp : map (</> ("defaults" </> fp))
+                                                 dataDirs)
+                                Just dd -> [fp, dd </> "defaults" </> fp]
+                    fp' <- fromMaybe fp <$> findFile fps
+                    inp <- readFileLazy fp'
+                    let defaults = YA.encode1 opt
                     case YA.decode1 (defaults <> inp) of
-                          Right (newopts :: Opt) -> do
-                            return newopts
-                          Left (errpos, errmsg)  -> E.throwIO $
-                            PandocParseError $ "Error parsing " ++ arg ++
-                             " (line " ++ show (Y.posLine errpos) ++
-                             " column " ++ show (Y.posColumn errpos) ++ ")\n"
-                             ++ errmsg
+                        Right (newopts :: Opt) -> return newopts
+                        Left (errpos, errmsg)  -> throwError $
+                           PandocParseError $
+                           "Error parsing " ++ fp' ++
+                           " (line " ++ show (Y.posLine errpos) ++
+                           " column " ++ show (Y.posColumn errpos) ++
+                           ")\n" ++ errmsg
                   )
                   "FILE")
                 ""
