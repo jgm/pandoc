@@ -161,7 +161,7 @@ options =
                   "FILE")
                  ""
 
-    , Option "" ["defaults"]
+    , Option "d" ["defaults"]
                  (ReqArg
                   (\arg opt -> runIOorExplode $ do
                     setVerbosity $ optVerbosity opt
