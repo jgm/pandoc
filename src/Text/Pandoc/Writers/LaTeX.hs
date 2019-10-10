@@ -748,7 +748,7 @@ blockToLaTeX HorizontalRule =
   "\\begin{center}\\rule{0.5\\linewidth}{\\linethickness}\\end{center}"
 blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = True}
-  hdr <- sectionHeader ("unnumbered" `elem` classes) id' level lst
+  hdr <- sectionHeader classes id' level lst
   modify $ \s -> s{stInHeading = False}
   return hdr
 blockToLaTeX (Table caption aligns widths heads rows) = do
@@ -949,12 +949,14 @@ defListItemToLaTeX (term, defs) = do
 
 -- | Craft the section header, inserting the secton reference, if supplied.
 sectionHeader :: PandocMonad m
-              => Bool    -- True for unnumbered
+              => [String]  -- classes
               -> [Char]
               -> Int
               -> [Inline]
               -> LW m (Doc Text)
-sectionHeader unnumbered ident level lst = do
+sectionHeader classes ident level lst = do
+  let unnumbered = "unnumbered" `elem` classes
+  let unlisted = "unlisted" `elem` classes
   txt <- inlineListToLaTeX lst
   plain <- stringToLaTeX TextString $ concatMap stringify lst
   let removeInvalidInline (Note _)             = []
@@ -1013,7 +1015,7 @@ sectionHeader unnumbered ident level lst = do
   return $ if level' > 5
               then txt
               else prefix $$ stuffing'
-                   $$ if unnumbered
+                   $$ if unnumbered && not unlisted
                          then "\\addcontentsline{toc}" <>
                                 braces (text sectionType) <>
                                 braces txtNoNotes

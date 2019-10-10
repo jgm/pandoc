@@ -40,7 +40,7 @@ where
 import Prelude
 import Safe (lastMay)
 import qualified Data.ByteString.Lazy as BL
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isNothing)
 import Control.Monad (zipWithM)
 import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace)
@@ -394,8 +394,9 @@ toTableOfContents opts bs =
 -- | Converts an Element to a list item for a table of contents,
 sectionToListItem :: WriterOptions -> Block -> [Block]
 sectionToListItem opts (Div (ident,_,_)
-                         (Header lev (_,_,kvs) ils : subsecs)) =
-  Plain headerLink : [BulletList listContents | not (null listContents)
+                         (Header lev (_,classes,kvs) ils : subsecs))
+  | not (isNothing (lookup "number" kvs) && "unlisted" `elem` classes)
+  = Plain headerLink : [BulletList listContents | not (null listContents)
                                               , lev < writerTOCDepth opts]
  where
    num = fromMaybe "" $ lookup "number" kvs
