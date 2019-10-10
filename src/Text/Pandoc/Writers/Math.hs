@@ -12,6 +12,7 @@ import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.TeXMath (DisplayType (..), Exp, readTeX, writePandoc)
+import Text.Pandoc.Options (defaultMathJaxURL, defaultKaTeXURL)
 
 -- | Converts a raw TeX math formula to a list of 'Pandoc' inlines.
 -- Defaults to raw formula between @$@ or @$$@ characters if entire formula
@@ -51,8 +52,3 @@ convertMath writer mt str =
                    DisplayMath -> DisplayBlock
                    InlineMath  -> DisplayInline
 
-defaultMathJaxURL :: String
-defaultMathJaxURL = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/"
-
-defaultKaTeXURL :: String
-defaultKaTeXURL = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/"

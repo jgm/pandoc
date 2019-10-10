@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {- |
    Module      : Text.Pandoc.Options
    Copyright   : Copyright (C) 2012-2019 John MacFarlane
@@ -29,12 +30,15 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , ReferenceLocation (..)
                            , def
                            , isEnabled
+                           , defaultMathJaxURL
+                           , defaultKaTeXURL
                            ) where
 import Prelude
+import Control.Applicative ((<|>))
 import Data.Char (toLower)
 import Data.Data (Data)
 import Data.Default
-import Data.Text (Text)
+import Data.Text (Text, unpack)
 import Text.DocTemplates (Context(..))
 import qualified Data.Set as Set
 import Data.Typeable (Typeable)
@@ -46,6 +50,7 @@ import Text.Pandoc.Shared (camelCaseToHyphenated)
 import Text.DocTemplates (Template)
 import Data.Aeson.TH (deriveJSON, defaultOptions, Options(..),
                       SumEncoding(..))
+import Data.YAML
 
 class HasSyntaxExtensions a where
   getExtensions :: a -> Extensions
@@ -101,16 +106,57 @@ data HTMLMathMethod = PlainMath
                     | KaTeX String                -- url of KaTeX files
                     deriving (Show, Read, Eq, Data, Typeable, Generic)
 
+instance FromYAML HTMLMathMethod where
+   parseYAML node =
+     (withMap "HTMLMathMethod" $ \m -> do
+        method <- m .: "method"
+        mburl <- m .:? "url"
+        case unpack method of
+          "plain" -> return PlainMath
+          "webtex" -> return $ WebTeX $ maybe "" unpack mburl
+          "gladtex" -> return GladTeX
+          "mathml" -> return MathML
+          "mathjax" -> return $ MathJax $
+                         maybe defaultMathJaxURL unpack mburl
+          "katex" -> return $ KaTeX $
+                         maybe defaultKaTeXURL unpack mburl
+          _ -> fail $ "Unknown HTML math method " ++ show method) node
+       <|> (withStr "HTMLMathMethod" $ \method ->
+             case unpack method of
+               "plain" -> return PlainMath
+               "webtex" -> return $ WebTeX ""
+               "gladtex" -> return GladTeX
+               "mathml" -> return MathML
+               "mathjax" -> return $ MathJax defaultMathJaxURL
+               "katex" -> return $ KaTeX defaultKaTeXURL
+               _  -> fail $ "Unknown HTML math method " ++ show method) node
+
 data CiteMethod = Citeproc                        -- use citeproc to render them
                   | Natbib                        -- output natbib cite commands
                   | Biblatex                      -- output biblatex cite commands
                 deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+instance FromYAML CiteMethod where
+  parseYAML = withStr "Citeproc" $ \t ->
+    case t of
+      "citeproc" -> return Citeproc
+      "natbib"   -> return Natbib
+      "biblatex" -> return Biblatex
+      _          -> fail $ "Unknown citation method " ++ show t
 
 -- | Methods for obfuscating email addresses in HTML.
 data ObfuscationMethod = NoObfuscation
                        | ReferenceObfuscation
                        | JavascriptObfuscation
                        deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+instance FromYAML ObfuscationMethod where
+  parseYAML = withStr "Citeproc" $ \t ->
+    case t of
+      "none"       -> return NoObfuscation
+      "references" -> return ReferenceObfuscation
+      "javascript" -> return JavascriptObfuscation
+      _            -> fail $ "Unknown obfuscation method " ++ show t
 
 -- | Varieties of HTML slide shows.
 data HTMLSlideVariant = S5Slides
@@ -127,11 +173,28 @@ data TrackChanges = AcceptChanges
                   | AllChanges
                   deriving (Show, Read, Eq, Data, Typeable, Generic)
 
+instance FromYAML TrackChanges where
+  parseYAML = withStr "TrackChanges" $ \t ->
+    case t of
+      "accept"     -> return AcceptChanges
+      "reject"     -> return RejectChanges
+      "all"        -> return AllChanges
+      _            -> fail $ "Unknown track changes method " ++ show t
+
 -- | Options for wrapping text in the output.
 data WrapOption = WrapAuto        -- ^ Automatically wrap to width
                 | WrapNone        -- ^ No non-semantic newlines
                 | WrapPreserve    -- ^ Preserve wrapping of input source
                 deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+instance FromYAML WrapOption where
+  parseYAML = withStr "WrapOption" $ \t ->
+    case t of
+      "auto"     -> return WrapAuto
+      "none"     -> return WrapNone
+      "preserve" -> return WrapPreserve
+      _          -> fail $ "Unknown wrap method " ++ show t
+
 
 -- | Options defining the type of top-level headers.
 data TopLevelDivision = TopLevelPart      -- ^ Top-level headers become parts
@@ -141,11 +204,30 @@ data TopLevelDivision = TopLevelPart      -- ^ Top-level headers become parts
                                           --   heuristics
                       deriving (Show, Read, Eq, Data, Typeable, Generic)
 
+instance FromYAML TopLevelDivision where
+  parseYAML = withStr "TopLevelDivision" $ \t ->
+    case t of
+      "part"     -> return TopLevelPart
+      "chapter"  -> return TopLevelChapter
+      "section"  -> return TopLevelSection
+      "default"  -> return TopLevelDefault
+      _          -> fail $ "Unknown top level division " ++ show t
+
+
 -- | Locations for footnotes and references in markdown output
 data ReferenceLocation = EndOfBlock    -- ^ End of block
                        | EndOfSection  -- ^ prior to next section header (or end of document)
                        | EndOfDocument -- ^ at end of document
                        deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+instance FromYAML ReferenceLocation where
+  parseYAML = withStr "ReferenceLocation" $ \t ->
+    case t of
+      "block"    -> return EndOfBlock
+      "section"  -> return EndOfSection
+      "document" -> return EndOfDocument
+      _          -> fail $ "Unknown reference location " ++ show t
+
 
 -- | Options for writers
 data WriterOptions = WriterOptions
@@ -227,16 +309,25 @@ instance HasSyntaxExtensions WriterOptions where
 isEnabled :: HasSyntaxExtensions a => Extension -> a -> Bool
 isEnabled ext opts = ext `extensionEnabled` getExtensions opts
 
+defaultMathJaxURL :: String
+defaultMathJaxURL = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/"
+
+defaultKaTeXURL :: String
+defaultKaTeXURL = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/"
+
 $(deriveJSON defaultOptions ''ReaderOptions)
+
 $(deriveJSON defaultOptions{
    constructorTagModifier = map toLower,
    sumEncoding = TaggedObject{
                     tagFieldName = "method",
                     contentsFieldName = "url" }
                            } ''HTMLMathMethod)
+
 $(deriveJSON defaultOptions{ constructorTagModifier =
                                camelCaseToHyphenated
                            } ''CiteMethod)
+
 $(deriveJSON defaultOptions{ constructorTagModifier =
                             \t -> case t of
                                     "NoObfuscation"         -> "none"
@@ -244,16 +335,21 @@ $(deriveJSON defaultOptions{ constructorTagModifier =
                                     "JavascriptObfuscation" -> "javascript"
                                     _                       -> "none"
                            } ''ObfuscationMethod)
+
 $(deriveJSON defaultOptions ''HTMLSlideVariant)
+
 $(deriveJSON defaultOptions{ constructorTagModifier =
                                camelCaseToHyphenated
                            } ''TrackChanges)
+
 $(deriveJSON defaultOptions{ constructorTagModifier =
                                camelCaseToHyphenated
                            } ''WrapOption)
+
 $(deriveJSON defaultOptions{ constructorTagModifier =
                                camelCaseToHyphenated . drop 8
                            } ''TopLevelDivision)
+
 $(deriveJSON defaultOptions{ constructorTagModifier =
                                camelCaseToHyphenated
                            } ''ReferenceLocation)

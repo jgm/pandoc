@@ -42,7 +42,7 @@ import System.FilePath
 import System.IO (stdout)
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.App.Opt (Opt (..), LineEnding (..))
+import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..))
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
@@ -64,7 +64,6 @@ import qualified Data.Text as T
 import Data.Text (Text)
 import Text.DocTemplates (ToContext(toVal), Context(..))
 import qualified Text.Pandoc.UTF8 as UTF8
-import qualified Data.YAML.Aeson as YA
 import qualified Data.YAML as Y
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
@@ -156,8 +155,8 @@ options =
 
     , Option "" ["metadata-file"]
                  (ReqArg
-                  (\arg opt -> return opt{ optMetadataFile =
-                    normalizePath arg : optMetadataFile opt })
+                  (\arg opt -> return opt{ optMetadataFiles =
+                    normalizePath arg : optMetadataFiles opt })
                   "FILE")
                  ""
 
@@ -175,15 +174,14 @@ options =
                                 Just dd -> [fp, dd </> "defaults" </> fp]
                     fp' <- fromMaybe fp <$> findFile fps
                     inp <- readFileLazy fp'
-                    let defaults = YA.encode1 opt
-                    case YA.decode1 (defaults <> inp) of
+                    case Y.decode1 inp of
                         Right (newopts :: Opt) -> return newopts
                         Left (errpos, errmsg)  -> throwError $
                            PandocParseError $
-                           "Error parsing " ++ fp' ++
-                           " (line " ++ show (Y.posLine errpos) ++
-                           " column " ++ show (Y.posColumn errpos) ++
-                           ")\n" ++ errmsg
+                           "Error parsing " ++ fp' ++ " line " ++
+                            show (Y.posLine errpos) ++ " column " ++
+                            show (Y.posColumn errpos) ++ ":\n" ++ errmsg
+
                   )
                   "FILE")
                 ""
@@ -219,9 +217,9 @@ options =
                  (ReqArg
                   (\arg opt ->
                     case arg of
-                      "auto" -> return opt{ optWrapText = WrapAuto }
-                      "none" -> return opt{ optWrapText = WrapNone }
-                      "preserve" -> return opt{ optWrapText = WrapPreserve }
+                      "auto" -> return opt{ optWrap = WrapAuto }
+                      "none" -> return opt{ optWrap = WrapNone }
+                      "preserve" -> return opt{ optWrap = WrapPreserve }
                       _      -> E.throwIO $ PandocOptionError
                                  "--wrap must be auto, none, or preserve")
                  "auto|none|preserve")
@@ -409,8 +407,8 @@ options =
     , Option "" ["pdf-engine-opt"]
                  (ReqArg
                   (\arg opt -> do
-                      let oldArgs = optPdfEngineArgs opt
-                      return opt { optPdfEngineArgs = oldArgs ++ [arg]})
+                      let oldArgs = optPdfEngineOpts opt
+                      return opt { optPdfEngineOpts = oldArgs ++ [arg]})
                   "STRING")
                  "" -- "Flags to pass to the PDF-engine, all instances of this option are accumulated and used"
 
@@ -655,10 +653,12 @@ options =
     , Option "" ["ipynb-output"]
                  (ReqArg
                   (\arg opt ->
-                    if arg `notElem` ["all","none","best"]
-                       then E.throwIO $ PandocOptionError $
-                             "ipynb-output must be all, none, or best"
-                       else return opt { optIpynbOutput = arg })
+                    case arg of
+                      "all" -> return opt{ optIpynbOutput = IpynbOutputAll }
+                      "best" -> return opt{ optIpynbOutput = IpynbOutputBest }
+                      "none" -> return opt{ optIpynbOutput = IpynbOutputNone }
+                      _ -> E.throwIO $ PandocOptionError $
+                             "ipynb-output must be all, none, or best")
                  "all|none|best")
                  "" -- "Starting number for sections, subsections, etc."
 

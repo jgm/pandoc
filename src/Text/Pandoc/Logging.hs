@@ -25,6 +25,7 @@ module Text.Pandoc.Logging (
 
 import Prelude
 import Control.Monad (mzero)
+import Data.YAML (withStr, FromYAML(..))
 import Data.Aeson
 import Data.Aeson.Encode.Pretty (Config (..), defConfig, encodePretty',
                                  keyOrder)
@@ -51,6 +52,14 @@ instance FromJSON Verbosity where
          "INFO"    -> return INFO
          _         -> mzero
   parseJSON _      =  mzero
+
+instance FromYAML Verbosity where
+  parseYAML = withStr "Verbosity" $ \t ->
+    case t of
+         "ERROR"   -> return ERROR
+         "WARNING" -> return WARNING
+         "INFO"    -> return INFO
+         _         -> mzero
 
 data LogMessage =
     SkippedContent String SourcePos

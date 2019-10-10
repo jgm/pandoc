@@ -16,4 +16,4 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/doctemplates.git
-  tag: 8c30b5955584ff96459999c4958e8a953fed214f
+  tag: 180a5e9318e3cee44c6581f6d8ace14de684b735

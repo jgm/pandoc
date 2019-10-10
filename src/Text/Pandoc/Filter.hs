@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Filter
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -28,11 +29,31 @@ import Text.Pandoc.Options (ReaderOptions)
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Filter.Lua as LuaFilter
 import qualified Text.Pandoc.Filter.Path as Path
+import Data.YAML
+import qualified Data.Text as T
+import System.FilePath (takeExtension)
+import Control.Applicative ((<|>))
 
 -- | Type of filter and path to filter file.
 data Filter = LuaFilter FilePath
             | JSONFilter FilePath
             deriving (Show, Generic)
+
+instance FromYAML Filter where
+ parseYAML node =
+  (withMap "Filter" $ \m -> do
+    ty <- m .: "type"
+    fp <- m .: "path"
+    case ty of
+      "lua"  -> return $ LuaFilter $ T.unpack fp
+      "json" -> return $ JSONFilter $ T.unpack fp
+      _      -> fail $ "Unknown filter type " ++ show (ty :: T.Text)) node
+  <|>
+  (withStr "Filter" $ \t -> do
+    let fp = T.unpack t
+    case takeExtension fp of
+      ".lua"  -> return $ LuaFilter fp
+      _       -> return $ JSONFilter fp) node
 
 -- | Modify the given document using a filter.
 applyFilters :: ReaderOptions

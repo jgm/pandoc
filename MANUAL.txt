@@ -368,7 +368,7 @@ header when requesting a document from a URL:
     See the section [Default files] for more information on the
     file format.
 
-    If a defaults file is used, its defaults will override
+    If a defaults file is used, its defaults will replace
     any options that have been previously specified on the
     command line, and they may be overridden by subsequent
     options on the command line.
@@ -842,7 +842,8 @@ header when requesting a document from a URL:
     which will be used for syntax highlighting of appropriately
     marked code blocks.  This can be used to add support for
     new languages or to use altered syntax definitions for
-    existing languages.
+    existing languages.  This option may be repeated to add
+    multiple syntax definitions.
 
 `-H` *FILE*, `--include-in-header=`*FILE*|*URL*
 
@@ -1426,83 +1427,102 @@ of options.  Here is a sample defaults file demonstrating all of
 the fields that may be used:
 
 ``` yaml
-abbreviations: null
-ascii: false
-cite-method: citeproc
-columns: 72
-css:
-  - my.css
-data-dir: data
-default-image-extension: ".jpg"
-dpi: 96
-dump-args: false
-email-obfuscation: none
-eol: Native
-epub-chapter-level: 1
-epub-cover-image: null
-epub-fonts: []
-epub-metadata: metadata.xml
-epub-subdirectory: EPUB
-extract-media: media
-fail-if-warnings: false
-file-scope: false
-filters:
-  - pandoc-citeproc
+tab-stop: 8
+preserve-tabs: yes
+standalone: true
+table-of-contents: true
+# toc is a synonym for table-of-contents
 from: markdown+emoji
-highlight-style: pygments
-html-math-method:
-  method: mathjax
-  url: "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
-html-qtags: false
-identifier-prefix: ""
-ignore-args: false
-include-after-body: []
-include-before-body: []
-include-in-header: []
-incremental: false
-indented-code-classes: []
-input-files: []
-ipynb-output: best
-listings: false
-log-file: null
-metadata: {}
-metadata-file: []
-number-offset: [0,0,0,0,0,0]
-number-sections: false
-output-file: null
-pdf-engine: null
-pdf-engine-args: []
-preserve-tabs: false
-reference-doc: null
-reference-links: false
-reference-location: end-of-document
-request-headers: []
-resource-path: [".", "../foo"]
-section-divs: false
-self-contained: false
-setext-headers: true
-shift-heading-level-by: 0
-slide-level: null
-standalone: false
-strip-comments: false
-strip-empty-paragraphs: false
-syntax-definitions: []
-tab-stop: 4
-table-of-contents: false
-template: letter
-title-prefix: null
-to: null
-toc-depth: 3
-top-level-division: default
-trace: false
-track-changes: accept-changes
+# reader is a synonym for from
+to: html5
+# writer is a synonym for to
+shift-heading-level-by: 1
+template: leter
 variables:
   documentclass: book
   classoptions:
     - twosides
     - draft
-verbosity: WARNING
-wrap-text: wrap-auto
+metadata:
+  author:
+  - Sam Smith
+  - Julie Liu
+metadata-files: []
+# you may also use metadata-file with a single value
+output-file: -
+input-files:
+- preface.md
+- content.md
+number-sections: false
+number-offset: [0,0,0,0,0,0]
+section-divs: true
+incremental: false
+self-contained: false
+html-q-tags: false
+highlight-style: pygments
+syntax-definitions:
+- c.xml
+# may also use syntax-definition: with a single value
+top-level-division: chapter
+html-math-method:
+  method: mathjax
+  url: "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+abbreviations: []
+reference-doc: myref.docx
+epub-subdirectory: EPUB
+epub-metadata: meta.xml
+epub-fonts:
+- foobar.otf
+epub-chapter-level: 1
+epub-cover-image: cover.jpg
+toc-depth: 2
+dump-args: false
+ignore-args: false
+verbosity: INFO
+trace: false
+log-file: log.json
+fail-if-warnings: false
+reference-links: true
+reference-location: paragraph
+dpi: 72
+wrap: auto
+columns:78
+filters:
+- pandoc-citeproc
+- wordcount.lua
+- type: json
+  path: foo.lua
+email-obfuscation: javascript
+identifier-prefix: foo
+strip-empty-paragraphs: true
+indented-code-classes: []
+data-dir: null
+cite-method: citeproc
+listings: false
+pdf-engine: pdflatex
+pdf-engine-opts: []
+# can also use this with a single option:
+pdf-engine-opt:
+slide-level: 2
+setext-headers: true
+ascii: true
+default-image-extension: ".jpg"
+extract-media: mediadir
+track-changes: false
+file-scope: false
+title-prefix: ""
+css:
+- site.css
+ipynb-output: best
+# Note that these take files, not their contents:
+include-before-body: []
+include-after-body: []
+include-in-header: []
+resource-path: ["."]
+request-headers:
+- ["User-Agent", "Mozilla/5.0"]
+eol: lf
+strip-comments: false
 ```
 
 # Templates

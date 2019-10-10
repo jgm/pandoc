@@ -46,7 +46,8 @@ import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
-import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts)
+import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
+                            IpynbOutput (..) )
 import Text.Pandoc.App.CommandLineOptions (parseOptions, options)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
@@ -227,7 +228,7 @@ convertWithOpts opts = do
           }
 
     metadataFromFile <-
-      case optMetadataFile opts of
+      case optMetadataFiles opts of
         []    -> return mempty
         paths -> mapM readFileLazy paths >>= mapM (yamlToMeta readerOpts)
                    >>= return . (foldr1 (<>))
@@ -250,17 +251,16 @@ convertWithOpts opts = do
                          then (eastAsianLineBreakFilter :)
                          else id) .
                      (case optIpynbOutput opts of
-                       "all"    -> id
-                       "none"   -> (filterIpynbOutput Nothing :)
-                       "best"   -> (filterIpynbOutput (Just $
+                       IpynbOutputAll  -> id
+                       IpynbOutputNone -> (filterIpynbOutput Nothing :)
+                       IpynbOutputBest -> (filterIpynbOutput (Just $
                                      if htmlFormat format
                                         then Format "html"
                                         else
                                           case format of
                                             "latex"  -> Format "latex"
                                             "beamer" -> Format "latex"
-                                            _        -> Format format) :)
-                       _  -> id)  -- should not happen
+                                            _        -> Format format) :))
                      $ []
 
     let sourceToDoc :: [FilePath] -> PandocIO Pandoc
@@ -297,7 +297,7 @@ convertWithOpts opts = do
       ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
       TextWriter f -> case outputPdfProgram outputSettings of
         Just pdfProg -> do
-                res <- makePDF pdfProg (optPdfEngineArgs opts) f
+                res <- makePDF pdfProg (optPdfEngineOpts opts) f
                         writerOptions doc
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
