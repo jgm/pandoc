@@ -118,7 +118,50 @@ findFile (f:fs) = do
 --   in response to a command-line option.
 options :: [OptDescr (Opt -> IO Opt)]
 options =
-    [ Option "" ["defaults"]
+    [ Option "fr" ["from","read"]
+                 (ReqArg
+                  (\arg opt -> return opt { optFrom =
+                                              Just (map toLower arg) })
+                  "FORMAT")
+                 ""
+
+    , Option "tw" ["to","write"]
+                 (ReqArg
+                  (\arg opt -> return opt { optTo = Just arg })
+                  "FORMAT")
+                 ""
+
+    , Option "o" ["output"]
+                 (ReqArg
+                  (\arg opt -> return opt { optOutputFile =
+                                             Just (normalizePath arg) })
+                  "FILE")
+                 "" -- "Name of output file"
+
+    , Option "" ["data-dir"]
+                 (ReqArg
+                  (\arg opt -> return opt { optDataDir =
+                                  Just (normalizePath arg) })
+                 "DIRECTORY") -- "Directory containing pandoc data files."
+                ""
+
+    , Option "M" ["metadata"]
+                 (ReqArg
+                  (\arg opt -> do
+                     let (key, val) = splitField arg
+                     return opt{ optMetadata = addMeta key val $
+                                                 optMetadata opt })
+                  "KEY[:VALUE]")
+                 ""
+
+    , Option "" ["metadata-file"]
+                 (ReqArg
+                  (\arg opt -> return opt{ optMetadataFile =
+                    normalizePath arg : optMetadataFile opt })
+                  "FILE")
+                 ""
+
+    , Option "" ["defaults"]
                  (ReqArg
                   (\arg opt -> runIOorExplode $ do
                     setVerbosity $ optVerbosity opt
@@ -145,37 +188,10 @@ options =
                   "FILE")
                 ""
 
-    , Option "fr" ["from","read"]
-                 (ReqArg
-                  (\arg opt -> return opt { optFrom =
-                                              Just (map toLower arg) })
-                  "FORMAT")
-                 ""
-
-    , Option "tw" ["to","write"]
-                 (ReqArg
-                  (\arg opt -> return opt { optTo = Just arg })
-                  "FORMAT")
-                 ""
-
-    , Option "o" ["output"]
-                 (ReqArg
-                  (\arg opt -> return opt { optOutputFile =
-                                             Just (normalizePath arg) })
-                  "FILE")
-                 "" -- "Name of output file"
-
-    , Option "" ["wrap"]
-                 (ReqArg
-                  (\arg opt ->
-                    case arg of
-                      "auto" -> return opt{ optWrapText = WrapAuto }
-                      "none" -> return opt{ optWrapText = WrapNone }
-                      "preserve" -> return opt{ optWrapText = WrapPreserve }
-                      _      -> E.throwIO $ PandocOptionError
-                                 "--wrap must be auto, none, or preserve")
-                 "auto|none|preserve")
-                 "" -- "Option for wrapping text in output"
+    , Option "" ["file-scope"]
+                 (NoArg
+                  (\opt -> return opt { optFileScope = True }))
+                 "" -- "Parse input files before combining"
 
     , Option "s" ["standalone"]
                  (NoArg
@@ -190,29 +206,6 @@ options =
                   "FILE")
                  "" -- "Use custom template"
 
-    , Option "" ["data-dir"]
-                 (ReqArg
-                  (\arg opt -> return opt { optDataDir =
-                                  Just (normalizePath arg) })
-                 "DIRECTORY") -- "Directory containing pandoc data files."
-                ""
-
-    , Option "M" ["metadata"]
-                 (ReqArg
-                  (\arg opt -> do
-                     let (key, val) = splitField arg
-                     return opt{ optMetadata = addMeta key val $
-                                                 optMetadata opt })
-                  "KEY[:VALUE]")
-                 ""
-
-    , Option "" ["metadata-file"]
-                 (ReqArg
-                  (\arg opt -> return opt{ optMetadataFile =
-                    normalizePath arg : optMetadataFile opt })
-                  "FILE")
-                 ""
-
     , Option "V" ["variable"]
                  (ReqArg
                   (\arg opt -> do
@@ -221,6 +214,18 @@ options =
                                   setVariable key val $ optVariables opt })
                   "KEY[:VALUE]")
                  ""
+
+    , Option "" ["wrap"]
+                 (ReqArg
+                  (\arg opt ->
+                    case arg of
+                      "auto" -> return opt{ optWrapText = WrapAuto }
+                      "none" -> return opt{ optWrapText = WrapNone }
+                      "preserve" -> return opt{ optWrapText = WrapPreserve }
+                      _      -> E.throwIO $ PandocOptionError
+                                 "--wrap must be auto, none, or preserve")
+                 "auto|none|preserve")
+                 "" -- "Option for wrapping text in output"
 
     , Option "" ["ascii"]
                  (NoArg
@@ -430,11 +435,6 @@ options =
                        (key, val) : optRequestHeaders opt })
                   "NAME:VALUE")
                  ""
-
-    , Option "" ["file-scope"]
-                 (NoArg
-                  (\opt -> return opt { optFileScope = True }))
-                 "" -- "Parse input files before combining"
 
     , Option "" ["abbreviations"]
                 (ReqArg
