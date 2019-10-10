@@ -356,6 +356,23 @@ header when requesting a document from a URL:
     `slidy`, `slideous`, or `s5` directory
     placed in this directory will override pandoc's normal defaults.
 
+`-d` *FILE*, `--defaults=`*FILE*
+
+:   Specify a set of default option settings.  *FILE* is a YAML
+    file whose fields correspond to command-line option
+    settings.  All options for document conversion, including input
+    and output files, can be set using a defaults file.  The file will
+    be searched for first in the working directory, and then in
+    the `defaults` subdirectory of the user data directory
+    (see `--data-dir`).  The `.yaml` extension may be omitted.
+    See the section [Default files] for more information on the
+    file format.
+
+    If a defaults file is used, its defaults will override
+    any options that have been previously specified on the
+    command line, and they may be overridden by subsequent
+    options on the command line.
+
 `--bash-completion`
 
 :   Generate a bash completion script.  To enable bash completion
@@ -1401,6 +1418,92 @@ Nonzero exit codes have the following meanings:
    97 PandocCouldNotFindDataFileError
    99 PandocResourceNotFound
 ----- ------------------------------------
+
+# Default files
+
+The `--defaults` option may be used to specify a package
+of options.  Here is a sample defaults file demonstrating all of
+the fields that may be used:
+
+``` yaml
+abbreviations: null
+ascii: false
+cite-method: citeproc
+columns: 72
+css:
+  - my.css
+data-dir: data
+default-image-extension: ".jpg"
+dpi: 96
+dump-args: false
+email-obfuscation: none
+eol: Native
+epub-chapter-level: 1
+epub-cover-image: null
+epub-fonts: []
+epub-metadata: metadata.xml
+epub-subdirectory: EPUB
+extract-media: media
+fail-if-warnings: false
+file-scope: false
+filters:
+  - pandoc-citeproc
+from: markdown+emoji
+highlight-style: pygments
+html-math-method:
+  method: mathjax
+  url: "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+html-qtags: false
+identifier-prefix: ""
+ignore-args: false
+include-after-body: []
+include-before-body: []
+include-in-header: []
+incremental: false
+indented-code-classes: []
+input-files: []
+ipynb-output: best
+listings: false
+log-file: null
+metadata: {}
+metadata-file: []
+number-offset: [0,0,0,0,0,0]
+number-sections: false
+output-file: null
+pdf-engine: null
+pdf-engine-args: []
+preserve-tabs: false
+reference-doc: null
+reference-links: false
+reference-location: end-of-document
+request-headers: []
+resource-path: [".", "../foo"]
+section-divs: false
+self-contained: false
+setext-headers: true
+shift-heading-level-by: 0
+slide-level: null
+standalone: false
+strip-comments: false
+strip-empty-paragraphs: false
+syntax-definitions: []
+tab-stop: 4
+table-of-contents: false
+template: letter
+title-prefix: null
+to: null
+toc-depth: 3
+top-level-division: default
+trace: false
+track-changes: accept-changes
+variables:
+  - documentclass: book
+  - classoptions:
+    - twosides
+    - draft
+verbosity: WARNING
+wrap-text: wrap-auto
+```
 
 # Templates
 
