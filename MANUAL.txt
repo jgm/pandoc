@@ -2575,6 +2575,7 @@ Changes the algorithm used by `auto_identifiers` to conform to
 GitHub's method.  Spaces are converted to dashes (`-`),
 uppercase characters to lowercase characters, and punctuation
 characters other than `-` and `_` are removed.
+Emojis are replaced by their names.
 
 ## Math Input
 

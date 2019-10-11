@@ -463,8 +463,15 @@ isPara _        = False
 -- letters, digits, and the characters _-.
 inlineListToIdentifier :: Extensions -> [Inline] -> String
 inlineListToIdentifier exts =
-  dropNonLetter . filterAscii . toIdent . stringify
+  dropNonLetter . filterAscii . toIdent . stringify . walk unEmojify
   where
+    unEmojify :: [Inline] -> [Inline]
+    unEmojify
+      | extensionEnabled Ext_gfm_auto_identifiers exts ||
+        extensionEnabled Ext_ascii_identifiers exts = walk unEmoji
+      | otherwise = id
+    unEmoji (Span ("",["emoji"],[("data-emoji",ename)]) _) = Str ename
+    unEmoji x = x
     dropNonLetter
       | extensionEnabled Ext_gfm_auto_identifiers exts = id
       | otherwise = dropWhile (not . isAlpha)
