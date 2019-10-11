@@ -188,7 +188,7 @@ doOpt opt (k',v) = do
       <|>
       (parseYAML v >>= \x -> return opt { optMetadataFiles = [unpack x] })
     "output-file" ->
-      parseYAML v >>= \x -> return opt { optOutputFile = Just $ unpack x }
+      parseYAML v >>= \x -> return opt { optOutputFile = unpack <$> x }
     "input-files" ->
       parseYAML v >>= \x -> return opt { optInputFiles = map unpack x }
     "number-sections" ->
