@@ -1575,6 +1575,22 @@ ignore-args: false
 trace: false
 ```
 
+Fields that are omitted will just have their regular
+default values.  So a defaults file can be as simple as
+one line:
+
+``` yaml
+verbosity: INFO
+```
+
+Default files can be placed in the `defaults` subdirectory of
+the user data directory and used from any directory.  For
+example, one could create a file specifying defaults for writing
+letters, save it as `letter.yaml` in the `defaults` subdirectory
+of the user data directory, and then invoke these defaults
+from any directory using `pandoc --defaults letter`
+or `pandoc -dletter`.
+
 # Templates
 
 When the `-s/--standalone` option is used, pandoc uses a template to
