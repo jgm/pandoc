@@ -628,15 +628,15 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
                writerColumns opts >= 8 * numcols -> (id,) <$>
                 gridTable opts blockListToMarkdown
                   (all null headers) aligns' widths' headers rows
-            | isEnabled Ext_raw_html opts -> fmap (id,) $
-                   (text . T.unpack) <$>
-                   (writeHtml5String opts{ writerTemplate = Nothing } $ Pandoc nullMeta [t])
             | hasSimpleCells &&
               isEnabled Ext_pipe_tables opts -> do
                 rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
                 rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
                            rows
                 (id,) <$> pipeTable (all null headers) aligns' rawHeaders rawRows
+            | isEnabled Ext_raw_html opts -> fmap (id,) $
+                   (text . T.unpack) <$>
+                   (writeHtml5String opts{ writerTemplate = Nothing } $ Pandoc nullMeta [t])
             | otherwise -> return $ (id, text "[TABLE]")
   return $ nst (tbl $$ caption'') $$ blankline
 blockToMarkdown' opts (BulletList items) = do
