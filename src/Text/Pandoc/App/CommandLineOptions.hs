@@ -45,7 +45,6 @@ import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..))
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
-import Text.Pandoc.Writers.Math (defaultMathJaxURL, defaultKaTeXURL)
 import Text.Pandoc.Shared (ordNub, safeRead, defaultUserDataDirs)
 import Text.Printf
 
