@@ -74,7 +74,7 @@
 This is a set of tests for pandoc. Most of them are adapted from John Gruber's
 markdown test suite.
 
-\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \hypertarget{headers}{%
 \section{Headers}\label{headers}}
@@ -110,7 +110,7 @@ with no blank line
 
 with no blank line
 
-\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \hypertarget{paragraphs}{%
 \section{Paragraphs}\label{paragraphs}}
@@ -126,7 +126,7 @@ Here's one with a bullet. * criminey.
 There should be a hard line break\\
 here.
 
-\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \hypertarget{block-quotes}{%
 \section{Block Quotes}\label{block-quotes}}
@@ -172,7 +172,7 @@ This should not be a block quote: 2 \textgreater{} 1.
 
 And a following paragraph.
 
-\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \hypertarget{code-blocks}{%
 \section{Code Blocks}\label{code-blocks}}
@@ -197,7 +197,7 @@ And:
 These should not be escaped:  \$ \\ \> \[ \{
 \end{verbatim}
 
-\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \hypertarget{lists}{%
 \section{Lists}\label{lists}}
@@ -511,7 +511,7 @@ M.A.~2007
 
 B. Williams
 
-\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \hypertarget{definition-lists}{%
 \section{Definition Lists}\label{definition-lists}}
@@ -678,7 +678,7 @@ Code:
 
 Hr's:
 
-\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \hypertarget{inline-markup}{%
 \section{Inline Markup}\label{inline-markup}}
@@ -711,7 +711,7 @@ H\textsubscript{many~of~them}O.
 These should not be superscripts or subscripts, because of the unescaped
 spaces: a\^{}b c\^{}d, a\textasciitilde b c\textasciitilde d.
 
-\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \hypertarget{smart-quotes-ellipses-dashes}{%
 \section{Smart quotes, ellipses, dashes}\label{smart-quotes-ellipses-dashes}}
@@ -733,7 +733,7 @@ Dashes between numbers: 5--7, 255--66, 1987--1999.
 
 Ellipses\ldots and\ldots and\ldots.
 
-\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \hypertarget{latex}{%
 \section{LaTeX}\label{latex}}
@@ -782,7 +782,7 @@ Dog    & 2      \\
 Cat    & 1      \\ \hline
 \end{tabular}
 
-\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \hypertarget{special-characters}{%
 \section{Special Characters}\label{special-characters}}
@@ -845,7 +845,7 @@ Plus: +
 
 Minus: -
 
-\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \hypertarget{links}{%
 \section{Links}\label{links}}
@@ -938,7 +938,7 @@ Auto-links should not occur here:
 or here: <http://example.com/>
 \end{verbatim}
 
-\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \hypertarget{images}{%
 \section{Images}\label{images}}
@@ -953,7 +953,7 @@ From ``Voyage dans la Lune'' by Georges Melies (1902):
 
 Here is a movie \includegraphics{movie.jpg} icon.
 
-\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \hypertarget{footnotes}{%
 \section{Footnotes}\label{footnotes}}

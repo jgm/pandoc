@@ -745,7 +745,7 @@ blockToLaTeX (DefinitionList lst) = do
                "\\end{description}"
 blockToLaTeX HorizontalRule =
             return
-  "\\begin{center}\\rule{0.5\\linewidth}{\\linethickness}\\end{center}"
+  "\\begin{center}\\rule{0.5\\linewidth}{0.5pt}\\end{center}"
 blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = True}
   hdr <- sectionHeader classes id' level lst
