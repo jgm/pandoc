@@ -1988,6 +1988,12 @@ ODT or pptx.
 [Unicode Bidirectional Algorithm]: http://www.w3.org/International/articles/inline-bidi-markup/uba-basics
 [Language subtag lookup]: https://r12a.github.io/app-subtags/
 
+### Variables for HTML math
+
+`classoption`
+:   when using [KaTeX](#option--katex), you can render display math equations
+    flush left using [YAML metadata](#layout) or with `-M classoption=fleqn`.
+
 ### Variables for HTML slides
 
 These affect HTML output when [producing slide shows with pandoc].

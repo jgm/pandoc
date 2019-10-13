@@ -281,8 +281,12 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          H.script !
                            A.src (toValue $ url ++ "katex.min.js") $ mempty
                          nl opts
-                         H.script
-                            "document.addEventListener(\"DOMContentLoaded\", function () {\n  var mathElements = document.getElementsByClassName(\"math\");\n  for (var i = 0; i < mathElements.length; i++) {\n    var texText = mathElements[i].firstChild;\n    if (mathElements[i].tagName == \"SPAN\") { katex.render(texText.data, mathElements[i], { displayMode: mathElements[i].classList.contains(\"display\"), throwOnError: false } );\n  }}});"
+                         let katexFlushLeft =
+                               case lookupContext "classoption" metadata of
+                                 Just clsops | "fleqn" `elem` (clsops :: [Text]) -> "true"
+                                 _ -> "false"
+                         H.script $
+                            "document.addEventListener(\"DOMContentLoaded\", function () {\n  var mathElements = document.getElementsByClassName(\"math\");\n  for (var i = 0; i < mathElements.length; i++) {\n    var texText = mathElements[i].firstChild;\n    if (mathElements[i].tagName == \"SPAN\") { katex.render(texText.data, mathElements[i], { displayMode: mathElements[i].classList.contains(\"display\"), throwOnError: false, fleqn: " <> katexFlushLeft <> " } );\n  }}});"
                          nl opts
                          H.link ! A.rel "stylesheet" !
                            A.href (toValue $ url ++ "katex.min.css")
