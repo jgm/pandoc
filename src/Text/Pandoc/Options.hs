@@ -313,7 +313,7 @@ defaultMathJaxURL :: String
 defaultMathJaxURL = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/"
 
 defaultKaTeXURL :: String
-defaultKaTeXURL = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/"
+defaultKaTeXURL = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/"
 
 $(deriveJSON defaultOptions ''ReaderOptions)
 
