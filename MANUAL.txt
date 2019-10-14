@@ -1446,7 +1446,7 @@ self-contained: false
 # note that structured variables may be specified:
 variables:
   documentclass: book
-  classoptions:
+  classoption:
     - twosides
     - draft
 
