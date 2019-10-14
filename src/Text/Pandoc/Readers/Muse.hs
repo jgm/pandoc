@@ -755,6 +755,7 @@ inline' = whitespace
       <|> mathTag
       <|> inlineLiteralTag
       <|> str
+      <|> asterisks
       <|> symbol
       <?> "inline"
 
@@ -908,6 +909,12 @@ inlineLiteralTag = try $ fmap pure $ B.rawInline
 
 str :: PandocMonad m => MuseParser m (F Inlines)
 str = return . B.str <$> many1 alphaNum <* updateLastStrPos
+
+-- | Consume asterisks that were not used as emphasis opening.
+-- This prevents series of asterisks from being split into
+-- literal asterisk and emphasis opening.
+asterisks :: PandocMonad m => MuseParser m (F Inlines)
+asterisks = pure . B.str <$> many1 (char '*')
 
 symbol :: PandocMonad m => MuseParser m (F Inlines)
 symbol = pure . B.str . pure <$> nonspaceChar

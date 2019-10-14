@@ -133,9 +133,17 @@ tests =
         "**foo *bar* baz**" =?>
         para (strong (text "foo " <> emph (text "bar") <> text " baz"))
 
+      , "Opening asterisk can't be preceded by another one" =:
+        "**foo*" =?>
+        para "**foo*"
+
       , "Asterisk between words does not terminate emphasis" =:
         "*foo*bar*" =?>
         para (emph $ "foo*bar")
+
+      , "Asterisks between words do not terminate strong" =:
+        "**foo**bar**" =?>
+        para (strong $ "foo**bar")
 
       , test emacsMuse "Underline"
         ("_Underline_" =?> para (underlineSpan "Underline"))
