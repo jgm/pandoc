@@ -807,8 +807,7 @@ emphasisBetween p = try $ trimInlinesF . mconcat
   <$  atStart
   <*  p
   <*  notFollowedBy space
-  <*> many1Till inline (try $ noSpaceBefore *> p)
-  <*  notFollowedBy alphaNum
+  <*> many1Till inline (try $ noSpaceBefore *> p <* notFollowedBy alphaNum)
 
 -- | Parse an inline tag, such as @\<em>@ and @\<strong>@.
 inlineTag :: PandocMonad m
