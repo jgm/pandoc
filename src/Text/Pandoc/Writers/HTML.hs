@@ -267,39 +267,50 @@ pandocToHtml opts (Pandoc meta blocks) = do
   notes <- footnoteSection opts (reverse (stNotes st))
   let thebody = blocks' >> notes
   let math = case writerHTMLMathMethod opts of
-                      MathJax url
-                        | slideVariant /= RevealJsSlides ->
-                        -- mathjax is handled via a special plugin in revealjs
-                         H.script ! A.src (toValue url)
-                                  ! A.type_ "text/javascript"
-                                  $ case slideVariant of
-                                         SlideousSlides ->
-                                            preEscapedString
-                                            "MathJax.Hub.Queue([\"Typeset\",MathJax.Hub]);"
-                                         _ -> mempty
-                      KaTeX url -> do
-                         H.script !
-                           A.src (toValue $ url ++ "katex.min.js") $ mempty
-                         nl opts
-                         let katexFlushLeft =
-                               case lookupContext "classoption" metadata of
-                                 Just clsops | "fleqn" `elem` (clsops :: [Text]) -> "true"
-                                 _ -> "false"
-                         H.script $
-                            "document.addEventListener(\"DOMContentLoaded\", function () {\n  var mathElements = document.getElementsByClassName(\"math\");\n  for (var i = 0; i < mathElements.length; i++) {\n    var texText = mathElements[i].firstChild;\n    if (mathElements[i].tagName == \"SPAN\") { katex.render(texText.data, mathElements[i], { displayMode: mathElements[i].classList.contains(\"display\"), throwOnError: false, fleqn: " <> katexFlushLeft <> " } );\n  }}});"
-                         nl opts
-                         H.link ! A.rel "stylesheet" !
-                           A.href (toValue $ url ++ "katex.min.css")
+        MathJax url
+          | slideVariant /= RevealJsSlides ->
+          -- mathjax is handled via a special plugin in revealjs
+            H.script ! A.src (toValue url)
+                    ! A.type_ "text/javascript"
+                    $ case slideVariant of
+                            SlideousSlides ->
+                              preEscapedString
+                              "MathJax.Hub.Queue([\"Typeset\",MathJax.Hub]);"
+                            _ -> mempty
+        KaTeX url -> do
+          H.script !
+            A.src (toValue $ url ++ "katex.min.js") $ mempty
+          nl opts
+          let katexFlushLeft =
+                case lookupContext "classoption" metadata of
+                  Just clsops | "fleqn" `elem` (clsops :: [Text]) -> "true"
+                  _ -> "false"
+          H.script $ text $ T.unlines [
+              "document.addEventListener(\"DOMContentLoaded\", function () {"
+            , " var mathElements = document.getElementsByClassName(\"math\");"
+            , " for (var i = 0; i < mathElements.length; i++) {"
+            , "  var texText = mathElements[i].firstChild;"
+            , "  if (mathElements[i].tagName == \"SPAN\") {"
+            , "   katex.render(texText.data, mathElements[i], {"
+            , "    displayMode: mathElements[i].classList.contains('display'),"
+            , "    throwOnError: false,"
+            , "    fleqn: " <> katexFlushLeft
+            , "   });"
+            , "}}});"
+            ]
+          nl opts
+          H.link ! A.rel "stylesheet" !
+            A.href (toValue $ url ++ "katex.min.css")
 
-                      _ -> case lookupContext "mathml-script"
-                                (writerVariables opts) of
-                                 Just s | not (stHtml5 st) ->
-                                   H.script ! A.type_ "text/javascript"
-                                      $ preEscapedString
-                                       ("/*<![CDATA[*/\n" ++ T.unpack s ++
-                                       "/*]]>*/\n")
-                                        | otherwise -> mempty
-                                 Nothing -> mempty
+        _ -> case lookupContext "mathml-script"
+                  (writerVariables opts) of
+                    Just s | not (stHtml5 st) ->
+                      H.script ! A.type_ "text/javascript"
+                        $ preEscapedString
+                          ("/*<![CDATA[*/\n" ++ T.unpack s ++
+                          "/*]]>*/\n")
+                          | otherwise -> mempty
+                    Nothing -> mempty
   let context =   (if stHighlighting st
                       then case writerHighlightStyle opts of
                                 Just sty -> defField "highlighting-css"
