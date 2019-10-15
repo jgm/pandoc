@@ -736,6 +736,7 @@ inline' = whitespace
       <|> br
       <|> anchor
       <|> footnote
+      <|> strongEmph
       <|> strong
       <|> strongTag
       <|> emph
@@ -818,13 +819,17 @@ inlineTag tag = try $ mconcat
   <$  openTag tag
   <*> manyTill inline (closeTag tag)
 
+-- | Parse strong emphasis inline markup, indicated by @***@.
+strongEmph :: PandocMonad m => MuseParser m (F Inlines)
+strongEmph = fmap (B.strong . B.emph) <$> emphasisBetween (string "***" <* notFollowedBy (char '*'))
+
 -- | Parse strong inline markup, indicated by @**@.
 strong :: PandocMonad m => MuseParser m (F Inlines)
-strong = fmap B.strong <$> emphasisBetween (string "**")
+strong = fmap B.strong <$> emphasisBetween (string "**" <* notFollowedBy (char '*'))
 
 -- | Parse emphasis inline markup, indicated by @*@.
 emph :: PandocMonad m => MuseParser m (F Inlines)
-emph = fmap B.emph <$> emphasisBetween (char '*')
+emph = fmap B.emph <$> emphasisBetween (char '*' <* notFollowedBy (char '*'))
 
 -- | Parse underline inline markup, indicated by @_@.
 -- Supported only in Emacs Muse mode, not Text::Amuse.

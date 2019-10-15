@@ -139,11 +139,31 @@ tests =
 
       , "Asterisk between words does not terminate emphasis" =:
         "*foo*bar*" =?>
-        para (emph $ "foo*bar")
+        para (emph "foo*bar")
 
-      , "Asterisks between words do not terminate strong" =:
+      , "Two asterisks between words do not terminate emphasis" =:
+        "*foo**bar*" =?>
+        para (emph "foo**bar")
+
+      , "Three asterisks between words do not terminate emphasis" =:
+        "*foo***bar*" =?>
+        para (emph "foo***bar")
+
+      , "Two asterisks between words do not terminate strong" =:
         "**foo**bar**" =?>
-        para (strong $ "foo**bar")
+        para (strong "foo**bar")
+
+      , "Three asterisks between words do not terminate strong" =:
+        "**foo***bar**" =?>
+        para (strong "foo***bar")
+
+      , "Three asterisks between words do not terminate strong emphasis" =:
+        "***foo***bar***" =?>
+        para (strong . emph $ "foo***bar")
+
+      , "Six asterisks between words do not terminate strong emphasis" =:
+        "***foo******bar***" =?>
+        para (strong . emph $ "foo******bar")
 
       , test emacsMuse "Underline"
         ("_Underline_" =?> para (underlineSpan "Underline"))
