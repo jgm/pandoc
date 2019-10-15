@@ -81,7 +81,7 @@ under the heading for your operating system.
 
   - Check whether the pandoc version in your package manager is
     not outdated. Pandoc is in the [Debian], [Ubuntu], [Slackware],
-    [Arch], [Fedora], [NiXOS], [openSUSE], and [gentoo] repositories.
+    [Arch], [Fedora], [NiXOS], [openSUSE], [gentoo] and [Void] repositories.
 
   - To get the latest release, we provide a binary package for amd64
     architecture on the **[download page]**.
@@ -399,4 +399,5 @@ To run just the markdown benchmarks:
 [source tarball]: http://hackage.haskell.org/package/pandoc
 [stack]: https://docs.haskellstack.org/en/stable/install_and_upgrade.html
 [cabal-install]: http://hackage.haskell.org/package/cabal-install
+[Void]: https://voidlinux.org/
 [uninstaller]: https://raw.githubusercontent.com/jgm/pandoc/master/macos/uninstall-pandoc.pl
