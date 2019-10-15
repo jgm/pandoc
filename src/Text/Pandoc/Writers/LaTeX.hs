@@ -380,10 +380,6 @@ stringToLaTeX context zs = do
          '\x200B' -> emits "\\hspace{0pt}"  -- zero-width space
          '\x202F' -> emits "\\,"
          '\x2026' -> emitcseq "\\ldots"
-         '\x2018' | ligatures -> emitquote "`"
-         '\x2019' | ligatures -> emitquote "'"
-         '\x201C' | ligatures -> emitquote "``"
-         '\x201D' | ligatures -> emitquote "''"
          '\x2014' | ligatures -> emits "---"
          '\x2013' | ligatures -> emits "--"
          _ | writerPreferAscii opts
