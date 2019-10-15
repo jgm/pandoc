@@ -698,7 +698,7 @@ underlineSpan = B.spanWith ("", ["underline"], [])
 -- | Set of HTML elements that are represented as Span with a class equal as
 -- the element tag itself.
 htmlSpanLikeElements :: Set.Set T.Text
-htmlSpanLikeElements = Set.fromList [T.pack "kbd"]
+htmlSpanLikeElements = Set.fromList [T.pack "kbd", T.pack "mark"]
 
 -- | Returns the first sentence in a list of inlines, and the rest.
 breakSentence :: [Inline] -> ([Inline], [Inline])
