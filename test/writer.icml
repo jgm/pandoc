@@ -64,7 +64,7 @@
         <Properties>
           <BasedOn type="object">$ID/NormalCharacterStyle</BasedOn>
         </Properties>
-      </CharacterStyle> 
+      </CharacterStyle>
     </RootCharacterStyleGroup>
     <RootParagraphStyleGroup Self="pandoc_paragraph_styles">
       <ParagraphStyle Self="$ID/NormalParagraphStyle" Name="$ID/NormalParagraphStyle"
@@ -420,7 +420,7 @@
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
         </Properties>
-      </ParagraphStyle> 
+      </ParagraphStyle>
     </RootParagraphStyleGroup>
     <RootTableStyleGroup Self="pandoc_table_styles">
       <TableStyle Self="TableStyle/Table" Name="Table" />

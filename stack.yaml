@@ -24,7 +24,7 @@ extra-deps:
 - HsYAML-aeson-0.2.0.0
 # - doctemplates-0.6.1
 - git: https://github.com/jgm/doctemplates.git
-  commit: 180a5e9318e3cee44c6581f6d8ace14de684b735
+  commit: 57ef7f3b14868bea9739e1e800b84cb3bc1ea681
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-14.6

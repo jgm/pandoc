@@ -4,7 +4,7 @@
 <Document DOMVersion="8.0" Self="pandoc_doc">
     <RootCharacterStyleGroup Self="pandoc_character_styles">
       <CharacterStyle Self="$$ID/NormalCharacterStyle" Name="Default" />
-      $charStyles$ 
+      $charStyles$
     </RootCharacterStyleGroup>
     <RootParagraphStyleGroup Self="pandoc_paragraph_styles">
       <ParagraphStyle Self="$$ID/NormalParagraphStyle" Name="$$ID/NormalParagraphStyle"
@@ -20,7 +20,7 @@
           </TabList>
         </Properties>
       </ParagraphStyle>
-      $parStyles$ 
+      $parStyles$
     </RootParagraphStyleGroup>
     <RootTableStyleGroup Self="pandoc_table_styles">
       <TableStyle Self="TableStyle/Table" Name="Table" />
