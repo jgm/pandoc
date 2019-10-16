@@ -187,6 +187,9 @@ modify `test/Tests/Old.hs`. Otherwise, it is better to modify the module
 under the `test/Tests` hierarchy corresponding to the pandoc module you
 are changing.  Alternatively, you may add a "command test" to
 the `/test/command/` hierarchy, following the pattern of the tests there.
+These test files should have a meaningful name, which can include the issue
+number and/or the feature that's being tested. For example, `5474-tables.md`
+refers to both issue and feature.
 
 You can rebuild the golden tests in `tests/` by passing
 `--accept` to the test script. (If you're using stack, `stack
