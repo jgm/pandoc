@@ -64,6 +64,13 @@ under the heading for your operating system.
     Homebrew installs from source, which takes additional time and disk space
     for the `ghc` compiler and dependent Haskell libraries.
 
+  - You can also install with [Scarf](https://scarf.sh/package/scarf/pandoc)
+    with:
+
+        scarf install pandoc
+  
+    which will install both `pandoc` and `pandoc-citeproc`.
+
   - We also provide a zip file containing the binaries and man
     pages, for those who prefer not to use the installer.  Simply
     unzip the file and move the binaries and man pages to
@@ -114,6 +121,13 @@ under the heading for your operating system.
     a tarball, try instead
 
         ar p $DEB data.tar.gz | tar xvz --strip-components 2 -C $DEST
+        
+  - You can also install with [Scarf](https://scarf.sh/package/scarf/pandoc)
+    with:
+
+        scarf install pandoc
+  
+    which will install both `pandoc` and `pandoc-citeproc`.
 
   - You can also install from source, using the
     instructions below under [Compiling from source].
