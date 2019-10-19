@@ -683,7 +683,10 @@ pSelfClosing f g = do
   return open
 
 pQ :: PandocMonad m => TagParser m Inlines
-pQ = do
+pQ = try $ do
+  tag <- pSatisfy $ tagOpenLit "q" (const True)
+  lab <- mconcat <$> manyTill inline (pCloses "q")
+
   context <- asks quoteContext
   let quoteType = case context of
                        InDoubleQuote -> SingleQuote
@@ -694,8 +697,23 @@ pQ = do
   let constructor = case quoteType of
                             SingleQuote -> B.singleQuoted
                             DoubleQuote -> B.doubleQuoted
-  withQuoteContext innerQuoteContext $
-    pInlinesInTags "q" constructor
+  let quote = withQuoteContext innerQuoteContext $ return (extractSpaces constructor lab)
+
+  -- check for cite; if cite, then a link with inner quote, otherwise a quote
+  case maybeFromAttrib "cite" tag of
+       Nothing   -> quote
+       Just url' -> do
+         let title = T.unpack $ fromAttrib "title" tag
+         -- take id from id attribute if present, otherwise name
+         let uid = fromMaybe (T.unpack $ fromAttrib "name" tag) $
+                      maybeFromAttrib "id" tag
+         let cls = words $ T.unpack $ fromAttrib "class" tag
+         mbBaseHref <- baseHref <$> getState
+         let url = case (parseURIReference url', mbBaseHref) of
+                        (Just rel, Just bs) ->
+                          show (rel `nonStrictRelativeTo` bs)
+                        _                   -> url'
+         extractSpaces (B.linkWith (uid, cls, []) (escapeURI url) title) <$> quote
 
 pEmph :: PandocMonad m => TagParser m Inlines
 pEmph = pInlinesInTags "em" B.emph <|> pInlinesInTags "i" B.emph

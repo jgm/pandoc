@@ -67,6 +67,11 @@
 
     + Add RTL support (Alexander Krotov, #5551).
 
+  * HTML reader:
+
+    + If `cite` attribute is present on a `<q>` tag, represent it as a
+      link around a quote.
+
   * JIRA writer:
 
     + Remove escapeStringForJira for code blocks (Jan-Otto Kröpke).
