@@ -708,11 +708,7 @@ pQ = try $ do
          let uid = fromMaybe (T.unpack $ fromAttrib "name" tag) $
                       maybeFromAttrib "id" tag
          let cls = words $ T.unpack $ fromAttrib "class" tag
-         mbBaseHref <- baseHref <$> getState
-         let url = case (parseURIReference url', mbBaseHref) of
-                        (Just rel, Just bs) ->
-                          show (rel `nonStrictRelativeTo` bs)
-                        _                   -> url'
+         url <- canonicalizeUrl url'
          extractSpaces (B.linkWith (uid, cls, []) (escapeURI url) title) <$> quote
 
 pEmph :: PandocMonad m => TagParser m Inlines
@@ -774,21 +770,13 @@ pLink = try $ do
        Nothing   ->
          return $ extractSpaces (B.spanWith (uid, cls, [])) lab
        Just url' -> do
-         mbBaseHref <- baseHref <$> getState
-         let url = case (parseURIReference url', mbBaseHref) of
-                        (Just rel, Just bs) ->
-                          show (rel `nonStrictRelativeTo` bs)
-                        _                   -> url'
+         url <- canonicalizeUrl url'
          return $ extractSpaces (B.linkWith (uid, cls, []) (escapeURI url) title) lab
 
 pImage :: PandocMonad m => TagParser m Inlines
 pImage = do
   tag <- pSelfClosing (=="img") (isJust . lookup "src")
-  mbBaseHref <- baseHref <$> getState
-  let url' = T.unpack $ fromAttrib "src" tag
-  let url = case (parseURIReference url', mbBaseHref) of
-                 (Just rel, Just bs) -> show (rel `nonStrictRelativeTo` bs)
-                 _                   -> url'
+  url <- canonicalizeUrl $ T.unpack $ fromAttrib "src" tag
   let title = T.unpack $ fromAttrib "title" tag
   let alt = T.unpack $ fromAttrib "alt" tag
   let uid = T.unpack $ fromAttrib "id" tag
@@ -1300,6 +1288,17 @@ isSpace '\t' = True
 isSpace '\n' = True
 isSpace '\r' = True
 isSpace _    = False
+
+-- Utilities
+
+-- | Adjusts a url according to the document's base URL.
+canonicalizeUrl :: PandocMonad m => String -> TagParser m String
+canonicalizeUrl url = do
+  mbBaseHref <- baseHref <$> getState
+  return $ case (parseURIReference url, mbBaseHref) of
+                (Just rel, Just bs) -> show (rel `nonStrictRelativeTo` bs)
+                _                   -> url
+
 
 -- Instances
 
