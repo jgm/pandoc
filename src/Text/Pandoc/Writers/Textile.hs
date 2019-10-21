@@ -23,7 +23,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.DocLayout (render)
+import Text.DocLayout (render, literal)
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
@@ -51,16 +51,17 @@ writeTextile opts document =
 pandocToTextile :: PandocMonad m
                 => WriterOptions -> Pandoc -> TW m Text
 pandocToTextile opts (Pandoc meta blocks) = do
-  metadata <- metaToContext opts (blockListToTextile opts)
-                 (inlineListToTextile opts) meta
+  metadata <- metaToContext opts
+                 (fmap (literal . pack) . blockListToTextile opts)
+                 (fmap (literal . pack) . inlineListToTextile opts) meta
   body <- blockListToTextile opts blocks
   notes <- gets $ unlines . reverse . stNotes
-  let main = body ++ if null notes then "" else "\n\n" ++ notes
+  let main = pack $ body ++ if null notes then "" else "\n\n" ++ notes
   let context = defField "body" main metadata
-  return $ pack $
+  return $
     case writerTemplate opts of
          Nothing  -> main
-         Just tpl -> renderTemplate tpl context
+         Just tpl -> render Nothing $ renderTemplate tpl context
 
 withUseTags :: PandocMonad m => TW m a -> TW m a
 withUseTags action = do

@@ -16,16 +16,18 @@ Marshaling instance for doctemplates Context and its components.
 -}
 module Text.Pandoc.Lua.Marshaling.Context () where
 
+import Prelude
 import qualified Foreign.Lua as Lua
 import Foreign.Lua (Pushable)
-import Text.DocTemplates (Context(..), Val(..))
+import Text.DocTemplates (Context(..), Val(..), TemplateTarget)
+import Text.DocLayout (render)
 
-instance Pushable a => Pushable (Context a) where
+instance (TemplateTarget a, Pushable a) => Pushable (Context a) where
   push (Context m) = Lua.push m
 
-instance Pushable a => Pushable (Val a) where
+instance (TemplateTarget a, Pushable a) => Pushable (Val a) where
   push NullVal = Lua.push ()
   push (MapVal ctx) = Lua.push ctx
   push (ListVal xs) = Lua.push xs
-  push (SimpleVal x) = Lua.push x
+  push (SimpleVal d) = Lua.push $ render Nothing d
 

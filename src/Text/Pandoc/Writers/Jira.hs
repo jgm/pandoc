@@ -29,6 +29,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared (metaToContext, defField)
 import qualified Data.Text as T
+import Text.DocLayout (literal, render)
 
 data WriterState = WriterState
   { stNotes     :: [Text]      -- Footnotes
@@ -53,16 +54,19 @@ writeJira opts document =
 pandocToJira :: PandocMonad m
              => WriterOptions -> Pandoc -> JiraWriter m Text
 pandocToJira opts (Pandoc meta blocks) = do
-  metadata <- metaToContext opts (blockListToJira opts)
-                 (inlineListToJira opts) meta
+  metadata <- metaToContext opts
+                 (fmap literal . blockListToJira opts)
+                 (fmap literal . inlineListToJira opts) meta
   body <- blockListToJira opts blocks
   notes <- gets $ T.intercalate "\n" . reverse . stNotes
-  let main = body <> if T.null notes then "" else "\n\n" <> notes
+  let main = body <> if T.null notes
+                        then mempty
+                        else T.pack "\n\n" <> notes
   let context = defField "body" main metadata
   return $
     case writerTemplate opts of
       Nothing  -> main
-      Just tpl -> renderTemplate tpl context
+      Just tpl -> render Nothing $ renderTemplate tpl context
 
 -- | Escape one character as needed for Jira.
 escapeCharForJira :: Char -> Text

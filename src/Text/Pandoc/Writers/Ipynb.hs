@@ -39,6 +39,7 @@ import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString.Lazy as BL
 import Data.Aeson.Encode.Pretty (Config(..), defConfig,
            encodePretty', keyOrder, Indent(Spaces))
+import Text.DocLayout (literal)
 
 writeIpynb :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeIpynb opts d = do
@@ -57,9 +58,9 @@ writeIpynb opts d = do
 pandocToNotebook :: PandocMonad m
                  => WriterOptions -> Pandoc -> m (Notebook NbV4)
 pandocToNotebook opts (Pandoc meta blocks) = do
-  let blockWriter bs = writeMarkdown
+  let blockWriter bs = literal <$> writeMarkdown
            opts{ writerTemplate = Nothing } (Pandoc nullMeta bs)
-  let inlineWriter ils = T.stripEnd <$> writeMarkdown
+  let inlineWriter ils = literal . T.stripEnd <$> writeMarkdown
            opts{ writerTemplate = Nothing } (Pandoc nullMeta [Plain ils])
   let jupyterMeta =
         case lookupMeta "jupyter" meta of

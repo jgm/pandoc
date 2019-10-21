@@ -45,6 +45,7 @@ import Control.Monad (zipWithM)
 import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace)
 import Data.List (groupBy, intersperse, transpose, foldl')
+import Data.Text.Conversions (FromText(..))
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as Builder
@@ -55,7 +56,7 @@ import Text.Pandoc.Shared (stringify, makeSections, deNote, deLink)
 import Text.Pandoc.Walk (walk)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (escapeStringForXML)
-import Text.DocTemplates (Context(..), Val(..), TemplateTarget(..),
+import Text.DocTemplates (Context(..), Val(..), TemplateTarget,
                           ToContext(..), FromContext(..))
 
 -- | Create template Context from a 'Meta' and an association list
@@ -65,8 +66,8 @@ import Text.DocTemplates (Context(..), Val(..), TemplateTarget(..),
 -- assigned.  Does nothing if 'writerTemplate' is Nothing.
 metaToContext :: (Monad m, TemplateTarget a)
               => WriterOptions
-              -> ([Block] -> m a)
-              -> ([Inline] -> m a)
+              -> ([Block] -> m (Doc a))
+              -> ([Inline] -> m (Doc a))
               -> Meta
               -> m (Context a)
 metaToContext opts blockWriter inlineWriter meta =
@@ -78,8 +79,8 @@ metaToContext opts blockWriter inlineWriter meta =
 -- | Like 'metaToContext, but does not include variables and is
 -- not sensitive to 'writerTemplate'.
 metaToContext' :: (Monad m, TemplateTarget a)
-           => ([Block] -> m a)
-           -> ([Inline] -> m a)
+           => ([Block] -> m (Doc a))
+           -> ([Inline] -> m (Doc a))
            -> Meta
            -> m (Context a)
 metaToContext' blockWriter inlineWriter (Meta metamap) = do
@@ -97,13 +98,14 @@ addVariablesToContext opts (Context m1) =
    m2 = case traverse go (writerVariables opts) of
                   Just (Context x) -> x
                   Nothing -> mempty
-   m3 = M.insert "meta-json" (SimpleVal $ fromText jsonrep) mempty
+   m3 = M.insert "meta-json" (SimpleVal $ literal $ fromText jsonrep)
+                             mempty
    go = Just . fromText
    jsonrep = UTF8.toText $ BL.toStrict $ encode $ toJSON m1
 
 metaValueToVal :: (Monad m, TemplateTarget a)
-               => ([Block] -> m a)
-               -> ([Inline] -> m a)
+               => ([Block] -> m (Doc a))
+               -> ([Inline] -> m (Doc a))
                -> MetaValue
                -> m (Val a)
 metaValueToVal blockWriter inlineWriter (MetaMap metamap) =
@@ -111,7 +113,7 @@ metaValueToVal blockWriter inlineWriter (MetaMap metamap) =
     mapM (metaValueToVal blockWriter inlineWriter) metamap
 metaValueToVal blockWriter inlineWriter (MetaList xs) = ListVal <$>
   mapM (metaValueToVal blockWriter inlineWriter) xs
-metaValueToVal _ _ (MetaBool True) = return $ SimpleVal $ fromText "true"
+metaValueToVal _ _ (MetaBool True) = return $ SimpleVal "true"
 metaValueToVal _ _ (MetaBool False) = return NullVal
 metaValueToVal _ inlineWriter (MetaString s) =
    SimpleVal <$> inlineWriter (Builder.toList (Builder.text s))

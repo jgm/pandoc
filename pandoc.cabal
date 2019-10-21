@@ -417,9 +417,10 @@ library
                  case-insensitive >= 1.2 && < 1.3,
                  unicode-transforms >= 0.3 && < 0.4,
                  HsYAML >= 0.2 && < 0.3,
-                 doclayout >= 0.1 && < 0.2,
+                 doclayout >= 0.2 && < 0.3,
                  ipynb >= 0.1 && < 0.2,
-                 attoparsec >= 0.12 && < 0.14
+                 attoparsec >= 0.12 && < 0.14,
+                 text-conversions >= 0.3 && < 0.4
   if os(windows) && arch(i386)
      build-depends: basement >= 0.0.10,
                     foundation >= 0.0.23

@@ -36,7 +36,7 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
-import Text.DocTemplates (Context(..), Val(..), TemplateTarget(..))
+import Text.DocTemplates (Context(..), Val(..))
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
@@ -88,7 +88,7 @@ docToJATS opts (Pandoc meta blocks) = do
         case getField "date" metadata of
           Nothing -> NullVal
           Just (SimpleVal (x :: Doc Text)) ->
-             case parseDate (T.unpack $ toText x) of
+             case parseDate (T.unpack $ render Nothing x) of
                Nothing  -> NullVal
                Just day ->
                  let (y,m,d) = toGregorian day

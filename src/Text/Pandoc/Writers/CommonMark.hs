@@ -34,6 +34,7 @@ import Text.Pandoc.Walk (walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtml5String, tagWithAttributes)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML (toHtml5Entities)
+import Text.DocLayout (literal, render)
 
 -- | Convert Pandoc to CommonMark.
 writeCommonMark :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -50,8 +51,8 @@ writeCommonMark opts (Pandoc meta blocks) = do
                else [OrderedList (1, Decimal, Period) $ reverse notes]
   main <-  blocksToCommonMark opts (blocks' ++ notes')
   metadata <- metaToContext opts
-              (fmap T.stripEnd . blocksToCommonMark opts)
-              (fmap T.stripEnd . inlinesToCommonMark opts)
+              (fmap (literal . T.stripEnd) . blocksToCommonMark opts)
+              (fmap (literal . T.stripEnd) . inlinesToCommonMark opts)
               meta
   let context =
           -- for backwards compatibility we populate toc
@@ -62,7 +63,7 @@ writeCommonMark opts (Pandoc meta blocks) = do
   return $
     case writerTemplate opts of
        Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+       Just tpl -> render Nothing $ renderTemplate tpl context
 
 softBreakToSpace :: Inline -> Inline
 softBreakToSpace SoftBreak = Space

@@ -37,6 +37,7 @@ import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContent
 import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, isURI, linesToPara,
                            removeFormatting, substitute, trimr)
 import Text.Pandoc.Templates (renderTemplate)
+import Text.DocLayout (render, literal)
 import Text.Pandoc.Writers.Shared (defField, metaToContext)
 
 data WriterState = WriterState {
@@ -71,17 +72,17 @@ pandocToDokuWiki :: PandocMonad m
                  => WriterOptions -> Pandoc -> DokuWiki m Text
 pandocToDokuWiki opts (Pandoc meta blocks) = do
   metadata <- metaToContext opts
-              (fmap trimr . blockListToDokuWiki opts)
-              (fmap trimr . inlineListToDokuWiki opts)
+              (fmap (literal . pack . trimr) . blockListToDokuWiki opts)
+              (fmap (literal . pack . trimr) . inlineListToDokuWiki opts)
               meta
   body <- blockListToDokuWiki opts blocks
-  let main = body
+  let main = pack body
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents opts) metadata
-  return $ pack $
+  return $
     case writerTemplate opts of
        Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+       Just tpl -> render Nothing $ renderTemplate tpl context
 
 -- | Escape special characters for DokuWiki.
 escapeString :: String -> String

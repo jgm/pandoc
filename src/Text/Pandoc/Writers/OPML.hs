@@ -36,17 +36,19 @@ writeOPML opts (Pandoc meta blocks) = do
                     else Nothing
       meta' = B.setMeta "date" (B.str $ convertDate $ docDate meta) meta
   metadata <- metaToContext opts
-              (writeMarkdown def . Pandoc nullMeta)
-              (\ils -> T.stripEnd <$> writeMarkdown def (Pandoc nullMeta [Plain ils]))
+              (fmap literal . writeMarkdown def . Pandoc nullMeta)
+              (\ils -> literal . T.stripEnd <$>
+                writeMarkdown def (Pandoc nullMeta [Plain ils]))
               meta'
   let blocks' = makeSections False (Just 1) blocks
-  main <- (render colwidth . vcat) <$> mapM (blockToOPML opts) blocks'
+  main <- (render colwidth . vcat) <$>
+             mapM (blockToOPML opts) blocks'
   let context = defField "body" main metadata
   return $
     (if writerPreferAscii opts then toEntities else id) $
     case writerTemplate opts of
        Nothing  -> main
-       Just tpl -> renderTemplate tpl context
+       Just tpl -> render colwidth $ renderTemplate tpl context
 
 
 writeHtmlInlines :: PandocMonad m => [Inline] -> m Text

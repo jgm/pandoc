@@ -231,7 +231,7 @@ instance FromYAML ReferenceLocation where
 
 -- | Options for writers
 data WriterOptions = WriterOptions
-  { writerTemplate          :: Maybe Template -- ^ Template to use
+  { writerTemplate          :: Maybe (Template Text) -- ^ Template to use
   , writerVariables         :: Context Text -- ^ Variables to set in template
   , writerTabStop           :: Int    -- ^ Tabstop for conversion btw spaces and tabs
   , writerTableOfContents   :: Bool   -- ^ Include table of contents

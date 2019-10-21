@@ -23,6 +23,7 @@ import qualified Data.Map as M
 import Data.Text (Text, pack)
 import Data.Typeable
 import Foreign.Lua (Lua, Pushable)
+import Text.DocLayout (render, literal)
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua (Global (..), LuaException (LuaException),
@@ -101,17 +102,18 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
       Lua.tostring' (-1) >>= throw . PandocLuaException . UTF8.toString
     rendered <- docToCustom opts doc
     context <- metaToContext opts
-               blockListToCustom
-               inlineListToCustom
+               (fmap (literal . pack) . blockListToCustom)
+               (fmap (literal . pack) . inlineListToCustom)
                meta
-    return (rendered, context)
+    return (pack rendered, context)
   let (body, context) = case res of
         Left (LuaException msg) -> throw (PandocLuaException msg)
         Right x -> x
-  return $ pack $
+  return $
     case writerTemplate opts of
        Nothing  -> body
-       Just tpl -> renderTemplate tpl $ setField "body" body context
+       Just tpl -> render Nothing $
+                    renderTemplate tpl $ setField "body" body context
 
 docToCustom :: WriterOptions -> Pandoc -> Lua String
 docToCustom opts (Pandoc (Meta metamap) blocks) = do

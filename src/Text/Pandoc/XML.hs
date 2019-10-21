@@ -56,14 +56,14 @@ escapeNls (x:xs)
 escapeNls []     = []
 
 -- | Return a text object with a string of formatted XML attributes.
-attributeList :: IsString a => [(String, String)] -> Doc a
+attributeList :: (HasChars a, IsString a) => [(String, String)] -> Doc a
 attributeList = hcat . map
   (\(a, b) -> text (' ' : escapeStringForXML a ++ "=\"" ++
   escapeNls (escapeStringForXML b) ++ "\""))
 
 -- | Put the supplied contents between start and end tags of tagType,
 --   with specified attributes and (if specified) indentation.
-inTags:: IsString a
+inTags:: (HasChars a, IsString a)
       => Bool -> String -> [(String, String)] -> Doc a -> Doc a
 inTags isIndented tagType attribs contents =
   let openTag = char '<' <> text tagType <> attributeList attribs <>
@@ -74,16 +74,19 @@ inTags isIndented tagType attribs contents =
          else openTag <> contents <> closeTag
 
 -- | Return a self-closing tag of tagType with specified attributes
-selfClosingTag :: IsString a => String -> [(String, String)] -> Doc a
+selfClosingTag :: (HasChars a, IsString a)
+               => String -> [(String, String)] -> Doc a
 selfClosingTag tagType attribs =
   char '<' <> text tagType <> attributeList attribs <> text " />"
 
 -- | Put the supplied contents between start and end tags of tagType.
-inTagsSimple :: IsString a => String -> Doc a -> Doc a
+inTagsSimple :: (HasChars a, IsString a)
+             => String -> Doc a -> Doc a
 inTagsSimple tagType = inTags False tagType []
 
 -- | Put the supplied contents in indented block btw start and end tags.
-inTagsIndented :: IsString a => String -> Doc a -> Doc a
+inTagsIndented :: (HasChars a, IsString a)
+               => String -> Doc a -> Doc a
 inTagsIndented tagType = inTags True tagType []
 
 -- | Escape all non-ascii characters using numerical entities.

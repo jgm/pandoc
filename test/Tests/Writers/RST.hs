@@ -24,7 +24,7 @@ testTemplate t = case runIdentity (compileTemplate [] (T.pack t)) of
     Left e -> error $ "Could not compile RST template: " ++ e
     Right templ -> test (purely (writeRST def{ writerTemplate = Just templ }) . toPandoc)
 
-bodyTemplate :: Template
+bodyTemplate :: Template T.Text
 bodyTemplate = case runIdentity (compileTemplate [] "$body$\n") of
                     Left e      -> error $
                       "Could not compile RST bodyTemplate" ++ e

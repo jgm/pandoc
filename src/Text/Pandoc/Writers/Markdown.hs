@@ -112,7 +112,7 @@ pandocTitleBlock tit auths dat =
   hang 2 (text "% ") (vcat $ map nowrap auths) <> cr <>
   hang 2 (text "% ") dat <> cr
 
-mmdTitleBlock :: Context (Doc Text) -> Doc Text
+mmdTitleBlock :: Context Text -> Doc Text
 mmdTitleBlock (Context hashmap) =
   vcat $ map go $ sortBy (comparing fst) $ M.toList hashmap
   where go (k,v) =
@@ -138,10 +138,10 @@ plainTitleBlock tit auths dat =
   (hcat (intersperse (text "; ") auths)) <> cr <>
   dat <> cr
 
-yamlMetadataBlock :: Context (Doc Text) -> Doc Text
+yamlMetadataBlock :: Context Text -> Doc Text
 yamlMetadataBlock v = "---" $$ (contextToYaml v) $$ "---"
 
-contextToYaml :: Context (Doc Text) -> Doc Text
+contextToYaml :: Context Text -> Doc Text
 contextToYaml (Context o) =
   vcat $ map keyvalToYaml $ sortBy (comparing fst) $ M.toList o
  where
@@ -158,7 +158,7 @@ contextToYaml (Context o) =
                (_, NullVal)       -> empty
                (k', _)            -> k' <> ":" <+> hang 2 "" (valToYaml v)
 
-valToYaml :: Val (Doc Text) -> Doc Text
+valToYaml :: Val Text -> Doc Text
 valToYaml (ListVal xs) =
   vcat $ map (\v -> hang 2 "- " (valToYaml v)) xs
 valToYaml (MapVal c) = contextToYaml c

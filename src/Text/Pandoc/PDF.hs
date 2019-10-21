@@ -37,6 +37,7 @@ import System.IO (stdout, hClose)
 import System.IO.Temp (withSystemTempDirectory, withTempDirectory,
                        withTempFile)
 import qualified System.IO.Error as IE
+import Text.DocLayout (literal)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
 import Text.Pandoc.MIME (getMimeType)
@@ -134,7 +135,10 @@ makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
                       MathJax _ -> ["--run-script", "MathJax.Hub.Register.StartupHook('End Typeset', function() { window.status = 'mathjax_loaded' });",
                                     "--window-status", "mathjax_loaded"]
                       _ -> []
-  meta' <- metaToContext opts (return . stringify) (return . stringify) meta
+  meta' <- metaToContext opts
+             (return . literal . stringify)
+             (return . literal . stringify)
+             meta
   let toArgs (f, mbd) = maybe [] (\d -> ['-':'-':f, d]) mbd
   let args   = pdfargs ++ mathArgs ++ concatMap toArgs
                  [("page-size", getField "papersize" meta')

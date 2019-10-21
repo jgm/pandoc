@@ -42,6 +42,7 @@ import qualified Data.Text.Lazy as TL
 import Network.HTTP (urlEncode)
 import Network.URI (URI (..), parseURIReference)
 import Numeric (showHex)
+import Text.DocLayout (render, literal)
 import Prelude
 import Text.Blaze.Internal (MarkupM (Empty), customLeaf, customParent)
 import Text.DocTemplates (FromContext (lookupContext))
@@ -226,7 +227,7 @@ writeHtmlString' st opts d = do
                            lookupContext "sourcefile" (writerVariables opts)
                    report $ NoTitleElement fallback
                    return $ resetField "pagetitle" (T.pack fallback) context
-         return $ renderTemplate tpl
+         return $ render Nothing $ renderTemplate tpl
              (defField "body" (renderHtml' body) context')
 
 writeHtml' :: PandocMonad m => WriterState -> WriterOptions -> Pandoc -> m Html
@@ -249,8 +250,8 @@ pandocToHtml opts (Pandoc meta blocks) = do
   let slideLevel = fromMaybe (getSlideLevel blocks) $ writerSlideLevel opts
   modify $ \st -> st{ stSlideLevel = slideLevel }
   metadata <- metaToContext opts
-              (fmap renderHtml' . blockListToHtml opts)
-              (fmap renderHtml' . inlineListToHtml opts)
+              (fmap (literal . renderHtml') . blockListToHtml opts)
+              (fmap (literal . renderHtml') . inlineListToHtml opts)
               meta
   let stringifyHTML = escapeStringForXML . stringify
   let authsMeta = map stringifyHTML $ docAuthors meta

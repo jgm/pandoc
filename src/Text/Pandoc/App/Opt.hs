@@ -33,6 +33,7 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             ObfuscationMethod (NoObfuscation),
                             CiteMethod (Citeproc))
 import Text.Pandoc.Shared (camelCaseToHyphenated)
+import Text.DocLayout (render)
 import Text.DocTemplates (Context(..), Val(..))
 import Data.Text (Text, unpack)
 import qualified Data.Text as T
@@ -405,7 +406,7 @@ valToMetaVal :: Val Text -> MetaValue
 valToMetaVal (MapVal (Context m)) =
   MetaMap . M.mapKeys unpack . M.map valToMetaVal $ m
 valToMetaVal (ListVal xs) = MetaList $ map valToMetaVal xs
-valToMetaVal (SimpleVal t) = MetaString (unpack t)
+valToMetaVal (SimpleVal d) = MetaString (unpack $ render Nothing d)
 valToMetaVal NullVal = MetaString ""
 
 -- see https://github.com/jgm/pandoc/pull/4083

@@ -20,13 +20,16 @@ import Control.Monad.State.Strict (StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (intercalate, isInfixOf, isPrefixOf, transpose)
 import qualified Data.Map as Map
+import Text.DocLayout (render, literal)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, breakOnAll, pack)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
-import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
+import Text.Pandoc.Options (WrapOption (..),
+           WriterOptions (writerTableOfContents, writerTemplate,
+                          writerWrapText))
 import Text.Pandoc.Shared (escapeURI, isURI, linesToPara, removeFormatting,
                            substitute, trimr)
 import Text.Pandoc.Templates (renderTemplate)
@@ -51,16 +54,16 @@ writeZimWiki opts document = evalStateT (pandocToZimWiki opts document) def
 pandocToZimWiki :: PandocMonad m => WriterOptions -> Pandoc -> ZW m Text
 pandocToZimWiki opts (Pandoc meta blocks) = do
   metadata <- metaToContext opts
-              (fmap trimr . blockListToZimWiki opts)
-              (fmap trimr . inlineListToZimWiki opts)
+              (fmap (literal . pack . trimr) . blockListToZimWiki opts)
+              (fmap (literal . pack . trimr) . inlineListToZimWiki opts)
               meta
-  main <- blockListToZimWiki opts blocks
+  main <- pack <$> blockListToZimWiki opts blocks
   --let header = "Content-Type: text/x-zim-wiki\nWiki-Format: zim 0.4\n"
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts) metadata
-  return $ pack $
+  return $
     case writerTemplate opts of
-       Just tpl -> renderTemplate tpl context
+       Just tpl -> render Nothing $ renderTemplate tpl context
        Nothing  -> main
 
 -- | Escape special characters for ZimWiki.

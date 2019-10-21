@@ -98,7 +98,7 @@ escapeString escapeMode (x:xs) =
 characterCodeMap :: Map.Map Char String
 characterCodeMap = Map.fromList characterCodes
 
-fontChange :: (IsString a, PandocMonad m) => MS m (Doc a)
+fontChange :: (HasChars a, IsString a, PandocMonad m) => MS m (Doc a)
 fontChange = do
   features <- gets stFontFeatures
   inHeader <- gets stInHeader
@@ -111,7 +111,7 @@ fontChange = do
        then text "\\f[R]"
        else text $ "\\f[" ++ filling ++ "]"
 
-withFontFeature :: (IsString a, PandocMonad m)
+withFontFeature :: (HasChars a, IsString a, PandocMonad m)
                 => Char -> MS m (Doc a) -> MS m (Doc a)
 withFontFeature c action = do
   modify $ \st -> st{ stFontFeatures = Map.adjust not c $ stFontFeatures st }

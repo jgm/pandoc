@@ -31,6 +31,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
+import Text.DocLayout (render, literal)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
@@ -97,11 +98,12 @@ writeRTF options doc = do
                     . M.adjust toPlain "date"
                     $ metamap
   metadata <- metaToContext options
-              (fmap concat . mapM (blockToRTF 0 AlignDefault))
-              inlinesToRTF
+              (fmap (literal . T.pack . concat) .
+                mapM (blockToRTF 0 AlignDefault))
+              (fmap (literal . T.pack) . inlinesToRTF)
               meta'
-  body <- blocksToRTF 0 AlignDefault blocks
-  toc <- blocksToRTF 0 AlignDefault
+  body <- T.pack <$> blocksToRTF 0 AlignDefault blocks
+  toc <- T.pack <$> blocksToRTF 0 AlignDefault
           [toTableOfContents options $ filter isHeaderBlock blocks]
   let context = defField "body" body
               $ defField "spacer" spacer
@@ -112,12 +114,12 @@ writeRTF options doc = do
                         -- of the toc rather than a boolean:
                         . defField "toc" toc
                    else id) metadata
-  return $ T.pack $
+  return $
     case writerTemplate options of
-       Just tpl -> renderTemplate tpl context
-       Nothing  -> case reverse body of
-                        ('\n':_) -> body
-                        _        -> body ++ "\n"
+       Just tpl -> render Nothing $ renderTemplate tpl context
+       Nothing  -> case T.unsnoc body of
+                        Just (_,'\n') -> body
+                        _             -> body <> T.singleton '\n'
 
 -- | Convert unicode characters (> 127) into rich text format representation.
 handleUnicode :: String -> String

@@ -186,7 +186,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                               ,("tmargin","margin-top")
                               ,("bmargin","margin-bottom")
                               ]
-  let toPolyObj :: Lang -> Val (Doc Text)
+  let toPolyObj :: Lang -> Val Text
       toPolyObj lang = MapVal $ Context $
                         M.fromList [ ("name" , SimpleVal $ text name)
                                    , ("options" , SimpleVal $ text opts) ]
@@ -289,7 +289,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
           )
         $ maybe id (defField "polyglossia-lang" . toPolyObj) mblang
         $ defField "polyglossia-otherlangs"
-             (ListVal (map toPolyObj docLangs :: [Val (Doc Text)]))
+             (ListVal (map toPolyObj docLangs :: [Val Text]))
         $
                   defField "latex-dir-rtl"
            ((render Nothing <$> getField "dir" context) ==
