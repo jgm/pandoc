@@ -226,20 +226,21 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
   -- the number of columns will be used in case of even widths
   let numcols = maximum (length aligns : length widths :
                            map length (headers:rows))
+  let officialWidthsInChars widths' = map (
+                        (\x -> if x < 1 then 1 else x) .
+                        (\x -> x - 3) . floor .
+                        (fromIntegral (writerColumns opts) *)
+                        ) widths'
   -- handleGivenWidths wraps the given blocks in order for them to fit
   -- in cells with given widths. the returned content can be
   -- concatenated with borders and frames
   let handleGivenWidths widths' = do
-        let widthsInChars' = map (
-                      (\x -> if x < 1 then 1 else x) .
-                      (\x -> x - 3) . floor .
-                      (fromIntegral (writerColumns opts) *)
-                      ) widths'
-            -- replace page width (in columns) in the options with a
-            -- given width if smaller (adjusting by two)
-            useWidth w = opts{writerColumns = min (w - 2) (writerColumns opts)}
-            -- prepare options to use with header and row cells
-            columnOptions = map useWidth widthsInChars'
+        let widthsInChars' = officialWidthsInChars widths'
+        -- replace page width (in columns) in the options with a
+        -- given width if smaller (adjusting by two)
+        let useWidth w = opts{writerColumns = min (w - 2) (writerColumns opts)}
+        -- prepare options to use with header and row cells
+        let columnOptions = map useWidth widthsInChars'
         rawHeaders' <- zipWithM blocksToDoc columnOptions headers
         rawRows' <- mapM
              (\cs -> zipWithM blocksToDoc columnOptions cs)
@@ -248,20 +249,23 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
   -- handleFullWidths tries to wrap cells to the page width or even
   -- more in cases where `--wrap=none`. thus the content here is left
   -- as wide as possible
-  let handleFullWidths = do
+  let handleFullWidths widths' = do
         rawHeaders' <- mapM (blocksToDoc opts) headers
         rawRows' <- mapM (mapM (blocksToDoc opts)) rows
         let numChars [] = 0
             numChars xs = maximum . map offset $ xs
-        let widthsInChars' =
+        let minWidthsInChars =
                 map numChars $ transpose (rawHeaders' : rawRows')
+        let widthsInChars' = zipWith max
+                              minWidthsInChars
+                              (officialWidthsInChars widths')
         return (widthsInChars', rawHeaders', rawRows')
   -- handleZeroWidths calls handleFullWidths to check whether a wide
   -- table would fit in the page. if the produced table is too wide,
   -- it calculates even widths and passes the content to
   -- handleGivenWidths
-  let handleZeroWidths = do
-        (widthsInChars', rawHeaders', rawRows') <- handleFullWidths
+  let handleZeroWidths widths' = do
+        (widthsInChars', rawHeaders', rawRows') <- handleFullWidths widths'
         if foldl' (+) 0 widthsInChars' > writerColumns opts
            then -- use even widths
                 handleGivenWidths
@@ -271,8 +275,8 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
   -- on command line options, widths given in this specific table, and
   -- cells' contents
   let handleWidths
-        | writerWrapText opts == WrapNone  = handleFullWidths
-        | all (== 0) widths                  = handleZeroWidths
+        | writerWrapText opts == WrapNone    = handleFullWidths widths
+        | all (== 0) widths                  = handleZeroWidths widths
         | otherwise                          = handleGivenWidths widths
   (widthsInChars, rawHeaders, rawRows) <- handleWidths
   let hpipeBlocks blocks = hcat [beg, middle, end]
