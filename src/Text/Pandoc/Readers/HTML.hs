@@ -703,13 +703,12 @@ pQ = try $ do
   case maybeFromAttrib "cite" tag of
        Nothing   -> quote
        Just url' -> do
-         let title = T.unpack $ fromAttrib "title" tag
          -- take id from id attribute if present, otherwise name
          let uid = fromMaybe (T.unpack $ fromAttrib "name" tag) $
                       maybeFromAttrib "id" tag
          let cls = words $ T.unpack $ fromAttrib "class" tag
          url <- canonicalizeUrl url'
-         extractSpaces (B.linkWith (uid, cls, []) (escapeURI url) title) <$> quote
+         extractSpaces (B.spanWith (uid, cls, [("cite", escapeURI url)])) <$> quote
 
 pEmph :: PandocMonad m => TagParser m Inlines
 pEmph = pInlinesInTags "em" B.emph <|> pInlinesInTags "i" B.emph

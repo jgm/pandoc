@@ -52,7 +52,7 @@ Pandoc (Meta {unMeta = fromList [("generator",MetaInlines [Str "pandoc"]),("titl
 ,Para [Str "And",Space,Str "a",Space,Str "following",Space,Str "paragraph."]
 ,HorizontalRule
 ,Header 1 ("inline-quotes",[],[]) [Str "Inline",Space,Str "quotes"]
-,Para [Str "Normal",Space,Str "text",Space,Str "but",Space,Str "then",Space,Str "a",Space,Link ("",[],[]) [Quoted DoubleQuote [Str "inline",Space,Str "quote"]] ("https://www.imdb.com/title/tt0062622/quotes/qt0396921",""),Str "."]
+,Para [Str "Normal",Space,Str "text",Space,Str "but",Space,Str "then",Space,Str "a",Space,Span ("",[],[("cite","https://www.imdb.com/title/tt0062622/quotes/qt0396921")]) [Quoted DoubleQuote [Str "inline",Space,Str "quote"]],Str "."]
 ,Para [Quoted DoubleQuote [Str "Missing",Space,Str "a",Space,Str "cite",Space,Str "attribute",Space,Str "means",Space,Str "its",Space,Str "just",Space,Str "normal",Space,Str "text"]]
 ,HorizontalRule
 ,Header 1 ("code-blocks",[],[]) [Str "Code",Space,Str "Blocks"]
