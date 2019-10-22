@@ -782,8 +782,9 @@ pImage = do
   return $ B.imageWith (uid, cls, kvs) (escapeURI url) title (B.text alt)
 
 pCode :: PandocMonad m => TagParser m Inlines
+-- pSatisfy :: PandocMonad m => (Tag Text -> Bool) -> TagParser m (Tag Text)
 pCode = try $ do
-  (TagOpen open attr') <- pSatisfy $ tagOpen (`elem` ["code","tt"]) (const True)
+  (TagOpen open attr') <- pSatisfy $ tagOpen (`elem` ["code","tt","samp"]) (const True)
   let attr = toStringAttr attr'
   result <- manyTill pAny (pCloses open)
   return $ B.codeWith (mkAttr attr) $ unwords $ lines $ T.unpack $
