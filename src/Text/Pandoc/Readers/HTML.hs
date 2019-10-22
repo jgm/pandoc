@@ -685,7 +685,6 @@ pSelfClosing f g = do
 pQ :: PandocMonad m => TagParser m Inlines
 pQ = try $ do
   tag <- pSatisfy $ tagOpenLit "q" (const True)
-  lab <- mconcat <$> manyTill inline (pCloses "q")
 
   context <- asks quoteContext
   let quoteType = case context of
@@ -697,7 +696,8 @@ pQ = try $ do
   let constructor = case quoteType of
                             SingleQuote -> B.singleQuoted
                             DoubleQuote -> B.doubleQuoted
-  let quote = withQuoteContext innerQuoteContext $ return (extractSpaces constructor lab)
+  lab <- withQuoteContext innerQuoteContext $ mconcat <$> manyTill inline (pCloses "q")
+  let quote = return (extractSpaces constructor lab)
 
   -- check for cite; if cite, then a link with inner quote, otherwise a quote
   case maybeFromAttrib "cite" tag of
