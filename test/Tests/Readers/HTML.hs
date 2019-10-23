@@ -93,7 +93,7 @@ tests = [ testGroup "base tag"
           [
             test html "inline samp block" $ 
             "<samp>Answer is 42</samp>" =?> 
-            plain (code "Answer is 42")
+            plain (codeWith ("",["sample"],[]) "Answer is 42")
           ]
         , askOption $ \(QuickCheckTests numtests) ->
             testProperty "Round trip" $
