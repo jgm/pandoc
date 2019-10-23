@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP                 #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MultiWayIf          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -32,7 +33,7 @@ import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
 import Data.List (intercalate, intersperse, isPrefixOf, partition)
 import Data.List.Split (splitWhen)
-import Data.Maybe (fromMaybe, isJust, isNothing, mapMaybe)
+import Data.Maybe (fromMaybe, isJust, isNothing, mapMaybe, listToMaybe)
 import qualified Data.Set as Set
 import Data.String (fromString)
 import Data.Text (Text)
@@ -1047,12 +1048,20 @@ inlineToHtml opts inline = do
                                               strToHtml "’")
                               DoubleQuote -> (strToHtml "“",
                                               strToHtml "”")
-                        in  if writerHtmlQTags opts
+
+                        in if writerHtmlQTags opts
                                then do
                                  modify $ \st -> st{ stQuotes = True }
-                                 H.q `fmap` inlineListToHtml opts lst
+                                 H.q `fmap` inlineListToHtml opts lst' >>= withAttr
                                else (\x -> leftQuote >> x >> rightQuote)
-                                    `fmap` inlineListToHtml opts lst
+                                    `fmap` inlineListToHtml opts lst'
+                          where
+                            lst' = maybe lst (\cs -> cs ++ tail lst) (snd <$> citeSpan)
+                            withAttr = maybe return (addAttrs opts) (fst <$> citeSpan)
+                            citeSpan = listToMaybe lst >>= (\case
+                                          Span attr@(_, _, kvs) cs | any ((=="cite") . fst) kvs -> Just (attr, cs)
+                                          _ -> Nothing
+                                       )
     (Math t str) -> do
       modify (\st -> st {stMath = True})
       let mathClass = toValue $ ("math " :: String) ++

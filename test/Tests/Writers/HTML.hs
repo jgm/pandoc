@@ -13,6 +13,9 @@ import Text.Pandoc.Builder
 html :: (ToPandoc a) => a -> String
 html = unpack . purely (writeHtml4String def{ writerWrapText = WrapNone }) . toPandoc
 
+htmlQTags :: (ToPandoc a) => a -> String
+htmlQTags = unpack . purely (writeHtml4String def{ writerWrapText = WrapNone, writerHtmlQTags = True }) . toPandoc
+
 {-
   "my test" =: X =?> Y
 
@@ -29,6 +32,11 @@ infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
      => String -> (a, String) -> TestTree
 (=:) = test html
+
+infix 4 =::
+(=::) :: (ToString a, ToPandoc a)
+     => String -> (a, String) -> TestTree
+(=::) = test htmlQTags
 
 tests :: [TestTree]
 tests = [ testGroup "inline code"
@@ -47,5 +55,13 @@ tests = [ testGroup "inline code"
           [ "definition list with empty <dt>" =:
             definitionList [(mempty, [para $ text "foo bar"])]
             =?> "<dl><dt></dt><dd><p>foo bar</p></dd></dl>"
+          ]
+        , testGroup "quotes"
+          [ "quote with cite attribute (without q-tags)" =:
+            doubleQuoted (spanWith ("", [], [("cite", "http://example.org")]) (str "examples"))
+            =?> "“examples”"
+          , "quote with cite attribute (with q-tags)" =::
+            doubleQuoted (spanWith ("", [], [("cite", "http://example.org")]) (str "examples"))
+            =?> "<q cite=\"http://example.org\">examples</q>"
           ]
         ]
