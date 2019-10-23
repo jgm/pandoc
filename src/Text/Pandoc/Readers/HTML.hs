@@ -683,32 +683,27 @@ pSelfClosing f g = do
   return open
 
 pQ :: PandocMonad m => TagParser m Inlines
-pQ = try $ do
-  tag <- pSatisfy $ tagOpenLit "q" (const True)
+pQ = choice $ map try [citedQuote, normalQuote]
+  where citedQuote = do
+          tag <- pSatisfy $ tagOpenLit "q" (any ((=="cite") . fst))
 
-  context <- asks quoteContext
-  let quoteType = case context of
-                       InDoubleQuote -> SingleQuote
-                       _             -> DoubleQuote
-  let innerQuoteContext = if quoteType == SingleQuote
-                             then InSingleQuote
-                             else InDoubleQuote
-  let constructor = case quoteType of
-                            SingleQuote -> B.singleQuoted
-                            DoubleQuote -> B.doubleQuoted
-  lab <- withQuoteContext innerQuoteContext $ mconcat <$> manyTill inline (pCloses "q")
-  let quote = return (extractSpaces constructor lab)
+          url <- canonicalizeUrl $ T.unpack $ fromAttrib "cite" tag
+          let uid = fromMaybe (T.unpack $ fromAttrib "name" tag) $
+                       maybeFromAttrib "id" tag
+          let cls = words $ T.unpack $ fromAttrib "class" tag
 
-  -- check for cite; if cite, then a link with inner quote, otherwise a quote
-  case maybeFromAttrib "cite" tag of
-       Nothing   -> quote
-       Just url' -> do
-         -- take id from id attribute if present, otherwise name
-         let uid = fromMaybe (T.unpack $ fromAttrib "name" tag) $
-                      maybeFromAttrib "id" tag
-         let cls = words $ T.unpack $ fromAttrib "class" tag
-         url <- canonicalizeUrl url'
-         extractSpaces (B.spanWith (uid, cls, [("cite", escapeURI url)])) <$> quote
+          makeQuote $ B.spanWith (uid, cls, [("cite", escapeURI url)])
+        normalQuote = do
+          pSatisfy $ tagOpenLit "q" (const True)
+          makeQuote id
+        makeQuote wrapper = do
+          ctx <- asks quoteContext
+          let (constructor, innerContext) = case ctx of
+                        InDoubleQuote -> (B.singleQuoted, InSingleQuote)
+                        _             -> (B.doubleQuoted, InDoubleQuote)
+
+          content <- withQuoteContext innerContext (mconcat <$> manyTill inline (pCloses "q"))
+          return $ extractSpaces (constructor . wrapper) content
 
 pEmph :: PandocMonad m => TagParser m Inlines
 pEmph = pInlinesInTags "em" B.emph <|> pInlinesInTags "i" B.emph
