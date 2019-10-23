@@ -200,10 +200,9 @@ withVerbatimMode parser = do
        return result
 
 rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-               => Bool -> LP m a -> LP m a -> ParserT String s m (a, String)
-rawLaTeXParser retokenize parser valParser = do
-  inp <- getInput
-  let toks = tokenize "source" $ T.pack inp
+               => [Tok] -> Bool -> LP m a -> LP m a
+               -> ParserT String s m (a, String)
+rawLaTeXParser toks retokenize parser valParser = do
   pstate <- getState
   let lstate = def{ sOptions = extractReaderOptions pstate }
   let lstate' = lstate { sMacros = extractMacros pstate }
