@@ -14,7 +14,9 @@ html :: (ToPandoc a) => a -> String
 html = unpack . purely (writeHtml4String def{ writerWrapText = WrapNone }) . toPandoc
 
 htmlQTags :: (ToPandoc a) => a -> String
-htmlQTags = unpack . purely (writeHtml4String def{ writerWrapText = WrapNone, writerHtmlQTags = True }) . toPandoc
+htmlQTags = unpack
+  . purely (writeHtml4String def{ writerWrapText = WrapNone, writerHtmlQTags = True })
+  . toPandoc
 
 {-
   "my test" =: X =?> Y
@@ -32,11 +34,6 @@ infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
      => String -> (a, String) -> TestTree
 (=:) = test html
-
-infix 4 =::
-(=::) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> TestTree
-(=::) = test htmlQTags
 
 tests :: [TestTree]
 tests = [ testGroup "inline code"
@@ -59,9 +56,13 @@ tests = [ testGroup "inline code"
         , testGroup "quotes"
           [ "quote with cite attribute (without q-tags)" =:
             doubleQuoted (spanWith ("", [], [("cite", "http://example.org")]) (str "examples"))
-            =?> "“examples”"
-          , "quote with cite attribute (with q-tags)" =::
+            =?> "“<span cite=\"http://example.org\">examples</span>”"
+          , tQ "quote with cite attribute (with q-tags)" $
             doubleQuoted (spanWith ("", [], [("cite", "http://example.org")]) (str "examples"))
             =?> "<q cite=\"http://example.org\">examples</q>"
           ]
         ]
+        where
+          tQ :: (ToString a, ToPandoc a)
+               => String -> (a, String) -> TestTree
+          tQ = test htmlQTags
