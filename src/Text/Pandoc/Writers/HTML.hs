@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP                 #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MultiWayIf          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -1047,10 +1048,17 @@ inlineToHtml opts inline = do
                                               strToHtml "’")
                               DoubleQuote -> (strToHtml "“",
                                               strToHtml "”")
-                        in  if writerHtmlQTags opts
+
+                        in if writerHtmlQTags opts
                                then do
                                  modify $ \st -> st{ stQuotes = True }
-                                 H.q `fmap` inlineListToHtml opts lst
+                                 let (maybeAttr, lst') = case lst of
+                                      [Span attr@(_, _, kvs) cs]
+                                        | any ((=="cite") . fst) kvs
+                                          -> (Just attr, cs)
+                                      cs -> (Nothing, cs)
+                                 H.q `fmap` inlineListToHtml opts lst'
+                                   >>= maybe return (addAttrs opts) maybeAttr
                                else (\x -> leftQuote >> x >> rightQuote)
                                     `fmap` inlineListToHtml opts lst
     (Math t str) -> do

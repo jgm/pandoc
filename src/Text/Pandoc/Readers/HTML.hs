@@ -684,19 +684,27 @@ pSelfClosing f g = do
   return open
 
 pQ :: PandocMonad m => TagParser m Inlines
-pQ = do
-  context <- asks quoteContext
-  let quoteType = case context of
-                       InDoubleQuote -> SingleQuote
-                       _             -> DoubleQuote
-  let innerQuoteContext = if quoteType == SingleQuote
-                             then InSingleQuote
-                             else InDoubleQuote
-  let constructor = case quoteType of
-                            SingleQuote -> B.singleQuoted
-                            DoubleQuote -> B.doubleQuoted
-  withQuoteContext innerQuoteContext $
-    pInlinesInTags "q" constructor
+pQ = choice $ map try [citedQuote, normalQuote]
+  where citedQuote = do
+          tag <- pSatisfy $ tagOpenLit "q" (any ((=="cite") . fst))
+
+          url <- canonicalizeUrl $ T.unpack $ fromAttrib "cite" tag
+          let uid = fromMaybe (T.unpack $ fromAttrib "name" tag) $
+                       maybeFromAttrib "id" tag
+          let cls = words $ T.unpack $ fromAttrib "class" tag
+
+          makeQuote $ B.spanWith (uid, cls, [("cite", escapeURI url)])
+        normalQuote = do
+          pSatisfy $ tagOpenLit "q" (const True)
+          makeQuote id
+        makeQuote wrapper = do
+          ctx <- asks quoteContext
+          let (constructor, innerContext) = case ctx of
+                        InDoubleQuote -> (B.singleQuoted, InSingleQuote)
+                        _             -> (B.doubleQuoted, InDoubleQuote)
+
+          content <- withQuoteContext innerContext (mconcat <$> manyTill inline (pCloses "q"))
+          return $ extractSpaces (constructor . wrapper) content
 
 pEmph :: PandocMonad m => TagParser m Inlines
 pEmph = pInlinesInTags "em" B.emph <|> pInlinesInTags "i" B.emph
@@ -757,21 +765,13 @@ pLink = try $ do
        Nothing   ->
          return $ extractSpaces (B.spanWith (uid, cls, [])) lab
        Just url' -> do
-         mbBaseHref <- baseHref <$> getState
-         let url = case (parseURIReference url', mbBaseHref) of
-                        (Just rel, Just bs) ->
-                          show (rel `nonStrictRelativeTo` bs)
-                        _                   -> url'
+         url <- canonicalizeUrl url'
          return $ extractSpaces (B.linkWith (uid, cls, []) (escapeURI url) title) lab
 
 pImage :: PandocMonad m => TagParser m Inlines
 pImage = do
   tag <- pSelfClosing (=="img") (isJust . lookup "src")
-  mbBaseHref <- baseHref <$> getState
-  let url' = T.unpack $ fromAttrib "src" tag
-  let url = case (parseURIReference url', mbBaseHref) of
-                 (Just rel, Just bs) -> show (rel `nonStrictRelativeTo` bs)
-                 _                   -> url'
+  url <- canonicalizeUrl $ T.unpack $ fromAttrib "src" tag
   let title = T.unpack $ fromAttrib "title" tag
   let alt = T.unpack $ fromAttrib "alt" tag
   let uid = T.unpack $ fromAttrib "id" tag
@@ -1291,6 +1291,17 @@ isSpace '\t' = True
 isSpace '\n' = True
 isSpace '\r' = True
 isSpace _    = False
+
+-- Utilities
+
+-- | Adjusts a url according to the document's base URL.
+canonicalizeUrl :: PandocMonad m => String -> TagParser m String
+canonicalizeUrl url = do
+  mbBaseHref <- baseHref <$> getState
+  return $ case (parseURIReference url, mbBaseHref) of
+                (Just rel, Just bs) -> show (rel `nonStrictRelativeTo` bs)
+                _                   -> url
+
 
 -- Instances
 
