@@ -169,8 +169,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                  _                 -> (blocks', [])
   blocks''' <- if beamer
                   then toSlides blocks''
-                  else return blocks''
-  main <- blockListToLaTeX $ makeSections False Nothing blocks'''
+                  else return $ makeSections False Nothing blocks''
+  main <- blockListToLaTeX blocks'''
   biblioTitle <- inlineListToLaTeX lastHeader
   st <- get
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
@@ -451,7 +451,7 @@ toSlides bs = do
   opts <- gets stOptions
   let slideLevel = fromMaybe (getSlideLevel bs) $ writerSlideLevel opts
   let bs' = prepSlides slideLevel bs
-  walkM (elementToBeamer slideLevel) (makeSections False Nothing bs')
+  walkM (elementToBeamer slideLevel) $ makeSections False Nothing bs'
 
 -- this creates section slides and marks slides with class "slide","block"
 elementToBeamer :: PandocMonad m => Int -> Block -> LW m Block
