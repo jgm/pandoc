@@ -73,12 +73,22 @@ tests =
       "----- em and en dash" =?>
       para "\8212\8211 em and en dash"
 
-  , "Comment Block" =:
+  , testGroup "Comments"
+    [ "Comment Block" =:
       T.unlines [ "#+BEGIN_COMMENT"
                 , "stuff"
                 , "bla"
                 , "#+END_COMMENT"] =?>
       (mempty::Blocks)
+
+    , "Comment line" =:
+      T.unlines [ "# this is a comment" ] =?>
+      (mempty :: Blocks)
+
+    , "Empty comment line" =:
+      T.unlines [ "  #" ] =?>
+      (mempty :: Blocks)
+    ]
 
   , testGroup "Blocks and fragments"
     [ "HTML block" =:

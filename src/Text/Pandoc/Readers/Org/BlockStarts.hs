@@ -92,7 +92,9 @@ metaLineStart :: Monad m => OrgParser m ()
 metaLineStart = try $ skipSpaces <* string "#+"
 
 commentLineStart :: Monad m => OrgParser m ()
-commentLineStart = try $ skipSpaces <* string "# "
+commentLineStart = try $
+  -- the first char after '#' must be a plain space character or a newline
+  skipSpaces <* string "#" <* lookAhead (oneOf " \n")
 
 exampleLineStart :: Monad m => OrgParser m ()
 exampleLineStart = () <$ try (skipSpaces *> string ": ")
