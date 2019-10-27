@@ -2493,7 +2493,7 @@ Usage:
 
 The `pandoc.mediabag` module allows accessing pandoc's media
 storage. The "media bag" is used when pandoc is called with the
-`--extract-media` or `--standalone`/`-s` option.
+`--extract-media` or (for HTML only) `--self-contained` option.
 
 The module is loaded as part of module `pandoc` and can either
 be accessed via the `pandoc.mediabag` field, or explicitly
@@ -2586,7 +2586,7 @@ Usage:
     -- calculate the size of the media bag.
     local mb_items = pandoc.mediabag.list()
     local sum = 0
-    for i = 1, #mb_items:
+    for i = 1, #mb_items do
         sum = sum + mb_items[i].length
     end
     print(sum)
@@ -2629,7 +2629,7 @@ Returns:
 Usage:
 
     local diagram_url = "https://pandoc.org/diagram.jpg"
-    local contents = pandoc.mediabag.fetch(diagram_url, ".")
+    local mt, contents = pandoc.mediabag.fetch(diagram_url, ".")
 
 # Module pandoc.List
 
