@@ -28,7 +28,7 @@ To look at the default template for an output format, you can do
 the format. For example `pandoc -D latex`. You can also use your
 own template instead, either by using the `--template` option
 or by putting the custom template in your user data directory
-(on linux and macOS, `~/.pandoc/templates/`).
+(on Linux and macOS, `~/.pandoc/templates/`).
 
 Note that in many cases you can avoid the need for a custom
 template by including a file with the `--include-in-header`,
