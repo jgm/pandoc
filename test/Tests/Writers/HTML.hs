@@ -61,6 +61,16 @@ tests = [ testGroup "inline code"
             doubleQuoted (spanWith ("", [], [("cite", "http://example.org")]) (str "examples"))
             =?> "<q cite=\"http://example.org\">examples</q>"
           ]
+        , testGroup "sample"
+          [ "sample should be rendered correctly" =:
+            plain (codeWith ("",["sample"],[]) "Answer is 42") =?>
+            "<samp>Answer is 42</samp>"
+          ]
+        , testGroup "variable"
+          [ "variable should be rendered correctly" =:
+            plain (codeWith ("",["variable"],[]) "result") =?>
+            "<var>result</var>"
+          ]
         ]
         where
           tQ :: (ToString a, ToPandoc a)

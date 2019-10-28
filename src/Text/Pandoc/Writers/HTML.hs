@@ -31,7 +31,7 @@ module Text.Pandoc.Writers.HTML (
   ) where
 import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
-import Data.List (intercalate, intersperse, isPrefixOf, partition)
+import Data.List (intercalate, intersperse, isPrefixOf, partition, elem, delete)
 import Data.List.Split (splitWhen)
 import Data.Maybe (fromMaybe, isJust, isNothing, mapMaybe)
 import qualified Data.Set as Set
@@ -1022,11 +1022,13 @@ inlineToHtml opts inline = do
 
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
-    (Code attr str)  -> case hlCode of
+    (Code attr@(ids,classes,kvs) str)  
+                     -> case hlCode of
                              Left msg -> do
                                unless (null msg) $
                                  report $ CouldNotHighlight msg
-                               addAttrs opts attr $ H.code $ strToHtml str
+                               addAttrs opts (ids,classes',kvs) $ 
+                                 elemType $ strToHtml str
                              Right h -> do
                                modify $ \st -> st{ stHighlighting = True }
                                addAttrs opts (id',[],keyvals) h
@@ -1036,6 +1038,12 @@ inlineToHtml opts inline = do
                                                  (writerSyntaxMap opts)
                                                  formatHtmlInline attr str
                                           else Left ""
+                              (elemType,classes') = 
+                                  if "sample" `elem` classes
+                                      then (H.samp,"sample" `delete` classes)
+                                  else if "variable" `elem` classes
+                                      then (H.var,"variable" `delete` classes) 
+                                      else (H.code,classes)
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . H.del
     (SmallCaps lst)   -> inlineListToHtml opts lst >>=
