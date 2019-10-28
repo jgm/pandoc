@@ -61,7 +61,7 @@ First, let's see where we are.  Type
 
     pwd
 
-on linux or OSX, or
+on Linux or OSX, or
 
     echo %cd%
 
@@ -273,7 +273,7 @@ Now try creating a Word document (with extension `docx`).
 If you want to create a PDF, you'll need to have LaTeX installed.
 (See [MacTeX](https://tug.org/mactex/) on OS X,
 [MiKTeX](https://miktex.org) on Windows, or install the texlive
-package in linux.)  Then do
+package on Linux.)  Then do
 
     pandoc test1.md -s -o test1.pdf
 
