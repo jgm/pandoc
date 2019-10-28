@@ -38,7 +38,7 @@ import Data.Foldable (for_)
 import Data.List (isPrefixOf)
 import Data.List.Split (wordsBy, splitWhen)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Maybe (fromMaybe, isJust, isNothing, fromJust)
 import Data.Monoid (First (..))
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -652,7 +652,7 @@ inline = choice
            , pLink
            , pImage
            , pCode
-           , pSamp
+           , pCodeWithClass [(T.pack "samp","sample"),(T.pack "var","variable")]
            , pSpan
            , pMath False
            , pScriptMath
@@ -782,12 +782,12 @@ pImage = do
   let kvs = concatMap getAtt ["width", "height", "sizes", "srcset"]
   return $ B.imageWith (uid, cls, kvs) (escapeURI url) title (B.text alt)
 
-pSamp :: PandocMonad m => TagParser m Inlines 
-pSamp = try $ do 
-  TagOpen open attr' <- pSatisfy $ tagOpen (=="samp") (const True)
+pCodeWithClass :: PandocMonad m => [(T.Text,String)] -> TagParser m Inlines 
+pCodeWithClass elemToClass = try $ do 
+  TagOpen open attr' <- pSatisfy $ tagOpen (flip elem . fmap fst $ elemToClass) (const True)
   result <- manyTill pAny (pCloses open)
   let (ids,cs,kvs) = mkAttr . toStringAttr $ attr'
-  return . B.codeWith (ids,"sample":cs,kvs) .
+  return . B.codeWith (ids,fromJust (lookup open elemToClass) : cs,kvs) .
     unwords . lines . T.unpack . innerText $ result
 
 pCode :: PandocMonad m => TagParser m Inlines
