@@ -653,6 +653,7 @@ inline = choice
            , pImage
            , pCode
            , pSamp
+           , pDefinition
            , pSpan
            , pMath False
            , pScriptMath
@@ -767,6 +768,13 @@ pLink = try $ do
        Just url' -> do
          url <- canonicalizeUrl url'
          return $ extractSpaces (B.linkWith (uid, cls, []) (escapeURI url) title) lab
+
+pDefinition :: PandocMonad m => TagParser m Inlines
+pDefinition = do
+  TagOpen _ attrs <- pSatisfy $ tagOpenLit "dfn" (const True)
+  let (ids,cs,kvs) = mkAttr . toStringAttr $ attrs
+  content <- mconcat <$> manyTill inline (pCloses "dfn")
+  return $ B.spanWith (ids, "definition" : cs, kvs) content
 
 pImage :: PandocMonad m => TagParser m Inlines
 pImage = do
