@@ -623,7 +623,7 @@ onlySimpleTableCells = all isSimpleCell . concat
 
 -- | Detect if a list is tight.
 isTightList :: [[Block]] -> Bool
-isTightList = all firstIsPlain
+isTightList = all (\item -> firstIsPlain item || null item)
   where firstIsPlain (Plain _ : _) = True
         firstIsPlain _             = False
 
