@@ -726,7 +726,7 @@ parseBlock (Elem e) =
                   mapM parseGlossEntry (filterChildren (named "glossentry") e)
         "glosslist" -> definitionList <$>
                   mapM parseGlossEntry (filterChildren (named "glossentry") e)
-        "chapter" -> sect 0
+        "chapter" -> modify (\st -> st{ dbBook = True}) >> sect 0
         "appendix" -> sect 0
         "preface" -> sect 0
         "bridgehead" -> para . strong <$> getInlines e
