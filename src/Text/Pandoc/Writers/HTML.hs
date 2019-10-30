@@ -31,7 +31,7 @@ module Text.Pandoc.Writers.HTML (
   ) where
 import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
-import Data.List (intercalate, intersperse, isPrefixOf, partition, elem, delete)
+import Data.List (intercalate, intersperse, isPrefixOf, partition, delete)
 import Data.List.Split (splitWhen)
 import Data.Maybe (fromMaybe, isJust, isNothing, mapMaybe)
 import qualified Data.Set as Set
