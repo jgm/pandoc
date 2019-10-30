@@ -1,12 +1,13 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE ViewPatterns          #-}
-{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE LambdaCase            #-}
 {- |
    Module      : Text.Pandoc.Shared
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -533,7 +534,10 @@ makeSections numbering mbBaseLevel bs =
     return $
       Div divattr (Header level' attr title' : sectionContents') : rest'
   go (Div (dident,dclasses,dkvs)
-       (Header level (ident,classes,kvs) title':ys) : xs) = do
+       (Header level (ident,classes,kvs) title':ys) : xs)
+      | all (\case
+               Header level' _ _ -> level' > level
+               _                 -> True) ys = do
     inner <- go (Header level (ident,classes,kvs) title':ys)
     let inner' =
           case inner of
