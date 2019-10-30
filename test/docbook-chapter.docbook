@@ -1,0 +1,30 @@
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+          "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<!-- This matches the example from
+https://tdg.docbook.org/tdg/4.5/section.html, sans sectioninfo and subtitle, as
+they're currently not supported -->
+<chapter><title>Test Chapter</title>
+<para>This chapter uses recursive sections.</para>
+<section>
+<title>Like a Sect1</title>
+<para>This section is like a Sect1.</para>
+<section><title>Like a Sect2</title>
+<para>This section is like a Sect2.</para>
+<section><title>Like a Sect3</title>
+<para>This section is like a Sect3.</para>
+<section><title>Like a Sect4</title>
+<para>This section is like a Sect4.</para>
+<section><title>Like a Sect5</title>
+<para>This section is like a Sect5.</para>
+<section><title>Would be like a Sect6</title>
+<para>This section would be like a Sect6, if there was one.</para>
+<section><title>Would be like a Sect7</title>
+<para>This section would be like a Sect7, if there was one.</para>
+</section>
+</section>
+</section>
+</section>
+</section>
+</section>
+</section>
+</chapter>
