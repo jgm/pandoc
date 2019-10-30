@@ -86,6 +86,8 @@ tests pandocPath =
     , test' "reader" ["-r", "docbook", "-w", "native", "-s"]
       "docbook-reader.docbook" "docbook-reader.native"
     , test' "reader" ["-r", "docbook", "-w", "native", "-s"]
+      "docbook-chapter.docbook" "docbook-chapter.native"
+    , test' "reader" ["-r", "docbook", "-w", "native", "-s"]
       "docbook-xref.docbook" "docbook-xref.native"
     ]
   , testGroup "docbook5"

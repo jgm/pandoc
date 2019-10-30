@@ -215,6 +215,7 @@ extra-source-files:
                  test/command/3510-export.latex
                  test/command/3510-src.hs
                  test/command/3971b.tex
+                 test/docbook-chapter.docbook
                  test/docbook-reader.docbook
                  test/docbook-xref.docbook
                  test/html-reader.html
