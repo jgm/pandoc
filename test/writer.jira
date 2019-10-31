@@ -45,7 +45,6 @@ E&hyphen;mail style:
 
 bq. This is a block quote. It is pretty short.
 
-
 {quote}
 Code in a block quote:
 
@@ -64,9 +63,7 @@ Nested block quotes:
 
 bq. nested
 
-
 bq. nested
-
 
 {quote}
 
@@ -576,7 +573,6 @@ An e&hyphen;mail address: [nobody&commat;nowhere.net|mailto:nobody@nowhere.net]
 
 bq. Blockquoted: [http://example.com/|http://example.com/]
 
-
 Auto&hyphen;links should not occur here: {{<http://example.com/>}}
 
 {code}
@@ -600,7 +596,6 @@ h1. {anchor:footnotes}Footnotes
 Here is a footnote reference,[1] and another.[2] This should _not_ be a footnote reference, because it contains a space.[^my note] Here is an inline note.[3]
 
 bq. Notes can go in quotes.[4]
-
 
 # And in list items.[5]
 

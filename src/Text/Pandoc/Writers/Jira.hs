@@ -152,7 +152,7 @@ blockToJira _ (CodeBlock attr@(_,classes,_) str) = do
 
 blockToJira opts (BlockQuote [p@(Para _)]) = do
   contents <- blockToJira opts p
-  appendNewlineUnlessInList ("bq. " <> contents)
+  return ("bq. " <> contents)
 
 blockToJira opts (BlockQuote blocks) = do
   contents <- blockListToJira opts blocks
