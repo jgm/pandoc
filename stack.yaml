@@ -19,7 +19,7 @@ extra-deps:
 - skylighting-0.8.2.3
 - skylighting-core-0.8.2.3
 - regex-pcre-builtin-0.95.0.8.8.35
-- doclayout-0.2
+- doclayout-0.2.0.1
 - HsYAML-0.2.0.0
 - HsYAML-aeson-0.2.0.0
 - doctemplates-0.7

@@ -1576,7 +1576,8 @@ italics:</text:p>
 fruit</text:p><text:p text:style-name="Definition_20_Definition">contains
 seeds, crisp, pleasant to taste</text:p>
 <text:p text:style-name="Definition_20_Term"><text:span text:style-name="T1">orange</text:span></text:p>
-<text:p text:style-name="Definition_20_Definition">orange fruit</text:p><text:p text:style-name="P42">{ orange code block }</text:p><text:p text:style-name="P43">orange
+<text:p text:style-name="Definition_20_Definition">orange
+fruit</text:p><text:p text:style-name="P42">{ orange code block }</text:p><text:p text:style-name="P43">orange
 block quote</text:p>
 <text:p text:style-name="First_20_paragraph">Multiple definitions,
 tight:</text:p>
