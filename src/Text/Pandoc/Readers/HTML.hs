@@ -38,7 +38,7 @@ import Data.Foldable (for_)
 import Data.List (isPrefixOf)
 import Data.List.Split (wordsBy, splitWhen)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isJust, isNothing, fromJust)
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Monoid (First (..))
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -784,10 +784,12 @@ pImage = do
 
 pCodeWithClass :: PandocMonad m => [(T.Text,String)] -> TagParser m Inlines 
 pCodeWithClass elemToClass = try $ do 
-  TagOpen open attr' <- pSatisfy $ tagOpen (flip elem . fmap fst $ elemToClass) (const True)
+  let tagTest = flip elem . fmap fst $ elemToClass
+  TagOpen open attr' <- pSatisfy $ tagOpen tagTest (const True)
   result <- manyTill pAny (pCloses open)
   let (ids,cs,kvs) = mkAttr . toStringAttr $ attr'
-  return . B.codeWith (ids,fromJust (lookup open elemToClass) : cs,kvs) .
+      cs'          = maybe cs id . fmap (:cs) . lookup open $ elemToClass
+  return . B.codeWith (ids,cs',kvs) .
     unwords . lines . T.unpack . innerText $ result
 
 pCode :: PandocMonad m => TagParser m Inlines
