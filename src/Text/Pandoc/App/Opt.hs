@@ -4,6 +4,7 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE FlexibleInstances   #-}
 {- |
    Module      : Text.Pandoc.App.Opt
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -41,7 +42,6 @@ import qualified Data.Map as M
 import Text.Pandoc.Definition (Meta(..), MetaValue(..))
 import Data.Aeson (defaultOptions, Options(..))
 import Data.Aeson.TH (deriveJSON)
-import Control.Monad (foldM)
 import Control.Applicative ((<|>))
 import Data.YAML
 
@@ -144,184 +144,209 @@ data Opt = Opt
     , optStripComments         :: Bool       -- ^ Skip HTML comments
     } deriving (Generic, Show)
 
-instance FromYAML Opt where
+instance FromYAML (Opt -> Opt) where
   parseYAML (Mapping _ _ m) =
-    foldM doOpt defaultOpts (M.toList m)
+    foldr (.) id <$> mapM doOpt (M.toList m)
   parseYAML n = failAtNode n "Expected a mapping"
 
-doOpt :: Opt -> (Node Pos, Node Pos) -> Parser Opt
-doOpt opt (k',v) = do
+doOpt :: (Node Pos, Node Pos) -> Parser (Opt -> Opt)
+doOpt (k',v) = do
   k <- case k' of
          Scalar _ (SStr t) -> return t
          Scalar _ _ -> failAtNode k' "Non-string key"
          _ -> failAtNode k' "Non-scalar key"
   case k of
     "tab-stop" ->
-      parseYAML v >>= \x -> return opt{ optTabStop = x }
+      parseYAML v >>= \x -> return (\o -> o{ optTabStop = x })
     "preserve-tabs" ->
-      parseYAML v >>= \x -> return opt { optPreserveTabs = x }
+      parseYAML v >>= \x -> return (\o -> o{ optPreserveTabs = x })
     "standalone" ->
-      parseYAML v >>= \x -> return opt { optStandalone = x }
+      parseYAML v >>= \x -> return (\o -> o{ optStandalone = x })
     "table-of-contents" ->
-      parseYAML v >>= \x -> return opt { optTableOfContents = x }
+      parseYAML v >>= \x -> return (\o -> o{ optTableOfContents = x })
     "toc" ->
-      parseYAML v >>= \x -> return opt { optTableOfContents = x }
+      parseYAML v >>= \x -> return (\o -> o{ optTableOfContents = x })
     "from" ->
-      parseYAML v >>= \x -> return opt { optFrom = unpack <$> x }
+      parseYAML v >>= \x -> return (\o -> o{ optFrom = unpack <$> x })
     "reader" ->
-      parseYAML v >>= \x -> return opt { optFrom = unpack <$> x }
+      parseYAML v >>= \x -> return (\o -> o{ optFrom = unpack <$> x })
     "to" ->
-      parseYAML v >>= \x -> return opt { optTo = unpack <$> x }
+      parseYAML v >>= \x -> return (\o -> o{ optTo = unpack <$> x })
     "writer" ->
-      parseYAML v >>= \x -> return opt { optTo = unpack <$> x }
+      parseYAML v >>= \x -> return (\o -> o{ optTo = unpack <$> x })
     "shift-heading-level-by" ->
-      parseYAML v >>= \x -> return opt { optShiftHeadingLevelBy = x }
+      parseYAML v >>= \x -> return (\o -> o{ optShiftHeadingLevelBy = x })
     "template" ->
-      parseYAML v >>= \x -> return opt { optTemplate = unpack <$> x }
+      parseYAML v >>= \x -> return (\o -> o{ optTemplate = unpack <$> x })
     "variables" ->
-      parseYAML v >>= \x -> return opt { optVariables = x }
+      parseYAML v >>= \x -> return (\o -> o{ optVariables = x })
     "metadata" ->
-      parseYAML v >>= \x -> return opt { optMetadata = contextToMeta x }
+      parseYAML v >>= \x -> return (\o -> o{ optMetadata = contextToMeta x })
     "metadata-files" ->
-      (parseYAML v >>= \x -> return opt { optMetadataFiles = map unpack x })
+      (parseYAML v >>= \x ->
+                        return (\o -> o{ optMetadataFiles = map unpack x }))
     "metadata-file" -> -- allow either a list or a single value
-      (parseYAML v >>= \x -> return opt { optMetadataFiles = map unpack x })
+      (parseYAML v >>= \x -> return (\o -> o{ optMetadataFiles = map unpack x }))
       <|>
-      (parseYAML v >>= \x -> return opt { optMetadataFiles = [unpack x] })
+      (parseYAML v >>= \x ->
+                        return (\o -> o{ optMetadataFiles = [unpack x] }))
     "output-file" ->
-      parseYAML v >>= \x -> return opt { optOutputFile = unpack <$> x }
+      parseYAML v >>= \x -> return (\o -> o{ optOutputFile = unpack <$> x })
     "input-files" ->
-      parseYAML v >>= \x -> return opt { optInputFiles = map unpack x }
+      parseYAML v >>= \x -> return (\o -> o{ optInputFiles = map unpack x })
     "number-sections" ->
-      parseYAML v >>= \x -> return opt { optNumberSections = x }
+      parseYAML v >>= \x -> return (\o -> o{ optNumberSections = x })
     "number-offset" ->
-      parseYAML v >>= \x -> return opt { optNumberOffset = x }
+      parseYAML v >>= \x -> return (\o -> o{ optNumberOffset = x })
     "section-divs" ->
-      parseYAML v >>= \x -> return opt { optSectionDivs = x }
+      parseYAML v >>= \x -> return (\o -> o{ optSectionDivs = x })
     "incremental" ->
-      parseYAML v >>= \x -> return opt { optIncremental = x }
+      parseYAML v >>= \x -> return (\o -> o{ optIncremental = x })
     "self-contained" ->
-      parseYAML v >>= \x -> return opt { optSelfContained = x }
+      parseYAML v >>= \x -> return (\o -> o{ optSelfContained = x })
     "html-q-tags" ->
-      parseYAML v >>= \x -> return opt { optHtmlQTags = x }
+      parseYAML v >>= \x -> return (\o -> o{ optHtmlQTags = x })
     "highlight-style" ->
-      parseYAML v >>= \x -> return opt { optHighlightStyle = unpack <$> x }
+      parseYAML v >>= \x -> return (\o -> o{ optHighlightStyle = unpack <$> x })
     "syntax-definition" ->
-      (parseYAML v >>= \x -> return opt { optSyntaxDefinitions = map unpack x })
+      (parseYAML v >>= \x ->
+                return (\o -> o{ optSyntaxDefinitions = map unpack x }))
       <|>
-      (parseYAML v >>= \x -> return opt { optSyntaxDefinitions = [unpack x] })
+      (parseYAML v >>= \x ->
+             return (\o -> o{ optSyntaxDefinitions = [unpack x] }))
     "syntax-definitions" ->
-      parseYAML v >>= \x -> return opt { optSyntaxDefinitions = map unpack x }
+      parseYAML v >>= \x ->
+             return (\o -> o{ optSyntaxDefinitions = map unpack x })
     "top-level-division" ->
-      parseYAML v >>= \x -> return opt { optTopLevelDivision = x }
+      parseYAML v >>= \x -> return (\o -> o{ optTopLevelDivision = x })
     "html-math-method" ->
-      parseYAML v >>= \x -> return opt { optHTMLMathMethod = x }
+      parseYAML v >>= \x -> return (\o -> o{ optHTMLMathMethod = x })
     "abbreviations" ->
-      parseYAML v >>= \x -> return opt { optAbbreviations = unpack <$> x }
+      parseYAML v >>= \x ->
+             return (\o -> o{ optAbbreviations = unpack <$> x })
     "reference-doc" ->
-      parseYAML v >>= \x -> return opt { optReferenceDoc = unpack <$> x }
+      parseYAML v >>= \x ->
+             return (\o -> o{ optReferenceDoc = unpack <$> x })
     "epub-subdirectory" ->
-      parseYAML v >>= \x -> return opt { optEpubSubdirectory = unpack x }
+      parseYAML v >>= \x ->
+             return (\o -> o{ optEpubSubdirectory = unpack x })
     "epub-metadata" ->
-      parseYAML v >>= \x -> return opt { optEpubMetadata = unpack <$> x }
+      parseYAML v >>= \x ->
+             return (\o -> o{ optEpubMetadata = unpack <$> x })
     "epub-fonts" ->
-      parseYAML v >>= \x -> return opt { optEpubFonts = map unpack x }
+      parseYAML v >>= \x -> return (\o -> o{ optEpubFonts = map unpack x })
     "epub-chapter-level" ->
-      parseYAML v >>= \x -> return opt { optEpubChapterLevel = x }
+      parseYAML v >>= \x -> return (\o -> o{ optEpubChapterLevel = x })
     "epub-cover-image" ->
-      parseYAML v >>= \x -> return opt { optEpubCoverImage = unpack <$> x }
+      parseYAML v >>= \x ->
+             return (\o -> o{ optEpubCoverImage = unpack <$> x })
     "toc-depth" ->
-      parseYAML v >>= \x -> return opt { optTOCDepth = x }
+      parseYAML v >>= \x -> return (\o -> o{ optTOCDepth = x })
     "dump-args" ->
-      parseYAML v >>= \x -> return opt { optDumpArgs = x }
+      parseYAML v >>= \x -> return (\o -> o{ optDumpArgs = x })
     "ignore-args" ->
-      parseYAML v >>= \x -> return opt { optIgnoreArgs = x }
+      parseYAML v >>= \x -> return (\o -> o{ optIgnoreArgs = x })
     "verbosity" ->
-      parseYAML v >>= \x -> return opt { optVerbosity = x }
+      parseYAML v >>= \x -> return (\o -> o{ optVerbosity = x })
     "trace" ->
-      parseYAML v >>= \x -> return opt { optTrace = x }
+      parseYAML v >>= \x -> return (\o -> o{ optTrace = x })
     "log-file" ->
-      parseYAML v >>= \x -> return opt { optLogFile = unpack <$> x }
+      parseYAML v >>= \x -> return (\o -> o{ optLogFile = unpack <$> x })
     "fail-if-warnings" ->
-      parseYAML v >>= \x -> return opt { optFailIfWarnings = x }
+      parseYAML v >>= \x -> return (\o -> o{ optFailIfWarnings = x })
     "reference-links" ->
-      parseYAML v >>= \x -> return opt { optReferenceLinks = x }
+      parseYAML v >>= \x -> return (\o -> o{ optReferenceLinks = x })
     "reference-location" ->
-      parseYAML v >>= \x -> return opt { optReferenceLocation = x }
+      parseYAML v >>= \x -> return (\o -> o{ optReferenceLocation = x })
     "dpi" ->
-      parseYAML v >>= \x -> return opt { optDpi = x }
+      parseYAML v >>= \x -> return (\o -> o{ optDpi = x })
     "wrap" ->
-      parseYAML v >>= \x -> return opt { optWrap = x }
+      parseYAML v >>= \x -> return (\o -> o{ optWrap = x })
     "columns" ->
-      parseYAML v >>= \x -> return opt { optColumns = x }
+      parseYAML v >>= \x -> return (\o -> o{ optColumns = x })
     "filters" ->
-      parseYAML v >>= \x -> return opt { optFilters = x }
+      parseYAML v >>= \x -> return (\o -> o{ optFilters = x })
     "email-obfuscation" ->
-      parseYAML v >>= \x -> return opt { optEmailObfuscation = x }
+      parseYAML v >>= \x -> return (\o -> o{ optEmailObfuscation = x })
     "identifier-prefix" ->
-      parseYAML v >>= \x -> return opt { optIdentifierPrefix = unpack x }
+      parseYAML v >>= \x ->
+             return (\o -> o{ optIdentifierPrefix = unpack x })
     "strip-empty-paragraphs" ->
-      parseYAML v >>= \x -> return opt { optStripEmptyParagraphs = x }
+      parseYAML v >>= \x -> return (\o -> o{ optStripEmptyParagraphs = x })
     "indented-code-classes" ->
-      parseYAML v >>= \x -> return opt { optIndentedCodeClasses = map unpack x }
+      parseYAML v >>= \x ->
+             return (\o -> o{ optIndentedCodeClasses = map unpack x })
     "data-dir" ->
-      parseYAML v >>= \x -> return opt { optDataDir = unpack <$> x }
+      parseYAML v >>= \x -> return (\o -> o{ optDataDir = unpack <$> x })
     "cite-method" ->
-      parseYAML v >>= \x -> return opt { optCiteMethod = x }
+      parseYAML v >>= \x -> return (\o -> o{ optCiteMethod = x })
     "listings" ->
-      parseYAML v >>= \x -> return opt { optListings = x }
+      parseYAML v >>= \x -> return (\o -> o{ optListings = x })
     "pdf-engine" ->
-      parseYAML v >>= \x -> return opt { optPdfEngine = unpack <$> x }
+      parseYAML v >>= \x -> return (\o -> o{ optPdfEngine = unpack <$> x })
     "pdf-engine-opts" ->
-      parseYAML v >>= \x -> return opt { optPdfEngineOpts = map unpack x }
+      parseYAML v >>= \x ->
+             return (\o -> o{ optPdfEngineOpts = map unpack x })
     "pdf-engine-opt" ->
-      (parseYAML v >>= \x -> return opt { optPdfEngineOpts = map unpack x })
+      (parseYAML v >>= \x ->
+             return (\o -> o{ optPdfEngineOpts = map unpack x }))
       <|>
-      (parseYAML v >>= \x -> return opt { optPdfEngineOpts = [unpack x] })
+      (parseYAML v >>= \x ->
+             return (\o -> o{ optPdfEngineOpts = [unpack x] }))
     "slide-level" ->
-      parseYAML v >>= \x -> return opt { optSlideLevel = x }
+      parseYAML v >>= \x -> return (\o -> o{ optSlideLevel = x })
     "setext-headers" ->
-      parseYAML v >>= \x -> return opt { optSetextHeaders = x }
+      parseYAML v >>= \x -> return (\o -> o{ optSetextHeaders = x })
     "ascii" ->
-      parseYAML v >>= \x -> return opt { optAscii = x }
+      parseYAML v >>= \x -> return (\o -> o{ optAscii = x })
     "default-image-extension" ->
-      parseYAML v >>= \x -> return opt { optDefaultImageExtension = unpack x }
+      parseYAML v >>= \x ->
+             return (\o -> o{ optDefaultImageExtension = unpack x })
     "extract-media" ->
-      parseYAML v >>= \x -> return opt { optExtractMedia = unpack <$> x }
+      parseYAML v >>= \x ->
+             return (\o -> o{ optExtractMedia = unpack <$> x })
     "track-changes" ->
-      parseYAML v >>= \x -> return opt { optTrackChanges = x }
+      parseYAML v >>= \x -> return (\o -> o{ optTrackChanges = x })
     "file-scope" ->
-      parseYAML v >>= \x -> return opt { optFileScope = x }
+      parseYAML v >>= \x -> return (\o -> o{ optFileScope = x })
     "title-prefix" ->
-      parseYAML v >>= \x -> return opt { optTitlePrefix = unpack <$> x }
+      parseYAML v >>= \x -> return (\o -> o{ optTitlePrefix = unpack <$> x })
     "css" ->
-      (parseYAML v >>= \x -> return opt { optCss = map unpack x })
+      (parseYAML v >>= \x -> return (\o -> o{ optCss = map unpack x }))
       <|>
-      (parseYAML v >>= \x -> return opt { optCss = [unpack x] })
+      (parseYAML v >>= \x -> return (\o -> o{ optCss = [unpack x] }))
     "ipynb-output" ->
-      parseYAML v >>= \x -> return opt { optIpynbOutput = x }
+      parseYAML v >>= \x -> return (\o -> o{ optIpynbOutput = x })
     "include-before-body" ->
-      (parseYAML v >>= \x -> return opt { optIncludeBeforeBody = map unpack x })
+      (parseYAML v >>= \x ->
+             return (\o -> o{ optIncludeBeforeBody = map unpack x }))
       <|>
-      (parseYAML v >>= \x -> return opt { optIncludeBeforeBody = [unpack x] })
+      (parseYAML v >>= \x ->
+             return (\o -> o{ optIncludeBeforeBody = [unpack x] }))
     "include-after-body" ->
-      (parseYAML v >>= \x -> return opt { optIncludeAfterBody = map unpack x })
+      (parseYAML v >>= \x ->
+             return (\o -> o{ optIncludeAfterBody = map unpack x }))
       <|>
-      (parseYAML v >>= \x -> return opt { optIncludeAfterBody = [unpack x] })
+      (parseYAML v >>= \x ->
+             return (\o -> o{ optIncludeAfterBody = [unpack x] }))
     "include-in-header" ->
-      (parseYAML v >>= \x -> return opt { optIncludeInHeader = map unpack x })
+      (parseYAML v >>= \x ->
+             return (\o -> o{ optIncludeInHeader = map unpack x }))
       <|>
-      (parseYAML v >>= \x -> return opt { optIncludeInHeader = [unpack x] })
+      (parseYAML v >>= \x ->
+             return (\o -> o{ optIncludeInHeader = [unpack x] }))
     "resource-path" ->
-      parseYAML v >>= \x -> return opt { optResourcePath = map unpack x }
+      parseYAML v >>= \x ->
+             return (\o -> o{ optResourcePath = map unpack x })
     "request-headers" ->
-      parseYAML v >>= \x -> return opt { optRequestHeaders =
+      parseYAML v >>= \x ->
+             return (\o -> o{ optRequestHeaders =
                               map (\(key,val) ->
-                                     (unpack key, unpack val)) x }
+                                     (unpack key, unpack val)) x })
     "eol" ->
-      parseYAML v >>= \x -> return opt { optEol = x }
+      parseYAML v >>= \x -> return (\o -> o{ optEol = x })
     "strip-comments" ->
-      parseYAML v >>= \x -> return opt { optStripComments = x }
+      parseYAML v >>= \x -> return (\o -> o  { optStripComments = x })
     _ -> failAtNode k' $ "Unknown option " ++ show k
 
 -- | Defaults for command-line options.

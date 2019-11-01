@@ -366,12 +366,9 @@ header when requesting a document from a URL:
     the `defaults` subdirectory of the user data directory
     (see `--data-dir`).  The `.yaml` extension may be omitted.
     See the section [Default files] for more information on the
-    file format.
-
-    If a defaults file is used, its defaults will replace
-    any options that have been previously specified on the
-    command line, and they may be overridden by subsequent
-    options on the command line.
+    file format.  Settings from the defaults file may be
+    overridden or extended by subsequent options on the command
+    line.
 
 `--bash-completion`
 

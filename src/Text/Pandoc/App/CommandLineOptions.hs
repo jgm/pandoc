@@ -174,7 +174,7 @@ options =
                     fp' <- fromMaybe fp <$> findFile fps
                     inp <- readFileLazy fp'
                     case Y.decode1 inp of
-                        Right (newopts :: Opt) -> return newopts
+                        Right (f :: Opt -> Opt) -> return $ f opt
                         Left (errpos, errmsg)  -> throwError $
                            PandocParseError $
                            "Error parsing " ++ fp' ++ " line " ++
