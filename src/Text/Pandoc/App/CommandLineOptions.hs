@@ -161,26 +161,11 @@ options =
 
     , Option "d" ["defaults"]
                  (ReqArg
-                  (\arg opt -> runIOorExplode $ do
-                    setVerbosity $ optVerbosity opt
-                    let fp = if null (takeExtension arg)
-                                then addExtension arg "yaml"
-                                else arg
-                    dataDirs <- liftIO defaultUserDataDirs
-                    let fps = case optDataDir opt of
-                                Nothing -> (fp : map (</> ("defaults" </> fp))
-                                                 dataDirs)
-                                Just dd -> [fp, dd </> "defaults" </> fp]
-                    fp' <- fromMaybe fp <$> findFile fps
-                    inp <- readFileLazy fp'
-                    case Y.decode1 inp of
-                        Right (f :: Opt -> Opt) -> return $ f opt
-                        Left (errpos, errmsg)  -> throwError $
-                           PandocParseError $
-                           "Error parsing " ++ fp' ++ " line " ++
-                            show (Y.posLine errpos) ++ " column " ++
-                            show (Y.posColumn errpos) ++ ":\n" ++ errmsg
-
+                  (\arg opt -> do
+                      let fp' = if null (takeExtension arg)
+                                   then addExtension arg "yaml"
+                                   else arg
+                      foldM applyDefaults opt [fp']
                   )
                   "FILE")
                 ""
@@ -994,6 +979,25 @@ splitField s =
   case break (`elem` ":=") s of
        (k,_:v) -> (k,v)
        (k,[])  -> (k,"true")
+
+-- | Apply defaults from --defaults file.
+applyDefaults :: Opt -> FilePath -> IO Opt
+applyDefaults opt fp = runIOorExplode $ do
+  setVerbosity $ optVerbosity opt
+  dataDirs <- liftIO defaultUserDataDirs
+  let fps = case optDataDir opt of
+              Nothing -> (fp : map (</> ("defaults" </> fp))
+                               dataDirs)
+              Just dd -> [fp, dd </> "defaults" </> fp]
+  fp' <- fromMaybe fp <$> findFile fps
+  inp <- readFileLazy fp'
+  case Y.decode1 inp of
+      Right (f :: Opt -> Opt) -> return $ f opt
+      Left (errpos, errmsg)  -> throwError $
+         PandocParseError $
+         "Error parsing " ++ fp' ++ " line " ++
+          show (Y.posLine errpos) ++ " column " ++
+          show (Y.posColumn errpos) ++ ":\n" ++ errmsg
 
 lookupHighlightStyle :: PandocMonad m => String -> m Style
 lookupHighlightStyle s
