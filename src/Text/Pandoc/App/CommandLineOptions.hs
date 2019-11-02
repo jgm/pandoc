@@ -161,11 +161,7 @@ options =
 
     , Option "d" ["defaults"]
                  (ReqArg
-                  (\arg opt -> do
-                      let fp' = if null (takeExtension arg)
-                                   then addExtension arg "yaml"
-                                   else arg
-                      foldM applyDefaults opt [fp']
+                  (\arg opt -> applyDefaults opt arg
                   )
                   "FILE")
                 ""
@@ -982,7 +978,10 @@ splitField s =
 
 -- | Apply defaults from --defaults file.
 applyDefaults :: Opt -> FilePath -> IO Opt
-applyDefaults opt fp = runIOorExplode $ do
+applyDefaults opt file = runIOorExplode $ do
+  let fp = if null (takeExtension file)
+              then addExtension file "yaml"
+              else file
   setVerbosity $ optVerbosity opt
   dataDirs <- liftIO defaultUserDataDirs
   let fps = case optDataDir opt of
