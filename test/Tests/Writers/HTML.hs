@@ -71,6 +71,18 @@ tests = [ testGroup "inline code"
             plain (codeWith ("",["variable"],[]) "result") =?>
             "<var>result</var>"
           ]
+        , testGroup "sample with style"
+          [ "samp should wrap highlighted code" =:
+            codeWith ("",["sample","haskell"],[]) ">>="
+            =?> ("<samp><code class=\"sourceCode haskell\">" ++ 
+                "<span class=\"op\">&gt;&gt;=</span></code></samp>")
+          ]
+        , testGroup "variable with style"
+          [ "var should wrap highlighted code" =:
+            codeWith ("",["haskell","variable"],[]) ">>="
+            =?> ("<var><code class=\"sourceCode haskell\">" ++ 
+                "<span class=\"op\">&gt;&gt;=</span></code></var>")
+          ]
         ]
         where
           tQ :: (ToString a, ToPandoc a)
