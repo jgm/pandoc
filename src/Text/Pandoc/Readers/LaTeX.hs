@@ -1689,8 +1689,8 @@ looseItem = do
 
 epigraph :: PandocMonad m => LP m Blocks
 epigraph = do
-  p1 <- grouped blocks
-  p2 <- grouped blocks
+  p1 <- grouped block
+  p2 <- grouped block
   return $ divWith ("", ["epigraph"], []) (p1 <> p2)
 
 resetCaption :: PandocMonad m => LP m ()
@@ -1771,7 +1771,7 @@ parbox = try $ do
   oldInTableCell <- sInTableCell <$> getState
   -- see #5711
   updateState $ \st -> st{ sInTableCell = False }
-  res <- grouped blocks
+  res <- grouped block
   updateState $ \st -> st{ sInTableCell = oldInTableCell }
   return res
 
