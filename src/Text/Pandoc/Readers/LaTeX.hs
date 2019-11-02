@@ -128,7 +128,7 @@ rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
   inp <- getInput
   let toks = tokenize "source" $ T.pack inp
-  snd <$> (rawLaTeXParser toks False macroDef blocks
+  snd <$> (rawLaTeXParser toks False (macroDef (const mempty)) blocks
       <|> (rawLaTeXParser toks True
              (do choice (map controlSeq
                    ["include", "input", "subfile", "usepackage"])
@@ -1418,7 +1418,7 @@ inline = (mempty <$ comment)
      <|> (space  <$ whitespace)
      <|> (softbreak <$ endline)
      <|> word
-     <|> macroDef
+     <|> macroDef (rawInline "latex")
      <|> inlineCommand'
      <|> inlineEnvironment
      <|> inlineGroup
@@ -1464,9 +1464,11 @@ end_ t = try (do
 preamble :: PandocMonad m => LP m Blocks
 preamble = mempty <$ many preambleBlock
   where preambleBlock =  spaces1
-                     <|> void (macroDef <|> blockCommand)
+                     <|> macroDef (const ())
+                     <|> void blockCommand
                      <|> void braced
-                     <|> (notFollowedBy (begin_ "document") >> void anyTok)
+                     <|> (do notFollowedBy (begin_ "document")
+                             void anyTok)
 
 paragraph :: PandocMonad m => LP m Blocks
 paragraph = do
@@ -1532,9 +1534,12 @@ authors = try $ do
   egroup
   addMeta "author" (map trimInlines auths)
 
-macroDef :: (Monoid a, PandocMonad m) => LP m a
-macroDef =
-  mempty <$ (commandDef <|> environmentDef)
+macroDef :: (PandocMonad m, Monoid a) => (String -> a) -> LP m a
+macroDef constructor = do
+    (_, s) <- withRaw (commandDef <|> environmentDef)
+    (constructor (T.unpack $ untokenize s) <$
+      guardDisabled Ext_latex_macros)
+     <|> return mempty
   where commandDef = do
           (name, macro') <- newcommand <|> letmacro <|> defmacro
           guardDisabled Ext_latex_macros <|>
@@ -2368,7 +2373,7 @@ block :: PandocMonad m => LP m Blocks
 block = do
   res <- (mempty <$ spaces1)
     <|> environment
-    <|> macroDef
+    <|> macroDef (rawBlock "latex")
     <|> blockCommand
     <|> paragraph
     <|> grouped block
