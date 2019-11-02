@@ -618,6 +618,7 @@ accent combiningAccent fallBack = try $ do
        [Space]           -> return $ str [fromMaybe combiningAccent fallBack]
        []                -> return $ str [fromMaybe combiningAccent fallBack]
        _                 -> return ils
+
 mathDisplay :: String -> Inlines
 mathDisplay = displayMath . trimMath
 

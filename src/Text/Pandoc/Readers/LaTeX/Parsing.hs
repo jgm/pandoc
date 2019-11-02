@@ -92,6 +92,7 @@ import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
                                         ArgSpec (..), Tok (..), TokType (..))
 import Text.Pandoc.Shared
 import Text.Parsec.Pos
+-- import Debug.Trace
 
 newtype DottedNum = DottedNum [Int]
   deriving (Show)
@@ -350,10 +351,21 @@ isLowerHex :: Char -> Bool
 isLowerHex x = x >= '0' && x <= '9' || x >= 'a' && x <= 'f'
 
 untokenize :: [Tok] -> Text
-untokenize = mconcat . map untoken
+untokenize = foldr untokenAccum mempty
+
+untokenAccum :: Tok -> Text -> Text
+untokenAccum (Tok _ (CtrlSeq _) t) accum =
+  -- insert space to prevent breaking a control sequence; see #5836
+  case (T.unsnoc t, T.uncons accum) of
+    (Just (_,c), Just (d,_))
+      | isLetter c
+      , isLetter d
+      -> t <> " " <> accum
+    _ -> t <> accum
+untokenAccum (Tok _ _ t) accum = t <> accum
 
 untoken :: Tok -> Text
-untoken (Tok _ _ t) = t
+untoken t = untokenAccum t mempty
 
 toksToString :: [Tok] -> String
 toksToString = T.unpack . untokenize
