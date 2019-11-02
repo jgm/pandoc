@@ -64,7 +64,6 @@ import Data.Text (Text)
 import Text.DocTemplates (ToContext(toVal), Context(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.YAML as Y
-import Data.List.Split (splitWhen)
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
@@ -162,8 +161,11 @@ options =
 
     , Option "d" ["defaults"]
                  (ReqArg
-                  (\arg opt ->
-                      foldM applyDefaults opt (splitWhen (==',') arg)
+                  (\arg opt -> do
+                      let fp' = if null (takeExtension arg)
+                                   then addExtension arg "yaml"
+                                   else arg
+                      foldM applyDefaults opt [fp']
                   )
                   "FILE")
                 ""
@@ -980,10 +982,7 @@ splitField s =
 
 -- | Apply defaults from --defaults file.
 applyDefaults :: Opt -> FilePath -> IO Opt
-applyDefaults opt filepath = runIOorExplode $ do
-  let fp = if null (takeExtension filepath)
-              then addExtension filepath "yaml"
-              else filepath
+applyDefaults opt fp = runIOorExplode $ do
   setVerbosity $ optVerbosity opt
   dataDirs <- liftIO defaultUserDataDirs
   let fps = case optDataDir opt of

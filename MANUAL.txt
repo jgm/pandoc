@@ -356,12 +356,11 @@ header when requesting a document from a URL:
     `slidy`, `slideous`, or `s5` directory
     placed in this directory will override pandoc's normal defaults.
 
-`-d` *FILE*[,*FILE*,...], `--defaults=`*FILE*[,*FILE*,...]
+`-d` *FILE*, `--defaults=`*FILE*
 
 :   Specify a set of default option settings.  *FILE* is a YAML
     file whose fields correspond to command-line option
-    settings.  (Multiple files may be specified, separated by
-    commas.) All options for document conversion, including input
+    settings.  All options for document conversion, including input
     and output files, can be set using a defaults file.  The file will
     be searched for first in the working directory, and then in
     the `defaults` subdirectory of the user data directory
