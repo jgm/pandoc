@@ -5796,6 +5796,13 @@ which you can modify according to your needs, do
 
     pandoc --print-default-data-file sample.lua
 
+Note that custom writers have no default template.  If you want
+to use `--standalone` with a custom writer, you will need to
+specify a template manually using `--template` or add a new
+default template with the name
+`default.NAME_OF_CUSTOM_WRITER.lua` to the `templates`
+subdirectory of your user data directory (see [Templates]).
+
 [lua]: http://www.lua.org
 
 # A note on security
