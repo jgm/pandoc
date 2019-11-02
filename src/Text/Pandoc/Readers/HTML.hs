@@ -788,7 +788,7 @@ pCodeWithClass elemToClass = try $ do
   TagOpen open attr' <- pSatisfy $ tagOpen tagTest (const True)
   result <- manyTill pAny (pCloses open)
   let (ids,cs,kvs) = mkAttr . toStringAttr $ attr'
-      cs'          = maybe cs id . fmap (:cs) . lookup open $ elemToClass
+      cs'          = maybe cs (:cs) . lookup open $ elemToClass
   return . B.codeWith (ids,cs',kvs) .
     unwords . lines . T.unpack . innerText $ result
 
