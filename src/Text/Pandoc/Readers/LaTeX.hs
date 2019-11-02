@@ -1462,13 +1462,14 @@ end_ t = try (do
   guard $ t == txt) <?> ("\\end{" ++ T.unpack t ++ "}")
 
 preamble :: PandocMonad m => LP m Blocks
-preamble = mempty <$ many preambleBlock
-  where preambleBlock =  spaces1
-                     <|> macroDef (const ())
-                     <|> void blockCommand
-                     <|> void braced
+preamble = mconcat <$> many preambleBlock
+  where preambleBlock =  (mempty <$ spaces1)
+                     <|> macroDef (rawBlock "latex")
+                     <|> (mempty <$ blockCommand)
+                     <|> (mempty <$ braced)
                      <|> (do notFollowedBy (begin_ "document")
-                             void anyTok)
+                             anyTok
+                             return mempty)
 
 paragraph :: PandocMonad m => LP m Blocks
 paragraph = do
