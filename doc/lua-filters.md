@@ -38,7 +38,7 @@ JSON to stdout and reading it from stdin.
 Here is an example of a lua filter that converts strong emphasis
 to small caps:
 
-``` {.lua}
+``` lua
 return {
   {
     Strong = function (elem)
@@ -50,7 +50,7 @@ return {
 
 or equivalently,
 
-``` {.lua}
+``` lua
 function Strong(elem)
   return pandoc.SmallCaps(elem.c)
 end
@@ -230,7 +230,7 @@ when added to `init.lua`. The snippet adds all unicode-aware
 functions defined in the [`text` module](#module-text) to the
 default `string` module, prefixed with the string `uc_`.
 
-``` {.lua}
+``` lua
 for name, fn in pairs(require 'text') do
   string['uc_' .. name] = fn
 end
@@ -250,7 +250,7 @@ available at <https://github.com/pandoc/lua-filters>.
 The following filter converts the string `{{helloworld}}` into
 emphasized text "Hello, World".
 
-``` {.lua}
+``` lua
 return {
   {
     Str = function (elem)
@@ -270,7 +270,7 @@ This filter causes metadata defined in an external file
 (`metadata-file.yaml`) to be used as default values in a
 document's metadata:
 
-``` {.lua}
+``` lua
 -- read metadata file into string
 local metafile = io.open('metadata-file.yaml', 'r')
 local content = metafile:read("*a")
@@ -297,7 +297,7 @@ return {
 This filter sets the date in the document's metadata to the
 current date:
 
-``` {.lua}
+``` lua
 function Meta(m)
   m.date = os.date("%B %e, %Y")
   return m
@@ -309,7 +309,7 @@ end
 This filter prints a table of all the URLs linked to in the
 document, together with the number of links to that URL.
 
-``` {.lua}
+``` lua
 links = {}
 
 function Link (el)
@@ -350,13 +350,13 @@ Passing information from a higher level (e.g., metadata) to a
 lower level (e.g., inlines) is still possible by using two
 filters living in the same file:
 
-``` {.lua}
+``` lua
 local vars = {}
 
 function get_vars (meta)
   for k, v in pairs(meta) do
-    if v.t == 'MetaInlines' then
-      vars["$" .. k .. "$"] = {table.unpack(v)}
+    if type(v) == 'table' and v.t == 'MetaInlines' then
+      vars["%" .. k .. "%"] = {table.unpack(v)}
     end
   end
 end
@@ -374,7 +374,7 @@ return {{Meta = get_vars}, {Str = replace}}
 
 If the contents of file `occupations.md` is
 
-``` {.markdown}
+``` markdown
 ---
 name: Samuel Q. Smith
 occupation: Professor of Phrenology
@@ -382,17 +382,17 @@ occupation: Professor of Phrenology
 
 Name
 
-: \$name\$
+:   %name%
 
 Occupation
 
-: \$occupation\$
+:   %occupation%
 ```
 
 then running `pandoc --lua-filter=meta-vars.lua occupations.md`
 will output:
 
-``` {.html}
+``` html
 <dl>
 <dt>Name</dt>
 <dd><p><span>Samuel Q. Smith</span></p>
@@ -410,7 +410,7 @@ pages. It converts level-1 headers to uppercase (using
 `walk_block` to transform inline elements inside headers),
 removes footnotes, and replaces links with regular text.
 
-``` {.lua}
+``` lua
 -- we use preloaded text to get a UTF-8 aware 'upper' function
 local text = require('text')
 
@@ -440,7 +440,7 @@ divs with class `handout`. (Note that only blocks at the "outer
 level" are included; this ignores blocks inside nested
 constructs, like list items.)
 
-``` {.lua}
+``` lua
 -- creates a handout from an article, using its headings,
 -- blockquotes, numbered examples, figures, and any
 -- Divs with class "handout"
@@ -469,7 +469,7 @@ document, since the latter will count markup characters, like
 the `#` in front of an ATX header, or tags in HTML documents, as
 words. To run it, `pandoc --lua-filter wordcount.lua myfile.md`.
 
-``` {.lua}
+``` lua
 -- counts words in a document
 
 words = 0
@@ -514,7 +514,7 @@ pandoc will use images in the mediabag. For textual formats, use
 mediabag will be written, or (for HTML only) use
 `--self-contained`.
 
-``` {.lua}
+``` lua
 -- Pandoc filter to process code blocks with class "abc" containing
 -- ABC notation into images.
 --
@@ -557,7 +557,7 @@ source, so that they need not be regenerated each time the
 document is built. (A more sophisticated version of this might
 put these in a special cache directory.)
 
-``` {.lua}
+``` lua
 local function tikz2image(src, filetype, outfile)
     local tmp = os.tmpname()
     local tmpdir = string.match(tmp, "^(.*[\\/])") or "."
@@ -1456,7 +1456,7 @@ UTF-8 aware text manipulation functions, implemented in Haskell.
 The module is made available as part of the `pandoc` module via
 `pandoc.text`. The text module can also be loaded explicitly:
 
-``` {.lua}
+``` lua
 -- uppercase all regular text in a document:
 text = require 'text'
 function Str (s)
