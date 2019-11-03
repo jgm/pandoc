@@ -1544,7 +1544,7 @@ lookupKey oldkeys key = do
          logMessage $ ReferenceNotFound key' pos
          return (("",""),nullAttr)
        -- check for keys of the form link_, which need to be resolved:
-       Just ((u@(_:_),""),_) | last u == '_' -> do
+       Just ((u@(c:_),""),_) | last u == '_', c /= '#' -> do
          let rawkey = init u
          let newkey = toKey rawkey
          if newkey `elem` oldkeys
