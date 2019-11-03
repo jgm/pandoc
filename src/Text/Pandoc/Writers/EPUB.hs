@@ -434,9 +434,11 @@ pandocToEPUB version opts doc = do
         stylesheets [(1 :: Int)..]
 
   let vars = Context $
-             M.delete "css" . M.insert "epub3"
-                 (toVal' $ if epub3 then "true" else "false") $
-             unContext $ writerVariables opts
+               M.delete "css" .
+               M.insert "epub3"
+                 (toVal' $ if epub3 then "true" else "false") .
+               M.insert "lang" (toVal' $ epubLanguage metadata)
+             $ unContext $ writerVariables opts
 
   let cssvars useprefix = Context $ M.fromList $ map
                        (\e -> ("css", toVal' $
