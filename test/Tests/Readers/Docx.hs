@@ -272,6 +272,10 @@ tests = [ testGroup "document"
             "docx/lists_restarting.docx"
             "docx/lists_restarting.native"
           , testCompare
+            "sublists reset numbering to 1"
+            "docx/lists_sublist_reset.docx"
+            "docx/lists_sublist_reset.native"
+          , testCompare
             "definition lists"
             "docx/definition_list.docx"
             "docx/definition_list.native"

@@ -1,0 +1,8 @@
+[OrderedList (1,Decimal,Period)
+ [[Para [Str "Head",Space,Str "1"]
+  ,OrderedList (1,Decimal,DefaultDelim)
+   [[Para [Str "Head",Space,Str "1.1"]]
+   ,[Para [Str "Head",Space,Str "1.2"]]]]
+ ,[Para [Str "Head",Space,Str "2"]
+  ,OrderedList (1,Decimal,DefaultDelim)
+   [[Para [Str "Head",Space,Str "2.1"]]]]]]
