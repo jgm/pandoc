@@ -404,9 +404,11 @@ blockToOpenDocument o bs
                  then return empty
                  else colHeadsToOpenDocument o (map fst paraHStyles) h
         tr <- mapM (tableRowToOpenDocument o (map fst paraStyles)) r
-        return $ inTags True "table:table" [ ("table:name"      , name)
-                                           , ("table:style-name", name)
-                                           ] (vcat columns $$ th $$ vcat tr) $$ captionDoc
+        let tableDoc = inTags True "table:table" [
+                            ("table:name"      , name)
+                          , ("table:style-name", name)
+                          ] (vcat columns $$ th $$ vcat tr)
+        return $ captionDoc $$ tableDoc
       figure attr caption source title | null caption =
         withParagraphStyle o "Figure" [Para [Image attr caption (source,title)]]
                                   | otherwise    = do

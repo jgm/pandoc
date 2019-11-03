@@ -12,6 +12,8 @@
 
 : Second Table
 ^D
+<text:p text:style-name="TableCaption">Table <text:sequence text:ref-name="refTable0" text:name="Table" text:formula="ooow:Table+1" style:num-format="1">1</text:sequence>: First
+table</text:p>
 <table:table table:name="Table1" table:style-name="Table1">
   <table:table-column table:style-name="Table1.A" />
   <table:table-column table:style-name="Table1.B" />
@@ -34,8 +36,8 @@
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="TableCaption">Table <text:sequence text:ref-name="refTable0" text:name="Table" text:formula="ooow:Table+1" style:num-format="1">1</text:sequence>: First
-table</text:p>
+<text:p text:style-name="TableCaption">Table <text:sequence text:ref-name="refTable1" text:name="Table" text:formula="ooow:Table+1" style:num-format="1">2</text:sequence>: Second
+Table</text:p>
 <table:table table:name="Table2" table:style-name="Table2">
   <table:table-column table:style-name="Table2.A" />
   <table:table-column table:style-name="Table2.B" />
@@ -58,6 +60,4 @@ table</text:p>
     </table:table-cell>
   </table:table-row>
 </table:table>
-<text:p text:style-name="TableCaption">Table <text:sequence text:ref-name="refTable1" text:name="Table" text:formula="ooow:Table+1" style:num-format="1">2</text:sequence>: Second
-Table</text:p>
 ```
