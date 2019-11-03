@@ -65,21 +65,26 @@ optToOutputSettings opts = do
                          Nothing -> return Nothing
                          Just fp -> Just <$> readUtf8File fp
 
-  let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
+  let pdfOutput = map toLower (takeExtension outputFile) == ".pdf" ||
+                  optTo opts == Just "pdf"
   (writerName, maybePdfProg) <-
     if pdfOutput
-       then liftIO $ pdfWriterAndProg (optTo opts) (optPdfEngine opts)
+       then liftIO $ pdfWriterAndProg
+               (case optTo opts of
+                  Just "pdf" -> Nothing
+                  x          -> x)
+               (optPdfEngine opts)
        else case optTo opts of
+              Just f -> return (f, Nothing)
               Nothing
-                | outputFile == "-" -> return ("html", Nothing)
-                | otherwise ->
-                    case formatFromFilePaths [outputFile] of
+               | outputFile == "-" -> return ("html", Nothing)
+               | otherwise ->
+                     case formatFromFilePaths [outputFile] of
                            Nothing -> do
                              report $ CouldNotDeduceFormat
                                 [takeExtension outputFile] "html"
                              return ("html", Nothing)
                            Just f  -> return (f, Nothing)
-              Just f   -> return (f, Nothing)
 
   let format = if ".lua" `isSuffixOf` writerName
                   then writerName
@@ -244,13 +249,10 @@ baseWriterName = takeWhile (\c -> c /= '+' && c /= '-')
 pdfWriterAndProg :: Maybe String              -- ^ user-specified writer name
                  -> Maybe String              -- ^ user-specified pdf-engine
                  -> IO (String, Maybe String) -- ^ IO (writerName, maybePdfEngineProg)
-pdfWriterAndProg mWriter mEngine = do
-  let panErr msg = liftIO $ E.throwIO $ PandocAppError msg
+pdfWriterAndProg mWriter mEngine =
   case go mWriter mEngine of
       Right (writ, prog) -> return (writ, Just prog)
-      Left "pdf writer"  -> liftIO $ E.throwIO $
-                               PandocUnknownWriterError "pdf"
-      Left err           -> panErr err
+      Left err           -> liftIO $ E.throwIO $ PandocAppError err
     where
       go Nothing Nothing       = Right ("latex", "pdflatex")
       go (Just writer) Nothing = (writer,) <$> engineForWriter writer
@@ -273,4 +275,5 @@ pdfWriterAndProg mWriter mEngine = do
                                    "cannot produce pdf output from " ++ w
 
 isTextFormat :: String -> Bool
-isTextFormat s = s `notElem` ["odt","docx","epub2","epub3","epub","pptx"]
+isTextFormat s =
+  s `notElem` ["odt","docx","epub2","epub3","epub","pptx","pdf"]

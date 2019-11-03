@@ -185,7 +185,8 @@ convertWithOpts opts = do
     -- force this with '-o -'.  On posix systems, we detect
     -- when stdout is being piped and allow output to stdout
     -- in that case, but on Windows we can't.
-    when (not (isTextFormat format) && istty && isNothing ( optOutputFile opts)) $
+    when ((pdfOutput || not (isTextFormat format)) &&
+             istty && isNothing ( optOutputFile opts)) $
       throwError $ PandocAppError $
               "Cannot write " ++ format ++ " output to terminal.\n" ++
               "Specify an output file using the -o option, or " ++

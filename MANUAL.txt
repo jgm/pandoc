@@ -308,6 +308,7 @@ header when requesting a document from a URL:
     - `opml` ([OPML])
     - `opendocument` ([OpenDocument])
     - `org` ([Emacs Org mode])
+    - `pdf` ([PDF])
     - `plain` (plain text),
     - `pptx` ([PowerPoint] slide show)
     - `rst` ([reStructuredText])
@@ -325,7 +326,7 @@ header when requesting a document from a URL:
     - the path of a custom lua writer, see [Custom writers] below
     :::
 
-    Note that `odt`, `docx`, and `epub` output will not be directed
+    Note that `odt`, `docx`, `epub`, and `pdf` output will not be directed
     to *stdout* unless forced with `-o -`.
 
     Extensions can be individually enabled or
