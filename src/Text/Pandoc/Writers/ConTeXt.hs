@@ -23,7 +23,7 @@ import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import Text.Pandoc.BCP47
 import Text.Pandoc.Class (PandocMonad, report, toLang)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options

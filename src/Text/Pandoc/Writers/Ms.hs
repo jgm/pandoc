@@ -32,7 +32,7 @@ import Skylighting
 import System.FilePath (takeExtension)
 import Text.Pandoc.Asciify (toAsciiChar)
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Highlighting
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
@@ -44,7 +44,13 @@ import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Writers.Roff
 import Text.Printf (printf)
-import Text.TeXMath (writeEqn)
+-- import Text.TeXMath (writeEqn) TODO text: restore
+
+-- TODO text: remove
+import qualified Text.TeXMath as TM
+writeEqn :: TM.DisplayType -> [TM.Exp] -> String
+writeEqn dt = T.unpack . TM.writeEqn dt
+--
 
 -- | Convert Pandoc to Ms.
 writeMs :: PandocMonad m => WriterOptions -> Pandoc -> m Text

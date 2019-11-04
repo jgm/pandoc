@@ -22,7 +22,7 @@ import Text.Pandoc.Class (PandocMonad(..), report)
 import Data.Maybe (catMaybes, isJust)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
-import Text.Pandoc.Builder as B
+import Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options

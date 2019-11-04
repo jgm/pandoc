@@ -191,10 +191,10 @@ import Data.String
 import Data.Text (Text)
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Asciify (toAsciiChar)
-import Text.Pandoc.Builder (Blocks, HasMeta (..), Inlines, trimInlines)
-import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Legacy.Builder (Blocks, HasMeta (..), Inlines, trimInlines) -- TODO text: remove Legacy
+import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad, readFileFromDirs, report)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.LaTeX.Types (Macro)

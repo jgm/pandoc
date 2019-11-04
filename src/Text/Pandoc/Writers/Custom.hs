@@ -25,7 +25,7 @@ import Data.Typeable
 import Foreign.Lua (Lua, Pushable)
 import Text.DocLayout (render, literal)
 import Text.Pandoc.Class (PandocIO)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Lua (Global (..), LuaException (LuaException),
                         runLua, setGlobals)
 import Text.Pandoc.Lua.Util (addField, dofileWithTraceback)

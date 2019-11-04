@@ -23,7 +23,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Highlighting (languages, languagesByExtension)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging

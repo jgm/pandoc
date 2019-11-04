@@ -17,7 +17,7 @@ import Prelude
 import Test.Tasty (TestTree)
 import Tests.Helpers ((=?>))
 import Tests.Readers.Org.Shared ((=:), spcSep)
-import Text.Pandoc.Builder
+import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 import qualified Data.Text as T
 
 tests :: [TestTree]

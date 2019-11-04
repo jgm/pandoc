@@ -31,7 +31,7 @@ import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds, posixSecondsToUTCTime)
 import System.FilePath.Posix (splitDirectories, splitExtension, takeExtension)
 import Text.XML.Light
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Error (PandocError(..))

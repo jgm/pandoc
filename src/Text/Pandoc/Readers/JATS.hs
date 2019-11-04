@@ -24,14 +24,24 @@ import Data.Maybe (maybeToList, fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup.Entity (lookupEntity)
-import Text.Pandoc.Builder
+import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (underlineSpan, crFilter, safeRead)
-import Text.TeXMath (readMathML, writeTeX)
+-- import Text.TeXMath (readMathML, writeTeX) TODO text: restore
 import Text.XML.Light
 import qualified Data.Set as S (fromList, member)
 import Data.Set ((\\))
+
+-- TODO text: remove
+import qualified Text.TeXMath as TM
+
+readMathML :: String -> Either String [TM.Exp]
+readMathML = either (Left . T.unpack) Right . TM.readMathML . T.pack
+
+writeTeX :: [TM.Exp] -> String
+writeTeX = T.unpack . TM.writeTeX
+--
 
 type JATS m = StateT JATSState m
 

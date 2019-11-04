@@ -27,7 +27,7 @@ import System.FilePath (takeDirectory, takeExtension, (<.>))
 import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang)
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class as P
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
@@ -40,8 +40,17 @@ import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toStringLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
 import Text.Pandoc.XML
-import Text.TeXMath
+-- import Text.TeXMath -- TODO text: restore
 import Text.XML.Light
+
+-- TODO text: remove
+import qualified Text.TeXMath as TM
+import Text.TeXMath (DisplayType(..), writeMathML)
+import qualified Data.Text as T
+
+readTeX :: String -> Either String [TM.Exp]
+readTeX = either (Left . T.unpack) Right . TM.readTeX . T.pack
+--
 
 newtype ODTState = ODTState { stEntries :: [Entry]
                          }

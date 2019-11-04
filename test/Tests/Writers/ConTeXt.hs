@@ -9,7 +9,7 @@ import Test.Tasty.QuickCheck
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder
+import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 
 context :: (ToPandoc a) => a -> String
 context = unpack . purely (writeConTeXt def) . toPandoc

@@ -13,7 +13,7 @@ show formats (dzslides, revealjs, s5, slidy, slideous, beamer).
 -}
 module Text.Pandoc.Slides ( getSlideLevel, prepSlides ) where
 import Prelude
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 
 -- | Find level of header that starts slides (defined as the least header
 -- level that occurs before a non-header/non-hrule in the blocks).

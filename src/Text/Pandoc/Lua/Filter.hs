@@ -30,7 +30,7 @@ import Data.Data (Data, DataType, dataTypeConstrs, dataTypeName, dataTypeOf,
 import Data.Foldable (foldrM)
 import Data.Map (Map)
 import Foreign.Lua (Lua, Peekable, Pushable)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Walk (SingletonsList (..))
 import Text.Pandoc.Walk (Walkable (walkM))

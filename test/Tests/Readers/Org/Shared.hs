@@ -24,7 +24,7 @@ import Tests.Helpers (ToString, purely, test)
 import Test.Tasty (TestTree)
 import Text.Pandoc (Pandoc, ReaderOptions (readerExtensions),
                     def, getDefaultExtensions, readOrg)
-import Text.Pandoc.Builder (Inlines, smallcaps, space, spanWith, str)
+import Text.Pandoc.Legacy.Builder (Inlines, smallcaps, space, spanWith, str) -- TODO text: remove Legacy
 
 org :: Text -> Pandoc
 org = purely $ readOrg def{ readerExtensions = getDefaultExtensions "org" }

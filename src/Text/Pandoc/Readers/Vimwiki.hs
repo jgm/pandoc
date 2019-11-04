@@ -55,7 +55,7 @@ import Data.List (isInfixOf, isPrefixOf)
 import Data.Maybe
 import Data.Text (Text)
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, toList, trimInlines)
-import qualified Text.Pandoc.Builder as B (blockQuote, bulletList, code,
+import qualified Text.Pandoc.Legacy.Builder as B (blockQuote, bulletList, code,
                                            codeBlockWith, definitionList,
                                            displayMath, divWith, emph,
                                            headerWith, horizontalRule, image,
@@ -63,12 +63,12 @@ import qualified Text.Pandoc.Builder as B (blockQuote, bulletList, code,
                                            para, plain, setMeta, simpleTable,
                                            softbreak, space, spanWith, str,
                                            strikeout, strong, subscript,
-                                           superscript)
+                                           superscript) -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad (..))
-import Text.Pandoc.Definition (Attr, Block (BulletList, OrderedList),
+import Text.Pandoc.Legacy.Definition (Attr, Block (BulletList, OrderedList),
                                Inline (Space), ListNumberDelim (..),
                                ListNumberStyle (..), Pandoc (..),
-                               nullMeta)
+                               nullMeta) -- TODO text: remove Legacy
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing (ParserState, ParserT, blanklines, emailAddress,
                             many1Till, orderedListMarker, readWithM,

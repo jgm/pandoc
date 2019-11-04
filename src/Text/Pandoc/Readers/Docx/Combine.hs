@@ -63,7 +63,7 @@ import Prelude
 import Data.List
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr, (><), (|>))
 import qualified Data.Sequence as Seq (null)
-import Text.Pandoc.Builder
+import Text.Pandoc.Legacy.Builder -- TODO text: remove
 
 data Modifier a = Modifier (a -> a)
                 | AttrModifier (Attr -> a -> a) Attr

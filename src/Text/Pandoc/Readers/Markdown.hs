@@ -31,10 +31,10 @@ import qualified Data.YAML as YAML
 import qualified Data.YAML.Event as YE
 import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup
-import Text.Pandoc.Builder (Blocks, Inlines)
-import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Legacy.Builder (Blocks, Inlines) -- TODO text: remove Legacy
+import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad (..), report)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging

@@ -89,7 +89,7 @@ import Text.Pandoc.Shared (uriPathToPath)
 import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
 import qualified Data.Time as IO (getCurrentTime)
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.DocTemplates (TemplateMonad(..))
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.Maybe (fromMaybe)

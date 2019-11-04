@@ -26,9 +26,9 @@ import Data.List (dropWhileEnd)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Text.Pandoc.Builder as B
+import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (CommonState (..), PandocMonad (..))
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Logging (Verbosity (..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)

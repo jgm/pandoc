@@ -27,8 +27,13 @@ import System.Process
 import Test.Tasty
 import Test.Tasty.HUnit
 import Tests.Helpers
-import Text.Pandoc
+-- import Text.Pandoc -- TODO text: restore
 import qualified Text.Pandoc.UTF8 as UTF8
+
+-- TODO text: remove
+import Text.Pandoc hiding (Block(..))
+import Text.Pandoc.Legacy.Definition
+--
 
 -- | Run a test with normalize function, return True if test passed.
 runTest :: String    -- ^ Title of test

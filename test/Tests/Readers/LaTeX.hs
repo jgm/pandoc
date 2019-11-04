@@ -22,9 +22,13 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 import Tests.Helpers
-import Text.Pandoc
+-- import Text.Pandoc -- TODO text: restore
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder
+import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
+
+-- TODO text: remove
+import Text.Pandoc hiding (Citation(..), Str)
+--
 
 latex :: Text -> Pandoc
 latex = purely $ readLaTeX def{

@@ -24,13 +24,13 @@ import Text.Pandoc.Readers.Org.Shared (cleanLinkString, isImageFilename,
                                        originalLang, translateLang, exportsCode)
 
 import Text.Pandoc.Builder (Inlines)
-import qualified Text.Pandoc.Builder as B
+import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
 import Text.Pandoc.Shared (underlineSpan)
-import Text.TeXMath (DisplayType (..), readTeX, writePandoc)
+-- import Text.TeXMath (DisplayType (..), readTeX, writePandoc) -- TODO text: restore
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 
 import Control.Monad (guard, mplus, mzero, unless, void, when)
@@ -39,6 +39,15 @@ import Data.Char (isAlphaNum, isSpace)
 import Data.List (intersperse)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
+
+-- TODO text: remove
+import qualified Data.Text as T
+import Text.TeXMath (DisplayType (..), writePandoc)
+import qualified Text.TeXMath as TM
+
+readTeX :: String -> Either String [TM.Exp]
+readTeX = either (Left . T.unpack) Right . TM.readTeX . T.pack
+--
 
 --
 -- Functions acting on the parser state
@@ -800,7 +809,7 @@ inlineLaTeX = try $ do
    parseAsInlineLaTeX cs = maybeRight <$> runParserT inlineCommand state "" cs
 
    parseAsMathMLSym :: String -> Maybe Inlines
-   parseAsMathMLSym cs = B.str <$> MathMLEntityMap.getUnicode (clean cs)
+   parseAsMathMLSym cs = B.str . T.unpack <$> MathMLEntityMap.getUnicode (T.pack $ clean cs) -- TODO text: refactor
     -- drop initial backslash and any trailing "{}"
     where clean = dropWhileEnd (`elem` ("{}" :: String)) . drop 1
 

@@ -15,10 +15,10 @@ module Text.Pandoc.Writers.OPML ( writeOPML) where
 import Prelude
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Text.Pandoc.Builder as B
+import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad)
 import Data.Time
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared

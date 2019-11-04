@@ -40,7 +40,7 @@ import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Text (Text, intercalate, pack, replace, split)
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (escapeURI, isURI, linesToPara)

@@ -48,8 +48,8 @@ import Data.List (groupBy, intersperse, transpose, foldl')
 import Data.Text.Conversions (FromText(..))
 import qualified Data.Map as M
 import qualified Data.Text as T
-import qualified Text.Pandoc.Builder as Builder
-import Text.Pandoc.Definition
+import qualified Text.Pandoc.Legacy.Builder as Builder -- TODO text: remove legacy
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared (stringify, makeSections, deNote, deLink)

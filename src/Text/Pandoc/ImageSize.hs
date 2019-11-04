@@ -44,7 +44,7 @@ import Data.Binary.Get
 import Text.Pandoc.Shared (safeRead)
 import Data.Default (Default)
 import Numeric (showFFloat)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove legacy
 import Text.Pandoc.Options
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Text.XML.Light as Xml

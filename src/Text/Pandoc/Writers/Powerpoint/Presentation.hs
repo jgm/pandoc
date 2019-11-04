@@ -46,7 +46,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.List (intercalate)
 import Data.Default
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Slides (getSlideLevel)
 import Text.Pandoc.Options

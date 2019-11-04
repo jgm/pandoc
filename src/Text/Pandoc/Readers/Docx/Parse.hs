@@ -63,6 +63,7 @@ import qualified Data.ByteString.Lazy as B
 import Data.Char (chr, ord, readLitChar)
 import Data.List
 import qualified Data.Map as M
+import qualified Data.Text as T
 import Data.Maybe
 import System.FilePath
 import Text.Pandoc.Readers.Docx.Util
@@ -70,10 +71,22 @@ import Text.Pandoc.Readers.Docx.Fields
 import Text.Pandoc.Shared (filteredFilesFromArchive, safeRead)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.TeXMath (Exp)
-import Text.TeXMath.Readers.OMML (readOMML)
-import Text.TeXMath.Unicode.Fonts (Font (..), getUnicode, stringToFont)
+-- import Text.TeXMath.Readers.OMML (readOMML) TODO text: restore
+-- import Text.TeXMath.Unicode.Fonts (Font (..), getUnicode, textToFont) TODO text: restore
 import Text.XML.Light
 import qualified Text.XML.Light.Cursor as XMLC
+
+-- TODO text: remove
+import Text.TeXMath.Unicode.Fonts (Font, getUnicode)
+import qualified Text.TeXMath.Readers.OMML as TM
+import qualified Text.TeXMath.Unicode.Fonts as TM
+
+readOMML :: String -> Either T.Text [Exp]
+readOMML = TM.readOMML . T.pack
+
+stringToFont :: String -> Maybe Font
+stringToFont = TM.textToFont . T.pack
+--
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envComments      :: Comments

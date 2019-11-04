@@ -22,10 +22,10 @@ import qualified Data.Map as M
 import Data.Char (toLower)
 import Data.Maybe (catMaybes, fromMaybe)
 import Text.Pandoc.Options
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Data.Ipynb as Ipynb
 import Text.Pandoc.Walk (walkM)
-import qualified Text.Pandoc.Builder as B
+import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class
 import Text.Pandoc.Logging
 import Data.Text (Text)

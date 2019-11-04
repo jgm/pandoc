@@ -33,7 +33,7 @@ import Network.URI (unEscapeString)
 import Text.DocTemplates (FromContext(lookupContext))
 import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang)
 import Text.Pandoc.Class (PandocMonad, report, toLang)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
                                  styleToLaTeX, toListingsLanguage)
 import Text.Pandoc.ImageSize

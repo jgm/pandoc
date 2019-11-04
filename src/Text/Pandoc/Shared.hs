@@ -122,11 +122,11 @@ import System.FilePath (isPathSeparator, splitDirectories)
 import qualified System.FilePath.Posix as Posix
 import Text.HTML.TagSoup (RenderOptions (..), Tag (..), renderOptions,
                           renderTagsOptions)
-import Text.Pandoc.Builder (Blocks, Inlines, ToMetaValue (..))
-import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Legacy.Builder (Blocks, Inlines, ToMetaValue (..)) -- TODO text: remove Legacy
+import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Data.Time
 import Text.Pandoc.Asciify (toAsciiChar)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition
 import Text.Pandoc.Extensions (Extensions, Extension(..), extensionEnabled)
 import Text.Pandoc.Generic (bottomUp)
 import Text.DocLayout (charWidth)

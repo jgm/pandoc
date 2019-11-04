@@ -20,13 +20,13 @@ import Test.Tasty (TestTree, localOption)
 import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
 import Test.Tasty.QuickCheck (QuickCheckTests (..), ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder (bulletList, definitionList, displayMath, divWith,
+import Text.Pandoc.Legacy.Builder (bulletList, definitionList, displayMath, divWith,
                             doc, doubleQuoted, emph, header, lineBlock,
                             linebreak, math, orderedList, para, plain, rawBlock,
-                            singleQuoted, space, str, strong)
+                            singleQuoted, space, str, strong) -- TODO text: remove Legacy
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
-import Text.Pandoc.Definition (Block (BlockQuote, Div, Para), Inline (Emph, Str),
-                               Attr, Meta, Pandoc, pandocTypesVersion)
+-- import Text.Pandoc.Legacy.Definition (Block (BlockQuote, Div, Para), Inline (Emph, Str),
+--                                Attr, Meta, Pandoc, pandocTypesVersion) -- TODO text: restore
 import Text.Pandoc.Filter (Filter (LuaFilter), applyFilters)
 import Text.Pandoc.Lua (runLua)
 import Text.Pandoc.Options (def)
@@ -34,6 +34,10 @@ import Text.Pandoc.Shared (pandocVersion)
 
 import qualified Foreign.Lua as Lua
 import qualified Data.ByteString.Char8 as BS
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Definition
+--
 
 tests :: [TestTree]
 tests = map (localOption (QuickCheckTests 20))

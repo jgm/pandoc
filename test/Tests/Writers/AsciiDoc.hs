@@ -7,7 +7,7 @@ import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder
+import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 
 asciidoc :: (ToPandoc a) => a -> String
 asciidoc = unpack . purely (writeAsciiDoc def{ writerWrapText = WrapNone }) . toPandoc

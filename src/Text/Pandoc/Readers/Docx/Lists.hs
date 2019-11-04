@@ -23,9 +23,14 @@ import Data.List
 import Data.Maybe
 import Data.String (fromString)
 import Text.Pandoc.Generic (bottomUp)
-import Text.Pandoc.JSON
+-- import Text.Pandoc.JSON -- TODO text: restore
 import Text.Pandoc.Readers.Docx.Parse (ParaStyleName)
 import Text.Pandoc.Shared (trim, safeRead)
+
+-- TODO text: remove
+import qualified Text.Pandoc.JSON as TP
+import Text.Pandoc.Legacy.Definition
+--
 
 isListItem :: Block -> Bool
 isListItem (Div (_, classes, _) _) | "list-item" `elem` classes = True

@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE PatternSynonyms #-} -- TODO text: remove
 {- |
    Module      : Text.Pandoc.Lua.Module.Utils
    Copyright   : Copyright © 2017-2019 Albert Krewinkel
@@ -20,17 +21,22 @@ import Data.Default (def)
 import Data.Version (Version)
 import Foreign.Lua (Peekable, Lua, NumResults)
 import Text.Pandoc.Class (runIO, setUserDataDir)
-import Text.Pandoc.Definition ( Pandoc, Meta, MetaValue (..), Block, Inline
-                              , Citation, Attr, ListAttributes)
+-- import Text.Pandoc.Definition ( Pandoc, Meta, MetaValue (..), Block, Inline
+--                               , Citation, Attr, ListAttributes) -- TODO text: restore
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Util (addFunction)
 
 import qualified Data.Digest.Pure.SHA as SHA
 import qualified Data.ByteString.Lazy as BSL
 import qualified Foreign.Lua as Lua
-import qualified Text.Pandoc.Builder as B
+import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Shared as Shared
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Definition ( Pandoc, Meta, MetaValue (..), Block, Inline
+                              , Citation, Attr, ListAttributes, pattern MetaString)
+--
 
 -- | Push the "pandoc.utils" module to the lua stack.
 pushModule :: Maybe FilePath -> Lua NumResults

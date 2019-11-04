@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE PatternSynonyms #-} -- TODO text: remove
 {- |
    Module      : Text.Pandoc.Emoji
    Copyright   : Copyright (C) 2015 John MacFarlane
@@ -13,7 +14,11 @@ Emoji symbol lookup from canonical string identifier.
 module Text.Pandoc.Emoji ( emojis, emojiToInline ) where
 import Prelude
 import qualified Data.Map as M
-import Text.Pandoc.Definition (Inline (Span, Str))
+-- import Text.Pandoc.Definition (Inline (Span, Str)) TODO text: restore
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Definition (Inline, pattern Span, pattern Str)
+--
 
 emojis :: M.Map String String
 emojis = M.fromList

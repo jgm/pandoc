@@ -20,7 +20,7 @@ import Control.Monad.State.Strict
 import Data.Default
 import Data.Text (Text)
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout

@@ -37,7 +37,7 @@ import qualified Data.Text as T
 import Data.Text (Text)
 import System.FilePath (takeExtension)
 import Text.Pandoc.Class (PandocMonad)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options

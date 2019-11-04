@@ -5,6 +5,7 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE PatternSynonyms #-} -- TODO text: remove
 {- |
    Module      : Text.Pandoc.App.Opt
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -39,11 +40,15 @@ import Text.DocTemplates (Context(..), Val(..))
 import Data.Text (Text, unpack)
 import qualified Data.Text as T
 import qualified Data.Map as M
-import Text.Pandoc.Definition (Meta(..), MetaValue(..))
+-- import Text.Pandoc.Definition (Meta(..), MetaValue(..)) -- TODO text: restore
 import Data.Aeson (defaultOptions, Options(..))
 import Data.Aeson.TH (deriveJSON)
 import Control.Applicative ((<|>))
 import Data.YAML
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Definition (Meta, pattern Meta, MetaValue(..), pattern MetaMap, pattern MetaString)
+--
 
 -- | The type of line-endings to be used when writing plain-text.
 data LineEnding = LF | CRLF | Native deriving (Show, Generic)

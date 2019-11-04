@@ -22,7 +22,7 @@ import Data.List (groupBy)
 import qualified Data.Set as Set
 import Data.Text (Text, unpack)
 import Text.Pandoc.Class (PandocMonad)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (uniqueIdent, taskListItemFromAscii)

@@ -23,7 +23,7 @@ import Control.Monad (guard)
 import Data.Char (isAlphaNum, isAscii, isLetter, isLower, isUpper, toLower,
                   toUpper)
 import Data.List (intercalate)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Options
 import Text.DocTemplates (FromContext(..))
 import qualified Data.Text as T

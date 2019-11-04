@@ -18,9 +18,13 @@ import Data.Text (Text, unpack)
 import qualified Data.Text as T
 import Test.Tasty
 import Tests.Helpers
-import Text.Pandoc
+-- import Text.Pandoc -- TODO text: restore
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder
+import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
+
+-- TODO text: remove
+import Text.Pandoc hiding (Citation(..), Str, nullAttr, Attr)
+--
 
 markdown :: Text -> Pandoc
 markdown = purely $ readMarkdown def { readerExtensions =

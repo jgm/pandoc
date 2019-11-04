@@ -31,13 +31,14 @@ import qualified Data.ByteString.Lazy as B
 import Data.Foldable (fold)
 import Data.List (find, intercalate, stripPrefix)
 import qualified Data.Map as M
+import qualified Data.Text as T
 import Data.Maybe
 import Data.Semigroup (First(..), Option(..))
 
-import Text.TeXMath (readMathML, writeTeX)
+-- import Text.TeXMath (readMathML, writeTeX) TODO text: restore
 import qualified Text.XML.Light as XML
 
-import Text.Pandoc.Builder
+import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Shared
 import Text.Pandoc.Extensions (extensionsFromList, Extension(..))
@@ -54,6 +55,17 @@ import Text.Pandoc.Readers.Odt.Generic.Utils
 import Text.Pandoc.Readers.Odt.Generic.XMLConverter
 
 import qualified Data.Set as Set
+
+-- TODO text: remove
+import qualified Text.TeXMath as TM (readMathML, writeTeX)
+import qualified Text.TeXMath.Types as TM
+
+readMathML :: String -> Either T.Text [TM.Exp]
+readMathML = TM.readMathML . T.pack
+
+writeTeX :: [TM.Exp] -> String
+writeTeX = T.unpack . TM.writeTeX
+--
 
 --------------------------------------------------------------------------------
 -- State

@@ -41,7 +41,7 @@ import Text.Pandoc.Class (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class as P
 import Data.Time
 import Text.Pandoc.UTF8 (fromStringLazy)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Generic
 import Text.Pandoc.Highlighting (highlight)
 import Text.Pandoc.Error

@@ -25,7 +25,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Network.HTTP (urlEncode)
 import Text.Pandoc.Class (PandocMonad)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (capitalize, isHeaderBlock, isTightList,
     linesToPara, onlySimpleTableCells, substitute, taskListItemToAscii)

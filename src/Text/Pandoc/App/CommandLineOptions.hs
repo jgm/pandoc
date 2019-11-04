@@ -2,6 +2,7 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE PatternSynonyms #-} -- TODO text: remove
 {- |
    Module      : Text.Pandoc.App.CommandLineOptions
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -40,8 +41,8 @@ import System.Environment (getArgs, getProgName)
 import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
-import Text.Pandoc
-import Text.Pandoc.Builder (setMeta)
+-- import Text.Pandoc TODO text: restore
+import Text.Pandoc.Legacy.Builder (setMeta) -- TODO text: remove Legacy
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..))
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
@@ -64,6 +65,11 @@ import Data.Text (Text)
 import Text.DocTemplates (ToContext(toVal), Context(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.YAML as Y
+
+-- TODO text: remove
+import Text.Pandoc hiding (MetaValue(..), lookupMeta)
+import Text.Pandoc.Legacy.Builder (lookupMeta, MetaValue(..), pattern MetaString)
+--
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do

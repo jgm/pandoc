@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-} -- TODO text: possibly remove
 {- |
    Module      : Text.Pandoc.Writers.RTF
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -24,7 +25,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
-import Text.Pandoc.Definition
+-- import Text.Pandoc.Definition -- TODO text: restore
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
@@ -36,6 +37,11 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Definition hiding (Meta)
+import Text.Pandoc.Definition (Meta(..))
+--
 
 -- | Convert Image inlines into a raw RTF embedded image, read from a file,
 -- or a MediaBag, or the internet.

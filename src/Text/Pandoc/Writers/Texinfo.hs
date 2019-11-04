@@ -25,7 +25,7 @@ import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import System.FilePath
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging

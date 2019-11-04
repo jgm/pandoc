@@ -23,7 +23,7 @@ import Data.Text (Text, unpack)
 import Documentation.Haddock.Parser
 import Documentation.Haddock.Types as H
 import Text.Pandoc.Builder (Blocks, Inlines)
-import qualified Text.Pandoc.Builder as B
+import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error

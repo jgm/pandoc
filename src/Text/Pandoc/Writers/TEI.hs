@@ -18,7 +18,7 @@ import Data.Char (toLower)
 import Data.List (isPrefixOf, stripPrefix)
 import Data.Text (Text)
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Highlighting (languages, languagesByExtension)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging

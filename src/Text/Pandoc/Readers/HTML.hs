@@ -46,11 +46,11 @@ import qualified Data.Text as T
 import Network.URI (URI, nonStrictRelativeTo, parseURIReference)
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match
-import Text.Pandoc.Builder (Blocks, HasMeta (..), Inlines, trimInlines)
-import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Legacy.Builder (Blocks, HasMeta (..), Inlines, trimInlines) -- TODO text: remove Legacy
+import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Readers.LaTeX (rawLaTeXInline)
 import Text.Pandoc.Readers.LaTeX.Types (Macro)
 import Text.Pandoc.Error
@@ -66,7 +66,17 @@ import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
                            onlySimpleTableCells, safeRead, underlineSpan)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
-import Text.TeXMath (readMathML, writeTeX)
+-- import Text.TeXMath (readMathML, writeTeX) TODO text: restore
+
+-- TODO text: remove
+import qualified Text.TeXMath as TM
+
+readMathML :: String -> Either String [TM.Exp]
+readMathML = either (Left . T.unpack) Right . TM.readMathML . T.pack
+
+writeTeX :: [TM.Exp] -> String
+writeTeX = T.unpack . TM.writeTeX
+-- 
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: PandocMonad m

@@ -40,7 +40,7 @@ import qualified Data.Text as T
 import Safe (minimumDef)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.BCP47 (Lang (..), renderLang)
-import Text.Pandoc.Builder
+import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad, PandocPure, getResourcePath, lookupEnv,
                           readFileFromDirs, report, setResourcePath,
                           setTranslations, translateTerm, trace, fileExists)
@@ -59,7 +59,7 @@ import Text.Pandoc.Readers.LaTeX.Lang (polyglossiaLangToBCP47,
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.Translations as Translations
 import Text.Pandoc.Walk
-import qualified Text.Pandoc.Builder as B
+import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import qualified Data.Text.Normalize as Normalize
 
 -- for debugging:

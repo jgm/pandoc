@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE PatternSynonyms #-} -- TODO text: remove
 {- |
    Module      : Text.Pandoc.App
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -44,14 +45,14 @@ import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
-import Text.Pandoc
+-- import Text.Pandoc -- TODO text: restore
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
                             IpynbOutput (..) )
 import Text.Pandoc.App.CommandLineOptions (parseOptions, options)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
-import Text.Pandoc.Builder (setMeta)
+import Text.Pandoc.Legacy.Builder (setMeta) -- TODO text: remove Legacy
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), applyFilters)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
@@ -66,6 +67,10 @@ import System.Posix.IO (stdOutput)
 import System.Posix.Terminal (queryTerminal)
 #endif
 
+-- TODO text: remove
+import Text.Pandoc hiding (MetaValue(..), lookupMeta, Format(..))
+import Text.Pandoc.Legacy.Builder (lookupMeta, MetaValue(..), pattern MetaString, Format, pattern Format)
+--
 
 convertWithOpts :: Opt -> IO ()
 convertWithOpts opts = do

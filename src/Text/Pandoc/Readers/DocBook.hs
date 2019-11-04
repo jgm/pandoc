@@ -23,13 +23,23 @@ import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup.Entity (lookupEntity)
-import Text.Pandoc.Builder
+import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Shared (crFilter, safeRead)
-import Text.TeXMath (readMathML, writeTeX)
+-- import Text.TeXMath (readMathML, writeTeX) -- TODO text: restore
 import Text.XML.Light
+
+-- TODO text: remove
+import qualified Text.TeXMath as TM
+
+writeTeX :: [TM.Exp] -> String
+writeTeX = T.unpack . TM.writeTeX
+
+readMathML :: String -> Either String [TM.Exp]
+readMathML = either (Left . T.unpack) Right . TM.readMathML . T.pack
+--
 
 {-
 

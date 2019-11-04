@@ -68,11 +68,12 @@ import Data.Default (Default)
 import Data.List (delete, intersect)
 import Data.Char (isSpace)
 import qualified Data.Map as M
+import qualified Data.Text as T
 import Data.Maybe (isJust, fromMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
-import Text.Pandoc.Builder
+import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 -- import Text.Pandoc.Definition
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Options
@@ -81,12 +82,19 @@ import Text.Pandoc.Readers.Docx.Lists
 import Text.Pandoc.Readers.Docx.Parse
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
-import Text.TeXMath (writeTeX)
+-- import Text.TeXMath (writeTeX) -- TODO text: restore
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
+
+-- TODO text: remove
+import qualified Text.TeXMath as TM
+
+writeTeX :: [TM.Exp] -> String
+writeTeX = T.unpack . TM.writeTeX
+--
 
 readDocx :: PandocMonad m
          => ReaderOptions

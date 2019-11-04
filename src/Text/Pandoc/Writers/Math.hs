@@ -8,11 +8,20 @@ module Text.Pandoc.Writers.Math
 where
 
 import Prelude
+import qualified Data.Text as T
 import Text.Pandoc.Class
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Logging
-import Text.TeXMath (DisplayType (..), Exp, readTeX, writePandoc)
+-- import Text.TeXMath (DisplayType (..), Exp, readTeX, writePandoc) TODO text: restore
 import Text.Pandoc.Options (defaultMathJaxURL, defaultKaTeXURL)
+
+-- TODO text: remove
+import qualified Text.TeXMath as TM
+import Text.TeXMath (Exp, DisplayType(..), writePandoc)
+
+readTeX :: String -> Either String [Exp]
+readTeX = either (Left . T.unpack) Right . TM.readTeX . T.pack
+--
 
 -- | Converts a raw TeX math formula to a list of 'Pandoc' inlines.
 -- Defaults to raw formula between @$@ or @$$@ characters if entire formula

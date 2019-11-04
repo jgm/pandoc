@@ -31,9 +31,9 @@ import qualified Data.Set as Set
 import Data.Maybe (fromMaybe, isNothing, maybeToList)
 import Data.Text (Text, unpack)
 import Text.Pandoc.Builder (Blocks, Inlines)
-import qualified Text.Pandoc.Builder as B
+import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad (..))
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options

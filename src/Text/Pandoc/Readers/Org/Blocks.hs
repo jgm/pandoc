@@ -28,7 +28,7 @@ import Text.Pandoc.Readers.Org.Shared (cleanLinkString, isImageFilename,
 
 import Text.Pandoc.Builder (Blocks, Inlines)
 import Text.Pandoc.Class (PandocMonad)
-import Text.Pandoc.Definition
+import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (compactify, compactifyDL, safeRead)
 
@@ -38,7 +38,7 @@ import Data.Default (Default)
 import Data.List (foldl', isPrefixOf)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 
-import qualified Text.Pandoc.Builder as B
+import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import qualified Text.Pandoc.Walk as Walk
 
 --
