@@ -652,7 +652,7 @@ inline = choice
            , pLink
            , pImage
            , pCode
-           , pCodeWithClass [(T.pack "samp","sample"),(T.pack "var","variable")]
+           , pCodeWithClass [("samp","sample"),("var","variable")]
            , pSpan
            , pMath False
            , pScriptMath
