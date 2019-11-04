@@ -12,6 +12,7 @@
 - Alexander Sulfrian
 - Alexander V Vershilov
 - Alfred Wechselberger
+- Amogh Rathore
 - Anders Waldenborg
 - Andreas Lööw
 - Andrew Dunning
@@ -55,6 +56,7 @@
 - David Röthlisberger
 - Denis Laxalde
 - Derek Chen-Becker
+- Dmitry Pogodin
 - Douglas Calvert
 - Eigil Rischel
 - Emanuel Evans
@@ -64,7 +66,10 @@
 - Eric Schrijver
 - Étienne Bersac
 - Felix Yan
+- Félix Baylac-Jacqué
+- Florian B
 - Florian Eitel
+- Florian Klink
 - Francesco Occhipinti
 - François Gannaz
 - Freiric Barral
@@ -162,6 +167,7 @@
 - Nikolay Yakimov
 - Nils Carlson
 - Nokome Bentley
+- Ole Martin Ruud
 - Oliver Matthews
 - Ophir Lifshitz
 - Or Neeman
@@ -217,6 +223,7 @@
 - Vincent
 - Václav Haisman
 - Václav Zeman
+- Vanessa McHale
 - Vasily Alferov
 - Wandmalfarbe
 - Waldir Pimenta
@@ -242,6 +249,7 @@
 - nkalvi
 - niszet
 - oltolm
+- oquechy
 - quasicomputational
 - qerub
 - robabla
@@ -252,4 +260,5 @@
 - takahashim
 - tgkokk
 - thsutton
+- vijayphoenix
 - wiefling
