@@ -3,7 +3,7 @@
 module Tests.Writers.ConTeXt (tests) where
 
 import Prelude
-import Data.Text (unpack)
+import Data.Text (unpack, pack)
 import Test.Tasty
 import Test.Tasty.QuickCheck
 import Tests.Helpers
@@ -46,9 +46,9 @@ tests = [ testGroup "inline code"
           , "without '}'" =: code "]" =?> "\\type{]}"
           , testProperty "code property" $ \s -> null s || '\n' `elem` s ||
                 if '{' `elem` s || '}' `elem` s
-                   then context' (code s) == "\\mono{" ++
-                             context' (str s) ++ "}"
-                   else context' (code s) == "\\type{" ++ s ++ "}"
+                   then context' (code $ pack s) == "\\mono{" ++
+                             context' (str $ pack s) ++ "}"
+                   else context' (code $ pack s) == "\\type{" ++ s ++ "}"
           ]
         , testGroup "headers"
           [ "level 1" =:

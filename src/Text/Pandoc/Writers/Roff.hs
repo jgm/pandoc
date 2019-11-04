@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.Roff
    Copyright   : Copyright (C) 2007-2019 John MacFarlane
@@ -24,6 +25,8 @@ import Prelude
 import Data.Char (ord, isAscii)
 import Control.Monad.State.Strict
 import qualified Data.Map as Map
+import Data.Text (Text)
+import qualified Data.Text as Text
 import Data.String
 import Data.Maybe (fromMaybe, isJust, catMaybes)
 import Text.Pandoc.Class (PandocMonad)
@@ -66,36 +69,38 @@ data EscapeMode = AllowUTF8        -- ^ use preferred man escapes
                 | AsciiOnly        -- ^ escape everything
                 deriving Show
 
-combiningAccentsMap :: Map.Map Char String
+combiningAccentsMap :: Map.Map Char Text
 combiningAccentsMap = Map.fromList combiningAccents
 
-essentialEscapes :: Map.Map Char String
+essentialEscapes :: Map.Map Char Text
 essentialEscapes = Map.fromList standardEscapes
 
 -- | Escape special characters for roff.
-escapeString :: EscapeMode -> String -> String
-escapeString _ [] = []
-escapeString escapeMode ('\n':'.':xs) =
-  '\n':'\\':'&':'.':escapeString escapeMode xs
-escapeString escapeMode (x:xs) =
-  case Map.lookup x essentialEscapes of
-    Just s  -> s ++ escapeString escapeMode xs
-    Nothing
-     | isAscii x -> x : escapeString escapeMode xs
-     | otherwise ->
-        case escapeMode of
-          AllowUTF8 -> x : escapeString escapeMode xs
-          AsciiOnly ->
-            let accents = catMaybes $ takeWhile isJust
-                  (map (\c -> Map.lookup c combiningAccentsMap) xs)
-                rest = drop (length accents) xs
-                s = case Map.lookup x characterCodeMap of
-                      Just t  -> "\\[" <> unwords (t:accents) <> "]"
-                      Nothing -> "\\[" <> unwords
-                       (printf "u%04X" (ord x) : accents) <> "]"
-            in  s ++ escapeString escapeMode rest
+escapeString :: EscapeMode -> Text -> Text
+escapeString e = Text.concat . escapeString' e . Text.unpack
+  where
+    escapeString' _ [] = []
+    escapeString' escapeMode ('\n':'.':xs) =
+      "\n\\&." : escapeString' escapeMode xs
+    escapeString' escapeMode (x:xs) =
+      case Map.lookup x essentialEscapes of
+        Just s  -> s : escapeString' escapeMode xs
+        Nothing
+          | isAscii x -> Text.singleton x : escapeString' escapeMode xs
+          | otherwise ->
+              case escapeMode of
+                AllowUTF8 -> Text.singleton x : escapeString' escapeMode xs
+                AsciiOnly ->
+                  let accents = catMaybes $ takeWhile isJust
+                        (map (\c -> Map.lookup c combiningAccentsMap) xs)
+                      rest = drop (length accents) xs
+                      s = case Map.lookup x characterCodeMap of
+                            Just t  -> "\\[" <> Text.unwords (t:accents) <> "]"
+                            Nothing -> "\\[" <> Text.unwords
+                              (Text.pack (printf "u%04X" (ord x)) : accents) <> "]"
+                  in  s : escapeString' escapeMode rest
 
-characterCodeMap :: Map.Map Char String
+characterCodeMap :: Map.Map Char Text
 characterCodeMap = Map.fromList characterCodes
 
 fontChange :: (HasChars a, IsString a, PandocMonad m) => MS m (Doc a)

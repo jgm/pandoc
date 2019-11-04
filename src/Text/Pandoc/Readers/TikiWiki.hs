@@ -43,19 +43,19 @@ readTikiWiki :: PandocMonad m
           -> m Pandoc
 readTikiWiki opts s = do
   res <- readWithM parseTikiWiki def{ stateOptions = opts }
-             (T.unpack (crFilter s) ++ "\n\n")
+             (crFilter s <> "\n\n")
   case res of
        Left e  -> throwError e
        Right d -> return d
 
-type TikiWikiParser = ParserT [Char] ParserState
+type TikiWikiParser = ParserT Text ParserState
 
 --
 -- utility functions
 --
 
-tryMsg :: String -> TikiWikiParser m a -> TikiWikiParser m a
-tryMsg msg p = try p <?> msg
+tryMsg :: Text -> TikiWikiParser m a -> TikiWikiParser m a
+tryMsg msg p = try p <?> (T.unpack msg)
 
 skip :: TikiWikiParser m a -> TikiWikiParser m ()
 skip parser = Control.Monad.void parser
@@ -89,7 +89,7 @@ block = do
          <|> para
   skipMany blankline
   when (verbosity >= INFO) $
-    trace (printf "line %d: %s" (sourceLine pos) (take 60 $ show $ B.toList res))
+    trace (T.pack $ printf "line %d: %s" (sourceLine pos) (take 60 $ show $ B.toList res))
   return res
 
 blockElements :: PandocMonad m => TikiWikiParser m B.Blocks
@@ -133,7 +133,7 @@ tableRow :: PandocMonad m => TikiWikiParser m [B.Blocks]
 tableRow = try $ do
 --  row <- sepBy1 (many1Till inline $ oneOf "\n|") (try $ string "|" <* notFollowedBy (oneOf "|\n"))
 --  return $ map (B.plain . mconcat) row
-  row <- sepBy1 (many1 (noneOf "\n|") >>= parseColumn) (try $ string "|" <* notFollowedBy (oneOf "|\n"))
+  row <- sepBy1 (many1 (noneOf "\n|") >>= parseColumn . T.pack) (try $ string "|" <* notFollowedBy (oneOf "|\n"))
   return $ map B.plain row
   where
     parseColumn x = do
@@ -342,15 +342,15 @@ listItemLine nest = lineContent >>= parseContent
     lineContent = do
       content <- anyLine
       continuation <- optionMaybe listContinuation
-      return $ filterSpaces content ++ "\n" ++ Data.Maybe.fromMaybe "" continuation
-    filterSpaces = reverse . dropWhile (== ' ') . reverse
+      return $ filterSpaces content <> "\n" <> Data.Maybe.fromMaybe "" continuation
+    filterSpaces = T.dropWhileEnd (== ' ')
     listContinuation = string (replicate nest '+') >> lineContent
     parseContent x = do
       parsed <- parseFromString (many1 inline) x
       return $ mconcat $ dropWhileEnd (== B.space) parsed
 
 -- Turn the CODE macro attributes into Pandoc code block attributes.
-mungeAttrs :: [(String, String)] -> (String, [String], [(String, String)])
+mungeAttrs :: [(Text, Text)] -> (Text, [Text], [(Text, Text)])
 mungeAttrs rawAttrs = ("", classes, rawAttrs)
   where
     -- "colors" is TikiWiki CODE macro for "name of language to do
@@ -370,7 +370,7 @@ codeMacro = try $ do
   string "{CODE("
   rawAttrs <- macroAttrs
   string ")}"
-  body <- manyTill anyChar (try (string "{CODE}"))
+  body <- T.pack <$> manyTill anyChar (try (string "{CODE}"))
   newline
   if not (null rawAttrs)
     then
@@ -428,9 +428,9 @@ nbsp = try $ do
 htmlComment :: PandocMonad m => TikiWikiParser m B.Inlines
 htmlComment = try $ do
   string "~hc~"
-  inner <- many1 $ noneOf "~"
+  inner <- fmap T.pack $ many1 $ noneOf "~"
   string "~/hc~"
-  return $ B.str $ " NOT SUPPORTED: ~hc~ (html comment opener) BEGIN: " ++ inner ++ " ~/hc~ :END "
+  return $ B.str $ " NOT SUPPORTED: ~hc~ (html comment opener) BEGIN: " <> inner <> " ~/hc~ :END "
 
 linebreak :: PandocMonad m => TikiWikiParser m B.Inlines
 linebreak = newline >> notFollowedBy newline >> (lastNewline <|> innerNewline)
@@ -469,15 +469,15 @@ image = try $ do
   let title = fromMaybe src $ lookup "desc" rawAttrs
   let alt = fromMaybe title $ lookup "alt" rawAttrs
   let classes = map fst $ filter (\(_,b) -> b == "" || b == "y") rawAttrs
-  if not (null src)
+  if not (T.null src)
     then
       return $ B.imageWith ("", classes, rawAttrs) src title (B.str alt)
     else
-      return $ B.str $ " NOT SUPPORTED: image without src attribute BEGIN: {img " ++ printAttrs rawAttrs ++ "} :END "
+      return $ B.str $ " NOT SUPPORTED: image without src attribute BEGIN: {img " <> printAttrs rawAttrs <> "} :END "
   where
-    printAttrs attrs = unwords $ map (\(a, b) -> a ++ "=\"" ++ b ++ "\"") attrs
+    printAttrs attrs = T.unwords $ map (\(a, b) -> a <> "=\"" <> b <> "\"") attrs
 
-imageAttr :: PandocMonad m => TikiWikiParser m (String, String)
+imageAttr :: PandocMonad m => TikiWikiParser m (Text, Text)
 imageAttr = try $ do
   key <- many1 (noneOf "=} \t\n")
   char '='
@@ -485,7 +485,7 @@ imageAttr = try $ do
   value <- many1 (noneOf "}\"\n")
   optional $ char '"'
   optional $ char ','
-  return (key, value)
+  return (T.pack key, T.pack value)
 
 
 -- __strong__
@@ -500,57 +500,57 @@ emph = try $ fmap B.emph (enclosed (string "''") nestedInlines)
 escapedChar :: PandocMonad m => TikiWikiParser m B.Inlines
 escapedChar = try $ do
   string "~"
-  mNumber <- safeRead <$> many1 digit
+  mNumber <- safeRead . T.pack <$> many1 digit
   string "~"
   return $ B.str $
     case mNumber of
-      Just number -> [toEnum (number :: Int) :: Char]
-      Nothing     -> []
+      Just number -> T.singleton $ toEnum (number :: Int)
+      Nothing     -> ""
 
 -- UNSUPPORTED, as there doesn't seem to be any facility in calibre
 -- for this
 centered :: PandocMonad m => TikiWikiParser m B.Inlines
 centered = try $ do
   string "::"
-  inner <- many1 $ noneOf ":\n"
+  inner <- fmap T.pack $ many1 $ noneOf ":\n"
   string "::"
-  return $ B.str $ " NOT SUPPORTED: :: (centered) BEGIN: ::" ++ inner ++ ":: :END "
+  return $ B.str $ " NOT SUPPORTED: :: (centered) BEGIN: ::" <> inner <> ":: :END "
 
 -- UNSUPPORTED, as there doesn't seem to be any facility in calibre
 -- for this
 colored :: PandocMonad m => TikiWikiParser m B.Inlines
 colored = try $ do
   string "~~"
-  inner <- many1 $ noneOf "~\n"
+  inner <- fmap T.pack $ many1 $ noneOf "~\n"
   string "~~"
-  return $ B.str $ " NOT SUPPORTED: ~~ (colored) BEGIN: ~~" ++ inner ++ "~~ :END "
+  return $ B.str $ " NOT SUPPORTED: ~~ (colored) BEGIN: ~~" <> inner <> "~~ :END "
 
 -- UNSUPPORTED, as there doesn't seem to be any facility in calibre
 -- for this
 underlined :: PandocMonad m => TikiWikiParser m B.Inlines
 underlined = try $ do
   string "==="
-  inner <- many1 $ noneOf "=\n"
+  inner <- fmap T.pack $ many1 $ noneOf "=\n"
   string "==="
-  return $ B.str $ " NOT SUPPORTED: ==== (underlined) BEGIN: ===" ++ inner ++ "=== :END "
+  return $ B.str $ " NOT SUPPORTED: ==== (underlined) BEGIN: ===" <> inner <> "=== :END "
 
 -- UNSUPPORTED, as there doesn't seem to be any facility in calibre
 -- for this
 boxed :: PandocMonad m => TikiWikiParser m B.Inlines
 boxed = try $ do
   string "^"
-  inner <- many1 $ noneOf "^\n"
+  inner <- fmap T.pack $ many1 $ noneOf "^\n"
   string "^"
-  return $ B.str $ " NOT SUPPORTED: ^ (boxed) BEGIN: ^" ++ inner ++ "^ :END "
+  return $ B.str $ " NOT SUPPORTED: ^ (boxed) BEGIN: ^" <> inner <> "^ :END "
 
 -- --text--
 strikeout :: PandocMonad m => TikiWikiParser m B.Inlines
 strikeout = try $ fmap B.strikeout (enclosed (string "--") nestedInlines)
 
-nestedString :: (Show a, PandocMonad m) => TikiWikiParser m a -> TikiWikiParser m String
-nestedString end = innerSpace <|> count 1 nonspaceChar
+nestedString :: (Show a, PandocMonad m) => TikiWikiParser m a -> TikiWikiParser m Text
+nestedString end = innerSpace <|> countChar 1 nonspaceChar
   where
-    innerSpace = try $ many1 spaceChar <* notFollowedBy end
+    innerSpace = try $ T.pack <$> many1 spaceChar <* notFollowedBy end
 
 breakChars :: PandocMonad m => TikiWikiParser m B.Inlines
 breakChars = try $ string "%%%" >> return B.linebreak
@@ -564,7 +564,7 @@ superMacro = try $ do
   string "{SUP("
   manyTill anyChar (string ")}")
   body <- manyTill anyChar (string "{SUP}")
-  return $ B.superscript $ B.text body
+  return $ B.superscript $ B.text $ T.pack body
 
 -- subscript: baz{TAG(tag=>sub)}sub{TAG}qux / qux{SUB()}sub2{SUB}qux
 subTag :: PandocMonad m => TikiWikiParser m B.Inlines
@@ -575,22 +575,22 @@ subMacro = try $ do
   string "{SUB("
   manyTill anyChar (string ")}")
   body <- manyTill anyChar (string "{SUB}")
-  return $ B.subscript $ B.text body
+  return $ B.subscript $ B.text $ T.pack body
 
 -- -+text+-
 code :: PandocMonad m => TikiWikiParser m B.Inlines
 code = try $  fmap (B.code . fromEntities) ( between (string "-+") (string "+-") nestedString)
 
-macroAttr :: PandocMonad m => TikiWikiParser m (String, String)
+macroAttr :: PandocMonad m => TikiWikiParser m (Text, Text)
 macroAttr = try $ do
   key <- many1 (noneOf "=)")
   char '='
   optional $ char '"'
   value <- many1 (noneOf " )\"")
   optional $ char '"'
-  return (key, value)
+  return (T.pack key, T.pack value)
 
-macroAttrs :: PandocMonad m => TikiWikiParser m [(String, String)]
+macroAttrs :: PandocMonad m => TikiWikiParser m [(Text, Text)]
 macroAttrs = try $ sepEndBy macroAttr spaces
 
 -- ~np~ __not bold__ ~/np~
@@ -598,13 +598,13 @@ noparse :: PandocMonad m => TikiWikiParser m B.Inlines
 noparse = try $ do
   string "~np~"
   body <- manyTill anyChar (string "~/np~")
-  return $ B.str body
+  return $ B.str $ T.pack body
 
 str :: PandocMonad m => TikiWikiParser m B.Inlines
-str = fmap B.str (many1 alphaNum <|> count 1 characterReference)
+str = fmap B.str (T.pack <$> many1 alphaNum <|> countChar 1 characterReference)
 
 symbol :: PandocMonad m => TikiWikiParser m B.Inlines
-symbol = fmap B.str (count 1 nonspaceChar)
+symbol = fmap B.str (countChar 1 nonspaceChar)
 
 -- [[not a link]
 notExternalLink :: PandocMonad m => TikiWikiParser m B.Inlines
@@ -612,14 +612,14 @@ notExternalLink = try $ do
   start <- string "[["
   body <- many (noneOf "\n[]")
   end <- string "]"
-  return $ B.text (start ++ body ++ end)
+  return $ B.text $ T.pack $ start ++ body ++ end
 
 -- [http://www.somesite.org url|Some Site title]
 -- ((internal link))
 --
 -- The ((...)) wiki links and [...] external links are handled
 -- exactly the same; this abstracts that out
-makeLink :: PandocMonad m => String -> String -> String -> TikiWikiParser m B.Inlines
+makeLink :: PandocMonad m => Text -> Text -> Text -> TikiWikiParser m B.Inlines
 makeLink start middle end = try $ do
   st <- getState
   guard $ stateAllowLinks st
@@ -627,15 +627,15 @@ makeLink start middle end = try $ do
   (url, title, anchor) <- wikiLinkText start middle end
   parsedTitle <- parseFromString (many1 inline) title
   setState $ st{ stateAllowLinks = True }
-  return $ B.link (url++anchor) "" $mconcat parsedTitle
+  return $ B.link (url <> anchor) "" $ mconcat parsedTitle
 
-wikiLinkText :: PandocMonad m => String -> String -> String -> TikiWikiParser m (String, String, String)
+wikiLinkText :: PandocMonad m => Text -> Text -> Text -> TikiWikiParser m (Text, Text, Text)
 wikiLinkText start middle end = do
-  string start
-  url <- many1 (noneOf $ middle ++ "\n")
+  string (T.unpack start)
+  url <- T.pack <$> many1 (noneOf $ T.unpack middle ++ "\n")
   seg1 <- option url linkContent
   seg2 <- option "" linkContent
-  string end
+  string (T.unpack end)
   if seg2 /= ""
     then
       return (url, seg2, seg1)
@@ -644,7 +644,7 @@ wikiLinkText start middle end = do
   where
     linkContent      = do
       char '|'
-      many (noneOf middle)
+      T.pack <$> many (noneOf $ T.unpack middle)
 
 externalLink :: PandocMonad m => TikiWikiParser m B.Inlines
 externalLink = makeLink "[" "]|" "]"

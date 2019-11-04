@@ -16,6 +16,7 @@ where
 import Prelude
 import Data.Algorithm.Diff
 import qualified Data.ByteString as BS
+import qualified Data.Text as T
 import Data.List (isSuffixOf)
 import Prelude hiding (readFile)
 import System.Directory
@@ -77,7 +78,7 @@ isCodeBlock (CodeBlock _ _) = True
 isCodeBlock _               = False
 
 extractCode :: Block -> String
-extractCode (CodeBlock _ code) = code
+extractCode (CodeBlock _ code) = T.unpack code
 extractCode _                  = ""
 
 dropPercent :: String -> String

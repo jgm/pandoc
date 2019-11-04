@@ -83,11 +83,8 @@ metaToContext' :: (Monad m, TemplateTarget a)
            -> ([Inline] -> m (Doc a))
            -> Meta
            -> m (Context a)
-metaToContext' blockWriter inlineWriter (Meta metamap) = do
-  renderedMap <- mapM (metaValueToVal blockWriter inlineWriter) metamap
-  return $ Context
-         $ M.foldrWithKey (\k v x -> M.insert (T.pack k) v x) mempty
-         $ renderedMap
+metaToContext' blockWriter inlineWriter (Meta metamap) =
+  Context <$> mapM (metaValueToVal blockWriter inlineWriter) metamap
 
 -- | Add variables to a template Context, replacing any existing values.
 addVariablesToContext :: TemplateTarget a
@@ -109,8 +106,7 @@ metaValueToVal :: (Monad m, TemplateTarget a)
                -> MetaValue
                -> m (Val a)
 metaValueToVal blockWriter inlineWriter (MetaMap metamap) =
-  MapVal . Context . M.mapKeys T.pack  <$>
-    mapM (metaValueToVal blockWriter inlineWriter) metamap
+  MapVal . Context <$> mapM (metaValueToVal blockWriter inlineWriter) metamap
 metaValueToVal blockWriter inlineWriter (MetaList xs) = ListVal <$>
   mapM (metaValueToVal blockWriter inlineWriter) xs
 metaValueToVal _ _ (MetaBool True) = return $ SimpleVal "true"
@@ -122,15 +118,15 @@ metaValueToVal _ inlineWriter (MetaInlines is) = SimpleVal <$> inlineWriter is
 
 
 -- | Retrieve a field value from a template context.
-getField   :: FromContext a b => String -> Context a -> Maybe b
-getField field (Context m) = M.lookup (T.pack field) m >>= fromVal
+getField   :: FromContext a b => T.Text -> Context a -> Maybe b
+getField field (Context m) = M.lookup field m >>= fromVal
 
 -- | Set a field of a template context.  If the field already has a value,
 -- convert it into a list with the new value appended to the old value(s).
 -- This is a utility function to be used in preparing template contexts.
-setField   :: ToContext a b => String -> b -> Context a -> Context a
+setField   :: ToContext a b => T.Text -> b -> Context a -> Context a
 setField field val (Context m) =
-  Context $ M.insertWith combine (T.pack field) (toVal val) m
+  Context $ M.insertWith combine field (toVal val) m
  where
   combine newval (ListVal xs)   = ListVal (xs ++ [newval])
   combine newval x              = ListVal [x, newval]
@@ -138,31 +134,31 @@ setField field val (Context m) =
 -- | Reset a field of a template context.  If the field already has a
 -- value, the new value replaces it.
 -- This is a utility function to be used in preparing template contexts.
-resetField :: ToContext a b => String -> b -> Context a -> Context a
+resetField :: ToContext a b => T.Text -> b -> Context a -> Context a
 resetField field val (Context m) =
-  Context (M.insert (T.pack field) (toVal val) m)
+  Context (M.insert field (toVal val) m)
 
 -- | Set a field of a template context if it currently has no value.
 -- If it has a value, do nothing.
 -- This is a utility function to be used in preparing template contexts.
-defField   :: ToContext a b => String -> b -> Context a -> Context a
+defField   :: ToContext a b => T.Text -> b -> Context a -> Context a
 defField field val (Context m) =
-  Context (M.insertWith f (T.pack field) (toVal val) m)
+  Context (M.insertWith f field (toVal val) m)
   where
     f _newval oldval = oldval
 
 -- Produce an HTML tag with the given pandoc attributes.
-tagWithAttrs :: HasChars a => String -> Attr -> Doc a
+tagWithAttrs :: HasChars a => T.Text -> Attr -> Doc a
 tagWithAttrs tag (ident,classes,kvs) = hsep
-  ["<" <> text tag
-  ,if null ident
+  ["<" <> text (T.unpack tag)
+  ,if T.null ident
       then empty
-      else "id=" <> doubleQuotes (text ident)
+      else "id=" <> doubleQuotes (text $ T.unpack ident)
   ,if null classes
       then empty
-      else "class=" <> doubleQuotes (text (unwords classes))
-  ,hsep (map (\(k,v) -> text k <> "=" <>
-                doubleQuotes (text (escapeStringForXML v))) kvs)
+      else "class=" <> doubleQuotes (text $ T.unpack (T.unwords classes))
+  ,hsep (map (\(k,v) -> text (T.unpack k) <> "=" <>
+                doubleQuotes (text $ T.unpack (escapeStringForXML v))) kvs)
   ] <> ">"
 
 isDisplayMath :: Inline -> Bool
@@ -198,20 +194,20 @@ fixDisplayMath (Para lst)
                          not (isDisplayMath x || isDisplayMath y)) lst
 fixDisplayMath x = x
 
-unsmartify :: WriterOptions -> String -> String
-unsmartify opts ('\8217':xs) = '\'' : unsmartify opts xs
-unsmartify opts ('\8230':xs) = "..." ++ unsmartify opts xs
-unsmartify opts ('\8211':xs)
-  | isEnabled Ext_old_dashes opts = '-' : unsmartify opts xs
-  | otherwise                     = "--" ++ unsmartify opts xs
-unsmartify opts ('\8212':xs)
-  | isEnabled Ext_old_dashes opts = "--" ++ unsmartify opts xs
-  | otherwise                     = "---" ++ unsmartify opts xs
-unsmartify opts ('\8220':xs) = '"' : unsmartify opts xs
-unsmartify opts ('\8221':xs) = '"' : unsmartify opts xs
-unsmartify opts ('\8216':xs) = '\'' : unsmartify opts xs
-unsmartify opts (x:xs) = x : unsmartify opts xs
-unsmartify _ [] = []
+unsmartify :: WriterOptions -> T.Text -> T.Text
+unsmartify opts = T.concatMap $ \c -> case c of
+  '\8217' -> "'"
+  '\8230' -> "..."
+  '\8211'
+    | isEnabled Ext_old_dashes opts -> "-"
+    | otherwise                     -> "--"
+  '\8212'
+    | isEnabled Ext_old_dashes opts -> "--"
+    | otherwise                     -> "---"
+  '\8220' -> "\""
+  '\8221' -> "\""
+  '\8216' -> "'"
+  _       -> T.singleton c
 
 gridTable :: (Monad m, HasChars a)
           => WriterOptions
@@ -315,22 +311,20 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
            body $$
            border '-' (repeat AlignDefault) widthsInChars
 
-
-
 -- | Retrieve the metadata value for a given @key@
 -- and convert to Bool.
-lookupMetaBool :: String -> Meta -> Bool
+lookupMetaBool :: T.Text -> Meta -> Bool
 lookupMetaBool key meta =
   case lookupMeta key meta of
-      Just (MetaBlocks _)     -> True
-      Just (MetaInlines _)    -> True
-      Just (MetaString (_:_)) -> True
-      Just (MetaBool True)    -> True
-      _                       -> False
+      Just (MetaBlocks _)  -> True
+      Just (MetaInlines _) -> True
+      Just (MetaString x)  -> not (T.null x)
+      Just (MetaBool True) -> True
+      _                    -> False
 
 -- | Retrieve the metadata value for a given @key@
 -- and extract blocks.
-lookupMetaBlocks :: String -> Meta -> [Block]
+lookupMetaBlocks :: T.Text -> Meta -> [Block]
 lookupMetaBlocks key meta =
   case lookupMeta key meta of
          Just (MetaBlocks bs)   -> bs
@@ -340,7 +334,7 @@ lookupMetaBlocks key meta =
 
 -- | Retrieve the metadata value for a given @key@
 -- and extract inlines.
-lookupMetaInlines :: String -> Meta -> [Inline]
+lookupMetaInlines :: T.Text -> Meta -> [Inline]
 lookupMetaInlines key meta =
   case lookupMeta key meta of
          Just (MetaString s)           -> [Str s]
@@ -351,15 +345,14 @@ lookupMetaInlines key meta =
 
 -- | Retrieve the metadata value for a given @key@
 -- and convert to String.
-lookupMetaString :: String -> Meta -> String
+lookupMetaString :: T.Text -> Meta -> T.Text
 lookupMetaString key meta =
   case lookupMeta key meta of
          Just (MetaString s)    -> s
          Just (MetaInlines ils) -> stringify ils
          Just (MetaBlocks bs)   -> stringify bs
-         Just (MetaBool b)      -> show b
+         Just (MetaBool b)      -> T.pack (show b)
          _                      -> ""
-
 
 toSuperscript :: Char -> Maybe Char
 toSuperscript '1' = Just '\x00B9'
@@ -406,14 +399,14 @@ sectionToListItem opts (Div (ident,_,_)
                                               , lev < writerTOCDepth opts]
  where
    num = fromMaybe "" $ lookup "number" kvs
-   addNumber  = if null num
+   addNumber  = if T.null num
                    then id
                    else (Span ("",["toc-section-number"],[])
                            [Str num] :) . (Space :)
    headerText' = addNumber $ walk (deLink . deNote) ils
-   headerLink = if null ident
+   headerLink = if T.null ident
                    then headerText'
-                   else [Link nullAttr headerText' ('#':ident, "")]
+                   else [Link nullAttr headerText' ("#" <> ident, "")]
    listContents = filter (not . null) $ map (sectionToListItem opts) subsecs
 sectionToListItem _ _ = []
 

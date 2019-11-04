@@ -1,6 +1,7 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.ParserState
    Copyright   : Copyright (C) 2014-2019 Albert Krewinkel
@@ -63,16 +64,16 @@ import Text.Pandoc.Readers.LaTeX.Types (Macro)
 type F = Future OrgParserState
 
 -- | An inline note / footnote containing the note key and its (inline) value.
-type OrgNoteRecord = (String, F Blocks)
+type OrgNoteRecord = (Text, F Blocks)
 -- | Table of footnotes
 type OrgNoteTable = [OrgNoteRecord]
 -- | Map of functions for link transformations.  The map key is refers to the
 -- link-type, the corresponding function transforms the given link string.
-type OrgLinkFormatters = M.Map String (String -> String)
+type OrgLinkFormatters = M.Map Text (Text -> Text)
 -- | Macro expander function
-type MacroExpander = [String] -> String
+type MacroExpander = [Text] -> Text
 -- | Tag
-newtype Tag = Tag { fromTag :: String }
+newtype Tag = Tag { fromTag :: Text }
   deriving (Show, Eq, Ord)
 
 -- | The states in which a todo item can be
@@ -82,7 +83,7 @@ data TodoState = Todo | Done
 -- | A ToDo keyword like @TODO@ or @DONE@.
 data TodoMarker = TodoMarker
   { todoMarkerState :: TodoState
-  , todoMarkerName  :: String
+  , todoMarkerName  :: Text
   }
   deriving (Show, Eq)
 
@@ -91,7 +92,7 @@ type TodoSequence = [TodoMarker]
 
 -- | Org-mode parser state
 data OrgParserState = OrgParserState
-  { orgStateAnchorIds            :: [String]
+  { orgStateAnchorIds            :: [Text]
   , orgStateEmphasisCharStack    :: [Char]
   , orgStateEmphasisPreChars     :: [Char] -- ^ Chars allowed to occur before
                                            -- emphasis; spaces and newlines are
@@ -102,13 +103,13 @@ data OrgParserState = OrgParserState
   , orgStateExcludeTags          :: Set.Set Tag
   , orgStateExcludeTagsChanged   :: Bool
   , orgStateExportSettings       :: ExportSettings
-  , orgStateIdentifiers          :: Set.Set String
-  , orgStateIncludeFiles         :: [String]
+  , orgStateIdentifiers          :: Set.Set Text
+  , orgStateIncludeFiles         :: [Text]
   , orgStateLastForbiddenCharPos :: Maybe SourcePos
   , orgStateLastPreCharPos       :: Maybe SourcePos
   , orgStateLastStrPos           :: Maybe SourcePos
   , orgStateLinkFormatters       :: OrgLinkFormatters
-  , orgStateMacros               :: M.Map String MacroExpander
+  , orgStateMacros               :: M.Map Text MacroExpander
   , orgStateMacroDepth           :: Int
   , orgStateMeta                 :: F Meta
   , orgStateNotes'               :: OrgNoteTable
@@ -212,10 +213,10 @@ activeTodoSequences st =
 activeTodoMarkers :: OrgParserState -> TodoSequence
 activeTodoMarkers = concat . activeTodoSequences
 
-lookupMacro :: String -> OrgParserState -> Maybe MacroExpander
+lookupMacro :: Text -> OrgParserState -> Maybe MacroExpander
 lookupMacro macroName = M.lookup macroName . orgStateMacros
 
-registerMacro :: (String, MacroExpander) -> OrgParserState -> OrgParserState
+registerMacro :: (Text, MacroExpander) -> OrgParserState -> OrgParserState
 registerMacro (name, expander) st =
   let curMacros = orgStateMacros st
   in st{ orgStateMacros = M.insert name expander curMacros }
@@ -236,7 +237,7 @@ data ArchivedTreesOption =
 -- These settings can be changed via OPTIONS statements.
 data ExportSettings = ExportSettings
   { exportArchivedTrees    :: ArchivedTreesOption -- ^ How to treat archived trees
-  , exportDrawers          :: Either [String] [String]
+  , exportDrawers          :: Either [Text] [Text]
   -- ^ Specify drawer names which should be exported.  @Left@ names are
   -- explicitly excluded from the resulting output while @Right@ means that
   -- only the listed drawer names should be included.

@@ -4,6 +4,7 @@
 {-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Readers.Docx
    Copyright   : Copyright (C) 2014-2019 Jesse Rosenthal
@@ -68,12 +69,12 @@ import Data.Default (Default)
 import Data.List (delete, intersect)
 import Data.Char (isSpace)
 import qualified Data.Map as M
+import qualified Data.Text as T
 import Data.Maybe (isJust, fromMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import Text.Pandoc.Builder
--- import Text.Pandoc.Definition
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.Docx.Combine
@@ -101,14 +102,14 @@ readDocx opts bytes
 readDocx _ _ =
   throwError $ PandocSomeError "couldn't parse docx file"
 
-data DState = DState { docxAnchorMap :: M.Map String String
-                     , docxAnchorSet :: Set.Set String
-                     , docxImmedPrevAnchor :: Maybe String
+data DState = DState { docxAnchorMap :: M.Map T.Text T.Text
+                     , docxAnchorSet :: Set.Set T.Text
+                     , docxImmedPrevAnchor :: Maybe T.Text
                      , docxMediaBag  :: MediaBag
                      , docxDropCap   :: Inlines
                      -- keep track of (numId, lvl) values for
                      -- restarting
-                     , docxListState :: M.Map (String, String) Integer
+                     , docxListState :: M.Map (T.Text, T.Text) Integer
                      , docxPrevPara  :: Inlines
                      }
 
@@ -142,7 +143,7 @@ spansToKeep = []
 divsToKeep :: [ParaStyleName]
 divsToKeep = ["Definition", "Definition Term"]
 
-metaStyles :: M.Map ParaStyleName String
+metaStyles :: M.Map ParaStyleName T.Text
 metaStyles = M.fromList [ ("Title", "title")
                         , ("Subtitle", "subtitle")
                         , ("Author", "author")
@@ -167,7 +168,7 @@ isEmptyPar (Paragraph _ parParts) =
     isEmptyElem _           = True
 isEmptyPar _ = False
 
-bodyPartsToMeta' :: PandocMonad m => [BodyPart] -> DocxContext m (M.Map String MetaValue)
+bodyPartsToMeta' :: PandocMonad m => [BodyPart] -> DocxContext m (M.Map T.Text MetaValue)
 bodyPartsToMeta' [] = return M.empty
 bodyPartsToMeta' (bp : bps)
   | (Paragraph pPr parParts) <- bp
@@ -232,22 +233,22 @@ runElemToInlines Tab           = space
 runElemToInlines SoftHyphen    = text "\xad"
 runElemToInlines NoBreakHyphen = text "\x2011"
 
-runElemToString :: RunElem -> String
-runElemToString (TextRun s)   = s
-runElemToString LnBrk         = ['\n']
-runElemToString Tab           = ['\t']
-runElemToString SoftHyphen    = ['\xad']
-runElemToString NoBreakHyphen = ['\x2011']
+runElemToText :: RunElem -> T.Text
+runElemToText (TextRun s)   = s
+runElemToText LnBrk         = T.singleton '\n'
+runElemToText Tab           = T.singleton '\t'
+runElemToText SoftHyphen    = T.singleton '\xad'
+runElemToText NoBreakHyphen = T.singleton '\x2011'
 
-runToString :: Run -> String
-runToString (Run _ runElems) = concatMap runElemToString runElems
-runToString _                = ""
+runToText :: Run -> T.Text
+runToText (Run _ runElems) = T.concat $ map runElemToText runElems
+runToText _                = ""
 
-parPartToString :: ParPart -> String
-parPartToString (PlainRun run)             = runToString run
-parPartToString (InternalHyperLink _ runs) = concatMap runToString runs
-parPartToString (ExternalHyperLink _ runs) = concatMap runToString runs
-parPartToString _                          = ""
+parPartToText :: ParPart -> T.Text
+parPartToText (PlainRun run)             = runToText run
+parPartToText (InternalHyperLink _ runs) = T.concat $ map runToText runs
+parPartToText (ExternalHyperLink _ runs) = T.concat $ map runToText runs
+parPartToText _                          = ""
 
 blacklistedCharStyles :: [CharStyleName]
 blacklistedCharStyles = ["Hyperlink"]
@@ -310,7 +311,7 @@ runToInlines :: PandocMonad m => Run -> DocxContext m Inlines
 runToInlines (Run rs runElems)
   | maybe False isCodeCharStyle $ rParentStyle rs = do
       rPr <- resolveDependentRunStyle rs
-      let codeString = code $ concatMap runElemToString runElems
+      let codeString = code $ T.concat $ map runElemToText runElems
       return $ case rVertAlign rPr of
         Just SupScrpt -> superscript codeString
         Just SubScrpt -> subscript codeString
@@ -328,17 +329,17 @@ runToInlines (Endnote bps) = do
   return $ note blksList
 runToInlines (InlineDrawing fp title alt bs ext) = do
   (lift . lift) $ P.insertMedia fp Nothing bs
-  return $ imageWith (extentToAttr ext) fp title $ text alt
+  return $ imageWith (extentToAttr ext) (T.pack fp) title $ text alt
 runToInlines InlineChart = return $ spanWith ("", ["chart"], []) $ text "[CHART]"
 
 extentToAttr :: Extent -> Attr
 extentToAttr (Just (w, h)) =
   ("", [], [("width", showDim w), ("height", showDim h)] )
   where
-    showDim d = show (d / 914400) ++ "in"
+    showDim d = tshow (d / 914400) <> "in"
 extentToAttr _ = nullAttr
 
-blocksToInlinesWarn :: PandocMonad m => String -> Blocks -> DocxContext m Inlines
+blocksToInlinesWarn :: PandocMonad m => T.Text -> Blocks -> DocxContext m Inlines
 blocksToInlinesWarn cmtId blks = do
   let blkList = toList blks
       notParaOrPlain :: Block -> Bool
@@ -347,7 +348,7 @@ blocksToInlinesWarn cmtId blks = do
       notParaOrPlain _         = True
   unless ( not (any notParaOrPlain blkList)) $
     lift $ P.report $ DocxParserWarning $
-      "Docx comment " ++ cmtId ++ " will not retain formatting"
+      "Docx comment " <> cmtId <> " will not retain formatting"
   return $ blocksToInlines' blkList
 
 -- The majority of work in this function is done in the primed
@@ -440,12 +441,12 @@ parPartToInlines' (BookMark _ anchor) =
         return $ spanWith (newAnchor, ["anchor"], []) mempty
 parPartToInlines' (Drawing fp title alt bs ext) = do
   (lift . lift) $ P.insertMedia fp Nothing bs
-  return $ imageWith (extentToAttr ext) fp title $ text alt
+  return $ imageWith (extentToAttr ext) (T.pack fp) title $ text alt
 parPartToInlines' Chart =
   return $ spanWith ("", ["chart"], []) $ text "[CHART]"
 parPartToInlines' (InternalHyperLink anchor runs) = do
   ils <- smushInlines <$> mapM runToInlines runs
-  return $ link ('#' : anchor) "" ils
+  return $ link ("#" <> anchor) "" ils
 parPartToInlines' (ExternalHyperLink target runs) = do
   ils <- smushInlines <$> mapM runToInlines runs
   return $ link target "" ils
@@ -463,7 +464,7 @@ isAnchorSpan (Span (_, classes, kvs) _) =
   null kvs
 isAnchorSpan _ = False
 
-dummyAnchors :: [String]
+dummyAnchors :: [T.Text]
 dummyAnchors = ["_GoBack"]
 
 makeHeaderAnchor :: PandocMonad m => Blocks -> DocxContext m Blocks
@@ -477,7 +478,7 @@ makeHeaderAnchor' (Header n (ident, classes, kvs) ils)
   , (Span (anchIdent, ["anchor"], _) cIls) <- c = do
     hdrIDMap <- gets docxAnchorMap
     exts <- readerExtensions <$> asks docxOptions
-    let newIdent = if null ident
+    let newIdent = if T.null ident
                    then uniqueIdent exts ils (Set.fromList $ M.elems hdrIDMap)
                    else ident
         newIls = concatMap f ils where f il | il == c   = cIls
@@ -490,7 +491,7 @@ makeHeaderAnchor' (Header n (ident, classes, kvs) ils) =
   do
     hdrIDMap <- gets docxAnchorMap
     exts <- readerExtensions <$> asks docxOptions
-    let newIdent = if null ident
+    let newIdent = if T.null ident
                    then uniqueIdent exts ils (Set.fromList $ M.elems hdrIDMap)
                    else ident
     modify $ \s -> s {docxAnchorMap = M.insert newIdent newIdent hdrIDMap}
@@ -558,8 +559,8 @@ parStyleToTransform pPr
              else transform
 parStyleToTransform _ = return id
 
-normalizeToClassName :: (FromStyleName a) => a -> String
-normalizeToClassName = map go . fromStyleName
+normalizeToClassName :: (FromStyleName a) => a -> T.Text
+normalizeToClassName = T.map go . fromStyleName
   where go c | isSpace c = '-'
              | otherwise = c
 
@@ -574,7 +575,8 @@ bodyPartToBlocks (Paragraph pPr parparts)
       return $
         transform $
         codeBlock $
-        concatMap parPartToString parparts
+        T.concat $
+        map parPartToText parparts
   | Just (style, n) <- pHeading pPr = do
     ils <-local (\s-> s{docxInHeaderBlock=True})
            (smushInlines <$> mapM parPartToInlines parparts)
@@ -646,7 +648,7 @@ bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
             , ("num-id", numId)
             , ("format", fmt)
             , ("text", txt)
-            , ("start", show start)
+            , ("start", tshow start)
             ]
   modify $ \st -> st{ docxListState =
     -- expire all the continuation data for lists of level > this one:
@@ -705,12 +707,12 @@ bodyPartToBlocks (OMathPara e) =
 
 -- replace targets with generated anchors.
 rewriteLink' :: PandocMonad m => Inline -> DocxContext m Inline
-rewriteLink' l@(Link attr ils ('#':target, title)) = do
+rewriteLink' l@(Link attr ils (T.uncons -> Just ('#',target), title)) = do
   anchorMap <- gets docxAnchorMap
   case M.lookup target anchorMap of
     Just newTarget -> do
       modify $ \s -> s{docxAnchorSet = Set.insert newTarget (docxAnchorSet s)}
-      return $ Link attr ils ('#':newTarget, title)
+      return $ Link attr ils ("#" <> newTarget, title)
     Nothing        -> do
       modify $ \s -> s{docxAnchorSet = Set.insert target (docxAnchorSet s)}
       return l

@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RelaxedPolyRec    #-}
 -- RelaxedPolyRec needed for inlinesBetween on GHC < 7
 {- |
@@ -31,7 +32,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
-import Text.Pandoc.Shared (crFilter)
+import Text.Pandoc.Shared (crFilter, tshow)
 import Text.Pandoc.XML (fromEntities)
 
 -- | Read twiki from an input string and return a Pandoc document.
@@ -41,19 +42,19 @@ readTWiki :: PandocMonad m
           -> m Pandoc
 readTWiki opts s = do
   res <- readWithM parseTWiki def{ stateOptions = opts }
-             (T.unpack (crFilter s) ++ "\n\n")
+             (crFilter s <> "\n\n")
   case res of
        Left e  -> throwError e
        Right d -> return d
 
-type TWParser = ParserT [Char] ParserState
+type TWParser = ParserT Text ParserState
 
 --
 -- utility functions
 --
 
-tryMsg :: String -> TWParser m a -> TWParser m a
-tryMsg msg p = try p <?> msg
+tryMsg :: Text -> TWParser m a -> TWParser m a
+tryMsg msg p = try p <?> T.unpack msg
 
 nested :: PandocMonad m => TWParser m a -> TWParser m a
 nested p = do
@@ -64,25 +65,25 @@ nested p = do
   updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
   return res
 
-htmlElement :: PandocMonad m => String -> TWParser m (Attr, String)
+htmlElement :: PandocMonad m => Text -> TWParser m (Attr, Text)
 htmlElement tag = tryMsg tag $ do
   (TagOpen _ attr, _) <- htmlTag (~== TagOpen tag [])
-  content <- manyTill anyChar (endtag <|> endofinput)
+  content <- T.pack <$> manyTill anyChar (endtag <|> endofinput)
   return (htmlAttrToPandoc attr, trim content)
   where
     endtag     = void $ htmlTag (~== TagClose tag)
     endofinput = lookAhead $ try $ skipMany blankline >> skipSpaces >> eof
-    trim       = dropWhile (=='\n') . reverse . dropWhile (=='\n') . reverse
+    trim       = T.dropAround (=='\n')
 
-htmlAttrToPandoc :: [Attribute String] -> Attr
+htmlAttrToPandoc :: [Attribute Text] -> Attr
 htmlAttrToPandoc attrs = (ident, classes, keyvals)
   where
     ident   = fromMaybe "" $ lookup "id" attrs
-    classes = maybe [] words $ lookup "class" attrs
+    classes = maybe [] T.words $ lookup "class" attrs
     keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
 
 parseHtmlContentWithAttrs :: PandocMonad m
-                          => String -> TWParser m a -> TWParser m (Attr, [a])
+                          => Text -> TWParser m a -> TWParser m (Attr, [a])
 parseHtmlContentWithAttrs tag parser = do
   (attr, content) <- htmlElement tag
   parsedContent <- try $ parseContent content
@@ -91,7 +92,13 @@ parseHtmlContentWithAttrs tag parser = do
     parseContent = parseFromString' $ nested $ manyTill parser endOfContent
     endOfContent = try $ skipMany blankline >> skipSpaces >> eof
 
-parseHtmlContent :: PandocMonad m => String -> TWParser m a -> TWParser m [a]
+parseCharHtmlContentWithAttrs :: PandocMonad m
+                          => Text -> TWParser m Char -> TWParser m (Attr, Text)
+parseCharHtmlContentWithAttrs tag = fmap go . parseHtmlContentWithAttrs tag
+  where
+    go (x, y) = (x, T.pack y)
+
+parseHtmlContent :: PandocMonad m => Text -> TWParser m a -> TWParser m [a]
 parseHtmlContent tag p = snd <$> parseHtmlContentWithAttrs tag p
 
 --
@@ -113,7 +120,7 @@ block = do
          <|> blockElements
          <|> para
   skipMany blankline
-  trace (take 60 $ show $ B.toList res)
+  trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 blockElements :: PandocMonad m => TWParser m B.Blocks
@@ -150,38 +157,38 @@ literal = rawBlock <$> htmlElement "literal"
     format (_, _, kvs)        = fromMaybe "html" $ lookup "format" kvs
     rawBlock (attrs, content) = B.rawBlock (format attrs) content
 
-list :: PandocMonad m => String -> TWParser m B.Blocks
+list :: PandocMonad m => Text -> TWParser m B.Blocks
 list prefix = choice [ bulletList prefix
                      , orderedList prefix
                      , definitionList prefix]
 
-definitionList :: PandocMonad m => String -> TWParser m B.Blocks
+definitionList :: PandocMonad m => Text -> TWParser m B.Blocks
 definitionList prefix = tryMsg "definitionList" $ do
-  indent <- lookAhead $ string prefix *> many1 (string "   ") <* string "$ "
-  elements <- many $ parseDefinitionListItem (prefix ++ concat indent)
+  indent <- lookAhead $ textStr prefix *> many1 (textStr "   ") <* textStr "$ "
+  elements <- many $ parseDefinitionListItem (prefix <> T.concat indent)
   return $ B.definitionList elements
   where
     parseDefinitionListItem :: PandocMonad m
-                            => String -> TWParser m (B.Inlines, [B.Blocks])
+                            => Text -> TWParser m (B.Inlines, [B.Blocks])
     parseDefinitionListItem indent = do
-      string (indent ++ "$ ") >> skipSpaces
+      textStr (indent <> "$ ") >> skipSpaces
       term <- many1Till inline $ string ": "
       line <- listItemLine indent $ string "$ "
       return (mconcat term, [line])
 
-bulletList :: PandocMonad m => String -> TWParser m B.Blocks
+bulletList :: PandocMonad m => Text -> TWParser m B.Blocks
 bulletList prefix = tryMsg "bulletList" $
                     parseList prefix (char '*') (char ' ')
 
-orderedList :: PandocMonad m => String -> TWParser m B.Blocks
+orderedList :: PandocMonad m => Text -> TWParser m B.Blocks
 orderedList prefix = tryMsg "orderedList" $
                      parseList prefix (oneOf "1iIaA") (string ". ")
 
 parseList :: PandocMonad m
-          => String -> TWParser m Char -> TWParser m a -> TWParser m B.Blocks
+          => Text -> TWParser m Char -> TWParser m a -> TWParser m B.Blocks
 parseList prefix marker delim = do
-  (indent, style) <- lookAhead $ string prefix *> listStyle <* delim
-  blocks <- many $ parseListItem (prefix ++ indent) (char style <* delim)
+  (indent, style) <- lookAhead $ textStr prefix *> listStyle <* delim
+  blocks <- many $ parseListItem (prefix <> indent) (char style <* delim)
   return $ case style of
     '1' -> B.orderedListWith (1, DefaultStyle, DefaultDelim) blocks
     'i' -> B.orderedListWith (1, LowerRoman, DefaultDelim) blocks
@@ -191,24 +198,24 @@ parseList prefix marker delim = do
     _   -> B.bulletList blocks
   where
     listStyle = do
-      indent <- many1 $ string "   "
+      indent <- many1 $ textStr "   "
       style <- marker
-      return (concat indent, style)
+      return (T.concat indent, style)
 
 parseListItem :: (PandocMonad m, Show a)
-              => String -> TWParser m a -> TWParser m B.Blocks
-parseListItem prefix marker = string prefix >> marker >> listItemLine prefix marker
+              => Text -> TWParser m a -> TWParser m B.Blocks
+parseListItem prefix marker = textStr prefix >> marker >> listItemLine prefix marker
 
 listItemLine :: (PandocMonad m, Show a)
-             => String -> TWParser m a -> TWParser m B.Blocks
+             => Text -> TWParser m a -> TWParser m B.Blocks
 listItemLine prefix marker = mconcat <$> (lineContent >>= parseContent)
   where
     lineContent = do
       content <- anyLine
       continuation <- optionMaybe listContinuation
-      return $ filterSpaces content ++ "\n" ++ maybe "" ("   " ++) continuation
-    filterSpaces = reverse . dropWhile (== ' ') . reverse
-    listContinuation = notFollowedBy (string prefix >> marker) >>
+      return $ filterSpaces content <> "\n" <> maybe "" ("   " <>) continuation
+    filterSpaces = T.dropWhileEnd (== ' ')
+    listContinuation = notFollowedBy (textStr prefix >> marker) >>
                        string "   " >> lineContent
     parseContent = parseFromString' $ many1 $ nestedList <|> parseInline
     parseInline = (B.plain . mconcat) <$> many1Till inline (lastNewline <|> newlineBeforeNestedList)
@@ -352,29 +359,29 @@ macroWithParameters = try $ do
   char '%'
   return $ buildSpan name kvs $ B.str content
 
-buildSpan :: String -> [(String, String)] -> B.Inlines -> B.Inlines
+buildSpan :: Text -> [(Text, Text)] -> B.Inlines -> B.Inlines
 buildSpan className kvs = B.spanWith attrs
   where
     attrs             = ("", ["twiki-macro", className] ++ additionalClasses, kvsWithoutClasses)
-    additionalClasses = maybe [] words $ lookup "class" kvs
+    additionalClasses = maybe [] T.words $ lookup "class" kvs
     kvsWithoutClasses = [(k,v) | (k,v) <- kvs, k /= "class"]
 
-macroName :: PandocMonad m => TWParser m String
+macroName :: PandocMonad m => TWParser m Text
 macroName = do
   first <- letter
   rest <- many $ alphaNum <|> char '_'
-  return (first:rest)
+  return $ T.pack $ first:rest
 
-attributes :: PandocMonad m => TWParser m (String, [(String, String)])
-attributes = foldr (either mkContent mkKvs) ([], [])
+attributes :: PandocMonad m => TWParser m (Text, [(Text, Text)])
+attributes = foldr (either mkContent mkKvs) ("", [])
   <$> (char '{' *> spnl *> many (attribute <* spnl) <* char '}')
   where
     spnl                      = skipMany (spaceChar <|> newline)
-    mkContent c  ([], kvs)   = (c, kvs)
-    mkContent c  (rest, kvs) = (c ++ " " ++ rest, kvs)
+    mkContent c  ("", kvs)    = (c, kvs)
+    mkContent c  (rest, kvs)  = (c <> " " <> rest, kvs)
     mkKvs     kv (cont, rest) = (cont, kv : rest)
 
-attribute :: PandocMonad m => TWParser m (Either String (String, String))
+attribute :: PandocMonad m => TWParser m (Either Text (Text, Text))
 attribute = withKey <|> withoutKey
   where
     withKey = try $ do
@@ -383,10 +390,10 @@ attribute = withKey <|> withoutKey
       curry Right key <$> parseValue False
     withoutKey = try $ Left <$> parseValue True
     parseValue allowSpaces = fromEntities <$> (withQuotes <|> withoutQuotes allowSpaces)
-    withQuotes             = between (char '"') (char '"') (\_ -> count 1 $ noneOf ['"'])
+    withQuotes             = between (char '"') (char '"') (\_ -> countChar 1 $ noneOf ['"'])
     withoutQuotes allowSpaces
-      | allowSpaces = many1 $ noneOf "}"
-      | otherwise   = many1 $ noneOf " }"
+      | allowSpaces = many1Char $ noneOf "}"
+      | otherwise   = many1Char $ noneOf " }"
 
 nestedInlines :: (Show a, PandocMonad m)
               => TWParser m a -> TWParser m B.Inlines
@@ -413,10 +420,10 @@ emphHtml :: PandocMonad m => TWParser m B.Inlines
 emphHtml = B.emph . mconcat <$> (parseHtmlContent "em" inline <|> parseHtmlContent "i" inline)
 
 nestedString :: (Show a, PandocMonad m)
-             => TWParser m a -> TWParser m String
-nestedString end = innerSpace <|> count 1 nonspaceChar
+             => TWParser m a -> TWParser m Text
+nestedString end = innerSpace <|> countChar 1 nonspaceChar
   where
-    innerSpace = try $ many1 spaceChar <* notFollowedBy end
+    innerSpace = try $ many1Char spaceChar <* notFollowedBy end
 
 boldCode :: PandocMonad m => TWParser m B.Inlines
 boldCode = try $ (B.strong . B.code . fromEntities) <$> enclosed (string "==") nestedString
@@ -429,7 +436,7 @@ code = try $ (B.code . fromEntities) <$> enclosed (char '=') nestedString
 
 codeHtml :: PandocMonad m => TWParser m B.Inlines
 codeHtml = do
-  (attrs, content) <- parseHtmlContentWithAttrs "code" anyChar
+  (attrs, content) <- parseCharHtmlContentWithAttrs "code" anyChar
   return $ B.codeWith attrs $ fromEntities content
 
 autoLink :: PandocMonad m => TWParser m B.Inlines
@@ -437,7 +444,7 @@ autoLink = try $ do
   state <- getState
   guard $ stateAllowLinks state
   (text, url) <- parseLink
-  guard $ checkLink (last url)
+  guard $ checkLink (T.last url)
   return $ makeLink (text, url)
   where
     parseLink            = notFollowedBy nop >> (uri <|> emailAddress)
@@ -447,17 +454,17 @@ autoLink = try $ do
       | otherwise = isAlphaNum c
 
 str :: PandocMonad m => TWParser m B.Inlines
-str = B.str <$> (many1 alphaNum <|> count 1 characterReference)
+str = B.str <$> (many1Char alphaNum <|> countChar 1 characterReference)
 
 nop :: PandocMonad m => TWParser m B.Inlines
 nop = try $ (void exclamation <|> void nopTag) >> followContent
   where
     exclamation   = char '!'
     nopTag        = stringAnyCase "<nop>"
-    followContent = B.str . fromEntities <$> many1 nonspaceChar
+    followContent = B.str . fromEntities <$> many1Char nonspaceChar
 
 symbol :: PandocMonad m => TWParser m B.Inlines
-symbol = B.str <$> count 1 nonspaceChar
+symbol = B.str <$> countChar 1 nonspaceChar
 
 smart :: PandocMonad m => TWParser m B.Inlines
 smart = do
@@ -491,13 +498,13 @@ link = try $ do
   setState $ st{ stateAllowLinks = True }
   return $ B.link url title content
 
-linkText :: PandocMonad m => TWParser m (String, String, B.Inlines)
+linkText :: PandocMonad m => TWParser m (Text, Text, B.Inlines)
 linkText = do
   string "[["
-  url <- many1Till anyChar (char ']')
+  url <- T.pack <$> many1Till anyChar (char ']')
   content <- option (B.str url) (mconcat <$> linkContent)
   char ']'
   return (url, "", content)
   where
-    linkContent      = char '[' >> many1Till anyChar (char ']') >>= parseLinkContent
+    linkContent      = char '[' >> many1Till anyChar (char ']') >>= parseLinkContent . T.pack
     parseLinkContent = parseFromString' $ many1 inline

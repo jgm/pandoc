@@ -169,10 +169,10 @@ tests = [ testGroup "tokenization"
           testGroup "Character Escapes"
           [ "Two-character escapes" =:
             mconcat ["^^" <> T.pack [i,j] | i <- hex, j <- hex] =?>
-            para (str ['\0'..'\255'])
+            para (str $ T.pack ['\0'..'\255'])
           , "One-character escapes" =:
             mconcat ["^^" <> T.pack [i] | i <- hex] =?>
-            para (str $ ['p'..'y']++['!'..'&'])
+            para (str $ T.pack $ ['p'..'y']++['!'..'&'])
           ]
         , testGroup "memoir scene breaks"
           [ "plainbreak" =:
@@ -255,7 +255,7 @@ baseCitation = Citation{ citationId      = "item1"
                        }
 
 rt :: String -> Inlines
-rt = rawInline "latex"
+rt = rawInline "latex" . T.pack
 
 natbibCitations :: TestTree
 natbibCitations = testGroup "natbib"

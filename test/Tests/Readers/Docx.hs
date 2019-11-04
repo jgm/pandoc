@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Docx
    Copyright   : © 2017-2019 Jesse Rosenthal, John MacFarlane
@@ -79,7 +80,7 @@ testForWarningsWithOptsIO opts name docxFile expected = do
   df <- B.readFile docxFile
   logs <-  runIOorExplode $ setVerbosity ERROR >> readDocx opts df >> P.getLog
   let warns = [m | DocxParserWarning m <- logs]
-  return $ test id name (unlines warns, unlines expected)
+  return $ test id name (T.unlines warns, unlines expected)
 
 testForWarningsWithOpts :: ReaderOptions -> String -> FilePath -> [String] -> TestTree
 testForWarningsWithOpts opts name docxFile expected =

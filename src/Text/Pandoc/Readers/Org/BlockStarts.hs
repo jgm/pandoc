@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.BlockStarts
    Copyright   : Copyright (C) 2014-2019 Albert Krewinkel
@@ -25,6 +26,8 @@ module Text.Pandoc.Readers.Org.BlockStarts
 
 import Prelude
 import Control.Monad (void)
+import Data.Text (Text)
+import qualified Data.Text as T
 import Text.Pandoc.Readers.Org.Parsing
 
 -- | Horizontal Line (five -- dashes or more)
@@ -49,15 +52,15 @@ gridTableStart :: Monad m => OrgParser m ()
 gridTableStart = try $ skipSpaces <* char '+' <* char '-'
 
 
-latexEnvStart :: Monad m => OrgParser m String
+latexEnvStart :: Monad m => OrgParser m Text
 latexEnvStart = try $
   skipSpaces *> string "\\begin{"
              *> latexEnvName
              <* string "}"
              <* blankline
  where
-   latexEnvName :: Monad m => OrgParser m String
-   latexEnvName = try $ mappend <$> many1 alphaNum <*> option "" (string "*")
+   latexEnvName :: Monad m => OrgParser m Text
+   latexEnvName = try $ mappend <$> many1Char alphaNum <*> option "" (textStr "*")
 
 bulletListStart :: Monad m => OrgParser m Int
 bulletListStart = try $ do
@@ -68,7 +71,7 @@ bulletListStart = try $ do
   return (ind + 1)
 
 genericListStart :: Monad m
-                 => OrgParser m String
+                 => OrgParser m Text
                  -> OrgParser m Int
 genericListStart listMarker = try $ do
   ind <- length <$> many spaceChar
@@ -82,11 +85,11 @@ eol = void (char '\n')
 orderedListStart :: Monad m => OrgParser m Int
 orderedListStart = genericListStart orderedListMarker
   -- Ordered list markers allowed in org-mode
-  where orderedListMarker = mappend <$> many1 digit <*> (pure <$> oneOf ".)")
+  where orderedListMarker = T.snoc <$> many1Char digit <*> oneOf ".)"
 
-drawerStart :: Monad m => OrgParser m String
+drawerStart :: Monad m => OrgParser m Text
 drawerStart = try $ skipSpaces *> drawerName <* skipSpaces <* newline
- where drawerName = char ':' *> manyTill nonspaceChar (char ':')
+ where drawerName = char ':' *> manyTillChar nonspaceChar (char ':')
 
 metaLineStart :: Monad m => OrgParser m ()
 metaLineStart = try $ skipSpaces <* string "#+"
@@ -99,12 +102,12 @@ commentLineStart = try $
 exampleLineStart :: Monad m => OrgParser m ()
 exampleLineStart = () <$ try (skipSpaces *> string ": ")
 
-noteMarker :: Monad m => OrgParser m String
+noteMarker :: Monad m => OrgParser m Text
 noteMarker = try $ do
   char '['
-  choice [ many1Till digit (char ']')
-         , (++) <$> string "fn:"
-                <*> many1Till (noneOf "\n\r\t ") (char ']')
+  choice [ many1TillChar digit (char ']')
+         , (<>) <$> textStr "fn:"
+                <*> many1TillChar (noneOf "\n\r\t ") (char ']')
          ]
 
 -- | Succeeds if the parser is at the end of a block.

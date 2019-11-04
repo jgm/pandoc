@@ -179,7 +179,7 @@ tests =
                 , "\\end{equation}"
                 ] =?>
       rawBlock "latex"
-      (unlines [ "\\begin{equation}"
+      (T.unlines [ "\\begin{equation}"
                , "X_i = \\begin{cases}"
                , "      G_{\\alpha(i)} & \\text{if }\\alpha(i-1) =" <>
                  " \\alpha(i)\\\\"
