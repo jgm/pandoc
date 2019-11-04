@@ -40,6 +40,7 @@ module Text.Pandoc.Readers.Docx.Parse.Styles (
   , getNumInfo
   , elemToRunStyle
   , defaultRunStyle
+  , checkOnOff
   ) where
 import Prelude
 import Codec.Archive.Zip

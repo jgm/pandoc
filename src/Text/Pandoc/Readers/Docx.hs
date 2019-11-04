@@ -124,10 +124,11 @@ instance Default DState where
 
 data DEnv = DEnv { docxOptions       :: ReaderOptions
                  , docxInHeaderBlock :: Bool
+                 , docxInBidi        :: Bool
                  }
 
 instance Default DEnv where
-  def = DEnv def False
+  def = DEnv def False False
 
 type DocxContext m = ReaderT DEnv (StateT DState m)
 
@@ -290,7 +291,10 @@ runStyleToTransform rPr
       return $ spanWith ("",[],[("dir","rtl")]) . transform
   | Just False <- isRTL rPr = do
       transform <- runStyleToTransform rPr{isRTL = Nothing}
-      return $ spanWith ("",[],[("dir","ltr")]) . transform
+      inBidi <- asks docxInBidi
+      return $ if inBidi
+               then spanWith ("",[],[("dir","ltr")]) . transform
+               else transform
   | Just SupScrpt <- rVertAlign rPr = do
       transform <- runStyleToTransform rPr{rVertAlign = Nothing}
       return $ superscript . transform
@@ -561,6 +565,10 @@ normalizeToClassName = map go . fromStyleName
 
 bodyPartToBlocks :: PandocMonad m => BodyPart -> DocxContext m Blocks
 bodyPartToBlocks (Paragraph pPr parparts)
+  | Just True <- pBidi pPr = do
+      let pPr' = pPr { pBidi = Nothing }
+      local (\s -> s{ docxInBidi = True })
+        (bodyPartToBlocks (Paragraph pPr' parparts))
   | isCodeDiv pPr = do
       transform <- parStyleToTransform pPr
       return $

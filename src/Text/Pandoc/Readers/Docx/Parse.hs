@@ -224,6 +224,7 @@ data ParagraphStyle = ParagraphStyle { pStyle      :: [ParStyle]
                                      , indentation :: Maybe ParIndentation
                                      , dropCap     :: Bool
                                      , pChange     :: Maybe TrackedChange
+                                     , pBidi       :: Maybe Bool
                                      }
                       deriving Show
 
@@ -232,6 +233,7 @@ defaultParagraphStyle = ParagraphStyle { pStyle = []
                                        , indentation = Nothing
                                        , dropCap     = False
                                        , pChange     = Nothing
+                                       , pBidi       = Just False
                                        }
 
 
@@ -998,6 +1000,7 @@ elemToParagraphStyle ns element sty
                                          isElem ns "w" "moveFrom" e
                                   ) >>=
                       getTrackedChange ns
+      , pBidi = checkOnOff ns pPr (elemName ns "w" "bidi")
       }
 elemToParagraphStyle _ _ _ =  defaultParagraphStyle
 
