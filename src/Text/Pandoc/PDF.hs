@@ -27,6 +27,8 @@ import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import Data.Text.Lazy.Encoding (decodeUtf8')
 import Text.Printf (printf)
 import Data.Char (ord, isAscii, isSpace)
 import System.Directory
@@ -265,7 +267,7 @@ missingCharacterWarnings verbosity log' = do
         | isAscii c   = c : addCodePoint cs
         | otherwise   = c : " (U+" ++ printf "%04X" (ord c) ++ ")" ++
                             addCodePoint cs
-  let warnings = [ addCodePoint (UTF8.toStringLazy (BC.drop 19 l))
+  let warnings = [ addCodePoint (utf8ToString (BC.drop 19 l))
                  | l <- ls
                  , isMissingCharacterWarning l
                  ]
@@ -308,7 +310,8 @@ runTectonic verbosity program args' tmpDir' source = do
     let programArgs = ["--outdir", tmpDir] ++ args ++ ["-"]
     env <- liftIO getEnvironment
     when (verbosity >= INFO) $ liftIO $
-      showVerboseInfo (Just tmpDir) program programArgs env (UTF8.toStringLazy sourceBL)
+      showVerboseInfo (Just tmpDir) program programArgs env
+         (utf8ToString sourceBL)
     (exit, out) <- liftIO $ E.catch
       (pipeProcess (Just env) program programArgs sourceBL)
       (handlePDFProgramNotFound program)
@@ -512,3 +515,9 @@ handlePDFProgramNotFound program e
   | IE.isDoesNotExistError e =
       E.throwIO $ PandocPDFProgramNotFoundError program
   | otherwise = E.throwIO e
+
+utf8ToString :: ByteString -> String
+utf8ToString lbs =
+  case decodeUtf8' lbs of
+    Left _  -> BC.unpack lbs  -- if decoding fails, treat as latin1
+    Right t -> TL.unpack t
