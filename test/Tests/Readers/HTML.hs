@@ -95,6 +95,12 @@ tests = [ testGroup "base tag"
             "<samp>Answer is 42</samp>" =?> 
             plain (codeWith ("",["sample"],[]) "Answer is 42")
           ]
+        , testGroup "var"
+        [
+          test html "inline var block" $ 
+          "<var>result</var>" =?> 
+          plain (codeWith ("",["variable"],[]) "result")
+        ]
         , askOption $ \(QuickCheckTests numtests) ->
             testProperty "Round trip" $
               withMaxSuccess (if QuickCheckTests numtests == defaultValue

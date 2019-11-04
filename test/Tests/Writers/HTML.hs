@@ -61,6 +61,28 @@ tests = [ testGroup "inline code"
             doubleQuoted (spanWith ("", [], [("cite", "http://example.org")]) (str "examples"))
             =?> "<q cite=\"http://example.org\">examples</q>"
           ]
+        , testGroup "sample"
+          [ "sample should be rendered correctly" =:
+            plain (codeWith ("",["sample"],[]) "Answer is 42") =?>
+            "<samp>Answer is 42</samp>"
+          ]
+        , testGroup "variable"
+          [ "variable should be rendered correctly" =:
+            plain (codeWith ("",["variable"],[]) "result") =?>
+            "<var>result</var>"
+          ]
+        , testGroup "sample with style"
+          [ "samp should wrap highlighted code" =:
+            codeWith ("",["sample","haskell"],[]) ">>="
+            =?> ("<samp><code class=\"sourceCode haskell\">" ++ 
+                "<span class=\"op\">&gt;&gt;=</span></code></samp>")
+          ]
+        , testGroup "variable with style"
+          [ "var should wrap highlighted code" =:
+            codeWith ("",["haskell","variable"],[]) ">>="
+            =?> ("<var><code class=\"sourceCode haskell\">" ++ 
+                "<span class=\"op\">&gt;&gt;=</span></code></var>")
+          ]
         ]
         where
           tQ :: (ToString a, ToPandoc a)

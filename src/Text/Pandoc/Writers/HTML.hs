@@ -31,7 +31,7 @@ module Text.Pandoc.Writers.HTML (
   ) where
 import Control.Monad.State.Strict
 import Data.Char (ord, toLower)
-import Data.List (intercalate, intersperse, isPrefixOf, partition)
+import Data.List (intercalate, intersperse, isPrefixOf, partition, delete)
 import Data.List.Split (splitWhen)
 import Data.Maybe (fromMaybe, isJust, isNothing, mapMaybe)
 import qualified Data.Set as Set
@@ -1023,20 +1023,29 @@ inlineToHtml opts inline = do
 
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
-    (Code attr str)  -> case hlCode of
+    (Code attr@(ids,cs,kvs) str)  
+                     -> case hlCode of
                              Left msg -> do
                                unless (null msg) $
                                  report $ CouldNotHighlight msg
-                               addAttrs opts attr $ H.code $ strToHtml str
+                               addAttrs opts (ids,cs',kvs) $ 
+                                 maybe H.code id sampOrVar $ 
+                                 strToHtml str
                              Right h -> do
                                modify $ \st -> st{ stHighlighting = True }
-                               addAttrs opts (id',[],keyvals) h
-                        where (id',_,keyvals) = attr
-                              hlCode = if isJust (writerHighlightStyle opts)
+                               addAttrs opts (ids,[],kvs) $ 
+                                 maybe id id sampOrVar $ h
+                        where hlCode = if isJust (writerHighlightStyle opts)
                                           then highlight
                                                  (writerSyntaxMap opts)
                                                  formatHtmlInline attr str
                                           else Left ""
+                              (sampOrVar,cs') = 
+                                  if "sample" `elem` cs
+                                      then (Just H.samp,"sample" `delete` cs)
+                                  else if "variable" `elem` cs
+                                      then (Just H.var,"variable" `delete` cs)
+                                      else (Nothing,cs)
     (Strikeout lst)  -> inlineListToHtml opts lst >>=
                         return . H.del
     (SmallCaps lst)   -> inlineListToHtml opts lst >>=
