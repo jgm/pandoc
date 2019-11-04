@@ -54,6 +54,11 @@
 
   * `--ascii` now uses numerical hex character references (#5718).
 
+  * Allow PDF output to stdout (#5751).  PDF output now behaves like other
+    binary formats: it will not be output to the terminal, but can be
+    sent to stdout using either `-o -` or a pipe.  The intermediate format
+    will be determined based on the setting of `--pdf-engine`.
+
   * Make some writers sensitive to 'unlisted' class on headings (#1762).
     If this is present on a heading with the 'unnumbered' class,
     the heading won't appear in the TOC.  This class has no
@@ -88,7 +93,9 @@
       If a `<q>` tag has a `cite` attribute, we interpret it as a Quoted
       element with an inner Span.
     + Add support for HTML `<samp>` element (#5792, Amogh Rathore).
-      The `<samp>` element is parsed as a Span with class `sample`.
+      The `<samp>` element is parsed as Code with class `sample`.
+    + Add support for HTML `<var>` element (#5799, Amogh Rathore).
+      The `<var>` element is parsed as Code with class `variable`.
     + Add support for `<mark>` elements (Florian B, #5797).  Parse
       `<mark>` elements from HTML as Spans with class `mark`.
     + Add support for `<kbd>` elements, parsing them as Span with class
@@ -130,8 +137,18 @@
   * Docx reader:
 
     + Move style-parsing-specific code to a new unexported module,
-      Text.Pandoc.Readers.Docx.Parse.Styles.
-    + Move StyleMap to docx writer.
+      Text.Pandoc.Readers.Docx.Parse.Styles (Nikolay Yakimov).
+    + Move StyleMap to docx writer (Nikolay Yakimov).
+    + Only use LTR when it is overriding BiDi setting (#5723, Jesse
+      Rosenthal).  The left-to-right direction setting in docx is used
+      in the spec only for overriding an explicit right-to-left setting.
+      We only process it when it happens in a paragraph set with BiDi.
+      This is especially important for docs exported from Google Docs,
+      which explicitly (and unnecessarily) set `rtl=0` for every paragraph.
+    + Fix list number resumption for sublists (#4324).
+      The first list item of a sublist should not resume numbering
+      from the number of the last sublist item of the same level,
+      if that sublist was a sublist of a different list item.
 
   * Docbook reader:
 
@@ -253,6 +270,10 @@
       (Florian B, #5797).
     + Render Span with class `kbd` using `<kbd>` element (Daniele
       D'Orazio, #5796).
+    + Render Code with class `variable` using `<var>` element
+      (Amogh Rathore, #5799).
+    + Render Code with class `sample` using `<samp>` element
+      (Amogh Rathore, #5799).
 
   * EPUB writer:
 
@@ -269,6 +290,8 @@
     + Add support for EPUB2 covers (blmage, #3992).
     + Do not override existing "fileN" medias when writing to EPUB format
       (blmage, #4206).
+    + Ensure that `lang` variable is set on all chapters (so that it
+      will add an `xml:lang` attribute on the `html` element).
 
   * RST writer:
 
@@ -395,6 +418,8 @@
     + For PDFs via HTML, ensure temp file is deleted even if the pdf
       program is not found (#5720).
     + Better detection of a Cygwin environment (#5451).
+    + Don't assume tex log file is UTF8-encoded (#5872).
+      Fall back to latin1 if it can't be read as UTF-8.
 
   * Text.Pandoc.Extensions:
 
