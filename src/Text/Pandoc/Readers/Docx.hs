@@ -87,7 +87,7 @@ import Control.Monad.Except (throwError)
 import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Error
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 
 -- TODO text: remove
 import qualified Text.TeXMath as TM

@@ -554,6 +554,7 @@ library
                    , Text.Pandoc.Legacy.Shared
                    , Text.Pandoc.Legacy.Highlighting
                    , Text.Pandoc.Legacy.Translations
+                   , Text.Pandoc.Legacy.Logging
                    --
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,

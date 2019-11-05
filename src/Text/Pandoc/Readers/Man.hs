@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE PatternSynonyms #-} -- TODO text: remove
 {- |
    Module      : Text.Pandoc.Readers.Man
    Copyright   : Copyright (C) 2018-2019 Yan Pashkovsky and John MacFarlane
@@ -24,7 +25,7 @@ import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 import Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Error (PandocError (PandocParsecError))
-import Text.Pandoc.Logging (LogMessage(..))
+-- import Text.Pandoc.Logging (LogMessage(..)) TODO text: restore
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Walk (query)
@@ -34,6 +35,11 @@ import Text.Parsec hiding (tokenPrim)
 import qualified Text.Parsec as Parsec
 import Text.Parsec.Pos (updatePosString, initialPos)
 import qualified Data.Foldable as Foldable
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Logging ( pattern SkippedContent
+                                  )
+--
 
 data ManState = ManState { readerOptions   :: ReaderOptions
                          , metadata        :: Meta

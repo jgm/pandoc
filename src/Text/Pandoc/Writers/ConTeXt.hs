@@ -25,7 +25,7 @@ import Text.Pandoc.BCP47
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.ImageSize
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy

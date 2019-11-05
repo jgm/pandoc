@@ -84,7 +84,7 @@ import qualified Data.Text as T
 import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Error (PandocError (PandocMacroLoop))
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
                             space, spaces, withRaw, (<|>))

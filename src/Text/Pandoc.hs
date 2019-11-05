@@ -44,7 +44,8 @@ module Text.Pandoc
                -- * Options
                , module Text.Pandoc.Options
                -- * Logging
-               , module Text.Pandoc.Logging
+               , -- module Text.Pandoc.Logging -- TODO text: restore
+                 module Text.Pandoc.Legacy.Logging
                -- * Typeclass
                , module Text.Pandoc.Class
                -- * Error handling
@@ -63,7 +64,7 @@ import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Generic
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Readers
 import Text.Pandoc.Legacy.Shared (pandocVersion)

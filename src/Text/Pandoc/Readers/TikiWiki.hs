@@ -29,7 +29,7 @@ import qualified Data.Text as T
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (CommonState (..), PandocMonad (..))
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Logging (Verbosity (..))
+import Text.Pandoc.Legacy.Logging (Verbosity (..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Legacy.Shared (crFilter, safeRead) -- TODO text: remove Legacy

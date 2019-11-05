@@ -19,7 +19,7 @@ import Foreign.Lua.Types.Peekable (reportValueOnFailure)
 import Foreign.Lua.Userdata (ensureUserdataMetatable, pushAnyWithMetatable,
                              toAnyWithName)
 import Text.Pandoc.Class (CommonState (..))
-import Text.Pandoc.Logging (LogMessage, showLogMessage)
+import Text.Pandoc.Legacy.Logging (LogMessage, showLogMessage)
 import Text.Pandoc.Lua.Marshaling.AnyValue (AnyValue (..))
 
 import qualified Data.Map as Map

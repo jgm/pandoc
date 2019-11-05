@@ -37,7 +37,7 @@ import qualified Text.XML.Light.Input as XI
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
 import Text.Pandoc.Legacy.Shared (capitalize, isURI, orderedListMarkers,
                            makeSections) -- TODO text: remove Legacy

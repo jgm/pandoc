@@ -57,7 +57,7 @@ import Data.List (isPrefixOf, find)
 import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getCommonState,
                           getVerbosity, putCommonState, report,
                           runIOorExplode, setVerbosity)
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 
 #ifdef _WINDOWS
 changePathSeparators :: FilePath -> FilePath

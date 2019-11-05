@@ -35,7 +35,7 @@ import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Error (PandocError (PandocParsecError))
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (F)
 import Text.Pandoc.Legacy.Shared (crFilter, trimr, underlineSpan)

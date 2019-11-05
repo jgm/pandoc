@@ -26,13 +26,15 @@ import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Options
-import Text.Pandoc.Logging (LogMessage(..))
+-- import Text.Pandoc.Logging (LogMessage(..)) -- TODO text: restore
 import Text.Pandoc.Legacy.Shared (crFilter, safeRead) -- TODO text: remove Legacy
 -- import Text.TeXMath (readMathML, writeTeX) -- TODO text: restore
 import Text.XML.Light
 
 -- TODO text: remove
 import qualified Text.TeXMath as TM
+import Text.Pandoc.Legacy.Logging
+--
 
 writeTeX :: [TM.Exp] -> String
 writeTeX = T.unpack . TM.writeTeX

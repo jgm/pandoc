@@ -84,7 +84,7 @@ import qualified Data.Unique as IO (newUnique)
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified System.Directory as Directory
 import Data.Time (UTCTime)
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Shared (uriPathToPath) -- TODO text: remove Legacy
 import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
 import qualified Data.Time as IO (getCurrentTime)

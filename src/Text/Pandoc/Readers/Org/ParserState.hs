@@ -48,7 +48,7 @@ import Data.Text (Text)
 
 import Text.Pandoc.Builder (Blocks)
 import Text.Pandoc.Definition (Meta (..), nullMeta)
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Options (ReaderOptions (..))
 import Text.Pandoc.Parsing (Future, HasIdentifierList (..),
                             HasIncludeFiles (..), HasLastStrPosition (..),

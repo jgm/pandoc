@@ -14,13 +14,17 @@ module Text.Pandoc.Readers.Org.ExportSettings
 
 import Prelude
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Logging (LogMessage (UnknownOrgExportOption))
+-- import Text.Pandoc.Logging (LogMessage (UnknownOrgExportOption)) -- TODO text: restore
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 
 import Control.Monad (mzero, void)
 import Data.Char (toLower)
 import Data.Maybe (listToMaybe)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Logging
+--
 
 -- | Read and handle space separated org-mode export settings.
 exportSettings :: PandocMonad m => OrgParser m ()

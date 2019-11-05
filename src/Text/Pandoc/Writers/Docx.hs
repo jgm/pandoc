@@ -46,7 +46,7 @@ import Text.Pandoc.Generic
 import Text.Pandoc.Legacy.Highlighting (highlight)
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType,
                          getMimeTypeDef)
 import Text.Pandoc.Options

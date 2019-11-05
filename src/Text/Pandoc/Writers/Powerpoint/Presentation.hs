@@ -50,7 +50,7 @@ import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Slides (getSlideLevel)
 import Text.Pandoc.Options
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Walk
 import Data.Time (UTCTime)
 import qualified Text.Pandoc.Legacy.Shared as Shared -- so we don't overlap "Element" -- TODO text: remove Legacy

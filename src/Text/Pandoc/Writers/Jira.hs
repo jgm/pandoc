@@ -22,7 +22,7 @@ import Data.Foldable (find)
 import Data.Text (Text, pack)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Logging (LogMessage (BlockNotRendered, InlineNotRendered))
+import Text.Pandoc.Legacy.Logging (LogMessage (BlockNotRendered, InlineNotRendered))
 import Text.Pandoc.Options (WriterOptions (writerTemplate))
 import Text.Pandoc.Legacy.Shared (blocksToInlines, linesToPara)
 import Text.Pandoc.Templates (renderTemplate)

@@ -28,7 +28,7 @@ import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import Text.Pandoc.Class (PandocMonad, report, translateTerm,
                           setTranslations, toLang)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Legacy.Shared (linesToPara)

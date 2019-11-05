@@ -32,7 +32,7 @@ import Text.HTML.TagSoup
 import Text.Pandoc.Class (PandocMonad (..), fetchItem, getInputFiles, report,
                           setInputFiles)
 import Text.Pandoc.Error
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Legacy.Shared (isURI, renderTags', trim)
 import Text.Pandoc.UTF8 (toString)

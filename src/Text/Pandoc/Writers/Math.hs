@@ -11,7 +11,7 @@ import Prelude
 import qualified Data.Text as T
 import Text.Pandoc.Class
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 -- import Text.TeXMath (DisplayType (..), Exp, readTeX, writePandoc) TODO text: restore
 import Text.Pandoc.Options (defaultMathJaxURL, defaultKaTeXURL)
 

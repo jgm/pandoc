@@ -27,7 +27,7 @@ import Data.Ipynb as Ipynb
 import Text.Pandoc.Walk (walkM)
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class
-import Text.Pandoc.Logging
+import Text.Pandoc.Legacy.Logging
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Aeson as Aeson

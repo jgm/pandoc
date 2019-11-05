@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-} -- TODO text: remove
 {- |
    Module      : Text.Pandoc.Readers.Roff
    Copyright   : Copyright (C) 2018-2019 Yan Pashkovsky and John MacFarlane
@@ -37,7 +38,7 @@ import Data.Default (Default)
 import qualified Data.Map as M
 import Data.List (intercalate)
 import qualified Data.Text as T
-import Text.Pandoc.Logging (LogMessage(..))
+-- import Text.Pandoc.Logging (LogMessage(..)) TODO text: restore
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Legacy.Shared (safeRead, substitute)
@@ -46,6 +47,12 @@ import Text.Pandoc.RoffChar (characterCodes, combiningAccents)
 import qualified Data.Sequence as Seq
 import qualified Data.Foldable as Foldable
 import qualified Data.Text.Normalize as Normalize
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Logging ( pattern SkippedContent
+                                  , pattern CouldNotLoadIncludeFile
+                                  )
+--
 
 -- import Debug.Trace (traceShowId)
 

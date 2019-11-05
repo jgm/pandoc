@@ -27,7 +27,7 @@ import Prelude
 import Data.Char (isLower, toLower)
 import GHC.Generics hiding (Meta)
 import Text.Pandoc.Filter (Filter (..))
-import Text.Pandoc.Logging (Verbosity (WARNING))
+import Text.Pandoc.Legacy.Logging (Verbosity (WARNING))
 import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             TrackChanges (AcceptChanges),
                             WrapOption (WrapAuto), HTMLMathMethod (PlainMath),
