@@ -24,7 +24,7 @@ import Data.Maybe (fromMaybe)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
-import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
+-- import Text.Pandoc.BCP47 (Lang (..), parseBCP47) TODO text: remove
 import Text.Pandoc.Class (PandocMonad, report, translateTerm,
                           setTranslations, toLang)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
@@ -38,6 +38,10 @@ import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
 import Text.Printf (printf)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.BCP47
+--
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block

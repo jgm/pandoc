@@ -31,7 +31,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import Text.DocTemplates (FromContext(lookupContext))
-import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang)
+-- import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang) TODO text: restore
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
@@ -48,6 +48,10 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
 import qualified Data.Text.Normalize as Normalize
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.BCP47
+--
 
 data WriterState =
   WriterState { stInNote        :: Bool          -- true if we're in a note

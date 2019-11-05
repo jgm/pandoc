@@ -135,7 +135,7 @@ import System.IO.Error
 import System.IO (stderr)
 import qualified Data.Map as M
 import Text.Pandoc.Error
-import Text.Pandoc.BCP47 (Lang(..), parseBCP47, renderLang)
+-- import Text.Pandoc.BCP47 (Lang(..), parseBCP47, renderLang) TODO text: restore
 import Text.Pandoc.Legacy.Translations (Term(..), Translations, lookupTerm,
                                  readTranslations)
 import qualified Debug.Trace
@@ -144,6 +144,10 @@ import Text.Pandoc.Data (dataFiles)
 #else
 import qualified Paths_pandoc as Paths
 #endif
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.BCP47
+--
 
 -- | The PandocMonad typeclass contains all the potentially
 -- IO-related functions used in pandoc's readers and writers.

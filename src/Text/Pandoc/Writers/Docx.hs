@@ -36,7 +36,7 @@ import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
 import System.Random (randomR, StdGen, mkStdGen)
-import Text.Pandoc.BCP47 (getLang, renderLang)
+-- import Text.Pandoc.BCP47 (getLang, renderLang) TODO text: restore
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class as P
 import Data.Time
@@ -60,6 +60,10 @@ import Text.TeXMath
 import Text.XML.Light as XML
 import Text.XML.Light.Cursor as XMLC
 import Text.Pandoc.Writers.OOXML
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.BCP47
+--
 
 data ListMarker = NoMarker
                 | BulletMarker

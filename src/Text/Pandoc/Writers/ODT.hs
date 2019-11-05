@@ -24,7 +24,7 @@ import qualified Data.Map as Map
 import qualified Data.Text.Lazy as TL
 import Data.Time
 import System.FilePath (takeDirectory, takeExtension, (<.>))
-import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang)
+-- import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang) TODO text: restore
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
@@ -44,6 +44,7 @@ import Text.Pandoc.XML
 import Text.XML.Light
 
 -- TODO text: remove
+import Text.Pandoc.Legacy.BCP47
 import Text.Pandoc.Legacy.Options
 import qualified Text.TeXMath as TM
 import Text.TeXMath (DisplayType(..), writeMathML)

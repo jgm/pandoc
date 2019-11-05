@@ -39,7 +39,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Safe (minimumDef)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
-import Text.Pandoc.BCP47 (Lang (..), renderLang)
+-- import Text.Pandoc.BCP47 (Lang (..), renderLang) TODO text: restore
 import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad, PandocPure, getResourcePath, lookupEnv,
                           readFileFromDirs, report, setResourcePath,
@@ -66,6 +66,10 @@ import qualified Data.Text.Normalize as Normalize
 -- import Text.Pandoc.Extensions (getDefaultExtensions)
 -- import Text.Pandoc.Class (runIOorExplode, PandocIO)
 -- import Debug.Trace (traceShowId)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.BCP47
+--
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
 readLaTeX :: PandocMonad m

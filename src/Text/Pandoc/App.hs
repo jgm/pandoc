@@ -51,7 +51,7 @@ import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
                             IpynbOutput (..) )
 import Text.Pandoc.App.CommandLineOptions (parseOptions, options)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
-import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
+-- import Text.Pandoc.BCP47 (Lang (..), parseBCP47) TODO text: restore
 import Text.Pandoc.Legacy.Builder (setMeta) -- TODO text: remove Legacy
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), applyFilters)
 import Text.Pandoc.PDF (makePDF)
@@ -70,6 +70,7 @@ import System.Posix.Terminal (queryTerminal)
 -- TODO text: remove
 import Text.Pandoc hiding (MetaValue(..), lookupMeta, Format(..))
 import Text.Pandoc.Legacy.Builder (lookupMeta,  pattern Format)
+import Text.Pandoc.Legacy.BCP47
 --
 
 convertWithOpts :: Opt -> IO ()

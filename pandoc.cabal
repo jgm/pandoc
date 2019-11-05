@@ -557,6 +557,7 @@ library
                    , Text.Pandoc.Legacy.Logging
                    , Text.Pandoc.Legacy.MIME
                    , Text.Pandoc.Legacy.Options
+                   , Text.Pandoc.Legacy.BCP47
                    --
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,

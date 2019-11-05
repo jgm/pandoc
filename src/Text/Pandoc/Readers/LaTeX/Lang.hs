@@ -18,7 +18,11 @@ module Text.Pandoc.Readers.LaTeX.Lang
 where
 import Prelude
 import qualified Data.Map as M
-import Text.Pandoc.BCP47 (Lang(..))
+-- import Text.Pandoc.BCP47 (Lang(..)) TODO text: restore
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.BCP47
+--
 
 polyglossiaLangToBCP47 :: M.Map String (String -> Lang)
 polyglossiaLangToBCP47 = M.fromList

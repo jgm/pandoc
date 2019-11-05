@@ -21,7 +21,7 @@ import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
-import Text.Pandoc.BCP47
+import Text.Pandoc.Legacy.BCP47
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.ImageSize
