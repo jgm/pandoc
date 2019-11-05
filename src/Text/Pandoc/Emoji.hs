@@ -1,5 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE PatternSynonyms #-} -- TODO text: remove
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Emoji
    Copyright   : Copyright (C) 2015 John MacFarlane
@@ -14,13 +14,10 @@ Emoji symbol lookup from canonical string identifier.
 module Text.Pandoc.Emoji ( emojis, emojiToInline ) where
 import Prelude
 import qualified Data.Map as M
--- import Text.Pandoc.Definition (Inline (Span, Str)) TODO text: restore
+import qualified Data.Text as T
+import Text.Pandoc.Definition (Inline (Span, Str))
 
--- TODO text: remove
-import Text.Pandoc.Legacy.Definition (Inline, pattern Span, pattern Str)
---
-
-emojis :: M.Map String String
+emojis :: M.Map T.Text T.Text
 emojis = M.fromList
   [("+1","\128077")
   ,("-1","\128078")
@@ -1815,6 +1812,6 @@ emojis = M.fromList
   ,("zzz","\128164")
   ]
 
-emojiToInline :: String -> Maybe Inline
+emojiToInline :: T.Text -> Maybe Inline
 emojiToInline emojikey = makeSpan <$> M.lookup emojikey emojis
   where makeSpan = Span ("", ["emoji"], [("data-emoji", emojikey)]) . (:[]) . Str

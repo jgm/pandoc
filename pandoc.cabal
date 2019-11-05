@@ -558,6 +558,8 @@ library
                    , Text.Pandoc.Legacy.MIME
                    , Text.Pandoc.Legacy.Options
                    , Text.Pandoc.Legacy.BCP47
+                   , Text.Pandoc.Legacy.CSS
+                   , Text.Pandoc.Legacy.Emoji
                    --
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,

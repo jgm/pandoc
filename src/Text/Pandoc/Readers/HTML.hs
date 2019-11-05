@@ -49,7 +49,7 @@ import Text.HTML.TagSoup.Match
 import Text.Pandoc.Legacy.Builder (Blocks, HasMeta (..), Inlines, trimInlines) -- TODO text: remove Legacy
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad (..))
-import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
+import Text.Pandoc.Legacy.CSS (foldOrElse, pickStyleAttrProps)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Readers.LaTeX (rawLaTeXInline)
 import Text.Pandoc.Readers.LaTeX.Types (Macro)
