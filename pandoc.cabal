@@ -552,6 +552,7 @@ library
                    -- TODO text: temporarily exposed
                    , Text.Pandoc.Legacy.Extensions
                    , Text.Pandoc.Legacy.Shared
+                   , Text.Pandoc.Legacy.Highlighting
                    --
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,

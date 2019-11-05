@@ -45,7 +45,7 @@ import Text.Pandoc.Class (PandocMonad, PandocPure, getResourcePath, lookupEnv,
                           readFileFromDirs, report, setResourcePath,
                           setTranslations, translateTerm, trace, fileExists)
 import Text.Pandoc.Error (PandocError ( PandocParseError, PandocParsecError))
-import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
+import Text.Pandoc.Legacy.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options

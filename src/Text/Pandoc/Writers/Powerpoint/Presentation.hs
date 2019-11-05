@@ -59,7 +59,7 @@ import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Maybe (maybeToList, fromMaybe)
-import Text.Pandoc.Highlighting
+import Text.Pandoc.Legacy.Highlighting
 import qualified Data.Text as T
 import Control.Applicative ((<|>))
 import Skylighting

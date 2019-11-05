@@ -53,7 +53,7 @@ import Text.Blaze.Internal (preEscapedString, preEscapedText)
 import Text.Blaze.Html hiding (contents)
 import Text.DocTemplates (Context (..))
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtmlInline, highlight,
+import Text.Pandoc.Legacy.Highlighting (formatHtmlBlock, formatHtmlInline, highlight,
                                  styleToCss)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
