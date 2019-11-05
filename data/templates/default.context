@@ -121,7 +121,6 @@ $if(csl-refs)$
 	$endif$
 ]
 $endif$
-
 $if(includesource)$
 $for(sourcefile)$
 \attachment[file=$curdir$/$sourcefile$,method=hidden]
