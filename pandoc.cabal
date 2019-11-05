@@ -549,6 +549,9 @@ library
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.BCP47,
                    Text.Pandoc.Class
+                   -- TODO text: temporarily exposed
+                   , Text.Pandoc.Legacy.Extensions
+                   --
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,
                    Text.Pandoc.App.Opt,

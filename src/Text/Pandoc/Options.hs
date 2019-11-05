@@ -16,7 +16,7 @@
 Data structures and functions for representing parser and writer
 options.
 -}
-module Text.Pandoc.Options ( module Text.Pandoc.Extensions
+module Text.Pandoc.Options ( module Text.Pandoc.Legacy.Extensions -- TODO text: remove Legacy
                            , ReaderOptions(..)
                            , HTMLMathMethod (..)
                            , CiteMethod (..)
@@ -44,7 +44,7 @@ import qualified Data.Set as Set
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Skylighting (SyntaxMap, defaultSyntaxMap)
-import Text.Pandoc.Extensions
+import Text.Pandoc.Legacy.Extensions -- TODO text: remove Legacy
 import Text.Pandoc.Highlighting (Style, pygments)
 import Text.Pandoc.Shared (camelCaseToHyphenated)
 import Text.DocTemplates (Template)

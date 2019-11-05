@@ -64,7 +64,7 @@ import Data.Text (Text)
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
-import Text.Pandoc.Extensions
+import Text.Pandoc.Legacy.Extensions -- TODO text: remove Legacy
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.CommonMark
 import Text.Pandoc.Readers.Creole
