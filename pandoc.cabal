@@ -553,6 +553,7 @@ library
                    , Text.Pandoc.Legacy.Extensions
                    , Text.Pandoc.Legacy.Shared
                    , Text.Pandoc.Legacy.Highlighting
+                   , Text.Pandoc.Legacy.Translations
                    --
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,

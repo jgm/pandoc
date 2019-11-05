@@ -136,7 +136,7 @@ import System.IO (stderr)
 import qualified Data.Map as M
 import Text.Pandoc.Error
 import Text.Pandoc.BCP47 (Lang(..), parseBCP47, renderLang)
-import Text.Pandoc.Translations (Term(..), Translations, lookupTerm,
+import Text.Pandoc.Legacy.Translations (Term(..), Translations, lookupTerm,
                                  readTranslations)
 import qualified Debug.Trace
 #ifdef EMBED_DATA_FILES
