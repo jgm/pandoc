@@ -551,6 +551,7 @@ library
                    Text.Pandoc.Class
                    -- TODO text: temporarily exposed
                    , Text.Pandoc.Legacy.Extensions
+                   , Text.Pandoc.Legacy.Shared
                    --
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,
