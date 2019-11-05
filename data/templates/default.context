@@ -105,7 +105,6 @@ $endif$
 \setupxtable[body][]
 \setupxtable[foot][bottomframe=on]
 
-% Wrap CSL references in start-stop-environment
 $if(csl-refs)$
 \newdimen\cslhangindent
 \cslhangindent=1.5em
