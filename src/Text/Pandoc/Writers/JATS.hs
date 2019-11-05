@@ -30,7 +30,7 @@ import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Highlighting (languages, languagesByExtension)
 import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.MIME (getMimeType)
+import Text.Pandoc.Legacy.MIME (getMimeType)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Options
 import Text.DocLayout

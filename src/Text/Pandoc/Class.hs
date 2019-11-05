@@ -88,7 +88,7 @@ import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Shared (uriPathToPath) -- TODO text: remove Legacy
 import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
 import qualified Data.Time as IO (getCurrentTime)
-import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
+import Text.Pandoc.Legacy.MIME (MimeType, getMimeType, extensionFromMimeType)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.DocTemplates (TemplateMonad(..))
 import Data.Digest.Pure.SHA (sha1, showDigest)

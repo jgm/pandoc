@@ -37,7 +37,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Error (PandocError(..))
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Options
-import Text.Pandoc.MIME
+import Text.Pandoc.Legacy.MIME
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M

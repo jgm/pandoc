@@ -29,7 +29,7 @@ import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Data.Ipynb as Ipynb
 import Text.Pandoc.Class
-import Text.Pandoc.MIME (extensionFromMimeType)
+import Text.Pandoc.Legacy.MIME (extensionFromMimeType)
 import Text.Pandoc.UTF8
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Error

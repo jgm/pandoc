@@ -47,7 +47,7 @@ import Text.Pandoc.Legacy.Highlighting (highlight)
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType,
+import Text.Pandoc.Legacy.MIME (MimeType, extensionFromMimeType, getMimeType,
                          getMimeTypeDef)
 import Text.Pandoc.Options
 import Text.Pandoc.Writers.Docx.StyleMap

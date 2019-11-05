@@ -83,7 +83,7 @@ import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
 import Text.Pandoc.Class (PandocMonad, report, runPure)
 import Text.Pandoc.Error
 import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.MIME (mediaCategory)
+import Text.Pandoc.Legacy.MIME (mediaCategory)
 import Text.TeXMath
 import Text.XML.Light (elChildren, unode, unqual)
 import qualified Text.XML.Light as XML

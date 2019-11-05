@@ -22,7 +22,7 @@ import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Marshaling.MediaBag (pushIterator)
 import Text.Pandoc.Lua.Util (addFunction)
-import Text.Pandoc.MIME (MimeType)
+import Text.Pandoc.Legacy.MIME (MimeType)
 
 import qualified Data.ByteString.Lazy as BL
 import qualified Foreign.Lua as Lua

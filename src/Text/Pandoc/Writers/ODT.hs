@@ -30,7 +30,7 @@ import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
+import Text.Pandoc.Legacy.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
 import Text.DocLayout
 import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy (stringify, pandocVersion)

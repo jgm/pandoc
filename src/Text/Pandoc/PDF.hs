@@ -42,7 +42,7 @@ import qualified System.IO.Error as IE
 import Text.DocLayout (literal)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
-import Text.Pandoc.MIME (getMimeType)
+import Text.Pandoc.Legacy.MIME (getMimeType)
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
 import Text.Pandoc.Process (pipeProcess)
 import System.Process (readProcessWithExitCode)

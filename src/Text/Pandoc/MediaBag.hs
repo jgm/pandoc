@@ -30,7 +30,7 @@ import Data.Maybe (fromMaybe)
 import Data.Typeable (Typeable)
 import System.FilePath
 import qualified System.FilePath.Posix as Posix
-import Text.Pandoc.MIME (MimeType, getMimeTypeDef)
+import Text.Pandoc.Legacy.MIME (MimeType, getMimeTypeDef)
 
 -- | A container for a collection of binary resources, with names and
 -- mime types.  Note that a 'MediaBag' is a Monoid, so 'mempty'

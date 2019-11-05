@@ -19,7 +19,7 @@ import Foreign.Lua.Types.Peekable (reportValueOnFailure)
 import Foreign.Lua.Userdata (ensureUserdataMetatable, pushAnyWithMetatable,
                              toAnyWithName)
 import Text.Pandoc.MediaBag (MediaBag, mediaItems)
-import Text.Pandoc.MIME (MimeType)
+import Text.Pandoc.Legacy.MIME (MimeType)
 import Text.Pandoc.Lua.Marshaling.AnyValue (AnyValue (..))
 
 import qualified Data.ByteString.Lazy as BL
