@@ -41,7 +41,7 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Skylighting
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Legacy.Shared (safeRead) -- TODO text: remove Legacy
 
 highlightingStyles :: [(String, Style)]
 highlightingStyles =

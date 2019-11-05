@@ -43,7 +43,7 @@ import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (escapeURI, isURI, linesToPara)
+import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy (escapeURI, isURI, linesToPara)
 import Text.Pandoc.Writers.MediaWiki (highlightingLangs)
 
 data WriterState = WriterState {

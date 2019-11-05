@@ -31,7 +31,7 @@ import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
-import Text.Pandoc.Shared (linesToPara)
+import Text.Pandoc.Legacy.Shared (linesToPara)
 import Text.Pandoc.Templates (renderTemplate)
 import qualified Text.Pandoc.Translations as Term (Term(Figure, Table))
 import Text.Pandoc.Writers.Math

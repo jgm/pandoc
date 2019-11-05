@@ -28,7 +28,7 @@ import Text.Pandoc.Error (PandocError (PandocFilterError))
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Process (pipeProcess)
-import Text.Pandoc.Shared (pandocVersion)
+import Text.Pandoc.Legacy.Shared (pandocVersion)
 import qualified Control.Exception as E
 import qualified Text.Pandoc.UTF8 as UTF8
 

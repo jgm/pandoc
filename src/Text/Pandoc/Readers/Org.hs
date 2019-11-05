@@ -20,7 +20,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing (reportLogMessages)
-import Text.Pandoc.Shared (crFilter)
+import Text.Pandoc.Legacy.Shared (crFilter)
 
 import Control.Monad.Except (throwError)
 import Control.Monad.Reader (runReaderT)

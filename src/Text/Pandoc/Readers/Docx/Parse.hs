@@ -68,7 +68,7 @@ import Data.Maybe
 import System.FilePath
 import Text.Pandoc.Readers.Docx.Util
 import Text.Pandoc.Readers.Docx.Fields
-import Text.Pandoc.Shared (filteredFilesFromArchive, safeRead)
+import Text.Pandoc.Legacy.Shared (filteredFilesFromArchive, safeRead) -- TODO text: remove Legacy
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.TeXMath (Exp)
 -- import Text.TeXMath.Readers.OMML (readOMML) TODO text: restore

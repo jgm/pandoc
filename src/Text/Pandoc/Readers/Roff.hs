@@ -40,7 +40,7 @@ import qualified Data.Text as T
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
-import Text.Pandoc.Shared (safeRead, substitute)
+import Text.Pandoc.Legacy.Shared (safeRead, substitute)
 import Text.Parsec hiding (tokenPrim)
 import Text.Pandoc.RoffChar (characterCodes, combiningAccents)
 import qualified Data.Sequence as Seq

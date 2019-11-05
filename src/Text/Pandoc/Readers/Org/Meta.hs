@@ -27,7 +27,7 @@ import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Legacy.Shared (safeRead)
 
 import Control.Monad (mzero, void, when)
 import Data.Char (toLower)

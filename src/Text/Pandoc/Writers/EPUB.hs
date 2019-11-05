@@ -48,8 +48,8 @@ import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType)
 import Text.Pandoc.Options (EPUBVersion (..), HTMLMathMethod (..),
                             ObfuscationMethod (NoObfuscation), WrapOption (..),
                             WriterOptions (..))
-import Text.Pandoc.Shared (makeSections, normalizeDate, renderTags',
-                           safeRead, stringify, trim, uniqueIdent)
+import Text.Pandoc.Legacy.Shared (makeSections, normalizeDate, renderTags',
+                           safeRead, stringify, trim, uniqueIdent) -- TODO text: remove Legacy
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.UUID (getUUID)
 import Text.Pandoc.Walk (query, walk, walkM)

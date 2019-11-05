@@ -34,8 +34,8 @@ import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
-import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, isURI, linesToPara,
-                           removeFormatting, substitute, trimr)
+import Text.Pandoc.Legacy.Shared (camelCaseToHyphenated, escapeURI, isURI, linesToPara,
+                           removeFormatting, substitute, trimr) -- TODO text: remove Legacy
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocLayout (render, literal)
 import Text.Pandoc.Writers.Shared (defField, metaToContext)

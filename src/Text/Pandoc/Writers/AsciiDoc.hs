@@ -35,7 +35,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, space)
 import Text.DocLayout
-import Text.Pandoc.Shared
+import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 

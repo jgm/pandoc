@@ -25,7 +25,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.Markdown (readMarkdown)
-import Text.Pandoc.Shared (crFilter, blocksToInlines')
+import Text.Pandoc.Legacy.Shared (crFilter, blocksToInlines')
 import Text.XML.Light
 
 type OPML m = StateT OPMLState m

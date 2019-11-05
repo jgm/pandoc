@@ -28,7 +28,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (crFilter, splitBy, trim)
+import Text.Pandoc.Legacy.Shared (crFilter, splitBy, trim) -- TODO text: remove Legacy
 
 
 -- | Parse Haddock markup and return a 'Pandoc' document.

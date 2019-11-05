@@ -29,7 +29,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
-import Text.Pandoc.Shared (underlineSpan)
+import Text.Pandoc.Legacy.Shared (underlineSpan)
 -- import Text.TeXMath (DisplayType (..), readTeX, writePandoc) -- TODO text: restore
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 

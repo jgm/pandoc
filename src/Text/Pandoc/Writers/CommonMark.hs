@@ -27,7 +27,7 @@ import Network.HTTP (urlEncode)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (capitalize, isHeaderBlock, isTightList,
+import Text.Pandoc.Legacy.Shared (capitalize, isHeaderBlock, isTightList,
     linesToPara, onlySimpleTableCells, substitute, taskListItemToAscii)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk (walk, walkM)

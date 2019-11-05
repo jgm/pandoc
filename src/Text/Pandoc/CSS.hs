@@ -19,7 +19,7 @@ module Text.Pandoc.CSS ( foldOrElse
 where
 
 import Prelude
-import Text.Pandoc.Shared (trim)
+import Text.Pandoc.Legacy.Shared (trim)
 import Text.Parsec
 import Text.Parsec.String
 

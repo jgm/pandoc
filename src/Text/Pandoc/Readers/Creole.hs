@@ -24,7 +24,7 @@ import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed)
-import Text.Pandoc.Shared (crFilter)
+import Text.Pandoc.Legacy.Shared (crFilter)
 
 
 -- | Read creole from an input string and return a Pandoc document.

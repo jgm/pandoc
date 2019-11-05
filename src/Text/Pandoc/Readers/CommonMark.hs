@@ -25,7 +25,7 @@ import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (uniqueIdent, taskListItemFromAscii)
+import Text.Pandoc.Legacy.Shared (uniqueIdent, taskListItemFromAscii) -- TODO text: remove Legacy
 import Text.Pandoc.Walk (walkM)
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.

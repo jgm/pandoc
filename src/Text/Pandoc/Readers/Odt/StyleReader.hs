@@ -52,7 +52,7 @@ import qualified Data.Set as S
 
 import qualified Text.XML.Light as XML
 
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Legacy.Shared (safeRead) -- TODO text: remove Legacy
 
 import Text.Pandoc.Readers.Odt.Arrows.Utils
 

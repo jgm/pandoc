@@ -16,7 +16,7 @@ module Text.Pandoc.Readers.Native ( readNative ) where
 import Prelude
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Legacy.Shared (safeRead)
 
 import Control.Monad.Except (throwError)
 import Data.Text (Text, unpack)

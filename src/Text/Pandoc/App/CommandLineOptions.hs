@@ -46,7 +46,7 @@ import Text.Pandoc.Legacy.Builder (setMeta) -- TODO text: remove Legacy
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..))
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
-import Text.Pandoc.Shared (ordNub, safeRead, defaultUserDataDirs)
+import Text.Pandoc.Legacy.Shared (ordNub, safeRead, defaultUserDataDirs)
 import Text.Printf
 
 #ifdef EMBED_DATA_FILES

@@ -56,7 +56,7 @@ import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
 import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.Readers.LaTeX.Lang (polyglossiaLangToBCP47,
                                        babelLangToBCP47)
-import Text.Pandoc.Shared
+import Text.Pandoc.Legacy.Shared
 import qualified Text.Pandoc.Translations as Translations
 import Text.Pandoc.Walk
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy

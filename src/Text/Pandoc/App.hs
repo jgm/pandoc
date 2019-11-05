@@ -57,7 +57,7 @@ import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), applyFilters)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
-import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
+import Text.Pandoc.Legacy.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
          headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput,
          defaultUserDataDirs)
 import Text.Pandoc.Writers.Shared (lookupMetaString)

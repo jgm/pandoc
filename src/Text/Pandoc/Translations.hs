@@ -37,7 +37,7 @@ import qualified Data.Map as M
 import Data.Text as T
 import qualified Data.YAML as YAML
 import GHC.Generics (Generic)
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Legacy.Shared (safeRead) -- TODO text: remove Legacy
 import qualified Text.Pandoc.UTF8 as UTF8
 
 data Term =

@@ -21,7 +21,7 @@ import Data.Time
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Options
 import Text.DocLayout
-import Text.Pandoc.Shared
+import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Markdown (writeMarkdown)

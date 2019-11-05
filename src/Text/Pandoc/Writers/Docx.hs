@@ -51,7 +51,7 @@ import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType,
                          getMimeTypeDef)
 import Text.Pandoc.Options
 import Text.Pandoc.Writers.Docx.StyleMap
-import Text.Pandoc.Shared
+import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared

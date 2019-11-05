@@ -41,7 +41,7 @@ import Text.Pandoc.Class (PandocMonad, insertMedia, report)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (crFilter)
+import Text.Pandoc.Legacy.Shared (crFilter)
 import Text.XML.Light
 
 type FB2 m = StateT FB2State m

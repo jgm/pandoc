@@ -53,7 +53,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Logging
 import Text.Pandoc.Walk
 import Data.Time (UTCTime)
-import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
+import qualified Text.Pandoc.Legacy.Shared as Shared -- so we don't overlap "Element" -- TODO text: remove Legacy
 import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
                                  , lookupMetaString, toTableOfContents)
 import qualified Data.Map as M

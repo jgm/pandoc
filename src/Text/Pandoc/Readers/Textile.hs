@@ -52,7 +52,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
-import Text.Pandoc.Shared (crFilter, trim, underlineSpan)
+import Text.Pandoc.Legacy.Shared (crFilter, trim, underlineSpan)
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: PandocMonad m

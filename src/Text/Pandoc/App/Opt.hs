@@ -34,7 +34,7 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             ReferenceLocation (EndOfDocument),
                             ObfuscationMethod (NoObfuscation),
                             CiteMethod (Citeproc))
-import Text.Pandoc.Shared (camelCaseToHyphenated)
+import Text.Pandoc.Legacy.Shared (camelCaseToHyphenated)
 import Text.DocLayout (render)
 import Text.DocTemplates (Context(..), Val(..))
 import Data.Text (Text, unpack)

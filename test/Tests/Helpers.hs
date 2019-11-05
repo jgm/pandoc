@@ -38,7 +38,7 @@ import Text.Pandoc.Builder (Blocks, Inlines, doc, plain)
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (trimr)
+import Text.Pandoc.Legacy.Shared (trimr)
 import Text.Pandoc.Writers.Native (writeNative)
 import Text.Printf
 

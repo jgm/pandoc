@@ -38,7 +38,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag)
-import Text.Pandoc.Shared (crFilter, safeRead, stringify, stripTrailingNewlines,
+import Text.Pandoc.Legacy.Shared (crFilter, safeRead, stringify, stripTrailingNewlines,
                            trim)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.XML (fromEntities)

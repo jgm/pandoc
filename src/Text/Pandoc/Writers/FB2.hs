@@ -39,8 +39,8 @@ import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
-import Text.Pandoc.Shared (capitalize, isURI, orderedListMarkers,
-                           makeSections)
+import Text.Pandoc.Legacy.Shared (capitalize, isURI, orderedListMarkers,
+                           makeSections) -- TODO text: remove Legacy
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 
 -- | Data to be written at the end of the document:

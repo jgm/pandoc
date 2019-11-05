@@ -32,7 +32,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Aeson as Aeson
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Shared (safeRead, isURI)
+import Text.Pandoc.Legacy.Shared (safeRead, isURI) -- TODO text: remove Legacy
 import Text.Pandoc.Writers.Shared (metaToContext')
 import Text.Pandoc.Writers.Markdown (writeMarkdown)
 import qualified Data.Text.Encoding as TE

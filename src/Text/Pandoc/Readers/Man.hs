@@ -28,7 +28,7 @@ import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Walk (query)
-import Text.Pandoc.Shared (crFilter, mapLeft)
+import Text.Pandoc.Legacy.Shared (crFilter, mapLeft)
 import Text.Pandoc.Readers.Roff  -- TODO explicit imports
 import Text.Parsec hiding (tokenPrim)
 import qualified Text.Parsec as Parsec

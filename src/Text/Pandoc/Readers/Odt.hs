@@ -37,7 +37,7 @@ import Text.Pandoc.Readers.Odt.StyleReader
 
 import Text.Pandoc.Readers.Odt.Generic.Fallible
 import Text.Pandoc.Readers.Odt.Generic.XMLConverter
-import Text.Pandoc.Shared (filteredFilesFromArchive)
+import Text.Pandoc.Legacy.Shared (filteredFilesFromArchive)
 
 readOdt :: PandocMonad m
         => ReaderOptions

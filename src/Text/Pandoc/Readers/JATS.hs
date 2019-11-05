@@ -27,7 +27,7 @@ import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (underlineSpan, crFilter, safeRead)
+import Text.Pandoc.Legacy.Shared (underlineSpan, crFilter, safeRead) -- TODO text: remove Legacy
 -- import Text.TeXMath (readMathML, writeTeX) TODO text: restore
 import Text.XML.Light
 import qualified Data.Set as S (fromList, member)

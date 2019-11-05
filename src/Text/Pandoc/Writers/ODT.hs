@@ -33,7 +33,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
 import Text.DocLayout
-import Text.Pandoc.Shared (stringify, pandocVersion)
+import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy (stringify, pandocVersion)
 import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
                                    fixDisplayMath)
 import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toStringLazy)

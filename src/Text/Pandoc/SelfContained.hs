@@ -34,7 +34,7 @@ import Text.Pandoc.Class (PandocMonad (..), fetchItem, getInputFiles, report,
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType)
-import Text.Pandoc.Shared (isURI, renderTags', trim)
+import Text.Pandoc.Legacy.Shared (isURI, renderTags', trim)
 import Text.Pandoc.UTF8 (toString)
 import Text.Parsec (ParsecT, runParserT)
 import qualified Text.Parsec as P

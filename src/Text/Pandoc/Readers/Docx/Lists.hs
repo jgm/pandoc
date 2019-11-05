@@ -25,7 +25,7 @@ import Data.String (fromString)
 import Text.Pandoc.Generic (bottomUp)
 -- import Text.Pandoc.JSON -- TODO text: restore
 import Text.Pandoc.Readers.Docx.Parse (ParaStyleName)
-import Text.Pandoc.Shared (trim, safeRead)
+import Text.Pandoc.Legacy.Shared (trim, safeRead) -- TODO text: remove Legacy
 
 -- TODO text: remove
 import qualified Text.Pandoc.JSON as TP

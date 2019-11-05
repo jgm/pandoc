@@ -66,6 +66,6 @@ import Text.Pandoc.Generic
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Readers
-import Text.Pandoc.Shared (pandocVersion)
+import Text.Pandoc.Legacy.Shared (pandocVersion)
 import Text.Pandoc.Templates
 import Text.Pandoc.Writers

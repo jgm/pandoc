@@ -30,7 +30,7 @@ import Text.Pandoc.Builder (Blocks, Inlines)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (compactify, compactifyDL, safeRead)
+import Text.Pandoc.Legacy.Shared (compactify, compactifyDL, safeRead)
 
 import Control.Monad (foldM, guard, mzero, void)
 import Data.Char (isSpace, toLower, toUpper)

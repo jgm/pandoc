@@ -37,7 +37,7 @@ import Text.Pandoc.ImageSize (lengthToDim, scaleDimension)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
-import Text.Pandoc.Shared
+import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Printf (printf)
 

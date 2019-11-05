@@ -80,7 +80,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Readers.Docx.Combine
 import Text.Pandoc.Readers.Docx.Lists
 import Text.Pandoc.Readers.Docx.Parse
-import Text.Pandoc.Shared
+import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import Text.Pandoc.Walk
 -- import Text.TeXMath (writeTeX) -- TODO text: restore
 import Control.Monad.Except (throwError)

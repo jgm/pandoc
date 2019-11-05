@@ -74,8 +74,8 @@ import Text.Pandoc.Parsing (ParserState, ParserT, blanklines, emailAddress,
                             many1Till, orderedListMarker, readWithM,
                             registerHeader, spaceChar, stateMeta,
                             stateOptions, uri)
-import Text.Pandoc.Shared (crFilter, splitBy, stringify, stripFirstAndLast,
-                           isURI)
+import Text.Pandoc.Legacy.Shared (crFilter, splitBy, stringify, stripFirstAndLast,
+                           isURI) -- TODO text: remove Legacy
 import Text.Parsec.Char (alphaNum, anyChar, char, newline, noneOf, oneOf, space,
                          spaces, string)
 import Text.Parsec.Combinator (between, choice, count, eof, lookAhead, many1,

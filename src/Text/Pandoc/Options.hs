@@ -46,7 +46,7 @@ import GHC.Generics (Generic)
 import Skylighting (SyntaxMap, defaultSyntaxMap)
 import Text.Pandoc.Legacy.Extensions -- TODO text: remove Legacy
 import Text.Pandoc.Highlighting (Style, pygments)
-import Text.Pandoc.Shared (camelCaseToHyphenated)
+import Text.Pandoc.Legacy.Shared (camelCaseToHyphenated)
 import Text.DocTemplates (Template)
 import Data.Aeson.TH (deriveJSON, defaultOptions, Options(..),
                       SumEncoding(..))

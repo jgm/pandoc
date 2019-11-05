@@ -33,8 +33,8 @@ import Data.Time (defaultTimeLocale)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (space, spaces, uri)
-import Text.Pandoc.Shared (compactify, compactifyDL, crFilter, escapeURI,
-                           underlineSpan)
+import Text.Pandoc.Legacy.Shared (compactify, compactifyDL, crFilter, escapeURI,
+                           underlineSpan) -- TODO text: remove Legacy
 
 type T2T = ParserT String ParserState (Reader T2TMeta)
 

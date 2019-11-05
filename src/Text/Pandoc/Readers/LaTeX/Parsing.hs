@@ -90,7 +90,7 @@ import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
                             space, spaces, withRaw, (<|>))
 import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
                                         ArgSpec (..), Tok (..), TokType (..))
-import Text.Pandoc.Shared
+import Text.Pandoc.Legacy.Shared
 import Text.Parsec.Pos
 -- import Debug.Trace
 

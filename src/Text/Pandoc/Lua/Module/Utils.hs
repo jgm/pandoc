@@ -31,7 +31,7 @@ import qualified Data.ByteString.Lazy as BSL
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
-import qualified Text.Pandoc.Shared as Shared
+import qualified Text.Pandoc.Legacy.Shared as Shared
 
 -- TODO text: remove
 import Text.Pandoc.Legacy.Definition ( Pandoc, Meta, MetaValue (..), Block, Inline

@@ -31,7 +31,7 @@ import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
-import Text.Pandoc.Shared (crFilter)
+import Text.Pandoc.Legacy.Shared (crFilter)
 import Text.Pandoc.XML (fromEntities)
 
 -- | Read twiki from an input string and return a Pandoc document.

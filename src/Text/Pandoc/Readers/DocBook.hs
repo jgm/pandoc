@@ -27,7 +27,7 @@ import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging (LogMessage(..))
-import Text.Pandoc.Shared (crFilter, safeRead)
+import Text.Pandoc.Legacy.Shared (crFilter, safeRead) -- TODO text: remove Legacy
 -- import Text.TeXMath (readMathML, writeTeX) -- TODO text: restore
 import Text.XML.Light
 

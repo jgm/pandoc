@@ -40,7 +40,7 @@ import Text.Pandoc.Extensions (Extension (Ext_raw_html), enableExtension)
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Options (ReaderOptions (..))
 import Text.Pandoc.Readers.HTML (readHtml)
-import Text.Pandoc.Shared (addMetaField, collapseFilePath, escapeURI)
+import Text.Pandoc.Legacy.Shared (addMetaField, collapseFilePath, escapeURI)
 import qualified Text.Pandoc.UTF8 as UTF8 (toStringLazy)
 import Text.Pandoc.Walk (query, walk)
 import Text.XML.Light

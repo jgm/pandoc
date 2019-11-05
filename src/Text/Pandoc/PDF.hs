@@ -46,7 +46,7 @@ import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
 import Text.Pandoc.Process (pipeProcess)
 import System.Process (readProcessWithExitCode)
-import Text.Pandoc.Shared (inDirectory, stringify)
+import Text.Pandoc.Legacy.Shared (inDirectory, stringify)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Writers.Shared (getField, metaToContext)

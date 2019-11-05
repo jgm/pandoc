@@ -30,7 +30,7 @@ import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Filter (Filter (LuaFilter), applyFilters)
 import Text.Pandoc.Lua (runLua)
 import Text.Pandoc.Options (def)
-import Text.Pandoc.Shared (pandocVersion)
+import Text.Pandoc.Legacy.Shared (pandocVersion)
 
 import qualified Foreign.Lua as Lua
 import qualified Data.ByteString.Char8 as BS

@@ -61,7 +61,7 @@ import Text.Pandoc.Options (
     ReaderOptions (readerExtensions, readerStripComments),
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
-import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
+import Text.Pandoc.Legacy.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
                            extractSpaces, htmlSpanLikeElements,
                            onlySimpleTableCells, safeRead, underlineSpan)
 import Text.Pandoc.Walk

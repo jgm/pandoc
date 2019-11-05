@@ -52,7 +52,7 @@ import qualified Text.Pandoc.Legacy.Builder as Builder -- TODO text: remove lega
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Options
 import Text.DocLayout
-import Text.Pandoc.Shared (stringify, makeSections, deNote, deLink)
+import Text.Pandoc.Legacy.Shared (stringify, makeSections, deNote, deLink) -- TODO text: remove Legacy
 import Text.Pandoc.Walk (walk)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (escapeStringForXML)

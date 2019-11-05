@@ -40,7 +40,7 @@ import qualified Text.XML.Light as XML
 
 import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
-import Text.Pandoc.Shared
+import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import Text.Pandoc.Extensions (extensionsFromList, Extension(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 
