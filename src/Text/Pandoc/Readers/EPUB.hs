@@ -38,12 +38,16 @@ import Text.Pandoc.Legacy.Definition hiding (Attr) -- TODO text: remove Legacy
 import Text.Pandoc.Error
 import Text.Pandoc.Extensions (Extension (Ext_raw_html), enableExtension)
 import Text.Pandoc.Legacy.MIME (MimeType)
-import Text.Pandoc.Options (ReaderOptions (..))
+-- import Text.Pandoc.Options (ReaderOptions (..)) TODO text: restore
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Legacy.Shared (addMetaField, collapseFilePath, escapeURI)
 import qualified Text.Pandoc.UTF8 as UTF8 (toStringLazy)
 import Text.Pandoc.Walk (query, walk)
 import Text.XML.Light
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Options
+--
 
 type Items = M.Map String (FilePath, MimeType)
 

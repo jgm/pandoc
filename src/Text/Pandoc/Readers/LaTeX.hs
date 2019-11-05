@@ -48,7 +48,7 @@ import Text.Pandoc.Error (PandocError ( PandocParseError, PandocParsecError))
 import Text.Pandoc.Legacy.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
                             optional, space, spaces, withRaw, (<|>))
 import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),

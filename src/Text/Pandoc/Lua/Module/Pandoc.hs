@@ -27,9 +27,13 @@ import Text.Pandoc.Definition (Block, Inline)
 import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter, SingletonsList (..))
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Walk (Walkable)
-import Text.Pandoc.Options (ReaderOptions (readerExtensions))
+-- import Text.Pandoc.Options (ReaderOptions (readerExtensions)) TODO text: restore
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.Readers (Reader (..), getReader)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Options
+--
 
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BSL

@@ -38,7 +38,7 @@ import Text.Pandoc.Legacy.Highlighting (formatLaTeXBlock, formatLaTeXInline, hig
                                  styleToLaTeX, toListingsLanguage)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.DocLayout
 import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import Text.Pandoc.Slides

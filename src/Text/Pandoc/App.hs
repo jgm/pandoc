@@ -69,7 +69,7 @@ import System.Posix.Terminal (queryTerminal)
 
 -- TODO text: remove
 import Text.Pandoc hiding (MetaValue(..), lookupMeta, Format(..))
-import Text.Pandoc.Legacy.Builder (lookupMeta, MetaValue(..), pattern MetaString, Format, pattern Format)
+import Text.Pandoc.Legacy.Builder (lookupMeta,  pattern Format)
 --
 
 convertWithOpts :: Opt -> IO ()

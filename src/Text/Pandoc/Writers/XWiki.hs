@@ -42,7 +42,7 @@ import Data.Text (Text, intercalate, pack, replace, split)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy (escapeURI, isURI, linesToPara)
 import Text.Pandoc.Writers.MediaWiki (highlightingLangs)
 

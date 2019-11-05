@@ -26,7 +26,7 @@ import qualified Data.Text as T
 import Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Error (PandocError (PandocParsecError))
 -- import Text.Pandoc.Logging (LogMessage(..)) TODO text: restore
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Walk (query)
 import Text.Pandoc.Legacy.Shared (crFilter, mapLeft)

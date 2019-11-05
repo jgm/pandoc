@@ -27,7 +27,7 @@ import Text.Pandoc.Builder (Inlines)
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
 import Text.Pandoc.Legacy.Shared (underlineSpan)
 -- import Text.TeXMath (DisplayType (..), readTeX, writePandoc) -- TODO text: restore

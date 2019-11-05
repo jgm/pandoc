@@ -18,7 +18,7 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.MediaBag (MediaBag, mediaDirectory)
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Readers.EPUB
 
 getMediaBag :: FilePath -> IO MediaBag

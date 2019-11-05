@@ -27,7 +27,7 @@ import Codec.Archive.Zip
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Options (WriterOptions)
+import Text.Pandoc.Legacy.Options (WriterOptions)
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
 import Text.Pandoc.Writers.Powerpoint.Presentation (documentToPresentation)
 import Text.Pandoc.Writers.Powerpoint.Output (presentationToArchive)

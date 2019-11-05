@@ -18,8 +18,12 @@ import Data.List (intersperse)
 import Data.Text (Text)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
-import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
+-- import Text.Pandoc.Options (WrapOption (..), WriterOptions (..)) TODO text: restore
 import Text.DocLayout
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Options
+--
 
 prettyList :: [Doc Text] -> Doc Text
 prettyList ds =

@@ -13,7 +13,7 @@ import Text.Pandoc.Class
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging
 -- import Text.TeXMath (DisplayType (..), Exp, readTeX, writePandoc) TODO text: restore
-import Text.Pandoc.Options (defaultMathJaxURL, defaultKaTeXURL)
+import Text.Pandoc.Legacy.Options (defaultMathJaxURL, defaultKaTeXURL)
 
 -- TODO text: remove
 import qualified Text.TeXMath as TM

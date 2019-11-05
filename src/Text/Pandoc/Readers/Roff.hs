@@ -39,7 +39,7 @@ import qualified Data.Map as M
 import Data.List (intercalate)
 import qualified Data.Text as T
 -- import Text.Pandoc.Logging (LogMessage(..)) TODO text: restore
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Legacy.Shared (safeRead, substitute)
 import Text.Parsec hiding (tokenPrim)

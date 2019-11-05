@@ -45,9 +45,9 @@ import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.MIME (MimeType, extensionFromMimeType, getMimeType)
-import Text.Pandoc.Options (EPUBVersion (..), HTMLMathMethod (..),
-                            ObfuscationMethod (NoObfuscation), WrapOption (..),
-                            WriterOptions (..))
+-- import Text.Pandoc.Options (EPUBVersion (..), HTMLMathMethod (..),
+--                             ObfuscationMethod (NoObfuscation), WrapOption (..),
+--                             WriterOptions (..)) TODO text: restore
 import Text.Pandoc.Legacy.Shared (makeSections, normalizeDate, renderTags',
                            safeRead, stringify, trim, uniqueIdent) -- TODO text: remove Legacy
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -61,6 +61,10 @@ import Text.XML.Light (Attr (..), Element (..), Node (..), QName (..),
 import Text.Pandoc.XML (escapeStringForXML)
 import Text.DocTemplates (FromContext(lookupContext), Context(..),
                           ToContext(toVal), Val(..))
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Options
+--
 
 -- A Chapter includes a list of blocks.
 data Chapter = Chapter [Block]

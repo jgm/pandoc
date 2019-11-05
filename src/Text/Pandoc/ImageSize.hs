@@ -45,7 +45,7 @@ import Text.Pandoc.Legacy.Shared (safeRead) -- TODO text: remove Legacy
 import Data.Default (Default)
 import Numeric (showFFloat)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove legacy
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Text.XML.Light as Xml
 import qualified Data.Map as M

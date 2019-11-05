@@ -38,10 +38,14 @@ import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
+-- import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def) TODO text: restore
 import Text.Pandoc.Legacy.Shared (capitalize, isURI, orderedListMarkers,
                            makeSections) -- TODO text: remove Legacy
 import Text.Pandoc.Writers.Shared (lookupMetaString)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Options
+--
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.

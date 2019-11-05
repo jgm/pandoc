@@ -49,7 +49,7 @@ import Data.Text (Text)
 import Text.Pandoc.Builder (Blocks)
 import Text.Pandoc.Definition (Meta (..), nullMeta)
 import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Options (ReaderOptions (..))
+-- import Text.Pandoc.Legacy.Options (ReaderOptions (..)) TODO text: restore
 import Text.Pandoc.Parsing (Future, HasIdentifierList (..),
                             HasIncludeFiles (..), HasLastStrPosition (..),
                             HasLogMessages (..), HasMacros (..),
@@ -57,6 +57,10 @@ import Text.Pandoc.Parsing (Future, HasIdentifierList (..),
                             ParserContext (..), QuoteContext (..), SourcePos,
                             askF, asksF, returnF, runF, trimInlinesF)
 import Text.Pandoc.Readers.LaTeX.Types (Macro)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Options (ReaderOptions)
+--
 
 -- | This is used to delay evaluation until all relevant information has been
 -- parsed and made available in the parser state.

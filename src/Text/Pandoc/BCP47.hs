@@ -24,7 +24,7 @@ import Data.Char (isAlphaNum, isAscii, isLetter, isLower, isUpper, toLower,
                   toUpper)
 import Data.List (intercalate)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.DocTemplates (FromContext(..))
 import qualified Data.Text as T
 import qualified Text.Parsec as P

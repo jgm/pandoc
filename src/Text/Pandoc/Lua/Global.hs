@@ -25,7 +25,7 @@ import Text.Pandoc.Class (CommonState)
 import Text.Pandoc.Definition (Pandoc (Pandoc), pandocTypesVersion)
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Util (addFunction)
-import Text.Pandoc.Options (ReaderOptions)
+import Text.Pandoc.Legacy.Options (ReaderOptions)
 
 import qualified Foreign.Lua as Lua
 

@@ -196,7 +196,7 @@ import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad, readFileFromDirs, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Readers.LaTeX.Types (Macro)
 import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)

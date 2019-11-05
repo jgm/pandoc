@@ -29,7 +29,7 @@ import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Lua (Global (..), LuaException (LuaException),
                         runLua, setGlobals)
 import Text.Pandoc.Lua.Util (addField, dofileWithTraceback)
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Templates (renderTemplate)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Writers.Shared

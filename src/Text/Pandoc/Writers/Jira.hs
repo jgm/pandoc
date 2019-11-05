@@ -23,13 +23,17 @@ import Data.Text (Text, pack)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging (LogMessage (BlockNotRendered, InlineNotRendered))
-import Text.Pandoc.Options (WriterOptions (writerTemplate))
+-- import Text.Pandoc.Options (WriterOptions (writerTemplate)) TODO text: restore
 import Text.Pandoc.Legacy.Shared (blocksToInlines, linesToPara)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared (metaToContext, defField)
 import qualified Data.Text as T
 import Text.DocLayout (literal, render)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Options
+--
 
 data WriterState = WriterState
   { stNotes     :: [Text]      -- Footnotes

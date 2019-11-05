@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-} -- TODO text: remove
 {- |
    Module      : Tests.Readers.Org.Inline.Smart
    Copyright   : © 2014-2019 Albert Krewinkel
@@ -17,10 +18,16 @@ import Prelude
 import Data.Text (Text)
 import Test.Tasty (TestTree)
 import Tests.Helpers ((=?>), purely, test)
-import Text.Pandoc (ReaderOptions (readerExtensions),
+-- import Text.Pandoc (ReaderOptions (readerExtensions),
+--                     Extension (Ext_smart), def, enableExtension,
+--                     getDefaultExtensions, readOrg) TODO text: restore
+import Text.Pandoc.Builder
+
+-- TODO text: remove
+import Text.Pandoc (ReaderOptions, readerExtensions,
                     Extension (Ext_smart), def, enableExtension,
                     getDefaultExtensions, readOrg)
-import Text.Pandoc.Builder
+--
 
 orgSmart :: Text -> Pandoc
 orgSmart = purely $

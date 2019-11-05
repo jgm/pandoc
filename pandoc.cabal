@@ -556,6 +556,7 @@ library
                    , Text.Pandoc.Legacy.Translations
                    , Text.Pandoc.Legacy.Logging
                    , Text.Pandoc.Legacy.MIME
+                   , Text.Pandoc.Legacy.Options
                    --
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,

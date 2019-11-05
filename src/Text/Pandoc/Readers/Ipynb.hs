@@ -22,7 +22,7 @@ import Data.Char (isDigit)
 import Data.List (isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Digest.Pure.SHA (sha1, showDigest)
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import qualified Data.Scientific as Scientific
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging

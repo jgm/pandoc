@@ -49,7 +49,7 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.MIME (MimeType, extensionFromMimeType, getMimeType,
                          getMimeTypeDef)
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Writers.Docx.StyleMap
 import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import Text.Pandoc.Walk

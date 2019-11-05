@@ -22,7 +22,7 @@ import Data.Text (Text, pack, unpack)
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad)
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.Markdown (readMarkdown)
 import Text.Pandoc.Legacy.Shared (crFilter, blocksToInlines')

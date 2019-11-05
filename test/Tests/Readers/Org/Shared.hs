@@ -22,9 +22,13 @@ import Data.List (intersperse)
 import Data.Text (Text)
 import Tests.Helpers (ToString, purely, test)
 import Test.Tasty (TestTree)
-import Text.Pandoc (Pandoc, ReaderOptions (readerExtensions),
-                    def, getDefaultExtensions, readOrg)
+-- import Text.Pandoc (Pandoc, ReaderOptions (readerExtensions),
+--                     def, getDefaultExtensions, readOrg) TODO text: restore
 import Text.Pandoc.Legacy.Builder (Inlines, smallcaps, space, spanWith, str) -- TODO text: remove Legacy
+
+-- TODO text: remove
+import Text.Pandoc
+--
 
 org :: Text -> Pandoc
 org = purely $ readOrg def{ readerExtensions = getDefaultExtensions "org" }

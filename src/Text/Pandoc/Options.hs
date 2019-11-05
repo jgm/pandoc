@@ -16,7 +16,7 @@
 Data structures and functions for representing parser and writer
 options.
 -}
-module Text.Pandoc.Options ( module Text.Pandoc.Legacy.Extensions -- TODO text: remove Legacy
+module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , ReaderOptions(..)
                            , HTMLMathMethod (..)
                            , CiteMethod (..)
@@ -36,17 +36,18 @@ module Text.Pandoc.Options ( module Text.Pandoc.Legacy.Extensions -- TODO text: 
 import Prelude
 import Control.Applicative ((<|>))
 import Data.Char (toLower)
+import Data.Maybe (fromMaybe)
 import Data.Data (Data)
 import Data.Default
-import Data.Text (Text, unpack)
+import Data.Text (Text)
 import Text.DocTemplates (Context(..))
 import qualified Data.Set as Set
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Skylighting (SyntaxMap, defaultSyntaxMap)
-import Text.Pandoc.Legacy.Extensions -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Highlighting (Style, pygments)
-import Text.Pandoc.Legacy.Shared (camelCaseToHyphenated)
+import Text.Pandoc.Extensions
+import Text.Pandoc.Highlighting (Style, pygments)
+import Text.Pandoc.Shared (camelCaseToHyphenated)
 import Text.DocTemplates (Template)
 import Data.Aeson.TH (deriveJSON, defaultOptions, Options(..),
                       SumEncoding(..))
@@ -60,10 +61,10 @@ data ReaderOptions = ReaderOptions{
        , readerStandalone            :: Bool -- ^ Standalone document with header
        , readerColumns               :: Int  -- ^ Number of columns in terminal
        , readerTabStop               :: Int  -- ^ Tab stop
-       , readerIndentedCodeClasses   :: [String] -- ^ Default classes for
+       , readerIndentedCodeClasses   :: [Text] -- ^ Default classes for
                                        -- indented code blocks
-       , readerAbbreviations         :: Set.Set String -- ^ Strings to treat as abbreviations
-       , readerDefaultImageExtension :: String -- ^ Default extension for images
+       , readerAbbreviations         :: Set.Set Text -- ^ Strings to treat as abbreviations
+       , readerDefaultImageExtension :: Text -- ^ Default extension for images
        , readerTrackChanges          :: TrackChanges -- ^ Track changes setting for docx
        , readerStripComments         :: Bool -- ^ Strip HTML comments instead of parsing as raw HTML
 } deriving (Show, Read, Data, Typeable, Generic)
@@ -84,7 +85,7 @@ instance Default ReaderOptions
                , readerStripComments         = False
                }
 
-defaultAbbrevs :: Set.Set String
+defaultAbbrevs :: Set.Set Text
 defaultAbbrevs = Set.fromList
                  [ "Mr.", "Mrs.", "Ms.", "Capt.", "Dr.", "Prof.",
                    "Gen.", "Gov.", "e.g.", "i.e.", "Sgt.", "St.",
@@ -99,11 +100,11 @@ defaultAbbrevs = Set.fromList
 data EPUBVersion = EPUB2 | EPUB3 deriving (Eq, Show, Read, Data, Typeable, Generic)
 
 data HTMLMathMethod = PlainMath
-                    | WebTeX String               -- url of TeX->image script.
+                    | WebTeX Text               -- url of TeX->image script.
                     | GladTeX
                     | MathML
-                    | MathJax String              -- url of MathJax.js
-                    | KaTeX String                -- url of KaTeX files
+                    | MathJax Text              -- url of MathJax.js
+                    | KaTeX Text                -- url of KaTeX files
                     deriving (Show, Read, Eq, Data, Typeable, Generic)
 
 instance FromYAML HTMLMathMethod where
@@ -111,18 +112,18 @@ instance FromYAML HTMLMathMethod where
      (withMap "HTMLMathMethod" $ \m -> do
         method <- m .: "method"
         mburl <- m .:? "url"
-        case unpack method of
+        case method :: Text of
           "plain" -> return PlainMath
-          "webtex" -> return $ WebTeX $ maybe "" unpack mburl
+          "webtex" -> return $ WebTeX $ fromMaybe "" mburl
           "gladtex" -> return GladTeX
           "mathml" -> return MathML
           "mathjax" -> return $ MathJax $
-                         maybe defaultMathJaxURL unpack mburl
+                         fromMaybe defaultMathJaxURL mburl
           "katex" -> return $ KaTeX $
-                         maybe defaultKaTeXURL unpack mburl
+                         fromMaybe defaultKaTeXURL mburl
           _ -> fail $ "Unknown HTML math method " ++ show method) node
        <|> (withStr "HTMLMathMethod" $ \method ->
-             case unpack method of
+             case method of
                "plain" -> return PlainMath
                "webtex" -> return $ WebTeX ""
                "gladtex" -> return GladTeX
@@ -246,7 +247,7 @@ data WriterOptions = WriterOptions
   , writerWrapText          :: WrapOption  -- ^ Option for wrapping text
   , writerColumns           :: Int    -- ^ Characters in a line (for text wrapping)
   , writerEmailObfuscation  :: ObfuscationMethod -- ^ How to obfuscate emails
-  , writerIdentifierPrefix  :: String -- ^ Prefix for section & note ids in HTML
+  , writerIdentifierPrefix  :: Text -- ^ Prefix for section & note ids in HTML
                                      -- and for footnote marks in markdown
   , writerCiteMethod        :: CiteMethod -- ^ How to print cites
   , writerHtmlQTags         :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
@@ -256,8 +257,8 @@ data WriterOptions = WriterOptions
   , writerHighlightStyle    :: Maybe Style  -- ^ Style to use for highlighting
                                            -- (Nothing = no highlighting)
   , writerSetextHeaders     :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
-  , writerEpubSubdirectory  :: String       -- ^ Subdir for epub in OCF
-  , writerEpubMetadata      :: Maybe String -- ^ Metadata to include in EPUB
+  , writerEpubSubdirectory  :: Text       -- ^ Subdir for epub in OCF
+  , writerEpubMetadata      :: Maybe Text -- ^ Metadata to include in EPUB
   , writerEpubFonts         :: [FilePath] -- ^ Paths to fonts to embed
   , writerEpubChapterLevel  :: Int            -- ^ Header level for chapters (separate files)
   , writerTOCDepth          :: Int            -- ^ Number of levels to include in TOC
@@ -309,10 +310,10 @@ instance HasSyntaxExtensions WriterOptions where
 isEnabled :: HasSyntaxExtensions a => Extension -> a -> Bool
 isEnabled ext opts = ext `extensionEnabled` getExtensions opts
 
-defaultMathJaxURL :: String
+defaultMathJaxURL :: Text
 defaultMathJaxURL = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/"
 
-defaultKaTeXURL :: String
+defaultKaTeXURL :: Text
 defaultKaTeXURL = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/"
 
 $(deriveJSON defaultOptions ''ReaderOptions)

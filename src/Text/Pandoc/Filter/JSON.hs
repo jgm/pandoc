@@ -26,7 +26,7 @@ import System.FilePath ((</>), takeExtension)
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Error (PandocError (PandocFilterError))
 import Text.Pandoc.Definition (Pandoc)
-import Text.Pandoc.Options (ReaderOptions)
+import Text.Pandoc.Legacy.Options (ReaderOptions)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.Legacy.Shared (pandocVersion)
 import qualified Control.Exception as E

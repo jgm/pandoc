@@ -22,11 +22,15 @@ import Foreign.Lua (Lua, Pushable)
 import Text.Pandoc.Extensions (Extensions)
 import Text.Pandoc.Lua.Marshaling.AnyValue (AnyValue (..))
 import Text.Pandoc.Lua.Marshaling.CommonState ()
-import Text.Pandoc.Options (ReaderOptions (..), TrackChanges)
+-- import Text.Pandoc.Options (ReaderOptions (..), TrackChanges) TODO text: restore
 
 import qualified Data.Set as Set
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Options
+--
 
 --
 -- Reader Options

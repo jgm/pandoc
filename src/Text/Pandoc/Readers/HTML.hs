@@ -55,11 +55,11 @@ import Text.Pandoc.Readers.LaTeX (rawLaTeXInline)
 import Text.Pandoc.Readers.LaTeX.Types (Macro)
 import Text.Pandoc.Error
 import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Options (
-    Extension (Ext_epub_html_exts, Ext_empty_paragraphs, Ext_native_divs,
-               Ext_native_spans, Ext_raw_html, Ext_line_blocks, Ext_raw_tex),
-    ReaderOptions (readerExtensions, readerStripComments),
-    extensionEnabled)
+-- import Text.Pandoc.Options (
+--     Extension (Ext_epub_html_exts, Ext_empty_paragraphs, Ext_native_divs,
+--                Ext_native_spans, Ext_raw_html, Ext_line_blocks, Ext_raw_tex),
+--     ReaderOptions (readerExtensions, readerStripComments),
+--     extensionEnabled) TODO text: restore
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Legacy.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
                            extractSpaces, htmlSpanLikeElements,
@@ -69,6 +69,7 @@ import Text.Parsec.Error
 -- import Text.TeXMath (readMathML, writeTeX) TODO text: restore
 
 -- TODO text: remove
+import Text.Pandoc.Legacy.Options
 import qualified Text.TeXMath as TM
 
 readMathML :: String -> Either String [TM.Exp]

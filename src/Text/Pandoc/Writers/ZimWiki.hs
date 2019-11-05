@@ -27,13 +27,17 @@ import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Options (WrapOption (..),
-           WriterOptions (writerTableOfContents, writerTemplate,
-                          writerWrapText))
+-- import Text.Pandoc.Options (WrapOption (..),
+--            WriterOptions (writerTableOfContents, writerTemplate,
+--                           writerWrapText)) -- TODO text: restore
 import Text.Pandoc.Legacy.Shared (escapeURI, isURI, linesToPara, removeFormatting,
                            substitute, trimr) -- TODO text: remove Legacy
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared (defField, metaToContext)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Options
+--
 
 data WriterState = WriterState {
     stIndent  :: String,         -- Indent after the marker at the beginning of list items

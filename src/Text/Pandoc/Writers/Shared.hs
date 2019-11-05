@@ -50,7 +50,7 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Text.Pandoc.Legacy.Builder as Builder -- TODO text: remove legacy
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.DocLayout
 import Text.Pandoc.Legacy.Shared (stringify, makeSections, deNote, deLink) -- TODO text: remove Legacy
 import Text.Pandoc.Walk (walk)

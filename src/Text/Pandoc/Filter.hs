@@ -24,7 +24,7 @@ import Data.Aeson.TH (deriveJSON, defaultOptions)
 import GHC.Generics (Generic)
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
-import Text.Pandoc.Options (ReaderOptions)
+import Text.Pandoc.Legacy.Options (ReaderOptions)
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Filter.Lua as LuaFilter
 import qualified Text.Pandoc.Filter.Path as Path

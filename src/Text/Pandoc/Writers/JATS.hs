@@ -32,7 +32,7 @@ import Text.Pandoc.Legacy.Highlighting (languages, languagesByExtension)
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.MIME (getMimeType)
 import Text.Pandoc.Walk (walk)
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.DocLayout
 import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import Text.Pandoc.Templates (renderTemplate)

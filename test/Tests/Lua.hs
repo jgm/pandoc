@@ -29,7 +29,7 @@ import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 --                                Attr, Meta, Pandoc, pandocTypesVersion) -- TODO text: restore
 import Text.Pandoc.Filter (Filter (LuaFilter), applyFilters)
 import Text.Pandoc.Lua (runLua)
-import Text.Pandoc.Options (def)
+import Text.Pandoc.Legacy.Options (def)
 import Text.Pandoc.Legacy.Shared (pandocVersion)
 
 import qualified Foreign.Lua as Lua

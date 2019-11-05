@@ -42,7 +42,8 @@ module Text.Pandoc
                -- * Generics
                , module Text.Pandoc.Generic
                -- * Options
-               , module Text.Pandoc.Options
+               , -- module Text.Pandoc.Options TODO text: restore
+                 module Text.Pandoc.Legacy.Options
                -- * Logging
                , -- module Text.Pandoc.Logging -- TODO text: restore
                  module Text.Pandoc.Legacy.Logging
@@ -65,7 +66,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Generic
 import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Readers
 import Text.Pandoc.Legacy.Shared (pandocVersion)
 import Text.Pandoc.Templates

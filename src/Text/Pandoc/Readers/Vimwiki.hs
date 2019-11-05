@@ -69,7 +69,7 @@ import Text.Pandoc.Legacy.Definition (Attr, Block (BulletList, OrderedList),
                                Inline (Space), ListNumberDelim (..),
                                ListNumberStyle (..), Pandoc (..),
                                nullMeta) -- TODO text: remove Legacy
-import Text.Pandoc.Options (ReaderOptions)
+import Text.Pandoc.Legacy.Options (ReaderOptions)
 import Text.Pandoc.Parsing (ParserState, ParserT, blanklines, emailAddress,
                             many1Till, orderedListMarker, readWithM,
                             registerHeader, spaceChar, stateMeta,

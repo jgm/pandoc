@@ -20,7 +20,7 @@ import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Error (PandocError (PandocFilterError))
 import Text.Pandoc.Lua (Global (..), LuaException (..),
                         runLua, runFilterFile, setGlobals)
-import Text.Pandoc.Options (ReaderOptions)
+import Text.Pandoc.Legacy.Options (ReaderOptions)
 
 -- | Run the Lua filter in @filterPath@ for a transformation to the
 -- target format (first element in args). Pandoc uses Lua init files to

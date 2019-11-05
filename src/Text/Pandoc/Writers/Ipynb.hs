@@ -21,7 +21,7 @@ import Control.Monad.State
 import qualified Data.Map as M
 import Data.Char (toLower)
 import Data.Maybe (catMaybes, fromMaybe)
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Data.Ipynb as Ipynb
 import Text.Pandoc.Walk (walkM)

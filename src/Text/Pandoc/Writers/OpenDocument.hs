@@ -29,7 +29,7 @@ import Text.Pandoc.Class (PandocMonad, report, translateTerm,
                           setTranslations, toLang)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.DocLayout
 import Text.Pandoc.Legacy.Shared (linesToPara)
 import Text.Pandoc.Templates (renderTemplate)

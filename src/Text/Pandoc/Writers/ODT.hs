@@ -31,7 +31,7 @@ import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.MIME (extensionFromMimeType, getMimeType)
-import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
+-- import Text.Pandoc.Options (WrapOption (..), WriterOptions (..)) TODO text: restore
 import Text.DocLayout
 import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy (stringify, pandocVersion)
 import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
@@ -44,6 +44,7 @@ import Text.Pandoc.XML
 import Text.XML.Light
 
 -- TODO text: remove
+import Text.Pandoc.Legacy.Options
 import qualified Text.TeXMath as TM
 import Text.TeXMath (DisplayType(..), writeMathML)
 import qualified Data.Text as T

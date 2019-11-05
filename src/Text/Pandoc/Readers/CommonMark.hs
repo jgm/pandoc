@@ -24,7 +24,7 @@ import Data.Text (Text, unpack)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Emoji (emojiToInline)
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Legacy.Shared (uniqueIdent, taskListItemFromAscii) -- TODO text: remove Legacy
 import Text.Pandoc.Walk (walkM)
 

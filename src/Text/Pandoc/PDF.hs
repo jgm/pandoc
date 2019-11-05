@@ -43,7 +43,7 @@ import Text.DocLayout (literal)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
 import Text.Pandoc.Legacy.MIME (getMimeType)
-import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
+-- import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..)) TODO text: restore
 import Text.Pandoc.Process (pipeProcess)
 import System.Process (readProcessWithExitCode)
 import Text.Pandoc.Legacy.Shared (inDirectory, stringify)
@@ -58,6 +58,10 @@ import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getCommonState,
                           getVerbosity, putCommonState, report,
                           runIOorExplode, setVerbosity)
 import Text.Pandoc.Legacy.Logging
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Options
+--
 
 #ifdef _WINDOWS
 changePathSeparators :: FilePath -> FilePath

@@ -31,7 +31,7 @@ import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 import Data.Time (defaultTimeLocale)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Options
+import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing hiding (space, spaces, uri)
 import Text.Pandoc.Legacy.Shared (compactify, compactifyDL, crFilter, escapeURI,
                            underlineSpan) -- TODO text: remove Legacy
