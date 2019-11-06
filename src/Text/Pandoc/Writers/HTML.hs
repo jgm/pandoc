@@ -991,34 +991,32 @@ inlineToHtml opts inline = do
                         if html5 then H5.br else H.br
                         strToHtml "\n"
 
-    (Span (id',classes,kvs) ils) ->
-                        let spanLikeTag = case classes of
-                                [c] -> do
-                                  let c' = T.pack c
-                                  guard (c' `Set.member` htmlSpanLikeElements)
-                                  pure $ customParent (textTag c')
-                                _   -> Nothing
-                        in case spanLikeTag of
-                            Just tag -> tag <$> inlineListToHtml opts ils
-                            Nothing -> do
-                              h <- inlineListToHtml opts ils
-                              addAttrs opts (id',classes',kvs') (H.span h)
-                            where
-                              styles = ["font-style:normal;"
-                                       | "csl-no-emph" `elem` classes]
-                                    ++ ["font-weight:normal;"
-                                       | "csl-no-strong" `elem` classes]
-                                    ++ ["font-variant:normal;"
-                                       | "csl-no-smallcaps" `elem` classes]
-                              kvs' = if null styles
-                                        then kvs
-                                        else ("style", concat styles) : kvs
-                              classes' = [ c | c <- classes
-                                         , c `notElem` [ "csl-no-emph"
-                                                       , "csl-no-strong"
-                                                       , "csl-no-smallcaps"
-                                                       ]
-                                         ]
+    (Span (id',classes,kvs) ils) -> do
+                        h <- inlineListToHtml opts ils
+                        let spanLikeTag =
+                              customParent . textTag . T.pack <$> lookup htmlSpanLikeDataAttrName kvs
+                        case spanLikeTag of
+                          Just tag -> do
+                            let kvs'' = removeDataAttrWithName htmlSpanLikeDataAttrName kvs'
+                            addAttrs opts (id',classes',kvs'') $ tag h
+                          Nothing -> addAttrs opts (id',classes',kvs') (H.span h)
+                          where
+                            styles = ["font-style:normal;"
+                                      | "csl-no-emph" `elem` classes]
+                                  ++ ["font-weight:normal;"
+                                      | "csl-no-strong" `elem` classes]
+                                  ++ ["font-variant:normal;"
+                                      | "csl-no-smallcaps" `elem` classes]
+                            kvs' = if null styles
+                                      then kvs
+                                      else ("style", concat styles) : kvs
+                            classes' = [ c | c <- classes
+                                        , c `notElem` [ "csl-no-emph"
+                                                      , "csl-no-strong"
+                                                      , "csl-no-smallcaps"
+                                                      ]
+                                        ]
+                            removeDataAttrWithName name = filter (not . (==) name . fst)
 
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong

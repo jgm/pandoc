@@ -62,7 +62,7 @@ import Text.Pandoc.Options (
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
-                           extractSpaces, htmlSpanLikeElements,
+                           extractSpaces, htmlSpanLikeDataAttrName, htmlSpanLikeElements,
                            onlySimpleTableCells, safeRead, underlineSpan)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
@@ -653,7 +653,6 @@ inline = choice
            , pImage
            , pCode
            , pSamp
-           , pDefinition
            , pSpan
            , pMath False
            , pScriptMath
@@ -720,10 +719,19 @@ pSubscript :: PandocMonad m => TagParser m Inlines
 pSubscript = pInlinesInTags "sub" B.subscript
 
 pSpanLike :: PandocMonad m => TagParser m Inlines
-pSpanLike = Set.foldr
-  (\tag acc -> acc <|> pInlinesInTags tag (B.spanWith ("",[T.unpack tag],[])))
-  mzero
-  htmlSpanLikeElements
+pSpanLike =
+  Set.foldr
+    (\tagName acc -> acc <|> parseTag tagName)
+    mzero
+    htmlSpanLikeElements
+  where
+    parseTag tagName = do
+      TagOpen _ attrs <- pSatisfy $ tagOpenLit tagName (const True)
+      let (ids, cs, kvs) = mkAttr . toStringAttr $ attrs
+      let spanLikeDataAttr = (htmlSpanLikeDataAttrName, T.unpack tagName)
+      content <- mconcat <$> manyTill inline (pCloses tagName)
+      return $ B.spanWith (ids, cs, spanLikeDataAttr : kvs) content
+
 
 pSmall :: PandocMonad m => TagParser m Inlines
 pSmall = pInlinesInTags "small" (B.spanWith ("",["small"],[]))
@@ -768,13 +776,6 @@ pLink = try $ do
        Just url' -> do
          url <- canonicalizeUrl url'
          return $ extractSpaces (B.linkWith (uid, cls, []) (escapeURI url) title) lab
-
-pDefinition :: PandocMonad m => TagParser m Inlines
-pDefinition = do
-  TagOpen _ attrs <- pSatisfy $ tagOpenLit "dfn" (const True)
-  let (ids,cs,kvs) = mkAttr . toStringAttr $ attrs
-  content <- mconcat <$> manyTill inline (pCloses "dfn")
-  return $ B.spanWith (ids, "definition" : cs, kvs) content
 
 pImage :: PandocMonad m => TagParser m Inlines
 pImage = do
