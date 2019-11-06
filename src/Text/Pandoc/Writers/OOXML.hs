@@ -26,7 +26,7 @@ import Prelude
 import Codec.Archive.Zip
 import Control.Monad.Reader
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Error
+import Text.Pandoc.Legacy.Error
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8

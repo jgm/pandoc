@@ -32,7 +32,7 @@ import Text.Pandoc.Class
 import Text.Pandoc.Legacy.MIME (extensionFromMimeType)
 import Text.Pandoc.UTF8
 import Text.Pandoc.Walk (walk)
-import Text.Pandoc.Error
+import Text.Pandoc.Legacy.Error
 import Data.Text (Text)
 import qualified Data.Map as M
 import qualified Data.Text as T

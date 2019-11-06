@@ -134,7 +134,7 @@ import Data.Default
 import System.IO.Error
 import System.IO (stderr)
 import qualified Data.Map as M
-import Text.Pandoc.Error
+import Text.Pandoc.Legacy.Error
 -- import Text.Pandoc.BCP47 (Lang(..), parseBCP47, renderLang) TODO text: restore
 import Text.Pandoc.Legacy.Translations (Term(..), Translations, lookupTerm,
                                  readTranslations)

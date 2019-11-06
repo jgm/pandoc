@@ -63,7 +63,7 @@ import Data.List (intercalate)
 import Data.Text (Text)
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
-import Text.Pandoc.Error
+import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Legacy.Extensions -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Readers.CommonMark

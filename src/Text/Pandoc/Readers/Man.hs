@@ -24,7 +24,7 @@ import Data.Maybe (catMaybes, isJust)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 import Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Error (PandocError (PandocParsecError))
+-- import Text.Pandoc.Error (PandocError (PandocParsecError)) -- TODO text: restore
 -- import Text.Pandoc.Logging (LogMessage(..)) TODO text: restore
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing
@@ -39,6 +39,7 @@ import qualified Data.Foldable as Foldable
 -- TODO text: remove
 import Text.Pandoc.Legacy.Logging ( pattern SkippedContent
                                   )
+import Text.Pandoc.Legacy.Error
 --
 
 data ManState = ManState { readerOptions   :: ReaderOptions

@@ -44,7 +44,7 @@ import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad, PandocPure, getResourcePath, lookupEnv,
                           readFileFromDirs, report, setResourcePath,
                           setTranslations, translateTerm, trace, fileExists)
-import Text.Pandoc.Error (PandocError ( PandocParseError, PandocParsecError))
+-- import Text.Pandoc.Error (PandocError ( PandocParseError, PandocParsecError)) TODO text: restore
 import Text.Pandoc.Legacy.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Legacy.Logging
@@ -69,6 +69,7 @@ import qualified Data.Text.Normalize as Normalize
 
 -- TODO text: remove
 import Text.Pandoc.Legacy.BCP47
+import Text.Pandoc.Legacy.Error
 --
 
 -- | Parse LaTeX from string and return 'Pandoc' document.

@@ -17,7 +17,7 @@ import Text.Pandoc.Readers.Org.Parsing (OrgParser, readWithM)
 
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
-import Text.Pandoc.Error
+import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing (reportLogMessages)
 import Text.Pandoc.Legacy.Shared (crFilter)

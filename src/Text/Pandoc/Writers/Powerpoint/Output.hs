@@ -34,7 +34,7 @@ import Text.XML.Light
 import Text.Pandoc.Legacy.Definition -- TODO text: remove
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Class (PandocMonad)
-import Text.Pandoc.Error (PandocError(..))
+-- import Text.Pandoc.Error (PandocError(..)) TODO text: restore
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Legacy.MIME
@@ -50,6 +50,10 @@ import Text.TeXMath
 import Text.Pandoc.Writers.Math (convertMath)
 import Text.Pandoc.Writers.Powerpoint.Presentation
 import Skylighting (fromColor)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Error
+--
 
 -- |The 'EMU' type is used to specify sizes in English Metric Units.
 type EMU = Integer

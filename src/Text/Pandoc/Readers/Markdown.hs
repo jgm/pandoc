@@ -36,7 +36,7 @@ import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad (..), report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Emoji (emojiToInline)
-import Text.Pandoc.Error
+import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing hiding (tableWith)

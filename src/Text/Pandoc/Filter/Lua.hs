@@ -17,10 +17,14 @@ import Control.Exception (throw)
 import Control.Monad ((>=>))
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
-import Text.Pandoc.Error (PandocError (PandocFilterError))
+-- import Text.Pandoc.Error (PandocError (PandocFilterError)) TODO text: restore
 import Text.Pandoc.Lua (Global (..), LuaException (..),
                         runLua, runFilterFile, setGlobals)
 import Text.Pandoc.Legacy.Options (ReaderOptions)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Error
+--
 
 -- | Run the Lua filter in @filterPath@ for a transformation to the
 -- target format (first element in args). Pandoc uses Lua init files to

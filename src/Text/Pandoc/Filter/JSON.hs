@@ -24,13 +24,17 @@ import System.Environment (getEnvironment)
 import System.Exit (ExitCode (..))
 import System.FilePath ((</>), takeExtension)
 import Text.Pandoc.Class (PandocIO)
-import Text.Pandoc.Error (PandocError (PandocFilterError))
+-- import Text.Pandoc.Error (PandocError (PandocFilterError)) TODO text: restore
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Legacy.Options (ReaderOptions)
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.Legacy.Shared (pandocVersion)
 import qualified Control.Exception as E
 import qualified Text.Pandoc.UTF8 as UTF8
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Error
+--
 
 apply :: ReaderOptions
       -> [String]

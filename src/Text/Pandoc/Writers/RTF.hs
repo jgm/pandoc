@@ -26,7 +26,7 @@ import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 -- import Text.Pandoc.Definition -- TODO text: restore
-import Text.Pandoc.Error
+import Text.Pandoc.Legacy.Error
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options

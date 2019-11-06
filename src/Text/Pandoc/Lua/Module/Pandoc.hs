@@ -39,7 +39,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
-import Text.Pandoc.Error
+import Text.Pandoc.Legacy.Error
 
 -- | Push the "pandoc" on the lua stack. Requires the `list` module to be
 -- loaded.

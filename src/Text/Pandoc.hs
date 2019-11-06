@@ -50,7 +50,8 @@ module Text.Pandoc
                -- * Typeclass
                , module Text.Pandoc.Class
                -- * Error handling
-               , module Text.Pandoc.Error
+               , -- module Text.Pandoc.Error TODO text: restore
+                 module Text.Pandoc.Legacy.Error
                -- * Readers: converting /to/ Pandoc format
                , module Text.Pandoc.Readers
                -- * Writers: converting /from/ Pandoc format
@@ -63,7 +64,7 @@ module Text.Pandoc
 
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
-import Text.Pandoc.Error
+import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Generic
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options

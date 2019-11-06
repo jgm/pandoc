@@ -205,7 +205,7 @@ import Text.Parsec hiding (token)
 import Text.Parsec.Pos (initialPos, newPos, updatePosString)
 
 import Control.Monad.Except
-import Text.Pandoc.Error
+import Text.Pandoc.Legacy.Error
 
 type Parser t s = Parsec t s
 

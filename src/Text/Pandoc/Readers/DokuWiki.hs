@@ -28,10 +28,14 @@ import qualified Data.Text as T
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Error (PandocError (PandocParsecError))
+-- import Text.Pandoc.Error (PandocError (PandocParsecError)) TODO text: restore
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Legacy.Shared (crFilter, trim, underlineSpan)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Error
+--
 
 -- | Read DokuWiki from an input string and return a Pandoc document.
 readDokuWiki :: PandocMonad m

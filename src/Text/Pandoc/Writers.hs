@@ -80,7 +80,7 @@ import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Legacy.Options
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Error
+import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.ConTeXt

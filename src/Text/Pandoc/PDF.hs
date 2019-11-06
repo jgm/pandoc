@@ -41,7 +41,7 @@ import System.IO.Temp (withSystemTempDirectory, withTempDirectory,
 import qualified System.IO.Error as IE
 import Text.DocLayout (literal)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
+-- import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError)) TODO text: restore
 import Text.Pandoc.Legacy.MIME (getMimeType)
 -- import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..)) TODO text: restore
 import Text.Pandoc.Process (pipeProcess)
@@ -61,6 +61,7 @@ import Text.Pandoc.Legacy.Logging
 
 -- TODO text: remove
 import Text.Pandoc.Legacy.Options
+import Text.Pandoc.Legacy.Error
 --
 
 #ifdef _WINDOWS

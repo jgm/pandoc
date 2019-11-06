@@ -83,7 +83,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 import Text.Pandoc.Class (PandocMonad, report)
-import Text.Pandoc.Error (PandocError (PandocMacroLoop))
+-- import Text.Pandoc.Error (PandocError (PandocMacroLoop)) TODO text: restore
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
@@ -93,6 +93,10 @@ import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
 import Text.Pandoc.Legacy.Shared
 import Text.Parsec.Pos
 -- import Debug.Trace
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Error
+--
 
 newtype DottedNum = DottedNum [Int]
   deriving (Show)
