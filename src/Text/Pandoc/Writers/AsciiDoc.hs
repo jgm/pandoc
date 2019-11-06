@@ -30,7 +30,7 @@ import qualified Data.Text as T
 import Data.Text (Text)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.ImageSize
+import Text.Pandoc.Legacy.ImageSize
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing hiding (blankline, space)

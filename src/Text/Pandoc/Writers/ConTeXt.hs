@@ -24,7 +24,7 @@ import Network.URI (unEscapeString)
 import Text.Pandoc.Legacy.BCP47
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.ImageSize
+import Text.Pandoc.Legacy.ImageSize
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options
 import Text.DocLayout

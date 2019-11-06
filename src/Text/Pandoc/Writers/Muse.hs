@@ -39,7 +39,7 @@ import System.FilePath (takeExtension)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Error
-import Text.Pandoc.ImageSize
+import Text.Pandoc.Legacy.ImageSize
 import Text.Pandoc.Legacy.Options
 import Text.DocLayout
 import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy

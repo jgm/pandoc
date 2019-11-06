@@ -45,7 +45,7 @@ import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Generic
 import Text.Pandoc.Legacy.Highlighting (highlight)
 import Text.Pandoc.Legacy.Error
-import Text.Pandoc.ImageSize
+import Text.Pandoc.Legacy.ImageSize
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.MIME (MimeType, extensionFromMimeType, getMimeType,
                          getMimeTypeDef)

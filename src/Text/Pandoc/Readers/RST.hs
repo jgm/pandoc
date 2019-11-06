@@ -33,7 +33,7 @@ import Text.Pandoc.Class (PandocMonad, fetchItem, readFileFromDirs)
 import Text.Pandoc.CSV (CSVOptions (..), defaultCSVOptions, parseCSV)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Error
-import Text.Pandoc.ImageSize (lengthToDim, scaleDimension)
+import Text.Pandoc.Legacy.ImageSize (lengthToDim, scaleDimension)
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing

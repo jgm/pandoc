@@ -25,7 +25,7 @@ import Data.Maybe (fromMaybe)
 import Data.Text (Text, breakOnAll, pack)
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.ImageSize
+import Text.Pandoc.Legacy.ImageSize
 import Text.Pandoc.Legacy.Logging
 -- import Text.Pandoc.Options (WrapOption (..),
 --            WriterOptions (writerTableOfContents, writerTemplate,

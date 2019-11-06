@@ -28,7 +28,7 @@ import System.FilePath (takeDirectory, takeExtension, (<.>))
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.ImageSize
+import Text.Pandoc.Legacy.ImageSize
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.MIME (extensionFromMimeType, getMimeType)
 -- import Text.Pandoc.Options (WrapOption (..), WriterOptions (..)) TODO text: restore

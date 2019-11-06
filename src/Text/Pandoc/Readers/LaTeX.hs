@@ -46,7 +46,7 @@ import Text.Pandoc.Class (PandocMonad, PandocPure, getResourcePath, lookupEnv,
                           setTranslations, translateTerm, trace, fileExists)
 -- import Text.Pandoc.Error (PandocError ( PandocParseError, PandocParsecError)) TODO text: restore
 import Text.Pandoc.Legacy.Highlighting (fromListingsLanguage, languagesByExtension)
-import Text.Pandoc.ImageSize (numUnit, showFl)
+import Text.Pandoc.Legacy.ImageSize (numUnit, showFl)
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,

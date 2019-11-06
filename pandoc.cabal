@@ -561,6 +561,7 @@ library
                    , Text.Pandoc.Legacy.CSS
                    , Text.Pandoc.Legacy.Emoji
                    , Text.Pandoc.Legacy.Error
+                   , Text.Pandoc.Legacy.ImageSize
                    --
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,

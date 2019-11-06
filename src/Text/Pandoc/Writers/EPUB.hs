@@ -42,7 +42,7 @@ import qualified Text.Pandoc.Class as P
 import Data.Time
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Error
-import Text.Pandoc.ImageSize
+import Text.Pandoc.Legacy.ImageSize
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.MIME (MimeType, extensionFromMimeType, getMimeType)
 -- import Text.Pandoc.Options (EPUBVersion (..), HTMLMathMethod (..),

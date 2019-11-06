@@ -42,7 +42,7 @@ import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe, listToMaybe, fromMaybe, maybeToList, catMaybes, isNothing)
-import Text.Pandoc.ImageSize
+import Text.Pandoc.Legacy.ImageSize
 import Control.Applicative ((<|>))
 import System.FilePath.Glob
 import Text.DocTemplates (FromContext(lookupContext))

@@ -55,7 +55,7 @@ import Text.DocTemplates (Context (..))
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Highlighting (formatHtmlBlock, formatHtmlInline, highlight,
                                  styleToCss)
-import Text.Pandoc.ImageSize
+import Text.Pandoc.Legacy.ImageSize
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import Text.Pandoc.Slides

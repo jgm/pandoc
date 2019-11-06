@@ -28,7 +28,7 @@ import Data.Text (Text)
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.ImageSize
+import Text.Pandoc.Legacy.ImageSize
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options
 import Text.DocLayout
