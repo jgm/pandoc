@@ -729,7 +729,7 @@ pSpanLike =
       TagOpen _ attrs <- pSatisfy $ tagOpenLit tagName (const True)
       let (ids, cs, kvs) = mkAttr . toStringAttr $ attrs
       let spanLikeDataAttr = (htmlSpanLikeDataAttrName, T.unpack tagName)
-      content <- mconcat <$> manyTill inline (pCloses tagName)
+      content <- mconcat <$> manyTill inline (pCloses tagName <|> eof)
       return $ B.spanWith (ids, cs, spanLikeDataAttr : kvs) content
 
 
