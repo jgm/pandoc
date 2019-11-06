@@ -56,7 +56,7 @@ import Text.Pandoc.Legacy.Builder (setMeta) -- TODO text: remove Legacy
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), applyFilters)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
-import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
+import Text.Pandoc.Legacy.SelfContained (makeDataURI, makeSelfContained)
 import Text.Pandoc.Legacy.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
          headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput,
          defaultUserDataDirs)

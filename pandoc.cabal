@@ -564,6 +564,7 @@ library
                    , Text.Pandoc.Legacy.ImageSize
                    , Text.Pandoc.Legacy.MediaBag
                    , Text.Pandoc.Legacy.Class
+                   , Text.Pandoc.Legacy.SelfContained
                    --
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,
