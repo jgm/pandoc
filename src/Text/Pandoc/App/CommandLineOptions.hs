@@ -436,16 +436,14 @@ options =
     , Option "F" ["filter"]
                  (ReqArg
                   (\arg opt -> return opt { optFilters =
-                                    JSONFilter (normalizePath arg) :
-                                    optFilters opt })
+                      optFilters opt ++ [JSONFilter (normalizePath arg)] })
                   "PROGRAM")
                  "" -- "External JSON filter"
 
     , Option "L" ["lua-filter"]
                  (ReqArg
                   (\arg opt -> return opt { optFilters =
-                                    LuaFilter (normalizePath arg) :
-                                    optFilters opt })
+                      optFilters opt ++ [LuaFilter (normalizePath arg)] })
                   "SCRIPTPATH")
                  "" -- "Lua filter"
 

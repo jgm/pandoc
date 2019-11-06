@@ -21,7 +21,6 @@ module Text.Pandoc.Filter
 
 import Prelude
 import Data.Aeson.TH (deriveJSON, defaultOptions)
-import Data.Foldable (foldrM)
 import GHC.Generics (Generic)
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
@@ -33,6 +32,7 @@ import Data.YAML
 import qualified Data.Text as T
 import System.FilePath (takeExtension)
 import Control.Applicative ((<|>))
+import Control.Monad (foldM)
 
 -- | Type of filter and path to filter file.
 data Filter = LuaFilter FilePath
@@ -63,10 +63,10 @@ applyFilters :: ReaderOptions
              -> PandocIO Pandoc
 applyFilters ropts filters args d = do
   expandedFilters <- mapM expandFilterPath filters
-  foldrM ($) d $ map applyFilter expandedFilters
+  foldM applyFilter d expandedFilters
  where
-  applyFilter (JSONFilter f) = JSONFilter.apply ropts args f
-  applyFilter (LuaFilter f)  = LuaFilter.apply ropts args f
+  applyFilter doc (JSONFilter f) = JSONFilter.apply ropts args f doc
+  applyFilter doc (LuaFilter f)  = LuaFilter.apply ropts args f doc
 
 -- | Expand paths of filters, searching the data directory.
 expandFilterPath :: Filter -> PandocIO Filter
