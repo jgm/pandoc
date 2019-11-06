@@ -45,7 +45,7 @@ import Text.HTML.TagSoup (Tag (..), fromAttrib)
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Class (PandocMonad (..))
+-- import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Legacy.CSS
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Options
@@ -53,6 +53,10 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Legacy.Shared (crFilter, trim, underlineSpan)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Class
+--
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: PandocMonad m

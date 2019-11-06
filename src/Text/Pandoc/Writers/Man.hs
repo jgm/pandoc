@@ -20,7 +20,7 @@ import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Builder (deleteMeta)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options

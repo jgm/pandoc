@@ -29,7 +29,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Legacy.Builder (Blocks, Inlines, fromList, setMeta, trimInlines) -- TODO text: remove Legacy
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Class (PandocMonad, fetchItem, readFileFromDirs)
+import Text.Pandoc.Legacy.Class (PandocMonad, fetchItem, readFileFromDirs)
 import Text.Pandoc.CSV (CSVOptions (..), defaultCSVOptions, parseCSV)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Error

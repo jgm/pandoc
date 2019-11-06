@@ -54,7 +54,7 @@ import Text.Pandoc.Writers.Shared (getField, metaToContext)
 import Data.List (intercalate)
 #endif
 import Data.List (isPrefixOf, find)
-import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getCommonState,
+import Text.Pandoc.Legacy.Class (PandocIO, extractMedia, fillMediaBag, getCommonState,
                           getVerbosity, putCommonState, report,
                           runIOorExplode, setVerbosity)
 import Text.Pandoc.Legacy.Logging

@@ -21,7 +21,7 @@ import Control.Monad.State.Strict
 import Data.Char (isAlphaNum, toLower)
 import Data.List (intersect, intersperse, isPrefixOf, partition, transpose)
 import Data.Text (Text)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options

@@ -193,7 +193,7 @@ import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Asciify (toAsciiChar)
 import Text.Pandoc.Legacy.Builder (Blocks, HasMeta (..), Inlines, trimInlines) -- TODO text: remove Legacy
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Class (PandocMonad, readFileFromDirs, report)
+import Text.Pandoc.Legacy.Class (PandocMonad, readFileFromDirs, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options

@@ -32,7 +32,7 @@ import Data.Text (Text, unpack)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Class (PandocMonad (..))
+-- import Text.Pandoc.Class (PandocMonad (..)) -- TODO text: restore
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options
@@ -42,6 +42,10 @@ import Text.Pandoc.Legacy.Shared (crFilter, safeRead, stringify, stripTrailingNe
                            trim)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.XML (fromEntities)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Class
+--
 
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: PandocMonad m

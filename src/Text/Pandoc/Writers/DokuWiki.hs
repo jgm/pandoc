@@ -29,7 +29,7 @@ import Control.Monad.State.Strict (StateT, evalStateT)
 import Data.Default (Default (..))
 import Data.List (intercalate, intersect, isPrefixOf, transpose)
 import Data.Text (Text, pack)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.ImageSize
 import Text.Pandoc.Legacy.Logging

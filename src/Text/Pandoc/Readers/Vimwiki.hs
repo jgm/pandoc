@@ -64,7 +64,7 @@ import qualified Text.Pandoc.Legacy.Builder as B (blockQuote, bulletList, code,
                                            softbreak, space, spanWith, str,
                                            strikeout, strong, subscript,
                                            superscript) -- TODO text: remove Legacy
-import Text.Pandoc.Class (PandocMonad (..))
+-- import Text.Pandoc.Class (PandocMonad (..)) TODO text: restore
 import Text.Pandoc.Legacy.Definition (Attr, Block (BulletList, OrderedList),
                                Inline (Space), ListNumberDelim (..),
                                ListNumberStyle (..), Pandoc (..),
@@ -81,6 +81,10 @@ import Text.Parsec.Char (alphaNum, anyChar, char, newline, noneOf, oneOf, space,
 import Text.Parsec.Combinator (between, choice, count, eof, lookAhead, many1,
                                manyTill, notFollowedBy, option, skipMany1)
 import Text.Parsec.Prim (getState, many, try, updateState, (<|>))
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Class
+--
 
 readVimwiki :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readVimwiki opts s = do

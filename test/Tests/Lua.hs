@@ -24,7 +24,7 @@ import Text.Pandoc.Legacy.Builder (bulletList, definitionList, displayMath, divW
                             doc, doubleQuoted, emph, header, lineBlock,
                             linebreak, math, orderedList, para, plain, rawBlock,
                             singleQuoted, space, str, strong) -- TODO text: remove Legacy
-import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
+import Text.Pandoc.Legacy.Class (runIOorExplode, setUserDataDir)
 -- import Text.Pandoc.Legacy.Definition (Block (BlockQuote, Div, Para), Inline (Emph, Str),
 --                                Attr, Meta, Pandoc, pandocTypesVersion) -- TODO text: restore
 import Text.Pandoc.Filter (Filter (LuaFilter), applyFilters)

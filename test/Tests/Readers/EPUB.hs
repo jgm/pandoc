@@ -16,8 +16,8 @@ import Prelude
 import qualified Data.ByteString.Lazy as BL
 import Test.Tasty
 import Test.Tasty.HUnit
-import qualified Text.Pandoc.Class as P
-import Text.Pandoc.MediaBag (MediaBag, mediaDirectory)
+import qualified Text.Pandoc.Legacy.Class as P
+import Text.Pandoc.Legacy.MediaBag (MediaBag, mediaDirectory)
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Readers.EPUB
 

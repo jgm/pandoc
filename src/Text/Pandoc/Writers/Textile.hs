@@ -18,7 +18,7 @@ import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.List (intercalate)
 import Data.Text (Text, pack)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.ImageSize
 import Text.Pandoc.Legacy.Logging

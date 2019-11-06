@@ -82,7 +82,7 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
 -- import Text.Pandoc.Error (PandocError (PandocMacroLoop)) TODO text: restore
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options

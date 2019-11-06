@@ -32,7 +32,7 @@ import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import Text.DocTemplates (FromContext(lookupContext))
 -- import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang) TODO text: restore
-import Text.Pandoc.Class (PandocMonad, report, toLang)
+import Text.Pandoc.Legacy.Class (PandocMonad, report, toLang)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
                                  styleToLaTeX, toListingsLanguage)

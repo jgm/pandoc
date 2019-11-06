@@ -21,7 +21,7 @@ import Control.Monad.State
 import Data.List (groupBy)
 import qualified Data.Set as Set
 import Data.Text (Text, unpack)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Legacy.Class (PandocMonad)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Emoji (emojiToInline)
 import Text.Pandoc.Legacy.Options

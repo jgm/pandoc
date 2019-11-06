@@ -33,9 +33,9 @@ import System.FilePath.Posix (splitDirectories, splitExtension, takeExtension)
 import Text.XML.Light
 import Text.Pandoc.Legacy.Definition -- TODO text: remove
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Legacy.Class (PandocMonad)
 -- import Text.Pandoc.Error (PandocError(..)) TODO text: restore
-import qualified Text.Pandoc.Class as P
+import qualified Text.Pandoc.Legacy.Class as P
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Legacy.MIME
 import qualified Data.ByteString.Lazy as BL

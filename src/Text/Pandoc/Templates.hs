@@ -22,7 +22,7 @@ module Text.Pandoc.Templates ( Template
 import Prelude
 import System.FilePath ((<.>), (</>))
 import Text.DocTemplates (Template, compileTemplate, renderTemplate)
-import Text.Pandoc.Class (PandocMonad, readDataFile)
+import Text.Pandoc.Legacy.Class (PandocMonad, readDataFile)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Text (Text)
 

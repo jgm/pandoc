@@ -20,7 +20,7 @@ import Text.Pandoc.Legacy.Shared (safeRead)
 
 import Control.Monad.Except (throwError)
 import Data.Text (Text, unpack)
-import Text.Pandoc.Class
+import Text.Pandoc.Legacy.Class
 import Text.Pandoc.Legacy.Error
 
 -- | Read native formatted text and return a Pandoc document.

@@ -28,7 +28,7 @@ import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Data.Ipynb as Ipynb
-import Text.Pandoc.Class
+import Text.Pandoc.Legacy.Class
 import Text.Pandoc.Legacy.MIME (extensionFromMimeType)
 import Text.Pandoc.UTF8
 import Text.Pandoc.Walk (walk)

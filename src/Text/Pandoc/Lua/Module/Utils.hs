@@ -20,7 +20,7 @@ import Data.Char (toLower)
 import Data.Default (def)
 import Data.Version (Version)
 import Foreign.Lua (Peekable, Lua, NumResults)
-import Text.Pandoc.Class (runIO, setUserDataDir)
+import Text.Pandoc.Legacy.Class (runIO, setUserDataDir)
 -- import Text.Pandoc.Definition ( Pandoc, Meta, MetaValue (..), Block, Inline
 --                               , Citation, Attr, ListAttributes) -- TODO text: restore
 import Text.Pandoc.Lua.Marshaling ()

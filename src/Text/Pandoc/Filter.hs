@@ -22,7 +22,7 @@ module Text.Pandoc.Filter
 import Prelude
 import Data.Aeson.TH (deriveJSON, defaultOptions)
 import GHC.Generics (Generic)
-import Text.Pandoc.Class (PandocIO)
+import Text.Pandoc.Legacy.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Legacy.Options (ReaderOptions)
 import qualified Text.Pandoc.Filter.JSON as JSONFilter

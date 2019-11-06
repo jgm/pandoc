@@ -20,7 +20,7 @@ import Test.Tasty (TestTree, testGroup)
 import Tests.Helpers ((=?>), ToString, purely, test)
 import Tests.Readers.Org.Shared ((=:), tagSpan)
 import Text.Pandoc
-import Text.Pandoc.Builder
+import Text.Pandoc.Legacy.Builder
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
 

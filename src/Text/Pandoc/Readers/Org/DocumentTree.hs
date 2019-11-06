@@ -21,7 +21,7 @@ import Data.Char (toLower, toUpper)
 import Data.List (intersperse)
 import Data.Maybe (mapMaybe)
 import Text.Pandoc.Builder (Blocks, Inlines)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Legacy.Class (PandocMonad)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Readers.Org.BlockStarts
 import Text.Pandoc.Readers.Org.ParserState

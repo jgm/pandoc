@@ -19,7 +19,7 @@ import Data.Default (Default)
 import Control.Monad (liftM, mzero, guard, void)
 import Control.Monad.Trans (lift)
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad(..), report)
+import Text.Pandoc.Legacy.Class (PandocMonad(..), report)
 import Data.Maybe (catMaybes, isJust)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T

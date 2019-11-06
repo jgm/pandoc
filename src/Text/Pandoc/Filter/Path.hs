@@ -15,7 +15,7 @@ module Text.Pandoc.Filter.Path
   ) where
 
 import Prelude
-import Text.Pandoc.Class (PandocMonad, fileExists, getUserDataDir)
+import Text.Pandoc.Legacy.Class (PandocMonad, fileExists, getUserDataDir)
 import System.FilePath ((</>), isRelative)
 
   -- First we check to see if a filter is found.  If not, and if it's

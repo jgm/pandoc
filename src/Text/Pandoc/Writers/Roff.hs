@@ -26,7 +26,7 @@ import Control.Monad.State.Strict
 import qualified Data.Map as Map
 import Data.String
 import Data.Maybe (fromMaybe, isJust, catMaybes)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Legacy.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.DocLayout
 import Text.Printf (printf)

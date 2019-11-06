@@ -29,7 +29,7 @@ import Data.List (isPrefixOf)
 import Network.URI (escapeURIString)
 import System.FilePath (takeDirectory, takeExtension, (</>))
 import Text.HTML.TagSoup
-import Text.Pandoc.Class (PandocMonad (..), fetchItem, getInputFiles, report,
+import Text.Pandoc.Legacy.Class (PandocMonad (..), fetchItem, getInputFiles, report,
                           setInputFiles)
 import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Legacy.Logging

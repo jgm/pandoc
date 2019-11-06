@@ -25,8 +25,8 @@ import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Set as Set
 import Data.Text as Text (breakOnAll, pack)
 import Data.Text (Text)
-import Text.Pandoc.Class (PandocMonad, report)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
+import qualified Text.Pandoc.Legacy.Class as P
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.ImageSize
 import Text.Pandoc.Legacy.Logging

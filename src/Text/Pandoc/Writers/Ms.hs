@@ -31,7 +31,7 @@ import Network.URI (escapeURIString, isAllowedInURI)
 import Skylighting
 import System.FilePath (takeExtension)
 import Text.Pandoc.Asciify (toAsciiChar)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Highlighting
 import Text.Pandoc.Legacy.ImageSize

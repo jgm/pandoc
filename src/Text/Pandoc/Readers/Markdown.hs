@@ -33,7 +33,7 @@ import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup
 import Text.Pandoc.Legacy.Builder (Blocks, Inlines) -- TODO text: remove Legacy
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Class (PandocMonad (..), report)
+-- import Text.Pandoc.Class (PandocMonad (..), report) TODO text: restore
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Emoji (emojiToInline)
 import Text.Pandoc.Legacy.Error
@@ -46,6 +46,10 @@ import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Legacy.Shared
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (fromEntities)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Class
+--
 
 type MarkdownParser m = ParserT [Char] ParserState m
 

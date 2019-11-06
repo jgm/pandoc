@@ -20,7 +20,7 @@ import Control.Monad.State.Strict
 import Data.Char (toLower)
 import Data.Foldable (find)
 import Data.Text (Text, pack)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging (LogMessage (BlockNotRendered, InlineNotRendered))
 -- import Text.Pandoc.Options (WriterOptions (writerTemplate)) TODO text: restore

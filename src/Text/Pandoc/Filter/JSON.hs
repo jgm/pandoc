@@ -23,7 +23,7 @@ import System.Directory (executable, doesFileExist, findExecutable,
 import System.Environment (getEnvironment)
 import System.Exit (ExitCode (..))
 import System.FilePath ((</>), takeExtension)
-import Text.Pandoc.Class (PandocIO)
+import Text.Pandoc.Legacy.Class (PandocIO)
 -- import Text.Pandoc.Error (PandocError (PandocFilterError)) TODO text: restore
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Legacy.Options (ReaderOptions)

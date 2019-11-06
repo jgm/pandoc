@@ -18,13 +18,17 @@ import Foreign.Lua (Lua, Peekable, Pushable)
 import Foreign.Lua.Types.Peekable (reportValueOnFailure)
 import Foreign.Lua.Userdata (ensureUserdataMetatable, pushAnyWithMetatable,
                              toAnyWithName)
-import Text.Pandoc.Class (CommonState (..))
+-- import Text.Pandoc.Class (CommonState (..)) TODO text: restore
 import Text.Pandoc.Legacy.Logging (LogMessage, showLogMessage)
 import Text.Pandoc.Lua.Marshaling.AnyValue (AnyValue (..))
 
 import qualified Data.Map as Map
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Class
+--
 
 -- | Name used by Lua for the @CommonState@ type.
 commonStateTypeName :: String

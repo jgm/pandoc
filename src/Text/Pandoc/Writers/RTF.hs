@@ -23,8 +23,8 @@ import Data.List (intercalate, isSuffixOf)
 import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Class (PandocMonad, report)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
+import qualified Text.Pandoc.Legacy.Class as P
 -- import Text.Pandoc.Definition -- TODO text: restore
 import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Legacy.ImageSize

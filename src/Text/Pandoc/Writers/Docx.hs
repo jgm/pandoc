@@ -37,8 +37,8 @@ import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
 import System.Random (randomR, StdGen, mkStdGen)
 -- import Text.Pandoc.BCP47 (getLang, renderLang) TODO text: restore
-import Text.Pandoc.Class (PandocMonad, report, toLang)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Legacy.Class (PandocMonad, report, toLang)
+import qualified Text.Pandoc.Legacy.Class as P
 import Data.Time
 import Text.Pandoc.UTF8 (fromStringLazy)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy

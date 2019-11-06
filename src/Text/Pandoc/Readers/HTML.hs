@@ -48,7 +48,7 @@ import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Legacy.Builder (Blocks, HasMeta (..), Inlines, trimInlines) -- TODO text: remove Legacy
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Class (PandocMonad (..))
+-- import Text.Pandoc.Class (PandocMonad (..)) -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.CSS (foldOrElse, pickStyleAttrProps)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Readers.LaTeX (rawLaTeXInline)
@@ -70,6 +70,7 @@ import Text.Parsec.Error
 
 -- TODO text: remove
 import Text.Pandoc.Legacy.Options
+import Text.Pandoc.Legacy.Class
 import qualified Text.TeXMath as TM
 
 readMathML :: String -> Either String [TM.Exp]

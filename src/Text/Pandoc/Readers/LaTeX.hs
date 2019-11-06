@@ -41,7 +41,7 @@ import Safe (minimumDef)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 -- import Text.Pandoc.BCP47 (Lang (..), renderLang) TODO text: restore
 import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
-import Text.Pandoc.Class (PandocMonad, PandocPure, getResourcePath, lookupEnv,
+import Text.Pandoc.Legacy.Class (PandocMonad, PandocPure, getResourcePath, lookupEnv,
                           readFileFromDirs, report, setResourcePath,
                           setTranslations, translateTerm, trace, fileExists)
 -- import Text.Pandoc.Error (PandocError ( PandocParseError, PandocParsecError)) TODO text: restore
@@ -64,7 +64,7 @@ import qualified Data.Text.Normalize as Normalize
 
 -- for debugging:
 -- import Text.Pandoc.Extensions (getDefaultExtensions)
--- import Text.Pandoc.Class (runIOorExplode, PandocIO)
+-- import Text.Pandoc.Legacy.Class (runIOorExplode, PandocIO)
 -- import Debug.Trace (traceShowId)
 
 -- TODO text: remove

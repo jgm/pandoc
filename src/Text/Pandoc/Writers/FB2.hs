@@ -34,8 +34,8 @@ import qualified Text.XML.Light as X
 import qualified Text.XML.Light.Cursor as XC
 import qualified Text.XML.Light.Input as XI
 
-import Text.Pandoc.Class (PandocMonad, report)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
+import qualified Text.Pandoc.Legacy.Class as P
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging
 -- import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def) TODO text: restore

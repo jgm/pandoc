@@ -84,8 +84,8 @@ import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import Text.Pandoc.Walk
 -- import Text.TeXMath (writeTeX) -- TODO text: restore
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class (PandocMonad)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Legacy.Class (PandocMonad)
+import qualified Text.Pandoc.Legacy.Class as P
 import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Legacy.Logging
 

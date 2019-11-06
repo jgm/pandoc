@@ -26,7 +26,7 @@ import Data.Maybe (fromMaybe)
 import Data.Time (toGregorian, Day, parseTimeM, defaultTimeLocale, formatTime)
 import qualified Data.Text as T
 import Data.Text (Text)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Highlighting (languages, languagesByExtension)
 import Text.Pandoc.Legacy.Logging

@@ -32,7 +32,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Network.HTTP (urlEncode)
 import Text.HTML.TagSoup (Tag (..), isTagText, parseTags)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options

@@ -25,8 +25,8 @@ import qualified Data.Text.Lazy as TL
 import Data.Time
 import System.FilePath (takeDirectory, takeExtension, (<.>))
 -- import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang) TODO text: restore
-import Text.Pandoc.Class (PandocMonad, report, toLang)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Legacy.Class (PandocMonad, report, toLang)
+import qualified Text.Pandoc.Legacy.Class as P
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.ImageSize
 import Text.Pandoc.Legacy.Logging

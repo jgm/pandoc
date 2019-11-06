@@ -24,7 +24,7 @@ import Documentation.Haddock.Parser
 import Documentation.Haddock.Types as H
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Legacy.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Legacy.Options

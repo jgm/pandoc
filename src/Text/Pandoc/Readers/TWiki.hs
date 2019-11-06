@@ -26,13 +26,17 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Class (PandocMonad (..))
+-- import Text.Pandoc.Class (PandocMonad (..)) TODO text: restore
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
 import Text.Pandoc.Legacy.Shared (crFilter)
 import Text.Pandoc.XML (fromEntities)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Class
+--
 
 -- | Read twiki from an input string and return a Pandoc document.
 readTWiki :: PandocMonad m

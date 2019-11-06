@@ -35,7 +35,7 @@ import System.FilePath
 import Test.Tasty
 import Test.Tasty.HUnit
 import Text.Pandoc.Builder (Blocks, Inlines, doc, plain)
-import Text.Pandoc.Class
+import Text.Pandoc.Legacy.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Legacy.Shared (trimr)

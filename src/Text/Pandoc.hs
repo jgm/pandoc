@@ -48,7 +48,8 @@ module Text.Pandoc
                , -- module Text.Pandoc.Logging -- TODO text: restore
                  module Text.Pandoc.Legacy.Logging
                -- * Typeclass
-               , module Text.Pandoc.Class
+               , -- module Text.Pandoc.Class TODO text: restore
+                 module Text.Pandoc.Legacy.Class
                -- * Error handling
                , -- module Text.Pandoc.Error TODO text: restore
                  module Text.Pandoc.Legacy.Error
@@ -62,7 +63,7 @@ module Text.Pandoc
                , pandocVersion
              ) where
 
-import Text.Pandoc.Class
+import Text.Pandoc.Legacy.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Generic

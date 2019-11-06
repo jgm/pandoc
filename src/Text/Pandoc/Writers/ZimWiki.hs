@@ -23,7 +23,7 @@ import qualified Data.Map as Map
 import Text.DocLayout (render, literal)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, breakOnAll, pack)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.ImageSize
 import Text.Pandoc.Legacy.Logging

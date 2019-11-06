@@ -27,7 +27,7 @@ import Text.Pandoc.Readers.Org.Shared (cleanLinkString, isImageFilename,
                                        originalLang, translateLang, exportsCode)
 
 import Text.Pandoc.Builder (Blocks, Inlines)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Legacy.Class (PandocMonad)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Legacy.Shared (compactify, compactifyDL, safeRead)

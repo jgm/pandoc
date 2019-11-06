@@ -31,7 +31,7 @@ import Prelude
 import Safe (lastDef)
 import Control.Monad (void, mzero, mplus, guard)
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class
+import Text.Pandoc.Legacy.Class
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
 import Data.Char (isLower, toLower, toUpper, chr, isAscii, isAlphaNum)
 import Data.Default (Default)

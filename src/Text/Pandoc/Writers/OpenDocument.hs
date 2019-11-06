@@ -25,7 +25,7 @@ import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 -- import Text.Pandoc.BCP47 (Lang (..), parseBCP47) TODO text: remove
-import Text.Pandoc.Class (PandocMonad, report, translateTerm,
+import Text.Pandoc.Legacy.Class (PandocMonad, report, translateTerm,
                           setTranslations, toLang)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging

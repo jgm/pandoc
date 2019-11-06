@@ -13,7 +13,7 @@ module Text.Pandoc.Readers.Org.ExportSettings
   ) where
 
 import Prelude
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
 -- import Text.Pandoc.Logging (LogMessage (UnknownOrgExportOption)) -- TODO text: restore
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing

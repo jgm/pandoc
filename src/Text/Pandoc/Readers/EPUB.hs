@@ -33,7 +33,7 @@ import Network.URI (unEscapeString)
 import System.FilePath (dropFileName, dropFileName, normalise, splitFileName,
                         takeFileName, (</>))
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Class (PandocMonad, insertMedia)
+import Text.Pandoc.Legacy.Class (PandocMonad, insertMedia)
 import Text.Pandoc.Legacy.Definition hiding (Attr) -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Extensions (Extension (Ext_raw_html), enableExtension)

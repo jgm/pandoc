@@ -15,7 +15,7 @@ import Text.Pandoc.Readers.Org.Blocks (blockList, meta)
 import Text.Pandoc.Readers.Org.ParserState (optionsToParserState)
 import Text.Pandoc.Readers.Org.Parsing (OrgParser, readWithM)
 
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Legacy.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Legacy.Options

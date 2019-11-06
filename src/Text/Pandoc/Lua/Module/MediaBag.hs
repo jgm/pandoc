@@ -17,8 +17,8 @@ import Prelude
 import Control.Monad (zipWithM_)
 import Data.Maybe (fromMaybe)
 import Foreign.Lua (Lua, NumResults, Optional, liftIO)
-import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
-                          runIOorExplode, setMediaBag)
+-- import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
+--                           runIOorExplode, setMediaBag) TODO text: restore
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Marshaling.MediaBag (pushIterator)
 import Text.Pandoc.Lua.Util (addFunction)
@@ -27,6 +27,10 @@ import Text.Pandoc.Legacy.MIME (MimeType)
 import qualified Data.ByteString.Lazy as BL
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Legacy.MediaBag as MB -- TODO text: remove legacy
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Class hiding (getCommonState, modifyCommonState)
+--
 
 --
 -- MediaBag submodule

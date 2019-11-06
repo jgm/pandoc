@@ -9,7 +9,7 @@ where
 
 import Prelude
 import qualified Data.Text as T
-import Text.Pandoc.Class
+import Text.Pandoc.Legacy.Class
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging
 -- import Text.TeXMath (DisplayType (..), Exp, readTeX, writePandoc) TODO text: restore

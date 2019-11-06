@@ -37,8 +37,8 @@ import Network.HTTP (urlEncode)
 import System.FilePath (takeExtension, takeFileName, makeRelative)
 import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
 import Text.Pandoc.Builder (fromList, setMeta)
-import Text.Pandoc.Class (PandocMonad, report)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
+import qualified Text.Pandoc.Legacy.Class as P
 import Data.Time
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Error

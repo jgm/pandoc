@@ -61,7 +61,7 @@ import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.List (intercalate)
 import Data.Text (Text)
-import Text.Pandoc.Class
+import Text.Pandoc.Legacy.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Legacy.Extensions -- TODO text: remove Legacy

@@ -27,7 +27,7 @@ import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Class (CommonState (..), PandocMonad (..))
+-- import Text.Pandoc.Class (CommonState (..), PandocMonad (..)) TODO text: restore
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging (Verbosity (..))
 import Text.Pandoc.Legacy.Options
@@ -35,6 +35,10 @@ import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Legacy.Shared (crFilter, safeRead) -- TODO text: remove Legacy
 import Text.Pandoc.XML (fromEntities)
 import Text.Printf (printf)
+
+-- TODO text: remove
+import Text.Pandoc.Legacy.Class
+--
 
 -- | Read TikiWiki from an input string and return a Pandoc document.
 readTikiWiki :: PandocMonad m

@@ -39,7 +39,7 @@ import Control.Monad.Reader (ReaderT, asks, local, runReaderT)
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Text (Text, intercalate, pack, replace, split)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Legacy.Class (PandocMonad, report)
 import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options
