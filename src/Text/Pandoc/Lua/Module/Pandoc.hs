@@ -28,7 +28,7 @@ import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter, SingletonsLis
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Walk (Walkable)
 -- import Text.Pandoc.Options (ReaderOptions (readerExtensions)) TODO text: restore
-import Text.Pandoc.Process (pipeProcess)
+import Text.Pandoc.Legacy.Process (pipeProcess)
 import Text.Pandoc.Readers (Reader (..), getReader)
 
 -- TODO text: remove

@@ -20,6 +20,7 @@ import qualified Control.Exception as E
 import Control.Monad (unless)
 import Control.DeepSeq (rnf)
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text as T
 import Foreign.C (Errno (Errno), ePIPE)
 import GHC.IO.Exception (IOErrorType(..), IOException(..))
 import System.Exit (ExitCode (..))
@@ -45,14 +46,14 @@ System.Process, package process-1.6.3.0. The original code is BSD
 licensed and © University of Glasgow 2004-2008.
 -}
 pipeProcess
-    :: Maybe [(String, String)] -- ^ environment variables
+    :: Maybe [(T.Text, T.Text)] -- ^ environment variables
     -> FilePath                 -- ^ Filename of the executable (see 'proc' for details)
-    -> [String]                 -- ^ any arguments
+    -> [T.Text]                 -- ^ any arguments
     -> BL.ByteString            -- ^ standard input
     -> IO (ExitCode,BL.ByteString) -- ^ exitcode, stdout
 pipeProcess mbenv cmd args input = do
-    let cp_opts = (proc cmd args)
-                  { env     = mbenv
+    let cp_opts = (proc cmd (map T.unpack args))
+                  { env     = fmap (fmap (\(x, y) -> (T.unpack x, T.unpack y))) mbenv
                   , std_in  = CreatePipe
                   , std_out = CreatePipe
                   , std_err = Inherit

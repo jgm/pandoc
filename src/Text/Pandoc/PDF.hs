@@ -44,7 +44,7 @@ import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
 -- import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError)) TODO text: restore
 import Text.Pandoc.Legacy.MIME (getMimeType)
 -- import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..)) TODO text: restore
-import Text.Pandoc.Process (pipeProcess)
+import Text.Pandoc.Legacy.Process (pipeProcess)
 import System.Process (readProcessWithExitCode)
 import Text.Pandoc.Legacy.Shared (inDirectory, stringify)
 import qualified Text.Pandoc.UTF8 as UTF8

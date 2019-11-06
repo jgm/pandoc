@@ -27,7 +27,7 @@ import Text.Pandoc.Legacy.Class (PandocIO)
 -- import Text.Pandoc.Error (PandocError (PandocFilterError)) TODO text: restore
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Legacy.Options (ReaderOptions)
-import Text.Pandoc.Process (pipeProcess)
+import Text.Pandoc.Legacy.Process (pipeProcess)
 import Text.Pandoc.Legacy.Shared (pandocVersion)
 import qualified Control.Exception as E
 import qualified Text.Pandoc.UTF8 as UTF8
