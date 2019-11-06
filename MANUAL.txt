@@ -1436,6 +1436,7 @@ output-file:
 input-files:
 - preface.md
 - content.md
+# or you may use input-file: with a single value
 
 template: letter
 standalone: true
