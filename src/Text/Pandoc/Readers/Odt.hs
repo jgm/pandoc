@@ -28,7 +28,7 @@ import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
 import Text.Pandoc.Legacy.Error
-import Text.Pandoc.MediaBag
+import Text.Pandoc.Legacy.MediaBag
 import Text.Pandoc.Legacy.Options
 import qualified Text.Pandoc.UTF8 as UTF8
 

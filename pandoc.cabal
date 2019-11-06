@@ -562,6 +562,7 @@ library
                    , Text.Pandoc.Legacy.Emoji
                    , Text.Pandoc.Legacy.Error
                    , Text.Pandoc.Legacy.ImageSize
+                   , Text.Pandoc.Legacy.MediaBag
                    --
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,

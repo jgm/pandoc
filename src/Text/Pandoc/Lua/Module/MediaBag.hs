@@ -26,7 +26,7 @@ import Text.Pandoc.Legacy.MIME (MimeType)
 
 import qualified Data.ByteString.Lazy as BL
 import qualified Foreign.Lua as Lua
-import qualified Text.Pandoc.MediaBag as MB
+import qualified Text.Pandoc.Legacy.MediaBag as MB -- TODO text: remove legacy
 
 --
 -- MediaBag submodule

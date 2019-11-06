@@ -18,7 +18,7 @@ import Foreign.Lua (Lua, NumResults, Peekable, Pushable, StackIndex)
 import Foreign.Lua.Types.Peekable (reportValueOnFailure)
 import Foreign.Lua.Userdata (ensureUserdataMetatable, pushAnyWithMetatable,
                              toAnyWithName)
-import Text.Pandoc.MediaBag (MediaBag, mediaItems)
+import Text.Pandoc.Legacy.MediaBag (MediaBag, mediaItems)
 import Text.Pandoc.Legacy.MIME (MimeType)
 import Text.Pandoc.Lua.Marshaling.AnyValue (AnyValue (..))
 

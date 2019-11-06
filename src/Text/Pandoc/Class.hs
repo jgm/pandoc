@@ -112,9 +112,9 @@ import Network.Socket (withSocketsDo)
 import Data.ByteString.Lazy (toChunks)
 import qualified Control.Exception as E
 import qualified Data.Time.LocalTime as IO (getCurrentTimeZone)
-import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
+import Text.Pandoc.Legacy.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import Text.Pandoc.Walk (walkM, walk)
-import qualified Text.Pandoc.MediaBag as MB
+import qualified Text.Pandoc.Legacy.MediaBag as MB -- TODO text: remove Legacy
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified System.Environment as IO (lookupEnv)

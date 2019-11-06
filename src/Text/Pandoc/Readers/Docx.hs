@@ -75,7 +75,7 @@ import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
 -- import Text.Pandoc.Definition
-import Text.Pandoc.MediaBag (MediaBag)
+import Text.Pandoc.Legacy.MediaBag (MediaBag)
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Readers.Docx.Combine
 import Text.Pandoc.Readers.Docx.Lists
