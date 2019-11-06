@@ -994,10 +994,13 @@ inlineToHtml opts inline = do
     (Span (id',classes,kvs) ils) -> do
                         h <- inlineListToHtml opts ils
                         let spanLikeTag =
-                              customParent . textTag . T.pack <$> lookup htmlSpanLikeDataAttrName kvs
+                              customParent
+                                .   textTag
+                                .   T.pack
+                                <$> lookup htmlSpanLikeDataAttrName kvs
                         case spanLikeTag of
                           Just tag -> do
-                            let kvs'' = removeDataAttrWithName htmlSpanLikeDataAttrName kvs'
+                            let kvs'' = removeKey htmlSpanLikeDataAttrName kvs'
                             addAttrs opts (id',classes',kvs'') $ tag h
                           Nothing -> addAttrs opts (id',classes',kvs') (H.span h)
                           where
@@ -1016,7 +1019,7 @@ inlineToHtml opts inline = do
                                                       , "csl-no-smallcaps"
                                                       ]
                                         ]
-                            removeDataAttrWithName name = filter (not . (==) name . fst)
+                            removeKey name = filter (not . (==) name . fst)
 
     (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
     (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
