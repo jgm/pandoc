@@ -45,7 +45,7 @@ import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
 import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Legacy.Shared
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.Legacy.XML (fromEntities)
 
 -- TODO text: remove
 import Text.Pandoc.Legacy.Class

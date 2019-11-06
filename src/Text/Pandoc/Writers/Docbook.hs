@@ -34,7 +34,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
-import Text.Pandoc.XML
+import Text.Pandoc.Legacy.XML
 import Text.TeXMath
 import qualified Text.XML.Light as Xml
 

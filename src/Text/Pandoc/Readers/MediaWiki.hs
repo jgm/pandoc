@@ -41,7 +41,7 @@ import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag)
 import Text.Pandoc.Legacy.Shared (crFilter, safeRead, stringify, stripTrailingNewlines,
                            trim)
 import Text.Pandoc.Walk (walk)
-import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.Legacy.XML (fromEntities)
 
 -- TODO text: remove
 import Text.Pandoc.Legacy.Class

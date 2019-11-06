@@ -28,7 +28,7 @@ import Text.DocLayout (render, literal)
 import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.XML (escapeStringForXML)
+import Text.Pandoc.Legacy.XML (escapeStringForXML)
 
 data WriterState = WriterState {
     stNotes   :: Bool            -- True if there are notes

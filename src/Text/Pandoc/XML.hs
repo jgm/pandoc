@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.XML
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -31,17 +32,17 @@ import qualified Data.Map as M
 import Data.String
 
 -- | Escape one character as needed for XML.
-escapeCharForXML :: Char -> String
+escapeCharForXML :: Char -> Text
 escapeCharForXML x = case x of
                        '&' -> "&amp;"
                        '<' -> "&lt;"
                        '>' -> "&gt;"
                        '"' -> "&quot;"
-                       c   -> [c]
+                       c   -> T.singleton c
 
 -- | Escape string as needed for XML.  Entity references are not preserved.
-escapeStringForXML :: String -> String
-escapeStringForXML = concatMap escapeCharForXML . filter isLegalXMLChar
+escapeStringForXML :: Text -> Text
+escapeStringForXML = T.concatMap escapeCharForXML . T.filter isLegalXMLChar
   where isLegalXMLChar c = c == '\t' || c == '\n' || c == '\r' ||
                            (c >= '\x20' && c <= '\xD7FF') ||
                            (c >= '\xE000' && c <= '\xFFFD') ||
@@ -49,44 +50,49 @@ escapeStringForXML = concatMap escapeCharForXML . filter isLegalXMLChar
   -- see https://www.w3.org/TR/xml/#charsets
 
 -- | Escape newline characters as &#10;
-escapeNls :: String -> String
-escapeNls (x:xs)
-  | x == '\n' = "&#10;" ++ escapeNls xs
-  | otherwise = x : escapeNls xs
-escapeNls []     = []
+escapeNls :: Text -> Text -- TODO text: refactor
+escapeNls = T.pack . escapeNls' . T.unpack
+
+-- TODO text: remove
+escapeNls' :: String -> String
+escapeNls' (x:xs)
+  | x == '\n' = "&#10;" ++ escapeNls' xs
+  | otherwise = x : escapeNls' xs
+escapeNls' []     = []
+--
 
 -- | Return a text object with a string of formatted XML attributes.
-attributeList :: (HasChars a, IsString a) => [(String, String)] -> Doc a
+attributeList :: (HasChars a, IsString a) => [(Text, Text)] -> Doc a
 attributeList = hcat . map
-  (\(a, b) -> text (' ' : escapeStringForXML a ++ "=\"" ++
-  escapeNls (escapeStringForXML b) ++ "\""))
+  (\(a, b) -> text (T.unpack $ " " <> escapeStringForXML a <> "=\"" <>
+  escapeNls (escapeStringForXML b) <> "\""))
 
 -- | Put the supplied contents between start and end tags of tagType,
 --   with specified attributes and (if specified) indentation.
-inTags:: (HasChars a, IsString a)
-      => Bool -> String -> [(String, String)] -> Doc a -> Doc a
+inTags :: (HasChars a, IsString a)
+      => Bool -> Text -> [(Text, Text)] -> Doc a -> Doc a
 inTags isIndented tagType attribs contents =
-  let openTag = char '<' <> text tagType <> attributeList attribs <>
+  let openTag = char '<' <> text (T.unpack tagType) <> attributeList attribs <>
                 char '>'
-      closeTag  = text "</" <> text tagType <> char '>'
+      closeTag  = text "</" <> text (T.unpack tagType) <> char '>'
   in  if isIndented
          then openTag $$ nest 2 contents $$ closeTag
          else openTag <> contents <> closeTag
 
 -- | Return a self-closing tag of tagType with specified attributes
 selfClosingTag :: (HasChars a, IsString a)
-               => String -> [(String, String)] -> Doc a
+               => Text -> [(Text, Text)] -> Doc a
 selfClosingTag tagType attribs =
-  char '<' <> text tagType <> attributeList attribs <> text " />"
+  char '<' <> text (T.unpack tagType) <> attributeList attribs <> text " />"
 
 -- | Put the supplied contents between start and end tags of tagType.
 inTagsSimple :: (HasChars a, IsString a)
-             => String -> Doc a -> Doc a
+             => Text -> Doc a -> Doc a
 inTagsSimple tagType = inTags False tagType []
 
 -- | Put the supplied contents in indented block btw start and end tags.
 inTagsIndented :: (HasChars a, IsString a)
-               => String -> Doc a -> Doc a
+               => Text -> Doc a -> Doc a
 inTagsIndented tagType = inTags True tagType []
 
 -- | Escape all non-ascii characters using numerical entities.
@@ -118,11 +124,14 @@ html5EntityMap = foldr go mempty htmlEntities
 
 
 -- Unescapes XML entities
-fromEntities :: String -> String
-fromEntities ('&':xs) =
+fromEntities :: Text -> Text
+fromEntities = T.pack . fromEntities' . T.unpack -- TODO text: refactor
+
+fromEntities' :: String -> String
+fromEntities' ('&':xs) =
   case lookupEntity ent' of
-        Just c  -> c ++ fromEntities rest
-        Nothing -> '&' : fromEntities xs
+        Just c  -> c ++ fromEntities' rest
+        Nothing -> '&' : fromEntities' xs
     where (ent, rest) = case break (\c -> isSpace c || c == ';') xs of
                              (zs,';':ys) -> (zs,ys)
                              (zs,    ys) -> (zs,ys)
@@ -131,5 +140,5 @@ fromEntities ('&':xs) =
                       '#':_      -> ent
                       _          -> ent ++ ";"
 
-fromEntities (x:xs) = x : fromEntities xs
-fromEntities [] = []
+fromEntities' (x:xs) = x : fromEntities' xs
+fromEntities' [] = []

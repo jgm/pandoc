@@ -32,7 +32,7 @@ import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
 import Text.Pandoc.Legacy.Shared (crFilter)
-import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.Legacy.XML (fromEntities)
 
 -- TODO text: remove
 import Text.Pandoc.Legacy.Class

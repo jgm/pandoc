@@ -55,7 +55,7 @@ import Text.DocLayout
 import Text.Pandoc.Legacy.Shared (stringify, makeSections, deNote, deLink) -- TODO text: remove Legacy
 import Text.Pandoc.Walk (walk)
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.XML (escapeStringForXML)
+import Text.Pandoc.Legacy.XML (escapeStringForXML)
 import Text.DocTemplates (Context(..), Val(..), TemplateTarget,
                           ToContext(..), FromContext(..))
 

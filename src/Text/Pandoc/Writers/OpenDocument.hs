@@ -36,7 +36,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import qualified Text.Pandoc.Translations as Term (Term(Figure, Table))
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.XML
+import Text.Pandoc.Legacy.XML
 import Text.Printf (printf)
 
 -- TODO text: remove

@@ -33,7 +33,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk (walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtml5String, tagWithAttributes)
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.XML (toHtml5Entities)
+import Text.Pandoc.Legacy.XML (toHtml5Entities)
 import Text.DocLayout (literal, render)
 
 -- | Convert Pandoc to CommonMark.

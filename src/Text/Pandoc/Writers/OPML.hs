@@ -26,7 +26,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Markdown (writeMarkdown)
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.XML
+import Text.Pandoc.Legacy.XML
 
 -- | Convert Pandoc document to string in OPML format.
 writeOPML :: PandocMonad m => WriterOptions -> Pandoc -> m Text

@@ -27,7 +27,7 @@ import Text.DocLayout
 import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.XML
+import Text.Pandoc.Legacy.XML
 
 -- | Convert Pandoc document to string in Docbook format.
 writeTEI :: PandocMonad m => WriterOptions -> Pandoc -> m Text

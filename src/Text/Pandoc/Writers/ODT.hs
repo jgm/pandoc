@@ -39,7 +39,7 @@ import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
 import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toStringLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
-import Text.Pandoc.XML
+import Text.Pandoc.Legacy.XML
 -- import Text.TeXMath -- TODO text: restore
 import Text.XML.Light
 

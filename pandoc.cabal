@@ -566,6 +566,7 @@ library
                    , Text.Pandoc.Legacy.Class
                    , Text.Pandoc.Legacy.SelfContained
                    , Text.Pandoc.Legacy.Process
+                   , Text.Pandoc.Legacy.XML
                    --
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,

@@ -45,7 +45,7 @@ import Text.DocTemplates (Val(..), Context(..), FromContext(..))
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Math (texMathToInlines)
-import Text.Pandoc.XML (toHtml5Entities)
+import Text.Pandoc.Legacy.XML (toHtml5Entities)
 
 type Notes = [[Block]]
 type Ref   = (String, Target, Attr)

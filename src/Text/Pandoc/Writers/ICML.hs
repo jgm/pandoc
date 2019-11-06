@@ -36,7 +36,7 @@ import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy (isURI, linesToPara
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.XML
+import Text.Pandoc.Legacy.XML
 
 type Style = [String]
 type Hyperlink = [(Int, String)]

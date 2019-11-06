@@ -33,7 +33,7 @@ import Text.Pandoc.Legacy.Logging (Verbosity (..))
 import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Legacy.Shared (crFilter, safeRead) -- TODO text: remove Legacy
-import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.Legacy.XML (fromEntities)
 import Text.Printf (printf)
 
 -- TODO text: remove

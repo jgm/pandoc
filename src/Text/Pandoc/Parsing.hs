@@ -200,7 +200,7 @@ import Text.Pandoc.Legacy.Options
 import Text.Pandoc.Readers.LaTeX.Types (Macro)
 import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
-import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.Legacy.XML (fromEntities)
 import Text.Parsec hiding (token)
 import Text.Parsec.Pos (initialPos, newPos, updatePosString)
 

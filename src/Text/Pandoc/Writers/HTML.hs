@@ -63,7 +63,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.XML (escapeStringForXML, fromEntities, toEntities)
+import Text.Pandoc.Legacy.XML (escapeStringForXML, fromEntities, toEntities)
 #if MIN_VERSION_blaze_markup(0,6,3)
 #else
 import Text.Blaze.Internal (preEscapedString, preEscapedText)

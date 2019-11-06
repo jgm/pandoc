@@ -58,7 +58,7 @@ import Text.Printf (printf)
 import Text.XML.Light (Attr (..), Element (..), Node (..), QName (..),
                        add_attrs, lookupAttr, node, onlyElems, parseXML,
                        ppElement, showElement, strContent, unode, unqual)
-import Text.Pandoc.XML (escapeStringForXML)
+import Text.Pandoc.Legacy.XML (escapeStringForXML)
 import Text.DocTemplates (FromContext(lookupContext), Context(..),
                           ToContext(toVal), Val(..))
 
