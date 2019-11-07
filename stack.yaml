@@ -16,10 +16,10 @@ extra-deps:
 #- pandoc-types-1.17.6.1
 #- texmath-0.11.3
   # The text branch
-- git: https://github.com/jgm/texmath
+- git: git@github.com:jgm/texmath
   commit: 0d71300d91513bdd812d2c89b78460c15c277457
   # The text branch
-- git: https://github.com/jgm/pandoc-types
+- git: git@github.com:jgm/pandoc-types
   commit: f63baa73ae9a353b1896b008a145ebf1ef9a0342
 - haddock-library-1.8.0
 - skylighting-0.8.2.3
