@@ -33,11 +33,12 @@ import Data.List (dropWhileEnd, intersperse)
 import Data.List.Split (splitOn)
 import qualified Data.Map as M
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Default
 import Data.Maybe
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Class (PandocMonad, insertMedia, report)
+import Text.Pandoc.Class (PandocMonad, insertMedia, report)
 import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options
@@ -192,11 +193,11 @@ parseBodyChild e =
 -- | Parse a @\<binary>@ element.
 parseBinaryElement :: PandocMonad m => Element -> FB2 m ()
 parseBinaryElement e =
-  case (findAttr (unqual "id") e, findAttr (unqual "content-type") e) of
+  case (findAttr (unqual "id") e, findAttr (unqual "content-type") e) of -- TODO text: make findAttrText
     (Nothing, _) -> report $ IgnoredElement "binary without id attribute"
     (Just _, Nothing) ->
       report $ IgnoredElement "binary without content-type attribute"
-    (Just filename, contentType) -> insertMedia filename contentType (decodeLenient (pack (strContent e)))
+    (Just filename, contentType) -> insertMedia filename (T.pack <$> contentType) (decodeLenient (pack (strContent e)))
 
 -- * Type parsers
 
