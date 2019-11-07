@@ -880,7 +880,7 @@ blockListToMarkdown opts blocks = do
   mapM (blockToMarkdown opts) (fixBlocks blocks) >>= return . mconcat
 
 getKey :: Doc Text -> Key
-getKey = toKey . T.unpack . render Nothing
+getKey = toKey . render Nothing
 
 findUsableIndex :: [String] -> Int -> Int
 findUsableIndex lbls i = if (show i) `elem` lbls

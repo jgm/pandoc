@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Muse
    Copyright   : Copyright (C) 2017-2019 Alexander Krotov
@@ -30,20 +31,16 @@ import qualified Data.Map as M
 import qualified Data.Set as Set
 import Data.Maybe (fromMaybe, isNothing, maybeToList)
 import Data.Text (Text, unpack)
+import qualified Data.Text as T
 import Text.Pandoc.Builder (Blocks, Inlines)
-import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
--- import Text.Pandoc.Class (PandocMonad (..))
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
--- import Text.Pandoc.Error (PandocError (PandocParsecError)) -- TODO text: restore
-import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Legacy.Options
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad (..))
+import Text.Pandoc.Definition
+import Text.Pandoc.Error (PandocError (PandocParsecError))
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (F)
-import Text.Pandoc.Legacy.Shared (crFilter, trimr, underlineSpan)
-
--- TODO text: remove
-import Text.Pandoc.Legacy.Error
-import Text.Pandoc.Legacy.Class
---
+import Text.Pandoc.Shared (crFilter, trimr, underlineSpan)
 
 -- | Read Muse from an input string and return a Pandoc document.
 readMuse :: PandocMonad m
@@ -54,18 +51,18 @@ readMuse opts s = do
   let input = crFilter s
   res <- flip runReaderT def $ runParserT parseMuse def{ museOptions = opts } "source" input
   case res of
-       Left e  -> throwError $ PandocParsecError (unpack input) e
+       Left e  -> throwError $ PandocParsecError input e
        Right d -> return d
 
 type F = Future MuseState
 
 data MuseState = MuseState { museMeta :: F Meta -- ^ Document metadata
                            , museOptions :: ReaderOptions
-                           , museIdentifierList :: Set.Set String
+                           , museIdentifierList :: Set.Set Text
                            , museLastSpacePos :: Maybe SourcePos -- ^ Position after last space or newline parsed
                            , museLastStrPos :: Maybe SourcePos -- ^ Position after last str parsed
                            , museLogMessages :: [LogMessage]
-                           , museNotes :: M.Map String (SourcePos, F Blocks)
+                           , museNotes :: M.Map Text (SourcePos, F Blocks)
                            }
 
 instance Default MuseState where
@@ -121,22 +118,27 @@ parseMuse = do
 -- * Utility functions
 
 -- | Trim up to one newline from the beginning of the string.
-lchop :: String -> String
-lchop ('\n':xs) = xs
-lchop s = s
+lchop :: Text -> Text
+lchop s = case T.uncons s of
+  Just ('\n', xs) -> xs
+  _               -> s
 
 -- | Trim up to one newline from the end of the string.
-rchop :: String -> String
-rchop = reverse . lchop . reverse
+rchop :: Text -> Text
+rchop s = case T.unsnoc s of
+  Just (xs, '\n') -> xs
+  _               -> s
 
-unindent :: String -> String
-unindent = rchop . intercalate "\n" . dropSpacePrefix . splitOn "\n" . lchop
+unindent :: Text -> Text
+unindent = rchop . T.intercalate "\n" . dropSpacePrefix . T.splitOn "\n" . lchop
 
-dropSpacePrefix :: [String] -> [String]
-dropSpacePrefix lns = drop maxIndent <$> lns
+dropSpacePrefix :: [Text] -> [Text]
+dropSpacePrefix lns = T.drop maxIndent <$> lns
   where isSpaceChar c = c == ' ' || c == '\t'
-        maxIndent = length $ takeWhile (isSpaceChar . head) $ takeWhile same $ transpose lns
-        same = and . (zipWith (==) <*> drop 1)
+        maxIndent = length $ takeWhile (isSpaceChar . T.head) $ takeWhile same $ T.transpose lns
+        same t = case T.uncons t of
+          Just (c, cs) -> T.all (== c) cs
+          Nothing      -> True
 
 atStart :: PandocMonad m => MuseParser m ()
 atStart = do
@@ -165,29 +167,29 @@ getIndent = subtract 1 . sourceColumn <$ many spaceChar <*> getPosition
 
 -- ** HTML parsers
 
-openTag :: PandocMonad m => String -> MuseParser m [(String, String)]
+openTag :: PandocMonad m => Text -> MuseParser m [(Text, Text)]
 openTag tag = try $
-  char '<' *> string tag *> manyTill attr (char '>')
+  char '<' *> textStr tag *> manyTill attr (char '>')
   where
     attr = try $ (,)
       <$  many1 spaceChar
-      <*> many1 (noneOf "=\n")
+      <*> many1Char (noneOf "=\n")
       <*  string "=\""
-      <*> manyTill (noneOf "\"") (char '"')
+      <*> manyTillChar (noneOf "\"") (char '"')
 
-closeTag :: PandocMonad m => String -> MuseParser m ()
-closeTag tag = try $ string "</" *> string tag *> void (char '>')
+closeTag :: PandocMonad m => Text -> MuseParser m ()
+closeTag tag = try $ string "</" *> textStr tag *> void (char '>')
 
 -- | Convert HTML attributes to Pandoc 'Attr'
-htmlAttrToPandoc :: [(String, String)] -> Attr
+htmlAttrToPandoc :: [(Text, Text)] -> Attr
 htmlAttrToPandoc attrs = (ident, classes, keyvals)
   where
     ident   = fromMaybe "" $ lookup "id" attrs
-    classes = maybe [] words $ lookup "class" attrs
+    classes = maybe [] T.words $ lookup "class" attrs
     keyvals = [(k,v) | (k,v) <- attrs, k /= "id", k /= "class"]
 
 parseHtmlContent :: PandocMonad m
-                 => String -- ^ Tag name
+                 => Text -- ^ Tag name
                  -> MuseParser m (Attr, F Blocks)
 parseHtmlContent tag = try $ getIndent >>= \indent -> (,)
   <$> fmap htmlAttrToPandoc (openTag tag)
@@ -198,16 +200,16 @@ parseHtmlContent tag = try $ getIndent >>= \indent -> (,)
 -- ** Directive parsers
 
 -- While not documented, Emacs Muse allows "-" in directive name
-parseDirectiveKey :: PandocMonad m => MuseParser m String
-parseDirectiveKey = char '#' *> many (letter <|> char '-')
+parseDirectiveKey :: PandocMonad m => MuseParser m Text
+parseDirectiveKey = char '#' *> manyChar (letter <|> char '-')
 
-parseEmacsDirective :: PandocMonad m => MuseParser m (String, F Inlines)
+parseEmacsDirective :: PandocMonad m => MuseParser m (Text, F Inlines)
 parseEmacsDirective = (,)
   <$> parseDirectiveKey
   <*  spaceChar
   <*> (trimInlinesF . mconcat <$> manyTill inline' eol)
 
-parseAmuseDirective :: PandocMonad m => MuseParser m (String, F Inlines)
+parseAmuseDirective :: PandocMonad m => MuseParser m (Text, F Inlines)
 parseAmuseDirective = (,)
   <$> parseDirectiveKey
   <*  many1 spaceChar
@@ -294,7 +296,7 @@ listItemContentsUntil col pre end = p
 parseBlock :: PandocMonad m => MuseParser m (F Blocks)
 parseBlock = do
   res <- blockElements <|> para
-  trace (take 60 $ show $ B.toList $ runF res def)
+  trace (T.take 60 $ T.pack $ show $ B.toList $ runF res def)
   return res
   where para = fst <$> paraUntil (try (eof <|> void (lookAhead blockElements)))
 
@@ -342,7 +344,7 @@ pagebreak = try $ pure (B.divWith ("", [], [("style", "page-break-before: always
   <* string "* * * * *"
   <* manyTill spaceChar eol
 
-headingStart :: PandocMonad m => MuseParser m (String, Int)
+headingStart :: PandocMonad m => MuseParser m (Text, Int)
 headingStart = try $ (,)
   <$> option "" (try (parseAnchor <* manyTill spaceChar eol))
   <*  firstColumn
@@ -376,14 +378,14 @@ example :: PandocMonad m => MuseParser m (F Blocks)
 example = try $ pure . B.codeBlock
   <$  string "{{{"
   <*  many spaceChar
-  <*> (unindent <$> manyTill anyChar (string "}}}"))
+  <*> (unindent <$> manyTillChar anyChar (string "}}}"))
 
 -- | Parse an @\<example>@ tag.
 exampleTag :: PandocMonad m => MuseParser m (F Blocks)
 exampleTag = try $ fmap pure $ B.codeBlockWith
   <$  many spaceChar
   <*> (htmlAttrToPandoc <$> openTag "example")
-  <*> (unindent <$> manyTill anyChar (closeTag "example"))
+  <*> (unindent <$> manyTillChar anyChar (closeTag "example"))
   <*  manyTill spaceChar eol
 
 -- | Parse a @\<literal>@ tag as a raw block.
@@ -393,7 +395,7 @@ literalTag = try $ fmap pure $ B.rawBlock
   <$  many spaceChar
   <*> (fromMaybe "html" . lookup "style" <$> openTag "literal") -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
   <*  manyTill spaceChar eol
-  <*> (unindent <$> manyTill anyChar (closeTag "literal"))
+  <*> (unindent <$> manyTillChar anyChar (closeTag "literal"))
   <*  manyTill spaceChar eol
 
 -- | Parse @\<center>@ tag.
@@ -433,7 +435,7 @@ playTag = do
 
 verseLine :: PandocMonad m => MuseParser m (F Inlines)
 verseLine = (<>)
-  <$> fmap pure (option mempty (B.str <$> many1 ('\160' <$ char ' ')))
+  <$> fmap pure (option mempty (B.str <$> many1Char ('\160' <$ char ' ')))
   <*> fmap (trimInlinesF . mconcat) (manyTill inline' eol)
 
 -- | Parse @\<verse>@ tag.
@@ -471,17 +473,17 @@ paraUntil end = do
 noteMarker' :: PandocMonad m
             => Char
             -> Char
-            -> MuseParser m String
-noteMarker' l r = try $ (\x y -> l:x:y ++ [r])
+            -> MuseParser m Text
+noteMarker' l r = try $ (\x y -> T.pack $ l:x:y ++ [r])
   <$ char l
   <*> oneOf "123456789"
   <*> manyTill digit (char r)
 
-noteMarker :: PandocMonad m => MuseParser m String
+noteMarker :: PandocMonad m => MuseParser m Text
 noteMarker = noteMarker' '[' ']' <|> noteMarker' '{' '}'
 
 addNote :: PandocMonad m
-        => String
+        => Text
         -> SourcePos
         -> F Blocks
         -> MuseParser m ()
@@ -679,15 +681,15 @@ museGridTableRow :: PandocMonad m
                  -> MuseParser m (F [Blocks])
 museGridTableRow indent indices = try $ do
   lns <- many1 $ try (indentWith indent *> museGridTableRawLine indices)
-  let cols = map (unlines . map trimr) $ transpose lns
+  let cols = map (T.unlines . map trimr) $ transpose lns
   indentWith indent *> museGridTableHeader
   sequence <$> mapM (parseFromString' parseBlocks) cols
 
 museGridTableRawLine :: PandocMonad m
                      => [Int]
-                     -> MuseParser m [String]
+                     -> MuseParser m [Text]
 museGridTableRawLine indices =
-  char '|' *> forM indices (\n -> count n anyChar <* char '|') <* manyTill spaceChar eol
+  char '|' *> forM indices (\n -> countChar n anyChar <* char '|') <* manyTill spaceChar eol
 
 museGridTable :: PandocMonad m => MuseParser m (F Blocks)
 museGridTable = try $ do
@@ -772,12 +774,12 @@ inline = endline <|> inline'
 endline :: PandocMonad m => MuseParser m (F Inlines)
 endline = try $ pure B.softbreak <$ newline <* notFollowedBy blankline <* updateLastSpacePos
 
-parseAnchor :: PandocMonad m => MuseParser m String
-parseAnchor = try $ (:)
+parseAnchor :: PandocMonad m => MuseParser m Text
+parseAnchor = try $ T.cons
   <$  firstColumn
   <*  char '#'
   <*> letter
-  <*> many (letter <|> digit <|> char '-')
+  <*> manyChar (letter <|> digit <|> char '-')
 
 anchor :: PandocMonad m => MuseParser m (F Inlines)
 anchor = try $ do
@@ -818,7 +820,7 @@ emphasisBetween p = try $ trimInlinesF . mconcat
 
 -- | Parse an inline tag, such as @\<em>@ and @\<strong>@.
 inlineTag :: PandocMonad m
-          => String -- ^ Tag name
+          => Text -- ^ Tag name
           -> MuseParser m (F Inlines)
 inlineTag tag = try $ mconcat
   <$  openTag tag
@@ -867,12 +869,12 @@ strikeoutTag = fmap B.strikeout <$> inlineTag "del"
 verbatimTag :: PandocMonad m => MuseParser m (F Inlines)
 verbatimTag = return . B.text
   <$  openTag "verbatim"
-  <*> manyTill anyChar (closeTag "verbatim")
+  <*> manyTillChar anyChar (closeTag "verbatim")
 
 -- | Parse @\<class>@ tag.
 classTag :: PandocMonad m => MuseParser m (F Inlines)
 classTag = do
-  classes <- maybe [] words . lookup "name" <$> openTag "class"
+  classes <- maybe [] T.words . lookup "name" <$> openTag "class"
   fmap (B.spanWith ("", classes, [])) . mconcat <$> manyTill inline (closeTag "class")
 
 -- | Parse @\<\<\<RTL>>>@ text.
@@ -891,43 +893,43 @@ nbsp = try $ pure (B.str "\160") <$ string "~~"
 
 -- | Parse code markup, indicated by @\'=\'@ characters.
 code :: PandocMonad m => MuseParser m (F Inlines)
-code = try $ fmap pure $ B.code . uncurry (++)
+code = try $ fmap pure $ B.code . uncurry (<>)
   <$  atStart
   <*  char '='
   <*  notFollowedBy (spaceChar <|> newline)
-  <*> manyUntil (noneOf "\n\r" <|> (newline <* notFollowedBy newline)) (try $ fmap pure $ noneOf " \t\n\r=" <* char '=')
+  <*> manyUntilChar (noneOf "\n\r" <|> (newline <* notFollowedBy newline)) (try $ fmap T.singleton $ noneOf " \t\n\r=" <* char '=')
   <*  notFollowedBy alphaNum
 
 -- | Parse @\<code>@ tag.
 codeTag :: PandocMonad m => MuseParser m (F Inlines)
 codeTag = fmap pure $ B.codeWith
   <$> (htmlAttrToPandoc <$> openTag "code")
-  <*> manyTill anyChar (closeTag "code")
+  <*> manyTillChar anyChar (closeTag "code")
 
 -- | Parse @\<math>@ tag.
 -- @\<math>@ tag is an Emacs Muse extension enabled by @(require 'muse-latex2png)@
 mathTag :: PandocMonad m => MuseParser m (F Inlines)
 mathTag = return . B.math
   <$  openTag "math"
-  <*> manyTill anyChar (closeTag "math")
+  <*> manyTillChar anyChar (closeTag "math")
 
 -- | Parse inline @\<literal>@ tag as a raw inline.
 inlineLiteralTag :: PandocMonad m => MuseParser m (F Inlines)
 inlineLiteralTag = try $ fmap pure $ B.rawInline
   <$> (fromMaybe "html" . lookup "style" <$> openTag "literal") -- FIXME: Emacs Muse inserts <literal> without style into all output formats, but we assume HTML
-  <*> manyTill anyChar (closeTag "literal")
+  <*> manyTillChar anyChar (closeTag "literal")
 
 str :: PandocMonad m => MuseParser m (F Inlines)
-str = return . B.str <$> many1 alphaNum <* updateLastStrPos
+str = return . B.str <$> many1Char alphaNum <* updateLastStrPos
 
 -- | Consume asterisks that were not used as emphasis opening.
 -- This prevents series of asterisks from being split into
 -- literal asterisk and emphasis opening.
 asterisks :: PandocMonad m => MuseParser m (F Inlines)
-asterisks = pure . B.str <$> many1 (char '*')
+asterisks = pure . B.str <$> many1Char (char '*')
 
 symbol :: PandocMonad m => MuseParser m (F Inlines)
-symbol = pure . B.str . pure <$> nonspaceChar
+symbol = pure . B.str . T.singleton <$> nonspaceChar
 
 -- | Parse a link or image.
 linkOrImage :: PandocMonad m => MuseParser m (F Inlines)
@@ -939,12 +941,12 @@ linkContent = trimInlinesF . mconcat
   <*> manyTill inline (char ']')
 
 -- | Parse a link starting with (possibly null) prefix
-link :: PandocMonad m => String -> MuseParser m (F Inlines)
+link :: PandocMonad m => Text -> MuseParser m (F Inlines)
 link prefix = try $ do
   inLink <- asks museInLink
   guard $ not inLink
-  string $ "[[" ++ prefix
-  url <- manyTill anyChar $ char ']'
+  textStr $ "[[" <> prefix
+  url <- manyTillChar anyChar $ char ']'
   content <- option (pure $ B.str url) (local (\s -> s { museInLink = True }) linkContent)
   char ']'
   return $ B.link url "" <$> content
@@ -952,27 +954,27 @@ link prefix = try $ do
 image :: PandocMonad m => MuseParser m (F Inlines)
 image = try $ do
   string "[["
-  (url, (ext, width, align)) <- manyUntil (noneOf "]") (imageExtensionAndOptions <* char ']')
+  (url, (ext, width, align)) <- manyUntilChar (noneOf "]") (imageExtensionAndOptions <* char ']')
   content <- option mempty linkContent
   char ']'
   let widthAttr = case align of
-                    Just 'f' -> [("width", fromMaybe "100" width ++ "%"), ("height", "75%")]
-                    _ -> maybeToList (("width",) . (++ "%") <$> width)
+                    Just 'f' -> [("width", fromMaybe "100" width <> "%"), ("height", "75%")]
+                    _ -> maybeToList (("width",) . (<> "%") <$> width)
   let alignClass = case align of
                      Just 'r' -> ["align-right"]
                      Just 'l' -> ["align-left"]
                      Just 'f' -> []
                      _        -> []
-  return $ B.imageWith ("", alignClass, widthAttr) (url ++ ext) mempty <$> content
+  return $ B.imageWith ("", alignClass, widthAttr) (url <> ext) mempty <$> content
   where -- Taken from muse-image-regexp defined in Emacs Muse file lisp/muse-regexps.el
         imageExtensions = [".eps", ".gif", ".jpg", ".jpeg", ".pbm", ".png", ".tiff", ".xbm", ".xpm"]
-        imageExtension = choice (try . string <$> imageExtensions)
+        imageExtension = choice (try . textStr <$> imageExtensions)
         imageExtensionAndOptions = do
           ext <- imageExtension
           (width, align) <- option (Nothing, Nothing) imageAttrs
           return (ext, width, align)
         imageAttrs = (,)
           <$  many1 spaceChar
-          <*> optionMaybe (many1 digit)
+          <*> optionMaybe (many1Char digit)
           <*  many spaceChar
           <*> optionMaybe (oneOf "rlf")

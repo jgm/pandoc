@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TupleSections    #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Meta
    Copyright   : Copyright (C) 2014-2019 Albert Krewinkel
@@ -24,10 +25,10 @@ import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 
 import Text.Pandoc.Builder (Blocks, Inlines)
-import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Class (PandocMonad)
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Shared (safeRead)
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.Shared (safeRead)
 
 import Control.Monad (mzero, void, when)
 import Data.Char (toLower)
@@ -35,6 +36,8 @@ import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 import qualified Data.Set as Set
+import Data.Text (Text)
+import qualified Data.Text as T
 import Network.HTTP (urlEncode)
 
 -- | Returns the current meta, respecting export options.
@@ -47,7 +50,7 @@ metaExport = do
          . (if exportWithEmail   settings then id else removeMeta "email")
         <$> orgStateMeta st
 
-removeMeta :: String -> Meta -> Meta
+removeMeta :: Text -> Meta -> Meta
 removeMeta key meta' =
   let metaMap = unMeta meta'
   in Meta $ M.delete key metaMap
@@ -60,18 +63,18 @@ metaLine = mempty <$ metaLineStart <* (optionLine <|> declarationLine)
 
 declarationLine :: PandocMonad m => OrgParser m ()
 declarationLine = try $ do
-  key   <- map toLower <$> metaKey
+  key   <- T.toLower <$> metaKey
   (key', value) <- metaValue key
   let addMetaValue st =
         st { orgStateMeta = B.setMeta key' <$> value <*> orgStateMeta st }
   when (key' /= "results") $ updateState addMetaValue
 
-metaKey :: Monad m => OrgParser m String
-metaKey = map toLower <$> many1 (noneOf ": \n\r")
-                      <*  char ':'
-                      <*  skipSpaces
+metaKey :: Monad m => OrgParser m Text
+metaKey = T.toLower <$> many1Char (noneOf ": \n\r")
+                    <*  char ':'
+                    <*  skipSpaces
 
-metaValue :: PandocMonad m => String -> OrgParser m (String, F MetaValue)
+metaValue :: PandocMonad m => Text -> OrgParser m (Text, F MetaValue)
 metaValue key =
   let inclKey = "header-includes"
   in case key of
@@ -88,7 +91,7 @@ metaValue key =
     -- Org-mode expects class options to contain the surrounding brackets,
     -- pandoc does not.
     "latex_class_options" -> ("classoption",) <$>
-                             metaModifiedString (filter (`notElem` "[]"))
+                             metaModifiedString (T.filter (`notElem` ("[]" :: String)))
     "html_head"       -> (inclKey,) <$>
                          accumulatingList inclKey (metaExportSnippet "html")
     _                 -> (key,) <$> metaString
@@ -98,25 +101,25 @@ metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
 
 metaInlinesCommaSeparated :: PandocMonad m => OrgParser m (F MetaValue)
 metaInlinesCommaSeparated = do
-  itemStrs <- many1 (noneOf ",\n") `sepBy1` char ','
+  itemStrs <- many1Char (noneOf ",\n") `sepBy1` char ','
   newline
-  items <- mapM (parseFromString inlinesTillNewline . (++ "\n")) itemStrs
+  items <- mapM (parseFromString inlinesTillNewline . (<> "\n")) itemStrs
   let toMetaInlines = MetaInlines . B.toList
   return $ MetaList . map toMetaInlines <$> sequence items
 
 metaString :: Monad m => OrgParser m (F MetaValue)
 metaString = metaModifiedString id
 
-metaModifiedString :: Monad m => (String -> String) -> OrgParser m (F MetaValue)
+metaModifiedString :: Monad m => (Text -> Text) -> OrgParser m (F MetaValue)
 metaModifiedString f = return . MetaString . f <$> anyLine
 
 -- | Read an format specific meta definition
-metaExportSnippet :: Monad m => String -> OrgParser m (F MetaValue)
+metaExportSnippet :: Monad m => Text -> OrgParser m (F MetaValue)
 metaExportSnippet format =
   return . MetaInlines . B.toList . B.rawInline format <$> anyLine
 
 -- | Accumulate the result of the @parser@ in a list under @key@.
-accumulatingList :: Monad m => String
+accumulatingList :: Monad m => Text
                  -> OrgParser m (F MetaValue)
                  -> OrgParser m (F MetaValue)
 accumulatingList key p = do
@@ -147,23 +150,23 @@ optionLine = try $ do
     "pandoc-emphasis-post" -> emphChars >>= updateState . setEmphasisPostChar
     _          -> mzero
 
-addLinkFormat :: Monad m => String
-              -> (String -> String)
+addLinkFormat :: Monad m => Text
+              -> (Text -> Text)
               -> OrgParser m ()
 addLinkFormat key formatter = updateState $ \s ->
   let fs = orgStateLinkFormatters s
   in s{ orgStateLinkFormatters = M.insert key formatter fs }
 
-parseLinkFormat :: Monad m => OrgParser m (String, String -> String)
+parseLinkFormat :: Monad m => OrgParser m (Text, Text -> Text)
 parseLinkFormat = try $ do
-  linkType <- (:) <$> letter <*> many (alphaNum <|> oneOf "-_") <* skipSpaces
+  linkType <- T.cons <$> letter <*> manyChar (alphaNum <|> oneOf "-_") <* skipSpaces
   linkSubst <- parseFormat
   return (linkType, linkSubst)
 
 -- | An ad-hoc, single-argument-only implementation of a printf-style format
 -- parser.
-parseFormat :: Monad m => OrgParser m (String -> String)
-parseFormat = try $ replacePlain <|> replaceUrl <|> justAppend
+parseFormat :: Monad m => OrgParser m (Text -> Text)
+parseFormat = try $ go $ replacePlain <|> replaceUrl <|> justAppend
  where
    -- inefficient, but who cares
    replacePlain = try $ (\x -> concat . flip intersperse x)
@@ -174,6 +177,8 @@ parseFormat = try $ replacePlain <|> replaceUrl <|> justAppend
 
    rest            = manyTill anyChar         (eof <|> () <$ oneOf "\n\r")
    tillSpecifier c = manyTill (noneOf "\n\r") (try $ string ('%':c:""))
+   -- TODO text: refactor
+   go = fmap $ \f -> T.pack . f . T.unpack
 
 tagList :: Monad m => OrgParser m [Tag]
 tagList = do
@@ -231,41 +236,41 @@ todoSequence = try $ do
                     (x:xs) -> return $ keywordsToSequence (reverse xs) [x]
 
  where
-   todoKeywords :: Monad m => OrgParser m [String]
+   todoKeywords :: Monad m => OrgParser m [Text]
    todoKeywords = try $
-     let keyword = many1 nonspaceChar <* skipSpaces
+     let keyword = many1Char nonspaceChar <* skipSpaces
          endOfKeywords = todoDoneSep <|> void newline
      in manyTill keyword (lookAhead endOfKeywords)
 
    todoDoneSep :: Monad m => OrgParser m ()
    todoDoneSep = void . try $ skipSpaces *> char '|' <* skipSpaces1
 
-   keywordsToSequence :: [String] -> [String] -> TodoSequence
+   keywordsToSequence :: [Text] -> [Text] -> TodoSequence
    keywordsToSequence todo done =
      let todoMarkers = map (TodoMarker Todo) todo
          doneMarkers = map (TodoMarker Done) done
      in todoMarkers ++ doneMarkers
 
-macroDefinition :: Monad m => OrgParser m (String, [String] -> String)
+macroDefinition :: Monad m => OrgParser m (Text, [Text] -> Text)
 macroDefinition = try $ do
-  macroName <- many1 nonspaceChar <* skipSpaces
+  macroName <- many1Char nonspaceChar <* skipSpaces
   firstPart <- expansionPart
   (elemOrder, parts) <- unzip <$> many ((,) <$> placeholder <*> expansionPart)
   let expander = mconcat . alternate (firstPart:parts) . reorder elemOrder
   return (macroName, expander)
  where
   placeholder :: Monad m => OrgParser m Int
-  placeholder = try . fmap (fromMaybe 1 . safeRead) $ char '$' *> many1 digit
+  placeholder = try . fmap (fromMaybe 1 . safeRead) $ char '$' *> many1Char digit
 
-  expansionPart :: Monad m => OrgParser m String
-  expansionPart = try $ many (notFollowedBy placeholder *> noneOf "\n\r")
+  expansionPart :: Monad m => OrgParser m Text
+  expansionPart = try $ manyChar (notFollowedBy placeholder *> noneOf "\n\r")
 
   alternate :: [a] -> [a] -> [a]
   alternate []     ys     = ys
   alternate xs     []     = xs
   alternate (x:xs) (y:ys) = x : y : alternate xs ys
 
-  reorder :: [Int] -> [String] -> [String]
+  reorder :: [Int] -> [Text] -> [Text]
   reorder perm xs =
     let element n = take 1 $ drop (n - 1) xs
     in concatMap element perm

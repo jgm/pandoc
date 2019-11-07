@@ -19,12 +19,13 @@ import Control.Monad.Except (guard, liftM2, throwError)
 import qualified Data.Foldable as F
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Class (PandocMonad (..))
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Options
+import qualified Data.Text as T
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad (..))
+import Text.Pandoc.Definition
+import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed)
-import Text.Pandoc.Legacy.Shared (crFilter)
+import Text.Pandoc.Shared (crFilter)
 
 
 -- | Read creole from an input string and return a Pandoc document.
@@ -70,7 +71,6 @@ parseCreole = do
   eof
   return $ B.doc bs
 
-
 --
 -- block parsers
 --
@@ -92,9 +92,9 @@ nowiki = try $ fmap (B.codeBlock . mconcat) (nowikiStart
                                              >> manyTill content nowikiEnd)
   where
     content = brackets <|> line
-    brackets = try $ option "" ((:[]) <$> newline)
-               <+> (char ' ' >> (many (char ' ') <+> string "}}}") <* eol)
-    line = option "" ((:[]) <$> newline) <+> manyTill anyChar eol
+    brackets = try $ option "" (T.singleton <$> newline)
+               <+> (char ' ' >> (manyChar (char ' ') <+> textStr "}}}") <* eol)
+    line = option "" (T.singleton <$> newline) <+> manyTillChar anyChar eol
     eol = lookAhead $ try $ nowikiEnd <|> newline
     nowikiStart = optional newline >> string "{{{" >> skipMany spaceChar >> newline
     nowikiEnd = try $ linebreak >> string "}}}" >> skipMany spaceChar >> newline
@@ -106,7 +106,7 @@ header = try $ do
     fmap length (many1 (char '='))
   guard $ level <= 6
   skipSpaces
-  content <- B.str <$> manyTill (noneOf "\n") headerEnd
+  content <- B.str <$> manyTillChar (noneOf "\n") headerEnd
   return $ B.header level content
   where
     headerEnd = try $ skipSpaces >> many (char '=') >> skipSpaces >> newline
@@ -204,7 +204,7 @@ inline = choice [ whitespace
 
 escapedChar :: PandocMonad m => CRLParser m B.Inlines
 escapedChar =
-  fmap (B.str . (:[])) (try $ char '~' >> noneOf "\t\n ")
+  fmap (B.str . T.singleton) (try $ char '~' >> noneOf "\t\n ")
 
 escapedLink :: PandocMonad m => CRLParser m B.Inlines
 escapedLink = try $ do
@@ -217,8 +217,8 @@ image = try $ do
   (orig, src) <- wikiImg
   return $ B.image src "" (B.str orig)
   where
-    linkSrc = many $ noneOf "|}\n\r\t"
-    linkDsc = char '|' >> many (noneOf "}\n\r\t")
+    linkSrc = manyChar $ noneOf "|}\n\r\t"
+    linkDsc = char '|' >> manyChar (noneOf "}\n\r\t")
     wikiImg = try $ do
       string "{{"
       src <- linkSrc
@@ -231,11 +231,11 @@ link = try $ do
   (orig, src) <- uriLink <|> wikiLink
   return $ B.link src "" orig
   where
-    linkSrc = many $ noneOf "|]\n\r\t"
-    linkDsc :: PandocMonad m => String -> CRLParser m B.Inlines
+    linkSrc = manyChar $ noneOf "|]\n\r\t"
+    linkDsc :: PandocMonad m => Text -> CRLParser m B.Inlines
     linkDsc otxt = B.str
                    <$> try (option otxt
-                         (char '|' >> many (noneOf "]\n\r\t")))
+                         (char '|' >> manyChar (noneOf "]\n\r\t")))
     linkImg = try $ char '|' >> image
     wikiLink = try $ do
       string "[["
@@ -248,7 +248,7 @@ link = try $ do
       return (B.str orig, src)
 
 inlineNowiki :: PandocMonad m => CRLParser m B.Inlines
-inlineNowiki = B.code <$> (start >> manyTill (noneOf "\n\r") end)
+inlineNowiki = B.code <$> (start >> manyTillChar (noneOf "\n\r") end)
   where
     start = try $ string "{{{"
     end = try $ string "}}}" >> lookAhead (noneOf "}")
@@ -271,11 +271,11 @@ linebreak = newline >> notFollowedBy newline >> (lastNewline <|> innerNewline)
         innerNewline = return B.space
 
 symbol :: PandocMonad m => CRLParser m B.Inlines
-symbol = fmap (B.str . (:[])) (oneOf specialChars)
+symbol = fmap (B.str . T.singleton) (oneOf specialChars)
 
 str :: PandocMonad m => CRLParser m B.Inlines
 str = let strChar = noneOf ("\t\n " ++ specialChars) in
-        fmap B.str (many1 strChar)
+        fmap B.str (many1Char strChar)
 
 bold :: PandocMonad m => CRLParser m B.Inlines
 bold = B.strong . mconcat <$>

@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.ExportSettings
    Copyright   : © 2016–2019 Albert Krewinkel
@@ -13,18 +14,16 @@ module Text.Pandoc.Readers.Org.ExportSettings
   ) where
 
 import Prelude
-import Text.Pandoc.Legacy.Class (PandocMonad, report)
--- import Text.Pandoc.Logging (LogMessage (UnknownOrgExportOption)) -- TODO text: restore
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging (LogMessage (UnknownOrgExportOption))
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 
 import Control.Monad (mzero, void)
 import Data.Char (toLower)
 import Data.Maybe (listToMaybe)
-
--- TODO text: remove
-import Text.Pandoc.Legacy.Logging
---
+import Data.Text (Text)
+import qualified Data.Text as T
 
 -- | Read and handle space separated org-mode export settings.
 exportSettings :: PandocMonad m => OrgParser m ()
@@ -74,11 +73,11 @@ exportSetting = choice
 
 genericExportSetting :: Monad m
                      => OrgParser m a
-                     -> String
+                     -> Text
                      -> ExportSettingSetter a
                      -> OrgParser m ()
 genericExportSetting optionParser settingIdentifier setter = try $ do
-  _     <- string settingIdentifier *> char ':'
+  _     <- textStr settingIdentifier *> char ':'
   value <- optionParser
   updateState $ modifyExportSettings value
  where
@@ -86,11 +85,11 @@ genericExportSetting optionParser settingIdentifier setter = try $ do
      st { orgStateExportSettings = setter val . orgStateExportSettings $ st }
 
 -- | A boolean option, either nil (False) or non-nil (True).
-booleanSetting :: Monad m => String ->  ExportSettingSetter Bool -> OrgParser m ()
+booleanSetting :: Monad m => Text ->  ExportSettingSetter Bool -> OrgParser m ()
 booleanSetting = genericExportSetting elispBoolean
 
 -- | An integer-valued option.
-integerSetting :: Monad m => String -> ExportSettingSetter Int -> OrgParser m ()
+integerSetting :: Monad m => Text -> ExportSettingSetter Int -> OrgParser m ()
 integerSetting = genericExportSetting parseInt
  where
    parseInt = try $
@@ -99,7 +98,7 @@ integerSetting = genericExportSetting parseInt
 -- | Either the string "headline" or an elisp boolean and treated as an
 -- @ArchivedTreesOption@.
 archivedTreeSetting :: Monad m
-                    => String
+                    => Text
                     -> ExportSettingSetter ArchivedTreesOption
                     -> OrgParser m ()
 archivedTreeSetting =
@@ -119,42 +118,42 @@ archivedTreeSetting =
 
 -- | A list or a complement list (i.e. a list starting with `not`).
 complementableListSetting :: Monad m
-                          => String
-                          -> ExportSettingSetter (Either [String] [String])
+                          => Text
+                          -> ExportSettingSetter (Either [Text] [Text])
                           -> OrgParser m ()
 complementableListSetting = genericExportSetting $ choice
-  [ Left  <$> complementStringList
+  [ Left  <$> complementTextList
   , Right <$> stringList
   , (\b -> if b then Left [] else Right []) <$> elispBoolean
   ]
  where
    -- Read a plain list of strings.
-   stringList :: Monad m => OrgParser m [String]
+   stringList :: Monad m => OrgParser m [Text]
    stringList = try $
      char '('
-       *> sepBy elispString spaces
+       *> sepBy elispText spaces
        <* char ')'
 
    -- Read an emacs lisp list specifying a complement set.
-   complementStringList :: Monad m => OrgParser m [String]
-   complementStringList = try $
+   complementTextList :: Monad m => OrgParser m [Text]
+   complementTextList = try $
      string "(not "
-       *> sepBy elispString spaces
+       *> sepBy elispText spaces
        <* char ')'
 
-   elispString :: Monad m => OrgParser m String
-   elispString = try $
+   elispText :: Monad m => OrgParser m Text
+   elispText = try $
      char '"'
-       *> manyTill alphaNum (char '"')
+       *> manyTillChar alphaNum (char '"')
 
 -- | Read but ignore the export setting.
-ignoredSetting :: Monad m => String -> OrgParser m ()
-ignoredSetting s = try (() <$ string s <* char ':' <* many1 nonspaceChar)
+ignoredSetting :: Monad m => Text -> OrgParser m ()
+ignoredSetting s = try (() <$ textStr s <* char ':' <* many1 nonspaceChar)
 
 -- | Read any setting string, but ignore it and emit a warning.
 ignoreAndWarn :: PandocMonad m => OrgParser m ()
 ignoreAndWarn = try $ do
-  opt <- many1 nonspaceChar
+  opt <- many1Char nonspaceChar
   report (UnknownOrgExportOption opt)
   return ()
 

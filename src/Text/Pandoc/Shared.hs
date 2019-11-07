@@ -23,12 +23,15 @@ Utility functions and definitions used by the various Pandoc modules.
 module Text.Pandoc.Shared (
                      -- * List processing
                      splitBy,
+                     splitTextBy,
                      splitByIndices,
                      splitStringByIndices,
+                     splitTextByIndices,
                      substitute,
                      ordNub,
                      -- * Text processing
                      ToString (..),
+                     ToText (..),
                      backslashEscapes,
                      escapeTextUsing,
                      stripTrailingNewlines,
@@ -149,6 +152,9 @@ splitBy isSep lst =
       rest'         = dropWhile isSep rest
   in  first:splitBy isSep rest'
 
+splitTextBy :: (Char -> Bool) -> T.Text -> [T.Text] -- TODO text: refactor
+splitTextBy isSep = map T.pack . splitBy isSep . T.unpack
+
 splitByIndices :: [Int] -> [a] -> [[a]]
 splitByIndices [] lst = [lst]
 splitByIndices (x:xs) lst = first:splitByIndices (map (\y -> y - x)  xs) rest
@@ -160,6 +166,9 @@ splitStringByIndices [] lst = [lst]
 splitStringByIndices (x:xs) lst =
   let (first, rest) = splitAt' x lst in
   first : splitStringByIndices (map (\y -> y - x) xs) rest
+
+splitTextByIndices :: [Int] -> T.Text -> [T.Text] -- TODO text: refactor
+splitTextByIndices ns = fmap T.pack . splitStringByIndices ns . T.unpack
 
 splitAt' :: Int -> [Char] -> ([Char],[Char])
 splitAt' _ []          = ([],[])
@@ -195,6 +204,15 @@ instance ToString String where
 
 instance ToString T.Text where
   toString = T.unpack
+
+class ToText a where
+  toText :: a -> T.Text
+
+instance ToText String where
+  toText = T.pack
+
+instance ToText T.Text where
+  toText = id
 
 -- | Returns an association list of backslash escapes for the
 -- designated characters.

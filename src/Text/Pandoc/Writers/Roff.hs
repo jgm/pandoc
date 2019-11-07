@@ -24,6 +24,7 @@ import Prelude
 import Data.Char (ord, isAscii)
 import Control.Monad.State.Strict
 import qualified Data.Map as Map
+import qualified Data.Text as Text
 import Data.String
 import Data.Maybe (fromMaybe, isJust, catMaybes)
 import Text.Pandoc.Legacy.Class (PandocMonad)
@@ -66,11 +67,11 @@ data EscapeMode = AllowUTF8        -- ^ use preferred man escapes
                 | AsciiOnly        -- ^ escape everything
                 deriving Show
 
-combiningAccentsMap :: Map.Map Char String
-combiningAccentsMap = Map.fromList combiningAccents
+combiningAccentsMap :: Map.Map Char String -- TODO text: change
+combiningAccentsMap = Map.map Text.unpack $ Map.fromList combiningAccents
 
 essentialEscapes :: Map.Map Char String
-essentialEscapes = Map.fromList standardEscapes
+essentialEscapes = Map.map Text.unpack $ Map.fromList standardEscapes
 
 -- | Escape special characters for roff.
 escapeString :: EscapeMode -> String -> String
@@ -96,7 +97,7 @@ escapeString escapeMode (x:xs) =
             in  s ++ escapeString escapeMode rest
 
 characterCodeMap :: Map.Map Char String
-characterCodeMap = Map.fromList characterCodes
+characterCodeMap = Map.map Text.unpack $ Map.fromList characterCodes
 
 fontChange :: (HasChars a, IsString a, PandocMonad m) => MS m (Doc a)
 fontChange = do

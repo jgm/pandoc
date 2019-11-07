@@ -10,7 +10,7 @@
 Utility functions used in other Pandoc Org modules.
 -}
 module Text.Pandoc.Readers.Org.Shared
-  ( cleanLinkString
+  ( cleanLinkText
   , isImageFilename
   , originalLang
   , translateLang
@@ -20,21 +20,25 @@ module Text.Pandoc.Readers.Org.Shared
 import Prelude
 import Data.Char (isAlphaNum)
 import Data.List (isPrefixOf)
+import Data.Text (Text)
+import qualified Data.Text as T
 import System.FilePath (isValid, takeExtension)
 
-
 -- | Check whether the given string looks like the path to of URL of an image.
-isImageFilename :: String -> Bool
-isImageFilename fp = hasImageExtension && (isValid fp || isKnownProtocolUri)
+isImageFilename :: Text -> Bool
+isImageFilename fp = hasImageExtension && (isValid (T.unpack fp) || isKnownProtocolUri)
  where
-   hasImageExtension = takeExtension fp `elem` imageExtensions
-   isKnownProtocolUri = any (\x -> (x ++ "://") `isPrefixOf` fp) protocols
+   hasImageExtension = takeExtension (T.unpack fp) `elem` imageExtensions
+   isKnownProtocolUri = any (\x -> (x <> "://") `T.isPrefixOf` fp) protocols
 
    imageExtensions = [ ".jpeg", ".jpg", ".png", ".gif", ".svg" ]
    protocols = [ "file", "http", "https" ]
 
 -- | Cleanup and canonicalize a string describing a link.  Return @Nothing@ if
 -- the string does not appear to be a link.
+cleanLinkText :: Text -> Maybe Text -- TODO text: refactor
+cleanLinkText = fmap T.pack . cleanLinkString . T.unpack
+
 cleanLinkString :: String -> Maybe String
 cleanLinkString s =
   case s of
@@ -56,7 +60,7 @@ cleanLinkString s =
 
 -- | Creates an key-value attributes marking the original language name
 -- specified for a piece of source code.
-originalLang :: String -> [(String, String)]
+originalLang :: Text -> [(Text, Text)]
 originalLang lang =
   let transLang = translateLang lang
   in if transLang == lang
@@ -66,7 +70,7 @@ originalLang lang =
 -- | Translate from Org-mode's programming language identifiers to those used
 -- by Pandoc.  This is useful to allow for proper syntax highlighting in
 -- Pandoc output.
-translateLang :: String -> String
+translateLang :: Text -> Text
 translateLang cs =
   case cs of
     "C"          -> "c"
@@ -79,5 +83,5 @@ translateLang cs =
     "sqlite"     -> "sql"
     _            -> cs
 
-exportsCode :: [(String, String)] -> Bool
+exportsCode :: [(Text, Text)] -> Bool
 exportsCode = maybe True (`elem` ["code", "both"]) . lookup "exports"

@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.LaTeX.Lang
    Copyright   : Copyright (C) 2018-2019 John MacFarlane
@@ -18,15 +19,12 @@ module Text.Pandoc.Readers.LaTeX.Lang
 where
 import Prelude
 import qualified Data.Map as M
--- import Text.Pandoc.BCP47 (Lang(..)) TODO text: restore
+import qualified Data.Text as T
+import Text.Pandoc.BCP47 (Lang(..))
 
--- TODO text: remove
-import Text.Pandoc.Legacy.BCP47
---
-
-polyglossiaLangToBCP47 :: M.Map String (String -> Lang)
+polyglossiaLangToBCP47 :: M.Map T.Text (T.Text -> Lang)
 polyglossiaLangToBCP47 = M.fromList
-  [ ("arabic", \o -> case filter (/=' ') o of
+  [ ("arabic", \o -> case T.filter (/=' ') o of
        "locale=algeria"    -> Lang "ar" "" "DZ" []
        "locale=mashriq"    -> Lang "ar" "" "SY" []
        "locale=libya"      -> Lang "ar" "" "LY" []
@@ -34,7 +32,7 @@ polyglossiaLangToBCP47 = M.fromList
        "locale=mauritania" -> Lang "ar" "" "MR" []
        "locale=tunisia"    -> Lang "ar" "" "TN" []
        _                   -> Lang "ar" "" "" [])
-  , ("german", \o -> case filter (/=' ') o of
+  , ("german", \o -> case T.filter (/=' ') o of
        "spelling=old" -> Lang "de" "" "DE" ["1901"]
        "variant=austrian,spelling=old"
                        -> Lang "de" "" "AT" ["1901"]
@@ -44,11 +42,11 @@ polyglossiaLangToBCP47 = M.fromList
        "variant=swiss" -> Lang "de" "" "CH" []
        _ -> Lang "de" "" "" [])
   , ("lsorbian", \_ -> Lang "dsb" "" "" [])
-  , ("greek", \o -> case filter (/=' ') o of
+  , ("greek", \o -> case T.filter (/=' ') o of
        "variant=poly"    -> Lang "el" "" "polyton" []
        "variant=ancient" -> Lang "grc" "" "" []
        _                 -> Lang "el" "" "" [])
-  , ("english", \o -> case filter (/=' ') o of
+  , ("english", \o -> case T.filter (/=' ') o of
        "variant=australian" -> Lang "en" "" "AU" []
        "variant=canadian"   -> Lang "en" "" "CA" []
        "variant=british"    -> Lang "en" "" "GB" []
@@ -56,7 +54,7 @@ polyglossiaLangToBCP47 = M.fromList
        "variant=american"   -> Lang "en" "" "US" []
        _                    -> Lang "en" "" "" [])
   , ("usorbian", \_ -> Lang "hsb" "" "" [])
-  , ("latin", \o -> case filter (/=' ') o of
+  , ("latin", \o -> case T.filter (/=' ') o of
        "variant=classic" -> Lang "la" "" "" ["x-classic"]
        _                 -> Lang "la" "" "" [])
   , ("slovenian", \_ -> Lang "sl" "" "" [])
@@ -137,7 +135,7 @@ polyglossiaLangToBCP47 = M.fromList
   , ("vietnamese", \_ -> Lang "vi" "" "" [])
   ]
 
-babelLangToBCP47 :: String -> Maybe Lang
+babelLangToBCP47 :: T.Text -> Maybe Lang
 babelLangToBCP47 s =
   case s of
        "austrian" -> Just $ Lang "de" "" "AT" ["1901"]

@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org
    Copyright   : Copyright (C) 2014-2019 Albert Krewinkel
@@ -15,12 +16,12 @@ import Text.Pandoc.Readers.Org.Blocks (blockList, meta)
 import Text.Pandoc.Readers.Org.ParserState (optionsToParserState)
 import Text.Pandoc.Readers.Org.Parsing (OrgParser, readWithM)
 
-import Text.Pandoc.Legacy.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
-import Text.Pandoc.Legacy.Error
-import Text.Pandoc.Legacy.Options
+import Text.Pandoc.Error
+import Text.Pandoc.Options
 import Text.Pandoc.Parsing (reportLogMessages)
-import Text.Pandoc.Legacy.Shared (crFilter)
+import Text.Pandoc.Shared (crFilter)
 
 import Control.Monad.Except (throwError)
 import Control.Monad.Reader (runReaderT)
@@ -36,7 +37,7 @@ readOrg :: PandocMonad m
 readOrg opts s = do
   parsed <- flip runReaderT def $
             readWithM parseOrg (optionsToParserState opts)
-            (T.unpack (crFilter s) ++ "\n\n")
+            (crFilter s <> "\n\n")
   case parsed of
     Right result -> return result
     Left  _      -> throwError $ PandocParseError "problem parsing org"

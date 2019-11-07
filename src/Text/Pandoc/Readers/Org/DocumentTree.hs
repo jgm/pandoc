@@ -1,5 +1,6 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.DocumentTree
    Copyright   : Copyright (C) 2014-2019 Albert Krewinkel
@@ -20,15 +21,17 @@ import Control.Monad (guard, void)
 import Data.Char (toLower, toUpper)
 import Data.List (intersperse)
 import Data.Maybe (mapMaybe)
+import Data.Text (Text)
 import Text.Pandoc.Builder (Blocks, Inlines)
-import Text.Pandoc.Legacy.Class (PandocMonad)
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
 import Text.Pandoc.Readers.Org.BlockStarts
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 
 import qualified Data.Set as Set
-import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
+import qualified Data.Text as T
+import qualified Text.Pandoc.Builder as B -- TODO text: remove Legacy
 
 --
 -- Org headers
@@ -59,28 +62,28 @@ documentTree blocks inline = do
       }
 
 -- | Create a tag containing the given string.
-toTag :: String -> Tag
+toTag :: Text -> Tag
 toTag = Tag
 
 -- | The key (also called name or type) of a property.
-newtype PropertyKey = PropertyKey { fromKey :: String }
+newtype PropertyKey = PropertyKey { fromKey :: Text }
   deriving (Show, Eq, Ord)
 
 -- | Create a property key containing the given string.  Org mode keys are
 -- case insensitive and are hence converted to lower case.
-toPropertyKey :: String -> PropertyKey
-toPropertyKey = PropertyKey . map toLower
+toPropertyKey :: Text -> PropertyKey
+toPropertyKey = PropertyKey . T.toLower
 
 -- | The value assigned to a property.
-newtype PropertyValue = PropertyValue { fromValue :: String }
+newtype PropertyValue = PropertyValue { fromValue :: Text }
 
 -- | Create a property value containing the given string.
-toPropertyValue :: String -> PropertyValue
+toPropertyValue :: Text -> PropertyValue
 toPropertyValue = PropertyValue
 
 -- | Check whether the property value is non-nil (i.e. truish).
 isNonNil :: PropertyValue -> Bool
-isNonNil p = map toLower (fromValue p) `notElem` ["()", "{}", "nil"]
+isNonNil p = T.toLower (fromValue p) `notElem` ["()", "{}", "nil"]
 
 -- | Key/value pairs from a PROPERTIES drawer
 type Properties = [(PropertyKey, PropertyValue)]
@@ -273,7 +276,7 @@ headlineToHeader hdln = do
 todoKeyword :: Monad m => OrgParser m TodoMarker
 todoKeyword = try $ do
   taskStates <- activeTodoMarkers <$> getState
-  let kwParser tdm = try (tdm <$ string (todoMarkerName tdm)
+  let kwParser tdm = try (tdm <$ textStr (todoMarkerName tdm)
                               <* spaceChar
                               <* updateLastPreCharPos)
   choice (map kwParser taskStates)
@@ -281,26 +284,26 @@ todoKeyword = try $ do
 todoKeywordToInlines :: TodoMarker -> Inlines
 todoKeywordToInlines tdm =
   let todoText  = todoMarkerName tdm
-      todoState = map toLower . show $ todoMarkerState tdm
+      todoState = T.toLower . T.pack . show $ todoMarkerState tdm
       classes = [todoState, todoText]
   in B.spanWith (mempty, classes, mempty) (B.str todoText)
 
 propertiesToAttr :: Properties -> Attr
 propertiesToAttr properties =
   let
-    toStringPair = fromKey *** fromValue
+    toTextPair = fromKey *** fromValue
     customIdKey = toPropertyKey "custom_id"
     classKey    = toPropertyKey "class"
     unnumberedKey = toPropertyKey "unnumbered"
     specialProperties = [customIdKey, classKey, unnumberedKey]
     id'  = maybe mempty fromValue . lookup customIdKey $ properties
     cls  = maybe mempty fromValue . lookup classKey    $ properties
-    kvs' = map toStringPair . filter ((`notElem` specialProperties) . fst)
+    kvs' = map toTextPair . filter ((`notElem` specialProperties) . fst)
            $ properties
     isUnnumbered =
       maybe False isNonNil . lookup unnumberedKey $ properties
   in
-    (id', words cls ++ ["unnumbered" | isUnnumbered], kvs')
+    (id', T.words cls ++ ["unnumbered" | isUnnumbered], kvs')
 
 tagsToInlines :: [Tag] -> Inlines
 tagsToInlines [] = mempty
@@ -336,15 +339,15 @@ planningToBlock planning = do
                   <> B.emph (B.str time)
 
 -- | An Org timestamp, including repetition marks. TODO: improve
-type Timestamp = String
+type Timestamp = Text
 
 timestamp :: Monad m => OrgParser m Timestamp
 timestamp = try $ do
   openChar <- oneOf "<["
   let isActive = openChar == '<'
   let closeChar = if isActive then '>' else ']'
-  content <- many1Till anyChar (char closeChar)
-  return (openChar : content ++ [closeChar])
+  content <- many1TillChar anyChar (char closeChar)
+  return $ T.cons openChar $ content `T.snoc` closeChar
 
 -- | Planning information for a subtree/headline.
 data PlanningInfo = PlanningInfo
@@ -374,7 +377,7 @@ planningInfo = try $ do
 propertiesDrawer :: Monad m => OrgParser m Properties
 propertiesDrawer = try $ do
   drawerType <- drawerStart
-  guard $ map toUpper drawerType == "PROPERTIES"
+  guard $ T.toUpper drawerType == "PROPERTIES"
   manyTill property (try endOfDrawer)
  where
    property :: Monad m => OrgParser m (PropertyKey, PropertyValue)
@@ -382,12 +385,12 @@ propertiesDrawer = try $ do
 
    key :: Monad m => OrgParser m PropertyKey
    key = fmap toPropertyKey . try $
-         skipSpaces *> char ':' *> many1Till nonspaceChar (char ':')
+         skipSpaces *> char ':' *> many1TillChar nonspaceChar (char ':')
 
    value :: Monad m => OrgParser m PropertyValue
    value = fmap toPropertyValue . try $
-           skipSpaces *> manyTill anyChar (try $ skipSpaces *> newline)
+           skipSpaces *> manyTillChar anyChar (try $ skipSpaces *> newline)
 
-   endOfDrawer :: Monad m => OrgParser m String
+   endOfDrawer :: Monad m => OrgParser m Text
    endOfDrawer = try $
      skipSpaces *> stringAnyCase ":END:" <* skipSpaces <* newline

@@ -2,6 +2,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Readers.DokuWiki
    Copyright   : Copyright (C) 2018-2019 Alexander Krotov
@@ -20,23 +21,18 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isDigit)
 import qualified Data.Foldable as F
-import Data.List (intercalate, transpose, isPrefixOf, isSuffixOf)
+import Data.List (intercalate, transpose)
 import Data.List.Split (splitOn)
 import Data.Maybe (fromMaybe, catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
--- import Text.Pandoc.Class (PandocMonad (..)) -- TODO text: restore
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
--- import Text.Pandoc.Error (PandocError (PandocParsecError)) TODO text: restore
-import Text.Pandoc.Legacy.Options
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad (..))
+import Text.Pandoc.Definition
+import Text.Pandoc.Error (PandocError (PandocParsecError))
+import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
-import Text.Pandoc.Legacy.Shared (crFilter, trim, underlineSpan)
-
--- TODO text: remove
-import Text.Pandoc.Legacy.Error
-import Text.Pandoc.Legacy.Class
---
+import Text.Pandoc.Shared (crFilter, trim, underlineSpan)
 
 -- | Read DokuWiki from an input string and return a Pandoc document.
 readDokuWiki :: PandocMonad m
@@ -47,7 +43,7 @@ readDokuWiki opts s = do
   let input = crFilter s
   res <- runParserT parseDokuWiki def {stateOptions = opts } "source" input
   case res of
-       Left e  -> throwError $ PandocParsecError (T.unpack input) e
+       Left e  -> throwError $ PandocParsecError input e
        Right d -> return d
 
 type DWParser = ParserT Text ParserState
@@ -76,9 +72,9 @@ parseDokuWiki =
   B.doc . mconcat <$> many block <* spaces <* eof
 
 -- | Parse <code> and <file> attributes
-codeLanguage :: PandocMonad m => DWParser m (String, [String], [(String, String)])
+codeLanguage :: PandocMonad m => DWParser m (Text, [Text], [(Text, Text)])
 codeLanguage = try $ do
-  rawLang <- option "-" (spaceChar *> manyTill anyChar (lookAhead (spaceChar <|> char '>')))
+  rawLang <- option "-" (spaceChar *> manyTillChar anyChar (lookAhead (spaceChar <|> char '>')))
   let attr = case rawLang of
                "-" -> []
                l -> [l]
@@ -86,16 +82,16 @@ codeLanguage = try $ do
 
 -- | Generic parser for <code> and <file> tags
 codeTag :: PandocMonad m
-        => ((String, [String], [(String, String)]) -> String -> a)
-        -> String
+        => ((Text, [Text], [(Text, Text)]) -> Text -> a)
+        -> Text
         -> DWParser m a
 codeTag f tag = try $ f
   <$  char '<'
-  <*  string tag
+  <*  textStr tag
   <*> codeLanguage
   <*  manyTill anyChar (char '>')
   <*  optional (manyTill spaceChar eol)
-  <*> manyTill anyChar (try $ string "</" <* string tag <* char '>')
+  <*> manyTillChar anyChar (try $ string "</" <* textStr tag <* char '>')
 
 -- * Inline parsers
 
@@ -172,19 +168,19 @@ underlined :: PandocMonad m => DWParser m B.Inlines
 underlined = try $ underlineSpan <$> enclosed (string "__") nestedInlines
 
 nowiki :: PandocMonad m => DWParser m B.Inlines
-nowiki = try $ B.text <$ string "<nowiki>" <*> manyTill anyChar (try $ string "</nowiki>")
+nowiki = try $ B.text <$ string "<nowiki>" <*> manyTillChar anyChar (try $ string "</nowiki>")
 
 percent :: PandocMonad m => DWParser m B.Inlines
-percent = try $ B.text <$> enclosed (string "%%") nestedString
+percent = try $ B.text <$> enclosed (string "%%") nestedText
 
-nestedString :: (Show a, PandocMonad m)
-             => DWParser m a -> DWParser m String
-nestedString end = innerSpace <|> count 1 nonspaceChar
+nestedText :: (Show a, PandocMonad m)
+             => DWParser m a -> DWParser m Text
+nestedText end = innerSpace <|> countChar 1 nonspaceChar
   where
-    innerSpace = try $ many1 spaceChar <* notFollowedBy end
+    innerSpace = try $ many1Char spaceChar <* notFollowedBy end
 
 monospaced :: PandocMonad m => DWParser m B.Inlines
-monospaced = try $ B.code <$> enclosed (string "''") nestedString
+monospaced = try $ B.code <$> enclosed (string "''") nestedText
 
 subscript :: PandocMonad m => DWParser m B.Inlines
 subscript = try $ B.subscript <$> between (string "<sub>") (try $ string "</sub>") nestedInlines
@@ -206,12 +202,12 @@ inlineFile :: PandocMonad m => DWParser m B.Inlines
 inlineFile = codeTag B.codeWith "file"
 
 inlineHtml :: PandocMonad m => DWParser m B.Inlines
-inlineHtml = try $ B.rawInline "html" <$ string "<html>" <*> manyTill anyChar (try $ string "</html>")
+inlineHtml = try $ B.rawInline "html" <$ string "<html>" <*> manyTillChar anyChar (try $ string "</html>")
 
 inlinePhp :: PandocMonad m => DWParser m B.Inlines
-inlinePhp = try $ B.codeWith ("", ["php"], []) <$ string "<php>" <*> manyTill anyChar (try $ string "</php>")
+inlinePhp = try $ B.codeWith ("", ["php"], []) <$ string "<php>" <*> manyTillChar anyChar (try $ string "</php>")
 
-makeLink :: (String, String) -> B.Inlines
+makeLink :: (Text, Text) -> B.Inlines
 makeLink (text, url) = B.link url "" $ B.str text
 
 autoEmail :: PandocMonad m => DWParser m B.Inlines
@@ -225,7 +221,7 @@ autoLink = try $ do
   state <- getState
   guard $ stateAllowLinks state
   (text, url) <- uri
-  guard $ checkLink (last url)
+  guard $ checkLink (T.last url)
   return $ makeLink (text, url)
   where
     checkLink c
@@ -239,10 +235,10 @@ nocache :: PandocMonad m => DWParser m B.Inlines
 nocache = try $ mempty <$ string "~~NOCACHE~~"
 
 str :: PandocMonad m => DWParser m B.Inlines
-str = B.str <$> (many1 alphaNum <|> count 1 characterReference)
+str = B.str <$> (many1Char alphaNum <|> countChar 1 characterReference)
 
 symbol :: PandocMonad m => DWParser m B.Inlines
-symbol = B.str <$> count 1 nonspaceChar
+symbol = B.str <$> countChar 1 nonspaceChar
 
 link :: PandocMonad m => DWParser m B.Inlines
 link = try $ do
@@ -253,77 +249,81 @@ link = try $ do
   setState $ st{ stateAllowLinks = True }
   return l
 
-isExternalLink :: String -> Bool
-isExternalLink s =
-  case dropWhile (\c -> isAlphaNum c || (c `elem` ['-', '.', '+'])) s of
-    (':':'/':'/':_) -> True
-    _ -> False
+isExternalLink :: Text -> Bool
+isExternalLink s = "://" `T.isPrefixOf` sSuff
+  where
+    sSuff = T.dropWhile (\c -> isAlphaNum c || (c `elem` ['-', '.', '+'])) s
 
-isAbsolutePath :: String -> Bool
-isAbsolutePath ('.':_) = False
-isAbsolutePath s = ':' `elem` s
+isAbsolutePath :: Text -> Bool
+isAbsolutePath (T.uncons -> Just ('.', _)) = False
+isAbsolutePath s = T.any (== ':') s
 
-normalizeDots :: String -> String
-normalizeDots path@('.':_) =
+normalizeDots :: Text -> Text -- TODO text: refactor
+normalizeDots = T.pack . normalizeDots' . T.unpack
+
+normalizeDots' :: String -> String  
+normalizeDots' path@('.':_) =
   case dropWhile (== '.') path of
     ':':_ -> path
     _ -> takeWhile (== '.') path ++ ':':dropWhile (== '.') path
-normalizeDots path = path
+normalizeDots' path = path
 
-normalizeInternalPath :: String -> String
-normalizeInternalPath path =
+normalizeInternalPath :: Text -> Text -- TODO text: refactor
+normalizeInternalPath path = T.pack $
   if isAbsolutePath path
     then ensureAbsolute normalizedPath
     else normalizedPath
   where
-    normalizedPath = intercalate "/" $ dropWhile (== ".") $ splitOn ":" $ normalizeDots path
+    -- TODO text: refactor
+    normalizedPath = intercalate "/" $ dropWhile (== ".") $ splitOn ":" $ T.unpack $ normalizeDots path
     ensureAbsolute s@('/':_) = s
     ensureAbsolute s = '/':s
 
-normalizePath :: String -> String
+normalizePath :: Text -> Text
 normalizePath path =
   if isExternalLink path
     then path
     else normalizeInternalPath path
 
-urlToText :: String -> String
+-- TODO text: should be filepath?
+urlToText :: Text -> Text
 urlToText url =
   if isExternalLink url
     then url
-    else reverse $ takeWhile (/= ':') $ reverse url
+    else T.takeWhileEnd (/= ':') url
 
 -- Parse link or image
 parseLink :: PandocMonad m
-          => (String -> Maybe B.Inlines -> B.Inlines)
-          -> String
-          -> String
+          => (Text -> Maybe B.Inlines -> B.Inlines)
+          -> Text
+          -> Text
           -> DWParser m B.Inlines
 parseLink f l r = f
-  <$  string l
-  <*> many1Till anyChar (lookAhead (void (char '|') <|> try (void $ string r)))
-  <*> optionMaybe (B.trimInlines . mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ string r)))
-  <*  string r
+  <$  textStr l
+  <*> many1TillChar anyChar (lookAhead (void (char '|') <|> try (void $ textStr r)))
+  <*> optionMaybe (B.trimInlines . mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ textStr r)))
+  <*  textStr r
 
 -- | Split Interwiki link into left and right part
 -- | Return Nothing if it is not Interwiki link
-splitInterwiki :: String -> Maybe (String, String)
+splitInterwiki :: Text -> Maybe (Text, Text)
 splitInterwiki path =
-  case span (\c -> isAlphaNum c || c == '.') path of
-    (l, '>':r) -> Just (l, r)
+  case T.span (\c -> isAlphaNum c || c == '.') path of
+    (l, T.uncons -> Just ('>', r)) -> Just (l, r)
     _ -> Nothing
 
-interwikiToUrl :: String -> String -> String
-interwikiToUrl "callto" page = "callto://" ++ page
-interwikiToUrl "doku" page = "https://www.dokuwiki.org/" ++ page
-interwikiToUrl "phpfn" page = "https://secure.php.net/" ++ page
-interwikiToUrl "tel" page = "tel:" ++ page
-interwikiToUrl "wp" page = "https://en.wikipedia.org/wiki/" ++ page
-interwikiToUrl "wpde" page = "https://de.wikipedia.org/wiki/" ++ page
-interwikiToUrl "wpes" page = "https://es.wikipedia.org/wiki/" ++ page
-interwikiToUrl "wpfr" page = "https://fr.wikipedia.org/wiki/" ++ page
-interwikiToUrl "wpjp" page = "https://jp.wikipedia.org/wiki/" ++ page
-interwikiToUrl "wppl" page = "https://pl.wikipedia.org/wiki/" ++ page
-interwikiToUrl _ page = "https://www.google.com/search?q=" ++ page ++ "&btnI=lucky"
+interwikiToUrl :: Text -> Text -> Text
+interwikiToUrl "callto" page = "callto://" <> page
+interwikiToUrl "doku" page = "https://www.dokuwiki.org/" <> page
+interwikiToUrl "phpfn" page = "https://secure.php.net/" <> page
+interwikiToUrl "tel" page = "tel:" <> page
+interwikiToUrl "wp" page = "https://en.wikipedia.org/wiki/" <> page
+interwikiToUrl "wpde" page = "https://de.wikipedia.org/wiki/" <> page
+interwikiToUrl "wpes" page = "https://es.wikipedia.org/wiki/" <> page
+interwikiToUrl "wpfr" page = "https://fr.wikipedia.org/wiki/" <> page
+interwikiToUrl "wpjp" page = "https://jp.wikipedia.org/wiki/" <> page
+interwikiToUrl "wppl" page = "https://pl.wikipedia.org/wiki/" <> page
+interwikiToUrl _ page = "https://www.google.com/search?q=" <> page <> "&btnI=lucky"
 
 linkText :: PandocMonad m => DWParser m B.Inlines
 linkText = parseLink fromRaw "[[" "]]"
@@ -343,23 +343,23 @@ linkText = parseLink fromRaw "[[" "]]"
             Just (_, r) -> r
 
 -- Matches strings like "100x100" (width x height) and "50" (width)
-isWidthHeightParameter :: String -> Bool
+isWidthHeightParameter :: Text -> Bool
 isWidthHeightParameter s =
-  case s of
-    (x:xs) ->
-      isDigit x && case dropWhile isDigit xs of
-                     ('x':ys@(_:_)) -> all isDigit ys
-                     "" -> True
+  case T.uncons s of
+    Just (x, xs) ->
+      isDigit x && case T.uncons $ T.dropWhile isDigit xs of
+                     Just ('x', ys) | not (T.null ys) -> T.all isDigit ys
+                     Nothing -> True
                      _ -> False
     _ -> False
 
-parseWidthHeight :: String -> (Maybe String, Maybe String)
+parseWidthHeight :: Text -> (Maybe Text, Maybe Text)
 parseWidthHeight s = (width, height)
   where
-    width = Just $ takeWhile isDigit s
+    width = Just $ T.takeWhile isDigit s
     height =
-      case dropWhile isDigit s of
-        ('x':xs) -> Just xs
+      case T.uncons $ T.dropWhile isDigit s of
+        Just ('x', xs) -> Just xs
         _ -> Nothing
 
 image :: PandocMonad m => DWParser m B.Inlines
@@ -370,17 +370,17 @@ image = try $ parseLink fromRaw "{{" "}}"
         then B.link normalizedPath "" (fromMaybe defaultDescription description)
         else B.imageWith ("", classes, attributes) normalizedPath "" (fromMaybe defaultDescription description)
       where
-        (path', parameters) = span (/= '?') $ trim path
+        (path', parameters) = T.span (/= '?') $ trim path
         normalizedPath = normalizePath path'
-        leftPadding = " " `isPrefixOf` path
-        rightPadding = " " `isSuffixOf` path
+        leftPadding = " " `T.isPrefixOf` path
+        rightPadding = " " `T.isSuffixOf` path
         classes =
           case (leftPadding, rightPadding) of
             (False, False) -> []
             (False, True) -> ["align-left"]
             (True, False) -> ["align-right"]
             (True, True) -> ["align-center"]
-        parameterList = splitOn "&" $ drop 1 parameters
+        parameterList = T.splitOn "&" $ T.drop 1 parameters
         linkOnly = "linkonly" `elem` parameterList
         (width, height) = maybe (Nothing, Nothing) parseWidthHeight (F.find isWidthHeightParameter parameterList)
         attributes = catMaybes [fmap ("width",) width, fmap ("height",) height]
@@ -394,7 +394,7 @@ block = do
          <|> blockElements
          <|> para
   skipMany blankline
-  trace (take 60 $ show $ B.toList res)
+  trace (T.take 60 $ T.pack $ show $ B.toList res)
   return res
 
 blockElements :: PandocMonad m => DWParser m B.Blocks
@@ -422,30 +422,30 @@ header = try $ do
   attr <- registerHeader nullAttr contents
   return $ B.headerWith attr (7 - lev) contents
 
-list :: PandocMonad m => String -> DWParser m B.Blocks
+list :: PandocMonad m => Text -> DWParser m B.Blocks
 list prefix = bulletList prefix <|> orderedList prefix
 
-bulletList :: PandocMonad m => String -> DWParser m B.Blocks
+bulletList :: PandocMonad m => Text -> DWParser m B.Blocks
 bulletList prefix = try $ B.bulletList <$> parseList prefix '*'
 
-orderedList :: PandocMonad m => String -> DWParser m B.Blocks
+orderedList :: PandocMonad m => Text -> DWParser m B.Blocks
 orderedList prefix = try $ B.orderedList <$> parseList prefix '-'
 
 parseList :: PandocMonad m
-          => String
+          => Text
           -> Char
           -> DWParser m [B.Blocks]
 parseList prefix marker =
   many1 ((<>) <$> item <*> fmap mconcat (many continuation))
   where
-    continuation = try $ list ("  " ++ prefix)
-    item = try $ string prefix *> char marker *> char ' ' *> itemContents
+    continuation = try $ list ("  " <> prefix)
+    item = try $ textStr prefix *> char marker *> char ' ' *> itemContents
     itemContents = B.plain . mconcat <$> many1Till inline' eol
 
 indentedCode :: PandocMonad m => DWParser m B.Blocks
-indentedCode = try $ B.codeBlock . unlines <$> many1 indentedLine
+indentedCode = try $ B.codeBlock . T.unlines <$> many1 indentedLine
  where
-   indentedLine = try $ string "  " *> manyTill anyChar eol
+   indentedLine = try $ string "  " *> manyTillChar anyChar eol
 
 quote :: PandocMonad m => DWParser m B.Blocks
 quote = try $ nestedQuote 0
@@ -461,13 +461,13 @@ blockHtml :: PandocMonad m => DWParser m B.Blocks
 blockHtml = try $ B.rawBlock "html"
   <$  string "<HTML>"
   <*  optional (manyTill spaceChar eol)
-  <*> manyTill anyChar (try $ string "</HTML>")
+  <*> manyTillChar anyChar (try $ string "</HTML>")
 
 blockPhp :: PandocMonad m => DWParser m B.Blocks
 blockPhp = try $ B.codeBlockWith ("", ["php"], [])
   <$  string "<PHP>"
   <*  optional (manyTill spaceChar eol)
-  <*> manyTill anyChar (try $ string "</PHP>")
+  <*> manyTillChar anyChar (try $ string "</PHP>")
 
 table :: PandocMonad m => DWParser m B.Blocks
 table = do

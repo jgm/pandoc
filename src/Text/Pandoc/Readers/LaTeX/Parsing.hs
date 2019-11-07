@@ -81,28 +81,24 @@ import qualified Data.Map as M
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Class (PandocMonad, report)
--- import Text.Pandoc.Error (PandocError (PandocMacroLoop)) TODO text: restore
-import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Legacy.Options
+import Text.Pandoc.Builder
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Error (PandocError (PandocMacroLoop))
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
                             space, spaces, withRaw, (<|>))
 import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
                                         ArgSpec (..), Tok (..), TokType (..))
-import Text.Pandoc.Legacy.Shared
+import Text.Pandoc.Shared
 import Text.Parsec.Pos
 -- import Debug.Trace
-
--- TODO text: remove
-import Text.Pandoc.Legacy.Error
---
 
 newtype DottedNum = DottedNum [Int]
   deriving (Show)
 
-renderDottedNum :: DottedNum -> String
-renderDottedNum (DottedNum xs) =
+renderDottedNum :: DottedNum -> T.Text
+renderDottedNum (DottedNum xs) = T.pack $
   intercalate "." (map show xs)
 
 incrementDottedNum :: Int -> DottedNum -> DottedNum
@@ -115,18 +111,18 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sMeta          :: Meta
                             , sQuoteContext  :: QuoteContext
                             , sMacros        :: M.Map Text Macro
-                            , sContainers    :: [String]
+                            , sContainers    :: [Text]
                             , sLogMessages   :: [LogMessage]
-                            , sIdentifiers   :: Set.Set String
+                            , sIdentifiers   :: Set.Set Text
                             , sVerbatimMode  :: Bool
-                            , sCaption       :: (Maybe Inlines, Maybe String)
+                            , sCaption       :: (Maybe Inlines, Maybe Text)
                             , sInListItem    :: Bool
                             , sInTableCell   :: Bool
                             , sLastHeaderNum :: DottedNum
                             , sLastFigureNum :: DottedNum
-                            , sLabels        :: M.Map String [Inline]
+                            , sLabels        :: M.Map Text [Inline]
                             , sHasChapters   :: Bool
-                            , sToggles       :: M.Map String Bool
+                            , sToggles       :: M.Map Text Bool
                             , sExpanded      :: Bool
                             }
      deriving Show
@@ -206,7 +202,7 @@ withVerbatimMode parser = do
 
 rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => [Tok] -> Bool -> LP m a -> LP m a
-               -> ParserT String s m (a, String)
+               -> ParserT Text s m (a, Text)
 rawLaTeXParser toks retokenize parser valParser = do
   pstate <- getState
   let lstate = def{ sOptions = extractReaderOptions pstate }
@@ -237,16 +233,16 @@ rawLaTeXParser toks retokenize parser valParser = do
                          , not (" " `T.isSuffixOf` result)
                           -> result <> " "
                         _ -> result
-                return (val, T.unpack result')
+                return (val, result')
 
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-            => String -> ParserT String s m String
+            => Text -> ParserT Text s m Text
 applyMacros s = (guardDisabled Ext_latex_macros >> return s) <|>
-   do let retokenize = toksToString <$> many (satisfyTok (const True))
+   do let retokenize = untokenize <$> many (satisfyTok (const True))
       pstate <- getState
       let lstate = def{ sOptions = extractReaderOptions pstate
                       , sMacros  = extractMacros pstate }
-      res <- runParserT retokenize lstate "math" (tokenize "math" (T.pack s))
+      res <- runParserT retokenize lstate "math" (tokenize "math" s)
       case res of
            Left e   -> Prelude.fail (show e)
            Right s' -> return s'
@@ -311,7 +307,7 @@ totoks pos t =
                       : totoks (incSourceColumn pos 2) rest'
          | c == '#' ->
            let (t1, t2) = T.span (\d -> d >= '0' && d <= '9') rest
-           in  case safeRead (T.unpack t1) of
+           in  case safeRead t1 of
                     Just i ->
                        Tok pos (Arg i) ("#" <> t1)
                        : totoks (incSourceColumn pos (1 + T.length t1)) t2
@@ -451,7 +447,7 @@ doMacros' n inp = do
 
     handleMacros n' spos name ts = do
       when (n' > 20)  -- detect macro expansion loops
-        $ throwError $ PandocMacroLoop (T.unpack name)
+        $ throwError $ PandocMacroLoop name
       macros <- sMacros <$> getState
       case M.lookup name macros of
            Nothing -> mzero
@@ -592,7 +588,7 @@ primEscape = do
                       | c >= '\64' && c <= '\127' -> return (chr (ord c - 64))
                       | otherwise                 -> return (chr (ord c + 64))
                     Nothing -> Prelude.fail "Empty content of Esc1"
-       Esc2 -> case safeRead ('0':'x':T.unpack (T.drop 2 t)) of
+       Esc2 -> case safeRead ("0x" <> T.drop 2 t) of
                     Just x  -> return (chr x)
                     Nothing -> Prelude.fail $ "Could not read: " ++ T.unpack t
        _    -> Prelude.fail "Expected an Esc1 or Esc2 token" -- should not happen
@@ -681,7 +677,7 @@ dimenarg = try $ do
   guard $ rest `elem` ["", "pt","pc","in","bp","cm","mm","dd","cc","sp"]
   return $ T.pack ['=' | ch] <> minus <> s
 
-ignore :: (Monoid a, PandocMonad m) => String -> ParserT s u m a
+ignore :: (Monoid a, PandocMonad m) => Text -> ParserT s u m a
 ignore raw = do
   pos <- getPosition
   report $ SkippedContent raw pos
