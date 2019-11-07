@@ -15,22 +15,19 @@ module Text.Pandoc.Filter.Lua (apply) where
 import Prelude
 import Control.Exception (throw)
 import Control.Monad ((>=>))
-import Text.Pandoc.Legacy.Class (PandocIO)
+import qualified Data.Text as T
+import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
--- import Text.Pandoc.Error (PandocError (PandocFilterError)) TODO text: restore
+import Text.Pandoc.Error (PandocError (PandocFilterError))
 import Text.Pandoc.Lua (Global (..), LuaException (..),
                         runLua, runFilterFile, setGlobals)
-import Text.Pandoc.Legacy.Options (ReaderOptions)
-
--- TODO text: remove
-import Text.Pandoc.Legacy.Error
---
+import Text.Pandoc.Options (ReaderOptions)
 
 -- | Run the Lua filter in @filterPath@ for a transformation to the
 -- target format (first element in args). Pandoc uses Lua init files to
 -- setup the Lua interpreter.
 apply :: ReaderOptions
-      -> [String]
+      -> [T.Text]
       -> FilePath
       -> Pandoc
       -> PandocIO Pandoc
@@ -48,4 +45,4 @@ apply ropts args fp doc = do
 forceResult :: FilePath -> Either LuaException Pandoc -> PandocIO Pandoc
 forceResult fp eitherResult = case eitherResult of
   Right x               -> return x
-  Left (LuaException s) -> throw (PandocFilterError fp s)
+  Left (LuaException s) -> throw (PandocFilterError (T.pack fp) s)

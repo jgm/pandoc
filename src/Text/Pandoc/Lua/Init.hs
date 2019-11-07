@@ -21,20 +21,21 @@ import Control.Monad.Trans (MonadIO (..))
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Foreign.Lua (Lua)
 import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
-import Text.Pandoc.Legacy.Class (PandocIO, getCommonState, getUserDataDir,
+import Text.Pandoc.Class (PandocIO, getCommonState, getUserDataDir,
                           putCommonState)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Packages (LuaPackageParams (..),
                                  installPandocPackageSearcher)
 import Text.Pandoc.Lua.Util (loadScriptFromDataDir)
 
+import qualified Data.Text as Text
 import qualified Foreign.Lua as Lua
 import qualified Foreign.Lua.Module.Text as Lua
 import qualified Text.Pandoc.Definition as Pandoc
 import qualified Text.Pandoc.Lua.Module.Pandoc as ModulePandoc
 
 -- | Lua error message
-newtype LuaException = LuaException String deriving (Show)
+newtype LuaException = LuaException Text.Text deriving (Show)
 
 -- | Run the lua interpreter, using pandoc's default way of environment
 -- initialization.
@@ -56,7 +57,7 @@ runLua luaOp = do
     return (opResult, st)
   liftIO $ setForeignEncoding enc
   case res of
-    Left (Lua.Exception msg) -> return $ Left (LuaException msg)
+    Left (Lua.Exception msg) -> return $ Left (LuaException $ Text.pack msg)
     Right (x, newState) -> do
       putCommonState newState
       return $ Right x

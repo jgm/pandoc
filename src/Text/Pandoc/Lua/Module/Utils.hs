@@ -16,27 +16,22 @@ module Text.Pandoc.Lua.Module.Utils
 
 import Prelude
 import Control.Applicative ((<|>))
-import Data.Char (toLower)
 import Data.Default (def)
 import Data.Version (Version)
 import Foreign.Lua (Peekable, Lua, NumResults)
-import Text.Pandoc.Legacy.Class (runIO, setUserDataDir)
--- import Text.Pandoc.Definition ( Pandoc, Meta, MetaValue (..), Block, Inline
---                               , Citation, Attr, ListAttributes) -- TODO text: restore
+import Text.Pandoc.Class (runIO, setUserDataDir)
+import Text.Pandoc.Definition ( Pandoc, Meta, MetaValue (..), Block, Inline
+                              , Citation, Attr, ListAttributes)
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Util (addFunction)
 
 import qualified Data.Digest.Pure.SHA as SHA
 import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Text as T
 import qualified Foreign.Lua as Lua
-import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
+import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
-import qualified Text.Pandoc.Legacy.Shared as Shared
-
--- TODO text: remove
-import Text.Pandoc.Legacy.Definition ( Pandoc, Meta, MetaValue (..), Block, Inline
-                              , Citation, Attr, ListAttributes, pattern MetaString)
---
+import qualified Text.Pandoc.Shared as Shared
 
 -- | Push the "pandoc.utils" module to the lua stack.
 pushModule :: Maybe FilePath -> Lua NumResults
@@ -70,14 +65,14 @@ makeSections number baselevel =
 -- limit years to the range 1601-9999 (ISO 8601 accepts greater than
 -- or equal to 1583, but MS Word only accepts dates starting 1601).
 -- Returns nil instead of a string if the conversion failed.
-normalizeDate :: String -> Lua (Lua.Optional String)
+normalizeDate :: T.Text -> Lua (Lua.Optional T.Text)
 normalizeDate = return . Lua.Optional . Shared.normalizeDate
 
 -- | Run a JSON filter on the given document.
 runJSONFilter :: Maybe FilePath
               -> Pandoc
               -> FilePath
-              -> Lua.Optional [String]
+              -> Lua.Optional [T.Text]
               -> Lua NumResults
 runJSONFilter mbDatadir doc filterFile optArgs = do
   args <- case Lua.fromOptional optArgs of
@@ -87,20 +82,20 @@ runJSONFilter mbDatadir doc filterFile optArgs = do
               (:[]) <$> Lua.popValue
   filterRes <- Lua.liftIO . runIO $ do
     setUserDataDir mbDatadir
-    JSONFilter.apply def args filterFile doc
+    JSONFilter.apply def (T.unpack <$> args) filterFile doc -- TODO text: refactor
   case filterRes of
     Left err -> Lua.raiseError (show err)
     Right d -> (1 :: NumResults) <$ Lua.push d
 
 -- | Calculate the hash of the given contents.
 sha1 :: BSL.ByteString
-     -> Lua String
-sha1 = return . SHA.showDigest . SHA.sha1
+     -> Lua T.Text
+sha1 = return . T.pack . SHA.showDigest . SHA.sha1
 
 -- | Convert pandoc structure to a string with formatting removed.
 -- Footnotes are skipped (since we don't want their contents in link
 -- labels).
-stringify :: AstElement -> Lua String
+stringify :: AstElement -> Lua T.Text
 stringify el = return $ case el of
   PandocElement pd -> Shared.stringify pd
   InlineElement i  -> Shared.stringify i
@@ -108,11 +103,11 @@ stringify el = return $ case el of
   MetaElement m    -> Shared.stringify m
   CitationElement c  -> Shared.stringify c
   MetaValueElement m -> stringifyMetaValue m
-  _                  -> ""
+  _                  -> mempty
 
-stringifyMetaValue :: MetaValue -> String
+stringifyMetaValue :: MetaValue -> T.Text
 stringifyMetaValue mv = case mv of
-  MetaBool b   -> map toLower (show b)
+  MetaBool b   -> T.toLower $ T.pack (show b)
   MetaString s -> s
   _            -> Shared.stringify mv
 
@@ -145,5 +140,5 @@ instance Peekable AstElement where
         "Expected an AST element, but could not parse value as such."
 
 -- | Convert a number < 4000 to uppercase roman numeral.
-toRomanNumeral :: Lua.Integer -> Lua String
+toRomanNumeral :: Lua.Integer -> Lua T.Text
 toRomanNumeral = return . Shared.toRomanNumeral . fromIntegral

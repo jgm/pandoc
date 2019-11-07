@@ -58,14 +58,14 @@ instance FromYAML Filter where
 -- | Modify the given document using a filter.
 applyFilters :: ReaderOptions
              -> [Filter]
-             -> [String]
+             -> [T.Text]
              -> Pandoc
              -> PandocIO Pandoc
 applyFilters ropts filters args d = do
   expandedFilters <- mapM expandFilterPath filters
   foldM applyFilter d expandedFilters
  where
-  applyFilter doc (JSONFilter f) = JSONFilter.apply ropts args f doc
+  applyFilter doc (JSONFilter f) = JSONFilter.apply ropts (T.unpack <$> args) f doc -- TODO text: refactor
   applyFilter doc (LuaFilter f)  = LuaFilter.apply ropts args f doc
 
 -- | Expand paths of filters, searching the data directory.

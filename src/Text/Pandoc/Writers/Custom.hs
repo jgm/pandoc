@@ -20,6 +20,7 @@ import Control.Monad (when)
 import Data.Char (toLower)
 import Data.List (intersperse)
 import qualified Data.Map as M
+import qualified Data.Text as T
 import Data.Text (Text, pack)
 import Data.Typeable
 import Foreign.Lua (Lua, Pushable)
@@ -107,7 +108,7 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
                meta
     return (pack rendered, context)
   let (body, context) = case res of
-        Left (LuaException msg) -> throw (PandocLuaException msg)
+        Left (LuaException msg) -> throw (PandocLuaException $ T.unpack msg)
         Right x -> x
   return $
     case writerTemplate opts of

@@ -20,7 +20,7 @@ import Prelude
 import Control.Monad (forM_)
 import Data.ByteString (ByteString)
 import Foreign.Lua (Lua, NumResults, liftIO)
-import Text.Pandoc.Legacy.Class (readDataFile, runIO, setUserDataDir)
+import Text.Pandoc.Class (readDataFile, runIO, setUserDataDir)
 
 import qualified Foreign.Lua as Lua
 import Text.Pandoc.Lua.Module.Pandoc as Pandoc

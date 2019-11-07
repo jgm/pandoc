@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {- |
 Module      : Text.Pandoc.Lua.Filter
@@ -30,7 +30,7 @@ import Data.Data (Data, DataType, dataTypeConstrs, dataTypeName, dataTypeOf,
 import Data.Foldable (foldrM)
 import Data.Map (Map)
 import Foreign.Lua (Lua, Peekable, Pushable)
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
+import Text.Pandoc.Definition
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Walk (SingletonsList (..))
 import Text.Pandoc.Walk (Walkable (walkM))
@@ -180,7 +180,7 @@ constructorsFor :: DataType -> [String]
 constructorsFor x = map show (dataTypeConstrs x)
 
 inlineElementNames :: [String]
-inlineElementNames = "Inline" : constructorsFor (dataTypeOf (Str []))
+inlineElementNames = "Inline" : constructorsFor (dataTypeOf (Str mempty))
 
 blockElementNames :: [String]
 blockElementNames = "Block" : constructorsFor (dataTypeOf (Para []))

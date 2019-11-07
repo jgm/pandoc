@@ -30,7 +30,7 @@ import Prelude
 import Control.Monad (unless, when)
 import Foreign.Lua ( Lua, NumArgs, NumResults, Peekable, Pushable, StackIndex
                    , Status, ToHaskellFunction )
-import Text.Pandoc.Legacy.Class (readDataFile, runIOorExplode, setUserDataDir)
+import Text.Pandoc.Class (readDataFile, runIOorExplode, setUserDataDir)
 
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.UTF8 as UTF8

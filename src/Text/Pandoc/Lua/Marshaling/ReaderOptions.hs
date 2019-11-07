@@ -22,15 +22,12 @@ import Foreign.Lua (Lua, Pushable)
 import Text.Pandoc.Extensions (Extensions)
 import Text.Pandoc.Lua.Marshaling.AnyValue (AnyValue (..))
 import Text.Pandoc.Lua.Marshaling.CommonState ()
--- import Text.Pandoc.Options (ReaderOptions (..), TrackChanges) TODO text: restore
+import Text.Pandoc.Options (ReaderOptions (..), TrackChanges)
 
 import qualified Data.Set as Set
+import qualified Data.Text as Text
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
-
--- TODO text: remove
-import Text.Pandoc.Legacy.Options
---
 
 --
 -- Reader Options
@@ -48,9 +45,9 @@ instance Pushable ReaderOptions where
           (standalone            :: Bool)
           (columns               :: Int)
           (tabStop               :: Int)
-          (indentedCodeClasses   :: [String])
-          (abbreviations         :: Set.Set String)
-          (defaultImageExtension :: String)
+          (indentedCodeClasses   :: [Text.Text])
+          (abbreviations         :: Set.Set Text.Text)
+          (defaultImageExtension :: Text.Text)
           (trackChanges          :: TrackChanges)
           (stripComments         :: Bool)
           = ro
