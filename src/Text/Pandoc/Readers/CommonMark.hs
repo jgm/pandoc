@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.CommonMark
    Copyright   : Copyright (C) 2015-2019 John MacFarlane
@@ -21,11 +22,12 @@ import Control.Monad.State
 import Data.List (groupBy)
 import qualified Data.Set as Set
 import Data.Text (Text, unpack)
-import Text.Pandoc.Legacy.Class (PandocMonad)
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Emoji (emojiToInline)
-import Text.Pandoc.Legacy.Options
-import Text.Pandoc.Legacy.Shared (uniqueIdent, taskListItemFromAscii) -- TODO text: remove Legacy
+import qualified Data.Text as T
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.Emoji (emojiToInline)
+import Text.Pandoc.Options
+import Text.Pandoc.Shared (uniqueIdent, taskListItemFromAscii)
 import Text.Pandoc.Walk (walkM)
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
@@ -40,24 +42,27 @@ readCommonMark opts s = return $
                [ extTable | isEnabled Ext_pipe_tables opts ] ++
                [ extAutolink | isEnabled Ext_autolink_bare_uris opts ]
 
-convertEmojis :: String -> [Inline]
-convertEmojis s@(':':xs) =
+convertEmojis :: Text -> [Inline] -- TODO text: refactor
+convertEmojis = convertEmojis' . T.unpack
+
+convertEmojis' :: String -> [Inline]
+convertEmojis' s@(':':xs) =
    case break (==':') xs of
         (ys,':':zs) ->
-           case emojiToInline ys of
-                Just em -> em : convertEmojis zs
-                Nothing -> Str (':' : ys) : convertEmojis (':':zs)
-        _ -> [Str s]
-convertEmojis s =
+           case emojiToInline (T.pack ys) of
+                Just em -> em : convertEmojis (T.pack zs)
+                Nothing -> Str (T.pack $ ':' : ys) : convertEmojis' (':':zs)
+        _ -> [Str $ T.pack s]
+convertEmojis' s =
   case break (==':') s of
     ("","") -> []
-    (_,"") -> [Str s]
-    (xs,ys) -> Str xs:convertEmojis ys
+    (_,"") -> [Str $ T.pack s]
+    (xs,ys) -> Str (T.pack xs) : convertEmojis' ys
 
 addHeaderIdentifiers :: ReaderOptions -> Pandoc -> Pandoc
 addHeaderIdentifiers opts doc = evalState (walkM (addHeaderId opts) doc) mempty
 
-addHeaderId :: ReaderOptions -> Block -> State (Set.Set String) Block
+addHeaderId :: ReaderOptions -> Block -> State (Set.Set Text) Block
 addHeaderId opts (Header lev (_,classes,kvs) ils) = do
   ids <- get
   let ident = uniqueIdent (readerExtensions opts) ils ids
@@ -82,14 +87,14 @@ addBlock _ (Node _ THEMATIC_BREAK _) =
 addBlock opts (Node _ BLOCK_QUOTE nodes) =
   (BlockQuote (addBlocks opts nodes) :)
 addBlock opts (Node _ (HTML_BLOCK t) _)
-  | isEnabled Ext_raw_html opts = (RawBlock (Format "html") (unpack t) :)
+  | isEnabled Ext_raw_html opts = (RawBlock (Format "html") t :)
   | otherwise                 = id
 -- Note:  the cmark parser will never generate CUSTOM_BLOCK,
 -- so we don't need to handle it:
 addBlock _ (Node _ (CUSTOM_BLOCK _onEnter _onExit) _nodes) =
   id
 addBlock _ (Node _ (CODE_BLOCK info t) _) =
-  (CodeBlock ("", take 1 (words (unpack info)), []) (unpack t) :)
+  (CodeBlock ("", take 1 (T.words info), []) t :)
 addBlock opts (Node _ (HEADING lev) nodes) =
   (Header lev ("",[],[]) (addInlines opts nodes) :)
 addBlock opts (Node _ (LIST listAttrs) nodes) =
@@ -183,22 +188,22 @@ addInline opts (Node _ (TEXT t) _) = (foldr ((++) . toinl) [] clumps ++)
         samekind _   ' ' = False
         samekind _  _    = True
         toinl (' ':_) = [Space]
-        toinl xs      = if isEnabled Ext_emoji opts
-                        then convertEmojis xs
-                        else [Str xs]
+        toinl xs      = if isEnabled Ext_emoji opts -- TODO text: refactor
+                        then convertEmojis' xs
+                        else [Str $ T.pack xs]
 addInline _ (Node _ LINEBREAK _) = (LineBreak :)
 addInline opts (Node _ SOFTBREAK _)
   | isEnabled Ext_hard_line_breaks opts = (LineBreak :)
   | otherwise                           = (SoftBreak :)
 addInline opts (Node _ (HTML_INLINE t) _)
-  | isEnabled Ext_raw_html opts = (RawInline (Format "html") (unpack t) :)
+  | isEnabled Ext_raw_html opts = (RawInline (Format "html") t :)
   | otherwise                 = id
 -- Note:  the cmark parser will never generate CUSTOM_BLOCK,
 -- so we don't need to handle it:
 addInline _ (Node _ (CUSTOM_INLINE _onEnter _onExit) _nodes) =
   id
 addInline _ (Node _ (CODE t) _) =
-  (Code ("",[],[]) (unpack t) :)
+  (Code ("",[],[]) t :)
 addInline opts (Node _ EMPH nodes) =
   (Emph (addInlines opts nodes) :)
 addInline opts (Node _ STRONG nodes) =
@@ -206,7 +211,7 @@ addInline opts (Node _ STRONG nodes) =
 addInline opts (Node _ STRIKETHROUGH nodes) =
   (Strikeout (addInlines opts nodes) :)
 addInline opts (Node _ (LINK url title) nodes) =
-  (Link nullAttr (addInlines opts nodes) (unpack url, unpack title) :)
+  (Link nullAttr (addInlines opts nodes) (url, title) :)
 addInline opts (Node _ (IMAGE url title) nodes) =
-  (Image nullAttr (addInlines opts nodes) (unpack url, unpack title) :)
+  (Image nullAttr (addInlines opts nodes) (url, title) :)
 addInline _ _ = id
