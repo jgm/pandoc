@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 import Prelude
 import Text.Pandoc
 import Text.Pandoc.MIME
-import Text.Pandoc.Error (PandocError(..))
+-- import Text.Pandoc.Error (PandocError(..)) TODO text: restore
 import Control.Monad.Except (throwError)
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString as B
@@ -53,7 +53,7 @@ readerBench doc name =
             _ -> throwError $ PandocSomeError $ "not a text format: "
                                  ++ name
 
-getImages :: IO [(FilePath, MimeType, BL.ByteString)]
+getImages :: IO [(FilePath, String, BL.ByteString)] -- TODO text: replace String with MimeType
 getImages = do
   ll <- BL.readFile "test/lalune.jpg"
   mv <- BL.readFile "test/movie.jpg"
