@@ -19,6 +19,9 @@ module Text.Pandoc.App.OutputSettings
   , optToOutputSettings
   ) where
 import Prelude
+import qualified Data.Map as M
+import qualified Data.Text as T
+import Text.DocTemplates (toVal, Context(..))
 import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.Except (catchError, throwError)
@@ -111,41 +114,34 @@ optToOutputSettings opts = do
   hlStyle <- maybe (return Nothing) (fmap Just . lookupHighlightStyle)
                 (optHighlightStyle opts)
 
-  -- note: this reverses the list constructed in option parsing,
-  -- which in turn was reversed from the command-line order,
-  -- so we end up with the correct order in the variable list:
-  let withList _ [] vars     = return vars
-      withList f (x:xs) vars = f x vars >>= withList f xs
-
   let setVariableM k v = return . setVariable k v
 
-  let addContentsAsVariable varname fp vars = do
-        s <- UTF8.toString . fst <$> fetchItem fp
-        setVariableM varname s vars
+  let setListVariableM k vs =
+        return . Context .
+          (M.insert (T.pack k) (toVal $ map T.pack vs)) . unContext
+
+  let getStringContents fp = UTF8.toString . fst <$> fetchItem fp
+
+  let setFilesVariableM k fps ctx = do
+        xs <- mapM getStringContents fps
+        setListVariableM k xs ctx
 
   curdir <- liftIO getCurrentDirectory
 
   variables <-
-    withList (setVariableM "sourcefile")
-             -- we reverse this list because, unlike
-             -- the other option lists here, it is
-             -- not reversed when parsed from CLI arguments.
-             -- See withList, above.
-             (reverse $ optInputFiles opts)
-             (optVariables opts)
+    return (optVariables opts)
     >>=
-    setVariableM "outputfile" (fromMaybe "-" (optOutputFile opts))
+    setListVariableM "sourcefile" (optInputFiles opts)
     >>=
-    withList (addContentsAsVariable "include-before")
-             (optIncludeBeforeBody opts)
+    setVariableM "outputfile" outputFile
     >>=
-    withList (addContentsAsVariable "include-after")
-             (optIncludeAfterBody opts)
+    setFilesVariableM "include-before" (optIncludeBeforeBody opts)
     >>=
-    withList (addContentsAsVariable "header-includes")
-             (optIncludeInHeader opts)
+    setFilesVariableM "include-after" (optIncludeAfterBody opts)
     >>=
-    withList (setVariableM "css") (optCss opts)
+    setFilesVariableM "header-includes" (optIncludeInHeader opts)
+    >>=
+    setListVariableM "css" (optCss opts)
     >>=
     maybe return (setVariableM "title-prefix")
                  (optTitlePrefix opts)

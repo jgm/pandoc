@@ -223,8 +223,12 @@ writeHtmlString' st opts d = do
             case getField "pagetitle" context of
                  Just (s :: Text) | not (T.null s) -> return context
                  _ -> do
-                   let fallback = maybe "Untitled" (takeBaseName . T.unpack) $
-                           lookupContext "sourcefile" (writerVariables opts)
+                   let fallback =
+                         case lookupContext "sourcefile"
+                                   (writerVariables opts) of
+                           Nothing    -> "Untitled"
+                           Just []    -> "Untitled"
+                           Just (x:_) -> takeBaseName $ T.unpack x
                    report $ NoTitleElement fallback
                    return $ resetField "pagetitle" (T.pack fallback) context
          return $ render Nothing $ renderTemplate tpl

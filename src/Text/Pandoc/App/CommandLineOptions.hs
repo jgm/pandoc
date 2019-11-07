@@ -278,7 +278,7 @@ options =
     , Option "H" ["include-in-header"]
                  (ReqArg
                   (\arg opt -> return opt{ optIncludeInHeader =
-                                              arg : optIncludeInHeader opt,
+                                             optIncludeInHeader opt ++ [arg],
                                             optStandalone = True })
                   "FILE")
                  "" -- "File to include at end of header (implies -s)"
@@ -286,7 +286,7 @@ options =
     , Option "B" ["include-before-body"]
                  (ReqArg
                   (\arg opt -> return opt{ optIncludeBeforeBody =
-                                              arg : optIncludeBeforeBody opt,
+                                            optIncludeBeforeBody opt ++ [arg],
                                            optStandalone = True })
                   "FILE")
                  "" -- "File to include before document body"
@@ -294,7 +294,7 @@ options =
     , Option "A" ["include-after-body"]
                  (ReqArg
                   (\arg opt -> return opt{ optIncludeAfterBody =
-                                              arg : optIncludeAfterBody opt,
+                                            optIncludeAfterBody opt ++ [arg],
                                            optStandalone = True })
                   "FILE")
                  "" -- "File to include after document body"
@@ -583,7 +583,7 @@ options =
 
     , Option "c" ["css"]
                  (ReqArg
-                  (\arg opt -> return opt{ optCss = arg : optCss opt })
+                  (\arg opt -> return opt{ optCss = optCss opt ++ [arg] })
                   -- add new link to end, so it is included in proper order
                   "URL")
                  "" -- "Link to CSS style sheet"
