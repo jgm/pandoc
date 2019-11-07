@@ -230,12 +230,8 @@ convertWithOpts opts = do
     metadataFromFile <-
       case optMetadataFiles opts of
         []    -> return mempty
-        paths -> mapM readFileLazy paths >>= mapM (yamlToMeta readerOpts)
-                   >>= return . (foldr1 (<>))
-        -- Note: this list is in reverse order from the order on the
-        -- command line.  So this code ensures that metadata files
-        -- specified later in the command line take precedence over
-        -- those specified earlier.
+        paths -> mapM readFileLazy paths >>=
+                    fmap mconcat . mapM (yamlToMeta readerOpts)
 
     let transforms = (case optShiftHeadingLevelBy opts of
                           0             -> id
@@ -286,8 +282,8 @@ convertWithOpts opts = do
               (   (if isJust (optExtractMedia opts)
                       then fillMediaBag
                       else return)
-              >=> return . adjustMetadata (<> metadataFromFile)
-              >=> return . adjustMetadata (metadata <>)
+              >=> return . adjustMetadata (metadataFromFile <>)
+              >=> return . adjustMetadata (<> metadata)
               >=> applyTransforms transforms
               >=> applyFilters readerOpts filters' [format]
               >=> maybe return extractMedia (optExtractMedia opts)

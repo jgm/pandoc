@@ -427,7 +427,9 @@ ph s = try $ do
   contents <- trimInlines . mconcat <$> manyTill inline (lookAhead newline)
     --use lookAhead because of placeholder in the whitespace parser
   let meta' = B.setMeta s contents nullMeta
-  updateState $ \st -> st { stateMeta = stateMeta st <> meta' }
+  -- this order ensures that later values will be ignored in favor
+  -- of earlier ones:
+  updateState $ \st -> st { stateMeta = meta' <> stateMeta st }
 
 noHtmlPh :: PandocMonad m => VwParser m ()
 noHtmlPh = try $

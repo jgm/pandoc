@@ -155,7 +155,7 @@ options =
     , Option "" ["metadata-file"]
                  (ReqArg
                   (\arg opt -> return opt{ optMetadataFiles =
-                    normalizePath arg : optMetadataFiles opt })
+                      optMetadataFiles opt ++ [normalizePath arg] })
                   "FILE")
                  ""
 

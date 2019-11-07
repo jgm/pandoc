@@ -10,6 +10,6 @@ foo: bar
 foo: bim
 ...
 ^D
-Pandoc (Meta {unMeta = fromList [("foo",MetaInlines [Str "bar"])]})
+Pandoc (Meta {unMeta = fromList [("foo",MetaInlines [Str "bim"])]})
 []
 ```
