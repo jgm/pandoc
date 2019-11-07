@@ -29,6 +29,7 @@ import Control.Monad.Trans
 import Data.Char (toLower)
 import Data.List (find, isPrefixOf, isSuffixOf)
 import Data.Maybe (fromMaybe)
+import qualified Data.Text as T
 import Skylighting (defaultSyntaxMap)
 import Skylighting.Parser (addSyntaxDefinition, parseSyntaxDefinition)
 import System.Directory (getCurrentDirectory)
@@ -164,7 +165,7 @@ optToOutputSettings opts = do
 
   templStr <- case optTemplate opts of
                   _ | not standalone -> return Nothing
-                  Nothing -> Just <$> getDefaultTemplate format
+                  Nothing -> Just <$> getDefaultTemplate (T.pack format)
                   Just tp -> do
                     -- strip off extensions
                     let tp' = case takeExtension tp of

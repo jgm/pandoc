@@ -841,7 +841,7 @@ options =
                                         Nothing -> UTF8.hPutStr stdout
                      templ <- runIO $ do
                                 setUserDataDir Nothing
-                                getDefaultTemplate arg
+                                getDefaultTemplate (T.pack arg)
                      case templ of
                           Right t
                             | T.null t -> -- e.g. for docx, odt, json:
