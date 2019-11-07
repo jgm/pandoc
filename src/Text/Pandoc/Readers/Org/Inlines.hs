@@ -831,10 +831,6 @@ inlineLaTeXCommand = try $ do
       return cmdNoSpc
     _ -> mzero
 
--- Taken from Data.OldList.
-dropWhileEnd :: (a -> Bool) -> [a] -> [a]
-dropWhileEnd p = foldr (\x xs -> if p x && null xs then [] else x : xs) []
-
 exportSnippet :: PandocMonad m => OrgParser m (F Inlines)
 exportSnippet = try $ do
   string "@@"

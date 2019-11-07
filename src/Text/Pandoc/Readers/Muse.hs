@@ -25,12 +25,11 @@ import Control.Monad.Reader
 import Control.Monad.Except (throwError)
 import Data.Bifunctor
 import Data.Default
-import Data.List (intercalate, transpose, uncons)
-import Data.List.Split (splitOn)
+import Data.List (transpose, uncons)
 import qualified Data.Map as M
 import qualified Data.Set as Set
 import Data.Maybe (fromMaybe, isNothing, maybeToList)
-import Data.Text (Text, unpack)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B

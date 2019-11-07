@@ -35,7 +35,6 @@ import Control.Monad.Reader (ReaderT, ask, asks, lift, local, runReaderT)
 import Data.Char (isAlphaNum, isLetter)
 import Data.Default (Default (..), def)
 import Data.Foldable (for_)
-import Data.List (isPrefixOf)
 import Data.List.Split (wordsBy, splitWhen)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)

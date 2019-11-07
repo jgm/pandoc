@@ -30,9 +30,9 @@ import Prelude
 import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (isDigit, isLetter, toLower, toUpper, chr)
+import Data.Char (isDigit, isLetter, toUpper, chr)
 import Data.Default
-import Data.List (intercalate, isPrefixOf)
+import Data.List (intercalate)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Set as Set
@@ -60,12 +60,12 @@ import Text.Pandoc.Readers.LaTeX.Lang (polyglossiaLangToBCP47,
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.Translations as Translations
 import Text.Pandoc.Walk
-import qualified Text.Pandoc.Builder as B -- TODO text: remove Legacy
+import qualified Text.Pandoc.Builder as B
 import qualified Data.Text.Normalize as Normalize
 
 -- for debugging:
 -- import Text.Pandoc.Extensions (getDefaultExtensions)
--- import Text.Pandoc.Legacy.Class (runIOorExplode, PandocIO)
+-- import Text.Pandoc.Class (runIOorExplode, PandocIO)
 -- import Debug.Trace (traceShowId)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.

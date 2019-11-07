@@ -40,7 +40,7 @@ import Prelude
 import Control.Monad (guard, liftM)
 import Control.Monad.Except (throwError)
 import Data.Char (digitToInt, isUpper)
-import Data.List (intercalate, intersperse, transpose)
+import Data.List (intersperse, transpose)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup (Tag (..), fromAttrib)
@@ -706,10 +706,6 @@ groupedInlineMarkup = try $ do
     sp2 <- option mempty $ B.space <$ whitespace
     char ']'
     return $ sp1 <> result <> sp2
-
--- | Create a singleton list
-singleton :: a -> [a]
-singleton x = [x]
 
 eof' :: Monad m => ParserT Text s m Char
 eof' = '\n' <$ eof

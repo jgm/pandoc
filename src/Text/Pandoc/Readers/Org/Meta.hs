@@ -31,7 +31,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared (safeRead)
 
 import Control.Monad (mzero, void, when)
-import Data.Char (toLower)
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M

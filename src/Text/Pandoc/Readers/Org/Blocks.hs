@@ -34,9 +34,9 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared (compactify, compactifyDL, safeRead)
 
 import Control.Monad (foldM, guard, mzero, void)
-import Data.Char (isSpace, toLower, toUpper)
+import Data.Char (isSpace)
 import Data.Default (Default)
-import Data.List (foldl', isPrefixOf)
+import Data.List (foldl')
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
 

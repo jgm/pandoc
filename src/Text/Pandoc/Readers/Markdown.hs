@@ -21,8 +21,8 @@ import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BS
-import Data.Char (isAlphaNum, isPunctuation, isSpace, toLower)
-import Data.List (intercalate, sortBy, transpose, elemIndex)
+import Data.Char (isAlphaNum, isPunctuation, isSpace)
+import Data.List (sortBy, transpose, elemIndex)
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Ord (comparing)

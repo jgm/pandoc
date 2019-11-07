@@ -23,7 +23,6 @@ import Control.Monad (mzero, void)
 import Data.Char (toLower)
 import Data.Maybe (listToMaybe)
 import Data.Text (Text)
-import qualified Data.Text as T
 
 -- | Read and handle space separated org-mode export settings.
 exportSettings :: PandocMonad m => OrgParser m ()

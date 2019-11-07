@@ -18,7 +18,6 @@ module Text.Pandoc.Readers.Org.DocumentTree
 import Prelude
 import Control.Arrow ((***))
 import Control.Monad (guard, void)
-import Data.Char (toLower, toUpper)
 import Data.List (intersperse)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)

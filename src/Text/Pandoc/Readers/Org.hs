@@ -27,7 +27,6 @@ import Control.Monad.Except (throwError)
 import Control.Monad.Reader (runReaderT)
 
 import Data.Text (Text)
-import qualified Data.Text as T
 
 -- | Parse org-mode string and return a Pandoc document.
 readOrg :: PandocMonad m

@@ -105,7 +105,6 @@ module Text.Pandoc.Readers.Org.Parsing
 
 import Prelude
 import Data.Text (Text)
-import qualified Data.Text as T
 import Text.Pandoc.Readers.Org.ParserState
 
 import Text.Pandoc.Parsing hiding (F, anyLine, blanklines, newline,

@@ -25,12 +25,11 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isSpace)
 import qualified Data.Foldable as F
-import Data.Functor (($>))
-import Data.List (intercalate, intersperse, isPrefixOf)
+import Data.List (intercalate, intersperse)
 import Data.Maybe (fromMaybe, maybeToList)
 import Data.Sequence (ViewL (..), viewl, (<|))
 import qualified Data.Set as Set
-import Data.Text (Text, unpack)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
@@ -631,21 +630,17 @@ imageOption = try $ char '|' *> opt
       <|> try (textStr "frame")
       <|> try (oneOfStrings ["link=","alt=","page=","class="] <* many (noneOf "|]"))
 
--- TODO text: refactor
-collapseUnderscores :: Text -> Text
-collapseUnderscores = T.pack . collapseUnderscores' . T.unpack
-
-collapseUnderscores' :: String -> String
-collapseUnderscores' []           = []
-collapseUnderscores' ('_':'_':xs) = collapseUnderscores' ('_':xs)
-collapseUnderscores' (x:xs)       = x : collapseUnderscores' xs
+collapseUnderscores :: String -> String
+collapseUnderscores []           = []
+collapseUnderscores ('_':'_':xs) = collapseUnderscores ('_':xs)
+collapseUnderscores (x:xs)       = x : collapseUnderscores xs
 
 -- TODO text: refactor
 addUnderscores :: Text -> Text
 addUnderscores = T.pack . addUnderscores' . T.unpack
 
 addUnderscores' :: String -> String
-addUnderscores' = collapseUnderscores' . intercalate "_" . words
+addUnderscores' = collapseUnderscores . intercalate "_" . words
 
 internalLink :: PandocMonad m => MWParser m Inlines
 internalLink = try $ do
