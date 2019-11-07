@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Haddock
    Copyright   : Copyright (C) 2013 David Lazar
@@ -17,18 +18,19 @@ module Text.Pandoc.Readers.Haddock
 
 import Prelude
 import Control.Monad.Except (throwError)
-import Data.List (intersperse, stripPrefix)
+import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, unpack)
+import qualified Data.Text as T
 import Documentation.Haddock.Parser
 import Documentation.Haddock.Types as H
 import Text.Pandoc.Builder (Blocks, Inlines)
-import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Class (PandocMonad)
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
-import Text.Pandoc.Legacy.Error
-import Text.Pandoc.Legacy.Options
-import Text.Pandoc.Legacy.Shared (crFilter, splitBy, trim) -- TODO text: remove Legacy
+import Text.Pandoc.Error
+import Text.Pandoc.Options
+import Text.Pandoc.Shared (crFilter, splitTextBy, trim)
 
 
 -- | Parse Haddock markup and return a 'Pandoc' document.
@@ -51,7 +53,7 @@ docHToBlocks d' =
   case d' of
     DocEmpty -> mempty
     DocAppend (DocParagraph (DocHeader h)) (DocParagraph (DocAName ident)) ->
-         B.headerWith (ident,[],[]) (headerLevel h)
+         B.headerWith (T.pack ident,[],[]) (headerLevel h)
             (docHToInlines False $ headerTitle h)
     DocAppend d1 d2 -> mappend (docHToBlocks d1) (docHToBlocks d2)
     DocString _ -> inlineFallback
@@ -73,12 +75,12 @@ docHToBlocks d' =
     DocDefList items -> B.definitionList (map (\(d,t) ->
                                (docHToInlines False d,
                                 [consolidatePlains $ docHToBlocks t])) items)
-    DocCodeBlock (DocString s) -> B.codeBlockWith ("",[],[]) s
+    DocCodeBlock (DocString s) -> B.codeBlockWith ("",[],[]) $ T.pack s
     DocCodeBlock d -> B.para $ docHToInlines True d
     DocHyperlink _ -> inlineFallback
     DocPic _ -> inlineFallback
     DocAName _ -> inlineFallback
-    DocProperty s -> B.codeBlockWith ("",["property","haskell"],[]) (trim s)
+    DocProperty s -> B.codeBlockWith ("",["property","haskell"],[]) (trim $ T.pack s)
     DocExamples es -> mconcat $ map (\e ->
        makeExample ">>>" (exampleExpression e) (exampleResult e)) es
     DocTable H.Table{ tableHeaderRows = headerRows
@@ -114,58 +116,58 @@ docHToInlines isCode d' =
                                (docHToInlines isCode d2)
     DocString s
       | isCode -> mconcat $ intersperse B.linebreak
-                              $ map B.code $ splitBy (=='\n') s
-      | otherwise  -> B.text s
+                              $ map B.code $ splitTextBy (=='\n') $ T.pack s
+      | otherwise  -> B.text $ T.pack s
     DocParagraph _ -> mempty
     DocIdentifier ident ->
         case toRegular (DocIdentifier ident) of
-          DocIdentifier s -> B.codeWith ("",["haskell","identifier"],[]) s
+          DocIdentifier s -> B.codeWith ("",["haskell","identifier"],[]) $ T.pack s
           _               -> mempty
-    DocIdentifierUnchecked s -> B.codeWith ("",["haskell","identifier"],[]) s
-    DocModule s -> B.codeWith ("",["haskell","module"],[]) s
+    DocIdentifierUnchecked s -> B.codeWith ("",["haskell","identifier"],[]) $ T.pack s
+    DocModule s -> B.codeWith ("",["haskell","module"],[]) $ T.pack s
     DocWarning _ -> mempty -- TODO
     DocEmphasis d -> B.emph (docHToInlines isCode d)
-    DocMonospaced (DocString s) -> B.code s
+    DocMonospaced (DocString s) -> B.code $ T.pack s
     DocMonospaced d -> docHToInlines True d
     DocBold d -> B.strong (docHToInlines isCode d)
-    DocMathInline s -> B.math s
-    DocMathDisplay s -> B.displayMath s
+    DocMathInline s -> B.math $ T.pack s
+    DocMathDisplay s -> B.displayMath $ T.pack s
     DocHeader _ -> mempty
     DocUnorderedList _ -> mempty
     DocOrderedList _ -> mempty
     DocDefList _ -> mempty
     DocCodeBlock _ -> mempty
-    DocHyperlink h -> B.link (hyperlinkUrl h) (hyperlinkUrl h)
-             (maybe (B.text $ hyperlinkUrl h) (docHToInlines isCode)
+    DocHyperlink h -> B.link (T.pack $ hyperlinkUrl h) (T.pack $ hyperlinkUrl h)
+             (maybe (B.text $ T.pack $ hyperlinkUrl h) (docHToInlines isCode)
                (hyperlinkLabel h))
-    DocPic p -> B.image (pictureUri p) (fromMaybe (pictureUri p) $ pictureTitle p)
-                        (maybe mempty B.text $ pictureTitle p)
-    DocAName s -> B.spanWith (s,["anchor"],[]) mempty
+    DocPic p -> B.image (T.pack $ pictureUri p) (T.pack $ fromMaybe (pictureUri p) $ pictureTitle p)
+                        (maybe mempty (B.text . T.pack) $ pictureTitle p)
+    DocAName s -> B.spanWith (T.pack s,["anchor"],[]) mempty
     DocProperty _ -> mempty
     DocExamples _ -> mempty
     DocTable _ -> mempty
 
 -- | Create an 'Example', stripping superfluous characters as appropriate
-makeExample :: String -> String -> [String] -> Blocks
+makeExample :: T.Text -> String -> [String] -> Blocks
 makeExample prompt expression result =
     B.para $ B.codeWith ("",["prompt"],[]) prompt
         <> B.space
-        <> B.codeWith ([], ["haskell","expr"], []) (trim expression)
+        <> B.codeWith ("", ["haskell","expr"], []) (trim $ T.pack expression)
         <> B.linebreak
         <> mconcat (intersperse B.linebreak $ map coder result')
   where
     -- 1. drop trailing whitespace from the prompt, remember the prefix
-    prefix = takeWhile (`elem` " \t") prompt
+    prefix = T.takeWhile (`elem` (" \t" :: String)) prompt
 
     -- 2. drop, if possible, the exact same sequence of whitespace
     -- characters from each result line
     --
     -- 3. interpret lines that only contain the string "<BLANKLINE>" as an
     -- empty line
-    result' = map (substituteBlankLine . tryStripPrefix prefix) result
+    result' = map (substituteBlankLine . tryStripPrefix prefix . T.pack) result
       where
-        tryStripPrefix xs ys = fromMaybe ys $ stripPrefix xs ys
+        tryStripPrefix xs ys = fromMaybe ys $ T.stripPrefix xs ys
 
         substituteBlankLine "<BLANKLINE>" = ""
         substituteBlankLine line          = line
-    coder = B.codeWith ([], ["result"], [])
+    coder = B.codeWith ("", ["result"], [])
