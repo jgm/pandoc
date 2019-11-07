@@ -19,11 +19,14 @@ module Text.Pandoc.Readers.Docx.Util (
                                       , elemToNameSpaces
                                       , findChildByName
                                       , findChildrenByName
+                                      , findAttrText
                                       , findAttrByName
+                                      , findAttrTextByName
                                       ) where
 
 import Prelude
 import Data.Maybe (mapMaybe)
+import qualified Data.Text as T
 import Text.XML.Light
 
 type NameSpaces = [(String, String)]
@@ -55,7 +58,13 @@ findChildrenByName ns pref name el =
   let ns' = ns ++ elemToNameSpaces el
   in  findChildren (elemName ns' pref name) el
 
+findAttrText :: QName -> Element -> Maybe T.Text
+findAttrText x = fmap T.pack . findAttr x
+
 findAttrByName :: NameSpaces -> String -> String -> Element -> Maybe String
 findAttrByName ns pref name el =
   let ns' = ns ++ elemToNameSpaces el
   in  findAttr (elemName ns' pref name) el
+
+findAttrTextByName :: NameSpaces -> String -> String -> Element -> Maybe T.Text
+findAttrTextByName a b c = fmap T.pack . findAttrByName a b c

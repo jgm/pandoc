@@ -27,6 +27,7 @@ module Text.Pandoc.Writers.Docx.StyleMap ( StyleMaps(..)
 import Text.Pandoc.Readers.Docx.Parse.Styles
 import Codec.Archive.Zip
 import qualified Data.Map as M
+import qualified Data.Text as T
 import Data.String
 import Data.Char (isSpace)
 import Prelude
@@ -38,7 +39,7 @@ type CharStyleNameMap = M.Map CharStyleName CharStyle
 getStyleIdFromName :: (Ord sn, FromStyleName sn, IsString (StyleId sty), HasStyleId sty)
                    => sn -> M.Map sn sty -> StyleId sty
 getStyleIdFromName s = maybe (fallback s) getStyleId . M.lookup s
-  where fallback = fromString . filter (not . isSpace) . fromStyleName
+  where fallback = fromString . T.unpack . T.filter (not . isSpace) . fromStyleName
 
 hasStyleName :: (Ord sn, HasStyleId sty)
              => sn -> M.Map sn sty -> Bool

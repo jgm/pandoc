@@ -618,25 +618,24 @@ writeDocx opts doc@(Pandoc meta _) = do
                   miscRelEntries ++ otherMediaEntries
   return $ fromArchive archive
 
-
 newParaPropToOpenXml :: ParaStyleName -> Element
 newParaPropToOpenXml (fromStyleName -> s) =
-  let styleId = filter (not . isSpace) s
+  let styleId = T.filter (not . isSpace) s
   in mknode "w:style" [ ("w:type", "paragraph")
                       , ("w:customStyle", "1")
-                      , ("w:styleId", styleId)]
-     [ mknode "w:name" [("w:val", s)] ()
+                      , ("w:styleId", T.unpack styleId)]
+     [ mknode "w:name" [("w:val", T.unpack s)] ()
      , mknode "w:basedOn" [("w:val","BodyText")] ()
      , mknode "w:qFormat" [] ()
      ]
 
 newTextPropToOpenXml :: CharStyleName -> Element
 newTextPropToOpenXml (fromStyleName -> s) =
-  let styleId = filter (not . isSpace) s
+  let styleId = T.filter (not . isSpace) s
   in mknode "w:style" [ ("w:type", "character")
                       , ("w:customStyle", "1")
-                      , ("w:styleId", styleId)]
-     [ mknode "w:name" [("w:val", s)] ()
+                      , ("w:styleId", T.unpack styleId)]
+     [ mknode "w:name" [("w:val", T.unpack s)] ()
      , mknode "w:basedOn" [("w:val","BodyTextChar")] ()
      ]
 
@@ -862,13 +861,13 @@ pStyleM :: (PandocMonad m) => ParaStyleName -> WS m XML.Element
 pStyleM styleName = do
   pStyleMap <- gets (smParaStyle . stStyleMaps)
   let sty' = getStyleIdFromName styleName pStyleMap
-  return $ mknode "w:pStyle" [("w:val", fromStyleId sty')] ()
+  return $ mknode "w:pStyle" [("w:val", T.unpack $ fromStyleId sty')] ()
 
 rStyleM :: (PandocMonad m) => CharStyleName -> WS m XML.Element
 rStyleM styleName = do
   cStyleMap <- gets (smCharStyle . stStyleMaps)
   let sty' = getStyleIdFromName styleName cStyleMap
-  return $ mknode "w:rStyle" [("w:val", fromStyleId sty')] ()
+  return $ mknode "w:rStyle" [("w:val", T.unpack $ fromStyleId sty')] ()
 
 getUniqueId :: (PandocMonad m) => WS m String
 -- the + 20 is to ensure that there are no clashes with the rIds

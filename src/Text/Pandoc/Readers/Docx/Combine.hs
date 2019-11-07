@@ -1,7 +1,8 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE PatternGuards        #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE OverloadedStrings    #-}
 {- |
    Module      : Text.Pandoc.Readers.Docx.Combine
    Copyright   : © 2014-2019 Jesse Rosenthal <jrosenthal@jhu.edu>,
@@ -63,7 +64,7 @@ import Prelude
 import Data.List
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr, (><), (|>))
 import qualified Data.Sequence as Seq (null)
-import Text.Pandoc.Legacy.Builder -- TODO text: remove
+import Text.Pandoc.Builder
 
 data Modifier a = Modifier (a -> a)
                 | AttrModifier (Attr -> a -> a) Attr
