@@ -82,7 +82,7 @@ runJSONFilter mbDatadir doc filterFile optArgs = do
               (:[]) <$> Lua.popValue
   filterRes <- Lua.liftIO . runIO $ do
     setUserDataDir mbDatadir
-    JSONFilter.apply def (T.unpack <$> args) filterFile doc -- TODO text: refactor
+    JSONFilter.apply def args filterFile doc
   case filterRes of
     Left err -> Lua.raiseError (show err)
     Right d -> (1 :: NumResults) <$ Lua.push d

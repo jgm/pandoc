@@ -22,9 +22,9 @@ module Text.Pandoc.Filter
 import Prelude
 import Data.Aeson.TH (deriveJSON, defaultOptions)
 import GHC.Generics (Generic)
-import Text.Pandoc.Legacy.Class (PandocIO)
+import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
-import Text.Pandoc.Legacy.Options (ReaderOptions)
+import Text.Pandoc.Options (ReaderOptions)
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Filter.Lua as LuaFilter
 import qualified Text.Pandoc.Filter.Path as Path
@@ -65,7 +65,7 @@ applyFilters ropts filters args d = do
   expandedFilters <- mapM expandFilterPath filters
   foldM applyFilter d expandedFilters
  where
-  applyFilter doc (JSONFilter f) = JSONFilter.apply ropts (T.unpack <$> args) f doc -- TODO text: refactor
+  applyFilter doc (JSONFilter f) = JSONFilter.apply ropts args f doc
   applyFilter doc (LuaFilter f)  = LuaFilter.apply ropts args f doc
 
 -- | Expand paths of filters, searching the data directory.
