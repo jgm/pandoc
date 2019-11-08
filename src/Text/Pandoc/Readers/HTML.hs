@@ -49,7 +49,7 @@ import Text.Pandoc.Builder (Blocks, HasMeta (..), Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
-import Text.Pandoc.Definition -- TODO text: remove Legacy
+import Text.Pandoc.Definition
 import Text.Pandoc.Readers.LaTeX (rawLaTeXInline)
 import Text.Pandoc.Readers.LaTeX.Types (Macro)
 import Text.Pandoc.Error

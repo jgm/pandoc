@@ -968,8 +968,8 @@ handleUnrecognizedOption "-R" = handleUnrecognizedOption "--parse-raw"
 handleUnrecognizedOption x =
   (("Unknown option " ++ x ++ ".") :)
 
-readersNames :: [String]
-readersNames = sort (map fst (readers :: [(String, Reader PandocIO)]))
+readersNames :: [String] -- TODO text: refactor
+readersNames = sort (map (T.unpack . fst) (readers :: [(Text, Reader PandocIO)]))
 
 writersNames :: [String]
 writersNames = sort (map fst (writers :: [(String, Writer PandocIO)]))

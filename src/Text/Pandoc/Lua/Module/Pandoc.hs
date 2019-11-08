@@ -64,7 +64,7 @@ readDoc :: T.Text -> Optional T.Text -> Lua NumResults
 readDoc content formatSpecOrNil = do
   let formatSpec = fromMaybe "markdown" (Lua.fromOptional formatSpecOrNil)
   res <- Lua.liftIO . runIO $
-           getReader (T.unpack formatSpec) >>= \(rdr,es) ->
+           getReader formatSpec >>= \(rdr,es) ->
              case rdr of
                TextReader r ->
                  r def{ readerExtensions = es } content

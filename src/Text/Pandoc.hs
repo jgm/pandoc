@@ -69,7 +69,11 @@ import Text.Pandoc.Legacy.Error
 import Text.Pandoc.Generic
 import Text.Pandoc.Legacy.Logging
 import Text.Pandoc.Legacy.Options
-import Text.Pandoc.Readers
+-- import Text.Pandoc.Readers TODO text: restore
 import Text.Pandoc.Legacy.Shared (pandocVersion)
 import Text.Pandoc.Templates
 import Text.Pandoc.Writers
+
+-- TODO text: remove
+import Text.Pandoc.Readers hiding (getDefaultExtensions)
+--
