@@ -15,5 +15,10 @@ source-repository-package
 
 source-repository-package
     type: git
-    location: https://github.com/jgm/pandoc-types
-    tag: 00f7bb79e79d7cfd3523880dbc64ba3ea46c3da2
+    location: https://github.com/despresc/pandoc-types
+    tag: 59c45cdd996ed57c51112e3c22be4a8e2ea697a3
+
+source-repository-package
+    type: git
+    location: https://github.com/jgm/texmath
+    tag: 0d71300d91513bdd812d2c89b78460c15c277457
