@@ -32,7 +32,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Logging (Verbosity (..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
-import Text.Pandoc.Shared (crFilter, safeRead) -- TODO text: remove Legacy
+import Text.Pandoc.Shared (crFilter, safeRead)
 import Text.Pandoc.XML (fromEntities)
 import Text.Printf (printf)
 

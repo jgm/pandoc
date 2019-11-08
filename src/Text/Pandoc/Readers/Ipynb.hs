@@ -24,9 +24,9 @@ import Data.Maybe (fromMaybe)
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Text.Pandoc.Options
 import qualified Data.Scientific as Scientific
-import qualified Text.Pandoc.Builder as B -- TODO text: remove Legacy
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Logging
-import Text.Pandoc.Definition -- TODO text: remove Legacy
+import Text.Pandoc.Definition
 import Data.Ipynb as Ipynb
 import Text.Pandoc.Class
 import Text.Pandoc.MIME (extensionFromMimeType)
