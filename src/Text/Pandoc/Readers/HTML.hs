@@ -62,7 +62,7 @@ import Text.Pandoc.Options (
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
-                           extractSpaces, htmlSpanLikeDataAttrName, htmlSpanLikeElements,
+                           extractSpaces, htmlSpanLikeElements,
                            onlySimpleTableCells, safeRead, underlineSpan)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
@@ -728,10 +728,8 @@ pSpanLike =
     parseTag tagName = do
       TagOpen _ attrs <- pSatisfy $ tagOpenLit tagName (const True)
       let (ids, cs, kvs) = mkAttr . toStringAttr $ attrs
-      let spanLikeDataAttr = (htmlSpanLikeDataAttrName, T.unpack tagName)
       content <- mconcat <$> manyTill inline (pCloses tagName <|> eof)
-      return $ B.spanWith (ids, cs, spanLikeDataAttr : kvs) content
-
+      return $ B.spanWith (ids, T.unpack tagName : cs, kvs) content
 
 pSmall :: PandocMonad m => TagParser m Inlines
 pSmall = pInlinesInTags "small" (B.spanWith ("",["small"],[]))

@@ -67,7 +67,6 @@ module Text.Pandoc.Shared (
                      makeMeta,
                      eastAsianLineBreakFilter,
                      underlineSpan,
-                     htmlSpanLikeDataAttrName,
                      htmlSpanLikeElements,
                      splitSentences,
                      filterIpynbOutput,
@@ -695,9 +694,6 @@ eastAsianLineBreakFilter = bottomUp go
 -- Will be replaced once Underline is an element.
 underlineSpan :: Inlines -> Inlines
 underlineSpan = B.spanWith ("", ["underline"], [])
-
-htmlSpanLikeDataAttrName :: String
-htmlSpanLikeDataAttrName = "data-is-pandoc-spanlike"
 
 -- | Set of HTML elements that are represented as Span with a class equal as
 -- the element tag itself.
