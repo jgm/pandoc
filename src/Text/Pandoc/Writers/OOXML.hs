@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.OOXML
    Copyright   : Copyright (C) 2012-2019 John MacFarlane
@@ -27,7 +28,7 @@ import Prelude
 import Codec.Archive.Zip
 import Control.Monad.Reader
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Legacy.Error
+import Text.Pandoc.Error
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
@@ -62,10 +63,10 @@ parseXml refArchive distArchive relpath =
   case findEntryByPath relpath refArchive `mplus`
          findEntryByPath relpath distArchive of
             Nothing -> throwError $ PandocSomeError $
-                        relpath ++ " missing in reference file"
+                        T.pack relpath <> " missing in reference file"
             Just e  -> case parseXMLDoc . UTF8.toStringLazy . fromEntry $ e of
                        Nothing -> throwError $ PandocSomeError $
-                                   relpath ++ " corrupt in reference file"
+                                   T.pack relpath <> " corrupt in reference file"
                        Just d  -> return d
 
 -- Copied from Util
