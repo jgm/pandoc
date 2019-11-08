@@ -16,18 +16,18 @@ module Text.Pandoc.Writers.OPML ( writeOPML) where
 import Prelude
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Class (PandocMonad)
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class (PandocMonad)
 import Data.Time
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Options
+import Text.Pandoc.Definition
+import Text.Pandoc.Options
 import Text.DocLayout
-import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
+import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Markdown (writeMarkdown)
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Legacy.XML
+import Text.Pandoc.XML
 
 -- | Convert Pandoc document to string in OPML format.
 writeOPML :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -57,12 +57,12 @@ writeHtmlInlines ils =
   T.strip <$> writeHtml5String def (Pandoc nullMeta [Plain ils])
 
 -- date format: RFC 822: Thu, 14 Jul 2005 23:41:05 GMT
-showDateTimeRFC822 :: UTCTime -> String
-showDateTimeRFC822 = formatTime defaultTimeLocale "%a, %d %b %Y %X %Z"
+showDateTimeRFC822 :: UTCTime -> Text
+showDateTimeRFC822 = T.pack . formatTime defaultTimeLocale "%a, %d %b %Y %X %Z"
 
-convertDate :: [Inline] -> String
+convertDate :: [Inline] -> Text
 convertDate ils = maybe "" showDateTimeRFC822 $
-  parseTimeM True defaultTimeLocale "%F" =<< normalizeDate (stringify ils)
+  parseTimeM True defaultTimeLocale "%F" . T.unpack =<< normalizeDate (stringify ils)
 
 -- | Convert a Block to OPML.
 blockToOPML :: PandocMonad m => WriterOptions -> Block -> m (Doc Text)
@@ -74,8 +74,8 @@ blockToOPML opts (Div (_,"section":_,_) (Header _ _ title : xs)) = do
   md <- if null blocks
         then return mempty
         else writeMarkdown def $ Pandoc nullMeta blocks
-  let attrs = ("text", T.unpack htmlIls) :
-              [("_note", T.unpack $ T.stripEnd md) | not (null blocks)]
+  let attrs = ("text", htmlIls) :
+              [("_note", T.stripEnd md) | not (null blocks)]
   rest' <- vcat <$> mapM (blockToOPML opts) rest
   return $ inTags True "outline" attrs rest'
 blockToOPML _ _ = return empty
