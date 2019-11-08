@@ -29,7 +29,6 @@ import Control.Monad.Trans
 import Data.Char (toLower)
 import Data.List (find, isPrefixOf, isSuffixOf)
 import Data.Maybe (fromMaybe)
-import qualified Data.Text as T
 import Skylighting (defaultSyntaxMap)
 import Skylighting.Parser (addSyntaxDefinition, parseSyntaxDefinition)
 import System.Directory (getCurrentDirectory)

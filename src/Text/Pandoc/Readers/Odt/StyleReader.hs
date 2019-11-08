@@ -52,7 +52,7 @@ import qualified Data.Set as S
 
 import qualified Text.XML.Light as XML
 
-import Text.Pandoc.Legacy.Shared (safeRead) -- TODO text: remove Legacy
+import Text.Pandoc.Shared (safeRead)
 
 import Text.Pandoc.Readers.Odt.Arrows.Utils
 
@@ -548,11 +548,11 @@ readListLevelStyle :: ListLevelType -> StyleReader _x (Int, ListLevelStyle)
 readListLevelStyle levelType =      readAttr NsText "level"
                                >>?! keepingTheValue
                                     ( liftA5 toListLevelStyle
-                                      ( returnV  levelType              )
-                                      ( findAttr' NsStyle "num-prefix"  )
-                                      ( findAttr' NsStyle "num-suffix"  )
-                                      ( getAttr   NsStyle "num-format"  )
-                                      ( findAttr' NsText  "start-value" )
+                                      ( returnV       levelType             )
+                                      ( findAttr'     NsStyle "num-prefix"  )
+                                      ( findAttr'     NsStyle "num-suffix"  )
+                                      ( getAttr       NsStyle "num-format"  )
+                                      ( findAttrText' NsText  "start-value" )
                                     )
   where
   toListLevelStyle _ p s LinfNone b         = ListLevelStyle LltBullet p s LinfNone (startValue b)

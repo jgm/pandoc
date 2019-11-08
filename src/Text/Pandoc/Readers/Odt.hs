@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards     #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Reader.Odt
    Copyright   : Copyright (C) 2015 Martin Linnemann
@@ -24,12 +25,12 @@ import System.FilePath
 
 import Control.Monad.Except (throwError)
 
-import Text.Pandoc.Legacy.Class (PandocMonad)
-import qualified Text.Pandoc.Legacy.Class as P
+import Text.Pandoc.Class (PandocMonad)
+import qualified Text.Pandoc.Class as P
 import Text.Pandoc.Definition
-import Text.Pandoc.Legacy.Error
-import Text.Pandoc.Legacy.MediaBag
-import Text.Pandoc.Legacy.Options
+import Text.Pandoc.Error
+import Text.Pandoc.MediaBag
+import Text.Pandoc.Options
 import qualified Text.Pandoc.UTF8 as UTF8
 
 import Text.Pandoc.Readers.Odt.ContentReader
@@ -37,7 +38,7 @@ import Text.Pandoc.Readers.Odt.StyleReader
 
 import Text.Pandoc.Readers.Odt.Generic.Fallible
 import Text.Pandoc.Readers.Odt.Generic.XMLConverter
-import Text.Pandoc.Legacy.Shared (filteredFilesFromArchive)
+import Text.Pandoc.Shared (filteredFilesFromArchive)
 
 readOdt :: PandocMonad m
         => ReaderOptions

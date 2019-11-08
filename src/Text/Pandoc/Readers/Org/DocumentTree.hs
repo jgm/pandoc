@@ -30,7 +30,7 @@ import Text.Pandoc.Readers.Org.Parsing
 
 import qualified Data.Set as Set
 import qualified Data.Text as T
-import qualified Text.Pandoc.Builder as B -- TODO text: remove Legacy
+import qualified Text.Pandoc.Builder as B
 
 --
 -- Org headers

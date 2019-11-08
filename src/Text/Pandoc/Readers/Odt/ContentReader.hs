@@ -1,11 +1,12 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE Arrows          #-}
-{-# LANGUAGE DeriveFoldable  #-}
+{-# LANGUAGE Arrows            #-}
+{-# LANGUAGE DeriveFoldable    #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE PatternGuards   #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TupleSections   #-}
-{-# LANGUAGE ViewPatterns    #-}
+{-# LANGUAGE PatternGuards     #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Odt.ContentReader
    Copyright   : Copyright (C) 2015 Martin Linnemann
@@ -29,18 +30,18 @@ import Control.Arrow
 
 import qualified Data.ByteString.Lazy as B
 import Data.Foldable (fold)
-import Data.List (find, intercalate, stripPrefix)
+import Data.List (find, stripPrefix)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Maybe
 import Data.Semigroup (First(..), Option(..))
 
--- import Text.TeXMath (readMathML, writeTeX) TODO text: restore
+import Text.TeXMath (readMathML, writeTeX)
 import qualified Text.XML.Light as XML
 
-import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.MediaBag (MediaBag, insertMedia)
-import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
+import Text.Pandoc.Builder
+import Text.Pandoc.MediaBag (MediaBag, insertMedia)
+import Text.Pandoc.Shared
 import Text.Pandoc.Extensions (extensionsFromList, Extension(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -56,22 +57,11 @@ import Text.Pandoc.Readers.Odt.Generic.XMLConverter
 
 import qualified Data.Set as Set
 
--- TODO text: remove
-import qualified Text.TeXMath as TM (readMathML, writeTeX)
-import qualified Text.TeXMath.Types as TM
-
-readMathML :: String -> Either T.Text [TM.Exp]
-readMathML = TM.readMathML . T.pack
-
-writeTeX :: [TM.Exp] -> String
-writeTeX = T.unpack . TM.writeTeX
---
-
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------
 
-type Anchor = String
+type Anchor = T.Text
 type Media = [(FilePath, B.ByteString)]
 
 data ReaderState
@@ -216,21 +206,21 @@ updateMediaWithResource = keepingTheValue (
                )
            >>^ fst
 
-lookupResource :: OdtReaderSafe String (FilePath, B.ByteString)
+lookupResource :: OdtReaderSafe FilePath (FilePath, B.ByteString)
 lookupResource = proc target -> do
     state <- getExtraState -< ()
     case lookup target (getMediaEnv state) of
       Just bs -> returnV (target, bs) -<< ()
       Nothing -> returnV ("", B.empty) -< ()
 
-type AnchorPrefix = String
+type AnchorPrefix = T.Text
 
 -- | An adaptation of 'uniqueIdent' from "Text.Pandoc.Shared" that generates a
 -- unique identifier but without assuming that the id should be for a header.
 -- Second argument is a list of already used identifiers.
 uniqueIdentFrom :: AnchorPrefix -> [Anchor] -> Anchor
 uniqueIdentFrom baseIdent usedIdents =
-  let  numIdent n = baseIdent ++ "-" ++ show n
+  let  numIdent n = baseIdent <> "-" <> T.pack (show n)
   in  if baseIdent `elem` usedIdents
         then case find (\x -> numIdent x `notElem` usedIdents) ([1..60000] :: [Int]) of
                   Just x  -> numIdent x
@@ -317,7 +307,7 @@ withNewStyle a = proc x -> do
     isCodeStyle _             = False
 
     inlineCode :: Inlines -> Inlines
-    inlineCode = code . intercalate "" . map stringify . toList
+    inlineCode = code . T.concat . map stringify . toList
 
 type PropertyTriple = (ReaderState, TextProperties, Maybe StyleFamily)
 type InlineModifier = Inlines -> Inlines
@@ -547,7 +537,6 @@ matchChildContent    :: (Monoid result)
                      ->  OdtReaderSafe _x result
 matchChildContent ls fallback = returnV mempty >>> matchContent ls fallback
 
-
 --------------------------------------------
 -- Matchers
 --------------------------------------------
@@ -568,8 +557,8 @@ read_plain_text =  fst ^&&& read_plain_text' >>% recover
                             )
                        >>?% mappend
     --
-    extractText     :: XML.Content -> Fallible String
-    extractText (XML.Text cData) = succeedWith (XML.cdData cData)
+    extractText     :: XML.Content -> Fallible T.Text
+    extractText (XML.Text cData) = succeedWith (T.pack $ XML.cdData cData)
     extractText         _        = failEmpty
 
 read_text_seq :: InlineMatcher
@@ -687,8 +676,8 @@ read_list_item    = matchingElement NsText "list-item"
 read_link        :: InlineMatcher
 read_link         = matchingElement NsText "a"
                     $ liftA3 link
-                      ( findAttrWithDefault NsXLink  "href"  ""              )
-                      ( findAttrWithDefault NsOffice "title" ""              )
+                      ( findAttrTextWithDefault NsXLink  "href"  ""          )
+                      ( findAttrTextWithDefault NsOffice "title" ""          )
                       ( matchChildContent [ read_span
                                           , read_note
                                           , read_citation
@@ -721,12 +710,12 @@ read_citation    :: InlineMatcher
 read_citation     = matchingElement NsText "bibliography-mark"
                     $ liftA2 cite
                       ( liftA2 makeCitation
-                        ( findAttrWithDefault NsText "identifier" ""     )
+                        ( findAttrTextWithDefault NsText "identifier" "" )
                         ( readAttrWithDefault NsText "number" 0          )
                       )
                       ( matchChildContent [] read_plain_text             )
   where
-   makeCitation :: String -> Int -> [Citation]
+   makeCitation :: T.Text -> Int -> [Citation]
    makeCitation citeId num = [Citation citeId [] [] NormalCitation num 0]
 
 
@@ -791,17 +780,17 @@ read_frame_img =
         let exts = extensionsFromList [Ext_auto_identifiers]
         resource   <- lookupResource                          -< src'
         _          <- updateMediaWithResource                 -< resource
-        w          <- findAttr' NsSVG "width"                 -< ()
-        h          <- findAttr' NsSVG "height"                -< ()
+        w          <- findAttrText' NsSVG "width"             -< ()
+        h          <- findAttrText' NsSVG "height"            -< ()
         titleNodes <- matchChildContent' [ read_frame_title ] -< ()
         alt        <- matchChildContent [] read_plain_text    -< ()
         arr (firstMatch . uncurry4 imageWith)                 -<
-          (image_attributes w h, src', inlineListToIdentifier exts (toList titleNodes), alt)
+          (image_attributes w h, T.pack src', inlineListToIdentifier exts (toList titleNodes), alt)
 
 read_frame_title :: InlineMatcher
 read_frame_title = matchingElement NsSVG "title" (matchChildContent [] read_plain_text)
 
-image_attributes :: Maybe String -> Maybe String -> Attr
+image_attributes :: Maybe T.Text -> Maybe T.Text -> Attr
 image_attributes x y =
   ( "", [], (dim "width" x) ++ (dim "height" y))
   where
@@ -818,7 +807,7 @@ read_frame_mathml =
       src' -> do
         let path = fromMaybe src' (stripPrefix "./" src') ++ "/content.xml"
         (_, mathml) <- lookupResource -< path
-        case readMathML (UTF8.toString $ B.toStrict mathml) of
+        case readMathML (UTF8.toText $ B.toStrict mathml) of
           Left _     -> returnV mempty -< ()
           Right exps -> arr (firstMatch . displayMath . writeTeX) -< exps
 
@@ -829,9 +818,9 @@ read_frame_text_box = proc box -> do
 
 read_img_with_caption :: [Block] -> FirstMatch Inlines
 read_img_with_caption (Para [Image attr alt (src,title)] : _) =
-  firstMatch $ singleton (Image attr alt (src, 'f':'i':'g':':':title))   -- no text, default caption
+  firstMatch $ singleton (Image attr alt (src, "fig:" <> title))   -- no text, default caption
 read_img_with_caption (Para (Image attr _ (src,title) : txt) : _) =
-  firstMatch $ singleton (Image attr txt (src, 'f':'i':'g':':':title) )  -- override caption with the text that follows
+  firstMatch $ singleton (Image attr txt (src, "fig:" <> title) )  -- override caption with the text that follows
 read_img_with_caption  ( Para (_ : xs) : ys) =
   read_img_with_caption (Para xs : ys)
 read_img_with_caption _ =
@@ -841,12 +830,12 @@ read_img_with_caption _ =
 -- Internal links
 ----------------------
 
-_ANCHOR_PREFIX_ :: String
+_ANCHOR_PREFIX_ :: T.Text
 _ANCHOR_PREFIX_ = "anchor"
 
 --
 readAnchorAttr :: OdtReader _x Anchor
-readAnchorAttr = findAttr NsText "name"
+readAnchorAttr = findAttrText NsText "name"
 
 -- | Beware: may fail
 findAnchorName :: OdtReader AnchorPrefix Anchor
@@ -887,7 +876,7 @@ read_reference_start = matchingElement NsText "reference-mark-start"
 
 -- | Beware: may fail
 findAnchorRef :: OdtReader _x Anchor
-findAnchorRef = (      findAttr NsText "ref-name"
+findAnchorRef = (      findAttrText NsText "ref-name"
                   >>?^ (_ANCHOR_PREFIX_,)
                 ) >>?! getPrettyAnchor
 
@@ -902,7 +891,7 @@ maybeInAnchorRef = proc inlines -> do
     Left _ -> returnA -< inlines
   where
     toAnchorRef :: Anchor -> Inlines -> Inlines
-    toAnchorRef anchor = link ('#':anchor) "" -- no title
+    toAnchorRef anchor = link ("#" <> anchor) "" -- no title
 
 --
 read_bookmark_ref :: InlineMatcher
