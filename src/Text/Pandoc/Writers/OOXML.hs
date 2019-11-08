@@ -11,6 +11,7 @@
 Functions common to OOXML writers (Docx and Powerpoint)
 -}
 module Text.Pandoc.Writers.OOXML ( mknode
+                                 , mktnode
                                  , nodename
                                  , toLazy
                                  , renderXml
@@ -31,13 +32,17 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
 import Data.Maybe (mapMaybe)
-import Text.Pandoc.Legacy.Class (PandocMonad)
+import qualified Data.Text as T
+import Text.Pandoc.Class (PandocMonad)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.XML.Light as XML
 
 mknode :: Node t => String -> [(String,String)] -> t -> Element
 mknode s attrs =
   add_attrs (map (\(k,v) -> Attr (nodename k) v) attrs) .  node (nodename s)
+
+mktnode :: String -> [(String,String)] -> T.Text -> Element
+mktnode s attrs = mknode s attrs . T.unpack
 
 nodename :: String -> QName
 nodename s = QName{ qName = name, qURI = Nothing, qPrefix = prefix }

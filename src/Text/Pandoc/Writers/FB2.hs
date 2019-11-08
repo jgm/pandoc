@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE OverloadedStrings #-} -- TODO text: possibly remove
 {- |
 Module      : Text.Pandoc.Writers.FB2
 Copyright   : Copyright (C) 2011-2012 Sergey Astanin
@@ -28,6 +29,7 @@ import Data.Char (isAscii, isControl, isSpace, toLower)
 import Data.Either (lefts, rights)
 import Data.List (intercalate, isPrefixOf, stripPrefix)
 import Data.Text (Text, pack)
+import qualified Data.Text as T
 import Network.HTTP (urlEncode)
 import Text.XML.Light
 import qualified Text.XML.Light as X
@@ -102,8 +104,8 @@ pandocToFB2 opts (Pandoc meta blocks) = do
 description :: PandocMonad m => Meta -> FBM m Content
 description meta' = do
   let genre = case lookupMetaString "genre" meta' of
-                "" -> el "genre" "unrecognised"
-                s  -> el "genre" s
+                "" -> el "genre" ("unrecognised" :: String) -- TODO text: refactor
+                s  -> el "genre" (T.unpack s) -- TODO text: refactor
   bt <- booktitle meta'
   let as = authors meta'
   dd <- docdate meta'
@@ -126,7 +128,7 @@ description meta' = do
   return $ el "description"
     [ el "title-info" (genre :
                       (as ++ bt ++ annotation ++ dd ++ coverpage ++ lang))
-    , el "document-info" [el "program-used" "pandoc"]
+    , el "document-info" [el "program-used" ("pandoc" :: String)] -- TODO text: refactor
     ]
 
 booktitle :: PandocMonad m => Meta -> FBM m [Content]
@@ -288,7 +290,7 @@ isMimeType s =
  where
    types =  ["text","image","audio","video","application","message","multipart"]
    valid c = isAscii c && not (isControl c) && not (isSpace c) &&
-             c `notElem` "()<>@,;:\\\"/[]?="
+             c `notElem` ("()<>@,;:\\\"/[]?=" :: String)
 
 footnoteID :: Int -> String
 footnoteID i = "n" ++ show i

@@ -399,7 +399,7 @@ conditionalEscapeString s = do
 preprocessInlineList :: PandocMonad m
                      => [Inline]
                      -> m [Inline]
-preprocessInlineList (Math t str:xs) = (++) <$> texMathToInlines t str <*> preprocessInlineList xs
+preprocessInlineList (Math t str:xs) = (++) <$> texMathToInlines t (T.pack str) <*> preprocessInlineList xs
 -- Amusewiki does not support <cite> tag,
 -- and Emacs Muse citation support is limited
 -- (https://www.gnu.org/software/emacs-muse/manual/html_node/Citations.html#Citation)

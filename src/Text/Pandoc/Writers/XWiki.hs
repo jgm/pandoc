@@ -194,7 +194,7 @@ inlineToXWiki (Quoted DoubleQuote lst) = do
   return $ "“" <> contents <> "”"
 
 inlineToXWiki (Code (_,classes,_) contents') = do
-  let at  = Set.fromList classes `Set.intersection` highlightingLangs
+  let at  = Set.fromList classes `Set.intersection` (Set.map Text.unpack highlightingLangs)
   let contents = pack contents'
   return $
     case Set.toList at of

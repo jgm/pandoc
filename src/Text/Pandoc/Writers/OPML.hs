@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-} -- TODO text: possibly remove
 {-# LANGUAGE CPP #-}
 {- |
    Module      : Text.Pandoc.Writers.OPML

@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-} -- TODO text: possibly remove
 {- |
    Module      : Text.Pandoc.Writers.DokuWiki
    Copyright   : Copyright (C) 2008-2019 John MacFarlane
@@ -252,7 +253,7 @@ blockToDokuWiki opts x@(DefinitionList items) = do
 -- | Convert ordered list attributes to HTML attribute string
 listAttribsToString :: ListAttributes -> String
 listAttribsToString (startnum, numstyle, _) =
-  let numstyle' = camelCaseToHyphenated $ show numstyle
+  let numstyle' = camelCaseToHyphenated $ show numstyle -- TODO text: refactor
   in  (if startnum /= 1
           then " start=\"" ++ show startnum ++ "\""
           else "") ++

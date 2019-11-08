@@ -283,10 +283,10 @@ inlineToJira _ (Code attr str) =
 inlineToJira _ (Str str) = return $ escapeStringForJira (pack str)
 
 inlineToJira opts (Math InlineMath str) =
-  lift (texMathToInlines InlineMath str) >>= inlineListToJira opts
+  lift (texMathToInlines InlineMath $ T.pack str) >>= inlineListToJira opts
 
 inlineToJira opts (Math DisplayMath str) = do
-  mathInlines <- lift (texMathToInlines DisplayMath str)
+  mathInlines <- lift (texMathToInlines DisplayMath $ T.pack str)
   contents    <- inlineListToJira opts mathInlines
   return $ "\\\\" <> contents <> "\\\\"
 

@@ -47,7 +47,7 @@ import GHC.Generics (Generic)
 import Skylighting (SyntaxMap, defaultSyntaxMap)
 import Text.Pandoc.Extensions
 import Text.Pandoc.Highlighting (Style, pygments)
-import Text.Pandoc.Shared (camelCaseToHyphenated)
+import Text.Pandoc.Shared (camelCaseStrToHyphenated)
 import Text.DocTemplates (Template)
 import Data.Aeson.TH (deriveJSON, defaultOptions, Options(..),
                       SumEncoding(..))
@@ -326,7 +326,7 @@ $(deriveJSON defaultOptions{
                            } ''HTMLMathMethod)
 
 $(deriveJSON defaultOptions{ constructorTagModifier =
-                               camelCaseToHyphenated
+                               camelCaseStrToHyphenated
                            } ''CiteMethod)
 
 $(deriveJSON defaultOptions{ constructorTagModifier =
@@ -340,17 +340,17 @@ $(deriveJSON defaultOptions{ constructorTagModifier =
 $(deriveJSON defaultOptions ''HTMLSlideVariant)
 
 $(deriveJSON defaultOptions{ constructorTagModifier =
-                               camelCaseToHyphenated
+                               camelCaseStrToHyphenated
                            } ''TrackChanges)
 
 $(deriveJSON defaultOptions{ constructorTagModifier =
-                               camelCaseToHyphenated
+                               camelCaseStrToHyphenated
                            } ''WrapOption)
 
 $(deriveJSON defaultOptions{ constructorTagModifier =
-                               camelCaseToHyphenated . drop 8
+                               camelCaseStrToHyphenated . drop 8
                            } ''TopLevelDivision)
 
 $(deriveJSON defaultOptions{ constructorTagModifier =
-                               camelCaseToHyphenated
+                               camelCaseStrToHyphenated
                            } ''ReferenceLocation)

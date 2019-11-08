@@ -1103,7 +1103,7 @@ inlineToHtml opts inline = do
            MathML -> do
               let conf = useShortEmptyTags (const False)
                            defaultConfigPP
-              res <- lift $ convertMath writeMathML t str
+              res <- lift $ convertMath writeMathML t (T.pack str)
               case res of
                     Right r  -> return $ preEscapedString $
                         ppcElement conf (annotateMML r str)
@@ -1118,7 +1118,7 @@ inlineToHtml opts inline = do
                 InlineMath  -> str
                 DisplayMath -> str
            PlainMath -> do
-              x <- lift (texMathToInlines t str) >>= inlineListToHtml opts
+              x <- lift (texMathToInlines t (T.pack str)) >>= inlineListToHtml opts
               let m = H.span ! A.class_ mathClass $ x
               let brtag = if html5 then H5.br else H.br
               return  $ case t of

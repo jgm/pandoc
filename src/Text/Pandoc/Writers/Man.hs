@@ -297,9 +297,9 @@ inlineToMan opts (Str str@('.':_)) =
   return $ afterBreak "\\&" <> text (escString opts str)
 inlineToMan opts (Str str) = return $ text $ escString opts str
 inlineToMan opts (Math InlineMath str) =
-  lift (texMathToInlines InlineMath str) >>= inlineListToMan opts
+  lift (texMathToInlines InlineMath $ T.pack str) >>= inlineListToMan opts
 inlineToMan opts (Math DisplayMath str) = do
-  contents <- lift (texMathToInlines DisplayMath str) >>= inlineListToMan opts
+  contents <- lift (texMathToInlines DisplayMath $ T.pack str) >>= inlineListToMan opts
   return $ cr <> text ".RS" $$ contents $$ text ".RE"
 inlineToMan _ il@(RawInline f str)
   | f == Format "man" = return $ text str

@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Text.Pandoc.Writers.Math
   ( texMathToInlines
   , convertMath
@@ -9,26 +10,18 @@ where
 
 import Prelude
 import qualified Data.Text as T
-import Text.Pandoc.Legacy.Class
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Logging
--- import Text.TeXMath (DisplayType (..), Exp, readTeX, writePandoc) TODO text: restore
-import Text.Pandoc.Legacy.Options (defaultMathJaxURL, defaultKaTeXURL)
-
--- TODO text: remove
-import qualified Text.TeXMath as TM
-import Text.TeXMath (Exp, DisplayType(..), writePandoc)
-
-readTeX :: String -> Either String [Exp]
-readTeX = either (Left . T.unpack) Right . TM.readTeX . T.pack
---
+import Text.Pandoc.Class
+import Text.Pandoc.Definition
+import Text.Pandoc.Logging
+import Text.TeXMath (DisplayType (..), Exp, readTeX, writePandoc)
+import Text.Pandoc.Options (defaultMathJaxURL, defaultKaTeXURL)
 
 -- | Converts a raw TeX math formula to a list of 'Pandoc' inlines.
 -- Defaults to raw formula between @$@ or @$$@ characters if entire formula
 -- can't be converted.
 texMathToInlines :: PandocMonad m
                  => MathType
-                 -> String    -- ^ String to parse (assumes @'\n'@ line endings)
+                 -> T.Text         -- ^ String to parse (assumes @'\n'@ line endings)
                  -> m [Inline]
 texMathToInlines mt inp = do
   res <- convertMath writePandoc mt inp
@@ -39,8 +32,8 @@ texMathToInlines mt inp = do
          return [mkFallback mt inp]
        Left il           -> return [il]
 
-mkFallback :: MathType -> String -> Inline
-mkFallback mt str = Str (delim ++ str ++ delim)
+mkFallback :: MathType -> T.Text -> Inline
+mkFallback mt str = Str (delim <> str <> delim)
    where delim = case mt of
                       DisplayMath -> "$$"
                       InlineMath  -> "$"
@@ -49,7 +42,7 @@ mkFallback mt str = Str (delim ++ str ++ delim)
 -- issuing a warning and producing a fallback (a raw string)
 -- on failure.
 convertMath :: PandocMonad m
-            => (DisplayType -> [Exp] -> a) -> MathType -> String
+            => (DisplayType -> [Exp] -> a) -> MathType -> T.Text
             -> m (Either Inline a)
 convertMath writer mt str =
   case writer dt <$> readTeX str of

@@ -232,7 +232,7 @@ inlinesToNodes opts  = foldr (inlineToNodes opts) []
 inlineToNodes :: WriterOptions -> Inline -> [Node] -> [Node]
 inlineToNodes opts (Str s) = stringToNodes opts s'
   where s' = if isEnabled Ext_smart opts
-                then unsmartify opts s
+                then T.unpack $ unsmartify opts (T.pack s) -- TODO text: refactor
                 else s
 inlineToNodes _ Space   = (node (TEXT (T.pack " ")) [] :)
 inlineToNodes _ LineBreak = (node LINEBREAK [] :)

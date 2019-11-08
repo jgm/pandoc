@@ -349,7 +349,7 @@ inlineToDocbook _ (Code _ str) =
   return $ inTagsSimple "literal" $ text (escapeStringForXML str)
 inlineToDocbook opts (Math t str)
   | isMathML (writerHTMLMathMethod opts) = do
-    res <- convertMath writeMathML t str
+    res <- convertMath writeMathML t (T.pack str)
     case res of
          Right r  -> return $ inTagsSimple tagtype
                      $ text $ Xml.ppcElement conf
@@ -357,7 +357,7 @@ inlineToDocbook opts (Math t str)
                      $ removeAttr r
          Left il  -> inlineToDocbook opts il
   | otherwise =
-     texMathToInlines t str >>= inlinesToDocbook opts
+     texMathToInlines t (T.pack str) >>= inlinesToDocbook opts
      where tagtype = case t of
                        InlineMath  -> "inlineequation"
                        DisplayMath -> "informalequation"

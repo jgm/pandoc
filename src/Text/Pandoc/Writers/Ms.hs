@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-} -- TODO text: possibly remove
 {- |
    Module      : Text.Pandoc.Writers.Ms
    Copyright   : Copyright (C) 2007-2019 John MacFarlane
@@ -393,12 +394,12 @@ inlineToMs opts (Str str) = do
      else return $ shim <> text (escapeStr opts str)
 inlineToMs opts (Math InlineMath str) = do
   modify $ \st -> st{ stHasInlineMath = True }
-  res <- convertMath writeEqn InlineMath str
+  res <- convertMath writeEqn InlineMath (T.pack str)
   case res of
        Left il -> inlineToMs opts il
        Right r -> return $ text "@" <> text r <> text "@"
 inlineToMs opts (Math DisplayMath str) = do
-  res <- convertMath writeEqn InlineMath str
+  res <- convertMath writeEqn InlineMath (T.pack str)
   case res of
        Left il -> do
          contents <- inlineToMs opts il

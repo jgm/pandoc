@@ -15,7 +15,7 @@ Conversion of 'Pandoc' format into ConTeXt.
 module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Prelude
 import Control.Monad.State.Strict
-import Data.Char (ord, isDigit, toLower)
+import Data.Char (ord, isDigit)
 import Data.List (intercalate, intersperse)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
@@ -96,7 +96,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                           | all isDigit (d:ds) -> resetField "papersize"
                                                    (T.pack ('A':d:ds))
                         _                     -> id)
-                $ (case toLower <$> lookupMetaString "pdfa" meta of
+                $ (case T.toLower $ lookupMetaString "pdfa" meta of
                         "true" -> resetField "pdfa" (T.pack "1b:2005")
                         _                     -> id) metadata
   let context' = defField "context-dir" (maybe mempty toContextDir

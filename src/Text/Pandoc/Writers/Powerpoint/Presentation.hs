@@ -1,5 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude          #-}
+{-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE PatternGuards              #-}
+{-# LANGUAGE ViewPatterns               #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {- |
    Module      : Text.Pandoc.Writers.Powerpoint.Presentation
@@ -46,20 +48,20 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.List (intercalate)
 import Data.Default
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.ImageSize
+import Text.Pandoc.Definition
+import Text.Pandoc.ImageSize
 import Text.Pandoc.Slides (getSlideLevel)
-import Text.Pandoc.Legacy.Options
-import Text.Pandoc.Legacy.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Logging
 import Text.Pandoc.Walk
 import Data.Time (UTCTime)
-import qualified Text.Pandoc.Legacy.Shared as Shared -- so we don't overlap "Element" -- TODO text: remove Legacy
+import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
 import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
                                  , lookupMetaString, toTableOfContents)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Maybe (maybeToList, fromMaybe)
-import Text.Pandoc.Legacy.Highlighting
+import Text.Pandoc.Highlighting
 import qualified Data.Text as T
 import Control.Applicative ((<|>))
 import Skylighting
@@ -93,7 +95,7 @@ instance Default WriterEnv where
 
 data WriterState = WriterState { stNoteIds :: M.Map Int [Block]
                                -- associate anchors with slide id
-                               , stAnchorMap :: M.Map String SlideId
+                               , stAnchorMap :: M.Map T.Text SlideId
                                , stSlideIdSet :: S.Set SlideId
                                , stLog :: [LogMessage]
                                , stSpeakerNotes :: SpeakerNotes
@@ -123,17 +125,17 @@ reservedSlideIds = S.fromList [ metadataSlideId
                               , endNotesSlideId
                               ]
 
-uniqueSlideId' :: Integer -> S.Set SlideId -> String -> SlideId
+uniqueSlideId' :: Integer -> S.Set SlideId -> T.Text -> SlideId
 uniqueSlideId' n idSet s =
-  let s' = if n == 0 then s else s ++ "-" ++ show n
+  let s' = if n == 0 then s else s <> "-" <> T.pack (show n)
   in if SlideId s' `S.member` idSet
      then uniqueSlideId' (n+1) idSet s
      else SlideId s'
 
-uniqueSlideId :: S.Set SlideId -> String -> SlideId
+uniqueSlideId :: S.Set SlideId -> T.Text -> SlideId
 uniqueSlideId = uniqueSlideId' 0
 
-runUniqueSlideId :: String -> Pres SlideId
+runUniqueSlideId :: T.Text -> Pres SlideId
 runUniqueSlideId s = do
   idSet <- gets stSlideIdSet
   let sldId = uniqueSlideId idSet s
@@ -159,14 +161,14 @@ type Pixels = Integer
 data Presentation = Presentation DocProps [Slide]
   deriving (Show)
 
-data DocProps = DocProps { dcTitle :: Maybe String
-                         , dcSubject :: Maybe String
-                         , dcCreator :: Maybe String
-                         , dcKeywords :: Maybe [String]
-                         , dcDescription :: Maybe String
-                         , cpCategory :: Maybe String
+data DocProps = DocProps { dcTitle :: Maybe T.Text
+                         , dcSubject :: Maybe T.Text
+                         , dcCreator :: Maybe T.Text
+                         , dcKeywords :: Maybe [T.Text]
+                         , dcDescription :: Maybe T.Text
+                         , cpCategory :: Maybe T.Text
                          , dcCreated :: Maybe UTCTime
-                         , customProperties :: Maybe [(String, String)]
+                         , customProperties :: Maybe [(T.Text, T.Text)]
                          } deriving (Show, Eq)
 
 
@@ -175,7 +177,7 @@ data Slide = Slide { slideId :: SlideId
                    , slideSpeakerNotes :: SpeakerNotes
                    } deriving (Show, Eq)
 
-newtype SlideId = SlideId String
+newtype SlideId = SlideId T.Text
   deriving (Show, Eq, Ord)
 
 -- In theory you could have anything on a notes slide but it seems
@@ -197,7 +199,7 @@ data Layout = MetadataSlide [ParaElem] [ParaElem] [[ParaElem]] [ParaElem]
 data Shape = Pic PicProps FilePath [ParaElem]
            | GraphicFrame [Graphic] [ParaElem]
            | TextBox [Paragraph]
-           | RawOOXMLShape String
+           | RawOOXMLShape T.Text
   deriving (Show, Eq)
 
 type Cell = [Paragraph]
@@ -240,17 +242,17 @@ instance Default ParaProps where
                   , pPropIndent = Just 0
                   }
 
-newtype TeXString = TeXString {unTeXString :: String}
+newtype TeXString = TeXString {unTeXString :: T.Text}
   deriving (Eq, Show)
 
 data ParaElem = Break
-              | Run RunProps String
+              | Run RunProps T.Text
               -- It would be more elegant to have native TeXMath
               -- Expressions here, but this allows us to use
               -- `convertmath` from T.P.Writers.Math. Will perhaps
               -- revisit in the future.
               | MathElem MathType TeXString
-              | RawOOXMLParaElem String
+              | RawOOXMLParaElem T.Text
               deriving (Show, Eq)
 
 data Strikethrough = NoStrike | SingleStrike | DoubleStrike
@@ -259,9 +261,9 @@ data Strikethrough = NoStrike | SingleStrike | DoubleStrike
 data Capitals = NoCapitals | SmallCapitals | AllCapitals
   deriving (Show, Eq)
 
-type URL = String
+type URL = T.Text
 
-data LinkTarget = ExternalTarget (URL, String)
+data LinkTarget = ExternalTarget (URL, T.Text)
                 | InternalTarget SlideId
                 deriving (Show, Eq)
 
@@ -360,7 +362,7 @@ inlineToParElems (Note blks) = do
         curNoteId = maxNoteId + 1
     modify $ \st -> st { stNoteIds = M.insert curNoteId blks notes }
     local (\env -> env{envRunProps = (envRunProps env){rLink = Just $ InternalTarget endNotesSlideId}}) $
-      inlineToParElems $ Superscript [Str $ show curNoteId]
+      inlineToParElems $ Superscript [Str $ T.pack $ show curNoteId]
 inlineToParElems (Span (_, ["underline"], _) ils) =
   local (\r -> r{envRunProps = (envRunProps r){rPropUnderline=True}}) $
   inlinesToParElems ils
@@ -389,11 +391,11 @@ isListType (BulletList _) = True
 isListType (DefinitionList _) = True
 isListType _ = False
 
-registerAnchorId :: String -> Pres ()
+registerAnchorId :: T.Text -> Pres ()
 registerAnchorId anchor = do
   anchorMap <- gets stAnchorMap
   sldId <- asks envCurSlideId
-  unless (null anchor) $
+  unless (T.null anchor) $
     modify $ \st -> st {stAnchorMap = M.insert anchor sldId anchorMap}
 
 -- Currently hardcoded, until I figure out how to make it dynamic.
@@ -531,11 +533,11 @@ withAttr _ sp = sp
 blockToShape :: Block -> Pres Shape
 blockToShape (Plain ils) = blockToShape (Para ils)
 blockToShape (Para (il:_))  | Image attr ils (url, _) <- il =
-      (withAttr attr . Pic def url) <$> inlinesToParElems ils
+      (withAttr attr . Pic def (T.unpack url)) <$> inlinesToParElems ils
 blockToShape (Para (il:_))  | Link _ (il':_) target <- il
                             , Image attr ils (url, _) <- il' =
-      (withAttr attr . Pic def{picPropLink = Just $ ExternalTarget target} url) <$>
-      inlinesToParElems ils
+      (withAttr attr . Pic def{picPropLink = Just $ ExternalTarget target} (T.unpack url))
+      <$> inlinesToParElems ils
 blockToShape (Table caption algn _ hdrCells rows) = do
   caption' <- inlinesToParElems caption
   hdrCells' <- rowToParagraphs algn hdrCells
@@ -711,7 +713,7 @@ blocksToSlide blks = do
 
 makeNoteEntry :: Int -> [Block] -> [Block]
 makeNoteEntry n blks =
-  let enum = Str (show n ++ ".")
+  let enum = Str (T.pack $ show n ++ ".")
   in
     case blks of
       (Para ils : blks') -> (Para $ enum : Space : ils) : blks'
@@ -786,7 +788,7 @@ combineParaElems' (Just pElem') (pElem : pElems)
   | Run rPr' s' <- pElem'
   , Run rPr s <- pElem
   , rPr == rPr' =
-    combineParaElems' (Just $ Run rPr' $ s' ++ s) pElems
+    combineParaElems' (Just $ Run rPr' $ s' <> s) pElems
   | otherwise =
     pElem' : combineParaElems' (Just pElem) pElems
 
@@ -831,7 +833,8 @@ applyToSlide f slide = do
 
 replaceAnchor :: ParaElem -> Pres ParaElem
 replaceAnchor (Run rProps s)
-  | Just (ExternalTarget ('#':anchor, _)) <- rLink rProps = do
+  | Just (ExternalTarget (T.uncons -> Just ('#', anchor), _)) <- rLink rProps
+  = do
       anchorMap <- gets stAnchorMap
       -- If the anchor is not in the anchormap, we just remove the
       -- link.
@@ -843,9 +846,9 @@ replaceAnchor pe = return pe
 
 emptyParaElem :: ParaElem -> Bool
 emptyParaElem (Run _ s) =
-  null $ Shared.trim s
+  T.null $ Shared.trim s
 emptyParaElem (MathElem _ ts) =
-  null $ Shared.trim $ unTeXString ts
+  T.null $ Shared.trim $ unTeXString ts
 emptyParaElem _ = False
 
 emptyParagraph :: Paragraph -> Bool
@@ -900,7 +903,7 @@ blocksToPresentationSlides blks = do
   -- slide later
   blksLst <- splitBlocks blks'
   bodySlideIds <- mapM
-                  (\n -> runUniqueSlideId $ "BodySlide" ++ show n)
+                  (\n -> runUniqueSlideId $ "BodySlide" <> T.pack (show n))
                   (take (length blksLst) [1..] :: [Integer])
   bodyslides <- mapM
                 (\(bs, ident) ->
@@ -935,11 +938,11 @@ metaToDocProps meta =
 
       authors = case map Shared.stringify $ docAuthors meta of
                   [] -> Nothing
-                  ss -> Just $ intercalate "; " ss
+                  ss -> Just $ T.intercalate "; " ss
 
       description = case map Shared.stringify $ lookupMetaBlocks "description" meta of
                   [] -> Nothing
-                  ss -> Just $ intercalate "_x000d_\n" ss
+                  ss -> Just $ T.intercalate "_x000d_\n" ss
 
       customProperties' = case [(k, lookupMetaString k meta) | k <- M.keys (unMeta meta)
                                , k `notElem` (["title", "author", "keywords", "description"
@@ -987,7 +990,7 @@ formatToken sty (tokType, txt) =
         Just tokSty -> applyTokStyToRunProps tokSty rProps
         Nothing     -> rProps
   in
-    Run rProps' $ T.unpack txt
+    Run rProps' txt
 
 formatSourceLine :: Style -> FormatOptions -> SourceLine -> [ParaElem]
 formatSourceLine sty _ srcLn = map (formatToken sty) srcLn

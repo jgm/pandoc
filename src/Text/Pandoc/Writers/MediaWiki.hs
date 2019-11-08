@@ -1,4 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Writers.MediaWiki
    Copyright   : Copyright (C) 2008-2019 John MacFarlane
@@ -16,19 +18,19 @@ module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki, highlightingLangs ) where
 import Prelude
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-import Data.List (intercalate)
 import qualified Data.Set as Set
-import Data.Text (Text, pack)
-import Text.Pandoc.Legacy.Class (PandocMonad, report)
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.ImageSize
-import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Legacy.Options
+import Data.Text (Text)
+import qualified Data.Text as T
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
 import Text.DocLayout (render, literal)
-import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
+import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Legacy.XML (escapeStringForXML)
+import Text.Pandoc.XML (escapeStringForXML)
 
 data WriterState = WriterState {
     stNotes   :: Bool            -- True if there are notes
@@ -37,7 +39,7 @@ data WriterState = WriterState {
 
 data WriterReader = WriterReader {
     options   :: WriterOptions -- Writer options
-  , listLevel :: String        -- String at beginning of list items, e.g. "**"
+  , listLevel :: [Char]        -- String at beginning of list items, e.g. "**"
   , useTags   :: Bool          -- True if we should use HTML tags because we're in a complex list
   }
 
@@ -55,15 +57,15 @@ pandocToMediaWiki :: PandocMonad m => Pandoc -> MediaWikiWriter m Text
 pandocToMediaWiki (Pandoc meta blocks) = do
   opts <- asks options
   metadata <- metaToContext opts
-              (fmap (literal . pack . trimr) . blockListToMediaWiki)
-              (fmap (literal . pack . trimr) . inlineListToMediaWiki)
+              (fmap (literal . trimr) . blockListToMediaWiki)
+              (fmap (literal . trimr) . inlineListToMediaWiki)
               meta
   body <- blockListToMediaWiki blocks
   notesExist <- gets stNotes
   let notes = if notesExist
                  then "\n<references />"
                  else ""
-  let main = pack $ body ++ notes
+  let main = body <> notes
   let context = defField "body" main
                 $ defField "toc" (writerTableOfContents opts) metadata
   return $
@@ -72,43 +74,43 @@ pandocToMediaWiki (Pandoc meta blocks) = do
          Just tpl -> render Nothing $ renderTemplate tpl context
 
 -- | Escape special characters for MediaWiki.
-escapeString :: String -> String
-escapeString =  escapeStringForXML
+escapeText :: Text -> Text
+escapeText =  escapeStringForXML
 
 -- | Convert Pandoc block element to MediaWiki.
 blockToMediaWiki :: PandocMonad m
                  => Block         -- ^ Block element
-                 -> MediaWikiWriter m String
+                 -> MediaWikiWriter m Text
 
 blockToMediaWiki Null = return ""
 
 blockToMediaWiki (Div attrs bs) = do
   contents <- blockListToMediaWiki bs
-  return $ render Nothing (tagWithAttrs "div" attrs) ++ "\n\n" ++
-                     contents ++ "\n\n" ++ "</div>"
+  return $ render Nothing (tagWithAttrs "div" attrs) <> "\n\n" <>
+                     contents <> "\n\n" <> "</div>"
 
 blockToMediaWiki (Plain inlines) =
   inlineListToMediaWiki inlines
 
 -- title beginning with fig: indicates that the image is a figure
-blockToMediaWiki (Para [Image attr txt (src,'f':'i':'g':':':tit)]) = do
+blockToMediaWiki (Para [Image attr txt (src,T.stripPrefix "fig:" -> Just tit)]) = do
   capt <- inlineListToMediaWiki txt
   img  <- imageToMediaWiki attr
-  let opt = if null tit
+  let opt = if T.null tit
                then
-                 if null capt
+                 if T.null capt
                     then ""
-                    else "alt=" ++ capt
-               else "alt=" ++ tit
-  return $ "[[" ++
-            intercalate "|"
-            (filter (not . null) ["File:" ++ src
+                    else "alt=" <> capt
+               else "alt=" <> tit
+  return $ "[[" <>
+            T.intercalate "|"
+            (filter (not . T.null) ["File:" <> src
                                  , "thumb"
                                  , "none"
                                  , img
                                  , opt
                                  , capt
-                                 ]) ++
+                                 ]) <>
             "]]\n"
 
 blockToMediaWiki (Para inlines) = do
@@ -116,8 +118,8 @@ blockToMediaWiki (Para inlines) = do
   lev <- asks listLevel
   contents <- inlineListToMediaWiki inlines
   return $ if tags
-              then  "<p>" ++ contents ++ "</p>"
-              else contents ++ if null lev then "\n" else ""
+              then  "<p>" <> contents <> "</p>"
+              else contents <> if null lev then "\n" else ""
 
 blockToMediaWiki (LineBlock lns) =
   blockToMediaWiki $ linesToPara lns
@@ -131,109 +133,109 @@ blockToMediaWiki HorizontalRule = return "\n-----\n"
 
 blockToMediaWiki (Header level _ inlines) = do
   contents <- inlineListToMediaWiki inlines
-  let eqs = replicate level '='
-  return $ eqs ++ " " ++ contents ++ " " ++ eqs ++ "\n"
+  let eqs = T.replicate level "="
+  return $ eqs <> " " <> contents <> " " <> eqs <> "\n"
 
 blockToMediaWiki (CodeBlock (_,classes,_) str) = do
   let at  = Set.fromList classes `Set.intersection` highlightingLangs
   return $
     case Set.toList at of
-       [] -> "<pre" ++ (if null classes
+       [] -> "<pre" <> (if null classes
                            then ">"
-                           else " class=\"" ++ unwords classes ++ "\">") ++
-             escapeString str ++ "</pre>"
-       (l:_) -> "<source lang=\"" ++ l ++ "\">" ++ str ++ "</source>"
+                           else " class=\"" <> T.unwords classes <> "\">") <>
+             escapeText str <> "</pre>"
+       (l:_) -> "<source lang=\"" <> l <> "\">" <> str <> "</source>"
             -- note:  no escape!  even for <!
 
 blockToMediaWiki (BlockQuote blocks) = do
   contents <- blockListToMediaWiki blocks
-  return $ "<blockquote>" ++ contents ++ "</blockquote>"
+  return $ "<blockquote>" <> contents <> "</blockquote>"
 
 blockToMediaWiki (Table capt aligns widths headers rows') = do
   caption <- if null capt
                 then return ""
                 else do
                    c <- inlineListToMediaWiki capt
-                   return $ "|+ " ++ trimr c ++ "\n"
+                   return $ "|+ " <> trimr c <> "\n"
   let headless = all null headers
   let allrows = if headless then rows' else headers:rows'
-  tableBody <- intercalate "|-\n" `fmap`
+  tableBody <- T.intercalate "|-\n" `fmap`
                 mapM (tableRowToMediaWiki headless aligns widths)
                      (zip [1..] allrows)
-  return $ "{|\n" ++ caption ++ tableBody ++ "|}\n"
+  return $ "{|\n" <> caption <> tableBody <> "|}\n"
 
 blockToMediaWiki x@(BulletList items) = do
   tags <- fmap (|| not (isSimpleList x)) $ asks useTags
   if tags
      then do
         contents <- local (\ s -> s { useTags = True }) $ mapM listItemToMediaWiki items
-        return $ "<ul>\n" ++ vcat contents ++ "</ul>\n"
+        return $ "<ul>\n" <> vcat contents <> "</ul>\n"
      else do
         lev <- asks listLevel
-        contents <- local (\s -> s { listLevel = listLevel s ++ "*" }) $ mapM listItemToMediaWiki items
-        return $ vcat contents ++ if null lev then "\n" else ""
+        contents <- local (\s -> s { listLevel = listLevel s <> "*" }) $ mapM listItemToMediaWiki items
+        return $ vcat contents <> if null lev then "\n" else ""
 
 blockToMediaWiki x@(OrderedList attribs items) = do
   tags <- fmap (|| not (isSimpleList x)) $ asks useTags
   if tags
      then do
         contents <- local (\s -> s { useTags = True }) $ mapM listItemToMediaWiki items
-        return $ "<ol" ++ listAttribsToString attribs ++ ">\n" ++ vcat contents ++ "</ol>\n"
+        return $ "<ol" <> listAttribsToText attribs <> ">\n" <> vcat contents <> "</ol>\n"
      else do
         lev <- asks listLevel
-        contents <- local (\s -> s { listLevel = listLevel s ++ "#" }) $ mapM listItemToMediaWiki items
-        return $ vcat contents ++ if null lev then "\n" else ""
+        contents <- local (\s -> s { listLevel = listLevel s <> "#" }) $ mapM listItemToMediaWiki items
+        return $ vcat contents <> if null lev then "\n" else ""
 
 blockToMediaWiki x@(DefinitionList items) = do
   tags <- fmap (|| not (isSimpleList x)) $ asks useTags
   if tags
      then do
         contents <- local (\s -> s { useTags = True }) $ mapM definitionListItemToMediaWiki items
-        return $ "<dl>\n" ++ vcat contents ++ "</dl>\n"
+        return $ "<dl>\n" <> vcat contents <> "</dl>\n"
      else do
         lev <- asks listLevel
-        contents <- local (\s -> s { listLevel = listLevel s ++ ";" }) $ mapM definitionListItemToMediaWiki items
-        return $ vcat contents ++ if null lev then "\n" else ""
+        contents <- local (\s -> s { listLevel = listLevel s <> ";" }) $ mapM definitionListItemToMediaWiki items
+        return $ vcat contents <> if null lev then "\n" else ""
 
 -- Auxiliary functions for lists:
 
 -- | Convert ordered list attributes to HTML attribute string
-listAttribsToString :: ListAttributes -> String
-listAttribsToString (startnum, numstyle, _) =
-  let numstyle' = camelCaseToHyphenated $ show numstyle
+listAttribsToText :: ListAttributes -> Text
+listAttribsToText (startnum, numstyle, _) =
+  let numstyle' = camelCaseToHyphenated $ T.pack $ show numstyle
   in  (if startnum /= 1
-          then " start=\"" ++ show startnum ++ "\""
-          else "") ++
+          then " start=\"" <> T.pack (show startnum) <> "\""
+          else "") <>
       (if numstyle /= DefaultStyle
-          then " style=\"list-style-type: " ++ numstyle' ++ ";\""
+          then " style=\"list-style-type: " <> numstyle' <> ";\""
           else "")
 
 -- | Convert bullet or ordered list item (list of blocks) to MediaWiki.
-listItemToMediaWiki :: PandocMonad m => [Block] -> MediaWikiWriter m String
+listItemToMediaWiki :: PandocMonad m => [Block] -> MediaWikiWriter m Text
 listItemToMediaWiki items = do
   contents <- blockListToMediaWiki items
   tags <- asks useTags
   if tags
-     then return $ "<li>" ++ contents ++ "</li>"
+     then return $ "<li>" <> contents <> "</li>"
      else do
        marker <- asks listLevel
-       return $ marker ++ " " ++ contents
+       return $ T.pack marker <> " " <> contents
 
 -- | Convert definition list item (label, list of blocks) to MediaWiki.
 definitionListItemToMediaWiki :: PandocMonad m
                               => ([Inline],[[Block]])
-                              -> MediaWikiWriter m String
+                              -> MediaWikiWriter m Text
 definitionListItemToMediaWiki (label, items) = do
   labelText <- inlineListToMediaWiki label
   contents <- mapM blockListToMediaWiki items
   tags <- asks useTags
   if tags
-     then return $ "<dt>" ++ labelText ++ "</dt>\n" ++
-           intercalate "\n" (map (\d -> "<dd>" ++ d ++ "</dd>") contents)
+     then return $ "<dt>" <> labelText <> "</dt>\n" <>
+           T.intercalate "\n" (map (\d -> "<dd>" <> d <> "</dd>") contents)
      else do
        marker <- asks listLevel
-       return $ marker ++ " " ++ labelText ++ "\n" ++
-           intercalate "\n" (map (\d -> init marker ++ ": " ++ d) contents)
+       return $ T.pack marker <> " " <> labelText <> "\n" <>
+           T.intercalate "\n" (map (\d -> T.pack (init marker) <> ": " <> d) contents)
 
 -- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
 isSimpleList :: Block -> Bool
@@ -271,8 +273,8 @@ isPlainOrPara (Para  _) = True
 isPlainOrPara _         = False
 
 -- | Concatenates strings with line breaks between them.
-vcat :: [String] -> String
-vcat = intercalate "\n"
+vcat :: [Text] -> Text
+vcat = T.intercalate "\n"
 
 -- Auxiliary functions for tables:
 
@@ -281,119 +283,119 @@ tableRowToMediaWiki :: PandocMonad m
                     -> [Alignment]
                     -> [Double]
                     -> (Int, [[Block]])
-                    -> MediaWikiWriter m String
+                    -> MediaWikiWriter m Text
 tableRowToMediaWiki headless alignments widths (rownum, cells) = do
   cells' <- mapM (tableCellToMediaWiki headless rownum)
           $ zip3 alignments widths cells
-  return $ unlines cells'
+  return $ T.unlines cells'
 
 tableCellToMediaWiki :: PandocMonad m
                      => Bool
                      -> Int
                      -> (Alignment, Double, [Block])
-                     -> MediaWikiWriter m String
+                     -> MediaWikiWriter m Text
 tableCellToMediaWiki headless rownum (alignment, width, bs) = do
   contents <- blockListToMediaWiki bs
   let marker = if rownum == 1 && not headless then "!" else "|"
-  let percent w = show (truncate (100*w) :: Integer) ++ "%"
-  let attrs = ["align=" ++ show (alignmentToString alignment) |
-                 alignment /= AlignDefault && alignment /= AlignLeft] ++
-              ["width=\"" ++ percent width ++ "\"" |
+  let percent w = T.pack $ show (truncate (100*w) :: Integer) <> "%"
+  let attrs = ["align=" <> T.pack (show (alignmentToText alignment)) |
+                 alignment /= AlignDefault && alignment /= AlignLeft] <>
+              ["width=\"" <> percent width <> "\"" |
                  width /= 0.0 && rownum == 1]
   let attr = if null attrs
                 then ""
-                else unwords attrs ++ "|"
+                else T.unwords attrs <> "|"
   let sep = case bs of
                  [Plain _] -> " "
                  [Para  _] -> " "
                  []        -> ""
                  _         -> "\n"
-  return $ marker ++ attr ++ sep ++ trimr contents
+  return $ marker <> attr <> sep <> trimr contents
 
-alignmentToString :: Alignment -> String
-alignmentToString alignment = case alignment of
+alignmentToText :: Alignment -> Text
+alignmentToText alignment = case alignment of
                                  AlignLeft    -> "left"
                                  AlignRight   -> "right"
                                  AlignCenter  -> "center"
                                  AlignDefault -> "left"
 
-imageToMediaWiki :: PandocMonad m => Attr -> MediaWikiWriter m String
+imageToMediaWiki :: PandocMonad m => Attr -> MediaWikiWriter m Text
 imageToMediaWiki attr = do
   opts <- gets stOptions
   let (_, cls, _) = attr
       toPx = fmap (showInPixel opts) . checkPct
       checkPct (Just (Percent _)) = Nothing
       checkPct maybeDim           = maybeDim
-      go (Just w) Nothing  = w ++ "px"
-      go (Just w) (Just h) = w ++ "x" ++ h ++ "px"
-      go Nothing  (Just h) = "x" ++ h ++ "px"
+      go (Just w) Nothing  = w <> "px"
+      go (Just w) (Just h) = w <> "x" <> h <> "px"
+      go Nothing  (Just h) = "x" <> h <> "px"
       go Nothing  Nothing  = ""
       dims = go (toPx $ dimension Width attr) (toPx $ dimension Height attr)
       classes = if null cls
                    then ""
-                   else "class=" ++ unwords cls
-  return $ intercalate "|" $ filter (not . null) [dims, classes]
+                   else "class=" <> T.unwords cls
+  return $ T.intercalate "|" $ filter (not . T.null) [dims, classes]
 
 -- | Convert list of Pandoc block elements to MediaWiki.
 blockListToMediaWiki :: PandocMonad m
                      => [Block]       -- ^ List of block elements
-                     -> MediaWikiWriter m String
+                     -> MediaWikiWriter m Text
 blockListToMediaWiki blocks =
   fmap vcat $ mapM blockToMediaWiki blocks
 
 -- | Convert list of Pandoc inline elements to MediaWiki.
-inlineListToMediaWiki :: PandocMonad m => [Inline] -> MediaWikiWriter m String
+inlineListToMediaWiki :: PandocMonad m => [Inline] -> MediaWikiWriter m Text
 inlineListToMediaWiki lst =
-  fmap concat $ mapM inlineToMediaWiki lst
+  fmap T.concat $ mapM inlineToMediaWiki lst
 
 -- | Convert Pandoc inline element to MediaWiki.
-inlineToMediaWiki :: PandocMonad m => Inline -> MediaWikiWriter m String
+inlineToMediaWiki :: PandocMonad m => Inline -> MediaWikiWriter m Text
 
 inlineToMediaWiki (Span attrs ils) = do
   contents <- inlineListToMediaWiki ils
-  return $ render Nothing (tagWithAttrs "span" attrs) ++ contents ++ "</span>"
+  return $ render Nothing (tagWithAttrs "span" attrs) <> contents <> "</span>"
 
 inlineToMediaWiki (Emph lst) = do
   contents <- inlineListToMediaWiki lst
-  return $ "''" ++ contents ++ "''"
+  return $ "''" <> contents <> "''"
 
 inlineToMediaWiki (Strong lst) = do
   contents <- inlineListToMediaWiki lst
-  return $ "'''" ++ contents ++ "'''"
+  return $ "'''" <> contents <> "'''"
 
 inlineToMediaWiki (Strikeout lst) = do
   contents <- inlineListToMediaWiki lst
-  return $ "<s>" ++ contents ++ "</s>"
+  return $ "<s>" <> contents <> "</s>"
 
 inlineToMediaWiki (Superscript lst) = do
   contents <- inlineListToMediaWiki lst
-  return $ "<sup>" ++ contents ++ "</sup>"
+  return $ "<sup>" <> contents <> "</sup>"
 
 inlineToMediaWiki (Subscript lst) = do
   contents <- inlineListToMediaWiki lst
-  return $ "<sub>" ++ contents ++ "</sub>"
+  return $ "<sub>" <> contents <> "</sub>"
 
 inlineToMediaWiki (SmallCaps lst) = inlineListToMediaWiki lst
 
 inlineToMediaWiki (Quoted SingleQuote lst) = do
   contents <- inlineListToMediaWiki lst
-  return $ "\8216" ++ contents ++ "\8217"
+  return $ "\8216" <> contents <> "\8217"
 
 inlineToMediaWiki (Quoted DoubleQuote lst) = do
   contents <- inlineListToMediaWiki lst
-  return $ "\8220" ++ contents ++ "\8221"
+  return $ "\8220" <> contents <> "\8221"
 
 inlineToMediaWiki (Cite _  lst) = inlineListToMediaWiki lst
 
 inlineToMediaWiki (Code _ str) =
-  return $ "<code>" ++ escapeString str ++ "</code>"
+  return $ "<code>" <> escapeText str <> "</code>"
 
-inlineToMediaWiki (Str str) = return $ escapeString str
+inlineToMediaWiki (Str str) = return $ escapeText str
 
 inlineToMediaWiki (Math mt str) = return $
-  "<math display=\"" ++
-  (if mt == DisplayMath then "block" else "inline") ++
-  "\">" ++ str ++ "</math>"
+  "<math display=\"" <>
+  (if mt == DisplayMath then "block" else "inline") <>
+  "\">" <> str <> "</math>"
   -- note:  str should NOT be escaped
 
 inlineToMediaWiki il@(RawInline f str)
@@ -420,35 +422,35 @@ inlineToMediaWiki (Link _ txt (src, _)) = do
   case txt of
      [Str s] | isURI src && escapeURI s == src -> return src
      _  -> return $ if isURI src
-              then "[" ++ src ++ " " ++ label ++ "]"
-              else "[[" ++ src' ++ "|" ++ label ++ "]]"
-                     where src' = case src of
-                                     '/':xs -> xs  -- with leading / it's a
-                                     _      -> src -- link to a help page
+              then "[" <> src <> " " <> label <> "]"
+              else "[[" <> src' <> "|" <> label <> "]]"
+                     where src' = case T.uncons src of -- TODO text: refactor
+                                     Just ('/', xs) -> xs  -- with leading / it's a
+                                     _              -> src -- link to a help page
 
 inlineToMediaWiki (Image attr alt (source, tit)) = do
   img  <- imageToMediaWiki attr
   alt' <- inlineListToMediaWiki alt
-  let txt = if null alt'
-               then if null tit
+  let txt = if T.null alt'
+               then if T.null tit
                        then ""
                        else tit
                else alt'
-  return $ "[[" ++
-           intercalate "|"
-           (filter (not . null)
-            [ "File:" ++ source
+  return $ "[[" <>
+           T.intercalate "|"
+           (filter (not . T.null)
+            [ "File:" <> source
             , img
             , txt
-            ]) ++ "]]"
+            ]) <> "]]"
 
 inlineToMediaWiki (Note contents) = do
   contents' <- blockListToMediaWiki contents
   modify (\s -> s { stNotes = True })
-  return $ "<ref>" ++ stripTrailingNewlines contents' ++ "</ref>"
+  return $ "<ref>" <> stripTrailingNewlines contents' <> "</ref>"
   -- note - does not work for notes with multiple blocks
 
-highlightingLangs :: Set.Set String
+highlightingLangs :: Set.Set Text
 highlightingLangs = Set.fromList [
   "abap",
   "abl",

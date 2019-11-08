@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {- |
    Module      : Text.Pandoc.Writers.Custom
    Copyright   : Copyright (C) 2012-2019 John MacFarlane
@@ -17,7 +18,6 @@ import Prelude
 import Control.Arrow ((***))
 import Control.Exception
 import Control.Monad (when)
-import Data.Char (toLower)
 import Data.List (intersperse)
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -25,28 +25,28 @@ import Data.Text (Text, pack)
 import Data.Typeable
 import Foreign.Lua (Lua, Pushable)
 import Text.DocLayout (render, literal)
-import Text.Pandoc.Legacy.Class (PandocIO)
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
+import Text.Pandoc.Class (PandocIO)
+import Text.Pandoc.Definition
 import Text.Pandoc.Lua (Global (..), LuaException (LuaException),
                         runLua, setGlobals)
 import Text.Pandoc.Lua.Util (addField, dofileWithTraceback)
-import Text.Pandoc.Legacy.Options
+import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Writers.Shared
 
 import qualified Foreign.Lua as Lua
 
-attrToMap :: Attr -> M.Map String String
+attrToMap :: Attr -> M.Map T.Text T.Text
 attrToMap (id',classes,keyvals) = M.fromList
     $ ("id", id')
-    : ("class", unwords classes)
+    : ("class", T.unwords classes)
     : keyvals
 
 newtype Stringify a = Stringify a
 
 instance Pushable (Stringify Format) where
-  push (Stringify (Format f)) = Lua.push (map toLower f)
+  push (Stringify (Format f)) = Lua.push (T.toLower f)
 
 instance Pushable (Stringify [Inline]) where
   push (Stringify ils) = Lua.push =<< inlineListToCustom ils

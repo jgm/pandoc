@@ -41,6 +41,7 @@ module Text.Pandoc.Shared (
                      trimMath,
                      stripFirstAndLast,
                      camelCaseToHyphenated,
+                     camelCaseStrToHyphenated,
                      toRomanNumeral,
                      escapeURI,
                      tabFilter,
@@ -274,21 +275,21 @@ stripFirstAndLast t = case T.uncons t of
   _               -> ""
 
 -- | Change CamelCase word to hyphenated lowercase (e.g., camel-case).
-camelCaseToHyphenated :: String -> String -- TODO text: kept as String until Options is switched
-camelCaseToHyphenated = camelCaseToHyphenated'
+camelCaseToHyphenated :: T.Text -> T.Text -- TODO text: refactor
+camelCaseToHyphenated = T.pack . camelCaseStrToHyphenated . T.unpack
 
 -- TODO text: refactor
-camelCaseToHyphenated' :: String -> String
-camelCaseToHyphenated' [] = ""
-camelCaseToHyphenated' (a:b:rest)
+camelCaseStrToHyphenated :: String -> String
+camelCaseStrToHyphenated [] = ""
+camelCaseStrToHyphenated (a:b:rest)
   | isLower a
-  , isUpper b = a:'-':toLower b:camelCaseToHyphenated' rest
+  , isUpper b = a:'-':toLower b:camelCaseStrToHyphenated rest
 -- handle ABCDef = abc-def
-camelCaseToHyphenated' (a:b:c:rest)
+camelCaseStrToHyphenated (a:b:c:rest)
   | isUpper a
   , isUpper b
-  , isLower c = toLower a:'-':toLower b:camelCaseToHyphenated' (c:rest)
-camelCaseToHyphenated' (a:rest) = toLower a:camelCaseToHyphenated' rest
+  , isLower c = toLower a:'-':toLower b:camelCaseStrToHyphenated (c:rest)
+camelCaseStrToHyphenated (a:rest) = toLower a:camelCaseStrToHyphenated rest
 --
 
 -- | Convert number < 4000 to uppercase roman numeral.

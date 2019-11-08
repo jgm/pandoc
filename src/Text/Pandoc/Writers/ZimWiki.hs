@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-} -- TODO text: maybe remove
 {- |
    Module      : Text.Pandoc.Writers.ZimWiki
    Copyright   : Copyright (C) 2008-2019 John MacFarlane, 2017-2019 Alex Ivkin

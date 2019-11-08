@@ -14,7 +14,7 @@ module Text.Pandoc.Legacy.Shared (
                      trimr,
                      trimMath,
                      stripFirstAndLast,
-                     TP.camelCaseToHyphenated,
+                     camelCaseToHyphenated,
                      toRomanNumeral,
                      escapeURI,
                      TP.tabFilter,
@@ -77,6 +77,9 @@ import Control.Monad (MonadPlus)
 
 unpackAround :: (T.Text -> T.Text) -> String -> String
 unpackAround f = T.unpack . f . T.pack
+
+camelCaseToHyphenated :: String -> String
+camelCaseToHyphenated = unpackAround TP.camelCaseToHyphenated
 
 pandocVersion :: String
 pandocVersion = T.unpack TP.pandocVersion

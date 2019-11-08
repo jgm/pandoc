@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-} -- TODO text: possibly remove
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PatternSynonyms #-} -- TODO text: remove
@@ -216,8 +217,8 @@ convertWithOpts opts = do
 
     case lookupMetaString "lang" (optMetadata opts) of
            ""      -> setTranslations $ Lang "en" "" "US" []
-           l       -> case parseBCP47 l of
-                           Left _   -> report $ InvalidLang l
+           l       -> case parseBCP47 (T.unpack l) of -- TODO text: refactor
+                           Left _   -> report $ InvalidLang $ T.unpack l -- TODO text: refactor
                            Right l' -> setTranslations l'
 
     let readerOpts = def{
