@@ -38,12 +38,12 @@ import Prelude
 import Control.Monad.Reader (ReaderT, asks, local, runReaderT)
 import qualified Data.Set as Set
 import qualified Data.Text as Text
-import Data.Text (Text, intercalate, pack, replace, split)
-import Text.Pandoc.Legacy.Class (PandocMonad, report)
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Legacy.Options
-import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy (escapeURI, isURI, linesToPara)
+import Data.Text (Text, intercalate, replace, split)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Shared
 import Text.Pandoc.Writers.MediaWiki (highlightingLangs)
 
 data WriterState = WriterState {
@@ -65,10 +65,10 @@ vcat = intercalate "\n"
 
 -- If an id is provided, we can generate an anchor using the id macro
 -- https://extensions.xwiki.org/xwiki/bin/view/Extension/Id%20Macro
-genAnchor :: String -> Text
-genAnchor id' = if null id'
+genAnchor :: Text -> Text
+genAnchor id' = if Text.null id'
   then ""
-  else pack $ "{{id name=\"" ++ id' ++ "\" /}}"
+  else "{{id name=\"" <> id' <> "\" /}}"
 
 blockListToXWiki :: PandocMonad m => [Block] -> XWikiReader m Text
 blockListToXWiki blocks =
@@ -93,7 +93,7 @@ blockToXWiki (LineBlock lns) =
   blockToXWiki $ linesToPara lns
 
 blockToXWiki b@(RawBlock f str)
-  | f == Format "xwiki" = return $ pack str
+  | f == Format "xwiki" = return str
   | otherwise           = "" <$ report (BlockNotRendered b)
 
 blockToXWiki HorizontalRule = return "\n----\n"
@@ -140,7 +140,7 @@ tableCellXWiki :: PandocMonad m => Bool -> [Block] -> XWikiReader m Text
 tableCellXWiki isHeader cell = do
   contents <- blockListToXWiki cell
   let isMultiline = (length . split (== '\n')) contents > 1
-  let contents' = intercalate contents $ if isMultiline then [pack "(((", pack ")))"] else [mempty, mempty]
+  let contents' = intercalate contents $ if isMultiline then ["(((", ")))"] else [mempty, mempty]
   let cellBorder = if isHeader then "|=" else "|"
   return $ cellBorder <> contents'
 
@@ -151,7 +151,7 @@ inlineListToXWiki lst =
 
 inlineToXWiki :: PandocMonad m => Inline -> XWikiReader m Text
 
-inlineToXWiki (Str str) = return $ escapeXWikiString $ pack str
+inlineToXWiki (Str str) = return $ escapeXWikiString str
 
 inlineToXWiki Space = return " "
 
@@ -193,39 +193,37 @@ inlineToXWiki (Quoted DoubleQuote lst) = do
   contents <- inlineListToXWiki lst
   return $ "“" <> contents <> "”"
 
-inlineToXWiki (Code (_,classes,_) contents') = do
-  let at  = Set.fromList classes `Set.intersection` (Set.map Text.unpack highlightingLangs)
-  let contents = pack contents'
+inlineToXWiki (Code (_,classes,_) contents) = do
+  let at  = Set.fromList classes `Set.intersection` highlightingLangs
   return $
     case Set.toList at of
       [] -> "{{code}}" <> contents <> "{{/code}}"
-      (l:_) -> "{{code language=\"" <> (pack l) <> "\"}}" <> contents <> "{{/code}}"
+      (l:_) -> "{{code language=\"" <> l <> "\"}}" <> contents <> "{{/code}}"
 
 inlineToXWiki (Cite _ lst) = inlineListToXWiki lst
 
 -- FIXME: optionally support this (plugin?) 
-inlineToXWiki (Math _ str) = return $ "{{formula}}" <> (pack str) <> "{{/formula}}"
+inlineToXWiki (Math _ str) = return $ "{{formula}}" <> str <> "{{/formula}}"
 
 inlineToXWiki il@(RawInline frmt str)
-  | frmt == Format "xwiki" = return $ pack str
+  | frmt == Format "xwiki" = return str
   | otherwise              = "" <$ report (InlineNotRendered il)
 
 -- TODO: Handle anchors
 inlineToXWiki (Link (id', _, _) txt (src, _)) = do
   label <- inlineListToXWiki txt
   case txt of
-     [Str s] | isURI src && escapeURI s == src -> return $ (pack src) <> (genAnchor id')
-     _  -> return $ "[[" <> label <> ">>" <> (pack src) <> "]]" <> (genAnchor id')
+     [Str s] | isURI src && escapeURI s == src -> return $ src <> (genAnchor id')
+     _  -> return $ "[[" <> label <> ">>" <> src <> "]]" <> (genAnchor id')
 
 inlineToXWiki (Image _ alt (source, tit)) = do
   alt' <- inlineListToXWiki alt
   let
-    titText = pack tit
     params = intercalate " " $ filter (not . Text.null) [
         if Text.null alt' then "" else "alt=\"" <> alt' <> "\"",
-          if Text.null titText then "" else "title=\"" <> titText <> "\""
+          if Text.null tit then "" else "title=\"" <> tit <> "\""
         ]
-  return $ "[[image:" <> (pack source) <> (if Text.null params then "" else "||" <> params) <> "]]"
+  return $ "[[image:" <> source <> (if Text.null params then "" else "||" <> params) <> "]]"
 
 inlineToXWiki (Note contents) = do
   contents' <- blockListToXWiki contents
