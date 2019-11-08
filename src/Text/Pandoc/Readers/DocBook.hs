@@ -1109,12 +1109,10 @@ equation e constructor =
       $ filterChildren childPredicate e
       )
 
--- | Get the actual text stored in a verbatim CData block. 'showContent'
+-- | Get the actual text stored in a CData block. 'showContent'
 -- returns the text still surrounded by the [[CDATA]] tags.
---
--- Returns 'showContent' if this is not a verbatim CData
 showVerbatimCData :: Content -> String
-showVerbatimCData (Text (CData CDataVerbatim d _)) = d
+showVerbatimCData (Text (CData _ d _)) = d
 showVerbatimCData c = showContent c
 
 -- | Set the prefix of a name to 'Nothing'
