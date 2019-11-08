@@ -89,7 +89,7 @@ pandocToMs opts (Pandoc meta blocks) = do
 
 escapeStr :: WriterOptions -> Text -> Text
 escapeStr opts =
-  T.pack . escapeString (if writerPreferAscii opts then AsciiOnly else AllowUTF8) . T.unpack
+  escapeString (if writerPreferAscii opts then AsciiOnly else AllowUTF8)
 
 escapeUri :: Text -> Text
 escapeUri = T.pack . escapeURIString (\c -> c /= '@' && isAllowedInURI c) . T.unpack
