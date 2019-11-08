@@ -19,29 +19,23 @@ import Control.Monad.Except (catchError, throwError)
 import Control.Monad
 import qualified Data.ByteString as B
 import Data.Char (chr, isDigit, ord)
-import Data.List (intercalate, isSuffixOf)
 import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Legacy.Class (PandocMonad, report)
-import qualified Text.Pandoc.Legacy.Class as P
--- import Text.Pandoc.Definition -- TODO text: restore
-import Text.Pandoc.Legacy.Error
-import Text.Pandoc.Legacy.ImageSize
-import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Legacy.Options
-import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
+import Text.Pandoc.Class (PandocMonad, report)
+import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Definition
+import Text.Pandoc.Error
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocLayout (render, literal)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
-
--- TODO text: remove
-import Text.Pandoc.Legacy.Definition hiding (Meta)
-import Text.Pandoc.Definition (Meta(..))
---
 
 -- | Convert Image inlines into a raw RTF embedded image, read from a file,
 -- or a MediaBag, or the internet.
@@ -52,28 +46,28 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = catchError
       case result of
            (imgdata, Just mime)
              | mime == "image/jpeg" || mime == "image/png" -> do
-             let bytes = map (printf "%02x") $ B.unpack imgdata
+             let bytes = map (T.pack . printf "%02x") $ B.unpack imgdata
              filetype <-
                 case mime of
                      "image/jpeg" -> return "\\jpegblip"
                      "image/png"  -> return "\\pngblip"
                      _            -> throwError $
                                          PandocShouldNeverHappenError $
-                                         "Unknown file type " ++ mime
+                                         "Unknown file type " <> mime
              sizeSpec <-
                 case imageSize opts imgdata of
                      Left msg -> do
                        report $ CouldNotDetermineImageSize src msg
                        return ""
-                     Right sz -> return $ "\\picw" ++ show xpx ++
-                                "\\pich" ++ show ypx ++
-                                "\\picwgoal" ++ show (floor (xpt * 20) :: Integer)
-                                ++ "\\pichgoal" ++ show (floor (ypt * 20) :: Integer)
+                     Right sz -> return $ "\\picw" <> T.pack (show xpx) <>
+                                "\\pich" <> T.pack (show ypx) <>
+                                "\\picwgoal" <> T.pack (show (floor (xpt * 20) :: Integer))
+                                <> "\\pichgoal" <> T.pack (show (floor (ypt * 20) :: Integer))
                         -- twip = 1/1440in = 1/20pt
                         where (xpx, ypx) = sizeInPixels sz
                               (xpt, ypt) = desiredSizeInPoints opts attr sz
-             let raw = "{\\pict" ++ filetype ++ sizeSpec ++ "\\bin " ++
-                        concat bytes ++ "}"
+             let raw = "{\\pict" <> filetype <> sizeSpec <> "\\bin " <>
+                        T.concat bytes <> "}"
              if B.null imgdata
                 then do
                   report $ CouldNotFetchResource src "image contained no data"
@@ -86,7 +80,7 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = catchError
              report $ CouldNotDetermineMimeType src
              return x)
   (\e -> do
-     report $ CouldNotFetchResource src (show e)
+     report $ CouldNotFetchResource src (T.pack $ show e)
      return x)
 rtfEmbedImage _ x = return x
 
@@ -104,12 +98,12 @@ writeRTF options doc = do
                     . M.adjust toPlain "date"
                     $ metamap
   metadata <- metaToContext options
-              (fmap (literal . T.pack . concat) .
+              (fmap (literal . T.concat) .
                 mapM (blockToRTF 0 AlignDefault))
-              (fmap (literal . T.pack) . inlinesToRTF)
+              (fmap literal . inlinesToRTF)
               meta'
-  body <- T.pack <$> blocksToRTF 0 AlignDefault blocks
-  toc <- T.pack <$> blocksToRTF 0 AlignDefault
+  body <- blocksToRTF 0 AlignDefault blocks
+  toc <- blocksToRTF 0 AlignDefault
           [toTableOfContents options $ filter isHeaderBlock blocks]
   let context = defField "body" body
               $ defField "spacer" spacer
@@ -128,26 +122,29 @@ writeRTF options doc = do
                         _             -> body <> T.singleton '\n'
 
 -- | Convert unicode characters (> 127) into rich text format representation.
-handleUnicode :: String -> String
-handleUnicode [] = []
-handleUnicode (c:cs) =
+handleUnicode :: Text -> Text
+handleUnicode = T.pack . handleUnicode' . T.unpack -- TODO text: refactor
+
+handleUnicode' :: String -> String
+handleUnicode' [] = []
+handleUnicode' (c:cs) =
   if ord c > 127
      then if surrogate c
           then let x = ord c - 0x10000
                    (q, r) = x `divMod` 0x400
                    upper = q + 0xd800
                    lower = r + 0xDC00
-               in enc (chr upper) ++ enc (chr lower) ++ handleUnicode cs
-          else enc c ++ handleUnicode cs
-     else c:handleUnicode cs
+               in enc (chr upper) <> enc (chr lower) <> handleUnicode' cs
+          else enc c <> handleUnicode' cs
+     else c:handleUnicode' cs
   where
     surrogate x = not (   (0x0000 <= ord x && ord x <= 0xd7ff)
                        || (0xe000 <= ord x && ord x <= 0xffff) )
-    enc x = '\\':'u':show (ord x) ++ "?"
+    enc x = '\\':'u':show (ord x) <> "?"
 
 -- | Escape special characters.
-escapeSpecial :: String -> String
-escapeSpecial = escapeStringUsing $
+escapeSpecial :: Text -> Text
+escapeSpecial = escapeTextUsing $
   [ ('\t',"\\tab ")
   , ('\8216',"\\u8216'")
   , ('\8217',"\\u8217'")
@@ -155,47 +152,47 @@ escapeSpecial = escapeStringUsing $
   , ('\8221',"\\u8221\"")
   , ('\8211',"\\u8211-")
   , ('\8212',"\\u8212-")
-  ] ++ backslashEscapes "{\\}"
+  ] <> backslashEscapes "{\\}"
 
 -- | Escape strings as needed for rich text format.
-stringToRTF :: String -> String
+stringToRTF :: Text -> Text
 stringToRTF = handleUnicode . escapeSpecial
 
 -- | Escape things as needed for code block in RTF.
-codeStringToRTF :: String -> String
-codeStringToRTF str = intercalate "\\line\n" $ lines (stringToRTF str)
+codeStringToRTF :: Text -> Text
+codeStringToRTF str = T.intercalate "\\line\n" $ T.lines (stringToRTF str)
 
 -- | Make a paragraph with first-line indent, block indent, and space after.
 rtfParSpaced :: Int       -- ^ space after (in twips)
              -> Int       -- ^ block indent (in twips)
              -> Int       -- ^ first line indent (relative to block) (in twips)
              -> Alignment -- ^ alignment
-             -> String    -- ^ string with content
-             -> String
+             -> Text    -- ^ string with content
+             -> Text
 rtfParSpaced spaceAfter indent firstLineIndent alignment content =
   let alignString = case alignment of
                            AlignLeft    -> "\\ql "
                            AlignRight   -> "\\qr "
                            AlignCenter  -> "\\qc "
                            AlignDefault -> "\\ql "
-  in  "{\\pard " ++ alignString ++
-      "\\f0 \\sa" ++ show spaceAfter ++ " \\li" ++ show indent ++
-      " \\fi" ++ show firstLineIndent ++ " " ++ content ++ "\\par}\n"
+  in  "{\\pard " <> alignString <>
+      "\\f0 \\sa" <> T.pack (show spaceAfter) <> " \\li" <> T.pack (show indent) <>
+      " \\fi" <> T.pack (show firstLineIndent) <> " " <> content <> "\\par}\n"
 
 -- | Default paragraph.
 rtfPar :: Int       -- ^ block indent (in twips)
        -> Int       -- ^ first line indent (relative to block) (in twips)
        -> Alignment -- ^ alignment
-       -> String    -- ^ string with content
-       -> String
+       -> Text    -- ^ string with content
+       -> Text
 rtfPar = rtfParSpaced 180
 
 -- | Compact paragraph (e.g. for compact list items).
 rtfCompact ::  Int       -- ^ block indent (in twips)
            ->  Int       -- ^ first line indent (relative to block) (in twips)
            ->  Alignment -- ^ alignment
-           ->  String    -- ^ string with content
-           ->  String
+           ->  Text    -- ^ string with content
+           ->  Text
 rtfCompact = rtfParSpaced 0
 
 -- number of twips to indent
@@ -206,13 +203,13 @@ listIncrement :: Int
 listIncrement = 360
 
 -- | Returns appropriate bullet list marker for indent level.
-bulletMarker :: Int -> String
+bulletMarker :: Int -> Text
 bulletMarker indent = case indent `mod` 720 of
                              0 -> "\\bullet "
                              _ -> "\\endash "
 
 -- | Returns appropriate (list of) ordered list markers for indent level.
-orderedMarkers :: Int -> ListAttributes -> [String]
+orderedMarkers :: Int -> ListAttributes -> [Text]
 orderedMarkers indent (start, style, delim) =
   if style == DefaultStyle && delim == DefaultDelim
      then case indent `mod` 720 of
@@ -224,15 +221,15 @@ blocksToRTF :: PandocMonad m
             => Int
             -> Alignment
             -> [Block]
-            -> m String
-blocksToRTF indent align = fmap concat . mapM (blockToRTF indent align)
+            -> m Text
+blocksToRTF indent align = fmap T.concat . mapM (blockToRTF indent align)
 
 -- | Convert Pandoc block element to RTF.
 blockToRTF :: PandocMonad m
            => Int       -- ^ indent level
            -> Alignment -- ^ alignment
            -> Block     -- ^ block to convert
-           -> m String
+           -> m Text
 blockToRTF _ _ Null = return ""
 blockToRTF indent alignment (Div _ bs) =
   blocksToRTF indent alignment bs
@@ -245,141 +242,142 @@ blockToRTF indent alignment (LineBlock lns) =
 blockToRTF indent alignment (BlockQuote lst) =
   blocksToRTF (indent + indentIncrement) alignment lst
 blockToRTF indent _ (CodeBlock _ str) =
-  return $ rtfPar indent 0 AlignLeft ("\\f1 " ++ codeStringToRTF str)
+  return $ rtfPar indent 0 AlignLeft ("\\f1 " <> codeStringToRTF str)
 blockToRTF _ _ b@(RawBlock f str)
   | f == Format "rtf" = return str
   | otherwise         = do
       report $ BlockNotRendered b
       return ""
-blockToRTF indent alignment (BulletList lst) = (spaceAtEnd . concat) <$>
+blockToRTF indent alignment (BulletList lst) = (spaceAtEnd . T.concat) <$>
   mapM (listItemToRTF alignment indent (bulletMarker indent)) lst
 blockToRTF indent alignment (OrderedList attribs lst) =
-  (spaceAtEnd . concat) <$>
+  (spaceAtEnd . T.concat) <$>
    zipWithM (listItemToRTF alignment indent) (orderedMarkers indent attribs) lst
-blockToRTF indent alignment (DefinitionList lst) = (spaceAtEnd . concat) <$>
+blockToRTF indent alignment (DefinitionList lst) = (spaceAtEnd . T.concat) <$>
   mapM (definitionListItemToRTF alignment indent) lst
 blockToRTF indent _ HorizontalRule = return $
   rtfPar indent 0 AlignCenter "\\emdash\\emdash\\emdash\\emdash\\emdash"
 blockToRTF indent alignment (Header level _ lst) = do
   contents <- inlinesToRTF lst
   return $ rtfPar indent 0 alignment $
-             "\\b \\fs" ++ show (40 - (level * 4)) ++ " " ++ contents
+             "\\b \\fs" <> T.pack (show (40 - (level * 4))) <> " " <> contents
 blockToRTF indent alignment (Table caption aligns sizes headers rows) = do
   caption' <- inlinesToRTF caption
   header' <- if all null headers
                 then return ""
                 else tableRowToRTF True indent aligns sizes headers
-  rows' <- concat <$> mapM (tableRowToRTF False indent aligns sizes) rows
-  return $ header' ++ rows' ++ rtfPar indent 0 alignment caption'
+  rows' <- T.concat <$> mapM (tableRowToRTF False indent aligns sizes) rows
+  return $ header' <> rows' <> rtfPar indent 0 alignment caption'
 
 tableRowToRTF :: PandocMonad m
-              => Bool -> Int -> [Alignment] -> [Double] -> [[Block]] -> m String
+              => Bool -> Int -> [Alignment] -> [Double] -> [[Block]] -> m Text
 tableRowToRTF header indent aligns sizes' cols = do
   let totalTwips = 6 * 1440 -- 6 inches
   let sizes = if all (== 0) sizes'
                  then replicate (length cols) (1.0 / fromIntegral (length cols))
                  else sizes'
-  columns <- concat <$>
+  columns <- T.concat <$>
      zipWithM (tableItemToRTF indent) aligns cols
   let rightEdges = tail $ scanl (\sofar new -> sofar + floor (new * totalTwips))
                                 (0 :: Integer) sizes
   let cellDefs = map (\edge -> (if header
                                    then "\\clbrdrb\\brdrs"
-                                   else "") ++ "\\cellx" ++ show edge)
+                                   else "") <> "\\cellx" <> T.pack (show edge))
                      rightEdges
-  let start = "{\n\\trowd \\trgaph120\n" ++ concat cellDefs ++ "\n" ++
+  let start = "{\n\\trowd \\trgaph120\n" <> T.concat cellDefs <> "\n" <>
               "\\trkeep\\intbl\n{\n"
   let end = "}\n\\intbl\\row}\n"
-  return $ start ++ columns ++ end
+  return $ start <> columns <> end
 
-tableItemToRTF :: PandocMonad m => Int -> Alignment -> [Block] -> m String
+tableItemToRTF :: PandocMonad m => Int -> Alignment -> [Block] -> m Text
 tableItemToRTF indent alignment item = do
   contents <- blocksToRTF indent alignment item
-  return $ "{" ++ substitute "\\pard" "\\pard\\intbl" contents ++ "\\cell}\n"
+  return $ "{" <> T.replace "\\pard" "\\pard\\intbl" contents <> "\\cell}\n"
 
 -- | Ensure that there's the same amount of space after compact
 -- lists as after regular lists.
-spaceAtEnd :: String -> String
+spaceAtEnd :: Text -> Text
 spaceAtEnd str =
-  if "\\par}\n" `isSuffixOf` str
-     then take (length str - 6) str ++ "\\sa180\\par}\n"
+  if "\\par}\n" `T.isSuffixOf` str
+     then T.take (T.length str - 6) str <> "\\sa180\\par}\n" -- TODO text: dropEnd?
      else str
 
 -- | Convert list item (list of blocks) to RTF.
 listItemToRTF :: PandocMonad m
               => Alignment  -- ^ alignment
               -> Int        -- ^ indent level
-              -> String     -- ^ list start marker
+              -> Text     -- ^ list start marker
               -> [Block]    -- ^ list item (list of blocks)
-              -> m String
+              -> m Text
 listItemToRTF alignment indent marker [] = return $
   rtfCompact (indent + listIncrement) (negate listIncrement) alignment
-             (marker ++ "\\tx" ++ show listIncrement ++ "\\tab ")
+             (marker <> "\\tx" <> T.pack (show listIncrement) <> "\\tab ")
 listItemToRTF alignment indent marker (listFirst:listRest) = do
   let f = blockToRTF (indent + listIncrement) alignment
   first <- f listFirst
   rest <- mapM f listRest
-  let listMarker = "\\fi" ++ show (negate listIncrement) ++ " " ++ marker ++
-                   "\\tx" ++ show listIncrement ++ "\\tab"
-  let insertListMarker ('\\':'f':'i':'-':d:xs) | isDigit d =
-        listMarker ++ dropWhile isDigit xs
-      insertListMarker ('\\':'f':'i':d:xs) | isDigit d =
-        listMarker ++ dropWhile isDigit xs
-      insertListMarker (x:xs) =
-        x : insertListMarker xs
-      insertListMarker [] = []
+  let listMarker = "\\fi" <> show (negate listIncrement) <> " " <> T.unpack marker <> -- TODO text: replace with tshow and refactor below
+                   "\\tx" <> show listIncrement <> "\\tab"
+  let insertListMarker = T.pack . insertListMarker' . T.unpack -- TODO text: refactor
+      insertListMarker' ('\\':'f':'i':'-':d:xs) | isDigit d =
+        listMarker <> dropWhile isDigit xs
+      insertListMarker' ('\\':'f':'i':d:xs) | isDigit d =
+        listMarker <> dropWhile isDigit xs
+      insertListMarker' (x:xs) =
+        x : insertListMarker' xs
+      insertListMarker' [] = []
    -- insert the list marker into the (processed) first block
-  return $ insertListMarker first ++ concat rest
+  return $ insertListMarker first <> T.concat rest
 
 -- | Convert definition list item (label, list of blocks) to RTF.
 definitionListItemToRTF :: PandocMonad m
                         => Alignment          -- ^ alignment
                         -> Int                -- ^ indent level
                         -> ([Inline],[[Block]]) -- ^ list item (list of blocks)
-                        -> m String
+                        -> m Text
 definitionListItemToRTF alignment indent (label, defs) = do
   labelText <- blockToRTF indent alignment (Plain label)
   itemsText <- blocksToRTF (indent + listIncrement) alignment (concat defs)
-  return $ labelText ++ itemsText
+  return $ labelText <> itemsText
 
 -- | Convert list of inline items to RTF.
 inlinesToRTF :: PandocMonad m
              => [Inline]   -- ^ list of inlines to convert
-             -> m String
-inlinesToRTF lst = concat <$> mapM inlineToRTF lst
+             -> m Text
+inlinesToRTF lst = T.concat <$> mapM inlineToRTF lst
 
 -- | Convert inline item to RTF.
 inlineToRTF :: PandocMonad m
             => Inline         -- ^ inline to convert
-            -> m String
+            -> m Text
 inlineToRTF (Span _ lst) = inlinesToRTF lst
 inlineToRTF (Emph lst) = do
   contents <- inlinesToRTF lst
-  return $ "{\\i " ++ contents ++ "}"
+  return $ "{\\i " <> contents <> "}"
 inlineToRTF (Strong lst) = do
   contents <- inlinesToRTF lst
-  return $ "{\\b " ++ contents ++ "}"
+  return $ "{\\b " <> contents <> "}"
 inlineToRTF (Strikeout lst) = do
   contents <- inlinesToRTF lst
-  return $ "{\\strike " ++ contents ++ "}"
+  return $ "{\\strike " <> contents <> "}"
 inlineToRTF (Superscript lst) = do
   contents <- inlinesToRTF lst
-  return $ "{\\super " ++ contents ++ "}"
+  return $ "{\\super " <> contents <> "}"
 inlineToRTF (Subscript lst) = do
   contents <- inlinesToRTF lst
-  return $ "{\\sub " ++ contents ++ "}"
+  return $ "{\\sub " <> contents <> "}"
 inlineToRTF (SmallCaps lst) = do
   contents <- inlinesToRTF lst
-  return $ "{\\scaps " ++ contents ++ "}"
+  return $ "{\\scaps " <> contents <> "}"
 inlineToRTF (Quoted SingleQuote lst) = do
   contents <- inlinesToRTF lst
-  return $ "\\u8216'" ++ contents ++ "\\u8217'"
+  return $ "\\u8216'" <> contents <> "\\u8217'"
 inlineToRTF (Quoted DoubleQuote lst) = do
   contents <- inlinesToRTF lst
-  return $ "\\u8220\"" ++ contents ++ "\\u8221\""
-inlineToRTF (Code _ str) = return $ "{\\f1 " ++ codeStringToRTF str ++ "}"
+  return $ "\\u8220\"" <> contents <> "\\u8221\""
+inlineToRTF (Code _ str) = return $ "{\\f1 " <> codeStringToRTF str <> "}"
 inlineToRTF (Str str) = return $ stringToRTF str
-inlineToRTF (Math t str) = texMathToInlines t (T.pack str) >>= inlinesToRTF
+inlineToRTF (Math t str) = texMathToInlines t str >>= inlinesToRTF
 inlineToRTF (Cite _ lst) = inlinesToRTF lst
 inlineToRTF il@(RawInline f str)
   | f == Format "rtf" = return str
@@ -391,11 +389,11 @@ inlineToRTF SoftBreak = return " "
 inlineToRTF Space = return " "
 inlineToRTF (Link _ text (src, _)) = do
   contents <- inlinesToRTF text
-  return $ "{\\field{\\*\\fldinst{HYPERLINK \"" ++ codeStringToRTF src ++
-    "\"}}{\\fldrslt{\\ul\n" ++ contents ++ "\n}}}\n"
+  return $ "{\\field{\\*\\fldinst{HYPERLINK \"" <> codeStringToRTF src <>
+    "\"}}{\\fldrslt{\\ul\n" <> contents <> "\n}}}\n"
 inlineToRTF (Image _ _ (source, _)) =
-  return $ "{\\cf1 [image: " ++ source ++ "]\\cf0}"
+  return $ "{\\cf1 [image: " <> source <> "]\\cf0}"
 inlineToRTF (Note contents) = do
-  body <- concat <$> mapM (blockToRTF 0 AlignDefault) contents
-  return $ "{\\super\\chftn}{\\*\\footnote\\chftn\\~\\plain\\pard " ++
-    body ++ "}"
+  body <- T.concat <$> mapM (blockToRTF 0 AlignDefault) contents
+  return $ "{\\super\\chftn}{\\*\\footnote\\chftn\\~\\plain\\pard " <>
+    body <> "}"
