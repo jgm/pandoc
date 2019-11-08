@@ -32,6 +32,7 @@ module Text.Pandoc.Shared (
                      -- * Text processing
                      ToString (..),
                      ToText (..),
+                     tshow,
                      backslashEscapes,
                      escapeTextUsing,
                      stripTrailingNewlines,
@@ -214,6 +215,9 @@ instance ToText String where
 
 instance ToText T.Text where
   toText = id
+
+tshow :: Show a => a -> T.Text
+tshow = T.pack . show
 
 -- | Returns an association list of backslash escapes for the
 -- designated characters.
@@ -1041,6 +1045,3 @@ defaultUserDataDirs = E.catch (do
   legacyDir <- getAppUserDataDirectory "pandoc"
   return $ ordNub [xdgDir, legacyDir])
  (\(_ :: E.SomeException) -> return [])
-
-tshow :: Show a => a -> T.Text
-tshow = T.pack . show
