@@ -17,23 +17,18 @@ JIRA:
 module Text.Pandoc.Writers.Jira ( writeJira ) where
 import Prelude
 import Control.Monad.State.Strict
-import Data.Char (toLower)
 import Data.Foldable (find)
 import Data.Text (Text, pack)
-import Text.Pandoc.Legacy.Class (PandocMonad, report)
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Logging (LogMessage (BlockNotRendered, InlineNotRendered))
--- import Text.Pandoc.Options (WriterOptions (writerTemplate)) TODO text: restore
-import Text.Pandoc.Legacy.Shared (blocksToInlines, linesToPara)
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.Logging (LogMessage (BlockNotRendered, InlineNotRendered))
+import Text.Pandoc.Options (WriterOptions (writerTemplate))
+import Text.Pandoc.Shared (blocksToInlines, linesToPara)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared (metaToContext, defField)
 import qualified Data.Text as T
 import Text.DocLayout (literal, render)
-
--- TODO text: remove
-import Text.Pandoc.Legacy.Options
---
 
 data WriterState = WriterState
   { stNotes     :: [Text]      -- Footnotes
@@ -101,7 +96,7 @@ anchor :: Attr -> Text
 anchor (ident,_,_) =
   if ident == ""
   then ""
-  else "{anchor:" <> pack ident <> "}"
+  else "{anchor:" <> ident <> "}"
 
 -- | Append a newline character unless we are in a list.
 appendNewlineUnlessInList :: PandocMonad m
@@ -134,7 +129,7 @@ blockToJira opts (LineBlock lns) =
 
 blockToJira _ b@(RawBlock f str) =
   if f == Format "jira"
-  then return (pack str)
+  then return str
   else "" <$ report (BlockNotRendered b)
 
 blockToJira _ HorizontalRule = return "----\n"
@@ -145,14 +140,14 @@ blockToJira opts (Header level attr inlines) = do
   return $ prefix <> anchor attr <> contents <> "\n"
 
 blockToJira _ (CodeBlock attr@(_,classes,_) str) = do
-  let lang = find (\c -> map toLower c `elem` knownLanguages) classes
+  let lang = find (\c -> T.toLower c `elem` knownLanguages) classes
   let start = case lang of
                 Nothing -> "{code}"
-                Just l  -> "{code:" <> pack l <> "}"
+                Just l  -> "{code:" <> l <> "}"
   let anchorMacro = anchor attr
   appendNewlineUnlessInList . T.intercalate "\n" $
     (if anchorMacro == "" then id else (anchorMacro :))
-    [start, pack str, "{code}"]
+    [start, str, "{code}"]
 
 blockToJira opts (BlockQuote [p@(Para _)]) = do
   contents <- blockToJira opts p
@@ -278,21 +273,21 @@ inlineToJira opts (Quoted DoubleQuote lst) = do
 inlineToJira opts (Cite _  lst) = inlineListToJira opts lst
 
 inlineToJira _ (Code attr str) =
-  return (anchor attr <> "{{" <> pack str <> "}}")
+  return (anchor attr <> "{{" <> str <> "}}")
 
-inlineToJira _ (Str str) = return $ escapeStringForJira (pack str)
+inlineToJira _ (Str str) = return $ escapeStringForJira str
 
 inlineToJira opts (Math InlineMath str) =
-  lift (texMathToInlines InlineMath $ T.pack str) >>= inlineListToJira opts
+  lift (texMathToInlines InlineMath str) >>= inlineListToJira opts
 
 inlineToJira opts (Math DisplayMath str) = do
-  mathInlines <- lift (texMathToInlines DisplayMath $ T.pack str)
+  mathInlines <- lift (texMathToInlines DisplayMath str)
   contents    <- inlineListToJira opts mathInlines
   return $ "\\\\" <> contents <> "\\\\"
 
 inlineToJira _opts il@(RawInline f str) =
   if f == Format "jira"
-  then return (pack str)
+  then return str
   else "" <$ report (InlineNotRendered il)
 
 inlineToJira _ LineBreak = return "\n"
@@ -306,12 +301,12 @@ inlineToJira opts (Link _attr txt (src, _title)) = do
   return $ T.concat
     [ "["
     , if null txt then "" else linkText <> "|"
-    , pack src
+    , src
     , "]"
     ]
 
 inlineToJira _opts (Image attr _alt (src, _title)) =
-  return . T.concat $ [anchor attr, "!", pack src, "!"]
+  return . T.concat $ [anchor attr, "!", src, "!"]
 
 inlineToJira opts (Note contents) = do
   curNotes <- gets stNotes
@@ -322,7 +317,7 @@ inlineToJira opts (Note contents) = do
   return $ "[" <> pack (show newnum) <> "]"
 
 -- | Language codes recognized by jira
-knownLanguages :: [String]
+knownLanguages :: [Text]
 knownLanguages =
   [ "actionscript", "ada", "applescript", "bash", "c", "c#", "c++"
   , "css", "erlang", "go", "groovy", "haskell", "html", "javascript"
