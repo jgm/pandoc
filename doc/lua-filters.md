@@ -2761,9 +2761,9 @@ Returns:
 -   A table mapping environment variables names to their string
     value (table).
 
-### get\_working\_directory {#system-get_working_directory}
+### get\_current\_directory {#system-get_current_directory}
 
-`get_working_directory ()`
+`get_current_directory ()`
 
 Obtain the current working directory as an absolute path.
 

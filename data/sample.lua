@@ -358,4 +358,3 @@ meta.__index =
     return function() return "" end
   end
 setmetatable(_G, meta)
-
