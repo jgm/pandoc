@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Writers.CommonMark
    Copyright   : Copyright (C) 2015-2019 John MacFarlane
@@ -24,16 +25,16 @@ import Data.List (transpose)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.HTTP (urlEncode)
-import Text.Pandoc.Legacy.Class (PandocMonad)
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Options
-import Text.Pandoc.Legacy.Shared (capitalize, isHeaderBlock, isTightList,
-    linesToPara, onlySimpleTableCells, substitute, taskListItemToAscii)
+import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Definition
+import Text.Pandoc.Options
+import Text.Pandoc.Shared (capitalize, isHeaderBlock, isTightList,
+    linesToPara, onlySimpleTableCells, taskListItemToAscii, tshow)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk (walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtml5String, tagWithAttributes)
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Legacy.XML (toHtml5Entities)
+import Text.Pandoc.XML (toHtml5Entities)
 import Text.DocLayout (literal, render)
 
 -- | Convert Pandoc to CommonMark.
@@ -73,7 +74,7 @@ processNotes :: Inline -> State [[Block]] Inline
 processNotes (Note bs) = do
   modify (bs :)
   notes <- get
-  return $ Str $ "[" ++ show (length notes) ++ "]"
+  return $ Str $ "[" <> tshow (length notes) <> "]"
 processNotes x = return x
 
 node :: NodeType -> [Node] -> Node
@@ -109,14 +110,14 @@ blockToNodes opts (Para xs) ns =
   return (node PARAGRAPH (inlinesToNodes opts xs) : ns)
 blockToNodes opts (LineBlock lns) ns = blockToNodes opts (linesToPara lns) ns
 blockToNodes _ (CodeBlock (_,classes,_) xs) ns = return
-  (node (CODE_BLOCK (T.pack (unwords classes)) (T.pack xs)) [] : ns)
+  (node (CODE_BLOCK (T.unwords classes) xs) [] : ns)
 blockToNodes opts (RawBlock (Format f) xs) ns
   | f == "html" && isEnabled Ext_raw_html opts
-              = return (node (HTML_BLOCK (T.pack xs)) [] : ns)
+              = return (node (HTML_BLOCK xs) [] : ns)
   | (f == "latex" || f == "tex") && isEnabled Ext_raw_tex opts
-              = return (node (CUSTOM_BLOCK (T.pack xs) T.empty) [] : ns)
+              = return (node (CUSTOM_BLOCK xs T.empty) [] : ns)
   | f == "markdown"
-              = return (node (CUSTOM_BLOCK (T.pack xs) T.empty) [] : ns)
+              = return (node (CUSTOM_BLOCK xs T.empty) [] : ns)
   | otherwise = return ns
 blockToNodes opts (BlockQuote bs) ns = do
   nodes <- blocksToNodes opts bs
@@ -169,9 +170,9 @@ blockToNodes opts t@(Table capt aligns _widths headers rows) ns = do
        let capt' = node PARAGRAPH (inlinesToNodes opts capt)
        -- backslash | in code and raw:
        let fixPipe (Code attr xs) =
-             Code attr (substitute "|" "\\|" xs)
+             Code attr (T.replace "|" "\\|" xs)
            fixPipe (RawInline format xs) =
-             RawInline format (substitute "|" "\\|" xs)
+             RawInline format (T.replace "|" "\\|" xs)
            fixPipe x = x
        let toCell [Plain ils] = T.strip
                                 $ nodeToCommonmark [] Nothing
@@ -232,7 +233,7 @@ inlinesToNodes opts  = foldr (inlineToNodes opts) []
 inlineToNodes :: WriterOptions -> Inline -> [Node] -> [Node]
 inlineToNodes opts (Str s) = stringToNodes opts s'
   where s' = if isEnabled Ext_smart opts
-                then T.unpack $ unsmartify opts (T.pack s) -- TODO text: refactor
+                then unsmartify opts s
                 else s
 inlineToNodes _ Space   = (node (TEXT (T.pack " ")) [] :)
 inlineToNodes _ LineBreak = (node LINEBREAK [] :)
@@ -276,19 +277,19 @@ inlineToNodes opts (SmallCaps xs) =
            [node (HTML_INLINE (T.pack "</span>")) []]) ++ )
     else (inlinesToNodes opts (capitalize xs) ++)
 inlineToNodes opts (Link _ ils (url,tit)) =
-  (node (LINK (T.pack url) (T.pack tit)) (inlinesToNodes opts ils) :)
+  (node (LINK url tit) (inlinesToNodes opts ils) :)
 -- title beginning with fig: indicates implicit figure
-inlineToNodes opts (Image alt ils (url,'f':'i':'g':':':tit)) =
+inlineToNodes opts (Image alt ils (url,T.stripPrefix "fig:" -> Just tit)) =
   inlineToNodes opts (Image alt ils (url,tit))
 inlineToNodes opts (Image _ ils (url,tit)) =
-  (node (IMAGE (T.pack url) (T.pack tit)) (inlinesToNodes opts ils) :)
+  (node (IMAGE url tit) (inlinesToNodes opts ils) :)
 inlineToNodes opts (RawInline (Format f) xs)
   | f == "html" && isEnabled Ext_raw_html opts
-              = (node (HTML_INLINE (T.pack xs)) [] :)
+              = (node (HTML_INLINE xs) [] :)
   | (f == "latex" || f == "tex") && isEnabled Ext_raw_tex opts
-              = (node (CUSTOM_INLINE (T.pack xs) T.empty) [] :)
+              = (node (CUSTOM_INLINE xs T.empty) [] :)
   | f == "markdown"
-              = (node (CUSTOM_INLINE (T.pack xs) T.empty) [] :)
+              = (node (CUSTOM_INLINE xs T.empty) [] :)
   | otherwise = id
 inlineToNodes opts (Quoted qt ils) =
   ((node (HTML_INLINE start) [] :
@@ -304,12 +305,12 @@ inlineToNodes opts (Quoted qt ils) =
                             | writerPreferAscii opts ->
                                      ("&ldquo;", "&rdquo;")
                             | otherwise -> ("“", "”")
-inlineToNodes _ (Code _ str) = (node (CODE (T.pack str)) [] :)
+inlineToNodes _ (Code _ str) = (node (CODE str) [] :)
 inlineToNodes opts (Math mt str) =
   case writerHTMLMathMethod opts of
        WebTeX url ->
            let core = inlineToNodes opts
-                        (Image nullAttr [Str str] (url ++ urlEncode str, str))
+                        (Image nullAttr [Str str] (url <> T.pack (urlEncode $ T.unpack str), str))
                sep = if mt == DisplayMath
                         then (node LINEBREAK [] :)
                         else id
@@ -317,14 +318,14 @@ inlineToNodes opts (Math mt str) =
        _  ->
            case mt of
             InlineMath  ->
-              (node (HTML_INLINE (T.pack ("\\(" ++ str ++ "\\)"))) [] :)
+              (node (HTML_INLINE ("\\(" <> str <> "\\)")) [] :)
             DisplayMath ->
-              (node (HTML_INLINE (T.pack ("\\[" ++ str ++ "\\]"))) [] :)
+              (node (HTML_INLINE ("\\[" <> str <> "\\]")) [] :)
 inlineToNodes opts (Span ("",["emoji"],kvs) [Str s]) = do
   case lookup "data-emoji" kvs of
        Just emojiname | isEnabled Ext_emoji opts ->
-            (node (TEXT (":" <> T.pack emojiname <> ":")) [] :)
-       _ -> (node (TEXT (T.pack s)) [] :)
+            (node (TEXT (":" <> emojiname <> ":")) [] :)
+       _ -> (node (TEXT s) [] :)
 inlineToNodes opts (Span attr ils) =
   let nodes = inlinesToNodes opts ils
       op = tagWithAttributes opts True False "span" attr
@@ -336,17 +337,17 @@ inlineToNodes opts (Cite _ ils) = (inlinesToNodes opts ils ++)
 inlineToNodes _ (Note _) = id -- should not occur
 -- we remove Note elements in preprocessing
 
-stringToNodes :: WriterOptions -> String -> [Node] -> [Node]
+stringToNodes :: WriterOptions -> Text -> [Node] -> [Node]
 stringToNodes opts s
-  | not (writerPreferAscii opts) = (node (TEXT (T.pack s)) [] :)
+  | not (writerPreferAscii opts) = (node (TEXT s) [] :)
   | otherwise = step s
   where
     step input =
-      let (ascii, rest) = span isAscii input
-          this = node (TEXT (T.pack ascii)) []
-          nodes = case rest of
-            [] -> id
-            (nonAscii : rest') ->
+      let (ascii, rest) = T.span isAscii input
+          this = node (TEXT ascii) []
+          nodes = case T.uncons rest of
+            Nothing -> id
+            Just (nonAscii, rest') ->
               let escaped = toHtml5Entities (T.singleton nonAscii)
               in (node (HTML_INLINE escaped) [] :) . step rest'
       in (this :) . nodes
@@ -354,7 +355,7 @@ stringToNodes opts s
 toSubscriptInline :: Inline -> Maybe Inline
 toSubscriptInline Space = Just Space
 toSubscriptInline (Span attr ils) = Span attr <$> traverse toSubscriptInline ils
-toSubscriptInline (Str s) = Str <$> traverse toSubscript s
+toSubscriptInline (Str s) = Str . T.pack <$> traverse toSubscript (T.unpack s) -- TODO text: refactor
 toSubscriptInline LineBreak = Just LineBreak
 toSubscriptInline SoftBreak = Just SoftBreak
 toSubscriptInline _ = Nothing
@@ -362,7 +363,7 @@ toSubscriptInline _ = Nothing
 toSuperscriptInline :: Inline -> Maybe Inline
 toSuperscriptInline Space = Just Space
 toSuperscriptInline (Span attr ils) = Span attr <$> traverse toSuperscriptInline ils
-toSuperscriptInline (Str s) = Str <$> traverse toSuperscript s
+toSuperscriptInline (Str s) = Str . T.pack <$> traverse toSuperscript (T.unpack s) -- TODO text: refactor
 toSuperscriptInline LineBreak = Just LineBreak
 toSuperscriptInline SoftBreak = Just SoftBreak
 toSuperscriptInline _ = Nothing
