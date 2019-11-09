@@ -1,6 +1,6 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-} -- TODO text: possibly remove
+{-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.Writers.RTF
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -59,10 +59,10 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = catchError
                      Left msg -> do
                        report $ CouldNotDetermineImageSize src msg
                        return ""
-                     Right sz -> return $ "\\picw" <> T.pack (show xpx) <>
-                                "\\pich" <> T.pack (show ypx) <>
-                                "\\picwgoal" <> T.pack (show (floor (xpt * 20) :: Integer))
-                                <> "\\pichgoal" <> T.pack (show (floor (ypt * 20) :: Integer))
+                     Right sz -> return $ "\\picw" <> tshow xpx <>
+                                "\\pich" <> tshow ypx <>
+                                "\\picwgoal" <> tshow (floor (xpt * 20) :: Integer)
+                                <> "\\pichgoal" <> tshow (floor (ypt * 20) :: Integer)
                         -- twip = 1/1440in = 1/20pt
                         where (xpx, ypx) = sizeInPixels sz
                               (xpt, ypt) = desiredSizeInPoints opts attr sz
@@ -80,7 +80,7 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = catchError
              report $ CouldNotDetermineMimeType src
              return x)
   (\e -> do
-     report $ CouldNotFetchResource src (T.pack $ show e)
+     report $ CouldNotFetchResource src $ tshow e
      return x)
 rtfEmbedImage _ x = return x
 
@@ -123,24 +123,20 @@ writeRTF options doc = do
 
 -- | Convert unicode characters (> 127) into rich text format representation.
 handleUnicode :: Text -> Text
-handleUnicode = T.pack . handleUnicode' . T.unpack -- TODO text: refactor
-
-handleUnicode' :: String -> String
-handleUnicode' [] = []
-handleUnicode' (c:cs) =
+handleUnicode = T.concatMap $ \c ->
   if ord c > 127
      then if surrogate c
           then let x = ord c - 0x10000
                    (q, r) = x `divMod` 0x400
                    upper = q + 0xd800
                    lower = r + 0xDC00
-               in enc (chr upper) <> enc (chr lower) <> handleUnicode' cs
-          else enc c <> handleUnicode' cs
-     else c:handleUnicode' cs
+               in enc (chr upper) <> enc (chr lower)
+          else enc c
+     else T.singleton c
   where
     surrogate x = not (   (0x0000 <= ord x && ord x <= 0xd7ff)
                        || (0xe000 <= ord x && ord x <= 0xffff) )
-    enc x = '\\':'u':show (ord x) <> "?"
+    enc x = "\\u" <> tshow (ord x) <> "?"
 
 -- | Escape special characters.
 escapeSpecial :: Text -> Text
@@ -176,8 +172,8 @@ rtfParSpaced spaceAfter indent firstLineIndent alignment content =
                            AlignCenter  -> "\\qc "
                            AlignDefault -> "\\ql "
   in  "{\\pard " <> alignString <>
-      "\\f0 \\sa" <> T.pack (show spaceAfter) <> " \\li" <> T.pack (show indent) <>
-      " \\fi" <> T.pack (show firstLineIndent) <> " " <> content <> "\\par}\n"
+      "\\f0 \\sa" <> tshow spaceAfter <> " \\li" <> T.pack (show indent) <>
+      " \\fi" <> tshow firstLineIndent <> " " <> content <> "\\par}\n"
 
 -- | Default paragraph.
 rtfPar :: Int       -- ^ block indent (in twips)
@@ -260,7 +256,7 @@ blockToRTF indent _ HorizontalRule = return $
 blockToRTF indent alignment (Header level _ lst) = do
   contents <- inlinesToRTF lst
   return $ rtfPar indent 0 alignment $
-             "\\b \\fs" <> T.pack (show (40 - (level * 4))) <> " " <> contents
+             "\\b \\fs" <> tshow (40 - (level * 4)) <> " " <> contents
 blockToRTF indent alignment (Table caption aligns sizes headers rows) = do
   caption' <- inlinesToRTF caption
   header' <- if all null headers
@@ -282,7 +278,7 @@ tableRowToRTF header indent aligns sizes' cols = do
                                 (0 :: Integer) sizes
   let cellDefs = map (\edge -> (if header
                                    then "\\clbrdrb\\brdrs"
-                                   else "") <> "\\cellx" <> T.pack (show edge))
+                                   else "") <> "\\cellx" <> tshow edge)
                      rightEdges
   let start = "{\n\\trowd \\trgaph120\n" <> T.concat cellDefs <> "\n" <>
               "\\trkeep\\intbl\n{\n"
@@ -297,10 +293,7 @@ tableItemToRTF indent alignment item = do
 -- | Ensure that there's the same amount of space after compact
 -- lists as after regular lists.
 spaceAtEnd :: Text -> Text
-spaceAtEnd str =
-  if "\\par}\n" `T.isSuffixOf` str
-     then T.take (T.length str - 6) str <> "\\sa180\\par}\n" -- TODO text: dropEnd?
-     else str
+spaceAtEnd str = maybe str (<> "\\sa180\\par}\n") $ T.stripSuffix "\\par}\n" str
 
 -- | Convert list item (list of blocks) to RTF.
 listItemToRTF :: PandocMonad m
@@ -311,21 +304,27 @@ listItemToRTF :: PandocMonad m
               -> m Text
 listItemToRTF alignment indent marker [] = return $
   rtfCompact (indent + listIncrement) (negate listIncrement) alignment
-             (marker <> "\\tx" <> T.pack (show listIncrement) <> "\\tab ")
+             (marker <> "\\tx" <> tshow listIncrement <> "\\tab ")
 listItemToRTF alignment indent marker (listFirst:listRest) = do
   let f = blockToRTF (indent + listIncrement) alignment
   first <- f listFirst
   rest <- mapM f listRest
-  let listMarker = "\\fi" <> show (negate listIncrement) <> " " <> T.unpack marker <> -- TODO text: replace with tshow and refactor below
-                   "\\tx" <> show listIncrement <> "\\tab"
-  let insertListMarker = T.pack . insertListMarker' . T.unpack -- TODO text: refactor
-      insertListMarker' ('\\':'f':'i':'-':d:xs) | isDigit d =
-        listMarker <> dropWhile isDigit xs
-      insertListMarker' ('\\':'f':'i':d:xs) | isDigit d =
-        listMarker <> dropWhile isDigit xs
-      insertListMarker' (x:xs) =
-        x : insertListMarker' xs
-      insertListMarker' [] = []
+  let listMarker = "\\fi" <> tshow (negate listIncrement) <> " " <> marker <>
+                   "\\tx" <> tshow listIncrement <> "\\tab"
+  -- Find the first occurrence of \\fi or \\fi-, then replace it and the following
+  -- digits with the list marker.
+  let insertListMarker t = case popDigit $ optionDash $ T.drop 3 suff of
+        Just suff' -> pref <> listMarker <> T.dropWhile isDigit suff'
+        Nothing    -> t
+        where
+          (pref, suff) = T.breakOn "\\fi" t
+          optionDash x = case T.uncons x of
+            Just ('-', xs) -> xs
+            _              -> x
+          popDigit x
+            | Just (d, xs) <- T.uncons x
+            , isDigit d = Just xs
+            | otherwise = Nothing
    -- insert the list marker into the (processed) first block
   return $ insertListMarker first <> T.concat rest
 

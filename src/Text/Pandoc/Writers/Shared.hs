@@ -83,11 +83,8 @@ metaToContext' :: (Monad m, TemplateTarget a)
            -> ([Inline] -> m (Doc a))
            -> Meta
            -> m (Context a)
-metaToContext' blockWriter inlineWriter (Meta metamap) = do
-  renderedMap <- mapM (metaValueToVal blockWriter inlineWriter) metamap
-  return $ Context
-         $ M.foldrWithKey M.insert mempty -- TODO text: refactor?
-         $ renderedMap
+metaToContext' blockWriter inlineWriter (Meta metamap) =
+  Context <$> mapM (metaValueToVal blockWriter inlineWriter) metamap
 
 -- | Add variables to a template Context, replacing any existing values.
 addVariablesToContext :: TemplateTarget a
@@ -197,23 +194,20 @@ fixDisplayMath (Para lst)
                          not (isDisplayMath x || isDisplayMath y)) lst
 fixDisplayMath x = x
 
-unsmartify :: WriterOptions -> T.Text -> T.Text -- TODO text: refactor
-unsmartify x = T.pack . unsmartify' x . T.unpack
-
-unsmartify' :: WriterOptions -> String -> String
-unsmartify' opts ('\8217':xs) = '\'' : unsmartify' opts xs
-unsmartify' opts ('\8230':xs) = "..." ++ unsmartify' opts xs
-unsmartify' opts ('\8211':xs)
-  | isEnabled Ext_old_dashes opts = '-' : unsmartify' opts xs
-  | otherwise                     = "--" ++ unsmartify' opts xs
-unsmartify' opts ('\8212':xs)
-  | isEnabled Ext_old_dashes opts = "--" ++ unsmartify' opts xs
-  | otherwise                     = "---" ++ unsmartify' opts xs
-unsmartify' opts ('\8220':xs) = '"' : unsmartify' opts xs
-unsmartify' opts ('\8221':xs) = '"' : unsmartify' opts xs
-unsmartify' opts ('\8216':xs) = '\'' : unsmartify' opts xs
-unsmartify' opts (x:xs) = x : unsmartify' opts xs
-unsmartify' _ [] = []
+unsmartify :: WriterOptions -> T.Text -> T.Text
+unsmartify opts = T.concatMap $ \c -> case c of
+  '\8217' -> "'"
+  '\8230' -> "..."
+  '\8211'
+    | isEnabled Ext_old_dashes opts -> "-"
+    | otherwise                     -> "--"
+  '\8212'
+    | isEnabled Ext_old_dashes opts -> "--"
+    | otherwise                     -> "---"
+  '\8220' -> "\""
+  '\8221' -> "\""
+  '\8216' -> "'"
+  _       -> T.singleton c
 
 gridTable :: (Monad m, HasChars a)
           => WriterOptions
@@ -317,8 +311,6 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
            body $$
            border '-' (repeat AlignDefault) widthsInChars
 
-
-
 -- | Retrieve the metadata value for a given @key@
 -- and convert to Bool.
 lookupMetaBool :: T.Text -> Meta -> Bool
@@ -361,7 +353,6 @@ lookupMetaString key meta =
          Just (MetaBlocks bs)   -> stringify bs
          Just (MetaBool b)      -> T.pack (show b)
          _                      -> ""
-
 
 toSuperscript :: Char -> Maybe Char
 toSuperscript '1' = Just '\x00B9'

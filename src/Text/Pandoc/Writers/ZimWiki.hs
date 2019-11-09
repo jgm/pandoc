@@ -144,7 +144,7 @@ blockToZimWiki opts (Table capt aligns _ headers rows) = do
                  else mapM (inlineListToZimWiki opts . removeFormatting)headers  -- emphasis, links etc. are not allowed in table headers
   rows' <- mapM (zipWithM (tableItemToZimWiki opts) aligns) rows
   let widths = map (maximum . map T.length) $ transpose (headers':rows')
-  let padTo (width, al) s = -- TODO text: replace with Text pad?
+  let padTo (width, al) s =
           case width - T.length s of
                x | x > 0 ->
                  if al == AlignLeft || al == AlignDefault
@@ -356,9 +356,10 @@ inlineToZimWiki opts (Link _ txt (src, _)) = do
      _  -> if isURI src
               then return $ "[[" <> src  <> label' <> "]]"
               else return $ "[[" <> src' <> label' <> "]]"
-                     where src' = case T.uncons src of -- TODO text: could be maybe src snd...
-                                    Just ('/', xs) -> xs  -- with leading / it's a
-                                    _              -> src -- link to a help page
+  where
+    -- with leading / it's a link to a help page
+    src' = fromMaybe src $ T.stripPrefix "/" src
+
 inlineToZimWiki opts (Image attr alt (source, tit)) = do
   alt' <- inlineListToZimWiki opts alt
   inTable <- gets stInTable
