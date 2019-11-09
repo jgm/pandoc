@@ -17,17 +17,17 @@ import Prelude
 import Data.Char (toLower)
 import Data.List (isPrefixOf, stripPrefix)
 import Data.Text (Text)
-import Text.Pandoc.Legacy.Class (PandocMonad, report)
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Highlighting (languages, languagesByExtension)
-import Text.Pandoc.Legacy.ImageSize
-import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Legacy.Options
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.Highlighting (languages, languagesByExtension)
+import Text.Pandoc.ImageSize
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
 import Text.DocLayout
-import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
+import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Legacy.XML
+import Text.Pandoc.XML
 
 -- | Convert Pandoc document to string in Docbook format.
 writeTEI :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -89,7 +89,7 @@ listItemToTEI :: PandocMonad m => WriterOptions -> [Block] -> m (Doc Text)
 listItemToTEI opts item =
   inTagsIndented "item" <$> blocksToTEI opts (map plainToPara item)
 
-imageToTEI :: PandocMonad m => WriterOptions -> Attr -> String -> m (Doc Text)
+imageToTEI :: PandocMonad m => WriterOptions -> Attr -> Text -> m (Doc Text)
 imageToTEI opts attr src = return $ selfClosingTag "graphic" $
   ("url", src) : idFromAttr opts attr ++ dims
   where
@@ -303,7 +303,7 @@ inlineToTEI opts (Image attr description (src, tit)) = do
 inlineToTEI opts (Note contents) =
   inTagsIndented "note" <$> blocksToTEI opts contents
 
-idFromAttr :: WriterOptions -> Attr -> [(String, String)]
+idFromAttr :: WriterOptions -> Attr -> [(Text, Text)]
 idFromAttr opts (id',_,_) =
   if null id'
      then []
