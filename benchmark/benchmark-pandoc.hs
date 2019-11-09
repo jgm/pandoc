@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 {-
 Copyright (C) 2012-2019 John MacFarlane <jgm@berkeley.edu>
 
@@ -24,6 +25,7 @@ import Text.Pandoc.Error (PandocError(..))
 import Control.Monad.Except (throwError)
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString as B
+import qualified Data.Text as T
 import Criterion.Main
 import Criterion.Types (Config(..))
 import Data.List (intersect)
@@ -32,12 +34,12 @@ import System.Environment (getArgs)
 import qualified Data.ByteString.Lazy as BL
 
 readerBench :: Pandoc
-            -> String
+            -> T.Text
             -> Maybe Benchmark
 readerBench doc name =
   case res of
        Right (readerFun, inp) ->
-          Just $ bench (name ++ " reader")
+          Just $ bench (T.unpack $ name <> " reader")
                $ nf (\i -> either (error . show) id $ runPure (readerFun i))
                  inp
        Left _ -> Nothing
@@ -51,9 +53,9 @@ readerBench doc name =
                                  , writerExtensions = wexts } doc
                      return $ (r def{ readerExtensions = rexts }, inp)
             _ -> throwError $ PandocSomeError $ "not a text format: "
-                                 ++ name
+                                 <> name
 
-getImages :: IO [(FilePath, MimeType, BL.ByteString)] -- TODO text: replace String with MimeType
+getImages :: IO [(FilePath, MimeType, BL.ByteString)]
 getImages = do
   ll <- BL.readFile "test/lalune.jpg"
   mv <- BL.readFile "test/movie.jpg"
@@ -61,13 +63,13 @@ getImages = do
          ,("movie.jpg", "image/jpg", mv)]
 
 writerBench :: Pandoc
-            -> String
+            -> T.Text
             -> Maybe Benchmark
 writerBench doc name =
   case res of
        Right writerFun ->
           Just $ env getImages $ \imgs ->
-            bench (name ++ " writer")
+            bench (T.unpack $ name <> " writer")
                $ nf (\d -> either (error . show) id $
                             runPure (do mapM_
                                           (\(fp, mt, bs) ->
@@ -81,11 +83,11 @@ writerBench doc name =
             TextWriter w ->
               return $ w def{ writerExtensions = wexts }
             _ -> throwError $ PandocSomeError
-                 $ "could not get text writer for " ++ name
+                 $ "could not get text writer for " <> name
 
 main :: IO ()
 main = do
-  args <- filter (\x -> take 1 x /= "-") <$> getArgs
+  args <- filter (\x -> T.take 1 x /= "-") . fmap T.pack <$> getArgs
   print args
   let matchReader (n, TextReader _) =
          null args || ("reader" `elem` args && n `elem` args)
@@ -94,9 +96,9 @@ main = do
          null args || ("writer" `elem` args && n `elem` args)
       matchWriter _                 = False
   let matchedReaders = map fst $ (filter matchReader readers
-                                    :: [(String, Reader PandocPure)])
+                                    :: [(T.Text, Reader PandocPure)])
   let matchedWriters = map fst $ (filter matchWriter writers
-                                    :: [(String, Writer PandocPure)])
+                                    :: [(T.Text, Writer PandocPure)])
   inp <- UTF8.toText <$> B.readFile "test/testsuite.txt"
   let opts = def
   let doc = either (error . show) id $ runPure $ readMarkdown opts inp
