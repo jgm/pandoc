@@ -35,10 +35,10 @@ import System.FilePath
 import Test.Tasty
 import Test.Tasty.HUnit
 import Text.Pandoc.Builder (Blocks, Inlines, doc, plain)
-import Text.Pandoc.Legacy.Class
+import Text.Pandoc.Class
 import Text.Pandoc.Definition
-import Text.Pandoc.Legacy.Options
-import Text.Pandoc.Legacy.Shared (trimr)
+import Text.Pandoc.Options
+import Text.Pandoc.Shared (trimr)
 import Text.Pandoc.Writers.Native (writeNative)
 import Text.Printf
 
@@ -142,7 +142,7 @@ instance ToString Blocks where
   toString = unpack . purely (writeNative def) . toPandoc
 
 instance ToString Inlines where
-  toString = trimr . unpack . purely (writeNative def) . toPandoc
+  toString = unpack . trimr . purely (writeNative def) . toPandoc
 
 instance ToString String where
   toString = id
