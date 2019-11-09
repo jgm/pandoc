@@ -19,12 +19,13 @@ import Prelude
 import Control.Monad.State.Strict
 import Data.Default
 import Data.Text (Text)
-import Text.Pandoc.Legacy.Class (PandocMonad, report)
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Legacy.Options
+import qualified Data.Text as T
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
 import Text.DocLayout
-import Text.Pandoc.Legacy.Shared -- TODO text: remove Legacy
+import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 
@@ -71,8 +72,8 @@ notesToHaddock opts notes =
        return $ text "#notes#" <> blankline <> contents
 
 -- | Escape special characters for Haddock.
-escapeString :: String -> String
-escapeString = escapeStringUsing haddockEscapes
+escapeString :: Text -> Text
+escapeString = escapeTextUsing haddockEscapes
   where haddockEscapes = backslashEscapes "\\/'`\"@<"
 
 -- | Convert Pandoc block element to haddock.
@@ -88,8 +89,9 @@ blockToHaddock opts (Plain inlines) = do
   contents <- inlineListToHaddock opts inlines
   return $ contents <> cr
 -- title beginning with fig: indicates figure
-blockToHaddock opts (Para [Image attr alt (src,'f':'i':'g':':':tit)]) =
-  blockToHaddock opts (Para [Image attr alt (src,tit)])
+blockToHaddock opts (Para [Image attr alt (src,tgt)])
+  | Just tit <- T.stripPrefix "fig:" tgt
+  = blockToHaddock opts (Para [Image attr alt (src,tit)])
 blockToHaddock opts (Para inlines) =
   -- TODO:  if it contains linebreaks, we need to use a @...@ block
   (<> blankline) `fmap` blockToHaddock opts (Plain inlines)
@@ -97,7 +99,7 @@ blockToHaddock opts (LineBlock lns) =
   blockToHaddock opts $ linesToPara lns
 blockToHaddock _ b@(RawBlock f str)
   | f == "haddock" =
-      return $ text str <> text "\n"
+      return $ literal str <> text "\n"
   | otherwise = do
     report $ BlockNotRendered b
     return empty
@@ -105,13 +107,13 @@ blockToHaddock opts HorizontalRule =
   return $ blankline <> text (replicate (writerColumns opts) '_') <> blankline
 blockToHaddock opts (Header level (ident,_,_) inlines) = do
   contents <- inlineListToHaddock opts inlines
-  let attr' = if null ident
+  let attr' = if T.null ident
                  then empty
-                 else cr <> text "#" <> text ident <> text "#"
+                 else cr <> text "#" <> literal ident <> text "#"
   return $ nowrap (text (replicate level '=') <> space <> contents)
                  <> attr' <> blankline
 blockToHaddock _ (CodeBlock (_,_,_) str) =
-  return $ prefixed "> " (text str) <> blankline
+  return $ prefixed "> " (literal str) <> blankline
 -- Nothing in haddock corresponds to block quotes:
 blockToHaddock opts (BlockQuote blocks) =
   blockListToHaddock opts blocks
@@ -130,8 +132,8 @@ blockToHaddock opts (BulletList items) = do
 blockToHaddock opts (OrderedList (start,_,delim) items) = do
   let attribs = (start, Decimal, delim)
   let markers  = orderedListMarkers attribs
-  let markers' = map (\m -> if length m < 3
-                               then m ++ replicate (3 - length m) ' '
+  let markers' = map (\m -> if T.length m < 3
+                               then m <> T.replicate (3 - T.length m) " "
                                else m) markers
   contents <- zipWithM (orderedListItemToHaddock opts) markers' items
   return $ (if isTightList items then vcat else vsep) contents <> blankline
@@ -154,15 +156,15 @@ bulletListItemToHaddock opts items = do
 -- | Convert ordered list item (a list of blocks) to haddock
 orderedListItemToHaddock :: PandocMonad m
                          => WriterOptions -- ^ options
-                         -> String        -- ^ list item marker
+                         -> Text        -- ^ list item marker
                          -> [Block]       -- ^ list item (list of blocks)
                          -> StateT WriterState m (Doc Text)
 orderedListItemToHaddock opts marker items = do
   contents <- blockListToHaddock opts items
-  let sps = case length marker - writerTabStop opts of
+  let sps = case T.length marker - writerTabStop opts of
                    n | n > 0 -> text $ replicate n ' '
                    _ -> text " "
-  let start = text marker <> sps
+  let start = literal marker <> sps
   return $ hang (writerTabStop opts) start contents $$
            if endsWithPlain items
               then cr
@@ -202,8 +204,8 @@ inlineToHaddock :: PandocMonad m
                 => WriterOptions -> Inline -> StateT WriterState m (Doc Text)
 inlineToHaddock opts (Span (ident,_,_) ils) = do
   contents <- inlineListToHaddock opts ils
-  if not (null ident) && null ils
-     then return $ "#" <> text ident <> "#"
+  if not (T.null ident) && null ils
+     then return $ "#" <> literal ident <> "#"
      else return contents
 inlineToHaddock opts (Emph lst) = do
   contents <- inlineListToHaddock opts lst
@@ -228,15 +230,15 @@ inlineToHaddock opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToHaddock opts lst
   return $ "“" <> contents <> "”"
 inlineToHaddock _ (Code _ str) =
-  return $ "@" <> text (escapeString str) <> "@"
+  return $ "@" <> literal (escapeString str) <> "@"
 inlineToHaddock _ (Str str) =
-  return $ text $ escapeString str
+  return $ literal $ escapeString str
 inlineToHaddock _ (Math mt str) =
   return $ case mt of
-    DisplayMath -> cr <> "\\[" <> text str <> "\\]" <> cr
-    InlineMath  -> "\\(" <> text str <> "\\)"
+    DisplayMath -> cr <> "\\[" <> literal str <> "\\]" <> cr
+    InlineMath  -> "\\(" <> literal str <> "\\)"
 inlineToHaddock _ il@(RawInline f str)
-  | f == "haddock" = return $ text str
+  | f == "haddock" = return $ literal str
   | otherwise = do
     report $ InlineNotRendered il
     return empty
@@ -250,12 +252,12 @@ inlineToHaddock opts SoftBreak =
 inlineToHaddock _ Space = return space
 inlineToHaddock opts (Cite _ lst) = inlineListToHaddock opts lst
 inlineToHaddock _ (Link _ txt (src, _)) = do
-  let linktext = text $ escapeString $ stringify txt
+  let linktext = literal $ escapeString $ stringify txt
   let useAuto = isURI src &&
                 case txt of
                       [Str s] | escapeURI s == src -> True
                       _       -> False
-  return $ nowrap $ "<" <> text src <>
+  return $ nowrap $ "<" <> literal src <>
            (if useAuto then empty else space <> linktext) <> ">"
 inlineToHaddock opts (Image attr alternate (source, tit)) = do
   linkhaddock <- inlineToHaddock opts (Link attr alternate (source, tit))
@@ -264,5 +266,5 @@ inlineToHaddock opts (Image attr alternate (source, tit)) = do
 inlineToHaddock opts (Note contents) = do
   modify (\st -> st{ stNotes = contents : stNotes st })
   st <- get
-  let ref = text $ writerIdentifierPrefix opts ++ show (length $ stNotes st)
+  let ref = literal $ writerIdentifierPrefix opts <> tshow (length $ stNotes st)
   return $ "<#notes [" <> ref <> "]>"
