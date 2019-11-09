@@ -2795,9 +2795,9 @@ Returns:
 
 -   The result(s) of the call to `callback`
 
-### with\_temporary\_directory {#system-with_temporary_directory}
+### with\_temp\_directory {#system-with_temp_directory}
 
-`with_temporary_directory ([parent_dir,] templ, callback)`
+`with_temp_directory ([parent_dir,] templ, callback)`
 
 Create and use a temporary directory inside the given directory.
 The directory is deleted after the callback returns.
