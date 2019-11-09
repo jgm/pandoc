@@ -19,20 +19,19 @@ where
 import Prelude
 import Control.Monad.State
 import qualified Data.Map as M
-import Data.Char (toLower)
 import Data.Maybe (catMaybes, fromMaybe)
-import Text.Pandoc.Legacy.Options
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
+import Text.Pandoc.Options
+import Text.Pandoc.Definition
 import Data.Ipynb as Ipynb
 import Text.Pandoc.Walk (walkM)
-import qualified Text.Pandoc.Legacy.Builder as B -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Class
-import Text.Pandoc.Legacy.Logging
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class
+import Text.Pandoc.Logging
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Aeson as Aeson
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Legacy.Shared (safeRead, isURI) -- TODO text: remove Legacy
+import Text.Pandoc.Shared (safeRead, isURI)
 import Text.Pandoc.Writers.Shared (metaToContext')
 import Text.Pandoc.Writers.Markdown (writeMarkdown)
 import qualified Data.Text.Encoding as TE
@@ -94,8 +93,8 @@ addAttachment :: PandocMonad m
 addAttachment (Image attr lab (src,tit))
   | not (isURI src) = do
   (img, mbmt) <- fetchItem src
-  let mt = maybe "application/octet-stream" (T.pack) mbmt
-  modify $ M.insert (T.pack src)
+  let mt = fromMaybe "application/octet-stream" mbmt
+  modify $ M.insert src
           (MimeBundle (M.insert mt (BinaryData img) mempty))
   return $ Image attr lab ("attachment:" <> src, tit)
 addAttachment x = return x
@@ -121,7 +120,7 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
   , "code" `elem` classes = do
       let (codeContent, rest) =
             case xs of
-               (CodeBlock _ t : ys) -> (T.pack t, ys)
+               (CodeBlock _ t : ys) -> (t, ys)
                ys                   -> (mempty, ys)
       let meta = pairsToJSONMeta kvs
       outputs <- catMaybes <$> mapM blockToOutput rest
@@ -139,7 +138,7 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
       case consolidateAdjacentRawBlocks xs of
         [RawBlock (Format f) raw] -> do
           let format' =
-                case map toLower f of
+                case T.toLower f of
                   "html"     -> "text/html"
                   "revealjs" -> "text/html"
                   "latex"    -> "text/latex"
@@ -148,11 +147,11 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
                   _          -> f
           (Cell{
               cellType = Raw
-            , cellSource = Source $ breakLines $ T.pack raw
+            , cellSource = Source $ breakLines raw
             , cellMetadata = if format' == "ipynb" -- means no format given
                                 then mempty
                                 else M.insert "format"
-                                       (Aeson.String $ T.pack format') mempty
+                                       (Aeson.String format') mempty
             , cellAttachments = Nothing } :) <$> extractCells opts bs
         _ -> extractCells opts bs
 extractCells opts (CodeBlock (_id,classes,kvs) raw : bs)
@@ -164,7 +163,7 @@ extractCells opts (CodeBlock (_id,classes,kvs) raw : bs)
                 codeExecutionCount = exeCount
               , codeOutputs = []
               }
-        , cellSource = Source $ breakLines $ T.pack raw
+        , cellSource = Source $ breakLines raw
         , cellMetadata = meta
         , cellAttachments = Nothing } :) <$> extractCells opts bs
 extractCells opts (b:bs) = do
@@ -177,13 +176,13 @@ extractCells opts (b:bs) = do
 blockToOutput :: PandocMonad m => Block -> m (Maybe (Output a))
 blockToOutput (Div (_,["output","stream",sname],_) (CodeBlock _ t:_)) =
   return $ Just
-         $ Stream{ streamName = T.pack sname
-               , streamText = Source (breakLines $ T.pack t) }
+         $ Stream{ streamName = sname
+               , streamText = Source (breakLines t) }
 blockToOutput (Div (_,["output","error"],kvs) (CodeBlock _ t:_)) =
   return $ Just
-         $ Err{ errName = maybe mempty T.pack (lookup "ename" kvs)
-              , errValue = maybe mempty T.pack (lookup "evalue" kvs)
-              , errTraceback = breakLines $ T.pack t }
+         $ Err{ errName = fromMaybe mempty (lookup "ename" kvs)
+              , errValue = fromMaybe mempty (lookup "evalue" kvs)
+              , errTraceback = breakLines t }
 blockToOutput (Div (_,["output","execute_result"],kvs) bs) = do
   (data', metadata') <- extractData bs
   return $ Just
@@ -207,28 +206,28 @@ extractData bs = do
       (img, mbmt) <- fetchItem src
       case mbmt of
         Just mt -> return
-          (M.insert (T.pack mt) (BinaryData img) mmap,
+          (M.insert mt (BinaryData img) mmap,
            meta <> pairsToJSONMeta kvs)
         Nothing -> (mmap, meta) <$ report (BlockNotRendered b)
     go (mmap, meta) b@(CodeBlock (_,["json"],_) code) =
-      case decode (UTF8.fromStringLazy code) of
+      case decode (UTF8.fromStringLazy $ T.unpack code) of -- TODO text: refactor
         Just v  -> return
                     (M.insert "application/json" (JsonData v) mmap, meta)
         Nothing -> (mmap, meta) <$ report (BlockNotRendered b)
     go (mmap, meta) (CodeBlock ("",[],[]) code) =
-       return (M.insert "text/plain" (TextualData (T.pack code)) mmap, meta)
+       return (M.insert "text/plain" (TextualData code) mmap, meta)
     go (mmap, meta) (RawBlock (Format "html") raw) =
-       return (M.insert "text/html" (TextualData (T.pack raw)) mmap, meta)
+       return (M.insert "text/html" (TextualData raw) mmap, meta)
     go (mmap, meta) (RawBlock (Format "latex") raw) =
-       return (M.insert "text/latex" (TextualData (T.pack raw)) mmap, meta)
+       return (M.insert "text/latex" (TextualData raw) mmap, meta)
     go (mmap, meta) (Div _ bs') = foldM go (mmap, meta) bs'
     go (mmap, meta) b = (mmap, meta) <$ report (BlockNotRendered b)
 
-pairsToJSONMeta :: [(String, String)] -> JSONMeta
+pairsToJSONMeta :: [(Text, Text)] -> JSONMeta
 pairsToJSONMeta kvs =
-  M.fromList [(T.pack k, case Aeson.decode (UTF8.fromStringLazy v) of
+  M.fromList [(k, case Aeson.decode (UTF8.fromStringLazy $ T.unpack v) of -- TODO text: refactor
                            Just val -> val
-                           Nothing  -> String (T.pack v))
+                           Nothing  -> String v)
              | (k,v) <- kvs
              , k /= "execution_count"
              ]
