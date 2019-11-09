@@ -94,15 +94,16 @@ escapeStr opts =
 escapeUri :: Text -> Text
 escapeUri = T.pack . escapeURIString (\c -> c /= '@' && isAllowedInURI c) . T.unpack
 
-toSmallCaps :: WriterOptions -> Text -> Text -- TODO text: refactor
-toSmallCaps _ "" = ""
-toSmallCaps opts s@(T.uncons -> Just (c,cs))
-  | isLower c = let (lowers,rest) = T.span isLower s
-                in  "\\s-2" <> escapeStr opts (T.toUpper lowers) <>
-                    "\\s0" <> toSmallCaps opts rest
-  | isUpper c = let (uppers,rest) = T.span isUpper s
-                in  escapeStr opts uppers <> toSmallCaps opts rest
-  | otherwise = escapeStr opts (T.singleton c) <> toSmallCaps opts cs
+toSmallCaps :: WriterOptions -> Text -> Text
+toSmallCaps opts s = case T.uncons s of
+  Nothing -> ""
+  Just (c, cs)
+    | isLower c -> let (lowers,rest) = T.span isLower s
+                   in  "\\s-2" <> escapeStr opts (T.toUpper lowers) <>
+                       "\\s0" <> toSmallCaps opts rest
+    | isUpper c -> let (uppers,rest) = T.span isUpper s
+                   in  escapeStr opts uppers <> toSmallCaps opts rest
+    | otherwise -> escapeStr opts (T.singleton c) <> toSmallCaps opts cs
 
 -- We split inline lists into sentences, and print one sentence per
 -- line.  roff treats the line-ending period differently.

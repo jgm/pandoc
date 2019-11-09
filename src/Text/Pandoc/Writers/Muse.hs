@@ -468,10 +468,10 @@ startsWithSpace (SoftBreak:_) = True
 startsWithSpace (Str s:_)     = stringStartsWithSpace s
 startsWithSpace _             = False
 
-endsWithSpace :: [Inline] -> Bool -- TODO text: refactor
+endsWithSpace :: [Inline] -> Bool
 endsWithSpace [Space]     = True
 endsWithSpace [SoftBreak] = True
-endsWithSpace [Str s]     = stringStartsWithSpace $ T.reverse s
+endsWithSpace [Str s]     = stringEndsWithSpace s
 endsWithSpace (_:xs)      = endsWithSpace xs
 endsWithSpace []          = False
 
@@ -486,9 +486,11 @@ urlEscapeBrackets' []       = []
 isHorizontalRule :: Text -> Bool
 isHorizontalRule s = T.length s >= 4 && T.all (== '-') s
 
-stringStartsWithSpace :: Text -> Bool -- TODO text: refactor
-stringStartsWithSpace (T.uncons -> Just (x,_)) = isSpace x
-stringStartsWithSpace ""    = False
+stringStartsWithSpace :: Text -> Bool
+stringStartsWithSpace = maybe False (isSpace . fst) . T.uncons
+
+stringEndsWithSpace :: Text -> Bool
+stringEndsWithSpace = maybe False (isSpace . snd) . T.unsnoc
 
 -- TODO text: refactor, exists for fixOrEscape
 fixOrEscapeStr :: Bool -> String -> Bool
