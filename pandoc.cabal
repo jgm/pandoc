@@ -549,24 +549,6 @@ library
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.BCP47,
                    Text.Pandoc.Class
-                   -- TODO text: temporarily exposed
-                   , Text.Pandoc.Legacy.Extensions
-                   , Text.Pandoc.Legacy.Shared
-                   , Text.Pandoc.Legacy.Highlighting
-                   , Text.Pandoc.Legacy.Logging
-                   , Text.Pandoc.Legacy.MIME
-                   , Text.Pandoc.Legacy.Options
-                   , Text.Pandoc.Legacy.BCP47
-                   , Text.Pandoc.Legacy.CSS
-                   , Text.Pandoc.Legacy.Emoji
-                   , Text.Pandoc.Legacy.Error
-                   , Text.Pandoc.Legacy.ImageSize
-                   , Text.Pandoc.Legacy.MediaBag
-                   , Text.Pandoc.Legacy.Class
-                   , Text.Pandoc.Legacy.SelfContained
-                   , Text.Pandoc.Legacy.Process
-                   , Text.Pandoc.Legacy.XML
-                   --
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,
                    Text.Pandoc.App.Opt,
