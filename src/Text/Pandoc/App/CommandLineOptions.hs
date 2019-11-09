@@ -971,8 +971,8 @@ handleUnrecognizedOption x =
 readersNames :: [String] -- TODO text: refactor
 readersNames = sort (map (T.unpack . fst) (readers :: [(Text, Reader PandocIO)]))
 
-writersNames :: [String]
-writersNames = sort (map fst (writers :: [(String, Writer PandocIO)]))
+writersNames :: [String] -- TODO text: refactor
+writersNames = sort (map (T.unpack . fst) (writers :: [(Text, Writer PandocIO)]))
 
 splitField :: String -> (String, String)
 splitField s =

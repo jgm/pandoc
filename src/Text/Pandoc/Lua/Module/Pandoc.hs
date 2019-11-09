@@ -80,7 +80,7 @@ readDoc content formatSpecOrNil = do
 
 -- | Pipes input through a command.
 pipeFn :: String
-       -> [T.Text]
+       -> [String]
        -> BL.ByteString
        -> Lua NumResults
 pipeFn command args input = do

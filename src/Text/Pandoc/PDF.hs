@@ -1,4 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -40,13 +40,13 @@ import System.IO.Temp (withSystemTempDirectory, withTempDirectory,
                        withTempFile)
 import qualified System.IO.Error as IE
 import Text.DocLayout (literal)
-import Text.Pandoc.Legacy.Definition -- TODO text: remove Legacy
--- import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError)) TODO text: restore
-import Text.Pandoc.Legacy.MIME (getMimeType)
--- import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..)) TODO text: restore
-import Text.Pandoc.Legacy.Process (pipeProcess)
+import Text.Pandoc.Definition
+import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
+import Text.Pandoc.MIME (getMimeType)
+import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
+import Text.Pandoc.Process (pipeProcess)
 import System.Process (readProcessWithExitCode)
-import Text.Pandoc.Legacy.Shared (inDirectory, stringify)
+import Text.Pandoc.Shared (inDirectory, stringify, tshow)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Writers.Shared (getField, metaToContext)
@@ -54,15 +54,10 @@ import Text.Pandoc.Writers.Shared (getField, metaToContext)
 import Data.List (intercalate)
 #endif
 import Data.List (isPrefixOf, find)
-import Text.Pandoc.Legacy.Class (PandocIO, extractMedia, fillMediaBag, getCommonState,
+import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getCommonState,
                           getVerbosity, putCommonState, report,
                           runIOorExplode, setVerbosity)
-import Text.Pandoc.Legacy.Logging
-
--- TODO text: remove
-import Text.Pandoc.Legacy.Options
-import Text.Pandoc.Legacy.Error
---
+import Text.Pandoc.Logging
 
 #ifdef _WINDOWS
 changePathSeparators :: FilePath -> FilePath
@@ -146,7 +141,7 @@ makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
              (return . literal . stringify)
              (return . literal . stringify)
              meta
-  let toArgs (f, mbd) = maybe [] (\d -> ['-':'-':f, d]) mbd
+  let toArgs (f, mbd) = maybe [] (\d -> ["--" <> f, T.unpack d]) mbd
   let args   = pdfargs ++ mathArgs ++ concatMap toArgs
                  [("page-size", getField "papersize" meta')
                  ,("title", getField "title" meta')
@@ -178,19 +173,19 @@ handleImages opts tmpdir doc =
 
 convertImages :: WriterOptions -> FilePath -> Inline -> PandocIO Inline
 convertImages opts tmpdir (Image attr ils (src, tit)) = do
-  img <- liftIO $ convertImage opts tmpdir src
+  img <- liftIO $ convertImage opts tmpdir $ T.unpack src
   newPath <-
     case img of
       Left e -> do
         report $ CouldNotConvertImage src e
         return src
-      Right fp -> return fp
+      Right fp -> return $ T.pack fp
   return (Image attr ils (newPath, tit))
 convertImages _ _ x = return x
 
 -- Convert formats which do not work well in pdf to png
 convertImage :: WriterOptions -> FilePath -> FilePath
-             -> IO (Either String FilePath)
+             -> IO (Either Text FilePath)
 convertImage opts tmpdir fname = do
   let dpi = show $ writerDpi opts
   case mime of
@@ -207,14 +202,14 @@ convertImage opts tmpdir fname = do
          then return $ Right pdfOut
          else return $ Left "conversion from SVG failed")
       (\(e :: E.SomeException) -> return $ Left $
-          "check that rsvg-convert is in path.\n" ++
-          show e)
+          "check that rsvg-convert is in path.\n" <>
+          tshow e)
     _ -> JP.readImage fname >>= \res ->
           case res of
-               Left e    -> return $ Left e
+               Left e    -> return $ Left $ T.pack e
                Right img ->
                  E.catch (Right pngOut <$ JP.savePngImage pngOut img) $
-                     \(e :: E.SomeException) -> return (Left (show e))
+                     \(e :: E.SomeException) -> return (Left (tshow e))
   where
     pngOut = replaceDirectory (replaceExtension fname ".png") tmpdir
     pdfOut = replaceDirectory (replaceExtension fname ".pdf") tmpdir
@@ -267,12 +262,11 @@ missingCharacterWarnings :: Verbosity -> ByteString -> PandocIO ()
 missingCharacterWarnings verbosity log' = do
   let ls = BC.lines log'
   let isMissingCharacterWarning = BC.isPrefixOf "Missing character: "
-  let addCodePoint [] = []
-      addCodePoint (c:cs)
-        | isAscii c   = c : addCodePoint cs
-        | otherwise   = c : " (U+" ++ printf "%04X" (ord c) ++ ")" ++
-                            addCodePoint cs
-  let warnings = [ addCodePoint (utf8ToString (BC.drop 19 l))
+  let toCodePoint c
+        | isAscii c   = T.singleton c
+        | otherwise   = T.pack $ c : " (U+" ++ printf "%04X" (ord c) ++ ")"
+  let addCodePoint = T.concatMap toCodePoint
+  let warnings = [ addCodePoint (T.pack $ utf8ToString (BC.drop 19 l))
                  | l <- ls
                  , isMissingCharacterWarning l
                  ]
@@ -518,7 +512,7 @@ showVerboseInfo mbTmpDir program programArgs env source = do
 handlePDFProgramNotFound :: String -> IE.IOError -> IO a
 handlePDFProgramNotFound program e
   | IE.isDoesNotExistError e =
-      E.throwIO $ PandocPDFProgramNotFoundError program
+      E.throwIO $ PandocPDFProgramNotFoundError $ T.pack program
   | otherwise = E.throwIO e
 
 utf8ToString :: ByteString -> String

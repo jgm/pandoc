@@ -58,7 +58,7 @@ instance FromYAML Filter where
 -- | Modify the given document using a filter.
 applyFilters :: ReaderOptions
              -> [Filter]
-             -> [T.Text]
+             -> [String]
              -> Pandoc
              -> PandocIO Pandoc
 applyFilters ropts filters args d = do

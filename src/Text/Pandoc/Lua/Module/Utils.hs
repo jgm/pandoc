@@ -72,7 +72,7 @@ normalizeDate = return . Lua.Optional . Shared.normalizeDate
 runJSONFilter :: Maybe FilePath
               -> Pandoc
               -> FilePath
-              -> Lua.Optional [T.Text]
+              -> Lua.Optional [String]
               -> Lua NumResults
 runJSONFilter mbDatadir doc filterFile optArgs = do
   args <- case Lua.fromOptional optArgs of

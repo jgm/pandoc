@@ -35,14 +35,14 @@ import qualified Control.Exception as E
 import qualified Text.Pandoc.UTF8 as UTF8
 
 apply :: ReaderOptions
-      -> [T.Text]
+      -> [String]
       -> FilePath
       -> Pandoc
       -> PandocIO Pandoc
 apply ropts args f = liftIO . externalFilter ropts f args
 
 externalFilter :: MonadIO m
-               => ReaderOptions -> FilePath -> [T.Text] -> Pandoc -> m Pandoc
+               => ReaderOptions -> FilePath -> [String] -> Pandoc -> m Pandoc
 externalFilter ropts f args' d = liftIO $ do
   exists <- doesFileExist f
   isExecutable <- if exists
@@ -51,13 +51,13 @@ externalFilter ropts f args' d = liftIO $ do
   let (f', args'') = if exists
                         then case map toLower (takeExtension f) of
                                   _      | isExecutable -> ("." </> f, args')
-                                  ".py"  -> ("python", fText:args')
-                                  ".hs"  -> ("runhaskell", fText:args')
-                                  ".pl"  -> ("perl", fText:args')
-                                  ".rb"  -> ("ruby", fText:args')
-                                  ".php" -> ("php", fText:args')
-                                  ".js"  -> ("node", fText:args')
-                                  ".r"   -> ("Rscript", fText:args')
+                                  ".py"  -> ("python", f:args')
+                                  ".hs"  -> ("runhaskell", f:args')
+                                  ".pl"  -> ("perl", f:args')
+                                  ".rb"  -> ("ruby", f:args')
+                                  ".php" -> ("php", f:args')
+                                  ".js"  -> ("node", f:args')
+                                  ".r"   -> ("Rscript", f:args')
                                   _      -> (f, args')
                         else (f, args')
   unless (exists && isExecutable) $ do
@@ -66,9 +66,9 @@ externalFilter ropts f args' d = liftIO $ do
       E.throwIO $ PandocFilterError fText (T.pack $ "Could not find executable " <> f')
   env <- getEnvironment
   let env' = Just
-           ( ("PANDOC_VERSION", pandocVersion)
-           : ("PANDOC_READER_OPTIONS", (T.pack . UTF8.toStringLazy) (encode ropts))
-           : map (\(x, y) -> (T.pack x, T.pack y)) env )
+           ( ("PANDOC_VERSION", T.unpack pandocVersion)
+           : ("PANDOC_READER_OPTIONS", UTF8.toStringLazy (encode ropts))
+           : env )
   (exitcode, outbs) <- E.handle filterException $
                               pipeProcess env' f' args'' $ encode d
   case exitcode of

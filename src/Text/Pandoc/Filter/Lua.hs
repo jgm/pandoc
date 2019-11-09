@@ -27,7 +27,7 @@ import Text.Pandoc.Options (ReaderOptions)
 -- target format (first element in args). Pandoc uses Lua init files to
 -- setup the Lua interpreter.
 apply :: ReaderOptions
-      -> [T.Text]
+      -> [String]
       -> FilePath
       -> Pandoc
       -> PandocIO Pandoc
@@ -36,7 +36,7 @@ apply ropts args fp doc = do
                  (x:_) -> x
                  _     -> error "Format not supplied for Lua filter"
   runLua >=> forceResult fp $ do
-    setGlobals [ FORMAT format
+    setGlobals [ FORMAT $ T.pack format
                , PANDOC_READER_OPTIONS ropts
                , PANDOC_SCRIPT_FILE fp
                ]

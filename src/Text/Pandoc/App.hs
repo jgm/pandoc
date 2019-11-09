@@ -292,7 +292,7 @@ convertWithOpts opts = do
               >=> return . adjustMetadata (metadataFromFile <>)
               >=> return . adjustMetadata (<> metadata)
               >=> applyTransforms transforms
-              >=> applyFilters readerOpts filters' [T.pack format] -- TODO text: refactor
+              >=> applyFilters readerOpts filters' [format]
               >=> maybe return extractMedia (optExtractMedia opts)
               )
 

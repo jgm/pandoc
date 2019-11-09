@@ -98,7 +98,7 @@ optToOutputSettings opts = do
                then return (TextWriter
                        (\o d -> writeCustom writerName o d)
                                :: Writer PandocIO, mempty)
-               else getWriter (map toLower writerName)
+               else getWriter (T.toLower $ T.pack writerName) -- TODO text: refactor
 
   let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
 
