@@ -14,7 +14,7 @@ module Text.Pandoc.Legacy.Class
                    )
   , lookupEnv
   , openURL
-  , glob
+  , TP.glob
   , trace
   , insertMedia
   , TP.CommonState
@@ -165,9 +165,6 @@ openURL :: TP.PandocMonad m => String -> m (B.ByteString, Maybe MimeType)
 openURL = fmap go . TP.openURL . T.pack
   where
     go (x, y) = (x, fmap T.unpack y)
-
-glob :: TP.PandocMonad m => String -> m [FilePath]
-glob = TP.glob . T.pack
 
 trace :: TP.PandocMonad m => String -> m ()
 trace = TP.trace . T.pack

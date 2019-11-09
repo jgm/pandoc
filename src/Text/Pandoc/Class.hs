@@ -176,7 +176,7 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   -- | Return a list of paths that match a glob, relative to
   -- the working directory.  See 'System.FilePath.Glob' for
   -- the glob syntax.
-  glob :: T.Text -> m [FilePath]
+  glob :: String -> m [FilePath]
   -- | Returns True if file exists.
   fileExists :: FilePath -> m Bool
   -- | Returns the path of data file.
@@ -508,7 +508,7 @@ instance PandocMonad PandocIO where
   readFileLazy s = liftIOError BL.readFile s
   readFileStrict s = liftIOError B.readFile s
 
-  glob = liftIOError IO.glob . T.unpack
+  glob = liftIOError IO.glob
   fileExists = liftIOError Directory.doesFileExist
 #ifdef EMBED_DATA_FILES
   getDataFileName = return
@@ -1007,7 +1007,7 @@ instance PandocMonad PandocPure where
 
   glob s = do
     FileTree ftmap <- getsPureState stFiles
-    return $ filter (match (compile $ T.unpack s)) $ M.keys ftmap
+    return $ filter (match (compile s)) $ M.keys ftmap
 
   fileExists fp = do
     fps <- getsPureState stFiles
