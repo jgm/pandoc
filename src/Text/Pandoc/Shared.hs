@@ -35,6 +35,8 @@ module Text.Pandoc.Shared (
                      tshow,
                      backslashEscapes,
                      escapeTextUsing,
+                     elemText,
+                     notElemText,
                      stripTrailingNewlines,
                      trim,
                      triml,
@@ -96,6 +98,7 @@ module Text.Pandoc.Shared (
                      defaultBlocksSeparator,
                      -- * Safe read
                      safeRead,
+                     safeStrRead,
                      -- * User data directory
                      defaultUserDataDirs,
                      -- * Version
@@ -239,6 +242,14 @@ escapeStringUsing' escapeTable (x:xs) =
        Nothing  -> x:rest
   where rest = escapeStringUsing' escapeTable xs
 --
+
+-- | @True@ exactly when the @Char@ appears in the @Text@.
+elemText :: Char -> T.Text -> Bool
+elemText c = T.any (== c)
+
+-- | @True@ exactly when the @Char@ does not appear in the @Text@.
+notElemText :: Char -> T.Text -> Bool
+notElemText c = T.all (/= c)
 
 -- | Strip trailing newlines from string.
 stripTrailingNewlines :: T.Text -> T.Text
@@ -1026,11 +1037,13 @@ defaultBlocksSeparator =
 --
 
 safeRead :: (MonadPlus m, Read a) => T.Text -> m a
-safeRead s = case reads (T.unpack s) of -- TODO text: refactor
+safeRead = safeStrRead . T.unpack
+
+safeStrRead :: (MonadPlus m, Read a) => String -> m a
+safeStrRead s = case reads s of
                   (d,x):_
                     | all isSpace x -> return d
                   _                 -> mzero
-
 --
 -- User data directory
 --

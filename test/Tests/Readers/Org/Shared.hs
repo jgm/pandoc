@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Org.Shared
    Copyright   : © 2014-2019 Albert Krewinkel
@@ -22,13 +23,9 @@ import Data.List (intersperse)
 import Data.Text (Text)
 import Tests.Helpers (ToString, purely, test)
 import Test.Tasty (TestTree)
--- import Text.Pandoc (Pandoc, ReaderOptions (readerExtensions),
---                     def, getDefaultExtensions, readOrg) TODO text: restore
-import Text.Pandoc.Legacy.Builder (Inlines, smallcaps, space, spanWith, str) -- TODO text: remove Legacy
-
--- TODO text: remove
-import Text.Pandoc
---
+import Text.Pandoc (Pandoc, ReaderOptions (readerExtensions),
+                    def, getDefaultExtensions, readOrg)
+import Text.Pandoc.Builder (Inlines, smallcaps, space, spanWith, str)
 
 org :: Text -> Pandoc
 org = purely $ readOrg def{ readerExtensions = getDefaultExtensions "org" }
@@ -42,5 +39,5 @@ spcSep :: [Inlines] -> Inlines
 spcSep = mconcat . intersperse space
 
 -- | Create a span for the given tag.
-tagSpan :: String -> Inlines
+tagSpan :: Text -> Inlines
 tagSpan t = spanWith ("", ["tag"], [("tag-name", t)]) . smallcaps $ str t

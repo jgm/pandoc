@@ -46,33 +46,27 @@ import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
--- import Text.Pandoc -- TODO text: restore
+import Text.Pandoc
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
                             IpynbOutput (..) )
 import Text.Pandoc.App.CommandLineOptions (parseOptions, options)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
--- import Text.Pandoc.BCP47 (Lang (..), parseBCP47) TODO text: restore
-import Text.Pandoc.Legacy.Builder (setMeta) -- TODO text: remove Legacy
+import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
+import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), applyFilters)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
-import Text.Pandoc.Legacy.SelfContained (makeDataURI, makeSelfContained)
-import Text.Pandoc.Legacy.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
+import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
+import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
          headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput,
-         defaultUserDataDirs)
+         defaultUserDataDirs, tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import qualified Text.Pandoc.UTF8 as UTF8
 #ifndef _WINDOWS
 import System.Posix.IO (stdOutput)
 import System.Posix.Terminal (queryTerminal)
 #endif
-
--- TODO text: remove
-import Text.Pandoc hiding (MetaValue(..), lookupMeta, Format(..))
-import Text.Pandoc.Legacy.Builder (lookupMeta,  pattern Format)
-import Text.Pandoc.Legacy.BCP47
---
 
 convertWithOpts :: Opt -> IO ()
 convertWithOpts opts = do
@@ -148,23 +142,23 @@ convertWithOpts opts = do
                        Nothing -> case formatFromFilePaths sources of
                            Just f' -> return f'
                            Nothing | sources == ["-"] -> return "markdown"
-                                   | any isURI sources -> return "html"
+                                   | any (isURI . T.pack) sources -> return "html"
                                    | otherwise -> do
                              report $ CouldNotDeduceFormat
-                                 (map takeExtension sources) "markdown"
+                                 (map (T.pack . takeExtension) sources) "markdown"
                              return "markdown"
 
     let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
 
     when (pdfOutput && readerName == "latex") $
       case (optInputFiles opts) of
-        (inputFile:_) -> report $ UnusualConversion $
+        (inputFile:_) -> report $ UnusualConversion $ T.pack $
           "to convert a .tex file to PDF, you get better results by using pdflatex "
             <> "(or lualatex or xelatex) directly, try `pdflatex " <> inputFile
             <> "` instead of `pandoc " <> inputFile <> " -o " <> outputFile <> "`."
         _ -> return ()
 
-    (reader :: Reader PandocIO, readerExts) <- getReader $ T.pack readerName -- TODO text: refactor
+    (reader :: Reader PandocIO, readerExts) <- getReader readerName
 
     let convertTabs = tabFilter (if optPreserveTabs opts ||
                                       readerName == "t2t" ||
@@ -194,15 +188,15 @@ convertWithOpts opts = do
     when ((pdfOutput || not (isTextFormat format)) &&
              istty && isNothing ( optOutputFile opts)) $
       throwError $ PandocAppError $
-              "Cannot write " ++ format ++ " output to terminal.\n" ++
-              "Specify an output file using the -o option, or " ++
+              "Cannot write " <> format <> " output to terminal.\n" <>
+              "Specify an output file using the -o option, or " <>
               "use '-o -' to force output to stdout."
 
 
-    abbrevs <- Set.fromList . filter (not . null) . lines <$>
+    abbrevs <- Set.fromList . filter (not . T.null) . T.lines <$>
                case optAbbreviations opts of
-                    Nothing -> UTF8.toString <$> readDataFile "abbreviations"
-                    Just f  -> UTF8.toString <$> readFileStrict f
+                    Nothing -> UTF8.toText <$> readDataFile "abbreviations"
+                    Just f  -> UTF8.toText <$> readFileStrict f
 
     metadata <- if format == "jats" &&
                    isNothing (lookupMeta "csl" (optMetadata opts)) &&
@@ -217,8 +211,8 @@ convertWithOpts opts = do
 
     case lookupMetaString "lang" (optMetadata opts) of
            ""      -> setTranslations $ Lang "en" "" "US" []
-           l       -> case parseBCP47 (T.unpack l) of -- TODO text: refactor
-                           Left _   -> report $ InvalidLang $ T.unpack l -- TODO text: refactor
+           l       -> case parseBCP47 l of
+                           Left _   -> report $ InvalidLang l
                            Right l' -> setTranslations l'
 
     let readerOpts = def{
@@ -292,7 +286,7 @@ convertWithOpts opts = do
               >=> return . adjustMetadata (metadataFromFile <>)
               >=> return . adjustMetadata (<> metadata)
               >=> applyTransforms transforms
-              >=> applyFilters readerOpts filters' [format]
+              >=> applyFilters readerOpts filters' [T.unpack format]
               >=> maybe return extractMedia (optExtractMedia opts)
               )
 
@@ -305,7 +299,7 @@ convertWithOpts opts = do
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
                      Left err' -> throwError $ PandocPDFError $
-                                     TL.unpack (TE.decodeUtf8With TE.lenientDecode err')
+                                     TL.toStrict (TE.decodeUtf8With TE.lenientDecode err')
 
         Nothing -> do
                 let ensureNl t
@@ -315,18 +309,16 @@ convertWithOpts opts = do
                 output <- ensureNl <$> f writerOptions doc
                 writerFn eol outputFile =<<
                   if optSelfContained opts && htmlFormat format
-                     -- TODO not maximally efficient; change type
-                     -- of makeSelfContained so it works w/ Text
-                     then T.pack <$> makeSelfContained (T.unpack output)
+                     then makeSelfContained output
                      else return output
 
 type Transform = Pandoc -> Pandoc
 
-htmlFormat :: String -> Bool
+htmlFormat :: Text -> Bool
 htmlFormat = (`elem` ["html","html4","html5","s5","slidy",
                       "slideous","dzslides","revealjs"])
 
-isTextFormat :: String -> Bool
+isTextFormat :: Text -> Bool
 isTextFormat s = s `notElem` ["odt","docx","epub2","epub3","epub","pptx"]
 
 adjustMetadata :: (Meta -> Meta) -> Pandoc -> Pandoc
@@ -342,7 +334,7 @@ readSource src = case parseURI src of
                       Just u | uriScheme u `elem` ["http:","https:"] ->
                                  readURI src
                              | uriScheme u == "file:" -> liftIO $
-                                 readTextFile (uriPathToPath $ uriPath u)
+                                 readTextFile (uriPathToPath $ T.pack $ uriPath u)
                       _       -> liftIO $ readTextFile src
   where readTextFile :: FilePath -> IO Text
         readTextFile fp = do
@@ -354,12 +346,12 @@ readSource src = case parseURI src of
                          TSE.DecodeError _ (Just w) -> do
                            case BS.elemIndex w bs of
                              Just offset -> E.throwIO $
-                                  PandocUTF8DecodingError fp offset w
-                             _ -> E.throwIO $ PandocUTF8DecodingError fp 0 w
-                         _ -> E.throwIO $ PandocAppError (show e))
+                                  PandocUTF8DecodingError (T.pack fp) offset w
+                             _ -> E.throwIO $ PandocUTF8DecodingError (T.pack fp) 0 w
+                         _ -> E.throwIO $ PandocAppError (tshow e))
 
 readURI :: FilePath -> PandocIO Text
-readURI src = UTF8.toText . fst <$> openURL src
+readURI src = UTF8.toText . fst <$> openURL (T.pack src)
 
 readFile' :: MonadIO m => FilePath -> m BL.ByteString
 readFile' "-" = liftIO BL.getContents

@@ -83,7 +83,7 @@ instance (Pushable a, Pushable b) => Pushable (KeyValue a b) where
     Lua.push v
     Lua.rawset (Lua.nthFromTop 3)
 
-data PandocLuaException = PandocLuaException String
+data PandocLuaException = PandocLuaException Text
     deriving (Show, Typeable)
 
 instance Exception PandocLuaException
@@ -100,7 +100,7 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
     -- check for error in lua script (later we'll change the return type
     -- to handle this more gracefully):
     when (stat /= Lua.OK) $
-      Lua.tostring' (-1) >>= throw . PandocLuaException . UTF8.toString
+      Lua.tostring' (-1) >>= throw . PandocLuaException . UTF8.toText
     rendered <- docToCustom opts doc
     context <- metaToContext opts
                (fmap (literal . pack) . blockListToCustom)
@@ -108,7 +108,7 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
                meta
     return (pack rendered, context)
   let (body, context) = case res of
-        Left (LuaException msg) -> throw (PandocLuaException $ T.unpack msg)
+        Left (LuaException msg) -> throw (PandocLuaException msg)
         Right x -> x
   return $
     case writerTemplate opts of

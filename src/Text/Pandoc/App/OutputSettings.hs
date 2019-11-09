@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {- |
@@ -27,7 +28,7 @@ import Control.Monad
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Trans
 import Data.Char (toLower)
-import Data.List (find, isPrefixOf, isSuffixOf)
+import Data.List (find, isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Skylighting (defaultSyntaxMap)
 import Skylighting.Parser (addSyntaxDefinition, parseSyntaxDefinition)
@@ -42,17 +43,17 @@ import Text.Pandoc.App.CommandLineOptions (engines, lookupHighlightStyle,
                                           setVariable)
 import qualified Text.Pandoc.UTF8 as UTF8
 
+readUtf8File :: PandocMonad m => FilePath -> m T.Text
+readUtf8File = fmap UTF8.toText . readFileStrict
+
 -- | Settings specifying how document output should be produced.
 data OutputSettings = OutputSettings
-  { outputFormat :: String
+  { outputFormat :: T.Text
   , outputWriter :: Writer PandocIO
-  , outputWriterName :: String
+  , outputWriterName :: T.Text
   , outputWriterOptions :: WriterOptions
   , outputPdfProgram :: Maybe String
   }
-
-readUtf8File :: PandocMonad m => FilePath -> m String
-readUtf8File = fmap UTF8.toString . readFileStrict
 
 -- | Get output settings from command line options.
 optToOutputSettings :: Opt -> PandocIO OutputSettings
@@ -85,33 +86,33 @@ optToOutputSettings opts = do
                      case formatFromFilePaths [outputFile] of
                            Nothing -> do
                              report $ CouldNotDeduceFormat
-                                [takeExtension outputFile] "html"
+                                [T.pack $ takeExtension outputFile] "html"
                              return ("html", Nothing)
                            Just f  -> return (f, Nothing)
 
-  let format = if ".lua" `isSuffixOf` writerName
+  let format = if ".lua" `T.isSuffixOf` writerName
                   then writerName
-                  else map toLower $ baseWriterName writerName
+                  else T.toLower $ baseWriterName writerName
 
   (writer :: Writer PandocIO, writerExts) <-
-            if ".lua" `isSuffixOf` format
+            if ".lua" `T.isSuffixOf` format
                then return (TextWriter
-                       (\o d -> writeCustom writerName o d)
+                       (\o d -> writeCustom (T.unpack writerName) o d)
                                :: Writer PandocIO, mempty)
-               else getWriter (T.toLower $ T.pack writerName) -- TODO text: refactor
+               else getWriter (T.toLower writerName)
 
   let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
 
   let addSyntaxMap existingmap f = do
         res <- liftIO (parseSyntaxDefinition f)
         case res of
-              Left errstr -> throwError $ PandocSyntaxMapError errstr
+              Left errstr -> throwError $ PandocSyntaxMapError $ T.pack errstr
               Right syn   -> return $ addSyntaxDefinition syn existingmap
 
   syntaxMap <- foldM addSyntaxMap defaultSyntaxMap
                      (optSyntaxDefinitions opts)
 
-  hlStyle <- maybe (return Nothing) (fmap Just . lookupHighlightStyle)
+  hlStyle <- maybe (return Nothing) (fmap Just . lookupHighlightStyle . T.unpack)
                 (optHighlightStyle opts)
 
   let setVariableM k v = return . setVariable k v
@@ -135,15 +136,15 @@ optToOutputSettings opts = do
     >>=
     setVariableM "outputfile" outputFile
     >>=
-    setFilesVariableM "include-before" (optIncludeBeforeBody opts)
+    setFilesVariableM "include-before" (T.pack <$> optIncludeBeforeBody opts)
     >>=
-    setFilesVariableM "include-after" (optIncludeAfterBody opts)
+    setFilesVariableM "include-after" (T.pack <$> optIncludeAfterBody opts)
     >>=
-    setFilesVariableM "header-includes" (optIncludeInHeader opts)
+    setFilesVariableM "header-includes" (T.pack <$> optIncludeInHeader opts)
     >>=
     setListVariableM "css" (optCss opts)
     >>=
-    maybe return (setVariableM "title-prefix")
+    maybe return (setVariableM "title-prefix" . T.unpack)
                  (optTitlePrefix opts)
     >>=
     maybe return (setVariableM "epub-cover-image")
@@ -164,11 +165,11 @@ optToOutputSettings opts = do
 
   templStr <- case optTemplate opts of
                   _ | not standalone -> return Nothing
-                  Nothing -> Just <$> getDefaultTemplate (T.pack format)
+                  Nothing -> Just <$> getDefaultTemplate format
                   Just tp -> do
                     -- strip off extensions
                     let tp' = case takeExtension tp of
-                                   "" -> tp <.> format
+                                   "" -> tp <.> T.unpack format
                                    _  -> tp
                     Just . UTF8.toText <$>
                           ((do surl <- stSourceURL <$> getCommonState
@@ -176,7 +177,7 @@ optToOutputSettings opts = do
                                -- unless the full URL is specified:
                                modifyCommonState $ \st -> st{
                                   stSourceURL = Nothing }
-                               (bs, _) <- fetchItem tp'
+                               (bs, _) <- fetchItem $ T.pack tp'
                                modifyCommonState $ \st -> st{
                                   stSourceURL = surl }
                                return bs)
@@ -194,7 +195,7 @@ optToOutputSettings opts = do
              Just ts -> do
                res <- compileTemplate templatePath ts
                case res of
-                 Left  e -> throwError $ PandocTemplateError e
+                 Left  e -> throwError $ PandocTemplateError $ T.pack e
                  Right t -> return $ Just t
 
   let writerOpts = def {
@@ -222,7 +223,7 @@ optToOutputSettings opts = do
         , writerSlideLevel       = optSlideLevel opts
         , writerHighlightStyle   = hlStyle
         , writerSetextHeaders    = optSetextHeaders opts
-        , writerEpubSubdirectory = optEpubSubdirectory opts
+        , writerEpubSubdirectory = T.pack $ optEpubSubdirectory opts
         , writerEpubMetadata     = epubMetadata
         , writerEpubFonts        = optEpubFonts opts
         , writerEpubChapterLevel = optEpubChapterLevel opts
@@ -239,12 +240,12 @@ optToOutputSettings opts = do
     , outputPdfProgram = maybePdfProg
     }
 
-baseWriterName :: String -> String
-baseWriterName = takeWhile (\c -> c /= '+' && c /= '-')
+baseWriterName :: T.Text -> T.Text
+baseWriterName = T.takeWhile (\c -> c /= '+' && c /= '-')
 
-pdfWriterAndProg :: Maybe String              -- ^ user-specified writer name
+pdfWriterAndProg :: Maybe T.Text              -- ^ user-specified writer name
                  -> Maybe String              -- ^ user-specified pdf-engine
-                 -> IO (String, Maybe String) -- ^ IO (writerName, maybePdfEngineProg)
+                 -> IO (T.Text, Maybe String) -- ^ IO (writerName, maybePdfEngineProg)
 pdfWriterAndProg mWriter mEngine =
   case go mWriter mEngine of
       Right (writ, prog) -> return (writ, Just prog)
@@ -256,20 +257,20 @@ pdfWriterAndProg mWriter mEngine =
       go (Just writer) (Just engine) =
            case find (== (baseWriterName writer, takeBaseName engine)) engines of
                 Just _  -> Right (writer, engine)
-                Nothing -> Left $ "pdf-engine " ++ engine ++
-                           " is not compatible with output format " ++ writer
+                Nothing -> Left $ "pdf-engine " <> T.pack engine <>
+                           " is not compatible with output format " <> writer
 
       writerForEngine eng = case [f | (f,e) <- engines, e == eng] of
                                  fmt : _ -> Right fmt
                                  []      -> Left $
-                                   "pdf-engine " ++ eng ++ " not known"
+                                   "pdf-engine " <> T.pack eng <> " not known"
 
       engineForWriter "pdf" = Left "pdf writer"
       engineForWriter w = case [e |  (f,e) <- engines, f == baseWriterName w] of
                                 eng : _ -> Right eng
                                 []      -> Left $
-                                   "cannot produce pdf output from " ++ w
+                                   "cannot produce pdf output from " <> w
 
-isTextFormat :: String -> Bool
+isTextFormat :: T.Text -> Bool
 isTextFormat s =
   s `notElem` ["odt","docx","epub2","epub3","epub","pptx","pdf"]

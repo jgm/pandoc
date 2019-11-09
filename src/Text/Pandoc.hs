@@ -42,17 +42,13 @@ module Text.Pandoc
                -- * Generics
                , module Text.Pandoc.Generic
                -- * Options
-               , -- module Text.Pandoc.Options TODO text: restore
-                 module Text.Pandoc.Legacy.Options
+               , module Text.Pandoc.Options
                -- * Logging
-               , -- module Text.Pandoc.Logging -- TODO text: restore
-                 module Text.Pandoc.Legacy.Logging
+               , module Text.Pandoc.Logging
                -- * Typeclass
-               , -- module Text.Pandoc.Class TODO text: restore
-                 module Text.Pandoc.Legacy.Class
+               , module Text.Pandoc.Class
                -- * Error handling
-               , -- module Text.Pandoc.Error TODO text: restore
-                 module Text.Pandoc.Legacy.Error
+               , module Text.Pandoc.Error
                -- * Readers: converting /to/ Pandoc format
                , module Text.Pandoc.Readers
                -- * Writers: converting /from/ Pandoc format
@@ -63,17 +59,13 @@ module Text.Pandoc
                , pandocVersion
              ) where
 
-import Text.Pandoc.Legacy.Class
+import Text.Pandoc.Class
 import Text.Pandoc.Definition
-import Text.Pandoc.Legacy.Error
+import Text.Pandoc.Error
 import Text.Pandoc.Generic
-import Text.Pandoc.Legacy.Logging
-import Text.Pandoc.Legacy.Options
--- import Text.Pandoc.Readers TODO text: restore
-import Text.Pandoc.Legacy.Shared (pandocVersion)
+import Text.Pandoc.Logging
+import Text.Pandoc.Options
+import Text.Pandoc.Readers
+import Text.Pandoc.Shared (pandocVersion)
 import Text.Pandoc.Templates
 import Text.Pandoc.Writers
-
--- TODO text: remove
-import Text.Pandoc.Readers hiding (getDefaultExtensions)
---

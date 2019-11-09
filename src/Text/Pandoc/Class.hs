@@ -115,7 +115,7 @@ import qualified Control.Exception as E
 import qualified Data.Time.LocalTime as IO (getCurrentTimeZone)
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import Text.Pandoc.Walk (walkM, walk)
-import qualified Text.Pandoc.MediaBag as MB -- TODO text: remove Legacy
+import qualified Text.Pandoc.MediaBag as MB
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified System.Environment as IO (lookupEnv)

@@ -2,7 +2,7 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE PatternSynonyms #-} -- TODO text: remove
+{-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.App.CommandLineOptions
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -41,12 +41,12 @@ import System.Environment (getArgs, getProgName)
 import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
--- import Text.Pandoc TODO text: restore
-import Text.Pandoc.Legacy.Builder (setMeta) -- TODO text: remove Legacy
+import Text.Pandoc
+import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..))
 import Text.Pandoc.Filter (Filter (..))
-import Text.Pandoc.Legacy.Highlighting (highlightingStyles)
-import Text.Pandoc.Legacy.Shared (ordNub, safeRead, defaultUserDataDirs)
+import Text.Pandoc.Highlighting (highlightingStyles)
+import Text.Pandoc.Shared (ordNub, elemText, safeStrRead, defaultUserDataDirs)
 import Text.Printf
 
 #ifdef EMBED_DATA_FILES
@@ -66,11 +66,6 @@ import Text.DocTemplates (ToContext(toVal), Context(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.YAML as Y
 
--- TODO text: remove
-import Text.Pandoc hiding (MetaValue(..), lookupMeta)
-import Text.Pandoc.Legacy.Builder (lookupMeta, MetaValue(..), pattern MetaString)
---
-
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
   rawArgs <- map UTF8.decodeArg <$> getArgs
@@ -84,7 +79,7 @@ parseOptions options' defaults = do
        unrecognizedOpts
 
   unless (null errors && null unknownOptionErrors) $
-     E.throwIO $ PandocOptionError $
+     E.throwIO $ PandocOptionError $ T.pack $
         concat errors ++ unlines unknownOptionErrors ++
         ("Try " ++ prg ++ " --help for more information.")
 
@@ -98,7 +93,7 @@ latexEngines  = ["pdflatex", "lualatex", "xelatex", "latexmk", "tectonic"]
 htmlEngines :: [String]
 htmlEngines  = ["wkhtmltopdf", "weasyprint", "prince"]
 
-engines :: [(String, String)]
+engines :: [(Text, String)]
 engines = map ("html",) htmlEngines ++
           map ("html5",) htmlEngines ++
           map ("latex",) latexEngines ++
@@ -125,13 +120,13 @@ options =
     [ Option "fr" ["from","read"]
                  (ReqArg
                   (\arg opt -> return opt { optFrom =
-                                              Just (map toLower arg) })
+                                              Just (T.toLower $ T.pack arg) })
                   "FORMAT")
                  ""
 
     , Option "tw" ["to","write"]
                  (ReqArg
-                  (\arg opt -> return opt { optTo = Just arg })
+                  (\arg opt -> return opt { optTo = Just $ T.pack arg })
                   "FORMAT")
                  ""
 
@@ -224,7 +219,7 @@ options =
     , Option "" ["toc-depth"]
                  (ReqArg
                   (\arg opt ->
-                      case safeRead arg of
+                      case safeStrRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optTOCDepth = t }
                            _ -> E.throwIO $ PandocOptionError
@@ -240,7 +235,7 @@ options =
     , Option "" ["number-offset"]
                  (ReqArg
                   (\arg opt ->
-                      case safeRead ('[':arg ++ "]") of
+                      case safeStrRead ("[" <> arg <> "]") of
                            Just ns -> return opt { optNumberOffset = ns,
                                                    optNumberSections = True }
                            _      -> E.throwIO $ PandocOptionError
@@ -261,7 +256,7 @@ options =
                         "default" -> return opt{ optTopLevelDivision =
                                         TopLevelDefault }
                         _ -> E.throwIO $ PandocOptionError $
-                                "Top-level division must be " ++
+                                "Top-level division must be " <>
                                 "section,  chapter, part, or default" )
                    "section|chapter|part")
                  "" -- "Use top-level division type in LaTeX, ConTeXt, DocBook"
@@ -313,7 +308,7 @@ options =
     , Option "" ["highlight-style"]
                 (ReqArg
                  (\arg opt ->
-                     return opt{ optHighlightStyle = Just arg })
+                     return opt{ optHighlightStyle = Just $ T.pack arg })
                  "STYLE|FILE")
                  "" -- "Style for highlighted code"
 
@@ -334,7 +329,7 @@ options =
     , Option "" ["dpi"]
                  (ReqArg
                   (\arg opt ->
-                    case safeRead arg of
+                    case safeStrRead arg of
                          Just t | t > 0 -> return opt { optDpi = t }
                          _              -> E.throwIO $ PandocOptionError
                                         "dpi must be a number greater than 0")
@@ -357,7 +352,7 @@ options =
     , Option "" ["columns"]
                  (ReqArg
                   (\arg opt ->
-                      case safeRead arg of
+                      case safeStrRead arg of
                            Just t | t > 0 -> return opt { optColumns = t }
                            _              -> E.throwIO $ PandocOptionError
                                    "columns must be a number greater than 0")
@@ -372,7 +367,7 @@ options =
     , Option "" ["tab-stop"]
                  (ReqArg
                   (\arg opt ->
-                      case safeRead arg of
+                      case safeStrRead arg of
                            Just t | t > 0 -> return opt { optTabStop = t }
                            _              -> E.throwIO $ PandocOptionError
                                   "tab-stop must be a number greater than 0")
@@ -385,7 +380,7 @@ options =
                      let b = takeBaseName arg
                      if b `elem` pdfEngines
                         then return opt { optPdfEngine = Just arg }
-                        else E.throwIO $ PandocOptionError $ "pdf-engine must be one of "
+                        else E.throwIO $ PandocOptionError $ T.pack $ "pdf-engine must be one of "
                                ++ intercalate ", " pdfEngines)
                   "PROGRAM")
                  "" -- "Name of program to use in generating PDF"
@@ -416,7 +411,7 @@ options =
                   (\arg opt -> do
                      let (key, val) = splitField arg
                      return opt{ optRequestHeaders =
-                       (key, val) : optRequestHeaders opt })
+                       (T.pack key, T.pack val) : optRequestHeaders opt })
                   "NAME:VALUE")
                  ""
 
@@ -428,14 +423,15 @@ options =
 
     , Option "" ["indented-code-classes"]
                   (ReqArg
-                   (\arg opt -> return opt { optIndentedCodeClasses = words $
-                                             map (\c -> if c == ',' then ' ' else c) arg })
+                   (\arg opt -> return opt { optIndentedCodeClasses = T.words $
+                                             T.map (\c -> if c == ',' then ' ' else c) $
+                                             T.pack arg })
                    "STRING")
                   "" -- "Classes (whitespace- or comma-separated) to use for indented code-blocks"
 
     , Option "" ["default-image-extension"]
                  (ReqArg
-                  (\arg opt -> return opt { optDefaultImageExtension = arg })
+                  (\arg opt -> return opt { optDefaultImageExtension = T.pack arg })
                    "extension")
                   "" -- "Default extension for extensionless images"
 
@@ -456,7 +452,7 @@ options =
     , Option "" ["shift-heading-level-by"]
                  (ReqArg
                   (\arg opt ->
-                      case safeRead arg of
+                      case safeStrRead arg of
                            Just t ->
                                return opt{ optShiftHeadingLevelBy = t }
                            _              -> E.throwIO $ PandocOptionError
@@ -469,7 +465,7 @@ options =
                   (\arg opt -> do
                       deprecatedOption "--base-header-level"
                         "Use --shift-heading-level-by instead."
-                      case safeRead arg of
+                      case safeStrRead arg of
                            Just t | t > 0 && t < 6 ->
                                return opt{ optShiftHeadingLevelBy = t - 1 }
                            _              -> E.throwIO $ PandocOptionError
@@ -492,7 +488,7 @@ options =
                             "accept" -> return AcceptChanges
                             "reject" -> return RejectChanges
                             "all"    -> return AllChanges
-                            _        -> E.throwIO $ PandocOptionError
+                            _        -> E.throwIO $ PandocOptionError $ T.pack
                                ("Unknown option for track-changes: " ++ arg)
                      return opt { optTrackChanges = action })
                   "accept|reject|all")
@@ -515,7 +511,7 @@ options =
                             "block"    -> return EndOfBlock
                             "section"  -> return EndOfSection
                             "document" -> return EndOfDocument
-                            _        -> E.throwIO $ PandocOptionError
+                            _        -> E.throwIO $ PandocOptionError $ T.pack
                                ("Unknown option for reference-location: " ++ arg)
                      return opt { optReferenceLocation = action })
                   "block|section|document")
@@ -539,7 +535,7 @@ options =
     , Option "" ["slide-level"]
                  (ReqArg
                   (\arg opt ->
-                      case safeRead arg of
+                      case safeStrRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optSlideLevel = Just t }
                            _      -> E.throwIO $ PandocOptionError
@@ -565,7 +561,7 @@ options =
                             "references" -> return ReferenceObfuscation
                             "javascript" -> return JavascriptObfuscation
                             "none"       -> return NoObfuscation
-                            _            -> E.throwIO $ PandocOptionError
+                            _            -> E.throwIO $ PandocOptionError $ T.pack
                                ("Unknown obfuscation method: " ++ arg)
                      return opt { optEmailObfuscation = method })
                   "none|javascript|references")
@@ -573,7 +569,7 @@ options =
 
      , Option "" ["id-prefix"]
                   (ReqArg
-                   (\arg opt -> return opt { optIdentifierPrefix = arg })
+                   (\arg opt -> return opt { optIdentifierPrefix = T.pack arg })
                    "STRING")
                   "" -- "Prefix to add to automatically generated HTML identifiers"
 
@@ -626,7 +622,7 @@ options =
     , Option "" ["epub-chapter-level"]
                  (ReqArg
                   (\arg opt ->
-                      case safeRead arg of
+                      case safeStrRead arg of
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optEpubChapterLevel = t }
                            _      -> E.throwIO $ PandocOptionError
@@ -691,15 +687,15 @@ options =
                  (OptArg
                   (\arg opt -> do
                       let url' = fromMaybe "https://latex.codecogs.com/png.latex?" arg
-                      return opt { optHTMLMathMethod = WebTeX url' })
+                      return opt { optHTMLMathMethod = WebTeX $ T.pack url' })
                   "URL")
                  "" -- "Use web service for HTML math"
 
     , Option "" ["mathjax"]
                  (OptArg
                   (\arg opt -> do
-                      let url' = fromMaybe (defaultMathJaxURL ++
-                                  "tex-mml-chtml.js") arg
+                      let url' = maybe (defaultMathJaxURL <>
+                                  "tex-mml-chtml.js") T.pack arg
                       return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
                  "" -- "Use MathJax for HTML math"
@@ -709,7 +705,7 @@ options =
                   (\arg opt ->
                       return opt
                         { optHTMLMathMethod = KaTeX $
-                           fromMaybe defaultKaTeXURL arg })
+                           maybe defaultKaTeXURL T.pack arg })
                   "URL")
                   "" -- Use KaTeX for HTML Math
 
@@ -769,7 +765,7 @@ options =
                      UTF8.hPutStrLn stdout $ printf tpl allopts
                          (unwords readersNames)
                          (unwords writersNames)
-                         (unwords $ map fst highlightingStyles)
+                         (unwords $ map (T.unpack . fst) highlightingStyles)
                          (unwords datafiles)
                      exitSuccess ))
                  "" -- "Print bash completion script"
@@ -796,12 +792,12 @@ options =
                      let allExts =
                            case arg of
                              Nothing  -> extensionsFromList extList
-                             Just fmt -> getAllExtensions fmt
+                             Just fmt -> getAllExtensions $ T.pack fmt
                      let defExts =
                            case arg of
                              Nothing   -> getDefaultExtensions
                                            "markdown"
-                             Just fmt  -> getDefaultExtensions fmt
+                             Just fmt  -> getDefaultExtensions $ T.pack fmt
                      let showExt x =
                            (if extensionEnabled x defExts
                                then '+'
@@ -829,7 +825,7 @@ options =
     , Option "" ["list-highlight-styles"]
                  (NoArg
                   (\_ -> do
-                     mapM_ (UTF8.hPutStrLn stdout . fst) highlightingStyles
+                     mapM_ (UTF8.hPutStrLn stdout . T.unpack . fst) highlightingStyles
                      exitSuccess ))
                  ""
 
@@ -845,7 +841,7 @@ options =
                      case templ of
                           Right t
                             | T.null t -> -- e.g. for docx, odt, json:
-                                E.throwIO $ PandocCouldNotFindDataFileError
+                                E.throwIO $ PandocCouldNotFindDataFileError $ T.pack
                                   ("templates/default." ++ arg)
                             | otherwise -> write . T.unpack $ t
                           Left e  -> E.throwIO e
@@ -896,7 +892,7 @@ options =
                   (\_ -> do
                      prg <- getProgName
                      defaultDatadirs <- defaultUserDataDirs
-                     UTF8.hPutStrLn stdout (prg ++ " " ++ pandocVersion ++
+                     UTF8.hPutStrLn stdout (prg ++ " " ++ T.unpack pandocVersion ++
                        compileInfo ++ "\nDefault user data directory: " ++
                        intercalate " or " defaultDatadirs ++
                        ('\n':copyrightMessage))
@@ -976,7 +972,7 @@ writersNames = sort (map (T.unpack . fst) (writers :: [(Text, Writer PandocIO)])
 
 splitField :: String -> (String, String)
 splitField s =
-  case break (`elem` ":=") s of
+  case break (`elemText` ":=") s of
        (k,_:v) -> (k,v)
        (k,[])  -> (k,"true")
 
@@ -997,7 +993,7 @@ applyDefaults opt file = runIOorExplode $ do
   case Y.decode1 inp of
       Right (f :: Opt -> Opt) -> return $ f opt
       Left (errpos, errmsg)  -> throwError $
-         PandocParseError $
+         PandocParseError $ T.pack $
          "Error parsing " ++ fp' ++ " line " ++
           show (Y.posLine errpos) ++ " column " ++
           show (Y.posColumn errpos) ++ ":\n" ++ errmsg
@@ -1007,18 +1003,18 @@ lookupHighlightStyle s
   | takeExtension s == ".theme" = -- attempt to load KDE theme
     do contents <- readFileLazy s
        case parseTheme contents of
-            Left _    -> throwError $ PandocOptionError $
+            Left _    -> throwError $ PandocOptionError $ T.pack $
                            "Could not read highlighting theme " ++ s
             Right sty -> return sty
   | otherwise =
-  case lookup (map toLower s) highlightingStyles of
+  case lookup (T.toLower $ T.pack s) highlightingStyles of
        Just sty -> return sty
-       Nothing  -> throwError $ PandocOptionError $
+       Nothing  -> throwError $ PandocOptionError $ T.pack $
                       "Unknown highlight-style " ++ s
 
 deprecatedOption :: String -> String -> IO ()
 deprecatedOption o msg =
-  runIO (report $ Deprecated o msg) >>=
+  runIO (report $ Deprecated (T.pack o) (T.pack msg)) >>=
     \r -> case r of
        Right () -> return ()
        Left e   -> E.throwIO e
@@ -1030,13 +1026,14 @@ setVariable key val (Context ctx) =
 
 addMeta :: String -> String -> Meta -> Meta
 addMeta k v meta =
-  case lookupMeta k meta of
-       Nothing -> setMeta k v' meta
+  case lookupMeta k' meta of
+       Nothing -> setMeta k' v' meta
        Just (MetaList xs) ->
-                  setMeta k (MetaList (xs ++ [v'])) meta
-       Just x  -> setMeta k (MetaList [x, v']) meta
+                  setMeta k' (MetaList (xs ++ [v'])) meta
+       Just x  -> setMeta k' (MetaList [x, v']) meta
  where
   v' = readMetaValue v
+  k' = T.pack k
 
 readMetaValue :: String -> MetaValue
 readMetaValue s
@@ -1046,7 +1043,7 @@ readMetaValue s
   | s == "false" = MetaBool False
   | s == "False" = MetaBool False
   | s == "FALSE" = MetaBool False
-  | otherwise    = MetaString s
+  | otherwise    = MetaString $ T.pack s
 
 -- On Windows with ghc 8.6+, we need to rewrite paths
 -- beginning with \\ to \\?\UNC\. -- See #5127.

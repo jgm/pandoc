@@ -553,7 +553,6 @@ library
                    , Text.Pandoc.Legacy.Extensions
                    , Text.Pandoc.Legacy.Shared
                    , Text.Pandoc.Legacy.Highlighting
-                   , Text.Pandoc.Legacy.Translations
                    , Text.Pandoc.Legacy.Logging
                    , Text.Pandoc.Legacy.MIME
                    , Text.Pandoc.Legacy.Options

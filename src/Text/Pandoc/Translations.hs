@@ -25,7 +25,7 @@ just the language part.  File format is:
 -}
 module Text.Pandoc.Translations (
                            Term(..)
-                         , Translations(..) -- TODO text: temporarily exposed for Legacy
+                         , Translations
                          , lookupTerm
                          , readTranslations
                          )
