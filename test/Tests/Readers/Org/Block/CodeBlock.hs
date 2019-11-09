@@ -17,7 +17,7 @@ import Prelude
 import Test.Tasty (TestTree)
 import Tests.Helpers ((=?>))
 import Tests.Readers.Org.Shared ((=:), spcSep)
-import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
+import Text.Pandoc.Builder
 import qualified Data.Text as T
 
 tests :: [TestTree]
@@ -80,7 +80,7 @@ tests =
            params = [ ("org-language", "emacs-lisp")
                     , ("exports", "both")
                     ]
-           code' = unlines [ "(progn (message \"Hello, World!\")"
+           code' = T.unlines [ "(progn (message \"Hello, World!\")"
                            , "       (+ 23 42))" ]
        in codeBlockWith ("", classes, params) code'
 
@@ -96,8 +96,8 @@ tests =
            params = [ ("org-language", "emacs-lisp")
                     , ("exports", "both")
                     ]
-           code' = unlines [ "(progn (message \"Hello, World!\")"
-                           , "       (+ 23 42))" ]
+           code' = T.unlines [ "(progn (message \"Hello, World!\")"
+                             , "       (+ 23 42))" ]
            results' = "65\n"
        in codeBlockWith ("", classes, params) code'
           <>
@@ -115,8 +115,8 @@ tests =
            params = [ ("org-language", "emacs-lisp")
                     , ("exports", "code")
                     ]
-           code' = unlines [ "(progn (message \"Hello, World!\")"
-                           , "       (+ 23 42))" ]
+           code' = T.unlines [ "(progn (message \"Hello, World!\")"
+                             , "       (+ 23 42))" ]
        in codeBlockWith ("", classes, params) code'
 
   , "Source block with results and :exports results" =:
@@ -190,9 +190,9 @@ tests =
           (plain $ spanWith ("", ["label"], [])
                             (spcSep [ "Functor", "laws", "in", "Haskell" ]))
           (codeBlockWith ("functor-laws", ["haskell"], [])
-                         (unlines [ "fmap id = id"
-                                  , "fmap (p . q) = (fmap p) . (fmap q)"
-                                  ])))
+                         (T.unlines [ "fmap id = id"
+                                    , "fmap (p . q) = (fmap p) . (fmap q)"
+                                    ])))
 
   , "Non-letter chars in source block parameters" =:
       T.unlines [ "#+BEGIN_SRC C :tangle xxxx.c :city Zürich"

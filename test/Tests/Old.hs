@@ -17,7 +17,7 @@ import Data.Algorithm.Diff
 import Prelude hiding (readFile)
 import System.Exit
 import System.FilePath (joinPath, splitDirectories, (<.>), (</>))
-import Text.Pandoc.Legacy.Process (pipeProcess)
+import Text.Pandoc.Process (pipeProcess)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden.Advanced (goldenTest)
 import Tests.Helpers hiding (test)

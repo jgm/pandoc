@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Shared
    Copyright   : © 2006-2019 John MacFarlane
@@ -17,8 +18,8 @@ import System.FilePath.Posix (joinPath)
 import Test.Tasty
 import Test.Tasty.HUnit (assertBool, testCase, (@?=))
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Shared
+import Text.Pandoc.Builder
+import Text.Pandoc.Shared
 
 tests :: [TestTree]
 tests = [ testGroup "compactifyDL"

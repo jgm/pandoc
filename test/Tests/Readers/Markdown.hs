@@ -18,13 +18,9 @@ import Data.Text (Text, unpack)
 import qualified Data.Text as T
 import Test.Tasty
 import Tests.Helpers
--- import Text.Pandoc -- TODO text: restore
+import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
-
--- TODO text: remove
-import Text.Pandoc hiding (Citation(..), Str, nullAttr, Attr)
---
+import Text.Pandoc.Builder
 
 markdown :: Text -> Pandoc
 markdown = purely $ readMarkdown def { readerExtensions =
@@ -57,7 +53,8 @@ autolink :: String -> Inlines
 autolink = autolinkWith ("",["uri"],[])
 
 autolinkWith :: Attr -> String -> Inlines
-autolinkWith attr s = linkWith attr s "" (str s)
+autolinkWith attr s = linkWith attr s' "" (str s')
+  where s' = T.pack s
 
 bareLinkTests :: [(Text, Inlines)]
 bareLinkTests =

@@ -17,7 +17,7 @@ import Prelude
 import Test.Tasty (TestTree, testGroup)
 import Tests.Helpers ((=?>))
 import Tests.Readers.Org.Shared ((=:), spcSep)
-import Text.Pandoc.Legacy.Builder -- TODO text: remove Legacy
+import Text.Pandoc.Builder
 import qualified Data.Text as T
 import qualified Tests.Readers.Org.Block.CodeBlock as CodeBlock
 import qualified Tests.Readers.Org.Block.Figure as Figure
@@ -179,7 +179,7 @@ tests =
                 , "\\end{equation}"
                 ] =?>
       rawBlock "latex"
-      (unlines [ "\\begin{equation}"
+      (T.unlines [ "\\begin{equation}"
                , "X_i = \\begin{cases}"
                , "      G_{\\alpha(i)} & \\text{if }\\alpha(i-1) =" <>
                  " \\alpha(i)\\\\"

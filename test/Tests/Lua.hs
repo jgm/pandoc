@@ -20,24 +20,21 @@ import Test.Tasty (TestTree, localOption)
 import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
 import Test.Tasty.QuickCheck (QuickCheckTests (..), ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Legacy.Builder (bulletList, definitionList, displayMath, divWith,
+import Text.Pandoc.Builder (bulletList, definitionList, displayMath, divWith,
                             doc, doubleQuoted, emph, header, lineBlock,
                             linebreak, math, orderedList, para, plain, rawBlock,
-                            singleQuoted, space, str, strong) -- TODO text: remove Legacy
-import Text.Pandoc.Legacy.Class (runIOorExplode, setUserDataDir)
--- import Text.Pandoc.Legacy.Definition (Block (BlockQuote, Div, Para), Inline (Emph, Str),
---                                Attr, Meta, Pandoc, pandocTypesVersion) -- TODO text: restore
+                            singleQuoted, space, str, strong)
+import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
+import Text.Pandoc.Definition (Block (BlockQuote, Div, Para), Inline (Emph, Str),
+                               Attr, Meta, Pandoc, pandocTypesVersion)
 import Text.Pandoc.Filter (Filter (LuaFilter), applyFilters)
 import Text.Pandoc.Lua (runLua)
-import Text.Pandoc.Legacy.Options (def)
-import Text.Pandoc.Legacy.Shared (pandocVersion)
+import Text.Pandoc.Options (def)
+import Text.Pandoc.Shared (pandocVersion)
 
 import qualified Foreign.Lua as Lua
-import qualified Data.ByteString.Char8 as BS
-
--- TODO text: remove
-import Text.Pandoc.Legacy.Definition
---
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 
 tests :: [TestTree]
 tests = map (localOption (QuickCheckTests 20))
@@ -136,12 +133,12 @@ tests = map (localOption (QuickCheckTests 20))
     assertFilterConversion "unexpected script name"
       "script-name.lua"
       (doc $ para "ignored")
-      (doc $ para (str $ "lua" </> "script-name.lua"))
+      (doc $ para (str $ T.pack $ "lua" </> "script-name.lua"))
 
   , testCase "Pandoc version is set" . runLuaTest $ do
       Lua.getglobal "PANDOC_VERSION"
       Lua.liftIO .
-        assertEqual "pandoc version is wrong" (BS.pack pandocVersion)
+        assertEqual "pandoc version is wrong" (TE.encodeUtf8 pandocVersion)
         =<< Lua.tostring' Lua.stackTop
 
   , testCase "Pandoc types version is set" . runLuaTest $ do

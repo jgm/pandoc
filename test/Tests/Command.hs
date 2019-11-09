@@ -16,6 +16,7 @@ where
 import Prelude
 import Data.Algorithm.Diff
 import qualified Data.ByteString as BS
+import qualified Data.Text as T
 import Data.List (isSuffixOf)
 import Prelude hiding (readFile)
 import System.Directory
@@ -27,13 +28,8 @@ import System.Process
 import Test.Tasty
 import Test.Tasty.HUnit
 import Tests.Helpers
--- import Text.Pandoc -- TODO text: restore
+import Text.Pandoc
 import qualified Text.Pandoc.UTF8 as UTF8
-
--- TODO text: remove
-import Text.Pandoc hiding (Block(..))
-import Text.Pandoc.Legacy.Definition
---
 
 -- | Run a test with normalize function, return True if test passed.
 runTest :: String    -- ^ Title of test
@@ -82,7 +78,7 @@ isCodeBlock (CodeBlock _ _) = True
 isCodeBlock _               = False
 
 extractCode :: Block -> String
-extractCode (CodeBlock _ code) = code
+extractCode (CodeBlock _ code) = T.unpack code
 extractCode _                  = ""
 
 dropPercent :: String -> String

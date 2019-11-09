@@ -25,7 +25,7 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
-import qualified Text.Pandoc.Legacy.Class as P
+import qualified Text.Pandoc.Class as P
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import Text.Pandoc.UTF8 as UTF8
 
