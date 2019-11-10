@@ -964,10 +964,10 @@ handleUnrecognizedOption "-R" = handleUnrecognizedOption "--parse-raw"
 handleUnrecognizedOption x =
   (("Unknown option " ++ x ++ ".") :)
 
-readersNames :: [String] -- TODO text: refactor
+readersNames :: [String]
 readersNames = sort (map (T.unpack . fst) (readers :: [(Text, Reader PandocIO)]))
 
-writersNames :: [String] -- TODO text: refactor
+writersNames :: [String]
 writersNames = sort (map (T.unpack . fst) (writers :: [(Text, Writer PandocIO)]))
 
 splitField :: String -> (String, String)

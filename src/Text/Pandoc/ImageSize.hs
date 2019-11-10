@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, CPP #-}
+{-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 {- |
 Module      : Text.Pandoc.ImageSize
@@ -14,7 +15,6 @@ Functions for determining the size of a PNG, JPEG, or GIF image.
 -}
 module Text.Pandoc.ImageSize ( ImageType(..)
                              , imageType
-                             , ImageSize -- TODO text: remove. Though, should it not be exported?
                              , imageSize
                              , sizeInPixels
                              , sizeInPoints
@@ -51,6 +51,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Text.XML.Light as Xml
 import qualified Data.Map as M
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import Control.Monad.Except
 import Control.Applicative
 import Data.Maybe (fromMaybe)
@@ -94,13 +95,9 @@ showFl :: (RealFloat a) => a -> T.Text
 showFl a = removeExtra0s $ T.pack $ showFFloat (Just 5) a ""
 
 removeExtra0s :: T.Text -> T.Text
-removeExtra0s = T.pack . removeExtra0s' . T.unpack
-
-removeExtra0s' :: String -> String -- TODO text: refactor
-removeExtra0s' s =
-  case dropWhile (=='0') $ reverse s of
-       '.':xs -> reverse xs
-       xs     -> reverse xs
+removeExtra0s s = case T.dropWhileEnd (=='0') s of
+  (T.unsnoc -> Just (xs, '.')) -> xs
+  xs                           -> xs
 
 imageType :: ByteString -> Maybe ImageType
 imageType img = case B.take 4 img of
@@ -263,8 +260,8 @@ epsSize img = do
        []    -> mzero
        (x:_) -> case B.words x of
                      [_, _, _, ux, uy] -> do
-                        ux' <- safeRead $ T.pack $ B.unpack ux -- TODO text: refactor
-                        uy' <- safeRead $ T.pack $ B.unpack uy
+                        ux' <- safeRead $ TE.decodeUtf8 ux
+                        uy' <- safeRead $ TE.decodeUtf8 uy
                         return ImageSize{
                             pxX  = ux'
                           , pxY  = uy'

@@ -273,7 +273,7 @@ elemToRunStyle _ _ _ = defaultRunStyle
 getHeaderLevel :: NameSpaces -> Element -> Maybe (ParaStyleName, Int)
 getHeaderLevel ns element
   | Just styleName <- getElementStyleName ns element
-  , Just n <- stringToInteger . T.unpack =<< -- TODO text: change stringToInteger?
+  , Just n <- stringToInteger . T.unpack =<<
               (T.stripPrefix "heading " . T.toLower $
                 fromStyleName styleName)
   , n > 0 = Just (styleName, fromInteger n)

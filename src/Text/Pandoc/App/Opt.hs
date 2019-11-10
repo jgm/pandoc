@@ -5,7 +5,6 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE PatternSynonyms #-} -- TODO text: remove
 {- |
    Module      : Text.Pandoc.App.Opt
    Copyright   : Copyright (C) 2006-2019 John MacFarlane

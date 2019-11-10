@@ -399,10 +399,10 @@ notFollowedBy' p  = try $ join $  do  a <- try p
                                   return (return ())
 -- (This version due to Andrew Pimlott on the Haskell mailing list.)
 
--- TODO text: refactor
 oneOfStrings' :: Stream s m Char => (Char -> Char -> Bool) -> [Text] -> ParserT s st m Text
 oneOfStrings' f = fmap T.pack . oneOfStrings'' f . fmap T.unpack
 
+-- TODO: This should be re-implemented in a Text-aware way
 oneOfStrings'' :: Stream s m Char => (Char -> Char -> Bool) -> [String] -> ParserT s st m String
 oneOfStrings'' _ []   = Prelude.fail "no strings"
 oneOfStrings'' matches strs = try $ do
@@ -422,6 +422,9 @@ oneOfStrings :: Stream s m Char => [Text] -> ParserT s st m Text
 oneOfStrings = oneOfStrings' (==)
 
 -- | Parses one of a list of strings (tried in order), case insensitive.
+
+-- TODO: This will not be accurate with general Unicode (neither
+-- Text.toLower nor Text.toCaseFold can be implemented with a map)
 oneOfStringsCI :: Stream s m Char => [Text] -> ParserT s st m Text
 oneOfStringsCI = oneOfStrings' ciMatch
   where ciMatch x y = toLower' x == toLower' y
@@ -492,7 +495,7 @@ enclosed start end parser = try $
 
 -- | Parse string, case insensitive.
 stringAnyCase :: Stream s m Char => Text -> ParserT s st m Text
-stringAnyCase = fmap T.pack . stringAnyCase' . T.unpack -- TODO text: refactor
+stringAnyCase = fmap T.pack . stringAnyCase' . T.unpack
 
 stringAnyCase' :: Stream s m Char => String -> ParserT s st m String
 stringAnyCase' [] = string ""

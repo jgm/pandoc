@@ -1,8 +1,7 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-} -- TODO text: possibly remove
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE PatternSynonyms #-} -- TODO text: remove
 {- |
    Module      : Text.Pandoc.App
    Copyright   : Copyright (C) 2006-2019 John MacFarlane

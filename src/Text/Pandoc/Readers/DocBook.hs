@@ -642,12 +642,7 @@ admonitionTags = ["important","caution","note","tip","warning"]
 
 -- Trim leading and trailing newline characters
 trimNl :: Text -> Text
-trimNl = T.pack . trimNl' . T.unpack
-
-trimNl' :: String -> String -- TODO text: refactor
-trimNl' = reverse . go . reverse . go
-  where go ('\n':xs) = xs
-        go xs        = xs
+trimNl = T.dropAround (== '\n')
 
 -- meld text into beginning of first paragraph of Blocks.
 -- assumes Blocks start with a Para; if not, does nothing.

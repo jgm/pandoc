@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Readers.CommonMark
    Copyright   : Copyright (C) 2015-2019 John MacFarlane
@@ -19,9 +20,8 @@ where
 import Prelude
 import CMarkGFM
 import Control.Monad.State
-import Data.List (groupBy)
 import qualified Data.Set as Set
-import Data.Text (Text, unpack)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
@@ -42,22 +42,19 @@ readCommonMark opts s = return $
                [ extTable | isEnabled Ext_pipe_tables opts ] ++
                [ extAutolink | isEnabled Ext_autolink_bare_uris opts ]
 
-convertEmojis :: Text -> [Inline] -- TODO text: refactor
-convertEmojis = convertEmojis' . T.unpack
-
-convertEmojis' :: String -> [Inline]
-convertEmojis' s@(':':xs) =
-   case break (==':') xs of
-        (ys,':':zs) ->
-           case emojiToInline (T.pack ys) of
-                Just em -> em : convertEmojis (T.pack zs)
-                Nothing -> Str (T.pack $ ':' : ys) : convertEmojis' (':':zs)
-        _ -> [Str $ T.pack s]
-convertEmojis' s =
-  case break (==':') s of
+convertEmojis :: Text -> [Inline]
+convertEmojis s@(T.uncons -> Just (':',xs)) =
+   case T.break (==':') xs of
+        (ys, T.uncons -> Just (':',zs)) ->
+           case emojiToInline ys of
+                Just em -> em : convertEmojis zs
+                Nothing -> Str (":" <> ys) : convertEmojis (":" <> zs)
+        _ -> [Str s]
+convertEmojis s =
+  case T.break (==':') s of
     ("","") -> []
-    (_,"") -> [Str $ T.pack s]
-    (xs,ys) -> Str (T.pack xs) : convertEmojis' ys
+    (_,"") -> [Str s]
+    (xs,ys) -> Str xs : convertEmojis ys
 
 addHeaderIdentifiers :: ReaderOptions -> Pandoc -> Pandoc
 addHeaderIdentifiers opts doc = evalState (walkM (addHeaderId opts) doc) mempty
@@ -181,16 +178,15 @@ addInlines opts = foldr (addInline opts) []
 
 addInline :: ReaderOptions -> Node -> [Inline] -> [Inline]
 addInline opts (Node _ (TEXT t) _) = (foldr ((++) . toinl) [] clumps ++)
-  where raw = unpack t
-        clumps = groupBy samekind raw
+  where clumps = T.groupBy samekind t
         samekind ' ' ' ' = True
         samekind ' ' _   = False
         samekind _   ' ' = False
         samekind _  _    = True
-        toinl (' ':_) = [Space]
-        toinl xs      = if isEnabled Ext_emoji opts -- TODO text: refactor
-                        then convertEmojis' xs
-                        else [Str $ T.pack xs]
+        toinl (T.uncons -> Just (' ', _)) = [Space]
+        toinl xs = if isEnabled Ext_emoji opts
+                   then convertEmojis xs
+                   else [Str xs]
 addInline _ (Node _ LINEBREAK _) = (LineBreak :)
 addInline opts (Node _ SOFTBREAK _)
   | isEnabled Ext_hard_line_breaks opts = (LineBreak :)

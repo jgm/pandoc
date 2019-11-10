@@ -21,8 +21,7 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isDigit)
 import qualified Data.Foldable as F
-import Data.List (intercalate, transpose)
-import Data.List.Split (splitOn)
+import Data.List (transpose)
 import Data.Maybe (fromMaybe, catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -258,26 +257,24 @@ isAbsolutePath :: Text -> Bool
 isAbsolutePath (T.uncons -> Just ('.', _)) = False
 isAbsolutePath s = T.any (== ':') s
 
-normalizeDots :: Text -> Text -- TODO text: refactor
-normalizeDots = T.pack . normalizeDots' . T.unpack
+normalizeDots :: Text -> Text
+normalizeDots path
+  | not (T.null pref) = case T.uncons suff of
+      Just (':', _) -> path
+      _             -> pref <> ":" <> suff
+  | otherwise = path
+  where
+    (pref, suff) = T.span (== '.') path
 
-normalizeDots' :: String -> String  
-normalizeDots' path@('.':_) =
-  case dropWhile (== '.') path of
-    ':':_ -> path
-    _ -> takeWhile (== '.') path ++ ':':dropWhile (== '.') path
-normalizeDots' path = path
-
-normalizeInternalPath :: Text -> Text -- TODO text: refactor
-normalizeInternalPath path = T.pack $
+normalizeInternalPath :: Text -> Text
+normalizeInternalPath path =
   if isAbsolutePath path
     then ensureAbsolute normalizedPath
     else normalizedPath
   where
-    -- TODO text: refactor
-    normalizedPath = intercalate "/" $ dropWhile (== ".") $ splitOn ":" $ T.unpack $ normalizeDots path
-    ensureAbsolute s@('/':_) = s
-    ensureAbsolute s = '/':s
+    normalizedPath = T.intercalate "/" $ dropWhile (== ".") $ T.splitOn ":" $ normalizeDots path
+    ensureAbsolute s@(T.uncons -> Just ('/', _)) = s
+    ensureAbsolute s = "/" <> s
 
 normalizePath :: Text -> Text
 normalizePath path =
@@ -285,7 +282,6 @@ normalizePath path =
     then path
     else normalizeInternalPath path
 
--- TODO text: should be filepath?
 urlToText :: Text -> Text
 urlToText url =
   if isExternalLink url

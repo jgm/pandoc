@@ -932,34 +932,29 @@ addNewRole roleText fields = do
 -- hexadecimal numbers, prefixed by 0x, x, \x, U+, u, or \u
 -- or as XML-style hexadecimal character entities, e.g. &#x1a2b;
 -- or text, which is used as-is.  Comments start with ..
-unicodeTransform :: Text -> Text -- TODO text: refactor
-unicodeTransform = T.pack . unicodeTransform' . T.unpack
-
-unicodeTransform' :: String -> String
-unicodeTransform' t =
-  case t of
-       ('.':'.':xs)  -> unicodeTransform' $ dropWhile (/='\n') xs -- comment
-       ('0':'x':xs)  -> go "0x" xs
-       ('x':xs)      -> go "x" xs
-       ('\\':'x':xs) -> go "\\x" xs
-       ('U':'+':xs)  -> go "U+" xs
-       ('u':xs)      -> go "u" xs
-       ('\\':'u':xs) -> go "\\u" xs
-       ('&':'#':'x':xs) -> maybe ("&#x" ++ unicodeTransform' xs)
-                           -- drop semicolon
-                           (\(c,s) -> c : unicodeTransform' (drop 1 $ T.unpack s))
-                           $ extractUnicodeChar $ T.pack xs
-       (x:xs)        -> x : unicodeTransform' xs
-       []            -> []
-    where go pref zs = maybe (pref ++ unicodeTransform' zs)
-                         (\(c,s) -> c : unicodeTransform' (T.unpack s))
-                         $ extractUnicodeChar $ T.pack zs
+unicodeTransform :: Text -> Text
+unicodeTransform t
+  | Just xs <- T.stripPrefix ".." t  = unicodeTransform $ T.dropWhile (/= '\n') xs -- comment
+  | Just xs <- T.stripPrefix "0x" t  = go "0x" xs
+  | Just xs <- T.stripPrefix "x" t   = go "x" xs
+  | Just xs <- T.stripPrefix "\\x" t = go "\\x" xs
+  | Just xs <- T.stripPrefix "U+" t  = go "U+" xs
+  | Just xs <- T.stripPrefix "u" t   = go "u" xs
+  | Just xs <- T.stripPrefix "\\u" t = go "\\u" xs
+  | Just xs <- T.stripPrefix "&#x" t = maybe ("&#x" <> unicodeTransform xs)
+                                       -- drop semicolon
+                                       (\(c,s) -> T.cons c $ unicodeTransform $ T.drop 1 s)
+                                       $ extractUnicodeChar xs
+  | Just (x, xs) <- T.uncons t       = T.cons x $ unicodeTransform xs
+  | otherwise                        = ""
+  where go pref zs = maybe (pref <> unicodeTransform zs)
+                     (\(c,s) -> T.cons c $ unicodeTransform s)
+                     $ extractUnicodeChar zs
 
 extractUnicodeChar :: Text -> Maybe (Char, Text)
 extractUnicodeChar s = maybe Nothing (\c -> Just (c,rest)) mbc
   where (ds,rest) = T.span isHexDigit s
         mbc = safeRead ("'\\x" <> ds <> "'")
---        mbc = safeRead ('\'':'\\':'x':ds ++ "'") -- TODO text: remove
 
 extractCaption :: PandocMonad m => RSTParser m (Inlines, Blocks)
 extractCaption = do
@@ -1088,11 +1083,12 @@ targetURI = do
      many1Char (satisfy (/='\n')
      <|> try (newline >> many1 spaceChar >> noneOf " \t\n"))
   blanklines
-  case reverse (T.unpack contents) of -- TODO text: refactor
-       -- strip backticks
-       '_':'`':xs -> return $ T.pack $ (dropWhile (=='`') (reverse xs) ++ "_")
-       '_':_      -> return contents
-       _          -> return (escapeURI contents)
+  return $ stripBackticks contents
+  where
+    stripBackticks t
+      | Just xs <- T.stripSuffix "`_" t = T.dropWhile (=='`') xs <> "_"
+      | Just _  <- T.stripSuffix "_"  t = t
+      | otherwise                       = escapeURI t
 
 substKey :: PandocMonad m => RSTParser m ()
 substKey = try $ do
@@ -1423,12 +1419,11 @@ renderRole contents fmt role attr = case role of
    pepLink pepNo = B.link pepUrl ("PEP " <> pepNo) $ B.str ("PEP " <> pepNo)
      where padNo = T.replicate (4 - T.length pepNo) "0" <> pepNo
            pepUrl = "http://www.python.org/dev/peps/pep-" <> padNo <> "/"
-   -- TODO text: refactor
-   treatAsText = B.text . T.pack . handleEscapes . T.unpack
-   handleEscapes [] = []
-   handleEscapes ('\\':' ':cs) = handleEscapes cs
-   handleEscapes ('\\':c:cs) = c : handleEscapes cs
-   handleEscapes (c:cs) = c : handleEscapes cs
+   treatAsText = B.text . handleEscapes
+   handleEscapes = T.concat . removeSpace . T.splitOn "\\"
+     where headSpace t = fromMaybe t $ T.stripPrefix " " t
+           removeSpace (x:xs) = x : map headSpace xs
+           removeSpace []     = []
 
 roleName :: PandocMonad m => RSTParser m Text
 roleName = many1Char (letter <|> char '-')
@@ -1551,8 +1546,7 @@ lookupKey oldkeys key = do
          logMessage $ ReferenceNotFound key' pos
          return (("",""),nullAttr)
        -- check for keys of the form link_, which need to be resolved:
-       -- TODO text: refactor
-       Just ((u@(T.uncons -> Just (c,_)),""),_) | T.last u == '_', c /= '#' -> do
+       Just ((u, ""),_) | T.length u > 1, T.last u == '_', T.head u /= '#' -> do
          let rawkey = T.init u
          let newkey = toKey rawkey
          if newkey `elem` oldkeys

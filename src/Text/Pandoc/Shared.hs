@@ -157,8 +157,12 @@ splitBy isSep lst =
       rest'         = dropWhile isSep rest
   in  first:splitBy isSep rest'
 
-splitTextBy :: (Char -> Bool) -> T.Text -> [T.Text] -- TODO text: refactor
-splitTextBy isSep = map T.pack . splitBy isSep . T.unpack
+splitTextBy :: (Char -> Bool) -> T.Text -> [T.Text]
+splitTextBy isSep t
+  | T.null t = []
+  | otherwise = let (first, rest) = T.break isSep t
+                    rest'         = T.dropWhile isSep rest
+                in  first : splitTextBy isSep rest'
 
 splitByIndices :: [Int] -> [a] -> [[a]]
 splitByIndices [] lst = [lst]
@@ -166,13 +170,13 @@ splitByIndices (x:xs) lst = first:splitByIndices (map (\y -> y - x)  xs) rest
   where (first, rest) = splitAt x lst
 
 -- | Split string into chunks divided at specified indices.
-splitStringByIndices :: [Int] -> [Char] -> [[Char]] -- TODO text: refactor
+splitStringByIndices :: [Int] -> [Char] -> [[Char]]
 splitStringByIndices [] lst = [lst]
 splitStringByIndices (x:xs) lst =
   let (first, rest) = splitAt' x lst in
   first : splitStringByIndices (map (\y -> y - x) xs) rest
 
-splitTextByIndices :: [Int] -> T.Text -> [T.Text] -- TODO text: refactor
+splitTextByIndices :: [Int] -> T.Text -> [T.Text]
 splitTextByIndices ns = fmap T.pack . splitStringByIndices ns . T.unpack
 
 splitAt' :: Int -> [Char] -> ([Char],[Char])
@@ -231,17 +235,7 @@ backslashEscapes = map (\ch -> (ch, T.pack ['\\',ch]))
 -- | Escape a string of characters, using an association list of
 -- characters and strings.
 escapeTextUsing :: [(Char, T.Text)] -> T.Text -> T.Text
-escapeTextUsing tbl = T.pack . escapeStringUsing' (map (\(x, y) -> (x, T.unpack y)) tbl) . T.unpack
-
--- TODO text: refactor
-escapeStringUsing' :: [(Char, String)] -> String -> String
-escapeStringUsing' _ [] = ""
-escapeStringUsing' escapeTable (x:xs) =
-  case lookup x escapeTable of
-       Just str -> str ++ rest
-       Nothing  -> x:rest
-  where rest = escapeStringUsing' escapeTable xs
---
+escapeTextUsing tbl = T.concatMap $ \c -> fromMaybe (T.singleton c) $ lookup c tbl
 
 -- | @True@ exactly when the @Char@ appears in the @Text@.
 elemText :: Char -> T.Text -> Bool
@@ -257,29 +251,26 @@ stripTrailingNewlines = T.dropWhileEnd (== '\n')
 
 -- | Remove leading and trailing space (including newlines) from string.
 trim :: T.Text -> T.Text
-trim = T.dropAround $ \c -> T.any (== c) " \r\n\t"
+trim = T.dropAround (`elemText` " \r\n\t")
 
 -- | Remove leading space (including newlines) from string.
 triml :: T.Text -> T.Text
-triml = T.dropWhile $ \c -> T.any (== c) " \r\n\t"
+triml = T.dropWhile (`elemText` " \r\n\t")
 
 -- | Remove trailing space (including newlines) from string.
 trimr :: T.Text -> T.Text
-trimr = T.dropWhileEnd $ \c -> T.any (== c) " \r\n\t"
+trimr = T.dropWhileEnd (`elemText` " \r\n\t")
 
 -- | Trim leading space and trailing space unless after \.
 trimMath :: T.Text -> T.Text
-trimMath = T.pack . trimMath' . T.unpack
-
--- TODO text: remove
-trimMath' :: String -> String
-trimMath' = T.unpack . triml . T.pack . reverse . stripspace . reverse
+trimMath = triml . T.reverse . stripBeginSpace . T.reverse -- no Text.spanEnd
   where
-  stripspace (c1:c2:cs)
-    | c1  `elem` [' ','\t','\n','\r']
-    , c2 /= '\\' = stripspace (c2:cs)
-  stripspace cs = cs
---
+    stripBeginSpace t
+      | T.null pref = t
+      | Just ('\\', _) <- T.uncons suff = T.cons (T.last pref) suff
+      | otherwise = suff
+      where
+        (pref, suff) = T.span (`elemText` " \t\n\r") t
 
 -- | Strip leading and trailing characters from string
 stripFirstAndLast :: T.Text -> T.Text
@@ -290,10 +281,12 @@ stripFirstAndLast t = case T.uncons t of
   _               -> ""
 
 -- | Change CamelCase word to hyphenated lowercase (e.g., camel-case).
-camelCaseToHyphenated :: T.Text -> T.Text -- TODO text: refactor
+camelCaseToHyphenated :: T.Text -> T.Text
 camelCaseToHyphenated = T.pack . camelCaseStrToHyphenated . T.unpack
 
--- TODO text: refactor
+-- This may not work as expected on general Unicode, if it contains
+-- letters with a longer lower case form than upper case. I don't know
+-- what the camel case practices of affected scripts are, though.
 camelCaseStrToHyphenated :: String -> String
 camelCaseStrToHyphenated [] = ""
 camelCaseStrToHyphenated (a:b:rest)
@@ -305,10 +298,9 @@ camelCaseStrToHyphenated (a:b:c:rest)
   , isUpper b
   , isLower c = toLower a:'-':toLower b:camelCaseStrToHyphenated (c:rest)
 camelCaseStrToHyphenated (a:rest) = toLower a:camelCaseStrToHyphenated rest
---
 
 -- | Convert number < 4000 to uppercase roman numeral.
-toRomanNumeral :: Int -> T.Text -- TODO text: refactor
+toRomanNumeral :: Int -> T.Text
 toRomanNumeral x
   | x >= 4000 || x < 0 = "?"
   | x >= 1000 = "M" <> toRomanNumeral (x - 1000)
@@ -328,14 +320,9 @@ toRomanNumeral x
 
 -- | Escape whitespace and some punctuation characters in URI.
 escapeURI :: T.Text -> T.Text
-escapeURI = T.pack . escapeURI' . T.unpack
+escapeURI = T.pack . escapeURIString (not . needsEscaping) . T.unpack
+  where needsEscaping c = isSpace c || c `elemText` "<>|\"{}[]^`"
 
--- TODO text: refactor
-escapeURI' :: String -> String
-escapeURI' = escapeURIString (not . needsEscaping)
-  where needsEscaping c = isSpace c || c `elem`
-                           ['<','>','|','"','{','}','[',']','^', '`']
---
 
 -- | Convert tabs to spaces. Tabs will be preserved if tab stop is set to 0.
 tabFilter :: Int       -- ^ Tab stop
@@ -365,7 +352,6 @@ crFilter = T.filter (/= '\r')
 normalizeDate :: T.Text -> Maybe T.Text
 normalizeDate = fmap T.pack . normalizeDate' . T.unpack
 
--- TODO text: refactor
 normalizeDate' :: String -> Maybe String
 normalizeDate' s = fmap (formatTime defaultTimeLocale "%F")
   (msum $ map (\fs -> parsetimeWith fs s >>= rejectBadYear) formats :: Maybe Day)
@@ -376,7 +362,6 @@ normalizeDate' s = fmap (formatTime defaultTimeLocale "%F")
         formats = ["%x","%m/%d/%Y", "%D","%F", "%d %b %Y",
                     "%e %B %Y", "%b. %e, %Y", "%B %e, %Y",
                     "%Y%m%d", "%Y%m", "%Y"]
---
 
 --
 -- Pandoc block and inline list processing
@@ -385,29 +370,24 @@ normalizeDate' s = fmap (formatTime defaultTimeLocale "%F")
 -- | Generate infinite lazy list of markers for an ordered list,
 -- depending on list attributes.
 orderedListMarkers :: (Int, ListNumberStyle, ListNumberDelim) -> [T.Text]
-orderedListMarkers = fmap T.pack . orderedListMarkers'
-
--- TODO text: refactor
-orderedListMarkers' :: (Int, ListNumberStyle, ListNumberDelim) -> [String]
-orderedListMarkers' (start, numstyle, numdelim) =
-  let singleton c = [c]
-      nums = case numstyle of
-                     DefaultStyle -> map show [start..]
-                     Example      -> map show [start..]
-                     Decimal      -> map show [start..]
+orderedListMarkers (start, numstyle, numdelim) =
+  let nums = case numstyle of
+                     DefaultStyle -> map tshow [start..]
+                     Example      -> map tshow [start..]
+                     Decimal      -> map tshow [start..]
                      UpperAlpha   -> drop (start - 1) $ cycle $
-                                     map singleton ['A'..'Z']
+                                     map T.singleton ['A'..'Z']
                      LowerAlpha   -> drop (start - 1) $ cycle $
-                                     map singleton ['a'..'z']
-                     UpperRoman   -> map (T.unpack . toRomanNumeral) [start..]
-                     LowerRoman   -> map (T.unpack . T.toLower . toRomanNumeral) [start..]
+                                     map T.singleton ['a'..'z']
+                     UpperRoman   -> map toRomanNumeral [start..]
+                     LowerRoman   -> map (T.toLower . toRomanNumeral) [start..]
       inDelim str = case numdelim of
-                            DefaultDelim -> str ++ "."
-                            Period       -> str ++ "."
-                            OneParen     -> str ++ ")"
-                            TwoParens    -> "(" ++ str ++ ")"
+                            DefaultDelim -> str <> "."
+                            Period       -> str <> "."
+                            OneParen     -> str <> ")"
+                            TwoParens    -> "(" <> str <> ")"
   in  map inDelim nums
---
+
 
 -- | Extract the leading and trailing spaces from inside an inline element
 -- and place them outside the element.  SoftBreaks count as Spaces for
@@ -548,7 +528,7 @@ inlineListToIdentifier exts =
       | otherwise = T.dropWhile (not . isAlpha)
     filterAscii
       | extensionEnabled Ext_ascii_identifiers exts
-        = T.pack . mapMaybe toAsciiChar . T.unpack -- TODO text: refactor?
+        = T.pack . mapMaybe toAsciiChar . T.unpack
       | otherwise = id
     toIdent
       | extensionEnabled Ext_gfm_auto_identifiers exts =
@@ -786,16 +766,17 @@ breakSentence xs =
       isSentenceEndInline LineBreak  = True
       isSentenceEndInline _          = False
       (as, bs) = break isSentenceEndInline xs
-  in  case bs of -- TODO text: refactor
-           []             -> (as, [])
-           [c]            -> (as ++ [c], [])
-           (c:Space:cs)   -> (as ++ [c], cs)
-           (c:SoftBreak:cs) -> (as ++ [c], cs)
-           (Str ".":Str (T.unpack -> (')':ys)):cs) -> (as ++ [Str ".", Str (T.pack (')':ys))], cs)
-           (x@(Str (T.unpack -> ('.':')':_))):cs) -> (as ++ [x], cs)
-           (LineBreak:x@(Str (T.unpack -> ('.':_))):cs) -> (as ++[LineBreak], x:cs)
-           (c:cs)         -> (as ++ [c] ++ ds, es)
-              where (ds, es) = breakSentence cs
+  in  case bs of
+        []             -> (as, [])
+        [c]            -> (as ++ [c], [])
+        (c:Space:cs)   -> (as ++ [c], cs)
+        (c:SoftBreak:cs) -> (as ++ [c], cs)
+        (Str ".":Str s@(T.uncons -> Just (')',_)):cs)
+          -> (as ++ [Str ".", Str s], cs)
+        (x@(Str (T.stripPrefix ".)" -> Just _)):cs) -> (as ++ [x], cs)
+        (LineBreak:x@(Str (T.uncons -> Just ('.',_))):cs) -> (as ++[LineBreak], x:cs)
+        (c:cs)         -> (as ++ [c] ++ ds, es)
+          where (ds, es) = breakSentence cs
 
 -- | Split a list of inlines into sentences.
 splitSentences :: [Inline] -> [[Inline]]
@@ -834,13 +815,13 @@ filterIpynbOutput mode = walk go
                   rank (Para [Image{}]) = 1
                   rank _ = 2
                   removeANSI (CodeBlock attr code) =
-                    CodeBlock attr (T.pack $ removeANSIEscapes $ T.unpack code)
+                    CodeBlock attr (removeANSIEscapes code)
                   removeANSI x = x
-                  -- TODO text: refactor
-                  removeANSIEscapes [] = []
-                  removeANSIEscapes ('\x1b':'[':cs) =
-                    removeANSIEscapes (drop 1 $ dropWhile (/='m') cs)
-                  removeANSIEscapes (c:cs) = c : removeANSIEscapes cs
+                  removeANSIEscapes t
+                    | Just cs <- T.stripPrefix "\x1b[" t =
+                        removeANSIEscapes $ T.drop 1 $ T.dropWhile (/='m') cs
+                    | Just (c, cs) <- T.uncons t = T.cons c $ removeANSIEscapes cs
+                    | otherwise = ""
         go x = x
 
 --
@@ -900,7 +881,7 @@ collapseFilePath = Posix.joinPath . reverse . foldl go [] . splitDirectories
 -- Convert the path part of a file: URI to a regular path.
 -- On windows, @/c:/foo@ should be @c:/foo@.
 -- On linux, @/foo@ should be @/foo@.
-uriPathToPath :: T.Text -> FilePath -- TODO text: unsure about this one. also refactor.
+uriPathToPath :: T.Text -> FilePath
 uriPathToPath (T.unpack -> path) =
 #ifdef _WINDOWS
   case path of

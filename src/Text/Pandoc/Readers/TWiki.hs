@@ -92,7 +92,6 @@ parseHtmlContentWithAttrs tag parser = do
     parseContent = parseFromString' $ nested $ manyTill parser endOfContent
     endOfContent = try $ skipMany blankline >> skipSpaces >> eof
 
--- TODO text: do we need the main one?
 parseCharHtmlContentWithAttrs :: PandocMonad m
                           => Text -> TWParser m Char -> TWParser m (Attr, Text)
 parseCharHtmlContentWithAttrs tag = fmap go . parseHtmlContentWithAttrs tag

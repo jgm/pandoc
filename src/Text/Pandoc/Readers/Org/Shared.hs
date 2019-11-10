@@ -19,10 +19,10 @@ module Text.Pandoc.Readers.Org.Shared
 
 import Prelude
 import Data.Char (isAlphaNum)
-import Data.List (isPrefixOf)
 import Data.Text (Text)
 import qualified Data.Text as T
 import System.FilePath (isValid, takeExtension)
+import Text.Pandoc.Shared (elemText)
 
 -- | Check whether the given string looks like the path to of URL of an image.
 isImageFilename :: Text -> Bool
@@ -36,24 +36,20 @@ isImageFilename fp = hasImageExtension && (isValid (T.unpack fp) || isKnownProto
 
 -- | Cleanup and canonicalize a string describing a link.  Return @Nothing@ if
 -- the string does not appear to be a link.
-cleanLinkText :: Text -> Maybe Text -- TODO text: refactor
-cleanLinkText = fmap T.pack . cleanLinkString . T.unpack
-
-cleanLinkString :: String -> Maybe String
-cleanLinkString s =
-  case s of
-    '/':_                  -> Just $ "file://" ++ s  -- absolute path
-    '.':'/':_              -> Just s                 -- relative path
-    '.':'.':'/':_          -> Just s                 -- relative path
-    -- Relative path or URL (file schema)
-    'f':'i':'l':'e':':':s' -> Just $ if "//" `isPrefixOf` s' then s else s'
-    _                      -> if isUrl s then Just s else Nothing
- where
-   isUrl :: String -> Bool
-   isUrl cs =
-     let (scheme, path) = break (== ':') cs
-     in all (\c -> isAlphaNum c || c `elem` (".-"::String)) scheme
-          && not (null path)
+cleanLinkText :: Text -> Maybe Text
+cleanLinkText s
+  | Just _ <- T.stripPrefix "/" s      = Just $ "file://" <> s -- absolute path
+  | Just _ <- T.stripPrefix "./" s     = Just s                -- relative path
+  | Just _ <- T.stripPrefix "../" s    = Just s                -- relative path
+  -- Relative path or URL (file schema)
+  | Just s' <- T.stripPrefix "file:" s = Just $ if "//" `T.isPrefixOf` s' then s else s'
+  | otherwise                          = if isUrl s then Just s else Nothing
+  where
+    isUrl :: Text -> Bool
+    isUrl cs =
+      let (scheme, path) = T.break (== ':') cs
+      in T.all (\c -> isAlphaNum c || c `elemText` ".-") scheme
+         && not (T.null path)
 
 -- | Creates an key-value pair marking the original language name specified for
 -- a piece of source code.

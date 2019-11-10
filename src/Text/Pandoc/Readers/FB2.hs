@@ -77,7 +77,7 @@ readFB2 _ inp =
 -- * Utility functions
 
 trim :: Text -> Text
-trim = T.strip -- dropWhileEnd isSpace . dropWhile isSpace TODO text: remove
+trim = T.strip
 
 removeHash :: Text -> Text
 removeHash t = case T.uncons t of
@@ -86,7 +86,6 @@ removeHash t = case T.uncons t of
 
 convertEntity :: String -> Text
 convertEntity e = maybe (T.toUpper $ T.pack e) T.pack $ lookupEntity e
--- convertEntity e = fromMaybe (map toUpper e) (lookupEntity e) TODO text: remove
 
 parseInline :: PandocMonad m => Content -> FB2 m Inlines
 parseInline (Elem e) =
@@ -194,7 +193,7 @@ parseBodyChild e =
 -- | Parse a @\<binary>@ element.
 parseBinaryElement :: PandocMonad m => Element -> FB2 m ()
 parseBinaryElement e =
-  case (findAttr (unqual "id") e, findAttr (unqual "content-type") e) of -- TODO text: make findAttrText
+  case (findAttr (unqual "id") e, findAttr (unqual "content-type") e) of
     (Nothing, _) -> report $ IgnoredElement "binary without id attribute"
     (Just _, Nothing) ->
       report $ IgnoredElement "binary without content-type attribute"

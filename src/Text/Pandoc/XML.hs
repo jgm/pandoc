@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.XML
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -50,16 +51,10 @@ escapeStringForXML = T.concatMap escapeCharForXML . T.filter isLegalXMLChar
   -- see https://www.w3.org/TR/xml/#charsets
 
 -- | Escape newline characters as &#10;
-escapeNls :: Text -> Text -- TODO text: refactor
-escapeNls = T.pack . escapeNls' . T.unpack
-
--- TODO text: remove
-escapeNls' :: String -> String
-escapeNls' (x:xs)
-  | x == '\n' = "&#10;" ++ escapeNls' xs
-  | otherwise = x : escapeNls' xs
-escapeNls' []     = []
---
+escapeNls :: Text -> Text
+escapeNls = T.concatMap $ \x -> case x of
+  '\n' -> "&#10;"
+  c    -> T.singleton c
 
 -- | Return a text object with a string of formatted XML attributes.
 attributeList :: (HasChars a, IsString a) => [(Text, Text)] -> Doc a
@@ -125,20 +120,20 @@ html5EntityMap = foldr go mempty htmlEntities
 
 -- Unescapes XML entities
 fromEntities :: Text -> Text
-fromEntities = T.pack . fromEntities' . T.unpack -- TODO text: refactor
+fromEntities = T.pack . fromEntities'
 
-fromEntities' :: String -> String
-fromEntities' ('&':xs) =
-  case lookupEntity ent' of
-        Just c  -> c ++ fromEntities' rest
-        Nothing -> '&' : fromEntities' xs
-    where (ent, rest) = case break (\c -> isSpace c || c == ';') xs of
-                             (zs,';':ys) -> (zs,ys)
-                             (zs,    ys) -> (zs,ys)
-          ent' = case ent of
-                      '#':'X':ys -> '#':'x':ys  -- workaround tagsoup bug
-                      '#':_      -> ent
-                      _          -> ent ++ ";"
-
-fromEntities' (x:xs) = x : fromEntities' xs
-fromEntities' [] = []
+fromEntities' :: Text -> String
+fromEntities' (T.uncons -> Just ('&', xs)) =
+  case lookupEntity $ T.unpack ent' of
+        Just c  -> c <> fromEntities' rest
+        Nothing -> "&" <> fromEntities' xs
+    where (ent, rest) = case T.break (\c -> isSpace c || c == ';') xs of
+                          (zs,T.uncons -> Just (';',ys)) -> (zs,ys)
+                          (zs, ys) -> (zs,ys)
+          ent'
+            | Just ys <- T.stripPrefix "#X" ent = "#x" <> ys  -- workaround tagsoup bug
+            | Just ('#', _) <- T.uncons ent     = ent
+            | otherwise                         = ent <> ";"
+fromEntities' t = case T.uncons t of
+  Just (x, xs) -> x : fromEntities' xs
+  Nothing      -> ""

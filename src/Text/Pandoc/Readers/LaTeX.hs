@@ -823,13 +823,15 @@ inBrackets :: Inlines -> Inlines
 inBrackets x = str "[" <> x <> str "]"
 
 unescapeURL :: Text -> Text
-unescapeURL = T.pack . unescapeURL' . T.unpack
-
-unescapeURL' :: String -> String -- TODO text: refactor
-unescapeURL' ('\\':x:xs) | isEscapable x = x:unescapeURL' xs
-  where isEscapable c = c `elem` ("#$%&~_^\\{}" :: String)
-unescapeURL' (x:xs) = x:unescapeURL' xs
-unescapeURL' [] = ""
+unescapeURL = T.concat . go . T.splitOn "\\"
+  where
+    isEscapable c = c `elemText` "#$%&~_^\\{}"
+    go (x:xs) = x : map unescapeInterior xs
+    go []     = []
+    unescapeInterior t
+      | Just (c, _) <- T.uncons t
+      , isEscapable c = t
+      | otherwise = "\\" <> t
 
 mathEnvWith :: PandocMonad m
             => (Inlines -> a) -> Maybe Text -> Text -> LP m a

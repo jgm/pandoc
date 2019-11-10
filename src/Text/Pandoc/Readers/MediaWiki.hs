@@ -25,7 +25,7 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isSpace)
 import qualified Data.Foldable as F
-import Data.List (intercalate, intersperse)
+import Data.List (intersperse)
 import Data.Maybe (fromMaybe, maybeToList)
 import Data.Sequence (ViewL (..), viewl, (<|))
 import qualified Data.Set as Set
@@ -41,7 +41,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag)
 import Text.Pandoc.Shared (crFilter, safeRead, stringify, stripTrailingNewlines,
-                           trim)
+                           trim, splitTextBy)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.XML (fromEntities)
 
@@ -630,17 +630,10 @@ imageOption = try $ char '|' *> opt
       <|> try (textStr "frame")
       <|> try (oneOfStrings ["link=","alt=","page=","class="] <* many (noneOf "|]"))
 
-collapseUnderscores :: String -> String
-collapseUnderscores []           = []
-collapseUnderscores ('_':'_':xs) = collapseUnderscores ('_':xs)
-collapseUnderscores (x:xs)       = x : collapseUnderscores xs
-
--- TODO text: refactor
 addUnderscores :: Text -> Text
-addUnderscores = T.pack . addUnderscores' . T.unpack
-
-addUnderscores' :: String -> String
-addUnderscores' = collapseUnderscores . intercalate "_" . words
+addUnderscores = T.intercalate "_" . splitTextBy sep
+  where
+    sep c = isSpace c || c == '_'
 
 internalLink :: PandocMonad m => MWParser m Inlines
 internalLink = try $ do

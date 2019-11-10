@@ -29,6 +29,7 @@ import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import qualified Data.YAML as YAML
 import qualified Data.YAML.Event as YE
 import System.FilePath (addExtension, takeExtension)
@@ -140,9 +141,10 @@ litChar = escapedChar'
 inlinesInBalancedBrackets :: PandocMonad m => MarkdownParser m (F Inlines)
 inlinesInBalancedBrackets =
   try $ char '[' >> withRaw (go 1) >>=
-          parseFromString inlines . T.pack . stripBracket . T.unpack . snd -- TODO text: refactor
-  where stripBracket [] = []
-        stripBracket xs = if last xs == ']' then init xs else xs
+          parseFromString inlines . stripBracket . snd
+  where stripBracket t = case T.unsnoc t of
+          Just (t', ']') -> t'
+          _              -> t
         go :: PandocMonad m => Int -> MarkdownParser m ()
         go 0 = return ()
         go openBrackets =
@@ -226,7 +228,7 @@ yamlMetaBlock = try $ do
   -- by including --- and ..., we allow yaml blocks with just comments:
   let rawYaml = T.unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
-  newMetaF <- yamlBsToMeta $ UTF8.fromStringLazy $ T.unpack rawYaml -- TODO text: refactor
+  newMetaF <- yamlBsToMeta $ UTF8.fromTextLazy $ TL.fromStrict rawYaml
   -- Since `<>` is left-biased, existing values are not touched:
   updateState $ \st -> st{ stateMeta' = (stateMeta' st) <> newMetaF }
   return mempty
@@ -1875,15 +1877,12 @@ referenceLink constructor (lab, raw) = do
             else makeFallback
        Just ((src,tit), attr) -> constructor attr src tit <$> lab
 
-dropBrackets :: Text -> Text -- TODO text: refactor
-dropBrackets = T.pack . dropBrackets' . T.unpack
-
-dropBrackets' :: String -> String
-dropBrackets' = reverse . dropRB . reverse . dropLB
-  where dropRB (']':xs) = xs
-        dropRB xs       = xs
-        dropLB ('[':xs) = xs
-        dropLB xs       = xs
+dropBrackets :: Text -> Text
+dropBrackets = dropRB . dropLB
+  where dropRB (T.unsnoc -> Just (xs,']')) = xs
+        dropRB xs                          = xs
+        dropLB (T.uncons -> Just ('[',xs)) = xs
+        dropLB xs                          = xs
 
 bareURL :: PandocMonad m => MarkdownParser m (F Inlines)
 bareURL = try $ do

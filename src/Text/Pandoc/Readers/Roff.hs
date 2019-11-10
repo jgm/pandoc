@@ -183,15 +183,10 @@ resolveGlyph delimChar glyph = do
             '\'' -> escUnknown ("\\C'" <> glyph <> "'")
             _    -> Prelude.fail "resolveGlyph: unknown glyph delimiter"
 
-readUnicodeChar :: T.Text -> Maybe Char -- TODO text: refactor
-readUnicodeChar = readUnicodeChar' . T.unpack
-
-readUnicodeChar' :: String -> Maybe Char
-readUnicodeChar' ('u':cs@(_:_:_:_:_)) =
-  case safeRead $ T.pack ('0':'x':cs) of
-    Just i  -> Just (chr i)
-    Nothing -> Nothing
-readUnicodeChar' _ = Nothing
+readUnicodeChar :: T.Text -> Maybe Char
+readUnicodeChar t = case T.uncons t of
+  Just ('u', cs) | T.length cs > 3 -> chr <$> safeRead ("0x" <> cs)
+  _ -> Nothing
 
 escapeNormal :: PandocMonad m => RoffLexer m [LinePart]
 escapeNormal = do

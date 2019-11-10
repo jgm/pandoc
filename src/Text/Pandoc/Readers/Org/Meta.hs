@@ -165,19 +165,17 @@ parseLinkFormat = try $ do
 -- | An ad-hoc, single-argument-only implementation of a printf-style format
 -- parser.
 parseFormat :: Monad m => OrgParser m (Text -> Text)
-parseFormat = try $ go $ replacePlain <|> replaceUrl <|> justAppend
+parseFormat = try $ replacePlain <|> replaceUrl <|> justAppend
  where
    -- inefficient, but who cares
-   replacePlain = try $ (\x -> concat . flip intersperse x)
+   replacePlain = try $ (\x -> T.concat . flip intersperse x)
                      <$> sequence [tillSpecifier 's', rest]
-   replaceUrl   = try $ (\x -> concat . flip intersperse x . urlEncode)
+   replaceUrl   = try $ (\x -> T.concat . flip intersperse x . T.pack . urlEncode . T.unpack)
                      <$> sequence [tillSpecifier 'h', rest]
-   justAppend   = try $ (++) <$> rest
+   justAppend   = try $ (<>) <$> rest
 
-   rest            = manyTill anyChar         (eof <|> () <$ oneOf "\n\r")
-   tillSpecifier c = manyTill (noneOf "\n\r") (try $ string ('%':c:""))
-   -- TODO text: refactor
-   go = fmap $ \f -> T.pack . f . T.unpack
+   rest            = manyTillChar anyChar         (eof <|> () <$ oneOf "\n\r")
+   tillSpecifier c = manyTillChar (noneOf "\n\r") (try $ string ('%':c:""))
 
 tagList :: Monad m => OrgParser m [Tag]
 tagList = do

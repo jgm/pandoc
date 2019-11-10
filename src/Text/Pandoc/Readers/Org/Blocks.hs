@@ -247,24 +247,20 @@ rawBlockContent blockType = try $ do
    shortestIndent = foldr (min . T.length . T.takeWhile isSpace) maxBound
                     . filter (not . T.null)
 
-   tabsToSpaces :: Int -> Text -> Text -- TODO text: refactor
-   tabsToSpaces n = T.pack . tabsToSpaces' n . T.unpack
+   tabsToSpaces :: Int -> Text -> Text
+   tabsToSpaces tabStop t =
+     let (ind, suff) = T.span (\c -> c == ' ' || c == '\t') t
+         tabNum      = T.length $ T.filter (== '\n') ind
+         spaceNum    = T.length ind - tabNum
+     in  T.replicate (spaceNum + tabStop * tabNum) " " <> suff
 
-   tabsToSpaces' _      []         = []
-   tabsToSpaces' tabLen cs'@(c:cs) =
-       case c of
-         ' '  -> ' ':tabsToSpaces' tabLen cs
-         '\t' -> replicate tabLen ' ' ++ tabsToSpaces' tabLen cs
-         _    -> cs'
-
-   commaEscaped :: Text -> Text -- TODO text: refactor
-   commaEscaped = T.pack . commaEscaped' . T.unpack
-   
-   commaEscaped' (',':cs@('*':_))     = cs
-   commaEscaped' (',':cs@('#':'+':_)) = cs
-   commaEscaped' (' ':cs)             = ' ':commaEscaped' cs
-   commaEscaped' ('\t':cs)            = '\t':commaEscaped' cs
-   commaEscaped' cs                   = cs
+   commaEscaped t =
+     let (ind, suff) = T.span (\c -> c == ' ' || c == '\t') t
+     in  case T.uncons suff of
+           Just (',', cs)
+             | "*"  <- T.take 1 cs -> ind <> cs
+             | "#+" <- T.take 2 cs -> ind <> cs
+           _                       -> t
 
 -- | Read but ignore all remaining block headers.
 ignHeaders :: Monad m => OrgParser m ()

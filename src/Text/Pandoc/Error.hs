@@ -141,7 +141,7 @@ handleError (Left e) =
 
 err :: Int -> Text -> IO a
 err exitCode msg = do
-  UTF8.hPutStrLn stderr (T.unpack msg) -- TODO text: refactor
+  UTF8.hPutStrLn stderr (T.unpack msg)
   exitWith $ ExitFailure exitCode
   return undefined
 

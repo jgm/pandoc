@@ -1,5 +1,5 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -35,7 +35,7 @@ import Control.Monad.Reader (ReaderT, ask, asks, lift, local, runReaderT)
 import Data.Char (isAlphaNum, isLetter)
 import Data.Default (Default (..), def)
 import Data.Foldable (for_)
-import Data.List.Split (wordsBy, splitWhen)
+import Data.List.Split (splitWhen)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Monoid (First (..))
@@ -61,7 +61,7 @@ import Text.Pandoc.Options (
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
-                           extractSpaces, htmlSpanLikeElements,
+                           extractSpaces, htmlSpanLikeElements, elemText, splitTextBy,
                            onlySimpleTableCells, safeRead, underlineSpan)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
@@ -557,11 +557,10 @@ pCell celltype = try $ do
   skipMany pBlank
   tag <- lookAhead $
            pSatisfy (\t -> t ~== TagOpen celltype [] && noColOrRowSpans t)
-  let extractAlign' []                 = "" -- TODO text: refactor
+  let extractAlign' []                 = ""
       extractAlign' ("text-align":x:_) = x
       extractAlign' (_:xs)             = extractAlign' xs
-      -- TODO text: refactor
-  let extractAlign = T.pack . extractAlign' . wordsBy (`elem` [' ','\t',';',':']) . T.unpack
+  let extractAlign = extractAlign' . splitTextBy (`elemText` " \t;:")
   let align = case maybeFromAttrib "align" tag `mplus`
                    (extractAlign <$> maybeFromAttrib "style" tag) of
                    Just "left"   -> AlignLeft
@@ -827,7 +826,6 @@ pRawHtmlInline = do
 mathMLToTeXMath :: Text -> Either Text Text
 mathMLToTeXMath s = writeTeX <$> readMathML s
 
--- TODO text: refactor (rename, at least)
 toStringAttr :: [(Text, Text)] -> [(Text, Text)]
 toStringAttr = map go
   where go (x,y) = (fromMaybe x $ T.stripPrefix "data-" x, y)
@@ -1334,7 +1332,6 @@ instance HasLastStrPosition HTMLState where
   setLastStrPos s st = st {parserState = setLastStrPos s (parserState st)}
   getLastStrPos = getLastStrPos . parserState
 
--- TODO text: refactor
 -- For now we need a special version here; the one in Shared has String type
 renderTags' :: [Tag Text] -> Text
 renderTags' = renderTagsOptions
