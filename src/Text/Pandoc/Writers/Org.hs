@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.Org
-  Copyright    : © 2010-2015 Puneeth Chaganti <punchagan@gmail.com>
+   Copyright   : © 2010-2015 Puneeth Chaganti <punchagan@gmail.com>
                    2010-2019 John MacFarlane <jgm@berkeley.edu>
                    2016-2019 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
    License     : GNU GPL, version 2 or above
@@ -19,7 +19,7 @@ module Text.Pandoc.Writers.Org (writeOrg) where
 import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isAlphaNum)
-import Data.List (intersect, intersperse, isPrefixOf, partition, transpose)
+import Data.List (intersect, intersperse, partition, transpose)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad, report)
@@ -385,26 +385,22 @@ inlineToOrg (Note contents) = do
   let ref = tshow $ length notes + 1
   return $ "[fn:" <> literal ref <> "]"
 
-orgPath :: Text -> Text -- TODO text: refactor
-orgPath = T.pack . orgPath' . T.unpack
+orgPath :: Text -> Text
+orgPath src = case T.uncons src of
+  Nothing            -> ""             -- wiki link
+  Just ('#', _)      -> src            -- internal link
+  _ | isUrl src      -> src
+  _ | isFilePath src -> src
+  _                  -> "file:" <> src
+  where
+    isFilePath :: Text -> Bool
+    isFilePath cs = any (`T.isPrefixOf` cs) ["/", "./", "../", "file:"]
 
-orgPath' :: String -> String
-orgPath' src =
-  case src of
-    []      -> mempty         -- wiki link
-    ('#':_) -> src            -- internal link
-    _       | isUrl src -> src
-    _       | isFilePath src -> src
-    _       -> "file:" <> src
- where
-   isFilePath :: String -> Bool
-   isFilePath cs = any (`isPrefixOf` cs) ["/", "./", "../", "file:"]
-
-   isUrl :: String -> Bool
-   isUrl cs =
-     let (scheme, path) = break (== ':') cs
-     in all (\c -> isAlphaNum c || c `elem` (".-"::String)) scheme
-          && not (null path)
+    isUrl :: Text -> Bool
+    isUrl cs =
+      let (scheme, path) = T.break (== ':') cs
+      in T.all (\c -> isAlphaNum c || c `elemText` ".-") scheme
+         && not (T.null path)
 
 -- | Translate from pandoc's programming language identifiers to those used by
 -- org-mode.

@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-} -- TODO text: possibly remove
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP               #-}
 {- |
    Module      : Text.Pandoc.Writers.OPML
    Copyright   : Copyright (C) 2013-2019 John MacFarlane

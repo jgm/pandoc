@@ -282,9 +282,8 @@ escapeText :: WriterOptions -> Text -> Text
 escapeText opts =
   (if writerPreferAscii opts
       then toHtml5Entities
-      else id) . go'
+      else id) . T.pack . go . T.unpack
   where
-  go' = T.pack . go . T.unpack -- TODO text: refactor
   go [] = []
   go (c:cs) =
     case c of
@@ -335,7 +334,7 @@ attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
                                             map (\(k,v) -> escAttr k
                                               <> "=\"" <>
                                               escAttr v <> "\"") ks
-              escAttr          = mconcat . map escAttrChar . T.unpack -- TODO text: revisit
+              escAttr          = mconcat . map escAttrChar . T.unpack
               escAttrChar '"'  = literal "\\\""
               escAttrChar '\\' = literal "\\\\"
               escAttrChar c    = literal $ T.singleton c
@@ -427,38 +426,35 @@ blockToMarkdown' opts (Plain inlines) = do
                     then Just $ writerColumns opts
                     else Nothing
   let rendered = render colwidth contents
-  let escapeMarker' (x:xs) | x `elem` (".()" :: String) = '\\':x:xs
-                          | otherwise                   = x : escapeMarker' xs
-      escapeMarker' []                                  = []
-      escapeMarker = T.pack . escapeMarker' . T.unpack -- TODO text: refactor
+  let escapeMarker = T.concatMap $ \x -> if x `elemText` ".()"
+                                         then T.pack ['\\', x]
+                                         else T.singleton x
+  let spaceOrNothing = (not isPlain &&) . maybe True (isSpace . fst) . T.uncons
   let contents' =
-       case T.unpack rendered of -- TODO text: revisit
-            '%':_ | isEnabled Ext_pandoc_title_block opts &&
-                    isEnabled Ext_all_symbols_escapable opts ->
-                    "\\" <> contents
-            '+':s:_ | not isPlain && isSpace s -> "\\" <> contents
-            '*':s:_ | not isPlain && isSpace s -> "\\" <> contents
-            '-':s:_ | not isPlain && isSpace s -> "\\" <> contents
-            '+':[]  | not isPlain -> "\\" <> contents
-            '*':[]  | not isPlain -> "\\" <> contents
-            '-':[]  | not isPlain -> "\\" <> contents
-            '|':_ | (isEnabled Ext_line_blocks opts ||
-                     isEnabled Ext_pipe_tables opts)
-                    && isEnabled Ext_all_symbols_escapable opts
-                  -> "\\" <> contents
-            _ | not isPlain && beginsWithOrderedListMarker rendered
-                  && isEnabled Ext_all_symbols_escapable opts
-                  -> literal $ escapeMarker rendered
-              | otherwise -> contents
+        case T.uncons rendered of
+          Just ('%', _)
+            | isEnabled Ext_pandoc_title_block opts &&
+              isEnabled Ext_all_symbols_escapable opts -> "\\" <> contents
+          Just ('+', s) | spaceOrNothing s -> "\\" <> contents
+          Just ('*', s) | spaceOrNothing s -> "\\" <> contents
+          Just ('-', s) | spaceOrNothing s -> "\\" <> contents
+          Just ('|', _) | (isEnabled Ext_line_blocks opts ||
+                           isEnabled Ext_pipe_tables opts)
+                          && isEnabled Ext_all_symbols_escapable opts
+                          -> "\\" <> contents
+          _ | not isPlain && beginsWithOrderedListMarker rendered
+              && isEnabled Ext_all_symbols_escapable opts
+              -> literal $ escapeMarker rendered
+            | otherwise -> contents
   return $ contents' <> cr
 -- title beginning with fig: indicates figure
-blockToMarkdown' opts (Para [Image attr alt (src,T.stripPrefix "fig:" -> Just tit)]) -- TODO text: refactor in light of fig: <> below
+blockToMarkdown' opts (Para [Image attr alt (src,tgt@(T.stripPrefix "fig:" -> Just tit))])
   | isEnabled Ext_raw_html opts &&
     not (isEnabled Ext_link_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
     ((<> blankline) . literal . T.strip) <$>
       writeHtml5String opts{ writerTemplate = Nothing }
-        (Pandoc nullMeta [Para [Image attr alt (src,"fig:" <> tit)]])
+        (Pandoc nullMeta [Para [Image attr alt (src,tgt)]])
   | otherwise = blockToMarkdown opts (Para [Image attr alt (src,tit)])
 blockToMarkdown' opts (Para inlines) =
   (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
@@ -957,29 +953,28 @@ inlineListToMarkdown opts lst = do
             (Link _ _ _) -> case is of
                 -- If a link is followed by another link, or '[', '(' or ':'
                 -- then we don't shortcut
-                -- TODO text: refactor
-                (Link _ _ _):_                    -> unshortcutable
-                Space:(Link _ _ _):_              -> unshortcutable
-                Space:(Str(thead -> Just '[')):_              -> unshortcutable
-                Space:(RawInline _ (thead -> Just '[')):_     -> unshortcutable
-                Space:(Cite _ _):_                -> unshortcutable
-                SoftBreak:(Link _ _ _):_          -> unshortcutable
-                SoftBreak:(Str(thead -> Just '[')):_          -> unshortcutable
-                SoftBreak:(RawInline _ (thead -> Just '[')):_ -> unshortcutable
-                SoftBreak:(Cite _ _):_            -> unshortcutable
-                LineBreak:(Link _ _ _):_          -> unshortcutable
-                LineBreak:(Str(thead -> Just '[')):_          -> unshortcutable
-                LineBreak:(RawInline _ (thead -> Just '[')):_ -> unshortcutable
-                LineBreak:(Cite _ _):_            -> unshortcutable
-                (Cite _ _):_                      -> unshortcutable
-                Str (thead -> Just '['):_                     -> unshortcutable
-                Str (thead -> Just '('):_                     -> unshortcutable
-                Str (thead -> Just ':'):_                     -> unshortcutable
-                (RawInline _ (thead -> Just '[')):_           -> unshortcutable
-                (RawInline _ (thead -> Just '(')):_           -> unshortcutable
-                (RawInline _ (thead -> Just ':')):_           -> unshortcutable
-                (RawInline _ (T.stripPrefix " [" -> Just _ )):_       -> unshortcutable
-                _                                 -> shortcutable
+                (Link _ _ _):_                                  -> unshortcutable
+                Space:(Link _ _ _):_                            -> unshortcutable
+                Space:(Str(thead -> Just '[')):_                -> unshortcutable
+                Space:(RawInline _ (thead -> Just '[')):_       -> unshortcutable
+                Space:(Cite _ _):_                              -> unshortcutable
+                SoftBreak:(Link _ _ _):_                        -> unshortcutable
+                SoftBreak:(Str(thead -> Just '[')):_            -> unshortcutable
+                SoftBreak:(RawInline _ (thead -> Just '[')):_   -> unshortcutable
+                SoftBreak:(Cite _ _):_                          -> unshortcutable
+                LineBreak:(Link _ _ _):_                        -> unshortcutable
+                LineBreak:(Str(thead -> Just '[')):_            -> unshortcutable
+                LineBreak:(RawInline _ (thead -> Just '[')):_   -> unshortcutable
+                LineBreak:(Cite _ _):_                          -> unshortcutable
+                (Cite _ _):_                                    -> unshortcutable
+                Str (thead -> Just '['):_                       -> unshortcutable
+                Str (thead -> Just '('):_                       -> unshortcutable
+                Str (thead -> Just ':'):_                       -> unshortcutable
+                (RawInline _ (thead -> Just '[')):_             -> unshortcutable
+                (RawInline _ (thead -> Just '(')):_             -> unshortcutable
+                (RawInline _ (thead -> Just ':')):_             -> unshortcutable
+                (RawInline _ (T.stripPrefix " [" -> Just _ )):_ -> unshortcutable
+                _                                               -> shortcutable
             _ -> shortcutable
           where shortcutable = liftM2 (<>) (inlineToMarkdown opts i) (go is)
                 unshortcutable = do
@@ -994,14 +989,14 @@ isSp Space     = True
 isSp SoftBreak = True
 isSp _         = False
 
-avoidBadWrapsInList :: [Inline] -> [Inline] -- TODO text: refactor
+avoidBadWrapsInList :: [Inline] -> [Inline]
 avoidBadWrapsInList [] = []
 avoidBadWrapsInList (s:Str (T.uncons -> Just ('>',cs)):xs) | isSp s =
   Str (" >" <> cs) : avoidBadWrapsInList xs
-avoidBadWrapsInList (s:Str (T.unpack -> [c]):[])
-  | isSp s && c `elem` ['-','*','+'] = Str (T.pack [' ', c]) : []
-avoidBadWrapsInList (s:Str (T.unpack -> [c]):Space:xs)
-  | isSp s && c `elem` ['-','*','+'] =
+avoidBadWrapsInList (s:Str (T.uncons -> Just (c, cs)):[])
+  | T.null cs && isSp s && c `elem` ['-','*','+'] = Str (T.pack [' ', c]) : []
+avoidBadWrapsInList (s:Str (T.uncons -> Just (c, cs)):Space:xs)
+  | T.null cs && isSp s && c `elem` ['-','*','+'] =
     Str (T.pack [' ', c]) : Space : avoidBadWrapsInList xs
 avoidBadWrapsInList (s:Str cs:Space:xs)
   | isSp s && isOrderedListMarker cs =
@@ -1010,7 +1005,7 @@ avoidBadWrapsInList (s:Str cs:[])
   | isSp s && isOrderedListMarker cs = Str (" " <> cs) : []
 avoidBadWrapsInList (x:xs) = x : avoidBadWrapsInList xs
 
-isOrderedListMarker :: Text -> Bool -- TODO text: refactor
+isOrderedListMarker :: Text -> Bool
 isOrderedListMarker xs = not (T.null xs) && (T.last xs `elem` ['.',')']) &&
               isRight (runParser (anyOrderedListMarker >> eof)
                        defaultParserState "" xs)
@@ -1079,7 +1074,7 @@ inlineToMarkdown opts (Superscript lst) =
                          then "<sup>" <> contents <> "</sup>"
                          else
                            let rendered = render Nothing contents
-                           in  case mapM toSuperscript (T.unpack rendered) of -- TODO text: refactor
+                           in  case mapM toSuperscript (T.unpack rendered) of
                                     Just r  -> literal $ T.pack r
                                     Nothing -> literal $ "^(" <> rendered <> ")"
 inlineToMarkdown _ (Subscript []) = return empty
@@ -1092,7 +1087,7 @@ inlineToMarkdown opts (Subscript lst) =
                          then "<sub>" <> contents <> "</sub>"
                          else
                            let rendered = render Nothing contents
-                           in  case mapM toSubscript (T.unpack rendered) of -- TODO text: refactor
+                           in  case mapM toSubscript (T.unpack rendered) of
                                     Just r  -> literal $ T.pack r
                                     Nothing -> literal $ "_(" <> rendered <> ")"
 inlineToMarkdown opts (SmallCaps lst) = do
@@ -1238,7 +1233,7 @@ inlineToMarkdown opts (Cite (c:cs) lst)
            pdoc <- inlineListToMarkdown opts pinlines
            sdoc <- inlineListToMarkdown opts sinlines
            let k' = literal (modekey m <> "@" <> k)
-               r = case sinlines of -- TODO text: refactor
+               r = case sinlines of
                         Str (T.uncons -> Just (y,_)):_ | y `elem` (",;]@" :: String) -> k' <> sdoc
                         _                                         -> k' <+> sdoc
            return $ pdoc <+> r

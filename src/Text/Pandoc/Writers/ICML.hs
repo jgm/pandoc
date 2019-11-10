@@ -204,14 +204,14 @@ parStylesToDoc st = vcat $ map makeStyle $ Set.toAscList $ blockStyles st
           nOrds = countSubStrs orderedListName s
           attrs' = numbering <> listType <> indent <> attrs
             where
-              numbering | isOrderedList = [("NumberingExpression", "^#.^t"), ("NumberingLevel", Text.pack $ show nOrds)]
+              numbering | isOrderedList = [("NumberingExpression", "^#.^t"), ("NumberingLevel", tshow nOrds)]
                         | otherwise     = []
               listType | isOrderedList && not (subListParName `Text.isInfixOf` s)
                            = [("BulletsAndNumberingListType", "NumberedList")]
                        | isBulletList && not (subListParName `Text.isInfixOf` s)
                            = [("BulletsAndNumberingListType", "BulletList")]
                        | otherwise = []
-              indent = [("LeftIndent", Text.pack $ show indt)]
+              indent = [("LeftIndent", tshow indt)]
                 where
                   nBlockQuotes = countSubStrs blockQuoteName s
                   nDefLists = countSubStrs defListDefName s
@@ -267,13 +267,9 @@ charStylesToDoc st = vcat $ map makeStyle $ Set.toAscList $ inlineStyles st
 
 -- | Escape colon characters as %3a
 escapeColons :: Text -> Text
-escapeColons = Text.pack . escapeColons' . Text.unpack -- TODO text: refactor
-
-escapeColons' :: String -> String
-escapeColons' (x:xs)
-  | x == ':' = "%3a" ++ escapeColons' xs
-  | otherwise = x : escapeColons' xs
-escapeColons' []     = []
+escapeColons = Text.concatMap $ \x -> case x of
+  ':' -> "%3a"
+  _   -> Text.singleton x
 
 -- | Convert a list of (identifier, url) pairs to the ICML listing of hyperlinks.
 hyperlinksToDoc :: Hyperlink -> Doc Text
@@ -284,8 +280,8 @@ hyperlinksToDoc (x:xs) = hyp x $$ hyperlinksToDoc xs
       where
         hdest = selfClosingTag "HyperlinkURLDestination"
                   [("Self", "HyperlinkURLDestination/"<>escapeColons url), ("Name","link"), ("DestinationURL",url), ("DestinationUniqueKey","1")] -- HyperlinkURLDestination with more than one colon crashes CS6
-        hlink = inTags True "Hyperlink" [("Self","uf-"<>Text.pack (show ident)),  ("Name",url),
-                    ("Source","htss-"<>Text.pack (show ident)), ("Visible","true"), ("DestinationUniqueKey","1")]
+        hlink = inTags True "Hyperlink" [("Self","uf-"<>tshow ident),  ("Name",url),
+                    ("Source","htss-"<>tshow ident), ("Visible","true"), ("DestinationUniqueKey","1")]
                   $ inTags True "Properties" []
                   $ inTags False "BorderColor" [("type","enumeration")] (text "Black")
                   $$ inTags False "Destination" [("type","object")] (literal $ "HyperlinkURLDestination/"<>escapeColons (escapeStringForXML url)) -- HyperlinkURLDestination with more than one colon crashes CS6
@@ -322,7 +318,7 @@ blockToICML opts style (OrderedList attribs lst) = listItemsToICML opts orderedL
 blockToICML opts style (BulletList lst) = listItemsToICML opts bulletListName style Nothing lst
 blockToICML opts style (DefinitionList lst) = intersperseBrs `fmap` mapM (definitionListItemToICML opts style) lst
 blockToICML opts style (Header lvl (_, cls, _) lst) =
-  let stl = (headerName <> Text.pack (show lvl) <> unnumbered):style
+  let stl = (headerName <> tshow lvl <> unnumbered):style
       unnumbered = if "unnumbered" `elem` cls
                    then " (unnumbered)"
                    else ""
@@ -353,7 +349,7 @@ blockToICML opts style (Table caption aligns widths headers rows) =
                  | otherwise = stl
         c <- blocksToICML opts stl' cell
         let cl = return $ inTags True "Cell"
-                   [("Name", Text.pack $ show colNr ++":"++ show rowNr), ("AppliedCellStyle","CellStyle/Cell")] c
+                   [("Name", tshow colNr <>":"<> tshow rowNr), ("AppliedCellStyle","CellStyle/Cell")] c
         liftM2 ($$) cl $ colsToICML rest restAligns rowNr (colNr+1)
   in  do
       let tabl = if noHeader
@@ -361,14 +357,14 @@ blockToICML opts style (Table caption aligns widths headers rows) =
                     else headers:rows
       cells <- rowsToICML tabl (0::Int)
       let colWidths w =
-            [("SingleColumnWidth",Text.pack $ show $ 500 * w) | w > 0]
-      let tupToDoc tup = selfClosingTag "Column" $ ("Name",Text.pack $ show $ fst tup) : colWidths (snd tup)
+            [("SingleColumnWidth",tshow $ 500 * w) | w > 0]
+      let tupToDoc tup = selfClosingTag "Column" $ ("Name",tshow $ fst tup) : colWidths (snd tup)
       let colDescs = vcat $ zipWith (curry tupToDoc) [0..nrCols-1] widths
       let tableDoc = return $ inTags True "Table" [
                          ("AppliedTableStyle","TableStyle/Table")
                        , ("HeaderRowCount", nrHeaders)
-                       , ("BodyRowCount", Text.pack $ show nrRows)
-                       , ("ColumnCount", Text.pack $ show nrCols)
+                       , ("BodyRowCount", tshow nrRows)
+                       , ("ColumnCount", tshow nrCols)
                        ] (colDescs $$ cells)
       liftM2 ($$) tableDoc $ parStyle opts (tableCaptionName:style) caption
 blockToICML opts style (Div (_, _, kvs) lst) =
@@ -402,7 +398,7 @@ listItemToICML opts style isFirst attribs item =
             doN UpperAlpha   = [upperAlphaName]
             doN _            = []
             bw =
-              [beginsWithName <> Text.pack (show beginsWith) | beginsWith > 1]
+              [beginsWithName <> tshow beginsWith | beginsWith > 1]
         in  doN numbStl ++ bw
       makeNumbStart Nothing = []
       stl = if isFirst
@@ -467,7 +463,7 @@ inlineToICML opts style (Link _ lst (url, title)) = do
                            else 1 + fst (head $ links st)
                 newst = st{ links = (ident, url):links st }
                 cont  = inTags True "HyperlinkTextSource"
-                         [("Self",Text.pack $ "htss-"++show ident), ("Name",title), ("Hidden","false")] content
+                         [("Self","htss-"<>tshow ident), ("Name",title), ("Hidden","false")] content
             in  (cont, newst)
 inlineToICML opts style (Image attr _ target) = imageICML opts style attr target
 inlineToICML opts style (Note lst) = footnoteToICML opts style lst
@@ -563,7 +559,7 @@ imageICML opts style attr (src, _) = do
                   report $ CouldNotDetermineImageSize src msg
                   return def)
            (\e -> do
-               report $ CouldNotFetchResource src $ Text.pack (show e)
+               report $ CouldNotFetchResource src $ tshow e
                return def)
   let (ow, oh) = sizeInPoints imgS
       (imgWidth, imgHeight) = desiredSizeInPoints opts attr imgS

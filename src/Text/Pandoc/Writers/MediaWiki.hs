@@ -18,6 +18,7 @@ module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki, highlightingLangs ) where
 import Prelude
 import Control.Monad.Reader
 import Control.Monad.State.Strict
+import Data.Maybe (fromMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -424,9 +425,8 @@ inlineToMediaWiki (Link _ txt (src, _)) = do
      _  -> return $ if isURI src
               then "[" <> src <> " " <> label <> "]"
               else "[[" <> src' <> "|" <> label <> "]]"
-                     where src' = case T.uncons src of -- TODO text: refactor
-                                     Just ('/', xs) -> xs  -- with leading / it's a
-                                     _              -> src -- link to a help page
+                     -- with leading / it's a link to a help page
+                     where src' = fromMaybe src $ T.stripPrefix "/" src
 
 inlineToMediaWiki (Image attr alt (source, tit)) = do
   img  <- imageToMediaWiki attr

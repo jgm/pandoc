@@ -338,32 +338,19 @@ escapeText s =
   "</verbatim>"
 
 -- | Replace newlines with spaces
-replaceNewlines :: Text -> Text -- TODO text: refactor
-replaceNewlines = T.pack . replaceNewlines' . T.unpack
-
-replaceNewlines' :: String -> String
-replaceNewlines' ('\n':xs) = ' ':replaceNewlines' xs
-replaceNewlines' (x:xs)    = x:replaceNewlines' xs
-replaceNewlines' []        = []
+replaceNewlines :: Text -> Text
+replaceNewlines = T.map $ \c ->
+  if c == '\n' then ' ' else c
 
 startsWithMarker :: (Char -> Bool) -> Text -> Bool
-startsWithMarker p = startsWithMarker' p . T.unpack
-
-startsWithMarker' :: (Char -> Bool) -> String -> Bool -- TODO text: refactor
-startsWithMarker' f (' ':xs) = startsWithMarker' f xs
-startsWithMarker' f (x:xs) =
-  f x && (startsWithMarker' f xs || startsWithDot xs)
+startsWithMarker f t = case T.uncons $ T.dropWhile f' t of
+  Just ('.', xs) -> T.null xs || isSpace (T.head xs)
+  _              -> False
   where
-    startsWithDot ['.']     = True
-    startsWithDot ('.':c:_) = isSpace c
-    startsWithDot _         = False
-startsWithMarker' _ [] = False
+    f' c = c == ' ' || f c
 
-containsNotes :: Char -> Char -> Text -> Bool -- TODO text: refactor
-containsNotes x y = containsNotes' x y . T.unpack
-
-containsNotes' :: Char -> Char -> String -> Bool
-containsNotes' left right = p
+containsNotes :: Char -> Char -> Text -> Bool
+containsNotes left right = p . T.unpack -- This ought to be a parser
   where p (left':xs)
           | left' == left = q xs || p xs
           | otherwise = p xs
@@ -475,13 +462,10 @@ endsWithSpace [Str s]     = stringEndsWithSpace s
 endsWithSpace (_:xs)      = endsWithSpace xs
 endsWithSpace []          = False
 
-urlEscapeBrackets :: Text -> Text -- TODO text: refactor
-urlEscapeBrackets = T.pack . urlEscapeBrackets' . T.unpack
-
-urlEscapeBrackets' :: String -> String
-urlEscapeBrackets' (']':xs) = '%':'5':'D':urlEscapeBrackets' xs
-urlEscapeBrackets' (x:xs)   = x:urlEscapeBrackets' xs
-urlEscapeBrackets' []       = []
+urlEscapeBrackets :: Text -> Text
+urlEscapeBrackets = T.concatMap $ \c -> case c of
+  ']' -> "%5D"
+  _   -> T.singleton c
 
 isHorizontalRule :: Text -> Bool
 isHorizontalRule s = T.length s >= 4 && T.all (== '-') s
@@ -492,21 +476,23 @@ stringStartsWithSpace = maybe False (isSpace . fst) . T.uncons
 stringEndsWithSpace :: Text -> Bool
 stringEndsWithSpace = maybe False (isSpace . snd) . T.unsnoc
 
--- TODO text: refactor, exists for fixOrEscape
-fixOrEscapeStr :: Bool -> String -> Bool
-fixOrEscapeStr sp "-" = sp
-fixOrEscapeStr sp s@('-':x:_) = (sp && isSpace x) || isHorizontalRule (T.pack s)
-fixOrEscapeStr sp ";" = not sp
-fixOrEscapeStr sp (';':x:_) = not sp && isSpace x
-fixOrEscapeStr _ ">" = True
-fixOrEscapeStr _ ('>':x:_) = isSpace x
-fixOrEscapeStr sp (T.pack -> s) = (sp && (startsWithMarker isDigit s ||
-                              startsWithMarker isAsciiLower s ||
-                              startsWithMarker isAsciiUpper s))
-                      || stringStartsWithSpace s
-
-fixOrEscape :: Bool -> Inline -> Bool -- TODO text: refactor
-fixOrEscape sp (Str s) = fixOrEscapeStr sp (T.unpack s)
+fixOrEscape :: Bool -> Inline -> Bool
+fixOrEscape b (Str s) = fixOrEscapeStr b s
+  where
+    fixOrEscapeStr sp t = case T.uncons t of
+      Just ('-', xs)
+        | T.null xs -> sp
+        | otherwise -> (sp && isSpace (T.head xs)) || isHorizontalRule t
+      Just (';', xs)
+        | T.null xs -> not sp
+        | otherwise -> not sp && isSpace (T.head xs)
+      Just ('>', xs)
+        | T.null xs -> True
+        | otherwise -> isSpace (T.head xs)
+      _             -> (sp && (startsWithMarker isDigit s ||
+                               startsWithMarker isAsciiLower s ||
+                               startsWithMarker isAsciiUpper s))
+                       || stringStartsWithSpace s      
 fixOrEscape _ Space = True
 fixOrEscape _ SoftBreak = True
 fixOrEscape _ _ = False

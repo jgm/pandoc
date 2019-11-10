@@ -246,13 +246,13 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "csl-refs" (stHasCslRefs st) $
                   defField "csl-hanging-indent" (stCslHangingIndent st) $
                   defField "geometry" geometryFromMargins $
-                  (case T.unpack . render Nothing <$> -- TODO text: refactor
+                  (case T.uncons . render Nothing <$>
                         getField "papersize" metadata of
-                        -- uppercase a4, a5, etc.
-                        Just (('A':d:ds) :: String)
-                          | all isDigit (d:ds) -> resetField "papersize"
-                                                    (T.pack ('a':d:ds))
-                        _                     -> id)
+                      -- uppercase a4, a5, etc.
+                      Just (Just ('A', ds))
+                        | not (T.null ds) && T.all isDigit ds
+                          -> resetField "papersize" ("a" <> ds)
+                      _   -> id)
                   metadata
   let context' =
           -- note: lang is used in some conditionals in the template,
@@ -436,13 +436,13 @@ accents = M.fromList
   , ('\8413', "\\textcircled")
   ]
 
-toLabel :: PandocMonad m => Text -> LW m Text -- TODO text: refactor
-toLabel z = (T.pack . go . T.unpack) `fmap` stringToLaTeX URLString z
- where go [] = ""
-       go (x:xs)
-         | (isLetter x || isDigit x) && isAscii x = x:go xs
-         | x `elem` ("_-+=:;." :: String) = x:go xs
-         | otherwise = "ux" <> printf "%x" (ord x) <> go xs
+toLabel :: PandocMonad m => Text -> LW m Text
+toLabel z = go `fmap` stringToLaTeX URLString z
+ where
+   go = T.concatMap $ \x -> case x of
+     _ | (isLetter x || isDigit x) && isAscii x -> T.singleton x
+       | x `elemText` "_-+=:;." -> T.singleton x
+       | otherwise -> T.pack $ "ux" <> printf "%x" (ord x)
 
 -- | Puts contents into LaTeX command.
 inCmd :: Text -> Doc Text -> Doc Text
@@ -1346,16 +1346,14 @@ inlineToLaTeX (Note contents) = do
 
 -- A comment at the end of math needs to be followed by a newline,
 -- or the closing delimiter gets swallowed.
-handleMathComment :: Text -> Text -- TODO text: refactor
-handleMathComment = T.pack . handleMathComment' . T.unpack
-
-handleMathComment' :: String -> String
-handleMathComment' s =
-  let (_, ys) = break (\c -> c == '\n' || c == '%') $ reverse s
-  in  case ys of
-         '%':'\\':_ -> s
-         '%':_      -> s <> "\n"
-         _          -> s
+handleMathComment :: Text -> Text
+handleMathComment s =
+  let (_, ys) = T.break (\c -> c == '\n' || c == '%') $ T.reverse s -- no T.breakEnd
+  in  case T.uncons ys of
+        Just ('%', ys') -> case T.uncons ys' of
+          Just ('\\', _) -> s
+          _              -> s <> "\n"
+        _                -> s
 
 protectCode :: Inline -> [Inline]
 protectCode x@(Code _ _) = [ltx "\\mbox{" , x , ltx "}"]
@@ -1425,7 +1423,7 @@ citeArguments :: PandocMonad m
               => [Inline] -> [Inline] -> Text -> LW m (Doc Text)
 citeArguments p s k = do
   let s' = stripLocatorBraces $ case s of
-        (Str t : r) -> case T.uncons t of -- TODO text: refactor
+        (Str t : r) -> case T.uncons t of
           Just (x, xs)
             | T.null xs
             , isPunctuation x -> dropWhile (== Space) r

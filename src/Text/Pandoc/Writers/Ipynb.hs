@@ -29,6 +29,7 @@ import Text.Pandoc.Class
 import Text.Pandoc.Logging
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import Data.Aeson as Aeson
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Shared (safeRead, isURI)
@@ -210,7 +211,7 @@ extractData bs = do
            meta <> pairsToJSONMeta kvs)
         Nothing -> (mmap, meta) <$ report (BlockNotRendered b)
     go (mmap, meta) b@(CodeBlock (_,["json"],_) code) =
-      case decode (UTF8.fromStringLazy $ T.unpack code) of -- TODO text: refactor
+      case decode (UTF8.fromTextLazy $ TL.fromStrict code) of
         Just v  -> return
                     (M.insert "application/json" (JsonData v) mmap, meta)
         Nothing -> (mmap, meta) <$ report (BlockNotRendered b)
@@ -225,7 +226,7 @@ extractData bs = do
 
 pairsToJSONMeta :: [(Text, Text)] -> JSONMeta
 pairsToJSONMeta kvs =
-  M.fromList [(k, case Aeson.decode (UTF8.fromStringLazy $ T.unpack v) of -- TODO text: refactor
+  M.fromList [(k, case Aeson.decode (UTF8.fromTextLazy $ TL.fromStrict v) of
                            Just val -> val
                            Nothing  -> String v)
              | (k,v) <- kvs

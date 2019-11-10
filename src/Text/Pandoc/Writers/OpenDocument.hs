@@ -33,7 +33,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
-import Text.Pandoc.Shared (linesToPara)
+import Text.Pandoc.Shared (linesToPara, tshow)
 import Text.Pandoc.Templates (renderTemplate)
 import qualified Text.Pandoc.Translations as Term (Term(Figure, Table))
 import Text.Pandoc.Writers.Math
@@ -157,7 +157,7 @@ inTextStyle d = do
             Just (styleName, _) -> return $
               inTags False "text:span" [("text:style-name",styleName)] d
             Nothing -> do
-              let styleName = T.pack $ "T" ++ show (Map.size styles + 1)
+              let styleName = "T" <> tshow (Map.size styles + 1)
               addTextStyle at (styleName,
                      inTags False "style:style"
                        [("style:name", styleName)
@@ -188,8 +188,8 @@ formulaStyle mt = inTags False "style:style"
 
 inHeaderTags :: PandocMonad m => Int -> Text -> Doc Text -> OD m (Doc Text)
 inHeaderTags i ident d =
-  return $ inTags False "text:h" [ ("text:style-name", "Heading_20_" <> T.pack (show i))
-                                 , ("text:outline-level", T.pack (show i))]
+  return $ inTags False "text:h" [ ("text:style-name", "Heading_20_" <> tshow i)
+                                 , ("text:outline-level", tshow i)]
          $ if T.null ident
               then d
               else selfClosingTag "text:bookmark-start" [ ("text:name", ident) ]
@@ -200,21 +200,19 @@ inQuotes :: QuoteType -> Doc Text -> Doc Text
 inQuotes SingleQuote s = char '\8216' <> s <> char '\8217'
 inQuotes DoubleQuote s = char '\8220' <> s <> char '\8221'
 
-handleSpaces :: Text -> Doc Text -- TODO text: refactor
-handleSpaces = handleSpaces' . T.unpack
-
-handleSpaces' :: String -> Doc Text -- TODO text: refactor
-handleSpaces' s
-    | ( ' ':_) <- s = genTag s
-    | ('\t':x) <- s = selfClosingTag "text:tab" [] <> rm x
-    | otherwise     = rm s
-    where
-        genTag       = span (==' ') >>> tag . length *** rm >>> uncurry (<>)
-        tag n        = when (n /= 0) $ selfClosingTag "text:s" [("text:c", T.pack (show n))]
-        rm ( ' ':xs) = char ' ' <> genTag xs
-        rm ('\t':xs) = selfClosingTag "text:tab" [] <> genTag xs
-        rm (   x:xs) = char  x  <> rm xs
-        rm        [] = empty
+handleSpaces :: Text -> Doc Text
+handleSpaces s = case T.uncons s of
+  Just (' ', _) -> genTag s
+  Just ('\t',x) -> selfClosingTag "text:tab" [] <> rm x
+  _             -> rm s
+  where
+    genTag = T.span (==' ') >>> tag . T.length *** rm >>> uncurry (<>)
+    tag n  = when (n /= 0) $ selfClosingTag "text:s" [("text:c", tshow n)]
+    rm t   = case T.uncons t of
+      Just ( ' ',xs) -> char ' ' <> genTag xs
+      Just ('\t',xs) -> selfClosingTag "text:tab" [] <> genTag xs
+      Just (   x,xs) -> char x <> rm xs
+      Nothing        -> empty
 
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -239,7 +237,7 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                      map snd (sortBy (flip (comparing fst)) (
                         Map.elems (stTextStyles s)))
       listStyle (n,l) = inTags True "text:list-style"
-                          [("style:name", T.pack $ "L" ++ show n)] (vcat l)
+                          [("style:name", "L" <> tshow n)] (vcat l)
   let listStyles  = map listStyle (stListStyles s)
   let automaticStyles = vcat $ reverse $ styles ++ listStyles
   let context = defField "body" body
@@ -262,7 +260,7 @@ withParagraphStyle _ _ [] = return empty
 inPreformattedTags :: PandocMonad m => Text -> OD m (Doc Text)
 inPreformattedTags s = do
   n <- paraStyle [("style:parent-style-name","Preformatted_20_Text")]
-  return . inParagraphTagsWithStyle (T.pack $ "P" ++ show n) . handleSpaces $ s
+  return . inParagraphTagsWithStyle ("P" <> tshow n) . handleSpaces $ s
 
 orderedListToOpenDocument :: PandocMonad m
                           => WriterOptions -> Int -> [[Block]] -> OD m (Doc Text)
@@ -274,7 +272,7 @@ orderedItemToOpenDocument :: PandocMonad m
                           => WriterOptions -> Int -> [Block] -> OD m (Doc Text)
 orderedItemToOpenDocument  o n bs = vcat <$> mapM go bs
  where go (OrderedList a l) = newLevel a l
-       go (Para          l) = inParagraphTagsWithStyle (T.pack $ "P" ++ show n) <$>
+       go (Para          l) = inParagraphTagsWithStyle ("P" <> tshow n) <$>
                                 inlinesToOpenDocument o l
        go b                 = blockToOpenDocument o b
        newLevel a l = do
@@ -305,8 +303,8 @@ bulletListToOpenDocument o b = do
   ln <- (+) 1 . length <$> gets stListStyles
   (pn,ns) <- if isTightList b then inTightList (bulletListStyle ln) else bulletListStyle ln
   modify $ \s -> s { stListStyles = ns : stListStyles s }
-  is <- listItemsToOpenDocument (T.pack $ "P" ++ show pn) o b
-  return $ inTags True "text:list" [("text:style-name", T.pack $ "L" ++ show ln)] is
+  is <- listItemsToOpenDocument ("P" <> tshow pn) o b
+  return $ inTags True "text:list" [("text:style-name", "L" <> tshow ln)] is
 
 listItemsToOpenDocument :: PandocMonad m
                         => Text -> WriterOptions -> [[Block]] -> OD m (Doc Text)
@@ -331,7 +329,7 @@ inBlockQuote  o i (b:bs)
                              ni <- paraStyle
                                    [("style:parent-style-name","Quotations")]
                              go =<< inBlockQuote o ni (map plainToPara l)
-    | Para       l <- b = go =<< inParagraphTagsWithStyle (T.pack $ "P" ++ show i) <$> inlinesToOpenDocument o l
+    | Para       l <- b = go =<< inParagraphTagsWithStyle ("P" <> tshow i) <$> inlinesToOpenDocument o l
     | otherwise         = go =<< blockToOpenDocument o b
     where go  block  = ($$) block <$> inBlockQuote o i bs
 inBlockQuote     _ _ [] =  resetIndent >> return empty
@@ -384,13 +382,13 @@ blockToOpenDocument o bs
                                  [("style:parent-style-name","Quotations")]
                            inBlockQuote o i (map plainToPara b)
       orderedList a b = do (ln,pn) <- newOrderedListStyle (isTightList b) a
-                           inTags True "text:list" [ ("text:style-name", T.pack $ "L" ++ show ln)]
+                           inTags True "text:list" [ ("text:style-name", "L" <> tshow ln)]
                                       <$> orderedListToOpenDocument o pn b
       table c a w h r = do
         tn <- length <$> gets stTableStyles
         pn <- length <$> gets stParaStyles
         let  genIds      = map chr [65..]
-             name        = "Table" <> T.pack (show (tn + 1))
+             name        = "Table" <> tshow (tn + 1)
              columnIds   = zip genIds w
              mkColumn  n = selfClosingTag "table:table-column" [("table:style-name", name <> "." <> T.singleton (fst n))]
              columns     = map mkColumn columnIds
@@ -443,7 +441,7 @@ numberedCaption :: Text -> Text -> Text -> Int -> Doc Text -> Doc Text
 numberedCaption style term name num caption =
     let t = text $ T.unpack term
         r = num - 1
-        s = inTags False "text:sequence" [ ("text:ref-name", "ref" <> name <> T.pack (show r)),
+        s = inTags False "text:sequence" [ ("text:ref-name", "ref" <> name <> tshow r),
                                            ("text:name", name),
                                            ("text:formula", "ooow:" <> name <> "+1"),
                                            ("style:num-format", "1") ] $ text $ show num
@@ -549,7 +547,7 @@ inlineToOpenDocument o ils
                    getDims (("rel-height", w):xs) = ("style:rel-height", w) : getDims xs
                    getDims (_:xs) =                             getDims xs
                return $ inTags False "draw:frame"
-                        (("draw:name", "img" <> T.pack (show id')) : getDims kvs) $
+                        (("draw:name", "img" <> tshow id') : getDims kvs) $
                      selfClosingTag "draw:image" [ ("xlink:href"   , s       )
                                                  , ("xlink:type"   , "simple")
                                                  , ("xlink:show"   , "embed" )
@@ -557,7 +555,7 @@ inlineToOpenDocument o ils
       mkNote     l = do
         n <- length <$> gets stNotes
         let footNote t = inTags False "text:note"
-                         [ ("text:id"        , "ftn" <> T.pack (show n))
+                         [ ("text:id"        , "ftn" <> tshow n)
                          , ("text:note-class", "footnote"     )] $
                          inTagsSimple "text:note-citation" (text . show $ n + 1) <>
                          inTagsSimple "text:note-body" t
@@ -568,7 +566,7 @@ inlineToOpenDocument o ils
 bulletListStyle :: PandocMonad m => Int -> OD m (Int,(Int,[Doc Text]))
 bulletListStyle l = do
   let doStyles  i = inTags True "text:list-level-style-bullet"
-                    [ ("text:level"      , T.pack (show (i + 1)))
+                    [ ("text:level"      , tshow (i + 1))
                     , ("text:style-name" , "Bullet_20_Symbols"  )
                     , ("style:num-suffix", "."                  )
                     , ("text:bullet-char", T.singleton (bulletList !! i))
@@ -592,16 +590,16 @@ orderedListLevelStyle (s,n, d) (l,ls) =
                       LowerRoman -> "i"
                       _          -> "1"
         listStyle = inTags True "text:list-level-style-number"
-                    ([ ("text:level"      , T.pack $ show $ 1 + length ls)
+                    ([ ("text:level"      , tshow $ 1 + length ls )
                      , ("text:style-name" , "Numbering_20_Symbols")
                      , ("style:num-format", format                )
-                     , ("text:start-value", T.pack (show s)       )
+                     , ("text:start-value", tshow s               )
                      ] ++ suffix) (listLevelStyle (1 + length ls))
     in  (l, ls ++ [listStyle])
 
 listLevelStyle :: Int -> Doc Text
 listLevelStyle i =
-    let indent = T.pack $ show (0.25 + (0.25 * fromIntegral i :: Double)) in
+    let indent = tshow (0.25 + (0.25 * fromIntegral i :: Double)) in
     inTags True "style:list-level-properties"
                        [ ("text:list-level-position-and-space-mode",
                           "label-alignment")
@@ -616,7 +614,7 @@ listLevelStyle i =
 
 tableStyle :: Int -> [(Char,Double)] -> Doc Text
 tableStyle num wcs =
-    let tableId        = "Table" <> T.pack (show (num + 1))
+    let tableId        = "Table" <> tshow (num + 1)
         table          = inTags True "style:style"
                          [("style:name", tableId)
                          ,("style:family", "table")] $
@@ -652,9 +650,9 @@ paraStyle attrs = do
   i  <- (*) (0.5 :: Double) . fromIntegral <$> gets stIndentPara
   b  <- gets stInDefinition
   t  <- gets stTight
-  let styleAttr = [ ("style:name"             , "P" <> T.pack (show pn))
+  let styleAttr = [ ("style:name"             , "P" <> tshow pn)
                   , ("style:family"           , "paragraph"   )]
-      indentVal = flip (<>) "in" . T.pack . show $ if b then max 0.5 i else i
+      indentVal = flip (<>) "in" . tshow $ if b then max 0.5 i else i
       tight     = if t then [ ("fo:margin-top"          , "0in"    )
                             , ("fo:margin-bottom"       , "0in"    )]
                        else []
@@ -675,7 +673,7 @@ paraStyle attrs = do
 paraListStyle :: PandocMonad m => Int -> OD m Int
 paraListStyle l = paraStyle
   [("style:parent-style-name","Text_20_body")
-  ,("style:list-style-name", "L" <> T.pack (show l))]
+  ,("style:list-style-name", "L" <> tshow l)]
 
 paraTableStyles :: Text -> Int -> [Alignment] -> [(Text, Doc Text)]
 paraTableStyles _ _ [] = []
@@ -683,7 +681,7 @@ paraTableStyles t s (a:xs)
     | AlignRight  <- a = (         pName s, res s "end"   ) : paraTableStyles t (s + 1) xs
     | AlignCenter <- a = (         pName s, res s "center") : paraTableStyles t (s + 1) xs
     | otherwise        = ("Table_20_" <> t, empty         ) : paraTableStyles t  s      xs
-    where pName sn = "P" <> T.pack (show (sn + 1))
+    where pName sn = "P" <> tshow (sn + 1)
           res sn x = inTags True "style:style"
                      [ ("style:name"             , pName sn        )
                      , ("style:family"           , "paragraph"     )

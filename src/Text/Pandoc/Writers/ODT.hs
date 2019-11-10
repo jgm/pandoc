@@ -34,7 +34,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
 import Text.DocLayout
-import Text.Pandoc.Shared (stringify, pandocVersion)
+import Text.Pandoc.Shared (stringify, pandocVersion, tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
                                    fixDisplayMath)
 import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toStringLazy)
@@ -207,19 +207,19 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
                          return (100, 100)
        let dims =
              case (getDim Width, getDim Height) of
-               (Just w, Just h)              -> [("width", show w), ("height", show h)]
-               (Just w@(Percent _), Nothing) -> [("rel-width", show w),("rel-height", "scale"),("width", show ptX ++ "pt"),("height", show ptY ++ "pt")]
-               (Nothing, Just h@(Percent _)) -> [("rel-width", "scale"),("rel-height", show h),("width", show ptX ++ "pt"),("height", show ptY ++ "pt")]
-               (Just w@(Inch i), Nothing)    -> [("width", show w), ("height", show (i / ratio) ++ "in")]
-               (Nothing, Just h@(Inch i))    -> [("width", show (i * ratio) ++ "in"), ("height", show h)]
-               _                             -> [("width", show ptX ++ "pt"), ("height", show ptY ++ "pt")]
+               (Just w, Just h)              -> [("width", tshow w), ("height", tshow h)]
+               (Just w@(Percent _), Nothing) -> [("rel-width", tshow w),("rel-height", "scale"),("width", tshow ptX <> "pt"),("height", tshow ptY <> "pt")]
+               (Nothing, Just h@(Percent _)) -> [("rel-width", "scale"),("rel-height", tshow h),("width", tshow ptX <> "pt"),("height", tshow ptY <> "pt")]
+               (Just w@(Inch i), Nothing)    -> [("width", tshow w), ("height", tshow (i / ratio) <> "in")]
+               (Nothing, Just h@(Inch i))    -> [("width", tshow (i * ratio) <> "in"), ("height", tshow h)]
+               _                             -> [("width", tshow ptX <> "pt"), ("height", tshow ptY <> "pt")]
              where
                ratio = ptX / ptY
                getDim dir = case dimension dir attr of
                               Just (Percent i) -> Just $ Percent i
                               Just dim         -> Just $ Inch $ inInch opts dim
                               Nothing          -> Nothing
-       let  newattr = (id', cls, (\(x, y) -> (x, T.pack y)) <$> dims) -- TODO text: tshow
+       let  newattr = (id', cls, dims)
        entries <- gets stEntries
        let extension = maybe (takeExtension $ takeWhile (/='?') $ T.unpack src) T.unpack
                            (mbMimeType >>= extensionFromMimeType)
