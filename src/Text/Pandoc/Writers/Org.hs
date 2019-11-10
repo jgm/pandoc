@@ -84,7 +84,7 @@ noteToOrg num note = do
 
 -- | Escape special characters for Org.
 escapeString :: Text -> Text
-escapeString = escapeTextUsing $
+escapeString = escapeStringUsing $
                [ ('\x2014',"---")
                , ('\x2013',"--")
                , ('\x2019',"'")

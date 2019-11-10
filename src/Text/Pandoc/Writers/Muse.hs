@@ -305,7 +305,7 @@ noteToMuse num note = do
                        }) (blockListToMuse note)
   return $ res <> blankline
   where
-    marker = "[" <> T.pack (show num) <> "] "
+    marker = "[" <> tshow num <> "] "
 
 -- | Return Muse representation of block and accumulated notes.
 blockToMuseWithNotes :: PandocMonad m
@@ -676,7 +676,7 @@ inlineToMuse (Image attr@(_, classes, _) inlines (source, title)) = do
             else do s <- local (\env -> env { envInsideLinkDescription = True }) $ conditionalEscapeText title
                     return $ "[" <> literal s <> "]"
   let width = case dimension Width attr of
-                Just (Percent x) | isEnabled Ext_amuse opts -> " " <> T.pack (show (round x :: Integer))
+                Just (Percent x) | isEnabled Ext_amuse opts -> " " <> tshow (round x :: Integer)
                 _ -> ""
   let leftalign = if "align-left" `elem` classes
                   then " l"
@@ -693,7 +693,7 @@ inlineToMuse (Note contents) = do
                      , stUseTags = False
                      }
   n <- gets stNoteNum
-  let ref = T.pack $ show $ n + length notes
+  let ref = tshow $ n + length notes
   return $ "[" <> literal ref <> "]"
 inlineToMuse (Span (anchor,names,kvs) inlines) = do
   contents <- inlineListToMuse inlines

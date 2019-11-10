@@ -56,6 +56,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Walk
 import Data.Time (UTCTime)
 import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
+import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
                                  , lookupMetaString, toTableOfContents)
 import qualified Data.Map as M
@@ -127,7 +128,7 @@ reservedSlideIds = S.fromList [ metadataSlideId
 
 uniqueSlideId' :: Integer -> S.Set SlideId -> T.Text -> SlideId
 uniqueSlideId' n idSet s =
-  let s' = if n == 0 then s else s <> "-" <> T.pack (show n)
+  let s' = if n == 0 then s else s <> "-" <> tshow n
   in if SlideId s' `S.member` idSet
      then uniqueSlideId' (n+1) idSet s
      else SlideId s'
@@ -362,7 +363,7 @@ inlineToParElems (Note blks) = do
         curNoteId = maxNoteId + 1
     modify $ \st -> st { stNoteIds = M.insert curNoteId blks notes }
     local (\env -> env{envRunProps = (envRunProps env){rLink = Just $ InternalTarget endNotesSlideId}}) $
-      inlineToParElems $ Superscript [Str $ T.pack $ show curNoteId]
+      inlineToParElems $ Superscript [Str $ tshow curNoteId]
 inlineToParElems (Span (_, ["underline"], _) ils) =
   local (\r -> r{envRunProps = (envRunProps r){rPropUnderline=True}}) $
   inlinesToParElems ils
@@ -713,7 +714,7 @@ blocksToSlide blks = do
 
 makeNoteEntry :: Int -> [Block] -> [Block]
 makeNoteEntry n blks =
-  let enum = Str (T.pack $ show n ++ ".")
+  let enum = Str (tshow n <> ".")
   in
     case blks of
       (Para ils : blks') -> (Para $ enum : Space : ils) : blks'
@@ -903,7 +904,7 @@ blocksToPresentationSlides blks = do
   -- slide later
   blksLst <- splitBlocks blks'
   bodySlideIds <- mapM
-                  (\n -> runUniqueSlideId $ "BodySlide" <> T.pack (show n))
+                  (\n -> runUniqueSlideId $ "BodySlide" <> tshow n)
                   (take (length blksLst) [1..] :: [Integer])
   bodyslides <- mapM
                 (\(bs, ident) ->

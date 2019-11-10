@@ -301,8 +301,8 @@ yamlToMetaValue (YAML.Scalar _ x) =
   case x of
        YAML.SStr t       -> toMetaValue t
        YAML.SBool b      -> return $ return $ MetaBool b
-       YAML.SFloat d     -> return $ return $ MetaString $ T.pack $ show d
-       YAML.SInt i       -> return $ return $ MetaString $ T.pack $ show i
+       YAML.SFloat d     -> return $ return $ MetaString $ tshow d
+       YAML.SInt i       -> return $ return $ MetaString $ tshow i
        YAML.SUnknown _ t ->
          case checkBoolean t of
            Just b        -> return $ return $ MetaBool b
@@ -513,7 +513,7 @@ block = do
                , para
                , plain
                ] <?> "block"
-  trace (T.take 60 $ T.pack $ show $ B.toList $ runF res defaultParserState)
+  trace (T.take 60 $ tshow $ B.toList $ runF res defaultParserState)
   return res
 
 --
@@ -1581,7 +1581,7 @@ exampleRef = try $ do
   return $ do
     st <- askF
     return $ case M.lookup lab (stateExamples st) of
-                  Just n  -> B.str $ T.pack $ show n
+                  Just n  -> B.str $ tshow n
                   Nothing -> B.str $ "@" <> lab
 
 symbol :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -2096,7 +2096,7 @@ textualCite = try $ do
                 _        -> B.cite cs' (B.text $ "@" <> key <> " " <> raw))
          <|> return (do st <- askF
                         return $ case M.lookup key (stateExamples st) of
-                                 Just n -> B.str $ T.pack (show n)
+                                 Just n -> B.str $ tshow n
                                  _      -> B.cite [first] $ B.str $ "@" <> key)
 
 bareloc :: PandocMonad m => Citation -> MarkdownParser m (F [Citation])

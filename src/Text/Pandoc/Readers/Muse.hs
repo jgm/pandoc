@@ -39,7 +39,7 @@ import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (F)
-import Text.Pandoc.Shared (crFilter, trimr, underlineSpan)
+import Text.Pandoc.Shared (crFilter, trimr, underlineSpan, tshow)
 
 -- | Read Muse from an input string and return a Pandoc document.
 readMuse :: PandocMonad m
@@ -295,7 +295,7 @@ listItemContentsUntil col pre end = p
 parseBlock :: PandocMonad m => MuseParser m (F Blocks)
 parseBlock = do
   res <- blockElements <|> para
-  trace (T.take 60 $ T.pack $ show $ B.toList $ runF res def)
+  trace (T.take 60 $ tshow $ B.toList $ runF res def)
   return res
   where para = fst <$> paraUntil (try (eof <|> void (lookAhead blockElements)))
 

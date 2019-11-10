@@ -30,7 +30,7 @@ import Text.Pandoc.Error (PandocError (PandocFilterError))
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Process (pipeProcess)
-import Text.Pandoc.Shared (pandocVersion)
+import Text.Pandoc.Shared (pandocVersion, tshow)
 import qualified Control.Exception as E
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -75,8 +75,8 @@ externalFilter ropts f args' d = liftIO $ do
        ExitSuccess    -> either (E.throwIO . PandocFilterError fText . T.pack)
                                    return $ eitherDecode' outbs
        ExitFailure ec -> E.throwIO $ PandocFilterError fText
-                           ("Filter returned error status " <> T.pack (show ec))
+                           ("Filter returned error status " <> tshow ec)
  where fText = T.pack f
 
        filterException :: E.SomeException -> IO a
-       filterException e = E.throwIO $ PandocFilterError fText (T.pack $ show e)
+       filterException e = E.throwIO $ PandocFilterError fText $ tshow e

@@ -73,9 +73,6 @@ withUseTags action = do
   modify $ \s -> s { stUseTags = oldUseTags }
   return result
 
-telem :: Char -> Text -> Bool
-telem c = T.any (== c)
-
 -- | Escape one character as needed for Textile.
 escapeCharForTextile :: Char -> Text
 escapeCharForTextile x = case x of
@@ -149,7 +146,7 @@ blockToTextile opts (Header level (ident,classes,keyvals) inlines) = do
                    else "(" <> T.unwords classes <> identAttr <> ")"
   let lang = maybe "" (\x -> "[" <> x <> "]") $ lookup "lang" keyvals
   let styles = maybe "" (\x -> "{" <> x <> "}") $ lookup "style" keyvals
-  let prefix = T.pack ('h' : show level) <> attribs <> styles <> lang <> ". "
+  let prefix = "h" <> tshow level <> attribs <> styles <> lang <> ". "
   return $ prefix <> contents <> "\n"
 
 blockToTextile _ (CodeBlock (_,classes,_) str) | any (T.all isSpace) (T.lines str) =
@@ -198,7 +195,7 @@ blockToTextile opts (Table capt aligns widths headers rows') = do
                    else do
                       c <- inlineListToTextile opts capt
                       return $ "<caption>" <> c <> "</caption>\n"
-  let percent w = T.pack $ show (truncate (100*w) :: Integer) <> "%"
+  let percent w = tshow (truncate (100*w) :: Integer) <> "%"
   let coltags = if all (== 0.0) widths
                    then ""
                    else T.unlines $ map
@@ -254,9 +251,9 @@ blockToTextile opts (DefinitionList items) = do
 -- | Convert ordered list attributes to HTML attribute string
 listAttribsToString :: ListAttributes -> Text
 listAttribsToString (startnum, numstyle, _) =
-  let numstyle' = camelCaseToHyphenated $ T.pack $ show numstyle
+  let numstyle' = camelCaseToHyphenated $ tshow numstyle
   in  (if startnum /= 1
-          then " start=\"" <> T.pack (show startnum) <> "\""
+          then " start=\"" <> tshow startnum <> "\""
           else "") <>
       (if numstyle /= DefaultStyle
           then " style=\"list-style-type: " <> numstyle' <> ";\""
@@ -276,7 +273,7 @@ listItemToTextile opts items = do
        case mbstart of
             Just n -> do
               modify $ \s -> s{ stStartNum = Nothing }
-              return $ T.pack marker <> T.pack (show n) <> " " <> contents
+              return $ T.pack marker <> tshow n <> " " <> contents
             Nothing -> return $ T.pack marker <> " " <> contents
 
 -- | Convert definition list item (label, list of blocks) to Textile.
@@ -387,31 +384,31 @@ inlineToTextile opts (Span _ lst) =
 
 inlineToTextile opts (Emph lst) = do
   contents <- inlineListToTextile opts lst
-  return $ if '_' `telem` contents
+  return $ if '_' `elemText` contents
               then "<em>" <> contents <> "</em>"
               else "_" <> contents <> "_"
 
 inlineToTextile opts (Strong lst) = do
   contents <- inlineListToTextile opts lst
-  return $ if '*' `telem` contents
+  return $ if '*' `elemText` contents
               then "<strong>" <> contents <> "</strong>"
               else "*" <> contents <> "*"
 
 inlineToTextile opts (Strikeout lst) = do
   contents <- inlineListToTextile opts lst
-  return $ if '-' `telem` contents
+  return $ if '-' `elemText` contents
               then "<del>" <> contents <> "</del>"
               else "-" <> contents <> "-"
 
 inlineToTextile opts (Superscript lst) = do
   contents <- inlineListToTextile opts lst
-  return $ if '^' `telem` contents
+  return $ if '^' `elemText` contents
               then "<sup>" <> contents <> "</sup>"
               else "[^" <> contents <> "^]"
 
 inlineToTextile opts (Subscript lst) = do
   contents <- inlineListToTextile opts lst
-  return $ if '~' `telem` contents
+  return $ if '~' `elemText` contents
               then "<sub>" <> contents <> "</sub>"
               else "[~" <> contents <> "~]"
 
@@ -428,7 +425,7 @@ inlineToTextile opts (Quoted DoubleQuote lst) = do
 inlineToTextile opts (Cite _  lst) = inlineListToTextile opts lst
 
 inlineToTextile _ (Code _ str) =
-  return $ if '@' `telem` str
+  return $ if '@' `elemText` str
            then "<tt>" <> escapeStringForXML str <> "</tt>"
            else "@" <> str <> "@"
 
@@ -473,9 +470,9 @@ inlineToTextile opts (Image attr@(_, cls, _) alt (source, tit)) = do
       classes = if null cls
                    then ""
                    else "(" <> T.unwords cls <> ")"
-      showDim dir = let toCss str = Just $ T.pack (show dir) <> ":" <> str <> ";"
+      showDim dir = let toCss str = Just $ tshow dir <> ":" <> str <> ";"
                     in case dimension dir attr of
-                         Just (Percent a) -> toCss $ T.pack $ show (Percent a)
+                         Just (Percent a) -> toCss $ tshow (Percent a)
                          Just dim         -> toCss $ showInPixel opts dim <> "px"
                          Nothing          -> Nothing
       styles = case (showDim Width, showDim Height) of
@@ -489,7 +486,7 @@ inlineToTextile opts (Note contents) = do
   curNotes <- gets stNotes
   let newnum = length curNotes + 1
   contents' <- blockListToTextile opts contents
-  let thisnote = "fn" <> T.pack (show newnum) <> ". " <> contents' <> "\n"
+  let thisnote = "fn" <> tshow newnum <> ". " <> contents' <> "\n"
   modify $ \s -> s { stNotes = thisnote : curNotes }
-  return $ "[" <> T.pack (show newnum) <> "]"
+  return $ "[" <> tshow newnum <> "]"
   -- note - may not work for notes with multiple blocks

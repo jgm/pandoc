@@ -336,7 +336,7 @@ extentToAttr :: Extent -> Attr
 extentToAttr (Just (w, h)) =
   ("", [], [("width", showDim w), ("height", showDim h)] )
   where
-    showDim d = T.pack $ show (d / 914400) ++ "in"
+    showDim d = tshow (d / 914400) <> "in"
 extentToAttr _ = nullAttr
 
 blocksToInlinesWarn :: PandocMonad m => T.Text -> Blocks -> DocxContext m Inlines
@@ -648,7 +648,7 @@ bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
             , ("num-id", numId)
             , ("format", fmt)
             , ("text", txt)
-            , ("start", T.pack $ show start)
+            , ("start", tshow start)
             ]
   modify $ \st -> st{ docxListState =
     -- expire all the continuation data for lists of level > this one:

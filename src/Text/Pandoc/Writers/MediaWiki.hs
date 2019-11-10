@@ -203,9 +203,9 @@ blockToMediaWiki x@(DefinitionList items) = do
 -- | Convert ordered list attributes to HTML attribute string
 listAttribsToText :: ListAttributes -> Text
 listAttribsToText (startnum, numstyle, _) =
-  let numstyle' = camelCaseToHyphenated $ T.pack $ show numstyle
+  let numstyle' = camelCaseToHyphenated $ tshow numstyle
   in  (if startnum /= 1
-          then " start=\"" <> T.pack (show startnum) <> "\""
+          then " start=\"" <> tshow startnum <> "\""
           else "") <>
       (if numstyle /= DefaultStyle
           then " style=\"list-style-type: " <> numstyle' <> ";\""
@@ -298,8 +298,8 @@ tableCellToMediaWiki :: PandocMonad m
 tableCellToMediaWiki headless rownum (alignment, width, bs) = do
   contents <- blockListToMediaWiki bs
   let marker = if rownum == 1 && not headless then "!" else "|"
-  let percent w = T.pack $ show (truncate (100*w) :: Integer) <> "%"
-  let attrs = ["align=" <> T.pack (show (alignmentToText alignment)) |
+  let percent w = tshow (truncate (100*w) :: Integer) <> "%"
+  let attrs = ["align=" <> tshow (alignmentToText alignment) |
                  alignment /= AlignDefault && alignment /= AlignLeft] <>
               ["width=\"" <> percent width <> "\"" |
                  width /= 0.0 && rownum == 1]

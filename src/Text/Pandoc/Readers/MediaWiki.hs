@@ -41,7 +41,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag)
 import Text.Pandoc.Shared (crFilter, safeRead, stringify, stripTrailingNewlines,
-                           trim, splitTextBy)
+                           trim, splitTextBy, tshow)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.XML (fromEntities)
 
@@ -194,7 +194,7 @@ block = do
      <|> blockTag
      <|> (B.rawBlock "mediawiki" <$> template)
      <|> para
-  trace (T.take 60 $ T.pack $ show $ B.toList res)
+  trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 para :: PandocMonad m => MWParser m Blocks
@@ -662,7 +662,7 @@ externalLink = try $ do
        <|> do char ']'
               num <- mwNextLinkNumber <$> getState
               updateState $ \st -> st{ mwNextLinkNumber = num + 1 }
-              return $ B.str $ T.pack $ show num
+              return $ B.str $ tshow num
   return $ B.link src "" lab
 
 url :: PandocMonad m => MWParser m Inlines

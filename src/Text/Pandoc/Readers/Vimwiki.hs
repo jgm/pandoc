@@ -78,7 +78,7 @@ import Text.Pandoc.Parsing (ParserState, ParserT, blanklines, emailAddress,
                             stateOptions, uri, manyTillChar, manyChar, textStr,
                             many1Char, countChar, many1TillChar)
 import Text.Pandoc.Shared (crFilter, splitTextBy, stringify, stripFirstAndLast,
-                           isURI)
+                           isURI, tshow)
 import Text.Parsec.Char (alphaNum, anyChar, char, newline, noneOf, oneOf, space,
                          spaces, string)
 import Text.Parsec.Combinator (between, choice, eof, lookAhead, many1,
@@ -131,7 +131,7 @@ block = do
                 , definitionList
                 , para
                 ]
-  trace (T.take 60 $ T.pack $ show $ toList res)
+  trace (T.take 60 $ tshow $ toList res)
   return res
 
 blockML :: PandocMonad m => VwParser m Blocks

@@ -32,7 +32,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
-import Text.Pandoc.Shared (crFilter)
+import Text.Pandoc.Shared (crFilter, tshow)
 import Text.Pandoc.XML (fromEntities)
 
 -- | Read twiki from an input string and return a Pandoc document.
@@ -120,7 +120,7 @@ block = do
          <|> blockElements
          <|> para
   skipMany blankline
-  trace (T.take 60 $ T.pack $ show $ B.toList res)
+  trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 blockElements :: PandocMonad m => TWParser m B.Blocks

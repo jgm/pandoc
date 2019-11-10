@@ -34,7 +34,7 @@ module Text.Pandoc.Shared (
                      ToText (..),
                      tshow,
                      backslashEscapes,
-                     escapeTextUsing,
+                     escapeStringUsing,
                      elemText,
                      notElemText,
                      stripTrailingNewlines,
@@ -234,8 +234,8 @@ backslashEscapes = map (\ch -> (ch, T.pack ['\\',ch]))
 
 -- | Escape a string of characters, using an association list of
 -- characters and strings.
-escapeTextUsing :: [(Char, T.Text)] -> T.Text -> T.Text
-escapeTextUsing tbl = T.concatMap $ \c -> fromMaybe (T.singleton c) $ lookup c tbl
+escapeStringUsing :: [(Char, T.Text)] -> T.Text -> T.Text
+escapeStringUsing tbl = T.concatMap $ \c -> fromMaybe (T.singleton c) $ lookup c tbl
 
 -- | @True@ exactly when the @Char@ appears in the @Text@.
 elemText :: Char -> T.Text -> Bool

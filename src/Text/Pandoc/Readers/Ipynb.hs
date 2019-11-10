@@ -30,6 +30,7 @@ import Text.Pandoc.Definition
 import Data.Ipynb as Ipynb
 import Text.Pandoc.Class
 import Text.Pandoc.MIME (extensionFromMimeType)
+import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.UTF8
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Error
@@ -58,8 +59,8 @@ notebookToPandoc :: PandocMonad m
 notebookToPandoc opts notebook = do
   let cells = notebookCells notebook
   let (fmt,fmtminor) = notebookFormat notebook
-  let m = M.insert "nbformat" (MetaString $ T.pack $ show fmt) $
-          M.insert "nbformat_minor" (MetaString $ T.pack $ show fmtminor) $
+  let m = M.insert "nbformat" (MetaString $ tshow fmt) $
+          M.insert "nbformat_minor" (MetaString $ tshow fmtminor) $
           jsonMetaToMeta (notebookMetadata notebook)
   let lang = case M.lookup "kernelspec" m of
                    Just (MetaMap ks) ->
@@ -103,7 +104,7 @@ cellToBlocks opts lang c = do
       return $ B.divWith ("",["cell","raw"],kvs) $ B.rawBlock format' source
     Ipynb.Code{ codeOutputs = outputs, codeExecutionCount = ec } -> do
       outputBlocks <- mconcat <$> mapM outputToBlock outputs
-      let kvs' = maybe kvs (\x -> ("execution_count", T.pack (show x)):kvs) ec
+      let kvs' = maybe kvs (\x -> ("execution_count", tshow x):kvs) ec
       return $ B.divWith ("",["cell","code"],kvs') $
         B.codeBlockWith ("",[lang],[]) source
         <> outputBlocks
@@ -139,7 +140,7 @@ outputToBlock DisplayData{ displayData = data',
 outputToBlock ExecuteResult{ executeCount = ec,
                               executeData = data',
                               executeMetadata = metadata' } =
-  B.divWith ("",["output", "execute_result"],[("execution_count",T.pack (show ec))])
+  B.divWith ("",["output", "execute_result"],[("execution_count",tshow ec)])
     <$> handleData metadata' data'
 outputToBlock Err{ errName = ename,
                    errValue = evalue,
@@ -210,8 +211,8 @@ jsonMetaToMeta = M.map valueToMetaValue
     valueToMetaValue (Bool b) = MetaBool b
     valueToMetaValue (String t) = MetaString t
     valueToMetaValue (Number n)
-      | Scientific.isInteger n = MetaString (T.pack $ show (floor n :: Integer))
-      | otherwise              = MetaString (T.pack $ show n)
+      | Scientific.isInteger n = MetaString (tshow (floor n :: Integer))
+      | otherwise              = MetaString (tshow n)
     valueToMetaValue Aeson.Null = MetaString ""
 
 jsonMetaToPairs :: JSONMeta -> [(Text, Text)]

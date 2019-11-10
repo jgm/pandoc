@@ -54,7 +54,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
-import Text.Pandoc.Shared (crFilter, trim, underlineSpan)
+import Text.Pandoc.Shared (crFilter, trim, underlineSpan, tshow)
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: PandocMonad m
@@ -126,7 +126,7 @@ blockParsers = [ codeBlock
 block :: PandocMonad m => ParserT Text ParserState m Blocks
 block = do
   res <- choice blockParsers <?> "block"
-  trace (T.take 60 $ T.pack $ show $ B.toList res)
+  trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 commentBlock :: PandocMonad m => ParserT Text ParserState m Blocks

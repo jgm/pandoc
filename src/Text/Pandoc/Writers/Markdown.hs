@@ -265,7 +265,7 @@ notesToMarkdown opts notes = do
 noteToMarkdown :: PandocMonad m => WriterOptions -> Int -> [Block] -> MD m (Doc Text)
 noteToMarkdown opts num blocks = do
   contents  <- blockListToMarkdown opts blocks
-  let num' = literal $ writerIdentifierPrefix opts <> T.pack (show num)
+  let num' = literal $ writerIdentifierPrefix opts <> tshow num
   let marker = if isEnabled Ext_footnotes opts
                   then literal "[^" <> num' <> literal "]:"
                   else literal "[" <> num' <> literal "]"
@@ -881,7 +881,7 @@ getKey :: Doc Text -> Key
 getKey = toKey . render Nothing
 
 findUsableIndex :: [Text] -> Int -> Int
-findUsableIndex lbls i = if (T.pack $ show i) `elem` lbls
+findUsableIndex lbls i = if (tshow i) `elem` lbls
                          then findUsableIndex lbls (i + 1)
                          else i
 
@@ -908,7 +908,7 @@ getReference attr label target = do
                                then do
                                  i <- getNextIndex
                                  modify $ \s -> s{ stLastIdx = i }
-                                 return (T.pack $ show i, i)
+                                 return (tshow i, i)
                                else
                                  return (render Nothing label, 0)
              modify (\s -> s{
@@ -924,7 +924,7 @@ getReference attr label target = do
                     let lab' = render Nothing $
                                label <> if i == 0
                                            then mempty
-                                           else literal (T.pack $ show i)
+                                           else literal (tshow i)
                     -- make sure it's in stRefs; it may be
                     -- a duplicate that was printed in a previous
                     -- block:
@@ -935,7 +935,7 @@ getReference attr label target = do
                   Nothing -> do -- but this one is to a new target
                     i <- getNextIndex
                     modify $ \s -> s{ stLastIdx = i }
-                    let lab' = T.pack $ show i
+                    let lab' = tshow i
                     modify (\s -> s{
                        stRefs = (lab', target, attr) : refs,
                        stKeys = M.insert (getKey label)
@@ -1299,7 +1299,7 @@ inlineToMarkdown opts img@(Image attr alternate (source, tit))
 inlineToMarkdown opts (Note contents) = do
   modify (\st -> st{ stNotes = contents : stNotes st })
   st <- get
-  let ref = literal $ writerIdentifierPrefix opts <> T.pack (show (stNoteNum st + (length $ stNotes st) - 1))
+  let ref = literal $ writerIdentifierPrefix opts <> tshow (stNoteNum st + (length $ stNotes st) - 1)
   if isEnabled Ext_footnotes opts
      then return $ "[^" <> ref <> "]"
      else return $ "[" <> ref <> "]"

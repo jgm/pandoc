@@ -62,7 +62,7 @@ import Text.Pandoc.Options (
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
                            extractSpaces, htmlSpanLikeElements, elemText, splitTextBy,
-                           onlySimpleTableCells, safeRead, underlineSpan)
+                           onlySimpleTableCells, safeRead, underlineSpan, tshow)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
@@ -186,7 +186,7 @@ block = do
             , pFigure
             , pRawHtmlBlock
             ]
-  trace (T.take 60 $ T.pack $ show $ B.toList res)
+  trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 namespaces :: PandocMonad m => [(Text, TagParser m Inlines)]
@@ -665,7 +665,7 @@ pLocation = do
 pSat :: PandocMonad m => (Tag Text -> Bool) -> TagParser m (Tag Text)
 pSat f = do
   pos <- getPosition
-  token (T.pack . show) (const pos) (\x -> if f x then Just x else Nothing)
+  token tshow (const pos) (\x -> if f x then Just x else Nothing)
 
 pSatisfy :: PandocMonad m => (Tag Text -> Bool) -> TagParser m (Tag Text)
 pSatisfy f = try $ optional pLocation >> pSat f
@@ -1294,7 +1294,7 @@ canonicalizeUrl :: PandocMonad m => Text -> TagParser m Text
 canonicalizeUrl url = do
   mbBaseHref <- baseHref <$> getState
   return $ case (parseURIReference (T.unpack url), mbBaseHref) of
-                (Just rel, Just bs) -> T.pack $ show (rel `nonStrictRelativeTo` bs)
+                (Just rel, Just bs) -> tshow (rel `nonStrictRelativeTo` bs)
                 _                   -> url
 
 

@@ -313,7 +313,7 @@ blockToJATS _ b@(RawBlock f str)
       return empty
 blockToJATS _ HorizontalRule = return empty -- not semantic
 blockToJATS opts (Table [] aligns widths headers rows) = do
-  let percent w    = T.pack $ show (truncate (100*w) :: Integer) ++ "*"
+  let percent w    = tshow (truncate (100*w) :: Integer) <> "*"
   let coltags = vcat $ zipWith (\w al -> selfClosingTag "col"
                        ([("width", percent w) | w > 0] ++
                         [("align", alignmentToText al)])) widths aligns
@@ -412,12 +412,12 @@ inlineToJATS opts (Note contents) = do
   let notenum = case notes of
                   (n, _):_ -> n + 1
                   []       -> 1
-  thenote <- inTags True "fn" [("id","fn" <> T.pack (show notenum))]
+  thenote <- inTags True "fn" [("id","fn" <> tshow notenum)]
                 <$> wrappedBlocksToJATS (not . isPara) opts
                      (walk demoteHeaderAndRefs contents)
   modify $ \st -> st{ jatsNotes = (notenum, thenote) : notes }
   return $ inTags False "xref" [("ref-type", "fn"),
-                                ("rid", "fn" <> T.pack (show notenum))]
+                                ("rid", "fn" <> tshow notenum)]
          $ text (show notenum)
 inlineToJATS opts (Cite _ lst) =
   -- TODO revisit this after examining the jats.csl pipeline

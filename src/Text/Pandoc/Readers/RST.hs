@@ -458,7 +458,7 @@ includeDirective top fields body = do
   oldInput <- getInput
   containers <- stateContainers <$> getState
   when (f `elem` containers) $
-    throwError $ PandocParseError $ "Include file loop at " <> T.pack (show oldPos)
+    throwError $ PandocParseError $ "Include file loop at " <> tshow oldPos
   updateState $ \s -> s{ stateContainers = f : stateContainers s }
   mbContents <- readFileFromDirs ["."] $ T.unpack f
   contentLines <- case mbContents of
@@ -664,11 +664,11 @@ directive' = do
                              Nothing            -> 1.0
                     Nothing -> 1.0
           widthAttr = maybe [] (\x -> [("width",
-                                        T.pack $ show $ scaleDimension scale x)])
+                                        tshow $ scaleDimension scale x)])
                         $ lookup "width" fields >>=
                           (lengthToDim . T.filter (not . isSpace))
           heightAttr = maybe [] (\x -> [("height",
-                                         T.pack $ show $ scaleDimension scale x)])
+                                         tshow $ scaleDimension scale x)])
                         $ lookup "height" fields >>=
                           (lengthToDim . T.filter (not . isSpace))
   case label of
@@ -1578,7 +1578,7 @@ subst = try $ do
   case M.lookup key substTable of
        Nothing     -> do
          pos <- getPosition
-         logMessage $ ReferenceNotFound (T.pack $ show key) pos
+         logMessage $ ReferenceNotFound (tshow key) pos
          return mempty
        Just target -> return target
 

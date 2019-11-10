@@ -2381,7 +2381,7 @@ block = do
     <|> blockCommand
     <|> paragraph
     <|> grouped block
-  trace (T.take 60 $ T.pack $ show $ B.toList res)
+  trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 blocks :: PandocMonad m => LP m Blocks

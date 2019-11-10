@@ -140,7 +140,7 @@ handleUnicode = T.concatMap $ \c ->
 
 -- | Escape special characters.
 escapeSpecial :: Text -> Text
-escapeSpecial = escapeTextUsing $
+escapeSpecial = escapeStringUsing $
   [ ('\t',"\\tab ")
   , ('\8216',"\\u8216'")
   , ('\8217',"\\u8217'")

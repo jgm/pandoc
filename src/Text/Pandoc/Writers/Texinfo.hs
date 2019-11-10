@@ -86,7 +86,7 @@ pandocToTexinfo options (Pandoc meta blocks) = do
 
 -- | Escape things as needed for Texinfo.
 stringToTexinfo :: Text -> Text
-stringToTexinfo = escapeTextUsing texinfoEscapes
+stringToTexinfo = escapeStringUsing texinfoEscapes
   where texinfoEscapes = [ ('{', "@{")
                          , ('}', "@}")
                          , ('@', "@@")

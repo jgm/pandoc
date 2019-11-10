@@ -73,7 +73,7 @@ notesToHaddock opts notes =
 
 -- | Escape special characters for Haddock.
 escapeString :: Text -> Text
-escapeString = escapeTextUsing haddockEscapes
+escapeString = escapeStringUsing haddockEscapes
   where haddockEscapes = backslashEscapes "\\/'`\"@<"
 
 -- | Convert Pandoc block element to haddock.

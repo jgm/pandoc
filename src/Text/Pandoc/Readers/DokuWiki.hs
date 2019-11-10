@@ -31,7 +31,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
-import Text.Pandoc.Shared (crFilter, trim, underlineSpan)
+import Text.Pandoc.Shared (crFilter, trim, underlineSpan, tshow)
 
 -- | Read DokuWiki from an input string and return a Pandoc document.
 readDokuWiki :: PandocMonad m
@@ -390,7 +390,7 @@ block = do
          <|> blockElements
          <|> para
   skipMany blankline
-  trace (T.take 60 $ T.pack $ show $ B.toList res)
+  trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 blockElements :: PandocMonad m => DWParser m B.Blocks

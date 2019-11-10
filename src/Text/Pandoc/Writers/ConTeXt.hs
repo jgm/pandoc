@@ -372,7 +372,7 @@ inlineToConTeXt (Subscript lst) = do
 inlineToConTeXt (SmallCaps lst) = do
   contents <- inlineListToConTeXt lst
   return $ braces $ "\\sc " <> contents
-inlineToConTeXt (Code _ str) | not ('{' `telem` str || '}' `telem` str) =
+inlineToConTeXt (Code _ str) | not ('{' `elemText` str || '}' `elemText` str) =
   return $ "\\type" <> braces (literal str)
 inlineToConTeXt (Code _ str) = do
   opts <- gets stOptions
@@ -420,7 +420,7 @@ inlineToConTeXt (Link _ txt (src, _)) = do
   contents <-  inlineListToConTeXt txt
   return $ "\\useURL"
            <> brackets (literal ref)
-           <> brackets (literal $ escapeTextUsing [('#',"\\#"),('%',"\\%")] src)
+           <> brackets (literal $ escapeStringUsing [('#',"\\#"),('%',"\\%")] src)
            <> (if isAutolink
                   then empty
                   else brackets empty <> brackets contents)
@@ -558,6 +558,3 @@ fromBCP47' (Just (Lang "vi" _ _ _)        ) = Just "vn"
 fromBCP47' (Just (Lang "zh" _ _ _)        ) = Just "cn"
 fromBCP47' (Just (Lang l _ _ _)           ) = Just l
 fromBCP47' Nothing                          = Nothing
-
-telem :: Char -> Text -> Bool
-telem c = T.any (== c)

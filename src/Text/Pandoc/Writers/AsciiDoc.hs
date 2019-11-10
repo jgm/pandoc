@@ -99,7 +99,7 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
 
 -- | Escape special characters for AsciiDoc.
 escapeString :: Text -> Text
-escapeString = escapeTextUsing escs
+escapeString = escapeStringUsing escs
   where escs = backslashEscapes "{"
 
 -- | Ordered list start parser for use in Para below.
@@ -461,7 +461,7 @@ inlineToAsciiDoc opts (Quoted qt lst) = do
         | otherwise     -> [Str "``"] ++ lst ++ [Str "''"]
 inlineToAsciiDoc _ (Code _ str) = do
   isAsciidoctor <- gets asciidoctorVariant
-  let contents = literal (escapeTextUsing (backslashEscapes "`") str)
+  let contents = literal (escapeStringUsing (backslashEscapes "`") str)
   return $
     if isAsciidoctor
        then text "`+" <> contents <> "+`"
