@@ -1,0 +1,185 @@
+Pandoc (Meta {unMeta = fromList []})
+[Header 1 ("",[],[]) [Span ("headers",[],[]) [],Str "Headers"]
+,Header 2 ("",[],[]) [Span ("level-2-with-an-embedded-link",[],[]) [],Str "Level",Space,Str "2",Space,Str "with",Space,Str "an",Space,Link ("",[],[]) [Str "embedded",Space,Str "link"] ("https://test.example/url","")]
+,Header 3 ("",[],[]) [Span ("level-3-with-emphasis",[],[]) [],Str "Level",Space,Str "3",Space,Str "with",Space,Emph [Str "emphasis"]]
+,Header 4 ("",[],[]) [Str "Level",Space,Str "4"]
+,Header 5 ("",[],[]) [Str "Level",Space,Str "5"]
+,Header 6 ("",[],[]) [Str "Level",Space,Str "6"]
+,Para [Str "h0.",Space,Str "this",Space,Str "is",Space,Str "not",Space,Str "a",Space,Str "header."]
+,HorizontalRule
+,Header 1 ("",[],[]) [Str "Paragraphs"]
+,Para [Str "Here\8217s",Space,Str "a",Space,Str "regular",Space,Str "paragraph."]
+,Para [Str "Here\8217s",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "bullet.",Space,Str "*",Space,Str "criminey."]
+,Para [Str "There",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "hard",Space,Str "line",Space,Str "break",LineBreak,Str "here."]
+,HorizontalRule
+,Header 1 ("",[],[]) [Str "Block",Space,Str "Quotes"]
+,Para [Str "E-mail",Space,Str "style:"]
+,BlockQuote
+ [Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "block",Space,Str "quote.",Space,Str "It",Space,Str "is",Space,Str "pretty",Space,Str "short."]]
+,BlockQuote
+ [Para [Str "Code",Space,Str "in",Space,Str "a",Space,Str "block",Space,Str "quote:"]
+ ,CodeBlock ("",["java"],[]) "sub status {\n    print \"working\";\n}\n"
+ ,Para [Str "An",Space,Str "enumeration:"]
+ ,OrderedList (1,DefaultStyle,DefaultDelim)
+  [[Para [Str "item",Space,Str "one"]]
+  ,[Para [Str "item",Space,Str "two"]]]]
+,Para [Str "A",Space,Str "following",Space,Str "paragraph."]
+,HorizontalRule
+,Header 1 ("",[],[]) [Str "Code",Space,Str "Blocks"]
+,Para [Str "Code:"]
+,CodeBlock ("",["java"],[]) "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}\n"
+,Para [Str "And:"]
+,CodeBlock ("",["java"],[]) "    this code block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{\n"
+,HorizontalRule
+,Header 1 ("",[],[]) [Span ("lists",[],[]) [],Str "Lists"]
+,Header 2 ("",[],[]) [Span ("unordered",[],[]) [],Str "Unordered"]
+,Para [Str "Asterisks:"]
+,BulletList
+ [[Para [Str "asterisk",Space,Str "1"]]
+ ,[Para [Str "asterisk",Space,Str "2"]]
+ ,[Para [Str "asterisk",Space,Str "3"]]]
+,Para [Str "Minuses:"]
+,BulletList
+ [[Para [Str "Minus",Space,Str "1"]]
+ ,[Para [Str "Minus",Space,Str "2"]]
+ ,[Para [Str "Minus",Space,Str "3"]]]
+,Header 2 ("",[],[]) [Str "Ordered"]
+,OrderedList (1,DefaultStyle,DefaultDelim)
+ [[Para [Str "First"]]
+ ,[Para [Str "Second"]]
+ ,[Para [Str "Third"]]]
+,Para [Str "Linebreak",Space,Str "in",Space,Str "paragraph:"]
+,OrderedList (1,DefaultStyle,DefaultDelim)
+ [[Para [Str "Item",Space,Str "1,",Space,Str "line",Space,Str "one.",LineBreak,Str "Item",Space,Str "1.",Space,Str "line",Space,Str "two.",Space,Str "The",Space,Str "quick",Space,Str "brown",Space,Str "fox",Space,Str "jumped",Space,Str "over",Space,Str "the",Space,Str "lazy",Space,Str "dog\8217s",Space,Str "back."]]
+ ,[Para [Str "Item",Space,Str "2."]]
+ ,[Para [Str "Item",Space,Str "3."]]]
+,Header 2 ("",[],[]) [Str "Nested"]
+,BulletList
+ [[Para [Str "Tab"]
+  ,BulletList
+   [[Para [Str "Tab"]
+    ,BulletList
+     [[Para [Str "Tab"]]]]]]]
+,Para [Str "Here\8217s",Space,Str "another:"]
+,OrderedList (1,DefaultStyle,DefaultDelim)
+ [[Para [Str "First"]]
+ ,[Para [Str "Second:"]
+  ,BulletList
+   [[Para [Str "Fee"]]
+   ,[Para [Str "Fie"]]
+   ,[Para [Str "Foe"]]]]
+ ,[Para [Str "Third"]]]
+,Para [Str "Nested",Space,Str "enumerations:"]
+,OrderedList (1,DefaultStyle,DefaultDelim)
+ [[Para [Str "Essential"]
+  ,OrderedList (1,DefaultStyle,DefaultDelim)
+   [[Para [Str "Important"]
+    ,OrderedList (1,DefaultStyle,DefaultDelim)
+     [[Para [Str "Relevant"]
+      ,OrderedList (1,DefaultStyle,DefaultDelim)
+       [[Para [Str "Insignificant"]]]]]]]]]
+,HorizontalRule
+,Header 1 ("",[],[]) [Str "Linebreaks",Space,Str "and",Space,Str "Markup",Space,Str "in",Space,Str "Lists"]
+,BulletList
+ [[Para [Strong [Str "apple"],LineBreak,Str "red",Space,Str "fruit"]]
+ ,[Para [Strong [Str "orange"],LineBreak,Str "orange",Space,Str "fruit"]]
+ ,[Para [Strong [Str "banana"],LineBreak,Str "yellow",Space,Str "fruit"]]]
+,Para [Str "Multiple",Space,Str "blocks",Space,Str "with",Space,Str "italics:"]
+,BulletList
+ [[Para [Strong [Emph [Str "apple"]],LineBreak,Str "red",Space,Str "fruit",LineBreak,Str "contains",Space,Str "seeds,",Space,Str "crisp,",Space,Str "pleasant",Space,Str "to",Space,Str "taste"]]
+ ,[Para [Strong [Emph [Str "orange"]],LineBreak,Str "orange",Space,Str "fruit"]
+  ,CodeBlock ("",["java"],[]) "{ orange code block }\n"
+  ,BlockQuote
+   [Para [Str "orange",Space,Str "block",Space,Str "quote"]]]]
+,HorizontalRule
+,Header 1 ("",[],[]) [Str "Colored",Space,Str "Text",Space,Str "Blocks"]
+,Div ("",[],[("color","red")])
+ [Para [LineBreak,Str "This",Space,Str "is",Space,Str "red."]]
+,Header 2 ("",[],[]) [Str "Eiffel",Space,Str "65"]
+,Div ("",[],[("color","blue")])
+ [Para [LineBreak,Str "da",Space,Str "ba",Space,Str "dee"]]
+,HorizontalRule
+,Header 1 ("",[],[]) [Str "Inline",Space,Str "Markup"]
+,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str "."]
+,Para [Str "This",Space,Str "is",Space,Strong [Str "strong"],Str ",",Space,Str "and",Space,Str "so",Space,Strong [Str "is",Space,Str "this"],Str "."]
+,Para [Str "An",Space,Emph [Link ("",[],[]) [Str "emphasized",Space,Str "link"] ("https://my.example/url","")],Str "."]
+,Para [Strong [Emph [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em."]]]
+,Para [Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word."]
+,Para [Str "This",Space,Str "is",Space,Str "code:",Space,Code ("",[],[]) ">",Str ",",Space,Code ("",[],[]) "$",Str ",",Space,Code ("",[],[]) "\\",Str ",",Space,Code ("",[],[]) "\\$",Str ",",Space,Code ("",[],[]) "<html>",Str "."]
+,Para [Strikeout [Str "This",Space,Str "is",Space,Emph [Str "strikeout"],Str "."]]
+,Para [Str "Superscripts:",Space,Str "a",Superscript [Str "bc"],Str "d",Space,Str "a",Superscript [Emph [Str "hello"]],Space,Str "a",Superscript [Str "hello\160there"],Str "."]
+,Para [Str "Subscripts:",Space,Str "H",Subscript [Str "2"],Str "O,",Space,Str "C",Subscript [Str "6"],Str "H",Subscript [Str "12"],Str "O",Subscript [Str "6"],Str ",",Space,Str "C",Subscript [Str "\160n\160"],Str "H",Subscript [Emph [Str "2n"]],Str "O",Subscript [Str "n"],Str "."]
+,Para [Str "These",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "superscripts",Space,Str "or",Space,Str "subscripts,",Space,Str "because",Space,Str "of",Space,Str "markers",Space,Str "used",Space,Str "within",Space,Str "words:",Space,Str "a^b",Space,Str "c^d,",Space,Str "a~b",Space,Str "c~d."]
+,HorizontalRule
+,Header 1 ("",[],[]) [Str "Dashes,",Space,Str "and",Space,Str "emoticons"]
+,Para [Str "Some",Space,Str "dashes:",Space,Str "one",Space,Str "\8211",Space,Str "two",Space,Str "\8212",Space,Str "three."]
+,Para [Str "Sure",Space,Str "\10003",LineBreak,Str "Nope",Space,Str "\127303"]
+,Para [Str "Nice",Space,Str "\128515"]
+,Para [Str "Capital",Space,Str "d:D"]
+,HorizontalRule
+,Header 1 ("",[],[]) [Str "Math"]
+,BulletList
+ [[Para [Str "2\8197+\8197\&2\8196=\8196\&4"]]
+ ,[Para [Emph [Str "x"],Str "\8196\8712\8196",Emph [Str "y"]]]
+ ,[Para [Emph [Str "\945"],Str "\8197\8743\8197",Emph [Str "\969"]]]
+ ,[Para [Emph [Str "p"],Str "-Tree"]]
+ ,[Para [Str "Here\8217s",Space,Str "one",Space,Str "more:",Space,Emph [Str "\945"],Str "\8197+\8197",Emph [Str "\969"],Str "\8197\215\8197",Emph [Str "x"],Superscript [Str "2"],Str "."]]]
+,HorizontalRule
+,Header 1 ("",[],[]) [Str "Special",Space,Str "Characters"]
+,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "unicode:"]
+,BulletList
+ [[Para [Str "I",Space,Str "hat:",Space,Str "\206"]]
+ ,[Para [Str "o",Space,Str "umlaut:",Space,Str "\246"]]
+ ,[Para [Str "section:",Space,Str "\167"]]
+ ,[Para [Str "set",Space,Str "membership:",Space,Str "\8712"]]
+ ,[Para [Str "copyright:",Space,Str "\169"]]]
+,Para [Str "AT&T",Space,Str "has",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "their",Space,Str "name."]
+,Para [Str "AT&T",Space,Str "is",Space,Str "another",Space,Str "way",Space,Str "to",Space,Str "write",Space,Str "it."]
+,Para [Str "This",Space,Str "&",Space,Str "that."]
+,Para [Str "4",Space,Str "<",Space,Str "5."]
+,Para [Str "6",Space,Str ">",Space,Str "5."]
+,Para [Str "Backslash:",Space,Str "\\"]
+,Para [Str "Backtick:",Space,Str "`"]
+,Para [Str "Asterisk:",Space,Str "*"]
+,Para [Str "Underscore:",Space,Str "_"]
+,Para [Str "Left",Space,Str "brace:",Space,Str "{"]
+,Para [Str "Right",Space,Str "brace:",Space,Str "}"]
+,Para [Str "Left",Space,Str "bracket:",Space,Str "["]
+,Para [Str "Right",Space,Str "bracket:",Space,Str "]"]
+,Para [Str "Left",Space,Str "paren:",Space,Str "("]
+,Para [Str "Right",Space,Str "paren:",Space,Str ")"]
+,Para [Str "Greater-than:",Space,Str ">"]
+,Para [Str "Hash:",Space,Str "#"]
+,Para [Str "Period:",Space,Str "."]
+,Para [Str "Bang:",Space,Str "!"]
+,Para [Str "Plus:",Space,Str "+"]
+,Para [Str "Minus:",Space,Str "-"]
+,HorizontalRule
+,Header 1 ("",[],[]) [Str "Links"]
+,Header 2 ("",[],[]) [Str "Explicit"]
+,Para [Str "Just",Space,Str "a",Space,Link ("",[],[]) [Str "URL"] ("https://example.org/url",""),Str "."]
+,Para [Link ("",[],[]) [Str "File",Space,Str "URL"] ("file://some/file/name/",""),Str "."]
+,Para [Link ("",[],[]) [Str "IRC",Space,Str "link"] ("irc://example.org/pandoc",""),Str "."]
+,Para [Link ("",[],[]) [Str "Email",Space,Str "link"] ("mailto:nobody@nowhere.invalid","")]
+,Para [Str "[Not",Space,Str "a",Space,Str "link|not",Space,Str "a",Space,Str "URL]."]
+,Header 2 ("",[],[]) [Str "Reference"]
+,Para [Str "With",Space,Link ("",[],[]) [Str "embedded",Space,Str "[brackets]"] ("https://example.net/url/",""),Str "."]
+,Para [Link ("",[],[]) [Str "https://pandoc.org by itself should be a link."] ("https://pandoc.org by itself should be a link.","")]
+,Header 2 ("",[],[]) [Str "With",Space,Str "ampersands"]
+,Para [Str "Here\8217s",Space,Str "a",Space,Link ("",[],[]) [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] ("http://example.com/?foo=1&bar=2",""),Str "."]
+,Para [Str "Here\8217s",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text:",Space,Link ("",[],[]) [Str "AT&T"] ("http://att.com/",""),Str "."]
+,Header 2 ("",[],[]) [Str "Autolinks"]
+,Para [Str "With",Space,Str "an",Space,Str "ampersand:",Space,Link ("",[],[]) [Str "http://example.com/?foo=1&bar=2"] ("http://example.com/?foo=1&bar=2","")]
+,BulletList
+ [[Para [Str "In",Space,Str "a",Space,Str "list?"]]
+ ,[Para [Link ("",[],[]) [Str "http://example.com/"] ("http://example.com/","")]]
+ ,[Para [Str "It",Space,Str "should."]]]
+,Para [Str "An",Space,Str "e-mail",Space,Str "address:",Space,Link ("",[],[]) [Str "mailto:nobody@nowhere.invalid"] ("mailto:nobody@nowhere.invalid","")]
+,BlockQuote
+ [Para [Str "Blockquoted:",Space,Link ("",[],[]) [Str "http://example.com/"] ("http://example.com/","")]]
+,CodeBlock ("",["java"],[]) "Autolink should not occur here: <http://example.com/>\n"
+,HorizontalRule
+,Header 1 ("",[],[]) [Str "Images"]
+,Para [Str "From",Space,Str "\"Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune\"",Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(1902):"]
+,Para [Image ("",[],[]) [] ("lalune.jpg","")]
+,Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image ("",[],[]) [] ("movie.jpg",""),Space,Str "icon."]]

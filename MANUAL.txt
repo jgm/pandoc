@@ -240,6 +240,7 @@ header when requesting a document from a URL:
     - `html` ([HTML])
     - `ipynb` ([Jupyter notebook])
     - `jats` ([JATS] XML)
+    - `jira` ([Jira] wiki markup)
     - `json` (JSON version of native AST)
     - `latex` ([LaTeX])
     - `markdown` ([Pandoc's Markdown])

@@ -246,6 +246,7 @@ extra-source-files:
                  test/creole-reader.native
                  test/rst-reader.rst
                  test/jats-reader.xml
+                 test/jira-reader.jira
                  test/s5-basic.html
                  test/s5-fancy.html
                  test/s5-fragment.html
@@ -405,6 +406,7 @@ library
                  blaze-html >= 0.9 && < 0.10,
                  blaze-markup >= 0.8 && < 0.9,
                  vector >= 0.10 && < 0.13,
+                 jira-wiki-markup >= 1.0 && < 1.1,
                  hslua >= 1.0.1 && < 1.1,
                  hslua-module-system >= 0.2 && < 0.3,
                  hslua-module-text >= 0.2 && < 0.3,
@@ -487,6 +489,7 @@ library
                    Text.Pandoc.Readers.Org,
                    Text.Pandoc.Readers.DocBook,
                    Text.Pandoc.Readers.JATS,
+                   Text.Pandoc.Readers.Jira,
                    Text.Pandoc.Readers.OPML,
                    Text.Pandoc.Readers.Textile,
                    Text.Pandoc.Readers.Native,
@@ -750,6 +753,7 @@ test-suite test-pandoc
                   Tests.Readers.LaTeX
                   Tests.Readers.HTML
                   Tests.Readers.JATS
+                  Tests.Readers.Jira
                   Tests.Readers.Markdown
                   Tests.Readers.Org
                   Tests.Readers.Org.Block

@@ -20,6 +20,7 @@ extra-deps:
 - regex-pcre-builtin-0.95.0.8.8.35
 - doclayout-0.2.0.1
 - emojis-0.1
+- jira-wiki-markup-1.0.0
 - HsYAML-0.2.0.0
 - HsYAML-aeson-0.2.0.0
 - doctemplates-0.8
