@@ -65,7 +65,6 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 import qualified Data.ByteString.Lazy as B
 import Data.Default (Default)
-import Data.List (delete, intersect)
 import Data.Char (isSpace)
 import qualified Data.Map as M
 import Data.Maybe (isJust, fromMaybe)
@@ -153,8 +152,8 @@ sepBodyParts :: [BodyPart] -> ([BodyPart], [BodyPart])
 sepBodyParts = span (\bp -> isMetaPar bp || isEmptyPar bp)
 
 isMetaPar :: BodyPart -> Bool
-isMetaPar (Paragraph pPr _) =
-  not $ null $ intersect (getStyleNames $ pStyle pPr) (M.keys metaStyles)
+isMetaPar (Paragraph pPr _) = or $
+  (`elem` M.keys metaStyles) . getStyleName <$> pStyle pPr
 isMetaPar _ = False
 
 isEmptyPar :: BodyPart -> Bool
@@ -171,7 +170,8 @@ bodyPartsToMeta' :: PandocMonad m => [BodyPart] -> DocxContext m (M.Map String M
 bodyPartsToMeta' [] = return M.empty
 bodyPartsToMeta' (bp : bps)
   | (Paragraph pPr parParts) <- bp
-  , (c : _)<- getStyleNames (pStyle pPr) `intersect` M.keys metaStyles
+  , Just c <- getStyleName <$> pStyle pPr
+  , c `elem` M.keys metaStyles
   , (Just metaField) <- M.lookup c metaStyles = do
     inlines <- smushInlines <$> mapM parPartToInlines parParts
     remaining <- bodyPartsToMeta' bps
@@ -209,9 +209,6 @@ isInheritedFromStyles names sty
 
 hasStylesInheritedFrom :: [ParaStyleName] -> ParagraphStyle -> Bool
 hasStylesInheritedFrom ns s = any (isInheritedFromStyles ns) $ pStyle s
-
-removeStyleNamed :: ParaStyleName -> ParagraphStyle -> ParagraphStyle
-removeStyleNamed sn ps = ps{pStyle = filter (\psd -> getStyleName psd /= sn) $ pStyle ps}
 
 isCodeCharStyle :: CharStyle -> Bool
 isCodeCharStyle = isInheritedFromStyles ["Verbatim Char"]
@@ -533,22 +530,21 @@ extraInfo f s = do
 
 parStyleToTransform :: PandocMonad m => ParagraphStyle -> DocxContext m (Blocks -> Blocks)
 parStyleToTransform pPr
-  | (c:cs) <- pStyle pPr
+  | Just c <- pStyle pPr
   , getStyleName c `elem` divsToKeep = do
-      let pPr' = pPr { pStyle = cs }
+      let pPr' = pPr { pStyle = Nothing }
       transform <- parStyleToTransform pPr'
       return $ divWith ("", [normalizeToClassName $ getStyleName c], []) . transform
-  | (c:cs) <- pStyle pPr,
-    getStyleName c `elem` listParagraphStyles = do
-      let pPr' = pPr { pStyle = cs, indentation = Nothing}
+  | isListPara pPr = do
+      let pPr' = pPr { isListPara = False, indentation = Nothing}
       transform <- parStyleToTransform pPr'
-      return $ divWith ("", [normalizeToClassName $ getStyleName c], []) . transform
-  | (c:cs) <- pStyle pPr = do
-      let pPr' = pPr { pStyle = cs }
+      return $ divWith ("", listParagraphDivs, []) . transform
+  | Just c <- pStyle pPr = do
+      let pPr' = pPr { pStyle = Nothing }
       transform <- parStyleToTransform pPr'
       ei <- extraInfo divWith c
       return $ ei . (if isBlockQuote c then blockQuote else id) . transform
-  | null (pStyle pPr)
+  | Nothing <- pStyle pPr
   , Just left <- indentation pPr >>= leftParIndent = do
     let pPr' = pPr { indentation = Nothing }
         hang = fromMaybe 0 $ indentation pPr >>= hangingParIndent
@@ -576,17 +572,21 @@ bodyPartToBlocks (Paragraph pPr parparts)
         codeBlock $
         concatMap parPartToString parparts
   | Just (style, n) <- pHeading pPr = do
-    ils <-local (\s-> s{docxInHeaderBlock=True})
+    ils <- local (\s-> s{docxInHeaderBlock=True})
            (smushInlines <$> mapM parPartToInlines parparts)
+    let headercls = case getStyleName <$> pStyle pPr of
+          Just st | st /= style -> [normalizeToClassName st]
+          _ -> []
     makeHeaderAnchor $
-      headerWith ("", map normalizeToClassName . delete style $ getStyleNames (pStyle pPr), []) n ils
+      headerWith ("", headercls, []) n ils
   | otherwise = do
     ils <- trimSps . smushInlines <$> mapM parPartToInlines parparts
     prevParaIls <- gets docxPrevPara
     dropIls <- gets docxDropCap
     let ils' = dropIls <> ils
     let (paraOrPlain, pPr')
-          | hasStylesInheritedFrom ["Compact"] pPr = (plain, removeStyleNamed "Compact" pPr)
+          | hasStylesInheritedFrom ["Compact"] pPr
+          = (plain, pPr{pStyle = mfilter ((/="Compact") . getStyleName) $ pStyle pPr})
           | otherwise = (para, pPr)
     if dropCap pPr'
       then do modify $ \s -> s { docxDropCap = ils' }
@@ -659,7 +659,7 @@ bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
   blks <- bodyPartToBlocks (Paragraph pPr parparts)
   return $ divWith ("", ["list-item"], kvs) blks
 bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
-  let pPr' = pPr {pStyle = constructBogusParStyleData "list-paragraph": pStyle pPr}
+  let pPr' = pPr {isListPara = True}
   in
     bodyPartToBlocks $ Paragraph pPr' parparts
 bodyPartToBlocks (Tbl _ _ _ []) =
