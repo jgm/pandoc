@@ -69,37 +69,36 @@ data EscapeMode = AllowUTF8        -- ^ use preferred man escapes
                 | AsciiOnly        -- ^ escape everything
                 deriving Show
 
-combiningAccentsMap :: Map.Map Char Text -- TODO text: change
+combiningAccentsMap :: Map.Map Char Text
 combiningAccentsMap = Map.fromList combiningAccents
 
 essentialEscapes :: Map.Map Char Text
 essentialEscapes = Map.fromList standardEscapes
 
 -- | Escape special characters for roff.
-escapeString :: EscapeMode -> Text -> Text -- TODO text: refactor
-escapeString e = Text.pack . escapeString' e . Text.unpack
-
-escapeString' :: EscapeMode -> String -> String
-escapeString' _ [] = []
-escapeString' escapeMode ('\n':'.':xs) =
-  '\n':'\\':'&':'.':escapeString' escapeMode xs
-escapeString' escapeMode (x:xs) =
-  case Map.lookup x essentialEscapes of
-    Just s  -> Text.unpack s ++ escapeString' escapeMode xs
-    Nothing
-     | isAscii x -> x : escapeString' escapeMode xs
-     | otherwise ->
-        case escapeMode of
-          AllowUTF8 -> x : escapeString' escapeMode xs
-          AsciiOnly ->
-            let accents = catMaybes $ takeWhile isJust
-                  (map (\c -> Map.lookup c combiningAccentsMap) xs)
-                rest = drop (length accents) xs
-                s = Text.unpack $ case Map.lookup x characterCodeMap of
-                      Just t  -> "\\[" <> Text.unwords (t:accents) <> "]"
-                      Nothing -> "\\[" <> Text.unwords
-                       (Text.pack (printf "u%04X" (ord x)) : accents) <> "]"
-            in  s <> escapeString' escapeMode rest
+escapeString :: EscapeMode -> Text -> Text
+escapeString e = Text.concat . escapeString' e . Text.unpack
+  where
+    escapeString' _ [] = []
+    escapeString' escapeMode ('\n':'.':xs) =
+      "\n\\&." : escapeString' escapeMode xs
+    escapeString' escapeMode (x:xs) =
+      case Map.lookup x essentialEscapes of
+        Just s  -> s : escapeString' escapeMode xs
+        Nothing
+          | isAscii x -> Text.singleton x : escapeString' escapeMode xs
+          | otherwise ->
+              case escapeMode of
+                AllowUTF8 -> Text.singleton x : escapeString' escapeMode xs
+                AsciiOnly ->
+                  let accents = catMaybes $ takeWhile isJust
+                        (map (\c -> Map.lookup c combiningAccentsMap) xs)
+                      rest = drop (length accents) xs
+                      s = case Map.lookup x characterCodeMap of
+                            Just t  -> "\\[" <> Text.unwords (t:accents) <> "]"
+                            Nothing -> "\\[" <> Text.unwords
+                              (Text.pack (printf "u%04X" (ord x)) : accents) <> "]"
+                  in  s : escapeString' escapeMode rest
 
 characterCodeMap :: Map.Map Char Text
 characterCodeMap = Map.fromList characterCodes

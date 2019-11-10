@@ -82,7 +82,7 @@ pandocToRST (Pandoc meta blocks) = do
   let main = vsep [body, notes, refs, pics]
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents opts)
-              $ defField "toc-depth" (T.pack $ show $ writerTOCDepth opts)
+              $ defField "toc-depth" (tshow $ writerTOCDepth opts)
               $ defField "number-sections" (writerNumberSections opts)
               $ defField "math" hasMath
               $ defField "titleblock" (render Nothing title :: Text)
@@ -155,24 +155,23 @@ pictToRST (label, (attr, src, _, mbtarget)) = do
 
 -- | Escape special characters for RST.
 escapeText :: WriterOptions -> Text -> Text
-escapeText = escapeText' True
+escapeText o = T.pack . escapeString' True o . T.unpack -- This ought to be parser
   where
-  escapeText' b o = T.pack . escapeString' b o . T.unpack
-  escapeString' _ _  [] = [] -- TODO text: refactor
+  escapeString' _ _  [] = []
   escapeString' firstChar opts (c:cs) =
     case c of
-         _ | c `telem` "\\`*_|" &&
-             (firstChar || null cs) -> '\\':c:escapeString' False opts cs
+         _    | c `elemText` "\\`*_|" &&
+                (firstChar || null cs) -> '\\':c:escapeString' False opts cs
          '\'' | isEnabled Ext_smart opts -> '\\':'\'':escapeString' False opts cs
-         '"' | isEnabled Ext_smart opts -> '\\':'"':escapeString' False opts cs
-         '-' | isEnabled Ext_smart opts ->
-                case cs of
-                     '-':_ -> '\\':'-':escapeString' False opts cs
-                     _     -> '-':escapeString' False opts cs
-         '.' | isEnabled Ext_smart opts ->
-                case cs of
-                     '.':'.':rest -> '\\':'.':'.':'.':escapeString' False opts rest
-                     _            -> '.':escapeString' False opts cs
+         '"'  | isEnabled Ext_smart opts -> '\\':'"':escapeString' False opts cs
+         '-'  | isEnabled Ext_smart opts ->
+                  case cs of
+                    '-':_ -> '\\':'-':escapeString' False opts cs
+                    _     -> '-':escapeString' False opts cs
+         '.'  | isEnabled Ext_smart opts ->
+                  case cs of
+                    '.':'.':rest -> '\\':'.':'.':'.':escapeString' False opts rest
+                    _            -> '.':escapeString' False opts cs
          _ -> c : escapeString' False opts cs
 
 titleToRST :: PandocMonad m => [Inline] -> [Inline] -> RST m (Doc Text)
@@ -456,14 +455,14 @@ transformInlines =  insertBS .
         okAfterComplex SoftBreak = True
         okAfterComplex LineBreak = True
         okAfterComplex (Str (T.uncons -> Just (c,_)))
-          = isSpace c || c `telem` "-.,:;!?\\/'\")]}>–—"
+          = isSpace c || c `elemText` "-.,:;!?\\/'\")]}>–—"
         okAfterComplex _ = False
         okBeforeComplex :: Inline -> Bool
         okBeforeComplex Space = True
         okBeforeComplex SoftBreak = True
         okBeforeComplex LineBreak = True
         okBeforeComplex (Str (T.uncons -> Just (c,_)))
-                          = isSpace c || c `telem` "-:/'\"<([{–—"
+                          = isSpace c || c `elemText` "-:/'\"<([{–—"
         okBeforeComplex _ = False
         isComplex :: Inline -> Bool
         isComplex (Emph _)        = True
@@ -559,9 +558,6 @@ setInlineChildren leaf _            = leaf
 inlineListToRST :: PandocMonad m => [Inline] -> RST m (Doc Text)
 inlineListToRST = writeInlines . walk transformInlines
 
-telem :: Char -> Text -> Bool
-telem c = T.any (== c)
-
 -- | Convert list of Pandoc inline elements to RST.
 writeInlines :: PandocMonad m => [Inline] -> RST m (Doc Text)
 writeInlines lst = mapM inlineToRST lst >>= return . hcat
@@ -613,7 +609,7 @@ inlineToRST (Code _ str) = do
   -- we use :literal: when the code contains backticks, since
   -- :literal: allows backslash-escapes; see #3974
   return $
-    if '`' `telem` str
+    if '`' `elemText` str
        then ":literal:`" <> literal (escapeText opts (trim str)) <> "`"
        else "``" <> literal (trim str) <> "``"
 inlineToRST (Str str) = do
@@ -626,7 +622,7 @@ inlineToRST (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath
               then ":math:`" <> literal str <> "`"
-              else if '\n' `telem` str
+              else if '\n' `elemText` str
                    then blankline $$ ".. math::" $$
                         blankline $$ nest 3 (literal str) $$ blankline
                    else blankline $$ (".. math:: " <> literal str) $$ blankline
@@ -677,8 +673,8 @@ inlineToRST (Note contents) = do
   -- add to notes in state
   notes <- gets stNotes
   modify $ \st -> st { stNotes = contents:notes }
-  let ref = T.pack $ show $ length notes + 1
-  return $ " [" <> literal ref <> "]_"
+  let ref = show $ length notes + 1
+  return $ " [" <> text ref <> "]_"
 
 registerImage :: PandocMonad m => Attr -> [Inline] -> Target -> Maybe Text -> RST m (Doc Text)
 registerImage attr alt (src,tit) mbtarget = do
@@ -688,7 +684,7 @@ registerImage attr alt (src,tit) mbtarget = do
                  -> return alt
                _ -> do
                  let alt' = if null alt || alt == [Str ""]
-                               then [Str $ "image" <> T.pack (show (length pics))]
+                               then [Str $ "image" <> tshow (length pics)]
                                else alt
                  modify $ \st -> st { stImages =
                         (alt', (attr,src,tit, mbtarget)):stImages st }
@@ -701,7 +697,7 @@ imageDimsToRST attr = do
       name = if T.null ident
                 then empty
                 else ":name: " <> literal ident
-      showDim dir = let cols d = ":" <> literal (T.pack $ show dir) <> ": " <> literal (T.pack $ show d)
+      showDim dir = let cols d = ":" <> text (show dir) <> ": " <> text (show d)
                     in  case dimension dir attr of
                           Just (Percent a) ->
                             case dir of
