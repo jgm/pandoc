@@ -1,5 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-} -- TODO text: possibly remove
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.DokuWiki
    Copyright   : Copyright (C) 2008-2019 John MacFarlane
@@ -179,7 +179,7 @@ blockToDokuWiki opts (Table capt aligns _ headers rows) = do
                  else zipWithM (tableItemToDokuWiki opts) aligns headers
   rows' <- mapM (zipWithM (tableItemToDokuWiki opts) aligns) rows
   let widths = map (maximum . map T.length) $ transpose (headers':rows')
-  let padTo (width, al) s = -- TODO text: replace with text pad?
+  let padTo (width, al) s =
           case width - T.length s of
                x | x > 0 ->
                  if al == AlignLeft || al == AlignDefault
@@ -345,7 +345,6 @@ backSlashLineBreaks :: [Text] -> Text
 backSlashLineBreaks ls = vcatBackSlash $ map (T.pack . escape . T.unpack) ls
   where
     vcatBackSlash = T.intercalate "\\\\ \\\\ " -- simulate paragraphs.
-    -- TODO text: refactor
     escape ['\n']    = "" -- remove trailing newlines
     escape ('\n':cs) = "\\\\ " <> escape cs
     escape (c:cs)    = c : escape cs

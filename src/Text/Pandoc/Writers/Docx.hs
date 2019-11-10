@@ -32,6 +32,7 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, maybeToList)
 import qualified Data.Set as Set
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
@@ -40,7 +41,7 @@ import Text.Pandoc.BCP47 (getLang, renderLang)
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class as P
 import Data.Time
-import Text.Pandoc.UTF8 (fromStringLazy)
+import Text.Pandoc.UTF8 (fromTextLazy)
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Highlighting (highlight)
@@ -890,7 +891,7 @@ blockToOpenXML' :: (PandocMonad m) => WriterOptions -> Block -> WS m [Element]
 blockToOpenXML' _ Null = return []
 blockToOpenXML' opts (Div (ident,_classes,kvs) bs) = do
   stylemod <- case lookup dynamicStyleKey kvs of
-                   Just (fromString . T.unpack -> sty) -> do -- TODO text: unhappy
+                   Just (fromString . T.unpack -> sty) -> do
                       modify $ \s ->
                         s{stDynamicParaProps = Set.insert sty
                              (stDynamicParaProps s)}
@@ -1181,7 +1182,7 @@ inlineToOpenXML' _ (Span (ident,["comment-end"],kvs) _) =
            ]
 inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
   stylemod <- case lookup dynamicStyleKey kvs of
-                   Just (fromString . T.unpack -> sty) -> do -- TODO text: unhappy
+                   Just (fromString . T.unpack -> sty) -> do
                       modify $ \s ->
                         s{stDynamicTextProps = Set.insert sty
                               (stDynamicTextProps s)}
@@ -1477,12 +1478,9 @@ wrapBookmark ident contents = do
 -- Word imposes a 40 character limit on bookmark names and requires
 -- that they begin with a letter.  So we just use a hash of the
 -- identifer when otherwise we'd have an illegal bookmark name.
-toBookmarkName :: T.Text -> T.Text -- TODO text: refactor
-toBookmarkName = T.pack . toBookmarkName' . T.unpack
-
-toBookmarkName' :: String -> String
-toBookmarkName' s =
-  case s of
-    (c:_) | isLetter c
-          , length s <= 40 -> s
-    _     -> 'X' : drop 1 (showDigest (sha1 (fromStringLazy s)))
+toBookmarkName :: T.Text -> T.Text
+toBookmarkName s
+  | Just (c, _) <- T.uncons s
+  , isLetter c
+  , T.length s <= 40 = s
+  | otherwise = T.pack $ 'X' : drop 1 (showDigest (sha1 (fromTextLazy $ TL.fromStrict s)))

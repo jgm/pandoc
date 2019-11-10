@@ -24,7 +24,7 @@ import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isPunctuation, isSpace)
 import Data.List (intercalate, intersperse)
-import Data.Maybe (fromMaybe, isJust, listToMaybe)
+import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -114,15 +114,17 @@ olMarker = do (start, style', delim) <- anyOrderedListMarker
 -- | True if string begins with an ordered list marker
 -- or would be interpreted as an AsciiDoc option command
 needsEscaping :: Text -> Bool
-needsEscaping s = beginsWithOrderedListMarker s || isBracketed (T.unpack s)
+needsEscaping s = beginsWithOrderedListMarker s || isBracketed s
   where
     beginsWithOrderedListMarker str =
       case runParser olMarker defaultParserState "para start" (T.take 10 str) of
              Left  _ -> False
              Right _ -> True
-    -- TODO text: refactor
-    isBracketed ('[':cs) = listToMaybe (reverse cs) == Just ']'
-    isBracketed _ = False
+    isBracketed t
+      | Just ('[', t') <- T.uncons t
+      , Just (_, ']')  <- T.unsnoc t'
+      = True
+      | otherwise = False
 
 -- | Convert Pandoc block element to asciidoc.
 blockToAsciiDoc :: PandocMonad m

@@ -110,22 +110,21 @@ defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
 
 -- Helpers to render HTML with the appropriate function.
 
-strToHtml :: Text -> Html -- TODO text: refactor
+strToHtml :: Text -> Html
 strToHtml = strToHtml' . T.unpack
-
-strToHtml' :: String -> Html
-strToHtml' ('\'':xs) = preEscapedString "\'" `mappend` strToHtml' xs
-strToHtml' ('"' :xs) = preEscapedString "\"" `mappend` strToHtml' xs
-strToHtml' (x:xs) | needsVariationSelector x
-                 = preEscapedString [x, '\xFE0E'] `mappend`
-                   case xs of
-                     ('\xFE0E':ys) -> strToHtml' ys
-                     _             -> strToHtml' xs
-strToHtml' xs@(_:_)  = case break (\c -> c == '\'' || c == '"' ||
-                                        needsVariationSelector c) xs of
-                           (_ ,[]) -> toHtml xs
-                           (ys,zs) -> toHtml ys `mappend` strToHtml' zs
-strToHtml' [] = ""
+  where
+    strToHtml' ('\'':xs) = preEscapedString "\'" `mappend` strToHtml' xs
+    strToHtml' ('"' :xs) = preEscapedString "\"" `mappend` strToHtml' xs
+    strToHtml' (x:xs) | needsVariationSelector x
+                      = preEscapedString [x, '\xFE0E'] `mappend`
+                        case xs of
+                          ('\xFE0E':ys) -> strToHtml' ys
+                          _             -> strToHtml' xs
+    strToHtml' xs@(_:_) = case break (\c -> c == '\'' || c == '"' ||
+                                       needsVariationSelector c) xs of
+                            (_ ,[]) -> toHtml xs
+                            (ys,zs) -> toHtml ys `mappend` strToHtml' zs
+    strToHtml' [] = ""
 
 -- See #5469: this prevents iOS from substituting emojis.
 needsVariationSelector :: Char -> Bool

@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE PatternGuards #-}
-{-# LANGUAGE OverloadedStrings #-} -- TODO text: possibly remove
+{-# LANGUAGE PatternGuards     #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
 Module      : Text.Pandoc.Writers.FB2
 Copyright   : Copyright (C) 2011-2012 Sergey Astanin
@@ -100,8 +100,8 @@ pandocToFB2 opts (Pandoc meta blocks) = do
 description :: PandocMonad m => Meta -> FBM m Content
 description meta' = do
   let genre = case lookupMetaString "genre" meta' of
-                "" -> el "genre" ("unrecognised" :: String) -- TODO text: refactor
-                s  -> el "genre" (T.unpack s) -- TODO text: refactor
+                "" -> el "genre" ("unrecognised" :: String)
+                s  -> el "genre" (T.unpack s)
   bt <- booktitle meta'
   let as = authors meta'
   dd <- docdate meta'
@@ -124,7 +124,7 @@ description meta' = do
   return $ el "description"
     [ el "title-info" (genre :
                       (as ++ bt ++ annotation ++ dd ++ coverpage ++ lang))
-    , el "document-info" [el "program-used" ("pandoc" :: String)] -- TODO text: refactor
+    , el "document-info" [el "program-used" ("pandoc" :: String)]
     ]
 
 booktitle :: PandocMonad m => Meta -> FBM m [Content]
@@ -259,7 +259,7 @@ readDataURI :: Text -- ^ URI
 readDataURI uri =
   case T.stripPrefix "data:" uri of
     Nothing   -> Nothing
-    Just rest -> -- TODO text: refactor (dropWhileEnd?)
+    Just rest ->
       let meta = T.takeWhile (/= ',') rest  -- without trailing ','
           uridata = T.drop (T.length meta + 1) rest
           parts = T.split (== ';') meta
@@ -470,7 +470,7 @@ insertImage immode (Image _ alt (url,ttl)) = do
          el "image" $
             [ attr ("l","href") ("#" <> fname)
             , attr ("l","type") (tshow immode)
-            , uattr "alt" (T.pack $ cMap plain alt) ] -- TODO text: refactor
+            , uattr "alt" (T.pack $ cMap plain alt) ]
             ++ ttlattr
 insertImage _ _ = error "unexpected inline instead of image"
 
