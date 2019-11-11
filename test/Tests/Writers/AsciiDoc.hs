@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.AsciiDoc (tests) where
 
 import Prelude
@@ -12,29 +13,35 @@ import Text.Pandoc.Builder
 asciidoc :: (ToPandoc a) => a -> String
 asciidoc = unpack . purely (writeAsciiDoc def{ writerWrapText = WrapNone }) . toPandoc
 
+testAsciidoc :: (ToString a, ToPandoc a)
+             => String
+             -> (a, String)
+             -> TestTree
+testAsciidoc = test asciidoc
+
 tests :: [TestTree]
 tests = [ testGroup "emphasis"
-          [ test asciidoc "emph word before" $
+          [ testAsciidoc "emph word before" $
                para (text "foo" <> emph (text "bar")) =?>
                  "foo__bar__"
-          , test asciidoc "emph word after" $
+          , testAsciidoc "emph word after" $
                para (emph (text "foo") <> text "bar") =?>
                  "__foo__bar"
-          , test asciidoc "emph quoted" $
+          , testAsciidoc "emph quoted" $
                para (doubleQuoted (emph (text "foo"))) =?>
                  "``__foo__''"
-          , test asciidoc "strong word before" $
+          , testAsciidoc "strong word before" $
                para (text "foo" <> strong (text "bar")) =?>
                  "foo**bar**"
-          , test asciidoc "strong word after" $
+          , testAsciidoc "strong word after" $
                para (strong (text "foo") <> text "bar") =?>
                  "**foo**bar"
-          , test asciidoc "strong quoted" $
+          , testAsciidoc "strong quoted" $
                para (singleQuoted (strong (text "foo"))) =?>
                  "`**foo**'"
           ]
         , testGroup "tables"
-          [ test asciidoc "empty cells" $
+          [ testAsciidoc "empty cells" $
                simpleTable [] [[mempty],[mempty]] =?> unlines
                                            [ "[cols=\"\",]"
                                            , "|==="

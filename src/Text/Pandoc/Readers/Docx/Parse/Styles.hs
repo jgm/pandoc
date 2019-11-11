@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
  Module : Text.Pandoc.Readers.Docx.Parse.Styles
  Copyright : Copyright (C) 2014-2019 Jesse Rosenthal
@@ -46,20 +47,19 @@ import Prelude
 import Codec.Archive.Zip
 import Control.Applicative ((<|>))
 import Control.Monad.Except
-import Data.Char (toLower)
-import Data.List
 import Data.Function (on)
 import Data.String (IsString(..))
 import qualified Data.Map as M
+import qualified Data.Text as T
 import Data.Maybe
 import Data.Coerce
 import Text.Pandoc.Readers.Docx.Util
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.XML.Light
 
-newtype CharStyleId   = CharStyleId String
+newtype CharStyleId   = CharStyleId T.Text
   deriving (Show, Eq, Ord, IsString, FromStyleId)
-newtype ParaStyleId   = ParaStyleId String
+newtype ParaStyleId   = ParaStyleId T.Text
   deriving (Show, Eq, Ord, IsString, FromStyleId)
 
 newtype CharStyleName = CharStyleName CIString
@@ -68,25 +68,31 @@ newtype ParaStyleName = ParaStyleName CIString
   deriving (Show, Eq, Ord, IsString, FromStyleName)
 
 -- Case-insensitive comparisons
-newtype CIString = CIString String deriving (Show, IsString, FromStyleName)
+newtype CIString = CIString T.Text deriving (Show, IsString, FromStyleName)
 
 class FromStyleName a where
-  fromStyleName :: a -> String
+  fromStyleName :: a -> T.Text
 
 instance FromStyleName String where
+  fromStyleName = T.pack
+
+instance FromStyleName T.Text where
   fromStyleName = id
 
 class FromStyleId a where
-  fromStyleId :: a -> String
+  fromStyleId :: a -> T.Text
 
 instance FromStyleId String where
+  fromStyleId = T.pack
+
+instance FromStyleId T.Text where
   fromStyleId = id
 
 instance Eq CIString where
-   (==) = (==) `on` map toLower . coerce
+   (==) = (==) `on` T.toCaseFold . coerce
 
 instance Ord CIString where
-  compare = compare `on` map toLower . coerce
+  compare = compare `on` T.toCaseFold . coerce
 
 data VertAlign = BaseLn | SupScrpt | SubScrpt
                deriving Show
@@ -108,7 +114,7 @@ data RunStyle = RunStyle { isBold       :: Maybe Bool
                 deriving Show
 
 data ParStyle = ParStyle { headingLev    :: Maybe (ParaStyleName, Int)
-                         , numInfo       :: Maybe (String, String)
+                         , numInfo       :: Maybe (T.Text, T.Text)
                          , psParentStyle :: Maybe ParStyle
                          , pStyleName    :: ParaStyleName
                          , pStyleId      :: ParaStyleId
@@ -146,7 +152,7 @@ isBasedOnStyle ns element parentStyle
   , Just styleType <- findAttrByName ns "w" "type" element
   , styleType == cStyleType parentStyle
   , Just basedOnVal <- findChildByName ns "w" "basedOn" element >>=
-                       findAttrByName ns "w" "val"
+                       findAttrTextByName ns "w" "val"
   , Just ps <- parentStyle = basedOnVal == fromStyleId (getStyleId ps)
   | isElem ns "w" "style" element
   , Just styleType <- findAttrByName ns "w" "type" element
@@ -234,7 +240,7 @@ checkOnOff _ _ _ = Nothing
 elemToCharStyle :: NameSpaces
                 -> Element -> Maybe CharStyle -> Maybe CharStyle
 elemToCharStyle ns element parentStyle
-  = CharStyle <$> (CharStyleId <$> findAttrByName ns "w" "styleId" element)
+  = CharStyle <$> (CharStyleId <$> findAttrTextByName ns "w" "styleId" element)
               <*> getElementStyleName ns element
               <*> (Just $ elemToRunStyle ns element parentStyle)
 
@@ -267,32 +273,32 @@ elemToRunStyle _ _ _ = defaultRunStyle
 getHeaderLevel :: NameSpaces -> Element -> Maybe (ParaStyleName, Int)
 getHeaderLevel ns element
   | Just styleName <- getElementStyleName ns element
-  , Just n <- stringToInteger =<<
-              (stripPrefix "heading " . map toLower $
+  , Just n <- stringToInteger . T.unpack =<<
+              (T.stripPrefix "heading " . T.toLower $
                 fromStyleName styleName)
   , n > 0 = Just (styleName, fromInteger n)
 getHeaderLevel _ _ = Nothing
 
-getElementStyleName :: Coercible String a => NameSpaces -> Element -> Maybe a
+getElementStyleName :: Coercible T.Text a => NameSpaces -> Element -> Maybe a
 getElementStyleName ns el = coerce <$>
-  ((findChildByName ns "w" "name" el >>= findAttrByName ns "w" "val")
-  <|> findAttrByName ns "w" "styleId" el)
+  ((findChildByName ns "w" "name" el >>= findAttrTextByName ns "w" "val")
+  <|> findAttrTextByName ns "w" "styleId" el)
 
-getNumInfo :: NameSpaces -> Element -> Maybe (String, String)
+getNumInfo :: NameSpaces -> Element -> Maybe (T.Text, T.Text)
 getNumInfo ns element = do
   let numPr = findChildByName ns "w" "pPr" element >>=
               findChildByName ns "w" "numPr"
       lvl = fromMaybe "0" (numPr >>=
                            findChildByName ns "w" "ilvl" >>=
-                           findAttrByName ns "w" "val")
+                           findAttrTextByName ns "w" "val")
   numId <- numPr >>=
            findChildByName ns "w" "numId" >>=
-           findAttrByName ns "w" "val"
+           findAttrTextByName ns "w" "val"
   return (numId, lvl)
 
 elemToParStyleData :: NameSpaces -> Element -> Maybe ParStyle -> Maybe ParStyle
 elemToParStyleData ns element parentStyle
-  | Just styleId <- findAttrByName ns "w" "styleId" element
+  | Just styleId <- findAttrTextByName ns "w" "styleId" element
   , Just styleName <- getElementStyleName ns element
   = Just $ ParStyle
       {

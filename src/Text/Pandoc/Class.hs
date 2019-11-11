@@ -9,6 +9,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns #-}
 {- |
    Module      : Text.Pandoc.Class
    Copyright   : Copyright (C) 2016-17 Jesse Rosenthal, John MacFarlane
@@ -79,7 +81,6 @@ import qualified System.Random as IO (newStdGen)
 import Codec.Archive.Zip
 import qualified Data.CaseInsensitive as CI
 import Data.Unique (hashUnique)
-import Data.List (stripPrefix)
 import qualified Data.Unique as IO (newUnique)
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified System.Directory as Directory
@@ -134,6 +135,7 @@ import Data.Default
 import System.IO.Error
 import System.IO (stderr)
 import qualified Data.Map as M
+import qualified Data.Text as T
 import Text.Pandoc.Error
 import Text.Pandoc.BCP47 (Lang(..), parseBCP47, renderLang)
 import Text.Pandoc.Translations (Term(..), Translations, lookupTerm,
@@ -153,7 +155,7 @@ import qualified Paths_pandoc as Paths
 class (Functor m, Applicative m, Monad m, MonadError PandocError m)
       => PandocMonad m where
   -- | Lookup an environment variable.
-  lookupEnv :: String -> m (Maybe String)
+  lookupEnv :: T.Text -> m (Maybe T.Text)
   -- | Get the current (UTC) time.
   getCurrentTime :: m UTCTime
   -- | Get the locale's time zone.
@@ -164,7 +166,7 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   newUniqueHash :: m Int
   -- | Retrieve contents and mime type from a URL, raising
   -- an error on failure.
-  openURL :: String -> m (B.ByteString, Maybe MimeType)
+  openURL :: T.Text -> m (B.ByteString, Maybe MimeType)
   -- | Read the lazy ByteString contents from a file path,
   -- raising an error on failure.
   readFileLazy :: FilePath -> m BL.ByteString
@@ -199,10 +201,10 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   -- Output a debug message to sterr, using 'Debug.Trace.trace',
   -- if tracing is enabled.  Note: this writes to stderr even in
   -- pure instances.
-  trace :: String -> m ()
+  trace :: T.Text -> m ()
   trace msg = do
     tracing <- getsCommonState stTrace
-    when tracing $ Debug.Trace.trace ("[trace] " ++ msg) (return ())
+    when tracing $ Debug.Trace.trace ("[trace] " ++ T.unpack msg) (return ())
 
 -- * Functions defined for all PandocMonad instances
 
@@ -238,8 +240,8 @@ setTrace useTracing = modifyCommonState $ \st -> st{stTrace = useTracing}
 
 -- | Set request header to use in HTTP requests.
 setRequestHeader :: PandocMonad m
-                 => String  -- ^ Header name
-                 -> String  -- ^ Value
+                 => T.Text  -- ^ Header name
+                 -> T.Text  -- ^ Value
                  -> m ()
 setRequestHeader name val = modifyCommonState $ \st ->
   st{ stRequestHeaders =
@@ -277,7 +279,7 @@ setInputFiles fs = do
                                 _ -> Nothing
 
   modifyCommonState $ \st -> st{ stInputFiles = fs
-                               , stSourceURL = sourceURL }
+                               , stSourceURL = T.pack <$> sourceURL }
 
 -- Retrieve the output filename.
 getOutputFile :: PandocMonad m => m (Maybe FilePath)
@@ -307,10 +309,10 @@ getZonedTime = do
   return $ utcToZonedTime tz t
 
 -- | Read file, checking in any number of directories.
-readFileFromDirs :: PandocMonad m => [FilePath] -> FilePath -> m (Maybe String)
+readFileFromDirs :: PandocMonad m => [FilePath] -> FilePath -> m (Maybe T.Text)
 readFileFromDirs [] _ = return Nothing
 readFileFromDirs (d:ds) f = catchError
-    ((Just . UTF8.toStringLazy) <$> readFileLazy (d </> f))
+    ((Just . T.pack . UTF8.toStringLazy) <$> readFileLazy (d </> f))
     (\_ -> readFileFromDirs ds f)
 
 instance TemplateMonad PandocIO where
@@ -331,9 +333,9 @@ data CommonState = CommonState { stLog          :: [LogMessage]
                                  -- ^ A list of log messages in reverse order
                                , stUserDataDir  :: Maybe FilePath
                                  -- ^ Directory to search for data files
-                               , stSourceURL    :: Maybe String
+                               , stSourceURL    :: Maybe T.Text
                                  -- ^ Absolute URL + dir of 1st source file
-                               , stRequestHeaders :: [(String, String)]
+                               , stRequestHeaders :: [(T.Text, T.Text)]
                                  -- ^ Headers to add for HTTP requests
                                , stMediaBag     :: MediaBag
                                  -- ^ Media parsed from binary containers
@@ -370,7 +372,7 @@ instance Default CommonState where
 
 -- | Convert BCP47 string to a Lang, issuing warning
 -- if there are problems.
-toLang :: PandocMonad m => Maybe String -> m (Maybe Lang)
+toLang :: PandocMonad m => Maybe T.Text -> m (Maybe Lang)
 toLang Nothing = return Nothing
 toLang (Just s) =
   case parseBCP47 s of
@@ -395,14 +397,14 @@ getTranslations = do
        Nothing -> return mempty  -- no language defined
        Just (_, Just t) -> return t
        Just (lang, Nothing) -> do  -- read from file
-         let translationFile = "translations/" ++ renderLang lang ++ ".yaml"
-         let fallbackFile = "translations/" ++ langLanguage lang ++ ".yaml"
+         let translationFile = "translations/" <> renderLang lang <> ".yaml"
+         let fallbackFile = "translations/" <> langLanguage lang <> ".yaml"
          let getTrans fp = do
                bs <- readDataFile fp
-               case readTranslations (UTF8.toString bs) of
+               case readTranslations (UTF8.toText bs) of
                     Left e   -> do
                       report $ CouldNotLoadTranslations (renderLang lang)
-                        (fp ++ ": " ++ e)
+                        (T.pack fp <> ": " <> e)
                       -- make sure we don't try again...
                       modifyCommonState $ \st ->
                         st{ stTranslations = Nothing }
@@ -411,14 +413,14 @@ getTranslations = do
                       modifyCommonState $ \st ->
                                   st{ stTranslations = Just (lang, Just t) }
                       return t
-         catchError (getTrans translationFile)
+         catchError (getTrans $ T.unpack translationFile)
            (\_ ->
-             catchError (getTrans fallbackFile)
+             catchError (getTrans $ T.unpack fallbackFile)
                (\e -> do
                  report $ CouldNotLoadTranslations (renderLang lang)
                           $ case e of
                                PandocCouldNotFindDataFileError _ ->
-                                 "data file " ++ fallbackFile ++ " not found"
+                                 "data file " <> fallbackFile <> " not found"
                                _ -> ""
                  -- make sure we don't try again...
                  modifyCommonState $ \st -> st{ stTranslations = Nothing }
@@ -426,13 +428,13 @@ getTranslations = do
 
 -- | Get a translation from the current term map.
 -- Issue a warning if the term is not defined.
-translateTerm :: PandocMonad m => Term -> m String
+translateTerm :: PandocMonad m => Term -> m T.Text
 translateTerm term = do
   translations <- getTranslations
   case lookupTerm term translations of
        Just s -> return s
        Nothing -> do
-         report $ NoTranslation (show term)
+         report $ NoTranslation $ T.pack $ show term
          return ""
 
 -- | Evaluate a 'PandocIO' operation.
@@ -458,7 +460,7 @@ liftIOError :: (String -> IO a) -> String -> PandocIO a
 liftIOError f u = do
   res <- liftIO $ tryIOError $ f u
   case res of
-         Left e  -> throwError $ PandocIOError u e
+         Left e  -> throwError $ PandocIOError (T.pack u) e
          Right r -> return r
 
 -- | Show potential IO errors to the user continuing execution anyway
@@ -466,24 +468,24 @@ logIOError :: IO () -> PandocIO ()
 logIOError f = do
   res <- liftIO $ tryIOError f
   case res of
-    Left e -> report $ IgnoredIOError (E.displayException e)
+    Left e -> report $ IgnoredIOError $ T.pack $ E.displayException e
     Right _ -> pure ()
 
 instance PandocMonad PandocIO where
-  lookupEnv = liftIO . IO.lookupEnv
+  lookupEnv = fmap (fmap T.pack) . liftIO . IO.lookupEnv . T.unpack
   getCurrentTime = liftIO IO.getCurrentTime
   getCurrentTimeZone = liftIO IO.getCurrentTimeZone
   newStdGen = liftIO IO.newStdGen
   newUniqueHash = hashUnique <$> liftIO IO.newUnique
 
   openURL u
-   | Just u'' <- stripPrefix "data:" u = do
-       let mime     = takeWhile (/=',') u''
+   | Just u'' <- T.stripPrefix "data:" u = do
+       let mime     = T.takeWhile (/=',') u''
        let contents = UTF8.fromString $
-                       unEscapeString $ drop 1 $ dropWhile (/=',') u''
+                       unEscapeString $ T.unpack $ T.drop 1 $ T.dropWhile (/=',') u''
        return (decodeLenient contents, Just mime)
    | otherwise = do
-       let toReqHeader (n, v) = (CI.mk (UTF8.fromString n), UTF8.fromString v)
+       let toReqHeader (n, v) = (CI.mk (UTF8.fromText n), UTF8.fromText v)
        customHeaders <- map toReqHeader <$> getsCommonState stRequestHeaders
        report $ Fetching u
        res <- liftIO $ E.try $ withSocketsDo $ do
@@ -493,11 +495,11 @@ instance PandocMonad PandocIO where
                               Left _ -> return x
                               Right pr -> parseReq pr >>= \r ->
                                   return (addProxy (host r) (port r) x)
-         req <- parseReq u >>= addProxy'
+         req <- parseReq (T.unpack u) >>= addProxy'
          let req' = req{requestHeaders = customHeaders ++ requestHeaders req}
          resp <- newManager tlsManagerSettings >>= httpLbs req'
          return (B.concat $ toChunks $ responseBody resp,
-                 UTF8.toString `fmap` lookup hContentType (responseHeaders resp))
+                 UTF8.toText `fmap` lookup hContentType (responseHeaders resp))
 
        case res of
             Right r -> return r
@@ -519,22 +521,22 @@ instance PandocMonad PandocIO where
   logOutput msg = liftIO $ do
     UTF8.hPutStr stderr $
         "[" ++ show (messageVerbosity msg) ++ "] "
-    alertIndent $ lines $ showLogMessage msg
+    alertIndent $ T.lines $ showLogMessage msg
 
-alertIndent :: [String] -> IO ()
+alertIndent :: [T.Text] -> IO ()
 alertIndent [] = return ()
 alertIndent (l:ls) = do
-  UTF8.hPutStrLn stderr l
+  UTF8.hPutStrLn stderr $ T.unpack l
   mapM_ go ls
   where go l' = do UTF8.hPutStr stderr "  "
-                   UTF8.hPutStrLn stderr l'
+                   UTF8.hPutStrLn stderr $ T.unpack l'
 
 -- | Specialized version of parseURIReference that disallows
 -- single-letter schemes.  Reason:  these are usually windows absolute
 -- paths.
-parseURIReference' :: String -> Maybe URI
+parseURIReference' :: T.Text -> Maybe URI
 parseURIReference' s =
-  case parseURIReference s of
+  case parseURIReference (T.unpack s) of
        Just u
          | length (uriScheme u) > 2  -> Just u
          | null (uriScheme u)        -> Just u  -- protocol-relative
@@ -554,16 +556,16 @@ getUserDataDir = getsCommonState stUserDataDir
 -- | Fetch an image or other item from the local filesystem or the net.
 -- Returns raw content and maybe mime type.
 fetchItem :: PandocMonad m
-          => String
+          => T.Text
           -> m (B.ByteString, Maybe MimeType)
 fetchItem s = do
   mediabag <- getMediaBag
-  case lookupMedia s mediabag of
+  case lookupMedia (T.unpack s) mediabag of
     Just (mime, bs) -> return (BL.toStrict bs, Just mime)
     Nothing -> downloadOrRead s
 
 downloadOrRead :: PandocMonad m
-               => String
+               => T.Text
                -> m (B.ByteString, Maybe MimeType)
 downloadOrRead s = do
   sourceURL <- getsCommonState stSourceURL
@@ -571,19 +573,19 @@ downloadOrRead s = do
                        ensureEscaped, ensureEscaped s) of
     (Just u, s') -> -- try fetching from relative path at source
        case parseURIReference' s' of
-            Just u' -> openURL $ show $ u' `nonStrictRelativeTo` u
+            Just u' -> openURL $ T.pack $ show $ u' `nonStrictRelativeTo` u
             Nothing -> openURL s' -- will throw error
-    (Nothing, s'@('/':'/':c:_)) | c /= '?' ->  -- protocol-relative URI
+    (Nothing, s'@(T.unpack -> ('/':'/':c:_))) | c /= '?' ->  -- protocol-relative URI
                 -- we exclude //? because of //?UNC/ on Windows
        case parseURIReference' s' of
-            Just u' -> openURL $ show $ u' `nonStrictRelativeTo` httpcolon
+            Just u' -> openURL $ T.pack $ show $ u' `nonStrictRelativeTo` httpcolon
             Nothing -> openURL s' -- will throw error
     (Nothing, s') ->
-       case parseURI s' of  -- requires absolute URI
+       case parseURI (T.unpack s') of  -- requires absolute URI
             Just u' | uriScheme u' == "file:" ->
-                 readLocalFile $ uriPathToPath (uriPath u')
+                 readLocalFile $ uriPathToPath (T.pack $ uriPath u')
             -- We don't want to treat C:/ as a scheme:
-            Just u' | length (uriScheme u') > 2 -> openURL (show u')
+            Just u' | length (uriScheme u') > 2 -> openURL (T.pack $ show u')
             _ -> readLocalFile fp -- get from local file system
    where readLocalFile f = do
              resourcePath <- getResourcePath
@@ -596,13 +598,13 @@ downloadOrRead s = do
                           uriPath = "",
                           uriQuery = "",
                           uriFragment = "" }
-         dropFragmentAndQuery = takeWhile (\c -> c /= '?' && c /= '#')
-         fp = unEscapeString $ dropFragmentAndQuery s
+         dropFragmentAndQuery = T.takeWhile (\c -> c /= '?' && c /= '#')
+         fp = unEscapeString $ T.unpack $ dropFragmentAndQuery s
          mime = case takeExtension fp of
                      ".gz" -> getMimeType $ dropExtension fp
                      ".svgz" -> getMimeType $ dropExtension fp ++ ".svg"
                      x     -> getMimeType x
-         ensureEscaped = escapeURIString isAllowedInURI . map convertSlash
+         ensureEscaped = T.pack . escapeURIString isAllowedInURI . T.unpack . T.map convertSlash
          convertSlash '\\' = '/'
          convertSlash x    = x
 
@@ -770,7 +772,7 @@ readDefaultDataFile "reference.odt" =
 readDefaultDataFile fname =
 #ifdef EMBED_DATA_FILES
   case lookup (makeCanonical fname) dataFiles of
-    Nothing       -> throwError $ PandocCouldNotFindDataFileError fname
+    Nothing       -> throwError $ PandocCouldNotFindDataFileError $ T.pack fname
     Just contents -> return contents
 #else
   getDataFileName fname' >>= checkExistence >>= readFileStrict
@@ -781,7 +783,7 @@ checkExistence fn = do
   exists <- fileExists fn
   if exists
      then return fn
-     else throwError $ PandocCouldNotFindDataFileError fn
+     else throwError $ PandocCouldNotFindDataFileError $ T.pack fn
 #endif
 
 makeCanonical :: FilePath -> FilePath
@@ -792,7 +794,7 @@ makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
         go as     x    = x : as
 
 withPaths :: PandocMonad m => [FilePath] -> (FilePath -> m a) -> FilePath -> m a
-withPaths [] _ fp = throwError $ PandocResourceNotFound fp
+withPaths [] _ fp = throwError $ PandocResourceNotFound $ T.pack fp
 withPaths (p:ps) action fp =
   catchError (action (p </> fp))
              (\_ -> withPaths ps action fp)
@@ -800,14 +802,14 @@ withPaths (p:ps) action fp =
 -- | Fetch local or remote resource (like an image) and provide data suitable
 -- for adding it to the MediaBag.
 fetchMediaResource :: PandocMonad m
-              => String -> m (FilePath, Maybe MimeType, BL.ByteString)
+              => T.Text -> m (FilePath, Maybe MimeType, BL.ByteString)
 fetchMediaResource src = do
   (bs, mt) <- downloadOrRead src
-  let ext = fromMaybe (takeExtension src)
+  let ext = fromMaybe (T.pack $ takeExtension $ T.unpack src)
                       (mt >>= extensionFromMimeType)
   let bs' = BL.fromChunks [bs]
   let basename = showDigest $ sha1 bs'
-  let fname = basename <.> ext
+  let fname = basename <.> T.unpack ext
   return (fname, mt, bs')
 
 -- | Traverse tree, filling media bag for any images that
@@ -817,12 +819,12 @@ fillMediaBag d = walkM handleImage d
   where handleImage :: PandocMonad m => Inline -> m Inline
         handleImage (Image attr lab (src, tit)) = catchError
           (do mediabag <- getMediaBag
-              case lookupMedia src mediabag of
+              case lookupMedia (T.unpack src) mediabag of
                 Just (_, _) -> return $ Image attr lab (src, tit)
                 Nothing -> do
                   (fname, mt, bs) <- fetchMediaResource src
                   insertMedia fname mt bs
-                  return $ Image attr lab (fname, tit))
+                  return $ Image attr lab (T.pack fname, tit))
           (\e ->
               case e of
                 PandocResourceNotFound _ -> do
@@ -832,7 +834,7 @@ fillMediaBag d = walkM handleImage d
                   return $ Span ("",["image"],[]) lab
                 PandocHttpError u er -> do
                   report $ CouldNotFetchResource u
-                            (show er ++ "\rReplacing image with description.")
+                            (T.pack $ show er ++ "\rReplacing image with description.")
                   -- emit alt text
                   return $ Span ("",["image"],[]) lab
                 _ -> throwError e)
@@ -856,15 +858,15 @@ writeMedia dir mediabag subpath = do
   let fullpath = dir </> unEscapeString (normalise subpath)
   let mbcontents = lookupMedia subpath mediabag
   case mbcontents of
-       Nothing -> throwError $ PandocResourceNotFound subpath
+       Nothing -> throwError $ PandocResourceNotFound $ T.pack subpath
        Just (_, bs) -> do
-         report $ Extracting fullpath
+         report $ Extracting $ T.pack fullpath
          liftIOError (createDirectoryIfMissing True) (takeDirectory fullpath)
          logIOError $ BL.writeFile fullpath bs
 
 adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
 adjustImagePath dir paths (Image attr lab (src, tit))
-   | src `elem` paths = Image attr lab (dir ++ "/" ++ src, tit)
+   | T.unpack src `elem` paths = Image attr lab (T.pack dir <> "/" <> src, tit)
 adjustImagePath _ _ x = x
 
 -- | The 'PureState' contains ersatz representations
@@ -878,7 +880,7 @@ data PureState = PureState { stStdGen     :: StdGen
                                                    -- contain every
                                                    -- element at most
                                                    -- once, e.g. [1..]
-                           , stEnv :: [(String, String)]
+                           , stEnv :: [(T.Text, T.Text)]
                            , stTime :: UTCTime
                            , stTimeZone :: TimeZone
                            , stReferenceDocx :: Archive
@@ -996,12 +998,12 @@ instance PandocMonad PandocPure where
     fps <- getsPureState stFiles
     case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return (BL.fromStrict bs)
-      Nothing -> throwError $ PandocResourceNotFound fp
+      Nothing -> throwError $ PandocResourceNotFound $ T.pack fp
   readFileStrict fp = do
     fps <- getsPureState stFiles
     case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return bs
-      Nothing -> throwError $ PandocResourceNotFound fp
+      Nothing -> throwError $ PandocResourceNotFound $ T.pack fp
 
   glob s = do
     FileTree ftmap <- getsPureState stFiles
@@ -1019,7 +1021,7 @@ instance PandocMonad PandocPure where
     fps <- getsPureState stFiles
     case infoFileMTime <$> getFileInfo fp fps of
       Just tm -> return tm
-      Nothing -> throwError $ PandocIOError fp
+      Nothing -> throwError $ PandocIOError (T.pack fp)
                     (userError "Can't get modification time")
 
   getCommonState = PandocPure $ lift get
@@ -1070,7 +1072,7 @@ instance {-# OVERLAPS #-} PandocMonad m => PandocMonad (ParsecT s st m) where
     when tracing $ do
       pos <- getPosition
       Debug.Trace.trace
-        ("[trace] Parsed " ++ msg ++ " at line " ++
+        ("[trace] Parsed " ++ T.unpack msg ++ " at line " ++
             show (sourceLine pos) ++
             if sourceName pos == "chunk"
                then " of chunk"

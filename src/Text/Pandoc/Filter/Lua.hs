@@ -15,6 +15,7 @@ module Text.Pandoc.Filter.Lua (apply) where
 import Prelude
 import Control.Exception (throw)
 import Control.Monad ((>=>))
+import qualified Data.Text as T
 import Text.Pandoc.Class (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Error (PandocError (PandocFilterError))
@@ -35,7 +36,7 @@ apply ropts args fp doc = do
                  (x:_) -> x
                  _     -> error "Format not supplied for Lua filter"
   runLua >=> forceResult fp $ do
-    setGlobals [ FORMAT format
+    setGlobals [ FORMAT $ T.pack format
                , PANDOC_READER_OPTIONS ropts
                , PANDOC_SCRIPT_FILE fp
                ]
@@ -44,4 +45,4 @@ apply ropts args fp doc = do
 forceResult :: FilePath -> Either LuaException Pandoc -> PandocIO Pandoc
 forceResult fp eitherResult = case eitherResult of
   Right x               -> return x
-  Left (LuaException s) -> throw (PandocFilterError fp s)
+  Left (LuaException s) -> throw (PandocFilterError (T.pack fp) s)

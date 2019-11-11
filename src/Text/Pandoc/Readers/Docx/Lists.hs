@@ -22,6 +22,7 @@ import Prelude
 import Data.List
 import Data.Maybe
 import Data.String (fromString)
+import qualified Data.Text as T
 import Text.Pandoc.Generic (bottomUp)
 import Text.Pandoc.JSON
 import Text.Pandoc.Readers.Docx.Parse (ParaStyleName)
@@ -45,20 +46,20 @@ getNumId _                   = Nothing
 getNumIdN :: Block -> Integer
 getNumIdN b = fromMaybe (-1) (getNumId b)
 
-getText :: Block -> Maybe String
+getText :: Block -> Maybe T.Text
 getText (Div (_, _, kvs) _) = lookup "text" kvs
 getText _                   = Nothing
 
 data ListType = Itemized | Enumerated ListAttributes
 
-listStyleMap :: [(String, ListNumberStyle)]
+listStyleMap :: [(T.Text, ListNumberStyle)]
 listStyleMap = [("upperLetter", UpperAlpha),
                 ("lowerLetter", LowerAlpha),
                 ("upperRoman", UpperRoman),
                 ("lowerRoman", LowerRoman),
                 ("decimal", Decimal)]
 
-listDelimMap :: [(String, ListNumberDelim)]
+listDelimMap :: [(T.Text, ListNumberDelim)]
 listDelimMap = [("%1)", OneParen),
                 ("(%1)", TwoParens),
                 ("%1.", Period)]
@@ -82,11 +83,11 @@ getListType b@(Div (_, _, kvs) _) | isListItem b =
      _ -> Nothing
 getListType _ = Nothing
 
-listParagraphDivs :: [String]
+listParagraphDivs :: [T.Text]
 listParagraphDivs = ["list-paragraph"]
 
 listParagraphStyles :: [ParaStyleName]
-listParagraphStyles = map fromString listParagraphDivs
+listParagraphStyles = map (fromString . T.unpack) listParagraphDivs
 
 -- This is a first stab at going through and attaching meaning to list
 -- paragraphs, without an item marker, following a list item. We

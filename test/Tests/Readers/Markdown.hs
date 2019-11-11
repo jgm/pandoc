@@ -53,7 +53,8 @@ autolink :: String -> Inlines
 autolink = autolinkWith ("",["uri"],[])
 
 autolinkWith :: Attr -> String -> Inlines
-autolinkWith attr s = linkWith attr s "" (str s)
+autolinkWith attr s = linkWith attr s' "" (str s')
+  where s' = T.pack s
 
 bareLinkTests :: [(Text, Inlines)]
 bareLinkTests =

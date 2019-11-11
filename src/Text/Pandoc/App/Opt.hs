@@ -33,7 +33,7 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             ReferenceLocation (EndOfDocument),
                             ObfuscationMethod (NoObfuscation),
                             CiteMethod (Citeproc))
-import Text.Pandoc.Shared (camelCaseToHyphenated)
+import Text.Pandoc.Shared (camelCaseStrToHyphenated)
 import Text.DocLayout (render)
 import Text.DocTemplates (Context(..), Val(..))
 import Data.Text (Text, unpack)
@@ -76,8 +76,8 @@ data Opt = Opt
     { optTabStop               :: Int     -- ^ Number of spaces per tab
     , optPreserveTabs          :: Bool    -- ^ Preserve tabs instead of converting to spaces
     , optStandalone            :: Bool    -- ^ Include header, footer
-    , optFrom                  :: Maybe String  -- ^ Reader format
-    , optTo                    :: Maybe String  -- ^ Writer format
+    , optFrom                  :: Maybe Text  -- ^ Reader format
+    , optTo                    :: Maybe Text  -- ^ Writer format
     , optTableOfContents       :: Bool    -- ^ Include table of contents
     , optShiftHeadingLevelBy   :: Int     -- ^ Shift heading level by
     , optTemplate              :: Maybe FilePath  -- ^ Custom template
@@ -92,7 +92,7 @@ data Opt = Opt
     , optIncremental           :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
     , optSelfContained         :: Bool    -- ^ Make HTML accessible offline
     , optHtmlQTags             :: Bool    -- ^ Use <q> tags in HTML
-    , optHighlightStyle        :: Maybe String -- ^ Style to use for highlighted code
+    , optHighlightStyle        :: Maybe Text -- ^ Style to use for highlighted code
     , optSyntaxDefinitions     :: [FilePath]  -- ^ xml syntax defs to load
     , optTopLevelDivision      :: TopLevelDivision -- ^ Type of the top-level divisions
     , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
@@ -117,9 +117,9 @@ data Opt = Opt
     , optColumns               :: Int     -- ^ Line length in characters
     , optFilters               :: [Filter] -- ^ Filters to apply
     , optEmailObfuscation      :: ObfuscationMethod
-    , optIdentifierPrefix      :: String
+    , optIdentifierPrefix      :: Text
     , optStripEmptyParagraphs  :: Bool -- ^ Strip empty paragraphs
-    , optIndentedCodeClasses   :: [String] -- ^ Default classes for indented code blocks
+    , optIndentedCodeClasses   :: [Text] -- ^ Default classes for indented code blocks
     , optDataDir               :: Maybe FilePath
     , optCiteMethod            :: CiteMethod -- ^ Method to output cites
     , optListings              :: Bool       -- ^ Use listings package for code blocks
@@ -128,18 +128,18 @@ data Opt = Opt
     , optSlideLevel            :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders         :: Bool       -- ^ Use atx headers for markdown level 1-2
     , optAscii                 :: Bool       -- ^ Prefer ascii output
-    , optDefaultImageExtension :: String -- ^ Default image extension
+    , optDefaultImageExtension :: Text       -- ^ Default image extension
     , optExtractMedia          :: Maybe FilePath -- ^ Path to extract embedded media
     , optTrackChanges          :: TrackChanges -- ^ Accept or reject MS Word track-changes.
     , optFileScope             :: Bool         -- ^ Parse input files before combining
-    , optTitlePrefix           :: Maybe String     -- ^ Prefix for title
+    , optTitlePrefix           :: Maybe Text     -- ^ Prefix for title
     , optCss                   :: [FilePath]       -- ^ CSS files to link to
     , optIpynbOutput           :: IpynbOutput      -- ^ How to treat ipynb output blocks
     , optIncludeBeforeBody     :: [FilePath]       -- ^ Files to include before
     , optIncludeAfterBody      :: [FilePath]       -- ^ Files to include after body
     , optIncludeInHeader       :: [FilePath]       -- ^ Files to include in header
     , optResourcePath          :: [FilePath] -- ^ Path to search for images etc
-    , optRequestHeaders        :: [(String, String)] -- ^ Headers for HTTP requests
+    , optRequestHeaders        :: [(Text, Text)] -- ^ Headers for HTTP requests
     , optEol                   :: LineEnding -- ^ Style of line-endings to use
     , optStripComments         :: Bool       -- ^ Skip HTML comments
     } deriving (Generic, Show)
@@ -167,13 +167,13 @@ doOpt (k',v) = do
     "toc" ->
       parseYAML v >>= \x -> return (\o -> o{ optTableOfContents = x })
     "from" ->
-      parseYAML v >>= \x -> return (\o -> o{ optFrom = unpack <$> x })
+      parseYAML v >>= \x -> return (\o -> o{ optFrom = x })
     "reader" ->
-      parseYAML v >>= \x -> return (\o -> o{ optFrom = unpack <$> x })
+      parseYAML v >>= \x -> return (\o -> o{ optFrom = x })
     "to" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTo = unpack <$> x })
+      parseYAML v >>= \x -> return (\o -> o{ optTo = x })
     "writer" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTo = unpack <$> x })
+      parseYAML v >>= \x -> return (\o -> o{ optTo = x })
     "shift-heading-level-by" ->
       parseYAML v >>= \x -> return (\o -> o{ optShiftHeadingLevelBy = x })
     "template" ->
@@ -211,7 +211,7 @@ doOpt (k',v) = do
     "html-q-tags" ->
       parseYAML v >>= \x -> return (\o -> o{ optHtmlQTags = x })
     "highlight-style" ->
-      parseYAML v >>= \x -> return (\o -> o{ optHighlightStyle = unpack <$> x })
+      parseYAML v >>= \x -> return (\o -> o{ optHighlightStyle = x })
     "syntax-definition" ->
       (parseYAML v >>= \x ->
                 return (\o -> o{ optSyntaxDefinitions = map unpack x }))
@@ -274,12 +274,12 @@ doOpt (k',v) = do
       parseYAML v >>= \x -> return (\o -> o{ optEmailObfuscation = x })
     "identifier-prefix" ->
       parseYAML v >>= \x ->
-             return (\o -> o{ optIdentifierPrefix = unpack x })
+             return (\o -> o{ optIdentifierPrefix = x })
     "strip-empty-paragraphs" ->
       parseYAML v >>= \x -> return (\o -> o{ optStripEmptyParagraphs = x })
     "indented-code-classes" ->
       parseYAML v >>= \x ->
-             return (\o -> o{ optIndentedCodeClasses = map unpack x })
+             return (\o -> o{ optIndentedCodeClasses = x })
     "data-dir" ->
       parseYAML v >>= \x -> return (\o -> o{ optDataDir = unpack <$> x })
     "cite-method" ->
@@ -305,7 +305,7 @@ doOpt (k',v) = do
       parseYAML v >>= \x -> return (\o -> o{ optAscii = x })
     "default-image-extension" ->
       parseYAML v >>= \x ->
-             return (\o -> o{ optDefaultImageExtension = unpack x })
+             return (\o -> o{ optDefaultImageExtension = x })
     "extract-media" ->
       parseYAML v >>= \x ->
              return (\o -> o{ optExtractMedia = unpack <$> x })
@@ -314,7 +314,7 @@ doOpt (k',v) = do
     "file-scope" ->
       parseYAML v >>= \x -> return (\o -> o{ optFileScope = x })
     "title-prefix" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTitlePrefix = unpack <$> x })
+      parseYAML v >>= \x -> return (\o -> o{ optTitlePrefix = x })
     "css" ->
       (parseYAML v >>= \x -> return (\o -> o{ optCss = map unpack x }))
       <|>
@@ -344,9 +344,7 @@ doOpt (k',v) = do
              return (\o -> o{ optResourcePath = map unpack x })
     "request-headers" ->
       parseYAML v >>= \x ->
-             return (\o -> o{ optRequestHeaders =
-                              map (\(key,val) ->
-                                     (unpack key, unpack val)) x })
+             return (\o -> o{ optRequestHeaders = x })
     "eol" ->
       parseYAML v >>= \x -> return (\o -> o{ optEol = x })
     "strip-comments" ->
@@ -429,13 +427,13 @@ defaultOpts = Opt
 
 contextToMeta :: Context Text -> Meta
 contextToMeta (Context m) =
-  Meta . M.mapKeys unpack . M.map valToMetaVal $ m
+  Meta . M.map valToMetaVal $ m
 
 valToMetaVal :: Val Text -> MetaValue
 valToMetaVal (MapVal (Context m)) =
-  MetaMap . M.mapKeys unpack . M.map valToMetaVal $ m
+  MetaMap . M.map valToMetaVal $ m
 valToMetaVal (ListVal xs) = MetaList $ map valToMetaVal xs
-valToMetaVal (SimpleVal d) = MetaString (unpack $ render Nothing d)
+valToMetaVal (SimpleVal d) = MetaString $ render Nothing d
 valToMetaVal NullVal = MetaString ""
 
 -- see https://github.com/jgm/pandoc/pull/4083
@@ -446,5 +444,5 @@ $(deriveJSON
    defaultOptions{ fieldLabelModifier = map toLower } ''LineEnding)
 $(deriveJSON
    defaultOptions{ fieldLabelModifier =
-                      camelCaseToHyphenated . dropWhile isLower
+                      camelCaseStrToHyphenated . dropWhile isLower
                  } ''Opt)

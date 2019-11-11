@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Slides
    Copyright   : Copyright (C) 2012-2019 John MacFarlane

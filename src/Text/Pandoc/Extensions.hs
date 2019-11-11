@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE OverloadedStrings          #-}
 {- |
    Module      : Text.Pandoc.Extensions
    Copyright   : Copyright (C) 2012-2019 John MacFarlane
@@ -35,6 +36,7 @@ where
 import Prelude
 import Data.Bits (clearBit, setBit, testBit, (.|.))
 import Data.Data (Data)
+import qualified Data.Text as T
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Safe (readMay)
@@ -304,7 +306,7 @@ strictExtensions = extensionsFromList
   ]
 
 -- | Default extensions from format-describing string.
-getDefaultExtensions :: String -> Extensions
+getDefaultExtensions :: T.Text -> Extensions
 getDefaultExtensions "markdown_strict"   = strictExtensions
 getDefaultExtensions "markdown_phpextra" = phpMarkdownExtraExtensions
 getDefaultExtensions "markdown_mmd"      = multimarkdownExtensions
@@ -402,7 +404,7 @@ allMarkdownExtensions =
 
 -- | Get all valid extensions for a format. This is used
 -- mainly in checking format specifications for validity.
-getAllExtensions :: String -> Extensions
+getAllExtensions :: T.Text -> Extensions
 getAllExtensions f = universalExtensions <> getAll f
  where
   autoIdExtensions           = extensionsFromList
@@ -507,14 +509,14 @@ getAllExtensions f = universalExtensions <> getAll f
 
 -- | Parse a format-specifying string into a markup format,
 -- a set of extensions to enable, and a set of extensions to disable.
-parseFormatSpec :: String
-                -> Either ParseError (String, [Extension], [Extension])
+parseFormatSpec :: T.Text
+                -> Either ParseError (T.Text, [Extension], [Extension])
 parseFormatSpec = parse formatSpec ""
   where formatSpec = do
           name <- formatName
           (extsToEnable, extsToDisable) <- foldl (flip ($)) ([],[]) <$>
                                              many extMod
-          return (name, reverse extsToEnable, reverse extsToDisable)
+          return (T.pack name, reverse extsToEnable, reverse extsToDisable)
         formatName = many1 $ noneOf "-+"
         extMod = do
           polarity <- oneOf "-+"

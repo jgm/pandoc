@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Shared
    Copyright   : © 2006-2019 John MacFarlane

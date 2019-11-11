@@ -25,6 +25,7 @@ import Text.Pandoc.Lua.Marshaling.CommonState ()
 import Text.Pandoc.Options (ReaderOptions (..), TrackChanges)
 
 import qualified Data.Set as Set
+import qualified Data.Text as Text
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
 
@@ -44,9 +45,9 @@ instance Pushable ReaderOptions where
           (standalone            :: Bool)
           (columns               :: Int)
           (tabStop               :: Int)
-          (indentedCodeClasses   :: [String])
-          (abbreviations         :: Set.Set String)
-          (defaultImageExtension :: String)
+          (indentedCodeClasses   :: [Text.Text])
+          (abbreviations         :: Set.Set Text.Text)
+          (defaultImageExtension :: Text.Text)
           (trackChanges          :: TrackChanges)
           (stripComments         :: Bool)
           = ro

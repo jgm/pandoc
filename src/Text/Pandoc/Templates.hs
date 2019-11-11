@@ -25,13 +25,14 @@ import Text.DocTemplates (Template, compileTemplate, renderTemplate)
 import Text.Pandoc.Class (PandocMonad, readDataFile)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Text (Text)
+import qualified Data.Text as T
 
 -- | Get default template for the specified writer.
 getDefaultTemplate :: PandocMonad m
-                   => String           -- ^ Name of writer
+                   => Text           -- ^ Name of writer
                    -> m Text
 getDefaultTemplate writer = do
-  let format = takeWhile (`notElem` ("+-" :: String)) writer  -- strip off extensions
+  let format = T.takeWhile (`notElem` ("+-" :: String)) writer  -- strip off extensions
   case format of
        "native"  -> return ""
        "json"    -> return ""
@@ -51,7 +52,7 @@ getDefaultTemplate writer = do
        "markdown_phpextra" -> getDefaultTemplate "markdown"
        "gfm"               -> getDefaultTemplate "commonmark"
        _        -> do
-         let fname = "templates" </> "default" <.> format
+         let fname = "templates" </> "default" <.> T.unpack format
          UTF8.toText <$> readDataFile fname
 
 

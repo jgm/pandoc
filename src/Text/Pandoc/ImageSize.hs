@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, CPP #-}
+{-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 {- |
 Module      : Text.Pandoc.ImageSize
@@ -49,6 +50,8 @@ import Text.Pandoc.Options
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Text.XML.Light as Xml
 import qualified Data.Map as M
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import Control.Monad.Except
 import Control.Applicative
 import Data.Maybe (fromMaybe)
@@ -72,12 +75,12 @@ data Dimension = Pixel Integer
                deriving Eq
 
 instance Show Dimension where
-  show (Pixel a)      = show   a ++ "px"
-  show (Centimeter a) = showFl a ++ "cm"
-  show (Millimeter a) = showFl a ++ "mm"
-  show (Inch a)       = showFl a ++ "in"
-  show (Percent a)    = show   a ++ "%"
-  show (Em a)         = showFl a ++ "em"
+  show (Pixel a)      = show a              ++ "px"
+  show (Centimeter a) = T.unpack (showFl a) ++ "cm"
+  show (Millimeter a) = T.unpack (showFl a) ++ "mm"
+  show (Inch a)       = T.unpack (showFl a) ++ "in"
+  show (Percent a)    = show a              ++ "%"
+  show (Em a)         = T.unpack (showFl a) ++ "em"
 
 data ImageSize = ImageSize{
                      pxX   :: Integer
@@ -88,14 +91,13 @@ data ImageSize = ImageSize{
 instance Default ImageSize where
   def = ImageSize 300 200 72 72
 
-showFl :: (RealFloat a) => a -> String
-showFl a = removeExtra0s $ showFFloat (Just 5) a ""
+showFl :: (RealFloat a) => a -> T.Text
+showFl a = removeExtra0s $ T.pack $ showFFloat (Just 5) a ""
 
-removeExtra0s :: String -> String
-removeExtra0s s =
-  case dropWhile (=='0') $ reverse s of
-       '.':xs -> reverse xs
-       xs     -> reverse xs
+removeExtra0s :: T.Text -> T.Text
+removeExtra0s s = case T.dropWhileEnd (=='0') s of
+  (T.unsnoc -> Just (xs, '.')) -> xs
+  xs                           -> xs
 
 imageType :: ByteString -> Maybe ImageType
 imageType img = case B.take 4 img of
@@ -119,7 +121,7 @@ imageType img = case B.take 4 img of
 findSvgTag :: ByteString -> Bool
 findSvgTag img = "<svg" `B.isInfixOf` img || "<SVG" `B.isInfixOf` img
 
-imageSize :: WriterOptions -> ByteString -> Either String ImageSize
+imageSize :: WriterOptions -> ByteString -> Either T.Text ImageSize
 imageSize opts img =
   case imageType img of
        Just Png  -> mbToEither "could not determine PNG size" $ pngSize img
@@ -194,22 +196,22 @@ inPixel opts dim =
   where
     dpi = fromIntegral $ writerDpi opts
 
--- | Convert a Dimension to a String denoting its equivalent in inches, for example "2.00000".
+-- | Convert a Dimension to Text denoting its equivalent in inches, for example "2.00000".
 -- Note: Dimensions in percentages are converted to the empty string.
-showInInch :: WriterOptions -> Dimension -> String
+showInInch :: WriterOptions -> Dimension -> T.Text
 showInInch _ (Percent _) = ""
 showInInch opts dim = showFl $ inInch opts dim
 
--- | Convert a Dimension to a String denoting its equivalent in pixels, for example "600".
+-- | Convert a Dimension to Text denoting its equivalent in pixels, for example "600".
 -- Note: Dimensions in percentages are converted to the empty string.
-showInPixel :: WriterOptions -> Dimension -> String
+showInPixel :: WriterOptions -> Dimension -> T.Text
 showInPixel _ (Percent _) = ""
-showInPixel opts dim = show $ inPixel opts dim
+showInPixel opts dim = T.pack $ show $ inPixel opts dim
 
 -- | Maybe split a string into a leading number and trailing unit, e.g. "3cm" to Just (3.0, "cm")
-numUnit :: String -> Maybe (Double, String)
+numUnit :: T.Text -> Maybe (Double, T.Text)
 numUnit s =
-  let (nums, unit) = span (\c -> isDigit c || ('.'==c)) s
+  let (nums, unit) = T.span (\c -> isDigit c || ('.'==c)) s
   in  case safeRead nums of
         Just n  -> Just (n, unit)
         Nothing -> Nothing
@@ -235,7 +237,7 @@ dimension dir (_, _, kvs) =
   where
     extractDim key = lookup key kvs >>= lengthToDim
 
-lengthToDim :: String -> Maybe Dimension
+lengthToDim :: T.Text -> Maybe Dimension
 lengthToDim s = numUnit s >>= uncurry toDim
   where
     toDim a "cm"   = Just $ Centimeter a
@@ -258,8 +260,8 @@ epsSize img = do
        []    -> mzero
        (x:_) -> case B.words x of
                      [_, _, _, ux, uy] -> do
-                        ux' <- safeRead $ B.unpack ux
-                        uy' <- safeRead $ B.unpack uy
+                        ux' <- safeRead $ TE.decodeUtf8 ux
+                        uy' <- safeRead $ TE.decodeUtf8 uy
                         return ImageSize{
                             pxX  = ux'
                           , pxY  = uy'
@@ -284,7 +286,7 @@ pPdfSize = do
       [x1,y1,x2,y2] <- A.count 4 $ do
         A.skipSpace
         raw <- A.many1 $ A.satisfy (\c -> isDigit c || c == '.')
-        case safeRead raw of
+        case safeRead $ T.pack raw of
           Just (r :: Double) -> return $ floor r
           Nothing            -> mzero
       A.skipSpace
@@ -345,7 +347,7 @@ svgSize opts img = do
   doc <- Xml.parseXMLDoc $ UTF8.toString img
   let dpi = fromIntegral $ writerDpi opts
   let dirToInt dir = do
-        dim <- Xml.findAttrBy (== Xml.QName dir Nothing Nothing) doc >>= lengthToDim
+        dim <- Xml.findAttrBy (== Xml.QName dir Nothing Nothing) doc >>= lengthToDim . T.pack
         return $ inPixel opts dim
   w <- dirToInt "width"
   h <- dirToInt "height"
@@ -388,7 +390,7 @@ emfSize img =
       Right (_, _, size) -> Just size
 
 
-jpegSize :: ByteString -> Either String ImageSize
+jpegSize :: ByteString -> Either T.Text ImageSize
 jpegSize img =
   let (hdr, rest) = B.splitAt 4 img
   in if B.length rest < 14
@@ -398,7 +400,7 @@ jpegSize img =
                "\xff\xd8\xff\xe1" -> exifSize rest
                _                  -> Left "unable to determine JPEG size"
 
-jfifSize :: ByteString -> Either String ImageSize
+jfifSize :: ByteString -> Either T.Text ImageSize
 jfifSize rest =
   case map fromIntegral $ unpack $ B.take 5 $ B.drop 9 rest of
     [dpiDensity,dpix1,dpix2,dpiy1,dpiy2] ->
@@ -416,7 +418,7 @@ jfifSize rest =
                                         , dpiY = dpiy }
     _ -> Left "unable to determine JFIF size"
 
-findJfifSize :: ByteString -> Either String (Integer,Integer)
+findJfifSize :: ByteString -> Either T.Text (Integer,Integer)
 findJfifSize bs =
   let bs' = B.dropWhile (=='\xff') $ B.dropWhile (/='\xff') bs
   in case B.uncons bs' of
@@ -433,19 +435,18 @@ findJfifSize bs =
               _       -> Left "JFIF parse error"
        Nothing -> Left "Did not find JFIF length record"
 
-runGet' :: Get (Either String a) -> BL.ByteString -> Either String a
+runGet' :: Get (Either T.Text a) -> BL.ByteString -> Either T.Text a
 runGet' p bl =
 #if MIN_VERSION_binary(0,7,0)
   case runGetOrFail p bl of
-       Left (_,_,msg) -> Left msg
+       Left (_,_,msg) -> Left $ T.pack msg
        Right (_,_,x)  -> x
 #else
   runGet p bl
 #endif
 
-
-exifSize :: ByteString -> Either String ImageSize
-exifSize bs =runGet' header bl
+exifSize :: ByteString -> Either T.Text ImageSize
+exifSize bs = runGet' header bl
   where bl = BL.fromChunks [bs]
         header = runExceptT $ exifHeader bl
 -- NOTE:  It would be nicer to do
@@ -454,7 +455,7 @@ exifSize bs =runGet' header bl
 -- be parsed.  But we only get an Alternative instance for Get in binary 0.6,
 -- and binary 0.5 ships with ghc 7.6.
 
-exifHeader :: BL.ByteString -> ExceptT String Get ImageSize
+exifHeader :: BL.ByteString -> ExceptT T.Text Get ImageSize
 exifHeader hdr = do
   _app1DataSize <- lift getWord16be
   exifHdr <- lift getWord32be
@@ -479,7 +480,7 @@ exifHeader hdr = do
   ifdOffset <- lift getWord32
   lift $ skip (fromIntegral ifdOffset - 8) -- skip to IDF
   numentries <- lift  getWord16
-  let ifdEntry :: ExceptT String Get (TagType, DataFormat)
+  let ifdEntry :: ExceptT T.Text Get (TagType, DataFormat)
       ifdEntry = do
        tag <- fromMaybe UnknownTagType . flip M.lookup tagTypeTable
                 <$> lift getWord16
@@ -502,7 +503,7 @@ exifHeader hdr = do
                   10 -> return (SignedRational <$> getRational, 8)
                   11 -> return (SingleFloat <$> getWord32 {- TODO -}, 4)
                   12 -> return (DoubleFloat <$> getWord64 {- TODO -}, 8)
-                  _  -> throwError $ "Unknown data format " ++ show dataFormat
+                  _  -> throwError $ "Unknown data format " <> T.pack (show dataFormat)
        let totalBytes = fromIntegral $ numComponents * bytesPerComponent
        payload <- if totalBytes <= 4 -- data is right here
                      then lift $ fmt <* skip (4 - totalBytes)
