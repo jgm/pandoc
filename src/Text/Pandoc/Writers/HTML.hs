@@ -998,13 +998,15 @@ inlineToHtml opts inline = do
 
     (Span (id',classes,kvs) ils) ->
                         let spanLikeTag = case classes of
-                                [c] -> do
+                                (c:_) -> do
                                   let c' = T.pack c
                                   guard (c' `Set.member` htmlSpanLikeElements)
                                   pure $ customParent (textTag c')
                                 _   -> Nothing
                         in case spanLikeTag of
-                            Just tag -> tag <$> inlineListToHtml opts ils
+                            Just tag -> do
+                              h <- inlineListToHtml opts ils
+                              addAttrs opts (id',tail classes',kvs') $ tag h
                             Nothing -> do
                               h <- inlineListToHtml opts ils
                               addAttrs opts (id',classes',kvs') (H.span h)

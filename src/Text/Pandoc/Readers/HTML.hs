@@ -719,10 +719,17 @@ pSubscript :: PandocMonad m => TagParser m Inlines
 pSubscript = pInlinesInTags "sub" B.subscript
 
 pSpanLike :: PandocMonad m => TagParser m Inlines
-pSpanLike = Set.foldr
-  (\tag acc -> acc <|> pInlinesInTags tag (B.spanWith ("",[T.unpack tag],[])))
-  mzero
-  htmlSpanLikeElements
+pSpanLike =
+  Set.foldr
+    (\tagName acc -> acc <|> parseTag tagName)
+    mzero
+    htmlSpanLikeElements
+  where
+    parseTag tagName = do
+      TagOpen _ attrs <- pSatisfy $ tagOpenLit tagName (const True)
+      let (ids, cs, kvs) = mkAttr . toStringAttr $ attrs
+      content <- mconcat <$> manyTill inline (pCloses tagName <|> eof)
+      return $ B.spanWith (ids, T.unpack tagName : cs, kvs) content
 
 pSmall :: PandocMonad m => TagParser m Inlines
 pSmall = pInlinesInTags "small" (B.spanWith ("",["small"],[]))
