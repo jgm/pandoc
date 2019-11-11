@@ -783,7 +783,7 @@ checkExistence fn = do
   exists <- fileExists fn
   if exists
      then return fn
-     else throwError $ PandocCouldNotFindDataFileError fn
+     else throwError $ PandocCouldNotFindDataFileError $ T.pack fn
 #endif
 
 makeCanonical :: FilePath -> FilePath
