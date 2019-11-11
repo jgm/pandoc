@@ -1700,13 +1700,17 @@ superscript :: PandocMonad m => MarkdownParser m (F Inlines)
 superscript = fmap B.superscript <$> try (do
   guardEnabled Ext_superscript
   char '^'
-  mconcat <$> many1Till (notFollowedBy spaceChar >> inline) (char '^'))
+  mconcat <$> many1Till (do notFollowedBy spaceChar
+                            notFollowedBy newline
+                            inline) (char '^'))
 
 subscript :: PandocMonad m => MarkdownParser m (F Inlines)
 subscript = fmap B.subscript <$> try (do
   guardEnabled Ext_subscript
   char '~'
-  mconcat <$> many1Till (notFollowedBy spaceChar >> inline) (char '~'))
+  mconcat <$> many1Till (do notFollowedBy spaceChar
+                            notFollowedBy newline
+                            inline) (char '~'))
 
 whitespace :: PandocMonad m => MarkdownParser m (F Inlines)
 whitespace = spaceChar >> return <$> (lb <|> regsp) <?> "whitespace"
