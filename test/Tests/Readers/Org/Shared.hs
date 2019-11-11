@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Org.Shared
    Copyright   : © 2014-2019 Albert Krewinkel
@@ -38,5 +39,5 @@ spcSep :: [Inlines] -> Inlines
 spcSep = mconcat . intersperse space
 
 -- | Create a span for the given tag.
-tagSpan :: String -> Inlines
+tagSpan :: Text -> Inlines
 tagSpan t = spanWith ("", ["tag"], [("tag-name", t)]) . smallcaps $ str t

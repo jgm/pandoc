@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {- |
 Module      : Text.Pandoc.Lua.Filter
@@ -180,7 +180,7 @@ constructorsFor :: DataType -> [String]
 constructorsFor x = map show (dataTypeConstrs x)
 
 inlineElementNames :: [String]
-inlineElementNames = "Inline" : constructorsFor (dataTypeOf (Str []))
+inlineElementNames = "Inline" : constructorsFor (dataTypeOf (Str mempty))
 
 blockElementNames :: [String]
 blockElementNames = "Block" : constructorsFor (dataTypeOf (Para []))

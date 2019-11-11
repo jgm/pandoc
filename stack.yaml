@@ -14,7 +14,13 @@ packages:
 extra-deps:
 - pandoc-citeproc-0.16.3.1
 #- pandoc-types-1.17.6.1
-- texmath-0.11.3
+#- texmath-0.11.3
+  # The text branch
+- git: git@github.com:jgm/texmath
+  commit: 0d71300d91513bdd812d2c89b78460c15c277457
+  # The text branch
+- git: git@github.com:despresc/pandoc-types
+  commit: 59c45cdd996ed57c51112e3c22be4a8e2ea697a3
 - haddock-library-1.8.0
 - skylighting-0.8.2.3
 - skylighting-core-0.8.2.3
@@ -23,8 +29,6 @@ extra-deps:
 - HsYAML-0.2.0.0
 - HsYAML-aeson-0.2.0.0
 - doctemplates-0.7
-- git: https://github.com/jgm/pandoc-types
-  commit: 00f7bb79e79d7cfd3523880dbc64ba3ea46c3da2
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-14.6

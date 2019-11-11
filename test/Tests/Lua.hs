@@ -33,7 +33,8 @@ import Text.Pandoc.Options (def)
 import Text.Pandoc.Shared (pandocVersion)
 
 import qualified Foreign.Lua as Lua
-import qualified Data.ByteString.Char8 as BS
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 
 tests :: [TestTree]
 tests = map (localOption (QuickCheckTests 20))
@@ -132,12 +133,12 @@ tests = map (localOption (QuickCheckTests 20))
     assertFilterConversion "unexpected script name"
       "script-name.lua"
       (doc $ para "ignored")
-      (doc $ para (str $ "lua" </> "script-name.lua"))
+      (doc $ para (str $ T.pack $ "lua" </> "script-name.lua"))
 
   , testCase "Pandoc version is set" . runLuaTest $ do
       Lua.getglobal "PANDOC_VERSION"
       Lua.liftIO .
-        assertEqual "pandoc version is wrong" (BS.pack pandocVersion)
+        assertEqual "pandoc version is wrong" (TE.encodeUtf8 pandocVersion)
         =<< Lua.tostring' Lua.stackTop
 
   , testCase "Pandoc types version is set" . runLuaTest $ do

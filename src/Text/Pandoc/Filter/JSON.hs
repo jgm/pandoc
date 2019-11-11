@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Filter
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -18,6 +19,7 @@ import Control.Monad.Trans (MonadIO (liftIO))
 import Data.Aeson (eitherDecode', encode)
 import Data.Char (toLower)
 import Data.Maybe (isNothing)
+import qualified Data.Text as T
 import System.Directory (executable, doesFileExist, findExecutable,
                          getPermissions)
 import System.Environment (getEnvironment)
@@ -28,7 +30,7 @@ import Text.Pandoc.Error (PandocError (PandocFilterError))
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Process (pipeProcess)
-import Text.Pandoc.Shared (pandocVersion)
+import Text.Pandoc.Shared (pandocVersion, tshow)
 import qualified Control.Exception as E
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -61,18 +63,20 @@ externalFilter ropts f args' d = liftIO $ do
   unless (exists && isExecutable) $ do
     mbExe <- findExecutable f'
     when (isNothing mbExe) $
-      E.throwIO $ PandocFilterError f ("Could not find executable " ++ f')
+      E.throwIO $ PandocFilterError fText (T.pack $ "Could not find executable " <> f')
   env <- getEnvironment
   let env' = Just
-           ( ("PANDOC_VERSION", pandocVersion)
+           ( ("PANDOC_VERSION", T.unpack pandocVersion)
            : ("PANDOC_READER_OPTIONS", UTF8.toStringLazy (encode ropts))
            : env )
   (exitcode, outbs) <- E.handle filterException $
                               pipeProcess env' f' args'' $ encode d
   case exitcode of
-       ExitSuccess    -> either (E.throwIO . PandocFilterError f)
+       ExitSuccess    -> either (E.throwIO . PandocFilterError fText . T.pack)
                                    return $ eitherDecode' outbs
-       ExitFailure ec -> E.throwIO $ PandocFilterError f
-                           ("Filter returned error status " ++ show ec)
- where filterException :: E.SomeException -> IO a
-       filterException e = E.throwIO $ PandocFilterError f (show e)
+       ExitFailure ec -> E.throwIO $ PandocFilterError fText
+                           ("Filter returned error status " <> tshow ec)
+ where fText = T.pack f
+
+       filterException :: E.SomeException -> IO a
+       filterException e = E.throwIO $ PandocFilterError fText $ tshow e

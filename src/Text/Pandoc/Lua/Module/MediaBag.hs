@@ -15,7 +15,6 @@ module Text.Pandoc.Lua.Module.MediaBag
 
 import Prelude
 import Control.Monad (zipWithM_)
-import Data.Maybe (fromMaybe)
 import Foreign.Lua (Lua, NumResults, Optional, liftIO)
 import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
                           runIOorExplode, setMediaBag)
@@ -25,6 +24,7 @@ import Text.Pandoc.Lua.Util (addFunction)
 import Text.Pandoc.MIME (MimeType)
 
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text as T
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.MediaBag as MB
 
@@ -113,7 +113,7 @@ mediaDirectoryFn = do
     Lua.push "length" *> Lua.push contentLength *> Lua.rawset (-3)
     Lua.rawseti (-2) idx
 
-fetch :: String
+fetch :: T.Text
       -> Lua NumResults
 fetch src = do
   commonState <- getCommonState
@@ -122,6 +122,6 @@ fetch src = do
     putCommonState commonState
     setMediaBag mediaBag
     fetchItem src
-  Lua.push $ fromMaybe "" mimeType
+  Lua.push $ maybe "" T.unpack mimeType
   Lua.push bs
   return 2 -- returns 2 values: contents, mimetype

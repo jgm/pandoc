@@ -27,11 +27,12 @@ import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Util (addFunction)
 import Text.Pandoc.Options (ReaderOptions)
 
+import qualified Data.Text as Text
 import qualified Foreign.Lua as Lua
 
 -- | Permissible global Lua variables.
 data Global =
-    FORMAT String
+    FORMAT Text.Text
   | PANDOC_API_VERSION
   | PANDOC_DOCUMENT Pandoc
   | PANDOC_READER_OPTIONS ReaderOptions
