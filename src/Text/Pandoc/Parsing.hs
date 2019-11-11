@@ -1326,7 +1326,7 @@ type SubstTable = M.Map Key Inlines
 
 --  | Add header to the list of headers in state, together
 --  with its associated identifier.  If the identifier is null
---  and the auto_identifers extension is set, generate a new
+--  and the auto_identifiers extension is set, generate a new
 --  unique identifier, and update the list of identifiers
 --  in state.  Issue a warning if an explicit identifier
 --  is encountered that duplicates an earlier identifier
