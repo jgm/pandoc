@@ -1472,7 +1472,7 @@ wrapBookmark ident contents = do
 
 -- Word imposes a 40 character limit on bookmark names and requires
 -- that they begin with a letter.  So we just use a hash of the
--- identifer when otherwise we'd have an illegal bookmark name.
+-- identifier when otherwise we'd have an illegal bookmark name.
 toBookmarkName :: String -> String
 toBookmarkName s =
   case s of
