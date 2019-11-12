@@ -634,9 +634,10 @@ header when requesting a document from a URL:
 
 `-p`, `--preserve-tabs`
 
-:   Preserve tabs instead of converting them to spaces (the default).
-    Note that this will only affect tabs in literal code spans and code
-    blocks; tabs in regular text will be treated as spaces.
+:   Preserve tabs instead of converting them to spaces. (By default, pandoc
+    converts tabs to spaces before parsing its input.)  Note that this will
+    only affect tabs in literal code spans and code blocks. Tabs in regular
+    text are always treated as spaces.
 
 `--tab-stop=`*NUMBER*
 
