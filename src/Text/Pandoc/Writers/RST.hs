@@ -300,10 +300,11 @@ blockToRST (Table caption aligns widths headers rows) = do
             else gridTable opts blocksToDoc (all null headers)
                   (map (const AlignDefault) aligns) widths
                   headers rows
-  return $ if null caption
-              then tbl $$ blankline
-              else (".. table:: " <> caption') $$ blankline $$ nest 3 tbl $$
-                   blankline
+  return $ blankline $$
+           (if null caption
+               then tbl
+               else (".. table:: " <> caption') $$ blankline $$ nest 3 tbl) $$
+           blankline
 blockToRST (BulletList items) = do
   contents <- mapM bulletListItemToRST items
   -- ensure that sublists have preceding blank line
