@@ -30,9 +30,9 @@ executable.
 
 Starting with pandoc 2.0, we have made it possible to write
 filters in lua without any external dependencies at all. A lua
-interpreter and a lua library for creating pandoc filters is
-built into the pandoc executable. Pandoc data types are
-marshalled to lua directly, avoiding the overhead of writing
+interpreter (version 5.3) and a lua library for creating pandoc
+filters is built into the pandoc executable. Pandoc data types
+are marshalled to lua directly, avoiding the overhead of writing
 JSON to stdout and reading it from stdin.
 
 Here is an example of a lua filter that converts strong emphasis
