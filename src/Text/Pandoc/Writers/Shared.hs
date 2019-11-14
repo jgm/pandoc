@@ -86,19 +86,18 @@ metaToContext' :: (Monad m, TemplateTarget a)
 metaToContext' blockWriter inlineWriter (Meta metamap) =
   Context <$> mapM (metaValueToVal blockWriter inlineWriter) metamap
 
--- | Add variables to a template Context, replacing any existing values.
+-- | Add variables to a template Context, using monoidal append.
+-- Also add `meta-json`.  Note that metadata values are used
+-- in template contexts only when like-named variables aren't set.
 addVariablesToContext :: TemplateTarget a
                       => WriterOptions -> Context a -> Context a
-addVariablesToContext opts (Context m1) =
-  Context (m1 `M.union` m2 `M.union` m3)
+addVariablesToContext opts c1 =
+  c2 <> (fromText <$> writerVariables opts) <> c1
  where
-   m2 = case traverse go (writerVariables opts) of
-                  Just (Context x) -> x
-                  Nothing -> mempty
-   m3 = M.insert "meta-json" (SimpleVal $ literal $ fromText jsonrep)
-                             mempty
-   go = Just . fromText
-   jsonrep = UTF8.toText $ BL.toStrict $ encode $ toJSON m1
+   c2 = Context $
+          M.insert "meta-json" (SimpleVal $ literal $ fromText jsonrep)
+                               mempty
+   jsonrep = UTF8.toText $ BL.toStrict $ encode $ toJSON c1
 
 metaValueToVal :: (Monad m, TemplateTarget a)
                => ([Block] -> m (Doc a))
