@@ -462,7 +462,7 @@ transformInlines =  insertBS .
         okBeforeComplex Space = True
         okBeforeComplex SoftBreak = True
         okBeforeComplex LineBreak = True
-        okBeforeComplex (Str (T.uncons -> Just (c,_)))
+        okBeforeComplex (Str (T.unsnoc -> Just (_,c)))
                           = isSpace c || c `elemText` "-:/'\"<([{–—"
         okBeforeComplex _ = False
         isComplex :: Inline -> Bool
@@ -491,7 +491,7 @@ flatten outer
         combineAll = foldl combine []
 
         combine :: [Inline] -> Inline -> [Inline]
-        combine f i = 
+        combine f i =
           case (outer, i) of
           -- quotes are not rendered using RST inlines, so we can keep
           -- them and they will be readable and parsable
