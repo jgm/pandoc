@@ -299,8 +299,8 @@ doOpt (k',v) = do
              return (\o -> o{ optPdfEngineOpts = [unpack x] }))
     "slide-level" ->
       parseYAML v >>= \x -> return (\o -> o{ optSlideLevel = x })
-    "setext-headers" ->
-      parseYAML v >>= \x -> return (\o -> o{ optSetextHeaders = x })
+    "atx-headers" ->
+      parseYAML v >>= \x -> return (\o -> o{ optSetextHeaders = not x })
     "ascii" ->
       parseYAML v >>= \x -> return (\o -> o{ optAscii = x })
     "default-image-extension" ->
