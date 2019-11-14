@@ -1728,7 +1728,9 @@ nonEndline = satisfy (/='\n')
 
 str :: PandocMonad m => MarkdownParser m (F Inlines)
 str = do
-  result <- many1Char (alphaNum <|> try (char '.' <* notFollowedBy (char '.')))
+  result <- mconcat <$> many1
+             ( take1WhileP isAlphaNum
+              <|> "." <$ try (char '.' <* notFollowedBy (char '.')) )
   updateLastStrPos
   (do guardEnabled Ext_smart
       abbrevs <- getOption readerAbbreviations
