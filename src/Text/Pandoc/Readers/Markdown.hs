@@ -462,7 +462,8 @@ rawLines = do
 noteBlock :: PandocMonad m => MarkdownParser m (F Blocks)
 noteBlock = do
   guardEnabled Ext_footnotes
-  do pos <- getPosition
+  try $ do
+     pos <- getPosition
      skipNonindentSpaces
      ref <- noteMarker
      char ':'
