@@ -460,24 +460,26 @@ rawLines = do
   return $ T.unlines (first:rest)
 
 noteBlock :: PandocMonad m => MarkdownParser m (F Blocks)
-noteBlock = try $ do
-  pos <- getPosition
-  skipNonindentSpaces
-  ref <- noteMarker
-  char ':'
-  optional blankline
-  optional indentSpaces
-  first <- rawLines
-  rest <- many $ try $ blanklines >> indentSpaces >> rawLines
-  let raw = T.unlines (first:rest) <> "\n"
-  optional blanklines
-  parsed <- parseFromString' parseBlocks raw
-  oldnotes <- stateNotes' <$> getState
-  case M.lookup ref oldnotes of
-    Just _  -> logMessage $ DuplicateNoteReference ref pos
-    Nothing -> return ()
-  updateState $ \s -> s { stateNotes' = M.insert ref (pos, parsed) oldnotes }
-  return mempty
+noteBlock = do
+  guardEnabled Ext_footnotes
+  do pos <- getPosition
+     skipNonindentSpaces
+     ref <- noteMarker
+     char ':'
+     optional blankline
+     optional indentSpaces
+     first <- rawLines
+     rest <- many $ try $ blanklines >> indentSpaces >> rawLines
+     let raw = T.unlines (first:rest) <> "\n"
+     optional blanklines
+     parsed <- parseFromString' parseBlocks raw
+     oldnotes <- stateNotes' <$> getState
+     case M.lookup ref oldnotes of
+       Just _  -> logMessage $ DuplicateNoteReference ref pos
+       Nothing -> return ()
+     updateState $ \s -> s { stateNotes' =
+       M.insert ref (pos, parsed) oldnotes }
+     return mempty
 
 --
 -- parsing blocks
