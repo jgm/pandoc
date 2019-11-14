@@ -1286,7 +1286,7 @@ rawTableLine :: PandocMonad m
              -> MarkdownParser m [Text]
 rawTableLine indices = do
   notFollowedBy' (blanklines' <|> tableFooter)
-  line <- many1TillChar anyChar newline
+  line <- take1WhileP (/='\n') <* newline
   return $ map trim $ tail $
            splitTextByIndices (init indices) line
 
