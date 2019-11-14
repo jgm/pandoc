@@ -1553,7 +1553,7 @@ epub-cover-image: cover.jpg
 reference-links: true
 # block, section, or document
 reference-location: block
-setext-headers: true
+atx-headers: false
 
 # accept, reject, or all
 track-changes: accept
