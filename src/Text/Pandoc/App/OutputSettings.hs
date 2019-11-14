@@ -22,7 +22,7 @@ module Text.Pandoc.App.OutputSettings
 import Prelude
 import qualified Data.Map as M
 import qualified Data.Text as T
-import Text.DocTemplates (toVal, Context(..))
+import Text.DocTemplates (toVal, Context(..), Val(..))
 import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.Except (catchError, throwError)
@@ -36,6 +36,7 @@ import System.Directory (getCurrentDirectory)
 import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
+import Data.String
 import Text.Pandoc
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..))
@@ -115,17 +116,23 @@ optToOutputSettings opts = do
   hlStyle <- maybe (return Nothing) (fmap Just . lookupHighlightStyle . T.unpack)
                 (optHighlightStyle opts)
 
-  let setVariableM k v = return . setVariable k v
+  let setVariableM k v = return . setVariable k (fromString v)
 
-  let setListVariableM _ [] = return
-      setListVariableM k vs =
-        return . Context .
-          (M.insert (T.pack k) (toVal $ map T.pack vs)) . unContext
+  let setListVariableM _ [] ctx = return ctx
+      setListVariableM k vs ctx = do
+        let ctxMap = unContext ctx
+        return $ Context $
+          case M.lookup k ctxMap of
+              Just (ListVal xs) -> M.insert k
+                                  (ListVal $ xs ++ map toVal vs) ctxMap
+              Just v -> M.insert k
+                         (ListVal $ v : map toVal vs) ctxMap
+              Nothing -> M.insert k (toVal vs) ctxMap
 
-  let getStringContents fp = UTF8.toString . fst <$> fetchItem fp
+  let getTextContents fp = UTF8.toText . fst <$> fetchItem (T.pack fp)
 
   let setFilesVariableM k fps ctx = do
-        xs <- mapM getStringContents fps
+        xs <- mapM getTextContents fps
         setListVariableM k xs ctx
 
   curdir <- liftIO getCurrentDirectory
@@ -133,20 +140,19 @@ optToOutputSettings opts = do
   variables <-
     return (optVariables opts)
     >>=
-    setListVariableM "sourcefile" (optInputFiles opts)
+    setListVariableM "sourcefile" (T.pack <$> optInputFiles opts)
     >>=
     setVariableM "outputfile" outputFile
     >>=
-    setFilesVariableM "include-before" (T.pack <$> optIncludeBeforeBody opts)
+    setFilesVariableM "include-before" (optIncludeBeforeBody opts)
     >>=
-    setFilesVariableM "include-after" (T.pack <$> optIncludeAfterBody opts)
+    setFilesVariableM "include-after" (optIncludeAfterBody opts)
     >>=
-    setFilesVariableM "header-includes" (T.pack <$> optIncludeInHeader opts)
+    setFilesVariableM "header-includes" (optIncludeInHeader opts)
     >>=
-    setListVariableM "css" (optCss opts)
+    setListVariableM "css" (map T.pack $ optCss opts)
     >>=
-    maybe return (setVariableM "title-prefix" . T.unpack)
-                 (optTitlePrefix opts)
+    maybe return (setVariableM "title-prefix" . T.unpack) (optTitlePrefix opts)
     >>=
     maybe return (setVariableM "epub-cover-image")
                  (optEpubCoverImage opts)
