@@ -117,7 +117,8 @@ optToOutputSettings opts = do
 
   let setVariableM k v = return . setVariable k v
 
-  let setListVariableM k vs =
+  let setListVariableM _ [] = return
+      setListVariableM k vs =
         return . Context .
           (M.insert (T.pack k) (toVal $ map T.pack vs)) . unContext
 
