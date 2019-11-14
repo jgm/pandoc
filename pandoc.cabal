@@ -196,6 +196,12 @@ extra-source-files:
                  test/bodybg.gif
                  test/*.native
                  test/command/*.md
+                 test/command/A.txt
+                 test/command/B.txt
+                 test/command/C.txt
+                 test/command/D.txt
+                 test/command/defaults1.yaml
+                 test/command/defaults2.yaml
                  test/command/3533-rst-csv-tables.csv
                  test/command/3880.txt
                  test/command/5182.txt

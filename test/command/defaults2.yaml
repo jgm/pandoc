@@ -1,0 +1,4 @@
+include-in-header:
+- command/B.txt
+- command/C.txt
+
