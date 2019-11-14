@@ -1591,6 +1591,15 @@ of the user data directory, and then invoke these defaults
 from any directory using `pandoc --defaults letter`
 or `pandoc -dletter`.
 
+When multiple defaults are used, their contents will be combined.
+
+Note that, where command-line arguments may be repeated
+(`--metadata-file`, `--css`, `--include-in-header`,
+`--include-before-body`, `--include-after-body`, `--variable`,
+`--metadata`, `--syntax-definition`), the values specified on
+the command line will combine with values specified in the
+defaults file, rather than replacing them.
+
 # Templates
 
 When the `-s/--standalone` option is used, pandoc uses a template to

@@ -179,25 +179,37 @@ doOpt (k',v) = do
     "template" ->
       parseYAML v >>= \x -> return (\o -> o{ optTemplate = unpack <$> x })
     "variables" ->
-      parseYAML v >>= \x -> return (\o -> o{ optVariables = x })
+      parseYAML v >>= \x -> return (\o -> o{ optVariables =
+                                               optVariables o <> x })
     "metadata" ->
-      parseYAML v >>= \x -> return (\o -> o{ optMetadata = contextToMeta x })
+      parseYAML v >>= \x -> return (\o -> o{ optMetadata = optMetadata o <>
+                                               contextToMeta x })
     "metadata-files" ->
       (parseYAML v >>= \x ->
-                        return (\o -> o{ optMetadataFiles = map unpack x }))
+                        return (\o -> o{ optMetadataFiles =
+                                           optMetadataFiles o <>
+                                           map unpack x }))
     "metadata-file" -> -- allow either a list or a single value
-      (parseYAML v >>= \x -> return (\o -> o{ optMetadataFiles = map unpack x }))
+      (parseYAML v >>= \x -> return (\o -> o{ optMetadataFiles =
+                                                optMetadataFiles o <>
+                                                map unpack x }))
       <|>
       (parseYAML v >>= \x ->
-                        return (\o -> o{ optMetadataFiles = [unpack x] }))
+                        return (\o -> o{ optMetadataFiles =
+                                           optMetadataFiles o <>[unpack x] }))
     "output-file" ->
       parseYAML v >>= \x -> return (\o -> o{ optOutputFile = unpack <$> x })
     "input-files" ->
-      parseYAML v >>= \x -> return (\o -> o{ optInputFiles = map unpack x })
+      parseYAML v >>= \x -> return (\o -> o{ optInputFiles = optInputFiles o <>
+                                              map unpack x })
     "input-file" -> -- allow either a list or a single value
-      (parseYAML v >>= \x -> return (\o -> o{ optInputFiles = map unpack x }))
+      (parseYAML v >>= \x -> return (\o -> o{ optInputFiles =
+                                                optInputFiles o <>
+                                                map unpack x }))
       <|>
-      (parseYAML v >>= \x -> return (\o -> o{ optInputFiles = [unpack x] }))
+      (parseYAML v >>= \x -> return (\o -> o{ optInputFiles =
+                                                optInputFiles o <>
+                                                [unpack x] }))
     "number-sections" ->
       parseYAML v >>= \x -> return (\o -> o{ optNumberSections = x })
     "number-offset" ->
@@ -214,13 +226,16 @@ doOpt (k',v) = do
       parseYAML v >>= \x -> return (\o -> o{ optHighlightStyle = x })
     "syntax-definition" ->
       (parseYAML v >>= \x ->
-                return (\o -> o{ optSyntaxDefinitions = map unpack x }))
+                return (\o -> o{ optSyntaxDefinitions =
+                                   optSyntaxDefinitions o <> map unpack x }))
       <|>
       (parseYAML v >>= \x ->
-             return (\o -> o{ optSyntaxDefinitions = [unpack x] }))
+             return (\o -> o{ optSyntaxDefinitions =
+                                 optSyntaxDefinitions o <> [unpack x] }))
     "syntax-definitions" ->
       parseYAML v >>= \x ->
-             return (\o -> o{ optSyntaxDefinitions = map unpack x })
+             return (\o -> o{ optSyntaxDefinitions =
+                                optSyntaxDefinitions o <> map unpack x })
     "top-level-division" ->
       parseYAML v >>= \x -> return (\o -> o{ optTopLevelDivision = x })
     "html-math-method" ->
@@ -238,7 +253,8 @@ doOpt (k',v) = do
       parseYAML v >>= \x ->
              return (\o -> o{ optEpubMetadata = unpack <$> x })
     "epub-fonts" ->
-      parseYAML v >>= \x -> return (\o -> o{ optEpubFonts = map unpack x })
+      parseYAML v >>= \x -> return (\o -> o{ optEpubFonts = optEpubFonts o <>
+                                               map unpack x })
     "epub-chapter-level" ->
       parseYAML v >>= \x -> return (\o -> o{ optEpubChapterLevel = x })
     "epub-cover-image" ->
@@ -269,7 +285,7 @@ doOpt (k',v) = do
     "columns" ->
       parseYAML v >>= \x -> return (\o -> o{ optColumns = x })
     "filters" ->
-      parseYAML v >>= \x -> return (\o -> o{ optFilters = x })
+      parseYAML v >>= \x -> return (\o -> o{ optFilters = optFilters o <> x })
     "email-obfuscation" ->
       parseYAML v >>= \x -> return (\o -> o{ optEmailObfuscation = x })
     "identifier-prefix" ->
@@ -316,29 +332,37 @@ doOpt (k',v) = do
     "title-prefix" ->
       parseYAML v >>= \x -> return (\o -> o{ optTitlePrefix = x })
     "css" ->
-      (parseYAML v >>= \x -> return (\o -> o{ optCss = map unpack x }))
+      (parseYAML v >>= \x -> return (\o -> o{ optCss = optCss o <>
+                                                 map unpack x }))
       <|>
-      (parseYAML v >>= \x -> return (\o -> o{ optCss = [unpack x] }))
+      (parseYAML v >>= \x -> return (\o -> o{ optCss = optCss o <>
+                                                [unpack x] }))
     "ipynb-output" ->
       parseYAML v >>= \x -> return (\o -> o{ optIpynbOutput = x })
     "include-before-body" ->
       (parseYAML v >>= \x ->
-             return (\o -> o{ optIncludeBeforeBody = map unpack x }))
+             return (\o -> o{ optIncludeBeforeBody =
+                                optIncludeBeforeBody o <> map unpack x }))
       <|>
       (parseYAML v >>= \x ->
-             return (\o -> o{ optIncludeBeforeBody = [unpack x] }))
+             return (\o -> o{ optIncludeBeforeBody =
+                                optIncludeBeforeBody o <> [unpack x] }))
     "include-after-body" ->
       (parseYAML v >>= \x ->
-             return (\o -> o{ optIncludeAfterBody = map unpack x }))
+             return (\o -> o{ optIncludeAfterBody =
+                                optIncludeAfterBody o <> map unpack x }))
       <|>
       (parseYAML v >>= \x ->
-             return (\o -> o{ optIncludeAfterBody = [unpack x] }))
+             return (\o -> o{ optIncludeAfterBody =
+                                optIncludeAfterBody o <> [unpack x] }))
     "include-in-header" ->
       (parseYAML v >>= \x ->
-             return (\o -> o{ optIncludeInHeader = map unpack x }))
+             return (\o -> o{ optIncludeInHeader =
+                                optIncludeInHeader o <> map unpack x }))
       <|>
       (parseYAML v >>= \x ->
-             return (\o -> o{ optIncludeInHeader = [unpack x] }))
+             return (\o -> o{ optIncludeInHeader =
+                                optIncludeInHeader o <> [unpack x] }))
     "resource-path" ->
       parseYAML v >>= \x ->
              return (\o -> o{ optResourcePath = map unpack x })
