@@ -21,7 +21,7 @@
 A utility library with parsers used in pandoc readers.
 -}
 
-module Text.Pandoc.Parsing ( takeWhileP,
+module Text.Pandoc.Parsing ( take1WhileP,
                              takeP,
                              countChar,
                              textStr,
@@ -264,19 +264,21 @@ textStr :: Stream s m Char => Text -> ParsecT s u m Text
 textStr t = string (T.unpack t) $> t
 
 -- | Parse characters while a predicate is true.
-takeWhileP :: Monad m
+take1WhileP :: Monad m
            => (Char -> Bool)
            -> ParserT Text st m Text
-takeWhileP f = do
-  -- faster than 'many (satisfy f)'
+take1WhileP f = do
+  -- needed to persuade parsec that this won't match an empty string:
+  c <- satisfy f
   inp <- getInput
   pos <- getPosition
-  let (xs, rest) = T.span f inp
-  -- needed to persuade parsec that this won't match an empty string:
-  anyChar
+  let (t, rest) = T.span f inp
   setInput rest
-  setPosition $ updatePosString pos $ T.unpack xs
-  return xs
+  setPosition $
+    if f '\t' || f '\n'
+       then updatePosString pos $ T.unpack t
+       else incSourceColumn pos (T.length t)
+  return $ T.singleton c <> t
 
 -- Parse n characters of input (or the rest of the input if
 -- there aren't n characters).
