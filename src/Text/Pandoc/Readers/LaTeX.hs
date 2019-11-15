@@ -1798,7 +1798,14 @@ blockCommands = M.fromList
    , ("address", mempty <$ (skipopts *> tok >>= addMeta "address"))
    , ("signature", mempty <$ (skipopts *> authors))
    , ("date", mempty <$ (skipopts *> tok >>= addMeta "date"))
-   -- Koma-script metadata commands
+   -- KOMA-Script metadata commands
+   , ("extratitle", mempty <$ (skipopts *> tok >>= addMeta "extratitle"))
+   , ("frontispiece", mempty <$ (skipopts *> tok >>= addMeta "frontispiece"))
+   , ("titlehead", mempty <$ (skipopts *> tok >>= addMeta "titlehead"))
+   , ("subject", mempty <$ (skipopts *> tok >>= addMeta "subject"))
+   , ("publishers", mempty <$ (skipopts *> tok >>= addMeta "publishers"))
+   , ("uppertitleback", mempty <$ (skipopts *> tok >>= addMeta "uppertitleback"))
+   , ("lowertitleback", mempty <$ (skipopts *> tok >>= addMeta "lowertitleback"))
    , ("dedication", mempty <$ (skipopts *> tok >>= addMeta "dedication"))
    -- sectioning
    , ("part", section nullAttr (-1))
