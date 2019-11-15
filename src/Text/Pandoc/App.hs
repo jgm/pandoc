@@ -75,7 +75,7 @@ convertWithOpts opts = do
 
   when (optDumpArgs opts) $
     do UTF8.hPutStrLn stdout outputFile
-       mapM_ (UTF8.hPutStrLn stdout) (optInputFiles opts)
+       mapM_ (UTF8.hPutStrLn stdout) (fromMaybe ["-"] $ optInputFiles opts)
        exitSuccess
 
   let isPandocCiteproc (JSONFilter f) = takeBaseName f == "pandoc-citeproc"
@@ -88,9 +88,9 @@ convertWithOpts opts = do
   let filters' = filters ++ [ JSONFilter "pandoc-citeproc" | needsCiteproc ]
 
   let sources = case optInputFiles opts of
-                     []  -> ["-"]
-                     xs | optIgnoreArgs opts -> ["-"]
-                        | otherwise  -> xs
+                     Nothing -> ["-"]
+                     Just xs | optIgnoreArgs opts -> ["-"]
+                             | otherwise  -> xs
 
   datadir <- case optDataDir opts of
                   Nothing   -> do
@@ -132,7 +132,7 @@ convertWithOpts opts = do
 
   runIO' $ do
     setUserDataDir datadir
-    setInputFiles (optInputFiles opts)
+    setInputFiles (fromMaybe ["-"] (optInputFiles opts))
     setOutputFile (optOutputFile opts)
 
     -- assign reader and writer based on options and filenames
@@ -151,7 +151,7 @@ convertWithOpts opts = do
 
     when (pdfOutput && readerName == "latex") $
       case (optInputFiles opts) of
-        (inputFile:_) -> report $ UnusualConversion $ T.pack $
+        Just (inputFile:_) -> report $ UnusualConversion $ T.pack $
           "to convert a .tex file to PDF, you get better results by using pdflatex "
             <> "(or lualatex or xelatex) directly, try `pdflatex " <> inputFile
             <> "` instead of `pandoc " <> inputFile <> " -o " <> outputFile <> "`."

@@ -85,7 +85,7 @@ data Opt = Opt
     , optMetadata              :: Meta -- ^ Metadata fields to set
     , optMetadataFiles         :: [FilePath]  -- ^ Name of YAML metadata files
     , optOutputFile            :: Maybe FilePath  -- ^ Name of output file
-    , optInputFiles            :: [FilePath] -- ^ Names of input files
+    , optInputFiles            :: Maybe [FilePath] -- ^ Names of input files
     , optNumberSections        :: Bool    -- ^ Number sections in LaTeX
     , optNumberOffset          :: [Int]   -- ^ Starting number for sections
     , optSectionDivs           :: Bool    -- ^ Put sections in div tags in HTML
@@ -200,16 +200,17 @@ doOpt (k',v) = do
     "output-file" ->
       parseYAML v >>= \x -> return (\o -> o{ optOutputFile = unpack <$> x })
     "input-files" ->
-      parseYAML v >>= \x -> return (\o -> o{ optInputFiles = optInputFiles o <>
-                                              map unpack x })
+      parseYAML v >>= \x -> return (\o -> o{ optInputFiles =
+                                              optInputFiles o <>
+                                              Just (map unpack x) })
     "input-file" -> -- allow either a list or a single value
       (parseYAML v >>= \x -> return (\o -> o{ optInputFiles =
                                                 optInputFiles o <>
-                                                map unpack x }))
+                                                Just (map unpack x) }))
       <|>
       (parseYAML v >>= \x -> return (\o -> o{ optInputFiles =
                                                 optInputFiles o <>
-                                                [unpack x] }))
+                                                Just [unpack x] }))
     "number-sections" ->
       parseYAML v >>= \x -> return (\o -> o{ optNumberSections = x })
     "number-offset" ->
@@ -390,7 +391,7 @@ defaultOpts = Opt
     , optMetadata              = mempty
     , optMetadataFiles         = []
     , optOutputFile            = Nothing
-    , optInputFiles            = []
+    , optInputFiles            = Nothing
     , optNumberSections        = False
     , optNumberOffset          = [0,0,0,0,0,0]
     , optSectionDivs           = False

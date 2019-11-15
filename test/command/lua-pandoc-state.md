@@ -2,7 +2,7 @@
 % pandoc --lua-filter=command/lua-pandoc-state.lua --data-dir=foo
 Hello
 ^D
-   # input files: 0
+   # input files: 1
      output file: nil
 # request header: 0
    resource path: .

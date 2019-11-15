@@ -63,7 +63,7 @@ optToOutputSettings opts = do
 
   when (optDumpArgs opts) . liftIO $ do
     UTF8.hPutStrLn stdout outputFile
-    mapM_ (UTF8.hPutStrLn stdout) (optInputFiles opts)
+    mapM_ (UTF8.hPutStrLn stdout) (fromMaybe [] $ optInputFiles opts)
     exitSuccess
 
   epubMetadata <- case optEpubMetadata opts of
@@ -140,7 +140,8 @@ optToOutputSettings opts = do
   variables <-
     return (optVariables opts)
     >>=
-    setListVariableM "sourcefile" (T.pack <$> optInputFiles opts)
+    setListVariableM "sourcefile"
+      (maybe ["-"] (fmap T.pack) (optInputFiles opts))
     >>=
     setVariableM "outputfile" outputFile
     >>=
