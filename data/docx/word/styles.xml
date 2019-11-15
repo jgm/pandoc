@@ -320,14 +320,8 @@
     <w:qFormat />
     <w:pPr>
       <w:spacing w:before="100" w:after="100" />
-      <w:ind w:firstLine="0" />
+      <w:ind w:firstLine="0" w:left="480" w:right="480" />
     </w:pPr>
-    <w:rPr>
-      <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
-      <w:bCs />
-      <w:sz w:val="20" />
-      <w:szCs w:val="20" />
-    </w:rPr>
   </w:style>
   <w:style w:type="paragraph" w:styleId="FootnoteText">
     <w:name w:val="Footnote Text" />
