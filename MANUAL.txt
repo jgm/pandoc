@@ -1433,7 +1433,7 @@ to: html5
 
 # leave blank for output to stdout:
 output-file:
-# leave blank for input from stdin:
+# leave blank for input from stdin, use [] for no input:
 input-files:
 - preface.md
 - content.md

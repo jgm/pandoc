@@ -202,15 +202,16 @@ doOpt (k',v) = do
     "input-files" ->
       parseYAML v >>= \x -> return (\o -> o{ optInputFiles =
                                               optInputFiles o <>
-                                              Just (map unpack x) })
+                                                (map unpack <$> x) })
     "input-file" -> -- allow either a list or a single value
       (parseYAML v >>= \x -> return (\o -> o{ optInputFiles =
                                                 optInputFiles o <>
-                                                Just (map unpack x) }))
+                                                  (map unpack <$> x) }))
       <|>
       (parseYAML v >>= \x -> return (\o -> o{ optInputFiles =
                                                 optInputFiles o <>
-                                                Just [unpack x] }))
+                                                ((\z -> [unpack z]) <$> x)
+                                            }))
     "number-sections" ->
       parseYAML v >>= \x -> return (\o -> o{ optNumberSections = x })
     "number-offset" ->
