@@ -136,6 +136,7 @@ It can convert *to*
   - `opml` ([OPML](http://dev.opml.org/spec2.html))
   - `opendocument` ([OpenDocument](http://opendocument.xml.org))
   - `org` ([Emacs Org mode](http://orgmode.org))
+  - `pdf` ([PDF](https://www.adobe.com/pdf/))
   - `plain` (plain text),
   - `pptx`
     ([PowerPoint](https://en.wikipedia.org/wiki/Microsoft_PowerPoint)
