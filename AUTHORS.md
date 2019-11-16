@@ -39,6 +39,7 @@
 - Carlos Sosa
 - Chris Black
 - Christian Conkle
+- Christian Despres
 - Christoffer Ackelman
 - Christoffer Sawicki
 - Clare Macrae
@@ -67,7 +68,7 @@
 - Étienne Bersac
 - Felix Yan
 - Félix Baylac-Jacqué
-- Florian B
+- Florian Beeres
 - Florian Eitel
 - Florian Klink
 - Francesco Occhipinti
@@ -243,6 +244,7 @@
 - ebiim
 - iandol
 - infinity0x
+- jeongminkim-islab
 - kaizshang91
 - lux-lth
 - lwolfsonkin
