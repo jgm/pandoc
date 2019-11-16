@@ -229,8 +229,7 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
   -- handleGivenWidths wraps the given blocks in order for them to fit
   -- in cells with given widths. the returned content can be
   -- concatenated with borders and frames
-  let handleGivenWidths widths' = do
-        let widthsInChars' = officialWidthsInChars widths'
+  let handleGivenWidthsInChars widthsInChars' = do
         -- replace page width (in columns) in the options with a
         -- given width if smaller (adjusting by two)
         let useWidth w = opts{writerColumns = min (w - 2) (writerColumns opts)}
@@ -241,6 +240,8 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
              (\cs -> zipWithM blocksToDoc columnOptions cs)
              rows
         return (widthsInChars', rawHeaders', rawRows')
+  let handleGivenWidths widths' = handleGivenWidthsInChars
+                                     (officialWidthsInChars widths')
   -- handleFullWidths tries to wrap cells to the page width or even
   -- more in cases where `--wrap=none`. thus the content here is left
   -- as wide as possible
@@ -262,9 +263,22 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
   let handleZeroWidths widths' = do
         (widthsInChars', rawHeaders', rawRows') <- handleFullWidths widths'
         if foldl' (+) 0 widthsInChars' > writerColumns opts
-           then -- use even widths
-                handleGivenWidths
-                  (replicate numcols (1.0 / fromIntegral numcols) :: [Double])
+           then do -- use even widths except for thin columns
+             let evenCols  = max 5
+                              (((writerColumns opts - 1) `div` numcols) - 3)
+             let (numToExpand, colsToExpand) =
+                   foldr (\w (n, tot) -> if w < evenCols
+                                            then (n, tot + (evenCols - w))
+                                            else (n + 1, tot))
+                                   (0,0) widthsInChars'
+             let expandAllowance = colsToExpand `div` numToExpand
+             let newWidthsInChars = map (\w -> if w < evenCols
+                                                  then w
+                                                  else min
+                                                       (evenCols + expandAllowance)
+                                                       w)
+                                        widthsInChars'
+             handleGivenWidthsInChars newWidthsInChars
            else return (widthsInChars', rawHeaders', rawRows')
   -- render the contents of header and row cells differently depending
   -- on command line options, widths given in this specific table, and

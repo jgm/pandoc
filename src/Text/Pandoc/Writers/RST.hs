@@ -296,7 +296,13 @@ blockToRST (Table caption aligns widths headers rows) = do
   opts <- gets stOptions
   let isSimple = all (== 0) widths
   tbl <- if isSimple
-            then simpleTable opts blocksToDoc headers rows
+            then do
+              tbl' <- simpleTable opts blocksToDoc headers rows
+              if offset tbl' > writerColumns opts
+                 then gridTable opts blocksToDoc (all null headers)
+                      (map (const AlignDefault) aligns) widths
+                      headers rows
+                 else return tbl'
             else gridTable opts blocksToDoc (all null headers)
                   (map (const AlignDefault) aligns) widths
                   headers rows
