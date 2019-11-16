@@ -138,7 +138,7 @@
       <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
       <w:b />
       <w:bCs />
-      <w:color w:val="345A8A" w:themeColor="accent1" w:themeShade="B5" />
+      <w:color w:val="4F81BD" w:themeColor="accent1" />
       <w:sz w:val="32" />
       <w:szCs w:val="32" />
     </w:rPr>
@@ -161,8 +161,8 @@
       <w:b />
       <w:bCs />
       <w:color w:val="4F81BD" w:themeColor="accent1" />
-      <w:sz w:val="32" />
-      <w:szCs w:val="32" />
+      <w:sz w:val="28" />
+      <w:szCs w:val="28" />
     </w:rPr>
   </w:style>
   <w:style w:type="paragraph" w:styleId="Heading3">
@@ -183,8 +183,8 @@
       <w:b />
       <w:bCs />
       <w:color w:val="4F81BD" w:themeColor="accent1" />
-      <w:sz w:val="28" />
-      <w:szCs w:val="28" />
+      <w:sz w:val="24" />
+      <w:szCs w:val="24" />
     </w:rPr>
   </w:style>
   <w:style w:type="paragraph" w:styleId="Heading4">
@@ -202,7 +202,7 @@
     </w:pPr>
     <w:rPr>
       <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
-      <w:b />
+      <w:i />
       <w:bCs />
       <w:color w:val="4F81BD" w:themeColor="accent1" />
       <w:sz w:val="24" />
@@ -224,7 +224,6 @@
     </w:pPr>
     <w:rPr>
       <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
-      <w:i />
       <w:iCs />
       <w:color w:val="4F81BD" w:themeColor="accent1" />
       <w:sz w:val="24" />
