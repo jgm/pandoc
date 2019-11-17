@@ -4,26 +4,26 @@
 
   * Improvements in templates system (from doctemplates):
 
-   + Pandoc templates now support a number of new features that
-     have been added in doctemplates: notably, `elseif`, `it`,
-     partials, filters, and syntax to control nesting and reflowing of
-     text.  These changes make pandoc more suitable out of the
-     box for generating plain-text documents from data in YAML
-     metadata.  It can create enumerated lists and even tabular
-     structures.
-   + We now used templates parameterized on doclayout Doc types.
-     The main impact of this change is better reflowing of
-     content interpolated into templates.  Previously,
-     interpolated variables were rendered independently and
-     intepolated as strings, which could lead to overly long
-     lines. Now the templates interpolated as Doc values which
-     may include breaking spaces, and reflowing occurs after
-     template interpolation rather than before.
-   + Remove code from the LaTeX, Docbook, and JATS writers that
-     looked in the template for strings to determine whether it
-     is a book or an article, or whether csquotes is used. This
-     was always kludgy and unreliable.
-   + Change template code to use new API for doctemplates.
+    + Pandoc templates now support a number of new features that
+      have been added in doctemplates: notably, `elseif`, `it`,
+      partials, filters, and syntax to control nesting and reflowing of
+      text.  These changes make pandoc more suitable out of the
+      box for generating plain-text documents from data in YAML
+      metadata.  It can create enumerated lists and even tabular
+      structures.
+    + We now used templates parameterized on doclayout Doc types.
+      The main impact of this change is better reflowing of
+      content interpolated into templates.  Previously,
+      interpolated variables were rendered independently and
+      intepolated as strings, which could lead to overly long
+      lines. Now the templates interpolated as Doc values which
+      may include breaking spaces, and reflowing occurs after
+      template interpolation rather than before.
+    + Remove code from the LaTeX, Docbook, and JATS writers that
+      looked in the template for strings to determine whether it
+      is a book or an article, or whether csquotes is used. This
+      was always kludgy and unreliable.
+    + Change template code to use new API for doctemplates.
 
   * Add `--defaults`/`-d` option.  This adds the ability to specify
     a collection of default values for options in a YAML file. For
