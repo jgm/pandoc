@@ -344,10 +344,6 @@
 
     + Add RTL support (Alexander Krotov, #5551).
 
-  * JIRA writer:
-
-    + Remove escapeStringForJira for code blocks (Jan-Otto Kröpke).
-
   * Man writer:
 
     + Suppress non-absolute link URLs (#5770).  Absolute URLs are
@@ -373,8 +369,9 @@
 
   * Jira writer:
 
-     + Remove extraneous newline after single-line block quotes
-       (#5858, Albert Krewinkel).
+    + Remove escapeStringForJira for code blocks (Jan-Otto Kröpke).
+    + Remove extraneous newline after single-line block quotes
+      (#5858, Albert Krewinkel).
 
   * OpenDocument writer:
 
