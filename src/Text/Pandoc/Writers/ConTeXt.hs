@@ -40,6 +40,7 @@ data WriterState =
               , stOrderedListLevel :: Int  -- level of ordered list
               , stOptions          :: WriterOptions -- writer options
               , stHasCslRefs       :: Bool -- has CSL citations
+              , stCslHangingIndent :: Bool -- CSL hanging indent
               }
 
 data Tabl = Xtb | Ntb deriving (Show, Eq)
@@ -54,6 +55,7 @@ writeConTeXt options document =
                                        , stOrderedListLevel = 0
                                        , stOptions = options
                                        , stHasCslRefs = False
+                                       , stCslHangingIndent = False
                                        }
   in evalStateT (pandocToConTeXt options document) defaultWriterState
 
@@ -93,6 +95,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                 $ defField "layout" layoutFromMargins
                 $ defField "number-sections" (writerNumberSections options)
                 $ defField "csl-refs" (stHasCslRefs st)
+                $ defField "csl-hanging-indent" (stCslHangingIndent st)
                 $ maybe id (\l ->
                      defField "context-lang" (literal l :: Doc Text)) mblang
                 $ (case T.unpack . render Nothing <$>
@@ -187,8 +190,9 @@ blockToConTeXt (CodeBlock _ str) =
 blockToConTeXt b@(RawBlock f str)
   | f == Format "context" || f == Format "tex" = return $ literal str <> blankline
   | otherwise = empty <$ report (BlockNotRendered b)
-blockToConTeXt (Div ("refs",_,_) bs) = do
-  modify $ \st -> st{ stHasCslRefs = True }
+blockToConTeXt (Div ("refs",classes,_) bs) = do
+  modify $ \st -> st{ stHasCslRefs = True
+                    , stCslHangingIndent = "hanging-indent" `elem` classes }
   inner <- blockListToConTeXt bs
   return $ "\\startcslreferences" $$ inner $$ "\\stopcslreferences"
 blockToConTeXt (Div (ident,_,kvs) bs) = do
