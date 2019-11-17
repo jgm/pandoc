@@ -445,55 +445,55 @@ Definition Lists
 .pdfhref M "definition-lists"
 .LP
 Tight using spaces:
-.IP "apple"
+.IP "\f[B]apple\f[R]"
 red fruit
 .RS
 .RE
-.IP "orange"
+.IP "\f[B]orange\f[R]"
 orange fruit
 .RS
 .RE
-.IP "banana"
+.IP "\f[B]banana\f[R]"
 yellow fruit
 .RS
 .RE
 .LP
 Tight using tabs:
-.IP "apple"
+.IP "\f[B]apple\f[R]"
 red fruit
 .RS
 .RE
-.IP "orange"
+.IP "\f[B]orange\f[R]"
 orange fruit
 .RS
 .RE
-.IP "banana"
+.IP "\f[B]banana\f[R]"
 yellow fruit
 .RS
 .RE
 .LP
 Loose:
-.IP "apple"
+.IP "\f[B]apple\f[R]"
 red fruit
 .RS
 .RE
-.IP "orange"
+.IP "\f[B]orange\f[R]"
 orange fruit
 .RS
 .RE
-.IP "banana"
+.IP "\f[B]banana\f[R]"
 yellow fruit
 .RS
 .RE
 .LP
 Multiple blocks with italics:
-.IP "\f[I]apple\f[R]"
+.IP "\f[B]\f[BI]apple\f[B]\f[R]"
 red fruit
 .RS
 .PP
 contains seeds, crisp, pleasant to taste
 .RE
-.IP "\f[I]orange\f[R]"
+.IP "\f[B]\f[BI]orange\f[B]\f[R]"
 orange fruit
 .RS
 .IP
@@ -509,14 +509,14 @@ orange block quote
 .RE
 .LP
 Multiple definitions, tight:
-.IP "apple"
+.IP "\f[B]apple\f[R]"
 red fruit
 .RS
 .RE
 computer
 .RS
 .RE
-.IP "orange"
+.IP "\f[B]orange\f[R]"
 orange fruit
 .RS
 .RE
@@ -525,14 +525,14 @@ bank
 .RE
 .LP
 Multiple definitions, loose:
-.IP "apple"
+.IP "\f[B]apple\f[R]"
 red fruit
 .RS
 .RE
 computer
 .RS
 .RE
-.IP "orange"
+.IP "\f[B]orange\f[R]"
 orange fruit
 .RS
 .RE
@@ -541,14 +541,14 @@ bank
 .RE
 .LP
 Blank line after term, indented marker, alternate markers:
-.IP "apple"
+.IP "\f[B]apple\f[R]"
 red fruit
 .RS
 .RE
 computer
 .RS
 .RE
-.IP "orange"
+.IP "\f[B]orange\f[R]"
 orange fruit
 .RS
 .IP " 1." 4

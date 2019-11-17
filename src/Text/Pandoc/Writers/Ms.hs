@@ -308,7 +308,8 @@ definitionListItemToMs :: PandocMonad m
                        -> ([Inline],[[Block]])
                        -> MS m (Doc Text)
 definitionListItemToMs opts (label, defs) = do
-  labelText <- inlineListToMs' opts $ map breakToSpace label
+  labelText <- withFontFeature 'B' $
+                 inlineListToMs' opts $ map breakToSpace label
   contents <- if null defs
                  then return empty
                  else liftM vcat $ forM defs $ \blocks -> do
