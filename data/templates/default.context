@@ -105,6 +105,22 @@ $endif$
 \setupxtable[body][]
 \setupxtable[foot][bottomframe=on]
 
+$if(csl-refs)$
+\newdimen\cslhangindent
+\cslhangindent=1.5em
+\definestartstop [cslreferences] [
+	$if(csl-hanging-indent)$
+	before={%
+		\setupnarrower[left=\cslhangindent]
+    	\startnarrower[left]%
+    	\setupindenting[-\leftskip,yes,first]%
+    	%\setuphead[chapter,section][indentnext=yes]%
+		\indentation%
+  	},
+  	after=\stopnarrower,
+	$endif$
+]
+$endif$
 $if(includesource)$
 $for(sourcefile)$
 \attachment[file=$curdir$/$sourcefile$,method=hidden]
