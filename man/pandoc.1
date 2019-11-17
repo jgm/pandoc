@@ -506,26 +506,21 @@ Print version.
 \f[B]\f[CB]-h\f[B]\f[R], \f[B]\f[CB]--help\f[B]\f[R]
 Show usage message.
 .SS Reader options
-.PP
-\f[C]--shift-heading-level-by=\f[R]\f[I]NUMBER\f[R]
-.IP
-.nf
-\f[C]
+.TP
+\f[B]\f[CB]--shift-heading-level-by=\f[B]\f[R]\f[I]NUMBER\f[R]
 Shift heading levels by a positive or negative integer.
-For example, with \[ga]--shift-heading-level-by=-1\[ga], level 2
-headings become level 1 headings, and level 3 headings
-become level 2 headings.  Headings cannot have a level
-less than 1, so a heading that would be shifted below level 1
-becomes a regular paragraph.  Exception: with a shift of -1,
-a level-1 heading at the beginning of the document
-replaces the metadata title. Conversely, with a shift
-of +1, a nonempty metadata title becomes a level-1 heading at
-the beginning of the document.  \[ga]--shift-heading-level-by=-1\[ga]
-is a good choice when converting HTML or Markdown documents that
-use an initial level-1 heading for the document title and
-level-2+ headings for sections.
-\f[R]
-.fi
+For example, with \f[C]--shift-heading-level-by=-1\f[R], level 2
+headings become level 1 headings, and level 3 headings become level 2
+headings.
+Headings cannot have a level less than 1, so a heading that would be
+shifted below level 1 becomes a regular paragraph.
+Exception: with a shift of -1, a level-1 heading at the beginning of the
+document replaces the metadata title.
+Conversely, with a shift of +1, a nonempty metadata title becomes a
+level-1 heading at the beginning of the document.
+\f[C]--shift-heading-level-by=-1\f[R] is a good choice when converting
+HTML or Markdown documents that use an initial level-1 heading for the
+document title and level-2+ headings for sections.
 .TP
 \f[B]\f[CB]--base-header-level=\f[B]\f[R]\f[I]NUMBER\f[R]
 \f[I]Deprecated. Use \f[CI]--shift-heading-level-by\f[I] instead.\f[R]
