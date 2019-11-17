@@ -27,7 +27,7 @@
 .\" line height
 .nr VS 12p
 .\" font family: A, BM, H, HN, N, P, T, ZCM
-.fam T
+.fam P
 .\" paragraph indent
 .nr PI 0m
 .\" interparagraph space
