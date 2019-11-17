@@ -36,6 +36,8 @@ $if(layout)$
 $endif$
 $if(pagenumbering)$
 \setuppagenumbering[$for(pagenumbering)$$pagenumbering$$sep$,$endfor$]
+$else$
+\setuppagenumbering[location={footer,middle}]
 $endif$
 $if(pdfa)$
 % attempt to generate PDF/A

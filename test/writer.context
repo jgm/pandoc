@@ -11,6 +11,7 @@
 \placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
 \setupinteractionscreen[option=bookmark]
 
+\setuppagenumbering[location={footer,middle}]
 \setupbackend[export=yes]
 \setupstructure[state=start,method=auto]
 
