@@ -33,7 +33,7 @@ $endif$
 .\" font family: A, BM, H, HN, N, P, T, ZCM
 .fam $if(fontfamily)$$fontfamily$$else$T$endif$
 .\" paragraph indent
-.nr PI $if(indent)$$indent$$else$2m$endif$
+.nr PI $if(indent)$$indent$$else$0m$endif$
 .\" interparagraph space
 .nr PD 0.33v
 .\" footnote width
@@ -57,6 +57,9 @@ $endif$
 .\" comment these out if you want a dot after section numbers:
 .als SN SN-NO-DOT
 .als SN-STYLE SN-NO-DOT
+.\" page numbers in footer, centered
+.rm CH
+.ds CF %
 .\" pdf outline fold level
 .nr PDFOUTLINE.FOLDLEVEL 3
 .\" start out in outline view

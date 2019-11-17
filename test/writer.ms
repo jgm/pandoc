@@ -29,7 +29,7 @@
 .\" font family: A, BM, H, HN, N, P, T, ZCM
 .fam T
 .\" paragraph indent
-.nr PI 2m
+.nr PI 0m
 .\" interparagraph space
 .nr PD 0.33v
 .\" footnote width
@@ -49,6 +49,9 @@
 .\" comment these out if you want a dot after section numbers:
 .als SN SN-NO-DOT
 .als SN-STYLE SN-NO-DOT
+.\" page numbers in footer, centered
+.rm CH
+.ds CF %
 .\" pdf outline fold level
 .nr PDFOUTLINE.FOLDLEVEL 3
 .\" start out in outline view
