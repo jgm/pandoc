@@ -470,8 +470,8 @@ inlineToConTeXt (Span (_,_,kvs) ils) = do
                       Just "ltr" -> braces $ "\\lefttoright " <> txt
                       _          -> txt
       wrapLang txt = case mblang of
-                       Just lng -> "\\start\\language[" <> literal lng
-                                      <> "]" <> txt <> "\\stop "
+                       Just lng -> braces ("\\language" <>
+                                           brackets (literal lng) <> txt)
                        Nothing -> txt
   (wrapLang . wrapDir) <$> inlineListToConTeXt ils
 
