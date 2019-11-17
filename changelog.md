@@ -266,6 +266,10 @@
       using `pdfaiccprofile` and `pdfaintent`.
     + Unit tests: adjust code property to avoid an irrelevant
       failure involving inline code with two consecutive newlines.
+    + Set `csl-hanging-indent` variable if needed.
+    + Use special environment for CSL references.
+    + Use braces, not start/stop, for inline language tags.
+      This prevents unwanted gobbling of spaces.
 
   * HTML writer:
 
@@ -357,6 +361,7 @@
   * Ms writer:
 
     + Use `.LP` instead of `.PP` for line block (#5588).
+    + Use boldface for definition terms in DefinitionLists.
 
   * JATS writer:
 
@@ -748,8 +753,18 @@
       It no longer works with the latest LaTeX kernel and graphicx,
       so we have removed it. Future versions of graphicx will handle
       these filenames without the need for `grffile`.
-    + revealjs template: add navigationMode (Mauro Bieg, #5657).
-    + muse template: handle multiple authors better.
+    + default.context: add a saner default for page numbers.
+      Previously they appeared centered at the top of the page;
+      now we put them centered at the bottom, unless the `pagenumbering`
+      variable is set.
+    + default.context: define a start-stop-pair `cslreferences` to
+      allow for hanging indents in the bibliography (#5875, Denis Maier).
+    + default.ms: update defaults.  Use Palatino font, use slightly
+      wider interparagraph space, don't indent paragraphs,
+      and put page numbers on the bottom.  This brings ms output
+      closer to default LaTeX output.
+    + default.revealjs: add navigationMode (Mauro Bieg, #5657).
+    + default.muse: handle multiple authors better.
     + docbook4, docbook5 templates: add indentation to body.
     + HTML-based templates: use `styles.html` partial to avoid
       code duplication.
