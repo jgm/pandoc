@@ -488,7 +488,7 @@ header when requesting a document from a URL:
 
 `--shift-heading-level-by=`*NUMBER*
 
-    Shift heading levels by a positive or negative integer.
+:   Shift heading levels by a positive or negative integer.
     For example, with `--shift-heading-level-by=-1`, level 2
     headings become level 1 headings, and level 3 headings
     become level 2 headings.  Headings cannot have a level
