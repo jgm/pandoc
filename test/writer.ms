@@ -31,7 +31,7 @@
 .\" paragraph indent
 .nr PI 0m
 .\" interparagraph space
-.nr PD 0.33v
+.nr PD 0.4v
 .\" footnote width
 .nr FL \n[LL]
 .\" footnote point size
