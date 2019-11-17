@@ -35,7 +35,7 @@ $endif$
 .\" paragraph indent
 .nr PI $if(indent)$$indent$$else$0m$endif$
 .\" interparagraph space
-.nr PD 0.33v
+.nr PD 0.4v
 .\" footnote width
 .nr FL \n[LL]
 .\" footnote point size
