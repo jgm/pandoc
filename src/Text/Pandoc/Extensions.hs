@@ -462,6 +462,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_tex_math_double_backslash
     , Ext_literate_haskell
     , Ext_epub_html_exts
+    , Ext_smart
     ]
   getAll "html4"           = getAll "html"
   getAll "html5"           = getAll "html"
