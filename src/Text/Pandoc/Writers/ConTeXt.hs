@@ -39,6 +39,7 @@ data WriterState =
   WriterState { stNextRef          :: Int  -- number of next URL reference
               , stOrderedListLevel :: Int  -- level of ordered list
               , stOptions          :: WriterOptions -- writer options
+              , stHasCslRefs       :: Bool -- has CSL citations
               }
 
 data Tabl = Xtb | Ntb deriving (Show, Eq)
@@ -52,6 +53,7 @@ writeConTeXt options document =
   let defaultWriterState = WriterState { stNextRef = 1
                                        , stOrderedListLevel = 0
                                        , stOptions = options
+                                       , stHasCslRefs = False
                                        }
   in evalStateT (pandocToConTeXt options document) defaultWriterState
 
@@ -76,6 +78,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                               ,("bottom","margin-bottom")
                               ]
   mblang <- fromBCP47 (getLang options meta)
+  st <- get
   let context =   defField "toc" (writerTableOfContents options)
                 $ defField "placelist"
                    (mconcat . intersperse ("," :: Doc Text) $
@@ -89,6 +92,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                 $ defField "body" main
                 $ defField "layout" layoutFromMargins
                 $ defField "number-sections" (writerNumberSections options)
+                $ defField "csl-refs" (stHasCslRefs st)
                 $ maybe id (\l ->
                      defField "context-lang" (literal l :: Doc Text)) mblang
                 $ (case T.unpack . render Nothing <$>
@@ -183,6 +187,10 @@ blockToConTeXt (CodeBlock _ str) =
 blockToConTeXt b@(RawBlock f str)
   | f == Format "context" || f == Format "tex" = return $ literal str <> blankline
   | otherwise = empty <$ report (BlockNotRendered b)
+blockToConTeXt (Div ("refs",_,_) bs) = do
+  modify $ \st -> st{ stHasCslRefs = True }
+  inner <- blockListToConTeXt bs
+  return $ "\\startcslreferences" $$ inner $$ "\\stopcslreferences"
 blockToConTeXt (Div (ident,_,kvs) bs) = do
   let align dir txt = "\\startalignment[" <> dir <> "]" $$ txt $$ "\\stopalignment"
   mblang <- fromBCP47 (lookup "lang" kvs)
