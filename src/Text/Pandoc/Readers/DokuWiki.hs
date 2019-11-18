@@ -31,7 +31,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
-import Text.Pandoc.Shared (crFilter, trim, underlineSpan, tshow)
+import Text.Pandoc.Shared (crFilter, trim, underlineSpan, stringify, tshow)
 
 -- | Read DokuWiki from an input string and return a Pandoc document.
 readDokuWiki :: PandocMonad m
@@ -179,7 +179,7 @@ nestedText end = innerSpace <|> countChar 1 nonspaceChar
     innerSpace = try $ many1Char spaceChar <* notFollowedBy end
 
 monospaced :: PandocMonad m => DWParser m B.Inlines
-monospaced = try $ B.code <$> enclosed (string "''") nestedText
+monospaced = try $ B.code . (T.concat . map stringify . B.toList) <$> enclosed (string "''") nestedInlines
 
 subscript :: PandocMonad m => DWParser m B.Inlines
 subscript = try $ B.subscript <$> between (string "<sub>") (try $ string "</sub>") nestedInlines
