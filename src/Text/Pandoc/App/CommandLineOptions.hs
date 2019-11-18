@@ -584,7 +584,8 @@ options =
                   (\arg opt ->
                     return opt {
                        optVariables =
-                         setVariable "title-prefix" arg $ optVariables opt })
+                         setVariable "title-prefix" arg $ optVariables opt,
+                       optStandalone = True })
                   "STRING")
                  "" -- "String to prefix to HTML window title"
 

@@ -332,7 +332,8 @@ doOpt (k',v) = do
     "file-scope" ->
       parseYAML v >>= \x -> return (\o -> o{ optFileScope = x })
     "title-prefix" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTitlePrefix = x })
+      parseYAML v >>= \x -> return (\o -> o{ optTitlePrefix = x,
+                                             optStandalone = True })
     "css" ->
       (parseYAML v >>= \x -> return (\o -> o{ optCss = optCss o <>
                                                  map unpack x }))
