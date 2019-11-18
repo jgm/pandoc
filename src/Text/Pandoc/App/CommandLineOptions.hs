@@ -34,7 +34,7 @@ import Data.List (intercalate, sort)
 import Data.List (isPrefixOf)
 #endif
 #endif
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isJust)
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)
 import System.Console.GetOpt
 import System.Environment (getArgs, getProgName)
@@ -89,7 +89,14 @@ parseOptions options' defaults = do
                  [] -> Nothing
                  xs -> Just xs
   return $ opts{ optInputFiles =
-                   map normalizePath <$> (optInputFiles opts <> mbArgs) }
+                   map normalizePath <$> (optInputFiles opts <> mbArgs)
+               , optStandalone = -- certain other options imply standalone
+                   optStandalone opts ||
+                     isJust (optTemplate opts) ||
+                     optSelfContained opts ||
+                     not (null (optIncludeInHeader opts)) ||
+                     not (null (optIncludeBeforeBody opts)) ||
+                     not (null (optIncludeAfterBody opts)) }
 
 latexEngines :: [String]
 latexEngines  = ["pdflatex", "lualatex", "xelatex", "latexmk", "tectonic"]
@@ -184,8 +191,7 @@ options =
     , Option "" ["template"]
                  (ReqArg
                   (\arg opt ->
-                     return opt{ optTemplate = Just (normalizePath arg),
-                                 optStandalone = True })
+                     return opt{ optTemplate = Just (normalizePath arg) })
                   "FILE")
                  "" -- "Use custom template"
 
@@ -283,24 +289,21 @@ options =
     , Option "H" ["include-in-header"]
                  (ReqArg
                   (\arg opt -> return opt{ optIncludeInHeader =
-                                             optIncludeInHeader opt ++ [arg],
-                                            optStandalone = True })
+                                             optIncludeInHeader opt ++ [arg] })
                   "FILE")
                  "" -- "File to include at end of header (implies -s)"
 
     , Option "B" ["include-before-body"]
                  (ReqArg
                   (\arg opt -> return opt{ optIncludeBeforeBody =
-                                            optIncludeBeforeBody opt ++ [arg],
-                                           optStandalone = True })
+                                            optIncludeBeforeBody opt ++ [arg] })
                   "FILE")
                  "" -- "File to include before document body"
 
     , Option "A" ["include-after-body"]
                  (ReqArg
                   (\arg opt -> return opt{ optIncludeAfterBody =
-                                            optIncludeAfterBody opt ++ [arg],
-                                           optStandalone = True })
+                                            optIncludeAfterBody opt ++ [arg] })
                   "FILE")
                  "" -- "File to include after document body"
 
@@ -406,8 +409,7 @@ options =
 
     , Option "" ["self-contained"]
                  (NoArg
-                  (\opt -> return opt { optSelfContained = True,
-                                        optStandalone = True }))
+                  (\opt -> return opt { optSelfContained = True }))
                  "" -- "Make slide shows include all the needed js and css"
 
     , Option "" ["request-header"]
@@ -582,8 +584,7 @@ options =
                   (\arg opt ->
                     return opt {
                        optVariables =
-                         setVariable "title-prefix" arg $ optVariables opt,
-                       optStandalone = True })
+                         setVariable "title-prefix" arg $ optVariables opt })
                   "STRING")
                  "" -- "String to prefix to HTML window title"
 

@@ -1032,8 +1032,8 @@ header when requesting a document from a URL:
 
 :   Specify *STRING* as a prefix at the beginning of the title
     that appears in the HTML header (but not in the title as it
-    appears at the beginning of the HTML body).  Implies
-    `--standalone`.
+    appears at the beginning of the HTML body).  This option
+    should normally be used with `--standalone`.
 
 `-c` *URL*, `--css=`*URL*
 
