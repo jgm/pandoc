@@ -150,6 +150,10 @@
     + Do not split series of asterisks into symbols and emphasis (#5821).
     + Do not terminate emphasis on `*` not followed by space.
 
+  * DokuWiki reader:
+
+    + Parse markup inside monospace ('') (#5916, Alexander Krotov).
+
   * Docx reader:
 
     + Move style-parsing-specific code to a new unexported module,
