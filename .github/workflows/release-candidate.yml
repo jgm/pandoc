@@ -32,11 +32,11 @@ jobs:
           - osarch: "windows-x86_64"
             arch: "x64"
             choco_opts: ""
-            stack_opts: ""
+            stack_opts: "-j1"
           - osarch: "windows-i386"
             arch: "x86"
             choco_opts: "--x86"
-            stack_opts: "--flag hslua:lua_32bits"
+            stack_opts: "-j1 --flag hslua:lua_32bits"
 
     steps:
     - uses: actions/checkout@v1
