@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "November 16, 2019" "pandoc 2.8"
+.TH PANDOC 1 "November 18, 2019" "pandoc 2.8"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -2137,10 +2137,9 @@ with a short line length.$\[ti]$
 .fi
 .SS Filters
 .PP
-A filter transforms the value of a variable.
+A filter transforms the value of a variable or partial.
 Filters are specified using a slash (\f[C]/\f[R]) between the variable
-name and the filter name.
-They may go anywhere a variable can go.
+name (or partial) and the filter name.
 Example:
 .IP
 .nf
@@ -2152,6 +2151,8 @@ $endfor$
 $for(metadata/pairs)$
 - $it.key$: $it.value$
 $endfor$
+
+$employee:name()/uppercase$
 \f[R]
 .fi
 .PP
@@ -2195,6 +2196,9 @@ for a textual value, number of elements for a map or array.
 .IP \[bu] 2
 \f[C]reverse\f[R]: Reverses a textual value or array, and has no effect
 on other values.
+.IP \[bu] 2
+\f[C]chomp\f[R]: Removes trailing newlines (and breakable space) from a
+textual value, and has no effect on other values.
 .IP \[bu] 2
 \f[C]alpha\f[R]: Converts a textual value that can be read as an integer
 into a lowercase alphabetic character \f[C]a..z\f[R] (mod 26), and has
