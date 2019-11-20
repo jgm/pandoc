@@ -990,7 +990,7 @@
       screen-readers would read it twice, see #4737.
     + Don't add variation selector if it's already there.
       This fixes round-trip failures.
-    + Prevent gratuitious emojification on iOS (#5469).
+    + Prevent gratuitous emojification on iOS (#5469).
       iOS chooses to render a number of Unicode entities, including '↩', as
       big colorful emoji.  This can be defeated by appending Unicode
       VARIATION SELECTOR-15'/'VARIATION SELECTOR-16'.  So we now append this
@@ -2258,7 +2258,7 @@
 
   * `--ascii` now works with LaTeX output. 100% ASCII output can't be
     guaranteed, but the writer will use commands like `\"{a}` and `\l`
-    whenever possible, to avoid emiting a non-ASCII character.
+    whenever possible, to avoid emitting a non-ASCII character.
 
   * For HTML5 output, `--ascii` now uses HTML5 character reference
     entities rather than numerical entities.
@@ -3790,7 +3790,7 @@
   * JATS writer: Remove extraneous, significant whitespace (#4335,
     Nokome Bentley).
 
-  * html2pdf: inject base tag wih current working directory (#4413, Mauro
+  * html2pdf: inject base tag with current working directory (#4413, Mauro
     Bieg).  This helps ensure that linked resources are included.
 
   * Add Semigroup instances for everything for which we defined a
@@ -6742,7 +6742,7 @@
     + Allow `]` inside group in option brackets (#3857).
     + lstinline with braces can be used (verb cannot be used with braces)
       (Marc Schreiber, #3535).
-    + Fix keyval funtion: pandoc did not parse options in braces correctly
+    + Fix keyval function: pandoc did not parse options in braces correctly
       (Marc Schreiber, #3642).
     + When parsing raw LaTeX commands, include trailing space (#1773).
       Otherwise things like `\noindent foo` break and turn into
@@ -6834,7 +6834,7 @@
       parse, the parser was applied too often, consuming too much of the
       input. This only affects `many1Till p end` where `p` matches on a
       prefix of `end`.
-    + Provide `parseFromString` (#3690).  This is a verison of
+    + Provide `parseFromString` (#3690).  This is a version of
       `parseFromString` specialied to ParserState, which resets
       `stateLastStrPos` at the end.  This is almost always what we want.
       This fixes a bug where `_hi_` wasn't treated as emphasis in the
@@ -7920,7 +7920,7 @@
     + Don't emit HTML for tables unless `raw_html` extension is set (#3154).
       Emit `[TABLE]` if no suitable table formats are enabled and raw HTML
       is disabled.
-    + Check for the `raw_html` extension before emiting a raw HTML block.
+    + Check for the `raw_html` extension before emitting a raw HTML block.
     + Abstract out note/ref function (Jesse Rosenthal).
     + Add ReaderT monad for environment variables (Jesse Rosenthal).
 
@@ -10388,7 +10388,7 @@
     + Parse RST class directives. The class directive accepts one or more
       class names, and creates a Div value with those classes.  If the
       directive has an indented body, the body is parsed as the children of
-      the Div.  If not, the first block folowing the directive is made a
+      the Div.  If not, the first block following the directive is made a
       child of the Div. This differs from the behavior of rst2xml, which
       does not create a Div element.  Instead, the specified classes are
       applied to each child of the directive.  However, most Pandoc Block
