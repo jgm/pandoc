@@ -21,7 +21,7 @@ module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
 import Prelude
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-import Data.Char (isSpace, isAlphaNum)
+import Data.Char (isAlphaNum)
 import Data.Default
 import Data.List (find, intersperse, sortBy, transpose)
 import qualified Data.Map as M
@@ -346,13 +346,13 @@ linkAttributes opts attr =
      else empty
 
 -- | Ordered list start parser for use in Para below.
-olMarker :: Parser Text ParserState Char
+olMarker :: Parser Text ParserState ()
 olMarker = do (start, style', delim) <- anyOrderedListMarker
               if delim == Period &&
                           (style' == UpperAlpha || (style' == UpperRoman &&
                           start `elem` [1, 5, 10, 50, 100, 500, 1000]))
-                          then spaceChar >> spaceChar
-                          else spaceChar
+                          then mzero -- it needs 2 spaces anyway
+                          else eof
 
 -- | True if string begins with an ordered list marker
 beginsWithOrderedListMarker :: Text -> Bool
@@ -419,34 +419,32 @@ blockToMarkdown' opts (Div attrs ils) = do
        where (id',classes',kvs') = attrs
              attrs' = (id',classes',("markdown","1"):kvs')
 blockToMarkdown' opts (Plain inlines) = do
-  contents <- inlineListToMarkdown opts inlines
   -- escape if para starts with ordered list marker
   isPlain <- asks envPlain
-  let colwidth = if writerWrapText opts == WrapAuto
-                    then Just $ writerColumns opts
-                    else Nothing
-  let rendered = render colwidth contents
   let escapeMarker = T.concatMap $ \x -> if x `elemText` ".()"
                                          then T.pack ['\\', x]
                                          else T.singleton x
-  let spaceOrNothing = (not isPlain &&) . maybe True (isSpace . fst) . T.uncons
-  let contents' =
-        case T.uncons rendered of
-          Just ('%', _)
-            | isEnabled Ext_pandoc_title_block opts &&
-              isEnabled Ext_all_symbols_escapable opts -> "\\" <> contents
-          Just ('+', s) | spaceOrNothing s -> "\\" <> contents
-          Just ('*', s) | spaceOrNothing s -> "\\" <> contents
-          Just ('-', s) | spaceOrNothing s -> "\\" <> contents
-          Just ('|', _) | (isEnabled Ext_line_blocks opts ||
-                           isEnabled Ext_pipe_tables opts)
-                          && isEnabled Ext_all_symbols_escapable opts
-                          -> "\\" <> contents
-          _ | not isPlain && beginsWithOrderedListMarker rendered
-              && isEnabled Ext_all_symbols_escapable opts
-              -> literal $ escapeMarker rendered
-            | otherwise -> contents
-  return $ contents' <> cr
+  let startsWithSpace (Space:_)     = True
+      startsWithSpace (SoftBreak:_) = True
+      startsWithSpace _             = False
+  let inlines' =
+        if isPlain
+           then inlines
+           else case inlines of
+                  (Str t:ys)
+                    | not isPlain
+                    , (null ys || startsWithSpace ys)
+                    , beginsWithOrderedListMarker t
+                    -> RawInline (Format "markdown") (escapeMarker t):ys
+                  (Str t:_)
+                    | not isPlain
+                    , t == "+" || t == "-" ||
+                      (t == "%" && isEnabled Ext_pandoc_title_block opts &&
+                                   isEnabled Ext_all_symbols_escapable opts)
+                    -> RawInline (Format "markdown") "\\" : inlines
+                  _ -> inlines
+  contents <- inlineListToMarkdown opts inlines'
+  return $ contents <> cr
 -- title beginning with fig: indicates figure
 blockToMarkdown' opts (Para [Image attr alt (src,tgt@(T.stripPrefix "fig:" -> Just tit))])
   | isEnabled Ext_raw_html opts &&
