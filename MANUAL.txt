@@ -2156,7 +2156,7 @@ These variables change the appearance of PDF slides using [`beamer`].
 ### Variables for PowerPoint
 
 These variables control the visual aspects of a slide show that
-are not easily controled via templates.
+are not easily controlled via templates.
 
 `monofont`
 :   font to use for code.

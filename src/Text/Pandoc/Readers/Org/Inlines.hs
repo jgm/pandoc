@@ -155,7 +155,7 @@ endline = try $ do
 -- first to be implemented here and is almost identical to Markdown's citation
 -- syntax.  The org-ref package is in wide use to handle citations, but the
 -- syntax is a bit limiting and not quite as simple to write.  The
--- semi-offical Org-mode citation syntax is based on John MacFarlane's Pandoc
+-- semi-official Org-mode citation syntax is based on John MacFarlane's Pandoc
 -- sytax and Org-oriented enhancements contributed by Richard Lawrence and
 -- others.  It's dubbed Berkeley syntax due the place of activity of its main
 -- contributors.  All this should be consolidated once an official Org-mode

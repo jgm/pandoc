@@ -51,7 +51,7 @@ be toggled off by disabling the `citation` extension; e.g.
 Berkeley-style citations
 ------------------------
 
-The semi-offical Org-mode citation syntax was designed by Richard
+The semi-official Org-mode citation syntax was designed by Richard
 Lawrence with additions by contributors on the [emacs-orgmode
 mailing list]. It is based on John MacFarlane's pandoc Markdown
 syntax. It's dubbed Berkeley syntax due the place of activity of
@@ -94,7 +94,7 @@ Example:
 ### Parenthetical citation
 
 Citations surrounded by parantheses. The syntax is identical to
-in-text citations, except for the addtional parentheses enclosing
+in-text citations, except for the additional parentheses enclosing
 the initial `cite` tag.
 
     [(cite): See; @Mandelkern1981; and @Watson1953]
