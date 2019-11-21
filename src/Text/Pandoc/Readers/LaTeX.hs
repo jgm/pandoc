@@ -404,6 +404,7 @@ siUnitMap = M.fromList
   , ("mega", str "M")
   , ("meter", str "m")
   , ("metre", str "m")
+  , ("micro", str "μ")
   , ("milli", str "m")
   , ("minute", str "min")
   , ("mmHg", str "mmHg")
