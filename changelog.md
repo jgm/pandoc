@@ -203,6 +203,7 @@
       unnecessarily in e.g. `rawLaTeXBlock`.
     + Add KOMA-Script metadata commands (#5910, Andrew Dunning).
       Add all titling commands to existing definition for `\dedication`.
+    + Parse `\micro` siunitx unit command (#5921, Jose Luis Duran).
 
   * Markdown writer:
 
@@ -223,6 +224,7 @@
       disable `raw_attribute` in the writer.
     + Prefer `pipe_tables` to raw HTML even when we must
       lose width information (#2608, #4497).
+    + Improve escaping in list items (#5918).
 
   * AsciiDoc writer:
 
@@ -370,6 +372,10 @@
     + Update `data/jats.csl` to avoid commas between editor
       name-part elements. (#5629)
     + Add `abstract` to template (Mauro Bieg).
+
+  * TEI writer:
+
+    + Don't strip hash from internal links (#5922).
 
   * Jira writer:
 
