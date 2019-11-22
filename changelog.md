@@ -382,6 +382,8 @@
     + Remove escapeStringForJira for code blocks (Jan-Otto Kröpke).
     + Remove extraneous newline after single-line block quotes
       (#5858, Albert Krewinkel).
+    + Improve escaping of special characters, using backslash escapes
+      instead of HTML entities (#5858, Albert Krewinkel).
 
   * OpenDocument writer:
 
