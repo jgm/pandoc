@@ -22,9 +22,7 @@ extra-deps:
 - HsYAML-0.2.0.0
 - HsYAML-aeson-0.2.0.0
 - doctemplates-0.7.1
-# - pandoc-citeproc-0.16.3.1
-- git: https://github.com/jgm/pandoc-citeproc
-  commit: dc09b028d6876df81cd76b731e58886f77f269b1
+- pandoc-citeproc-0.16.4
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-14.6
