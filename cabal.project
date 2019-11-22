@@ -8,3 +8,7 @@ package pandoc-citeproc
   flags: +embed_data_files +bibutils -unicode_collation -test_citeproc -debug
   ghc-options: -j +RTS -A32M -RTS
 
+source-repository-package
+    type: git
+    location: https://github.com/jgm/pandoc-citeproc
+    tag: 0.16.4
