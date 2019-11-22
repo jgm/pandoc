@@ -1,4 +1,4 @@
-This is a set of tests for pandoc. Most of them are adapted from John Gruber's markdown test suite.
+This is a set of tests for pandoc. Most of them are adapted from John Gruber’s markdown test suite.
 
 ----
 
@@ -28,11 +28,11 @@ with no blank line
 
 h1. {anchor:paragraphs}Paragraphs
 
-Here's a regular paragraph.
+Here’s a regular paragraph.
 
-In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard&hyphen;wrapped line in the middle of a paragraph looked like a list item.
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard\-wrapped line in the middle of a paragraph looked like a list item.
 
-Here's one with a bullet. &ast; criminey.
+Here’s one with a bullet. \* criminey.
 
 There should be a hard line break
 here.
@@ -41,7 +41,7 @@ here.
 
 h1. {anchor:block-quotes}Block Quotes
 
-E&hyphen;mail style:
+E\-mail style:
 
 bq. This is a block quote. It is pretty short.
 
@@ -67,7 +67,8 @@ bq. nested
 
 {quote}
 
-This should not be a block quote: 2 &gt; 1.
+
+This should not be a block quote: 2 > 1.
 
 And a following paragraph.
 
@@ -166,7 +167,7 @@ and using spaces:
 Multiple paragraphs:
 
 # Item 1, graf one.
-Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
+Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
 # Item 2.
 # Item 3.
 
@@ -176,7 +177,7 @@ h2. {anchor:nested}Nested
 ** Tab
 *** Tab
 
-Here's another:
+Here’s another:
 
 # First
 # Second:
@@ -324,7 +325,7 @@ And this is *strong*
 
 
 
-Here's a simple block:
+Here’s a simple block:
 
 foo
 
@@ -367,7 +368,7 @@ Code:
 <hr />
 {code}
 
-Hr's:
+Hr’s:
 
 
 
@@ -404,7 +405,7 @@ Superscripts: a{^bc^}d a{^_hello_^} a{^hello there^}.
 
 Subscripts: H{~2~}O, H{~23~}O, H{~many of them~}O.
 
-These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.
+These should not be superscripts or subscripts, because of the unescaped spaces: a\^b c\^d, a\~b c\~d.
 
 ----
 
@@ -416,13 +417,13 @@ h1. {anchor:smart-quotes-ellipses-dashes}Smart quotes, ellipses, dashes
 
 'Oak,' 'elm,' and 'beech' are names of trees. So is 'pine.'
 
-'He said, "I want to go."' Were you alive in the 70's?
+'He said, "I want to go."' Were you alive in the 70’s?
 
 Here is some quoted '{{code}}' and a "[quoted link|http://example.com/?foo=1&bar=2]".
 
-Some dashes: one -- two  --  three -- four  --  five.
+Some dashes: one --- two  ---  three --- four  ---  five.
 
-Dashes between numbers: 5 - 7, 255 - 66, 1987 - 1999.
+Dashes between numbers: 5 -- 7, 255 -- 66, 1987 -- 1999.
 
 Ellipses...and...and....
 
@@ -431,22 +432,22 @@ Ellipses...and...and....
 h1. {anchor:latex}LaTeX
 
 * 
-* 2 &plus; 2 = 4
+* 2 \+ 2 = 4
 * _x_ ∈ _y_
 * _α_ ∧ _ω_
 * 223
-* _p_&hyphen;Tree
-* Here's some display math: \\$$\frac\{d}\{dx}f(x)=\lim&lowbar;\{h\to 0}\frac\{f(x&plus;h)&hyphen;f(x)}\{h}$$\\
-* Here's one that has a line break in it: _α_ &plus; _ω_ × _x_{^2^}.
+* _p_\-Tree
+* Here’s some display math: \\$$\frac\{d\}\{dx\}f(x)=\lim\_\{h\to 0\}\frac\{f(x\+h)\-f(x)\}\{h\}$$\\
+* Here’s one that has a line break in it: _α_ \+ _ω_ × _x_{^2^}.
 
-These shouldn't be math:
+These shouldn’t be math:
 
 * To get the famous equation, write {{$e = mc^2$}}.
 * $22,000 is a _lot_ of money. So is $34,000. (It worked if "lot" is emphasized.)
 * Shoes ($20) and socks ($5).
 * Escaped {{$}}: $73 _this should be emphasized_ 23$.
 
-Here's a LaTeX table:
+Here’s a LaTeX table:
 
 
 ----
@@ -461,47 +462,47 @@ Here is some unicode:
 * set membership: ∈
 * copyright: ©
 
-AT&amp;T has an ampersand in their name.
+AT&T has an ampersand in their name.
 
-AT&amp;T is another way to write it.
+AT&T is another way to write it.
 
-This &amp; that.
+This & that.
 
-4 &lt; 5.
+4 < 5.
 
-6 &gt; 5.
+6 > 5.
 
 Backslash: \
 
 Backtick: `
 
-Asterisk: &ast;
+Asterisk: \*
 
-Underscore: &lowbar;
+Underscore: \_
 
 Left brace: \{
 
-Right brace: }
+Right brace: \}
 
-Left bracket: [
+Left bracket: \[
 
-Right bracket: ]
+Right bracket: \]
 
 Left paren: (
 
 Right paren: )
 
-Greater&hyphen;than: &gt;
+Greater\-than: >
 
 Hash: #
 
 Period: .
 
-Bang: !
+Bang: \!
 
-Plus: &plus;
+Plus: \+
 
-Minus: &hyphen;
+Minus: \-
 
 ----
 
@@ -521,7 +522,7 @@ Just a [URL|/url/].
 
 [URL and title|/url/]
 
-[with&lowbar;underscore|/url/with_underscore]
+[with\_underscore|/url/with_underscore]
 
 [Email link|mailto:nobody@nowhere.net]
 
@@ -531,7 +532,7 @@ h2. {anchor:reference}Reference
 
 Foo [bar|/url/].
 
-With [embedded [brackets]|/url/].
+With [embedded \[brackets\]|/url/].
 
 [b|/url/] by itself should be a link.
 
@@ -541,7 +542,7 @@ Indented [twice|/url].
 
 Indented [thrice|/url].
 
-This should [not][] be a link.
+This should \[not\]\[\] be a link.
 
 {code}
 [not]: /url
@@ -553,27 +554,27 @@ Foo [biz|/url/].
 
 h2. {anchor:with-ampersands}With ampersands
 
-Here's a [link with an ampersand in the URL|http://example.com/?foo=1&bar=2].
+Here’s a [link with an ampersand in the URL|http://example.com/?foo=1&bar=2].
 
-Here's a link with an amersand in the link text: [AT&amp;T|http://att.com/].
+Here’s a link with an amersand in the link text: [AT&T|http://att.com/].
 
-Here's an [inline link|/script?foo=1&bar=2].
+Here’s an [inline link|/script?foo=1&bar=2].
 
-Here's an [inline link in pointy braces|/script?foo=1&bar=2].
+Here’s an [inline link in pointy braces|/script?foo=1&bar=2].
 
 h2. {anchor:autolinks}Autolinks
 
-With an ampersand: [http://example.com/?foo=1&amp;bar=2|http://example.com/?foo=1&bar=2]
+With an ampersand: [http://example.com/?foo=1&bar=2|http://example.com/?foo=1&bar=2]
 
 * In a list?
 * [http://example.com/|http://example.com/]
 * It should.
 
-An e&hyphen;mail address: [nobody&commat;nowhere.net|mailto:nobody@nowhere.net]
+An e\-mail address: [nobody@nowhere.net|mailto:nobody@nowhere.net]
 
 bq. Blockquoted: [http://example.com/|http://example.com/]
 
-Auto&hyphen;links should not occur here: {{<http://example.com/>}}
+Auto\-links should not occur here: {{<http://example.com/>}}
 
 {code}
 or here: <http://example.com/>
@@ -593,7 +594,7 @@ Here is a movie !movie.jpg! icon.
 
 h1. {anchor:footnotes}Footnotes
 
-Here is a footnote reference,[1] and another.[2] This should _not_ be a footnote reference, because it contains a space.[^my note] Here is an inline note.[3]
+Here is a footnote reference,[1] and another.[2] This should _not_ be a footnote reference, because it contains a space.\[\^my note\] Here is an inline note.[3]
 
 bq. Notes can go in quotes.[4]
 
@@ -605,7 +606,7 @@ This paragraph should not be part of the note, as it is not indented.
 [1] Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.
 
 
-[2] Here's the long note. This one contains multiple blocks.
+[2] Here’s the long note. This one contains multiple blocks.
 
 Subsequent blocks are indented to show that they belong to the footnote (as with list items).
 
@@ -616,7 +617,7 @@ Subsequent blocks are indented to show that they belong to the footnote (as with
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
 
 
-[3] This is _easier_ to type. Inline notes may contain [links|http://google.com] and {{]}} verbatim characters, as well as [bracketed text].
+[3] This is _easier_ to type. Inline notes may contain [links|http://google.com] and {{]}} verbatim characters, as well as \[bracketed text\].
 
 
 [4] In quote.

@@ -69,23 +69,14 @@ pandocToJira opts (Pandoc meta blocks) = do
 
 -- | Escape one character as needed for Jira.
 escapeCharForJira :: Char -> Text
-escapeCharForJira c = case c of
-  '&'      -> "&amp;"
-  '<'      -> "&lt;"
-  '>'      -> "&gt;"
-  '"'      -> "&quot;"
-  '*'      -> "&ast;"
-  '_'      -> "&lowbar;"
-  '@'      -> "&commat;"
-  '+'      -> "&plus;"
-  '-'      -> "&hyphen;"
-  '|'      -> "&vert;"
-  '{'      -> "\\{"
-  '\x2014' -> " -- "
-  '\x2013' -> " - "
-  '\x2019' -> "'"
-  '\x2026' -> "..."
-  _        -> T.singleton c
+escapeCharForJira c =
+  let specialChars = "_*-+~^|!{}[]" :: String
+  in case c of
+    '\x2013' -> " -- "
+    '\x2014' -> " --- "
+    '\x2026' -> "..."
+    _ | c `elem` specialChars -> T.cons '\\' (T.singleton c)
+    _                         -> T.singleton c
 
 -- | Escape string as needed for Jira.
 escapeStringForJira :: Text -> Text
@@ -155,7 +146,7 @@ blockToJira opts (BlockQuote [p@(Para _)]) = do
 
 blockToJira opts (BlockQuote blocks) = do
   contents <- blockListToJira opts blocks
-  appendNewlineUnlessInList . T.intercalate "\n" $
+  appendNewlineUnlessInList . T.unlines $
     [ "{quote}", contents, "{quote}"]
 
 blockToJira opts (Table _caption _aligns _widths headers rows) = do
