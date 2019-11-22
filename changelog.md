@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.8 PROVISIONAL (YYYY-MM-DD)
+## pandoc 2.8 (2019-11-22)
 
   * Improvements in templates system (from doctemplates):
 
