@@ -1,3 +1,6 @@
+#!/usr/bin/env stack
+-- stack --stack-yaml=stack.yaml runghc --package pandoc-types
+
 -- Extract changes from latest version in changelog.
 import Text.Pandoc.JSON
 
