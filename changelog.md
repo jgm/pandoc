@@ -117,6 +117,60 @@
     + Add support for `<dfn>`, parsing this as a Span with class `dfn`
       (#5882, Florian Beeres).
 
+  * Markdown reader:
+
+    + Headers: don't parse content over newline boundary (#5714).
+    + Handle inline code more eagerly within lists (Brian Leung, #5627).
+    + Removed some needless lookaheads.
+    + Don't parse footnote body unless extension enabled.
+    + Fix small super/subscript issue (#5878).  Superscripts and subscripts
+      cannot contain spaces, but newlines were previously allowed
+      (unintentionally).  This led to bad interactions in some cases
+      with footnotes.  With this change newlines are also not allowed inside
+      super/subscripts.
+    + Use `take1WhileP` for `str`, table row.  This yields a small but
+      measurable performance improvement.
+
+
+  * LaTeX reader:
+
+    + Fix parsing of optional arguments that contain braced text (#5740).
+    + Don't try to parse includes if `raw_tex` is set (#5673).
+      When the `raw_tex` extension is set, we just carry through
+      `\usepackage`, `\input`, etc. verbatim as raw LaTeX.
+    + Properly handle optional arguments for macros (#5682).
+    + Fix `\\` in `\parbox` inside a table cell (#5711).
+    + Improve `withRaw` so it can handle cases where the token string is
+      modified by a parser (e.g. accent when it only takes part of a Word
+      token) (#5686).  This fixes a bug that caused the ends of
+      certain documents to be dropped.
+    + Handle `\passthrough` macro used by latex writer (#5659).
+    + Support tex `\tt` command (#5654).
+    + Search for image with list of extensions like latex does, if an
+      extension is not provided (#4933).
+    + Handle `\looseness` command values better (#4439).
+    + Add `mbox` and `hbox` handling (Vasily Alferov, #5586).
+      When `+raw_tex` is enabled, these are passed through literally.
+      Otherwise, they are handled in a way that emulates LaTeX's behavior.
+    + Properly handle `\providecommand` and `\provideenvironment` (#5635).
+      They are now ignored if the corresponding command or environment
+      is already defined.
+    + Support epigraph command in LaTeX Reader (oquechy, #3523).
+    + Ensure that expanded macros in raw LaTeX  end with a space
+      if the original did (#4442).
+    + Treat `ly` environment from lilypond as verbatim (Urs Liska, #5671).
+    + Add `tikzcd` to list of special environments (Eigil Rischel).
+      This allows it to be processed by filters, in the same way that
+      one can do for `tikzpicture`.
+
+  * Roff reader:
+
+    + Better support for `while`.
+    + More improvements in parsing conditionals.
+    + Fix problem parsing comments before macro.
+    + Improve handling of groups.
+    + Better parsing of groups (#5410).  We now allow groups
+      where the closing `\\}` isn't at the beginning of a line.
 
   * RST reader:
 
@@ -567,61 +621,6 @@
 
     + Pass value of `--dpi` to `rsvg-convert` when converting SVG to PDF
       in the process of creating a PDF (#5721).
-
-  * Markdown reader:
-
-    + Headers: don't parse content over newline boundary (#5714).
-    + Handle inline code more eagerly within lists (Brian Leung, #5627).
-    + Removed some needless lookaheads.
-    + Don't parse footnote body unless extension enabled.
-    + Fix small super/subscript issue (#5878).  Superscripts and subscripts
-      cannot contain spaces, but newlines were previously allowed
-      (unintentionally).  This led to bad interactions in some cases
-      with footnotes.  With this change newlines are also not allowed inside
-      super/subscripts.
-    + Use `take1WhileP` for `str`, table row.  This yields a small but
-      measurable performance improvement.
-
-
-  * LaTeX reader:
-
-    + Fix parsing of optional arguments that contain braced text (#5740).
-    + Don't try to parse includes if `raw_tex` is set (#5673).
-      When the `raw_tex` extension is set, we just carry through
-      `\usepackage`, `\input`, etc. verbatim as raw LaTeX.
-    + Properly handle optional arguments for macros (#5682).
-    + Fix `\\` in `\parbox` inside a table cell (#5711).
-    + Improve `withRaw` so it can handle cases where the token string is
-      modified by a parser (e.g. accent when it only takes part of a Word
-      token) (#5686).  This fixes a bug that caused the ends of
-      certain documents to be dropped.
-    + Handle `\passthrough` macro used by latex writer (#5659).
-    + Support tex `\tt` command (#5654).
-    + Search for image with list of extensions like latex does, if an
-      extension is not provided (#4933).
-    + Handle `\looseness` command values better (#4439).
-    + Add `mbox` and `hbox` handling (Vasily Alferov, #5586).
-      When `+raw_tex` is enabled, these are passed through literally.
-      Otherwise, they are handled in a way that emulates LaTeX's behavior.
-    + Properly handle `\providecommand` and `\provideenvironment` (#5635).
-      They are now ignored if the corresponding command or environment
-      is already defined.
-    + Support epigraph command in LaTeX Reader (oquechy, #3523).
-    + Ensure that expanded macros in raw LaTeX  end with a space
-      if the original did (#4442).
-    + Treat `ly` environment from lilypond as verbatim (Urs Liska, #5671).
-    + Add `tikzcd` to list of special environments (Eigil Rischel).
-      This allows it to be processed by filters, in the same way that
-      one can do for `tikzpicture`.
-
-  * Roff reader:
-
-    + Better support for `while`.
-    + More improvements in parsing conditionals.
-    + Fix problem parsing comments before macro.
-    + Improve handling of groups.
-    + Better parsing of groups (#5410).  We now allow groups
-      where the closing `\\}` isn't at the beginning of a line.
 
   * Text.Pandoc.Shared:
 
