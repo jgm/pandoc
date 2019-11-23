@@ -137,7 +137,7 @@ When using LaTeX, the following packages need to be available
 [`amsfonts`], [`amsmath`], [`lm`], [`unicode-math`],
 [`ifxetex`], [`ifluatex`], [`listings`] (if the
 `--listings` option is used), [`fancyvrb`], [`longtable`],
-[`booktabs`], [`graphicx`] and [`grffile`] (if the document
+[`booktabs`], [`graphicx`] (if the document
 contains images), [`hyperref`], [`xcolor`],
 [`ulem`], [`geometry`] (with the `geometry` variable set),
 [`setspace`] (with `linestretch`), and
