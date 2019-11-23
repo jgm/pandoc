@@ -219,13 +219,11 @@
 - Uli Köhler
 - Urs Liska
 - Václav Zeman
-- Vanessa McHale
-- Viktor Kronvall
-- Vincent
 - Václav Haisman
-- Václav Zeman
 - Vanessa McHale
 - Vasily Alferov
+- Viktor Kronvall
+- Vincent
 - Wandmalfarbe
 - Waldir Pimenta
 - Wikiwide
