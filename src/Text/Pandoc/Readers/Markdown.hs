@@ -20,7 +20,6 @@ module Text.Pandoc.Readers.Markdown ( readMarkdown, yamlToMeta ) where
 import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
-import qualified Data.ByteString.Lazy as BS
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
 import Data.List (sortBy, transpose, elemIndex)
 import qualified Data.Map as M
@@ -30,8 +29,7 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import qualified Data.YAML as YAML
-import qualified Data.YAML.Event as YE
+import qualified Data.ByteString.Lazy as BL
 import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines)
@@ -49,6 +47,7 @@ import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.Readers.Metadata (yamlBsToMeta)
 
 type MarkdownParser m = ParserT Text ParserState m
 
@@ -63,6 +62,23 @@ readMarkdown opts s = do
   case parsed of
     Right result -> return result
     Left e       -> throwError e
+
+-- | Read a YAML string and convert it to pandoc metadata.
+-- String scalars in the YAML are parsed as Markdown.
+yamlToMeta :: PandocMonad m
+           => ReaderOptions
+           -> BL.ByteString
+           -> m Meta
+yamlToMeta opts bstr = do
+  let parser = do
+        meta <- yamlBsToMeta parseBlocks bstr
+        return $ runF meta defaultParserState
+  parsed <- readWithM parser def{ stateOptions = opts } ""
+  case parsed of
+    Right result -> return result
+    Left e       -> throwError e
+
+
 
 --
 -- Constants and data structure definitions
@@ -228,110 +244,11 @@ yamlMetaBlock = try $ do
   -- by including --- and ..., we allow yaml blocks with just comments:
   let rawYaml = T.unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
-  newMetaF <- yamlBsToMeta $ UTF8.fromTextLazy $ TL.fromStrict rawYaml
+  newMetaF <- yamlBsToMeta parseBlocks
+              $ UTF8.fromTextLazy $ TL.fromStrict rawYaml
   -- Since `<>` is left-biased, existing values are not touched:
   updateState $ \st -> st{ stateMeta' = (stateMeta' st) <> newMetaF }
   return mempty
-
--- | Read a YAML string and convert it to pandoc metadata.
--- String scalars in the YAML are parsed as Markdown.
-yamlToMeta :: PandocMonad m => ReaderOptions -> BS.ByteString -> m Meta
-yamlToMeta opts bstr = do
-  let parser = do
-        meta <- yamlBsToMeta bstr
-        return $ runF meta defaultParserState
-  parsed <- readWithM parser def{ stateOptions = opts } ""
-  case parsed of
-    Right result -> return result
-    Left e       -> throwError e
-
-yamlBsToMeta :: PandocMonad m => BS.ByteString -> MarkdownParser m (F Meta)
-yamlBsToMeta bstr = do
-  pos <- getPosition
-  case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
-       Right ((YAML.Doc (YAML.Mapping _ _ o)):_) -> (fmap Meta) <$> yamlMap o
-       Right [] -> return . return $ mempty
-       Right [YAML.Doc (YAML.Scalar _ YAML.SNull)] -> return . return $ mempty
-       Right _ -> do
-                  logMessage $
-                     CouldNotParseYamlMetadata "not an object"
-                     pos
-                  return . return $ mempty
-       Left (_pos, err') -> do
-                    logMessage $ CouldNotParseYamlMetadata
-                                 (T.pack err') pos
-                    return . return $ mempty
-
-nodeToKey :: PandocMonad m => YAML.Node YE.Pos -> m Text
-nodeToKey (YAML.Scalar _ (YAML.SStr t))       = return t
-nodeToKey (YAML.Scalar _ (YAML.SUnknown _ t)) = return t
-nodeToKey _  = throwError $ PandocParseError
-                              "Non-string key in YAML mapping"
-
-toMetaValue :: PandocMonad m
-            => Text -> MarkdownParser m (F MetaValue)
-toMetaValue x =
-   -- Note: a standard quoted or unquoted YAML value will
-   -- not end in a newline, but a "block" set off with
-   -- `|` or `>` will.
-   if "\n" `T.isSuffixOf` x
-      then parseFromString' (asBlocks <$> parseBlocks) (x <> "\n")
-      else parseFromString'
-             ((asInlines <$> try pInlines) <|> (asBlocks <$> parseBlocks))
-             x
-  where pInlines = trimInlinesF . mconcat <$> manyTill inline eof
-        asBlocks p = do
-          p' <- p
-          return $ MetaBlocks (B.toList p')
-        asInlines p = do
-          p' <- p
-          return $ MetaInlines (B.toList p')
-
-checkBoolean :: Text -> Maybe Bool
-checkBoolean t =
-  if t == T.pack "true" || t == T.pack "True" || t == T.pack "TRUE"
-     then Just True
-     else if t == T.pack "false" || t == T.pack "False" || t == T.pack "FALSE"
-             then Just False
-             else Nothing
-
-yamlToMetaValue :: PandocMonad m
-                => YAML.Node YE.Pos-> MarkdownParser m (F MetaValue)
-yamlToMetaValue (YAML.Scalar _ x) =
-  case x of
-       YAML.SStr t       -> toMetaValue t
-       YAML.SBool b      -> return $ return $ MetaBool b
-       YAML.SFloat d     -> return $ return $ MetaString $ tshow d
-       YAML.SInt i       -> return $ return $ MetaString $ tshow i
-       YAML.SUnknown _ t ->
-         case checkBoolean t of
-           Just b        -> return $ return $ MetaBool b
-           Nothing       -> toMetaValue t
-       YAML.SNull        -> return $ return $ MetaString ""
-yamlToMetaValue (YAML.Sequence _ _ xs) = do
-  xs' <- mapM yamlToMetaValue xs
-  return $ do
-    xs'' <- sequence xs'
-    return $ B.toMetaValue xs''
-yamlToMetaValue (YAML.Mapping _ _ o) = fmap B.toMetaValue <$> yamlMap o
-yamlToMetaValue _ = return $ return $ MetaString ""
-
-yamlMap :: PandocMonad m
-        => M.Map (YAML.Node YE.Pos) (YAML.Node YE.Pos)
-        -> MarkdownParser m (F (M.Map Text MetaValue))
-yamlMap o = do
-    kvs <- forM (M.toList o) $ \(key, v) -> do
-             k <- nodeToKey key
-             return (k, v)
-    let kvs' = filter (not . ignorable . fst) kvs
-    (fmap M.fromList . sequence) <$> mapM toMeta kvs'
-  where
-    ignorable t = "_" `T.isSuffixOf` t
-    toMeta (k, v) = do
-      fv <- yamlToMetaValue v
-      return $ do
-        v' <- fv
-        return (k, v')
 
 stopLine :: PandocMonad m => MarkdownParser m ()
 stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()
