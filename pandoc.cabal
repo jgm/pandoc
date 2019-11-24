@@ -415,7 +415,7 @@ library
                  JuicyPixels >= 3.1.6.1 && < 3.4,
                  Glob >= 0.7 && < 0.11,
                  cmark-gfm >= 0.2 && < 0.3,
-                 doctemplates >= 0.7.1 && < 0.8,
+                 doctemplates >= 0.7.2 && < 0.8,
                  network-uri >= 2.6 && < 2.7,
                  network >= 2.6,
                  http-client >= 0.4.30 && < 0.7,
@@ -733,7 +733,7 @@ test-suite test-pandoc
                   executable-path >= 0.0 && < 0.1,
                   zip-archive >= 0.2.3.4 && < 0.5,
                   xml >= 1.3.12 && < 1.4,
-                  doctemplates >= 0.7.1 && < 0.8,
+                  doctemplates >= 0.7.2 && < 0.8,
                   Glob >= 0.7 && < 0.11
   if impl(ghc < 8.4)
      hs-source-dirs: prelude
