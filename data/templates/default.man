@@ -8,7 +8,7 @@ $endif$
 $if(adjusting)$
 .ad $adjusting$
 $endif$
-.TH "$title$" "$section$" "$date$" "$footer$" "$header$"
+.TH "$title/nowrap$" "$section/nowrap$" "$date/nowrap$" "$footer/nowrap$" "$header/nowrap$"
 $if(hyphenate)$
 .hy
 $else$
