@@ -294,7 +294,7 @@ blockToRST (Table caption aligns widths headers rows) = do
          modify $ \st -> st{ stOptions = oldOpts }
          return result
   opts <- gets stOptions
-  let isSimple = all (== 0) widths
+  let isSimple = all (== 0) widths && length widths > 1
   tbl <- if isSimple
             then do
               tbl' <- simpleTable opts blocksToDoc headers rows
