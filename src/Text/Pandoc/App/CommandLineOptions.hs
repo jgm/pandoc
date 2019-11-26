@@ -974,7 +974,8 @@ readersNames :: [String]
 readersNames = sort (map (T.unpack . fst) (readers :: [(Text, Reader PandocIO)]))
 
 writersNames :: [String]
-writersNames = sort (map (T.unpack . fst) (writers :: [(Text, Writer PandocIO)]))
+writersNames = sort
+  ("pdf" : map (T.unpack . fst) (writers :: [(Text, Writer PandocIO)]))
 
 splitField :: String -> (String, String)
 splitField s =
