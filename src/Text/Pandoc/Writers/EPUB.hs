@@ -357,8 +357,12 @@ metadataFromMeta opts meta = EPUBMetadata{
             `mplus` (metaValueToString <$> lookupMeta "cover-image" meta)
         mCss = lookupMeta "css" meta <|> lookupMeta "stylesheet" meta
         stylesheets = fromMaybe [] (metaValueToPaths <$> mCss) ++
-                      maybe [] (\t -> [TS.unpack t])
-                        (lookupContext "css" (writerVariables opts))
+                      case lookupContext "css" (writerVariables opts) of
+                         Just xs -> map TS.unpack xs
+                         Nothing ->
+                           case lookupContext "css" (writerVariables opts) of
+                             Just x  -> [TS.unpack x]
+                             Nothing -> []
         pageDirection = case map toLower . metaValueToString <$>
                              lookupMeta "page-progression-direction" meta of
                               Just "ltr" -> Just LTR
@@ -440,13 +444,13 @@ pandocToEPUB version opts doc = do
                M.insert "lang" (toVal' $ epubLanguage metadata)
              $ unContext $ writerVariables opts
 
-  let cssvars useprefix = Context $ M.fromList $ map
-                       (\e -> ("css", toVal' $
-                               (if useprefix
-                                   then "../"
-                                   else "")
-                               ++ makeRelative epubSubdir (eRelativePath e)))
-                          stylesheetEntries
+  let cssvars useprefix = Context $ M.insert "css"
+                           (ListVal $ map
+                             (\e -> toVal' $
+                                (if useprefix then "../" else "") <>
+                                makeRelative epubSubdir (eRelativePath e))
+                             stylesheetEntries)
+                             mempty
 
   let opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerSectionDivs = True
