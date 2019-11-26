@@ -15,8 +15,8 @@ extra-deps:
 - pandoc-types-1.20
 - texmath-0.12
 - haddock-library-1.8.0
-- skylighting-0.8.2.3
-- skylighting-core-0.8.2.3
+- skylighting-0.8.3
+- skylighting-core-0.8.3
 - regex-pcre-builtin-0.95.0.8.8.35
 - doclayout-0.2.0.1
 - HsYAML-0.2.0.0
