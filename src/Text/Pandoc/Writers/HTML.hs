@@ -41,9 +41,8 @@ import Numeric (showHex)
 import Text.DocLayout (render, literal)
 import Prelude
 import Text.Blaze.Internal (MarkupM (Empty), customLeaf, customParent)
-import Text.DocTemplates (FromContext (lookupContext))
+import Text.DocTemplates (FromContext (lookupContext), Context (..))
 import Text.Blaze.Html hiding (contents)
-import Text.DocTemplates (Context (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtmlInline, highlight,
                                  styleToCss)
@@ -941,15 +940,14 @@ toListItem opts item = nl opts >> H.li item
 blockListToHtml :: PandocMonad m
                 => WriterOptions -> [Block] -> StateT WriterState m Html
 blockListToHtml opts lst =
-  (mconcat . intersperse (nl opts) . filter nonempty)
+  mconcat . intersperse (nl opts) . filter nonempty
     <$> mapM (blockToHtml opts) lst
   where nonempty (Empty _) = False
         nonempty _         = True
 
 -- | Convert list of Pandoc inline elements to HTML.
 inlineListToHtml :: PandocMonad m => WriterOptions -> [Inline] -> StateT WriterState m Html
-inlineListToHtml opts lst =
-  mapM (inlineToHtml opts) lst >>= return . mconcat
+inlineListToHtml opts lst = mconcat <$> mapM (inlineToHtml opts) lst
 
 -- | Annotates a MathML expression with the tex source
 annotateMML :: XML.Element -> Text -> XML.Element
@@ -1011,37 +1009,36 @@ inlineToHtml opts inline = do
                                                        ]
                                          ]
 
-    (Emph lst)       -> inlineListToHtml opts lst >>= return . H.em
-    (Strong lst)     -> inlineListToHtml opts lst >>= return . H.strong
-    (Code attr@(ids,cs,kvs) str)  
+    (Emph lst)       -> H.em <$> inlineListToHtml opts lst
+    (Strong lst)     -> H.strong <$> inlineListToHtml opts lst
+    (Code attr@(ids,cs,kvs) str)
                      -> case hlCode of
                              Left msg -> do
                                unless (T.null msg) $
                                  report $ CouldNotHighlight msg
-                               addAttrs opts (ids,cs',kvs) $ 
-                                 maybe H.code id sampOrVar $ 
+                               addAttrs opts (ids,cs',kvs) $
+                                 fromMaybe H.code sampOrVar $
                                  strToHtml str
                              Right h -> do
                                modify $ \st -> st{ stHighlighting = True }
-                               addAttrs opts (ids,[],kvs) $ 
-                                 maybe id id sampOrVar $ h
+                               addAttrs opts (ids,[],kvs) $
+                                 fromMaybe id sampOrVar h
                         where hlCode = if isJust (writerHighlightStyle opts)
                                           then highlight
                                                  (writerSyntaxMap opts)
                                                  formatHtmlInline attr str
                                           else Left ""
-                              (sampOrVar,cs') = 
-                                  if "sample" `elem` cs
-                                      then (Just H.samp,"sample" `delete` cs)
-                                  else if "variable" `elem` cs
-                                      then (Just H.var,"variable" `delete` cs)
-                                      else (Nothing,cs)
-    (Strikeout lst)  -> inlineListToHtml opts lst >>=
-                        return . H.del
-    (SmallCaps lst)   -> inlineListToHtml opts lst >>=
-                         return . (H.span ! A.class_ "smallcaps")
-    (Superscript lst) -> inlineListToHtml opts lst >>= return . H.sup
-    (Subscript lst)   -> inlineListToHtml opts lst >>= return . H.sub
+                              (sampOrVar,cs')
+                                | "sample" `elem` cs =
+                                      (Just H.samp,"sample" `delete` cs)
+                                | "variable" `elem` cs =
+                                      (Just H.var,"variable" `delete` cs)
+                                | otherwise = (Nothing,cs)
+    (Strikeout lst)  -> H.del <$> inlineListToHtml opts lst
+    (SmallCaps lst)   -> (H.span ! A.class_ "smallcaps") <$>
+                           inlineListToHtml opts lst
+    (Superscript lst) -> H.sup <$> inlineListToHtml opts lst
+    (Subscript lst)   -> H.sub <$> inlineListToHtml opts lst
     (Quoted quoteType lst) ->
                         let (leftQuote, rightQuote) = case quoteType of
                               SingleQuote -> (strToHtml "‘",
@@ -1210,7 +1207,7 @@ blockListToNote opts ref blocks = do
   html5 <- gets stHtml5
   -- If last block is Para or Plain, include the backlink at the end of
   -- that block. Otherwise, insert a new Plain block with the backlink.
-  let kvs = if html5 then [("role","doc-backlink")] else []
+  let kvs = [("role","doc-backlink") | html5]
   let backlink = [Link ("",["footnote-back"],kvs)
                     [Str "↩"] ("#" <> "fnref" <> ref,"")]
   let blocks'  = if null blocks
