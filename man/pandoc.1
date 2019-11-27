@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "November 22, 2019" "pandoc 2.8"
+.TH PANDOC 1 "November 26, 2019" "pandoc 2.8.0.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -170,11 +170,11 @@ included with all recent versions of TeX Live): \f[C]amsfonts\f[R],
 \f[C]amsmath\f[R], \f[C]lm\f[R], \f[C]unicode-math\f[R],
 \f[C]ifxetex\f[R], \f[C]ifluatex\f[R], \f[C]listings\f[R] (if the
 \f[C]--listings\f[R] option is used), \f[C]fancyvrb\f[R],
-\f[C]longtable\f[R], \f[C]booktabs\f[R], \f[C]graphicx\f[R] and
-\f[C]grffile\f[R] (if the document contains images), \f[C]hyperref\f[R],
-\f[C]xcolor\f[R], \f[C]ulem\f[R], \f[C]geometry\f[R] (with the
-\f[C]geometry\f[R] variable set), \f[C]setspace\f[R] (with
-\f[C]linestretch\f[R]), and \f[C]babel\f[R] (with \f[C]lang\f[R]).
+\f[C]longtable\f[R], \f[C]booktabs\f[R], \f[C]graphicx\f[R] (if the
+document contains images), \f[C]hyperref\f[R], \f[C]xcolor\f[R],
+\f[C]ulem\f[R], \f[C]geometry\f[R] (with the \f[C]geometry\f[R] variable
+set), \f[C]setspace\f[R] (with \f[C]linestretch\f[R]), and
+\f[C]babel\f[R] (with \f[C]lang\f[R]).
 The use of \f[C]xelatex\f[R] or \f[C]lualatex\f[R] as the PDF engine
 requires \f[C]fontspec\f[R].
 \f[C]xelatex\f[R] uses \f[C]polyglossia\f[R] (with \f[C]lang\f[R]),
@@ -1974,6 +1974,9 @@ If \f[C]variable\f[R] is an array, the material inside the loop will be
 evaluated repeatedly, with \f[C]variable\f[R] being set to each value of
 the array in turn, and concatenated.
 .IP \[bu] 2
+If \f[C]variable\f[R] is a map, the material inside will be set to the
+map.
+.IP \[bu] 2
 If the value of the associated variable is not an array or a map, a
 single iteration will be performed on its value.
 .PP
@@ -1990,6 +1993,10 @@ $endfor$
 ${ for(foo.bar) }
   - ${ foo.bar.last }, ${ foo.bar.first }
 ${ endfor }
+
+$for(mymap)$
+$it.name$: $it.office$
+$endfor$
 \f[R]
 .fi
 .PP
@@ -2185,11 +2192,9 @@ Currently the following filters are predefined:
 If the original value was an array, the \f[C]key\f[R] will be the array
 index, starting with 1.
 .IP \[bu] 2
-\f[C]uppercase\f[R]: Converts a textual value to uppercase, and has no
-effect on other values.
+\f[C]uppercase\f[R]: Converts text to uppercase.
 .IP \[bu] 2
-\f[C]lowercase\f[R]: Converts a textual value to lowercase, and has no
-effect on other values.
+\f[C]lowercase\f[R]: Converts text to lowercase.
 .IP \[bu] 2
 \f[C]length\f[R]: Returns the length of the value: number of characters
 for a textual value, number of elements for a map or array.
@@ -2197,17 +2202,17 @@ for a textual value, number of elements for a map or array.
 \f[C]reverse\f[R]: Reverses a textual value or array, and has no effect
 on other values.
 .IP \[bu] 2
-\f[C]chomp\f[R]: Removes trailing newlines (and breakable space) from a
-textual value, and has no effect on other values.
+\f[C]chomp\f[R]: Removes trailing newlines (and breakable space).
 .IP \[bu] 2
-\f[C]alpha\f[R]: Converts a textual value that can be read as an integer
-into a lowercase alphabetic character \f[C]a..z\f[R] (mod 26), and has
-no effect on other values.
+\f[C]nowrap\f[R]: Disables line wrapping on breakable spaces.
+.IP \[bu] 2
+\f[C]alpha\f[R]: Converts textual values that can be read as an integer
+into lowercase alphabetic characters \f[C]a..z\f[R] (mod 26).
 This can be used to get lettered enumeration from array indices.
 To get uppercase letters, chain with \f[C]uppercase\f[R].
 .IP \[bu] 2
-\f[C]roman\f[R]: Converts a textual value that can be read as an integer
-into a lowercase roman numerial, and has no effect on other values.
+\f[C]roman\f[R]: Converts textual values that can be read as an integer
+into lowercase roman numerials.
 This can be used to get lettered enumeration from array indices.
 To get uppercase roman, chain with \f[C]uppercase\f[R].
 .IP \[bu] 2
@@ -2868,8 +2873,8 @@ working directory from which pandoc is run.
 non-null value if \f[C]--toc/--table-of-contents\f[R] was specified
 .TP
 \f[B]\f[CB]toc-title\f[B]\f[R]
-title of table of contents (works only with EPUB, opendocument, odt,
-docx, pptx, beamer, LaTeX)
+title of table of contents (works only with EPUB, HTML, opendocument,
+odt, docx, pptx, beamer, LaTeX)
 .SH EXTENSIONS
 .PP
 The behavior of some of the readers and writers can be adjusted by

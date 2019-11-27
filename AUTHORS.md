@@ -11,6 +11,7 @@
 - Alexander Krotov
 - Alexander Sulfrian
 - Alexander V Vershilov
+- Alexandre Franke
 - Alfred Wechselberger
 - Amogh Rathore
 - Anders Waldenborg
@@ -89,6 +90,7 @@
 - Henrik Tramberend
 - Henry de Valence
 - Hubert Plociniczak
+- Ian Max Andolina
 - Igor Khorlo
 - Ilya V. Portnov
 - Ivan Trubach
@@ -240,7 +242,6 @@
 - csforste
 - d-dorazio
 - ebiim
-- iandol
 - infinity0x
 - jeongminkim-islab
 - kaizshang91

@@ -1,5 +1,22 @@
 # Revision history for pandoc
 
+## pandoc 2.8.0.1 (2019-11-26)
+
+  * List `pdf` in `--list-output-formats`.
+  * EPUB writer: Fix regression with `--css` (#5937).  In 2.8 `--css`
+    would not have an effect on EPUB output.
+  * RST writer: Use grid tables for one-column tables, since
+    simple tables clash with heading syntax in this case (#5936).
+  * Add unexported module Text.Pandoc.Readers.Metadata (see #5914).
+  * Use doctemplates 0.7.2, which adds the `nowrap` filter to
+    templates.
+  * Update default man template using `nowrap` for .TH heading (#5929).
+  * HTML templates: Add support for `toc-title` variable (#5930,
+    Alexandre Franke).
+  * Remove `grffile` (LaTeX package) requirement in MANUAL.txt
+    (#5927, Ian Max Andolina).
+  * Use skylighting 0.8.3.
+
 ## pandoc 2.8 (2019-11-22)
 
   * Improvements in templates system (from doctemplates):
