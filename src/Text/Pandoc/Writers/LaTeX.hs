@@ -21,6 +21,7 @@ module Text.Pandoc.Writers.LaTeX (
 import Prelude
 import Control.Applicative ((<|>))
 import Control.Monad.State.Strict
+import Control.Monad (when)
 import Data.Monoid (Any(..))
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isSpace,
                   isPunctuation, ord)
@@ -30,7 +31,8 @@ import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
-import Text.DocTemplates (FromContext(lookupContext))
+import Text.DocTemplates (FromContext(lookupContext), renderTemplate,
+                          Val(..), Context(..))
 import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang)
 import Text.Pandoc.Class (PandocMonad, report, toLang)
 import Text.Pandoc.Definition
@@ -42,8 +44,6 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Slides
-import Text.Pandoc.Templates (renderTemplate)
-import Text.DocTemplates (Val(..), Context(..))
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
@@ -148,8 +148,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   -- these have \frontmatter etc.
   beamer <- gets stBeamer
   let documentClass =
-        case (lookupContext "documentclass"
-                  (writerVariables options)) `mplus`
+        case lookupContext "documentclass" (writerVariables options) `mplus`
               (stringify <$> lookupMeta "documentclass" meta) of
                  Just x -> x
                  Nothing | beamer    -> "beamer"
@@ -202,7 +201,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let dirs = query (extract "dir") blocks
 
   let context  =  defField "toc" (writerTableOfContents options) $
-                  defField "toc-depth" (tshow $
+                  defField "toc-depth" (tshow
                                         (writerTOCDepth options -
                                               if stHasChapters st
                                                  then 1
@@ -333,7 +332,7 @@ stringToLaTeX context zs = do
                Just cmd ->
                  cmd <> "{" <> [c] <> "}" <> drop 1 xs -- drop combining accent
                Nothing  -> c : xs
-        emitcseq cs = do
+        emitcseq cs =
           case xs of
             c:_ | isLetter c
                 , ctx == TextString
@@ -342,7 +341,7 @@ stringToLaTeX context zs = do
                 | ctx == TextString
                              -> cs <> xs
             _ -> cs <> "{}" <> xs
-        emitquote cs = do
+        emitquote cs =
           case xs of
             '`':_  -> cs <> "\\," <> xs -- add thin space
             '\'':_ -> cs <> "\\," <> xs -- add thin space
@@ -521,7 +520,7 @@ blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
            contents $$
            "\\end{frame}"
 blockToLaTeX (Div (identifier@(T.uncons -> Just (_,_)),dclasses,dkvs)
-               (Header lvl ("",hclasses,hkvs) ils : bs)) = do
+               (Header lvl ("",hclasses,hkvs) ils : bs)) =
   -- move identifier from div to header
   blockToLaTeX (Div ("",dclasses,dkvs)
                (Header lvl (identifier,hclasses,hkvs) ils : bs))
@@ -530,9 +529,8 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
   oldIncremental <- gets stIncremental
   if beamer && "incremental" `elem` classes
      then modify $ \st -> st{ stIncremental = True }
-     else if beamer && "nonincremental" `elem` classes
-             then modify $ \st -> st { stIncremental = False }
-             else return ()
+     else when (beamer && "nonincremental" `elem` classes) $
+             modify $ \st -> st { stIncremental = False }
   result <- if identifier == "refs"
                then do
                  inner <- blockListToLaTeX bs
@@ -669,8 +667,8 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
        | otherwise                           -> rawCodeBlock
 blockToLaTeX b@(RawBlock f x) = do
   beamer <- gets stBeamer
-  if (f == Format "latex" || f == Format "tex" ||
-       (f == Format "beamer" && beamer))
+  if f == Format "latex" || f == Format "tex" ||
+       (f == Format "beamer" && beamer)
      then return $ literal x
      else do
        report $ BlockNotRendered b
@@ -913,12 +911,12 @@ listItemToLaTeX lst
   -- element in an item. This will look ugly in LaTeX regardless, but
   -- this will keep the typesetter from throwing an error.
   | (Header{} :_) <- lst =
-    blockListToLaTeX lst >>= return . (text "\\item ~" $$) . nest 2
+    (text "\\item ~" $$) . nest 2 <$> blockListToLaTeX lst
   | Plain (Str "☐":Space:is) : bs <- lst = taskListItem False is bs
   | Plain (Str "☒":Space:is) : bs <- lst = taskListItem True  is bs
   | Para  (Str "☐":Space:is) : bs <- lst = taskListItem False is bs
   | Para  (Str "☒":Space:is) : bs <- lst = taskListItem True  is bs
-  | otherwise = blockListToLaTeX lst >>= return . (text "\\item" $$) . nest 2
+  | otherwise = (text "\\item" $$) . nest 2 <$> blockListToLaTeX lst
   where
     taskListItem checked is bs = do
       let checkbox  = if checked
@@ -1073,7 +1071,7 @@ hypertarget addnewline ident x = do
   return $ text "\\hypertarget"
               <> braces ref
               <> braces ((if addnewline && not (isEmpty x)
-                             then ("%" <> cr)
+                             then "%" <> cr
                              else empty) <> x)
 
 labelFor :: PandocMonad m => Text -> LW m (Doc Text)
@@ -1086,9 +1084,8 @@ labelFor ident = do
 inlineListToLaTeX :: PandocMonad m
                   => [Inline]  -- ^ Inlines to convert
                   -> LW m (Doc Text)
-inlineListToLaTeX lst =
+inlineListToLaTeX lst = hcat <$>
   mapM inlineToLaTeX (fixLineInitialSpaces . fixInitialLineBreaks $ lst)
-    >>= return . hcat
     -- nonbreaking spaces (~) in LaTeX don't work after line breaks,
     -- so we turn nbsps after hard breaks to \hspace commands.
     -- this is mostly used in verse.
@@ -1135,10 +1132,8 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
            (if null cmds
                then braces contents
                else foldr inCmd contents cmds)
-inlineToLaTeX (Emph lst) =
-  inlineListToLaTeX lst >>= return . inCmd "emph"
-inlineToLaTeX (Strong lst) =
-  inlineListToLaTeX lst >>= return . inCmd "textbf"
+inlineToLaTeX (Emph lst) = inCmd "emph" <$> inlineListToLaTeX lst
+inlineToLaTeX (Strong lst) = inCmd "textbf" <$> inlineListToLaTeX lst
 inlineToLaTeX (Strikeout lst) = do
   -- we need to protect VERB in an mbox or we get an error
   -- see #1294
@@ -1148,11 +1143,11 @@ inlineToLaTeX (Strikeout lst) = do
   modify $ \s -> s{ stStrikeout = True }
   return $ inCmd "sout" contents
 inlineToLaTeX (Superscript lst) =
-  inlineListToLaTeX lst >>= return . inCmd "textsuperscript"
+  inCmd "textsuperscript" <$> inlineListToLaTeX lst
 inlineToLaTeX (Subscript lst) =
-  inlineListToLaTeX lst >>= return . inCmd "textsubscript"
+  inCmd "textsubscript" <$> inlineListToLaTeX lst
 inlineToLaTeX (SmallCaps lst) =
-  inlineListToLaTeX lst >>= return . inCmd "textsc"
+  inCmd "textsc"<$> inlineListToLaTeX lst
 inlineToLaTeX (Cite cits lst) = do
   st <- get
   let opts = stOptions st
@@ -1168,7 +1163,7 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
   let listingsCode = do
         let listingsopts = (case getListingsLanguage classes of
                                 Just l  -> (("language", mbBraced l):)
-                                Nothing -> id) $
+                                Nothing -> id)
                            [(k,v) | (k,v) <- kvs
                                   , k `notElem` ["exports","tangle","results"]]
         let listingsopt = if null listingsopts
@@ -1241,8 +1236,8 @@ inlineToLaTeX (Math DisplayMath str) = do
   return $ "\\[" <> literal (handleMathComment str) <> "\\]"
 inlineToLaTeX il@(RawInline f str) = do
   beamer <- gets stBeamer
-  if (f == Format "latex" || f == Format "tex" ||
-        (f == Format "beamer" && beamer))
+  if f == Format "latex" || f == Format "tex" ||
+        (f == Format "beamer" && beamer)
      then do
        setEmptyLine False
        return $ literal str
