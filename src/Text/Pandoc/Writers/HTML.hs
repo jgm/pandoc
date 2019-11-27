@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE MultiWayIf          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -43,10 +42,6 @@ import Text.DocLayout (render, literal)
 import Prelude
 import Text.Blaze.Internal (MarkupM (Empty), customLeaf, customParent)
 import Text.DocTemplates (FromContext (lookupContext))
-#if MIN_VERSION_blaze_markup(0,6,3)
-#else
-import Text.Blaze.Internal (preEscapedString, preEscapedText)
-#endif
 import Text.Blaze.Html hiding (contents)
 import Text.DocTemplates (Context (..))
 import Text.Pandoc.Definition
@@ -61,17 +56,8 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML (escapeStringForXML, fromEntities, toEntities)
-#if MIN_VERSION_blaze_markup(0,6,3)
-#else
-import Text.Blaze.Internal (preEscapedString, preEscapedText)
-#endif
-#if MIN_VERSION_blaze_html(0,5,1)
 import qualified Text.Blaze.XHtml5 as H5
 import qualified Text.Blaze.XHtml5.Attributes as A5
-#else
-import qualified Text.Blaze.Html5 as H5
-import qualified Text.Blaze.Html5.Attributes as A5
-#endif
 import Control.Monad.Except (throwError)
 import System.FilePath (takeBaseName)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
