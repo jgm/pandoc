@@ -120,6 +120,9 @@ download_stats:
 	curl https://api.github.com/repos/jgm/pandoc/releases | \
 		jq -r '.[] | .assets | .[] | "\(.download_count)\t\(.name)"'
 
+data/emoji.json:
+	curl https://raw.githubusercontent.com/github/gemoji/master/db/emoji.json | jq '[.[] | {emoji: .emoji, aliases: .aliases}]' > $@
+
 pandoc-templates:
 	rm ../pandoc-templates/default.* ; \
 	cp data/templates/default.* ../pandoc-templates/ ; \

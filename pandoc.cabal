@@ -427,7 +427,8 @@ library
                  doclayout >= 0.2.0.1 && < 0.3,
                  ipynb >= 0.1 && < 0.2,
                  attoparsec >= 0.12 && < 0.14,
-                 text-conversions >= 0.3 && < 0.4
+                 text-conversions >= 0.3 && < 0.4,
+                 template-haskell > 2
   if os(windows) && arch(i386)
      build-depends: basement >= 0.0.10,
                     foundation >= 0.0.23
@@ -621,6 +622,7 @@ library
                    Text.Pandoc.UUID,
                    Text.Pandoc.Translations,
                    Text.Pandoc.Slides,
+                   Text.Pandoc.Emoji.TH,
                    Paths_pandoc
   autogen-modules: Paths_pandoc
   buildable:       True
