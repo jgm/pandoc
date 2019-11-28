@@ -21,7 +21,6 @@ module Text.Pandoc.Writers.LaTeX (
 import Prelude
 import Control.Applicative ((<|>))
 import Control.Monad.State.Strict
-import Control.Monad (when)
 import Data.Monoid (Any(..))
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isSpace,
                   isPunctuation, ord)
