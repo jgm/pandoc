@@ -2,11 +2,11 @@ packages: pandoc.cabal
 
 package pandoc
   flags: +embed_data_files -trypandoc
-  ghc-options: -j +RTS -A32M -RTS
+  ghc-options: -j +RTS -A64m -RTS
 
 package pandoc-citeproc
   flags: +embed_data_files +bibutils -unicode_collation -test_citeproc -debug
-  ghc-options: -j +RTS -A32M -RTS
+  ghc-options: -j +RTS -A64m -RTS
 
 source-repository-package
     type: git
