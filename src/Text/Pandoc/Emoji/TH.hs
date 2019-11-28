@@ -1,5 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskellQuotes #-}
 {- |
    Module      : Text.Pandoc.Emoji.TH
    Copyright   : Copyright (C) 2019 John MacFarlane
@@ -24,12 +25,11 @@ genEmojis fp = do
   bs <- runIO $ B.readFile fp
   case eitherDecode bs of
     Left e -> error e
-    Right (emoji :: [Emoji]) ->
-      return $ ListE
-           [TupE [ LitE (StringL alias),
-                   LitE (StringL txt) ]
-            | Emoji txt aliases <- emoji
-            , alias <- aliases]
+    Right (emoji :: [Emoji]) -> [| emojis |]
+      where emojis = [ (alias, txt)
+                     | Emoji txt aliases <- emoji
+                     , alias <- aliases
+                     ]
 
 data Emoji = Emoji String [String]
   deriving Show
