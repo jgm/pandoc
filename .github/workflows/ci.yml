@@ -63,10 +63,10 @@ jobs:
     - name: Build and test
       run: |
           export PATH=/opt/cabal/${{ matrix.versions.cabal }}/bin:/opt/ghc/${{ matrix.versions.ghc }}/bin:$PATH
-          cabal v2-build --enable-tests -j1 --disable-optimization 2>&1 | tee build.log
+          cabal v2-build --enable-tests --disable-optimization 2>&1 | tee build.log
           # fail if warnings in local build
           ! grep -q ": *[Ww]arning:" build.log || exit 1
-          cabal v2-test -j1 --disable-optimization
+          cabal v2-test --disable-optimization
 
   windows:
 
