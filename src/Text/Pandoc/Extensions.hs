@@ -374,33 +374,6 @@ getDefaultExtensions "opml"            = pandocExtensions -- affects notes
 getDefaultExtensions _                 = extensionsFromList
                                           [Ext_auto_identifiers]
 
-allMarkdownExtensions :: Extensions
-allMarkdownExtensions =
-  pandocExtensions <>
-    extensionsFromList
-     [ Ext_old_dashes
-     , Ext_angle_brackets_escapable
-     , Ext_lists_without_preceding_blankline
-     , Ext_four_space_rule
-     , Ext_spaced_reference_links
-     , Ext_hard_line_breaks
-     , Ext_ignore_line_breaks
-     , Ext_east_asian_line_breaks
-     , Ext_emoji
-     , Ext_tex_math_single_backslash
-     , Ext_tex_math_double_backslash
-     , Ext_markdown_attribute
-     , Ext_mmd_title_block
-     , Ext_abbreviations
-     , Ext_autolink_bare_uris
-     , Ext_mmd_link_attributes
-     , Ext_mmd_header_identifiers
-     , Ext_compact_definition_lists
-     , Ext_gutenberg
-     , Ext_smart
-     , Ext_literate_haskell
-     ]
-
 
 -- | Get all valid extensions for a format. This is used
 -- mainly in checking format specifications for validity.
@@ -414,6 +387,31 @@ getAllExtensions f = universalExtensions <> getAll f
     ]
   universalExtensions        = extensionsFromList
     [ Ext_east_asian_line_breaks ]
+  allMarkdownExtensions =
+    pandocExtensions <> autoIdExtensions <>
+      extensionsFromList
+       [ Ext_old_dashes
+       , Ext_angle_brackets_escapable
+       , Ext_lists_without_preceding_blankline
+       , Ext_four_space_rule
+       , Ext_spaced_reference_links
+       , Ext_hard_line_breaks
+       , Ext_ignore_line_breaks
+       , Ext_east_asian_line_breaks
+       , Ext_emoji
+       , Ext_tex_math_single_backslash
+       , Ext_tex_math_double_backslash
+       , Ext_markdown_attribute
+       , Ext_mmd_title_block
+       , Ext_abbreviations
+       , Ext_autolink_bare_uris
+       , Ext_mmd_link_attributes
+       , Ext_mmd_header_identifiers
+       , Ext_compact_definition_lists
+       , Ext_gutenberg
+       , Ext_smart
+       , Ext_literate_haskell
+       ]
   getAll "markdown_strict"   = allMarkdownExtensions
   getAll "markdown_phpextra" = allMarkdownExtensions
   getAll "markdown_mmd"      = allMarkdownExtensions
