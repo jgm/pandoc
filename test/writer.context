@@ -61,11 +61,11 @@
 
 \starttext
 \startalignment[middle]
-  {\tfd Pandoc Test Suite}
+  {\tfd\setupinterlinespace Pandoc Test Suite}
   \smallskip
-  {\tfa John MacFarlane\crlf Anonymous}
+  {\tfa\setupinterlinespace John MacFarlane\crlf Anonymous}
   \smallskip
-  {\tfa July 17, 2006}
+  {\tfa\setupinterlinespace July 17, 2006}
   \bigskip
 \stopalignment
 
