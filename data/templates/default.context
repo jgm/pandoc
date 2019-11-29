@@ -108,18 +108,16 @@ $endif$
 \setupxtable[foot][bottomframe=on]
 
 $if(csl-refs)$
-\newdimen\cslhangindent
-\cslhangindent=1.5em
+\definemeasure[cslhangindent][1.5em]
+\definenarrower[hangingreferences][left=\measure{cslhangindent}]
 \definestartstop [cslreferences] [
 	$if(csl-hanging-indent)$
 	before={%
-		\setupnarrower[left=\cslhangindent]
-    	\startnarrower[left]%
-    	\setupindenting[-\leftskip,yes,first]%
-    	%\setuphead[chapter,section][indentnext=yes]%
-		\indentation%
+	  \starthangingreferences[left]
+      \setupindenting[-\leftskip,yes,first]
+      \doindentation
   	},
-  	after=\stopnarrower,
+  	after=\stophangingreferences,
 	$endif$
 ]
 $endif$
