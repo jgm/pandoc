@@ -77,12 +77,13 @@ jobs:
           %WIXBIN%\candle -arch ${{ matrix.versions.arch }} -dVERSION=%VERSION% -dBINPATH=%WORKDIR% *.wxs -out wixobj\
           if %errorlevel% neq 0 exit /b %errorlevel%
           echo Running light...
-          %WIXBIN%\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out %WORKDIR%\pandoc-%VERSION%-${{ matrix.versions.osarch }}.msi wixobj\*.wixobj
+          %WIXBIN%\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out %WORKDIR%\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi wixobj\*.wixobj
           7z a "pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip" pandoc.exe pandoc-citeproc.exe MANUAL.html COPYING.rtf
           cd ..
           mkdir windows-release-candidate
-          copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.msi windows-release-candidate
+          copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi windows-release-candidate
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip windows-release-candidate
+          copy windows\Makefile windows-release-candidate
     - uses: actions/upload-artifact@master
       with:
         name: windows-release-candidate
