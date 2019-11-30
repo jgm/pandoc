@@ -146,7 +146,7 @@ $if(author)$
 $endif$
 $if(date)$
   \smallskip
-  {\tfa $date$}
+  {\tfa\setupinterlinespace $date$}
 $endif$
   \bigskip
 \stopalignment
