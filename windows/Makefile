@@ -1,5 +1,10 @@
-version?=$(shell grep '^[Vv]ersion:' ../pandoc.cabal | awk '{print $$2;}')
+UNSIGNED=$(wildcard pandoc-*-UNSIGNED.msi)
+SIGNED=$(patsubst %-UNSIGNED.msi, %.msi, $(UNSIGNED))
 
-pandoc-$(version)-windows-%.msi: pandoc-windows-%-UNSIGNED.msi
-	osslsigncode sign -pkcs12 $$HOME/Private/SectigoCodeSigning.exp2023.p12 -in $< -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
+all: $(SIGNED)
+
+.PHONY: all
+
+pandoc-%.msi: pandoc-%-UNSIGNED.msi
+	osslsigncode sign -pkcs12 $$HOME/Private/SectigoCodeSigning.exp2023.p12 -in $< -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass && rm $<
 
