@@ -66,7 +66,7 @@ jobs:
           cabal v2-build --enable-tests --disable-optimization 2>&1 | tee build.log
           # fail if warnings in local build
           ! grep -q ": *[Ww]arning:" build.log || exit 1
-          cabal v2-test --disable-optimization --test-options='--hide-successes'
+          cabal v2-test --disable-optimization
 
   windows:
 
