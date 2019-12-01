@@ -85,7 +85,7 @@ jobs:
     - name: Build and test
       shell: cmd
       run: |
-          stack test --fast --test-arguments='--hide-successes'
+          stack test --fast --test-arguments=--hide-successes
 
   macos:
 
@@ -103,4 +103,4 @@ jobs:
           ./stack test --dependencies-only --fast
     - name: Build and test
       run: |
-          ./stack test --fast --test-arguments='--hide-successes'
+          ./stack test --fast --test-arguments=--hide-successes
