@@ -5349,6 +5349,9 @@ To set an image for a particular reveal.js slide, add
 `{data-background-image="/path/to/image"}`
 to the first slide-level heading on the slide (which may even be empty).
 
+To set an image for the title slide generated from the metadata,
+use the configuration variable `title-background-image`.
+
 In reveal.js's overview mode, the parallaxBackgroundImage will show up
 only on the first slide.
 
