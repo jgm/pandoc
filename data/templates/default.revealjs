@@ -55,7 +55,7 @@ $endfor$
     <div class="slides">
 
 $if(title)$
-<section id="$idprefix$title-slide">
+<section id="$idprefix$title-slide"$if(title-background-image)$ data-background-image="$title-background-image$"$endif$>
   <h1 class="title">$title$</h1>
 $if(subtitle)$
   <p class="subtitle">$subtitle$</p>
