@@ -369,7 +369,7 @@ $if(csl-refs)$
 $endif$
 
 $if(title)$
-\title{$title$$if(thanks)$\thanks{$thanks$}$endif$}
+\title{$title$}
 $endif$
 $if(subtitle)$
 $if(beamer)$
@@ -384,7 +384,7 @@ $endif$
 \subtitle{$subtitle$}
 $endif$
 $if(author)$
-\author{$for(author)$$author$$sep$ \and $endfor$}
+\author{$for(author)$$author$$sep$ \and $endfor$$if(thanks)$\thanks{$thanks$}$endif$}
 $endif$
 \date{$date$}
 $if(beamer)$
