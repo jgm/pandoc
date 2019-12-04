@@ -20,7 +20,7 @@ import Text.Pandoc.Definition (Inline (Span, Str))
 import Text.Pandoc.Emoji.TH (genEmojis)
 
 emojis :: M.Map T.Text T.Text
-emojis = M.fromList $(genEmojis "data/emoji.json")
+emojis = M.fromList $(genEmojis "emoji.json")
 
 emojiToInline :: T.Text -> Maybe Inline
 emojiToInline emojikey = makeSpan <$> M.lookup emojikey emojis

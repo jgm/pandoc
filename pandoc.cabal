@@ -189,6 +189,8 @@ extra-source-files:
                  -- files needed to build man page
                  man/manfilter.lua
                  man/pandoc.1.template
+                 -- data files used by TH
+                 emoji.json
                  -- trypandoc
                  trypandoc/Makefile
                  trypandoc/index.html

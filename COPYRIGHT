@@ -198,7 +198,7 @@ revised by Martin Paul Eve and then John MacFarlane.
 License. Originally by Martin Fenner."
 
 ------------------------------------------------------------------------
-The file data/emoji.json is derived from https://github.com/github/gemoji.
+The file emoji.json is derived from https://github.com/github/gemoji.
 
 Copyright (c) 2019 GitHub, Inc.
 
