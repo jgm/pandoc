@@ -78,6 +78,7 @@
   \newenvironment{LTR}{\beginL}{\endL}
 \fi
 
+\author{}
 \date{}
 
 \begin{document}
