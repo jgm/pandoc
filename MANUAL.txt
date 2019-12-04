@@ -2104,6 +2104,9 @@ These affect HTML output when [producing slide shows with pandoc].
 All [reveal.js configuration options] are available as variables.
 To turn off boolean flags that default to true in reveal.js, use `0`.
 
+`background-image`
+:   background image for all slides
+
 `revealjs-url`
 :   base URL for reveal.js documents (defaults to `reveal.js`)
 
@@ -2117,6 +2120,9 @@ To turn off boolean flags that default to true in reveal.js, use `0`.
 `slideous-url`
 :   base URL for Slideous documents (defaults to `slideous`)
 
+`title-background-image`
+:   background image for the title slide
+
 [reveal.js configuration options]: https://github.com/hakimel/reveal.js#configuration
 
 ### Variables for Beamer slides
@@ -2127,6 +2133,9 @@ These variables change the appearance of PDF slides using [`beamer`].
 :   slide aspect ratio (`43` for 4:3 [default], `169` for 16:9,
     `1610` for 16:10, `149` for 14:9, `141` for 1.41:1, `54` for 5:4,
     `32` for 3:2)
+
+`background-image`
+:   background image for all slides
 
 `beamerarticle`
 :   produce an article from Beamer slides
