@@ -3,6 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {- |
    Module      : Text.Pandoc.App.CommandLineOptions
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -41,6 +42,7 @@ import System.Environment (getArgs, getProgName)
 import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
+import Text.DocTemplates (Val(..))
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..))
@@ -1028,8 +1030,12 @@ deprecatedOption o msg =
 
 -- | Set text value in text context.
 setVariable :: String -> String -> Context Text -> Context Text
-setVariable key val (Context ctx) =
-  Context $ M.insert (T.pack key) (toVal (T.pack val)) ctx
+setVariable key val (Context ctx) = Context $ M.alter go (T.pack key) ctx
+  where go Nothing  = Just $ toVal (T.pack val)
+        go (Just (ListVal xs))
+                    = Just $ ListVal $ xs ++
+                             [toVal (T.pack val)]
+        go (Just x) = Just $ ListVal [x, toVal (T.pack val)]
 
 addMeta :: String -> String -> Meta -> Meta
 addMeta k v meta =
