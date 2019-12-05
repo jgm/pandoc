@@ -586,7 +586,9 @@ makeSections numbering mbBaseLevel bs =
        (Header level (ident,classes,kvs) title':ys) : xs)
       | all (\case
                Header level' _ _ -> level' > level
-               _                 -> True) ys = do
+               _                 -> True) ys
+      , "column" `notElem` dclasses
+      , "columns" `notElem` dclasses = do
     inner <- go (Header level (ident,classes,kvs) title':ys)
     let inner' =
           case inner of
