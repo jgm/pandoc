@@ -116,17 +116,18 @@ To produce a PDF, specify an output file with a `.pdf` extension:
 
 By default, pandoc will use LaTeX to create the PDF, which requires
 that a LaTeX engine be installed (see `--pdf-engine` below).
+Alternatively, pandoc can use ConTeXt, roff ms, or HTML as an
+intermediate format.  To do this, specify an output file with a
+`.pdf` extension, as before, but add the `--pdf-engine` option
+or `-t context`, `-t html`, or `-t ms` to the command line.
+The tool used to generate the PDF from the intermediate format
+may be specified using `--pdf-engine`.
 
-Alternatively, pandoc can use [ConTeXt], `pdfroff`, or any of the
-following HTML/CSS-to-PDF-engines, to create a PDF: [`wkhtmltopdf`],
-[`weasyprint`] or [`prince`].
-To do this, specify an output file with a `.pdf` extension, as before,
-but add the `--pdf-engine` option or `-t context`, `-t html`, or `-t ms`
-to the command line (`-t html` defaults to `--pdf-engine=wkhtmltopdf`).
-
-PDF output uses [variables for LaTeX] (with a LaTeX engine);
-[variables for ConTeXt] (with ConTeXt); or [variables for `wkhtmltopdf`]
-(an HTML/CSS-to-PDF engine; `--css` also affects the output).
+You can control the PDF style using variables, depending on
+the intermediate format used: see [variables for LaTeX],
+[variables for ConTeXt], [variables for `wkhtmltopdf`],
+[variables for ms].  When HTML is used as an intermediate
+format, the output can be styled using `--css`.
 
 To debug the PDF creation, it can be useful to look at the intermediate
 representation: instead of `-o test.pdf`, use for example `-s -o test.tex`
@@ -1249,8 +1250,16 @@ header when requesting a document from a URL:
 :   Use the specified engine when producing PDF output.
     Valid values are `pdflatex`, `lualatex`, `xelatex`, `latexmk`,
     `tectonic`, `wkhtmltopdf`, `weasyprint`, `prince`, `context`,
-    and `pdfroff`. The default is `pdflatex`.  If the engine is
-    not in your PATH, the full path of the engine may be specified here.
+    and `pdfroff`. If the engine is not in your PATH, the full
+    path of the engine may be specified here.  If this option
+    is not specified, pandoc uses the following defaults
+    depending on the output format specified using `-t/--to`:
+
+    - `-t latex` or none: `pdflatex` (other options: `xelatex`, `lualatex`,
+        `tectonic`, `latexmk`)
+    - `-t context`: `context`
+    - `-t html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`)
+    - `-t ms`:  `pdfroff`
 
 `--pdf-engine-opt=`*STRING*
 
