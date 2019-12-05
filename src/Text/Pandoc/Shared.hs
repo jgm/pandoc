@@ -641,12 +641,6 @@ headerShift n (Pandoc meta (Header m _ ils : bs))
   | n < 0
   , m + n == 0 = headerShift n $
                  B.setTitle (B.fromList ils) $ Pandoc meta bs
-headerShift n (Pandoc meta bs)
-  | n > 0
-  , not (null (docTitle meta))
-    = Pandoc meta' (Header n nullAttr (docTitle meta) : bs')
- where
-   Pandoc meta' bs' = headerShift n $ B.deleteMeta "title" $ Pandoc meta bs
 headerShift n (Pandoc meta bs) = Pandoc meta (walk shift bs)
  where
    shift :: Block -> Block

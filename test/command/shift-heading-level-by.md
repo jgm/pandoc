@@ -8,9 +8,8 @@ title: My title
 
 ## Second
 ^D
-Pandoc (Meta {unMeta = fromList []})
-[Header 1 ("",[],[]) [Str "My",Space,Str "title"]
-,Header 2 ("first-heading",[],[]) [Str "First",Space,Str "heading"]
+Pandoc (Meta {unMeta = fromList [("title",MetaInlines [Str "My",Space,Str "title"])]})
+[Header 2 ("first-heading",[],[]) [Str "First",Space,Str "heading"]
 ,Header 3 ("second",[],[]) [Str "Second"]]
 ```
 
