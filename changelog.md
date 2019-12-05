@@ -1,5 +1,59 @@
 # Revision history for pandoc
 
+## pandoc 2.8.1 (2019-12-05)
+
+  * Add `ascii_identifiers` as a supported extension for `markdown`.
+    This fixes a regression in 2.8.
+
+  * Fix regression with behavior of `--variable` (#5962).
+    Previously `-Vfoo=1 -Vfoo=2` would produce a list value for foo;
+    with 2.8 it produced just `2`.  This commit restores the earlier
+    behavior.
+
+  * Roll back part of of `--shift-heading-level-by` change (#5957).
+    With positive heading shifts, starting in 2.8 this option
+    caused metadata titles to be removed and changed to regular
+    headings.  This behavior is incompatible with the old
+    behavior of `--base-header-level` and breaks old workflows,
+    so we have rolled back the change. Note that there is now an
+    asymmetry in positive and negative heading level shifts:
+    With positive shifts, the metadata title stays the same and
+    does not get changed to a heading in the body, while with
+    negative shifts, a heading can be converted into the
+    metadata title.
+
+  * Text.Pandoc.Shared: Fix `makeSections` so it doesn't turn
+    column Divs into sections.
+
+  * HTML writer: add task-list class to ul if all elements are
+    task list items.  This will allow styling unordered task
+    lists in a way that omits the bullet.
+
+  * HTML-based templates: Add CSS to suppress bullet on unordered task lists.
+
+  * ConTeXt template: Fix `\startcslreferences` and use ConTeXt syntax
+    conventions (#5945, Denis Maier).  The old version had a too large
+    a skip at the beginning of the reference list.
+
+  * LaTeX template: keep the `\author{}` command even if author is not
+    specified (#5961, Yihui Xie).  Avoids a LaTeX warning.
+
+  * Generate Emoji module with TH.
+
+    + Add Text.Pandoc.Emoji.TH.
+    + Replace long literal list in Text.Pandoc.Emoji with one-liner
+      generating it from `emoji.json` using TH.
+    + Add Makefile target to download `emoji.json`.
+    + Remove `tools/emoji.hs`.
+
+  * Increase GC allocation space for compilation in cabal.project.
+
+  * Clean up manual on PDF generation backend options (#5940).
+
+  * Update release checklist to include code signing step and update
+    Windows release-candidate builds (#5950).
+
+
 ## pandoc 2.8.0.1 (2019-11-26)
 
   * List `pdf` in `--list-output-formats`.
