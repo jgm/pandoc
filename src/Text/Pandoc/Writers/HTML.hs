@@ -370,6 +370,13 @@ defList :: PandocMonad m
         => WriterOptions -> [Html] -> StateT WriterState m Html
 defList opts items = toList H.dl opts (items ++ [nl opts])
 
+isTaskListItem :: [Block] -> Bool
+isTaskListItem (Plain (Str "☐":Space:_):_) = True
+isTaskListItem (Plain (Str "☒":Space:_):_) = True
+isTaskListItem (Para  (Str "☐":Space:_):_) = True
+isTaskListItem (Para  (Str "☒":Space:_):_) = True
+isTaskListItem _                           = False
+
 listItemToHtml :: PandocMonad m
                => WriterOptions -> [Block] -> StateT WriterState m Html
 listItemToHtml opts bls
@@ -819,7 +826,9 @@ blockToHtml opts (Header level attr@(_,classes,_) lst) = do
               _ -> H.p ! A.class_ "heading" $ contents'
 blockToHtml opts (BulletList lst) = do
   contents <- mapM (listItemToHtml opts) lst
-  unordList opts contents
+  let isTaskList = not (null lst) && all isTaskListItem lst
+  (if isTaskList then (! A.class_ "task-list") else id) <$>
+    unordList opts contents
 blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
   contents <- mapM (listItemToHtml opts) lst
   html5 <- gets stHtml5

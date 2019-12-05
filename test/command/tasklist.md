@@ -5,7 +5,7 @@ tests adapted from <https://github.github.com/gfm/#task-list-items-extension->
 - [ ] foo
 - [x] bar
 ^D
-<ul>
+<ul class="task-list">
 <li><input type="checkbox" disabled="" />
 foo</li>
 <li><input type="checkbox" disabled="" checked="" />
@@ -21,9 +21,9 @@ bar</li>
   - [x] baz
 - [ ] bim
 ^D
-<ul>
+<ul class="task-list">
 <li><input type="checkbox" disabled="" checked="" />
-foo<ul>
+foo<ul class="task-list">
 <li><input type="checkbox" disabled="" />
 bar</li>
 <li><input type="checkbox" disabled="" checked="" />
@@ -73,7 +73,7 @@ ordered unchecked</li>
 ordered checked</li>
 </ol>
 <p>paragraph</p>
-<ul>
+<ul class="task-list">
 <li><p><input type="checkbox" disabled="" />
 list item with a</p><p>second paragraph</p></li>
 <li><p><input type="checkbox" disabled="" checked="" />
