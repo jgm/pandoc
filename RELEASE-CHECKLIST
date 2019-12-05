@@ -2,7 +2,8 @@
 [ ] make man/pandoc.1 and commit if needed
 [ ] Finalize changelog
     tools/changelog-helper.sh
-[ ] push release candidate and download artifacts
+[ ] push release candidate branch rc/VERSION and (if it builds
+    successfully) download artifacts
 [ ] Use 'make' in macos and windows artifacts to sign code
 [ ] make update-website
 [ ] make trypandoc
