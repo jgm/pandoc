@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "November 26, 2019" "pandoc 2.8.0.1"
+.TH PANDOC 1 "December 5, 2019" "pandoc 2.8.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -146,19 +146,20 @@ pandoc test.txt -o test.pdf
 .PP
 By default, pandoc will use LaTeX to create the PDF, which requires that
 a LaTeX engine be installed (see \f[C]--pdf-engine\f[R] below).
-.PP
-Alternatively, pandoc can use ConTeXt, \f[C]pdfroff\f[R], or any of the
-following HTML/CSS-to-PDF-engines, to create a PDF:
-\f[C]wkhtmltopdf\f[R], \f[C]weasyprint\f[R] or \f[C]prince\f[R].
+Alternatively, pandoc can use ConTeXt, roff ms, or HTML as an
+intermediate format.
 To do this, specify an output file with a \f[C].pdf\f[R] extension, as
 before, but add the \f[C]--pdf-engine\f[R] option or
 \f[C]-t context\f[R], \f[C]-t html\f[R], or \f[C]-t ms\f[R] to the
-command line (\f[C]-t html\f[R] defaults to
-\f[C]--pdf-engine=wkhtmltopdf\f[R]).
+command line.
+The tool used to generate the PDF from the intermediate format may be
+specified using \f[C]--pdf-engine\f[R].
 .PP
-PDF output uses variables for LaTeX (with a LaTeX engine); variables for
-ConTeXt (with ConTeXt); or variables for \f[C]wkhtmltopdf\f[R] (an
-HTML/CSS-to-PDF engine; \f[C]--css\f[R] also affects the output).
+You can control the PDF style using variables, depending on the
+intermediate format used: see variables for LaTeX, variables for
+ConTeXt, variables for \f[C]wkhtmltopdf\f[R], variables for ms.
+When HTML is used as an intermediate format, the output can be styled
+using \f[C]--css\f[R].
 .PP
 To debug the PDF creation, it can be useful to look at the intermediate
 representation: instead of \f[C]-o test.pdf\f[R], use for example
@@ -514,13 +515,14 @@ headings become level 1 headings, and level 3 headings become level 2
 headings.
 Headings cannot have a level less than 1, so a heading that would be
 shifted below level 1 becomes a regular paragraph.
-Exception: with a shift of -1, a level-1 heading at the beginning of the
+Exception: with a shift of -N, a level-N heading at the beginning of the
 document replaces the metadata title.
-Conversely, with a shift of +1, a nonempty metadata title becomes a
-level-1 heading at the beginning of the document.
 \f[C]--shift-heading-level-by=-1\f[R] is a good choice when converting
 HTML or Markdown documents that use an initial level-1 heading for the
 document title and level-2+ headings for sections.
+\f[C]--shift-heading-level-by=1\f[R] may be a good choice for converting
+Markdown documents that use level-1 headings for sections to HTML, since
+pandoc uses a level-1 heading to render the document title.
 .TP
 \f[B]\f[CB]--base-header-level=\f[B]\f[R]\f[I]NUMBER\f[R]
 \f[I]Deprecated. Use \f[CI]--shift-heading-level-by\f[I] instead.\f[R]
@@ -1337,9 +1339,23 @@ Valid values are \f[C]pdflatex\f[R], \f[C]lualatex\f[R],
 \f[C]xelatex\f[R], \f[C]latexmk\f[R], \f[C]tectonic\f[R],
 \f[C]wkhtmltopdf\f[R], \f[C]weasyprint\f[R], \f[C]prince\f[R],
 \f[C]context\f[R], and \f[C]pdfroff\f[R].
-The default is \f[C]pdflatex\f[R].
 If the engine is not in your PATH, the full path of the engine may be
 specified here.
+If this option is not specified, pandoc uses the following defaults
+depending on the output format specified using \f[C]-t/--to\f[R]:
+.RS
+.IP \[bu] 2
+\f[C]-t latex\f[R] or none: \f[C]pdflatex\f[R] (other options:
+\f[C]xelatex\f[R], \f[C]lualatex\f[R], \f[C]tectonic\f[R],
+\f[C]latexmk\f[R])
+.IP \[bu] 2
+\f[C]-t context\f[R]: \f[C]context\f[R]
+.IP \[bu] 2
+\f[C]-t html\f[R]: \f[C]wkhtmltopdf\f[R] (other options:
+\f[C]prince\f[R], \f[C]weasyprint\f[R])
+.IP \[bu] 2
+\f[C]-t ms\f[R]: \f[C]pdfroff\f[R]
+.RE
 .TP
 \f[B]\f[CB]--pdf-engine-opt=\f[B]\f[R]\f[I]STRING\f[R]
 Use the given string as a command-line argument to the
