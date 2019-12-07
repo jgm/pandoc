@@ -407,9 +407,9 @@ toTableOfContents opts bs =
 sectionToListItem :: WriterOptions -> Block -> [Block]
 sectionToListItem opts (Div (ident,_,_)
                          (Header lev (_,classes,kvs) ils : subsecs))
-  | not (isNothing (lookup "number" kvs) && "unlisted" `elem` classes)
-  = Plain headerLink : [BulletList listContents | not (null listContents)
-                                              , lev < writerTOCDepth opts]
+  | lev <= writerTOCDepth opts
+  , not (isNothing (lookup "number" kvs) && "unlisted" `elem` classes)
+  = Plain headerLink : [BulletList listContents | not (null listContents)]
  where
    num = fromMaybe "" $ lookup "number" kvs
    addNumber  = if T.null num
