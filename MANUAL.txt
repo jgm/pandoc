@@ -4135,6 +4135,9 @@ left, and must not be followed immediately by a digit.  Thus,
 you need to enclose text in literal `$` characters, backslash-escape
 them and they won't be treated as math delimiters.
 
+For display math, use `$$` delimiters.  (In this case, the delimiters
+may be separated from the formula by whitespace.)
+
 TeX math will be printed in all output formats. How it is rendered
 depends on the output format:
 
