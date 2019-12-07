@@ -573,13 +573,13 @@ makeSections numbering mbBaseLevel bs =
     sectionContents' <- go sectionContents
     S.modify $ \(_, ln) -> (mbLevel, ln)
     rest' <- go rest
-    let divattr = (ident, ["section"], [])
-    let attr = ("",classes,
-                   -- don't touch number if already present
-                   case lookup "number" kvs of
-                     Nothing | numbering ->
+    let kvs' = -- don't touch number if already present
+               case lookup "number" kvs of
+                  Nothing | numbering ->
                         ("number", T.intercalate "." (map tshow newnum)) : kvs
-                     _ -> kvs)
+                  _ -> kvs
+    let divattr = (ident, "section":classes, kvs')
+    let attr = ("",classes,kvs')
     return $
       Div divattr (Header level' attr title' : sectionContents') : rest'
   go (Div (dident,dclasses,dkvs)
