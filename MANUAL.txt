@@ -1906,11 +1906,11 @@ $~$This long line may break if the document is rendered
 with a short line length.$~$
 ```
 
-### Filters
+### Pipes
 
-A filter transforms the value of a variable or partial. Filters are
+A pipe transforms the value of a variable or partial. Pipes are
 specified using a slash (`/`) between the variable name (or partial)
-and the filter name. Example:
+and the pipe name. Example:
 
 ```
 $for(name)$
@@ -1924,7 +1924,7 @@ $endfor$
 $employee:name()/uppercase$
 ```
 
-Filters may be chained:
+Pipes may be chained:
 
 ```
 $for(employees/pairs)$
@@ -1932,7 +1932,7 @@ $it.key/alpha/uppercase$. $it.name$
 $endfor$
 ```
 
-Some filters take parameters:
+Some pipes take parameters:
 
 ```
 |----------------------|------------|
@@ -1942,7 +1942,7 @@ $endfor$
 |----------------------|------------|
 ```
 
-Currently the following filters are predefined:
+Currently the following pipes are predefined:
 
 - `pairs`:  Converts a map or array to an array of maps,
   each with `key` and `value` fields.  If the original
