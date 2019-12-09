@@ -165,4 +165,4 @@ readJSON :: PandocMonad m
 readJSON _ t =
   case eitherDecode' . BL.fromStrict . UTF8.fromText $ t of
        Right doc -> return doc
-       Left _    -> throwError $ PandocParseError "JSON parse error"
+       Left e    -> throwError $ PandocParseError ("JSON parse error: " <> T.pack e)
