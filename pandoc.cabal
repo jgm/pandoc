@@ -189,8 +189,6 @@ extra-source-files:
                  -- files needed to build man page
                  man/manfilter.lua
                  man/pandoc.1.template
-                 -- data files used by TH
-                 emoji.json
                  -- trypandoc
                  trypandoc/Makefile
                  trypandoc/index.html
@@ -430,7 +428,7 @@ library
                  ipynb >= 0.1 && < 0.2,
                  attoparsec >= 0.12 && < 0.14,
                  text-conversions >= 0.3 && < 0.4,
-                 template-haskell > 2
+                 emojis >= 0.1 && < 0.2
   if os(windows) && arch(i386)
      build-depends: basement >= 0.0.10,
                     foundation >= 0.0.23
@@ -465,7 +463,7 @@ library
                      -fhide-source-paths
 
   default-language: Haskell2010
-  other-extensions: NoImplicitPrelude, TemplateHaskell
+  other-extensions: NoImplicitPrelude
   hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
@@ -624,7 +622,6 @@ library
                    Text.Pandoc.UUID,
                    Text.Pandoc.Translations,
                    Text.Pandoc.Slides,
-                   Text.Pandoc.Emoji.TH,
                    Paths_pandoc
   autogen-modules: Paths_pandoc
   buildable:       True

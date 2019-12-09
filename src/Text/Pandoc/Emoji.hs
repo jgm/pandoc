@@ -14,14 +14,14 @@ Emoji symbol lookup from canonical string identifier.
 -}
 module Text.Pandoc.Emoji ( emojis, emojiToInline ) where
 import Prelude
-import qualified Data.Map as M
-import qualified Data.Text as T
+import qualified Text.Emoji as E
 import Text.Pandoc.Definition (Inline (Span, Str))
-import Text.Pandoc.Emoji.TH (genEmojis)
+import Data.Text (Text)
+import qualified Data.Map as M
 
-emojis :: M.Map T.Text T.Text
-emojis = M.fromList $(genEmojis "emoji.json")
+emojis :: M.Map Text Text
+emojis = M.fromList E.emojis
 
-emojiToInline :: T.Text -> Maybe Inline
-emojiToInline emojikey = makeSpan <$> M.lookup emojikey emojis
+emojiToInline :: Text -> Maybe Inline
+emojiToInline emojikey = makeSpan <$> E.emojiFromAlias emojikey
   where makeSpan = Span ("", ["emoji"], [("data-emoji", emojikey)]) . (:[]) . Str
