@@ -2127,6 +2127,10 @@ To turn off boolean flags that default to true in reveal.js, use `0`.
 `slideous-url`
 :   base URL for Slideous documents (defaults to `slideous`)
 
+`title-slide-attributes`
+:   additional attributes for the title slide of reveal.js slide shows.
+    See [background in reveal.js and beamer] for an example.
+
 [reveal.js configuration options]: https://github.com/hakimel/reveal.js#configuration
 
 ### Variables for Beamer slides
@@ -5369,6 +5373,10 @@ Other reveal.js background settings also work on individual slides, including
 `data-background-size`, `data-background-repeat`, `data-background-color`,
 `data-transition`, and `data-transition-speed`.
 
+To add a background image to the automatically generated title slide, use the
+`title-slide-attributes` variable in the YAML metadata block. It must contain
+a map of attribute names and values.
+
 See the [reveal.js
 documentation](https://github.com/hakimel/reveal.js#slide-backgrounds)
 for more details.
@@ -5379,6 +5387,9 @@ For example in reveal.js:
 ---
 title: My Slideshow
 parallaxBackgroundImage: /path/to/my/background_image.png
+title-slide-attributes:
+    data-background-image: /path/to/title_image.png
+    data-background-size: contain
 ---
 
 ## Slide One
