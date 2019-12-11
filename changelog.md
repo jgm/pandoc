@@ -1,5 +1,67 @@
 # Revision history for pandoc
 
+## pandoc 2.9 (PROVISIONAL)
+
+  * Text.Pandoc.Templates [API change]
+
+    + Add Monad wrappers `WithDefaultPartials` and `WithPartials`.
+      Wrapping these around an instance of `PandocMonad` gives
+      us different instances of `TemplateMonad`, with different
+      search behavior in retrieving partials.
+      To compile a template and limit partial search to pandoc's
+      data files, use `runWithDefaultPartials (compileTemplate ...)`.
+      To compile a template and allow partials to be found locally
+      (either on the file system or via HTTP, in the event that
+      the main template has an absolute URL), ue
+      `runWithPartials (compileTemplate ...)`.
+    + Export `getTemplate`, which seeks a template locally,
+      or via HTTP if the template has an absolute URL, falling
+      back to the data files if not found.
+    + Export `compileDefaultTemplate` -- does `getDefaultTemplate`
+      and compiles the result, raising an error on failure.
+
+  * Text.Pandoc.Class [API change]
+
+    + Remove `TemplateMonad` instances for `PandocIO` and `PandocPure`.
+      These were too limiting and caused a bug whereby a local
+      partial could be used even when the default template was requested.
+      We now rely on instances provided in the Templates module.
+
+  * Text.Pandoc.App.OutputSettings: Simplify template retrieval code.
+
+  * ConTeXt template: Adjust to title formatting (#5949, Denis Maier).
+    Add `\setupinterlinespace` to `title`, `subtitle`, `date` and `author`
+    elements:  otherwise longer titles that run over multiple lines will look
+    squashed as `\tfd` etc. won't adapt the line spacing to the font size.
+
+  * reveal.js template: Add title-slide-attributes variable (#5981,
+    Frederik Elwert).
+
+  * More informative JSON parse error (#5973).
+
+  * Use external emojis package (forked from pandoc).  Removed emoji data
+    in Text.Pandoc.Emoji.
+
+  * Fix regression in `makeSections` (#5965).
+    Previously `hierarchicalize` (the ancestor of `makeSections`) would put
+    header attributes on the containing Div.  In 2.8 this behavior changed,
+    which broke some tools depending on pandoc.  Here we roll back this change,
+    so that attributes again migrate from the header to the containing Div when
+    `makeSections` is run.  Note that attributes are retained on the header as
+    well (unlike before) -- with the exception of the `id` attribute, which of
+    course cannot be duplicated.
+
+  * Fix `--toc-depth` regression in 2.8 (#5967).
+
+  * Use doctemplates 0.8.  Rename template 'filters' as 'pipes'
+    to avoid confusion with the other notion of filter used by pandoc.
+
+  * Fix README.md so that relative links from manual become absolute.
+    Previously they'd be broken links when viewed on GitHub or Hackage.
+    So we add the base URL for the pandoc manual.
+
+  * Document display math syntax in manual.
+
 ## pandoc 2.8.1 (2019-12-05)
 
   * Add `ascii_identifiers` as a supported extension for `markdown`.

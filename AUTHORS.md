@@ -57,6 +57,7 @@
 - David Lazar
 - David Röthlisberger
 - Denis Laxalde
+- Denis Maier
 - Derek Chen-Becker
 - Dmitry Pogodin
 - Douglas Calvert
@@ -74,6 +75,7 @@
 - Florian Klink
 - Francesco Occhipinti
 - François Gannaz
+- Frederik Elwert
 - Freiric Barral
 - Freirich Raabe
 - Frerich Raabe
