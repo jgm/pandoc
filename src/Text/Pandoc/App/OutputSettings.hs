@@ -25,7 +25,7 @@ import qualified Data.Text as T
 import Text.DocTemplates (toVal, Context(..), Val(..))
 import qualified Control.Exception as E
 import Control.Monad
-import Control.Monad.Except (catchError, throwError)
+import Control.Monad.Except (throwError)
 import Control.Monad.Trans
 import Data.Char (toLower)
 import Data.List (find, isPrefixOf)
@@ -171,40 +171,18 @@ optToOutputSettings opts = do
                       setVariableM "dzslides-core" dzcore vars
                   else return vars)
 
-  templStr <- case optTemplate opts of
+  templ <- case optTemplate opts of
                   _ | not standalone -> return Nothing
-                  Nothing -> Just <$> getDefaultTemplate format
+                  Nothing -> Just <$> compileDefaultTemplate format
                   Just tp -> do
                     -- strip off extensions
                     let tp' = case takeExtension tp of
                                    "" -> tp <.> T.unpack format
                                    _  -> tp
-                    Just . UTF8.toText <$>
-                          ((do surl <- stSourceURL <$> getCommonState
-                               -- we don't want to look for templates remotely
-                               -- unless the full URL is specified:
-                               modifyCommonState $ \st -> st{
-                                  stSourceURL = Nothing }
-                               (bs, _) <- fetchItem $ T.pack tp'
-                               modifyCommonState $ \st -> st{
-                                  stSourceURL = surl }
-                               return bs)
-                           `catchError`
-                           (\e ->
-                               case e of
-                                    PandocResourceNotFound _ ->
-                                       readDataFile ("templates" </> tp')
-                                    _ -> throwError e))
-
-  let templatePath = fromMaybe "" $ optTemplate opts
-
-  templ <- case templStr of
-             Nothing -> return Nothing
-             Just ts -> do
-               res <- compileTemplate templatePath ts
-               case res of
-                 Left  e -> throwError $ PandocTemplateError $ T.pack e
-                 Right t -> return $ Just t
+                    res <- getTemplate tp' >>= runWithPartials . compileTemplate tp'
+                    case res of
+                      Left  e -> throwError $ PandocTemplateError $ T.pack e
+                      Right t -> return $ Just t
 
   let writerOpts = def {
           writerTemplate         = templ
