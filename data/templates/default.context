@@ -133,18 +133,18 @@ $endfor$
 \starttext
 $if(title)$
 \startalignment[middle]
-  {\tfd $title$}
+  {\tfd\setupinterlinespace $title$}
 $if(subtitle)$
   \smallskip
-  {\tfa $subtitle$}
+  {\tfa\setupinterlinespace $subtitle$}
 $endif$
 $if(author)$
   \smallskip
-  {\tfa $for(author)$$author$$sep$\crlf $endfor$}
+  {\tfa\setupinterlinespace $for(author)$$author$$sep$\crlf $endfor$}
 $endif$
 $if(date)$
   \smallskip
-  {\tfa $date$}
+  {\tfa\setupinterlinespace $date$}
 $endif$
   \bigskip
 \stopalignment
