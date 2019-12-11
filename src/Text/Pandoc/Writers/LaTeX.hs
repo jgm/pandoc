@@ -24,7 +24,7 @@ import Data.Monoid (Any(..))
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isSpace,
                   isPunctuation, ord, toLower)
 import Data.List (foldl', intercalate, intersperse, nubBy,
-                  stripPrefix, (\\), uncons)
+                  stripPrefix, (\\), uncons, groupBy)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
 import qualified Data.Map as M
 import Data.Text (Text)
@@ -1454,7 +1454,23 @@ citationsToBiblatex (c:cs)
                     NormalCitation -> "\\autocite"
       return $ text cmd <>
                braces (text (intercalate "," (map citationId (c:cs))))
-  | otherwise = do
+  | all (\cit -> null (citationSuffix cit)) (c:cs) 
+    = do  
+      let cmd = case citationMode c of 
+                    SuppressAuthor -> "\\autocites*"
+                    AuthorInText   -> "\\textcites"
+                    NormalCitation -> "\\autocites"
+
+      let preGroups = groupBy (\cita citb -> 
+                        citationPrefix cita == citationPrefix citb) (c:cs)
+      prefixes <- mapM (\group -> inlineListToLaTeX $ citationPrefix $ head group)
+           preGroups 
+
+      return $ text cmd <> (foldl' (\acc preGroup -> 
+          acc <> brackets (fst preGroup) <> brackets empty <>
+              braces (text (intercalate "," (map citationId (snd preGroup)))))
+                    empty $ zip prefixes preGroups)
+ | otherwise = do
     let cmd = case citationMode c of
                     SuppressAuthor -> "\\autocites*"
                     AuthorInText   -> "\\textcites"
