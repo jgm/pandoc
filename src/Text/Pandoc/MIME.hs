@@ -9,7 +9,7 @@
    Stability   : alpha
    Portability : portable
 
-Mime type lookup for ODT writer.
+Mime type lookup.
 -}
 module Text.Pandoc.MIME ( MimeType, getMimeType, getMimeTypeDef,
                           extensionFromMimeType, mediaCategory ) where
