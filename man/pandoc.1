@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "December 5, 2019" "pandoc 2.8.1"
+.TH PANDOC 1 "December 12, 2019" "pandoc 2.9"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -2158,11 +2158,11 @@ $\[ti]$This long line may break if the document is rendered
 with a short line length.$\[ti]$
 \f[R]
 .fi
-.SS Filters
+.SS Pipes
 .PP
-A filter transforms the value of a variable or partial.
-Filters are specified using a slash (\f[C]/\f[R]) between the variable
-name (or partial) and the filter name.
+A pipe transforms the value of a variable or partial.
+Pipes are specified using a slash (\f[C]/\f[R]) between the variable
+name (or partial) and the pipe name.
 Example:
 .IP
 .nf
@@ -2179,7 +2179,7 @@ $employee:name()/uppercase$
 \f[R]
 .fi
 .PP
-Filters may be chained:
+Pipes may be chained:
 .IP
 .nf
 \f[C]
@@ -2189,7 +2189,7 @@ $endfor$
 \f[R]
 .fi
 .PP
-Some filters take parameters:
+Some pipes take parameters:
 .IP
 .nf
 \f[C]
@@ -2201,7 +2201,7 @@ $endfor$
 \f[R]
 .fi
 .PP
-Currently the following filters are predefined:
+Currently the following pipes are predefined:
 .IP \[bu] 2
 \f[C]pairs\f[R]: Converts a map or array to an array of maps, each with
 \f[C]key\f[R] and \f[C]value\f[R] fields.
@@ -2395,6 +2395,10 @@ base URL for Slidy documents (defaults to
 .TP
 \f[B]\f[CB]slideous-url\f[B]\f[R]
 base URL for Slideous documents (defaults to \f[C]slideous\f[R])
+.TP
+\f[B]\f[CB]title-slide-attributes\f[B]\f[R]
+additional attributes for the title slide of reveal.js slide shows.
+See background in reveal.js and beamer for an example.
 .SS Variables for Beamer slides
 .PP
 These variables change the appearance of PDF slides using
@@ -4866,6 +4870,10 @@ If for some reason you need to enclose text in literal \f[C]$\f[R]
 characters, backslash-escape them and they won\[aq]t be treated as math
 delimiters.
 .PP
+For display math, use \f[C]$$\f[R] delimiters.
+(In this case, the delimiters may be separated from the formula by
+whitespace.)
+.PP
 TeX math will be printed in all output formats.
 How it is rendered depends on the output format:
 .TP
@@ -6393,6 +6401,11 @@ including \f[C]data-background-size\f[R],
 \f[C]data-background-repeat\f[R], \f[C]data-background-color\f[R],
 \f[C]data-transition\f[R], and \f[C]data-transition-speed\f[R].
 .PP
+To add a background image to the automatically generated title slide,
+use the \f[C]title-slide-attributes\f[R] variable in the YAML metadata
+block.
+It must contain a map of attribute names and values.
+.PP
 See the reveal.js documentation for more details.
 .PP
 For example in reveal.js:
@@ -6402,6 +6415,9 @@ For example in reveal.js:
 ---
 title: My Slideshow
 parallaxBackgroundImage: /path/to/my/background_image.png
+title-slide-attributes:
+    data-background-image: /path/to/title_image.png
+    data-background-size: contain
 ---
 
 ## Slide One
