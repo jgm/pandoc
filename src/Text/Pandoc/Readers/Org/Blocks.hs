@@ -33,7 +33,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (compactify, compactifyDL, safeRead)
 
-import Control.Monad (foldM, guard, mzero, void)
+import Control.Monad (foldM, guard, mplus, mzero, void)
 import Data.Char (isSpace)
 import Data.Default (Default)
 import Data.List (foldl')
@@ -615,8 +615,16 @@ orgTable = try $ do
   lookAhead tableStart
   do
     rows <- tableRows
-    let caption = fromMaybe (return mempty) $ blockAttrCaption blockAttrs
-    return $ (<$> caption) . orgToPandocTable . normalizeTable =<< rowsToTable rows
+    let captionMb      = blockAttrCaption blockAttrs
+    -- amend caption with span as ID tag iff both are present
+    let amendedCaption = do
+          caption' <- captionMb
+          name     <- blockAttrName blockAttrs `mplus` blockAttrLabel blockAttrs
+          let tag = B.spanWith (name, mempty, mempty) mempty
+          return $ fmap (tag <>) caption'
+    let caption = fromMaybe mempty (amendedCaption `mplus` captionMb)
+    return $ (<$> caption) . orgToPandocTable . normalizeTable
+                    =<< rowsToTable rows
 
 orgToPandocTable :: OrgTable
                  -> Inlines
