@@ -13,13 +13,13 @@ Ok
 ==
 :::
 ^D
-<section id="hi" class="level1 section">
+<section id="hi" class="level1">
 <h1>Hi</h1>
-<section id="there" class="level2 section">
+<section id="there" class="level2">
 <h2>there</h2>
 </section>
 </section>
-<section id="ok" class="level1 section">
+<section id="ok" class="level1">
 <h1>Ok</h1>
 </section>
 ```

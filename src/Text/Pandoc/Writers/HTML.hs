@@ -663,7 +663,8 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
                      (z:zs) -> ([],z ++ concatMap inDiv zs)
   titleContents <- blockListToHtml opts titleBlocks
   innerContents <- blockListToHtml opts innerSecs
-  let classes' = ["title-slide" | titleSlide] ++ ["slide" | slide] ++
+  let classes' = ordNub $
+                  ["title-slide" | titleSlide] ++ ["slide" | slide] ++
                   ["section" | (slide || writerSectionDivs opts) &&
                                not html5 ] ++
                   ["level" <> tshow level | slide || writerSectionDivs opts ]

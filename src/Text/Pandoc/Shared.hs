@@ -582,31 +582,34 @@ makeSections numbering mbBaseLevel bs =
     let attr = ("",classes,kvs')
     return $
       Div divattr (Header level' attr title' : sectionContents') : rest'
-  go (Div (dident,dclasses,dkvs)
-       (Header level (ident,classes,kvs) title':ys) : xs)
+  go (Div divattr@(dident,dclasses,_) (Header level hattr title':ys) : xs)
       | all (\case
                Header level' _ _ -> level' > level
                _                 -> True) ys
       , "column" `notElem` dclasses
       , "columns" `notElem` dclasses = do
-    inner <- go (Header level (ident,classes,kvs) title':ys)
-    let inner' =
-          case inner of
-            (Div (dident',dclasses',dkvs') zs@(Header{}:zs') : ws)
-              | T.null dident ->
-                Div (dident',dclasses' ++ dclasses,dkvs' ++ dkvs) zs : ws
-              | otherwise -> -- keep id on header so we don't lose anchor
-                Div (dident,dclasses ++ dclasses',dkvs ++ dkvs')
-                  (Header level (dident',classes,kvs) title':zs') : ws
-            _ -> inner  -- shouldn't happen
+    inner <- go (Header level hattr title':ys)
     rest <- go xs
-    return $ inner' ++ rest
+    return $
+      case inner of
+            [Div divattr'@(dident',_,_) zs]
+              | T.null dident || T.null dident' || dident == dident'
+              -> Div (combineAttr divattr' divattr) zs : rest
+            _ -> Div divattr inner : rest
   go (Div attr xs : rest) = do
     xs' <- go xs
     rest' <- go rest
     return $ Div attr xs' : rest'
   go (x:xs) = (x :) <$> go xs
   go [] = return []
+
+  combineAttr :: Attr -> Attr -> Attr
+  combineAttr (id1, classes1, kvs1) (id2, classes2, kvs2) =
+    (if T.null id1 then id2 else id1,
+     ordNub (classes1 ++ classes2),
+     foldr (\(k,v) kvs -> case lookup k kvs of
+                             Nothing -> (k,v):kvs
+                             Just _  -> kvs) mempty (kvs1 ++ kvs2))
 
 headerLtEq :: Int -> Block -> Bool
 headerLtEq level (Header l _ _)  = l <= level
@@ -642,6 +645,7 @@ headerShift n (Pandoc meta (Header m _ ils : bs))
   , m + n == 0 = headerShift n $
                  B.setTitle (B.fromList ils) $ Pandoc meta bs
 headerShift n (Pandoc meta bs) = Pandoc meta (walk shift bs)
+
  where
    shift :: Block -> Block
    shift (Header level attr inner)
