@@ -28,7 +28,7 @@ import Network.HTTP (urlEncode)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (capitalize, isHeaderBlock, isTightList,
+import Text.Pandoc.Shared (capitalize, isTightList,
     linesToPara, onlySimpleTableCells, taskListItemToAscii, tshow)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk (walk, walkM)
@@ -40,12 +40,10 @@ import Text.DocLayout (literal, render)
 -- | Convert Pandoc to CommonMark.
 writeCommonMark :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeCommonMark opts (Pandoc meta blocks) = do
-  let headerBlocks = filter isHeaderBlock blocks
   toc <- if writerTableOfContents opts
-            then blocksToCommonMark opts
-                  [ toTableOfContents opts headerBlocks ]
+            then blocksToCommonMark opts [ toTableOfContents opts blocks ]
             else return mempty
- 
+
   let (blocks', notes) = runState (walkM processNotes blocks) []
       notes' = if null notes
                then []

@@ -208,9 +208,8 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                                    mmdTitleBlock metadata
                                | otherwise -> empty
                         Nothing -> empty
-  let headerBlocks = filter isHeaderBlock blocks
   toc <- if writerTableOfContents opts
-         then blockToMarkdown opts ( toTableOfContents opts headerBlocks )
+         then blockToMarkdown opts ( toTableOfContents opts blocks )
          else return mempty
   -- Strip off final 'references' header if markdown citations enabled
   let blocks' = if isEnabled Ext_citations opts

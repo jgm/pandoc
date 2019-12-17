@@ -103,8 +103,7 @@ writeRTF options doc = do
               (fmap literal . inlinesToRTF)
               meta'
   body <- blocksToRTF 0 AlignDefault blocks
-  toc <- blocksToRTF 0 AlignDefault
-          [toTableOfContents options $ filter isHeaderBlock blocks]
+  toc <- blocksToRTF 0 AlignDefault [toTableOfContents options blocks]
   let context = defField "body" body
               $ defField "spacer" spacer
               $(if writerTableOfContents options
