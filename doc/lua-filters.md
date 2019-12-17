@@ -245,7 +245,7 @@ The following filters are presented as examples. A repository of
 useful lua filters (which may also serve as good examples) is
 available at <https://github.com/pandoc/lua-filters>.
 
-## Macro substitution.
+## Macro substitution
 
 The following filter converts the string `{{helloworld}}` into
 emphasized text "Hello, World".
