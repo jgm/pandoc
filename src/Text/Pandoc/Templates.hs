@@ -25,7 +25,7 @@ module Text.Pandoc.Templates ( Template
                              ) where
 
 import Prelude
-import System.FilePath ((<.>), (</>))
+import System.FilePath ((<.>), (</>), takeFileName)
 import Text.DocTemplates (Template, TemplateMonad(..), compileTemplate, renderTemplate)
 import Text.Pandoc.Class (PandocMonad, readDataFile, fetchItem,
                           CommonState(..), getCommonState, modifyCommonState)
@@ -48,7 +48,7 @@ newtype WithPartials m a = WithPartials { runWithPartials :: m a }
 
 instance PandocMonad m => TemplateMonad (WithDefaultPartials m) where
   getPartial fp = WithDefaultPartials $
-    UTF8.toText <$> readDataFile fp
+    UTF8.toText <$> readDataFile ("templates" </> takeFileName fp)
 
 instance PandocMonad m => TemplateMonad (WithPartials m) where
   getPartial fp = WithPartials $ getTemplate fp
@@ -68,7 +68,8 @@ getTemplate tp = UTF8.toText <$>
    `catchError`
    (\e -> case e of
              PandocResourceNotFound _ ->
-                readDataFile ("templates" </> tp)
+                -- see #5987 on reason for takeFileName
+                readDataFile ("templates" </> takeFileName tp)
              _ -> throwError e))
 
 -- | Get default template for the specified writer.
