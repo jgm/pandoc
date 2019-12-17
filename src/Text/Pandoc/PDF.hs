@@ -507,7 +507,7 @@ showVerboseInfo mbTmpDir program programArgs env source = do
   mapM_ print env
   putStr "\n"
   putStrLn $ "[makePDF] Source:"
-  putStrLn source
+  UTF8.putStrLn source
 
 handlePDFProgramNotFound :: String -> IE.IOError -> IO a
 handlePDFProgramNotFound program e
