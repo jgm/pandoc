@@ -1,6 +1,34 @@
 # Revision history for pandoc
 
-## pandoc 2.9 (PROVISIONAL)
+## pandoc 2.9.1 (PROVISIONAL)
+
+  * Improved table of contents generation in markdown, RTF,
+    commonmark, better handling cases where section headings are
+    enclosed in divs.
+
+  * HTML reader: Add `nav` to list of block-level tags.
+
+  * Org reader: add table labels to caption if both are present
+    (#5984, Albert Krewinkel).  The table `#+NAME:` or `#+LABEL:`
+    is added to the table's caption in the form of an empty span
+    with the label set as the span's ID.
+
+  * Text.Pandoc.PDF: Ensure UTF8 when printing source in
+    `--verbose` mode (#5997).
+
+  * Text.Pandoc.Templates: Strip directory before trying to find
+    partial in data files (#5987).
+
+  * Text.Pandoc.Shared: Improve `makeSections` so we don't get
+    doubled "number" attributes in EPUB output (or anywhere
+    else) (#5986).
+
+  * Added tests for `--toc` and `--section-divs`.
+
+  * lua-filters.md remove spurious dot in title (#5996, Mauro
+    Bieg).
+
+## pandoc 2.9 (2019-12-11)
 
   * Text.Pandoc.Templates [API change]
 
