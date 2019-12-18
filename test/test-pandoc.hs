@@ -17,6 +17,7 @@ import qualified Tests.Readers.EPUB
 import qualified Tests.Readers.FB2
 import qualified Tests.Readers.HTML
 import qualified Tests.Readers.JATS
+import qualified Tests.Readers.Jira
 import qualified Tests.Readers.LaTeX
 import qualified Tests.Readers.Markdown
 import qualified Tests.Readers.Muse
@@ -73,6 +74,7 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "Markdown" Tests.Readers.Markdown.tests
           , testGroup "HTML" Tests.Readers.HTML.tests
           , testGroup "JATS" Tests.Readers.JATS.tests
+          , testGroup "Jira" Tests.Readers.Jira.tests
           , testGroup "Org" Tests.Readers.Org.tests
           , testGroup "RST" Tests.Readers.RST.tests
           , testGroup "Docx" Tests.Readers.Docx.tests

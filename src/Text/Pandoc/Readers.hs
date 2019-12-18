@@ -37,6 +37,7 @@ module Text.Pandoc.Readers
   , readLaTeX
   , readHtml
   , readJATS
+  , readJira
   , readTextile
   , readDocBook
   , readOPML
@@ -78,6 +79,7 @@ import Text.Pandoc.Readers.Ipynb
 import Text.Pandoc.Readers.Haddock
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.JATS (readJATS)
+import Text.Pandoc.Readers.Jira (readJira)
 import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.MediaWiki
@@ -121,6 +123,7 @@ readers = [ ("native"       , TextReader readNative)
            ,("textile"      , TextReader readTextile) -- TODO : textile+lhs
            ,("html"         , TextReader readHtml)
            ,("jats"         , TextReader readJATS)
+           ,("jira"         , TextReader readJira)
            ,("latex"        , TextReader readLaTeX)
            ,("haddock"      , TextReader readHaddock)
            ,("twiki"        , TextReader readTWiki)

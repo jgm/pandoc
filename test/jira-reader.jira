@@ -1,0 +1,284 @@
+h1. {anchor:headers}Headers
+h2. {anchor:level-2-with-an-embedded-link}Level 2 with an [embedded link|https://test.example/url]
+h3. {anchor:level-3-with-emphasis}Level 3 with _emphasis_
+h4. Level 4
+h5. Level 5
+h6. Level 6
+
+h0. this is not a header.
+
+----
+h1. Paragraphs
+Here’s a regular paragraph.
+
+Here’s one with a bullet. * criminey.
+
+There should be a hard line break
+here.
+
+----
+h1. Block Quotes
+E-mail style:
+
+bq. This is a block quote. It is pretty short.
+{quote}
+Code in a block quote:
+
+{code:java}
+sub status {
+    print "working";
+}
+{code}
+
+An enumeration:
+
+# item one
+# item two
+{quote}
+
+A following paragraph.
+
+----
+h1. Code Blocks
+
+Code:
+
+{code:java}
+---- (should be four hyphens)
+
+sub status {
+    print "working";
+}
+{code}
+And:
+
+{code:java}
+    this code block is indented by two tabs
+
+These should not be escaped:  \$ \\ \> \[ \{
+{code}
+
+----
+h1. {anchor:lists}Lists
+h2. {anchor:unordered}Unordered
+Asterisks:
+
+* asterisk 1
+* asterisk 2
+* asterisk 3
+
+Minuses:
+
+- Minus 1
+- Minus 2
+- Minus 3
+
+h2. Ordered
+
+# First
+# Second
+# Third
+
+Linebreak in paragraph:
+
+# Item 1, line one.
+Item 1. line two. The quick brown fox jumped over the lazy dog’s back.
+# Item 2.
+# Item 3.
+
+h2. Nested
+* Tab
+** Tab
+*** Tab
+
+Here’s another:
+
+# First
+# Second:
+#* Fee
+#* Fie
+#* Foe
+# Third
+
+Nested enumerations:
+
+# Essential
+## Important
+### Relevant
+#### Insignificant
+
+----
+h1. Linebreaks and Markup in Lists
+
+* *apple*
+red fruit
+* *orange*
+orange fruit
+* *banana*
+yellow fruit
+
+Multiple blocks with italics:
+
+* *_apple_*
+red fruit
+contains seeds, crisp, pleasant to taste
+* *_orange_*
+orange fruit
+{code:java}
+{ orange code block }
+{code}
+bq. orange block quote
+
+----
+h1. Colored Text Blocks
+{color:red}
+This is red.
+{color}
+
+h2. Eiffel 65
+
+{color:blue}
+da ba dee
+{color}
+
+----
+h1. Inline Markup
+This is _emphasized_, and so _is this_.
+
+This is *strong*, and so *is this*.
+
+An _[emphasized link|https://my.example/url]_.
+
+*_This is strong and em._*
+
+So is *_this_* word.
+
+This is code: {{>}}, {{$}}, {{&bsol;}}, {{&bsol;$}}, {{<html>}}.
+
+-This is _strikeout_.-
+
+Superscripts: a{^}bc{^}d a{^}_hello_{^} a{^}hello there{^}.
+
+Subscripts: H{~}2{~}O, C{~}6{~}H{~}12{~}O{~}6{~}, C{~} n {~}H{~}_2n_{~}O{~}n{~}.
+
+These should not be superscripts or subscripts, because of markers used within words: a^b c^d, a~b c~d.
+
+----
+h1. Dashes, and emoticons
+
+Some dashes: one -- two --- three.
+
+Sure (/)
+Nope (x)
+
+Nice :D
+
+Capital d\:D
+
+----
+h1. Math
+
+* 2 + 2 = 4
+* _x_ ∈ {_}y{_}
+* _α_ ∧ {_}ω{_}
+* _p_-Tree
+* Here’s one more: _α_ + {_}ω{_} × {_}x{_}^2^.
+
+
+----
+h1. Special Characters
+Here is some unicode:
+
+* I hat: Î
+* o umlaut: ö
+* section: §
+* set membership: ∈
+* copyright: ©
+
+AT&T has an ampersand in their name.
+
+AT&amp;T is another way to write it.
+
+This & that.
+
+4 < 5.
+
+6 > 5.
+
+Backslash: &bsol;
+
+Backtick: `
+
+Asterisk: *
+
+Underscore: _
+
+Left brace: {
+
+Right brace: }
+
+Left bracket: [
+
+Right bracket: ]
+
+Left paren: (
+
+Right paren: )
+
+Greater-than: >
+
+Hash: #
+
+Period: .
+
+Bang: !
+
+Plus: +
+
+Minus: -
+
+----
+h1. Links
+h2. Explicit
+Just a [URL|https://example.org/url].
+
+[File URL|file://some/file/name/].
+
+[IRC link|irc://example.org/pandoc].
+
+[Email link|mailto:nobody@nowhere.invalid]
+
+[Not a link|not a URL].
+
+h2. Reference
+With [embedded \[brackets\]|https://example.net/url/].
+
+https://pandoc.org by itself should be a link.
+
+h2. With ampersands
+Here’s a [link with an ampersand in the URL|http://example.com/?foo=1&bar=2].
+
+Here’s a link with an ampersand in the link text: [AT&T|http://att.com/].
+
+h2. Autolinks
+With an ampersand: http://example.com/?foo=1&bar=2
+
+* In a list?
+* http://example.com/
+* It should.
+
+An e-mail address: mailto:nobody@nowhere.invalid
+
+bq. Blockquoted: http://example.com/
+
+{code:java}
+Autolink should not occur here: <http://example.com/>
+{code}
+
+----
+h1. Images
+From "Voyage dans la Lune" by Georges Melies (1902):
+
+!lalune.jpg!
+
+Here is a movie !movie.jpg! icon.
