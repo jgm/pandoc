@@ -160,4 +160,11 @@ tests =
             [ [ plain "x", plain "6" ]
             , [ plain "9", plain "42" ]
             ]
+
+  , "named table" =:
+      T.unlines [ "#+NAME: x-marks-the-spot"
+                , "| x |"
+                ] =?>
+      divWith ("x-marks-the-spot", mempty, mempty)
+              (simpleTable' 1 mempty [ [ plain "x" ] ])
   ]

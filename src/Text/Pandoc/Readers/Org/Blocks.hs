@@ -613,18 +613,16 @@ orgTable = try $ do
   guard =<< not . isFirstInListItem <$> getState
   blockAttrs <- blockAttributes
   lookAhead tableStart
-  do
-    rows <- tableRows
-    let captionMb      = blockAttrCaption blockAttrs
-    -- amend caption with span as ID tag iff both are present
-    let amendedCaption = do
-          caption' <- captionMb
-          name     <- blockAttrName blockAttrs `mplus` blockAttrLabel blockAttrs
-          let tag = B.spanWith (name, mempty, mempty) mempty
-          return $ fmap (tag <>) caption'
-    let caption = fromMaybe mempty (amendedCaption `mplus` captionMb)
-    return $ (<$> caption) . orgToPandocTable . normalizeTable
-                    =<< rowsToTable rows
+  rows <- tableRows
+
+  let caption = fromMaybe mempty (blockAttrCaption blockAttrs)
+  let orgTbl = normalizeTable <$> rowsToTable rows
+  -- wrap table in div if a name or label is given
+  let identMb = blockAttrName blockAttrs `mplus` blockAttrLabel blockAttrs
+  let wrap = case identMb of
+        Just ident -> B.divWith (ident, mempty, mempty)
+        Nothing    -> id
+  return . fmap wrap $ (orgToPandocTable <$> orgTbl <*> caption)
 
 orgToPandocTable :: OrgTable
                  -> Inlines
