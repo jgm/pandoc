@@ -243,7 +243,6 @@ extra-source-files:
                  test/mediawiki-reader.wiki
                  test/vimwiki-reader.wiki
                  test/creole-reader.txt
-                 test/creole-reader.native
                  test/rst-reader.rst
                  test/jats-reader.xml
                  test/jira-reader.jira
@@ -326,9 +325,7 @@ extra-source-files:
                  test/lhs-test.fragment.html+lhs
                  test/pipe-tables.txt
                  test/dokuwiki_external_images.dokuwiki
-                 test/dokuwiki_external_images.native
                  test/dokuwiki_multiblock_table.dokuwiki
-                 test/dokuwiki_multiblock_table.native
                  test/fb2/*.markdown
                  test/fb2/*.fb2
                  test/fb2/images-embedded.html
