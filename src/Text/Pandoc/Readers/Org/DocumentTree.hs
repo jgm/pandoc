@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.DocumentTree
    Copyright   : Copyright (C) 2014-2019 Albert Krewinkel
@@ -16,8 +17,8 @@ module Text.Pandoc.Readers.Org.DocumentTree
   ) where
 
 import Prelude
-import Control.Arrow ((***))
-import Control.Monad (guard, void)
+import Control.Arrow ((***), first)
+import Control.Monad (guard)
 import Data.List (intersperse)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
@@ -110,15 +111,13 @@ headline blocks inline lvl = try $ do
   level <- headerStart
   guard (lvl <= level)
   todoKw <- optionMaybe todoKeyword
-  title <- trimInlinesF . mconcat <$> manyTill inline endOfTitle
-  tags  <- option [] headerTags
-  newline
+  (title, tags) <- manyThen inline endOfTitle
   planning   <- option emptyPlanning planningInfo
   properties <- option mempty propertiesDrawer
   contents   <- blocks
   children   <- many (headline blocks inline (level + 1))
   return $ do
-    title'    <- title
+    title'    <- trimInlinesF (mconcat title)
     contents' <- contents
     children' <- sequence children
     return Headline
@@ -132,13 +131,29 @@ headline blocks inline lvl = try $ do
       , headlineChildren = children'
       }
  where
-   endOfTitle :: Monad m => OrgParser m ()
-   endOfTitle = void . lookAhead $ optional headerTags *> newline
+   endOfTitle :: Monad m => OrgParser m [Tag]
+   endOfTitle = try $ do
+     skipSpaces
+     tags <- option [] (headerTags <* skipSpaces)
+     newline
+     return tags
 
    headerTags :: Monad m => OrgParser m [Tag]
-   headerTags = try $
-     let tag = orgTagWord <* char ':'
-     in map toTag <$> (skipSpaces *> char ':' *> many1 tag <* skipSpaces)
+   headerTags = try $ do
+     char ':'
+     endBy1 (toTag <$> orgTagWord) (char ':')
+
+   manyThen :: Monad m
+            => OrgParser m a
+            -> OrgParser m b
+            -> OrgParser m ([a], b)
+   manyThen p end = (([],) <$> try end) <|> do
+     x <- p
+     first (x:) <$> manyThen p end
+
+   -- titleFollowedByTags :: Monad m => OrgParser m (Inlines, [Tag])
+   -- titleFollowedByTags = do
+
 
 unprunedHeadlineToBlocks :: Monad m => Headline -> OrgParserState -> OrgParser m [Block]
 unprunedHeadlineToBlocks hdln st =
