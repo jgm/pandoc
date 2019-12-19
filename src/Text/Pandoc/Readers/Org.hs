@@ -18,7 +18,6 @@ import Text.Pandoc.Readers.Org.Parsing (OrgParser, readWithM)
 
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
-import Text.Pandoc.Error
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing (reportLogMessages)
 import Text.Pandoc.Shared (crFilter)
@@ -39,7 +38,7 @@ readOrg opts s = do
             (crFilter s <> "\n\n")
   case parsed of
     Right result -> return result
-    Left  _      -> throwError $ PandocParseError "problem parsing org"
+    Left  e      -> throwError e
 
 --
 -- Parser
