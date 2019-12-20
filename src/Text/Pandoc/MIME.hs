@@ -195,6 +195,7 @@ mimeTypesList =
            ,("gjc","chemical/x-gaussian-input")
            ,("gjf","chemical/x-gaussian-input")
            ,("gl","video/gl")
+           ,("glsl","text/plain")
            ,("gnumeric","application/x-gnumeric")
            ,("gpt","chemical/x-mopac-graph")
            ,("gsf","application/x-font")
