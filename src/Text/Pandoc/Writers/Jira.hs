@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {- |
@@ -16,296 +17,251 @@ JIRA:
 -}
 module Text.Pandoc.Writers.Jira ( writeJira ) where
 import Prelude
-import Control.Monad.State.Strict
+import Control.Monad.Reader (ReaderT, ask, asks, runReaderT)
+import Control.Monad.State.Strict (StateT, evalStateT, gets, modify)
 import Data.Foldable (find)
-import Data.Text (Text, pack)
-import Text.Pandoc.Class (PandocMonad, report)
+import Data.Text (Text)
+import Text.Jira.Parser (plainText)
+import Text.Jira.Printer (prettyBlocks, prettyInlines)
+import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
-import Text.Pandoc.Logging (LogMessage (BlockNotRendered, InlineNotRendered))
-import Text.Pandoc.Options (WriterOptions (writerTemplate))
-import Text.Pandoc.Shared (blocksToInlines, linesToPara)
+import Text.Pandoc.Options (WriterOptions (writerTemplate, writerWrapText),
+                            WrapOption (..))
+import Text.Pandoc.Shared (linesToPara)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
-import Text.Pandoc.Writers.Shared (metaToContext, defField)
-import qualified Data.Text as T
+import Text.Pandoc.Writers.Shared (defField, metaToContext)
 import Text.DocLayout (literal, render)
-
-data WriterState = WriterState
-  { stNotes     :: [Text]      -- Footnotes
-  , stListLevel :: Text        -- String at beginning of list items, e.g. "**"
-  }
-
--- | Initial writer state
-startState :: WriterState
-startState = WriterState
-  { stNotes = []
-  , stListLevel = ""
-  }
-
-type JiraWriter = StateT WriterState
+import qualified Data.Text as T
+import qualified Text.Jira.Markup as Jira
 
 -- | Convert Pandoc to Jira.
 writeJira :: PandocMonad m => WriterOptions -> Pandoc -> m Text
-writeJira opts document =
-  evalStateT (pandocToJira opts document) startState
+writeJira opts = runDefaultConverter (writerWrapText opts) (pandocToJira opts)
+
+-- | State to keep track of footnotes.
+newtype ConverterState = ConverterState { stNotes :: [Text] }
+
+-- | Initial converter state.
+startState :: ConverterState
+startState = ConverterState { stNotes = [] }
+
+-- | Converter monad
+type JiraConverter m = ReaderT WrapOption (StateT ConverterState m)
+
+-- | Run a converter using the default state
+runDefaultConverter :: PandocMonad m
+                    => WrapOption
+                    -> (a -> JiraConverter m Text)
+                    -> a
+                    -> m Text
+runDefaultConverter wrap c x = evalStateT (runReaderT (c x) wrap) startState
 
 -- | Return Jira representation of document.
 pandocToJira :: PandocMonad m
-             => WriterOptions -> Pandoc -> JiraWriter m Text
+             => WriterOptions -> Pandoc -> JiraConverter m Text
 pandocToJira opts (Pandoc meta blocks) = do
+  wrap <- ask
   metadata <- metaToContext opts
-                 (fmap literal . blockListToJira opts)
-                 (fmap literal . inlineListToJira opts) meta
-  body <- blockListToJira opts blocks
+                 (fmap literal . runDefaultConverter wrap blockListToJira)
+                 (fmap literal . runDefaultConverter wrap inlineListToJira) meta
+  body <- blockListToJira blocks
   notes <- gets $ T.intercalate "\n" . reverse . stNotes
-  let main = body <> if T.null notes
-                        then mempty
-                        else T.pack "\n\n" <> notes
+  let main = body <> if T.null notes then mempty else "\n\n" <> notes
   let context = defField "body" main metadata
   return $
     case writerTemplate opts of
       Nothing  -> main
       Just tpl -> render Nothing $ renderTemplate tpl context
 
--- | Escape one character as needed for Jira.
-escapeCharForJira :: Char -> Text
-escapeCharForJira c =
-  let specialChars = "_*-+~^|!{}[]" :: String
-  in case c of
-    '\x2013' -> " -- "
-    '\x2014' -> " --- "
-    '\x2026' -> "..."
-    _ | c `elem` specialChars -> T.cons '\\' (T.singleton c)
-    _                         -> T.singleton c
+blockListToJira :: PandocMonad m => [Block] -> JiraConverter m Text
+blockListToJira = fmap prettyBlocks . toJiraBlocks
 
--- | Escape string as needed for Jira.
-escapeStringForJira :: Text -> Text
-escapeStringForJira = T.concatMap escapeCharForJira
+inlineListToJira :: PandocMonad m => [Inline] -> JiraConverter m Text
+inlineListToJira = fmap prettyInlines . toJiraInlines
 
--- | Create an anchor macro from the given element attributes.
-anchor :: Attr -> Text
-anchor (ident,_,_) =
-  if ident == ""
-  then ""
-  else "{anchor:" <> ident <> "}"
+toJiraBlocks :: PandocMonad m => [Block] -> JiraConverter m [Jira.Block]
+toJiraBlocks blocks = do
+  let convert = \case
+        BlockQuote bs        -> singleton . Jira.BlockQuote
+                                <$> toJiraBlocks bs -- FIXME!
+        BulletList items     -> singleton . Jira.List Jira.CircleBullets
+                                <$> toJiraItems items
+        CodeBlock attr cs    -> toJiraCode attr cs
+        DefinitionList items -> toJiraDefinitionList items
+        Div attr bs          -> toJiraPanel attr bs
+        Header lvl attr xs   -> toJiraHeader lvl attr xs
+        HorizontalRule       -> return . singleton $ Jira.HorizontalRule
+        LineBlock xs         -> toJiraBlocks [linesToPara xs]
+        OrderedList _ items  -> singleton . Jira.List Jira.Enumeration
+                                <$> toJiraItems items
+        Para xs              -> singleton . Jira.Para <$> toJiraInlines xs
+        Plain xs             -> singleton . Jira.Para <$> toJiraInlines xs
+        RawBlock fmt cs      -> rawBlockToJira fmt cs
+        Null                 -> return mempty
+        Table _ _ _ hd body  -> singleton <$> do
+          headerRow <- if null hd
+                       then Just <$> toRow Jira.HeaderCell hd
+                       else pure Nothing
+          bodyRows <- mapM (toRow Jira.BodyCell) body
+          let rows = case headerRow of
+                       Just header -> header : bodyRows
+                       Nothing     -> bodyRows
+          return $ Jira.Table rows
+  jiraBlocks <- mapM convert blocks
+  return $ mconcat jiraBlocks
 
--- | Append a newline character unless we are in a list.
-appendNewlineUnlessInList :: PandocMonad m
-                          => Text
-                          -> JiraWriter m Text
-appendNewlineUnlessInList t = do
-  listLevel <- gets stListLevel
-  return (if T.null listLevel then t <> "\n" else t)
+toRow :: PandocMonad m
+      => ([Jira.Block] -> Jira.Cell)
+      -> [TableCell]
+      -> JiraConverter m Jira.Row
+toRow mkCell cells = Jira.Row <$>
+  mapM (fmap mkCell . toJiraBlocks) cells
 
--- | Convert Pandoc block element to Jira.
-blockToJira :: PandocMonad m
-            => WriterOptions -- ^ Options
-            -> Block         -- ^ Block element
-            -> JiraWriter m Text
+toJiraItems :: PandocMonad m => [[Block]] -> JiraConverter m [[Jira.Block]]
+toJiraItems = mapM toJiraBlocks
 
-blockToJira _ Null = return ""
+toJiraCode :: PandocMonad m
+           => Attr
+           -> Text
+           -> JiraConverter m [Jira.Block]
+toJiraCode (ident, classes, _attribs) code = do
+  let lang = case find (\c -> T.toLower c `elem` knownLanguages) classes of
+               Nothing -> Jira.Language "java"
+               Just l  -> Jira.Language l
+  let addAnchor b = if T.null ident
+                    then b
+                    else [Jira.Para (singleton (Jira.Anchor ident))] <> b
+  return . addAnchor . singleton $ Jira.Code lang mempty code
 
-blockToJira opts (Div attr bs) =
-  (anchor attr <>) <$> blockListToJira opts bs
+-- | Creates a Jira definition list
+toJiraDefinitionList :: PandocMonad m
+                     => [([Inline], [[Block]])]
+                     -> JiraConverter m [Jira.Block]
+toJiraDefinitionList defItems = do
+  let convertDefItem (term, defs) = do
+        jiraTerm <- Jira.Para <$> styled Jira.Strong term
+        jiraDefs <- mconcat <$> mapM toJiraBlocks defs
+        return $ jiraTerm : jiraDefs
+  singleton . Jira.List Jira.CircleBullets <$> mapM convertDefItem defItems
 
-blockToJira opts (Plain inlines) =
-  inlineListToJira opts inlines
+-- | Creates a Jira panel
+toJiraPanel :: PandocMonad m
+            => Attr -> [Block]
+            -> JiraConverter m [Jira.Block]
+toJiraPanel attr blocks = do
+  jiraBlocks <- toJiraBlocks blocks
+  return $ if attr == nullAttr
+           then jiraBlocks
+           else singleton (Jira.Panel [] jiraBlocks)
 
-blockToJira opts (Para inlines) = do
-  contents <- inlineListToJira opts inlines
-  appendNewlineUnlessInList contents
+-- | Creates a Jira header
+toJiraHeader :: PandocMonad m
+             => Int -> Attr -> [Inline]
+             -> JiraConverter m [Jira.Block]
+toJiraHeader lvl (ident, _, _) inlines =
+  let anchor = Jira.Anchor ident
+  in singleton . Jira.Header lvl . (anchor :) <$> toJiraInlines inlines
 
-blockToJira opts (LineBlock lns) =
-  blockToJira opts $ linesToPara lns
+-- | Handles raw block. Jira is included verbatim, everything else is
+-- discarded.
+rawBlockToJira :: PandocMonad m
+               => Format -> Text
+               -> JiraConverter m [Jira.Block]
+rawBlockToJira fmt cs = do
+  rawInlines <- toJiraRaw fmt cs
+  return $
+    if null rawInlines
+    then mempty
+    else singleton (Jira.Para rawInlines)
 
-blockToJira _ b@(RawBlock f str) =
-  if f == Format "jira"
-  then return str
-  else "" <$ report (BlockNotRendered b)
+toJiraRaw :: PandocMonad m
+          => Format -> Text -> JiraConverter m [Jira.Inline]
+toJiraRaw fmt cs = case fmt of
+  Format "jira" -> return . singleton $ Jira.Str cs
+  _             -> return mempty
 
-blockToJira _ HorizontalRule = return "----\n"
 
-blockToJira opts (Header level attr inlines) = do
-  contents <- inlineListToJira opts inlines
-  let prefix = "h" <> pack (show level) <> ". "
-  return $ prefix <> anchor attr <> contents <> "\n"
+--
+-- Inlines
+--
 
-blockToJira _ (CodeBlock attr@(_,classes,_) str) = do
-  let lang = find (\c -> T.toLower c `elem` knownLanguages) classes
-  let start = case lang of
-                Nothing -> "{code}"
-                Just l  -> "{code:" <> l <> "}"
-  let anchorMacro = anchor attr
-  appendNewlineUnlessInList . T.intercalate "\n" $
-    (if anchorMacro == "" then id else (anchorMacro :))
-    [start, str, "{code}"]
+toJiraInlines :: PandocMonad m => [Inline] -> JiraConverter m [Jira.Inline]
+toJiraInlines inlines = do
+  let convert = \case
+        Cite _ xs          -> toJiraInlines xs
+        Code _ cs          -> return . singleton $
+                              Jira.Monospaced (escapeSpecialChars cs)
+        Emph xs            -> styled Jira.Emphasis xs
+        Image _ _ (src, _) -> pure . singleton $ Jira.Image [] (Jira.URL src)
+        LineBreak          -> pure . singleton $ Jira.Linebreak
+        Link _ xs (tgt, _) -> singleton . flip Jira.Link (Jira.URL tgt)
+                              <$> toJiraInlines xs
+        Math mtype cs      -> mathToJira mtype cs
+        Note bs            -> registerNotes bs
+        Quoted qt xs       -> quotedToJira qt xs
+        RawInline fmt cs   -> toJiraRaw fmt cs
+        SmallCaps xs       -> styled Jira.Strong xs
+        SoftBreak          -> do
+                                preserveBreak <- asks (== WrapPreserve)
+                                pure . singleton $ if preserveBreak
+                                  then Jira.Linebreak
+                                  else Jira.Space
+        Space              -> pure . singleton $ Jira.Space
+        Span _attr xs      -> toJiraInlines xs
+        Str s              -> pure $ escapeSpecialChars s
+        Strikeout xs       -> styled Jira.Strikeout xs
+        Strong xs          -> styled Jira.Strong xs
+        Subscript xs       -> styled Jira.Subscript xs
+        Superscript xs     -> styled Jira.Superscript xs
+  jiraInlines <- mapM convert inlines
+  return $ mconcat jiraInlines
 
-blockToJira opts (BlockQuote [p@(Para _)]) = do
-  contents <- blockToJira opts p
-  return ("bq. " <> contents)
+singleton :: a -> [a]
+singleton = (:[])
 
-blockToJira opts (BlockQuote blocks) = do
-  contents <- blockListToJira opts blocks
-  appendNewlineUnlessInList . T.unlines $
-    [ "{quote}", contents, "{quote}"]
+styled :: PandocMonad m
+       => Jira.InlineStyle -> [Inline]
+       -> JiraConverter m [Jira.Inline]
+styled s = fmap (singleton . Jira.Styled s) . toJiraInlines
 
-blockToJira opts (Table _caption _aligns _widths headers rows) = do
-  headerCells <- mapM blocksToCell headers
-  bodyRows    <- mapM (mapM blocksToCell) rows
-  let tblHead = headerCellsToRow headerCells
-  let tblBody = map cellsToRow bodyRows
-  return $ if all null headers
-           then T.unlines tblBody
-           else T.unlines (tblHead : tblBody)
- where
-  blocksToCell :: PandocMonad m => [Block] -> JiraWriter m Text
-  blocksToCell = inlineListToJira opts . blocksToInlines
+-- | Converts a plain text value to Jira inlines, ensuring that all
+-- special characters will be handled appropriately.
+escapeSpecialChars :: Text -> [Jira.Inline]
+escapeSpecialChars t = case plainText t of
+  Right xs -> xs
+  Left _  -> singleton $ Jira.Str t
 
-  cellsToRow :: [Text] -> Text
-  cellsToRow cells = "|" <> T.intercalate "|" cells <> "|"
+mathToJira :: PandocMonad m
+           => MathType
+           -> Text
+           -> JiraConverter m [Jira.Inline]
+mathToJira mtype cs = do
+  mathInlines <- toJiraInlines =<< texMathToInlines mtype cs
+  return $ case mtype of
+    InlineMath  -> mathInlines
+    DisplayMath -> Jira.Linebreak : mathInlines ++ [Jira.Linebreak]
 
-  headerCellsToRow :: [Text] -> Text
-  headerCellsToRow cells = "||" <> T.intercalate "||" cells <> "||"
+quotedToJira :: PandocMonad m
+             => QuoteType
+             -> [Inline]
+             -> JiraConverter m [Jira.Inline]
+quotedToJira qtype xs = do
+  let quoteChar = case qtype of
+                    DoubleQuote -> "\""
+                    SingleQuote -> "'"
+  let surroundWithQuotes = (Jira.Str quoteChar :) . (++ [Jira.Str quoteChar])
+  surroundWithQuotes <$> toJiraInlines xs
 
-blockToJira opts (BulletList items) =
-  listWithMarker opts items '*'
-
-blockToJira opts (OrderedList _listAttr items) =
-  listWithMarker opts items '#'
-
-blockToJira opts (DefinitionList items) =
-  blockToJira opts (BulletList (map defToBulletItem items))
- where
-  defToBulletItem :: ([Inline], [[Block]]) -> [Block]
-  defToBulletItem (inlns, defs) =
-    let term = Plain [Strong inlns]
-        blks = mconcat defs
-    in term : blks
-
--- Auxiliary functions for lists:
-
--- | Create a list using the given character as bullet item marker.
-listWithMarker :: PandocMonad m
-               => WriterOptions
-               -> [[Block]]
-               -> Char
-               -> JiraWriter m Text
-listWithMarker opts items marker = do
-  modify $ \s -> s { stListLevel = stListLevel s `T.snoc` marker }
-  contents <- mapM (listItemToJira opts) items
-  modify $ \s -> s { stListLevel = T.init (stListLevel s) }
-  appendNewlineUnlessInList $ T.intercalate "\n" contents
-
--- | Convert bullet or ordered list item (list of blocks) to Jira.
-listItemToJira :: PandocMonad m
-               => WriterOptions
-               -> [Block]
-               -> JiraWriter m Text
-listItemToJira opts items = do
-  contents <- blockListToJira opts items
-  marker <- gets stListLevel
-  return $ marker <> " " <> contents
-
--- | Convert list of Pandoc block elements to Jira.
-blockListToJira :: PandocMonad m
-                => WriterOptions -- ^ Options
-                -> [Block]       -- ^ List of block elements
-                -> JiraWriter m Text
-blockListToJira opts blocks =
-  T.intercalate "\n" <$> mapM (blockToJira opts) blocks
-
--- | Convert list of Pandoc inline elements to Jira.
-inlineListToJira :: PandocMonad m
-                 => WriterOptions
-                 -> [Inline]
-                 -> JiraWriter m Text
-inlineListToJira opts lst =
-  T.concat <$> mapM (inlineToJira opts) lst
-
--- | Convert Pandoc inline element to Jira.
-inlineToJira :: PandocMonad m
-             => WriterOptions
-             -> Inline
-             -> JiraWriter m Text
-
-inlineToJira opts (Span attr lst) =
-  (anchor attr <>) <$> inlineListToJira opts lst
-
-inlineToJira opts (Emph lst) = do
-  contents <- inlineListToJira opts lst
-  return $ "_" <> contents <> "_"
-
-inlineToJira opts (Strong lst) = do
-  contents <- inlineListToJira opts lst
-  return $ "*" <> contents <> "*"
-
-inlineToJira opts (Strikeout lst) = do
-  contents <- inlineListToJira opts lst
-  return $ "-" <> contents <> "-"
-
-inlineToJira opts (Superscript lst) = do
-  contents <- inlineListToJira opts lst
-  return $ "{^" <> contents <> "^}"
-
-inlineToJira opts (Subscript lst) = do
-  contents <- inlineListToJira opts lst
-  return $ "{~" <> contents <> "~}"
-
-inlineToJira opts (SmallCaps lst) = inlineListToJira opts lst
-
-inlineToJira opts (Quoted SingleQuote lst) = do
-  contents <- inlineListToJira opts lst
-  return $ "'" <> contents <> "'"
-
-inlineToJira opts (Quoted DoubleQuote lst) = do
-  contents <- inlineListToJira opts lst
-  return $ "\"" <> contents <> "\""
-
-inlineToJira opts (Cite _  lst) = inlineListToJira opts lst
-
-inlineToJira _ (Code attr str) =
-  return (anchor attr <> "{{" <> str <> "}}")
-
-inlineToJira _ (Str str) = return $ escapeStringForJira str
-
-inlineToJira opts (Math InlineMath str) =
-  lift (texMathToInlines InlineMath str) >>= inlineListToJira opts
-
-inlineToJira opts (Math DisplayMath str) = do
-  mathInlines <- lift (texMathToInlines DisplayMath str)
-  contents    <- inlineListToJira opts mathInlines
-  return $ "\\\\" <> contents <> "\\\\"
-
-inlineToJira _opts il@(RawInline f str) =
-  if f == Format "jira"
-  then return str
-  else "" <$ report (InlineNotRendered il)
-
-inlineToJira _ LineBreak = return "\n"
-
-inlineToJira _ SoftBreak = return " "
-
-inlineToJira _ Space = return " "
-
-inlineToJira opts (Link _attr txt (src, _title)) = do
-  linkText <- inlineListToJira opts txt
-  return $ T.concat
-    [ "["
-    , if null txt then "" else linkText <> "|"
-    , src
-    , "]"
-    ]
-
-inlineToJira _opts (Image attr _alt (src, _title)) =
-  return . T.concat $ [anchor attr, "!", src, "!"]
-
-inlineToJira opts (Note contents) = do
+registerNotes :: PandocMonad m => [Block] -> JiraConverter m [Jira.Inline]
+registerNotes contents = do
   curNotes <- gets stNotes
   let newnum = length curNotes + 1
-  contents' <- blockListToJira opts contents
-  let thisnote = "[" <> pack (show newnum) <> "] " <> contents' <> "\n"
+  contents' <- blockListToJira contents
+  let thisnote = "\\[" <> T.pack (show newnum) <> "] " <> contents' <> "\n"
   modify $ \s -> s { stNotes = thisnote : curNotes }
-  return $ "[" <> pack (show newnum) <> "]"
+  return . singleton . Jira.Str $
+    "[" <> T.pack (show newnum) <> "]"
 
 -- | Language codes recognized by jira
 knownLanguages :: [Text]

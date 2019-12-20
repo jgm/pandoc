@@ -1,59 +1,43 @@
 This is a set of tests for pandoc. Most of them are adapted from John Gruber’s markdown test suite.
 
 ----
-
 h1. {anchor:headers}Headers
-
 h2. {anchor:level-2-with-an-embedded-link}Level 2 with an [embedded link|/url]
-
 h3. {anchor:level-3-with-emphasis}Level 3 with _emphasis_
-
 h4. {anchor:level-4}Level 4
-
 h5. {anchor:level-5}Level 5
-
 h1. {anchor:level-1}Level 1
-
 h2. {anchor:level-2-with-emphasis}Level 2 with _emphasis_
-
 h3. {anchor:level-3}Level 3
-
 with no blank line
 
 h2. {anchor:level-2}Level 2
-
 with no blank line
 
 ----
-
 h1. {anchor:paragraphs}Paragraphs
-
 Here’s a regular paragraph.
 
-In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard\-wrapped line in the middle of a paragraph looked like a list item.
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.
 
-Here’s one with a bullet. \* criminey.
+Here’s one with a bullet. * criminey.
 
 There should be a hard line break
 here.
 
 ----
-
 h1. {anchor:block-quotes}Block Quotes
-
-E\-mail style:
+E-mail style:
 
 bq. This is a block quote. It is pretty short.
-
 {quote}
 Code in a block quote:
 
-{code}
+{code:java}
 sub status {
     print "working";
 }
 {code}
-
 A list:
 
 # item one
@@ -62,23 +46,17 @@ A list:
 Nested block quotes:
 
 bq. nested
-
 bq. nested
-
 {quote}
-
-
 This should not be a block quote: 2 > 1.
 
 And a following paragraph.
 
 ----
-
 h1. {anchor:code-blocks}Code Blocks
-
 Code:
 
-{code}
+{code:java}
 ---- (should be four hyphens)
 
 sub status {
@@ -87,21 +65,16 @@ sub status {
 
 this code block is indented by one tab
 {code}
-
 And:
 
-{code}
+{code:java}
     this code block is indented by two tabs
 
 These should not be escaped:  \$ \\ \> \[ \{
 {code}
-
 ----
-
 h1. {anchor:lists}Lists
-
 h2. {anchor:unordered}Unordered
-
 Asterisks tight:
 
 * asterisk 1
@@ -139,7 +112,6 @@ Minuses loose:
 * Minus 3
 
 h2. {anchor:ordered}Ordered
-
 Tight:
 
 # First
@@ -172,7 +144,6 @@ Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
 # Item 3.
 
 h2. {anchor:nested}Nested
-
 * Tab
 ** Tab
 *** Tab
@@ -196,14 +167,12 @@ Same thing but with paragraphs:
 # Third
 
 h2. {anchor:tabs-and-spaces}Tabs and spaces
-
 * this is a list item indented with tabs
 * this is a list item indented with spaces
 ** this is an example list item indented with tabs
 ** this is an example list item indented with spaces
 
 h2. {anchor:fancy-list-markers}Fancy list markers
-
 # begins with 2
 # and now 3
 with a continuation
@@ -232,9 +201,7 @@ M.A. 2007
 B. Williams
 
 ----
-
 h1. {anchor:definition-lists}Definition Lists
-
 Tight using spaces:
 
 * *apple*
@@ -269,7 +236,7 @@ red fruit
 contains seeds, crisp, pleasant to taste
 * *_orange_*
 orange fruit
-{code}
+{code:java}
 { orange code block }
 {code}
 bq. orange block quote
@@ -303,27 +270,21 @@ orange fruit
 *# sublist
 
 h1. {anchor:html-blocks}HTML Blocks
-
 Simple block on one line:
 
 foo
+
 And nested without indentation:
 
 foo
 
 bar
+
 Interpreted markdown in a table:
-
-
-
 
 This is _emphasized_
 
-
 And this is *strong*
-
-
-
 
 Here’s a simple block:
 
@@ -331,58 +292,40 @@ foo
 
 This should be a code block, though:
 
-{code}
+{code:java}
 <div>
     foo
 </div>
 {code}
-
 As should this:
 
-{code}
+{code:java}
 <div>foo</div>
 {code}
-
 Now, nested:
 
 foo
-This should just be an HTML comment:
 
+This should just be an HTML comment:
 
 Multiline:
 
-
-
 Code block:
 
-{code}
+{code:java}
 <!-- Comment -->
 {code}
-
 Just plain comment, with trailing spaces on the line:
-
 
 Code:
 
-{code}
+{code:java}
 <hr />
 {code}
-
 Hr’s:
 
-
-
-
-
-
-
-
-
-
 ----
-
 h1. {anchor:inline-markup}Inline Markup
-
 This is _emphasized_, and so _is this_.
 
 This is *strong*, and so *is this*.
@@ -397,20 +340,18 @@ So is *_this_* word.
 
 So is *_this_* word.
 
-This is code: {{>}}, {{$}}, {{\}}, {{\$}}, {{<html>}}.
+This is code: {{>}}, {{$}}, {{&bsol;}}, {{&bsol;$}}, {{<html>}}.
 
 -This is _strikeout_.-
 
-Superscripts: a{^bc^}d a{^_hello_^} a{^hello there^}.
+Superscripts: a{^}bc{^}d a{^}_hello_{^} a{^}hello there{^}.
 
-Subscripts: H{~2~}O, H{~23~}O, H{~many of them~}O.
+Subscripts: H{~}2{~}O, H{~}23{~}O, H{~}many of them{~}O.
 
-These should not be superscripts or subscripts, because of the unescaped spaces: a\^b c\^d, a\~b c\~d.
+These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.
 
 ----
-
 h1. {anchor:smart-quotes-ellipses-dashes}Smart quotes, ellipses, dashes
-
 "Hello," said the spider. "'Shelob' is my name."
 
 'A', 'B', and 'C' are letters.
@@ -421,39 +362,36 @@ h1. {anchor:smart-quotes-ellipses-dashes}Smart quotes, ellipses, dashes
 
 Here is some quoted '{{code}}' and a "[quoted link|http://example.com/?foo=1&bar=2]".
 
-Some dashes: one --- two  ---  three --- four  ---  five.
+Some dashes: one—two — three—four — five.
 
-Dashes between numbers: 5 -- 7, 255 -- 66, 1987 -- 1999.
+Dashes between numbers: 5–7, 255–66, 1987–1999.
 
-Ellipses...and...and....
+Ellipses…and…and….
 
 ----
-
 h1. {anchor:latex}LaTeX
-
 * 
-* 2 \+ 2 = 4
-* _x_ ∈ _y_
-* _α_ ∧ _ω_
+* 2 + 2 = 4
+* _x_ ∈ {_}y{_}
+* _α_ ∧ {_}ω{_}
 * 223
 * _p_\-Tree
-* Here’s some display math: \\$$\frac\{d\}\{dx\}f(x)=\lim\_\{h\to 0\}\frac\{f(x\+h)\-f(x)\}\{h\}$$\\
-* Here’s one that has a line break in it: _α_ \+ _ω_ × _x_{^2^}.
+* Here’s some display math: 
+$$\frac{d\}\{dx}f\(x)=\lim\_\{h\to 0\}&bsol;frac{f(x+h)-f\(x)\}\{h}$$
+
+* Here’s one that has a line break in it: _α_ + {_}ω{_} × {_}x{_}^2^.
 
 These shouldn’t be math:
 
 * To get the famous equation, write {{$e = mc^2$}}.
-* $22,000 is a _lot_ of money. So is $34,000. (It worked if "lot" is emphasized.)
-* Shoes ($20) and socks ($5).
+* $22,000 is a _lot_ of money. So is $34,000. \(It worked if "lot" is emphasized.)
+* Shoes \($20) and socks \($5).
 * Escaped {{$}}: $73 _this should be emphasized_ 23$.
 
 Here’s a LaTeX table:
 
-
 ----
-
 h1. {anchor:special-characters}Special Characters
-
 Here is some unicode:
 
 * I hat: Î
@@ -472,7 +410,7 @@ This & that.
 
 6 > 5.
 
-Backslash: \
+Backslash: &bsol;
 
 Backtick: `
 
@@ -488,11 +426,11 @@ Left bracket: \[
 
 Right bracket: \]
 
-Left paren: (
+Left paren: \(
 
 Right paren: )
 
-Greater\-than: >
+Greater-than: >
 
 Hash: #
 
@@ -505,11 +443,8 @@ Plus: \+
 Minus: \-
 
 ----
-
 h1. {anchor:links}Links
-
 h2. {anchor:explicit}Explicit
-
 Just a [URL|/url/].
 
 [URL and title|/url/].
@@ -522,14 +457,13 @@ Just a [URL|/url/].
 
 [URL and title|/url/]
 
-[with\_underscore|/url/with_underscore]
+[with_underscore|/url/with_underscore]
 
 [Email link|mailto:nobody@nowhere.net]
 
 [Empty|].
 
 h2. {anchor:reference}Reference
-
 Foo [bar|/url/].
 
 With [embedded \[brackets\]|/url/].
@@ -544,16 +478,14 @@ Indented [thrice|/url].
 
 This should \[not\]\[\] be a link.
 
-{code}
+{code:java}
 [not]: /url
 {code}
-
 Foo [bar|/url/].
 
 Foo [biz|/url/].
 
 h2. {anchor:with-ampersands}With ampersands
-
 Here’s a [link with an ampersand in the URL|http://example.com/?foo=1&bar=2].
 
 Here’s a link with an amersand in the link text: [AT&T|http://att.com/].
@@ -563,64 +495,55 @@ Here’s an [inline link|/script?foo=1&bar=2].
 Here’s an [inline link in pointy braces|/script?foo=1&bar=2].
 
 h2. {anchor:autolinks}Autolinks
-
 With an ampersand: [http://example.com/?foo=1&bar=2|http://example.com/?foo=1&bar=2]
 
 * In a list?
 * [http://example.com/|http://example.com/]
 * It should.
 
-An e\-mail address: [nobody@nowhere.net|mailto:nobody@nowhere.net]
+An e-mail address: [nobody@nowhere.net|mailto:nobody@nowhere.net]
 
 bq. Blockquoted: [http://example.com/|http://example.com/]
+Auto-links should not occur here: {{<http://example.com/>}}
 
-Auto\-links should not occur here: {{<http://example.com/>}}
-
-{code}
+{code:java}
 or here: <http://example.com/>
 {code}
-
 ----
-
 h1. {anchor:images}Images
-
-From "Voyage dans la Lune" by Georges Melies (1902):
+From "Voyage dans la Lune" by Georges Melies \(1902):
 
 !lalune.jpg!
 
 Here is a movie !movie.jpg! icon.
 
 ----
-
 h1. {anchor:footnotes}Footnotes
-
 Here is a footnote reference,[1] and another.[2] This should _not_ be a footnote reference, because it contains a space.\[\^my note\] Here is an inline note.[3]
 
 bq. Notes can go in quotes.[4]
-
 # And in list items.[5]
 
 This paragraph should not be part of the note, as it is not indented.
 
 
-[1] Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.
+\[1] Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.
 
 
-[2] Here’s the long note. This one contains multiple blocks.
+\[2] Here’s the long note. This one contains multiple blocks.
 
-Subsequent blocks are indented to show that they belong to the footnote (as with list items).
+Subsequent blocks are indented to show that they belong to the footnote \(as with list items).
 
-{code}
+{code:java}
   { <code> }
 {code}
-
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
 
 
-[3] This is _easier_ to type. Inline notes may contain [links|http://google.com] and {{]}} verbatim characters, as well as \[bracketed text\].
+\[3] This is _easier_ to type. Inline notes may contain [links|http://google.com] and {{\]}} verbatim characters, as well as \[bracketed text].
 
 
-[4] In quote.
+\[4] In quote.
 
 
-[5] In list.
+\[5] In list.
