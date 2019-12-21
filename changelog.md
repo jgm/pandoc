@@ -2,19 +2,48 @@
 
 ## pandoc 2.9.1 (PROVISIONAL)
 
+  * Add Jira reader (Albert Krewinkel, #5556).
+
+  * Jira writer: use jira-wiki-markup renderer (Albert Krewinkel,
+    #5926). The following improvements are included in this change:
+
+    + non-jira raw blocks are fully discarded instead of showing
+      as blank lines;
+    + table cells can contain multiple blocks;
+    + unnecessary blank lines are removed from the output;
+    + markup chars within words are properly surrounded by
+      braces;
+    + preserving soft linebreaks via `--wrap=preserve` is
+      supported.
+
+    Note that backslashes are rendered as HTML entities, as there
+    appears no alternative to produce a plain backslash if it is
+    followed by markup. This may cause problems when used with
+    confluence, where rendering seems to fail in this case.
+
+  * Fix regression with `--number-sections`. Starting with 2.8,
+    `--number-sections` also had the effect of `--section-divs`,
+    even if `--section-divs` was not specified.
+
   * Improved table of contents generation in markdown, RTF,
     commonmark, better handling cases where section headings are
     enclosed in divs.
 
   * HTML reader: Add `nav` to list of block-level tags.
 
-  * Org reader: add table labels to caption if both are present
-    (#5984, Albert Krewinkel).  The table `#+NAME:` or `#+LABEL:`
-    is added to the table's caption in the form of an empty span
-    with the label set as the span's ID.
+  * Org reader (Albert Krewinkel):
+
+    + Add table labels to caption if both are present (#5984).
+      The table `#+NAME:` or `#+LABEL:` is added to the table's
+      caption in the form of an empty span with the label set as
+      the span's ID.
+    + Report parsing errors properly.
+    + Fix parsing problem for colons in headline (#5993).
+    + Wrap named table in Div, using name as id (#5984).
 
   * Text.Pandoc.PDF: Ensure UTF8 when printing source in
-    `--verbose` mode (#5997).
+    `--verbose` mode, avoiding an error on platforms that
+    default to something other than UTF-8 (#5997).
 
   * Text.Pandoc.Templates: Strip directory before trying to find
     partial in data files (#5987).
@@ -24,6 +53,13 @@
     else) (#5986).
 
   * Added tests for `--toc` and `--section-divs`.
+
+  * Text.Pandoc.MIME: Added glsl MIME type for WebGL maps (#6000,
+    Jared Lander).
+
+  * MANUAL: A bit clearer explanation for `--base-header-level`.
+    We now say exactly how to translate between the deprecated
+    `--base-header-level` and `--shift-heading-level-by`.
 
   * lua-filters.md remove spurious dot in title (#5996, Mauro
     Bieg).
@@ -1632,7 +1668,7 @@
     the title slide (for beamer).  This change makes possible
     2D reveal.js slideshows with content in the top slide on
     each stack (#4317, #5237).
- 
+
   * Add command line option `--ipynb-output=all|none|best` (#5339).
     Output cells in ipynb notebooks often contain several different
     versions of an output, with different MIME types, e.g. an HTML
@@ -1779,7 +1815,7 @@
       `utils`, and `text`, respectively.
 
   * Text.Pandoc.Lua (Albert Krewinkel):
-  
+
     + Split `StackInstances` into smaller Marshaling modules.
     + Get `CommonState` from Lua global. This allows more control over
       the common state from within Lua scripts.
@@ -2116,7 +2152,7 @@
 
   * Text.Pandoc.Writers: Changed types of `writeJSON`; it now runs
     in an instance of PandocMonad, like the other readers and
-    writers.  [API change] 
+    writers.  [API change]
 
   * Text.Pandoc.Error: Added `PandocUTF8DecodingError` constructor
     for `PandocError`. [API change]
@@ -2455,7 +2491,7 @@
     used when `raw_html` is enabled.
 
   * Powerpoint writer: support raw openxml (Jesse Rosenthal, #4976).
-    This allows raw openxml blocks and inlines to be used in the pptx 
+    This allows raw openxml blocks and inlines to be used in the pptx
     writer. Caveats: (1) It's up to the user to write
     well-formed openxml. The chances for corruption, especially with
     such a brittle format as pptx, is high. (2) Because of
@@ -2532,7 +2568,7 @@
       using a generic `for` loop with pairs`:
 
           for field_name, field_content in pairs(element) do
-          ... 
+          ...
           end
 
       Raw table fields of AST elements should be considered an
@@ -5999,7 +6035,7 @@
   * HTML reader: parse a span with class `smallcaps` as `SmallCaps`.
 
   * LaTeX reader:
- 
+
     + Implemented `\graphicspath` (#736).
     + Properly handle column prefixes/suffixes.  For example, in
       `\begin{tabular}{>{$}l<{$}>{$}l<{$} >{$}l<{$}}`
@@ -7277,7 +7313,7 @@
     This is needed for dependency version numbers to be available,
     with Cabal > 2.
 
-## pandoc 1.19.2.3 (2017-09-09) 
+## pandoc 1.19.2.3 (2017-09-09)
 
   * Add CPP to Setup.hs so it works with Cabal >= 2 and < 2.
 
@@ -8711,7 +8747,7 @@
     benefit that footnotes and links can be in different files, but for
     some purposes it is useful to parse the individual files first
     and then combine their outputs (e.g. when the files use footnotes
-    or links with the same labels).  The `--file-scope` option causes 
+    or links with the same labels).  The `--file-scope` option causes
     pandoc to parse the files first, and then combine the parsed output,
     instead of combining before parsing. `--file-scope` is selected
     automatically for binary input files (which cannot be concatenated)

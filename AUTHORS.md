@@ -97,6 +97,7 @@
 - Ilya V. Portnov
 - Ivan Trubach
 - Ivo Clarysse
+- Jared Lander
 - J. B. Rainsberger
 - J. Lewis Muir
 - Jaime Marquínez Ferrándiz
