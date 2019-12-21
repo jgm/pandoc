@@ -507,8 +507,9 @@ header when requesting a document from a URL:
 
 `--base-header-level=`*NUMBER*
 
-:   *Deprecated.  Use `--shift-heading-level-by` instead.*
-    Specify the base level for headings (defaults to 1).
+:   *Deprecated.  Use `--shift-heading-level-by`=X instead,
+    where X = NUMBER - 1.* Specify the base level for headings
+    (defaults to 1).
 
 `--strip-empty-paragraphs`
 
