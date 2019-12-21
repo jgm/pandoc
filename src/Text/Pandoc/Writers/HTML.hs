@@ -630,7 +630,8 @@ blockToHtml opts (LineBlock lns) =
     htmlLines <- inlineListToHtml opts $ intercalate [LineBreak] lns
     return $ H.div ! A.class_ "line-block" $ htmlLines
 blockToHtml opts (Div (ident, "section":dclasses, dkvs)
-                   (Header level hattr ils : xs)) = do
+                   (Header level
+                     hattr@(hident,hclasses,hkvs) ils : xs)) = do
   slideVariant <- gets stSlideVariant
   slideLevel <- gets stSlideLevel
   let slide = slideVariant /= NoSlides &&
@@ -684,7 +685,9 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
                 else id) $ t <> if null innerSecs
                                    then mempty
                                    else nl opts <> innerContents
-     else if writerSectionDivs opts || slide || not (null dclasses)
+     else if writerSectionDivs opts || slide ||
+              (hident /= ident && not (T.null hident || T.null ident)) ||
+              (hclasses /= dclasses) || (hkvs /= dkvs)
           then addAttrs opts attr
                $ secttag
                $ nl opts <> header' <> nl opts <>
