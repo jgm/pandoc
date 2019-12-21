@@ -684,8 +684,7 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
                 else id) $ t <> if null innerSecs
                                    then mempty
                                    else nl opts <> innerContents
-     else if writerSectionDivs opts || slide || not (null dclasses) ||
-              not (null dkvs)
+     else if writerSectionDivs opts || slide || not (null dclasses)
           then addAttrs opts attr
                $ secttag
                $ nl opts <> header' <> nl opts <>
