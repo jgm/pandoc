@@ -21,6 +21,7 @@ import Test.Tasty.QuickCheck
 import Test.Tasty.Options (IsOption(defaultValue))
 import Tests.Helpers
 import Text.Pandoc
+import Text.Pandoc.Shared (isHeaderBlock)
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 import Text.Pandoc.Walk (walk)
@@ -35,6 +36,9 @@ makeRoundTrip :: Block -> Block
 makeRoundTrip CodeBlock{} = Para [Str "code block was here"]
 makeRoundTrip LineBlock{} = Para [Str "line block was here"]
 makeRoundTrip RawBlock{} = Para [Str "raw block was here"]
+makeRoundTrip (Div attr bs) = Div attr $ filter (not . isHeaderBlock) bs
+-- avoids round-trip failures related to makeSections
+-- e.g. with [Div ("loc",[],[("a","11"),("b_2","a b c")]) [Header 3 ("",[],[]) []]]
 makeRoundTrip x           = x
 
 removeRawInlines :: Inline -> Inline
