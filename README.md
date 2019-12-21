@@ -48,6 +48,9 @@ library. It can convert *from*
   - `ipynb` ([Jupyter
     notebook](https://nbformat.readthedocs.io/en/latest/))
   - `jats` ([JATS](https://jats.nlm.nih.gov) XML)
+  - `jira`
+    ([Jira](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all)
+    wiki markup)
   - `json` (JSON version of native AST)
   - `latex` ([LaTeX](http://latex-project.org))
   - `markdown` ([Pandoc’s
