@@ -1,5 +1,5 @@
 .\"t
-.TH PANDOC 1 "December 12, 2019" "pandoc 2.9"
+.TH PANDOC 1 "December 21, 2019" "pandoc 2.9.1"
 .SH NAME
 pandoc - general markup converter
 .SH SYNOPSIS
@@ -249,6 +249,8 @@ if you need extensions not supported in \f[C]gfm\f[R].
 \f[C]ipynb\f[R] (Jupyter notebook)
 .IP \[bu] 2
 \f[C]jats\f[R] (JATS XML)
+.IP \[bu] 2
+\f[C]jira\f[R] (Jira wiki markup)
 .IP \[bu] 2
 \f[C]json\f[R] (JSON version of native AST)
 .IP \[bu] 2
@@ -525,8 +527,9 @@ Markdown documents that use level-1 headings for sections to HTML, since
 pandoc uses a level-1 heading to render the document title.
 .TP
 \f[B]\f[CB]--base-header-level=\f[B]\f[R]\f[I]NUMBER\f[R]
-\f[I]Deprecated. Use \f[CI]--shift-heading-level-by\f[I] instead.\f[R]
-Specify the base level for headings (defaults to 1).
+\f[I]Deprecated. Use \f[CI]--shift-heading-level-by\f[I]=X instead,
+where X = NUMBER - 1.\f[R] Specify the base level for headings (defaults
+to 1).
 .TP
 \f[B]\f[CB]--strip-empty-paragraphs\f[B]\f[R]
 \f[I]Deprecated. Use the \f[CI]+empty_paragraphs\f[I] extension

@@ -1,7 +1,7 @@
 ---
 title: Pandoc User's Guide
 author: John MacFarlane
-date: December 12, 2019
+date: December 21, 2019
 ---
 
 # Synopsis
