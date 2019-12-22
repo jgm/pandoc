@@ -33,13 +33,12 @@
 
   * Org reader (Albert Krewinkel):
 
-    + Add table labels to caption if both are present (#5984).
-      The table `#+NAME:` or `#+LABEL:` is added to the table's
-      caption in the form of an empty span with the label set as
-      the span's ID.
+    + Wrap named table in Div, using name as id (#5984).
+      Tables which are given a name via `#+NAME:` or `#+LABEL:`
+      are wrapped in an additional Div, with the name set as the
+      Div's ID.
     + Report parsing errors properly.
     + Fix parsing problem for colons in headline (#5993).
-    + Wrap named table in Div, using name as id (#5984).
 
   * Text.Pandoc.PDF: Ensure UTF8 when printing source in
     `--verbose` mode, avoiding an error on platforms that
