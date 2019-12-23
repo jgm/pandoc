@@ -180,7 +180,9 @@ doOpt (k',v) = do
       parseYAML v >>= \x -> return (\o -> o{ optTemplate = unpack <$> x })
     "variables" ->
       parseYAML v >>= \x -> return (\o -> o{ optVariables =
-                                               optVariables o <> x })
+                                               x <> optVariables o })
+      -- Note: x comes first because <> for Context is left-biased union
+      -- and we want to favor later default files. See #5988.
     "metadata" ->
       parseYAML v >>= \x -> return (\o -> o{ optMetadata = optMetadata o <>
                                                contextToMeta x })
