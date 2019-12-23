@@ -123,10 +123,7 @@ jobs:
           for f in $(find .stack-work/install -name 'pandoc*' -perm +001 -type f); do cp $f ${DEST}/bin/; done
           strip ${DEST}/bin/pandoc
           strip ${DEST}/bin/pandoc-citeproc
-          ${DEST}/bin/pandoc -f markdown-smart -t man -s \
-            --template man/pandoc.1.template --lua-filter man/manfilter.lua \
-            --variable version="pandoc ${VERSION}" \
-            -o ${DEST}/share/man/man1/pandoc.1
+          cp man/pandoc.1 ${DEST}/share/man/man1/pandoc.1
           ${DEST}/bin/pandoc-citeproc --man > \
             $DEST/share/man/man1/pandoc-citeproc.1
           ${DEST}/bin/pandoc -t html5 -s COPYING.md -Vpagetitle=License \
