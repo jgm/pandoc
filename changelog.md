@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.9.1 (PROVISIONAL)
+## pandoc 2.9.1 (2019-12-23)
 
   * Add Jira reader (Albert Krewinkel, #5556).
 
