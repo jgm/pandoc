@@ -188,7 +188,8 @@ extra-source-files:
                  stack.yaml
                  -- files needed to build man page
                  man/manfilter.lua
-                 man/pandoc.1.template
+                 man/pandoc.1.before
+                 man/pandoc.1.after
                  -- trypandoc
                  trypandoc/Makefile
                  trypandoc/index.html
