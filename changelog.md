@@ -29,6 +29,9 @@
     commonmark, better handling cases where section headings are
     enclosed in divs.
 
+  * Ensure that later default file values for `variable` replace
+    earlier ones (5988).
+
   * HTML reader: Add `nav` to list of block-level tags.
 
   * Org reader (Albert Krewinkel):
@@ -60,8 +63,12 @@
     We now say exactly how to translate between the deprecated
     `--base-header-level` and `--shift-heading-level-by`.
 
-  * lua-filters.md remove spurious dot in title (#5996, Mauro
-    Bieg).
+  * lua-filters.md:
+
+    + Remove spurious dot in title (#5996, Mauro Bieg).
+    + Replace metadata example with image centering (#6004,
+      Albert Krewinkel). Thanks to @efx for proposing this filter.
+
 
 ## pandoc 2.9 (2019-12-11)
 
