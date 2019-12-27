@@ -1094,18 +1094,20 @@ rawHtmlBlocks = do
   -- inline will not be parsed as inline tags
   oldInHtmlBlock <- stateInHtmlBlock <$> getState
   updateState $ \st -> st{ stateInHtmlBlock = Just tagtype }
-  let closer = htmlTag (\x -> x ~== TagClose tagtype)
-  let block' = try $
-               do notFollowedBy' closer
-                  gobbleAtMostSpaces indentlevel
-                  block
+  let closer = htmlTag (~== TagClose tagtype)
+  let block' = try $ do
+                 gobbleAtMostSpaces indentlevel
+                 notFollowedBy' closer
+                 block
   contents <- mconcat <$> many block'
   result <-
-    (closer >>= \(_, rawcloser) -> return (
-                return (B.rawBlock "html" $ stripMarkdownAttribute raw) <>
+    try
+    (do gobbleAtMostSpaces indentlevel
+        (_, rawcloser) <- closer
+        return (return (B.rawBlock "html" $ stripMarkdownAttribute raw) <>
                 contents <>
                 return (B.rawBlock "html" rawcloser)))
-      <|> return (return (B.rawBlock "html" raw) <> contents)
+      <|> (return (return (B.rawBlock "html" raw) <> contents))
   updateState $ \st -> st{ stateInHtmlBlock = oldInHtmlBlock }
   return result
 
