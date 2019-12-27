@@ -618,7 +618,7 @@ rawAttribute = do
   char '{'
   skipMany spaceChar
   char '='
-  format <- many1Char $ satisfy (\c -> isAlphaNum c || c `elem` ['-', '_']) 
+  format <- many1Char $ satisfy (\c -> isAlphaNum c || c `elem` ['-', '_'])
   skipMany spaceChar
   char '}'
   return format
@@ -1095,7 +1095,8 @@ rawHtmlBlocks = do
   oldInHtmlBlock <- stateInHtmlBlock <$> getState
   updateState $ \st -> st{ stateInHtmlBlock = Just tagtype }
   let closer = htmlTag (\x -> x ~== TagClose tagtype)
-  let block' = do notFollowedBy' closer
+  let block' = try $
+               do notFollowedBy' closer
                   gobbleAtMostSpaces indentlevel
                   block
   contents <- mconcat <$> many block'
