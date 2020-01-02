@@ -1010,7 +1010,7 @@ sectionHeader classes ident level lst = do
                   -- see http://tex.stackexchange.com/questions/169830/
                   else empty
   lab <- labelFor ident
-  let star = if unnumbered && level' < 4 then text "*" else empty
+  let star = if unnumbered then text "*" else empty
   let stuffing = star <> optional <> contents
   stuffing' <- hypertarget True ident $
                   text ('\\':sectionType) <> stuffing <> lab
