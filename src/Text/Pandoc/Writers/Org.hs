@@ -195,7 +195,7 @@ blockToOrg (Table caption' _ _ headers rows) =  do
   let numChars = maximum . map offset
   -- FIXME: width is not being used.
   let widthsInChars =
-       map ((+2) . numChars) $ transpose (headers' : rawRows)
+       map numChars $ transpose (headers' : rawRows)
   -- FIXME: Org doesn't allow blocks with height more than 1.
   let hpipeBlocks blocks = hcat [beg, middle, end]
         where sep'   = vfill " | "
