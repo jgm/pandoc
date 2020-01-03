@@ -23,8 +23,8 @@ import Control.Monad.State.Strict
 import Data.Monoid (Any(..))
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isSpace,
                   isPunctuation, ord, toLower)
-import Data.List (foldl', intercalate, intersperse, nubBy,
-                  stripPrefix, (\\), uncons, groupBy)
+import Data.List (foldl', intercalate, intersperse, nubBy, groupBy,
+                  stripPrefix, (\\), uncons)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
 import qualified Data.Map as M
 import Data.Text (Text)
@@ -1446,7 +1446,8 @@ citationsToBiblatex
                   NormalCitation -> "autocite"
 
 citationsToBiblatex (c:cs)
-  | all (\cit -> null (citationPrefix cit) && null (citationSuffix cit)) (c:cs)
+  | all (\cit -> null (citationPrefix cit) && null (citationSuffix cit)) 
+    (c:cs)
     = do
       let cmd = case citationMode c of
                     SuppressAuthor -> "\\autocite*"
@@ -1461,15 +1462,18 @@ citationsToBiblatex (c:cs)
                     AuthorInText   -> "\\textcites"
                     NormalCitation -> "\\autocites"
 
-      let preGroups = groupBy (\cita citb -> 
-                        citationPrefix cita == citationPrefix citb) (c:cs)
-      prefixes <- mapM (\group -> inlineListToLaTeX $ citationPrefix $ head group)
-           preGroups 
+      let pfxs = tail $ scanl (\prev cit -> let pfx = citationPrefix cit in
+                if pfx == [] then prev else pfx) [] (c:cs)
 
-      return $ text cmd <> (foldl' (\acc preGroup -> 
-          acc <> brackets (fst preGroup) <> brackets empty <>
-              braces (text (intercalate "," (map citationId (snd preGroup)))))
-                    empty $ zip prefixes preGroups)
+      let pfxGroups = map (map snd) $ groupBy (\(pre, _) (pre1, _) -> pre == pre1)
+            (zip pfxs (c:cs))  
+      prefixes <- mapM (\group -> 
+                (fmap brackets) $ inlineListToLaTeX $ citationPrefix $ head group)
+                    pfxGroups 
+
+      return $ text cmd <> (mconcat $ concatMap (\(pfx, group) -> pfx:
+                (brackets empty):map (\cit ->  braces $ text $ citationId cit) 
+                    group) (zip prefixes pfxGroups))
  | otherwise = do
     let cmd = case citationMode c of
                     SuppressAuthor -> "\\autocites*"
