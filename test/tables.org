@@ -41,10 +41,10 @@ Multiline table without caption:
 
 Table without column headers:
 
-| 12  | 12  | 12  | 12   |
-| 123 | 123 | 123 | 123  |
-| 1   | 1   | 1   | 1    |
-                        
+| 12  | 12  | 12  | 12  |
+| 123 | 123 | 123 | 123 |
+| 1   | 1   | 1   | 1   |
+
 Multiline table without column headers:
 
 | First  | row | 12.0 | Example of a row that spans multiple lines.           |
