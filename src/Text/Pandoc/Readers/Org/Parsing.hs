@@ -32,7 +32,13 @@ module Text.Pandoc.Readers.Org.Parsing
   , orgTagWordChar
   -- * Re-exports from Text.Pandoc.Parser
   , ParserContext (..)
+  , textStr
+  , countChar
+  , manyChar
+  , many1Char
+  , manyTillChar
   , many1Till
+  , many1TillChar
   , notFollowedBy'
   , spaceChar
   , nonspaceChar
@@ -88,6 +94,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , sepBy
   , sepBy1
   , sepEndBy1
+  , endBy1
   , option
   , optional
   , optionMaybe
@@ -98,6 +105,7 @@ module Text.Pandoc.Readers.Org.Parsing
   ) where
 
 import Prelude
+import Data.Text (Text)
 import Text.Pandoc.Readers.Org.ParserState
 
 import Text.Pandoc.Parsing hiding (F, anyLine, blanklines, newline,
@@ -108,14 +116,14 @@ import Control.Monad (guard)
 import Control.Monad.Reader (ReaderT)
 
 -- | The parser used to read org files.
-type OrgParser m = ParserT [Char] OrgParserState (ReaderT OrgParserLocal m)
+type OrgParser m = ParserT Text OrgParserState (ReaderT OrgParserLocal m)
 
 --
 -- Adaptions and specializations of parsing utilities
 --
 
 -- | Parse any line of text
-anyLine :: Monad m => OrgParser m String
+anyLine :: Monad m => OrgParser m Text
 anyLine =
   P.anyLine
     <* updateLastPreCharPos
@@ -123,7 +131,7 @@ anyLine =
 
 -- | Like @'Text.Pandoc.Parsing'@, but resets the position of the last character
 -- allowed before emphasised text.
-parseFromString :: Monad m => OrgParser m a -> String -> OrgParser m a
+parseFromString :: Monad m => OrgParser m a -> Text -> OrgParser m a
 parseFromString parser str' = do
   updateState $ \s -> s{ orgStateLastPreCharPos = Nothing }
   result <- P.parseFromString parser str'
@@ -142,7 +150,7 @@ newline =
        <* updateLastForbiddenCharPos
 
 -- | Like @Text.Parsec.Char.blanklines@, but causes additional state changes.
-blanklines :: Monad m => OrgParser m [Char]
+blanklines :: Monad m => OrgParser m Text
 blanklines =
   P.blanklines
        <* updateLastPreCharPos
@@ -192,21 +200,21 @@ updateLastPreCharPos = getPosition >>= \p ->
 --
 
 -- | Read the key of a plist style key-value list.
-orgArgKey :: Monad m => OrgParser m String
+orgArgKey :: Monad m => OrgParser m Text
 orgArgKey = try $
   skipSpaces *> char ':'
-             *> many1 orgArgWordChar
+             *> many1Char orgArgWordChar
 
 -- | Read the value of a plist style key-value list.
-orgArgWord :: Monad m => OrgParser m String
-orgArgWord = many1 orgArgWordChar
+orgArgWord :: Monad m => OrgParser m Text
+orgArgWord = many1Char orgArgWordChar
 
 -- | Chars treated as part of a word in plists.
 orgArgWordChar :: Monad m => OrgParser m Char
 orgArgWordChar = alphaNum <|> oneOf "-_"
 
-orgTagWord :: Monad m => OrgParser m String
-orgTagWord = many1 orgTagWordChar
+orgTagWord :: Monad m => OrgParser m Text
+orgTagWord = many1Char orgTagWordChar
 
 orgTagWordChar :: Monad m => OrgParser m Char
 orgTagWordChar = alphaNum <|> oneOf "@%#_"

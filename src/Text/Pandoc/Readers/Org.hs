@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org
    Copyright   : Copyright (C) 2014-2019 Albert Krewinkel
@@ -17,7 +18,6 @@ import Text.Pandoc.Readers.Org.Parsing (OrgParser, readWithM)
 
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Definition
-import Text.Pandoc.Error
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing (reportLogMessages)
 import Text.Pandoc.Shared (crFilter)
@@ -26,7 +26,6 @@ import Control.Monad.Except (throwError)
 import Control.Monad.Reader (runReaderT)
 
 import Data.Text (Text)
-import qualified Data.Text as T
 
 -- | Parse org-mode string and return a Pandoc document.
 readOrg :: PandocMonad m
@@ -36,10 +35,10 @@ readOrg :: PandocMonad m
 readOrg opts s = do
   parsed <- flip runReaderT def $
             readWithM parseOrg (optionsToParserState opts)
-            (T.unpack (crFilter s) ++ "\n\n")
+            (crFilter s <> "\n\n")
   case parsed of
     Right result -> return result
-    Left  _      -> throwError $ PandocParseError "problem parsing org"
+    Left  e      -> throwError e
 
 --
 -- Parser

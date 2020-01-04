@@ -1,4 +1,5 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
@@ -54,18 +55,17 @@ import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), applyFilters)
 import Text.Pandoc.PDF (makePDF)
-import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
          headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput,
-         defaultUserDataDirs)
+         defaultUserDataDirs, tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
+import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import qualified Text.Pandoc.UTF8 as UTF8
 #ifndef _WINDOWS
 import System.Posix.IO (stdOutput)
 import System.Posix.Terminal (queryTerminal)
 #endif
-
 
 convertWithOpts :: Opt -> IO ()
 convertWithOpts opts = do
@@ -75,7 +75,7 @@ convertWithOpts opts = do
 
   when (optDumpArgs opts) $
     do UTF8.hPutStrLn stdout outputFile
-       mapM_ (UTF8.hPutStrLn stdout) (optInputFiles opts)
+       mapM_ (UTF8.hPutStrLn stdout) (fromMaybe ["-"] $ optInputFiles opts)
        exitSuccess
 
   let isPandocCiteproc (JSONFilter f) = takeBaseName f == "pandoc-citeproc"
@@ -88,9 +88,9 @@ convertWithOpts opts = do
   let filters' = filters ++ [ JSONFilter "pandoc-citeproc" | needsCiteproc ]
 
   let sources = case optInputFiles opts of
-                     []  -> ["-"]
-                     xs | optIgnoreArgs opts -> ["-"]
-                        | otherwise  -> xs
+                     Nothing -> ["-"]
+                     Just xs | optIgnoreArgs opts -> ["-"]
+                             | otherwise  -> xs
 
   datadir <- case optDataDir opts of
                   Nothing   -> do
@@ -132,7 +132,7 @@ convertWithOpts opts = do
 
   runIO' $ do
     setUserDataDir datadir
-    setInputFiles (optInputFiles opts)
+    setInputFiles (fromMaybe ["-"] (optInputFiles opts))
     setOutputFile (optOutputFile opts)
 
     -- assign reader and writer based on options and filenames
@@ -141,17 +141,17 @@ convertWithOpts opts = do
                        Nothing -> case formatFromFilePaths sources of
                            Just f' -> return f'
                            Nothing | sources == ["-"] -> return "markdown"
-                                   | any isURI sources -> return "html"
+                                   | any (isURI . T.pack) sources -> return "html"
                                    | otherwise -> do
                              report $ CouldNotDeduceFormat
-                                 (map takeExtension sources) "markdown"
+                                 (map (T.pack . takeExtension) sources) "markdown"
                              return "markdown"
 
     let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
 
     when (pdfOutput && readerName == "latex") $
       case (optInputFiles opts) of
-        (inputFile:_) -> report $ UnusualConversion $
+        Just (inputFile:_) -> report $ UnusualConversion $ T.pack $
           "to convert a .tex file to PDF, you get better results by using pdflatex "
             <> "(or lualatex or xelatex) directly, try `pdflatex " <> inputFile
             <> "` instead of `pandoc " <> inputFile <> " -o " <> outputFile <> "`."
@@ -187,15 +187,15 @@ convertWithOpts opts = do
     when ((pdfOutput || not (isTextFormat format)) &&
              istty && isNothing ( optOutputFile opts)) $
       throwError $ PandocAppError $
-              "Cannot write " ++ format ++ " output to terminal.\n" ++
-              "Specify an output file using the -o option, or " ++
+              "Cannot write " <> format <> " output to terminal.\n" <>
+              "Specify an output file using the -o option, or " <>
               "use '-o -' to force output to stdout."
 
 
-    abbrevs <- Set.fromList . filter (not . null) . lines <$>
+    abbrevs <- Set.fromList . filter (not . T.null) . T.lines <$>
                case optAbbreviations opts of
-                    Nothing -> UTF8.toString <$> readDataFile "abbreviations"
-                    Just f  -> UTF8.toString <$> readFileStrict f
+                    Nothing -> UTF8.toText <$> readDataFile "abbreviations"
+                    Just f  -> UTF8.toText <$> readFileStrict f
 
     metadata <- if format == "jats" &&
                    isNothing (lookupMeta "csl" (optMetadata opts)) &&
@@ -285,7 +285,7 @@ convertWithOpts opts = do
               >=> return . adjustMetadata (metadataFromFile <>)
               >=> return . adjustMetadata (<> metadata)
               >=> applyTransforms transforms
-              >=> applyFilters readerOpts filters' [format]
+              >=> applyFilters readerOpts filters' [T.unpack format]
               >=> maybe return extractMedia (optExtractMedia opts)
               )
 
@@ -298,7 +298,7 @@ convertWithOpts opts = do
                 case res of
                      Right pdf -> writeFnBinary outputFile pdf
                      Left err' -> throwError $ PandocPDFError $
-                                     TL.unpack (TE.decodeUtf8With TE.lenientDecode err')
+                                     TL.toStrict (TE.decodeUtf8With TE.lenientDecode err')
 
         Nothing -> do
                 let ensureNl t
@@ -308,18 +308,16 @@ convertWithOpts opts = do
                 output <- ensureNl <$> f writerOptions doc
                 writerFn eol outputFile =<<
                   if optSelfContained opts && htmlFormat format
-                     -- TODO not maximally efficient; change type
-                     -- of makeSelfContained so it works w/ Text
-                     then T.pack <$> makeSelfContained (T.unpack output)
+                     then makeSelfContained output
                      else return output
 
 type Transform = Pandoc -> Pandoc
 
-htmlFormat :: String -> Bool
+htmlFormat :: Text -> Bool
 htmlFormat = (`elem` ["html","html4","html5","s5","slidy",
                       "slideous","dzslides","revealjs"])
 
-isTextFormat :: String -> Bool
+isTextFormat :: Text -> Bool
 isTextFormat s = s `notElem` ["odt","docx","epub2","epub3","epub","pptx"]
 
 adjustMetadata :: (Meta -> Meta) -> Pandoc -> Pandoc
@@ -335,7 +333,7 @@ readSource src = case parseURI src of
                       Just u | uriScheme u `elem` ["http:","https:"] ->
                                  readURI src
                              | uriScheme u == "file:" -> liftIO $
-                                 readTextFile (uriPathToPath $ uriPath u)
+                                 readTextFile (uriPathToPath $ T.pack $ uriPath u)
                       _       -> liftIO $ readTextFile src
   where readTextFile :: FilePath -> IO Text
         readTextFile fp = do
@@ -347,12 +345,12 @@ readSource src = case parseURI src of
                          TSE.DecodeError _ (Just w) -> do
                            case BS.elemIndex w bs of
                              Just offset -> E.throwIO $
-                                  PandocUTF8DecodingError fp offset w
-                             _ -> E.throwIO $ PandocUTF8DecodingError fp 0 w
-                         _ -> E.throwIO $ PandocAppError (show e))
+                                  PandocUTF8DecodingError (T.pack fp) offset w
+                             _ -> E.throwIO $ PandocUTF8DecodingError (T.pack fp) 0 w
+                         _ -> E.throwIO $ PandocAppError (tshow e))
 
 readURI :: FilePath -> PandocIO Text
-readURI src = UTF8.toText . fst <$> openURL src
+readURI src = UTF8.toText . fst <$> openURL (T.pack src)
 
 readFile' :: MonadIO m => FilePath -> m BL.ByteString
 readFile' "-" = liftIO BL.getContents

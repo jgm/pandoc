@@ -1,6 +1,7 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.ConTeXt
    Copyright   : Copyright (C) 2007-2019 John MacFarlane
@@ -15,8 +16,8 @@ Conversion of 'Pandoc' format into ConTeXt.
 module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Prelude
 import Control.Monad.State.Strict
-import Data.Char (ord, isDigit, toLower)
-import Data.List (intercalate, intersperse)
+import Data.Char (ord, isDigit)
+import Data.List (intersperse)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -38,6 +39,8 @@ data WriterState =
   WriterState { stNextRef          :: Int  -- number of next URL reference
               , stOrderedListLevel :: Int  -- level of ordered list
               , stOptions          :: WriterOptions -- writer options
+              , stHasCslRefs       :: Bool -- has CSL citations
+              , stCslHangingIndent :: Bool -- CSL hanging indent
               }
 
 data Tabl = Xtb | Ntb deriving (Show, Eq)
@@ -51,6 +54,8 @@ writeConTeXt options document =
   let defaultWriterState = WriterState { stNextRef = 1
                                        , stOrderedListLevel = 0
                                        , stOptions = options
+                                       , stHasCslRefs = False
+                                       , stCslHangingIndent = False
                                        }
   in evalStateT (pandocToConTeXt options document) defaultWriterState
 
@@ -75,6 +80,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                               ,("bottom","margin-bottom")
                               ]
   mblang <- fromBCP47 (getLang options meta)
+  st <- get
   let context =   defField "toc" (writerTableOfContents options)
                 $ defField "placelist"
                    (mconcat . intersperse ("," :: Doc Text) $
@@ -88,15 +94,17 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                 $ defField "body" main
                 $ defField "layout" layoutFromMargins
                 $ defField "number-sections" (writerNumberSections options)
+                $ defField "csl-refs" (stHasCslRefs st)
+                $ defField "csl-hanging-indent" (stCslHangingIndent st)
                 $ maybe id (\l ->
-                     defField "context-lang" (text l :: Doc Text)) mblang
+                     defField "context-lang" (literal l :: Doc Text)) mblang
                 $ (case T.unpack . render Nothing <$>
                       getField "papersize" metadata of
                         Just (('a':d:ds) :: String)
                           | all isDigit (d:ds) -> resetField "papersize"
                                                    (T.pack ('A':d:ds))
                         _                     -> id)
-                $ (case toLower <$> lookupMetaString "pdfa" meta of
+                $ (case T.toLower $ lookupMetaString "pdfa" meta of
                         "true" -> resetField "pdfa" (T.pack "1b:2005")
                         _                     -> id) metadata
   let context' = defField "context-dir" (maybe mempty toContextDir
@@ -114,7 +122,7 @@ toContextDir = fmap (\t -> case t of
                               _     -> t)
 
 -- | escape things as needed for ConTeXt
-escapeCharForConTeXt :: WriterOptions -> Char -> String
+escapeCharForConTeXt :: WriterOptions -> Char -> Text
 escapeCharForConTeXt opts ch =
  let ligatures = isEnabled Ext_smart opts in
  case ch of
@@ -133,18 +141,18 @@ escapeCharForConTeXt opts ch =
     '\x2013' | ligatures -> "--"
     '\x2019' | ligatures -> "'"
     '\x2026' -> "\\ldots{}"
-    x        -> [x]
+    x        -> T.singleton x
 
 -- | Escape string for ConTeXt
-stringToConTeXt :: WriterOptions -> String -> String
-stringToConTeXt opts = concatMap (escapeCharForConTeXt opts)
+stringToConTeXt :: WriterOptions -> Text -> Text
+stringToConTeXt opts = T.concatMap (escapeCharForConTeXt opts)
 
 -- | Sanitize labels
-toLabel :: String -> String
-toLabel z = concatMap go z
+toLabel :: Text -> Text
+toLabel z = T.concatMap go z
  where go x
-         | x `elem` ("\\#[]\",{}%()|=" :: String) = "ux" ++ printf "%x" (ord x)
-         | otherwise = [x]
+         | x `elem` ("\\#[]\",{}%()|=" :: String) = "ux" <> T.pack (printf "%x" (ord x))
+         | otherwise = T.singleton x
 
 -- | Convert Pandoc block element to ConTeXt.
 blockToConTeXt :: PandocMonad m => Block -> WM m (Doc Text)
@@ -157,14 +165,16 @@ blockToConTeXt (Div attr@(_,"section":_,_)
   return $ header' $$ innerContents $$ footer'
 blockToConTeXt (Plain lst) = inlineListToConTeXt lst
 -- title beginning with fig: indicates that the image is a figure
-blockToConTeXt (Para [Image attr txt (src,'f':'i':'g':':':_)]) = do
-  capt <- inlineListToConTeXt txt
-  img  <- inlineToConTeXt (Image attr txt (src, ""))
-  let (ident, _, _) = attr
-      label = if null ident
-                 then empty
-                 else "[]" <> brackets (text $ toLabel ident)
-  return $ blankline $$ "\\placefigure" <> label <> braces capt <> img <> blankline
+blockToConTeXt (Para [Image attr txt (src,tgt)])
+  | Just _ <- T.stripPrefix "fig:" tgt
+  = do
+      capt <- inlineListToConTeXt txt
+      img  <- inlineToConTeXt (Image attr txt (src, ""))
+      let (ident, _, _) = attr
+          label = if T.null ident
+                  then empty
+                  else "[]" <> brackets (literal $ toLabel ident)
+      return $ blankline $$ "\\placefigure" <> label <> braces capt <> img <> blankline
 blockToConTeXt (Para lst) = do
   contents <- inlineListToConTeXt lst
   return $ contents <> blankline
@@ -175,17 +185,22 @@ blockToConTeXt (BlockQuote lst) = do
   contents <- blockListToConTeXt lst
   return $ "\\startblockquote" $$ nest 0 contents $$ "\\stopblockquote" <> blankline
 blockToConTeXt (CodeBlock _ str) =
-  return $ flush ("\\starttyping" <> cr <> text str <> cr <> "\\stoptyping") $$ blankline
+  return $ flush ("\\starttyping" <> cr <> literal str <> cr <> "\\stoptyping") $$ blankline
   -- blankline because \stoptyping can't have anything after it, inc. '}'
 blockToConTeXt b@(RawBlock f str)
-  | f == Format "context" || f == Format "tex" = return $ text str <> blankline
+  | f == Format "context" || f == Format "tex" = return $ literal str <> blankline
   | otherwise = empty <$ report (BlockNotRendered b)
+blockToConTeXt (Div ("refs",classes,_) bs) = do
+  modify $ \st -> st{ stHasCslRefs = True
+                    , stCslHangingIndent = "hanging-indent" `elem` classes }
+  inner <- blockListToConTeXt bs
+  return $ "\\startcslreferences" $$ inner $$ "\\stopcslreferences"
 blockToConTeXt (Div (ident,_,kvs) bs) = do
   let align dir txt = "\\startalignment[" <> dir <> "]" $$ txt $$ "\\stopalignment"
   mblang <- fromBCP47 (lookup "lang" kvs)
-  let wrapRef txt = if null ident
+  let wrapRef txt = if T.null ident
                        then txt
-                       else ("\\reference" <> brackets (text $ toLabel ident) <>
+                       else ("\\reference" <> brackets (literal $ toLabel ident) <>
                               braces empty <> "%") $$ txt
       wrapDir = case lookup "dir" kvs of
                   Just "rtl" -> align "righttoleft"
@@ -193,7 +208,7 @@ blockToConTeXt (Div (ident,_,kvs) bs) = do
                   _          -> id
       wrapLang txt = case mblang of
                        Just lng -> "\\start\\language["
-                                     <> text lng <> "]" $$ txt $$ "\\stop"
+                                     <> literal lng <> "]" $$ txt $$ "\\stop"
                        Nothing  -> txt
       wrapBlank txt = blankline <> txt <> blankline
   (wrapBlank . wrapLang . wrapDir . wrapRef) <$> blockListToConTeXt bs
@@ -202,29 +217,29 @@ blockToConTeXt (BulletList lst) = do
   return $ ("\\startitemize" <> if isTightList lst
                                    then brackets "packed"
                                    else empty) $$
-    vcat contents $$ text "\\stopitemize" <> blankline
+    vcat contents $$ literal "\\stopitemize" <> blankline
 blockToConTeXt (OrderedList (start, style', delim) lst) = do
     st <- get
     let level = stOrderedListLevel st
     put st {stOrderedListLevel = level + 1}
     contents <- mapM listItemToConTeXt lst
     put st {stOrderedListLevel = level}
-    let start' = if start == 1 then "" else "start=" ++ show start
+    let start' = if start == 1 then "" else "start=" <> tshow start
     let delim' = case delim of
                         DefaultDelim -> ""
                         Period       -> "stopper=."
                         OneParen     -> "stopper=)"
                         TwoParens    -> "left=(,stopper=)"
-    let width = maximum $ map length $ take (length contents)
+    let width = maximum $ map T.length $ take (length contents)
                           (orderedListMarkers (start, style', delim))
     let width' = (toEnum width + 1) / 2
     let width'' = if width' > (1.5 :: Double)
-                     then "width=" ++ show width' ++ "em"
+                     then "width=" <> tshow width' <> "em"
                      else ""
-    let specs2Items = filter (not . null) [start', delim', width'']
+    let specs2Items = filter (not . T.null) [start', delim', width'']
     let specs2 = if null specs2Items
                     then ""
-                    else "[" ++ intercalate "," specs2Items ++ "]"
+                    else "[" <> T.intercalate "," specs2Items <> "]"
     let style'' = '[': (case style' of
                           DefaultStyle -> orderedListStyles !! level
                           Decimal      -> 'n'
@@ -234,8 +249,8 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
                           LowerAlpha   -> 'a'
                           UpperAlpha   -> 'A') :
                        if isTightList lst then ",packed]" else "]"
-    let specs = style'' ++ specs2
-    return $ "\\startitemize" <> text specs $$ vcat contents $$
+    let specs = T.pack style'' <> specs2
+    return $ "\\startitemize" <> literal specs $$ vcat contents $$
              "\\stopitemize" <> blankline
 blockToConTeXt (DefinitionList lst) =
   liftM vcat $ mapM defListItemToConTeXt lst
@@ -343,9 +358,9 @@ inlineListToConTeXt lst = liftM hcat $ mapM inlineToConTeXt $ addStruts lst
              addStruts xs
         addStruts (x:xs) = x : addStruts xs
         addStruts [] = []
-        isSpacey Space            = True
-        isSpacey (Str ('\160':_)) = True
-        isSpacey _                = False
+        isSpacey Space                               = True
+        isSpacey (Str (T.uncons -> Just ('\160',_))) = True
+        isSpacey _                                   = False
 
 -- | Convert inline element to ConTeXt
 inlineToConTeXt :: PandocMonad m
@@ -369,11 +384,11 @@ inlineToConTeXt (Subscript lst) = do
 inlineToConTeXt (SmallCaps lst) = do
   contents <- inlineListToConTeXt lst
   return $ braces $ "\\sc " <> contents
-inlineToConTeXt (Code _ str) | not ('{' `elem` str || '}' `elem` str) =
-  return $ "\\type" <> braces (text str)
+inlineToConTeXt (Code _ str) | not ('{' `elemText` str || '}' `elemText` str) =
+  return $ "\\type" <> braces (literal str)
 inlineToConTeXt (Code _ str) = do
   opts <- gets stOptions
-  return $ "\\mono" <> braces (text $ stringToConTeXt opts str)
+  return $ "\\mono" <> braces (literal $ stringToConTeXt opts str)
 inlineToConTeXt (Quoted SingleQuote lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\quote" <> braces contents
@@ -383,15 +398,15 @@ inlineToConTeXt (Quoted DoubleQuote lst) = do
 inlineToConTeXt (Cite _ lst) = inlineListToConTeXt lst
 inlineToConTeXt (Str str) = do
   opts <- gets stOptions
-  return $ text $ stringToConTeXt opts str
+  return $ literal $ stringToConTeXt opts str
 inlineToConTeXt (Math InlineMath str) =
-  return $ char '$' <> text str <> char '$'
+  return $ char '$' <> literal str <> char '$'
 inlineToConTeXt (Math DisplayMath str) =
-  return $ text "\\startformula "  <> text str <> text " \\stopformula" <> space
+  return $ literal "\\startformula "  <> literal str <> literal " \\stopformula" <> space
 inlineToConTeXt il@(RawInline f str)
-  | f == Format "tex" || f == Format "context" = return $ text str
+  | f == Format "tex" || f == Format "context" = return $ literal str
   | otherwise = empty <$ report (InlineNotRendered il)
-inlineToConTeXt LineBreak = return $ text "\\crlf" <> cr
+inlineToConTeXt LineBreak = return $ literal "\\crlf" <> cr
 inlineToConTeXt SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
   return $ case wrapText of
@@ -400,39 +415,39 @@ inlineToConTeXt SoftBreak = do
                WrapPreserve -> cr
 inlineToConTeXt Space = return space
 -- Handle HTML-like internal document references to sections
-inlineToConTeXt (Link _ txt ('#' : ref, _)) = do
+inlineToConTeXt (Link _ txt (T.uncons -> Just ('#', ref), _)) = do
   opts <- gets stOptions
   contents <-  inlineListToConTeXt txt
   let ref' = toLabel $ stringToConTeXt opts ref
-  return $ text "\\goto"
+  return $ literal "\\goto"
            <> braces contents
-           <> brackets (text ref')
+           <> brackets (literal ref')
 
 inlineToConTeXt (Link _ txt (src, _)) = do
-  let isAutolink = txt == [Str (unEscapeString src)]
+  let isAutolink = txt == [Str (T.pack $ unEscapeString $ T.unpack src)]
   st <- get
   let next = stNextRef st
   put $ st {stNextRef = next + 1}
-  let ref = "url" ++ show next
+  let ref = "url" <> tshow next
   contents <-  inlineListToConTeXt txt
   return $ "\\useURL"
-           <> brackets (text ref)
-           <> brackets (text $ escapeStringUsing [('#',"\\#"),('%',"\\%")] src)
+           <> brackets (literal ref)
+           <> brackets (literal $ escapeStringUsing [('#',"\\#"),('%',"\\%")] src)
            <> (if isAutolink
                   then empty
                   else brackets empty <> brackets contents)
            <> "\\from"
-           <> brackets (text ref)
+           <> brackets (literal ref)
 inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
   opts <- gets stOptions
-  let showDim dir = let d = text (show dir) <> "="
+  let showDim dir = let d = literal (tshow dir) <> "="
                     in case dimension dir attr of
                          Just (Pixel a)   ->
-                           [d <> text (showInInch opts (Pixel a)) <> "in"]
+                           [d <> literal (showInInch opts (Pixel a)) <> "in"]
                          Just (Percent a) ->
-                           [d <> text (showFl (a / 100)) <> "\\textwidth"]
+                           [d <> literal (showFl (a / 100)) <> "\\textwidth"]
                          Just dim         ->
-                           [d <> text (show dim)]
+                           [d <> literal (tshow dim)]
                          Nothing          ->
                            []
       dimList = showDim Width ++ showDim Height
@@ -441,25 +456,25 @@ inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
                 else brackets $ mconcat (intersperse "," dimList)
       clas = if null cls
                 then empty
-                else brackets $ text $ toLabel $ head cls
+                else brackets $ literal $ toLabel $ head cls
       -- Use / for path separators on Windows; see #4918
-      fixPathSeparators = map $ \c -> case c of
-                                           '\\' -> '/'
-                                           _    -> c
+      fixPathSeparators = T.map $ \c -> case c of
+                                          '\\' -> '/'
+                                          _    -> c
       src' = fixPathSeparators $
              if isURI src
                 then src
-                else unEscapeString src
-  return $ braces $ "\\externalfigure" <> brackets (text src') <> dims <> clas
+                else T.pack $ unEscapeString $ T.unpack src
+  return $ braces $ "\\externalfigure" <> brackets (literal src') <> dims <> clas
 inlineToConTeXt (Note contents) = do
   contents' <- blockListToConTeXt contents
   let codeBlock x@(CodeBlock _ _) = [x]
       codeBlock _                 = []
   let codeBlocks = query codeBlock contents
   return $ if null codeBlocks
-              then text "\\footnote{" <> nest 2 (chomp contents') <> char '}'
-              else text "\\startbuffer " <> nest 2 (chomp contents') <>
-                   text "\\stopbuffer\\footnote{\\getbuffer}"
+              then literal "\\footnote{" <> nest 2 (chomp contents') <> char '}'
+              else literal "\\startbuffer " <> nest 2 (chomp contents') <>
+                   literal "\\stopbuffer\\footnote{\\getbuffer}"
 inlineToConTeXt (Span (_,_,kvs) ils) = do
   mblang <- fromBCP47 (lookup "lang" kvs)
   let wrapDir txt = case lookup "dir" kvs of
@@ -467,8 +482,8 @@ inlineToConTeXt (Span (_,_,kvs) ils) = do
                       Just "ltr" -> braces $ "\\lefttoright " <> txt
                       _          -> txt
       wrapLang txt = case mblang of
-                       Just lng -> "\\start\\language[" <> text lng
-                                      <> "]" <> txt <> "\\stop "
+                       Just lng -> braces ("\\language" <>
+                                           brackets (literal lng) <> txt)
                        Nothing -> txt
   (wrapLang . wrapDir) <$> inlineListToConTeXt ils
 
@@ -482,9 +497,9 @@ sectionHeader (ident,classes,kvs) hdrLevel lst = do
   opts <- gets stOptions
   contents <- inlineListToConTeXt lst
   levelText <- sectionLevelToText opts (ident,classes,kvs) hdrLevel
-  let ident' = if null ident
+  let ident' = if T.null ident
                then empty
-               else "reference=" <> braces (text (toLabel ident))
+               else "reference=" <> braces (literal (toLabel ident))
   let contents' = if isEmpty contents
                   then empty
                   else "title=" <> braces contents
@@ -515,23 +530,23 @@ sectionLevelToText opts (_,classes,_) hdrLevel = do
                  TopLevelSection -> hdrLevel
                  TopLevelDefault -> hdrLevel
   let (section, chapter) = if "unnumbered" `elem` classes
-                              then (text "subject", text "title")
-                              else (text "section", text "chapter")
+                              then (literal "subject", literal "title")
+                              else (literal "section", literal "chapter")
   return $ case level' of
-             -1         -> text "part"
+             -1         -> literal "part"
              0          -> chapter
              n | n >= 1 -> text (concat (replicate (n - 1) "sub"))
                            <> section
              _          -> empty -- cannot happen
 
-fromBCP47 :: PandocMonad m => Maybe String -> WM m (Maybe String)
+fromBCP47 :: PandocMonad m => Maybe Text -> WM m (Maybe Text)
 fromBCP47 mbs = fromBCP47' <$> toLang mbs
 
 -- Takes a list of the constituents of a BCP 47 language code
 -- and irons out ConTeXt's exceptions
 -- https://tools.ietf.org/html/bcp47#section-2.1
 -- http://wiki.contextgarden.net/Language_Codes
-fromBCP47' :: Maybe Lang -> Maybe String
+fromBCP47' :: Maybe Lang -> Maybe Text
 fromBCP47' (Just (Lang "ar" _ "SY" _)     ) = Just "ar-sy"
 fromBCP47' (Just (Lang "ar" _ "IQ" _)     ) = Just "ar-iq"
 fromBCP47' (Just (Lang "ar" _ "JO" _)     ) = Just "ar-jo"

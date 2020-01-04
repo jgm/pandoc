@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE OverloadedStrings          #-}
 {- |
    Module      : Text.Pandoc.Extensions
    Copyright   : Copyright (C) 2012-2019 John MacFarlane
@@ -35,6 +36,7 @@ where
 import Prelude
 import Data.Bits (clearBit, setBit, testBit, (.|.))
 import Data.Data (Data)
+import qualified Data.Text as T
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Safe (readMay)
@@ -304,7 +306,7 @@ strictExtensions = extensionsFromList
   ]
 
 -- | Default extensions from format-describing string.
-getDefaultExtensions :: String -> Extensions
+getDefaultExtensions :: T.Text -> Extensions
 getDefaultExtensions "markdown_strict"   = strictExtensions
 getDefaultExtensions "markdown_phpextra" = phpMarkdownExtraExtensions
 getDefaultExtensions "markdown_mmd"      = multimarkdownExtensions
@@ -372,37 +374,10 @@ getDefaultExtensions "opml"            = pandocExtensions -- affects notes
 getDefaultExtensions _                 = extensionsFromList
                                           [Ext_auto_identifiers]
 
-allMarkdownExtensions :: Extensions
-allMarkdownExtensions =
-  pandocExtensions <>
-    extensionsFromList
-     [ Ext_old_dashes
-     , Ext_angle_brackets_escapable
-     , Ext_lists_without_preceding_blankline
-     , Ext_four_space_rule
-     , Ext_spaced_reference_links
-     , Ext_hard_line_breaks
-     , Ext_ignore_line_breaks
-     , Ext_east_asian_line_breaks
-     , Ext_emoji
-     , Ext_tex_math_single_backslash
-     , Ext_tex_math_double_backslash
-     , Ext_markdown_attribute
-     , Ext_mmd_title_block
-     , Ext_abbreviations
-     , Ext_autolink_bare_uris
-     , Ext_mmd_link_attributes
-     , Ext_mmd_header_identifiers
-     , Ext_compact_definition_lists
-     , Ext_gutenberg
-     , Ext_smart
-     , Ext_literate_haskell
-     ]
-
 
 -- | Get all valid extensions for a format. This is used
 -- mainly in checking format specifications for validity.
-getAllExtensions :: String -> Extensions
+getAllExtensions :: T.Text -> Extensions
 getAllExtensions f = universalExtensions <> getAll f
  where
   autoIdExtensions           = extensionsFromList
@@ -412,6 +387,31 @@ getAllExtensions f = universalExtensions <> getAll f
     ]
   universalExtensions        = extensionsFromList
     [ Ext_east_asian_line_breaks ]
+  allMarkdownExtensions =
+    pandocExtensions <> autoIdExtensions <>
+      extensionsFromList
+       [ Ext_old_dashes
+       , Ext_angle_brackets_escapable
+       , Ext_lists_without_preceding_blankline
+       , Ext_four_space_rule
+       , Ext_spaced_reference_links
+       , Ext_hard_line_breaks
+       , Ext_ignore_line_breaks
+       , Ext_east_asian_line_breaks
+       , Ext_emoji
+       , Ext_tex_math_single_backslash
+       , Ext_tex_math_double_backslash
+       , Ext_markdown_attribute
+       , Ext_mmd_title_block
+       , Ext_abbreviations
+       , Ext_autolink_bare_uris
+       , Ext_mmd_link_attributes
+       , Ext_mmd_header_identifiers
+       , Ext_compact_definition_lists
+       , Ext_gutenberg
+       , Ext_smart
+       , Ext_literate_haskell
+       ]
   getAll "markdown_strict"   = allMarkdownExtensions
   getAll "markdown_phpextra" = allMarkdownExtensions
   getAll "markdown_mmd"      = allMarkdownExtensions
@@ -460,6 +460,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_tex_math_double_backslash
     , Ext_literate_haskell
     , Ext_epub_html_exts
+    , Ext_smart
     ]
   getAll "html4"           = getAll "html"
   getAll "html5"           = getAll "html"
@@ -507,14 +508,14 @@ getAllExtensions f = universalExtensions <> getAll f
 
 -- | Parse a format-specifying string into a markup format,
 -- a set of extensions to enable, and a set of extensions to disable.
-parseFormatSpec :: String
-                -> Either ParseError (String, [Extension], [Extension])
+parseFormatSpec :: T.Text
+                -> Either ParseError (T.Text, [Extension], [Extension])
 parseFormatSpec = parse formatSpec ""
   where formatSpec = do
           name <- formatName
           (extsToEnable, extsToDisable) <- foldl (flip ($)) ([],[]) <$>
                                              many extMod
-          return (name, reverse extsToEnable, reverse extsToDisable)
+          return (T.pack name, reverse extsToEnable, reverse extsToDisable)
         formatName = many1 $ noneOf "-+"
         extMod = do
           polarity <- oneOf "-+"

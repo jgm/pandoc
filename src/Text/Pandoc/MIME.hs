@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.MIME
    Copyright   : Copyright (C) 2011-2019 John MacFarlane
@@ -8,19 +9,18 @@
    Stability   : alpha
    Portability : portable
 
-Mime type lookup for ODT writer.
+Mime type lookup.
 -}
 module Text.Pandoc.MIME ( MimeType, getMimeType, getMimeTypeDef,
                           extensionFromMimeType, mediaCategory ) where
 import Prelude
-import Data.Char (toLower)
 import Data.List (isPrefixOf, isSuffixOf)
-import Data.List.Split (splitOn)
 import qualified Data.Map as M
+import qualified Data.Text as T
 import Data.Maybe (fromMaybe, listToMaybe)
 import System.FilePath
 
-type MimeType = String
+type MimeType = T.Text
 
 -- | Determine mime type appropriate for file path.
 getMimeType :: FilePath -> Maybe MimeType
@@ -31,34 +31,34 @@ getMimeType fp
   | "Formula-" `isPrefixOf` fp && "/" `isSuffixOf` fp =
         Just "application/vnd.oasis.opendocument.formula"
   -- generic
-  | otherwise = M.lookup (map toLower $ drop 1 $ takeExtension fp) mimeTypes
+  | otherwise = M.lookup (T.toLower $ T.drop 1 $ T.pack $ takeExtension fp) mimeTypes
 
 -- | Determime mime type appropriate for file path, defaulting to
 -- “application/octet-stream” if nothing else fits.
 getMimeTypeDef :: FilePath -> MimeType
 getMimeTypeDef = fromMaybe "application/octet-stream" . getMimeType
 
-extensionFromMimeType :: MimeType -> Maybe String
+extensionFromMimeType :: MimeType -> Maybe T.Text
 extensionFromMimeType mimetype =
-  M.lookup (takeWhile (/=';') mimetype) reverseMimeTypes
+  M.lookup (T.takeWhile (/=';') mimetype) reverseMimeTypes
   -- note:  we just look up the basic mime type, dropping the content-encoding etc.
 
 -- | Determine general media category for file path, e.g.
 --
 -- prop> mediaCategory "foo.jpg" = Just "image"
-mediaCategory :: FilePath -> Maybe String
-mediaCategory fp = getMimeType fp >>= listToMaybe . splitOn "/"
+mediaCategory :: FilePath -> Maybe T.Text
+mediaCategory fp = getMimeType fp >>= listToMaybe . T.splitOn "/"
 
-reverseMimeTypes :: M.Map MimeType String
+reverseMimeTypes :: M.Map MimeType T.Text
 reverseMimeTypes = M.fromList $ map (\(k,v) -> (v,k)) mimeTypesList
 
-mimeTypes :: M.Map String MimeType
+mimeTypes :: M.Map T.Text MimeType
 mimeTypes = M.fromList mimeTypesList
 
 -- | Collection of common mime types.
 -- Except for first entry, list borrowed from
 -- <https://github.com/Happstack/happstack-server/blob/master/src/Happstack/Server/FileServe/BuildingBlocks.hs happstack-server>
-mimeTypesList :: [(String, MimeType)]
+mimeTypesList :: [(T.Text, MimeType)]
 mimeTypesList =
            [("cpt","image/x-corelphotopaint")
            ,("gz","application/x-gzip")
@@ -195,6 +195,7 @@ mimeTypesList =
            ,("gjc","chemical/x-gaussian-input")
            ,("gjf","chemical/x-gaussian-input")
            ,("gl","video/gl")
+           ,("glsl","text/plain")
            ,("gnumeric","application/x-gnumeric")
            ,("gpt","chemical/x-mopac-graph")
            ,("gsf","application/x-font")

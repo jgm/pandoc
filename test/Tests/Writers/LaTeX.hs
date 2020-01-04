@@ -170,7 +170,7 @@ tests = [ testGroup "code blocks"
                       , "\\addcontentsline{toc}{subsection}{header4}\n"
                       , "\\subsubsection*{header5}"
                       , "\\addcontentsline{toc}{subsubsection}{header5}\n"
-                      , "\\paragraph{header6}"
+                      , "\\paragraph*{header6}"
                       , "\\addcontentsline{toc}{paragraph}{header6}"
                       ]
             ]

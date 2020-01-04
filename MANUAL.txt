@@ -1,7 +1,7 @@
 ---
 title: Pandoc User's Guide
 author: John MacFarlane
-date: September 29, 2019
+date: December 21, 2019
 ---
 
 # Synopsis
@@ -116,17 +116,18 @@ To produce a PDF, specify an output file with a `.pdf` extension:
 
 By default, pandoc will use LaTeX to create the PDF, which requires
 that a LaTeX engine be installed (see `--pdf-engine` below).
+Alternatively, pandoc can use ConTeXt, roff ms, or HTML as an
+intermediate format.  To do this, specify an output file with a
+`.pdf` extension, as before, but add the `--pdf-engine` option
+or `-t context`, `-t html`, or `-t ms` to the command line.
+The tool used to generate the PDF from the intermediate format
+may be specified using `--pdf-engine`.
 
-Alternatively, pandoc can use [ConTeXt], `pdfroff`, or any of the
-following HTML/CSS-to-PDF-engines, to create a PDF: [`wkhtmltopdf`],
-[`weasyprint`] or [`prince`].
-To do this, specify an output file with a `.pdf` extension, as before,
-but add the `--pdf-engine` option or `-t context`, `-t html`, or `-t ms`
-to the command line (`-t html` defaults to `--pdf-engine=wkhtmltopdf`).
-
-PDF output uses [variables for LaTeX] (with a LaTeX engine);
-[variables for ConTeXt] (with ConTeXt); or [variables for `wkhtmltopdf`]
-(an HTML/CSS-to-PDF engine; `--css` also affects the output).
+You can control the PDF style using variables, depending on
+the intermediate format used: see [variables for LaTeX],
+[variables for ConTeXt], [variables for `wkhtmltopdf`],
+[variables for ms].  When HTML is used as an intermediate
+format, the output can be styled using `--css`.
 
 To debug the PDF creation, it can be useful to look at the intermediate
 representation: instead of `-o test.pdf`, use for example `-s -o test.tex`
@@ -137,7 +138,7 @@ When using LaTeX, the following packages need to be available
 [`amsfonts`], [`amsmath`], [`lm`], [`unicode-math`],
 [`ifxetex`], [`ifluatex`], [`listings`] (if the
 `--listings` option is used), [`fancyvrb`], [`longtable`],
-[`booktabs`], [`graphicx`] and [`grffile`] (if the document
+[`booktabs`], [`graphicx`] (if the document
 contains images), [`hyperref`], [`xcolor`],
 [`ulem`], [`geometry`] (with the `geometry` variable set),
 [`setspace`] (with `linestretch`), and
@@ -239,6 +240,7 @@ header when requesting a document from a URL:
     - `html` ([HTML])
     - `ipynb` ([Jupyter notebook])
     - `jats` ([JATS] XML)
+    - `jira` ([Jira] wiki markup)
     - `json` (JSON version of native AST)
     - `latex` ([LaTeX])
     - `markdown` ([Pandoc's Markdown])
@@ -488,24 +490,26 @@ header when requesting a document from a URL:
 
 `--shift-heading-level-by=`*NUMBER*
 
-    Shift heading levels by a positive or negative integer.
+:   Shift heading levels by a positive or negative integer.
     For example, with `--shift-heading-level-by=-1`, level 2
     headings become level 1 headings, and level 3 headings
     become level 2 headings.  Headings cannot have a level
     less than 1, so a heading that would be shifted below level 1
-    becomes a regular paragraph.  Exception: with a shift of -1,
-    a level-1 heading at the beginning of the document
-    replaces the metadata title. Conversely, with a shift
-    of +1, a nonempty metadata title becomes a level-1 heading at
-    the beginning of the document.  `--shift-heading-level-by=-1`
+    becomes a regular paragraph.  Exception: with a shift of -N,
+    a level-N heading at the beginning of the document
+    replaces the metadata title. `--shift-heading-level-by=-1`
     is a good choice when converting HTML or Markdown documents that
     use an initial level-1 heading for the document title and
-    level-2+ headings for sections.
+    level-2+ headings for sections. `--shift-heading-level-by=1`
+    may be a good choice for converting Markdown documents that
+    use level-1 headings for sections to HTML, since pandoc uses
+    a level-1 heading to render the document title.
 
 `--base-header-level=`*NUMBER*
 
-:   *Deprecated.  Use `--shift-heading-level-by` instead.*
-    Specify the base level for headings (defaults to 1).
+:   *Deprecated.  Use `--shift-heading-level-by`=X instead,
+    where X = NUMBER - 1.* Specify the base level for headings
+    (defaults to 1).
 
 `--strip-empty-paragraphs`
 
@@ -634,9 +638,10 @@ header when requesting a document from a URL:
 
 `-p`, `--preserve-tabs`
 
-:   Preserve tabs instead of converting them to spaces (the default).
-    Note that this will only affect tabs in literal code spans and code
-    blocks; tabs in regular text will be treated as spaces.
+:   Preserve tabs instead of converting them to spaces. (By default, pandoc
+    converts tabs to spaces before parsing its input.)  Note that this will
+    only affect tabs in literal code spans and code blocks. Tabs in regular
+    text are always treated as spaces.
 
 `--tab-stop=`*NUMBER*
 
@@ -985,7 +990,7 @@ header when requesting a document from a URL:
 
 :   Use the [`listings`] package for LaTeX code blocks. The package
     does not support multi-byte encoding for source code. To handle UTF-8
-    you would need to use a custom template. This issue is fully 
+    you would need to use a custom template. This issue is fully
     documented here: [Encoding issue with the listings package].
 
 `-i`, `--incremental`
@@ -1031,8 +1036,7 @@ header when requesting a document from a URL:
 
 :   Specify *STRING* as a prefix at the beginning of the title
     that appears in the HTML header (but not in the title as it
-    appears at the beginning of the HTML body).  Implies
-    `--standalone`.
+    appears at the beginning of the HTML body).  Implies `--standalone`.
 
 `-c` *URL*, `--css=`*URL*
 
@@ -1248,8 +1252,16 @@ header when requesting a document from a URL:
 :   Use the specified engine when producing PDF output.
     Valid values are `pdflatex`, `lualatex`, `xelatex`, `latexmk`,
     `tectonic`, `wkhtmltopdf`, `weasyprint`, `prince`, `context`,
-    and `pdfroff`. The default is `pdflatex`.  If the engine is
-    not in your PATH, the full path of the engine may be specified here.
+    and `pdfroff`. If the engine is not in your PATH, the full
+    path of the engine may be specified here.  If this option
+    is not specified, pandoc uses the following defaults
+    depending on the output format specified using `-t/--to`:
+
+    - `-t latex` or none: `pdflatex` (other options: `xelatex`, `lualatex`,
+        `tectonic`, `latexmk`)
+    - `-t context`: `context`
+    - `-t html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`)
+    - `-t ms`:  `pdfroff`
 
 `--pdf-engine-opt=`*STRING*
 
@@ -1432,7 +1444,7 @@ to: html5
 
 # leave blank for output to stdout:
 output-file:
-# leave blank for input from stdin:
+# leave blank for input from stdin, use [] for no input:
 input-files:
 - preface.md
 - content.md
@@ -1552,7 +1564,7 @@ epub-cover-image: cover.jpg
 reference-links: true
 # block, section, or document
 reference-location: block
-setext-headers: true
+atx-headers: false
 
 # accept, reject, or all
 track-changes: accept
@@ -1589,6 +1601,15 @@ letters, save it as `letter.yaml` in the `defaults` subdirectory
 of the user data directory, and then invoke these defaults
 from any directory using `pandoc --defaults letter`
 or `pandoc -dletter`.
+
+When multiple defaults are used, their contents will be combined.
+
+Note that, where command-line arguments may be repeated
+(`--metadata-file`, `--css`, `--include-in-header`,
+`--include-before-body`, `--include-after-body`, `--variable`,
+`--metadata`, `--syntax-definition`), the values specified on
+the command line will combine with values specified in the
+defaults file, rather than replacing them.
 
 # Templates
 
@@ -1739,6 +1760,8 @@ delimiters.
 - If `variable` is an array, the material inside the loop will
   be evaluated repeatedly, with `variable` being set to each
   value of the array in turn, and concatenated.
+- If `variable` is a map, the material inside will be set to
+  the map.
 - If the value of the associated variable is not an array or
   a map, a single iteration will be performed on its value.
 
@@ -1754,6 +1777,10 @@ $endfor$
 ${ for(foo.bar) }
   - ${ foo.bar.last }, ${ foo.bar.first }
 ${ endfor }
+
+$for(mymap)$
+$it.name$: $it.office$
+$endfor$
 ```
 
 You may optionally specify a separator between consecutive
@@ -1881,12 +1908,11 @@ $~$This long line may break if the document is rendered
 with a short line length.$~$
 ```
 
-### Filters
+### Pipes
 
-A filter transforms the value of a variable.  Filters are
-specified using a slash (`/`) between the variable name and
-the filter name.  They may go anywhere a variable can go.
-Example:
+A pipe transforms the value of a variable or partial. Pipes are
+specified using a slash (`/`) between the variable name (or partial)
+and the pipe name. Example:
 
 ```
 $for(name)$
@@ -1896,9 +1922,11 @@ $endfor$
 $for(metadata/pairs)$
 - $it.key$: $it.value$
 $endfor$
+
+$employee:name()/uppercase$
 ```
 
-Filters may be chained:
+Pipes may be chained:
 
 ```
 $for(employees/pairs)$
@@ -1906,7 +1934,7 @@ $it.key/alpha/uppercase$. $it.name$
 $endfor$
 ```
 
-Some filters take parameters:
+Some pipes take parameters:
 
 ```
 |----------------------|------------|
@@ -1916,18 +1944,16 @@ $endfor$
 |----------------------|------------|
 ```
 
-Currently the following filters are predefined:
+Currently the following pipes are predefined:
 
 - `pairs`:  Converts a map or array to an array of maps,
   each with `key` and `value` fields.  If the original
   value was an array, the `key` will be the array index,
   starting with 1.
 
-- `uppercase`:  Converts a textual value to uppercase,
-  and has no effect on other values.
+- `uppercase`:  Converts text to uppercase.
 
-- `lowercase`:  Converts a textual value to lowercase,
-  and has no effect on other values.
+- `lowercase`:  Converts text to lowercase.
 
 - `length`:  Returns the length of the value:  number
   of characters for a textual value, number of elements
@@ -1936,18 +1962,20 @@ Currently the following filters are predefined:
 - `reverse`:  Reverses a textual value or array,
   and has no effect on other values.
 
-- `alpha`:  Converts a textual value that can be
-  read as an integer into a lowercase alphabetic
-  character `a..z` (mod 26), and has no effect on
-  other values.  This can be used to get lettered
+- `chomp`:  Removes trailing newlines (and breakable space).
+
+- `nowrap`:  Disables line wrapping on breakable spaces.
+
+- `alpha`:  Converts textual values that can be
+  read as an integer into lowercase alphabetic
+  characters `a..z` (mod 26). This can be used to get lettered
   enumeration from array indices.  To get uppercase
   letters, chain with `uppercase`.
 
-- `roman`:  Converts a textual value that can be
-  read as an integer into a lowercase roman numerial,
-  and has no effect on other values.  This can be used
-  to get lettered enumeration from array indices.  To
-  get uppercase roman, chain with `uppercase`.
+- `roman`:  Converts textual values that can be
+  read as an integer into lowercase roman numerials.
+  This can be used to get lettered enumeration from array indices.
+  To get uppercase roman, chain with `uppercase`.
 
 - `left n "leftborder" "rightborder"`:  Renders a textual value
   in a block of width `n`, aligned to the left, with an optional
@@ -2101,6 +2129,10 @@ To turn off boolean flags that default to true in reveal.js, use `0`.
 `slideous-url`
 :   base URL for Slideous documents (defaults to `slideous`)
 
+`title-slide-attributes`
+:   additional attributes for the title slide of reveal.js slide shows.
+    See [background in reveal.js and beamer] for an example.
+
 [reveal.js configuration options]: https://github.com/hakimel/reveal.js#configuration
 
 ### Variables for Beamer slides
@@ -2143,7 +2175,7 @@ These variables change the appearance of PDF slides using [`beamer`].
 ### Variables for PowerPoint
 
 These variables control the visual aspects of a slide show that
-are not easily controled via templates.
+are not easily controlled via templates.
 
 `monofont`
 :   font to use for code.
@@ -2546,7 +2578,7 @@ on the output format, and include the following:
 
 `toc-title`
 :   title of table of contents (works only with EPUB,
-    opendocument, odt, docx, pptx, beamer, LaTeX)
+    HTML, opendocument, odt, docx, pptx, beamer, LaTeX)
 
 [pandoc-templates]: https://github.com/jgm/pandoc-templates
 
@@ -4042,12 +4074,13 @@ text by `~` characters.  Thus, for example,
 
     H~2~O is a liquid.  2^10^ is 1024.
 
-If the superscripted or subscripted text contains spaces, these spaces
-must be escaped with backslashes.  (This is to prevent accidental
-superscripting and subscripting through the ordinary use of `~` and `^`.)
-Thus, if you want the letter P with 'a cat' in subscripts, use
-`P~a\ cat~`, not `P~a cat~`.
-
+The text between `^...^` or `~...~` may not contain spaces or
+newlines.  If the superscripted or subscripted text contains
+spaces, these spaces must be escaped with backslashes.  (This is
+to prevent accidental superscripting and subscripting through
+the ordinary use of `~` and `^`, and also bad interactions with
+footnotes.) Thus, if you want the letter P with 'a cat' in
+subscripts, use `P~a\ cat~`, not `P~a cat~`.
 
 ### Verbatim ###
 
@@ -4107,6 +4140,9 @@ left, and must not be followed immediately by a digit.  Thus,
 `$20,000 and $30,000` won't parse as math.  If for some reason
 you need to enclose text in literal `$` characters, backslash-escape
 them and they won't be treated as math delimiters.
+
+For display math, use `$$` delimiters.  (In this case, the delimiters
+may be separated from the formula by whitespace.)
 
 TeX math will be printed in all output formats. How it is rendered
 depends on the output format:
@@ -5315,7 +5351,7 @@ the [Beamer User's Guide] may also be used: `allowdisplaybreaks`,
 
 ## Background in reveal.js and beamer
 
-Background images can be added to self-contained reveal.js slideshows and 
+Background images can be added to self-contained reveal.js slideshows and
 to beamer slideshows.
 
 For the same image on every slide, use the  configuration
@@ -5323,9 +5359,9 @@ option `background-image` either in the YAML metadata block
 or as a command-line variable. (There are no other options in
 beamer and the rest of this section concerns reveal.js slideshows.)
 
-For reveal.js, you can instead use the reveal.js-native option 
-`parallaxBackgroundImage`. You can also set `parallaxBackgroundHorizontal` 
-and `parallaxBackgroundVertical` the same way and must also set 
+For reveal.js, you can instead use the reveal.js-native option
+`parallaxBackgroundImage`. You can also set `parallaxBackgroundHorizontal`
+and `parallaxBackgroundVertical` the same way and must also set
 `parallaxBackgroundSize` to have your values take effect.
 
 To set an image for a particular reveal.js slide, add
@@ -5339,6 +5375,10 @@ Other reveal.js background settings also work on individual slides, including
 `data-background-size`, `data-background-repeat`, `data-background-color`,
 `data-transition`, and `data-transition-speed`.
 
+To add a background image to the automatically generated title slide, use the
+`title-slide-attributes` variable in the YAML metadata block. It must contain
+a map of attribute names and values.
+
 See the [reveal.js
 documentation](https://github.com/hakimel/reveal.js#slide-backgrounds)
 for more details.
@@ -5349,6 +5389,9 @@ For example in reveal.js:
 ---
 title: My Slideshow
 parallaxBackgroundImage: /path/to/my/background_image.png
+title-slide-attributes:
+    data-background-image: /path/to/title_image.png
+    data-background-size: contain
 ---
 
 ## Slide One

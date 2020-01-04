@@ -11,6 +11,7 @@
 \placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
 \setupinteractionscreen[option=bookmark]
 
+\setuppagenumbering[location={footer,middle}]
 \setupbackend[export=yes]
 \setupstructure[state=start,method=auto]
 
@@ -60,11 +61,11 @@
 
 \starttext
 \startalignment[middle]
-  {\tfd Pandoc Test Suite}
+  {\tfd\setupinterlinespace Pandoc Test Suite}
   \smallskip
-  {\tfa John MacFarlane\crlf Anonymous}
+  {\tfa\setupinterlinespace John MacFarlane\crlf Anonymous}
   \smallskip
-  {\tfa July 17, 2006}
+  {\tfa\setupinterlinespace July 17, 2006}
   \bigskip
 \stopalignment
 

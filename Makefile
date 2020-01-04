@@ -7,7 +7,7 @@ GHCOPTS=-fdiagnostics-color=always
 WEBSITE=../../web/pandoc.org
 
 quick:
-	stack install --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
+	stack install --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --ghc-options='-j +RTS -A64m -RTS' --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 quick-cabal:
 	cabal new-configure . --ghc-options '$(GHCOPTS)' --disable-optimization --enable-tests
@@ -49,7 +49,7 @@ lint:
 	for f in $(SOURCEFILES); do echo $$f; hlint --verbose --refactor --refactor-options='-i -s' $$f; done
 
 changes_github:
-	pandoc --filter tools/extract-changes.hs changelog -t gfm --wrap=none | sed -e 's/\\#/#/g' | pbcopy
+	pandoc --filter tools/extract-changes.hs changelog.md -t gfm --wrap=none | sed -e 's/\\#/#/g' | pbcopy
 
 dist: man/pandoc.1
 	cabal sdist
@@ -98,10 +98,13 @@ pandoc-windows-x86_64.msi:
 	JOBID=$(shell curl https://ci.appveyor.com/api/projects/jgm/pandoc | jq '.build.jobs[]| select(.name|test("x86_64")) | .jobId') && \
 	wget "https://ci.appveyor.com/api/buildjobs/$$JOBID/artifacts/windows%2F$@" -O $@
 
-man/pandoc.1: MANUAL.txt man/pandoc.1.template
-	pandoc $< -f markdown-smart -t man -s --template man/pandoc.1.template \
+man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
+	pandoc $< -f markdown-smart -t man -s \
 		--lua-filter man/manfilter.lua \
-		--variable version="pandoc $(version)" \
+		--include-before-body man/pandoc.1.before \
+		--include-after-body man/pandoc.1.after \
+		--metadata author="" \
+		--variable footer="pandoc $(version)" \
 		-o $@
 
 doc/lua-filters.md: tools/ldoc.ltp data/pandoc.lua tools/update-lua-docs.lua

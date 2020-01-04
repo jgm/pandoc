@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.EPUB
    Copyright   : Copyright (C) 2014-2019 Matthew Pickering
@@ -24,7 +25,8 @@ import Control.DeepSeq (NFData, deepseq)
 import Control.Monad (guard, liftM, liftM2, mplus)
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL (ByteString)
-import Data.List (isInfixOf, isPrefixOf)
+import Data.List (isInfixOf)
+import qualified Data.Text as T
 import qualified Data.Map as M (Map, elems, fromList, lookup)
 import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Text.Lazy as TL
@@ -67,9 +69,9 @@ archiveToEPUB os archive = do
   -- No need to collapse here as the image path is from the manifest file
   let coverDoc = fromMaybe mempty (imageToPandoc <$> cover)
   spine <- parseSpine items content
-  let escapedSpine = map (escapeURI . takeFileName . fst) spine
+  let escapedSpine = map (escapeURI . T.pack . takeFileName . fst) spine
   Pandoc _ bs <-
-      foldM' (\a b -> ((a <>) . walk (prependHash escapedSpine))
+      foldM' (\a b -> ((a <>) . walk (prependHash $ escapedSpine))
         `liftM` parseSpineElem root b) mempty spine
   let ast = coverDoc <> Pandoc meta bs
   fetchImages (M.elems items) root archive ast
@@ -79,7 +81,7 @@ archiveToEPUB os archive = do
     parseSpineElem :: PandocMonad m => FilePath -> (FilePath, MimeType) -> m Pandoc
     parseSpineElem (normalise -> r) (normalise -> path, mime) = do
       doc <- mimeToReader mime r path
-      let docSpan = B.doc $ B.para $ B.spanWith (takeFileName path, [], []) mempty
+      let docSpan = B.doc $ B.para $ B.spanWith (T.pack $ takeFileName path, [], []) mempty
       return $ docSpan <> doc
     mimeToReader :: PandocMonad m => MimeType -> FilePath -> FilePath -> m Pandoc
     mimeToReader "application/xhtml+xml" (unEscapeString -> root)
@@ -108,18 +110,19 @@ fetchImages mimes root arc (query iq -> links) =
           <$> findEntryByPath abslink arc
 
 iq :: Inline -> [FilePath]
-iq (Image _ _ (url, _)) = [url]
+iq (Image _ _ (url, _)) = [T.unpack url]
 iq _                    = []
 
 -- Remove relative paths
 renameImages :: FilePath -> Inline -> Inline
 renameImages root img@(Image attr a (url, b))
-  | "data:" `isPrefixOf` url = img
-  | otherwise                = Image attr a (collapseFilePath (root </> url), b)
+  | "data:" `T.isPrefixOf` url = img
+  | otherwise                  = Image attr a ( T.pack $ collapseFilePath (root </> T.unpack url)
+                                              , b)
 renameImages _ x = x
 
 imageToPandoc :: FilePath -> Pandoc
-imageToPandoc s = B.doc . B.para $ B.image s "" mempty
+imageToPandoc s = B.doc . B.para $ B.image (T.pack s) "" mempty
 
 imageMimes :: [MimeType]
 imageMimes = ["image/gif", "image/jpeg", "image/png"]
@@ -144,7 +147,7 @@ parseManifest content coverId = do
       uid <- findAttrE (emptyName "id") e
       href <- findAttrE (emptyName "href") e
       mime <- findAttrE (emptyName "media-type") e
-      return (uid, (href, mime))
+      return (uid, (href, T.pack mime))
 
 parseSpine :: PandocMonad m => Items -> Element -> m [(FilePath, MimeType)]
 parseSpine is e = do
@@ -172,11 +175,11 @@ parseMeta content = do
 -- http://www.idpf.org/epub/30/spec/epub30-publications.html#sec-metadata-elem
 parseMetaItem :: Element -> Meta -> Meta
 parseMetaItem e@(stripNamespace . elName -> field) meta =
-  addMetaField (renameMeta field) (B.str $ strContent e) meta
+  addMetaField (renameMeta field) (B.str $ T.pack $ strContent e) meta
 
-renameMeta :: String -> String
+renameMeta :: String -> T.Text
 renameMeta "creator" = "author"
-renameMeta s         = s
+renameMeta s         = T.pack s
 
 getManifest :: PandocMonad m => Archive -> m (String, Element)
 getManifest archive = do
@@ -197,26 +200,26 @@ getManifest archive = do
 fixInternalReferences :: FilePath -> Pandoc -> Pandoc
 fixInternalReferences pathToFile =
    walk (renameImages root)
-  .  walk (fixBlockIRs filename)
+  . walk (fixBlockIRs filename)
   . walk (fixInlineIRs filename)
   where
-    (root, escapeURI -> filename) = splitFileName pathToFile
+    (root, T.unpack . escapeURI . T.pack -> filename) = splitFileName pathToFile
 
 fixInlineIRs :: String -> Inline -> Inline
 fixInlineIRs s (Span as v) =
   Span (fixAttrs s as) v
 fixInlineIRs s (Code as code) =
   Code (fixAttrs s as) code
-fixInlineIRs s (Link as is ('#':url, tit)) =
+fixInlineIRs s (Link as is (T.uncons -> Just ('#', url), tit)) =
   Link (fixAttrs s as) is (addHash s url, tit)
 fixInlineIRs s (Link as is t) =
   Link (fixAttrs s as) is t
 fixInlineIRs _ v = v
 
-prependHash :: [String] -> Inline -> Inline
+prependHash :: [T.Text] -> Inline -> Inline
 prependHash ps l@(Link attr is (url, tit))
-  | or [s `isPrefixOf` url | s <- ps] =
-    Link attr is ('#':url, tit)
+  | or [s `T.isPrefixOf` url | s <- ps] =
+    Link attr is ("#" <> url, tit)
   | otherwise = l
 prependHash _ i = i
 
@@ -230,17 +233,17 @@ fixBlockIRs s (CodeBlock as code) =
 fixBlockIRs _ b = b
 
 fixAttrs :: FilePath -> B.Attr -> B.Attr
-fixAttrs s (ident, cs, kvs) = (addHash s ident, filter (not . null) cs, removeEPUBAttrs kvs)
+fixAttrs s (ident, cs, kvs) = (addHash s ident, filter (not . T.null) cs, removeEPUBAttrs kvs)
 
-addHash :: String -> String -> String
+addHash :: String -> T.Text -> T.Text
 addHash _ ""    = ""
-addHash s ident = takeFileName s ++ "#" ++ ident
+addHash s ident = T.pack (takeFileName s) <> "#" <> ident
 
-removeEPUBAttrs :: [(String, String)] -> [(String, String)]
+removeEPUBAttrs :: [(T.Text, T.Text)] -> [(T.Text, T.Text)]
 removeEPUBAttrs kvs = filter (not . isEPUBAttr) kvs
 
-isEPUBAttr :: (String, String) -> Bool
-isEPUBAttr (k, _) = "epub:" `isPrefixOf` k
+isEPUBAttr :: (T.Text, a) -> Bool
+isEPUBAttr (k, _) = "epub:" `T.isPrefixOf` k
 
 -- Library
 
@@ -291,4 +294,4 @@ findElementE :: PandocMonad m => QName -> Element -> m Element
 findElementE e x = mkE ("Unable to find element: " ++ show e) $ findElement e x
 
 mkE :: PandocMonad m => String -> Maybe a -> m a
-mkE s = maybe (throwError . PandocParseError $ s) return
+mkE s = maybe (throwError . PandocParseError $ T.pack $ s) return

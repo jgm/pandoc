@@ -142,6 +142,16 @@ tests =
       "* This: is not: tagged" =?>
       headerWith ("this-is-not-tagged", [], []) 1 "This: is not: tagged"
 
+  , "Untagged header time followed by colon" =:
+      "** Meeting at 5:23: free food" =?>
+      let attr = ("meeting-at-523-free-food", [], [])
+      in headerWith attr 2 "Meeting at 5:23: free food"
+
+  , "tag followed by text" =:
+      "*** Looks like a :tag: but isn't" =?>
+      let attr = ("looks-like-a-tag-but-isnt", [], [])
+      in headerWith attr 3 "Looks like a :tag: but isn't"
+
   , "Header starting with strokeout text" =:
       T.unlines [ "foo"
                 , ""

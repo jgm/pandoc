@@ -32,11 +32,11 @@ jobs:
           - osarch: "windows-x86_64"
             arch: "x64"
             choco_opts: ""
-            stack_opts: ""
+            stack_opts: "-j1"
           - osarch: "windows-i386"
             arch: "x86"
             choco_opts: "--x86"
-            stack_opts: "--flag hslua:lua_32bits"
+            stack_opts: "-j1 --flag hslua:lua_32bits"
 
     steps:
     - uses: actions/checkout@v1
@@ -77,12 +77,13 @@ jobs:
           %WIXBIN%\candle -arch ${{ matrix.versions.arch }} -dVERSION=%VERSION% -dBINPATH=%WORKDIR% *.wxs -out wixobj\
           if %errorlevel% neq 0 exit /b %errorlevel%
           echo Running light...
-          %WIXBIN%\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out %WORKDIR%\pandoc-%VERSION%-${{ matrix.versions.osarch }}.msi wixobj\*.wixobj
+          %WIXBIN%\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out %WORKDIR%\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi wixobj\*.wixobj
           7z a "pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip" pandoc.exe pandoc-citeproc.exe MANUAL.html COPYING.rtf
           cd ..
           mkdir windows-release-candidate
-          copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.msi windows-release-candidate
+          copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi windows-release-candidate
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip windows-release-candidate
+          copy windows\Makefile windows-release-candidate
     - uses: actions/upload-artifact@master
       with:
         name: windows-release-candidate
@@ -122,10 +123,7 @@ jobs:
           for f in $(find .stack-work/install -name 'pandoc*' -perm +001 -type f); do cp $f ${DEST}/bin/; done
           strip ${DEST}/bin/pandoc
           strip ${DEST}/bin/pandoc-citeproc
-          ${DEST}/bin/pandoc -f markdown-smart -t man -s \
-            --template man/pandoc.1.template --lua-filter man/manfilter.lua \
-            --variable version="pandoc ${VERSION}" \
-            -o ${DEST}/share/man/man1/pandoc.1
+          cp man/pandoc.1 ${DEST}/share/man/man1/pandoc.1
           ${DEST}/bin/pandoc-citeproc --man > \
             $DEST/share/man/man1/pandoc-citeproc.1
           ${DEST}/bin/pandoc -t html5 -s COPYING.md -Vpagetitle=License \

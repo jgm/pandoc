@@ -41,12 +41,12 @@ app req respond = do
   text <- getParam "text" >>= checkLength . fromMaybe T.empty
   fromFormat <- fromMaybe "" <$> getParam "from"
   toFormat <- fromMaybe "" <$> getParam "to"
-  let reader = case runPure $ getReader (T.unpack fromFormat) of
+  let reader = case runPure $ getReader fromFormat of
                     Right (TextReader r, es) -> r readerOpts{
                        readerExtensions = es }
                     _ -> error $ "could not find reader for "
                                   ++ T.unpack fromFormat
-  let writer = case runPure $ getWriter (T.unpack toFormat) of
+  let writer = case runPure $ getWriter toFormat of
                     Right (TextWriter w, es) -> w writerOpts{
                        writerExtensions = es }
                     _ -> error $ "could not find writer for " ++
@@ -71,8 +71,8 @@ checkLength t =
 writerOpts :: WriterOptions
 writerOpts = def { writerReferenceLinks = True,
                    writerEmailObfuscation = NoObfuscation,
-                   writerHTMLMathMethod = MathJax (defaultMathJaxURL ++
-                       "tex-mml-chtml.js"),
+                   writerHTMLMathMethod = MathJax (defaultMathJaxURL <>
+                       T.pack "tex-mml-chtml.js"),
                    writerHighlightStyle = Just pygments }
 
 readerOpts :: ReaderOptions

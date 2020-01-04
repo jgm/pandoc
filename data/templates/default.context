@@ -36,6 +36,8 @@ $if(layout)$
 $endif$
 $if(pagenumbering)$
 \setuppagenumbering[$for(pagenumbering)$$pagenumbering$$sep$,$endfor$]
+$else$
+\setuppagenumbering[location={footer,middle}]
 $endif$
 $if(pdfa)$
 % attempt to generate PDF/A
@@ -105,6 +107,20 @@ $endif$
 \setupxtable[body][]
 \setupxtable[foot][bottomframe=on]
 
+$if(csl-refs)$
+\definemeasure[cslhangindent][1.5em]
+\definenarrower[hangingreferences][left=\measure{cslhangindent}]
+\definestartstop [cslreferences] [
+	$if(csl-hanging-indent)$
+	before={%
+	  \starthangingreferences[left]
+      \setupindenting[-\leftskip,yes,first]
+      \doindentation
+  	},
+  	after=\stophangingreferences,
+	$endif$
+]
+$endif$
 $if(includesource)$
 $for(sourcefile)$
 \attachment[file=$curdir$/$sourcefile$,method=hidden]
@@ -117,18 +133,18 @@ $endfor$
 \starttext
 $if(title)$
 \startalignment[middle]
-  {\tfd $title$}
+  {\tfd\setupinterlinespace $title$}
 $if(subtitle)$
   \smallskip
-  {\tfa $subtitle$}
+  {\tfa\setupinterlinespace $subtitle$}
 $endif$
 $if(author)$
   \smallskip
-  {\tfa $for(author)$$author$$sep$\crlf $endfor$}
+  {\tfa\setupinterlinespace $for(author)$$author$$sep$\crlf $endfor$}
 $endif$
 $if(date)$
   \smallskip
-  {\tfa $date$}
+  {\tfa\setupinterlinespace $date$}
 $endif$
   \bigskip
 \stopalignment

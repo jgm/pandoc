@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Ipynb
    Copyright   : Copyright (C) 2019 John MacFarlane
@@ -19,7 +20,6 @@ module Text.Pandoc.Readers.Ipynb ( readIpynb )
 where
 import Prelude
 import Data.Char (isDigit)
-import Data.List (isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Text.Pandoc.Options
@@ -30,6 +30,7 @@ import Text.Pandoc.Definition
 import Data.Ipynb as Ipynb
 import Text.Pandoc.Class
 import Text.Pandoc.MIME (extensionFromMimeType)
+import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.UTF8
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Error
@@ -51,15 +52,15 @@ readIpynb opts t = do
     Left _ ->
       case eitherDecode src of
         Right (notebook3 :: Notebook NbV3) -> notebookToPandoc opts notebook3
-        Left err -> throwError $ PandocIpynbDecodingError err
+        Left err -> throwError $ PandocIpynbDecodingError $ T.pack err
 
 notebookToPandoc :: PandocMonad m
                  => ReaderOptions -> Notebook a -> m Pandoc
 notebookToPandoc opts notebook = do
   let cells = notebookCells notebook
   let (fmt,fmtminor) = notebookFormat notebook
-  let m = M.insert "nbformat" (MetaString $ show fmt) $
-          M.insert "nbformat_minor" (MetaString $ show fmtminor) $
+  let m = M.insert "nbformat" (MetaString $ tshow fmt) $
+          M.insert "nbformat_minor" (MetaString $ tshow fmtminor) $
           jsonMetaToMeta (notebookMetadata notebook)
   let lang = case M.lookup "kernelspec" m of
                    Just (MetaMap ks) ->
@@ -72,7 +73,7 @@ notebookToPandoc opts notebook = do
   return $ Pandoc (Meta $ M.insert "jupyter" (MetaMap m) mempty) blocks
 
 cellToBlocks :: PandocMonad m
-             => ReaderOptions -> String -> Cell a -> m B.Blocks
+             => ReaderOptions -> Text -> Cell a -> m B.Blocks
 cellToBlocks opts lang c = do
   let Source ts = cellSource c
   let source = mconcat ts
@@ -100,19 +101,18 @@ cellToBlocks opts lang c = do
               "text/markdown"   -> "markdown"
               "text/x-rsrt"     -> "rst"
               _                 -> format
-      return $ B.divWith ("",["cell","raw"],kvs) $ B.rawBlock format'
-             $ T.unpack source
+      return $ B.divWith ("",["cell","raw"],kvs) $ B.rawBlock format' source
     Ipynb.Code{ codeOutputs = outputs, codeExecutionCount = ec } -> do
       outputBlocks <- mconcat <$> mapM outputToBlock outputs
-      let kvs' = maybe kvs (\x -> ("execution_count", show x):kvs) ec
+      let kvs' = maybe kvs (\x -> ("execution_count", tshow x):kvs) ec
       return $ B.divWith ("",["cell","code"],kvs') $
-        B.codeBlockWith ("",[lang],[]) (T.unpack source)
+        B.codeBlockWith ("",[lang],[]) source
         <> outputBlocks
 
 -- Remove attachment: prefix from images...
 fixImage :: Inline -> Inline
 fixImage (Image attr lab (src,tit))
-  | "attachment:" `isPrefixOf` src = Image attr lab (drop 11 src, tit)
+  | "attachment:" `T.isPrefixOf` src = Image attr lab (T.drop 11 src, tit)
 fixImage x = x
 
 addAttachment :: PandocMonad m => (Text, MimeBundle) -> m ()
@@ -120,19 +120,19 @@ addAttachment (fname, mimeBundle) = do
   let fp = T.unpack fname
   case M.toList (unMimeBundle mimeBundle) of
     (mimeType, BinaryData bs):_ ->
-      insertMedia fp (Just $ T.unpack mimeType) (BL.fromStrict bs)
+      insertMedia fp (Just mimeType) (BL.fromStrict bs)
     (mimeType, TextualData t):_ ->
-      insertMedia fp (Just $ T.unpack mimeType)
+      insertMedia fp (Just mimeType)
           (BL.fromStrict $ TE.encodeUtf8 t)
     (mimeType, JsonData v):_ ->
-      insertMedia fp (Just $ T.unpack mimeType) (encode v)
-    [] -> report $ CouldNotFetchResource fp "no attachment"
+      insertMedia fp (Just mimeType) (encode v)
+    [] -> report $ CouldNotFetchResource fname "no attachment"
 
 outputToBlock :: PandocMonad m => Output a -> m B.Blocks
 outputToBlock Stream{ streamName = sName,
                       streamText = Source text } = do
-  return $ B.divWith ("",["output","stream",T.unpack sName],[])
-         $ B.codeBlock $ T.unpack . mconcat $ text
+  return $ B.divWith ("",["output","stream",sName],[])
+         $ B.codeBlock $ T.concat $ text
 outputToBlock DisplayData{ displayData = data',
                             displayMetadata = metadata' } =
   B.divWith ("",["output", "display_data"],[]) <$>
@@ -140,15 +140,15 @@ outputToBlock DisplayData{ displayData = data',
 outputToBlock ExecuteResult{ executeCount = ec,
                               executeData = data',
                               executeMetadata = metadata' } =
-  B.divWith ("",["output", "execute_result"],[("execution_count",show ec)])
+  B.divWith ("",["output", "execute_result"],[("execution_count",tshow ec)])
     <$> handleData metadata' data'
 outputToBlock Err{ errName = ename,
                    errValue = evalue,
                    errTraceback = traceback } = do
   return $ B.divWith ("",["output","error"],
-                         [("ename",T.unpack ename),
-                          ("evalue",T.unpack evalue)])
-         $ B.codeBlock $ T.unpack . T.unlines $ traceback
+                         [("ename",ename),
+                          ("evalue",evalue)])
+         $ B.codeBlock $ T.unlines $ traceback
 
 -- We want to display the richest output possible given
 -- the output format.
@@ -174,54 +174,53 @@ handleData metadata (MimeBundle mb) =
       let metaPairs = jsonMetaToPairs meta
       let bl = BL.fromStrict bs
       -- SHA1 hash for filename
-      let mt' = T.unpack mt
-      let fname = showDigest (sha1 bl) ++
-            case extensionFromMimeType mt' of
+      let fname = T.pack (showDigest (sha1 bl)) <>
+            case extensionFromMimeType mt of
               Nothing  -> ""
-              Just ext -> '.':ext
-      insertMedia fname (Just mt') bl
+              Just ext -> "." <> ext
+      insertMedia (T.unpack fname) (Just mt) bl
       return $ B.para $ B.imageWith ("",[],metaPairs) fname "" mempty
      | otherwise = return mempty
 
     dataBlock ("text/html", TextualData t)
-      = return $ B.rawBlock "html" $ T.unpack t
+      = return $ B.rawBlock "html" $ t
 
     dataBlock ("text/latex", TextualData t)
-      = return $ B.rawBlock "latex" $ T.unpack t
+      = return $ B.rawBlock "latex" $ t
 
     dataBlock ("text/plain", TextualData t) =
-      return $ B.codeBlock $ T.unpack t
+      return $ B.codeBlock $ t
 
     dataBlock (_, JsonData v) =
-      return $ B.codeBlockWith ("",["json"],[]) $ toStringLazy $ encode v
+      return $ B.codeBlockWith ("",["json"],[]) $ T.pack $ toStringLazy $ encode v
 
     dataBlock _ = return mempty
 
-jsonMetaToMeta :: JSONMeta -> M.Map String MetaValue
-jsonMetaToMeta = M.mapKeys T.unpack . M.map valueToMetaValue
+jsonMetaToMeta :: JSONMeta -> M.Map Text MetaValue
+jsonMetaToMeta = M.map valueToMetaValue
   where
     valueToMetaValue :: Value -> MetaValue
     valueToMetaValue x@(Object{}) =
       case fromJSON x of
-        Error s -> MetaString s
+        Error s -> MetaString $ T.pack s
         Success jm' -> MetaMap $ jsonMetaToMeta jm'
     valueToMetaValue x@(Array{}) =
       case fromJSON x of
-        Error s -> MetaString s
+        Error s -> MetaString $ T.pack s
         Success xs -> MetaList $ map valueToMetaValue xs
     valueToMetaValue (Bool b) = MetaBool b
-    valueToMetaValue (String t) = MetaString (T.unpack t)
+    valueToMetaValue (String t) = MetaString t
     valueToMetaValue (Number n)
-      | Scientific.isInteger n = MetaString (show (floor n :: Integer))
-      | otherwise              = MetaString (show n)
+      | Scientific.isInteger n = MetaString (tshow (floor n :: Integer))
+      | otherwise              = MetaString (tshow n)
     valueToMetaValue Aeson.Null = MetaString ""
 
-jsonMetaToPairs :: JSONMeta -> [(String, String)]
-jsonMetaToPairs = M.toList . M.mapKeys T.unpack . M.map
+jsonMetaToPairs :: JSONMeta -> [(Text, Text)]
+jsonMetaToPairs = M.toList . M.map
   (\case
       String t
         | not (T.all isDigit t)
         , t /= "true"
         , t /= "false"
-                 -> T.unpack t
-      x          -> UTF8.toStringLazy $ Aeson.encode x)
+                 -> t
+      x          -> T.pack $ UTF8.toStringLazy $ Aeson.encode x)

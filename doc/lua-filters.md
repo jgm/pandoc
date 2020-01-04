@@ -30,9 +30,9 @@ executable.
 
 Starting with pandoc 2.0, we have made it possible to write
 filters in lua without any external dependencies at all. A lua
-interpreter and a lua library for creating pandoc filters is
-built into the pandoc executable. Pandoc data types are
-marshalled to lua directly, avoiding the overhead of writing
+interpreter (version 5.3) and a lua library for creating pandoc
+filters is built into the pandoc executable. Pandoc data types
+are marshalled to lua directly, avoiding the overhead of writing
 JSON to stdout and reading it from stdin.
 
 Here is an example of a lua filter that converts strong emphasis
@@ -245,7 +245,7 @@ The following filters are presented as examples. A repository of
 useful lua filters (which may also serve as good examples) is
 available at <https://github.com/pandoc/lua-filters>.
 
-## Macro substitution.
+## Macro substitution
 
 The following filter converts the string `{{helloworld}}` into
 emphasized text "Hello, World".
@@ -264,32 +264,33 @@ return {
 }
 ```
 
-## Default metadata file
+## Center images in LaTeX and HTML output
 
-This filter causes metadata defined in an external file
-(`metadata-file.yaml`) to be used as default values in a
-document's metadata:
+For LaTeX, wrap an image in LaTeX snippets which cause the image
+to be centered horizontally. In HTML, the image element's style
+attribute is used to achieve centering.
 
 ``` lua
--- read metadata file into string
-local metafile = io.open('metadata-file.yaml', 'r')
-local content = metafile:read("*a")
-metafile:close()
--- get metadata
-local default_meta = pandoc.read(content, "markdown").meta
+-- Filter images with this function if the target format is LaTeX.
+if FORMAT:match 'latex' then
+  function Image (elem)
+    -- Surround all images with image-centering raw LaTeX.
+    return {
+      pandoc.RawInline('latex', '\\hfill\\break{\\centering'),
+      elem,
+      pandoc.RawInline('latex', '\\par}')
+    }
+  end
+end
 
-return {
-  {
-    Meta = function(meta)
-      -- use default metadata field if it hasn't been defined yet.
-      for k, v in pairs(default_meta) do
-        if meta[k] == nil then
-          meta[k] = v
-        end
-      end
-      return meta
-    end,
-  }
+-- Filter images with this function if the target format is HTML
+if FORMAT:match 'html' then
+  function Image (elem)
+    -- Use CSS style to center image
+    elem.attributes.style = 'margin:auto; display: block;'
+    return elem
+  end
+end
 ```
 
 ## Setting the date in the metadata

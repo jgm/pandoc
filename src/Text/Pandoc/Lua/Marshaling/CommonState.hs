@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.CommonState
    Copyright   : © 2012-2019 John MacFarlane
@@ -23,6 +24,7 @@ import Text.Pandoc.Logging (LogMessage, showLogMessage)
 import Text.Pandoc.Lua.Marshaling.AnyValue (AnyValue (..))
 
 import qualified Data.Map as Map
+import qualified Data.Text as Text
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
 
@@ -46,7 +48,7 @@ indexCommonState st (AnyValue idx) = Lua.ltype idx >>= \case
   Lua.TypeString -> 1 <$ (Lua.peek idx >>= pushField)
   _ -> 1 <$ Lua.pushnil
  where
-  pushField :: String -> Lua ()
+  pushField :: Text.Text -> Lua ()
   pushField name = case lookup name commonStateFields of
     Just pushValue -> pushValue st
     Nothing -> Lua.pushnil
@@ -71,7 +73,7 @@ pairsCommonState st = do
           (nextKey, pushValue):_ -> 2 <$ (Lua.push nextKey *> pushValue st)
       _ -> 2 <$ (Lua.pushnil *> Lua.pushnil)
 
-commonStateFields :: [(String, CommonState -> Lua ())]
+commonStateFields :: [(Text.Text, CommonState -> Lua ())]
 commonStateFields =
   [ ("input_files", Lua.push . stInputFiles)
   , ("output_file", Lua.push . Lua.Optional . stOutputFile)
@@ -98,5 +100,5 @@ instance Pushable LogMessage where
     pushLogMessageMetatable = ensureUserdataMetatable logMessageTypeName $
       LuaUtil.addFunction "__tostring" tostringLogMessage
 
-tostringLogMessage :: LogMessage -> Lua String
+tostringLogMessage :: LogMessage -> Lua Text.Text
 tostringLogMessage = return . showLogMessage

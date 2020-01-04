@@ -9,6 +9,7 @@
 \placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
 \setupinteractionscreen[option=bookmark]
 
+\setuppagenumbering[location={footer,middle}]
 \setupbackend[export=yes]
 \setupstructure[state=start,method=auto]
 
@@ -98,10 +99,10 @@ German div contents
 
 and more text.
 
-Next paragraph with a \start\language[en-gb]British span\stop  and a
-word-that-includesa\start\language[de-ch]Swiss German span\stop right?
+Next paragraph with a {\language[en-gb]British span} and a
+word-that-includesa{\language[de-ch]Swiss German span}right?
 
-Some \start\language[es]Spanish text\stop .
+Some {\language[es]Spanish text}.
 
 \section[title={Combined},reference={combined}]
 
@@ -116,9 +117,8 @@ French rtl div contents
 
 and more text.
 
-Next paragraph with a \start\language[en-gb]{\lefttoright British ltr
-span}\stop  and a
-word-that-includesa\start\language[de-ch]{\lefttoright Swiss German ltr
-span}\stop right?
+Next paragraph with a {\language[en-gb]{\lefttoright British ltr span}}
+and a word-that-includesa{\language[de-ch]{\lefttoright Swiss German ltr
+span}}right?
 
 \stoptext

@@ -14,9 +14,8 @@ Conversion of 'Pandoc' documents to Docbook XML.
 -}
 module Text.Pandoc.Writers.TEI (writeTEI) where
 import Prelude
-import Data.Char (toLower)
-import Data.List (isPrefixOf, stripPrefix)
 import Data.Text (Text)
+import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (languages, languagesByExtension)
@@ -89,13 +88,13 @@ listItemToTEI :: PandocMonad m => WriterOptions -> [Block] -> m (Doc Text)
 listItemToTEI opts item =
   inTagsIndented "item" <$> blocksToTEI opts (map plainToPara item)
 
-imageToTEI :: PandocMonad m => WriterOptions -> Attr -> String -> m (Doc Text)
+imageToTEI :: PandocMonad m => WriterOptions -> Attr -> Text -> m (Doc Text)
 imageToTEI opts attr src = return $ selfClosingTag "graphic" $
   ("url", src) : idFromAttr opts attr ++ dims
   where
     dims = go Width "width" ++ go Height "height"
     go dir dstr = case dimension dir attr of
-                    Just a  -> [(dstr, show a)]
+                    Just a  -> [(dstr, tshow a)]
                     Nothing -> []
 
 -- | Convert a Pandoc block element to TEI.
@@ -111,7 +110,7 @@ blockToTEI opts (Div attr@(_,"section":_,_) (Header lvl _ ils : xs)) =
       divType = case lvl of
                  n | n == -1          -> "part"
                    | n == 0           -> "chapter"
-                   | n >= 1 && n <= 5 -> "level" ++ show n
+                   | n >= 1 && n <= 5 -> "level" <> tshow n
                    | otherwise        -> "section"
   titleContents <- inlinesToTEI opts ils
   contents <- blocksToTEI opts xs'
@@ -150,15 +149,15 @@ blockToTEI opts (LineBlock lns) =
 blockToTEI opts (BlockQuote blocks) =
   inTagsIndented "quote" <$> blocksToTEI opts blocks
 blockToTEI _ (CodeBlock (_,classes,_) str) =
-  return $ text ("<ab type='codeblock " ++ lang ++ "'>") <> cr <>
-     flush (text (escapeStringForXML str) <> cr <> text "</ab>")
+  return $ literal ("<ab type='codeblock " <> lang <> "'>") <> cr <>
+     flush (literal (escapeStringForXML str) <> cr <> text "</ab>")
     where lang  = if null langs
                      then ""
                      else escapeStringForXML (head langs)
-          isLang l    = map toLower l `elem` map (map toLower) languages
+          isLang l    = T.toLower l `elem` map T.toLower languages
           langsFrom s = if isLang s
                            then [s]
-                           else languagesByExtension . map toLower $ s
+                           else languagesByExtension . T.toLower $ s
           langs       = concatMap langsFrom classes
 blockToTEI opts (BulletList lst) = do
   let attribs = [("type", "unordered")]
@@ -178,13 +177,13 @@ blockToTEI opts (OrderedList (start, numstyle, _) (first:rest)) = do
               else do
                 fi <- blocksToTEI opts $ map plainToPara first
                 re <- listItemsToTEI opts rest
-                return $ inTags True "item" [("n",show start)] fi $$ re
+                return $ inTags True "item" [("n",tshow start)] fi $$ re
   return $ inTags True "list" attribs items
 blockToTEI opts (DefinitionList lst) = do
   let attribs = [("type", "definition")]
   inTags True "list" attribs <$> deflistItemsToTEI opts lst
 blockToTEI _ b@(RawBlock f str)
-  | f == "tei"     = return $ text str
+  | f == "tei"     = return $ literal str
   -- raw TEI block (should such a thing exist).
   | otherwise      = do
     report $ BlockNotRendered b
@@ -230,7 +229,7 @@ inlinesToTEI opts lst = hcat <$> mapM (inlineToTEI opts) lst
 
 -- | Convert an inline element to TEI.
 inlineToTEI :: PandocMonad m => WriterOptions -> Inline -> m (Doc Text)
-inlineToTEI _ (Str str) = return $ text $ escapeStringForXML str
+inlineToTEI _ (Str str) = return $ literal $ escapeStringForXML str
 inlineToTEI opts (Emph lst) =
   inTags False "hi" [("rendition","simple:italic")] <$> inlinesToTEI opts lst
 inlineToTEI opts (Strong lst) =
@@ -254,16 +253,16 @@ inlineToTEI opts (Cite _ lst) =
 inlineToTEI opts (Span _ ils) =
   inlinesToTEI opts ils
 inlineToTEI _ (Code _ str) = return $
-  inTags False "seg" [("type","code")] $ text (escapeStringForXML str)
+  inTags False "seg" [("type","code")] $ literal (escapeStringForXML str)
 -- Distinguish display from inline math by wrapping the former in a "figure."
 inlineToTEI _ (Math t str) = return $
   case t of
     InlineMath  -> inTags False "formula" [("notation","TeX")] $
-                   text str
+                   literal str
     DisplayMath -> inTags True "figure" [("type","math")] $
-                   inTags False "formula" [("notation","TeX")] $ text str
+                   inTags False "formula" [("notation","TeX")] $ literal str
 
-inlineToTEI _ il@(RawInline f x) | f == "tei"     = return $ text x
+inlineToTEI _ il@(RawInline f x) | f == "tei"     = return $ literal x
                                  | otherwise      = empty <$
                                      report (InlineNotRendered il)
 inlineToTEI _ LineBreak = return $ selfClosingTag "lb" []
@@ -273,8 +272,8 @@ inlineToTEI _ Space =
 inlineToTEI _ SoftBreak =
             return space
 inlineToTEI opts (Link attr txt (src, _))
-  | Just email <- stripPrefix "mailto:" src = do
-      let emailLink = text $
+  | Just email <- T.stripPrefix "mailto:" src = do
+      let emailLink = literal $
                       escapeStringForXML email
       case txt of
            [Str s] | escapeURI s == email ->
@@ -283,17 +282,13 @@ inlineToTEI opts (Link attr txt (src, _))
               linktext <- inlinesToTEI opts txt
               return $ linktext <+> char '(' <> emailLink <> char ')'
   | otherwise =
-      (if "#" `isPrefixOf` src
-            then inTags False "ref" $ ("target", drop 1 src)
-                 : idFromAttr opts attr
-            else inTags False "ref" $ ("target", src)
-                 : idFromAttr opts attr ) <$>
-        inlinesToTEI opts txt
+      (inTags False "ref" $ ("target", src) : idFromAttr opts attr)
+                 <$> inlinesToTEI opts txt
 inlineToTEI opts (Image attr description (src, tit)) = do
-  let titleDoc = if null tit
+  let titleDoc = if T.null tit
                    then empty
                    else inTags False "figDesc" []
-                           (text $ escapeStringForXML tit)
+                           (literal $ escapeStringForXML tit)
   imageDesc <- if null description
                   then return empty
                   else inTags False "head" []
@@ -303,8 +298,8 @@ inlineToTEI opts (Image attr description (src, tit)) = do
 inlineToTEI opts (Note contents) =
   inTagsIndented "note" <$> blocksToTEI opts contents
 
-idFromAttr :: WriterOptions -> Attr -> [(String, String)]
+idFromAttr :: WriterOptions -> Attr -> [(Text, Text)]
 idFromAttr opts (id',_,_) =
-  if null id'
+  if T.null id'
      then []
-     else [("xml:id", writerIdentifierPrefix opts ++ id')]
+     else [("xml:id", writerIdentifierPrefix opts <> id')]

@@ -1,5 +1,5 @@
 name:            pandoc
-version:         2.8
+version:         2.9.1
 cabal-version:   2.0
 build-type:      Simple
 license:         GPL-2
@@ -18,8 +18,8 @@ description:     Pandoc is a Haskell library for converting from one markup
                  this library. It can read several dialects of Markdown and
                  (subsets of) HTML, reStructuredText, LaTeX, DocBook, JATS,
                  MediaWiki markup, DokuWiki markup, TWiki markup,
-                 TikiWiki markup, Creole 1.0, Haddock markup, OPML,
-                 Emacs Org-Mode, Emacs Muse, txt2tags, ipynb (Jupyter
+                 TikiWiki markup, Jira markup, Creole 1.0, Haddock markup,
+                 OPML, Emacs Org-Mode, Emacs Muse, txt2tags, ipynb (Jupyter
                  notebooks), Vimwiki, Word Docx, ODT, EPUB, FictionBook2,
                  roff man, and Textile, and it can write Markdown,
                  reStructuredText, XHTML, HTML 5, LaTeX, ConTeXt, DocBook,
@@ -188,7 +188,8 @@ extra-source-files:
                  stack.yaml
                  -- files needed to build man page
                  man/manfilter.lua
-                 man/pandoc.1.template
+                 man/pandoc.1.before
+                 man/pandoc.1.after
                  -- trypandoc
                  trypandoc/Makefile
                  trypandoc/index.html
@@ -196,6 +197,12 @@ extra-source-files:
                  test/bodybg.gif
                  test/*.native
                  test/command/*.md
+                 test/command/A.txt
+                 test/command/B.txt
+                 test/command/C.txt
+                 test/command/D.txt
+                 test/command/defaults1.yaml
+                 test/command/defaults2.yaml
                  test/command/3533-rst-csv-tables.csv
                  test/command/3880.txt
                  test/command/5182.txt
@@ -237,9 +244,9 @@ extra-source-files:
                  test/mediawiki-reader.wiki
                  test/vimwiki-reader.wiki
                  test/creole-reader.txt
-                 test/creole-reader.native
                  test/rst-reader.rst
                  test/jats-reader.xml
+                 test/jira-reader.jira
                  test/s5-basic.html
                  test/s5-fancy.html
                  test/s5-fragment.html
@@ -319,9 +326,7 @@ extra-source-files:
                  test/lhs-test.fragment.html+lhs
                  test/pipe-tables.txt
                  test/dokuwiki_external_images.dokuwiki
-                 test/dokuwiki_external_images.native
                  test/dokuwiki_multiblock_table.dokuwiki
-                 test/dokuwiki_multiblock_table.native
                  test/fb2/*.markdown
                  test/fb2/*.fb2
                  test/fb2/images-embedded.html
@@ -381,24 +386,25 @@ library
                  safe >= 0.3 && < 0.4,
                  zip-archive >= 0.2.3.4 && < 0.5,
                  HTTP >= 4000.0.5 && < 4000.4,
-                 texmath >= 0.11.3 && < 0.12,
+                 texmath >= 0.12 && < 0.13,
                  xml >= 1.3.12 && < 1.4,
                  split >= 0.2 && < 0.3,
                  random >= 1 && < 1.2,
-                 pandoc-types >= 1.17.6 && < 1.18,
+                 pandoc-types >= 1.20 && < 1.21,
                  aeson >= 0.7 && < 1.5,
                  scientific >= 0.3 && < 0.4,
                  aeson-pretty >= 0.8.5 && < 0.9,
                  tagsoup >= 0.14.6 && < 0.15,
                  base64-bytestring >= 0.1 && < 1.1,
                  zlib >= 0.5 && < 0.7,
-                 skylighting >= 0.8.2.3 && < 0.9,
-                 skylighting-core >= 0.8.2.3 && < 0.9,
+                 skylighting >= 0.8.3 && < 0.9,
+                 skylighting-core >= 0.8.3 && < 0.9,
                  data-default >= 0.4 && < 0.8,
                  temporary >= 1.1 && < 1.4,
                  blaze-html >= 0.9 && < 0.10,
                  blaze-markup >= 0.8 && < 0.9,
                  vector >= 0.10 && < 0.13,
+                 jira-wiki-markup >= 1.0 && < 1.1,
                  hslua >= 1.0.1 && < 1.1,
                  hslua-module-system >= 0.2 && < 0.3,
                  hslua-module-text >= 0.2 && < 0.3,
@@ -409,7 +415,7 @@ library
                  JuicyPixels >= 3.1.6.1 && < 3.4,
                  Glob >= 0.7 && < 0.11,
                  cmark-gfm >= 0.2 && < 0.3,
-                 doctemplates >= 0.7 && < 0.8,
+                 doctemplates >= 0.8 && < 0.9,
                  network-uri >= 2.6 && < 2.7,
                  network >= 2.6,
                  http-client >= 0.4.30 && < 0.7,
@@ -421,7 +427,8 @@ library
                  doclayout >= 0.2.0.1 && < 0.3,
                  ipynb >= 0.1 && < 0.2,
                  attoparsec >= 0.12 && < 0.14,
-                 text-conversions >= 0.3 && < 0.4
+                 text-conversions >= 0.3 && < 0.4,
+                 emojis >= 0.1 && < 0.2
   if os(windows) && arch(i386)
      build-depends: basement >= 0.0.10,
                     foundation >= 0.0.23
@@ -456,7 +463,7 @@ library
                      -fhide-source-paths
 
   default-language: Haskell2010
-  other-extensions: NoImplicitPrelude, TemplateHaskell
+  other-extensions: NoImplicitPrelude
   hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
@@ -480,6 +487,7 @@ library
                    Text.Pandoc.Readers.Org,
                    Text.Pandoc.Readers.DocBook,
                    Text.Pandoc.Readers.JATS,
+                   Text.Pandoc.Readers.Jira,
                    Text.Pandoc.Readers.OPML,
                    Text.Pandoc.Readers.Textile,
                    Text.Pandoc.Readers.Native,
@@ -584,6 +592,7 @@ library
                    Text.Pandoc.Readers.Org.ParserState,
                    Text.Pandoc.Readers.Org.Parsing,
                    Text.Pandoc.Readers.Org.Shared,
+                   Text.Pandoc.Readers.Metadata,
                    Text.Pandoc.Readers.Roff,
                    Text.Pandoc.Writers.Docx.StyleMap,
                    Text.Pandoc.Writers.Roff,
@@ -705,7 +714,7 @@ test-suite test-pandoc
   hs-source-dirs: test
   build-depends:  base >= 4.8 && < 5,
                   pandoc,
-                  pandoc-types >= 1.17.6 && < 1.18,
+                  pandoc-types >= 1.20 && < 1.21,
                   mtl >= 2.2 && < 2.3,
                   bytestring >= 0.9 && < 0.11,
                   base64-bytestring >= 0.1 && < 1.1,
@@ -727,7 +736,7 @@ test-suite test-pandoc
                   executable-path >= 0.0 && < 0.1,
                   zip-archive >= 0.2.3.4 && < 0.5,
                   xml >= 1.3.12 && < 1.4,
-                  doctemplates >= 0.7 && < 0.8,
+                  doctemplates >= 0.8 && < 0.9,
                   Glob >= 0.7 && < 0.11
   if impl(ghc < 8.4)
      hs-source-dirs: prelude
@@ -742,6 +751,7 @@ test-suite test-pandoc
                   Tests.Readers.LaTeX
                   Tests.Readers.HTML
                   Tests.Readers.JATS
+                  Tests.Readers.Jira
                   Tests.Readers.Markdown
                   Tests.Readers.Org
                   Tests.Readers.Org.Block

@@ -39,17 +39,22 @@ library. It can convert *from*
   - `gfm` ([GitHub-Flavored
     Markdown](https://help.github.com/articles/github-flavored-markdown/)),
     or the deprecated and less accurate `markdown_github`; use
-    [`markdown_github`](#markdown-variants) only if you need extensions
-    not supported in [`gfm`](#markdown-variants).
+    [`markdown_github`](https://pandoc.org/MANUAL.html#markdown-variants)
+    only if you need extensions not supported in
+    [`gfm`](https://pandoc.org/MANUAL.html#markdown-variants).
   - `haddock` ([Haddock
     markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
   - `html` ([HTML](http://www.w3.org/html/))
   - `ipynb` ([Jupyter
     notebook](https://nbformat.readthedocs.io/en/latest/))
   - `jats` ([JATS](https://jats.nlm.nih.gov) XML)
+  - `jira`
+    ([Jira](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all)
+    wiki markup)
   - `json` (JSON version of native AST)
   - `latex` ([LaTeX](http://latex-project.org))
-  - `markdown` ([Pandoc’s Markdown](#pandocs-markdown))
+  - `markdown` ([Pandoc’s
+    Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown))
   - `markdown_mmd`
     ([MultiMarkdown](http://fletcherpenney.net/multimarkdown/))
   - `markdown_phpextra` ([PHP Markdown
@@ -98,8 +103,9 @@ It can convert *to*
   - `gfm` ([GitHub-Flavored
     Markdown](https://help.github.com/articles/github-flavored-markdown/)),
     or the deprecated and less accurate `markdown_github`; use
-    [`markdown_github`](#markdown-variants) only if you need extensions
-    not supported in [`gfm`](#markdown-variants).
+    [`markdown_github`](https://pandoc.org/MANUAL.html#markdown-variants)
+    only if you need extensions not supported in
+    [`gfm`](https://pandoc.org/MANUAL.html#markdown-variants).
   - `haddock` ([Haddock
     markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
   - `html` or `html5` ([HTML](http://www.w3.org/html/),
@@ -118,7 +124,8 @@ It can convert *to*
   - `latex` ([LaTeX](http://latex-project.org))
   - `man` ([roff
     man](http://man7.org/linux/man-pages/man7/groff_man.7.html))
-  - `markdown` ([Pandoc’s Markdown](#pandocs-markdown))
+  - `markdown` ([Pandoc’s
+    Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown))
   - `markdown_mmd`
     ([MultiMarkdown](http://fletcherpenney.net/multimarkdown/))
   - `markdown_phpextra` ([PHP Markdown
@@ -136,6 +143,7 @@ It can convert *to*
   - `opml` ([OPML](http://dev.opml.org/spec2.html))
   - `opendocument` ([OpenDocument](http://opendocument.xml.org))
   - `org` ([Emacs Org mode](http://orgmode.org))
+  - `pdf` ([PDF](https://www.adobe.com/pdf/))
   - `plain` (plain text),
   - `pptx`
     ([PowerPoint](https://en.wikipedia.org/wiki/Microsoft_PowerPoint)
@@ -162,7 +170,7 @@ It can convert *to*
   - `zimwiki` ([ZimWiki
     markup](http://zim-wiki.org/manual/Help/Wiki_Syntax.html))
   - the path of a custom lua writer, see [Custom
-    writers](#custom-writers) below
+    writers](https://pandoc.org/MANUAL.html#custom-writers) below
 
 </div>
 

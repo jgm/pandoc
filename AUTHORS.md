@@ -11,6 +11,7 @@
 - Alexander Krotov
 - Alexander Sulfrian
 - Alexander V Vershilov
+- Alexandre Franke
 - Alfred Wechselberger
 - Amogh Rathore
 - Anders Waldenborg
@@ -39,6 +40,7 @@
 - Carlos Sosa
 - Chris Black
 - Christian Conkle
+- Christian Despres
 - Christoffer Ackelman
 - Christoffer Sawicki
 - Clare Macrae
@@ -55,6 +57,7 @@
 - David Lazar
 - David Röthlisberger
 - Denis Laxalde
+- Denis Maier
 - Derek Chen-Becker
 - Dmitry Pogodin
 - Douglas Calvert
@@ -67,11 +70,12 @@
 - Étienne Bersac
 - Felix Yan
 - Félix Baylac-Jacqué
-- Florian B
+- Florian Beeres
 - Florian Eitel
 - Florian Klink
 - Francesco Occhipinti
 - François Gannaz
+- Frederik Elwert
 - Freiric Barral
 - Freirich Raabe
 - Frerich Raabe
@@ -88,10 +92,12 @@
 - Henrik Tramberend
 - Henry de Valence
 - Hubert Plociniczak
+- Ian Max Andolina
 - Igor Khorlo
 - Ilya V. Portnov
 - Ivan Trubach
 - Ivo Clarysse
+- Jared Lander
 - J. B. Rainsberger
 - J. Lewis Muir
 - Jaime Marquínez Ferrándiz
@@ -218,13 +224,11 @@
 - Uli Köhler
 - Urs Liska
 - Václav Zeman
-- Vanessa McHale
-- Viktor Kronvall
-- Vincent
 - Václav Haisman
-- Václav Zeman
 - Vanessa McHale
 - Vasily Alferov
+- Viktor Kronvall
+- Vincent
 - Wandmalfarbe
 - Waldir Pimenta
 - Wikiwide
@@ -241,8 +245,8 @@
 - csforste
 - d-dorazio
 - ebiim
-- iandol
 - infinity0x
+- jeongminkim-islab
 - kaizshang91
 - lux-lth
 - lwolfsonkin

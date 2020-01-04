@@ -1,7 +1,8 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -74,8 +75,8 @@ import Control.Monad.Except (throwError)
 import Control.Monad (unless)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
-import Data.List (intercalate)
 import Data.Text (Text)
+import qualified Data.Text as T
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
@@ -121,7 +122,7 @@ data Writer m = TextWriter (WriterOptions -> Pandoc -> m Text)
               | ByteStringWriter (WriterOptions -> Pandoc -> m BL.ByteString)
 
 -- | Association list of formats and writers.
-writers :: PandocMonad m => [ ( String, Writer m) ]
+writers :: PandocMonad m => [ (Text, Writer m) ]
 writers = [
    ("native"       , TextWriter writeNative)
   ,("json"         , TextWriter $ \o d -> writeJSON o d)
@@ -179,11 +180,11 @@ writers = [
   ]
 
 -- | Retrieve writer, extensions based on formatSpec (format+extensions).
-getWriter :: PandocMonad m => String -> m (Writer m, Extensions)
+getWriter :: PandocMonad m => Text -> m (Writer m, Extensions)
 getWriter s =
   case parseFormatSpec s of
         Left e  -> throwError $ PandocAppError
-                    $ intercalate "\n" [m | Message m <- errorMessages e]
+                    $ T.intercalate "\n" [T.pack m | Message m <- errorMessages e]
         Right (writerName, extsToEnable, extsToDisable) ->
            case lookup writerName writers of
                    Nothing  -> throwError $
@@ -198,7 +199,7 @@ getWriter s =
                               unless (extensionEnabled ext allExts) $
                                 throwError $
                                    PandocUnsupportedExtensionError
-                                   (drop 4 $ show ext) writerName)
+                                   (T.drop 4 $ T.pack $ show ext) writerName)
                           (extsToEnable ++ extsToDisable)
                      return (w, exts)
 

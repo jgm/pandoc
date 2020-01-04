@@ -100,6 +100,8 @@ tests pandocPath =
     ]
   , testGroup "jira"
     [ testGroup "writer" $ writerTests' "jira"
+    , test' "reader" ["-r", "jira", "-w", "native", "-s"]
+      "jira-reader.jira" "jira-reader.native"
     ]
   , testGroup "native"
     [ testGroup "writer" $ writerTests' "native"

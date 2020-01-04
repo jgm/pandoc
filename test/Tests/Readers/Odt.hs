@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Odt
    Copyright   : © 2015-2019 John MacFarlane

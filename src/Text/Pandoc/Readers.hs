@@ -1,6 +1,7 @@
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.Readers
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -36,6 +37,7 @@ module Text.Pandoc.Readers
   , readLaTeX
   , readHtml
   , readJATS
+  , readJira
   , readTextile
   , readDocBook
   , readOPML
@@ -59,8 +61,8 @@ import Control.Monad (unless)
 import Control.Monad.Except (throwError)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
-import Data.List (intercalate)
 import Data.Text (Text)
+import qualified Data.Text as T
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
@@ -77,6 +79,7 @@ import Text.Pandoc.Readers.Ipynb
 import Text.Pandoc.Readers.Haddock
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.JATS (readJATS)
+import Text.Pandoc.Readers.Jira (readJira)
 import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.MediaWiki
@@ -99,7 +102,7 @@ data Reader m = TextReader (ReaderOptions -> Text -> m Pandoc)
               | ByteStringReader (ReaderOptions -> BL.ByteString -> m Pandoc)
 
 -- | Association list of formats and readers.
-readers :: PandocMonad m => [(String, Reader m)]
+readers :: PandocMonad m => [(Text, Reader m)]
 readers = [ ("native"       , TextReader readNative)
            ,("json"         , TextReader readJSON)
            ,("markdown"     , TextReader readMarkdown)
@@ -120,6 +123,7 @@ readers = [ ("native"       , TextReader readNative)
            ,("textile"      , TextReader readTextile) -- TODO : textile+lhs
            ,("html"         , TextReader readHtml)
            ,("jats"         , TextReader readJATS)
+           ,("jira"         , TextReader readJira)
            ,("latex"        , TextReader readLaTeX)
            ,("haddock"      , TextReader readHaddock)
            ,("twiki"        , TextReader readTWiki)
@@ -135,11 +139,11 @@ readers = [ ("native"       , TextReader readNative)
            ]
 
 -- | Retrieve reader, extensions based on formatSpec (format+extensions).
-getReader :: PandocMonad m => String -> m (Reader m, Extensions)
+getReader :: PandocMonad m => Text -> m (Reader m, Extensions)
 getReader s =
   case parseFormatSpec s of
        Left e  -> throwError $ PandocAppError
-                    $ intercalate "\n" [m | Message m <- errorMessages e]
+                    $ T.intercalate "\n" [T.pack m | Message m <- errorMessages e]
        Right (readerName, extsToEnable, extsToDisable) ->
            case lookup readerName readers of
                    Nothing  -> throwError $ PandocUnknownReaderError
@@ -154,7 +158,7 @@ getReader s =
                               unless (extensionEnabled ext allExts) $
                                 throwError $
                                    PandocUnsupportedExtensionError
-                                   (drop 4 $ show ext) readerName)
+                                   (T.drop 4 $ T.pack $ show ext) readerName)
                           (extsToEnable ++ extsToDisable)
                      return (r, exts)
 
@@ -164,4 +168,4 @@ readJSON :: PandocMonad m
 readJSON _ t =
   case eitherDecode' . BL.fromStrict . UTF8.fromText $ t of
        Right doc -> return doc
-       Left _    -> throwError $ PandocParseError "JSON parse error"
+       Left e    -> throwError $ PandocParseError ("JSON parse error: " <> T.pack e)

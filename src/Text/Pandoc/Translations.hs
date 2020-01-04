@@ -1,7 +1,8 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
 {- |
    Module      : Text.Pandoc.Translations
    Copyright   : Copyright (C) 2017-2019 John MacFarlane
@@ -34,7 +35,7 @@ import Data.Aeson.Types (Value(..), FromJSON(..))
 import qualified Data.Aeson.Types as Aeson
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Map as M
-import Data.Text as T
+import qualified Data.Text as T
 import qualified Data.YAML as YAML
 import GHC.Generics (Generic)
 import Text.Pandoc.Shared (safeRead)
@@ -65,11 +66,11 @@ data Term =
   | To
   deriving (Show, Eq, Ord, Generic, Enum, Read)
 
-newtype Translations = Translations (M.Map Term String)
+newtype Translations = Translations (M.Map Term T.Text)
         deriving (Show, Generic, Semigroup, Monoid)
 
 instance FromJSON Term where
-  parseJSON (String t) = case safeRead (T.unpack t) of
+  parseJSON (String t) = case safeRead t of
                                Just t' -> pure t'
                                Nothing -> Prelude.fail $ "Invalid Term name " ++
                                                  show t
@@ -77,7 +78,7 @@ instance FromJSON Term where
 
 instance YAML.FromYAML Term where
   parseYAML (YAML.Scalar _ (YAML.SStr t)) =
-                         case safeRead (T.unpack t) of
+                         case safeRead t of
                                Just t' -> pure t'
                                Nothing -> Prelude.fail $ "Invalid Term name " ++
                                                  show t
@@ -88,11 +89,11 @@ instance FromJSON Translations where
     xs <- mapM addItem (HM.toList hm)
     return $ Translations (M.fromList xs)
     where addItem (k,v) =
-            case safeRead (T.unpack k) of
+            case safeRead k of
                  Nothing -> Prelude.fail $ "Invalid Term name " ++ show k
                  Just t  ->
                    case v of
-                        (String s) -> return (t, T.unpack $ T.strip s)
+                        (String s) -> return (t, T.strip s)
                         inv        -> Aeson.typeMismatch "String" inv
   parseJSON invalid = Aeson.typeMismatch "Translations" invalid
 
@@ -100,22 +101,22 @@ instance YAML.FromYAML Translations where
   parseYAML = YAML.withMap "Translations" $
     \tr -> Translations .M.fromList <$> mapM addItem (M.toList tr)
    where addItem (n@(YAML.Scalar _ (YAML.SStr k)), v) =
-            case safeRead (T.unpack k) of
+            case safeRead k of
                  Nothing -> YAML.typeMismatch "Term" n
                  Just t  ->
                    case v of
                         (YAML.Scalar _ (YAML.SStr s)) ->
-                          return (t, T.unpack (T.strip s))
+                          return (t, T.strip s)
                         n' -> YAML.typeMismatch "String" n'
          addItem (n, _) = YAML.typeMismatch "String" n
 
-lookupTerm :: Term -> Translations -> Maybe String
+lookupTerm :: Term -> Translations -> Maybe T.Text
 lookupTerm t (Translations tm) = M.lookup t tm
 
-readTranslations :: String -> Either String Translations
+readTranslations :: T.Text -> Either T.Text Translations
 readTranslations s =
-  case YAML.decodeStrict $ UTF8.fromString s of
-       Left (pos,err') -> Left $ err' ++
+  case YAML.decodeStrict $ UTF8.fromText s of
+       Left (pos,err') -> Left $ T.pack $ err' ++
            " (line " ++ show (YAML.posLine pos) ++ " column " ++
            show (YAML.posColumn pos) ++ ")"
        Right (t:_)     -> Right t

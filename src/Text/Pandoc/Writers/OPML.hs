@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP               #-}
 {- |
    Module      : Text.Pandoc.Writers.OPML
    Copyright   : Copyright (C) 2013-2019 John MacFarlane
@@ -56,12 +57,12 @@ writeHtmlInlines ils =
   T.strip <$> writeHtml5String def (Pandoc nullMeta [Plain ils])
 
 -- date format: RFC 822: Thu, 14 Jul 2005 23:41:05 GMT
-showDateTimeRFC822 :: UTCTime -> String
-showDateTimeRFC822 = formatTime defaultTimeLocale "%a, %d %b %Y %X %Z"
+showDateTimeRFC822 :: UTCTime -> Text
+showDateTimeRFC822 = T.pack . formatTime defaultTimeLocale "%a, %d %b %Y %X %Z"
 
-convertDate :: [Inline] -> String
+convertDate :: [Inline] -> Text
 convertDate ils = maybe "" showDateTimeRFC822 $
-  parseTimeM True defaultTimeLocale "%F" =<< normalizeDate (stringify ils)
+  parseTimeM True defaultTimeLocale "%F" . T.unpack =<< normalizeDate (stringify ils)
 
 -- | Convert a Block to OPML.
 blockToOPML :: PandocMonad m => WriterOptions -> Block -> m (Doc Text)
@@ -73,8 +74,8 @@ blockToOPML opts (Div (_,"section":_,_) (Header _ _ title : xs)) = do
   md <- if null blocks
         then return mempty
         else writeMarkdown def $ Pandoc nullMeta blocks
-  let attrs = ("text", T.unpack htmlIls) :
-              [("_note", T.unpack $ T.stripEnd md) | not (null blocks)]
+  let attrs = ("text", htmlIls) :
+              [("_note", T.stripEnd md) | not (null blocks)]
   rest' <- vcat <$> mapM (blockToOPML opts) rest
   return $ inTags True "outline" attrs rest'
 blockToOPML _ _ = return empty

@@ -105,6 +105,9 @@ tests = [ testGroup "rubrics"
           , "keeps quotes" =:
             strong (str "f" <> doubleQuoted (str "d") <> str "l") =?>
             "**f“d”l**"
+          , "backslash inserted between str and code" =:
+            str "/api?query=" <> code "foo" =?>
+            "/api?query=\\ ``foo``"
           ]
         , testGroup "headings"
           [ "normal heading" =:

@@ -46,6 +46,9 @@ tests = [ testGroup "inlines"
           , "Monospaced" =:
             "''monospaced''" =?>
             para (code "monospaced")
+          , "Monospaced with nowiki" =:
+            "''%%monospaced%%''" =?>
+            para (code "monospaced")
           , "Combined" =:
             "**__//''combine''//__**" =?>
             para (strong $ underlineSpan $ emph $ code "combine")

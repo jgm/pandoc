@@ -548,11 +548,11 @@ readListLevelStyle :: ListLevelType -> StyleReader _x (Int, ListLevelStyle)
 readListLevelStyle levelType =      readAttr NsText "level"
                                >>?! keepingTheValue
                                     ( liftA5 toListLevelStyle
-                                      ( returnV  levelType              )
-                                      ( findAttr' NsStyle "num-prefix"  )
-                                      ( findAttr' NsStyle "num-suffix"  )
-                                      ( getAttr   NsStyle "num-format"  )
-                                      ( findAttr' NsText  "start-value" )
+                                      ( returnV       levelType             )
+                                      ( findAttr'     NsStyle "num-prefix"  )
+                                      ( findAttr'     NsStyle "num-suffix"  )
+                                      ( getAttr       NsStyle "num-format"  )
+                                      ( findAttrText' NsText  "start-value" )
                                     )
   where
   toListLevelStyle _ p s LinfNone b         = ListLevelStyle LltBullet p s LinfNone (startValue b)

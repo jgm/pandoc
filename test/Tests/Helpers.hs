@@ -142,7 +142,7 @@ instance ToString Blocks where
   toString = unpack . purely (writeNative def) . toPandoc
 
 instance ToString Inlines where
-  toString = trimr . unpack . purely (writeNative def) . toPandoc
+  toString = unpack . trimr . purely (writeNative def) . toPandoc
 
 instance ToString String where
   toString = id

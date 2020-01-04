@@ -1,5 +1,6 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Pandoc
    Copyright   : Copyright © 2017-2019 Albert Krewinkel
@@ -19,7 +20,6 @@ import Control.Monad (when)
 import Control.Monad.Except (throwError)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
-import Data.Text (pack)
 import Foreign.Lua (Lua, NumResults, Optional, Peekable, Pushable)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Class (runIO)
@@ -33,6 +33,7 @@ import Text.Pandoc.Readers (Reader (..), getReader)
 
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BSL
+import qualified Data.Text as T
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
 import Text.Pandoc.Error
@@ -59,22 +60,22 @@ walkInline = walkElement
 walkBlock :: Block -> LuaFilter -> Lua Block
 walkBlock = walkElement
 
-readDoc :: String -> Optional String -> Lua NumResults
+readDoc :: T.Text -> Optional T.Text -> Lua NumResults
 readDoc content formatSpecOrNil = do
   let formatSpec = fromMaybe "markdown" (Lua.fromOptional formatSpecOrNil)
   res <- Lua.liftIO . runIO $
            getReader formatSpec >>= \(rdr,es) ->
              case rdr of
                TextReader r ->
-                 r def{ readerExtensions = es } (pack content)
+                 r def{ readerExtensions = es } content
                _ -> throwError $ PandocSomeError $
                       "Only textual formats are supported"
   case res of
     Right pd -> (1 :: NumResults) <$ Lua.push pd -- success, push Pandoc
     Left  (PandocUnknownReaderError f) -> Lua.raiseError $
-       "Unknown reader: " ++ f
+       "Unknown reader: " <> f
     Left  (PandocUnsupportedExtensionError e f) -> Lua.raiseError $
-       "Extension " ++ e ++ " not supported for " ++ f
+       "Extension " <> e <> " not supported for " <> f
     Left  e      -> Lua.raiseError $ show e
 
 -- | Pipes input through a command.
@@ -86,10 +87,10 @@ pipeFn command args input = do
   (ec, output) <- Lua.liftIO $ pipeProcess Nothing command args input
   case ec of
     ExitSuccess -> 1 <$ Lua.push output
-    ExitFailure n -> Lua.raiseError (PipeError command n output)
+    ExitFailure n -> Lua.raiseError (PipeError (T.pack command) n output)
 
 data PipeError = PipeError
-  { pipeErrorCommand :: String
+  { pipeErrorCommand :: T.Text
   , pipeErrorCode :: Int
   , pipeErrorOutput :: BL.ByteString
   }
@@ -118,7 +119,7 @@ instance Pushable PipeError where
         pipeErrorMessage :: PipeError -> Lua BL.ByteString
         pipeErrorMessage (PipeError cmd errorCode output) = return $ mconcat
           [ BSL.pack "Error running "
-          , BSL.pack cmd
+          , BSL.pack $ T.unpack cmd
           , BSL.pack " (error code "
           , BSL.pack $ show errorCode
           , BSL.pack "): "

@@ -1,5 +1,5 @@
 # USE ALPINE LINUX
-FROM alpine
+FROM alpine:3.10
 RUN apk update
 RUN apk add alpine-sdk git ca-certificates ghc gmp-dev zlib-dev bash dpkg fakeroot cabal
 RUN mkdir -p /usr/src/

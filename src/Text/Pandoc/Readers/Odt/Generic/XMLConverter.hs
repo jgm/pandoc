@@ -38,8 +38,11 @@ module Text.Pandoc.Readers.Odt.Generic.XMLConverter
 , lookupAttr'
 , lookupDefaultingAttr
 , findAttr'
+, findAttrText'
 , findAttr
+, findAttrText
 , findAttrWithDefault
+, findAttrTextWithDefault
 , readAttr
 , readAttr'
 , readAttrWithDefault
@@ -59,6 +62,7 @@ import           Control.Arrow
 
 import           Data.Either ( rights )
 import qualified Data.Map             as M
+import qualified Data.Text            as T
 import           Data.Default
 import           Data.Maybe
 
@@ -79,6 +83,7 @@ import           Text.Pandoc.Readers.Odt.Generic.Fallible
 type ElementName           = String
 type AttributeName         = String
 type AttributeValue        = String
+type TextAttributeValue    = T.Text
 
 --
 type NameSpacePrefix       = String
@@ -466,11 +471,30 @@ findAttr' nsID attrName =         qualifyName nsID attrName
                               &&& getCurrentElement
                           >>% XML.findAttr
 
+-- | Return value as a (Maybe Text)
+findAttrText'           :: (NameSpaceID nsID)
+                        => nsID -> AttributeName
+                        -> XMLConverter nsID extraState x (Maybe TextAttributeValue)
+findAttrText' nsID attrName
+                        =         qualifyName nsID attrName
+                              &&& getCurrentElement
+                          >>% XML.findAttr
+                          >>^ fmap T.pack
+
 -- | Return value as string or fail
 findAttr               :: (NameSpaceID nsID)
                        => nsID -> AttributeName
                        -> FallibleXMLConverter nsID extraState x AttributeValue
 findAttr nsID attrName =     findAttr' nsID attrName
+                         >>> maybeToChoice
+
+-- | Return value as text or fail
+findAttrText           :: (NameSpaceID nsID)
+                       => nsID -> AttributeName
+                       -> FallibleXMLConverter nsID extraState x TextAttributeValue
+findAttrText nsID attrName
+                       = findAttr' nsID attrName
+                         >>^ fmap T.pack
                          >>> maybeToChoice
 
 -- | Return value as string or return provided default value
@@ -481,6 +505,15 @@ findAttrWithDefault    :: (NameSpaceID nsID)
 findAttrWithDefault nsID attrName deflt
                        = findAttr' nsID attrName
                          >>^ fromMaybe deflt
+
+-- | Return value as string or return provided default value
+findAttrTextWithDefault :: (NameSpaceID nsID)
+                        => nsID -> AttributeName
+                        -> TextAttributeValue
+                        -> XMLConverter nsID extraState x TextAttributeValue
+findAttrTextWithDefault nsID attrName deflt
+                       = findAttr' nsID attrName
+                         >>^ maybe deflt T.pack
 
 -- | Read and return value or fail
 readAttr               :: (NameSpaceID nsID, Read attrValue)
