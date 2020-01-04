@@ -241,7 +241,7 @@ tex2pdf verbosity program args tmpDir source = do
   let numruns | takeBaseName program == "latexmk"        = 1
               | "\\tableofcontents" `T.isInfixOf` source = 3  -- to get page numbers
               | otherwise                                = 2  -- 1 run won't give you PDF bookmarks
-  (exit, log', mbPdf) <- runTeXProgram verbosity program args 1 numruns
+  (exit, log', mbPdf) <- runTeXProgram verbosity program args numruns
                           tmpDir source
   case (exit, mbPdf) of
        (ExitFailure _, _)      -> do
@@ -348,9 +348,9 @@ getResultingPDF logFile pdfFile = do
 -- Run a TeX program on an input bytestring and return (exit code,
 -- contents of stdout, contents of produced PDF if any).  Rerun
 -- a fixed number of times to resolve references.
-runTeXProgram :: Verbosity -> String -> [String] -> Int -> Int -> FilePath
+runTeXProgram :: Verbosity -> String -> [String] -> Int -> FilePath
               -> Text -> PandocIO (ExitCode, ByteString, Maybe ByteString)
-runTeXProgram verbosity program args runNumber numRuns tmpDir' source = do
+runTeXProgram verbosity program args numRuns tmpDir' source = do
     let isOutdirArg x = "-outdir=" `isPrefixOf` x ||
                         "-output-directory=" `isPrefixOf` x
     let tmpDir =
@@ -359,8 +359,7 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir' source = do
             Nothing -> tmpDir'
     liftIO $ createDirectoryIfMissing True tmpDir
     let file = tmpDir ++ "/input.tex"  -- note: tmpDir has / path separators
-    exists <- liftIO $ doesFileExist file
-    unless exists $ liftIO $ BS.writeFile file $ UTF8.fromText source
+    liftIO $ BS.writeFile file $ UTF8.fromText source
     let isLatexMk = takeBaseName program == "latexmk"
         programArgs | isLatexMk = ["-interaction=batchmode", "-halt-on-error", "-pdf",
                                    "-quiet", "-outdir=" ++ tmpDir] ++ args ++ [file]
@@ -374,23 +373,25 @@ runTeXProgram verbosity program args runNumber numRuns tmpDir' source = do
                 ("TEXMFOUTPUT", tmpDir) :
                   [(k,v) | (k,v) <- env'
                          , k /= "TEXINPUTS" && k /= "TEXMFOUTPUT"]
-    when (runNumber == 1 && verbosity >= INFO) $ liftIO $
-      UTF8.readFile file >>=
-       showVerboseInfo (Just tmpDir) program programArgs env''
-    (exit, out) <- liftIO $ E.catch
-      (pipeProcess (Just env'') program programArgs BL.empty)
-      (handlePDFProgramNotFound program)
-    when (verbosity >= INFO) $ liftIO $ do
-      putStrLn $ "[makePDF] Run #" ++ show runNumber
-      BL.hPutStr stdout out
-      putStr "\n"
-    if runNumber < numRuns
-       then runTeXProgram verbosity program args (runNumber + 1) numRuns tmpDir source
-       else do
-         let logFile = replaceExtension file ".log"
-         let pdfFile = replaceExtension file ".pdf"
-         (log', pdf) <- getResultingPDF (Just logFile) pdfFile
-         return (exit, fromMaybe out log', pdf)
+    when (verbosity >= INFO) $ liftIO $
+        UTF8.readFile file >>=
+         showVerboseInfo (Just tmpDir) program programArgs env''
+    let runTeX runNumber = do
+          (exit, out) <- liftIO $ E.catch
+            (pipeProcess (Just env'') program programArgs BL.empty)
+            (handlePDFProgramNotFound program)
+          when (verbosity >= INFO) $ liftIO $ do
+            putStrLn $ "[makePDF] Run #" ++ show runNumber
+            BL.hPutStr stdout out
+            putStr "\n"
+          if runNumber < numRuns
+             then runTeX (runNumber + 1)
+             else do
+               let logFile = replaceExtension file ".log"
+               let pdfFile = replaceExtension file ".pdf"
+               (log', pdf) <- getResultingPDF (Just logFile) pdfFile
+               return (exit, fromMaybe out log', pdf)
+    runTeX 1
 
 generic2pdf :: Verbosity
             -> String
