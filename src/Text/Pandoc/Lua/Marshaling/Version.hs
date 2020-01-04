@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
+{-# LANGUAGE OverloadedStrings    #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.Version
    Copyright   : © 2019 Albert Krewinkel
@@ -19,6 +20,7 @@ module Text.Pandoc.Lua.Marshaling.Version
   where
 
 import Prelude
+import Data.Text (Text)
 import Data.Maybe (fromMaybe)
 import Data.Version (Version (..), makeVersion, parseVersion, showVersion)
 import Foreign.Lua (Lua, Optional (..), NumResults,
@@ -103,7 +105,7 @@ __index v (AnyValue k) = do
       Lua.push (Lua.Optional versionPart)
       return 1
     Lua.TypeString -> do
-      str <- Lua.peek k
+      (str :: Text) <- Lua.peek k
       if str == "must_be_at_least"
         then 1 <$ Lua.pushHaskellFunction must_be_at_least
         else 1 <$ Lua.pushnil
