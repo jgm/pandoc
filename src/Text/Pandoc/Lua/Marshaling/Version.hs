@@ -2,6 +2,7 @@
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.Version
    Copyright   : © 2019 Albert Krewinkel
