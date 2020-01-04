@@ -682,9 +682,10 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
              -- revealjs doesn't like more than one level of section nesting:
                {- REMOVED && isNothing mbparentlevel -}
                 then H5.section
-                else id) $ t <> if null innerSecs
-                                   then mempty
-                                   else nl opts <> innerContents
+                else id) $ nl opts <> t <> nl opts <>
+                           if null innerSecs
+                              then mempty
+                              else innerContents <> nl opts
      else if writerSectionDivs opts || slide ||
               (hident /= ident && not (T.null hident || T.null ident)) ||
               (hclasses /= dclasses) || (hkvs /= dkvs)
@@ -696,9 +697,10 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
                     else innerContents <> nl opts
           else do
             t <- addAttrs opts attr header'
-            return $ t <> if null innerSecs
-                             then mempty
-                             else nl opts <> innerContents
+            return $ t <>
+                     if null innerSecs
+                        then mempty
+                        else nl opts <> innerContents
 blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
   html5 <- gets stHtml5
   slideVariant <- gets stSlideVariant
