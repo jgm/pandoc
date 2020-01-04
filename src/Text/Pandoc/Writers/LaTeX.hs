@@ -24,8 +24,7 @@ import Control.Monad.State.Strict
 import Data.Monoid (Any(..))
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isSpace,
                   isPunctuation, ord)
-import Data.List (foldl', intercalate, intersperse, nubBy, groupBy,
-                  (\\), uncons)
+import Data.List (foldl', intersperse, nubBy, groupBy, (\\), uncons)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
 import qualified Data.Map as M
 import Data.Text (Text)
