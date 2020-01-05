@@ -676,13 +676,15 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
   let attr = (ident, classes', dkvs)
   if titleSlide
      then do
-       t <- addAttrs opts attr $ secttag $ header' <> titleContents
+       t <- addAttrs opts attr $
+             secttag $ nl opts <> header' <> nl opts <> titleContents <> nl opts
        return $
-         (if slideVariant == RevealJsSlides && not (null innerSecs)
-             -- revealjs doesn't like more than one level of section nesting:
-               {- REMOVED && isNothing mbparentlevel -}
-                then H5.section
-                else id) $ nl opts <> t <> nl opts <>
+         -- ensure 2D nesting for revealjs, but only for one level;
+         -- revealjs doesn't like more than one level of nseting
+         (if slideVariant == RevealJsSlides && not (null innerSecs) &&
+             level == slideLevel - 1
+                then \z -> H5.section (nl opts <> z)
+                else id) $ t <> nl opts <>
                            if null innerSecs
                               then mempty
                               else innerContents <> nl opts
