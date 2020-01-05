@@ -1,5 +1,51 @@
 # Revision history for pandoc
 
+## pandoc 2.9.1.1 (2020-01-05)
+
+  * Markdown reader:
+
+    + Fix parsing bug affected indented code after raw HTML (#6009, #5360).
+
+  * LaTeX writer:
+
+    + Fix regression in beamer slide structure with certain slide levels
+      (#6030).
+    + Allow framebreaks for beamer's TOC (Heiko Schlittermann, #6012)
+    + Properly handle unnumbered headings level 4+ (#6018).
+      Previously the `\paragraph` command was used instead of
+      `\paragraph*` for unnumbered level 4 headings.
+
+  * HTML writer:
+
+    + Fix revealjs slide structure regression with certain slide levels
+      (#6030).
+    + Add newlines to make slide show output more readable.
+
+  * Org writer:
+
+    + Remove extra spaces from table cells (Albert Krewinkel, #6024).
+
+  * JATS template: Update JATS dtd (Arfon Smith, #6020).  Use the archiving
+    and interchange DTD rather than the more restrictive journal publishing
+    DTD (which doesn't permit ext-link as a valid child).
+
+  * Text.Pandoc.PDF: Fix `runTeXProgram` so that the input source is always
+    overwritten (#6027).  Previously it wasn't overridden if the file already
+    existed, which led to bad results on subsequent runs when
+    `pdf-engine-opt=-output-directory=` was used to specify an explicit temp
+    dir.
+
+  * Text.Pandoc.BCP47: Change `getLang` to handle block-level contents
+    (#6008).  Some readers (e.g. RST) will populate the `lang` metadata field
+    with block-level content.  `getLang` has been modified to handle this.
+    Previously in these cases the LaTeX writer would not properly set the
+    "main language" of the document.
+
+  * Fix `test/tables.org` (Albert Krewinkel).
+
+  * Use HTTPS in copyright message (Felix Yan, #6010)
+
+
 ## pandoc 2.9.1 (2019-12-23)
 
   * Add Jira reader (Albert Krewinkel, #5556).

@@ -89,6 +89,7 @@
 - Gwern Branwen
 - Hamish Mackenzie
 - Hans-Peter Deifel
+- Heiko Schlittermann
 - Henrik Tramberend
 - Henry de Valence
 - Hubert Plociniczak
