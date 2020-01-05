@@ -53,7 +53,7 @@ data WriterState =
               , stInQuote       :: Bool          -- true if in a blockquote
               , stExternalNotes :: Bool          -- true if in context where
                                                  -- we need to store footnotes
-              , stInMinipage    :: Bool          -- true if in minipage 
+              , stInMinipage    :: Bool          -- true if in minipage
               , stInHeading     :: Bool          -- true if in a section heading
               , stInItem        :: Bool          -- true if in \item[..]
               , stNotes         :: [Doc Text]    -- notes in a minipage
@@ -455,11 +455,21 @@ toSlides bs = do
 
 -- this creates section slides and marks slides with class "slide","block"
 elementToBeamer :: PandocMonad m => Int -> Block -> LW m Block
-elementToBeamer slideLevel d@(Div (ident,dclasses,dkvs)
-                              xs@(Header lvl _ _ : _))
-  | lvl >  slideLevel = return $ Div (ident,"block":dclasses,dkvs) xs
-  | lvl <  slideLevel = return d
-  | otherwise = return $ Div (ident,"slide":dclasses,dkvs) xs
+elementToBeamer slideLevel (Div (ident,"section":dclasses,dkvs)
+                              xs@(h@(Header lvl _ _) : ys))
+  | lvl >  slideLevel
+    = return $ Div (ident,"block":dclasses,dkvs) xs
+  | lvl <  slideLevel
+    = do let isDiv (Div{})      = True
+             isDiv _            = False
+         let (titleBs, slideBs) = break isDiv ys
+         return $
+           if null titleBs
+              then Div (ident,dclasses,dkvs) xs
+              else Div (ident,dclasses,dkvs)
+                    (h : Div ("","slide":dclasses,dkvs) (h:titleBs) : slideBs)
+  | otherwise
+    = return $ Div (ident,"slide":dclasses,dkvs) xs
 elementToBeamer _ x = return x
 
 isListBlock :: Block -> Bool
@@ -516,8 +526,7 @@ blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
                             braces (literal ref) <> braces empty
   contents <- blockListToLaTeX bs >>= wrapDiv (identifier,classes,kvs)
   return $ ("\\begin{frame}" <> options <> slideTitle <> slideAnchor) $$
-           contents $$
-           "\\end{frame}"
+             contents $$ "\\end{frame}"
 blockToLaTeX (Div (identifier@(T.uncons -> Just (_,_)),dclasses,dkvs)
                (Header lvl ("",hclasses,hkvs) ils : bs)) =
   -- move identifier from div to header
