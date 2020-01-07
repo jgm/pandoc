@@ -460,13 +460,14 @@ elementToBeamer slideLevel (Div (ident,"section":dclasses,dkvs)
   | lvl >  slideLevel
     = return $ Div (ident,"block":dclasses,dkvs) xs
   | lvl <  slideLevel
-    = do let isDiv (Div{})      = True
-             isDiv _            = False
-         let (titleBs, slideBs) = break isDiv ys
+    = do let isSlide (Div (_,"slide":_,_) _)   = True
+             isSlide (Div (_,"section":_,_) _) = True
+             isSlide _                         = False
+         let (titleBs, slideBs) = break isSlide ys
          return $
            if null titleBs
-              then Div (ident,dclasses,dkvs) xs
-              else Div (ident,dclasses,dkvs)
+              then Div (ident,"section":dclasses,dkvs) xs
+              else Div (ident,"section":dclasses,dkvs)
                     (h : Div ("","slide":dclasses,dkvs) (h:titleBs) : slideBs)
   | otherwise
     = return $ Div (ident,"slide":dclasses,dkvs) xs
