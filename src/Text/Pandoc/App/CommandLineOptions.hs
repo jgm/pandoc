@@ -202,7 +202,8 @@ options =
                   (\arg opt -> do
                      let (key, val) = splitField arg
                      return opt{ optVariables =
-                                  setVariable key val $ optVariables opt })
+                                  setVariable (T.pack key) (T.pack val) $
+                                    optVariables opt })
                   "KEY[:VALUE]")
                  ""
 
@@ -586,7 +587,8 @@ options =
                   (\arg opt ->
                     return opt {
                        optVariables =
-                         setVariable "title-prefix" arg $ optVariables opt,
+                         setVariable "title-prefix" (T.pack arg) $
+                           optVariables opt,
                        optStandalone = True })
                   "STRING")
                  "" -- "String to prefix to HTML window title"
@@ -609,7 +611,7 @@ options =
                  (ReqArg
                   (\arg opt ->
                      return opt { optVariables =
-                       setVariable "epub-cover-image" arg $
+                       setVariable "epub-cover-image" (T.pack arg) $
                          optVariables opt })
                   "FILE")
                  "" -- "Path of epub cover image"
@@ -1029,13 +1031,11 @@ deprecatedOption o msg =
        Left e   -> E.throwIO e
 
 -- | Set text value in text context.
-setVariable :: String -> String -> Context Text -> Context Text
-setVariable key val (Context ctx) = Context $ M.alter go (T.pack key) ctx
-  where go Nothing  = Just $ toVal (T.pack val)
-        go (Just (ListVal xs))
-                    = Just $ ListVal $ xs ++
-                             [toVal (T.pack val)]
-        go (Just x) = Just $ ListVal [x, toVal (T.pack val)]
+setVariable :: Text -> Text -> Context Text -> Context Text
+setVariable key val (Context ctx) = Context $ M.alter go key ctx
+  where go Nothing             = Just $ toVal val
+        go (Just (ListVal xs)) = Just $ ListVal $ xs ++ [toVal val]
+        go (Just x)            = Just $ ListVal [x, toVal val]
 
 addMeta :: String -> String -> Meta -> Meta
 addMeta k v meta =
