@@ -23,7 +23,8 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder (bulletList, definitionList, displayMath, divWith,
                             doc, doubleQuoted, emph, header, lineBlock,
                             linebreak, math, orderedList, para, plain, rawBlock,
-                            singleQuoted, space, str, strong)
+                            singleQuoted, space, str, strong,
+                            HasMeta (setMeta))
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Definition (Block (BlockQuote, Div, Para), Inline (Emph, Str),
                                Attr, Meta, Pandoc, pandocTypesVersion)
@@ -128,6 +129,28 @@ tests = map (localOption (QuickCheckTests 20))
       "attr-test.lua"
       (doc $ divWith ("", [], kv_before) (para "nil"))
       (doc $ divWith ("", [], kv_after) (para "nil"))
+
+  , testCase "Filter list of inlines" $
+      assertFilterConversion "List of inlines"
+      "inlines-filter.lua"
+      (doc $ para ("Hello," <> linebreak <> "World! Wassup?"))
+      (doc $ para "Hello, World! Wassup?")
+
+  , testCase "Filter list of blocks" $
+      assertFilterConversion "List of blocks"
+      "blocks-filter.lua"
+      (doc $ para "one." <> para "two." <> para "three.")
+      (doc $ plain "3")
+
+  , testCase "Filter Meta" $
+    let setMetaBefore = setMeta "old" ("old" :: T.Text)
+                      . setMeta "bool" False
+        setMetaAfter  = setMeta "new" ("new" :: T.Text)
+                      . setMeta "bool" True
+    in assertFilterConversion "Meta filtering"
+      "meta.lua"
+      (setMetaBefore . doc $ mempty)
+      (setMetaAfter . doc $ mempty)
 
   , testCase "Script filename is set" $
     assertFilterConversion "unexpected script name"
