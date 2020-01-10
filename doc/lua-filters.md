@@ -2,7 +2,7 @@
 author:
 - Albert Krewinkel
 - John MacFarlane
-date: 'December 6, 2017'
+date: 'January 10, 2020'
 title: Pandoc Lua Filters
 ---
 
@@ -28,7 +28,7 @@ in JSON form. One cannot simply provide a filter that can be
 used by anyone who has a certain version of the pandoc
 executable.
 
-Starting with pandoc 2.0, we have made it possible to write
+Starting with version 2.0, pandoc makes it possible to write
 filters in lua without any external dependencies at all. A lua
 interpreter (version 5.3) and a lua library for creating pandoc
 filters is built into the pandoc executable. Pandoc data types
@@ -135,6 +135,34 @@ Elements without matching functions are left untouched.
 
 See [module documentation](#module-pandoc) for a list of pandoc
 elements.
+
+## Execution order
+
+Element filter functions within a filter set are called in a
+fixed order, skipping any which are not present:
+
+  1. functions for [*Inline* elements](#type-ref-Inline),
+  2. functions for [*Block* elements](#type-ref-Block) ,
+  3. the [*Meta*](#type-ref-Meta) filter function, and last
+  4. the [*Pandoc*](#type-ref-Meta) filter function.
+
+It is still possible to force a different order by explicitly
+returning multiple filter sets. For example, if the filter for
+*Meta* is to be run before that for *Str*, one can write
+
+``` lua
+-- ... filter definitions ...
+
+return {
+  { Meta = Meta },  -- (1)
+  { Str = Str }     -- (2)
+}
+```
+
+Filter sets are applied in the order in which they are returned.
+All functions in set (1) are thus run before those in (2),
+causing the filter function for *Meta* to be run before the
+filtering of *Str* elements is started.
 
 ## Global variables
 
