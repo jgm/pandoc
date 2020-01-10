@@ -80,6 +80,7 @@ data WriterState = WriterState
     , stEPUBVersion  :: Maybe EPUBVersion -- ^ EPUB version if for epub
     , stSlideVariant :: HTMLSlideVariant
     , stSlideLevel   :: Int     -- ^ Slide level
+    , stInSection    :: Bool    -- ^ Content is in a section (revealjs)
     , stCodeBlockNum :: Int     -- ^ Number of code block
     }
 
@@ -90,6 +91,7 @@ defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
                                   stEPUBVersion = Nothing,
                                   stSlideVariant = NoSlides,
                                   stSlideLevel = 1,
+                                  stInSection = False,
                                   stCodeBlockNum = 0}
 
 -- Helpers to render HTML with the appropriate function.
@@ -662,8 +664,6 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
            else case splitBy isPause xs of
                      []     -> ([],[])
                      (z:zs) -> ([],z ++ concatMap inDiv zs)
-  titleContents <- blockListToHtml opts titleBlocks
-  innerContents <- blockListToHtml opts innerSecs
   let classes' = ordNub $
                   ["title-slide" | titleSlide] ++ ["slide" | slide] ++
                   ["section" | (slide || writerSectionDivs opts) &&
@@ -674,17 +674,26 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
                     then H5.section
                     else H.div
   let attr = (ident, classes', dkvs)
+  titleContents <- blockListToHtml opts titleBlocks
+  inSection <- gets stInSection
+  innerContents <- do
+    modify $ \st -> st{ stInSection = True }
+    res <- blockListToHtml opts innerSecs
+    modify $ \st -> st{ stInSection = inSection }
+    return res
   if titleSlide
      then do
-       t <- addAttrs opts attr $ secttag $ header' <> titleContents
+       t <- addAttrs opts attr $
+             secttag $ nl opts <> header' <> nl opts <> titleContents <> nl opts
+       -- ensure 2D nesting for revealjs, but only for one level;
+       -- revealjs doesn't like more than one level of nesting
        return $
-         (if slideVariant == RevealJsSlides && not (null innerSecs)
-             -- revealjs doesn't like more than one level of section nesting:
-               {- REMOVED && isNothing mbparentlevel -}
-                then H5.section
-                else id) $ t <> if null innerSecs
-                                   then mempty
-                                   else nl opts <> innerContents
+         if slideVariant == RevealJsSlides && not inSection &&
+              not (null innerSecs)
+            then H5.section (nl opts <> t <> nl opts <> innerContents)
+            else t <> nl opts <> if null innerSecs
+                                    then mempty
+                                    else innerContents <> nl opts
      else if writerSectionDivs opts || slide ||
               (hident /= ident && not (T.null hident || T.null ident)) ||
               (hclasses /= dclasses) || (hkvs /= dkvs)
@@ -696,9 +705,10 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
                     else innerContents <> nl opts
           else do
             t <- addAttrs opts attr header'
-            return $ t <> if null innerSecs
-                             then mempty
-                             else nl opts <> innerContents
+            return $ t <>
+                     if null innerSecs
+                        then mempty
+                        else nl opts <> innerContents
 blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
   html5 <- gets stHtml5
   slideVariant <- gets stSlideVariant

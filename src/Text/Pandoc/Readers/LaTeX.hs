@@ -773,7 +773,8 @@ inlineCommand' = try $ do
   Tok _ (CtrlSeq name) cmd <- anyControlSeq
   guard $ name /= "begin" && name /= "end"
   star <- option "" ("*" <$ symbol '*' <* optional sp)
-  let name' = name <> star
+  overlay <- option "" overlaySpecification
+  let name' = name <> star <> overlay
   let names = ordNub [name', name] -- check non-starred as fallback
   let raw = do
        guard $ isInlineCommand name || not (isBlockCommand name)
@@ -802,19 +803,18 @@ rawopt = try $ do
   return $ "[" <> inner <> "]"
 
 skipopts :: PandocMonad m => LP m ()
-skipopts = skipMany (overlaySpecification <|> void rawopt)
+skipopts = skipMany (void overlaySpecification <|> void rawopt)
 
 -- opts in angle brackets are used in beamer
-overlaySpecification :: PandocMonad m => LP m ()
+overlaySpecification :: PandocMonad m => LP m Text
 overlaySpecification = try $ do
   symbol '<'
-  ts <- manyTill overlayTok (symbol '>')
-  guard $ case ts of
-               -- see issue #3368
-               [Tok _ Word s] | T.all isLetter s -> s `elem`
-                                ["beamer","presentation", "trans",
-                                 "handout","article", "second"]
-               _ -> True
+  t <- untokenize <$> manyTill overlayTok (symbol '>')
+  -- see issue #3368
+  guard $ not (T.all isLetter t) ||
+          t `elem` ["beamer","presentation", "trans",
+                    "handout","article", "second"]
+  return $ "<" <> t <> ">"
 
 overlayTok :: PandocMonad m => LP m Tok
 overlayTok =
@@ -1942,7 +1942,7 @@ environment = try $ do
     if M.member name (inlineEnvironments
                        :: M.Map Text (LP PandocPure Inlines))
        then mzero
-       else rawEnv name
+       else rawEnv name <|> rawVerbEnv name
 
 env :: PandocMonad m => Text -> LP m a -> LP m a
 env name p = p <* end_ name

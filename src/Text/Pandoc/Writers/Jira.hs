@@ -84,7 +84,7 @@ toJiraBlocks :: PandocMonad m => [Block] -> JiraConverter m [Jira.Block]
 toJiraBlocks blocks = do
   let convert = \case
         BlockQuote bs        -> singleton . Jira.BlockQuote
-                                <$> toJiraBlocks bs -- FIXME!
+                                <$> toJiraBlocks bs
         BulletList items     -> singleton . Jira.List Jira.CircleBullets
                                 <$> toJiraItems items
         CodeBlock attr cs    -> toJiraCode attr cs
@@ -100,9 +100,9 @@ toJiraBlocks blocks = do
         RawBlock fmt cs      -> rawBlockToJira fmt cs
         Null                 -> return mempty
         Table _ _ _ hd body  -> singleton <$> do
-          headerRow <- if null hd
-                       then Just <$> toRow Jira.HeaderCell hd
-                       else pure Nothing
+          headerRow <- if all null hd
+                       then pure Nothing
+                       else Just <$> toRow Jira.HeaderCell hd
           bodyRows <- mapM (toRow Jira.BodyCell) body
           let rows = case headerRow of
                        Just header -> header : bodyRows

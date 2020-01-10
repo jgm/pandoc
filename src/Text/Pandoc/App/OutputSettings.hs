@@ -28,7 +28,7 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans
 import Data.Char (toLower)
-import Data.List (find, isPrefixOf)
+import Data.List (find)
 import Data.Maybe (fromMaybe)
 import Skylighting (defaultSyntaxMap)
 import Skylighting.Parser (addSyntaxDefinition, parseSyntaxDefinition)
@@ -36,7 +36,6 @@ import System.Directory (getCurrentDirectory)
 import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
-import Data.String
 import Text.Pandoc
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..))
@@ -116,7 +115,7 @@ optToOutputSettings opts = do
   hlStyle <- maybe (return Nothing) (fmap Just . lookupHighlightStyle . T.unpack)
                 (optHighlightStyle opts)
 
-  let setVariableM k v = return . setVariable k (fromString v)
+  let setVariableM k v = return . setVariable k v
 
   let setListVariableM _ [] ctx = return ctx
       setListVariableM k vs ctx = do
@@ -143,7 +142,7 @@ optToOutputSettings opts = do
     setListVariableM "sourcefile"
       (maybe ["-"] (fmap T.pack) (optInputFiles opts))
     >>=
-    setVariableM "outputfile" outputFile
+    setVariableM "outputfile" (T.pack outputFile)
     >>=
     setFilesVariableM "include-before" (optIncludeBeforeBody opts)
     >>=
@@ -153,21 +152,21 @@ optToOutputSettings opts = do
     >>=
     setListVariableM "css" (map T.pack $ optCss opts)
     >>=
-    maybe return (setVariableM "title-prefix" . T.unpack) (optTitlePrefix opts)
+    maybe return (setVariableM "title-prefix") (optTitlePrefix opts)
     >>=
     maybe return (setVariableM "epub-cover-image")
-                 (optEpubCoverImage opts)
+                 (T.pack <$> optEpubCoverImage opts)
     >>=
-    setVariableM "curdir" curdir
+    setVariableM "curdir" (T.pack curdir)
     >>=
     (\vars ->  if format == "dzslides"
                   then do
-                      dztempl <- UTF8.toString <$> readDataFile
+                      dztempl <- UTF8.toText <$> readDataFile
                                    ("dzslides" </> "template.html")
                       let dzline = "<!-- {{{{ dzslides core"
-                      let dzcore = unlines
-                                 $ dropWhile (not . (dzline `isPrefixOf`))
-                                 $ lines dztempl
+                      let dzcore = T.unlines
+                                 $ dropWhile (not . (dzline `T.isPrefixOf`))
+                                 $ T.lines dztempl
                       setVariableM "dzslides-core" dzcore vars
                   else return vars)
 

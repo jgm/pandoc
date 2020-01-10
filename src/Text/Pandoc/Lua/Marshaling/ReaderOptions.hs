@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
@@ -67,7 +68,8 @@ instance Pushable ReaderOptions where
         indexReaderOptions _tbl (AnyValue key) = do
           Lua.ltype key >>= \case
             Lua.TypeString -> Lua.peek key >>= \case
-              "defaultImageExtension" -> Lua.push defaultImageExtension
+              ("defaultImageExtension" :: Text.Text)
+                                    -> Lua.push defaultImageExtension
               "indentedCodeClasses" -> Lua.push indentedCodeClasses
               "stripComments" -> Lua.push stripComments
               "tabStop" -> Lua.push tabStop

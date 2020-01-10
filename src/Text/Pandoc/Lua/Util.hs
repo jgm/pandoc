@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua.Util
    Copyright   : © 2012–2019 John MacFarlane,
@@ -31,9 +32,9 @@ import Control.Monad (unless, when)
 import Foreign.Lua ( Lua, NumArgs, NumResults, Peekable, Pushable, StackIndex
                    , Status, ToHaskellFunction )
 import Text.Pandoc.Class (readDataFile, runIOorExplode, setUserDataDir)
-
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.UTF8 as UTF8
+import Data.Text (Text)
 
 -- | Get value behind key from table at given index.
 rawField :: Peekable a => StackIndex -> String -> Lua a
@@ -104,7 +105,7 @@ getTag :: StackIndex -> Lua String
 getTag idx = do
   -- push metatable or just the table
   Lua.getmetatable idx >>= \hasMT -> unless hasMT (Lua.pushvalue idx)
-  Lua.push "tag"
+  Lua.push ("tag" :: Text)
   Lua.rawget (Lua.nthFromTop 2)
   Lua.tostring Lua.stackTop <* Lua.pop 2 >>= \case
     Nothing -> Lua.throwException "untagged value"

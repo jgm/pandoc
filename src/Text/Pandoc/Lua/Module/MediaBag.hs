@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.MediaBag
    Copyright   : Copyright © 2017-2019 Albert Krewinkel
@@ -108,9 +109,9 @@ mediaDirectoryFn = do
   addEntry :: Lua.Integer -> (FilePath, MimeType, Int) -> Lua ()
   addEntry idx (fp, mimeType, contentLength) = do
     Lua.newtable
-    Lua.push "path" *> Lua.push fp *> Lua.rawset (-3)
-    Lua.push "type" *> Lua.push mimeType *> Lua.rawset (-3)
-    Lua.push "length" *> Lua.push contentLength *> Lua.rawset (-3)
+    Lua.push ("path" :: T.Text) *> Lua.push fp *> Lua.rawset (-3)
+    Lua.push ("type" :: T.Text) *> Lua.push mimeType *> Lua.rawset (-3)
+    Lua.push ("length" :: T.Text) *> Lua.push contentLength *> Lua.rawset (-3)
     Lua.rawseti (-2) idx
 
 fetch :: T.Text
