@@ -3,6 +3,7 @@
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE TupleSections       #-}
 {- |
    Module      : Text.Pandoc.Writers.LaTeX
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -22,6 +23,7 @@ import Prelude
 import Control.Applicative ((<|>))
 import Control.Monad.State.Strict
 import Data.Monoid (Any(..))
+import Data.Function (on)
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isSpace,
                   isPunctuation, ord)
 import Data.List (foldl', intersperse, nubBy, groupBy, (\\), uncons)
@@ -1438,6 +1440,8 @@ stripLocatorBraces = walk go
   where go (Str xs) = Str $ T.filter (\c -> c /= '{' && c /= '}') xs
         go x        = x
 
+
+
 citationsToBiblatex :: PandocMonad m => [Citation] -> LW m (Doc Text)
 citationsToBiblatex
             [one]
@@ -1465,36 +1469,31 @@ citationsToBiblatex (c:cs)
                braces (literal (T.intercalate "," (map citationId (c:cs))))
   | all (\cit -> null (citationSuffix cit)) (c:cs) 
     = do  
-      let cmd = case citationMode c of 
-                    SuppressAuthor -> "\\autocites*"
-                    AuthorInText   -> "\\textcites"
-                    NormalCitation -> "\\autocites"
+      let cmd = citationsModeToCommand  
+      groups <- mapM makePrefixPair groupByPrefix 
 
-      let pfxs = tail $ scanl (\prev cit -> let pfx = citationPrefix cit in
-                if pfx == [] then prev else pfx) [] (c:cs)
-
-      let pfxGroups = map (map snd) $ groupBy (\(pre, _) (pre1, _) -> pre == pre1)
-            (zip pfxs (c:cs))  
-      prefixes <- mapM (\group -> 
-                (fmap brackets) $ inlineListToLaTeX $ citationPrefix $ head group)
-                    pfxGroups 
-
-      return $ text cmd <> (mconcat $ concatMap (\(pfx, group) -> pfx:
-                (brackets empty):map (\cit ->  braces $ text $ citationId cit) 
-                    group) (zip prefixes pfxGroups))
- | otherwise = do
-    let cmd = case citationMode c of
-                    SuppressAuthor -> "\\autocites*"
-                    AuthorInText   -> "\\textcites"
-                    NormalCitation -> "\\autocites"
+      return $ text cmd <> (mconcat $ concatMap (\(pfx, group) -> 
+                 (brackets pfx):(brackets empty):
+                 map (\cit -> braces $ text $ T.unpack $ citationId cit) 
+                     group) groups)
+  | otherwise = do
+    let cmd = citationsModeToCommand 
     let convertOne Citation { citationId = k
                             , citationPrefix = p
-                            , citationSuffix = s
-                            }
-                = citeArguments p s k
+                            , citationSuffix = s } = citeArguments p s k
     args <- mapM convertOne (c:cs)
     return $ text cmd <> foldl' (<>) empty args
-
+  where citationsModeToCommand = case citationMode c of
+                    SuppressAuthor -> "\\autocites*"
+                    AuthorInText   -> "\\textcites"
+                    NormalCitation -> "\\autocites"
+        groupByPrefix = 
+            let pfxs = drop 1 $ scanl (\prev cit -> let pfx = citationPrefix cit in
+                 if null pfx then prev else pfx) [] (c:cs) in
+                 groupBy ((==) `on` snd) (zip (c:cs) pfxs)
+        makePrefixPair group = (, map fst group) <$> 
+                 (inlineListToLaTeX $ join $ snd <$> take 1 group)
+      
 citationsToBiblatex _ = return empty
 
 -- Determine listings language from list of class attributes.
