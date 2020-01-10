@@ -2662,7 +2662,16 @@ Usage:
 
 # Module pandoc.List
 
-Pandoc\'s List type and helper methods
+The this module defines pandoc's list type. It comes with useful
+methods and convenience functions.
+
+## Constructor
+
+[`pandoc.List([table])`]{#pandoc.List}
+
+:   Create a new List. If the optional argument `table` is given,
+    set the metatable of that value to `pandoc.List`. This is an
+    alias for [`pandoc.List:new([table])`](#pandoc.list:new).
 
 ## Metamethods
 
@@ -2683,6 +2692,19 @@ Pandoc\'s List type and helper methods
 [`pandoc.List:clone ()`]{#pandoc.List:clone}
 
 :   Returns a (shallow) copy of the list.
+
+[`pandoc.List:new([table])`]{#pandoc.List:new}
+
+:   Create a new List. If the optional argument `table` is given,
+    set the metatable of that value to `pandoc.List`.
+
+    Parameters:
+
+    `table`:
+    :   table which should be treatable as a list; defaults to an
+        empty table
+
+    Returns: the updated input value
 
 [`pandoc.List:includes (needle, init)`]{#pandoc.List:includes}
 

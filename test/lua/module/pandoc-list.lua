@@ -6,6 +6,15 @@ local test = tasty.test_case
 local group = tasty.test_group
 
 return {
+  group 'List as function' {
+    test('equivalent to List:new', function (x)
+      local new = List:new {'ramen'}
+      local list = List {'ramen'}
+      assert.are_same(new, list)
+      assert.are_equal(getmetatable(new), getmetatable(list))
+    end)
+  },
+
   group 'new' {
     test('make table usable as list', function ()
       local test = List:new{1, 1, 2, 3, 5}
