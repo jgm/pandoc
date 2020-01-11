@@ -2665,33 +2665,14 @@ methods and convenience functions.
 
 :   Returns a (shallow) copy of the list.
 
-[`pandoc.List:new([table])`]{#pandoc.list:new}
+[`pandoc.List:extend (list)`]{#pandoc.list:extend}
 
-:   Create a new List. If the optional argument `table` is given,
-    set the metatable of that value to `pandoc.List`.
-
-    Parameters:
-
-    `table`:
-    :   table which should be treatable as a list; defaults to an
-        empty table
-
-    Returns: the updated input value
-
-[`pandoc.List:includes (needle, init)`]{#pandoc.list:includes}
-
-:   Checks if the list has an item equal to the given needle.
+:   Adds the given list to the end of this list.
 
     Parameters:
 
-    `needle`:
-    :   item to search for
-
-    `init`:
-    :   index at which the search is started
-
-    Returns: true if a list item is equal to the needle, false
-    otherwise
+    `list`:
+    :   list to appended
 
 [`pandoc.List:find (needle, init)`]{#pandoc.list:find}
 
@@ -2725,25 +2706,6 @@ methods and convenience functions.
     Returns: first item for which \`test\` succeeds, or nil if
     no such item exists.
 
-[`pandoc.List:extend (list)`]{#pandoc.list:extend}
-
-:   Adds the given list to the end of this list.
-
-    Parameters:
-
-    `list`:
-    :   list to appended
-
-[`pandoc.List:map (fn)`]{#pandoc.list:map}
-
-:   Returns a copy of the current list by applying the given
-    function to all elements.
-
-    Parameters:
-
-    `fn`:
-    :   function which is applied to all list items.
-
 [`pandoc.List:filter (pred)`]{#pandoc.list:filter}
 
 :   Returns a new list containing all items satisfying a given
@@ -2756,6 +2718,44 @@ methods and convenience functions.
 
     Returns: a new list containing all items for which \`test\`
     was true.
+
+[`pandoc.List:includes (needle, init)`]{#pandoc.list:includes}
+
+:   Checks if the list has an item equal to the given needle.
+
+    Parameters:
+
+    `needle`:
+    :   item to search for
+
+    `init`:
+    :   index at which the search is started
+
+    Returns: true if a list item is equal to the needle, false
+    otherwise
+
+[`pandoc.List:map (fn)`]{#pandoc.list:map}
+
+:   Returns a copy of the current list by applying the given
+    function to all elements.
+
+    Parameters:
+
+    `fn`:
+    :   function which is applied to all list items.
+
+[`pandoc.List:new([table])`]{#pandoc.list:new}
+
+:   Create a new List. If the optional argument `table` is given,
+    set the metatable of that value to `pandoc.List`.
+
+    Parameters:
+
+    `table`:
+    :   table which should be treatable as a list; defaults to an
+        empty table
+
+    Returns: the updated input value
 
 # Module pandoc.system
 
