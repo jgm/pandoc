@@ -21,6 +21,8 @@ tests :: [TestTree]
 tests =
   [ testPandocLua "pandoc"
                   ("lua" </> "module" </> "pandoc.lua")
+  , testPandocLua "pandoc.List"
+                  ("lua" </> "module" </> "pandoc-list.lua")
   , testPandocLua "pandoc.mediabag"
                   ("lua" </> "module" </> "pandoc-mediabag.lua")
   , testPandocLua "pandoc.types"
