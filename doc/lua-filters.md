@@ -686,7 +686,9 @@ Usage:
 
 Pandoc document
 
-Object equality is determined via [`pandoc.utils.equals`].
+Values of this type can be created with the
+[`pandoc.Pandoc`](#pandoc.pandoc) constructor. Object equality is
+determined via [`pandoc.utils.equals`].
 
 `blocks`
 :   document content ([List] of [Blocks])
@@ -699,7 +701,9 @@ Object equality is determined via [`pandoc.utils.equals`].
 Meta information on a document; string-indexed collection of
 [MetaValues].
 
-Object equality is determined via [`pandoc.utils.equals`].
+Values of this type can be created with the
+[`pandoc.Meta`](#pandoc.meta) constructor. Object equality is
+determined via [`pandoc.utils.equals`].
 
 ## MetaValue {#type-metavalue}
 
@@ -709,7 +713,7 @@ Object equality is determined via [`pandoc.utils.equals`].
 
 ### MetaBlocks {#type-metablocks}
 
-A list of blocks usable as meta value ([List] of [Blocks])
+A list of blocks usable as meta value ([List] of [Blocks]).
 
 Fields:
 
@@ -718,11 +722,14 @@ Fields:
 
 ### MetaBool {#type-metabool}
 
-Plain Lua boolean value (boolean)
+Alias for Lua boolean, i.e. the values `true` and `false`.
 
 ### MetaInlines {#type-metainlines}
 
 List of inlines used in metadata ([List] of [Inlines])
+
+Values of this type can be created with the
+[`pandoc.MetaInlines`](#pandoc.metainlines) constructor.
 
 Fields:
 
@@ -731,16 +738,25 @@ Fields:
 
 ### MetaList {#type-metalist}
 
-A list of other [MetaValues]. ([List] of [MetaValues])
+A list of other metadata values ([List] of [MetaValues]).
+
+Values of this type can be created with the
+[`pandoc.MetaList`](#pandoc.metalist) constructor.
 
 Fields:
 
 `tag`, `t`
 :   the literal `MetaList` (string)
 
+All methods available for [List]s can be used on this type as
+well.
+
 ### MetaMap {#type-metamap}
 
-A string-indexed map of meta-values. (table)
+A string-indexed map of meta-values. (table).
+
+Values of this type can be created with the
+[`pandoc.MetaMap`](#pandoc.metamap) constructor.
 
 Fields:
 
@@ -752,7 +768,7 @@ with the same name as those listed.
 
 ### MetaString {#type-metastring}
 
-Plain Lua string value (string)
+Plain Lua string value (string).
 
 ## Block {#type-block}
 
@@ -760,9 +776,14 @@ Object equality is determined via [`pandoc.utils.equals`].
 
 ### BlockQuote {#type-blockquote}
 
-A block quote element
+A block quote element.
 
-content:
+Values of this type can be created with the
+[`pandoc.BlockQuote`](#pandoc.blockquote) constructor.
+
+Fields:
+
+`content`:
 :   block content ([List] of [Blocks])
 
 `tag`, `t`
@@ -770,7 +791,12 @@ content:
 
 ### BulletList {#type-bulletlist}
 
-A bullet list
+A bullet list.
+
+Values of this type can be created with the
+[`pandoc.BulletList`](#pandoc.bulletlist) constructor.
+
+Fields:
 
 `content`
 :   list of items ([List] of [Blocks])
@@ -781,6 +807,11 @@ A bullet list
 ### CodeBlock {#type-codeblock}
 
 Block of code.
+
+Values of this type can be created with the
+[`pandoc.CodeBlock`](#pandoc.codeblock) constructor.
+
+Fields:
 
 `text`
 :   code string (string)
@@ -804,6 +835,11 @@ Block of code.
 
 Definition list, containing terms and their explanation.
 
+Values of this type can be created with the
+[`pandoc.DefinitionList`](#pandoc.definitionlist) constructor.
+
+Fields:
+
 `content`
 :   list of items
 
@@ -812,7 +848,12 @@ Definition list, containing terms and their explanation.
 
 ### Div {#type-div}
 
-Generic block container with attributes
+Generic block container with attributes.
+
+Values of this type can be created with the
+[`pandoc.Div`](#pandoc.div) constructor.
+
+Fields:
 
 `content`
 :   block content ([List] of [Blocks])
@@ -836,6 +877,11 @@ Generic block container with attributes
 ### Header {#type-header}
 
 Creates a header element.
+
+Values of this type can be created with the
+[`pandoc.Header`](#pandoc.header) constructor.
+
+Fields:
 
 `level`
 :   header level (integer)
@@ -863,6 +909,11 @@ Creates a header element.
 
 A horizontal rule.
 
+Values of this type can be created with the
+[`pandoc.HorizontalRule`](#pandoc.horizontalrule) constructor.
+
+Fields:
+
 `tag`, `t`
 :   the literal `HorizontalRule` (string)
 
@@ -870,6 +921,11 @@ A horizontal rule.
 
 A line block, i.e. a list of lines, each separated from the next
 by a newline.
+
+Values of this type can be created with the
+[`pandoc.LineBlock`](#pandoc.lineblock) constructor.
+
+Fields:
 
 `content`
 :   inline content
@@ -882,12 +938,20 @@ by a newline.
 A null element; this element never produces any output in the
 target format.
 
+Values of this type can be created with the
+[`pandoc.Null`](#pandoc.null) constructor.
+
 `tag`, `t`
 :   the literal `Null` (string)
 
 ### OrderedList {#type-orderedlist}
 
 An ordered list.
+
+Values of this type can be created with the
+[`pandoc.OrderedList`](#pandoc.orderedlist) constructor.
+
+Fields:
 
 `content`
 :   list items ([List] of [List] of [Blocks])
@@ -909,7 +973,12 @@ An ordered list.
 
 ### Para {#type-para}
 
-A paragraph
+A paragraph.
+
+Values of this type can be created with the
+[`pandoc.Para`](#pandoc.para) constructor.
+
+Fields:
 
 `content`
 :   inline content ([List] of [Inlines])
@@ -919,7 +988,12 @@ A paragraph
 
 ### Plain {#type-plain}
 
-Plain text, not a paragraph
+Plain text, not a paragraph.
+
+Values of this type can be created with the
+[`pandoc.Plain`](#pandoc.plain) constructor.
+
+Fields:
 
 `content`
 :   inline content ([List] of [Inlines])
@@ -930,6 +1004,11 @@ Plain text, not a paragraph
 ### RawBlock {#type-rawblock}
 
 Raw content of a specified format.
+
+Values of this type can be created with the
+[`pandoc.RawBlock`](#pandoc.rawblock) constructor.
+
+Fields:
 
 `format`
 :   format of content (string)
@@ -943,6 +1022,11 @@ Raw content of a specified format.
 ### Table {#type-table}
 
 A table.
+
+Values of this type can be created with the
+[`pandoc.Table`](#pandoc.table) constructor.
+
+Fields:
 
 `caption`
 :   table caption ([List] of [Inlines])
@@ -978,7 +1062,12 @@ Object equality is determined via [`pandoc.utils.equals`].
 
 ### Cite {#type-cite}
 
-Citation
+Citation.
+
+Values of this type can be created with the
+[`pandoc.Cite`](#pandoc.cite) constructor.
+
+Fields:
 
 `content`
 :   ([List] of [Inlines])
@@ -992,6 +1081,11 @@ Citation
 ### Code {#type-code}
 
 Inline code
+
+Values of this type can be created with the
+[`pandoc.Code`](#pandoc.code) constructor.
+
+Fields:
 
 `text`
 :   code string (string)
@@ -1015,6 +1109,11 @@ Inline code
 
 Emphasized text
 
+Values of this type can be created with the
+[`pandoc.Emph`](#pandoc.emph) constructor.
+
+Fields:
+
 `content`
 :   inline content ([List] of [Inlines])
 
@@ -1024,6 +1123,11 @@ Emphasized text
 ### Image {#type-image}
 
 Image: alt text (list of inlines), target
+
+Values of this type can be created with the
+[`pandoc.Image`](#pandoc.image) constructor.
+
+Fields:
 
 `attr`
 :   attributes ([Attr])
@@ -1053,12 +1157,22 @@ Image: alt text (list of inlines), target
 
 Hard line break
 
+Values of this type can be created with the
+[`pandoc.LineBreak`](#pandoc.linebreak) constructor.
+
+Fields:
+
 `tag`, `t`
 :   the literal `LineBreak` (string)
 
 ### Link {#type-link}
 
 Hyperlink: alt text (list of inlines), target
+
+Values of this type can be created with the
+[`pandoc.Link`](#pandoc.link) constructor.
+
+Fields:
 
 `attr`
 :   attributes ([Attr])
@@ -1085,6 +1199,11 @@ Hyperlink: alt text (list of inlines), target
 
 TeX math (literal)
 
+Values of this type can be created with the
+[`pandoc.Math`](#pandoc.math) constructor.
+
+Fields:
+
 `mathtype`
 :   specifier determining whether the math content should be
     shown inline (`InlineMath`) or on a separate line
@@ -1100,6 +1219,11 @@ TeX math (literal)
 
 Footnote or endnote
 
+Values of this type can be created with the
+[`pandoc.Note`](#pandoc.note) constructor.
+
+Fields:
+
 `content`
 :   ([List] of [Blocks])
 
@@ -1109,6 +1233,11 @@ Footnote or endnote
 ### Quoted {#type-quoted}
 
 Quoted text
+
+Values of this type can be created with the
+[`pandoc.Quoted`](#pandoc.quoted) constructor.
+
+Fields:
 
 `quotetype`
 :   type of quotes to be used; one of `SingleQuote` or
@@ -1124,6 +1253,11 @@ Quoted text
 
 Raw inline
 
+Values of this type can be created with the
+[`pandoc.RawInline`](#pandoc.rawinline) constructor.
+
+Fields:
+
 `format`
 :   the format of the content (string)
 
@@ -1137,6 +1271,11 @@ Raw inline
 
 Small caps text
 
+Values of this type can be created with the
+[`pandoc.SmallCaps`](#pandoc.smallcaps) constructor.
+
+Fields:
+
 `content`
 :   ([List] of [Inlines])
 
@@ -1147,6 +1286,11 @@ Small caps text
 
 Soft line break
 
+Values of this type can be created with the
+[`pandoc.SoftBreak`](#pandoc.softbreak) constructor.
+
+Fields:
+
 `tag`, `t`
 :   the literal `SoftBreak` (string)
 
@@ -1154,12 +1298,22 @@ Soft line break
 
 Inter-word space
 
+Values of this type can be created with the
+[`pandoc.Space`](#pandoc.space) constructor.
+
+Fields:
+
 `tag`, `t`
 :   the literal `Space` (string)
 
 ### Span {#type-span}
 
 Generic inline container with attributes
+
+Values of this type can be created with the
+[`pandoc.Span`](#pandoc.span) constructor.
+
+Fields:
 
 `attr`
 :   attributes ([Attr])
@@ -1183,6 +1337,11 @@ Generic inline container with attributes
 
 Text
 
+Values of this type can be created with the
+[`pandoc.Str`](#pandoc.str) constructor.
+
+Fields:
+
 `text`
 :   content (string)
 
@@ -1192,6 +1351,11 @@ Text
 ### Strikeout {#type-strikeout}
 
 Strikeout text
+
+Values of this type can be created with the
+[`pandoc.Strikeout`](#pandoc.strikeout) constructor.
+
+Fields:
 
 `content`
 :   inline content ([List] of [Inlines])
@@ -1203,6 +1367,11 @@ Strikeout text
 
 Strongly emphasized text
 
+Values of this type can be created with the
+[`pandoc.Strong`](#pandoc.strong) constructor.
+
+Fields:
+
 `content`
 :   inline content ([List] of [Inlines])
 
@@ -1213,6 +1382,11 @@ Strongly emphasized text
 
 Subscripted text
 
+Values of this type can be created with the
+[`pandoc.Subscript`](#pandoc.subscript) constructor.
+
+Fields:
+
 `content`
 :   inline content ([List] of [Inlines])
 
@@ -1222,6 +1396,11 @@ Subscripted text
 ### Superscript {#type-superscript}
 
 Superscripted text
+
+Values of this type can be created with the
+[`pandoc.Superscript`](#pandoc.superscript) constructor.
+
+Fields:
 
 `content`
 :   inline content ([List] of [Inlines])
@@ -1249,6 +1428,8 @@ This also works when using the `attr` setter:
 
 Object equality is determined via [`pandoc.utils.equals`].
 
+Fields:
+
 `identifier`
 :   element identifier (string)
 
@@ -1267,7 +1448,12 @@ indices to the list table.
 
 Single citation entry
 
+Values of this type can be created with the
+[`pandoc.Citation`](#pandoc.citation) constructor.
+
 Object equality is determined via [`pandoc.utils.equals`].
+
+Fields:
 
 `id`
 :   citation identifier, e.g., a bibtex key (string)
@@ -1292,7 +1478,12 @@ Object equality is determined via [`pandoc.utils.equals`].
 
 List attributes
 
+Values of this type can be created with the
+[`pandoc.ListAttributes`](#pandoc.listattributes) constructor.
+
 Object equality is determined via [`pandoc.utils.equals`].
+
+Fields:
 
 `start`
 :   number of the first list item (integer)
@@ -1309,6 +1500,8 @@ Object equality is determined via [`pandoc.utils.equals`].
 ## ReaderOptions {#type-readeroptions}
 
 Pandoc reader options
+
+Fields:
 
 `abbreviations`
 :   set of known abbreviations (set of strings)
@@ -1346,6 +1539,8 @@ Pandoc reader options
 
 The state used by pandoc to collect information and make it
 available to readers and writers.
+
+Fields:
 
 `input_files`
 :   List of input files from command line
@@ -1390,6 +1585,10 @@ convenience. The `pandoc.List` type is defined in the
 [*pandoc.List*](#module-pandoc.list) module. See there for
 available methods.
 
+Values of this type can be created with the
+[`pandoc.List`](#pandoc.list) constructor, turning a normal Lua
+table into a List.
+
 ## LogMessage {#type-logmessage}
 
 A pandoc log message. Objects have no fields, but can be
@@ -1409,6 +1608,9 @@ i.e., if `version` represents the version `2.7.3`, then
 Comparisons are performed element-wise, i.e.
 
     Version '1.12' > Version '1.9'
+
+Values of this type can be created with the
+[`pandoc.types.Version`](#pandoc.types.version) constructor.
 
 ### `must_be_at_least`
 
@@ -1526,9 +1728,11 @@ format, and functions to filter and modify a subtree.
     `meta`:
     :   document meta data
 
+    Returns: [Pandoc] object
+
 ## Meta
 
-[`Meta (table)`]{#pando.meta}
+[`Meta (table)`]{#pandoc.meta}
 
 :   Create a new Meta object.
 
@@ -1536,6 +1740,8 @@ format, and functions to filter and modify a subtree.
 
     `table`:
     :   table containing document meta information
+
+    Returns: [Meta] object
 
 ## MetaValue
 
@@ -1548,6 +1754,8 @@ format, and functions to filter and modify a subtree.
     `blocks`:
     :   blocks
 
+    Returns: [MetaBlocks] object
+
 [`MetaInlines (inlines)`]{#pandoc.metainlines}
 
 :   Meta inlines
@@ -1556,6 +1764,8 @@ format, and functions to filter and modify a subtree.
 
     `inlines`:
     :   inlines
+
+    Returns: [MetaInlines] object
 
 [`MetaList (meta_values)`]{#pandoc.metalist}
 
@@ -1566,6 +1776,8 @@ format, and functions to filter and modify a subtree.
     `meta_values`:
     :   list of meta values
 
+    Returns: [MetaList] object
+
 [`MetaMap (key_value_map)`]{#pandoc.metamap}
 
 :   Meta map
@@ -1574,6 +1786,8 @@ format, and functions to filter and modify a subtree.
 
     `key_value_map`:
     :   a string-indexed map of meta values
+
+    Returns: [MetaMap] object
 
 [`MetaString (str)`]{#pandoc.metastring}
 
@@ -1584,6 +1798,8 @@ format, and functions to filter and modify a subtree.
     `str`:
     :   string value
 
+    Returns: [MetaString] object
+
 [`MetaBool (bool)`]{#pandoc.metabool}
 
 :   Creates boolean to be used in meta data.
@@ -1592,6 +1808,8 @@ format, and functions to filter and modify a subtree.
 
     `bool`:
     :   boolean value
+
+    Returns: [MetaBool] object
 
 ## Blocks
 
@@ -1604,7 +1822,7 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   block content
 
-    Returns: block quote element
+    Returns: [BlockQuote] object
 
 [`BulletList (content)`]{#pandoc.bulletlist}
 
@@ -1615,7 +1833,7 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   list of items
 
-    Returns: bullet list element
+    Returns: [BulletList] object
 
 [`CodeBlock (text[, attr])`]{#pandoc.codeblock}
 
@@ -1629,7 +1847,7 @@ format, and functions to filter and modify a subtree.
     `attr`:
     :   element attributes
 
-    Returns: code block element
+    Returns: [CodeBlock] object
 
 [`DefinitionList (content)`]{#pandoc.definitionlist}
 
@@ -1641,7 +1859,7 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   list of items
 
-    Returns: definition list element
+    Returns: [DefinitionList] object
 
 [`Div (content[, attr])`]{#pandoc.div}
 
@@ -1655,7 +1873,7 @@ format, and functions to filter and modify a subtree.
     `attr`:
     :   element attributes
 
-    Returns: div element
+    Returns: [Div] object
 
 [`Header (level, content[, attr])`]{#pandoc.header}
 
@@ -1672,13 +1890,13 @@ format, and functions to filter and modify a subtree.
     `attr`:
     :   element attributes
 
-    Returns: header element
+    Returns: [Header] object
 
 [`HorizontalRule ()`]{#pandoc.horizontalrule}
 
 :   Creates a horizontal rule.
 
-    Returns: horizontal rule
+    Returns: [HorizontalRule] object
 
 [`LineBlock (content)`]{#pandoc.lineblock}
 
@@ -1689,13 +1907,13 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   inline content
 
-    Returns: line block element
+    Returns: [LineBlock] object
 
 [`Null ()`]{#pandoc.null}
 
 :   Creates a null element.
 
-    Returns: null element
+    Returns: [Null] object
 
 [`OrderedList (items[, listAttributes])`]{#pandoc.orderedlist}
 
@@ -1709,7 +1927,7 @@ format, and functions to filter and modify a subtree.
     `listAttributes`:
     :   list parameters
 
-    Returns: ordered list element
+    Returns: [OrderedList](#type-orderedlist) object
 
 [`Para (content)`]{#pandoc.para}
 
@@ -1720,7 +1938,7 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   inline content
 
-    Returns: paragraph element
+    Returns: [Para](#type-para) object
 
 [`Plain (content)`]{#pandoc.plain}
 
@@ -1731,7 +1949,7 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   inline content
 
-    Returns: plain element
+    Returns: [Plain](#type-plain) object
 
 [`RawBlock (format, text)`]{#pandoc.rawblock}
 
@@ -1745,7 +1963,7 @@ format, and functions to filter and modify a subtree.
     `text`:
     :   string content
 
-    Returns: raw block element
+    Returns: [RawBlock](#type-rawblock) object
 
 [`Table (caption, aligns, widths, headers, rows)`]{#pandoc.table}
 
@@ -1768,7 +1986,7 @@ format, and functions to filter and modify a subtree.
     `rows`:
     :   table rows
 
-    Returns: table element
+    Returns: [Table](#type-table) object
 
 ## Inline
 
@@ -1784,7 +2002,7 @@ format, and functions to filter and modify a subtree.
     `citations`:
     :   List of citations
 
-    Returns: citations element
+    Returns: [Cite](#type-cite) object
 
 [`Code (text[, attr])`]{#pandoc.code}
 
@@ -1798,7 +2016,7 @@ format, and functions to filter and modify a subtree.
     `attr`:
     :   additional attributes
 
-    Returns: code element
+    Returns: [Code](#type-code) object
 
 [`Emph (content)`]{#pandoc.emph}
 
@@ -1809,7 +2027,7 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   inline content
 
-    Returns: emphasis element
+    Returns: [Emph](#type-emph) object
 
 [`Image (caption, src[, title[, attr]])`]{#pandoc.image}
 
@@ -1829,13 +2047,13 @@ format, and functions to filter and modify a subtree.
     `attr`:
     :   additional attributes
 
-    Returns: image element
+    Returns: [Image](#type-image) object
 
 [`LineBreak ()`]{#pandoc.linebreak}
 
 :   Create a LineBreak inline element
 
-    Returns: linebreak element
+    Returns: [LineBreak](#type-linebreak) object
 
 [`Link (content, target[, title[, attr]])`]{#pandoc.link}
 
@@ -1855,7 +2073,7 @@ format, and functions to filter and modify a subtree.
     `attr`:
     :   additional attributes
 
-    Returns: image element
+    Returns: [Link](#type-link) object
 
 [`Math (mathtype, text)`]{#pandoc.math}
 
@@ -1869,29 +2087,29 @@ format, and functions to filter and modify a subtree.
     `text`:
     :   Math content
 
-    Returns: Math element
+    Returns: [Math](#type-math) object
 
 [`DisplayMath (text)`]{#pandoc.displaymath}
 
-:   Creates a DisplayMath element (DEPRECATED).
+:   Creates a math element of type "DisplayMath" (DEPRECATED).
 
     Parameters:
 
     `text`:
     :   Math content
 
-    Returns: Math element
+    Returns: [Math](#type-math) object
 
 [`InlineMath (text)`]{#pandoc.inlinemath}
 
-:   Creates an InlineMath inline element (DEPRECATED).
+:   Creates a math element of type "InlineMath" (DEPRECATED).
 
     Parameters:
 
     `text`:
     :   Math content
 
-    Returns: Math element
+    Returns: [Math](#type-math) object
 
 [`Note (content)`]{#pandoc.note}
 
@@ -1901,6 +2119,8 @@ format, and functions to filter and modify a subtree.
 
     `content`:
     :   footnote block content
+
+    Returns: [Note](#type-note) object
 
 [`Quoted (quotetype, content)`]{#pandoc.quoted}
 
@@ -1915,7 +2135,7 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   inline content
 
-    Returns: quoted element
+    Returns: [Quoted](#type-quoted) object
 
 [`SingleQuoted (content)`]{#pandoc.singlequoted}
 
@@ -1926,9 +2146,7 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   inline content
 
-    Returns: quoted element
-
-    See also: [Quoted](#type-quoted)
+    Returns: [Quoted](#type-quoted)
 
 [`DoubleQuoted (content)`]{#pandoc.doublequoted}
 
@@ -1939,13 +2157,11 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   inline content
 
-    Returns: quoted element
-
-    See also: [Quoted](#type-quoted)
+    Returns: [Quoted](#type-quoted)
 
 [`RawInline (format, text)`]{#pandoc.rawinline}
 
-:   Creates a RawInline inline element
+:   Creates a raw inline element
 
     Parameters:
 
@@ -1955,7 +2171,7 @@ format, and functions to filter and modify a subtree.
     `text`:
     :   string content
 
-    Returns: raw inline element
+    Returns: [RawInline](#type-rawinline) object
 
 [`SmallCaps (content)`]{#pandoc.smallcaps}
 
@@ -1966,19 +2182,19 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   inline content
 
-    Returns: smallcaps element
+    Returns: [SmallCaps](#type-smallcaps) object
 
 [`SoftBreak ()`]{#pandoc.softbreak}
 
 :   Creates a SoftBreak inline element.
 
-    Returns: softbreak element
+    Returns: [SoftBreak](#type-softbreak) object
 
 [`Space ()`]{#pandoc.space}
 
 :   Create a Space inline element
 
-    Returns: space element
+    Returns: [Space](#type-space) object
 
 [`Span (content[, attr])`]{#pandoc.span}
 
@@ -1992,7 +2208,7 @@ format, and functions to filter and modify a subtree.
     `attr`:
     :   additional attributes
 
-    Returns: span element
+    Returns: [Span](#type-span) object
 
 [`Str (text)`]{#pandoc.str}
 
@@ -2003,7 +2219,7 @@ format, and functions to filter and modify a subtree.
     `text`:
     :   content
 
-    Returns: string element
+    Returns: [Str](#type-str) object
 
 [`Strikeout (content)`]{#pandoc.strikeout}
 
@@ -2014,7 +2230,7 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   inline content
 
-    Returns: strikeout element
+    Returns: [Strikeout](#type-strikeout) object
 
 [`Strong (content)`]{#pandoc.strong}
 
@@ -2026,7 +2242,7 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   inline content
 
-    Returns: strong element
+    Returns: [Strong](#type-strong) object
 
 [`Subscript (content)`]{#pandoc.subscript}
 
@@ -2037,7 +2253,7 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   inline content
 
-    Returns: subscript element
+    Returns: [Subscript](#type-subscript) object
 
 [`Superscript (content)`]{#pandoc.superscript}
 
@@ -2048,7 +2264,7 @@ format, and functions to filter and modify a subtree.
     `content`:
     :   inline content
 
-    Returns: strong element
+    Returns: [Superscript](#type-superscript) object
 
 ## Element components
 
@@ -2067,7 +2283,7 @@ format, and functions to filter and modify a subtree.
     `attributes`:
     :   table containing string keys and values
 
-    Returns: element attributes
+    Returns: [Attr](#type-attr) object
 
 [`Citation (id, mode[, prefix[, suffix[, note_num[, hash]]]])`]{#pandoc.citation}
 
@@ -2093,6 +2309,8 @@ format, and functions to filter and modify a subtree.
     `hash`:
     :   hash number
 
+    Returns: [Citation](#type-citation) object
+
 [`ListAttributes ([start[, style[, delimiter]]])`]{#pandoc.listattributes}
 
 :   Creates a set of list attributes.
@@ -2108,7 +2326,7 @@ format, and functions to filter and modify a subtree.
     `delimiter`:
     :   delimiter of list numbers
 
-    Returns: list attributes table
+    Returns: [ListAttributes](#type-listattributes) object
 
 ## Constants
 
@@ -2222,7 +2440,8 @@ format, and functions to filter and modify a subtree.
 
 [`sha1`]{#pandoc.sha1}
 
-:   Functions which have moved to different modules
+:   Alias for [`pandoc.utils.sha1`](#pandoc.utils.sha1)
+    (DEPRECATED).
 
 ## Helper functions
 
@@ -2936,7 +3155,7 @@ Creates a Version object.
 
 Parameters:
 
-`version`:
+`version_specifier`:
 :   Version specifier: this can be a version string like
     `'2.7.3'`, a list of integers like `{2, 7, 3}`, a single
     integer, or a [Version].
