@@ -2734,6 +2734,22 @@ methods and convenience functions.
     Returns: true if a list item is equal to the needle, false
     otherwise
 
+[`pandoc.List:insert ([pos], value)`]{#pandoc.list:insert}
+
+:   Inserts element `value` at position `pos` in list, shifting
+    elements to the next-greater indix if necessary.
+
+    This function is identical to
+    [`table.insert`](https://www.lua.org/manual/5.3/manual.html#6.6).
+
+    Parameters:
+
+    `pos`:
+    :   index of the new value; defaults to length of the list + 1
+
+    `value`:
+    :   value to insert into the list
+
 [`pandoc.List:map (fn)`]{#pandoc.list:map}
 
 :   Returns a copy of the current list by applying the given
@@ -2756,6 +2772,49 @@ methods and convenience functions.
         empty table
 
     Returns: the updated input value
+
+[`pandoc.List:remove ([pos])`]{#pandoc.list:remove}
+
+:    Removes the element at position `pos`, returning the value
+     of the removed element.
+
+     This function is identical to
+     [`table.remove`](https://www.lua.org/manual/5.3/manual.html#6.6).
+
+    Parameters:
+
+    `pos`:
+    :   position of the list value that will be remove; defaults
+        to the index of the last element
+
+    Returns: the removed element
+
+[`pandoc.List:sort ([comp])`]{#pandoc.list:sort}
+
+:   Sorts list elements in a given order, in-place. If `comp` is
+    given, then it must be a function that receives two list
+    elements and returns true when the first element must come
+    before the second in the final order (so that, after the
+    sort, `i < j` implies `not comp(list[j],list[i]))`. If comp
+    is not given, then the standard Lua operator `<` is used
+    instead.
+
+    Note that the comp function must define a strict partial
+    order over the elements in the list; that is, it must be
+    asymmetric and transitive. Otherwise, no valid sort may be
+    possible.
+
+    The sort algorithm is not stable: elements considered equal
+    by the given order may have their relative positions changed
+    by the sort.
+
+    This function is identical to
+    [`table.sort`](https://www.lua.org/manual/5.3/manual.html#6.6).
+
+    Parameters:
+
+    `comp`:
+    :   Comparison function as described above.
 
 # Module pandoc.system
 

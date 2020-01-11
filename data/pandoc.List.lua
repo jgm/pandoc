@@ -104,6 +104,12 @@ function List:includes (needle, init)
   return not (List.find(self, needle, init) == nil)
 end
 
+--- Insert an element into the list. Alias for `table.insert`.
+-- @param list list
+-- @param[opt] pos position at which the new element is to be inserted
+-- @param value value to insert
+List.insert = table.insert
+
 --- Returns a copy of the current list by applying the given function to
 -- all elements.
 -- @param fn function which is applied to all list items.
@@ -114,6 +120,17 @@ function List:map (fn)
   end
   return res
 end
+
+--- Remove element from list (alias for `table.remove`)
+-- @param list list
+-- @param[opt] pos position of the element to be removed (default: #list)
+-- @return the removed element
+List.remove = table.remove
+
+--- Sort list in-place (alias for `table.sort`)
+-- @param list list
+-- @param[opt] comp comparison function; default to `<` operator.
+List.sort = table.sort
 
 -- Set metatable with __call metamethod. This allows the use of `List`
 -- as a constructor function.
