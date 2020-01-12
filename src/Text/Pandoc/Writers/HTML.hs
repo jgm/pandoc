@@ -29,7 +29,7 @@ module Text.Pandoc.Writers.HTML (
   ) where
 import Control.Monad.State.Strict
 import Data.Char (ord)
-import Data.List (intercalate, intersperse, partition, delete)
+import Data.List (intercalate, intersperse, partition, delete, (\\))
 import Data.Maybe (fromMaybe, isJust, isNothing, mapMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -664,16 +664,9 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
            else case splitBy isPause xs of
                      []     -> ([],[])
                      (z:zs) -> ([],z ++ concatMap inDiv zs)
-  let classes' = ordNub $
-                  ["title-slide" | titleSlide] ++ ["slide" | slide] ++
-                  ["section" | (slide || writerSectionDivs opts) &&
-                               not html5 ] ++
-                  ["level" <> tshow level | slide || writerSectionDivs opts ]
-                  <> dclasses
   let secttag  = if html5
                     then H5.section
                     else H.div
-  let attr = (ident, classes', dkvs)
   titleContents <- blockListToHtml opts titleBlocks
   inSection <- gets stInSection
   innerContents <- do
@@ -681,6 +674,13 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
     res <- blockListToHtml opts innerSecs
     modify $ \st -> st{ stInSection = inSection }
     return res
+  let classes' = ordNub $
+                  ["title-slide" | titleSlide] ++ ["slide" | slide] ++
+                  ["section" | (slide || writerSectionDivs opts) &&
+                               not html5 ] ++
+                  ["level" <> tshow level | slide || writerSectionDivs opts ]
+                  <> dclasses
+  let attr = (ident, classes', dkvs)
   if titleSlide
      then do
        t <- addAttrs opts attr $
@@ -704,7 +704,8 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
                     then mempty
                     else innerContents <> nl opts
           else do
-            t <- addAttrs opts attr header'
+            let attr' = (ident, classes' \\ hclasses, dkvs \\ hkvs)
+            t <- addAttrs opts attr' header'
             return $ t <>
                      if null innerSecs
                         then mempty
