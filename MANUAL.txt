@@ -325,7 +325,7 @@ header when requesting a document from a URL:
     - `tei` ([TEI Simple])
     - `xwiki` ([XWiki markup])
     - `zimwiki` ([ZimWiki markup])
-    - the path of a custom lua writer, see [Custom writers] below
+    - the path of a custom Lua writer, see [Custom writers] below
     :::
 
     Note that `odt`, `docx`, `epub`, and `pdf` output will not be directed
@@ -574,22 +574,22 @@ header when requesting a document from a URL:
 
      3. `$PATH` (executable only)
 
-    Filters and lua-filters are applied in the order specified
+    Filters and Lua-filters are applied in the order specified
     on the command line.
 
 `-L` *SCRIPT*, `--lua-filter=`*SCRIPT*
 
 :   Transform the document in a similar fashion as JSON filters (see
-    `--filter`), but use pandoc's build-in lua filtering system.  The given
-    lua script is expected to return a list of lua filters which will be
-    applied in order.  Each lua filter must contain element-transforming
+    `--filter`), but use pandoc's build-in Lua filtering system.  The given
+    Lua script is expected to return a list of Lua filters which will be
+    applied in order.  Each Lua filter must contain element-transforming
     functions indexed by the name of the AST element on which the filter
     function should be applied.
 
-    The `pandoc` lua module provides helper functions for element
-    creation.  It is always loaded into the script's lua environment.
+    The `pandoc` Lua module provides helper functions for element
+    creation.  It is always loaded into the script's Lua environment.
 
-    The following is an example lua script for macro-expansion:
+    The following is an example Lua script for macro-expansion:
 
         function expand_hello_world(inline)
           if inline.c == '{{helloworld}}' then
@@ -601,7 +601,7 @@ header when requesting a document from a URL:
 
         return {{Str = expand_hello_world}}
 
-    In order of preference, pandoc will look for lua filters in
+    In order of preference, pandoc will look for Lua filters in
 
      1. a specified full or relative path (executable or
      non-executable)
@@ -1477,7 +1477,7 @@ include-after-body: []
 include-in-header: []
 resource-path: ["."]
 
-# filters will be assumed to be lua filters if they have
+# filters will be assumed to be Lua filters if they have
 # the .lua extension, and json filters otherwise.  But
 # the filter type can also be specified explicitly, as shown:
 filters:
@@ -5829,15 +5829,15 @@ same styles in your input and output files.
 
 # Custom writers
 
-Pandoc can be extended with custom writers written in [lua].  (Pandoc
-includes a lua interpreter, so lua need not be installed separately.)
+Pandoc can be extended with custom writers written in [Lua].  (Pandoc
+includes a Lua interpreter, so Lua need not be installed separately.)
 
-To use a custom writer, simply specify the path to the lua script
+To use a custom writer, simply specify the path to the Lua script
 in place of the output format. For example:
 
     pandoc -t data/sample.lua
 
-Creating a custom writer requires writing a lua function for each
+Creating a custom writer requires writing a Lua function for each
 possible element in a pandoc document.  To get a documented example
 which you can modify according to your needs, do
 
@@ -5850,7 +5850,7 @@ default template with the name
 `default.NAME_OF_CUSTOM_WRITER.lua` to the `templates`
 subdirectory of your user data directory (see [Templates]).
 
-[lua]: http://www.lua.org
+[Lua]: http://www.lua.org
 
 # A note on security
 

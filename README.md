@@ -169,7 +169,7 @@ It can convert *to*
     markup](https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/))
   - `zimwiki` ([ZimWiki
     markup](http://zim-wiki.org/manual/Help/Wiki_Syntax.html))
-  - the path of a custom lua writer, see [Custom
+  - the path of a custom Lua writer, see [Custom
     writers](https://pandoc.org/MANUAL.html#custom-writers) below
 
 </div>
@@ -188,7 +188,7 @@ convert this native representation into a target format. Thus, adding an
 input or output format requires only adding a reader or writer. Users
 can also run custom pandoc filters to modify the intermediate AST (see
 the documentation for [filters](https://pandoc.org/filters.html) and
-[lua filters](https://pandoc.org/lua-filters.html)).
+[Lua filters](https://pandoc.org/lua-filters.html)).
 
 Because pandoc’s intermediate representation of a document is less
 expressive than many of the formats it converts between, one should not

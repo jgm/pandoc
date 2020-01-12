@@ -29,13 +29,13 @@ used by anyone who has a certain version of the pandoc
 executable.
 
 Starting with version 2.0, pandoc makes it possible to write
-filters in lua without any external dependencies at all. A lua
-interpreter (version 5.3) and a lua library for creating pandoc
+filters in Lua without any external dependencies at all. A Lua
+interpreter (version 5.3) and a Lua library for creating pandoc
 filters is built into the pandoc executable. Pandoc data types
-are marshalled to lua directly, avoiding the overhead of writing
+are marshalled to Lua directly, avoiding the overhead of writing
 JSON to stdout and reading it from stdin.
 
-Here is an example of a lua filter that converts strong emphasis
+Here is an example of a Lua filter that converts strong emphasis
 to small caps:
 
 ``` lua
@@ -74,7 +74,7 @@ Python (`smallcaps.py`):
   `pandoc --filter ./smallcaps.py`        1.40s
   `pandoc --lua-filter ./smallcaps.lua`   1.03s
 
-As you can see, the lua filter avoids the substantial overhead
+As you can see, the Lua filter avoids the substantial overhead
 associated with marshalling to and from JSON over a pipe.
 
 # Lua filter structure
@@ -91,10 +91,10 @@ then it would be applied like this:
 
 The `--lua-filter` option may be supplied multiple times. Pandoc
 applies all filters (including JSON filters specified via
-`--filter` and lua filters specified via `--lua-filter`) in the
+`--filter` and Lua filters specified via `--lua-filter`) in the
 order they appear on the command line.
 
-Pandoc expects each lua file to return a list of filters. The
+Pandoc expects each Lua file to return a list of filters. The
 filters in that list are called sequentially, each on the result
 of the previous filter. If there is no value returned by the
 filter script, then pandoc will try to generate a single filter
@@ -104,7 +104,7 @@ those of pandoc elements (e.g., `Str`, `Para`, `Meta`, or
 
 For each filter, the document is traversed and each element
 subjected to the filter. Elements for which the filter contains
-an entry (i.e. a function of the same name) are passed to lua
+an entry (i.e. a function of the same name) are passed to Lua
 element filtering function. In other words, filter entries will
 be called for each corresponding element in the document,
 getting the respective element as input.
@@ -208,7 +208,7 @@ variables.
 
 # Pandoc Module
 
-The `pandoc` lua module is loaded into the filter's lua
+The `pandoc` Lua module is loaded into the filter's Lua
 environment and provides a set of functions and constants to
 make creation and manipulation of elements easier. The global
 variable `pandoc` is bound to the module and should generally
@@ -222,15 +222,15 @@ functionalities.
 
 Element creator functions like `Str`, `Para`, and `Pandoc` are
 designed to allow easy creation of new elements that are simple
-to use and can be read back from the lua environment.
-Internally, pandoc uses these functions to create the lua
+to use and can be read back from the Lua environment.
+Internally, pandoc uses these functions to create the Lua
 objects which are passed to element filter functions. This means
 that elements created via this module will behave exactly as
 those elements accessible through the filter function parameter.
 
 ## Exposed pandoc functionality
 
-Some pandoc functions have been made available in lua:
+Some pandoc functions have been made available in Lua:
 
 -   [`walk_block`](#pandoc.walk_block) and
     [`walk_inline`](#pandoc.walk_inline) allow filters to be applied
@@ -269,7 +269,7 @@ colon syntax (`mystring:uc_upper()`).
 # Examples
 
 The following filters are presented as examples. A repository of
-useful lua filters (which may also serve as good examples) is
+useful Lua filters (which may also serve as good examples) is
 available at <https://github.com/pandoc/lua-filters>.
 
 ## Macro substitution
@@ -2478,7 +2478,7 @@ Parameters:
 :   the block element
 
 `filter`:
-:   a lua filter (table of functions) to be applied within the
+:   a Lua filter (table of functions) to be applied within the
     block element
 
 Returns: the transformed block element
@@ -2495,7 +2495,7 @@ Parameters:
 :   the inline element
 
 `filter`:
-:   a lua filter (table of functions) to be applied within the
+:   a Lua filter (table of functions) to be applied within the
     inline element
 
 Returns: the transformed inline element
