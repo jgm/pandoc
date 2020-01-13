@@ -18,12 +18,12 @@ extra-deps:
 - skylighting-0.8.3
 - skylighting-core-0.8.3
 - regex-pcre-builtin-0.95.0.8.8.35
-- doclayout-0.2.0.1
+- doclayout-0.3
 - emojis-0.1
 - jira-wiki-markup-1.0.0
 - HsYAML-0.2.0.0
 - HsYAML-aeson-0.2.0.0
-- doctemplates-0.8
+- doctemplates-0.8.1
 - pandoc-citeproc-0.16.4.1
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
