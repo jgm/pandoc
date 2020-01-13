@@ -1450,8 +1450,6 @@ stripLocatorBraces = walk go
   where go (Str xs) = Str $ T.filter (\c -> c /= '{' && c /= '}') xs
         go x        = x
 
-
-
 citationsToBiblatex :: PandocMonad m => [Citation] -> LW m (Doc Text)
 citationsToBiblatex
             [one]
