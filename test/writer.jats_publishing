@@ -1,0 +1,898 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v1.2 20190208//EN"
+                  "JATS-publishing1.dtd">
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="other">
+<front>
+<journal-meta>
+<journal-title-group>
+</journal-title-group>
+<publisher>
+<publisher-name></publisher-name>
+</publisher>
+</journal-meta>
+<article-meta>
+<title-group>
+<article-title>Pandoc Test Suite</article-title>
+</title-group>
+<contrib-group>
+<contrib contrib-type="author">
+<string-name>John MacFarlane</string-name>
+</contrib>
+<contrib contrib-type="author">
+<string-name>Anonymous</string-name>
+</contrib>
+</contrib-group>
+<pub-date pub-type="epub" iso-8601-date="2006-07-17">
+<day>17</day>
+<month>7</month>
+<year>2006</year>
+</pub-date>
+</article-meta>
+</front>
+<body>
+<p>This is a set of tests for pandoc. Most of them are adapted from John
+Gruber’s markdown test suite.</p>
+<sec id="headers">
+  <title>Headers</title>
+  <sec id="level-2-with-an-embedded-link">
+    <title>Level 2 with an
+    <ext-link ext-link-type="uri" xlink:href="/url">embedded
+    link</ext-link></title>
+    <sec id="level-3-with-emphasis">
+      <title>Level 3 with <italic>emphasis</italic></title>
+      <sec id="level-4">
+        <title>Level 4</title>
+        <sec id="level-5">
+          <title>Level 5</title>
+        </sec>
+      </sec>
+    </sec>
+  </sec>
+</sec>
+<sec id="level-1">
+  <title>Level 1</title>
+  <sec id="level-2-with-emphasis">
+    <title>Level 2 with <italic>emphasis</italic></title>
+    <sec id="level-3">
+      <title>Level 3</title>
+      <p>with no blank line</p>
+    </sec>
+  </sec>
+  <sec id="level-2">
+    <title>Level 2</title>
+    <p>with no blank line</p>
+  </sec>
+</sec>
+<sec id="paragraphs">
+  <title>Paragraphs</title>
+  <p>Here’s a regular paragraph.</p>
+  <p>In Markdown 1.0.0 and earlier. Version 8. This line turns into a list
+  item. Because a hard-wrapped line in the middle of a paragraph looked like a
+  list item.</p>
+  <p>Here’s one with a bullet. * criminey.</p>
+  <p>There should be a hard line break
+  here.</p>
+</sec>
+<sec id="block-quotes">
+  <title>Block Quotes</title>
+  <p>E-mail style:</p>
+  <disp-quote>
+    <p>This is a block quote. It is pretty short.</p>
+  </disp-quote>
+  <disp-quote>
+    <p>Code in a block quote:</p>
+    <preformat>sub status {
+    print &quot;working&quot;;
+}</preformat>
+    <p>A list:</p>
+    <list list-type="order">
+      <list-item>
+        <p>item one</p>
+      </list-item>
+      <list-item>
+        <p>item two</p>
+      </list-item>
+    </list>
+    <p>Nested block quotes:</p>
+    <disp-quote>
+      <p>nested</p>
+    </disp-quote>
+    <disp-quote>
+      <p>nested</p>
+    </disp-quote>
+  </disp-quote>
+  <p>This should not be a block quote: 2 &gt; 1.</p>
+  <p>And a following paragraph.</p>
+</sec>
+<sec id="code-blocks">
+  <title>Code Blocks</title>
+  <p>Code:</p>
+  <preformat>---- (should be four hyphens)
+
+sub status {
+    print &quot;working&quot;;
+}
+
+this code block is indented by one tab</preformat>
+  <p>And:</p>
+  <preformat>    this code block is indented by two tabs
+
+These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
+</sec>
+<sec id="lists">
+  <title>Lists</title>
+  <sec id="unordered">
+    <title>Unordered</title>
+    <p>Asterisks tight:</p>
+    <list list-type="bullet">
+      <list-item>
+        <p>asterisk 1</p>
+      </list-item>
+      <list-item>
+        <p>asterisk 2</p>
+      </list-item>
+      <list-item>
+        <p>asterisk 3</p>
+      </list-item>
+    </list>
+    <p>Asterisks loose:</p>
+    <list list-type="bullet">
+      <list-item>
+        <p>asterisk 1</p>
+      </list-item>
+      <list-item>
+        <p>asterisk 2</p>
+      </list-item>
+      <list-item>
+        <p>asterisk 3</p>
+      </list-item>
+    </list>
+    <p>Pluses tight:</p>
+    <list list-type="bullet">
+      <list-item>
+        <p>Plus 1</p>
+      </list-item>
+      <list-item>
+        <p>Plus 2</p>
+      </list-item>
+      <list-item>
+        <p>Plus 3</p>
+      </list-item>
+    </list>
+    <p>Pluses loose:</p>
+    <list list-type="bullet">
+      <list-item>
+        <p>Plus 1</p>
+      </list-item>
+      <list-item>
+        <p>Plus 2</p>
+      </list-item>
+      <list-item>
+        <p>Plus 3</p>
+      </list-item>
+    </list>
+    <p>Minuses tight:</p>
+    <list list-type="bullet">
+      <list-item>
+        <p>Minus 1</p>
+      </list-item>
+      <list-item>
+        <p>Minus 2</p>
+      </list-item>
+      <list-item>
+        <p>Minus 3</p>
+      </list-item>
+    </list>
+    <p>Minuses loose:</p>
+    <list list-type="bullet">
+      <list-item>
+        <p>Minus 1</p>
+      </list-item>
+      <list-item>
+        <p>Minus 2</p>
+      </list-item>
+      <list-item>
+        <p>Minus 3</p>
+      </list-item>
+    </list>
+  </sec>
+  <sec id="ordered">
+    <title>Ordered</title>
+    <p>Tight:</p>
+    <list list-type="order">
+      <list-item>
+        <p>First</p>
+      </list-item>
+      <list-item>
+        <p>Second</p>
+      </list-item>
+      <list-item>
+        <p>Third</p>
+      </list-item>
+    </list>
+    <p>and:</p>
+    <list list-type="order">
+      <list-item>
+        <p>One</p>
+      </list-item>
+      <list-item>
+        <p>Two</p>
+      </list-item>
+      <list-item>
+        <p>Three</p>
+      </list-item>
+    </list>
+    <p>Loose using tabs:</p>
+    <list list-type="order">
+      <list-item>
+        <p>First</p>
+      </list-item>
+      <list-item>
+        <p>Second</p>
+      </list-item>
+      <list-item>
+        <p>Third</p>
+      </list-item>
+    </list>
+    <p>and using spaces:</p>
+    <list list-type="order">
+      <list-item>
+        <p>One</p>
+      </list-item>
+      <list-item>
+        <p>Two</p>
+      </list-item>
+      <list-item>
+        <p>Three</p>
+      </list-item>
+    </list>
+    <p>Multiple paragraphs:</p>
+    <list list-type="order">
+      <list-item>
+        <p>Item 1, graf one.</p>
+        <p>Item 1. graf two. The quick brown fox jumped over the lazy dog’s
+        back.</p>
+      </list-item>
+      <list-item>
+        <p>Item 2.</p>
+      </list-item>
+      <list-item>
+        <p>Item 3.</p>
+      </list-item>
+    </list>
+  </sec>
+  <sec id="nested">
+    <title>Nested</title>
+    <list list-type="bullet">
+      <list-item>
+        <p>Tab</p>
+        <list list-type="bullet">
+          <list-item>
+            <p>Tab</p>
+            <list list-type="bullet">
+              <list-item>
+                <p>Tab</p>
+              </list-item>
+            </list>
+          </list-item>
+        </list>
+      </list-item>
+    </list>
+    <p>Here’s another:</p>
+    <list list-type="order">
+      <list-item>
+        <p>First</p>
+      </list-item>
+      <list-item>
+        <p>Second:</p>
+        <list list-type="bullet">
+          <list-item>
+            <p>Fee</p>
+          </list-item>
+          <list-item>
+            <p>Fie</p>
+          </list-item>
+          <list-item>
+            <p>Foe</p>
+          </list-item>
+        </list>
+      </list-item>
+      <list-item>
+        <p>Third</p>
+      </list-item>
+    </list>
+    <p>Same thing but with paragraphs:</p>
+    <list list-type="order">
+      <list-item>
+        <p>First</p>
+      </list-item>
+      <list-item>
+        <p>Second:</p>
+        <list list-type="bullet">
+          <list-item>
+            <p>Fee</p>
+          </list-item>
+          <list-item>
+            <p>Fie</p>
+          </list-item>
+          <list-item>
+            <p>Foe</p>
+          </list-item>
+        </list>
+      </list-item>
+      <list-item>
+        <p>Third</p>
+      </list-item>
+    </list>
+  </sec>
+  <sec id="tabs-and-spaces">
+    <title>Tabs and spaces</title>
+    <list list-type="bullet">
+      <list-item>
+        <p>this is a list item indented with tabs</p>
+      </list-item>
+      <list-item>
+        <p>this is a list item indented with spaces</p>
+        <list list-type="bullet">
+          <list-item>
+            <p>this is an example list item indented with tabs</p>
+          </list-item>
+          <list-item>
+            <p>this is an example list item indented with spaces</p>
+          </list-item>
+        </list>
+      </list-item>
+    </list>
+  </sec>
+  <sec id="fancy-list-markers">
+    <title>Fancy list markers</title>
+    <list list-type="order">
+      <list-item>
+        <label>(2)</label>
+        <p>begins with 2</p>
+      </list-item>
+      <list-item>
+        <label>(3)</label>
+        <p>and now 3</p>
+        <p>with a continuation</p>
+        <list list-type="roman-lower">
+          <list-item>
+            <label>iv.</label>
+            <p>sublist with roman numerals, starting with 4</p>
+          </list-item>
+          <list-item>
+            <label>v.</label>
+            <p>more items</p>
+            <list list-type="alpha-upper">
+              <list-item>
+                <label>(A)</label>
+                <p>a subsublist</p>
+              </list-item>
+              <list-item>
+                <label>(B)</label>
+                <p>a subsublist</p>
+              </list-item>
+            </list>
+          </list-item>
+        </list>
+      </list-item>
+    </list>
+    <p>Nesting:</p>
+    <list list-type="alpha-upper">
+      <list-item>
+        <p>Upper Alpha</p>
+        <list list-type="roman-upper">
+          <list-item>
+            <p>Upper Roman.</p>
+            <list list-type="order">
+              <list-item>
+                <label>(6)</label>
+                <p>Decimal start with 6</p>
+                <list list-type="alpha-lower">
+                  <list-item>
+                    <label>c)</label>
+                    <p>Lower alpha with paren</p>
+                  </list-item>
+                </list>
+              </list-item>
+            </list>
+          </list-item>
+        </list>
+      </list-item>
+    </list>
+    <p>Autonumbering:</p>
+    <list list-type="order">
+      <list-item>
+        <p>Autonumber.</p>
+      </list-item>
+      <list-item>
+        <p>More.</p>
+        <list list-type="order">
+          <list-item>
+            <p>Nested.</p>
+          </list-item>
+        </list>
+      </list-item>
+    </list>
+    <p>Should not be a list item:</p>
+    <p>M.A. 2007</p>
+    <p>B. Williams</p>
+  </sec>
+</sec>
+<sec id="definition-lists">
+  <title>Definition Lists</title>
+  <p>Tight using spaces:</p>
+  <def-list>
+    <def-item>
+      <term>apple</term>
+      <def>
+        <p>red fruit</p>
+      </def>
+    </def-item>
+    <def-item>
+      <term>orange</term>
+      <def>
+        <p>orange fruit</p>
+      </def>
+    </def-item>
+    <def-item>
+      <term>banana</term>
+      <def>
+        <p>yellow fruit</p>
+      </def>
+    </def-item>
+  </def-list>
+  <p>Tight using tabs:</p>
+  <def-list>
+    <def-item>
+      <term>apple</term>
+      <def>
+        <p>red fruit</p>
+      </def>
+    </def-item>
+    <def-item>
+      <term>orange</term>
+      <def>
+        <p>orange fruit</p>
+      </def>
+    </def-item>
+    <def-item>
+      <term>banana</term>
+      <def>
+        <p>yellow fruit</p>
+      </def>
+    </def-item>
+  </def-list>
+  <p>Loose:</p>
+  <def-list>
+    <def-item>
+      <term>apple</term>
+      <def>
+        <p>red fruit</p>
+      </def>
+    </def-item>
+    <def-item>
+      <term>orange</term>
+      <def>
+        <p>orange fruit</p>
+      </def>
+    </def-item>
+    <def-item>
+      <term>banana</term>
+      <def>
+        <p>yellow fruit</p>
+      </def>
+    </def-item>
+  </def-list>
+  <p>Multiple blocks with italics:</p>
+  <def-list>
+    <def-item>
+      <term><italic>apple</italic></term>
+      <def>
+        <p>red fruit</p>
+        <p>contains seeds, crisp, pleasant to taste</p>
+      </def>
+    </def-item>
+    <def-item>
+      <term><italic>orange</italic></term>
+      <def>
+        <p>orange fruit</p>
+        <p specific-use="wrapper">
+          <preformat>{ orange code block }</preformat>
+        </p>
+        <p specific-use="wrapper">
+          <disp-quote>
+            <p>orange block quote</p>
+          </disp-quote>
+        </p>
+      </def>
+    </def-item>
+  </def-list>
+  <p>Multiple definitions, tight:</p>
+  <def-list>
+    <def-item>
+      <term>apple</term>
+      <def>
+        <p>red fruit</p>
+        <p>computer</p>
+      </def>
+    </def-item>
+    <def-item>
+      <term>orange</term>
+      <def>
+        <p>orange fruit</p>
+        <p>bank</p>
+      </def>
+    </def-item>
+  </def-list>
+  <p>Multiple definitions, loose:</p>
+  <def-list>
+    <def-item>
+      <term>apple</term>
+      <def>
+        <p>red fruit</p>
+        <p>computer</p>
+      </def>
+    </def-item>
+    <def-item>
+      <term>orange</term>
+      <def>
+        <p>orange fruit</p>
+        <p>bank</p>
+      </def>
+    </def-item>
+  </def-list>
+  <p>Blank line after term, indented marker, alternate markers:</p>
+  <def-list>
+    <def-item>
+      <term>apple</term>
+      <def>
+        <p>red fruit</p>
+        <p>computer</p>
+      </def>
+    </def-item>
+    <def-item>
+      <term>orange</term>
+      <def>
+        <p>orange fruit</p>
+        <p specific-use="wrapper">
+          <list list-type="order">
+            <list-item>
+              <p>sublist</p>
+            </list-item>
+            <list-item>
+              <p>sublist</p>
+            </list-item>
+          </list>
+        </p>
+      </def>
+    </def-item>
+  </def-list>
+</sec>
+<sec id="html-blocks">
+  <title>HTML Blocks</title>
+  <p>Simple block on one line:</p>
+  <boxed-text>
+    <p>foo</p>
+  </boxed-text>
+  <p>And nested without indentation:</p>
+  <boxed-text>
+    <boxed-text>
+      <boxed-text>
+        <p>foo</p>
+      </boxed-text>
+    </boxed-text>
+    <boxed-text>
+      <p>bar</p>
+    </boxed-text>
+  </boxed-text>
+  <p>Interpreted markdown in a table:</p>
+  <p>This is <italic>emphasized</italic></p>
+  <p>And this is <bold>strong</bold></p>
+  <p>Here’s a simple block:</p>
+  <boxed-text>
+    <p>foo</p>
+  </boxed-text>
+  <p>This should be a code block, though:</p>
+  <preformat>&lt;div&gt;
+    foo
+&lt;/div&gt;</preformat>
+  <p>As should this:</p>
+  <preformat>&lt;div&gt;foo&lt;/div&gt;</preformat>
+  <p>Now, nested:</p>
+  <boxed-text>
+    <boxed-text>
+      <boxed-text>
+        <p>foo</p>
+      </boxed-text>
+    </boxed-text>
+  </boxed-text>
+  <p>This should just be an HTML comment:</p>
+  <p>Multiline:</p>
+  <p>Code block:</p>
+  <preformat>&lt;!-- Comment --&gt;</preformat>
+  <p>Just plain comment, with trailing spaces on the line:</p>
+  <p>Code:</p>
+  <preformat>&lt;hr /&gt;</preformat>
+  <p>Hr’s:</p>
+</sec>
+<sec id="inline-markup">
+  <title>Inline Markup</title>
+  <p>This is <italic>emphasized</italic>, and so <italic>is this</italic>.</p>
+  <p>This is <bold>strong</bold>, and so <bold>is this</bold>.</p>
+  <p>An <italic><ext-link ext-link-type="uri" xlink:href="/url">emphasized
+  link</ext-link></italic>.</p>
+  <p><bold><italic>This is strong and em.</italic></bold></p>
+  <p>So is <bold><italic>this</italic></bold> word.</p>
+  <p><bold><italic>This is strong and em.</italic></bold></p>
+  <p>So is <bold><italic>this</italic></bold> word.</p>
+  <p>This is code: <monospace>&gt;</monospace>, <monospace>$</monospace>,
+  <monospace>\</monospace>, <monospace>\$</monospace>,
+  <monospace>&lt;html&gt;</monospace>.</p>
+  <p><strike>This is <italic>strikeout</italic>.</strike></p>
+  <p>Superscripts: a<sup>bc</sup>d a<sup><italic>hello</italic></sup>
+  a<sup>hello there</sup>.</p>
+  <p>Subscripts: H<sub>2</sub>O, H<sub>23</sub>O,
+  H<sub>many of them</sub>O.</p>
+  <p>These should not be superscripts or subscripts, because of the unescaped
+  spaces: a^b c^d, a~b c~d.</p>
+</sec>
+<sec id="smart-quotes-ellipses-dashes">
+  <title>Smart quotes, ellipses, dashes</title>
+  <p>“Hello,” said the spider. “‘Shelob’ is my name.”</p>
+  <p>‘A’, ‘B’, and ‘C’ are letters.</p>
+  <p>‘Oak,’ ‘elm,’ and ‘beech’ are names of trees. So is ‘pine.’</p>
+  <p>‘He said, “I want to go.”’ Were you alive in the 70’s?</p>
+  <p>Here is some quoted ‘<monospace>code</monospace>’ and a
+  “<ext-link ext-link-type="uri" xlink:href="http://example.com/?foo=1&amp;bar=2">quoted
+  link</ext-link>”.</p>
+  <p>Some dashes: one—two — three—four — five.</p>
+  <p>Dashes between numbers: 5–7, 255–66, 1987–1999.</p>
+  <p>Ellipses…and…and….</p>
+</sec>
+<sec id="latex">
+  <title>LaTeX</title>
+  <list list-type="bullet">
+    <list-item>
+      <p></p>
+    </list-item>
+    <list-item>
+      <p><inline-formula><alternatives>
+      <tex-math><![CDATA[2+2=4]]></tex-math>
+      <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mn>2</mml:mn><mml:mo>+</mml:mo><mml:mn>2</mml:mn><mml:mo>=</mml:mo><mml:mn>4</mml:mn></mml:mrow></mml:math></alternatives></inline-formula></p>
+    </list-item>
+    <list-item>
+      <p><inline-formula><alternatives>
+      <tex-math><![CDATA[x \in y]]></tex-math>
+      <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>x</mml:mi><mml:mo>∈</mml:mo><mml:mi>y</mml:mi></mml:mrow></mml:math></alternatives></inline-formula></p>
+    </list-item>
+    <list-item>
+      <p><inline-formula><alternatives>
+      <tex-math><![CDATA[\alpha \wedge \omega]]></tex-math>
+      <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>α</mml:mi><mml:mo>∧</mml:mo><mml:mi>ω</mml:mi></mml:mrow></mml:math></alternatives></inline-formula></p>
+    </list-item>
+    <list-item>
+      <p><inline-formula><alternatives>
+      <tex-math><![CDATA[223]]></tex-math>
+      <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mn>223</mml:mn></mml:math></alternatives></inline-formula></p>
+    </list-item>
+    <list-item>
+      <p><inline-formula><alternatives>
+      <tex-math><![CDATA[p]]></tex-math>
+      <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>p</mml:mi></mml:math></alternatives></inline-formula>-Tree</p>
+    </list-item>
+    <list-item>
+      <p>Here’s some display math: <disp-formula><alternatives>
+      <tex-math><![CDATA[\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}]]></tex-math>
+      <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mfrac><mml:mi>d</mml:mi><mml:mrow><mml:mi>d</mml:mi><mml:mi>x</mml:mi></mml:mrow></mml:mfrac><mml:mi>f</mml:mi><mml:mo stretchy="false" form="prefix">(</mml:mo><mml:mi>x</mml:mi><mml:mo stretchy="false" form="postfix">)</mml:mo><mml:mo>=</mml:mo><mml:munder><mml:mo>lim</mml:mo><mml:mrow><mml:mi>h</mml:mi><mml:mo>→</mml:mo><mml:mn>0</mml:mn></mml:mrow></mml:munder><mml:mfrac><mml:mrow><mml:mi>f</mml:mi><mml:mo stretchy="false" form="prefix">(</mml:mo><mml:mi>x</mml:mi><mml:mo>+</mml:mo><mml:mi>h</mml:mi><mml:mo stretchy="false" form="postfix">)</mml:mo><mml:mo>−</mml:mo><mml:mi>f</mml:mi><mml:mo stretchy="false" form="prefix">(</mml:mo><mml:mi>x</mml:mi><mml:mo stretchy="false" form="postfix">)</mml:mo></mml:mrow><mml:mi>h</mml:mi></mml:mfrac></mml:mrow></mml:math></alternatives></disp-formula></p>
+    </list-item>
+    <list-item>
+      <p>Here’s one that has a line break in it:
+      <inline-formula><alternatives>
+      <tex-math><![CDATA[\alpha + \omega \times x^2]]></tex-math>
+      <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>α</mml:mi><mml:mo>+</mml:mo><mml:mi>ω</mml:mi><mml:mo>×</mml:mo><mml:msup><mml:mi>x</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives></inline-formula>.</p>
+    </list-item>
+  </list>
+  <p>These shouldn’t be math:</p>
+  <list list-type="bullet">
+    <list-item>
+      <p>To get the famous equation, write
+      <monospace>$e = mc^2$</monospace>.</p>
+    </list-item>
+    <list-item>
+      <p>$22,000 is a <italic>lot</italic> of money. So is $34,000. (It worked
+      if “lot” is emphasized.)</p>
+    </list-item>
+    <list-item>
+      <p>Shoes ($20) and socks ($5).</p>
+    </list-item>
+    <list-item>
+      <p>Escaped <monospace>$</monospace>: $73 <italic>this should be
+      emphasized</italic> 23$.</p>
+    </list-item>
+  </list>
+  <p>Here’s a LaTeX table:</p>
+</sec>
+<sec id="special-characters">
+  <title>Special Characters</title>
+  <p>Here is some unicode:</p>
+  <list list-type="bullet">
+    <list-item>
+      <p>I hat: Î</p>
+    </list-item>
+    <list-item>
+      <p>o umlaut: ö</p>
+    </list-item>
+    <list-item>
+      <p>section: §</p>
+    </list-item>
+    <list-item>
+      <p>set membership: ∈</p>
+    </list-item>
+    <list-item>
+      <p>copyright: ©</p>
+    </list-item>
+  </list>
+  <p>AT&amp;T has an ampersand in their name.</p>
+  <p>AT&amp;T is another way to write it.</p>
+  <p>This &amp; that.</p>
+  <p>4 &lt; 5.</p>
+  <p>6 &gt; 5.</p>
+  <p>Backslash: \</p>
+  <p>Backtick: `</p>
+  <p>Asterisk: *</p>
+  <p>Underscore: _</p>
+  <p>Left brace: {</p>
+  <p>Right brace: }</p>
+  <p>Left bracket: [</p>
+  <p>Right bracket: ]</p>
+  <p>Left paren: (</p>
+  <p>Right paren: )</p>
+  <p>Greater-than: &gt;</p>
+  <p>Hash: #</p>
+  <p>Period: .</p>
+  <p>Bang: !</p>
+  <p>Plus: +</p>
+  <p>Minus: -</p>
+</sec>
+<sec id="links">
+  <title>Links</title>
+  <sec id="explicit">
+    <title>Explicit</title>
+    <p>Just a
+    <ext-link ext-link-type="uri" xlink:href="/url/">URL</ext-link>.</p>
+    <p><ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title">URL
+    and title</ext-link>.</p>
+    <p><ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title preceded by two spaces">URL
+    and title</ext-link>.</p>
+    <p><ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title preceded by a tab">URL
+    and title</ext-link>.</p>
+    <p><ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title with &quot;quotes&quot; in it">URL
+    and title</ext-link></p>
+    <p><ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="title with single quotes">URL
+    and title</ext-link></p>
+    <p><ext-link ext-link-type="uri" xlink:href="/url/with_underscore">with_underscore</ext-link></p>
+    <p><ext-link ext-link-type="uri" xlink:href="mailto:nobody@nowhere.net">Email
+    link</ext-link></p>
+    <p><ext-link ext-link-type="uri" xlink:href="">Empty</ext-link>.</p>
+  </sec>
+  <sec id="reference">
+    <title>Reference</title>
+    <p>Foo
+    <ext-link ext-link-type="uri" xlink:href="/url/">bar</ext-link>.</p>
+    <p>With <ext-link ext-link-type="uri" xlink:href="/url/">embedded
+    [brackets]</ext-link>.</p>
+    <p><ext-link ext-link-type="uri" xlink:href="/url/">b</ext-link> by itself
+    should be a link.</p>
+    <p>Indented
+    <ext-link ext-link-type="uri" xlink:href="/url">once</ext-link>.</p>
+    <p>Indented
+    <ext-link ext-link-type="uri" xlink:href="/url">twice</ext-link>.</p>
+    <p>Indented
+    <ext-link ext-link-type="uri" xlink:href="/url">thrice</ext-link>.</p>
+    <p>This should [not][] be a link.</p>
+    <preformat>[not]: /url</preformat>
+    <p>Foo
+    <ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="Title with &quot;quotes&quot; inside">bar</ext-link>.</p>
+    <p>Foo
+    <ext-link ext-link-type="uri" xlink:href="/url/" xlink:title="Title with &quot;quote&quot; inside">biz</ext-link>.</p>
+  </sec>
+  <sec id="with-ampersands">
+    <title>With ampersands</title>
+    <p>Here’s a
+    <ext-link ext-link-type="uri" xlink:href="http://example.com/?foo=1&amp;bar=2">link
+    with an ampersand in the URL</ext-link>.</p>
+    <p>Here’s a link with an amersand in the link text:
+    <ext-link ext-link-type="uri" xlink:href="http://att.com/" xlink:title="AT&amp;T">AT&amp;T</ext-link>.</p>
+    <p>Here’s an
+    <ext-link ext-link-type="uri" xlink:href="/script?foo=1&amp;bar=2">inline
+    link</ext-link>.</p>
+    <p>Here’s an
+    <ext-link ext-link-type="uri" xlink:href="/script?foo=1&amp;bar=2">inline
+    link in pointy braces</ext-link>.</p>
+  </sec>
+  <sec id="autolinks">
+    <title>Autolinks</title>
+    <p>With an ampersand:
+    <ext-link ext-link-type="uri" xlink:href="http://example.com/?foo=1&amp;bar=2">http://example.com/?foo=1&amp;bar=2</ext-link></p>
+    <list list-type="bullet">
+      <list-item>
+        <p>In a list?</p>
+      </list-item>
+      <list-item>
+        <p><ext-link ext-link-type="uri" xlink:href="http://example.com/">http://example.com/</ext-link></p>
+      </list-item>
+      <list-item>
+        <p>It should.</p>
+      </list-item>
+    </list>
+    <p>An e-mail address: <email>nobody@nowhere.net</email></p>
+    <disp-quote>
+      <p>Blockquoted:
+      <ext-link ext-link-type="uri" xlink:href="http://example.com/">http://example.com/</ext-link></p>
+    </disp-quote>
+    <p>Auto-links should not occur here:
+    <monospace>&lt;http://example.com/&gt;</monospace></p>
+    <preformat>or here: &lt;http://example.com/&gt;</preformat>
+  </sec>
+</sec>
+<sec id="images">
+  <title>Images</title>
+  <p>From “Voyage dans la Lune” by Georges Melies (1902):</p>
+  <fig>
+    <caption><p>lalune</p></caption>
+    <graphic mimetype="image" mime-subtype="jpeg" xlink:href="lalune.jpg" xlink:title="Voyage dans la Lune" />
+  </fig>
+  <p>Here is a movie
+  <inline-graphic mimetype="image" mime-subtype="jpeg" xlink:href="movie.jpg" />
+  icon.</p>
+</sec>
+<sec id="footnotes">
+  <title>Footnotes</title>
+  <p>Here is a footnote reference,<xref ref-type="fn" rid="fn1">1</xref> and
+  another.<xref ref-type="fn" rid="fn2">2</xref> This should
+  <italic>not</italic> be a footnote reference, because it contains a
+  space.[^my note] Here is an inline
+  note.<xref ref-type="fn" rid="fn3">3</xref></p>
+  <disp-quote>
+    <p>Notes can go in quotes.<xref ref-type="fn" rid="fn4">4</xref></p>
+  </disp-quote>
+  <list list-type="order">
+    <list-item>
+      <p>And in list items.<xref ref-type="fn" rid="fn5">5</xref></p>
+    </list-item>
+  </list>
+  <p>This paragraph should not be part of the note, as it is not indented.</p>
+</sec>
+</body>
+<back>
+<fn-group>
+  <fn id="fn1">
+    <p>Here is the footnote. It can go anywhere after the footnote reference.
+    It need not be placed at the end of the document.</p>
+  </fn>
+  <fn id="fn2">
+    <p>Here’s the long note. This one contains multiple blocks.</p>
+    <p>Subsequent blocks are indented to show that they belong to the footnote
+    (as with list items).</p>
+    <p specific-use="wrapper">
+      <preformat>  { &lt;code&gt; }</preformat>
+    </p>
+    <p>If you want, you can indent every line, but you can also be lazy and
+    just indent the first line of each block.</p>
+  </fn>
+  <fn id="fn3">
+    <p>This is <italic>easier</italic> to type. Inline notes may contain
+    <ext-link ext-link-type="uri" xlink:href="http://google.com">links</ext-link>
+    and <monospace>]</monospace> verbatim characters, as well as [bracketed
+    text].</p>
+  </fn>
+  <fn id="fn4">
+    <p>In quote.</p>
+  </fn>
+  <fn id="fn5">
+    <p>In list.</p>
+  </fn>
+</fn-group>
+</back>
+</article>

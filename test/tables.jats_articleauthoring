@@ -1,0 +1,226 @@
+<p>Simple table with caption:</p>
+<table-wrap>
+  <caption>
+    <p>Demonstration of simple table syntax.</p>
+  </caption>
+  <table>
+    <col align="right" />
+    <col align="left" />
+    <col align="center" />
+    <col align="left" />
+    <thead>
+      <tr>
+        <th>Right</th>
+        <th>Left</th>
+        <th>Center</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>12</td>
+        <td>12</td>
+        <td>12</td>
+        <td>12</td>
+      </tr>
+      <tr>
+        <td>123</td>
+        <td>123</td>
+        <td>123</td>
+        <td>123</td>
+      </tr>
+      <tr>
+        <td>1</td>
+        <td>1</td>
+        <td>1</td>
+        <td>1</td>
+      </tr>
+    </tbody>
+  </table>
+</table-wrap>
+<p>Simple table without caption:</p>
+<table>
+  <col align="right" />
+  <col align="left" />
+  <col align="center" />
+  <col align="left" />
+  <thead>
+    <tr>
+      <th>Right</th>
+      <th>Left</th>
+      <th>Center</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>12</td>
+      <td>12</td>
+      <td>12</td>
+      <td>12</td>
+    </tr>
+    <tr>
+      <td>123</td>
+      <td>123</td>
+      <td>123</td>
+      <td>123</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+<p>Simple table indented two spaces:</p>
+<table-wrap>
+  <caption>
+    <p>Demonstration of simple table syntax.</p>
+  </caption>
+  <table>
+    <col align="right" />
+    <col align="left" />
+    <col align="center" />
+    <col align="left" />
+    <thead>
+      <tr>
+        <th>Right</th>
+        <th>Left</th>
+        <th>Center</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>12</td>
+        <td>12</td>
+        <td>12</td>
+        <td>12</td>
+      </tr>
+      <tr>
+        <td>123</td>
+        <td>123</td>
+        <td>123</td>
+        <td>123</td>
+      </tr>
+      <tr>
+        <td>1</td>
+        <td>1</td>
+        <td>1</td>
+        <td>1</td>
+      </tr>
+    </tbody>
+  </table>
+</table-wrap>
+<p>Multiline table with caption:</p>
+<table-wrap>
+  <caption>
+    <p>Here’s the caption. It may span multiple lines.</p>
+  </caption>
+  <table>
+    <col width="15*" align="center" />
+    <col width="13*" align="left" />
+    <col width="16*" align="right" />
+    <col width="35*" align="left" />
+    <thead>
+      <tr>
+        <th>Centered Header</th>
+        <th>Left Aligned</th>
+        <th>Right Aligned</th>
+        <th>Default aligned</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>First</td>
+        <td>row</td>
+        <td>12.0</td>
+        <td>Example of a row that spans multiple lines.</td>
+      </tr>
+      <tr>
+        <td>Second</td>
+        <td>row</td>
+        <td>5.0</td>
+        <td>Here’s another one. Note the blank line between rows.</td>
+      </tr>
+    </tbody>
+  </table>
+</table-wrap>
+<p>Multiline table without caption:</p>
+<table>
+  <col width="15*" align="center" />
+  <col width="13*" align="left" />
+  <col width="16*" align="right" />
+  <col width="35*" align="left" />
+  <thead>
+    <tr>
+      <th>Centered Header</th>
+      <th>Left Aligned</th>
+      <th>Right Aligned</th>
+      <th>Default aligned</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>First</td>
+      <td>row</td>
+      <td>12.0</td>
+      <td>Example of a row that spans multiple lines.</td>
+    </tr>
+    <tr>
+      <td>Second</td>
+      <td>row</td>
+      <td>5.0</td>
+      <td>Here’s another one. Note the blank line between rows.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Table without column headers:</p>
+<table>
+  <col align="right" />
+  <col align="left" />
+  <col align="center" />
+  <col align="right" />
+  <tbody>
+    <tr>
+      <td>12</td>
+      <td>12</td>
+      <td>12</td>
+      <td>12</td>
+    </tr>
+    <tr>
+      <td>123</td>
+      <td>123</td>
+      <td>123</td>
+      <td>123</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+<p>Multiline table without column headers:</p>
+<table>
+  <col width="15*" align="center" />
+  <col width="13*" align="left" />
+  <col width="16*" align="right" />
+  <col width="35*" align="left" />
+  <tbody>
+    <tr>
+      <td>First</td>
+      <td>row</td>
+      <td>12.0</td>
+      <td>Example of a row that spans multiple lines.</td>
+    </tr>
+    <tr>
+      <td>Second</td>
+      <td>row</td>
+      <td>5.0</td>
+      <td>Here’s another one. Note the blank line between rows.</td>
+    </tr>
+  </tbody>
+</table>

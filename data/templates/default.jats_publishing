@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+$if(xml-stylesheet)$
+<?xml-stylesheet type="text/xsl" href="$xml-stylesheet$"?>
+$endif$
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v1.2 20190208//EN"
+                  "JATS-publishing1.dtd">
+${ article.jats_publishing() }

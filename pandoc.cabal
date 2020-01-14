@@ -46,7 +46,9 @@ data-files:
                  data/templates/default.html5
                  data/templates/default.docbook4
                  data/templates/default.docbook5
-                 data/templates/default.jats
+                 data/templates/default.jats_archiving
+                 data/templates/default.jats_articleauthoring
+                 data/templates/default.jats_publishing
                  data/templates/default.tei
                  data/templates/default.opendocument
                  data/templates/default.icml
@@ -79,6 +81,7 @@ data-files:
                  data/templates/default.org
                  data/templates/default.epub2
                  data/templates/default.epub3
+                 data/templates/article.jats_publishing
                  -- translations
                  data/translations/*.yaml
                  -- source files for reference.docx
@@ -254,7 +257,9 @@ extra-source-files:
                  test/tables.context
                  test/tables.docbook4
                  test/tables.docbook5
-                 test/tables.jats
+                 test/tables.jats_archiving
+                 test/tables.jats_articleauthoring
+                 test/tables.jats_publishing
                  test/tables.jira
                  test/tables.dokuwiki
                  test/tables.zimwiki
@@ -286,7 +291,9 @@ extra-source-files:
                  test/writer.context
                  test/writer.docbook4
                  test/writer.docbook5
-                 test/writer.jats
+                 test/writer.jats_archiving
+                 test/writer.jats_articleauthoring
+                 test/writer.jats_publishing
                  test/writer.jira
                  test/writer.html4
                  test/writer.html5
