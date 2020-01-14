@@ -43,19 +43,15 @@ import Text.Pandoc.XML
 import Text.TeXMath
 import qualified Text.XML.Light as Xml
 
-data JATSVersion = JATS1_1
-     deriving (Eq, Show)
-
-data JATSState = JATSState
+newtype JATSState = JATSState
   { jatsNotes :: [(Int, Doc Text)] }
 
-type JATS a = StateT JATSState (ReaderT JATSVersion a)
+type JATS a = StateT JATSState a
 
 writeJATS :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeJATS opts d =
-  runReaderT (evalStateT (docToJATS opts d)
-     (JATSState{ jatsNotes = [] }))
-     JATS1_1
+  evalStateT (docToJATS opts d)
+     (JATSState{ jatsNotes = [] })
 
 -- | Convert Pandoc document to string in JATS format.
 docToJATS :: PandocMonad m => WriterOptions -> Pandoc -> JATS m Text
@@ -219,7 +215,7 @@ blockToJATS opts (Div (id',"section":_,kvs) (Header _lvl _ ils : xs)) = do
   return $ inTags True "sec" attribs $
       inTagsSimple "title" title' $$ contents
 -- Bibliography reference:
-blockToJATS opts (Div (T.stripPrefix "ref-" -> Just _,_,_) [Para lst]) = 
+blockToJATS opts (Div (T.stripPrefix "ref-" -> Just _,_,_) [Para lst]) =
   inlinesToJATS opts lst
 blockToJATS opts (Div ("refs",_,_) xs) = do
   contents <- blocksToJATS opts xs
