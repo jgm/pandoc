@@ -23,10 +23,9 @@ import Prelude
 import Control.Applicative ((<|>))
 import Control.Monad.State.Strict
 import Data.Monoid (Any(..))
-import Data.Function (on)
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isSpace,
                   isPunctuation, ord)
-import Data.List (foldl', intersperse, nubBy, groupBy, (\\), uncons)
+import Data.List (foldl', intersperse, nubBy, (\\), uncons)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
 import qualified Data.Map as M
 import Data.Text (Text)
@@ -1481,9 +1480,9 @@ citationsToBiblatex (c:cs)
       groups <- mapM makePrefixPair groupByPrefix 
 
       return $ text cmd <> (mconcat $ concatMap (\(pfx, group) -> 
-                 (brackets pfx):(brackets empty):
-                 map (\cit -> braces $ text $ T.unpack $ citationId cit) 
-                     group) groups)
+                 [(brackets pfx), (brackets empty),
+                 braces (literal (T.intercalate "," $ map citationId group))])
+            groups)
   | otherwise = do
     let cmd = citationsModeToCommand 
     let convertOne Citation { citationId = k
@@ -1495,12 +1494,13 @@ citationsToBiblatex (c:cs)
                     SuppressAuthor -> "\\autocites*"
                     AuthorInText   -> "\\textcites"
                     NormalCitation -> "\\autocites"
-        groupByPrefix = 
-            let pfxs = drop 1 $ scanl (\prev cit -> let pfx = citationPrefix cit in
-                 if null pfx then prev else pfx) [] (c:cs) in
-                 groupBy ((==) `on` snd) (zip (c:cs) pfxs)
-        makePrefixPair group = (, map fst group) <$> 
-                 (inlineListToLaTeX $ join $ snd <$> take 1 group)
+        groupByPrefix = reverse $ 
+            foldl' (\prev cit -> let pfx = citationPrefix cit in
+                if null pfx then join $ 
+                     (\(a, b) -> (a, cit:b):drop 1 prev) <$> take 1 prev
+                     else (pfx, [cit]):prev) [] (c:cs)
+        makePrefixPair group = (, reverse $ snd group) <$> 
+                (inlineListToLaTeX $ fst group)
       
 citationsToBiblatex _ = return empty
 
