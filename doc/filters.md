@@ -171,12 +171,12 @@ and then
     pandoc -f SOURCEFORMAT -t TARGETFORMAT --filter ./behead.hs
 
 (It is also necessary that `pandoc-types` be installed in the
-local package repository: `cabal install pandoc-types` should
-ensure this.)
+local package repository. To do this using cabal-install,
+`cabal v2-update && cabal v2-install --lib pandoc-types`.)
 
 Alternatively, we could compile the filter:
 
-    ghc --make behead.hs
+    ghc -package-env=default --make behead.hs
     pandoc -f SOURCEFORMAT -t TARGETFORMAT --filter ./behead
 
 Note that if the filter is placed in the system PATH, then the initial
