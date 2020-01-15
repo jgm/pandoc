@@ -12,118 +12,118 @@ under the heading for your operating system.
 
 ## Windows
 
-  - There is a package installer at pandoc's [download page].
-    This will install pandoc, replacing older versions, and
-    update your path to include the directory where pandoc's
-    binaries are installed.
+There is a package installer at pandoc's [download page].
+This will install pandoc, replacing older versions, and
+update your path to include the directory where pandoc's
+binaries are installed.
 
-  - If you prefer not to use the msi installer, we also provide
-    a zip file that contains pandoc's binaries and
-    documentation.  Simply unzip this file and move the binaries
-    to a directory of your choice.
+If you prefer not to use the msi installer, we also provide
+a zip file that contains pandoc's binaries and
+documentation.  Simply unzip this file and move the binaries
+to a directory of your choice.
 
-  - Alternatively, you can install pandoc using
-    [Chocolatey](https://chocolatey.org):
+Alternatively, you can install pandoc using
+[Chocolatey](https://chocolatey.org):
 
-        choco install pandoc
+    choco install pandoc
 
-    Chocolatey can also install other software that integrates with Pandoc.
-    For example, to install `rsvg-convert` (from [librsvg], covering formats
-    without SVG support), [Python] (to use Pandoc filters), and
-    [MiKTeX] (to typeset PDFs with [LaTeX]):
+Chocolatey can also install other software that integrates with Pandoc.
+For example, to install `rsvg-convert` (from [librsvg], covering formats
+without SVG support), [Python] (to use Pandoc filters), and
+[MiKTeX] (to typeset PDFs with [LaTeX]):
 
-        choco install rsvg-convert python miktex
+    choco install rsvg-convert python miktex
 
-  - By default, Pandoc creates PDFs using LaTeX.
-    We recommend installing it via [MiKTeX].
+By default, Pandoc creates PDFs using LaTeX.
+We recommend installing it via [MiKTeX].
 
 ## macOS
 
-  - There is a package installer at pandoc's [download page].
-    If you later want to uninstall the package, you can do so
-    by downloading [this script][uninstaller]
-    and running it with `perl uninstall-pandoc.pl`.
+There is a package installer at pandoc's [download page].
+If you later want to uninstall the package, you can do so
+by downloading [this script][uninstaller]
+and running it with `perl uninstall-pandoc.pl`.
 
-  - Alternatively, you can install pandoc using
-    [Homebrew](http://brew.sh):
+Alternatively, you can install pandoc using
+[Homebrew](http://brew.sh):
 
-         brew install pandoc
+     brew install pandoc
 
-    To include pandoc's citation parser:
+To include pandoc's citation parser:
 
-         brew install pandoc-citeproc
+     brew install pandoc-citeproc
 
-    Homebrew can also install other software that integrates with Pandoc.
-    For example, to install [librsvg] (its `rsvg-convert` covers formats
-    without SVG support), [Python] (to use Pandoc filters), and
-    [BasicTeX] (to typeset PDFs with [LaTeX]):
+Homebrew can also install other software that integrates with Pandoc.
+For example, to install [librsvg] (its `rsvg-convert` covers formats
+without SVG support), [Python] (to use Pandoc filters), and
+[BasicTeX] (to typeset PDFs with [LaTeX]):
 
-         brew install librsvg python homebrew/cask/basictex
+     brew install librsvg python homebrew/cask/basictex
 
-    Note: On unsupported versions of macOS (more than three releases old),
-    Homebrew installs from source, which takes additional time and disk space
-    for the `ghc` compiler and dependent Haskell libraries.
+Note: On unsupported versions of macOS (more than three releases old),
+Homebrew installs from source, which takes additional time and disk space
+for the `ghc` compiler and dependent Haskell libraries.
 
-  - We also provide a zip file containing the binaries and man
-    pages, for those who prefer not to use the installer.  Simply
-    unzip the file and move the binaries and man pages to
-    whatever directory you like.
+We also provide a zip file containing the binaries and man
+pages, for those who prefer not to use the installer.  Simply
+unzip the file and move the binaries and man pages to
+whatever directory you like.
 
-  - By default, Pandoc creates PDFs using LaTeX.  Because a full [MacTeX]
-    installation uses four gigabytes of disk space, we recommend
-    [BasicTeX] or [TinyTeX](https://yihui.name/tinytex/)
-    and using the `tlmgr` tool to install additional packages
-    as needed.  If you receive errors warning of fonts not found:
+By default, Pandoc creates PDFs using LaTeX.  Because a full [MacTeX]
+installation uses four gigabytes of disk space, we recommend
+[BasicTeX] or [TinyTeX](https://yihui.name/tinytex/)
+and using the `tlmgr` tool to install additional packages
+as needed.  If you receive errors warning of fonts not found:
 
-        tlmgr install collection-fontsrecommended
+    tlmgr install collection-fontsrecommended
 
 ## Linux
 
-  - Check whether the pandoc version in your package manager is
-    not outdated. Pandoc is in the [Debian], [Ubuntu], [Slackware],
-    [Arch], [Fedora], [NiXOS], [openSUSE], [gentoo] and [Void] repositories.
+Check whether the pandoc version in your package manager is
+not outdated. Pandoc is in the [Debian], [Ubuntu], [Slackware],
+[Arch], [Fedora], [NiXOS], [openSUSE], [gentoo] and [Void] repositories.
 
-  - To get the latest release, we provide a binary package for amd64
-    architecture on the **[download page]**.
+To get the latest release, we provide a binary package for amd64
+architecture on the **[download page]**.
 
-    This provides both `pandoc` and `pandoc-citeproc`.
-    The executables are statically linked and
-    have no dynamic dependencies or dependencies on external
-    data files.  Note:  because of the static
-    linking, the pandoc binary from this package cannot use lua
-    filters that require external lua modules written in C.
+This provides both `pandoc` and `pandoc-citeproc`.
+The executables are statically linked and
+have no dynamic dependencies or dependencies on external
+data files.  Note:  because of the static
+linking, the pandoc binary from this package cannot use lua
+filters that require external lua modules written in C.
 
-    Both a tarball and a deb installer are provided.  To install the deb:
+Both a tarball and a deb installer are provided.  To install the deb:
 
-        sudo dpkg -i $DEB
+    sudo dpkg -i $DEB
 
-    where `$DEB` is the path to the downloaded deb.  This will
-    install the `pandoc` and `pandoc-citeproc` executables and
-    man pages.
+where `$DEB` is the path to the downloaded deb.  This will
+install the `pandoc` and `pandoc-citeproc` executables and
+man pages.
 
-    If you use an RPM-based distro, you may be able to install
-    the deb from our download page using `alien`.
+If you use an RPM-based distro, you may be able to install
+the deb from our download page using `alien`.
 
-    On any distro, you may install from the tarball into `$DEST`
-    (say, `/usr/local/` or `$HOME/.local`) by doing
+On any distro, you may install from the tarball into `$DEST`
+(say, `/usr/local/` or `$HOME/.local`) by doing
 
-        tar xvzf $TGZ --strip-components 1 -C $DEST
+    tar xvzf $TGZ --strip-components 1 -C $DEST
 
-    where `$TGZ` is the path to the downloaded zipped tarball.
-    For Pandoc versions before 2.0, which don't provide
-    a tarball, try instead
+where `$TGZ` is the path to the downloaded zipped tarball.
+For Pandoc versions before 2.0, which don't provide
+a tarball, try instead
 
-        ar p $DEB data.tar.gz | tar xvz --strip-components 2 -C $DEST
+    ar p $DEB data.tar.gz | tar xvz --strip-components 2 -C $DEST
 
-  - You can also install from source, using the
-    instructions below under [Compiling from source].
-    Note that most distros have the Haskell platform in their
-    package repositories.  For example, on Debian/Ubuntu,
-    you can install it with `apt-get install haskell-platform`.
+You can also install from source, using the
+instructions below under [Compiling from source].
+Note that most distros have the Haskell platform in their
+package repositories.  For example, on Debian/Ubuntu,
+you can install it with `apt-get install haskell-platform`.
 
-  - For PDF output, you'll need LaTeX.  We recommend installing
-    [TeX Live](http://www.tug.org/texlive/) via your package
-    manager.  (On Debian/Ubuntu, `apt-get install texlive`.)
+For PDF output, you'll need LaTeX.  We recommend installing
+[TeX Live](http://www.tug.org/texlive/) via your package
+manager.  (On Debian/Ubuntu, `apt-get install texlive`.)
 
 ## Chrome OS
 
@@ -140,7 +140,7 @@ device you are using.
 
 ## BSD
 
-  - Pandoc is in the [NetBSD] and [FreeBSD ports] repositories.
+Pandoc is in the [NetBSD] and [FreeBSD ports] repositories.
 
 ## Docker
 
