@@ -142,6 +142,29 @@ device you are using.
 
   - Pandoc is in the [NetBSD] and [FreeBSD ports] repositories.
 
+## Docker
+
+The official Docker images for pandoc can be found at
+<https://github.com/pandoc/dockerfiles> and at
+[dockerhub](https://hub.docker.com/).
+
+The [pandoc/core](https://hub.docker.com/r/pandoc/core)
+image contains `pandoc` and `pandoc-citeproc`.
+
+The [pandoc/latex](https://hub.docker.com/r/pandoc/latex)
+image also contains the minimal LaTeX installation needed
+to produce PDFs using pandoc.
+
+To run pandoc using Docker, converting `README.md` to `README.pdf`:
+
+    docker run --volume "`pwd`:/data" --user `id -u`:`id -g` pandoc/latex README.md -o README.pdf
+
+## GitHub Actions
+
+Pandoc can be run through
+[GitHub Actions](https://github.com/features/actions).  For some
+examples, see <https://github.com/pandoc/pandoc-action-example>.
+
 ## Compiling from source
 
 If for some reason a binary package is not available for your
