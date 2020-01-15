@@ -136,13 +136,52 @@ Elements without matching functions are left untouched.
 See [module documentation](#module-pandoc) for a list of pandoc
 elements.
 
-## Execution order
+## Filters on element sequences
+
+For some filtering tasks, the it is necessary to know the order
+in which elements occur in the document. It is not enough then to
+inspect a single element at a time.
+
+There are two special function names, which can be used to define
+filters on lists of blocks or lists of inlines.
+
+[`Inlines (inlines)`]{#inlines-filter}
+:   If present in a filter, this function will be called on all
+    lists of inline elements, like the content of a [Para]
+    (paragraph) block, or the description of an [Image]. The
+    `inlines` argument passed to the function will be a [List] of
+    [Inlines] for each call.
+
+[`Blocks (blocks)`]{#blocks-filter}
+:   If present in a filter, this function will be called on all
+    lists of block elements, like the content of a [MetaBlocks]
+    meta element block, on each item of a list, and the main
+    content of the [Pandoc] document. The `blocks` argument
+    passed to the function will be a [List] of [Inlines] for each
+    call.
+
+These filter functions are special in that the result must either
+be nil, in which case the list is left unchanged, or must be a
+list of the correct type, i.e., the same type as the input
+argument. Single elements are **not** allowed as return values,
+as a single element in this context usually hints at a bug.
+
+See ["Remove spaces before normal citations"][Inlines filter
+example] for an example.
+
+This functionality has been added in pandoc 2.9.2.
+
+[Inlines filter example]: #remove-spaces-before-citations
+
+## Execution Order
 
 Element filter functions within a filter set are called in a
 fixed order, skipping any which are not present:
 
   1. functions for [*Inline* elements](#type-inline),
+  2. the [`Inlines`](#inlines-filter) filter function,
   2. functions for [*Block* elements](#type-block) ,
+  2. the [`Blocks`](#inlines-filter) filter function,
   3. the [`Meta`](#type-meta) filter function, and last
   4. the [`Pandoc`](#type-pandoc) filter function.
 
@@ -365,6 +404,34 @@ function Doc (blocks, meta)
     {pandoc.Table(caption, aligns, widths, headers, rows)},
     meta
   )
+end
+```
+
+## Remove spaces before citations
+
+This filter removes all spaces preceding an "author-in-text"
+citation. In Markdown, author-in-text citations (e.g.,
+`@citekey`), must be preceded by a space. If these spaces are
+undesired, they must be removed with a filter.
+
+``` lua
+local function is_space_before_author_in_text(spc, cite)
+  return spc and spc.t == 'Space'
+    and cite and cite.t == 'Cite'
+    -- there must be only a single citation, and it must have
+    -- mode 'AuthorInText'
+    and #cite.citations == 1
+    and cite.citations[1].mode == 'AuthorInText'
+end
+
+function Inlines (inlines)
+  -- Go from end to start to avoid problems with shifting indices.
+  for i = #inlines-1, 1, -1 do
+    if is_space_before_author_in_text(inlines[i], inlines[i+1]) then
+      inlines:remove(i)
+    end
+  end
+  return inlines
 end
 ```
 
@@ -1650,15 +1717,18 @@ Usage:
 [Citation]: #type-citation
 [Citations]: #type-citation
 [CommonState]: #type-commonstate
+[Image]: #type-image
 [Inline]: #type-inline
 [Inlines]: #type-inline
 [List]: #type-list
 [ListAttributes]: #type-listattributes
 [Meta]: #type-meta
+[MetaBlocks]: #type-metablocks
 [MetaValue]: #type-metavalue
 [MetaValues]: #type-metavalue
 [LogMessage]: #type-logmessage
 [Pandoc]: #type-pandoc
+[Para]: #type-para
 [Version]: #type-version
 [`pandoc.utils.equals`]: #pandoc.utils.equals
 

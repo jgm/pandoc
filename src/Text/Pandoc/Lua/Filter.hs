@@ -2,8 +2,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {- |
 Module      : Text.Pandoc.Lua.Filter
-Copyright   : © 2012–2019 John MacFarlane,
-              © 2017-2019 Albert Krewinkel
+Copyright   : © 2012–2020 John MacFarlane,
+              © 2017-2020 Albert Krewinkel
 License     : GNU GPL, version 2 or above
 Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 Stability   : alpha
@@ -13,25 +13,23 @@ Types and functions for running Lua filters.
 module Text.Pandoc.Lua.Filter ( LuaFilterFunction
                               , LuaFilter
                               , runFilterFile
-                              , tryFilter
-                              , runFilterFunction
-                              , walkMWithLuaFilter
                               , walkInlines
                               , walkBlocks
-                              , blockElementNames
-                              , inlineElementNames
                               , module Text.Pandoc.Lua.Walk
                               ) where
 import Prelude
+import Control.Applicative ((<|>))
 import Control.Monad (mplus, (>=>))
 import Control.Monad.Catch (finally)
 import Data.Data (Data, DataType, dataTypeConstrs, dataTypeName, dataTypeOf,
                   showConstr, toConstr, tyconUQname)
 import Data.Foldable (foldrM)
 import Data.Map (Map)
+import Data.Maybe (fromMaybe)
 import Foreign.Lua (Lua, Peekable, Pushable)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.Marshaling ()
+import Text.Pandoc.Lua.Marshaling.List (List (..))
 import Text.Pandoc.Lua.Walk (SingletonsList (..))
 import Text.Pandoc.Walk (Walkable (walkM))
 
@@ -67,7 +65,9 @@ newtype LuaFilter = LuaFilter (Map String LuaFilterFunction)
 
 instance Peekable LuaFilter where
   peek idx = do
-    let constrs = metaFilterName
+    let constrs = listOfInlinesFilterName
+                : listOfBlocksFilterName
+                : metaFilterName
                 : pandocFilterNames
                 ++ blockElementNames
                 ++ inlineElementNames
@@ -109,22 +109,34 @@ elementOrList x = do
          Right res -> [res] <$ Lua.pop 1
          Left _    -> Lua.peekList topOfStack `finally` Lua.pop 1
 
--- | Try running a filter for the given element
-tryFilter :: (Data a, Peekable a, Pushable a)
-          => LuaFilter -> a -> Lua [a]
-tryFilter (LuaFilter fnMap) x =
-  let filterFnName = showConstr (toConstr x)
-      catchAllName = tyconUQname $ dataTypeName (dataTypeOf x)
-  in
-  case Map.lookup filterFnName fnMap `mplus` Map.lookup catchAllName fnMap of
-    Just fn -> runFilterFunction fn x *> elementOrList x
-    Nothing -> return [x]
+-- | Pop and return a value from the stack; if the value at the top of
+-- the stack is @nil@, return the fallback element.
+popOption :: Peekable a => a -> Lua a
+popOption fallback = fromMaybe fallback . Lua.fromOptional <$> Lua.popValue
 
--- | Apply filter on a sequence of AST elements.
+-- | Apply filter on a sequence of AST elements. Both lists and single
+-- value are accepted as filter function return values.
 runOnSequence :: (Data a, Peekable a, Pushable a)
               => LuaFilter -> SingletonsList a -> Lua (SingletonsList a)
-runOnSequence lf (SingletonsList xs) =
-  SingletonsList <$> mconcatMapM (tryFilter lf) xs
+runOnSequence (LuaFilter fnMap) (SingletonsList xs) =
+  SingletonsList <$> mconcatMapM tryFilter xs
+ where
+  tryFilter :: (Data a, Peekable a, Pushable a) => a -> Lua [a]
+  tryFilter x =
+    let filterFnName = showConstr (toConstr x)
+        catchAllName = tyconUQname $ dataTypeName (dataTypeOf x)
+    in case Map.lookup filterFnName fnMap <|> Map.lookup catchAllName fnMap of
+         Just fn -> runFilterFunction fn x *> elementOrList x
+         Nothing -> return [x]
+
+-- | Try filtering the given value without type error corrections on
+-- the return value.
+runOnValue :: (Data a, Peekable a, Pushable a)
+           => String -> LuaFilter -> a -> Lua a
+runOnValue filterFnName (LuaFilter fnMap) x =
+  case Map.lookup filterFnName fnMap of
+    Just fn -> runFilterFunction fn x *> popOption x
+    Nothing -> return x
 
 -- | Push a value to the stack via a lua filter function. The filter function is
 -- called with given element as argument and is expected to return an element.
@@ -138,7 +150,12 @@ runFilterFunction lf x = do
 
 walkMWithLuaFilter :: LuaFilter -> Pandoc -> Lua Pandoc
 walkMWithLuaFilter f =
-  walkInlines f >=> walkBlocks f >=> walkMeta f >=> walkPandoc f
+      walkInlines f
+  >=> walkInlineLists f
+  >=> walkBlocks f
+  >=> walkBlockLists f
+  >=> walkMeta f
+  >=> walkPandoc f
 
 mconcatMapM :: (Monad m) => (a -> m [a]) -> [a] -> m [a]
 mconcatMapM f = fmap mconcat . mapM f
@@ -146,11 +163,22 @@ mconcatMapM f = fmap mconcat . mapM f
 hasOneOf :: LuaFilter -> [String] -> Bool
 hasOneOf (LuaFilter fnMap) = any (\k -> Map.member k fnMap)
 
+contains :: LuaFilter -> String -> Bool
+contains (LuaFilter fnMap) = (`Map.member` fnMap)
+
 walkInlines :: Walkable (SingletonsList Inline) a => LuaFilter -> a -> Lua a
 walkInlines lf =
   let f :: SingletonsList Inline -> Lua (SingletonsList Inline)
       f = runOnSequence lf
   in if lf `hasOneOf` inlineElementNames
+     then walkM f
+     else return
+
+walkInlineLists :: Walkable (List Inline) a => LuaFilter -> a -> Lua a
+walkInlineLists lf =
+  let f :: List Inline -> Lua (List Inline)
+      f = runOnValue listOfInlinesFilterName lf
+  in if lf `contains` listOfInlinesFilterName
      then walkM f
      else return
 
@@ -162,13 +190,18 @@ walkBlocks lf =
      then walkM f
      else return
 
+walkBlockLists :: Walkable (List Block) a => LuaFilter -> a -> Lua a
+walkBlockLists lf =
+  let f :: List Block -> Lua (List Block)
+      f = runOnValue listOfBlocksFilterName lf
+  in if lf `contains` listOfBlocksFilterName
+     then walkM f
+     else return
+
 walkMeta :: LuaFilter -> Pandoc -> Lua Pandoc
-walkMeta (LuaFilter fnMap) =
-  case Map.lookup "Meta" fnMap of
-    Just fn -> walkM (\(Pandoc meta blocks) -> do
-                         meta' <- runFilterFunction fn meta *> singleElement meta
-                         return $ Pandoc meta' blocks)
-    Nothing -> return
+walkMeta lf (Pandoc m bs) = do
+  m' <- runOnValue "Meta" lf m
+  return $ Pandoc m' bs
 
 walkPandoc :: LuaFilter -> Pandoc -> Lua Pandoc
 walkPandoc (LuaFilter fnMap) =
@@ -184,6 +217,12 @@ inlineElementNames = "Inline" : constructorsFor (dataTypeOf (Str mempty))
 
 blockElementNames :: [String]
 blockElementNames = "Block" : constructorsFor (dataTypeOf (Para []))
+
+listOfInlinesFilterName :: String
+listOfInlinesFilterName = "Inlines"
+
+listOfBlocksFilterName :: String
+listOfBlocksFilterName = "Blocks"
 
 metaFilterName :: String
 metaFilterName = "Meta"

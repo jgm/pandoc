@@ -119,6 +119,7 @@ putConstructorsInRegistry = do
   constrsToReg $ Pandoc.Citation mempty mempty mempty Pandoc.AuthorInText 0 0
   putInReg "Attr"  -- used for Attr type alias
   putInReg "ListAttributes"  -- used for ListAttributes type alias
+  putInReg "List"  -- pandoc.List
  where
   constrsToReg :: Data a => a -> Lua ()
   constrsToReg = mapM_ (putInReg . showConstr) . dataTypeConstrs . dataTypeOf
