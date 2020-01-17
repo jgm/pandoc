@@ -40,9 +40,9 @@
             <File Id="pandocEXE" Name="pandoc.exe"
                   Source="$(var.BINPATH)\pandoc.exe" />
             <File Id="pandocCOPYRIGHT" Name="COPYRIGHT.txt"
-                  Source="COPYRIGHT.txt" />
+                  Source="$(var.BINPATH)\COPYRIGHT.txt" />
             <File Id="pandocCOPYING" Name="COPYING.rtf"
-                  Source="COPYING.rtf" />
+                  Source="$(var.BINPATH)\COPYING.rtf" />
           </Component>
 
           <Component Id="CitationSupport"
@@ -58,7 +58,7 @@
           <Component Id="Documentation"
                      Guid="A8D54A76-1A3D-4647-8327-81B69D39D8A3">
             <File Id="pandocMANUAL" Name="Pandoc User's Guide.html"
-                  Source="MANUAL.html" KeyPath="yes">
+                  Source="$(var.BINPATH)\MANUAL.html" KeyPath="yes">
               <Shortcut Id="ApplicationStartMenuShortcut"
                         Directory="ApplicationProgramsFolder"
                         Name="Pandoc User’s Guide" Advertise="yes" />

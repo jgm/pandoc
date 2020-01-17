@@ -53,12 +53,6 @@ jobs:
       run: |
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
           stack build  ${{ matrix.versions.stack_opts }}pandoc pandoc-citeproc
-          @set WINDOWS=%CD%\windows
-          forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C echo @path && echo %%WINDOWS%% && copy @path %%WINDOWS%%"
-          stack exec pandoc -- -s --toc MANUAL.txt -o windows\MANUAL.html
-          stack exec pandoc -- -s COPYING.md -t rtf -o windows\COPYING.rtf
-          copy COPYRIGHT windows\COPYRIGHT.txt
-          cd windows
           for /f "tokens=1-2 delims= " %%a in ('stack exec pandoc -- --version') do (
             @set VERSION=%%b
             goto :next
@@ -69,16 +63,23 @@ jobs:
             exit /b 1
           )
           echo Detected version %VERSION%
+          @set WINDOWS=%CD%\windows
+          @set RELEASE=%WINDOWS%\pandoc-%VERSION%
+          forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C echo @path && echo %%WINDOWS%% && copy @path %%RELEASE%%"
+          stack exec pandoc -- -s --toc MANUAL.txt -o %RELEASE%\MANUAL.html
+          stack exec pandoc -- -s COPYING.md -t rtf -o %RELEASE%\COPYING.rtf
+          copy COPYRIGHT %RELEASE%\COPYRIGHT.txt
+          cd windows
           echo Creating msi...
           dir
           @set WIXBIN="c:\Program Files (x86)\WiX Toolset v3.11\bin"
           @set WORKDIR=%CD%
           echo Running candle...
-          %WIXBIN%\candle -arch ${{ matrix.versions.arch }} -dVERSION=%VERSION% -dBINPATH=%WORKDIR% *.wxs -out wixobj\
+          %WIXBIN%\candle -arch ${{ matrix.versions.arch }} -dVERSION=%VERSION% -dBINPATH=%RELEASE% *.wxs -out wixobj\
           if %errorlevel% neq 0 exit /b %errorlevel%
           echo Running light...
           %WIXBIN%\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out %WORKDIR%\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi wixobj\*.wixobj
-          7z a "pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip" pandoc.exe pandoc-citeproc.exe MANUAL.html COPYING.rtf
+          7z a "pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip" pandoc-%VERSION%
           cd ..
           mkdir windows-release-candidate
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi windows-release-candidate
