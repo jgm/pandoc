@@ -65,6 +65,7 @@ jobs:
           echo Detected version %VERSION%
           @set WINDOWS=%CD%\windows
           @set RELEASE=%WINDOWS%\pandoc-%VERSION%
+          mkdir %RELEASE%
           forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C echo @path && echo %%WINDOWS%% && copy @path %%RELEASE%%"
           stack exec pandoc -- -s --toc MANUAL.txt -o %RELEASE%\MANUAL.html
           stack exec pandoc -- -s COPYING.md -t rtf -o %RELEASE%\COPYING.rtf
