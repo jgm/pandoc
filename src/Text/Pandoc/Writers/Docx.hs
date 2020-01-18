@@ -137,6 +137,7 @@ data WriterState = WriterState{
        , stStyleMaps      :: StyleMaps
        , stFirstPara      :: Bool
        , stInTable        :: Bool
+       , stInList         :: Bool
        , stTocTitle       :: [Inline]
        , stDynamicParaProps :: Set.Set ParaStyleName
        , stDynamicTextProps :: Set.Set CharStyleName
@@ -156,6 +157,7 @@ defaultWriterState = WriterState{
       , stStyleMaps      = StyleMaps M.empty M.empty
       , stFirstPara      = False
       , stInTable        = False
+      , stInList         = False
       , stTocTitle       = [Str "Table of Contents"]
       , stDynamicParaProps = Set.empty
       , stDynamicTextProps = Set.empty
@@ -925,9 +927,12 @@ blockToOpenXML' opts (Header lev (ident,_,_) lst) = do
        return [mknode "w:p" [] (paraProps ++ bookmarkedContents)]
 blockToOpenXML' opts (Plain lst) = do
   isInTable <- gets stInTable
+  isInList <- gets stInList
   let block = blockToOpenXML opts (Para lst)
   prop <- pStyleM "Compact"
-  if isInTable then withParaProp prop block else block
+  if isInTable || isInList
+     then withParaProp prop block
+     else block
 -- title beginning with fig: indicates that the image is a figure
 blockToOpenXML' opts (Para [Image attr alt (src,T.stripPrefix "fig:" -> Just tit)]) = do
   setFirstPara
@@ -1067,9 +1072,12 @@ addList marker = do
 listItemToOpenXML :: (PandocMonad m) => WriterOptions -> Int -> [Block] -> WS m [Element]
 listItemToOpenXML _ _ []                   = return []
 listItemToOpenXML opts numid (first:rest) = do
+  oldInList <- gets stInList
+  modify $ \st -> st{ stInList = True }
   first' <- withNumId numid $ blockToOpenXML opts first
   -- baseListId is the code for no list marker:
   rest'  <- withNumId baseListId $ blocksToOpenXML opts rest
+  modify $ \st -> st{ stInList = oldInList }
   return $ first' ++ rest'
 
 alignmentToString :: Alignment -> [Char]
