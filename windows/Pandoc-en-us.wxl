@@ -3,7 +3,7 @@
   <String Id="Language">1033</String>
   <!-- Supported language and codepage codes can be found here: http://www.tramontana.co.hu/wix/lesson2.php#2.4 -->
   
-  <String Id="LicenseRtf" Overridable="yes">COPYING.rtf</String>
+  <String Id="LicenseRtf" Overridable="yes">$(var.BINPATH)\COPYING.rtf</String>
   
     <String Id="ExitDialogText">[ProductName] was installed in 
 
