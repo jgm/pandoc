@@ -157,7 +157,7 @@ filters on lists of blocks or lists of inlines.
     lists of block elements, like the content of a [MetaBlocks]
     meta element block, on each item of a list, and the main
     content of the [Pandoc] document. The `blocks` argument
-    passed to the function will be a [List] of [Inlines] for each
+    passed to the function will be a [List] of [Blocks] for each
     call.
 
 These filter functions are special in that the result must either
