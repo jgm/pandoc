@@ -68,6 +68,7 @@ jobs:
           forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C echo @path && echo %%WINDOWS%% && copy @path %%RELEASE%%"
           stack exec pandoc -- -s --toc MANUAL.txt -o %RELEASE%\MANUAL.html
           stack exec pandoc -- -s COPYING.md -t rtf -o %RELEASE%\COPYING.rtf
+          copy %RELEASE%\COPYING.rtf %WINDOWS%
           copy COPYRIGHT %RELEASE%\COPYRIGHT.txt
           cd windows
           echo Creating msi...
@@ -78,7 +79,7 @@ jobs:
           %WIXBIN%\candle -arch ${{ matrix.versions.arch }} -dVERSION=%VERSION% -dBINPATH=%RELEASE% *.wxs -out wixobj\
           if %errorlevel% neq 0 exit /b %errorlevel%
           echo Running light...
-          %WIXBIN%\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -dBINPATH=%RELEASE% -out %WORKDIR%\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi wixobj\*.wixobj
+          %WIXBIN%\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out %WORKDIR%\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi wixobj\*.wixobj
           7z a "pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip" pandoc-%VERSION%
           cd ..
           mkdir windows-release-candidate
