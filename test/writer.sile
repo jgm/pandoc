@@ -1,0 +1,758 @@
+This is a set of tests for pandoc. Most of them are adapted from John
+Gruber’s markdown test suite.
+
+\HorizontalRule
+
+\Header[id=headers,level=1,type=section]{Headers}
+
+\Header[id=level-2-with-an-embedded-link,level=2,type=subsection]{Level
+2 with an \href[src=/url]{embedded link}}
+
+\Header[id=level-3-with-emphasis,level=3,type=]{Level 3 with
+\Emph{emphasis}}
+
+\Header[id=level-4,level=4,type=]{Level 4}
+
+\Header[id=level-5,level=5,type=]{Level 5}
+
+\Header[id=level-1,level=1,type=section]{Level 1}
+
+\Header[id=level-2-with-emphasis,level=2,type=subsection]{Level 2 with
+\Emph{emphasis}}
+
+\Header[id=level-3,level=3,type=]{Level 3}
+
+with no blank line
+
+\Header[id=level-2,level=2,type=subsection]{Level 2}
+
+with no blank line
+
+\HorizontalRule
+
+\Header[id=paragraphs,level=1,type=section]{Paragraphs}
+
+Here’s a regular paragraph.
+
+In Markdown 1.0.0 and earlier. Version 8. This line turns into a list
+item. Because a hard-wrapped line in the middle of a paragraph looked
+like a list item.
+
+Here’s one with a bullet. * criminey.
+
+There should be a hard line break\hfill\break
+here.
+
+\HorizontalRule
+
+\Header[id=block-quotes,level=1,type=section]{Block Quotes}
+
+E-mail style:
+
+\begin{BlockQuote}
+This is a block quote. It is pretty short.
+\end{BlockQuote}
+
+\begin{BlockQuote}
+Code in a block quote:
+
+\begin{CodeBlock}
+sub status \{
+    print "working";
+\}
+\end{CodeBlock}
+
+A list:
+
+\begin[numberstyle=arabic,tight=true]{OrderedList}
+\ListItem{item one}
+\ListItem{item two}
+\end{OrderedList}
+
+Nested block quotes:
+
+\begin{BlockQuote}
+nested
+\end{BlockQuote}
+
+\begin{BlockQuote}
+nested
+\end{BlockQuote}
+\end{BlockQuote}
+
+This should not be a block quote: 2 > 1.
+
+And a following paragraph.
+
+\HorizontalRule
+
+\Header[id=code-blocks,level=1,type=section]{Code Blocks}
+
+Code:
+
+\begin{CodeBlock}
+---- (should be four hyphens)
+
+sub status \{
+    print "working";
+\}
+
+this code block is indented by one tab
+\end{CodeBlock}
+
+And:
+
+\begin{CodeBlock}
+    this code block is indented by two tabs
+
+These should not be escaped:  \\$ \\\\ \\> \\[ \\\{
+\end{CodeBlock}
+
+\HorizontalRule
+
+\Header[id=lists,level=1,type=section]{Lists}
+
+\Header[id=unordered,level=2,type=subsection]{Unordered}
+
+Asterisks tight:
+
+\begin{BulletList}
+\ListItem{asterisk 1}
+\ListItem{asterisk 2}
+\ListItem{asterisk 3}
+\end{BulletList}
+
+Asterisks loose:
+
+\begin{BulletList}
+\ListItem{asterisk 1}
+\ListItem{asterisk 2}
+\ListItem{asterisk 3}
+\end{BulletList}
+
+Pluses tight:
+
+\begin{BulletList}
+\ListItem{Plus 1}
+\ListItem{Plus 2}
+\ListItem{Plus 3}
+\end{BulletList}
+
+Pluses loose:
+
+\begin{BulletList}
+\ListItem{Plus 1}
+\ListItem{Plus 2}
+\ListItem{Plus 3}
+\end{BulletList}
+
+Minuses tight:
+
+\begin{BulletList}
+\ListItem{Minus 1}
+\ListItem{Minus 2}
+\ListItem{Minus 3}
+\end{BulletList}
+
+Minuses loose:
+
+\begin{BulletList}
+\ListItem{Minus 1}
+\ListItem{Minus 2}
+\ListItem{Minus 3}
+\end{BulletList}
+
+\Header[id=ordered,level=2,type=subsection]{Ordered}
+
+Tight:
+
+\begin[numberstyle=arabic,tight=true]{OrderedList}
+\ListItem{First}
+\ListItem{Second}
+\ListItem{Third}
+\end{OrderedList}
+
+and:
+
+\begin[numberstyle=arabic,tight=true]{OrderedList}
+\ListItem{One}
+\ListItem{Two}
+\ListItem{Three}
+\end{OrderedList}
+
+Loose using tabs:
+
+\begin[numberstyle=arabic]{OrderedList}
+\ListItem{First}
+\ListItem{Second}
+\ListItem{Third}
+\end{OrderedList}
+
+and using spaces:
+
+\begin[numberstyle=arabic]{OrderedList}
+\ListItem{One}
+\ListItem{Two}
+\ListItem{Three}
+\end{OrderedList}
+
+Multiple paragraphs:
+
+\begin[numberstyle=arabic]{OrderedList}
+\ListItem{Item 1, graf one.
+
+Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.}
+\ListItem{Item 2.}
+\ListItem{Item 3.}
+\end{OrderedList}
+
+\Header[id=nested,level=2,type=subsection]{Nested}
+
+\begin{BulletList}
+\ListItem{Tab
+
+\begin{BulletList}
+\ListItem{Tab
+
+\begin{BulletList}
+\ListItem{Tab}
+\end{BulletList}}
+\end{BulletList}}
+\end{BulletList}
+
+Here’s another:
+
+\begin[numberstyle=arabic,tight=true]{OrderedList}
+\ListItem{First}
+\ListItem{Second:
+
+\begin{BulletList}
+\ListItem{Fee}
+\ListItem{Fie}
+\ListItem{Foe}
+\end{BulletList}}
+\ListItem{Third}
+\end{OrderedList}
+
+Same thing but with paragraphs:
+
+\begin[numberstyle=arabic]{OrderedList}
+\ListItem{First}
+\ListItem{Second:
+
+\begin{BulletList}
+\ListItem{Fee}
+\ListItem{Fie}
+\ListItem{Foe}
+\end{BulletList}}
+\ListItem{Third}
+\end{OrderedList}
+
+\Header[id=tabs-and-spaces,level=2,type=subsection]{Tabs and spaces}
+
+\begin{BulletList}
+\ListItem{this is a list item indented with tabs}
+\ListItem{this is a list item indented with spaces
+
+\begin{BulletList}
+\ListItem{this is an example list item indented with tabs}
+\ListItem{this is an example list item indented with spaces}
+\end{BulletList}}
+\end{BulletList}
+
+\Header[id=fancy-list-markers,level=2,type=subsection]{Fancy list
+markers}
+
+\begin[numberstyle=arabic,start=2]{OrderedList}
+\ListItem{begins with 2}
+\ListItem{and now 3
+
+with a continuation
+
+\begin[numberstyle=roman,start=4,tight=true]{OrderedList}
+\ListItem{sublist with roman numerals, starting with 4}
+\ListItem{more items
+
+\begin[numberstyle=Alpha,tight=true]{OrderedList}
+\ListItem{a subsublist}
+\ListItem{a subsublist}
+\end{OrderedList}}
+\end{OrderedList}}
+\end{OrderedList}
+
+Nesting:
+
+\begin[numberstyle=Alpha,tight=true]{OrderedList}
+\ListItem{Upper Alpha
+
+\begin[numberstyle=Roman,tight=true]{OrderedList}
+\ListItem{Upper Roman.
+
+\begin[numberstyle=arabic,start=6,tight=true]{OrderedList}
+\ListItem{Decimal start with 6
+
+\begin[numberstyle=alpha,start=3,tight=true]{OrderedList}
+\ListItem{Lower alpha with paren}
+\end{OrderedList}}
+\end{OrderedList}}
+\end{OrderedList}}
+\end{OrderedList}
+
+Autonumbering:
+
+\begin[numberstyle=arabic,tight=true]{OrderedList}
+\ListItem{Autonumber.}
+\ListItem{More.
+
+\begin[numberstyle=arabic,tight=true]{OrderedList}
+\ListItem{Nested.}
+\end{OrderedList}}
+\end{OrderedList}
+
+Should not be a list item:
+
+M.A. 2007
+
+B. Williams
+
+\HorizontalRule
+
+\Header[id=definition-lists,level=1,type=section]{Definition Lists}
+
+Tight using spaces:
+
+\begin[tight=true]{DefinitionList}
+\term{apple}
+\definition{red fruit}
+\term{orange}
+\definition{orange fruit}
+\term{banana}
+\definition{yellow fruit}
+\end{DefinitionList}
+
+Tight using tabs:
+
+\begin[tight=true]{DefinitionList}
+\term{apple}
+\definition{red fruit}
+\term{orange}
+\definition{orange fruit}
+\term{banana}
+\definition{yellow fruit}
+\end{DefinitionList}
+
+Loose:
+
+\begin{DefinitionList}
+\term{apple}
+\definition{red fruit}
+\term{orange}
+\definition{orange fruit}
+\term{banana}
+\definition{yellow fruit}
+\end{DefinitionList}
+
+Multiple blocks with italics:
+
+\begin{DefinitionList}
+\term{\Emph{apple}}
+\definition{red fruit
+
+contains seeds, crisp, pleasant to taste}
+\term{\Emph{orange}}
+\definition{orange fruit
+
+\begin{CodeBlock}
+\{ orange code block \}
+\end{CodeBlock}
+
+\begin{BlockQuote}
+orange block quote
+\end{BlockQuote}}
+\end{DefinitionList}
+
+Multiple definitions, tight:
+
+\begin[tight=true]{DefinitionList}
+\term{apple}
+\definition{red fruit
+
+computer}
+\term{orange}
+\definition{orange fruit
+
+bank}
+\end{DefinitionList}
+
+Multiple definitions, loose:
+
+\begin{DefinitionList}
+\term{apple}
+\definition{red fruit
+
+computer}
+\term{orange}
+\definition{orange fruit
+
+bank}
+\end{DefinitionList}
+
+Blank line after term, indented marker, alternate markers:
+
+\begin{DefinitionList}
+\term{apple}
+\definition{red fruit
+
+computer}
+\term{orange}
+\definition{orange fruit
+
+\begin[numberstyle=arabic,tight=true]{OrderedList}
+\ListItem{sublist}
+\ListItem{sublist}
+\end{OrderedList}}
+\end{DefinitionList}
+
+\Header[id=html-blocks,level=1,type=section]{HTML Blocks}
+
+Simple block on one line:
+
+\begin{Div}
+foo
+\end{Div}
+
+And nested without indentation:
+
+\begin{Div}
+\begin{Div}
+\begin{Div}
+foo
+\end{Div}
+\end{Div}
+
+\begin{Div}
+bar
+\end{Div}
+\end{Div}
+
+Interpreted markdown in a table:
+
+This is \Emph{emphasized}
+
+And this is \Strong{strong}
+
+Here’s a simple block:
+
+\begin{Div}
+foo
+\end{Div}
+
+This should be a code block, though:
+
+\begin{CodeBlock}
+<div>
+    foo
+</div>
+\end{CodeBlock}
+
+As should this:
+
+\begin{CodeBlock}
+<div>foo</div>
+\end{CodeBlock}
+
+Now, nested:
+
+\begin{Div}
+\begin{Div}
+\begin{Div}
+foo
+\end{Div}
+\end{Div}
+\end{Div}
+
+This should just be an HTML comment:
+
+Multiline:
+
+Code block:
+
+\begin{CodeBlock}
+<!-- Comment -->
+\end{CodeBlock}
+
+Just plain comment, with trailing spaces on the line:
+
+Code:
+
+\begin{CodeBlock}
+<hr />
+\end{CodeBlock}
+
+Hr’s:
+
+\HorizontalRule
+
+\Header[id=inline-markup,level=1,type=section]{Inline Markup}
+
+This is \Emph{emphasized}, and so \Emph{is this}.
+
+This is \Strong{strong}, and so \Strong{is this}.
+
+An \Emph{\href[src=/url]{emphasized link}}.
+
+\Strong{\Emph{This is strong and em.}}
+
+So is \Strong{\Emph{this}} word.
+
+\Strong{\Emph{This is strong and em.}}
+
+So is \Strong{\Emph{this}} word.
+
+This is code: \code{>}, \code{$}, \code{\\}, \code{\\$}, \code{<html>}.
+
+\Strikeout{This is \Emph{strikeout}.}
+
+Superscripts: a\Superscript{bc}d a\Superscript{\Emph{hello}}
+a\Superscript{hello there}.
+
+Subscripts: H\textsubscript{2}O, H\textsubscript{23}O,
+H\textsubscript{many of them}O.
+
+These should not be superscripts or subscripts, because of the unescaped
+spaces: a^b c^d, a~b c~d.
+
+\HorizontalRule
+
+\Header[id=smart-quotes-ellipses-dashes,level=1,type=section]{Smart
+quotes, ellipses, dashes}
+
+“Hello,” said the spider. “‘Shelob’ is my name.”
+
+‘A’, ‘B’, and ‘C’ are letters.
+
+‘Oak,’ ‘elm,’ and ‘beech’ are names of trees. So is ‘pine.’
+
+‘He said, “I want to go.”’ Were you alive in the 70’s?
+
+Here is some quoted ‘\code{code}’ and a
+“\href[src=http://example.com/?foo=1&bar=2]{quoted link}”.
+
+Some dashes: one—two — three—four — five.
+
+Dashes between numbers: 5–7, 255–66, 1987–1999.
+
+Ellipses…and…and….
+
+\HorizontalRule
+
+\Header[id=latex,level=1,type=section]{LaTeX}
+
+\begin{BulletList}
+\ListItem{\cite[22-23]{smith.1899}}
+\ListItem{\Math{2+2=4}}
+\ListItem{\Math{x \\in y}}
+\ListItem{\Math{\\alpha \\wedge \\omega}}
+\ListItem{\Math{223}}
+\ListItem{\Math{p}-Tree}
+\ListItem{Here’s some display math:
+\Math{\\frac\{d\}\{dx\}f(x)=\\lim_\{h\\to 0\}\\frac\{f(x+h)-f(x)\}\{h\}}}
+\ListItem{Here’s one that has a line break in it:
+\Math{\\alpha + \\omega \\times x^2}.}
+\end{BulletList}
+
+These shouldn’t be math:
+
+\begin{BulletList}
+\ListItem{To get the famous equation, write \code{$e = mc^2$}.}
+\ListItem{$22,000 is a \Emph{lot} of money. So is $34,000. (It worked if
+“lot” is emphasized.)}
+\ListItem{Shoes ($20) and socks ($5).}
+\ListItem{Escaped \code{$}: $73 \Emph{this should be emphasized} 23$.}
+\end{BulletList}
+
+Here’s a LaTeX table:
+
+\HorizontalRule
+
+\Header[id=special-characters,level=1,type=section]{Special Characters}
+
+Here is some unicode:
+
+\begin{BulletList}
+\ListItem{I hat: Î}
+\ListItem{o umlaut: ö}
+\ListItem{section: §}
+\ListItem{set membership: ∈}
+\ListItem{copyright: ©}
+\end{BulletList}
+
+AT&T has an ampersand in their name.
+
+AT&T is another way to write it.
+
+This & that.
+
+4 < 5.
+
+6 > 5.
+
+Backslash: \\
+
+Backtick: `
+
+Asterisk: *
+
+Underscore: _
+
+Left brace: \{
+
+Right brace: \}
+
+Left bracket: [
+
+Right bracket: ]
+
+Left paren: (
+
+Right paren: )
+
+Greater-than: >
+
+Hash: #
+
+Period: .
+
+Bang: !
+
+Plus: +
+
+Minus: -
+
+\HorizontalRule
+
+\Header[id=links,level=1,type=section]{Links}
+
+\Header[id=explicit,level=2,type=subsection]{Explicit}
+
+Just a \href[src=/url/]{URL}.
+
+\href[src=/url/]{URL and title}.
+
+\href[src=/url/]{URL and title}.
+
+\href[src=/url/]{URL and title}.
+
+\href[src=/url/]{URL and title}
+
+\href[src=/url/]{URL and title}
+
+\href[src=/url/with_underscore]{with_underscore}
+
+\href[src=mailto:nobody@nowhere.net]{Email link}
+
+\href[src=]{Empty}.
+
+\Header[id=reference,level=2,type=subsection]{Reference}
+
+Foo \href[src=/url/]{bar}.
+
+With \href[src=/url/]{embedded [brackets]}.
+
+\href[src=/url/]{b} by itself should be a link.
+
+Indented \href[src=/url]{once}.
+
+Indented \href[src=/url]{twice}.
+
+Indented \href[src=/url]{thrice}.
+
+This should [not][] be a link.
+
+\begin{CodeBlock}
+[not]: /url
+\end{CodeBlock}
+
+Foo \href[src=/url/]{bar}.
+
+Foo \href[src=/url/]{biz}.
+
+\Header[id=with-ampersands,level=2,type=subsection]{With ampersands}
+
+Here’s a \href[src=http://example.com/?foo=1&bar=2]{link with an
+ampersand in the URL}.
+
+Here’s a link with an amersand in the link text:
+\href[src=http://att.com/]{AT&T}.
+
+Here’s an \href[src=/script?foo=1&bar=2]{inline link}.
+
+Here’s an \href[src=/script?foo=1&bar=2]{inline link in pointy braces}.
+
+\Header[id=autolinks,level=2,type=subsection]{Autolinks}
+
+With an ampersand:
+\href[classes="uri",src=http://example.com/?foo=1&bar=2]{http://example.com/?foo=1&bar=2}
+
+\begin{BulletList}
+\ListItem{In a list?}
+\ListItem{\href[classes="uri",src=http://example.com/]{http://example.com/}}
+\ListItem{It should.}
+\end{BulletList}
+
+An e-mail address:
+\href[classes="email",src=mailto:nobody@nowhere.net]{nobody@nowhere.net}
+
+\begin{BlockQuote}
+Blockquoted:
+\href[classes="uri",src=http://example.com/]{http://example.com/}
+\end{BlockQuote}
+
+Auto-links should not occur here: \code{<http://example.com/>}
+
+\begin{CodeBlock}
+or here: <http://example.com/>
+\end{CodeBlock}
+
+\HorizontalRule
+
+\Header[id=images,level=1,type=section]{Images}
+
+From “Voyage dans la Lune” by Georges Melies (1902):
+
+\img[src=lalune.jpg,title=fig:Voyage dans la Lune]{lalune}
+
+Here is a movie \img[src=movie.jpg]{movie} icon.
+
+\HorizontalRule
+
+\Header[id=footnotes,level=1,type=section]{Footnotes}
+
+Here is a footnote reference,\footnote{Here is the footnote. It can go
+  anywhere after the footnote reference. It need not be placed at the
+  end of the document.} and another.\footnote{Here’s the long note. This
+  one contains multiple blocks.
+
+  Subsequent blocks are indented to show that they belong to the
+  footnote (as with list items).
+
+  \begin{CodeBlock}
+    \{ <code> \}
+  \end{CodeBlock}
+
+  If you want, you can indent every line, but you can also be lazy and
+  just indent the first line of each block.} This should \Emph{not} be a
+footnote reference, because it contains a space.[^my note] Here is an
+inline note.\footnote{This is \Emph{easier} to type. Inline notes may
+  contain \href[src=http://google.com]{links} and \code{]} verbatim
+  characters, as well as [bracketed text].}
+
+\begin{BlockQuote}
+Notes can go in quotes.\footnote{In quote.}
+\end{BlockQuote}
+
+\begin[numberstyle=arabic,tight=true]{OrderedList}
+\ListItem{And in list items.\footnote{In list.}}
+\end{OrderedList}
+
+This paragraph should not be part of the note, as it is not indented.
