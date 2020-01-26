@@ -1465,8 +1465,7 @@ citationsToBiblatex
                   NormalCitation -> "autocite"
 
 citationsToBiblatex (c:cs)
-  | all (\cit -> null (citationPrefix cit) && null (citationSuffix cit)) 
-    (c:cs)
+  | all (\cit -> null (citationPrefix cit) && null (citationSuffix cit)) (c:cs)
     = do
       let cmd = case citationMode c of
                     SuppressAuthor -> "\\autocite*"
@@ -1474,34 +1473,37 @@ citationsToBiblatex (c:cs)
                     NormalCitation -> "\\autocite"
       return $ text cmd <>
                braces (literal (T.intercalate "," (map citationId (c:cs))))
-  | all (\cit -> null (citationSuffix cit)) (c:cs) 
+  | otherwise 
     = do  
-      let cmd = citationsModeToCommand  
-      groups <- mapM makePrefixPair groupByPrefix 
-
-      return $ text cmd <> (mconcat $ concatMap (\(pfx, group) -> 
-                 [(brackets pfx), (brackets empty),
-                 braces (literal (T.intercalate "," $ map citationId group))])
-            groups)
-  | otherwise = do
-    let cmd = citationsModeToCommand 
-    let convertOne Citation { citationId = k
-                            , citationPrefix = p
-                            , citationSuffix = s } = citeArguments p s k
-    args <- mapM convertOne (c:cs)
-    return $ text cmd <> foldl' (<>) empty args
-  where citationsModeToCommand = case citationMode c of
+      let cmd = case citationMode c of
                     SuppressAuthor -> "\\autocites*"
                     AuthorInText   -> "\\textcites"
                     NormalCitation -> "\\autocites"
-        groupByPrefix = reverse $ 
-            foldl' (\prev cit -> let pfx = citationPrefix cit in
-                if null pfx then join $ 
-                     (\(a, b) -> (a, cit:b):drop 1 prev) <$> take 1 prev
-                     else (pfx, [cit]):prev) [] (c:cs)
-        makePrefixPair group = (, reverse $ snd group) <$> 
-                (inlineListToLaTeX $ fst group)
-      
+
+      groupsNoEmptySuffix <- mapM makePrefixes $ reverse $
+                    foldl' grouper [([[]], [])] (c:cs)
+
+      let groups = cleanFirstGroup $ (map (\(pfxs, cits) -> 
+                (if length pfxs < 2 then (pfxs ++ [empty], cits) else (pfxs, cits)))
+                    groupsNoEmptySuffix)
+
+      return $ text cmd <> (mconcat $ concatMap (\(pfxs, group) -> 
+                 (map brackets pfxs) ++ [braces (literal (T.intercalate "," $ 
+                    map citationId group))]) groups)
+
+  where grouper prev cit  
+            | null pfx = (\(a, b) -> (if null sfx then a else sfx:a,cit:b):
+                    drop 1 prev) =<< take 1 prev
+            | otherwise = ([pfx], [cit]):prev
+            where pfx = citationPrefix cit
+                  sfx = citationSuffix cit
+        makePrefixes group = (, reverse $ snd group) <$> 
+                    (mapM inlineListToLaTeX $ reverse $ fst group)
+        cleanFirstGroup groups 
+            | not $ null (snd =<< take 1 groups) = 
+                    ((\(a,b) -> (tail a, b)) <$> take 1 groups) ++ drop 1 groups
+            | otherwise = drop 1 groups
+        
 citationsToBiblatex _ = return empty
 
 -- Determine listings language from list of class attributes.
