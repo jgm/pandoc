@@ -850,6 +850,7 @@ test-suite test-pandoc
                   Tests.Writers.LaTeX
                   Tests.Writers.Docx
                   Tests.Writers.RST
+                  Tests.Writers.SILE
                   Tests.Writers.TEI
                   Tests.Writers.Markua
                   Tests.Writers.Muse
