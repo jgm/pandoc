@@ -106,7 +106,7 @@ RTF, OPML, DocBook, and Texinfo), information about
 the character encoding is included in the document header, which
 will only be included if you use the `-s/--standalone` option.
 
-[`iconv`]: http://www.gnu.org/software/libiconv/
+[`iconv`]: https://www.gnu.org/software/libiconv/
 
 ## Creating a PDF
 
@@ -161,7 +161,7 @@ better line breaks in URLs), [`bookmark`] (for better PDF
 bookmarks), and [`footnotehyper`] or [`footnote`] (to allow
 footnotes in tables).
 
-[TeX Live]: http://www.tug.org/texlive/
+[TeX Live]: https://www.tug.org/texlive/
 [`amsfonts`]: https://ctan.org/pkg/amsfonts
 [`amsmath`]: https://ctan.org/pkg/amsmath
 [`babel`]: https://ctan.org/pkg/babel
@@ -195,7 +195,7 @@ footnotes in tables).
 [`ulem`]: https://ctan.org/pkg/ulem
 [`unicode-math`]: https://ctan.org/pkg/unicode-math
 [`upquote`]: https://ctan.org/pkg/upquote
-[`weasyprint`]: http://weasyprint.org
+[`weasyprint`]: https://weasyprint.org
 [`wkhtmltopdf`]: https://wkhtmltopdf.org
 [`xcolor`]: https://ctan.org/pkg/xcolor
 [`xecjk`]: https://ctan.org/pkg/xecjk
@@ -205,16 +205,16 @@ footnotes in tables).
 
 ## Reading from the Web
 
-Instead of an input file, an absolute URI may be given.  In this case
+Instead of an input file, an absolute URI may be given. In this case
 pandoc will fetch the content using HTTP:
 
-    pandoc -f html -t markdown http://www.fsf.org
+    pandoc -f html -t markdown https://www.fsf.org
 
 It is possible to supply a custom User-Agent string or other
 header when requesting a document from a URL:
 
     pandoc -f html -t markdown --request-header User-Agent:"Mozilla/5.0" \
-      http://www.fsf.org
+      https://www.fsf.org
 
 # Options
 
@@ -432,55 +432,55 @@ header when requesting a document from a URL:
 
 :   Show usage message.
 
-[Markdown]: http://daringfireball.net/projects/markdown/
-[CommonMark]: http://commonmark.org
+[Markdown]: https://daringfireball.net/projects/markdown/
+[CommonMark]: https://commonmark.org
 [PHP Markdown Extra]: https://michelf.ca/projects/php-markdown/extra/
 [GitHub-Flavored Markdown]: https://help.github.com/articles/github-flavored-markdown/
-[MultiMarkdown]: http://fletcherpenney.net/multimarkdown/
-[reStructuredText]: http://docutils.sourceforge.net/docs/ref/rst/introduction.html
-[S5]: http://meyerweb.com/eric/tools/s5/
-[Slidy]: http://www.w3.org/Talks/Tools/Slidy/
-[Slideous]: http://goessner.net/articles/slideous/
-[HTML]: http://www.w3.org/html/
-[HTML5]: http://www.w3.org/TR/html5/
+[MultiMarkdown]: https://fletcherpenney.net/multimarkdown/
+[reStructuredText]: https://docutils.sourceforge.io/docs/ref/rst/introduction.html
+[S5]: https://meyerweb.com/eric/tools/s5/
+[Slidy]: https://www.w3.org/Talks/Tools/Slidy2/
+[Slideous]: https://goessner.net/articles/slideous/
+[HTML]: https://www.w3.org/html/
+[HTML5]: https://html.spec.whatwg.org/
 [polyglot markup]: https://www.w3.org/TR/html-polyglot/
-[XHTML]: http://www.w3.org/TR/xhtml1/
-[LaTeX]: http://latex-project.org
+[XHTML]: https://www.w3.org/TR/xhtml1/
+[LaTeX]: https://www.latex-project.org/
 [`beamer`]: https://ctan.org/pkg/beamer
 [Beamer User's Guide]: http://mirrors.ctan.org/macros/latex/contrib/beamer/doc/beameruserguide.pdf
-[ConTeXt]: http://www.contextgarden.net/
-[Rich Text Format]: http://en.wikipedia.org/wiki/Rich_Text_Format
-[DocBook]: http://docbook.org
+[ConTeXt]: https://www.contextgarden.net/
+[Rich Text Format]: https://en.wikipedia.org/wiki/Rich_Text_Format
+[DocBook]: https://docbook.org
 [JATS]: https://jats.nlm.nih.gov
 [Jira]: https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all
-[txt2tags]: http://txt2tags.org
+[txt2tags]: https://txt2tags.org
 [EPUB]: http://idpf.org/epub
 [OPML]: http://dev.opml.org/spec2.html
 [OpenDocument]: http://opendocument.xml.org
-[ODT]: http://en.wikipedia.org/wiki/OpenDocument
-[Textile]: http://redcloth.org/textile
+[ODT]: https://en.wikipedia.org/wiki/OpenDocument
+[Textile]: https://www.promptworks.com/textile
 [MediaWiki markup]: https://www.mediawiki.org/wiki/Help:Formatting
 [DokuWiki markup]: https://www.dokuwiki.org/dokuwiki
-[ZimWiki markup]: http://zim-wiki.org/manual/Help/Wiki_Syntax.html
+[ZimWiki markup]: https://zim-wiki.org/manual/Help/Wiki_Syntax.html
 [XWiki markup]: https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/
-[TWiki markup]: http://twiki.org/cgi-bin/view/TWiki/TextFormattingRules
+[TWiki markup]: https://twiki.org/cgi-bin/view/TWiki/TextFormattingRules
 [TikiWiki markup]: https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax
 [Haddock markup]: https://www.haskell.org/haddock/doc/html/ch03s08.html
 [Creole 1.0]: http://www.wikicreole.org/wiki/Creole1.0
-[roff man]: http://man7.org/linux/man-pages/man7/groff_man.7.html
-[roff ms]: http://man7.org/linux/man-pages/man7/groff_ms.7.html
+[roff man]: https://man.cx/groff_man(7)
+[roff ms]: https://man.cx/groff_ms(7)
 [Haskell]: https://www.haskell.org
-[GNU Texinfo]: http://www.gnu.org/software/texinfo/
-[Emacs Org mode]: http://orgmode.org
-[AsciiDoc]: http://www.methods.co.nz/asciidoc/
+[GNU Texinfo]: https://www.gnu.org/software/texinfo/
+[Emacs Org mode]: https://orgmode.org
+[AsciiDoc]: https://www.methods.co.nz/asciidoc/
 [AsciiDoctor]: https://asciidoctor.org/
 [DZSlides]: http://paulrouget.com/dzslides/
 [Word docx]: https://en.wikipedia.org/wiki/Office_Open_XML
 [PDF]: https://www.adobe.com/pdf/
-[reveal.js]: http://lab.hakim.se/reveal-js/
+[reveal.js]: https://revealjs.com/
 [FictionBook2]: http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1
 [Jupyter notebook]: https://nbformat.readthedocs.io/en/latest/
-[InDesign ICML]: http://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf
+[InDesign ICML]: https://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf
 [TEI Simple]: https://github.com/TEIC/TEI-Simple
 [Muse]: https://amusewiki.org/library/manual
 [PowerPoint]: https://en.wikipedia.org/wiki/Microsoft_PowerPoint
@@ -1270,8 +1270,8 @@ header when requesting a document from a URL:
     auxiliary files, use `--pdf-engine-opt=-outdir=foo`.
     Note that no check for duplicate options is done.
 
-[Dublin Core elements]: http://dublincore.org/documents/dces/
-[ISO 8601 format]: http://www.w3.org/TR/NOTE-datetime
+[Dublin Core elements]: https://www.dublincore.org/specifications/dublin-core/dces/
+[ISO 8601 format]: https://www.w3.org/TR/NOTE-datetime
 [Encoding issue with the listings package]:
   https://en.wikibooks.org/wiki/LaTeX/Source_Code_Listings#Encoding_issue
 
@@ -1369,10 +1369,10 @@ of the following options.
         gladtex -d myfile-images myfile.htex
         # produces myfile.html and images in myfile-images
 
-[MathML]: http://www.w3.org/Math/
+[MathML]: https://www.w3.org/Math/
 [MathJax]: https://www.mathjax.org
 [KaTeX]: https://github.com/Khan/KaTeX
-[GladTeX]: http://humenda.github.io/GladTeX/
+[GladTeX]: https://humenda.github.io/GladTeX/
 
 ## Options for wrapper scripts {.options}
 
@@ -2100,7 +2100,7 @@ ODT or pptx.
     is fully supported (use `--pdf-engine=xelatex`).
 
 [BCP 47]: https://tools.ietf.org/html/bcp47
-[Unicode Bidirectional Algorithm]: http://www.w3.org/International/articles/inline-bidi-markup/uba-basics
+[Unicode Bidirectional Algorithm]: https://www.w3.org/International/articles/inline-bidi-markup/uba-basics
 [Language subtag lookup]: https://r12a.github.io/app-subtags/
 
 ### Variables for HTML math
@@ -2367,7 +2367,7 @@ These variables function when using BibLaTeX for [citation rendering].
 :   list of options for natbib
 
 [KOMA-Script]: https://ctan.org/pkg/koma-script
-[LaTeX Font Catalogue]: http://www.tug.dk/FontCatalogue/
+[LaTeX Font Catalogue]: https://tug.org/FontCatalogue/
 [LaTeX font encodings guide]: https://ctan.org/pkg/encguide
 [TeX Gyre]: http://www.gust.org.pl/projects/e-foundry/tex-gyre
 [`article`]: https://ctan.org/pkg/article
@@ -2888,8 +2888,8 @@ in `org` input.
 #### Extension: `ntb` ####
 
 In the `context` output format this enables the use of [Natural Tables
-(TABLE)](http://wiki.contextgarden.net/TABLE) instead of the default
-[Extreme Tables (xtables)](http://wiki.contextgarden.net/xtables).
+(TABLE)](https://wiki.contextgarden.net/TABLE) instead of the default
+[Extreme Tables (xtables)](https://wiki.contextgarden.net/xtables).
 Natural tables allow more fine-grained global customization but come
 at a performance penalty compared to extreme tables.
 
@@ -2912,7 +2912,7 @@ easy to read:
 > A Markdown-formatted document should be publishable as-is, as plain
 > text, without looking like it's been marked up with tags or formatting
 > instructions.
-> -- [John Gruber](http://daringfireball.net/projects/markdown/syntax#philosophy)
+> -- [John Gruber](https://daringfireball.net/projects/markdown/syntax#philosophy)
 
 This principle has guided pandoc's decisions in finding syntax for
 tables, footnotes, and other extensions.
@@ -3491,7 +3491,7 @@ Note that space between items in a definition list is required.
 hard wrapping, can be activated with `compact_definition_lists`: see
 [Non-pandoc extensions], below.)
 
-[^3]:  I have been influenced by the suggestions of [David Wheeler](http://www.justatheory.com/computers/markup/modest-markdown-proposal.html).
+[^3]:  I have been influenced by the suggestions of [David Wheeler](https://justatheory.com/2009/02/modest-markdown-proposal/).
 
 ### Numbered example lists ###
 
@@ -3755,7 +3755,7 @@ and the same number of rows in each column.  For example, the
 Docutils [sample grid tables] will not render as expected with
 Pandoc.
 
-[sample grid tables]: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#grid-tables
+[sample grid tables]: https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#grid-tables
 
 
 #### Extension: `pipe_tables` ####
@@ -4205,7 +4205,7 @@ HTML, Slidy, DZSlides, S5, EPUB
     command-line options selected. Therefore see [Math rendering in HTML]
     above.
 
-[interpreted text role `:math:`]: http://docutils.sourceforge.net/docs/ref/rst/roles.html#math
+[interpreted text role `:math:`]: https://docutils.sourceforge.io/docs/ref/rst/roles.html#math
 
 ## Raw HTML
 
@@ -4245,7 +4245,7 @@ Thus, for example, pandoc will turn
     <table>
     <tr>
     <td>*one*</td>
-    <td>[a link](http://google.com)</td>
+    <td>[a link](https://google.com)</td>
     </tr>
     </table>
 
@@ -4254,7 +4254,7 @@ into
     <table>
     <tr>
     <td><em>one</em></td>
-    <td><a href="http://google.com">a link</a></td>
+    <td><a href="https://google.com">a link</a></td>
     </tr>
     </table>
 
@@ -4389,7 +4389,7 @@ Markdown allows links to be specified in several ways.
 If you enclose a URL or email address in pointy brackets, it
 will become a link:
 
-    <http://google.com>
+    <https://google.com>
     <sam@green.eggs.ham>
 
 ### Inline links ###
@@ -4399,7 +4399,7 @@ followed by the URL in parentheses. (Optionally, the URL can
 be followed by a link title, in quotes.)
 
     This is an [inline link](/url), and here's [one with
-    a title](http://fsf.org "click here for a good time!").
+    a title](https://fsf.org "click here for a good time!").
 
 There can be no space between the bracketed part and the parenthesized part.
 The link text can contain formatting (such as emphasis), but the title cannot.
@@ -4428,7 +4428,7 @@ Here are some examples:
 
     [my label 1]: /foo/bar.html  "My title, optional"
     [my label 2]: /foo
-    [my label 3]: http://fsf.org (The free software foundation)
+    [my label 3]: https://fsf.org (The free software foundation)
     [my label 4]: /bar#special  'A title in single quotes'
 
 The URL may optionally be surrounded by angle brackets:
@@ -4437,7 +4437,7 @@ The URL may optionally be surrounded by angle brackets:
 
 The title may go on the next line:
 
-    [my label 3]: http://fsf.org
+    [my label 3]: https://fsf.org
       "The free software foundation"
 
 Note that link labels are not case sensitive.  So, this will work:
@@ -4562,7 +4562,7 @@ For example:
     as in the default template.)
   - ConTeXt: `\externalfigure[file.jpg][width=0.5\textwidth]`
 - Some output formats have a notion of a class
-  ([ConTeXt](http://wiki.contextgarden.net/Using_Graphics#Multiple_Image_Settings))
+  ([ConTeXt](https://wiki.contextgarden.net/Using_Graphics#Multiple_Image_Settings))
   or a unique identifier (LaTeX `\caption`), or both (HTML).
 - When no `width` or `height` attributes are specified, the fallback
   is to look at the image resolution and the dpi metadata embedded in
@@ -4760,7 +4760,7 @@ YAML-encoded references, for example:
       issue: 4356
       page: 737-738
       DOI: 10.1038/171737a0
-      URL: http://www.nature.com/nature/journal/v171/n4356/abs/171737a0.html
+      URL: https://www.nature.com/articles/171737a0
       language: en-GB
     ...
 
@@ -4874,9 +4874,9 @@ BibLaTeX).
 
 For more information, see the [pandoc-citeproc man page].
 
-[CSL markup specs]: http://docs.citationstyles.org/en/1.0/release-notes.html#rich-text-markup-within-fields
-[Chicago Manual of Style]: http://chicagomanualofstyle.org
-[Citation Style Language]: http://citationstyles.org
+[CSL markup specs]: https://docs.citationstyles.org/en/1.0/release-notes.html#rich-text-markup-within-fields
+[Chicago Manual of Style]: https://chicagomanualofstyle.org
+[Citation Style Language]: https://citationstyles.org
 [Zotero Style Repository]: https://www.zotero.org/styles
 [finding and editing styles]: https://citationstyles.org/authors/
 [CSL locale files]: https://github.com/citation-style-language/locales
@@ -5001,7 +5001,7 @@ and image references. This extension should not be confused with the
 
     This is a reference ![image][ref] with multimarkdown attributes.
 
-    [ref]: http://path.to/image "Image title" width=20px height=30px
+    [ref]: https://path.to/image "Image title" width=20px height=30px
            id=myId class="myClass1 myClass2"
 
 #### Extension: `mmd_header_identifiers` ####
@@ -5504,7 +5504,7 @@ The following fields are recognized:
     - `binding`: `true`|`false` (default `true`)
     - `scroll-axis`: `vertical`|`horizontal`|`default`
 
-[MARC relators]: http://loc.gov/marc/relators/relaterm.html
+[MARC relators]: https://loc.gov/marc/relators/relaterm.html
 [`spine` element]: http://idpf.org/epub/301/spec/epub-publications.html#sec-spine-elem
 
 ## The `epub:type` attribute
@@ -5563,7 +5563,7 @@ instead, use raw HTML in your source and add `data-external="1"` to the tag
 with the `src` attribute.  For example:
 
     <audio controls="1">
-      <source src="http://example.com/music/toccata.mp3"
+      <source src="https://example.com/music/toccata.mp3"
               data-external="1" type="audio/mpeg">
       </source>
     </audio>
@@ -5778,7 +5778,7 @@ custom-style `span`.
 For docx output, you don't need to enable any extensions for
 custom styles to work.
 
-[pandoc filters]: http://pandoc.org/filters.html
+[pandoc filters]: https://pandoc.org/filters.html
 
 ## Input
 
@@ -5850,7 +5850,7 @@ default template with the name
 `default.NAME_OF_CUSTOM_WRITER.lua` to the `templates`
 subdirectory of your user data directory (see [Templates]).
 
-[Lua]: http://www.lua.org
+[Lua]: https://www.lua.org
 
 # A note on security
 
@@ -5867,7 +5867,7 @@ application, here are some things to keep in mind:
    shelling out to the executable), it is possible to use it in a mode
    that fully isolates pandoc from your file system, by running the
    pandoc operations in the `PandocPure` monad. See the document
-   [Using the pandoc API](http://pandoc.org/using-the-pandoc-api.html)
+   [Using the pandoc API](https://pandoc.org/using-the-pandoc-api.html)
    for more details.
 
 3. Pandoc's parsers can exhibit pathological performance on some
@@ -5892,5 +5892,5 @@ warranty of any kind.  (See COPYRIGHT for full copyright and
 warranty notices.) For a full list of contributors, see the file
 AUTHORS.md in the pandoc source code.
 
-[GPL]: http://www.gnu.org/copyleft/gpl.html "GNU General Public License"
+[GPL]: https://www.gnu.org/copyleft/gpl.html "GNU General Public License"
 [YAML]: https://yaml.org/spec/1.2/spec.html "YAML v1.2 Spec"
