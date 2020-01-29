@@ -1942,7 +1942,7 @@ environment = try $ do
     if M.member name (inlineEnvironments
                        :: M.Map Text (LP PandocPure Inlines))
        then mzero
-       else rawEnv name <|> rawVerbEnv name
+       else try (rawEnv name) <|> rawVerbEnv name
 
 env :: PandocMonad m => Text -> LP m a -> LP m a
 env name p = p <* end_ name
