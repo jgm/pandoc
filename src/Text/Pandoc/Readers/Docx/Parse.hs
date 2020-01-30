@@ -215,7 +215,7 @@ data ParIndentation = ParIndentation { leftParIndent    :: Maybe Integer
 data ChangeType = Insertion | Deletion
                 deriving Show
 
-data ChangeInfo = ChangeInfo ChangeId Author ChangeDate
+data ChangeInfo = ChangeInfo ChangeId Author (Maybe ChangeDate)
                 deriving Show
 
 data TrackedChange = TrackedChange ChangeType ChangeInfo
@@ -970,7 +970,7 @@ getParentStyleValue _ _ = Nothing
 getParStyleField :: (ParStyleData -> Maybe a) -> ParStyleMap -> [String] ->
                                                                         Maybe a
 getParStyleField field stylemap styles
-  | x     <- mapMaybe (\x -> M.lookup x stylemap) styles
+  | x     <- mapMaybe (`M.lookup` stylemap) styles
   , (y:_) <- mapMaybe (getParentStyleValue field) x
            = Just y
 getParStyleField _ _ _ = Nothing
@@ -980,14 +980,14 @@ getTrackedChange ns element
   | isElem ns "w" "ins" element || isElem ns "w" "moveTo" element
   , Just cId <- findAttrByName ns "w" "id" element
   , Just cAuthor <- findAttrByName ns "w" "author" element
-  , Just cDate <- findAttrByName ns "w" "date" element =
-      Just $ TrackedChange Insertion (ChangeInfo cId cAuthor cDate)
+  , mcDate <- findAttrByName ns "w" "date" element =
+      Just $ TrackedChange Insertion (ChangeInfo cId cAuthor mcDate)
 getTrackedChange ns element
   | isElem ns "w" "del" element || isElem ns "w" "moveFrom" element
   , Just cId <- findAttrByName ns "w" "id" element
   , Just cAuthor <- findAttrByName ns "w" "author" element
-  , Just cDate <- findAttrByName ns "w" "date" element =
-      Just $ TrackedChange Deletion (ChangeInfo cId cAuthor cDate)
+  , mcDate <- findAttrByName ns "w" "date" element =
+      Just $ TrackedChange Deletion (ChangeInfo cId cAuthor mcDate)
 getTrackedChange _ _ = Nothing
 
 elemToParagraphStyle :: NameSpaces -> Element -> ParStyleMap -> ParagraphStyle
