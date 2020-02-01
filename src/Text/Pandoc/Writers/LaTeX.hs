@@ -3,7 +3,6 @@
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
-{-# LANGUAGE TupleSections       #-}
 {- |
    Module      : Text.Pandoc.Writers.LaTeX
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -1424,24 +1423,35 @@ citeCommand c p s k = do
   args <- citeArguments p s k
   return $ literal ("\\" <> c) <> args
 
-citeArguments :: PandocMonad m
-              => [Inline] -> [Inline] -> Text -> LW m (Doc Text)
-citeArguments p s k = do
-  let s' = stripLocatorBraces $ case s of
-        (Str t : r) -> case T.uncons t of
-          Just (x, xs)
-            | T.null xs
-            , isPunctuation x -> dropWhile (== Space) r
-            | isPunctuation x -> Str xs : r
-          _ -> s
-        _   -> s
-  pdoc <- inlineListToLaTeX p
-  sdoc <- inlineListToLaTeX s'
-  let optargs = case (isEmpty pdoc, isEmpty sdoc) of
+citeArgumentsList :: PandocMonad m
+              => [Inline] -> [Inline] -> [Text] -> LW m (Doc Text)
+citeArgumentsList _ _ [] = return empty
+citeArgumentsList p s (cid:k) 
+  | k == [] = do  
+      pdoc <- inlineListToLaTeX p
+      sdoc <- inlineListToLaTeX s' 
+      return $ (optargs pdoc sdoc) <> braces (literal cid)
+  | otherwise = do  
+      pdoc <- inlineListToLaTeX p
+      sdoc <- inlineListToLaTeX s'
+      return $ (optargs pdoc sdoc) <> 
+              (braces (literal (T.intercalate "," (cid:k))))
+  where s' = stripLocatorBraces $ case s of
+            (Str t : r) -> case T.uncons t of
+              Just (x, xs)
+                | T.null xs
+                , isPunctuation x -> dropWhile (== Space) r
+                | isPunctuation x -> Str xs : r
+              _ -> s
+            _   -> s
+        optargs pdoc sdoc = case (isEmpty pdoc, isEmpty sdoc) of
                      (True, True ) -> empty
                      (True, False) -> brackets sdoc
                      (_   , _    ) -> brackets pdoc <> brackets sdoc
-  return $ optargs <> braces (literal k)
+
+citeArguments :: PandocMonad m
+              => [Inline] -> [Inline] -> Text -> LW m (Doc Text)
+citeArguments p s k = citeArgumentsList p s [k]
 
 -- strip off {} used to define locator in pandoc-citeproc; see #5722
 stripLocatorBraces :: [Inline] -> [Inline]
@@ -1480,30 +1490,29 @@ citationsToBiblatex (c:cs)
                     AuthorInText   -> "\\textcites"
                     NormalCitation -> "\\autocites"
 
-      groupsNoEmptySuffix <- mapM makePrefixes $ reverse $
-                    foldl' grouper [([[]], [])] (c:cs)
+      let groups = map correctOrder $ reverse $ foldl' grouper [([[]], [])] (c:cs)
+      docGroups <- mapM citeArgsList groups      
 
-      let groups = cleanFirstGroup $ (map (\(pfxs, cits) -> 
-                (if length pfxs < 2 then (pfxs ++ [empty], cits) else (pfxs, cits)))
-                    groupsNoEmptySuffix)
-
-      return $ text cmd <> (mconcat $ concatMap (\(pfxs, group) -> 
-                 (map brackets pfxs) ++ [braces (literal (T.intercalate "," $ 
-                    map citationId group))]) groups)
+      return $ text cmd <> (mconcat docGroups)
 
   where grouper prev cit  
-            | null pfx = (\(a, b) -> (if null sfx then a else sfx:a,cit:b):
+            | prevSfx && null pfx = 
+                (let oldpfx = drop 1 $ fst =<< take 1 prev in 
+                    if null sfx then oldpfx else sfx:oldpfx, [cid]):prev
+            | null pfx = 
+                (\(a, b) -> (if null sfx then a else sfx:a,cid:b):
                     drop 1 prev) =<< take 1 prev
-            | otherwise = ([pfx], [cit]):prev
+            | null sfx = ([pfx], [cid]):prev
+            | otherwise = ([sfx, pfx], [cid]):prev
             where pfx = citationPrefix cit
                   sfx = citationSuffix cit
-        makePrefixes group = (, reverse $ snd group) <$> 
-                    (mapM inlineListToLaTeX $ reverse $ fst group)
-        cleanFirstGroup groups 
-            | not $ null (snd =<< take 1 groups) = 
-                    ((\(a,b) -> (tail a, b)) <$> take 1 groups) ++ drop 1 groups
-            | otherwise = drop 1 groups
-        
+                  cid = citationId cit
+                  prevSfx = 1 < (length (fst =<< take 1 prev))
+        correctOrder (pfxs, ids) = (reverse pfxs, reverse ids)
+        citeArgsList ((p:s:_), k) = citeArgumentsList p s k
+        citeArgsList ((p:_), k) = citeArgumentsList p [] k
+        citeArgsList ([], k) = citeArgumentsList [] [] k
+
 citationsToBiblatex _ = return empty
 
 -- Determine listings language from list of class attributes.
