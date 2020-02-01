@@ -75,5 +75,6 @@ formatFromFilePath x =
     ".wiki"     -> Just "mediawiki"
     ".xhtml"    -> Just "html"
     ".ipynb"    -> Just "ipynb"
+    ".csv"      -> Just "csv"
     ['.',y]     | y `elem` ['1'..'9'] -> Just "man"
     _           -> Nothing

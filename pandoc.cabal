@@ -1,5 +1,5 @@
 name:            pandoc
-version:         2.9.1.1
+version:         2.9.2
 cabal-version:   2.0
 build-type:      Simple
 license:         GPL-2
@@ -21,7 +21,7 @@ description:     Pandoc is a Haskell library for converting from one markup
                  TikiWiki markup, Jira markup, Creole 1.0, Haddock markup,
                  OPML, Emacs Org-Mode, Emacs Muse, txt2tags, ipynb (Jupyter
                  notebooks), Vimwiki, Word Docx, ODT, EPUB, FictionBook2,
-                 roff man, and Textile, and it can write Markdown,
+                 roff man, Textile, and CSV, and it can write Markdown,
                  reStructuredText, XHTML, HTML 5, LaTeX, ConTeXt, DocBook,
                  JATS, OPML, TEI, OpenDocument, ODT, Word docx,
                  PowerPoint pptx, RTF, MediaWiki, DokuWiki, XWiki,
@@ -503,6 +503,7 @@ library
                    Text.Pandoc.Readers.FB2,
                    Text.Pandoc.Readers.DokuWiki,
                    Text.Pandoc.Readers.Ipynb,
+                   Text.Pandoc.Readers.CSV,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,

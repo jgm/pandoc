@@ -51,6 +51,7 @@ module Text.Pandoc.Readers
   , readMuse
   , readFB2
   , readIpynb
+  , readCSV
   -- * Miscellaneous
   , getReader
   , getDefaultExtensions
@@ -95,6 +96,7 @@ import Text.Pandoc.Readers.TWiki
 import Text.Pandoc.Readers.Txt2Tags
 import Text.Pandoc.Readers.Vimwiki
 import Text.Pandoc.Readers.Man
+import Text.Pandoc.Readers.CSV
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Parsec.Error
 
@@ -136,6 +138,7 @@ readers = [ ("native"       , TextReader readNative)
            ,("man"          , TextReader readMan)
            ,("fb2"          , TextReader readFB2)
            ,("ipynb"        , TextReader readIpynb)
+           ,("csv"          , TextReader readCSV)
            ]
 
 -- | Retrieve reader, extensions based on formatSpec (format+extensions).

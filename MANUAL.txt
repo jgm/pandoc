@@ -227,6 +227,7 @@ header when requesting a document from a URL:
     ::: {#input-formats}
     - `commonmark` ([CommonMark] Markdown)
     - `creole` ([Creole 1.0])
+    - `csv` ([CSV] table)
     - `docbook` ([DocBook])
     - `docx` ([Word docx])
     - `dokuwiki` ([DokuWiki markup])
@@ -467,6 +468,7 @@ header when requesting a document from a URL:
 [TikiWiki markup]: https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax
 [Haddock markup]: https://www.haskell.org/haddock/doc/html/ch03s08.html
 [Creole 1.0]: http://www.wikicreole.org/wiki/Creole1.0
+[CSV]: https://tools.ietf.org/html/rfc4180
 [roff man]: https://man.cx/groff_man(7)
 [roff ms]: https://man.cx/groff_ms(7)
 [Haskell]: https://www.haskell.org
