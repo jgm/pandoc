@@ -21,10 +21,12 @@ module Text.Pandoc.App.Opt (
           , LineEnding (..)
           , IpynbOutput (..)
           , defaultOpts
+          , addMeta
           ) where
 import Prelude
 import Data.Char (isLower, toLower)
 import GHC.Generics hiding (Meta)
+import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Logging (Verbosity (WARNING))
 import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
@@ -39,7 +41,7 @@ import Text.DocTemplates (Context(..), Val(..))
 import Data.Text (Text, unpack)
 import qualified Data.Text as T
 import qualified Data.Map as M
-import Text.Pandoc.Definition (Meta(..), MetaValue(..))
+import Text.Pandoc.Definition (Meta(..), MetaValue(..), lookupMeta)
 import Data.Aeson (defaultOptions, Options(..))
 import Data.Aeson.TH (deriveJSON)
 import Control.Applicative ((<|>))
@@ -342,6 +344,22 @@ doOpt (k',v) = do
       <|>
       (parseYAML v >>= \x -> return (\o -> o{ optCss = optCss o <>
                                                 [unpack x] }))
+    "bibliography" ->
+      do let addItem x o = o{ optMetadata =
+                                 addMeta "bibliography" (T.unpack x)
+                                    (optMetadata o) }
+         (parseYAML v >>= \(xs :: [Text]) -> return $ \o ->
+                                                    foldr addItem o xs)
+          <|>
+          (parseYAML v >>= \(x :: Text) -> return $ \o -> addItem x o)
+    "csl" ->
+      do let addItem x o = o{ optMetadata =
+                                 addMeta "csl" (T.unpack x)
+                                   (optMetadata o) }
+         (parseYAML v >>= \(xs :: [Text]) -> return $ \o ->
+                                                    foldr addItem o xs)
+          <|>
+          (parseYAML v >>= \(x :: Text) -> return $ \o -> addItem x o)
     "ipynb-output" ->
       parseYAML v >>= \x -> return (\o -> o{ optIpynbOutput = x })
     "include-before-body" ->
@@ -464,6 +482,28 @@ valToMetaVal (MapVal (Context m)) =
 valToMetaVal (ListVal xs) = MetaList $ map valToMetaVal xs
 valToMetaVal (SimpleVal d) = MetaString $ render Nothing d
 valToMetaVal NullVal = MetaString ""
+
+addMeta :: String -> String -> Meta -> Meta
+addMeta k v meta =
+  case lookupMeta k' meta of
+       Nothing -> setMeta k' v' meta
+       Just (MetaList xs) ->
+                  setMeta k' (MetaList (xs ++ [v'])) meta
+       Just x  -> setMeta k' (MetaList [x, v']) meta
+ where
+  v' = readMetaValue v
+  k' = T.pack k
+
+readMetaValue :: String -> MetaValue
+readMetaValue s
+  | s == "true"  = MetaBool True
+  | s == "True"  = MetaBool True
+  | s == "TRUE"  = MetaBool True
+  | s == "false" = MetaBool False
+  | s == "False" = MetaBool False
+  | s == "FALSE" = MetaBool False
+  | otherwise    = MetaString $ T.pack s
+
 
 -- see https://github.com/jgm/pandoc/pull/4083
 -- using generic deriving caused long compilation times

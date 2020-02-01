@@ -44,8 +44,7 @@ import System.FilePath
 import System.IO (stdout)
 import Text.DocTemplates (Val(..))
 import Text.Pandoc
-import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..))
+import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..), addMeta)
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Shared (ordNub, elemText, safeStrRead, defaultUserDataDirs)
@@ -1036,27 +1035,6 @@ setVariable key val (Context ctx) = Context $ M.alter go key ctx
   where go Nothing             = Just $ toVal val
         go (Just (ListVal xs)) = Just $ ListVal $ xs ++ [toVal val]
         go (Just x)            = Just $ ListVal [x, toVal val]
-
-addMeta :: String -> String -> Meta -> Meta
-addMeta k v meta =
-  case lookupMeta k' meta of
-       Nothing -> setMeta k' v' meta
-       Just (MetaList xs) ->
-                  setMeta k' (MetaList (xs ++ [v'])) meta
-       Just x  -> setMeta k' (MetaList [x, v']) meta
- where
-  v' = readMetaValue v
-  k' = T.pack k
-
-readMetaValue :: String -> MetaValue
-readMetaValue s
-  | s == "true"  = MetaBool True
-  | s == "True"  = MetaBool True
-  | s == "TRUE"  = MetaBool True
-  | s == "false" = MetaBool False
-  | s == "False" = MetaBool False
-  | s == "FALSE" = MetaBool False
-  | otherwise    = MetaString $ T.pack s
 
 -- On Windows with ghc 8.6+, we need to rewrite paths
 -- beginning with \\ to \\?\UNC\. -- See #5127.
