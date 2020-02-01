@@ -46,10 +46,10 @@ pCSV opts =
   (pCSVRow opts `sepEndBy` endline) <* (spaces *> eof)
 
 pCSVRow :: CSVOptions -> Parser [Text]
-pCSVRow opts = notFollowedBy blank >> pCSVCell opts `sepBy` pCSVDelim opts
-
-blank :: Parser ()
-blank = try $ spaces >> (() <$ endline <|> eof)
+pCSVRow opts = do
+  x <- pCSVCell opts
+  xs <- (if T.null x then many1 else many) $ pCSVDelim opts *> pCSVCell opts
+  return (x:xs)
 
 pCSVCell :: CSVOptions -> Parser Text
 pCSVCell opts = pCSVQuotedCell opts <|> pCSVUnquotedCell opts
