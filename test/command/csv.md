@@ -3,6 +3,7 @@
 Fruit,Price,Quantity
 Apple,25 cents,33
 """Navel"" Orange","35 cents",22
+,,45
 ^D
 [Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
  [[Plain [Str "Fruit"]]
@@ -13,5 +14,8 @@ Apple,25 cents,33
   ,[Plain [Str "33"]]]
  ,[[Plain [Str "\"Navel\"",Space,Str "Orange"]]
   ,[Plain [Str "35",Space,Str "cents"]]
-  ,[Plain [Str "22"]]]]]
+  ,[Plain [Str "22"]]]
+ ,[[]
+  ,[]
+  ,[Plain [Str "45"]]]]]
 ```

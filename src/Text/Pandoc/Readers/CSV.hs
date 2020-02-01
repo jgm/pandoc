@@ -16,6 +16,7 @@ Conversion from CSV to a 'Pandoc' table.
 -}
 module Text.Pandoc.Readers.CSV ( readCSV ) where
 import Prelude
+import Control.Monad (guard)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Definition
@@ -25,23 +26,20 @@ import Text.Parsec.Text (Parser)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Shared (crFilter)
 import Text.Pandoc.Error
-import Text.Pandoc.Options (ReaderOptions(..))
+import Text.Pandoc.Options (ReaderOptions)
 import Control.Monad.Except (throwError)
 
 readCSV :: PandocMonad m
         => ReaderOptions -- ^ Reader options
         -> Text          -- ^ Text to parse (assuming @'\n'@ line endings)
         -> m Pandoc
-readCSV opts s = do
-  let columns = readerColumns opts
+readCSV _opts s = do
   case parse pCSV "input" (crFilter s) of
     Right (r:rs) -> return $ B.doc $ B.table capt (zip aligns widths) hdrs rows
        where capt = mempty
              numcols = length r
              hdrs = map (B.plain . B.text) r
              rows = map (map (B.plain . B.text)) rs
-             maximum' [] = 0
-             maximum' xs = maximum xs
              aligns = replicate numcols AlignDefault
              widths = replicate numcols 0
     Right []     -> return $ B.doc mempty
@@ -85,7 +83,7 @@ pRecord :: Parser [Text]
 pRecord = do
   x <- pField
   xs <- many $ pComma >> pField
-  () <$ newline <|> eof
+  () <$ newline <|> (guard (not (T.null x) || not (null xs)) >> eof)
   return (x:xs)
 
 pField :: Parser Text
@@ -95,7 +93,7 @@ pComma :: Parser Char
 pComma = char ','
 
 pUnescaped :: Parser Text
-pUnescaped = T.strip . T.pack <$> many1 (noneOf "\n\r\",")
+pUnescaped = T.strip . T.pack <$> many (noneOf "\n\r\",")
 
 pEscaped :: Parser Text
 pEscaped = do
