@@ -177,7 +177,7 @@ addInlines :: ReaderOptions -> [Node] -> [Inline]
 addInlines opts = foldr (addInline opts) []
 
 addInline :: ReaderOptions -> Node -> [Inline] -> [Inline]
-addInline opts (Node _ (TEXT t) _) = (foldr ((++) . toinl) [] clumps ++)
+addInline opts (Node _ (TEXT t) _) = (concatMap toinl clumps ++)
   where clumps = T.groupBy samekind t
         samekind ' ' ' ' = True
         samekind ' ' _   = False
