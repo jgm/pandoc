@@ -342,11 +342,11 @@ extentToAttr _ = nullAttr
 blocksToInlinesWarn :: PandocMonad m => T.Text -> Blocks -> DocxContext m Inlines
 blocksToInlinesWarn cmtId blks = do
   let blkList = toList blks
-      notParaOrPlain :: Block -> Bool
-      notParaOrPlain (Para _)  = False
-      notParaOrPlain (Plain _) = False
-      notParaOrPlain _         = True
-  unless ( not (any notParaOrPlain blkList)) $
+      paraOrPlain :: Block -> Bool
+      paraOrPlain (Para _)  = True
+      paraOrPlain (Plain _) = True
+      paraOrPlain _         = False
+  unless (all paraOrPlain blkList) $
     lift $ P.report $ DocxParserWarning $
       "Docx comment " <> cmtId <> " will not retain formatting"
   return $ blocksToInlines' blkList
