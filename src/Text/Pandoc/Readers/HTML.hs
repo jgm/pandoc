@@ -812,8 +812,8 @@ pSpan = try $ do
   let isSmallCaps = fontVariant == "small-caps" || "smallcaps" `elem` classes
                     where styleAttr   = fromMaybe "" $ lookup "style" attr
                           fontVariant = fromMaybe "" $ pickStyleAttrProps ["font-variant"] styleAttr
-                          classes     = fromMaybe [] $
-                                          T.words <$> lookup "class" attr
+                          classes     = maybe []
+                                          T.words $ lookup "class" attr
   let tag = if isSmallCaps then B.smallcaps else B.spanWith (mkAttr attr)
   return $ tag contents
 

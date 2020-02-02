@@ -67,7 +67,7 @@ archiveToEPUB os archive = do
   (coverId, meta) <- parseMeta content
   (cover, items)  <- parseManifest content coverId
   -- No need to collapse here as the image path is from the manifest file
-  let coverDoc = fromMaybe mempty (imageToPandoc <$> cover)
+  let coverDoc = maybe mempty imageToPandoc cover
   spine <- parseSpine items content
   let escapedSpine = map (escapeURI . T.pack . takeFileName . fst) spine
   Pandoc _ bs <-
