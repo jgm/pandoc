@@ -234,22 +234,22 @@ linePartsToInlines = go False
   go mono (RoffStr s : xs)
     | mono      = code s <> go mono xs
     | otherwise = text s <> go mono xs
-  go mono (Font fs: xs) =
-    if litals > 0 && litals >= lbolds && litals >= lmonos
-       then emph (go mono (Font fs{ fontItalic = False } :
+  go mono (Font fs: xs)
+    | litals > 0 && litals >= lbolds && litals >= lmonos
+       = emph (go mono (Font fs{ fontItalic = False } :
                    map (adjustFontSpec (\s -> s{ fontItalic = False }))
                    itals)) <>
             go mono italsrest
-       else if lbolds > 0 && lbolds >= lmonos
-            then strong (go mono (Font fs{ fontBold = False } :
-                   map (adjustFontSpec (\s -> s{ fontBold = False }))
-                   bolds)) <>
-                 go mono boldsrest
-            else if lmonos > 0
-                 then go True (Font fs{ fontMonospace = False } :
-                    map (adjustFontSpec (\s -> s { fontMonospace = False }))
-                    monos) <> go mono monosrest
-                 else go mono xs
+    | lbolds > 0 && lbolds >= lmonos
+       = strong (go mono (Font fs{ fontBold = False } :
+              map (adjustFontSpec (\s -> s{ fontBold = False }))
+              bolds)) <>
+            go mono boldsrest
+    | lmonos > 0
+       = go True (Font fs{ fontMonospace = False } :
+          map (adjustFontSpec (\s -> s { fontMonospace = False }))
+          monos) <> go mono monosrest
+    | otherwise = go mono xs
     where
       adjustFontSpec f (Font fspec) = Font (f fspec)
       adjustFontSpec _ x            = x
