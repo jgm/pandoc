@@ -145,18 +145,16 @@ makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
   let args   = pdfargs ++ mathArgs ++ concatMap toArgs
                  [("page-size", getField "papersize" meta')
                  ,("title", getField "title" meta')
-                 ,("margin-bottom", maybe (Just "1.2in") Just
+                 ,("margin-bottom", Just $ fromMaybe "1.2in"
                             (getField "margin-bottom" meta'))
-                 ,("margin-top", maybe (Just "1.25in") Just
+                 ,("margin-top", Just $ fromMaybe "1.25in"
                             (getField "margin-top" meta'))
-                 ,("margin-right", maybe (Just "1.25in") Just
+                 ,("margin-right", Just $ fromMaybe "1.25in"
                             (getField "margin-right" meta'))
-                 ,("margin-left", maybe (Just "1.25in") Just
+                 ,("margin-left", Just $ fromMaybe "1.25in"
                             (getField "margin-left" meta'))
-                 ,("footer-html", maybe Nothing Just
-                            (getField "footer-html" meta'))
-                 ,("header-html", maybe Nothing Just
-                            (getField "header-html" meta'))
+                 ,("footer-html", getField "footer-html" meta')
+                 ,("header-html", getField "header-html" meta')
                  ]
   source <- writer opts doc
   verbosity <- getVerbosity
