@@ -501,8 +501,8 @@ blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
       hasCodeBlock _               = []
   let hasCode (Code _ _) = [True]
       hasCode _          = []
-  let classes = dclasses ++ hclasses
-  let kvs = dkvs ++ hkvs
+  let classes = ordNub $ dclasses ++ hclasses
+  let kvs = ordNub $ dkvs ++ hkvs
   let fragile = "fragile" `elem` classes ||
                 not (null $ query hasCodeBlock bs ++ query hasCode bs)
   let frameoptions = ["allowdisplaybreaks", "allowframebreaks", "fragile",
