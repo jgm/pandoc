@@ -25,7 +25,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad (..))
+import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)

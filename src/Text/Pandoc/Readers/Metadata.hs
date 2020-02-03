@@ -24,7 +24,7 @@ import qualified Data.YAML as YAML
 import qualified Data.YAML.Event as YE
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Builder (Blocks)
-import Text.Pandoc.Class (PandocMonad (..))
+import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Logging

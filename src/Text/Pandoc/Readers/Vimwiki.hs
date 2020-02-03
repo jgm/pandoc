@@ -64,7 +64,7 @@ import qualified Text.Pandoc.Builder as B (blockQuote, bulletList, code,
                                            softbreak, space, spanWith, str,
                                            strikeout, strong, subscript,
                                            superscript)
-import Text.Pandoc.Class (PandocMonad (..))
+import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition (Attr, Block (BulletList, OrderedList),
                                Inline (Space), ListNumberDelim (..),
                                ListNumberStyle (..), Pandoc (..),

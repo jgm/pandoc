@@ -31,9 +31,9 @@ import System.FilePath.Posix (splitDirectories, splitExtension, takeExtension)
 import Text.XML.Light
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Error (PandocError(..))
-import qualified Text.Pandoc.Class as P
+import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Options
 import Text.Pandoc.MIME
 import qualified Data.ByteString.Lazy as BL

@@ -26,7 +26,7 @@ import Text.Pandoc.Readers.Org.Shared (cleanLinkText, isImageFilename,
                                        originalLang, translateLang, exportsCode)
 
 import Text.Pandoc.Builder (Blocks, Inlines)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (compactify, compactifyDL, safeRead)

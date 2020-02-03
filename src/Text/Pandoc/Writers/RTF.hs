@@ -20,8 +20,8 @@ import Data.Char (chr, isDigit, ord)
 import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Class (PandocMonad, report)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
+import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize

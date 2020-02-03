@@ -12,7 +12,7 @@ module Text.Pandoc.Readers.Org.ExportSettings
   ( exportSettings
   ) where
 
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Logging (LogMessage (UnknownOrgExportOption))
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing

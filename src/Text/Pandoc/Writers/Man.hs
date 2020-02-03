@@ -19,7 +19,7 @@ import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Builder (deleteMeta)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options

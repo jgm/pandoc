@@ -45,7 +45,7 @@ import Text.HTML.TagSoup (Tag (..), fromAttrib)
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad (..))
+import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.CSS
 import Text.Pandoc.Definition
 import Text.Pandoc.Options

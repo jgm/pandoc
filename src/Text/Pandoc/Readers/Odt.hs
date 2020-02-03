@@ -23,8 +23,8 @@ import System.FilePath
 
 import Control.Monad.Except (throwError)
 
-import Text.Pandoc.Class (PandocMonad)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
+import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.MediaBag

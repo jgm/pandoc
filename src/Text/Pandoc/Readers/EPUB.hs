@@ -33,7 +33,7 @@ import Network.URI (unEscapeString)
 import System.FilePath (dropFileName, dropFileName, normalise, splitFileName,
                         takeFileName, (</>))
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, insertMedia)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, insertMedia)
 import Text.Pandoc.Definition hiding (Attr)
 import Text.Pandoc.Error
 import Text.Pandoc.Extensions (Extension (Ext_raw_html), enableExtension)

@@ -40,9 +40,10 @@ import qualified Data.Text as T
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.BCP47 (Lang (..), renderLang)
 import Text.Pandoc.Builder
-import Text.Pandoc.Class (PandocMonad, PandocPure, getResourcePath, lookupEnv,
-                          readFileFromDirs, report, setResourcePath,
-                          setTranslations, translateTerm, trace, fileExists)
+import Text.Pandoc.Class.PandocPure (PandocPure)
+import Text.Pandoc.Class.PandocMonad (PandocMonad (..), getResourcePath,
+                                      readFileFromDirs, report, setResourcePath,
+                                      setTranslations, translateTerm)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocParsecError))
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
@@ -64,7 +65,7 @@ import Safe
 
 -- for debugging:
 -- import Text.Pandoc.Extensions (getDefaultExtensions)
--- import Text.Pandoc.Class (runIOorExplode, PandocIO)
+-- import Text.Pandoc.Class.PandocIO (runIOorExplode, PandocIO)
 -- import Debug.Trace (traceShowId)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.

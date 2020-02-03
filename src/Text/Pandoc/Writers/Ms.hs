@@ -31,7 +31,7 @@ import Network.URI (escapeURIString, isAllowedInURI)
 import Skylighting
 import System.FilePath (takeExtension)
 import Text.Pandoc.Asciify (toAsciiChar)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting
 import Text.Pandoc.ImageSize

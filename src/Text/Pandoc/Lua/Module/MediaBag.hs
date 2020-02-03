@@ -15,8 +15,9 @@ module Text.Pandoc.Lua.Module.MediaBag
 
 import Control.Monad (zipWithM_)
 import Foreign.Lua (Lua, NumResults, Optional, liftIO)
-import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,
-                          runIOorExplode, setMediaBag)
+import Text.Pandoc.Class.CommonState (CommonState (..))
+import Text.Pandoc.Class.PandocIO (runIOorExplode)
+import Text.Pandoc.Class.PandocMonad (fetchItem, putCommonState, setMediaBag)
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Marshaling.MediaBag (pushIterator)
 import Text.Pandoc.Lua.Util (addFunction)

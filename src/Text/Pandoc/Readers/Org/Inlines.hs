@@ -23,7 +23,7 @@ import Text.Pandoc.Readers.Org.Shared (cleanLinkText, isImageFilename,
 
 import Text.Pandoc.Builder (Inlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)

@@ -14,7 +14,7 @@ module Text.Pandoc.Writers.Native ( writeNative )
 where
 import Data.List (intersperse)
 import Data.Text (Text)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
 import Text.DocLayout

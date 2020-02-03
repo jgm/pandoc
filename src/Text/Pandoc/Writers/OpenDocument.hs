@@ -25,8 +25,8 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
-import Text.Pandoc.Class (PandocMonad, report, translateTerm,
-                          setTranslations, toLang)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report, translateTerm,
+                                      setTranslations, toLang)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options

@@ -21,7 +21,7 @@ import Data.Foldable (find)
 import Data.Text (Text)
 import Text.Jira.Parser (plainText)
 import Text.Jira.Printer (prettyBlocks, prettyInlines)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions (writerTemplate, writerWrapText),
                             WrapOption (..))

@@ -14,7 +14,7 @@ module Text.Pandoc.Filter.Lua (apply) where
 import Control.Exception (throw)
 import Control.Monad ((>=>))
 import qualified Data.Text as T
-import Text.Pandoc.Class (PandocIO)
+import Text.Pandoc.Class.PandocIO (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Error (PandocError (PandocFilterError))
 import Text.Pandoc.Lua (Global (..), LuaException (..),

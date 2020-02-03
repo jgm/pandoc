@@ -35,7 +35,7 @@ import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)
 import System.FilePath (takeExtension)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize

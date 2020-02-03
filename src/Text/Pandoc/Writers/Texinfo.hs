@@ -22,7 +22,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import System.FilePath
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize

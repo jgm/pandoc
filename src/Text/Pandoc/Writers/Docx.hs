@@ -36,8 +36,8 @@ import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
 import System.Random (randomR, StdGen, mkStdGen)
 import Text.Pandoc.BCP47 (getLang, renderLang)
-import Text.Pandoc.Class (PandocMonad, report, toLang)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
+import qualified Text.Pandoc.Class.PandocMonad as P
 import Data.Time
 import Text.Pandoc.UTF8 (fromTextLazy)
 import Text.Pandoc.Definition
