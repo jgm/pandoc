@@ -20,11 +20,13 @@ module Text.Pandoc.Filter
   ) where
 
 import Prelude
+import System.CPUTime (getCPUTime)
 import Data.Aeson.TH (deriveJSON, defaultOptions)
 import GHC.Generics (Generic)
-import Text.Pandoc.Class (PandocIO)
+import Text.Pandoc.Class (PandocIO, report, getVerbosity)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Options (ReaderOptions)
+import Text.Pandoc.Logging
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Filter.Lua as LuaFilter
 import qualified Text.Pandoc.Filter.Path as Path
@@ -32,7 +34,8 @@ import Data.YAML
 import qualified Data.Text as T
 import System.FilePath (takeExtension)
 import Control.Applicative ((<|>))
-import Control.Monad (foldM)
+import Control.Monad.Trans (MonadIO (liftIO))
+import Control.Monad (foldM, when)
 
 -- | Type of filter and path to filter file.
 data Filter = LuaFilter FilePath
@@ -65,8 +68,19 @@ applyFilters ropts filters args d = do
   expandedFilters <- mapM expandFilterPath filters
   foldM applyFilter d expandedFilters
  where
-  applyFilter doc (JSONFilter f) = JSONFilter.apply ropts args f doc
-  applyFilter doc (LuaFilter f)  = LuaFilter.apply ropts args f doc
+  applyFilter doc (JSONFilter f) =
+    withMessages f $ JSONFilter.apply ropts args f doc
+  applyFilter doc (LuaFilter f)  =
+    withMessages f $ LuaFilter.apply ropts args f doc
+  withMessages f action = do
+    verbosity <- getVerbosity
+    when (verbosity == INFO) $ report $ RunningFilter f
+    starttime <- toMilliseconds <$> liftIO getCPUTime
+    res <- action
+    endtime <- toMilliseconds <$> liftIO getCPUTime
+    when (verbosity == INFO) $ report $ FilterCompleted f (endtime - starttime)
+    return res
+  toMilliseconds picoseconds = picoseconds `div` 1000000000
 
 -- | Expand paths of filters, searching the data directory.
 expandFilterPath :: Filter -> PandocIO Filter

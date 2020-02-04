@@ -98,6 +98,8 @@ data LogMessage =
   | UnexpectedXmlElement Text.Text Text.Text
   | UnknownOrgExportOption Text.Text
   | CouldNotDeduceFormat [Text.Text] Text.Text
+  | RunningFilter FilePath
+  | FilterCompleted FilePath Integer
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -222,7 +224,11 @@ instance ToJSON LogMessage where
       CouldNotDeduceFormat exts format ->
            ["extensions" .= exts
            ,"format" .= format]
-
+      RunningFilter fp ->
+           ["path" .= Text.pack fp ]
+      FilterCompleted fp ms ->
+           ["path" .= Text.pack fp
+           ,"milliseconds" .= Text.pack (show ms) ]
 
 showPos :: SourcePos -> Text.Text
 showPos pos = Text.pack $ sn ++ "line " ++
@@ -331,6 +337,9 @@ showLogMessage msg =
          "Could not deduce format from file extension " <>
          Text.intercalate " or " exts <> "\n" <>
          "Defaulting to " <> format
+       RunningFilter fp -> "Running filter " <> Text.pack fp
+       FilterCompleted fp ms -> "Completed filter " <> Text.pack fp <>
+          " in " <> Text.pack (show ms) <> " ms"
 
 messageVerbosity :: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -374,3 +383,5 @@ messageVerbosity msg =
        UnexpectedXmlElement {}       -> WARNING
        UnknownOrgExportOption {}     -> WARNING
        CouldNotDeduceFormat{}        -> WARNING
+       RunningFilter{}               -> INFO
+       FilterCompleted{}             -> INFO
