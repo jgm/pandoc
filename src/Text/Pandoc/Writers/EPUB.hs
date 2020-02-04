@@ -941,10 +941,15 @@ metadataElement version md currentTime =
               (("id",id') : maybe [] (\x -> [("opf:scheme", x)]) scheme) $
               txt]
           | otherwise = [dcNode "identifier" ! [("id",id')] $ txt] ++
-              maybe [] (\x -> [unode "meta" !
-                  [("refines",'#':id'),("property","identifier-type"),
-                   ("scheme","onix:codelist5")] $ x])
-                (schemeToOnix `fmap` scheme)
+              maybe [] ((\x -> [unode "meta" !
+                                [ ("refines",'#':id')
+                                , ("property","identifier-type")
+                                , ("scheme","onix:codelist5")
+                                ]
+                                $ x
+                               ])
+                        . schemeToOnix)
+                    scheme
         toCreatorNode s id' creator
           | version == EPUB2 = [dcNode s !
              (("id",id') :
