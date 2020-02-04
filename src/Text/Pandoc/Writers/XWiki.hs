@@ -56,8 +56,7 @@ type XWikiReader m = ReaderT WriterState m
 writeXWiki :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeXWiki _ (Pandoc _ blocks) = do
   let env = WriterState { listLevel = "" }
-  body <- runReaderT (blockListToXWiki blocks) env
-  return body
+  runReaderT (blockListToXWiki blocks) env
 
 -- | Concatenates strings with line breaks between them.
 vcat :: [Text] -> Text
@@ -181,9 +180,8 @@ inlineToXWiki (Subscript lst) = do
   return $ ",," <> contents <> ",,"
 
 -- TODO: Not supported. Maybe escape to HTML?
-inlineToXWiki (SmallCaps lst) = do
-  contents <- inlineListToXWiki lst
-  return contents
+inlineToXWiki (SmallCaps lst) =
+  inlineListToXWiki lst
 
 inlineToXWiki (Quoted SingleQuote lst) = do
   contents <- inlineListToXWiki lst

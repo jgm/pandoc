@@ -440,10 +440,7 @@ html2pdf verbosity program args source =
                 -- We read PDF as a strict bytestring to make sure that the
                 -- temp directory is removed on Windows.
                 -- See https://github.com/jgm/pandoc/issues/1192.
-                then do
-                  res <- Just . BL.fromChunks . (:[]) <$>
-                            BS.readFile pdfFile
-                  return res
+                then Just . BL.fromChunks . (:[]) <$> BS.readFile pdfFile
                 else return Nothing
       return $ case (exit, mbPdf) of
                  (ExitFailure _, _)      -> Left out
