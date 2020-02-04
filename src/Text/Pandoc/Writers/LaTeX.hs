@@ -749,7 +749,7 @@ blockToLaTeX (DefinitionList lst) = do
   beamer <- gets stBeamer
   let inc = if beamer && incremental then "[<+->]" else ""
   items <- mapM defListItemToLaTeX lst
-  let spacing = if all isTightList (map snd lst)
+  let spacing = if all (isTightList . snd) lst
                    then text "\\tightlist"
                    else empty
   return $ text ("\\begin{description}" <> inc) $$ spacing $$ vcat items $$

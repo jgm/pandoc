@@ -338,7 +338,8 @@ presentationToArchive opts pres = do
 -- Check to see if the presentation has speaker notes. This will
 -- influence whether we import the notesMaster template.
 presHasSpeakerNotes :: Presentation -> Bool
-presHasSpeakerNotes (Presentation _ slides) = not $ all (mempty ==) $ map slideSpeakerNotes slides
+presHasSpeakerNotes (Presentation _ slides) =
+  not $ all ((mempty ==) . slideSpeakerNotes) slides
 
 curSlideHasSpeakerNotes :: PandocMonad m => P m Bool
 curSlideHasSpeakerNotes =
