@@ -132,7 +132,7 @@ outputToBlock :: PandocMonad m => Output a -> m B.Blocks
 outputToBlock Stream{ streamName = sName,
                       streamText = Source text } = do
   return $ B.divWith ("",["output","stream",sName],[])
-         $ B.codeBlock $ T.concat $ text
+         $ B.codeBlock $ T.concat text
 outputToBlock DisplayData{ displayData = data',
                             displayMetadata = metadata' } =
   B.divWith ("",["output", "display_data"],[]) <$>
@@ -148,7 +148,7 @@ outputToBlock Err{ errName = ename,
   return $ B.divWith ("",["output","error"],
                          [("ename",ename),
                           ("evalue",evalue)])
-         $ B.codeBlock $ T.unlines $ traceback
+         $ B.codeBlock $ T.unlines traceback
 
 -- We want to display the richest output possible given
 -- the output format.
@@ -183,13 +183,13 @@ handleData metadata (MimeBundle mb) =
      | otherwise = return mempty
 
     dataBlock ("text/html", TextualData t)
-      = return $ B.rawBlock "html" $ t
+      = return $ B.rawBlock "html" t
 
     dataBlock ("text/latex", TextualData t)
-      = return $ B.rawBlock "latex" $ t
+      = return $ B.rawBlock "latex" t
 
     dataBlock ("text/plain", TextualData t) =
-      return $ B.codeBlock $ t
+      return $ B.codeBlock t
 
     dataBlock (_, JsonData v) =
       return $ B.codeBlockWith ("",["json"],[]) $ T.pack $ toStringLazy $ encode v

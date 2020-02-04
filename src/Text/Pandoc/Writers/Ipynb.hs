@@ -75,7 +75,7 @@ pandocToNotebook opts (Pandoc meta blocks) = do
                         Nothing -> (4, 5)
                _                -> (4, 5) -- write as v4.5
   metadata' <- toJSON <$> metaToContext' blockWriter inlineWriter
-                 (B.deleteMeta "nbformat" $
+                 (B.deleteMeta "nbformat" .
                   B.deleteMeta "nbformat_minor" $
                   jupyterMeta)
   -- convert from a Value (JSON object) to a M.Map Text Value:

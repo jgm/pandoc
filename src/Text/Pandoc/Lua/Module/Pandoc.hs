@@ -68,7 +68,7 @@ readDoc content formatSpecOrNil = do
              case rdr of
                TextReader r ->
                  r def{ readerExtensions = es } content
-               _ -> throwError $ PandocSomeError $
+               _ -> throwError $ PandocSomeError
                       "Only textual formats are supported"
   case res of
     Right pd -> (1 :: NumResults) <$ Lua.push pd -- success, push Pandoc

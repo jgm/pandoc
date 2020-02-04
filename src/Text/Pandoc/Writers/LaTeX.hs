@@ -896,10 +896,10 @@ tableCellToLaTeX header (width, align, blocks) = do
                AlignRight   -> "\\raggedleft"
                AlignCenter  -> "\\centering"
                AlignDefault -> "\\raggedright"
-  return $ ("\\begin{minipage}" <> valign <>
-            braces (text (printf "%.2f\\columnwidth" width)) <>
-            (halign <> cr <> cellContents <> "\\strut" <> cr) <>
-            "\\end{minipage}")
+  return $ "\\begin{minipage}" <> valign <>
+           braces (text (printf "%.2f\\columnwidth" width)) <>
+           halign <> cr <> cellContents <> "\\strut" <> cr <>
+           "\\end{minipage}"
 
 notesToLaTeX :: [Doc Text] -> Doc Text
 notesToLaTeX [] = empty
@@ -1686,4 +1686,3 @@ commonFromBcp47 (Lang l _ _ _) = fromIso l
     fromIso "ur"  = "urdu"
     fromIso "vi"  = "vietnamese"
     fromIso _     = ""
-

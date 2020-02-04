@@ -71,7 +71,7 @@ archiveToEPUB os archive = do
   spine <- parseSpine items content
   let escapedSpine = map (escapeURI . T.pack . takeFileName . fst) spine
   Pandoc _ bs <-
-      foldM' (\a b -> ((a <>) . walk (prependHash $ escapedSpine))
+      foldM' (\a b -> ((a <>) . walk (prependHash escapedSpine))
         `liftM` parseSpineElem root b) mempty spine
   let ast = coverDoc <> Pandoc meta bs
   fetchImages (M.elems items) root archive ast
@@ -294,4 +294,4 @@ findElementE :: PandocMonad m => QName -> Element -> m Element
 findElementE e x = mkE ("Unable to find element: " ++ show e) $ findElement e x
 
 mkE :: PandocMonad m => String -> Maybe a -> m a
-mkE s = maybe (throwError . PandocParseError $ T.pack $ s) return
+mkE s = maybe (throwError . PandocParseError $ T.pack s) return

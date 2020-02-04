@@ -646,7 +646,7 @@ options =
                       "all" -> return opt{ optIpynbOutput = IpynbOutputAll }
                       "best" -> return opt{ optIpynbOutput = IpynbOutputBest }
                       "none" -> return opt{ optIpynbOutput = IpynbOutputNone }
-                      _ -> E.throwIO $ PandocOptionError $
+                      _ -> E.throwIO $ PandocOptionError
                              "ipynb-output must be all, none, or best")
                  "all|none|best")
                  "" -- "Starting number for sections, subsections, etc."

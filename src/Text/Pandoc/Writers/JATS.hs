@@ -92,11 +92,11 @@ docToJATS opts (Pandoc meta blocks) = do
                Nothing  -> NullVal
                Just day ->
                  let (y,m,d) = toGregorian day
-                 in  MapVal $ Context
-                      $ M.insert ("year" :: Text) (SimpleVal $ text $ show y)
-                      $ M.insert "month" (SimpleVal $ text $ show m)
-                      $ M.insert "day" (SimpleVal $ text $ show d)
-                      $ M.insert "iso-8601"
+                 in  MapVal . Context
+                      . M.insert ("year" :: Text) (SimpleVal $ text $ show y)
+                      . M.insert "month" (SimpleVal $ text $ show m)
+                      . M.insert "day" (SimpleVal $ text $ show d)
+                      . M.insert "iso-8601"
                         (SimpleVal $ text $
                             formatTime defaultTimeLocale "%F" day)
                       $ mempty
@@ -219,7 +219,7 @@ blockToJATS opts (Div (id',"section":_,kvs) (Header _lvl _ ils : xs)) = do
   return $ inTags True "sec" attribs $
       inTagsSimple "title" title' $$ contents
 -- Bibliography reference:
-blockToJATS opts (Div (T.stripPrefix "ref-" -> Just _,_,_) [Para lst]) = 
+blockToJATS opts (Div (T.stripPrefix "ref-" -> Just _,_,_) [Para lst]) =
   inlinesToJATS opts lst
 blockToJATS opts (Div ("refs",_,_) xs) = do
   contents <- blocksToJATS opts xs

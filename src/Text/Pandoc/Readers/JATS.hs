@@ -238,7 +238,7 @@ parseBlock (Elem e) =
                                              (filterChildren (const True) t)
                                            Nothing -> return mempty
                          img <- getGraphic (Just (caption, attrValue "id" e)) g
-                         return $ para $ img
+                         return $ para img
                   _   -> divWith (attrValue "id" e, ["fig"], []) <$> getBlocks e
          parseTable = do
                       let isCaption x = named "title" x || named "caption" x

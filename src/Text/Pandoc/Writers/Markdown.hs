@@ -632,7 +632,7 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
             | isEnabled Ext_raw_html opts -> fmap (id,) $
                    literal <$>
                    (writeHtml5String opts{ writerTemplate = Nothing } $ Pandoc nullMeta [t])
-            | otherwise -> return $ (id, literal "[TABLE]")
+            | otherwise -> return (id, literal "[TABLE]")
   return $ nst (tbl $$ caption'') $$ blankline
 blockToMarkdown' opts (BulletList items) = do
   contents <- inList $ mapM (bulletListItemToMarkdown opts) items
@@ -768,7 +768,7 @@ bulletListItemToMarkdown opts bs = do
   let contents' = if itemEndsWithTightList bs
                      then chomp contents <> cr
                      else contents
-  return $ hang (writerTabStop opts) start $ contents'
+  return $ hang (writerTabStop opts) start contents'
 
 -- | Convert ordered list item (a list of blocks) to markdown.
 orderedListItemToMarkdown :: PandocMonad m
@@ -790,7 +790,7 @@ orderedListItemToMarkdown opts marker bs = do
   let contents' = if itemEndsWithTightList bs
                      then chomp contents <> cr
                      else contents
-  return $ hang ind start $ contents'
+  return $ hang ind start contents'
 
 -- | Convert definition list item (label, list of blocks) to markdown.
 definitionListItemToMarkdown :: PandocMonad m
