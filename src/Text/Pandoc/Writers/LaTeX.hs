@@ -1502,9 +1502,10 @@ citationsToBiblatex (c:cs)
                      | null sfx = addToGroup id 
                      | otherwise = addToGroup ((:) sfx) 
                      where addToGroup fn 
-                             | (1 < (length takefst)) = (\(a, b) -> (fn a, cid:b):
-                                 drop 1 prev) =<< take 1 prev
-                             | otherwise = (fn $ drop 1 $ takefst, [cid]):prev
+                             | (1 < (length takefst)) = 
+                                    (fn $ drop 1 $ takefst, [cid]):prev
+                             | otherwise = (\(a, b) -> (fn a, cid:b):drop 1 prev) 
+                                    =<< take 1 prev
                   grouper' pfx [] cid = ([pfx], [cid]):prev
                   grouper' pfx sfx cid = ([sfx, pfx], [cid]):prev 
 
