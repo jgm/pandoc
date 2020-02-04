@@ -55,18 +55,24 @@
 # - ignore: {name: "Use list comprehension"}
 # - ignore: {name: "Redundant if"}
 - ignore: {name: "Avoid lambda"}
-- ignore: {name: "Use String"}
-- ignore: {name: "Use isDigit"}
 - ignore: {name: "Eta reduce"}
-- ignore: {name: "Use fmap"}  # specific for GHC 7.8 compat
-- ignore: {name: "Parse error"}  # we trust the compiler over HLint
-- ignore: {name: "Use =="}  # Creates infinite loops in `EQ` using expressions
 - ignore: {name: "Evaluate"}
+- ignore: {name: "Monad law, left identity", module: "Text.Pandoc.App.OutputSettings"}
+- ignore: {name: "Parse error"}  # we trust the compiler over HLint
+- ignore: {name: "Reduce duplication", module: "Text.Pandoc.Readers.Markdown"}
 - ignore: {name: "Use &&&"}
-# - ignore: {name: "Redundant compare"}
+- ignore: {name: "Use =="}  # Creates infinite loops in `EQ` using expressions
+- ignore: {name: "Use String"}
+- ignore: {name: "Use fmap"}  # specific for GHC 7.8 compat
+- ignore: {name: "Use forM_", module: "Text.Pandoc.Readers.DocBook"}
+- ignore: {name: "Use isDigit"}
+- ignore: {name: "Use tuple-section", module: "Text.Pandoc.Readers.EPUB"}
+- ignore: {name: "Use uncurry", module: "Text.Pandoc.Readers.Docx.Combine"}
+- ignore:
+    name: "Use <$>"
+    within:
+      - Text.Pandoc.Readers.LaTeX
+      - Text.Pandoc.Readers.Markdown
 
 # Define some custom infix operators
 # - fixity: infixr 3 ~^#^~
-
-
-

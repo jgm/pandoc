@@ -81,9 +81,7 @@ toMetaValue pBlocks x =
                 [Plain ils] -> MetaInlines ils
                 [Para ils]  -> MetaInlines ils
                 xs          -> MetaBlocks xs
-        asBlocks p = do
-          p' <- p
-          return $ MetaBlocks (B.toList p')
+        asBlocks p = MetaBlocks . B.toList <$> p
 
 checkBoolean :: Text -> Maybe Bool
 checkBoolean t =

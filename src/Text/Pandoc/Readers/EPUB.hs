@@ -170,7 +170,7 @@ parseMeta content = do
   let coverId = findAttr (emptyName "content") =<< filterChild findCover meta
   return (coverId, r)
   where
-    findCover e = maybe False (== "cover") (findAttr (emptyName "name") e)
+    findCover e = (== Just "cover") (findAttr (emptyName "name") e)
 
 -- http://www.idpf.org/epub/30/spec/epub30-publications.html#sec-metadata-elem
 parseMetaItem :: Element -> Meta -> Meta

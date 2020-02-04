@@ -347,10 +347,10 @@ getDocumentXmlPath zf = do
   entry <- findEntryByPath "_rels/.rels" zf
   relsElem <- (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
   let rels = filterChildrenName (\n -> qName n == "Relationship") relsElem
-  rel <- listToMaybe $
-         filter (\e -> findAttr (QName "Type" Nothing Nothing) e ==
-                       Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument")
-         rels
+  rel <- find
+           (\e -> findAttr (QName "Type" Nothing Nothing) e ==
+                  Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument")
+           rels
   fp <- findAttr (QName "Target" Nothing Nothing) rel
   -- sometimes there will be a leading slash, which windows seems to
   -- have trouble with.
