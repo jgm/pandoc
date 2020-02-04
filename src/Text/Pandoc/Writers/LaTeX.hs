@@ -1495,19 +1495,19 @@ citationsToBiblatex (c:cs)
 
       return $ text cmd <> (mconcat docGroups)
 
-  where grouper prev cit  
-            | prevSfx && null pfx = 
-                (let oldpfx = drop 1 $ fst =<< take 1 prev in 
-                    if null sfx then oldpfx else sfx:oldpfx, [cid]):prev
-            | null pfx = 
-                (\(a, b) -> (if null sfx then a else sfx:a,cid:b):
-                    drop 1 prev) =<< take 1 prev
-            | null sfx = ([pfx], [cid]):prev
-            | otherwise = ([sfx, pfx], [cid]):prev
-            where pfx = citationPrefix cit
-                  sfx = citationSuffix cit
-                  cid = citationId cit
-                  prevSfx = 1 < (length (fst =<< take 1 prev))
+  where grouper prev cit = grouper' (citationPrefix cit)
+               (citationSuffix cit) (citationId cit) 
+            where takefst = (fst =<< take 1 prev)  
+                  grouper' [] sfx cid
+                     | null sfx = addToGroup id 
+                     | otherwise = addToGroup ((:) sfx) 
+                     where addToGroup fn 
+                             | (1 < (length takefst)) = (\(a, b) -> (fn a, cid:b):
+                                 drop 1 prev) =<< take 1 prev
+                             | otherwise = (fn $ drop 1 $ takefst, [cid]):prev
+                  grouper' pfx [] cid = ([pfx], [cid]):prev
+                  grouper' pfx sfx cid = ([sfx, pfx], [cid]):prev 
+
         correctOrder (pfxs, ids) = (reverse pfxs, reverse ids)
         citeArgsList ((p:s:_), k) = citeArgumentsList p s k
         citeArgsList ((p:_), k) = citeArgumentsList p [] k
