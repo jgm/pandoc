@@ -249,7 +249,7 @@ presentationToArchiveP p@(Presentation docProps slides) = do
   filePaths <- patternsToFilePaths $ inheritedPatterns p
 
   -- make sure all required files are available:
-  let missingFiles = filter (\fp -> not (fp `elem` filePaths)) requiredFiles
+  let missingFiles = filter (`notElem` filePaths) requiredFiles
   unless (null missingFiles)
     (throwError $
       PandocSomeError $
