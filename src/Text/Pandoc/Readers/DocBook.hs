@@ -741,7 +741,7 @@ parseBlock (Elem e) =
         "refsect2" -> sect 2
         "refsect3" -> sect 3
         "refsection" -> gets dbSectionLevel >>= sect . (+1)
-        l@_ | l `elem` admonitionTags -> parseAdmonition $ T.pack l
+        l | l `elem` admonitionTags -> parseAdmonition $ T.pack l
         "area" -> skip
         "areaset" -> skip
         "areaspec" -> skip
