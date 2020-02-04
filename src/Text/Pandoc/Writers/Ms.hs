@@ -26,7 +26,7 @@ import Control.Monad.State.Strict
 import Data.Char (isLower, isUpper, ord)
 import Data.List (intercalate, intersperse)
 import qualified Data.Map as Map
-import Data.Maybe (catMaybes, fromMaybe)
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (escapeURIString, isAllowedInURI)
@@ -507,8 +507,8 @@ toMacro sty toktype =
         tokSty = Map.lookup toktype (tokenStyles sty)
         tokCol = (tokSty >>= tokenColor) `mplus` defaultColor sty
         -- tokBg  = (tokSty >>= tokenBackground) `mplus` backgroundColor sty
-        tokBold = fromMaybe False (tokenBold <$> tokSty)
-        tokItalic = fromMaybe False (tokenItalic <$> tokSty)
+        tokBold = maybe False tokenBold tokSty
+        tokItalic = maybe False tokenItalic tokSty
         -- tokUnderline = fromMaybe False (tokSty >>= tokUnderline)
         -- lnColor = lineNumberColor sty
         -- lnBkgColor = lineNumberBackgroundColor sty

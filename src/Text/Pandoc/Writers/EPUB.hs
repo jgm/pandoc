@@ -356,7 +356,7 @@ metadataFromMeta opts meta = EPUBMetadata{
                               (writerVariables opts))
             `mplus` (metaValueToString <$> lookupMeta "cover-image" meta)
         mCss = lookupMeta "css" meta <|> lookupMeta "stylesheet" meta
-        stylesheets = fromMaybe [] (metaValueToPaths <$> mCss) ++
+        stylesheets = maybe [] metaValueToPaths mCss ++
                       case lookupContext "css" (writerVariables opts) of
                          Just xs -> map TS.unpack xs
                          Nothing ->
@@ -659,8 +659,8 @@ pandocToEPUB version opts doc = do
                             ("media-type", maybe "" TS.unpack $
                                   getMimeType $ eRelativePath ent)] $ ()
 
-  let tocTitle = fromMaybe plainTitle $
-                   metaValueToString <$> lookupMeta "toc-title" meta
+  let tocTitle = maybe plainTitle
+                   metaValueToString $ lookupMeta "toc-title" meta
   uuid <- case epubIdentifier metadata of
             (x:_) -> return $ identifierText x  -- use first identifier as UUID
             []    -> throwError $ PandocShouldNeverHappenError "epubIdentifier is null"  -- shouldn't happen
@@ -1400,7 +1400,7 @@ relatorMap =
            ]
 
 docTitle' :: Meta -> [Inline]
-docTitle' meta = fromMaybe [] $ go <$> lookupMeta "title" meta
+docTitle' meta = maybe [] go $ lookupMeta "title" meta
   where go (MetaString s) = [Str s]
         go (MetaInlines xs) = xs
         go (MetaBlocks [Para xs]) = xs

@@ -194,9 +194,9 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                (blockListToMarkdown opts)
                (inlineListToMarkdown opts)
                meta
-  let title' = maybe empty id $ getField "title" metadata
-  let authors' = maybe [] id $ getField "author" metadata
-  let date' = maybe empty id $ getField "date" metadata
+  let title' = fromMaybe empty $ getField "title" metadata
+  let authors' = fromMaybe [] $ getField "author" metadata
+  let date' = fromMaybe empty $ getField "date" metadata
   let titleblock = case writerTemplate opts of
                         Just _ | isPlain ->
                                  plainTitleBlock title' authors' date'
