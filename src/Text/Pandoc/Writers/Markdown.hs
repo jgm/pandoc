@@ -25,7 +25,7 @@ import Data.Char (isAlphaNum)
 import Data.Default
 import Data.List (find, intersperse, sortOn, transpose)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, catMaybes)
+import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -120,7 +120,7 @@ mmdTitleBlock (Context hashmap) =
                  | null xs        -> empty
                  | otherwise      -> k' <> ":" <> space <>
                                       hcat (intersperse "; " $
-                                          catMaybes $ map fromVal xs)
+                                            mapMaybe fromVal xs)
                (k', SimpleVal x)
                       | isEmpty x -> empty
                       | otherwise -> k' <> ":" <> space <>

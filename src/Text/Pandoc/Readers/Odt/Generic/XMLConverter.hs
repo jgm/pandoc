@@ -387,7 +387,7 @@ filterChildrenName'        :: (NameSpaceID nsID)
 filterChildrenName' nsID f =     getCurrentElement
                              >>> arr XML.elChildren
                              >>> iterateS (keepingTheValue (elemNameMatches nsID f))
-                             >>> arr (catMaybes . fmap (uncurry $ bool Nothing . Just))
+                             >>> arr (mapMaybe (uncurry $ bool Nothing . Just))
 
 --------------------------------------------------------------------------------
 -- Attributes
