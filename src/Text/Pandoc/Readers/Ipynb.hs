@@ -130,7 +130,7 @@ addAttachment (fname, mimeBundle) = do
 
 outputToBlock :: PandocMonad m => Output a -> m B.Blocks
 outputToBlock Stream{ streamName = sName,
-                      streamText = Source text } = do
+                      streamText = Source text } =
   return $ B.divWith ("",["output","stream",sName],[])
          $ B.codeBlock $ T.concat text
 outputToBlock DisplayData{ displayData = data',
@@ -144,7 +144,7 @@ outputToBlock ExecuteResult{ executeCount = ec,
     <$> handleData metadata' data'
 outputToBlock Err{ errName = ename,
                    errValue = evalue,
-                   errTraceback = traceback } = do
+                   errTraceback = traceback } =
   return $ B.divWith ("",["output","error"],
                          [("ename",ename),
                           ("evalue",evalue)])

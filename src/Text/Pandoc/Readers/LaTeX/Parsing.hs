@@ -391,7 +391,7 @@ doMacros = do
       updateState $ \st -> st{ sExpanded = True }
 
 doMacros' :: PandocMonad m => Int -> [Tok] -> LP m [Tok]
-doMacros' n inp = do
+doMacros' n inp =
   case inp of
      Tok spos (CtrlSeq "begin") _ : Tok _ Symbol "{" :
       Tok _ Word name : Tok _ Symbol "}" : ts

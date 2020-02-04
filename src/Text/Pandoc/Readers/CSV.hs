@@ -31,7 +31,7 @@ readCSV :: PandocMonad m
         => ReaderOptions -- ^ Reader options
         -> Text          -- ^ Text to parse (assuming @'\n'@ line endings)
         -> m Pandoc
-readCSV _opts s = do
+readCSV _opts s =
   case parseCSV defaultCSVOptions (crFilter s) of
     Right (r:rs) -> return $ B.doc $ B.table capt (zip aligns widths) hdrs rows
        where capt = mempty

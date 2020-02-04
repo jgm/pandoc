@@ -1559,7 +1559,7 @@ macroDef constructor = do
           mbenv <- newenvironment
           case mbenv of
             Nothing -> return ()
-            Just (name, macro1, macro2) -> do
+            Just (name, macro1, macro2) ->
               guardDisabled Ext_latex_macros <|>
                 do updateState $ \s -> s{ sMacros =
                     M.insert name macro1 (sMacros s) }
@@ -1669,7 +1669,7 @@ newenvironment = do
            | mtype == "newenvironment" -> do
                report $ MacroAlreadyDefined name pos
                return Nothing
-           | mtype == "provideenvironment" -> do
+           | mtype == "provideenvironment" ->
                return Nothing
          _ -> return $ Just (name,
                       Macro ExpandWhenUsed argspecs optarg startcontents,

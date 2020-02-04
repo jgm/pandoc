@@ -226,7 +226,7 @@ parseBlock (Elem e) =
                      terms' <- mapM getInlines terms
                      items' <- mapM getBlocks items
                      return (mconcat $ intersperse (str "; ") terms', items')
-         parseFigure = do
+         parseFigure =
            -- if a simple caption and single graphic, we emit a standard
            -- implicit figure.  otherwise, we emit a div with the contents
            case filterChildren (named "graphic") e of

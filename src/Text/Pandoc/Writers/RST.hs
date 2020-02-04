@@ -607,7 +607,7 @@ inlineToRST (Quoted DoubleQuote lst) = do
      else return $ "“" <> contents <> "”"
 inlineToRST (Cite _  lst) =
   writeInlines lst
-inlineToRST (Code (_,["interpreted-text"],[("role",role)]) str) = do
+inlineToRST (Code (_,["interpreted-text"],[("role",role)]) str) =
   return $ ":" <> literal role <> ":`" <> literal str <> "`"
 inlineToRST (Code _ str) = do
   opts <- gets stOptions

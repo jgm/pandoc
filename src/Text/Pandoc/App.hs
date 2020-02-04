@@ -342,7 +342,7 @@ readSource src = case parseURI src of
                    else BS.readFile fp
           E.catch (return $! UTF8.toText bs)
              (\e -> case e of
-                         TSE.DecodeError _ (Just w) -> do
+                         TSE.DecodeError _ (Just w) ->
                            case BS.elemIndex w bs of
                              Just offset -> E.throwIO $
                                   PandocUTF8DecodingError (T.pack fp) offset w

@@ -287,7 +287,7 @@ parseInline = try $ do
 
 handleInlineMacro :: PandocMonad m
                   => T.Text -> [Arg] -> SourcePos -> ManParser m Inlines
-handleInlineMacro mname args _pos = do
+handleInlineMacro mname args _pos =
   case mname of
     "UR" -> parseLink args
     "MT" -> parseEmailLink args
@@ -366,7 +366,7 @@ parseCodeBlock = try $ do
     tok <- mtoken
     case tok of
       ControlLine "PP" _ _ -> return $ Just "" -- .PP sometimes used for blank line
-      ControlLine mname args pos -> do
+      ControlLine mname args pos ->
         (Just . query getText <$> handleInlineMacro mname args pos) <|>
           do report $ SkippedContent ("." <> mname) pos
              return Nothing

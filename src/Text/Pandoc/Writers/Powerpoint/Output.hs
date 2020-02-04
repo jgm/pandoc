@@ -895,7 +895,7 @@ shapeToElements :: PandocMonad m => Element -> Shape -> P m [Element]
 shapeToElements layout (Pic picProps fp alt) = do
   mInfo <- registerMedia fp alt
   case mInfoExt mInfo of
-    Just _ -> do
+    Just _ ->
       makePicElements layout picProps mInfo alt
     Nothing -> shapeToElements layout $ TextBox [Paragraph def alt]
 shapeToElements layout (GraphicFrame tbls cptn) =
@@ -906,7 +906,7 @@ shapeToElements layout shp = do
   return [element]
 
 shapesToElements :: PandocMonad m => Element -> [Shape] -> P m [Element]
-shapesToElements layout shps = do
+shapesToElements layout shps =
  concat <$> mapM (shapeToElements layout) shps
 
 graphicFrameToElements :: PandocMonad m => Element -> [Graphic] -> [ParaElem] -> P m [Element]
@@ -1545,7 +1545,7 @@ linkRelElement rIdNum (InternalTarget targetId) = do
                           , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide")
                           , ("Target", "slide" <> show targetIdNum <> ".xml")
                           ] ()
-linkRelElement rIdNum (ExternalTarget (url, _)) = do
+linkRelElement rIdNum (ExternalTarget (url, _)) =
   return $
     mknode "Relationship" [ ("Id", "rId" <> show rIdNum)
                           , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink")

@@ -414,7 +414,7 @@ html2pdf  :: Verbosity    -- ^ Verbosity level
           -> [String]     -- ^ Args to program
           -> Text         -- ^ HTML5 source
           -> IO (Either ByteString ByteString)
-html2pdf verbosity program args source = do
+html2pdf verbosity program args source =
   -- write HTML to temp file so we don't have to rewrite
   -- all links in `a`, `img`, `style`, `script`, etc. tags,
   -- and piping to weasyprint didn't work on Windows either.

@@ -731,7 +731,7 @@ pandocToEPUB version opts doc = do
                    => (Int -> [Inline] -> TS.Text -> [Element] -> Element)
                    -> Block -> StateT Int m [Element]
       navPointNode formatter (Div (ident,_,_)
-                                (Header lvl (_,_,kvs) ils : children)) = do
+                                (Header lvl (_,_,kvs) ils : children)) =
         if lvl > tocLevel
            then return []
            else do
