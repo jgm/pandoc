@@ -1,9 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE RelaxedPolyRec      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Readers.Metadata
    Copyright   : Copyright (C) 2006-2019 John MacFarlane

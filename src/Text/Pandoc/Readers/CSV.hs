@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Readers.RST
    Copyright   : Copyright (C) 2006-2019 John MacFarlane

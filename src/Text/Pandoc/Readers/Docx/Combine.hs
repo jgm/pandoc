@@ -1,7 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE PatternGuards        #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {- |
    Module      : Text.Pandoc.Readers.Docx.Combine
