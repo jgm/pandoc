@@ -1508,7 +1508,7 @@ include name = do
                       _ | name == "usepackage" -> addExtension f ".sty"
                         | otherwise -> addExtension f ".tex"
   dirs <- (map T.unpack . splitTextBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
-  mapM_ (insertIncluded dirs) (map addExt fs)
+  mapM_ (insertIncluded dirs . addExt) fs
   return mempty
 
 insertIncluded :: PandocMonad m
