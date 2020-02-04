@@ -170,7 +170,7 @@ extractCells opts (b:bs) = do
       let isCodeOrDiv (CodeBlock (_,cl,_) _) = "code" `elem` cl
           isCodeOrDiv (Div (_,cl,_) _)       = "cell" `elem` cl
           isCodeOrDiv _                      = False
-      let (mds, rest) = break (isCodeOrDiv) bs
+      let (mds, rest) = break isCodeOrDiv bs
       extractCells opts (Div ("",["cell","markdown"],[]) (b:mds) : rest)
 
 blockToOutput :: PandocMonad m => Block -> m (Maybe (Output a))

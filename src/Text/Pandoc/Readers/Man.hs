@@ -91,8 +91,8 @@ parseBlock = choice [ parseList
 parseTable :: PandocMonad m => ManParser m Blocks
 parseTable = do
   modifyState $ \st -> st { tableCellsPlain = True }
-  let isTbl (Tbl{}) = True
-      isTbl _          = False
+  let isTbl Tbl{} = True
+      isTbl _     = False
   Tbl _opts rows pos <- msatisfy isTbl
   case rows of
     ((as,_):_) -> try (do

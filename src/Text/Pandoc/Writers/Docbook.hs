@@ -91,7 +91,7 @@ writeDocbook opts (Pandoc meta blocks) = do
   auths' <- mapM (authorToDocbook opts) $ docAuthors meta
   let meta' = B.setMeta "author" auths' meta
   metadata <- metaToContext opts
-                 (fromBlocks)
+                 fromBlocks
                  (inlinesToDocbook opts)
                  meta'
   main <- fromBlocks blocks

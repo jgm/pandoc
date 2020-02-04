@@ -164,7 +164,7 @@ handleData metadata (MimeBundle mb) =
       -- normally metadata maps from mime types to key-value map;
       -- but not always...
       let meta = case M.lookup mt metadata of
-                   Just v@(Object{}) ->
+                   Just v@Object{} ->
                      case fromJSON v of
                        Success m' -> m'
                        Error _   -> mempty
@@ -198,11 +198,11 @@ jsonMetaToMeta :: JSONMeta -> M.Map Text MetaValue
 jsonMetaToMeta = M.map valueToMetaValue
   where
     valueToMetaValue :: Value -> MetaValue
-    valueToMetaValue x@(Object{}) =
+    valueToMetaValue x@Object{} =
       case fromJSON x of
         Error s -> MetaString $ T.pack s
         Success jm' -> MetaMap $ jsonMetaToMeta jm'
-    valueToMetaValue x@(Array{}) =
+    valueToMetaValue x@Array{} =
       case fromJSON x of
         Error s -> MetaString $ T.pack s
         Success xs -> MetaList $ map valueToMetaValue xs

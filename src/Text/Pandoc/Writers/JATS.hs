@@ -365,10 +365,10 @@ inlinesToJATS opts lst = hcat <$> mapM (inlineToJATS opts) (fixCitations lst)
      where
        needsFixing (RawInline (Format "jats") z) =
            "<pub-id pub-id-type=" `T.isPrefixOf` z
-       needsFixing _             = False
-       isRawInline (RawInline{}) = True
-       isRawInline _             = False
-       (ys,zs)                   = break isRawInline xs
+       needsFixing _           = False
+       isRawInline RawInline{} = True
+       isRawInline _           = False
+       (ys,zs)                 = break isRawInline xs
    fixCitations (x:xs) = x : fixCitations xs
 
 -- | Convert an inline element to JATS.

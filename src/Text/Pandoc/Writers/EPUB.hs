@@ -1065,7 +1065,7 @@ transformInline  :: PandocMonad m
 transformInline _opts (Image attr lab (src,tit)) = do
     newsrc <- modifyMediaRef $ TS.unpack src
     return $ Image attr lab ("../" <> newsrc, tit)
-transformInline opts (x@(Math t m))
+transformInline opts x@(Math t m)
   | WebTeX url <- writerHTMLMathMethod opts = do
     newsrc <- modifyMediaRef (TS.unpack url <> urlEncode (TS.unpack m))
     let mathclass = if t == DisplayMath then "display" else "inline"

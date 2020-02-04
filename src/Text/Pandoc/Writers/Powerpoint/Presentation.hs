@@ -946,8 +946,8 @@ metaToDocProps meta =
                   ss -> Just $ T.intercalate "_x000d_\n" ss
 
       customProperties' = case [(k, lookupMetaString k meta) | k <- M.keys (unMeta meta)
-                               , k `notElem` (["title", "author", "keywords", "description"
-                                             , "subject","lang","category"])] of
+                               , k `notElem` ["title", "author", "keywords", "description"
+                                             , "subject","lang","category"]] of
                   [] -> Nothing
                   ss -> Just ss
   in

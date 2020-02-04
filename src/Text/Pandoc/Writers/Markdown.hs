@@ -1187,7 +1187,7 @@ inlineToMarkdown opts il@(RawInline f str) = do
                 | isEnabled Ext_raw_attribute opts -> rawAttribInline
                 | otherwise -> renderEmpty
       | otherwise -> renderEmpty
-inlineToMarkdown opts (LineBreak) = do
+inlineToMarkdown opts LineBreak = do
   plain <- asks envPlain
   if plain || isEnabled Ext_hard_line_breaks opts
      then return cr
