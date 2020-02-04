@@ -54,10 +54,9 @@ type XWikiReader m = ReaderT WriterState m
 
 -- | Convert Pandoc to XWiki.
 writeXWiki :: PandocMonad m => WriterOptions -> Pandoc -> m Text
-writeXWiki _ (Pandoc _ blocks) = do
+writeXWiki _ (Pandoc _ blocks) =
   let env = WriterState { listLevel = "" }
-  body <- runReaderT (blockListToXWiki blocks) env
-  return $ body
+  in runReaderT (blockListToXWiki blocks) env
 
 -- | Concatenates strings with line breaks between them.
 vcat :: [Text] -> Text
