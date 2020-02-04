@@ -23,10 +23,9 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Char (isAlphaNum)
 import Data.Default
-import Data.List (find, intersperse, sortBy, transpose)
+import Data.List (find, intersperse, sortOn, transpose)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, catMaybes)
-import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -114,7 +113,7 @@ pandocTitleBlock tit auths dat =
 
 mmdTitleBlock :: Context Text -> Doc Text
 mmdTitleBlock (Context hashmap) =
-  vcat $ map go $ sortBy (comparing fst) $ M.toList hashmap
+  vcat $ map go $ sortOn fst $ M.toList hashmap
   where go (k,v) =
           case (text (T.unpack k), v) of
                (k', ListVal xs)
@@ -143,7 +142,7 @@ yamlMetadataBlock v = "---" $$ (contextToYaml v) $$ "---"
 
 contextToYaml :: Context Text -> Doc Text
 contextToYaml (Context o) =
-  vcat $ map keyvalToYaml $ sortBy (comparing fst) $ M.toList o
+  vcat $ map keyvalToYaml $ sortOn fst $ M.toList o
  where
   keyvalToYaml (k,v) =
           case (text (T.unpack k), v) of

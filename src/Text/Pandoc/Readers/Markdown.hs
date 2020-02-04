@@ -21,10 +21,9 @@ import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
-import Data.List (sortBy, transpose, elemIndex)
+import Data.List (sortOn, transpose, elemIndex)
 import qualified Data.Map as M
 import Data.Maybe
-import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -1183,7 +1182,7 @@ alignType [] _ = AlignDefault
 alignType strLst len =
   let nonempties = filter (not . T.null) $ map trimr strLst
       (leftSpace, rightSpace) =
-           case sortBy (comparing T.length) nonempties of
+           case sortOn T.length nonempties of
                  (x:_) -> (T.head x `elem` [' ', 't'], T.length x < len)
                  []    -> (False, False)
   in  case (leftSpace, rightSpace) of
