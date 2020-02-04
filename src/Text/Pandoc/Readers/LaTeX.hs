@@ -696,7 +696,7 @@ citationLabel  = do
           <* optional spaces
           <* optional (symbol ',')
           <* optional spaces)
-  where bibtexKeyChar = ".:;?!`'()/*@_+=-[]" :: [Char]
+  where bibtexKeyChar = ".:;?!`'()/*@_+=-&[]" :: [Char]
 
 cites :: PandocMonad m => CitationMode -> Bool -> LP m [Citation]
 cites mode multi = try $ do
