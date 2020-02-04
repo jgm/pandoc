@@ -40,15 +40,14 @@ import Data.Maybe (fromMaybe)
 import Data.Data (Data)
 import Data.Default
 import Data.Text (Text)
-import Text.DocTemplates (Context(..))
 import qualified Data.Set as Set
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Skylighting (SyntaxMap, defaultSyntaxMap)
+import Text.DocTemplates (Context(..), Template)
 import Text.Pandoc.Extensions
 import Text.Pandoc.Highlighting (Style, pygments)
 import Text.Pandoc.Shared (camelCaseStrToHyphenated)
-import Text.DocTemplates (Template)
 import Data.Aeson.TH (deriveJSON, defaultOptions, Options(..),
                       SumEncoding(..))
 import Data.YAML
