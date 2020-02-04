@@ -219,7 +219,7 @@ inlineToXWiki (Link (id', _, _) txt (src, _)) = do
 inlineToXWiki (Image _ alt (source, tit)) = do
   alt' <- inlineListToXWiki alt
   let
-    params = intercalate " " $ filter (not . Text.null) [
+    params = Text.unwords $ filter (not . Text.null) [
         if Text.null alt' then "" else "alt=\"" <> alt' <> "\"",
           if Text.null tit then "" else "title=\"" <> tit <> "\""
         ]
