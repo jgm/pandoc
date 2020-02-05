@@ -60,6 +60,7 @@ import           Control.Applicative  hiding ( liftA, liftA2 )
 import           Control.Monad               ( MonadPlus )
 import           Control.Arrow
 
+import           Data.Bool ( bool )
 import           Data.Either ( rights )
 import qualified Data.Map             as M
 import qualified Data.Text            as T
