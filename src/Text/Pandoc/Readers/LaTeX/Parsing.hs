@@ -528,7 +528,9 @@ symbolIn cs = satisfyTok isInCs
         isInCs _ = False
 
 sp :: PandocMonad m => LP m ()
-sp = whitespace <|> endline
+sp = do
+  optional $ skipMany (whitespace <|> comment)
+  optional $ endline  *> skipMany (whitespace <|> comment)
 
 whitespace :: PandocMonad m => LP m ()
 whitespace = () <$ satisfyTok isSpaceTok
@@ -595,7 +597,7 @@ primEscape = do
 
 bgroup :: PandocMonad m => LP m Tok
 bgroup = try $ do
-  skipMany sp
+  optional sp
   symbol '{' <|> controlSeq "bgroup" <|> controlSeq "begingroup"
 
 egroup :: PandocMonad m => LP m Tok

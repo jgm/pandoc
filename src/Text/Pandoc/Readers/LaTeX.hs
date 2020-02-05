@@ -590,10 +590,10 @@ nlToSpace x    = x
 keyval :: PandocMonad m => LP m (Text, Text)
 keyval = try $ do
   Tok _ Word key <- satisfyTok isWordTok
-  optional sp
+  sp
   val <- option mempty $ do
            symbol '='
-           optional sp
+           sp
            (untokenize <$> braced) <|>
              (mconcat <$> many1 (
                  (untokenize . snd <$> withRaw braced)
@@ -607,11 +607,11 @@ keyval = try $ do
                                 Tok _ Symbol "}" -> False
                                 _                -> True))))))
   optional (symbol ',')
-  optional sp
+  sp
   return (key, T.strip val)
 
 keyvals :: PandocMonad m => LP m [(Text, Text)]
-keyvals = try $ symbol '[' >> manyTill keyval (symbol ']')
+keyvals = try $ symbol '[' >> manyTill keyval (symbol ']') <* sp
 
 accent :: PandocMonad m => Char -> Maybe Char -> LP m Inlines
 accent combiningAccent fallBack = try $ do
@@ -690,12 +690,12 @@ simpleCiteArgs = try $ do
 
 citationLabel :: PandocMonad m => LP m Text
 citationLabel  = do
-  optional spaces
+  sp
   untokenize <$>
     (many1 (satisfyTok isWordTok <|> symbolIn bibtexKeyChar)
-          <* optional spaces
+          <* sp
           <* optional (symbol ',')
-          <* optional spaces)
+          <* sp)
   where bibtexKeyChar = ".:;?!`'()/*@_+=-&[]" :: [Char]
 
 cites :: PandocMonad m => CitationMode -> Bool -> LP m [Citation]
@@ -772,7 +772,7 @@ inlineCommand' :: PandocMonad m => LP m Inlines
 inlineCommand' = try $ do
   Tok _ (CtrlSeq name) cmd <- anyControlSeq
   guard $ name /= "begin" && name /= "end"
-  star <- option "" ("*" <$ symbol '*' <* optional sp)
+  star <- option "" ("*" <$ symbol '*' <* sp)
   overlay <- option "" overlaySpecification
   let name' = name <> star <> overlay
   let names = ordNub [name', name] -- check non-starred as fallback
@@ -797,9 +797,9 @@ paropt = parenWrapped inline
 
 rawopt :: PandocMonad m => LP m Text
 rawopt = try $ do
-  optional sp
+  sp
   inner <- untokenize <$> bracketedToks
-  optional sp
+  sp
   return $ "[" <> inner <> "]"
 
 skipopts :: PandocMonad m => LP m ()
@@ -1024,7 +1024,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("nolinkurl", ((unescapeURL . untokenize) <$> bracedUrl) >>= \url ->
                   pure (code url))
   , ("href", (unescapeURL . untokenize <$>
-                 bracedUrl <* optional sp) >>= \url ->
+                 bracedUrl <* sp) >>= \url ->
                    tok >>= \lab -> pure (link url "" lab))
   , ("includegraphics", do options <- option [] keyvals
                            src <- unescapeURL . removeDoubleQuotes . untokenize <$> braced
@@ -1108,7 +1108,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("Supercites", citation "Supercites" NormalCitation True)
   , ("Footcitetexts", inNote <$> citation "Footcitetexts" NormalCitation True)
   , ("citetext", complexNatbibCitation NormalCitation)
-  , ("citeauthor", (try (tok *> optional sp *> controlSeq "citetext") *>
+  , ("citeauthor", (try (tok *> sp *> controlSeq "citetext") *>
                         complexNatbibCitation AuthorInText)
                    <|> citation "citeauthor" AuthorInText False)
   , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
@@ -1737,7 +1737,7 @@ blockCommand :: PandocMonad m => LP m Blocks
 blockCommand = try $ do
   Tok _ (CtrlSeq name) txt <- anyControlSeq
   guard $ name /= "begin" && name /= "end"
-  star <- option "" ("*" <$ symbol '*' <* optional sp)
+  star <- option "" ("*" <$ symbol '*' <* sp)
   let name' = name <> star
   let names = ordNub [name', name]
   let rawDefiniteBlock = do
@@ -2173,7 +2173,7 @@ descItem :: PandocMonad m => LP m (Inlines, [Blocks])
 descItem = do
   blocks -- skip blocks before item
   controlSeq "item"
-  optional sp
+  sp
   ils <- opt
   bs <- blocks
   return (ils, [bs])
@@ -2209,7 +2209,7 @@ orderedList' = try $ do
                                ctr <- untokenize <$> braced
                                guard $ "enum" `T.isPrefixOf` ctr
                                guard $ T.all (`elem` ['i','v']) (T.drop 4 ctr)
-                               optional sp
+                               sp
                                num <- untokenize <$> braced
                                case safeRead num of
                                     Just i -> return (i + 1 :: Int)
@@ -2255,8 +2255,8 @@ splitWordTok = do
 
 parseAligns :: PandocMonad m => LP m [(Alignment, Double, ([Tok], [Tok]))]
 parseAligns = try $ do
-  let maybeBar = skipMany $
-        sp <|> () <$ symbol '|' <|> () <$ (symbol '@' >> braced)
+  let maybeBar = skipMany
+        (try $ sp *> (() <$ symbol '|' <|> () <$ (symbol '@' >> braced)))
   let cAlign = AlignCenter <$ symbol 'c'
   let lAlign = AlignLeft <$ symbol 'l'
   let rAlign = AlignRight <$ symbol 'r'
