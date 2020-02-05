@@ -347,7 +347,17 @@ blockListToMediaWiki blocks =
 -- | Convert list of Pandoc inline elements to MediaWiki.
 inlineListToMediaWiki :: PandocMonad m => [Inline] -> MediaWikiWriter m Text
 inlineListToMediaWiki lst =
-  fmap T.concat $ mapM inlineToMediaWiki lst
+  fmap T.concat $ mapM inlineToMediaWiki $ fixup lst
+    where
+     fixup [] = []
+     fixup (Str t : x : xs)
+       | not (T.null t) && T.last t == '['
+       , isLinkOrImage x =
+          Str t : RawInline (Format "mediawiki") "<nowiki/>" : x : fixup xs
+     fixup (x:xs) = x : fixup xs
+     isLinkOrImage (Link{})  = True
+     isLinkOrImage (Image{}) = True
+     isLinkOrImage _         = False
 
 -- | Convert Pandoc inline element to MediaWiki.
 inlineToMediaWiki :: PandocMonad m => Inline -> MediaWikiWriter m Text
