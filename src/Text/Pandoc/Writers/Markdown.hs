@@ -19,6 +19,7 @@ Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
 module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
 import Prelude
+import Control.Monad (zipWithM)
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Char (isAlphaNum)
@@ -256,7 +257,7 @@ keyToMarkdown opts (label', (src, tit), attr) = do
 notesToMarkdown :: PandocMonad m => WriterOptions -> [[Block]] -> MD m (Doc Text)
 notesToMarkdown opts notes = do
   n <- gets stNoteNum
-  notes' <- mapM (\(num, note) -> noteToMarkdown opts num note) (zip [n..] notes)
+  notes' <- zipWithM (noteToMarkdown opts) [n..] notes
   modify $ \st -> st { stNoteNum = stNoteNum st + length notes }
   return $ vsep notes'
 
@@ -647,8 +648,7 @@ blockToMarkdown' opts (OrderedList (start,sty,delim) items) = do
                                then m <> T.replicate (3 - T.length m) " "
                                else m) markers
   contents <- inList $
-              mapM (\(item, num) -> orderedListItemToMarkdown opts item num) $
-              zip markers' items
+              zipWithM (orderedListItemToMarkdown opts) markers' items
   return $ (if isTightList items then vcat else vsep) contents <> blankline
 blockToMarkdown' opts (DefinitionList items) = do
   contents <- inList $ mapM (definitionListItemToMarkdown opts) items
