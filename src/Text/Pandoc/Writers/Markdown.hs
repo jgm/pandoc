@@ -19,7 +19,6 @@ Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
 module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
 import Prelude
-import Control.Monad (zipWithM)
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Char (isAlphaNum)
