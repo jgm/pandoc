@@ -620,7 +620,7 @@ headerLtEq _ _                   = False
 uniqueIdent :: Extensions -> [Inline] -> Set.Set T.Text -> T.Text
 uniqueIdent exts title' usedIdents =
   if baseIdent `Set.member` usedIdents
-     then case find (\x -> not $ numIdent x `Set.member` usedIdents)
+     then case find (\x -> numIdent x `Set.notMember` usedIdents)
                ([1..60000] :: [Int]) of
             Just x  -> numIdent x
             Nothing -> baseIdent
