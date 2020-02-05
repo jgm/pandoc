@@ -1539,15 +1539,15 @@ slideToSlideRelEntry slide = do
   element <- slideToSlideRelElement slide
   elemToEntry ("ppt/slides/_rels/" <> idNumToFilePath idNum <> ".rels") element
 
-linkRelElement :: PandocMonad m => Int -> LinkTarget -> P m Element
-linkRelElement rIdNum (InternalTarget targetId) = do
+linkRelElement :: PandocMonad m => (Int, LinkTarget) -> P m Element
+linkRelElement (rIdNum, InternalTarget targetId) = do
   targetIdNum <- getSlideIdNum targetId
   return $
     mknode "Relationship" [ ("Id", "rId" <> show rIdNum)
                           , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide")
                           , ("Target", "slide" <> show targetIdNum <> ".xml")
                           ] ()
-linkRelElement rIdNum (ExternalTarget (url, _)) = do
+linkRelElement (rIdNum, ExternalTarget (url, _)) = do
   return $
     mknode "Relationship" [ ("Id", "rId" <> show rIdNum)
                           , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink")
@@ -1556,7 +1556,7 @@ linkRelElement rIdNum (ExternalTarget (url, _)) = do
                           ] ()
 
 linkRelElements :: PandocMonad m => M.Map Int LinkTarget -> P m [Element]
-linkRelElements mp = mapM (\(n, lnk) -> linkRelElement n lnk) (M.toList mp)
+linkRelElements mp = mapM linkRelElement (M.toList mp)
 
 mediaRelElement :: MediaInfo -> Element
 mediaRelElement mInfo =
