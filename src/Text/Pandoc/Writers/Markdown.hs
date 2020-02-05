@@ -680,11 +680,11 @@ pipeTable headless aligns rawHeaders rawRows = do
                     hcat (intersperse (literal "|") $
                           zipWith3 blockFor aligns widths (map chomp cs))
                     <> literal "|"
-  let toborder (a, w) = literal $ case a of
-                             AlignLeft    -> ":" <> T.replicate (w + 1) "-"
-                             AlignCenter  -> ":" <> T.replicate w "-" <> ":"
-                             AlignRight   -> T.replicate (w + 1) "-" <> ":"
-                             AlignDefault -> T.replicate (w + 2) "-"
+  let toborder a w = literal $ case a of
+                          AlignLeft    -> ":" <> T.replicate (w + 1) "-"
+                          AlignCenter  -> ":" <> T.replicate w "-" <> ":"
+                          AlignRight   -> T.replicate (w + 1) "-" <> ":"
+                          AlignDefault -> T.replicate (w + 2) "-"
   -- note:  pipe tables can't completely lack a
   -- header; for a headerless table, we need a header of empty cells.
   -- see jgm/pandoc#1996.
@@ -692,7 +692,7 @@ pipeTable headless aligns rawHeaders rawRows = do
                   then torow (replicate (length aligns) empty)
                   else torow rawHeaders
   let border = nowrap $ literal "|" <> hcat (intersperse (literal "|") $
-                        map toborder $ zip aligns widths) <> literal "|"
+                        zipWith toborder aligns widths) <> literal "|"
   let body   = vcat $ map torow rawRows
   return $ header $$ border $$ body
 
