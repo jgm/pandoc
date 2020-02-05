@@ -20,7 +20,6 @@ module Text.Pandoc.Readers.Odt.Generic.Utils
 , uncurry6
 , swap
 , reverseComposition
-, bool
 , tryToRead
 , Lookupable(..)
 , readLookupables
@@ -58,14 +57,6 @@ composition        = F.foldr (<<<) Cat.id
 -- A reversed version of 'composition'.
 reverseComposition :: (Category cat, F.Foldable f) => f (cat a a) -> cat a a
 reverseComposition = F.foldr (>>>) Cat.id
-
--- | 'Either' has 'either', 'Maybe' has 'maybe'. 'Bool' should have 'bool'.
--- Note that the first value is selected if the boolean value is 'False'.
--- That makes 'bool' consistent with the other two. Also, 'bool' now takes its
--- arguments in the exact opposite order compared to the normal if construct.
-bool :: a -> a -> Bool -> a
-bool x _ False = x
-bool _ x True  = x
 
 -- | This function often makes it possible to switch values with the functions
 -- that are applied to them.
