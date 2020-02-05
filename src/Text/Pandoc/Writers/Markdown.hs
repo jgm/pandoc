@@ -121,7 +121,7 @@ mmdTitleBlock (Context hashmap) =
                  | null xs        -> empty
                  | otherwise      -> k' <> ":" <> space <>
                                       hcat (intersperse "; " $
-                                          mapMaybe fromVal xs)
+                                            mapMaybe fromVal xs)
                (k', SimpleVal x)
                       | isEmpty x -> empty
                       | otherwise -> k' <> ":" <> space <>
