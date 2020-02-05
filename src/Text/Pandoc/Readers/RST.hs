@@ -952,7 +952,7 @@ unicodeTransform t
                      $ extractUnicodeChar zs
 
 extractUnicodeChar :: Text -> Maybe (Char, Text)
-extractUnicodeChar s = maybe Nothing (\c -> Just (c,rest)) mbc
+extractUnicodeChar s = fmap (\c -> (c,rest)) mbc
   where (ds,rest) = T.span isHexDigit s
         mbc = safeRead ("'\\x" <> ds <> "'")
 
