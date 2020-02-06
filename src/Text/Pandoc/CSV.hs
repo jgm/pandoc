@@ -63,10 +63,10 @@ pCSVQuotedCell opts = do
   return $ T.pack res
 
 escaped :: CSVOptions -> Parser Char
-escaped opts =
+escaped opts = try $
   case csvEscape opts of
-       Nothing -> try $ char (csvQuote opts) >> char (csvQuote opts)
-       Just c  -> try $ char c >> noneOf "\r\n"
+       Nothing -> char (csvQuote opts) >> char (csvQuote opts)
+       Just c  -> char c >> noneOf "\r\n"
 
 pCSVUnquotedCell :: CSVOptions -> Parser Text
 pCSVUnquotedCell opts = T.pack <$>

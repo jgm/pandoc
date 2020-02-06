@@ -994,10 +994,10 @@ applyDefaults opt file = runIOorExplode $ do
               else file
   setVerbosity $ optVerbosity opt
   dataDirs <- liftIO defaultUserDataDirs
-  let fps = case optDataDir opt of
-              Nothing -> (fp : map (</> ("defaults" </> fp))
-                               dataDirs)
-              Just dd -> [fp, dd </> "defaults" </> fp]
+  let fps = fp : case optDataDir opt of
+              Nothing -> map (</> ("defaults" </> fp))
+                               dataDirs
+              Just dd -> [dd </> "defaults" </> fp]
   fp' <- fromMaybe fp <$> findFile fps
   inp <- readFileLazy fp'
   case Y.decode1 inp of
