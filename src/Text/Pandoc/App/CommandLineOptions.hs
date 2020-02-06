@@ -36,6 +36,7 @@ import Data.List (isPrefixOf)
 #endif
 #endif
 import Data.Maybe (fromMaybe, isJust)
+import Safe (tailDef)
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)
 import System.Console.GetOpt
 import System.Environment (getArgs, getProgName)
@@ -981,10 +982,7 @@ writersNames = sort
   ("pdf" : map (T.unpack . fst) (writers :: [(Text, Writer PandocIO)]))
 
 splitField :: String -> (String, String)
-splitField s =
-  case break (`elemText` ":=") s of
-       (k,_:v) -> (k,v)
-       (k,[])  -> (k,"true")
+splitField s = tailDef "true" <$> break (`elemText` ":=") s
 
 -- | Apply defaults from --defaults file.
 applyDefaults :: Opt -> FilePath -> IO Opt
