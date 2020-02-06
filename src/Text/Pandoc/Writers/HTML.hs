@@ -247,7 +247,8 @@ pandocToHtml opts (Pandoc meta blocks) = do
   let authsMeta = map stringifyHTML $ docAuthors meta
   let dateMeta  = stringifyHTML $ docDate meta
   slideVariant <- gets stSlideVariant
-  let sects = makeSections (writerNumberSections opts) Nothing $
+  let sects = adjustNumbers opts $
+              makeSections (writerNumberSections opts) Nothing $
               if slideVariant == NoSlides
                  then blocks
                  else prepSlides slideLevel blocks
@@ -594,15 +595,23 @@ figure opts attr txt (s,tit) = do
               else H.div ! A.class_ "figure" $ mconcat
                     [nl opts, img, nl opts, capt, nl opts]
 
-showSecNum :: [Int] -> Text
-showSecNum = T.intercalate "." . map tshow
 
-getNumber :: WriterOptions -> Attr -> Text
-getNumber opts (_,_,kvs) =
-  showSecNum $ zipWith (+) num (writerNumberOffset opts ++ repeat 0)
+adjustNumbers :: WriterOptions -> [Block] -> [Block]
+adjustNumbers opts doc =
+  if all (==0) (writerNumberOffset opts)
+     then doc
+     else walk go doc
   where
-   num = maybe [] (map (fromMaybe 0 . safeRead) . T.split (=='.')) $
-          lookup "number" kvs
+   go (Header level (ident,classes,kvs) lst) =
+     Header level (ident,classes,map fixnum kvs) lst
+   go x = x
+   fixnum ("number",num) = ("number",
+                               showSecNum $ zipWith (+)
+                               (writerNumberOffset opts ++ repeat 0)
+                               (map (fromMaybe 0 . safeRead) $
+                                T.split (=='.') num))
+   fixnum (k,v) = (k,v)
+   showSecNum = T.intercalate "." . map tshow
 
 -- | Convert Pandoc block element to HTML.
 blockToHtml :: PandocMonad m => WriterOptions -> Block -> StateT WriterState m Html
@@ -821,9 +830,9 @@ blockToHtml opts (BlockQuote blocks) = do
      else do
        contents <- blockListToHtml opts blocks
        return $ H.blockquote $ nl opts >> contents >> nl opts
-blockToHtml opts (Header level attr@(_,classes,_) lst) = do
+blockToHtml opts (Header level attr@(_,classes,kvs) lst) = do
   contents <- inlineListToHtml opts lst
-  let secnum = getNumber opts attr
+  let secnum = fromMaybe mempty $ lookup "number" kvs
   let contents' = if writerNumberSections opts && not (T.null secnum)
                      && "unnumbered" `notElem` classes
                      then (H.span ! A.class_ "header-section-number"
