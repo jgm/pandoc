@@ -93,14 +93,16 @@ parseBCP47 lang =
           ds <- P.option "" (P.count 1 P.digit)
           cs <- P.many1 asciiLetter
           let var = ds ++ cs
+              lv = length var
           guard $ if null ds
-                     then length var >= 5 && length var <= 8
-                     else length var == 4
+                     then lv >= 5 && lv <= 8
+                     else lv == 4
           return $ T.toLower $ T.pack var
         pExtension = P.try $ do
           P.char '-'
           cs <- P.many1 $ P.satisfy (\c -> isAscii c && isAlphaNum c)
-          guard $ length cs >= 2 && length cs <= 8
+          let lcs = length cs
+          guard $ lcs >= 2 && lcs <= 8
           return $ T.toLower $ T.pack cs
         pPrivateUse = P.try $ do
           P.char '-'
