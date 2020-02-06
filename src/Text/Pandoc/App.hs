@@ -88,9 +88,8 @@ convertWithOpts opts = do
   let filters' = filters ++ [ JSONFilter "pandoc-citeproc" | needsCiteproc ]
 
   let sources = case optInputFiles opts of
-                     Nothing -> ["-"]
-                     Just xs | optIgnoreArgs opts -> ["-"]
-                             | otherwise  -> xs
+                     Just xs | not (optIgnoreArgs opts) -> xs
+                     _ -> ["-"]
 
   datadir <- case optDataDir opts of
                   Nothing   -> do
