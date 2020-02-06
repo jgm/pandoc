@@ -18,7 +18,7 @@ module Text.Pandoc.CSV (
 ) where
 
 import Prelude
-import Control.Monad (void)
+import Control.Monad (unless, void)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Parsec
@@ -76,9 +76,7 @@ pCSVUnquotedCell opts = T.pack <$>
 pCSVDelim :: CSVOptions -> Parser ()
 pCSVDelim opts = do
   char (csvDelim opts)
-  if csvKeepSpace opts
-     then return ()
-     else skipMany (oneOf " \t")
+  unless (csvKeepSpace opts) $ skipMany (oneOf " \t")
 
 endline :: Parser ()
 endline = do
