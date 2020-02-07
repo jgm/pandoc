@@ -212,9 +212,7 @@ showInPixel opts dim = T.pack $ show $ inPixel opts dim
 numUnit :: T.Text -> Maybe (Double, T.Text)
 numUnit s =
   let (nums, unit) = T.span (\c -> isDigit c || ('.'==c)) s
-  in  case safeRead nums of
-        Just n  -> Just (n, unit)
-        Nothing -> Nothing
+  in (\n -> (n, unit)) <$> safeRead nums
 
 -- | Scale a dimension by a factor.
 scaleDimension :: Double -> Dimension -> Dimension

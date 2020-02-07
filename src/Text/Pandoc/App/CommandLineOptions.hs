@@ -28,6 +28,7 @@ import Control.Monad.Trans
 import Control.Monad.Except (throwError)
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
+import Data.Bifunctor (second)
 import Data.Char (toLower)
 import Data.List (intercalate, sort)
 #ifdef _WINDOWS
@@ -36,6 +37,7 @@ import Data.List (isPrefixOf)
 #endif
 #endif
 import Data.Maybe (fromMaybe, isJust)
+import Safe (tailDef)
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)
 import System.Console.GetOpt
 import System.Environment (getArgs, getProgName)
@@ -981,10 +983,7 @@ writersNames = sort
   ("pdf" : map (T.unpack . fst) (writers :: [(Text, Writer PandocIO)]))
 
 splitField :: String -> (String, String)
-splitField s =
-  case break (`elemText` ":=") s of
-       (k,_:v) -> (k,v)
-       (k,[])  -> (k,"true")
+splitField = second (tailDef "true") . break (`elemText` ":=")
 
 -- | Apply defaults from --defaults file.
 applyDefaults :: Opt -> FilePath -> IO Opt
@@ -994,10 +993,10 @@ applyDefaults opt file = runIOorExplode $ do
               else file
   setVerbosity $ optVerbosity opt
   dataDirs <- liftIO defaultUserDataDirs
-  let fps = case optDataDir opt of
-              Nothing -> (fp : map (</> ("defaults" </> fp))
-                               dataDirs)
-              Just dd -> [fp, dd </> "defaults" </> fp]
+  let fps = fp : case optDataDir opt of
+              Nothing -> map (</> ("defaults" </> fp))
+                               dataDirs
+              Just dd -> [dd </> "defaults" </> fp]
   fp' <- fromMaybe fp <$> findFile fps
   inp <- readFileLazy fp'
   case Y.decode1 inp of

@@ -524,12 +524,11 @@ alertIndent (l:ls) = do
 -- single-letter schemes.  Reason:  these are usually windows absolute
 -- paths.
 parseURIReference' :: T.Text -> Maybe URI
-parseURIReference' s =
-  case parseURIReference (T.unpack s) of
-       Just u
-         | length (uriScheme u) > 2  -> Just u
-         | null (uriScheme u)        -> Just u  -- protocol-relative
-       _                             -> Nothing
+parseURIReference' s = do
+  u <- parseURIReference (T.unpack s)
+  case uriScheme u of
+       [_] -> Nothing
+       _   -> Just u
 
 -- | Set the user data directory in common state.
 setUserDataDir :: PandocMonad m
@@ -589,10 +588,10 @@ downloadOrRead s = do
                           uriFragment = "" }
          dropFragmentAndQuery = T.takeWhile (\c -> c /= '?' && c /= '#')
          fp = unEscapeString $ T.unpack $ dropFragmentAndQuery s
-         mime = case takeExtension fp of
-                     ".gz" -> getMimeType $ dropExtension fp
-                     ".svgz" -> getMimeType $ dropExtension fp ++ ".svg"
-                     x     -> getMimeType x
+         mime = getMimeType $ case takeExtension fp of
+                     ".gz" -> dropExtension fp
+                     ".svgz" -> dropExtension fp ++ ".svg"
+                     x     -> x
          ensureEscaped = T.pack . escapeURIString isAllowedInURI . T.unpack . T.map convertSlash
          convertSlash '\\' = '/'
          convertSlash x    = x

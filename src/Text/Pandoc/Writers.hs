@@ -125,7 +125,7 @@ data Writer m = TextWriter (WriterOptions -> Pandoc -> m Text)
 writers :: PandocMonad m => [ (Text, Writer m) ]
 writers = [
    ("native"       , TextWriter writeNative)
-  ,("json"         , TextWriter $ \o d -> writeJSON o d)
+  ,("json"         , TextWriter writeJSON)
   ,("docx"         , ByteStringWriter writeDocx)
   ,("odt"          , ByteStringWriter writeODT)
   ,("pptx"         , ByteStringWriter writePowerpoint)

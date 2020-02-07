@@ -88,9 +88,8 @@ convertWithOpts opts = do
   let filters' = filters ++ [ JSONFilter "pandoc-citeproc" | needsCiteproc ]
 
   let sources = case optInputFiles opts of
-                     Nothing -> ["-"]
-                     Just xs | optIgnoreArgs opts -> ["-"]
-                             | otherwise  -> xs
+                     Just xs | not (optIgnoreArgs opts) -> xs
+                     _ -> ["-"]
 
   datadir <- case optDataDir opts of
                   Nothing   -> do
@@ -192,10 +191,10 @@ convertWithOpts opts = do
               "use '-o -' to force output to stdout."
 
 
-    abbrevs <- Set.fromList . filter (not . T.null) . T.lines <$>
+    abbrevs <- Set.fromList . filter (not . T.null) . T.lines . UTF8.toText <$>
                case optAbbreviations opts of
-                    Nothing -> UTF8.toText <$> readDataFile "abbreviations"
-                    Just f  -> UTF8.toText <$> readFileStrict f
+                    Nothing -> readDataFile "abbreviations"
+                    Just f  -> readFileStrict f
 
     metadata <- if format == "jats" &&
                    isNothing (lookupMeta "csl" (optMetadata opts)) &&
@@ -341,13 +340,13 @@ readSource src = case parseURI src of
                    then BS.getContents
                    else BS.readFile fp
           E.catch (return $! UTF8.toText bs)
-             (\e -> case e of
-                         TSE.DecodeError _ (Just w) -> do
+             (\e -> E.throwIO $ case e of
+                         TSE.DecodeError _ (Just w) ->
                            case BS.elemIndex w bs of
-                             Just offset -> E.throwIO $
+                             Just offset ->
                                   PandocUTF8DecodingError (T.pack fp) offset w
-                             _ -> E.throwIO $ PandocUTF8DecodingError (T.pack fp) 0 w
-                         _ -> E.throwIO $ PandocAppError (tshow e))
+                             _ -> PandocUTF8DecodingError (T.pack fp) 0 w
+                         _ -> PandocAppError (tshow e))
 
 readURI :: FilePath -> PandocIO Text
 readURI src = UTF8.toText . fst <$> openURL (T.pack src)

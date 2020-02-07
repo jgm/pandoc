@@ -18,6 +18,7 @@ import Data.List (isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Maybe (fromMaybe, listToMaybe)
+import Data.Tuple (swap)
 import System.FilePath
 
 type MimeType = T.Text
@@ -50,7 +51,7 @@ mediaCategory :: FilePath -> Maybe T.Text
 mediaCategory fp = getMimeType fp >>= listToMaybe . T.splitOn "/"
 
 reverseMimeTypes :: M.Map MimeType T.Text
-reverseMimeTypes = M.fromList $ map (\(k,v) -> (v,k)) mimeTypesList
+reverseMimeTypes = M.fromList $ map swap mimeTypesList
 
 mimeTypes :: M.Map T.Text MimeType
 mimeTypes = M.fromList mimeTypesList
