@@ -42,7 +42,7 @@ escapedQuote = string "\\\"" $> "\\\""
 
 inQuotes :: Parser T.Text
 inQuotes =
-  try escapedQuote <|> (anyChar >>= (\c -> return $ T.singleton c))
+  try escapedQuote <|> (T.singleton <$> anyChar)
 
 quotedString :: Parser T.Text
 quotedString = do
