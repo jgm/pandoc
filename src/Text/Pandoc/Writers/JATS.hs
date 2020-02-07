@@ -92,14 +92,13 @@ docToJATS opts (Pandoc meta blocks) = do
                Nothing  -> NullVal
                Just day ->
                  let (y,m,d) = toGregorian day
-                 in  MapVal . Context
-                      . M.insert ("year" :: Text) (SimpleVal $ text $ show y)
-                      . M.insert "month" (SimpleVal $ text $ show m)
-                      . M.insert "day" (SimpleVal $ text $ show d)
-                      . M.insert "iso-8601"
-                        (SimpleVal $ text $
+                 in  MapVal . Context $ M.fromList
+                      [("year" :: Text, SimpleVal $ text $ show y)
+                      ,("month", SimpleVal $ text $ show m)
+                      ,("day", SimpleVal $ text $ show d)
+                      ,("iso-8601", SimpleVal $ text $
                             formatTime defaultTimeLocale "%F" day)
-                      $ mempty
+                      ]
           Just x -> x
   let context = defField "body" main
               $ defField "back" back
