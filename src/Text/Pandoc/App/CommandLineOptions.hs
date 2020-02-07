@@ -50,7 +50,7 @@ import Text.Pandoc
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..), addMeta)
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
-import Text.Pandoc.Shared (ordNub, elemText, safeStrRead, defaultUserDataDirs)
+import Text.Pandoc.Shared (ordNub, elemText, safeStrRead, defaultUserDataDirs, findM)
 import Text.Printf
 
 #ifdef EMBED_DATA_FILES
@@ -117,14 +117,6 @@ engines = map ("html",) htmlEngines ++
 
 pdfEngines :: [String]
 pdfEngines = ordNub $ map snd engines
-
-findFile :: PandocMonad m => [FilePath] -> m (Maybe FilePath)
-findFile [] = return Nothing
-findFile (f:fs) = do
-  exists <- fileExists f
-  if exists
-     then return $ Just f
-     else findFile fs
 
 -- | A list of functions, each transforming the options data structure
 --   in response to a command-line option.
@@ -996,7 +988,7 @@ applyDefaults opt file = runIOorExplode $ do
               Nothing -> map (</> ("defaults" </> fp))
                                dataDirs
               Just dd -> [dd </> "defaults" </> fp]
-  fp' <- fromMaybe fp <$> findFile fps
+  fp' <- fromMaybe fp <$> findM fileExists fps
   inp <- readFileLazy fp'
   case Y.decode1 inp of
       Right (f :: Opt -> Opt) -> return $ f opt
