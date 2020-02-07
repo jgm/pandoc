@@ -65,9 +65,7 @@ optToOutputSettings opts = do
     mapM_ (UTF8.hPutStrLn stdout) (fromMaybe [] $ optInputFiles opts)
     exitSuccess
 
-  epubMetadata <- case optEpubMetadata opts of
-                         Nothing -> return Nothing
-                         Just fp -> Just <$> readUtf8File fp
+  epubMetadata <- traverse readUtf8File $ optEpubMetadata opts
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf" ||
                   optTo opts == Just "pdf"
@@ -112,8 +110,7 @@ optToOutputSettings opts = do
   syntaxMap <- foldM addSyntaxMap defaultSyntaxMap
                      (optSyntaxDefinitions opts)
 
-  hlStyle <- maybe (return Nothing) (fmap Just . lookupHighlightStyle . T.unpack)
-                (optHighlightStyle opts)
+  hlStyle <- traverse (lookupHighlightStyle . T.unpack) $ optHighlightStyle opts
 
   let setVariableM k v = return . setVariable k v
 
