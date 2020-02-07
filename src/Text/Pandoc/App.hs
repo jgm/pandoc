@@ -84,7 +84,7 @@ convertWithOpts opts = do
   let needsCiteproc = isJust (lookupMeta "bibliography"
                                 (optMetadata opts)) &&
                       optCiteMethod opts `notElem` [Natbib, Biblatex] &&
-                      all (not . isPandocCiteproc) filters
+                      not (any isPandocCiteproc filters)
   let filters' = filters ++ [ JSONFilter "pandoc-citeproc" | needsCiteproc ]
 
   let sources = case optInputFiles opts of

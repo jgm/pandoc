@@ -114,9 +114,9 @@ blockToXWiki (BlockQuote blocks) = do
   let prefixed = map (">" <>) quoteLines
   return $ vcat prefixed
 
-blockToXWiki (BulletList contents) = blockToXWikiList "*" $ contents
+blockToXWiki (BulletList contents) = blockToXWikiList "*" contents
 
-blockToXWiki (OrderedList _ contents) = blockToXWikiList "1" $ contents
+blockToXWiki (OrderedList _ contents) = blockToXWikiList "1" contents
 
 blockToXWiki (DefinitionList items) = do
   lev <- asks listLevel
@@ -180,9 +180,8 @@ inlineToXWiki (Subscript lst) = do
   return $ ",," <> contents <> ",,"
 
 -- TODO: Not supported. Maybe escape to HTML?
-inlineToXWiki (SmallCaps lst) = do
-  contents <- inlineListToXWiki lst
-  return contents
+inlineToXWiki (SmallCaps lst) =
+  inlineListToXWiki lst
 
 inlineToXWiki (Quoted SingleQuote lst) = do
   contents <- inlineListToXWiki lst
@@ -201,7 +200,7 @@ inlineToXWiki (Code (_,classes,_) contents) = do
 
 inlineToXWiki (Cite _ lst) = inlineListToXWiki lst
 
--- FIXME: optionally support this (plugin?) 
+-- FIXME: optionally support this (plugin?)
 inlineToXWiki (Math _ str) = return $ "{{formula}}" <> str <> "{{/formula}}"
 
 inlineToXWiki il@(RawInline frmt str)
@@ -232,14 +231,14 @@ inlineToXWiki (Note contents) = do
 inlineToXWiki (Span (id', _, _) contents) = do
   contents' <- inlineListToXWiki contents
   return $ (genAnchor id') <> contents'
-  
+
 -- Utility method since (for now) all lists are handled the same way
 blockToXWikiList :: PandocMonad m => Text -> [[Block]] -> XWikiReader m Text
 blockToXWikiList marker contents = do
   lev <- asks listLevel
   contents' <- local (\s -> s { listLevel = listLevel s <> marker } ) $ mapM listItemToXWiki contents
   return $ vcat contents' <> if Text.null lev then "\n" else ""
-  
+
 
 listItemToXWiki :: PandocMonad m => [Block] -> XWikiReader m Text
 listItemToXWiki contents = do
@@ -262,4 +261,3 @@ definitionListItemToMediaWiki (label, items) = do
 -- Escape the escape character, as well as formatting pairs
 escapeXWikiString :: Text -> Text
 escapeXWikiString s = foldr (uncurry replace) s $ zip ["--", "**", "//", "^^", ",,", "~"] ["~-~-", "~*~*", "~/~/", "~^~^", "~,~,", "~~"]
-

@@ -70,7 +70,7 @@ pandocToTexinfo options (Pandoc meta blocks) = do
                     then Just $ writerColumns options
                     else Nothing
   metadata <- metaToContext options
-              (blockListToTexinfo)
+              blockListToTexinfo
               (fmap chomp .inlineListToTexinfo)
               meta
   body <- blockListToTexinfo blocks

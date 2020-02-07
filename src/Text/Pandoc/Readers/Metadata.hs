@@ -1,9 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE RelaxedPolyRec      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Readers.Metadata
    Copyright   : Copyright (C) 2006-2019 John MacFarlane
@@ -83,9 +81,7 @@ toMetaValue pBlocks x =
                 [Plain ils] -> MetaInlines ils
                 [Para ils]  -> MetaInlines ils
                 xs          -> MetaBlocks xs
-        asBlocks p = do
-          p' <- p
-          return $ MetaBlocks (B.toList p')
+        asBlocks p = MetaBlocks . B.toList <$> p
 
 checkBoolean :: Text -> Maybe Bool
 checkBoolean t =

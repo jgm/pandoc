@@ -1,5 +1,4 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
@@ -75,7 +74,7 @@ pandocToNotebook opts (Pandoc meta blocks) = do
                         Nothing -> (4, 5)
                _                -> (4, 5) -- write as v4.5
   metadata' <- toJSON <$> metaToContext' blockWriter inlineWriter
-                 (B.deleteMeta "nbformat" $
+                 (B.deleteMeta "nbformat" .
                   B.deleteMeta "nbformat_minor" $
                   jupyterMeta)
   -- convert from a Value (JSON object) to a M.Map Text Value:
@@ -171,7 +170,7 @@ extractCells opts (b:bs) = do
       let isCodeOrDiv (CodeBlock (_,cl,_) _) = "code" `elem` cl
           isCodeOrDiv (Div (_,cl,_) _)       = "cell" `elem` cl
           isCodeOrDiv _                      = False
-      let (mds, rest) = break (isCodeOrDiv) bs
+      let (mds, rest) = break isCodeOrDiv bs
       extractCells opts (Div ("",["cell","markdown"],[]) (b:mds) : rest)
 
 blockToOutput :: PandocMonad m => Block -> m (Maybe (Output a))

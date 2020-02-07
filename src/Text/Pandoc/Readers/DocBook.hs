@@ -741,7 +741,7 @@ parseBlock (Elem e) =
         "refsect2" -> sect 2
         "refsect3" -> sect 3
         "refsection" -> gets dbSectionLevel >>= sect . (+1)
-        l@_ | l `elem` admonitionTags -> parseAdmonition $ T.pack l
+        l | l `elem` admonitionTags -> parseAdmonition $ T.pack l
         "area" -> skip
         "areaset" -> skip
         "areaspec" -> skip
@@ -920,7 +920,7 @@ parseBlock (Elem e) =
            -- include the label and leave it to styling.
            title <- case filterChild (named "title") e of
                         Just t  -> divWith ("", ["title"], []) . plain <$> getInlines t
-                        Nothing -> return $ mempty
+                        Nothing -> return mempty
            -- this will ignore the title element if it is present
            b <- getBlocks e
            -- we also attach the label as a class, so it can be styled properly

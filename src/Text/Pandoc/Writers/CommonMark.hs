@@ -158,7 +158,7 @@ blockToNodes opts (DefinitionList items) ns =
           Plain (term ++ [LineBreak] ++ xs) : ys ++ concat zs
         dlToBullet (term, xs) =
           Para term : concat xs
-blockToNodes opts t@(Table capt aligns _widths headers rows) ns = do
+blockToNodes opts t@(Table capt aligns _widths headers rows) ns =
   if isEnabled Ext_pipe_tables opts && onlySimpleTableCells (headers:rows)
      then do
        -- We construct a table manually as a CUSTOM_BLOCK, for
@@ -319,7 +319,7 @@ inlineToNodes opts (Math mt str) =
               (node (HTML_INLINE ("\\(" <> str <> "\\)")) [] :)
             DisplayMath ->
               (node (HTML_INLINE ("\\[" <> str <> "\\]")) [] :)
-inlineToNodes opts (Span ("",["emoji"],kvs) [Str s]) = do
+inlineToNodes opts (Span ("",["emoji"],kvs) [Str s]) =
   case lookup "data-emoji" kvs of
        Just emojiname | isEnabled Ext_emoji opts ->
             (node (TEXT (":" <> emojiname <> ":")) [] :)

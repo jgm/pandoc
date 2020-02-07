@@ -6,7 +6,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE IncoherentInstances        #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE TypeSynonymInstances       #-}
 {-# LANGUAGE ViewPatterns               #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
@@ -895,9 +894,7 @@ orderedListMarker style delim = do
 
 -- | Parses a character reference and returns a Str element.
 charRef :: Stream s m Char => ParserT s st m Inline
-charRef = do
-  c <- characterReference
-  return $ Str $ T.singleton c
+charRef = Str . T.singleton <$> characterReference
 
 lineBlockLine :: Monad m => ParserT Text st m Text
 lineBlockLine = try $ do

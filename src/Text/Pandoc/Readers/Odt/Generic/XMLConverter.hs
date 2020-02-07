@@ -1,9 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE Arrows          #-}
 {-# LANGUAGE TupleSections   #-}
 {-# LANGUAGE GADTs           #-}
 {-# LANGUAGE PatternGuards   #-}
-{-# LANGUAGE RecordWildCards #-}
 {- |
    Module      : Text.Pandoc.Readers.Odt.Generic.XMLConverter
    Copyright   : Copyright (C) 2015 Martin Linnemann

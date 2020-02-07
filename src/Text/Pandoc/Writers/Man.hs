@@ -252,8 +252,8 @@ definitionListItemToMan opts (label, defs) = do
 
 makeCodeBold :: [Inline] -> [Inline]
 makeCodeBold = walk go
-  where go x@(Code{}) = Strong [x]
-        go x          = x
+  where go x@Code{} = Strong [x]
+        go x        = x
 
 -- | Convert list of Pandoc block elements to man.
 blockListToMan :: PandocMonad m

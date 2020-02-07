@@ -75,7 +75,7 @@ parseBCP47 lang =
           cs <- P.many1 asciiLetter
           let lcs = length cs
           guard $ lcs == 2 || lcs == 3
-          return $ T.toLower $ T.pack $ cs
+          return $ T.toLower $ T.pack cs
         pScript = P.try $ do
           P.char '-'
           x <- P.satisfy (\c -> isAscii c && isLetter c && isUpper c)

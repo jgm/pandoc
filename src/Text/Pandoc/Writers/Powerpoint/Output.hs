@@ -314,7 +314,7 @@ presentationToArchive opts pres = do
   presSize <- case getPresentationSize refArchive distArchive of
                 Just sz -> return sz
                 Nothing -> throwError $
-                           PandocSomeError $
+                           PandocSomeError
                            "Could not determine presentation size"
 
   let env = def { envRefArchive = refArchive
@@ -338,7 +338,8 @@ presentationToArchive opts pres = do
 -- Check to see if the presentation has speaker notes. This will
 -- influence whether we import the notesMaster template.
 presHasSpeakerNotes :: Presentation -> Bool
-presHasSpeakerNotes (Presentation _ slides) = not $ all (mempty ==) $ map slideSpeakerNotes slides
+presHasSpeakerNotes (Presentation _ slides) =
+  not $ all ((mempty ==) . slideSpeakerNotes) slides
 
 curSlideHasSpeakerNotes :: PandocMonad m => P m Bool
 curSlideHasSpeakerNotes =
@@ -374,11 +375,9 @@ getContentShape ns spTreeElem
         NormalContent | (sp : _) <- contentShapes -> return sp
         TwoColumnLeftContent | (sp : _) <- contentShapes -> return sp
         TwoColumnRightContent | (_ : sp : _) <- contentShapes -> return sp
-        _ -> throwError $
-             PandocSomeError $
+        _ -> throwError $ PandocSomeError
              "Could not find shape for Powerpoint content"
-getContentShape _ _ = throwError $
-                      PandocSomeError $
+getContentShape _ _ = throwError $ PandocSomeError
                       "Attempted to find content on non shapeTree"
 
 getShapeDimensions :: NameSpaces
@@ -398,7 +397,8 @@ getShapeDimensions ns element
       (y, _) <- listToMaybe $ reads yS
       (cx, _) <- listToMaybe $ reads cxS
       (cy, _) <- listToMaybe $ reads cyS
-      return $ ((x `div` 12700, y `div` 12700), (cx `div` 12700, cy `div` 12700))
+      return ((x `div` 12700, y `div` 12700),
+              (cx `div` 12700, cy `div` 12700))
   | otherwise = Nothing
 
 
@@ -431,11 +431,9 @@ getContentShapeSize ns layout master
                             flip getMasterShapeDimensionsById master
                       case mbSz of
                         Just sz' -> return sz'
-                        Nothing -> throwError $
-                                   PandocSomeError $
+                        Nothing -> throwError $ PandocSomeError
                                    "Couldn't find necessary content shape size"
-getContentShapeSize _ _ _ = throwError $
-                            PandocSomeError $
+getContentShapeSize _ _ _ = throwError $ PandocSomeError
                             "Attempted to find content shape size in non-layout"
 
 buildSpTree :: NameSpaces -> Element -> [Element] -> Element
@@ -461,7 +459,7 @@ replaceNamedChildren ns prefix name newKids element =
     fun _ [] = []
     fun switch ((Elem e) : conts) | isElem ns prefix name e =
                                       if switch
-                                      then (map Elem $ newKids) : fun False conts
+                                      then map Elem newKids : fun False conts
                                       else fun False conts
     fun switch (cont : conts) = [cont] : fun switch conts
 
@@ -682,8 +680,8 @@ makePicElements layout picProps mInfo alt = do
   let hasCaption = mInfoCaption mInfo
   (imgBytes, _) <- P.fetchItem (T.pack $ mInfoFilePath mInfo)
   let (pxX, pxY) = case imageSize opts imgBytes of
-        Right sz -> sizeInPixels $ sz
-        Left _   -> sizeInPixels $ def
+        Right sz -> sizeInPixels sz
+        Left _   -> sizeInPixels def
   master <- getMaster
   let ns = elemToNameSpaces layout
   ((x, y), (cx, cytmp)) <- getContentShapeSize ns layout master
@@ -802,7 +800,7 @@ paraElemToElements (Run rpr s) = do
                      then [mknode "a:latin" [("typeface", T.unpack codeFont)] ()]
                      else []
   let propContents = linkProps <> colorContents <> codeContents
-  return [mknode "a:r" [] [ mknode "a:rPr" attrs $ propContents
+  return [mknode "a:r" [] [ mknode "a:rPr" attrs propContents
                           , mknode "a:t" [] $ T.unpack s
                           ]]
 paraElemToElements (MathElem mathType texStr) = do
@@ -886,11 +884,11 @@ shapeToElement layout (TextBox paras)
       let txBody = mknode "p:txBody" [] $
                    [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] <> elements
           emptySpPr = mknode "p:spPr" [] ()
-      return $
-        surroundWithMathAlternate $
-        replaceNamedChildren ns "p" "txBody" [txBody] $
-        replaceNamedChildren ns "p" "spPr" [emptySpPr] $
-        sp
+      return
+        . surroundWithMathAlternate
+        . replaceNamedChildren ns "p" "txBody" [txBody]
+        . replaceNamedChildren ns "p" "spPr" [emptySpPr]
+        $ sp
 -- GraphicFrame and Pic should never reach this.
 shapeToElement _ _ = return $ mknode "p:sp" [] ()
 
@@ -898,7 +896,7 @@ shapeToElements :: PandocMonad m => Element -> Shape -> P m [Element]
 shapeToElements layout (Pic picProps fp alt) = do
   mInfo <- registerMedia fp alt
   case mInfoExt mInfo of
-    Just _ -> do
+    Just _ ->
       makePicElements layout picProps mInfo alt
     Nothing -> shapeToElements layout $ TextBox [Paragraph def alt]
 shapeToElements layout (GraphicFrame tbls cptn) =
@@ -909,7 +907,7 @@ shapeToElements layout shp = do
   return [element]
 
 shapesToElements :: PandocMonad m => Element -> [Shape] -> P m [Element]
-shapesToElements layout shps = do
+shapesToElements layout shps =
  concat <$> mapM (shapeToElements layout) shps
 
 graphicFrameToElements :: PandocMonad m => Element -> [Graphic] -> [ParaElem] -> P m [Element]
@@ -927,14 +925,14 @@ graphicFrameToElements layout tbls caption = do
   elements <- mapM (graphicToElement cx) tbls
   let graphicFrameElts =
         mknode "p:graphicFrame" [] $
-        [ mknode "p:nvGraphicFramePr" [] $
+        [ mknode "p:nvGraphicFramePr" []
           [ mknode "p:cNvPr" [("id", "6"), ("name", "Content Placeholder 5")] ()
-          , mknode "p:cNvGraphicFramePr" [] $
+          , mknode "p:cNvGraphicFramePr" []
             [mknode "a:graphicFrameLocks" [("noGrp", "1")] ()]
-          , mknode "p:nvPr" [] $
+          , mknode "p:nvPr" []
             [mknode "p:ph" [("idx", "1")] ()]
           ]
-        , mknode "p:xfrm" [] $
+        , mknode "p:xfrm" []
           [ mknode "a:off" [("x", show $ 12700 * x), ("y", show $ 12700 * y)] ()
           , mknode "a:ext" [("cx", show $ 12700 * cx), ("cy", show $ 12700 * cy)] ()
           ]
@@ -957,25 +955,26 @@ graphicToElement tableWidth (Tbl tblPr hdrCells rows) = do
   let colWidths = if null hdrCells
                   then case rows of
                          r : _ | not (null r) -> replicate (length r) $
-                                                (tableWidth `div` (toInteger $ length r))
+                                                 tableWidth `div` toInteger (length r)
                          -- satisfy the compiler. This is the same as
                          -- saying that rows is empty, but the compiler
                          -- won't understand that `[]` exhausts the
                          -- alternatives.
                          _ -> []
                   else replicate (length hdrCells) $
-                       (tableWidth `div` (toInteger $ length hdrCells))
+                       tableWidth `div` toInteger (length hdrCells)
 
   let cellToOpenXML paras =
         do elements <- mapM paragraphToElement paras
            let elements' = if null elements
                            then [mknode "a:p" [] [mknode "a:endParaRPr" [] ()]]
                            else elements
-           return $
+
+           return
              [mknode "a:txBody" [] $
-               ([ mknode "a:bodyPr" [] ()
-                , mknode "a:lstStyle" [] ()]
-                 <> elements')]
+               [ mknode "a:bodyPr" [] ()
+               , mknode "a:lstStyle" [] ()]
+               <> elements']
   headers' <- mapM cellToOpenXML hdrCells
   rows' <- mapM (mapM cellToOpenXML) rows
   let borderProps = mknode "a:tcPr" [] ()
@@ -998,8 +997,8 @@ graphicToElement tableWidth (Tbl tblPr hdrCells rows) = do
                       Nothing -> []
                       Just sty -> [mknode "a:tableStyleId" [] $ T.unpack sty])
 
-  return $ mknode "a:graphic" [] $
-    [mknode "a:graphicData" [("uri", "http://schemas.openxmlformats.org/drawingml/2006/table")] $
+  return $ mknode "a:graphic" []
+    [mknode "a:graphicData" [("uri", "http://schemas.openxmlformats.org/drawingml/2006/table")]
      [mknode "a:tbl" [] $
       [ tblPrElt
       , mknode "a:tblGrid" [] (if all (==0) colWidths
@@ -1203,23 +1202,23 @@ getSlideNumberFieldId notesMaster
   , Just fldId <- findAttrText (QName "id" Nothing Nothing) fld =
       return fldId
   | otherwise = throwError $
-                PandocSomeError $
+                PandocSomeError
                 "No field id for slide numbers in notesMaster.xml"
 
 speakerNotesSlideImage :: Element
 speakerNotesSlideImage =
-  mknode "p:sp" [] $
-  [ mknode "p:nvSpPr" [] $
+  mknode "p:sp" []
+  [ mknode "p:nvSpPr" []
     [ mknode "p:cNvPr" [ ("id", "2")
                        , ("name", "Slide Image Placeholder 1")
                        ] ()
-    , mknode "p:cNvSpPr" [] $
+    , mknode "p:cNvSpPr" []
       [ mknode "a:spLocks" [ ("noGrp", "1")
                            , ("noRot", "1")
                            , ("noChangeAspect", "1")
                            ] ()
       ]
-    , mknode "p:nvPr" [] $
+    , mknode "p:nvPr" []
       [ mknode "p:ph" [("type", "sldImg")] ()]
     ]
   , mknode "p:spPr" [] ()
@@ -1243,14 +1242,14 @@ speakerNotesBody paras = do
   let txBody = mknode "p:txBody" [] $
                [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] <> elements
   return $
-    mknode "p:sp" [] $
-    [ mknode "p:nvSpPr" [] $
+    mknode "p:sp" []
+    [ mknode "p:nvSpPr" []
       [ mknode "p:cNvPr" [ ("id", "3")
                          , ("name", "Notes Placeholder 2")
                          ] ()
-      , mknode "p:cNvSpPr" [] $
+      , mknode "p:cNvSpPr" []
         [ mknode "a:spLocks" [("noGrp", "1")] ()]
-      , mknode "p:nvPr" [] $
+      , mknode "p:nvPr" []
         [ mknode "p:ph" [("type", "body"), ("idx", "1")] ()]
       ]
     , mknode "p:spPr" [] ()
@@ -1259,14 +1258,14 @@ speakerNotesBody paras = do
 
 speakerNotesSlideNumber :: Int -> T.Text -> Element
 speakerNotesSlideNumber pgNum fieldId =
-  mknode "p:sp" [] $
-  [ mknode "p:nvSpPr" [] $
+  mknode "p:sp" []
+  [ mknode "p:nvSpPr" []
     [ mknode "p:cNvPr" [ ("id", "4")
                        , ("name", "Slide Number Placeholder 3")
                        ] ()
-    , mknode "p:cNvSpPr" [] $
+    , mknode "p:cNvSpPr" []
       [ mknode "a:spLocks" [("noGrp", "1")] ()]
-    , mknode "p:nvPr" [] $
+    , mknode "p:nvPr" []
       [ mknode "p:ph" [ ("type", "sldNum")
                       , ("sz", "quarter")
                       , ("idx", "10")
@@ -1274,10 +1273,10 @@ speakerNotesSlideNumber pgNum fieldId =
       ]
     ]
   , mknode "p:spPr" [] ()
-  , mknode "p:txBody" [] $
+  , mknode "p:txBody" []
     [ mknode "a:bodyPr" [] ()
     , mknode "a:lstStyle" [] ()
-    , mknode "a:p" [] $
+    , mknode "a:p" []
       [ mknode "a:fld" [ ("id", T.unpack fieldId)
                        , ("type", "slidenum")
                        ]
@@ -1340,12 +1339,12 @@ slideNum :: PandocMonad m => Slide -> P m Int
 slideNum slide = getSlideIdNum $ slideId slide
 
 idNumToFilePath :: Int -> FilePath
-idNumToFilePath idNum = "slide" <> (show $ idNum) <> ".xml"
+idNumToFilePath idNum = "slide" <> show idNum <> ".xml"
 
 slideToFilePath :: PandocMonad m => Slide -> P m FilePath
 slideToFilePath slide = do
   idNum <- slideNum slide
-  return $ "slide" <> (show $ idNum) <> ".xml"
+  return $ "slide" <> show idNum <> ".xml"
 
 slideToRelId :: PandocMonad m => Slide -> P m T.Text
 slideToRelId slide = do
@@ -1547,7 +1546,7 @@ linkRelElement (rIdNum, InternalTarget targetId) = do
                           , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide")
                           , ("Target", "slide" <> show targetIdNum <> ".xml")
                           ] ()
-linkRelElement (rIdNum, ExternalTarget (url, _)) = do
+linkRelElement (rIdNum, ExternalTarget (url, _)) =
   return $
     mknode "Relationship" [ ("Id", "rId" <> show rIdNum)
                           , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink")
@@ -1830,8 +1829,8 @@ presentationToContentTypes p@(Presentation _ slides) = do
                  , DefaultContentType "rels" "application/vnd.openxmlformats-package.relationships+xml"
                  ]
       mediaDefaults = nub $
-                      (mapMaybe mediaContentType $ mediaInfos) <>
-                      (mapMaybe mediaFileContentType $ mediaFps)
+                      mapMaybe mediaContentType mediaInfos <>
+                      mapMaybe mediaFileContentType mediaFps
 
       inheritedOverrides = mapMaybe pathToOverride filePaths
       createdOverrides = mapMaybe pathToOverride [ "docProps/core.xml"
@@ -1860,8 +1859,8 @@ getContentType fp
   | fp == "ppt/presProps.xml" = Just $ presML <> ".presProps+xml"
   | fp == "ppt/viewProps.xml" = Just $ presML <> ".viewProps+xml"
   | fp == "ppt/tableStyles.xml" = Just $ presML <> ".tableStyles+xml"
-  | fp == "docProps/core.xml" = Just $ "application/vnd.openxmlformats-package.core-properties+xml"
-  | fp == "docProps/custom.xml" = Just $ "application/vnd.openxmlformats-officedocument.custom-properties+xml"
+  | fp == "docProps/core.xml" = Just "application/vnd.openxmlformats-package.core-properties+xml"
+  | fp == "docProps/custom.xml" = Just "application/vnd.openxmlformats-officedocument.custom-properties+xml"
   | fp == "docProps/app.xml" = Just $ noPresML <> ".extended-properties+xml"
   | "ppt" : "slideMasters" : f : [] <- splitDirectories fp
   , (_, ".xml") <- splitExtension f =

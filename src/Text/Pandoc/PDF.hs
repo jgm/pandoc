@@ -414,7 +414,7 @@ html2pdf  :: Verbosity    -- ^ Verbosity level
           -> [String]     -- ^ Args to program
           -> Text         -- ^ HTML5 source
           -> IO (Either ByteString ByteString)
-html2pdf verbosity program args source = do
+html2pdf verbosity program args source =
   -- write HTML to temp file so we don't have to rewrite
   -- all links in `a`, `img`, `style`, `script`, etc. tags,
   -- and piping to weasyprint didn't work on Windows either.
@@ -502,7 +502,7 @@ showVerboseInfo mbTmpDir program programArgs env source = do
   putStrLn "[makePDF] Environment:"
   mapM_ print env
   putStr "\n"
-  putStrLn $ "[makePDF] Source:"
+  putStrLn "[makePDF] Source:"
   UTF8.putStrLn source
 
 handlePDFProgramNotFound :: String -> IE.IOError -> IO a

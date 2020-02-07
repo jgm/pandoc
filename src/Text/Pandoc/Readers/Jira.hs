@@ -106,8 +106,8 @@ rowToBlocksList (Jira.Row cells) =
 splitIntoHeaderAndBody :: [Jira.Row] -> (Jira.Row, [Jira.Row])
 splitIntoHeaderAndBody [] = (Jira.Row [], [])
 splitIntoHeaderAndBody rows@(first@(Jira.Row cells) : rest) =
-  let isHeaderCell (Jira.HeaderCell{}) = True
-      isHeaderCell (Jira.BodyCell{})   = False
+  let isHeaderCell Jira.HeaderCell{} = True
+      isHeaderCell Jira.BodyCell{}   = False
   in if all isHeaderCell cells
      then (first, rest)
      else (Jira.Row [], rows)

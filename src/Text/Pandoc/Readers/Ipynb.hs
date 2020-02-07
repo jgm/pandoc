@@ -1,10 +1,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Ipynb
    Copyright   : Copyright (C) 2019 John MacFarlane
@@ -130,9 +128,9 @@ addAttachment (fname, mimeBundle) = do
 
 outputToBlock :: PandocMonad m => Output a -> m B.Blocks
 outputToBlock Stream{ streamName = sName,
-                      streamText = Source text } = do
+                      streamText = Source text } =
   return $ B.divWith ("",["output","stream",sName],[])
-         $ B.codeBlock $ T.concat $ text
+         $ B.codeBlock $ T.concat text
 outputToBlock DisplayData{ displayData = data',
                             displayMetadata = metadata' } =
   B.divWith ("",["output", "display_data"],[]) <$>
@@ -144,11 +142,11 @@ outputToBlock ExecuteResult{ executeCount = ec,
     <$> handleData metadata' data'
 outputToBlock Err{ errName = ename,
                    errValue = evalue,
-                   errTraceback = traceback } = do
+                   errTraceback = traceback } =
   return $ B.divWith ("",["output","error"],
                          [("ename",ename),
                           ("evalue",evalue)])
-         $ B.codeBlock $ T.unlines $ traceback
+         $ B.codeBlock $ T.unlines traceback
 
 -- We want to display the richest output possible given
 -- the output format.
@@ -166,7 +164,7 @@ handleData metadata (MimeBundle mb) =
       -- normally metadata maps from mime types to key-value map;
       -- but not always...
       let meta = case M.lookup mt metadata of
-                   Just v@(Object{}) ->
+                   Just v@Object{} ->
                      case fromJSON v of
                        Success m' -> m'
                        Error _   -> mempty
@@ -183,13 +181,13 @@ handleData metadata (MimeBundle mb) =
      | otherwise = return mempty
 
     dataBlock ("text/html", TextualData t)
-      = return $ B.rawBlock "html" $ t
+      = return $ B.rawBlock "html" t
 
     dataBlock ("text/latex", TextualData t)
-      = return $ B.rawBlock "latex" $ t
+      = return $ B.rawBlock "latex" t
 
     dataBlock ("text/plain", TextualData t) =
-      return $ B.codeBlock $ t
+      return $ B.codeBlock t
 
     dataBlock (_, JsonData v) =
       return $ B.codeBlockWith ("",["json"],[]) $ T.pack $ toStringLazy $ encode v
@@ -200,11 +198,11 @@ jsonMetaToMeta :: JSONMeta -> M.Map Text MetaValue
 jsonMetaToMeta = M.map valueToMetaValue
   where
     valueToMetaValue :: Value -> MetaValue
-    valueToMetaValue x@(Object{}) =
+    valueToMetaValue x@Object{} =
       case fromJSON x of
         Error s -> MetaString $ T.pack s
         Success jm' -> MetaMap $ jsonMetaToMeta jm'
-    valueToMetaValue x@(Array{}) =
+    valueToMetaValue x@Array{} =
       case fromJSON x of
         Error s -> MetaString $ T.pack s
         Success xs -> MetaList $ map valueToMetaValue xs

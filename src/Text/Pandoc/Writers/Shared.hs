@@ -426,5 +426,5 @@ sectionToListItem _ _ = []
 endsWithPlain :: [Block] -> Bool
 endsWithPlain xs =
   case lastMay xs of
-    Just (Plain{}) -> True
-    _              -> False
+    Just Plain{} -> True
+    _            -> False

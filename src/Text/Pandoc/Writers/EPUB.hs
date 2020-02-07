@@ -731,7 +731,7 @@ pandocToEPUB version opts doc = do
                    => (Int -> [Inline] -> TS.Text -> [Element] -> Element)
                    -> Block -> StateT Int m [Element]
       navPointNode formatter (Div (ident,_,_)
-                                (Header lvl (_,_,kvs) ils : children)) = do
+                                (Header lvl (_,_,kvs) ils : children)) =
         if lvl > tocLevel
            then return []
            else do
@@ -941,10 +941,15 @@ metadataElement version md currentTime =
               (("id",id') : maybe [] (\x -> [("opf:scheme", x)]) scheme) $
               txt]
           | otherwise = [dcNode "identifier" ! [("id",id')] $ txt] ++
-              maybe [] (\x -> [unode "meta" !
-                  [("refines",'#':id'),("property","identifier-type"),
-                   ("scheme","onix:codelist5")] $ x])
-                (schemeToOnix `fmap` scheme)
+              maybe [] ((\x -> [unode "meta" !
+                                [ ("refines",'#':id')
+                                , ("property","identifier-type")
+                                , ("scheme","onix:codelist5")
+                                ]
+                                $ x
+                               ])
+                        . schemeToOnix)
+                    scheme
         toCreatorNode s id' creator
           | version == EPUB2 = [dcNode s !
              (("id",id') :
@@ -1060,7 +1065,7 @@ transformInline  :: PandocMonad m
 transformInline _opts (Image attr lab (src,tit)) = do
     newsrc <- modifyMediaRef $ TS.unpack src
     return $ Image attr lab ("../" <> newsrc, tit)
-transformInline opts (x@(Math t m))
+transformInline opts x@(Math t m)
   | WebTeX url <- writerHTMLMathMethod opts = do
     newsrc <- modifyMediaRef (TS.unpack url <> urlEncode (TS.unpack m))
     let mathclass = if t == DisplayMath then "display" else "inline"

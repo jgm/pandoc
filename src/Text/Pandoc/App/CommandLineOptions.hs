@@ -37,6 +37,7 @@ import Data.List (isPrefixOf)
 #endif
 #endif
 import Data.Maybe (fromMaybe, isJust)
+import Data.Text (Text)
 import Safe (tailDef)
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)
 import System.Console.GetOpt
@@ -44,7 +45,7 @@ import System.Environment (getArgs, getProgName)
 import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
-import Text.DocTemplates (Val(..))
+import Text.DocTemplates (Context (..), ToContext (toVal), Val (..))
 import Text.Pandoc
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..), addMeta)
 import Text.Pandoc.Filter (Filter (..))
@@ -64,10 +65,8 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import qualified Data.Text as T
-import Data.Text (Text)
-import Text.DocTemplates (ToContext(toVal), Context(..))
-import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.YAML as Y
+import qualified Text.Pandoc.UTF8 as UTF8
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
@@ -648,7 +647,7 @@ options =
                       "all" -> return opt{ optIpynbOutput = IpynbOutputAll }
                       "best" -> return opt{ optIpynbOutput = IpynbOutputBest }
                       "none" -> return opt{ optIpynbOutput = IpynbOutputNone }
-                      _ -> E.throwIO $ PandocOptionError $
+                      _ -> E.throwIO $ PandocOptionError
                              "ipynb-output must be all, none, or best")
                  "all|none|best")
                  "" -- "Starting number for sections, subsections, etc."

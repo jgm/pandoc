@@ -391,7 +391,7 @@ doMacros = do
       updateState $ \st -> st{ sExpanded = True }
 
 doMacros' :: PandocMonad m => Int -> [Tok] -> LP m [Tok]
-doMacros' n inp = do
+doMacros' n inp =
   case inp of
      Tok spos (CtrlSeq "begin") _ : Tok _ Symbol "{" :
       Tok _ Word name : Tok _ Symbol "}" : ts
@@ -456,7 +456,7 @@ doMacros' n inp = do
                    args <- case optarg of
                              Nothing -> getargs M.empty argspecs
                              Just o  -> do
-                                x <- option o $ bracketedToks
+                                x <- option o bracketedToks
                                 getargs (M.singleton 1 x) $ drop 1 argspecs
                    rest <- getInput
                    return (args, rest)

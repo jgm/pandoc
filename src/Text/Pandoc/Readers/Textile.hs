@@ -83,8 +83,7 @@ parseTextile = do
   let reversedNotes = stateNotes st'
   updateState $ \s -> s { stateNotes = reverse reversedNotes }
   -- now parse it for real...
-  blocks <- parseBlocks
-  return $ Pandoc nullMeta (B.toList blocks) -- FIXME
+  Pandoc nullMeta . B.toList <$> parseBlocks -- FIXME
 
 noteMarker :: PandocMonad m => ParserT Text ParserState m Text
 noteMarker = skipMany spaceChar >> string "fn" >> T.pack <$> manyTill digit (char '.')
