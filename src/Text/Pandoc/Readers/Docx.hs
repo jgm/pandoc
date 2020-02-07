@@ -528,9 +528,9 @@ extraInfo :: (Eq (StyleName a), PandocMonad m, HasStyleName a)
           => (Attr -> i -> i) -> a -> DocxContext m (i -> i)
 extraInfo f s = do
   opts <- asks docxOptions
-  return $ if | isEnabled Ext_styles opts
-              -> f ("", [], [("custom-style", fromStyleName $ getStyleName s)])
-              | otherwise -> id
+  return $ if isEnabled Ext_styles opts
+              then f ("", [], [("custom-style", fromStyleName $ getStyleName s)])
+              else id
 
 parStyleToTransform :: PandocMonad m => ParagraphStyle -> DocxContext m (Blocks -> Blocks)
 parStyleToTransform pPr

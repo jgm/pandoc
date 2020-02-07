@@ -85,8 +85,8 @@ dropPercent :: String -> String
 dropPercent ('%':xs) = dropWhile (== ' ') xs
 dropPercent xs       = xs
 
-runCommandTest :: FilePath -> (Int, String) -> TestTree
-runCommandTest pandocpath (num, code) =
+runCommandTest :: FilePath -> Int -> String -> TestTree
+runCommandTest pandocpath num code =
   let codelines = lines code
       (continuations, r1) = span ("\\" `isSuffixOf`) codelines
       (cmd, r2) = (dropPercent (unwords (map init continuations ++ take 1 r1)),
@@ -104,5 +104,5 @@ extractCommandTest pandocpath fp = unsafePerformIO $ do
   Pandoc _ blocks <- runIOorExplode (readMarkdown
                         def{ readerExtensions = pandocExtensions } contents)
   let codeblocks = map extractCode $ filter isCodeBlock blocks
-  let cases = map (runCommandTest pandocpath) $ zip [1..] codeblocks
+  let cases = zipWith (runCommandTest pandocpath) [1..] codeblocks
   return $ testGroup fp cases

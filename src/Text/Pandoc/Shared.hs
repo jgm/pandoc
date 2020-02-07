@@ -115,8 +115,7 @@ import qualified Data.Bifunctor as Bifunctor
 import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
-import Data.List (find, intercalate, intersperse, stripPrefix, sortBy)
-import Data.Ord (comparing)
+import Data.List (find, intercalate, intersperse, stripPrefix, sortOn)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Monoid (Any (..))
@@ -621,7 +620,7 @@ headerLtEq _ _                   = False
 uniqueIdent :: Extensions -> [Inline] -> Set.Set T.Text -> T.Text
 uniqueIdent exts title' usedIdents =
   if baseIdent `Set.member` usedIdents
-     then case find (\x -> not $ numIdent x `Set.member` usedIdents)
+     then case find (\x -> numIdent x `Set.notMember` usedIdents)
                ([1..60000] :: [Int]) of
             Just x  -> numIdent x
             Nothing -> baseIdent
@@ -799,7 +798,7 @@ filterIpynbOutput mode = walk go
                           -> Div (ident, ("output":os), kvs) bs
               | otherwise -> Div (ident, ("output":os), kvs) $
                               walk removeANSI $
-                              take 1 $ sortBy (comparing rank) bs
+                              take 1 $ sortOn rank bs
                  where
                   rank (RawBlock (Format "html") _)
                     | fmt == Format "html" = (1 :: Int)

@@ -25,7 +25,7 @@ import Data.Char (isAlphaNum)
 import Data.Default
 import Data.List (find, intersperse, sortBy, transpose)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, catMaybes)
+import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -121,7 +121,7 @@ mmdTitleBlock (Context hashmap) =
                  | null xs        -> empty
                  | otherwise      -> k' <> ":" <> space <>
                                       hcat (intersperse "; " $
-                                          catMaybes $ map fromVal xs)
+                                            mapMaybe fromVal xs)
                (k', SimpleVal x)
                       | isEmpty x -> empty
                       | otherwise -> k' <> ":" <> space <>
@@ -256,7 +256,7 @@ keyToMarkdown opts (label', (src, tit), attr) = do
 notesToMarkdown :: PandocMonad m => WriterOptions -> [[Block]] -> MD m (Doc Text)
 notesToMarkdown opts notes = do
   n <- gets stNoteNum
-  notes' <- mapM (\(num, note) -> noteToMarkdown opts num note) (zip [n..] notes)
+  notes' <- zipWithM (noteToMarkdown opts) [n..] notes
   modify $ \st -> st { stNoteNum = stNoteNum st + length notes }
   return $ vsep notes'
 
@@ -647,8 +647,7 @@ blockToMarkdown' opts (OrderedList (start,sty,delim) items) = do
                                then m <> T.replicate (3 - T.length m) " "
                                else m) markers
   contents <- inList $
-              mapM (\(item, num) -> orderedListItemToMarkdown opts item num) $
-              zip markers' items
+              zipWithM (orderedListItemToMarkdown opts) markers' items
   return $ (if isTightList items then vcat else vsep) contents <> blankline
 blockToMarkdown' opts (DefinitionList items) = do
   contents <- inList $ mapM (definitionListItemToMarkdown opts) items
@@ -680,11 +679,11 @@ pipeTable headless aligns rawHeaders rawRows = do
                     hcat (intersperse (literal "|") $
                           zipWith3 blockFor aligns widths (map chomp cs))
                     <> literal "|"
-  let toborder (a, w) = literal $ case a of
-                             AlignLeft    -> ":" <> T.replicate (w + 1) "-"
-                             AlignCenter  -> ":" <> T.replicate w "-" <> ":"
-                             AlignRight   -> T.replicate (w + 1) "-" <> ":"
-                             AlignDefault -> T.replicate (w + 2) "-"
+  let toborder a w = literal $ case a of
+                          AlignLeft    -> ":" <> T.replicate (w + 1) "-"
+                          AlignCenter  -> ":" <> T.replicate w "-" <> ":"
+                          AlignRight   -> T.replicate (w + 1) "-" <> ":"
+                          AlignDefault -> T.replicate (w + 2) "-"
   -- note:  pipe tables can't completely lack a
   -- header; for a headerless table, we need a header of empty cells.
   -- see jgm/pandoc#1996.
@@ -692,7 +691,7 @@ pipeTable headless aligns rawHeaders rawRows = do
                   then torow (replicate (length aligns) empty)
                   else torow rawHeaders
   let border = nowrap $ literal "|" <> hcat (intersperse (literal "|") $
-                        map toborder $ zip aligns widths) <> literal "|"
+                        zipWith toborder aligns widths) <> literal "|"
   let body   = vcat $ map torow rawRows
   return $ header $$ border $$ body
 

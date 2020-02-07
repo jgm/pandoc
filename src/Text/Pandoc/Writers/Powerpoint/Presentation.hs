@@ -712,8 +712,8 @@ blocksToSlide blks = do
   slideLevel <- asks envSlideLevel
   blocksToSlide' slideLevel blks' spkNotes
 
-makeNoteEntry :: Int -> [Block] -> [Block]
-makeNoteEntry n blks =
+makeNoteEntry :: (Int, [Block]) -> [Block]
+makeNoteEntry (n, blks) =
   let enum = Str (tshow n <> ".")
   in
     case blks of
@@ -742,7 +742,7 @@ makeEndNotesSlideBlocks = do
                        ls -> ls
              ident = Shared.uniqueIdent exts title anchorSet
              hdr = Header slideLevel (ident, [], []) title
-             blks = concatMap (\(n, bs) -> makeNoteEntry n bs) $
+             blks = concatMap makeNoteEntry $
                     M.toList noteIds
          in return $ hdr : blks
 

@@ -941,7 +941,7 @@ elementToStr x = x
 parseInline :: PandocMonad m => Content -> DB m Inlines
 parseInline (Text (CData _ s _)) = return $ text $ T.pack s
 parseInline (CRef ref) =
-  return $ maybe (text $ T.toUpper $ T.pack ref) (text . T.pack) $ lookupEntity ref
+  return $ text $ maybe (T.toUpper $ T.pack ref) T.pack $ lookupEntity ref
 parseInline (Elem e) =
   case qName (elName e) of
         "equation" -> equation e displayMath
