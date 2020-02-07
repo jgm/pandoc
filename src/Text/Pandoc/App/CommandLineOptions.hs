@@ -28,6 +28,7 @@ import Control.Monad.Trans
 import Control.Monad.Except (throwError)
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
+import Data.Bifunctor (second)
 import Data.Char (toLower)
 import Data.List (intercalate, sort)
 #ifdef _WINDOWS
@@ -982,7 +983,7 @@ writersNames = sort
   ("pdf" : map (T.unpack . fst) (writers :: [(Text, Writer PandocIO)]))
 
 splitField :: String -> (String, String)
-splitField s = tailDef "true" <$> break (`elemText` ":=") s
+splitField = second (tailDef "true") . break (`elemText` ":=")
 
 -- | Apply defaults from --defaults file.
 applyDefaults :: Opt -> FilePath -> IO Opt
