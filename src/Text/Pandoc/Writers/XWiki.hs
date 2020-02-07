@@ -71,7 +71,7 @@ genAnchor id' = if Text.null id'
 
 blockListToXWiki :: PandocMonad m => [Block] -> XWikiReader m Text
 blockListToXWiki blocks =
-  fmap vcat $ mapM blockToXWiki blocks
+  vcat <$> mapM blockToXWiki blocks
 
 blockToXWiki :: PandocMonad m => Block -> XWikiReader m Text
 
@@ -79,7 +79,7 @@ blockToXWiki Null = return ""
 
 blockToXWiki (Div (id', _, _) blocks) = do
   content <- blockListToXWiki blocks
-  return $ (genAnchor id') <> content
+  return $ genAnchor id' <> content
 
 blockToXWiki (Plain inlines) =
   inlineListToXWiki inlines
@@ -100,7 +100,7 @@ blockToXWiki HorizontalRule = return "\n----\n"
 blockToXWiki (Header level (id', _, _) inlines) = do
   contents <- inlineListToXWiki inlines
   let eqs = Text.replicate level "="
-  return $ eqs <> " " <> contents <> " " <> (genAnchor id') <> eqs <> "\n"
+  return $ eqs <> " " <> contents <> " " <> genAnchor id' <> eqs <> "\n"
 
 -- XWiki doesn't appear to differentiate between inline and block-form code, so we delegate
 -- We do amend the text to ensure that the code markers are on their own lines, since this is a block
@@ -211,8 +211,8 @@ inlineToXWiki il@(RawInline frmt str)
 inlineToXWiki (Link (id', _, _) txt (src, _)) = do
   label <- inlineListToXWiki txt
   case txt of
-     [Str s] | isURI src && escapeURI s == src -> return $ src <> (genAnchor id')
-     _  -> return $ "[[" <> label <> ">>" <> src <> "]]" <> (genAnchor id')
+     [Str s] | isURI src && escapeURI s == src -> return $ src <> genAnchor id'
+     _  -> return $ "[[" <> label <> ">>" <> src <> "]]" <> genAnchor id'
 
 inlineToXWiki (Image _ alt (source, tit)) = do
   alt' <- inlineListToXWiki alt
@@ -225,12 +225,12 @@ inlineToXWiki (Image _ alt (source, tit)) = do
 
 inlineToXWiki (Note contents) = do
   contents' <- blockListToXWiki contents
-  return $ "{{footnote}}" <> (Text.strip contents') <> "{{/footnote}}"
+  return $ "{{footnote}}" <> Text.strip contents' <> "{{/footnote}}"
 
 -- TODO: support attrs other than id (anchor)
 inlineToXWiki (Span (id', _, _) contents) = do
   contents' <- inlineListToXWiki contents
-  return $ (genAnchor id') <> contents'
+  return $ genAnchor id' <> contents'
 
 -- Utility method since (for now) all lists are handled the same way
 blockToXWikiList :: PandocMonad m => Text -> [[Block]] -> XWikiReader m Text
@@ -244,7 +244,7 @@ listItemToXWiki :: PandocMonad m => [Block] -> XWikiReader m Text
 listItemToXWiki contents = do
   marker <- asks listLevel
   contents' <- blockListToXWiki contents
-  return $ marker <> ". " <> (Text.strip contents')
+  return $ marker <> ". " <> Text.strip contents'
 
 
 -- | Convert definition list item (label, list of blocks) to MediaWiki.
@@ -256,7 +256,7 @@ definitionListItemToMediaWiki (label, items) = do
   contents <- mapM blockListToXWiki items
   marker <- asks listLevel
   return $ marker <> " " <> labelText <> "\n" <>
-    intercalate "\n" (map (\d -> (Text.init marker) <> ": " <> d) contents)
+    intercalate "\n" (map (\d -> Text.init marker <> ": " <> d) contents)
 
 -- Escape the escape character, as well as formatting pairs
 escapeXWikiString :: Text -> Text

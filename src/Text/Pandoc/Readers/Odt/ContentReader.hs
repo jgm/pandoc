@@ -792,7 +792,7 @@ read_frame_title = matchingElement NsSVG "title" (matchChildContent [] read_plai
 
 image_attributes :: Maybe T.Text -> Maybe T.Text -> Attr
 image_attributes x y =
-  ( "", [], (dim "width" x) ++ (dim "height" y))
+  ( "", [], dim "width" x ++ dim "height" y)
   where
     dim _ (Just "")   = []
     dim name (Just v) = [(name, v)]

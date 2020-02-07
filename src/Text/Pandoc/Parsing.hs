@@ -679,7 +679,7 @@ mathInlineWith op cl = try $ do
  where
   inBalancedBraces :: Stream s m Char => Int -> Text -> ParserT s st m Text
   inBalancedBraces n = fmap T.pack . inBalancedBraces' n . T.unpack
-  
+
   inBalancedBraces' :: Stream s m Char => Int -> String -> ParserT s st m String
   inBalancedBraces' 0 "" = do
     c <- anyChar

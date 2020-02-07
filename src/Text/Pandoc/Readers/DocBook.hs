@@ -1106,9 +1106,8 @@ equation e constructor =
 
     readMath :: (Element -> Bool) -> (Element -> b) -> [b]
     readMath childPredicate fromElement =
-      ( map (fromElement . everywhere (mkT removePrefix))
+      map (fromElement . everywhere (mkT removePrefix))
       $ filterChildren childPredicate e
-      )
 
 -- | Get the actual text stored in a CData block. 'showContent'
 -- returns the text still surrounded by the [[CDATA]] tags.

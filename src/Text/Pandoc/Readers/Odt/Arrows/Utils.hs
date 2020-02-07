@@ -183,14 +183,14 @@ a >>?! f = a >>> right f
           => FallibleArrow a x f (b,b')
           -> (b -> b' -> c)
           -> FallibleArrow a x f c
-a >>?% f = a >>?^ (uncurry f)
+a >>?% f = a >>?^ uncurry f
 
 ---
 (^>>?%) :: (ArrowChoice a)
           => (x -> Either f (b,b'))
           -> (b -> b' -> c)
           -> FallibleArrow a x f c
-a ^>>?% f = arr a >>?^ (uncurry f)
+a ^>>?% f = arr a >>?^ uncurry f
 
 ---
 (>>?%?) :: (ArrowChoice a)

@@ -40,8 +40,8 @@ yamlBsToMeta :: PandocMonad m
 yamlBsToMeta pBlocks bstr = do
   pos <- getPosition
   case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
-       Right ((YAML.Doc (YAML.Mapping _ _ o)):_)
-                -> (fmap Meta) <$> yamlMap pBlocks o
+       Right (YAML.Doc (YAML.Mapping _ _ o):_)
+                -> fmap Meta <$> yamlMap pBlocks o
        Right [] -> return . return $ mempty
        Right [YAML.Doc (YAML.Scalar _ YAML.SNull)]
                 -> return . return $ mempty
@@ -84,12 +84,10 @@ toMetaValue pBlocks x =
         asBlocks p = MetaBlocks . B.toList <$> p
 
 checkBoolean :: Text -> Maybe Bool
-checkBoolean t =
-  if t == T.pack "true" || t == T.pack "True" || t == T.pack "TRUE"
-     then Just True
-     else if t == T.pack "false" || t == T.pack "False" || t == T.pack "FALSE"
-             then Just False
-             else Nothing
+checkBoolean t
+  | t == T.pack "true" || t == T.pack "True" || t == T.pack "TRUE" = Just True
+  | t == T.pack "false" || t == T.pack "False" || t == T.pack "FALSE" = Just False
+  | otherwise = Nothing
 
 yamlToMetaValue :: PandocMonad m
                 => ParserT Text ParserState m (F Blocks)
@@ -133,4 +131,3 @@ yamlMap pBlocks o = do
       return $ do
         v' <- fv
         return (k, v')
-

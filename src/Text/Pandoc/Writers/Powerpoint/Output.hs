@@ -41,7 +41,7 @@ import Text.Pandoc.MIME
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, listToMaybe, fromMaybe, maybeToList, catMaybes, isNothing)
+import Data.Maybe (mapMaybe, listToMaybe, fromMaybe, maybeToList, catMaybes, isJust)
 import Text.Pandoc.ImageSize
 import Control.Applicative ((<|>))
 import System.FilePath.Glob
@@ -254,7 +254,7 @@ presentationToArchiveP p@(Presentation docProps slides) = do
     (throwError $
       PandocSomeError $
       "The following required files are missing:\n" <>
-      (T.unlines $ map (T.pack . ("  " <>)) missingFiles)
+      T.unlines (map (T.pack . ("  " <>)) missingFiles)
     )
 
   newArch' <- foldM copyFileToArchive emptyArchive filePaths
@@ -291,11 +291,12 @@ presentationToArchiveP p@(Presentation docProps slides) = do
 
 makeSlideIdMap :: Presentation -> M.Map SlideId Int
 makeSlideIdMap (Presentation _ slides) =
-  M.fromList $ (map slideId slides) `zip` [1..]
+  M.fromList $ map slideId slides `zip` [1..]
 
 makeSpeakerNotesMap :: Presentation -> M.Map Int Int
 makeSpeakerNotesMap (Presentation _ slides) =
-  M.fromList $ (mapMaybe f $ slides `zip` [1..]) `zip` [1..]
+  M.fromList $
+    mapMaybe f (slides `zip` [1..]) `zip` [1..]
   where f (Slide _ _ notes, n) = if notes == mempty
                                  then Nothing
                                  else Just n
@@ -350,10 +351,10 @@ curSlideHasSpeakerNotes =
 getLayout :: PandocMonad m => Layout -> P m Element
 getLayout layout = do
   let layoutpath = case layout of
-        (MetadataSlide _ _ _ _) -> "ppt/slideLayouts/slideLayout1.xml"
+        (MetadataSlide{}) -> "ppt/slideLayouts/slideLayout1.xml"
         (TitleSlide _)          -> "ppt/slideLayouts/slideLayout3.xml"
         (ContentSlide _ _)      -> "ppt/slideLayouts/slideLayout2.xml"
-        (TwoColumnSlide _ _ _)    -> "ppt/slideLayouts/slideLayout4.xml"
+        (TwoColumnSlide{})    -> "ppt/slideLayouts/slideLayout4.xml"
   refArchive <- asks envRefArchive
   distArchive <- asks envDistArchive
   parseXml refArchive distArchive layoutpath
@@ -409,7 +410,7 @@ getMasterShapeDimensionsById ident master = do
   let ns = elemToNameSpaces master
   cSld <- findChild (elemName ns "p" "cSld") master
   spTree <- findChild (elemName ns "p" "spTree") cSld
-  sp <- filterChild (\e -> (isElem ns "p" "sp" e) && (shapeHasId ns ident e)) spTree
+  sp <- filterChild (\e -> isElem ns "p" "sp" e && shapeHasId ns ident e) spTree
   getShapeDimensions ns sp
 
 getContentShapeSize :: PandocMonad m
@@ -457,7 +458,7 @@ replaceNamedChildren ns prefix name newKids element =
   where
     fun :: Bool -> [Content] -> [[Content]]
     fun _ [] = []
-    fun switch ((Elem e) : conts) | isElem ns prefix name e =
+    fun switch (Elem e : conts) | isElem ns prefix name e =
                                       if switch
                                       then map Elem newKids : fun False conts
                                       else fun False conts
@@ -522,9 +523,7 @@ registerMedia fp caption = do
                  Just Emf  -> Just ".emf"
                  Nothing   -> Nothing
 
-  let newGlobalId = case M.lookup fp globalIds of
-        Just ident -> ident
-        Nothing    -> maxGlobalId + 1
+  let newGlobalId = fromMaybe (maxGlobalId + 1) (M.lookup fp globalIds)
 
   let newGlobalIds = M.insert fp newGlobalId globalIds
 
@@ -550,10 +549,9 @@ makeMediaEntry :: PandocMonad m => MediaInfo -> P m Entry
 makeMediaEntry mInfo = do
   epochtime <- (floor . utcTimeToPOSIXSeconds) <$> asks envUTCTime
   (imgBytes, _) <- P.fetchItem (T.pack $ mInfoFilePath mInfo)
-  let ext = case mInfoExt mInfo of
-              Just e -> e
-              Nothing -> ""
-  let fp = "ppt/media/image" <> (show $ mInfoGlobalId mInfo) <> T.unpack ext
+  let ext = fromMaybe "" (mInfoExt mInfo)
+  let fp = "ppt/media/image" <>
+          show (mInfoGlobalId mInfo) <> T.unpack ext
   return $ toEntry fp epochtime $ BL.fromStrict imgBytes
 
 makeMediaEntries :: PandocMonad m => P m [Entry]
@@ -717,7 +715,8 @@ makePicElements layout picProps mInfo alt = do
                  , cNvPicPr
                  , mknode "p:nvPr" [] ()]
   let blipFill = mknode "p:blipFill" []
-                 [ mknode "a:blip" [("r:embed", "rId" <> (show $ mInfoLocalId mInfo))] ()
+                 [ mknode "a:blip" [("r:embed", "rId" <>
+          show (mInfoLocalId mInfo))] ()
                  , mknode "a:stretch" [] $
                    mknode "a:fillRect" [] () ]
   let xfrm =    mknode "a:xfrm" []
@@ -750,9 +749,12 @@ paraElemToElements Break = return [mknode "a:br" [] ()]
 paraElemToElements (Run rpr s) = do
   sizeAttrs <- fontSizeAttributes rpr
   let attrs = sizeAttrs <>
-        (if rPropBold rpr then [("b", "1")] else []) <>
-        (if rPropItalics rpr then [("i", "1")] else []) <>
-        (if rPropUnderline rpr then [("u", "sng")] else []) <>
+        (
+        [("b", "1") | rPropBold rpr]) <>
+        (
+        [("i", "1") | rPropItalics rpr]) <>
+        (
+        [("u", "sng") | rPropUnderline rpr]) <>
         (case rStrikethrough rpr of
             Just NoStrike     -> [("strike", "noStrike")]
             Just SingleStrike -> [("strike", "sngStrike")]
@@ -796,9 +798,8 @@ paraElemToElements (Run rpr s) = do
                             _ -> []
                         Nothing -> []
   codeFont <- monospaceFont
-  let codeContents = if rPropCode rpr
-                     then [mknode "a:latin" [("typeface", T.unpack codeFont)] ()]
-                     else []
+  let codeContents =
+        [mknode "a:latin" [("typeface", T.unpack codeFont)] () | rPropCode rpr]
   let propContents = linkProps <> colorContents <> codeContents
   return [mknode "a:r" [] [ mknode "a:rPr" attrs propContents
                           , mknode "a:t" [] $ T.unpack s
@@ -817,7 +818,7 @@ paraElemToElements (RawOOXMLParaElem str) = return [ x | Elem x <- parseXML str 
 -- step at a time.
 addMathInfo :: Element -> Element
 addMathInfo element =
-  let mathspace = Attr { attrKey = (QName "m" Nothing (Just "xmlns"))
+  let mathspace = Attr { attrKey = QName "m" Nothing (Just "xmlns")
                        , attrVal = "http://schemas.openxmlformats.org/officeDocument/2006/math"
                        }
   in add_attr mathspace element
@@ -920,7 +921,7 @@ graphicFrameToElements layout tbls caption = do
                            `catchError`
                            (\_ -> return ((0, 0), (pageWidth, pageHeight)))
 
-  let cy = if (not $ null caption) then cytmp - captionHeight else cytmp
+  let cy = if not $ null caption then cytmp - captionHeight else cytmp
 
   elements <- mapM (graphicToElement cx) tbls
   let graphicFrameElts =
@@ -938,7 +939,7 @@ graphicFrameToElements layout tbls caption = do
           ]
         ] <> elements
 
-  if (not $ null caption)
+  if not $ null caption
     then do capElt <- createCaption ((x, y), (cx, cytmp)) caption
             return [graphicFrameElts, capElt]
     else return [graphicFrameElts]
@@ -1079,9 +1080,7 @@ contentToElement layout hdrShape shapes
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
       element <- nonBodyTextToElement layout [PHType "title"] hdrShape
-      let hdrShapeElements = if null hdrShape
-                             then []
-                             else [element]
+      let hdrShapeElements = [element | not (null hdrShape)]
       contentElements <- local
                          (\env -> env {envContentType = NormalContent})
                          (shapesToElements layout shapes)
@@ -1094,9 +1093,7 @@ twoColumnToElement layout hdrShape shapesL shapesR
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
       element <- nonBodyTextToElement layout [PHType "title"] hdrShape
-      let hdrShapeElements = if null hdrShape
-                             then []
-                             else [element]
+      let hdrShapeElements = [element | not (null hdrShape)]
       contentElementsL <- local
                           (\env -> env {envContentType =TwoColumnLeftContent})
                           (shapesToElements layout shapesL)
@@ -1115,9 +1112,7 @@ titleToElement layout titleElems
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
       element <- nonBodyTextToElement layout [PHType "title", PHType "ctrTitle"] titleElems
-      let titleShapeElements = if null titleElems
-                               then []
-                               else [element]
+      let titleShapeElements = [element | not (null titleElems)]
       return $ buildSpTree ns spTree titleShapeElements
 titleToElement _ _ = return $ mknode "p:sp" [] ()
 
@@ -1395,12 +1390,10 @@ presentationToRels :: PandocMonad m => Presentation -> P m [Relationship]
 presentationToRels pres@(Presentation _ slides) = do
   mySlideRels <- mapM slideToPresRel slides
   let notesMasterRels =
-        if presHasSpeakerNotes pres
-        then [Relationship { relId = length mySlideRels + 2
-                           , relType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster"
-                           , relTarget = "notesMasters/notesMaster1.xml"
-                           }]
-        else []
+        [Relationship { relId = length mySlideRels + 2
+                         , relType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster"
+                         , relTarget = "notesMasters/notesMaster1.xml"
+                         } | presHasSpeakerNotes pres]
       insertedRels = mySlideRels <> notesMasterRels
   rels <- getRels
   -- we remove the slide rels and the notesmaster (if it's
@@ -1459,7 +1452,8 @@ topLevelRelsEntry :: PandocMonad m => P m Entry
 topLevelRelsEntry = elemToEntry "_rels/.rels" $ relsToElement topLevelRels
 
 relToElement :: Relationship -> Element
-relToElement rel = mknode "Relationship" [ ("Id", "rId" <> (show $ relId rel))
+relToElement rel = mknode "Relationship" [ ("Id", "rId" <>
+    show (relId rel))
                                          , ("Type", T.unpack $ relType rel)
                                          , ("Target", relTarget rel) ] ()
 
@@ -1502,7 +1496,8 @@ slideToSpeakerNotesEntry slide = do
 
 slideToSpeakerNotesRelElement :: PandocMonad m => Slide -> P m (Maybe Element)
 slideToSpeakerNotesRelElement (Slide _ _ (SpeakerNotes [])) = return Nothing
-slideToSpeakerNotesRelElement slide@(Slide _ _ _) = do
+slideToSpeakerNotesRelElement slide@(
+  Slide{}) = do
   idNum <- slideNum slide
   return $ Just $
     mknode "Relationships"
@@ -1559,13 +1554,13 @@ linkRelElements mp = mapM linkRelElement (M.toList mp)
 
 mediaRelElement :: MediaInfo -> Element
 mediaRelElement mInfo =
-  let ext = case mInfoExt mInfo of
-              Just e -> e
-              Nothing -> ""
+  let ext = fromMaybe "" (mInfoExt mInfo)
   in
-    mknode "Relationship" [ ("Id", "rId" <> (show $ mInfoLocalId mInfo))
+    mknode "Relationship" [ ("Id", "rId" <>
+      show (mInfoLocalId mInfo))
                           , ("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image")
-                          , ("Target", "../media/image" <> (show $ mInfoGlobalId mInfo) <> T.unpack ext)
+                          , ("Target", "../media/image" <>
+      show (mInfoGlobalId mInfo) <> T.unpack ext)
                           ] ()
 
 speakerNotesSlideRelElement :: PandocMonad m => Slide -> P m (Maybe Element)
@@ -1586,10 +1581,10 @@ slideToSlideRelElement :: PandocMonad m => Slide -> P m Element
 slideToSlideRelElement slide = do
   idNum <- slideNum slide
   let target =  case slide of
-        (Slide _ (MetadataSlide _ _ _ _) _) -> "../slideLayouts/slideLayout1.xml"
+        (Slide _ (MetadataSlide{}) _) -> "../slideLayouts/slideLayout1.xml"
         (Slide _ (TitleSlide _) _)          -> "../slideLayouts/slideLayout3.xml"
         (Slide _ (ContentSlide _ _) _)      -> "../slideLayouts/slideLayout2.xml"
-        (Slide _ (TwoColumnSlide _ _ _) _)  -> "../slideLayouts/slideLayout4.xml"
+        (Slide _ (TwoColumnSlide{}) _)  -> "../slideLayouts/slideLayout4.xml"
 
   speakerNotesRels <- maybeToList <$> speakerNotesSlideRelElement slide
 
@@ -1696,15 +1691,15 @@ docPropsElement docProps = do
     ,("xmlns:dcterms","http://purl.org/dc/terms/")
     ,("xmlns:dcmitype","http://purl.org/dc/dcmitype/")
     ,("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance")]
-    $ (mknode "dc:title" [] $ maybe "" T.unpack $ dcTitle docProps)
-    : (mknode "dc:creator" [] $ maybe "" T.unpack $ dcCreator docProps)
-    : (mknode "cp:keywords" [] $ T.unpack keywords)
-    : (if isNothing (dcSubject docProps) then [] else
-           [mknode "dc:subject" [] $ maybe "" T.unpack $ dcSubject docProps])
-    <> (if isNothing (dcDescription docProps) then [] else
-           [mknode "dc:description" [] $ maybe "" T.unpack $ dcDescription docProps])
-    <> (if isNothing (cpCategory docProps) then [] else
-           [mknode "cp:category" [] $ maybe "" T.unpack $ cpCategory docProps])
+    $
+      mknode "dc:title" [] (maybe "" T.unpack $ dcTitle docProps)
+    :
+      mknode "dc:creator" [] (maybe "" T.unpack $ dcCreator docProps)
+    :
+      mknode "cp:keywords" [] (T.unpack keywords)
+    : ( [mknode "dc:subject" [] $ maybe "" T.unpack $ dcSubject docProps | isJust (dcSubject docProps)])
+    <> ( [mknode "dc:description" [] $ maybe "" T.unpack $ dcDescription docProps | isJust (dcDescription docProps)])
+    <> ( [mknode "cp:category" [] $ maybe "" T.unpack $ cpCategory docProps | isJust (cpCategory docProps)])
     <> (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
              , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] x
              ]) (formatTime defaultTimeLocale "%FT%XZ" utctime)
@@ -1739,7 +1734,8 @@ viewPropsElement = do
   viewPrElement <- parseXml refArchive distArchive "ppt/viewProps.xml"
   -- remove  "lastView" if it exists:
   let notLastView :: Text.XML.Light.Attr -> Bool
-      notLastView attr = (qName $ attrKey attr) /= "lastView"
+      notLastView attr =
+          qName (attrKey attr) /= "lastView"
   return $
     viewPrElement {elAttribs = filter notLastView (elAttribs viewPrElement)}
 
@@ -1765,8 +1761,9 @@ contentTypesToElement ct =
   let ns = "http://schemas.openxmlformats.org/package/2006/content-types"
   in
     mknode "Types" [("xmlns", ns)] $
-    (map defaultContentTypeToElem $ contentTypesDefaults ct) <>
-    (map overrideContentTypeToElem $ contentTypesOverrides ct)
+
+      map defaultContentTypeToElem (contentTypesDefaults ct) <>
+      map overrideContentTypeToElem (contentTypesOverrides ct)
 
 data DefaultContentType = DefaultContentType
                            { defContentTypesExt :: T.Text
@@ -1789,16 +1786,14 @@ contentTypesToEntry :: PandocMonad m => ContentTypes -> P m Entry
 contentTypesToEntry ct = elemToEntry "[Content_Types].xml" $ contentTypesToElement ct
 
 pathToOverride :: FilePath -> Maybe OverrideContentType
-pathToOverride fp = OverrideContentType ("/" <> fp) <$> (getContentType fp)
+pathToOverride fp = OverrideContentType ("/" <> fp) <$> getContentType fp
 
 mediaFileContentType :: FilePath -> Maybe DefaultContentType
 mediaFileContentType fp = case takeExtension fp of
   '.' : ext -> Just $
                DefaultContentType { defContentTypesExt = T.pack ext
                                   , defContentTypesType =
-                                      case getMimeType fp of
-                                        Just mt -> mt
-                                        Nothing -> "application/octet-stream"
+                                      fromMaybe "application/octet-stream" (getMimeType fp)
                                   }
   _ -> Nothing
 
@@ -1808,9 +1803,7 @@ mediaContentType mInfo
   , Just ('.', ext) <- T.uncons t =
       Just $ DefaultContentType { defContentTypesExt = ext
                                 , defContentTypesType =
-                                    case mInfoMimeType mInfo of
-                                      Just mt -> mt
-                                      Nothing -> "application/octet-stream"
+                                    fromMaybe "application/octet-stream" (mInfoMimeType mInfo)
                                 }
   | otherwise = Nothing
 
@@ -1842,7 +1835,7 @@ presentationToContentTypes p@(Presentation _ slides) = do
   let slideOverrides = mapMaybe
                        (\fp -> pathToOverride $ "ppt/slides/" <> fp)
                        relativePaths
-  speakerNotesOverrides <- (mapMaybe pathToOverride) <$> getSpeakerNotesFilePaths
+  speakerNotesOverrides <- mapMaybe pathToOverride <$> getSpeakerNotesFilePaths
   return $ ContentTypes
     (defaults <> mediaDefaults)
     (inheritedOverrides <> createdOverrides <> slideOverrides <> speakerNotesOverrides)
@@ -1862,22 +1855,22 @@ getContentType fp
   | fp == "docProps/core.xml" = Just "application/vnd.openxmlformats-package.core-properties+xml"
   | fp == "docProps/custom.xml" = Just "application/vnd.openxmlformats-officedocument.custom-properties+xml"
   | fp == "docProps/app.xml" = Just $ noPresML <> ".extended-properties+xml"
-  | "ppt" : "slideMasters" : f : [] <- splitDirectories fp
+  | ["ppt", "slideMasters", f] <- splitDirectories fp
   , (_, ".xml") <- splitExtension f =
       Just $ presML <> ".slideMaster+xml"
-  | "ppt" : "slides" : f : [] <- splitDirectories fp
+  | ["ppt", "slides", f] <- splitDirectories fp
   , (_, ".xml") <- splitExtension f =
       Just $ presML <> ".slide+xml"
-  | "ppt" : "notesMasters"  : f : [] <- splitDirectories fp
+  | ["ppt", "notesMasters", f] <- splitDirectories fp
   , (_, ".xml") <- splitExtension f =
       Just $ presML <> ".notesMaster+xml"
-  | "ppt" : "notesSlides"  : f : [] <- splitDirectories fp
+  | ["ppt", "notesSlides", f] <- splitDirectories fp
   , (_, ".xml") <- splitExtension f =
       Just $ presML <> ".notesSlide+xml"
-  | "ppt" : "theme" : f : [] <- splitDirectories fp
+  | ["ppt", "theme", f] <- splitDirectories fp
   , (_, ".xml") <- splitExtension f =
       Just $ noPresML <> ".theme+xml"
-  | "ppt" : "slideLayouts" : _ : [] <- splitDirectories fp=
+  | ["ppt", "slideLayouts", _] <- splitDirectories fp=
       Just $ presML <> ".slideLayout+xml"
   | otherwise = Nothing
 
@@ -1886,9 +1879,7 @@ autoNumAttrs :: ListAttributes -> [(String, String)]
 autoNumAttrs (startNum, numStyle, numDelim) =
   numAttr <> typeAttr
   where
-    numAttr = if startNum == 1
-              then []
-              else [("startAt", show startNum)]
+    numAttr = [("startAt", show startNum) | startNum /= 1]
     typeAttr = [("type", typeString <> delimString)]
     typeString = case numStyle of
       Decimal -> "arabic"

@@ -16,6 +16,7 @@ MediaWiki:  <http://www.mediawiki.org/wiki/MediaWiki>
 -}
 module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki, highlightingLangs ) where
 import Prelude
+import Control.Applicative
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Maybe (fromMaybe)
@@ -166,7 +167,8 @@ blockToMediaWiki (Table capt aligns widths headers rows') = do
   return $ "{|\n" <> caption <> tableBody <> "|}\n"
 
 blockToMediaWiki x@(BulletList items) = do
-  tags <- fmap (|| not (isSimpleList x)) $ asks useTags
+  tags <-
+    (|| not (isSimpleList x)) Control.Applicative.<$> asks useTags
   if tags
      then do
         contents <- local (\ s -> s { useTags = True }) $ mapM listItemToMediaWiki items
@@ -177,7 +179,8 @@ blockToMediaWiki x@(BulletList items) = do
         return $ vcat contents <> if null lev then "\n" else ""
 
 blockToMediaWiki x@(OrderedList attribs items) = do
-  tags <- fmap (|| not (isSimpleList x)) $ asks useTags
+  tags <-
+    (|| not (isSimpleList x)) Control.Applicative.<$> asks useTags
   if tags
      then do
         contents <- local (\s -> s { useTags = True }) $ mapM listItemToMediaWiki items
@@ -188,7 +191,8 @@ blockToMediaWiki x@(OrderedList attribs items) = do
         return $ vcat contents <> if null lev then "\n" else ""
 
 blockToMediaWiki x@(DefinitionList items) = do
-  tags <- fmap (|| not (isSimpleList x)) $ asks useTags
+  tags <-
+    (|| not (isSimpleList x)) Control.Applicative.<$> asks useTags
   if tags
      then do
         contents <- local (\s -> s { useTags = True }) $ mapM definitionListItemToMediaWiki items
@@ -342,7 +346,7 @@ blockListToMediaWiki :: PandocMonad m
                      => [Block]       -- ^ List of block elements
                      -> MediaWikiWriter m Text
 blockListToMediaWiki blocks =
-  fmap vcat $ mapM blockToMediaWiki blocks
+  vcat Control.Applicative.<$> mapM blockToMediaWiki blocks
 
 -- | Convert list of Pandoc inline elements to MediaWiki.
 inlineListToMediaWiki :: PandocMonad m => [Inline] -> MediaWikiWriter m Text
@@ -355,8 +359,8 @@ inlineListToMediaWiki lst =
        , isLinkOrImage x =
           Str t : RawInline (Format "mediawiki") "<nowiki/>" : x : fixup xs
      fixup (x:xs) = x : fixup xs
-     isLinkOrImage (Link{})  = True
-     isLinkOrImage (Image{}) = True
+     isLinkOrImage Link{}  = True
+     isLinkOrImage Image{} = True
      isLinkOrImage _         = False
 
 -- | Convert Pandoc inline element to MediaWiki.

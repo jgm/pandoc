@@ -166,10 +166,8 @@ parseRST = do
   blocks <- B.toList <$> parseBlocks
   citations <- (sort . M.toList . stateCitations) <$> getState
   citationItems <- mapM parseCitation citations
-  let refBlock = if null citationItems
-                    then []
-                    else [Div ("citations",[],[]) $
-                            B.toList $ B.definitionList citationItems]
+  let refBlock = [Div ("citations",[],[]) $
+                 B.toList $ B.definitionList citationItems | not (null citationItems)]
   standalone <- getOption readerStandalone
   state <- getState
   let meta = stateMeta state
@@ -225,7 +223,7 @@ rawFieldListItem minIndent = try $ do
   first <- anyLine
   rest <- option "" $ try $ do lookAhead (count indent (char ' ') >> spaceChar)
                                indentedBlock
-  let raw = (if T.null first then "" else (first <> "\n")) <> rest <> "\n"
+  let raw = (if T.null first then "" else first <> "\n") <> rest <> "\n"
   return (name, raw)
 
 fieldListItem :: PandocMonad m => Int -> RSTParser m (Inlines, [Blocks])
@@ -706,7 +704,7 @@ directive' = do
               tit <- B.para . B.strong <$> parseInlineFromText
                           (trim top <> if T.null subtit
                                           then ""
-                                          else (":  " <> subtit))
+                                          else ":  " <> subtit)
               bod <- parseFromString' parseBlocks body'
               return $ B.divWith (name,"sidebar":classes,keyvals) $ tit <> bod
         "topic" ->
@@ -1446,14 +1444,14 @@ roleAfter = try $ do
 unmarkedInterpretedText :: PandocMonad m => RSTParser m Text
 unmarkedInterpretedText = try $ do
   atStart (char '`')
-  contents <- mconcat <$> (many1
+  contents <- mconcat <$> many1
        (  many1 (noneOf "`\\\n")
       <|> (char '\\' >> ((\c -> ['\\',c]) <$> noneOf "\n"))
       <|> (string "\n" <* notFollowedBy blankline)
       <|> try (string "`" <*
                 notFollowedBy (() <$ roleMarker) <*
                 lookAhead (satisfy isAlphaNum))
-       ))
+       )
   char '`'
   return $ T.pack contents
 

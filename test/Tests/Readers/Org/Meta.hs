@@ -199,6 +199,6 @@ tests =
                   , "#+pandoc-emphasis-post:"
                   , "[/noemph/]"
                   ] =?>
-        para ("[/noemph/]")
+        para "[/noemph/]"
     ]
   ]

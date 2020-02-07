@@ -149,7 +149,7 @@ convertWithOpts opts = do
     let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
 
     when (pdfOutput && readerName == "latex") $
-      case (optInputFiles opts) of
+      case optInputFiles opts of
         Just (inputFile:_) -> report $ UnusualConversion $ T.pack $
           "to convert a .tex file to PDF, you get better results by using pdflatex "
             <> "(or lualatex or xelatex) directly, try `pdflatex " <> inputFile

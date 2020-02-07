@@ -69,7 +69,7 @@ convertTags (t@(TagOpen tagname as):ts)
                 enc <- getDataURI (fromAttrib "type" t) y
                 return (x, enc)
               else return (x,y)
-convertTags (t@(TagOpen "script" as):TagClose "script":ts) = 
+convertTags (t@(TagOpen "script" as):TagClose "script":ts) =
   case fromAttrib "src" t of
        ""  -> (t:) <$> convertTags ts
        src -> do

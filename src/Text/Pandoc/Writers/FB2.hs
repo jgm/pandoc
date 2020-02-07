@@ -130,9 +130,7 @@ description meta' = do
 booktitle :: PandocMonad m => Meta -> FBM m [Content]
 booktitle meta' = do
   t <- cMapM toXml . docTitle $ meta'
-  return $ if null t
-           then []
-           else [ el "book-title" t ]
+  return $ [el "book-title" t | not (null t)]
 
 authors :: Meta -> [Content]
 authors meta' = cMap author (docAuthors meta')
@@ -156,9 +154,7 @@ docdate :: PandocMonad m => Meta -> FBM m [Content]
 docdate meta' = do
   let ss = docDate meta'
   d <- cMapM toXml ss
-  return $ if null d
-           then []
-           else [el "date" d]
+  return $ [el "date" d | not (null d)]
 
 -- | Divide the stream of blocks into sections and convert to XML
 -- representation.

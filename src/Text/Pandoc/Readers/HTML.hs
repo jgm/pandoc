@@ -403,8 +403,8 @@ pDiv = try $ do
 
 pRawHtmlBlock :: PandocMonad m => TagParser m Blocks
 pRawHtmlBlock = do
-  raw <- (pHtmlBlock "script" <|> pHtmlBlock "style" <|> pHtmlBlock "textarea"
-          <|> pRawTag)
+  raw <- pHtmlBlock "script" <|> pHtmlBlock "style" <|> pHtmlBlock "textarea"
+          <|> pRawTag
   exts <- getOption readerExtensions
   if extensionEnabled Ext_raw_html exts && not (T.null raw)
      then return $ B.rawBlock "html" raw
@@ -976,7 +976,7 @@ isSpecial '\8221' = True
 isSpecial _       = False
 
 pSymbol :: PandocMonad m => InlinesParser m Inlines
-pSymbol = satisfy isSpecial >>= return . B.str . T.singleton
+pSymbol = B.str . T.singleton <$> satisfy isSpecial
 
 isBad :: Char -> Bool
 isBad c = c >= '\128' && c <= '\159' -- not allowed in HTML

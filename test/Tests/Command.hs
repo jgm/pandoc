@@ -18,7 +18,6 @@ import Data.Algorithm.Diff
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import Data.List (isSuffixOf)
-import Prelude hiding (readFile)
 import System.Directory
 import System.Exit
 import System.FilePath (joinPath, splitDirectories, takeDirectory, (</>))

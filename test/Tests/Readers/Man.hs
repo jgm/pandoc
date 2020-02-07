@@ -51,13 +51,13 @@ tests = [
       =?> header 2 (text "The header 2")
     , "Macro args" =:
       ".B \"single arg with \"\"Q\"\"\""
-      =?> (para $ strong $ text "single arg with \"Q\"")
+      =?>para (strong $ text "single arg with \"Q\"")
     , "Argument from next line" =:
       ".B\nsingle arg with \"Q\""
-      =?> (para $ strong $ text "single arg with \"Q\"")
+      =?>para (strong $ text "single arg with \"Q\"")
     , "comment" =:
       ".\\\"bla\naaa"
-      =?> (para $ str "aaa")
+      =?>para (str "aaa")
     , "link" =:
       ".BR aa (1)"
       =?> para (strong (str "aa") <> str "(1)")
@@ -65,7 +65,7 @@ tests = [
   testGroup "Escapes" [
       "fonts" =:
       "aa\\fIbb\\fRcc"
-      =?> (para $ str "aa" <> (emph $ str "bb") <> str "cc")
+      =?>para (str "aa" <> (emph $ str "bb") <> str "cc")
     , "nested fonts" =:
       "\\f[BI]hi\\f[I] there\\f[R]"
       =?> para (emph (strong (text "hi") <> text " there"))
@@ -75,26 +75,26 @@ tests = [
                                    text " ok")
     , "skip" =:
       "a\\%\\\n\\:b\\0"
-      =?> (para $ str "ab\8199")
+      =?>para (str "ab\8199")
     , "replace" =:
       "\\-\\ \\\\\\[lq]\\[rq]\\[em]\\[en]\\*(lq\\*(rq"
-      =?> (para $ text "- \\“”—–“”")
+      =?>para (text "- \\“”—–“”")
     , "replace2" =:
-      "\\t\\e\\`\\^\\|\\'" =?> (para $ text "\\`\8202\8198`")
+      "\\t\\e\\`\\^\\|\\'" =?>para (text "\\`\8202\8198`")
     , "comment  with \\\"" =:
-      "Foo \\\" bar\n" =?> (para $ text "Foo")
+      "Foo \\\" bar\n" =?>para (text "Foo")
     , "comment with \\#" =:
-      "Foo\\#\nbar\n" =?> (para $ text "Foobar")
+      "Foo\\#\nbar\n" =?>para (text "Foobar")
     , "two letter escapes" =:
-      "\\(oA\\(~O" =?> (para $ text "ÅÕ")
+      "\\(oA\\(~O" =?>para (text "ÅÕ")
     , "bracketed escapes" =:
-      "\\[oA]\\[~O]\\[Do]\\[Ye]\\[product]\\[ul]" =?> (para $ text "ÅÕ$¥∏_")
+      "\\[oA]\\[~O]\\[Do]\\[Ye]\\[product]\\[ul]" =?>para (text "ÅÕ$¥∏_")
     , "unicode escapes" =:
-      "\\[u2020]" =?> (para $ text "†")
+      "\\[u2020]" =?>para (text "†")
     , "unicode escapes (combined)" =:
-      "\\[u0075_u0301]" =?> (para $ text "\250")
+      "\\[u0075_u0301]" =?>para (text "\250")
     , "unknown escape (#5034)" =:
-       "\\9" =?> (para $ text "9")
+       "\\9" =?>para (text "9")
     ],
   testGroup "Lists" [
       "bullet" =:
@@ -108,7 +108,7 @@ tests = [
       =?> orderedListWith (1,UpperAlpha,OneParen) [para $ str "first", para $ str "second"]
     , "nested" =:
       ".IP \"\\[bu]\"\nfirst\n.RS\n.IP \"\\[bu]\"\n1a\n.IP \"\\[bu]\"\n1b\n.RE"
-      =?> bulletList [(para $ str "first") <> (bulletList [para $ str "1a", para $ str "1b"])]
+      =?> bulletList [para (str "first") <> bulletList [para $ str "1a", para $ str "1b"]]
     , "change in list style" =:
       ".IP \\[bu]\nfirst\n.IP 1\nsecond"
       =?> bulletList [para (str "first")] <>

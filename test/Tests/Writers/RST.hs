@@ -175,6 +175,6 @@ tests = [ testGroup "rubrics"
               , "--------"]
           ]
         , testTemplate "$subtitle$\n" "subtitle" $
-          (setMeta "subtitle" ("subtitle" :: Inlines) $ doc $ plain "") =?>
+          setMeta "subtitle" ("subtitle" :: Inlines) (doc $ plain "") =?>
           ("subtitle" :: String)
         ]

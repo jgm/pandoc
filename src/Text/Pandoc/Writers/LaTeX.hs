@@ -644,9 +644,7 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                                 key `notElem` ["exports", "tangle", "results"]
                                 -- see #4889
                           ] ++
-                          (if identifier == ""
-                                then []
-                                else [ "label=" <> ref ])
+                          ["label=" <> ref | not (T.null identifier)]
 
                      else []
             printParams
@@ -1131,7 +1129,7 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
              ["LR" | ("dir", "ltr") `elem` kvs] ++
              (case lang of
                 Just lng -> let (l, o) = toPolyglossia lng
-                                ops = if T.null o then "" else ("[" <> o <> "]")
+                                ops = if T.null o then "" else "[" <> o <> "]"
                             in  ["text" <> l <> ops]
                 Nothing  -> [])
   contents <- inlineListToLaTeX ils

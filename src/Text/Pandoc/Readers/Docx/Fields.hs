@@ -42,7 +42,7 @@ escapedQuote = string "\\\"" $> "\\\""
 
 inQuotes :: Parser T.Text
 inQuotes =
-  (try escapedQuote) <|> (anyChar >>= (\c -> return $ T.singleton c))
+  try escapedQuote <|> (anyChar >>= (\c -> return $ T.singleton c))
 
 quotedString :: Parser T.Text
 quotedString = do
@@ -50,7 +50,7 @@ quotedString = do
   T.concat <$> manyTill inQuotes (try (char '"'))
 
 unquotedString :: Parser T.Text
-unquotedString = T.pack <$> manyTill anyChar (try $ lookAhead space *> return () <|> eof)
+unquotedString = T.pack <$> manyTill anyChar (try $ lookAhead space Data.Functor.$> () <|> eof)
 
 fieldArgument :: Parser T.Text
 fieldArgument = quotedString <|> unquotedString

@@ -45,9 +45,7 @@ writeCommonMark opts (Pandoc meta blocks) = do
             else return mempty
 
   let (blocks', notes) = runState (walkM processNotes blocks) []
-      notes' = if null notes
-               then []
-               else [OrderedList (1, Decimal, Period) $ reverse notes]
+      notes' = [OrderedList (1, Decimal, Period) $ reverse notes | not (null notes)]
   main <-  blocksToCommonMark opts (blocks' ++ notes')
   metadata <- metaToContext opts
               (fmap (literal . T.stripEnd) . blocksToCommonMark opts)
@@ -241,13 +239,11 @@ inlineToNodes opts SoftBreak
   | otherwise                           = (node SOFTBREAK [] :)
 inlineToNodes opts (Emph xs) = (node EMPH (inlinesToNodes opts xs) :)
 inlineToNodes opts (Strong xs) = (node STRONG (inlinesToNodes opts xs) :)
-inlineToNodes opts (Strikeout xs) =
-  if isEnabled Ext_strikeout opts
-     then (node (CUSTOM_INLINE "~~" "~~") (inlinesToNodes opts xs) :)
-     else if isEnabled Ext_raw_html opts
-            then ((node (HTML_INLINE (T.pack "<s>")) [] : inlinesToNodes opts xs ++
-                  [node (HTML_INLINE (T.pack "</s>")) []]) ++ )
-            else (inlinesToNodes opts xs ++)
+inlineToNodes opts (Strikeout xs)
+  | isEnabled Ext_strikeout opts = (node (CUSTOM_INLINE "~~" "~~") (inlinesToNodes opts xs) :)
+  | isEnabled Ext_raw_html opts = ((node (HTML_INLINE (T.pack "<s>")) [] : inlinesToNodes opts xs ++
+        [node (HTML_INLINE (T.pack "</s>")) []]) ++ )
+  | otherwise = (inlinesToNodes opts xs ++)
 inlineToNodes opts (Superscript xs) =
   if isEnabled Ext_raw_html opts
     then ((node (HTML_INLINE (T.pack "<sup>")) [] : inlinesToNodes opts xs ++

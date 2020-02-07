@@ -103,7 +103,8 @@ pandocToRST (Pandoc meta blocks) = do
 
 -- | Return RST representation of reference key table.
 refsToRST :: PandocMonad m => Refs -> RST m (Doc Text)
-refsToRST refs = mapM keyToRST refs >>= return . vcat
+refsToRST refs =
+   vcat <$> mapM keyToRST refs
 
 -- | Return RST representation of a reference key.
 keyToRST :: PandocMonad m => ([Inline], (Text, Text)) -> RST m (Doc Text)
@@ -117,8 +118,7 @@ keyToRST (label, (src, _)) = do
 -- | Return RST representation of notes.
 notesToRST :: PandocMonad m => [[Block]] -> RST m (Doc Text)
 notesToRST notes =
-   zipWithM noteToRST [1..] notes >>=
-  return . vsep
+   vsep <$> zipWithM noteToRST [1..] notes
 
 -- | Return RST representation of a note.
 noteToRST :: PandocMonad m => Int -> [Block] -> RST m (Doc Text)
@@ -131,7 +131,8 @@ noteToRST num note = do
 pictRefsToRST :: PandocMonad m
               => [([Inline], (Attr, Text, Text, Maybe Text))]
               -> RST m (Doc Text)
-pictRefsToRST refs = mapM pictToRST refs >>= return . vcat
+pictRefsToRST refs =
+   vcat <$> mapM pictToRST refs
 
 -- | Return RST representation of a picture substitution reference.
 pictToRST :: PandocMonad m
@@ -507,11 +508,11 @@ flatten outer
           (Span ("",[],[]) _, _)   -> keep f i
           (_, Span ("",[],[]) _)   -> keep f i
           -- inlineToRST handles this case properly so it's safe to keep
-          (Link _ _ _, Image _ _ _) -> keep f i
+          ( Link{}, Image{})       -> keep f i
           -- parent inlines would prevent links from being correctly
           -- parsed, in this case we prioritise the content over the
           -- style
-          (_, Link _ _ _)          -> emerge f i
+          (_, Link{})              -> emerge f i
           -- always give priority to strong text over emphasis
           (Emph _, Strong _)       -> emerge f i
           -- drop all other nested styles
@@ -567,7 +568,8 @@ inlineListToRST = writeInlines . walk transformInlines
 
 -- | Convert list of Pandoc inline elements to RST.
 writeInlines :: PandocMonad m => [Inline] -> RST m (Doc Text)
-writeInlines lst = mapM inlineToRST lst >>= return . hcat
+writeInlines lst =
+   hcat <$> mapM inlineToRST lst
 
 -- | Convert Pandoc inline element to RST.
 inlineToRST :: PandocMonad m => Inline -> RST m (Doc Text)

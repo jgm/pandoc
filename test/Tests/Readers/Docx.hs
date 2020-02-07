@@ -91,7 +91,7 @@ testForWarningsWithOpts opts name docxFile expected =
 
 getMedia :: FilePath -> FilePath -> IO (Maybe B.ByteString)
 getMedia archivePath mediaPath = do
-  zf <- B.readFile archivePath >>= return . toArchive
+  zf <- toArchive <$> B.readFile archivePath
   return $ findEntryByPath ("word/" ++ mediaPath) zf >>= (Just . fromEntry)
 
 compareMediaPathIO :: FilePath -> MediaBag -> FilePath -> IO Bool

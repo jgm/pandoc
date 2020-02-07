@@ -154,4 +154,3 @@ must_be_at_least actual expected optMsg = do
       Lua.push (showVersion actual)
       Lua.call 3 1
       Lua.error
-

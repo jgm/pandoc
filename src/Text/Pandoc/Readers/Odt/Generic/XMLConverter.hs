@@ -163,7 +163,7 @@ swapStack' state stack
 pushElement         :: XML.Element
                     -> XMLConverterState nsID extraState
                     -> XMLConverterState nsID extraState
-pushElement e state  = state { parentElements = e:(parentElements state) }
+pushElement e state  = state { parentElements = e:parentElements state }
 
 -- | Pop the top element from the call stack, unless it is the last one.
 popElement          :: XMLConverterState nsID extraState
@@ -605,8 +605,8 @@ executeInSub nsID name a  =     keepingTheValue
                                   (findChild nsID name)
                             >>> ignoringState liftFailure
                             >>? switchingTheStack a
-  where liftFailure (_, (Left  f)) = Left  f
-        liftFailure (x, (Right e)) = Right (x, e)
+  where liftFailure (_, Left  f) = Left  f
+        liftFailure (x, Right e) = Right (x, e)
 
 --------------------------------------------------------------------------------
 -- Iterating over children
@@ -702,7 +702,7 @@ prepareMatchersC      :: (NameSpaceID nsID)
                        => [(nsID, ElementName, FallibleXMLConverter nsID extraState x x)]
                        -> ContentMatchConverter nsID extraState x
 --prepareMatchersC      = foldSs . (map $ uncurry3  makeMatcherC)
-prepareMatchersC      = reverseComposition . (map $ uncurry3  makeMatcherC)
+prepareMatchersC      = reverseComposition . map (uncurry3  makeMatcherC)
 
 -- | Takes a list of element-data - converter groups and
 -- * Finds all content of the current element

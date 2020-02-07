@@ -580,15 +580,15 @@ isImage (Link _ (Image{} : _) _) = True
 isImage _ = False
 
 splitBlocks' :: [Block] -> [[Block]] -> [Block] -> Pres [[Block]]
-splitBlocks' cur acc [] = return $ acc ++ (if null cur then [] else [cur])
+splitBlocks' cur acc [] = return $ acc ++ ([cur | not (null cur)])
 splitBlocks' cur acc (HorizontalRule : blks) =
-  splitBlocks' [] (acc ++ (if null cur then [] else [cur])) blks
+  splitBlocks' [] (acc ++ ([cur | not (null cur)])) blks
 splitBlocks' cur acc (h@(Header n _ _) : blks) = do
   slideLevel <- asks envSlideLevel
   let (nts, blks') = span isNotesDiv blks
   case compare n slideLevel of
-    LT -> splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [h : nts]) blks'
-    EQ -> splitBlocks' (h:nts) (acc ++ (if null cur then [] else [cur])) blks'
+    LT -> splitBlocks' [] (acc ++ ([cur | not (null cur)]) ++ [h : nts]) blks'
+    EQ -> splitBlocks' (h:nts) (acc ++ ([cur | not (null cur)])) blks'
     GT -> splitBlocks' (cur ++ (h:nts)) acc blks'
 -- `blockToParagraphs` treats Plain and Para the same, so we can save
 -- some code duplication by treating them the same here.
@@ -604,7 +604,7 @@ splitBlocks' cur acc (Para (il:ils) : blks) | isImage il = do
                             (acc ++ [cur ++ [Para [il]] ++ nts])
                             (if null ils then blks' else Para ils : blks')
     _ -> splitBlocks' []
-         (acc ++ (if null cur then [] else [cur]) ++ [[Para [il]] ++ nts])
+         (acc ++ ([cur | not (null cur)]) ++ [Para [il] : nts])
          (if null ils then blks' else Para ils : blks')
 splitBlocks' cur acc (tbl@Table{} : blks) = do
   slideLevel <- asks envSlideLevel
@@ -612,14 +612,14 @@ splitBlocks' cur acc (tbl@Table{} : blks) = do
   case cur of
     [Header n _ _] | n == slideLevel ->
                             splitBlocks' [] (acc ++ [cur ++ [tbl] ++ nts]) blks'
-    _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[tbl] ++ nts]) blks'
+    _ ->  splitBlocks' [] (acc ++ ([cur | not (null cur)]) ++ [tbl : nts]) blks'
 splitBlocks' cur acc (d@(Div (_, classes, _) _): blks) | "columns" `elem` classes =  do
   slideLevel <- asks envSlideLevel
   let (nts, blks') = span isNotesDiv blks
   case cur of
     [Header n _ _] | n == slideLevel ->
                             splitBlocks' [] (acc ++ [cur ++ [d] ++ nts]) blks'
-    _ ->  splitBlocks' [] (acc ++ (if null cur then [] else [cur]) ++ [[d] ++ nts]) blks'
+    _ ->  splitBlocks' [] (acc ++ ([cur | not (null cur)]) ++ [d : nts]) blks'
 splitBlocks' cur acc (blk : blks) = splitBlocks' (cur ++ [blk]) acc blks
 
 splitBlocks :: [Block] -> Pres [[Block]]
@@ -692,7 +692,7 @@ blockToSpeakerNotes _ = return mempty
 handleSpeakerNotes :: Block -> Pres ()
 handleSpeakerNotes blk = do
   spNotes <- blockToSpeakerNotes blk
-  modify $ \st -> st{stSpeakerNotes = (stSpeakerNotes st) <> spNotes}
+  modify $ \st -> st{stSpeakerNotes = stSpeakerNotes st <> spNotes}
 
 handleAndFilterSpeakerNotes' :: [Block] -> Pres [Block]
 handleAndFilterSpeakerNotes' blks = do
@@ -763,7 +763,7 @@ getMetaSlide  = do
          mempty
 
 addSpeakerNotesToMetaSlide :: Slide -> [Block] -> Pres (Slide, [Block])
-addSpeakerNotesToMetaSlide (Slide sldId layout@(MetadataSlide _ _ _ _) spkNotes) blks =
+addSpeakerNotesToMetaSlide (Slide sldId layout@(MetadataSlide{}) spkNotes) blks =
   do let (ntsBlks, blks') = span isNotesDiv blks
      spkNotes' <- mconcat <$> mapM blockToSpeakerNotes ntsBlks
      return (Slide sldId layout (spkNotes <> spkNotes'), blks')
@@ -877,7 +877,7 @@ emptyLayout layout = case layout of
     all emptyShape shapes2
 
 emptySlide :: Slide -> Bool
-emptySlide (Slide _ layout notes) = (notes == mempty) && (emptyLayout layout)
+emptySlide (Slide _ layout notes) = (notes == mempty) && emptyLayout layout
 
 blocksToPresentationSlides :: [Block] -> Pres [Slide]
 blocksToPresentationSlides blks = do

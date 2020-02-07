@@ -101,7 +101,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
         $ fromStringLazy $ render Nothing
         $ text "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
         $$
-         (inTags True "manifest:manifest"
+         inTags True "manifest:manifest"
             [("xmlns:manifest","urn:oasis:names:tc:opendocument:xmlns:manifest:1.0")
             ,("manifest:version","1.2")] ( selfClosingTag "manifest:file-entry"
                  [("manifest:media-type","application/vnd.oasis.opendocument.text")
@@ -109,7 +109,6 @@ pandocToODT opts doc@(Pandoc meta _) = do
                 $$ vcat ( map toFileEntry files )
                 $$ vcat ( map toFileEntry formulas )
               )
-         )
   let archive' = addEntryToArchive manifestEntry archive
   -- create meta.xml
   let userDefinedMetaFields = [k | k <- Map.keys (unMeta meta)
@@ -129,7 +128,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
        $ fromStringLazy $ render Nothing
        $ text "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
        $$
-        (inTags True "office:document-meta"
+        inTags True "office:document-meta"
            [("xmlns:office","urn:oasis:names:tc:opendocument:xmlns:office:1.0")
            ,("xmlns:xlink","http://www.w3.org/1999/xlink")
            ,("xmlns:dc","http://purl.org/dc/elements/1.1/")
@@ -163,7 +162,6 @@ pandocToODT opts doc@(Pandoc meta _) = do
                    vcat userDefinedMeta
                  )
              )
-        )
   -- make sure mimetype is first
   let mimetypeEntry = toEntry "mimetype" epochtime
                       $ fromStringLazy "application/vnd.oasis.opendocument.text"
@@ -241,7 +239,7 @@ transformPicMath _ (Math t math) = do
        Right r -> do
          let conf = useShortEmptyTags (const False) defaultConfigPP
          let mathml = ppcTopElement conf r
-         epochtime <- floor `fmap` (lift P.getPOSIXTime)
+         epochtime <- floor `fmap` lift P.getPOSIXTime
          let dirname = "Formula-" ++ show (length entries) ++ "/"
          let fname = dirname ++ "content.xml"
          let entry = toEntry fname epochtime (fromStringLazy mathml)
@@ -269,12 +267,12 @@ documentSettings :: Bool -> B.ByteString
 documentSettings isTextMode = fromStringLazy $ render Nothing
     $ text "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
     $$
-    (inTags True "office:document-settings"
+    inTags True "office:document-settings"
       [("xmlns:office","urn:oasis:names:tc:opendocument:xmlns:office:1.0")
       ,("xmlns:xlink","http://www.w3.org/1999/xlink")
       ,("xmlns:config","urn:oasis:names:tc:opendocument:xmlns:config:1.0")
       ,("xmlns:ooo","http://openoffice.org/2004/office")
-      ,("office:version","1.2")] $
+      ,("office:version","1.2")] (
        inTagsSimple "office:settings" $
          inTags False "config:config-item-set"
            [("config:name", "ooo:configuration-settings")] $

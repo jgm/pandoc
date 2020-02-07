@@ -1,6 +1,6 @@
 version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
-SOURCEFILES?=$(shell find pandoc.hs src test -name '*.hs')
+SOURCEFILES?=$(shell git ls-tree -r master --name-only | grep "\.hs$$")
 BRANCH?=master
 RESOLVER?=lts-13
 GHCOPTS=-fdiagnostics-color=always
@@ -45,8 +45,14 @@ weigh:
 reformat:
 	for f in $(SOURCEFILES); do echo $$f; stylish-haskell -i $$f ; done
 
-lint:
-	for f in $(SOURCEFILES); do echo $$f; hlint --verbose --refactor --refactor-options='-i -s' $$f; done
+lint: hlint fix_spacing
+
+hlint:
+	for f in $(SOURCEFILES); do echo $$f; hlint --verbose --refactor --refactor-options='-s -o -' $$f; done
+
+fix_spacing:
+	# Fix trailing newlines and spaces at ends of lines
+	for f in $(SOURCEFILES); do printf '%s\n' "`cat $$f`" | sed -e 's/  *$$//' > $$f.tmp; mv $$f.tmp $$f; done
 
 changes_github:
 	pandoc --filter tools/extract-changes.hs changelog.md -t gfm --wrap=none | sed -e 's/\\#/#/g' | pbcopy
@@ -142,4 +148,4 @@ update-website:
 clean:
 	stack clean
 
-.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages pandoc-templates trypandoc update-website debpkg macospkg winpkg checkdocs ghcid ghci
+.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages pandoc-templates trypandoc update-website debpkg macospkg winpkg checkdocs ghcid ghci fix_spacing hlint

@@ -48,5 +48,3 @@ weighReader doc name reader = do
          let inp = either (error . show) id $ runPure $ writer def{ writerWrapText = WrapAuto} doc
          in func (unpack $ name <> " reader") reader inp
        _ -> return () -- no writer for reader
-
-

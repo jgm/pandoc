@@ -156,7 +156,7 @@ writeICML opts (Pandoc meta blocks) = do
 -- | Auxiliary functions for parStylesToDoc and charStylesToDoc.
 contains :: Text -> (Text, (Text, Text)) -> [(Text, Text)]
 contains s rule =
-  [snd rule | (fst rule) `Text.isInfixOf` s]
+  [snd rule | fst rule `Text.isInfixOf` s]
 
 -- | The monospaced font to use as default.
 monospacedFont :: Doc Text

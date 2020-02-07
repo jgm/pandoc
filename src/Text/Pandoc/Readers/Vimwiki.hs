@@ -147,7 +147,7 @@ header = try $ do
   contents <- trimInlines . mconcat <$> manyTill inline (try $ spaceChar
     >> string eqs >> many spaceChar >> newline)
   attr <- registerHeader (makeId contents,
-    if sp == "" then [] else ["justcenter"], []) contents
+    ["justcenter" | not (null sp)], []) contents
   return $ B.headerWith attr lev contents
 
 para :: PandocMonad m => VwParser m Blocks

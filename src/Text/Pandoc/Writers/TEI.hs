@@ -282,7 +282,7 @@ inlineToTEI opts (Link attr txt (src, _))
               linktext <- inlinesToTEI opts txt
               return $ linktext <+> char '(' <> emailLink <> char ')'
   | otherwise =
-      (inTags False "ref" $ ("target", src) : idFromAttr opts attr)
+      inTags False "ref" (("target", src) : idFromAttr opts attr)
                  <$> inlinesToTEI opts txt
 inlineToTEI opts (Image attr description (src, tit)) = do
   let titleDoc = if T.null tit
@@ -300,6 +300,4 @@ inlineToTEI opts (Note contents) =
 
 idFromAttr :: WriterOptions -> Attr -> [(Text, Text)]
 idFromAttr opts (id',_,_) =
-  if T.null id'
-     then []
-     else [("xml:id", writerIdentifierPrefix opts <> id')]
+  [("xml:id", writerIdentifierPrefix opts <> id') | not (T.null id')]

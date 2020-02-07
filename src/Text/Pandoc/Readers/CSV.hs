@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE OverloadedStrings   #-}
+
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Readers.RST
@@ -42,4 +42,3 @@ readCSV _opts s =
              widths = replicate numcols 0
     Right []     -> return $ B.doc mempty
     Left e       -> throwError $ PandocParsecError s e
-

@@ -409,9 +409,5 @@ isMathML _      = False
 idAndRole :: Attr -> [(Text, Text)]
 idAndRole (id',cls,_) = ident <> role
   where
-    ident = if T.null id'
-               then []
-               else [("id", id')]
-    role  = if null cls
-               then []
-               else [("role", T.unwords cls)]
+    ident = [("id", id') | not (T.null id')]
+    role  = [("role", T.unwords cls) | not (null cls)]

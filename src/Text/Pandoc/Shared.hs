@@ -466,7 +466,7 @@ compactify items =
   let (others, final) = (init items, last items)
   in  case reverse (B.toList final) of
            (Para a:xs)
-             | null [Para x | Para x <- (xs ++ concatMap B.toList others)]
+             | null [Para x | Para x <- xs ++ concatMap B.toList others]
              -> others ++ [B.fromList (reverse (Plain a : xs))]
            _ | null [Para x | Para x <- concatMap B.toList items]
              -> items
@@ -682,9 +682,9 @@ isTightList = all (\item -> firstIsPlain item || null item)
 taskListItemFromAscii :: Extensions -> [Block] -> [Block]
 taskListItemFromAscii = handleTaskListItem fromMd
   where
-    fromMd (Str "[" : Space : Str "]" : Space : is) = (Str "☐") : Space : is
-    fromMd (Str "[x]"                 : Space : is) = (Str "☒") : Space : is
-    fromMd (Str "[X]"                 : Space : is) = (Str "☒") : Space : is
+    fromMd (Str "[" : Space : Str "]" : Space : is) = Str "☐" : Space : is
+    fromMd (Str "[x]"                 : Space : is) = Str "☒" : Space : is
+    fromMd (Str "[X]"                 : Space : is) = Str "☒" : Space : is
     fromMd is = is
 
 -- | Convert a list item containing text starting with @U+2610 BALLOT BOX@
@@ -787,19 +787,19 @@ splitSentences xs =
 -- strip out ANSI escape sequences from CodeBlocks (see #5633).
 filterIpynbOutput :: Maybe Format -> Pandoc -> Pandoc
 filterIpynbOutput mode = walk go
-  where go (Div (ident, ("output":os), kvs) bs) =
+  where go (Div (ident, "output":os, kvs) bs) =
           case mode of
-            Nothing  -> Div (ident, ("output":os), kvs) []
+            Nothing  -> Div (ident, "output":os, kvs) []
             -- "best" for ipynb includes all formats:
             Just fmt
               | fmt == Format "ipynb"
-                          -> Div (ident, ("output":os), kvs) bs
-              | otherwise -> Div (ident, ("output":os), kvs) $
+                          -> Div (ident, "output":os, kvs) bs
+              | otherwise -> Div (ident, "output":os, kvs) $
                               walk removeANSI $
                               take 1 $ sortOn rank bs
                  where
                   rank (RawBlock (Format "html") _)
-                    | fmt == Format "html" = (1 :: Int)
+                    | fmt == Format "html" = 1 :: Int
                     | fmt == Format "markdown" = 2
                     | otherwise = 3
                   rank (RawBlock (Format "latex") _)

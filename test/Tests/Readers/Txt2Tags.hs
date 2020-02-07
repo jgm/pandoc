@@ -311,14 +311,14 @@ tests =
       , "Ordered List in Bullet List" =:
           ("- Emacs\n" <>
            "  + Org\n") =?>
-          bulletList [ (plain "Emacs") <>
-                       (orderedList [ plain "Org"])
+          bulletList [ plain "Emacs" <>
+                       orderedList [ plain "Org"]
                      ]
 
       , "Bullet List in Ordered List" =:
           ("+ GNU\n" <>
            "   - Freedom\n") =?>
-          orderedList [ (plain "GNU") <> bulletList [ (plain "Freedom") ] ]
+          orderedList [ plain "GNU" <> bulletList [ plain "Freedom" ] ]
 
       , "Definition List" =:
           T.unlines [ ": PLL"

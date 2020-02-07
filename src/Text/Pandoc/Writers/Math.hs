@@ -53,4 +53,3 @@ convertMath writer mt str =
    where dt = case mt of
                    DisplayMath -> DisplayBlock
                    InlineMath  -> DisplayInline
-

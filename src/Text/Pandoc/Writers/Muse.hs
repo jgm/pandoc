@@ -492,7 +492,7 @@ fixOrEscape b (Str s) = fixOrEscapeStr b s
       _             -> (sp && (startsWithMarker isDigit s ||
                                startsWithMarker isAsciiLower s ||
                                startsWithMarker isAsciiUpper s))
-                       || stringStartsWithSpace s      
+                       || stringStartsWithSpace s
 fixOrEscape _ Space = True
 fixOrEscape _ SoftBreak = True
 fixOrEscape _ _ = False

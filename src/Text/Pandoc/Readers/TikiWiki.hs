@@ -55,7 +55,7 @@ type TikiWikiParser = ParserT Text ParserState
 --
 
 tryMsg :: Text -> TikiWikiParser m a -> TikiWikiParser m a
-tryMsg msg p = try p <?> (T.unpack msg)
+tryMsg msg p = try p <?> T.unpack msg
 
 skip :: TikiWikiParser m a -> TikiWikiParser m ()
 skip parser = Control.Monad.void parser

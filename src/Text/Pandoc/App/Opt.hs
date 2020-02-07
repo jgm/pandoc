@@ -189,10 +189,10 @@ doOpt (k',v) = do
       parseYAML v >>= \x -> return (\o -> o{ optMetadata = optMetadata o <>
                                                contextToMeta x })
     "metadata-files" ->
-      (parseYAML v >>= \x ->
+      parseYAML v >>= \x ->
                         return (\o -> o{ optMetadataFiles =
                                            optMetadataFiles o <>
-                                           map unpack x }))
+                                           map unpack x })
     "metadata-file" -> -- allow either a list or a single value
       (parseYAML v >>= \x -> return (\o -> o{ optMetadataFiles =
                                                 optMetadataFiles o <>

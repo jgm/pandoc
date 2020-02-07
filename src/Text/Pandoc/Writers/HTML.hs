@@ -663,8 +663,8 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
   let fragmentClass = case slideVariant of
                            RevealJsSlides -> "fragment"
                            _              -> "incremental"
-  let inDiv zs = (RawBlock (Format "html") ("<div class=\""
-                       <> fragmentClass <> "\">")) :
+  let inDiv zs = RawBlock (Format "html") ("<div class=\""
+                       <> fragmentClass <> "\">") :
                    (zs ++ [RawBlock (Format "html") "</div>"])
   let (titleBlocks, innerSecs) =
         if titleSlide
@@ -723,8 +723,8 @@ blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
   html5 <- gets stHtml5
   slideVariant <- gets stSlideVariant
   let kvs = [(k,v) | (k,v) <- kvs', k /= "width"] ++
-            [("style", "width:" <> w <> ";")
-             | ("width",w) <- kvs', "column" `elem` classes] ++
+            [("style", "width:" <> w <> ";") | "column" `elem` classes,
+             ("width", w) <- kvs'] ++
             [("role", "doc-bibliography") | ident == "refs" && html5] ++
             [("role", "doc-biblioentry")
               | "ref-item" `T.isPrefixOf` ident && html5]

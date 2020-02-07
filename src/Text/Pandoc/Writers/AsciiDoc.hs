@@ -263,7 +263,7 @@ blockToAsciiDoc opts (OrderedList (start, sty, _delim) items) = do
                        Decimal      -> ["arabic"]
                        Example      -> []
                        _            -> [T.toLower (tshow sty)]
-  let listStart = if start == 1 then [] else ["start=" <> tshow start]
+  let listStart = ["start=" <> tshow start | not (start == 1)]
   let listoptions = case T.intercalate ", " (listStyle ++ listStart) of
                           "" -> empty
                           x  -> brackets (literal x)

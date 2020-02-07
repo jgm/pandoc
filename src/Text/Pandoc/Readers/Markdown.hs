@@ -21,10 +21,9 @@ import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
-import Data.List (sortBy, transpose, elemIndex)
+import Data.List (transpose, elemIndex, sortOn)
 import qualified Data.Map as M
 import Data.Maybe
-import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -247,7 +246,7 @@ yamlMetaBlock = try $ do
   newMetaF <- yamlBsToMeta parseBlocks
               $ UTF8.fromTextLazy $ TL.fromStrict rawYaml
   -- Since `<>` is left-biased, existing values are not touched:
-  updateState $ \st -> st{ stateMeta' = (stateMeta' st) <> newMetaF }
+  updateState $ \st -> st{ stateMeta' = stateMeta' st <> newMetaF }
   return mempty
 
 stopLine :: PandocMonad m => MarkdownParser m ()
@@ -1107,7 +1106,7 @@ rawHtmlBlocks = do
         return (return (B.rawBlock "html" $ stripMarkdownAttribute raw) <>
                 contents <>
                 return (B.rawBlock "html" rawcloser)))
-      <|> (return (return (B.rawBlock "html" raw) <> contents))
+      <|> return (return (B.rawBlock "html" raw) <> contents)
   updateState $ \st -> st{ stateInHtmlBlock = oldInHtmlBlock }
   return result
 
@@ -1170,7 +1169,7 @@ simpleTableHeader headless = try $ do
                      else rawHeads
   heads <- fmap sequence
            $
-            mapM ((parseFromString' (mconcat <$> many plain)).trim) rawHeads'
+            mapM (parseFromString' (mconcat <$> many plain).trim) rawHeads'
   return (heads, aligns, indices)
 
 -- Returns an alignment type for a table, based on a list of strings
@@ -1183,7 +1182,7 @@ alignType [] _ = AlignDefault
 alignType strLst len =
   let nonempties = filter (not . T.null) $ map trimr strLst
       (leftSpace, rightSpace) =
-           case sortBy (comparing T.length) nonempties of
+           case sortOn T.length nonempties of
                  (x:_) -> (T.head x `elem` [' ', 't'], T.length x < len)
                  []    -> (False, False)
   in  case (leftSpace, rightSpace) of
@@ -1287,7 +1286,7 @@ multilineTableHeader headless = try $ do
                     then replicate (length dashes) ""
                     else map (T.unlines . map trim) rawHeadsList
   heads <- fmap sequence $
-            mapM ((parseFromString' (mconcat <$> many plain)).trim) rawHeads
+            mapM (parseFromString' (mconcat <$> many plain).trim) rawHeads
   return (heads, aligns, indices')
 
 -- Parse a grid table:  starts with row of '-' on top, then header
