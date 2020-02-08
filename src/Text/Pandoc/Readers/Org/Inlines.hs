@@ -40,7 +40,6 @@ import Data.List (intersperse)
 import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Maybe (fromMaybe)
 
 --
 -- Functions acting on the parser state
@@ -761,7 +760,7 @@ afterEmphasisPreChar :: PandocMonad m => OrgParser m Bool
 afterEmphasisPreChar = do
   pos <- getPosition
   lastPrePos <- orgStateLastPreCharPos <$> getState
-  return . fromMaybe True $ (== pos) <$> lastPrePos
+  return $ maybe True (== pos) lastPrePos
 
 -- | Whether the parser is right after a forbidden border char
 notAfterForbiddenBorderChar :: PandocMonad m => OrgParser m Bool
@@ -773,20 +772,21 @@ notAfterForbiddenBorderChar = do
 -- | Read a sub- or superscript expression
 subOrSuperExpr :: PandocMonad m => OrgParser m (F Inlines)
 subOrSuperExpr = try $
-  choice [ charsInBalanced '{' '}' (noneOf "\n\r")
-         , enclosing ('(', ')') <$> charsInBalanced '(' ')' (noneOf "\n\r")
-         , simpleSubOrSuperText
-         ] >>= parseFromString (mconcat <$> many inline)
+  simpleSubOrSuperText <|>
+  (choice [ charsInBalanced '{' '}' (noneOf "\n\r")
+          , enclosing ('(', ')') <$> charsInBalanced '(' ')' (noneOf "\n\r")
+          ] >>= parseFromString (mconcat <$> many inline))
  where enclosing (left, right) s = T.cons left $ T.snoc s right
 
-simpleSubOrSuperText :: PandocMonad m => OrgParser m Text
+simpleSubOrSuperText :: PandocMonad m => OrgParser m (F Inlines)
 simpleSubOrSuperText = try $ do
   state <- getState
   guard . exportSubSuperscripts . orgStateExportSettings $ state
-  choice [ textStr "*"
-         , mappend <$> option "" (T.singleton <$> oneOf "+-")
-                   <*> many1Char alphaNum
-         ]
+  return . B.str <$>
+    choice [ textStr "*"
+           , mappend <$> option "" (T.singleton <$> oneOf "+-")
+                     <*> many1Char alphaNum
+           ]
 
 inlineLaTeX :: PandocMonad m => OrgParser m (F Inlines)
 inlineLaTeX = try $ do
