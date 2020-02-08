@@ -58,7 +58,7 @@ import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.SelfContained (makeDataURI, makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
          headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput,
-         defaultUserDataDirs, tshow)
+         defaultUserDataDirs, tshow, findM)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -94,13 +94,7 @@ convertWithOpts opts = do
   datadir <- case optDataDir opts of
                   Nothing   -> do
                     ds <- defaultUserDataDirs
-                    let selectUserDataDir [] = return Nothing
-                        selectUserDataDir (dir:dirs) = do
-                              exists <- doesDirectoryExist dir
-                              if exists
-                                 then return (Just dir)
-                                 else selectUserDataDir dirs
-                    selectUserDataDir ds
+                    findM doesDirectoryExist ds
                   Just _    -> return $ optDataDir opts
 
   let runIO' :: PandocIO a -> IO a

@@ -27,6 +27,7 @@ module Text.Pandoc.Shared (
                      splitTextByIndices,
                      substitute,
                      ordNub,
+                     findM,
                      -- * Text processing
                      ToString (..),
                      ToText (..),
@@ -197,6 +198,14 @@ ordNub l = go Set.empty l
     go _ [] = []
     go s (x:xs) = if x `Set.member` s then go s xs
                                       else x : go (Set.insert x s) xs
+
+findM :: forall m t a. (Monad m, Foldable t) => (a -> m Bool) -> t a -> m (Maybe a)
+findM p = foldr go (pure Nothing)
+  where
+    go :: a -> m (Maybe a) -> m (Maybe a)
+    go x acc = do
+      b <- p x
+      if b then pure (Just x) else acc
 
 --
 -- Text processing
