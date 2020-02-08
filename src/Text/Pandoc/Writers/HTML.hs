@@ -666,13 +666,15 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
   let inDiv zs = RawBlock (Format "html") ("<div class=\""
                        <> fragmentClass <> "\">") :
                    (zs ++ [RawBlock (Format "html") "</div>"])
+  let breakOnPauses zs = case splitBy isPause zs of
+                           []   -> []
+                           y:ys -> y ++ concatMap inDiv ys
   let (titleBlocks, innerSecs) =
         if titleSlide
            -- title slides have no content of their own
-           then break isSec xs
-           else case splitBy isPause xs of
-                     []     -> ([],[])
-                     (z:zs) -> ([],z ++ concatMap inDiv zs)
+           then let (as, bs) = break isSec xs
+                in  (breakOnPauses as, bs)
+           else ([], breakOnPauses xs)
   let secttag  = if html5
                     then H5.section
                     else H.div
