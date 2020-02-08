@@ -32,12 +32,3 @@ also][]{a4,a5}
 \autocites[e.g.~][blah]{a1}[e.g.~][ch.3 and
 elsewhere]{a2}[e.g.~][]{a3}[but also][]{b4,b5}
 ```
-
-
-
-
-
-
-
-
-

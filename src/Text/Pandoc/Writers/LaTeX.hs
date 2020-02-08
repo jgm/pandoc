@@ -1426,28 +1426,25 @@ citeCommand c p s k = do
 citeArgumentsList :: PandocMonad m
               => [Inline] -> [Inline] -> [Text] -> LW m (Doc Text)
 citeArgumentsList _ _ [] = return empty
-citeArgumentsList p s (cid:k) 
-  | k == [] = do  
-      pdoc <- inlineListToLaTeX p
-      sdoc <- inlineListToLaTeX s' 
-      return $ (optargs pdoc sdoc) <> braces (literal cid)
-  | otherwise = do  
-      pdoc <- inlineListToLaTeX p
-      sdoc <- inlineListToLaTeX s'
-      return $ (optargs pdoc sdoc) <> 
-              (braces (literal (T.intercalate "," (cid:k))))
-  where s' = stripLocatorBraces $ case s of
-            (Str t : r) -> case T.uncons t of
-              Just (x, xs)
-                | T.null xs
-                , isPunctuation x -> dropWhile (== Space) r
-                | isPunctuation x -> Str xs : r
-              _ -> s
-            _   -> s
-        optargs pdoc sdoc = case (isEmpty pdoc, isEmpty sdoc) of
-                     (True, True ) -> empty
-                     (True, False) -> brackets sdoc
-                     (_   , _    ) -> brackets pdoc <> brackets sdoc
+citeArgumentsList pfxs sfxs (cid:ids) = do  
+      pdoc <- inlineListToLaTeX pfxs
+      sdoc <- inlineListToLaTeX sfxs' 
+      if null ids then  
+            return $ (optargs pdoc sdoc) <> braces (literal cid)
+      else return $ (optargs pdoc sdoc) <> 
+              (braces (literal (T.intercalate "," (cid:ids))))
+      where sfxs' = stripLocatorBraces $ case sfxs of
+                (Str t : r) -> case T.uncons t of
+                  Just (x, xs)
+                    | T.null xs
+                    , isPunctuation x -> dropWhile (== Space) r
+                    | isPunctuation x -> Str xs : r
+                  _ -> sfxs
+                _   -> sfxs
+            optargs pdoc sdoc = case (isEmpty pdoc, isEmpty sdoc) of
+                 (True, True ) -> empty
+                 (True, False) -> brackets sdoc
+                 (_   , _    ) -> brackets pdoc <> brackets sdoc
 
 citeArguments :: PandocMonad m
               => [Inline] -> [Inline] -> Text -> LW m (Doc Text)
@@ -1497,15 +1494,15 @@ citationsToBiblatex (c:cs)
 
   where grouper prev cit = grouper' (citationPrefix cit)
                (citationSuffix cit) (citationId cit) 
-            where takefst = (fst =<< take 1 prev)  
-                  grouper' [] sfx cid
+            where grouper' [] sfx cid 
                      | null sfx = addToGroup id 
                      | otherwise = addToGroup ((:) sfx) 
-                     where addToGroup fn 
-                             | (1 < (length takefst)) = 
-                                    (fn $ drop 1 $ takefst, [cid]):prev
-                             | otherwise = (\(a, b) -> (fn a, cid:b):drop 1 prev) 
-                                    =<< take 1 prev
+                     where addToGroup fn = case prev of  
+                             (((pfx:pfxs), ids):rest) 
+                                 | null pfxs -> (fn [pfx], cid:ids):rest
+                                 | otherwise -> (fn $ pfxs, [cid]):prev
+                             (([], ids):rest) -> (fn [[]], cid:ids):rest
+                             [] -> (fn [[]], [cid]):prev
                   grouper' pfx [] cid = ([pfx], [cid]):prev
                   grouper' pfx sfx cid = ([sfx, pfx], [cid]):prev 
 
