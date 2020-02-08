@@ -16,7 +16,6 @@ MediaWiki:  <http://www.mediawiki.org/wiki/MediaWiki>
 -}
 module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki, highlightingLangs ) where
 import Prelude
-import Control.Applicative
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Maybe (fromMaybe)
@@ -168,7 +167,7 @@ blockToMediaWiki (Table capt aligns widths headers rows') = do
 
 blockToMediaWiki x@(BulletList items) = do
   tags <-
-    (|| not (isSimpleList x)) Control.Applicative.<$> asks useTags
+    (|| not (isSimpleList x)) <$> asks useTags
   if tags
      then do
         contents <- local (\ s -> s { useTags = True }) $ mapM listItemToMediaWiki items
@@ -180,7 +179,7 @@ blockToMediaWiki x@(BulletList items) = do
 
 blockToMediaWiki x@(OrderedList attribs items) = do
   tags <-
-    (|| not (isSimpleList x)) Control.Applicative.<$> asks useTags
+    (|| not (isSimpleList x)) <$> asks useTags
   if tags
      then do
         contents <- local (\s -> s { useTags = True }) $ mapM listItemToMediaWiki items
@@ -192,7 +191,7 @@ blockToMediaWiki x@(OrderedList attribs items) = do
 
 blockToMediaWiki x@(DefinitionList items) = do
   tags <-
-    (|| not (isSimpleList x)) Control.Applicative.<$> asks useTags
+    (|| not (isSimpleList x)) <$> asks useTags
   if tags
      then do
         contents <- local (\s -> s { useTags = True }) $ mapM definitionListItemToMediaWiki items
@@ -346,7 +345,7 @@ blockListToMediaWiki :: PandocMonad m
                      => [Block]       -- ^ List of block elements
                      -> MediaWikiWriter m Text
 blockListToMediaWiki blocks =
-  vcat Control.Applicative.<$> mapM blockToMediaWiki blocks
+  vcat <$> mapM blockToMediaWiki blocks
 
 -- | Convert list of Pandoc inline elements to MediaWiki.
 inlineListToMediaWiki :: PandocMonad m => [Inline] -> MediaWikiWriter m Text

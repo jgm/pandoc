@@ -17,7 +17,7 @@ module Text.Pandoc.Readers.Docx.Fields ( FieldInfo(..)
                                        ) where
 
 import Prelude
-import Data.Functor (($>))
+import Data.Functor (($>), void)
 import qualified Data.Text as T
 import Text.Parsec
 import Text.Parsec.Text (Parser)
@@ -50,7 +50,7 @@ quotedString = do
   T.concat <$> manyTill inQuotes (try (char '"'))
 
 unquotedString :: Parser T.Text
-unquotedString = T.pack <$> manyTill anyChar (try $ lookAhead space Data.Functor.$> () <|> eof)
+unquotedString = T.pack <$> manyTill anyChar (try $ void (lookAhead space) <|> eof)
 
 fieldArgument :: Parser T.Text
 fieldArgument = quotedString <|> unquotedString
