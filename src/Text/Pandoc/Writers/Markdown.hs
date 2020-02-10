@@ -125,7 +125,7 @@ mmdTitleBlock (Context hashmap) =
                (k', SimpleVal x)
                       | isEmpty x -> empty
                       | otherwise -> k' <> ":" <> space <>
-                                     nest 2 (chomp (removeBlankLines x))
+                                     nest 2 (removeBlankLines (chomp x))
                _                  -> empty
         removeBlankLines BlankLines{} = cr <> text "." <> cr
         removeBlankLines (Concat x y) = removeBlankLines x <>
