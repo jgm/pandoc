@@ -79,8 +79,7 @@ end
 -- body is a string, metadata is a table, variables is a table.
 -- This gives you a fragment.  You could use the metadata table to
 -- fill variables in a custom lua template.  Or, pass `--template=...`
--- to pandoc, and pandoc will add do the template processing as
--- usual.
+-- to pandoc, and pandoc will do the template processing as usual.
 function Doc(body, metadata, variables)
   local buffer = {}
   local function add(s)
