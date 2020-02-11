@@ -1423,16 +1423,19 @@ citeCommand c p s k = do
   args <- citeArguments p s k
   return $ literal ("\\" <> c) <> args
 
+type Prefix = [Inline]
+type Suffix = [Inline]
+type CiteId = Text
+data CiteGroup = CiteGroup Prefix Suffix [CiteId]
+  
 citeArgumentsList :: PandocMonad m
-              => [Inline] -> [Inline] -> [Text] -> LW m (Doc Text)
-citeArgumentsList _ _ [] = return empty
-citeArgumentsList pfxs sfxs (cid:ids) = do  
+              => CiteGroup -> LW m (Doc Text)
+citeArgumentsList (CiteGroup _ _ []) = return empty
+citeArgumentsList (CiteGroup pfxs sfxs ids) = do  
       pdoc <- inlineListToLaTeX pfxs
       sdoc <- inlineListToLaTeX sfxs' 
-      if null ids then  
-            return $ (optargs pdoc sdoc) <> braces (literal cid)
-      else return $ (optargs pdoc sdoc) <> 
-              (braces (literal (T.intercalate "," (cid:ids))))
+      return $ (optargs pdoc sdoc) <> 
+              (braces (literal (T.intercalate "," (reverse ids))))
       where sfxs' = stripLocatorBraces $ case sfxs of
                 (Str t : r) -> case T.uncons t of
                   Just (x, xs)
@@ -1448,7 +1451,7 @@ citeArgumentsList pfxs sfxs (cid:ids) = do
 
 citeArguments :: PandocMonad m
               => [Inline] -> [Inline] -> Text -> LW m (Doc Text)
-citeArguments p s k = citeArgumentsList p s [k]
+citeArguments p s k = citeArgumentsList (CiteGroup p s [k])
 
 -- strip off {} used to define locator in pandoc-citeproc; see #5722
 stripLocatorBraces :: [Inline] -> [Inline]
@@ -1486,30 +1489,25 @@ citationsToBiblatex (c:cs)
                     SuppressAuthor -> "\\autocites*"
                     AuthorInText   -> "\\textcites"
                     NormalCitation -> "\\autocites"
+      
+      groups <- mapM citeArgumentsList (reverse (foldl' grouper [] (c:cs)))
 
-      let groups = map correctOrder $ reverse $ foldl' grouper [([[]], [])] (c:cs)
-      docGroups <- mapM citeArgsList groups      
-
-      return $ text cmd <> (mconcat docGroups)
+      return $ text cmd <> (mconcat groups)
 
   where grouper prev cit = grouper' (citationPrefix cit)
                (citationSuffix cit) (citationId cit) 
             where grouper' [] sfx cid 
                      | null sfx = addToGroup id 
-                     | otherwise = addToGroup ((:) sfx) 
+                     | otherwise = addToGroup (\(CiteGroup pfx _ ids) -> 
+                            CiteGroup pfx sfx ids) 
                      where addToGroup fn = case prev of  
-                             (((pfx:pfxs), ids):rest) 
-                                 | null pfxs -> (fn [pfx], cid:ids):rest
-                                 | otherwise -> (fn $ pfxs, [cid]):prev
-                             (([], ids):rest) -> (fn [[]], cid:ids):rest
-                             [] -> (fn [[]], [cid]):prev
-                  grouper' pfx [] cid = ([pfx], [cid]):prev
-                  grouper' pfx sfx cid = ([sfx, pfx], [cid]):prev 
-
-        correctOrder (pfxs, ids) = (reverse pfxs, reverse ids)
-        citeArgsList ((p:s:_), k) = citeArgumentsList p s k
-        citeArgsList ((p:_), k) = citeArgumentsList p [] k
-        citeArgsList ([], k) = citeArgumentsList [] [] k
+                             ((CiteGroup pfx oSfx ids):rest) 
+                                 | null oSfx ->
+                                     (fn (CiteGroup pfx oSfx (cid:ids))):rest
+                                 | otherwise -> (fn (CiteGroup pfx [] [cid])):prev
+                             [] -> (fn (CiteGroup [] [] [cid])):prev
+                  grouper' pfx [] cid = (CiteGroup pfx [] [cid]):prev
+                  grouper' pfx sfx cid = (CiteGroup pfx sfx [cid]):prev 
 
 citationsToBiblatex _ = return empty
 
