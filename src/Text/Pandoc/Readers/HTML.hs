@@ -52,6 +52,7 @@ import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.LaTeX (rawLaTeXInline)
 import Text.Pandoc.Readers.LaTeX.Types (Macro)
+import Text.Pandoc.XML (html5Attributes, html4Attributes, rdfaAttributes)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (
@@ -835,7 +836,14 @@ mathMLToTeXMath s = writeTeX <$> readMathML s
 
 toStringAttr :: [(Text, Text)] -> [(Text, Text)]
 toStringAttr = map go
-  where go (x,y) = (fromMaybe x $ T.stripPrefix "data-" x, y)
+  where
+   go (x,y) =
+     case T.stripPrefix "data-" x of
+       Nothing -> (x,y)
+       Just x' -> if x' `Set.member` (html5Attributes <>
+                                      html4Attributes <> rdfaAttributes)
+                     then (x,y)
+                     else (x',y)
 
 pScriptMath :: PandocMonad m => TagParser m Inlines
 pScriptMath = try $ do
