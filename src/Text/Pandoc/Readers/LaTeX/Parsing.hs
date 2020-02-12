@@ -120,6 +120,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sInTableCell   :: Bool
                             , sLastHeaderNum :: DottedNum
                             , sLastFigureNum :: DottedNum
+                            , sLastTableNum  :: DottedNum
                             , sLabels        :: M.Map Text [Inline]
                             , sHasChapters   :: Bool
                             , sToggles       :: M.Map Text Bool
@@ -141,6 +142,7 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sInTableCell   = False
                               , sLastHeaderNum = DottedNum []
                               , sLastFigureNum = DottedNum []
+                              , sLastTableNum  = DottedNum []
                               , sLabels        = M.empty
                               , sHasChapters   = False
                               , sToggles       = M.empty
