@@ -1494,20 +1494,14 @@ citationsToBiblatex (c:cs)
 
       return $ text cmd <> (mconcat groups)
 
-  where grouper prev cit = grouper' (citationPrefix cit)
-               (citationSuffix cit) (citationId cit) 
-            where grouper' [] sfx cid 
-                     | null sfx = addToGroup id 
-                     | otherwise = addToGroup (\(CiteGroup pfx _ ids) -> 
-                            CiteGroup pfx sfx ids) 
-                     where addToGroup fn = case prev of  
-                             ((CiteGroup pfx oSfx ids):rest) 
-                                 | null oSfx ->
-                                     (fn (CiteGroup pfx oSfx (cid:ids))):rest
-                                 | otherwise -> (fn (CiteGroup pfx [] [cid])):prev
-                             [] -> (fn (CiteGroup [] [] [cid])):prev
-                  grouper' pfx [] cid = (CiteGroup pfx [] [cid]):prev
-                  grouper' pfx sfx cid = (CiteGroup pfx sfx [cid]):prev 
+  where grouper prev cit = case prev of  
+         ((CiteGroup oPfx oSfx ids):rest)
+             | null oSfx && null pfx -> (CiteGroup oPfx sfx (cid:ids)):rest
+             | null pfx -> (CiteGroup oPfx sfx [cid]):prev 
+         _ -> (CiteGroup pfx sfx [cid]):prev
+         where pfx = citationPrefix cit 
+               sfx = citationSuffix cit
+               cid = citationId cit
 
 citationsToBiblatex _ = return empty
 
