@@ -33,8 +33,8 @@ svgToPng opts bs = do
        (do (exit, out) <- pipeProcess Nothing "rsvg-convert"
                           ["-f","png","-a","--dpi-x",dpi,"--dpi-y",dpi]
                           bs
-           if exit == ExitSuccess
-              then return $ Right out
-              else return $ Left "conversion from SVG failed")
+           return $ if exit == ExitSuccess
+              then Right out
+              else Left "conversion from SVG failed")
        (\(e :: E.SomeException) -> return $ Left $
            "check that rsvg-convert is in path.\n" <> tshow e)
