@@ -29,6 +29,6 @@ also][]{a4,a5}
 % pandoc -t latex --biblatex
 [e.g. @a1, blah;@a2, ch.3 and elsewhere;@a3; but also @b4;@b5]
 ^D
-\autocites[e.g.~][blah]{a1}[e.g.~][ch.3 and
-elsewhere]{a2}[e.g.~][]{a3}[but also][]{b4,b5}
+\autocites[e.g.~][blah]{a1}[ch.3 and elsewhere]{a2}{a3}[but
+also][]{b4,b5}
 ```
