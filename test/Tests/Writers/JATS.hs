@@ -11,7 +11,14 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 jats :: (ToPandoc a) => a -> String
-jats = unpack . purely (writeJATS def{ writerWrapText = WrapNone }) . toPandoc
+jats = unpack
+  . purely (writeJATS def{ writerWrapText = WrapNone })
+  . toPandoc
+
+jatsArticleAuthoring :: (ToPandoc a) => a -> String
+jatsArticleAuthoring = unpack
+  . purely (writeJatsArticleAuthoring def{ writerWrapText = WrapNone })
+  . toPandoc
 
 {-
   "my test" =: X =?> Y
@@ -47,6 +54,13 @@ tests = [ testGroup "inline code"
         , testGroup "inlines"
           [ "Emphasis" =: emph "emphasized"
             =?> "<p><italic>emphasized</italic></p>"
+
+          , test jatsArticleAuthoring "footnote in articleauthoring tag set"
+            ("test" <> note (para "footnote") =?>
+             unlines [ "<p>test<fn>"
+                     , "  <p>footnote</p>"
+                     , "</fn></p>"
+                     ])
           ]
         , "bullet list" =: bulletList [ plain $ text "first"
                                       , plain $ text "second"

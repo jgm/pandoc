@@ -94,7 +94,14 @@ tests pandocPath =
     [ testGroup "writer" $ writerTests' "docbook5"
     ]
   , testGroup "jats"
-    [ testGroup "writer" $ writerTests' "jats"
+    [ testGroup "writer"
+      [ testGroup "jats_archiving" $
+        writerTests' "jats_archiving"
+      , testGroup "jats_articleauthoring" $
+        writerTests' "jats_articleauthoring"
+      , testGroup "jats_publishing" $
+        writerTests' "jats_publishing"
+      ]
     , test' "reader" ["-r", "jats", "-w", "native", "-s"]
       "jats-reader.xml" "jats-reader.native"
     ]

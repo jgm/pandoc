@@ -41,6 +41,9 @@ module Text.Pandoc.Writers
     , writeHtml5String
     , writeICML
     , writeJATS
+    , writeJatsArchiving
+    , writeJatsArticleAuthoring
+    , writeJatsPublishing
     , writeJSON
     , writeJira
     , writeLaTeX
@@ -146,7 +149,10 @@ writers = [
   ,("docbook"      , TextWriter writeDocbook5)
   ,("docbook4"     , TextWriter writeDocbook4)
   ,("docbook5"     , TextWriter writeDocbook5)
-  ,("jats"         , TextWriter writeJATS)
+  ,("jats"         , TextWriter writeJatsArchiving)
+  ,("jats_articleauthoring", TextWriter writeJatsArticleAuthoring)
+  ,("jats_publishing" , TextWriter writeJatsPublishing)
+  ,("jats_archiving" , TextWriter writeJatsArchiving)
   ,("jira"         , TextWriter writeJira)
   ,("opml"         , TextWriter writeOPML)
   ,("opendocument" , TextWriter writeOpenDocument)

@@ -4,7 +4,7 @@
 {-# LANGUAGE ViewPatterns #-}
 {- |
    Module      : Text.Pandoc.Writers.JATS
-   Copyright   : Copyright (C) 2017-2019 John MacFarlane
+   Copyright   : Copyright (C) 2017-2020 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -15,7 +15,12 @@ Conversion of 'Pandoc' documents to JATS XML.
 Reference:
 https://jats.nlm.nih.gov/publishing/tag-library
 -}
-module Text.Pandoc.Writers.JATS ( writeJATS ) where
+module Text.Pandoc.Writers.JATS
+  ( writeJATS
+  , writeJatsArchiving
+  , writeJatsPublishing
+  , writeJatsArticleAuthoring
+  ) where
 import Prelude
 import Control.Monad.Reader
 import Control.Monad.State
@@ -43,19 +48,46 @@ import Text.Pandoc.XML
 import Text.TeXMath
 import qualified Text.XML.Light as Xml
 
-data JATSVersion = JATS1_1
-     deriving (Eq, Show)
+-- | JATS tag set variant
+data JATSTagSet
+  = TagSetArchiving         -- ^ Archiving and Interchange Tag Set
+  | TagSetPublishing        -- ^ Journal Publishing Tag Set
+  | TagSetArticleAuthoring  -- ^ Article Authoring Tag Set
+  deriving (Eq)
 
-data JATSState = JATSState
+-- | Internal state used by the writer.
+newtype JATSState = JATSState
   { jatsNotes :: [(Int, Doc Text)] }
 
-type JATS a = StateT JATSState (ReaderT JATSVersion a)
+-- | JATS writer type
+type JATS a = StateT JATSState (ReaderT JATSTagSet a)
 
+-- | Convert a @'Pandoc'@ document to JATS (Archiving and Interchange
+-- Tag Set.)
+writeJatsArchiving :: PandocMonad m => WriterOptions -> Pandoc -> m Text
+writeJatsArchiving = writeJats TagSetArchiving
+
+-- | Convert a @'Pandoc'@ document to JATS (Journal Publishing Tag Set.)
+writeJatsPublishing :: PandocMonad m => WriterOptions -> Pandoc -> m Text
+writeJatsPublishing = writeJats TagSetPublishing
+
+-- | Convert a @'Pandoc'@ document to JATS (Archiving and Interchange
+-- Tag Set.)
+writeJatsArticleAuthoring :: PandocMonad m => WriterOptions -> Pandoc -> m Text
+writeJatsArticleAuthoring = writeJats TagSetArticleAuthoring
+
+-- | Alias for @'writeJatsArchiving'@. This function exists for backwards
+-- compatibility, but will be deprecated in the future. Use
+-- @'writeJatsArchiving'@ instead.
 writeJATS :: PandocMonad m => WriterOptions -> Pandoc -> m Text
-writeJATS opts d =
+writeJATS = writeJatsArchiving
+
+-- | Convert a @'Pandoc'@ document to JATS.
+writeJats :: PandocMonad m => JATSTagSet -> WriterOptions -> Pandoc -> m Text
+writeJats tagSet opts d =
   runReaderT (evalStateT (docToJATS opts d)
-     (JATSState{ jatsNotes = [] }))
-     JATS1_1
+               (JATSState{ jatsNotes = [] }))
+             tagSet
 
 -- | Convert Pandoc document to string in JATS format.
 docToJATS :: PandocMonad m => WriterOptions -> Pandoc -> JATS m Text
@@ -80,7 +112,10 @@ docToJATS opts (Pandoc meta blocks) = do
   main <- fromBlocks bodyblocks
   notes <- reverse . map snd <$> gets jatsNotes
   backs <- fromBlocks backblocks
-  let fns = if null notes
+  tagSet <- ask
+  -- In the "Article Authoring" tag set, occurrence of fn-group elements
+  -- is restricted to table footers. Footnotes have to be placed inline.
+  let fns = if null notes || tagSet == TagSetArticleAuthoring
             then mempty
             else inTagsIndented "fn-group" $ vcat notes
   let back = backs $$ fns
@@ -116,6 +151,8 @@ docToJATS opts (Pandoc meta blocks) = do
 blocksToJATS :: PandocMonad m => WriterOptions -> [Block] -> JATS m (Doc Text)
 blocksToJATS = wrappedBlocksToJATS (const False)
 
+-- | Like @'blocksToJATS'@, but wraps top-level blocks into a @<p>@
+-- element if the @needsWrap@ predicate evaluates to @True@.
 wrappedBlocksToJATS :: PandocMonad m
                     => (Block -> Bool)
                     -> WriterOptions
@@ -275,8 +312,12 @@ blockToJATS opts (Para lst) =
   inTagsSimple "p" <$> inlinesToJATS opts lst
 blockToJATS opts (LineBlock lns) =
   blockToJATS opts $ linesToPara lns
-blockToJATS opts (BlockQuote blocks) =
-  inTagsIndented "disp-quote" <$> blocksToJATS opts blocks
+blockToJATS opts (BlockQuote blocks) = do
+  tagSet <- ask
+  let blocksToJats' = if tagSet == TagSetArticleAuthoring
+                      then wrappedBlocksToJATS (not . isPara)
+                      else blocksToJATS
+  inTagsIndented "disp-quote" <$> blocksToJats' opts blocks
 blockToJATS _ (CodeBlock a str) = return $
   inTags False tag attr (flush (text (T.unpack $ escapeStringForXML str)))
     where (lang, attr) = codeAttr a
@@ -287,14 +328,20 @@ blockToJATS opts (BulletList lst) =
   listItemsToJATS opts Nothing lst
 blockToJATS _ (OrderedList _ []) = return empty
 blockToJATS opts (OrderedList (start, numstyle, delimstyle) items) = do
-  let listType = case numstyle of
-                       DefaultStyle -> "order"
-                       Decimal      -> "order"
-                       Example      -> "order"
-                       UpperAlpha   -> "alpha-upper"
-                       LowerAlpha   -> "alpha-lower"
-                       UpperRoman   -> "roman-upper"
-                       LowerRoman   -> "roman-lower"
+  tagSet <- ask
+  let listType =
+        -- The Article Authoring tag set doesn't allow a more specific
+        -- @list-type@ attribute than "order".
+        if tagSet == TagSetArticleAuthoring
+        then "order"
+        else case numstyle of
+               DefaultStyle -> "order"
+               Decimal      -> "order"
+               Example      -> "order"
+               UpperAlpha   -> "alpha-upper"
+               LowerAlpha   -> "alpha-lower"
+               UpperRoman   -> "roman-upper"
+               LowerRoman   -> "roman-lower"
   let simpleList = start == 1 && (delimstyle == DefaultDelim ||
                                   delimstyle == Period)
   let markers = if simpleList
@@ -407,17 +454,22 @@ inlineToJATS opts SoftBreak
   | writerWrapText opts == WrapPreserve = return cr
   | otherwise = return space
 inlineToJATS opts (Note contents) = do
-  notes <- gets jatsNotes
-  let notenum = case notes of
-                  (n, _):_ -> n + 1
-                  []       -> 1
-  thenote <- inTags True "fn" [("id","fn" <> tshow notenum)]
-                <$> wrappedBlocksToJATS (not . isPara) opts
-                     (walk demoteHeaderAndRefs contents)
-  modify $ \st -> st{ jatsNotes = (notenum, thenote) : notes }
-  return $ inTags False "xref" [("ref-type", "fn"),
-                                ("rid", "fn" <> tshow notenum)]
-         $ text (show notenum)
+  tagSet <- ask
+  -- Footnotes must occur inline when using the Article Authoring tag set.
+  if tagSet == TagSetArticleAuthoring
+    then inTagsIndented "fn" <$> wrappedBlocksToJATS (not . isPara) opts contents
+    else do
+      notes <- gets jatsNotes
+      let notenum = case notes of
+                      (n, _):_ -> n + 1
+                      []       -> 1
+      thenote <- inTags True "fn" [("id","fn" <> tshow notenum)]
+                    <$> wrappedBlocksToJATS (not . isPara) opts
+                         (walk demoteHeaderAndRefs contents)
+      modify $ \st -> st{ jatsNotes = (notenum, thenote) : notes }
+      return $ inTags False "xref" [("ref-type", "fn"),
+                                    ("rid", "fn" <> tshow notenum)]
+             $ text (show notenum)
 inlineToJATS opts (Cite _ lst) =
   -- TODO revisit this after examining the jats.csl pipeline
   inlinesToJATS opts lst
@@ -444,16 +496,22 @@ inlineToJATS _ (Math t str) = do
   let tagtype = case t of
                      DisplayMath -> "disp-formula"
                      InlineMath  -> "inline-formula"
-  let rawtex = inTagsSimple "tex-math"
-                                $ text "<![CDATA[" <>
-                                  literal str <>
-                                  text "]]>"
-  return $ inTagsSimple tagtype $
-             case res of
-                   Right r  -> inTagsSimple "alternatives" $
-                                  cr <> rawtex $$
-                                  text (Xml.ppcElement conf $ fixNS r)
-                   Left _   -> rawtex
+
+  let rawtex = text "<![CDATA[" <> literal str <> text "]]>"
+  let texMath = inTagsSimple "tex-math" rawtex
+
+  tagSet <- ask
+  return . inTagsSimple tagtype $
+    case res of
+      Right r  -> let mathMl = text (Xml.ppcElement conf $ fixNS r)
+                  -- tex-math is unsupported in Article Authoring tag set
+                  in if tagSet == TagSetArticleAuthoring
+                     then mathMl
+                     else inTagsSimple "alternatives" $
+                          cr <> texMath $$ mathMl
+      Left _   -> if tagSet /= TagSetArticleAuthoring
+                  then texMath
+                  else rawtex
 inlineToJATS _ (Link _attr [Str t] (T.stripPrefix "mailto:" -> Just email, _))
   | escapeURI t == email =
   return $ inTagsSimple "email" $ literal (escapeStringForXML email)
