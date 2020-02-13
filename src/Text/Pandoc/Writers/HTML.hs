@@ -611,7 +611,7 @@ adjustNumbers opts doc =
                                (writerNumberOffset opts ++ repeat 0)
                                (map (fromMaybe 0 . safeRead) $
                                 T.split (=='.') num))
-   fixnum (k,v) = (k,v)
+   fixnum x = x
    showSecNum = T.intercalate "." . map tshow
 
 -- | Convert Pandoc block element to HTML.
