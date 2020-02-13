@@ -1405,8 +1405,8 @@ treatAsInline = Set.fromList
 label :: PandocMonad m => LP m ()
 label = do
   controlSeq "label"
-  t <- untokenize <$> braced
-  updateState $ \st -> st{ sLastLabel = Just t }
+  t <- braced
+  updateState $ \st -> st{ sLastLabel = Just $ untokenize t }
 
 dolabel :: PandocMonad m => LP m Inlines
 dolabel = do
@@ -2070,12 +2070,11 @@ addImageCaption :: PandocMonad m => Blocks -> LP m Blocks
 addImageCaption = walkM go
   where go (Image attr@(_, cls, kvs) alt (src,tit))
             | not ("fig:" `T.isPrefixOf` tit) = do
-          mbcapt <- sCaption <$> getState
-          mblabel <- sLastLabel <$> getState
-          let (alt', tit') = case mbcapt of
+          mbs <- getState
+          let (alt', tit') = case sCaption mbs of
                                Just ils -> (toList ils, "fig:" <> tit)
                                Nothing  -> (alt, tit)
-              attr' = case mblabel of
+              attr' = case sLastLabel mbs of
                         Just lab -> (lab, cls, kvs)
                         Nothing  -> attr
           case attr' of
@@ -2395,9 +2394,9 @@ simpTable envname hasWidthParameter = try $ do
 addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
 addTableCaption = walkM go
   where go (Table c als ws hs rs) = do
-          mbcapt <- sCaption <$> getState
-          mblabel <- sLastLabel <$> getState
-          capt <- case (mbcapt, mblabel) of
+          mbs <- getState
+          let mblabel = sLastLabel mbs
+          capt <- case (sCaption mbs, mblabel) of
                    (Just ils, Nothing)  -> return $ toList ils
                    (Just ils, Just lab) -> do
                      num <- getNextNumber sLastTableNum

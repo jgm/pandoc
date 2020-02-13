@@ -75,10 +75,10 @@ applyFilters ropts filters args d = do
   withMessages f action = do
     verbosity <- getVerbosity
     when (verbosity == INFO) $ report $ RunningFilter f
-    starttime <- toMilliseconds <$> liftIO getCPUTime
+    starttime <- liftIO getCPUTime
     res <- action
-    endtime <- toMilliseconds <$> liftIO getCPUTime
-    when (verbosity == INFO) $ report $ FilterCompleted f (endtime - starttime)
+    endtime <- liftIO getCPUTime
+    when (verbosity == INFO) $ report $ FilterCompleted f $ toMilliseconds $ endtime - starttime
     return res
   toMilliseconds picoseconds = picoseconds `div` 1000000000
 
