@@ -2096,22 +2096,22 @@ getNextNumber getCurrentNum = do
         case sLastHeaderNum st of
              DottedNum (n:_) | sHasChapters st -> Just n
              _                                 -> Nothing
-  return $
+  return . DottedNum $
     case getCurrentNum st of
        DottedNum [m,n]  ->
          case chapnum of
-              Just m' | m' == m   -> DottedNum [m, n+1]
-                      | otherwise -> DottedNum [m', 1]
-              Nothing             -> DottedNum [1]
+              Just m' | m' == m   -> [m, n+1]
+                      | otherwise -> [m', 1]
+              Nothing             -> [1]
                                       -- shouldn't happen
        DottedNum [n]   ->
          case chapnum of
-              Just m  -> DottedNum [m, 1]
-              Nothing -> DottedNum [n + 1]
+              Just m  -> [m, 1]
+              Nothing -> [n + 1]
        _               ->
          case chapnum of
-               Just n  -> DottedNum [n, 1]
-               Nothing -> DottedNum [1]
+               Just n  -> [n, 1]
+               Nothing -> [1]
 
 
 coloredBlock :: PandocMonad m => Text -> LP m Blocks
