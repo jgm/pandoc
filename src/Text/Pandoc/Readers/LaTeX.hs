@@ -1402,10 +1402,18 @@ treatAsInline = Set.fromList
   , "pagebreak"
   ]
 
+label :: PandocMonad m => LP m ()
+label = do
+  controlSeq "label"
+  t <- untokenize <$> braced
+  updateState $ \st -> st{ sLastLabel = Just t }
+
 dolabel :: PandocMonad m => LP m Inlines
 dolabel = do
   v <- braced
   let refstr = untokenize v
+  updateState $ \st ->
+    st{ sLastLabel = Just refstr }
   return $ spanWith (refstr,[],[("label", refstr)])
     $ inBrackets $ str $ untokenize v
 
@@ -1682,19 +1690,12 @@ bracketedNum = do
        Just i -> return i
        _      -> return 0
 
-setCaption :: PandocMonad m => LP m Blocks
-setCaption = do
+setCaption :: PandocMonad m => LP m ()
+setCaption = try $ do
+  skipopts
   ils <- tok
-  mblabel <- option Nothing $
-               try $ spaces >> controlSeq "label" >> (Just <$> tok)
-  let capt = case mblabel of
-                  Just lab -> let slab = stringify lab
-                                  ils' = ils <> spanWith
-                                    ("",[],[("label", slab)]) mempty
-                              in  (Just ils', Just slab)
-                  Nothing  -> (Just ils, Nothing)
-  updateState $ \st -> st{ sCaption = capt }
-  return mempty
+  optional $ try $ spaces *> label
+  updateState $ \st -> st{ sCaption = Just ils }
 
 looseItem :: PandocMonad m => LP m Blocks
 looseItem = do
@@ -1710,7 +1711,8 @@ epigraph = do
   return $ divWith ("", ["epigraph"], []) (p1 <> p2)
 
 resetCaption :: PandocMonad m => LP m ()
-resetCaption = updateState $ \st -> st{ sCaption = (Nothing, Nothing) }
+resetCaption = updateState $ \st -> st{ sCaption   = Nothing
+                                      , sLastLabel = Nothing }
 
 section :: PandocMonad m => Attr -> Int -> LP m Blocks
 section (ident, classes, kvs) lvl = do
@@ -1850,7 +1852,7 @@ blockCommands = M.fromList
    , ("item", looseItem)
    , ("documentclass", skipopts *> braced *> preamble)
    , ("centerline", (para . trimInlines) <$> (skipopts *> tok))
-   , ("caption", skipopts *> setCaption)
+   , ("caption", mempty <$ setCaption)
    , ("bibliography", mempty <$ (skipopts *> braced >>=
          addMeta "bibliography" . splitBibs . untokenize))
    , ("addbibresource", mempty <$ (skipopts *> braced >>=
@@ -1901,7 +1903,7 @@ environments = M.fromList
    , ("longtable",  env "longtable" $
           resetCaption *> simpTable "longtable" False >>= addTableCaption)
    , ("table",  env "table" $
-          resetCaption *> skipopts *> blocks >>= addTableCaption)
+          skipopts *> resetCaption *> blocks >>= addTableCaption)
    , ("tabular*", env "tabular*" $ simpTable "tabular*" True)
    , ("tabularx", env "tabularx" $ simpTable "tabularx" True)
    , ("tabular", env "tabular"  $ simpTable "tabular" False)
@@ -2068,11 +2070,12 @@ addImageCaption :: PandocMonad m => Blocks -> LP m Blocks
 addImageCaption = walkM go
   where go (Image attr@(_, cls, kvs) alt (src,tit))
             | not ("fig:" `T.isPrefixOf` tit) = do
-          (mbcapt, mblab) <- sCaption <$> getState
+          mbcapt <- sCaption <$> getState
+          mblabel <- sLastLabel <$> getState
           let (alt', tit') = case mbcapt of
                                Just ils -> (toList ils, "fig:" <> tit)
                                Nothing  -> (alt, tit)
-              attr' = case mblab of
+              attr' = case mblabel of
                         Just lab -> (lab, cls, kvs)
                         Nothing  -> attr
           case attr' of
@@ -2363,7 +2366,10 @@ simpTable envname hasWidthParameter = try $ do
   colspecs <- parseAligns
   let (aligns, widths, prefsufs) = unzip3 colspecs
   let cols = length colspecs
-  optional $ controlSeq "caption" *> skipopts *> setCaption
+  optional $ controlSeq "caption" *> setCaption
+  spaces
+  optional label
+  spaces
   optional lbreak
   spaces
   skipMany hline
@@ -2374,7 +2380,10 @@ simpTable envname hasWidthParameter = try $ do
   rows <- sepEndBy (parseTableRow envname prefsufs)
                     (lbreak <* optional (skipMany hline))
   spaces
-  optional $ controlSeq "caption" *> skipopts *> setCaption
+  optional $ controlSeq "caption" *> setCaption
+  spaces
+  optional label
+  spaces
   optional lbreak
   spaces
   let header'' = if null header'
@@ -2386,7 +2395,8 @@ simpTable envname hasWidthParameter = try $ do
 addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
 addTableCaption = walkM go
   where go (Table c als ws hs rs) = do
-          (mbcapt, mblabel) <- sCaption <$> getState
+          mbcapt <- sCaption <$> getState
+          mblabel <- sLastLabel <$> getState
           capt <- case (mbcapt, mblabel) of
                    (Just ils, Nothing)  -> return $ toList ils
                    (Just ils, Just lab) -> do
@@ -2398,7 +2408,8 @@ addTableCaption = walkM go
                                     (sLabels st) }
                      return $ toList ils -- add number??
                    (Nothing, _)  -> return c
-          return $ Table capt als ws hs rs
+          return $ maybe id (\ident -> Div (ident, [], []) . (:[])) mblabel $
+                     Table capt als ws hs rs
         go x = return x
 
 

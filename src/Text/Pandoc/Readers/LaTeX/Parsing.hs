@@ -115,12 +115,13 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sLogMessages   :: [LogMessage]
                             , sIdentifiers   :: Set.Set Text
                             , sVerbatimMode  :: Bool
-                            , sCaption       :: (Maybe Inlines, Maybe Text)
+                            , sCaption       :: Maybe Inlines
                             , sInListItem    :: Bool
                             , sInTableCell   :: Bool
                             , sLastHeaderNum :: DottedNum
                             , sLastFigureNum :: DottedNum
                             , sLastTableNum  :: DottedNum
+                            , sLastLabel     :: Maybe Text
                             , sLabels        :: M.Map Text [Inline]
                             , sHasChapters   :: Bool
                             , sToggles       :: M.Map Text Bool
@@ -137,12 +138,13 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sLogMessages   = []
                               , sIdentifiers   = Set.empty
                               , sVerbatimMode  = False
-                              , sCaption       = (Nothing, Nothing)
+                              , sCaption       = Nothing
                               , sInListItem    = False
                               , sInTableCell   = False
                               , sLastHeaderNum = DottedNum []
                               , sLastFigureNum = DottedNum []
                               , sLastTableNum  = DottedNum []
+                              , sLastLabel     = Nothing
                               , sLabels        = M.empty
                               , sHasChapters   = False
                               , sToggles       = M.empty
