@@ -2093,9 +2093,9 @@ getNextNumber :: Monad m
 getNextNumber getCurrentNum = do
   st <- getState
   let chapnum =
-        case (sHasChapters st, sLastHeaderNum st) of
-             (True, DottedNum (n:_)) -> Just n
-             _                       -> Nothing
+        case sLastHeaderNum st of
+             DottedNum (n:_) | sHasChapters st -> Just n
+             _                                 -> Nothing
   return $
     case getCurrentNum st of
        DottedNum [m,n]  ->
