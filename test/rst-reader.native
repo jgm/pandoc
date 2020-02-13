@@ -39,6 +39,10 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,CodeBlock ("",[],[]) "this block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{"
 ,Para [Str "And:"]
 ,CodeBlock ("",["python"],[]) "def my_function(x):\n    return x + 1"
+,Para [Str "If",Space,Str "we",Space,Str "use",Space,Str "the",Space,Str "highlight",Space,Str "directive,",Space,Str "we",Space,Str "can",Space,Str "specify",Space,Str "a",Space,Str "default",Space,Str "language",SoftBreak,Str "for",Space,Str "literate",Space,Str "blocks."]
+,CodeBlock ("",["haskell"],[]) "-- this code is in haskell\ndata Tree = Leaf | Node Tree Tree"
+,CodeBlock ("",["haskell"],[]) "-- this code is in haskell too\ndata Nat = Zero | Succ Nat"
+,CodeBlock ("",["javascript"],[]) "-- this code is in javascript\nlet f = (x, y) => x + y"
 ,Header 1 ("lists",[],[]) [Str "Lists"]
 ,Header 2 ("unordered",[],[]) [Str "Unordered"]
 ,Para [Str "Asterisks",Space,Str "tight:"]

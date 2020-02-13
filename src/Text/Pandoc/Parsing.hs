@@ -1138,6 +1138,7 @@ data ParserState = ParserState
       stateExamples          :: M.Map Text Int, -- ^ Map from example labels to numbers
       stateMacros            :: M.Map Text Macro, -- ^ Table of macros defined so far
       stateRstDefaultRole    :: Text,        -- ^ Current rST default interpreted text role
+      stateRstHighlight      :: Maybe Text,  -- ^ Current rST literal block language
       stateRstCustomRoles    :: M.Map Text (Text, Maybe Text, Attr), -- ^ Current rST custom text roles
       -- Triple represents: 1) Base role, 2) Optional format (only for :raw:
       -- roles), 3) Additional classes (rest of Attr is unused)).
@@ -1248,6 +1249,7 @@ defaultParserState =
                   stateExamples        = M.empty,
                   stateMacros          = M.empty,
                   stateRstDefaultRole  = "title-reference",
+                  stateRstHighlight    = Nothing,
                   stateRstCustomRoles  = M.empty,
                   stateCaption         = Nothing,
                   stateInHtmlBlock     = Nothing,
