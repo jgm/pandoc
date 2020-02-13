@@ -23,7 +23,7 @@ import Control.Monad.Identity (Identity (..))
 import Data.Char (isHexDigit, isSpace, toUpper, isAlphaNum)
 import Data.List (deleteFirstsBy, elemIndex, nub, sort, transpose)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, maybeToList)
 import Data.Sequence (ViewR (..), viewr)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -390,11 +390,13 @@ quotedBlock = try $ do
 codeBlockStart :: Monad m => ParserT Text st m Char
 codeBlockStart = string "::" >> blankline >> blankline
 
-codeBlock :: (HasReaderOptions st, Monad m) => ParserT Text st m Blocks
+codeBlock :: Monad m => ParserT Text ParserState m Blocks
 codeBlock = try $ codeBlockStart >> codeBlockBody
 
-codeBlockBody :: (HasReaderOptions st, Monad m) => ParserT Text st m Blocks
-codeBlockBody = try $ B.codeBlock . stripTrailingNewlines <$>
+codeBlockBody :: Monad m => ParserT Text ParserState m Blocks
+codeBlockBody = do
+  lang <- stateRstHighlight <$> getState
+  try $ B.codeBlockWith ("", maybeToList lang, []) . stripTrailingNewlines <$>
                 (indentedBlock <|> quotedBlock)
 
 lhsCodeBlock :: Monad m => RSTParser m Blocks
@@ -716,6 +718,11 @@ directive' = do
                                   case trim top of
                                      ""   -> stateRstDefaultRole def
                                      role -> role })
+        "highlight" -> mempty <$ updateState (\s ->
+                              s { stateRstHighlight =
+                                  case trim top of
+                                     ""   -> stateRstHighlight def
+                                     lang -> Just lang })
         x | x == "code" || x == "code-block" || x == "sourcecode" ->
           codeblock name classes
                     (lookup "number-lines" fields) (trim top) body True
