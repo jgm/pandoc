@@ -632,6 +632,7 @@ library
                    Text.Pandoc.UUID,
                    Text.Pandoc.Translations,
                    Text.Pandoc.Slides,
+                   Text.Pandoc.Image,
                    Paths_pandoc
   autogen-modules: Paths_pandoc
   buildable:       True
