@@ -33,7 +33,7 @@ local image_mime_type = ({
     png = "image/png",
     svg = "image/svg+xml",
   })[image_format]
-  or error("unsupported image format `" .. img_format .. "`")
+  or error("unsupported image format `" .. image_format .. "`")
 
 -- Character escaping
 local function escape(s, in_attribute)
