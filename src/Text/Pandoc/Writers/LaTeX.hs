@@ -1421,24 +1421,35 @@ citeCommand c p s k = do
   args <- citeArguments p s k
   return $ literal ("\\" <> c) <> args
 
+type Prefix = [Inline]
+type Suffix = [Inline]
+type CiteId = Text
+data CiteGroup = CiteGroup Prefix Suffix [CiteId]
+  
+citeArgumentsList :: PandocMonad m
+              => CiteGroup -> LW m (Doc Text)
+citeArgumentsList (CiteGroup _ _ []) = return empty
+citeArgumentsList (CiteGroup pfxs sfxs ids) = do  
+      pdoc <- inlineListToLaTeX pfxs
+      sdoc <- inlineListToLaTeX sfxs' 
+      return $ (optargs pdoc sdoc) <> 
+              (braces (literal (T.intercalate "," (reverse ids))))
+      where sfxs' = stripLocatorBraces $ case sfxs of
+                (Str t : r) -> case T.uncons t of
+                  Just (x, xs)
+                    | T.null xs
+                    , isPunctuation x -> dropWhile (== Space) r
+                    | isPunctuation x -> Str xs : r
+                  _ -> sfxs
+                _   -> sfxs
+            optargs pdoc sdoc = case (isEmpty pdoc, isEmpty sdoc) of
+                 (True, True ) -> empty
+                 (True, False) -> brackets sdoc
+                 (_   , _    ) -> brackets pdoc <> brackets sdoc
+
 citeArguments :: PandocMonad m
               => [Inline] -> [Inline] -> Text -> LW m (Doc Text)
-citeArguments p s k = do
-  let s' = stripLocatorBraces $ case s of
-        (Str t : r) -> case T.uncons t of
-          Just (x, xs)
-            | T.null xs
-            , isPunctuation x -> dropWhile (== Space) r
-            | isPunctuation x -> Str xs : r
-          _ -> s
-        _   -> s
-  pdoc <- inlineListToLaTeX p
-  sdoc <- inlineListToLaTeX s'
-  let optargs = case (isEmpty pdoc, isEmpty sdoc) of
-                     (True, True ) -> empty
-                     (True, False) -> brackets sdoc
-                     (_   , _    ) -> brackets pdoc <> brackets sdoc
-  return $ optargs <> braces (literal k)
+citeArguments p s k = citeArgumentsList (CiteGroup p s [k])
 
 -- strip off {} used to define locator in pandoc-citeproc; see #5722
 stripLocatorBraces :: [Inline] -> [Inline]
@@ -1470,18 +1481,24 @@ citationsToBiblatex (c:cs)
                     NormalCitation -> "\\autocite"
       return $ text cmd <>
                braces (literal (T.intercalate "," (map citationId (c:cs))))
-  | otherwise = do
-    let cmd = case citationMode c of
+  | otherwise 
+    = do  
+      let cmd = case citationMode c of
                     SuppressAuthor -> "\\autocites*"
                     AuthorInText   -> "\\textcites"
                     NormalCitation -> "\\autocites"
-    let convertOne Citation { citationId = k
-                            , citationPrefix = p
-                            , citationSuffix = s
-                            }
-                = citeArguments p s k
-    args <- mapM convertOne (c:cs)
-    return $ text cmd <> foldl' (<>) empty args
+      
+      groups <- mapM citeArgumentsList (reverse (foldl' grouper [] (c:cs)))
+
+      return $ text cmd <> (mconcat groups)
+
+  where grouper prev cit = case prev of  
+         ((CiteGroup oPfx oSfx ids):rest)
+             | null oSfx && null pfx -> (CiteGroup oPfx sfx (cid:ids)):rest
+         _ -> (CiteGroup pfx sfx [cid]):prev
+         where pfx = citationPrefix cit 
+               sfx = citationSuffix cit
+               cid = citationId cit
 
 citationsToBiblatex _ = return empty
 
