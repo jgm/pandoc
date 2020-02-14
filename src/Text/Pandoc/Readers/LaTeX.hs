@@ -2081,7 +2081,7 @@ addImageCaption = walkM go
                ("", _, _)    -> return ()
                (ident, _, _) -> do
                   num <- getNextNumber sLastFigureNum
-                  updateState $ \st ->
+                  setState
                     st{ sLastFigureNum = num
                       , sLabels = M.insert ident
                                  [Str (renderDottedNum num)] (sLabels st) }
@@ -2400,7 +2400,7 @@ addTableCaption = walkM go
                    (Just ils, Nothing)  -> return $ toList ils
                    (Just ils, Just lab) -> do
                      num <- getNextNumber sLastTableNum
-                     updateState $ \st ->
+                     setState
                        st{ sLastTableNum = num
                          , sLabels = M.insert lab
                                     [Str (renderDottedNum num)]
