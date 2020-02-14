@@ -2070,11 +2070,11 @@ addImageCaption :: PandocMonad m => Blocks -> LP m Blocks
 addImageCaption = walkM go
   where go (Image attr@(_, cls, kvs) alt (src,tit))
             | not ("fig:" `T.isPrefixOf` tit) = do
-          mbs <- getState
-          let (alt', tit') = case sCaption mbs of
+          st <- getState
+          let (alt', tit') = case sCaption st of
                                Just ils -> (toList ils, "fig:" <> tit)
                                Nothing  -> (alt, tit)
-              attr' = case sLastLabel mbs of
+              attr' = case sLastLabel st of
                         Just lab -> (lab, cls, kvs)
                         Nothing  -> attr
           case attr' of
@@ -2394,9 +2394,9 @@ simpTable envname hasWidthParameter = try $ do
 addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
 addTableCaption = walkM go
   where go (Table c als ws hs rs) = do
-          mbs <- getState
-          let mblabel = sLastLabel mbs
-          capt <- case (sCaption mbs, mblabel) of
+          st <- getState
+          let mblabel = sLastLabel st
+          capt <- case (sCaption st, mblabel) of
                    (Just ils, Nothing)  -> return $ toList ils
                    (Just ils, Just lab) -> do
                      num <- getNextNumber sLastTableNum
