@@ -1497,8 +1497,6 @@ citationsToBiblatex (c:cs)
   where grouper prev cit = case prev of  
          ((CiteGroup oPfx oSfx ids):rest)
              | null oSfx && null pfx -> (CiteGroup oPfx sfx (cid:ids)):rest
-             | null pfx && null sfx -> (CiteGroup oPfx [] [cid]):prev 
-             | null oPfx && null sfx && null pfx -> (CiteGroup [] [] [cid]):prev 
          _ -> (CiteGroup pfx sfx [cid]):prev
          where pfx = citationPrefix cit 
                sfx = citationSuffix cit
