@@ -839,11 +839,10 @@ toStringAttr = map go
   where
    go (x,y) =
      case T.stripPrefix "data-" x of
-       Nothing -> (x,y)
-       Just x' -> if x' `Set.member` (html5Attributes <>
-                                      html4Attributes <> rdfaAttributes)
-                     then (x,y)
-                     else (x',y)
+       Just x' | x' `Set.notMember` (html5Attributes <>
+                                     html4Attributes <> rdfaAttributes)
+         -> (x',y)
+       _ -> (x,y)
 
 pScriptMath :: PandocMonad m => TagParser m Inlines
 pScriptMath = try $ do

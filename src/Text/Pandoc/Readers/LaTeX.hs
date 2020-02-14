@@ -1405,8 +1405,8 @@ treatAsInline = Set.fromList
 label :: PandocMonad m => LP m ()
 label = do
   controlSeq "label"
-  t <- untokenize <$> braced
-  updateState $ \st -> st{ sLastLabel = Just t }
+  t <- braced
+  updateState $ \st -> st{ sLastLabel = Just $ untokenize t }
 
 dolabel :: PandocMonad m => LP m Inlines
 dolabel = do
@@ -2070,19 +2070,18 @@ addImageCaption :: PandocMonad m => Blocks -> LP m Blocks
 addImageCaption = walkM go
   where go (Image attr@(_, cls, kvs) alt (src,tit))
             | not ("fig:" `T.isPrefixOf` tit) = do
-          mbcapt <- sCaption <$> getState
-          mblabel <- sLastLabel <$> getState
-          let (alt', tit') = case mbcapt of
+          st <- getState
+          let (alt', tit') = case sCaption st of
                                Just ils -> (toList ils, "fig:" <> tit)
                                Nothing  -> (alt, tit)
-              attr' = case mblabel of
+              attr' = case sLastLabel st of
                         Just lab -> (lab, cls, kvs)
                         Nothing  -> attr
           case attr' of
                ("", _, _)    -> return ()
                (ident, _, _) -> do
                   num <- getNextNumber sLastFigureNum
-                  updateState $ \st ->
+                  setState
                     st{ sLastFigureNum = num
                       , sLabels = M.insert ident
                                  [Str (renderDottedNum num)] (sLabels st) }
@@ -2094,25 +2093,25 @@ getNextNumber :: Monad m
 getNextNumber getCurrentNum = do
   st <- getState
   let chapnum =
-        case (sHasChapters st, sLastHeaderNum st) of
-             (True, DottedNum (n:_)) -> Just n
-             _                       -> Nothing
-  return $
+        case sLastHeaderNum st of
+             DottedNum (n:_) | sHasChapters st -> Just n
+             _                                 -> Nothing
+  return . DottedNum $
     case getCurrentNum st of
        DottedNum [m,n]  ->
          case chapnum of
-              Just m' | m' == m   -> DottedNum [m, n+1]
-                      | otherwise -> DottedNum [m', 1]
-              Nothing             -> DottedNum [1]
+              Just m' | m' == m   -> [m, n+1]
+                      | otherwise -> [m', 1]
+              Nothing             -> [1]
                                       -- shouldn't happen
        DottedNum [n]   ->
          case chapnum of
-              Just m  -> DottedNum [m, 1]
-              Nothing -> DottedNum [n + 1]
+              Just m  -> [m, 1]
+              Nothing -> [n + 1]
        _               ->
          case chapnum of
-               Just n  -> DottedNum [n, 1]
-               Nothing -> DottedNum [1]
+               Just n  -> [n, 1]
+               Nothing -> [1]
 
 
 coloredBlock :: PandocMonad m => Text -> LP m Blocks
@@ -2395,13 +2394,13 @@ simpTable envname hasWidthParameter = try $ do
 addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
 addTableCaption = walkM go
   where go (Table c als ws hs rs) = do
-          mbcapt <- sCaption <$> getState
-          mblabel <- sLastLabel <$> getState
-          capt <- case (mbcapt, mblabel) of
+          st <- getState
+          let mblabel = sLastLabel st
+          capt <- case (sCaption st, mblabel) of
                    (Just ils, Nothing)  -> return $ toList ils
                    (Just ils, Just lab) -> do
                      num <- getNextNumber sLastTableNum
-                     updateState $ \st ->
+                     setState
                        st{ sLastTableNum = num
                          , sLabels = M.insert lab
                                     [Str (renderDottedNum num)]
