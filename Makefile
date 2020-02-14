@@ -131,9 +131,9 @@ download_stats:
 
 pandoc-templates:
 	rm ../pandoc-templates/default.* ; \
-	cp data/templates/default.* ../pandoc-templates/ ; \
+	cp data/templates/default.* README.md styles.* ../pandoc-templates/ ; \
 	pushd ../pandoc-templates/ && \
-	git add default.* && \
+	git add default.* README.md styles.* && \
 	git commit -m "Updated templates for pandoc $(version)" && \
 	popd
 
