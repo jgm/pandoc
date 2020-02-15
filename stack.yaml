@@ -13,7 +13,7 @@ packages:
 - '.'
 extra-deps:
 - pandoc-types-1.20
-- texmath-0.12
+- texmath-0.12.0.1
 - haddock-library-1.8.0
 - skylighting-0.8.3.2
 - skylighting-core-0.8.3.2
