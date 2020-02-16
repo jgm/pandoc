@@ -107,12 +107,9 @@
 
   * Add Text.Pandoc.Image with unexported svgToPng.
 
-  * Moved html5Attributes, html4Attributes, rdfaAttributes
-    from T.P.Writers.HTML (where they were unexported) to
-    T.P.XML (where they are now exported).
-    [API change: new exported functions]
-    This allows these sets to be used elsewhere, e.g.
-    in the HTML reader.
+  * Text.Pandoc.XML: EXport `html5Attributes`, `html4Attributes`,
+    `rdfaAttributes` (formerly unexported in Text.Pandoc.Writers.HTML).
+    [API change]
 
   * Text.Pandoc.Shared: Export a new function `findM` (#6125,
     Joseph C. Sible).
