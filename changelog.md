@@ -107,7 +107,7 @@
 
   * Add Text.Pandoc.Image with unexported svgToPng.
 
-  * Text.Pandoc.XML: EXport `html5Attributes`, `html4Attributes`,
+  * Text.Pandoc.XML: Export `html5Attributes`, `html4Attributes`,
     `rdfaAttributes` (formerly unexported in Text.Pandoc.Writers.HTML).
     [API change]
 
