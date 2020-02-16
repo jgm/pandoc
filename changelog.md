@@ -1,5 +1,209 @@
 # Revision history for pandoc
 
+## pandoc 2.9.2 (2020-02-15)
+
+  * Add `csv` as an input format (#6100).  The CSV table is converted into a
+    pandoc simple table.  A new module Text.Pandoc.Readers.CSV
+    exports `readCSV` [API change].
+
+  * Introduce new format variants for JATS writer (#6014, Albert Krewinkel):
+
+    - `jats_archiving` for the "Archiving and Interchange Tag Set",
+    - `jats_publishing` for the "Journal Publishing Tag Set", and
+    - `jats_articleauthoring` for the "Article Authoring Tag Set."
+
+    The `jats` output format is now an alias for `jats_archiving`.
+    The module Text.Pandoc.Writers.JATS now exports
+    `writeJatsArchiving`, `writeJatsPublishing`, and
+    `writeJatsArticleAuthoring`, as well as the legacy
+    `writeJATS` [API change].
+
+  * `--defaults`: Support `bibliography` and `csl` fields.
+    Move `addMeta` from Text.Pandoc.App.CommandLineOptions to
+    Text.Pandoc.App.Opt (internal change).
+
+  * Add timing info for filters in `--verbose` mode (#6112).
+    When verbose mode is specified (verbosity == INFO), print a
+    notice when running a filter and when a filter completes (including
+    timing).
+
+  * LaTeX reader:
+
+    + Allow `&` in LaTeX citation keys (#6110).
+    + Improve caption and label parsing.
+    + Don't emit empty Span elements for labels.
+    + Put tables with labels in a surrounding Div.
+    + Resolve `\ref` to table numbers (#6137).
+    + Skip comments in more places where this is needed (#6114).
+    + Allow beamer overlays for all commands in all raw tex (#6043).
+      This affects parsing of raw tex in LaTeX and in Markdown and
+      other formats.
+    + Improve parsing of raw environments (#6034).  If parsing fails
+      in a raw environment (e.g. due to special characters like unescaped
+      `_`), try again as a verbatim environment, which is less sensitive to
+      special characters.  This allows us to capture special environments
+      that change catcodes as raw tex when `-f latex+raw_tex` is used.
+
+  * RST reader:
+
+    + Add highlight directive (#6140, Lucas Escot).
+
+  * MediaWiki writer:
+
+    + Prevent triple `[[[` which confuses MediaWiki (#6119).
+
+  * HTML reader:
+
+    + Don't parse `data-id` as `id` attribute.  And similarly don't
+      parse any `data-X` as `X` when `X` is a valid HTML attribute.
+
+  * Org reader:
+
+    + Simplify parsing of sub- and superscripts (#6127, Albert Krewinkel).
+      Speeds up parsing of single-word, markup-less sub- and superscripts.
+
+  * LaTeX writer:
+
+    + Group biblatex citations even with prefix and suffix (#5849, Ethan
+      Riley).  Previously biblatex citations were only grouped if there
+      was no prefix.  This patch allows them to be grouped in subgroups split
+      by prefixes and suffixes, which allows better citation sorting.
+    + Fix regression in handling of columns in beamer slides (#6033).
+      Columns in title slides were causing problems with
+      slide division.
+    + Fix duplicate frame classes in LaTeX/Beamer output (#6107).
+
+  * HTML writer:
+
+    + Fix duplicate attributes on headings (#6062), regression from 2.7.x.
+    + Fix `--number-offset` with HTML TOC.  Eventually it would be worth
+      adding a parameter to `makeSections` so this could be done at that
+      level; then it would also affect other writers that construct
+      TOC manually.
+    + reveal.js: restore old behavior for 2D nesting (#6032).
+      The fix to #6030 actually changed behavior, so that the
+      2D nesting occurred at slide level N-1 and N, instead of
+      at the top-level section.  This commit restores the v2.7.3 behavior.
+      If there are more than 2 levels, the top level is horizontal
+      and the rest are collapsed to vertical.
+    + reveal.js: ensure that pauses work even in title slides (#5819).
+
+  * Markdown writer:
+
+    + Fix regression: spurious dots in markdown_mmd metadata output (#6133).
+
+  * Docx writer:
+
+    + Fix regression with Compact style on tight lists (#6072).
+      Starting in 2.8, the docx writer no longer distinguishes between tight
+      and loose lists, since the Compact style is omitted.  This is a
+      side-effect of the fix to #5670, as explained in the changelog.  This
+      patch fixes the problem by extending the exception currently offered to
+      Plain blocks inside tables to Plain blocks inside list items.
+
+  * Jira writer:
+
+    + Fix output of table headers (Albert Krewinkel, #6035).
+
+  * Add Text.Pandoc.Image with unexported svgToPng.
+
+  * Moved html5Attributes, html4Attributes, rdfaAttributes
+    from T.P.Writers.HTML (where they were unexported) to
+    T.P.XML (where they are now exported).
+    [API change: new exported functions]
+    This allows these sets to be used elsewhere, e.g.
+    in the HTML reader.
+
+  * Text.Pandoc.Shared: Export a new function `findM` (#6125,
+    Joseph C. Sible).
+
+  * Text.Pandoc.Logging: Add `RunningFilter`, `FilterCompleted`
+    constructors to LogMessage [API change].
+
+  * Text.Pandoc.CSV: fix bug in CSV parser; previously an extra blank record
+    would sometimes be inserted at the end.
+
+  * LaTeX template: add space option to xeCJK with PassOptionsToPackage
+    (#6002).  Otherwise we can get a clash with documentclasses that
+    already load the package.
+
+  * Lua filters:
+
+    + Allow filtering of element lists (#6038, Albert Krewinkel).  Lists of
+      Inline and Block elements can now be filtered via `Inlines` and
+      `Blocks` functions, respectively. This is helpful if a filter
+      conversion depends on the order of elements rather than a single
+      element.  For example, the following filter can be used to remove all
+      spaces before a citation:
+
+          function isSpaceBeforeCite (spc, cite)
+            return spc and spc.t == 'Space'
+             and cite and cite.t == 'Cite'
+          end
+
+          function Inlines (inlines)
+            for i = #inlines-1,1,-1 do
+              if isSpaceBeforeCite(inlines[i], inlines[i+1]) then
+                inlines:remove(i)
+              end
+            end
+            return inlines
+          end
+
+    + Add methods `insert`, `remove`, and `sort` to pandoc.List
+      (Albert Krewinkel).  Example of use:
+
+          local numbers = pandoc.List {2, 3, 1}
+          numbers:sort()     -- numbers is now {1, 2, 3}
+    + Make `pandoc.List` a callable constructor (Albert Krewinkel).
+      It is now possible to construct a new List via
+      `pandoc.List()` instead of `pandoc.List:new()`.
+    + Add tests for pandoc.List module (Albert Krewinkel).
+
+  * Text.Pandoc.App.CommandLineOptions: Change `setVariable` to use `Text`
+    instead of `String`.  This avoids some unnecessary unpacking.
+
+  * Use versioned directory for windows release zipfile.
+    Also remove old `make-windows-installer.bat`, superseded by GitHub
+    actions workflow, and modify `pandoc.wxs` for new paths.
+
+  * Extensive code cleanup (#6141, #6128, #6129, #6130, #6123,
+    #6105, 6102, #6117, #6124, #6115, #6116, #6111, Joseph C. Sible).
+
+  * Fix hlint warnings (Albert Krewinkel).
+
+  * Use latest doclayout, doctemplates (#6031).  The new version of
+    doclayout fixes a memory leak that affected `--include-in-header` with
+    large files (and possibly other cases involving extremely long lines).
+
+  * Use latest texmath.
+
+  * Use latest skylighting and fix test suite (#6086).
+
+  * sample.lua: Fix typo in descriptive comments (#6136, Caleb Maclennan).
+    Fix typo in error message (#6135).
+
+  * Add Docker and GH Actions instructions/links to INSTALL.md.
+
+  * Update filter documentation (#6065). Improve cabal v2 instructions.
+    Remove example using pandoc API directly (we have other
+    docs for that and it was outdated).
+
+  * Lua filter docs:
+
+    + Cross-link constructors and types (Albert Krewinkel).
+      Thanks to @bpj for the idea.
+    + Sort pandoc.List methods alphabetically (Albert Krewinkel).
+    + Unify, fix anchors and internal links (#6061, Albert Krewinkel).
+      Links and anchors now follow consistent conventions, like
+      lowercase-only anchor names.  This breaks some links to specific
+      sections in the document, but will make it much easier to link
+      documentation in the future.
+    + Clarify filter function execution order (#6059, Albert Krewinkel).
+
+  * In docs, update URLs and use `https:` wherever possible (#6090,
+    Salim B).
+
 ## pandoc 2.9.1.1 (2020-01-05)
 
   * Markdown reader:

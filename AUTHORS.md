@@ -36,6 +36,7 @@
 - Brian Leung
 - Bryan O'Sullivan
 - Caleb McDaniel
+- Caleb Mclennan
 - Calvin Beck
 - Carlos Sosa
 - Chris Black
@@ -67,6 +68,7 @@
 - Eric Kow
 - Eric Seidel
 - Eric Schrijver
+- Ethan Riley
 - Étienne Bersac
 - Felix Yan
 - Félix Baylac-Jacqué
@@ -127,6 +129,7 @@
 - Jose Luis Duran
 - José de Mattos Neto
 - Josef Svenningsson
+- Joseph C. Sible
 - Julien Cretel
 - Juliusz Gonera
 - Justin Bogner
