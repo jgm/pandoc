@@ -27,9 +27,10 @@ library. It can convert *from*
 
 <div id="input-formats">
 
-  - `commonmark` ([CommonMark](http://commonmark.org) Markdown)
+  - `commonmark` ([CommonMark](https://commonmark.org) Markdown)
   - `creole` ([Creole 1.0](http://www.wikicreole.org/wiki/Creole1.0))
-  - `docbook` ([DocBook](http://docbook.org))
+  - `csv` ([CSV](https://tools.ietf.org/html/rfc4180) table)
+  - `docbook` ([DocBook](https://docbook.org))
   - `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
   - `dokuwiki` ([DokuWiki markup](https://www.dokuwiki.org/dokuwiki))
   - `epub` ([EPUB](http://idpf.org/epub))
@@ -44,7 +45,7 @@ library. It can convert *from*
     [`gfm`](https://pandoc.org/MANUAL.html#markdown-variants).
   - `haddock` ([Haddock
     markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
-  - `html` ([HTML](http://www.w3.org/html/))
+  - `html` ([HTML](https://www.w3.org/html/))
   - `ipynb` ([Jupyter
     notebook](https://nbformat.readthedocs.io/en/latest/))
   - `jats` ([JATS](https://jats.nlm.nih.gov) XML)
@@ -52,32 +53,31 @@ library. It can convert *from*
     ([Jira](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all)
     wiki markup)
   - `json` (JSON version of native AST)
-  - `latex` ([LaTeX](http://latex-project.org))
+  - `latex` ([LaTeX](https://www.latex-project.org/))
   - `markdown` ([Pandoc’s
     Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown))
   - `markdown_mmd`
-    ([MultiMarkdown](http://fletcherpenney.net/multimarkdown/))
+    ([MultiMarkdown](https://fletcherpenney.net/multimarkdown/))
   - `markdown_phpextra` ([PHP Markdown
     Extra](https://michelf.ca/projects/php-markdown/extra/))
   - `markdown_strict` (original unextended
-    [Markdown](http://daringfireball.net/projects/markdown/))
+    [Markdown](https://daringfireball.net/projects/markdown/))
   - `mediawiki` ([MediaWiki
     markup](https://www.mediawiki.org/wiki/Help:Formatting))
-  - `man` ([roff
-    man](http://man7.org/linux/man-pages/man7/groff_man.7.html))
+  - `man` ([roff man](https://man.cx/groff_man\(7\)))
   - `muse` ([Muse](https://amusewiki.org/library/manual))
   - `native` (native Haskell)
-  - `odt` ([ODT](http://en.wikipedia.org/wiki/OpenDocument))
+  - `odt` ([ODT](https://en.wikipedia.org/wiki/OpenDocument))
   - `opml` ([OPML](http://dev.opml.org/spec2.html))
-  - `org` ([Emacs Org mode](http://orgmode.org))
+  - `org` ([Emacs Org mode](https://orgmode.org))
   - `rst`
-    ([reStructuredText](http://docutils.sourceforge.net/docs/ref/rst/introduction.html))
-  - `t2t` ([txt2tags](http://txt2tags.org))
-  - `textile` ([Textile](http://redcloth.org/textile))
+    ([reStructuredText](https://docutils.sourceforge.io/docs/ref/rst/introduction.html))
+  - `t2t` ([txt2tags](https://txt2tags.org))
+  - `textile` ([Textile](https://www.promptworks.com/textile))
   - `tikiwiki` ([TikiWiki
     markup](https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax))
   - `twiki` ([TWiki
-    markup](http://twiki.org/cgi-bin/view/TWiki/TextFormattingRules))
+    markup](https://twiki.org/cgi-bin/view/TWiki/TextFormattingRules))
   - `vimwiki` ([Vimwiki](https://vimwiki.github.io))
 
 </div>
@@ -86,12 +86,12 @@ It can convert *to*
 
 <div id="output-formats">
 
-  - `asciidoc` ([AsciiDoc](http://www.methods.co.nz/asciidoc/)) or
+  - `asciidoc` ([AsciiDoc](https://www.methods.co.nz/asciidoc/)) or
     `asciidoctor` ([AsciiDoctor](https://asciidoctor.org/))
   - `beamer` ([LaTeX beamer](https://ctan.org/pkg/beamer) slide show)
-  - `commonmark` ([CommonMark](http://commonmark.org) Markdown)
-  - `context` ([ConTeXt](http://www.contextgarden.net/))
-  - `docbook` or `docbook4` ([DocBook](http://docbook.org) 4)
+  - `commonmark` ([CommonMark](https://commonmark.org) Markdown)
+  - `context` ([ConTeXt](https://www.contextgarden.net/))
+  - `docbook` or `docbook4` ([DocBook](https://docbook.org) 4)
   - `docbook5` (DocBook 5)
   - `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
   - `dokuwiki` ([DokuWiki markup](https://www.dokuwiki.org/dokuwiki))
@@ -108,67 +108,71 @@ It can convert *to*
     [`gfm`](https://pandoc.org/MANUAL.html#markdown-variants).
   - `haddock` ([Haddock
     markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
-  - `html` or `html5` ([HTML](http://www.w3.org/html/),
-    i.e. [HTML5](http://www.w3.org/TR/html5/)/XHTML [polyglot
+  - `html` or `html5` ([HTML](https://www.w3.org/html/),
+    i.e. [HTML5](https://html.spec.whatwg.org/)/XHTML [polyglot
     markup](https://www.w3.org/TR/html-polyglot/))
-  - `html4` ([XHTML](http://www.w3.org/TR/xhtml1/) 1.0 Transitional)
+  - `html4` ([XHTML](https://www.w3.org/TR/xhtml1/) 1.0 Transitional)
   - `icml` ([InDesign
-    ICML](http://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf))
+    ICML](https://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf))
   - `ipynb` ([Jupyter
     notebook](https://nbformat.readthedocs.io/en/latest/))
-  - `jats` ([JATS](https://jats.nlm.nih.gov) XML)
+  - `jats_archiving` ([JATS](https://jats.nlm.nih.gov) XML, Archiving
+    and Interchange Tag Set)
+  - `jats_articleauthoring` ([JATS](https://jats.nlm.nih.gov) XML,
+    Article Authoring Tag Set)
+  - `jats_publishing` ([JATS](https://jats.nlm.nih.gov) XML, Journal
+    Publishing Tag Set)
+  - `jats` (alias for `jats_archiving`)
   - `jira`
     ([Jira](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all)
     wiki markup)
   - `json` (JSON version of native AST)
-  - `latex` ([LaTeX](http://latex-project.org))
-  - `man` ([roff
-    man](http://man7.org/linux/man-pages/man7/groff_man.7.html))
+  - `latex` ([LaTeX](https://www.latex-project.org/))
+  - `man` ([roff man](https://man.cx/groff_man\(7\)))
   - `markdown` ([Pandoc’s
     Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown))
   - `markdown_mmd`
-    ([MultiMarkdown](http://fletcherpenney.net/multimarkdown/))
+    ([MultiMarkdown](https://fletcherpenney.net/multimarkdown/))
   - `markdown_phpextra` ([PHP Markdown
     Extra](https://michelf.ca/projects/php-markdown/extra/))
   - `markdown_strict` (original unextended
-    [Markdown](http://daringfireball.net/projects/markdown/))
+    [Markdown](https://daringfireball.net/projects/markdown/))
   - `mediawiki` ([MediaWiki
     markup](https://www.mediawiki.org/wiki/Help:Formatting))
-  - `ms` ([roff
-    ms](http://man7.org/linux/man-pages/man7/groff_ms.7.html))
+  - `ms` ([roff ms](https://man.cx/groff_ms\(7\)))
   - `muse` ([Muse](https://amusewiki.org/library/manual)),
   - `native` (native Haskell),
   - `odt` ([OpenOffice text
-    document](http://en.wikipedia.org/wiki/OpenDocument))
+    document](https://en.wikipedia.org/wiki/OpenDocument))
   - `opml` ([OPML](http://dev.opml.org/spec2.html))
   - `opendocument` ([OpenDocument](http://opendocument.xml.org))
-  - `org` ([Emacs Org mode](http://orgmode.org))
+  - `org` ([Emacs Org mode](https://orgmode.org))
   - `pdf` ([PDF](https://www.adobe.com/pdf/))
   - `plain` (plain text),
   - `pptx`
     ([PowerPoint](https://en.wikipedia.org/wiki/Microsoft_PowerPoint)
     slide show)
   - `rst`
-    ([reStructuredText](http://docutils.sourceforge.net/docs/ref/rst/introduction.html))
+    ([reStructuredText](https://docutils.sourceforge.io/docs/ref/rst/introduction.html))
   - `rtf` ([Rich Text
-    Format](http://en.wikipedia.org/wiki/Rich_Text_Format))
-  - `texinfo` ([GNU Texinfo](http://www.gnu.org/software/texinfo/))
-  - `textile` ([Textile](http://redcloth.org/textile))
-  - `slideous` ([Slideous](http://goessner.net/articles/slideous/) HTML
+    Format](https://en.wikipedia.org/wiki/Rich_Text_Format))
+  - `texinfo` ([GNU Texinfo](https://www.gnu.org/software/texinfo/))
+  - `textile` ([Textile](https://www.promptworks.com/textile))
+  - `slideous` ([Slideous](https://goessner.net/articles/slideous/) HTML
     and JavaScript slide show)
-  - `slidy` ([Slidy](http://www.w3.org/Talks/Tools/Slidy/) HTML and
+  - `slidy` ([Slidy](https://www.w3.org/Talks/Tools/Slidy2/) HTML and
     JavaScript slide show)
   - `dzslides` ([DZSlides](http://paulrouget.com/dzslides/) HTML5 +
     JavaScript slide show),
-  - `revealjs` ([reveal.js](http://lab.hakim.se/reveal-js/) HTML5 +
-    JavaScript slide show)
-  - `s5` ([S5](http://meyerweb.com/eric/tools/s5/) HTML and JavaScript
+  - `revealjs` ([reveal.js](https://revealjs.com/) HTML5 + JavaScript
+    slide show)
+  - `s5` ([S5](https://meyerweb.com/eric/tools/s5/) HTML and JavaScript
     slide show)
   - `tei` ([TEI Simple](https://github.com/TEIC/TEI-Simple))
   - `xwiki` ([XWiki
     markup](https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/))
   - `zimwiki` ([ZimWiki
-    markup](http://zim-wiki.org/manual/Help/Wiki_Syntax.html))
+    markup](https://zim-wiki.org/manual/Help/Wiki_Syntax.html))
   - the path of a custom Lua writer, see [Custom
     writers](https://pandoc.org/MANUAL.html#custom-writers) below
 
@@ -188,7 +192,7 @@ convert this native representation into a target format. Thus, adding an
 input or output format requires only adding a reader or writer. Users
 can also run custom pandoc filters to modify the intermediate AST (see
 the documentation for [filters](https://pandoc.org/filters.html) and
-[Lua filters](https://pandoc.org/lua-filters.html)).
+[lua filters](https://pandoc.org/lua-filters.html)).
 
 Because pandoc’s intermediate representation of a document is less
 expressive than many of the formats it converts between, one should not
