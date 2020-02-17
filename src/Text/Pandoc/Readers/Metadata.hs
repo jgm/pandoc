@@ -99,10 +99,12 @@ yamlToMetaValue pBlocks (YAML.Scalar _ x) =
        YAML.SBool b      -> return $ return $ MetaBool b
        YAML.SFloat d     -> return $ return $ MetaString $ tshow d
        YAML.SInt i       -> return $ return $ MetaString $ tshow i
-       YAML.SUnknown _ t ->
-         case checkBoolean t of
-           Just b        -> return $ return $ MetaBool b
-           Nothing       -> toMetaValue pBlocks t
+       YAML.SUnknown tag t
+         | (T.takeWhileEnd (/= ':') <$> YE.tagToText tag) ==
+           Just "literal" -> return $ return $ MetaString t
+         | otherwise -> case checkBoolean t of
+                           Just b    -> return $ return $ MetaBool b
+                           Nothing   -> toMetaValue pBlocks t
        YAML.SNull        -> return $ return $ MetaString ""
 
 yamlToMetaValue pBlocks (YAML.Sequence _ _ xs) = do
