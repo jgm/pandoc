@@ -3914,8 +3914,7 @@ from the main markdown input document.
 
 Metadata will be taken from the fields of the YAML object and added to any
 existing document metadata.  Metadata can contain lists and objects (nested
-arbitrarily), but all string scalars will be interpreted as
-Markdown, unless marked with the YAML tag `!!literal`.  Fields
+arbitrarily), but all string scalars will be interpreted as Markdown.  Fields
 with names ending in an underscore will be ignored by pandoc.  (They may be
 given a role by external processors.)  Field names must not be
 interpretable as YAML numbers or boolean values (so, for
@@ -3946,11 +3945,6 @@ when the field contains blank lines or block-level formatting:
       This is the abstract.
 
       It consists of two paragraphs.
-
-    # This is a YAML comment; it will be ignored.
-    # The following field is marked as literal and will be
-    # interpreted as a literal string rather than Markdown:
-    catalog_number: !!literal '*abc123<f>*'
     ...
 
 Template variables will be set automatically from the metadata.  Thus, for
