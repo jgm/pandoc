@@ -492,7 +492,6 @@ inlineToAsciiDoc _ il@(RawInline f s)
   | otherwise         = do
       report $ InlineNotRendered il
       return empty
-  | otherwise       = return empty
 inlineToAsciiDoc _ LineBreak = return $ " +" <> cr
 inlineToAsciiDoc _ Space = return space
 inlineToAsciiDoc opts SoftBreak =
