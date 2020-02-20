@@ -125,6 +125,8 @@ convertWithOpts opts = do
 
   runIO' $ do
     setUserDataDir datadir
+    setResourcePath (optResourcePath opts)
+
     setInputFiles (fromMaybe ["-"] (optInputFiles opts))
     setOutputFile (optOutputFile opts)
 
@@ -268,7 +270,6 @@ convertWithOpts opts = do
           writerName == "markdown_github") $
       report $ Deprecated "markdown_github" "Use gfm instead."
 
-    setResourcePath (optResourcePath opts)
     mapM_ (uncurry setRequestHeader) (optRequestHeaders opts)
 
     doc <- sourceToDoc sources >>=
