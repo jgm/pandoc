@@ -37,6 +37,8 @@ data CommonState = CommonState
     -- ^ Absolute URL + dir of 1st source file
   , stRequestHeaders :: [(Text, Text)]
     -- ^ Headers to add for HTTP requests
+  , stNoCheckCertificate :: Bool
+    -- ^ Controls whether certificate validation is disabled
   , stMediaBag     :: MediaBag
     -- ^ Media parsed from binary containers
   , stTranslations :: Maybe (Lang, Maybe Translations)
@@ -67,6 +69,7 @@ defaultCommonState = CommonState
   , stUserDataDir = Nothing
   , stSourceURL = Nothing
   , stRequestHeaders = []
+  , stNoCheckCertificate = False
   , stMediaBag = mempty
   , stTranslations = Nothing
   , stInputFiles = []

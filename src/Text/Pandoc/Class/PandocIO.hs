@@ -54,7 +54,8 @@ import Network.HTTP.Client
        (httpLbs, responseBody, responseHeaders,
         Request(port, host, requestHeaders), parseRequest, newManager)
 import Network.HTTP.Client.Internal (addProxy)
-import Network.HTTP.Client.TLS (tlsManagerSettings)
+import Network.HTTP.Client.TLS (mkManagerSettings)
+import Network.Connection (TLSSettings (..))
 import Network.HTTP.Types.Header ( hContentType )
 import Network.Socket (withSocketsDo)
 import Network.URI ( unEscapeString )
@@ -139,6 +140,7 @@ instance PandocMonad PandocIO where
    | otherwise = do
        let toReqHeader (n, v) = (CI.mk (UTF8.fromText n), UTF8.fromText v)
        customHeaders <- map toReqHeader <$> getsCommonState stRequestHeaders
+       disableCertificateValidation <- getsCommonState stNoCheckCertificate
        report $ Fetching u
        res <- liftIO $ E.try $ withSocketsDo $ do
          let parseReq = parseRequest
@@ -149,7 +151,7 @@ instance PandocMonad PandocIO where
                                   return (addProxy (host r) (port r) x)
          req <- parseReq (T.unpack u) >>= addProxy'
          let req' = req{requestHeaders = customHeaders ++ requestHeaders req}
-         resp <- newManager tlsManagerSettings >>= httpLbs req'
+         resp <- newManager (mkManagerSettings  (TLSSettingsSimple disableCertificateValidation False False) Nothing) >>= httpLbs req'
          return (B.concat $ toChunks $ responseBody resp,
                  UTF8.toText `fmap` lookup hContentType (responseHeaders resp))
 

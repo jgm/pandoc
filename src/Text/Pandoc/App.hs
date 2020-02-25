@@ -270,6 +270,8 @@ convertWithOpts opts = do
 
     mapM_ (uncurry setRequestHeader) (optRequestHeaders opts)
 
+    setNoCheckCertificate (optNoCheckCertificate opts)
+
     doc <- sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
                       then fillMediaBag
