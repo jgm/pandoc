@@ -142,7 +142,7 @@ makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
              (return . literal . stringify)
              meta
   let toArgs (f, mbd) = maybe [] (\d -> ["--" <> f, T.unpack d]) mbd
-  let args   = pdfargs ++ mathArgs ++ concatMap toArgs
+  let args   = mathArgs ++ concatMap toArgs
                  [("page-size", getField "papersize" meta')
                  ,("title", getField "title" meta')
                  ,("margin-bottom", Just $ fromMaybe "1.2in"
@@ -155,7 +155,7 @@ makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
                             (getField "margin-left" meta'))
                  ,("footer-html", getField "footer-html" meta')
                  ,("header-html", getField "header-html" meta')
-                 ]
+                 ] ++ pdfargs
   source <- writer opts doc
   verbosity <- getVerbosity
   liftIO $ html2pdf verbosity program args source
