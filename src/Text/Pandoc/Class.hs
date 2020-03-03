@@ -72,6 +72,9 @@ module Text.Pandoc.Class ( PandocMonad(..)
                          , setTranslations
                          , translateTerm
                          , Translations
+                         , HasPandocError(fromPandocError)
+                         , liftPandocPure
+                         , liftPandocIO
                          ) where
 
 import Prelude
@@ -1066,3 +1069,25 @@ instance {-# OVERLAPS #-} PandocMonad m => PandocMonad (ParsecT s st m) where
                else "")
         (return ())
   logOutput = lift . logOutput
+
+-- | Class for lifting 'PandocError' into some wrapper error type e.
+class HasPandocError e where fromPandocError :: PandocError -> e
+instance HasPandocError PandocError where fromPandocError = id
+
+-- | Run a 'PandocPure' instance and lift the result into some monad
+-- whose error type is an instance of 'HasPandocError'.
+liftPandocPure ::
+  forall e m a. (MonadError e m, HasPandocError e)
+  => PandocPure a
+  -> m a
+liftPandocPure =
+  either (throwError . fromPandocError) return . runPure
+
+-- | Run a 'PandocIO' instance and lift the result into some monad
+-- whose error type is an instance of 'HasPandocError'.
+liftPandocIO ::
+  forall e m a. (MonadIO m, MonadError e m, HasPandocError e)
+  => PandocIO a
+  -> m a
+liftPandocIO io =
+  liftIO (runIO io) >>= either (throwError . fromPandocError) return
