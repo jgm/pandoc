@@ -595,7 +595,8 @@ pandocToEPUB version opts doc = do
                             <> cssvars True <> vars } pdoc
          where (pdoc, bodyType) =
                  case bs of
-                     (Header _ (_,_,kvs) xs : _) ->
+                     (Div (_,"section":_,kvs)
+                       (Header _ _ xs : _) : _) ->
                        -- remove notes or we get doubled footnotes
                        (Pandoc (setMeta "title"
                            (walk removeNote $ fromList xs) nullMeta) bs,
