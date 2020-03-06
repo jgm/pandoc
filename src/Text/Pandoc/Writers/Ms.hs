@@ -216,7 +216,7 @@ blockToMs opts (BlockQuote blocks) = do
   setFirstPara
   contents <- blockListToMs opts blocks
   setFirstPara
-  return $ literal ".RS" $$ contents $$ literal ".RE"
+  return $ literal ".QS" $$ contents $$ literal ".QE"
 blockToMs opts (Table caption alignments widths headers rows) =
   let aligncode AlignLeft    = "l"
       aligncode AlignRight   = "r"

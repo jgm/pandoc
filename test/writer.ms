@@ -150,12 +150,12 @@ Block Quotes
 .pdfhref M "block-quotes"
 .LP
 E-mail style:
-.RS
+.QS
 .LP
 This is a block quote.
 It is pretty short.
-.RE
-.RS
+.QE
+.QS
 .LP
 Code in a block quote:
 .IP
@@ -174,15 +174,15 @@ item one
 item two
 .LP
 Nested block quotes:
-.RS
+.QS
 .LP
 nested
-.RE
-.RS
+.QE
+.QS
 .LP
 nested
-.RE
-.RE
+.QE
+.QE
 .LP
 This should not be a block quote: 2 > 1.
 .PP
@@ -502,10 +502,10 @@ orange fruit
 { orange code block }
 \f[]
 .fi
-.RS
+.QS
 .LP
 orange block quote
-.RE
+.QE
 .RE
 .LP
 Multiple definitions, tight:
@@ -930,13 +930,13 @@ An e-mail address: \c
 .pdfhref W -D "mailto:nobody%40nowhere.net" -A "\c" \
  -- "nobody\[at]nowhere.net"
 \&
-.RS
+.QS
 .LP
 Blockquoted: \c
 .pdfhref W -D "http://example.com/" -A "\c" \
  -- "http://example.com/"
 \&
-.RE
+.QE
 .LP
 Auto-links should not occur here: \f[C]<http://example.com/>\f[R]
 .IP
@@ -994,13 +994,13 @@ Inline notes may contain \c
  -- "links"
 \& and \f[C]]\f[R] verbatim characters, as well as [bracketed text].
 .FE
-.RS
+.QS
 .LP
 Notes can go in quotes.\**
 .FS
 In quote.
 .FE
-.RE
+.QE
 .IP " 1." 4
 And in list items.\**
 .FS
