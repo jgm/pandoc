@@ -202,7 +202,7 @@ escapeNormal = do
     '*' -> escString
     ',' -> return mempty  -- to fix spacing after roman
     '-' -> return [RoffStr "-"]
-    '.' -> return [RoffStr "`"]
+    '.' -> return [RoffStr "."]
     '/' -> return mempty  -- to fix spacing before roman
     '0' -> return [RoffStr "\x2007"] -- digit-width space
     ':' -> return mempty  -- zero-width break
