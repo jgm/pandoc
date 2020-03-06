@@ -226,7 +226,7 @@ escapeNormal = do
     'X' -> escIgnore 'X' [quoteArg]
     'Y' -> escIgnore 'Y' [escapeArg, countChar 1 (satisfy (/='\n'))]
     'Z' -> escIgnore 'Z' [quoteArg]
-    '\'' -> return [RoffStr "`"]
+    '\'' -> return [RoffStr "'"]
     '\n' -> return mempty  -- line continuation
     '^' -> return [RoffStr "\x200A"] -- 1/12 em space
     '_' -> return [RoffStr "_"]
