@@ -321,8 +321,9 @@ definitionListItemToMs opts (label, defs) = do
                         rest' <- liftM vcat $
                                   mapM (\item -> blockToMs opts item) rest
                         first' <- blockToMs opts first
-                        return $ first' $$ literal ".RS" $$ rest' $$ literal ".RE"
-  return $ nowrap (literal ".IP " <> doubleQuotes labelText) $$ contents
+                        return $ first' $$ literal ".RS 3" $$ rest' $$ literal ".RE"
+  return $ nowrap (literal ".IP " <> doubleQuotes labelText <> " 3") $$
+           contents
 
 -- | Convert list of Pandoc block elements to ms.
 blockListToMs :: PandocMonad m
@@ -400,7 +401,7 @@ inlineToMs opts (Math DisplayMath str) = do
   case res of
        Left il -> do
          contents <- inlineToMs opts il
-         return $ cr <> literal ".RS" $$ contents $$ literal ".RE"
+         return $ cr <> literal ".RS 3" $$ contents $$ literal ".RE"
        Right r -> return $
             cr <> literal ".EQ" $$ literal r $$ literal ".EN" <> cr
 inlineToMs _ il@(RawInline f str)
