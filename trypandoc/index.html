@@ -32,8 +32,9 @@ function newpage() {
   var input = $("#text").val();
   var from = $("#from").val();
   var to = $("#to").val();
+  var standalone = $("#standalone").is(':checked') ? "1" : "0";
   var href = window.location.href;
-  window.location.href = href.replace(/([?].*)?$/,"?" + $.param({text: input, from: from, to: to}));
+  window.location.href = href.replace(/([?].*)?$/,"?" + $.param({text: input, from: from, to: to, standalone: standalone}));
 };
 
 $(document).ready(function() {
@@ -43,8 +44,10 @@ $(document).ready(function() {
     $("#from").val(from);
     var to = $.QueryString["to"] || "html";
     $("#to").val(to);
+    var standalone = ($.QueryString["standalone"] === "1") ? "1" : "0"
+    $("#standalone").prop('checked', (standalone === "1"));
     if (text && text != "") {
-       $.getJSON("/cgi-bin/trypandoc", { from: from, to: to, text: text },
+       $.getJSON("/cgi-bin/trypandoc", { from: from, to: to, text: text, standalone: standalone },
          function(res) {
           $("#results").text(res.html);
           $("#version").text(res.version);
@@ -116,6 +119,10 @@ $(document).ready(function() {
         <option value="twiki">TWiki</option>
         <option value="vimwiki">Vimwiki</option>
       </select>
+      <input type="checkbox" id="standalone" name="standalone">
+      <label for="standalone">Generate standalone document
+        <a href="https://pandoc.org/MANUAL.html#option--standalone" target="_blank">(?)</a>
+      </label>
       <br/>
       <textarea id="text" maxlength="3000" rows="15"></textarea>
     </div>
