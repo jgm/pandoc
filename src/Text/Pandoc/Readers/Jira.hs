@@ -121,6 +121,8 @@ jiraToPandocInlines :: Jira.Inline -> Inlines
 jiraToPandocInlines = \case
   Jira.Anchor t          -> spanWith (t, [], []) mempty
   Jira.AutoLink url      -> link (Jira.fromURL url) "" (str (Jira.fromURL url))
+  Jira.ColorInline c ils -> spanWith ("", [], [("color", colorName c)]) $
+                                     fromInlines ils
   Jira.Emoji icon        -> str . iconUnicode $ icon
   Jira.Entity entity     -> str . fromEntity $ entity
   Jira.Image _ url       -> image (Jira.fromURL url)  "" mempty
