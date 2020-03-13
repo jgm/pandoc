@@ -113,14 +113,6 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 		--variable footer="pandoc $(version)" \
 		-o $@
 
-doc/lua-filters.md: tools/ldoc.ltp data/pandoc.lua tools/update-lua-docs.lua
-	cp $@ $@.tmp
-	pandoc -t markdown --columns=64 --atx-headers  \
-	       -f markdown -t markdown --standalone\
-         --lua-filter tools/update-lua-docs.lua \
-	       -o $@ $@.tmp
-	rm $@.tmp
-
 README.md: README.template MANUAL.txt tools/update-readme.lua
 	pandoc --lua-filter tools/update-readme.lua --reference-links \
 	      --reference-location=section -t gfm $< -o $@
