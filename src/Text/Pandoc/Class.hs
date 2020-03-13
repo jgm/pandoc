@@ -111,6 +111,7 @@ import Network.Socket (withSocketsDo)
 import Data.ByteString.Lazy (toChunks)
 import qualified Control.Exception as E
 import qualified Data.Time.LocalTime as IO (getCurrentTimeZone)
+import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
 import Text.Pandoc.Walk (walkM, walk)
 import qualified Text.Pandoc.MediaBag as MB
@@ -312,51 +313,6 @@ readFileFromDirs [] _ = return Nothing
 readFileFromDirs (d:ds) f = catchError
     ((Just . T.pack . UTF8.toStringLazy) <$> readFileLazy (d </> f))
     (\_ -> readFileFromDirs ds f)
-
--- | 'CommonState' represents state that is used by all
--- instances of 'PandocMonad'.  Normally users should not
--- need to interact with it directly; instead, auxiliary
--- functions like 'setVerbosity' and 'withMediaBag' should be used.
-data CommonState = CommonState { stLog          :: [LogMessage]
-                                 -- ^ A list of log messages in reverse order
-                               , stUserDataDir  :: Maybe FilePath
-                                 -- ^ Directory to search for data files
-                               , stSourceURL    :: Maybe T.Text
-                                 -- ^ Absolute URL + dir of 1st source file
-                               , stRequestHeaders :: [(T.Text, T.Text)]
-                                 -- ^ Headers to add for HTTP requests
-                               , stMediaBag     :: MediaBag
-                                 -- ^ Media parsed from binary containers
-                               , stTranslations :: Maybe
-                                                  (Lang, Maybe Translations)
-                                 -- ^ Translations for localization
-                               , stInputFiles   :: [FilePath]
-                                 -- ^ List of input files from command line
-                               , stOutputFile   :: Maybe FilePath
-                                 -- ^ Output file from command line
-                               , stResourcePath :: [FilePath]
-                                 -- ^ Path to search for resources like
-                                 -- included images
-                               , stVerbosity    :: Verbosity
-                                 -- ^ Verbosity level
-                               , stTrace        :: Bool
-                                 -- ^ Controls whether tracing messages are
-                                 -- issued.
-                               }
-
-instance Default CommonState where
-  def = CommonState { stLog = []
-                    , stUserDataDir = Nothing
-                    , stSourceURL = Nothing
-                    , stRequestHeaders = []
-                    , stMediaBag = mempty
-                    , stTranslations = Nothing
-                    , stInputFiles = []
-                    , stOutputFile = Nothing
-                    , stResourcePath = ["."]
-                    , stVerbosity = WARNING
-                    , stTrace = False
-                    }
 
 -- | Convert BCP47 string to a Lang, issuing warning
 -- if there are problems.
