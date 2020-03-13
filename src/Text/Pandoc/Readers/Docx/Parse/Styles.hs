@@ -6,7 +6,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
  Module : Text.Pandoc.Readers.Docx.Parse.Styles
- Copyright : Copyright (C) 2014-2019 Jesse Rosenthal
+ Copyright : Copyright (C) 2014-2020 Jesse Rosenthal
                            2019 Nikolay Yakimov <root@livid.pp.ru>
  License : GNU GPL, version 2 or above
 

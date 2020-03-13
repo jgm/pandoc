@@ -4,8 +4,8 @@
 {-# LANGUAGE OverloadedStrings    #-}
 {- |
    Module      : Text.Pandoc.Readers.Docx.Combine
-   Copyright   : © 2014-2019 Jesse Rosenthal <jrosenthal@jhu.edu>,
-                   2014-2019 John MacFarlane <jgm@berkeley.edu>
+   Copyright   : © 2014-2020 Jesse Rosenthal <jrosenthal@jhu.edu>,
+                   2014-2020 John MacFarlane <jgm@berkeley.edu>
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Jesse Rosenthal <jrosenthal@jhu.edu>

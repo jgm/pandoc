@@ -1,8 +1,8 @@
 {-# LANGUAGE NoImplicitPrelude    #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.MediaBag
-   Copyright   : © 2012-2019 John MacFarlane
-                 © 2017-2019 Albert Krewinkel
+   Copyright   : © 2012-2020 John MacFarlane
+                 © 2017-2020 Albert Krewinkel
    License     : GNU GPL, version 2 or above
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
    Stability   : alpha

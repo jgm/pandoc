@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Man
-   Copyright   : Copyright (C) 2018-2019 Yan Pashkovsky and John MacFarlane
+   Copyright   : Copyright (C) 2018-2020 Yan Pashkovsky and John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Yan Pashkovsky <yanp.bugz@gmail.com>

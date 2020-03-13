@@ -3,7 +3,7 @@
 {-# LANGUAGE CPP #-}
 {- |
    Module      : Text.Pandoc.Readers.Vimwiki
-   Copyright   : Copyright (C) 2017-2019 Yuchen Pei
+   Copyright   : Copyright (C) 2017-2020 Yuchen Pei
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Yuchen Pei <me@ypei.me>

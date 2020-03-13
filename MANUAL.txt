@@ -5891,7 +5891,7 @@ application, here are some things to keep in mind:
 
 # Authors
 
-Copyright 2006--2019 John MacFarlane (jgm@berkeley.edu). Released
+Copyright 2006--2020 John MacFarlane (jgm@berkeley.edu). Released
 under the [GPL], version 2 or greater.  This software carries no
 warranty of any kind.  (See COPYRIGHT for full copyright and
 warranty notices.) For a full list of contributors, see the file

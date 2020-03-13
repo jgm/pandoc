@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Process
-   Copyright   : Copyright (C) 2013-2019 John MacFarlane
+   Copyright   : Copyright (C) 2013-2020 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>

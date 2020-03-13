@@ -3,7 +3,8 @@
 {-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Writers.ZimWiki
-   Copyright   : Copyright (C) 2008-2019 John MacFarlane, 2017-2019 Alex Ivkin
+   Copyright   : © 2008-2020 John MacFarlane,
+                   2017-2019 Alex Ivkin
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Alex Ivkin <alex@ivkin.net>

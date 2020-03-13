@@ -4,7 +4,7 @@ cabal-version:   2.0
 build-type:      Simple
 license:         GPL-2
 license-file:    COPYING.md
-copyright:       (c) 2006-2019 John MacFarlane
+copyright:       (c) 2006-2020 John MacFarlane
 author:          John MacFarlane <jgm@berkeley.edu>
 maintainer:      John MacFarlane <jgm@berkeley.edu>
 bug-reports:     https://github.com/jgm/pandoc/issues
