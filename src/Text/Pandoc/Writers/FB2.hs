@@ -4,7 +4,7 @@
 {- |
 Module      : Text.Pandoc.Writers.FB2
 Copyright   : Copyright (C) 2011-2012 Sergey Astanin
-                            2012-2019 John MacFarlane
+                            2012-2020 John MacFarlane
 License     : GNU GPL, version 2 or above
 
 Maintainer  : John MacFarlane

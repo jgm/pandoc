@@ -1,10 +1,10 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Tests.Readers.FB2
-   Copyright   : © 2018-2019 Alexander Krotov
+   Copyright   : © 2018-2020 Alexander Krotov
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : © 2018-2019 Alexander Krotov <ilabdsf@gmail.com>
+   Maintainer  : © 2018-2020 Alexander Krotov <ilabdsf@gmail.com>
    Stability   : alpha
    Portability : portable
 

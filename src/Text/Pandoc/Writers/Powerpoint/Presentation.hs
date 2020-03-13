@@ -5,7 +5,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {- |
    Module      : Text.Pandoc.Writers.Powerpoint.Presentation
-   Copyright   : Copyright (C) 2017-2019 Jesse Rosenthal
+   Copyright   : Copyright (C) 2017-2020 Jesse Rosenthal
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Jesse Rosenthal <jrosenthal@jhu.edu>

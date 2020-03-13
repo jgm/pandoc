@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Muse
-   Copyright   : Copyright (C) 2017-2019 Alexander Krotov
+   Copyright   : Copyright (C) 2017-2020 Alexander Krotov
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Alexander Krotov <ilabdsf@gmail.com>

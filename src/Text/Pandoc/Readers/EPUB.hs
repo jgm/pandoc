@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.EPUB
-   Copyright   : Copyright (C) 2014-2019 Matthew Pickering
+   Copyright   : Copyright (C) 2014-2020 Matthew Pickering
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>

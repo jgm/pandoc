@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Main
-   Copyright   : © 2014-2019 John MacFarlane <jgm@berkeley.edu>
+   Copyright   : © 2014-2020 John MacFarlane <jgm@berkeley.edu>
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>

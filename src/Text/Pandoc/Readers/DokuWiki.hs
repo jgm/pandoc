@@ -5,7 +5,7 @@
 {-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Readers.DokuWiki
-   Copyright   : Copyright (C) 2018-2019 Alexander Krotov
+   Copyright   : Copyright (C) 2018-2020 Alexander Krotov
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Alexander Krotov <ilabdsf@gmail.com>
