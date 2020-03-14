@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Emoji
@@ -12,7 +11,6 @@
 Emoji symbol lookup from canonical string identifier.
 -}
 module Text.Pandoc.Emoji ( emojis, emojiToInline ) where
-import Prelude
 import qualified Text.Emoji as E
 import Text.Pandoc.Definition (Inline (Span, Str))
 import Data.Text (Text)

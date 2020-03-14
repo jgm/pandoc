@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -19,7 +18,6 @@ FictionBook is an XML-based e-book format. For more information see:
 -}
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
-import Prelude
 import Control.Monad (zipWithM)
 import Control.Monad.Except (catchError)
 import Control.Monad.State.Strict (StateT, evalStateT, get, gets, lift, liftM, modify)

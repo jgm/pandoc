@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
@@ -15,7 +14,6 @@
 Conversion of 'Pandoc' documents to OpenDocument XML.
 -}
 module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
-import Prelude
 import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Strict hiding (when)
 import Data.Char (chr)

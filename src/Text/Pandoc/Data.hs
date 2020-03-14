@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
 {- |
 Module      : Text.Pandoc.Data
@@ -13,7 +12,6 @@ Provide contents data files as Haskell values.
 -}
 module Text.Pandoc.Data (dataFiles) where
 
-import Prelude
 import qualified Data.ByteString as B
 import Data.FileEmbed
 import System.FilePath (splitDirectories)

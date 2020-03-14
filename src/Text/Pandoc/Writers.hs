@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -73,7 +72,6 @@ module Text.Pandoc.Writers
     , getWriter
     ) where
 
-import Prelude
 import Control.Monad.Except (throwError)
 import Control.Monad (unless)
 import Data.Aeson

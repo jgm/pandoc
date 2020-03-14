@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -19,7 +18,6 @@ module Text.Pandoc.Error (
   PandocError(..),
   handleError) where
 
-import Prelude
 import Control.Exception (Exception)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)

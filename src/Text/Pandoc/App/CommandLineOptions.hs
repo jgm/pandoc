@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
@@ -22,7 +21,6 @@ module Text.Pandoc.App.CommandLineOptions (
           , lookupHighlightStyle
           , setVariable
           ) where
-import Prelude
 import Control.Monad
 import Control.Monad.Trans
 import Control.Monad.Except (throwError)

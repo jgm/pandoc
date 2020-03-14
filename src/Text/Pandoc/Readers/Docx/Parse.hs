@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ViewPatterns      #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -52,7 +51,6 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , constructBogusParStyleData
                                       , leftBiasedMergeRunStyle
                                       ) where
-import Prelude
 import Text.Pandoc.Readers.Docx.Parse.Styles
 import Codec.Archive.Zip
 import Control.Applicative ((<|>))

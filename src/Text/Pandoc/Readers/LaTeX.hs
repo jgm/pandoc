@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP                   #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -27,7 +26,6 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    untokenize
                                  ) where
 
-import Prelude
 import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)

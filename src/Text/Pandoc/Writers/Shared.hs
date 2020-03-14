@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -37,7 +36,6 @@ module Text.Pandoc.Writers.Shared (
                      , endsWithPlain
                      )
 where
-import Prelude
 import Safe (lastMay)
 import qualified Data.ByteString.Lazy as BL
 import Data.Maybe (fromMaybe, isNothing)

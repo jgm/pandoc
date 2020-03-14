@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable   #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE UndecidableInstances #-}
 {- |
 Module      : Text.Pandoc.Lua.Marshaling.List
@@ -17,7 +16,6 @@ module Text.Pandoc.Lua.Marshaling.List
   ( List (..)
   ) where
 
-import Prelude
 import Data.Data (Data)
 import Foreign.Lua (Peekable, Pushable)
 import Text.Pandoc.Walk (Walkable (..))

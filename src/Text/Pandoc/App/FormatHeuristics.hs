@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.App.FormatHeuristics
@@ -15,7 +14,6 @@ module Text.Pandoc.App.FormatHeuristics
   ( formatFromFilePaths
   ) where
 
-import Prelude
 import Data.Char (toLower)
 import Data.Text (Text)
 import System.FilePath (takeExtension)

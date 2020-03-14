@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -18,7 +17,6 @@ module Text.Pandoc.Writers.LaTeX (
     writeLaTeX
   , writeBeamer
   ) where
-import Prelude
 import Control.Applicative ((<|>))
 import Control.Monad.State.Strict
 import Data.Monoid (Any(..))

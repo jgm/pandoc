@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RelaxedPolyRec    #-}
@@ -17,7 +16,6 @@ Conversion of twiki text to 'Pandoc' document.
 module Text.Pandoc.Readers.TWiki ( readTWiki
                                  ) where
 
-import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum)

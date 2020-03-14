@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.ExportSettings
@@ -13,7 +12,6 @@ module Text.Pandoc.Readers.Org.ExportSettings
   ( exportSettings
   ) where
 
-import Prelude
 import Text.Pandoc.Class (PandocMonad, report)
 import Text.Pandoc.Logging (LogMessage (UnknownOrgExportOption))
 import Text.Pandoc.Readers.Org.ParserState

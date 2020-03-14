@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
@@ -60,7 +59,6 @@ module Text.Pandoc.Readers.Docx
        ( readDocx
        ) where
 
-import Prelude
 import Codec.Archive.Zip
 import Control.Monad.Reader
 import Control.Monad.State.Strict

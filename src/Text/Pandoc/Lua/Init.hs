@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Lua
    Copyright   : Copyright © 2017-2020 Albert Krewinkel
@@ -16,7 +15,6 @@ module Text.Pandoc.Lua.Init
   , luaPackageParams
   ) where
 
-import Prelude
 import Control.Monad.Trans (MonadIO (..))
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Foreign.Lua (Lua)

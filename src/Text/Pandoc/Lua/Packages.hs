@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Lua.Packages
@@ -16,7 +15,6 @@ module Text.Pandoc.Lua.Packages
   , installPandocPackageSearcher
   ) where
 
-import Prelude
 import Control.Monad (forM_)
 import Data.ByteString (ByteString)
 import Foreign.Lua (Lua, NumResults, liftIO)

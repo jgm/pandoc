@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE LambdaCase           #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.AST
@@ -17,7 +16,6 @@ module Text.Pandoc.Lua.Marshaling.AST
   , LuaListAttributes (..)
   ) where
 
-import Prelude
 import Control.Applicative ((<|>))
 import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
 import Text.Pandoc.Definition

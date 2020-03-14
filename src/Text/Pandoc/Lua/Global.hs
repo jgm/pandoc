@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Lua
    Copyright   : Copyright © 2017-2020 Albert Krewinkel
@@ -15,7 +14,6 @@ module Text.Pandoc.Lua.Global
   , setGlobals
   ) where
 
-import Prelude
 import Data.Data (Data)
 import Foreign.Lua (Lua, Peekable, Pushable)
 import Foreign.Lua.Userdata ( ensureUserdataMetatable, pushAnyWithMetatable

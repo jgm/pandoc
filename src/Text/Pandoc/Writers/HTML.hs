@@ -1,5 +1,4 @@
 {-# LANGUAGE MultiWayIf          #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
@@ -39,7 +38,6 @@ import Network.HTTP (urlEncode)
 import Network.URI (URI (..), parseURIReference)
 import Numeric (showHex)
 import Text.DocLayout (render, literal)
-import Prelude
 import Text.Blaze.Internal (MarkupM (Empty), customLeaf, customParent)
 import Text.DocTemplates (FromContext (lookupContext), Context (..))
 import Text.Blaze.Html hiding (contents)

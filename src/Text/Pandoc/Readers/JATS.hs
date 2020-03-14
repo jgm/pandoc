@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -14,7 +13,6 @@ Conversion of JATS XML to 'Pandoc' document.
 -}
 
 module Text.Pandoc.Readers.JATS ( readJATS ) where
-import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isDigit, isSpace, toUpper)
 import Data.Default

@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -23,7 +22,6 @@ module Text.Pandoc.Logging (
   , messageVerbosity
   ) where
 
-import Prelude
 import Control.Monad (mzero)
 import Data.YAML (withStr, FromYAML(..))
 import Data.Aeson

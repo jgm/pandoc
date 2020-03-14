@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
 {- |
@@ -16,7 +15,6 @@ module Text.Pandoc.Readers.Org.DocumentTree
   , unprunedHeadlineToBlocks
   ) where
 
-import Prelude
 import Control.Arrow ((***), first)
 import Control.Monad (guard)
 import Data.List (intersperse)

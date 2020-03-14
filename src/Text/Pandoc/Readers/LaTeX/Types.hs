@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Readers.LaTeX.Types
    Copyright   : Copyright (C) 2017-2020 John MacFarlane
@@ -18,7 +17,6 @@ module Text.Pandoc.Readers.LaTeX.Types ( Tok(..)
                                        , SourcePos
                                        )
 where
-import Prelude
 import Data.Text (Text)
 import Text.Parsec.Pos (SourcePos)
 

@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.OOXML
@@ -24,7 +23,6 @@ module Text.Pandoc.Writers.OOXML ( mknode
                                  , fitToPage
                                  ) where
 
-import Prelude
 import Codec.Archive.Zip
 import Control.Monad.Reader
 import Control.Monad.Except (throwError)

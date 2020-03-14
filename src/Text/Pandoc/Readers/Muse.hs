@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -19,7 +18,6 @@ TODO:
 -}
 module Text.Pandoc.Readers.Muse (readMuse) where
 
-import Prelude
 import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.Except (throwError)

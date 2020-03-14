@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -26,7 +25,6 @@ module Text.Pandoc.Readers.HTML ( readHtml
                                 , isCommentTag
                                 ) where
 
-import Prelude
 import Control.Applicative ((<|>))
 import Control.Arrow (first)
 import Control.Monad (guard, mplus, msum, mzero, unless, void)

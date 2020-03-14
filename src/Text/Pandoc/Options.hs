@@ -1,7 +1,6 @@
 {-# LANGUAGE CPP                #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {- |
@@ -33,7 +32,6 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , defaultMathJaxURL
                            , defaultKaTeXURL
                            ) where
-import Prelude
 import Control.Applicative ((<|>))
 import Data.Char (toLower)
 import Data.Maybe (fromMaybe)

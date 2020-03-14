@@ -1,4 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -52,7 +52,6 @@ module Text.Pandoc.Class.PandocMonad
   , makeCanonical
   ) where
 
-import Prelude
 import Codec.Archive.Zip
 import Control.Monad.Except (MonadError (catchError, throwError),
                              MonadTrans, lift, when)

@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -22,7 +21,6 @@ module Text.Pandoc.MediaBag (
                      mediaDirectory,
                      mediaItems
                      ) where
-import Prelude
 import qualified Data.ByteString.Lazy as BL
 import Data.Data (Data)
 import qualified Data.Map as M

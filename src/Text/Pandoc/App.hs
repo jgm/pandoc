@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -23,7 +22,6 @@ module Text.Pandoc.App (
           , options
           , applyFilters
           ) where
-import Prelude
 import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.Trans

@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
 {- |
@@ -48,7 +47,6 @@ Conversion of vimwiki text to 'Pandoc' document.
 
 module Text.Pandoc.Readers.Vimwiki ( readVimwiki
                                  ) where
-import Prelude
 import Control.Monad (guard)
 import Control.Monad.Except (throwError)
 import Data.Default

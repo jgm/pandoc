@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.BlockStarts
@@ -24,7 +23,6 @@ module Text.Pandoc.Readers.Org.BlockStarts
   , endOfBlock
   ) where
 
-import Prelude
 import Control.Monad (void)
 import Data.Text (Text)
 import qualified Data.Text as T

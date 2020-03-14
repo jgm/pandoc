@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Readers.Odt.Arrows.Utils
    Copyright   : Copyright (C) 2015 Martin Linnemann
@@ -22,7 +21,6 @@ with an equivalent return value.
 -- We export everything
 module Text.Pandoc.Readers.Odt.Arrows.Utils where
 
-import Prelude
 import Control.Arrow
 import Control.Monad (join)
 

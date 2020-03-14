@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE TypeFamilies      #-}
@@ -43,7 +42,6 @@ module Text.Pandoc.Readers.Docx.Parse.Styles (
   , defaultRunStyle
   , checkOnOff
   ) where
-import Prelude
 import Codec.Archive.Zip
 import Control.Applicative ((<|>))
 import Control.Monad.Except

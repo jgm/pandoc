@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
 Module      : Text.Pandoc.Lua.Filter
 Copyright   : © 2012–2020 John MacFarlane,
@@ -17,7 +16,6 @@ module Text.Pandoc.Lua.Filter ( LuaFilterFunction
                               , walkBlocks
                               , module Text.Pandoc.Lua.Walk
                               ) where
-import Prelude
 import Control.Applicative ((<|>))
 import Control.Monad (mplus, (>=>))
 import Control.Monad.Catch (finally)

@@ -28,7 +28,6 @@ module Text.Pandoc.Readers.Roff
   )
 where
 
-import Prelude
 import Safe (lastDef)
 import Control.Monad (void, mzero, mplus, guard)
 import Control.Monad.Except (throwError)

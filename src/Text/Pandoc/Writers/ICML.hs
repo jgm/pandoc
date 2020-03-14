@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -18,7 +17,6 @@ InCopy is the companion word-processor to Adobe InDesign and ICML documents can 
 into InDesign with File -> Place.
 -}
 module Text.Pandoc.Writers.ICML (writeICML) where
-import Prelude
 import Control.Monad.Except (catchError)
 import Control.Monad.State.Strict
 import Data.List (intersperse)

@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TupleSections     #-}
 {- |
@@ -20,7 +19,6 @@ faster and easier to implement this way.
 
 module Text.Pandoc.Readers.Odt.Arrows.State where
 
-import Prelude
 import Control.Arrow
 import qualified Control.Category as Cat
 import Control.Monad

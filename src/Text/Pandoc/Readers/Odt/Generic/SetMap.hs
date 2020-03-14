@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Readers.Odt.Generic.SetMap
    Copyright   : Copyright (C) 2015 Martin Linnemann
@@ -13,7 +12,6 @@ A map of values to sets of values.
 
 module Text.Pandoc.Readers.Odt.Generic.SetMap where
 
-import Prelude
 import qualified Data.Map as M
 import qualified Data.Set as S
 

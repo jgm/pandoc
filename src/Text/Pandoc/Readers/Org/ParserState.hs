@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -39,7 +38,6 @@ module Text.Pandoc.Readers.Org.ParserState
   , optionsToParserState
   ) where
 
-import Prelude
 import Control.Monad.Reader (ReaderT, asks, local)
 
 import Data.Default (Default (..))

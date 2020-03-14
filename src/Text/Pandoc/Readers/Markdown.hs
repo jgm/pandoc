@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE RelaxedPolyRec      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
@@ -17,7 +16,6 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Markdown ( readMarkdown, yamlToMeta ) where
 
-import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace)

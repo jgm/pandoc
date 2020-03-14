@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE ViewPatterns      #-}
@@ -16,7 +15,6 @@ Conversion of DokuWiki text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.DokuWiki (readDokuWiki) where
 
-import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isDigit)

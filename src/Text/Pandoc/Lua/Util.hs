@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua.Util
@@ -27,7 +26,6 @@ module Text.Pandoc.Lua.Util
   , dofileWithTraceback
   ) where
 
-import Prelude
 import Control.Monad (unless, when)
 import Foreign.Lua ( Lua, NumArgs, NumResults, Peekable, Pushable, StackIndex
                    , Status, ToHaskellFunction )

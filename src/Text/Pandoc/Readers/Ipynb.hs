@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts  #-}
@@ -16,7 +15,6 @@ Ipynb (Jupyter notebook JSON format) reader for pandoc.
 -}
 module Text.Pandoc.Readers.Ipynb ( readIpynb )
 where
-import Prelude
 import Data.Char (isDigit)
 import Data.Maybe (fromMaybe)
 import Data.Digest.Pure.SHA (sha1, showDigest)

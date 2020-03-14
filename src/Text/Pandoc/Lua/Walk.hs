@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {- |
 Module      : Text.Pandoc.Lua.Walk
@@ -18,7 +17,6 @@ module Text.Pandoc.Lua.Walk
   )
 where
 
-import Prelude
 import Control.Monad ((<=<))
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk

@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.UUID
    Copyright   : Copyright (C) 2010-2020 John MacFarlane
@@ -14,7 +13,6 @@ in RFC4122. See http://tools.ietf.org/html/rfc4122
 
 module Text.Pandoc.UUID ( UUID(..), getRandomUUID, getUUID ) where
 
-import Prelude
 import Data.Bits (clearBit, setBit)
 import Data.Word
 import System.Random (RandomGen, getStdGen, randoms)

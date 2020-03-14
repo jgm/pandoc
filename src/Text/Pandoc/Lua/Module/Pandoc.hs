@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Pandoc
@@ -15,7 +14,6 @@ module Text.Pandoc.Lua.Module.Pandoc
   ( pushModule
   ) where
 
-import Prelude
 import Control.Monad (when)
 import Control.Monad.Except (throwError)
 import Data.Default (Default (..))

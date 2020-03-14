@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE ViewPatterns      #-}
@@ -14,7 +13,6 @@
 Conversion of 'Pandoc' documents to Docbook XML.
 -}
 module Text.Pandoc.Writers.Docbook ( writeDocbook4, writeDocbook5 ) where
-import Prelude
 import Control.Monad.Reader
 import Data.Generics (everywhere, mkT)
 import Data.Monoid (Any (..))

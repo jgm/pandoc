@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Readers.Odt.Generic.Fallible
    Copyright   : Copyright (C) 2015 Martin Linnemann
@@ -19,7 +18,6 @@ compatible instances of "ArrowChoice".
 
 -- We export everything
 module Text.Pandoc.Readers.Odt.Generic.Fallible where
-import Prelude
 
 -- | Default for now. Will probably become a class at some point.
 type Failure = ()

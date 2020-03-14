@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -16,7 +15,6 @@ module Text.Pandoc.Readers.Org.Blocks
   , meta
   ) where
 
-import Prelude
 import Text.Pandoc.Readers.Org.BlockStarts
 import Text.Pandoc.Readers.Org.DocumentTree (documentTree,
                                              unprunedHeadlineToBlocks)

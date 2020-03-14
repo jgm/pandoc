@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
 {- |
@@ -13,7 +12,6 @@
 Conversion of 'Pandoc' documents to Docbook XML.
 -}
 module Text.Pandoc.Writers.TEI (writeTEI) where
-import Prelude
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad, report)

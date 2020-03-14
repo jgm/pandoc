@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
 Module      : Text.Pandoc.CSS
 Copyright   : © 2006-2020 John MacFarlane <jgm@berkeley.edu>,
@@ -18,7 +17,6 @@ module Text.Pandoc.CSS ( foldOrElse
                        )
 where
 
-import Prelude
 import qualified Data.Text as T
 import Text.Pandoc.Shared (trim)
 import Text.Parsec

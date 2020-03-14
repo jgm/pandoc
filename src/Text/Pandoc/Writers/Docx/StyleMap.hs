@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {- |
    Module : Text.Pandoc.Writers.Docx.StyleMap
@@ -30,7 +29,6 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.String
 import Data.Char (isSpace)
-import Prelude
 
 data StyleMaps = StyleMaps { smCharStyle :: CharStyleNameMap, smParaStyle :: ParaStyleNameMap }
 type ParaStyleNameMap = M.Map ParaStyleName ParStyle

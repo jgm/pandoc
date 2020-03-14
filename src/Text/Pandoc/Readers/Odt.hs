@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -15,7 +14,6 @@ Entry point to the odt reader.
 
 module Text.Pandoc.Readers.Odt ( readOdt ) where
 
-import Prelude
 import Codec.Archive.Zip
 import qualified Text.XML.Light as XML
 

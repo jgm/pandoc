@@ -14,7 +14,6 @@ Conversion of man to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Man (readMan) where
 
-import Prelude
 import Data.Char (toLower)
 import Data.Default (Default)
 import Control.Monad (liftM, mzero, guard, void)
