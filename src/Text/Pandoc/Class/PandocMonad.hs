@@ -145,9 +145,9 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   -- | Modify the 'CommonState'.
   modifyCommonState :: (CommonState -> CommonState) -> m ()
   modifyCommonState f = getCommonState >>= putCommonState . f
-  -- Output a log message.
+  -- | Output a log message.
   logOutput :: LogMessage -> m ()
-  -- Output a debug message to sterr, using 'Debug.Trace.trace',
+  -- | Output a debug message to sterr, using 'Debug.Trace.trace',
   -- if tracing is enabled.  Note: this writes to stderr even in
   -- pure instances.
   trace :: T.Text -> m ()
@@ -166,7 +166,7 @@ setVerbosity verbosity =
 getVerbosity :: PandocMonad m => m Verbosity
 getVerbosity = getsCommonState stVerbosity
 
--- Get the accomulated log messages (in temporal order).
+-- | Get the accomulated log messages (in temporal order).
 getLog :: PandocMonad m => m [LogMessage]
 getLog = reverse <$> getsCommonState stLog
 
@@ -200,22 +200,22 @@ setRequestHeader name val = modifyCommonState $ \st ->
 setMediaBag :: PandocMonad m => MediaBag -> m ()
 setMediaBag mb = modifyCommonState $ \st -> st{stMediaBag = mb}
 
--- Retrieve the media bag.
+-- | Retrieve the media bag.
 getMediaBag :: PandocMonad m => m MediaBag
 getMediaBag = getsCommonState stMediaBag
 
--- Insert an item into the media bag.
+-- | Insert an item into the media bag.
 insertMedia :: PandocMonad m => FilePath -> Maybe MimeType -> BL.ByteString -> m ()
 insertMedia fp mime bs = do
   mb <- getMediaBag
   let mb' = MB.insertMedia fp mime bs mb
   setMediaBag mb'
 
--- Retrieve the input filenames.
+-- | Retrieve the input filenames.
 getInputFiles :: PandocMonad m => m [FilePath]
 getInputFiles = getsCommonState stInputFiles
 
--- Set the input filenames.
+-- | Set the input filenames.
 setInputFiles :: PandocMonad m => [FilePath] -> m ()
 setInputFiles fs = do
   let sourceURL = case fs of
@@ -230,27 +230,27 @@ setInputFiles fs = do
   modifyCommonState $ \st -> st{ stInputFiles = fs
                                , stSourceURL = T.pack <$> sourceURL }
 
--- Retrieve the output filename.
+-- | Retrieve the output filename.
 getOutputFile :: PandocMonad m => m (Maybe FilePath)
 getOutputFile = getsCommonState stOutputFile
 
--- Set the output filename.
+-- | Set the output filename.
 setOutputFile :: PandocMonad m => Maybe FilePath -> m ()
 setOutputFile mbf = modifyCommonState $ \st -> st{ stOutputFile = mbf }
 
--- Retrieve the resource path searched by 'fetchItem'.
+-- | Retrieve the resource path searched by 'fetchItem'.
 getResourcePath :: PandocMonad m => m [FilePath]
 getResourcePath = getsCommonState stResourcePath
 
--- Set the resource path searched by 'fetchItem'.
+-- | Set the resource path searched by 'fetchItem'.
 setResourcePath :: PandocMonad m => [FilePath] -> m ()
 setResourcePath ps = modifyCommonState $ \st -> st{stResourcePath = ps}
 
--- Get the POSIX time.
+-- | Get the POSIX time.
 getPOSIXTime :: PandocMonad m => m POSIXTime
 getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
 
--- Get the zoned time.
+-- | Get the zoned time.
 getZonedTime :: PandocMonad m => m ZonedTime
 getZonedTime = do
   t <- getCurrentTime
@@ -363,6 +363,13 @@ fetchItem s = do
     Just (mime, bs) -> return (BL.toStrict bs, Just mime)
     Nothing -> downloadOrRead s
 
+-- | Returns the content and, if available, the MIME type of a resource.
+-- If the given resource location is a valid URI, then download the
+-- resource from that URI. Otherwise, treat the resource identifier as a
+-- local file name.
+--
+-- Note that resources are treated relative to the URL of the first
+-- input source, if any.
 downloadOrRead :: PandocMonad m
                => T.Text
                -> m (B.ByteString, Maybe MimeType)
@@ -407,7 +414,7 @@ downloadOrRead s = do
          convertSlash '\\' = '/'
          convertSlash x    = x
 
--- Retrieve default reference.docx.
+-- | Retrieve default reference.docx.
 getDefaultReferenceDocx :: PandocMonad m => m Archive
 getDefaultReferenceDocx = do
   let paths = ["[Content_Types].xml",
@@ -444,7 +451,7 @@ getDefaultReferenceDocx = do
      Nothing   -> foldr addEntryToArchive emptyArchive <$>
                      mapM pathToEntry paths
 
--- Retrieve default reference.odt.
+-- | Retrieve default reference.odt.
 getDefaultReferenceODT :: PandocMonad m => m Archive
 getDefaultReferenceODT = do
   let paths = ["mimetype",
@@ -473,6 +480,7 @@ getDefaultReferenceODT = do
      Nothing   -> foldr addEntryToArchive emptyArchive <$>
                      mapM pathToEntry paths
 
+-- | Retrieve default reference.pptx.
 getDefaultReferencePptx :: PandocMonad m => m Archive
 getDefaultReferencePptx = do
   -- We're going to narrow this down substantially once we get it
@@ -576,6 +584,8 @@ readDefaultDataFile fname =
   getDataFileName fname' >>= checkExistence >>= readFileStrict
     where fname' = if fname == "MANUAL.txt" then fname else "data" </> fname
 
+-- | Returns the input filename unchanged if the file exits, and throws
+-- a `PandocCouldNotFindDataFileError` if it doesn't.
 checkExistence :: PandocMonad m => FilePath -> m FilePath
 checkExistence fn = do
   exists <- fileExists fn
@@ -584,6 +594,7 @@ checkExistence fn = do
      else throwError $ PandocCouldNotFindDataFileError $ T.pack fn
 #endif
 
+-- | Canonicalizes a file path by removing redundant @.@ and @..@.
 makeCanonical :: FilePath -> FilePath
 makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
  where  transformPathParts = reverse . foldl go []
@@ -591,6 +602,11 @@ makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
         go (_:as) ".." = as
         go as     x    = x : as
 
+-- | Trys to run an action on a file: for each directory given, a
+-- filepath is created from the given filename, and the action is run on
+-- that filepath. Returns the result of the first successful execution
+-- of the action, or throws a @PandocResourceNotFound@ exception if the
+-- action errors for all filepaths.
 withPaths :: PandocMonad m => [FilePath] -> (FilePath -> m a) -> FilePath -> m a
 withPaths [] _ fp = throwError $ PandocResourceNotFound $ T.pack fp
 withPaths (p:ps) action fp =
