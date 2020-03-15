@@ -277,11 +277,14 @@ the file given?
 #!/usr/bin/env runhaskell
 -- includes.hs
 import Text.Pandoc.JSON
+import qualified Data.Text.IO as TIO
+import qualified Data.Text as T
 
 doInclude :: Block -> IO Block
 doInclude cb@(CodeBlock (id, classes, namevals) contents) =
   case lookup "include" namevals of
-       Just f     -> return . (CodeBlock (id, classes, namevals)) =<< readFile f
+       Just f     -> CodeBlock (id, classes, namevals) <$>
+                      TIO.readFile (T.unpack f)
        Nothing    -> return cb
 doInclude x = return x
 
@@ -358,17 +361,23 @@ markdown link with a URL beginning with a hyphen is interpreted as ruby:
     [はん](-飯)
 
 ~~~ {.haskell}
+{-# LANGUAGE OverloadedStrings #-}
 -- handleruby.hs
 import Text.Pandoc.JSON
 import System.Environment (getArgs)
+import qualified Data.Text as T
 
 handleRuby :: Maybe Format -> Inline -> Inline
-handleRuby (Just format) (Link _ [Str ruby] ('-':kanji,_))
-  | format == Format "html"  = RawInline format
-    $ "<ruby>" ++ kanji ++ "<rp>(</rp><rt>" ++ ruby ++ "</rt><rp>)</rp></ruby>"
-  | format == Format "latex" = RawInline format
-    $ "\\ruby{" ++ kanji ++ "}{" ++ ruby ++ "}"
-  | otherwise = Str ruby
+handleRuby (Just format) x@(Link attr [Str ruby] (src,_)) =
+  case T.uncons src of
+    Just ('-',kanji)
+      | format == Format "html" -> RawInline format $
+        "<ruby>" <> kanji <> "<rp>(</rp><rt>" <> ruby <>
+        "</rt><rp>)</rp></ruby>"
+      | format == Format "latex" -> RawInline format $
+        "\\ruby{" <> kanji <> "}{" <> ruby <> "}"
+      | otherwise -> Str ruby
+    _ -> x
 handleRuby _ x = x
 
 main :: IO ()
@@ -394,6 +403,11 @@ Then run it:
     [はん](-飯)
     ^D
     \ruby{飯}{はん}
+
+Note:  to use this to generate PDFs via LaTeX, you'll need
+to use `--pdf-engine=xelatex`, specify a `mainfont` that has
+the Japanese characters (e.g. "Noto Sans CJK TC"), and add
+`\usepackage{ruby}` to your template or header-includes.
 
 # Exercises
 
