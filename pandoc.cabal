@@ -569,6 +569,8 @@ library
                    Text.Pandoc.App.FormatHeuristics,
                    Text.Pandoc.App.Opt,
                    Text.Pandoc.App.OutputSettings,
+                   Text.Pandoc.Class.CommonState,
+                   Text.Pandoc.Class.PandocMonad,
                    Text.Pandoc.Filter.JSON,
                    Text.Pandoc.Filter.Lua,
                    Text.Pandoc.Filter.Path,
