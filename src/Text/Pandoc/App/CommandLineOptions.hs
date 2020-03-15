@@ -30,7 +30,7 @@ import Data.Bifunctor (second)
 import Data.Char (toLower)
 import Data.List (intercalate, sort)
 #ifdef _WINDOWS
-#if MIN_VERSION_base(4,12,0)
+#if MIN_VERSION_base_noprelude(4,12,0)
 import Data.List (isPrefixOf)
 #endif
 #endif
@@ -1028,7 +1028,7 @@ setVariable key val (Context ctx) = Context $ M.alter go key ctx
 -- beginning with \\ to \\?\UNC\. -- See #5127.
 normalizePath :: FilePath -> FilePath
 #ifdef _WINDOWS
-#if MIN_VERSION_base(4,12,0)
+#if MIN_VERSION_base_noprelude(4,12,0)
 normalizePath fp =
   if "\\\\" `isPrefixOf` fp && not ("\\\\?\\" `isPrefixOf` fp)
     then "\\\\?\\UNC\\" ++ drop 2 fp
