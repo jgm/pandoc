@@ -5,16 +5,11 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
-#if MIN_VERSION_base(4,8,0)
-#else
-{-# LANGUAGE OverlappingInstances #-}
-#endif
 {- |
 Module      : Text.Pandoc.Class.PandocMonad
-Copyright   : Copyright (C) 2016-20 Jesse Rosenthal, John MacFarlane
+Copyright   : Copyright (C) 2016-2020 Jesse Rosenthal, John MacFarlane
 License     : GNU GPL, version 2 or above
 
 Maintainer  : Jesse Rosenthal <jrosenthal@jhu.edu>
