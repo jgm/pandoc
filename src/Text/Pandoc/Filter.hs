@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -19,7 +18,6 @@ module Text.Pandoc.Filter
   , applyFilters
   ) where
 
-import Prelude
 import System.CPUTime (getCPUTime)
 import Data.Aeson.TH (deriveJSON, defaultOptions)
 import GHC.Generics (Generic)

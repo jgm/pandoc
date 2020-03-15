@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE PatternGuards #-}
 {- |
    Module      : Text.Pandoc.Writers.Powerpoint.Output
@@ -17,7 +16,6 @@ Text.Pandoc.Writers.Powerpoint.Presentation) to a zip archive.
 module Text.Pandoc.Writers.Powerpoint.Output ( presentationToArchive
                                              ) where
 
-import Prelude
 import Control.Monad.Except (throwError, catchError)
 import Control.Monad.Reader
 import Control.Monad.State

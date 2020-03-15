@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns      #-}
 {- |
@@ -15,7 +14,6 @@ Conversion of 'Pandoc' documents to reStructuredText.
 reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 -}
 module Text.Pandoc.Writers.RST ( writeRST, flatten ) where
-import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.List (transpose, intersperse)

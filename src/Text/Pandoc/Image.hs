@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, CPP #-}
 {-# LANGUAGE ViewPatterns      #-}
 {- |
@@ -13,7 +12,6 @@ Portability : portable
 Functions for converting images.
 -}
 module Text.Pandoc.Image ( svgToPng ) where
-import Prelude
 import Text.Pandoc.Options (WriterOptions(..))
 import Text.Pandoc.Process (pipeProcess)
 import qualified Data.ByteString.Lazy as L

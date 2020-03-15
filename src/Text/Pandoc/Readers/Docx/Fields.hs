@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Docx.Fields
@@ -16,7 +15,6 @@ module Text.Pandoc.Readers.Docx.Fields ( FieldInfo(..)
                                        , parseFieldInfo
                                        ) where
 
-import Prelude
 import Data.Functor (($>), void)
 import qualified Data.Text as T
 import Text.Parsec

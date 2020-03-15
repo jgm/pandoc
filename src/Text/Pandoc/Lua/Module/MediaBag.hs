@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.MediaBag
@@ -14,7 +13,6 @@ module Text.Pandoc.Lua.Module.MediaBag
   ( pushModule
   ) where
 
-import Prelude
 import Control.Monad (zipWithM_)
 import Foreign.Lua (Lua, NumResults, Optional, liftIO)
 import Text.Pandoc.Class (CommonState (..), fetchItem, putCommonState,

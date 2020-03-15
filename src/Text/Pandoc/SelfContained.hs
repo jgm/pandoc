@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
 {- |
@@ -15,7 +14,6 @@ offline, by incorporating linked images, CSS, and scripts into
 the HTML using data URIs.
 -}
 module Text.Pandoc.SelfContained ( makeDataURI, makeSelfContained ) where
-import Prelude
 import Codec.Compression.GZip as Gzip
 import Control.Applicative ((<|>))
 import Control.Monad.Except (throwError)

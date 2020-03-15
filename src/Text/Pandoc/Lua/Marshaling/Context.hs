@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.Context
@@ -13,7 +12,6 @@ Marshaling instance for doctemplates Context and its components.
 -}
 module Text.Pandoc.Lua.Marshaling.Context () where
 
-import Prelude
 import qualified Foreign.Lua as Lua
 import Foreign.Lua (Pushable)
 import Text.DocTemplates (Context(..), Val(..), TemplateTarget)

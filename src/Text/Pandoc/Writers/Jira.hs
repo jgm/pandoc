@@ -1,6 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Writers.Jira
    Copyright   : © 2010-2020 Albert Krewinkel, John MacFarlane
@@ -16,7 +15,6 @@ JIRA:
 <https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all>
 -}
 module Text.Pandoc.Writers.Jira ( writeJira ) where
-import Prelude
 import Control.Monad.Reader (ReaderT, ask, asks, runReaderT)
 import Control.Monad.State.Strict (StateT, evalStateT, gets, modify)
 import Data.Foldable (find)

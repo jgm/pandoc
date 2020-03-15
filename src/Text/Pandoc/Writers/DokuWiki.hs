@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.DokuWiki
@@ -23,7 +22,6 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 -}
 
 module Text.Pandoc.Writers.DokuWiki ( writeDokuWiki ) where
-import Prelude
 import Control.Monad (zipWithM)
 import Control.Monad.Reader (ReaderT, asks, local, runReaderT)
 import Control.Monad.State.Strict (StateT, evalStateT)

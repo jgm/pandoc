@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE RelaxedPolyRec      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -15,7 +14,6 @@ Parse YAML/JSON metadata to 'Pandoc' 'Meta'.
 -}
 module Text.Pandoc.Readers.Metadata ( yamlBsToMeta ) where
 
-import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL

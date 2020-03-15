@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP               #-}
 {- |
@@ -13,7 +12,6 @@
 Conversion of 'Pandoc' documents to OPML XML.
 -}
 module Text.Pandoc.Writers.OPML ( writeOPML) where
-import Prelude
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B

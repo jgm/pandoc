@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns      #-}
 {- |
@@ -21,7 +20,6 @@ TODO:
 -}
 
 module Text.Pandoc.Writers.Ms ( writeMs ) where
-import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isLower, isUpper, ord)
 import Data.List (intercalate, intersperse)

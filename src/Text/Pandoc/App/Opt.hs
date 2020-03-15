@@ -1,6 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE TemplateHaskell     #-}
@@ -23,7 +22,6 @@ module Text.Pandoc.App.Opt (
           , defaultOpts
           , addMeta
           ) where
-import Prelude
 import Data.Char (isLower, toLower)
 import GHC.Generics hiding (Meta)
 import Text.Pandoc.Builder (setMeta)

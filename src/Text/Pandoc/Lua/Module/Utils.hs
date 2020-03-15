@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Utils
    Copyright   : Copyright © 2017-2020 Albert Krewinkel
@@ -13,7 +12,6 @@ module Text.Pandoc.Lua.Module.Utils
   ( pushModule
   ) where
 
-import Prelude
 import Control.Applicative ((<|>))
 import Data.Default (def)
 import Data.Version (Version)

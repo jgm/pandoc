@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns      #-}
 {- |
@@ -14,7 +13,6 @@ Conversion of 'Pandoc' documents to roff man page format.
 
 -}
 module Text.Pandoc.Writers.Man ( writeMan ) where
-import Prelude
 import Control.Monad.State.Strict
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe)

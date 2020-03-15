@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {- |
    Module      : Text.Pandoc.Writers.Custom
@@ -14,7 +13,6 @@ Conversion of 'Pandoc' documents to custom markup using
 a lua writer.
 -}
 module Text.Pandoc.Writers.Custom ( writeCustom ) where
-import Prelude
 import Control.Arrow ((***))
 import Control.Exception
 import Control.Monad (when)

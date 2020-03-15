@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, CPP #-}
 {-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
@@ -33,7 +32,6 @@ module Text.Pandoc.ImageSize ( ImageType(..)
                              , showInPixel
                              , showFl
                              ) where
-import Prelude
 import Data.ByteString (ByteString, unpack)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as BL

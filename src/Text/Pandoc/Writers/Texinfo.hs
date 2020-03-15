@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.Texinfo
@@ -13,7 +12,6 @@
 Conversion of 'Pandoc' format into Texinfo.
 -}
 module Text.Pandoc.Writers.Texinfo ( writeTexinfo ) where
-import Prelude
 import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict
 import Data.Char (chr, ord)

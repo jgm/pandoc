@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.BCP47
    Copyright   : Copyright (C) 2017–2020 John MacFarlane
@@ -18,7 +17,6 @@ module Text.Pandoc.BCP47 (
                      , renderLang
                      )
 where
-import Prelude
 import Control.Monad (guard)
 import Data.Char (isAlphaNum, isAscii, isLetter, isLower, isUpper)
 import Text.Pandoc.Definition

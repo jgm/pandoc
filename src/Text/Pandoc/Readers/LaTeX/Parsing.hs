@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -69,7 +68,6 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , withRaw
   ) where
 
-import Prelude
 import Control.Applicative (many, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)

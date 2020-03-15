@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Docx.Lists
@@ -18,7 +17,6 @@ module Text.Pandoc.Readers.Docx.Lists ( blocksToBullets
                                       , listParagraphStyles
                                       ) where
 
-import Prelude
 import Data.List
 import Data.Maybe
 import Data.String (fromString)

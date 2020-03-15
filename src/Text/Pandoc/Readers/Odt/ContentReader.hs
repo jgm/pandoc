@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE Arrows            #-}
 {-# LANGUAGE DeriveFoldable    #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -24,7 +23,6 @@ module Text.Pandoc.Readers.Odt.ContentReader
 , read_body
 ) where
 
-import Prelude
 import Control.Applicative hiding (liftA, liftA2, liftA3)
 import Control.Arrow
 

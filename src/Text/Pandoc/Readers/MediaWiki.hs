@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RelaxedPolyRec    #-}
 -- RelaxedPolyRec needed for inlinesBetween on GHC < 7
@@ -20,7 +19,6 @@ _ parse templates?
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
-import Prelude
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isSpace)

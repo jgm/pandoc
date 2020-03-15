@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude    #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.AnyValue
    Copyright   : © 2017-2020 Albert Krewinkel
@@ -15,7 +14,6 @@ into HsLua.
 -}
 module Text.Pandoc.Lua.Marshaling.AnyValue (AnyValue (..)) where
 
-import Prelude
 import Foreign.Lua (Peekable (peek), StackIndex)
 
 -- | Dummy type to allow values of arbitrary Lua type. This just wraps

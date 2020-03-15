@@ -1,5 +1,4 @@
 {-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -16,7 +15,6 @@ Marshaling instance for ReaderOptions and its components.
 -}
 module Text.Pandoc.Lua.Marshaling.ReaderOptions () where
 
-import Prelude
 import Data.Data (showConstr, toConstr)
 import Foreign.Lua (Lua, Pushable)
 import Text.Pandoc.Extensions (Extensions)

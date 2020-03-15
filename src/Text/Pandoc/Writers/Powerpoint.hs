@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Writers.Powerpoint
    Copyright   : Copyright (C) 2017-2020 Jesse Rosenthal
@@ -22,7 +21,6 @@ This is a wrapper around two modules:
 
 module Text.Pandoc.Writers.Powerpoint (writePowerpoint) where
 
-import Prelude
 import Codec.Archive.Zip
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk

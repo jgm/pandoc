@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -21,7 +20,6 @@ module Text.Pandoc.Writers.JATS
   , writeJatsPublishing
   , writeJatsArticleAuthoring
   ) where
-import Prelude
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Generics (everywhere, mkT)

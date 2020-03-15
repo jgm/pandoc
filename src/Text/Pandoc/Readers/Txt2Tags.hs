@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Txt2Tags
@@ -15,7 +14,6 @@ module Text.Pandoc.Readers.Txt2Tags ( readTxt2Tags
                                     )
                                     where
 
-import Prelude
 import Control.Monad (guard, void, when)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Reader (Reader, asks, runReader)

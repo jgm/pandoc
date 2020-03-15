@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -15,7 +14,6 @@ Conversion of LaTeX documents to PDF.
 -}
 module Text.Pandoc.PDF ( makePDF ) where
 
-import Prelude
 import qualified Codec.Picture as JP
 import qualified Control.Exception as E
 import Control.Monad (when)

@@ -1,5 +1,4 @@
 {-# LANGUAGE MonoLocalBinds      #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {- |
@@ -57,7 +56,6 @@ module Text.Pandoc.Readers
   , getDefaultExtensions
   ) where
 
-import Prelude
 import Control.Monad (unless)
 import Control.Monad.Except (throwError)
 import Data.Aeson

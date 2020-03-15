@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {- |
@@ -13,7 +12,6 @@
 Conversion of 'Pandoc' documents to ODT.
 -}
 module Text.Pandoc.Writers.ODT ( writeODT ) where
-import Prelude
 import Codec.Archive.Zip
 import Control.Monad.Except (catchError)
 import Control.Monad.State.Strict

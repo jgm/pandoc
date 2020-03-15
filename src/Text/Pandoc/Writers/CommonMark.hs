@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns      #-}
 {- |
@@ -16,7 +15,6 @@ CommonMark:  <http://commonmark.org>
 -}
 module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 
-import Prelude
 import CMarkGFM
 import Control.Monad.State.Strict (State, get, modify, runState)
 import Data.Char (isAscii)

@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Inlines
@@ -16,7 +15,6 @@ module Text.Pandoc.Readers.Org.Inlines
   , linkTarget
   ) where
 
-import Prelude
 import Text.Pandoc.Readers.Org.BlockStarts (endOfBlock, noteMarker)
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing

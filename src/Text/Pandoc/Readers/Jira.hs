@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -12,7 +11,6 @@ Conversion of jira wiki formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Jira ( readJira ) where
 
-import Prelude
 import Control.Monad.Except (throwError)
 import Data.Text (Text, append, pack, singleton, unpack)
 import Text.HTML.TagSoup.Entity (lookupEntity)

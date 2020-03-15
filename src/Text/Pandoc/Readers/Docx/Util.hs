@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Readers.Docx.StyleMaps
    Copyright   : © 2014-2020 Jesse Rosenthal <jrosenthal@jhu.edu>,
@@ -24,7 +23,6 @@ module Text.Pandoc.Readers.Docx.Util (
                                       , findAttrTextByName
                                       ) where
 
-import Prelude
 import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import Text.XML.Light

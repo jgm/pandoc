@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Slides
@@ -13,7 +12,6 @@ Utility functions for splitting documents into slides for slide
 show formats (dzslides, revealjs, s5, slidy, slideous, beamer).
 -}
 module Text.Pandoc.Slides ( getSlideLevel, prepSlides ) where
-import Prelude
 import Text.Pandoc.Definition
 
 -- | Find level of header that starts slides (defined as the least header

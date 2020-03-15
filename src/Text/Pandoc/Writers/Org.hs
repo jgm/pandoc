@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.Org
@@ -16,7 +15,6 @@ Conversion of 'Pandoc' documents to Emacs Org-Mode.
 Org-Mode:  <http://orgmode.org>
 -}
 module Text.Pandoc.Writers.Org (writeOrg) where
-import Prelude
 import Control.Monad.State.Strict
 import Data.Char (isAlphaNum)
 import Data.List (intersect, intersperse, partition, transpose)

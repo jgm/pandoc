@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Shared
@@ -17,7 +16,6 @@ module Text.Pandoc.Readers.Org.Shared
   , exportsCode
   ) where
 
-import Prelude
 import Data.Char (isAlphaNum)
 import Data.Text (Text)
 import qualified Data.Text as T

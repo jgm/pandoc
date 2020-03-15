@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Reader.Odt.Namespaces
    Copyright   : Copyright (C) 2015 Martin Linnemann
@@ -14,7 +13,6 @@ Namespaces used in odt files.
 module Text.Pandoc.Readers.Odt.Namespaces ( Namespace (..)
                                           ) where
 
-import Prelude
 import Data.List (isPrefixOf)
 import qualified Data.Map as M (empty, insert)
 import Data.Maybe (fromMaybe, listToMaybe)

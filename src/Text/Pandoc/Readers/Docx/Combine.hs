@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE PatternGuards        #-}
 {-# LANGUAGE OverloadedStrings    #-}
@@ -59,7 +58,6 @@ module Text.Pandoc.Readers.Docx.Combine ( smushInlines
                                         )
        where
 
-import Prelude
 import Data.List
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr, (><), (|>))
 import qualified Data.Sequence as Seq (null)

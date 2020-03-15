@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -104,7 +103,6 @@ module Text.Pandoc.Shared (
                      pandocVersion
                     ) where
 
-import Prelude
 import Codec.Archive.Zip
 import qualified Control.Exception as E
 import Control.Monad (MonadPlus (..), msum, unless)

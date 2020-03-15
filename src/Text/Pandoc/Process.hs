@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Process
    Copyright   : Copyright (C) 2013-2020 John MacFarlane
@@ -12,7 +11,6 @@ ByteString variant of 'readProcessWithExitCode'.
 -}
 module Text.Pandoc.Process (pipeProcess)
 where
-import Prelude
 import Control.Concurrent (MVar, forkIO, killThread, newEmptyMVar, putMVar,
                            takeMVar)
 import Control.Exception (SomeException (..))

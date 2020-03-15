@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Lua
    Copyright   : Copyright © 2017–2020 Albert Krewinkel

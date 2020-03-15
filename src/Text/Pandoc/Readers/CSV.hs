@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE FlexibleContexts    #-}
 
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -14,7 +13,6 @@
 Conversion from CSV to a 'Pandoc' table.
 -}
 module Text.Pandoc.Readers.CSV ( readCSV ) where
-import Prelude
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.CSV (parseCSV, defaultCSVOptions)

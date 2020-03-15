@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.MIME
@@ -13,7 +12,6 @@ Mime type lookup.
 -}
 module Text.Pandoc.MIME ( MimeType, getMimeType, getMimeTypeDef,
                           extensionFromMimeType, mediaCategory ) where
-import Prelude
 import Data.List (isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
 import qualified Data.Text as T

@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP                        #-}
-{-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -33,7 +32,6 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , githubMarkdownExtensions
                               , multimarkdownExtensions )
 where
-import Prelude
 import Data.Bits (clearBit, setBit, testBit, (.|.))
 import Data.Data (Data)
 import qualified Data.Text as T

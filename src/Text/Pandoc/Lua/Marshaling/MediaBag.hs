@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude    #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.MediaBag
    Copyright   : © 2012-2020 John MacFarlane
@@ -11,7 +10,6 @@ Instances to marshal (push) and unmarshal (peek) media data.
 -}
 module Text.Pandoc.Lua.Marshaling.MediaBag (pushIterator) where
 
-import Prelude
 import Foreign.Ptr (Ptr)
 import Foreign.StablePtr (StablePtr, deRefStablePtr, newStablePtr)
 import Foreign.Lua (Lua, NumResults, Peekable, Pushable, StackIndex)

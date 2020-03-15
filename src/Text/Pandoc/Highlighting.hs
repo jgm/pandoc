@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Highlighting
@@ -34,7 +33,6 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 , fromListingsLanguage
                                 , toListingsLanguage
                                 ) where
-import Prelude
 import Control.Monad
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)

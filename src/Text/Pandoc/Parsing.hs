@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE ExplicitForAll             #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -186,7 +185,6 @@ module Text.Pandoc.Parsing ( take1WhileP,
                              )
 where
 
-import Prelude
 import Control.Monad.Identity
 import Control.Monad.Reader
 import Data.Char (chr, isAlphaNum, isAscii, isAsciiUpper,

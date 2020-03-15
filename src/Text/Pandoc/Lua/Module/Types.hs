@@ -12,7 +12,6 @@ module Text.Pandoc.Lua.Module.Types
   ( pushModule
   ) where
 
-import Prelude
 import Data.Version (Version)
 import Foreign.Lua (Lua, NumResults)
 import Text.Pandoc.Definition

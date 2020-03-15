@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.Roff
@@ -21,7 +20,6 @@ module Text.Pandoc.Writers.Roff (
     , escapeString
     , withFontFeature
     ) where
-import Prelude
 import Data.Char (ord, isAscii)
 import Control.Monad.State.Strict
 import qualified Data.Map as Map

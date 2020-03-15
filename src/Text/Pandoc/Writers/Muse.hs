@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns      #-}
 {- |
@@ -26,7 +25,6 @@ However, @\<literal style="html">@ tag is used for HTML raw blocks
 even though it is supported only in Emacs Muse.
 -}
 module Text.Pandoc.Writers.Muse (writeMuse) where
-import Prelude
 import Control.Monad.Except (throwError)
 import Control.Monad.Reader
 import Control.Monad.State.Strict

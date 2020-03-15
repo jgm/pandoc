@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.OPML
@@ -13,7 +12,6 @@ Conversion of OPML to 'Pandoc' document.
 -}
 
 module Text.Pandoc.Readers.OPML ( readOPML ) where
-import Prelude
 import Control.Monad.State.Strict
 import Data.Char (toUpper)
 import Data.Default

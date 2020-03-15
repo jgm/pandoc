@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns      #-}
 {- |
@@ -25,7 +24,6 @@ module Text.Pandoc.XML ( escapeCharForXML,
                          html5Attributes,
                          rdfaAttributes ) where
 
-import Prelude
 import Data.Char (isAscii, isSpace, ord)
 import Data.Text (Text)
 import qualified Data.Text as T

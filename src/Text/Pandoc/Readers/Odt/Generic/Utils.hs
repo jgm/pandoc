@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns  #-}
 {- |
@@ -30,7 +29,6 @@ module Text.Pandoc.Readers.Odt.Generic.Utils
 , composition
 ) where
 
-import Prelude
 import Control.Category (Category, (<<<), (>>>))
 import qualified Control.Category as Cat (id)
 import Control.Monad (msum)

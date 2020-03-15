@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.CommonState
@@ -14,7 +13,6 @@ Instances to marshal (push) and unmarshal (peek) the common state.
 -}
 module Text.Pandoc.Lua.Marshaling.CommonState () where
 
-import Prelude
 import Foreign.Lua (Lua, Peekable, Pushable)
 import Foreign.Lua.Types.Peekable (reportValueOnFailure)
 import Foreign.Lua.Userdata (ensureUserdataMetatable, pushAnyWithMetatable,

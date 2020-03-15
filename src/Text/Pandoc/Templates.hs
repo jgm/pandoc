@@ -24,7 +24,6 @@ module Text.Pandoc.Templates ( Template
                              , compileDefaultTemplate
                              ) where
 
-import Prelude
 import System.FilePath ((<.>), (</>), takeFileName)
 import Text.DocTemplates (Template, TemplateMonad(..), compileTemplate, renderTemplate)
 import Text.Pandoc.Class (PandocMonad, readDataFile, fetchItem,

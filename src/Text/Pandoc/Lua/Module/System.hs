@@ -12,7 +12,6 @@ module Text.Pandoc.Lua.Module.System
   ( pushModule
   ) where
 
-import Prelude
 import Foreign.Lua (Lua, NumResults)
 import Foreign.Lua.Module.System (arch, env, getwd, os,
                                   with_env, with_tmpdir, with_wd)

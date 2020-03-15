@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.RoffChar
@@ -17,7 +16,6 @@ module Text.Pandoc.RoffChar (
   , characterCodes
   , combiningAccents
   ) where
-import Prelude
 import qualified Data.Text as T
 
 -- | These are the escapes specifically mentioned in groff_man(7),

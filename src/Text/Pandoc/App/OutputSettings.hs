@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
@@ -19,7 +18,6 @@ module Text.Pandoc.App.OutputSettings
   ( OutputSettings (..)
   , optToOutputSettings
   ) where
-import Prelude
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Text.DocTemplates (toVal, Context(..), Val(..))

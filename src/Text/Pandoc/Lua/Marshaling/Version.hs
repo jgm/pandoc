@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {- |
@@ -20,7 +19,6 @@ module Text.Pandoc.Lua.Marshaling.Version
   )
   where
 
-import Prelude
 import Data.Text (Text)
 import Data.Maybe (fromMaybe)
 import Data.Version (Version (..), makeVersion, parseVersion, showVersion)

@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Parsing
    Copyright   : Copyright (C) 2014-2020 Albert Krewinkel
@@ -104,7 +103,6 @@ module Text.Pandoc.Readers.Org.Parsing
   , getPosition
   ) where
 
-import Prelude
 import Data.Text (Text)
 import Text.Pandoc.Readers.Org.ParserState
 
