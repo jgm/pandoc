@@ -3096,8 +3096,9 @@ it should not be indented more than three spaces.)
 A "lazy" form, which requires the `>` character only on the first
 line of each block, is also allowed:
 
-    > This is a block quote. This
-    paragraph has two lines.
+    > This is a block quote. This\
+    paragraph has three lines.\
+    The back backslash escape is required.
 
     > 1. This is a list inside a block quote.
     2. Second item.
