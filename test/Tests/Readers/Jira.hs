@@ -114,5 +114,9 @@ tests =
 
     , "HTML entity" =:
       "me &amp; you" =?> para "me & you"
+
+    , "non-strikeout dashes" =:
+      "20.09-15 2-678" =?>
+      para "20.09-15 2-678"
     ]
   ]
