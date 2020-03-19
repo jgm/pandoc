@@ -77,6 +77,11 @@ tests =
       simpleTable []
                   [ [para "language", para "haskell", para "lua"]
                   , [para "type", para "static", para "dynamic"]]
+
+    , "table after paragraph" =:
+      "*tabletest*\n||Name|\n|Test|\n" =?>
+      para (strong "tabletest") <>
+      simpleTable [para "Name"] [[para "Test"]]
     ]
 
   , testGroup "inlines"
