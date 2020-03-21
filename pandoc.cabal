@@ -570,6 +570,8 @@ library
                    Text.Pandoc.App.OutputSettings,
                    Text.Pandoc.Class.CommonState,
                    Text.Pandoc.Class.PandocMonad,
+                   Text.Pandoc.Class.PandocIO,
+                   Text.Pandoc.Class.PandocPure,
                    Text.Pandoc.Filter.JSON,
                    Text.Pandoc.Filter.Lua,
                    Text.Pandoc.Filter.Path,
