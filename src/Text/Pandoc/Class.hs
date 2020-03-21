@@ -124,6 +124,9 @@ import qualified System.Environment as IO (lookupEnv)
 import qualified System.FilePath.Glob as IO (glob)
 import qualified System.Random as IO (newStdGen)
 import qualified Text.Pandoc.UTF8 as UTF8
+#ifndef EMBED_DATA_FILES
+import qualified Paths_pandoc as Paths
+#endif
 
 -- | Evaluate a 'PandocIO' operation.
 runIO :: PandocIO a -> IO (Either PandocError a)
