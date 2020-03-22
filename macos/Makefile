@@ -1,0 +1,30 @@
+VERSION=$(shell cat version.txt)
+BASE=pandoc-$(VERSION)
+DEST=pandoc/usr/local
+ALL=$(BASE)-macOS.pkg $(BASE)-macOS.zip
+
+all: $(ALL)
+
+signed.txt: $(DEST)
+	chmod +x $(DEST)/bin/pandoc $(DEST)/bin/pandoc-citeproc
+	codesign -v $(DEST)/bin/pandoc || codesign -s "5U2WKE6DES" $(DEST)/bin/pandoc
+	codesign -v $(DEST)/bin/pandoc-citeproc || codesign -s "5U2WKE6DES" $(DEST)/bin/pandoc-citeproc
+	echo "SIGNED" > signed.txt
+
+pandoc.pkg: signed.txt
+	pkgbuild --root pandoc --identifier net.johnmacfarlane.pandoc --version $(VERSION) --ownership recommended $@
+
+$(BASE)-macOS.pkg: pandoc.pkg
+	productbuild --distribution distribution.xml --resources Resources --package-path $< --version $(VERSION) --sign 'Developer ID Installer: John Macfarlane' $@
+
+$(BASE)-macOS.zip: signed.txt
+	ln -s $(DEST) $(BASE)
+	zip -r $@ $(BASE)
+
+clean:
+	rm signed.txt $(BASE) pandoc.pkg
+
+distclean: clean
+	rm $(ALL)
+
+.PHONY: all clean distclean
