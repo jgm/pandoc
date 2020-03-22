@@ -21,8 +21,14 @@ $(BASE)-macOS.zip: signed.txt
 	ln -s $(DEST) $(BASE)
 	zip -r $@ $(BASE)
 
+gon.hcl: version.txt
+	echo "notarize {\n  path = \"$(BASE)-macOS.pkg\"\n  bundle_id = \"org.pandoc.pandoc\"\n  staple = true\n}\napple_id {\n  username = \"jgm@berkeley.edu\"\n  password = \"@env:AC_PASSWORD\"\n}" > $@
+
+notarize: gon.hcl $(BASE)-macOS.pkg
+	gon -log-level=info ./gon.hcl
+
 clean:
-	rm signed.txt $(BASE) pandoc.pkg
+	rm signed.txt $(BASE) pandoc.pkg gon.hcl
 
 distclean: clean
 	rm $(ALL)
