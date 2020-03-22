@@ -7,8 +7,8 @@ all: $(ALL)
 
 signed.txt: $(DEST)
 	chmod +x $(DEST)/bin/pandoc $(DEST)/bin/pandoc-citeproc
-	codesign -v $(DEST)/bin/pandoc || codesign -s "5U2WKE6DES" $(DEST)/bin/pandoc
-	codesign -v $(DEST)/bin/pandoc-citeproc || codesign -s "5U2WKE6DES" $(DEST)/bin/pandoc-citeproc
+	codesign --force --options runtime -s "5U2WKE6DES" $(DEST)/bin/pandoc
+	codesign --force --options runtime -s "5U2WKE6DES" $(DEST)/bin/pandoc-citeproc
 	echo "SIGNED" > signed.txt
 
 pandoc.pkg: signed.txt
