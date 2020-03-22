@@ -3,7 +3,7 @@ BASE=pandoc-$(VERSION)
 DEST=pandoc/usr/local
 ALL=$(BASE)-macOS.pkg $(BASE)-macOS.zip
 
-all: $(ALL)
+all: $(ALL) notarize
 
 signed.txt: $(DEST)
 	chmod +x $(DEST)/bin/pandoc $(DEST)/bin/pandoc-citeproc
@@ -25,7 +25,7 @@ gon.hcl: version.txt
 	echo "notarize {\n  path = \"$(BASE)-macOS.pkg\"\n  bundle_id = \"org.pandoc.pandoc\"\n  staple = true\n}\napple_id {\n  username = \"jgm@berkeley.edu\"\n  password = \"@env:AC_PASSWORD\"\n}" > $@
 
 notarize: gon.hcl $(BASE)-macOS.pkg
-	gon -log-level=info ./gon.hcl
+	gon -log-level=warn ./gon.hcl
 
 clean:
 	rm signed.txt $(BASE) pandoc.pkg gon.hcl
