@@ -13,7 +13,7 @@ module Text.Pandoc.Filter.Path
   ( expandFilterPath
   ) where
 
-import Text.Pandoc.Class (PandocMonad, fileExists, getUserDataDir)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, fileExists, getUserDataDir)
 import System.FilePath ((</>), isRelative)
 
   -- First we check to see if a filter is found.  If not, and if it's

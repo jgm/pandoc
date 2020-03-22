@@ -29,7 +29,8 @@ module Text.Pandoc.Lua.Util
 import Control.Monad (unless, when)
 import Foreign.Lua ( Lua, NumArgs, NumResults, Peekable, Pushable, StackIndex
                    , Status, ToHaskellFunction )
-import Text.Pandoc.Class (readDataFile, runIOorExplode, setUserDataDir)
+import Text.Pandoc.Class.PandocIO (runIOorExplode)
+import Text.Pandoc.Class.PandocMonad (readDataFile, setUserDataDir)
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Text (Text)

@@ -23,7 +23,7 @@ import Data.List (transpose)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.HTTP (urlEncode)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (capitalize, isTightList,

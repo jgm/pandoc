@@ -35,8 +35,9 @@ import Network.HTTP (urlEncode)
 import System.FilePath (takeExtension, takeFileName, makeRelative)
 import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
 import Text.Pandoc.Builder (fromList, setMeta)
-import Text.Pandoc.Class (PandocMonad, report)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
+import qualified Text.Pandoc.Class.PandocPure as P
+import qualified Text.Pandoc.Class.PandocMonad as P
 import Data.Time
 import Text.Pandoc.Definition
 import Text.Pandoc.Error

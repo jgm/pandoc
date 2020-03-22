@@ -27,8 +27,8 @@ import Data.Char (isAlphaNum, isAscii)
 import Network.URI (escapeURIString)
 import System.FilePath (takeDirectory, takeExtension, (</>))
 import Text.HTML.TagSoup
-import Text.Pandoc.Class (PandocMonad (..), fetchItem, getInputFiles, report,
-                          setInputFiles)
+import Text.Pandoc.Class.PandocMonad (PandocMonad (..), fetchItem,
+                                      getInputFiles, report, setInputFiles)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType)

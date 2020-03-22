@@ -61,7 +61,8 @@ import System.FilePath (takeBaseName)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
-import Text.Pandoc.Class (PandocMonad, report, runPure)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
+import Text.Pandoc.Class.PandocPure (runPure)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (mediaCategory)
@@ -1308,4 +1309,3 @@ isRawHtml f = do
   html5 <- gets stHtml5
   return $ f == Format "html" ||
            ((html5 && f == Format "html5") || f == Format "html4")
-

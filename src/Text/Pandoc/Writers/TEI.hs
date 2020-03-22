@@ -14,7 +14,7 @@ Conversion of 'Pandoc' documents to Docbook XML.
 module Text.Pandoc.Writers.TEI (writeTEI) where
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (languages, languagesByExtension)
 import Text.Pandoc.ImageSize

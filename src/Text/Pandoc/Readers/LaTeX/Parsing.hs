@@ -80,7 +80,7 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Builder
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Error (PandocError (PandocMacroLoop))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options

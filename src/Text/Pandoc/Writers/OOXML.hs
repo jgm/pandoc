@@ -32,7 +32,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
 import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.XML.Light as XML
 

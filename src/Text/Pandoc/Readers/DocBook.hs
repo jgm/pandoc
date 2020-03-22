@@ -23,7 +23,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Shared (crFilter, safeRead)

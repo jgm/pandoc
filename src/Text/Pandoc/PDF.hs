@@ -52,9 +52,9 @@ import Text.Pandoc.Writers.Shared (getField, metaToContext)
 import Data.List (intercalate)
 #endif
 import Data.List (isPrefixOf, find)
-import Text.Pandoc.Class (PandocIO, extractMedia, fillMediaBag, getCommonState,
-                          getVerbosity, putCommonState, report,
-                          runIOorExplode, setVerbosity)
+import Text.Pandoc.Class.PandocIO (PandocIO, extractMedia, runIOorExplode)
+import Text.Pandoc.Class.PandocMonad (fillMediaBag, getCommonState, getVerbosity,
+                                      putCommonState, report, setVerbosity)
 import Text.Pandoc.Logging
 
 #ifdef _WINDOWS

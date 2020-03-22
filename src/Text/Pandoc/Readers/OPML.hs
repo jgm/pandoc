@@ -21,7 +21,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.Markdown (readMarkdown)

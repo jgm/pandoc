@@ -24,8 +24,7 @@ import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Text (Text)
-import Text.Pandoc.Class (PandocMonad, report)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Class.PandocMonad (PandocMonad, fetchItem, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
@@ -550,7 +549,7 @@ styleToStrAttr style =
 imageICML :: PandocMonad m => WriterOptions -> Style -> Attr -> Target -> WS m (Doc Text)
 imageICML opts style attr (src, _) = do
   imgS <- catchError
-          (do (img, _) <- P.fetchItem src
+          (do (img, _) <- fetchItem src
               case imageSize opts img of
                 Right size -> return size
                 Left msg   -> do

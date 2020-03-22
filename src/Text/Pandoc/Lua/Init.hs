@@ -19,8 +19,9 @@ import Control.Monad.Trans (MonadIO (..))
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Foreign.Lua (Lua)
 import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
-import Text.Pandoc.Class (PandocIO, getCommonState, getUserDataDir,
-                          putCommonState)
+import Text.Pandoc.Class.PandocIO (PandocIO)
+import Text.Pandoc.Class.PandocMonad (getCommonState, getUserDataDir,
+                                      putCommonState)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Packages (LuaPackageParams (..),
                                  installPandocPackageSearcher)

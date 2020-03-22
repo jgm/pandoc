@@ -34,8 +34,8 @@ import qualified Text.XML.Light as X
 import qualified Text.XML.Light.Cursor as XC
 import qualified Text.XML.Light.Input as XI
 
-import Text.Pandoc.Class (PandocMonad, report)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
+import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)

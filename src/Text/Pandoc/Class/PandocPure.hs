@@ -2,7 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
-Module      : Text.Pandoc.Class.Pure
+Module      : Text.Pandoc.Class.PandocPure
 Copyright   : Copyright (C) 2016-2020 Jesse Rosenthal, John MacFarlane
 License     : GNU GPL, version 2 or above
 

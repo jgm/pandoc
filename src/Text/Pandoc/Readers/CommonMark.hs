@@ -21,7 +21,7 @@ import Control.Monad.State
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Options

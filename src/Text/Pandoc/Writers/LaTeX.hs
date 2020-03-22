@@ -31,7 +31,7 @@ import Network.URI (unEscapeString)
 import Text.DocTemplates (FromContext(lookupContext), renderTemplate,
                           Val(..), Context(..))
 import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang)
-import Text.Pandoc.Class (PandocMonad, report, toLang)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
                                  styleToLaTeX, toListingsLanguage)

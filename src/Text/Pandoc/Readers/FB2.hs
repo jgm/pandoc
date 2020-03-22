@@ -36,7 +36,7 @@ import Data.Default
 import Data.Maybe
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
-import Text.Pandoc.Class (PandocMonad, insertMedia, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, insertMedia, report)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options

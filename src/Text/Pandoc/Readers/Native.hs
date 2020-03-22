@@ -19,7 +19,7 @@ import Text.Pandoc.Shared (safeRead)
 
 import Control.Monad.Except (throwError)
 import Data.Text (Text)
-import Text.Pandoc.Class
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Error
 
 -- | Read native formatted text and return a Pandoc document.

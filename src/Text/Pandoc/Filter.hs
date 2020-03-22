@@ -21,7 +21,8 @@ module Text.Pandoc.Filter
 import System.CPUTime (getCPUTime)
 import Data.Aeson.TH (deriveJSON, defaultOptions)
 import GHC.Generics (Generic)
-import Text.Pandoc.Class (PandocIO, report, getVerbosity)
+import Text.Pandoc.Class.PandocIO (PandocIO)
+import Text.Pandoc.Class.PandocMonad (report, getVerbosity)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Logging

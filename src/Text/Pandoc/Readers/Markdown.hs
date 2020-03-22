@@ -31,7 +31,7 @@ import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad (..), report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad (..), report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Error

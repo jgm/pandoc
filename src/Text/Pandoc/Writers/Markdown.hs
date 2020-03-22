@@ -30,7 +30,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Network.HTTP (urlEncode)
 import Text.HTML.TagSoup (Tag (..), isTagText, parseTags)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options

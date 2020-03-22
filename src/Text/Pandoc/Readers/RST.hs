@@ -27,7 +27,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, setMeta, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, fetchItem, readFileFromDirs)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, fetchItem, readFileFromDirs)
 import Text.Pandoc.CSV (CSVOptions (..), defaultCSVOptions, parseCSV)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error

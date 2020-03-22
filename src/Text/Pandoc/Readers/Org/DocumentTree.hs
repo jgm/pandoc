@@ -21,7 +21,7 @@ import Data.List (intersperse)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import Text.Pandoc.Builder (Blocks, Inlines)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.Org.BlockStarts
 import Text.Pandoc.Readers.Org.ParserState

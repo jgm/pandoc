@@ -25,8 +25,8 @@ import qualified Data.Text as T
 import Data.Time.Format (formatTime)
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
+import qualified Text.Pandoc.Class.PandocMonad as P
 import Data.Time (defaultTimeLocale)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options

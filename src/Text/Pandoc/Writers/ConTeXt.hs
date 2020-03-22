@@ -21,7 +21,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import Text.Pandoc.BCP47
-import Text.Pandoc.Class (PandocMonad, report, toLang)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging

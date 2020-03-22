@@ -24,8 +24,8 @@ import qualified Data.Text.Lazy as TL
 import Data.Time
 import System.FilePath (takeDirectory, takeExtension, (<.>))
 import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang)
-import Text.Pandoc.Class (PandocMonad, report, toLang)
-import qualified Text.Pandoc.Class as P
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
+import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging

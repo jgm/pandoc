@@ -22,7 +22,7 @@ import Text.Pandoc.Definition
 import Data.Ipynb as Ipynb
 import Text.Pandoc.Walk (walkM)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class
+import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Logging
 import Data.Text (Text)
 import qualified Data.Text as T

@@ -202,7 +202,7 @@ import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Asciify (toAsciiChar)
 import Text.Pandoc.Builder (Blocks, HasMeta (..), Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, readFileFromDirs, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, readFileFromDirs, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options

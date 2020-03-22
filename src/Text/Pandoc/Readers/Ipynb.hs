@@ -24,7 +24,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Logging
 import Text.Pandoc.Definition
 import Data.Ipynb as Ipynb
-import Text.Pandoc.Class
+import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.MIME (extensionFromMimeType)
 import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.UTF8

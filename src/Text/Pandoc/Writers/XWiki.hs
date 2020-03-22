@@ -37,7 +37,7 @@ import Control.Monad.Reader (ReaderT, asks, local, runReaderT)
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Text (Text, intercalate, replace, split)
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
