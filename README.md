@@ -192,7 +192,7 @@ convert this native representation into a target format. Thus, adding an
 input or output format requires only adding a reader or writer. Users
 can also run custom pandoc filters to modify the intermediate AST (see
 the documentation for [filters](https://pandoc.org/filters.html) and
-[lua filters](https://pandoc.org/lua-filters.html)).
+[Lua filters](https://pandoc.org/lua-filters.html)).
 
 Because pandoc’s intermediate representation of a document is less
 expressive than many of the formats it converts between, one should not
@@ -225,7 +225,7 @@ opening a new issue.
 
 ## License
 
-© 2006-2018 John MacFarlane (jgm@berkeley.edu). Released under the
+© 2006-2020 John MacFarlane (jgm@berkeley.edu). Released under the
 [GPL](http://www.gnu.org/copyleft/gpl.html "GNU General Public License"),
 version 2 or greater. This software carries no warranty of any kind.
 (See COPYRIGHT for full copyright and warranty notices.)
