@@ -1,5 +1,104 @@
 # Revision history for pandoc
 
+## pandoc 2.9.2.1 PROVISIONAL (2020-XX-XX)
+
+  * Markdown reader: Fix table alignment when heading begins with t (#6153).
+    Due to a typo (`t` instead of `\t`) we were center aligning column
+    headings that begin with a lowercase `t`!
+
+  * Text.Pandoc.Readers.Roff:
+
+    + Fix parsing of `\.` in man/ms readers (#6175).
+      Previously due to a typo it was being parsed as `` ` ``.
+    + Fix parsing of `\'` in man/ms readers (#6175).  It was being parsed
+      as a backtick.
+
+  * Jira reader (Albert Krewinkel):
+
+    + Fix parsing of tables without preceding blankline (#6198).
+      A bug was fixed which caused faulty parsing if a table was not
+      preceded by a newline and the first table cell had no space
+      after the initial `|` characters.
+    + Fix parsing of strikeout, emphasis (#6196).  A bug was fixed which
+      caused non-emphasized text containing digits and/or non-special symbols
+      (like dots) to sometimes be parsed incorrectly.
+    + Support colored inline text, indented lists (#6183, #6184).
+
+  * Ms writer:
+
+    + Fix definition lists so indent even when paragraph indent is
+      set to 0 (as is the default).  Also ensure indent for display math
+      that falls back to TeX.
+    + Use `.QS/.QE` instead of `.RS/.RE` for block quotes.
+
+  * EPUB writer: fix regression on detection of front/back/bodymatter
+    (#6170).  This bug caused sections with epub:type `dedication` to be
+    misplaced in bodymatter instead of frontmatter as specified
+    in the manual.  The same problem would affect other epub:types.
+    The pattern matching needed to be changed with the use of
+    `makeSection`.
+
+  * AsciiDoc writer:  remove redundant `otherwise` guard in
+    `inlineToAsciiDoc` (#6146, Ryan Scott).
+
+  * Text.Pandoc.Class:
+
+    + Fix missing import when data files are not embedded (Albert Krewinkel).
+    + Subdivide Text.Pandoc.Class into small unexported modules
+      and ensure that all functions have Haddock documentation (#6106,
+      Albert Krewinkel).
+    + Finer grained imports of Text.Pandoc.Class submodules (#6203, Albert
+      Krewinkel).
+
+  * Text.Pandoc.XML: Add to list of HTML5 attributes:
+    `allow`, `autocapitalize`, `decoding`, `enterkeyhint`,
+    `imagesizes`, `imagesrcset`, `loading`.
+
+  * Use implicit Prelude (#6187, Albert Krewinkel).
+    The previous behavior was introduced as a fix for #4464. It seems that
+    this change alone did not fix the issue, and `stack ghci` and `cabal
+    repl` only work with GHC 8.4.1 or newer, as no custom Prelude is loaded
+    for these versions. Given this, it seems cleaner to revert to the
+    implicit Prelude.
+
+  * Always use custom prelude (#6187, Albert Krewinkel).
+    Previously, the custom prelude was used only with older GHC versions, as
+    a workaround for problems with ghci. The ghci problems are resolved by
+    replacing package `base` with `base-noprelude`, allowing for consistent
+    use of the custom prelude across all GHC versions.
+
+  * Remove outdated checks for no longer supported base versions
+    (Albert Krewinkel).
+
+  * PDF via wkhtmltopdf: put user-specified options last (#6171).
+    Certain options (e.g. `cover`) need to come after flags on
+    the command line.
+
+  * Text.Pandoc.App: set resource path at the beginning so it can affect
+    things like include-in-header (#5982).
+
+  * Change macOS release candidate CI process so that notarized
+    packages can be produced (#6169).
+
+  * Make MANUAL more explicit about nonbreaking space handling by
+    `all_symbols_escapable` (#6154, Fabien Schurter).
+
+  * trypandoc (Mike Tzou):
+
+    + Add checkbox for standalone option (#6189).
+    + Use strict mode for JavaScript code (#6188).
+    + Fetch resources over https (#6188).
+    + Remove unnecessary attributes on style, script elements (#6188).
+
+  * Use details tag to make GitHub releases changelog collapsible.
+
+  * Update filter code in doc/filters.md so it works with latest pandoc
+    (#6185).
+
+  * linux/Dockerfile: upgrade to alpine 3.11 (#6180, Albert Krewinkel).
+    This is used to build the static linux binaries.
+
+
 ## pandoc 2.9.2 (2020-02-15)
 
   * Add `csv` as an input format (#6100).  The CSV table is converted into a
