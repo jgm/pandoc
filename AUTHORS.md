@@ -167,6 +167,7 @@
 - Michael Peyton Jones
 - Michael Snoyman
 - Michael Thompson
+- Mike Tzou
 - MinRK
 - Morton Fox
 - Nathan Gass
