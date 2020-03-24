@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.9.2.1 PROVISIONAL (2020-XX-XX)
+## pandoc 2.9.2.1 (2020-03-23)
 
   * Markdown reader: Fix table alignment when heading begins with t (#6153).
     Due to a typo (`t` instead of `\t`) we were center aligning column
@@ -20,8 +20,8 @@
       preceded by a newline and the first table cell had no space
       after the initial `|` characters.
     + Fix parsing of strikeout, emphasis (#6196).  A bug was fixed which
-      caused non-emphasized text containing digits and/or non-special symbols
-      (like dots) to sometimes be parsed incorrectly.
+      caused non-emphasized text containing digits and/or non-special
+      symbols (like dots) to sometimes be parsed incorrectly.
     + Support colored inline text, indented lists (#6183, #6184).
 
   * Ms writer:
