@@ -44,14 +44,17 @@ $(document).ready(function() {
     $("#from").val(from);
     var to = $.QueryString["to"] || "html";
     $("#to").val(to);
-    var standalone = ($.QueryString["standalone"] === "1") ? "1" : "0"
+    var standalone = ($.QueryString["standalone"] === "1") ? "1" : "0";
     $("#standalone").prop('checked', (standalone === "1"));
     if (text && text != "") {
        $.getJSON("/cgi-bin/trypandoc", { from: from, to: to, text: text, standalone: standalone },
          function(res) {
           $("#results").text(res.html);
           $("#version").text(res.version);
-          $("#command").text("pandoc --from " + from + " --to " + to);
+          var commandString = "pandoc"
+            + ((standalone === "1") ? " --standalone" : "")
+            + " --from " + from + " --to " + to;
+          $("#command").text(commandString);
          });
     };
     $("#convert").click(newpage);
