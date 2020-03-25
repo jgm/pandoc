@@ -10,7 +10,6 @@ Running pandoc Lua filters.
 -}
 module Text.Pandoc.Lua
   ( runLua
-  , LuaException (..)
   -- * Lua globals
   , Global (..)
   , setGlobals
@@ -20,5 +19,5 @@ module Text.Pandoc.Lua
 
 import Text.Pandoc.Lua.Filter (runFilterFile)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
-import Text.Pandoc.Lua.Init (LuaException (..), runLua)
+import Text.Pandoc.Lua.Init (runLua)
 import Text.Pandoc.Lua.Marshaling ()

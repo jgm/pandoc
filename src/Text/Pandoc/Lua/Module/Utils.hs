@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Utils
    Copyright   : Copyright © 2017-2020 Albert Krewinkel
@@ -13,6 +14,7 @@ module Text.Pandoc.Lua.Module.Utils
   ) where
 
 import Control.Applicative ((<|>))
+import Control.Monad.Catch (try)
 import Data.Default (def)
 import Data.Version (Version)
 import Foreign.Lua (Peekable, Lua, NumResults)
@@ -20,6 +22,7 @@ import Text.Pandoc.Class.PandocIO (runIO)
 import Text.Pandoc.Class.PandocMonad (setUserDataDir)
 import Text.Pandoc.Definition ( Pandoc, Meta, MetaValue (..), Block, Inline
                               , Citation, Attr, ListAttributes)
+import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Util (addFunction)
 
@@ -125,16 +128,16 @@ data AstElement
 
 instance Peekable AstElement where
   peek idx  = do
-    res <- Lua.try $  (PandocElement <$> Lua.peek idx)
-                  <|> (InlineElement <$> Lua.peek idx)
-                  <|> (BlockElement <$> Lua.peek idx)
-                  <|> (AttrElement <$> Lua.peek idx)
-                  <|> (ListAttributesElement <$> Lua.peek idx)
-                  <|> (MetaElement <$> Lua.peek idx)
-                  <|> (MetaValueElement <$> Lua.peek idx)
+    res <- try $  (PandocElement <$> Lua.peek idx)
+              <|> (InlineElement <$> Lua.peek idx)
+              <|> (BlockElement <$> Lua.peek idx)
+              <|> (AttrElement <$> Lua.peek idx)
+              <|> (ListAttributesElement <$> Lua.peek idx)
+              <|> (MetaElement <$> Lua.peek idx)
+              <|> (MetaValueElement <$> Lua.peek idx)
     case res of
       Right x -> return x
-      Left _ -> Lua.throwException
+      Left (_ :: PandocError) -> Lua.throwMessage
         "Expected an AST element, but could not parse value as such."
 
 -- | Convert a number < 4000 to uppercase roman numeral.

@@ -107,7 +107,7 @@ getTag idx = do
   Lua.push ("tag" :: Text)
   Lua.rawget (Lua.nthFromTop 2)
   Lua.tostring Lua.stackTop <* Lua.pop 2 >>= \case
-    Nothing -> Lua.throwException "untagged value"
+    Nothing -> Lua.throwMessage "untagged value"
     Just x -> return (UTF8.toString x)
 
 -- | Modify the message at the top of the stack before throwing it as an
@@ -116,11 +116,12 @@ throwTopMessageAsError' :: (String -> String) -> Lua a
 throwTopMessageAsError' modifier = do
   msg <- Lua.tostring' Lua.stackTop
   Lua.pop 2 -- remove error and error string pushed by tostring'
-  Lua.throwException (modifier (UTF8.toString msg))
+  Lua.throwMessage (modifier (UTF8.toString msg))
 
 -- | Mark the context of a Lua computation for better error reporting.
 defineHowTo :: String -> Lua a -> Lua a
-defineHowTo ctx = Lua.withExceptionMessage (("Could not " <> ctx <> ": ") <>)
+defineHowTo ctx op = Lua.errorConversion >>= \ec ->
+  Lua.addContextToException ec ("Could not " <> ctx <> ": ") op
 
 -- | Like @'Lua.pcall'@, but uses a predefined error handler which adds a
 -- traceback on error.

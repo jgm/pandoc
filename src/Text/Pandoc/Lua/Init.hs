@@ -9,12 +9,12 @@
 Functions to initialize the Lua interpreter.
 -}
 module Text.Pandoc.Lua.Init
-  ( LuaException (..)
-  , LuaPackageParams (..)
+  ( LuaPackageParams (..)
   , runLua
   , luaPackageParams
   ) where
 
+import Control.Monad.Catch (try)
 import Control.Monad.Trans (MonadIO (..))
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Foreign.Lua (Lua)
@@ -22,28 +22,26 @@ import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Text.Pandoc.Class.PandocIO (PandocIO)
 import Text.Pandoc.Class.PandocMonad (getCommonState, getUserDataDir,
                                       putCommonState)
+import Text.Pandoc.Error (PandocError)
+import Text.Pandoc.Lua.ErrorConversion (errorConversion)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Packages (LuaPackageParams (..),
                                  installPandocPackageSearcher)
 import Text.Pandoc.Lua.Util (loadScriptFromDataDir)
 
-import qualified Data.Text as Text
 import qualified Foreign.Lua as Lua
 import qualified Foreign.Lua.Module.Text as Lua
 import qualified Text.Pandoc.Definition as Pandoc
 import qualified Text.Pandoc.Lua.Module.Pandoc as ModulePandoc
 
--- | Lua error message
-newtype LuaException = LuaException Text.Text deriving (Show)
-
 -- | Run the lua interpreter, using pandoc's default way of environment
 -- initialization.
-runLua :: Lua a -> PandocIO (Either LuaException a)
+runLua :: Lua a -> PandocIO (Either PandocError a)
 runLua luaOp = do
   luaPkgParams <- luaPackageParams
   globals <- defaultGlobals
   enc <- liftIO $ getForeignEncoding <* setForeignEncoding utf8
-  res <- liftIO . Lua.runEither $ do
+  res <- liftIO . try . Lua.run' errorConversion $ do
     setGlobals globals
     initLuaState luaPkgParams
     -- run the given Lua operation
@@ -56,7 +54,7 @@ runLua luaOp = do
     return (opResult, st)
   liftIO $ setForeignEncoding enc
   case res of
-    Left (Lua.Exception msg) -> return $ Left (LuaException $ Text.pack msg)
+    Left err -> return $ Left err
     Right (x, newState) -> do
       putCommonState newState
       return $ Right x
