@@ -40,12 +40,33 @@ prettyBlock (DefinitionList items) = "DefinitionList" $$
   prettyList (map deflistitem items)
     where deflistitem (term, defs) = "(" <> text (show term) <> "," <> cr <>
            nest 1 (prettyList $ map (prettyList . map prettyBlock) defs) <> ")"
-prettyBlock (Table caption aligns widths header rows) =
-  "Table " <> text (show caption) <> " " <> text (show aligns) <> " " <>
-  text (show widths) $$
-  prettyRow header $$
-  prettyList (map prettyRow rows)
-    where prettyRow cols = prettyList (map (prettyList . map prettyBlock) cols)
+prettyBlock (Table attr blkCapt specs rhs thead tbody tfoot) =
+  mconcat [ "Table "
+          , text (show attr)
+          , " "
+          , prettyCaption blkCapt
+          , " "
+          , text (show specs)
+          , " "
+          , text (show rhs) ] $$
+  prettyRows thead $$
+  prettyRows tbody $$
+  prettyRows tfoot
+  where prettyRows = prettyList . map prettyRow
+        prettyRow (Row a body) =
+          text ("Row " <> show a) $$ prettyList (map prettyCell body)
+        prettyCell (Cell a ma h w b) =
+          mconcat [ "Cell "
+                  , text (show a)
+                  , " "
+                  , text (showsPrec 11 ma "")
+                  , " "
+                  , text (show h)
+                  , " "
+                  , text (show w) ] $$
+          prettyList (map prettyBlock b)
+        prettyCaption (Caption mshort body) =
+          "(Caption " <> text (showsPrec 11 mshort "") $$ prettyList (map prettyBlock body) <> ")"
 prettyBlock (Div attr blocks) =
   text ("Div " <> show attr) $$ prettyList (map prettyBlock blocks)
 prettyBlock block = text $ show block

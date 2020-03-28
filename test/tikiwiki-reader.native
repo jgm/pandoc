@@ -90,41 +90,98 @@ Pandoc (Meta {unMeta = fromList []})
      [[Plain [Str "five",Space,Str "sub",Space,Str "1",Space,Str "sub",Space,Str "1"]]]]
    ,[Plain [Str "five",Space,Str "sub",Space,Str "2"]]]]]
 ,Header 1 ("tables",[],[]) [Str "tables"]
-,Table [] [AlignDefault,AlignDefault] [0.0,0.0]
- [[Plain [Str ""]]
- ,[Plain [Str ""]]]
- [[[Plain [Str "Orange"]]
-  ,[Plain [Str "Apple"]]]
- ,[[Plain [Str "Bread"]]
-  ,[Plain [Str "Pie"]]]
- ,[[Plain [Str "Butter"]]
-  ,[Plain [Str "Ice",Space,Str "cream"]]]]
-,Table [] [AlignDefault,AlignDefault] [0.0,0.0]
- [[Plain [Str ""]]
- ,[Plain [Str ""]]]
- [[[Plain [Str "Orange"]]
-  ,[Plain [Str "Apple"]]]
- ,[[Plain [Str "Bread"]]
-  ,[Plain [Str "Pie"]]]
- ,[[Plain [Strong [Str "Butter"]]]
-  ,[Plain [Str "Ice",Space,Str "cream"]]]]
-,Table [] [AlignDefault,AlignDefault] [0.0,0.0]
- [[Plain [Str ""]]
- ,[Plain [Str ""]]]
- [[[Plain [Str "Orange"]]
-  ,[Plain [Str "Apple"]]]
- ,[[Plain [Str "Bread",LineBreak,LineBreak,Str "and",Space,Str "cheese"]]
-  ,[Plain [Str "Pie",LineBreak,LineBreak,Strong [Str "apple"],Space,Str "and",Space,Emph [Str "carrot"],Space]]]]
-,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
- [[Plain [Str ""]]
- ,[Plain [Str ""]]
- ,[Plain [Str ""]]]
- [[[Plain [Space,Str "Orange",Space]]
-  ,[Plain [Space,Str "Apple",Space]]
-  ,[Plain [Space,Str "more"]]]
- ,[[Plain [Space,Str "Bread",Space]]
-  ,[Plain [Space,Str "Pie",Space]]
-  ,[Plain [Space,Str "more"]]]
- ,[[Plain [Space,Str "Butter",Space]]
-  ,[Plain [Space,Str "Ice",Space,Str "cream",Space]]
-  ,[Plain [Space,Str "and",Space,Str "more",Space]]]]]
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str ""]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str ""]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Orange"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Apple"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Bread"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Pie"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Butter"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Ice",Space,Str "cream"]]]]
+ []
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str ""]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str ""]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Orange"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Apple"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Bread"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Pie"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Strong [Str "Butter"]]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Ice",Space,Str "cream"]]]]
+ []
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str ""]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str ""]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Orange"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Apple"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Bread",LineBreak,LineBreak,Str "and",Space,Str "cheese"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Pie",LineBreak,LineBreak,Strong [Str "apple"],Space,Str "and",Space,Emph [Str "carrot"],Space]]]]
+ []
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Nothing),(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str ""]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str ""]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str ""]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Space,Str "Orange",Space]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Space,Str "Apple",Space]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Space,Str "more"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Space,Str "Bread",Space]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Space,Str "Pie",Space]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Space,Str "more"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Space,Str "Butter",Space]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Space,Str "Ice",Space,Str "cream",Space]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Space,Str "and",Space,Str "more",Space]]]]
+ []]

@@ -150,7 +150,8 @@ blockToMediaWiki (BlockQuote blocks) = do
   contents <- blockListToMediaWiki blocks
   return $ "<blockquote>" <> contents <> "</blockquote>"
 
-blockToMediaWiki (Table capt aligns widths headers rows') = do
+blockToMediaWiki (Table _ blkCapt specs _ thead tbody tfoot) = do
+  let (capt, aligns, widths, headers, rows') = toLegacyTable blkCapt specs thead tbody tfoot
   caption <- if null capt
                 then return ""
                 else do

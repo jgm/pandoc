@@ -67,6 +67,7 @@ module Text.Pandoc.Shared (
                      headerShift,
                      stripEmptyParagraphs,
                      onlySimpleTableCells,
+                     onlySimpleCellBodies,
                      isTightList,
                      taskListItemFromAscii,
                      taskListItemToAscii,
@@ -77,6 +78,7 @@ module Text.Pandoc.Shared (
                      htmlSpanLikeElements,
                      splitSentences,
                      filterIpynbOutput,
+                     toLegacyTable,
                      -- * TagSoup HTML handling
                      renderTags',
                      -- * File handling
@@ -667,8 +669,18 @@ stripEmptyParagraphs = walk go
 
 -- | Detect if table rows contain only cells consisting of a single
 -- paragraph that has no @LineBreak@.
-onlySimpleTableCells :: [[TableCell]] -> Bool
-onlySimpleTableCells = all isSimpleCell . concat
+
+-- TODO: should this become aware of cell dimensions?
+onlySimpleTableCells :: [Row] -> Bool
+onlySimpleTableCells = onlySimpleCellBodies . map unRow
+  where
+    unRow (Row _ body) = map unCell body
+    unCell (Cell _ _ _ _ body) = body
+
+-- | Detect if unwrapped table rows contain only cells consisting of a
+-- single paragraph that has no @LineBreak@.
+onlySimpleCellBodies :: [[[Block]]] -> Bool
+onlySimpleCellBodies = all isSimpleCell . concat
   where
     isSimpleCell [Plain ils] = not (hasLineBreak ils)
     isSimpleCell [Para ils ] = not (hasLineBreak ils)
@@ -992,9 +1004,12 @@ blockToInlines (DefinitionList pairslst) =
       mconcat (map blocksToInlines' blkslst)
 blockToInlines (Header _ _  ils) = B.fromList ils
 blockToInlines HorizontalRule = mempty
-blockToInlines (Table _ _ _ headers rows) =
+blockToInlines (Table _ _ _ _ headers rows feet) =
   mconcat $ intersperse B.linebreak $
-    map (mconcat . map blocksToInlines') (headers:rows)
+    map (mconcat . map blocksToInlines') (plainRowBody <$> headers <> rows <> feet)
+  where
+    plainRowBody (Row _ body) = cellBody <$> body
+    cellBody (Cell _ _ _ _ body) = body
 blockToInlines (Div _ blks) = blocksToInlines' blks
 blockToInlines Null = mempty
 
@@ -1008,6 +1023,30 @@ blocksToInlines' = blocksToInlinesWithSep defaultBlocksSeparator
 blocksToInlines :: [Block] -> [Inline]
 blocksToInlines = B.toList . blocksToInlines'
 
+-- | Convert the relevant components of a new-style table (with block
+-- caption, row headers, row and column spans, and so on) to those of
+-- an old-style table (inline caption, table head with one row, no
+-- foot, and so on).
+toLegacyTable :: Caption
+              -> [ColSpec]
+              -> TableHead
+              -> TableBody
+              -> TableFoot
+              -> ([Inline], [Alignment], [Double], [[Block]], [[[Block]]])
+toLegacyTable (Caption _ cbody) specs th tb tf = (cbody', aligns, widths, th', tb')
+  where
+    numcols = length specs
+    (aligns, mwidths) = unzip specs
+    widths = map (fromMaybe 0) mwidths
+    unRow (Row _ x) = map unCell x
+    unCell (Cell _ _ _ _ x) = x
+    cbody' = blocksToInlines cbody
+    sanitise = pad mempty numcols . unRow
+    pad element upTo list = take upTo (list ++ repeat element)
+    (th', tb') = case th of
+      (r:rs) -> (sanitise r, map sanitise $ rs <> tb <> tf)
+      []     -> ([], map sanitise $ tb <> tf)
+
 -- | Inline elements used to separate blocks when squashing blocks into
 -- inlines.
 defaultBlocksSeparator :: Inlines
@@ -1015,7 +1054,6 @@ defaultBlocksSeparator =
   -- This is used in the pandoc.utils.blocks_to_inlines function. Docs
   -- there should be updated if this is changed.
   B.space <> B.str "¶" <> B.space
-
 
 --
 -- Safe read

@@ -122,7 +122,8 @@ blockToXWiki (DefinitionList items) = do
   return $ vcat contents <> if Text.null lev then "\n" else ""
 
 -- TODO: support more features
-blockToXWiki (Table _ _ _ headers rows') = do
+blockToXWiki (Table _ blkCapt specs _ thead tbody tfoot) = do
+  let (_, _, _, headers, rows') = toLegacyTable blkCapt specs thead tbody tfoot
   headers' <- mapM (tableCellXWiki True) headers
   otherRows <- mapM formRow rows'
   return $ Text.unlines (Text.unwords headers':otherRows)

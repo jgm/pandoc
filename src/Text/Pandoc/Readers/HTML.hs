@@ -61,7 +61,7 @@ import Text.Pandoc.Options (
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
                            extractSpaces, htmlSpanLikeElements, elemText, splitTextBy,
-                           onlySimpleTableCells, safeRead, underlineSpan, tshow)
+                           onlySimpleCellBodies, safeRead, underlineSpan, tshow)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
@@ -499,7 +499,7 @@ pTable = try $ do
   let rows''' = map (map snd) rows''
   -- fail on empty table
   guard $ not $ null head' && null rows'''
-  let isSimple = onlySimpleTableCells $ fmap B.toList <$> head':rows'''
+  let isSimple = onlySimpleCellBodies $ fmap B.toList <$> head':rows'''
   let cols = if null head'
                 then maximum (map length rows''')
                 else length head'
@@ -513,12 +513,12 @@ pTable = try $ do
                     _      -> replicate cols AlignDefault
   let widths = if null widths'
                   then if isSimple
-                       then replicate cols 0
-                       else replicate cols (1.0 / fromIntegral cols)
+                       then replicate cols Nothing
+                       else replicate cols (Just (1.0 / fromIntegral cols))
                   else widths'
   return $ B.table caption (zip aligns widths) head' rows
 
-pCol :: PandocMonad m => TagParser m Double
+pCol :: PandocMonad m => TagParser m (Maybe Double)
 pCol = try $ do
   TagOpen _ attribs' <- pSatisfy (matchTagOpen "col" [])
   let attribs = toStringAttr attribs'
@@ -535,10 +535,10 @@ pCol = try $ do
                   fromMaybe 0.0 $ safeRead xs
                 _ -> 0.0
   if width > 0.0
-    then return $ width / 100.0
-    else return 0.0
+    then return $ Just $ width / 100.0
+    else return Nothing
 
-pColgroup :: PandocMonad m => TagParser m [Double]
+pColgroup :: PandocMonad m => TagParser m [Maybe Double]
 pColgroup = try $ do
   pSatisfy (matchTagOpen "colgroup" [])
   skipMany pBlank

@@ -372,7 +372,7 @@ tests = [ testGroup "block elements"
             [ "table without header" =:
               let rows = [[para "Para 1.1", para "Para 1.2"]
                          ,[para "Para 2.1", para "Para 2.2"]]
-              in table mempty [(AlignDefault,0.0),(AlignDefault,0.0)]
+              in table mempty [(AlignDefault,Nothing),(AlignDefault,Nothing)]
                        [mempty, mempty] rows
               =?>
               unlines [ " Para 1.1 | Para 1.2"
@@ -389,11 +389,11 @@ tests = [ testGroup "block elements"
                       , " Para 2.1 |  Para 2.2"
                       ]
             , "table with header and caption" =:
-              let caption = "Table 1"
+              let capt = "Table 1"
                   headers = [plain "header 1", plain "header 2"]
                   rows = [[para "Para 1.1", para  "Para 1.2"]
                          ,[para "Para 2.1", para  "Para 2.2"]]
-              in table caption [(AlignDefault,0.0),(AlignDefault,0.0)]
+              in table capt [(AlignDefault,Nothing),(AlignDefault,Nothing)]
                         headers rows
               =?> unlines [ " header 1 || header 2"
                           , " Para 1.1 |  Para 1.2"

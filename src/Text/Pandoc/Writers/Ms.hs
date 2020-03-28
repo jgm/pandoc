@@ -215,8 +215,9 @@ blockToMs opts (BlockQuote blocks) = do
   contents <- blockListToMs opts blocks
   setFirstPara
   return $ literal ".QS" $$ contents $$ literal ".QE"
-blockToMs opts (Table caption alignments widths headers rows) =
-  let aligncode AlignLeft    = "l"
+blockToMs opts (Table _ blkCapt specs _ thead tbody tfoot) =
+  let (caption, alignments, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+      aligncode AlignLeft    = "l"
       aligncode AlignRight   = "r"
       aligncode AlignCenter  = "c"
       aligncode AlignDefault = "l"

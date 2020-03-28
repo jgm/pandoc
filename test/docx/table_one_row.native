@@ -1,7 +1,17 @@
-[Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
- [[]
- ,[]
- ,[]]
- [[[Plain [Str "One"]]
-  ,[Plain [Str "Row"]]
-  ,[Plain [Str "Table"]]]]]
+[Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Nothing),(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "One"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Row"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Table"]]]]
+ []]

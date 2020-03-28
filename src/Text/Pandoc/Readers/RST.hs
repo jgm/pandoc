@@ -770,24 +770,37 @@ tableDirective :: PandocMonad m
 tableDirective top fields body = do
   bs <- parseFromString' parseBlocks body
   case B.toList bs of
-       [Table _ aligns' widths' header' rows'] -> do
+       [Table attr _ tspecs' rhs thead tbody tfoot] -> do
+         let (aligns', widths') = unzip tspecs'
          title <- parseFromString' (trimInlines . mconcat <$> many inline) top
          columns <- getOption readerColumns
-         let numOfCols = length header'
+         let numOfCols = case thead of
+               [] -> 0
+               (r:_) -> rowLength r
          let normWidths ws =
-                map (/ max 1.0 (fromIntegral (columns - numOfCols))) ws
+                strictPos . (/ max 1.0 (fromIntegral (columns - numOfCols))) <$> ws
          let widths = case trim <$> lookup "widths" fields of
-                           Just "auto" -> replicate numOfCols 0.0
+                           Just "auto" -> replicate numOfCols Nothing
                            Just "grid" -> widths'
                            Just specs -> normWidths
                                $ map (fromMaybe (0 :: Double) . safeRead)
                                $ splitTextBy (`elem` (" ," :: String)) specs
                            Nothing -> widths'
          -- align is not applicable since we can't represent whole table align
-         return $ B.singleton $ Table (B.toList title)
-                                  aligns' widths header' rows'
+         let tspecs = zip aligns' widths
+         return $ B.singleton $ Table attr (Caption Nothing (mpara title))
+                                  tspecs rhs thead tbody tfoot
        _ -> return mempty
-
+  where
+    -- only valid on the very first row of a table section
+    rowLength (Row _ rb) = sum $ cellLength <$> rb
+    cellLength (Cell _ _ _ w _) = if w < 0 then 0 else w
+    strictPos w
+      | w > 0     = Just w
+      | otherwise = Nothing
+    mpara t
+      | B.isNull t  = []
+      | otherwise = [Para $ B.toList t]
 
 -- TODO: :stub-columns:.
 -- Only the first row becomes the header even if header-rows: > 1,
@@ -808,10 +821,10 @@ listTableDirective top fields body = do
                    else ([], rows, length x)
         _ -> ([],[],0)
       widths = case trim <$> lookup "widths" fields of
-        Just "auto" -> replicate numOfCols 0
+        Just "auto" -> replicate numOfCols Nothing
         Just specs -> normWidths $ map (fromMaybe (0 :: Double) . safeRead) $
                            splitTextBy (`elem` (" ," :: String)) specs
-        _ -> replicate numOfCols 0
+        _ -> replicate numOfCols Nothing
   return $ B.table title
              (zip (replicate numOfCols AlignDefault) widths)
              headerRow
@@ -820,7 +833,10 @@ listTableDirective top fields body = do
           takeRows _                 = []
           takeCells [BulletList cells] = map B.fromList cells
           takeCells _                  = []
-          normWidths ws = map (/ max 1 (sum ws)) ws
+          normWidths ws = strictPos . (/ max 1 (sum ws)) <$> ws
+          strictPos w
+            | w > 0     = Just w
+            | otherwise = Nothing
 
 csvTableDirective :: PandocMonad m
                    => Text -> [(Text, Text)] -> Text
@@ -873,14 +889,17 @@ csvTableDirective top fields rawcsv = do
                           else ([], rows, length x)
                    _ -> ([],[],0)
          title <- parseFromString' (trimInlines . mconcat <$> many inline) top
-         let normWidths ws = map (/ max 1 (sum ws)) ws
+         let strictPos w
+               | w > 0     = Just w
+               | otherwise = Nothing
+         let normWidths ws = strictPos . (/ max 1 (sum ws)) <$> ws
          let widths =
                case trim <$> lookup "widths" fields of
-                 Just "auto" -> replicate numOfCols 0
+                 Just "auto" -> replicate numOfCols Nothing
                  Just specs -> normWidths
                                $ map (fromMaybe (0 :: Double) . safeRead)
                                $ splitTextBy (`elem` (" ," :: String)) specs
-                 _ -> replicate numOfCols 0
+                 _ -> replicate numOfCols Nothing
          return $ B.table title
                   (zip (replicate numOfCols AlignDefault) widths)
                   headerRow
@@ -1293,13 +1312,14 @@ simpleTable headless = do
            sep simpleTableFooter
   -- Simple tables get 0s for relative column widths (i.e., use default)
   case B.toList tbl of
-       [Table c a _w h l]  -> return $ B.singleton $
-                                 Table c a (replicate (length a) 0) h l
+       [Table attr cap spec rhs th tb tf] -> return $ B.singleton $
+                                                Table attr cap (rewidth spec) rhs th tb tf
        _ ->
          throwError $ PandocShouldNeverHappenError
             "tableWith returned something unexpected"
  where
   sep = return () -- optional (simpleTableSep '-')
+  rewidth = fmap $ fmap $ const Nothing
 
 gridTable :: PandocMonad m
           => Bool -- ^ Headerless table

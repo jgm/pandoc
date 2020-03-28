@@ -127,40 +127,91 @@ Pandoc (Meta {unMeta = fromList []})
    ,[Plain [Str "and"]]
    ,[Plain [Str "supported"]]]]]
 ,Header 1 ("tables",[],[]) [Str "tables"]
-,Table [] [AlignDefault,AlignDefault] [0.0,0.0]
- [[]
- ,[]]
- [[[Plain [Str "Orange"]]
-  ,[Plain [Str "Apple"]]]
- ,[[Plain [Str "Bread"]]
-  ,[Plain [Str "Pie"]]]
- ,[[Plain [Str "Butter"]]
-  ,[Plain [Str "Ice",Space,Str "cream"]]]]
-,Table [] [AlignLeft,AlignLeft] [0.0,0.0]
- [[Plain [Str "Orange"]]
- ,[Plain [Str "Apple"]]]
- [[[Plain [Str "Bread"]]
-  ,[Plain [Str "Pie"]]]
- ,[[Plain [Strong [Str "Butter"]]]
-  ,[Plain [Str "Ice",Space,Str "cream"]]]]
-,Table [] [AlignLeft,AlignLeft] [0.0,0.0]
- [[Plain [Str "Orange"]]
- ,[Plain [Str "Apple"]]]
- [[[Plain [Str "Bread",LineBreak,LineBreak,Str "and",Space,Str "cheese"]]
-  ,[Plain [Str "Pie",LineBreak,LineBreak,Strong [Str "apple"],Space,Str "and",Space,Emph [Str "carrot"]]]]]
-,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
- [[]
- ,[]
- ,[]]
- [[[Plain [Str "Orange"]]
-  ,[Plain [Str "Apple"]]
-  ,[Plain [Str "more"]]]
- ,[[Plain [Str "Bread"]]
-  ,[Plain [Str "Pie"]]
-  ,[Plain [Str "more"]]]
- ,[[Plain [Str "Butter"]]
-  ,[Plain [Str "Ice",Space,Str "cream"]]
-  ,[Plain [Str "and",Space,Str "more"]]]]
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Orange"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Apple"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Bread"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Pie"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Butter"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Ice",Space,Str "cream"]]]]
+ []
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Orange"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Apple"]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Bread"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Pie"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Strong [Str "Butter"]]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Ice",Space,Str "cream"]]]]
+ []
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Orange"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Apple"]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Bread",LineBreak,LineBreak,Str "and",Space,Str "cheese"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Pie",LineBreak,LineBreak,Strong [Str "apple"],Space,Str "and",Space,Emph [Str "carrot"]]]]]
+ []
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Nothing),(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Orange"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Apple"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "more"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Bread"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Pie"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "more"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Butter"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Ice",Space,Str "cream"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "and",Space,Str "more"]]]]
+ []
 ,Header 1 ("macros",[],[]) [Str "macros"]
 ,Para [Span ("",["twiki-macro","TEST"],[]) []]
 ,Para [Span ("",["twiki-macro","TEST"],[]) [Str ""]]

@@ -296,7 +296,7 @@ tests = [ testGroup "inlines"
           T.unlines [ "| foo | bar |"
                     , "| bat | baz |"
                     ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
                        []
                        [[plain "foo", plain "bar"]
                        ,[plain "bat", plain "baz"]]
@@ -304,7 +304,7 @@ tests = [ testGroup "inlines"
           T.unlines [ "^ foo ^ bar ^"
                     , "| bat | baz |"
                     ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
                        [plain "foo", plain "bar"]
                        [[plain "bat", plain "baz"]]
         , "Table with colspan" =:
@@ -312,7 +312,7 @@ tests = [ testGroup "inlines"
                     , "| 1,0 | 1,1 ||"
                     , "| 2,0 | 2,1 | 2,2 |"
                     ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0), (AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing), (AlignDefault, Nothing)]
                        [plain "0,0", plain "0,1", plain "0,2"]
                        [[plain "1,0", plain "1,1", mempty]
                        ,[plain "2,0", plain "2,1", plain "2,2"]

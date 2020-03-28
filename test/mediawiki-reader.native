@@ -187,76 +187,177 @@ Pandoc (Meta {unMeta = fromList []})
 ,RawBlock (Format "mediawiki") "{{Thankyou|all your effort|Me}}"
 ,Para [Str "Written",Space,RawInline (Format "mediawiki") "{{{date}}}",Space,Str "by",Space,RawInline (Format "mediawiki") "{{{name}}}",Str "."]
 ,Header 2 ("tables",[],[]) [Str "tables"]
-,Table [] [AlignDefault,AlignDefault] [0.0,0.0]
- [[]
- ,[]]
- [[[Para [Str "Orange"]]
-  ,[Para [Str "Apple"]]]
- ,[[Para [Str "Bread"]]
-  ,[Para [Str "Pie"]]]
- ,[[Para [Str "Butter"]]
-  ,[Para [Str "Ice",Space,Str "cream"]]]]
-,Table [Str "Food",Space,Str "complements"] [AlignDefault,AlignDefault] [0.0,0.0]
- [[Para [Str "Orange"]]
- ,[Para [Str "Apple"]]]
- [[[Para [Str "Bread"]]
-  ,[Para [Str "Pie"]]]
- ,[[Para [Str "Butter"]]
-  ,[Para [Str "Ice",Space,Str "cream"]]]]
-,Table [Str "Food",Space,Str "complements"] [AlignDefault,AlignDefault] [0.0,0.0]
- [[Para [Str "Orange"]]
- ,[Para [Str "Apple"]]]
- [[[Para [Str "Bread"]
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Orange"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Apple"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Bread"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Pie"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Butter"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Ice",Space,Str "cream"]]]]
+ []
+,Table ("",[],[]) (Caption Nothing
+ [Para [Str "Food",Space,Str "complements"]]) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Orange"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Apple"]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Bread"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Pie"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Butter"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Ice",Space,Str "cream"]]]]
+ []
+,Table ("",[],[]) (Caption Nothing
+ [Para [Str "Food",Space,Str "complements"]]) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Orange"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Apple"]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Bread"]
    ,Para [Str "and",Space,Str "cheese"]]
-  ,[Para [Str "Pie"]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Pie"]
    ,OrderedList (1,DefaultStyle,DefaultDelim)
     [[Plain [Str "apple"]]
     ,[Plain [Str "carrot"]]]]]]
-,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
- [[]
- ,[]
- ,[]]
- [[[Para [Str "Orange"]]
-  ,[Para [Str "Apple"]]
-  ,[Para [Str "more"]]]
- ,[[Para [Str "Bread"]]
-  ,[Para [Str "Pie"]]
-  ,[Para [Str "more"]]]
- ,[[Para [Str "Butter"]]
-  ,[Para [Str "Ice",Space,Str "cream"]]
-  ,[Para [Str "and",Space,Str "more"]]]]
-,Table [] [AlignLeft,AlignRight,AlignCenter] [0.25,0.125,0.125]
- [[Para [Str "Left"]]
- ,[Para [Str "Right"]]
- ,[Para [Str "Center"]]]
- [[[Para [Str "left"]]
-  ,[Para [Str "15.00"]]
-  ,[Para [Str "centered"]]]
- ,[[Para [Str "more"]]
-  ,[Para [Str "2.0"]]
-  ,[Para [Str "more"]]]]
-,Table [] [AlignDefault,AlignDefault] [0.0,0.0]
- [[]
- ,[]]
- [[[Para [Str "Orange"]]
-  ,[Para [Str "Apple"]]]
- ,[[Para [Str "Bread"]]
-  ,[Table [] [AlignDefault,AlignDefault] [0.0,0.0]
-    [[Para [Str "fruit"]]
-    ,[Para [Str "topping"]]]
-    [[[Para [Str "apple"]]
-     ,[Para [Str "ice",Space,Str "cream"]]]]]]
- ,[[Para [Str "Butter"]]
-  ,[Para [Str "Ice",Space,Str "cream"]]]]
-,Table [] [AlignDefault] [0.0]
- [[]]
- [[[Para [Str "Orange"]]]]
+ []
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Nothing),(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Orange"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Apple"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "more"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Bread"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Pie"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "more"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Butter"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Ice",Space,Str "cream"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "and",Space,Str "more"]]]]
+ []
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignLeft,Just 0.25),(AlignRight,Just 0.125),(AlignCenter,Just 0.125)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Left"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Right"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Center"]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "left"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "15.00"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "centered"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "more"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "2.0"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "more"]]]]
+ []
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Orange"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Apple"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Bread"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Table ("",[],[]) (Caption Nothing
+    []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+    [Row ("",[],[])
+     [Cell ("",[],[]) Nothing 1 1
+      [Para [Str "fruit"]]
+     ,Cell ("",[],[]) Nothing 1 1
+      [Para [Str "topping"]]]]
+    [Row ("",[],[])
+     [Cell ("",[],[]) Nothing 1 1
+      [Para [Str "apple"]]
+     ,Cell ("",[],[]) Nothing 1 1
+      [Para [Str "ice",Space,Str "cream"]]]]
+    []]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Butter"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Ice",Space,Str "cream"]]]]
+ []
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   []]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "Orange"]]]]
+ []
 ,Para [Str "Paragraph",Space,Str "after",Space,Str "the",Space,Str "table."]
-,Table [] [AlignDefault,AlignDefault] [0.0,0.0]
- [[Para [Str "fruit"]]
- ,[Para [Str "topping"]]]
- [[[Para [Str "apple"]]
-  ,[Para [Str "ice",Space,Str "cream"]]]]
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "fruit"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "topping"]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "apple"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Para [Str "ice",Space,Str "cream"]]]]
+ []
 ,Header 2 ("notes",[],[]) [Str "notes"]
 ,Para [Str "My",Space,Str "note!",Note [Plain [Str "This."]]]
 ,Para [Str "URL",Space,Str "note.",Note [Plain [Link ("",[],[]) [Str "http://docs.python.org/library/functions.html#range"] ("http://docs.python.org/library/functions.html#range","")]]]]

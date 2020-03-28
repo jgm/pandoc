@@ -69,7 +69,7 @@ notebookToPandoc opts notebook = do
   return $ Pandoc (Meta $ M.insert "jupyter" (MetaMap m) mempty) blocks
 
 cellToBlocks :: PandocMonad m
-             => ReaderOptions -> Text -> Cell a -> m B.Blocks
+             => ReaderOptions -> Text -> Ipynb.Cell a -> m B.Blocks
 cellToBlocks opts lang c = do
   let Source ts = cellSource c
   let source = mconcat ts

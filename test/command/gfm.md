@@ -7,13 +7,24 @@ gfm tests:
 | apple | 0.13  |
 | orange|1.12|
 ^D
-[Table [] [AlignDefault,AlignRight] [0.0,0.0]
- [[Plain [Str "Fruit"]]
- ,[Plain [Str "Price"]]]
- [[[Plain [Str "apple"]]
-  ,[Plain [Str "0.13"]]]
- ,[[Plain [Str "orange"]]
-  ,[Plain [Str "1.12"]]]]]
+[Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Nothing),(AlignRight,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Fruit"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Price"]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "apple"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "0.13"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "orange"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "1.12"]]]]
+ []]
 ```
 
 ```
@@ -57,13 +68,24 @@ My:thumbsup:emoji:heart:
 
 ```
 % pandoc -t gfm -f native
-[Table [Str "The",Space,Str "caption."] [AlignDefault,AlignRight] [0.0,0.0]
- [[Plain [Str "Fruit"]]
- ,[Plain [Str "Price"]]]
- [[[Plain [Str "apple"]]
-  ,[Plain [Str "0.13"]]]
- ,[[Plain [Str "orange"]]
-  ,[Plain [Str "1.12"]]]]]
+[Table ("",[],[]) (Caption Nothing
+ [Para [Str "The",Space,Str "caption."]]) [(AlignDefault,Nothing),(AlignRight,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Fruit"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Price"]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "apple"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "0.13"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "orange"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "1.12"]]]]
+ []]
 ^D
 | Fruit  | Price |
 | ------ | ----: |

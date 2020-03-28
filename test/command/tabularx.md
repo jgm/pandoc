@@ -6,33 +6,51 @@
   & Column Heading 2
   & Column Heading 3 \\
 \hline
-  Cell 1.1 
+  Cell 1.1
   & Cell 1.2
   & Cell 1.3 \\
 \hline
-  Cell 2.1 
+  Cell 2.1
   & Cell 2.2
   & Cell 2.3 \\
 \hline
-  Cell 3.1 
+  Cell 3.1
   & Cell 3.2
   & Cell 3.3 \\
 \hline
 \end{tabularx}
 ^D
-[Table [] [AlignCenter,AlignCenter,AlignCenter] [0.0,0.0,0.0]
- [[Plain [Str "Column",Space,Str "Heading",Space,Str "1"]]
- ,[Plain [Str "Column",Space,Str "Heading",Space,Str "2"]]
- ,[Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]
- [[[Plain [Str "Cell",Space,Str "1.1"]]
-  ,[Plain [Str "Cell",Space,Str "1.2"]]
-  ,[Plain [Str "Cell",Space,Str "1.3"]]]
- ,[[Plain [Str "Cell",Space,Str "2.1"]]
-  ,[Plain [Str "Cell",Space,Str "2.2"]]
-  ,[Plain [Str "Cell",Space,Str "2.3"]]]
- ,[[Plain [Str "Cell",Space,Str "3.1"]]
-  ,[Plain [Str "Cell",Space,Str "3.2"]]
-  ,[Plain [Str "Cell",Space,Str "3.3"]]]]]
+[Table ("",[],[]) (Caption Nothing
+ []) [(AlignCenter,Nothing),(AlignCenter,Nothing),(AlignCenter,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Column",Space,Str "Heading",Space,Str "1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Column",Space,Str "Heading",Space,Str "2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "1.1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "1.2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "1.3"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "2.1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "2.2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "2.3"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "3.1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "3.2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "3.3"]]]]
+ []]
 ```
 
 ```
@@ -43,33 +61,51 @@
   & Column Heading 2
   & Column Heading 3 \\
 \hline
-  Cell 1.1 
+  Cell 1.1
   & Cell 1.2
   & Cell 1.3 \\
 \hline
-  Cell 2.1 
+  Cell 2.1
   & Cell 2.2
   & Cell 2.3 \\
 \hline
-  Cell 3.1 
+  Cell 3.1
   & Cell 3.2
   & Cell 3.3 \\
 \hline
 \end{tabularx}
 ^D
-[Table [] [AlignLeft,AlignCenter,AlignLeft] [0.0,0.0,0.25]
- [[Plain [Str "Column",Space,Str "Heading",Space,Str "1"]]
- ,[Plain [Str "Column",Space,Str "Heading",Space,Str "2"]]
- ,[Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]
- [[[Plain [Str "Cell",Space,Str "1.1"]]
-  ,[Plain [Str "Cell",Space,Str "1.2"]]
-  ,[Plain [Str "Cell",Space,Str "1.3"]]]
- ,[[Plain [Str "Cell",Space,Str "2.1"]]
-  ,[Plain [Str "Cell",Space,Str "2.2"]]
-  ,[Plain [Str "Cell",Space,Str "2.3"]]]
- ,[[Plain [Str "Cell",Space,Str "3.1"]]
-  ,[Plain [Str "Cell",Space,Str "3.2"]]
-  ,[Plain [Str "Cell",Space,Str "3.3"]]]]]
+[Table ("",[],[]) (Caption Nothing
+ []) [(AlignLeft,Nothing),(AlignCenter,Nothing),(AlignLeft,Just 0.25)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Column",Space,Str "Heading",Space,Str "1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Column",Space,Str "Heading",Space,Str "2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "1.1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "1.2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "1.3"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "2.1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "2.2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "2.3"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "3.1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "3.2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "3.3"]]]]
+ []]
 ```
 
 ```
@@ -80,31 +116,49 @@
   & Column Heading 2
   & Column Heading 3 \\
 \hline
-  Cell 1.1 
+  Cell 1.1
   & Cell 1.2
   & Cell 1.3 \\
 \hline
-  Cell 2.1 
+  Cell 2.1
   & Cell 2.2
   & Cell 2.3 \\
 \hline
-  Cell 3.1 
+  Cell 3.1
   & Cell 3.2
   & Cell 3.3 \\
 \hline
 \end{tabularx}
 ^D
-[Table [] [AlignLeft,AlignCenter,AlignLeft] [0.25,0.0,0.25]
- [[Plain [Str "Column",Space,Str "Heading",Space,Str "1"]]
- ,[Plain [Str "Column",Space,Str "Heading",Space,Str "2"]]
- ,[Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]
- [[[Plain [Str "Cell",Space,Str "1.1"]]
-  ,[Plain [Str "Cell",Space,Str "1.2"]]
-  ,[Plain [Str "Cell",Space,Str "1.3"]]]
- ,[[Plain [Str "Cell",Space,Str "2.1"]]
-  ,[Plain [Str "Cell",Space,Str "2.2"]]
-  ,[Plain [Str "Cell",Space,Str "2.3"]]]
- ,[[Plain [Str "Cell",Space,Str "3.1"]]
-  ,[Plain [Str "Cell",Space,Str "3.2"]]
-  ,[Plain [Str "Cell",Space,Str "3.3"]]]]]
+[Table ("",[],[]) (Caption Nothing
+ []) [(AlignLeft,Just 0.25),(AlignCenter,Nothing),(AlignLeft,Just 0.25)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Column",Space,Str "Heading",Space,Str "1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Column",Space,Str "Heading",Space,Str "2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "1.1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "1.2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "1.3"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "2.1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "2.2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "2.3"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "3.1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "3.2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "Cell",Space,Str "3.3"]]]]
+ []]
 ```

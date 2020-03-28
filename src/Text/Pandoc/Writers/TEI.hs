@@ -194,7 +194,8 @@ blockToTEI _ HorizontalRule = return $
 -- | TEI Tables
 -- TEI Simple's tables are composed of cells and rows; other
 -- table info in the AST is here lossily discard.
-blockToTEI opts (Table _ _ _ headers rows) = do
+blockToTEI opts (Table _ blkCapt specs _ thead tbody tfoot) = do
+  let (_, _, _, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   headers' <- tableHeadersToTEI opts headers
   rows' <- mapM (tableRowToTEI opts) rows
   return $ inTags True "table" [] $ headers' $$ vcat rows'

@@ -268,7 +268,7 @@ table = try $ do
   let rowsPadded = map (pad size) rows'
   let headerPadded = if null tableHeader then mempty else pad size tableHeader
   return $ B.table mempty
-                    (zip aligns (replicate ncolumns 0.0))
+                    (zip aligns (replicate ncolumns Nothing))
                       headerPadded rowsPadded
 
 pad :: (Monoid a) => Int -> [a] -> [a]

@@ -2268,7 +2268,7 @@ splitWordTok = do
          setInput $ map (Tok spos Symbol . T.singleton) (T.unpack t) <> rest
        _ -> return ()
 
-parseAligns :: PandocMonad m => LP m [(Alignment, Double, ([Tok], [Tok]))]
+parseAligns :: PandocMonad m => LP m [(Alignment, Maybe Double, ([Tok], [Tok]))]
 parseAligns = try $ do
   let maybeBar = skipMany
         (try $ sp *> (() <$ symbol '|' <|> () <$ (symbol '@' >> braced)))
@@ -2289,17 +2289,15 @@ parseAligns = try $ do
         ds <- trim . untokenize <$> manyTill anyTok (controlSeq "linewidth")
         spaces
         symbol '}'
-        case safeRead ds of
-              Just w  -> return w
-              Nothing -> return 0.0
+        return $ safeRead ds
   let alignSpec = do
         pref <- option [] alignPrefix
         spaces
         al <- alignChar
-        width <- colWidth <|> option 0.0 (do s <- untokenize <$> braced
-                                             pos <- getPosition
-                                             report $ SkippedContent s pos
-                                             return 0.0)
+        width <- colWidth <|> option Nothing (do s <- untokenize <$> braced
+                                                 pos <- getPosition
+                                                 report $ SkippedContent s pos
+                                                 return Nothing)
         spaces
         suff <- option [] alignSuffix
         return (al, width, (pref, suff))
@@ -2399,11 +2397,11 @@ simpTable envname hasWidthParameter = try $ do
 
 addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
 addTableCaption = walkM go
-  where go (Table c als ws hs rs) = do
+  where go (Table attr c spec rhs th tb tf) = do
           st <- getState
           let mblabel = sLastLabel st
           capt <- case (sCaption st, mblabel) of
-                   (Just ils, Nothing)  -> return $ toList ils
+                   (Just ils, Nothing)  -> return $ Caption Nothing (mcap ils)
                    (Just ils, Just lab) -> do
                      num <- getNextNumber sLastTableNum
                      setState
@@ -2411,11 +2409,14 @@ addTableCaption = walkM go
                          , sLabels = M.insert lab
                                     [Str (renderDottedNum num)]
                                     (sLabels st) }
-                     return $ toList ils -- add number??
+                     return $ Caption Nothing (mcap ils) -- add number??
                    (Nothing, _)  -> return c
           return $ maybe id (\ident -> Div (ident, [], []) . (:[])) mblabel $
-                     Table capt als ws hs rs
+                     Table attr capt spec rhs th tb tf
         go x = return x
+        mcap ils
+          | isNull ils = []
+          | otherwise  = [Para $ toList ils]
 
 
 block :: PandocMonad m => LP m Blocks

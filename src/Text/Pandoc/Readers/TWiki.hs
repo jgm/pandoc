@@ -229,11 +229,11 @@ table = try $ do
   where
     buildTable caption rows (aligns, heads)
                     = B.table caption aligns heads rows
-    align rows      = replicate (columCount rows) (AlignDefault, 0)
+    align rows      = replicate (columCount rows) (AlignDefault, Nothing)
     columns rows    = replicate (columCount rows) mempty
     columCount rows = length $ head rows
 
-tableParseHeader :: PandocMonad m => TWParser m ((Alignment, Double), B.Blocks)
+tableParseHeader :: PandocMonad m => TWParser m ((Alignment, Maybe Double), B.Blocks)
 tableParseHeader = try $ do
   char '|'
   leftSpaces <- length <$> many spaceChar
@@ -245,9 +245,9 @@ tableParseHeader = try $ do
   return (tableAlign leftSpaces rightSpaces, content)
   where
     tableAlign left right
-      | left >= 2 && left == right = (AlignCenter, 0)
-      | left > right = (AlignRight, 0)
-      | otherwise = (AlignLeft, 0)
+      | left >= 2 && left == right = (AlignCenter, Nothing)
+      | left > right = (AlignRight, Nothing)
+      | otherwise = (AlignLeft, Nothing)
 
 tableParseRow :: PandocMonad m => TWParser m [B.Blocks]
 tableParseRow = many1Till tableParseColumn newline

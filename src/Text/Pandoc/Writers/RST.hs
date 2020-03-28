@@ -284,7 +284,8 @@ blockToRST (CodeBlock (_,classes,kvs) str) = do
 blockToRST (BlockQuote blocks) = do
   contents <- blockListToRST blocks
   return $ nest 3 contents <> blankline
-blockToRST (Table caption aligns widths headers rows) = do
+blockToRST (Table _ blkCapt specs _ thead tbody tfoot) = do
+  let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlineListToRST caption
   let blocksToDoc opts bs = do
          oldOpts <- gets stOptions

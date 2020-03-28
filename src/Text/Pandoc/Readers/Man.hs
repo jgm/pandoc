@@ -107,9 +107,9 @@ parseTable = do
       bodyRows <- mapM (mapM parseTableCell . snd) bodyRows'
       isPlainTable <- tableCellsPlain <$> getState
       let widths = if isPlainTable
-                      then repeat 0.0
-                      else repeat ((1.0 / fromIntegral (length alignments))
-                                   :: Double)
+                      then repeat Nothing
+                      else repeat (Just (1.0 / fromIntegral (length alignments))
+                                   :: Maybe Double)
       return $ B.table mempty (zip alignments widths)
                   headerRow bodyRows) <|> fallback pos
     [] -> fallback pos
@@ -159,7 +159,6 @@ parseTable = do
       'n' -> Just AlignRight
       'r' -> Just AlignRight
       _   -> Nothing
-
 
 parseNewParagraph :: PandocMonad m => ManParser m Blocks
 parseNewParagraph = do

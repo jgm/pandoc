@@ -921,8 +921,8 @@ post_process (Pandoc m blocks) =
   Pandoc m (post_process' blocks)
 
 post_process' :: [Block] -> [Block]
-post_process' (Table _ a w h r : Div ("", ["caption"], _) [Para inlines] : xs) =
-  Table inlines a w h r : post_process' xs
+post_process' (Table attr _ specs rhs th tb tf : Div ("", ["caption"], _) blks : xs)
+  = Table attr (Caption Nothing blks) specs rhs th tb tf : post_process' xs
 post_process' bs = bs
 
 read_body :: OdtReader _x (Pandoc, MediaBag)

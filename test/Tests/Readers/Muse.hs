@@ -15,6 +15,7 @@ module Tests.Readers.Muse (tests) where
 
 import Prelude
 import Data.List (intersperse)
+import Data.Maybe (isNothing)
 import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -25,7 +26,7 @@ import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
-import Text.Pandoc.Shared (underlineSpan)
+import Text.Pandoc.Shared (underlineSpan, toLegacyTable)
 import Text.Pandoc.Walk
 
 amuse :: Text -> Pandoc
@@ -45,20 +46,41 @@ spcSep = mconcat . intersperse space
 -- Tables don't round-trip yet
 --
 makeRoundTrip :: Block -> Block
-makeRoundTrip t@(Table _caption aligns widths headers rows) =
+makeRoundTrip t@(Table tattr blkCapt specs rhs thead tbody tfoot) =
   if isSimple && numcols > 1
     then t
     else Para [Str "table was here"]
-  where numcols = maximum (length aligns : length widths : map length (headers:rows))
-        hasSimpleCells = all isSimpleCell (concat (headers:rows))
+  where (_, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+        numcols = maximum (length aligns : length widths : map length (headers:rows))
+        hasSimpleCells = all isSimpleRow (thead <> tbody <> tfoot)
         isLineBreak LineBreak = Any True
         isLineBreak _         = Any False
         hasLineBreak = getAny . query isLineBreak
-        isSimple = hasSimpleCells && all (== 0) widths
-        isSimpleCell [Plain ils] = not (hasLineBreak ils)
-        isSimpleCell [Para ils ] = not (hasLineBreak ils)
-        isSimpleCell []          = True
-        isSimpleCell _           = False
+        isSimple = and [ hasSimpleCells
+                       , all (== 0) widths
+                       , null tfoot
+                       , length thead == 1
+                       , isNullAttr tattr
+                       , rhs == 0
+                       , simpleCapt ]
+        isNullAttr ("", [], []) = True
+        isNullAttr _            = False
+        isSimpleRow (Row attr body) = isNullAttr attr && all isSimpleCell body
+        isSimpleCell (Cell attr ali h w body)
+          = and [ h == 1
+                , w == 1
+                , isNullAttr attr
+                , isNothing ali
+                , isSimpleCellBody body ]
+        isSimpleCellBody [Plain ils] = not (hasLineBreak ils)
+        isSimpleCellBody [Para ils ] = not (hasLineBreak ils)
+        isSimpleCellBody []          = True
+        isSimpleCellBody _           = False
+        simpleCapt = case blkCapt of
+          Caption Nothing [Para _]  -> True
+          Caption Nothing [Plain _] -> True
+          _                         -> False
+
 makeRoundTrip (OrderedList (start, LowerAlpha, _) items) = OrderedList (start, Decimal, Period) items
 makeRoundTrip (OrderedList (start, UpperAlpha, _) items) = OrderedList (start, Decimal, Period) items
 makeRoundTrip x = x
@@ -950,12 +972,12 @@ tests =
     , testGroup "Tables"
         [ "Two cell table" =:
           "One | Two" =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
                        []
                        [[plain "One", plain "Two"]]
         , "Table with multiple words" =:
           "One two | three four" =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
                        []
                        [[plain "One two", plain "three four"]]
         , "Not a table" =:
@@ -969,7 +991,7 @@ tests =
             [ "One |  Two"
             , "Three  | Four"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
                        []
                        [[plain "One", plain "Two"],
                        [plain "Three", plain "Four"]]
@@ -978,7 +1000,7 @@ tests =
             [ "First || Second"
             , "Third | Fourth"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
             [plain "First", plain "Second"]
             [[plain "Third", plain "Fourth"]]
         , "Table with two headers" =:
@@ -987,7 +1009,7 @@ tests =
             , "Second || header"
             , "Foo | bar"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
             [plain "First", plain "header"]
             [[plain "Second", plain "header"],
              [plain "Foo", plain "bar"]]
@@ -997,7 +1019,7 @@ tests =
             , "Baz || foo"
             , "Bar | baz"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
             [plain "Baz", plain "foo"]
             [[plain "Bar", plain "baz"],
              [plain "Foo", plain "bar"]]
@@ -1008,7 +1030,7 @@ tests =
             , "Second | row | there"
             , "|+ Table caption +|"
             ] =?>
-          table (text "Table caption") (replicate 3 (AlignDefault, 0.0))
+          table (text "Table caption") (replicate 3 (AlignDefault, Nothing))
             [plain "Foo", plain "bar", plain "baz"]
             [[plain "First", plain "row", plain "here"],
              [plain "Second", plain "row", plain "there"]]
@@ -1017,7 +1039,7 @@ tests =
             [ "Foo | bar"
             , "|+ Table + caption +|"
             ] =?>
-          table (text "Table + caption") (replicate 2 (AlignDefault, 0.0))
+          table (text "Table + caption") (replicate 2 (AlignDefault, Nothing))
             []
             [[plain "Foo", plain "bar"]]
         , "Caption without table" =:
@@ -1029,7 +1051,7 @@ tests =
             , " Baz | foo"
             , " Bar | baz"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
             []
             [[plain "Foo", plain "bar"],
              [plain "Baz", plain "foo"],
@@ -1041,7 +1063,7 @@ tests =
             , " bar |"
             , " || baz"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
             [plain "", plain "baz"]
             [[plain "", plain "Foo"],
              [plain "", plain ""],
@@ -1052,7 +1074,7 @@ tests =
             , " 4 |   | 6"
             , " 7 | 8 | 9"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0), (AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing), (AlignDefault, Nothing)]
             []
             [[plain "1", plain "2", plain "3"],
              [plain "4", mempty,    plain "6"],
@@ -1063,7 +1085,7 @@ tests =
             , "| foo | bar |"
             , "+-----+-----+"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
                        []
                        [[para "foo", para "bar"]]
         , "Grid table inside list" =:
@@ -1072,7 +1094,7 @@ tests =
             , "   | foo | bar |"
             , "   +-----+-----+"
             ] =?>
-          bulletList [table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+          bulletList [table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
                                    []
                                    [[para "foo", para "bar"]]]
         , "Grid table with two rows" =:
@@ -1083,7 +1105,7 @@ tests =
             , "| bat | baz |"
             , "+-----+-----+"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
                        []
                        [[para "foo", para "bar"]
                        ,[para "bat", para "baz"]]
@@ -1095,9 +1117,9 @@ tests =
             , "|+---+|"
             , "+-----+"
             ] =?>
-          table mempty [(AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing)]
                        []
-                       [[table mempty [(AlignDefault, 0.0)]
+                       [[table mempty [(AlignDefault, Nothing)]
                                       []
                                       [[para "foo"]]]]
         , "Grid table with example" =:
@@ -1108,7 +1130,7 @@ tests =
             , "| </example> |"
             , "+------------+"
             ] =?>
-          table mempty [(AlignDefault, 0.0)]
+          table mempty [(AlignDefault, Nothing)]
                        []
                        [[codeBlock "foo"]]
         ]
@@ -1479,13 +1501,13 @@ tests =
                        ]
       , "Definition list with table" =:
         " foo :: bar | baz" =?>
-        definitionList [ ("foo", [ table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+        definitionList [ ("foo", [ table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
                                                 []
                                                 [[plain "bar", plain "baz"]]
                                  ])]
       , "Definition list with table inside bullet list" =:
         " - foo :: bar | baz" =?>
-        bulletList [definitionList [ ("foo", [ table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
+        bulletList [definitionList [ ("foo", [ table mempty [(AlignDefault, Nothing), (AlignDefault, Nothing)]
                                                             []
                                                             [[plain "bar", plain "baz"]]
                                              ])]]

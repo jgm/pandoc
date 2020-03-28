@@ -221,9 +221,9 @@ table = do
   let restwidth = tableWidth - sum widths
   let zerocols = length $ filter (==0.0) widths
   let defaultwidth = if zerocols == 0 || zerocols == length widths
-                        then 0.0
-                        else restwidth / fromIntegral zerocols
-  let widths' = map (\w -> if w == 0 then defaultwidth else w) widths
+                        then Nothing
+                        else Just $ restwidth / fromIntegral zerocols
+  let widths' = map (\w -> if w == 0 then defaultwidth else Just w) widths
   let cellspecs = zip (map fst cellspecs') widths'
   rows' <- many $ try $ rowsep *> (map snd <$> tableRow)
   optional blanklines

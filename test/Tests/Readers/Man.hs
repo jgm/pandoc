@@ -122,12 +122,12 @@ tests = [
   testGroup "Tables" [
       "t1" =:
       ".TS\nallbox;\nl l l.\na\tb\tc\nd\te\tf\n.TE"
-      =?> table mempty (replicate 3 (AlignLeft, 0.0)) [] [
+      =?> table mempty (replicate 3 (AlignLeft, Nothing)) [] [
         map (plain . str ) ["a", "b", "c"],
         map (plain . str ) ["d", "e", "f"]
       ],
       "longcell" =:
       ".TS\n;\nr.\nT{\na\nb\nc d\nT}\nf\n.TE"
-      =?> table mempty [(AlignRight, 0.0)] [] [[plain $ text "a b c d"], [plain $ str "f"]]
+      =?> table mempty [(AlignRight, Nothing)] [] [[plain $ text "a b c d"], [plain $ str "f"]]
     ]
   ]

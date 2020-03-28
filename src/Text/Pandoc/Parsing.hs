@@ -925,7 +925,11 @@ tableWith :: (Stream s m Char, HasReaderOptions st, Monad mf)
 tableWith headerParser rowParser lineParser footerParser = try $ do
   (aligns, widths, heads, rows) <- tableWith' headerParser rowParser
                                                 lineParser footerParser
-  return $ B.table mempty (zip aligns widths) <$> heads <*> rows
+  return $ B.table mempty (zip aligns (map fromWidth widths)) <$> heads <*> rows
+  where
+    fromWidth n
+      | n > 0     = Just n
+      | otherwise = Nothing
 
 type TableComponents mf = ([Alignment], [Double], mf [Blocks], mf [[Blocks]])
 

@@ -96,84 +96,176 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
  ,[Str "Continuation",Space,Str "line"]
  ,[Str "\160\160and",Space,Str "another"]]
 ,Header 2 ("grid-tables",[],[]) [Str "Grid",Space,Str "Tables"]
-,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2638888888888889,0.16666666666666666,0.18055555555555555]
- [[Plain [Str "col",Space,Str "1"]]
- ,[Plain [Str "col",Space,Str "2"]]
- ,[Plain [Str "col",Space,Str "3"]]]
- [[[Plain [Str "r1",Space,Str "a",SoftBreak,Str "r1",Space,Str "bis"]]
-  ,[Plain [Str "b",SoftBreak,Str "b",Space,Str "2"]]
-  ,[Plain [Str "c",SoftBreak,Str "c",Space,Str "2"]]]
- ,[[Plain [Str "r2",Space,Str "d"]]
-  ,[Plain [Str "e"]]
-  ,[Plain [Str "f"]]]]
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Just 0.2638888888888889),(AlignDefault,Just 0.16666666666666666),(AlignDefault,Just 0.18055555555555555)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "col",Space,Str "1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "col",Space,Str "2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "col",Space,Str "3"]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "r1",Space,Str "a",SoftBreak,Str "r1",Space,Str "bis"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "b",SoftBreak,Str "b",Space,Str "2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "c",SoftBreak,Str "c",Space,Str "2"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "r2",Space,Str "d"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "e"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "f"]]]]
+ []
 ,Para [Str "Headless"]
-,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2638888888888889,0.16666666666666666,0.18055555555555555]
- [[]
- ,[]
- ,[]]
- [[[Plain [Str "r1",Space,Str "a",SoftBreak,Str "r1",Space,Str "bis"]]
-  ,[Plain [Str "b",SoftBreak,Str "b",Space,Str "2"]]
-  ,[Plain [Str "c",SoftBreak,Str "c",Space,Str "2"]]]
- ,[[Plain [Str "r2",Space,Str "d"]]
-  ,[Plain [Str "e"]]
-  ,[Plain [Str "f"]]]]
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Just 0.2638888888888889),(AlignDefault,Just 0.16666666666666666),(AlignDefault,Just 0.18055555555555555)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "r1",Space,Str "a",SoftBreak,Str "r1",Space,Str "bis"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "b",SoftBreak,Str "b",Space,Str "2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "c",SoftBreak,Str "c",Space,Str "2"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "r2",Space,Str "d"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "e"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "f"]]]]
+ []
 ,Para [Str "With",Space,Str "alignments"]
-,Table [] [AlignRight,AlignLeft,AlignCenter] [0.2638888888888889,0.16666666666666666,0.18055555555555555]
- [[Plain [Str "col",Space,Str "1"]]
- ,[Plain [Str "col",Space,Str "2"]]
- ,[Plain [Str "col",Space,Str "3"]]]
- [[[Plain [Str "r1",Space,Str "a",SoftBreak,Str "r1",Space,Str "bis"]]
-  ,[Plain [Str "b",SoftBreak,Str "b",Space,Str "2"]]
-  ,[Plain [Str "c",SoftBreak,Str "c",Space,Str "2"]]]
- ,[[Plain [Str "r2",Space,Str "d"]]
-  ,[Plain [Str "e"]]
-  ,[Plain [Str "f"]]]]
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignRight,Just 0.2638888888888889),(AlignLeft,Just 0.16666666666666666),(AlignCenter,Just 0.18055555555555555)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "col",Space,Str "1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "col",Space,Str "2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "col",Space,Str "3"]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "r1",Space,Str "a",SoftBreak,Str "r1",Space,Str "bis"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "b",SoftBreak,Str "b",Space,Str "2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "c",SoftBreak,Str "c",Space,Str "2"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "r2",Space,Str "d"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "e"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "f"]]]]
+ []
 ,Para [Str "Headless",Space,Str "with",Space,Str "alignments"]
-,Table [] [AlignRight,AlignLeft,AlignCenter] [0.2638888888888889,0.16666666666666666,0.18055555555555555]
- [[]
- ,[]
- ,[]]
- [[[Plain [Str "r1",Space,Str "a",SoftBreak,Str "r1",Space,Str "bis"]]
-  ,[Plain [Str "b",SoftBreak,Str "b",Space,Str "2"]]
-  ,[Plain [Str "c",SoftBreak,Str "c",Space,Str "2"]]]
- ,[[Plain [Str "r2",Space,Str "d"]]
-  ,[Plain [Str "e"]]
-  ,[Plain [Str "f"]]]]
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignRight,Just 0.2638888888888889),(AlignLeft,Just 0.16666666666666666),(AlignCenter,Just 0.18055555555555555)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "r1",Space,Str "a",SoftBreak,Str "r1",Space,Str "bis"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "b",SoftBreak,Str "b",Space,Str "2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "c",SoftBreak,Str "c",Space,Str "2"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "r2",Space,Str "d"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "e"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "f"]]]]
+ []
 ,Para [Str "Spaces",Space,Str "at",Space,Str "ends",Space,Str "of",Space,Str "lines"]
-,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2638888888888889,0.16666666666666666,0.18055555555555555]
- [[]
- ,[]
- ,[]]
- [[[Plain [Str "r1",Space,Str "a",SoftBreak,Str "r1",Space,Str "bis"]]
-  ,[Plain [Str "b",SoftBreak,Str "b",Space,Str "2"]]
-  ,[Plain [Str "c",SoftBreak,Str "c",Space,Str "2"]]]
- ,[[Plain [Str "r2",Space,Str "d"]]
-  ,[Plain [Str "e"]]
-  ,[Plain [Str "f"]]]]
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Just 0.2638888888888889),(AlignDefault,Just 0.16666666666666666),(AlignDefault,Just 0.18055555555555555)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "r1",Space,Str "a",SoftBreak,Str "r1",Space,Str "bis"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "b",SoftBreak,Str "b",Space,Str "2"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "c",SoftBreak,Str "c",Space,Str "2"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "r2",Space,Str "d"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "e"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "f"]]]]
+ []
 ,Para [Str "Multiple",Space,Str "blocks",Space,Str "in",Space,Str "a",Space,Str "cell"]
-,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.2638888888888889,0.16666666666666666,0.18055555555555555]
- [[]
- ,[]
- ,[]]
- [[[Header 1 ("col-1",[],[]) [Str "col",Space,Str "1"]
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Just 0.2638888888888889),(AlignDefault,Just 0.16666666666666666),(AlignDefault,Just 0.18055555555555555)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Header 1 ("col-1",[],[]) [Str "col",Space,Str "1"]
    ,Plain [Str "col",Space,Str "1"]]
-  ,[Header 1 ("col-2",[],[]) [Str "col",Space,Str "2"]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Header 1 ("col-2",[],[]) [Str "col",Space,Str "2"]
    ,Plain [Str "col",Space,Str "2"]]
-  ,[Header 1 ("col-3",[],[]) [Str "col",Space,Str "3"]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Header 1 ("col-3",[],[]) [Str "col",Space,Str "3"]
    ,Plain [Str "col",Space,Str "3"]]]
- ,[[Para [Str "r1",Space,Str "a"]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Para [Str "r1",Space,Str "a"]
    ,Para [Str "r1",Space,Str "bis"]]
-  ,[BulletList
+  ,Cell ("",[],[]) Nothing 1 1
+   [BulletList
     [[Plain [Str "b"]]
     ,[Plain [Str "b",Space,Str "2"]]
     ,[Plain [Str "b",Space,Str "2"]]]]
-  ,[Plain [Str "c",SoftBreak,Str "c",Space,Str "2",SoftBreak,Str "c",Space,Str "2"]]]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Str "c",SoftBreak,Str "c",Space,Str "2",SoftBreak,Str "c",Space,Str "2"]]]]
+ []
 ,Para [Str "Empty",Space,Str "cells"]
-,Table [] [AlignDefault,AlignDefault] [5.555555555555555e-2,5.555555555555555e-2]
- [[]
- ,[]]
- [[[]
-  ,[]]]
+,Table ("",[],[]) (Caption Nothing
+ []) [(AlignDefault,Just 5.555555555555555e-2),(AlignDefault,Just 5.555555555555555e-2)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   []
+  ,Cell ("",[],[]) Nothing 1 1
+   []]]
+ []
 ,Header 2 ("entities-in-links-and-titles",[],[]) [Str "Entities",Space,Str "in",Space,Str "links",Space,Str "and",Space,Str "titles"]
 ,Para [Link ("",[],[]) [Str "link"] ("/\252rl","\246\246!")]
 ,Para [Link ("",["uri"],[]) [Str "http://g\246\246gle.com"] ("http://g\246\246gle.com","")]

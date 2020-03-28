@@ -36,7 +36,7 @@ infix 4 =:
 (=:) = test latex
 
 simpleTable' :: [Alignment] -> [[Blocks]] -> Blocks
-simpleTable' aligns = table "" (zip aligns (repeat 0.0))
+simpleTable' aligns = table "" (zip aligns (repeat Nothing))
                       (map (const mempty) aligns)
 
 tokUntokRt :: String -> Bool

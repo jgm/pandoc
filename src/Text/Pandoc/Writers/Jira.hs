@@ -26,7 +26,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions (writerTemplate, writerWrapText),
                             WrapOption (..))
-import Text.Pandoc.Shared (linesToPara, stringify)
+import Text.Pandoc.Shared (linesToPara, stringify, toLegacyTable)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared (defField, metaToContext)
@@ -98,7 +98,8 @@ toJiraBlocks blocks = do
         Plain xs             -> singleton . Jira.Para <$> toJiraInlines xs
         RawBlock fmt cs      -> rawBlockToJira fmt cs
         Null                 -> return mempty
-        Table _ _ _ hd body  -> singleton <$> do
+        Table _ blkCapt specs _ thead tbody tfoot -> singleton <$> do
+          let (_, _, _, hd, body) = toLegacyTable blkCapt specs thead tbody tfoot
           headerRow <- if all null hd
                        then pure Nothing
                        else Just <$> toRow Jira.HeaderCell hd
@@ -112,7 +113,7 @@ toJiraBlocks blocks = do
 
 toRow :: PandocMonad m
       => ([Jira.Block] -> Jira.Cell)
-      -> [TableCell]
+      -> [[Block]]
       -> JiraConverter m Jira.Row
 toRow mkCell cells = Jira.Row <$>
   mapM (fmap mkCell . toJiraBlocks) cells

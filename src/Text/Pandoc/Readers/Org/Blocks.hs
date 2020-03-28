@@ -629,13 +629,13 @@ orgToPandocTable (OrgTable colProps heads lns) caption =
                    else Nothing
   in B.table caption (map (convertColProp totalWidth) colProps) heads lns
  where
-   convertColProp :: Maybe Int -> ColumnProperty -> (Alignment, Double)
+   convertColProp :: Maybe Int -> ColumnProperty -> (Alignment, Maybe Double)
    convertColProp totalWidth colProp =
      let
        align' = fromMaybe AlignDefault $ columnAlignment colProp
-       width' = fromMaybe 0 $ (\w t -> (fromIntegral w / fromIntegral t))
-                              <$> columnRelWidth colProp
-                              <*> totalWidth
+       width' = (\w t -> (fromIntegral w / fromIntegral t))
+                <$> columnRelWidth colProp
+                <*> totalWidth
      in (align', width')
 
 tableRows :: PandocMonad m => OrgParser m [OrgTableRow]
@@ -658,16 +658,16 @@ tableAlignRow = try $ do
   return $ OrgAlignRow colProps
 
 columnPropertyCell :: Monad m => OrgParser m ColumnProperty
-columnPropertyCell = emptyCell <|> propCell <?> "alignment info"
+columnPropertyCell = emptyOrgCell <|> propCell <?> "alignment info"
  where
-   emptyCell = ColumnProperty Nothing Nothing <$ try (skipSpaces *> endOfCell)
+   emptyOrgCell = ColumnProperty Nothing Nothing <$ try (skipSpaces *> endOfCell)
    propCell = try $ ColumnProperty
                  <$> (skipSpaces
                       *> char '<'
                       *> optionMaybe tableAlignFromChar)
                  <*> (optionMaybe (many1Char digit >>= safeRead)
                       <* char '>'
-                      <* emptyCell)
+                      <* emptyOrgCell)
 
 tableAlignFromChar :: Monad m => OrgParser m Alignment
 tableAlignFromChar = try $

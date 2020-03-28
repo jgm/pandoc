@@ -24,7 +24,7 @@ simpleTable' :: Int
              -> [Blocks]
              -> [[Blocks]]
              -> Blocks
-simpleTable' n = table "" (replicate n (AlignDefault, 0.0))
+simpleTable' n = table "" (replicate n (AlignDefault, Nothing))
 
 tests :: [TestTree]
 tests =
@@ -121,7 +121,7 @@ tests =
                 , "| 1       | One  | foo  |"
                 , "| 2       | Two  | bar  |"
                 ] =?>
-      table "" (zip [AlignCenter, AlignRight, AlignDefault] [0, 0, 0])
+      table "" (zip [AlignCenter, AlignRight, AlignDefault] [Nothing, Nothing, Nothing])
             []
             [ [ plain "Numbers", plain "Text", plain "More" ]
             , [ plain "1"      , plain "One" , plain "foo"  ]
@@ -143,7 +143,7 @@ tests =
                 , "| 1       | One  | foo  |"
                 , "| 2"
                 ] =?>
-      table "" (zip [AlignCenter, AlignRight] [0, 0])
+      table "" (zip [AlignCenter, AlignRight] [Nothing, Nothing])
             [ plain "Numbers", plain "Text" ]
             [ [ plain "1" , plain "One" , plain "foo" ]
             , [ plain "2" ]
@@ -155,7 +155,7 @@ tests =
                 , "| 9 | 42 |"
                 ] =?>
       table "Hitchhiker's Multiplication Table"
-            [(AlignDefault, 0), (AlignDefault, 0)]
+            [(AlignDefault, Nothing), (AlignDefault, Nothing)]
             []
             [ [ plain "x", plain "6" ]
             , [ plain "9", plain "42" ]

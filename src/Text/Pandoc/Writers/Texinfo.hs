@@ -228,7 +228,8 @@ blockToTexinfo (Header level (ident,_,_) lst)
       seccmd 4 = return "@subsubsection "
       seccmd _ = throwError $ PandocSomeError "illegal seccmd level"
 
-blockToTexinfo (Table caption aligns widths heads rows) = do
+blockToTexinfo (Table _ blkCapt specs _ thead tbody tfoot) = do
+  let (caption, aligns, widths, heads, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   headers <- if all null heads
                 then return empty
                 else tableHeadToTexinfo aligns heads

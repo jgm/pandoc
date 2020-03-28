@@ -977,10 +977,10 @@ graphicToElement tableWidth (Tbl tblPr hdrCells rows) = do
   headers' <- mapM cellToOpenXML hdrCells
   rows' <- mapM (mapM cellToOpenXML) rows
   let borderProps = mknode "a:tcPr" [] ()
-  let emptyCell = [mknode "a:p" [] [mknode "a:pPr" [] ()]]
+  let emptyCell' = [mknode "a:p" [] [mknode "a:pPr" [] ()]]
   let mkcell border contents = mknode "a:tc" []
                             $ (if null contents
-                               then emptyCell
+                               then emptyCell'
                                else contents) <> [ borderProps | border ]
   let mkrow border cells = mknode "a:tr" [("h", "0")] $ map (mkcell border) cells
 

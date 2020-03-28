@@ -37,6 +37,6 @@ readCSV _opts s =
              hdrs = map toplain r
              rows = map (map toplain) rs
              aligns = replicate numcols AlignDefault
-             widths = replicate numcols 0
+             widths = replicate numcols Nothing
     Right []     -> return $ B.doc mempty
     Left e       -> throwError $ PandocParsecError s e

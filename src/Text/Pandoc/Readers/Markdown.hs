@@ -1417,11 +1417,14 @@ table = try $ do
   let widths' = if totalWidth < 1
                    then widths
                    else map (/ totalWidth) widths
+  let strictPos w
+        | w > 0     = Just w
+        | otherwise = Nothing
   return $ do
     caption' <- caption
     heads' <- heads
     lns' <- lns
-    return $ B.table caption' (zip aligns widths') heads' lns'
+    return $ B.table caption' (zip aligns (strictPos <$> widths')) heads' lns'
 
 --
 -- inline

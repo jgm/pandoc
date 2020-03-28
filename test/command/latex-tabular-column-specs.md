@@ -11,14 +11,28 @@ f      & 0.5    & 5,5  \\
 \bottomrule
 \end{tabular}
 ^D
-[Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[Plain [Math InlineMath ""]]
- ,[Plain [Math InlineMath "f1"]]
- ,[Plain [Math InlineMath "f2"]]]
- [[[Plain [Math InlineMath "e"]]
-  ,[Plain [Math InlineMath "0.5"]]
-  ,[Plain [Math InlineMath "4"]]]
- ,[[Plain [Math InlineMath "f"]]
-  ,[Plain [Math InlineMath "0.5"]]
-  ,[Plain [Math InlineMath "5,5"]]]]]
+[Table ("",[],[]) (Caption Nothing
+ []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Math InlineMath ""]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Math InlineMath "f1"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Math InlineMath "f2"]]]]
+ [Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Math InlineMath "e"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Math InlineMath "0.5"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Math InlineMath "4"]]]
+ ,Row ("",[],[])
+  [Cell ("",[],[]) Nothing 1 1
+   [Plain [Math InlineMath "f"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Math InlineMath "0.5"]]
+  ,Cell ("",[],[]) Nothing 1 1
+   [Plain [Math InlineMath "5,5"]]]]
+ []]
 ```

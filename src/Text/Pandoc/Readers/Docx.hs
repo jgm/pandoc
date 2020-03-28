@@ -77,7 +77,7 @@ import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.Docx.Combine
 import Text.Pandoc.Readers.Docx.Lists
-import Text.Pandoc.Readers.Docx.Parse
+import Text.Pandoc.Readers.Docx.Parse as Docx
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.TeXMath (writeTeX)
@@ -494,13 +494,13 @@ singleParaToPlain blks
       singleton $ Plain ils
 singleParaToPlain blks = blks
 
-cellToBlocks :: PandocMonad m => Cell -> DocxContext m Blocks
-cellToBlocks (Cell bps) = do
+cellToBlocks :: PandocMonad m => Docx.Cell -> DocxContext m Blocks
+cellToBlocks (Docx.Cell bps) = do
   blks <- smushBlocks <$> mapM bodyPartToBlocks bps
   return $ fromList $ blocksToDefinitions $ blocksToBullets $ toList blks
 
-rowToBlocksList :: PandocMonad m => Row -> DocxContext m [Blocks]
-rowToBlocksList (Row cells) = do
+rowToBlocksList :: PandocMonad m => Docx.Row -> DocxContext m [Blocks]
+rowToBlocksList (Docx.Row cells) = do
   blksList <- mapM cellToBlocks cells
   return $ map singleParaToPlain blksList
 
@@ -645,7 +645,7 @@ bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
 bodyPartToBlocks (Tbl _ _ _ []) =
   return $ para mempty
 bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
-  let caption = text cap
+  let cap' = text cap
       (hdr, rows) = case firstRowFormatting look of
         True | null rs -> (Nothing, [r])
              | otherwise -> (Just r, rs)
@@ -659,8 +659,8 @@ bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
       -- https://github.com/jgm/pandoc/pull/4361#issuecomment-365416155
       nonEmpty [] = Nothing
       nonEmpty l  = Just l
-      rowLength :: Row -> Int
-      rowLength (Row c) = length c
+      rowLength :: Docx.Row -> Int
+      rowLength (Docx.Row c) = length c
 
   -- pad cells.  New Text.Pandoc.Builder will do that for us,
   -- so this is for compatibility while we switch over.
@@ -676,9 +676,9 @@ bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
       -- so should be possible. Alignment might be more difficult,
       -- since there doesn't seem to be a column entity in docx.
   let alignments = replicate width AlignDefault
-      widths = replicate width 0 :: [Double]
+      widths = replicate width Nothing
 
-  return $ table caption (zip alignments widths) hdrCells cells'
+  return $ table cap' (zip alignments widths) hdrCells cells'
 bodyPartToBlocks (OMathPara e) =
   return $ para $ displayMath (writeTeX e)
 
