@@ -67,7 +67,6 @@ module Text.Pandoc.Shared (
                      headerShift,
                      stripEmptyParagraphs,
                      onlySimpleTableCells,
-                     onlySimpleCellBodies,
                      isTightList,
                      taskListItemFromAscii,
                      taskListItemToAscii,
@@ -669,18 +668,8 @@ stripEmptyParagraphs = walk go
 
 -- | Detect if table rows contain only cells consisting of a single
 -- paragraph that has no @LineBreak@.
-
--- TODO: should this become aware of cell dimensions?
-onlySimpleTableCells :: [Row] -> Bool
-onlySimpleTableCells = onlySimpleCellBodies . map unRow
-  where
-    unRow (Row _ body) = map unCell body
-    unCell (Cell _ _ _ _ body) = body
-
--- | Detect if unwrapped table rows contain only cells consisting of a
--- single paragraph that has no @LineBreak@.
-onlySimpleCellBodies :: [[[Block]]] -> Bool
-onlySimpleCellBodies = all isSimpleCell . concat
+onlySimpleTableCells :: [[[Block]]] -> Bool
+onlySimpleTableCells = all isSimpleCell . concat
   where
     isSimpleCell [Plain ils] = not (hasLineBreak ils)
     isSimpleCell [Para ils ] = not (hasLineBreak ils)

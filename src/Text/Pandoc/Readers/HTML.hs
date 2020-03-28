@@ -61,7 +61,7 @@ import Text.Pandoc.Options (
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
                            extractSpaces, htmlSpanLikeElements, elemText, splitTextBy,
-                           onlySimpleCellBodies, safeRead, underlineSpan, tshow)
+                           onlySimpleTableCells, safeRead, underlineSpan, tshow)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
@@ -499,7 +499,7 @@ pTable = try $ do
   let rows''' = map (map snd) rows''
   -- fail on empty table
   guard $ not $ null head' && null rows'''
-  let isSimple = onlySimpleCellBodies $ fmap B.toList <$> head':rows'''
+  let isSimple = onlySimpleTableCells $ fmap B.toList <$> head':rows'''
   let cols = if null head'
                 then maximum (map length rows''')
                 else length head'

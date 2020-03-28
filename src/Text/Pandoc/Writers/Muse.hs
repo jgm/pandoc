@@ -270,7 +270,7 @@ blockToMuse (Table _ blkCapt specs _ thead tbody tfoot) =
     blocksToDoc opts blocks =
       local (\env -> env { envOptions = opts }) $ blockListToMuse blocks
     numcols = maximum (length aligns : length widths : map length (headers:rows))
-    isSimple = onlySimpleTableCells (thead <> tbody <> tfoot) && all (== 0) widths
+    isSimple = onlySimpleTableCells (headers : rows) && all (== 0) widths
 blockToMuse (Div _ bs) = flatBlockListToMuse bs
 blockToMuse Null = return empty
 

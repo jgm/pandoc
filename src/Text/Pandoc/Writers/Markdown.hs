@@ -582,7 +582,7 @@ blockToMarkdown' opts t@(Table _ blkCapt specs _ thead tbody tfoot) = do
   let caption'' = if null caption || not (isEnabled Ext_table_captions opts)
                      then blankline
                      else blankline $$ (": " <> caption') $$ blankline
-  let hasSimpleCells = onlySimpleTableCells $ thead <> tbody <> tfoot
+  let hasSimpleCells = onlySimpleTableCells $ headers : rows
   let isSimple = hasSimpleCells && all (==0) widths
   let isPlainBlock (Plain _) = True
       isPlainBlock _         = False

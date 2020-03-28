@@ -156,7 +156,7 @@ blockToNodes opts (DefinitionList items) ns =
           Para term : concat xs
 blockToNodes opts t@(Table _ blkCapt specs _ thead tbody tfoot) ns =
   let (capt, aligns, _widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
-  in if isEnabled Ext_pipe_tables opts && onlySimpleTableCells (thead <> tbody <> tfoot)
+  in if isEnabled Ext_pipe_tables opts && onlySimpleTableCells (headers : rows)
         then do
           -- We construct a table manually as a CUSTOM_BLOCK, for
           -- two reasons:  (1) cmark-gfm currently doesn't support
