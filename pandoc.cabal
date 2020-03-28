@@ -741,7 +741,7 @@ test-suite test-pandoc
                   tasty-lua >= 0.2 && < 0.3,
                   tasty-quickcheck >= 0.8 && < 0.11,
                   tasty-golden >= 2.3 && < 2.4,
-                  QuickCheck >= 2.4 && < 2.14,
+                  QuickCheck >= 2.4 && < 2.15,
                   containers >= 0.4.2.1 && < 0.7,
                   executable-path >= 0.0 && < 0.1,
                   zip-archive >= 0.2.3.4 && < 0.5,
