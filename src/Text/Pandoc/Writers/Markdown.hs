@@ -360,9 +360,9 @@ beginsWithOrderedListMarker str =
 
 notesAndRefs :: PandocMonad m => WriterOptions -> MD m (Doc Text)
 notesAndRefs opts = do
-  notes' <- reverse <$> gets stNotes >>= notesToMarkdown opts
+  notes' <- gets stNotes >>= notesToMarkdown opts . reverse
   modify $ \s -> s { stNotes = [] }
-  refs' <- reverse <$> gets stRefs >>= refsToMarkdown opts
+  refs' <- gets stRefs >>= refsToMarkdown opts . reverse
   modify $ \s -> s { stPrevRefs = stPrevRefs s ++ stRefs s
                    , stRefs = []}
 
