@@ -316,12 +316,8 @@ runToInlines (Run rs runElems)
       let ils = smushInlines (map runElemToInlines runElems)
       transform <- runStyleToTransform rPr
       return $ transform ils
-runToInlines (Footnote bps) = do
-  blksList <- smushBlocks <$> mapM bodyPartToBlocks bps
-  return $ note blksList
-runToInlines (Endnote bps) = do
-  blksList <- smushBlocks <$> mapM bodyPartToBlocks bps
-  return $ note blksList
+runToInlines (Footnote bps) = note . smushBlocks <$> mapM bodyPartToBlocks bps
+runToInlines (Endnote bps) = note . smushBlocks <$> mapM bodyPartToBlocks bps
 runToInlines (InlineDrawing fp title alt bs ext) = do
   (lift . lift) $ P.insertMedia fp Nothing bs
   return $ imageWith (extentToAttr ext) (T.pack fp) title $ text alt
