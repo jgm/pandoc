@@ -521,31 +521,30 @@ extraInfo f s = do
               else id
 
 parStyleToTransform :: PandocMonad m => ParagraphStyle -> DocxContext m (Blocks -> Blocks)
-parStyleToTransform pPr
-  | (c:cs) <- pStyle pPr
-  , getStyleName c `elem` divsToKeep = do
-      let pPr' = pPr { pStyle = cs }
-      transform <- parStyleToTransform pPr'
-      return $ divWith ("", [normalizeToClassName $ getStyleName c], []) . transform
-  | (c:cs) <- pStyle pPr,
-    getStyleName c `elem` listParagraphStyles = do
-      let pPr' = pPr { pStyle = cs, indentation = Nothing}
-      transform <- parStyleToTransform pPr'
-      return $ divWith ("", [normalizeToClassName $ getStyleName c], []) . transform
-  | (c:cs) <- pStyle pPr = do
-      let pPr' = pPr { pStyle = cs }
-      transform <- parStyleToTransform pPr'
-      ei <- extraInfo divWith c
-      return $ ei . (if isBlockQuote c then blockQuote else id) . transform
-  | null (pStyle pPr)
-  , Just left <- indentation pPr >>= leftParIndent = do
-    let pPr' = pPr { indentation = Nothing }
-        hang = fromMaybe 0 $ indentation pPr >>= hangingParIndent
-    transform <- parStyleToTransform pPr'
-    return $ if (left - hang) > 0
-             then blockQuote . transform
-             else transform
-parStyleToTransform _ = return id
+parStyleToTransform pPr = case pStyle pPr of
+  c:cs
+    | getStyleName c `elem` divsToKeep -> do
+        let pPr' = pPr { pStyle = cs }
+        transform <- parStyleToTransform pPr'
+        return $ divWith ("", [normalizeToClassName $ getStyleName c], []) . transform
+    | getStyleName c `elem` listParagraphStyles -> do
+        let pPr' = pPr { pStyle = cs, indentation = Nothing}
+        transform <- parStyleToTransform pPr'
+        return $ divWith ("", [normalizeToClassName $ getStyleName c], []) . transform
+    | otherwise -> do
+        let pPr' = pPr { pStyle = cs }
+        transform <- parStyleToTransform pPr'
+        ei <- extraInfo divWith c
+        return $ ei . (if isBlockQuote c then blockQuote else id) . transform
+  []
+    | Just left <- indentation pPr >>= leftParIndent -> do
+        let pPr' = pPr { indentation = Nothing }
+            hang = fromMaybe 0 $ indentation pPr >>= hangingParIndent
+        transform <- parStyleToTransform pPr'
+        return $ if (left - hang) > 0
+                 then blockQuote . transform
+                 else transform
+    | otherwise -> return id
 
 normalizeToClassName :: (FromStyleName a) => a -> T.Text
 normalizeToClassName = T.map go . fromStyleName
