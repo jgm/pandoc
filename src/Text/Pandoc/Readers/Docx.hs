@@ -581,9 +581,8 @@ bodyPartToBlocks (Paragraph pPr parparts)
       then do modify $ \s -> s { docxDropCap = ils' }
               return mempty
       else do modify $ \s -> s { docxDropCap = mempty }
-              let ils'' = prevParaIls <>
-                          (if isNull prevParaIls then mempty else space) <>
-                          ils'
+              let ils'' = (if isNull prevParaIls then mempty
+                          else prevParaIls <> space) <> ils'
                   handleInsertion = do
                     modify $ \s -> s {docxPrevPara = mempty}
                     transform <- parStyleToTransform pPr'
