@@ -634,11 +634,8 @@ bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
   modify $ \st -> st{ docxListState =
     -- expire all the continuation data for lists of level > this one:
     -- a new level 1 list item resets continuation for level 2+
-    let expireKeys = [ (numid', lvl')
-                     |  (numid', lvl') <- M.keys listState
-                     , lvl' > lvl
-                     ]
-    in foldr M.delete (M.insert (numId, lvl) start listState) expireKeys }
+    let notExpired (_, lvl') _ = lvl' <= lvl
+    in M.insert (numId, lvl) start (M.filterWithKey notExpired listState) }
   blks <- bodyPartToBlocks (Paragraph pPr parparts)
   return $ divWith ("", ["list-item"], kvs) blks
 bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
