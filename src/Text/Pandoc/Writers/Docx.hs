@@ -23,7 +23,7 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-import Data.Char (isSpace, ord, isLetter)
+import Data.Char (isSpace, isLetter)
 import Data.List (intercalate, isPrefixOf, isSuffixOf)
 import Data.String (fromString)
 import qualified Data.Map as M
@@ -199,14 +199,12 @@ stripInvalidChars = T.filter isValidChar
 
 -- | See XML reference
 isValidChar :: Char -> Bool
-isValidChar (ord -> c)
-  | c == 0x9                      = True
-  | c == 0xA                      = True
-  | c == 0xD                      = True
-  | 0x20 <= c &&  c <= 0xD7FF     = True
-  | 0xE000 <= c && c <= 0xFFFD    = True
-  | 0x10000 <= c && c <= 0x10FFFF = True
-  | otherwise                     = False
+isValidChar '\t' = True
+isValidChar '\n' = True
+isValidChar '\r' = True
+isValidChar '\xFFFE' = False
+isValidChar '\xFFFF' = False
+isValidChar c = (' ' <= c && c <= '\xD7FF') || ('\xE000' <= c)
 
 writeDocx :: (PandocMonad m)
           => WriterOptions  -- ^ Writer options
