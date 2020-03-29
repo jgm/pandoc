@@ -449,9 +449,7 @@ parPartToInlines' (Field info runs) =
 parPartToInlines' NullParPart = return mempty
 
 isAnchorSpan :: Inline -> Bool
-isAnchorSpan (Span (_, classes, kvs) _) =
-  classes == ["anchor"] &&
-  null kvs
+isAnchorSpan (Span (_, ["anchor"], []) _) = True
 isAnchorSpan _ = False
 
 dummyAnchors :: [T.Text]
