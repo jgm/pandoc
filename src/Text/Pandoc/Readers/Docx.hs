@@ -192,12 +192,7 @@ bodyPartsToMeta bps = do
   return $ Meta mp'
 
 fixAuthors :: MetaValue -> MetaValue
-fixAuthors (MetaBlocks blks) =
-  MetaList $ map g $ filter f blks
-    where f (Para _) = True
-          f _        = False
-          g (Para ils) = MetaInlines ils
-          g _          = MetaInlines []
+fixAuthors (MetaBlocks blks) = MetaList [MetaInlines ils | Para ils <- blks]
 fixAuthors mv = mv
 
 isInheritedFromStyles :: (Eq (StyleName s), HasStyleName s, HasParentStyle s) => [StyleName s] -> s -> Bool
