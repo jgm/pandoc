@@ -253,9 +253,7 @@ blacklistedCharStyles = ["Hyperlink"]
 resolveDependentRunStyle :: PandocMonad m => RunStyle -> DocxContext m RunStyle
 resolveDependentRunStyle rPr
   | Just s  <- rParentStyle rPr
-  , getStyleName s `elem` blacklistedCharStyles =
-    return rPr
-  | Just s  <- rParentStyle rPr = do
+  , getStyleName s `notElem` blacklistedCharStyles = do
       opts <- asks docxOptions
       if isEnabled Ext_styles opts
         then return rPr
