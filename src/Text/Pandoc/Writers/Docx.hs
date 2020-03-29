@@ -238,11 +238,11 @@ writeDocx opts doc@(Pandoc meta _) = do
 
   -- Get the available area (converting the size and the margins to int and
   -- doing the difference
-  let pgContentWidth = mbAttrSzWidth >>= safeRead
-                       >>= subtrct mbAttrMarRight
-                       >>= subtrct mbAttrMarLeft
-        where
-          subtrct mbStr x = mbStr >>= safeRead >>= (\y -> Just $ x - y)
+  let pgContentWidth = do
+                         w <- mbAttrSzWidth >>= safeRead
+                         r <- mbAttrMarRight >>= safeRead
+                         l <- mbAttrMarLeft >>= safeRead
+                         pure $ w - r - l
 
   -- styles
   mblang <- toLang $ getLang opts meta
