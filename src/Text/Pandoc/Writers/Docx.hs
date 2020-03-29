@@ -588,9 +588,8 @@ writeDocx opts doc@(Pandoc meta _) = do
   themeEntry <- entryFromArchive refArchive "word/theme/theme1.xml"
   fontTableEntry <- entryFromArchive refArchive "word/fontTable.xml"
   webSettingsEntry <- entryFromArchive refArchive "word/webSettings.xml"
-  headerFooterEntries <- mapM (entryFromArchive refArchive) $
-                     mapMaybe (fmap ("word/" ++) . extractTarget)
-                     (headers ++ footers)
+  headerFooterEntries <- mapM (entryFromArchive refArchive . ("word/" ++)) $
+                     mapMaybe extractTarget (headers ++ footers)
   let miscRelEntries = [ e | e <- zEntries refArchive
                        , "word/_rels/" `isPrefixOf` eRelativePath e
                        , ".xml.rels" `isSuffixOf` eRelativePath e
