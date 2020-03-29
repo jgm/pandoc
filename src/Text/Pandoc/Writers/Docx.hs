@@ -89,8 +89,7 @@ data EnvProps = EnvProps{ styleElement  :: Maybe Element
                         }
 
 instance Semigroup EnvProps where
-  EnvProps Nothing es <> EnvProps s es' = EnvProps s (es ++ es')
-  EnvProps s       es <> EnvProps _ es' = EnvProps s (es ++ es')
+  EnvProps s es <> EnvProps s' es' = EnvProps (s <|> s') (es ++ es')
 
 instance Monoid EnvProps where
   mempty = EnvProps Nothing []
