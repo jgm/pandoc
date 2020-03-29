@@ -475,9 +475,7 @@ writeDocx opts doc@(Pandoc meta _) = do
 
   let newstyles = map newParaPropToOpenXml newDynamicParaProps ++
                   map newTextPropToOpenXml newDynamicTextProps ++
-                  (case writerHighlightStyle opts of
-                        Nothing  -> []
-                        Just sty -> styleToOpenXml styleMaps sty)
+                  maybe [] (styleToOpenXml styleMaps) (writerHighlightStyle opts)
   let styledoc' = styledoc{ elContent = elContent styledoc ++
                                            map Elem newstyles }
   let styleEntry = toEntry stylepath epochtime $ renderXml styledoc'
