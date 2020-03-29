@@ -522,15 +522,15 @@ extraInfo f s = do
 
 parStyleToTransform :: PandocMonad m => ParagraphStyle -> DocxContext m (Blocks -> Blocks)
 parStyleToTransform pPr = case pStyle pPr of
-  c:cs
-    | getStyleName c `elem` divsToKeep -> do
+  c@(getStyleName -> styleName):cs
+    | styleName `elem` divsToKeep -> do
         let pPr' = pPr { pStyle = cs }
         transform <- parStyleToTransform pPr'
-        return $ divWith ("", [normalizeToClassName $ getStyleName c], []) . transform
-    | getStyleName c `elem` listParagraphStyles -> do
+        return $ divWith ("", [normalizeToClassName styleName], []) . transform
+    | styleName `elem` listParagraphStyles -> do
         let pPr' = pPr { pStyle = cs, indentation = Nothing}
         transform <- parStyleToTransform pPr'
-        return $ divWith ("", [normalizeToClassName $ getStyleName c], []) . transform
+        return $ divWith ("", [normalizeToClassName styleName], []) . transform
     | otherwise -> do
         let pPr' = pPr { pStyle = cs }
         transform <- parStyleToTransform pPr'
