@@ -588,39 +588,34 @@ bodyPartToBlocks (Paragraph pPr parparts)
                     transform <- parStyleToTransform pPr'
                     return $ transform $ paraOrPlain ils''
               opts <- asks docxOptions
-              if  | isNull ils'' && not (isEnabled Ext_empty_paragraphs opts) ->
+              case (pChange pPr', readerTrackChanges opts) of
+                  _ | isNull ils'', not (isEnabled Ext_empty_paragraphs opts) ->
                     return mempty
-                  | Just (TrackedChange Insertion _) <- pChange pPr'
-                  , AcceptChanges <- readerTrackChanges opts ->
+                  (Just (TrackedChange Insertion _), AcceptChanges) ->
                       handleInsertion
-                  | Just (TrackedChange Insertion _) <- pChange pPr'
-                  , RejectChanges <- readerTrackChanges opts -> do
+                  (Just (TrackedChange Insertion _), RejectChanges) -> do
                       modify $ \s -> s {docxPrevPara = ils''}
                       return mempty
-                  | Just (TrackedChange Insertion cInfo) <- pChange pPr'
-                  , AllChanges <- readerTrackChanges opts
-                  , ChangeInfo _ cAuthor cDate <- cInfo -> do
+                  (Just (TrackedChange Insertion (ChangeInfo _ cAuthor cDate))
+                   , AllChanges) -> do
                       let attr = ("", ["paragraph-insertion"], [("author", cAuthor), ("date", cDate)])
                           insertMark = spanWith attr mempty
                       transform <- parStyleToTransform pPr'
                       return $ transform $
                         paraOrPlain $ ils'' <> insertMark
-                  | Just (TrackedChange Deletion _) <- pChange pPr'
-                  , AcceptChanges <- readerTrackChanges opts -> do
+                  (Just (TrackedChange Deletion _), AcceptChanges) -> do
                       modify $ \s -> s {docxPrevPara = ils''}
                       return mempty
-                  | Just (TrackedChange Deletion _) <- pChange pPr'
-                  , RejectChanges <- readerTrackChanges opts ->
+                  (Just (TrackedChange Deletion _), RejectChanges) ->
                       handleInsertion
-                  | Just (TrackedChange Deletion cInfo) <- pChange pPr'
-                  , AllChanges <- readerTrackChanges opts
-                  , ChangeInfo _ cAuthor cDate <- cInfo -> do
+                  (Just (TrackedChange Deletion (ChangeInfo _ cAuthor cDate))
+                   , AllChanges) -> do
                       let attr = ("", ["paragraph-deletion"], [("author", cAuthor), ("date", cDate)])
                           insertMark = spanWith attr mempty
                       transform <- parStyleToTransform pPr'
                       return $ transform $
                         paraOrPlain $ ils'' <> insertMark
-                  | otherwise -> handleInsertion
+                  _ -> handleInsertion
 bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
   -- We check whether this current numId has previously been used,
   -- since Docx expects us to pick up where we left off.
