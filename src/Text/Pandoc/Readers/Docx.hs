@@ -91,14 +91,18 @@ readDocx :: PandocMonad m
          => ReaderOptions
          -> B.ByteString
          -> m Pandoc
-readDocx opts bytes
-  | Right archive <- toArchiveOrFail bytes
-  , Right (docx, parserWarnings) <- archiveToDocxWithWarnings archive = do
-      mapM_ (P.report . DocxParserWarning) parserWarnings
-      (meta, blks) <- docxToOutput opts docx
-      return $ Pandoc meta blks
-readDocx _ _ =
-  throwError $ PandocSomeError "couldn't parse docx file"
+readDocx opts bytes = do
+  case toArchiveOrFail bytes of
+    Right archive -> do
+      case archiveToDocxWithWarnings archive of
+        Right (docx, parserWarnings) -> do
+          mapM_ (P.report . DocxParserWarning) parserWarnings
+          (meta, blks) <- docxToOutput opts docx
+          return $ Pandoc meta blks
+        Left docxerr -> throwError $ PandocSomeError $
+                         "couldn't parse docx file: " <> T.pack (show docxerr)
+    Left err -> throwError $ PandocSomeError $
+                  "couldn't unpack docx container: " <> T.pack err
 
 data DState = DState { docxAnchorMap :: M.Map T.Text T.Text
                      , docxAnchorSet :: Set.Set T.Text
