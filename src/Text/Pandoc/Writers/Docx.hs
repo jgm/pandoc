@@ -247,9 +247,8 @@ writeDocx opts doc@(Pandoc meta _) = do
   -- styles
   mblang <- toLang $ getLang opts meta
   let addLang :: Element -> Element
-      addLang e = case mblang >>= \l ->
-                         (return . XMLC.toTree . go (T.unpack $ renderLang l)
-                                 . XMLC.fromElement) e of
+      addLang e = case (\l -> XMLC.toTree . go (T.unpack $ renderLang l) $
+                                 XMLC.fromElement e) <$> mblang of
                     Just (Elem e') -> e'
                     _              -> e -- return original
         where go :: String -> Cursor -> Cursor
