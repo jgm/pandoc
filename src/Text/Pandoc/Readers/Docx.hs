@@ -334,15 +334,14 @@ extentToAttr _ = nullAttr
 
 blocksToInlinesWarn :: PandocMonad m => T.Text -> Blocks -> DocxContext m Inlines
 blocksToInlinesWarn cmtId blks = do
-  let blkList = toList blks
-      paraOrPlain :: Block -> Bool
+  let paraOrPlain :: Block -> Bool
       paraOrPlain (Para _)  = True
       paraOrPlain (Plain _) = True
       paraOrPlain _         = False
-  unless (all paraOrPlain blkList) $
+  unless (all paraOrPlain blks) $
     lift $ P.report $ DocxParserWarning $
       "Docx comment " <> cmtId <> " will not retain formatting"
-  return $ blocksToInlines' blkList
+  return $ blocksToInlines' (toList blks)
 
 -- The majority of work in this function is done in the primed
 -- subfunction `partPartToInlines'`. We make this wrapper so that we

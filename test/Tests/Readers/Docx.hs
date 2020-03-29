@@ -90,9 +90,8 @@ testForWarningsWithOpts opts name docxFile expected =
 -- testForWarnings = testForWarningsWithOpts defopts
 
 getMedia :: FilePath -> FilePath -> IO (Maybe B.ByteString)
-getMedia archivePath mediaPath = do
-  zf <- toArchive <$> B.readFile archivePath
-  return $ fromEntry <$> findEntryByPath ("word/" ++ mediaPath) zf
+getMedia archivePath mediaPath = fmap fromEntry . findEntryByPath
+    ("word/" ++ mediaPath) . toArchive <$> B.readFile archivePath
 
 compareMediaPathIO :: FilePath -> MediaBag -> FilePath -> IO Bool
 compareMediaPathIO mediaPath mediaBag docxPath = do
