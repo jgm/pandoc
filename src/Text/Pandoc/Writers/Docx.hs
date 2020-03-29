@@ -171,10 +171,8 @@ renumIdMap n (e:es)
   | otherwise = renumIdMap n es
 
 replaceAttr :: (QName -> Bool) -> String -> [XML.Attr] -> [XML.Attr]
-replaceAttr _ _ [] = []
-replaceAttr f val (a:as) | f (attrKey a) =
-                             XML.Attr (attrKey a) val : replaceAttr f val as
-                         | otherwise = a : replaceAttr f val as
+replaceAttr f val = map $
+    \a -> if f (attrKey a) then XML.Attr (attrKey a) val else a
 
 renumId :: (QName -> Bool) -> M.Map String String -> Element -> Element
 renumId f renumMap e
