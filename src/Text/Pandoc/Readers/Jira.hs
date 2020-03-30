@@ -123,7 +123,8 @@ jiraToPandocInlines = \case
                                      fromInlines ils
   Jira.Emoji icon        -> str . iconUnicode $ icon
   Jira.Entity entity     -> str . fromEntity $ entity
-  Jira.Image _ url       -> image (Jira.fromURL url)  "" mempty
+  Jira.Image params url  -> let (title, attr) = imgParams params
+                            in imageWith attr (Jira.fromURL url) title mempty
   Jira.Link alias url    -> link (Jira.fromURL url) "" (fromInlines alias)
   Jira.Linebreak         -> linebreak
   Jira.Monospaced inlns  -> code . stringify . toList . fromInlines $ inlns
@@ -144,6 +145,17 @@ jiraToPandocInlines = \case
       Jira.Strong      -> strong
       Jira.Subscript   -> subscript
       Jira.Superscript -> superscript
+
+    imgParams :: [Jira.Parameter] -> (Text, Attr)
+    imgParams = foldr addImgParam ("", ("", [], []))
+
+    addImgParam :: Jira.Parameter -> (Text, Attr) -> (Text, Attr)
+    addImgParam p (title, attr@(ident, classes, kvs)) =
+      case Jira.parameterKey p of
+        "title"     -> (Jira.parameterValue p, attr)
+        "thumbnail" -> (title, (ident, "thumbnail":classes, kvs))
+        _           -> let kv = (Jira.parameterKey p, Jira.parameterValue p)
+                       in (title, (ident, classes, kv:kvs))
 
 -- | Get unicode representation of a Jira icon.
 iconUnicode :: Jira.Icon -> Text
