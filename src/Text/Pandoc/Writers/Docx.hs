@@ -1008,7 +1008,7 @@ blockToOpenXML' opts (Table caption aligns widths headers rows) = do
   let rowwidth = fullrow * sum widths
   let mkgridcol w = mknode "w:gridCol"
                        [("w:w", show (floor (textwidth * w) :: Integer))] ()
-  let hasHeader = not (all null headers)
+  let hasHeader = any (not . null) headers
   modify $ \s -> s { stInTable = False }
   return $
     caption' ++
