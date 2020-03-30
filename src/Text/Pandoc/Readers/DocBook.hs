@@ -758,8 +758,8 @@ parseBlock (Elem e) =
                                "upperroman" -> UpperRoman
                                _            -> Decimal
           let start = fromMaybe 1 $
-                      (attrValue "override" <$> filterElement (named "listitem") e)
-                       >>= safeRead
+                      filterElement (named "listitem") e
+                       >>= safeRead . attrValue "override"
           orderedListWith (start,listStyle,DefaultDelim)
             <$> listitems
         "variablelist" -> definitionList <$> deflistitems

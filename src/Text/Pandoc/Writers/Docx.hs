@@ -236,11 +236,11 @@ writeDocx opts doc@(Pandoc meta _) = do
 
   -- Gets the template size
   let mbpgsz = mbsectpr >>= filterElementName (wname (=="pgSz"))
-  let mbAttrSzWidth = (elAttribs <$> mbpgsz) >>= lookupAttrTextBy ((=="w") . qName)
+  let mbAttrSzWidth = mbpgsz >>= lookupAttrTextBy ((=="w") . qName) . elAttribs
 
   let mbpgmar = mbsectpr >>= filterElementName (wname (=="pgMar"))
-  let mbAttrMarLeft = (elAttribs <$> mbpgmar) >>= lookupAttrTextBy ((=="left") . qName)
-  let mbAttrMarRight = (elAttribs <$> mbpgmar) >>= lookupAttrTextBy ((=="right") . qName)
+  let mbAttrMarLeft = mbpgmar >>= lookupAttrTextBy ((=="left") . qName) . elAttribs
+  let mbAttrMarRight = mbpgmar >>= lookupAttrTextBy ((=="right") . qName) . elAttribs
 
   -- Get the available area (converting the size and the margins to int and
   -- doing the difference

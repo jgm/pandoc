@@ -1018,16 +1018,16 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("lstinline", dolstinline)
   , ("mintinline", domintinline)
   , ("Verb", doverb)
-  , ("url", ((unescapeURL . untokenize) <$> bracedUrl) >>= \url ->
-                  pure (link url "" (str url)))
-  , ("nolinkurl", ((unescapeURL . untokenize) <$> bracedUrl) >>= \url ->
-                  pure (code url))
-  , ("href", (unescapeURL . untokenize <$>
-                 bracedUrl <* sp) >>= \url ->
-                   tok >>= \lab -> pure (link url "" lab))
+  , ("url", (\url -> link url "" (str url)) . unescapeURL . untokenize <$>
+                  bracedUrl)
+  , ("nolinkurl", code . unescapeURL . untokenize <$> bracedUrl)
+  , ("href", do url <- bracedUrl
+                sp
+                link (unescapeURL $ untokenize url) "" <$> tok)
   , ("includegraphics", do options <- option [] keyvals
-                           src <- unescapeURL . removeDoubleQuotes . untokenize <$> braced
-                           mkImage options src)
+                           src <- braced
+                           mkImage options . unescapeURL . removeDoubleQuotes $
+                               untokenize src)
   , ("enquote*", enquote True Nothing)
   , ("enquote", enquote False Nothing)
   -- foreignquote is supposed to use native quote marks

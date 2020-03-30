@@ -85,7 +85,7 @@ insertMediaFn fp optionalMime contents = do
 
 -- | Returns iterator values to be used with a Lua @for@ loop.
 items :: Lua NumResults
-items = stMediaBag <$> getCommonState >>= pushIterator
+items = getCommonState >>= pushIterator . stMediaBag
 
 lookupMediaFn :: FilePath
               -> Lua NumResults
