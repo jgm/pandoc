@@ -1099,7 +1099,9 @@ withTextProp d p =
   where ep = if isStyle d then EnvProps (Just d) [] else EnvProps Nothing [d]
 
 withTextPropM :: PandocMonad m => WS m Element -> WS m a -> WS m a
-withTextPropM = (. flip withTextProp) . (>>=)
+withTextPropM md p = do
+  d <- md
+  withTextProp d p
 
 getParaProps :: PandocMonad m => Bool -> WS m [Element]
 getParaProps displayMathPara = do
@@ -1119,7 +1121,9 @@ withParaProp d p =
   where ep = if isStyle d then EnvProps (Just d) [] else EnvProps Nothing [d]
 
 withParaPropM :: PandocMonad m => WS m Element -> WS m a -> WS m a
-withParaPropM = (. flip withParaProp) . (>>=)
+withParaPropM md p = do
+  d <- md
+  withParaProp d p
 
 formattedString :: PandocMonad m => T.Text -> WS m [Element]
 formattedString str =
