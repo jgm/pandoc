@@ -253,9 +253,7 @@ blacklistedCharStyles = ["Hyperlink"]
 resolveDependentRunStyle :: PandocMonad m => RunStyle -> DocxContext m RunStyle
 resolveDependentRunStyle rPr
   | Just s  <- rParentStyle rPr
-  , getStyleName s `elem` blacklistedCharStyles =
-    return rPr
-  | Just s  <- rParentStyle rPr = do
+  , getStyleName s `notElem` blacklistedCharStyles = do
       opts <- asks docxOptions
       if isEnabled Ext_styles opts
         then return rPr
@@ -318,12 +316,8 @@ runToInlines (Run rs runElems)
       let ils = smushInlines (map runElemToInlines runElems)
       transform <- runStyleToTransform rPr
       return $ transform ils
-runToInlines (Footnote bps) = do
-  blksList <- smushBlocks <$> mapM bodyPartToBlocks bps
-  return $ note blksList
-runToInlines (Endnote bps) = do
-  blksList <- smushBlocks <$> mapM bodyPartToBlocks bps
-  return $ note blksList
+runToInlines (Footnote bps) = note . smushBlocks <$> mapM bodyPartToBlocks bps
+runToInlines (Endnote bps) = note . smushBlocks <$> mapM bodyPartToBlocks bps
 runToInlines (InlineDrawing fp title alt bs ext) = do
   (lift . lift) $ P.insertMedia fp Nothing bs
   return $ imageWith (extentToAttr ext) (T.pack fp) title $ text alt
@@ -455,9 +449,7 @@ parPartToInlines' (Field info runs) =
 parPartToInlines' NullParPart = return mempty
 
 isAnchorSpan :: Inline -> Bool
-isAnchorSpan (Span (_, classes, kvs) _) =
-  classes == ["anchor"] &&
-  null kvs
+isAnchorSpan (Span (_, ["anchor"], []) _) = True
 isAnchorSpan _ = False
 
 dummyAnchors :: [T.Text]
@@ -529,31 +521,30 @@ extraInfo f s = do
               else id
 
 parStyleToTransform :: PandocMonad m => ParagraphStyle -> DocxContext m (Blocks -> Blocks)
-parStyleToTransform pPr
-  | (c:cs) <- pStyle pPr
-  , getStyleName c `elem` divsToKeep = do
-      let pPr' = pPr { pStyle = cs }
-      transform <- parStyleToTransform pPr'
-      return $ divWith ("", [normalizeToClassName $ getStyleName c], []) . transform
-  | (c:cs) <- pStyle pPr,
-    getStyleName c `elem` listParagraphStyles = do
-      let pPr' = pPr { pStyle = cs, indentation = Nothing}
-      transform <- parStyleToTransform pPr'
-      return $ divWith ("", [normalizeToClassName $ getStyleName c], []) . transform
-  | (c:cs) <- pStyle pPr = do
-      let pPr' = pPr { pStyle = cs }
-      transform <- parStyleToTransform pPr'
-      ei <- extraInfo divWith c
-      return $ ei . (if isBlockQuote c then blockQuote else id) . transform
-  | null (pStyle pPr)
-  , Just left <- indentation pPr >>= leftParIndent = do
-    let pPr' = pPr { indentation = Nothing }
-        hang = fromMaybe 0 $ indentation pPr >>= hangingParIndent
-    transform <- parStyleToTransform pPr'
-    return $ if (left - hang) > 0
-             then blockQuote . transform
-             else transform
-parStyleToTransform _ = return id
+parStyleToTransform pPr = case pStyle pPr of
+  c@(getStyleName -> styleName):cs
+    | styleName `elem` divsToKeep -> do
+        let pPr' = pPr { pStyle = cs }
+        transform <- parStyleToTransform pPr'
+        return $ divWith ("", [normalizeToClassName styleName], []) . transform
+    | styleName `elem` listParagraphStyles -> do
+        let pPr' = pPr { pStyle = cs, indentation = Nothing}
+        transform <- parStyleToTransform pPr'
+        return $ divWith ("", [normalizeToClassName styleName], []) . transform
+    | otherwise -> do
+        let pPr' = pPr { pStyle = cs }
+        transform <- parStyleToTransform pPr'
+        ei <- extraInfo divWith c
+        return $ ei . (if isBlockQuote c then blockQuote else id) . transform
+  []
+    | Just left <- indentation pPr >>= leftParIndent -> do
+        let pPr' = pPr { indentation = Nothing }
+            hang = fromMaybe 0 $ indentation pPr >>= hangingParIndent
+        transform <- parStyleToTransform pPr'
+        return $ if (left - hang) > 0
+                 then blockQuote . transform
+                 else transform
+    | otherwise -> return id
 
 normalizeToClassName :: (FromStyleName a) => a -> T.Text
 normalizeToClassName = T.map go . fromStyleName
@@ -590,47 +581,41 @@ bodyPartToBlocks (Paragraph pPr parparts)
       then do modify $ \s -> s { docxDropCap = ils' }
               return mempty
       else do modify $ \s -> s { docxDropCap = mempty }
-              let ils'' = prevParaIls <>
-                          (if isNull prevParaIls then mempty else space) <>
-                          ils'
+              let ils'' = (if isNull prevParaIls then mempty
+                          else prevParaIls <> space) <> ils'
                   handleInsertion = do
                     modify $ \s -> s {docxPrevPara = mempty}
                     transform <- parStyleToTransform pPr'
                     return $ transform $ paraOrPlain ils''
               opts <- asks docxOptions
-              if  | isNull ils'' && not (isEnabled Ext_empty_paragraphs opts) ->
+              case (pChange pPr', readerTrackChanges opts) of
+                  _ | isNull ils'', not (isEnabled Ext_empty_paragraphs opts) ->
                     return mempty
-                  | Just (TrackedChange Insertion _) <- pChange pPr'
-                  , AcceptChanges <- readerTrackChanges opts ->
+                  (Just (TrackedChange Insertion _), AcceptChanges) ->
                       handleInsertion
-                  | Just (TrackedChange Insertion _) <- pChange pPr'
-                  , RejectChanges <- readerTrackChanges opts -> do
+                  (Just (TrackedChange Insertion _), RejectChanges) -> do
                       modify $ \s -> s {docxPrevPara = ils''}
                       return mempty
-                  | Just (TrackedChange Insertion cInfo) <- pChange pPr'
-                  , AllChanges <- readerTrackChanges opts
-                  , ChangeInfo _ cAuthor cDate <- cInfo -> do
+                  (Just (TrackedChange Insertion (ChangeInfo _ cAuthor cDate))
+                   , AllChanges) -> do
                       let attr = ("", ["paragraph-insertion"], [("author", cAuthor), ("date", cDate)])
                           insertMark = spanWith attr mempty
                       transform <- parStyleToTransform pPr'
                       return $ transform $
                         paraOrPlain $ ils'' <> insertMark
-                  | Just (TrackedChange Deletion _) <- pChange pPr'
-                  , AcceptChanges <- readerTrackChanges opts -> do
+                  (Just (TrackedChange Deletion _), AcceptChanges) -> do
                       modify $ \s -> s {docxPrevPara = ils''}
                       return mempty
-                  | Just (TrackedChange Deletion _) <- pChange pPr'
-                  , RejectChanges <- readerTrackChanges opts ->
+                  (Just (TrackedChange Deletion _), RejectChanges) ->
                       handleInsertion
-                  | Just (TrackedChange Deletion cInfo) <- pChange pPr'
-                  , AllChanges <- readerTrackChanges opts
-                  , ChangeInfo _ cAuthor cDate <- cInfo -> do
+                  (Just (TrackedChange Deletion (ChangeInfo _ cAuthor cDate))
+                   , AllChanges) -> do
                       let attr = ("", ["paragraph-deletion"], [("author", cAuthor), ("date", cDate)])
                           insertMark = spanWith attr mempty
                       transform <- parStyleToTransform pPr'
                       return $ transform $
                         paraOrPlain $ ils'' <> insertMark
-                  | otherwise -> handleInsertion
+                  _ -> handleInsertion
 bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
   -- We check whether this current numId has previously been used,
   -- since Docx expects us to pick up where we left off.
@@ -649,11 +634,8 @@ bodyPartToBlocks (ListItem pPr numId lvl (Just levelInfo) parparts) = do
   modify $ \st -> st{ docxListState =
     -- expire all the continuation data for lists of level > this one:
     -- a new level 1 list item resets continuation for level 2+
-    let expireKeys = [ (numid', lvl')
-                     |  (numid', lvl') <- M.keys listState
-                     , lvl' > lvl
-                     ]
-    in foldr M.delete (M.insert (numId, lvl) start listState) expireKeys }
+    let notExpired (_, lvl') _ = lvl' <= lvl
+    in M.insert (numId, lvl) start (M.filterWithKey notExpired listState) }
   blks <- bodyPartToBlocks (Paragraph pPr parparts)
   return $ divWith ("", ["list-item"], kvs) blks
 bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
