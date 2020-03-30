@@ -34,7 +34,7 @@ import qualified Data.Text.Lazy as TL
 import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
-import System.Random (randomR, StdGen, mkStdGen)
+import System.Random (randomRs, mkStdGen)
 import Text.Pandoc.BCP47 (getLang, renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class.PandocMonad as P
@@ -693,7 +693,8 @@ baseListId = 1000
 mkNumbering :: [ListMarker] -> [Element]
 mkNumbering lists =
   elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
-    where elts = evalState (mapM mkAbstractNum (ordNub lists)) (mkStdGen 1848)
+    where elts = zipWith mkAbstractNum (ordNub lists) $
+                     randomRs (0x10000000, 0xFFFFFFFF) $ mkStdGen 1848
 
 maxListLevel :: Int
 maxListLevel = 8
@@ -710,12 +711,9 @@ mkNum marker numid =
               $ mknode "w:startOverride" [("w:val",show start)] ())
                 [0..maxListLevel]
 
-mkAbstractNum :: ListMarker -> State StdGen Element
-mkAbstractNum marker = do
-  gen <- get
-  let (nsid, gen') = randomR (0x10000000 :: Integer, 0xFFFFFFFF :: Integer) gen
-  put gen'
-  return $ mknode "w:abstractNum" [("w:abstractNumId",listMarkerToId marker)]
+mkAbstractNum :: ListMarker -> Integer -> Element
+mkAbstractNum marker nsid =
+  mknode "w:abstractNum" [("w:abstractNumId",listMarkerToId marker)]
     $ mknode "w:nsid" [("w:val", printf "%8x" nsid)] ()
     : mknode "w:multiLevelType" [("w:val","multilevel")] ()
     : map (mkLvl marker)
