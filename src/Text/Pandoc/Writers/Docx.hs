@@ -483,7 +483,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   -- construct word/numbering.xml
   let numpath = "word/numbering.xml"
   numbering <- parseXml refArchive distArchive numpath
-  newNumElts <- mkNumbering (stLists st)
+  let newNumElts = mkNumbering (stLists st)
   let pandocAdded e =
        case findAttrTextBy ((== "abstractNumId") . qName) e >>= safeRead of
          Just numid -> numid >= (990 :: Int)
@@ -690,10 +690,10 @@ copyChildren refArchive distArchive path timestamp elNames = do
 baseListId :: Int
 baseListId = 1000
 
-mkNumbering :: (PandocMonad m) => [ListMarker] -> m [Element]
-mkNumbering lists = do
-  elts <- evalStateT (mapM mkAbstractNum (ordNub lists)) (mkStdGen 1848)
-  return $ elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
+mkNumbering :: [ListMarker] -> [Element]
+mkNumbering lists =
+  elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
+    where elts = evalState (mapM mkAbstractNum (ordNub lists)) (mkStdGen 1848)
 
 maxListLevel :: Int
 maxListLevel = 8
@@ -710,7 +710,7 @@ mkNum marker numid =
               $ mknode "w:startOverride" [("w:val",show start)] ())
                 [0..maxListLevel]
 
-mkAbstractNum :: (PandocMonad m) => ListMarker -> StateT StdGen m Element
+mkAbstractNum :: ListMarker -> State StdGen Element
 mkAbstractNum marker = do
   gen <- get
   let (nsid, gen') = randomR (0x10000000 :: Integer, 0xFFFFFFFF :: Integer) gen
