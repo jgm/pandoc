@@ -23,7 +23,7 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-import Data.Char (isSpace, ord, isLetter)
+import Data.Char (isSpace, isLetter)
 import Data.List (intercalate, isPrefixOf, isSuffixOf)
 import Data.String (fromString)
 import qualified Data.Map as M
@@ -34,7 +34,7 @@ import qualified Data.Text.Lazy as TL
 import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
-import System.Random (randomR, StdGen, mkStdGen)
+import System.Random (randomRs, mkStdGen)
 import Text.Pandoc.BCP47 (getLang, renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class.PandocMonad as P
@@ -89,8 +89,7 @@ data EnvProps = EnvProps{ styleElement  :: Maybe Element
                         }
 
 instance Semigroup EnvProps where
-  EnvProps Nothing es <> EnvProps s es' = EnvProps s (es ++ es')
-  EnvProps s       es <> EnvProps _ es' = EnvProps s (es ++ es')
+  EnvProps s es <> EnvProps s' es' = EnvProps (s <|> s') (es ++ es')
 
 instance Monoid EnvProps where
   mempty = EnvProps Nothing []
@@ -172,10 +171,8 @@ renumIdMap n (e:es)
   | otherwise = renumIdMap n es
 
 replaceAttr :: (QName -> Bool) -> String -> [XML.Attr] -> [XML.Attr]
-replaceAttr _ _ [] = []
-replaceAttr f val (a:as) | f (attrKey a) =
-                             XML.Attr (attrKey a) val : replaceAttr f val as
-                         | otherwise = a : replaceAttr f val as
+replaceAttr f val = map $
+    \a -> if f (attrKey a) then XML.Attr (attrKey a) val else a
 
 renumId :: (QName -> Bool) -> M.Map String String -> Element -> Element
 renumId f renumMap e
@@ -202,14 +199,12 @@ stripInvalidChars = T.filter isValidChar
 
 -- | See XML reference
 isValidChar :: Char -> Bool
-isValidChar (ord -> c)
-  | c == 0x9                      = True
-  | c == 0xA                      = True
-  | c == 0xD                      = True
-  | 0x20 <= c &&  c <= 0xD7FF     = True
-  | 0xE000 <= c && c <= 0xFFFD    = True
-  | 0x10000 <= c && c <= 0x10FFFF = True
-  | otherwise                     = False
+isValidChar '\t' = True
+isValidChar '\n' = True
+isValidChar '\r' = True
+isValidChar '\xFFFE' = False
+isValidChar '\xFFFF' = False
+isValidChar c = (' ' <= c && c <= '\xD7FF') || ('\xE000' <= c)
 
 writeDocx :: (PandocMonad m)
           => WriterOptions  -- ^ Writer options
@@ -219,12 +214,11 @@ writeDocx opts doc@(Pandoc meta _) = do
   let doc' = walk fixDisplayMath doc
   username <- P.lookupEnv "USERNAME"
   utctime <- P.getCurrentTime
-  distArchive <- toArchive . BL.fromStrict <$> do
-    oldUserDataDir <- P.getUserDataDir
-    P.setUserDataDir Nothing
-    res <- P.readDefaultDataFile "reference.docx"
-    P.setUserDataDir oldUserDataDir
-    return res
+  oldUserDataDir <- P.getUserDataDir
+  P.setUserDataDir Nothing
+  res <- P.readDefaultDataFile "reference.docx"
+  P.setUserDataDir oldUserDataDir
+  let distArchive = toArchive $ BL.fromStrict res
   refArchive <- case writerReferenceDoc opts of
                      Just f  -> toArchive <$> P.readFileLazy f
                      Nothing -> toArchive . BL.fromStrict <$>
@@ -244,18 +238,17 @@ writeDocx opts doc@(Pandoc meta _) = do
 
   -- Get the available area (converting the size and the margins to int and
   -- doing the difference
-  let pgContentWidth = mbAttrSzWidth >>= safeRead
-                       >>= subtrct mbAttrMarRight
-                       >>= subtrct mbAttrMarLeft
-        where
-          subtrct mbStr x = mbStr >>= safeRead >>= (\y -> Just $ x - y)
+  let pgContentWidth = do
+                         w <- mbAttrSzWidth >>= safeRead
+                         r <- mbAttrMarRight >>= safeRead
+                         l <- mbAttrMarLeft >>= safeRead
+                         pure $ w - r - l
 
   -- styles
   mblang <- toLang $ getLang opts meta
   let addLang :: Element -> Element
-      addLang e = case mblang >>= \l ->
-                         (return . XMLC.toTree . go (T.unpack $ renderLang l)
-                                 . XMLC.fromElement) e of
+      addLang e = case (\l -> XMLC.toTree . go (T.unpack $ renderLang l) $
+                                 XMLC.fromElement e) <$> mblang of
                     Just (Elem e') -> e'
                     _              -> e -- return original
         where go :: String -> Cursor -> Cursor
@@ -482,9 +475,7 @@ writeDocx opts doc@(Pandoc meta _) = do
 
   let newstyles = map newParaPropToOpenXml newDynamicParaProps ++
                   map newTextPropToOpenXml newDynamicTextProps ++
-                  (case writerHighlightStyle opts of
-                        Nothing  -> []
-                        Just sty -> styleToOpenXml styleMaps sty)
+                  maybe [] (styleToOpenXml styleMaps) (writerHighlightStyle opts)
   let styledoc' = styledoc{ elContent = elContent styledoc ++
                                            map Elem newstyles }
   let styleEntry = toEntry stylepath epochtime $ renderXml styledoc'
@@ -492,7 +483,7 @@ writeDocx opts doc@(Pandoc meta _) = do
   -- construct word/numbering.xml
   let numpath = "word/numbering.xml"
   numbering <- parseXml refArchive distArchive numpath
-  newNumElts <- mkNumbering (stLists st)
+  let newNumElts = mkNumbering (stLists st)
   let pandocAdded e =
        case findAttrTextBy ((== "abstractNumId") . qName) e >>= safeRead of
          Just numid -> numid >= (990 :: Int)
@@ -597,9 +588,8 @@ writeDocx opts doc@(Pandoc meta _) = do
   themeEntry <- entryFromArchive refArchive "word/theme/theme1.xml"
   fontTableEntry <- entryFromArchive refArchive "word/fontTable.xml"
   webSettingsEntry <- entryFromArchive refArchive "word/webSettings.xml"
-  headerFooterEntries <- mapM (entryFromArchive refArchive) $
-                     mapMaybe (fmap ("word/" ++) . extractTarget)
-                     (headers ++ footers)
+  headerFooterEntries <- mapM (entryFromArchive refArchive . ("word/" ++)) $
+                     mapMaybe extractTarget (headers ++ footers)
   let miscRelEntries = [ e | e <- zEntries refArchive
                        , "word/_rels/" `isPrefixOf` eRelativePath e
                        , ".xml.rels" `isSuffixOf` eRelativePath e
@@ -700,10 +690,11 @@ copyChildren refArchive distArchive path timestamp elNames = do
 baseListId :: Int
 baseListId = 1000
 
-mkNumbering :: (PandocMonad m) => [ListMarker] -> m [Element]
-mkNumbering lists = do
-  elts <- evalStateT (mapM mkAbstractNum (ordNub lists)) (mkStdGen 1848)
-  return $ elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
+mkNumbering :: [ListMarker] -> [Element]
+mkNumbering lists =
+  elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
+    where elts = zipWith mkAbstractNum (ordNub lists) $
+                     randomRs (0x10000000, 0xFFFFFFFF) $ mkStdGen 1848
 
 maxListLevel :: Int
 maxListLevel = 8
@@ -720,12 +711,9 @@ mkNum marker numid =
               $ mknode "w:startOverride" [("w:val",show start)] ())
                 [0..maxListLevel]
 
-mkAbstractNum :: (PandocMonad m) => ListMarker -> StateT StdGen m Element
-mkAbstractNum marker = do
-  gen <- get
-  let (nsid, gen') = randomR (0x10000000 :: Integer, 0xFFFFFFFF :: Integer) gen
-  put gen'
-  return $ mknode "w:abstractNum" [("w:abstractNumId",listMarkerToId marker)]
+mkAbstractNum :: ListMarker -> Integer -> Element
+mkAbstractNum marker nsid =
+  mknode "w:abstractNum" [("w:abstractNumId",listMarkerToId marker)]
     $ mknode "w:nsid" [("w:val", printf "%8x" nsid)] ()
     : mknode "w:multiLevelType" [("w:val","multilevel")] ()
     : map (mkLvl marker)
@@ -951,9 +939,9 @@ blockToOpenXML' opts (Para lst)
                                  [x] -> isDisplayMath x
                                  _   -> False
       paraProps <- getParaProps displayMathPara
-      bodyTextStyle <- if isFirstPara
-                       then pStyleM "First Paragraph"
-                       else pStyleM "Body Text"
+      bodyTextStyle <- pStyleM $ if isFirstPara
+                       then "First Paragraph"
+                       else "Body Text"
       let paraProps' = case paraProps of
             []               -> [mknode "w:pPr" [] [bodyTextStyle]]
             ps               -> ps
@@ -995,9 +983,9 @@ blockToOpenXML' opts (Table caption aligns widths headers rows) = do
   -- Not in the spec but in Word 2007, 2010. See #4953.
   let cellToOpenXML (al, cell) = do
         es <- withParaProp (alignmentFor al) $ blocksToOpenXML opts cell
-        if any (\e -> qName (elName e) == "p") es
-           then return es
-           else return $ es ++ [mknode "w:p" [] ()]
+        return $ if any (\e -> qName (elName e) == "p") es
+           then es
+           else es ++ [mknode "w:p" [] ()]
   headers' <- mapM cellToOpenXML $ zip aligns headers
   rows' <- mapM (mapM cellToOpenXML . zip aligns) rows
   let borderProps = mknode "w:tcPr" []
@@ -1020,7 +1008,7 @@ blockToOpenXML' opts (Table caption aligns widths headers rows) = do
   let rowwidth = fullrow * sum widths
   let mkgridcol w = mknode "w:gridCol"
                        [("w:w", show (floor (textwidth * w) :: Integer))] ()
-  let hasHeader = not (all null headers)
+  let hasHeader = any (not . null) headers
   modify $ \s -> s { stInTable = False }
   return $
     caption' ++
@@ -1111,7 +1099,9 @@ withTextProp d p =
   where ep = if isStyle d then EnvProps (Just d) [] else EnvProps Nothing [d]
 
 withTextPropM :: PandocMonad m => WS m Element -> WS m a -> WS m a
-withTextPropM = (. flip withTextProp) . (>>=)
+withTextPropM md p = do
+  d <- md
+  withTextProp d p
 
 getParaProps :: PandocMonad m => Bool -> WS m [Element]
 getParaProps displayMathPara = do
@@ -1131,7 +1121,9 @@ withParaProp d p =
   where ep = if isStyle d then EnvProps (Just d) [] else EnvProps Nothing [d]
 
 withParaPropM :: PandocMonad m => WS m Element -> WS m a -> WS m a
-withParaPropM = (. flip withParaProp) . (>>=)
+withParaPropM md p = do
+  d <- md
+  withParaProp d p
 
 formattedString :: PandocMonad m => T.Text -> WS m [Element]
 formattedString str =
