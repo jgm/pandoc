@@ -939,9 +939,9 @@ blockToOpenXML' opts (Para lst)
                                  [x] -> isDisplayMath x
                                  _   -> False
       paraProps <- getParaProps displayMathPara
-      bodyTextStyle <- if isFirstPara
-                       then pStyleM "First Paragraph"
-                       else pStyleM "Body Text"
+      bodyTextStyle <- pStyleM $ if isFirstPara
+                       then "First Paragraph"
+                       else "Body Text"
       let paraProps' = case paraProps of
             []               -> [mknode "w:pPr" [] [bodyTextStyle]]
             ps               -> ps
@@ -983,9 +983,9 @@ blockToOpenXML' opts (Table caption aligns widths headers rows) = do
   -- Not in the spec but in Word 2007, 2010. See #4953.
   let cellToOpenXML (al, cell) = do
         es <- withParaProp (alignmentFor al) $ blocksToOpenXML opts cell
-        if any (\e -> qName (elName e) == "p") es
-           then return es
-           else return $ es ++ [mknode "w:p" [] ()]
+        return $ if any (\e -> qName (elName e) == "p") es
+           then es
+           else es ++ [mknode "w:p" [] ()]
   headers' <- mapM cellToOpenXML $ zip aligns headers
   rows' <- mapM (mapM cellToOpenXML . zip aligns) rows
   let borderProps = mknode "w:tcPr" []
