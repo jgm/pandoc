@@ -191,7 +191,7 @@ toJiraInlines inlines = do
         Code _ cs          -> return . singleton $
                               Jira.Monospaced (escapeSpecialChars cs)
         Emph xs            -> styled Jira.Emphasis xs
-        Image _ _ (src, _) -> pure . singleton $ Jira.Image [] (Jira.URL src)
+        Image attr _ tgt   -> imageToJira attr (fst tgt) (snd tgt)
         LineBreak          -> pure . singleton $ Jira.Linebreak
         Link _ xs (tgt, _) -> singleton . flip Jira.Link (Jira.URL tgt)
                               <$> toJiraInlines xs
@@ -229,6 +229,18 @@ escapeSpecialChars :: Text -> [Jira.Inline]
 escapeSpecialChars t = case plainText t of
   Right xs -> xs
   Left _  -> singleton $ Jira.Str t
+
+imageToJira :: PandocMonad m
+            => Attr -> Text -> Text
+            -> JiraConverter m [Jira.Inline]
+imageToJira (_, classes, kvs) src title =
+  let imgParams = if "thumbnail" `elem` classes
+                  then [Jira.Parameter "thumbnail" ""]
+                  else map (uncurry Jira.Parameter) kvs
+      imgParams' = if T.null title
+                   then imgParams
+                   else Jira.Parameter "title" title : imgParams
+  in pure . singleton $ Jira.Image imgParams' (Jira.URL src)
 
 mathToJira :: PandocMonad m
            => MathType
