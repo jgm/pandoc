@@ -40,7 +40,7 @@ import Data.Word (Word8)
 import System.Directory (doesDirectoryExist, getDirectoryContents)
 import System.FilePath ((</>))
 import System.FilePath.Glob (match, compile)
-import System.Random (StdGen, next, mkStdGen)
+import System.Random (StdGen, split, mkStdGen)
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Error
@@ -168,10 +168,10 @@ instance PandocMonad PandocPure where
   getCurrentTimeZone = getsPureState stTimeZone
 
   newStdGen = do
-    g <- getsPureState stStdGen
-    let (_, nxtGen) = next g
-    modifyPureState $ \st -> st { stStdGen = nxtGen }
-    return g
+    oldGen <- getsPureState stStdGen
+    let (genToStore, genToReturn) = split oldGen
+    modifyPureState $ \st -> st { stStdGen = genToStore }
+    return genToReturn
 
   newUniqueHash = do
     uniqs <- getsPureState stUniqStore
