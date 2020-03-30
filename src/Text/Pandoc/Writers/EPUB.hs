@@ -50,7 +50,7 @@ import Text.Pandoc.Options (EPUBVersion (..), HTMLMathMethod (..),
 import Text.Pandoc.Shared (makeSections, normalizeDate, renderTags',
                            safeRead, stringify, trim, uniqueIdent, tshow)
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.UUID (getUUID)
+import Text.Pandoc.UUID (getRandomUUID)
 import Text.Pandoc.Walk (query, walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtmlStringForEPUB)
 import Text.Printf (printf)
@@ -163,8 +163,8 @@ getEPUBMetadata opts meta = do
   let addIdentifier m =
        if null (epubIdentifier m)
           then do
-            randomId <- (show . getUUID) <$> lift P.newStdGen
-            return $ m{ epubIdentifier = [Identifier randomId Nothing] }
+            randomId <- getRandomUUID
+            return $ m{ epubIdentifier = [Identifier (show randomId) Nothing] }
           else return m
   let addLanguage m =
        if null (epubLanguage m)
