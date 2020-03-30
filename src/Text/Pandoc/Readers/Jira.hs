@@ -161,7 +161,7 @@ iconUnicode = \case
   Jira.IconAttention       -> "⚠"
   Jira.IconPlus            -> "⊞"
   Jira.IconMinus           -> "⊟"
-  Jira.IconQuestionmark    -> "?"
+  Jira.IconQuestionmark    -> "﹖"
   Jira.IconOn              -> "💡"
   Jira.IconOff             -> "💡"
   Jira.IconStar            -> "★"
