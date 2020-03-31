@@ -126,6 +126,10 @@ tests =
       let attr = ("", [], [("align", "right"), ("vspace", "4")])
       in para $ imageWith attr "image.gif" "Hello" mempty
 
+    , "inserted text" =:
+      "+the new version+" =?>
+      para (spanWith ("", ["underline"], []) "the new version")
+
     , "HTML entity" =:
       "me &amp; you" =?> para "me & you"
 
