@@ -789,6 +789,7 @@ test-suite test-pandoc
                   Tests.Writers.Docbook
                   Tests.Writers.HTML
                   Tests.Writers.JATS
+                  Tests.Writers.Jira
                   Tests.Writers.Markdown
                   Tests.Writers.Org
                   Tests.Writers.Plain

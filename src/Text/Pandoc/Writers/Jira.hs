@@ -206,7 +206,7 @@ toJiraInlines inlines = do
                                   then Jira.Linebreak
                                   else Jira.Space
         Space              -> pure . singleton $ Jira.Space
-        Span _attr xs      -> toJiraInlines xs
+        Span attr xs       -> spanToJira attr xs
         Str s              -> pure $ escapeSpecialChars s
         Strikeout xs       -> styled Jira.Strikeout xs
         Strong xs          -> styled Jira.Strong xs
@@ -262,6 +262,14 @@ quotedToJira qtype xs = do
                     SingleQuote -> "'"
   let surroundWithQuotes = (Jira.Str quoteChar :) . (++ [Jira.Str quoteChar])
   surroundWithQuotes <$> toJiraInlines xs
+
+spanToJira :: PandocMonad m
+           => Attr -> [Inline]
+           -> JiraConverter m [Jira.Inline]
+spanToJira (_, classes, _) =
+  if "underline" `elem` classes
+  then styled Jira.Insert
+  else toJiraInlines
 
 registerNotes :: PandocMonad m => [Block] -> JiraConverter m [Jira.Inline]
 registerNotes contents = do
