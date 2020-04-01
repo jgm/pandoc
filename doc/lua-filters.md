@@ -866,7 +866,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   list of items ([List] of [Blocks])
+:   list items ([List] of [List] of [Blocks])
 
 `tag`, `t`
 :   the literal `BulletList` (string)
@@ -1894,14 +1894,14 @@ format, and functions to filter and modify a subtree.
 
     Returns: [BlockQuote] object
 
-[`BulletList (content)`]{#pandoc.bulletlist}
+[`BulletList (items)`]{#pandoc.bulletlist}
 
-:   Creates a bullet (i.e.
+:   Creates a bullet list.
 
     Parameters:
 
-    `content`:
-    :   list of items
+    `items`:
+    :   list items
 
     Returns: [BulletList] object
 
