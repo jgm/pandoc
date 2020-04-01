@@ -30,6 +30,12 @@ extra-deps:
 - HsYAML-0.2.1.0
 - HsYAML-aeson-0.2.0.0
 - doctemplates-0.8.2
+- git: https://github.com/jgm/commonmark-hs
+  commit: 7a234c03c18aedf89bdd37412033d1c3ab950cfe
+  subdirs:
+    - commonmark
+    - commonmark-extensions
+    - commonmark-pandoc
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-14.6
