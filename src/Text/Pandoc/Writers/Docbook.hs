@@ -47,7 +47,8 @@ authorToDocbook opts name' = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  return $ B.rawInline "docbook" $ render colwidth $
+  return $ B.rawInline "docbook" $
+    render colwidth $ inTags True "personname" [] $
       if T.any (== ',') name
          then -- last name first
               let (lastname, rest) = T.break (==',') name
