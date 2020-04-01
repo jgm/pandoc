@@ -669,8 +669,8 @@ pipeTable :: PandocMonad m
 pipeTable headless aligns rawHeaders rawRows = do
   let sp = literal " "
   let blockFor AlignLeft   x y = lblock (x + 2) (sp <> y) <> lblock 0 empty
-      blockFor AlignCenter x y = cblock (x + 2) (sp <> y) <> lblock 0 empty
-      blockFor AlignRight  x y = rblock (x + 2) (sp <> y) <> lblock 0 empty
+      blockFor AlignCenter x y = cblock (x + 2) (sp <> y <> sp) <> lblock 0 empty
+      blockFor AlignRight  x y = rblock (x + 2) (y <> sp) <> lblock 0 empty
       blockFor _           x y = lblock (x + 2) (sp <> y) <> lblock 0 empty
   let widths = map (max 3 . maximum . map offset) $ transpose (rawHeaders : rawRows)
   let torow cs = nowrap $ literal "|" <>
