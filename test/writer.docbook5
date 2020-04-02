@@ -7,12 +7,16 @@
     <title>Pandoc Test Suite</title>
     <authorgroup>
       <author>
-        <firstname>John</firstname>
-        <surname>MacFarlane</surname>
+        <personname>
+          <firstname>John</firstname>
+          <surname>MacFarlane</surname>
+        </personname>
       </author>
       <author>
-        <firstname></firstname>
-        <surname>Anonymous</surname>
+        <personname>
+          <firstname></firstname>
+          <surname>Anonymous</surname>
+        </personname>
       </author>
     </authorgroup>
     <date>July 17, 2006</date>
