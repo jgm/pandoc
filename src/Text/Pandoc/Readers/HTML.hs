@@ -909,6 +909,7 @@ pCloses tagtype = try $ do
        (TagClose "ol") | tagtype == "li" -> return ()
        (TagClose "dl") | tagtype == "dd" -> return ()
        (TagClose "table") | tagtype == "td" -> return ()
+       (TagClose "table") | tagtype == "th" -> return ()
        (TagClose "table") | tagtype == "tr" -> return ()
        (TagClose "td") | tagtype `Set.member` blockHtmlTags -> return ()
        (TagClose "th") | tagtype `Set.member` blockHtmlTags -> return ()
