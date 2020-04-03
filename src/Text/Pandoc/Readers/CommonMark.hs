@@ -37,7 +37,8 @@ readCommonMark opts s = do
     Left err -> throwError $ PandocParsecError s err
     Right (Cm bls :: Cm () Blocks) -> return $ B.doc bls
  where
-  exts = [ smartPunctuationSpec | isEnabled Ext_smart opts ] ++
+  exts = [ hardLineBreaksSpec | isEnabled Ext_hard_line_breaks opts ] ++
+         [ smartPunctuationSpec | isEnabled Ext_smart opts ] ++
          [ strikethroughSpec | isEnabled Ext_strikeout opts ] ++
          [ superscriptSpec | isEnabled Ext_superscript opts ] ++
          [ subscriptSpec | isEnabled Ext_subscript opts ] ++
