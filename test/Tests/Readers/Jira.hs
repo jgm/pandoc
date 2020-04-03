@@ -14,8 +14,8 @@ Tests for the RST reader.
 -}
 module Tests.Readers.Jira (tests) where
 
-import Prelude
-import Data.Text (Text)
+import Prelude hiding (unlines)
+import Data.Text (Text, unlines)
 import Test.Tasty (TestTree, testGroup)
 import Tests.Helpers (ToString, purely, test, (=?>))
 import Text.Pandoc (def)
@@ -57,6 +57,16 @@ tests =
     [ "simple block quote" =:
       "bq. _Don't_ quote me on this." =?>
       blockQuote (para $ emph "Don't" <> space <> "quote me on this.")
+
+    , "block quote between paragraphs" =:
+      unlines [ "Regular text."
+              , "bq.This is a blockquote"
+              , "More text."
+              ] =?>
+      mconcat [ para "Regular text."
+              , blockQuote (para "This is a blockquote")
+              , para "More text."
+              ]
     ]
 
   , testGroup "table"
@@ -104,6 +114,10 @@ tests =
     , "color" =:
       "This is {color:red}red{color}." =?>
       para ("This is " <> spanWith ("", [], [("color", "red")]) "red" <> ".")
+
+    , "hexcolor" =:
+      "{color:#00875A}green{color}" =?>
+      para (spanWith ("", [], [("color", "#00875A")]) "green")
 
     , "linebreak" =:
       "first\nsecond" =?>

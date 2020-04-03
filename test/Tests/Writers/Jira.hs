@@ -23,5 +23,10 @@ tests =
       spanWith ("ignored", ["ignored", "underline"], [("foo", "bar")])
                "underlined text" =?>
       "+underlined text+"
+
+    , "image with attributes" =:
+      imageWith ("", [], [("align", "right"), ("height", "50")])
+                "image.png" "" mempty =?>
+      "!image.png|align=right, height=50!"
     ]
   ]
