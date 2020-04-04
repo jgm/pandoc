@@ -438,6 +438,18 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_implicit_figures
     , Ext_hard_line_breaks
     , Ext_smart
+    , Ext_tex_math_dollars
+    , Ext_superscript
+    , Ext_subscript
+    , Ext_definition_lists
+    , Ext_footnotes
+    , Ext_fancy_lists
+    , Ext_fenced_divs
+    , Ext_bracketed_spans
+    , Ext_raw_attribute
+    , Ext_inline_code_attributes
+    , Ext_link_attributes
+    , Ext_implicit_header_references
     ]
   getAll "commonmark"      = getAll "gfm"
   getAll "org"             = autoIdExtensions <>
