@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternGuards #-}
 {- |
    Module      : Text.Pandoc.Writers.Jira
    Copyright   : © 2010-2020 Albert Krewinkel, John MacFarlane
@@ -25,7 +26,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions (writerTemplate, writerWrapText),
                             WrapOption (..))
-import Text.Pandoc.Shared (linesToPara)
+import Text.Pandoc.Shared (linesToPara, stringify)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared (defField, metaToContext)
@@ -193,8 +194,7 @@ toJiraInlines inlines = do
         Emph xs            -> styled Jira.Emphasis xs
         Image attr _ tgt   -> imageToJira attr (fst tgt) (snd tgt)
         LineBreak          -> pure . singleton $ Jira.Linebreak
-        Link _ xs (tgt, _) -> singleton . flip Jira.Link (Jira.URL tgt)
-                              <$> toJiraInlines xs
+        Link attr xs tgt   -> toJiraLink attr tgt xs
         Math mtype cs      -> mathToJira mtype cs
         Note bs            -> registerNotes bs
         Quoted qt xs       -> quotedToJira qt xs
@@ -241,6 +241,28 @@ imageToJira (_, classes, kvs) src title =
                    then imgParams
                    else Jira.Parameter "title" title : imgParams
   in pure . singleton $ Jira.Image imgParams' (Jira.URL src)
+
+-- | Creates a Jira Link element.
+toJiraLink :: PandocMonad m
+           => Attr
+           -> Target
+           -> [Inline]
+           -> JiraConverter m [Jira.Inline]
+toJiraLink (_, classes, _) (url, _) alias = do
+  let (linkType, url') = toLinkType url
+  description <- if url `elem` [stringify alias, "mailto:" <> stringify alias]
+                 then pure mempty
+                 else toJiraInlines alias
+  pure . singleton $ Jira.Link linkType description (Jira.URL url')
+ where
+  toLinkType url'
+    | Just email <- T.stripPrefix "mailto:" url' = (Jira.Email, email)
+    | "user-account" `elem` classes              = (Jira.User, dropTilde url)
+    | "attachment" `elem` classes                = (Jira.Attachment, url)
+    | otherwise                                  = (Jira.External, url)
+  dropTilde txt = case T.uncons txt of
+    Just ('~', username) -> username
+    _                    -> txt
 
 mathToJira :: PandocMonad m
            => MathType

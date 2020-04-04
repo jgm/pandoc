@@ -111,6 +111,10 @@ tests =
       "HCO ~3~^-^" =?>
       para ("HCO " <> subscript "3" <> superscript "-")
 
+    , "citation" =:
+      "Et tu, Brute? ??Caesar??" =?>
+      para ("Et tu, Brute? — " <> emph "Caesar")
+
     , "color" =:
       "This is {color:red}red{color}." =?>
       para ("This is " <> spanWith ("", [], [("color", "red")]) "red" <> ".")
@@ -123,9 +127,35 @@ tests =
       "first\nsecond" =?>
       para ("first" <> linebreak <> "second")
 
-    , "link" =:
-      "[Example|https://example.org]" =?>
-      para (link "https://example.org" "" "Example")
+    , testGroup "links"
+      [ "external" =:
+        "[Example|https://example.org]" =?>
+        para (link "https://example.org" "" "Example")
+
+      , "email" =:
+        "[mailto:me@example.org]" =?>
+        para (link "mailto:me@example.org" "" "me@example.org")
+
+      , "email with description" =:
+        "[email|mailto:me@example.org]" =?>
+        para (link "mailto:me@example.org" "" "email")
+
+      , "attachment" =:
+        "[^example.txt]" =?>
+        para (linkWith ("", ["attachment"], []) "example.txt" "" "example.txt")
+
+      , "attachment with description" =:
+        "[an example^example.txt]" =?>
+        para (linkWith ("", ["attachment"], []) "example.txt" "" "an example")
+
+      , "user" =:
+        "[~johndoe]" =?>
+        para (linkWith ("", ["user-account"], []) "~johndoe" "" "~johndoe")
+
+      , "user with description" =:
+        "[John Doe|~johndoe]" =?>
+        para (linkWith ("", ["user-account"], []) "~johndoe" "" "John Doe")
+      ]
 
     , "image" =:
       "!https://example.com/image.jpg!" =?>

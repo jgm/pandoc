@@ -119,13 +119,14 @@ jiraToPandocInlines :: Jira.Inline -> Inlines
 jiraToPandocInlines = \case
   Jira.Anchor t          -> spanWith (t, [], []) mempty
   Jira.AutoLink url      -> link (Jira.fromURL url) "" (str (Jira.fromURL url))
+  Jira.Citation ils      -> str "—" <> space <> emph (fromInlines ils)
   Jira.ColorInline c ils -> spanWith ("", [], [("color", colorName c)]) $
                                      fromInlines ils
   Jira.Emoji icon        -> str . iconUnicode $ icon
   Jira.Entity entity     -> str . fromEntity $ entity
   Jira.Image params url  -> let (title, attr) = imgParams params
                             in imageWith attr (Jira.fromURL url) title mempty
-  Jira.Link alias url    -> link (Jira.fromURL url) "" (fromInlines alias)
+  Jira.Link lt alias url -> jiraLinkToPandoc lt alias url
   Jira.Linebreak         -> linebreak
   Jira.Monospaced inlns  -> code . stringify . toList . fromInlines $ inlns
   Jira.Space             -> space
@@ -156,6 +157,19 @@ jiraToPandocInlines = \case
         "thumbnail" -> (title, (ident, "thumbnail":classes, kvs))
         _           -> let kv = (Jira.parameterKey p, Jira.parameterValue p)
                        in (title, (ident, classes, kv:kvs))
+
+-- | Convert a Jira link to pandoc inlines.
+jiraLinkToPandoc :: Jira.LinkType -> [Jira.Inline] -> Jira.URL -> Inlines
+jiraLinkToPandoc linkType alias url =
+  let url' = (if linkType == Jira.User then ("~" <>) else id) $ Jira.fromURL url
+      alias' = case alias of
+                 [] -> str url'
+                 _  -> foldMap jiraToPandocInlines alias
+  in case linkType of
+    Jira.External   -> link url' "" alias'
+    Jira.Email      -> link ("mailto:" <> url') "" alias'
+    Jira.Attachment -> linkWith ("", ["attachment"], []) url' "" alias'
+    Jira.User       -> linkWith ("", ["user-account"], []) url' "" alias'
 
 -- | Get unicode representation of a Jira icon.
 iconUnicode :: Jira.Icon -> Text
