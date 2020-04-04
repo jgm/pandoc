@@ -89,7 +89,7 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "FB2" Tests.Readers.FB2.tests
           , testGroup "DokuWiki" Tests.Readers.DokuWiki.tests
           ]
-        , testGroup "Lua"
+        ,  testGroup "Lua"
           [ testGroup "Lua filters" Tests.Lua.tests
           , testGroup "Lua modules" Tests.Lua.Module.tests
           ]

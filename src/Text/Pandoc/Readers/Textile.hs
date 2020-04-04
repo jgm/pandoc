@@ -378,7 +378,7 @@ table = try $ do
   let nbOfCols = maximum $ map length (headers:rows)
   let aligns = map minimum $ transpose $ map (map (snd . fst)) (headers:rows)
   return $ B.table caption
-    (zip aligns (replicate nbOfCols Nothing))
+    (zip aligns (replicate nbOfCols ColWidthDefault))
     (map snd headers)
     (map (map snd) rows)
 

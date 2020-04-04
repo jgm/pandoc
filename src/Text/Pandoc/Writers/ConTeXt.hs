@@ -255,7 +255,7 @@ blockToConTeXt (DefinitionList lst) =
 blockToConTeXt HorizontalRule = return $ "\\thinrule" <> blankline
 -- If this is ever executed, provide a default for the reference identifier.
 blockToConTeXt (Header level attr lst) = sectionHeader attr level lst
-blockToConTeXt (Table _ blkCapt specs _ thead tbody tfoot) = do
+blockToConTeXt (Table _ blkCapt specs thead tbody tfoot) = do
     let (caption, aligns, widths, heads, rows) = toLegacyTable blkCapt specs thead tbody tfoot
     opts <- gets stOptions
     let tabl = if isEnabled Ext_ntb opts

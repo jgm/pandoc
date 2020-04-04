@@ -27,7 +27,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (capitalize, isTightList,
-    linesToPara, onlySimpleTableCells, taskListItemToAscii, tshow, toLegacyTable)
+    linesToPara, onlySimpleTableCells, taskListItemToAscii, tshow)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk (walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtml5String, tagWithAttributes)
@@ -154,7 +154,7 @@ blockToNodes opts (DefinitionList items) ns =
           Plain (term ++ [LineBreak] ++ xs) : ys ++ concat zs
         dlToBullet (term, xs) =
           Para term : concat xs
-blockToNodes opts t@(Table _ blkCapt specs _ thead tbody tfoot) ns =
+blockToNodes opts t@(Table _ blkCapt specs thead tbody tfoot) ns =
   let (capt, aligns, _widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   in if isEnabled Ext_pipe_tables opts && onlySimpleTableCells (headers : rows)
         then do

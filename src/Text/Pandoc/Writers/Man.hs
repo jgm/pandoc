@@ -139,7 +139,7 @@ blockToMan opts (CodeBlock _ str) = return $
 blockToMan opts (BlockQuote blocks) = do
   contents <- blockListToMan opts blocks
   return $ literal ".RS" $$ contents $$ literal ".RE"
-blockToMan opts (Table _ blkCapt specs _ thead tbody tfoot) =
+blockToMan opts (Table _ blkCapt specs thead tbody tfoot) =
   let (caption, alignments, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
       aligncode AlignLeft    = "l"
       aligncode AlignRight   = "r"

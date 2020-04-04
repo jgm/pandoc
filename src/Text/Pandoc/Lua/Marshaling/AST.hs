@@ -21,7 +21,7 @@ import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.Util (defineHowTo, pushViaConstructor)
 import Text.Pandoc.Lua.Marshaling.CommonState ()
-import Text.Pandoc.Shared (toLegacyTable)
+import Text.Pandoc.Writers.Shared (toLegacyTable)
 
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
@@ -168,7 +168,7 @@ pushBlock = \case
   Para blcks               -> pushViaConstructor "Para" blcks
   Plain blcks              -> pushViaConstructor "Plain" blcks
   RawBlock f cs            -> pushViaConstructor "RawBlock" f cs
-  Table _ blkCapt specs _ thead tbody tfoot ->
+  Table _ blkCapt specs thead tbody tfoot ->
     let (capt, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
     in pushViaConstructor "Table" capt aligns widths headers rows
 
@@ -195,12 +195,11 @@ peekBlock idx = defineHowTo "get Block value" $ do
       "RawBlock"       -> uncurry RawBlock <$> elementContent
       "Table"          -> (\(capt, aligns, widths, headers, body) ->
                               Table nullAttr
-                                    (Caption Nothing $ maybePara capt)
+                                    (Caption Nothing $ maybePlain capt)
                                     (zip aligns (map strictPos widths))
-                                    0
-                                    [toRow headers]
-                                    (map toRow body)
-                                    [])
+                                    (TableHead nullAttr [toRow headers])
+                                    [TableBody nullAttr 0 [] (map toRow body)]
+                                    (TableFoot nullAttr []))
                           <$> elementContent
       _ -> Lua.throwException ("Unknown block type: " <> tag)
  where
@@ -208,10 +207,10 @@ peekBlock idx = defineHowTo "get Block value" $ do
    elementContent :: Peekable a => Lua a
    elementContent = LuaUtil.rawField idx "c"
 
-   strictPos w = if w > 0 then Just w else Nothing
-   maybePara [] = []
-   maybePara x  = [Para x]
-   toRow = Row nullAttr . map (\blk -> Cell nullAttr Nothing 1 1 blk)
+   strictPos w = if w > 0 then ColWidth w else ColWidthDefault
+   maybePlain [] = []
+   maybePlain x  = [Plain x]
+   toRow = Row nullAttr . map (\blk -> Cell nullAttr AlignDefault 1 1 blk)
 
 -- | Push an inline element to the top of the lua stack.
 pushInline :: Inline -> Lua ()

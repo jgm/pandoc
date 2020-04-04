@@ -8,23 +8,29 @@ gfm tests:
 | orange|1.12|
 ^D
 [Table ("",[],[]) (Caption Nothing
- []) [(AlignDefault,Nothing),(AlignRight,Nothing)] 0
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignRight,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Str "Fruit"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Price"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "apple"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "0.13"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "orange"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "1.12"]]]]
- []]
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Plain [Str "Price"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "apple"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "0.13"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "orange"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "1.12"]]]])]
+ (TableFoot ("",[],[])
+ [])]
 ```
 
 ```
@@ -69,23 +75,29 @@ My:thumbsup:emoji:heart:
 ```
 % pandoc -t gfm -f native
 [Table ("",[],[]) (Caption Nothing
- [Para [Str "The",Space,Str "caption."]]) [(AlignDefault,Nothing),(AlignRight,Nothing)] 0
+ [Plain [Str "The",Space,Str "caption."]])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignRight,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Str "Fruit"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Price"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "apple"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "0.13"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "orange"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "1.12"]]]]
- []]
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Plain [Str "Price"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "apple"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "0.13"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "orange"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "1.12"]]]])]
+ (TableFoot ("",[],[])
+ [])]
 ^D
 | Fruit  | Price |
 | ------ | ----: |

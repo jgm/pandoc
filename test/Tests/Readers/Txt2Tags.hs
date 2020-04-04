@@ -44,7 +44,7 @@ simpleTable' :: Int
              -> [Blocks]
              -> [[Blocks]]
              -> Blocks
-simpleTable' n = table "" (replicate n (AlignCenter, Nothing))
+simpleTable' n = table "" (replicate n (AlignCenter, ColWidthDefault))
 
 tests :: [TestTree]
 tests =
@@ -398,7 +398,9 @@ tests =
                   , "| 1 |    One  |    foo  |"
                   , "| 2 |    Two  | bar  |"
                   ] =?>
-          table "" (zip [AlignCenter, AlignRight, AlignDefault] [Nothing, Nothing, Nothing])
+          table "" (zip
+                     [AlignCenter, AlignRight, AlignDefault]
+                     [ColWidthDefault, ColWidthDefault, ColWidthDefault])
                 []
                 [ [ plain "Numbers", plain "Text", plain "More" ]
                 , [ plain "1"      , plain "One" , plain "foo"  ]
@@ -415,7 +417,9 @@ tests =
                   , "| 1 | One  | foo  |"
                   , "| 2 "
                   ] =?>
-          table "" (zip [AlignCenter, AlignLeft, AlignLeft] [Nothing, Nothing, Nothing])
+          table "" (zip
+                     [AlignCenter, AlignLeft, AlignLeft]
+                     [ColWidthDefault, ColWidthDefault, ColWidthDefault])
                 [ plain "Numbers", plain "Text" , plain mempty ]
                 [ [ plain "1"      , plain "One"  , plain "foo"  ]
                 , [ plain "2"      , plain mempty , plain mempty  ]

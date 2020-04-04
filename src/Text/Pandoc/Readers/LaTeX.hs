@@ -2268,7 +2268,7 @@ splitWordTok = do
          setInput $ map (Tok spos Symbol . T.singleton) (T.unpack t) <> rest
        _ -> return ()
 
-parseAligns :: PandocMonad m => LP m [(Alignment, Maybe Double, ([Tok], [Tok]))]
+parseAligns :: PandocMonad m => LP m [(Alignment, ColWidth, ([Tok], [Tok]))]
 parseAligns = try $ do
   let maybeBar = skipMany
         (try $ sp *> (() <$ symbol '|' <|> () <$ (symbol '@' >> braced)))
@@ -2319,7 +2319,11 @@ parseAligns = try $ do
   spaces
   egroup
   spaces
-  return aligns'
+  return $ map toSpec aligns'
+  where
+    toColWidth (Just w) | w > 0 = ColWidth w
+    toColWidth _                = ColWidthDefault
+    toSpec (x, y, z) = (x, toColWidth y, z)
 
 parseTableRow :: PandocMonad m
               => Text   -- ^ table environment name
@@ -2397,11 +2401,11 @@ simpTable envname hasWidthParameter = try $ do
 
 addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
 addTableCaption = walkM go
-  where go (Table attr c spec rhs th tb tf) = do
+  where go (Table attr c spec th tb tf) = do
           st <- getState
           let mblabel = sLastLabel st
           capt <- case (sCaption st, mblabel) of
-                   (Just ils, Nothing)  -> return $ Caption Nothing (mcap ils)
+                   (Just ils, Nothing)  -> return $ caption Nothing (plain ils)
                    (Just ils, Just lab) -> do
                      num <- getNextNumber sLastTableNum
                      setState
@@ -2409,15 +2413,11 @@ addTableCaption = walkM go
                          , sLabels = M.insert lab
                                     [Str (renderDottedNum num)]
                                     (sLabels st) }
-                     return $ Caption Nothing (mcap ils) -- add number??
+                     return $ caption Nothing (plain ils) -- add number??
                    (Nothing, _)  -> return c
           return $ maybe id (\ident -> Div (ident, [], []) . (:[])) mblabel $
-                     Table attr capt spec rhs th tb tf
+                     Table attr capt spec th tb tf
         go x = return x
-        mcap ils
-          | isNull ils = []
-          | otherwise  = [Para $ toList ils]
-
 
 block :: PandocMonad m => LP m Blocks
 block = do

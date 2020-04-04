@@ -885,7 +885,7 @@ blockToHtml opts (DefinitionList lst) = do
                      return $ mconcat $ nl opts : term' : nl opts :
                                         intersperse (nl opts) defs') lst
   defList opts contents
-blockToHtml opts (Table _ blkCapt specs _ thead tbody tfoot) = do
+blockToHtml opts (Table _ blkCapt specs thead tbody tfoot) = do
   let (capt, aligns, widths, headers, rows') = toLegacyTable blkCapt specs thead tbody tfoot
   captionDoc <- if null capt
                    then return mempty

@@ -356,7 +356,7 @@ blockToJATS _ b@(RawBlock f str)
       report $ BlockNotRendered b
       return empty
 blockToJATS _ HorizontalRule = return empty -- not semantic
-blockToJATS opts (Table _ blkCapt specs _ th tb tf) =
+blockToJATS opts (Table _ blkCapt specs th tb tf) =
   case toLegacyTable blkCapt specs th tb tf of
     ([], aligns, widths, headers, rows) -> captionlessTable aligns widths headers rows
     (caption, aligns, widths, headers, rows) -> do

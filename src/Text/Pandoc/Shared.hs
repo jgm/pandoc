@@ -77,7 +77,6 @@ module Text.Pandoc.Shared (
                      htmlSpanLikeElements,
                      splitSentences,
                      filterIpynbOutput,
-                     toLegacyTable,
                      -- * TagSoup HTML handling
                      renderTags',
                      -- * File handling
@@ -993,12 +992,14 @@ blockToInlines (DefinitionList pairslst) =
       mconcat (map blocksToInlines' blkslst)
 blockToInlines (Header _ _  ils) = B.fromList ils
 blockToInlines HorizontalRule = mempty
-blockToInlines (Table _ _ _ _ headers rows feet) =
+blockToInlines (Table _ _ _ (TableHead _ hbd) bodies (TableFoot _ fbd)) =
   mconcat $ intersperse B.linebreak $
-    map (mconcat . map blocksToInlines') (plainRowBody <$> headers <> rows <> feet)
+    map (mconcat . map blocksToInlines') (plainRowBody <$> hbd <> unTableBodies bodies <> fbd)
   where
     plainRowBody (Row _ body) = cellBody <$> body
     cellBody (Cell _ _ _ _ body) = body
+    unTableBody (TableBody _ _ hd bd) = hd <> bd
+    unTableBodies = concatMap unTableBody
 blockToInlines (Div _ blks) = blocksToInlines' blks
 blockToInlines Null = mempty
 
@@ -1011,30 +1012,6 @@ blocksToInlines' = blocksToInlinesWithSep defaultBlocksSeparator
 
 blocksToInlines :: [Block] -> [Inline]
 blocksToInlines = B.toList . blocksToInlines'
-
--- | Convert the relevant components of a new-style table (with block
--- caption, row headers, row and column spans, and so on) to those of
--- an old-style table (inline caption, table head with one row, no
--- foot, and so on).
-toLegacyTable :: Caption
-              -> [ColSpec]
-              -> TableHead
-              -> TableBody
-              -> TableFoot
-              -> ([Inline], [Alignment], [Double], [[Block]], [[[Block]]])
-toLegacyTable (Caption _ cbody) specs th tb tf = (cbody', aligns, widths, th', tb')
-  where
-    numcols = length specs
-    (aligns, mwidths) = unzip specs
-    widths = map (fromMaybe 0) mwidths
-    unRow (Row _ x) = map unCell x
-    unCell (Cell _ _ _ _ x) = x
-    cbody' = blocksToInlines cbody
-    sanitise = pad mempty numcols . unRow
-    pad element upTo list = take upTo (list ++ repeat element)
-    (th', tb') = case th of
-      (r:rs) -> (sanitise r, map sanitise $ rs <> tb <> tf)
-      []     -> ([], map sanitise $ tb <> tf)
 
 -- | Inline elements used to separate blocks when squashing blocks into
 -- inlines.

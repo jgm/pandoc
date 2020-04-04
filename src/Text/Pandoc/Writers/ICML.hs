@@ -321,7 +321,7 @@ blockToICML opts style (Header lvl (_, cls, _) lst) =
                    else ""
   in parStyle opts stl lst
 blockToICML _ _ HorizontalRule = return empty -- we could insert a page break instead
-blockToICML opts style (Table _ blkCapt specs _ thead tbody tfoot) =
+blockToICML opts style (Table _ blkCapt specs thead tbody tfoot) =
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
       style' = tableName : style
       noHeader  = all null headers

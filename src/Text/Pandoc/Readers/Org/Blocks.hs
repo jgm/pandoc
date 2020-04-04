@@ -629,14 +629,14 @@ orgToPandocTable (OrgTable colProps heads lns) caption =
                    else Nothing
   in B.table caption (map (convertColProp totalWidth) colProps) heads lns
  where
-   convertColProp :: Maybe Int -> ColumnProperty -> (Alignment, Maybe Double)
+   convertColProp :: Maybe Int -> ColumnProperty -> (Alignment, ColWidth)
    convertColProp totalWidth colProp =
      let
        align' = fromMaybe AlignDefault $ columnAlignment colProp
        width' = (\w t -> (fromIntegral w / fromIntegral t))
                 <$> columnRelWidth colProp
                 <*> totalWidth
-     in (align', width')
+     in (align', maybe ColWidthDefault ColWidth width')
 
 tableRows :: PandocMonad m => OrgParser m [OrgTableRow]
 tableRows = try $ many (tableAlignRow <|> tableHline <|> tableContentRow)

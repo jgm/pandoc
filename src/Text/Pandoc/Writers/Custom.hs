@@ -29,7 +29,6 @@ import Text.Pandoc.Lua (Global (..), LuaException (LuaException),
                         runLua, setGlobals)
 import Text.Pandoc.Lua.Util (addField, dofileWithTraceback)
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (toLegacyTable)
 import Text.Pandoc.Templates (renderTemplate)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Writers.Shared
@@ -150,7 +149,7 @@ blockToCustom (CodeBlock attr str) =
 blockToCustom (BlockQuote blocks) =
   Lua.callFunc "BlockQuote" (Stringify blocks)
 
-blockToCustom (Table _ blkCapt specs _ thead tbody tfoot) =
+blockToCustom (Table _ blkCapt specs thead tbody tfoot) =
   let (capt, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
       aligns' = map show aligns
       capt' = Stringify capt

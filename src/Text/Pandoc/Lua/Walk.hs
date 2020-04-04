@@ -59,6 +59,18 @@ instance Walkable (SingletonsList Inline) Row where
   walkM = walkRowM
   query = queryRow
 
+instance Walkable (SingletonsList Inline) TableHead where
+  walkM = walkTableHeadM
+  query = queryTableHead
+
+instance Walkable (SingletonsList Inline) TableBody where
+  walkM = walkTableBodyM
+  query = queryTableBody
+
+instance Walkable (SingletonsList Inline) TableFoot where
+  walkM = walkTableFootM
+  query = queryTableFoot
+
 instance Walkable (SingletonsList Inline) Caption where
   walkM = walkCaptionM
   query = queryCaption
@@ -101,6 +113,18 @@ instance Walkable (SingletonsList Block) Block where
 instance Walkable (SingletonsList Block) Row where
   walkM = walkRowM
   query = queryRow
+
+instance Walkable (SingletonsList Block) TableHead where
+  walkM = walkTableHeadM
+  query = queryTableHead
+
+instance Walkable (SingletonsList Block) TableBody where
+  walkM = walkTableBodyM
+  query = queryTableBody
+
+instance Walkable (SingletonsList Block) TableFoot where
+  walkM = walkTableFootM
+  query = queryTableFoot
 
 instance Walkable (SingletonsList Block) Caption where
   walkM = walkCaptionM

@@ -104,76 +104,90 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Str "Textile",Space,Str "allows",Space,Str "tables",Space,Str "with",Space,Str "and",Space,Str "without",Space,Str "headers",Space,Str ":"]
 ,Header 2 ("without-headers",[],[]) [Str "Without",Space,Str "headers"]
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignDefault,Nothing),(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
-   []]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "name"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "age"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "sex"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "joan"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "24"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "f"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "archie"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "29"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "m"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "bella"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "45"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "f"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   []]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "name"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "age"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "sex"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "joan"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "24"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "f"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "archie"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "29"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "m"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "bella"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "45"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "f"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Para [Str "and",Space,Str "some",Space,Str "text",Space,Str "following",Space,Str "\8230"]
 ,Header 2 ("with-headers",[],[]) [Str "With",Space,Str "headers"]
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignDefault,Nothing),(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Str "name"]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Str "age"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "sex"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "joan"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "24"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "f"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "archie"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "29"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "m"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "bella"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "45"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "f"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Plain [Str "sex"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "joan"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "24"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "f"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "archie"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "29"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "m"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "bella"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "45"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "f"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Header 1 ("images",[],[]) [Str "Images"]
 ,Para [Str "Textile",Space,Str "inline",Space,Str "image",Space,Str "syntax,",Space,Str "like",LineBreak,Str "here",Space,Image ("",[],[]) [Str "this is the alt text"] ("this_is_an_image.png","this is the alt text"),LineBreak,Str "and",Space,Str "here",Space,Image ("",[],[]) [Str ""] ("this_is_an_image.png",""),Str "."]
 ,Header 1 ("attributes",[],[]) [Str "Attributes"]
@@ -184,29 +198,36 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Str "as",Space,Str "well",Space,Str "as",Space,Strong [Span ("",["foo"],[]) [Str "inline",Space,Str "attributes"]],Space,Str "of",Space,Span ("",[],[("style","color:red;")]) [Str "all",Space,Str "kind"]]
 ,Para [Str "and",Space,Str "paragraph",Space,Str "attributes,",Space,Str "and",Space,Str "table",Space,Str "attributes."]
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignDefault,Nothing),(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
-   []]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "name"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "age"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "sex"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "joan"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "24"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "f"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   []]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "name"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "age"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "sex"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "joan"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "24"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "f"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Para [Emph [Str "(class#id)",Space,Str "emph"]]
 ,Para [Emph [Str "(no",Space,Str "class#id)",Space,Str "emph"]]
 ,Header 1 ("entities",[],[]) [Str "Entities"]

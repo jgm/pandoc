@@ -107,9 +107,8 @@ parseTable = do
       bodyRows <- mapM (mapM parseTableCell . snd) bodyRows'
       isPlainTable <- tableCellsPlain <$> getState
       let widths = if isPlainTable
-                      then repeat Nothing
-                      else repeat (Just (1.0 / fromIntegral (length alignments))
-                                   :: Maybe Double)
+                      then repeat ColWidthDefault
+                      else repeat $ ColWidth (1.0 / fromIntegral (length alignments))
       return $ B.table mempty (zip alignments widths)
                   headerRow bodyRows) <|> fallback pos
     [] -> fallback pos

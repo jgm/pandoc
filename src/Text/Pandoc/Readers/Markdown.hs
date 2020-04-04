@@ -1418,8 +1418,8 @@ table = try $ do
                    then widths
                    else map (/ totalWidth) widths
   let strictPos w
-        | w > 0     = Just w
-        | otherwise = Nothing
+        | w > 0     = ColWidth w
+        | otherwise = ColWidthDefault
   return $ do
     caption' <- caption
     heads' <- heads

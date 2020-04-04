@@ -1,24 +1,31 @@
 [Table ("",[],[]) (Caption Nothing
- []) [(AlignDefault,Nothing),(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
-   []]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Strong [Str "col1Header"]]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Strong [Str "col2Header"]]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Strong [Str "col3Header"]]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "col1",Space,Str "content"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Body",Space,Str "copy"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "col3",Space,Str "content"]]]]
- []]
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   []]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Strong [Str "col1Header"]]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Strong [Str "col2Header"]]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Strong [Str "col3Header"]]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "col1",Space,Str "content"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Body",Space,Str "copy"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "col3",Space,Str "content"]]]])]
+ (TableFoot ("",[],[])
+ [])]

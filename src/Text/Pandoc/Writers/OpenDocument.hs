@@ -31,7 +31,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
-import Text.Pandoc.Shared (linesToPara, tshow, toLegacyTable)
+import Text.Pandoc.Shared (linesToPara, tshow)
 import Text.Pandoc.Templates (renderTemplate)
 import qualified Text.Pandoc.Translations as Term (Term(Figure, Table))
 import Text.Pandoc.Writers.Math
@@ -359,7 +359,7 @@ blockToOpenDocument o bs
     | BulletList     b <- bs = setFirstPara >> bulletListToOpenDocument o b
     | OrderedList  a b <- bs = setFirstPara >> orderedList a b
     | CodeBlock    _ s <- bs = setFirstPara >> preformatted s
-    | Table _ bc s _ th tb tf
+    | Table _ bc s th tb tf
                        <- bs = let (c, a, w, h, r) = toLegacyTable bc s th tb tf
                                in setFirstPara >> table c a w h r
     | HorizontalRule   <- bs = setFirstPara >> return (selfClosingTag "text:p"

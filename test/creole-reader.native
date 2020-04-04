@@ -70,49 +70,61 @@ Pandoc (Meta {unMeta = fromList []})
 ,Header 3 ("",[],[]) [Str "Creole 0.4"]
 ,Para [Str "Tables",Space,Str "are",Space,Str "done",Space,Str "like",Space,Str "this:"]
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Str "header",Space,Str "col1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "header",Space,Str "col2"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "col1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "col2"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "you"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "can"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "also"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "align",LineBreak,Str "it."]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Plain [Str "header",Space,Str "col2"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "col1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "col2"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "you"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "can"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "also"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "align",LineBreak,Str "it."]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Para [Str "You",Space,Str "can",Space,Str "format",Space,Str "an",Space,Str "address",Space,Str "by",Space,Str "simply",Space,Str "forcing",Space,Str "linebreaks:"]
 ,Para [Str "My",Space,Str "contact",Space,Str "dates:",LineBreak,Str "Pone:",Space,Str "xyz",LineBreak,Str "Fax:",Space,Str "+45",LineBreak,Str "Mobile:",Space,Str "abc"]
 ,Header 3 ("",[],[]) [Str "Creole 0.5"]
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Str "Header",Space,Str "title"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Another",Space,Str "header",Space,Str "title"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Code ("",[],[]) " //not italic text// "]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Code ("",[],[]) " **not bold text** "]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Emph [Str "italic",Space,Str "text"]]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Strong [Space,Str "bold",Space,Str "text",Space]]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Plain [Str "Another",Space,Str "header",Space,Str "title"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Code ("",[],[]) " //not italic text// "]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Code ("",[],[]) " **not bold text** "]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Emph [Str "italic",Space,Str "text"]]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Strong [Space,Str "bold",Space,Str "text",Space]]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Header 3 ("",[],[]) [Str "Creole 1.0"]
 ,Para [Str "If",Space,Str "interwiki",Space,Str "links",Space,Str "are",Space,Str "setup",Space,Str "in",Space,Str "your",Space,Str "wiki,",Space,Str "this",Space,Str "links",Space,Str "to",Space,Str "the",Space,Str "WikiCreole",Space,Str "page",Space,Str "about",Space,Str "Creole",Space,Str "1.0",Space,Str "test",Space,Str "cases:",Space,Link ("",[],[]) [Str "WikiCreole:Creole1.0TestCases"] ("WikiCreole:Creole1.0TestCases",""),Str "."]
 ,HorizontalRule

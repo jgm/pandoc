@@ -111,13 +111,19 @@ addBlock opts (Node _ (LIST listAttrs) nodes) =
                      PAREN_DELIM  -> OneParen
         exts = readerExtensions opts
 addBlock opts (Node _ (TABLE alignments) nodes) =
-  (Table nullAttr (Caption Nothing []) (zip aligns widths) 0 headers rows [] :)
+  (Table
+    nullAttr
+    (Caption Nothing [])
+    (zip aligns widths)
+    (TableHead nullAttr headers)
+    [TableBody nullAttr 0 [] rows]
+    (TableFoot nullAttr []) :)
   where aligns = map fromTableCellAlignment alignments
         fromTableCellAlignment NoAlignment   = AlignDefault
         fromTableCellAlignment LeftAligned   = AlignLeft
         fromTableCellAlignment RightAligned  = AlignRight
         fromTableCellAlignment CenterAligned = AlignCenter
-        widths = replicate numcols Nothing
+        widths = replicate numcols ColWidthDefault
         numcols = if null rows'
                      then 0
                      else maximum $ map rowLength rows'
@@ -136,7 +142,7 @@ addBlock opts (Node _ (TABLE alignments) nodes) =
           | isBlockNode n = fromSimpleCell $ addBlocks opts (n:ns)
           | otherwise     = fromSimpleCell [Plain (addInlines opts (n:ns))]
         toCell (Node _ t _) = error $ "toCell encountered non-cell " ++ show t
-        fromSimpleCell = Cell nullAttr Nothing 1 1
+        fromSimpleCell = Cell nullAttr AlignDefault 1 1
         rowLength (Row _ body) = length body -- all cells are 1×1
 addBlock _ (Node _ TABLE_ROW _) = id -- handled in TABLE
 addBlock _ (Node _ TABLE_CELL _) = id -- handled in TABLE

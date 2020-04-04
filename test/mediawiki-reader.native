@@ -188,176 +188,231 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Str "Written",Space,RawInline (Format "mediawiki") "{{{date}}}",Space,Str "by",Space,RawInline (Format "mediawiki") "{{{name}}}",Str "."]
 ,Header 2 ("tables",[],[]) [Str "tables"]
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
-   []]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Orange"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Apple"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Bread"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Pie"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Butter"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Ice",Space,Str "cream"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   []]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Orange"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Apple"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Bread"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Pie"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Butter"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Ice",Space,Str "cream"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- [Para [Str "Food",Space,Str "complements"]]) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Plain [Str "Food",Space,Str "complements"]])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "Orange"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Apple"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Bread"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Pie"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Butter"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Ice",Space,Str "cream"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Para [Str "Apple"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Bread"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Pie"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Butter"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Ice",Space,Str "cream"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- [Para [Str "Food",Space,Str "complements"]]) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [Plain [Str "Food",Space,Str "complements"]])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "Orange"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Apple"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Bread"]
-   ,Para [Str "and",Space,Str "cheese"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Pie"]
-   ,OrderedList (1,DefaultStyle,DefaultDelim)
-    [[Plain [Str "apple"]]
-    ,[Plain [Str "carrot"]]]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Para [Str "Apple"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Bread"]
+    ,Para [Str "and",Space,Str "cheese"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Pie"]
+    ,OrderedList (1,DefaultStyle,DefaultDelim)
+     [[Plain [Str "apple"]]
+     ,[Plain [Str "carrot"]]]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignDefault,Nothing),(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
-   []]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Orange"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Apple"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "more"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Bread"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Pie"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "more"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Butter"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Ice",Space,Str "cream"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "and",Space,Str "more"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   []]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Orange"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Apple"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "more"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Bread"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Pie"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "more"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Butter"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Ice",Space,Str "cream"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "and",Space,Str "more"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Just 0.25),(AlignRight,Just 0.125),(AlignCenter,Just 0.125)] 0
+ [])
+ [(AlignLeft,ColWidth 0.25)
+ ,(AlignRight,ColWidth 0.125)
+ ,(AlignCenter,ColWidth 0.125)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "Left"]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "Right"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Center"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "left"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "15.00"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "centered"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "more"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "2.0"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "more"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Para [Str "Center"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "left"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "15.00"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "centered"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "more"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "2.0"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "more"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
-   []]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Orange"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Apple"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Bread"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Table ("",[],[]) (Caption Nothing
-    []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
-    [Row ("",[],[])
-     [Cell ("",[],[]) Nothing 1 1
-      [Para [Str "fruit"]]
-     ,Cell ("",[],[]) Nothing 1 1
-      [Para [Str "topping"]]]]
-    [Row ("",[],[])
-     [Cell ("",[],[]) Nothing 1 1
-      [Para [Str "apple"]]
-     ,Cell ("",[],[]) Nothing 1 1
-      [Para [Str "ice",Space,Str "cream"]]]]
-    []]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Butter"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Ice",Space,Str "cream"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   []]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Orange"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Apple"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Bread"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Table ("",[],[]) (Caption Nothing
+     [])
+     [(AlignDefault,ColWidthDefault)
+     ,(AlignDefault,ColWidthDefault)]
+     (TableHead ("",[],[])
+     [Row ("",[],[])
+      [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+       [Para [Str "fruit"]]
+      ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+       [Para [Str "topping"]]]])
+     [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+      []
+      [Row ("",[],[])
+       [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+        [Para [Str "apple"]]
+       ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+        [Para [Str "ice",Space,Str "cream"]]]])]
+     (TableFoot ("",[],[])
+     [])]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Butter"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Ice",Space,Str "cream"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignDefault,Nothing)] 0
+ [])
+ [(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   []]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Orange"]]]]
- []
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   []]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "Orange"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Para [Str "Paragraph",Space,Str "after",Space,Str "the",Space,Str "table."]
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "fruit"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "topping"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "apple"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "ice",Space,Str "cream"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Para [Str "topping"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "apple"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "ice",Space,Str "cream"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Header 2 ("notes",[],[]) [Str "notes"]
 ,Para [Str "My",Space,Str "note!",Note [Plain [Str "This."]]]
 ,Para [Str "URL",Space,Str "note.",Note [Plain [Link ("",[],[]) [Str "http://docs.python.org/library/functions.html#range"] ("http://docs.python.org/library/functions.html#range","")]]]]

@@ -1,19 +1,25 @@
 [Table ("",[],[]) (Caption Nothing
- []) [(AlignDefault,Nothing),(AlignDefault,Nothing)] 0
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Str "Cell",Space,Str "with",Space,Str "text"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "with",Space,Str "text"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [BulletList
-    [[Para [Str "Cell",Space,Str "with"]]
-    ,[Para [Str "A"]]
-    ,[Para [Str "Bullet",Space,Str "list"]]]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [OrderedList (1,Decimal,Period)
-    [[Para [Str "Cell",Space,Str "with"]]
-    ,[Para [Str "A"]]
-    ,[Para [Str "Numbered",Space,Str "list."]]]]]]
- []]
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Plain [Str "Cell",Space,Str "with",Space,Str "text"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [BulletList
+     [[Para [Str "Cell",Space,Str "with"]]
+     ,[Para [Str "A"]]
+     ,[Para [Str "Bullet",Space,Str "list"]]]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [OrderedList (1,Decimal,Period)
+     [[Para [Str "Cell",Space,Str "with"]]
+     ,[Para [Str "A"]]
+     ,[Para [Str "Numbered",Space,Str "list."]]]]]])]
+ (TableFoot ("",[],[])
+ [])]

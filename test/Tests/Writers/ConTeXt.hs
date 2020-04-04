@@ -99,7 +99,7 @@ tests = [ testGroup "inline code"
         , testGroup "natural tables"
             [ test contextNtb "table with header and caption" $
               let capt = text "Table 1"
-                  aligns = [(AlignRight, Nothing), (AlignLeft, Nothing), (AlignCenter, Nothing), (AlignDefault, Nothing)]
+                  aligns = [(AlignRight, ColWidthDefault), (AlignLeft, ColWidthDefault), (AlignCenter, ColWidthDefault), (AlignDefault, ColWidthDefault)]
                   headers = [plain $ text "Right",
                              plain $ text "Left",
                              plain $ text "Center",

@@ -574,7 +574,7 @@ blockToMarkdown' opts (BlockQuote blocks) = do
                   else if plain then "  " else "> "
   contents <- blockListToMarkdown opts blocks
   return $ (prefixed leader contents) <> blankline
-blockToMarkdown' opts t@(Table _ blkCapt specs _ thead tbody tfoot) = do
+blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   let numcols = maximum (length aligns : length widths :
                            map length (headers:rows))

@@ -259,7 +259,7 @@ blockToMuse (Header level (ident,_,_) inlines) = do
   return $ blankline <> attr' $$ nowrap (header' <> contents) <> blankline
 -- https://www.gnu.org/software/emacs-muse/manual/muse.html#Horizontal-Rules-and-Anchors
 blockToMuse HorizontalRule = return $ blankline $$ "----" $$ blankline
-blockToMuse (Table _ blkCapt specs _ thead tbody tfoot) =
+blockToMuse (Table _ blkCapt specs thead tbody tfoot) =
   if isSimple && numcols > 1
     then simpleTable caption headers rows
     else do

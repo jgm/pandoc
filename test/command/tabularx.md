@@ -21,36 +21,43 @@
 \end{tabularx}
 ^D
 [Table ("",[],[]) (Caption Nothing
- []) [(AlignCenter,Nothing),(AlignCenter,Nothing),(AlignCenter,Nothing)] 0
+ [])
+ [(AlignCenter,ColWidthDefault)
+ ,(AlignCenter,ColWidthDefault)
+ ,(AlignCenter,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Str "Column",Space,Str "Heading",Space,Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Str "Column",Space,Str "Heading",Space,Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "1.1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "1.2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "1.3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "2.1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "2.2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "2.3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "3.1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "3.2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "3.3"]]]]
- []]
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "1.1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "1.2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "1.3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "2.1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "2.2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "2.3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "3.1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "3.2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "3.3"]]]])]
+ (TableFoot ("",[],[])
+ [])]
 ```
 
 ```
@@ -76,36 +83,43 @@
 \end{tabularx}
 ^D
 [Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignCenter,Nothing),(AlignLeft,Just 0.25)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignCenter,ColWidthDefault)
+ ,(AlignLeft,ColWidth 0.25)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Str "Column",Space,Str "Heading",Space,Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Str "Column",Space,Str "Heading",Space,Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "1.1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "1.2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "1.3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "2.1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "2.2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "2.3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "3.1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "3.2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "3.3"]]]]
- []]
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "1.1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "1.2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "1.3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "2.1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "2.2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "2.3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "3.1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "3.2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "3.3"]]]])]
+ (TableFoot ("",[],[])
+ [])]
 ```
 
 ```
@@ -131,34 +145,41 @@
 \end{tabularx}
 ^D
 [Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Just 0.25),(AlignCenter,Nothing),(AlignLeft,Just 0.25)] 0
+ [])
+ [(AlignLeft,ColWidth 0.25)
+ ,(AlignCenter,ColWidthDefault)
+ ,(AlignLeft,ColWidth 0.25)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Str "Column",Space,Str "Heading",Space,Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Str "Column",Space,Str "Heading",Space,Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "1.1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "1.2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "1.3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "2.1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "2.2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "2.3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "3.1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "3.2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Str "Cell",Space,Str "3.3"]]]]
- []]
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Plain [Str "Column",Space,Str "Heading",Space,Str "3"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "1.1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "1.2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "1.3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "2.1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "2.2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "2.3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "3.1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "3.2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Str "Cell",Space,Str "3.3"]]]])]
+ (TableFoot ("",[],[])
+ [])]
 ```

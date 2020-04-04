@@ -168,7 +168,7 @@ blockToTextile opts (BlockQuote blocks) = do
   contents <- blockListToTextile opts blocks
   return $ "<blockquote>\n\n" <> contents <> "\n</blockquote>\n"
 
-blockToTextile opts (Table _ blkCapt specs _ thead tbody tfoot)
+blockToTextile opts (Table _ blkCapt specs thead tbody tfoot)
   = case toLegacyTable blkCapt specs thead tbody tfoot of
       ([], aligns, widths, headers, rows') | all (==0) widths -> do
         hs <- mapM (liftM (("_. " <>) . stripTrailingNewlines) . blockListToTextile opts) headers

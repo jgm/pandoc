@@ -288,317 +288,408 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Header 1 ("tables",[],[]) [Str "Tables"]
 ,Header 2 ("tables-with-headers",[],[]) [Str "Tables",Space,Str "with",Space,Str "Headers"]
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "X"]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Z"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "4"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "6"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "X"]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Z"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "4"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "6"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "X"]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Z"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "4"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "6"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "X"]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Z"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "4"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "6"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "X"]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Z"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "4"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "6"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "X"]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Z"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "4"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "6"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "X"]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Z"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "4"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "6"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "X"]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Z"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "4"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "6"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "X"]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "Z"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "4"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "6"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Header 2 ("tables-without-headers",[],[]) [Str "Tables",Space,Str "without",Space,Str "Headers"]
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
-   []]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "4"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "6"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   []]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
-   []]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "4"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "6"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   []]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
-   []]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "4"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "6"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   []]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    []
-  ,Cell ("",[],[]) Nothing 1 1
-   []]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "2"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "3"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Para [Str "4"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Para [Str "6"]]]]
- []
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   []]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Header 2 ("empty-tables",[],[]) [Str "Empty",Space,Str "Tables"]
 ,Para [Str "This",Space,Str "section",Space,Str "should",Space,Str "be",Space,Str "empty."]]

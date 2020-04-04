@@ -34,6 +34,7 @@ module Text.Pandoc.Writers.Shared (
                      , toSuperscript
                      , toTableOfContents
                      , endsWithPlain
+                     , toLegacyTable
                      )
 where
 import Safe (lastMay)
@@ -50,7 +51,7 @@ import qualified Text.Pandoc.Builder as Builder
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.DocLayout
-import Text.Pandoc.Shared (stringify, makeSections, deNote, deLink)
+import Text.Pandoc.Shared (stringify, makeSections, deNote, deLink, blocksToInlines)
 import Text.Pandoc.Walk (walk)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (escapeStringForXML)
@@ -426,3 +427,32 @@ endsWithPlain xs =
   case lastMay xs of
     Just Plain{} -> True
     _            -> False
+
+-- | Convert the relevant components of a new-style table (with block
+-- caption, row headers, row and column spans, and so on) to those of
+-- an old-style table (inline caption, table head with one row, no
+-- foot, and so on).
+toLegacyTable :: Caption
+              -> [ColSpec]
+              -> TableHead
+              -> [TableBody]
+              -> TableFoot
+              -> ([Inline], [Alignment], [Double], [[Block]], [[[Block]]])
+toLegacyTable (Caption _ cbody) specs (TableHead _ th) tb (TableFoot _ tf)
+  = (cbody', aligns, widths, th', tb')
+  where
+    numcols = length specs
+    (aligns, mwidths) = unzip specs
+    fromWidth (ColWidth w) | w > 0 = w
+    fromWidth _                    = 0
+    widths = map fromWidth mwidths
+    unRow (Row _ x) = map unCell x
+    unCell (Cell _ _ _ _ x) = x
+    unBody (TableBody _ _ hd bd) = hd <> bd
+    unBodies = concatMap unBody
+    cbody' = blocksToInlines cbody
+    sanitise = pad mempty numcols . unRow
+    pad element upTo list = take upTo (list ++ repeat element)
+    (th', tb') = case th of
+      (r:rs) -> (sanitise r, map sanitise $ rs <> unBodies tb <> tf)
+      []     -> ([], map sanitise $ unBodies tb <> tf)

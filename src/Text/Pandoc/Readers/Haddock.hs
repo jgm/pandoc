@@ -91,7 +91,7 @@ docHToBlocks d' =
                   else (toCells (head headerRows),
                         map toCells (tail headerRows ++ bodyRows))
              colspecs = replicate (maximum (map length body))
-                             (AlignDefault, Nothing)
+                             (AlignDefault, ColWidthDefault)
          in  B.table mempty colspecs header body
 
   where inlineFallback = B.plain $ docHToInlines False d'

@@ -54,9 +54,10 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Walk
 import Data.Time (UTCTime)
 import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
-import Text.Pandoc.Shared (tshow, toLegacyTable)
+import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
-                                 , lookupMetaString, toTableOfContents)
+                                 , lookupMetaString, toTableOfContents
+                                 , toLegacyTable)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Maybe (maybeToList, fromMaybe)
@@ -541,7 +542,7 @@ blockToShape (Para (il:_))  | Link _ (il':_) target <- il
                             , Image attr ils (url, _) <- il' =
       (withAttr attr . Pic def{picPropLink = Just $ ExternalTarget target} (T.unpack url))
       <$> inlinesToParElems ils
-blockToShape (Table _ blkCapt specs _ thead tbody tfoot) = do
+blockToShape (Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, algn, _, hdrCells, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlinesToParElems caption
   hdrCells' <- rowToParagraphs algn hdrCells

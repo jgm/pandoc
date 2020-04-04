@@ -970,7 +970,7 @@ blockToOpenXML' _ HorizontalRule = do
     $ mknode "v:rect" [("style","width:0;height:1.5pt"),
                        ("o:hralign","center"),
                        ("o:hrstd","t"),("o:hr","t")] () ]
-blockToOpenXML' opts (Table _ blkCapt specs _ thead tbody tfoot) = do
+blockToOpenXML' opts (Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   setFirstPara
   modify $ \s -> s { stInTable = True }

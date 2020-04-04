@@ -254,7 +254,7 @@ blockToRTF indent alignment (Header level _ lst) = do
   contents <- inlinesToRTF lst
   return $ rtfPar indent 0 alignment $
              "\\b \\fs" <> tshow (40 - (level * 4)) <> " " <> contents
-blockToRTF indent alignment (Table _ blkCapt specs _ thead tbody tfoot) = do
+blockToRTF indent alignment (Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, sizes, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlinesToRTF caption
   header' <- if all null headers

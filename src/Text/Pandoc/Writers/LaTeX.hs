@@ -759,7 +759,7 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   hdr <- sectionHeader classes id' level lst
   modify $ \s -> s{stInHeading = False}
   return hdr
-blockToLaTeX (Table _ blkCapt specs _ thead tbody tfoot) = do
+blockToLaTeX (Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, heads, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   (captionText, captForLof, captNotes) <- getCaption False caption
   let toHeaders hs = do contents <- tableRowToLaTeX True aligns widths hs

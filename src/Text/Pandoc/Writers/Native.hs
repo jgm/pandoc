@@ -40,18 +40,15 @@ prettyBlock (DefinitionList items) = "DefinitionList" $$
   prettyList (map deflistitem items)
     where deflistitem (term, defs) = "(" <> text (show term) <> "," <> cr <>
            nest 1 (prettyList $ map (prettyList . map prettyBlock) defs) <> ")"
-prettyBlock (Table attr blkCapt specs rhs thead tbody tfoot) =
+prettyBlock (Table attr blkCapt specs thead tbody tfoot) =
   mconcat [ "Table "
           , text (show attr)
           , " "
-          , prettyCaption blkCapt
-          , " "
-          , text (show specs)
-          , " "
-          , text (show rhs) ] $$
-  prettyRows thead $$
-  prettyRows tbody $$
-  prettyRows tfoot
+          , prettyCaption blkCapt ] $$
+  prettyList (map (text . show) specs) $$
+  prettyHead thead $$
+  prettyBodies tbody $$
+  prettyFoot tfoot
   where prettyRows = prettyList . map prettyRow
         prettyRow (Row a body) =
           text ("Row " <> show a) $$ prettyList (map prettyCell body)
@@ -59,14 +56,26 @@ prettyBlock (Table attr blkCapt specs rhs thead tbody tfoot) =
           mconcat [ "Cell "
                   , text (show a)
                   , " "
-                  , text (showsPrec 11 ma "")
-                  , " "
+                  , text (show ma)
+                  , " ("
                   , text (show h)
-                  , " "
-                  , text (show w) ] $$
+                  , ") ("
+                  , text (show w)
+                  , ")" ] $$
           prettyList (map prettyBlock b)
         prettyCaption (Caption mshort body) =
           "(Caption " <> text (showsPrec 11 mshort "") $$ prettyList (map prettyBlock body) <> ")"
+        prettyHead (TableHead thattr body)
+          = "(TableHead " <> text (show thattr) $$ prettyRows body <> ")"
+        prettyBody (TableBody tbattr rhc hd bd)
+          = mconcat [ "(TableBody "
+                    , text (show tbattr)
+                    , " ("
+                    , text (show rhc)
+                    , ")" ] $$ prettyRows hd $$ prettyRows bd <> ")"
+        prettyBodies = prettyList . map prettyBody
+        prettyFoot (TableFoot tfattr body)
+          = "(TableFoot " <> text (show tfattr) $$ prettyRows body <> ")"
 prettyBlock (Div attr blocks) =
   text ("Div " <> show attr) $$ prettyList (map prettyBlock blocks)
 prettyBlock block = text $ show block

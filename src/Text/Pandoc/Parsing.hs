@@ -928,8 +928,8 @@ tableWith headerParser rowParser lineParser footerParser = try $ do
   return $ B.table mempty (zip aligns (map fromWidth widths)) <$> heads <*> rows
   where
     fromWidth n
-      | n > 0     = Just n
-      | otherwise = Nothing
+      | n > 0     = ColWidth n
+      | otherwise = ColWidthDefault
 
 type TableComponents mf = ([Alignment], [Double], mf [Blocks], mf [[Blocks]])
 

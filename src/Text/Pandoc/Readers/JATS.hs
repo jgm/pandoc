@@ -274,12 +274,12 @@ parseBlock (Elem e) =
                                      [] -> replicate numrows AlignDefault
                                      cs -> map toAlignment cs
                       let widths = case colspecs of
-                                     [] -> replicate numrows Nothing
+                                     [] -> replicate numrows ColWidthDefault
                                      cs -> let ws = map toWidth cs
                                            in case sequence ws of
                                                 Just ws' -> let tot = sum ws'
-                                                            in  Just . (/ tot) <$> ws'
-                                                Nothing  -> replicate numrows Nothing
+                                                            in  ColWidth . (/ tot) <$> ws'
+                                                Nothing  -> replicate numrows ColWidthDefault
                       let headrows' = if null headrows
                                          then replicate numrows mempty
                                          else headrows

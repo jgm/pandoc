@@ -12,27 +12,34 @@ f      & 0.5    & 5,5  \\
 \end{tabular}
 ^D
 [Table ("",[],[]) (Caption Nothing
- []) [(AlignLeft,Nothing),(AlignLeft,Nothing),(AlignLeft,Nothing)] 0
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
+  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Math InlineMath ""]]
-  ,Cell ("",[],[]) Nothing 1 1
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
    [Plain [Math InlineMath "f1"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Math InlineMath "f2"]]]]
- [Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Math InlineMath "e"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Math InlineMath "0.5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Math InlineMath "4"]]]
- ,Row ("",[],[])
-  [Cell ("",[],[]) Nothing 1 1
-   [Plain [Math InlineMath "f"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Math InlineMath "0.5"]]
-  ,Cell ("",[],[]) Nothing 1 1
-   [Plain [Math InlineMath "5,5"]]]]
- []]
+  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Plain [Math InlineMath "f2"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Math InlineMath "e"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Math InlineMath "0.5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Math InlineMath "4"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Math InlineMath "f"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Math InlineMath "0.5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+    [Plain [Math InlineMath "5,5"]]]])]
+ (TableFoot ("",[],[])
+ [])]
 ```

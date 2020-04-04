@@ -676,7 +676,7 @@ bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
       -- so should be possible. Alignment might be more difficult,
       -- since there doesn't seem to be a column entity in docx.
   let alignments = replicate width AlignDefault
-      widths = replicate width Nothing
+      widths = replicate width ColWidthDefault
 
   return $ table cap' (zip alignments widths) hdrCells cells'
 bodyPartToBlocks (OMathPara e) =

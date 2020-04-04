@@ -470,7 +470,7 @@ table = do
   let (headerRow, body) = if firstSeparator == '^'
                             then (head rows, tail rows)
                             else ([], rows)
-  let attrs = (AlignDefault, Nothing) <$ transpose rows
+  let attrs = (AlignDefault, ColWidthDefault) <$ transpose rows
   pure $ B.table mempty attrs headerRow body
 
 tableRows :: PandocMonad m => DWParser m [[B.Blocks]]
