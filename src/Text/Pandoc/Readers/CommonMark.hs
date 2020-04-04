@@ -31,12 +31,13 @@ import Text.Pandoc.Error
 import Control.Monad.Except
 import Control.Monad.State
 import qualified Data.Set as Set
+import Data.Functor.Identity (runIdentity)
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
 readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readCommonMark opts s = do
-  res <- parseCommonmarkWith
-            (foldr (<>) defaultSyntaxSpec exts) (tokenize "input" s)
+  let res = runIdentity $
+              commonmarkWith (foldr (<>) defaultSyntaxSpec exts) "input" s
   case res of
     Left err -> throwError $ PandocParsecError s err
     Right (Cm bls :: Cm () Blocks) -> return $
@@ -50,8 +51,6 @@ readCommonMark opts s = do
          [ superscriptSpec | isEnabled Ext_superscript opts ] ++
          [ subscriptSpec | isEnabled Ext_subscript opts ] ++
          [ mathSpec | isEnabled Ext_tex_math_dollars opts ] ++
-         -- [ footnoteSpec | isEnabled Ext_footnotes opts ] ++
-         -- [ definitionListSpec | isEnabled Ext_definition_lists opts ] ++
          [ fancyListSpec | isEnabled Ext_fancy_lists opts ] ++
          [ implicitHeadingReferencesSpec
            | isEnabled Ext_implicit_header_references opts ] ++
@@ -62,8 +61,10 @@ readCommonMark opts s = do
                             isEnabled Ext_inline_code_attributes opts ] ++
          [ pipeTableSpec | isEnabled Ext_pipe_tables opts ] ++
          [ autolinkSpec | isEnabled Ext_autolink_bare_uris opts ] ++
-         [ emojiSpec | isEnabled Ext_emoji opts ] -- ++
-         -- [ taskListSpec | isEnabled Ext_task_lists opts ]
+         [ emojiSpec | isEnabled Ext_emoji opts ] ++
+         [ footnoteSpec | isEnabled Ext_footnotes opts ] ++
+         [ definitionListSpec | isEnabled Ext_definition_lists opts ] ++
+         [ taskListSpec | isEnabled Ext_task_lists opts ]
 
 addHeaderIdentifiers :: ReaderOptions -> Pandoc -> Pandoc
 addHeaderIdentifiers opts d =
