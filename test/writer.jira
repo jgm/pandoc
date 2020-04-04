@@ -495,15 +495,15 @@ Here’s an [inline link|/script?foo=1&bar=2].
 Here’s an [inline link in pointy braces|/script?foo=1&bar=2].
 
 h2. {anchor:autolinks}Autolinks
-With an ampersand: [http://example.com/?foo=1&bar=2|http://example.com/?foo=1&bar=2]
+With an ampersand: [http://example.com/?foo=1&bar=2]
 
 * In a list?
-* [http://example.com/|http://example.com/]
+* [http://example.com/]
 * It should.
 
-An e-mail address: [nobody@nowhere.net|mailto:nobody@nowhere.net]
+An e-mail address: [mailto:nobody@nowhere.net]
 
-bq. Blockquoted: [http://example.com/|http://example.com/]
+bq. Blockquoted: [http://example.com/]
 Auto-links should not occur here: {{<http://example.com/>}}
 
 {code:java}
