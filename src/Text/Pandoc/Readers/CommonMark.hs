@@ -25,8 +25,12 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Options
+import Text.Pandoc.Walk (walkM)
+import Text.Pandoc.Shared (uniqueIdent)
 import Text.Pandoc.Error
 import Control.Monad.Except
+import Control.Monad.State
+import qualified Data.Set as Set
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
 readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
@@ -35,7 +39,10 @@ readCommonMark opts s = do
             (foldr (<>) defaultSyntaxSpec exts) (tokenize "input" s)
   case res of
     Left err -> throwError $ PandocParsecError s err
-    Right (Cm bls :: Cm () Blocks) -> return $ B.doc bls
+    Right (Cm bls :: Cm () Blocks) -> return $
+          (if isEnabled Ext_auto_identifiers opts
+              then addHeaderIdentifiers opts
+              else id) $ B.doc bls
  where
   exts = [ hardLineBreaksSpec | isEnabled Ext_hard_line_breaks opts ] ++
          [ smartPunctuationSpec | isEnabled Ext_smart opts ] ++
@@ -55,7 +62,17 @@ readCommonMark opts s = do
                             isEnabled Ext_inline_code_attributes opts ] ++
          [ pipeTableSpec | isEnabled Ext_pipe_tables opts ] ++
          [ autolinkSpec | isEnabled Ext_autolink_bare_uris opts ] ++
-         [ autoIdentifiersSpec | isEnabled Ext_auto_identifiers opts ] ++
          [ emojiSpec | isEnabled Ext_emoji opts ] -- ++
          -- [ taskListSpec | isEnabled Ext_task_lists opts ]
 
+addHeaderIdentifiers :: ReaderOptions -> Pandoc -> Pandoc
+addHeaderIdentifiers opts d =
+  evalState (walkM (addHeaderId opts) d) mempty
+
+addHeaderId :: ReaderOptions -> Block -> State (Set.Set Text) Block
+addHeaderId opts (Header lev (_,classes,kvs) ils) = do
+  ids <- get
+  let ident = uniqueIdent (readerExtensions opts) ils ids
+  modify (Set.insert ident)
+  return $ Header lev (ident,classes,kvs) ils
+addHeaderId _ x = return x
