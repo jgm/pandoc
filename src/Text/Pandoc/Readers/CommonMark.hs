@@ -55,7 +55,11 @@ readCommonMark opts s = do
          [ autolinkSpec | isEnabled Ext_autolink_bare_uris opts ] ++
          [ emojiSpec | isEnabled Ext_emoji opts ] ++
          [ autoIdentifiersSpec
-           | isEnabled Ext_gfm_auto_identifiers opts ] ++
+           | isEnabled Ext_gfm_auto_identifiers opts
+           , not (isEnabled Ext_ascii_identifiers opts) ] ++
+         [ autoIdentifiersAsciiSpec
+           | isEnabled Ext_gfm_auto_identifiers opts
+           , isEnabled Ext_ascii_identifiers opts ] ++
          [ implicitHeadingReferencesSpec
            | isEnabled Ext_implicit_header_references opts ] ++
          [ footnoteSpec | isEnabled Ext_footnotes opts ] ++
