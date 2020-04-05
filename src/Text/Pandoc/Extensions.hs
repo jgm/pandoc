@@ -449,6 +449,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_raw_attribute
     , Ext_inline_code_attributes
     , Ext_link_attributes
+    , Ext_header_attributes
     , Ext_implicit_header_references
     ]
   getAll "commonmark"      = getAll "gfm"
