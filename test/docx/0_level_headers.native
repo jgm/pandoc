@@ -3,39 +3,39 @@
  [(AlignDefault,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    []]])
- [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     []]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "User\8217s",Space,Str "Guide"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     []]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     []]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     []]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "11",Space,Str "August",Space,Str "2017"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     []]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     []]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     []]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     []]])]
  (TableFoot ("",[],[])
  [])

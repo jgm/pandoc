@@ -294,27 +294,27 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignLeft,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "X"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Z"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]]])]
  (TableFoot ("",[],[])
  [])
@@ -325,27 +325,27 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignLeft,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "X"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Z"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]]])]
  (TableFoot ("",[],[])
  [])
@@ -356,27 +356,27 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignLeft,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "X"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Z"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]]])]
  (TableFoot ("",[],[])
  [])
@@ -387,27 +387,27 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignLeft,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "X"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Z"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]]])]
  (TableFoot ("",[],[])
  [])
@@ -418,27 +418,27 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignLeft,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "X"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Z"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]]])]
  (TableFoot ("",[],[])
  [])
@@ -449,27 +449,27 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignLeft,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "X"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Z"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]]])]
  (TableFoot ("",[],[])
  [])
@@ -480,27 +480,27 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignLeft,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "X"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Z"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]]])]
  (TableFoot ("",[],[])
  [])
@@ -511,27 +511,27 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignLeft,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "X"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Z"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]]])]
  (TableFoot ("",[],[])
  [])
@@ -542,27 +542,27 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignLeft,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "X"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Y"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Para [Str "Z"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]]])]
  (TableFoot ("",[],[])
  [])
@@ -574,27 +574,27 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignLeft,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    []
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    []
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    []]])
- [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]]])]
  (TableFoot ("",[],[])
  [])
@@ -605,27 +605,27 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignLeft,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    []
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    []
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    []]])
- [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]]])]
  (TableFoot ("",[],[])
  [])
@@ -636,27 +636,27 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignLeft,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    []
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    []
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    []]])
- [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]]])]
  (TableFoot ("",[],[])
  [])
@@ -667,27 +667,27 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignLeft,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    []
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    []
-  ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    []]])
- [(TableBody ("",[],[]) (RowHeadColumns {getRowHeadColumns = 0})
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan {getRowSpan = 1}) (ColSpan {getColSpan = 1})
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]]])]
  (TableFoot ("",[],[])
  [])

@@ -794,7 +794,7 @@ tableDirective top fields body = do
   where
     -- only valid on the very first row of a table section
     rowLength (Row _ rb) = sum $ cellLength <$> rb
-    cellLength (Cell _ _ _ w _) = max 1 (getColSpan w)
+    cellLength (Cell _ _ _ (ColSpan w) _) = max 1 w
     strictPos w
       | w > 0     = ColWidth w
       | otherwise = ColWidthDefault
