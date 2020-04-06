@@ -117,6 +117,12 @@ Just two backticks: ``
      print(i)
  }}}
 
+=== preformatted text with nested syntax ===
+
+{{{sql
+SELECT * FROM table
+}}}
+
 === empty preformatted text ===
 
 {{{
