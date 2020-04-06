@@ -49,6 +49,8 @@ Pandoc (Meta {unMeta = fromList [("date",MetaInlines [Str "2017-05-01"]),("title
 ,CodeBlock ("",[],[]) "  Tyger! Tyger! burning bright\n   In the forests of the night,\n    What immortal hand or eye\n     Could frame thy fearful symmetry?\n  In what distant deeps or skies\n   Burnt the fire of thine eyes?\n    On what wings dare he aspire?\n     What the hand dare sieze the fire?"
 ,Header 3 ("preformatted text with attributes",[],[]) [Str "preformatted",Space,Str "text",Space,Str "with",Space,Str "attributes"]
 ,CodeBlock ("",[],[("class","python"),("style","color:blue")]) " for i in range(1, 5):\n     print(i)"
+,Header 3 ("preformatted text with nested syntax",[],[]) [Str "preformatted",Space,Str "text",Space,Str "with",Space,Str "nested",Space,Str "syntax"]
+,CodeBlock ("",["sql"],[]) "SELECT * FROM table"
 ,Header 3 ("empty preformatted text",[],[]) [Str "empty",Space,Str "preformatted",Space,Str "text"]
 ,CodeBlock ("",[],[]) ""
 ,Header 2 ("block quotes",[],[]) [Str "block",Space,Str "quotes"]
