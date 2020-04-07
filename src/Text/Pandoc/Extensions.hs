@@ -448,6 +448,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_bracketed_spans
     , Ext_raw_attribute
     , Ext_inline_code_attributes
+    , Ext_fenced_code_attributes
     , Ext_link_attributes
     , Ext_header_attributes
     , Ext_implicit_header_references
