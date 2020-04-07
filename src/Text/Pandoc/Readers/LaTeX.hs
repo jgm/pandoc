@@ -923,7 +923,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("eqref", rawInlineOr "eqref" $ doref "eqref")   -- from amsmath.sty
   , ("mbox", rawInlineOr "mbox" $ processHBox <$> tok)
   , ("hbox", rawInlineOr "hbox" $ processHBox <$> tok)
-  , ("lettrine", optional opt >> extractSpaces (spanWith ("",["lettrine"],[])) <$> tok)
+  , ("lettrine", rawInlineOr "lettrine" $ lettrine)
   , ("(", mathInline . untokenize <$> manyTill anyTok (controlSeq ")"))
   , ("[", mathDisplay . untokenize <$> manyTill anyTok (controlSeq "]"))
   , ("ensuremath", mathInline . untokenize <$> braced)
@@ -1177,6 +1177,13 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   -- plain tex stuff that should just be passed through as raw tex
   , ("ifdim", ifdim)
   ]
+
+lettrine :: PandocMonad m => LP m Inlines
+lettrine = do
+  optional opt
+  x <- tok
+  y <- tok
+  return $ extractSpaces (spanWith ("",["lettrine"],[])) x <> smallcaps y
 
 ifdim :: PandocMonad m => LP m Inlines
 ifdim = do
