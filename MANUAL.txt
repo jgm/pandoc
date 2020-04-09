@@ -3793,7 +3793,7 @@ legal (though ugly) pipe table:
 
 The cells of pipe tables cannot contain block elements like paragraphs
 and lists, and cannot span multiple lines.  If a pipe table contains a
-row whose printable content is wider than the column width (see
+row whose Markdown content is wider than the column width (see
 `--columns`), then the table will take up the full text width and
 the cell contents will wrap, with the relative cell widths determined
 by the number of dashes in the line separating the table header from
