@@ -113,7 +113,7 @@ Pandoc (Meta {unMeta = fromList []})
 ,HorizontalRule
 ,Header 1 ("",[],[]) [Str "Dashes,",Space,Str "and",Space,Str "emoticons"]
 ,Para [Str "Some",Space,Str "dashes:",Space,Str "one",Space,Str "\8211",Space,Str "two",Space,Str "\8212",Space,Str "three."]
-,Para [Str "Sure",Space,Str "\10003",LineBreak,Str "Nope",Space,Str "\127303"]
+,Para [Str "Sure",Space,Str "\10004",LineBreak,Str "Nope",Space,Str "\10060"]
 ,Para [Str "Nice",Space,Str "\128515"]
 ,Para [Str "Capital",Space,Str "d:D"]
 ,HorizontalRule
