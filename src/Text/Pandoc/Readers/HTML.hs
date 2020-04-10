@@ -810,10 +810,10 @@ pBdo = try $ do
   TagOpen _ attr' <- lookAhead $ pSatisfy $ tagOpen (=="bdo") (const True)
   let attr = toStringAttr attr'
   contents <- pInTags "bdo" inline
-  return $ case T.toLower $ fromMaybe "" $ lookup "dir" attr of
-    -- Only right-to-left direction actually matters
-    "rtl" -> B.spanWith ("", [], [("dir","rtl")]) contents
-    _     -> contents
+  return $ case lookup "dir" attr of
+    -- Only bdo with a direction matters
+    Just dir -> B.spanWith ("", [], [("dir",T.toLower dir)]) contents
+    Nothing  -> contents
 
 pSpan :: PandocMonad m => TagParser m Inlines
 pSpan = try $ do
