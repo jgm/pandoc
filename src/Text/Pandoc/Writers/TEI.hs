@@ -196,7 +196,7 @@ blockToTEI _ HorizontalRule = return $
 -- table info in the AST is here lossily discard.
 blockToTEI opts (Table _ blkCapt specs thead tbody tfoot) = do
   let (_, _, _, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
-  headers' <- tableHeadersToTEI opts headers
+  headers' <- if null headers then pure mempty else tableHeadersToTEI opts headers
   rows' <- mapM (tableRowToTEI opts) rows
   return $ inTags True "table" [] $ headers' $$ vcat rows'
 

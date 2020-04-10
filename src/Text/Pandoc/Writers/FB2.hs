@@ -336,10 +336,10 @@ blockToXml h@Header{} = do
 blockToXml HorizontalRule = return [ el "empty-line" () ]
 blockToXml (Table _ blkCapt specs thead tbody tfoot) = do
     let (caption, aligns, _, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
-    hd <- mkrow "th" headers aligns
+    hd <- if null headers then pure [] else (:[]) <$> mkrow "th" headers aligns
     bd <- mapM (\r -> mkrow "td" r aligns) rows
     c <- el "emphasis" <$> cMapM toXml caption
-    return [el "table" (hd : bd), el "p" c]
+    return [el "table" (hd <> bd), el "p" c]
     where
       mkrow :: PandocMonad m => String -> [[Block]] -> [Alignment] -> FBM m Content
       mkrow tag cells aligns' =

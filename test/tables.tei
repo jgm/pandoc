@@ -123,12 +123,6 @@
 </table>
 <p>Table without column headers:</p>
 <table>
-  <row role="label">
-    <cell></cell>
-    <cell></cell>
-    <cell></cell>
-    <cell></cell>
-  </row>
   <row>
     <cell><p>12</p></cell>
     <cell><p>12</p></cell>
@@ -150,12 +144,6 @@
 </table>
 <p>Multiline table without column headers:</p>
 <table>
-  <row role="label">
-    <cell></cell>
-    <cell></cell>
-    <cell></cell>
-    <cell></cell>
-  </row>
   <row>
     <cell><p>First</p></cell>
     <cell><p>row</p></cell>

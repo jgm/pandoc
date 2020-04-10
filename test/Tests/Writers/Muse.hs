@@ -372,8 +372,12 @@ tests = [ testGroup "block elements"
             [ "table without header" =:
               let rows = [[para "Para 1.1", para "Para 1.2"]
                          ,[para "Para 2.1", para "Para 2.2"]]
-              in table mempty [(AlignDefault,ColWidthDefault),(AlignDefault,ColWidthDefault)]
-                       [mempty, mempty] rows
+                  toRow = Row nullAttr . map simpleCell
+              in table emptyCaption
+                       [(AlignDefault,ColWidthDefault),(AlignDefault,ColWidthDefault)]
+                       (TableHead nullAttr [toRow [mempty, mempty]])
+                       [TableBody nullAttr 0 [] $ map toRow rows]
+                       (TableFoot nullAttr [])
               =?>
               unlines [ " Para 1.1 | Para 1.2"
                       , " Para 2.1 | Para 2.2"
@@ -389,12 +393,16 @@ tests = [ testGroup "block elements"
                       , " Para 2.1 |  Para 2.2"
                       ]
             , "table with header and caption" =:
-              let capt = "Table 1"
-                  headers = [plain "header 1", plain "header 2"]
-                  rows = [[para "Para 1.1", para  "Para 1.2"]
-                         ,[para "Para 2.1", para  "Para 2.2"]]
-              in table capt [(AlignDefault,ColWidthDefault),(AlignDefault,ColWidthDefault)]
-                        headers rows
+              let capt = simpleCaption $ plain "Table 1"
+                  toRow = Row nullAttr . map simpleCell
+                  headers = [toRow [plain "header 1", plain "header 2"]]
+                  rows = map toRow [[para "Para 1.1", para  "Para 1.2"]
+                                   ,[para "Para 2.1", para  "Para 2.2"]]
+              in table capt
+                       [(AlignDefault,ColWidthDefault),(AlignDefault,ColWidthDefault)]
+                       (TableHead nullAttr headers)
+                       [TableBody nullAttr 0 [] rows]
+                       (TableFoot nullAttr [])
               =?> unlines [ " header 1 || header 2"
                           , " Para 1.1 |  Para 1.2"
                           , " Para 2.1 |  Para 2.2"

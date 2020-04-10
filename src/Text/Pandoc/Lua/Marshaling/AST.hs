@@ -197,7 +197,7 @@ peekBlock idx = defineHowTo "get Block value" $ do
                               Table nullAttr
                                     (Caption Nothing $ maybePlain capt)
                                     (zip aligns (map strictPos widths))
-                                    (TableHead nullAttr [toRow headers])
+                                    (TableHead nullAttr $ toHeaderRow headers)
                                     [TableBody nullAttr 0 [] (map toRow body)]
                                     (TableFoot nullAttr []))
                           <$> elementContent
@@ -211,6 +211,7 @@ peekBlock idx = defineHowTo "get Block value" $ do
    maybePlain [] = []
    maybePlain x  = [Plain x]
    toRow = Row nullAttr . map (\blk -> Cell nullAttr AlignDefault 1 1 blk)
+   toHeaderRow l = if null l then [] else [toRow l]
 
 -- | Push an inline element to the top of the lua stack.
 pushInline :: Inline -> Lua ()

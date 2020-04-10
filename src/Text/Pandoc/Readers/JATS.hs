@@ -280,11 +280,13 @@ parseBlock (Elem e) =
                                                 Just ws' -> let tot = sum ws'
                                                             in  ColWidth . (/ tot) <$> ws'
                                                 Nothing  -> replicate numrows ColWidthDefault
-                      let headrows' = if null headrows
-                                         then replicate numrows mempty
-                                         else headrows
-                      return $ table capt (zip aligns widths)
-                                 headrows' bodyrows
+                      let toRow = Row nullAttr . map simpleCell
+                          toHeaderRow l = if null l then [] else [toRow l]
+                      return $ table (simpleCaption $ plain capt)
+                                     (zip aligns widths)
+                                     (TableHead nullAttr $ toHeaderRow headrows)
+                                     [TableBody nullAttr 0 [] $ map toRow bodyrows]
+                                     (TableFoot nullAttr [])
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseRow = mapM (parseMixed plain . elContent) . filterChildren isEntry
          sect n = do isbook <- gets jatsBook

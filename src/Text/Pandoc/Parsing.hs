@@ -925,13 +925,16 @@ tableWith :: (Stream s m Char, HasReaderOptions st, Monad mf)
 tableWith headerParser rowParser lineParser footerParser = try $ do
   (aligns, widths, heads, rows) <- tableWith' headerParser rowParser
                                                 lineParser footerParser
-  return $ B.table mempty (zip aligns (map fromWidth widths)) <$> heads <*> rows
+  let th = TableHead nullAttr <$> heads
+      tb = (:[]) . TableBody nullAttr 0 [] <$> rows
+      tf = pure $ TableFoot nullAttr []
+  return $ B.table B.emptyCaption (zip aligns (map fromWidth widths)) <$> th <*> tb <*> tf
   where
     fromWidth n
       | n > 0     = ColWidth n
       | otherwise = ColWidthDefault
 
-type TableComponents mf = ([Alignment], [Double], mf [Blocks], mf [[Blocks]])
+type TableComponents mf = ([Alignment], [Double], mf [Row], mf [Row])
 
 tableWith' :: (Stream s m Char, HasReaderOptions st, Monad mf)
            => ParserT s st m (mf [Blocks], [Alignment], [Int])
@@ -947,7 +950,9 @@ tableWith' headerParser rowParser lineParser footerParser = try $ do
     let widths = if null indices
                     then replicate (length aligns) 0.0
                     else widthsFromIndices numColumns indices
-    return (aligns, widths, heads, lines')
+    let toRow =  Row nullAttr . map B.simpleCell
+        toHeaderRow l = if null l then [] else [toRow l]
+    return (aligns, widths, toHeaderRow <$> heads, map toRow <$> lines')
 
 -- Calculate relative widths of table columns, based on indices
 widthsFromIndices :: Int      -- Number of columns on terminal

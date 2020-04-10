@@ -232,7 +232,13 @@ table = do
   let (headers,rows) = if hasheader
                           then (hdr, rows')
                           else (replicate cols mempty, hdr:rows')
-  return $ B.table caption cellspecs headers rows
+  let toRow = Row nullAttr . map B.simpleCell
+      toHeaderRow l = if null l then [] else [toRow l]
+  return $ B.table (B.simpleCaption $ B.plain caption)
+                   cellspecs
+                   (TableHead nullAttr $ toHeaderRow headers)
+                   [TableBody nullAttr 0 [] $ map toRow rows]
+                   (TableFoot nullAttr [])
 
 parseAttrs :: PandocMonad m => MWParser m [(Text,Text)]
 parseAttrs = many1 parseAttr

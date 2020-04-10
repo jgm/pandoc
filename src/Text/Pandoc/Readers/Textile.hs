@@ -377,10 +377,13 @@ table = try $ do
                              _ -> (mempty, rawrows)
   let nbOfCols = maximum $ map length (headers:rows)
   let aligns = map minimum $ transpose $ map (map (snd . fst)) (headers:rows)
-  return $ B.table caption
+  let toRow = Row nullAttr . map B.simpleCell
+      toHeaderRow l = if null l then [] else [toRow l]
+  return $ B.table (B.simpleCaption $ B.plain caption)
     (zip aligns (replicate nbOfCols ColWidthDefault))
-    (map snd headers)
-    (map (map snd) rows)
+    (TableHead nullAttr $ toHeaderRow $ map snd headers)
+    [TableBody nullAttr 0 [] $ map (toRow . map snd) rows]
+    (TableFoot nullAttr [])
 
 -- | Ignore markers for cols, thead, tfoot.
 ignorableRow :: PandocMonad m => ParserT Text ParserState m ()

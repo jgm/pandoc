@@ -2372,7 +2372,6 @@ simpTable envname hasWidthParameter = try $ do
   skipopts
   colspecs <- parseAligns
   let (aligns, widths, prefsufs) = unzip3 colspecs
-  let cols = length colspecs
   optional $ controlSeq "caption" *> setCaption
   spaces
   optional label
@@ -2393,11 +2392,14 @@ simpTable envname hasWidthParameter = try $ do
   spaces
   optional lbreak
   spaces
-  let header'' = if null header'
-                    then replicate cols mempty
-                    else header'
   lookAhead $ controlSeq "end" -- make sure we're at end
-  return $ table mempty (zip aligns widths) header'' rows
+  let toRow = Row nullAttr . map simpleCell
+      toHeaderRow l = if null l then [] else [toRow l]
+  return $ table emptyCaption
+                 (zip aligns widths)
+                 (TableHead nullAttr $ toHeaderRow header')
+                 [TableBody nullAttr 0 [] $ map toRow rows]
+                 (TableFoot nullAttr [])
 
 addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
 addTableCaption = walkM go

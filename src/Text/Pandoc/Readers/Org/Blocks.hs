@@ -627,8 +627,14 @@ orgToPandocTable (OrgTable colProps heads lns) caption =
   let totalWidth = if any (isJust . columnRelWidth) colProps
                    then Just . sum $ map (fromMaybe 1 . columnRelWidth) colProps
                    else Nothing
-  in B.table caption (map (convertColProp totalWidth) colProps) heads lns
+  in B.table (B.simpleCaption $ B.plain caption)
+             (map (convertColProp totalWidth) colProps)
+             (TableHead nullAttr $ toHeaderRow heads)
+             [TableBody nullAttr 0 [] $ map toRow lns]
+             (TableFoot nullAttr [])
  where
+   toRow = Row nullAttr . map B.simpleCell
+   toHeaderRow l = if null l then [] else [toRow l]
    convertColProp :: Maybe Int -> ColumnProperty -> (Alignment, ColWidth)
    convertColProp totalWidth colProp =
      let

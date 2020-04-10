@@ -72,7 +72,7 @@ import Data.Maybe (isJust, fromMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as Pandoc
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.Docx.Combine
@@ -645,7 +645,7 @@ bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
 bodyPartToBlocks (Tbl _ _ _ []) =
   return $ para mempty
 bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
-  let cap' = text cap
+  let cap' = simpleCaption $ plain $ text cap
       (hdr, rows) = case firstRowFormatting look of
         True | null rs -> (Nothing, [r])
              | otherwise -> (Just r, rs)
@@ -662,13 +662,16 @@ bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
       rowLength :: Docx.Row -> Int
       rowLength (Docx.Row c) = length c
 
+  let toRow = Pandoc.Row nullAttr . map simpleCell
+      toHeaderRow l = if null l then [] else [toRow l]
+
   -- pad cells.  New Text.Pandoc.Builder will do that for us,
   -- so this is for compatibility while we switch over.
-  let cells' = map (\row -> take width (row ++ repeat mempty)) cells
+  let cells' = map (\row -> toRow $ take width (row ++ repeat mempty)) cells
 
   hdrCells <- case hdr of
-    Just r' -> rowToBlocksList r'
-    Nothing -> return $ replicate width mempty
+    Just r' -> toHeaderRow <$> rowToBlocksList r'
+    Nothing -> return []
 
       -- The two following variables (horizontal column alignment and
       -- relative column widths) go to the default at the
@@ -678,7 +681,11 @@ bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
   let alignments = replicate width AlignDefault
       widths = replicate width ColWidthDefault
 
-  return $ table cap' (zip alignments widths) hdrCells cells'
+  return $ table cap'
+                 (zip alignments widths)
+                 (TableHead nullAttr hdrCells)
+                 [TableBody nullAttr 0 [] cells']
+                 (TableFoot nullAttr [])
 bodyPartToBlocks (OMathPara e) =
   return $ para $ displayMath (writeTeX e)
 

@@ -116,7 +116,12 @@ tests = [ testGroup "inline code"
                            plain $ text "3.2",
                            plain $ text "3.3",
                            plain $ text "3.4"]]
-              in table capt aligns headers rows
+                  toRow = Row nullAttr . map simpleCell
+              in table (simpleCaption $ plain capt)
+                       aligns
+                       (TableHead nullAttr [toRow headers])
+                       [TableBody nullAttr 0 [] $ map toRow rows]
+                       (TableFoot nullAttr [])
               =?> unlines [ "\\startplacetable[title={Table 1}]"
                           , "\\startTABLE"
                           , "\\startTABLEhead"

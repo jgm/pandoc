@@ -228,10 +228,16 @@ table = try $ do
   return $ buildTable mempty rows $ fromMaybe (align rows, columns rows) tableHead
   where
     buildTable caption rows (aligns, heads)
-                    = B.table caption aligns heads rows
+                    = B.table (B.simpleCaption $ B.plain caption)
+                              aligns
+                              (TableHead nullAttr $ toHeaderRow heads)
+                              [TableBody nullAttr 0 [] $ map toRow rows]
+                              (TableFoot nullAttr [])
     align rows      = replicate (columCount rows) (AlignDefault, ColWidthDefault)
     columns rows    = replicate (columCount rows) mempty
     columCount rows = length $ head rows
+    toRow           = Row nullAttr . map B.simpleCell
+    toHeaderRow l = if null l then [] else [toRow l]
 
 tableParseHeader :: PandocMonad m => TWParser m ((Alignment, ColWidth), B.Blocks)
 tableParseHeader = try $ do

@@ -125,7 +125,7 @@ blockToXWiki (DefinitionList items) = do
 -- TODO: support more features
 blockToXWiki (Table _ blkCapt specs thead tbody tfoot) = do
   let (_, _, _, headers, rows') = toLegacyTable blkCapt specs thead tbody tfoot
-  headers' <- mapM (tableCellXWiki True) headers
+  headers' <- mapM (tableCellXWiki True) $ take (length specs) $ headers ++ repeat []
   otherRows <- mapM formRow rows'
   return $ Text.unlines (Text.unwords headers':otherRows)
 

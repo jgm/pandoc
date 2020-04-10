@@ -280,7 +280,7 @@ blockToDocbook opts (Table _ blkCapt specs thead tbody tfoot) = do
   body' <- (inTagsIndented "tbody" . vcat) <$>
               mapM (tableRowToDocbook opts) rows
   return $ inTagsIndented tableType $ captionDoc $$
-        inTags True "tgroup" [("cols", tshow (length headers))] (
+        inTags True "tgroup" [("cols", tshow (length aligns))] (
          coltags $$ head' $$ body')
 
 hasLineBreaks :: [Inline] -> Bool

@@ -109,8 +109,10 @@ parseTable = do
       let widths = if isPlainTable
                       then repeat ColWidthDefault
                       else repeat $ ColWidth (1.0 / fromIntegral (length alignments))
-      return $ B.table mempty (zip alignments widths)
-                  headerRow bodyRows) <|> fallback pos
+      return $ B.table B.emptyCaption (zip alignments widths)
+                  (TableHead nullAttr $ toHeaderRow headerRow)
+                  [TableBody nullAttr 0 [] $ map toRow bodyRows]
+                  (TableFoot nullAttr [])) <|> fallback pos
     [] -> fallback pos
 
  where
@@ -158,6 +160,9 @@ parseTable = do
       'n' -> Just AlignRight
       'r' -> Just AlignRight
       _   -> Nothing
+
+  toRow = Row nullAttr . map simpleCell
+  toHeaderRow l = if null l then [] else [toRow l]
 
 parseNewParagraph :: PandocMonad m => ManParser m Blocks
 parseNewParagraph = do

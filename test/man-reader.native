@@ -245,15 +245,7 @@ Pandoc (Meta {unMeta = fromList [("date",MetaInlines [Str "Oct",Space,Str "17,",
  ,(AlignCenter,ColWidthDefault)
  ,(AlignRight,ColWidthDefault)]
  (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
+ [])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
@@ -290,11 +282,7 @@ Pandoc (Meta {unMeta = fromList [("date",MetaInlines [Str "Oct",Space,Str "17,",
  [(AlignRight,ColWidth 0.5)
  ,(AlignLeft,ColWidth 0.5)]
  (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
+ [])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])

@@ -822,10 +822,13 @@ listTableDirective top fields body = do
         Just specs -> normWidths $ map (fromMaybe (0 :: Double) . safeRead) $
                            splitTextBy (`elem` (" ," :: String)) specs
         _ -> replicate numOfCols ColWidthDefault
-  return $ B.table title
+      toRow = Row nullAttr . map B.simpleCell
+      toHeaderRow l = if null l then [] else [toRow l]
+  return $ B.table (B.simpleCaption $ B.plain title)
              (zip (replicate numOfCols AlignDefault) widths)
-             headerRow
-             bodyRows
+             (TableHead nullAttr $ toHeaderRow headerRow)
+             [TableBody nullAttr 0 [] $ map toRow bodyRows]
+             (TableFoot nullAttr [])
     where takeRows [BulletList rows] = map takeCells rows
           takeRows _                 = []
           takeCells [BulletList cells] = map B.fromList cells
@@ -897,10 +900,13 @@ csvTableDirective top fields rawcsv = do
                                $ map (fromMaybe (0 :: Double) . safeRead)
                                $ splitTextBy (`elem` (" ," :: String)) specs
                  _ -> replicate numOfCols ColWidthDefault
-         return $ B.table title
-                  (zip (replicate numOfCols AlignDefault) widths)
-                  headerRow
-                  bodyRows
+         let toRow = Row nullAttr . map B.simpleCell
+             toHeaderRow l = if null l then [] else [toRow l]
+         return $ B.table (B.simpleCaption $ B.plain title)
+                          (zip (replicate numOfCols AlignDefault) widths)
+                          (TableHead nullAttr $ toHeaderRow headerRow)
+                          [TableBody nullAttr 0 [] $ map toRow bodyRows]
+                          (TableFoot nullAttr [])
 
 -- TODO:
 --  - Only supports :format: fields with a single format for :raw: roles,

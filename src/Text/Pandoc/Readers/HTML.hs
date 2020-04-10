@@ -516,7 +516,13 @@ pTable = try $ do
                        then replicate cols ColWidthDefault
                        else replicate cols (ColWidth (1.0 / fromIntegral cols))
                   else widths'
-  return $ B.table caption (zip aligns widths) head' rows
+  let toRow = Row nullAttr . map B.simpleCell
+      toHeaderRow l = if null l then [] else [toRow l]
+  return $ B.table (B.simpleCaption $ B.plain caption)
+                   (zip aligns widths)
+                   (TableHead nullAttr $ toHeaderRow head')
+                   [TableBody nullAttr 0 [] $ map toRow rows]
+                   (TableFoot nullAttr [])
 
 pCol :: PandocMonad m => TagParser m ColWidth
 pCol = try $ do
