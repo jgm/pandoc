@@ -431,14 +431,16 @@ endsWithPlain xs =
 -- | Convert the relevant components of a new-style table (with block
 -- caption, row headers, row and column spans, and so on) to those of
 -- an old-style table (inline caption, table head with one row, no
--- foot, and so on).
+-- foot, and so on). Cells with a 'RowSpan' and 'ColSpan' of @(h, w)@
+-- will be cut up into @h * w@ cells of dimension @(1, 1)@, with the
+-- content placed in the upper-left corner.
 toLegacyTable :: Caption
               -> [ColSpec]
               -> TableHead
               -> [TableBody]
               -> TableFoot
               -> ([Inline], [Alignment], [Double], [[Block]], [[[Block]]])
-toLegacyTable (Caption _ cbody) specs (TableHead _ th) tb (TableFoot _ tf)
+toLegacyTable (Caption _ cbody) specs thead tbodies tfoot
   = (cbody', aligns, widths, th', tb')
   where
     numcols = length specs
@@ -446,13 +448,46 @@ toLegacyTable (Caption _ cbody) specs (TableHead _ th) tb (TableFoot _ tf)
     fromWidth (ColWidth w) | w > 0 = w
     fromWidth _                    = 0
     widths = map fromWidth mwidths
-    unRow (Row _ x) = map unCell x
-    unCell (Cell _ _ _ _ x) = x
+    unRow (Row _ x) = x
     unBody (TableBody _ _ hd bd) = hd <> bd
     unBodies = concatMap unBody
+
+    TableHead _ th = Builder.normalizeTableHead numcols thead
+    tb = map (Builder.normalizeTableBody numcols) tbodies
+    TableFoot _ tf = Builder.normalizeTableFoot numcols tfoot
+
     cbody' = blocksToInlines cbody
-    sanitise = pad mempty numcols . unRow
-    pad element upTo list = take upTo (list ++ repeat element)
+
     (th', tb') = case th of
-      (r:rs) -> (sanitise r, map sanitise $ rs <> unBodies tb <> tf)
-      []     -> ([], map sanitise $ unBodies tb <> tf)
+      r:rs -> let (pendingPieces, r') = placeCutCells [] $ unRow r
+                  rs' = cutRows pendingPieces $ rs <> unBodies tb <> tf
+              in (r', rs')
+      []    -> ([], cutRows [] $ unBodies tb <> tf)
+
+    -- Adapted from placeRowSection in Builders. There is probably a
+    -- more abstract foldRowSection that unifies them both.
+    placeCutCells pendingPieces cells
+      -- If there are any pending pieces for a column, add
+      -- them. Pending pieces have preference over cells due to grid
+      -- layout rules.
+      | (p:ps):pendingPieces' <- pendingPieces
+      = let (pendingPieces'', rowPieces) = placeCutCells pendingPieces' cells
+        in (ps : pendingPieces'', p : rowPieces)
+      -- Otherwise cut up a cell on the row and deal with its pieces.
+      | c:cells' <- cells
+      = let (h, w, cBody) = getComponents c
+            cRowPieces = cBody : replicate (w - 1) mempty
+            cPendingPieces = replicate w $ replicate (h - 1) mempty
+            pendingPieces' = dropWhile null pendingPieces
+            (pendingPieces'', rowPieces) = placeCutCells pendingPieces' cells'
+        in (cPendingPieces <> pendingPieces'', cRowPieces <> rowPieces)
+      | otherwise = ([], [])
+
+    cutRows pendingPieces (r:rs)
+      = let (pendingPieces', r') = placeCutCells pendingPieces $ unRow r
+            rs' = cutRows pendingPieces' rs
+        in r' : rs'
+    cutRows _ [] = []
+
+    getComponents (Cell _ _ (RowSpan h) (ColSpan w) body)
+      = (h, w, body)
