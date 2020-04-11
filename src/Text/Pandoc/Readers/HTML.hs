@@ -648,6 +648,7 @@ inline = choice
            , pLineBreak
            , pLink
            , pImage
+           , pBdo
            , pCode
            , pCodeWithClass [("samp","sample"),("var","variable")]
            , pSpan
@@ -801,6 +802,18 @@ pCode = try $ do
   let attr = toStringAttr attr'
   result <- manyTill pAny (pCloses open)
   return $ B.codeWith (mkAttr attr) $ T.unwords $ T.lines $ innerText result
+
+-- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bdo
+-- Bidirectional Text Override
+pBdo :: PandocMonad m => TagParser m Inlines
+pBdo = try $ do
+  TagOpen _ attr' <- lookAhead $ pSatisfy $ tagOpen (=="bdo") (const True)
+  let attr = toStringAttr attr'
+  contents <- pInTags "bdo" inline
+  return $ case lookup "dir" attr of
+    -- Only bdo with a direction matters
+    Just dir -> B.spanWith ("", [], [("dir",T.toLower dir)]) contents
+    Nothing  -> contents
 
 pSpan :: PandocMonad m => TagParser m Inlines
 pSpan = try $ do
