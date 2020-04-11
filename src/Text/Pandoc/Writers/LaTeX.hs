@@ -155,7 +155,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                           _               -> "article"
   when (documentClass `elem` chaptersClasses) $
      modify $ \s -> s{ stHasChapters = True }
-  case T.toLower . render Nothing <$> getField "csquotes" metadata of
+  case lookupContext "csquotes" (writerVariables options) `mplus`
+       (stringify <$> lookupMeta "csquotes" meta) of
      Nothing      -> return ()
      Just "false" -> return ()
      Just _       -> modify $ \s -> s{stCsquotes = True}
@@ -1423,14 +1424,14 @@ type Prefix = [Inline]
 type Suffix = [Inline]
 type CiteId = Text
 data CiteGroup = CiteGroup Prefix Suffix [CiteId]
-  
+
 citeArgumentsList :: PandocMonad m
               => CiteGroup -> LW m (Doc Text)
 citeArgumentsList (CiteGroup _ _ []) = return empty
-citeArgumentsList (CiteGroup pfxs sfxs ids) = do  
+citeArgumentsList (CiteGroup pfxs sfxs ids) = do
       pdoc <- inlineListToLaTeX pfxs
-      sdoc <- inlineListToLaTeX sfxs' 
-      return $ (optargs pdoc sdoc) <> 
+      sdoc <- inlineListToLaTeX sfxs'
+      return $ (optargs pdoc sdoc) <>
               (braces (literal (T.intercalate "," (reverse ids))))
       where sfxs' = stripLocatorBraces $ case sfxs of
                 (Str t : r) -> case T.uncons t of
@@ -1479,22 +1480,22 @@ citationsToBiblatex (c:cs)
                     NormalCitation -> "\\autocite"
       return $ text cmd <>
                braces (literal (T.intercalate "," (map citationId (c:cs))))
-  | otherwise 
-    = do  
+  | otherwise
+    = do
       let cmd = case citationMode c of
                     SuppressAuthor -> "\\autocites*"
                     AuthorInText   -> "\\textcites"
                     NormalCitation -> "\\autocites"
-      
+
       groups <- mapM citeArgumentsList (reverse (foldl' grouper [] (c:cs)))
 
       return $ text cmd <> (mconcat groups)
 
-  where grouper prev cit = case prev of  
+  where grouper prev cit = case prev of
          ((CiteGroup oPfx oSfx ids):rest)
              | null oSfx && null pfx -> (CiteGroup oPfx sfx (cid:ids)):rest
          _ -> (CiteGroup pfx sfx [cid]):prev
-         where pfx = citationPrefix cit 
+         where pfx = citationPrefix cit
                sfx = citationSuffix cit
                cid = citationId cit
 
