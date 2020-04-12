@@ -163,6 +163,10 @@ inlineToXWiki (Emph lst) = do
   contents <- inlineListToXWiki lst
   return $ "//" <> contents <> "//"
 
+inlineToXWiki (Underline lst) = do
+  contents <- inlineListToXWiki lst
+  return $ "__" <> contents <> "__"
+
 inlineToXWiki (Strong lst) = do
   contents <- inlineListToXWiki lst
   return $ "**" <> contents <> "**"

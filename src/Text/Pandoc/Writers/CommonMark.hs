@@ -237,6 +237,10 @@ inlineToNodes opts SoftBreak
   | writerWrapText opts == WrapNone     = (node (TEXT " ") [] :)
   | otherwise                           = (node SOFTBREAK [] :)
 inlineToNodes opts (Emph xs) = (node EMPH (inlinesToNodes opts xs) :)
+inlineToNodes opts (Underline xs)
+  | isEnabled Ext_raw_html opts = ((node (HTML_INLINE (T.pack "<u>")) [] : inlinesToNodes opts xs ++
+        [node (HTML_INLINE (T.pack "</u>")) []]) ++ )
+  | otherwise = (inlinesToNodes opts xs ++)
 inlineToNodes opts (Strong xs) = (node STRONG (inlinesToNodes opts xs) :)
 inlineToNodes opts (Strikeout xs)
   | isEnabled Ext_strikeout opts = (node (CUSTOM_INLINE "~~" "~~") (inlinesToNodes opts xs) :)

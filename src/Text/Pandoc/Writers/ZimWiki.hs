@@ -273,6 +273,10 @@ inlineToZimWiki opts (Emph lst) = do
   contents <- inlineListToZimWiki opts lst
   return $ "//" <> contents <> "//"
 
+inlineToZimWiki opts (Underline lst) = do
+  contents <- inlineListToZimWiki opts lst
+  return $ "__" <> contents <> "__"
+
 inlineToZimWiki opts (Strong lst) = do
   contents <- inlineListToZimWiki opts lst
   return $ "**" <> contents <> "**"

@@ -193,6 +193,7 @@ toJiraInlines inlines = do
         Code _ cs          -> return . singleton $
                               Jira.Monospaced (escapeSpecialChars cs)
         Emph xs            -> styled Jira.Emphasis xs
+        Underline xs       -> styled Jira.Insert xs
         Image attr _ tgt   -> imageToJira attr (fst tgt) (snd tgt)
         LineBreak          -> pure . singleton $ Jira.Linebreak
         Link attr xs tgt   -> toJiraLink attr tgt xs

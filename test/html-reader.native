@@ -211,7 +211,7 @@ Pandoc (Meta {unMeta = fromList [("generator",MetaInlines [Str "pandoc"]),("titl
 ,Para [Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word."]
 ,Para [Str "This",Space,Str "is",Space,Str "code:",Space,Code ("",[],[]) ">",Str ",",Space,Code ("",[],[]) "$",Str ",",Space,Code ("",[],[]) "\\",Str ",",Space,Code ("",[],[]) "\\$",Str ",",Space,Code ("",[],[]) "<html>",Str "."]
 ,Para [Str "This",Space,Str "is",Space,SmallCaps [Str "small",Space,Str "caps"],Str "."]
-,Para [Str "These",Space,Str "are",Space,Str "all",Space,Str "underlined:",Space,Span ("",["underline"],[]) [Str "foo"],Space,Str "and",Space,Span ("",["underline"],[]) [Str "bar"],Str "."]
+,Para [Str "These",Space,Str "are",Space,Str "all",Space,Str "underlined:",Space,Underline [Str "foo"],Space,Str "and",Space,Underline [Str "bar"],Str "."]
 ,Para [Str "These",Space,Str "are",Space,Str "all",Space,Str "strikethrough:",Space,Strikeout [Str "foo"],Str ",",Space,Strikeout [Str "bar"],Str ",",Space,Str "and",Space,Strikeout [Str "baz"],Str "."]
 ,HorizontalRule
 ,Header 1 ("smart-quotes-ellipses-dashes",[],[]) [Str "Smart",Space,Str "quotes,",Space,Str "ellipses,",Space,Str "dashes"]

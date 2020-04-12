@@ -231,6 +231,8 @@ inlineToTEI :: PandocMonad m => WriterOptions -> Inline -> m (Doc Text)
 inlineToTEI _ (Str str) = return $ literal $ escapeStringForXML str
 inlineToTEI opts (Emph lst) =
   inTags False "hi" [("rendition","simple:italic")] <$> inlinesToTEI opts lst
+inlineToTEI opts (Underline lst) =
+  inTags False "hi" [("rendition","simple:underline")] <$> inlinesToTEI opts lst
 inlineToTEI opts (Strong lst) =
   inTags False "hi" [("rendition", "simple:bold")] <$> inlinesToTEI opts lst
 inlineToTEI opts (Strikeout lst) =

@@ -60,6 +60,7 @@ defaultWriterState = WriterState{
 
 -- inline names (appear in InDesign's character styles pane)
 emphName        :: Text
+underlineName   :: Text
 strongName      :: Text
 strikeoutName   :: Text
 superscriptName :: Text
@@ -68,6 +69,7 @@ smallCapsName   :: Text
 codeName        :: Text
 linkName        :: Text
 emphName        = "Italic"
+underlineName   = "Underline"
 strongName      = "Bold"
 strikeoutName   = "Strikeout"
 superscriptName = "Superscript"
@@ -427,6 +429,7 @@ inlinesToICML opts style lst = vcat `fmap` mapM (inlineToICML opts style) (merge
 inlineToICML :: PandocMonad m => WriterOptions -> Style -> Inline -> WS m (Doc Text)
 inlineToICML _    style (Str str) = charStyle style $ literal $ escapeStringForXML str
 inlineToICML opts style (Emph lst) = inlinesToICML opts (emphName:style) lst
+inlineToICML opts style (Underline lst) = inlinesToICML opts (underlineName:style) lst
 inlineToICML opts style (Strong lst) = inlinesToICML opts (strongName:style) lst
 inlineToICML opts style (Strikeout lst) = inlinesToICML opts (strikeoutName:style) lst
 inlineToICML opts style (Superscript lst) = inlinesToICML opts (superscriptName:style) lst

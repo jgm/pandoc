@@ -754,7 +754,7 @@ eastAsianLineBreakFilter = bottomUp go
 -- This probably belongs in Builder.hs in pandoc-types.
 -- Will be replaced once Underline is an element.
 underlineSpan :: Inlines -> Inlines
-underlineSpan = B.spanWith ("", ["underline"], [])
+underlineSpan = B.underline
 
 -- | Set of HTML elements that are represented as Span with a class equal as
 -- the element tag itself.

@@ -37,7 +37,7 @@ import Data.Semigroup (First(..), Option(..))
 import Text.TeXMath (readMathML, writeTeX)
 import qualified Text.XML.Light as XML
 
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder hiding (underline)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Shared
 import Text.Pandoc.Extensions (extensionsFromList, Extension(..))

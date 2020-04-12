@@ -594,6 +594,13 @@ inlineToMuse (Strong [Emph lst]) = do
     else if null lst' || startsWithSpace lst' || endsWithSpace lst'
            then emphasis "**<em>" "</em>**" lst'
            else emphasis "***" "***" lst'
+-- | Underline is only supported in Emacs Muse mode.
+inlineToMuse (Underline lst) = do
+  opts <- asks envOptions
+  contents <- inlineListToMuse lst
+  if isEnabled Ext_amuse opts
+     then return $ "_" <> contents <> "_"
+     else return contents
 inlineToMuse (Strong lst) = do
   useTags <- gets stUseTags
   let lst' = normalizeInlineList lst

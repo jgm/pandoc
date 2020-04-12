@@ -1045,6 +1045,12 @@ inlineToMarkdown opts (Emph lst) = do
                       then "_" <> contents <> "_"
                       else contents
               else "*" <> contents <> "*"
+inlineToMarkdown _ (Underline []) = return empty
+inlineToMarkdown opts (Underline lst) = do
+  contents <- inlineListToMarkdown opts lst
+  return $ if isEnabled Ext_raw_html opts
+              then "<u>" <> contents <> "</u>"
+              else contents
 inlineToMarkdown _ (Strong []) = return empty
 inlineToMarkdown opts (Strong lst) = do
   plain <- asks envPlain

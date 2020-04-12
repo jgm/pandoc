@@ -392,6 +392,10 @@ inlineToTexinfo (Span _ lst) =
 inlineToTexinfo (Emph lst) =
   inCmd "emph" <$> inlineListToTexinfo lst
 
+-- Underlining does not appear to be supported
+inlineToTexinfo (Underline lst) =
+  inlineListToTexinfo lst
+
 inlineToTexinfo (Strong lst) =
   inCmd "strong" <$> inlineListToTexinfo lst
 

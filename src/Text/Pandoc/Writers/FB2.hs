@@ -406,6 +406,7 @@ toXml :: PandocMonad m => Inline -> FBM m [Content]
 toXml (Str s) = return [txt s]
 toXml (Span _ ils) = cMapM toXml ils
 toXml (Emph ss) = list `liftM` wrap "emphasis" ss
+toXml (Underline ss) = list `liftM` wrap "underline" ss
 toXml (Strong ss) = list `liftM` wrap "strong" ss
 toXml (Strikeout ss) = list `liftM` wrap "strikethrough" ss
 toXml (Superscript ss) = list `liftM` wrap "sup" ss
@@ -529,6 +530,7 @@ list = (:[])
 plain :: Inline -> String
 plain (Str s)               = T.unpack s
 plain (Emph ss)             = cMap plain ss
+plain (Underline ss)        = cMap plain ss
 plain (Span _ ss)           = cMap plain ss
 plain (Strong ss)           = cMap plain ss
 plain (Strikeout ss)        = cMap plain ss

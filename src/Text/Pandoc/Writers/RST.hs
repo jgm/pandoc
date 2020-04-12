@@ -414,6 +414,7 @@ transformInlines =  insertBS .
         hasContents :: Inline -> Bool
         hasContents (Str "")              = False
         hasContents (Emph [])             = False
+        hasContents (Underline [])        = False
         hasContents (Strong [])           = False
         hasContents (Strikeout [])        = False
         hasContents (Superscript [])      = False
@@ -473,6 +474,7 @@ transformInlines =  insertBS .
         okBeforeComplex _ = False
         isComplex :: Inline -> Bool
         isComplex (Emph _)        = True
+        isComplex (Underline _)   = True
         isComplex (Strong _)      = True
         isComplex (SmallCaps _)   = True
         isComplex (Strikeout _)   = True
@@ -537,6 +539,7 @@ mapNested f i = setInlineChildren i (f (dropInlineParent i))
 dropInlineParent :: Inline -> [Inline]
 dropInlineParent (Link _ i _)    = i
 dropInlineParent (Emph i)        = i
+dropInlineParent (Underline i)   = i
 dropInlineParent (Strong i)      = i
 dropInlineParent (Strikeout i)   = i
 dropInlineParent (Superscript i) = i
@@ -551,6 +554,7 @@ dropInlineParent i               = [i] -- not a parent, like Str or Space
 setInlineChildren :: Inline -> [Inline] -> Inline
 setInlineChildren (Link a _ t) i    = Link a i t
 setInlineChildren (Emph _) i        = Emph i
+setInlineChildren (Underline _) i   = Underline i
 setInlineChildren (Strong _) i      = Strong i
 setInlineChildren (Strikeout _) i   = Strikeout i
 setInlineChildren (Superscript _) i = Superscript i
@@ -581,6 +585,10 @@ inlineToRST (Span (_,_,kvs) ils) = do
 inlineToRST (Emph lst) = do
   contents <- writeInlines lst
   return $ "*" <> contents <> "*"
+-- Underlining is not supported
+inlineToRST (Underline lst) = do
+  contents <- writeInlines lst
+  return contents
 inlineToRST (Strong lst) = do
   contents <- writeInlines lst
   return $ "**" <> contents <> "**"

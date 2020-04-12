@@ -329,6 +329,9 @@ inlineToOrg (Span _ lst) =
 inlineToOrg (Emph lst) = do
   contents <- inlineListToOrg lst
   return $ "/" <> contents <> "/"
+inlineToOrg (Underline lst) = do
+  contents <- inlineListToOrg lst
+  return $ "_" <> contents <> "_"
 inlineToOrg (Strong lst) = do
   contents <- inlineListToOrg lst
   return $ "*" <> contents <> "*"

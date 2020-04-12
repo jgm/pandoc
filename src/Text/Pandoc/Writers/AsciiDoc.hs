@@ -433,6 +433,9 @@ inlineToAsciiDoc opts (Emph lst) = do
   isIntraword <- gets intraword
   let marker = if isIntraword then "__" else "_"
   return $ marker <> contents <> marker
+inlineToAsciiDoc opts (Underline lst) = do
+  contents <- inlineListToAsciiDoc opts lst
+  return $ "+++" <> contents <> "+++"
 inlineToAsciiDoc opts (Strong lst) = do
   contents <- inlineListToAsciiDoc opts lst
   isIntraword <- gets intraword
