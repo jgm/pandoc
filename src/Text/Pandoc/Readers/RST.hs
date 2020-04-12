@@ -27,7 +27,8 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, setMeta, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad, fetchItem, readFileFromDirs)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, fetchItem,
+                                      readFileFromDirs, getCurrentTime)
 import Text.Pandoc.CSV (CSVOptions (..), defaultCSVOptions, parseCSV)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
@@ -38,6 +39,7 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Printf (printf)
+import Data.Time.Format
 
 -- TODO:
 -- [ ] .. parsed-literal
@@ -682,6 +684,13 @@ directive' = do
                           parseFromString' parseBlocks body'
         "replace" -> B.para <$>  -- consumed by substKey
                    parseInlineFromText (trim top)
+        "date" -> B.para <$> do  -- consumed by substKey
+                     t <- getCurrentTime
+                     let format = case T.unpack (T.strip top) of
+                                    [] -> "%Y-%m-%d"
+                                    x  -> x
+                     return $ B.text $
+                              T.pack $ formatTime defaultTimeLocale format t
         "unicode" -> B.para <$>  -- consumed by substKey
                    parseInlineFromText (trim $ unicodeTransform top)
         "compound" -> parseFromString' parseBlocks body'
