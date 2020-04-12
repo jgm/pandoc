@@ -97,6 +97,27 @@ jobs:
       run: |
           curl -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz -o stack.tar.gz
           tar xzvf stack.tar.gz --strip-components=1 'stack*/stack'
+
+    # declare/restore cached things
+    # caching doesn't work for scheduled runs yet https://github.com/actions/cache/issues/63
+
+    - name: Cache stack global package db
+      id:   stack-global
+      uses: actions/cache@v1
+      with:
+        path: ~/.stack
+        key:          ${{ runner.os }}-stack-global-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-stack-global
+          ${{ runner.os }}-stack
+
+    # stack's local package db
+    - name: Cache .stack-work
+      uses: actions/cache@v1
+      with:
+        path: .stack-work
+        key: ${{ runner.os }}-stack-work
+
     - name: Install dependencies
       run: |
           ./stack update
