@@ -78,6 +78,27 @@ jobs:
       shell: cmd
       run: |
           choco install haskell-stack
+
+    # declare/restore cached things
+    # caching doesn't work for scheduled runs yet
+    # https://github.com/actions/cache/issues/63
+
+    - name: Cache stack global package db
+      id:   stack-global-package-db
+      uses: actions/cache@v1
+      with:
+        path: C:\Users\runneradmin\AppData\Roaming\stack\
+        key:          ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
+        restore-keys: ${{ runner.os }}-appdata-roaming-stack
+
+    # stack's local package dbs for the project and each package
+    - name: Cache .stack-work
+      uses: actions/cache@v1
+      with:
+        path: .stack-work
+        key:          ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
+        restore-keys: ${{ runner.os }}-stack-work
+
     - name: Install dependencies
       run: |
           stack update
