@@ -67,8 +67,8 @@ jobs:
         path: ~/.cabal
         key: ${{ runner.os }}-cabal-global-${{ hashFiles('cabal.project') }}
         restore-keys: |
-          ${{ runner.os }}-cabal-global
-          ${{ runner.os }}-cabal
+          ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global
+          ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal
 
     - name: Install dependencies
       run: |
