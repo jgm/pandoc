@@ -55,6 +55,21 @@ jobs:
             cabal: '3.0'
     steps:
     - uses: actions/checkout@v1
+
+    # declare/restore cached things
+    # caching doesn't work for scheduled runs yet
+    # https://github.com/actions/cache/issues/63
+
+    - name: Cache stack global package db
+      id:   cabal-global
+      uses: actions/cache@v1
+      with:
+        path: ~/.cabal
+        key: ${{ runner.os }}-cabal-global-${{ hashFiles('cabal.project') }}
+        restore-keys: |
+          ${{ runner.os }}-cabal-global
+          ${{ runner.os }}-cabal
+
     - name: Install dependencies
       run: |
           export PATH=/opt/cabal/${{ matrix.versions.cabal }}/bin:/opt/ghc/${{ matrix.versions.ghc }}/bin:$PATH
