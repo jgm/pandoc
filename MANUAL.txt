@@ -1969,6 +1969,22 @@ Currently the following pipes are predefined:
 - `reverse`:  Reverses a textual value or array,
   and has no effect on other values.
 
+- `first`: Returns the first value of an array, if
+  applied to a non-empty array; otherwise returns
+  the original value.
+
+- `last`: Returns the last value of an array, if
+  applied to a non-empty array; otherwise returns
+  the original value.
+
+- `rest`: Returns all but the first value of an array, if
+  applied to a non-empty array; otherwise returns
+  the original value.
+
+- `allbutlast`: Returns all but the last value of an array, if
+  applied to a non-empty array; otherwise returns
+  the original value.
+
 - `chomp`:  Removes trailing newlines (and breakable space).
 
 - `nowrap`:  Disables line wrapping on breakable spaces.
