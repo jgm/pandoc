@@ -27,6 +27,7 @@ module Text.Pandoc.Class.PandocMonad
   , report
   , setTrace
   , setRequestHeader
+  , setNoCheckCertificate
   , getLog
   , setVerbosity
   , getVerbosity
@@ -188,6 +189,10 @@ setRequestHeader :: PandocMonad m
 setRequestHeader name val = modifyCommonState $ \st ->
   st{ stRequestHeaders =
        (name, val) : filter (\(n,_) -> n /= name) (stRequestHeaders st)  }
+
+-- | Determine whether certificate validation is disabled
+setNoCheckCertificate :: PandocMonad m => Bool -> m ()
+setNoCheckCertificate noCheckCertificate = modifyCommonState $ \st -> st{stNoCheckCertificate = noCheckCertificate}
 
 -- | Initialize the media bag.
 setMediaBag :: PandocMonad m => MediaBag -> m ()

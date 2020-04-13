@@ -414,6 +414,11 @@ options =
                   "NAME:VALUE")
                  ""
 
+    , Option "" ["no-check-certificate"]
+                (NoArg
+                 (\opt -> return opt { optNoCheckCertificate = True }))
+                "" -- "Disable certificate validation"
+
     , Option "" ["abbreviations"]
                 (ReqArg
                  (\arg opt -> return opt { optAbbreviations = Just arg })

@@ -140,6 +140,7 @@ data Opt = Opt
     , optIncludeInHeader       :: [FilePath]       -- ^ Files to include in header
     , optResourcePath          :: [FilePath] -- ^ Path to search for images etc
     , optRequestHeaders        :: [(Text, Text)] -- ^ Headers for HTTP requests
+    , optNoCheckCertificate    :: Bool       -- ^ Disable certificate validation
     , optEol                   :: LineEnding -- ^ Style of line-endings to use
     , optStripComments         :: Bool       -- ^ Skip HTML comments
     } deriving (Generic, Show)
@@ -390,6 +391,9 @@ doOpt (k',v) = do
     "request-headers" ->
       parseYAML v >>= \x ->
              return (\o -> o{ optRequestHeaders = x })
+    "no-check-certificate" ->
+      parseYAML v >>= \x ->
+             return (\o -> o{ optNoCheckCertificate = x })
     "eol" ->
       parseYAML v >>= \x -> return (\o -> o{ optEol = x })
     "strip-comments" ->
@@ -466,6 +470,7 @@ defaultOpts = Opt
     , optIncludeInHeader       = []
     , optResourcePath          = ["."]
     , optRequestHeaders        = []
+    , optNoCheckCertificate    = False
     , optEol                   = Native
     , optStripComments         = False
     }
