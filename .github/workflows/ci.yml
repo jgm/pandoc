@@ -60,15 +60,23 @@ jobs:
     # caching doesn't work for scheduled runs yet
     # https://github.com/actions/cache/issues/63
 
-    - name: Cache stack global package db
+    - name: Cache cabal global package db
       id:   cabal-global
       uses: actions/cache@v1
       with:
         path: ~/.cabal
-        key: ${{ runner.os }}-cabal-global-${{ hashFiles('cabal.project') }}
+        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ hashFiles('cabal.project') }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global
-          ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal
+
+    - name: Cache cabal work
+      id:   cabal-local
+      uses: actions/cache@v1
+      with:
+        path: dist-newstyle
+        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local
 
     - name: Install dependencies
       run: |
