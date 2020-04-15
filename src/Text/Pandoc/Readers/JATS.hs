@@ -176,6 +176,7 @@ parseBlock (Elem e) =
         "article-meta" -> parseMetadata e
         "custom-meta" -> parseMetadata e
         "title" -> return mempty -- processed by header
+        "label" -> return mempty -- processed by header
         "table" -> parseTable
         "fig" -> parseFigure
         "fig-group" -> divWith (attrValue "id" e, ["fig-group"], [])
@@ -289,10 +290,15 @@ parseBlock (Elem e) =
          parseRow = mapM (parseMixed plain . elContent) . filterChildren isEntry
          sect n = do isbook <- gets jatsBook
                      let n' = if isbook || n == 0 then n + 1 else n
+                     labelText <- case filterChild (named "label") e of
+                                    Just t -> (<> ("." <> space)) <$>
+                                              getInlines t
+                                    Nothing -> return mempty
                      headerText <- case filterChild (named "title") e `mplus`
                                         (filterChild (named "info") e >>=
                                             filterChild (named "title")) of
-                                      Just t  -> getInlines t
+                                      Just t  -> (labelText <>) <$>
+                                                  getInlines t
                                       Nothing -> return mempty
                      oldN <- gets jatsSectionLevel
                      modify $ \st -> st{ jatsSectionLevel = n }
