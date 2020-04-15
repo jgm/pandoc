@@ -18,6 +18,8 @@ jobs:
     - name: Install dependencies
       run: |
           export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
+          ghc --version
+          cabal --version
           cabal v2-update
           cabal v2-build --dependencies-only . pandoc-citeproc
     - name: Build
