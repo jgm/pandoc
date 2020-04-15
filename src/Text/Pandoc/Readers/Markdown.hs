@@ -1517,12 +1517,17 @@ code :: PandocMonad m => MarkdownParser m (F Inlines)
 code = try $ do
   starts <- many1 (char '`')
   skipSpaces
-  result <- (trim . T.concat) <$>
-            manyTill (notFollowedBy (inList >> listStart) >>
-                      (many1Char (noneOf "`\n") <|> many1Char (char '`') <|>
-                       (char '\n' >> notFollowedBy' blankline >> return " ")))
-                      (try (skipSpaces >> count (length starts) (char '`') >>
-                      notFollowedBy (char '`')))
+  result <- trim . T.concat
+        <$> manyTill
+              (   many1Char (noneOf "`\n")
+              <|> many1Char (char '`')
+              <|> (char '\n'
+                    >> notFollowedBy (inList >> listStart)
+                    >> notFollowedBy' blankline
+                    >> return " "))
+              (try $ skipSpaces
+                  >> count (length starts) (char '`')
+                  >> notFollowedBy (char '`'))
   rawattr <-
      (Left <$> try (guardEnabled Ext_raw_attribute >> rawAttribute))
     <|>
