@@ -28,7 +28,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.ByteString.Lazy as BL
 import System.FilePath (addExtension, takeExtension)
-import Text.HTML.TagSoup
+import Text.HTML.TagSoup hiding (Row)
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), report)
@@ -1235,7 +1235,7 @@ tableCaption = try $ do
 -- Parse a simple table with '---' header and one line per row.
 simpleTable :: PandocMonad m
             => Bool  -- ^ Headerless table
-            -> MarkdownParser m ([Alignment], [Double], F [Pandoc.Row], F [Pandoc.Row])
+            -> MarkdownParser m ([Alignment], [Double], F [Row], F [Row])
 simpleTable headless = do
   (aligns, _widths, heads', lines') <-
        tableWith (simpleTableHeader headless) tableLine
@@ -1250,7 +1250,7 @@ simpleTable headless = do
 -- ending with a footer (dashed line followed by blank line).
 multilineTable :: PandocMonad m
                => Bool -- ^ Headerless table
-               -> MarkdownParser m ([Alignment], [Double], F [Pandoc.Row], F [Pandoc.Row])
+               -> MarkdownParser m ([Alignment], [Double], F [Row], F [Row])
 multilineTable headless =
   tableWith (multilineTableHeader headless) multilineRow blanklines tableFooter
 
@@ -1292,7 +1292,7 @@ multilineTableHeader headless = try $ do
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
 gridTable :: PandocMonad m => Bool -- ^ Headerless table
-          -> MarkdownParser m ([Alignment], [Double], F [Pandoc.Row], F [Pandoc.Row])
+          -> MarkdownParser m ([Alignment], [Double], F [Row], F [Row])
 gridTable headless = gridTableWith' parseBlocks headless
 
 pipeBreak :: PandocMonad m => MarkdownParser m ([Alignment], [Int])
@@ -1307,7 +1307,7 @@ pipeBreak = try $ do
   blankline
   return $ unzip (first:rest)
 
-pipeTable :: PandocMonad m => MarkdownParser m ([Alignment], [Double], F [Pandoc.Row], F [Pandoc.Row])
+pipeTable :: PandocMonad m => MarkdownParser m ([Alignment], [Double], F [Row], F [Row])
 pipeTable = try $ do
   nonindentSpaces
   lookAhead nonspaceChar
@@ -1384,7 +1384,7 @@ tableWith :: PandocMonad m
           -> ([Int] -> MarkdownParser m (F [Blocks]))
           -> MarkdownParser m sep
           -> MarkdownParser m end
-          -> MarkdownParser m ([Alignment], [Double], F [Pandoc.Row], F [Pandoc.Row])
+          -> MarkdownParser m ([Alignment], [Double], F [Row], F [Row])
 tableWith headerParser rowParser lineParser footerParser = try $ do
     (heads, aligns, indices) <- headerParser
     lines' <- fmap sequence $ rowParser indices `sepEndBy1` lineParser
@@ -2118,8 +2118,8 @@ doubleQuoted = try $ do
     fmap B.doubleQuoted . trimInlinesF . mconcat <$>
       many1Till inline doubleQuoteEnd
 
-toRow :: [Blocks] -> Pandoc.Row
+toRow :: [Blocks] -> Row
 toRow = Row nullAttr . map B.simpleCell
 
-toHeaderRow :: [Blocks] -> [Pandoc.Row]
+toHeaderRow :: [Blocks] -> [Row]
 toHeaderRow l = if null l then [] else [toRow l]
