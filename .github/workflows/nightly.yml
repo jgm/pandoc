@@ -10,11 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Install recent cabal/ghc
-      run: |
-          sudo add-apt-repository ppa:hvr/ghc
-          sudo apt-get update
-          sudo apt-get install ghc-8.8.1 cabal-install-3.0
     - name: Install dependencies
       run: |
           export PATH=/opt/cabal/3.0/bin:/opt/ghc/8.8.1/bin:$PATH
