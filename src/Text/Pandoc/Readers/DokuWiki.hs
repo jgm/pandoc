@@ -470,8 +470,14 @@ table = do
   let (headerRow, body) = if firstSeparator == '^'
                             then (head rows, tail rows)
                             else ([], rows)
-  let attrs = (AlignDefault, 0.0) <$ transpose rows
-  pure $ B.table mempty attrs headerRow body
+  let attrs = (AlignDefault, ColWidthDefault) <$ transpose rows
+  let toRow = Row nullAttr . map B.simpleCell
+      toHeaderRow l = if null l then [] else [toRow l]
+  pure $ B.table B.emptyCaption
+                 attrs
+                 (TableHead nullAttr $ toHeaderRow headerRow)
+                 [TableBody nullAttr 0 [] $ map toRow body]
+                 (TableFoot nullAttr [])
 
 tableRows :: PandocMonad m => DWParser m [[B.Blocks]]
 tableRows = many1 tableRow

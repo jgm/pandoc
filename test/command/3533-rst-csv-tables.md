@@ -5,16 +5,37 @@
    :header: Flavor,Price,Slogan
    :file: command/3533-rst-csv-tables.csv
 ^D
-[Table [Str "Test"] [AlignDefault,AlignDefault,AlignDefault] [0.4,0.2,0.4]
- [[Plain [Str "Flavor"]]
- ,[Plain [Str "Price"]]
- ,[Plain [Str "Slogan"]]]
- [[[Plain [Str "Albatross"]]
-  ,[Plain [Str "2.99"]]
-  ,[Plain [Str "On",Space,Str "a",Space,Str "stick!"]]]
- ,[[Plain [Str "Crunchy",Space,Str "Frog"]]
-  ,[Plain [Str "1.49"]]
-  ,[Plain [Str "If",Space,Str "we",Space,Str "took",Space,Str "the",Space,Str "bones",Space,Str "out,",Space,Str "it",Space,Str "wouldn't",Space,Str "be",SoftBreak,Str "crunchy,",Space,Str "now",Space,Str "would",Space,Str "it?"]]]]]
+[Table ("",[],[]) (Caption Nothing
+ [Plain [Str "Test"]])
+ [(AlignDefault,ColWidth 0.4)
+ ,(AlignDefault,ColWidth 0.2)
+ ,(AlignDefault,ColWidth 0.4)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Flavor"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Price"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Slogan"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Albatross"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "2.99"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "On",Space,Str "a",Space,Str "stick!"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Crunchy",Space,Str "Frog"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "1.49"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "If",Space,Str "we",Space,Str "took",Space,Str "the",Space,Str "bones",Space,Str "out,",Space,Str "it",Space,Str "wouldn't",Space,Str "be",SoftBreak,Str "crunchy,",Space,Str "now",Space,Str "would",Space,Str "it?"]]]])]
+ (TableFoot ("",[],[])
+ [])]
 ```
 
 ```
@@ -28,16 +49,37 @@
    'cat''s' 3 4
    'dog''s' 2 3
 ^D
-[Table [Str "Test"] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
- [[]
- ,[Plain [Str "a"]]
- ,[Plain [Str "b"]]]
- [[[Plain [Str "cat's"]]
-  ,[Plain [Str "3"]]
-  ,[Plain [Str "4"]]]
- ,[[Plain [Str "dog's"]]
-  ,[Plain [Str "2"]]
-  ,[Plain [Str "3"]]]]]
+[Table ("",[],[]) (Caption Nothing
+ [Plain [Str "Test"]])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   []
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "a"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "b"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "cat's"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "3"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "4"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "dog's"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "3"]]]])]
+ (TableFoot ("",[],[])
+ [])]
 ```
 
 ```
@@ -47,10 +89,20 @@
 
    "1","\""
 ^D
-[Table [Str "Test"] [AlignDefault,AlignDefault] [0.0,0.0]
- [[]
- ,[]]
- [[[Plain [Str "1"]]
-  ,[Plain [Str "\""]]]]]
+[Table ("",[],[]) (Caption Nothing
+ [Plain [Str "Test"]])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "\""]]]])]
+ (TableFoot ("",[],[])
+ [])]
 ```
 

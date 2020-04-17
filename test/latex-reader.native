@@ -275,18 +275,46 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,[Para [Str "$22,000",Space,Str "is",Space,Str "a",Space,Emph [Str "lot"],Space,Str "of",Space,Str "money.",Space,Str "So",Space,Str "is",Space,Str "$34,000.",Space,Str "(It",Space,Str "worked",Space,Str "if",SoftBreak,Quoted DoubleQuote [Str "lot"],Space,Str "is",Space,Str "emphasized.)"]]
  ,[Para [Str "Escaped",Space,Code ("",[],[]) "$",Str ":",Space,Str "$73",Space,Emph [Str "this",Space,Str "should",Space,Str "be",Space,Str "emphasized"],Space,Str "23$."]]]
 ,Para [Str "Here\8217s",Space,Str "a",Space,Str "LaTeX",Space,Str "table:"]
-,Table [] [AlignLeft,AlignLeft] [0.0,0.0]
- [[Plain [Str "Animal"]]
- ,[Plain [Str "Number"]]]
- [[[Plain [Str "Dog"]]
-  ,[Plain [Str "2"]]]
- ,[[Plain [Str "Cat"]]
-  ,[Plain [Str "1"]]]]
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Animal"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Number"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Dog"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "2"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Cat"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "1"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Para [Str "A",Space,Str "table",Space,Str "with",Space,Str "one",Space,Str "column:"]
-,Table [] [AlignCenter] [0.0]
- [[]]
- [[[Plain [Str "Animal"]]]
- ,[[Plain [Str "Vegetable"]]]]
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignCenter,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Animal"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Vegetable"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,HorizontalRule
 ,Header 1 ("special-characters",[],[]) [Str "Special",Space,Str "Characters"]
 ,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "unicode:"]

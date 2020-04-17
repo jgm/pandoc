@@ -154,71 +154,72 @@ blockToNodes opts (DefinitionList items) ns =
           Plain (term ++ [LineBreak] ++ xs) : ys ++ concat zs
         dlToBullet (term, xs) =
           Para term : concat xs
-blockToNodes opts t@(Table capt aligns _widths headers rows) ns =
-  if isEnabled Ext_pipe_tables opts && onlySimpleTableCells (headers:rows)
-     then do
-       -- We construct a table manually as a CUSTOM_BLOCK, for
-       -- two reasons:  (1) cmark-gfm currently doesn't support
-       -- rendering TABLE nodes; (2) we can align the column sides;
-       -- (3) we can render the caption as a regular paragraph.
-       let capt' = node PARAGRAPH (inlinesToNodes opts capt)
-       -- backslash | in code and raw:
-       let fixPipe (Code attr xs) =
-             Code attr (T.replace "|" "\\|" xs)
-           fixPipe (RawInline format xs) =
-             RawInline format (T.replace "|" "\\|" xs)
-           fixPipe x = x
-       let toCell [Plain ils] = T.strip
-                                $ nodeToCommonmark [] Nothing
-                                $ node (CUSTOM_INLINE mempty mempty)
-                                $ inlinesToNodes opts
-                                $ walk (fixPipe . softBreakToSpace) ils
-           toCell [Para  ils] = T.strip
-                                $ nodeToCommonmark [] Nothing
-                                $ node (CUSTOM_INLINE mempty mempty)
-                                $ inlinesToNodes opts
-                                $ walk (fixPipe . softBreakToSpace) ils
-           toCell []          = ""
-           toCell xs          = error $ "toCell encountered " ++ show xs
-       let separator = " | "
-       let starter = "| "
-       let ender   = " |"
-       let rawheaders = map toCell headers
-       let rawrows = map (map toCell) rows
-       let maximum' [] = 0
-           maximum' xs = maximum xs
-       let colwidths = map (maximum' . map T.length) $
-                        transpose (rawheaders:rawrows)
-       let toHeaderLine len AlignDefault = T.replicate len "-"
-           toHeaderLine len AlignLeft    = ":" <>
-                  T.replicate (max (len - 1) 1) "-"
-           toHeaderLine len AlignRight   =
-                  T.replicate (max (len - 1) 1) "-" <> ":"
-           toHeaderLine len AlignCenter  = ":" <>
-                  T.replicate (max (len - 2) 1) (T.pack "-") <> ":"
-       let rawheaderlines = zipWith toHeaderLine colwidths aligns
-       let headerlines = starter <> T.intercalate separator rawheaderlines <>
-                          ender
-       let padContent (align, w) t' =
-             let padding = w - T.length t'
-                 halfpadding = padding `div` 2
-             in  case align of
-                      AlignRight -> T.replicate padding " " <> t'
-                      AlignCenter -> T.replicate halfpadding " " <> t' <>
-                                     T.replicate (padding - halfpadding) " "
-                      _ -> t' <> T.replicate padding " "
-       let toRow xs = starter <> T.intercalate separator
-                      (zipWith padContent (zip aligns colwidths) xs) <>
-                      ender
-       let table' = toRow rawheaders <> "\n" <> headerlines <> "\n" <>
-                     T.intercalate "\n" (map toRow rawrows)
-       return (node (CUSTOM_BLOCK table' mempty) [] :
-               if null capt
-                  then ns
-                  else capt' : ns)
-     else do -- fall back to raw HTML
-       s <- writeHtml5String def $! Pandoc nullMeta [t]
-       return (node (HTML_BLOCK s) [] : ns)
+blockToNodes opts t@(Table _ blkCapt specs thead tbody tfoot) ns =
+  let (capt, aligns, _widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+  in if isEnabled Ext_pipe_tables opts && onlySimpleTableCells (headers : rows)
+        then do
+          -- We construct a table manually as a CUSTOM_BLOCK, for
+          -- two reasons:  (1) cmark-gfm currently doesn't support
+          -- rendering TABLE nodes; (2) we can align the column sides;
+          -- (3) we can render the caption as a regular paragraph.
+          let capt' = node PARAGRAPH (inlinesToNodes opts capt)
+          -- backslash | in code and raw:
+          let fixPipe (Code attr xs) =
+                Code attr (T.replace "|" "\\|" xs)
+              fixPipe (RawInline format xs) =
+                RawInline format (T.replace "|" "\\|" xs)
+              fixPipe x = x
+          let toCell [Plain ils] = T.strip
+                                   $ nodeToCommonmark [] Nothing
+                                   $ node (CUSTOM_INLINE mempty mempty)
+                                   $ inlinesToNodes opts
+                                   $ walk (fixPipe . softBreakToSpace) ils
+              toCell [Para  ils] = T.strip
+                                   $ nodeToCommonmark [] Nothing
+                                   $ node (CUSTOM_INLINE mempty mempty)
+                                   $ inlinesToNodes opts
+                                   $ walk (fixPipe . softBreakToSpace) ils
+              toCell []          = ""
+              toCell xs          = error $ "toCell encountered " ++ show xs
+          let separator = " | "
+          let starter = "| "
+          let ender   = " |"
+          let rawheaders = map toCell headers
+          let rawrows = map (map toCell) rows
+          let maximum' [] = 0
+              maximum' xs = maximum xs
+          let colwidths = map (maximum' . map T.length) $
+                           transpose (rawheaders:rawrows)
+          let toHeaderLine len AlignDefault = T.replicate len "-"
+              toHeaderLine len AlignLeft    = ":" <>
+                     T.replicate (max (len - 1) 1) "-"
+              toHeaderLine len AlignRight   =
+                     T.replicate (max (len - 1) 1) "-" <> ":"
+              toHeaderLine len AlignCenter  = ":" <>
+                     T.replicate (max (len - 2) 1) (T.pack "-") <> ":"
+          let rawheaderlines = zipWith toHeaderLine colwidths aligns
+          let headerlines = starter <> T.intercalate separator rawheaderlines <>
+                             ender
+          let padContent (align, w) t' =
+                let padding = w - T.length t'
+                    halfpadding = padding `div` 2
+                in  case align of
+                         AlignRight -> T.replicate padding " " <> t'
+                         AlignCenter -> T.replicate halfpadding " " <> t' <>
+                                        T.replicate (padding - halfpadding) " "
+                         _ -> t' <> T.replicate padding " "
+          let toRow xs = starter <> T.intercalate separator
+                         (zipWith padContent (zip aligns colwidths) xs) <>
+                         ender
+          let table' = toRow rawheaders <> "\n" <> headerlines <> "\n" <>
+                        T.intercalate "\n" (map toRow rawrows)
+          return (node (CUSTOM_BLOCK table' mempty) [] :
+                  if null capt
+                     then ns
+                     else capt' : ns)
+        else do -- fall back to raw HTML
+          s <- writeHtml5String def $! Pandoc nullMeta [t]
+          return (node (HTML_BLOCK s) [] : ns)
 blockToNodes _ Null ns = return ns
 
 inlinesToNodes :: WriterOptions -> [Inline] -> [Node]

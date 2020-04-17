@@ -43,6 +43,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.MediaWiki (highlightingLangs)
+import Text.Pandoc.Writers.Shared (toLegacyTable)
 
 data WriterState = WriterState {
   listLevel :: Text -- String at the beginning of items
@@ -122,8 +123,9 @@ blockToXWiki (DefinitionList items) = do
   return $ vcat contents <> if Text.null lev then "\n" else ""
 
 -- TODO: support more features
-blockToXWiki (Table _ _ _ headers rows') = do
-  headers' <- mapM (tableCellXWiki True) headers
+blockToXWiki (Table _ blkCapt specs thead tbody tfoot) = do
+  let (_, _, _, headers, rows') = toLegacyTable blkCapt specs thead tbody tfoot
+  headers' <- mapM (tableCellXWiki True) $ take (length specs) $ headers ++ repeat []
   otherRows <- mapM formRow rows'
   return $ Text.unlines (Text.unwords headers':otherRows)
 

@@ -26,6 +26,7 @@ import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 import Text.Pandoc.Shared (underlineSpan)
+import Text.Pandoc.Writers.Shared (toLegacyTable)
 import Text.Pandoc.Walk
 
 amuse :: Text -> Pandoc
@@ -42,23 +43,65 @@ infix 4 =:
 spcSep :: [Inlines] -> Inlines
 spcSep = mconcat . intersperse space
 
+simpleTable' :: Int -> Caption -> [Blocks] -> [[Blocks]] -> Blocks
+simpleTable' n capt headers rows
+  = table capt
+          (replicate n (AlignDefault, ColWidthDefault))
+          (TableHead nullAttr $ toHeaderRow headers)
+          [TableBody nullAttr 0 [] $ map toRow rows]
+          (TableFoot nullAttr [])
+  where
+    toRow = Row nullAttr . map simpleCell
+    toHeaderRow l = if null l then [] else [toRow l]
+
 -- Tables don't round-trip yet
 --
 makeRoundTrip :: Block -> Block
-makeRoundTrip t@(Table _caption aligns widths headers rows) =
+makeRoundTrip t@(Table tattr blkCapt specs thead tbody tfoot) =
   if isSimple && numcols > 1
     then t
     else Para [Str "table was here"]
-  where numcols = maximum (length aligns : length widths : map length (headers:rows))
-        hasSimpleCells = all isSimpleCell (concat (headers:rows))
+  where (_, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+        numcols = maximum (length aligns : length widths : map length (headers:rows))
         isLineBreak LineBreak = Any True
         isLineBreak _         = Any False
         hasLineBreak = getAny . query isLineBreak
-        isSimple = hasSimpleCells && all (== 0) widths
-        isSimpleCell [Plain ils] = not (hasLineBreak ils)
-        isSimpleCell [Para ils ] = not (hasLineBreak ils)
-        isSimpleCell []          = True
-        isSimpleCell _           = False
+        isSimple = and [ isSimpleHead thead
+                       , isSimpleBodies tbody
+                       , isSimpleFoot tfoot
+                       , all (== 0) widths
+                       , isNullAttr tattr
+                       , simpleCapt ]
+        isNullAttr ("", [], []) = True
+        isNullAttr _            = False
+        isAlignDefault AlignDefault = True
+        isAlignDefault _            = False
+        isSimpleRow (Row attr body) = isNullAttr attr && all isSimpleCell body
+        isSimpleCell (Cell attr ali h w body)
+          = and [ h == 1
+                , w == 1
+                , isNullAttr attr
+                , isAlignDefault ali
+                , isSimpleCellBody body ]
+        isSimpleCellBody [Plain ils] = not (hasLineBreak ils)
+        isSimpleCellBody [Para ils ] = not (hasLineBreak ils)
+        isSimpleCellBody []          = True
+        isSimpleCellBody _           = False
+        simpleCapt = case blkCapt of
+          Caption Nothing [Para _]  -> True
+          Caption Nothing [Plain _] -> True
+          _                         -> False
+        isSimpleHead (TableHead attr [r])
+          = isNullAttr attr && isSimpleRow r
+        isSimpleHead _ = False
+        isSimpleBody (TableBody attr rhc hd bd) = and [ isNullAttr attr
+                                                      , rhc == 0
+                                                      , null hd
+                                                      , all isSimpleRow bd ]
+        isSimpleBodies [b] = isSimpleBody b
+        isSimpleBodies _   = False
+        isSimpleFoot (TableFoot attr rs) = isNullAttr attr && null rs
+
 makeRoundTrip (OrderedList (start, LowerAlpha, _) items) = OrderedList (start, Decimal, Period) items
 makeRoundTrip (OrderedList (start, UpperAlpha, _) items) = OrderedList (start, Decimal, Period) items
 makeRoundTrip x = x
@@ -950,14 +993,10 @@ tests =
     , testGroup "Tables"
         [ "Two cell table" =:
           "One | Two" =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
-                       []
-                       [[plain "One", plain "Two"]]
+          simpleTable [] [[plain "One", plain "Two"]]
         , "Table with multiple words" =:
           "One two | three four" =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
-                       []
-                       [[plain "One two", plain "three four"]]
+          simpleTable [] [[plain "One two", plain "three four"]]
         , "Not a table" =:
           "One| Two" =?>
           para (text "One| Two")
@@ -969,38 +1008,30 @@ tests =
             [ "One |  Two"
             , "Three  | Four"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
-                       []
-                       [[plain "One", plain "Two"],
-                       [plain "Three", plain "Four"]]
+          simpleTable [] [[plain "One", plain "Two"],
+                          [plain "Three", plain "Four"]]
         , "Table with one header" =:
           T.unlines
             [ "First || Second"
             , "Third | Fourth"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
-            [plain "First", plain "Second"]
-            [[plain "Third", plain "Fourth"]]
+          simpleTable [plain "First", plain "Second"] [[plain "Third", plain "Fourth"]]
         , "Table with two headers" =:
           T.unlines
             [ "First || header"
             , "Second || header"
             , "Foo | bar"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
-            [plain "First", plain "header"]
-            [[plain "Second", plain "header"],
-             [plain "Foo", plain "bar"]]
+          simpleTable [plain "First", plain "header"] [[plain "Second", plain "header"],
+                                                       [plain "Foo", plain "bar"]]
         , "Header and footer reordering" =:
           T.unlines
             [ "Foo ||| bar"
             , "Baz || foo"
             , "Bar | baz"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
-            [plain "Baz", plain "foo"]
-            [[plain "Bar", plain "baz"],
-             [plain "Foo", plain "bar"]]
+          simpleTable [plain "Baz", plain "foo"] [[plain "Bar", plain "baz"],
+                                                  [plain "Foo", plain "bar"]]
         , "Table with caption" =:
           T.unlines
             [ "Foo || bar || baz"
@@ -1008,32 +1039,30 @@ tests =
             , "Second | row | there"
             , "|+ Table caption +|"
             ] =?>
-          table (text "Table caption") (replicate 3 (AlignDefault, 0.0))
-            [plain "Foo", plain "bar", plain "baz"]
-            [[plain "First", plain "row", plain "here"],
-             [plain "Second", plain "row", plain "there"]]
+          simpleTable' 3 (simpleCaption $ plain $ text "Table caption")
+                       [plain "Foo", plain "bar", plain "baz"]
+                       [[plain "First", plain "row", plain "here"],
+                        [plain "Second", plain "row", plain "there"]]
         , "Table caption with +" =:
           T.unlines
             [ "Foo | bar"
             , "|+ Table + caption +|"
             ] =?>
-          table (text "Table + caption") (replicate 2 (AlignDefault, 0.0))
-            []
-            [[plain "Foo", plain "bar"]]
+          simpleTable' 2 (simpleCaption $ plain $ text "Table + caption")
+                       []
+                       [[plain "Foo", plain "bar"]]
         , "Caption without table" =:
           "|+ Foo bar baz +|" =?>
-          table (text "Foo bar baz") [] [] []
+          simpleTable' 0 (simpleCaption $ plain $ text "Foo bar baz") [] []
         , "Table indented with space" =:
           T.unlines
             [ " Foo | bar"
             , " Baz | foo"
             , " Bar | baz"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
-            []
-            [[plain "Foo", plain "bar"],
-             [plain "Baz", plain "foo"],
-             [plain "Bar", plain "baz"]]
+          simpleTable [] [[plain "Foo", plain "bar"],
+                          [plain "Baz", plain "foo"],
+                          [plain "Bar", plain "baz"]]
         , "Empty cells" =:
           T.unlines
             [ " | Foo"
@@ -1041,40 +1070,33 @@ tests =
             , " bar |"
             , " || baz"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
-            [plain "", plain "baz"]
-            [[plain "", plain "Foo"],
-             [plain "", plain ""],
-             [plain "bar", plain ""]]
+          simpleTable [plain "", plain "baz"] [[plain "", plain "Foo"],
+                                               [plain "", plain ""],
+                                               [plain "bar", plain ""]]
         , "Empty cell in the middle" =:
           T.unlines
             [ " 1 | 2 | 3"
             , " 4 |   | 6"
             , " 7 | 8 | 9"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0), (AlignDefault, 0.0)]
-            []
-            [[plain "1", plain "2", plain "3"],
-             [plain "4", mempty,    plain "6"],
-             [plain "7", plain "8", plain "9"]]
+          simpleTable []
+                      [[plain "1", plain "2", plain "3"],
+                       [plain "4", mempty,    plain "6"],
+                       [plain "7", plain "8", plain "9"]]
         , "Grid table" =:
           T.unlines
             [ "+-----+-----+"
             , "| foo | bar |"
             , "+-----+-----+"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
-                       []
-                       [[para "foo", para "bar"]]
+          simpleTable [] [[para "foo", para "bar"]]
         , "Grid table inside list" =:
           T.unlines
             [ " - +-----+-----+"
             , "   | foo | bar |"
             , "   +-----+-----+"
             ] =?>
-          bulletList [table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
-                                   []
-                                   [[para "foo", para "bar"]]]
+          bulletList [simpleTable [] [[para "foo", para "bar"]]]
         , "Grid table with two rows" =:
           T.unlines
             [ "+-----+-----+"
@@ -1083,10 +1105,8 @@ tests =
             , "| bat | baz |"
             , "+-----+-----+"
             ] =?>
-          table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
-                       []
-                       [[para "foo", para "bar"]
-                       ,[para "bat", para "baz"]]
+          simpleTable [] [[para "foo", para "bar"]
+                         ,[para "bat", para "baz"]]
         , "Grid table inside grid table" =:
           T.unlines
             [ "+-----+"
@@ -1095,11 +1115,7 @@ tests =
             , "|+---+|"
             , "+-----+"
             ] =?>
-          table mempty [(AlignDefault, 0.0)]
-                       []
-                       [[table mempty [(AlignDefault, 0.0)]
-                                      []
-                                      [[para "foo"]]]]
+          simpleTable [] [[simpleTable [] [[para "foo"]]]]
         , "Grid table with example" =:
           T.unlines
             [ "+------------+"
@@ -1108,9 +1124,7 @@ tests =
             , "| </example> |"
             , "+------------+"
             ] =?>
-          table mempty [(AlignDefault, 0.0)]
-                       []
-                       [[codeBlock "foo"]]
+          simpleTable [] [[codeBlock "foo"]]
         ]
     , testGroup "Lists"
       [ "Bullet list" =:
@@ -1479,15 +1493,11 @@ tests =
                        ]
       , "Definition list with table" =:
         " foo :: bar | baz" =?>
-        definitionList [ ("foo", [ table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
-                                                []
-                                                [[plain "bar", plain "baz"]]
+        definitionList [ ("foo", [ simpleTable [] [[plain "bar", plain "baz"]]
                                  ])]
       , "Definition list with table inside bullet list" =:
         " - foo :: bar | baz" =?>
-        bulletList [definitionList [ ("foo", [ table mempty [(AlignDefault, 0.0), (AlignDefault, 0.0)]
-                                                            []
-                                                            [[plain "bar", plain "baz"]]
+        bulletList [definitionList [ ("foo", [ simpleTable [] [[plain "bar", plain "baz"]]
                                              ])]]
       , test emacsMuse "Multi-line definition lists from Emacs Muse manual"
         (T.unlines

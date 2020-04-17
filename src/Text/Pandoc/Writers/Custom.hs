@@ -149,8 +149,9 @@ blockToCustom (CodeBlock attr str) =
 blockToCustom (BlockQuote blocks) =
   Lua.callFunc "BlockQuote" (Stringify blocks)
 
-blockToCustom (Table capt aligns widths headers rows) =
-  let aligns' = map show aligns
+blockToCustom (Table _ blkCapt specs thead tbody tfoot) =
+  let (capt, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+      aligns' = map show aligns
       capt' = Stringify capt
       headers' = map Stringify headers
       rows' = map (map Stringify) rows

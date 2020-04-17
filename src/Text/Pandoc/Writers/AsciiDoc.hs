@@ -191,7 +191,8 @@ blockToAsciiDoc opts (BlockQuote blocks) = do
                      else contents
   let bar = text "____"
   return $ bar $$ chomp contents' $$ bar <> blankline
-blockToAsciiDoc opts (Table caption aligns widths headers rows) =  do
+blockToAsciiDoc opts (Table _ blkCapt specs thead tbody tfoot) = do
+  let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlineListToAsciiDoc opts caption
   let caption'' = if null caption
                      then empty

@@ -97,7 +97,7 @@ addAttachment (Image attr lab (src,tit))
   return $ Image attr lab ("attachment:" <> src, tit)
 addAttachment x = return x
 
-extractCells :: PandocMonad m => WriterOptions -> [Block] -> m [Cell a]
+extractCells :: PandocMonad m => WriterOptions -> [Block] -> m [Ipynb.Cell a]
 extractCells _ [] = return []
 extractCells opts (Div (_id,classes,kvs) xs : bs)
   | "cell" `elem` classes
@@ -106,7 +106,7 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
       (newdoc, attachments) <-
         runStateT (walkM addAttachment (Pandoc nullMeta xs)) mempty
       source <- writeMarkdown opts{ writerTemplate = Nothing } newdoc
-      (Cell{
+      (Ipynb.Cell{
           cellType = Markdown
         , cellSource = Source $ breakLines $ T.stripEnd source
         , cellMetadata = meta
@@ -123,7 +123,7 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
       let meta = pairsToJSONMeta kvs
       outputs <- catMaybes <$> mapM blockToOutput rest
       let exeCount = lookup "execution_count" kvs >>= safeRead
-      (Cell{
+      (Ipynb.Cell{
           cellType = Ipynb.Code {
                 codeExecutionCount = exeCount
               , codeOutputs = outputs
@@ -143,7 +143,7 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
                   "markdown" -> "text/markdown"
                   "rst"      -> "text/x-rst"
                   _          -> f
-          (Cell{
+          (Ipynb.Cell{
               cellType = Raw
             , cellSource = Source $ breakLines raw
             , cellMetadata = if format' == "ipynb" -- means no format given
@@ -156,7 +156,7 @@ extractCells opts (CodeBlock (_id,classes,kvs) raw : bs)
   | "code" `elem` classes = do
       let meta = pairsToJSONMeta kvs
       let exeCount = lookup "execution_count" kvs >>= safeRead
-      (Cell{
+      (Ipynb.Cell{
           cellType = Ipynb.Code {
                 codeExecutionCount = exeCount
               , codeOutputs = []

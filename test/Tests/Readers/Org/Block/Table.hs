@@ -24,7 +24,18 @@ simpleTable' :: Int
              -> [Blocks]
              -> [[Blocks]]
              -> Blocks
-simpleTable' n = table "" (replicate n (AlignDefault, 0.0))
+simpleTable' n = simpleTable'' emptyCaption $ replicate n (AlignDefault, ColWidthDefault)
+
+simpleTable'' :: Caption -> [ColSpec] -> [Blocks] -> [[Blocks]] -> Blocks
+simpleTable'' capt spec headers rows
+  = table capt
+          spec
+          (TableHead nullAttr $ toHeaderRow headers)
+          [TableBody nullAttr 0 [] $ map toRow rows]
+          (TableFoot nullAttr [])
+  where
+    toRow = Row nullAttr . map simpleCell
+    toHeaderRow l = if null l then [] else [toRow l]
 
 tests :: [TestTree]
 tests =
@@ -121,12 +132,16 @@ tests =
                 , "| 1       | One  | foo  |"
                 , "| 2       | Two  | bar  |"
                 ] =?>
-      table "" (zip [AlignCenter, AlignRight, AlignDefault] [0, 0, 0])
-            []
-            [ [ plain "Numbers", plain "Text", plain "More" ]
-            , [ plain "1"      , plain "One" , plain "foo"  ]
-            , [ plain "2"      , plain "Two" , plain "bar"  ]
-            ]
+      simpleTable''
+        emptyCaption
+        (zip
+          [AlignCenter, AlignRight, AlignDefault]
+          [ColWidthDefault, ColWidthDefault, ColWidthDefault])
+        []
+        [ [ plain "Numbers", plain "Text", plain "More" ]
+        , [ plain "1"      , plain "One" , plain "foo"  ]
+        , [ plain "2"      , plain "Two" , plain "bar"  ]
+        ]
 
   , "Pipe within text doesn't start a table" =:
       "Ceci n'est pas une | pipe " =?>
@@ -143,23 +158,26 @@ tests =
                 , "| 1       | One  | foo  |"
                 , "| 2"
                 ] =?>
-      table "" (zip [AlignCenter, AlignRight] [0, 0])
-            [ plain "Numbers", plain "Text" ]
-            [ [ plain "1" , plain "One" , plain "foo" ]
-            , [ plain "2" ]
-            ]
+      simpleTable''
+        emptyCaption
+        (zip [AlignCenter, AlignRight] [ColWidthDefault, ColWidthDefault])
+        [ plain "Numbers", plain "Text" ]
+        [ [ plain "1" , plain "One" , plain "foo" ]
+        , [ plain "2" ]
+        ]
 
   , "Table with caption" =:
       T.unlines [ "#+CAPTION: Hitchhiker's Multiplication Table"
                 , "| x |  6 |"
                 , "| 9 | 42 |"
                 ] =?>
-      table "Hitchhiker's Multiplication Table"
-            [(AlignDefault, 0), (AlignDefault, 0)]
-            []
-            [ [ plain "x", plain "6" ]
-            , [ plain "9", plain "42" ]
-            ]
+      simpleTable''
+        (simpleCaption $ plain "Hitchhiker's Multiplication Table")
+        [(AlignDefault, ColWidthDefault), (AlignDefault, ColWidthDefault)]
+        []
+        [ [ plain "x", plain "6" ]
+        , [ plain "9", plain "42" ]
+        ]
 
   , "named table" =:
       T.unlines [ "#+NAME: x-marks-the-spot"

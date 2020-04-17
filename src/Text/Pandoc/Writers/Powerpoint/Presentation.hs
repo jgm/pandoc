@@ -56,7 +56,8 @@ import Data.Time (UTCTime)
 import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
 import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
-                                 , lookupMetaString, toTableOfContents)
+                                 , lookupMetaString, toTableOfContents
+                                 , toLegacyTable)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Maybe (maybeToList, fromMaybe)
@@ -201,13 +202,17 @@ data Shape = Pic PicProps FilePath [ParaElem]
            | RawOOXMLShape T.Text
   deriving (Show, Eq)
 
-type Cell = [Paragraph]
+type TableCell = [Paragraph]
+
+-- TODO: remove when better handling of new
+-- tables is implemented
+type SimpleCell = [Block]
 
 data TableProps = TableProps { tblPrFirstRow :: Bool
                              , tblPrBandRow :: Bool
                              } deriving (Show, Eq)
 
-data Graphic = Tbl TableProps [Cell] [[Cell]]
+data Graphic = Tbl TableProps [TableCell] [[TableCell]]
   deriving (Show, Eq)
 
 
@@ -503,7 +508,7 @@ multiParBullet (b:bs) = do
     concatMapM blockToParagraphs bs
   return $ p ++ ps
 
-cellToParagraphs :: Alignment -> TableCell -> Pres [Paragraph]
+cellToParagraphs :: Alignment -> SimpleCell -> Pres [Paragraph]
 cellToParagraphs algn tblCell = do
   paras <- mapM blockToParagraphs tblCell
   let alignment = case algn of
@@ -514,7 +519,7 @@ cellToParagraphs algn tblCell = do
       paras' = map (map (\p -> p{paraProps = (paraProps p){pPropAlign = alignment}})) paras
   return $ concat paras'
 
-rowToParagraphs :: [Alignment] -> [TableCell] -> Pres [[Paragraph]]
+rowToParagraphs :: [Alignment] -> [SimpleCell] -> Pres [[Paragraph]]
 rowToParagraphs algns tblCells = do
   -- We have to make sure we have the right number of alignments
   let pairs = zip (algns ++ repeat AlignDefault) tblCells
@@ -537,7 +542,8 @@ blockToShape (Para (il:_))  | Link _ (il':_) target <- il
                             , Image attr ils (url, _) <- il' =
       (withAttr attr . Pic def{picPropLink = Just $ ExternalTarget target} (T.unpack url))
       <$> inlinesToParElems ils
-blockToShape (Table caption algn _ hdrCells rows) = do
+blockToShape (Table _ blkCapt specs thead tbody tfoot) = do
+  let (caption, algn, _, hdrCells, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlinesToParElems caption
   hdrCells' <- rowToParagraphs algn hdrCells
   rows' <- mapM (rowToParagraphs algn) rows

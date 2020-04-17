@@ -85,14 +85,20 @@ docHToBlocks d' =
                     , tableBodyRows = bodyRows
                     }
       -> let toCells = map (docHToBlocks . tableCellContents) . tableRowCells
+             toRow = Row nullAttr . map B.simpleCell
+             toHeaderRow l = if null l then [] else [toRow l]
              (header, body) =
                if null headerRows
                   then ([], map toCells bodyRows)
                   else (toCells (head headerRows),
                         map toCells (tail headerRows ++ bodyRows))
              colspecs = replicate (maximum (map length body))
-                             (AlignDefault, 0.0)
-         in  B.table mempty colspecs header body
+                             (AlignDefault, ColWidthDefault)
+         in  B.table B.emptyCaption
+                     colspecs
+                     (TableHead nullAttr $ toHeaderRow header)
+                     [TableBody nullAttr 0 [] $ map toRow body]
+                     (TableFoot nullAttr [])
 
   where inlineFallback = B.plain $ docHToInlines False d'
         consolidatePlains = B.fromList . consolidatePlains' . B.toList

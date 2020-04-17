@@ -115,7 +115,8 @@ blockToHaddock _ (CodeBlock (_,_,_) str) =
 -- Nothing in haddock corresponds to block quotes:
 blockToHaddock opts (BlockQuote blocks) =
   blockListToHaddock opts blocks
-blockToHaddock opts (Table caption aligns widths headers rows) = do
+blockToHaddock opts (Table _ blkCapt specs thead tbody tfoot) = do
+  let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlineListToHaddock opts caption
   let caption'' = if null caption
                      then empty

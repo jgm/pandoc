@@ -38,7 +38,7 @@ import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, isURI, linesToPara,
                            removeFormatting, trimr, tshow)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocLayout (render, literal)
-import Text.Pandoc.Writers.Shared (defField, metaToContext)
+import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
 
 data WriterState = WriterState {
   }
@@ -166,7 +166,8 @@ blockToDokuWiki opts (BlockQuote blocks) = do
      then return $ T.unlines $ map ("> " <>) $ T.lines contents
      else return $ "<HTML><blockquote>\n" <> contents <> "</blockquote></HTML>"
 
-blockToDokuWiki opts (Table capt aligns _ headers rows) = do
+blockToDokuWiki opts (Table _ blkCapt specs thead tbody tfoot) = do
+  let (capt, aligns, _, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   captionDoc <- if null capt
                    then return ""
                    else do

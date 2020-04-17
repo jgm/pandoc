@@ -667,7 +667,7 @@ stripEmptyParagraphs = walk go
 
 -- | Detect if table rows contain only cells consisting of a single
 -- paragraph that has no @LineBreak@.
-onlySimpleTableCells :: [[TableCell]] -> Bool
+onlySimpleTableCells :: [[[Block]]] -> Bool
 onlySimpleTableCells = all isSimpleCell . concat
   where
     isSimpleCell [Plain ils] = not (hasLineBreak ils)
@@ -992,9 +992,14 @@ blockToInlines (DefinitionList pairslst) =
       mconcat (map blocksToInlines' blkslst)
 blockToInlines (Header _ _  ils) = B.fromList ils
 blockToInlines HorizontalRule = mempty
-blockToInlines (Table _ _ _ headers rows) =
+blockToInlines (Table _ _ _ (TableHead _ hbd) bodies (TableFoot _ fbd)) =
   mconcat $ intersperse B.linebreak $
-    map (mconcat . map blocksToInlines') (headers:rows)
+    map (mconcat . map blocksToInlines') (plainRowBody <$> hbd <> unTableBodies bodies <> fbd)
+  where
+    plainRowBody (Row _ body) = cellBody <$> body
+    cellBody (Cell _ _ _ _ body) = body
+    unTableBody (TableBody _ _ hd bd) = hd <> bd
+    unTableBodies = concatMap unTableBody
 blockToInlines (Div _ blks) = blocksToInlines' blks
 blockToInlines Null = mempty
 
@@ -1015,7 +1020,6 @@ defaultBlocksSeparator =
   -- This is used in the pandoc.utils.blocks_to_inlines function. Docs
   -- there should be updated if this is changed.
   B.space <> B.str "¶" <> B.space
-
 
 --
 -- Safe read

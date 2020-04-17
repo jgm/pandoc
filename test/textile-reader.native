@@ -103,37 +103,85 @@ Pandoc (Meta {unMeta = fromList []})
 ,Header 1 ("tables",[],[]) [Str "Tables"]
 ,Para [Str "Textile",Space,Str "allows",Space,Str "tables",Space,Str "with",Space,Str "and",Space,Str "without",Space,Str "headers",Space,Str ":"]
 ,Header 2 ("without-headers",[],[]) [Str "Without",Space,Str "headers"]
-,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
- [[]
- ,[]
- ,[]]
- [[[Plain [Str "name"]]
-  ,[Plain [Str "age"]]
-  ,[Plain [Str "sex"]]]
- ,[[Plain [Str "joan"]]
-  ,[Plain [Str "24"]]
-  ,[Plain [Str "f"]]]
- ,[[Plain [Str "archie"]]
-  ,[Plain [Str "29"]]
-  ,[Plain [Str "m"]]]
- ,[[Plain [Str "bella"]]
-  ,[Plain [Str "45"]]
-  ,[Plain [Str "f"]]]]
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "name"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "age"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "sex"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "joan"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "24"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "f"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "archie"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "29"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "m"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "bella"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "45"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "f"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Para [Str "and",Space,Str "some",Space,Str "text",Space,Str "following",Space,Str "\8230"]
 ,Header 2 ("with-headers",[],[]) [Str "With",Space,Str "headers"]
-,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
- [[Plain [Str "name"]]
- ,[Plain [Str "age"]]
- ,[Plain [Str "sex"]]]
- [[[Plain [Str "joan"]]
-  ,[Plain [Str "24"]]
-  ,[Plain [Str "f"]]]
- ,[[Plain [Str "archie"]]
-  ,[Plain [Str "29"]]
-  ,[Plain [Str "m"]]]
- ,[[Plain [Str "bella"]]
-  ,[Plain [Str "45"]]
-  ,[Plain [Str "f"]]]]
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "name"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "age"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "sex"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "joan"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "24"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "f"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "archie"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "29"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "m"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "bella"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "45"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "f"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Header 1 ("images",[],[]) [Str "Images"]
 ,Para [Str "Textile",Space,Str "inline",Space,Str "image",Space,Str "syntax,",Space,Str "like",LineBreak,Str "here",Space,Image ("",[],[]) [Str "this is the alt text"] ("this_is_an_image.png","this is the alt text"),LineBreak,Str "and",Space,Str "here",Space,Image ("",[],[]) [Str ""] ("this_is_an_image.png",""),Str "."]
 ,Header 1 ("attributes",[],[]) [Str "Attributes"]
@@ -143,16 +191,31 @@ Pandoc (Meta {unMeta = fromList []})
 ,Header 2 ("justified",[],[("lang","en"),("style","color:blue;text-align:justify;")]) [Str "Justified"]
 ,Para [Str "as",Space,Str "well",Space,Str "as",Space,Strong [Span ("",["foo"],[]) [Str "inline",Space,Str "attributes"]],Space,Str "of",Space,Span ("",[],[("style","color:red;")]) [Str "all",Space,Str "kind"]]
 ,Para [Str "and",Space,Str "paragraph",Space,Str "attributes,",Space,Str "and",Space,Str "table",Space,Str "attributes."]
-,Table [] [AlignDefault,AlignDefault,AlignDefault] [0.0,0.0,0.0]
- [[]
- ,[]
- ,[]]
- [[[Plain [Str "name"]]
-  ,[Plain [Str "age"]]
-  ,[Plain [Str "sex"]]]
- ,[[Plain [Str "joan"]]
-  ,[Plain [Str "24"]]
-  ,[Plain [Str "f"]]]]
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "name"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "age"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "sex"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "joan"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "24"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "f"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Para [Emph [Str "(class#id)",Space,Str "emph"]]
 ,Para [Emph [Str "(no",Space,Str "class#id)",Space,Str "emph"]]
 ,Header 1 ("entities",[],[]) [Str "Entities"]

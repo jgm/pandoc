@@ -627,16 +627,22 @@ orgToPandocTable (OrgTable colProps heads lns) caption =
   let totalWidth = if any (isJust . columnRelWidth) colProps
                    then Just . sum $ map (fromMaybe 1 . columnRelWidth) colProps
                    else Nothing
-  in B.table caption (map (convertColProp totalWidth) colProps) heads lns
+  in B.table (B.simpleCaption $ B.plain caption)
+             (map (convertColProp totalWidth) colProps)
+             (TableHead nullAttr $ toHeaderRow heads)
+             [TableBody nullAttr 0 [] $ map toRow lns]
+             (TableFoot nullAttr [])
  where
-   convertColProp :: Maybe Int -> ColumnProperty -> (Alignment, Double)
+   toRow = Row nullAttr . map B.simpleCell
+   toHeaderRow l = if null l then [] else [toRow l]
+   convertColProp :: Maybe Int -> ColumnProperty -> (Alignment, ColWidth)
    convertColProp totalWidth colProp =
      let
        align' = fromMaybe AlignDefault $ columnAlignment colProp
-       width' = fromMaybe 0 $ (\w t -> (fromIntegral w / fromIntegral t))
-                              <$> columnRelWidth colProp
-                              <*> totalWidth
-     in (align', width')
+       width' = (\w t -> (fromIntegral w / fromIntegral t))
+                <$> columnRelWidth colProp
+                <*> totalWidth
+     in (align', maybe ColWidthDefault ColWidth width')
 
 tableRows :: PandocMonad m => OrgParser m [OrgTableRow]
 tableRows = try $ many (tableAlignRow <|> tableHline <|> tableContentRow)
@@ -658,16 +664,16 @@ tableAlignRow = try $ do
   return $ OrgAlignRow colProps
 
 columnPropertyCell :: Monad m => OrgParser m ColumnProperty
-columnPropertyCell = emptyCell <|> propCell <?> "alignment info"
+columnPropertyCell = emptyOrgCell <|> propCell <?> "alignment info"
  where
-   emptyCell = ColumnProperty Nothing Nothing <$ try (skipSpaces *> endOfCell)
+   emptyOrgCell = ColumnProperty Nothing Nothing <$ try (skipSpaces *> endOfCell)
    propCell = try $ ColumnProperty
                  <$> (skipSpaces
                       *> char '<'
                       *> optionMaybe tableAlignFromChar)
                  <*> (optionMaybe (many1Char digit >>= safeRead)
                       <* char '>'
-                      <* emptyCell)
+                      <* emptyOrgCell)
 
 tableAlignFromChar :: Monad m => OrgParser m Alignment
 tableAlignFromChar = try $

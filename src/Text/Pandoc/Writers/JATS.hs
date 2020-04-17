@@ -356,21 +356,25 @@ blockToJATS _ b@(RawBlock f str)
       report $ BlockNotRendered b
       return empty
 blockToJATS _ HorizontalRule = return empty -- not semantic
-blockToJATS opts (Table [] aligns widths headers rows) = do
-  let percent w    = tshow (truncate (100*w) :: Integer) <> "*"
-  let coltags = vcat $ zipWith (\w al -> selfClosingTag "col"
-                       ([("width", percent w) | w > 0] ++
-                        [("align", alignmentToText al)])) widths aligns
-  thead <- if all null headers
-              then return empty
-              else inTagsIndented "thead" <$> tableRowToJATS opts True headers
-  tbody <- (inTagsIndented "tbody" . vcat) <$>
-                mapM (tableRowToJATS opts False) rows
-  return $ inTags True "table" [] $ coltags $$ thead $$ tbody
-blockToJATS opts (Table caption aligns widths headers rows) = do
-  captionDoc <- inTagsIndented "caption" <$> blockToJATS opts (Para caption)
-  tbl <- blockToJATS opts (Table [] aligns widths headers rows)
-  return $ inTags True "table-wrap" [] $ captionDoc $$ tbl
+blockToJATS opts (Table _ blkCapt specs th tb tf) =
+  case toLegacyTable blkCapt specs th tb tf of
+    ([], aligns, widths, headers, rows) -> captionlessTable aligns widths headers rows
+    (caption, aligns, widths, headers, rows) -> do
+      captionDoc <- inTagsIndented "caption" <$> blockToJATS opts (Para caption)
+      tbl <- captionlessTable aligns widths headers rows
+      return $ inTags True "table-wrap" [] $ captionDoc $$ tbl
+  where
+    captionlessTable aligns widths headers rows = do
+      let percent w = tshow (truncate (100*w) :: Integer) <> "*"
+      let coltags = vcat $ zipWith (\w al -> selfClosingTag "col"
+                           ([("width", percent w) | w > 0] ++
+                            [("align", alignmentToText al)])) widths aligns
+      thead <- if all null headers
+                  then return empty
+                  else inTagsIndented "thead" <$> tableRowToJATS opts True headers
+      tbody <- (inTagsIndented "tbody" . vcat) <$>
+                    mapM (tableRowToJATS opts False) rows
+      return $ inTags True "table" [] $ coltags $$ thead $$ tbody
 
 alignmentToText :: Alignment -> Text
 alignmentToText alignment = case alignment of

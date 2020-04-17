@@ -183,7 +183,8 @@ blockToOrg (BlockQuote blocks) = do
   contents <- blockListToOrg blocks
   return $ blankline $$ "#+BEGIN_QUOTE" $$
            nest 2 contents $$ "#+END_QUOTE" $$ blankline
-blockToOrg (Table caption' _ _ headers rows) =  do
+blockToOrg (Table _ blkCapt specs thead tbody tfoot) =  do
+  let (caption', _, _, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   caption'' <- inlineListToOrg caption'
   let caption = if null caption'
                    then empty

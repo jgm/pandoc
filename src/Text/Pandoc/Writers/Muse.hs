@@ -150,8 +150,8 @@ flatBlockListToMuse [] = return mempty
 
 simpleTable :: PandocMonad m
             => [Inline]
-            -> [TableCell]
-            -> [[TableCell]]
+            -> [[Block]]
+            -> [[[Block]]]
             -> Muse m (Doc Text)
 simpleTable caption headers rows = do
   topLevel <- asks envTopLevel
@@ -259,17 +259,18 @@ blockToMuse (Header level (ident,_,_) inlines) = do
   return $ blankline <> attr' $$ nowrap (header' <> contents) <> blankline
 -- https://www.gnu.org/software/emacs-muse/manual/muse.html#Horizontal-Rules-and-Anchors
 blockToMuse HorizontalRule = return $ blankline $$ "----" $$ blankline
-blockToMuse (Table caption aligns widths headers rows) =
+blockToMuse (Table _ blkCapt specs thead tbody tfoot) =
   if isSimple && numcols > 1
     then simpleTable caption headers rows
     else do
       opts <- asks envOptions
       gridTable opts blocksToDoc True (map (const AlignDefault) aligns) widths headers rows
   where
+    (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
     blocksToDoc opts blocks =
       local (\env -> env { envOptions = opts }) $ blockListToMuse blocks
     numcols = maximum (length aligns : length widths : map length (headers:rows))
-    isSimple = onlySimpleTableCells (headers:rows) && all (== 0) widths
+    isSimple = onlySimpleTableCells (headers : rows) && all (== 0) widths
 blockToMuse (Div _ bs) = flatBlockListToMuse bs
 blockToMuse Null = return empty
 

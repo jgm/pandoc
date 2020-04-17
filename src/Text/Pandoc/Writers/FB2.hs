@@ -41,7 +41,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
 import Text.Pandoc.Shared (capitalize, isURI, orderedListMarkers,
                            makeSections, tshow)
-import Text.Pandoc.Writers.Shared (lookupMetaString)
+import Text.Pandoc.Writers.Shared (lookupMetaString, toLegacyTable)
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.
@@ -334,17 +334,18 @@ blockToXml h@Header{} = do
   report $ BlockNotRendered h
   return []
 blockToXml HorizontalRule = return [ el "empty-line" () ]
-blockToXml (Table caption aligns _ headers rows) = do
-    hd <- mkrow "th" headers aligns
+blockToXml (Table _ blkCapt specs thead tbody tfoot) = do
+    let (caption, aligns, _, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+    hd <- if null headers then pure [] else (:[]) <$> mkrow "th" headers aligns
     bd <- mapM (\r -> mkrow "td" r aligns) rows
     c <- el "emphasis" <$> cMapM toXml caption
-    return [el "table" (hd : bd), el "p" c]
+    return [el "table" (hd <> bd), el "p" c]
     where
-      mkrow :: PandocMonad m => String -> [TableCell] -> [Alignment] -> FBM m Content
+      mkrow :: PandocMonad m => String -> [[Block]] -> [Alignment] -> FBM m Content
       mkrow tag cells aligns' =
         el "tr" <$> mapM (mkcell tag) (zip cells aligns')
       --
-      mkcell :: PandocMonad m => String -> (TableCell, Alignment) -> FBM m Content
+      mkcell :: PandocMonad m => String -> ([Block], Alignment) -> FBM m Content
       mkcell tag (cell, align) = do
         cblocks <- cMapM blockToXml cell
         return $ el tag ([align_attr align], cblocks)

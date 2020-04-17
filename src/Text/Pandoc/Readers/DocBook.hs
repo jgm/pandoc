@@ -676,10 +676,10 @@ getMediaobject e = do
                         Just z  -> mconcat <$>
                                          mapM parseInline (elContent z)
   figTitle <- gets dbFigureTitle
-  let (caption, title) = if isNull figTitle
-                            then (getCaption e, "")
-                            else (return figTitle, "fig:")
-  fmap (imageWith attr imageUrl title) caption
+  let (capt, title) = if isNull figTitle
+                         then (getCaption e, "")
+                         else (return figTitle, "fig:")
+  fmap (imageWith attr imageUrl title) capt
 
 getBlocks :: PandocMonad m => Element -> DB m Blocks
 getBlocks e =  mconcat <$>
@@ -844,9 +844,9 @@ parseBlock (Elem e) =
                      return (mconcat $ intersperse (str "; ") terms', items')
          parseTable = do
                       let isCaption x = named "title" x || named "caption" x
-                      caption <- case filterChild isCaption e of
-                                       Just t  -> getInlines t
-                                       Nothing -> return mempty
+                      capt <- case filterChild isCaption e of
+                                    Just t  -> getInlines t
+                                    Nothing -> return mempty
                       let e' = fromMaybe e $ filterChild (named "tgroup") e
                       let isColspec x = named "colspec" x || named "col" x
                       let colspecs = case filterChild (named "colgroup") e' of
@@ -868,12 +868,12 @@ parseBlock (Elem e) =
                                                 Just "right"  -> AlignRight
                                                 Just "center" -> AlignCenter
                                                 _             -> AlignDefault
-                      let toWidth c = case findAttr (unqual "colwidth") c of
-                                                Just w -> fromMaybe 0
-                                                   $ safeRead $ "0" <> T.filter (\x ->
+                      let toWidth c = do
+                            w <- findAttr (unqual "colwidth") c
+                            n <- safeRead $ "0" <> T.filter (\x ->
                                                      (x >= '0' && x <= '9')
                                                       || x == '.') (T.pack w)
-                                                Nothing -> 0 :: Double
+                            if n > 0 then Just n else Nothing
                       let numrows = case bodyrows of
                                          [] -> 0
                                          xs -> maximum $ map length xs
@@ -881,17 +881,19 @@ parseBlock (Elem e) =
                                      [] -> replicate numrows AlignDefault
                                      cs -> map toAlignment cs
                       let widths = case colspecs of
-                                     []  -> replicate numrows 0
-                                     cs  -> let ws = map toWidth cs
-                                                tot = sum ws
-                                            in  if all (> 0) ws
-                                                   then map (/ tot) ws
-                                                   else replicate numrows 0
-                      let headrows' = if null headrows
-                                         then replicate numrows mempty
-                                         else headrows
-                      return $ table caption (zip aligns widths)
-                                 headrows' bodyrows
+                                     [] -> replicate numrows ColWidthDefault
+                                     cs -> let ws = map toWidth cs
+                                           in case sequence ws of
+                                                Just ws' -> let tot = sum ws'
+                                                            in  ColWidth . (/ tot) <$> ws'
+                                                Nothing  -> replicate numrows ColWidthDefault
+                      let toRow = Row nullAttr . map simpleCell
+                          toHeaderRow l = if null l then [] else [toRow l]
+                      return $ table (simpleCaption $ plain capt)
+                                     (zip aligns widths)
+                                     (TableHead nullAttr $ toHeaderRow headrows)
+                                     [TableBody nullAttr 0 [] $ map toRow bodyrows]
+                                     (TableFoot nullAttr [])
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseRow = mapM (parseMixed plain . elContent) . filterChildren isEntry
          sect n = do isbook <- gets dbBook

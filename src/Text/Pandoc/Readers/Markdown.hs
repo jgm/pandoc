@@ -28,11 +28,11 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.ByteString.Lazy as BL
 import System.FilePath (addExtension, takeExtension)
-import Text.HTML.TagSoup
+import Text.HTML.TagSoup hiding (Row)
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), report)
-import Text.Pandoc.Definition
+import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
@@ -1163,7 +1163,7 @@ simpleTableHeader headless = try $ do
                  else return rawContent
   let aligns   = zipWith alignType (map (: []) rawHeads) lengths
   let rawHeads' = if headless
-                     then replicate (length dashes) ""
+                     then []
                      else rawHeads
   heads <- fmap sequence
            $
@@ -1235,7 +1235,7 @@ tableCaption = try $ do
 -- Parse a simple table with '---' header and one line per row.
 simpleTable :: PandocMonad m
             => Bool  -- ^ Headerless table
-            -> MarkdownParser m ([Alignment], [Double], F [Blocks], F [[Blocks]])
+            -> MarkdownParser m ([Alignment], [Double], F [Row], F [Row])
 simpleTable headless = do
   (aligns, _widths, heads', lines') <-
        tableWith (simpleTableHeader headless) tableLine
@@ -1250,7 +1250,7 @@ simpleTable headless = do
 -- ending with a footer (dashed line followed by blank line).
 multilineTable :: PandocMonad m
                => Bool -- ^ Headerless table
-               -> MarkdownParser m ([Alignment], [Double], F [Blocks], F [[Blocks]])
+               -> MarkdownParser m ([Alignment], [Double], F [Row], F [Row])
 multilineTable headless =
   tableWith (multilineTableHeader headless) multilineRow blanklines tableFooter
 
@@ -1281,7 +1281,7 @@ multilineTableHeader headless = try $ do
                            rawContent
   let aligns   = zipWith alignType rawHeadsList lengths
   let rawHeads = if headless
-                    then replicate (length dashes) ""
+                    then []
                     else map (T.unlines . map trim) rawHeadsList
   heads <- fmap sequence $
             mapM (parseFromString' (mconcat <$> many plain).trim) rawHeads
@@ -1292,7 +1292,7 @@ multilineTableHeader headless = try $ do
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
 gridTable :: PandocMonad m => Bool -- ^ Headerless table
-          -> MarkdownParser m ([Alignment], [Double], F [Blocks], F [[Blocks]])
+          -> MarkdownParser m ([Alignment], [Double], F [Row], F [Row])
 gridTable headless = gridTableWith' parseBlocks headless
 
 pipeBreak :: PandocMonad m => MarkdownParser m ([Alignment], [Int])
@@ -1307,7 +1307,7 @@ pipeBreak = try $ do
   blankline
   return $ unzip (first:rest)
 
-pipeTable :: PandocMonad m => MarkdownParser m ([Alignment], [Double], F [Blocks], F [[Blocks]])
+pipeTable :: PandocMonad m => MarkdownParser m ([Alignment], [Double], F [Row], F [Row])
 pipeTable = try $ do
   nonindentSpaces
   lookAhead nonspaceChar
@@ -1323,7 +1323,7 @@ pipeTable = try $ do
                          fromIntegral len / fromIntegral (sum seplengths))
                          seplengths
                   else replicate (length aligns) 0.0
-  return (aligns, widths, heads', sequence lines'')
+  return (aligns, widths, toHeaderRow <$> heads', map toRow <$> sequence lines'')
 
 sepPipe :: PandocMonad m => MarkdownParser m ()
 sepPipe = try $ do
@@ -1384,7 +1384,7 @@ tableWith :: PandocMonad m
           -> ([Int] -> MarkdownParser m (F [Blocks]))
           -> MarkdownParser m sep
           -> MarkdownParser m end
-          -> MarkdownParser m ([Alignment], [Double], F [Blocks], F [[Blocks]])
+          -> MarkdownParser m ([Alignment], [Double], F [Row], F [Row])
 tableWith headerParser rowParser lineParser footerParser = try $ do
     (heads, aligns, indices) <- headerParser
     lines' <- fmap sequence $ rowParser indices `sepEndBy1` lineParser
@@ -1393,7 +1393,7 @@ tableWith headerParser rowParser lineParser footerParser = try $ do
     let widths = if null indices
                     then replicate (length aligns) 0.0
                     else widthsFromIndices numColumns indices
-    return (aligns, widths, heads, lines')
+    return (aligns, widths, toHeaderRow <$> heads, map toRow <$> lines')
 
 table :: PandocMonad m => MarkdownParser m (F Blocks)
 table = try $ do
@@ -1417,11 +1417,18 @@ table = try $ do
   let widths' = if totalWidth < 1
                    then widths
                    else map (/ totalWidth) widths
+  let strictPos w
+        | w > 0     = ColWidth w
+        | otherwise = ColWidthDefault
   return $ do
     caption' <- caption
     heads' <- heads
     lns' <- lns
-    return $ B.table caption' (zip aligns widths') heads' lns'
+    return $ B.table (B.simpleCaption $ B.plain caption')
+                     (zip aligns (strictPos <$> widths'))
+                     (TableHead nullAttr heads')
+                     [TableBody nullAttr 0 [] lns']
+                     (TableFoot nullAttr [])
 
 --
 -- inline
@@ -2110,3 +2117,9 @@ doubleQuoted = try $ do
   withQuoteContext InDoubleQuote $
     fmap B.doubleQuoted . trimInlinesF . mconcat <$>
       many1Till inline doubleQuoteEnd
+
+toRow :: [Blocks] -> Row
+toRow = Row nullAttr . map B.simpleCell
+
+toHeaderRow :: [Blocks] -> [Row]
+toHeaderRow l = if null l then [] else [toRow l]

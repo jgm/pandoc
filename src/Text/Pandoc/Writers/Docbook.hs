@@ -263,7 +263,8 @@ blockToDocbook _ b@(RawBlock f str)
       report $ BlockNotRendered b
       return empty
 blockToDocbook _ HorizontalRule = return empty -- not semantic
-blockToDocbook opts (Table caption aligns widths headers rows) = do
+blockToDocbook opts (Table _ blkCapt specs thead tbody tfoot) = do
+  let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   captionDoc <- if null caption
                    then return empty
                    else inTagsIndented "title" <$>
@@ -279,7 +280,7 @@ blockToDocbook opts (Table caption aligns widths headers rows) = do
   body' <- (inTagsIndented "tbody" . vcat) <$>
               mapM (tableRowToDocbook opts) rows
   return $ inTagsIndented tableType $ captionDoc $$
-        inTags True "tgroup" [("cols", tshow (length headers))] (
+        inTags True "tgroup" [("cols", tshow (length aligns))] (
          coltags $$ head' $$ body')
 
 hasLineBreaks :: [Inline] -> Bool

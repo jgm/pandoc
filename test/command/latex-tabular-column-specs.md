@@ -11,14 +11,35 @@ f      & 0.5    & 5,5  \\
 \bottomrule
 \end{tabular}
 ^D
-[Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[Plain [Math InlineMath ""]]
- ,[Plain [Math InlineMath "f1"]]
- ,[Plain [Math InlineMath "f2"]]]
- [[[Plain [Math InlineMath "e"]]
-  ,[Plain [Math InlineMath "0.5"]]
-  ,[Plain [Math InlineMath "4"]]]
- ,[[Plain [Math InlineMath "f"]]
-  ,[Plain [Math InlineMath "0.5"]]
-  ,[Plain [Math InlineMath "5,5"]]]]]
+[Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Math InlineMath ""]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Math InlineMath "f1"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Math InlineMath "f2"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Math InlineMath "e"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Math InlineMath "0.5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Math InlineMath "4"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Math InlineMath "f"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Math InlineMath "0.5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Math InlineMath "5,5"]]]])]
+ (TableFoot ("",[],[])
+ [])]
 ```

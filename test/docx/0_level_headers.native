@@ -1,15 +1,42 @@
-[Table [] [AlignDefault] [0.0]
- [[]]
- [[[]]
- ,[[Plain [Str "User\8217s",Space,Str "Guide"]]]
- ,[[]]
- ,[[]]
- ,[[]]
- ,[[Plain [Str "11",Space,Str "August",Space,Str "2017"]]]
- ,[[]]
- ,[[]]
- ,[[]]
- ,[[]]]
+[Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    []]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "User\8217s",Space,Str "Guide"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    []]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    []]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    []]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "11",Space,Str "August",Space,Str "2017"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    []]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    []]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    []]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    []]])]
+ (TableFoot ("",[],[])
+ [])
 ,Para [Str "CONTENTS"]
 ,Para [Strong [Str "Section",Space,Str "Page"]]
 ,Para [Str "FIGURES",Space,Str "iv"]

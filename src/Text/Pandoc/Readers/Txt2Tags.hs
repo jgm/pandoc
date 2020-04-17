@@ -267,9 +267,13 @@ table = try $ do
   let size = maximum (map length rows')
   let rowsPadded = map (pad size) rows'
   let headerPadded = if null tableHeader then mempty else pad size tableHeader
-  return $ B.table mempty
-                    (zip aligns (replicate ncolumns 0.0))
-                      headerPadded rowsPadded
+  let toRow = Row nullAttr . map B.simpleCell
+      toHeaderRow l = if null l then [] else [toRow l]
+  return $ B.table B.emptyCaption
+                    (zip aligns (replicate ncolumns ColWidthDefault))
+                      (TableHead nullAttr $ toHeaderRow headerPadded)
+                      [TableBody nullAttr 0 [] $ map toRow rowsPadded]
+                      (TableFoot nullAttr [])
 
 pad :: (Monoid a) => Int -> [a] -> [a]
 pad n xs = xs ++ replicate (n - length xs) mempty

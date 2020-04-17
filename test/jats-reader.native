@@ -287,136 +287,385 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Emph [Str "Trailing",Space,Str "spaces"],Space,Str "text"]
 ,Header 1 ("tables",[],[]) [Str "Tables"]
 ,Header 2 ("tables-with-headers",[],[]) [Str "Tables",Space,Str "with",Space,Str "Headers"]
-,Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[Para [Str "X"]]
- ,[Para [Str "Y"]]
- ,[Para [Str "Z"]]]
- [[[Para [Str "1"]]
-  ,[Para [Str "2"]]
-  ,[Para [Str "3"]]]
- ,[[Para [Str "4"]]
-  ,[Para [Str "5"]]
-  ,[Para [Str "6"]]]]
-,Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[Para [Str "X"]]
- ,[Para [Str "Y"]]
- ,[Para [Str "Z"]]]
- [[[Para [Str "1"]]
-  ,[Para [Str "2"]]
-  ,[Para [Str "3"]]]
- ,[[Para [Str "4"]]
-  ,[Para [Str "5"]]
-  ,[Para [Str "6"]]]]
-,Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[Para [Str "X"]]
- ,[Para [Str "Y"]]
- ,[Para [Str "Z"]]]
- [[[Para [Str "1"]]
-  ,[Para [Str "2"]]
-  ,[Para [Str "3"]]]
- ,[[Para [Str "4"]]
-  ,[Para [Str "5"]]
-  ,[Para [Str "6"]]]]
-,Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[Para [Str "X"]]
- ,[Para [Str "Y"]]
- ,[Para [Str "Z"]]]
- [[[Para [Str "1"]]
-  ,[Para [Str "2"]]
-  ,[Para [Str "3"]]]
- ,[[Para [Str "4"]]
-  ,[Para [Str "5"]]
-  ,[Para [Str "6"]]]]
-,Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[Para [Str "X"]]
- ,[Para [Str "Y"]]
- ,[Para [Str "Z"]]]
- [[[Para [Str "1"]]
-  ,[Para [Str "2"]]
-  ,[Para [Str "3"]]]
- ,[[Para [Str "4"]]
-  ,[Para [Str "5"]]
-  ,[Para [Str "6"]]]]
-,Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[Para [Str "X"]]
- ,[Para [Str "Y"]]
- ,[Para [Str "Z"]]]
- [[[Para [Str "1"]]
-  ,[Para [Str "2"]]
-  ,[Para [Str "3"]]]
- ,[[Para [Str "4"]]
-  ,[Para [Str "5"]]
-  ,[Para [Str "6"]]]]
-,Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[Para [Str "X"]]
- ,[Para [Str "Y"]]
- ,[Para [Str "Z"]]]
- [[[Para [Str "1"]]
-  ,[Para [Str "2"]]
-  ,[Para [Str "3"]]]
- ,[[Para [Str "4"]]
-  ,[Para [Str "5"]]
-  ,[Para [Str "6"]]]]
-,Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[Para [Str "X"]]
- ,[Para [Str "Y"]]
- ,[Para [Str "Z"]]]
- [[[Para [Str "1"]]
-  ,[Para [Str "2"]]
-  ,[Para [Str "3"]]]
- ,[[Para [Str "4"]]
-  ,[Para [Str "5"]]
-  ,[Para [Str "6"]]]]
-,Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[Para [Str "X"]]
- ,[Para [Str "Y"]]
- ,[Para [Str "Z"]]]
- [[[Para [Str "1"]]
-  ,[Para [Str "2"]]
-  ,[Para [Str "3"]]]
- ,[[Para [Str "4"]]
-  ,[Para [Str "5"]]
-  ,[Para [Str "6"]]]]
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "X"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Y"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "X"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Y"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "X"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Y"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "X"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Y"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "X"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Y"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "X"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Y"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "X"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Y"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "X"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Y"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "X"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Y"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Para [Str "Z"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Header 2 ("tables-without-headers",[],[]) [Str "Tables",Space,Str "without",Space,Str "Headers"]
-,Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[]
- ,[]
- ,[]]
- [[[Para [Str "1"]]
-  ,[Para [Str "2"]]
-  ,[Para [Str "3"]]]
- ,[[Para [Str "4"]]
-  ,[Para [Str "5"]]
-  ,[Para [Str "6"]]]]
-,Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[]
- ,[]
- ,[]]
- [[[Para [Str "1"]]
-  ,[Para [Str "2"]]
-  ,[Para [Str "3"]]]
- ,[[Para [Str "4"]]
-  ,[Para [Str "5"]]
-  ,[Para [Str "6"]]]]
-,Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[]
- ,[]
- ,[]]
- [[[Para [Str "1"]]
-  ,[Para [Str "2"]]
-  ,[Para [Str "3"]]]
- ,[[Para [Str "4"]]
-  ,[Para [Str "5"]]
-  ,[Para [Str "6"]]]]
-,Table [] [AlignLeft,AlignLeft,AlignLeft] [0.0,0.0,0.0]
- [[]
- ,[]
- ,[]]
- [[[Para [Str "1"]]
-  ,[Para [Str "2"]]
-  ,[Para [Str "3"]]]
- ,[[Para [Str "4"]]
-  ,[Para [Str "5"]]
-  ,[Para [Str "6"]]]]
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)
+ ,(AlignLeft,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Para [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
 ,Header 2 ("empty-tables",[],[]) [Str "Empty",Space,Str "Tables"]
 ,Para [Str "This",Space,Str "section",Space,Str "should",Space,Str "be",Space,Str "empty."]]

@@ -228,12 +228,18 @@ table = try $ do
   return $ buildTable mempty rows $ fromMaybe (align rows, columns rows) tableHead
   where
     buildTable caption rows (aligns, heads)
-                    = B.table caption aligns heads rows
-    align rows      = replicate (columCount rows) (AlignDefault, 0)
+                    = B.table (B.simpleCaption $ B.plain caption)
+                              aligns
+                              (TableHead nullAttr $ toHeaderRow heads)
+                              [TableBody nullAttr 0 [] $ map toRow rows]
+                              (TableFoot nullAttr [])
+    align rows      = replicate (columCount rows) (AlignDefault, ColWidthDefault)
     columns rows    = replicate (columCount rows) mempty
     columCount rows = length $ head rows
+    toRow           = Row nullAttr . map B.simpleCell
+    toHeaderRow l = if null l then [] else [toRow l]
 
-tableParseHeader :: PandocMonad m => TWParser m ((Alignment, Double), B.Blocks)
+tableParseHeader :: PandocMonad m => TWParser m ((Alignment, ColWidth), B.Blocks)
 tableParseHeader = try $ do
   char '|'
   leftSpaces <- length <$> many spaceChar
@@ -245,9 +251,9 @@ tableParseHeader = try $ do
   return (tableAlign leftSpaces rightSpaces, content)
   where
     tableAlign left right
-      | left >= 2 && left == right = (AlignCenter, 0)
-      | left > right = (AlignRight, 0)
-      | otherwise = (AlignLeft, 0)
+      | left >= 2 && left == right = (AlignCenter, ColWidthDefault)
+      | left > right = (AlignRight, ColWidthDefault)
+      | otherwise = (AlignLeft, ColWidthDefault)
 
 tableParseRow :: PandocMonad m => TWParser m [B.Blocks]
 tableParseRow = many1Till tableParseColumn newline

@@ -645,9 +645,15 @@ data MuseTableElement = MuseHeaderRow [Blocks]
 
 museToPandocTable :: MuseTable -> Blocks
 museToPandocTable (MuseTable caption headers body footers) =
-  B.table caption attrs headRow (rows ++ body ++ footers)
-  where attrs = (AlignDefault, 0.0) <$ transpose (headers ++ body ++ footers)
+  B.table (B.simpleCaption $ B.plain caption)
+          attrs
+          (TableHead nullAttr $ toHeaderRow headRow)
+          [TableBody nullAttr 0 [] $ map toRow $ rows ++ body ++ footers]
+          (TableFoot nullAttr [])
+  where attrs = (AlignDefault, ColWidthDefault) <$ transpose (headers ++ body ++ footers)
         (headRow, rows) = fromMaybe ([], []) $ uncons headers
+        toRow = Row nullAttr . map B.simpleCell
+        toHeaderRow l = if null l then [] else [toRow l]
 
 museAppendElement :: MuseTableElement
                   -> MuseTable
@@ -693,8 +699,13 @@ museGridTable = try $ do
   indent <- getIndent
   indices <- museGridTableHeader
   fmap rowsToTable . sequence <$> many1 (museGridTableRow indent indices)
-  where rowsToTable rows = B.table mempty attrs [] rows
-                           where attrs = (AlignDefault, 0.0) <$ transpose rows
+  where rowsToTable rows = B.table B.emptyCaption
+                                   attrs
+                                   (TableHead nullAttr [])
+                                   [TableBody nullAttr 0 [] $ map toRow rows]
+                                   (TableFoot nullAttr [])
+                           where attrs = (AlignDefault, ColWidthDefault) <$ transpose rows
+                                 toRow = Row nullAttr . map B.simpleCell
 
 -- | Parse a table.
 table :: PandocMonad m => MuseParser m (F Blocks)

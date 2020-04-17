@@ -221,9 +221,9 @@ table = do
   let restwidth = tableWidth - sum widths
   let zerocols = length $ filter (==0.0) widths
   let defaultwidth = if zerocols == 0 || zerocols == length widths
-                        then 0.0
-                        else restwidth / fromIntegral zerocols
-  let widths' = map (\w -> if w == 0 then defaultwidth else w) widths
+                        then ColWidthDefault
+                        else ColWidth $ restwidth / fromIntegral zerocols
+  let widths' = map (\w -> if w > 0 then ColWidth w else defaultwidth) widths
   let cellspecs = zip (map fst cellspecs') widths'
   rows' <- many $ try $ rowsep *> (map snd <$> tableRow)
   optional blanklines
@@ -232,7 +232,13 @@ table = do
   let (headers,rows) = if hasheader
                           then (hdr, rows')
                           else (replicate cols mempty, hdr:rows')
-  return $ B.table caption cellspecs headers rows
+  let toRow = Row nullAttr . map B.simpleCell
+      toHeaderRow l = if null l then [] else [toRow l]
+  return $ B.table (B.simpleCaption $ B.plain caption)
+                   cellspecs
+                   (TableHead nullAttr $ toHeaderRow headers)
+                   [TableBody nullAttr 0 [] $ map toRow rows]
+                   (TableFoot nullAttr [])
 
 parseAttrs :: PandocMonad m => MWParser m [(Text,Text)]
 parseAttrs = many1 parseAttr

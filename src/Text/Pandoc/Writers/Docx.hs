@@ -970,7 +970,8 @@ blockToOpenXML' _ HorizontalRule = do
     $ mknode "v:rect" [("style","width:0;height:1.5pt"),
                        ("o:hralign","center"),
                        ("o:hrstd","t"),("o:hr","t")] () ]
-blockToOpenXML' opts (Table caption aligns widths headers rows) = do
+blockToOpenXML' opts (Table _ blkCapt specs thead tbody tfoot) = do
+  let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   setFirstPara
   modify $ \s -> s { stInTable = True }
   let captionStr = stringify caption
@@ -993,11 +994,11 @@ blockToOpenXML' opts (Table caption aligns widths headers rows) = do
                       $ mknode "w:bottom" [("w:val","single")] ()
                     , mknode "w:vAlign" [("w:val","bottom")] () ]
   compactStyle <- pStyleM "Compact"
-  let emptyCell = [mknode "w:p" [] [mknode "w:pPr" [] [compactStyle]]]
+  let emptyCell' = [mknode "w:p" [] [mknode "w:pPr" [] [compactStyle]]]
   let mkcell border contents = mknode "w:tc" []
                             $ [ borderProps | border ] ++
                             if null contents
-                               then emptyCell
+                               then emptyCell'
                                else contents
   let mkrow border cells = mknode "w:tr" [] $
                         [mknode "w:trPr" [] [

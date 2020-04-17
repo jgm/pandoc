@@ -513,12 +513,18 @@ pTable = try $ do
                     _      -> replicate cols AlignDefault
   let widths = if null widths'
                   then if isSimple
-                       then replicate cols 0
-                       else replicate cols (1.0 / fromIntegral cols)
+                       then replicate cols ColWidthDefault
+                       else replicate cols (ColWidth (1.0 / fromIntegral cols))
                   else widths'
-  return $ B.table caption (zip aligns widths) head' rows
+  let toRow = Row nullAttr . map B.simpleCell
+      toHeaderRow l = if null l then [] else [toRow l]
+  return $ B.table (B.simpleCaption $ B.plain caption)
+                   (zip aligns widths)
+                   (TableHead nullAttr $ toHeaderRow head')
+                   [TableBody nullAttr 0 [] $ map toRow rows]
+                   (TableFoot nullAttr [])
 
-pCol :: PandocMonad m => TagParser m Double
+pCol :: PandocMonad m => TagParser m ColWidth
 pCol = try $ do
   TagOpen _ attribs' <- pSatisfy (matchTagOpen "col" [])
   let attribs = toStringAttr attribs'
@@ -535,10 +541,10 @@ pCol = try $ do
                   fromMaybe 0.0 $ safeRead xs
                 _ -> 0.0
   if width > 0.0
-    then return $ width / 100.0
-    else return 0.0
+    then return $ ColWidth $ width / 100.0
+    else return ColWidthDefault
 
-pColgroup :: PandocMonad m => TagParser m [Double]
+pColgroup :: PandocMonad m => TagParser m [ColWidth]
 pColgroup = try $ do
   pSatisfy (matchTagOpen "colgroup" [])
   skipMany pBlank

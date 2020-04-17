@@ -134,14 +134,14 @@ getGraphic :: PandocMonad m
            => Maybe (Inlines, Text) -> Element -> JATS m Inlines
 getGraphic mbfigdata e = do
   let atVal a = attrValue a e
-      (ident, title, caption) =
+      (ident, title, capt) =
          case mbfigdata of
-           Just (capt, i) -> (i, "fig:" <> atVal "title", capt)
+           Just (capt', i) -> (i, "fig:" <> atVal "title", capt')
            Nothing        -> (atVal "id", atVal "title",
                               text (atVal "alt-text"))
       attr = (ident, T.words $ atVal "role", [])
       imageUrl = atVal "href"
-  return $ imageWith attr imageUrl title caption
+  return $ imageWith attr imageUrl title capt
 
 getBlocks :: PandocMonad m => Element -> JATS m Blocks
 getBlocks e =  mconcat <$>
@@ -230,20 +230,20 @@ parseBlock (Elem e) =
            -- implicit figure.  otherwise, we emit a div with the contents
            case filterChildren (named "graphic") e of
                   [g] -> do
-                         caption <- case filterChild (named "caption") e of
-                                           Just t  -> mconcat .
-                                             intersperse linebreak <$>
-                                             mapM getInlines
-                                             (filterChildren (const True) t)
-                                           Nothing -> return mempty
-                         img <- getGraphic (Just (caption, attrValue "id" e)) g
+                         capt <- case filterChild (named "caption") e of
+                                        Just t  -> mconcat .
+                                          intersperse linebreak <$>
+                                          mapM getInlines
+                                          (filterChildren (const True) t)
+                                        Nothing -> return mempty
+                         img <- getGraphic (Just (capt, attrValue "id" e)) g
                          return $ para img
                   _   -> divWith (attrValue "id" e, ["fig"], []) <$> getBlocks e
          parseTable = do
                       let isCaption x = named "title" x || named "caption" x
-                      caption <- case filterChild isCaption e of
-                                       Just t  -> getInlines t
-                                       Nothing -> return mempty
+                      capt <- case filterChild isCaption e of
+                                    Just t  -> getInlines t
+                                    Nothing -> return mempty
                       let e' = fromMaybe e $ filterChild (named "tgroup") e
                       let isColspec x = named "colspec" x || named "col" x
                       let colspecs = case filterChild (named "colgroup") e' of
@@ -265,27 +265,28 @@ parseBlock (Elem e) =
                                                 Just "right"  -> AlignRight
                                                 Just "center" -> AlignCenter
                                                 _             -> AlignDefault
-                      let toWidth c = case findAttrText (unqual "colwidth") c of
-                                                Just w -> fromMaybe 0
-                                                   $ safeRead $ "0" <> T.filter (\x ->
-                                                     isDigit x || x == '.') w
-                                                Nothing -> 0 :: Double
+                      let toWidth c = do
+                            w <- findAttrText (unqual "colwidth") c
+                            n <- safeRead $ "0" <> T.filter (\x -> isDigit x || x == '.') w
+                            if n > 0 then Just n else Nothing
                       let numrows = foldl' max 0 $ map length bodyrows
                       let aligns = case colspecs of
                                      [] -> replicate numrows AlignDefault
                                      cs -> map toAlignment cs
                       let widths = case colspecs of
-                                     []  -> replicate numrows 0
-                                     cs  -> let ws = map toWidth cs
-                                                tot = sum ws
-                                            in  if all (> 0) ws
-                                                   then map (/ tot) ws
-                                                   else replicate numrows 0
-                      let headrows' = if null headrows
-                                         then replicate numrows mempty
-                                         else headrows
-                      return $ table caption (zip aligns widths)
-                                 headrows' bodyrows
+                                     [] -> replicate numrows ColWidthDefault
+                                     cs -> let ws = map toWidth cs
+                                           in case sequence ws of
+                                                Just ws' -> let tot = sum ws'
+                                                            in  ColWidth . (/ tot) <$> ws'
+                                                Nothing  -> replicate numrows ColWidthDefault
+                      let toRow = Row nullAttr . map simpleCell
+                          toHeaderRow l = if null l then [] else [toRow l]
+                      return $ table (simpleCaption $ plain capt)
+                                     (zip aligns widths)
+                                     (TableHead nullAttr $ toHeaderRow headrows)
+                                     [TableBody nullAttr 0 [] $ map toRow bodyrows]
+                                     (TableFoot nullAttr [])
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseRow = mapM (parseMixed plain . elContent) . filterChildren isEntry
          sect n = do isbook <- gets jatsBook

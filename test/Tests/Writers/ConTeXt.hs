@@ -98,8 +98,8 @@ tests = [ testGroup "inline code"
           ]
         , testGroup "natural tables"
             [ test contextNtb "table with header and caption" $
-              let caption = text "Table 1"
-                  aligns = [(AlignRight, 0.0), (AlignLeft, 0.0), (AlignCenter, 0.0), (AlignDefault, 0.0)]
+              let capt = text "Table 1"
+                  aligns = [(AlignRight, ColWidthDefault), (AlignLeft, ColWidthDefault), (AlignCenter, ColWidthDefault), (AlignDefault, ColWidthDefault)]
                   headers = [plain $ text "Right",
                              plain $ text "Left",
                              plain $ text "Center",
@@ -116,7 +116,12 @@ tests = [ testGroup "inline code"
                            plain $ text "3.2",
                            plain $ text "3.3",
                            plain $ text "3.4"]]
-              in table caption aligns headers rows
+                  toRow = Row nullAttr . map simpleCell
+              in table (simpleCaption $ plain capt)
+                       aligns
+                       (TableHead nullAttr [toRow headers])
+                       [TableBody nullAttr 0 [] $ map toRow rows]
+                       (TableFoot nullAttr [])
               =?> unlines [ "\\startplacetable[title={Table 1}]"
                           , "\\startTABLE"
                           , "\\startTABLEhead"
