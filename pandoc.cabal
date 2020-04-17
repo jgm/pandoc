@@ -377,8 +377,7 @@ flag trypandoc
   Default:       False
 
 library
-  build-depends: base-noprelude >= 4.9 && < 5,
-                 base-compat >= 0.9,
+  build-depends: base >= 4.9 && < 5,
                  syb >= 0.1 && < 0.8,
                  containers >= 0.4.2.1 && < 0.7,
                  unordered-containers >= 0.2 && < 0.3,
@@ -442,6 +441,10 @@ library
      build-depends: basement >= 0.0.10,
                     foundation >= 0.0.23
                     -- basement 0.0.9 won't build on 32-bit windows.
+  if impl(ghc < 8.4)
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+     build-depends:  base-compat >= 0.9
   if os(windows)
     cpp-options:      -D_WINDOWS
   else
@@ -469,8 +472,7 @@ library
 
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
-  hs-source-dirs:  src,
-                   prelude
+  hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
                    Text.Pandoc.App,
@@ -564,8 +566,7 @@ library
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.BCP47,
                    Text.Pandoc.Class
-  other-modules:   Prelude,
-                   Text.Pandoc.App.CommandLineOptions,
+  other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,
                    Text.Pandoc.App.Opt,
                    Text.Pandoc.App.OutputSettings,
@@ -642,19 +643,19 @@ library
   buildable:       True
 
 executable pandoc
-  build-depends:   pandoc,
-                   base-noprelude >= 4.8 && < 5,
-                   base-compat >= 0.9
+  build-depends: pandoc, base >= 4.8 && < 5
+  if impl(ghc < 8.4)
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+     build-depends:  base-compat >= 0.9
   if flag(static)
     ld-options:     -static
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
   hs-source-dirs:  .
-                   prelude
   main-is:         pandoc.hs
   buildable:       True
-  other-modules:   Paths_pandoc,
-                   Prelude
+  other-modules:   Paths_pandoc
   ghc-options:     -rtsopts -with-rtsopts=-K16m -threaded
                    -Wall -fno-warn-unused-do-bind
                    -Wincomplete-record-updates
@@ -669,16 +670,19 @@ executable pandoc
 
 executable trypandoc
   main-is:         trypandoc.hs
-  hs-source-dirs:  trypandoc, prelude
+  hs-source-dirs:  trypandoc
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
-  other-modules:    Prelude
   if flag(trypandoc)
-    build-depends: base-noprelude, base-compat >= 0.9, aeson, pandoc,
+    build-depends: base, aeson, pandoc,
                    text, wai-extra, wai >= 0.3, http-types
     buildable:     True
   else
     buildable:     False
+  if impl(ghc < 8.4)
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+     build-depends:  base-compat >= 0.9
   ghc-options:     -rtsopts -with-rtsopts=-K16m -threaded
                    -Wall -fno-warn-unused-do-bind
                    -Wincomplete-record-updates
@@ -694,16 +698,18 @@ executable trypandoc
 benchmark weigh-pandoc
   type:            exitcode-stdio-1.0
   main-is:         weigh-pandoc.hs
-  hs-source-dirs:  benchmark,
-                   prelude
+  hs-source-dirs:  benchmark
   build-depends:   pandoc,
-                   base-noprelude >= 4.8 && < 5,
-                   base-compat >= 0.9,
+                   base >= 4.8 && < 5,
                    text,
                    weigh >= 0.0 && < 0.1,
                    mtl >= 2.2 && < 2.3
+  if impl(ghc < 8.4)
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+     build-depends:  base-compat >= 0.9
   default-language: Haskell2010
-  other-modules:   Prelude
+  other-extensions: NoImplicitPrelude
   ghc-options:     -rtsopts -with-rtsopts=-K16m -threaded
                    -Wall -fno-warn-unused-do-bind
                    -Wincomplete-record-updates
@@ -720,10 +726,8 @@ benchmark weigh-pandoc
 test-suite test-pandoc
   type:           exitcode-stdio-1.0
   main-is:        test-pandoc.hs
-  hs-source-dirs: test,
-                  prelude
-  build-depends:  base-noprelude >= 4.8 && < 5,
-                  base-compat >= 0.9,
+  hs-source-dirs: test
+  build-depends:  base >= 4.8 && < 5,
                   pandoc,
                   pandoc-types >= 1.20 && < 1.21,
                   mtl >= 2.2 && < 2.3,
@@ -749,8 +753,11 @@ test-suite test-pandoc
                   xml >= 1.3.12 && < 1.4,
                   doctemplates >= 0.8.2 && < 0.9,
                   Glob >= 0.7 && < 0.11
-  other-modules:  Prelude
-                  Tests.Old
+  if impl(ghc < 8.4)
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+     build-depends:  base-compat >= 0.9
+  other-modules:  Tests.Old
                   Tests.Command
                   Tests.Helpers
                   Tests.Lua
@@ -806,6 +813,7 @@ test-suite test-pandoc
   if os(windows)
     cpp-options:      -D_WINDOWS
   default-language: Haskell2010
+  other-extensions: NoImplicitPrelude
   ghc-options:     -rtsopts -with-rtsopts=-K16m -threaded
                    -Wall -fno-warn-unused-do-bind
                    -Wincomplete-record-updates
@@ -822,17 +830,19 @@ test-suite test-pandoc
 benchmark benchmark-pandoc
   type:            exitcode-stdio-1.0
   main-is:         benchmark-pandoc.hs
-  hs-source-dirs:  benchmark,
-                   prelude
+  hs-source-dirs:  benchmark
   build-depends:   pandoc,
                    time, bytestring, containers,
-                   base-noprelude >= 4.8 && < 5,
-                   base-compat >= 0.9,
+                   base >= 4.8 && < 5,
                    text >= 1.1.1.0 && < 1.3,
                    mtl >= 2.2 && < 2.3,
                    criterion >= 1.0 && < 1.6
+  if impl(ghc < 8.4)
+     hs-source-dirs: prelude
+     other-modules:  Prelude
+     build-depends:  base-compat >= 0.9
   default-language: Haskell2010
-  other-modules:    Prelude
+  other-extensions: NoImplicitPrelude
   ghc-options:     -rtsopts -with-rtsopts=-K16m -threaded
                    -Wall -fno-warn-unused-do-bind
                    -Wincomplete-record-updates
