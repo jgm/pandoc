@@ -19,7 +19,7 @@ jobs:
           cabal v2-build --dependencies-only . pandoc-citeproc
     - name: Build
       run: |
-          export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH
+          export PATH=/opt/cabal/3.0/bin:/opt/ghc/8.8.1/bin:$PATH
           cabal v2-install . pandoc-citeproc
           strip $HOME/.cabal/bin/pandoc
           strip $HOME/.cabal/bin/pandoc-citeproc
