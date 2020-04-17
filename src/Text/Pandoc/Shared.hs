@@ -836,7 +836,7 @@ filterIpynbOutput mode = walk go
 renderTags' :: [Tag T.Text] -> T.Text
 renderTags' = renderTagsOptions
                renderOptions{ optMinimize = matchTags ["hr", "br", "img",
-                                                       "meta", "link"]
+                                                       "meta", "link", "col"]
                             , optRawTag   = matchTags ["script", "style"] }
               where matchTags tags = flip elem tags . T.toLower
 
