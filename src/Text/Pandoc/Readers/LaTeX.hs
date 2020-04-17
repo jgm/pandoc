@@ -2417,8 +2417,11 @@ addTableCaption = walkM go
                                     (sLabels st) }
                      return $ caption Nothing (plain ils) -- add number??
                    (Nothing, _)  -> return c
-          return $ maybe id (\ident -> Div (ident, [], []) . (:[])) mblabel $
-                     Table attr capt spec th tb tf
+          let attr' = case (attr, mblabel) of
+                        ((_,classes,kvs), Just ident) ->
+                           (ident,classes,kvs)
+                        _ -> attr
+          return $ Table attr' capt spec th tb tf
         go x = return x
 
 block :: PandocMonad m => LP m Blocks
