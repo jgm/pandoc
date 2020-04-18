@@ -452,7 +452,6 @@ library
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
      build-depends: file-embed >= 0.0 && < 0.1
-     other-modules: Text.Pandoc.Data
   if os(windows)
     cpp-options:      -D_WINDOWS
   ghc-options:     -Wall -fno-warn-unused-do-bind
@@ -476,6 +475,7 @@ library
 
   exposed-modules: Text.Pandoc,
                    Text.Pandoc.App,
+                   Text.Pandoc.Data,
                    Text.Pandoc.Options,
                    Text.Pandoc.Extensions,
                    Text.Pandoc.Shared,

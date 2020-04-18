@@ -30,6 +30,7 @@ import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Shared as Shared
+import Text.Pandoc.Data (initializeDataFiles)
 
 -- | Push the "pandoc.utils" module to the lua stack.
 pushModule :: Maybe FilePath -> Lua NumResults
@@ -79,6 +80,7 @@ runJSONFilter mbDatadir doc filterFile optArgs = do
               Lua.getglobal "FORMAT"
               (:[]) <$> Lua.popValue
   filterRes <- Lua.liftIO . runIO $ do
+    initializeDataFiles
     setUserDataDir mbDatadir
     JSONFilter.apply def args filterFile doc
   case filterRes of

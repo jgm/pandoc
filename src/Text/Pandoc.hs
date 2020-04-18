@@ -47,6 +47,8 @@ module Text.Pandoc
                , module Text.Pandoc.Logging
                -- * Typeclass
                , module Text.Pandoc.Class
+               -- * Data Files
+               , module Text.Pandoc.Data
                -- * Error handling
                , module Text.Pandoc.Error
                -- * Readers: converting /to/ Pandoc format
@@ -60,6 +62,7 @@ module Text.Pandoc
              ) where
 
 import Text.Pandoc.Class
+import Text.Pandoc.Data
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Generic

@@ -20,7 +20,7 @@ import Data.ByteString (ByteString)
 import Foreign.Lua (Lua, NumResults, liftIO)
 import Text.Pandoc.Class.PandocIO (runIO)
 import Text.Pandoc.Class.PandocMonad (readDataFile, setUserDataDir)
-
+import Text.Pandoc.Data (initializeDataFiles)
 import qualified Foreign.Lua as Lua
 import Text.Pandoc.Lua.Module.Pandoc as Pandoc
 import Text.Pandoc.Lua.Module.MediaBag as MediaBag
@@ -83,7 +83,10 @@ loadStringAsPackage pkgName script = do
 -- | Get the ByteString representation of the pandoc module.
 dataDirScript :: Maybe FilePath -> FilePath -> IO (Maybe ByteString)
 dataDirScript datadir moduleFile = do
-  res <- runIO $ setUserDataDir datadir >> readDataFile moduleFile
+  res <- runIO $ do
+    initializeDataFiles
+    setUserDataDir datadir
+    readDataFile moduleFile
   return $ case res of
     Left _ -> Nothing
     Right s -> Just s

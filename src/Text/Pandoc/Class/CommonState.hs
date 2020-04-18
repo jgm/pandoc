@@ -19,6 +19,7 @@ where
 
 import Data.Default (Default (def))
 import Data.Text (Text)
+import qualified Data.ByteString as B
 import Text.Pandoc.BCP47 (Lang)
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Logging (LogMessage, Verbosity (WARNING))
@@ -50,6 +51,8 @@ data CommonState = CommonState
   , stResourcePath :: [FilePath]
     -- ^ Path to search for resources like
     -- included images
+  , stDataFiles    :: [(FilePath, B.ByteString)]
+    -- ^ Data files baked into the binary if compiled with embed_data_files
   , stVerbosity    :: Verbosity
     -- ^ Verbosity level
   , stTrace        :: Bool
@@ -75,6 +78,7 @@ defaultCommonState = CommonState
   , stInputFiles = []
   , stOutputFile = Nothing
   , stResourcePath = ["."]
+  , stDataFiles = []
   , stVerbosity = WARNING
   , stTrace = False
   }

@@ -100,8 +100,8 @@ runCommandTest pandocpath num code =
 extractCommandTest :: FilePath -> FilePath -> TestTree
 extractCommandTest pandocpath fp = unsafePerformIO $ do
   contents <- UTF8.toText <$> BS.readFile ("command" </> fp)
-  Pandoc _ blocks <- runIOorExplode (readMarkdown
-                        def{ readerExtensions = pandocExtensions } contents)
+  Pandoc _ blocks <- runIOorExplode $
+    readMarkdown def{ readerExtensions = pandocExtensions } contents
   let codeblocks = map extractCode $ filter isCodeBlock blocks
   let cases = zipWith (runCommandTest pandocpath) [1..] codeblocks
   return $ testGroup fp cases

@@ -52,7 +52,7 @@ import Text.Pandoc.Shared (ordNub, elemText, safeStrRead, defaultUserDataDirs, f
 import Text.Printf
 
 #ifdef EMBED_DATA_FILES
-import Text.Pandoc.Data (dataFiles)
+import Text.Pandoc.Data (initializeDataFiles)
 #else
 import Paths_pandoc (getDataDir)
 import System.Directory (getDirectoryContents)
@@ -760,7 +760,8 @@ options =
                  (NoArg
                   (\_ -> do
                      datafiles <- getDataFileNames
-                     tpl <- runIOorExplode $
+                     tpl <- runIOorExplode $ do
+                              initializeDataFiles
                               UTF8.toString <$>
                                 readDefaultDataFile "bash_completion.tpl"
                      let optnames (Option shorts longs _ _) =
@@ -841,6 +842,7 @@ options =
                                         Just f  -> UTF8.writeFile f
                                         Nothing -> UTF8.hPutStr stdout
                      templ <- runIO $ do
+                                initializeDataFiles
                                 setUserDataDir Nothing
                                 getDefaultTemplate (T.pack arg)
                      case templ of
@@ -916,7 +918,9 @@ options =
 getDataFileNames :: IO [FilePath]
 getDataFileNames = do
 #ifdef EMBED_DATA_FILES
-  let allDataFiles = map fst dataFiles
+  allDataFiles <- runIOorExplode $ do
+    initializeDataFiles
+    map fst . stDataFiles <$> getCommonState
 #else
   allDataFiles <- filter (\x -> x /= "." && x /= "..") <$>
                       (getDataDir >>= getDirectoryContents)

@@ -31,6 +31,7 @@ import Foreign.Lua ( Lua, NumArgs, NumResults, Peekable, Pushable, StackIndex
                    , Status, ToHaskellFunction )
 import Text.Pandoc.Class.PandocIO (runIOorExplode)
 import Text.Pandoc.Class.PandocMonad (readDataFile, setUserDataDir)
+import Text.Pandoc.Data (initializeDataFiles)
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Text (Text)
@@ -90,8 +91,10 @@ pushViaConstructor pandocFn = pushViaCall ("pandoc." ++ pandocFn)
 -- | Load a file from pandoc's data directory.
 loadScriptFromDataDir :: Maybe FilePath -> FilePath -> Lua ()
 loadScriptFromDataDir datadir scriptFile = do
-  script <- Lua.liftIO . runIOorExplode $
-            setUserDataDir datadir >> readDataFile scriptFile
+  script <- Lua.liftIO . runIOorExplode $ do
+              initializeDataFiles
+              setUserDataDir datadir
+              readDataFile scriptFile
   status <- Lua.dostring script
   when (status /= Lua.OK) $
     throwTopMessageAsError' (("Couldn't load '" ++ scriptFile ++ "'.\n") ++)

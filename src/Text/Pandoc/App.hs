@@ -64,6 +64,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import System.Posix.IO (stdOutput)
 import System.Posix.Terminal (queryTerminal)
 #endif
+import Text.Pandoc.Data (initializeDataFiles)
 
 convertWithOpts :: Opt -> IO ()
 convertWithOpts opts = do
@@ -98,6 +99,7 @@ convertWithOpts opts = do
   let runIO' :: PandocIO a -> IO a
       runIO' f = do
         (res, reports) <- runIOorExplode $ do
+                             initializeDataFiles
                              setTrace (optTrace opts)
                              setVerbosity verbosity
                              x <- f

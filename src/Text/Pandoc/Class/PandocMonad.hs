@@ -86,9 +86,6 @@ import qualified Debug.Trace
 import qualified System.FilePath.Posix as Posix
 import qualified Text.Pandoc.MediaBag as MB
 import qualified Text.Pandoc.UTF8 as UTF8
-#ifdef EMBED_DATA_FILES
-import Text.Pandoc.Data (dataFiles)
-#endif
 
 -- | The PandocMonad typeclass contains all the potentially
 -- IO-related functions used in pandoc's readers and writers.
@@ -573,8 +570,9 @@ readDefaultDataFile "reference.pptx" =
   (B.concat . BL.toChunks . fromArchive) <$> getDefaultReferencePptx
 readDefaultDataFile "reference.odt" =
   (B.concat . BL.toChunks . fromArchive) <$> getDefaultReferenceODT
-readDefaultDataFile fname =
+readDefaultDataFile fname = do
 #ifdef EMBED_DATA_FILES
+  dataFiles <- stDataFiles <$> getCommonState
   case lookup (makeCanonical fname) dataFiles of
     Nothing       -> throwError $ PandocCouldNotFindDataFileError $ T.pack fname
     Just contents -> return contents
