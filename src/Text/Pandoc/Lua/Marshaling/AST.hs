@@ -19,9 +19,11 @@ module Text.Pandoc.Lua.Marshaling.AST
 import Control.Applicative ((<|>))
 import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
 import Text.Pandoc.Definition
+import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Util (defineHowTo, pushViaConstructor)
 import Text.Pandoc.Lua.Marshaling.CommonState ()
 
+import qualified Control.Monad.Catch as Catch
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
 
@@ -131,7 +133,7 @@ peekMetaValue idx = defineHowTo "get MetaValue" $ do
     Lua.TypeBoolean -> MetaBool <$> Lua.peek idx
     Lua.TypeString  -> MetaString <$> Lua.peek idx
     Lua.TypeTable   -> do
-      tag <- Lua.try $ LuaUtil.getTag idx
+      tag <- try $ LuaUtil.getTag idx
       case tag of
         Right "MetaBlocks"  -> MetaBlocks  <$> elementContent
         Right "MetaBool"    -> MetaBool    <$> elementContent
@@ -139,7 +141,7 @@ peekMetaValue idx = defineHowTo "get MetaValue" $ do
         Right "MetaInlines" -> MetaInlines <$> elementContent
         Right "MetaList"    -> MetaList    <$> elementContent
         Right "MetaString"  -> MetaString  <$> elementContent
-        Right t             -> Lua.throwException ("Unknown meta tag: " <> t)
+        Right t             -> Lua.throwMessage ("Unknown meta tag: " <> t)
         Left _ -> do
           -- no meta value tag given, try to guess.
           len <- Lua.rawlen idx
@@ -148,7 +150,7 @@ peekMetaValue idx = defineHowTo "get MetaValue" $ do
             else  (MetaInlines <$> Lua.peek idx)
                   <|> (MetaBlocks <$> Lua.peek idx)
                   <|> (MetaList <$> Lua.peek idx)
-    _        -> Lua.throwException "could not get meta value"
+    _        -> Lua.throwMessage "could not get meta value"
 
 -- | Push a block element to the top of the Lua stack.
 pushBlock :: Block -> Lua ()
@@ -199,7 +201,7 @@ peekBlock idx = defineHowTo "get Block value" $ do
                                     tbodies
                                     tfoot)
                           <$> elementContent
-      _ -> Lua.throwException ("Unknown block type: " <> tag)
+      _ -> Lua.throwMessage ("Unknown block type: " <> tag)
  where
    -- Get the contents of an AST element.
    elementContent :: Peekable a => Lua a
@@ -344,11 +346,14 @@ peekInline idx = defineHowTo "get Inline value" $ do
     "Strong"     -> Strong <$> elementContent
     "Subscript"  -> Subscript <$> elementContent
     "Superscript"-> Superscript <$> elementContent
-    _ -> Lua.throwException ("Unknown inline type: " <> tag)
+    _ -> Lua.throwMessage ("Unknown inline type: " <> tag)
  where
    -- Get the contents of an AST element.
    elementContent :: Peekable a => Lua a
    elementContent = LuaUtil.rawField idx "c"
+
+try :: Lua a -> Lua (Either PandocError a)
+try = Catch.try
 
 withAttr :: (Attr -> a -> b) -> (LuaAttr, a) -> b
 withAttr f (attributes, x) = f (fromLuaAttr attributes) x

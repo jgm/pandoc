@@ -23,7 +23,6 @@ import System.Directory (executable, doesFileExist, findExecutable,
 import System.Environment (getEnvironment)
 import System.Exit (ExitCode (..))
 import System.FilePath ((</>), takeExtension)
-import Text.Pandoc.Class.PandocIO (PandocIO)
 import Text.Pandoc.Error (PandocError (PandocFilterError))
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Options (ReaderOptions)
@@ -32,11 +31,12 @@ import Text.Pandoc.Shared (pandocVersion, tshow)
 import qualified Control.Exception as E
 import qualified Text.Pandoc.UTF8 as UTF8
 
-apply :: ReaderOptions
+apply :: MonadIO m
+      => ReaderOptions
       -> [String]
       -> FilePath
       -> Pandoc
-      -> PandocIO Pandoc
+      -> m Pandoc
 apply ropts args f = liftIO . externalFilter ropts f args
 
 externalFilter :: MonadIO m

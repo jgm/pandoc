@@ -19,7 +19,6 @@ module Text.Pandoc.Lua.Util
   , addFunction
   , addValue
   , pushViaConstructor
-  , loadScriptFromDataDir
   , defineHowTo
   , throwTopMessageAsError'
   , callWithTraceback
@@ -27,13 +26,11 @@ module Text.Pandoc.Lua.Util
   ) where
 
 import Control.Monad (unless, when)
+import Data.Text (Text)
 import Foreign.Lua ( Lua, NumArgs, NumResults, Peekable, Pushable, StackIndex
                    , Status, ToHaskellFunction )
-import Text.Pandoc.Class.PandocIO (runIOorExplode)
-import Text.Pandoc.Class.PandocMonad (readDataFile, setUserDataDir)
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.UTF8 as UTF8
-import Data.Text (Text)
 
 -- | Get value behind key from table at given index.
 rawField :: Peekable a => StackIndex -> String -> Lua a
@@ -87,15 +84,6 @@ pushViaCall fn = pushViaCall' fn (return ()) 0
 pushViaConstructor :: PushViaCall a => String -> a
 pushViaConstructor pandocFn = pushViaCall ("pandoc." ++ pandocFn)
 
--- | Load a file from pandoc's data directory.
-loadScriptFromDataDir :: Maybe FilePath -> FilePath -> Lua ()
-loadScriptFromDataDir datadir scriptFile = do
-  script <- Lua.liftIO . runIOorExplode $
-            setUserDataDir datadir >> readDataFile scriptFile
-  status <- Lua.dostring script
-  when (status /= Lua.OK) $
-    throwTopMessageAsError' (("Couldn't load '" ++ scriptFile ++ "'.\n") ++)
-
 -- | Get the tag of a value. This is an optimized and specialized version of
 -- @Lua.getfield idx "tag"@. It only checks for the field on the table at index
 -- @idx@ and on its metatable, also ignoring any @__index@ value on the
@@ -107,7 +95,7 @@ getTag idx = do
   Lua.push ("tag" :: Text)
   Lua.rawget (Lua.nthFromTop 2)
   Lua.tostring Lua.stackTop <* Lua.pop 2 >>= \case
-    Nothing -> Lua.throwException "untagged value"
+    Nothing -> Lua.throwMessage "untagged value"
     Just x -> return (UTF8.toString x)
 
 -- | Modify the message at the top of the stack before throwing it as an
@@ -116,11 +104,12 @@ throwTopMessageAsError' :: (String -> String) -> Lua a
 throwTopMessageAsError' modifier = do
   msg <- Lua.tostring' Lua.stackTop
   Lua.pop 2 -- remove error and error string pushed by tostring'
-  Lua.throwException (modifier (UTF8.toString msg))
+  Lua.throwMessage (modifier (UTF8.toString msg))
 
 -- | Mark the context of a Lua computation for better error reporting.
 defineHowTo :: String -> Lua a -> Lua a
-defineHowTo ctx = Lua.withExceptionMessage (("Could not " <> ctx <> ": ") <>)
+defineHowTo ctx op = Lua.errorConversion >>= \ec ->
+  Lua.addContextToException ec ("Could not " <> ctx <> ": ") op
 
 -- | Like @'Lua.pcall'@, but uses a predefined error handler which adds a
 -- traceback on error.
@@ -143,7 +132,8 @@ pcallWithTraceback nargs nresults = do
 callWithTraceback :: NumArgs -> NumResults -> Lua ()
 callWithTraceback nargs nresults = do
   result <- pcallWithTraceback nargs nresults
-  when (result /= Lua.OK) Lua.throwTopMessage
+  when (result /= Lua.OK)
+    Lua.throwTopMessage
 
 -- | Run the given string as a Lua program, while also adding a traceback to the
 -- error message if an error occurs.

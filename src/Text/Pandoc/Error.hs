@@ -47,6 +47,7 @@ data PandocError = PandocIOError Text IOError
                  | PandocPDFProgramNotFoundError Text
                  | PandocPDFError Text
                  | PandocFilterError Text Text
+                 | PandocLuaError Text
                  | PandocCouldNotFindDataFileError Text
                  | PandocResourceNotFound Text
                  | PandocTemplateError Text
@@ -100,6 +101,7 @@ handleError (Left e) =
     PandocPDFError logmsg -> err 43 $ "Error producing PDF.\n" <> logmsg
     PandocFilterError filtername msg -> err 83 $ "Error running filter " <>
         filtername <> ":\n" <> msg
+    PandocLuaError msg -> err 84 $ "Error running Lua:\n" <> msg
     PandocCouldNotFindDataFileError fn -> err 97 $
         "Could not find data file " <> fn
     PandocResourceNotFound fn -> err 99 $

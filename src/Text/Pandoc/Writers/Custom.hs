@@ -20,17 +20,14 @@ import Data.List (intersperse)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Text (Text, pack)
-import Data.Typeable
 import Foreign.Lua (Lua, Pushable)
 import Text.DocLayout (render, literal)
 import Text.Pandoc.Class.PandocIO (PandocIO)
 import Text.Pandoc.Definition
-import Text.Pandoc.Lua (Global (..), LuaException (LuaException),
-                        runLua, setGlobals)
+import Text.Pandoc.Lua (Global (..), runLua, setGlobals)
 import Text.Pandoc.Lua.Util (addField, dofileWithTraceback)
 import Text.Pandoc.Options
 import Text.Pandoc.Templates (renderTemplate)
-import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Writers.Shared
 
 import qualified Foreign.Lua as Lua
@@ -81,11 +78,6 @@ instance (Pushable a, Pushable b) => Pushable (KeyValue a b) where
     Lua.push v
     Lua.rawset (Lua.nthFromTop 3)
 
-data PandocLuaException = PandocLuaException Text
-    deriving (Show, Typeable)
-
-instance Exception PandocLuaException
-
 -- | Convert Pandoc to custom markup.
 writeCustom :: FilePath -> WriterOptions -> Pandoc -> PandocIO Text
 writeCustom luaFile opts doc@(Pandoc meta _) = do
@@ -97,21 +89,20 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
     stat <- dofileWithTraceback luaFile
     -- check for error in lua script (later we'll change the return type
     -- to handle this more gracefully):
-    when (stat /= Lua.OK) $
-      Lua.tostring' (-1) >>= throw . PandocLuaException . UTF8.toText
+    when (stat /= Lua.OK)
+      Lua.throwTopMessage
     rendered <- docToCustom opts doc
     context <- metaToContext opts
                (fmap (literal . pack) . blockListToCustom)
                (fmap (literal . pack) . inlineListToCustom)
                meta
     return (pack rendered, context)
-  let (body, context) = case res of
-        Left (LuaException msg) -> throw (PandocLuaException msg)
-        Right x -> x
-  return $
-    case writerTemplate opts of
-       Nothing  -> body
-       Just tpl -> render Nothing $
+  case res of
+    Left msg -> throw msg
+    Right (body, context) -> return $
+      case writerTemplate opts of
+        Nothing  -> body
+        Just tpl -> render Nothing $
                     renderTemplate tpl $ setField "body" body context
 
 docToCustom :: WriterOptions -> Pandoc -> Lua String

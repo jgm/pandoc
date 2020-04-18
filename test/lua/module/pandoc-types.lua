@@ -26,10 +26,9 @@ return {
         )
       end),
       test('non-version string is rejected', function ()
-        assert.error_matches(
-          function () Version '11friends' end,
-          '11friends'
-        )
+        local success, msg = pcall(function () Version '11friends' end)
+        assert.is_falsy(success)
+        assert.is_truthy(tostring(msg):match('11friends'))
       end)
     },
 

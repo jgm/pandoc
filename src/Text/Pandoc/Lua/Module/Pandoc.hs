@@ -24,6 +24,8 @@ import Text.Pandoc.Class.PandocIO (runIO)
 import Text.Pandoc.Definition (Block, Inline)
 import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter, SingletonsList (..))
 import Text.Pandoc.Lua.Marshaling ()
+import Text.Pandoc.Lua.PandocLua (PandocLua, addFunction, liftPandocLua,
+                                  loadScriptFromDataDir)
 import Text.Pandoc.Walk (Walkable)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
 import Text.Pandoc.Process (pipeProcess)
@@ -38,28 +40,28 @@ import Text.Pandoc.Error
 
 -- | Push the "pandoc" on the lua stack. Requires the `list` module to be
 -- loaded.
-pushModule :: Maybe FilePath -> Lua NumResults
-pushModule datadir = do
-  LuaUtil.loadScriptFromDataDir datadir "pandoc.lua"
-  LuaUtil.addFunction "read" readDoc
-  LuaUtil.addFunction "pipe" pipeFn
-  LuaUtil.addFunction "walk_block" walkBlock
-  LuaUtil.addFunction "walk_inline" walkInline
+pushModule :: PandocLua NumResults
+pushModule = do
+  loadScriptFromDataDir "pandoc.lua"
+  addFunction "read" readDoc
+  addFunction "pipe" pipeFn
+  addFunction "walk_block" walkBlock
+  addFunction "walk_inline" walkInline
   return 1
 
 walkElement :: (Walkable (SingletonsList Inline) a,
                 Walkable (SingletonsList Block) a)
-            => a -> LuaFilter -> Lua a
-walkElement x f = walkInlines f x >>= walkBlocks f
+            => a -> LuaFilter -> PandocLua a
+walkElement x f = liftPandocLua $ walkInlines f x >>= walkBlocks f
 
-walkInline :: Inline -> LuaFilter -> Lua Inline
+walkInline :: Inline -> LuaFilter -> PandocLua Inline
 walkInline = walkElement
 
-walkBlock :: Block -> LuaFilter -> Lua Block
+walkBlock :: Block -> LuaFilter -> PandocLua Block
 walkBlock = walkElement
 
-readDoc :: T.Text -> Optional T.Text -> Lua NumResults
-readDoc content formatSpecOrNil = do
+readDoc :: T.Text -> Optional T.Text -> PandocLua NumResults
+readDoc content formatSpecOrNil = liftPandocLua $ do
   let formatSpec = fromMaybe "markdown" (Lua.fromOptional formatSpecOrNil)
   res <- Lua.liftIO . runIO $
            getReader formatSpec >>= \(rdr,es) ->
@@ -80,8 +82,8 @@ readDoc content formatSpecOrNil = do
 pipeFn :: String
        -> [String]
        -> BL.ByteString
-       -> Lua NumResults
-pipeFn command args input = do
+       -> PandocLua NumResults
+pipeFn command args input = liftPandocLua $ do
   (ec, output) <- Lua.liftIO $ pipeProcess Nothing command args input
   case ec of
     ExitSuccess -> 1 <$ Lua.push output
