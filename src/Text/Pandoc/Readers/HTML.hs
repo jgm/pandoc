@@ -389,9 +389,8 @@ pDiv = try $ do
       isDivLike "main"    = True
       isDivLike _         = False
   TagOpen tag attr' <- lookAhead $ pSatisfy $ tagOpen isDivLike (const True)
-  let attr = toStringAttr attr'
+  let (ident, classes, kvs) = toAttr attr'
   contents <- pInTags tag block
-  let (ident, classes, kvs) = mkAttr attr
   let classes' = if tag == "section"
                     then "section":classes
                     else classes
@@ -479,7 +478,8 @@ pHrule = do
 
 pTable :: PandocMonad m => TagParser m Blocks
 pTable = try $ do
-  TagOpen _ _ <- pSatisfy (matchTagOpen "table" [])
+  TagOpen _ attribs' <- pSatisfy (matchTagOpen "table" [])
+  let attribs = toAttr attribs'
   skipMany pBlank
   caption <- option mempty $ pInTags "caption" inline <* skipMany pBlank
   widths' <- (mconcat <$> many1 pColgroup) <|> many pCol
@@ -518,7 +518,8 @@ pTable = try $ do
                   else widths'
   let toRow = Row nullAttr . map B.simpleCell
       toHeaderRow l = if null l then [] else [toRow l]
-  return $ B.table (B.simpleCaption $ B.plain caption)
+  return $ B.tableWith attribs
+                   (B.simpleCaption $ B.plain caption)
                    (zip aligns widths)
                    (TableHead nullAttr $ toHeaderRow head')
                    [TableBody nullAttr 0 [] $ map toRow rows]
@@ -619,7 +620,7 @@ pFigure = try $ do
 pCodeBlock :: PandocMonad m => TagParser m Blocks
 pCodeBlock = try $ do
   TagOpen _ attr' <- pSatisfy (matchTagOpen "pre" [])
-  let attr = toStringAttr attr'
+  let attr = toAttr attr'
   contents <- manyTill pAny (pCloses "pre" <|> eof)
   let rawText = T.concat $ map tagToText contents
   -- drop leading newline if any
@@ -630,7 +631,7 @@ pCodeBlock = try $ do
   let result = case T.unsnoc result' of
                     Just (result'', '\n') -> result''
                     _                     -> result'
-  return $ B.codeBlockWith (mkAttr attr) result
+  return $ B.codeBlockWith attr result
 
 tagToText :: Tag Text -> Text
 tagToText (TagText s)      = s
@@ -731,7 +732,7 @@ pSpanLike =
   where
     parseTag tagName = do
       TagOpen _ attrs <- pSatisfy $ tagOpenLit tagName (const True)
-      let (ids, cs, kvs) = mkAttr . toStringAttr $ attrs
+      let (ids, cs, kvs) = toAttr attrs
       content <- mconcat <$> manyTill inline (pCloses tagName <|> eof)
       return $ B.spanWith (ids, tagName : cs, kvs) content
 
@@ -797,7 +798,7 @@ pCodeWithClass elemToClass = try $ do
   let tagTest = flip elem . fmap fst $ elemToClass
   TagOpen open attr' <- pSatisfy $ tagOpen tagTest (const True)
   result <- manyTill pAny (pCloses open)
-  let (ids,cs,kvs) = mkAttr . toStringAttr $ attr'
+  let (ids,cs,kvs) = toAttr attr'
       cs'          = maybe cs (:cs) . lookup open $ elemToClass
   return . B.codeWith (ids,cs',kvs) .
     T.unwords . T.lines . innerText $ result
@@ -805,9 +806,9 @@ pCodeWithClass elemToClass = try $ do
 pCode :: PandocMonad m => TagParser m Inlines
 pCode = try $ do
   (TagOpen open attr') <- pSatisfy $ tagOpen (`elem` ["code","tt"]) (const True)
-  let attr = toStringAttr attr'
+  let attr = toAttr attr'
   result <- manyTill pAny (pCloses open)
-  return $ B.codeWith (mkAttr attr) $ T.unwords $ T.lines $ innerText result
+  return $ B.codeWith attr $ T.unwords $ T.lines $ innerText result
 
 -- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bdo
 -- Bidirectional Text Override
@@ -825,14 +826,14 @@ pSpan :: PandocMonad m => TagParser m Inlines
 pSpan = try $ do
   guardEnabled Ext_native_spans
   TagOpen _ attr' <- lookAhead $ pSatisfy $ tagOpen (=="span") (const True)
-  let attr = toStringAttr attr'
+  let attr = toAttr attr'
   contents <- pInTags "span" inline
   let isSmallCaps = fontVariant == "small-caps" || "smallcaps" `elem` classes
-                    where styleAttr   = fromMaybe "" $ lookup "style" attr
+                    where styleAttr   = fromMaybe "" $ lookup "style" attr'
                           fontVariant = fromMaybe "" $ pickStyleAttrProps ["font-variant"] styleAttr
                           classes     = maybe []
-                                          T.words $ lookup "class" attr
-  let tag = if isSmallCaps then B.smallcaps else B.spanWith (mkAttr attr)
+                                          T.words $ lookup "class" attr'
+  let tag = if isSmallCaps then B.smallcaps else B.spanWith attr
   return $ tag contents
 
 pRawHtmlInline :: PandocMonad m => TagParser m Inlines
@@ -1297,6 +1298,9 @@ mkAttr attr = (attribsId, attribsClasses, attribsKV)
         attribsClasses = T.words (fromMaybe "" $ lookup "class" attr) <> epubTypes
         attribsKV = filter (\(k,_) -> k /= "class" && k /= "id") attr
         epubTypes = T.words $ fromMaybe "" $ lookup "epub:type" attr
+
+toAttr :: [(Text, Text)] -> Attr
+toAttr = mkAttr . toStringAttr
 
 -- Strip namespace prefixes
 stripPrefixes :: [Tag Text] -> [Tag Text]
