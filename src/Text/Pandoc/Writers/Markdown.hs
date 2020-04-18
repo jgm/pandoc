@@ -313,7 +313,12 @@ escapeText opts =
               case cs of
                    '.':'.':rest -> '\\':'.':'.':'.':go rest
                    _            -> '.':go cs
-       _   -> c : go cs
+       _   -> case cs of
+                '_':x:xs
+                  | isEnabled Ext_intraword_underscores opts
+                  , isAlphaNum c
+                  , isAlphaNum x -> c : '_' : x : go xs
+                _                -> c : go cs
 
 attrsToMarkdown :: Attr -> Doc Text
 attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]

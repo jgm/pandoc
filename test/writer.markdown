@@ -683,7 +683,7 @@ Just a [URL](/url/).
 
 [URL and title](/url/ "title with single quotes")
 
-[with\_underscore](/url/with_underscore)
+[with_underscore](/url/with_underscore)
 
 [Email link](mailto:nobody@nowhere.net)
 
