@@ -885,7 +885,7 @@ blockToHtml opts (DefinitionList lst) = do
                      return $ mconcat $ nl opts : term' : nl opts :
                                         intersperse (nl opts) defs') lst
   defList opts contents
-blockToHtml opts (Table _ blkCapt specs thead tbody tfoot) = do
+blockToHtml opts (Table attr blkCapt specs thead tbody tfoot) = do
   let (capt, aligns, widths, headers, rows') = toLegacyTable blkCapt specs thead tbody tfoot
   captionDoc <- if null capt
                    then return mempty
@@ -913,15 +913,19 @@ blockToHtml opts (Table _ blkCapt specs thead tbody tfoot) = do
                 return $ H.thead (nl opts >> contents) >> nl opts
   body' <- liftM (\x -> H.tbody (nl opts >> mconcat x)) $
                zipWithM (tableRowToHtml opts aligns) [1..] rows'
-  let tbl = H.table $
-              nl opts >> captionDoc >> coltags >> head' >> body' >> nl opts
-  let totalWidth = sum widths
+  let (ident,classes,kvs) = attr
   -- When widths of columns are < 100%, we need to set width for the whole
-  -- table, or some browsers give us skinny columns with lots of space between:
-  return $ if totalWidth == 0 || totalWidth == 1
-              then tbl
-              else tbl ! A.style (toValue $ "width:" <>
-                              show (round (totalWidth * 100) :: Int) <> "%;")
+  -- table, or some browsers give us skinny columns with lots of space
+  -- between:
+  let totalWidth = sum widths
+  let attr' = case lookup "style" kvs of
+                Nothing | totalWidth < 1 && totalWidth > 0
+                  -> (ident,classes, ("style","width:" <>
+                         T.pack (show (round (totalWidth * 100) :: Int))
+                         <> "%;"):kvs)
+                _ -> attr
+  addAttrs opts attr' $ H.table $
+    nl opts >> captionDoc >> coltags >> head' >> body' >> nl opts
 
 tableRowToHtml :: PandocMonad m
                => WriterOptions
