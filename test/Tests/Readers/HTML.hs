@@ -36,10 +36,15 @@ makeRoundTrip :: Block -> Block
 makeRoundTrip CodeBlock{} = Para [Str "code block was here"]
 makeRoundTrip LineBlock{} = Para [Str "line block was here"]
 makeRoundTrip RawBlock{} = Para [Str "raw block was here"]
+makeRoundTrip b@Table{} = walk rmLineBreaks b
 makeRoundTrip (Div attr bs) = Div attr $ filter (not . isHeaderBlock) bs
 -- avoids round-trip failures related to makeSections
 -- e.g. with [Div ("loc",[],[("a","11"),("b_2","a b c")]) [Header 3 ("",[],[]) []]]
 makeRoundTrip x           = x
+
+rmLineBreaks :: Inline -> Inline
+rmLineBreaks LineBreak = SoftBreak
+rmLineBreaks x = x
 
 removeRawInlines :: Inline -> Inline
 removeRawInlines RawInline{} = Str "raw inline was here"
