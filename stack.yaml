@@ -16,6 +16,8 @@ extra-deps:
 # better-tables
 - git: https://github.com/jgm/pandoc-types
   commit: 4acb0e50f10d8f41f94c0973384d63f06d0b9ffd
+- git: https://github.com/jgm/pandoc-citeproc
+  commit: 2e6fe791ec5293acc925c2ccbe79c9c10d2b7e07
 - texmath-0.12.0.2
 - haddock-library-1.8.0
 - skylighting-0.8.3.2
@@ -28,7 +30,6 @@ extra-deps:
 - HsYAML-0.2.0.0
 - HsYAML-aeson-0.2.0.0
 - doctemplates-0.8.2
-- pandoc-citeproc-0.17
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-14.6
