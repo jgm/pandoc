@@ -15,8 +15,8 @@ extra-deps:
 # - pandoc-types-1.20
 # better-tables
 - git: https://github.com/jgm/pandoc-types
-  commit: f76c1b7db0931c4fe357827033e75efe5ab4f6bf
-- texmath-0.12.0.1
+  commit: 4acb0e50f10d8f41f94c0973384d63f06d0b9ffd
+- texmath-0.12.0.2
 - haddock-library-1.8.0
 - skylighting-0.8.3.2
 - skylighting-core-0.8.3.2
