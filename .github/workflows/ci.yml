@@ -117,12 +117,12 @@ jobs:
         restore-keys: ${{ runner.os }}-appdata-roaming-stack
 
     # stack's local package dbs for the project and each package
-    - name: Cache .stack-work
-      uses: actions/cache@v1
-      with:
-        path: .stack-work
-        key:          ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
-        restore-keys: ${{ runner.os }}-stack-work
+    # - name: Cache .stack-work
+    #   uses: actions/cache@v1
+    #   with:
+    #     path: .stack-work
+    #     key:          ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
+    #     restore-keys: ${{ runner.os }}-stack-work
 
     - name: Install dependencies
       run: |
@@ -158,11 +158,11 @@ jobs:
           ${{ runner.os }}-stack
 
     # stack's local package db
-    - name: Cache .stack-work
-      uses: actions/cache@v1
-      with:
-        path: .stack-work
-        key: ${{ runner.os }}-stack-work
+    # - name: Cache .stack-work
+    #   uses: actions/cache@v1
+    #   with:
+    #     path: .stack-work
+    #     key: ${{ runner.os }}-stack-work
 
     - name: Install dependencies
       run: |
