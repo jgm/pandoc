@@ -124,7 +124,7 @@ blockToHaddock opts (Table _ blkCapt specs thead tbody tfoot) = do
   tbl <- gridTable opts blockListToHaddock
               (all null headers) (map (const AlignDefault) aligns)
                 widths headers rows
-  return $ prefixed "> " (tbl $$ blankline $$ caption'') $$ blankline
+  return $ (tbl $$ blankline $$ caption'') $$ blankline
 blockToHaddock opts (BulletList items) = do
   contents <- mapM (bulletListItemToHaddock opts) items
   return $ (if isTightList items then vcat else vsep) contents <> blankline
