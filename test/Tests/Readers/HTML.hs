@@ -21,7 +21,8 @@ import Test.Tasty.QuickCheck
 import Test.Tasty.Options (IsOption(defaultValue))
 import Tests.Helpers
 import Text.Pandoc
-import Text.Pandoc.Shared (isHeaderBlock)
+import Text.Pandoc.Writers.Shared (toLegacyTable)
+import Text.Pandoc.Shared (isHeaderBlock, onlySimpleTableCells)
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 import Text.Pandoc.Walk (walk)
@@ -36,15 +37,18 @@ makeRoundTrip :: Block -> Block
 makeRoundTrip CodeBlock{} = Para [Str "code block was here"]
 makeRoundTrip LineBlock{} = Para [Str "line block was here"]
 makeRoundTrip RawBlock{} = Para [Str "raw block was here"]
-makeRoundTrip b@Table{} = walk rmLineBreaks b
 makeRoundTrip (Div attr bs) = Div attr $ filter (not . isHeaderBlock) bs
 -- avoids round-trip failures related to makeSections
 -- e.g. with [Div ("loc",[],[("a","11"),("b_2","a b c")]) [Header 3 ("",[],[]) []]]
+makeRoundTrip b@(Table _attr blkCapt specs thead tbody tfoot) =
+  let (_capt, _aligns, widths, headers, rows') =
+        toLegacyTable blkCapt specs thead tbody tfoot
+      isSimple = onlySimpleTableCells (headers:rows')
+  in
+     if all (== 0.0) widths && not isSimple
+        then Para [Str "weird table omitted"]
+        else b
 makeRoundTrip x           = x
-
-rmLineBreaks :: Inline -> Inline
-rmLineBreaks LineBreak = SoftBreak
-rmLineBreaks x = x
 
 removeRawInlines :: Inline -> Inline
 removeRawInlines RawInline{} = Str "raw inline was here"
