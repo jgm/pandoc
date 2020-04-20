@@ -68,8 +68,6 @@ jobs:
       with:
         path: ~/.cabal
         key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ hashFiles('cabal.project') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global
 
     - name: Cache cabal work
       id:   cabal-local
@@ -77,8 +75,6 @@ jobs:
       with:
         path: dist-newstyle
         key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local
-        restore-keys: |
-          ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local
 
     - name: Install dependencies
       run: |
@@ -113,15 +109,14 @@ jobs:
       uses: actions/cache@v1
       with:
         path: C:\Users\runneradmin\AppData\Roaming\stack\
-        key:          ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
-        restore-keys: ${{ runner.os }}-appdata-roaming-stack
+        key:          ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('stack.yaml') }}
 
     # stack's local package dbs for the project and each package
     # - name: Cache .stack-work
     #   uses: actions/cache@v1
     #   with:
     #     path: .stack-work
-    #     key:          ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
+    #     key:          ${{ runner.os }}-stack-work-${{ hashFiles('stack.yaml') }}
     #     restore-keys: ${{ runner.os }}-stack-work
 
     - name: Install dependencies
@@ -152,10 +147,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.stack
-        key:          ${{ runner.os }}-stack-global-${{ hashFiles('**.yaml') }}
-        restore-keys: |
-          ${{ runner.os }}-stack-global
-          ${{ runner.os }}-stack
+        key:          ${{ runner.os }}-stack-global-${{ hashFiles('stack.yaml') }}
 
     # stack's local package db
     # - name: Cache .stack-work
