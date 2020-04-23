@@ -3857,40 +3857,42 @@ output.)  The block may contain just a title, a title and an author,
 or all three elements. If you want to include an author but no
 title, or a title and a date but no author, you need a blank line:
 
-~~~
-    %
-    % Author
-~~~
+```
+%
+% Author
+```
 
-~~~
-    % My title
-    %
-    % June 15, 2006
-~~~
+```
+% My title
+%
+% June 15, 2006
+```
 
 The title may occupy multiple lines, but continuation lines must
 begin with leading space, thus:
 
-    % My title
-      on multiple lines
+```
+% My title
+  on multiple lines
+```
 
 If a document has multiple authors, the authors may be put on
 separate lines with leading space, or separated by semicolons, or
 both.  So, all of the following are equivalent:
 
-~~~
-    % Author One
-      Author Two
-~~~
+```
+% Author One
+  Author Two
+```
 
-~~~
-    % Author One; Author Two
-~~~
+```
+% Author One; Author Two
+```
 
-~~~
-    % Author One;
-      Author Two
-~~~
+```
+% Author One;
+  Author Two
+```
 
 The date must fit on one line.
 
