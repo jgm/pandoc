@@ -299,7 +299,7 @@ blockToAsciiDoc opts (Div (ident,classes,_) bs) = do
                       chomp admonitionBody $$
                       "===="
          _ -> blockListToAsciiDoc opts bs
-  return $ identifier $$ contents
+  return $ identifier $$ contents $$ blankline
 
 -- | Convert bullet list item (list of blocks) to asciidoc.
 bulletListItemToAsciiDoc :: PandocMonad m
