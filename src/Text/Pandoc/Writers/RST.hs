@@ -42,6 +42,7 @@ data WriterState =
               , stHasRawTeX   :: Bool
               , stOptions     :: WriterOptions
               , stTopLevel    :: Bool
+              , stImageId     :: Int
               }
 
 type RST = StateT WriterState
@@ -52,7 +53,7 @@ writeRST opts document = do
   let st = WriterState { stNotes = [], stLinks = [],
                          stImages = [], stHasMath = False,
                          stHasRawTeX = False, stOptions = opts,
-                         stTopLevel = True }
+                         stTopLevel = True, stImageId = 1 }
   evalStateT (pandocToRST document) st
 
 -- | Return RST representation of document.
@@ -687,13 +688,23 @@ inlineToRST (Note contents) = do
 registerImage :: PandocMonad m => Attr -> [Inline] -> Target -> Maybe Text -> RST m (Doc Text)
 registerImage attr alt (src,tit) mbtarget = do
   pics <- gets stImages
+  imgId <- gets stImageId
+  let getImageName = do
+        modify $ \st -> st{ stImageId = imgId + 1 }
+        return [Str ("image" <> tshow imgId)]
   txt <- case lookup alt pics of
-               Just (a,s,t,mbt) | (a,s,t,mbt) == (attr,src,tit,mbtarget)
-                 -> return alt
-               _ -> do
-                 let alt' = if null alt || alt == [Str ""]
-                               then [Str $ "image" <> tshow (length pics)]
-                               else alt
+               Just (a,s,t,mbt) ->
+                 if (a,s,t,mbt) == (attr,src,tit,mbtarget)
+                    then return alt
+                    else do
+                        alt' <- getImageName
+                        modify $ \st -> st { stImages =
+                           (alt', (attr,src,tit, mbtarget)):stImages st }
+                        return alt'
+               Nothing -> do
+                 alt' <- if null alt || alt == [Str ""]
+                            then getImageName
+                            else return alt
                  modify $ \st -> st { stImages =
                         (alt', (attr,src,tit, mbtarget)):stImages st }
                  return alt'
