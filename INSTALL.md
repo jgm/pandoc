@@ -71,7 +71,7 @@ whatever directory you like.
 
 By default, Pandoc creates PDFs using LaTeX.  Because a full [MacTeX]
 installation uses four gigabytes of disk space, we recommend
-[BasicTeX] or [TinyTeX](https://yihui.name/tinytex/)
+[BasicTeX] or [TinyTeX](https://yihui.org/tinytex/)
 and using the `tlmgr` tool to install additional packages
 as needed.  If you receive errors warning of fonts not found:
 
