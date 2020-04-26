@@ -48,10 +48,7 @@ readCommonMark opts s = do
          [ fencedDivSpec | isEnabled Ext_fenced_divs opts ] ++
          [ bracketedSpanSpec | isEnabled Ext_bracketed_spans opts ] ++
          [ rawAttributeSpec | isEnabled Ext_raw_attribute opts ] ++
-         [ attributesSpec | isEnabled Ext_link_attributes opts ||
-                            isEnabled Ext_inline_code_attributes opts ||
-                            isEnabled Ext_fenced_code_attributes opts ||
-                            isEnabled Ext_header_attributes opts ] ++
+         [ attributesSpec | isEnabled Ext_attributes opts ] ++
          [ pipeTableSpec | isEnabled Ext_pipe_tables opts ] ++
          [ autolinkSpec | isEnabled Ext_autolink_bare_uris opts ] ++
          [ emojiSpec | isEnabled Ext_emoji opts ] ++

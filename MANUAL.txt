@@ -4933,6 +4933,37 @@ in pandoc, but may be enabled by adding `+EXTENSION` to the format
 name, where `EXTENSION` is the name of the extension.  Thus, for
 example, `markdown+hard_line_breaks` is Markdown with hard line breaks.
 
+#### Extension: `attributes` ####
+
+Allows attributes to be attached to any inline or block-level
+element.  The syntax for the attributes is the same as that
+used in [`header_attributes`][Extension: `header_attributes`].
+
+- Attributes that occur immediately after an inline
+  element affect that element.  If they follow a space, then they
+  belong to the space.  (Hence, this option subsumes
+  `inline_code_attributes` and `link_attributes`.)
+- Attributes that occur immediately before a block
+  element, on a line by themselves, affect that
+  element.
+- Consecutive attribute specifiers may be used,
+  either for blocks or for inlines.  Their attributes
+  will be combined.
+- Attributes that occur at the end of the text of
+  a Setext or ATX heading (separated by whitespace
+  from the text) affect the heading element. (Hence, this
+  option subsumes `header_attributes`.)
+- Attributes that occur after the opening fence
+  in a fenced code block affect the code block element. (Hence,
+  this option subsumes `fenced_code_attributes`.)
+- Attributes that occur at the end of a reference
+  link definition affect links that refer to that
+  definition.
+
+Note that pandoc's AST does not currently allow attributes
+to be attached to arbitrary elements.  Hence a Span or Div
+container will be added if needed.
+
 #### Extension: `old_dashes` ####
 
 Selects the pandoc <= 1.8.2.1 behavior for parsing smart dashes:
