@@ -150,6 +150,7 @@ data Extension =
     | Ext_tex_math_single_backslash  -- ^ TeX math btw \(..\) \[..\]
     | Ext_yaml_metadata_block -- ^ YAML metadata block
     | Ext_gutenberg           -- ^ Use Project Gutenberg conventions for plain
+    | Ext_attributes          -- ^ Generic attribute syntax
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
 
 -- | Extensions to be used with pandoc-flavored markdown.
@@ -447,11 +448,8 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_fenced_divs
     , Ext_bracketed_spans
     , Ext_raw_attribute
-    , Ext_inline_code_attributes
-    , Ext_fenced_code_attributes
-    , Ext_link_attributes
-    , Ext_header_attributes
     , Ext_implicit_header_references
+    , Ext_attributes
     ]
   getAll "commonmark"      = getAll "gfm"
   getAll "org"             = autoIdExtensions <>
