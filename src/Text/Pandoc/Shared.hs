@@ -750,7 +750,7 @@ eastAsianLineBreakFilter = bottomUp go
         go xs
           = xs
 
--- | Builder for underline.
+-- | Builder for underline (deprecated).
 -- This probably belongs in Builder.hs in pandoc-types.
 -- Will be replaced once Underline is an element.
 underlineSpan :: Inlines -> Inlines

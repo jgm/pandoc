@@ -52,7 +52,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
-import Text.Pandoc.Shared (crFilter, trim, underlineSpan, tshow)
+import Text.Pandoc.Shared (crFilter, trim, tshow)
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: PandocMonad m
@@ -451,7 +451,7 @@ inlineMarkup = choice [ simpleInline (string "??") (B.cite [])
                       , simpleInline (string "__") B.emph
                       , simpleInline (char '*') B.strong
                       , simpleInline (char '_') B.emph
-                      , simpleInline (char '+') underlineSpan
+                      , simpleInline (char '+') B.underline
                       , simpleInline (char '-' <* notFollowedBy (char '-')) B.strikeout
                       , simpleInline (char '^') B.superscript
                       , simpleInline (char '~') B.subscript

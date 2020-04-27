@@ -909,7 +909,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("slash", lit "/")
   , ("textbf", extractSpaces strong <$> tok)
   , ("textnormal", extractSpaces (spanWith ("",["nodecor"],[])) <$> tok)
-  , ("underline", underlineSpan <$> tok)
+  , ("underline", underline <$> tok)
   , ("ldots", lit "…")
   , ("vdots", lit "\8942")
   , ("dots", lit "…")
@@ -1171,9 +1171,9 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   -- include
   , ("input", rawInlineOr "input" $ include "input")
   -- soul package
-  , ("ul", underlineSpan <$> tok)
+  , ("ul", underline <$> tok)
   -- ulem package
-  , ("uline", underlineSpan <$> tok)
+  , ("uline", underline <$> tok)
   -- plain tex stuff that should just be passed through as raw tex
   , ("ifdim", ifdim)
   ]

@@ -25,7 +25,6 @@ import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
-import Text.Pandoc.Shared (underlineSpan)
 import Text.Pandoc.Writers.Shared (toLegacyTable)
 import Text.Pandoc.Walk
 
@@ -209,7 +208,7 @@ tests =
         para (strong . emph $ "foo******bar")
 
       , test emacsMuse "Underline"
-        ("_Underline_" =?> para (underlineSpan "Underline"))
+        ("_Underline_" =?> para (underline "Underline"))
 
       , "Superscript tag" =: "<sup>Superscript</sup>" =?> para (superscript "Superscript")
 
