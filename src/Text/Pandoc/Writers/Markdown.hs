@@ -1047,10 +1047,19 @@ inlineToMarkdown opts (Emph lst) = do
               else "*" <> contents <> "*"
 inlineToMarkdown _ (Underline []) = return empty
 inlineToMarkdown opts (Underline lst) = do
+  plain <- asks envPlain
   contents <- inlineListToMarkdown opts lst
-  return $ if isEnabled Ext_raw_html opts
-              then "<u>" <> contents <> "</u>"
-              else contents
+  case plain of
+    True -> return contents
+    False | isEnabled Ext_bracketed_spans opts ->
+            return $ "[" <> contents <> "]" <> "{.ul}"
+          | isEnabled Ext_native_spans opts ->
+            return $ tagWithAttrs "span" ("", ["underline"], [])
+              <> contents
+              <> literal "</span>"
+          | isEnabled Ext_raw_html opts ->
+            return $ "<u>" <> contents <> "</u>"
+          | otherwise -> inlineToMarkdown opts (Emph lst)
 inlineToMarkdown _ (Strong []) = return empty
 inlineToMarkdown opts (Strong lst) = do
   plain <- asks envPlain

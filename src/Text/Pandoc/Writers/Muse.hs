@@ -600,7 +600,7 @@ inlineToMuse (Underline lst) = do
   contents <- inlineListToMuse lst
   if isEnabled Ext_amuse opts
      then return $ "_" <> contents <> "_"
-     else return contents
+     else inlineToMuse (Emph lst)
 inlineToMuse (Strong lst) = do
   useTags <- gets stUseTags
   let lst' = normalizeInlineList lst

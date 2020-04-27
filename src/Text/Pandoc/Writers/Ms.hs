@@ -351,9 +351,8 @@ inlineToMs :: PandocMonad m => WriterOptions -> Inline -> MS m (Doc Text)
 inlineToMs opts (Span _ ils) = inlineListToMs opts ils
 inlineToMs opts (Emph lst) =
   withFontFeature 'I' (inlineListToMs opts lst)
-inlineToMs opts (Underline lst) = do
-  contents <- inlineListToMs opts lst
-  return $ literal ".UL " <> contents <> " "
+inlineToMs opts (Underline lst) =
+  inlineToMs opts (Emph lst)
 inlineToMs opts (Strong lst) =
   withFontFeature 'B' (inlineListToMs opts lst)
 inlineToMs opts (Strikeout lst) = do

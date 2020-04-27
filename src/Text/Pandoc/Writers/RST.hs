@@ -585,10 +585,9 @@ inlineToRST (Span (_,_,kvs) ils) = do
 inlineToRST (Emph lst) = do
   contents <- writeInlines lst
   return $ "*" <> contents <> "*"
--- Underlining is not supported
-inlineToRST (Underline lst) = do
-  contents <- writeInlines lst
-  return contents
+-- Underline is not supported, fall back to Emph
+inlineToRST (Underline lst) =
+  inlineToRST (Emph lst)
 inlineToRST (Strong lst) = do
   contents <- writeInlines lst
   return $ "**" <> contents <> "**"

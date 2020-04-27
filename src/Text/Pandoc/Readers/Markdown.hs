@@ -1751,7 +1751,9 @@ bracketedSpan = try $ do
   attr <- attributes
   return $ if isSmallCaps attr
               then B.smallcaps <$> lab
-              else B.spanWith attr <$> lab
+              else if isUnderline attr
+                      then B.underline <$> lab
+                      else B.spanWith attr <$> lab
 
 -- | We treat a span as SmallCaps if class is "smallcaps" (and
 -- no other attributes are set or if style is "font-variant:small-caps"
@@ -1764,6 +1766,13 @@ isSmallCaps ("",[],kvs) =
                     "font-variant:small-caps"
        Nothing -> False
 isSmallCaps _ = False
+
+-- | We treat a span as Underline if class is "ul" or
+-- "underline" (and no other attributes are set).
+isUnderline :: Attr -> Bool
+isUnderline ("",["ul"],[]) = True
+isUnderline ("",["underline"],[]) = True
+isUnderline _ = False
 
 regLink :: PandocMonad m
         => (Attr -> Text -> Text -> Inlines -> Inlines)
@@ -1913,7 +1922,9 @@ spanHtml = try $ do
   let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
   return $ if isSmallCaps (ident, classes, keyvals)
               then B.smallcaps <$> contents
-              else B.spanWith (ident, classes, keyvals) <$> contents
+              else if isUnderline (ident, classes, keyvals)
+                      then B.underline <$> contents
+                      else B.spanWith (ident, classes, keyvals) <$> contents
 
 divHtml :: PandocMonad m => MarkdownParser m (F Blocks)
 divHtml = try $ do
