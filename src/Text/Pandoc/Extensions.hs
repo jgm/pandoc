@@ -243,21 +243,14 @@ phpMarkdownExtraExtensions = extensionsFromList
 -- | Extensions to be used with github-flavored markdown.
 githubMarkdownExtensions :: Extensions
 githubMarkdownExtensions = extensionsFromList
-  [ Ext_all_symbols_escapable
-  , Ext_pipe_tables
+  [ Ext_pipe_tables
   , Ext_raw_html
-  , Ext_fenced_code_blocks
   , Ext_auto_identifiers
   , Ext_gfm_auto_identifiers
-  , Ext_backtick_code_blocks
   , Ext_autolink_bare_uris
-  , Ext_space_in_atx_header
-  , Ext_intraword_underscores
   , Ext_strikeout
   , Ext_task_lists
   , Ext_emoji
-  , Ext_lists_without_preceding_blankline
-  , Ext_shortcut_reference_links
   ]
 
 -- | Extensions to be used with multimarkdown.
@@ -309,7 +302,16 @@ getDefaultExtensions :: T.Text -> Extensions
 getDefaultExtensions "markdown_strict"   = strictExtensions
 getDefaultExtensions "markdown_phpextra" = phpMarkdownExtraExtensions
 getDefaultExtensions "markdown_mmd"      = multimarkdownExtensions
-getDefaultExtensions "markdown_github"   = githubMarkdownExtensions
+getDefaultExtensions "markdown_github"   = githubMarkdownExtensions <>
+  extensionsFromList
+    [ Ext_all_symbols_escapable
+    , Ext_backtick_code_blocks
+    , Ext_fenced_code_blocks
+    , Ext_space_in_atx_header
+    , Ext_intraword_underscores
+    , Ext_lists_without_preceding_blankline
+    , Ext_shortcut_reference_links
+    ]
 getDefaultExtensions "markdown"          = pandocExtensions
 getDefaultExtensions "ipynb"             =
   extensionsFromList
