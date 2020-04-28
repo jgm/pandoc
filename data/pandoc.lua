@@ -829,9 +829,19 @@ M.Subscript = M.Inline:create_constructor(
 --- Creates a Superscript inline element
 -- @function Superscript
 -- @tparam      {Inline,..} content     inline content
--- @treturn     Inline                  strong element
+-- @treturn     Inline                  superscript element
 M.Superscript = M.Inline:create_constructor(
   "Superscript",
+  function(content) return {c = ensureInlineList(content)} end,
+  "content"
+)
+
+--- Creates an Underline inline element
+-- @function Underline
+-- @tparam      {Inline,..} content     inline content
+-- @treturn     Inline                  underline element
+M.Underline = M.Inline:create_constructor(
+  "Underline",
   function(content) return {c = ensureInlineList(content)} end,
   "content"
 )

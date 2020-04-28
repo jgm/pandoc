@@ -186,6 +186,8 @@ inlineToCustom SoftBreak = Lua.callFunc "SoftBreak"
 
 inlineToCustom (Emph lst) = Lua.callFunc "Emph" (Stringify lst)
 
+inlineToCustom (Underline lst) = Lua.callFunc "Underline" (Stringify lst)
+
 inlineToCustom (Strong lst) = Lua.callFunc "Strong" (Stringify lst)
 
 inlineToCustom (Strikeout lst) = Lua.callFunc "Strikeout" (Stringify lst)

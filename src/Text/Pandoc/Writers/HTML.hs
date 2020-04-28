@@ -1049,6 +1049,7 @@ inlineToHtml opts inline = do
                                          ]
 
     (Emph lst)       -> H.em <$> inlineListToHtml opts lst
+    (Underline lst)  -> H.u <$> inlineListToHtml opts lst
     (Strong lst)     -> H.strong <$> inlineListToHtml opts lst
     (Code attr@(ids,cs,kvs) str)
                      -> case hlCode of

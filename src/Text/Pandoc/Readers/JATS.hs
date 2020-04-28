@@ -26,7 +26,7 @@ import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (underlineSpan, crFilter, safeRead)
+import Text.Pandoc.Shared (crFilter, safeRead)
 import Text.TeXMath (readMathML, writeTeX)
 import Text.XML.Light
 import qualified Data.Set as S (fromList, member)
@@ -456,7 +456,7 @@ parseInline (Elem e) =
         "strike" -> strikeout <$> innerInlines
         "sub" -> subscript <$> innerInlines
         "sup" -> superscript <$> innerInlines
-        "underline" -> underlineSpan <$> innerInlines
+        "underline" -> underline <$> innerInlines
         "break" -> return linebreak
         "sc" -> smallcaps <$> innerInlines
 

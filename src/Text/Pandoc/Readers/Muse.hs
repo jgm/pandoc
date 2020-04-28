@@ -29,7 +29,7 @@ import qualified Data.Set as Set
 import Data.Maybe (fromMaybe, isNothing, maybeToList)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Builder (Blocks, Inlines)
+import Text.Pandoc.Builder (Blocks, Inlines, underline)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
@@ -37,7 +37,7 @@ import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (F)
-import Text.Pandoc.Shared (crFilter, trimr, underlineSpan, tshow)
+import Text.Pandoc.Shared (crFilter, trimr, tshow)
 
 -- | Read Muse from an input string and return a Pandoc document.
 readMuse :: PandocMonad m
@@ -849,7 +849,7 @@ emph = fmap B.emph <$> emphasisBetween (char '*' <* notFollowedBy (char '*'))
 -- | Parse underline inline markup, indicated by @_@.
 -- Supported only in Emacs Muse mode, not Text::Amuse.
 underlined :: PandocMonad m => MuseParser m (F Inlines)
-underlined = fmap underlineSpan
+underlined = fmap underline
   <$  guardDisabled Ext_amuse -- Supported only by Emacs Muse
   <*> emphasisBetween (char '_')
 

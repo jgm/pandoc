@@ -27,7 +27,6 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
-import Text.Pandoc.Shared (underlineSpan)
 import Text.TeXMath (DisplayType (..), readTeX, writePandoc)
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 
@@ -567,7 +566,7 @@ strikeout :: PandocMonad m => OrgParser m (F Inlines)
 strikeout = fmap B.strikeout    <$> emphasisBetween '+'
 
 underline :: PandocMonad m => OrgParser m (F Inlines)
-underline = fmap underlineSpan  <$> emphasisBetween '_'
+underline = fmap B.underline    <$> emphasisBetween '_'
 
 verbatim  :: PandocMonad m => OrgParser m (F Inlines)
 verbatim  = return . B.code     <$> verbatimBetween '='

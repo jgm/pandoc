@@ -512,6 +512,7 @@ inlineToOpenDocument o ils
     LineBreak     -> return $ selfClosingTag "text:line-break" []
     Str         s -> return $ handleSpaces $ escapeStringForXML s
     Emph        l -> withTextStyle Italic $ inlinesToOpenDocument o l
+    Underline   l -> withTextStyle Under  $ inlinesToOpenDocument o l
     Strong      l -> withTextStyle Bold   $ inlinesToOpenDocument o l
     Strikeout   l -> withTextStyle Strike $ inlinesToOpenDocument o l
     Superscript l -> withTextStyle Sup    $ inlinesToOpenDocument o l
@@ -692,6 +693,7 @@ paraTableStyles t s (a:xs)
 
 data TextStyle = Italic
                | Bold
+               | Under
                | Strike
                | Sub
                | Sup
@@ -710,6 +712,9 @@ textStyleAttr m s
     | Bold   <- s = Map.insert "fo:font-weight" "bold" .
                     Map.insert "style:font-weight-asian" "bold" .
                     Map.insert "style:font-weight-complex" "bold" $ m
+    | Under  <- s = Map.insert "style:text-underline-style" "solid" .
+                    Map.insert "style:text-underline-width" "auto" .
+                    Map.insert "style:text-underline-color" "font-color" $ m
     | Strike <- s = Map.insert "style:text-line-through-style" "solid" m
     | Sub    <- s = Map.insert "style:text-position" "sub 58%" m
     | Sup    <- s = Map.insert "style:text-position" "super 58%" m

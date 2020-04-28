@@ -372,6 +372,10 @@ inlineToMediaWiki (Emph lst) = do
   contents <- inlineListToMediaWiki lst
   return $ "''" <> contents <> "''"
 
+inlineToMediaWiki (Underline lst) = do
+  contents <- inlineListToMediaWiki lst
+  return $ "<u>" <> contents <> "</u>"
+
 inlineToMediaWiki (Strong lst) = do
   contents <- inlineListToMediaWiki lst
   return $ "'''" <> contents <> "'''"

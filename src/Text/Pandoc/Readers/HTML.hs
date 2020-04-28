@@ -61,7 +61,7 @@ import Text.Pandoc.Options (
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
                            extractSpaces, htmlSpanLikeElements, elemText, splitTextBy,
-                           onlySimpleTableCells, safeRead, underlineSpan, tshow)
+                           onlySimpleTableCells, safeRead, tshow)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
@@ -749,7 +749,7 @@ pStrikeout =
             return $ B.strikeout contents)
 
 pUnderline :: PandocMonad m => TagParser m Inlines
-pUnderline = pInlinesInTags "u" underlineSpan <|> pInlinesInTags "ins" underlineSpan
+pUnderline = pInlinesInTags "u" B.underline <|> pInlinesInTags "ins" B.underline
 
 pLineBreak :: PandocMonad m => TagParser m Inlines
 pLineBreak = do

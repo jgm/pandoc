@@ -402,6 +402,10 @@ inlineToDokuWiki opts (Emph lst) = do
   contents <- inlineListToDokuWiki opts lst
   return $ "//" <> contents <> "//"
 
+inlineToDokuWiki opts (Underline lst) = do
+  contents <- inlineListToDokuWiki opts lst
+  return $ "__" <> contents <> "__"
+
 inlineToDokuWiki opts (Strong lst) = do
   contents <- inlineListToDokuWiki opts lst
   return $ "**" <> contents <> "**"

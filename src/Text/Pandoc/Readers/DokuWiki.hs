@@ -29,7 +29,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
-import Text.Pandoc.Shared (crFilter, trim, underlineSpan, stringify, tshow)
+import Text.Pandoc.Shared (crFilter, trim, stringify, tshow)
 
 -- | Read DokuWiki from an input string and return a Pandoc document.
 readDokuWiki :: PandocMonad m
@@ -162,7 +162,7 @@ italic :: PandocMonad m => DWParser m B.Inlines
 italic = try $ B.emph <$> enclosed (string "//") nestedInlines
 
 underlined :: PandocMonad m => DWParser m B.Inlines
-underlined = try $ underlineSpan <$> enclosed (string "__") nestedInlines
+underlined = try $ B.underline <$> enclosed (string "__") nestedInlines
 
 nowiki :: PandocMonad m => DWParser m B.Inlines
 nowiki = try $ B.text <$ string "<nowiki>" <*> manyTillChar anyChar (try $ string "</nowiki>")

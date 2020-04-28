@@ -22,7 +22,6 @@ import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
-import Text.Pandoc.Shared (underlineSpan)
 
 dokuwiki :: Text -> Pandoc
 dokuwiki = purely $ readDokuWiki def{ readerStandalone = True }
@@ -42,7 +41,7 @@ tests = [ testGroup "inlines"
             para (emph "italic")
           , "Underlined" =:
             "__underlined__" =?>
-            para (underlineSpan "underlined")
+            para (underline "underlined")
           , "Monospaced" =:
             "''monospaced''" =?>
             para (code "monospaced")
@@ -51,7 +50,7 @@ tests = [ testGroup "inlines"
             para (code "monospaced")
           , "Combined" =:
             "**__//''combine''//__**" =?>
-            para (strong $ underlineSpan $ emph $ code "combine")
+            para (strong $ underline $ emph $ code "combine")
           , "Nowiki" =:
             T.unlines [ "<nowiki>"
                       , "This is some text which contains addresses like this: http://www.splitbrain.org and **formatting**, but nothing is done with it."

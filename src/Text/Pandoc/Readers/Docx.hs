@@ -299,7 +299,7 @@ runStyleToTransform rPr
       return $ subscript . transform
   | Just "single" <- rUnderline rPr = do
       transform <- runStyleToTransform rPr{rUnderline = Nothing}
-      return $ underlineSpan . transform
+      return $ Pandoc.underline . transform
   | otherwise = return id
 
 runToInlines :: PandocMonad m => Run -> DocxContext m Inlines

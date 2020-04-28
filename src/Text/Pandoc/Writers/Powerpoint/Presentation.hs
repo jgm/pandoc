@@ -323,6 +323,9 @@ inlineToParElems (Str s) = do
 inlineToParElems (Emph ils) =
   local (\r -> r{envRunProps = (envRunProps r){rPropItalics=True}}) $
   inlinesToParElems ils
+inlineToParElems (Underline ils) =
+  local (\r -> r{envRunProps = (envRunProps r){rPropUnderline=True}}) $
+  inlinesToParElems ils
 inlineToParElems (Strong ils) =
   local (\r -> r{envRunProps = (envRunProps r){rPropBold=True}}) $
   inlinesToParElems ils

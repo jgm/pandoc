@@ -270,6 +270,9 @@ inlineToMan :: PandocMonad m => WriterOptions -> Inline -> StateT WriterState m 
 inlineToMan opts (Span _ ils) = inlineListToMan opts ils
 inlineToMan opts (Emph lst) =
   withFontFeature 'I' (inlineListToMan opts lst)
+-- Underline is not supported, so treat the same as Emph
+inlineToMan opts (Underline lst) =
+  withFontFeature 'I' (inlineListToMan opts lst)
 inlineToMan opts (Strong lst) =
   withFontFeature 'B' (inlineListToMan opts lst)
 inlineToMan opts (Strikeout lst) = do

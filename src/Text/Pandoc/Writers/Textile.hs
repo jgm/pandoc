@@ -386,6 +386,12 @@ inlineToTextile opts (Emph lst) = do
               then "<em>" <> contents <> "</em>"
               else "_" <> contents <> "_"
 
+inlineToTextile opts (Underline lst) = do
+  contents <- inlineListToTextile opts lst
+  return $ if '+' `elemText` contents
+              then "<u>" <> contents <> "</u>"
+              else "+" <> contents <> "+"
+
 inlineToTextile opts (Strong lst) = do
   contents <- inlineListToTextile opts lst
   return $ if '*' `elemText` contents
