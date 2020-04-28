@@ -750,6 +750,7 @@ eastAsianLineBreakFilter = bottomUp go
         go xs
           = xs
 
+{-# DEPRECATED underlineSpan "Use Text.Pandoc.Builder.underline instead" #-}
 -- | Builder for underline (deprecated).
 -- This probably belongs in Builder.hs in pandoc-types.
 -- Will be replaced once Underline is an element.
