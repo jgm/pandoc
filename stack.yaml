@@ -14,8 +14,8 @@ packages:
 extra-deps:
 # - pandoc-types-1.20
 # better-tables
-- git: https://github.com/vaibhavsagar/pandoc-types
-  commit: 4503ff82862270e07e0ba7c2a3c68c31f31d51f7
+- git: https://github.com/jgm/pandoc-types
+  commit: dd50a6eaeaf63773bbf04d6ef34b86d6f92b7825
 - git: https://github.com/jgm/pandoc-citeproc
   commit: 2e6fe791ec5293acc925c2ccbe79c9c10d2b7e07
 - texmath-0.12.0.2
