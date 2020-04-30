@@ -106,6 +106,7 @@ data WriterEnv = WriterEnv { envRefArchive :: Archive
                            -- are no notes for a slide, there will be
                            -- no entry in the map for it.
                            , envSpeakerNotesIdMap :: M.Map Int Int
+                           , envInSpeakerNotes :: Bool
                            }
                  deriving (Show)
 
@@ -123,6 +124,7 @@ instance Default WriterEnv where
                   , envContentType = NormalContent
                   , envSlideIdMap = mempty
                   , envSpeakerNotesIdMap = mempty
+                  , envInSpeakerNotes = False
                   }
 
 data ContentType = NormalContent
@@ -803,11 +805,14 @@ paraElemToElements (Run rpr s) = do
                           , mknode "a:t" [] $ T.unpack s
                           ]]
 paraElemToElements (MathElem mathType texStr) = do
-  res <- convertMath writeOMML mathType (unTeXString texStr)
-  case res of
-    Right r -> return [mknode "a14:m" [] $ addMathInfo r]
-    Left (Str s) -> paraElemToElements (Run def s)
-    Left _       -> throwError $ PandocShouldNeverHappenError "non-string math fallback"
+  isInSpkrNotes <- asks envInSpeakerNotes
+  if isInSpkrNotes
+    then paraElemToElements $ Run def $ unTeXString texStr
+    else do res <- convertMath writeOMML mathType (unTeXString texStr)
+            case res of
+              Right r -> return [mknode "a14:m" [] $ addMathInfo r]
+              Left (Str s) -> paraElemToElements (Run def s)
+              Left _       -> throwError $ PandocShouldNeverHappenError "non-string math fallback"
 paraElemToElements (RawOOXMLParaElem str) = return [ x | Elem x <- parseXML str ]
 
 
@@ -1231,7 +1236,8 @@ spaceParas = intersperse (Paragraph def [])
 
 speakerNotesBody :: PandocMonad m => [Paragraph] -> P m Element
 speakerNotesBody paras = do
-  elements <- mapM paragraphToElement $ spaceParas $ map removeParaLinks paras
+  elements <- local (\env -> env{envInSpeakerNotes = True}) $
+              mapM paragraphToElement $ spaceParas $ map removeParaLinks paras
   let txBody = mknode "p:txBody" [] $
                [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] <> elements
   return $
