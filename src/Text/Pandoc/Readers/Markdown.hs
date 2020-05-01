@@ -67,14 +67,17 @@ yamlToMeta :: PandocMonad m
            -> m Meta
 yamlToMeta opts bstr = do
   let parser = do
-        meta <- yamlBsToMeta parseBlocks bstr
+        meta <- yamlBsToMeta (fmap asBlocks parseBlocks) bstr
         return $ runF meta defaultParserState
   parsed <- readWithM parser def{ stateOptions = opts } ""
   case parsed of
     Right result -> return result
     Left e       -> throwError e
+  where
 
 
+asBlocks :: Functor f => f (B.Many Block) -> f MetaValue
+asBlocks p = MetaBlocks . B.toList <$> p
 
 --
 -- Constants and data structure definitions
@@ -240,7 +243,7 @@ yamlMetaBlock = try $ do
   -- by including --- and ..., we allow yaml blocks with just comments:
   let rawYaml = T.unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
-  newMetaF <- yamlBsToMeta parseBlocks
+  newMetaF <- yamlBsToMeta (asBlocks <$> parseBlocks)
               $ UTF8.fromTextLazy $ TL.fromStrict rawYaml
   -- Since `<>` is left-biased, existing values are not touched:
   updateState $ \st -> st{ stateMeta' = stateMeta' st <> newMetaF }

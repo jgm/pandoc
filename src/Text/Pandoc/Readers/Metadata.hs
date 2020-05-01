@@ -11,7 +11,7 @@
 
 Parse YAML/JSON metadata to 'Pandoc' 'Meta'.
 -}
-module Text.Pandoc.Readers.Metadata ( yamlBsToMeta ) where
+module Text.Pandoc.Readers.Metadata ( yamlBsToMeta, yamlMap ) where
 
 import Control.Monad
 import Control.Monad.Except (throwError)
@@ -22,7 +22,6 @@ import qualified Data.Text as T
 import qualified Data.YAML as YAML
 import qualified Data.YAML.Event as YE
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Builder (Blocks)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
@@ -31,7 +30,7 @@ import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Shared
 
 yamlBsToMeta :: PandocMonad m
-             => ParserT Text ParserState m (F Blocks)
+             => ParserT Text ParserState m (F MetaValue)
              -> BL.ByteString
              -> ParserT Text ParserState m (F Meta)
 yamlBsToMeta pBlocks bstr = do
@@ -59,7 +58,7 @@ nodeToKey _  = throwError $ PandocParseError
                               "Non-string key in YAML mapping"
 
 toMetaValue :: PandocMonad m
-            => ParserT Text ParserState m (F Blocks)
+            => ParserT Text ParserState m (F MetaValue)
             -> Text
             -> ParserT Text ParserState m (F MetaValue)
 toMetaValue pBlocks x =
@@ -67,18 +66,21 @@ toMetaValue pBlocks x =
    -- not end in a newline, but a "block" set off with
    -- `|` or `>` will.
    if "\n" `T.isSuffixOf` x
-      then parseFromString' (asBlocks <$> pBlocks) (x <> "\n")
+      then parseFromString' pBlocks (x <> "\n")
       else parseFromString' pInlines x
   where pInlines = do
           bs <- pBlocks
           return $ do
             bs' <- bs
             return $
-              case B.toList bs' of
-                [Plain ils] -> MetaInlines ils
-                [Para ils]  -> MetaInlines ils
-                xs          -> MetaBlocks xs
-        asBlocks p = MetaBlocks . B.toList <$> p
+              case bs' of
+                MetaBlocks bs'' ->
+                  case bs'' of
+                    [Plain ils] -> MetaInlines ils
+                    [Para ils]  -> MetaInlines ils
+                    xs          -> MetaBlocks xs
+                _ -> bs'
+
 
 checkBoolean :: Text -> Maybe Bool
 checkBoolean t
@@ -87,7 +89,7 @@ checkBoolean t
   | otherwise = Nothing
 
 yamlToMetaValue :: PandocMonad m
-                => ParserT Text ParserState m (F Blocks)
+                => ParserT Text ParserState m (F MetaValue)
                 -> YAML.Node YE.Pos
                 -> ParserT Text ParserState m (F MetaValue)
 yamlToMetaValue pBlocks (YAML.Scalar _ x) =
@@ -112,7 +114,7 @@ yamlToMetaValue pBlocks (YAML.Mapping _ _ o) =
 yamlToMetaValue _ _ = return $ return $ MetaString ""
 
 yamlMap :: PandocMonad m
-        => ParserT Text ParserState m (F Blocks)
+        => ParserT Text ParserState m (F MetaValue)
         -> M.Map (YAML.Node YE.Pos) (YAML.Node YE.Pos)
         -> ParserT Text ParserState m (F (M.Map Text MetaValue))
 yamlMap pBlocks o = do
@@ -120,7 +122,7 @@ yamlMap pBlocks o = do
              k <- nodeToKey key
              return (k, v)
     let kvs' = filter (not . ignorable . fst) kvs
-    (fmap M.fromList . sequence) <$> mapM toMeta kvs'
+    fmap M.fromList . sequence <$> mapM toMeta kvs'
   where
     ignorable t = "_" `T.isSuffixOf` t
     toMeta (k, v) = do
