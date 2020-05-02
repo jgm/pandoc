@@ -5368,9 +5368,25 @@ will not appear on the slides themselves.
 
 To put material in side by side columns, you can use a native
 div container with class `columns`, containing two or more div
-containers with class `column` and a `width` and a `align` attribute:
+containers with class `column` and a `width` attribute:
 
-    :::::::::::::: {.columns align=top totalwidth=7em}
+    :::::::::::::: {.columns}
+    ::: {.column width="40%"}
+    contents...
+    :::
+    ::: {.column width="60%"}
+    contents...
+    :::
+    ::::::::::::::
+
+### Columns attributes in Beamer
+
+The div containers with classes `columns` and `column` can optionally have
+an `align` attribute.
+The class `column` can optionally have a `totalwidth` attribute or an
+`onlytextwidth` class.
+
+    :::::::::::::: {.columns align=center totalwidth=8em}
     ::: {.column width="40%"}
     contents...
     :::
@@ -5379,24 +5395,24 @@ containers with class `column` and a `width` and a `align` attribute:
     :::
     ::::::::::::::
 
-The div container with class `columns` can optionally have
-a `align` and `totalwidth` attribute and a `onlytextwidth` class.
-
 The `align` attributes on `columns` and `column` can be used with the
 values `top`, `top-baseline`, `center` and `bottom` to vertically align
 the columns and default to `top`.
 
 The `totalwidth` attribute limits the width of the columns to the given value.
-The class `onlytextwidth` sets the `totalwidth` to `\textwidth`.
 
-    :::::::::::::: {.columns align=center .onlytextwidth}
-    ::: {.column width="40%" align=top}
+    :::::::::::::: {.columns align=top .onlytextwidth}
+    ::: {.column width="40%" align=center}
     contents...
     :::
     ::: {.column width="60%"}
     contents...
     :::
     ::::::::::::::
+
+The class `onlytextwidth` sets the `totalwidth` to `\textwidth`.
+
+See Section 12.7 of the [Beamer User's Guide] for more details.
 
 ## Frame attributes in beamer
 
