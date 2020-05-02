@@ -5368,10 +5368,29 @@ will not appear on the slides themselves.
 
 To put material in side by side columns, you can use a native
 div container with class `columns`, containing two or more div
-containers with class `column` and a `width` attribute:
+containers with class `column` and a `width` and a `align` attribute:
 
-    :::::::::::::: {.columns}
+    :::::::::::::: {.columns align=top totalwidth=7em}
     ::: {.column width="40%"}
+    contents...
+    :::
+    ::: {.column width="60%" align=bottom}
+    contents...
+    :::
+    ::::::::::::::
+
+The div container with class `columns` can optionally have
+a `align` and `totalwidth` attribute and a `onlytextwidth` class.
+
+The `align` attributes on `columns` and `column` can be used with the
+values `top`, `top-baseline`, `center` and `bottom` to vertically align
+the columns and default to `top`.
+
+The `totalwidth` attribute limits the width of the columns to the given value.
+The class `onlytextwidth` sets the `totalwidth` to `\textwidth`.
+
+    :::::::::::::: {.columns align=center .onlytextwidth}
+    ::: {.column width="40%" align=top}
     contents...
     :::
     ::: {.column width="60%"}
