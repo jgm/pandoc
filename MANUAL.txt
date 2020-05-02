@@ -5379,11 +5379,11 @@ containers with class `column` and a `width` attribute:
     :::
     ::::::::::::::
 
-### Columns attributes in Beamer
+### Additional columns attributes in beamer
 
 The div containers with classes `columns` and `column` can optionally have
 an `align` attribute.
-The class `column` can optionally have a `totalwidth` attribute or an
+The class `columns` can optionally have a `totalwidth` attribute or an
 `onlytextwidth` class.
 
     :::::::::::::: {.columns align=center totalwidth=8em}
@@ -5397,7 +5397,7 @@ The class `column` can optionally have a `totalwidth` attribute or an
 
 The `align` attributes on `columns` and `column` can be used with the
 values `top`, `top-baseline`, `center` and `bottom` to vertically align
-the columns and default to `top`.
+the columns. It defaults to `top` in `columns`.
 
 The `totalwidth` attribute limits the width of the columns to the given value.
 
