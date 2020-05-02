@@ -16,7 +16,7 @@ import Control.Monad ((>=>))
 import qualified Data.Text as T
 import Text.Pandoc.Class.PandocIO (PandocIO)
 import Text.Pandoc.Definition (Pandoc)
-import Text.Pandoc.Error (PandocError (PandocFilterError))
+import Text.Pandoc.Error (PandocError (PandocFilterError, PandocLuaError))
 import Text.Pandoc.Lua (Global (..), runLua, runFilterFile, setGlobals)
 import Text.Pandoc.Options (ReaderOptions)
 
@@ -42,4 +42,6 @@ apply ropts args fp doc = do
 forceResult :: FilePath -> Either PandocError Pandoc -> PandocIO Pandoc
 forceResult fp eitherResult = case eitherResult of
   Right x  -> return x
-  Left err -> throw (PandocFilterError (T.pack fp) (T.pack $ show err))
+  Left err -> throw . PandocFilterError (T.pack fp) $ case err of
+    PandocLuaError msg -> msg
+    _                  -> T.pack $ show err
