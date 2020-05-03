@@ -5379,6 +5379,41 @@ containers with class `column` and a `width` attribute:
     :::
     ::::::::::::::
 
+### Additional columns attributes in beamer
+
+The div containers with classes `columns` and `column` can optionally have
+an `align` attribute.
+The class `columns` can optionally have a `totalwidth` attribute or an
+`onlytextwidth` class.
+
+    :::::::::::::: {.columns align=center totalwidth=8em}
+    ::: {.column width="40%"}
+    contents...
+    :::
+    ::: {.column width="60%" align=bottom}
+    contents...
+    :::
+    ::::::::::::::
+
+The `align` attributes on `columns` and `column` can be used with the
+values `top`, `top-baseline`, `center` and `bottom` to vertically align
+the columns. It defaults to `top` in `columns`.
+
+The `totalwidth` attribute limits the width of the columns to the given value.
+
+    :::::::::::::: {.columns align=top .onlytextwidth}
+    ::: {.column width="40%" align=center}
+    contents...
+    :::
+    ::: {.column width="60%"}
+    contents...
+    :::
+    ::::::::::::::
+
+The class `onlytextwidth` sets the `totalwidth` to `\textwidth`.
+
+See Section 12.7 of the [Beamer User's Guide] for more details.
+
 ## Frame attributes in beamer
 
 Sometimes it is necessary to add the LaTeX `[fragile]` option to
