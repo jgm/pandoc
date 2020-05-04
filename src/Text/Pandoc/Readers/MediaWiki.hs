@@ -401,7 +401,10 @@ header = try $ do
   lev <- length <$> many1 (char '=')
   guard $ lev <= 6
   contents <- trimInlines . mconcat <$> manyTill inline (count lev $ char '=')
-  attr <- modifyIdentifier <$> registerHeader nullAttr contents
+  opts <- mwOptions <$> getState
+  attr <- (if isEnabled Ext_gfm_auto_identifiers opts
+              then id
+              else modifyIdentifier) <$> registerHeader nullAttr contents
   return $ B.headerWith attr lev contents
 
 -- See #4731:
