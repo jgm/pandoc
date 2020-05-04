@@ -122,11 +122,11 @@ jobs:
     - name: Install dependencies
       run: |
           stack update
-          stack test --dependencies-only --fast --ghc-options=-fexternal-interpreter
+          stack test --dependencies-only --fast
     - name: Build and test
       shell: cmd
       run: |
-          stack test --fast --test-arguments=--hide-successes --ghc-options=-fexternal-interpreter
+          stack test --fast --test-arguments=--hide-successes
 
   macos:
 
