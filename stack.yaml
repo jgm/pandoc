@@ -23,6 +23,4 @@ extra-deps:
 - doctemplates-0.8.2
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-   # needed to avoid access violation on windows:
-   HsYAML: -fexternal-interpreter
 resolver: lts-15.11
