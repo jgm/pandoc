@@ -119,19 +119,13 @@ jobs:
     #     key:          ${{ runner.os }}-stack-work-${{ hashFiles('stack.yaml') }}
     #     restore-keys: ${{ runner.os }}-stack-work
 
-    # Note: the set __COMPAT_LAYER= is needed to avoid an access
-    # violation error; see
-    # https://github.com/commercialhaskell/stack/issues/3765
-
     - name: Install dependencies
       run: |
-          set __COMPAT_LAYER=
           stack update
           stack test --dependencies-only --fast
     - name: Build and test
       shell: cmd
       run: |
-          set __COMPAT_LAYER=
           stack test --fast --test-arguments=--hide-successes
 
   macos:
