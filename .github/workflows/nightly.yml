@@ -48,6 +48,7 @@ jobs:
           choco install haskell-stack
     - name: Install dependencies
       run: |
+          set __COMPAT_LAYER=
           stack update
           stack build --dependencies-only pandoc pandoc-citeproc
     - name: Build artifacts
@@ -56,6 +57,7 @@ jobs:
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
           set ARTIFACTS=%CD%\nightly-windows\pandoc-nightly-windows-%THEDATE%
           mkdir %ARTIFACTS%
+          set __COMPAT_LAYER=
           stack build pandoc pandoc-citeproc
           forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C copy @path %%ARTIFACTS%%"
           copy COPYRIGHT %ARTIFACTS%
