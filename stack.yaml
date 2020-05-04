@@ -18,15 +18,15 @@ extra-deps:
 - git: https://github.com/jgm/pandoc-citeproc
   commit: 2e6fe791ec5293acc925c2ccbe79c9c10d2b7e07
 - texmath-0.12.0.2
-- haddock-library-1.8.0
-- skylighting-0.8.3.2
-- skylighting-core-0.8.3.2
-- regex-pcre-builtin-0.95.0.8.8.35
+- haddock-library-1.9.0
+- skylighting-0.8.3.4
+- skylighting-core-0.8.3.4
+- regex-pcre-builtin-0.95.1.2.8.43
 - doclayout-0.3
 - emojis-0.1
 - hslua-1.1.0
 - jira-wiki-markup-1.3.0
-- HsYAML-0.2.0.0
+- HsYAML-0.2.1.0
 - HsYAML-aeson-0.2.0.0
 - doctemplates-0.8.2
 ghc-options:
