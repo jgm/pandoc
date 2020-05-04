@@ -21,6 +21,9 @@ extra-deps:
 - hslua-1.1.0
 - jira-wiki-markup-1.3.0
 - doctemplates-0.8.2
+# downgrade HsYAML because 0.2.1.0 causes access violation
+# on Windows/GHC 8.8.3
+- HsYAML-0.2.0.0
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-15.11
