@@ -22,6 +22,7 @@ extra-deps:
 - skylighting-0.8.3.4
 - skylighting-core-0.8.3.4
 - regex-pcre-builtin-0.95.1.2.8.43
+- regex-base-0.94.0.0
 - doclayout-0.3
 - emojis-0.1
 - hslua-1.1.0
