@@ -1161,7 +1161,7 @@ _ `closes` "meta" = True
 "object" `closes` "object" = True
 _ `closes` t | t `elem` ["option","style","script","textarea","title"] = True
 t `closes` "select" | t /= "option" = True
-"thead" `closes` t | t `elem` ["colgroup"] = True
+"thead" `closes` "colgroup" = True
 "tfoot" `closes` t | t `elem` ["thead","colgroup"] = True
 "tbody" `closes` t | t `elem` ["tbody","tfoot","thead","colgroup"] = True
 t `closes` t2 |
