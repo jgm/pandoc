@@ -579,7 +579,8 @@ makeSections numbering mbBaseLevel bs =
     rest' <- go rest
     let kvs' = -- don't touch number if already present
                case lookup "number" kvs of
-                  Nothing | numbering ->
+                  Nothing | numbering
+                          , not ("unnumbered" `elem` classes) ->
                         ("number", T.intercalate "." (map tshow newnum)) : kvs
                   _ -> kvs
     let divattr = (ident, "section":classes, kvs')
