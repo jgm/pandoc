@@ -226,6 +226,7 @@ header when requesting a document from a URL:
 
     ::: {#input-formats}
     - `commonmark` ([CommonMark] Markdown)
+    - `commonmark_x` ([CommonMark] Markdown with extensions)
     - `creole` ([Creole 1.0])
     - `csv` ([CSV] table)
     - `docbook` ([DocBook])
@@ -277,6 +278,7 @@ header when requesting a document from a URL:
     - `asciidoc` ([AsciiDoc]) or `asciidoctor` ([AsciiDoctor])
     - `beamer` ([LaTeX beamer][`beamer`] slide show)
     - `commonmark` ([CommonMark] Markdown)
+    - `commonmark_x` ([CommonMark] Markdown with extensions)
     - `context` ([ConTeXt])
     - `docbook` or `docbook4` ([DocBook] 4)
     - `docbook5` (DocBook 5)

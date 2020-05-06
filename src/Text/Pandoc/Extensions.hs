@@ -338,6 +338,29 @@ getDefaultExtensions "plain"           = plainExtensions
 getDefaultExtensions "gfm"             = githubMarkdownExtensions
 getDefaultExtensions "commonmark"      = extensionsFromList
                                           [Ext_raw_html]
+getDefaultExtensions "commonmark_x"    = extensionsFromList
+  [ Ext_pipe_tables
+  , Ext_raw_html
+  , Ext_auto_identifiers
+  , Ext_strikeout
+  , Ext_task_lists
+  , Ext_emoji
+  , Ext_pipe_tables
+  , Ext_raw_html
+  , Ext_raw_tex            -- only supported in writer (for math)
+  , Ext_smart
+  , Ext_tex_math_dollars
+  , Ext_superscript
+  , Ext_subscript
+  , Ext_definition_lists
+  , Ext_footnotes
+  , Ext_fancy_lists
+  , Ext_fenced_divs
+  , Ext_bracketed_spans
+  , Ext_raw_attribute
+  , Ext_implicit_header_references
+  , Ext_attributes
+  ]
 getDefaultExtensions "org"             = extensionsFromList
                                           [Ext_citations,
                                            Ext_auto_identifiers]
@@ -433,10 +456,16 @@ getAllExtensions f = universalExtensions <> getAll f
     [ Ext_amuse ]
   getAll "asciidoc"        = autoIdExtensions
   getAll "plain"           = allMarkdownExtensions
-  getAll "gfm"             = githubMarkdownExtensions <>
+  getAll "gfm"             = getAll "commonmark"
+  getAll "commonmark"      =
     autoIdExtensions <>
     extensionsFromList
-    [ Ext_raw_html
+    [ Ext_pipe_tables
+    , Ext_autolink_bare_uris
+    , Ext_strikeout
+    , Ext_task_lists
+    , Ext_emoji
+    , Ext_raw_html
     , Ext_raw_tex            -- only supported in writer (for math)
     , Ext_implicit_figures
     , Ext_hard_line_breaks
@@ -453,7 +482,6 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_implicit_header_references
     , Ext_attributes
     ]
-  getAll "commonmark"      = getAll "gfm"
   getAll "org"             = autoIdExtensions <>
     extensionsFromList
     [ Ext_citations
