@@ -97,6 +97,7 @@ getDefaultTemplate writer = do
        "markdown_mmd"      -> getDefaultTemplate "markdown"
        "markdown_phpextra" -> getDefaultTemplate "markdown"
        "gfm"               -> getDefaultTemplate "commonmark"
+       "commonmark_x"      -> getDefaultTemplate "commonmark"
        _        -> do
          let fname = "templates" </> "default" <.> T.unpack format
          UTF8.toText <$> readDataFile fname
