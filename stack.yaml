@@ -31,7 +31,7 @@ extra-deps:
 - HsYAML-aeson-0.2.0.0
 - doctemplates-0.8.2
 - git: https://github.com/jgm/commonmark-hs
-  commit: 047b8832bad954691c48a9099cb72909e6907877
+  commit: dab1978e19cbafd4b7540cf545346969091929d5
   subdirs:
     - commonmark
     - commonmark-extensions
