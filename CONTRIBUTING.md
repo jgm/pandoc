@@ -144,7 +144,7 @@ Please follow these guidelines:
 9.  It is better not to introduce new dependencies.  Dependencies on
     external C libraries should especially be avoided.
 
-10. We aim for compatibility with ghc versions from 8.0 to the
+10. We aim for compatibility with ghc versions from 8.2 to the
     latest release.  All pull requests and commits are tested
     automatically on CircleCI.
 
