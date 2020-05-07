@@ -377,7 +377,7 @@ flag trypandoc
   Default:       False
 
 library
-  build-depends: base >= 4.9 && < 5,
+  build-depends: base >= 4.10 && < 5,
                  syb >= 0.1 && < 0.8,
                  containers >= 0.4.2.1 && < 0.7,
                  unordered-containers >= 0.2 && < 0.3,
@@ -650,7 +650,7 @@ library
   buildable:       True
 
 executable pandoc
-  build-depends: pandoc, base >= 4.8 && < 5
+  build-depends: pandoc, base >= 4.10 && < 5
   if impl(ghc < 8.4)
      hs-source-dirs: prelude
      other-modules:  Prelude
@@ -707,7 +707,7 @@ benchmark weigh-pandoc
   main-is:         weigh-pandoc.hs
   hs-source-dirs:  benchmark
   build-depends:   pandoc,
-                   base >= 4.8 && < 5,
+                   base >= 4.10 && < 5,
                    text,
                    weigh >= 0.0 && < 0.1,
                    mtl >= 2.2 && < 2.3
@@ -734,7 +734,7 @@ test-suite test-pandoc
   type:           exitcode-stdio-1.0
   main-is:        test-pandoc.hs
   hs-source-dirs: test
-  build-depends:  base >= 4.8 && < 5,
+  build-depends:  base >= 4.10 && < 5,
                   pandoc,
                   pandoc-types >= 1.21 && < 1.22,
                   mtl >= 2.2 && < 2.3,
@@ -842,7 +842,7 @@ benchmark benchmark-pandoc
   hs-source-dirs:  benchmark
   build-depends:   pandoc,
                    time, bytestring, containers,
-                   base >= 4.8 && < 5,
+                   base >= 4.10 && < 5,
                    text >= 1.1.1.0 && < 1.3,
                    mtl >= 2.2 && < 2.3,
                    criterion >= 1.0 && < 1.6
