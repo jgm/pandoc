@@ -89,6 +89,20 @@ $if(controls)$
         // Display controls in the bottom right corner
         controls: $controls$,
 $endif$
+$if(controlsTutorial)$
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: $controlsTutorial$,
+$endif$
+$if(controlsLayout)$
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: $controlsLayout$,
+$endif$
+$if(controlsBackArrows)$
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: $controlsBackArrows$,
+$endif$
 $if(progress)$
         // Display a presentation progress bar
         progress: $progress$,
@@ -96,6 +110,11 @@ $endif$
 $if(slideNumber)$
         // Display the page number of the current slide
         slideNumber: $slideNumber$,
+$endif$
+$if(hash)$
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: $hash$,
 $endif$
         // Push each slide change to the browser history
 $if(history)$
@@ -131,9 +150,18 @@ $if(navigationMode)$
         // see https://github.com/hakimel/reveal.js/#navigation-mode
         navigationMode: '$navigationMode$',
 $endif$
+$if(shuffle)$
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: $shuffle$,
+$endif$
 $if(fragments)$
         // Turns fragments on and off globally
         fragments: $fragments$,
+$endif$
+$if(fragmentInURL)$
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: $fragmentInURL$,
 $endif$
 $if(embedded)$
         // Flags if the presentation is running in an embedded mode,
@@ -149,6 +177,21 @@ $if(showNotes)$
         // Flags if speaker notes should be visible to all viewers
         showNotes: $showNotes$,
 $endif$
+$if(autoPlayMedia)$
+        // Global override for autoplaying embedded media (video/audio/iframe)
+        // - null: Media will only autoplay if data-autoplay is present
+        // - true: All media will autoplay, regardless of individual setting
+        // - false: No media will autoplay, regardless of individual setting
+        autoPlayMedia: $autoPlayMedia$,
+$endif$
+$if(preloadIframes)$
+        // Global override for preloading lazy-loaded iframes
+        // - null: Iframes with data-src AND data-preload will be loaded when within
+        //   the viewDistance, iframes with only data-src will be loaded when visible
+        // - true: All iframes with data-src will be loaded when within the viewDistance
+        // - false: All iframes with data-src will be loaded only when visible
+        preloadIframes: $preloadIframes$,
+$endif$
 $if(autoSlide)$
         // Number of milliseconds between automatically proceeding to the
         // next slide, disabled when set to 0, this value can be overwritten
@@ -159,6 +202,31 @@ $if(autoSlideStoppable)$
         // Stop auto-sliding after user input
         autoSlideStoppable: $autoSlideStoppable$,
 $endif$
+$if(autoSlideMethod)$
+        // Use this method for navigation when auto-sliding
+        autoSlideMethod: $autoSlideMethod$,
+$endif$
+$if(defaultTiming)$
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: $defaultTiming$,
+$endif$
+$if(totalTime)$
+        // Specify the total time in seconds that is available to
+        // present.  If this is set to a nonzero value, the pacing
+        // timer will work out the time available for each slide,
+        // instead of using the defaultTiming value
+        totalTime: $totalTime$,
+$endif$
+$if(minimumTimePerSlide)$
+        // Specify the minimum amount of time you want to allot to
+        // each slide, if using the totalTime calculation method.  If
+        // the automated time allocation causes slide pacing to fall
+        // below this threshold, then you will see an alert in the
+        // speaker notes window
+        minimumTimePerSlide: $minimumTimePerSlide$,
+$endif$
 $if(mouseWheel)$
         // Enable slide navigation via mouse wheel
         mouseWheel: $mouseWheel$,
@@ -166,6 +234,14 @@ $endif$
 $if(rollingLinks)$
         // Apply a 3D roll to links on hover
         rollingLinks: $rollingLinks$,
+$endif$
+$if(hideInactiveCursor)$
+        // Hide cursor if inactive
+        hideInactiveCursor: $hideInactiveCursor$,
+$endif$
+$if(hideCursorTime)$
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: $hideCursorTime$,
 $endif$
 $if(hideAddressBar)$
         // Hides the address bar on mobile devices
@@ -190,6 +266,12 @@ $endif$
 $if(viewDistance)$
         // Number of slides away from the current that are visible
         viewDistance: $viewDistance$,
+$endif$
+$if(mobileViewDistance)$
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: $mobileViewDistance$,
 $endif$
 $if(parallaxBackgroundImage)$
         // Parallax background image
@@ -235,6 +317,10 @@ $endif$
 $if(zoomKey)$
         // Modifier key used to click-zoom to part of the slide
         zoomKey: '$zoomKey$',
+$endif$
+$if(display)$
+        // The display mode that will be used to show slides
+        display: $display$,
 $endif$
 $if(mathjax)$
         math: {
