@@ -76,7 +76,12 @@ addBlocks opts = foldr (addBlock opts) []
 
 addBlock :: ReaderOptions -> Node -> [Block] -> [Block]
 addBlock opts (Node _ PARAGRAPH nodes) =
-  (Para (addInlines opts nodes) :)
+  case addInlines opts nodes of
+    [Image attr alt (src,tit)]
+      | isEnabled Ext_implicit_figures opts
+         -- the "fig:" prefix indicates an implicit figure
+      -> (Para [Image attr alt (src, "fig:" <> tit)] :)
+    ils -> (Para ils :)
 addBlock _ (Node _ THEMATIC_BREAK _) =
   (HorizontalRule :)
 addBlock opts (Node _ BLOCK_QUOTE nodes) =

@@ -435,6 +435,7 @@ getAllExtensions f = universalExtensions <> getAll f
     extensionsFromList
     [ Ext_raw_html
     , Ext_raw_tex            -- only supported in writer (for math)
+    , Ext_implicit_figures
     , Ext_hard_line_breaks
     , Ext_smart
     ]
