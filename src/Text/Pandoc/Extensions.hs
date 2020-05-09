@@ -340,8 +340,7 @@ getDefaultExtensions "commonmark"      = extensionsFromList
                                           [Ext_raw_html]
 getDefaultExtensions "commonmark_x"    = extensionsFromList
   [ Ext_pipe_tables
-  , Ext_raw_html
-  , Ext_auto_identifiers
+  , Ext_gfm_auto_identifiers
   , Ext_strikeout
   , Ext_task_lists
   , Ext_emoji
@@ -456,11 +455,11 @@ getAllExtensions f = universalExtensions <> getAll f
     [ Ext_amuse ]
   getAll "asciidoc"        = autoIdExtensions
   getAll "plain"           = allMarkdownExtensions
-  getAll "gfm"             = getAll "commonmark"
   getAll "commonmark"      =
-    autoIdExtensions <>
     extensionsFromList
-    [ Ext_pipe_tables
+    [ Ext_gfm_auto_identifiers
+    , Ext_ascii_identifiers
+    , Ext_pipe_tables
     , Ext_autolink_bare_uris
     , Ext_strikeout
     , Ext_task_lists
@@ -482,6 +481,8 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_implicit_header_references
     , Ext_attributes
     ]
+  getAll "gfm"             = getAll "commonmark"
+  getAll "commonmark_x"    = getAll "commonmark"
   getAll "org"             = autoIdExtensions <>
     extensionsFromList
     [ Ext_citations
