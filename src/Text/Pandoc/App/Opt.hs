@@ -96,6 +96,7 @@ data Opt = Opt
     , optSyntaxDefinitions     :: [FilePath]  -- ^ xml syntax defs to load
     , optTopLevelDivision      :: TopLevelDivision -- ^ Type of the top-level divisions
     , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
+    , optHTMLMathSurroundBr    :: Bool -- ^ Whether to put <br> around display math elements
     , optAbbreviations         :: Maybe FilePath -- ^ Path to abbrevs file
     , optReferenceDoc          :: Maybe FilePath -- ^ Path of reference doc
     , optEpubSubdirectory      :: String -- ^ EPUB subdir in OCF container
@@ -245,6 +246,8 @@ doOpt (k',v) = do
       parseYAML v >>= \x -> return (\o -> o{ optTopLevelDivision = x })
     "html-math-method" ->
       parseYAML v >>= \x -> return (\o -> o{ optHTMLMathMethod = x })
+    "html-math-surround-br" ->
+      parseYAML v >>= \x -> return (\o -> o{ optHTMLMathSurroundBr = x })
     "abbreviations" ->
       parseYAML v >>= \x ->
              return (\o -> o{ optAbbreviations = unpack <$> x })
@@ -426,6 +429,7 @@ defaultOpts = Opt
     , optSyntaxDefinitions     = []
     , optTopLevelDivision      = TopLevelDefault
     , optHTMLMathMethod        = PlainMath
+    , optHTMLMathSurroundBr    = True
     , optAbbreviations         = Nothing
     , optReferenceDoc          = Nothing
     , optEpubSubdirectory      = "EPUB"

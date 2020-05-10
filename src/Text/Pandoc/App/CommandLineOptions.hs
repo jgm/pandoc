@@ -720,6 +720,12 @@ options =
                       return opt { optHTMLMathMethod = GladTeX }))
                  "" -- "Use gladtex for HTML math"
 
+    , Option "" ["no-html-math-surround-br"]
+                 (NoArg
+                  (\opt ->
+                      return opt { optHTMLMathSurroundBr = False }))
+                 "" -- "Don't surround display math with br in html output."
+
     , Option "" ["trace"]
                  (NoArg
                   (\opt -> return opt { optTrace = True }))

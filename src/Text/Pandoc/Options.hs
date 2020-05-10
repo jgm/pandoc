@@ -235,6 +235,7 @@ data WriterOptions = WriterOptions
   , writerTableOfContents   :: Bool   -- ^ Include table of contents
   , writerIncremental       :: Bool   -- ^ True if lists should be incremental
   , writerHTMLMathMethod    :: HTMLMathMethod  -- ^ How to print math in HTML
+  , writerHTMLMathSurroundBr:: Bool   -- ^ Whether to put <br> around display math in HTML
   , writerNumberSections    :: Bool   -- ^ Number sections in LaTeX
   , writerNumberOffset      :: [Int]  -- ^ Starting number for section, subsection, ...
   , writerSectionDivs       :: Bool   -- ^ Put sections in div tags in HTML
@@ -272,6 +273,7 @@ instance Default WriterOptions where
                       , writerTableOfContents  = False
                       , writerIncremental      = False
                       , writerHTMLMathMethod   = PlainMath
+                      , writerHTMLMathSurroundBr = True
                       , writerNumberSections   = False
                       , writerNumberOffset     = [0,0,0,0,0,0]
                       , writerSectionDivs      = False

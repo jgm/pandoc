@@ -1114,8 +1114,9 @@ inlineToHtml opts inline = do
                             ! A.title (toValue str)
               let brtag = if html5 then H5.br else H.br
               return $ case t of
-                        InlineMath  -> m
-                        DisplayMath -> brtag >> m >> brtag
+                        DisplayMath | writerHTMLMathSurroundBr opts
+                          -> brtag >> m >> brtag
+                        _  -> m
            GladTeX ->
               return $
                 customParent (textTag "eq") !
@@ -1145,8 +1146,9 @@ inlineToHtml opts inline = do
               let m = H.span ! A.class_ mathClass $ x
               let brtag = if html5 then H5.br else H.br
               return  $ case t of
-                         InlineMath  -> m
-                         DisplayMath -> brtag >> m >> brtag
+                         DisplayMath | writerHTMLMathSurroundBr opts
+                           -> brtag >> m >> brtag
+                         _ -> m
     (RawInline f str) -> do
       ishtml <- isRawHtml f
       if ishtml

@@ -184,6 +184,7 @@ optToOutputSettings opts = do
         , writerTabStop          = optTabStop opts
         , writerTableOfContents  = optTableOfContents opts
         , writerHTMLMathMethod   = optHTMLMathMethod opts
+        , writerHTMLMathSurroundBr = optHTMLMathSurroundBr opts
         , writerIncremental      = optIncremental opts
         , writerCiteMethod       = optCiteMethod opts
         , writerNumberSections   = optNumberSections opts
