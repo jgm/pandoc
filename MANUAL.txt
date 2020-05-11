@@ -4594,10 +4594,12 @@ For example:
 ![](file.jpg){ width=50% }
 ```
 
-- Dimensions are converted to inches for output in page-based formats like
-  LaTeX. Dimensions are converted to pixels for output in HTML-like
-  formats.  Use the `--dpi` option to specify the number of pixels per
-  inch.  The default is 96dpi.
+- Dimensions may be converted to a form that is compatible with
+  the output format (for example, dimensions given in pixels will
+  be converted to inches when converting HTML to LaTeX). Conversion
+  between pixels and physical measurements is affected by the
+  `--dpi` option (by default, 96 dpi is assumed, unless the image
+  itself contains dpi information).
 - The `%` unit is generally relative to some available space.
   For example the above example will render to the following.
   - HTML: `<img href="file.jpg" style="width: 50%;" />`
