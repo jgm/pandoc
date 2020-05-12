@@ -1282,29 +1282,33 @@ inlineToLaTeX SoftBreak = do
        WrapNone     -> return space
        WrapPreserve -> return cr
 inlineToLaTeX Space = return space
-inlineToLaTeX (Link _ txt (src,_))
-  | Just ('#', ident) <- T.uncons src
-  = do
-      contents <- inlineListToLaTeX txt
-      lab <- toLabel ident
-      return $ text "\\protect\\hyperlink" <> braces (literal lab) <> braces contents
-  | otherwise =
-  case txt of
-        [Str x] | unEscapeString (T.unpack x) == unEscapeString (T.unpack src) ->  -- autolink
-             do modify $ \s -> s{ stUrl = True }
-                src' <- stringToLaTeX URLString (escapeURI src)
-                return $ literal $ "\\url{" <> src' <> "}"
-        [Str x] | Just rest <- T.stripPrefix "mailto:" src,
-                  unEscapeString (T.unpack x) == unEscapeString (T.unpack rest) -> -- email autolink
-             do modify $ \s -> s{ stUrl = True }
-                src' <- stringToLaTeX URLString (escapeURI src)
-                contents <- inlineListToLaTeX txt
-                return $ "\\href" <> braces (literal src') <>
-                   braces ("\\nolinkurl" <> braces contents)
-        _ -> do contents <- inlineListToLaTeX txt
-                src' <- stringToLaTeX URLString (escapeURI src)
-                return $ literal ("\\href{" <> src' <> "}{") <>
-                         contents <> char '}'
+inlineToLaTeX (Link (id',_,_) txt (src,_)) =
+   (case T.uncons src of
+     Just ('#', ident) -> do
+        contents <- inlineListToLaTeX txt
+        lab <- toLabel ident
+        return $ text "\\protect\\hyperlink" <> braces (literal lab) <> braces contents
+     _ -> case txt of
+          [Str x] | unEscapeString (T.unpack x) == unEscapeString (T.unpack src) ->  -- autolink
+               do modify $ \s -> s{ stUrl = True }
+                  src' <- stringToLaTeX URLString (escapeURI src)
+                  return $ literal $ "\\url{" <> src' <> "}"
+          [Str x] | Just rest <- T.stripPrefix "mailto:" src,
+                    unEscapeString (T.unpack x) == unEscapeString (T.unpack rest) -> -- email autolink
+               do modify $ \s -> s{ stUrl = True }
+                  src' <- stringToLaTeX URLString (escapeURI src)
+                  contents <- inlineListToLaTeX txt
+                  return $ "\\href" <> braces (literal src') <>
+                     braces ("\\nolinkurl" <> braces contents)
+          _ -> do contents <- inlineListToLaTeX txt
+                  src' <- stringToLaTeX URLString (escapeURI src)
+                  return $ literal ("\\href{" <> src' <> "}{") <>
+                           contents <> char '}')
+     >>= (if T.null id'
+             then return
+             else \x -> do
+               linkAnchor <- hypertarget False id' x
+               return ("\\protect" <> linkAnchor))
 inlineToLaTeX il@(Image _ _ (src, _))
   | Just _ <- T.stripPrefix "data:" src = do
       report $ InlineNotRendered il
