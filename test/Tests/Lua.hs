@@ -172,6 +172,12 @@ tests = map (localOption (QuickCheckTests 20))
       Lua.liftIO . assertEqual "pandoc-types version is wrong" pandocTypesVersion
         =<< Lua.peek Lua.stackTop
 
+  , testCase "require file" $
+    assertFilterConversion "requiring file failed"
+      "require-file.lua"
+      (doc $ para "ignored")
+      (doc $ para (str . T.pack $ "lua" </> "require-file.lua"))
+
   , testCase "Allow singleton inline in constructors" . runLuaTest $ do
       Lua.liftIO . assertEqual "Not the exptected Emph" (Emph [Str "test"])
         =<< Lua.callFunc "pandoc.Emph" (Str "test")
