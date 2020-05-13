@@ -2,7 +2,7 @@ name:            pandoc
 version:         2.9.2.1
 cabal-version:   2.0
 build-type:      Simple
-license:         GPL-2
+license:         GPL-2.0-or-later
 license-file:    COPYING.md
 copyright:       (c) 2006-2020 John MacFarlane
 author:          John MacFarlane <jgm@berkeley.edu>
