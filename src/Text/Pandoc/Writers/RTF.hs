@@ -353,7 +353,7 @@ inlineToRTF (Emph lst) = do
   return $ "{\\i " <> contents <> "}"
 inlineToRTF (Underline lst) = do
   contents <- inlinesToRTF lst
-  return $ "{\\pnul " <> contents <> "}"
+  return $ "{\\ul " <> contents <> "}"
 inlineToRTF (Strong lst) = do
   contents <- inlinesToRTF lst
   return $ "{\\b " <> contents <> "}"
