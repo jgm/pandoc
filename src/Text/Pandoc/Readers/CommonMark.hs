@@ -21,8 +21,10 @@ import Commonmark
 import Commonmark.Extensions
 import Commonmark.Pandoc
 import Data.Text (Text)
+import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Options
 import Text.Pandoc.Error
@@ -36,8 +38,11 @@ readCommonMark opts s = do
               commonmarkWith (foldr (<>) defaultSyntaxSpec exts) "input" s
   case res of
     Left err -> throwError $ PandocParsecError s err
-    Right (Cm bls :: Cm () Blocks) -> return $ B.doc bls
+    Right (Cm bls :: Cm () Blocks) -> return $ B.doc $ postprocess bls
  where
+  postprocess = if isEnabled Ext_implicit_figures opts
+                   then walk makeImplicitFigure
+                   else id
   exts = [ hardLineBreaksSpec | isEnabled Ext_hard_line_breaks opts ] ++
          [ smartPunctuationSpec | isEnabled Ext_smart opts ] ++
          [ strikethroughSpec | isEnabled Ext_strikeout opts ] ++
@@ -64,3 +69,8 @@ readCommonMark opts s = do
          [ definitionListSpec | isEnabled Ext_definition_lists opts ] ++
          [ taskListSpec | isEnabled Ext_task_lists opts ]
 
+makeImplicitFigure :: Block -> Block
+makeImplicitFigure (Para [Image attr label (src, tit)])
+  | not ("fig:" `T.isPrefixOf` tit) =
+  Para [Image attr label (src, "fig:" <> tit)]
+makeImplicitFigure x = x
