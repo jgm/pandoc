@@ -521,6 +521,7 @@ data DBState = DBState{ dbSectionLevel :: Int
                       , dbMeta         :: Meta
                       , dbBook         :: Bool
                       , dbFigureTitle  :: Inlines
+                      , dbFigureId     :: Text
                       , dbContent      :: [Content]
                       } deriving Show
 
@@ -530,6 +531,7 @@ instance Default DBState where
                , dbMeta = mempty
                , dbBook = False
                , dbFigureTitle = mempty
+               , dbFigureId = mempty
                , dbContent = [] }
 
 
@@ -557,9 +559,10 @@ getFigure e = do
   tit <- case filterChild (named "title") e of
               Just t  -> getInlines t
               Nothing -> return mempty
-  modify $ \st -> st{ dbFigureTitle = tit }
+  let ident = attrValue "id" e
+  modify $ \st -> st{ dbFigureTitle = tit, dbFigureId = ident }
   res <- getBlocks e
-  modify $ \st -> st{ dbFigureTitle = mempty }
+  modify $ \st -> st{ dbFigureTitle = mempty, dbFigureId = mempty }
   return res
 
 -- normalize input, consolidating adjacent Text and CRef elements
@@ -655,6 +658,8 @@ addToStart toadd bs =
 -- A DocBook mediaobject is a wrapper around a set of alternative presentations
 getMediaobject :: PandocMonad m => Element -> DB m Inlines
 getMediaobject e = do
+  figTitle <- gets dbFigureTitle
+  ident <- gets dbFigureId
   (imageUrl, attr) <-
     case filterChild (named "imageobject") e of
       Nothing  -> return (mempty, nullAttr)
@@ -667,7 +672,11 @@ getMediaobject e = do
                                    h = case atVal "depth" of
                                          "" -> []
                                          d  -> [("height", d)]
-                                   atr = (atVal "id", T.words $ atVal "role", w ++ h)
+                                   id' = case atVal "id" of
+                                           x | T.null x  -> ident
+                                             | otherwise -> x
+                                   cs = T.words $ atVal "role"
+                                   atr = (id', cs, w ++ h)
                                in  return (atVal "fileref", atr)
   let getCaption el = case filterChild (\x -> named "caption" x
                                             || named "textobject" x
@@ -675,7 +684,6 @@ getMediaobject e = do
                         Nothing -> return mempty
                         Just z  -> mconcat <$>
                                          mapM parseInline (elContent z)
-  figTitle <- gets dbFigureTitle
   let (capt, title) = if isNull figTitle
                          then (getCaption e, "")
                          else (return figTitle, "fig:")
