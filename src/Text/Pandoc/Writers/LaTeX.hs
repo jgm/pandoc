@@ -72,6 +72,7 @@ data WriterState =
               , stEmptyLine     :: Bool          -- true if no content on line
               , stHasCslRefs    :: Bool          -- has a Div with class refs
               , stCslHangingIndent :: Bool       -- use hanging indent for bib
+              , stIsKomaScript :: Bool           -- determines if we're in Latex KomaScript documentclass
               }
 
 startingState :: WriterOptions -> WriterState
@@ -102,7 +103,8 @@ startingState options = WriterState {
                 , stBeamer = False
                 , stEmptyLine = True
                 , stHasCslRefs = False
-                , stCslHangingIndent = False }
+                , stCslHangingIndent = False
+                , stIsKomaScript = False }
 
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -142,6 +144,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
               meta
   let chaptersClasses = ["memoir","book","report","scrreprt","scrbook","extreport","extbook","tufte-book"]
   let frontmatterClasses = ["memoir","book","scrbook","extbook","tufte-book"]
+  let komaClasses = ["scrbook", "scrreprt"]
   -- these have \frontmatter etc.
   beamer <- gets stBeamer
   let documentClass =
@@ -155,6 +158,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                           _               -> "article"
   when (documentClass `elem` chaptersClasses) $
      modify $ \s -> s{ stHasChapters = True }
+  when (documentClass `elem` komaClasses) $
+    modify $ \s -> s{ stIsKomaScript = True }
   case lookupContext "csquotes" (writerVariables options) `mplus`
        (stringify <$> lookupMeta "csquotes" meta) of
      Nothing      -> return ()
@@ -967,6 +972,7 @@ sectionHeader :: PandocMonad m
 sectionHeader classes ident level lst = do
   let unnumbered = "unnumbered" `elem` classes
   let unlisted = "unlisted" `elem` classes
+  isKomaScript <- gets stIsKomaScript
   txt <- inlineListToLaTeX lst
   plain <- stringToLaTeX TextString $ T.concat $ map stringify lst
   let removeInvalidInline (Note _)             = []
@@ -1002,15 +1008,16 @@ sectionHeader classes ident level lst = do
                       TopLevelChapter -> level - 1
                       TopLevelSection -> level
                       TopLevelDefault -> level
-  let sectionType = case level' of
-                          -1 -> "part"
-                          0  -> "chapter"
-                          1  -> "section"
-                          2  -> "subsection"
-                          3  -> "subsubsection"
-                          4  -> "paragraph"
-                          5  -> "subparagraph"
-                          _  -> ""
+  let sectionType = case (level', isKomaScript, unnumbered) of
+                          (-1, _, _) -> "part"
+                          (0, True, True) -> "addchap"
+                          (0, _, _) -> "chapter"
+                          (1, _, _) -> "section"
+                          (2, _, _) -> "subsection"
+                          (3, _, _) -> "subsubsection"
+                          (4, _, _) -> "paragraph"
+                          (5, _, _) -> "subparagraph"
+                          (_, _, _) -> ""
   inQuote <- gets stInQuote
   let prefix = if inQuote && level' >= 4
                   then text "\\mbox{}%"
@@ -1018,14 +1025,14 @@ sectionHeader classes ident level lst = do
                   -- see http://tex.stackexchange.com/questions/169830/
                   else empty
   lab <- labelFor ident
-  let star = if unnumbered then text "*" else empty
+  let star = if unnumbered && not isKomaScript then "*" else empty
   let stuffing = star <> optional <> contents
   stuffing' <- hypertarget True ident $
                   text ('\\':sectionType) <> stuffing <> lab
   return $ if level' > 5
               then txt
               else prefix $$ stuffing'
-                   $$ if unnumbered && not unlisted
+                   $$ if unnumbered && not unlisted && not isKomaScript
                          then "\\addcontentsline{toc}" <>
                                 braces (text sectionType) <>
                                 braces txtNoNotes
