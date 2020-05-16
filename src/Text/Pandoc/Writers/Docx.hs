@@ -1017,7 +1017,12 @@ blockToOpenXML' opts (Table _ blkCapt specs thead tbody tfoot) = do
       ( mknode "w:tblPr" []
         (   mknode "w:tblStyle" [("w:val","Table")] () :
             mknode "w:tblW" [("w:type", "pct"), ("w:w", show rowwidth)] () :
-            mknode "w:tblLook" [("w:firstRow",if hasHeader then "1" else "0") ] () :
+            mknode "w:tblLook" [("w:firstRow",if hasHeader then "1" else "0")
+                               ,("w:lastRow","0")
+                               ,("w:firstColumn","0")
+                               ,("w:lastColumn","0")
+                               ,("w:noHBand","0")
+                               ,("w:noVBand","0")] () :
           [ mknode "w:tblCaption" [("w:val", T.unpack captionStr)] ()
           | not (null caption) ] )
       : mknode "w:tblGrid" []
