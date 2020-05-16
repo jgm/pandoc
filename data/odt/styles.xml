@@ -73,6 +73,21 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.2">
       style:font-size-complex="12pt" style:language-complex="zxx"
       style:country-complex="none" />
     </style:default-style>
+    <style:style style:name="Author" style:family="paragraph"
+      style:parent-style-name="Standard" style:class="html">
+        <style:paragraph-properties fo:text-align="center" />
+    </style:style>
+    <style:style style:name="Date" style:family="paragraph"
+      style:parent-style-name="Standard" style:class="html">
+        <style:paragraph-properties fo:text-align="center" />
+    </style:style>
+    <style:style style:name="Abstract" style:family="paragraph"
+      style:parent-style-name="Standard" style:class="html">
+      <style:paragraph-properties fo:margin-left="0.3937in"
+      fo:margin-right="0.3937in" fo:margin-top="0.1in"
+      fo:margin-bottom="0.1in" style:contextual-spacing="false"
+      fo:text-indent="0in" style:auto-text-indent="false" />
+    </style:style>
     <style:default-style style:family="paragraph">
       <style:paragraph-properties fo:hyphenation-ladder-count="no-limit"
       style:text-autospace="ideograph-alpha"
@@ -318,17 +333,6 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.2">
       fo:margin-right="0in" fo:margin-top="0in"
       fo:margin-bottom="0in" style:contextual-spacing="false"
       fo:text-indent="0in" style:auto-text-indent="false" />
-    </style:style>
-    <style:style style:name="Date" style:family="paragraph"
-    style:parent-style-name="Standard"
-    style:next-style-name="Text_20_body">
-      <style:text-properties fo:font-style="italic" />
-    </style:style>
-    <style:style style:name="Author" style:family="paragraph"
-    style:parent-style-name="Standard" style:next-style-name="Date"
-    style:master-page-name="">
-      <style:paragraph-properties style:page-number="auto" />
-      <style:text-properties fo:font-style="italic" />
     </style:style>
     <style:style style:name="Horizontal_20_Line"
     style:display-name="Horizontal Line" style:family="paragraph"
