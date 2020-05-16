@@ -349,8 +349,12 @@ blockToOpenDocument o bs
                                   then return empty
                                   else inParagraphTags =<< inlinesToOpenDocument o b
     | LineBlock      b <- bs = blockToOpenDocument o $ linesToPara b
-    | Div attr xs      <- bs = withLangFromAttr attr
-                                  (blocksToOpenDocument o xs)
+    | Div attr xs      <- bs = do
+        let (_,_,kvs) = attr
+        withLangFromAttr attr $
+          case lookup "custom-style" kvs of
+            Just sty -> withParagraphStyle o sty xs
+            _        -> blocksToOpenDocument o xs
     | Header     i (ident,_,_) b
                        <- bs = setFirstPara >> (inHeaderTags i ident
                                   =<< inlinesToOpenDocument o b)
