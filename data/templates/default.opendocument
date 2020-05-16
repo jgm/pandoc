@@ -14,11 +14,17 @@ $endfor$
 $if(title)$
 <text:p text:style-name="Title">$title$</text:p>
 $endif$
+$if(subtitle)$
+<text:p text:style-name="Subtitle">$subtitle$</text:p>
+$endif$
 $for(author)$
 <text:p text:style-name="Author">$author$</text:p>
 $endfor$
 $if(date)$
 <text:p text:style-name="Date">$date$</text:p>
+$endif$
+$if(abstract)$
+$abstract$
 $endif$
 $for(include-before)$
 $include-before$
