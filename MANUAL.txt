@@ -4825,13 +4825,20 @@ Each citation must have a key, composed of '@' + the citation
 identifier from the database, and may optionally have a prefix,
 a locator, and a suffix.  The citation key must begin with a letter, digit,
 or `_`, and may contain alphanumerics, `_`, and internal punctuation
-characters (`:.#$%&-+?<>~/`).  Here are some examples:
+characters (`:.#$%&-+?<>~/`).  Alternatively arbitrary citation keys
+can be given inbetween `{` and `}`. Inside them `}` and `\` can be escaped
+using `\`. Here are some examples:
 
     Blah blah [see @doe99, pp. 33-35; also @smith04, chap. 1].
 
     Blah blah [@doe99, pp. 33-35, 38-39 and *passim*].
 
     Blah blah [@smith04; @doe99].
+
+You can also use citation keys directly without brackets:
+
+    Blah blah @smith04.
+    @{A more complex cite key}
 
 `pandoc-citeproc` detects locator terms in the [CSL locale files].
 Either abbreviated or unabbreviated forms are accepted. In the `en-US`

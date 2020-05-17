@@ -1468,12 +1468,14 @@ citeKey = try $ do
   guard =<< notAfterString
   suppress_author <- option False (True <$ char '-')
   char '@'
-  firstChar <- alphaNum <|> char '_' <|> char '*' -- @* for wildcard in nocite
-  let regchar = satisfy (\c -> isAlphaNum c || c == '_')
-  let internal p = try $ p <* lookAhead regchar
-  rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/") <|>
-                 try (oneOf ":/" <* lookAhead (char '/'))
-  let key = firstChar:rest
+  key <-
+    do firstChar <- alphaNum <|> char '_' <|> char '*' -- @* for wildcard in nocite
+       let regchar = satisfy (\c -> isAlphaNum c || c == '_')
+       let internal p = try $ p <* lookAhead regchar
+       rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/") <|>
+                      try (oneOf ":/" <* lookAhead (char '/'))
+       pure $ firstChar:rest
+    <|> char '{' *> many (noneOf "}\\" <|> char '\\' *> anyChar) <* char '}'
   return (suppress_author, T.pack key)
 
 

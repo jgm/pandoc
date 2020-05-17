@@ -127,7 +127,9 @@ the citation identifier from the database, and may optionally
 have a prefix, a locator, and a suffix. The citation key must
 begin with a letter, digit, or `_`, and may contain
 alphanumerics, `_`, and internal punctuation characters
-(`:.#$%&-+?<>~/`). Here are some examples:
+(`:.#$%&-+?<>~/`). Alternatively arbitrary citation keys can be
+given inbetween `{` and `}`. Inside them `}` and `\` can be
+escaped using `\`.
 
 ### Simple citation
 
@@ -137,6 +139,8 @@ ID prefixed by '@'.
 
 Example:
 
+    @citekey
+    @{this is a citekey}
     [prefix @citekey suffix]
     [see @doe2000 pp. 23-42]
     [@doe2000 p. 5; to a lesser extend @doe2005]
