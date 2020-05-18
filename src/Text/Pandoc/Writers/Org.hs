@@ -264,6 +264,8 @@ data DivBlockType
   = GreaterBlock Text Attr   -- ^ Greater block like @center@ or @quote@.
   | Drawer Text Attr         -- ^ Org drawer with of given name; keeps
                              --   key-value pairs.
+  | IpynbMarkdownCell Text   -- ^ IPython notebook Markdown cell
+  | IpynbCodeCell Text       -- ^ IPython notebook code cell
   | UnwrappedWithAnchor Text -- ^ Not mapped to other type, only
                              --   identifier is retained (if any).
 
@@ -274,12 +276,23 @@ divBlockType (ident, classes, kvs)
   -- if any class is named "drawer", then output as org :drawer:
   | ([_], drawerName:classes') <- partition (== "drawer") classes
   = Drawer drawerName (ident, classes', kvs)
+
   -- if any class is either @center@ or @quote@, then use a org block.
   | (blockName:classes'', classes') <- partition isGreaterBlockClass classes
   = GreaterBlock blockName (ident, classes' <> classes'', kvs)
+
+  -- the classes @cell@ and @markdown@ indicate an ipynb Markdown cell
+  | ["cell", "markdown"] <- classes
+  = IpynbMarkdownCell ident
+
+  -- the classes @cell@ and @code@ indicate an ipynb code cell
+  | ["cell", "code"] <- classes
+  = IpynbCodeCell ident
+
   -- if no better method is found, unwrap div and set anchor
   | otherwise
   = UnwrappedWithAnchor ident
+
  where
   isGreaterBlockClass :: Text -> Bool
   isGreaterBlockClass = (`elem` ["center", "quote"]) . T.toLower
@@ -294,15 +307,15 @@ divToOrg attr bs = do
       -- Write as greater block. The ID, if present, is added via
       -- the #+NAME keyword; other classes and key-value pairs
       -- are kept as #+ATTR_HTML attributes.
-      return $ blankline $$ attrHtml attr'
-            $$ "#+BEGIN_" <> literal blockName
-            $$ contents
-            $$ "#+END_" <> literal blockName $$ blankline
+      return $ toOrgBlock blockName attr' contents
+    IpynbMarkdownCell ident ->
+      return $ toOrgBlock "markdown_cell" (ident, [], []) contents
+    IpynbCodeCell ident ->
+      return $ toOrgBlock "code_cell" (ident, [], []) contents
     Drawer drawerName (_,_,kvs) -> do
       -- Write as drawer. Only key-value pairs are retained.
-      let keys = vcat $ map (\(k,v) ->
-                               ":" <> literal k <> ":"
-                              <> space <> literal v) kvs
+      let keys = vcat . flip map kvs $ \(k,v) ->
+            ":" <> literal k <> ":" <> space <> literal v
       return $ ":" <> literal drawerName <> ":" $$ cr
             $$ keys $$ blankline
             $$ contents $$ blankline
@@ -315,6 +328,11 @@ divToOrg attr bs = do
                       then contents
                       else  "<<" <> literal ident <> ">>" $$ contents
       return (blankline $$ contents' $$ blankline)
+ where
+  toOrgBlock blockName attr' contents = blankline $$ attrHtml attr'
+    $$ "#+BEGIN_" <> literal blockName
+    $$ contents
+    $$ "#+END_" <> literal blockName $$ blankline
 
 attrHtml :: Attr -> Doc Text
 attrHtml (""   , []     , []) = mempty

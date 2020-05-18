@@ -189,6 +189,10 @@ orgBlock = try $ do
       "quote"   -> parseBlockLines (fmap B.blockQuote)
       "verse"   -> verseBlock
       "src"     -> codeBlock blockAttrs
+      "code_cell" -> parseBlockLines
+                     (fmap $ B.divWith ("", ["cell", "code"], []))
+      "markdown_cell" -> parseBlockLines
+                         (fmap $ B.divWith ("", ["cell", "markdown"], []))
       _         -> parseBlockLines $
                    let (ident, classes, kv) = attrFromBlockAttributes blockAttrs
                    in fmap $ B.divWith (ident, classes ++ [blkType], kv)
@@ -677,9 +681,9 @@ columnPropertyCell = emptyOrgCell <|> propCell <?> "alignment info"
 
 tableAlignFromChar :: Monad m => OrgParser m Alignment
 tableAlignFromChar = try $
-  choice [ char 'l' *> return AlignLeft
-         , char 'c' *> return AlignCenter
-         , char 'r' *> return AlignRight
+  choice [ AlignLeft   <$ char 'l'
+         , AlignCenter <$ char 'c'
+         , AlignRight  <$ char 'r'
          ]
 
 tableHline :: Monad m => OrgParser m OrgTableRow
