@@ -17,8 +17,10 @@ import Prelude
 import Data.Algorithm.Diff
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
-import Data.List (isSuffixOf)
+import Data.List (isSuffixOf, intercalate)
+import Data.Maybe (catMaybes)
 import System.Directory
+import qualified System.Environment as Env
 import System.Exit
 import System.FilePath (joinPath, splitDirectories, takeDirectory, (</>))
 import System.IO (hPutStr, stderr)
@@ -38,15 +40,15 @@ runTest :: String    -- ^ Title of test
         -> String    -- ^ Expected output
         -> TestTree
 runTest testname pandocpath cmd inp norm = testCase testname $ do
+  mldpath   <- Env.lookupEnv "LD_LIBRARY_PATH"
+  mdyldpath <- Env.lookupEnv "DYLD_LIBRARY_PATH"
   let findDynlibDir []           = Nothing
       findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"
       findDynlibDir (_:xs)       = findDynlibDir xs
   let mbDynlibDir = findDynlibDir (reverse $ splitDirectories $
                                    takeDirectory $ takeWhile (/=' ') cmd)
-  let dynlibEnv = case mbDynlibDir of
-                       Nothing  -> []
-                       Just d   -> [("DYLD_LIBRARY_PATH", d),
-                                    ("LD_LIBRARY_PATH", d)]
+  let dynlibEnv = [("DYLD_LIBRARY_PATH", intercalate ":" $ catMaybes [mbDynlibDir, mdyldpath])
+                  ,("LD_LIBRARY_PATH",   intercalate ":" $ catMaybes [mbDynlibDir, mldpath])]
   let env' = dynlibEnv ++ [("PATH",takeDirectory pandocpath),("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./"),("pandoc_datadir", "..")]
   let pr = (shell cmd){ env = Just env' }
   (ec, out', err') <- readCreateProcessWithExitCode pr inp

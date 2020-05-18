@@ -15,8 +15,11 @@ module Tests.Old (tests) where
 import Prelude
 import Data.Algorithm.Diff
 import Prelude hiding (readFile)
+import Data.List (intercalate)
+import Data.Maybe (catMaybes)
 import System.Exit
 import System.FilePath (joinPath, splitDirectories, (<.>), (</>))
+import qualified System.Environment as Env
 import Text.Pandoc.Process (pipeProcess)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden.Advanced (goldenTest)
@@ -298,12 +301,12 @@ testWithNormalize normalizer pandocPath testname opts inp norm =
     (compareValues norm options) updateGolden
   where getExpected = normalizer <$> readFile' norm
         getActual   = do
+              mldpath   <- Env.lookupEnv "LD_LIBRARY_PATH"
+              mdyldpath <- Env.lookupEnv "DYLD_LIBRARY_PATH"
               let mbDynlibDir = findDynlibDir (reverse $
                                  splitDirectories pandocPath)
-              let dynlibEnv = case mbDynlibDir of
-                                   Nothing  -> []
-                                   Just d   -> [("DYLD_LIBRARY_PATH", d),
-                                                ("LD_LIBRARY_PATH", d)]
+              let dynlibEnv = [("DYLD_LIBRARY_PATH", intercalate ":" $ catMaybes [mbDynlibDir, mdyldpath])
+                              ,("LD_LIBRARY_PATH",   intercalate ":" $ catMaybes [mbDynlibDir, mldpath])]
               let env = dynlibEnv ++
                         [("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./")]
               (ec, out) <- pipeProcess (Just env) pandocPath options mempty
