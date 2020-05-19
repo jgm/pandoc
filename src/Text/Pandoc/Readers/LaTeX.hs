@@ -1510,26 +1510,38 @@ rawBlockOr name fallback = do
      then rawBlock "latex" <$> getRawCommand name ("\\" <> name)
      else fallback
 
+doSubfile :: PandocMonad m => LP m Blocks
+doSubfile = do
+  skipMany opt
+  f <- T.unpack . removeDoubleQuotes . T.strip . untokenize <$> braced
+  oldToks <- getInput
+  setInput []
+  insertIncluded ".tex" f
+  bs <- blocks
+  eof
+  setInput oldToks
+  return bs
+
 include :: (PandocMonad m, Monoid a) => Text -> LP m a
 include name = do
   skipMany opt
   fs <- (map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
          untokenize) <$> braced
-  let addExt f = case takeExtension f of
-                      ".tex" -> f
-                      ".sty" -> f
-                      -- note, we can have cc_by_4.0 for example...
-                      _ | name == "usepackage" -> addExtension f ".sty"
-                        | otherwise -> addExtension f ".tex"
-  dirs <- (map T.unpack . splitTextBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
-  mapM_ (insertIncluded dirs . addExt) fs
+  let defaultExt | name == "usepackage" = ".sty"
+                 | otherwise            = ".tex"
+  mapM_ (insertIncluded defaultExt) fs
   return mempty
 
 insertIncluded :: PandocMonad m
-               => [FilePath]
+               => FilePath
                -> FilePath
                -> LP m ()
-insertIncluded dirs f = do
+insertIncluded defaultExtension f' = do
+  let f = case takeExtension f' of
+                ".tex" -> f'
+                ".sty" -> f'
+                _      -> addExtension f' defaultExtension
+  dirs <- (map T.unpack . splitTextBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
   pos <- getPosition
   containers <- getIncludeFiles <$> getState
   when (T.pack f `elem` containers) $
@@ -1863,7 +1875,7 @@ blockCommands = M.fromList
          addMeta "bibliography" . splitBibs . untokenize))
    , ("addbibresource", mempty <$ (skipopts *> braced >>=
          addMeta "bibliography" . splitBibs . untokenize))
-   , ("endinput", mempty <$ skipMany tok)
+   , ("endinput", mempty <$ skipMany anyTok)
    -- includes
    , ("lstinputlisting", inputListing)
    , ("inputminted", inputMinted)
@@ -1886,7 +1898,7 @@ blockCommands = M.fromList
    -- include
    , ("include", rawBlockOr "include" $ include "include")
    , ("input", rawBlockOr "input" $ include "input")
-   , ("subfile", rawBlockOr "subfile" $ include "subfile")
+   , ("subfile", rawBlockOr "subfile" doSubfile)
    , ("usepackage", rawBlockOr "usepackage" $ include "usepackage")
    -- preamble
    , ("PackageError", mempty <$ (braced >> braced >> braced))
@@ -1897,7 +1909,7 @@ blockCommands = M.fromList
 
 environments :: PandocMonad m => M.Map Text (LP m Blocks)
 environments = M.fromList
-   [ ("document", env "document" blocks)
+   [ ("document", env "document" blocks <* skipMany anyTok)
    , ("abstract", mempty <$ (env "abstract" blocks >>= addMeta "abstract"))
    , ("sloppypar", env "sloppypar" $ blocks)
    , ("letter", env "letter" letterContents)
