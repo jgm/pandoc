@@ -2162,7 +2162,7 @@ To turn off boolean flags that default to true in reveal.js, use `0`.
 :   additional attributes for the title slide of reveal.js slide shows.
     See [background in reveal.js and beamer] for an example.
 
-[reveal.js configuration options]: https://github.com/hakimel/reveal.js#configuration
+[reveal.js configuration options]: https://revealjs.com/config/
 
 ### Variables for Beamer slides
 
@@ -5460,9 +5460,8 @@ To add a background image to the automatically generated title slide, use the
 `title-slide-attributes` variable in the YAML metadata block. It must contain
 a map of attribute names and values.
 
-See the [reveal.js
-documentation](https://github.com/hakimel/reveal.js#slide-backgrounds)
-for more details.
+See the [reveal.js documentation](https://revealjs.com/backgrounds/) for more
+details.
 
 For example in reveal.js:
 
