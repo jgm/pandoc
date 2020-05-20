@@ -1067,7 +1067,7 @@ blockHtmlTags = Set.fromList
     "h5", "h6", "head", "header", "hgroup", "hr", "html",
     "isindex", "main", "menu", "meta", "noframes", "nav",
     "ol", "output", "p", "pre",
-    "section", "table", "tbody", "textarea",
+    "section", "summary", "table", "tbody", "textarea",
     "thead", "tfoot", "ul", "dd",
     "dt", "frameset", "li", "tbody", "td", "tfoot",
     "th", "thead", "tr", "script", "style"]
