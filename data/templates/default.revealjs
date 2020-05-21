@@ -16,30 +16,19 @@ $endif$
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
-  <link rel="stylesheet" href="$revealjs-url$/css/reset.css">
-  <link rel="stylesheet" href="$revealjs-url$/css/reveal.css">
+  <link rel="stylesheet" href="$revealjs-url$/dist/reset.css">
+  <link rel="stylesheet" href="$revealjs-url$/dist/reveal.css">
   <style>
     $styles.html()$
   </style>
 $if(theme)$
-  <link rel="stylesheet" href="$revealjs-url$/css/theme/$theme$.css" id="theme">
+  <link rel="stylesheet" href="$revealjs-url$/dist/theme/$theme$.css" id="theme">
 $else$
-  <link rel="stylesheet" href="$revealjs-url$/css/theme/black.css" id="theme">
+  <link rel="stylesheet" href="$revealjs-url$/dist/theme/black.css" id="theme">
 $endif$
 $for(css)$
   <link rel="stylesheet" href="$css$"/>
 $endfor$
-  <!-- Printing and PDF exports -->
-  <script>
-    var link = document.createElement( 'link' );
-    link.rel = 'stylesheet';
-    link.type = 'text/css';
-    link.href = window.location.search.match( /print-pdf/gi ) ? '$revealjs-url$/css/print/pdf.css' : '$revealjs-url$/css/print/paper.css';
-    document.getElementsByTagName( 'head' )[0].appendChild( link );
-  </script>
-  <!--[if lt IE 9]>
-  <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
-  <![endif]-->
 $if(math)$
   $math$
 $endif$
@@ -78,12 +67,20 @@ $body$
     </div>
   </div>
 
-  <script src="$revealjs-url$/js/reveal.js"></script>
+  <script src="$revealjs-url$/dist/reveal.js"></script>
+
+  // reveal.js plugins
+  <script src="$revealjs-url$/plugin/notes/notes.js"></script>
+  <script src="$revealjs-url$/plugin/search/search.js"></script>
+  <script src="$revealjs-url$/plugin/zoom/zoom.js"></script>
+$if(mathjax)$
+  <script src="$revealjs-url$/plugin/math/math.js"></script>
+$endif$
 
   <script>
 
       // Full list of configuration options available at:
-      // https://github.com/hakimel/reveal.js#configuration
+      // https://revealjs.com/config/
       Reveal.initialize({
 $if(controls)$
         // Display controls in the bottom right corner
@@ -147,7 +144,7 @@ $if(rtl)$
         rtl: $rtl$,
 $endif$
 $if(navigationMode)$
-        // see https://github.com/hakimel/reveal.js/#navigation-mode
+        // see https://revealjs.com/vertical-slides/#navigation-mode
         navigationMode: '$navigationMode$',
 $endif$
 $if(shuffle)$
@@ -341,18 +338,14 @@ $if(mathjax)$
         },
 $endif$
 
-        // Optional reveal.js plugins
-        dependencies: [
-          { src: '$revealjs-url$/lib/js/classList.js', condition: function() { return !document.body.classList; } },
-          { src: '$revealjs-url$/plugin/zoom-js/zoom.js', async: true },
-$if(notes-server)$
-          { src: '$revealjs-url$/socket.io/socket.io.js', async: true },
-          { src: '$revealjs-url$/plugin/notes-server/client.js', async: true },
-$endif$
+        // reveal.js plugins
+        plugins: [
 $if(mathjax)$
-          { src: '$revealjs-url$/plugin/math/math.js', async: true },
+          RevealMath,
 $endif$
-          { src: '$revealjs-url$/plugin/notes/notes.js', async: true }
+          RevealNotes,
+          RevealSearch,
+          RevealZoom
         ]
       });
     </script>
