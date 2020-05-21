@@ -127,7 +127,7 @@ the citation identifier from the database, and may optionally
 have a prefix, a locator, and a suffix. The citation key must
 begin with a letter, digit, or `_`, and may contain
 alphanumerics, `_`, and internal punctuation characters
-(`:.#$%&-+?<>~/`). If you want to use a citation key that do not
+(`:.#$%&-+?<>~/`). If you want to use a citation key that does not
 conform to these constraints, enclose the key in curly braces
 (`{` and `}`). Inside the curly braces, the characters `}` and
 `\\` must be backslash-escaped.
