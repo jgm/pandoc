@@ -40,7 +40,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
 import Text.Pandoc.Shared (capitalize, isURI, orderedListMarkers,
-                           makeSections, tshow)
+                           makeSections, tshow, stringify)
 import Text.Pandoc.Writers.Shared (lookupMetaString, toLegacyTable)
 
 -- | Data to be written at the end of the document:
@@ -116,7 +116,7 @@ description meta' = do
         im <- insertImage InlineImage img
         return [el "coverpage" im]
   coverpage <- case lookupMeta "cover-image" meta' of
-                    Just (MetaInlines [Str s]) -> coverimage s
+                    Just (MetaInlines ils) -> coverimage (stringify ils)
                     Just (MetaString s) -> coverimage s
                     _       -> return []
   return $ el "description"
