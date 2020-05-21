@@ -1475,7 +1475,13 @@ citeKey = try $ do
        rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/") <|>
                       try (oneOf ":/" <* lookAhead (char '/'))
        pure $ firstChar:rest
-    <|> char '{' *> many (noneOf "}\\" <|> char '\\' *> anyChar) <* char '}'
+    <|> char '{' *>
+        many `id` choice
+          [ noneOf "}\n\\"
+          , ' ' <$ newline <* skipSpaces <* notFollowedBy newline
+          , char '\\' *> anyChar
+          ]
+        <* char '}'
   return (suppress_author, T.pack key)
 
 
