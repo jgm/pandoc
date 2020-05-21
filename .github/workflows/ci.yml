@@ -58,6 +58,17 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
+    - name: Check commit message
+      run: |
+        # Get last commit message
+        git log -1 --pretty=format:"%s" | grep -c "^[^#].{78}"
+        if [ $? -eq 0 ]; then
+          echo "Last commit log contains a line with more than 78 characters."
+          exit 1
+        else
+          echo "Commit log looks good."
+        fi
+
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet
     # https://github.com/actions/cache/issues/63
