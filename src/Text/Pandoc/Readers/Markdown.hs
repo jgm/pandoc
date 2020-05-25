@@ -67,14 +67,12 @@ yamlToMeta :: PandocMonad m
            -> m Meta
 yamlToMeta opts bstr = do
   let parser = do
-        meta <- yamlBsToMeta (fmap asBlocks parseBlocks) bstr
+        meta <- yamlBsToMeta (asBlocks <$> parseBlocks) bstr
         return $ runF meta defaultParserState
   parsed <- readWithM parser def{ stateOptions = opts } ""
   case parsed of
     Right result -> return result
     Left e       -> throwError e
-  where
-
 
 asBlocks :: Functor f => f (B.Many Block) -> f MetaValue
 asBlocks p = MetaBlocks . B.toList <$> p

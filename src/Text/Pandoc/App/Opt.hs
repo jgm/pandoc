@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {- |
    Module      : Text.Pandoc.App.Opt
    Copyright   : Copyright (C) 2006-2020 John MacFarlane
@@ -40,7 +41,6 @@ import Text.Pandoc.Class.PandocPure
 import Text.DocTemplates (Context(..))
 import Data.Text (Text, unpack)
 import Data.Default (def)
-import Control.Monad (join)
 import qualified Data.Text as T
 import qualified Data.Map as M
 import Text.Pandoc.Definition (Meta(..), MetaValue(..), lookupMeta)
@@ -189,7 +189,7 @@ doOpt (k',v) = do
       -- Note: x comes first because <> for Context is left-biased union
       -- and we want to favor later default files. See #5988.
     "metadata" ->
-      return (\o -> o{ optMetadata = optMetadata o <> yamlToMeta v })
+      yamlToMeta v >>= \x -> return (\o -> o{ optMetadata = optMetadata o <> x })
     "metadata-files" ->
       parseYAML v >>= \x ->
                         return (\o -> o{ optMetadataFiles =
@@ -478,14 +478,14 @@ defaultOpts = Opt
     , optStripComments         = False
     }
 
-yamlToMeta :: Node Pos -> Meta
-yamlToMeta (Mapping _ _ m) = runEverything (yamlMap pMetaString m)
+yamlToMeta :: Node Pos -> Parser Meta
+yamlToMeta (Mapping _ _ m) =
+    either (fail . show) return $ runEverything (yamlMap pMetaString m)
   where
     pMetaString = pure . MetaString <$> P.manyChar P.anyChar
-    runEverything :: P.ParserT Text P.ParserState PandocPure (P.F (M.Map Text MetaValue)) -> Meta
-    runEverything p =
-      either (const mempty) (Meta . flip P.runF def) . join . runPure $ P.readWithM p def ""
-yamlToMeta _ = mempty
+    runEverything p = runPure (P.readWithM p def "")
+      >>= fmap (Meta . flip P.runF def)
+yamlToMeta _ = return mempty
 
 addMeta :: String -> String -> Meta -> Meta
 addMeta k v meta =
