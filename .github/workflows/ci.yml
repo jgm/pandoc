@@ -36,6 +36,22 @@ on:
     - 'man/**'
 
 jobs:
+  check-commit-msg:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Check commit message
+      run: |
+        # Get last commit message
+        if git log -1 --no-merges --pretty=format:"%s" | grep -qE "^[^#].{78}"; then
+          echo "Last commit log contains a line with more than 78 characters."
+          exit 1
+        else
+          echo "Commit log looks good."
+        fi
+
   linux:
 
     runs-on: ubuntu-latest
@@ -57,16 +73,6 @@ jobs:
             cabal: '3.2'
     steps:
     - uses: actions/checkout@v1
-
-    - name: Check commit message
-      run: |
-        # Get last commit message
-        if git log -1 --pretty=format:"%s" --no-merges | grep -E -c "^[^#].{78}"; then
-          echo "Last commit log contains a line with more than 78 characters."
-          exit 1
-        else
-          echo "Commit log looks good."
-        fi
 
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet
