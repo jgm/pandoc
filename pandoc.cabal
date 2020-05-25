@@ -398,7 +398,7 @@ library
                  split >= 0.2 && < 0.3,
                  random >= 1 && < 1.2,
                  pandoc-types >= 1.21 && < 1.22,
-                 aeson >= 0.7 && < 1.5,
+                 aeson >= 0.7 && < 1.6,
                  scientific >= 0.3 && < 0.4,
                  aeson-pretty >= 0.8.5 && < 0.9,
                  tagsoup >= 0.14.6 && < 0.15,
