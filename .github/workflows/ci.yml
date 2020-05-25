@@ -61,8 +61,7 @@ jobs:
     - name: Check commit message
       run: |
         # Get last commit message
-        git log -1 --pretty=format:"%s" --no-merges | grep -c "^[^#].{78}"
-        if [ $? -eq 0 ]; then
+        if git log -1 --pretty=format:"%s" --no-merges | grep -E -c "^[^#].{78}"; then
           echo "Last commit log contains a line with more than 78 characters."
           exit 1
         else
