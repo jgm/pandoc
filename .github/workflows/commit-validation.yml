@@ -25,7 +25,9 @@ jobs:
         fi
         if [[ -v LOG_RANGE ]]; then
           if git log --no-merges --pretty=format:"%s" "${LOG_RANGE[@]}" -- | grep -qE "^[^#].{78}"; then
-            echo "Last commit log contains a line with more than 78 characters."
+            echo -e "Last commit log contains a line with more than 78 characters:\n"
+            git log --no-merges --pretty=format:"%h: %s" "${LOG_RANGE[@]}" -- | grep -E "^[^:]+: [^#].{78}"
+            echo
             exit 1
           else
             echo "Commit log looks good."
