@@ -1,5 +1,5 @@
 name: commit-validation
-on: [ pull_request ]
+on: [ push, pull_request ]
 
 jobs:
   check-commit-msg-length:
@@ -11,21 +11,26 @@ jobs:
         # Get last commit messages
         if [ "${{github.event_name}}" = "push" ]; then
           if [ "${{github.event.before}}" = "0000000000000000000000000000000000000000" ]; then
-            LOG_BASE="${{github.event.commits[0].id}}^"
+            # We are on a new branch
+            current="$(echo '${{github.ref}}' | sed 's!^refs/heads!origin!')"
+            readarray -t other < <(git show-ref | awk -F' ' '{ sub(/^refs\/remotes\//,"",$NF); }($NF != "'"$current"'"){print "^" $NF;}')
+            LOG_RANGE=( "$current" "${other[@]}" )
+            unset current other
           else
-            LOG_BASE="${{github.event.before}}"
+            # We are on existing branch
+            LOG_RANGE=( "${{github.event.before}}.." )
           fi
         elif [ "${{github.event_name}}" = "pull_request" ]; then
-          LOG_BASE="origin/${{github.base_ref}}"
+          LOG_RANGE=( "origin/${{github.base_ref}}.." )
         fi
-        if [ -n "$LOG_BASE" ]; then
-          if git log --no-merges --pretty=format:"%s" $LOG_BASE.. -- | grep -qE "^[^#].{78}"; then
+        if [[ -v LOG_RANGE ]]; then
+          if git log --no-merges --pretty=format:"%s" "${LOG_RANGE[@]}" -- | grep -qE "^[^#].{78}"; then
             echo "Last commit log contains a line with more than 78 characters."
             exit 1
           else
             echo "Commit log looks good."
           fi
-          unset LOG_BASE
+          unset LOG_RANGE
         else
           echo "Not checking commits on ${{github.event_name}}"
         fi
