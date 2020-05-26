@@ -585,6 +585,7 @@ library
                    Text.Pandoc.Readers.Docx.Util,
                    Text.Pandoc.Readers.Docx.Fields,
                    Text.Pandoc.Readers.LaTeX.Parsing,
+                   Text.Pandoc.Readers.LaTeX.Tables,
                    Text.Pandoc.Readers.LaTeX.Lang,
                    Text.Pandoc.Readers.Odt.Base,
                    Text.Pandoc.Readers.Odt.Namespaces,
