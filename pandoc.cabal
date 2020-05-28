@@ -426,7 +426,7 @@ library
                  network-uri >= 2.6 && < 2.7,
                  network >= 2.6,
                  connection >= 0.3.1,
-                 http-client >= 0.4.30 && < 0.7,
+                 http-client >= 0.4.30 && < 0.8,
                  http-client-tls >= 0.2.4 && < 0.4,
                  http-types >= 0.8 && < 0.13,
                  case-insensitive >= 1.2 && < 1.3,
