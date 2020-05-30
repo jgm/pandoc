@@ -340,7 +340,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   defField "slidy-url"
                     ("https://www.w3.org/Talks/Tools/Slidy2" :: Text) $
                   defField "slideous-url" ("slideous" :: Text) $
-                  defField "revealjs-url" ("reveal.js" :: Text) $
+                  defField "revealjs-url" ("https://unpkg.com/reveal.js@^4/" :: Text) $
                   defField "s5-url" ("s5/default" :: Text) $
                   defField "html5" (stHtml5 st)
                   metadata
