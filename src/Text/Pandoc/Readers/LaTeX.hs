@@ -258,6 +258,29 @@ dosiunitx = do
                       emptyOr160 unit,
                       unit]
 
+-- converts e.g. \SIRange{100}{200}{\ms} to "100 ms to 200 ms"
+doSIRange :: PandocMonad m => LP m Inlines
+doSIRange = do
+  skipopts
+  startvalue <- tok
+  startvalueprefix <- option "" $ bracketed tok
+  stopvalue <- tok
+  stopvalueprefix <- option "" $ bracketed tok
+  unit <- grouped (mconcat <$> many1 siUnit) <|> siUnit <|> tok
+  let emptyOr160 "" = ""
+      emptyOr160 _  = "\160"
+  return . mconcat $ [startvalueprefix,
+                      emptyOr160 startvalueprefix,
+                      startvalue,
+                      emptyOr160 unit,
+                      unit,
+                      " to ",
+                      stopvalueprefix,
+                      emptyOr160 stopvalueprefix,
+                      stopvalue,
+                      emptyOr160 unit,
+                      unit]
+
 siUnit :: PandocMonad m => LP m Inlines
 siUnit = do
   Tok _ (CtrlSeq name) _ <- anyControlSeq
@@ -1140,6 +1163,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("acsp", doAcronymPlural "abbrv")
   -- siuntix
   , ("SI", dosiunitx)
+  , ("SIRange", doSIRange)
   -- hyphenat
   , ("bshyp", lit "\\\173")
   , ("fshyp", lit "/\173")
