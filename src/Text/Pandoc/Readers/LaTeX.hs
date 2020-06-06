@@ -274,7 +274,7 @@ doSIRange = do
                       startvalue,
                       emptyOr160 unit,
                       unit,
-                      " to ",
+                      " \8211 ", -- An en-dash
                       stopvalueprefix,
                       emptyOr160 stopvalueprefix,
                       stopvalue,
