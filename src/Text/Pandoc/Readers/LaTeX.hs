@@ -269,12 +269,18 @@ doSIRange = do
   unit <- grouped (mconcat <$> many1 siUnit) <|> siUnit <|> tok
   let emptyOr160 "" = ""
       emptyOr160 _  = "\160"
+  localTo <- translateTerm Translations.To
+  let separator = (if localTo /= ""
+                     then text $ T.toLower localTo 
+                     else "\8211")
   return . mconcat $ [startvalueprefix,
                       emptyOr160 startvalueprefix,
                       startvalue,
                       emptyOr160 unit,
                       unit,
-                      " \8211 ", -- An en-dash
+                      text " ",
+                      separator,
+                      text " ",
                       stopvalueprefix,
                       emptyOr160 stopvalueprefix,
                       stopvalue,
