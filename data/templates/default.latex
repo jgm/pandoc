@@ -396,7 +396,7 @@ $if(titlegraphic)$
 \titlegraphic{\includegraphics{$titlegraphic$}}
 $endif$
 $if(logo)$
-\logo{\includegraphics{$logo$}}
+\logo{\includegraphics[$for(logooptions)$$logooptions$$sep$,$endfor$]{$logo$}}
 $endif$
 $endif$
 
