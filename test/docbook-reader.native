@@ -10,6 +10,8 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Sof
 ,Header 2 ("level-2-with-emphasis",[],[]) [Str "Level",Space,Str "2",Space,Str "with",Space,Emph [Str "emphasis"]]
 ,Header 3 ("level-3",[],[]) [Str "Level",Space,Str "3"]
 ,Para [Str "with",Space,Str "no",Space,Str "blank",Space,Str "line"]
+,Header 4 ("",["unnumbered"],[]) [Str "Level",Space,Str "4"]
+,Para [Str "An",Space,Str "unnumbered",Space,Str "section."]
 ,Header 2 ("level-2",[],[]) [Str "Level",Space,Str "2"]
 ,Para [Str "with",Space,Str "no",Space,Str "blank",Space,Str "line"]
 ,Header 1 ("paragraphs",[],[]) [Str "Paragraphs"]

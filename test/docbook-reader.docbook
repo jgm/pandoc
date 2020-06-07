@@ -47,6 +47,12 @@
       <para>
         with no blank line
       </para>
+      <simplesect>
+        <title>Level 4</title>
+        <para>
+        An unnumbered section.
+        </para>
+      </simplesect>
     </sect3>
   </sect2>
   <sect2 id="level-2">
