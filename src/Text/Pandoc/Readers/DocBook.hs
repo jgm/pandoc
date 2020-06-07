@@ -363,7 +363,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] releaseinfo - Information about a particular release of a document
 [ ] remark - A remark (or comment) intended for presentation in a draft
     manuscript
-[ ] replaceable - Content that may or must be replaced by the user
+[x] replaceable - Content that may or must be replaced by the user
 [ ] returnvalue - The value returned by a function
 [ ] revdescription - A extended description of a revision to a document
 [ ] revhistory - A history of the revisions to a document
@@ -979,6 +979,8 @@ parseInline (Elem e) =
         "option" -> codeWithLang
         "optional" -> do x <- getInlines e
                          return $ str "[" <> x <> str "]"
+        "replaceable" -> do x <- getInlines e
+                            return $ str "<" <> x <> str ">"
         "markup" -> codeWithLang
         "wordasword" -> emph <$> innerInlines
         "command" -> codeWithLang
