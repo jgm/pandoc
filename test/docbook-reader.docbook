@@ -1557,5 +1557,29 @@ or here: &lt;http://example.com/&gt;
       </tbody>
     </tgroup>
   </informaltable>
+  <procedure><title>An Example Procedure</title>
+    <step>
+      <para>
+        A Step
+      </para>
+    </step>
+    <step>
+      <para>
+        Another Step
+      </para>
+      <substeps>
+        <step>
+          <para>
+            Substeps can be nested indefinitely deep.
+          </para>
+        </step>
+      </substeps>
+    </step>
+    <step>
+      <para>
+        A Final Step
+      </para>
+    </step>
+  </procedure>
 </sect1>
 </article>
