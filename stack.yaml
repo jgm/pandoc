@@ -33,3 +33,5 @@ extra-deps:
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-14.6
+nix:
+  packages: [zlib]
