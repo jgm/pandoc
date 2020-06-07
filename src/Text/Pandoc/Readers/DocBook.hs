@@ -139,7 +139,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] emphasis - Emphasized text
 [x] entry - A cell in a table
 [ ] entrytbl - A subtable appearing in place of an Entry in a table
-[ ] envar - A software environment variable
+[x] envar - A software environment variable
 [x] epigraph - A short inscription at the beginning of a document or component
     note:  also handle embedded attribution tag
 [x] equation - A displayed mathematical equation
@@ -445,7 +445,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] synopfragmentref - A reference to a fragment of a command synopsis
 [ ] synopsis - A general-purpose element for representing the syntax of
     commands or functions
-[ ] systemitem - A system-related item or term
+[x] systemitem - A system-related item or term
 [ ] table - A formal table in a document
 [ ] task - A task to be completed
 [ ] taskprerequisites - The prerequisites for a task
@@ -972,6 +972,7 @@ parseInline (Elem e) =
         "classname" -> codeWithLang
         "code" -> codeWithLang
         "filename" -> codeWithLang
+        "envar" -> codeWithLang
         "literal" -> codeWithLang
         "computeroutput" -> codeWithLang
         "prompt" -> codeWithLang
@@ -988,6 +989,7 @@ parseInline (Elem e) =
         "symbol"  -> codeWithLang
         "constant" -> codeWithLang
         "userinput" -> codeWithLang
+        "systemitem" -> codeWithLang
         "varargs" -> return $ code "(...)"
         "keycap" -> return (str $ T.pack $ strContent e)
         "keycombo" -> keycombo <$>
