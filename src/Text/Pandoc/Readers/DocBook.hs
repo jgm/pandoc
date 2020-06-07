@@ -305,7 +305,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] personblurb - A short description or note about a person
 [ ] personname - The personal name of an individual
 [ ] phone - A telephone number
-[ ] phrase - A span of text
+[x] phrase - A span of text
 [ ] pob - A post office box in an address
 [ ] postcode - A postal code in an address
 [x] preface - Introductory matter preceding the first chapter of a book
@@ -952,6 +952,12 @@ parseInline (CRef ref) =
   return $ text $ maybe (T.toUpper $ T.pack ref) T.pack $ lookupEntity ref
 parseInline (Elem e) =
   case qName (elName e) of
+        "phrase" -> do
+          let ident = attrValue "id" e
+          let classes = T.words $ attrValue "class" e
+          if ident /= "" || classes /= []
+            then spanWith (ident,classes,[]) <$> innerInlines
+            else innerInlines
         "equation" -> equation e displayMath
         "informalequation" -> equation e displayMath
         "inlineequation" -> equation e math
