@@ -400,7 +400,7 @@ To run just the markdown benchmarks:
 [Cabal User's Guide]: http://www.haskell.org/cabal/release/latest/doc/users-guide/builders.html#setup-configure-paths
 [Debian]: https://packages.debian.org/pandoc
 [Fedora]: https://apps.fedoraproject.org/packages/pandoc
-[FreeBSD ports]: http://www.freshports.org/textproc/pandoc/
+[FreeBSD ports]: http://www.freshports.org/textproc/hs-pandoc/
 [GHC]:  http://www.haskell.org/ghc/
 [GPL]:  http://www.gnu.org/copyleft/gpl.html
 [Haskell platform]: http://hackage.haskell.org/platform/
