@@ -1913,6 +1913,7 @@ environments = M.fromList
    , ("abstract", mempty <$ (env "abstract" blocks >>= addMeta "abstract"))
    , ("sloppypar", env "sloppypar" $ blocks)
    , ("letter", env "letter" letterContents)
+   , ("multicols", env "multicols" multicols)
    , ("minipage", env "minipage" $
           skipopts *> spaces *> optional braced *> spaces *> blocks)
    , ("figure", env "figure" $ skipopts *> figure)
@@ -2078,6 +2079,18 @@ letterContents = do
                      para $ trimInlines $ fromList xs
                   _ -> mempty
   return $ addr <> bs -- sig added by \closing
+
+multicols :: PandocMonad m => LP m Blocks
+multicols = do
+  spaces
+  n <- fromMaybe 1 . safeRead . untokenize <$> braced
+  spaces
+  bs <- blocks
+  return $ divWith ("", ["columns"], []) $ cols n bs
+  where
+    cols :: Int -> Blocks -> Blocks
+    cols n = foldr1 (.) (replicate n $ divWith ("", ["column"], []))
+
 
 figure :: PandocMonad m => LP m Blocks
 figure = try $ do
