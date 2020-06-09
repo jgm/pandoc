@@ -157,7 +157,7 @@ handleData metadata (MimeBundle mb) =
 
     dataBlock :: PandocMonad m => (MimeType, MimeData) -> m B.Blocks
     dataBlock (mt, d)
-     | "image/" `T.isPrefixOf` mt
+     | "image/" `T.isPrefixOf` mt || mt == "application/pdf"
       = do
       -- normally metadata maps from mime types to key-value map;
       -- but not always...
