@@ -156,7 +156,7 @@ handleData metadata (MimeBundle mb) =
   where
 
     dataBlock :: PandocMonad m => (MimeType, MimeData) -> m B.Blocks
-    dataBlock (mt, BinaryData bs)
+    dataBlock (mt, d)
      | "image/" `T.isPrefixOf` mt
       = do
       -- normally metadata maps from mime types to key-value map;
@@ -168,7 +168,10 @@ handleData metadata (MimeBundle mb) =
                        Error _   -> mempty
                    _ -> mempty
       let metaPairs = jsonMetaToPairs meta
-      let bl = BL.fromStrict bs
+      let bl = case d of
+                 BinaryData bs  -> BL.fromStrict bs
+                 TextualData t  -> BL.fromStrict $ UTF8.fromText t
+                 JsonData v     -> encode v
       -- SHA1 hash for filename
       let fname = T.pack (showDigest (sha1 bl)) <>
             case extensionFromMimeType mt of
@@ -176,7 +179,6 @@ handleData metadata (MimeBundle mb) =
               Just ext -> "." <> ext
       insertMedia (T.unpack fname) (Just mt) bl
       return $ B.para $ B.imageWith ("",[],metaPairs) fname "" mempty
-     | otherwise = return mempty
 
     dataBlock ("text/html", TextualData t)
       = return $ B.rawBlock "html" t
