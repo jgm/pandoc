@@ -13,6 +13,8 @@ jobs:
     - name: Install dependencies
       run: |
           export PATH=/opt/cabal/3.0/bin:/opt/ghc/8.8.1/bin:$PATH
+          ls /opt/cabal/*/bin
+          ls /opt/ghc/*/bin
           ghc --version
           cabal --version
           cabal v2-update
