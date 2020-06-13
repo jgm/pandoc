@@ -133,14 +133,14 @@ commentBlock = try $ do
   return mempty
 
 codeBlock :: PandocMonad m => ParserT Text ParserState m Blocks
-codeBlock = codeBlockBc <|> codeBlockPre
+codeBlock = codeBlockTextile <|> codeBlockHtml
 
-codeBlockBc :: PandocMonad m => ParserT Text ParserState m Blocks
-codeBlockBc = try $ do
-  string "bc."
+codeBlockTextile :: PandocMonad m => ParserT Text ParserState m Blocks
+codeBlockTextile = try $ do
+  string "bc." <|> string "pre."
   extended <- option False (True <$ char '.')
   char ' '
-  let starts = ["p", "table", "bq", "bc", "h1", "h2", "h3",
+  let starts = ["p", "table", "bq", "bc", "pre", "h1", "h2", "h3",
                 "h4", "h5", "h6", "pre", "###", "notextile"]
   let ender = choice $ map explicitBlockStart starts
   contents <- if extended
@@ -155,8 +155,8 @@ trimTrailingNewlines :: Text -> Text
 trimTrailingNewlines = T.dropWhileEnd (=='\n')
 
 -- | Code Blocks in Textile are between <pre> and </pre>
-codeBlockPre :: PandocMonad m => ParserT Text ParserState m Blocks
-codeBlockPre = try $ do
+codeBlockHtml :: PandocMonad m => ParserT Text ParserState m Blocks
+codeBlockHtml = try $ do
   (t@(TagOpen _ attrs),_) <- htmlTag (tagOpen (=="pre") (const True))
   result' <- T.pack <$> manyTill anyChar (htmlTag (tagClose (=="pre")))
   -- drop leading newline if any
@@ -243,7 +243,7 @@ genericListItemAtDepth :: PandocMonad m => Char -> Int -> ParserT Text ParserSta
 genericListItemAtDepth c depth = try $ do
   count depth (char c) >> attributes >> whitespace
   contents <- mconcat <$> many ((B.plain . mconcat <$> many1 inline) <|>
-                                try (newline >> codeBlockPre))
+                                try (newline >> codeBlockHtml))
   newline
   sublist <- option mempty (anyListAtDepth (depth + 1))
   return $ contents <> sublist
