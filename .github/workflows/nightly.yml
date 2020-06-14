@@ -12,7 +12,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: Install dependencies
       run: |
-          export PATH=/opt/cabal/3.0/bin:/opt/ghc/8.8.1/bin:$PATH
+          export PATH=/opt/cabal/3.0/bin:/opt/ghc/8.8.3/bin:$PATH
           ls /opt/cabal/*/bin
           ls /opt/ghc/*/bin
           ghc --version
@@ -21,7 +21,7 @@ jobs:
           cabal v2-build --dependencies-only . pandoc-citeproc
     - name: Build
       run: |
-          export PATH=/opt/cabal/3.0/bin:/opt/ghc/8.8.1/bin:$PATH
+          export PATH=/opt/cabal/3.0/bin:/opt/ghc/8.8.3/bin:$PATH
           cabal v2-install . pandoc-citeproc
           strip $HOME/.cabal/bin/pandoc
           strip $HOME/.cabal/bin/pandoc-citeproc

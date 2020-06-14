@@ -51,7 +51,7 @@ jobs:
             cabal: '2.4'
           - ghc: '8.6.5'
             cabal: '2.4'
-          - ghc: '8.8.1'
+          - ghc: '8.8.3'
             cabal: '3.0'
           - ghc: '8.10.1'
             cabal: '3.2'
