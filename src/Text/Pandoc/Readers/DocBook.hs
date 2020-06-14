@@ -419,7 +419,7 @@ List of all DocBook tags, with [x] indicating implemented,
     elements
 [x] simplelist - An undecorated list of single words or short phrases
 [ ] simplemsgentry - A wrapper for a simpler entry in a message set
-[ ] simplesect - A section of a document with no subdivisions
+[x] simplesect - A section of a document with no subdivisions
 [ ] spanspec - Formatting information for a spanned column in a table
 [ ] state - A state or province in an address
 [ ] step - A unit of action in a procedure
@@ -630,8 +630,8 @@ blockTags :: [String]
 blockTags = ["toc","index","para","formalpara","simpara",
            "ackno","epigraph","blockquote","bibliography","bibliodiv",
            "biblioentry","glossee","glosseealso","glossary",
-           "glossdiv","glosslist","chapter","appendix","preface",
-           "bridgehead","sect1","sect2","sect3","sect4","sect5","section",
+           "glossdiv","glosslist","chapter","appendix","preface","bridgehead",
+           "sect1","sect2","sect3","sect4","sect5","section","simplesect",
            "refsect1","refsect2","refsect3","refsection", "qandadiv",
            "question","answer","abstract","itemizedlist","orderedlist",
            "variablelist","article","book","table","informaltable",
@@ -743,6 +743,9 @@ parseBlock (Elem e) =
         "sect4" -> sect 4
         "sect5" -> sect 5
         "section" -> gets dbSectionLevel >>= sect . (+1)
+        "simplesect" ->
+          gets dbSectionLevel >>=
+          sectWith (attrValue "id" e,["unnumbered"],[]) . (+1)
         "refsect1" -> sect 1
         "refsect2" -> sect 2
         "refsect3" -> sect 3
@@ -904,18 +907,19 @@ parseBlock (Elem e) =
                                      (TableFoot nullAttr [])
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseRow = mapM (parseMixed plain . elContent) . filterChildren isEntry
-         sect n = do isbook <- gets dbBook
-                     let n' = if isbook || n == 0 then n + 1 else n
-                     headerText <- case filterChild (named "title") e `mplus`
-                                        (filterChild (named "info") e >>=
-                                            filterChild (named "title")) of
-                                      Just t  -> getInlines t
-                                      Nothing -> return mempty
-                     modify $ \st -> st{ dbSectionLevel = n }
-                     b <- getBlocks e
-                     let ident = attrValue "id" e
-                     modify $ \st -> st{ dbSectionLevel = n - 1 }
-                     return $ headerWith (ident,[],[]) n' headerText <> b
+         sect n = sectWith (attrValue "id" e,[],[]) n
+         sectWith attr n = do
+           isbook <- gets dbBook
+           let n' = if isbook || n == 0 then n + 1 else n
+           headerText <- case filterChild (named "title") e `mplus`
+                              (filterChild (named "info") e >>=
+                                  filterChild (named "title")) of
+                            Just t  -> getInlines t
+                            Nothing -> return mempty
+           modify $ \st -> st{ dbSectionLevel = n }
+           b <- getBlocks e
+           modify $ \st -> st{ dbSectionLevel = n - 1 }
+           return $ headerWith attr n' headerText <> b
          lineItems = mapM getInlines $ filterChildren (named "line") e
          -- | Admonitions are parsed into a div. Following other Docbook tools that output HTML,
          -- we parse the optional title as a div with the @title@ class, and give the
