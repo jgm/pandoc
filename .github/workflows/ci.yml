@@ -38,7 +38,7 @@ on:
 jobs:
   linux:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: true
       matrix:
@@ -52,7 +52,7 @@ jobs:
           - ghc: '8.6.5'
             cabal: '2.4'
           - ghc: '8.8.3'
-            cabal: '3.0'
+            cabal: '3.2'
           - ghc: '8.10.1'
             cabal: '3.2'
     steps:
@@ -91,7 +91,7 @@ jobs:
 
   windows:
 
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
     - uses: actions/checkout@v1
@@ -130,7 +130,7 @@ jobs:
 
   macos:
 
-    runs-on: macOS-latest
+    runs-on: macOS-10.15
 
     steps:
     - uses: actions/checkout@v1

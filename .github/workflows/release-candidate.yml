@@ -8,7 +8,7 @@ on:
 jobs:
   linux:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
     - name: Create linux package
@@ -24,7 +24,7 @@ jobs:
 
   windows:
 
-    runs-on: windows-latest
+    runs-on: windows-2019
     strategy:
       fail-fast: true
       matrix:
@@ -94,7 +94,7 @@ jobs:
 
   macos:
 
-    runs-on: macOS-latest
+    runs-on: macOS-10.15
 
     steps:
     - uses: actions/checkout@v1
