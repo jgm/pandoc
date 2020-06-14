@@ -118,6 +118,7 @@ data Extension =
     | Ext_literate_haskell    -- ^ Enable literate Haskell conventions
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown iff
                                   --   container has attribute 'markdown'
+    | Ext_wikilinks -- ^ Interpret a markdown wiki link
     | Ext_markdown_in_html_blocks -- ^ Interpret as markdown inside HTML blocks
     | Ext_mmd_header_identifiers -- ^ Multimarkdown style header identifiers [myid]
     | Ext_mmd_link_attributes     -- ^ MMD style reference link attributes
@@ -258,6 +259,7 @@ githubMarkdownExtensions = extensionsFromList
   , Ext_emoji
   , Ext_fenced_code_blocks
   , Ext_backtick_code_blocks
+  , Ext_wikilinks
   ]
 
 -- | Extensions to be used with multimarkdown.
@@ -444,6 +446,7 @@ getAllExtensions f = universalExtensions <> getAll f
        , Ext_tex_math_single_backslash
        , Ext_tex_math_double_backslash
        , Ext_markdown_attribute
+       , Ext_wikilinks
        , Ext_mmd_title_block
        , Ext_abbreviations
        , Ext_autolink_bare_uris

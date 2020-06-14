@@ -307,6 +307,36 @@ tests = [ testGroup "inline code"
             "[https://example.org(](url)" =?>
             para (link "url" "" (text "https://example.org("))
           ]
+        , testGroup "Github wiki links"
+          [ test markdownGH "autolink" $
+            "[[https://example.org]]" =?>
+            para (link "https://example.org" "wikilink" (text "https://example.org"))
+          , test markdownGH "link with title" $
+            "[[title|https://example.org]]" =?>
+            para (link "https://example.org" "wikilink" (text "title"))
+          , test markdownGH "bad link with title" $
+            "[[title|random string]]" =?>
+            para (link "random-string" "wikilink" (text "title"))
+          , test markdownGH "autolink not being a link" $
+            "[[Name of page]]" =?>
+            para (link "Name-of-page" "wikilink" (text "Name of page"))
+          , test markdownGH "autolink not being a link with a square bracket" $
+            "[[Name of ]page]]" =?>
+            para (link "Name-of-]page" "wikilink" (text "Name of ]page"))
+          , test markdownGH "formatting (strong and emphasis) should not be interpreted" $
+             "[[***a**b **c**d*|https://example.org]]" =?>
+             para (text "[[" <> emph (strong (str "a") <> str "b" <> space
+                   <> strong (str "c") <> str "d") <> text "|https://example.org]]")
+          , test markdownGH "inlined code should not make a link" $
+            "[[ti`|`le|https://example.org]]" =?>
+            para (text "[[ti" <> code "|" <> text "le|https://example.org]]")
+          , test markdownGH "link with title and a cut should take the middle part as link" $
+            "[[tit|le|https://example.org]]" =?>
+            para (link "le" "wikilink" (text "tit"))
+          , test markdownGH "link with inline start should be a link" $
+            "[[t`i*t_le|https://example.org]]" =?>
+            para (link "https://example.org" "wikilink" (text "t`i*t_le"))
+          ]
         , testGroup "Headers"
           [ "blank line before header" =:
             "\n# Header\n"
