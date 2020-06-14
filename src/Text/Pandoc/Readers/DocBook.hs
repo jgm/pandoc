@@ -314,7 +314,7 @@ List of all DocBook tags, with [x] indicating implemented,
     sorted
 [ ] primaryie - A primary term in an index entry, not in the text
 [ ] printhistory - The printing history of a document
-[ ] procedure - A list of operations to be performed in a well-defined sequence
+[x] procedure - A list of operations to be performed in a well-defined sequence
 [ ] production - A production in a set of EBNF productions
 [ ] productionrecap - A cross-reference to an EBNF production
 [ ] productionset - A set of EBNF productions
@@ -422,7 +422,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] simplesect - A section of a document with no subdivisions
 [ ] spanspec - Formatting information for a spanned column in a table
 [ ] state - A state or province in an address
-[ ] step - A unit of action in a procedure
+[x] step - A unit of action in a procedure
 [ ] stepalternatives - Alternative steps in a procedure
 [ ] street - A street address in an address
 [ ] structfield - A field in a structure (in the programming language sense)
@@ -433,7 +433,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] subjectterm - A term in a group of terms describing the subject matter of
     a document
 [x] subscript - A subscript (as in H2O, the molecular formula for water)
-[ ] substeps - A wrapper for steps that occur within steps in a procedure
+[x] substeps - A wrapper for steps that occur within steps in a procedure
 [x] subtitle - The subtitle of a document
 [x] superscript - A superscript (as in x2, the mathematical notation for x
     multiplied by itself)
@@ -635,7 +635,7 @@ blockTags = ["toc","index","para","formalpara","simpara",
            "refsect1","refsect2","refsect3","refsection", "qandadiv",
            "question","answer","abstract","itemizedlist","orderedlist",
            "variablelist","article","book","table","informaltable",
-           "informalexample", "linegroup",
+           "informalexample", "linegroup","procedure","substeps",
            "screen","programlisting","example","calloutlist"] ++ admonitionTags
 
 admonitionTags :: [String]
@@ -774,6 +774,7 @@ parseBlock (Elem e) =
           orderedListWith (start,listStyle,DefaultDelim)
             <$> listitems
         "variablelist" -> definitionList <$> deflistitems
+        "procedure" -> bulletList <$> steps
         "figure" -> getFigure e
         "mediaobject" -> para <$> getMediaobject e
         "caption" -> skip
@@ -841,6 +842,7 @@ parseBlock (Elem e) =
          callouts = mapM getBlocks $ filterChildren (named "callout") e
          deflistitems = mapM parseVarListEntry $ filterChildren
                      (named "varlistentry") e
+         steps = mapM getBlocks $ filterChildren (named "step") e
          parseVarListEntry e' = do
                      let terms = filterChildren (named "term") e'
                      let items = filterChildren (named "listitem") e'

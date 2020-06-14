@@ -575,4 +575,9 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Sof
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "Here's",Space,Str "another",Space,Str "one.",Space,Str "Note",Space,Str "the",Space,Str "blank",Space,Str "line",Space,Str "between",Space,Str "rows."]]]])]
  (TableFoot ("",[],[])
- [])]
+ [])
+,BulletList
+ [[Para [Str "A",Space,Str "Step"]]
+ ,[Para [Str "Another",Space,Str "Step"]
+  ,Para [Str "Substeps",Space,Str "can",Space,Str "be",Space,Str "nested",Space,Str "indefinitely",Space,Str "deep."]]
+ ,[Para [Str "A",Space,Str "Final",Space,Str "Step"]]]]
