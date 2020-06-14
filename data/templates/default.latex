@@ -328,9 +328,9 @@ $if(lang)$
 \ifxetex
   % Load polyglossia as late as possible: uses bidi with RTL langages (e.g. Hebrew, Arabic)
   \usepackage{polyglossia}
-  \setmainlanguage[$polyglossia-lang.options$]{$polyglossia-lang.name$}
+  \setmainlanguage[$for(polyglossia-lang.options)$$polyglossia-lang.options$$sep$,$endfor$]{$polyglossia-lang.name$}
 $for(polyglossia-otherlangs)$
-  \setotherlanguage[$polyglossia-otherlangs.options$]{$polyglossia-otherlangs.name$}
+  \setotherlanguage[$for(polyglossia-otherlangs.options)$$polyglossia-otherlangs.options$$sep$,$endfor$]{$polyglossia-otherlangs.name$}
 $endfor$
 \else
   \usepackage[shorthands=off,$for(babel-otherlangs)$$babel-otherlangs$,$endfor$main=$babel-lang$]{babel}
