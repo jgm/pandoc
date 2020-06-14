@@ -1234,7 +1234,9 @@ inlineToLaTeX (Quoted qt lst) = do
   csquotes <- liftM stCsquotes get
   opts <- gets stOptions
   if csquotes
-     then return $ "\\enquote" <> braces contents
+     then return $ case qt of
+               DoubleQuote -> "\\enquote" <> braces contents
+               SingleQuote -> "\\enquote*" <> braces contents
      else do
        let s1 = if not (null lst) && isQuoted (head lst)
                    then "\\,"
