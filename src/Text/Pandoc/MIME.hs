@@ -461,7 +461,7 @@ mimeTypesList =
            ,("ts","text/texmacs")
            ,("tsp","application/dsptype")
            ,("tsv","text/tab-separated-values")
-           ,("ttf","application/x-font-truetype")
+           ,("ttf","application/font-sfnt")
            ,("txt","text/plain")
            ,("udeb","application/x-debian-package")
            ,("uls","text/iuls")
