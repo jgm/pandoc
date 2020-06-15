@@ -44,11 +44,11 @@ jobs:
       matrix:
         versions:
           - ghc: '8.0.2'
-            cabal: '3.2'
+            cabal: '2.4'
           - ghc: '8.2.2'
-            cabal: '3.2'
+            cabal: '2.4'
           - ghc: '8.4.4'
-            cabal: '3.2'
+            cabal: '2.4'
           - ghc: '8.6.5'
             cabal: '3.2'
           - ghc: '8.8.3'
@@ -57,6 +57,17 @@ jobs:
             cabal: '3.2'
     steps:
     - uses: actions/checkout@v1
+
+    # need to install older cabal/ghc versions from ppa repository
+
+    - name: Install recent cabal/ghc
+      run: |
+         if [[ ! -d /opt/ghc/${{ matrix.versions.ghc }} ]]
+         then
+           sudo add-apt-repository ppa:hvr/ghc
+           sudo apt-get update
+           sudo apt-get install ghc-${{ matrix.versions.ghc }} cabal-install-${{ matrix.versions.cabal }}
+         fi
 
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet
