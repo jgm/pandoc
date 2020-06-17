@@ -21,7 +21,7 @@ import Control.Monad.Identity (Identity (..))
 import Data.Char (isHexDigit, isSpace, toUpper, isAlphaNum)
 import Data.List (deleteFirstsBy, elemIndex, nub, sort, transpose)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, maybeToList)
+import Data.Maybe (fromMaybe, maybeToList, isJust)
 import Data.Sequence (ViewR (..), viewr)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -487,10 +487,9 @@ includeDirective top fields body = do
   let contents' = T.unlines contentLines'' <> "\n"
   case lookup "code" fields of
        Just lang -> do
-         let numberLines = lookup "number-lines" fields
          let classes =  maybe [] T.words (lookup "class" fields)
          let ident = maybe "" trimr $ lookup "name" fields
-         codeblock ident classes numberLines (trimr lang) contents' False
+         codeblock ident classes fields (trimr lang) contents' False
        Nothing   -> case lookup "literal" fields of
                          Just _  -> return $ B.rawBlock "rst" contents'
                          Nothing -> do
@@ -731,8 +730,8 @@ directive' = do
                                      ""   -> stateRstHighlight def
                                      lang -> Just lang })
         x | x == "code" || x == "code-block" || x == "sourcecode" ->
-          codeblock name classes
-                    (lookup "number-lines" fields) (trim top) body True
+          codeblock name classes (map (second trimr) fields)
+             (trim top) body True
         "aafig" -> do
           let attribs = (name, ["aafig"], map (second trimr) fields)
           return $ B.codeBlockWith attribs $ stripTrailingNewlines body
@@ -1007,21 +1006,22 @@ toChunks = dropWhile T.null
                           then "\\begin{aligned}\n" <> s <> "\n\\end{aligned}"
                           else s
 
-codeblock :: Text -> [Text] -> Maybe Text -> Text -> Text -> Bool
+codeblock :: Text -> [Text] -> [(Text, Text)] -> Text -> Text -> Bool
           -> RSTParser m Blocks
-codeblock ident classes numberLines lang body rmTrailingNewlines =
+codeblock ident classes fields lang body rmTrailingNewlines = do
   return $ B.codeBlockWith attribs $ stripTrailingNewlines' body
     where stripTrailingNewlines' = if rmTrailingNewlines
                                      then stripTrailingNewlines
                                      else id
           attribs = (ident, classes', kvs)
           classes' = lang
-                    : maybe [] (const ["numberLines"]) numberLines
+                    : ["numberLines" | isJust (lookup "number-lines" fields)]
                     ++ classes
-          kvs = maybe [] (\n -> case trimr n of
-                                   "" -> []
-                                   xs -> [("startFrom", xs)])
-                            numberLines
+          kvs = [(k,v) | (k,v) <- fields, k /= "number-lines", k /= "class",
+                                          k /= "id", k /= "name"]
+                ++ case lookup "number-lines" fields of
+                     Just v | not (T.null v) -> [("startFrom", v)]
+                     _ -> []
 
 ---
 --- note block
