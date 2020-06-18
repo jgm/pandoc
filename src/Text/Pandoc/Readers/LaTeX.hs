@@ -2340,10 +2340,9 @@ parseAligns = try $ do
 parseTableRow :: PandocMonad m
               => Text   -- ^ table environment name
               -> [([Tok], [Tok])] -- ^ pref/suffixes
-              -> LP m [Blocks]
+              -> LP m Row
 parseTableRow envname prefsufs = do
   notFollowedBy (spaces *> end_ envname)
-  let cols = length prefsufs
   -- add prefixes and suffixes in token stream:
   let celltoks (pref, suff) = do
         prefpos <- getPosition
@@ -2362,21 +2361,63 @@ parseTableRow envname prefsufs = do
   cells <- mapM (\ts -> setInput ts >> parseTableCell) rawcells
   setInput oldInput
   spaces
-  let numcells = length cells
-  guard $ numcells <= cols && numcells >= 1
-  guard $ cells /= [mempty]
-  -- note:  a & b in a three-column table leaves an empty 3rd cell:
-  return $ cells ++ replicate (cols - numcells) mempty
+  return $ Row nullAttr cells 
 
-parseTableCell :: PandocMonad m => LP m Blocks
+parseTableCell :: PandocMonad m => LP m Cell
 parseTableCell = do
+  updateState $ \st -> st{ sInTableCell = True }
+  cell' <- parseMultiCell <|> parseSimpleCell
+  updateState $ \st -> st{ sInTableCell = False }
+  return cell'
+
+cellAlignment :: PandocMonad m => LP m Alignment
+cellAlignment = skipMany (symbol '|') *> (left <|> right <|> center <|> def') <* skipMany (symbol '|')
+  where
+    left   = AlignLeft    <$ char' 'l'
+    right  = AlignRight   <$ char' 'r'
+    center = AlignCenter  <$ char' 'c'
+    def'   = AlignDefault <$ symbol '*'
+
+    char' c = satisfyTok isc >> pure c
+      where isc (Tok _ Word d) = maybe False (\(c', _) -> c == c') (T.uncons d)
+            isc _ = False
+
+parseMultiCell :: PandocMonad m => LP m Cell
+parseMultiCell =   (controlSeq "multirow"    >> parseMultirowCell) 
+               <|> (controlSeq "multicolumn" >> parseMulticolCell)
+  where
+    parseMultirowCell = parseMultiXCell RowSpan (const $ ColSpan 1)
+    parseMulticolCell = parseMultiXCell (const $ RowSpan 1) ColSpan
+  
+    parseMultiXCell rowspanf colspanf = do
+      span' <- untokenize <$> braced
+      let span'' = maybe 1 id $ safeRead span'
+      alignment <- symbol '{' *> cellAlignment <* symbol '}'
+      -- Two possible contents: either a nested \multirow/\multicol, or content.
+      -- E.g. \multirow{1}{c}{\multicol{1}{c}{content}}
+      symbol '{' 
+      cellContent <- optionMaybe parseMultiCell
+      case cellContent of
+        Nothing -> do
+          content   <- blocks
+          symbol '}'
+          return $ cell alignment (rowspanf span'') (colspanf span'') content
+        Just (Cell _ _ (RowSpan rs) (ColSpan cs) bs) -> do
+          symbol '}'
+          return $ cell 
+                    alignment 
+                    (RowSpan $ max span'' rs) 
+                    (ColSpan $ max span'' cs) 
+                    (fromList bs)
+
+-- Parse a simple cell, i.e. not multirow/multicol
+parseSimpleCell :: PandocMonad m => LP m Cell
+parseSimpleCell = do
   let plainify bs = case toList bs of
                          [Para ils] -> plain (fromList ils)
                          _          -> bs
-  updateState $ \st -> st{ sInTableCell = True }
   cells <- plainify <$> blocks
-  updateState $ \st -> st{ sInTableCell = False }
-  return cells
+  return $ cell AlignDefault (RowSpan 1) (ColSpan 1) cells
 
 simpTable :: PandocMonad m => Text -> Bool -> LP m Blocks
 simpTable envname hasWidthParameter = try $ do
@@ -2392,7 +2433,7 @@ simpTable envname hasWidthParameter = try $ do
   spaces
   skipMany hline
   spaces
-  header' <- option [] $ try (parseTableRow envname prefsufs <*
+  header' <- option (Row nullAttr []) $ try (parseTableRow envname prefsufs <*
                                    lbreak <* many1 hline)
   spaces
   rows <- sepEndBy (parseTableRow envname prefsufs)
@@ -2405,12 +2446,10 @@ simpTable envname hasWidthParameter = try $ do
   optional lbreak
   spaces
   lookAhead $ controlSeq "end" -- make sure we're at end
-  let toRow = Row nullAttr . map simpleCell
-      toHeaderRow l = if null l then [] else [toRow l]
   return $ table emptyCaption
                  (zip aligns widths)
-                 (TableHead nullAttr $ toHeaderRow header')
-                 [TableBody nullAttr 0 [] $ map toRow rows]
+                 (TableHead nullAttr $ [header'])
+                 [TableBody nullAttr 0 [] rows]
                  (TableFoot nullAttr [])
 
 addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
