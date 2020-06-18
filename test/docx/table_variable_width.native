@@ -4,6 +4,7 @@
  ,(AlignDefault,ColWidthDefault)
  ,(AlignDefault,ColWidthDefault)
  ,(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)
  ,(AlignDefault,ColWidthDefault)]
  (TableHead ("",[],[])
  [Row ("",[],[])
@@ -13,33 +14,27 @@
    []
   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Plain [Str "h3"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2)
    [Plain [Str "h4"]]
   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
    [Plain [Str "h5"]]]])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 3)
     [Plain [Str "c11"]]
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     []
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    []
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    []
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2)
     []]
   ,Row ("",[],[])
    [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     []
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2)
     [Plain [Str "c22"]]
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "c23"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    []
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2)
     []]])]
  (TableFoot ("",[],[])
  [])]

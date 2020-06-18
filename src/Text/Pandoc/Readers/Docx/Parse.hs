@@ -33,7 +33,9 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , ParStyle
                                       , CharStyle(cStyleData)
                                       , Row(..)
+                                      , TblHeader(..)
                                       , Cell(..)
+                                      , VMerge(..)
                                       , TrackedChange(..)
                                       , ChangeType(..)
                                       , ChangeInfo(..)
@@ -50,6 +52,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , pHeading
                                       , constructBogusParStyleData
                                       , leftBiasedMergeRunStyle
+                                      , rowsToRowspans
                                       ) where
 import Text.Pandoc.Readers.Docx.Parse.Styles
 import Codec.Archive.Zip
@@ -225,6 +228,7 @@ defaultParagraphStyle = ParagraphStyle { pStyle = []
 data BodyPart = Paragraph ParagraphStyle [ParPart]
               | ListItem ParagraphStyle T.Text T.Text (Maybe Level) [ParPart]
               | Tbl T.Text TblGrid TblLook [Row]
+              | TblCaption ParagraphStyle [ParPart]
               | OMathPara [Exp]
               deriving Show
 
@@ -236,11 +240,60 @@ newtype TblLook = TblLook {firstRowFormatting::Bool}
 defaultTblLook :: TblLook
 defaultTblLook = TblLook{firstRowFormatting = False}
 
-newtype Row = Row [Cell]
-           deriving Show
+data Row = Row TblHeader [Cell] deriving Show
 
-newtype Cell = Cell [BodyPart]
+data TblHeader = HasTblHeader | NoTblHeader deriving (Show, Eq)
+
+data Cell = Cell GridSpan VMerge [BodyPart]
             deriving Show
+
+type GridSpan = Integer
+
+data VMerge = Continue
+            -- ^ This cell should be merged with the one above it
+            | Restart
+            -- ^ This cell should not be merged with the one above it
+            deriving (Show, Eq)
+
+rowsToRowspans :: [Row] -> [[(Int, Cell)]]
+rowsToRowspans rows = let
+  removeMergedCells = fmap (filter (\(_, Cell _ vmerge _) -> vmerge == Restart))
+  in removeMergedCells (foldr f [] rows)
+  where
+    f :: Row -> [[(Int, Cell)]] -> [[(Int, Cell)]]
+    f (Row _ cells) acc = let
+      spans = g cells Nothing (listToMaybe acc)
+      in spans : acc
+
+    g ::
+      -- | The current row
+      [Cell] ->
+      -- | Number of columns left below
+      Maybe Integer ->
+      -- | (rowspan so far, cell) for the row below this one
+      Maybe [(Int, Cell)] ->
+      -- | (rowspan so far, cell) for this row
+      [(Int, Cell)]
+    g cells _ Nothing = zip (repeat 1) cells
+    g cells columnsLeftBelow (Just rowBelow) =
+        case cells of
+          [] -> []
+          thisCell@(Cell thisGridSpan _ _) : restOfRow -> case rowBelow of
+            [] -> zip (repeat 1) cells
+            (spanSoFarBelow, Cell gridSpanBelow vmerge _) : _ ->
+              let spanSoFar = case vmerge of
+                    Restart -> 1
+                    Continue -> 1 + spanSoFarBelow
+                  columnsToDrop = thisGridSpan + (gridSpanBelow - fromMaybe gridSpanBelow columnsLeftBelow)
+                  (newColumnsLeftBelow, restOfRowBelow) = dropColumns columnsToDrop rowBelow
+              in (spanSoFar, thisCell) : g restOfRow (Just newColumnsLeftBelow) (Just restOfRowBelow)
+
+    dropColumns :: Integer -> [(a, Cell)] -> (Integer, [(a, Cell)])
+    dropColumns n [] = (n, [])
+    dropColumns n cells@((_, Cell gridSpan _ _) : otherCells) =
+      if n < gridSpan
+      then (gridSpan - n, cells)
+      else dropColumns (n - gridSpan) otherCells
 
 leftBiasedMergeRunStyle :: RunStyle -> RunStyle -> RunStyle
 leftBiasedMergeRunStyle a b = RunStyle
@@ -587,14 +640,31 @@ elemToRow ns element | isElem ns "w" "tr" element =
   do
     let cellElems = findChildrenByName ns "w" "tc" element
     cells <- mapD (elemToCell ns) cellElems
-    return $ Row cells
+    let hasTblHeader = maybe NoTblHeader (const HasTblHeader)
+          (findChildByName ns "w" "trPr" element
+           >>= findChildByName ns "w" "tblHeader")
+    return $ Row hasTblHeader cells
 elemToRow _ _ = throwError WrongElem
 
 elemToCell :: NameSpaces -> Element -> D Cell
 elemToCell ns element | isElem ns "w" "tc" element =
   do
+    let properties = findChildByName ns "w" "tcPr" element
+    let gridSpan = properties
+                     >>= findChildByName ns "w" "gridSpan"
+                     >>= findAttrByName ns "w" "val"
+                     >>= stringToInteger
+    let vMerge = case properties >>= findChildByName ns "w" "vMerge" of
+                   Nothing -> Restart
+                   Just e ->
+                     fromMaybe Continue $ do
+                       s <- findAttrByName ns "w" "val" e
+                       case s of
+                         "continue" -> Just Continue
+                         "restart" -> Just Restart
+                         _ -> Nothing
     cellContents <- mapD (elemToBodyPart ns) (elChildren element)
-    return $ Cell cellContents
+    return $ Cell (fromMaybe 1 gridSpan) vMerge cellContents
 elemToCell _ _ = throwError WrongElem
 
 elemToParIndentation :: NameSpaces -> Element -> Maybe ParIndentation
@@ -626,10 +696,9 @@ pNumInfo = getParStyleField numInfo . pStyle
 elemToBodyPart :: NameSpaces -> Element -> D BodyPart
 elemToBodyPart ns element
   | isElem ns "w" "p" element
-  , (c:_) <- findChildrenByName ns "m" "oMathPara" element =
-      do
-        expsLst <- eitherToD $ readOMML $ showElement c
-        return $ OMathPara expsLst
+  , (c:_) <- findChildrenByName ns "m" "oMathPara" element = do
+      expsLst <- eitherToD $ readOMML $ showElement c
+      return $ OMathPara expsLst
 elemToBodyPart ns element
   | isElem ns "w" "p" element
   , Just (numId, lvl) <- getNumInfo ns element = do
@@ -647,13 +716,32 @@ elemToBodyPart ns element
         Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
                     levelInfo <- lookupLevel numId lvl <$> asks envNumbering
                     return $ ListItem parstyle numId lvl levelInfo parparts
-        _ -> return $ Paragraph parstyle parparts
+        _ -> let
+          hasCaptionStyle = elem "Caption" (pStyleId <$> pStyle parstyle)
+
+          hasSimpleTableField = fromMaybe False $ do
+            fldSimple <- findChildByName ns "w" "fldSimple" element
+            instr <- findAttrByName ns "w" "instr" fldSimple
+            pure (elem "Table" (T.words instr))
+
+          hasComplexTableField = fromMaybe False $ do
+            instrText <- findElementByName ns "w" "instrText" element
+            pure (elem "Table" (T.words (strContent instrText)))
+
+          in if hasCaptionStyle && (hasSimpleTableField || hasComplexTableField)
+             then return $ TblCaption parstyle parparts
+             else return $ Paragraph parstyle parparts
+
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do
-    let caption' = findChildByName ns "w" "tblPr" element
+    let tblProperties = findChildByName ns "w" "tblPr" element
+        caption' = tblProperties
                    >>= findChildByName ns "w" "tblCaption"
                    >>= findAttrByName ns "w" "val"
         caption = fromMaybe "" caption'
+        description = fromMaybe "" $ tblProperties
+                       >>= findChildByName ns "w" "tblDescription"
+                       >>= findAttrByName ns "w" "val"
         grid' = case findChildByName ns "w" "tblGrid" element of
           Just g  -> elemToTblGrid ns g
           Nothing -> return []
@@ -666,7 +754,7 @@ elemToBodyPart ns element
     grid <- grid'
     tblLook <- tblLook'
     rows <- mapD (elemToRow ns) (elChildren element)
-    return $ Tbl caption grid tblLook rows
+    return $ Tbl (caption <> description) grid tblLook rows
 elemToBodyPart _ _ = throwError WrongElem
 
 lookupRelationship :: DocumentLocation -> RelId -> [Relationship] -> Maybe Target
