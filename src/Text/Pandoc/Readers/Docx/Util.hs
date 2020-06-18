@@ -19,6 +19,7 @@ module Text.Pandoc.Readers.Docx.Util (
                                       , elemToNameSpaces
                                       , findChildByName
                                       , findChildrenByName
+                                      , findElementByName
                                       , findAttrByName
                                       ) where
 
@@ -55,6 +56,12 @@ findChildrenByName :: NameSpaces -> Text -> Text -> Element -> [Element]
 findChildrenByName ns pref name el =
   let ns' = ns <> elemToNameSpaces el
   in  findChildren (elemName ns' pref name) el
+
+-- | Like 'findChildrenByName', but searches descendants.
+findElementByName :: NameSpaces -> Text -> Text -> Element -> Maybe Element
+findElementByName ns pref name el =
+  let ns' = ns <> elemToNameSpaces el
+  in  findElement (elemName ns' pref name) el
 
 findAttrByName :: NameSpaces -> Text -> Text -> Element -> Maybe Text
 findAttrByName ns pref name el =

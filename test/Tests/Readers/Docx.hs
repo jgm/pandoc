@@ -318,13 +318,29 @@ tests = [ testGroup "document"
             "docx/table_with_list_cell.docx"
             "docx/table_with_list_cell.native"
           , testCompare
+            "a table with a header which contains rowspans greater than 1"
+            "docx/table_header_rowspan.docx"
+            "docx/table_header_rowspan.native"
+          , testCompare
             "tables with one row"
             "docx/table_one_row.docx"
             "docx/table_one_row.native"
           , testCompare
+            "tables with just one row, which is a header"
+            "docx/table_one_header_row.docx"
+            "docx/table_one_header_row.native"
+          , testCompare
             "tables with variable width"
             "docx/table_variable_width.docx"
             "docx/table_variable_width.native"
+          , testCompare
+            "tables with captions which contain a Table field"
+            "docx/table_captions_with_field.docx"
+            "docx/table_captions_with_field.native"
+          , testCompare
+            "tables with captions which don't contain a Table field"
+            "docx/table_captions_no_field.docx"
+            "docx/table_captions_no_field.native"
           , testCompare
             "code block"
             "docx/codeblock.docx"

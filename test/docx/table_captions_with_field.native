@@ -1,0 +1,54 @@
+[Para [Str "See",Space,Str "Table",Space,Str "1."]
+,Para []
+,Table ("",[],[]) (Caption Nothing
+ [Para [Str "Table",Space,Str "1"]])
+ [(AlignDefault,ColWidth 0.7605739372523825)
+ ,(AlignDefault,ColWidth 0.11971303137380876)
+ ,(AlignDefault,ColWidth 0.11971303137380876)]
+ (TableHead ("",[],[])
+[Row ("",[],[])
+ [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  []
+ ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "Count"]]
+ ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "%"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+ [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "First",Space,Str "option"]]
+ ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "242"]]
+ ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "45"]]]
+,Row ("",[],[])
+ [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "Second",Space,Str "option"]]
+ ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "99"]]
+ ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "18"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Header 2 ("section", [], []) []
+,Table ("",[],[]) (Caption Nothing
+ [Para [Str "Table",Space,Str "2"]])
+ [(AlignDefault,ColWidth 0.3332963620230701)
+ ,(AlignDefault,ColWidth 0.3332963620230701)
+ ,(AlignDefault,ColWidth 0.3334072759538598)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "One"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Two"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Three"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [])]
+ (TableFoot ("",[],[])
+ [])
+,Para []
+,Para [Str "See",Space,Str "Table",Space,Str "2."]]

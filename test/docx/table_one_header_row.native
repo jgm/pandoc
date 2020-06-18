@@ -1,0 +1,18 @@
+[Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignDefault,ColWidth 0.33302433371958284)
+ ,(AlignDefault,ColWidth 0.3332560834298957)
+ ,(AlignDefault,ColWidth 0.33371958285052145)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "One"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Row"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Table"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [])]
+ (TableFoot ("",[],[])
+ [])]
