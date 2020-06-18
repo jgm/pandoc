@@ -2435,6 +2435,8 @@ simpTable envname hasWidthParameter = try $ do
   spaces
   header' <- option (Row nullAttr []) $ try (parseTableRow envname prefsufs <*
                                    lbreak <* many1 hline)
+  -- Remove "null" headers
+  let header'' = if header' == (Row nullAttr []) then [] else [header']
   spaces
   rows <- sepEndBy (parseTableRow envname prefsufs)
                     (lbreak <* optional (skipMany hline))
@@ -2448,7 +2450,7 @@ simpTable envname hasWidthParameter = try $ do
   lookAhead $ controlSeq "end" -- make sure we're at end
   return $ table emptyCaption
                  (zip aligns widths)
-                 (TableHead nullAttr $ [header'])
+                 (TableHead nullAttr $ header'')
                  [TableBody nullAttr 0 [] rows]
                  (TableFoot nullAttr [])
 
