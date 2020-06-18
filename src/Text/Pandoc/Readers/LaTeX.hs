@@ -2382,13 +2382,18 @@ cellAlignment = skipMany (symbol '|') *> (left <|> right <|> center <|> def') <*
       where isc (Tok _ Word d) = maybe False (\(c', _) -> c == c') (T.uncons d)
             isc _ = False
 
+plainify :: Blocks -> Blocks
+plainify bs = case toList bs of
+                [Para ils] -> plain (fromList ils)
+                _          -> bs
+
 parseMultiCell :: PandocMonad m => LP m Cell
 parseMultiCell =   (controlSeq "multirow"    >> parseMultirowCell) 
                <|> (controlSeq "multicolumn" >> parseMulticolCell)
   where
     parseMultirowCell = parseMultiXCell RowSpan (const $ ColSpan 1)
     parseMulticolCell = parseMultiXCell (const $ RowSpan 1) ColSpan
-  
+
     parseMultiXCell rowspanf colspanf = do
       span' <- untokenize <$> braced
       let span'' = maybe 1 id $ safeRead span'
@@ -2399,7 +2404,7 @@ parseMultiCell =   (controlSeq "multirow"    >> parseMultirowCell)
       cellContent <- optionMaybe parseMultiCell
       case cellContent of
         Nothing -> do
-          content   <- blocks
+          content   <- plainify <$> blocks
           symbol '}'
           return $ cell alignment (rowspanf span'') (colspanf span'') content
         Just (Cell _ _ (RowSpan rs) (ColSpan cs) bs) -> do
@@ -2413,10 +2418,8 @@ parseMultiCell =   (controlSeq "multirow"    >> parseMultirowCell)
 -- Parse a simple cell, i.e. not multirow/multicol
 parseSimpleCell :: PandocMonad m => LP m Cell
 parseSimpleCell = do
-  let plainify bs = case toList bs of
-                         [Para ils] -> plain (fromList ils)
-                         _          -> bs
   cells <- plainify <$> blocks
+  -- TODO: inherit alignment from the column
   return $ cell AlignDefault (RowSpan 1) (ColSpan 1) cells
 
 simpTable :: PandocMonad m => Text -> Bool -> LP m Blocks
