@@ -2417,10 +2417,7 @@ parseMultiCell =   (controlSeq "multirow"    >> parseMultirowCell)
 
 -- Parse a simple cell, i.e. not multirow/multicol
 parseSimpleCell :: PandocMonad m => LP m Cell
-parseSimpleCell = do
-  cells <- plainify <$> blocks
-  -- TODO: inherit alignment from the column
-  return $ cell AlignDefault (RowSpan 1) (ColSpan 1) cells
+parseSimpleCell = simpleCell <$> (plainify <$> blocks)
 
 simpTable :: PandocMonad m => Text -> Bool -> LP m Blocks
 simpTable envname hasWidthParameter = try $ do

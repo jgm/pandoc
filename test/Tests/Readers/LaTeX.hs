@@ -35,13 +35,17 @@ infix 4 =:
      => String -> (Text, c) -> TestTree
 (=:) = test latex
 
-simpleTable' :: [Alignment] -> [[Blocks]] -> Blocks
-simpleTable' aligns rows
+table' :: [Alignment] -> [Row] -> Blocks
+table' aligns rows
   = table emptyCaption
           (zip aligns (repeat ColWidthDefault))
           (TableHead nullAttr [])
-          [TableBody nullAttr 0 [] $ map toRow rows]
+          [TableBody nullAttr 0 [] rows]
           (TableFoot nullAttr [])
+
+simpleTable' :: [Alignment] -> [[Blocks]] -> Blocks
+simpleTable' aligns rows
+  = table' aligns (map toRow rows)
   where
     toRow = Row nullAttr . map simpleCell
 
@@ -137,6 +141,31 @@ tests = [ testGroup "tokenization"
           , "Table with vertical alignment argument" =:
             "\\begin{tabular}[t]{r|r}One & Two\\\\ \\end{tabular}" =?>
             simpleTable' [AlignRight,AlignRight] [[plain "One", plain "Two"]]
+          , "Table with multicolumn item" =:
+            "\\begin{tabular}{l c r}\\multicolumn{2}{c}{One} & Two\\\\ \\end{tabular}" =?>
+            table' [AlignLeft, AlignCenter, AlignRight]
+                   [ Row nullAttr [ cell AlignCenter (RowSpan 1) (ColSpan 2) (plain "One")
+                                  , simpleCell (plain "Two")
+                                  ]
+                   ]
+          , "Table with multirow item" =:
+            "\\begin{tabular}{c}\\multirow{2}{c}{One}\\\\Two\\\\\\end{tabular}"=?>
+            table' [AlignCenter]
+                  [ Row nullAttr [ cell AlignCenter (RowSpan 2) (ColSpan 1) (plain "One") ]
+                  , Row nullAttr [ simpleCell (plain "Two") ]
+                  ]
+          , "Table with nested multirow/multicolumn item" =:
+            "\\begin{tabular}{c c c}\\multirow{2}{c}{\\multicolumn{2}{c}{One}}&Two\\\\Three\\\\Four&Five&Six\\\\\\end{tabular}" =?>
+            table' [AlignCenter, AlignCenter, AlignCenter]
+                   [ Row nullAttr [ cell AlignCenter (RowSpan 2) (ColSpan 2) (plain "One")
+                                  , simpleCell (plain "Two")
+                                  ]
+                   , Row nullAttr [ simpleCell (plain "Three") ]
+                   , Row nullAttr [ simpleCell (plain "Four") 
+                                  , simpleCell (plain "Five")
+                                  , simpleCell (plain "Six")
+                                  ]
+                   ]
           ]
 
         , testGroup "citations"
