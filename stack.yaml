@@ -19,8 +19,8 @@ extra-deps:
   commit: 2e6fe791ec5293acc925c2ccbe79c9c10d2b7e07
 - texmath-0.12.0.2
 - haddock-library-1.9.0
-- skylighting-0.8.4
-- skylighting-core-0.8.4
+- skylighting-0.8.5
+- skylighting-core-0.8.5
 - regex-pcre-builtin-0.95.1.2.8.43
 - regex-base-0.94.0.0
 - doclayout-0.3
