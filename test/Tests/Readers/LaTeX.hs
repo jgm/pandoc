@@ -166,6 +166,17 @@ tests = [ testGroup "tokenization"
                                   , simpleCell (plain "Six")
                                   ]
                    ]
+          , "Table with multicolumn header" =:
+            "\\begin{tabular}{ |l|l| }\\hline\\multicolumn{2}{|c|}{Header}\\\\ \\hline key & val\\\\ \\hline\\end{tabular}" =?>
+            table emptyCaption
+                  (zip [AlignLeft, AlignLeft] (repeat ColWidthDefault))
+                  (TableHead nullAttr [ Row nullAttr [cell AlignCenter (RowSpan 1) (ColSpan 2) (plain "Header")]])
+                  [TableBody nullAttr 0 [] [Row nullAttr [ simpleCell (plain "key")
+                                                         , simpleCell (plain "val")
+                                                         ]
+                                           ]
+                  ]
+                  (TableFoot nullAttr [])
           ]
 
         , testGroup "citations"
