@@ -214,6 +214,10 @@ tests =
                 , "[[file:guinea-pig.gif]]"
                 ] =?>
       para (imageWith ("", [], [("width", "50%")]) "guinea-pig.gif" "" "")
+
+    , "Uppercase extension" =:
+      "[[file:test.PNG]]" =?>
+      para (image "test.PNG" "" "")
     ]
 
   , "Explicit link" =:
