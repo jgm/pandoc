@@ -1816,17 +1816,25 @@ ${ endfor }
 ### Partials
 
 Partials (subtemplates stored in different files) may be
-included using the syntax
+included by using the name of the partial, followed
+by `()`, for example:
 
 ```
-${ boilerplate() }
+${ styles() }
 ```
 
 Partials will be sought in the directory containing
-the main template, and will be assumed to have the
-same extension as the main template if they lack
-an explicit extension.  (If the partials are not
-found here, they will also be sought in the `templates`
+the main template. The file name will be assumed to
+have the same extension as the main template if it
+lacks an extension. When calling the partial, the
+full name including file extension can also be used:
+
+```
+${ styles.html() }
+```
+
+(If a partial is not found in the directory of the
+template, it will also be sought in the `templates`
 subdirectory of the user data directory.)
 
 Partials may optionally be applied to variables using
