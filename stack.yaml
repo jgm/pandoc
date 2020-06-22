@@ -12,9 +12,7 @@ flags:
 packages:
 - '.'
 extra-deps:
-# to be replaced eventually by pandoc-types-1.21:
-- git: https://github.com/jgm/pandoc-types
-  commit: dd50a6eaeaf63773bbf04d6ef34b86d6f92b7825
+- pandoc-types-1.21
 - git: https://github.com/jgm/pandoc-citeproc
   commit: 2e6fe791ec5293acc925c2ccbe79c9c10d2b7e07
 - texmath-0.12.0.2
