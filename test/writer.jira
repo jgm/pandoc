@@ -377,7 +377,7 @@ h1. {anchor:latex}LaTeX
 * 223
 * _p_\-Tree
 * Here’s some display math: 
-$$\frac{d\}\{dx}f\(x)=\lim\_\{h\to 0\}&bsol;frac{f(x+h)-f\(x)\}\{h}$$
+$$\frac\{d\}\{dx\}f\(x)=\lim\_\{h\to 0\}&bsol;frac\{f(x+h)-f\(x)\}\{h\}$$
 
 * Here’s one that has a line break in it: _α_ + {_}ω{_} × {_}x{_}^2^.
 
