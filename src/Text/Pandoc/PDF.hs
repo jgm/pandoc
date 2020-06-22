@@ -153,7 +153,8 @@ makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
                             (getField "margin-left" meta'))
                  ,("footer-html", getField "footer-html" meta')
                  ,("header-html", getField "header-html" meta')
-                 ] ++ pdfargs
+                 ] ++ ("--enable-local-file-access" : pdfargs)
+                 -- see #6474
   source <- writer opts doc
   verbosity <- getVerbosity
   liftIO $ html2pdf verbosity program args source
