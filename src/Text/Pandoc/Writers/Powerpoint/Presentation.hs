@@ -370,7 +370,7 @@ inlineToParElems (Note blks) = do
     modify $ \st -> st { stNoteIds = M.insert curNoteId blks notes }
     local (\env -> env{envRunProps = (envRunProps env){rLink = Just $ InternalTarget endNotesSlideId}}) $
       inlineToParElems $ Superscript [Str $ tshow curNoteId]
-inlineToParElems (Span (_, ["underline"], _) ils) =
+inlineToParElems (Underline ils) =
   local (\r -> r{envRunProps = (envRunProps r){rPropUnderline=True}}) $
   inlinesToParElems ils
 inlineToParElems (Span _ ils) = inlinesToParElems ils
