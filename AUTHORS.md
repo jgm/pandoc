@@ -39,6 +39,8 @@
 - Caleb Mclennan
 - Calvin Beck
 - Carlos Sosa
+- Cécile Chemin
+- Cédric Couralet
 - Chris Black
 - Christian Conkle
 - Christian Despres
@@ -104,6 +106,7 @@
 - J. B. Rainsberger
 - J. Lewis Muir
 - Jaime Marquínez Ferrándiz
+- Jake Zimmerman
 - Jakob Voß
 - James Aspnes
 - Jamie F. Olson
@@ -131,6 +134,7 @@
 - Josef Svenningsson
 - Joseph C. Sible
 - Julien Cretel
+- Juliette Fourcot
 - Juliusz Gonera
 - Justin Bogner
 - Jérémy Bobbio
@@ -145,6 +149,7 @@
 - Lars-Dominik Braun
 - Laurent P. René de Cotret
 - Leif Metcalf
+- Lila
 - Lucas Escot
 - Luke Plant
 - Marc Schreiber
@@ -206,6 +211,7 @@
 - Recai Oktaş
 - Roland Hieber
 - RyanGlScott
+- Salim B
 - Sascha Wilde
 - Scott Morrison
 - Sebastian Talmon
@@ -239,6 +245,7 @@
 - Vasily Alferov
 - Viktor Kronvall
 - Vincent
+- Vlad Hanciuta
 - Wandmalfarbe
 - Waldir Pimenta
 - Wikiwide
