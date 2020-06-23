@@ -89,13 +89,6 @@
       for the part after the initial capital.  Ensure that both
       arguments are parsed, so that in Markdown both
       are treated as raw LateX. (Closes #6258.)
-    + Don't put surrounding Div around Table.
-      This reverts a change in the last release; the Div is
-      no longer needed, because we can now put the id right in
-      the Table's attributes.  However, writers may still need
-      to be modified to do something with the id in a Table
-      (e.g. create an anchor), so in the short term we may lose
-      the ability to link to tables in some writers.
 
   * Org reader (Albert Krewinkel):
 
