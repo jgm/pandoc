@@ -143,7 +143,9 @@
 - Krystof Beuermann
 - Herwig Stuetz
 - Lars-Dominik Braun
+- Laurent P. René de Cotret
 - Leif Metcalf
+- Lucas Escot
 - Luke Plant
 - Marc Schreiber
 - Mark Szepieniec
@@ -153,6 +155,7 @@
 - Matej Kollar
 - Mathias Schenner
 - Mathias Walter
+- Mathieu Boespflug
 - Mathieu Duponchelle
 - Matthew Doty
 - Matthew Eddey
@@ -165,6 +168,7 @@
 - Michael Beaumont
 - Michael Chladek
 - Michael Peyton Jones
+- Michael Reed
 - Michael Snoyman
 - Michael Thompson
 - Mike Tzou
@@ -225,6 +229,7 @@
 - Tiziano Müller
 - Todd Sifleet
 - Tom Leese
+- Tristan de Cacqueray
 - Tristan Stenner
 - Uli Köhler
 - Urs Liska
@@ -243,11 +248,13 @@
 - Yoan Blanc
 - Yuchen Pei
 - Zihang Chen
+- andrebauer
 - blmage
 - bucklereed
 - bumper314
 - chinapedia
 - csforste
+- dbecher-ito
 - d-dorazio
 - ebiim
 - infinity0x
