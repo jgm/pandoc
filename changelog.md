@@ -46,22 +46,18 @@
     + Resolve multiple parsing problems, including issues with empty
       table cells, faulty recognition of closing emphasis characters, and
       parsing of image attributes (#6212, #6219, #6220).
-    + Require jira-wiki-markup 1.3.1 or later.
-      This solves the following problems: Two consecutive markup
-      chars are now parsed verbatim (#6343); styled text must
-      not be empty.  Styled text may not contain newlines
-      (#6325).  Links to anchors are now parsed as links
-      (#6407).
+    + Two consecutive markup chars are now parsed verbatim (#6343);
+      styled text must not be empty.
+    + Newlines are no longer allowed within styled text (#6325).
+    + Links to anchors are now parsed as links (#6407).
     + Retain image attributes (#6234).  Jira images attributes as in
       `!image.jpg|align=right!` are retained as key-value pairs. Thumbnail
       images, such as `!example.gif|thumbnail!`, are marked by a
       `thumbnail` class in their attributes.
-    + Read `(?)` icon as "small questionmark" character (#6236).
-    + Use Underline for inserted text (#6237). Previously, the
-        span was marked with the non-standard class `inserted`.
-        Closes: #6237
-    + Improve icon conversion for `(/)`, `(x)`, `(!)`,
-      `(+)`, `(-)`, `(off)`, `(*)`. (#6264).
+    + Use Underline for inserted text (#6237). Previously, the span was
+      marked with the non-standard class `inserted`.
+    + Improve icon conversion for `(/)`, `(x)`, `(!)`, `(?)`
+      `(+)`, `(-)`, `(off)`, `(*)`. (#6236, #6264).
     + Support citations, attachment links, and user links (#6231, #6238,
       #6239).
     + Resolve parsing issues of blockquote, color (#6233, #6235).
@@ -283,8 +279,6 @@
 
   * Lua subsystem (Albert Krewinkel):
 
-    + Fix regression in package searcher (#6361).
-      This caused `require 'module'` to fail for third party packages.
     + Use new type PandocLua for all pandoc Lua operations (API change).
       The new type `PandocLua` is an instance of the `PandocMonad` typeclass
       and can thus be used in a way similar to `PandocIO`.
