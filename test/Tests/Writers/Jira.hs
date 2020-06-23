@@ -20,8 +20,7 @@ tests :: [TestTree]
 tests =
   [ testGroup "inlines"
     [ "underlined text" =:
-      spanWith ("ignored", ["ignored", "underline"], [("foo", "bar")])
-               "underlined text" =?>
+      underline "underlined text" =?>
       "+underlined text+"
 
     , "image with attributes" =:

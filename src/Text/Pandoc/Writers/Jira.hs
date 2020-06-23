@@ -290,10 +290,7 @@ quotedToJira qtype xs = do
 spanToJira :: PandocMonad m
            => Attr -> [Inline]
            -> JiraConverter m [Jira.Inline]
-spanToJira (_, classes, _) =
-  if "underline" `elem` classes
-  then styled Jira.Insert
-  else toJiraInlines
+spanToJira (_, _classes, _) = toJiraInlines
 
 registerNotes :: PandocMonad m => [Block] -> JiraConverter m [Jira.Inline]
 registerNotes contents = do

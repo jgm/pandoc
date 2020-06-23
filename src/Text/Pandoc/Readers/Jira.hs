@@ -141,7 +141,7 @@ jiraToPandocInlines = \case
 
     fromStyle = \case
       Jira.Emphasis    -> emph
-      Jira.Insert      -> spanWith ("", ["underline"], [])
+      Jira.Insert      -> underline
       Jira.Strikeout   -> strikeout
       Jira.Strong      -> strong
       Jira.Subscript   -> subscript

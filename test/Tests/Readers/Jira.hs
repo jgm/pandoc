@@ -172,7 +172,7 @@ tests =
 
     , "inserted text" =:
       "+the new version+" =?>
-      para (spanWith ("", ["underline"], []) "the new version")
+      para (underline "the new version")
 
     , "HTML entity" =:
       "me &amp; you" =?> para "me & you"
