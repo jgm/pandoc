@@ -5,7 +5,7 @@ on:
     branches:
     - '*'
     - '!rc/*'
-    ignore-paths:
+    paths-ignore:
     - 'doc/**'
     - 'MANUAL.txt'
     - '*.md'
@@ -20,7 +20,7 @@ on:
     - 'windows/**'
     - 'man/**'
   pull_request:
-    ignore-paths:
+    paths-ignore:
     - 'doc/**'
     - 'MANUAL.txt'
     - '*.md'
