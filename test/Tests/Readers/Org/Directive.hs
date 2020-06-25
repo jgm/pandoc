@@ -162,6 +162,79 @@ tests =
                   ] =?>
         headerWith ("headline", [], mempty) 1 "Headline"
 
+    , testGroup "LaTeX"
+      [ testGroup "Include LaTeX fragments"
+        [ "Inline command" =:
+          T.unlines [ "#+OPTIONS: tex:t"
+                    , "Hello \\emph{Name}"
+                    ] =?>
+          para ("Hello" <> space <> emph "Name")
+
+        , "Alpha" =:
+          T.unlines [ "#+OPTIONS: tex:t"
+                    , "\\alpha"
+                    ] =?>
+          para "α"
+
+        , "equation environment" =:
+          T.unlines [ "#+OPTIONS: tex:t"
+                    , "\\begin{equation}"
+                    , "f(x) = x^2"
+                    , "\\end{equation}"
+                    ] =?>
+          rawBlock "latex" (T.unlines [ "\\begin{equation}"
+                                      , "f(x) = x^2"
+                                      , "\\end{equation}"
+                                      ])
+        ]
+
+      , testGroup "Ignore LaTeX fragments"
+        [ "Inline command" =:
+          T.unlines [ "#+OPTIONS: tex:nil"
+                    , "Hello \\emph{Emphasised}"
+                    ] =?>
+          para "Hello"
+
+        , "MathML symbol (alpha)" =:
+          T.unlines [ "#+OPTIONS: tex:nil"
+                    , "\\alpha"
+                    ] =?>
+          para "α"
+
+        , "equation environment" =:
+          T.unlines [ "#+OPTIONS: tex:nil"
+                    , "\\begin{equation}"
+                    , "f(x) = x^2"
+                    , "\\end{equation}"
+                    ] =?>
+          (mempty :: Blocks)
+        ]
+
+      , testGroup "Verbatim LaTeX"
+        [ "Inline command" =:
+          T.unlines [ "#+OPTIONS: tex:verbatim"
+                    , "Hello \\emph{Emphasised}"
+                    ] =?>
+          para "Hello \\emph{Emphasised}"
+
+        , "MathML symbol (alpha)" =:
+          T.unlines [ "#+OPTIONS: tex:verbatim"
+                    , "\\alpha"
+                    ] =?>
+          para "α"
+
+        , "equation environment" =:
+          T.unlines [ "#+OPTIONS: tex:verbatim"
+                    , "\\begin{equation}"
+                    , "f(x) = x^2"
+                    , "\\end{equation}"
+                    ] =?>
+          para (str "\\begin{equation}" <> softbreak <>
+                str "f(x) = x^2" <> softbreak <>
+                str "\\end{equation}")
+        ]
+      ]
+
     , testGroup "planning information"
       [ "include planning info after headlines" =:
         T.unlines [ "#+OPTIONS: p:t"

@@ -34,7 +34,7 @@ import Text.Pandoc.Shared (compactify, compactifyDL, safeRead)
 import Control.Monad (foldM, guard, mplus, mzero, void)
 import Data.Char (isSpace)
 import Data.Default (Default)
-import Data.List (foldl')
+import Data.List (foldl', intersperse)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
 
@@ -739,22 +739,26 @@ rowToContent tbl row =
 --
 -- LaTeX fragments
 --
-latexFragment :: Monad m => OrgParser m (F Blocks)
+latexFragment :: PandocMonad m => OrgParser m (F Blocks)
 latexFragment = try $ do
   envName <- latexEnvStart
-  content <- mconcat <$> manyTill anyLineNewline (latexEnd envName)
-  returnF $ B.rawBlock "latex" (content `inLatexEnv` envName)
+  texOpt  <- getExportSetting exportWithLatex
+  let envStart = "\\begin{" <> envName <> "}"
+  let envEnd = "\\end{" <> envName <> "}"
+  envLines <- do
+    content <- manyTill anyLine (latexEnd envName)
+    return $ envStart : content ++ [envEnd]
+  returnF $ case texOpt of
+    TeXExport -> B.rawBlock "latex" . T.unlines $ envLines
+    TeXIgnore   -> mempty
+    TeXVerbatim -> B.para . mconcat . intersperse B.softbreak $
+                   map B.str envLines
  where
-   c `inLatexEnv` e = mconcat [ "\\begin{", e, "}\n"
-                              , c
-                              , "\\end{", e, "}\n"
-                              ]
-
-latexEnd :: Monad m => Text -> OrgParser m ()
-latexEnd envName = try $
-  () <$ skipSpaces
-     <* textStr ("\\end{" <> envName <> "}")
-     <* blankline
+  latexEnd :: Monad m => Text -> OrgParser m ()
+  latexEnd envName = try . void
+     $ skipSpaces
+    <* textStr ("\\end{" <> envName <> "}")
+    <* blankline
 
 
 --
