@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -26,10 +27,10 @@ import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Shared (blocksToInlines, safeRead)
 
 import Control.Monad (mzero, void, when)
-import Data.List (intersperse)
+import Data.List (intercalate, intersperse)
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 import qualified Data.Set as Set
@@ -80,6 +81,7 @@ metaValue key =
     "title"           -> (key,) <$> metaInlines
     "subtitle"        -> (key,) <$> metaInlines
     "date"            -> (key,) <$> metaInlines
+    "description"     -> (key,) <$> accumulatingInlines key
     "nocite"          -> (key,) <$> accumulatingList key metaInlines
     "header-includes" -> (key,) <$> accumulatingList key metaInlines
     "latex_header"    -> (inclKey,) <$>
@@ -92,6 +94,8 @@ metaValue key =
     "html_head"       -> (inclKey,) <$>
                          accumulatingList inclKey (metaExportSnippet "html")
     _                 -> (key,) <$> metaString
+
+-- TODO Cleanup this mess
 
 metaInlines :: PandocMonad m => OrgParser m (F MetaValue)
 metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
@@ -115,18 +119,50 @@ metaExportSnippet :: Monad m => Text -> OrgParser m (F MetaValue)
 metaExportSnippet format =
   return . MetaInlines . B.toList . B.rawInline format <$> anyLine
 
+accumulatingInlines :: PandocMonad m
+                    => Text
+                    -> OrgParser m (F MetaValue)
+accumulatingInlines key = do
+  value <- inlinesTillNewline
+  accumulating appendValue (B.toList <$> value)
+ where
+  appendValue :: Meta -> [Inline] -> MetaValue
+  appendValue m v = MetaInlines $ curInlines m <> v
+
+  curInlines m = case collectInlines <$> lookupMeta key m of
+    Nothing -> []
+    Just [] -> []
+    Just xs -> xs <> [B.SoftBreak]
+
+  collectInlines :: MetaValue -> [Inline]
+  collectInlines = \case
+    MetaInlines inlns -> inlns
+    MetaList ml       -> intercalate [B.SoftBreak] $ map collectInlines ml
+    MetaString s      -> [B.Str s]
+    MetaBlocks blks   -> blocksToInlines blks
+    MetaMap _map      -> []
+    MetaBool _bool    -> []
+
 -- | Accumulate the result of the @parser@ in a list under @key@.
 accumulatingList :: Monad m => Text
                  -> OrgParser m (F MetaValue)
                  -> OrgParser m (F MetaValue)
-accumulatingList key p = do
-  value <- p
-  meta' <- orgStateMeta <$> getState
-  return $ (\m v -> MetaList (curList m ++ [v])) <$> meta' <*> value
- where curList m = case lookupMeta key m of
-                     Just (MetaList ms) -> ms
-                     Just x             -> [x]
-                     _                  -> []
+accumulatingList key p = p >>= accumulating metaListAppend
+ where
+  metaListAppend m v = MetaList (curList m ++ [v])
+
+  curList m = case lookupMeta key m of
+                Just (MetaList ms) -> ms
+                Just x             -> [x]
+                _                  -> []
+
+accumulating :: Monad m
+             => (Meta -> a -> MetaValue)
+             -> F a
+             -> OrgParser m (F MetaValue)
+accumulating acc value = do
+  meta <- orgStateMeta <$> getState
+  return $ acc <$> meta <*> value
 
 --
 -- export options

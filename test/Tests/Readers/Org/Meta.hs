@@ -65,11 +65,23 @@ tests =
         meta = setMeta "date" (MetaInlines date) nullMeta
     in Pandoc meta mempty
 
-  , "Description" =:
-    "#+DESCRIPTION: Explanatory text" =?>
-    let description = "Explanatory text"
-        meta = setMeta "description" (MetaString description) nullMeta
-    in Pandoc meta mempty
+  , testGroup "Description"
+    [ "Single line" =:
+      "#+DESCRIPTION: Explanatory text" =?>
+      let description = [Str "Explanatory", Space, Str "text"]
+          meta = setMeta "description" (MetaInlines description) nullMeta
+      in Pandoc meta mempty
+
+    , "Multiline" =:
+      T.unlines [ "#+DESCRIPTION: /Short/ introduction"
+                , "#+DESCRIPTION: to Org-mode"
+                ] =?>
+      let description = [ Emph [Str "Short"], Space, Str "introduction", SoftBreak
+                        , Str "to", Space, Str "Org-mode"
+                        ]
+          meta = setMeta "description" (MetaInlines description) nullMeta
+      in Pandoc meta mempty
+    ]
 
   , "Properties drawer" =:
       T.unlines [ "  :PROPERTIES:"
