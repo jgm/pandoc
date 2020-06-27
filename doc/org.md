@@ -36,6 +36,63 @@ The following export keywords are supported:
   defaults to stdout unless a target has to be given as a command
   line option.
 
+Format-specific options
+-----------------------
+
+Emacs Org-mode supports additional export options which work for
+specific export formats. Some of these options' behavior differs
+in Org-mode depending on the output format, while pandoc is
+format-agnostic when parsing; differences are noted where they
+occur.
+
+- DESCRIPTION: the document's description; pandoc parses this
+  option as text with markup into the `description` metadata
+  field. The field is not used in default templates.
+
+  Pandoc follows the LaTeX exporter in that it allows markup in
+  the description. In contrast, the Org-mode HTML exporter treats
+  reads the description as plain text.
+
+- LATEX_HEADER: arbitrary lines to add to the document's preamble.
+  Contrary to Org-mode, these lines are not inserted before the
+  hyperref settings, but close to the end of the preamble.
+
+  The contents of this option are stored as a list of raw LaTeX
+  lines in the `header-includes` metadata field.
+
+- LATEX\_CLASS: the LaTeX document class; like Org-mode, pandoc
+  uses `article` as the default class.
+
+  The contents of this option are stored as plain text in the
+  `documentclass` metadata field.
+
+- LATEX\_CLASS\_OPTIONS: Options for the LaTeX document class;
+  fully supported.
+
+  The contents of this option are stored as plain text in the
+  `classoption` metadata field.
+
+- SUBTITLE: the document's subtitle; fully supported.
+
+- HTML_HEAD: arbitrary lines to add to the HTML document's head;
+  fully supported.
+
+  The contents of this option are stored as a list of raw HTML
+  lines in the `header-includes` metadata field.
+
+Pandoc-specific options
+-----------------------
+
+Pandoc recognizes some export options not used by Emacs Org.
+
+- NOCITE: this field adds the listed citations to the
+  bibliography, without the need to mention them to the text. The
+  special value `@*` causes all available references to be added
+  the bibliography.
+
+- HEADER-INCLUDES: like HTML_HEAD and, LATEX_HEADER, but treats
+  the option's value as normal text with markup.
+
 
 Citations
 =========
