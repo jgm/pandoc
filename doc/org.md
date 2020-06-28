@@ -244,6 +244,33 @@ be parsed using default emphasis rules:
     #+pandoc-emphasis-pre:
     #+pandoc-emphasis-post:
 
+`smart` extension
+=================
+
+Org-mode allows to insert certain characters via special character
+sequences. For example, instead of typing the Unicode /HORIZONTAL
+ELLISPIS/ character `…` by hand, one can instead type tree dots
+`...`. En dashes and em dashes can be written as `--` and `---`
+respectively. Furthermore, quotation marks (`"`) and
+apostrophe-quotes (`'`) can be treated in a "smart" way,
+potentially replacing them with proper, language specific unicode
+quotation characters.
+
+Like in Markdown, these behaviors can be turned on all-at-once by
+enabling the `smart` extension. However, disabling `smart` (the
+default) will *not* necessarily disable smart quotes and special
+strings. Instead, it will just result in the default Org mode
+behavior.
+
+The special string feature can be turned off via the `#+OPTIONS:
+-:nil` [export setting]. There are currently no command line flags
+which control these features. As a workaround, one can use process
+substitution, a feature supported by most shells. It allows to
+provide the options line on the command line:
+
+    pandoc -f org <(printf "#+OPTIONS: -:nil\n") …
+
+[export setting]: https://orgmode.org/manual/Export-Settings.html
 
 Currently unsupported features
 ==============================
