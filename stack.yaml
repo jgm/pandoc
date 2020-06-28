@@ -22,7 +22,7 @@ extra-deps:
 - regex-base-0.94.0.0
 - doclayout-0.3
 - emojis-0.1
-- hslua-1.1.0
+- hslua-1.1.2
 - jira-wiki-markup-1.3.2
 - HsYAML-0.2.1.0
 - HsYAML-aeson-0.2.0.0
