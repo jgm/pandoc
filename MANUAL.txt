@@ -386,8 +386,7 @@ header when requesting a document from a URL:
 
 `--verbose`
 
-:   Give verbose debugging output.  Currently this only has an effect
-    with PDF output.
+:   Give verbose debugging output.
 
 `--quiet`
 
