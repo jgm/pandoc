@@ -73,20 +73,26 @@ metaKey = T.toLower <$> many1Char (noneOf ": \n\r")
 
 exportSettingHandlers :: PandocMonad m => Map Text (OrgParser m ())
 exportSettingHandlers = Map.fromList
-  [ ("result"     , fmap pure anyLine `parseThen` discard)        -- RESULT is never an export setting
-  , ("author"     , lineOfInlines   `parseThen` collectLines "author")
-  , ("keywords"   , lineOfInlines   `parseThen` collectLines "keywords")
-  , ("date"       , lineOfInlines   `parseThen` setField "date")
-  , ("description", lineOfInlines   `parseThen` collectLines "description")
-  , ("title"      , lineOfInlines   `parseThen` collectLines "title")
-  , ("nocite"     , lineOfInlines   `parseThen` collectAsList "nocite")
+  [ ("result"     , fmap pure anyLine `parseThen` discard)
+    -- Common settings
+  , ("author"     , lineOfInlines `parseThen` collectLines "author")
+  , ("date"       , lineOfInlines `parseThen` setField "date")
+  , ("description", lineOfInlines `parseThen` collectLines "description")
+  , ("keywords"   , lineOfInlines `parseThen` collectLines "keywords")
+  , ("title"      , lineOfInlines `parseThen` collectLines "title")
+    -- LaTeX
   , ("latex_class", fmap pure anyLine `parseThen` setField "documentclass")
   , ("latex_class_options", (pure . T.filter (`notElem` ("[]" :: String)) <$> anyLine)
                             `parseThen` setField "classoption")
   , ("latex_header", metaExportSnippet "latex" `parseThen`
                      collectAsList "header-includes")
+    -- HTML
   , ("html_head"  , metaExportSnippet "html" `parseThen`
                     collectAsList "header-includes")
+    -- pandoc-specific
+  , ("nocite"         , lineOfInlines `parseThen` collectLines "nocite")
+  , ("header-includes", lineOfInlines `parseThen` collectLines "header-includes")
+  , ("institute"      , lineOfInlines `parseThen` collectLines "institute")
   ]
 
 parseThen :: PandocMonad m

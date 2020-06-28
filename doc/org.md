@@ -93,6 +93,11 @@ Pandoc recognizes some export options not used by Emacs Org.
 - HEADER-INCLUDES: like HTML_HEAD and, LATEX_HEADER, but treats
   the option's value as normal text with markup.
 
+- INSTITUTE: Affiliation of the author; the value is read as text
+  with markup and is stored in the `institute` metadata field. The
+  field is included by default on the title slide of beamer
+  presentations.
+
 
 Citations
 =========

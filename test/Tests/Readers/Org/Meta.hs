@@ -133,6 +133,10 @@ tests =
           inclList = MetaList [MetaInlines (toList html)]
           meta = setMeta "header-includes" inclList nullMeta
       in Pandoc meta mempty
+
+    , "Institute" =:
+      "#+INSTITUTE: ACME Inc." =?>
+      Pandoc (setMeta "institute" ("ACME Inc." :: Inlines) nullMeta) mempty
     ]
 
   , "Properties drawer" =:
