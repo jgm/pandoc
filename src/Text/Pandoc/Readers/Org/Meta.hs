@@ -74,11 +74,11 @@ metaKey = T.toLower <$> many1Char (noneOf ": \n\r")
 exportSettingHandlers :: PandocMonad m => Map Text (OrgParser m ())
 exportSettingHandlers = Map.fromList
   [ ("result"     , fmap pure anyLine `parseThen` discard)        -- RESULT is never an export setting
-  , ("author"     , commaSepInlines `parseThen` setField "author")
-  , ("keywords"   , commaSepInlines `parseThen` setField "keywords")
+  , ("author"     , lineOfInlines   `parseThen` collectLines "author")
+  , ("keywords"   , lineOfInlines   `parseThen` collectLines "keywords")
   , ("date"       , lineOfInlines   `parseThen` setField "date")
-  , ("description", lineOfInlines   `parseThen` collectSepBy B.SoftBreak "description")
-  , ("title"      , lineOfInlines   `parseThen` collectSepBy B.Space "title")
+  , ("description", lineOfInlines   `parseThen` collectLines "description")
+  , ("title"      , lineOfInlines   `parseThen` collectLines "title")
   , ("nocite"     , lineOfInlines   `parseThen` collectAsList "nocite")
   , ("latex_class", fmap pure anyLine `parseThen` setField "documentclass")
   , ("latex_class_options", (pure . T.filter (`notElem` ("[]" :: String)) <$> anyLine)
@@ -101,8 +101,8 @@ parseThen p modMeta = do
 discard :: a -> Meta -> Meta
 discard = const id
 
-collectSepBy :: Inline -> Text -> Inlines -> Meta -> Meta
-collectSepBy sep key value meta =
+collectLines :: Text -> Inlines -> Meta -> Meta
+collectLines key value meta =
   let value' = appendValue meta (B.toList value)
   in B.setMeta key value' meta
  where
@@ -117,7 +117,7 @@ collectSepBy sep key value meta =
   collectInlines :: MetaValue -> [Inline]
   collectInlines = \case
     MetaInlines inlns -> inlns
-    MetaList ml       -> intercalate [sep] $ map collectInlines ml
+    MetaList ml       -> intercalate [B.SoftBreak] $ map collectInlines ml
     MetaString s      -> [B.Str s]
     MetaBlocks blks   -> blocksToInlines blks
     MetaMap _map      -> []
@@ -137,16 +137,6 @@ collectAsList key value meta =
 
 setField :: ToMetaValue a => Text -> a -> Meta -> Meta
 setField field value meta = B.setMeta field (B.toMetaValue value) meta
-
-lineOfInlines :: PandocMonad m => OrgParser m (F Inlines)
-lineOfInlines = inlinesTillNewline
-
-commaSepInlines :: PandocMonad m => OrgParser m (F [Inlines])
-commaSepInlines = do
-  itemStrs <- many1Char (noneOf ",\n") `sepBy1` char ','
-  newline
-  items <- mapM (parseFromString inlinesTillNewline . (<> "\n")) itemStrs
-  return $ sequence items
 
 -- | Read an format specific meta definition
 metaExportSnippet :: Monad m => Text -> OrgParser m (F Inlines)
@@ -233,8 +223,8 @@ emphChars = do
   skipSpaces
   safeRead <$> anyLine
 
-inlinesTillNewline :: PandocMonad m => OrgParser m (F Inlines)
-inlinesTillNewline = do
+lineOfInlines :: PandocMonad m => OrgParser m (F Inlines)
+lineOfInlines = do
   updateLastPreCharPos
   trimInlinesF . mconcat <$> manyTill inline newline
 

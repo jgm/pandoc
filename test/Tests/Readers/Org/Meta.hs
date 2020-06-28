@@ -46,18 +46,24 @@ tests =
         meta = setMeta "title" (MetaInlines titleInline) nullMeta
     in Pandoc meta mempty
 
-  , "Author" =:
-    "#+author: John /Emacs-Fanboy/ Doe" =?>
-    let author = toList . spcSep $ [ "John", emph "Emacs-Fanboy", "Doe" ]
-        meta = setMeta "author" (MetaList [MetaInlines author]) nullMeta
-    in Pandoc meta mempty
+  , testGroup "Author"
+    [ "sets 'author' field" =:
+      "#+author: John /Emacs-Fanboy/ Doe" =?>
+      let author = toList . spcSep $ [ "John", emph "Emacs-Fanboy", "Doe" ]
+          meta = setMeta "author" (MetaInlines author) nullMeta
+      in Pandoc meta mempty
 
-  , "Multiple authors" =:
-    "#+author: James Dewey Watson, Francis Harry Compton Crick " =?>
-    let watson = MetaInlines $ toList "James Dewey Watson"
-        crick = MetaInlines $ toList "Francis Harry Compton Crick"
-        meta = setMeta "author" (MetaList [watson, crick]) nullMeta
-    in Pandoc meta mempty
+    , "Multiple author lines" =:
+      T.unlines [ "#+author: James Dewey Watson,"
+                , "#+author: Francis Harry Compton Crick"
+                ] =?>
+      let watson = toList "James Dewey Watson,"
+          crick = toList "Francis Harry Compton Crick"
+          meta = setMeta "author"
+                         (MetaInlines (watson ++ SoftBreak : crick))
+                         nullMeta
+      in Pandoc meta mempty
+    ]
 
   , "Date" =:
     "#+Date: Feb. *28*, 2014" =?>
@@ -83,6 +89,14 @@ tests =
       in Pandoc meta mempty
     ]
 
+  , "Keywords" =:
+    T.unlines [ "#+KEYWORDS: pandoc, testing,"
+              , "#+KEYWORDS: Org"
+              ] =?>
+    let keywords = toList $ "pandoc, testing," <> softbreak <> "Org"
+        meta = setMeta "keywords" (MetaInlines keywords) nullMeta
+    in Pandoc meta mempty
+
   , "Properties drawer" =:
       T.unlines [ "  :PROPERTIES:"
                 , "  :setting: foo"
@@ -97,10 +111,19 @@ tests =
           meta = setMeta "header-includes" inclList nullMeta
       in Pandoc meta mempty
 
-  , "LaTeX_class option is translated to documentclass" =:
+  , testGroup "LaTeX_CLASS"
+    [ "LaTeX_class option is translated to documentclass" =:
       "#+LATEX_CLASS: article" =?>
       let meta = setMeta "documentclass" (MetaString "article") nullMeta
       in Pandoc meta mempty
+
+    , "last definition takes precedence" =:
+      T.unlines [ "#+LATEX_CLASS: this will not be used"
+                , "#+LATEX_CLASS: report"
+                ] =?>
+      let meta = setMeta "documentclass" (MetaString "report") nullMeta
+      in Pandoc meta mempty
+    ]
 
   , "LaTeX_class_options is translated to classoption" =:
       "#+LATEX_CLASS_OPTIONS: [a4paper]" =?>
@@ -112,14 +135,6 @@ tests =
       let html = rawInline "html" "<meta/>"
           inclList = MetaList [MetaInlines (toList html)]
           meta = setMeta "header-includes" inclList nullMeta
-      in Pandoc meta mempty
-
-  , "later meta definitions take precedence" =:
-      T.unlines [ "#+AUTHOR: this will not be used"
-                , "#+author: Max"
-                ] =?>
-      let author = MetaInlines [Str "Max"]
-          meta = setMeta "author" (MetaList [author]) nullMeta
       in Pandoc meta mempty
 
   , "Logbook drawer" =:
