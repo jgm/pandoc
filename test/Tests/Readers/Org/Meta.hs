@@ -23,15 +23,16 @@ import qualified Data.Text as T
 
 tests :: [TestTree]
 tests =
-  [ "Comment" =:
+  [ testGroup "Comments"
+    [ "Comment" =:
       "# Nothing to see here" =?>
       (mempty::Blocks)
 
-  , "Not a comment" =:
+    , "Hash not followed by space is text" =:
       "#-tag" =?>
       para "#-tag"
 
-  , "Comment surrounded by Text" =:
+    , "Comment surrounded by Text" =:
       T.unlines [ "Before"
                 , "# Comment"
                 , "After"
@@ -39,63 +40,100 @@ tests =
       mconcat [ para "Before"
               , para "After"
               ]
-
-  , "Title" =:
-    "#+TITLE: Hello, World" =?>
-    let titleInline = toList $ "Hello," <> space <> "World"
-        meta = setMeta "title" (MetaInlines titleInline) nullMeta
-    in Pandoc meta mempty
-
-  , testGroup "Author"
-    [ "sets 'author' field" =:
-      "#+author: John /Emacs-Fanboy/ Doe" =?>
-      let author = toList . spcSep $ [ "John", emph "Emacs-Fanboy", "Doe" ]
-          meta = setMeta "author" (MetaInlines author) nullMeta
-      in Pandoc meta mempty
-
-    , "Multiple author lines" =:
-      T.unlines [ "#+author: James Dewey Watson,"
-                , "#+author: Francis Harry Compton Crick"
-                ] =?>
-      let watson = toList "James Dewey Watson,"
-          crick = toList "Francis Harry Compton Crick"
-          meta = setMeta "author"
-                         (MetaInlines (watson ++ SoftBreak : crick))
-                         nullMeta
-      in Pandoc meta mempty
     ]
 
-  , "Date" =:
-    "#+Date: Feb. *28*, 2014" =?>
-    let date = toList . spcSep $ [ "Feb.", strong "28" <> ",", "2014" ]
-        meta = setMeta "date" (MetaInlines date) nullMeta
-    in Pandoc meta mempty
-
-  , testGroup "Description"
-    [ "Single line" =:
-      "#+DESCRIPTION: Explanatory text" =?>
-      let description = [Str "Explanatory", Space, Str "text"]
-          meta = setMeta "description" (MetaInlines description) nullMeta
+  , testGroup "Export settings"
+    [ "Title" =:
+      "#+TITLE: Hello, World" =?>
+      let titleInline = toList $ "Hello," <> space <> "World"
+          meta = setMeta "title" (MetaInlines titleInline) nullMeta
       in Pandoc meta mempty
 
-    , "Multiline" =:
-      T.unlines [ "#+DESCRIPTION: /Short/ introduction"
-                , "#+DESCRIPTION: to Org-mode"
+    , testGroup "Author"
+      [ "sets 'author' field" =:
+        "#+author: John /Emacs-Fanboy/ Doe" =?>
+        let author = toList . spcSep $ [ "John", emph "Emacs-Fanboy", "Doe" ]
+            meta = setMeta "author" (MetaInlines author) nullMeta
+        in Pandoc meta mempty
+
+      , "Multiple author lines" =:
+        T.unlines [ "#+author: James Dewey Watson,"
+                  , "#+author: Francis Harry Compton Crick"
+                  ] =?>
+        let watson = toList "James Dewey Watson,"
+            crick = toList "Francis Harry Compton Crick"
+            meta = setMeta "author"
+                           (MetaInlines (watson ++ SoftBreak : crick))
+                           nullMeta
+        in Pandoc meta mempty
+      ]
+
+    , "Date" =:
+      "#+Date: Feb. *28*, 2014" =?>
+      let date = toList . spcSep $ [ "Feb.", strong "28" <> ",", "2014" ]
+          meta = setMeta "date" (MetaInlines date) nullMeta
+      in Pandoc meta mempty
+
+    , testGroup "Description"
+      [ "Single line" =:
+        "#+DESCRIPTION: Explanatory text" =?>
+        let description = [Str "Explanatory", Space, Str "text"]
+            meta = setMeta "description" (MetaInlines description) nullMeta
+        in Pandoc meta mempty
+
+      , "Multiline" =:
+        T.unlines [ "#+DESCRIPTION: /Short/ introduction"
+                  , "#+DESCRIPTION: to Org-mode"
+                  ] =?>
+        let description = [ Emph [Str "Short"], Space, Str "introduction"
+                          , SoftBreak
+                          , Str "to", Space, Str "Org-mode"
+                          ]
+            meta = setMeta "description" (MetaInlines description) nullMeta
+        in Pandoc meta mempty
+      ]
+
+    , "Keywords" =:
+      T.unlines [ "#+KEYWORDS: pandoc, testing,"
+                , "#+KEYWORDS: Org"
                 ] =?>
-      let description = [ Emph [Str "Short"], Space, Str "introduction", SoftBreak
-                        , Str "to", Space, Str "Org-mode"
-                        ]
-          meta = setMeta "description" (MetaInlines description) nullMeta
+      let keywords = toList $ "pandoc, testing," <> softbreak <> "Org"
+          meta = setMeta "keywords" (MetaInlines keywords) nullMeta
+      in Pandoc meta mempty
+
+    , "LaTeX_headers options are translated to header-includes" =:
+      "#+LaTeX_header: \\usepackage{tikz}" =?>
+      let latexInlines = rawInline "latex" "\\usepackage{tikz}"
+          inclList = MetaList [MetaInlines (toList latexInlines)]
+          meta = setMeta "header-includes" inclList nullMeta
+      in Pandoc meta mempty
+
+    , testGroup "LaTeX_CLASS"
+      [ "LaTeX_class option is translated to documentclass" =:
+        "#+LATEX_CLASS: article" =?>
+        let meta = setMeta "documentclass" (MetaString "article") nullMeta
+        in Pandoc meta mempty
+
+      , "last definition takes precedence" =:
+        T.unlines [ "#+LATEX_CLASS: this will not be used"
+                  , "#+LATEX_CLASS: report"
+                  ] =?>
+        let meta = setMeta "documentclass" (MetaString "report") nullMeta
+        in Pandoc meta mempty
+      ]
+
+    , "LaTeX_class_options is translated to classoption" =:
+      "#+LATEX_CLASS_OPTIONS: [a4paper]" =?>
+      let meta = setMeta "classoption" (MetaString "a4paper") nullMeta
+      in Pandoc meta mempty
+
+    , "LaTeX_class_options is translated to classoption" =:
+      "#+html_head: <meta/>" =?>
+      let html = rawInline "html" "<meta/>"
+          inclList = MetaList [MetaInlines (toList html)]
+          meta = setMeta "header-includes" inclList nullMeta
       in Pandoc meta mempty
     ]
-
-  , "Keywords" =:
-    T.unlines [ "#+KEYWORDS: pandoc, testing,"
-              , "#+KEYWORDS: Org"
-              ] =?>
-    let keywords = toList $ "pandoc, testing," <> softbreak <> "Org"
-        meta = setMeta "keywords" (MetaInlines keywords) nullMeta
-    in Pandoc meta mempty
 
   , "Properties drawer" =:
       T.unlines [ "  :PROPERTIES:"
@@ -103,39 +141,6 @@ tests =
                 , "  :END:"
                 ] =?>
       (mempty::Blocks)
-
-  , "LaTeX_headers options are translated to header-includes" =:
-      "#+LaTeX_header: \\usepackage{tikz}" =?>
-      let latexInlines = rawInline "latex" "\\usepackage{tikz}"
-          inclList = MetaList [MetaInlines (toList latexInlines)]
-          meta = setMeta "header-includes" inclList nullMeta
-      in Pandoc meta mempty
-
-  , testGroup "LaTeX_CLASS"
-    [ "LaTeX_class option is translated to documentclass" =:
-      "#+LATEX_CLASS: article" =?>
-      let meta = setMeta "documentclass" (MetaString "article") nullMeta
-      in Pandoc meta mempty
-
-    , "last definition takes precedence" =:
-      T.unlines [ "#+LATEX_CLASS: this will not be used"
-                , "#+LATEX_CLASS: report"
-                ] =?>
-      let meta = setMeta "documentclass" (MetaString "report") nullMeta
-      in Pandoc meta mempty
-    ]
-
-  , "LaTeX_class_options is translated to classoption" =:
-      "#+LATEX_CLASS_OPTIONS: [a4paper]" =?>
-      let meta = setMeta "classoption" (MetaString "a4paper") nullMeta
-      in Pandoc meta mempty
-
-  , "LaTeX_class_options is translated to classoption" =:
-      "#+html_head: <meta/>" =?>
-      let html = rawInline "html" "<meta/>"
-          inclList = MetaList [MetaInlines (toList html)]
-          meta = setMeta "header-includes" inclList nullMeta
-      in Pandoc meta mempty
 
   , "Logbook drawer" =:
       T.unlines [ "  :LogBook:"
