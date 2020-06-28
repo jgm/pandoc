@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Meta
@@ -23,20 +22,21 @@ import Text.Pandoc.Readers.Org.Inlines
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 
-import Text.Pandoc.Builder (Blocks, Inlines)
+import Text.Pandoc.Builder (Blocks, Inlines, ToMetaValue)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (blocksToInlines, safeRead)
 
-import Control.Monad (mzero, void, when)
+import Control.Monad (mzero, void)
 import Data.List (intercalate, intersperse)
+import Data.Map (Map)
 import Data.Maybe (fromMaybe)
-import qualified Data.Map as M
-import qualified Data.Set as Set
 import Data.Text (Text)
-import qualified Data.Text as T
 import Network.HTTP (urlEncode)
+import qualified Data.Map as Map
+import qualified Data.Set as Set
+import qualified Data.Text as T
 
 -- | Returns the current meta, respecting export options.
 metaExport :: Monad m => OrgParser m (F Meta)
@@ -51,7 +51,7 @@ metaExport = do
 removeMeta :: Text -> Meta -> Meta
 removeMeta key meta' =
   let metaMap = unMeta meta'
-  in Meta $ M.delete key metaMap
+  in Meta $ Map.delete key metaMap
 
 -- | Parse and handle a single line containing meta information
 -- The order, in which blocks are tried, makes sure that we're not looking at
@@ -62,69 +62,49 @@ metaLine = mempty <$ metaLineStart <* (optionLine <|> declarationLine)
 declarationLine :: PandocMonad m => OrgParser m ()
 declarationLine = try $ do
   key   <- T.toLower <$> metaKey
-  (key', value) <- metaValue key
-  let addMetaValue st =
-        st { orgStateMeta = B.setMeta key' <$> value <*> orgStateMeta st }
-  when (key' /= "results") $ updateState addMetaValue
+  case Map.lookup key exportSettingHandlers of
+    Nothing -> () <$ anyLine
+    Just hd -> hd
 
 metaKey :: Monad m => OrgParser m Text
 metaKey = T.toLower <$> many1Char (noneOf ": \n\r")
                     <*  char ':'
                     <*  skipSpaces
 
-metaValue :: PandocMonad m => Text -> OrgParser m (Text, F MetaValue)
-metaValue key =
-  let inclKey = "header-includes"
-  in case key of
-    "author"          -> (key,) <$> metaInlinesCommaSeparated
-    "keywords"        -> (key,) <$> metaInlinesCommaSeparated
-    "title"           -> (key,) <$> metaInlines
-    "subtitle"        -> (key,) <$> metaInlines
-    "date"            -> (key,) <$> metaInlines
-    "description"     -> (key,) <$> accumulatingInlines key
-    "nocite"          -> (key,) <$> accumulatingList key metaInlines
-    "header-includes" -> (key,) <$> accumulatingList key metaInlines
-    "latex_header"    -> (inclKey,) <$>
-                         accumulatingList inclKey (metaExportSnippet "latex")
-    "latex_class"     -> ("documentclass",) <$> metaString
-    -- Org-mode expects class options to contain the surrounding brackets,
-    -- pandoc does not.
-    "latex_class_options" -> ("classoption",) <$>
-                             metaModifiedString (T.filter (`notElem` ("[]" :: String)))
-    "html_head"       -> (inclKey,) <$>
-                         accumulatingList inclKey (metaExportSnippet "html")
-    _                 -> (key,) <$> metaString
+exportSettingHandlers :: PandocMonad m => Map Text (OrgParser m ())
+exportSettingHandlers = Map.fromList
+  [ ("result"     , fmap pure anyLine `parseThen` discard)        -- RESULT is never an export setting
+  , ("author"     , commaSepInlines `parseThen` setField "author")
+  , ("keywords"   , commaSepInlines `parseThen` setField "keywords")
+  , ("date"       , lineOfInlines   `parseThen` setField "date")
+  , ("description", lineOfInlines   `parseThen` collectSepBy B.SoftBreak "description")
+  , ("title"      , lineOfInlines   `parseThen` collectSepBy B.Space "title")
+  , ("nocite"     , lineOfInlines   `parseThen` collectAsList "nocite")
+  , ("latex_class", fmap pure anyLine `parseThen` setField "documentclass")
+  , ("latex_class_options", (pure . T.filter (`notElem` ("[]" :: String)) <$> anyLine)
+                            `parseThen` setField "classoption")
+  , ("latex_header", metaExportSnippet "latex" `parseThen`
+                     collectAsList "header-includes")
+  , ("html_head"  , metaExportSnippet "html" `parseThen`
+                    collectAsList "header-includes")
+  ]
 
--- TODO Cleanup this mess
+parseThen :: PandocMonad m
+          => OrgParser m (F a)
+          -> (a -> Meta -> Meta)
+          -> OrgParser m ()
+parseThen p modMeta = do
+  value <- p
+  meta  <- orgStateMeta <$> getState
+  updateState (\st -> st { orgStateMeta = modMeta <$> value <*> meta })
 
-metaInlines :: PandocMonad m => OrgParser m (F MetaValue)
-metaInlines = fmap (MetaInlines . B.toList) <$> inlinesTillNewline
+discard :: a -> Meta -> Meta
+discard = const id
 
-metaInlinesCommaSeparated :: PandocMonad m => OrgParser m (F MetaValue)
-metaInlinesCommaSeparated = do
-  itemStrs <- many1Char (noneOf ",\n") `sepBy1` char ','
-  newline
-  items <- mapM (parseFromString inlinesTillNewline . (<> "\n")) itemStrs
-  let toMetaInlines = MetaInlines . B.toList
-  return $ MetaList . map toMetaInlines <$> sequence items
-
-metaString :: Monad m => OrgParser m (F MetaValue)
-metaString = metaModifiedString id
-
-metaModifiedString :: Monad m => (Text -> Text) -> OrgParser m (F MetaValue)
-metaModifiedString f = return . MetaString . f <$> anyLine
-
--- | Read an format specific meta definition
-metaExportSnippet :: Monad m => Text -> OrgParser m (F MetaValue)
-metaExportSnippet format =
-  return . MetaInlines . B.toList . B.rawInline format <$> anyLine
-
-accumulatingInlines :: PandocMonad m
-                    => Text
-                    -> OrgParser m (F MetaValue)
-accumulatingInlines key = do
-  value <- inlinesTillNewline
-  accumulating appendValue (B.toList <$> value)
+collectSepBy :: Inline -> Text -> Inlines -> Meta -> Meta
+collectSepBy sep key value meta =
+  let value' = appendValue meta (B.toList value)
+  in B.setMeta key value' meta
  where
   appendValue :: Meta -> [Inline] -> MetaValue
   appendValue m v = MetaInlines $ curInlines m <> v
@@ -137,32 +117,40 @@ accumulatingInlines key = do
   collectInlines :: MetaValue -> [Inline]
   collectInlines = \case
     MetaInlines inlns -> inlns
-    MetaList ml       -> intercalate [B.SoftBreak] $ map collectInlines ml
+    MetaList ml       -> intercalate [sep] $ map collectInlines ml
     MetaString s      -> [B.Str s]
     MetaBlocks blks   -> blocksToInlines blks
     MetaMap _map      -> []
     MetaBool _bool    -> []
 
--- | Accumulate the result of the @parser@ in a list under @key@.
-accumulatingList :: Monad m => Text
-                 -> OrgParser m (F MetaValue)
-                 -> OrgParser m (F MetaValue)
-accumulatingList key p = p >>= accumulating metaListAppend
+-- | Accumulate the result as a MetaList under the given key.
+collectAsList :: Text -> Inlines -> Meta -> Meta
+collectAsList key value meta =
+  let value' = metaListAppend meta (B.toMetaValue value)
+  in B.setMeta key value' meta
  where
   metaListAppend m v = MetaList (curList m ++ [v])
-
   curList m = case lookupMeta key m of
                 Just (MetaList ms) -> ms
                 Just x             -> [x]
                 _                  -> []
 
-accumulating :: Monad m
-             => (Meta -> a -> MetaValue)
-             -> F a
-             -> OrgParser m (F MetaValue)
-accumulating acc value = do
-  meta <- orgStateMeta <$> getState
-  return $ acc <$> meta <*> value
+setField :: ToMetaValue a => Text -> a -> Meta -> Meta
+setField field value meta = B.setMeta field (B.toMetaValue value) meta
+
+lineOfInlines :: PandocMonad m => OrgParser m (F Inlines)
+lineOfInlines = inlinesTillNewline
+
+commaSepInlines :: PandocMonad m => OrgParser m (F [Inlines])
+commaSepInlines = do
+  itemStrs <- many1Char (noneOf ",\n") `sepBy1` char ','
+  newline
+  items <- mapM (parseFromString inlinesTillNewline . (<> "\n")) itemStrs
+  return $ sequence items
+
+-- | Read an format specific meta definition
+metaExportSnippet :: Monad m => Text -> OrgParser m (F Inlines)
+metaExportSnippet format = pure . B.rawInline format <$> anyLine
 
 --
 -- export options
@@ -188,7 +176,7 @@ addLinkFormat :: Monad m => Text
               -> OrgParser m ()
 addLinkFormat key formatter = updateState $ \s ->
   let fs = orgStateLinkFormatters s
-  in s{ orgStateLinkFormatters = M.insert key formatter fs }
+  in s{ orgStateLinkFormatters = Map.insert key formatter fs }
 
 parseLinkFormat :: Monad m => OrgParser m (Text, Text -> Text)
 parseLinkFormat = try $ do
