@@ -57,13 +57,13 @@ removeMeta key meta' =
 -- The order, in which blocks are tried, makes sure that we're not looking at
 -- the beginning of a block, so we don't need to check for it
 metaLine :: PandocMonad m => OrgParser m Blocks
-metaLine = mempty <$ metaLineStart <* keywordLine
+metaLine = try $ mempty <$ metaLineStart <* keywordLine
 
 keywordLine :: PandocMonad m => OrgParser m ()
 keywordLine = try $ do
   key   <- T.toLower <$> metaKey
   case Map.lookup key keywordHandlers of
-    Nothing -> () <$ anyLine -- discard unknown lines
+    Nothing -> fail $ "Unknown keyword: " ++ T.unpack key
     Just hd -> hd
 
 metaKey :: Monad m => OrgParser m Text
