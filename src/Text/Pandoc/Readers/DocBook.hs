@@ -900,7 +900,7 @@ parseBlock (Elem e) =
                                                 Just ws' -> let tot = sum ws'
                                                             in  ColWidth . (/ tot) <$> ws'
                                                 Nothing  -> replicate numrows ColWidthDefault
-                      let toRow = Row nullAttr . map simpleCell
+                      let toRow = Row nullAttr
                           toHeaderRow l = if null l then [] else [toRow l]
                       return $ table (simpleCaption $ plain capt)
                                      (zip aligns widths)
@@ -908,7 +908,8 @@ parseBlock (Elem e) =
                                      [TableBody nullAttr 0 [] $ map toRow bodyrows]
                                      (TableFoot nullAttr [])
          isEntry x  = named "entry" x || named "td" x || named "th" x
-         parseRow = mapM (parseMixed plain . elContent) . filterChildren isEntry
+         parseEntry = simpleCell . (parseMixed plain) . elContent
+         parseRow = mapM parseEntry . filterChildren isEntry
          sect n = sectWith (attrValue "id" e,[],[]) n
          sectWith attr n = do
            isbook <- gets dbBook
