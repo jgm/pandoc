@@ -214,8 +214,11 @@ tests =
       ]
 
     , "Unknown keyword" =:
-      "#+UNKNOWN_KEYWORD: Chumbawamba" =?>
-      Pandoc nullMeta mempty
+      T.unlines [ "#+UNKNOWN_KEYWORD: Chumbawamba"
+                , "#+ANOTHER_UNKNOWN: Blur"
+                ] =?>
+      rawBlock "org" "#+UNKNOWN_KEYWORD: Chumbawamba" <>
+      rawBlock "org" "#+ANOTHER_UNKNOWN: Blur"
     ]
 
   , "Properties drawer" =:

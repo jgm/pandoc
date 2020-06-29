@@ -76,6 +76,7 @@ block = choice [ mempty <$ blanklines
                , list
                , latexFragment
                , noteBlock
+               , rawOrgLine
                , paraOrPlain
                ] <?> "block"
 
@@ -559,6 +560,8 @@ include = try $ do
        | otherwise        -> Para content
       _ -> blk
 
+-- | Parses a meta line which defines a raw block. Currently recognized:
+-- @#+LATEX:@, @#+HTML:@, @#+TEXINFO:@, and @#+BEAMER@.
 rawExportLine :: PandocMonad m => OrgParser m Blocks
 rawExportLine = try $ do
   metaLineStart
@@ -566,6 +569,14 @@ rawExportLine = try $ do
   if key `elem` ["latex", "html", "texinfo", "beamer"]
     then B.rawBlock key <$> anyLine
     else mzero
+
+-- | Parses any meta line, i.e., a line starting with @#+@, into a raw
+-- org block. This should be the last resort when trying to parse
+-- keywords. Leading spaces are discarded.
+rawOrgLine :: PandocMonad m => OrgParser m (F Blocks)
+rawOrgLine = do
+  line <- metaLineStart *> anyLine
+  returnF $ B.rawBlock "org" $ ("#+" <> line)
 
 commentLine :: Monad m => OrgParser m Blocks
 commentLine = commentLineStart *> anyLine *> pure mempty
