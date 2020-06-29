@@ -93,6 +93,13 @@ tests =
         in Pandoc meta mempty
       ]
 
+    , "Subtitle" =:
+      T.unlines [ "#+SUBTITLE: Your Life in"
+                , "#+SUBTITLE: /Plain/ Text"
+                ] =?>
+      let subtitle = "Your Life in" <> softbreak <> emph "Plain" <> " Text"
+      in Pandoc (setMeta "subtitle" (toMetaValue subtitle) nullMeta) mempty
+
     , "Keywords" =:
       T.unlines [ "#+KEYWORDS: pandoc, testing,"
                 , "#+KEYWORDS: Org"

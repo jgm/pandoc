@@ -51,7 +51,7 @@ occur.
 
   Pandoc follows the LaTeX exporter in that it allows markup in
   the description. In contrast, the Org-mode HTML exporter treats
-  reads the description as plain text.
+  the description as plain text.
 
 - LATEX_HEADER: arbitrary lines to add to the document's preamble.
   Contrary to Org-mode, these lines are not inserted before the
@@ -73,6 +73,9 @@ occur.
   `classoption` metadata field.
 
 - SUBTITLE: the document's subtitle; fully supported.
+
+  The content of this option is stored as inlines in the
+  `subtitle` metadata field.
 
 - HTML_HEAD: arbitrary lines to add to the HTML document's head;
   fully supported.
