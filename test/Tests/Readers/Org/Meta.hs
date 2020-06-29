@@ -113,21 +113,21 @@ tests =
       Pandoc (setMeta "institute" ("ACME Inc." :: Inlines) nullMeta) mempty
 
     , testGroup "LaTeX"
-      [ "LaTeX_headers options are translated to header-includes" =:
+      [ "LATEX_HEADER" =:
         "#+LaTeX_header: \\usepackage{tikz}" =?>
         let latexInlines = rawInline "latex" "\\usepackage{tikz}"
             inclList = MetaList [MetaInlines (toList latexInlines)]
             meta = setMeta "header-includes" inclList nullMeta
         in Pandoc meta mempty
 
-      , "LATEX_HEADER_EXTRA values are translated to header-includes" =:
+      , "LATEX_HEADER_EXTRA" =:
         "#+LATEX_HEADER_EXTRA: \\usepackage{calc}" =?>
         let latexInlines = rawInline "latex" "\\usepackage{calc}"
             inclList = toMetaValue [latexInlines]
         in Pandoc (setMeta "header-includes" inclList nullMeta) mempty
 
       , testGroup "LaTeX_CLASS"
-        [ "LaTeX_class option is translated to documentclass" =:
+        [ "stored as documentclass" =:
           "#+LATEX_CLASS: article" =?>
           let meta = setMeta "documentclass" (MetaString "article") nullMeta
           in Pandoc meta mempty
@@ -140,7 +140,7 @@ tests =
           in Pandoc meta mempty
         ]
 
-      , "LaTeX_class_options is translated to classoption" =:
+      , "LATEX_CLASS_OPTIONS as classoption" =:
         "#+LATEX_CLASS_OPTIONS: [a4paper]" =?>
         let meta = setMeta "classoption" (MetaString "a4paper") nullMeta
         in Pandoc meta mempty
@@ -164,6 +164,58 @@ tests =
             inclList = toMetaValue [generator, charset]
         in Pandoc (setMeta "header-includes" inclList nullMeta) mempty
       ]
+    ]
+
+  , testGroup "Non-export keywords"
+    [ testGroup "#+LINK"
+      [ "Link abbreviation" =:
+        T.unlines [ "#+LINK: wp https://en.wikipedia.org/wiki/%s"
+                  , "[[wp:Org_mode][Wikipedia on Org-mode]]"
+                  ] =?>
+        para (link "https://en.wikipedia.org/wiki/Org_mode" ""
+               ("Wikipedia" <> space <> "on" <> space <> "Org-mode"))
+
+      , "Link abbreviation, defined after first use" =:
+        T.unlines [ "[[zl:non-sense][Non-sense articles]]"
+                  , "#+LINK: zl http://zeitlens.com/tags/%s.html"
+                  ] =?>
+        para (link "http://zeitlens.com/tags/non-sense.html" ""
+               ("Non-sense" <> space <> "articles"))
+
+      , "Link abbreviation, URL encoded arguments" =:
+        T.unlines [ "#+link: expl http://example.com/%h/foo"
+                  , "[[expl:Hello, World!][Moin!]]"
+                  ] =?>
+        para (link "http://example.com/Hello%2C%20World%21/foo" "" "Moin!")
+
+      , "Link abbreviation, append arguments" =:
+        T.unlines [ "#+link: expl http://example.com/"
+                  , "[[expl:foo][bar]]"
+                  ] =?>
+        para (link "http://example.com/foo" "" "bar")
+      ]
+
+    , testGroup "emphasis config"
+      [ "Changing pre and post chars for emphasis" =:
+        T.unlines [ "#+pandoc-emphasis-pre: \"[)\""
+                  , "#+pandoc-emphasis-post: \"]\\n\""
+                  , "([/emph/])*foo*"
+                  ] =?>
+        para ("([" <> emph "emph" <> "])" <> strong "foo")
+
+      , "setting an invalid value restores the default" =:
+        T.unlines [ "#+pandoc-emphasis-pre: \"[\""
+                  , "#+pandoc-emphasis-post: \"]\""
+                  , "#+pandoc-emphasis-pre:"
+                  , "#+pandoc-emphasis-post:"
+                  , "[/noemph/]"
+                  ] =?>
+        para "[/noemph/]"
+      ]
+
+    , "Unknown keyword" =:
+      "#+UNKNOWN_KEYWORD: Chumbawamba" =?>
+      Pandoc nullMeta mempty
     ]
 
   , "Properties drawer" =:
@@ -220,48 +272,4 @@ tests =
                 ] =?>
       (para (spanWith ("link-here", [], []) mempty <> "Target.") <>
        para (emph ("See" <> space <> "here!")))
-
-  , "Link abbreviation" =:
-      T.unlines [ "#+LINK: wp https://en.wikipedia.org/wiki/%s"
-                , "[[wp:Org_mode][Wikipedia on Org-mode]]"
-                ] =?>
-      para (link "https://en.wikipedia.org/wiki/Org_mode" ""
-                  ("Wikipedia" <> space <> "on" <> space <> "Org-mode"))
-
-  , "Link abbreviation, defined after first use" =:
-      T.unlines [ "[[zl:non-sense][Non-sense articles]]"
-                , "#+LINK: zl http://zeitlens.com/tags/%s.html"
-                ] =?>
-      para (link "http://zeitlens.com/tags/non-sense.html" ""
-                  ("Non-sense" <> space <> "articles"))
-
-  , "Link abbreviation, URL encoded arguments" =:
-      T.unlines [ "#+link: expl http://example.com/%h/foo"
-                , "[[expl:Hello, World!][Moin!]]"
-                ] =?>
-      para (link "http://example.com/Hello%2C%20World%21/foo" "" "Moin!")
-
-  , "Link abbreviation, append arguments" =:
-      T.unlines [ "#+link: expl http://example.com/"
-                , "[[expl:foo][bar]]"
-                ] =?>
-      para (link "http://example.com/foo" "" "bar")
-
-  , testGroup "emphasis config"
-    [ "Changing pre and post chars for emphasis" =:
-        T.unlines [ "#+pandoc-emphasis-pre: \"[)\""
-                  , "#+pandoc-emphasis-post: \"]\\n\""
-                  , "([/emph/])*foo*"
-                  ] =?>
-        para ("([" <> emph "emph" <> "])" <> strong "foo")
-
-    , "setting an invalid value restores the default" =:
-        T.unlines [ "#+pandoc-emphasis-pre: \"[\""
-                  , "#+pandoc-emphasis-post: \"]\""
-                  , "#+pandoc-emphasis-pre:"
-                  , "#+pandoc-emphasis-post:"
-                  , "[/noemph/]"
-                  ] =?>
-        para "[/noemph/]"
-    ]
   ]

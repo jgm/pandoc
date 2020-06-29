@@ -22,7 +22,7 @@ import Text.Pandoc.Readers.Org.Inlines
 import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 
-import Text.Pandoc.Builder (Blocks, Inlines, ToMetaValue)
+import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
@@ -57,13 +57,13 @@ removeMeta key meta' =
 -- The order, in which blocks are tried, makes sure that we're not looking at
 -- the beginning of a block, so we don't need to check for it
 metaLine :: PandocMonad m => OrgParser m Blocks
-metaLine = mempty <$ metaLineStart <* (optionLine <|> declarationLine)
+metaLine = mempty <$ metaLineStart <* keywordLine
 
-declarationLine :: PandocMonad m => OrgParser m ()
-declarationLine = try $ do
+keywordLine :: PandocMonad m => OrgParser m ()
+keywordLine = try $ do
   key   <- T.toLower <$> metaKey
-  case Map.lookup key exportSettingHandlers of
-    Nothing -> () <$ anyLine
+  case Map.lookup key keywordHandlers of
+    Nothing -> () <$ anyLine -- discard unknown lines
     Just hd -> hd
 
 metaKey :: Monad m => OrgParser m Text
@@ -71,33 +71,55 @@ metaKey = T.toLower <$> many1Char (noneOf ": \n\r")
                     <*  char ':'
                     <*  skipSpaces
 
-exportSettingHandlers :: PandocMonad m => Map Text (OrgParser m ())
-exportSettingHandlers = Map.fromList
-  [ ("result"     , fmap pure anyLine `parseThen` discard)
-    -- Common settings
-  , ("author"     , lineOfInlines `parseThen` collectLines "author")
-  , ("date"       , lineOfInlines `parseThen` setField "date")
-  , ("description", lineOfInlines `parseThen` collectLines "description")
-  , ("keywords"   , lineOfInlines `parseThen` collectLines "keywords")
-  , ("subtitle"   , lineOfInlines `parseThen` collectLines "subtitle")
-  , ("title"      , lineOfInlines `parseThen` collectLines "title")
-    -- LaTeX
-  , ("latex_class"    , fmap pure anyLine `parseThen` setField "documentclass")
-  , ("latex_class_options", (pure . T.filter (`notElem` ("[]" :: String)) <$> anyLine)
-                            `parseThen` setField "classoption")
-  , ("latex_header"   , metaExportSnippet "latex" `parseThen`
-                        collectAsList "header-includes")
-  , ("latex_header_extra", metaExportSnippet "latex" `parseThen`
-                        collectAsList "header-includes")
-    -- HTML
-  , ("html_head"      , metaExportSnippet "html" `parseThen`
-                        collectAsList "header-includes")
-  , ("html_head_extra", metaExportSnippet "html" `parseThen`
-                        collectAsList "header-includes")
-    -- pandoc-specific
-  , ("nocite"         , lineOfInlines `parseThen` collectLines "nocite")
-  , ("header-includes", lineOfInlines `parseThen` collectLines "header-includes")
-  , ("institute"      , lineOfInlines `parseThen` collectLines "institute")
+infix 0 ~~>
+(~~>) :: a -> b -> (a, b)
+a ~~> b = (a, b)
+
+keywordHandlers :: PandocMonad m => Map Text (OrgParser m ())
+keywordHandlers = Map.fromList
+  [ "author" ~~> lineOfInlines `parseThen` collectLines "author"
+  , "creator" ~~> fmap pure anyLine `parseThen` B.setMeta "creator"
+  , "date" ~~> lineOfInlines `parseThen` B.setMeta "date"
+  , "description" ~~> lineOfInlines `parseThen` collectLines "description"
+  , "email" ~~> fmap pure anyLine `parseThen` B.setMeta "email"
+  , "exclude_tags" ~~> tagList >>= updateState . setExcludedTags
+  , "header-includes" ~~>
+    lineOfInlines `parseThen` collectLines "header-includes"
+  -- HTML-specifix export settings
+  , "html_head" ~~>
+    metaExportSnippet "html" `parseThen` collectAsList "header-includes"
+  , "html_head_extra" ~~>
+    metaExportSnippet "html" `parseThen` collectAsList "header-includes"
+  , "institute" ~~> lineOfInlines `parseThen` collectLines "institute"
+  -- topic keywords
+  , "keywords" ~~> lineOfInlines `parseThen` collectLines "keywords"
+  -- LaTeX-specific export settings
+  , "latex_class" ~~> fmap pure anyLine `parseThen` B.setMeta "documentclass"
+  , "latex_class_options" ~~>
+      (pure . T.filter (`notElem` ("[]" :: String)) <$> anyLine)
+      `parseThen` B.setMeta "classoption"
+  , "latex_header" ~~>
+      metaExportSnippet "latex" `parseThen` collectAsList "header-includes"
+  , "latex_header_extra" ~~>
+      metaExportSnippet "latex" `parseThen` collectAsList "header-includes"
+  -- link and macro
+  , "link" ~~> addLinkFormatter
+  , "macro" ~~> macroDefinition >>= updateState . registerMacro
+  -- pandoc-specific way to include references in the bibliography
+  , "nocite" ~~> lineOfInlines `parseThen` collectLines "nocite"
+  -- compact way to set export settings
+  , "options"  ~~> exportSettings
+  -- pandoc-specific way to configure emphasis recognition
+  , "pandoc-emphasis-post" ~~> emphChars >>= updateState . setEmphasisPostChar
+  , "pandoc-emphasis-pre" ~~> emphChars >>= updateState . setEmphasisPreChar
+  -- result markers (ignored)
+  , "result" ~~> void anyLine
+  , "select_tags" ~~> tagList >>= updateState . setSelectedTags
+  , "seq_todo" ~~> todoSequence >>= updateState . registerTodoSequence
+  , "subtitle" ~~> lineOfInlines `parseThen` collectLines "subtitle"
+  , "title" ~~> lineOfInlines `parseThen` collectLines "title"
+  , "todo" ~~> todoSequence >>= updateState . registerTodoSequence
+  , "typ_todo" ~~> todoSequence >>= updateState . registerTodoSequence
   ]
 
 parseThen :: PandocMonad m
@@ -108,9 +130,6 @@ parseThen p modMeta = do
   value <- p
   meta  <- orgStateMeta <$> getState
   updateState (\st -> st { orgStateMeta = modMeta <$> value <*> meta })
-
-discard :: a -> Meta -> Meta
-discard = const id
 
 collectLines :: Text -> Inlines -> Meta -> Meta
 collectLines key value meta =
@@ -146,51 +165,25 @@ collectAsList key value meta =
                 Just x             -> [x]
                 _                  -> []
 
-setField :: ToMetaValue a => Text -> a -> Meta -> Meta
-setField field value meta = B.setMeta field (B.toMetaValue value) meta
-
 -- | Read an format specific meta definition
 metaExportSnippet :: Monad m => Text -> OrgParser m (F Inlines)
 metaExportSnippet format = pure . B.rawInline format <$> anyLine
 
---
--- export options
---
-optionLine :: PandocMonad m => OrgParser m ()
-optionLine = try $ do
-  key <- metaKey
-  case key of
-    "link"     -> parseLinkFormat >>= uncurry addLinkFormat
-    "options"  -> exportSettings
-    "todo"     -> todoSequence >>= updateState . registerTodoSequence
-    "seq_todo" -> todoSequence >>= updateState . registerTodoSequence
-    "typ_todo" -> todoSequence >>= updateState . registerTodoSequence
-    "macro"    -> macroDefinition >>= updateState . registerMacro
-    "exclude_tags" -> tagList >>= updateState . setExcludedTags
-    "select_tags" -> tagList >>= updateState . setSelectedTags
-    "pandoc-emphasis-pre" -> emphChars >>= updateState . setEmphasisPreChar
-    "pandoc-emphasis-post" -> emphChars >>= updateState . setEmphasisPostChar
-    _          -> mzero
-
-addLinkFormat :: Monad m => Text
-              -> (Text -> Text)
-              -> OrgParser m ()
-addLinkFormat key formatter = updateState $ \s ->
-  let fs = orgStateLinkFormatters s
-  in s{ orgStateLinkFormatters = Map.insert key formatter fs }
-
-parseLinkFormat :: Monad m => OrgParser m (Text, Text -> Text)
-parseLinkFormat = try $ do
+-- | Parse a link type definition (like @wp https://en.wikipedia.org/wiki/@).
+addLinkFormatter :: Monad m => OrgParser m ()
+addLinkFormatter = try $ do
   linkType <- T.cons <$> letter <*> manyChar (alphaNum <|> oneOf "-_") <* skipSpaces
-  linkSubst <- parseFormat
-  return (linkType, linkSubst)
+  formatter <- parseFormat
+  updateState $ \s ->
+    let fs = orgStateLinkFormatters s
+    in s{ orgStateLinkFormatters = Map.insert linkType formatter fs }
 
 -- | An ad-hoc, single-argument-only implementation of a printf-style format
 -- parser.
 parseFormat :: Monad m => OrgParser m (Text -> Text)
 parseFormat = try $ replacePlain <|> replaceUrl <|> justAppend
  where
-   -- inefficient, but who cares
+   -- inefficient
    replacePlain = try $ (\x -> T.concat . flip intersperse x)
                      <$> sequence [tillSpecifier 's', rest]
    replaceUrl   = try $ (\x -> T.concat . flip intersperse x . T.pack . urlEncode . T.unpack)
@@ -229,6 +222,7 @@ setEmphasisPostChar csMb st =
   let postChars = fromMaybe (orgStateEmphasisPostChars defaultOrgParserState) csMb
   in st { orgStateEmphasisPostChars = postChars }
 
+-- | Parses emphasis border character like @".,?!"@
 emphChars :: Monad m => OrgParser m (Maybe [Char])
 emphChars = do
   skipSpaces
@@ -239,16 +233,14 @@ lineOfInlines = do
   updateLastPreCharPos
   trimInlinesF . mconcat <$> manyTill inline newline
 
---
--- ToDo Sequences and Keywords
---
+-- | Parses ToDo sequences / keywords like @TODO DOING | DONE@.
 todoSequence :: Monad m => OrgParser m TodoSequence
 todoSequence = try $ do
   todoKws <- todoKeywords
   doneKws <- optionMaybe $ todoDoneSep *> todoKeywords
   newline
-  -- There must be at least one DONE keyword. The last TODO keyword is taken if
-  -- necessary.
+  -- There must be at least one DONE keyword. The last TODO keyword is
+  -- taken if necessary.
   case doneKws of
     Just done  -> return $ keywordsToSequence todoKws done
     Nothing    -> case reverse todoKws of

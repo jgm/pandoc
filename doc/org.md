@@ -14,13 +14,13 @@ The following export keywords are supported:
 
 - AUTHOR: comma-separated list of author(s); fully supported.
 
-- CREATOR: output generator; passed as metadata entry, but
-  ignored by most output formats.
+- CREATOR: output generator; passed as plain-text metadata entry
+  `creator`, but not used by any default templates.
 
 - DATE: creation or publication date; well supported by pandoc.
 
-- EMAIL: author email address; passed as metadata entry, but not
-  included in most output formats.
+- EMAIL: author email address; passed as plain-text metadata
+  field `email`, but not used by any default templates.
 
 - LANGUAGE: currently unsupported; use `#+LANG:` instead.
 
