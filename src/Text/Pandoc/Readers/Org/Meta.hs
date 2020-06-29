@@ -79,6 +79,7 @@ exportSettingHandlers = Map.fromList
   , ("date"       , lineOfInlines `parseThen` setField "date")
   , ("description", lineOfInlines `parseThen` collectLines "description")
   , ("keywords"   , lineOfInlines `parseThen` collectLines "keywords")
+  , ("subtitle"   , lineOfInlines `parseThen` collectLines "subtitle")
   , ("title"      , lineOfInlines `parseThen` collectLines "title")
     -- LaTeX
   , ("latex_class", fmap pure anyLine `parseThen` setField "documentclass")
