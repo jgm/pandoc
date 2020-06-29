@@ -50,7 +50,7 @@ library. It can convert *from*
     notebook](https://nbformat.readthedocs.io/en/latest/))
   - `jats` ([JATS](https://jats.nlm.nih.gov) XML)
   - `jira`
-    ([Jira](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all)
+    ([Jira](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all)/Confluence
     wiki markup)
   - `json` (JSON version of native AST)
   - `latex` ([LaTeX](https://www.latex-project.org/))
@@ -124,7 +124,7 @@ It can convert *to*
     Publishing Tag Set)
   - `jats` (alias for `jats_archiving`)
   - `jira`
-    ([Jira](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all)
+    ([Jira](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all)/Confluence
     wiki markup)
   - `json` (JSON version of native AST)
   - `latex` ([LaTeX](https://www.latex-project.org/))
