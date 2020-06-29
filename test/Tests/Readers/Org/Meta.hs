@@ -108,42 +108,62 @@ tests =
           meta = setMeta "keywords" (MetaInlines keywords) nullMeta
       in Pandoc meta mempty
 
-    , "LaTeX_headers options are translated to header-includes" =:
-      "#+LaTeX_header: \\usepackage{tikz}" =?>
-      let latexInlines = rawInline "latex" "\\usepackage{tikz}"
-          inclList = MetaList [MetaInlines (toList latexInlines)]
-          meta = setMeta "header-includes" inclList nullMeta
-      in Pandoc meta mempty
-
-    , testGroup "LaTeX_CLASS"
-      [ "LaTeX_class option is translated to documentclass" =:
-        "#+LATEX_CLASS: article" =?>
-        let meta = setMeta "documentclass" (MetaString "article") nullMeta
-        in Pandoc meta mempty
-
-      , "last definition takes precedence" =:
-        T.unlines [ "#+LATEX_CLASS: this will not be used"
-                  , "#+LATEX_CLASS: report"
-                  ] =?>
-        let meta = setMeta "documentclass" (MetaString "report") nullMeta
-        in Pandoc meta mempty
-      ]
-
-    , "LaTeX_class_options is translated to classoption" =:
-      "#+LATEX_CLASS_OPTIONS: [a4paper]" =?>
-      let meta = setMeta "classoption" (MetaString "a4paper") nullMeta
-      in Pandoc meta mempty
-
-    , "LaTeX_class_options is translated to classoption" =:
-      "#+html_head: <meta/>" =?>
-      let html = rawInline "html" "<meta/>"
-          inclList = MetaList [MetaInlines (toList html)]
-          meta = setMeta "header-includes" inclList nullMeta
-      in Pandoc meta mempty
-
     , "Institute" =:
       "#+INSTITUTE: ACME Inc." =?>
       Pandoc (setMeta "institute" ("ACME Inc." :: Inlines) nullMeta) mempty
+
+    , testGroup "LaTeX"
+      [ "LaTeX_headers options are translated to header-includes" =:
+        "#+LaTeX_header: \\usepackage{tikz}" =?>
+        let latexInlines = rawInline "latex" "\\usepackage{tikz}"
+            inclList = MetaList [MetaInlines (toList latexInlines)]
+            meta = setMeta "header-includes" inclList nullMeta
+        in Pandoc meta mempty
+
+      , "LATEX_HEADER_EXTRA values are translated to header-includes" =:
+        "#+LATEX_HEADER_EXTRA: \\usepackage{calc}" =?>
+        let latexInlines = rawInline "latex" "\\usepackage{calc}"
+            inclList = toMetaValue [latexInlines]
+        in Pandoc (setMeta "header-includes" inclList nullMeta) mempty
+
+      , testGroup "LaTeX_CLASS"
+        [ "LaTeX_class option is translated to documentclass" =:
+          "#+LATEX_CLASS: article" =?>
+          let meta = setMeta "documentclass" (MetaString "article") nullMeta
+          in Pandoc meta mempty
+
+        , "last definition takes precedence" =:
+          T.unlines [ "#+LATEX_CLASS: this will not be used"
+                    , "#+LATEX_CLASS: report"
+                    ] =?>
+          let meta = setMeta "documentclass" (MetaString "report") nullMeta
+          in Pandoc meta mempty
+        ]
+
+      , "LaTeX_class_options is translated to classoption" =:
+        "#+LATEX_CLASS_OPTIONS: [a4paper]" =?>
+        let meta = setMeta "classoption" (MetaString "a4paper") nullMeta
+        in Pandoc meta mempty
+      ]
+
+    , testGroup "HTML"
+      [ "HTML_HEAD values are added to header-includes" =:
+        "#+html_head: <meta/>" =?>
+        let html = rawInline "html" "<meta/>"
+            inclList = MetaList [MetaInlines (toList html)]
+            meta = setMeta "header-includes" inclList nullMeta
+        in Pandoc meta mempty
+
+      , "HTML_HEAD_EXTRA behaves like HTML_HEAD" =:
+        T.unlines [ "#+HTML_HEAD: <meta name=\"generator\" content=\"pandoc\">"
+                  , "#+HTML_HEAD_EXTRA: <meta charset=\"utf-8\">"
+                  ] =?>
+        let generator = rawInline "html"
+                                  "<meta name=\"generator\" content=\"pandoc\">"
+            charset = rawInline "html" "<meta charset=\"utf-8\">"
+            inclList = toMetaValue [generator, charset]
+        in Pandoc (setMeta "header-includes" inclList nullMeta) mempty
+      ]
     ]
 
   , "Properties drawer" =:
