@@ -53,9 +53,10 @@ occur.
   the description. In contrast, the Org-mode HTML exporter treats
   the description as plain text.
 
-- LATEX_HEADER: arbitrary lines to add to the document's preamble.
-  Contrary to Org-mode, these lines are not inserted before the
-  hyperref settings, but close to the end of the preamble.
+- LATEX\_HEADER and LATEX_HEADER_EXTRA: arbitrary lines to add to
+  the document's preamble. Contrary to Org-mode, these lines are
+  not inserted before the hyperref settings, but close to the end
+  of the preamble.
 
   The contents of this option are stored as a list of raw LaTeX
   lines in the `header-includes` metadata field.
@@ -77,10 +78,10 @@ occur.
   The content of this option is stored as inlines in the
   `subtitle` metadata field.
 
-- HTML_HEAD: arbitrary lines to add to the HTML document's head;
-  fully supported.
+- HTML\_HEAD and HTML\_HEAD\_EXTRA: arbitrary lines to add to the
+  HTML document's head; fully supported.
 
-  The contents of this option are stored as a list of raw HTML
+  The contents of these options are stored as a list of raw HTML
   lines in the `header-includes` metadata field.
 
 Pandoc-specific options

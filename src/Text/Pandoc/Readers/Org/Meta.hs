@@ -82,14 +82,18 @@ exportSettingHandlers = Map.fromList
   , ("subtitle"   , lineOfInlines `parseThen` collectLines "subtitle")
   , ("title"      , lineOfInlines `parseThen` collectLines "title")
     -- LaTeX
-  , ("latex_class", fmap pure anyLine `parseThen` setField "documentclass")
+  , ("latex_class"    , fmap pure anyLine `parseThen` setField "documentclass")
   , ("latex_class_options", (pure . T.filter (`notElem` ("[]" :: String)) <$> anyLine)
                             `parseThen` setField "classoption")
-  , ("latex_header", metaExportSnippet "latex" `parseThen`
-                     collectAsList "header-includes")
+  , ("latex_header"   , metaExportSnippet "latex" `parseThen`
+                        collectAsList "header-includes")
+  , ("latex_header_extra", metaExportSnippet "latex" `parseThen`
+                        collectAsList "header-includes")
     -- HTML
-  , ("html_head"  , metaExportSnippet "html" `parseThen`
-                    collectAsList "header-includes")
+  , ("html_head"      , metaExportSnippet "html" `parseThen`
+                        collectAsList "header-includes")
+  , ("html_head_extra", metaExportSnippet "html" `parseThen`
+                        collectAsList "header-includes")
     -- pandoc-specific
   , ("nocite"         , lineOfInlines `parseThen` collectLines "nocite")
   , ("header-includes", lineOfInlines `parseThen` collectLines "header-includes")
