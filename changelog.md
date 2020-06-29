@@ -31,6 +31,12 @@
     `--no-check-certificate`, which disables certificate checking when
     resources are fetched by HTTP.
 
+  * Unify defaults and markdown metadata parsers (#6328, Nikolay
+    Yakimov). Clean up code in Text.Pandoc.Readers.Metadata and
+    properly handle errors in `yamlToMeta`.  This fixes parsing
+    of Boolean fields in metadata withinin defaults files and reduces
+    code duplication.
+
   * Docbook reader:
 
     + Implement `<procedure>` (#6442, Mathieu Boespflug).
@@ -39,7 +45,11 @@
     + Implement `<replaceable>` (#6437, Mathieu Boespflug)
     + Map `<simplesect>` to unnumbered section (#6436, Mathieu Boespflug).
 
-  * JATS reader: handle "label" element in section title (#6288).
+  * JATS reader:
+
+    + Handle "label" element in section title (#6288).
+    + Parse abstract element into metadata field of same name
+      (#6480, Albert Krewinkel).
 
   * Jira reader (Albert Krewinkel):
 
@@ -80,6 +90,9 @@
     + Fix inline code in lists (#6284, Nikolay Yakimov).
       Previously inline code containing list markers was sometimes
       parsed incorrectly.
+    + Don't require blank line after grid table (#6481).
+      This allows grid tables to be enclosed in fenced divs with no
+      intervening blank lines.
 
   * LaTeX reader:
 
@@ -93,6 +106,41 @@
   * Org reader (Albert Krewinkel):
 
     + Recognize images with uppercase extensions (#6472).
+    + Keep unknown keyword lines as raw org.  The lines of unknown
+      keywords, like `#+SOMEWORD: value` are no longer read as metadata,
+      but kept as raw `org` blocks. This ensures that more information
+      is retained when round-tripping org-mode files; additionally,
+      this change makes it possible to support non-standard org
+      extensions via filters.
+    + Unify keyword handling.  Handling of export settings and other
+      keywords (like `#+LINK`) has been combined and unified.
+    + Support `LATEX_HEADER_EXTRA` and `HTML_HEAD_EXTRA`
+      settings.  These export settings are treated like their non-extra
+      counterparts, i.e., the values are added to the `header-includes`
+      metadata list.
+    + Allow multiple `#+SUBTITLE` export settings.  The values of all
+      lines are read as inlines and collected in the `subtitle`
+      metadata field.
+    + Read `#+INSTITUTE` values as text with markup.  The value is
+      stored in the `institute` metadata field and used in the
+      default beamer presentation template.
+    + The behavior of the `#+AUTHOR` and `#+KEYWORD` export
+      settings has changed: Org now allows multiple such lines
+      and adds a space between the contents of each line. Pandoc
+      now always parses these settings as meta inlines; setting
+      values are no longer treated as comma-separated lists.
+      Note that a Lua filter can be used to restore the previous
+      behavior.
+    + Read description lines as inlines (#6485). `#+DESCRIPTION` lines
+      are now treated as text with markup. If multiple such
+      lines are given, then all lines are read and separated by soft
+      linebreaks.
+    + Honor tex export option (#4070).  The `tex` export option can be set
+      with `#+OPTION: tex:nil` and allows three settings:
+      `t` (the default) causes LaTeX fragments to be parsed as TeX or added
+      as raw TeX.  `nil` removes all LaTeX fragments from the document.
+      `verbatim` treats LaTeX as text.
+
 
   * RST reader:
 
@@ -244,6 +292,7 @@
     + Use `--enable-local-file-access` in invoking `wkhtmltopdf` (#6474).
       `wkhtmltopdf` changed in recent versions to require this for
       access to local files.  This fixes PDF via HTML5 with `--css`.
+    + Send verbose output to stderr, not stdout (#6483).
 
   * Text.Pandoc.MIME: Fix MIME type for TrueType fonts in EPUBs
     (#6464, Michael Reed).
@@ -317,6 +366,8 @@
 
   * Remove unnecessary hlint ignores (#6341, Joseph C. Sible).
 
+  * Remove obsolete RelaxedPolyRec extension (#6487, Nikolay Yakimov).
+
   * trypandoc improvements (Mike Tzou):
 
     + Add standalone option to the command text (#6210).
@@ -334,6 +385,11 @@
     + Fix misleading note about image size conversions (#6353).
     + Update links to reveal.js documentation (#6386, Salim B).
     + Separate adjacent verbatim code blocks (#6307, tom-audm).
+
+  * org.md:
+
+    + Document behavior of `smart` extension (#4387, Albert Krewinkel).
+    + Describe all supported export options in detail.
 
   * lua-filters.md:
 
