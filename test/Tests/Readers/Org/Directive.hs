@@ -156,6 +156,22 @@ tests =
                   ] =?>
         para "Icelandic letter: \\thorn"
 
+    , testGroup "Option f"
+      [ "disable inline footnotes" =:
+        T.unlines [ "#+OPTIONS: f:nil"
+                  , "Funny![fn:funny:or not]"
+                  ] =?>
+        para "Funny!"
+
+      , "disable reference footnotes" =:
+        T.unlines [ "#+OPTIONS: f:nil"
+                  , "Burn everything[fn:1] down!"
+                  , ""
+                  , "[fn:2] Not quite everything."
+                  ] =?>
+        para "Burn everything down!"
+      ]
+
     , "disable inclusion of todo keywords" =:
         T.unlines [ "#+OPTIONS: todo:nil"
                   , "** DONE todo export"

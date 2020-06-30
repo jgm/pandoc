@@ -378,7 +378,10 @@ citation = try $ do
               else rest
 
 footnote :: PandocMonad m => OrgParser m (F Inlines)
-footnote = try $ inlineNote <|> referencedNote
+footnote = try $ do
+  note <- inlineNote <|> referencedNote
+  withNote <- getExportSetting exportWithFootnotes
+  return $ if withNote then note else mempty
 
 inlineNote :: PandocMonad m => OrgParser m (F Inlines)
 inlineNote = try $ do
