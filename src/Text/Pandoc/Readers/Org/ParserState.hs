@@ -257,6 +257,7 @@ data ExportSettings = ExportSettings
   , exportWithAuthor       :: Bool -- ^ Include author in final meta-data
   , exportWithCreator      :: Bool -- ^ Include creator in final meta-data
   , exportWithEmail        :: Bool -- ^ Include email in final meta-data
+  , exportWithEntities     :: Bool -- ^ Include MathML-like entities
   , exportWithLatex        :: TeXExport -- ^ Handling of raw TeX commands
   , exportWithPlanning     :: Bool -- ^ Keep planning info after headlines
   , exportWithTags         :: Bool -- ^ Keep tags as part of headlines
@@ -279,6 +280,7 @@ defaultExportSettings = ExportSettings
   , exportWithAuthor = True
   , exportWithCreator = True
   , exportWithEmail = True
+  , exportWithEntities = True
   , exportWithLatex = TeXExport
   , exportWithPlanning = False
   , exportWithTags = True

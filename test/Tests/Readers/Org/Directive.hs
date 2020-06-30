@@ -150,6 +150,12 @@ tests =
                   ] =?>
         Pandoc nullMeta mempty
 
+    , "disable MathML-like entities" =:
+        T.unlines [ "#+OPTIONS: e:nil"
+                  , "Icelandic letter: \\thorn"
+                  ] =?>
+        para "Icelandic letter: \\thorn"
+
     , "disable inclusion of todo keywords" =:
         T.unlines [ "#+OPTIONS: todo:nil"
                   , "** DONE todo export"
