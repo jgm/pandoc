@@ -49,7 +49,7 @@ exportSetting = choice
   , ignoredSetting "date"
   , booleanSetting "e" (\val es -> es { exportWithEntities = val })
   , booleanSetting "email" (\val es -> es { exportWithEmail = val })
-  , ignoredSetting "f"
+  , booleanSetting "f" (\val es -> es { exportWithFootnotes = val })
   , integerSetting "H" (\val es -> es { exportHeadlineLevels = val })
   , ignoredSetting "inline"
   , ignoredSetting "num"
