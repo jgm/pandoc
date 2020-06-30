@@ -17,8 +17,8 @@ import Data.Default
 import Data.Either (rights)
 import Data.Foldable (asum)
 import Data.Generics
-import Data.List (intersperse)
-import Data.Maybe (fromMaybe)
+import Data.List (intersperse,elemIndex)
+import Data.Maybe (fromMaybe,catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup.Entity (lookupEntity)
@@ -888,16 +888,6 @@ parseBlock (Elem e) =
            lift $ report $ IgnoredElement $ T.pack $ qName (elName e)
            return mempty
 
-         parseMixed container conts = do
-           let (ils,rest) = break isBlockElement conts
-           ils' <- (trimInlines . mconcat) <$> mapM parseInline ils
-           let p = if ils' == mempty then mempty else container ils'
-           case rest of
-                 []     -> return p
-                 (r:rs) -> do
-                    b <- parseBlock r
-                    x <- parseMixed container rs
-                    return $ p <> b <> x
          codeBlockWithLang = do
            let classes' = case attrValue "language" e of
                                 "" -> []
@@ -939,16 +929,19 @@ parseBlock (Elem e) =
                       let colspecs = case filterChild (named "colgroup") e' of
                                            Just c -> filterChildren isColspec c
                                            _      -> filterChildren isColspec e'
+                      let colnames = case colspecs of
+                                       [] -> []
+                                       cs -> catMaybes $ map (findAttr (unqual "colname" )) cs
                       let isRow x = named "row" x || named "tr" x
                       headrows <- case filterChild (named "thead") e' of
                                        Just h  -> case filterChild isRow h of
-                                                       Just x  -> parseRow x
+                                                       Just x  -> parseRow colnames x
                                                        Nothing -> return []
                                        Nothing -> return []
                       bodyrows <- case filterChild (named "tbody") e' of
-                                       Just b  -> mapM parseRow
+                                       Just b  -> mapM (parseRow colnames)
                                                   $ filterChildren isRow b
-                                       Nothing -> mapM parseRow
+                                       Nothing -> mapM (parseRow colnames)
                                                   $ filterChildren isRow e'
                       let toAlignment c = case findAttr (unqual "align") c of
                                                 Just "left"   -> AlignLeft
@@ -974,15 +967,13 @@ parseBlock (Elem e) =
                                                 Just ws' -> let tot = sum ws'
                                                             in  ColWidth . (/ tot) <$> ws'
                                                 Nothing  -> replicate numrows ColWidthDefault
-                      let toRow = Row nullAttr . map simpleCell
+                      let toRow = Row nullAttr
                           toHeaderRow l = if null l then [] else [toRow l]
                       return $ table (simpleCaption $ plain capt)
                                      (zip aligns widths)
                                      (TableHead nullAttr $ toHeaderRow headrows)
                                      [TableBody nullAttr 0 [] $ map toRow bodyrows]
                                      (TableFoot nullAttr [])
-         isEntry x  = named "entry" x || named "td" x || named "th" x
-         parseRow = mapM (parseMixed plain . elContent) . filterChildren isEntry
          sect n = sectWith (attrValue "id" e,[],[]) n
          sectWith attr n = do
            isbook <- gets dbBook
@@ -1013,6 +1004,39 @@ parseBlock (Elem e) =
            b <- getBlocks e
            -- we also attach the label as a class, so it can be styled properly
            return $ divWith (attrValue "id" e,[label],[]) (title <> b)
+
+parseMixed :: PandocMonad m => (Inlines -> Blocks) -> [Content] -> DB m Blocks
+parseMixed container conts = do
+  let (ils,rest) = break isBlockElement conts
+  ils' <- (trimInlines . mconcat) <$> mapM parseInline ils
+  let p = if ils' == mempty then mempty else container ils'
+  case rest of
+    [] -> return p
+    (r:rs) -> do
+      b <- parseBlock r
+      x <- parseMixed container rs
+      return $ p <> b <> x
+
+parseRow :: PandocMonad m => [String] -> Element -> DB m [Cell]
+parseRow cn = do
+  let isEntry x  = named "entry" x || named "td" x || named "th" x
+  mapM (parseEntry cn) . filterChildren isEntry
+
+parseEntry :: PandocMonad m => [String] -> Element -> DB m Cell
+parseEntry cn el = do
+  let colDistance sa ea = do
+        let iStrt = elemIndex sa cn
+        let iEnd = elemIndex ea cn
+        case (iStrt, iEnd) of
+          (Just start, Just end) -> ColSpan $ end - start + 1
+          _ -> 1
+  let toColSpan en = do
+        let mStrt = findAttr (unqual "namest") en
+        let mEnd = findAttr (unqual "nameend") en
+        case (mStrt, mEnd) of
+          (Just start, Just end) -> colDistance start end
+          _ -> 1
+  (fmap (cell AlignDefault 1 (toColSpan el)) . (parseMixed plain) . elContent) el
 
 getInlines :: PandocMonad m => Element -> DB m Inlines
 getInlines e' = (trimInlines . mconcat) <$>
