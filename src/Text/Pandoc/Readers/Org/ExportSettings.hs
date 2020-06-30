@@ -47,7 +47,7 @@ exportSetting = choice
   , booleanSetting "creator" (\val es -> es { exportWithCreator = val })
   , complementableListSetting "d" (\val es -> es { exportDrawers = val })
   , ignoredSetting "date"
-  , ignoredSetting "e"
+  , booleanSetting "e" (\val es -> es { exportWithEntities = val })
   , booleanSetting "email" (\val es -> es { exportWithEmail = val })
   , ignoredSetting "f"
   , integerSetting "H" (\val es -> es { exportHeadlineLevels = val })

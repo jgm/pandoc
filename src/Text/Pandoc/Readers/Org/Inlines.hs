@@ -790,9 +790,12 @@ inlineLaTeX :: PandocMonad m => OrgParser m (F Inlines)
 inlineLaTeX = try $ do
   cmd <- inlineLaTeXCommand
   texOpt <- getExportSetting exportWithLatex
+  allowEntities <- getExportSetting exportWithEntities
   ils <- parseAsInlineLaTeX cmd texOpt
   maybe mzero returnF $
-     parseAsMathMLSym cmd `mplus` parseAsMath cmd texOpt `mplus` ils
+     parseAsMathMLSym allowEntities cmd `mplus`
+     parseAsMath cmd texOpt `mplus`
+     ils
  where
    parseAsInlineLaTeX :: PandocMonad m
                       => Text -> TeXExport -> OrgParser m (Maybe Inlines)
@@ -801,10 +804,15 @@ inlineLaTeX = try $ do
      TeXIgnore -> return (Just mempty)
      TeXVerbatim -> return (Just $ B.str cs)
 
-   parseAsMathMLSym :: Text -> Maybe Inlines
-   parseAsMathMLSym cs = B.str <$> MathMLEntityMap.getUnicode (clean cs)
-    -- drop initial backslash and any trailing "{}"
-    where clean = T.dropWhileEnd (`elem` ("{}" :: String)) . T.drop 1
+   parseAsMathMLSym :: Bool -> Text -> Maybe Inlines
+   parseAsMathMLSym allowEntities cs = do
+     -- drop initial backslash and any trailing "{}"
+     let clean = T.dropWhileEnd (`elem` ("{}" :: String)) . T.drop 1
+     -- If entities are disabled, then return the string as text, but
+     -- only if this *is* a MathML entity.
+     case B.str <$> MathMLEntityMap.getUnicode (clean cs) of
+       Just _ | not allowEntities -> Just $ B.str cs
+       x -> x
 
    state :: ParserState
    state = def{ stateOptions = def{ readerExtensions =
