@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.10 (YYYY-MM-DD)
+## pandoc 2.10 (2020-06-29)
 
   * Use pandoc-types 1.21.  This adds two things:
 
