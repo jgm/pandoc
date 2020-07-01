@@ -64,7 +64,7 @@ exportSetting = choice
   , ignoredSetting "title"
   , ignoredSetting "toc"
   , booleanSetting "todo" (\val es -> es { exportWithTodoKeywords = val })
-  , ignoredSetting "|"
+  , booleanSetting "|" (\val es -> es { exportWithTables = val })
   , ignoreAndWarn
   ] <?> "export setting"
 

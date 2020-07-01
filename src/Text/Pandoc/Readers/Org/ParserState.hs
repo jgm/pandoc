@@ -262,6 +262,7 @@ data ExportSettings = ExportSettings
   , exportWithLatex        :: TeXExport -- ^ Handling of raw TeX commands
   , exportWithPlanning     :: Bool -- ^ Keep planning info after headlines
   , exportWithTags         :: Bool -- ^ Keep tags as part of headlines
+  , exportWithTables       :: Bool -- ^ Include tables
   , exportWithTodoKeywords :: Bool -- ^ Keep TODO keywords in headers
   }
 
@@ -286,5 +287,6 @@ defaultExportSettings = ExportSettings
   , exportWithLatex = TeXExport
   , exportWithPlanning = False
   , exportWithTags = True
+  , exportWithTables = True
   , exportWithTodoKeywords = True
   }

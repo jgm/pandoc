@@ -608,7 +608,10 @@ data OrgTable = OrgTable
   }
 
 table :: PandocMonad m => OrgParser m (F Blocks)
-table = gridTableWith blocks True <|> orgTable
+table = do
+  withTables <- getExportSetting exportWithTables
+  tbl <- gridTableWith blocks True <|> orgTable
+  return $ if withTables then tbl else mempty
 
 -- | A normal org table
 orgTable :: PandocMonad m => OrgParser m (F Blocks)

@@ -280,6 +280,14 @@ tests =
         headerWith ("wichtig", mempty, mempty) 1 "Wichtig"
       ]
 
+    , testGroup "Option |"
+      [ "disable export of tables" =:
+        T.unlines [ "#+OPTIONS: |:nil"
+                  , "| chair |"
+                  ] =?>
+        (mempty :: Blocks)
+      ]
+
     , testGroup "unknown options"
       [ "unknown options are ignored" =:
           T.unlines [ "#+OPTIONS: does-not-exist:t "] =?>
