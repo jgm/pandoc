@@ -258,7 +258,7 @@ dosiunitx = do
                       emptyOr160 unit,
                       unit]
 
--- converts e.g. \SIRange{100}{200}{\ms} to "100 ms to 200 ms"
+-- converts e.g. \SIRange{100}{200}{\ms} to "100 ms--200 ms"
 doSIRange :: PandocMonad m => LP m Inlines
 doSIRange = do
   skipopts
@@ -274,7 +274,7 @@ doSIRange = do
                       startvalue,
                       emptyOr160 unit,
                       unit,
-                      " \8211 ", -- An en-dash
+                      "\8211", -- An en-dash
                       stopvalueprefix,
                       emptyOr160 stopvalueprefix,
                       stopvalue,
