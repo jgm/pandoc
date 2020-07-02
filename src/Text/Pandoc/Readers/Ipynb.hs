@@ -79,7 +79,7 @@ cellToBlocks opts lang c = do
   case cellType c of
     Ipynb.Markdown -> do
       Pandoc _ bs <- walk fixImage <$> readMarkdown opts source
-      let kvs' = ("source", source) : kvs
+      let kvs' = ("source", source) : [(k,v) | (k,v) <- kvs, k /= "source"]
       return $ B.divWith ("",["cell","markdown"],kvs')
              $ B.fromList bs
     Ipynb.Heading lev -> do
