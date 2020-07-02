@@ -102,13 +102,10 @@ extractCells _ [] = return []
 extractCells opts (Div (_id,classes,kvs) xs : bs)
   | "cell" `elem` classes
   , "markdown" `elem` classes = do
-      let meta = pairsToJSONMeta [(k,v) | (k,v) <- kvs, k /= "source"]
+      let meta = pairsToJSONMeta kvs
       (newdoc, attachments) <-
         runStateT (walkM addAttachment (Pandoc nullMeta xs)) mempty
-      source <- case lookup "source" kvs of
-                  Just s  -> return s
-                  Nothing -> writeMarkdown opts{ writerTemplate = Nothing }
-                              newdoc
+      source <- writeMarkdown opts{ writerTemplate = Nothing } newdoc
       (Ipynb.Cell{
           cellType = Markdown
         , cellSource = Source $ breakLines $ T.stripEnd source
