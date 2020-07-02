@@ -17,8 +17,14 @@ Before you submit a bug report, search the [open issues] *and* [closed issues]
 to make sure the issue hasn't come up before. Also, check the [User's Guide] and
 [FAQs] for anything relevant.
 
-Make sure you can reproduce the bug with the [latest released version] of pandoc
-(or, even better, the [development version]).
+Make sure you can reproduce the bug with the [latest released
+version] of pandoc---or, even better, the development version,
+since the bug may have been fixed since the last release.
+[Nightly builds] are available, so you don't need to compile
+from source to test againt the development version.
+(To fetch a nightly, visit the link, click the topmost "Nightly"
+in the table, then choose your platform under "Artifacts."  Note
+that you must be logged in with a GitHub account.)
 
 Your report should give detailed, *reproducible* instructions, including
 
@@ -346,7 +352,7 @@ you may want to consider submitting a pull request to the
 [open issues]: https://github.com/jgm/pandoc/issues
 [closed issues]: https://github.com/jgm/pandoc/issues?q=is%3Aissue+is%3Aclosed
 [latest released version]: https://github.com/jgm/pandoc/releases/latest
-[development version]: https://github.com/pandoc-extras/pandoc-nightly/releases/latest
+[Nightly builds]: https://github.com/jgm/pandoc/actions?query=workflow%3ANightly
 [pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
 [issue tracker]: https://github.com/jgm/pandoc/issues
 [User's Guide]: http://pandoc.org/MANUAL.html
