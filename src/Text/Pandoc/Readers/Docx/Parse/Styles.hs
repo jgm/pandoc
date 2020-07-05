@@ -118,6 +118,7 @@ data ParStyle = ParStyle { headingLev    :: Maybe (ParaStyleName, Int)
                          , psParentStyle :: Maybe ParStyle
                          , pStyleName    :: ParaStyleName
                          , pStyleId      :: ParaStyleId
+                         , psRunStyle     :: RunStyle
                          }
                     deriving Show
 
@@ -311,5 +312,6 @@ elemToParStyleData ns element parentStyle
       , psParentStyle = parentStyle
       , pStyleName = styleName
       , pStyleId = ParaStyleId styleId
+      , psRunStyle = elemToRunStyle ns element Nothing
       }
 elemToParStyleData _ _ _ = Nothing

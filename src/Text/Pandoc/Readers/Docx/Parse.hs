@@ -30,7 +30,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , VertAlign(..)
                                       , ParIndentation(..)
                                       , ParagraphStyle(..)
-                                      , ParStyle
+                                      , ParStyle()
                                       , CharStyle(cStyleData)
                                       , Row(..)
                                       , Cell(..)
@@ -48,6 +48,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , archiveToDocxWithWarnings
                                       , getStyleNames
                                       , pHeading
+                                      , pRunStyle
                                       , constructBogusParStyleData
                                       , leftBiasedMergeRunStyle
                                       ) where
@@ -396,6 +397,7 @@ constructBogusParStyleData stName = ParStyle
   , psParentStyle = Nothing
   , pStyleName = stName
   , pStyleId = ParaStyleId . T.filter (/=' ') . fromStyleName $ stName
+  , psRunStyle = defaultRunStyle
   }
 
 archiveToNotes :: Archive -> Notes
@@ -632,6 +634,9 @@ testBitMask bitMaskS n =
 
 pHeading :: ParagraphStyle -> Maybe (ParaStyleName, Int)
 pHeading = getParStyleField headingLev . pStyle
+
+pRunStyle :: ParagraphStyle -> Maybe RunStyle
+pRunStyle = getParStyleField (Just . psRunStyle) . pStyle
 
 pNumInfo :: ParagraphStyle -> Maybe (T.Text, T.Text)
 pNumInfo = getParStyleField numInfo . pStyle
