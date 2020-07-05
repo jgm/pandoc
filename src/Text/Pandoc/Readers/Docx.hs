@@ -128,13 +128,13 @@ instance Default DState where
 data DEnv = DEnv { docxOptions       :: ReaderOptions
                  , docxInHeaderBlock :: Bool
                  , docxInBidi        :: Bool
-                 , docxCurParaStyle  :: Maybe ParagraphStyle
                  }
 
 instance Default DEnv where
-  def = DEnv def False False Nothing
+  def = DEnv def False False
 
 type DocxContext m = ReaderT DEnv (StateT DState m)
+type DocxContextPara m = ReaderT ParagraphStyle (DocxContext m)
 
 evalDocxContext :: PandocMonad m => DocxContext m a -> DEnv -> DState -> m a
 evalDocxContext ctx env st = flip evalStateT st $ runReaderT ctx env
@@ -303,15 +303,14 @@ runStyleToTransform rPr' = do
   return $ go rPr'
 
 
-resolveDependentPsRs :: PandocMonad m => RunStyle -> DocxContext m RunStyle
+resolveDependentPsRs :: PandocMonad m => RunStyle -> DocxContextPara m RunStyle
 resolveDependentPsRs rs = do
-  opts <- asks docxOptions
+  opts <- lift $ asks docxOptions
   if isEnabled Ext_styles opts
   then return rs
-  else asks (leftBiasedMergeRunStyle' rs . go . docxCurParaStyle)
+  else asks (leftBiasedMergeRunStyle' rs . go)
   where
-  go Nothing = Nothing
-  go (Just ps)
+  go ps
     | Just cs <- rParentStyle rs
     = mergeParaRunStyle (resolveDependentRunStyle cs) prs
     | otherwise = prs
@@ -353,7 +352,7 @@ mergeParaRunStyle (Just rs) (Just prs) = Just $ RunStyle
       | Just True <- f rs, Just True <- f prs = Just False
       | otherwise = merge f
 
-runToInlines :: PandocMonad m => Run -> DocxContext m Inlines
+runToInlines :: PandocMonad m => Run -> DocxContextPara m Inlines
 runToInlines (Run rs runElems)
   | maybe False isCodeCharStyle $ rParentStyle rs = do
       rPr <- resolveDependentPsRs rs
@@ -365,10 +364,10 @@ runToInlines (Run rs runElems)
   | otherwise = do
       rPr <- resolveDependentPsRs rs
       let ils = smushInlines (map runElemToInlines runElems)
-      transform <- runStyleToTransform rPr
+      transform <- lift $ runStyleToTransform rPr
       return $ transform ils
-runToInlines (Footnote bps) = note . smushBlocks <$> mapM bodyPartToBlocks bps
-runToInlines (Endnote bps) = note . smushBlocks <$> mapM bodyPartToBlocks bps
+runToInlines (Footnote bps) = lift $ note . smushBlocks <$> mapM bodyPartToBlocks bps
+runToInlines (Endnote bps) = lift $ note . smushBlocks <$> mapM bodyPartToBlocks bps
 runToInlines (InlineDrawing fp title alt bs ext) = do
   (lift . lift) $ P.insertMedia fp Nothing bs
   return $ imageWith (extentToAttr ext) (T.pack fp) title $ text alt
@@ -400,20 +399,20 @@ parPartToInlines parStyle parPart =
   case parPart of
     (BookMark _ anchor) | anchor `notElem` dummyAnchors -> do
       inHdrBool <- asks docxInHeaderBlock
-      ils <- local (\s -> s{ docxCurParaStyle = Just parStyle }) $ parPartToInlines' parPart
+      ils <- runReaderT (parPartToInlines' parPart) parStyle
       immedPrevAnchor <- gets docxImmedPrevAnchor
       unless (isJust immedPrevAnchor || inHdrBool)
         (modify $ \s -> s{ docxImmedPrevAnchor = Just anchor})
       return ils
     _ -> do
-      ils <- local (\s -> s{ docxCurParaStyle = Just parStyle }) $ parPartToInlines' parPart
+      ils <- runReaderT (parPartToInlines' parPart) parStyle
       modify $ \s -> s{ docxImmedPrevAnchor = Nothing}
       return ils
 
-parPartToInlines' :: PandocMonad m => ParPart -> DocxContext m Inlines
+parPartToInlines' :: PandocMonad m => ParPart -> DocxContextPara m Inlines
 parPartToInlines' (PlainRun r) = runToInlines r
 parPartToInlines' (ChangedRuns (TrackedChange Insertion (ChangeInfo _ author date)) runs) = do
-  opts <- asks docxOptions
+  opts <- lift $ asks docxOptions
   case readerTrackChanges opts of
     AcceptChanges -> smushInlines <$> mapM runToInlines runs
     RejectChanges -> return mempty
@@ -422,7 +421,7 @@ parPartToInlines' (ChangedRuns (TrackedChange Insertion (ChangeInfo _ author dat
       let attr = ("", ["insertion"], [("author", author), ("date", date)])
       return $ spanWith attr ils
 parPartToInlines' (ChangedRuns (TrackedChange Deletion (ChangeInfo _ author date)) runs) = do
-  opts <- asks docxOptions
+  opts <- lift $ asks docxOptions
   case readerTrackChanges opts of
     AcceptChanges -> return mempty
     RejectChanges -> smushInlines <$> mapM runToInlines runs
@@ -431,16 +430,16 @@ parPartToInlines' (ChangedRuns (TrackedChange Deletion (ChangeInfo _ author date
       let attr = ("", ["deletion"], [("author", author), ("date", date)])
       return $ spanWith attr ils
 parPartToInlines' (CommentStart cmtId author date bodyParts) = do
-  opts <- asks docxOptions
+  opts <- lift $ asks docxOptions
   case readerTrackChanges opts of
     AllChanges -> do
-      blks <- smushBlocks <$> mapM bodyPartToBlocks bodyParts
-      ils <- blocksToInlinesWarn cmtId blks
+      blks <- lift $ smushBlocks <$> mapM bodyPartToBlocks bodyParts
+      ils <- lift $ blocksToInlinesWarn cmtId blks
       let attr = ("", ["comment-start"], [("id", cmtId), ("author", author), ("date", date)])
       return $ spanWith attr ils
     _ -> return mempty
 parPartToInlines' (CommentEnd cmtId) = do
-  opts <- asks docxOptions
+  opts <- lift $ asks docxOptions
   case readerTrackChanges opts of
     AllChanges -> do
       let attr = ("", ["comment-end"], [("id", cmtId)])
@@ -453,7 +452,7 @@ parPartToInlines' (BookMark _ anchor) =
   -- user-defined anchor links with header auto ids.
   do
     -- get whether we're in a header.
-    inHdrBool <- asks docxInHeaderBlock
+    inHdrBool <- lift $ asks docxInHeaderBlock
     -- Get the anchor map.
     anchorMap <- gets docxAnchorMap
     -- We don't want to rewrite if we're in a header, since we'll take
@@ -471,7 +470,7 @@ parPartToInlines' (BookMark _ anchor) =
           (modify $ \s -> s { docxAnchorMap = M.insert anchor prevAnchor anchorMap})
         return mempty
       Nothing -> do
-        exts <- readerExtensions <$> asks docxOptions
+        exts <- lift $ asks (readerExtensions . docxOptions)
         let newAnchor =
               if not inHdrBool && anchor `elem` M.elems anchorMap
               then uniqueIdent exts [Str anchor]
@@ -516,7 +515,7 @@ makeHeaderAnchor' (Header n (ident, classes, kvs) ils)
   | (c:_) <- filter isAnchorSpan ils
   , (Span (anchIdent, ["anchor"], _) cIls) <- c = do
     hdrIDMap <- gets docxAnchorMap
-    exts <- readerExtensions <$> asks docxOptions
+    exts <- asks (readerExtensions . docxOptions)
     let newIdent = if T.null ident
                    then uniqueIdent exts ils (Set.fromList $ M.elems hdrIDMap)
                    else ident
@@ -529,7 +528,7 @@ makeHeaderAnchor' (Header n (ident, classes, kvs) ils)
 makeHeaderAnchor' (Header n (ident, classes, kvs) ils) =
   do
     hdrIDMap <- gets docxAnchorMap
-    exts <- readerExtensions <$> asks docxOptions
+    exts <- asks (readerExtensions . docxOptions)
     let newIdent = if T.null ident
                    then uniqueIdent exts ils (Set.fromList $ M.elems hdrIDMap)
                    else ident
