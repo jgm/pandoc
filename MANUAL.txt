@@ -902,7 +902,7 @@ header when requesting a document from a URL:
     downloaded). If you're behind a proxy, you also need to set
     the environment variable `http_proxy` to `http://...`.
 
-`--no-check-certificate
+`--no-check-certificate`
 
 :   Disable the certificate verification to allow access to 
     unsecure HTTP resources (for example when the certificate
