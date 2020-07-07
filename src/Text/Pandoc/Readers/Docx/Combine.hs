@@ -71,20 +71,18 @@ data Modifier a = Modifier (a -> a)
 
 spaceOutInlinesL :: Inlines -> (Inlines, Inlines)
 spaceOutInlinesL ms = (l, stackInlines fs (m' <> r))
-  where (l, m, r) = spaceOutInlines ms
-        (fs, m')  = unstackInlines m
+  where (l, (fs, m'), r) = spaceOutInlines ms
 
 spaceOutInlinesR :: Inlines -> (Inlines, Inlines)
 spaceOutInlinesR ms = (stackInlines fs (l <> m'), r)
-  where (l, m, r) = spaceOutInlines ms
-        (fs, m')  = unstackInlines m
+  where (l, (fs, m'), r) = spaceOutInlines ms
 
-spaceOutInlines :: Inlines -> (Inlines, Inlines, Inlines)
+spaceOutInlines :: Inlines -> (Inlines, ([Modifier Inlines], Inlines), Inlines)
 spaceOutInlines ils =
   let (fs, ils') = unstackInlines ils
       (left, (right, contents')) = second (spanr isSpace) $ spanl isSpace $ unMany ils'
       -- NOTE: spanr counterintuitively returns suffix as the FIRST tuple element
-  in (Many left, stackInlines fs $ Many contents', Many right)
+  in (Many left, (fs, Many contents'), Many right)
 
 isSpace :: Inline -> Bool
 isSpace Space = True
