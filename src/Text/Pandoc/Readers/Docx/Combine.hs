@@ -4,7 +4,8 @@
 {- |
    Module      : Text.Pandoc.Readers.Docx.Combine
    Copyright   : © 2014-2020 Jesse Rosenthal <jrosenthal@jhu.edu>,
-                   2014-2020 John MacFarlane <jgm@berkeley.edu>
+                   2014-2020 John MacFarlane <jgm@berkeley.edu>,
+                   2020 Nikolay Yakimov <root@livid.pp.ru>
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Jesse Rosenthal <jrosenthal@jhu.edu>
@@ -59,7 +60,9 @@ module Text.Pandoc.Readers.Docx.Combine ( smushInlines
        where
 
 import Data.List
-import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr, (><), (|>))
+import Data.Bifunctor
+import Data.Sequence ( ViewL (..), ViewR (..), viewl, viewr, spanr, spanl
+                     , (><), (|>) )
 import qualified Data.Sequence as Seq (null)
 import Text.Pandoc.Builder
 
@@ -80,14 +83,14 @@ spaceOutInlinesR ms = (stackInlines fs (l <> m'), r)
 spaceOutInlines :: Inlines -> (Inlines, Inlines, Inlines)
 spaceOutInlines ils =
   let (fs, ils') = unstackInlines ils
-      contents = unMany ils'
-      left  = case viewl contents of
-        (Space :< _) -> space
-        _            -> mempty
-      right = case viewr contents of
-        (_ :> Space) -> space
-        _            -> mempty in
-  (left, stackInlines fs $ trimInlines . Many $ contents, right)
+      (left, (right, contents')) = second (spanr isSpace) $ spanl isSpace $ unMany ils'
+      -- NOTE: spanr counterintuitively returns suffix as the FIRST tuple element
+  in (Many left, stackInlines fs $ Many contents', Many right)
+
+isSpace :: Inline -> Bool
+isSpace Space = True
+isSpace SoftBreak = True
+isSpace _ = False
 
 stackInlines :: [Modifier Inlines] -> Inlines -> Inlines
 stackInlines [] ms = ms
@@ -99,39 +102,24 @@ stackInlines (Modifier f : fs) ms =
 stackInlines (AttrModifier f attr : fs) ms = f attr $ stackInlines fs ms
 
 unstackInlines :: Inlines -> ([Modifier Inlines], Inlines)
-unstackInlines ms = case ilModifier ms of
-  NullModifier -> ([], ms)
-  _            -> (f : fs, ms') where
-    f = ilModifier ms
-    (fs, ms') = unstackInlines $ ilInnards ms
+unstackInlines ms = case ilModifierAndInnards ms of
+  (NullModifier, _) -> ([], ms)
+  (f, innards     ) -> first (f :) $ unstackInlines innards
 
-ilModifier :: Inlines -> Modifier Inlines
-ilModifier ils = case viewl (unMany ils) of
-  (x :< xs) | Seq.null xs -> case x of
-    (Emph _)          -> Modifier emph
-    (Strong _)        -> Modifier strong
-    (SmallCaps _)     -> Modifier smallcaps
-    (Strikeout _)     -> Modifier strikeout
-    (Superscript _)   -> Modifier superscript
-    (Subscript _)     -> Modifier subscript
-    (Link attr _ tgt) -> Modifier $ linkWith attr (fst tgt) (snd tgt)
-    (Span attr _)     -> AttrModifier spanWith attr
-    _                 -> NullModifier
-  _ -> NullModifier
-
-ilInnards :: Inlines -> Inlines
-ilInnards ils = case viewl (unMany ils) of
-  (x :< xs) | Seq.null xs -> case x of
-    (Emph lst)        -> fromList lst
-    (Strong lst)      -> fromList lst
-    (SmallCaps lst)   -> fromList lst
-    (Strikeout lst)   -> fromList lst
-    (Superscript lst) -> fromList lst
-    (Subscript lst)   -> fromList lst
-    (Link _ lst _)    -> fromList lst
-    (Span _ lst)      -> fromList lst
-    _                 -> ils
-  _          -> ils
+ilModifierAndInnards :: Inlines -> (Modifier Inlines, Inlines)
+ilModifierAndInnards ils = case viewl $ unMany ils of
+  x :< xs | Seq.null xs -> case x of
+    Emph lst          -> (Modifier emph, fromList lst)
+    Strong lst        -> (Modifier strong, fromList lst)
+    SmallCaps lst     -> (Modifier smallcaps, fromList lst)
+    Strikeout lst     -> (Modifier strikeout, fromList lst)
+    Underline lst     -> (Modifier underline, fromList lst)
+    Superscript lst   -> (Modifier superscript, fromList lst)
+    Subscript lst     -> (Modifier subscript, fromList lst)
+    Link attr lst tgt -> (Modifier $ linkWith attr (fst tgt) (snd tgt), fromList lst)
+    Span attr lst     -> (AttrModifier spanWith attr, fromList lst)
+    _                 -> (NullModifier, ils)
+  _ -> (NullModifier, ils)
 
 inlinesL :: Inlines -> (Inlines, Inlines)
 inlinesL ils = case viewl $ unMany ils of
@@ -162,7 +150,7 @@ combineSingletonInlines x y =
   in
    case null shared of
      True | isEmpty xs && isEmpty ys ->
-            stackInlines (x_rem_attr ++ y_rem_attr) mempty
+            stackInlines (x_rem_attr <> y_rem_attr) mempty
           | isEmpty xs ->
             let (sp, y') = spaceOutInlinesL y in
             stackInlines x_rem_attr mempty <> sp <> y'
