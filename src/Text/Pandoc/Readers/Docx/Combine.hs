@@ -61,7 +61,6 @@ import Data.List
 import Data.Bifunctor
 import Data.Sequence ( ViewL (..), ViewR (..), viewl, viewr, spanr, spanl
                      , (><), (|>) )
-import qualified Data.Sequence as Seq (null)
 import Text.Pandoc.Builder
 
 data Modifier a = Modifier (a -> a)
@@ -90,7 +89,7 @@ isSpace _ = False
 stackInlines :: [Modifier Inlines] -> Inlines -> Inlines
 stackInlines [] ms = ms
 stackInlines (Modifier f : fs) ms =
-  if isEmpty ms
+  if null ms
   then stackInlines fs ms
   else f $ stackInlines fs ms
 stackInlines (AttrModifier f attr : fs) ms = f attr $ stackInlines fs ms
@@ -102,7 +101,7 @@ unstackInlines ms = case ilModifierAndInnards ms of
 
 ilModifierAndInnards :: Inlines -> Maybe (Modifier Inlines, Inlines)
 ilModifierAndInnards ils = case viewl $ unMany ils of
-  x :< xs | Seq.null xs -> second fromList <$> case x of
+  x :< xs | null xs -> second fromList <$> case x of
     Emph lst          -> Just (Modifier emph, lst)
     Strong lst        -> Just (Modifier strong, lst)
     SmallCaps lst     -> Just (Modifier smallcaps, lst)
@@ -143,12 +142,12 @@ combineSingletonInlines x y =
       y_rem_attr = filter isAttrModifier y_remaining
   in
    case null shared of
-     True | isEmpty xs && isEmpty ys ->
+     True | null xs && null ys ->
             stackInlines (x_rem_attr <> y_rem_attr) mempty
-          | isEmpty xs ->
+          | null xs ->
             let (sp, y') = spaceOutInlinesL y in
             stackInlines x_rem_attr mempty <> sp <> y'
-          | isEmpty ys ->
+          | null ys ->
             let (x', sp) = spaceOutInlinesR x in
             x' <> sp <> stackInlines y_rem_attr mempty
           | otherwise ->
@@ -176,9 +175,6 @@ instance (Monoid a, Eq a) => Eq (Modifier a) where
   (Modifier f) == (Modifier g) = f mempty == g mempty
   (AttrModifier f attr) == (AttrModifier g attr') = f attr mempty == g attr' mempty
   _ == _ = False
-
-isEmpty :: (Monoid a, Eq a) => a -> Bool
-isEmpty x = x == mempty
 
 isAttrModifier :: Modifier a -> Bool
 isAttrModifier (AttrModifier _ _) = True
