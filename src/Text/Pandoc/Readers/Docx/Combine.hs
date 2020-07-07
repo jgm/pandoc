@@ -68,7 +68,6 @@ import Text.Pandoc.Builder
 
 data Modifier a = Modifier (a -> a)
                 | AttrModifier (Attr -> a -> a) Attr
-                | NullModifier
 
 spaceOutInlinesL :: Inlines -> (Inlines, Inlines)
 spaceOutInlinesL ms = (l, stackInlines fs (m' <> r))
@@ -94,7 +93,6 @@ isSpace _ = False
 
 stackInlines :: [Modifier Inlines] -> Inlines -> Inlines
 stackInlines [] ms = ms
-stackInlines (NullModifier : fs) ms = stackInlines fs ms
 stackInlines (Modifier f : fs) ms =
   if isEmpty ms
   then stackInlines fs ms
@@ -103,23 +101,23 @@ stackInlines (AttrModifier f attr : fs) ms = f attr $ stackInlines fs ms
 
 unstackInlines :: Inlines -> ([Modifier Inlines], Inlines)
 unstackInlines ms = case ilModifierAndInnards ms of
-  (NullModifier, _) -> ([], ms)
-  (f, innards     ) -> first (f :) $ unstackInlines innards
+  Nothing         -> ([], ms)
+  Just (f, inner) -> first (f :) $ unstackInlines inner
 
-ilModifierAndInnards :: Inlines -> (Modifier Inlines, Inlines)
+ilModifierAndInnards :: Inlines -> Maybe (Modifier Inlines, Inlines)
 ilModifierAndInnards ils = case viewl $ unMany ils of
-  x :< xs | Seq.null xs -> case x of
-    Emph lst          -> (Modifier emph, fromList lst)
-    Strong lst        -> (Modifier strong, fromList lst)
-    SmallCaps lst     -> (Modifier smallcaps, fromList lst)
-    Strikeout lst     -> (Modifier strikeout, fromList lst)
-    Underline lst     -> (Modifier underline, fromList lst)
-    Superscript lst   -> (Modifier superscript, fromList lst)
-    Subscript lst     -> (Modifier subscript, fromList lst)
-    Link attr lst tgt -> (Modifier $ linkWith attr (fst tgt) (snd tgt), fromList lst)
-    Span attr lst     -> (AttrModifier spanWith attr, fromList lst)
-    _                 -> (NullModifier, ils)
-  _ -> (NullModifier, ils)
+  x :< xs | Seq.null xs -> second fromList <$> case x of
+    Emph lst          -> Just (Modifier emph, lst)
+    Strong lst        -> Just (Modifier strong, lst)
+    SmallCaps lst     -> Just (Modifier smallcaps, lst)
+    Strikeout lst     -> Just (Modifier strikeout, lst)
+    Underline lst     -> Just (Modifier underline, lst)
+    Superscript lst   -> Just (Modifier superscript, lst)
+    Subscript lst     -> Just (Modifier subscript, lst)
+    Link attr lst tgt -> Just (Modifier $ linkWith attr (fst tgt) (snd tgt), lst)
+    Span attr lst     -> Just (AttrModifier spanWith attr, lst)
+    _                 -> Nothing
+  _ -> Nothing
 
 inlinesL :: Inlines -> (Inlines, Inlines)
 inlinesL ils = case viewl $ unMany ils of
@@ -181,7 +179,6 @@ combineBlocks bs cs = bs <> cs
 instance (Monoid a, Eq a) => Eq (Modifier a) where
   (Modifier f) == (Modifier g) = f mempty == g mempty
   (AttrModifier f attr) == (AttrModifier g attr') = f attr mempty == g attr' mempty
-  NullModifier == NullModifier = True
   _ == _ = False
 
 isEmpty :: (Monoid a, Eq a) => a -> Bool
