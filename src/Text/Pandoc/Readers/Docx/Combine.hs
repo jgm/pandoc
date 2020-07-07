@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE PatternGuards        #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {- |
    Module      : Text.Pandoc.Readers.Docx.Combine
