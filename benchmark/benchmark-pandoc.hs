@@ -1,6 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
 {-
 Copyright (C) 2012-2019 John MacFarlane <jgm@berkeley.edu>
 
@@ -21,39 +20,49 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 import Prelude
 import Text.Pandoc
 import Text.Pandoc.MIME
-import Text.Pandoc.Error (PandocError(..))
-import Control.Monad.Except (throwError)
+import Control.Monad.Except (throwError, liftIO)
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString as B
 import qualified Data.Text as T
 import Criterion.Main
 import Criterion.Types (Config(..))
 import Data.List (intersect)
-import Data.Maybe (mapMaybe)
+import Data.Maybe (mapMaybe, catMaybes)
 import System.Environment (getArgs)
 import qualified Data.ByteString.Lazy as BL
 
+data Input = InputText {unInputText :: T.Text}
+           | InputBS {unInputBS :: BL.ByteString}
+
 readerBench :: Pandoc
             -> T.Text
-            -> Maybe Benchmark
-readerBench doc name =
-  case res of
+            -> IO (Maybe Benchmark)
+readerBench doc name = do
+  let (rdr, rexts) = either (error . show) id . runPure $ getReader name
+  res <- runIO $ do
+          (wtr, wexts) <- getWriter name
+          case (rdr, wtr) of
+            (TextReader r, TextWriter w) -> do
+                     setResourcePath ["./test"]
+                     inp <- w def{ writerWrapText = WrapAuto
+                                 , writerExtensions = wexts } doc
+                     return (r def{ readerExtensions = rexts } . unInputText, InputText inp)
+            (ByteStringReader r, ByteStringWriter w) -> do
+                     setResourcePath ["./test"]
+                     tmpl <- Just <$> compileDefaultTemplate name
+                     inp <- w def{ writerWrapText = WrapAuto
+                                 , writerExtensions = wexts
+                                 , writerTemplate = tmpl } doc
+                     liftIO $ BL.writeFile "/tmp/test.odt" inp
+                     return (r def{ readerExtensions = rexts } . unInputBS, InputBS inp)
+            _ -> throwError $ PandocSomeError $ "text/bytestring format mismatch: "
+                                 <> name
+  return $ case res of
        Right (readerFun, inp) ->
           Just $ bench (T.unpack $ name <> " reader")
                $ nf (\i -> either (error . show) id $ runPure (readerFun i))
                  inp
        Left _ -> Nothing
-  where res = runPure $ do
-          (rdr, rexts) <- getReader name
-          (wtr, wexts) <- getWriter name
-          case (rdr, wtr) of
-            (TextReader r, TextWriter w) -> do
-                     setResourcePath ["../test"]
-                     inp <- w def{ writerWrapText = WrapAuto
-                                 , writerExtensions = wexts } doc
-                     return $ (r def{ readerExtensions = rexts }, inp)
-            _ -> throwError $ PandocSomeError $ "not a text format: "
-                                 <> name
 
 getImages :: IO [(FilePath, MimeType, BL.ByteString)]
 getImages = do
@@ -89,22 +98,23 @@ main :: IO ()
 main = do
   args <- filter (\x -> T.take 1 x /= "-") . fmap T.pack <$> getArgs
   print args
-  let matchReader (n, TextReader _) =
+  let matchReader (n, _) =
          null args || ("reader" `elem` args && n `elem` args)
-      matchReader _                 = False
-  let matchWriter (n, TextWriter _) =
+      matchWriter (n, TextWriter _) =
          null args || ("writer" `elem` args && n `elem` args)
       matchWriter _                 = False
-  let matchedReaders = map fst $ (filter matchReader readers
+      allWriters = map fst (writers :: [(T.Text, Writer PandocPure)])
+      matchedReaders = map fst (filter matchReader readers
                                     :: [(T.Text, Reader PandocPure)])
-  let matchedWriters = map fst $ (filter matchWriter writers
+      matchedWriters = map fst (filter matchWriter writers
                                     :: [(T.Text, Writer PandocPure)])
   inp <- UTF8.toText <$> B.readFile "test/testsuite.txt"
   let opts = def
   let doc = either (error . show) id $ runPure $ readMarkdown opts inp
-  let readerBs = mapMaybe (readerBench doc)
-                 $ filter (/="haddock")
-                 (matchedReaders `intersect` matchedWriters)
+  readerBs <- fmap catMaybes
+              $ mapM (readerBench doc)
+              $ filter (/="haddock")
+              (matchedReaders `intersect` allWriters)
                  -- we need the corresponding writer to generate
                  -- input for the reader
   let writerBs = mapMaybe (writerBench doc) matchedWriters
