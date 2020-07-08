@@ -37,6 +37,7 @@ import qualified Tests.Writers.JATS
 import qualified Tests.Writers.Jira
 import qualified Tests.Writers.LaTeX
 import qualified Tests.Writers.Markdown
+import qualified Tests.Writers.Ms
 import qualified Tests.Writers.Muse
 import qualified Tests.Writers.Native
 import qualified Tests.Writers.Org
@@ -70,6 +71,7 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "Muse" Tests.Writers.Muse.tests
           , testGroup "FB2" Tests.Writers.FB2.tests
           , testGroup "PowerPoint" Tests.Writers.Powerpoint.tests
+          , testGroup "Ms" Tests.Writers.Ms.tests
           ]
         , testGroup "Readers"
           [ testGroup "LaTeX" Tests.Readers.LaTeX.tests

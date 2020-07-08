@@ -816,6 +816,7 @@ test-suite test-pandoc
                   Tests.Writers.FB2
                   Tests.Writers.Powerpoint
                   Tests.Writers.OOXML
+                  Tests.Writers.Ms
   if os(windows)
     cpp-options:      -D_WINDOWS
   default-language: Haskell2010

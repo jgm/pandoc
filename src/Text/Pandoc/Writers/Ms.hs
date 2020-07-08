@@ -204,7 +204,9 @@ blockToMs opts (CodeBlock attr str) = do
     literal ".IP" $$
     literal ".nf" $$
     literal "\\f[C]" $$
-    hlCode $$
+    ((case T.uncons str of
+      Just ('.',_) -> literal "\\&"
+      _            -> mempty) <> hlCode) $$
     literal "\\f[]" $$
     literal ".fi"
 blockToMs opts (LineBlock ls) = do
