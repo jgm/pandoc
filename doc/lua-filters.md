@@ -138,7 +138,7 @@ elements.
 
 ## Filters on element sequences
 
-For some filtering tasks, the it is necessary to know the order
+For some filtering tasks, it is necessary to know the order
 in which elements occur in the document. It is not enough then to
 inspect a single element at a time.
 
@@ -1127,7 +1127,7 @@ A [table cell]{#type-table-cell} is a list of blocks.
 
 *[Alignment]{#type-alignment}* is a string value indicating the
 horizontal alignment of a table column. `AlignLeft`,
-`AlignRight`, and `AlignCenter` leads cell content tob be
+`AlignRight`, and `AlignCenter` leads cell content to be
 left-aligned, right-aligned, and centered, respectively. The
 default alignment is `AlignDefault` (often equivalent to
 centered).
@@ -3035,7 +3035,7 @@ methods and convenience functions.
 [`pandoc.List:insert ([pos], value)`]{#pandoc.list:insert}
 
 :   Inserts element `value` at position `pos` in list, shifting
-    elements to the next-greater indix if necessary.
+    elements to the next-greater index if necessary.
 
     This function is identical to
     [`table.insert`](https://www.lua.org/manual/5.3/manual.html#6.6).
@@ -3082,7 +3082,7 @@ methods and convenience functions.
     Parameters:
 
     `pos`:
-    :   position of the list value that will be remove; defaults
+    :   position of the list value that will be removed; defaults
         to the index of the last element
 
     Returns: the removed element
