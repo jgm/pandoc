@@ -1,1 +1,4 @@
 test/fb2/reader/* -text
+
+# Enforce .editorconfig EOL nomralization rules for Windows OS:
+*.* text eol=lf
