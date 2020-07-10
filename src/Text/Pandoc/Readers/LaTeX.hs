@@ -2371,16 +2371,16 @@ parseTableCell = do
   return cell'
 
 cellAlignment :: PandocMonad m => LP m Alignment
-cellAlignment = skipMany (symbol '|') *> (left <|> right <|> center <|> def') <* skipMany (symbol '|')
+cellAlignment = skipMany (symbol '|') *> alignment <* skipMany (symbol '|')
   where
-    left   = AlignLeft    <$ char' 'l'
-    right  = AlignRight   <$ char' 'r'
-    center = AlignCenter  <$ char' 'c'
-    def'   = AlignDefault <$ symbol '*'
-
-    char' c = satisfyTok isc >> pure c
-      where isc (Tok _ Word d) = maybe False (\(c', _) -> c == c') (T.uncons d)
-            isc _ = False
+    alignment = do
+      c <- untoken <$> singleChar
+      return $ case c of
+        "l" -> AlignLeft
+        "r" -> AlignRight
+        "c" -> AlignCenter
+        "*" -> AlignDefault
+        _   -> AlignDefault
 
 plainify :: Blocks -> Blocks
 plainify bs = case toList bs of
@@ -2395,25 +2395,24 @@ parseMultiCell =   (controlSeq "multirow"    >> parseMultirowCell)
     parseMulticolCell = parseMultiXCell (const $ RowSpan 1) ColSpan
 
     parseMultiXCell rowspanf colspanf = do
-      span' <- untokenize <$> braced
-      let span'' = maybe 1 id $ safeRead span'
+      span' <- fmap (fromMaybe 1 . safeRead . untokenize) braced
       alignment <- symbol '{' *> cellAlignment <* symbol '}'
+
       -- Two possible contents: either a nested \multirow/\multicol, or content.
       -- E.g. \multirow{1}{c}{\multicol{1}{c}{content}}
-      symbol '{' 
-      cellContent <- optionMaybe parseMultiCell
-      case cellContent of
-        Nothing -> do
-          content   <- plainify <$> blocks
-          symbol '}'
-          return $ cell alignment (rowspanf span'') (colspanf span'') content
-        Just (Cell _ _ (RowSpan rs) (ColSpan cs) bs) -> do
-          symbol '}'
-          return $ cell 
-                    alignment 
-                    (RowSpan $ max span'' rs) 
-                    (ColSpan $ max span'' cs) 
-                    (fromList bs)
+      let singleCell = do
+            content <- plainify <$> blocks
+            return $ cell alignment (rowspanf span') (colspanf span') content
+
+      let nestedCell = do
+            (Cell _ _ (RowSpan rs) (ColSpan cs) bs) <- parseMultiCell
+            return $ cell 
+                      alignment 
+                      (RowSpan $ max span' rs) 
+                      (ColSpan $ max span' cs) 
+                      (fromList bs)
+
+      symbol '{' *> (nestedCell <|> singleCell) <* symbol '}'
 
 -- Parse a simple cell, i.e. not multirow/multicol
 parseSimpleCell :: PandocMonad m => LP m Cell
