@@ -33,7 +33,7 @@ import System.Directory
 import System.Environment
 import System.Exit (ExitCode (..))
 import System.FilePath
-import System.IO (stdout, hClose)
+import System.IO (stderr, hClose)
 import System.IO.Temp (withSystemTempDirectory, withTempDirectory,
                        withTempFile)
 import qualified System.IO.Error as IE
@@ -153,7 +153,8 @@ makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
                             (getField "margin-left" meta'))
                  ,("footer-html", getField "footer-html" meta')
                  ,("header-html", getField "header-html" meta')
-                 ] ++ pdfargs
+                 ] ++ ("--enable-local-file-access" : pdfargs)
+                 -- see #6474
   source <- writer opts doc
   verbosity <- getVerbosity
   liftIO $ html2pdf verbosity program args source
@@ -311,9 +312,9 @@ runTectonic verbosity program args' tmpDir' source = do
       (pipeProcess (Just env) program programArgs sourceBL)
       (handlePDFProgramNotFound program)
     when (verbosity >= INFO) $ liftIO $ do
-      putStrLn "[makePDF] Running"
-      BL.hPutStr stdout out
-      putStr "\n"
+      UTF8.hPutStrLn stderr "[makePDF] Running"
+      BL.hPutStr stderr out
+      UTF8.hPutStr stderr "\n"
     let pdfFile = tmpDir ++ "/texput.pdf"
     (_, pdf) <- getResultingPDF Nothing pdfFile
     return (exit, out, pdf)
@@ -377,9 +378,9 @@ runTeXProgram verbosity program args numRuns tmpDir' source = do
             (pipeProcess (Just env'') program programArgs BL.empty)
             (handlePDFProgramNotFound program)
           when (verbosity >= INFO) $ liftIO $ do
-            putStrLn $ "[makePDF] Run #" ++ show runNumber
-            BL.hPutStr stdout out
-            putStr "\n"
+            UTF8.hPutStrLn stderr $ "[makePDF] Run #" ++ show runNumber
+            BL.hPutStr stderr out
+            UTF8.hPutStr stderr "\n"
           if runNumber < numRuns
              then runTeX (runNumber + 1)
              else do
@@ -431,8 +432,8 @@ html2pdf verbosity program args source =
         (pipeProcess (Just env') program programArgs BL.empty)
         (handlePDFProgramNotFound program)
       when (verbosity >= INFO) $ do
-        BL.hPutStr stdout out
-        putStr "\n"
+        BL.hPutStr stderr out
+        UTF8.hPutStr stderr "\n"
       pdfExists <- doesFileExist pdfFile
       mbPdf <- if pdfExists
                 -- We read PDF as a strict bytestring to make sure that the
@@ -464,8 +465,8 @@ context2pdf verbosity program pdfargs tmpDir source =
       (pipeProcess (Just env') program programArgs BL.empty)
       (handlePDFProgramNotFound program)
     when (verbosity >= INFO) $ do
-      BL.hPutStr stdout out
-      putStr "\n"
+      BL.hPutStr stderr out
+      UTF8.hPutStr stderr "\n"
     let pdfFile = replaceExtension file ".pdf"
     pdfExists <- doesFileExist pdfFile
     mbPdf <- if pdfExists
@@ -491,17 +492,17 @@ showVerboseInfo :: Maybe FilePath
 showVerboseInfo mbTmpDir program programArgs env source = do
   case mbTmpDir of
     Just tmpDir -> do
-      putStrLn "[makePDF] temp dir:"
-      putStrLn tmpDir
+      UTF8.hPutStrLn stderr "[makePDF] temp dir:"
+      UTF8.hPutStrLn stderr tmpDir
     Nothing -> return ()
-  putStrLn "[makePDF] Command line:"
-  putStrLn $ program ++ " " ++ unwords (map show programArgs)
-  putStr "\n"
-  putStrLn "[makePDF] Environment:"
-  mapM_ print env
-  putStr "\n"
-  putStrLn "[makePDF] Source:"
-  UTF8.putStrLn source
+  UTF8.hPutStrLn stderr "[makePDF] Command line:"
+  UTF8.hPutStrLn stderr $ program ++ " " ++ unwords (map show programArgs)
+  UTF8.hPutStr stderr "\n"
+  UTF8.hPutStrLn stderr "[makePDF] Environment:"
+  mapM_ (UTF8.hPutStrLn stderr . show) env
+  UTF8.hPutStr stderr "\n"
+  UTF8.hPutStrLn stderr "[makePDF] Source:"
+  UTF8.hPutStrLn stderr source
 
 handlePDFProgramNotFound :: String -> IE.IOError -> IO a
 handlePDFProgramNotFound program e

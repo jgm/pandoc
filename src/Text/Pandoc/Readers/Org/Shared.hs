@@ -26,7 +26,8 @@ import Text.Pandoc.Shared (elemText)
 isImageFilename :: Text -> Bool
 isImageFilename fp = hasImageExtension && (isValid (T.unpack fp) || isKnownProtocolUri)
  where
-   hasImageExtension = takeExtension (T.unpack fp) `elem` imageExtensions
+   hasImageExtension = takeExtension (T.unpack $ T.toLower fp)
+                       `elem` imageExtensions
    isKnownProtocolUri = any (\x -> (x <> "://") `T.isPrefixOf` fp) protocols
 
    imageExtensions = [ ".jpeg", ".jpg", ".png", ".gif", ".svg" ]

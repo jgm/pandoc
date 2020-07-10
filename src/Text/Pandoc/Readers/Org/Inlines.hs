@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Inlines
@@ -377,7 +378,10 @@ citation = try $ do
               else rest
 
 footnote :: PandocMonad m => OrgParser m (F Inlines)
-footnote = try $ inlineNote <|> referencedNote
+footnote = try $ do
+  note <- inlineNote <|> referencedNote
+  withNote <- getExportSetting exportWithFootnotes
+  return $ if withNote then note else mempty
 
 inlineNote :: PandocMonad m => OrgParser m (F Inlines)
 inlineNote = try $ do
@@ -788,27 +792,41 @@ simpleSubOrSuperText = try $ do
 inlineLaTeX :: PandocMonad m => OrgParser m (F Inlines)
 inlineLaTeX = try $ do
   cmd <- inlineLaTeXCommand
-  ils <- (lift . lift) $ parseAsInlineLaTeX cmd
+  texOpt <- getExportSetting exportWithLatex
+  allowEntities <- getExportSetting exportWithEntities
+  ils <- parseAsInlineLaTeX cmd texOpt
   maybe mzero returnF $
-     parseAsMathMLSym cmd `mplus` parseAsMath cmd `mplus` ils
+     parseAsMathMLSym allowEntities cmd `mplus`
+     parseAsMath cmd texOpt `mplus`
+     ils
  where
-   parseAsMath :: Text -> Maybe Inlines
-   parseAsMath cs = B.fromList <$> texMathToPandoc cs
+   parseAsInlineLaTeX :: PandocMonad m
+                      => Text -> TeXExport -> OrgParser m (Maybe Inlines)
+   parseAsInlineLaTeX cs = \case
+     TeXExport -> maybeRight <$> runParserT inlineCommand state "" cs
+     TeXIgnore -> return (Just mempty)
+     TeXVerbatim -> return (Just $ B.str cs)
 
-   parseAsInlineLaTeX :: PandocMonad m => Text -> m (Maybe Inlines)
-   parseAsInlineLaTeX cs = maybeRight <$> runParserT inlineCommand state "" cs
-
-   parseAsMathMLSym :: Text -> Maybe Inlines
-   parseAsMathMLSym cs = B.str <$> MathMLEntityMap.getUnicode (clean cs)
-    -- drop initial backslash and any trailing "{}"
-    where clean = T.dropWhileEnd (`elem` ("{}" :: String)) . T.drop 1
+   parseAsMathMLSym :: Bool -> Text -> Maybe Inlines
+   parseAsMathMLSym allowEntities cs = do
+     -- drop initial backslash and any trailing "{}"
+     let clean = T.dropWhileEnd (`elem` ("{}" :: String)) . T.drop 1
+     -- If entities are disabled, then return the string as text, but
+     -- only if this *is* a MathML entity.
+     case B.str <$> MathMLEntityMap.getUnicode (clean cs) of
+       Just _ | not allowEntities -> Just $ B.str cs
+       x -> x
 
    state :: ParserState
    state = def{ stateOptions = def{ readerExtensions =
                     enableExtension Ext_raw_tex (readerExtensions def) } }
 
-   texMathToPandoc :: Text -> Maybe [Inline]
-   texMathToPandoc cs = maybeRight (readTeX cs) >>= writePandoc DisplayInline
+   parseAsMath :: Text -> TeXExport -> Maybe Inlines
+   parseAsMath cs = \case
+     TeXExport -> maybeRight (readTeX cs) >>=
+                  fmap B.fromList . writePandoc DisplayInline
+     TeXIgnore -> Just mempty
+     TeXVerbatim -> Just $ B.str cs
 
 maybeRight :: Either a b -> Maybe b
 maybeRight = either (const Nothing) Just
@@ -820,7 +838,7 @@ inlineLaTeXCommand = try $ do
   parsed <- (lift . lift) $ runParserT rawLaTeXInline st "source" rest
   case parsed of
     Right cs -> do
-      -- drop any trailing whitespace, those are not be part of the command as
+      -- drop any trailing whitespace, those are not part of the command as
       -- far as org mode is concerned.
       let cmdNoSpc = T.dropWhileEnd isSpace cs
       let len = T.length cmdNoSpc

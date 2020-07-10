@@ -5,7 +5,7 @@ on:
     branches:
     - '*'
     - '!rc/*'
-    ignore-paths:
+    paths-ignore:
     - 'doc/**'
     - 'MANUAL.txt'
     - '*.md'
@@ -20,7 +20,7 @@ on:
     - 'windows/**'
     - 'man/**'
   pull_request:
-    ignore-paths:
+    paths-ignore:
     - 'doc/**'
     - 'MANUAL.txt'
     - '*.md'
@@ -68,6 +68,9 @@ jobs:
            sudo apt-get update
            sudo apt-get install ghc-${{ matrix.versions.ghc }} cabal-install-${{ matrix.versions.cabal }}
          fi
+         # Use a GitHub workflow command to add folders to PATH.
+         echo "::add-path::/opt/ghc/${{ matrix.versions.ghc }}/bin"
+         echo "::add-path::/opt/cabal/${{ matrix.versions.cabal }}/bin"
 
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet
@@ -89,12 +92,10 @@ jobs:
 
     - name: Install dependencies
       run: |
-          export PATH=/opt/cabal/${{ matrix.versions.cabal }}/bin:/opt/ghc/${{ matrix.versions.ghc }}/bin:$PATH
           cabal v2-update
           cabal v2-build --dependencies-only --enable-tests --disable-optimization
     - name: Build and test
       run: |
-          export PATH=/opt/cabal/${{ matrix.versions.cabal }}/bin:/opt/ghc/${{ matrix.versions.ghc }}/bin:$PATH
           cabal v2-build --enable-tests --disable-optimization 2>&1 | tee build.log
           # fail if warnings in local build
           ! grep -q ": *[Ww]arning:" build.log || exit 1

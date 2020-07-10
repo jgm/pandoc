@@ -317,6 +317,7 @@ parseMetadata e = do
   getTitle e
   getAuthors e
   getAffiliations e
+  getAbstract e
   return mempty
 
 getTitle :: PandocMonad m => Element -> JATS m ()
@@ -347,6 +348,14 @@ getAffiliations :: PandocMonad m => Element -> JATS m ()
 getAffiliations x = do
   affs <- mapM getInlines $ filterChildren (named "aff") x
   unless (null affs) $ addMeta "institute" affs
+
+getAbstract :: PandocMonad m => Element -> JATS m ()
+getAbstract e =
+  case filterElement (named "abstract") e of
+    Just s -> do
+      blks <- getBlocks s
+      addMeta "abstract" blks
+    Nothing -> pure ()
 
 getContrib :: PandocMonad m => Element -> JATS m Inlines
 getContrib x = do

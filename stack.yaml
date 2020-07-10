@@ -12,21 +12,18 @@ flags:
 packages:
 - '.'
 extra-deps:
-# to be replaced eventually by pandoc-types-1.21:
-- git: https://github.com/jgm/pandoc-types
-  commit: dd50a6eaeaf63773bbf04d6ef34b86d6f92b7825
-- git: https://github.com/jgm/pandoc-citeproc
-  commit: 2e6fe791ec5293acc925c2ccbe79c9c10d2b7e07
+- pandoc-types-1.21
+- pandoc-citeproc-0.17.0.1
 - texmath-0.12.0.2
 - haddock-library-1.9.0
-- skylighting-0.8.4
-- skylighting-core-0.8.4
+- skylighting-0.8.5
+- skylighting-core-0.8.5
 - regex-pcre-builtin-0.95.1.2.8.43
 - regex-base-0.94.0.0
 - doclayout-0.3
 - emojis-0.1
-- hslua-1.1.0
-- jira-wiki-markup-1.3.1
+- hslua-1.1.2
+- jira-wiki-markup-1.3.2
 - HsYAML-0.2.1.0
 - HsYAML-aeson-0.2.0.0
 - doctemplates-0.8.2

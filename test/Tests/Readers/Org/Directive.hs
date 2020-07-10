@@ -150,6 +150,28 @@ tests =
                   ] =?>
         Pandoc nullMeta mempty
 
+    , "disable MathML-like entities" =:
+        T.unlines [ "#+OPTIONS: e:nil"
+                  , "Icelandic letter: \\thorn"
+                  ] =?>
+        para "Icelandic letter: \\thorn"
+
+    , testGroup "Option f"
+      [ "disable inline footnotes" =:
+        T.unlines [ "#+OPTIONS: f:nil"
+                  , "Funny![fn:funny:or not]"
+                  ] =?>
+        para "Funny!"
+
+      , "disable reference footnotes" =:
+        T.unlines [ "#+OPTIONS: f:nil"
+                  , "Burn everything[fn:1] down!"
+                  , ""
+                  , "[fn:2] Not quite everything."
+                  ] =?>
+        para "Burn everything down!"
+      ]
+
     , "disable inclusion of todo keywords" =:
         T.unlines [ "#+OPTIONS: todo:nil"
                   , "** DONE todo export"
@@ -161,6 +183,79 @@ tests =
                   , "* Headline :hello:world:"
                   ] =?>
         headerWith ("headline", [], mempty) 1 "Headline"
+
+    , testGroup "LaTeX"
+      [ testGroup "Include LaTeX fragments"
+        [ "Inline command" =:
+          T.unlines [ "#+OPTIONS: tex:t"
+                    , "Hello \\emph{Name}"
+                    ] =?>
+          para ("Hello" <> space <> emph "Name")
+
+        , "Alpha" =:
+          T.unlines [ "#+OPTIONS: tex:t"
+                    , "\\alpha"
+                    ] =?>
+          para "α"
+
+        , "equation environment" =:
+          T.unlines [ "#+OPTIONS: tex:t"
+                    , "\\begin{equation}"
+                    , "f(x) = x^2"
+                    , "\\end{equation}"
+                    ] =?>
+          rawBlock "latex" (T.unlines [ "\\begin{equation}"
+                                      , "f(x) = x^2"
+                                      , "\\end{equation}"
+                                      ])
+        ]
+
+      , testGroup "Ignore LaTeX fragments"
+        [ "Inline command" =:
+          T.unlines [ "#+OPTIONS: tex:nil"
+                    , "Hello \\emph{Emphasised}"
+                    ] =?>
+          para "Hello"
+
+        , "MathML symbol (alpha)" =:
+          T.unlines [ "#+OPTIONS: tex:nil"
+                    , "\\alpha"
+                    ] =?>
+          para "α"
+
+        , "equation environment" =:
+          T.unlines [ "#+OPTIONS: tex:nil"
+                    , "\\begin{equation}"
+                    , "f(x) = x^2"
+                    , "\\end{equation}"
+                    ] =?>
+          (mempty :: Blocks)
+        ]
+
+      , testGroup "Verbatim LaTeX"
+        [ "Inline command" =:
+          T.unlines [ "#+OPTIONS: tex:verbatim"
+                    , "Hello \\emph{Emphasised}"
+                    ] =?>
+          para "Hello \\emph{Emphasised}"
+
+        , "MathML symbol (alpha)" =:
+          T.unlines [ "#+OPTIONS: tex:verbatim"
+                    , "\\alpha"
+                    ] =?>
+          para "α"
+
+        , "equation environment" =:
+          T.unlines [ "#+OPTIONS: tex:verbatim"
+                    , "\\begin{equation}"
+                    , "f(x) = x^2"
+                    , "\\end{equation}"
+                    ] =?>
+          para (str "\\begin{equation}" <> softbreak <>
+                str "f(x) = x^2" <> softbreak <>
+                str "\\end{equation}")
+        ]
+      ]
 
     , testGroup "planning information"
       [ "include planning info after headlines" =:
@@ -183,6 +278,14 @@ tests =
                   , "* Wichtig"
                   ] =?>
         headerWith ("wichtig", mempty, mempty) 1 "Wichtig"
+      ]
+
+    , testGroup "Option |"
+      [ "disable export of tables" =:
+        T.unlines [ "#+OPTIONS: |:nil"
+                  , "| chair |"
+                  ] =?>
+        (mempty :: Blocks)
       ]
 
     , testGroup "unknown options"

@@ -34,7 +34,7 @@ import Text.Pandoc.Shared (compactify, compactifyDL, safeRead)
 import Control.Monad (foldM, guard, mplus, mzero, void)
 import Data.Char (isSpace)
 import Data.Default (Default)
-import Data.List (foldl')
+import Data.List (foldl', intersperse)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
 
@@ -76,6 +76,7 @@ block = choice [ mempty <$ blanklines
                , list
                , latexFragment
                , noteBlock
+               , rawOrgLine
                , paraOrPlain
                ] <?> "block"
 
@@ -559,6 +560,8 @@ include = try $ do
        | otherwise        -> Para content
       _ -> blk
 
+-- | Parses a meta line which defines a raw block. Currently recognized:
+-- @#+LATEX:@, @#+HTML:@, @#+TEXINFO:@, and @#+BEAMER@.
 rawExportLine :: PandocMonad m => OrgParser m Blocks
 rawExportLine = try $ do
   metaLineStart
@@ -566,6 +569,14 @@ rawExportLine = try $ do
   if key `elem` ["latex", "html", "texinfo", "beamer"]
     then B.rawBlock key <$> anyLine
     else mzero
+
+-- | Parses any meta line, i.e., a line starting with @#+@, into a raw
+-- org block. This should be the last resort when trying to parse
+-- keywords. Leading spaces are discarded.
+rawOrgLine :: PandocMonad m => OrgParser m (F Blocks)
+rawOrgLine = do
+  line <- metaLineStart *> anyLine
+  returnF $ B.rawBlock "org" $ ("#+" <> line)
 
 commentLine :: Monad m => OrgParser m Blocks
 commentLine = commentLineStart *> anyLine *> pure mempty
@@ -597,7 +608,10 @@ data OrgTable = OrgTable
   }
 
 table :: PandocMonad m => OrgParser m (F Blocks)
-table = gridTableWith blocks True <|> orgTable
+table = do
+  withTables <- getExportSetting exportWithTables
+  tbl <- gridTableWith blocks True <|> orgTable
+  return $ if withTables then tbl else mempty
 
 -- | A normal org table
 orgTable :: PandocMonad m => OrgParser m (F Blocks)
@@ -739,22 +753,26 @@ rowToContent tbl row =
 --
 -- LaTeX fragments
 --
-latexFragment :: Monad m => OrgParser m (F Blocks)
+latexFragment :: PandocMonad m => OrgParser m (F Blocks)
 latexFragment = try $ do
   envName <- latexEnvStart
-  content <- mconcat <$> manyTill anyLineNewline (latexEnd envName)
-  returnF $ B.rawBlock "latex" (content `inLatexEnv` envName)
+  texOpt  <- getExportSetting exportWithLatex
+  let envStart = "\\begin{" <> envName <> "}"
+  let envEnd = "\\end{" <> envName <> "}"
+  envLines <- do
+    content <- manyTill anyLine (latexEnd envName)
+    return $ envStart : content ++ [envEnd]
+  returnF $ case texOpt of
+    TeXExport -> B.rawBlock "latex" . T.unlines $ envLines
+    TeXIgnore   -> mempty
+    TeXVerbatim -> B.para . mconcat . intersperse B.softbreak $
+                   map B.str envLines
  where
-   c `inLatexEnv` e = mconcat [ "\\begin{", e, "}\n"
-                              , c
-                              , "\\end{", e, "}\n"
-                              ]
-
-latexEnd :: Monad m => Text -> OrgParser m ()
-latexEnd envName = try $
-  () <$ skipSpaces
-     <* textStr ("\\end{" <> envName <> "}")
-     <* blankline
+  latexEnd :: Monad m => Text -> OrgParser m ()
+  latexEnd envName = try . void
+     $ skipSpaces
+    <* textStr ("\\end{" <> envName <> "}")
+    <* blankline
 
 
 --

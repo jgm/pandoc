@@ -2473,8 +2473,15 @@ addTableCaption = walkM go
                         ((_,classes,kvs), Just ident) ->
                            (ident,classes,kvs)
                         _ -> attr
-          return $ Table attr' capt spec th tb tf
+          return $ addAttrDiv attr' $ Table nullAttr capt spec th tb tf
         go x = return x
+
+-- TODO: For now we add a Div to contain table attributes, since
+-- most writers don't do anything yet with attributes on Table.
+-- This can be removed when that changes.
+addAttrDiv :: Attr -> Block -> Block
+addAttrDiv ("",[],[]) b = b
+addAttrDiv attr b       = Div attr [b]
 
 block :: PandocMonad m => LP m Blocks
 block = do

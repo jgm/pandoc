@@ -39,6 +39,8 @@
 - Caleb Mclennan
 - Calvin Beck
 - Carlos Sosa
+- Cécile Chemin
+- Cédric Couralet
 - Chris Black
 - Christian Conkle
 - Christian Despres
@@ -104,6 +106,7 @@
 - J. B. Rainsberger
 - J. Lewis Muir
 - Jaime Marquínez Ferrándiz
+- Jake Zimmerman
 - Jakob Voß
 - James Aspnes
 - Jamie F. Olson
@@ -131,6 +134,7 @@
 - Josef Svenningsson
 - Joseph C. Sible
 - Julien Cretel
+- Juliette Fourcot
 - Juliusz Gonera
 - Justin Bogner
 - Jérémy Bobbio
@@ -143,7 +147,10 @@
 - Krystof Beuermann
 - Herwig Stuetz
 - Lars-Dominik Braun
+- Laurent P. René de Cotret
 - Leif Metcalf
+- Lila
+- Lucas Escot
 - Luke Plant
 - Marc Schreiber
 - Mark Szepieniec
@@ -153,6 +160,7 @@
 - Matej Kollar
 - Mathias Schenner
 - Mathias Walter
+- Mathieu Boespflug
 - Mathieu Duponchelle
 - Matthew Doty
 - Matthew Eddey
@@ -165,6 +173,7 @@
 - Michael Beaumont
 - Michael Chladek
 - Michael Peyton Jones
+- Michael Reed
 - Michael Snoyman
 - Michael Thompson
 - Mike Tzou
@@ -202,6 +211,7 @@
 - Recai Oktaş
 - Roland Hieber
 - RyanGlScott
+- Salim B
 - Sascha Wilde
 - Scott Morrison
 - Sebastian Talmon
@@ -225,15 +235,18 @@
 - Tiziano Müller
 - Todd Sifleet
 - Tom Leese
+- Tristan de Cacqueray
 - Tristan Stenner
 - Uli Köhler
 - Urs Liska
 - Václav Zeman
 - Václav Haisman
+- Vaibhav Sagar
 - Vanessa McHale
 - Vasily Alferov
 - Viktor Kronvall
 - Vincent
+- Vlad Hanciuta
 - Wandmalfarbe
 - Waldir Pimenta
 - Wikiwide
@@ -243,11 +256,13 @@
 - Yoan Blanc
 - Yuchen Pei
 - Zihang Chen
+- andrebauer
 - blmage
 - bucklereed
 - bumper314
 - chinapedia
 - csforste
+- dbecher-ito
 - d-dorazio
 - ebiim
 - infinity0x

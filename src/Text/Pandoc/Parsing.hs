@@ -1092,8 +1092,8 @@ removeOneLeadingSpace xs =
            Just (c, _) -> c == ' '
 
 -- | Parse footer for a grid table.
-gridTableFooter :: Stream s m Char => ParserT s st m Text
-gridTableFooter = blanklines
+gridTableFooter :: Stream s m Char => ParserT s st m ()
+gridTableFooter = optional blanklines
 
 ---
 

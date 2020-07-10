@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {- |
    Module      : Text.Pandoc.App.Opt
    Copyright   : Copyright (C) 2006-2020 John MacFarlane
@@ -34,9 +35,12 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             ObfuscationMethod (NoObfuscation),
                             CiteMethod (Citeproc))
 import Text.Pandoc.Shared (camelCaseStrToHyphenated)
-import Text.DocLayout (render)
-import Text.DocTemplates (Context(..), Val(..))
+import qualified Text.Pandoc.Parsing as P
+import Text.Pandoc.Readers.Metadata (yamlMap)
+import Text.Pandoc.Class.PandocPure
+import Text.DocTemplates (Context(..))
 import Data.Text (Text, unpack)
+import Data.Default (def)
 import qualified Data.Text as T
 import qualified Data.Map as M
 import Text.Pandoc.Definition (Meta(..), MetaValue(..), lookupMeta)
@@ -185,8 +189,7 @@ doOpt (k',v) = do
       -- Note: x comes first because <> for Context is left-biased union
       -- and we want to favor later default files. See #5988.
     "metadata" ->
-      parseYAML v >>= \x -> return (\o -> o{ optMetadata = optMetadata o <>
-                                               contextToMeta x })
+      yamlToMeta v >>= \x -> return (\o -> o{ optMetadata = optMetadata o <> x })
     "metadata-files" ->
       parseYAML v >>= \x ->
                         return (\o -> o{ optMetadataFiles =
@@ -475,16 +478,14 @@ defaultOpts = Opt
     , optStripComments         = False
     }
 
-contextToMeta :: Context Text -> Meta
-contextToMeta (Context m) =
-  Meta . M.map valToMetaVal $ m
-
-valToMetaVal :: Val Text -> MetaValue
-valToMetaVal (MapVal (Context m)) =
-  MetaMap . M.map valToMetaVal $ m
-valToMetaVal (ListVal xs) = MetaList $ map valToMetaVal xs
-valToMetaVal (SimpleVal d) = MetaString $ render Nothing d
-valToMetaVal NullVal = MetaString ""
+yamlToMeta :: Node Pos -> Parser Meta
+yamlToMeta (Mapping _ _ m) =
+    either (fail . show) return $ runEverything (yamlMap pMetaString m)
+  where
+    pMetaString = pure . MetaString <$> P.manyChar P.anyChar
+    runEverything p = runPure (P.readWithM p def "")
+      >>= fmap (Meta . flip P.runF def)
+yamlToMeta _ = return mempty
 
 addMeta :: String -> String -> Meta -> Meta
 addMeta k v meta =
