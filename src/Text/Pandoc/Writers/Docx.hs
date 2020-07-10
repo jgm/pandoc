@@ -3,6 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.Writers.Docx
@@ -1087,11 +1088,20 @@ listItemToOpenXML _ _ []                   = return []
 listItemToOpenXML opts numid (first:rest) = do
   oldInList <- gets stInList
   modify $ \st -> st{ stInList = True }
-  first' <- withNumId numid $ blockToOpenXML opts first
+  let isListBlock = \case
+        BulletList{}  -> True
+        OrderedList{} -> True
+        _             -> False
+  -- Prepend an empty string if the first entry is another
+  -- list. Otherwise the outer bullet will disappear.
+  let (first', rest') = if isListBlock first
+                           then (Plain [Str ""] , first:rest)
+                           else (first, rest)
+  first'' <- withNumId numid $ blockToOpenXML opts first'
   -- baseListId is the code for no list marker:
-  rest'  <- withNumId baseListId $ blocksToOpenXML opts rest
+  rest''  <- withNumId baseListId $ blocksToOpenXML opts rest'
   modify $ \st -> st{ stInList = oldInList }
-  return $ first' ++ rest'
+  return $ first'' ++ rest''
 
 alignmentToString :: Alignment -> [Char]
 alignmentToString alignment = case alignment of

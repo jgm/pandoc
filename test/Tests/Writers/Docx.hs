@@ -84,6 +84,11 @@ tests = [ testGroup "inlines"
             "docx/lists_restarting.native"
             "docx/golden/lists_restarting.docx"
           , docxTest
+            "lists with multiple initial list levels"
+            def
+            "docx/lists_multiple_initial.native"
+            "docx/golden/lists_multiple_initial.docx"
+          , docxTest
             "definition lists"
             def
             "docx/definition_list.native"
