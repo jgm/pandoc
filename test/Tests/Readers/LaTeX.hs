@@ -149,13 +149,21 @@ tests = [ testGroup "tokenization"
                                   ]
                    ]
           , "Table with multirow item" =:
-            "\\begin{tabular}{c}\\multirow{2}{c}{One}\\\\Two\\\\\\end{tabular}"=?>
+            T.unlines ["\\begin{tabular}{c}"
+                      ,"\\multirow{2}{c}{One}\\\\Two\\\\"
+                      ,"\\end{tabular}"
+                      ] =?>
             table' [AlignCenter]
                   [ Row nullAttr [ cell AlignCenter (RowSpan 2) (ColSpan 1) (plain "One") ]
                   , Row nullAttr [ simpleCell (plain "Two") ]
                   ]
           , "Table with nested multirow/multicolumn item" =:
-            "\\begin{tabular}{c c c}\\multirow{2}{c}{\\multicolumn{2}{c}{One}}&Two\\\\Three\\\\Four&Five&Six\\\\\\end{tabular}" =?>
+            T.unlines [ "\\begin{tabular}{c c c}"
+                      , "\\multirow{2}{c}{\\multicolumn{2}{c}{One}}&Two\\\\"
+                      , "Three\\\\"
+                      , "Four&Five&Six\\\\"
+                      , "\\end{tabular}"
+                      ] =?>
             table' [AlignCenter, AlignCenter, AlignCenter]
                    [ Row nullAttr [ cell AlignCenter (RowSpan 2) (ColSpan 2) (plain "One")
                                   , simpleCell (plain "Two")
@@ -167,7 +175,11 @@ tests = [ testGroup "tokenization"
                                   ]
                    ]
           , "Table with multicolumn header" =:
-            "\\begin{tabular}{ |l|l| }\\hline\\multicolumn{2}{|c|}{Header}\\\\ \\hline key & val\\\\ \\hline\\end{tabular}" =?>
+            T.unlines [ "\\begin{tabular}{ |l|l| }"
+                      , "\\hline\\multicolumn{2}{|c|}{Header}\\\\" 
+                      , "\\hline key & val\\\\" 
+                      , "\\hline\\end{tabular}"
+                      ] =?>
             table emptyCaption
                   (zip [AlignLeft, AlignLeft] (repeat ColWidthDefault))
                   (TableHead nullAttr [ Row nullAttr [cell AlignCenter (RowSpan 1) (ColSpan 2) (plain "Header")]])
