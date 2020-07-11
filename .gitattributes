@@ -1,1 +1,10 @@
 test/fb2/reader/* -text
+
+## Repository Configuration
+###########################
+.*.yml           text eol=lf
+.editorconfig    text eol=lf
+.gitattributes   text eol=lf
+.gitconfig       text eol=lf
+.gitignore       text eol=lf
+.gitmodules      text eol=lf
