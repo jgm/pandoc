@@ -1,6 +1,6 @@
 function isWorldAfterSpace (fst, snd)
-  return fst and fst.t == 'LineBreak'
-   and snd and snd.t == 'Str' and snd.text == 'World!'
+  return  fst and fst.t == 'LineBreak'
+      and snd and snd.t == 'Str' and snd.text == 'World!'
 end
 
 function Inlines (inlns)

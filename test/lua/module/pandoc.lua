@@ -215,20 +215,20 @@ return {
 
   group 'walk_block' {
     test('block walking order', function ()
-     local acc = {}
-     local nested_nums = pandoc.Div {
-       pandoc.Para{pandoc.Str'1'},
-       pandoc.Div{
-         pandoc.Para{pandoc.Str'2'},
-         pandoc.Para{pandoc.Str'3'}
-       },
-       pandoc.Para{pandoc.Str'4'}
-     }
-     pandoc.walk_block(
-       nested_nums,
-       {Para = function (p) table.insert(acc, p.content[1].text) end}
-     )
-     assert.are_equal('1234', table.concat(acc))
+    local acc = {}
+    local nested_nums = pandoc.Div {
+      pandoc.Para{pandoc.Str'1'},
+      pandoc.Div{
+        pandoc.Para{pandoc.Str'2'},
+        pandoc.Para{pandoc.Str'3'}
+        },
+      pandoc.Para{pandoc.Str'4'}
+    }
+    pandoc.walk_block(
+      nested_nums,
+      {Para = function (p) table.insert(acc, p.content[1].text) end}
+    )
+    assert.are_equal('1234', table.concat(acc))
     end)
   },
 

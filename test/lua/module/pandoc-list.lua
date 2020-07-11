@@ -123,7 +123,7 @@ return {
       )
     end),
     test('return empty list if no argument is given', function ()
-       assert.are_same({}, List:new())
+      assert.are_same({}, List:new())
     end),
     test('metatable of result is pandoc.List', function ()
       local test = List:new{5}
