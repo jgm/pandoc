@@ -29,3 +29,14 @@ insert_final_newline = true
 [.gitmodules]
 indent_style = tab
 
+
+## Make Files
+#############
+[Makefile]
+charset = utf-8
+indent_size = 2
+indent_style = tab
+end_of_line = lf
+trim_trailing_whitespace = true
+insert_final_newline = true
+

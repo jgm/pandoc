@@ -8,3 +8,6 @@ test/fb2/reader/* -text
 .gitconfig       text eol=lf
 .gitignore       text eol=lf
 .gitmodules      text eol=lf
+
+
+Makefile   text eol=lf
