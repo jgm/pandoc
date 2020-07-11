@@ -1,20 +1,5 @@
 root = true
 
-; [*]
-; charset = utf-8
-; end_of_line = lf
-; indent_style = space
-; indent_size = 2
-; insert_final_newline = true
-; trim_trailing_whitespace = true
-
-; [*.{markdown,md}]
-; trim_trailing_whitespace = false
-
-; [test/*]
-; insert_final_newline = false
-; trim_trailing_whitespace = false
-
 
 ## Repository Configurations
 ############################
@@ -45,9 +30,9 @@ insert_final_newline = true
 #############
 [Makefile]
 charset = utf-8
-indent_size = 2
-indent_style = tab
 end_of_line = lf
+indent_style = tab
+indent_size = 2
 trim_trailing_whitespace = true
 insert_final_newline = true
 
@@ -67,9 +52,9 @@ insert_final_newline = true
 ###########
 [*.{markdown,md}]
 charset = utf-8
+end_of_line = unset
 indent_style = space
 indent_size = unset
-end_of_line = unset
 trim_trailing_whitespace = false
 insert_final_newline = true
 
