@@ -1,4 +1,4 @@
-test/fb2/reader/* -text
+* text=auto
 
 ## Repository Configuration
 ###########################
@@ -12,3 +12,5 @@ test/fb2/reader/* -text
 
 *.sh       text eol=lf
 Makefile   text eol=lf
+
+test/fb2/reader/* -text
