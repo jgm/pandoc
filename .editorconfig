@@ -62,9 +62,10 @@ indent_size = unset
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-## Miscellanea
-##############
-[*.pl]
+
+## Lua and Perl
+###############
+[*.{lua,pl}]
 charset = utf-8
 end_of_line = unset
 indent_style = space
