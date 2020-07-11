@@ -63,6 +63,17 @@ trim_trailing_whitespace = true
 insert_final_newline = true
 
 
+## Markdown
+###########
+[*.{markdown,md}]
+charset = utf-8
+indent_style = space
+indent_size = unset
+end_of_line = unset
+trim_trailing_whitespace = false
+insert_final_newline = true
+
+
 ## Lua and Perl
 ###############
 [*.{lua,pl}]
@@ -72,3 +83,12 @@ indent_style = space
 indent_size = 2
 trim_trailing_whitespace = true
 insert_final_newline = true
+
+
+## Test Files
+#############
+[test/**]
+indent_style = unset
+indent_size = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset
