@@ -8,11 +8,11 @@
 # is the directory, and pandoc is used from path.
 
 if [ $# -eq 2 ]; then
-		PANDOC=$1
-		DIR=$2
+	PANDOC=$1
+	DIR=$2
 elif [ $# -eq 1 ]; then
-		PANDOC=pandoc
-		DIR=$1
+	PANDOC=pandoc
+	DIR=$1
 else
 	echo "Not enough arguments"
 	exit 1
