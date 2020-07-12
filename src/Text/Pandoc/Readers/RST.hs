@@ -484,7 +484,7 @@ includeDirective top fields body = do
                              Just patt -> drop 1 .
                                             dropWhile (not . (patt `T.isInfixOf`))
                              Nothing   -> id) $ contentLines'
-  let contents' = T.unlines contentLines'' <> "\n"
+  let contents' = T.unlines contentLines''
   case lookup "code" fields of
        Just lang -> do
          let classes =  maybe [] T.words (lookup "class" fields)
@@ -494,7 +494,7 @@ includeDirective top fields body = do
                          Just _  -> return $ B.rawBlock "rst" contents'
                          Nothing -> do
                            setPosition $ newPos (T.unpack f) 1 1
-                           setInput contents'
+                           setInput $ contents' <> "\n"
                            bs <- optional blanklines >>
                                   (mconcat <$> many block)
                            setInput oldInput
