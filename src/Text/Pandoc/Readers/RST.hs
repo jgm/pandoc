@@ -223,7 +223,8 @@ rawFieldListItem minIndent = try $ do
   first <- anyLine
   rest <- option "" $ try $ do lookAhead (count indent (char ' ') >> spaceChar)
                                indentedBlock
-  let raw = (if T.null first then "" else first <> "\n") <> rest <> "\n"
+  let raw = (if T.null first then "" else first <> "\n") <> rest <>
+            (if T.null first && T.null rest then "" else "\n")
   return (name, raw)
 
 fieldListItem :: PandocMonad m => Int -> RSTParser m (Inlines, [Blocks])
