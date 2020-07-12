@@ -2406,10 +2406,10 @@ parseMultiCell =   (controlSeq "multirow"    >> parseMultirowCell)
 
       let nestedCell = do
             (Cell _ _ (RowSpan rs) (ColSpan cs) bs) <- parseMultiCell
-            return $ cell 
-                      alignment 
-                      (RowSpan $ max span' rs) 
-                      (ColSpan $ max span' cs) 
+            return $ cell
+                      alignment
+                      (RowSpan $ max span' rs)
+                      (ColSpan $ max span' cs)
                       (fromList bs)
 
       symbol '{' *> (nestedCell <|> singleCell) <* symbol '}'
