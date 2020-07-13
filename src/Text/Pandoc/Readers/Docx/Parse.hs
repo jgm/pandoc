@@ -259,10 +259,13 @@ newtype Cell = Cell [BodyPart]
 leftBiasedMergeRunStyle :: RunStyle -> RunStyle -> RunStyle
 leftBiasedMergeRunStyle a b = RunStyle
     { isBold = isBold a <|> isBold b
+    , isBoldCTL = isBoldCTL a <|> isBoldCTL b
     , isItalic = isItalic a <|> isItalic b
+    , isItalicCTL = isItalicCTL a <|> isItalicCTL b
     , isSmallCaps = isSmallCaps a <|> isSmallCaps b
     , isStrike = isStrike a <|> isStrike b
     , isRTL = isRTL a <|> isRTL b
+    , isForceCTL = isForceCTL a <|> isForceCTL b
     , rVertAlign = rVertAlign a <|> rVertAlign b
     , rUnderline = rUnderline a <|> rUnderline b
     , rParentStyle = rParentStyle a
