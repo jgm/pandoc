@@ -44,7 +44,6 @@ module Text.Pandoc.Readers.Docx.Parse.Styles (
   ) where
 import Codec.Archive.Zip
 import Control.Applicative ((<|>))
-import Control.Monad.Except
 import Data.Function (on)
 import Data.String (IsString(..))
 import qualified Data.Map as M
@@ -101,10 +100,13 @@ data CharStyle = CharStyle { cStyleId   :: CharStyleId
                            } deriving (Show)
 
 data RunStyle = RunStyle { isBold       :: Maybe Bool
+                         , isBoldCTL    :: Maybe Bool
                          , isItalic     :: Maybe Bool
+                         , isItalicCTL  :: Maybe Bool
                          , isSmallCaps  :: Maybe Bool
                          , isStrike     :: Maybe Bool
                          , isRTL        :: Maybe Bool
+                         , isForceCTL   :: Maybe Bool
                          , rVertAlign   :: Maybe VertAlign
                          , rUnderline   :: Maybe String
                          , rParentStyle :: Maybe CharStyle
@@ -121,10 +123,13 @@ data ParStyle = ParStyle { headingLev    :: Maybe (ParaStyleName, Int)
 
 defaultRunStyle :: RunStyle
 defaultRunStyle = RunStyle { isBold = Nothing
+                           , isBoldCTL = Nothing
                            , isItalic = Nothing
+                           , isItalicCTL = Nothing
                            , isSmallCaps = Nothing
                            , isStrike = Nothing
                            , isRTL = Nothing
+                           , isForceCTL = Nothing
                            , rVertAlign = Nothing
                            , rUnderline = Nothing
                            , rParentStyle = Nothing
@@ -240,20 +245,21 @@ elemToCharStyle :: NameSpaces
 elemToCharStyle ns element parentStyle
   = CharStyle <$> (CharStyleId <$> findAttrTextByName ns "w" "styleId" element)
               <*> getElementStyleName ns element
-              <*> (Just $ elemToRunStyle ns element parentStyle)
+              <*> Just (elemToRunStyle ns element parentStyle)
 
 elemToRunStyle :: NameSpaces -> Element -> Maybe CharStyle -> RunStyle
 elemToRunStyle ns element parentStyle
   | Just rPr <- findChildByName ns "w" "rPr" element =
     RunStyle
       {
-        isBold = checkOnOff ns rPr (elemName ns "w" "b") `mplus`
-                 checkOnOff ns rPr (elemName ns "w" "bCs")
-      , isItalic = checkOnOff ns rPr (elemName ns "w" "i") `mplus`
-                   checkOnOff ns rPr (elemName ns "w" "iCs")
+        isBold = checkOnOff ns rPr (elemName ns "w" "b")
+      , isBoldCTL = checkOnOff ns rPr (elemName ns "w" "bCs")
+      , isItalic = checkOnOff ns rPr (elemName ns "w" "i")
+      , isItalicCTL = checkOnOff ns rPr (elemName ns "w" "iCs")
       , isSmallCaps = checkOnOff ns rPr (elemName ns "w" "smallCaps")
       , isStrike = checkOnOff ns rPr (elemName ns "w" "strike")
       , isRTL = checkOnOff ns rPr (elemName ns "w" "rtl")
+      , isForceCTL = checkOnOff ns rPr (elemName ns "w" "cs")
       , rVertAlign =
            findChildByName ns "w" "vertAlign" rPr >>=
            findAttrByName ns "w" "val" >>=
