@@ -72,7 +72,8 @@ insert_final_newline = true
 
 ## Test Files
 #############
-[test/**]
+; Relax rules to allow edge-cases...
+[test/**.{markdown,md}]
 indent_style = unset
 indent_size = unset
 insert_final_newline = unset
