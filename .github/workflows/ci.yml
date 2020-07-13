@@ -61,16 +61,10 @@ jobs:
     # need to install older cabal/ghc versions from ppa repository
 
     - name: Install recent cabal/ghc
-      run: |
-         if [[ ! -d /opt/ghc/${{ matrix.versions.ghc }} ]]
-         then
-           sudo add-apt-repository ppa:hvr/ghc
-           sudo apt-get update
-           sudo apt-get install ghc-${{ matrix.versions.ghc }} cabal-install-${{ matrix.versions.cabal }}
-         fi
-         # Use a GitHub workflow command to add folders to PATH.
-         echo "::add-path::/opt/ghc/${{ matrix.versions.ghc }}/bin"
-         echo "::add-path::/opt/cabal/${{ matrix.versions.cabal }}/bin"
+      uses: actions/setup-haskell@v1.1
+      with:
+        ghc-version: ${{ matrix.versions.ghc }}
+        cabal-version: ${{ matrix.versions.cabal }}
 
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet
