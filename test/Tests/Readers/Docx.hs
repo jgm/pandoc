@@ -335,6 +335,10 @@ tests = [ testGroup "document"
             "dropcap paragraphs"
             "docx/drop_cap.docx"
             "docx/drop_cap.native"
+          , testCompare
+            "paragraph run styles"
+            "docx/paragraph-run-style-emphasis-flip.docx"
+            "docx/paragraph-run-style-emphasis-flip.native"
           ]
         , testGroup "track changes"
           [ testCompare
