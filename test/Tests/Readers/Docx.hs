@@ -339,6 +339,11 @@ tests = [ testGroup "document"
             "paragraph run styles"
             "docx/paragraph-run-style-emphasis-flip.docx"
             "docx/paragraph-run-style-emphasis-flip.native"
+          , testCompareWithOpts
+            def{readerExtensions=disableExtension Ext_emphasis_quirk $ readerExtensions def}
+            "paragraph run styles without emphasis quirk"
+            "docx/paragraph-run-style-emphasis-flip.docx"
+            "docx/paragraph-run-style-no-emphasis-quirk.native"
           ]
         , testGroup "track changes"
           [ testCompare

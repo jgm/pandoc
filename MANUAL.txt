@@ -904,7 +904,7 @@ header when requesting a document from a URL:
 
 `--no-check-certificate`
 
-:   Disable the certificate verification to allow access to 
+:   Disable the certificate verification to allow access to
     unsecure HTTP resources (for example when the certificate
     is no longer valid or self signed).
 
@@ -2890,6 +2890,20 @@ input formats
 
 output formats
 :  `docx`, `odt`, `opendocument`, `html`
+
+#### Extension: `emphasis_quirk` ####
+
+In docx, when both character and paragraph styles apply italic and/or bold
+format, Word will instead render the text normally, i.e. without italic/bold.
+Other implementations (Google Docx, LibreOffice) will not do this.
+Word-like behaviour is enabled by this extension.
+
+Enabled by default.
+
+This extension can be enabled/disabled for the following formats:
+
+input formats
+:  `docx`
 
 #### Extension: `native_numbering` ####
 

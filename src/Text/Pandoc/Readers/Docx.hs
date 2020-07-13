@@ -302,17 +302,16 @@ runStyleToTransform rPr' = do
         | otherwise = id
   return $ go rPr'
 
-
 resolveDependentPsRs :: PandocMonad m => RunStyle -> DocxContextPara m RunStyle
 resolveDependentPsRs rs = do
   opts <- lift $ asks docxOptions
   if isEnabled Ext_styles opts
   then return rs
-  else asks (leftBiasedMergeRunStyle' rs . go)
+  else asks (leftBiasedMergeRunStyle' rs . go (isEnabled Ext_emphasis_quirk opts))
   where
-  go ps
+  go quirk ps
     | Just cs <- rParentStyle rs
-    = mergeParaRunStyle (resolveDependentRunStyle cs) prs
+    = mergeParaRunStyle quirk (resolveDependentRunStyle cs) prs
     | otherwise = prs
     where
     prs | isSemanticParaStyle ps = Nothing
@@ -330,20 +329,21 @@ resolveDependentRunStyle cs
   | otherwise = Nothing
   where rPr = cStyleData cs
 
-mergeParaRunStyle :: Maybe RunStyle -> Maybe RunStyle -> Maybe RunStyle
-mergeParaRunStyle Nothing prs = prs
-mergeParaRunStyle (Just rs) Nothing = Just rs
-mergeParaRunStyle (Just rs) (Just prs) = Just $ RunStyle
-  { isBold = flipMerge isBold
-  , isBoldCTL = flipMerge isBoldCTL
-  , isItalic = flipMerge isItalic
-  , isItalicCTL = flipMerge isItalicCTL
-  , isSmallCaps = merge isSmallCaps
-  , isStrike = merge isStrike
-  , isRTL = merge isRTL
-  , isForceCTL = merge isForceCTL
-  , rVertAlign = merge rVertAlign
-  , rUnderline = merge rUnderline
+mergeParaRunStyle :: Bool -> Maybe RunStyle -> Maybe RunStyle -> Maybe RunStyle
+mergeParaRunStyle _ Nothing prs = prs
+mergeParaRunStyle _ (Just rs) Nothing = Just rs
+mergeParaRunStyle False (Just rs) (Just prs) = Just $ leftBiasedMergeRunStyle rs prs
+mergeParaRunStyle True (Just rs) (Just prs) = Just $ RunStyle
+  { isBold       = flipMerge isBold
+  , isBoldCTL    = flipMerge isBoldCTL
+  , isItalic     = flipMerge isItalic
+  , isItalicCTL  = flipMerge isItalicCTL
+  , isSmallCaps  = merge isSmallCaps
+  , isStrike     = merge isStrike
+  , isRTL        = merge isRTL
+  , isForceCTL   = merge isForceCTL
+  , rVertAlign   = merge rVertAlign
+  , rUnderline   = merge rUnderline
   , rParentStyle = rParentStyle rs
   }
   where

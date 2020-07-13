@@ -259,18 +259,19 @@ newtype Cell = Cell [BodyPart]
 
 leftBiasedMergeRunStyle :: RunStyle -> RunStyle -> RunStyle
 leftBiasedMergeRunStyle a b = RunStyle
-    { isBold = isBold a <|> isBold b
-    , isBoldCTL = isBoldCTL a <|> isBoldCTL b
-    , isItalic = isItalic a <|> isItalic b
-    , isItalicCTL = isItalicCTL a <|> isItalicCTL b
-    , isSmallCaps = isSmallCaps a <|> isSmallCaps b
-    , isStrike = isStrike a <|> isStrike b
-    , isRTL = isRTL a <|> isRTL b
-    , isForceCTL = isForceCTL a <|> isForceCTL b
-    , rVertAlign = rVertAlign a <|> rVertAlign b
-    , rUnderline = rUnderline a <|> rUnderline b
+    { isBold       = merge isBold
+    , isBoldCTL    = merge isBoldCTL
+    , isItalic     = merge isItalic
+    , isItalicCTL  = merge isItalicCTL
+    , isSmallCaps  = merge isSmallCaps
+    , isStrike     = merge isStrike
+    , isRTL        = merge isRTL
+    , isForceCTL   = merge isForceCTL
+    , rVertAlign   = merge rVertAlign
+    , rUnderline   = merge rUnderline
     , rParentStyle = rParentStyle a
     }
+    where merge f = f a <|> f b
 
 -- (width, height) in EMUs
 type Extent = Maybe (Double, Double)

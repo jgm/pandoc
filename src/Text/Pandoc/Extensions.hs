@@ -143,6 +143,7 @@ data Extension =
     | Ext_subscript           -- ^ Subscript using ~this~ syntax
     | Ext_superscript         -- ^ Superscript using ^this^ syntax
     | Ext_styles              -- ^ Read styles that pandoc doesn't know
+    | Ext_emphasis_quirk      -- ^ Follow Word emphasis quirk behaviour
     | Ext_task_lists          -- ^ Parse certain list items as task list items
     | Ext_table_captions      -- ^ Pandoc-style table captions
     | Ext_tex_math_dollars    -- ^ TeX math between $..$ or $$..$$
@@ -368,6 +369,9 @@ getDefaultExtensions "textile"         = extensionsFromList
                                            Ext_smart,
                                            Ext_raw_html,
                                            Ext_auto_identifiers]
+getDefaultExtensions "docx"            = extensionsFromList
+                                          [Ext_emphasis_quirk,
+                                           Ext_auto_identifiers]
 getDefaultExtensions "opml"            = pandocExtensions -- affects notes
 getDefaultExtensions _                 = extensionsFromList
                                           [Ext_auto_identifiers]
@@ -419,6 +423,7 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "docx"            = extensionsFromList
     [ Ext_empty_paragraphs
     , Ext_styles
+    , Ext_emphasis_quirk
     ]
   getAll "opendocument"    = extensionsFromList
     [ Ext_empty_paragraphs
