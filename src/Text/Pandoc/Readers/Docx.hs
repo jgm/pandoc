@@ -261,46 +261,43 @@ resolveDependentRunStyle rPr
   | otherwise = return rPr
 
 runStyleToTransform :: PandocMonad m => RunStyle -> DocxContext m (Inlines -> Inlines)
-runStyleToTransform rPr
-  | Just sn <- getStyleName <$> rParentStyle rPr
-  , sn `elem` spansToKeep = do
-      transform <- runStyleToTransform rPr{rParentStyle = Nothing}
-      return $ spanWith ("", [normalizeToClassName sn], []) . transform
-  | Just s <- rParentStyle rPr = do
-      ei <- extraInfo spanWith s
-      transform <- runStyleToTransform rPr{rParentStyle = Nothing}
-      return $ ei . transform
-  | Just True <- isItalic rPr = do
-      transform <- runStyleToTransform rPr{isItalic = Nothing}
-      return $ emph  . transform
-  | Just True <- isBold rPr = do
-      transform <- runStyleToTransform rPr{isBold = Nothing}
-      return $ strong . transform
-  | Just True <- isSmallCaps rPr = do
-      transform <- runStyleToTransform rPr{isSmallCaps = Nothing}
-      return $ smallcaps . transform
-  | Just True <- isStrike rPr = do
-      transform <- runStyleToTransform rPr{isStrike = Nothing}
-      return $ strikeout . transform
-  | Just True <- isRTL rPr = do
-      transform <- runStyleToTransform rPr{isRTL = Nothing}
-      return $ spanWith ("",[],[("dir","rtl")]) . transform
-  | Just False <- isRTL rPr = do
-      transform <- runStyleToTransform rPr{isRTL = Nothing}
-      inBidi <- asks docxInBidi
-      return $ if inBidi
-               then spanWith ("",[],[("dir","ltr")]) . transform
-               else transform
-  | Just SupScrpt <- rVertAlign rPr = do
-      transform <- runStyleToTransform rPr{rVertAlign = Nothing}
-      return $ superscript . transform
-  | Just SubScrpt <- rVertAlign rPr = do
-      transform <- runStyleToTransform rPr{rVertAlign = Nothing}
-      return $ subscript . transform
-  | Just "single" <- rUnderline rPr = do
-      transform <- runStyleToTransform rPr{rUnderline = Nothing}
-      return $ Pandoc.underline . transform
-  | otherwise = return id
+runStyleToTransform rPr' = do
+  opts <- asks docxOptions
+  inBidi <- asks docxInBidi
+  let styles = isEnabled Ext_styles opts
+      ctl = (Just True == isRTL rPr') || (Just True == isForceCTL rPr')
+      italic rPr | ctl = isItalicCTL rPr
+                 | otherwise = isItalic rPr
+      bold rPr | ctl = isBoldCTL rPr
+               | otherwise = isBold rPr
+      go rPr
+        | Just sn <- getStyleName <$> rParentStyle rPr
+        , sn `elem` spansToKeep =
+            spanWith ("", [normalizeToClassName sn], [])
+            . go rPr{rParentStyle = Nothing}
+        | styles, Just s <- rParentStyle rPr =
+             spanWith (extraAttr s) . go rPr{rParentStyle = Nothing}
+        | Just True <- italic rPr =
+            emph . go rPr{isItalic = Nothing, isItalicCTL = Nothing}
+        | Just True <- bold rPr =
+            strong . go rPr{isBold = Nothing, isBoldCTL = Nothing}
+        | Just True <- isSmallCaps rPr =
+            smallcaps . go rPr{isSmallCaps = Nothing}
+        | Just True <- isStrike rPr =
+            strikeout . go rPr{isStrike = Nothing}
+        | Just True <- isRTL rPr =
+            spanWith ("",[],[("dir","rtl")]) . go rPr{isRTL = Nothing}
+        | inBidi, Just False <- isRTL rPr =
+            spanWith ("",[],[("dir","ltr")]) . go rPr{isRTL = Nothing}
+        | Just SupScrpt <- rVertAlign rPr =
+            superscript . go rPr{rVertAlign = Nothing}
+        | Just SubScrpt <- rVertAlign rPr = do
+            subscript . go rPr{rVertAlign = Nothing}
+        | Just "single" <- rUnderline rPr = do
+            Pandoc.underline . go rPr{rUnderline = Nothing}
+        | otherwise = id
+  return $ go rPr'
+
 
 runToInlines :: PandocMonad m => Run -> DocxContext m Inlines
 runToInlines (Run rs runElems)
@@ -512,13 +509,8 @@ trimSps (Many ils) = Many $ Seq.dropWhileL isSp $Seq.dropWhileR isSp ils
         isSp LineBreak = True
         isSp _         = False
 
-extraInfo :: (Eq (StyleName a), PandocMonad m, HasStyleName a)
-          => (Attr -> i -> i) -> a -> DocxContext m (i -> i)
-extraInfo f s = do
-  opts <- asks docxOptions
-  return $ if isEnabled Ext_styles opts
-              then f ("", [], [("custom-style", fromStyleName $ getStyleName s)])
-              else id
+extraAttr :: (Eq (StyleName a), HasStyleName a) => a -> Attr
+extraAttr s = ("", [], [("custom-style", fromStyleName $ getStyleName s)])
 
 parStyleToTransform :: PandocMonad m => ParagraphStyle -> DocxContext m (Blocks -> Blocks)
 parStyleToTransform pPr = case pStyle pPr of
@@ -534,8 +526,11 @@ parStyleToTransform pPr = case pStyle pPr of
     | otherwise -> do
         let pPr' = pPr { pStyle = cs }
         transform <- parStyleToTransform pPr'
-        ei <- extraInfo divWith c
-        return $ ei . (if isBlockQuote c then blockQuote else id) . transform
+        styles <- asks (isEnabled Ext_styles . docxOptions)
+        return $
+          (if styles then divWith (extraAttr c) else id)
+          . (if isBlockQuote c then blockQuote else id)
+          . transform
   []
     | Just left <- indentation pPr >>= leftParIndent -> do
         let pPr' = pPr { indentation = Nothing }
