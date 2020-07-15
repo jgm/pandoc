@@ -339,6 +339,9 @@ $if(babel-newcommands)$
 $endif$
 \fi
 $endif$
+\ifluatex
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
 $if(dir)$
 \ifxetex
   % Load bidi as late as possible as it modifies e.g. graphicx
