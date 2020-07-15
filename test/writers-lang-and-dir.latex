@@ -66,6 +66,9 @@
   \newcommand{\textfrench}[2][]{\foreignlanguage{french}{#2}}
   \newenvironment{french}[2][]{\begin{otherlanguage}{french}}{\end{otherlanguage}}
 \fi
+\ifluatex
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
 \ifxetex
   % Load bidi as late as possible as it modifies e.g. graphicx
   \usepackage{bidi}
