@@ -513,9 +513,9 @@ or here: <http://example.com/>
 h1. {anchor:images}Images
 From "Voyage dans la Lune" by Georges Melies \(1902):
 
-!lalune.jpg|title=fig:Voyage dans la Lune!
+!lalune.jpg|title=fig:Voyage dans la Lune, alt=lalune!
 
-Here is a movie !movie.jpg! icon.
+Here is a movie !movie.jpg|alt=movie! icon.
 
 ----
 h1. {anchor:footnotes}Footnotes

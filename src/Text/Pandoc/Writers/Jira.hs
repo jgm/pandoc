@@ -194,7 +194,7 @@ toJiraInlines inlines = do
                               Jira.Monospaced (escapeSpecialChars cs)
         Emph xs            -> styled Jira.Emphasis xs
         Underline xs       -> styled Jira.Insert xs
-        Image attr _ tgt   -> imageToJira attr (fst tgt) (snd tgt)
+        Image attr cap tgt -> imageToJira attr cap (fst tgt) (snd tgt)
         LineBreak          -> pure . singleton $ Jira.Linebreak
         Link attr xs tgt   -> toJiraLink attr tgt xs
         Math mtype cs      -> mathToJira mtype cs
@@ -233,16 +233,18 @@ escapeSpecialChars t = case plainText t of
   Left _  -> singleton $ Jira.Str t
 
 imageToJira :: PandocMonad m
-            => Attr -> Text -> Text
+            => Attr -> [Inline] -> Text -> Text
             -> JiraConverter m [Jira.Inline]
-imageToJira (_, classes, kvs) src title =
-  let imgParams = if "thumbnail" `elem` classes
-                  then [Jira.Parameter "thumbnail" ""]
-                  else map (uncurry Jira.Parameter) kvs
-      imgParams' = if T.null title
-                   then imgParams
-                   else Jira.Parameter "title" title : imgParams
-  in pure . singleton $ Jira.Image imgParams' (Jira.URL src)
+imageToJira (_, classes, kvs) caption src title =
+  let imageWithParams ps = Jira.Image ps (Jira.URL src)
+      alt = stringify caption
+  in pure . singleton . imageWithParams $
+     if "thumbnail" `elem` classes
+     then [Jira.Parameter "thumbnail" ""]
+     else map (uncurry Jira.Parameter)
+          . (if T.null title then id else (("title", title):))
+          . (if T.null alt then id else (("alt", alt):))
+          $ kvs
 
 -- | Creates a Jira Link element.
 toJiraLink :: PandocMonad m
