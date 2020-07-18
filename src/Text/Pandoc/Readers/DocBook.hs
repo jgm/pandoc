@@ -608,6 +608,7 @@ addMetadataFromElement e = do
     addMetaField "author" e
     addMetaField "date" e
     addMetaField "release" e
+    addMetaField "releaseinfo" e
     return mempty
   where addMetaField fieldname elt =
             case filterChildren (named fieldname) elt of
