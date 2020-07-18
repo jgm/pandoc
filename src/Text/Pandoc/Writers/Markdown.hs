@@ -1086,28 +1086,38 @@ inlineToMarkdown _ (Superscript []) = return empty
 inlineToMarkdown opts (Superscript lst) =
   local (\env -> env {envEscapeSpaces = True}) $ do
     contents <- inlineListToMarkdown opts lst
-    return $ if isEnabled Ext_superscript opts
-                then "^" <> contents <> "^"
-                else if isEnabled Ext_raw_html opts
-                         then "<sup>" <> contents <> "</sup>"
-                         else
-                           let rendered = render Nothing contents
-                           in  case mapM toSuperscript (T.unpack rendered) of
-                                    Just r  -> literal $ T.pack r
-                                    Nothing -> literal $ "^(" <> rendered <> ")"
+    if isEnabled Ext_superscript opts
+       then return $ "^" <> contents <> "^"
+       else if isEnabled Ext_raw_html opts
+                then return $ "<sup>" <> contents <> "</sup>"
+                else
+                  case traverse toSuperscriptInline lst of
+                    Just xs' | not (writerPreferAscii opts)
+                      -> inlineListToMarkdown opts xs'
+                    _ -> do
+                      let rendered = render Nothing contents
+                      return $
+                        case mapM toSuperscript (T.unpack rendered) of
+                           Just r  -> literal $ T.pack r
+                           Nothing -> literal $ "^(" <> rendered <> ")"
 inlineToMarkdown _ (Subscript []) = return empty
 inlineToMarkdown opts (Subscript lst) =
   local (\env -> env {envEscapeSpaces = True}) $ do
     contents <- inlineListToMarkdown opts lst
-    return $ if isEnabled Ext_subscript opts
-                then "~" <> contents <> "~"
-                else if isEnabled Ext_raw_html opts
-                         then "<sub>" <> contents <> "</sub>"
-                         else
-                           let rendered = render Nothing contents
-                           in  case mapM toSubscript (T.unpack rendered) of
-                                    Just r  -> literal $ T.pack r
-                                    Nothing -> literal $ "_(" <> rendered <> ")"
+    if isEnabled Ext_subscript opts
+       then return $ "~" <> contents <> "~"
+       else if isEnabled Ext_raw_html opts
+                then return $ "<sub>" <> contents <> "</sub>"
+                else
+                  case traverse toSubscriptInline lst of
+                    Just xs' | not (writerPreferAscii opts)
+                      -> inlineListToMarkdown opts xs'
+                    _ -> do
+                      let rendered = render Nothing contents
+                      return $
+                        case mapM toSuperscript (T.unpack rendered) of
+                           Just r  -> literal $ T.pack r
+                           Nothing -> literal $ "_(" <> rendered <> ")"
 inlineToMarkdown opts (SmallCaps lst) = do
   plain <- asks envPlain
   if not plain &&
@@ -1332,3 +1342,19 @@ lineBreakToSpace :: Inline -> Inline
 lineBreakToSpace LineBreak = Space
 lineBreakToSpace SoftBreak = Space
 lineBreakToSpace x         = x
+
+toSubscriptInline :: Inline -> Maybe Inline
+toSubscriptInline Space = Just Space
+toSubscriptInline (Span attr ils) = Span attr <$> traverse toSubscriptInline ils
+toSubscriptInline (Str s) = Str . T.pack <$> traverse toSubscript (T.unpack s)
+toSubscriptInline LineBreak = Just LineBreak
+toSubscriptInline SoftBreak = Just SoftBreak
+toSubscriptInline _ = Nothing
+
+toSuperscriptInline :: Inline -> Maybe Inline
+toSuperscriptInline Space = Just Space
+toSuperscriptInline (Span attr ils) = Span attr <$> traverse toSuperscriptInline ils
+toSuperscriptInline (Str s) = Str . T.pack <$> traverse toSuperscript (T.unpack s)
+toSuperscriptInline LineBreak = Just LineBreak
+toSuperscriptInline SoftBreak = Just SoftBreak
+toSuperscriptInline _ = Nothing
