@@ -425,7 +425,6 @@ library
                  commonmark-pandoc >= 0.1,
                  commonmark >= 0.1,
                  commonmark-extensions >= 0.1,
-                 cmark-gfm >= 0.2.0,
                  network-uri >= 2.6 && < 2.7,
                  network >= 2.6,
                  connection >= 0.3.1,

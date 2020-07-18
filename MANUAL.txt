@@ -5164,7 +5164,8 @@ can, however, all be individually disabled.  Also, `raw_tex`
 only affects `gfm` output, not input.
 
 `gfm` (GitHub-Flavored Markdown)
-:   `pipe_tables`, `raw_html`, `fenced_code_blocks`, `auto_identifiers`,
+:   `pipe_tables`, `raw_html`, `native_divs`,
+    `fenced_code_blocks`, `auto_identifiers`,
     `gfm_auto_identifiers`, `backtick_code_blocks`,
     `autolink_bare_uris`, `space_in_atx_header`,
     `intraword_underscores`, `strikeout`, `task_lists`, `emoji`,
