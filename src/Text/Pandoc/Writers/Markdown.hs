@@ -584,9 +584,12 @@ blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
   let numcols = maximum (length aligns : length widths :
                            map length (headers:rows))
   caption' <- inlineListToMarkdown opts caption
-  let caption'' = if null caption || not (isEnabled Ext_table_captions opts)
+  let caption'' = if null caption
                      then blankline
-                     else blankline $$ (": " <> caption') $$ blankline
+                     else
+                       if isEnabled Ext_table_captions opts
+                          then blankline $$ (": " <> caption') $$ blankline
+                          else blankline $$ caption' $$ blankline
   let hasSimpleCells = onlySimpleTableCells $ headers : rows
   let isSimple = hasSimpleCells && all (==0) widths
   let isPlainBlock (Plain _) = True
