@@ -16,7 +16,10 @@ Conversion of 'Pandoc' documents to markdown-formatted plain text.
 
 Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
-module Text.Pandoc.Writers.Markdown (writeMarkdown, writePlain) where
+module Text.Pandoc.Writers.Markdown (
+  writeMarkdown,
+  writeCommonMark,
+  writePlain) where
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Char (isAlphaNum)
@@ -55,15 +58,21 @@ evalMD :: PandocMonad m => MD m a -> WriterEnv -> WriterState -> m a
 evalMD md env st = evalStateT (runReaderT md env) st
 
 data WriterEnv = WriterEnv { envInList          :: Bool
-                           , envPlain           :: Bool
+                           , envVariant         :: MarkdownVariant
                            , envRefShortcutable :: Bool
                            , envBlockLevel      :: Int
                            , envEscapeSpaces    :: Bool
                            }
 
+data MarkdownVariant =
+      PlainText
+    | Commonmark
+    | Markdown
+    deriving (Show, Eq)
+
 instance Default WriterEnv
-  where def = WriterEnv { envInList         = False
-                        , envPlain          = False
+  where def = WriterEnv { envInList          = False
+                        , envVariant         = Markdown
                         , envRefShortcutable = True
                         , envBlockLevel      = 0
                         , envEscapeSpaces    = False
@@ -102,7 +111,12 @@ writeMarkdown opts document =
 -- pictures, or inline formatting).
 writePlain :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writePlain opts document =
-  evalMD (pandocToMarkdown opts document) def{ envPlain = True } def
+  evalMD (pandocToMarkdown opts document) def{ envVariant = PlainText } def
+
+-- | Convert Pandoc to Commonmark.
+writeCommonMark :: PandocMonad m => WriterOptions -> Pandoc -> m Text
+writeCommonMark opts document =
+  evalMD (pandocToMarkdown opts document) def{ envVariant = Commonmark } def
 
 pandocTitleBlock :: Doc Text -> [Doc Text] -> Doc Text -> Doc Text
 pandocTitleBlock tit auths dat =
@@ -187,7 +201,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  isPlain <- asks envPlain
+  variant <- asks envVariant
   metadata <- metaToContext'
                (blockListToMarkdown opts)
                (inlineListToMarkdown opts)
@@ -196,7 +210,7 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
   let authors' = fromMaybe [] $ getField "author" metadata
   let date' = fromMaybe empty $ getField "date" metadata
   let titleblock = case writerTemplate opts of
-                        Just _ | isPlain ->
+                        Just _ | variant == PlainText ->
                                  plainTitleBlock title' authors' date'
                                | isEnabled Ext_yaml_metadata_block opts ->
                                    yamlMetadataBlock metadata
@@ -422,7 +436,7 @@ blockToMarkdown' opts (Div attrs ils) = do
              attrs' = (id',classes',("markdown","1"):kvs')
 blockToMarkdown' opts (Plain inlines) = do
   -- escape if para starts with ordered list marker
-  isPlain <- asks envPlain
+  variant <- asks envVariant
   let escapeMarker = T.concatMap $ \x -> if x `elemText` ".()"
                                          then T.pack ['\\', x]
                                          else T.singleton x
@@ -430,17 +444,15 @@ blockToMarkdown' opts (Plain inlines) = do
       startsWithSpace (SoftBreak:_) = True
       startsWithSpace _             = False
   let inlines' =
-        if isPlain
+        if variant == PlainText
            then inlines
            else case inlines of
                   (Str t:ys)
-                    | not isPlain
-                    , (null ys || startsWithSpace ys)
+                    | (null ys || startsWithSpace ys)
                     , beginsWithOrderedListMarker t
                     -> RawInline (Format "markdown") (escapeMarker t):ys
                   (Str t:_)
-                    | not isPlain
-                    , t == "+" || t == "-" ||
+                    | t == "+" || t == "-" ||
                       (t == "%" && isEnabled Ext_pandoc_title_block opts &&
                                    isEnabled Ext_all_symbols_escapable opts)
                     -> RawInline (Format "markdown") "\\" : inlines
@@ -465,16 +477,16 @@ blockToMarkdown' opts (LineBlock lns) =
     return $ (vcat $ map (hang 2 (literal "| ")) mdLines) <> blankline
   else blockToMarkdown opts $ linesToPara lns
 blockToMarkdown' opts b@(RawBlock f str) = do
-  plain <- asks envPlain
+  variant <- asks envVariant
   let Format fmt = f
   let rawAttribBlock = return $
          (literal "```{=" <> literal fmt <> "}") $$
          literal str $$
          (literal "```" <> literal "\n")
   let renderEmpty = mempty <$ report (BlockNotRendered b)
-  case () of
-    _ | plain -> renderEmpty
-      | isEnabled Ext_raw_attribute opts -> rawAttribBlock
+  case variant of
+    PlainText -> renderEmpty
+    _ | isEnabled Ext_raw_attribute opts -> rawAttribBlock
       | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
                   "markdown_mmd", "markdown_strict"] ->
             return $ literal str <> literal "\n"
@@ -503,7 +515,7 @@ blockToMarkdown' opts (Header level attr inlines) = do
           then notesAndRefs opts
           else return empty
 
-  plain <- asks envPlain
+  variant <- asks envVariant
   -- we calculate the id that would be used by auto_identifiers
   -- so we know whether to print an explicit identifier
   ids <- gets stIds
@@ -521,19 +533,20 @@ blockToMarkdown' opts (Header level attr inlines) = do
   contents <- inlineListToMarkdown opts $
                  -- ensure no newlines; see #3736
                  walk lineBreakToSpace $
-                 if level == 1 && plain && isEnabled Ext_gutenberg opts
-                    then capitalize inlines
-                    else inlines
+                   if level == 1 && variant == PlainText &&
+                      isEnabled Ext_gutenberg opts
+                      then capitalize inlines
+                      else inlines
   let setext = writerSetextHeaders opts
       hdr = nowrap $ case level of
-            1 | plain ->
+            1 | variant == PlainText ->
                 if isEnabled Ext_gutenberg opts
                    then blanklines 3 <> contents <> blanklines 2
                    else contents <> blankline
               | setext ->
                   contents <> attr' <> cr <> literal (T.replicate (offset contents) "=") <>
                   blankline
-            2 | plain ->
+            2 | variant == PlainText ->
                 if isEnabled Ext_gutenberg opts
                    then blanklines 2 <> contents <> blankline
                    else contents <> blankline
@@ -541,7 +554,7 @@ blockToMarkdown' opts (Header level attr inlines) = do
                   contents <> attr' <> cr <> literal (T.replicate (offset contents) "-") <>
                   blankline
             -- ghc interprets '#' characters in column 1 as linenum specifiers.
-            _ | plain || isEnabled Ext_literate_haskell opts ->
+            _ | variant == PlainText || isEnabled Ext_literate_haskell opts ->
                 contents <> blankline
             _ -> literal (T.replicate level "#") <> space <> contents <> attr' <> blankline
 
@@ -571,12 +584,12 @@ blockToMarkdown' opts (CodeBlock attribs str) = return $
                                 (_,(cls:_),_) -> " " <> literal cls
                                 _             -> empty
 blockToMarkdown' opts (BlockQuote blocks) = do
-  plain <- asks envPlain
+  variant <- asks envVariant
   -- if we're writing literate haskell, put a space before the bird tracks
   -- so they won't be interpreted as lhs...
   let leader = if isEnabled Ext_literate_haskell opts
                   then " > "
-                  else if plain then "  " else "> "
+                  else if variant == PlainText then "  " else "> "
   contents <- blockListToMarkdown opts blocks
   return $ (prefixed leader contents) <> blankline
 blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
@@ -809,8 +822,8 @@ definitionListItemToMarkdown opts (label, defs) = do
   if isEnabled Ext_definition_lists opts
      then do
        let tabStop = writerTabStop opts
-       isPlain <- asks envPlain
-       let leader  = if isPlain then "   " else ":  "
+       variant <- asks envVariant
+       let leader  = if variant == PlainText then "   " else ":  "
        let sps = case writerTabStop opts - 3 of
                       n | n > 0   -> literal $ T.replicate n " "
                       _ -> literal " "
@@ -839,7 +852,7 @@ blockListToMarkdown :: PandocMonad m
                     -> MD m (Doc Text)
 blockListToMarkdown opts blocks = do
   inlist <- asks envInList
-  isPlain <- asks envPlain
+  variant <- asks envVariant
   -- a) insert comment between list and indented code block, or the
   -- code block will be treated as a list continuation paragraph
   -- b) change Plain to Para unless it's followed by a RawBlock
@@ -873,7 +886,7 @@ blockListToMarkdown opts blocks = do
       isListBlock (OrderedList _ _)  = True
       isListBlock (DefinitionList _) = True
       isListBlock _                  = False
-      commentSep  = if isPlain
+      commentSep  = if variant == PlainText
                        then Null
                        else if isEnabled Ext_raw_html opts
                             then RawBlock "html" "<!-- -->\n"
@@ -1025,11 +1038,11 @@ inlineToMarkdown opts (Span ("",["emoji"],kvs) [Str s]) =
             return $ ":" <> literal emojiname <> ":"
        _ -> inlineToMarkdown opts (Str s)
 inlineToMarkdown opts (Span attrs ils) = do
-  plain <- asks envPlain
+  variant <- asks envVariant
   contents <- inlineListToMarkdown opts ils
-  return $ case plain of
-                True -> contents
-                False | attrs == nullAttr -> contents
+  return $ case variant of
+                PlainText -> contents
+                _     | attrs == nullAttr -> contents
                       | isEnabled Ext_bracketed_spans opts ->
                         let attrs' = if attrs /= nullAttr
                                         then attrsToMarkdown attrs
@@ -1041,20 +1054,20 @@ inlineToMarkdown opts (Span attrs ils) = do
                       | otherwise -> contents
 inlineToMarkdown _ (Emph []) = return empty
 inlineToMarkdown opts (Emph lst) = do
-  plain <- asks envPlain
+  variant <- asks envVariant
   contents <- inlineListToMarkdown opts lst
-  return $ if plain
-              then if isEnabled Ext_gutenberg opts
-                      then "_" <> contents <> "_"
-                      else contents
-              else "*" <> contents <> "*"
+  return $ case variant of
+             PlainText
+               | isEnabled Ext_gutenberg opts -> "_" <> contents <> "_"
+               | otherwise ->  contents
+             _ -> "*" <> contents <> "*"
 inlineToMarkdown _ (Underline []) = return empty
 inlineToMarkdown opts (Underline lst) = do
-  plain <- asks envPlain
+  variant <- asks envVariant
   contents <- inlineListToMarkdown opts lst
-  case plain of
-    True -> return contents
-    False | isEnabled Ext_bracketed_spans opts ->
+  case variant of
+    PlainText -> return contents
+    _     | isEnabled Ext_bracketed_spans opts ->
             return $ "[" <> contents <> "]" <> "{.ul}"
           | isEnabled Ext_native_spans opts ->
             return $ tagWithAttrs "span" ("", ["underline"], [])
@@ -1065,13 +1078,14 @@ inlineToMarkdown opts (Underline lst) = do
           | otherwise -> inlineToMarkdown opts (Emph lst)
 inlineToMarkdown _ (Strong []) = return empty
 inlineToMarkdown opts (Strong lst) = do
-  plain <- asks envPlain
-  if plain
-     then inlineListToMarkdown opts $
-          if isEnabled Ext_gutenberg opts
-             then capitalize lst
-             else lst
-     else do
+  variant <- asks envVariant
+  case variant of
+    PlainText ->
+             inlineListToMarkdown opts $
+               if isEnabled Ext_gutenberg opts
+                  then capitalize lst
+                  else lst
+    _ -> do
        contents <- inlineListToMarkdown opts lst
        return $ "**" <> contents <> "**"
 inlineToMarkdown _ (Strikeout []) = return empty
@@ -1084,7 +1098,7 @@ inlineToMarkdown opts (Strikeout lst) = do
                        else contents
 inlineToMarkdown _ (Superscript []) = return empty
 inlineToMarkdown opts (Superscript lst) =
-  local (\env -> env {envEscapeSpaces = True}) $ do
+  local (\env -> env {envEscapeSpaces = (envVariant env == Markdown)}) $ do
     contents <- inlineListToMarkdown opts lst
     if isEnabled Ext_superscript opts
        then return $ "^" <> contents <> "^"
@@ -1102,7 +1116,7 @@ inlineToMarkdown opts (Superscript lst) =
                            Nothing -> literal $ "^(" <> rendered <> ")"
 inlineToMarkdown _ (Subscript []) = return empty
 inlineToMarkdown opts (Subscript lst) =
-  local (\env -> env {envEscapeSpaces = True}) $ do
+  local (\env -> env {envEscapeSpaces = (envVariant env == Markdown)}) $ do
     contents <- inlineListToMarkdown opts lst
     if isEnabled Ext_subscript opts
        then return $ "~" <> contents <> "~"
@@ -1119,8 +1133,8 @@ inlineToMarkdown opts (Subscript lst) =
                            Just r  -> literal $ T.pack r
                            Nothing -> literal $ "_(" <> rendered <> ")"
 inlineToMarkdown opts (SmallCaps lst) = do
-  plain <- asks envPlain
-  if not plain &&
+  variant <- asks envVariant
+  if variant /= PlainText &&
      (isEnabled Ext_raw_html opts || isEnabled Ext_native_spans opts)
      then inlineToMarkdown opts (Span ("",["smallcaps"],[]) lst)
      else inlineListToMarkdown opts $ capitalize lst
@@ -1150,16 +1164,17 @@ inlineToMarkdown opts (Code attr str) = do
   let attrs      = if isEnabled Ext_inline_code_attributes opts && attr /= nullAttr
                       then attrsToMarkdown attr
                       else empty
-  plain <- asks envPlain
-  if plain
-     then return $ literal str
-     else return $ literal (marker <> spacer <> str <> spacer <> marker) <> attrs
+  variant <- asks envVariant
+  case variant of
+     PlainText -> return $ literal str
+     _     ->  return $ literal
+                  (marker <> spacer <> str <> spacer <> marker) <> attrs
 inlineToMarkdown opts (Str str) = do
-  isPlain <- asks envPlain
+  variant <- asks envVariant
   let str' = (if isEnabled Ext_smart opts
                  then unsmartify opts
                  else id) $
-              if isPlain
+              if variant == PlainText
                  then str
                  else escapeText opts str
   return $ literal str'
@@ -1174,10 +1189,10 @@ inlineToMarkdown opts (Math InlineMath str) =
          | isEnabled Ext_tex_math_double_backslash opts ->
              return $ "\\\\(" <> literal str <> "\\\\)"
          | otherwise -> do
-             plain <- asks envPlain
+             variant <- asks envVariant
              texMathToInlines InlineMath str >>=
                inlineListToMarkdown opts .
-                 (if plain then makeMathPlainer else id)
+                 (if variant == PlainText then makeMathPlainer else id)
 inlineToMarkdown opts (Math DisplayMath str) =
   case writerHTMLMathMethod opts of
       WebTeX url -> (\x -> blankline <> x <> blankline) `fmap`
@@ -1196,15 +1211,15 @@ inlineToMarkdown opts il@(RawInline f str) = do
   let numticks   = if null tickGroups
                      then 1
                      else 1 + maximum (map T.length tickGroups)
-  plain <- asks envPlain
+  variant <- asks envVariant
   let Format fmt = f
   let rawAttribInline = return $
          literal (T.replicate numticks "`") <> literal str <>
          literal (T.replicate numticks "`") <> literal "{=" <> literal fmt <> literal "}"
   let renderEmpty = mempty <$ report (InlineNotRendered il)
-  case () of
-    _ | plain -> renderEmpty
-      | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
+  case variant of
+    PlainText -> renderEmpty
+    _ | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
                   "markdown_mmd", "markdown_strict"] ->
             return $ literal str
       | isEnabled Ext_raw_attribute opts -> rawAttribInline
@@ -1220,8 +1235,8 @@ inlineToMarkdown opts il@(RawInline f str) = do
                 | otherwise -> renderEmpty
       | otherwise -> renderEmpty
 inlineToMarkdown opts LineBreak = do
-  plain <- asks envPlain
-  if plain || isEnabled Ext_hard_line_breaks opts
+  variant <- asks envVariant
+  if variant == PlainText || isEnabled Ext_hard_line_breaks opts
      then return cr
      else return $
           if isEnabled Ext_escaped_line_breaks opts
@@ -1274,7 +1289,7 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
     (literal . T.strip) <$>
       writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [Plain [lnk]])
   | otherwise = do
-  plain <- asks envPlain
+  variant <- asks envVariant
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if T.null tit
                      then empty
@@ -1292,9 +1307,9 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
                 then literal <$> getReference attr linktext (src, tit)
                 else return mempty
   return $ if useAuto
-              then if plain
-                      then literal srcSuffix
-                      else "<" <> literal srcSuffix <> ">"
+              then case variant of
+                     PlainText -> literal srcSuffix
+                     _ -> "<" <> literal srcSuffix <> ">"
               else if useRefLinks
                       then let first  = "[" <> linktext <> "]"
                                second = if getKey linktext == getKey reftext
@@ -1303,9 +1318,9 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
                                                    else "[]"
                                            else "[" <> reftext <> "]"
                            in  first <> second
-                      else if plain
-                              then linktext
-                              else "[" <> linktext <> "](" <>
+                      else case variant of
+                             PlainText -> linktext
+                             _ -> "[" <> linktext <> "](" <>
                                    literal src <> linktitle <> ")" <>
                                    linkAttributes opts attr
 inlineToMarkdown opts img@(Image attr alternate (source, tit))
@@ -1315,15 +1330,15 @@ inlineToMarkdown opts img@(Image attr alternate (source, tit))
     (literal . T.strip) <$>
       writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [Plain [img]])
   | otherwise = do
-  plain <- asks envPlain
+  variant <- asks envVariant
   let txt = if null alternate || alternate == [Str source]
                                  -- to prevent autolinks
                then [Str ""]
                else alternate
   linkPart <- inlineToMarkdown opts (Link attr txt (source, tit))
-  return $ if plain
-              then "[" <> linkPart <> "]"
-              else "!" <> linkPart
+  return $ case variant of
+             PlainText -> "[" <> linkPart <> "]"
+             _     -> "!" <> linkPart
 inlineToMarkdown opts (Note contents) = do
   modify (\st -> st{ stNotes = contents : stNotes st })
   st <- get

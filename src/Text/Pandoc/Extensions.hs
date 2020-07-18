@@ -245,6 +245,7 @@ githubMarkdownExtensions :: Extensions
 githubMarkdownExtensions = extensionsFromList
   [ Ext_pipe_tables
   , Ext_raw_html
+  , Ext_native_divs
   , Ext_auto_identifiers
   , Ext_gfm_auto_identifiers
   , Ext_autolink_bare_uris
