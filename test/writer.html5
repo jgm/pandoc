@@ -523,7 +523,7 @@ Blah
 <h1 id="images">Images</h1>
 <p>From “Voyage dans la Lune” by Georges Melies (1902):</p>
 <figure>
-<img src="lalune.jpg" title="Voyage dans la Lune" alt="" /><figcaption>lalune</figcaption>
+<img src="lalune.jpg" title="Voyage dans la Lune" alt="lalune" /><figcaption aria-hidden="true">lalune</figcaption>
 </figure>
 <p>Here is a movie <img src="movie.jpg" alt="movie" /> icon.</p>
 <hr />

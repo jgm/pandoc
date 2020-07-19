@@ -1,6 +1,7 @@
 {-# LANGUAGE MultiWayIf          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.HTML
@@ -587,11 +588,18 @@ figure :: PandocMonad m
        => WriterOptions -> Attr -> [Inline] -> (Text, Text)
        -> StateT WriterState m Html
 figure opts attr txt (s,tit) = do
-  img <- inlineToHtml opts (Image attr [Str ""] (s,tit))
   html5 <- gets stHtml5
+  -- Screen-readers will normally read the @alt@ text and the figure; we
+  -- want to avoid them reading the same text twice. With HTML5 we can
+  -- use aria-hidden for the caption; with HTML4, we use an empty
+  -- alt-text instead.
+  let alt = if html5 then txt else [Str ""]
   let tocapt = if html5
-                  then H5.figcaption
+                  then H5.figcaption !
+                       H5.customAttribute (textTag "aria-hidden")
+                                          (toValue @Text "true")
                   else H.p ! A.class_ "caption"
+  img <- inlineToHtml opts (Image attr alt (s,tit))
   capt <- if null txt
              then return mempty
              else tocapt `fmap` inlineListToHtml opts txt
