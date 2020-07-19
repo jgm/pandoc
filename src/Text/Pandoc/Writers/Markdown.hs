@@ -290,10 +290,7 @@ noteToMarkdown opts num blocks = do
 
 -- | Escape special characters for Markdown.
 escapeText :: WriterOptions -> Text -> Text
-escapeText opts =
-  (if writerPreferAscii opts
-      then toHtml5Entities
-      else id) . T.pack . go . T.unpack
+escapeText opts = T.pack . go . T.unpack
   where
   go [] = []
   go (c:cs) =
@@ -1171,12 +1168,15 @@ inlineToMarkdown opts (Code attr str) = do
                   (marker <> spacer <> str <> spacer <> marker) <> attrs
 inlineToMarkdown opts (Str str) = do
   variant <- asks envVariant
-  let str' = (if isEnabled Ext_smart opts
+  let str' = (if writerPreferAscii opts
+                 then toHtml5Entities
+                 else id) .
+             (if isEnabled Ext_smart opts
                  then unsmartify opts
-                 else id) $
-              if variant == PlainText
-                 then str
-                 else escapeText opts str
+                 else id) .
+             (if variant == PlainText
+                 then id
+                 else escapeText opts) $ str
   return $ literal str'
 inlineToMarkdown opts (Math InlineMath str) =
   case writerHTMLMathMethod opts of
