@@ -11,7 +11,7 @@ bug-reports:     https://github.com/jgm/pandoc/issues
 stability:       alpha
 homepage:        https://pandoc.org
 category:        Text
-tested-with:     GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5,
+tested-with:     GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5,
                  GHC == 8.8.3, GHC == 8.10.1
 synopsis:        Conversion between markup formats
 description:     Pandoc is a Haskell library for converting from one markup
