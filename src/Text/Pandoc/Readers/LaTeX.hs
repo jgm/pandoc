@@ -586,44 +586,6 @@ nlToSpace :: Char -> Char
 nlToSpace '\n' = ' '
 nlToSpace x    = x
 
-keyval :: PandocMonad m => LP m (Text, Text)
-keyval = try $ do
-  Tok _ Word key <- satisfyTok isWordTok
-  sp
-  val <- option mempty $ do
-           symbol '='
-           sp
-           (untokenize <$> braced) <|>
-             (mconcat <$> many1 (
-                 (untokenize . snd <$> withRaw braced)
-                 <|>
-                 (untokenize <$> (many1
-                      (satisfyTok
-                         (\t -> case t of
-                                Tok _ Symbol "]" -> False
-                                Tok _ Symbol "," -> False
-                                Tok _ Symbol "{" -> False
-                                Tok _ Symbol "}" -> False
-                                _                -> True))))))
-  optional (symbol ',')
-  sp
-  return (key, T.strip val)
-
-keyvals :: PandocMonad m => LP m [(Text, Text)]
-keyvals = try $ symbol '[' >> manyTill keyval (symbol ']') <* sp
-
-accent :: PandocMonad m => Char -> Maybe Char -> LP m Inlines
-accent combiningAccent fallBack = try $ do
-  ils <- tok
-  case toList ils of
-       (Str (T.uncons -> Just (x, xs)) : ys) -> return $ fromList $
-         -- try to normalize to the combined character:
-         Str (Normalize.normalize Normalize.NFC
-               (T.pack [x, combiningAccent]) <> xs) : ys
-       [Space]           -> return $ str $ T.singleton $ fromMaybe combiningAccent fallBack
-       []                -> return $ str $ T.singleton $ fromMaybe combiningAccent fallBack
-       _                 -> return ils
-
 mathDisplay :: Text -> Inlines
 mathDisplay = displayMath . trimMath
 
@@ -781,6 +743,7 @@ inlineCommand' = try $ do
        (guardEnabled Ext_raw_tex >> return (rawInline "latex" rawcommand))
          <|> ignore rawcommand
   lookupListDefault raw names inlineCommands
+
 
 tok :: PandocMonad m => LP m Inlines
 tok = try $ spaces >> grouped inline <|> inlineCommand' <|> singleChar'
@@ -1178,6 +1141,19 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("ifdim", ifdim)
   ]
 
+accent :: PandocMonad m => Char -> Maybe Char -> LP m Inlines
+accent combiningAccent fallBack = try $ do
+  ils <- tok
+  case toList ils of
+       (Str (T.uncons -> Just (x, xs)) : ys) -> return $ fromList $
+         -- try to normalize to the combined character:
+         Str (Normalize.normalize Normalize.NFC
+               (T.pack [x, combiningAccent]) <> xs) : ys
+       [Space]           -> return $ str $ T.singleton $ fromMaybe combiningAccent fallBack
+       []                -> return $ str $ T.singleton $ fromMaybe combiningAccent fallBack
+       _                 -> return ils
+
+
 lettrine :: PandocMonad m => LP m Inlines
 lettrine = do
   optional opt
@@ -1470,20 +1446,6 @@ inlines :: PandocMonad m => LP m Inlines
 inlines = mconcat <$> many inline
 
 -- block elements:
-
-begin_ :: PandocMonad m => Text -> LP m ()
-begin_ t = try (do
-  controlSeq "begin"
-  spaces
-  txt <- untokenize <$> braced
-  guard (t == txt)) <?> ("\\begin{" ++ T.unpack t ++ "}")
-
-end_ :: PandocMonad m => Text -> LP m ()
-end_ t = try (do
-  controlSeq "end"
-  spaces
-  txt <- untokenize <$> braced
-  guard $ t == txt) <?> ("\\end{" ++ T.unpack t ++ "}")
 
 preamble :: PandocMonad m => LP m Blocks
 preamble = mconcat <$> many preambleBlock
@@ -1996,24 +1958,6 @@ rawVerbEnv name = do
      else do
        report $ SkippedContent raw' pos
        return mempty
-
-verbEnv :: PandocMonad m => Text -> LP m Text
-verbEnv name = withVerbatimMode $ do
-  optional blankline
-  res <- manyTill anyTok (end_ name)
-  return $ stripTrailingNewline
-         $ untokenize
-         $ res
-
--- Strip single final newline and any spaces following it.
--- Input is unchanged if it doesn't end with newline +
--- optional spaces.
-stripTrailingNewline :: Text -> Text
-stripTrailingNewline t =
-  let (b, e) = T.breakOnEnd "\n" t
-  in  if T.all (== ' ') e
-         then T.dropEnd 1 b
-         else t
 
 fancyverbEnv :: PandocMonad m => Text -> LP m Blocks
 fancyverbEnv name = do

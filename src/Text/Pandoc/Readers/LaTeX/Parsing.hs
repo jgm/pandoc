@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE ViewPatterns          #-}
 {- |
    Module      : Text.Pandoc.Readers.LaTeX.Parsing
    Copyright   : Copyright (C) 2006-2020 John MacFarlane
@@ -66,6 +67,10 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , dimenarg
   , ignore
   , withRaw
+  , keyvals
+  , verbEnv
+  , begin_
+  , end_
   ) where
 
 import Control.Applicative (many, (<|>))
@@ -695,3 +700,62 @@ withRaw parser = do
   let raw = takeWhile (\(Tok pos _ _) -> maybe True
                   (\p -> sourceName p /= sourceName pos || pos < p) nxtpos) inp
   return (result, raw)
+
+keyval :: PandocMonad m => LP m (Text, Text)
+keyval = try $ do
+  Tok _ Word key <- satisfyTok isWordTok
+  sp
+  val <- option mempty $ do
+           symbol '='
+           sp
+           (untokenize <$> braced) <|>
+             (mconcat <$> many1 (
+                 (untokenize . snd <$> withRaw braced)
+                 <|>
+                 (untokenize <$> (many1
+                      (satisfyTok
+                         (\t -> case t of
+                                Tok _ Symbol "]" -> False
+                                Tok _ Symbol "," -> False
+                                Tok _ Symbol "{" -> False
+                                Tok _ Symbol "}" -> False
+                                _                -> True))))))
+  optional (symbol ',')
+  sp
+  return (key, T.strip val)
+
+keyvals :: PandocMonad m => LP m [(Text, Text)]
+keyvals = try $ symbol '[' >> manyTill keyval (symbol ']') <* sp
+
+verbEnv :: PandocMonad m => Text -> LP m Text
+verbEnv name = withVerbatimMode $ do
+  optional blankline
+  res <- manyTill anyTok (end_ name)
+  return $ stripTrailingNewline
+         $ untokenize
+         $ res
+
+-- Strip single final newline and any spaces following it.
+-- Input is unchanged if it doesn't end with newline +
+-- optional spaces.
+stripTrailingNewline :: Text -> Text
+stripTrailingNewline t =
+  let (b, e) = T.breakOnEnd "\n" t
+  in  if T.all (== ' ') e
+         then T.dropEnd 1 b
+         else t
+
+begin_ :: PandocMonad m => Text -> LP m ()
+begin_ t = try (do
+  controlSeq "begin"
+  spaces
+  txt <- untokenize <$> braced
+  guard (t == txt)) <?> ("\\begin{" ++ T.unpack t ++ "}")
+
+end_ :: PandocMonad m => Text -> LP m ()
+end_ t = try (do
+  controlSeq "end"
+  spaces
+  txt <- untokenize <$> braced
+  guard $ t == txt) <?> ("\\end{" ++ T.unpack t ++ "}")
+
