@@ -879,7 +879,12 @@ csvTableDirective top fields rawcsv = do
        Left e  ->
          throwError $ PandocParsecError "csv table" e
        Right rawrows -> do
-         let parseCell = parseFromString' (plain <|> return mempty)
+         let singleParaToPlain bs =
+               case B.toList bs of
+                 [Para ils] -> B.fromList [Plain ils]
+                 _          -> bs
+         let parseCell t = singleParaToPlain
+                <$> parseFromString' parseBlocks (t <> "\n\n")
          let parseRow = mapM parseCell
          rows <- mapM parseRow rawrows
          let (headerRow,bodyRows,numOfCols) =
