@@ -414,6 +414,10 @@
       <w:sz w:val="22" />
     </w:rPr>
   </w:style>
+  <w:style w:type="character" w:customStyle="1" w:styleId="SectionNumber">
+    <w:name w:val="Section Number" />
+    <w:basedOn w:val="BodyTextChar" />
+  </w:style>
   <w:style w:type="character" w:styleId="FootnoteReference">
     <w:name w:val="Footnote Reference" />
     <w:basedOn w:val="BodyTextChar" />

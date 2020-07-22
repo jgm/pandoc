@@ -982,7 +982,7 @@ header when requesting a document from a URL:
 
 `-N`, `--number-sections`
 
-:   Number section headings in LaTeX, ConTeXt, HTML, or EPUB output.
+:   Number section headings in LaTeX, ConTeXt, HTML, Docx, or EPUB output.
     By default, sections are not numbered.  Sections with class
     `unnumbered` will never be numbered, even if `--number-sections`
     is specified.
@@ -1125,6 +1125,7 @@ header when requesting a document from a URL:
         - Verbatim Char
         - Footnote Reference
         - Hyperlink
+        - Section Number
 
         Table style:
 

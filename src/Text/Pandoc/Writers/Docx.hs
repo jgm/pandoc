@@ -210,8 +210,11 @@ writeDocx :: (PandocMonad m)
           => WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
           -> m BL.ByteString
-writeDocx opts doc@(Pandoc meta _) = do
-  let doc' = walk fixDisplayMath doc
+writeDocx opts doc = do
+  let Pandoc meta blocks = walk fixDisplayMath doc
+  let blocks' = makeSections True Nothing blocks
+  let doc' = Pandoc meta blocks'
+
   username <- P.lookupEnv "USERNAME"
   utctime <- P.getCurrentTime
   oldUserDataDir <- P.getUserDataDir
@@ -898,11 +901,21 @@ blockToOpenXML' opts (Div (ident,_classes,kvs) bs) = do
   header <- dirmod $ stylemod $ blocksToOpenXML opts hs
   contents <- dirmod $ bibmod $ stylemod $ blocksToOpenXML opts bs'
   wrapBookmark ident $ header <> contents
-blockToOpenXML' opts (Header lev (ident,_,_) lst) = do
+blockToOpenXML' opts (Header lev (ident,_,kvs) lst) = do
   setFirstPara
   paraProps <- withParaPropM (pStyleM (fromString $ "Heading "++show lev)) $
                     getParaProps False
-  contents <- inlinesToOpenXML opts lst
+  number <-
+        if writerNumberSections opts
+           then
+             case lookup "number" kvs of
+                Just n -> do
+                   num <- withTextPropM (rStyleM "SectionNumber")
+                            (inlineToOpenXML opts (Str n))
+                   return $ num ++ [mknode "w:r" [] [mknode "w:tab" [] ()]]
+                Nothing -> return []
+           else return []
+  contents <- (number ++) <$> inlinesToOpenXML opts lst
   if T.null ident
      then return [mknode "w:p" [] (paraProps ++ contents)]
      else do
