@@ -71,6 +71,10 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , verbEnv
   , begin_
   , end_
+  , getRawCommand
+  , skipopts
+  , rawopt
+  , overlaySpecification
   ) where
 
 import Control.Applicative (many, (<|>))
@@ -758,4 +762,67 @@ end_ t = try (do
   spaces
   txt <- untokenize <$> braced
   guard $ t == txt) <?> ("\\end{" ++ T.unpack t ++ "}")
+
+getRawCommand :: PandocMonad m => Text -> Text -> LP m Text
+getRawCommand name txt = do
+  (_, rawargs) <- withRaw $
+      case name of
+           "write" -> do
+             void $ satisfyTok isWordTok -- digits
+             void braced
+           "titleformat" -> do
+             void braced
+             skipopts
+             void $ count 4 braced
+           "def" ->
+             void $ manyTill anyTok braced
+           _ | isFontSizeCommand name -> return ()
+             | otherwise -> do
+               skipopts
+               option "" (try dimenarg)
+               void $ many braced
+  return $ txt <> untokenize rawargs
+
+skipopts :: PandocMonad m => LP m ()
+skipopts = skipMany (void overlaySpecification <|> void rawopt)
+
+-- opts in angle brackets are used in beamer
+overlaySpecification :: PandocMonad m => LP m Text
+overlaySpecification = try $ do
+  symbol '<'
+  t <- untokenize <$> manyTill overlayTok (symbol '>')
+  -- see issue #3368
+  guard $ not (T.all isLetter t) ||
+          t `elem` ["beamer","presentation", "trans",
+                    "handout","article", "second"]
+  return $ "<" <> t <> ">"
+
+overlayTok :: PandocMonad m => LP m Tok
+overlayTok =
+  satisfyTok (\t ->
+                  case t of
+                    Tok _ Word _       -> True
+                    Tok _ Spaces _     -> True
+                    Tok _ Symbol c     -> c `elem` ["-","+","@","|",":",","]
+                    _                  -> False)
+
+rawopt :: PandocMonad m => LP m Text
+rawopt = try $ do
+  sp
+  inner <- untokenize <$> bracketedToks
+  sp
+  return $ "[" <> inner <> "]"
+
+isFontSizeCommand :: Text -> Bool
+isFontSizeCommand "tiny" = True
+isFontSizeCommand "scriptsize" = True
+isFontSizeCommand "footnotesize" = True
+isFontSizeCommand "small" = True
+isFontSizeCommand "normalsize" = True
+isFontSizeCommand "large" = True
+isFontSizeCommand "Large" = True
+isFontSizeCommand "LARGE" = True
+isFontSizeCommand "huge" = True
+isFontSizeCommand "Huge" = True
+isFontSizeCommand _ = False
 
