@@ -35,6 +35,7 @@ import Data.List (intercalate)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Set as Set
+import qualified Data.Sequence as Seq
 import Data.Text (Text)
 import qualified Data.Text as T
 import System.FilePath (addExtension, replaceExtension, takeExtension)
@@ -1845,6 +1846,8 @@ environments = M.fromList
    , ("tikzcd", rawVerbEnv "tikzcd")
    , ("lilypond", rawVerbEnv "lilypond")
    , ("ly", rawVerbEnv "ly")
+   -- amsthm
+   , ("proof", amsProof)
    -- etoolbox
    , ("ifstrequal", ifstrequal)
    , ("newtoggle", braced >>= newToggle)
@@ -1852,6 +1855,30 @@ environments = M.fromList
    , ("togglefalse", braced >>= setToggle False)
    , ("iftoggle", try $ ifToggle >> block)
    ]
+
+amsProof :: PandocMonad m => LP m Blocks
+amsProof = do
+  title <- option (B.text "Proof") opt
+  bs <- env "proof" blocks
+  return $
+    B.divWith ("", ["proof"], []) $
+      addQed $ addTitle (B.emph (title <> ".")) $ bs
+
+addTitle :: Inlines -> Blocks -> Blocks
+addTitle ils bs =
+  case B.toList bs of
+    (Para xs : rest)
+      -> B.fromList (Para (B.toList ils ++ (Space : xs)) : rest)
+    _ -> B.para ils <> bs
+
+addQed :: Blocks -> Blocks
+addQed bs =
+  case Seq.viewr (B.unMany bs) of
+    s Seq.:> Para ils
+      -> B.Many (s Seq.|> Para (ils ++ B.toList qedSign))
+    _ -> bs <> B.para qedSign
+ where
+  qedSign = B.spanWith ("",["qed"],[]) "\x220E"
 
 environment :: PandocMonad m => LP m Blocks
 environment = try $ do

@@ -18,6 +18,7 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   ( DottedNum(..)
   , renderDottedNum
   , incrementDottedNum
+  , TheoremSpec(..)
   , LaTeXState(..)
   , defaultLaTeXState
   , LP
@@ -114,6 +115,13 @@ incrementDottedNum level (DottedNum ns) = DottedNum $
        (x:xs) -> reverse (x+1 : xs)
        []     -> []  -- shouldn't happen
 
+data TheoremSpec =
+  TheoremSpec
+    { theoremName    :: Text
+    , theoremSeries  :: Maybe Text
+    , theoremLastNum :: DottedNum }
+    deriving (Show)
+
 data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sMeta          :: Meta
                             , sQuoteContext  :: QuoteContext
@@ -128,6 +136,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sLastHeaderNum :: DottedNum
                             , sLastFigureNum :: DottedNum
                             , sLastTableNum  :: DottedNum
+                            , sTheoremMap    :: M.Map Text TheoremSpec
                             , sLastLabel     :: Maybe Text
                             , sLabels        :: M.Map Text [Inline]
                             , sHasChapters   :: Bool
@@ -151,6 +160,7 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sLastHeaderNum = DottedNum []
                               , sLastFigureNum = DottedNum []
                               , sLastTableNum  = DottedNum []
+                              , sTheoremMap    = M.empty
                               , sLastLabel     = Nothing
                               , sLabels        = M.empty
                               , sHasChapters   = False
