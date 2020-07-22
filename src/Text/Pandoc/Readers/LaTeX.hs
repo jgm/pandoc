@@ -1724,6 +1724,7 @@ blockCommands = M.fromList
    , ("address", mempty <$ (skipopts *> tok >>= addMeta "address"))
    , ("signature", mempty <$ (skipopts *> authors))
    , ("date", mempty <$ (skipopts *> tok >>= addMeta "date"))
+   , ("newtheorem", newtheorem)
    -- KOMA-Script metadata commands
    , ("extratitle", mempty <$ (skipopts *> tok >>= addMeta "extratitle"))
    , ("frontispiece", mempty <$ (skipopts *> tok >>= addMeta "frontispiece"))
@@ -1847,7 +1848,7 @@ environments = M.fromList
    , ("lilypond", rawVerbEnv "lilypond")
    , ("ly", rawVerbEnv "ly")
    -- amsthm
-   , ("proof", amsProof)
+   , ("proof", proof)
    -- etoolbox
    , ("ifstrequal", ifstrequal)
    , ("newtoggle", braced >>= newToggle)
@@ -1856,8 +1857,25 @@ environments = M.fromList
    , ("iftoggle", try $ ifToggle >> block)
    ]
 
-amsProof :: PandocMonad m => LP m Blocks
-amsProof = do
+newtheorem :: PandocMonad m => LP m Blocks
+newtheorem = do
+  number <- option True (False <$ symbol '*' <* sp)
+  name <- untokenize <$> braced
+  series <- option Nothing $ Just <$> rawopt
+  showName <- untokenize <$> braced
+  syncTo <- option Nothing $ Just <$> rawopt
+  let spec = TheoremSpec { theoremName = showName
+                         , theoremSeries = series
+                         , theoremSyncTo = syncTo
+                         , theoremNumber = number
+                         , theoremLastNum = DottedNum [0] }
+  tmap <- sTheoremMap <$> getState
+  updateState $ \s -> s{ sTheoremMap =
+                            M.insert name spec tmap }
+  return mempty
+
+proof :: PandocMonad m => LP m Blocks
+proof = do
   title <- option (B.text "Proof") opt
   bs <- env "proof" blocks
   return $
@@ -1885,10 +1903,52 @@ environment = try $ do
   controlSeq "begin"
   name <- untokenize <$> braced
   M.findWithDefault mzero name environments <|>
+    lookupTheoremEnvironment name <|>
     if M.member name (inlineEnvironments
                        :: M.Map Text (LP PandocPure Inlines))
        then mzero
        else try (rawEnv name) <|> rawVerbEnv name
+
+lookupTheoremEnvironment :: PandocMonad m => Text -> LP m Blocks
+lookupTheoremEnvironment name = do
+  tmap <- sTheoremMap <$> getState
+  case M.lookup name tmap of
+    Nothing -> mzero
+    Just tspec -> do
+       optTitle <- option mempty $ (\x -> space <> "(" <> x <> ")") <$> opt
+       mblabel <- option Nothing $ Just . untokenize <$>
+                   try (spaces >> controlSeq "label" >> spaces >> braced)
+       bs <- env name blocks
+       number <- if theoremNumber tspec
+                    then do
+                       num <- getNextNumber
+                           (fromMaybe (DottedNum [0]) .
+                            fmap theoremLastNum .
+                            M.lookup name . sTheoremMap)
+                       updateState $ \s ->
+                         s{ sTheoremMap =
+                               M.insert name
+                               tspec{ theoremLastNum = num }
+                               (sTheoremMap s)
+                          }
+                       case mblabel of
+                         Just ident ->
+                           updateState $ \s ->
+                             s{ sLabels = M.insert ident
+                                 [Str (theoremName tspec), Str "\160",
+                                  Str (renderDottedNum num)] (sLabels s) }
+                         Nothing -> return ()
+                       return $ space <> B.text (renderDottedNum num)
+                    else return mempty
+       let title = B.strong (B.text (theoremName tspec) <> number
+                                      <> optTitle) <> space
+       return $ divWith ("", [name], []) $ addTitle title $
+                 walk italicize bs
+
+italicize :: Block -> Block
+italicize (Para ils) = Para [Emph ils]
+italicize (Plain ils) = Plain [Emph ils]
+italicize x = x
 
 env :: PandocMonad m => Text -> LP m a -> LP m a
 env name p = p <* end_ name

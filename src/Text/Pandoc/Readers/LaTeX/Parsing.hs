@@ -119,6 +119,8 @@ data TheoremSpec =
   TheoremSpec
     { theoremName    :: Text
     , theoremSeries  :: Maybe Text
+    , theoremSyncTo  :: Maybe Text
+    , theoremNumber  :: Bool
     , theoremLastNum :: DottedNum }
     deriving (Show)
 
