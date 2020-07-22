@@ -177,7 +177,8 @@ Some particularly important options to know about:
 1.  `writerTemplate`:  By default, this is `Nothing`, which
     means that a document fragment will be produced. If you
     want a full document, you need to specify `Just template`,
-    where `template` is a String containing the template's
+    where `template` is a `Template Text` from
+    [Text.Pandoc.Templates] containing the template's
     contents (not the path).
 
 2.  `readerExtensions` and `writerExtensions`:  These specify
