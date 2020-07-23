@@ -1940,8 +1940,8 @@ lookupTheoremEnvironment name = do
                          Nothing -> return ()
                        return $ space <> B.text (renderDottedNum num)
                     else return mempty
-       let title = B.strong (B.text (theoremName tspec) <> number
-                                      <> optTitle) <> space
+       let title = B.strong (B.text (theoremName tspec) <> number)
+                                      <> optTitle <> space
        return $ divWith ("", [name], []) $ addTitle title $
                  walk italicize bs
 
