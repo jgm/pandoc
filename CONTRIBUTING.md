@@ -233,10 +233,10 @@ a ghci REPL for working with pandoc.  With [stack], use
 We recommend using the following `.ghci` file (which can be
 placed in the source directory):
 
-	:set -fobject-code
-	:set -XTypeSynonymInstances
-	:set -XScopedTypeVariables
-	:set -XOverloadedStrings
+    :set -fobject-code
+    :set -XTypeSynonymInstances
+    :set -XScopedTypeVariables
+    :set -XOverloadedStrings
 
 Profiling
 ---------

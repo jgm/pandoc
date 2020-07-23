@@ -71,8 +71,8 @@ if ($input =~ m/^[Yy]/) {
 
 } else {
 
-   print "OK, aborting uninstall.\n";
-   exit;
+  print "OK, aborting uninstall.\n";
+  exit;
 }
 
 print "Pandoc has been successfully uninstalled.\n";

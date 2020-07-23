@@ -114,8 +114,8 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 		-o $@
 
 README.md: README.template MANUAL.txt tools/update-readme.lua
-	pandoc --lua-filter tools/update-readme.lua --reference-links \
-	      --reference-location=section -t gfm $< -o $@
+	pandoc 	--lua-filter tools/update-readme.lua --reference-links \
+					--reference-location=section -t gfm $< -o $@
 
 download_stats:
 	curl https://api.github.com/repos/jgm/pandoc/releases | \

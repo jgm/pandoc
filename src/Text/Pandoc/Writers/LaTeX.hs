@@ -1037,7 +1037,7 @@ mapAlignment a = case a of
                    "top-baseline" -> "t"
                    "bottom" -> "b"
                    "center" -> "c"
-                   _ -> a 
+                   _ -> a
 
 wrapDiv :: PandocMonad m => Attr -> Doc Text -> LW m (Doc Text)
 wrapDiv (_,classes,kvs) t = do
@@ -1051,7 +1051,7 @@ wrapDiv (_,classes,kvs) t = do
                                  (lookup "totalwidth" kvs)
                                onlytextwidth = filter ((==) "onlytextwidth") classes
                                options = text $ T.unpack $ T.intercalate "," $
-                                 valign : totalwidth ++ onlytextwidth 
+                                 valign : totalwidth ++ onlytextwidth
                            in inCmd "begin" "columns" <> brackets options
                               $$ contents
                               $$ inCmd "end" "columns"
@@ -1062,8 +1062,8 @@ wrapDiv (_,classes,kvs) t = do
                                  maybe ""
                                  (brackets . text . T.unpack . mapAlignment)
                                  (lookup "align" kvs)
-                               w = maybe "0.48" fromPct (lookup "width" kvs) 
-                           in  inCmd "begin" "column" <> 
+                               w = maybe "0.48" fromPct (lookup "width" kvs)
+                           in  inCmd "begin" "column" <>
                                valign <>
                                braces (literal w <> "\\textwidth")
                                $$ contents

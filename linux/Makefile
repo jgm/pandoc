@@ -6,7 +6,7 @@ build:
 	mkdir -p $(ARTIFACTS)
 	docker build -t alpine-pandoc .
 	docker run --env TREE=$(TREE) --env REVISION=$(REVISION) \
-	    -v $(ARTIFACTS):/artifacts alpine-pandoc
+		-v $(ARTIFACTS):/artifacts alpine-pandoc
 
 interact:
 	docker run --env TREE=$(TREE) --env REVISION=$(REVISION) \

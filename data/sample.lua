@@ -143,12 +143,12 @@ end
 
 function Link(s, src, tit, attr)
   return "<a href='" .. escape(src,true) .. "' title='" ..
-         escape(tit,true) .. "'>" .. s .. "</a>"
+          escape(tit,true) .. "'>" .. s .. "</a>"
 end
 
 function Image(s, src, tit, attr)
   return "<img src='" .. escape(src,true) .. "' title='" ..
-         escape(tit,true) .. "'/>"
+          escape(tit,true) .. "'/>"
 end
 
 function Code(s, attr)
@@ -226,8 +226,8 @@ function HorizontalRule()
 end
 
 function LineBlock(ls)
-  return '<div style="white-space: pre-line;">' .. table.concat(ls, '\n') ..
-         '</div>'
+  return  '<div style="white-space: pre-line;">' .. table.concat(ls, '\n') ..
+          '</div>'
 end
 
 function CodeBlock(s, attr)
@@ -238,8 +238,8 @@ function CodeBlock(s, attr)
     return '<img src="data:' .. image_mime_type .. ';base64,' .. img .. '"/>'
   -- otherwise treat as code (one could pipe through a highlighter)
   else
-    return "<pre><code" .. attributes(attr) .. ">" .. escape(s) ..
-           "</code></pre>"
+    return  "<pre><code" .. attributes(attr) .. ">" .. escape(s) ..
+            "</code></pre>"
   end
 end
 
@@ -264,7 +264,7 @@ function DefinitionList(items)
   for _,item in pairs(items) do
     local k, v = next(item)
     table.insert(buffer, "<dt>" .. k .. "</dt>\n<dd>" ..
-                   table.concat(v, "</dd>\n<dd>") .. "</dd>")
+                table.concat(v, "</dd>\n<dd>") .. "</dd>")
   end
   return "<dl>\n" .. table.concat(buffer, "\n") .. "\n</dl>"
 end
@@ -284,7 +284,7 @@ function html_align(align)
 end
 
 function CaptionedImage(src, tit, caption, attr)
-   return '<div class="figure">\n<img src="' .. escape(src,true) ..
+  return '<div class="figure">\n<img src="' .. escape(src,true) ..
       '" title="' .. escape(tit,true) .. '"/>\n' ..
       '<p class="caption">' .. caption .. '</p>\n</div>'
 end

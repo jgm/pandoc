@@ -1,16 +1,80 @@
 root = true
 
-[*]
+
+## Repository Configurations
+############################
+[.{git*,editorconfig,*.yml}]
 charset = utf-8
 end_of_line = lf
 indent_style = space
-indent_size = 2
-insert_final_newline = true
+indent_size = unset
 trim_trailing_whitespace = true
+insert_final_newline = true
 
+[.gitmodules]
+indent_style = tab
+
+
+## Shell Scripts
+################
+[*.sh]
+charset = utf-8
+end_of_line = lf
+indent_style = tab
+indent_size = unset
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+
+## Make Files
+#############
+[Makefile]
+charset = utf-8
+end_of_line = lf
+indent_style = tab
+indent_size = 2
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+
+## Haskell Sources
+##################
+[*.hs]
+charset = utf-8
+end_of_line = unset
+indent_style = space
+indent_size = unset
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+
+## Markdown
+###########
 [*.{markdown,md}]
+charset = utf-8
+end_of_line = unset
+indent_style = space
+indent_size = unset
 trim_trailing_whitespace = false
+insert_final_newline = true
 
-[test/*]
-insert_final_newline = false
-trim_trailing_whitespace = false
+
+## Lua and Perl
+###############
+[*.{lua,pl}]
+charset = utf-8
+end_of_line = unset
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+
+## Test Files
+#############
+; Relax rules to allow edge-cases...
+[test/**.{markdown,md}]
+indent_style = unset
+indent_size = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset
