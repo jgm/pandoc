@@ -1861,9 +1861,12 @@ newtheorem :: PandocMonad m => LP m Blocks
 newtheorem = do
   number <- option True (False <$ symbol '*' <* sp)
   name <- untokenize <$> braced
-  series <- option Nothing $ Just <$> rawopt
+  sp
+  series <- option Nothing $ Just . untokenize <$> bracketedToks
+  sp
   showName <- untokenize <$> braced
-  syncTo <- option Nothing $ Just <$> rawopt
+  sp
+  syncTo <- option Nothing $ Just . untokenize <$> bracketedToks
   let spec = TheoremSpec { theoremName = showName
                          , theoremSeries = series
                          , theoremSyncTo = syncTo
@@ -1919,27 +1922,31 @@ lookupTheoremEnvironment name = do
        mblabel <- option Nothing $ Just . untokenize <$>
                    try (spaces >> controlSeq "label" >> spaces >> braced)
        bs <- env name blocks
-       number <- if theoremNumber tspec
-                    then do
-                       num <- getNextNumber
-                           (fromMaybe (DottedNum [0]) .
-                            fmap theoremLastNum .
-                            M.lookup name . sTheoremMap)
-                       updateState $ \s ->
-                         s{ sTheoremMap =
-                               M.insert name
-                               tspec{ theoremLastNum = num }
-                               (sTheoremMap s)
-                          }
-                       case mblabel of
-                         Just ident ->
-                           updateState $ \s ->
-                             s{ sLabels = M.insert ident
-                                 [Str (theoremName tspec), Str "\160",
-                                  Str (renderDottedNum num)] (sLabels s) }
-                         Nothing -> return ()
-                       return $ space <> B.text (renderDottedNum num)
-                    else return mempty
+       number <-
+         if theoremNumber tspec
+            then do
+               let name' = fromMaybe name $ theoremSeries tspec
+               num <- getNextNumber
+                   (fromMaybe (DottedNum [0]) .
+                    fmap theoremLastNum .
+                    M.lookup name' . sTheoremMap)
+               updateState $ \s ->
+                 s{ sTheoremMap =
+                       M.adjust
+                       (\spec -> spec{ theoremLastNum = num })
+                       name'
+                       (sTheoremMap s)
+                  }
+
+               case mblabel of
+                 Just ident ->
+                   updateState $ \s ->
+                     s{ sLabels = M.insert ident
+                         [Str (theoremName tspec), Str "\160",
+                          Str (renderDottedNum num)] (sLabels s) }
+                 Nothing -> return ()
+               return $ space <> B.text (renderDottedNum num)
+            else return mempty
        let title = B.strong (B.text (theoremName tspec) <> number)
                                       <> optTitle <> space
        return $ divWith ("", [name], []) $ addTitle title $
