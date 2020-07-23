@@ -1969,7 +1969,7 @@ theoremEnvironment name = do
                          RemarkStyle     -> B.emph
        let title = titleEmph (B.text (theoremName tspec) <> number)
                                       <> optTitle <> space
-       return $ divWith ("", [name], []) $ addTitle title
+       return $ divWith (fromMaybe "" mblabel, [name], []) $ addTitle title
               $ case theoremStyle tspec of
                   PlainStyle -> walk italicize bs
                   _          -> bs
