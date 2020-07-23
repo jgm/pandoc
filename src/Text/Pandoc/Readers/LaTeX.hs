@@ -871,6 +871,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("_", lit "_")
   , ("{", lit "{")
   , ("}", lit "}")
+  , ("qed", lit "\a0\x25FB")
   -- old TeX commands
   , ("em", extractSpaces emph <$> inlines)
   , ("it", extractSpaces emph <$> inlines)
@@ -1915,7 +1916,7 @@ addQed bs =
       -> B.Many (s Seq.|> Para (ils ++ B.toList qedSign))
     _ -> bs <> B.para qedSign
  where
-  qedSign = B.spanWith ("",["qed"],[]) "\x220E"
+  qedSign = B.str "\xa0\x25FB"
 
 environment :: PandocMonad m => LP m Blocks
 environment = try $ do
@@ -1968,7 +1969,7 @@ theoremEnvironment name = do
                          DefinitionStyle -> B.strong
                          RemarkStyle     -> B.emph
        let title = titleEmph (B.text (theoremName tspec) <> number)
-                                      <> optTitle <> space
+                                      <> optTitle <> "." <> space
        return $ divWith (fromMaybe "" mblabel, [name], []) $ addTitle title
               $ case theoremStyle tspec of
                   PlainStyle -> walk italicize bs
