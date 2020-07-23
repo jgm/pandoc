@@ -19,6 +19,7 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , renderDottedNum
   , incrementDottedNum
   , TheoremSpec(..)
+  , TheoremStyle(..)
   , LaTeXState(..)
   , defaultLaTeXState
   , LP
@@ -103,7 +104,7 @@ import Text.Parsec.Pos
 -- import Debug.Trace
 
 newtype DottedNum = DottedNum [Int]
-  deriving (Show)
+  deriving (Show, Eq)
 
 renderDottedNum :: DottedNum -> T.Text
 renderDottedNum (DottedNum xs) = T.pack $
@@ -115,14 +116,19 @@ incrementDottedNum level (DottedNum ns) = DottedNum $
        (x:xs) -> reverse (x+1 : xs)
        []     -> []  -- shouldn't happen
 
+data TheoremStyle =
+  PlainStyle | DefinitionStyle | RemarkStyle
+  deriving (Show, Eq)
+
 data TheoremSpec =
   TheoremSpec
     { theoremName    :: Text
+    , theoremStyle   :: TheoremStyle
     , theoremSeries  :: Maybe Text
     , theoremSyncTo  :: Maybe Text
     , theoremNumber  :: Bool
     , theoremLastNum :: DottedNum }
-    deriving (Show)
+    deriving (Show, Eq)
 
 data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sMeta          :: Meta
@@ -139,6 +145,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sLastFigureNum :: DottedNum
                             , sLastTableNum  :: DottedNum
                             , sTheoremMap    :: M.Map Text TheoremSpec
+                            , sLastTheoremStyle :: TheoremStyle
                             , sLastLabel     :: Maybe Text
                             , sLabels        :: M.Map Text [Inline]
                             , sHasChapters   :: Bool
@@ -163,6 +170,7 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sLastFigureNum = DottedNum []
                               , sLastTableNum  = DottedNum []
                               , sTheoremMap    = M.empty
+                              , sLastTheoremStyle = PlainStyle
                               , sLastLabel     = Nothing
                               , sLabels        = M.empty
                               , sHasChapters   = False
