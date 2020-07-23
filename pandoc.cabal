@@ -424,7 +424,7 @@ library
                  Glob >= 0.7 && < 0.11,
                  doctemplates >= 0.8.2 && < 0.9,
                  commonmark-pandoc >= 0.2 && < 0.3,
-                 commonmark >= 0.1 && < 0.2,
+                 commonmark >= 0.1.0.1 && < 0.2,
                  commonmark-extensions >= 0.2 && < 0.3,
                  network-uri >= 2.6 && < 2.7,
                  network >= 2.6,
