@@ -88,6 +88,9 @@
       `superscript` or `subscript` extension or `raw_html` aren't available.
     + Render caption as following paragraph when `table_caption` extension
       is not enabled.
+    + Use numerical labels for reference links that are longer
+      than 999 characters or contain square brackets, for conformity
+      with commonmark (#6560).
 
   * Commonmark writer:
 
