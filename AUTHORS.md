@@ -66,6 +66,7 @@
 - Douglas Calvert
 - Eigil Rischel
 - Emanuel Evans
+- Emerson Harkin
 - Emily Eisenberg
 - Eric Kow
 - Eric Seidel
@@ -265,6 +266,7 @@
 - dbecher-ito
 - d-dorazio
 - ebiim
+- favonia
 - infinity0x
 - jeongminkim-islab
 - kaizshang91

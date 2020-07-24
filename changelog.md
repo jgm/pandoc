@@ -1,5 +1,164 @@
 # Revision history for pandoc
 
+## pandoc 2.10.1 (2020-07-23)
+
+  * Add `commonmark_x` output format. This is `commonmark` with a number
+    of useful pandoc extensions enabled.
+
+  * Many more extensions now work with `commonmark` and `gfm`.
+
+  * Add generic `attributes` extension.  This allows attributes to
+    be added to any block or inline element in a uniform way.  Since
+    the Pandoc AST doesn't include attributes on each element type,
+    the attributes will sometimes be added by creating a surrounding
+    Div or Span container.  Currently this extension is only
+    compatible with the `commonmark` and `gfm` readers.
+
+    To add an attribute to a block-level element, e.g. a paragraph,
+    put it before the block:
+    ```
+    {#mypara}
+    This is a paragraph.
+    ```
+    Multiple attributes may be used and will be combined:
+    ```
+    {#mypara}
+    {.blue .warning key="val"}
+    This is a paragraph.
+    ```
+    To add an attribute to an inline-level element, put it
+    immediately after the element:
+    ```
+    *emphasized text*{.special}
+    ```
+
+  * Support `--number-sections` for docx output (#1413).
+
+  * LaTeX reader:
+
+    + Support `\SIRange` reader (#6418, Emerson Harkin).
+    + Support table col-span and row-span (#6311, Laurent P. René de Cotret).
+      Supports `\multirow` and `\multicolumn`.
+    + Support amsthm:  `\newtheorem`, `\theoremstyle`, and theorem and
+      proof environments, including labels and references.  The only thing
+      that is unsupported is the second optional argument, which causes
+      numbering to be reset after the specified series is incremented.
+    + Moved some code to T.P.LaTeX.Parsing.  We need to reduce the size
+      of the LaTeX reader to ease compilation on resource-limited systems.
+
+  * RST reader:
+
+    + Fix csv tables with multiline cells (#6549).
+    + Fix spurious newlines in some attributes from directives.
+    + Avoid extra newline in included code blocks.
+
+  * Commonmark reader:
+
+    + Switch from cmark-gfm to commonmark-hs for commonmark and gfm
+      parsing.  This avoids depending on a C library
+      and allows us to support more pandoc extensions for
+      `commonmark` and `gfm`.
+
+  * DocBook reader:
+
+    + Parse releaseinfo as metadata (#6542).
+
+  * Docx reader:
+
+    + Only use `bCs/iCs` on runs with `rtl` or `cs` property (#6514, Nikolay
+      Yakimov).
+    + Code cleanup/refactoring (Nikolay Yakimov).
+
+  * Org reader (Albert Krewinkel):
+
+    + Respect export setting which disables entities
+      MathML-like entities, e.g., `\alpha`, can be disabled with the
+      `#+OPTION: e:nil` export setting (Albert Krewinkel).
+    + Respect export setting disabling footnotes.  Footnotes can be removed
+      from the final document with the `#+OPTION: f:nil` export setting.
+    + Respect tables-excluding export setting.  Tables can be removed from
+      the final document with the `#+OPTION: |:nil` export setting.
+
+  * Markdown writer:
+
+    + Move `asciify` out of `escapeString`.  Otherwise `unsmartify`
+      doesn't catch quotes that have already been turned to entities.
+    + Add `writeCommonmark` (new exported function, API change).
+    + Use unicode super/subscript characters when possible if the
+      `superscript` or `subscript` extension or `raw_html` aren't available.
+    + Render caption as following paragraph when `table_caption` extension
+      is not enabled.
+
+  * Commonmark writer:
+
+    + Instead of using cmark-gfm, use `writeCommonmark` from the
+      Markdown writer.  This function calls the markdown writer
+      with appropriate extensions and a few small modifications
+      (e.g. not requiring backslashes before spaces inside
+      super/subscripts).  With this change `comonmark` and
+      `gfm` output can be used with a wider selection of
+      extensions.
+
+  * Jira writer: keep image caption as alt attribute (#6529, Albert
+    Krewinkel).
+
+  * HTML writer:
+
+    + Improve alt-text/caption handling for HTML5 (#6491, Albert Krewinkel).
+      Screen readers read an image's `alt` attribute and the figure caption,
+      both of which come from the same source in pandoc. The figure caption is
+      hidden from screen readers with the `aria-hidden` attribute. This
+      improves accessibility.  For HTML4, where `aria-hidden` is not allowed,
+      pandoc still uses an empty `alt` attribute to avoid duplicate contents.
+
+  * Ms writer:
+
+    + Fix code highlighting with blank lines.  Previously blank lines
+      were simply omitted from highligted code.
+    + Escape starting periods in ms writer code blocks (#6505, Michael
+      Hoffmann).  If a line of ms code block output starts with a period (.),
+      it should be prepended by `\&` so that it is not interpreted as a roff
+      command.
+
+  * Text.Pandoc.Extensions:
+
+    + Trim down `githubMarkdownExtensions`.
+      Previously it included all of the following, which make
+      sense for the legacy `markdown_github` but not for `gfm`,
+      since they are part of base commonmark and thus
+      can't be turned off in `gfm`:
+
+      - `Ext_all_symbols_escapable`
+      - `Ext_backtick_code_blocks`
+      - `Ext_fenced_code_blocks`
+      - `Ext_space_in_atx_header`
+      - `Ext_intraword_underscores`
+      - `Ext_lists_without_preceding_blankline`
+      - `Ext_shortcut_reference_links`
+
+      These have been removed from `githubMarkdownExtensions`, though
+      they're still turned on for legacy `markdown_github`.
+
+    + Add `Ext_attributes` constructor for `Extension` [API change].
+
+  * LaTeX template: use selnolig to selectively suppress ligatures with
+    lualatex (#6534).
+
+  * Benchmark bytestring readers (Nikolay Yakimov).
+
+  * Documentation:
+
+    + Update using-the-pandoc-api.md (favonia).
+    + Fix Typos in lua-filters.md (tajmone).
+    + Rewrite Raw HTML/TeX section in MANUAL.txt to avoid duplicate
+      headings for the extensions.
+    + Fix typo in MANUAL.txt (Benjamin Wuethrich).
+    + Remove duplicate 'titlepage' in MANUAL.txt (Blake Eryx).
+    + CONTRIBUTING.md: Advertise the official nightlies in GitHub actions.
+      Replaces #6500, thanks to @ickc.
+
+
+
 ## pandoc 2.10 (2020-06-29)
 
   * Use pandoc-types 1.21.  This adds two things:
