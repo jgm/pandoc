@@ -2910,6 +2910,14 @@ input formats
 In the `muse` input format, this enables Text::Amuse
 extensions to Emacs Muse markup.
 
+#### Extension: `raw_markdown` ####
+
+In the `ipynb` input format, this causes Markdown cells
+to be included as raw Markdown blocks (allowing lossless
+round-tripping) rather than being parsed.  Use this only
+when you are targetting `ipynb` or a markdown-based
+output format.
+
 #### Extension: `citations` {#org-citations}
 
 Some aspects of [Pandoc's Markdown citation syntax](#citations) are also accepted

@@ -78,7 +78,11 @@ cellToBlocks opts lang c = do
   mapM_ addAttachment attachments
   case cellType c of
     Ipynb.Markdown -> do
-      Pandoc _ bs <- walk fixImage <$> readMarkdown opts source
+      bs <- if isEnabled Ext_raw_markdown opts
+               then return [RawBlock (Format "markdown") source]
+               else do
+                 Pandoc _ bs <- walk fixImage <$> readMarkdown opts source
+                 return bs
       return $ B.divWith ("",["cell","markdown"],kvs)
              $ B.fromList bs
     Ipynb.Heading lev -> do

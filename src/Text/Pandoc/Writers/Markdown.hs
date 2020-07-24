@@ -483,10 +483,10 @@ blockToMarkdown' opts b@(RawBlock f str) = do
   let renderEmpty = mempty <$ report (BlockNotRendered b)
   case variant of
     PlainText -> renderEmpty
-    _ | isEnabled Ext_raw_attribute opts -> rawAttribBlock
-      | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
+    _ | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
                   "markdown_mmd", "markdown_strict"] ->
             return $ literal str <> literal "\n"
+      | isEnabled Ext_raw_attribute opts -> rawAttribBlock
       | f `elem` ["html", "html5", "html4"] ->
             case () of
               _ | isEnabled Ext_markdown_attribute opts -> return $
