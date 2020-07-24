@@ -122,6 +122,8 @@
 
   * Text.Pandoc.Extensions:
 
+    + Add `raw_markdown` extension (which only affects `ipynb`
+      input).
     + Trim down `githubMarkdownExtensions`.
       Previously it included all of the following, which make
       sense for the legacy `markdown_github` but not for `gfm`,
@@ -138,7 +140,6 @@
 
       These have been removed from `githubMarkdownExtensions`, though
       they're still turned on for legacy `markdown_github`.
-
     + Add `Ext_attributes` constructor for `Extension` [API change].
 
   * LaTeX template: use selnolig to selectively suppress ligatures with
@@ -313,6 +314,14 @@
 
   * Ipynb reader:
 
+    + Implement `raw_markdown` extension (#5408).  Specifying
+      `-f ipynb+raw_markdown` will cause Markdown cells
+      to be represented as raw Markdown blocks, instead of being
+      parsed.  This is not what you want when going from `ipynb`
+      to other formats, but it may be useful when going from `ipynb`
+      to Markdown or to `ipynb`, to avoid semantically insignificant
+      changes in the contents of the Markdown cells that might
+      otherwise be introduced.
     + Handle application/pdf output as image (#6430).
     + Properly handle image/svg+xml as an image (#6430).
 
