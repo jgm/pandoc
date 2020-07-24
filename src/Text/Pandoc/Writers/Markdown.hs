@@ -47,6 +47,7 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.XML (toHtml5Entities)
+import Data.Coerce (coerce)
 
 type Notes = [[Block]]
 type Ref   = (Text, Target, Attr)
@@ -903,6 +904,7 @@ getNextIndex = do
   prevRefs <- gets stPrevRefs
   refs <- gets stRefs
   i <- (+ 1) <$> gets stLastIdx
+  modify $ \s -> s{ stLastIdx = i }
   let refLbls = map (\(r,_,_) -> r) $ prevRefs ++ refs
   return $ findUsableIndex refLbls i
 
@@ -915,12 +917,15 @@ getReference attr label target = do
     Just (ref, _, _) -> return ref
     Nothing       -> do
       keys <- gets stKeys
-      case M.lookup (getKey label) keys of
+      let key = getKey label
+      let rawkey = coerce key
+      case M.lookup key keys of
            Nothing -> do -- no other refs with this label
-             (lab', idx) <- if isEmpty label
+             (lab', idx) <- if T.null rawkey ||
+                                 T.length rawkey > 999 ||
+                                 T.any (\c -> c == '[' || c == ']') rawkey
                                then do
                                  i <- getNextIndex
-                                 modify $ \s -> s{ stLastIdx = i }
                                  return (tshow i, i)
                                else
                                  return (render Nothing label, 0)
@@ -947,11 +952,10 @@ getReference attr label target = do
                     return lab'
                   Nothing -> do -- but this one is to a new target
                     i <- getNextIndex
-                    modify $ \s -> s{ stLastIdx = i }
                     let lab' = tshow i
                     modify (\s -> s{
                        stRefs = (lab', target, attr) : refs,
-                       stKeys = M.insert (getKey label)
+                       stKeys = M.insert key
                                    (M.insert (target, attr) i km)
                                          (stKeys s) })
                     return lab'
