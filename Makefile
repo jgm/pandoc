@@ -5,6 +5,7 @@ BRANCH?=master
 RESOLVER?=lts-13
 GHCOPTS=-fdiagnostics-color=always
 WEBSITE=../../web/pandoc.org
+REVISION?=1
 
 quick:
 	stack install --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --ghc-options='-j +RTS -A64m -RTS' --test-arguments='-j4 --hide-successes $(TESTARGS)'
@@ -70,8 +71,12 @@ checkdocs: README.md
 	! grep -n -e "\t" MANUAL.txt changelog
 
 debpkg: man/pandoc.1
-	make -C linux && \
-	cp linux/artifacts/pandoc-$(version)-*.* .
+	docker run -v `pwd`:/mnt \
+                   -v `pwd`/linux/artifacts:/artifacts \
+		   -e REVISION=$(REVISION) \
+		   -w /mnt \
+	           utdemir/ghc-musl:v12-libgmp-ghc8101 bash \
+		   /mnt/linux/make_artifacts.sh
 
 macospkg: man/pandoc.1
 	./macos/make_macos_package.sh
