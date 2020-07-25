@@ -170,7 +170,7 @@ pushBlock = \case
   Plain blcks              -> pushViaConstructor "Plain" blcks
   RawBlock f cs            -> pushViaConstructor "RawBlock" f cs
   Table attr blkCapt specs thead tbody tfoot ->
-    pushViaConstructor "Table" attr blkCapt specs thead tbody tfoot
+    pushViaConstructor "Table" blkCapt specs thead tbody tfoot attr
 
 -- | Return the value at the given index as block if possible.
 peekBlock :: StackIndex -> Lua Block

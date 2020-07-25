@@ -556,18 +556,18 @@ M.RawBlock = M.Block:create_constructor(
 
 --- Creates a table element.
 -- @function Table
--- @tparam      Attr         attr       attributes
 -- @tparam      Caption      caption    table caption
 -- @tparam      {ColSpec,...} colspecs  column alignments and widths
 -- @tparam      TableHead    head       table head
 -- @tparam      {TableBody,..} bodies   table bodies
 -- @treturn     TableFoot    foot       table foot
+-- @tparam[opt] Attr         attr       attributes
 M.Table = M.Block:create_constructor(
   "Table",
-  function(attr, caption, colspecs, head, bodies, foot)
+  function(caption, colspecs, head, bodies, foot, attr)
     return {
       c = {
-        attr,
+        ensureAttr(attr),
         caption,
         List:new(colspecs),
         head,

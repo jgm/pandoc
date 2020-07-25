@@ -1104,6 +1104,9 @@ Values of this type can be created with the
 
 Fields:
 
+`attr`
+:   table attributes ([Attr])
+
 `caption`
 :   table caption ([Caption])
 
@@ -1120,8 +1123,14 @@ Fields:
 `foot`
 :   table foot ([TableFoot])
 
-`attr`
-:   element attributes ([Attr])
+`identifier`
+:   alias for `attr.identifier` (string)
+
+`classes`
+:   alias for `attr.classes` ([List] of strings)
+
+`attributes`
+:   alias for `attr.attributes` ([Attributes])
 
 `tag`, `t`
 :   the literal `Table` (string)
@@ -2144,14 +2153,11 @@ format, and functions to filter and modify a subtree.
 
     Returns: [RawBlock](#type-rawblock) object
 
-[`Table (attr, caption, colspecs, head, bodies, foot)`]{#pandoc.table}
+[`Table (caption, colspecs, head, bodies, foot[, attr])`]{#pandoc.table}
 
 :   Creates a table element.
 
     Parameters:
-
-    `attr`:
-    :   element attributes
 
     `caption`:
     :   table [caption](#type-caption)
@@ -2167,6 +2173,9 @@ format, and functions to filter and modify a subtree.
 
     `foot`:
     :   [table foot](#type-tablefoot)
+
+    `attr`:
+    :   element attributes
 
     Returns: [Table](#type-table) object
 
