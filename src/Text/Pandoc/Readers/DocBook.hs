@@ -708,7 +708,7 @@ parseBlock (Elem e) =
         "para"  -> parseMixed para (elContent e)
         "formalpara" -> do
            tit <- case filterChild (named "title") e of
-                        Just t  -> (para . strong . str) <$>
+                        Just t  -> (para . strong . (<> str "")) <$>
                                      getInlines t
                         Nothing -> return mempty
            (tit <>) <$> parseMixed para (elContent e)
