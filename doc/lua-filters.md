@@ -1650,12 +1650,15 @@ Fields:
 `attr`
 :   table body attributes ([Attr])
 
-`row_head_columns`
-:   number of columns taken up by the row head of each row of a
-    [TableBody]. The row body takes up the remaining columns.
+`body`
+:   table body rows (list of [Rows])
 
 `head`
 :   intermediate head (list of [Rows])
+
+`row_head_columns`
+:   number of columns taken up by the row head of each row of a
+    [TableBody]. The row body takes up the remaining columns.
 
 ### TableFoot {#type-tablefoot}
 
