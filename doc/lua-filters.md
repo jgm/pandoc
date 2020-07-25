@@ -1105,20 +1105,23 @@ Values of this type can be created with the
 Fields:
 
 `caption`
-:   table caption ([List] of [Inlines])
+:   table caption ([Caption])
 
-`aligns`
-:   column alignments ([List] of [Alignment]s)
+`colspecs`
+:   column specifications, i.e., alignments and widths ([List] of
+    [ColSpec]s)
 
-`widths`
-:   column widths (number)
+`head`
+:   table head ([TableHead])
 
-`headers`
-:   header row ([List] of [table cells](#type-table-cell))
+`bodies`
+:   table bodies ([List] of [TableBody]s)
 
-`rows`
-:   table rows ([List] of [List]s of [table
-    cells](#type-table-cell))
+`foot`
+:   table foot ([TableFoot])
+
+`attr`
+:   element attributes ([Attr])
 
 `tag`, `t`
 :   the literal `Table` (string)
@@ -1520,6 +1523,41 @@ Fields:
 List of key/value pairs. Values can be accessed by using keys as
 indices to the list table.
 
+### Caption {#type-caption}
+
+The caption of a table, with an optional short caption.
+
+Fields:
+
+`long`
+:   long caption (list of [Blocks])
+
+`short`
+:   short caption (list of [Inlines])
+
+### Cell {#type-cell}
+
+A table cell.
+
+Fields:
+
+`attr`
+:   cell attributes
+
+`alignment`
+:   individual cell alignment ([Alignment]).
+
+`contents`
+:   cell contents (list of [Blocks]).
+
+`col_span`
+:   number of columns occupied by the cell; the height of the cell
+    (integer).
+
+`row_span`
+:   number of rows occupied by the cell; the height of the cell
+    (integer).
+
 ### Citation {#type-citation}
 
 Single citation entry
@@ -1550,6 +1588,17 @@ Fields:
 `hash`
 :   hash (integer)
 
+### ColSpec {#type-colspec}
+
+Column alignment and width specification for a single table
+column.
+
+This is a pair with the following components:
+
+1. cell alignment ([Alignment]).
+2. table column width, as a fraction of the total table width
+   (number).
+
 ### ListAttributes {#type-listattributes}
 
 List attributes
@@ -1572,6 +1621,50 @@ Fields:
 `delimiter`
 :   delimiter of list numbers; one of `DefaultDelim`, `Period`,
     `OneParen`, and `TwoParens` (string)
+
+### Row {#type-row}
+
+A table row.
+
+Tuple fields:
+
+1. row attributes
+2. row cells (list of [Cells])
+
+### TableBody {#type-tablebody}
+
+A body of a table, with an intermediate head and the specified
+number of row header columns.
+
+Fields:
+
+`attr`
+:   table body attributes ([Attr])
+
+`row_head_columns`
+:   number of columns taken up by the row head of each row of a
+    [TableBody]. The row body takes up the remaining columns.
+
+`head`
+:   intermediate head (list of [Rows])
+
+### TableFoot {#type-tablefoot}
+
+The foot of a table.
+
+This is a pair with the following components:
+
+1. attributes
+2. foot rows ([Rows])
+
+### TableHead
+
+The head of a table.
+
+This is a pair with the following components:
+
+1. attributes
+2. head rows ([Rows])
 
 ## ReaderOptions {#type-readeroptions}
 
@@ -1723,8 +1816,11 @@ Usage:
 [Attributes]: #type-attributes
 [Block]: #type-block
 [Blocks]: #type-block
+[Caption]: #type-caption
+[Cells]: #type-cell
 [Citation]: #type-citation
 [Citations]: #type-citation
+[ColSpec]: #type-colspec
 [CommonState]: #type-commonstate
 [Image]: #type-image
 [Inline]: #type-inline
@@ -1738,6 +1834,10 @@ Usage:
 [LogMessage]: #type-logmessage
 [Pandoc]: #type-pandoc
 [Para]: #type-para
+[Rows]: #type-row
+[TableBody]: #type-tablebody
+[TableFoot]: #type-tablefoot
+[TableHead]: #type-tablehead
 [Version]: #type-version
 [`pandoc.utils.equals`]: #pandoc.utils.equals
 
@@ -2044,26 +2144,29 @@ format, and functions to filter and modify a subtree.
 
     Returns: [RawBlock](#type-rawblock) object
 
-[`Table (caption, aligns, widths, headers, rows)`]{#pandoc.table}
+[`Table (attr, caption, colspecs, head, bodies, foot)`]{#pandoc.table}
 
 :   Creates a table element.
 
     Parameters:
 
+    `attr`:
+    :   element attributes
+
     `caption`:
-    :   table caption
+    :   table [caption](#type-caption)
 
-    `aligns`:
-    :   alignments
+    `colspecs`:
+    :   column alignments and widths (list of [ColSpec](#type-colspec)s)
 
-    `widths`:
-    :   column widths
+    `head`:
+    :   [table head](#type-tablehead)
 
-    `headers`:
-    :   header row
+    `bodies`:
+    :   [table bodies](#type-tablebody)
 
-    `rows`:
-    :   table rows
+    `foot`:
+    :   [table foot](#type-tablefoot)
 
     Returns: [Table](#type-table) object
 
