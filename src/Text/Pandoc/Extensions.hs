@@ -485,6 +485,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_implicit_header_references
     , Ext_attributes
     ]
+  getAll "commonmark_x"    = getAll "commonmark"
   getAll "org"             = autoIdExtensions <>
     extensionsFromList
     [ Ext_citations
