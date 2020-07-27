@@ -3341,16 +3341,16 @@ Returns:
 
 This module includes the following path manipulation functions for the current platform (POSIX or Windows):
 
-- `take_directory (filepath)`  (see [doc](https://github.com/hslua/hslua-module-system#take_directory))
-- `take_filename (filepath)`  (see [doc](https://github.com/hslua/hslua-module-system#take_filename))
-- `take_extensions (filepath)`  (see [doc](https://github.com/hslua/hslua-module-system#take_extensions))
-- `drop_extension (filepath)`  (see [doc](https://github.com/hslua/hslua-module-system#drop_extension))
-- `has_extension (filepath)`  (see [doc](https://github.com/hslua/hslua-module-system#has_extension))
-- `split_directories (filepath)`  (see [doc](https://github.com/hslua/hslua-module-system#split_directories))
-- `join_path (filepath, ...)`  (see [doc](https://github.com/hslua/hslua-module-system#join_path))
-- `is_relative (filepath)`  (see [doc](https://github.com/hslua/hslua-module-system#is_relative))
-- `is_absolute (filepath)`  (see [doc](https://github.com/hslua/hslua-module-system#is_absolute))
-- `normalise (filepath)`  (see [doc](https://github.com/hslua/hslua-module-system#normalise))
+- `take_directory(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#take_directory))
+- `take_filename(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#take_filename))
+- `take_extensions(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#take_extensions))
+- `drop_extension(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#drop_extension))
+- `has_extension(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#has_extension))
+- `split_directories(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#split_directories))
+- `join_path(filepath, ...)` (see [doc](https://github.com/hslua/hslua-module-system#join_path))
+- `is_relative(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#is_relative))
+- `is_absolute(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#is_absolute))
+- `normalise(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#normalise))
 
 # Module pandoc.types
 
