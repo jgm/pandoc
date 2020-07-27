@@ -3347,7 +3347,7 @@ This module includes the following path manipulation functions for the current p
 - `drop_extension(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#drop_extension))
 - `has_extension(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#has_extension))
 - `split_directories(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#split_directories))
-- `join_path(filepath, ...)` (see [doc](https://github.com/hslua/hslua-module-system#join_path))
+- `join_path(filepaths)` (see [doc](https://github.com/hslua/hslua-module-system#join_path))
 - `is_relative(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#is_relative))
 - `is_absolute(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#is_absolute))
 - `normalise(filepath)` (see [doc](https://github.com/hslua/hslua-module-system#normalise))
