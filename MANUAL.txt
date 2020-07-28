@@ -5665,7 +5665,6 @@ halftitlepage                     frontmatter
 seriespage                        frontmatter
 foreword                          frontmatter
 preface                           frontmatter
-seriespage                        frontmatter
 appendix                          backmatter
 colophon                          backmatter
 bibliography                      backmatter
