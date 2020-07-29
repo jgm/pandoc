@@ -78,8 +78,8 @@ metaToContext opts blockWriter inlineWriter meta =
 -- | Like 'metaToContext, but does not include variables and is
 -- not sensitive to 'writerTemplate'.
 metaToContext' :: (Monad m, TemplateTarget a)
-           => ([Block] -> m (Doc a))
-           -> ([Inline] -> m (Doc a))
+           => ([Block] -> m (Doc a))     -- ^ block writer
+           -> ([Inline] -> m (Doc a))    -- ^ inline writer
            -> Meta
            -> m (Context a)
 metaToContext' blockWriter inlineWriter (Meta metamap) =
@@ -98,9 +98,11 @@ addVariablesToContext opts c1 =
                                mempty
    jsonrep = UTF8.toText $ BL.toStrict $ encode $ toJSON c1
 
+-- | Converts a 'MetaValue' into a doctemplate 'Val', using the given
+-- converter functions.
 metaValueToVal :: (Monad m, TemplateTarget a)
-               => ([Block] -> m (Doc a))
-               -> ([Inline] -> m (Doc a))
+               => ([Block] -> m (Doc a))    -- ^ block writer
+               -> ([Inline] -> m (Doc a))   -- ^ inline writer
                -> MetaValue
                -> m (Val a)
 metaValueToVal blockWriter inlineWriter (MetaMap metamap) =
@@ -145,7 +147,7 @@ defField field val (Context m) =
   where
     f _newval oldval = oldval
 
--- Produce an HTML tag with the given pandoc attributes.
+-- | Produce an HTML tag with the given pandoc attributes.
 tagWithAttrs :: HasChars a => T.Text -> Attr -> Doc a
 tagWithAttrs tag (ident,classes,kvs) = hsep
   ["<" <> text (T.unpack tag)
@@ -159,18 +161,21 @@ tagWithAttrs tag (ident,classes,kvs) = hsep
                 doubleQuotes (text $ T.unpack (escapeStringForXML v))) kvs)
   ] <> ">"
 
+-- | Returns 'True' iff the argument is an inline 'Math' element of type
+-- 'DisplayMath'.
 isDisplayMath :: Inline -> Bool
 isDisplayMath (Math DisplayMath _)          = True
 isDisplayMath (Span _ [Math DisplayMath _]) = True
 isDisplayMath _                             = False
 
+-- | Remove leading and trailing 'Space' and 'SoftBreak' elements.
 stripLeadingTrailingSpace :: [Inline] -> [Inline]
 stripLeadingTrailingSpace = go . reverse . go . reverse
   where go (Space:xs)     = xs
         go (SoftBreak:xs) = xs
         go xs             = xs
 
--- Put display math in its own block (for ODT/DOCX).
+-- | Put display math in its own block (for ODT/DOCX).
 fixDisplayMath :: Block -> Block
 fixDisplayMath (Plain lst)
   | any isDisplayMath lst && not (all isDisplayMath lst) =
@@ -192,6 +197,8 @@ fixDisplayMath (Para lst)
                          not (isDisplayMath x || isDisplayMath y)) lst
 fixDisplayMath x = x
 
+-- | Converts a Unicode character into the ASCII sequence used to
+-- represent the character in "smart" Markdown.
 unsmartify :: WriterOptions -> T.Text -> T.Text
 unsmartify opts = T.concatMap $ \c -> case c of
   '\8217' -> "'"
@@ -366,6 +373,8 @@ lookupMetaString key meta =
          Just (MetaBool b)      -> T.pack (show b)
          _                      -> ""
 
+-- | Tries to convert a character into a unicode superscript version of
+-- the character.
 toSuperscript :: Char -> Maybe Char
 toSuperscript '1' = Just '\x00B9'
 toSuperscript '2' = Just '\x00B2'
@@ -381,6 +390,8 @@ toSuperscript c
   | isSpace c = Just c
   | otherwise = Nothing
 
+-- | Tries to convert a character into a unicode subscript version of
+-- the character.
 toSubscript :: Char -> Maybe Char
 toSubscript '+' = Just '\x208A'
 toSubscript '-' = Just '\x208B'
@@ -402,7 +413,8 @@ toTableOfContents opts bs =
              $ map (sectionToListItem opts)
              $ makeSections (writerNumberSections opts) Nothing bs
 
--- | Converts an Element to a list item for a table of contents,
+-- | Converts a section Div to a list item for a table of contents;
+-- returns an empty list if the given block is not a section Div.
 sectionToListItem :: WriterOptions -> Block -> [Block]
 sectionToListItem opts (Div (ident,_,_)
                          (Header lev (_,classes,kvs) ils : subsecs))
@@ -422,6 +434,8 @@ sectionToListItem opts (Div (ident,_,_)
    listContents = filter (not . null) $ map (sectionToListItem opts) subsecs
 sectionToListItem _ _ = []
 
+-- | Returns 'True' iff the list of blocks has a @'Plain'@ as its last
+-- element.
 endsWithPlain :: [Block] -> Bool
 endsWithPlain xs =
   case lastMay xs of
