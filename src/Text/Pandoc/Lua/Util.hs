@@ -80,7 +80,7 @@ instance (Pushable a, PushViaCall b) => PushViaCall (a -> b) where
 pushViaCall :: PushViaCall a => String -> a
 pushViaCall fn = pushViaCall' fn (return ()) 0
 
--- | Call a pandoc element constructor within lua, passing all given arguments.
+-- | Call a pandoc element constructor within Lua, passing all given arguments.
 pushViaConstructor :: PushViaCall a => String -> a
 pushViaConstructor pandocFn = pushViaCall ("pandoc." ++ pandocFn)
 

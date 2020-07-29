@@ -80,6 +80,7 @@ putConstructorsInRegistry = liftPandocLua $ do
   putInReg "Attr"  -- used for Attr type alias
   putInReg "ListAttributes"  -- used for ListAttributes type alias
   putInReg "List"  -- pandoc.List
+  putInReg "SimpleTable"  -- helper for backward-compatible table handling
  where
   constrsToReg :: Data a => a -> Lua ()
   constrsToReg = mapM_ (putInReg . showConstr) . dataTypeConstrs . dataTypeOf
