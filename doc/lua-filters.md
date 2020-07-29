@@ -371,6 +371,56 @@ function Meta(m)
 end
 ```
 
+## Adding additional text
+
+This filter adds 'Hello World!' to the beginning of the document, and
+'Good Bye!' to the end of the document.
+
+
+```lua
+function Doc(doc)
+  table.insert(doc.blocks, 1, pandoc.Para{ pandoc.Str 'Hello World!' })
+  table.insert(doc.blocks, pandoc.Para{ pandoc.Str 'Good Bye!' })
+  return pandoc.Pandoc(doc.blocks, doc.meta)
+end
+```
+
+## Adding additional text to only specific output formats
+
+This filter adds 'Hello World!' to the beginning of the document, and
+'Good Bye!' to the end of the document, _only if_ the output format is
+`HTML`.
+
+```lua
+function Doc(doc)
+  table.insert(doc.blocks, 1, pandoc.RawBlock('html', "<p>Hello World</p>"))
+  table.insert(doc.blocks, pandoc.RawBlock('html', "<p>Good Bye!</p>"))
+  return pandoc.Pandoc(doc.blocks, doc.meta)
+end
+```
+
+## Adding a custom user-variable and additonal text to only specific output formats
+
+This filter adds 'Hello World!' to the beginning of the document, and
+'Good Bye!' to the end of the document, _only if_ the output format is
+`odt`.  
+
+Furthermore, it adds a custom user-variable called 'producer'.
+
+```lua
+function Meta(meta)
+  meta["producer"] = 'pandoc-' .. tostring(PANDOC_VERSION)
+  return meta
+end
+
+function Doc(doc)
+  table.insert(doc.blocks, 1, pandoc.RawBlock('opendocument', "<text:p>Hello World</text:p>"))
+  table.insert(doc.blocks, pandoc.RawBlock('opendocument', "<text:p>Good Bye!</text:p>"))
+  
+  return pandoc.Pandoc(doc.blocks, doc.meta)
+end
+```
+
 ## Remove spaces before citations
 
 This filter removes all spaces preceding an "author-in-text"
