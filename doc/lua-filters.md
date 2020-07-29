@@ -1633,7 +1633,7 @@ This is a pair with the following components:
 1. attributes
 2. foot rows ([Rows])
 
-### TableHead
+### TableHead {#type-tablehead}
 
 The head of a table.
 
