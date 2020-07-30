@@ -253,6 +253,8 @@ githubMarkdownExtensions = extensionsFromList
   , Ext_strikeout
   , Ext_task_lists
   , Ext_emoji
+  , Ext_fenced_code_blocks
+  , Ext_backtick_code_blocks
   ]
 
 -- | Extensions to be used with multimarkdown.
@@ -362,6 +364,9 @@ getDefaultExtensions "commonmark_x"    = extensionsFromList
   , Ext_raw_attribute
   , Ext_implicit_header_references
   , Ext_attributes
+  , Ext_fenced_code_blocks
+  , Ext_fenced_code_attributes
+  , Ext_backtick_code_blocks
   ]
 getDefaultExtensions "org"             = extensionsFromList
                                           [Ext_citations,
@@ -484,6 +489,9 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_raw_attribute
     , Ext_implicit_header_references
     , Ext_attributes
+    , Ext_fenced_code_blocks
+    , Ext_fenced_code_attributes
+    , Ext_backtick_code_blocks
     ]
   getAll "commonmark_x"    = getAll "commonmark"
   getAll "org"             = autoIdExtensions <>
