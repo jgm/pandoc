@@ -12,49 +12,40 @@ markdown test suite.
   :PROPERTIES:
   :CUSTOM_ID: headers
   :END:
-
 ** Level 2 with an [[/url][embedded link]]
    :PROPERTIES:
    :CUSTOM_ID: level-2-with-an-embedded-link
    :END:
-
 *** Level 3 with /emphasis/
     :PROPERTIES:
     :CUSTOM_ID: level-3-with-emphasis
     :END:
-
 **** Level 4
      :PROPERTIES:
      :CUSTOM_ID: level-4
      :END:
-
 ***** Level 5
       :PROPERTIES:
       :CUSTOM_ID: level-5
       :END:
-
 * Level 1
   :PROPERTIES:
   :CUSTOM_ID: level-1
   :END:
-
 ** Level 2 with /emphasis/
    :PROPERTIES:
    :CUSTOM_ID: level-2-with-emphasis
    :END:
-
 *** Level 3
     :PROPERTIES:
     :CUSTOM_ID: level-3
     :END:
-
 with no blank line
 
 ** Level 2
    :PROPERTIES:
    :CUSTOM_ID: level-2
    :END:
-
 with no blank line
 
 --------------
@@ -63,7 +54,6 @@ with no blank line
   :PROPERTIES:
   :CUSTOM_ID: paragraphs
   :END:
-
 Here's a regular paragraph.
 
 In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
@@ -81,7 +71,6 @@ here.
   :PROPERTIES:
   :CUSTOM_ID: block-quotes
   :END:
-
 E-mail style:
 
 #+BEGIN_QUOTE
@@ -123,7 +112,6 @@ And a following paragraph.
   :PROPERTIES:
   :CUSTOM_ID: code-blocks
   :END:
-
 Code:
 
 #+BEGIN_EXAMPLE
@@ -150,12 +138,10 @@ And:
   :PROPERTIES:
   :CUSTOM_ID: lists
   :END:
-
 ** Unordered
    :PROPERTIES:
    :CUSTOM_ID: unordered
    :END:
-
 Asterisks tight:
 
 - asterisk 1
@@ -202,7 +188,6 @@ Minuses loose:
    :PROPERTIES:
    :CUSTOM_ID: ordered
    :END:
-
 Tight:
 
 1. First
@@ -334,7 +319,6 @@ B. Williams
   :PROPERTIES:
   :CUSTOM_ID: definition-lists
   :END:
-
 Tight using spaces:
 
 - apple :: red fruit
@@ -403,7 +387,6 @@ Blank line after term, indented marker, alternate markers:
   :PROPERTIES:
   :CUSTOM_ID: html-blocks
   :END:
-
 Simple block on one line:
 
 foo
@@ -561,7 +544,6 @@ Hr's:
   :PROPERTIES:
   :CUSTOM_ID: inline-markup
   :END:
-
 This is /emphasized/, and so /is this/.
 
 This is *strong*, and so *is this*.
@@ -593,7 +575,6 @@ spaces: a^b c^d, a~b c~d.
   :PROPERTIES:
   :CUSTOM_ID: smart-quotes-ellipses-dashes
   :END:
-
 "Hello," said the spider. "'Shelob' is my name."
 
 'A', 'B', and 'C' are letters.
@@ -650,7 +631,6 @@ Cat    & 1      \\ \hline
   :PROPERTIES:
   :CUSTOM_ID: special-characters
   :END:
-
 Here is some unicode:
 
 - I hat: Î
@@ -707,12 +687,10 @@ Minus: -
   :PROPERTIES:
   :CUSTOM_ID: links
   :END:
-
 ** Explicit
    :PROPERTIES:
    :CUSTOM_ID: explicit
    :END:
-
 Just a [[/url/][URL]].
 
 [[/url/][URL and title]].
@@ -735,7 +713,6 @@ Just a [[/url/][URL]].
    :PROPERTIES:
    :CUSTOM_ID: reference
    :END:
-
 Foo [[/url/][bar]].
 
 With [[/url/][embedded [brackets]]].
@@ -762,7 +739,6 @@ Foo [[/url/][biz]].
    :PROPERTIES:
    :CUSTOM_ID: with-ampersands
    :END:
-
 Here's a [[http://example.com/?foo=1&bar=2][link with an ampersand in the
 URL]].
 
@@ -776,7 +752,6 @@ Here's an [[/script?foo=1&bar=2][inline link in pointy braces]].
    :PROPERTIES:
    :CUSTOM_ID: autolinks
    :END:
-
 With an ampersand: [[http://example.com/?foo=1&bar=2]]
 
 - In a list?
@@ -801,7 +776,6 @@ Auto-links should not occur here: =<http://example.com/>=
   :PROPERTIES:
   :CUSTOM_ID: images
   :END:
-
 From "Voyage dans la Lune" by Georges Melies (1902):
 
 #+CAPTION: lalune
@@ -815,7 +789,6 @@ Here is a movie [[file:movie.jpg]] icon.
   :PROPERTIES:
   :CUSTOM_ID: footnotes
   :END:
-
 Here is a footnote reference,[fn:1] and another.[fn:2] This should /not/ be a
 footnote reference, because it contains a space.[^my note] Here is an inline
 note.[fn:3]

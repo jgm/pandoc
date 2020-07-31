@@ -138,7 +138,7 @@ blockToOrg (Header level attr inlines) = do
   let drawerStr = if attr == nullAttr
                   then empty
                   else cr <> nest (level + 1) (propertiesDrawer attr)
-  return $ headerStr <> " " <> contents <> drawerStr <> blankline
+  return $ headerStr <> " " <> contents <> drawerStr <> cr
 blockToOrg (CodeBlock (_,classes,kvs) str) = do
   let startnum = maybe "" (\x -> " " <> trimr x) $ lookup "startFrom" kvs
   let numberlines = if "numberLines" `elem` classes
