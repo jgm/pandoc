@@ -10,7 +10,7 @@ Ask on [pandoc-discuss].
 Found a bug?
 ------------
 
-Bug reports are welcome!  Please report all bugs on pandoc's github
+Bug reports are welcome!  Please report all bugs on pandoc's GitHub
 [issue tracker].
 
 Before you submit a bug report, search the [open issues] *and* [closed issues]
@@ -21,7 +21,7 @@ Make sure you can reproduce the bug with the [latest released
 version] of pandoc---or, even better, the development version,
 since the bug may have been fixed since the last release.
 [Nightly builds] are available, so you don't need to compile
-from source to test againt the development version.
+from source to test against the development version.
 (To fetch a nightly, visit the link, click the topmost "Nightly"
 in the table, then choose your platform under "Artifacts."  Note
 that you must be logged in with a GitHub account.)
@@ -280,7 +280,7 @@ The code
 --------
 
 Pandoc has a publicly accessible git repository on
-github: <http://github.com/jgm/pandoc>.  To get a local copy of the source:
+GitHub: <http://github.com/jgm/pandoc>.  To get a local copy of the source:
 
     git clone https://github.com/jgm/pandoc.git
 
@@ -374,4 +374,3 @@ you may want to consider submitting a pull request to the
 [status:more-discussion-needed]: https://github.com/jgm/pandoc/labels/status:more-discussion-needed
 [status:more-info-needed]: https://github.com/jgm/pandoc/labels/status:more-info-needed
 [stack]: https://github.com/commercialhaskell/stack
-
