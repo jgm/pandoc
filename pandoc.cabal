@@ -744,7 +744,6 @@ test-suite test-pandoc
                   text >= 1.1.1.0 && < 1.3,
                   time >= 1.5 && < 1.10,
                   directory >= 1.2.3 && < 1.4,
-                  exceptions >= 0.8 && < 0.11,
                   filepath >= 1.1 && < 1.5,
                   hslua >= 1.1 && < 1.2,
                   process >= 1.2.3 && < 1.7,
