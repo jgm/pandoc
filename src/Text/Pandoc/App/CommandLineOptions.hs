@@ -699,8 +699,7 @@ options =
     , Option "" ["mathjax"]
                  (OptArg
                   (\arg opt -> do
-                      let url' = maybe (defaultMathJaxURL <>
-                                  "tex-mml-chtml.js") T.pack arg
+                      let url' = maybe defaultMathJaxURL T.pack arg
                       return opt { optHTMLMathMethod = MathJax url'})
                   "URL")
                  "" -- "Use MathJax for HTML math"
