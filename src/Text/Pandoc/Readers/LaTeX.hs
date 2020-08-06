@@ -2387,9 +2387,11 @@ parseTableRow envname prefsufs = do
 
 parseTableCell :: PandocMonad m => LP m Cell
 parseTableCell = do
+  spaces
   updateState $ \st -> st{ sInTableCell = True }
   cell' <- parseMultiCell <|> parseSimpleCell
   updateState $ \st -> st{ sInTableCell = False }
+  spaces
   return cell'
 
 cellAlignment :: PandocMonad m => LP m Alignment
