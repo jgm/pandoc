@@ -1235,6 +1235,9 @@ Fields:
 `target`
 :   the link target (string)
 
+`title`
+:   brief link description
+
 `identifier`
 :   alias for `attr.identifier` (string)
 
