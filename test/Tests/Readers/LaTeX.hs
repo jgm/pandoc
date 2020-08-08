@@ -148,6 +148,13 @@ tests = [ testGroup "tokenization"
                                   , simpleCell (plain "Two")
                                   ]
                    ]
+          , "table with multicolumn item (#6596)" =:
+            "\\begin{tabular}{l c r}One & \\multicolumn{2}{c}{Two} & \\\\ \\end{tabular}" =?>
+            table' [AlignLeft, AlignCenter, AlignRight]
+                   [ Row nullAttr [ simpleCell (plain "One")
+                                  , cell AlignCenter (RowSpan 1) (ColSpan 2) (plain "Two")
+                                  ]
+                   ]
           , "Table with multirow item" =:
             T.unlines ["\\begin{tabular}{c}"
                       ,"\\multirow{2}{c}{One}\\\\Two\\\\"
