@@ -2142,6 +2142,43 @@ ODT or pptx.
 [Unicode Bidirectional Algorithm]: https://www.w3.org/International/articles/inline-bidi-markup/uba-basics
 [Language subtag lookup]: https://r12a.github.io/app-subtags/
 
+### Variables for HTML
+
+`document-css`
+:   Enables inclusion of most of the CSS in the `styles.html`
+    [partial](#partials) (have a look with
+    `pandoc --print-default-data-file=templates/styles.html`).
+    Unless you use [`--css`](#option--css), this variable
+    is set to `true` by default. You can disable it with
+    e.g. `pandoc -M document-css=false`.
+
+`mainfont`
+:   sets the CSS `font-family` property on the `html` element.
+
+`fontsize`
+:   sets the base CSS `font-size`, which you'd usually set
+    to e.g. `20px`, but it also accepts `pt`
+    (12pt = 16px in most browsers).
+
+`fontcolor`
+:   sets the CSS `color` property on the `html` element.
+
+`linkcolor`
+:   sets the CSS `color` property on all links.
+
+`monofont`
+:   sets the CSS `font-family` property on `code` elements.
+
+`linestretch`
+:   sets the CSS `line-height` property on the `html` element,
+    which is preferred to be unitless.
+
+`backgroundcolor`
+:   sets the CSS `background-color` property on the `html` element.
+
+`margin-left`, `margin-right`, `margin-top`, `margin-bottom`
+:   sets the corresponding CSS `padding` properties on the `body` element.
+
 ### Variables for HTML math
 
 `classoption`
