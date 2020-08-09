@@ -339,7 +339,17 @@ getDefaultExtensions "muse"            = extensionsFromList
                                            [Ext_amuse,
                                             Ext_auto_identifiers]
 getDefaultExtensions "plain"           = plainExtensions
-getDefaultExtensions "gfm"             = githubMarkdownExtensions
+getDefaultExtensions "gfm"             = extensionsFromList
+  [ Ext_pipe_tables
+  , Ext_raw_html
+  , Ext_native_divs
+  , Ext_auto_identifiers
+  , Ext_gfm_auto_identifiers
+  , Ext_autolink_bare_uris
+  , Ext_strikeout
+  , Ext_task_lists
+  , Ext_emoji
+  ]
 getDefaultExtensions "commonmark"      = extensionsFromList
                                           [Ext_raw_html]
 getDefaultExtensions "commonmark_x"    = extensionsFromList
@@ -364,9 +374,7 @@ getDefaultExtensions "commonmark_x"    = extensionsFromList
   , Ext_raw_attribute
   , Ext_implicit_header_references
   , Ext_attributes
-  , Ext_fenced_code_blocks
   , Ext_fenced_code_attributes
-  , Ext_backtick_code_blocks
   ]
 getDefaultExtensions "org"             = extensionsFromList
                                           [Ext_citations,
@@ -489,9 +497,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_raw_attribute
     , Ext_implicit_header_references
     , Ext_attributes
-    , Ext_fenced_code_blocks
     , Ext_fenced_code_attributes
-    , Ext_backtick_code_blocks
     ]
   getAll "commonmark_x"    = getAll "commonmark"
   getAll "org"             = autoIdExtensions <>

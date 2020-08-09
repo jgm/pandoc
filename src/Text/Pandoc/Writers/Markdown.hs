@@ -561,9 +561,12 @@ blockToMarkdown' opts (CodeBlock (_,classes,_) str)
   | "haskell" `elem` classes && "literate" `elem` classes &&
     isEnabled Ext_literate_haskell opts =
   return $ prefixed "> " (literal str) <> blankline
-blockToMarkdown' opts (CodeBlock attribs str) = return $
-  case attribs == nullAttr of
-     False | isEnabled Ext_backtick_code_blocks opts ->
+blockToMarkdown' opts (CodeBlock attribs str) = do
+  variant <- asks envVariant
+  return $
+   case attribs == nullAttr of
+     False | variant == Commonmark ||
+             isEnabled Ext_backtick_code_blocks opts ->
           backticks <> attrs <> cr <> literal str <> cr <> backticks <> blankline
            | isEnabled Ext_fenced_code_blocks opts ->
           tildes <> attrs <> cr <> literal str <> cr <> tildes <> blankline
@@ -856,9 +859,12 @@ blockListToMarkdown opts blocks = do
   -- b) change Plain to Para unless it's followed by a RawBlock
   -- or has a list as its parent (#3487)
   let fixBlocks (b : CodeBlock attr x : rest)
-         | (not (isEnabled Ext_fenced_code_blocks opts) || attr == nullAttr)
-             && isListBlock b = b : commentSep : CodeBlock attr x :
-                                fixBlocks rest
+       | (not (variant == Commonmark ||
+               isEnabled Ext_backtick_code_blocks opts ||
+                 isEnabled Ext_fenced_code_blocks opts) ||
+              attr == nullAttr)
+            && isListBlock b
+              = b : commentSep : CodeBlock attr x : fixBlocks rest
       fixBlocks (b1@(BulletList _) : b2@(BulletList _) : bs) =
            b1 : commentSep : fixBlocks (b2:bs)
       fixBlocks (b1@(OrderedList _ _) : b2@(OrderedList _ _) : bs) =
