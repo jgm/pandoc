@@ -167,7 +167,7 @@ tests = [ testGroup "tokenization"
           , "Table with nested multirow/multicolumn item" =:
             T.unlines [ "\\begin{tabular}{c c c}"
                       , "\\multicolumn{2}{c}{\\multirow{2}{5em}{One}}&Two\\\\"
-                      , "Three\\\\"
+                      , "& & Three\\\\"
                       , "Four&Five&Six\\\\"
                       , "\\end{tabular}"
                       ] =?>

@@ -2383,16 +2383,26 @@ parseTableRow envname prefsufs = do
   cells <- mapM (\ts -> setInput ts >> parseTableCell) rawcells
   setInput oldInput
   spaces
-  return $ Row nullAttr cells 
+  -- Because of table normalization performed by Text.Pandoc.Builder.table, 
+  -- we need to remove empty cells
+  return $ Row nullAttr $ filter (\c -> c /= emptyCell) cells
 
 parseTableCell :: PandocMonad m => LP m Cell
 parseTableCell = do
   spaces
   updateState $ \st -> st{ sInTableCell = True }
-  cell' <- multicolumnCell <|> multirowCell <|> parseSimpleCell
+  cell' <- (    multicolumnCell 
+            <|> multirowCell 
+            <|> parseSimpleCell 
+            <|> parseEmptyCell
+           )
   updateState $ \st -> st{ sInTableCell = False }
   spaces
   return cell'
+  where
+    -- The parsing of empty cells is important in LaTeX, especially when dealing
+    -- with multirow/multicolumn. See #6603. 
+    parseEmptyCell = optional spaces >> return emptyCell <* optional spaces
 
 cellAlignment :: PandocMonad m => LP m Alignment
 cellAlignment = skipMany (symbol '|') *> alignment <* skipMany (symbol '|')
@@ -2414,7 +2424,7 @@ plainify bs = case toList bs of
 multirowCell :: PandocMonad m => LP m Cell
 multirowCell = controlSeq "multirow" >> do
   span' <- fmap (fromMaybe 1 . safeRead . untokenize) braced     
-  _ <- symbol '{' *> blocks <* symbol '}' -- --TODO: handle column widths
+  _ <- symbol '{' *> blocks <* symbol '}' -- TODO: handle column widths
   content <- symbol '{' *> (plainify <$> blocks) <* symbol '}'
   return $ cell AlignDefault (RowSpan span') (ColSpan 1) content
 
