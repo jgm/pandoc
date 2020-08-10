@@ -74,8 +74,7 @@ checkLength t =
 writerOpts :: WriterOptions
 writerOpts = def { writerReferenceLinks = True,
                    writerEmailObfuscation = NoObfuscation,
-                   writerHTMLMathMethod = MathJax (defaultMathJaxURL <>
-                       T.pack "tex-mml-chtml.js"),
+                   writerHTMLMathMethod = MathJax defaultMathJaxURL,
                    writerHighlightStyle = Just pygments }
 
 readerOpts :: ReaderOptions

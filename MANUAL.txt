@@ -5135,52 +5135,26 @@ for regular emphasis, add extra blank space around headings.
 In addition to pandoc's extended Markdown, the following Markdown
 variants are supported:
 
-`markdown_phpextra` (PHP Markdown Extra)
-:   `footnotes`, `pipe_tables`, `raw_html`, `markdown_attribute`,
-    `fenced_code_blocks`, `definition_lists`, `intraword_underscores`,
-    `header_attributes`, `link_attributes`, `abbreviations`,
-    `shortcut_reference_links`, `spaced_reference_links`.
+- `markdown_phpextra` (PHP Markdown Extra)
+- `markdown_github` (deprecated GitHub-Flavored Markdown)
+- `markdown_mmd` (MultiMarkdown)
+- `markdown_strict` (Markdown.pl)
+- `commonmark` (CommonMark)
+- `gfm` (Github-Flavored Markdown)
+- `commonmark_x` (CommonMark with many pandoc extensions)
 
-`markdown_github` (deprecated GitHub-Flavored Markdown)
-:   `pipe_tables`, `raw_html`, `fenced_code_blocks`, `auto_identifiers`,
-    `gfm_auto_identifiers`, `backtick_code_blocks`,
-    `autolink_bare_uris`, `space_in_atx_header`,
-    `intraword_underscores`, `strikeout`, `task_lists`, `emoji`,
-    `shortcut_reference_links`, `angle_brackets_escapable`,
-    `lists_without_preceding_blankline`.
+To see which extensions are supported for a given format,
+and which are enabled by default, you can use the command
 
-`markdown_mmd` (MultiMarkdown)
-:   `pipe_tables`, `raw_html`, `markdown_attribute`, `mmd_link_attributes`,
-    `tex_math_double_backslash`, `intraword_underscores`,
-    `mmd_title_block`, `footnotes`, `definition_lists`,
-    `all_symbols_escapable`, `implicit_header_references`,
-    `auto_identifiers`, `mmd_header_identifiers`,
-    `shortcut_reference_links`, `implicit_figures`,
-    `superscript`, `subscript`, `backtick_code_blocks`,
-    `spaced_reference_links`, `raw_attribute`.
+    pandoc --list-extensions=FORMAT
 
-`markdown_strict` (Markdown.pl)
-:   `raw_html`, `shortcut_reference_links`,
-    `spaced_reference_links`.
+where `FORMAT` is replaced with the name of the format.
 
-We also support `commonmark` and `gfm` (GitHub-Flavored Markdown,
-which is implemented as a set of extensions on `commonmark`).
-
-Note, however, that `commonmark` and `gfm` have limited support
-for extensions. Only those  listed below (and `smart`,
-`raw_tex`, and `hard_line_breaks`) will work. The extensions
-can, however, all be individually disabled.  Also, `raw_tex`
-only affects `gfm` output, not input.
-
-`gfm` (GitHub-Flavored Markdown)
-:   `pipe_tables`, `raw_html`, `native_divs`,
-    `fenced_code_blocks`, `auto_identifiers`,
-    `gfm_auto_identifiers`, `backtick_code_blocks`,
-    `autolink_bare_uris`, `space_in_atx_header`,
-    `intraword_underscores`, `strikeout`, `task_lists`, `emoji`,
-    `shortcut_reference_links`, `angle_brackets_escapable`,
-    `lists_without_preceding_blankline`.
-
+Note that the list of extensions for `commonmark`,
+`gfm`, and `commonmark_x` are defined relative to default
+commonmark.  So, for example, `backtick_code_blocks`
+does not appear as an extension, since it is enabled by
+default and cannot be disabled.
 
 # Producing slide shows with pandoc
 
