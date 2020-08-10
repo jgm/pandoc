@@ -157,16 +157,16 @@ tests = [ testGroup "tokenization"
                    ]
           , "Table with multirow item" =:
             T.unlines ["\\begin{tabular}{c}"
-                      ,"\\multirow{2}{c}{One}\\\\Two\\\\"
+                      ,"\\multirow{2}{5em}{One}\\\\Two\\\\"
                       ,"\\end{tabular}"
                       ] =?>
             table' [AlignCenter]
-                  [ Row nullAttr [ cell AlignCenter (RowSpan 2) (ColSpan 1) (plain "One") ]
+                  [ Row nullAttr [ cell AlignDefault (RowSpan 2) (ColSpan 1) (plain "One") ]
                   , Row nullAttr [ simpleCell (plain "Two") ]
                   ]
           , "Table with nested multirow/multicolumn item" =:
             T.unlines [ "\\begin{tabular}{c c c}"
-                      , "\\multirow{2}{c}{\\multicolumn{2}{c}{One}}&Two\\\\"
+                      , "\\multicolumn{2}{c}{\\multirow{2}{5em}{One}}&Two\\\\"
                       , "Three\\\\"
                       , "Four&Five&Six\\\\"
                       , "\\end{tabular}"
