@@ -2423,10 +2423,17 @@ plainify bs = case toList bs of
 
 multirowCell :: PandocMonad m => LP m Cell
 multirowCell = controlSeq "multirow" >> do
-  span' <- fmap (fromMaybe 1 . safeRead . untokenize) braced     
-  _ <- symbol '{' *> blocks <* symbol '}' -- TODO: handle column widths
+  -- Full prototype for \multirow macro is:
+  --     \multirow[vpos]{nrows}[bigstruts]{width}[vmove]{text}
+  -- However, everything except `nrows` and `text` make
+  -- sense in the context of the Pandoc AST
+  _ <- optional $ symbol '[' *> cellAlignment <* symbol ']'   -- vertical position
+  nrows <- fmap (fromMaybe 1 . safeRead . untokenize) braced    
+  _ <- optional $ symbol '[' *> manyTill anyTok (symbol ']')  -- bigstrut-related
+  _ <- symbol '{' *> manyTill anyTok (symbol '}')             -- Cell width
+  _ <- optional $ symbol '[' *> manyTill anyTok (symbol ']')  -- Length used for fine-tuning
   content <- symbol '{' *> (plainify <$> blocks) <* symbol '}'
-  return $ cell AlignDefault (RowSpan span') (ColSpan 1) content
+  return $ cell AlignDefault (RowSpan nrows) (ColSpan 1) content
 
 multicolumnCell :: PandocMonad m => LP m Cell
 multicolumnCell = controlSeq "multicolumn" >> do

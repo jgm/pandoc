@@ -164,6 +164,15 @@ tests = [ testGroup "tokenization"
                   [ Row nullAttr [ cell AlignDefault (RowSpan 2) (ColSpan 1) (plain "One") ]
                   , Row nullAttr [ simpleCell (plain "Two") ]
                   ]
+          , "Table with multirow item using full prototype" =:
+            T.unlines ["\\begin{tabular}{c}"
+                      ,"\\multirow[c]{2}[3]{5em}[1in]{One}\\\\Two\\\\"
+                      ,"\\end{tabular}"
+                      ] =?>
+            table' [AlignCenter]
+                  [ Row nullAttr [ cell AlignDefault (RowSpan 2) (ColSpan 1) (plain "One") ]
+                  , Row nullAttr [ simpleCell (plain "Two") ]
+                  ]
           , "Table with nested multirow/multicolumn item" =:
             T.unlines [ "\\begin{tabular}{c c c}"
                       , "\\multicolumn{2}{c}{\\multirow{2}{5em}{One}}&Two\\\\"
