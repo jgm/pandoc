@@ -2391,10 +2391,10 @@ parseTableCell :: PandocMonad m => LP m Cell
 parseTableCell = do
   spaces
   updateState $ \st -> st{ sInTableCell = True }
-  cell' <- (    multicolumnCell 
-            <|> multirowCell 
-            <|> parseSimpleCell 
-            <|> parseEmptyCell
+  cell' <- ( multicolumnCell 
+         <|> multirowCell 
+         <|> parseSimpleCell 
+         <|> parseEmptyCell
            )
   updateState $ \st -> st{ sInTableCell = False }
   spaces
