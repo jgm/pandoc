@@ -110,7 +110,7 @@ pandoc-windows-x86_64.msi:
 	wget "https://ci.appveyor.com/api/buildjobs/$$JOBID/artifacts/windows%2F$@" -O $@
 
 man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
-	pandoc $< -f markdown-smart -t man -s \
+	pandoc $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
 		--include-before-body man/pandoc.1.before \
 		--include-after-body man/pandoc.1.after \
