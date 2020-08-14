@@ -259,9 +259,9 @@ dosiunitx = do
                       emptyOr160 unit,
                       unit]
 
--- converts e.g. \SIRange{100}{200}{\ms} to "100 ms--200 ms"
-doSIRange :: PandocMonad m => LP m Inlines
-doSIRange = do
+-- converts e.g. \SIrange{100}{200}{\ms} to "100 ms--200 ms"
+doSIrange :: PandocMonad m => LP m Inlines
+doSIrange = do
   skipopts
   startvalue <- tok
   startvalueprefix <- option "" $ bracketed tok
@@ -1098,7 +1098,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("acsp", doAcronymPlural "abbrv")
   -- siuntix
   , ("SI", dosiunitx)
-  , ("SIRange", doSIRange)
+  , ("SIrange", doSIrange)
   -- hyphenat
   , ("bshyp", lit "\\\173")
   , ("fshyp", lit "/\173")
