@@ -23,5 +23,6 @@ windows/*.wixobj
 data/reference.docx
 data/reference.odt
 .stack-work
+/stack.yaml.lock
 cabal.project.local
 /dist-newstyle/
