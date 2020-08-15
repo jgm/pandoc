@@ -2383,16 +2383,26 @@ parseTableRow envname prefsufs = do
   cells <- mapM (\ts -> setInput ts >> parseTableCell) rawcells
   setInput oldInput
   spaces
-  return $ Row nullAttr cells 
+  -- Because of table normalization performed by Text.Pandoc.Builder.table, 
+  -- we need to remove empty cells
+  return $ Row nullAttr $ filter (\c -> c /= emptyCell) cells
 
 parseTableCell :: PandocMonad m => LP m Cell
 parseTableCell = do
   spaces
   updateState $ \st -> st{ sInTableCell = True }
-  cell' <- parseMultiCell <|> parseSimpleCell
+  cell' <- ( multicolumnCell 
+         <|> multirowCell 
+         <|> parseSimpleCell 
+         <|> parseEmptyCell
+           )
   updateState $ \st -> st{ sInTableCell = False }
   spaces
   return cell'
+  where
+    -- The parsing of empty cells is important in LaTeX, especially when dealing
+    -- with multirow/multicolumn. See #6603. 
+    parseEmptyCell = optional spaces >> return emptyCell <* optional spaces
 
 cellAlignment :: PandocMonad m => LP m Alignment
 cellAlignment = skipMany (symbol '|') *> alignment <* skipMany (symbol '|')
@@ -2411,32 +2421,42 @@ plainify bs = case toList bs of
                 [Para ils] -> plain (fromList ils)
                 _          -> bs
 
-parseMultiCell :: PandocMonad m => LP m Cell
-parseMultiCell =   (controlSeq "multirow"    >> parseMultirowCell) 
-               <|> (controlSeq "multicolumn" >> parseMulticolCell)
-  where
-    parseMultirowCell = parseMultiXCell RowSpan (const $ ColSpan 1)
-    parseMulticolCell = parseMultiXCell (const $ RowSpan 1) ColSpan
+multirowCell :: PandocMonad m => LP m Cell
+multirowCell = controlSeq "multirow" >> do
+  -- Full prototype for \multirow macro is:
+  --     \multirow[vpos]{nrows}[bigstruts]{width}[vmove]{text}
+  -- However, everything except `nrows` and `text` make
+  -- sense in the context of the Pandoc AST
+  _ <- optional $ symbol '[' *> cellAlignment <* symbol ']'   -- vertical position
+  nrows <- fmap (fromMaybe 1 . safeRead . untokenize) braced    
+  _ <- optional $ symbol '[' *> manyTill anyTok (symbol ']')  -- bigstrut-related
+  _ <- symbol '{' *> manyTill anyTok (symbol '}')             -- Cell width
+  _ <- optional $ symbol '[' *> manyTill anyTok (symbol ']')  -- Length used for fine-tuning
+  content <- symbol '{' *> (plainify <$> blocks) <* symbol '}'
+  return $ cell AlignDefault (RowSpan nrows) (ColSpan 1) content
 
-    parseMultiXCell rowspanf colspanf = do
-      span' <- fmap (fromMaybe 1 . safeRead . untokenize) braced
-      alignment <- symbol '{' *> cellAlignment <* symbol '}'
+multicolumnCell :: PandocMonad m => LP m Cell
+multicolumnCell = controlSeq "multicolumn" >> do
+  span' <- fmap (fromMaybe 1 . safeRead . untokenize) braced
+  alignment <- symbol '{' *> cellAlignment <* symbol '}'
 
-      -- Two possible contents: either a nested \multirow/\multicol, or content.
-      -- E.g. \multirow{1}{c}{\multicol{1}{c}{content}}
-      let singleCell = do
-            content <- plainify <$> blocks
-            return $ cell alignment (rowspanf span') (colspanf span') content
+  let singleCell = do
+        content <- plainify <$> blocks
+        return $ cell alignment (RowSpan 1) (ColSpan span') content
+  
+  -- Two possible contents: either a \multirow cell, or content.
+  -- E.g. \multicol{1}{c}{\multirow{2}{1em}{content}}
+  -- Note that a \multirow cell can be nested in a \multicolumn,
+  -- but not the other way around. See #6603
+  let nestedCell = do
+        (Cell _ _ (RowSpan rs) _ bs) <- multirowCell
+        return $ cell
+                  alignment
+                  (RowSpan $ rs)
+                  (ColSpan $ span')
+                  (fromList bs)
 
-      let nestedCell = do
-            (Cell _ _ (RowSpan rs) (ColSpan cs) bs) <- parseMultiCell
-            return $ cell
-                      alignment
-                      (RowSpan $ max span' rs)
-                      (ColSpan $ max span' cs)
-                      (fromList bs)
-
-      symbol '{' *> (nestedCell <|> singleCell) <* symbol '}'
+  symbol '{' *> (nestedCell <|> singleCell) <* symbol '}'
 
 -- Parse a simple cell, i.e. not multirow/multicol
 parseSimpleCell :: PandocMonad m => LP m Cell
