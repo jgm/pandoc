@@ -72,16 +72,18 @@ jobs:
 
     - name: Cache cabal global package db
       id:   cabal-global
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
-        path: ~/.cabal
+        path: |
+          ~/.cabal
         key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ hashFiles('cabal.project') }}
 
     - name: Cache cabal work
       id:   cabal-local
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
-        path: dist-newstyle
+        path: |
+          dist-newstyle
         key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local
 
     - name: Install dependencies
@@ -112,10 +114,11 @@ jobs:
 
     - name: Cache stack global package db
       id:   stack-global-package-db
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
-        path: C:\Users\runneradmin\AppData\Roaming\stack\
-        key:          ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('stack.yaml') }}
+        path: |
+          C:\Users\runneradmin\AppData\Roaming\stack\
+        key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('stack.yaml') }}
 
     # stack's local package dbs for the project and each package
     # - name: Cache .stack-work
@@ -150,10 +153,11 @@ jobs:
 
     - name: Cache stack global package db
       id:   stack-global
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
-        path: ~/.stack
-        key:          ${{ runner.os }}-stack-global-${{ hashFiles('stack.yaml') }}
+        path: |
+          ~/.stack
+        key: ${{ runner.os }}-stack-global-${{ hashFiles('stack.yaml') }}
 
     # stack's local package db
     # - name: Cache .stack-work
