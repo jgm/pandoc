@@ -743,7 +743,7 @@ blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
              ("width", w) <- kvs'] ++
             [("role", "doc-bibliography") | ident == "refs" && html5] ++
             [("role", "doc-biblioentry")
-              | "ref-item" `T.isPrefixOf` ident && html5]
+              | "ref-" `T.isPrefixOf` ident && html5]
   let speakerNotes = "notes" `elem` classes
   -- we don't want incremental output inside speaker notes, see #1394
   let opts' = if | speakerNotes -> opts{ writerIncremental = False }
