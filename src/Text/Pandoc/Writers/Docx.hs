@@ -848,7 +848,15 @@ writeOpenXML opts (Pandoc meta blocks) = do
 
 -- | Convert a list of Pandoc blocks to OpenXML.
 blocksToOpenXML :: (PandocMonad m) => WriterOptions -> [Block] -> WS m [Element]
-blocksToOpenXML opts bls = concat `fmap` mapM (blockToOpenXML opts) bls
+blocksToOpenXML opts = fmap concat . mapM (blockToOpenXML opts) . separateTables
+
+-- Word combines adjacent tables unless you put an empty paragraph between
+-- them.  See #4315.
+separateTables :: [Block] -> [Block]
+separateTables [] = []
+separateTables (x@Table{}:y@Table{}:zs) =
+  x : RawBlock (Format "openxml") "<w:p />" : separateTables (y:zs)
+separateTables (x:xs) = x : separateTables xs
 
 pStyleM :: (PandocMonad m) => ParaStyleName -> WS m XML.Element
 pStyleM styleName = do
