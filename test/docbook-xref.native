@@ -4,7 +4,7 @@ Pandoc (Meta {unMeta = fromList [("title",MetaInlines [Str "An",Space,Str "Examp
 ,BulletList
  [[Para [Str "A",Space,Str "straight",Space,Str "link",Space,Str "generates",Space,Str "the",SoftBreak,Str "cross-reference",Space,Str "text:",Space,Link ("",[],[]) [Str "The",Space,Str "Second",Space,Str "Chapter"] ("#ch02",""),Str "."]]
  ,[Para [Str "A",Space,Str "link",Space,Str "to",Space,Str "an",Space,Str "element",Space,Str "with",Space,Str "an",SoftBreak,Str "XRefLabel:",SoftBreak,Link ("",[],[]) [Str "Chapter",Space,Str "the",Space,Str "Third"] ("#ch03",""),Str "."]]
- ,[Para [Str "A",Space,Str "link",Space,Str "with",Space,Str "an",SoftBreak,Str "EndTerm:",SoftBreak,Link ("",[],[]) [Str "Chapter",Space,Str "4"] ("#ch04",""),Str "."]]
+ ,[Para [Str "A",Space,Str "link",Space,Str "with",Space,Str "an",SoftBreak,Str "EndTerm:",SoftBreak,Link ("",[],[]) [Str "ch04short"] ("#ch04",""),Str "."]]
  ,[Para [Str "A",Space,Str "link",Space,Str "to",Space,Str "an",SoftBreak,Str "cmdsynopsis",Space,Str "element:",Space,Link ("",[],[]) [Str "chgrp"] ("#cmd01",""),Str "."]]
  ,[Para [Str "A",Space,Str "link",Space,Str "to",Space,Str "an",SoftBreak,Str "funcsynopsis",Space,Str "element:",Space,Link ("",[],[]) [Str "max"] ("#func01",""),Str "."]]]
 ,Header 1 ("ch02",[],[]) [Str "The",Space,Str "Second",Space,Str "Chapter"]
