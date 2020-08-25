@@ -1091,8 +1091,7 @@ parseInline (Elem e) =
             let title = case attrValue "endterm" e of
                             ""      -> maybe "???" xrefTitleByElem
                                          (findElementById linkend content)
-                            endterm -> maybe "???" (T.pack . strContent)
-                                         (findElementById endterm content)
+                            endterm -> endterm
             return $ link ("#" <> linkend) "" (text title)
         "email" -> return $ link ("mailto:" <> T.pack (strContent e)) ""
                           $ str $ T.pack $ strContent e
