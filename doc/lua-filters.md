@@ -362,12 +362,14 @@ end
 ## Setting the date in the metadata
 
 This filter sets the date in the document's metadata to the
-current date:
+current date, if a date isn't already set:
 
 ``` lua
 function Meta(m)
-  m.date = os.date("%B %e, %Y")
-  return m
+  if m.date == nil then
+    m.date = os.date("%B %e, %Y")
+    return m
+  end
 end
 ```
 
