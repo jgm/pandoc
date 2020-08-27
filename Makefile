@@ -78,8 +78,10 @@ debpkg: man/pandoc.1
 	           utdemir/ghc-musl:v12-libgmp-ghc8101 bash \
 		   /mnt/linux/make_artifacts.sh
 
-macospkg: man/pandoc.1
-	./macos/make_macos_package.sh
+macospkg:
+	rm -rf macos-release-candidate
+	aws s3 sync s3://travis-jgm-pandoc macos-release-candidate
+	make -C macos-release-candidate
 
 winpkg: pandoc-$(version)-windows-i386.msi pandoc-$(version)-windows-i386.zip pandoc-$(version)-windows-x86_64.msi pandoc-$(version)-windows-x86_64.zip
 
