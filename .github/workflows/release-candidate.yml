@@ -33,11 +33,11 @@ jobs:
             arch: "x64"
             choco_opts: ""
             stack_opts: "-j1"
-          - osarch: "windows-i386"
-            arch: "x86"
-            choco_opts: "--x86 --version 2.1.3.20190715"
-            stack_opts: "-j1 --flag hslua:lua_32bits"
-            # we use stack 2.1.3 because 2.3.1 doesn't support i386
+        # - osarch: "windows-i386"
+        #   arch: "x86"
+        #   choco_opts: "--x86 --version 2.1.3.20190715"
+        #   stack_opts: "-j1 --flag hslua:lua_32bits"
+        #   # we use stack 2.1.3 because 2.3.1 doesn't support i386
 
     steps:
     - uses: actions/checkout@v1
