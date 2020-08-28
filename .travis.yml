@@ -44,8 +44,6 @@ install:
   cp macos/Makefile ${ARTIFACTS}/
   echo ${VERSION} > ${ARTIFACTS}/version.txt
 deploy:
-  on:
-    branch: travis
   provider: s3
   bucket: travis-jgm-pandoc
   region: us-west-1
