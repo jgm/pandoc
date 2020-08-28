@@ -65,8 +65,6 @@ dist: man/pandoc.1
 	cd pandoc-${version}
 	stack setup && stack test && cd .. && rm -rf "pandoc-${version}"
 
-packages: checkdocs winpkg debpkg macospkg
-
 checkdocs: README.md
 	! grep -n -e "\t" MANUAL.txt changelog
 
@@ -82,34 +80,6 @@ macospkg:
 	rm -rf macos-release-candidate
 	aws s3 sync s3://travis-jgm-pandoc macos-release-candidate
 	make -C macos-release-candidate
-
-winpkg: pandoc-$(version)-windows-i386.msi pandoc-$(version)-windows-i386.zip pandoc-$(version)-windows-x86_64.msi pandoc-$(version)-windows-x86_64.zip
-
-pandoc-$(version)-windows-%.zip: pandoc-$(version)-windows-%.msi
-	ORIGDIR=`pwd` && \
-	CONTAINER=$(basename $<) && \
-	TEMPDIR=`mktemp -d` && \
-	msiextract -C $$TEMPDIR/msi $< && \
-	pushd $$TEMPDIR && \
-	mkdir $$CONTAINER && \
-	find msi -type f -exec cp {} $$CONTAINER/ \; && \
-	zip -r $$ORIGDIR/$@ $$CONTAINER && \
-	popd & \
-	rm -rf $$TEMPDIR
-
-pandoc-$(version)-windows-%.msi: pandoc-windows-%.msi
-	osslsigncode sign -pkcs12 ~/Private/SectigoCodeSigning.exp2023.p12 -in $< -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
-	rm $<
-
-.INTERMEDIATE: pandoc-windows-i386.msi pandoc-windows-x86_64.msi
-
-pandoc-windows-i386.msi:
-	JOBID=$(shell curl https://ci.appveyor.com/api/projects/jgm/pandoc | jq '.build.jobs[]| select(.name|test("i386")) | .jobId') && \
-	wget "https://ci.appveyor.com/api/buildjobs/$$JOBID/artifacts/windows%2F$@" -O $@
-
-pandoc-windows-x86_64.msi:
-	JOBID=$(shell curl https://ci.appveyor.com/api/projects/jgm/pandoc | jq '.build.jobs[]| select(.name|test("x86_64")) | .jobId') && \
-	wget "https://ci.appveyor.com/api/buildjobs/$$JOBID/artifacts/windows%2F$@" -O $@
 
 man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 	pandoc $< -f markdown -t man -s \
@@ -147,4 +117,4 @@ update-website:
 clean:
 	stack clean
 
-.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages pandoc-templates trypandoc update-website debpkg macospkg winpkg checkdocs ghcid ghci fix_spacing hlint
+.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md pandoc-templates trypandoc update-website debpkg macospkg checkdocs ghcid ghci fix_spacing hlint
