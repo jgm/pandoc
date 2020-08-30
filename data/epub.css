@@ -7,9 +7,10 @@ h3 { text-align: left; }
 h4 { text-align: left; }
 h5 { text-align: left; }
 h6 { text-align: left; }
+/* For title, author, and date on the cover page */
 h1.title { }
-h2.author { }
-h3.date { }
+p.author { }
+p.date { }
 nav#toc ol,
 nav#landmarks ol { padding: 0; margin-left: 1em; }
 nav#toc ol li,
