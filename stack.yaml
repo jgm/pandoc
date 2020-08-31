@@ -17,8 +17,8 @@ extra-deps:
 - rfc5051-0.2
 - texmath-0.12.0.2
 - haddock-library-1.9.0
-- skylighting-0.9
-- skylighting-core-0.9
+- skylighting-0.10
+- skylighting-core-0.10
 - doclayout-0.3
 - emojis-0.1
 - hslua-1.1.2
@@ -35,4 +35,3 @@ ghc-options:
 resolver: lts-14.6
 nix:
   packages: [zlib]
-
