@@ -152,7 +152,7 @@ Please follow these guidelines:
 
 10. We aim for compatibility with ghc versions from 8.0 to the
     latest release.  All pull requests and commits are tested
-    automatically on CircleCI.
+    automatically on GitHub Actions.
 
 Tests
 -----
