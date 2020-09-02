@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Pandoc.Readers.LaTeX.SIunitx
-  ( doSI
+  ( dosi
+  , doSI
   , doSIrange
   , doSInum
   )
@@ -17,13 +18,16 @@ import Data.Char (isDigit)
 import Data.Text (Text)
 import qualified Data.Text as T
 
+dosi :: PandocMonad m => LP m Inlines -> LP m Inlines
+dosi tok = grouped (siUnit tok) <|> siUnit tok
+
 -- converts e.g. \SI{1}[\$]{} to "$ 1" or \SI{1}{\euro} to "1 €"
 doSI :: PandocMonad m => LP m Inlines -> LP m Inlines
 doSI tok = do
   skipopts
-  value <- tok
+  value <- doSInum
   valueprefix <- option "" $ bracketed tok
-  unit <- grouped (siUnit tok) <|> tok
+  unit <- dosi tok
   return . mconcat $ [valueprefix,
                       emptyOr160 valueprefix,
                       value,
@@ -65,11 +69,11 @@ parseNumPart =
 doSIrange :: PandocMonad m => LP m Inlines -> LP m Inlines
 doSIrange tok = do
   skipopts
-  startvalue <- tok
+  startvalue <- doSInum
   startvalueprefix <- option "" $ bracketed tok
-  stopvalue <- tok
+  stopvalue <- doSInum
   stopvalueprefix <- option "" $ bracketed tok
-  unit <- grouped (siUnit tok) <|> tok
+  unit <- dosi tok
   return . mconcat $ [startvalueprefix,
                       emptyOr160 startvalueprefix,
                       startvalue,
@@ -86,7 +90,7 @@ emptyOr160 :: Inlines -> Inlines
 emptyOr160 x = if x == mempty then x else str "\160"
 
 siUnit :: PandocMonad m => LP m Inlines -> LP m Inlines
-siUnit tok = do
+siUnit tok = try (do
   Tok _ (CtrlSeq name) _ <- anyControlSeq
   case name of
     "square" -> do
@@ -108,7 +112,17 @@ siUnit tok = do
                  , (il <> superscript "3") <$ controlSeq "cubed"
                  , (\n -> il <> superscript n) <$> (controlSeq "tothe" *> tok)
                  ]
-            Nothing -> tok
+            Nothing -> fail "not an siunit unit command")
+ <|> (lookAhead anyControlSeq >> tok)
+ <|> (do Tok _ Word t <- satisfyTok isWordTok
+         return $ str t)
+ <|> (symbol '^' *> (superscript <$> tok))
+ <|> (symbol '_' *> (subscript <$> tok))
+ <|> ("\xa0" <$ symbol '.')
+ <|> ("\xa0" <$ symbol '~')
+ <|> tok
+ <|> (do Tok _ _ t <- anyTok
+         return (str t))
 
 siUnitMap :: M.Map Text Inlines
 siUnitMap = M.fromList
