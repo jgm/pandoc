@@ -881,6 +881,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("SI", doSI tok)
   , ("SIrange", doSIrange tok)
   , ("num", doSInum)
+  , ("ang", doSIang)
   -- hyphenat
   , ("bshyp", lit "\\\173")
   , ("fshyp", lit "/\173")

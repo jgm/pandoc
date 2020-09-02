@@ -4,6 +4,7 @@ module Text.Pandoc.Readers.LaTeX.SIunitx
   , doSI
   , doSIrange
   , doSInum
+  , doSIang
   )
 where
 import Text.Pandoc.Builder
@@ -64,6 +65,17 @@ parseNumPart =
   parseExp = (\n -> str ("\xa0\xd7\xa0" <> "10") <> superscript n)
                <$> (char 'e' *> parseDecimalNum)
   parseSpace = mempty <$ skipMany1 (char ' ')
+
+doSIang :: PandocMonad m => LP m Inlines
+doSIang = do
+  skipopts
+  ps <- T.splitOn ";" . untokenize <$> braced
+  case ps ++ repeat "" of
+    (d:m:s:_) -> return $
+      (if T.null d then mempty else (str d <> str "\xb0")) <>
+      (if T.null m then mempty else (str m <> str "\x2032")) <>
+      (if T.null s then mempty else (str s <> str "\x2033"))
+    _ -> return mempty
 
 -- converts e.g. \SIrange{100}{200}{\ms} to "100 ms--200 ms"
 doSIrange :: PandocMonad m => LP m Inlines -> LP m Inlines
