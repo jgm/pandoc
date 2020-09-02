@@ -1,23 +1,25 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Pandoc.Readers.LaTeX.SIunitx
-  ( dosiunitx
+  ( doSI
   , doSIrange
+  , doSInum
   )
 where
 import Text.Pandoc.Builder
 import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.Readers.LaTeX.Types
 import Text.Pandoc.Class
-import Control.Monad (mzero)
-import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
+import Text.Pandoc.Parsing hiding (blankline, mathDisplay, mathInline,
                             optional, space, spaces, withRaw, (<|>))
 import Control.Applicative ((<|>))
 import qualified Data.Map as M
+import Data.Char (isDigit)
 import Data.Text (Text)
+import qualified Data.Text as T
 
 -- converts e.g. \SI{1}[\$]{} to "$ 1" or \SI{1}{\euro} to "1 €"
-dosiunitx :: PandocMonad m => LP m Inlines -> LP m Inlines
-dosiunitx tok = do
+doSI :: PandocMonad m => LP m Inlines -> LP m Inlines
+doSI tok = do
   skipopts
   value <- tok
   valueprefix <- option "" $ bracketed tok
@@ -27,6 +29,37 @@ dosiunitx tok = do
                       value,
                       emptyOr160 unit,
                       unit]
+
+doSInum :: PandocMonad m => LP m Inlines
+doSInum = do
+  skipopts
+  value <- untokenize <$> braced
+  case runParser parseNum () "" value of
+    Left _    -> return $ text value
+    Right num -> return num
+
+parseNum :: Parser Text () Inlines
+parseNum = mconcat <$> many parseNumPart
+
+parseNumPart :: Parser Text () Inlines
+parseNumPart =
+  parseDecimalNum <|>
+  parseComma <|>
+  parsePlusMinus <|>
+  parseI <|>
+  parseExp <|>
+  parseX <|>
+  parseSpace
+ where
+  parseDecimalNum =
+    str . T.pack <$> many1 (satisfy (\c -> isDigit c || c == '.'))
+  parseComma = str "." <$ char ','
+  parsePlusMinus = str "\xa0\xb1\xa0" <$ try (string "+-")
+  parseI = str "i" <$ char 'i'
+  parseX = str "\xa0\xd7\xa0" <$ char 'x'
+  parseExp = (\n -> str ("\xa0\xd7\xa0" <> "10") <> superscript n)
+               <$> (char 'e' *> parseDecimalNum)
+  parseSpace = mempty <$ skipMany1 (char ' ')
 
 -- converts e.g. \SIrange{100}{200}{\ms} to "100 ms--200 ms"
 doSIrange :: PandocMonad m => LP m Inlines -> LP m Inlines

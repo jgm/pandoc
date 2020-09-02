@@ -877,8 +877,9 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("acfp", doAcronymPlural "full")
   , ("acsp", doAcronymPlural "abbrv")
   -- siuntix
-  , ("SI", dosiunitx tok)
+  , ("SI", doSI tok)
   , ("SIrange", doSIrange tok)
+  , ("num", doSInum)
   -- hyphenat
   , ("bshyp", lit "\\\173")
   , ("fshyp", lit "/\173")
