@@ -877,7 +877,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("acfp", doAcronymPlural "full")
   , ("acsp", doAcronymPlural "abbrv")
   -- siuntix
-  , ("si", dosi tok)
+  , ("si", skipopts *> dosi tok)
   , ("SI", doSI tok)
   , ("SIrange", doSIrange tok)
   , ("num", doSInum)
