@@ -21,7 +21,7 @@ dosiunitx tok = do
   skipopts
   value <- tok
   valueprefix <- option "" $ bracketed tok
-  unit <- rawUnit tok
+  unit <- grouped (siUnit tok) <|> tok
   return . mconcat $ [valueprefix,
                       emptyOr160 valueprefix,
                       value,
@@ -36,7 +36,7 @@ doSIrange tok = do
   startvalueprefix <- option "" $ bracketed tok
   stopvalue <- tok
   stopvalueprefix <- option "" $ bracketed tok
-  unit <- rawUnit tok
+  unit <- grouped (siUnit tok) <|> tok
   return . mconcat $ [startvalueprefix,
                       emptyOr160 startvalueprefix,
                       startvalue,
@@ -49,23 +49,33 @@ doSIrange tok = do
                       emptyOr160 unit,
                       unit]
 
-rawUnit :: PandocMonad m => LP m Inlines -> LP m Inlines
-rawUnit tok = grouped (mconcat <$> many1 (siUnit tok)) <|> siUnit tok <|> tok
-
 emptyOr160 :: Inlines -> Inlines
 emptyOr160 x = if x == mempty then x else str "\160"
 
 siUnit :: PandocMonad m => LP m Inlines -> LP m Inlines
 siUnit tok = do
   Tok _ (CtrlSeq name) _ <- anyControlSeq
-  if name == "square"
-     then do
-       unit <- rawUnit tok
-       return $ unit <> "\178"
-     else
+  case name of
+    "square" -> do
+       unit <- siUnit tok
+       return $ unit <> superscript "2"
+    "cubic" -> do
+       unit <- siUnit tok
+       return $ unit <> superscript "3"
+    "raisetothe" -> do
+       n <- tok
+       unit <- siUnit tok
+       return $ unit <> superscript n
+    _ ->
        case M.lookup name siUnitMap of
-            Just il -> return il
-            Nothing -> mzero
+            Just il ->
+              option il $
+                choice
+                 [ (il <> superscript "2") <$ controlSeq "squared"
+                 , (il <> superscript "3") <$ controlSeq "cubed"
+                 , (\n -> il <> superscript n) <$> (controlSeq "tothe" *> tok)
+                 ]
+            Nothing -> tok
 
 siUnitMap :: M.Map Text Inlines
 siUnitMap = M.fromList
