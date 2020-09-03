@@ -171,8 +171,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-          ./stack update
-          ./stack test --dependencies-only --fast
+          stack update
+          stack test --dependencies-only --fast
     - name: Build and test
       run: |
-          ./stack test --fast --test-arguments=--hide-successes
+          stack test --fast --test-arguments=--hide-successes
