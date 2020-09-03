@@ -38,6 +38,7 @@ module Text.Pandoc.Writers.Tables
 where
 
 import           Control.Monad.RWS.Strict
+                                         hiding ( (<>) )
 import           Data.Generics                  ( Data
                                                 , Typeable
                                                 )
