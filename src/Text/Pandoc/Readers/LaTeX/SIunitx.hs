@@ -4,6 +4,7 @@ module Text.Pandoc.Readers.LaTeX.SIunitx
   , doSI
   , doSIrange
   , doSInum
+  , doSInumlist
   , doSIang
   )
 where
@@ -18,6 +19,7 @@ import qualified Data.Map as M
 import Data.Char (isDigit)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.List (intersperse)
 
 dosi :: PandocMonad m => LP m Inlines -> LP m Inlines
 dosi tok = grouped (siUnit tok) <|> siUnit tok
@@ -36,12 +38,24 @@ doSI tok = do
                       unit]
 
 doSInum :: PandocMonad m => LP m Inlines
-doSInum = do
-  skipopts
-  value <- untokenize <$> braced
+doSInum = skipopts *> (tonum . untokenize <$> braced)
+
+tonum :: Text -> Inlines
+tonum value =
   case runParser parseNum () "" value of
-    Left _    -> return $ text value
-    Right num -> return num
+    Left _    -> text value
+    Right num -> num
+
+doSInumlist :: PandocMonad m => LP m Inlines
+doSInumlist = do
+  skipopts
+  xs <- map tonum . T.splitOn ";" . untokenize <$> braced
+  case xs of
+    []  -> return mempty
+    [x] -> return x
+    _   -> return $
+             mconcat (intersperse (str "," <> space) (init xs)) <>
+             text ", & " <> last xs
 
 parseNum :: Parser Text () Inlines
 parseNum = mconcat <$> many parseNumPart
@@ -78,14 +92,16 @@ doSIang = do
     _ -> return mempty
 
 -- converts e.g. \SIrange{100}{200}{\ms} to "100 ms--200 ms"
-doSIrange :: PandocMonad m => LP m Inlines -> LP m Inlines
-doSIrange tok = do
+doSIrange :: PandocMonad m => Bool -> LP m Inlines -> LP m Inlines
+doSIrange includeUnits tok = do
   skipopts
   startvalue <- doSInum
   startvalueprefix <- option "" $ bracketed tok
   stopvalue <- doSInum
   stopvalueprefix <- option "" $ bracketed tok
-  unit <- dosi tok
+  unit <- if includeUnits
+             then dosi tok
+             else return mempty
   return . mconcat $ [startvalueprefix,
                       emptyOr160 startvalueprefix,
                       startvalue,

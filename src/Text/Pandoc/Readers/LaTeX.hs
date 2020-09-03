@@ -879,7 +879,9 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   -- siuntix
   , ("si", skipopts *> dosi tok)
   , ("SI", doSI tok)
-  , ("SIrange", doSIrange tok)
+  , ("SIrange", doSIrange True tok)
+  , ("numrange", doSIrange False tok)
+  , ("numlist", doSInumlist)
   , ("num", doSInum)
   , ("ang", doSIang)
   -- hyphenat
