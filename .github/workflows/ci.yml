@@ -143,10 +143,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Install stack
-      run: |
-          curl -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz -o stack.tar.gz
-          tar xzvf stack.tar.gz --strip-components=1 'stack*/stack'
+
+    - name: Install recent cabal/ghc
+      uses: actions/setup-haskell@v1.1
+      with:
+        ghc-version: '8.6.5'
+        enable-stack: true
+        stack-version: 'latest'
 
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet https://github.com/actions/cache/issues/63
