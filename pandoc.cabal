@@ -553,6 +553,7 @@ library
                    Text.Pandoc.Writers.Math,
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Writers.OOXML,
+                   Text.Pandoc.Writers.Tables,
                    Text.Pandoc.Lua,
                    Text.Pandoc.PDF,
                    Text.Pandoc.UTF8,
@@ -820,6 +821,7 @@ test-suite test-pandoc
                   Tests.Writers.Powerpoint
                   Tests.Writers.OOXML
                   Tests.Writers.Ms
+                  Tests.Writers.Tables
   if os(windows)
     cpp-options:      -D_WINDOWS
   default-language: Haskell2010

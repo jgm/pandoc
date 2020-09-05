@@ -12,7 +12,8 @@ flags:
 packages:
 - '.'
 extra-deps:
-- pandoc-types-1.21
+- git: https://github.com/jgm/pandoc-types
+  commit: 8e9ca37802120f32ececac752d73463e2fc86811
 - pandoc-citeproc-0.17.0.2
 - rfc5051-0.2
 - texmath-0.12.0.2
