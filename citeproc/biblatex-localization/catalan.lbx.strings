@@ -1,0 +1,158 @@
+bibliography|Bibliografia|Bibliografia
+references|Refer\`encies|Refer\`encies
+shorthands|Llista d'abreviatures|Abreviatures
+editor|editor|ed\adddot
+editors|editors|ed\adddot
+compiler|compilador|comp\adddot
+compilers|compiladors|comp\adddot
+redactor|redactor|red\adddot
+redactors|redactors|red\adddot
+reviser|revisor|rev\adddot
+revisers|revisors|rev\adddot
+founder|fundador|fund\adddot
+founders|fundadors|fund\adddot
+continuator|continuador|cont\adddot
+continuators|continuadors|cont\adddot
+collaborator|co\l.laborador|co\l.l\adddot
+collaborators|co\l.laboradors|co\l.l\adddot
+translator|traductor|trad\adddot
+translators|traductors|trad\adddot
+commentator|comentarista|com\adddot
+commentators|comentaristes|com\adddot
+annotator|anotador|anot\adddot
+annotators|anotadors|anot\adddot
+commentary|comentari|com\adddot
+annotations|notes|n\adddot
+introduction|introducci\'o|intr\adddot
+foreword|pr\`oleg|pr\`ol\adddot
+editortr|editor i traductor|ed\adddotspace i trad\adddot
+editorstr|editors i traductors|ed\adddotspace i trad\adddot
+editorco|editor i comentarista|ed\adddotspace i com\adddot
+editorsco|editors i comentaristes|ed\adddotspace i com\adddot
+editoran|editor i anotador|ed\adddotspace i anot\adddot
+editorsan|editors i anotadors|ed\adddotspace i anot\adddot
+organizer|organitzador|org\adddot
+organizers|organitzadors|org\adddot
+byorganizer|organitzat per|org\adddotspace per
+byauthor|per|per
+byeditor|edici\'o a cura \smartof|ed\adddotspace\smartof
+bycompiler|compilaci\'o a cura \smartof|comp\adddotspace\smartof
+byredactor|redacci\'o a cura \smartof|red\adddotspace\smartof
+byreviser|revisi\'o a cura \smartof|rev\adddotspace\smartof
+byreviewer|ressenya a cura \smartof|ress\adddotspace\smartof
+byfounder|fundat per|fund\adddotspace per
+bycontinuator|continuat per|cont\adddotspace per
+bycollaborator|amb la co\l.laboraci\'o \smartof|amb la co\l.l\adddotspace\smartof
+bytranslator|traducci\'o \lbx@fromlang\ a cura \smartof|trad\adddotspace\lbx@fromlang\ \smartof
+bycommentator|comentari a cura \smartof|com\adddotspace\smartof
+byannotator|notes a cura \smartof|n\adddotspace\smartof
+withcommentator|amb un comentari a cura \smartof|amb un com\adddotspace\smartof
+withannotator|amb notes a cura \smartof|amb n\adddotspace\smartof
+withintroduction|amb una introducci\'o a cura \smartof|amb una intr\adddotspace\smartof
+withforeword|amb un pr\`oleg a cura \smartof|amb un pr\`ol\adddotspace\smartof
+and|i|i
+andothers|et al\adddot|et al\adddot
+andmore|i m\'es|i m\'es
+volume|volum|vol\adddot
+volumes|volums|vol\adddot
+involumes|en|en
+jourvol|volum|vol\adddot
+jourser|s\`erie|s\`er\adddot
+book|llibre|llib\adddot
+part|part|part
+issue|n\'umero|n\'um\adddot
+newseries|s\`erie nova|s\`erie nova
+oldseries|s\`erie antiga|s\`erie ant\adddot
+edition|edici\'o|ed\adddot
+reprint|reimpressi\'o|reimpr\adddot
+reprintof|reimpressi\'o \smartof|reimpr\adddotspace\smartof
+reprintas|reimpr\`es com|reimpr\adddotspace com
+reprintfrom|reimpr\`es \smartof|reimpr\adddotspace\smartof
+reviewof|ressenya \smartof|ress\adddotspace\smartof
+translationof|traducci\'o \smartof|trad\adddotspace\smartof
+origpubas|publicat origin\`ariament com|pub\adddotspace orig\adddotspace com
+origpubin|publicat origin\`ariament el|pub\adddotspace orig\adddotspace el
+astitle|com|com
+bypublisher|per|per
+page|p\`agina|p\`ag\adddot
+pages|p\`agines|p\`ag\adddot
+column|columna|col\adddot
+columns|columnes|cols\adddot
+nodate|sine data|s\adddotspace d\adddot
+verse|vers|v\adddot
+verses|versos|v\adddot
+section|apartat|\S
+sections|apartats|\S
+paragraph|par\`agraf|\P
+paragraphs|par\`agrafs|\P
+pagetotal|p\`agina|p\`ag\adddot
+pagetotals|p\`agines|p\`ag\adddot
+columntotal|columna|col\adddot
+columntotals|columnes|col\adddot
+versetotal|vers|v\adddot
+versetotals|versos|v\adddot
+sectiontotal|secci\'o|\S
+sectiontotals|seccions|\S
+paragraphtotal|par\`agrafs|\P
+paragraphtotals|par\`agrafs|\P
+in|a|a
+inseries|a|a
+ofseries|\smartof|\smartof
+number|n\'umero|n\'um\adddot
+bathesis|treball final de grau|treb\adddotspace fin\adddotspace de gr\adddot
+mathesis|treball final de m\`aster|treb\adddotspace fin\adddotspace de m\`ast\adddot
+phdthesis|tesi doctoral|tesi doct\adddot
+candthesis|tesi de candidatura|tesi de cand\adddot
+resreport|informe de recerca|inf\adddotspace de rec\adddot
+techreport|informe t\`ecnic|inf\adddotspace t\`ec\adddot
+software|programari|prog\adddot
+datacd|CD de dades|CD de dades
+audiocd|CD d'\`audio|CD d'\`audio
+version|versi\'o|vers\adddot
+urlfrom|disponible a|disp\adddotspace a
+urlseen|consultat|cons\adddot
+inpreparation|en preparaci\'o|en prep\adddot
+inpress|a impremta|a impr\adddot
+prepublished|pre-publicat|pre-publicat
+submitted|enviat a publicar|env\adddotspace a pub\adddot
+forthcoming|properament|prop\adddot
+citedas|d'ara endavant citat com|d'ara end\adddotspace cit\adddotspace com
+thiscite|concretament|concr\adddot
+seenote|vegeu la nota|v\adddotspace la n\adddot
+quotedin|citat a|cit\adddotspace a
+opcit|\`op\adddotspace cit\adddot|\`op\adddotspace cit\adddot
+loccit|loc\adddotspace cit\adddot|loc\adddotspace cit\adddot
+confer|cf\adddot|cf\adddot
+sequens|seq\adddot|seq\adddot
+sequentes|et seq\adddot|et seq\adddot
+passim|p\`assim|p\`assim
+see|vegeu|v\adddot
+seealso|vegeu tamb\'e|v\adddotspace tamb\'e
+backrefpage|vegeu la p\`agina|v\adddotspace la p\`ag\adddot
+backrefpages|vegeu les p\`agines|v\adddotspace les p\`ag\adddot
+january|gener|gen\adddot
+february|febrer|febr\adddot
+april|abril|abr\adddot
+may|maig|maig
+june|juny|juny
+july|juliol|jul\adddot
+august|agost|ag\adddot
+september|setembre|set\adddot
+october|octubre|oct\adddot
+november|novembre|nov\adddot
+december|desembre|des\adddot
+langamerican|angl\`es americ\`a|ang\adddotspace amer\adddot
+langbrazilian|portugu\`es brasiler|port\adddotspace bras\adddot
+langbulgarian|b\'ulgar|b\'ulg\adddot
+langcatalan|catal\`a|cat\adddot
+langczech|txec|txec
+langcroatian|croat|croat
+langdanish|dan\`es|dan\adddot
+langdutch|neerland\`es|neerl\adddot
+langenglish|angl\`es|ang\adddot
+langestonian|estoni\`a|eston\adddot
+langfinnish|fin\`es|fin\adddot
+langfrench|franc\`es|fr\adddot
+langgalician|gallec|gal\adddot
+langgerman|alemany|al\adddot
+langgreek|grec|grec

@@ -1,0 +1,245 @@
+bibliography|Bibliographie|Bibliographie
+references|R\'ef\'erences|R\'ef\'erences
+shorthands|Liste des abr\'eviations|Abr\'eviations
+editor|\'editeur|\'ed\adddot
+editors|\'editeurs|\'ed\adddot
+compiler|compilateur|comp\adddot
+compilers|compilateurs|comp\adddot
+redactor|r\'edacteur|r\'ed\adddot
+redactors|r\'edacteurs|r\'ed\adddot
+reviser|r\'eviseur|r\'ev\adddot
+revisers|r\'eviseurs|r\'ev\adddot
+founder|fondateur|fond\adddot
+founders|fondateurs|fond\adddot
+continuator|continuateur|cont\adddot
+continuators|continuateurs|cont\adddot
+collaborator|collaborateur|coll\adddot
+collaborators|collaborateurs|coll\adddot
+translator|traducteur|trad\adddot
+translators|traducteurs|trad\adddot
+commentator|commentateur|comm\adddot
+commentators|commentateurs|comm\adddot
+annotator|annotateur|annot\adddot
+annotators|annotateurs|annot\adddot
+commentary|commentaires|comment\adddot
+annotations|annotations|annot\adddot
+introduction|introduction|introd\adddot
+foreword|pr\'eface|pr\'ef\adddot
+afterword|postface|postf\adddot
+editortr|\'editeur et traducteur|\'ed\adddotspace et trad\adddot
+editorstr|\'editeurs et traducteurs|\'ed\adddotspace et trad\adddot
+organizer|organisateur|org\adddot
+organizers|organisateurs|org\adddot
+byorganizer|organis\'e par|org\adddotspace par
+byauthor|par|par
+byeditor|sous la direction \smartof|sous la dir\adddotspace\smartof
+bycompiler|compil\'e par|comp\adddotspace par
+byredactor|r\'edig\'e par|r\'ed\adddotspace par
+byreviser|r\'evis\'e par|r\'ev\adddotspace par
+byreviewer|examin\'e par|ex\adddotspace par
+byfounder|d\'ecouvert par|d\'ecouv\adddotspace par
+bycontinuator|continu\'e par|cont\adddotspace par
+bytranslator|traduit \lbx@lfromlang\ par|trad\adddotspace \lbx@sfromlang\ par
+bycommentator|comment\'e par|comm\adddotspace par
+byannotator|annot\'e par|annot\adddotspace par
+withcommentator|avec des commentaires \smartof|avec des comment\adddotspace\smartof
+withannotator|avec des annotations \smartof|avec des annot\adddotspace\smartof
+withintroduction|avec une introduction \smartof|avec une introd\adddotspace\smartof
+withforeword|avec une pr\'eface \smartof|avec une pr\'ef\adddotspace\smartof
+withafterword|avec une postface \smartof|avec une postf\adddotspace\smartof
+and|et|et
+andothers|et\addabbrvspace al\adddot|et\addabbrvspace al\adddot
+andmore|et\addabbrvspace al\adddot|et\addabbrvspace al\adddot
+volume|tome|t\adddot
+volumes|tomes|t\adddot
+involumes|en|en
+jourvol|tome|t\adddot
+jourser|s\'erie|s\'er\adddot
+book|livre|livre
+part|partie|partie
+issue|\'edition|\'ed\adddot
+newseries|nouvelle s\'erie|nouv\adddotspace s\'er\adddot
+oldseries|ancienne s\'erie|anc\adddotspace s\'er\adddot
+edition|\'edition|\'ed\adddot
+reprint|r\'eimpression|r\'eimpr\adddot
+reprintof|r\'eimpression de|r\'eimpr\adddotspace de
+reprintas|r\'eimpression sous le titre|r\'eimpr\adddotspace sous le titre
+reprintfrom|r\'eimpression \`a partir \smartof|r\'eimpr\adddotspace \`a part\adddotspace\smartof
+translationof|traduction de|trad\adddotspace de
+translationas|traduit sous le titre|trad\adddotspace sous le titre
+translationfrom|traduit de|trad\adddotspace de
+reviewof|critique de|crit.\adddotspace de
+origpubas|publi\'e \`a l'origine sous le titre|pub\adddotspace \`a l'orig\adddotspace sous le titre
+origpubin|publi\'e \`a l'origine en|pub\adddotspace \`a l'orig\adddotspace en
+astitle|sous le titre|sous le titre
+bypublisher|par|par
+page|page|p\adddot
+pages|pages|p\adddot
+column|colonne|col\adddot
+columns|colonnes|col\adddot
+line|ligne|l\adddot
+lines|lignes|l\adddot
+verse|vers|v\adddot
+verses|vers|v\adddot
+section|section|sect\adddot
+sections|sections|sect\adddot
+paragraph|paragraphe|\S
+paragraphs|paragraphes|\S
+pagetotal|page|p\adddot
+pagetotals|pages|p\adddot
+columntotal|colonne|col\adddot
+columntotals|colonnes|col\adddot
+linetotal|ligne|l\adddot
+linetotals|lignes|l\adddot
+versetotal|vers|v\adddot
+versetotals|vers|v\adddot
+sectiontotal|section|sect\adddot
+sectiontotals|sections|sect\adddot
+paragraphtotal|paragraphe|\S
+paragraphtotals|paragraphes|\S
+in|in|in
+inseries|in|in
+ofseries|de|de
+number|num\'ero|n\textsuperscript{o
+chapter|chapitre|chap\adddot
+bathesis|m\'emoire de bachelor|m\'em\adddotspace de bach\adddot
+mathesis|m\'emoire de master|m\'em\adddotspace de mast\adddot
+phdthesis|th\`ese de doctorat|th\`ese de doct\adddot
+candthesis|th\`ese de candidature|th\`ese de cand\adddot
+resreport|rapport scientifique|rapp\adddotspace scient\adddot
+techreport|rapport technique|rapp\adddotspace tech\adddot
+software|logiciel|logiciel
+datacd|c\'ed\'erom|c\'ed\'erom
+audiocd|disque compact audio|CD
+version|version|version
+url|adresse|adresse
+urlfrom|disponible \`a l'adresse|disp\adddotspace \`a l'adr\adddot
+urlseen|visit\'e le|visit\'e le
+inpreparation|en pr\'eparation|en pr\'ep\adddot
+submitted|soumis|soumis
+inpress|sous presse|sous presse
+prepublished|pr\'epubli\'e|pr\'epubl\adddot
+citedas|d\'esign\'e ci-apr\`es par|ci-apr\`es
+thiscite|sp\'ecialement|sp\'ec\adddot
+seenote|voir note|cf\adddotspace note
+quotedin|cit\'e dans|cit\'e dans
+idem|idem|idem
+idemsm|idem|idem
+idemsf|eadem|eadem
+idemsn|idem|idem
+idempm|eidem|eidem
+idempf|eaedem|eaedem
+idempn|eadem|eadem
+idempp|eidem|eidem
+ibidem|ibidem|ibid\adddot
+opcit|op\adddotspace cit\adddot|op\adddotspace cit\adddot
+loccit|loc\adddotspace cit\adddot|loc\adddotspace cit\adddot
+confer|cf\adddot|cf\adddot
+sequens|sq\adddot|sq\adddot
+sequentes|sqq\adddot|sqq\adddot
+passim|passim|pass\adddot
+see|cf\adddot|cf\adddot
+seealso|cf\adddotspace aussi|cf\adddotspace aussi
+backrefpage|cf\adddotspace page|cf\adddotspace p\adddot
+backrefpages|cf\adddotspace pages|cf\adddotspace p\adddot
+january|janvier|jan\adddot
+february|f\'evrier|f\'ev\adddot
+march|mars|mars
+april|avril|avr\adddot
+may|mai|mai
+june|juin|juin
+july|juillet|juill\adddot
+august|ao\^ut|ao\^ut
+september|septembre|sept\adddot
+october|octobre|oct\adddot
+november|novembre|nov\adddot
+december|d\'ecembre|d\'ec\adddot
+langamerican|am\'ericain|am\'ericain
+langbrazilian|br\'esilien|br\'esilien
+langbulgarian|bulgare|bulgare
+langcatalan|catalan|catalan
+langcroatian|croate|croate
+langczech|tch\`eque|tch\`eque
+langdanish|danois|danois
+langdutch|n\'eerlandais|n\'eerlandais
+langenglish|anglais|anglais
+langestonian|estonien|estonien
+langfinnish|finnois|finnois
+langgalician|galicien|galicien
+langgerman|allemand|allemand
+langgreek|grec|grec
+langhungarian|hongrois|hongrois
+langitalian|italien|italien
+langjapanese|japonais|japonais
+langlatin|latin|latin
+langlatvian|letton|letton
+langnorwegian|norv\'egien|norv\'egien
+langpolish|polonais|polonais
+langportuguese|portugais|portugais
+langrussian|russe|russe
+langserbian|serbe|serbe
+langslovak|slovaque|slovaque
+langslovene|slov\`ene|slov\`ene
+langspanish|espagnol|espagnol
+langswedish|su\'edois|su\'edois
+langukrainian|ukrainien|ukrainien
+fromamerican|de l'am\'ericain|de l'am\'ericain
+frombrazilian|du br\'esilien|du br\'esilien
+frombulgarian|du bulgare|du bulgare
+fromcatalan|du catalan|du catalan
+fromcroatian|du croate|du croate
+fromczech|du tch\`eque|du tch\`eque
+fromdanish|du danois|du danois
+fromdutch|du n\'eerlandais|du n\'eerlandais
+fromenglish|de l'anglais|de l'anglais
+fromestonian|de l'estonien|de l'estonien
+fromfinnish|du finnois|du finnois
+fromgalician|du galicien|du galicien
+fromgerman|de l'allemand|de l'allemand
+fromgreek|du grec|du grec
+fromhungarian|du hongrois|du hongrois
+fromitalian|de l'italien|de l'italien
+fromjapanese|du japonais|du japonais
+fromlatin|du latin|du latin
+fromlatvian|du letton|du letton
+fromnorwegian|du norv\'egien|du norv\'egien
+frompolish|du polonais|du polonais
+fromportuguese|du portugais|du portugais
+fromrussian|du russe|du russe
+fromserbian|du serbe|du serbe
+fromslovak|du slovaque|du slovaque
+fromslovene|du slov\`ene|du slov\`ene
+fromspanish|de l'espagnol|de l'espagnol
+fromswedish|du su\'edois|du su\'edois
+fromukrainian|de l'ukrainien|de l'ukrainien
+countryde|Allemagne|DE
+countryeu|Union europ\'eenne|EU
+countryep|Union europ\'eenne|EP
+countryfr|France|FR
+countryuk|Royaume-Uni|GB
+countryus|\'Etats-Unis|US
+patent|brevet|brev\adddot
+patentde|brevet allemand|brev\adddotspace allem\adddot
+patenteu|brevet europ\'een|brev\adddotspace europ\adddot
+patentuk|brevet britannique|brev\adddotspace brit\adddot
+patentus|brevet am\'ericain|brev\adddotspace am\'er\adddot
+patreq|demande de brevet|demande de brev\adddot
+patreqde|demande de brevet allemand|demande de brev\adddotspace allem\adddot
+patreqeu|demande de brevet europ\'een|demande de brev\adddotspace europ\adddot
+patrequk|demande de brevet britannique|demande de brev\adddotspace brit\adddot
+patrequs|demande de brevet am\'ericain|demande de brev\adddotspace am\'er\adddot
+file|fichier|fichier
+library|biblioth\`eque|biblioth\adddot
+abstract|r\'esum\'e|r\'es\adddot
+annotation|annotations|annotations
+commonera|de l'\`ere commune|EC
+beforecommonera|avant l'\`ere commune|AEC
+annodomini|apr\`es J\'esus-Christ|apr\adddotspace J\adddot-C\adddot
+beforechrist|avant J\'esus-Christ|av\adddotspace J\adddot-C\adddot
+circa|vers|vers
+spring|printemps|printemps
+summer|\'et\'e|\'et\'e
+autumn|automne|automne
+winter|hiver|hiver
+am|AM|AM
+pm|PM|PM

@@ -1,0 +1,214 @@
+bibliography|Bibliografija|Bibliografija
+references|Literatura|Literatura
+shorthands|Popis kratica|Kratice
+editor|urednik|ur\adddot
+editors|urednici|ur\adddot
+redactor|redaktor|redaktor
+redactors|redaktori|redaktori
+reviser|korektor|korektor
+revisers|korektori|korektori
+collaborator|suradnik|sur\adddot
+collaborators|suradnici|sur\adddot
+translator|prijevod|prev\adddot
+translators|prijevod|prev\adddot
+commentator|komentator|komentator
+commentators|komentatori|komentatori
+commentary|komentar|komentar
+introduction|uvod|uvod
+foreword|predgovor|predgovor
+afterword|pogovor|pogovor
+editortr|prijevod i obrada|ur\adddotspace i prev\adddot
+editorstr|prijevod i obrada|ur\adddotspace i prev\adddot
+organizer|organizacija|organizacija
+organizers|organizacija|organizacija
+byorganizer|organizacija|organizacija
+byauthor|autor|autor
+byeditor|obrada|ur\adddot
+byredactor|redaktura|red\adddot
+byreviser|korektura|kor\adddot
+byreviewer|recenzija|recenzija
+bycontinuator|nastavio|nastavio
+bycollaborator|u suradnji s|u sur\adddotspace s
+bycommentator|komentari|komentari
+withcommentator|komentari|komentari
+withintroduction|uvod|uvod
+withforeword|predgovor|predgovor
+withafterword|pogovor|pogovor
+and|i|i
+andothers|i drugi|i dr\adddot
+andmore|i drugi|i dr\adddot
+volume|sv\adddot|sv\adddot
+volumes|sv\adddot|sv\adddot
+involumes|u|u
+jourvol|sv\adddot|sv\adddot
+jourser|serija|serija
+book|knjiga|knj\adddot
+part|dio|dio
+issue|izd\adddot|izd\adddot
+newseries|nova serija|nova serija
+oldseries|stara serija|stara serija
+edition|izdanje|izdanje
+reprint|pretisak|pretisak
+reprintof|pretisak|pretisak
+reprintas|iznova otisnuto kao|iznova otisnuto kao
+reprintfrom|iznova otisnut|iznova otisnut
+translationof|prijevod|prijevod
+translationas|prev\adddotspace kao|prev\adddotspace kao
+translationfrom|prijevod|prijevod
+reviewof|osvrt na|osvrt na
+origpubas|izvorno obj\adddotspace kao|izv\adddotspace obj\adddotspace kao
+origpubin|izvorno obj\adddot|izv\adddotspace obj\adddot
+astitle|kao|kao
+bypublisher||
+nodate|bez datuma|bez datuma
+page|stranica|str\adddot
+pages|stranice|str\adddot
+column|stupac|stupac
+columns|stupci|stupci
+line|linija|l\adddot
+lines|linije|ll\adddot
+verse|stih|stih
+verses|stihovi|stihovi
+section|odjeljak|\S
+sections|odjeljci|\S\S
+paragraph|stavak|st\adddot
+paragraphs|stavci|st\adddot
+pagetotal|str\adddot|str\adddot
+pagetotals|str\adddot|str\adddot
+columntotal|stupac|stupac
+columntotals|stupaca|stupaca
+linetotal|linija|lin\adddot
+linetotals|linija|lin\adddot
+versetotal|stih|st\adddot
+versetotals|stihova|st\adddot
+sectiontotal|odjeljak|odj\adddot
+sectiontotals|odjeljaka|odj\adddot
+paragraphtotal|stavak|st\adddot
+paragraphtotals|stavaka|st\adddot
+in||
+inseries|u seriji|u seriji
+ofseries|iz serije|iz serije
+number|broj|br\adddot
+chapter|poglavlje|pogl\adddot
+bathesis|diplomski rad|dipl\adddotspace rad
+mathesis|magistarski rad|mag\adddotspace rad
+phdthesis|doktorska disertacija|disertacija
+software|softver|softver
+datacd|CD-ROM|CD-ROM
+audiocd|audio CD|audio CD
+version|verzija|verzija
+url|adresa|adresa
+urlfrom|dostupno na|dost\adddotspace na
+urlseen|pogledano|pogledano
+inpreparation|u pripremi|u pripremi
+submitted|predan|predan
+inpress|u tisku|u tisku
+prepublished|pred objavom|pred obj\adddot
+citedas|dalje citirano kao|dalje citirano kao
+thiscite|napose|napose
+quotedin|citirano u|citirano u
+idem|idem|idem
+idemsm|idem|idem
+idemsf|eadem|eadem
+idemsn|idem|idem
+idempm|eidem|eidem
+idempf|eaedem|eaedem
+idempn|eadem|eadem
+idempp|eidem|eidem
+ibidem|ibidem|ibid\adddot
+opcit|op\adddotspace cit\adddot|op\adddotspace cit\adddot
+loccit|loc\adddotspace cit\adddot|loc\adddotspace cit\adddot
+confer|usporedi|usp\adddot
+sequens|sq\adddot|sq\adddot
+sequentes|sqq\adddot|sqq\adddot
+passim|passim|pass\adddot
+see|vidi|v\adddot
+seealso|pogledaj i|pogl\adddotspace i
+backrefpage|citirano na stranci|cit\adddotspace na str\adddot
+backrefpages|cited on pages|cit\adddotspace na str\adddot
+april|travanj|travanj
+may|svibanj|svibanj
+june|lipanj|lipanj
+july|srpanj|srpanj
+august|kolovoz|kolovoz
+september|rujan|rujan
+october|listopad|listopad
+november|studeni|studeni
+december|prosinac|prosinac
+dateapril|travnja|travnja
+datemay|svibnja|svibnja
+datejune|lipnja|lipnja
+datejuly|srpnja|srpnja
+dateaugust|kolovoza|kolovoza
+dateseptember|rujna|rujna
+dateoctober|listopada|listopada
+datenovember|studenoga|studenoga
+datedecember|prosinca|prosinca
+langamerican|engleski|engleski
+langbrazilian|portugalski|portugalski
+langbulgarian|bugarski|bugarski
+langcatalan|katalonski|katalonski
+langcroatian|hrvatski|hrvatski
+langdanish|danski|danski
+langdutch|nizozemski|nizozemski
+langenglish|engleski|engleski
+langestonian|estonski|estonski
+langfinnish|finski|finski
+langfrench|francuski|francuski
+langgalician|galicijski|galicijski
+langhungarian|ma\dj arski|ma\dj arski
+langitalian|talijanski|talijanski
+langjapanese|japanski|japanski
+langlatin|latinski|latinski
+langlatvian|letonski|letonski
+langpolish|poljski|poljski
+langportuguese|portugalski|portugalski
+langrussian|ruski|ruski
+langslovene|slovenski|slovenski
+langukrainian|ukrajinski|ukrajinski
+fromamerican|s engleskog|s engleskog
+frombrazilian|s portugalskog|s portugalskog
+frombulgarian|s bugarskog|s bugarskog
+fromcatalan|s katalonskog|s katalonskog
+fromcroatian|s hrvatskog|s hrvatskog
+fromdanish|s danskog|s danskog
+fromdutch|s nizozemskog|s nizozemskog
+fromenglish|s engleskog|s engleskog
+fromestonian|s estonskog|s estonskog
+fromfinnish|s finskog|s finskog
+fromfrench|s francuskog|s francuskog
+fromgalician|s galicijskog|s galicijskog
+fromhungarian|s ma\dj arskog|s ma\dj arskog
+fromitalian|s talijanskog|s talijanskog
+fromjapanese|s japanskog|s japanskog
+fromlatin|s latinskog|s latinskog
+fromlatvian|s letonskog|s letonskog
+frompolish|s poljskog|s poljskog
+fromportuguese|s portugalskog|s portugalskog
+fromrussian|s ruskog|s ruskog
+fromslovene|sa slovenskog|sa slovenskog
+fromukrainian|s ukrajinskog|s ukrajinskog
+countryeu|Europska unija|EU
+countryep|Europska unija|EP
+countryfr|Francuska|FR
+countryuk|Velika Britanija|GB
+patent|patent|pat\adddot
+patenteu|europski patent|europski pat\adddot
+patentfr|francuski patent|francuski pat\adddot
+patentuk|britanski patent|britanski pat\adddot
+patentus|US patent|US pat\adddot
+patreq|patentni zahtjev|pat\adddot\ zahtjev
+patreqeu|europski patentni zahtjev|EU pat\adddotspace zahtjev
+patrequs|US patentni zahtjev|US pat\adddot\ zahtjev
+file|datoteka|datoteka
+library|biblioteka|biblioteka
+commonera|n\adddotspace e\adddot|n\adddotspace e\adddot
+beforecommonera|pr\adddotspace n\adddotspace e\adddot|pr\adddotspace n\adddotspace e\adddot
+annodomini|poslije Krista|p\adddotspace Kr\adddot
+beforechrist|prije Krista|pr\adddotspace Kr\adddot
+circa|oko|cca\adddot
+summer|ljeto|ljeto
+autumn|jesen|jesen
+winter|zima|zima
+am|prije podne|AM
+pm|poslije podne|PM

@@ -71,7 +71,6 @@ data WriterState =
               , stBeamer        :: Bool          -- produce beamer
               , stEmptyLine     :: Bool          -- true if no content on line
               , stHasCslRefs    :: Bool          -- has a Div with class refs
-              , stCslHangingIndent :: Bool       -- use hanging indent for bib
               , stIsFirstInDefinition :: Bool    -- first block in a defn list
               }
 
@@ -103,7 +102,6 @@ startingState options = WriterState {
                 , stBeamer = False
                 , stEmptyLine = True
                 , stHasCslRefs = False
-                , stCslHangingIndent = False
                 , stIsFirstInDefinition = False }
 
 -- | Convert Pandoc to LaTeX.
@@ -243,7 +241,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                      else defField "dir" ("ltr" :: Text)) $
                   defField "section-titles" True $
                   defField "csl-refs" (stHasCslRefs st) $
-                  defField "csl-hanging-indent" (stCslHangingIndent st) $
                   defField "geometry" geometryFromMargins $
                   (case T.uncons . render Nothing <$>
                         getField "papersize" metadata of
@@ -541,16 +538,23 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
      then modify $ \st -> st{ stIncremental = True }
      else when (beamer && "nonincremental" `elem` classes) $
              modify $ \st -> st { stIncremental = False }
-  result <- if identifier == "refs"
+  result <- if identifier == "refs" || -- <- for backwards compatibility
+               "csl-bib-body" `elem` classes
                then do
+                 modify $ \st -> st{ stHasCslRefs = True }
                  inner <- blockListToLaTeX bs
-                 modify $ \st -> st{ stHasCslRefs = True
-                                   , stCslHangingIndent =
-                                      "hanging-indent" `elem` classes }
-                 return $ "\\begin{cslreferences}" $$
-                          inner $$
-                          "\\end{cslreferences}"
-               else blockListToLaTeX bs
+                 return $ "\\begin{CSLReferences}" <>
+                          (if "hanging-indent" `elem` classes
+                              then braces "1"
+                              else braces "0") <>
+                          (case lookup "entry-spacing" kvs of
+                             Nothing -> braces "0"
+                             Just s  -> braces (literal s))
+                          $$ inner
+                          $+$ "\\end{CSLReferences}"
+               else if "csl-entry" `elem` classes
+                       then vcat <$> mapM cslEntryToLaTeX bs
+                       else blockListToLaTeX bs
   modify $ \st -> st{ stIncremental = oldIncremental }
   linkAnchor' <- hypertarget True identifier empty
   -- see #2704 for the motivation for adding \leavevmode:
@@ -1150,6 +1154,23 @@ inlineListToLaTeX lst = hcat <$>
 isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
 isQuoted _            = False
+
+cslEntryToLaTeX :: PandocMonad m
+                => Block
+                -> LW m (Doc Text)
+cslEntryToLaTeX (Para xs) =
+  mconcat <$> mapM go xs
+ where
+   go (Span ("",["csl-block"],[]) ils) =
+     (cr <>) . inCmd "CSLBlock" <$> inlineListToLaTeX ils
+   go (Span ("",["csl-left-margin"],[]) ils) =
+     inCmd "CSLLeftMargin" <$> inlineListToLaTeX ils
+   go (Span ("",["csl-right-inline"],[]) ils) =
+     (cr <>) . inCmd "CSLRightInline" <$> inlineListToLaTeX ils
+   go (Span ("",["csl-indent"],[]) ils) =
+     (cr <>) . inCmd "CSLIndent" <$> inlineListToLaTeX ils
+   go il = inlineToLaTeX il
+cslEntryToLaTeX x = blockToLaTeX x
 
 -- | Convert inline element to LaTeX
 inlineToLaTeX :: PandocMonad m

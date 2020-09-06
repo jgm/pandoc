@@ -1,0 +1,178 @@
+bibliography|bibliograafia|bibliograafia
+references|viited|viited
+editor|toimetaja|toim\adddot
+editors|toimetajad|toim\adddot
+compiler|koostaja|koost\adddot
+compilers|koostajad|koost\adddot
+redactor|toimetaja|toim\adddot
+redactors|toimetajad|toim\adddot
+reviser|toimetaja|toim\adddot
+revisers|toimetajad|toim\adddot
+founder|asutaja|asutaja
+founders|asutajad|asutajad
+commentator|kommenteerija|kommenteerija
+commentators|kommenteerijad|kommenteerijad
+annotator|kommenteerija|kommenteerija
+annotators|kommenteerijad|kommenteerijad
+commentary|kommentaarid|kommentaarid
+annotations|kommentaarid|kommentaarid
+introduction|sissejuhatus|sissejuhatus
+organizer|korraldaja|korraldaja
+organizers|korraldajad|korraldajad
+byorganizer|korraldanud|korraldanud
+byauthor|kirjutanud|kirj\adddot
+byeditor|toimetanud|toim\adddot
+bycompiler|koostanud|koost\adddot
+byredactor|toimetanud|toim\adddot
+byreviewer|vaadanud|vaadanud
+byfounder|asutanud|asutanud
+bycommentator|kommenteerinud|kommenteerinud
+byannotator|kommenteerinud|kommenteerinud
+withcommentator|koos kommentaaridega|koos kommentaaridega
+withannotator|koos kommentaaridega|koos kommentaaridega
+withintroduction|koos tutvustusega|koos tutvustusega
+and|ja|ja
+involumes|osas|osas
+jourser|seeria|seeria
+book|raamat|raamat
+part|osa|osa
+issue|number|nr\adddot
+newseries|uus seerias|uus seer\adddot
+oldseries|vana seeria|vana seer\adddot
+reviewof|arvustus teosest|arvustus teosest
+origpubas|algselt avaldatud kui|algselt avaldatud kui
+origpubin|algselt avaldatud aastal|algselt avaldatud aastal
+astitle|pealkirjaga|pealkirjaga
+column|veerg|veerg
+columns|veerud|veerud
+line|rida|rida
+lines|read|read
+verse|salm|salm
+verses|salmid|salmid
+section|jagu|jagu
+sections|jaod|jaod
+columntotal|veerge kokku|veerge kokku
+columntotals|veergusid kokku|veergusid kokku
+linetotal|ridu kokku|ridu kokku
+linetotals|ridasid kokku|ridasid kokku
+versetotal|salmi kokku|salmi kokku
+versetotals|salmesid kokku|salmesid kokku
+sectiontotal|jagusid kokku|jagusid kokku
+sectiontotals|jagusid kokku|jagusid kokku
+in|teoses|teoses
+inseries|sarjas|sarjas
+ofseries|sarjast|sarjast
+number|number|nr
+resreport|uuringuraport|uuringuraport
+techreport|tehniline raport|tehniline raport
+software|tarkvara|tarkvara
+datacd|CD-ROM|CD-ROM
+audiocd|audioplaat|audioplaat
+version|versioon|versioon
+url|aadress|aadress
+urlfrom|saadaval|saadaval
+urlseen|vaadatud|vaadatud
+inpreparation|koostamisel|koostamisel
+submitted|esitatud|esitatud
+forthcoming|tulevases|tulevases
+citedas|edaspidi viidatud kui|edaspidi viidatud kui
+thiscite|eriti|eriti
+quotedin|noteeritud|noteeritud
+see|vaata|vt
+seealso|vaata ka|vt ka
+backrefpage|viidatud lehel|viidatud lehel
+january|jaanuar|jaanuar
+february|veebruar|veebruar
+april|aprill|aprill
+may|mai|mai
+june|juuni|juuni
+july|juuli|juuli
+august|august|august
+september|september|september
+october|oktoober|oktoober
+november|november|november
+december|detsember|detsember
+langamerican|Ameerika inglise keel|Ameerika inglise keel
+langbrazilian|brasiilia keel|brasiilia keel
+langbulgarian|bulgaaria keel|bulgaaria keel
+langcatalan|katalaani keel|katalaani keel
+langcroatian|horvaadi keel|horvaadi keel
+langdanish|taani keel|taani keel
+langdutch|hollandi keel|hollandi keel
+langenglish|inglise keel|inglise keel
+langestonian|eesti keel|eesti keel
+langfinnish|soome keel|soome keel
+langfrench|prantsuse keel|prantsuse keel
+langgalician|galeegi keel|galeegi keel
+langgerman|saksa keel|saksa keel
+langgreek|kreeka keel|kreeka keel
+langhungarian|ungari keel|ungari keel
+langitalian|itaalia keel|itaalia keel
+langjapanese|jaapani keel|jaapani keel
+langlatin|ladina keel|ladina keel
+langnorwegian|norra keel|norra keel
+langpolish|poola keel|poola keel
+langportuguese|portugali keel|portugali keel
+langrussian|vene keel|vene keel
+langslovak|slovakia keel|slovakia keel
+langslovene|sloveeni keel|sloveeni keel
+langspanish|hispaania keel|hispaania keel
+langswedish|rootsi keel|rootsi keel
+langukrainian|ukraina keel|ukraina keel
+fromamerican|Ameerika inglise keelest|Ameerika inglise keelest
+frombrazilian|brasiilia keelest|brasiilia keelest
+frombulgarian|bulgaaria keelest|bulgaaria keelest
+fromcatalan|katalani keelest|kalatalani keelest
+fromcroatian|horvaadi keelest|horvaadi keelest
+fromdanish|taani keelest|taani keelest
+fromdutch|hollandi keelest|hollandi keelest
+fromenglish|inglise keelest|inglise keelest
+fromestonian|eesti keelest|eesti keelest
+fromfinnish|soome keelest|soome keelest
+fromfrench|prantsuse keelest|prantsuse keelest
+fromgalician|galeegi keelest|galeegi keelest
+fromgerman|saksa keelest|saksa keelest
+fromgreek|kreeka keelest|kreeka keelest
+fromhungarian|ungari keelest|ungari keelest
+fromitalian|itaalia keelest|itaalia keelest
+fromjapanese|jaapani keelest|jaapani keelest
+fromlatin|ladina keelest|ladina keelest
+fromnorwegian|norra keelest|norra keelest
+fromportuguese|portugali keelest|portugali keelest
+fromrussian|vene keelest|vene keelest
+fromslovak|slovakia keelest|slovakia keelest
+fromslovene|sloveenia keelest|sloveenia keelest
+fromspanish|hispaania keelest|hispaania keelest
+fromswedish|rootsi keelest|rootsi keelest
+fromukrainian|ukraina keelest|ukraina keelest
+countryde|Saksamaa|DE
+countryeu|Euroopa Liit|EL
+countryep|Euroopa Parlament|EP
+countryfr|Prantsusmaa|FR
+countryuk|Suurbritannia|GB
+countryus|Ameerika|US
+patent|patent|pat\adddot
+patentde|Saksa patent|Saksa pat\adddot
+patenteu|Euroopa patent|Euroopa pat\adddot
+patentfr|Prantsuse patent|Prantsuse pat\adddot
+patentuk|Briti patent|Briti pat\adddot
+patentus|U.S\adddotspace patent|U.S\adddotspace pat\adddot
+patreq|patendi taotlus|pat\adddotspace taotl\adddot
+patreqde|Saksa patendi taotlus|Saksa pat\adddotspace taotl\adddot
+patreqeu|Euroopa patendi taotlus|Euroopa pat\adddotspace taotl\adddot
+patreqfr|Prantsuse patendi taotlus|Prantsuse pat\adddotspace taotl\adddot
+patrequk|Briti patendi taotlus|Briti pat\adddotspace taotl\adddot
+patrequs|U.S\adddotspace patendi taotlus.|U.S\adddotspace pat\adddotspace taotl\adddot
+file|fail|fail
+library|raamatukogu|raamatukogu
+abstract|teesid|teesid
+annotation|kommentaarid|kommentaarid
+commonera|meie ajaarvamise j\"argi|m\adddot a\adddot j
+beforecommonera|enne meie ajaarvamist|e\adddot m\adddot a
+annodomini|p\"arast Kristust|pKr
+beforechrist|enne Kristust|eKr
+spring|kevadel|kevadel
+summer|suvel|suvel
+winter|talvel|talvel
+am|AM|AM
+pm|PM|PM

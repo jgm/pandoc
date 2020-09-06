@@ -76,15 +76,6 @@ convertWithOpts opts = do
        mapM_ (UTF8.hPutStrLn stdout) (fromMaybe ["-"] $ optInputFiles opts)
        exitSuccess
 
-  let isPandocCiteproc (JSONFilter f) = takeBaseName f == "pandoc-citeproc"
-      isPandocCiteproc _              = False
-  -- --bibliography implies -F pandoc-citeproc for backwards compatibility:
-  let needsCiteproc = isJust (lookupMeta "bibliography"
-                                (optMetadata opts)) &&
-                      optCiteMethod opts `notElem` [Natbib, Biblatex] &&
-                      not (any isPandocCiteproc filters)
-  let filters' = filters ++ [ JSONFilter "pandoc-citeproc" | needsCiteproc ]
-
   let sources = case optInputFiles opts of
                      Just xs | not (optIgnoreArgs opts) -> xs
                      _ -> ["-"]
@@ -170,7 +161,14 @@ convertWithOpts opts = do
     let writerName = outputWriterName outputSettings
     let writerOptions = outputWriterOptions outputSettings
 
-    let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
+    let bibOutput = writerName == "bibtex" ||
+                    writerName == "biblatex" ||
+                    writerName == "csljson"
+
+    let standalone = optStandalone opts ||
+                     not (isTextFormat format) ||
+                     pdfOutput ||
+                     bibOutput
 
     -- We don't want to send output to the terminal if the user
     -- does 'pandoc -t docx input.txt'; though we allow them to
@@ -272,6 +270,13 @@ convertWithOpts opts = do
 
     setNoCheckCertificate (optNoCheckCertificate opts)
 
+    let isPandocCiteproc (JSONFilter f) = takeBaseName f == "pandoc-citeproc"
+        isPandocCiteproc _              = False
+
+    when (any isPandocCiteproc filters) $
+      report $ Deprecated "pandoc-citeproc filter"
+               "Use --citeproc instead."
+
     doc <- sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
                       then fillMediaBag
@@ -279,7 +284,7 @@ convertWithOpts opts = do
               >=> return . adjustMetadata (metadataFromFile <>)
               >=> return . adjustMetadata (<> metadata)
               >=> applyTransforms transforms
-              >=> applyFilters readerOpts filters' [T.unpack format]
+              >=> applyFilters readerOpts filters [T.unpack format]
               >=> maybe return extractMedia (optExtractMedia opts)
               )
 

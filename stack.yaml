@@ -3,15 +3,11 @@ flags:
     trypandoc: false
     embed_data_files: true
     static: false
-  pandoc-citeproc:
-    bibutils: true
-    embed_data_files: true
-    unicode_collation: false
-    test_citeproc: false
-    debug: false
 packages:
 - '.'
 extra-deps:
+- git: https://github.com/jgm/citeproc
+  commit: e3695de4f34f33e32c6d3c33e8cdcf3fa96f6a5b
 - pandoc-types-1.22
 - texmath-0.12.0.3
 - rfc5051-0.2
@@ -28,8 +24,6 @@ extra-deps:
 - commonmark-0.1.0.2
 - commonmark-extensions-0.2.0.1
 - commonmark-pandoc-0.2.0.1
-- git: https://github.com/jgm/pandoc-citeproc
-  commit: 159bbb566858c0bc522e6404eb989671cd7236fd
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules

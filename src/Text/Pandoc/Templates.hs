@@ -80,6 +80,7 @@ getDefaultTemplate writer = do
   let format = T.takeWhile (`notElem` ("+-" :: String)) writer  -- strip off extensions
   case format of
        "native"  -> return ""
+       "csljson" -> return ""
        "json"    -> return ""
        "docx"    -> return ""
        "fb2"     -> return ""

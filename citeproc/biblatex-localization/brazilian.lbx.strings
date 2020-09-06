@@ -1,0 +1,233 @@
+bibliography|Bibliografia|Bibliografia
+references|Refer\^encias|Refer\^encias
+shorthands|Lista de abreviaturas|Abreviaturas
+editor|editor|ed\adddot
+editors|editores|ed\adddot
+compiler|compilador|comp\adddot
+compilers|compiladores|comp\adddot
+redactor|redator|red\adddot
+redactors|redatores|red\adddot
+reviser|revisor|rev\adddot
+revisers|revisores|rev\adddot
+founder|fundador|fund\adddot
+founders|fundadores|fund\adddot
+continuator|continuador|cont\adddot
+continuators|continuadores|cont\adddot
+collaborator|colaborador|colab\adddot
+collaborators|colaboradores|colab\adddot
+translator|tradutor|trad\adddot
+translators|tradutores|trad\adddot
+commentator|coment\'ario|coment\adddot
+commentators|coment\'ario|coment\adddot
+annotator|notas|notas
+annotators|notas|notas
+commentary|coment\'ario|coment\adddot
+annotations|notas|notas
+foreword|pref\'acio|pref\adddot
+afterword|posf\'acio|posf\adddot
+organizer|organizador|org\adddot
+organizers|organizadores|org\adddot
+byauthor|por|por
+byeditor|editado por|ed\adddotspace por
+bycompiler|compilado por|comp\adddotspace por
+byredactor|redigido por|red\adddotspace por
+byreviser|revisado por|rev\adddotspace por
+byreviewer|resenhado por|res\adddotspace por
+byfounder|fundado por|fund\adddotspace por
+bycontinuator|continuado por|cont\adddotspace por
+bytranslator|traduzido \lbx@lfromlang\ por|trad\adddot\ \lbx@sfromlang\ por
+bycommentator|comentado por|coment\adddot\ por
+byannotator|anotado por|anot\adddot\ por
+byorganizer|organizado por|org\adddotspace por
+withcommentator|com coment\'ario de|com coment\adddot\ de
+withannotator|com notas de|com notas de
+withforeword|com pref\'acio de|com pref\adddot\ de
+withafterword|com posf\'acio de|com posf\adddot\ de
+and|e|e
+andothers|et\addabbrvspace al\adddot|et\addabbrvspace al\adddot
+andmore|et\addabbrvspace al\adddot|et\addabbrvspace al\adddot
+volume|volume|vol\adddot
+volumes|volumes|vol\adddot
+involumes|em|em
+jourvol|volume|v\adddot
+jourser|s\'erie|s\'er\adddot
+book|livro|livro
+part|parte|parte
+issue|n\'umero|n\'um\adddot
+newseries|nova s\'erie|nova s\'er\adddot
+oldseries|s\'erie antiga|s\'er\adddot\ antiga
+reprint|reimpress\~ao|reimpr\adddot
+reprintof|reimpress\~ao de|reimpr\adddotspace de
+reprintas|reimpresso como|reimpr\adddotspace como
+reprintfrom|reimpresso de|reimpr\adddotspace de
+translationas|traduzido como|trad\adddotspace como
+translationfrom|traduzido do|trad\adddotspace do
+reviewof|resenha de|res\adddotspace de
+origpubas|originalmente publicado como|orig\adddotspace pub\adddotspace como
+origpubin|originalmente publicado em|orig\adddotspace pub\adddotspace em
+astitle|como|como
+bypublisher|por|por
+nodate|sem\space data|s\adddot d\adddot
+page|p\'agina|p\adddot
+pages|p\'aginas|pp\adddot
+column|coluna|col\adddot
+columns|colunas|col\adddot
+line|linha|l\adddot
+lines|linhas|ll\adddot
+verse|verso|v\adddot
+verses|versos|vv\adddot
+paragraph|par\'agrafo|par\adddot
+paragraphs|par\'agrafos|par\adddot
+pagetotal|p\'agina|p\adddot
+pagetotals|p\'aginas|pp\adddot
+columntotal|coluna|col\adddot
+columntotals|colunas|col\adddot
+linetotal|linha|l\adddot
+linetotals|linhas|ll\adddot
+versetotal|verso|v\adddot
+versetotals|versos|vv\adddot
+paragraphtotal|par\'agrafo|par\adddot
+paragraphtotals|par\'agrafos|par\adddot
+in|em|em
+inseries|em|em
+ofseries|de|de
+number|n\'umero|n\adddot
+chapter|cap\'\i tulo|cap\adddot
+bathesis|trabalho de conclus\~ao|trab\adddotspace de conc\adddot
+phdthesis|tese de doutorado|tese de dout\adddot
+candthesis||
+resreport|relat\'orio de pesquisa|rel\adddotspace de pesq\adddot
+techreport|relat\'orio t\'ecnico|rel\adddotspace t\'ecn\adddot
+software|software|software
+datacd|CD-ROM|CD-ROM
+audiocd|CD de \'audio|CD de \'audio
+version|vers\~ao|vers\~ao
+urlfrom|dispon\'ivel em|disp\adddotspace em
+urlseen|acesso em|acesso em
+submitted|submetido|submetido
+inpress|no prelo|no prelo
+prepublished|pr\'e-publicado|pr\'e-publicado
+citedas|doravante citado como|doravante citado como
+thiscite|especialmente|esp\adddot
+seenote|ver nota|ver nota
+quotedin|apud|apud
+idem|idem|idem
+idemsm|idem|idem
+idemsf|eadem|eadem
+idemsn|idem|idem
+idempm|eidem|eidem
+idempf|eaedem|eaedem
+idempn|eadem|eadem
+idempp|eidem|eidem
+ibidem|ibidem|ibid\adddot
+opcit|op\adddotspace cit\adddot|op\adddotspace cit\adddot
+loccit|loc\adddotspace cit\adddot|loc\adddotspace cit\adddot
+confer|cf\adddot|cf\adddot
+sequens|sq\adddot|sq\adddot
+sequentes|sqq\adddot|sqq\adddot
+passim|passim|passim
+see|ver|ver
+seealso|ver tamb\'em|ver tamb\'em
+backrefpage|ver p\'agina|ver p\adddot
+backrefpages|ver p\'aginas|ver pp\adddot
+january|janeiro|jan\adddot
+february|fevereiro|fev\adddot
+april|abril|abr\adddot
+may|maio|mai\adddot
+june|junho|jun\adddot
+july|julho|jul\adddot
+august|agosto|ago\adddot
+september|setembro|set\adddot
+october|outubro|out\adddot
+november|novembro|nov\adddot
+december|dezembro|dez\adddot
+langamerican|ingl\^es|ingl\^es
+langbulgarian|b\'ulgaro|b\'ulgaro
+langcatalan|catal\~ao|catal\~ao
+langcroatian|croata|croata
+langczech|tcheco|tcheco
+langdanish|dinamarqu\^es|dinamarqu\^es
+langenglish|ingl\^es|ingl\^es
+langfinnish|finland\^es|finland\^es
+langestonian|estoniano|estoniano
+langfrench|franc\^es|franc\^es
+langgalician|galego|galego
+langgerman|alem\~ao|alem\~ao
+langgreek|grego|grego
+langhungarian|h\'ungaro|h\'ungaro
+langitalian|italiano|italiano
+langjapanese|japon\^es|japon\^es
+langlatin|latim|latim
+langlatvian|let\~ao|let\~ao
+langlithuanian|lituano|lituano
+langnorwegian|noruegu\^es|noruegu\^es
+langpolish|polon\^es|polon\^es
+langrussian|russo|russo
+langserbian|s\'ervio|s\'ervio
+langslovak|eslovaco|eslovaco
+langslovene|esloveno|esloveno
+langspanish|espanhol|espanhol
+langswedish|sueco|sueco
+langturkish|turco|turco
+langukrainian|ucraniano|ucraniano
+fromamerican|do ingl\^es|do ingl\^es
+frombulgarian|do b\'ulgaro|do b\'ulgaro
+fromcatalan|do catal\~ao|do catal\~ao
+fromcroatian|do croata|do croata
+fromczech|do tcheco|do tcheco
+fromdanish|do dinamarqu\^es|do dinamarqu\^es
+fromenglish|do ingl\^es|do ingl\^es
+fromestonian|do estoniano|do estoniano
+fromfinnish|do finland\^es|do finland\^es
+fromfrench|do franc\^es|do franc\^es
+fromgalician|do galego|do galego
+fromgerman|do alem\~ao|do alem\~ao
+fromgreek|do grego|do grego
+fromhungarian|do h\'ungaro|do h\'ungaro
+fromitalian|do italiano|do italiano
+fromjapanese|do japon\^es|do japon\^es
+fromlatin|do latim|do latim
+fromlatvian|do let\~ao|do let\~ao
+fromlithuanian|do lituano|do lituano
+fromnorwegian|do noruegu\^es|do noruegu\^es
+frompolish|do polon\^es|do polon\^es
+fromrussian|do russo|do russo
+fromserbian|do s\'ervio|do s\'ervio
+fromslovak|do eslovaco|do eslovaco
+fromslovene|do esloveno|do esloveno
+fromspanish|do espanhol|do espanhol
+fromswedish|do sueco|do sueco
+fromturkish|do turco|do turco
+fromukrainian|do ucraniano|do ucraniano
+countryde|Alemanha|DE
+countryeu|Uni\~ao Europeia|EU
+countryep|Uni\~ao Europeia|EP
+countryuk|Reino Unido|GB
+countryus|Estados Unidos|US
+patent|patente|pat\adddot
+patentde|patente alem\~a|pat\adddot\ alem\~a
+patenteu|patente europeia|pat\adddot\ europeia
+patentfr|patente francesa|pat\adddot\ francesa
+patentuk|patente brit\^anica|pat\adddot\ brit\^anica
+patentus|patente americana|pat\adddot\ americana
+patreq|pedido de patente|ped\adddot\ de pat\adddot
+patreqde|pedido de patente alem\~a|ped\adddot\ de pat\adddot\ alem\~a
+patreqeu|pedido de patente europeia|ped\adddot\ de pat\adddot\ europeia
+patreqfr|pedido de patente francesa|ped\adddot\ de pat\adddot\ francesa
+patrequk|pedido de patente brit\^anica|ped\adddot\ de pat\adddot\ brit\^anica
+patrequs|pedido de patente americana|ped\adddot\ de pat\adddot\ americana
+file|arquivo|arquivo
+library|biblioteca|biblioteca
+abstract|resumo|resumo
+annotation|notas|notas
+commonera|Era Comum|EC
+beforecommonera|antes da Era Comum|AEC
+annodomini|depois de Cristo|d\adddot C\adddot
+beforechrist|antes de Cristo|a\adddot C\adddot
+circa|circa|ca\adddot
+spring|primavera|primavera
+summer|ver\~ao|ver\~ao
+autumn|outono|outono
+winter|inverno|inverno
+am|AM|AM
+pm|PM|PM

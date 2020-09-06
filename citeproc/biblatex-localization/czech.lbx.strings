@@ -1,0 +1,91 @@
+bibliography|Bibliografie|Bibliografie
+references|Odkazy|Odkazy
+shorthands|Seznam zkratek|Zkratky
+editor|editor|ed\adddot
+compiler|sestavil|sest\adddot
+compilers|sestavili|sest\adddot
+redactor|redaktor|red\adddot
+reviser|korektor|kor\adddot
+founder|zakladatel|zakl\adddot
+annotations|anotace|anot\adddot
+afterword|doslov|dosl\adddot
+byauthor||
+bycompiler|sestaveno|sest\adddot
+withannotator|s\addnbspace anotacemi od|s\addnbspace anot\adddot\ od
+withafterword|s\addnbspace doslovem od|s\addnbspace dosl\adddot\ od
+and|a|a
+andothers|et\addabbrvspace al\adddot|et\addabbrvspace al\adddot
+andmore|et\addabbrvspace al\adddot|et\addabbrvspace al\adddot
+volume|svazek|sv\adddot
+volumes|svazky|sv\adddot
+involumes|in|in
+book|kniha|kniha
+reprint|dotisk|dotisk
+reprintof|dotisk|dotisk
+reprintas|dotisknuto jako|dotisknuto jako
+reprintfrom|dotisknuto z\addnbspace|dotisknuto z\addnbspace
+reviewof|recenze|recenz\adddot
+astitle|jako|jako
+bypublisher||
+page|strana|s\adddot
+pages|strany|s\adddot
+column|sloupec|sl\adddot
+columns|sloupce|sl\adddot
+section|sekce|\S
+sections|sekce|\S\S
+paragraph|odstavec|ods\adddot
+paragraphs|odstavce|ods\adddot
+pagetotal|strana|s\adddot
+pagetotals|strany|s\adddot
+columntotal|sloupec|sl\adddot
+columntotals|sloupce|sl\adddot
+sectiontotal|sekce|\S
+sectiontotals|sekce|\S\S
+paragraphtotal|odstavec|ods\adddot
+paragraphtotals|odstavce|ods\adddot
+in|in|in
+inseries|in|in
+ofseries|z|z
+chapter|kapitola|kap\adddot
+datacd|CD-ROM|CD-ROM
+audiocd|audio CD|audio CD
+version|verze|ver\adddot
+url|URL|URL
+inpress|v\addnbspace tisku|v\addnbspace tisku
+idem|idem|idem
+idemsm|idem|idem
+idemsf|eadem|eadem
+idemsn|idem|idem
+idempm|eidem|eidem
+idempf|eaedem|eaedem
+idempn|eadem|eadem
+idempp|eidem|eidem
+ibidem|ibidem|ibid\adddot
+opcit|op\adddotspace cit\adddot|op\adddotspace cit\adddot
+loccit|loc\adddotspace cit\adddot|loc\adddotspace cit\adddot
+confer|cf\adddot|cf\adddot
+sequens|sq\adddot|sq\adddot
+sequentes|sqq\adddot|sqq\adddot
+passim|passim|pass\adddot
+see|viz|viz
+january|leden|led\adddot
+april|duben|dub\adddot
+august|srpen|srp\adddot
+november|listopad|lis\adddot
+december|prosinec|pros\adddot
+langlatin|latina|lat\adddot
+fromlatin|z\addnbspace latiny|z\addnbspace lat\adddot
+countryfr|Francie|FR
+patent|patent|pat\adddot
+patentus|US patent|US pat\adddot
+file|soubor|soub\adddot
+library|knihovna|knih\adddot
+abstract|abstrakt|abst\adddot
+annotation|anotace|anot\adddot
+annodomini|po Kristu|po Kr\adddot
+circa|cirka|ca\adddot
+spring|jaro|jaro
+autumn|podzim|podzim
+winter|zima|zima
+am|AM|AM
+pm|PM|PM

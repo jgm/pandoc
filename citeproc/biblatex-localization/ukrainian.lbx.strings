@@ -1,0 +1,102 @@
+bibliography|Перелік літератури|Література
+references|Перелік літератури|Література
+shorthands|Перелік скорочень|Скорочення
+editor|редактор|ред\adddot
+editors|редактори|ред\adddot
+compiler|укладач|уклад\adddot
+compilers|укладачі|уклад\adddot
+redactor|редактор|ред\adddot
+redactors|редактори|ред\adddot
+reviser|ревізійний коректор|ревіз\adddotspace кор\adddot
+revisers|ревізійні коректори|ревіз\adddotspace кор\adddot
+founder|засновник|засн\adddot
+founders|засновник|засн\adddot
+continuator|продовжувач|прод\adddot
+continuators|продовжувачі|прод\adddot
+collaborator|учасник|учас\adddot
+collaborators|учасники|учас\adddot
+translator|перекладач|пер\adddot
+translators|перекладачі|пер\adddot
+commentator|коментатор|комент\adddot
+commentators|коментатори|комент\adddot
+annotator|примітки|прим\adddot
+annotators|примітки|прим\adddot
+commentary|коментар|комент\adddot
+annotations|примітки|прим\adddot
+introduction|вступна стаття|вступ\adddotspace ст\adddot
+foreword|передмова|передм\adddot
+afterword|післямова|післям\adddot
+organizer|організатор|орг\adddot
+organizers|організатори|орг\adddot
+byorganizer|організатор|орг\adddot
+byauthor|згідно автора|згідн\adddot авт\adddot
+byeditor|за редакцією|за\addabbrvspace ред\adddot
+bycompiler|укладач|уклад\adddot
+byredactor|за редакцією|за\addabbrvspace ред\adddot
+byreviser|виправлено|випр\adddot
+byreviewer|рецензія|рец\adddot
+byfounder|засновник|засн\adddot
+bycontinuator|продовження|продовж\adddot
+bycollaborator|за участю|за\addabbrvspace уч\adddot
+bytranslator|переклад \lbx@lfromlang|пер\adddot\ \lbx@sfromlang
+bycommentator|коментарі|комент\adddot
+byannotator|примітки|прим\adddot
+withcommentator|коментарі|комент\adddot
+withannotator|примітки|прим\adddot
+withintroduction|вступна стаття|вступ\adddotspace ст\adddot
+withforeword|передмовие|передм\adddot
+withafterword|післямовие|післям\adddot
+and|та|та
+andothers|та\addabbrvspace ін\adddot|та\addabbrvspace ін\adddot
+andmore|та\addabbrvspace ін\adddot|та\addabbrvspace ін\adddot
+volume|том|т\adddot
+volumes|томах|т\adddot
+involumes|в|в
+jourvol|том|т\adddot
+jourser|серія|сер\adddot
+book|книга|кн\adddot
+part|частина|ч\adddot
+issue|випуск|вип\adddot
+newseries|нова серія|нов\adddotspace сер\adddot
+oldseries|стара серія|стар\adddotspace сер\adddot
+edition|видання|вид\adddot
+reprint|перевидання|перевид\adddot
+reprintof|перевидання|перевид\adddot
+reprintas|перевидано як|перевид\adddotspace як
+reprintfrom|перевидано з|перевид\adddotspace з
+translationof|переклад по виданню\addcolon|пер\adddotspace по вид\adddot\addcolon
+translationas|переклад\addcolon|пер\adddot\addcolon
+translationfrom|переклад з|пер\adddotspace з
+reviewof|рецензія на\addcolon|рец\adddotspace на\addcolon
+astitle|\addcolon|\addcolon
+bypublisher|\addcomma|\addcomma
+nodate|б\adddot р\adddot|б\adddot р\adddot
+page|сторінка|с\adddot
+pages|сторінки|с\adddot
+column|колонка|кол\adddot
+columns|колонки|кол\adddot
+line|рядок|рядок
+lines|рядки|рядки
+verse|вірш|вірш
+verses|вірші|вірші
+section|параграф|\S
+sections|параграфи|\S\S
+paragraph|абзац|абз\adddot
+paragraphs|абзаци|абз\adddot
+pagetotal|сторінка|с\adddot
+pagetotals|сторінки|с\adddot
+columntotal|колонка|кол\adddot
+columntotals|колонки|кол\adddot
+linetotal|рядок|рядок
+linetotals|рядки|рядки
+versetotal|вірш|вірш
+versetotals|вірші|вірші
+sectiontotal|параграф|\S
+sectiontotals|параграфи|\S\S
+paragraphtotal|абзац|абз\adddot
+paragraphtotals|абзаци|абз\adddot
+in|в|в
+inseries|в|в
+ofseries|із|із
+number|номер|№
+chapter|глава|гл\adddot

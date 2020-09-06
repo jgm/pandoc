@@ -110,16 +110,37 @@ blockToMs :: PandocMonad m
           -> Block         -- ^ Block element
           -> MS m (Doc Text)
 blockToMs _ Null = return empty
-blockToMs opts (Div (ident,_,_) bs) = do
+blockToMs opts (Div (ident,cls,kvs) bs) = do
   let anchor = if T.null ident
                   then empty
                   else nowrap $
                          literal ".pdfhref M "
                          <> doubleQuotes (literal (toAscii ident))
-  setFirstPara
-  res <- blockListToMs opts bs
-  setFirstPara
-  return $ anchor $$ res
+  case cls of
+    _ | "csl-entry" `elem` cls ->
+       (".CSLENTRY" $$) . vcat <$> mapM (cslEntryToMs True opts) bs
+      | "csl-bib-body" `elem` cls -> do
+       res <- blockListToMs opts bs
+       return $ anchor $$
+                -- so that XP paragraphs are indented:
+                ".nr PI 3n" $$
+                -- space between entries
+                ".de CSLENTRY" $$
+                (case lookup "entry-spacing" kvs >>= safeRead of
+                   Just n | n > (0 :: Int) -> ".sp"
+                   _ -> mempty) $$
+                ".." $$
+                ".de CSLP" $$
+                (if "hanging-indent" `elem` cls
+                    then ".XP"
+                    else ".LP") $$
+                ".." $$
+                res
+    _ -> do
+       setFirstPara
+       res <- blockListToMs opts bs
+       setFirstPara
+       return $ anchor $$ res
 blockToMs opts (Plain inlines) =
   liftM vcat $ mapM (inlineListToMs' opts) $ splitSentences inlines
 blockToMs opts (Para [Image attr alt (src,_tit)])
@@ -439,6 +460,39 @@ inlineToMs opts (Image _ alternate (_, _)) =
 inlineToMs _ (Note contents) = do
   modify $ \st -> st{ stNotes = contents : stNotes st }
   return $ literal "\\**"
+
+cslEntryToMs :: PandocMonad m
+             => Bool
+             -> WriterOptions
+             -> Block
+             -> MS m (Doc Text)
+cslEntryToMs atStart opts (Para xs) =
+  case xs of
+    (Span ("",["csl-left-margin"],[]) lils :
+      rest@(Span ("",["csl-right-inline"],[]) _ : _))
+      -> do lils' <- inlineListToMs' opts lils
+            ((cr <> literal ".IP " <>
+              doubleQuotes (nowrap lils') <>
+              literal " 5") $$)
+                <$> cslEntryToMs False opts (Para rest)
+    (Span ("",["csl-block"],[]) ils : rest)
+      -> ((cr <> literal ".LP") $$)
+                <$> cslEntryToMs False opts (Para (ils ++ rest))
+    (Span ("",["csl-left-margin"],[]) ils : rest)
+      -> ((cr <> literal ".LP") $$)
+              <$> cslEntryToMs False opts (Para (ils ++ rest))
+    (Span ("",["csl-indented"],[]) ils : rest)
+      -> ((cr <> literal ".LP") $$)
+              <$> cslEntryToMs False opts (Para (ils ++ rest))
+    _ | atStart
+         -> (".CSLP" $$) <$> cslEntryToMs False opts (Para xs)
+      | otherwise
+         -> case xs of
+           [] -> return mempty
+           (x:rest) -> (<>) <$> (inlineToMs opts x)
+                            <*> (cslEntryToMs False opts (Para rest))
+cslEntryToMs _ opts x = blockToMs opts x
+
 
 handleNotes :: PandocMonad m => WriterOptions -> Doc Text -> MS m (Doc Text)
 handleNotes opts fallback = do

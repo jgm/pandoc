@@ -51,6 +51,9 @@ module Text.Pandoc.Readers
   , readFB2
   , readIpynb
   , readCSV
+  , readCslJson
+  , readBibTeX
+  , readBibLaTeX
   -- * Miscellaneous
   , getReader
   , getDefaultExtensions
@@ -95,6 +98,8 @@ import Text.Pandoc.Readers.Txt2Tags
 import Text.Pandoc.Readers.Vimwiki
 import Text.Pandoc.Readers.Man
 import Text.Pandoc.Readers.CSV
+import Text.Pandoc.Readers.CslJson
+import Text.Pandoc.Readers.BibTeX
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Parsec.Error
 
@@ -138,6 +143,9 @@ readers = [ ("native"       , TextReader readNative)
            ,("fb2"          , TextReader readFB2)
            ,("ipynb"        , TextReader readIpynb)
            ,("csv"          , TextReader readCSV)
+           ,("csljson"      , TextReader readCslJson)
+           ,("bibtex"       , TextReader readBibTeX)
+           ,("biblatex"     , TextReader readBibLaTeX)
            ]
 
 -- | Retrieve reader, extensions based on formatSpec (format+extensions).

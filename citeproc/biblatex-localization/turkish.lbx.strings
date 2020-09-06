@@ -1,0 +1,157 @@
+references|Kaynaklar|Kaynaklar
+shorthands|K\i saltmalar dizini|K\i saltmalar
+compiler|derleyen|der\adddot
+compilers|derleyenler|der\adddot
+redactor|yay\i na haz\i rlayan|yay\adddot\ haz\adddot
+redactors|yay\i na haz\i rlayanlar|yay\adddot\ haz\adddot
+reviser|tashih eden|tashih\adddot
+revisers|tashih edenler|tashih\adddot
+founder|kurucu|kur\adddot
+founders|kurucular|kur\adddot
+continuator|tamamlayan|tam\adddot
+continuators|tamamlayanlar|tam\adddot
+collaborator|ortak|ortak
+collaborators|ortaklar|ortaklar
+commentator|yorumlayan|yrm\adddot
+commentators|yorumlayanlar|yrm\adddot
+commentary|yorum|yrm\adddot
+byauthor|yazar|yazar
+bycompiler|derleyen|der\adddot
+byredactor|yay\i na haz\i rlayan|yay\adddot\ haz\adddot
+byreviser|tashih|tashih
+byfounder|kurucu|kur\adddot
+bycontinuator|tamamlayan|tam\adddot
+bycommentator|yorumlayan|yrm\adddot
+withcommentator|yorumlar\i yla katk\i da bulunan|yrm\adddot\ kat\adddot\ bul\adddot
+and|ve|ve
+volume|cilt|c\adddot
+volumes|cilt|c\adddot
+jourvol|cilt|c\adddot
+jourser|seri|seri
+book|kitap|kitap
+part|k\i s\i m|k\i s\i m
+issue|say\i|say\i
+newseries|yeni seri|yeni seri
+oldseries|eski seri|eski seri
+edition|bask\i|bs\adddot
+reprint|yeni bask\i s\i|yeni bask\i s\i
+reprintof|yeni bask\i s\i|yeni bask\i s\i
+reprintas|yeni bask\i s\i|yeni bask\i s\i
+reprintfrom|yeni bask\i s\i|yeni bask\i s\i
+reviewof|derlenen eser|der\adddot\ eser
+origpubas|as\i l eser|as\i l eser
+origpubin|as\i l eser yay\i n tarihi|as\i l eser yay\i n tarihi
+bypublisher|yay\i n evi|yay\i n evi
+nodate|tarih yok|t\adddot y\adddot
+page|sayfa|s\adddot
+pages|sayfalar|ss\adddot
+line|sat\i r|sat\adddot
+lines|sat\i rlar|sat\adddot
+verse|m\i sra|m\i s\adddot
+verses|m\i sralar|m\i s\adddot
+paragraph|paragraf|par\adddot
+paragraphs|paragraflar|par\adddot
+pagetotal|toplam sayfa|s\adddot
+pagetotals|toplam sayfalar|ss\adddot
+linetotal|toplam sat\i r|sat\adddot
+linetotals|toplam sat\i rlar|sat\adddot
+versetotal|toplam m\i sra|m\i s\adddot
+versetotals|toplam m\i sralar|m\i s\adddot
+paragraphtotal|toplam paragraf|par\adddot
+paragraphtotals|toplam paragraflar|par\adddot
+inseries|serilerde|serilerde
+ofseries|serilerde|serilerde
+number|numara|no\adddot
+bathesis|lisans tezi|lis\adddot\ tezi
+phdthesis|doktora tezi|dok\adddot\ tezi
+candthesis|aday tezi|aday tezi
+techreport|teknik rapor|tek\adddot\ rap\adddot
+software|bilgisayar yaz\i l\i m\i|bilg\adddot\ yaz\adddot
+datacd|CD|CD
+audiocd|ses CD'si|ses CD'si
+version|versiyon|ver\adddot
+forthcoming|yak\i nda|yak\i nda
+prepublished|taslak bas\i m\i|taslak bas\i m\i
+citedas|at\i f olarak|at\i f olarak
+seenote|nota bak\i n\i z|nota bkz\adddot
+quotedin|al\i nt\i|al\i nt\i
+idem|ayn\i|ayn\i
+idemsm|ayn\i|ayn\i
+idemsf|ayn\i|ayn\i
+idemsn|ayn\i|ayn\i
+idempm|ayn\i lar\i|ayn\i lar\i
+idempf|ayn\i lar\i|ayn\i lar\i
+idempn|ayn\i lar\i|ayn\i lar\i
+idempp|ayn\i lar\i|ayn\i lar\i
+loccit|at\i f yap\i lan yer|at\i f yap\adddot\ yer
+sequens|takip eden|takip eden
+sequentes|takip eden|takip eden
+passim|rastgele|rastgele
+see|bak\i n\i z|bkz\adddot
+seealso|ayr\i ca bak\i n\i z|ayr\i ca bkz\adddot
+january|Ocak|Ocak
+march|Mart|Mar\adddot
+april|Nisan|Nis\adddot
+may|May\i s|May\adddot
+june|Haziran|Haz\adddot
+july|Temmuz|Tem\adddot
+october|Ekim|Ekim
+november|Kas\i m|Kas\adddot
+december|Aral\i k|Ara\adddot
+langamerican|Amerikanca|Amerikanca
+langbrazilian|Brezilyanca|Brezilyanca
+langbulgarian|Bulgarca|Bulgarca
+langcatalan|Katalanca|Katalanca
+langdanish|Danimarkanca|Danimarkanca
+langestonian|Estonca|Estonca
+langfinnish|Fince|Fince
+langfrench|Frans\i zca|Frans\i zca
+langgalician|Galce|Galce
+langgerman|Almanca|Almanca
+langgreek|Yunanca|Yunanca
+langhungarian|Macarca|Macarca
+langjapanese|Japonca|Japonca
+langlatin|Latince|Latince
+langlatvian|Letonca|Letonca
+langlithuanian|Litvanca|Litvanca
+langpolish|Polonyaca|Polonyaca
+langportuguese|Portekizce|Portekizce
+langslovene|Slovence|Slovence
+langukrainian|Ukraynaca|Ukraynaca
+fromamerican|Amerikanca'dan|Amerikanca'dan
+frombrazilian|Brezilyanca'dan|Brezilyanca'dan
+frombulgarian|Bulgarca'dan|Bulgarca'dan
+fromcatalan|Katalanca'dan|Katalanca'dan
+fromdanish|Danimarkanca'dan|Danimarkanca'dan
+fromestonian|Estonyaca'dan|Estonyaca'dan
+fromfinnish|Fince'den|Fince'den
+fromfrench|Frans\i zca'dan|Frans\i zca'dan
+fromgalician|Galyaca'dan|Galyaca'dan
+fromgerman|Almanca'dan|Almanca'dan
+fromgreek|Yunanca'dan|Yunanca'dan
+fromhungarian|Macarca'dan|Macarca'dan
+fromjapanese|Japonca'dan|Japonca'dan
+fromlatin|Latince'den|Latince'den
+fromlatvian|Latvianca'dan|Latvianca'dan
+fromlithuanian|Litvanca'dan|Litvanca'dan
+frompolish|Polonyaca'dan|Polonyaca'dan
+fromportuguese|Portekizce'den|Portekizce'den
+fromslovene|Slovence'den|Slovence'den
+fromukrainian|Ukraynaca'dan|Ukraynaca'dan
+countryde|Almanya|DE
+countryfr|Fransa|FR
+patent|patent|pat\adddot
+patentde|Alman patenti|Alman pat\adddot
+patenteu|Avrupa patenti|Avrupa pat\adddot
+patentfr|Frans\i z patenti|Frans\i z pat\adddot
+patentus|Amerika patenti|Amerika pat\adddot
+patreq|patent beklemede|pat\adddot\ bek\adddot
+patreqde|Alman patenti beklemede|Alman pat\adddot\ bek\adddot
+patreqeu|Avrupa patenti beklemede|Avrupa pat\adddot\ bek\adddot
+patreqfr|Frans\i z patenti beklemede|Frans\i z pat\adddot\ bek\adddot
+patrequs|Amerika patenti beklemede|Amerika pat\adddot\ bek\adddot
+file|dosya|dosya
+commonera|milattan sonra|MS
+annodomini|milattan sonra|MS
+summer|Yaz|Yaz
+autumn|Sonbahar|Sonbahar

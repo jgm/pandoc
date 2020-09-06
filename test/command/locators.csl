@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<style xmlns="http://purl.org/net/xbiblio/csl" class="note" version="1.0" demote-non-dropping-particle="sort-only" default-locale="en-GB">
+  <info>
+    <title>A CSL to test locator parsing in pandoc-citeproc</title>
+    <title-short>test-locators</title-short>
+    <id>https://example.com/test-locators</id>
+    <link href="https://forums.zotero.org/discussion/4841/new-australian-legal-citation-style/?Focus=20831#Comment_20831" rel="documentation"/>
+    <category citation-format="note"/>
+  </info>
+
+  <locale>
+    <terms>
+      <term name="section" form="short">
+        <single>s</single>
+        <multiple>ss</multiple>
+      </term>
+    </terms>
+  </locale>
+
+  <macro name="locator">
+    <choose>
+      <if locator="section">
+        <!-- s or ss -->
+        <group delimiter=" " prefix=" ">
+          <label variable="locator" form="short" />
+          <text variable="locator" prefix="{" suffix="}" />
+        </group>
+      </if>
+      <else>
+        <text variable="locator" prefix=" {" suffix="}" />
+      </else>
+    </choose>
+  </macro>
+
+  <macro name="title">
+      <text variable="title" suffix=" "/>
+  </macro>
+
+  <citation>
+    <layout prefix="" suffix="." delimiter="; ">
+      <choose>
+        <if position="ibid-with-locator">
+          <text value="ibid-with-locator"/>
+          <text macro="locator"/>
+        </if>
+        <else-if position="ibid">
+          <text value="ibid"/>
+        </else-if>
+        <else-if position="subsequent">
+          <text value="subsequent"/>
+          <text macro="locator"/>
+        </else-if>
+        <else>
+          <text macro="title" />
+          <text macro="locator" />
+        </else>
+      </choose>
+    </layout>
+  </citation>
+  <bibliography>
+    <sort>
+      <key variable="issued"/>
+    </sort>
+    <layout>
+      <text variable="title" />
+    </layout>
+  </bibliography>
+</style>

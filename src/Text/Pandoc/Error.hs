@@ -32,6 +32,7 @@ import Text.Printf (printf)
 import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
 import Text.Pandoc.Shared (tshow)
+import Citeproc (CiteprocError, prettyCiteprocError)
 
 type Input = Text
 
@@ -60,6 +61,7 @@ data PandocError = PandocIOError Text IOError
                  | PandocUnknownReaderError Text
                  | PandocUnknownWriterError Text
                  | PandocUnsupportedExtensionError Text Text
+                 | PandocCiteprocError CiteprocError
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
@@ -139,6 +141,8 @@ handleError (Left e) =
     PandocUnsupportedExtensionError ext f -> err 23 $
       "The extension " <> ext <> " is not supported " <>
       "for " <> f
+    PandocCiteprocError e' -> err 24 $
+      prettyCiteprocError e'
 
 err :: Int -> Text -> IO a
 err exitCode msg = do

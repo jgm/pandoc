@@ -1,0 +1,95 @@
+bibliography|Bibliografia|Bibliografia
+references|Refer\^encias|Refer\^encias
+shorthands|Lista de Abreviaturas|Abreviaturas
+editor|editor|ed\adddot
+editors|editores|eds\adddot
+compiler|compilador|comp\adddot
+compilers|compiladores|comp\adddot
+redactor|redator|red\adddot
+redactors|redatores|red\adddot
+reviser|revisor|rev\adddot
+revisers|revisores|rev\adddot
+founder|fundador|fund\adddot
+founders|fundadores|fund\adddot
+continuator|continuador|cont\adddot
+continuators|continuadores|cont\adddot
+collaborator|colaborador|col\adddot
+collaborators|colaboradores|col\adddot
+translator|tradutor|trad\adddot
+translators|tradutores|trad\adddot
+commentator|comentador|coment\adddot
+commentators|comentadores|coment\adddot
+annotator|anotador|anot\adddot
+annotators|anotadores|anot\adddot
+commentary|coment\'ario|coment\adddot
+annotations|notas|notas
+foreword|pref\'acio|pref\adddot
+afterword|posf\'acio|posf\adddot
+organizer|organizador|org\adddot
+organizers|organizadores|orgs\adddot
+byorganizer|organizado por|org\adddotspace por
+byauthor|por|por
+byeditor|editado por|ed\adddotspace por
+bycompiler|compilado por|comp\adddotspace por
+byredactor|redigido por|red\adddotspace por
+byreviser|revisto por|rev\adddotspace por
+byreviewer|resenhado por|res\adddotspace por
+byfounder|fundado por|fund\adddotspace por
+bycontinuator|continuado por|cont\adddotspace por
+bytranslator|traduzido \lbx@lfromlang\ por|trad\adddot\ \lbx@sfromlang\ por
+bycommentator|comentado por|coment\adddot\ por
+byannotator|notas de|notas de
+withcommentator|com coment\'arios de|com coment\adddot\ de
+withannotator|com notas de|com notas de
+withforeword|com pref\'acio de|com pref\adddot\ de
+withafterword|com posf\'acio de|com posf\adddot\ de
+and|e|e
+andothers|et\addabbrvspace al\adddot|et\addabbrvspace al\adddot
+andmore|et\addabbrvspace al\adddot|et\addabbrvspace al\adddot
+volume|volume|vol\adddot
+volumes|volumes|vols\adddot
+involumes|em|em
+jourvol|volume|vol\adddot
+jourser|s\'erie|s\'er\adddot
+book|livro|livro
+part|parte|parte
+issue|n\'umero|n\'umero
+newseries|nova s\'erie|nova s\'er\adddot
+oldseries|s\'erie antiga|s\'er\adddot\ antiga
+reprint|reimpress\~ao|reimpr\adddot
+reprintof|reimpress\~ao de|reimpr\adddotspace de
+reprintas|reimpresso como|reimpr\adddotspace como
+reprintfrom|reimpresso|reimpr\adddot
+translationas|traduzido como|trad\adddotspace como
+translationfrom|traduzido do|trad\adddotspace do
+reviewof|resenha de|res\adddotspace de
+origpubas|originalmente publicado como|orig\adddotspace pub\adddotspace como
+origpubin|originalmente publicado em|orig\adddotspace pub\adddotspace em
+astitle|como|como
+bypublisher|por|por
+nodate|sem data|s\adddot d\adddot
+page|p\'agina|p\adddot
+pages|p\'aginas|pp\adddot
+column|coluna|col\adddot
+columns|colunas|cols\adddot
+line|linha|l\adddot
+lines|linhas|ll\adddot
+verse|verso|v\adddot
+verses|versos|vv\adddot
+paragraph|par\'agrafo|par\adddot
+paragraphs|par\'agrafo|par\adddot
+pagetotal|p\'agina|p\adddot
+pagetotals|p\'aginas|pp\adddot
+columntotal|coluna|col\adddot
+columntotals|colunas|cols\adddot
+linetotal|linha|l\adddot
+linetotals|linhas|ll\adddot
+versetotal|verso|v\adddot
+versetotals|versos|vv\adddot
+paragraphtotal|par\'agrafo|par\adddot
+paragraphtotals|par\'agrafo|par\adddot
+in|em|em
+inseries|em|em
+ofseries|de|de
+number|n\'umero|n\adddot\textordmasculine
+chapter|cap\'\i tulo|cap\adddot

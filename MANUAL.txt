@@ -225,9 +225,12 @@ header when requesting a document from a URL:
 :   Specify input format.  *FORMAT* can be:
 
     ::: {#input-formats}
+    - `bibtex` ([BibTeX] bibliography)
+    - `biblatex` ([BibLaTeX] bibliography)
     - `commonmark` ([CommonMark] Markdown)
     - `commonmark_x` ([CommonMark] Markdown with extensions)
     - `creole` ([Creole 1.0])
+    - `csljson` ([CSL JSON] bibliography)
     - `csv` ([CSV] table)
     - `docbook` ([DocBook])
     - `docx` ([Word docx])
@@ -280,6 +283,7 @@ header when requesting a document from a URL:
     - `commonmark` ([CommonMark] Markdown)
     - `commonmark_x` ([CommonMark] Markdown with extensions)
     - `context` ([ConTeXt])
+    - `csljson` ([CSL JSON] bibliography)
     - `docbook` or `docbook4` ([DocBook] 4)
     - `docbook5` (DocBook 5)
     - `docx` ([Word docx])
@@ -491,6 +495,9 @@ header when requesting a document from a URL:
 [Muse]: https://amusewiki.org/library/manual
 [PowerPoint]: https://en.wikipedia.org/wiki/Microsoft_PowerPoint
 [Vimwiki]: https://vimwiki.github.io
+[CSL JSON]: https://citeproc-js.readthedocs.io/en/latest/csl-json/markup.html
+[BibTeX]: https://ctan.org/pkg/bibtex
+[BibLaTeX]: https://ctan.org/pkg/biblatex
 
 ## Reader options {.options}
 
@@ -1292,41 +1299,62 @@ header when requesting a document from a URL:
 
 ## Citation rendering {.options}
 
+`-C`, `--citeproc`
+
+:   Process the citations in the file, replacing them with
+    rendered citations and adding a bibliography.
+    Citation processing will not take place unless bibliographic
+    data is supplied, either through an external file specified
+    using the `--bibliography` option or the `bibliography`
+    field in metadata, or via a `references` section in metadata
+    containing a list of citations in CSL YAML format with
+    Markdown formatting.  The style is controlled by a [CSL]
+    stylesheet specified using the `--csl` option or the `csl`
+    field in metadata. (If no stylesheet is specified,
+    the `chicago-author-date` style will be used by default.)
+    The citation processing transformation may be applied before
+    or after filters or Lua filters (see `--filter`,
+    `--lua-filter`): these transformations are applied in the
+    order they appear on the command line.  For more
+    information, see the section on [Citations].
+
 `--bibliography=`*FILE*
 
 :   Set the `bibliography` field in the document's metadata to *FILE*,
-    overriding any value set in the metadata, and process citations
-    using `pandoc-citeproc`. (This is equivalent to
-    `--metadata bibliography=FILE --filter pandoc-citeproc`.)
-    If `--natbib` or `--biblatex` is also supplied, `pandoc-citeproc` is not
-    used, making this equivalent to `--metadata bibliography=FILE`.
-    If you supply this argument multiple times, each *FILE* will be added
-    to bibliography.
+    overriding any value set in the metadata.  If you supply
+    this argument multiple times, each *FILE* will be added to
+    bibliography.
 
 `--csl=`*FILE*
 
 :   Set the `csl` field in the document's metadata to *FILE*,
     overriding any value set in the metadata.  (This is equivalent to
-    `--metadata csl=FILE`.)
-    This option is only relevant with `pandoc-citeproc`.
+    `--metadata csl=FILE`.)  If *FILE* is a URL, it will be
+    fetched via HTTP.  If *FILE* is not found relative to the
+    working directory, it will be sought in the resource path
+    and finally in the `csl` subdirectory of the
+    pandoc user data directory.
 
 `--citation-abbreviations=`*FILE*
 
 :   Set the `citation-abbreviations` field in the document's metadata to
     *FILE*, overriding any value set in the metadata.  (This is equivalent to
     `--metadata citation-abbreviations=FILE`.)
-    This option is only relevant with `pandoc-citeproc`.
+    If *FILE* is a URL, it will be fetched via HTTP.  If *FILE* is not
+    found relative to the working directory, it will be sought
+    in the resource path and finally in the `csl` subdirectory
+    of the pandoc user data directory.
 
 `--natbib`
 
 :   Use [`natbib`] for citations in LaTeX output.  This option is not for use
-    with the `pandoc-citeproc` filter or with PDF output.  It is intended for
+    with the `--citeproc` option or with PDF output.  It is intended for
     use in producing a LaTeX file that can be processed with [`bibtex`].
 
 `--biblatex`
 
 :   Use [`biblatex`] for citations in LaTeX output.  This option is not for use
-    with the `pandoc-citeproc` filter or with PDF output. It is intended for
+    with the `--citeproc` option or with PDF output. It is intended for
     use in producing a LaTeX file that can be processed with [`bibtex`] or [`biber`].
 
 ## Math rendering in HTML {.options}
@@ -1427,6 +1455,7 @@ Nonzero exit codes have the following meanings:
    21 PandocUnknownReaderError
    22 PandocUnknownWriterError
    23 PandocUnsupportedExtensionError
+   24 PandocCiteprocError
    31 PandocEpubSubdirectoryError
    43 PandocPDFError
    47 PandocPDFProgramNotFoundError
@@ -1496,7 +1525,6 @@ resource-path: ["."]
 # the .lua extension, and json filters otherwise.  But
 # the filter type can also be specified explicitly, as shown:
 filters:
-- pandoc-citeproc
 - wordcount.lua
 - type: json
   path: foo.lua
@@ -4738,118 +4766,17 @@ they cannot contain multiple paragraphs).  The syntax is as follows:
 
 Inline and regular footnotes may be mixed freely.
 
-## Citations
+## Citation syntax
 
 #### Extension: `citations` ####
 
-Using an external filter, `pandoc-citeproc`, pandoc can automatically generate
-citations and a bibliography in a number of styles.  Basic usage is
-
-    pandoc --filter pandoc-citeproc myinput.txt
-
-In order to use this feature, you will need to specify a bibliography file
-using the `bibliography` metadata field in a YAML metadata section, or
-`--bibliography` command line argument. You can supply multiple `--bibliography`
-arguments or set `bibliography` metadata field to YAML array, if you want to
-use multiple bibliography files.  The bibliography may have any of these
-formats:
-
-  Format            File extension
-  ------------      --------------
-  BibLaTeX          .bib
-  BibTeX            .bibtex
-  Copac             .copac
-  CSL JSON          .json
-  CSL YAML          .yaml
-  EndNote           .enl
-  EndNote XML       .xml
-  ISI               .wos
-  MEDLINE           .medline
-  MODS              .mods
-  RIS               .ris
-
-Note that `.bib` can be used with both BibTeX and BibLaTeX files;
-use `.bibtex` to force BibTeX.
-
-Note that `pandoc-citeproc --bib2json` and `pandoc-citeproc --bib2yaml`
-can produce `.json` and `.yaml` files from any of the supported formats.
-
-In-field markup: In BibTeX and BibLaTeX databases,
-pandoc-citeproc parses a subset of LaTeX markup; in CSL YAML
-databases, pandoc Markdown; and in CSL JSON databases, an
-[HTML-like markup][CSL markup specs]:
-
-`<i>...</i>`
-:   italics
-
-`<b>...</b>`
-:   bold
-
-`<span style="font-variant:small-caps;">...</span>` or `<sc>...</sc>`
-:   small capitals
-
-`<sub>...</sub>`
-:   subscript
-
-`<sup>...</sup>`
-:   superscript
-
-`<span class="nocase">...</span>`
-:   prevent a phrase from being capitalized as title case
-
-`pandoc-citeproc -j` and `-y` interconvert the CSL JSON
-and CSL YAML formats as far as possible.
-
-As an alternative to specifying a bibliography file using `--bibliography`
-or the YAML metadata field `bibliography`, you can include
-the citation data directly in the `references` field of the
-document's YAML metadata. The field should contain an array of
-YAML-encoded references, for example:
-
-    ---
-    references:
-    - type: article-journal
-      id: WatsonCrick1953
-      author:
-      - family: Watson
-        given: J. D.
-      - family: Crick
-        given: F. H. C.
-      issued:
-        date-parts:
-        - - 1953
-          - 4
-          - 25
-      title: 'Molecular structure of nucleic acids: a structure for deoxyribose
-        nucleic acid'
-      title-short: Molecular structure of nucleic acids
-      container-title: Nature
-      volume: 171
-      issue: 4356
-      page: 737-738
-      DOI: 10.1038/171737a0
-      URL: https://www.nature.com/articles/171737a0
-      language: en-GB
-    ...
-
-(`pandoc-citeproc --bib2yaml` can produce these from a bibliography file in one
-of the supported formats.)
-
-Citations and references can be formatted using any style supported by the
-[Citation Style Language], listed in the [Zotero Style Repository].
-These files are specified using the `--csl` option or the `csl` metadata field.
-By default, `pandoc-citeproc` will use the [Chicago Manual of Style] author-date
-format.  The CSL project provides further information on [finding and editing styles].
-
-To make your citations hyperlinks to the corresponding bibliography
-entries, add `link-citations: true` to your YAML metadata.
-
-Citations go inside square brackets and are separated by semicolons.
-Each citation must have a key, composed of '@' + the citation
-identifier from the database, and may optionally have a prefix,
-a locator, and a suffix.  The citation key must begin with a letter, digit,
-or `_`, and may contain alphanumerics, `_`, and internal punctuation
-characters (`:.#$%&-+?<>~/`).  Here are some examples:
+Markdown citations go inside square brackets and are separated
+by semicolons.  Each citation must have a key, composed of '@' +
+the citation identifier from the database, and may optionally
+have a prefix, a locator, and a suffix.  The citation key must
+begin with a letter, digit, or `_`, and may contain
+alphanumerics, `_`, and internal punctuation characters
+(`:.#$%&-+?<>~/`).  Here are some examples:
 
     Blah blah [see @doe99, pp. 33-35; also @smith04, chap. 1].
 
@@ -4857,7 +4784,7 @@ characters (`:.#$%&-+?<>~/`).  Here are some examples:
 
     Blah blah [@smith04; @doe99].
 
-`pandoc-citeproc` detects locator terms in the [CSL locale files].
+`pandoc` detects locator terms in the [CSL locale files].
 Either abbreviated or unabbreviated forms are accepted. In the `en-US`
 locale, locator terms can be written in either singular or plural forms,
 as `book`, `bk.`/`bks.`; `chapter`, `chap.`/`chaps.`; `column`,
@@ -4868,9 +4795,9 @@ as `book`, `bk.`/`bks.`; `chapter`, `chap.`/`chaps.`; `column`,
 `verse`, `v.`/`vv.`; `volume`, `vol.`/`vols.`; `¶`/`¶¶`; `§`/`§§`. If no
 locator term is used, "page" is assumed.
 
-`pandoc-citeproc` will use heuristics to distinguish the locator
+`pandoc` will use heuristics to distinguish the locator
 from the suffix. In complex cases, the locator can be enclosed
-in curly braces (using `pandoc-citeproc` 0.15 and higher only):
+in curly braces:
 
     [@smith{ii, A, D-Z}, with a suffix]
     [@smith, {pp. iv, vi-xi, (xv)-(xvii)} with suffix here]
@@ -4887,68 +4814,14 @@ You can also write an in-text citation, as follows:
 
     @smith04 [p. 33] says blah.
 
-If the style calls for a list of works cited, it will be placed
-in a div with id `refs`, if one exists:
 
-    ::: {#refs}
-    :::
-
-Otherwise, it will be placed at the end of the document.
-Generation of the bibliography can be suppressed by setting
-`suppress-bibliography: true` in the YAML metadata.
-
-If you wish the bibliography to have a section heading, you can
-set `reference-section-title` in the metadata, or put the heading
-at the beginning of the div with id `refs` (if you are using it)
-or at the end of your document:
-
-    last paragraph...
-
-    # References
-
-The bibliography will be inserted after this heading.  Note that
-the `unnumbered` class will be added to this heading, so that the
-section will not be numbered.
-
-If you want to include items in the bibliography without actually
-citing them in the body text, you can define a dummy `nocite` metadata
-field and put the citations there:
-
-    ---
-    nocite: |
-      @item1, @item2
-    ...
-
-    @item3
-
-In this example, the document will contain a citation for `item3`
-only, but the bibliography will contain entries for `item1`, `item2`, and
-`item3`.
-
-It is possible to create a bibliography with all the citations,
-whether or not they appear in the document, by using a wildcard:
-
-    ---
-    nocite: |
-      @*
-    ...
-
-For LaTeX output, you can also use [`natbib`] or [`biblatex`] to
-render the bibliography. In order to do so, specify bibliography
-files as outlined above, and add `--natbib` or `--biblatex`
-argument to `pandoc` invocation. Bear in mind that bibliography
-files have to be in respective format (either BibTeX or
-BibLaTeX).
-
-For more information, see the [pandoc-citeproc man page].
-
+[CSL]: https://docs.citationstyles.org/en/stable/specification.html
 [CSL markup specs]: https://docs.citationstyles.org/en/1.0/release-notes.html#rich-text-markup-within-fields
 [Chicago Manual of Style]: https://chicagomanualofstyle.org
 [Citation Style Language]: https://citationstyles.org
 [Zotero Style Repository]: https://www.zotero.org/styles
 [finding and editing styles]: https://citationstyles.org/authors/
 [CSL locale files]: https://github.com/citation-style-language/locales
-[pandoc-citeproc man page]: https://github.com/jgm/pandoc-citeproc/blob/master/man/pandoc-citeproc.1.md
 
 ## Non-pandoc extensions
 
@@ -5169,7 +5042,298 @@ commonmark.  So, for example, `backtick_code_blocks`
 does not appear as an extension, since it is enabled by
 default and cannot be disabled.
 
-# Producing slide shows with pandoc
+# Citations
+
+When the `--citeproc` option is used, pandoc can automatically generate
+citations and a bibliography in a number of styles.  Basic usage is
+
+    pandoc --citeproc myinput.txt
+
+To use this feature, you will need to have
+
+- a document containing citations (see [Extension: `citations`]);
+- a source of bibliographic data: either an external bibliography
+  file or a list of `references` in the document's YAML metadata
+- optionally, a [CSL] citation style.
+
+## Specifying bibliographic data
+
+You can specify an external bibliography using the
+`bibliography` metadata field in a YAML metadata section or the
+`--bibliography` command line argument. If you want to use
+multiple bibliography files, you can supply multiple
+`--bibliography` arguments or set `bibliography` metadata field
+to YAML array.  A bibliography may have any of these formats:
+
+  Format            File extension
+  ------------      --------------
+  BibLaTeX          .bib
+  BibTeX            .bibtex
+  CSL JSON          .json
+  CSL YAML          .yaml
+
+Note that `.bib` can be used with both BibTeX and BibLaTeX files;
+use the extension `.bibtex` to force interpretation as BibTeX.
+
+In BibTeX and BibLaTeX databases, pandoc parses LaTeX markup
+inside fields such as `title`; in CSL YAML databases, pandoc
+Markdown; and in CSL JSON databases, an [HTML-like markup][CSL
+markup specs]:
+
+`<i>...</i>`
+:   italics
+
+`<b>...</b>`
+:   bold
+
+`<span style="font-variant:small-caps;">...</span>` or `<sc>...</sc>`
+:   small capitals
+
+`<sub>...</sub>`
+:   subscript
+
+`<sup>...</sup>`
+:   superscript
+
+`<span class="nocase">...</span>`
+:   prevent a phrase from being capitalized as title case
+
+As an alternative to specifying a bibliography file using
+`--bibliography` or the YAML metadata field `bibliography`, you
+can include the citation data directly in the `references` field
+of the document's YAML metadata. The field should contain an
+array of YAML-encoded references, for example:
+
+    ---
+    references:
+    - type: article-journal
+      id: WatsonCrick1953
+      author:
+      - family: Watson
+        given: J. D.
+      - family: Crick
+        given: F. H. C.
+      issued:
+        date-parts:
+        - - 1953
+          - 4
+          - 25
+      title: 'Molecular structure of nucleic acids: a structure for
+        deoxyribose nucleic acid'
+      title-short: Molecular structure of nucleic acids
+      container-title: Nature
+      volume: 171
+      issue: 4356
+      page: 737-738
+      DOI: 10.1038/171737a0
+      URL: https://www.nature.com/articles/171737a0
+      language: en-GB
+    ...
+
+Note that `pandoc` can be used to produce such a YAML metadata
+section from a BibTeX, BibLaTeX, or CSL JSON bibliography:
+
+    pandoc chem.bib -s -t markdown
+    pandoc chem.json -s -t markdown
+
+
+### Capitalization in titles
+
+If you are using a bibtex or biblatex bibliography, then observe
+the following rules:
+
+  - English titles should be in title case.  Non-English titles should
+    be in sentence case, and the `langid` field in biblatex should be
+    set to the relevant language.  (The following values are treated
+    as English:  `american`, `british`, `canadian`, `english`,
+    `australian`, `newzealand`, `USenglish`, or `UKenglish`.)
+
+  - As is standard with bibtex/biblatex, proper names should be
+    protected with curly braces so that they won't be lowercased
+    in styles that call for sentence case.  For example:
+
+        title = {My Dinner with {Andre}}
+
+  - In addition, words that should remain lowercase (or camelCase)
+    should be protected:
+
+        title = {Spin Wave Dispersion on the {nm} Scale}
+
+    Though this is not necessary in bibtex/biblatex, it is necessary
+    with citeproc, which stores titles internally in sentence case,
+    and converts to title case in styles that require it.  Here we
+    protect "nm" so that it doesn't get converted to "Nm" at this stage.
+
+If you are using a CSL bibliography (either JSON or YAML), then observe
+the following rules:
+
+  - All titles should be in sentence case.
+
+  - Use the `language` field for non-English titles to prevent their
+    conversion to title case in styles that call for this. (Conversion
+    happens only if `language` begins with `en` or is left empty.)
+
+  - Protect words that should not be converted to title case using
+    this syntax:
+
+        Spin wave dispersion on the <span class="nocase">nm</span> scale
+
+### Conference Papers, Published vs. Unpublished
+
+For a formally published conference paper, use the biblatex entry type
+`inproceedings` (which will be mapped to CSL `paper-conference`).
+
+For an unpublished manuscript, use the biblatex entry type
+`unpublished` without an `eventtitle` field (this entry type
+will be mapped to CSL `manuscript`).
+
+For a talk, an unpublished conference paper, or a poster
+presentation, use the biblatex entry type `unpublished` with an
+`eventtitle` field (this entry type will be mapped to CSL
+`speech`). Use the biblatex `type` field to indicate the type,
+e.g. "Paper", or "Poster". `venue` and `eventdate` may be useful
+too, though `eventdate` will not be rendered by most CSL styles.
+Note that `venue` is for the event's venue, unlike `location`
+which describes the publisher's location; do not use the latter
+for an unpublished conference paper.
+
+
+## Specifying a citation style
+
+Citations and references can be formatted using any style supported by the
+[Citation Style Language], listed in the [Zotero Style Repository].
+These files are specified using the `--csl` option or the `csl`
+(or `citation-style`) metadata field.  By default, pandoc will
+use the [Chicago Manual of Style] author-date format.  (You can
+override this default by copying a CSL style of your choice
+to `default.csl` in your user data directory.)
+The CSL project provides further information on [finding and
+editing styles].
+
+The `--citation-abbreviations` option (or the
+`citation-abbreviations` metadata field) may be used to
+specify a JSON file containing abbreviations of journals
+that should be used in formatted bibliographies when
+`form="short"` is specified.  The format of the file
+can be illustrated with an example:
+
+
+    { "default": {
+        "container-title": {
+                "Lloyd's Law Reports": "Lloyd's Rep",
+                "Estates Gazette": "EG",
+                "Scots Law Times": "SLT"
+        }
+      }
+    }
+
+## Raw content in a style
+
+To include raw content in a prefix, suffix, delimiter, or term,
+surround it with these tags indicating the format:
+
+    {{jats}}&lt;ref&gt;{{/jats}}
+
+Without the tags, the string will be interpreted as a string
+and escaped in the output, rather than being passed through raw.
+
+This feature allows stylesheets to be customized to give
+different output for different output formats.  However,
+stylesheets customized in this way will not be useable
+by other CSL implementations.
+
+
+
+## Placement of the bibliography
+
+If the style calls for a list of works cited, it will be placed
+in a div with id `refs`, if one exists:
+
+    ::: {#refs}
+    :::
+
+Otherwise, it will be placed at the end of the document.
+Generation of the bibliography can be suppressed by setting
+`suppress-bibliography: true` in the YAML metadata.
+
+If you wish the bibliography to have a section heading, you can
+set `reference-section-title` in the metadata, or put the heading
+at the beginning of the div with id `refs` (if you are using it)
+or at the end of your document:
+
+    last paragraph...
+
+    # References
+
+The bibliography will be inserted after this heading.  Note that
+the `unnumbered` class will be added to this heading, so that the
+section will not be numbered.
+
+## Including uncited items in the bibliography
+
+If you want to include items in the bibliography without actually
+citing them in the body text, you can define a dummy `nocite` metadata
+field and put the citations there:
+
+    ---
+    nocite: |
+      @item1, @item2
+    ...
+
+    @item3
+
+In this example, the document will contain a citation for `item3`
+only, but the bibliography will contain entries for `item1`, `item2`, and
+`item3`.
+
+It is possible to create a bibliography with all the citations,
+whether or not they appear in the document, by using a wildcard:
+
+    ---
+    nocite: |
+      @*
+    ...
+
+For LaTeX output, you can also use [`natbib`] or [`biblatex`] to
+render the bibliography. In order to do so, specify bibliography
+files as outlined above, and add `--natbib` or `--biblatex`
+argument to `pandoc` invocation. Bear in mind that bibliography
+files have to be in either BibTeX (for `--natbib`)
+or BibLaTeX (for `--biblatex`) format.
+
+## Other relevant metadata fields
+
+A few other metadata fields affect bibliography formatting:
+
+`link-citation`
+:   If true, citations will be
+    hyperlinked to the corresponding bibliography entries
+    (for author-date and numerical styles only).
+
+`lang`
+:   The `lang` field will affect how the style is localized,
+    for example in the translation of labels and the use
+    of quotation marks.  (For backwards compatibility,
+    `locale` may be used instead of `lang`, but this use
+    is deprecated.)
+
+`notes-after-punctuation`
+:    If true (the default), pandoc will put footnote citations
+     after following punctuation.  For example, if the source
+     contains `blah blah [@jones99].`, the result will look like
+     `blah blah.[^1]`, with the note moved after the period and
+     the space collapsed.  If false, the space will still be
+     collapsed, but the footnote will not be moved after the
+     punctuation.
+
+
+
+
+
+
+
+
+# Slide shows
 
 You can use pandoc to produce an HTML + JavaScript slide presentation
 that can be viewed via a web browser.  There are five ways to do this,
@@ -5511,7 +5675,7 @@ Slide 1 has background_image.png as its background.
 Slide 2 has a special image for its background, even though the heading has no content.
 ```
 
-# Creating EPUBs with pandoc
+# EPUBs
 
 ## EPUB Metadata
 
@@ -5674,7 +5838,7 @@ with the `src` attribute.  For example:
       </source>
     </audio>
 
-# Creating Jupyter notebooks with pandoc
+# Jupyter notebooks
 
 When creating a [Jupyter notebook], pandoc will try to infer the
 notebook structure.  Code blocks with the class `code` will be

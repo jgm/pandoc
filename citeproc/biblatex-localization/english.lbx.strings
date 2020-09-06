@@ -1,0 +1,254 @@
+bibliography|Bibliography|Bibliography
+references|References|References
+shorthands|List of Abbreviations|Abbreviations
+editor|editor|ed\adddot
+editors|editors|eds\adddot
+compiler|compiler|comp\adddot
+compilers|compilers|comp\adddot
+redactor|redactor|red\adddot
+redactors|redactors|red\adddot
+reviser|reviser|rev\adddot
+revisers|revisers|rev\adddot
+founder|founder|found\adddot
+founders|founders|found\adddot
+continuator|continued|cont\adddot
+continuators|continued|cont\adddot
+collaborator|collaborator|collab\adddot
+collaborators|collaborators|collab\adddot
+translator|translator|trans\adddot
+translators|translators|trans\adddot
+commentator|commentator|comm\adddot
+commentators|commentators|comm\adddot
+annotator|annotator|annot\adddot
+annotators|annotators|annot\adddot
+commentary|commentary|comm\adddot
+annotations|annotations|annot\adddot
+introduction|introduction|intro\adddot
+foreword|foreword|forew\adddot
+afterword|afterword|afterw\adddot
+organizer|organizer|org\adddot
+organizers|organizers|orgs\adddot
+byorganizer|organized by|org\adddotspace by
+byauthor|by|by
+byeditor|edited by|ed\adddotspace by
+bycompiler|compiled by|comp\adddotspace by
+byredactor|redacted by|red\adddotspace by
+byreviser|revised by|rev\adddotspace by
+byreviewer|reviewed by|rev\adddotspace by
+byfounder|founded by|found\adddotspace by
+bycontinuator|continued by|cont\adddotspace by
+bycollaborator|in collaboration with|in collab\adddotspace with
+bytranslator|translated \lbx@lfromlang\ by|trans\adddot\ \lbx@sfromlang\ by
+bycommentator|commented by|comm\adddot\ by
+byannotator|annotated by|annot\adddot\ by
+withcommentator|with a commentary by|with a comment\adddot\ by
+withannotator|with annotations by|with annots\adddot\ by
+withintroduction|with an introduction by|with an intro\adddot\ by
+withforeword|with a foreword by|with a forew\adddot\ by
+withafterword|with an afterword by|with an afterw\adddot\ by
+and|and|and
+andothers|et\addabbrvspace al\adddot|et\addabbrvspace al\adddot
+andmore|et\addabbrvspace al\adddot|et\addabbrvspace al\adddot
+volume|volume|vol\adddot
+volumes|volumes|vols\adddot
+involumes|in|in
+jourvol|volume|vol\adddot
+jourser|series|ser\adddot
+book|book|book
+part|part|part
+issue|issue|issue
+newseries|new series|new ser\adddot
+oldseries|old series|old ser\adddot
+edition|edition|ed\adddot
+reprint|reprint|repr\adddot
+reprintof|reprint of|repr\adddotspace of
+reprintas|reprinted as|rpt\adddotspace as
+reprintfrom|reprinted from|repr\adddotspace from
+reviewof|review of|rev\adddotspace of
+translationof|translation of|trans\adddotspace of
+translationas|translated as|trans\adddotspace as
+translationfrom|translated from|trans\adddotspace from
+origpubas|originally published as|orig\adddotspace pub\adddotspace as
+origpubin|originally published in|orig\adddotspace pub\adddotspace in
+astitle|as|as
+bypublisher|by|by
+nodate|no date|n\adddot d\adddot
+page|page|p\adddot
+pages|pages|pp\adddot
+column|column|col\adddot
+columns|columns|cols\adddot
+line|line|l\adddot
+lines|lines|ll\adddot
+verse|verse|v\adddot
+verses|verses|vv\adddot
+section|section|\S
+sections|sections|\S\S
+paragraph|paragraph|par\adddot
+paragraphs|paragraphs|par\adddot
+pagetotal|page|p\adddot
+pagetotals|pages|pp\adddot
+columntotal|column|col\adddot
+columntotals|columns|cols\adddot
+linetotal|line|l\adddot
+linetotals|lines|ll\adddot
+versetotal|verse|v\adddot
+versetotals|verses|vv\adddot
+sectiontotal|section|\S
+sectiontotals|sections|\S\S
+paragraphtotal|paragraph|par\adddot
+paragraphtotals|paragraphs|par\adddot
+in|in|in
+inseries|in|in
+ofseries|of|of
+number|number|no\adddot
+chapter|chapter|chap\adddot
+bathesis|Bachelor's thesis|BA\addabbrvspace thesis
+mathesis|Master's thesis|MA\addabbrvspace thesis
+phdthesis|PhD\addabbrvspace thesis|PhD\addabbrvspace thesis
+candthesis|Candidate thesis|Cand\adddotspace thesis
+resreport|research report|research rep\adddot
+techreport|technical report|tech\adddotspace rep\adddot
+software|computer software|comp\adddotspace software
+datacd|CD-ROM|CD-ROM
+audiocd|audio CD|audio CD
+version|version|version
+url|address|address
+urlfrom|available from|available from
+urlseen|visited on|visited on
+inpreparation|in preparation|in preparation
+submitted|submitted|submitted
+forthcoming|forthcoming|forthcoming
+inpress|in press|in press
+prepublished|pre-published|pre-published
+citedas|henceforth cited as|henceforth cited as
+thiscite|especially|esp\adddot
+seenote|see note|see n\adddot
+quotedin|quoted in|qtd\adddotspace in
+idem|idem|idem
+idemsm|idem|idem
+idemsf|eadem|eadem
+idemsn|idem|idem
+idempm|eidem|eidem
+idempf|eaedem|eaedem
+idempn|eadem|eadem
+idempp|eidem|eidem
+ibidem|ibidem|ibid\adddot
+opcit|op\adddotspace cit\adddot|op\adddotspace cit\adddot
+loccit|loc\adddotspace cit\adddot|loc\adddotspace cit\adddot
+confer|cf\adddot|cf\adddot
+sequens|sq\adddot|sq\adddot
+sequentes|sqq\adddot|sqq\adddot
+passim|passim|pass\adddot
+see|see|see
+seealso|see also|see also
+backrefpage|cited on page|cit\adddotspace on p\adddot
+backrefpages|cited on pages|cit\adddotspace on pp\adddot
+january|January|Jan\adddot
+february|February|Feb\adddot
+march|March|Mar\adddot
+april|April|Apr\adddot
+may|May|May
+june|June|June
+july|July|July
+august|August|Aug\adddot
+september|September|Sept\adddot
+october|October|Oct\adddot
+november|November|Nov\adddot
+december|December|Dec\adddot
+langamerican|American|American
+langbrazilian|Brazilian|Brazilian
+langbulgarian|Bulgarian|Bulgarian
+langcatalan|Catalan|Catalan
+langcroatian|Croatian|Croatian
+langczech|Czech|Czech
+langdanish|Danish|Danish
+langdutch|Dutch|Dutch
+langenglish|English|English
+langestonian|Estonian|Estonian
+langfinnish|Finnish|Finnish
+langfrench|French|French
+langgalician|Galician|Galician
+langgerman|German|German
+langgreek|Greek|Greek
+langhungarian|Hungarian|Hungarian
+langitalian|Italian|Italian
+langjapanese|Japanese|Japanese
+langlatin|Latin|Latin
+langlatvian|Latvian|Latvian
+langlithuanian|Lithuanian|Lithuanian
+langnorwegian|Norwegian|Norwegian
+langpolish|Polish|Polish
+langportuguese|Portuguese|Portuguese
+langrussian|Russian|Russian
+langserbian|Serbian|Serbian
+langslovak|Slovak|Slovak
+langslovene|Slovene|Slovene
+langspanish|Spanish|Spanish
+langswedish|Swedish|Swedish
+langturkish|Turkish|Turkish
+langukrainian|Ukrainian|Ukrainian
+fromamerican|from the American|from the American
+frombrazilian|from the Brazilian|from the Brazilian
+frombulgarian|from the Bulgarian|from the Bulgarian
+fromcatalan|from the Catalan|from the Catalan
+fromcroatian|from the Croatian|from the Croatian
+fromczech|from the Czech|from the Czech
+fromdanish|from the Danish|from the Danish
+fromdutch|from the Dutch|from the Dutch
+fromenglish|from the English|from the English
+fromestonian|from the Estonian|from the Estonian
+fromfinnish|from the Finnish|from the Finnish
+fromfrench|from the French|from the French
+fromgalician|from the Galician|from the Galician
+fromgerman|from the German|from the German
+fromgreek|from the Greek|from the Greek
+fromhungarian|from the Hungarian|from the Hungarian
+fromitalian|from the Italian|from the Italian
+fromjapanese|from the Japanese|from the Japanese
+fromlatin|from the Latin|from the Latin
+fromlatvian|from the Latvian|from the Latvian
+fromlithuanian|from the Lithuanian|from the Lithuanian
+fromnorwegian|from the Norwegian|from the Norwegian
+frompolish|from the Polish|from the Polish
+fromportuguese|from the Portuguese|from the Portuguese
+fromrussian|from the Russian|from the Russian
+fromserbian|from the Serbian|from the Serbian
+fromslovak|from the Slovak|from the Slovak
+fromslovene|from the Slovene|from the Slovene
+fromspanish|from the Spanish|from the Spanish
+fromswedish|from the Swedish|from the Swedish
+fromturkish|from the Turkish|from the Turkish
+fromukrainian|from the Ukrainian|from the Ukrainian
+countryde|Germany|DE
+countryeu|European Union|EU
+countryep|European Union|EP
+countryfr|France|FR
+countryuk|United Kingdom|GB
+countryus|United States of America|US
+patent|patent|pat\adddot
+patentde|German patent|German pat\adddot
+patenteu|European patent|European pat\adddot
+patentfr|French patent|French pat\adddot
+patentuk|British patent|British pat\adddot
+patentus|U.S\adddotspace patent|U.S\adddotspace pat\adddot
+patreq|patent request|pat\adddot\ req\adddot
+patreqde|German patent request|German pat\adddot\ req\adddot
+patreqeu|European patent request|European pat\adddot\ req\adddot
+patreqfr|French patent request|French pat\adddot\ req\adddot
+patrequk|British patent request|British pat\adddot\ req\adddot
+patrequs|U.S\adddotspace patent request|U.S\adddotspace pat\adddot\ req\adddot
+file|file|file
+library|library|library
+abstract|abstract|abstract
+annotation|annotations|annotations
+commonera|Common Era|CE
+beforecommonera|Before Common Era|BCE
+annodomini|Anno Domini|AD
+beforechrist|Before Christ|BC
+circa|circa|ca\adddot
+spring|Spring|Spr\adddot
+summer|Summer|Sum\adddot
+autumn|Autumn|Aut\adddot
+winter|Winter|Win\adddot
+am|AM|AM
+pm|PM|PM

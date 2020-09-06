@@ -16,10 +16,10 @@ ghc --version
 
 cabal v2-update
 cabal v2-clean
-cabal v2-configure --enable-tests -f-export-dynamic -fstatic -fembed_data_files -fbibutils --enable-executable-static --ghc-options '-optc-Os -optl=-pthread -split-sections' . pandoc-citeproc
-cabal v2-build . pandoc-citeproc
-cabal v2-test -j1 . pandoc-citeproc
-for f in $(find dist-newstyle -name 'pandoc*' -type f -perm /400); do cp $f /artifacts/; done
+cabal v2-configure --enable-tests -f-export-dynamic -fstatic -fembed_data_files -fbibutils --enable-executable-static --ghc-options '-optc-Os -optl=-pthread -split-sections' pandoc
+cabal v2-build
+cabal v2-test -j1
+for f in $(find dist-newstyle -name 'pandoc' -type f -perm /400); do cp $f /artifacts/; done
 
 # make deb
 
@@ -35,21 +35,14 @@ mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
 mkdir -p $DEST/share/doc/pandoc
 
-mkdir -p $DEST/share/doc/pandoc-citeproc
 find $DIST -type d | xargs chmod 755
 cp $ARTIFACTS/pandoc $DEST/bin/
-cp $ARTIFACTS/pandoc-citeproc $DEST/bin/
 strip $DEST/bin/pandoc
-strip $DEST/bin/pandoc-citeproc
 cp /mnt/man/pandoc.1 $DEST/share/man/man1/pandoc.1
-$ARTIFACTS/pandoc-citeproc --man > $DEST/share/man/man1/pandoc-citeproc.1
 gzip -9 $DEST/share/man/man1/pandoc.1
-gzip -9 $DEST/share/man/man1/pandoc-citeproc.1
 
 cp /mnt/COPYRIGHT $COPYRIGHT
 echo "" >> $COPYRIGHT
-echo "pandoc-citeproc" >> $COPYRIGHT
-$ARTIFACTS/pandoc-citeproc --license >> $COPYRIGHT
 
 INSTALLED_SIZE=$(du -k -s $DEST | awk '{print $1}')
 mkdir $DIST/DEBIAN
@@ -70,13 +63,10 @@ cd $ARTIFACTS
 rm -rf $TARGET
 mkdir $TARGET
 mkdir $TARGET/bin $TARGET/share $TARGET/share/man $TARGET/share/man/man1
-./pandoc-citeproc --man > $TARGET/share/man/man1/pandoc-citeproc.1
 cp /mnt/man/pandoc.1 $TARGET/share/man/man1
-mv pandoc pandoc-citeproc $TARGET/bin
+mv pandoc $TARGET/bin
 strip $TARGET/bin/pandoc
-strip $TARGET/bin/pandoc-citeproc
 gzip -9 $TARGET/share/man/man1/pandoc.1
-gzip -9 $TARGET/share/man/man1/pandoc-citeproc.1
 
 tar cvzf $TARGET-linux-amd64.tar.gz $TARGET
 rm -r $TARGET

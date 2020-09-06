@@ -1,0 +1,98 @@
+bibliography|Bibliografi|Bibliografi
+references|Referanser|Referanser
+shorthands|Forkortelser|Forkortelser
+compiler|kompilator|komp\adddot
+compilers|kompilatorer|komp\adddot
+redactor|bearbeidelse|bearb\adddot
+redactors|bearbeidelse|bearb\adddot
+reviser|revisjon|rev\adddot
+revisers|revisjon|rev\adddot
+founder|grunnlegger|grunnl\adddot
+founders|grunnleggere|grunnl\adddot
+collaborator|samarbeid|samarb\adddot
+collaborators|samarbeid|samarb\adddot
+translator|oversetter|overs\adddot
+translators|oversettere|overs\adddot
+commentator|kommentarer|komm\adddot
+commentators|kommentarer|komm\adddot
+annotator|forklaringer|forkl\adddot
+annotators|forklaringer|forkl\adddot
+commentary|kommentarer|komm\adddot
+annotations|forklaringer|forkl\adddot
+introduction|innledning|innl\adddot
+foreword|forord|forord
+afterword|etterord|etterord
+organizer|organisator|org\adddot
+organizers|organisatorer|org\adddot
+byorganizer|organisert av|org\adddotspace av
+byauthor|av|av
+byeditor|redigert av|red\adddotspace av
+bycompiler|kompilert av|komp\adddotspace av
+byredactor|bearbeidet av|bearb\adddotspace av
+byreviser|revidert av|rev\adddotspace av
+byreviewer|kritikk ved|krit\adddotspace ved
+byfounder|grunnlagt av|grunnl\adddotspace av
+bycollaborator|i samarbeid med|i samarb\adddotspace med
+bytranslator|oversatt \lbx@lfromlang\ av|overs\adddot\ \lbx@sfromlang\ av
+bycommentator|kommentert av|komm\adddot\ av
+byannotator|forklart av|forkl\adddot\ av
+withcommentator|med kommentarer av|med komm\adddot\ av
+withannotator|med forklaringer av|med forkl\adddot\ av
+withintroduction|med innledning av|med innl\adddot\ av
+withforeword|med forord av|med forord av
+withafterword|med etterord av|med etterord av
+and|og|og
+andothers|med flere|mfl\adddot
+andmore|med mer|m.m\adddot
+volume|bind|bd\adddot
+volumes|bind|bd\adddot
+involumes|i|i
+jourser|serie|ser\adddot
+book|bok|bok
+part|del|del
+issue|nummer|nr\adddot
+newseries|ny serie|ny ser\adddot
+oldseries|gammel serie|gl\adddotspace ser\adddot
+edition|utgave|utg\adddot
+reprint|opptrykk|opptr\adddot
+reprintof|opptrykk av|opptr\adddotspace av
+reprintas|trykt om som|tr\adddotspace om som
+reprintfrom|opptrykk fra|opptr\adddotspace fra
+translationof|oversettelse av|overs\adddotspace av
+translationas|oversatt som|overs\adddotspace som
+translationfrom|oversatt fra|overs\adddotspace fra
+reviewof|kritikk av|krit\adddotspace av
+origpubas|opprinnelig utgitt som|oppr\adddot\ utg\adddot\ som
+origpubin|opprinnelig utgitt i|oppr\adddot\ utg\adddot\ i
+astitle|som|som
+bypublisher|av|av
+nodate|udatert|udatert
+page|side|s\adddot
+pages|sider|s\adddot
+column|spalte|sp\adddot
+columns|spalter|sp\adddot
+line|linje|l\adddot
+lines|linjer|l\adddot
+verse|vers|v\adddot
+verses|vers|v\adddot
+section|avsnitt|avsn\adddot
+sections|avsnitt|avsn\adddot
+paragraph|avsnitt|avsn\adddot
+paragraphs|avsnitt|avsn\adddot
+pagetotal|side|s\adddot
+pagetotals|sider|s\adddot
+columntotal|spalte|sp\adddot
+columntotals|spalter|sp\adddot
+linetotal|linje|l\adddot
+linetotals|linjer|l\adddot
+versetotal|vers|v\adddot
+versetotals|vers|v\adddot
+sectiontotal|avsnitt|avsn\adddot
+sectiontotals|avsnitt|avsn\adddot
+paragraphtotal|avsnitt|avsn\adddot
+paragraphtotals|avsnitt|avsn\adddot
+in|i|i
+inseries|i|i
+ofseries|av|av
+number|nummer|nr\adddot
+chapter|kapittel|kap\adddot

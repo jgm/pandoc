@@ -5,7 +5,7 @@ Priority: optional
 Architecture: ARCHITECTURE
 Installed-Size: INSTALLED_SIZE
 Depends: libc6 (>= 2.13), libgmp10, zlib1g (>= 1:1.1.4)
-Replaces: pandoc-data, pandoc-citeproc
+Replaces: pandoc-data
 Suggests: texlive-latex-recommended, texlive-xetex,
  texlive-fonts-recommended
 Maintainer: John MacFarlane <jgm@berkeley.edu>

@@ -656,6 +656,12 @@ options =
                  "all|none|best")
                  "" -- "Starting number for sections, subsections, etc."
 
+    , Option "C" ["citeproc"]
+                 (NoArg
+                  (\opt -> return opt { optFilters =
+                      optFilters opt ++ [CiteprocFilter] }))
+                 "" -- "Process citations"
+
     , Option "" ["bibliography"]
                  (ReqArg
                   (\arg opt -> return opt{ optMetadata =

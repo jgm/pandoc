@@ -180,6 +180,9 @@ data-files:
                  data/bash_completion.tpl
                  -- jats csl
                  data/jats.csl
+                 -- citeproc
+                 data/default.csl
+                 citeproc/biblatex-localization/*.lbx.strings
                  -- documentation
                  MANUAL.txt, COPYRIGHT
 extra-source-files:
@@ -201,6 +204,9 @@ extra-source-files:
                  test/bodybg.gif
                  test/*.native
                  test/command/*.md
+                 test/command/*.csl
+                 test/command/biblio.bib
+                 test/command/biblatex-examples.bib
                  test/command/A.txt
                  test/command/B.txt
                  test/command/C.txt
@@ -397,6 +403,7 @@ library
                  blaze-markup          >= 0.8      && < 0.9,
                  bytestring            >= 0.9      && < 0.11,
                  case-insensitive      >= 1.2      && < 1.3,
+                 citeproc              >= 0.0      && < 0.1,
                  commonmark            >= 0.1.0.2  && < 0.2,
                  commonmark-extensions >= 0.2      && < 0.3,
                  commonmark-pandoc     >= 0.2      && < 0.3,
@@ -409,6 +416,7 @@ library
                  doctemplates          >= 0.8.2    && < 0.9,
                  emojis                >= 0.1      && < 0.2,
                  exceptions            >= 0.8      && < 0.11,
+                 file-embed            >= 0.0      && < 0.1,
                  filepath              >= 1.1      && < 1.5,
                  haddock-library       >= 1.8      && < 1.10,
                  hslua                 >= 1.1      && < 1.3,
@@ -457,7 +465,6 @@ library
     build-depends:  unix >= 2.4 && < 2.8
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
-     build-depends: file-embed >= 0.0 && < 0.1
      other-modules: Text.Pandoc.Data
   if os(windows)
     cpp-options:      -D_WINDOWS
@@ -495,6 +502,8 @@ library
                    Text.Pandoc.Readers.Markdown,
                    Text.Pandoc.Readers.CommonMark,
                    Text.Pandoc.Readers.Creole,
+                   Text.Pandoc.Readers.BibTeX,
+                   Text.Pandoc.Readers.CslJson,
                    Text.Pandoc.Readers.MediaWiki,
                    Text.Pandoc.Readers.Vimwiki,
                    Text.Pandoc.Readers.RST,
@@ -553,6 +562,7 @@ library
                    Text.Pandoc.Writers.FB2,
                    Text.Pandoc.Writers.TEI,
                    Text.Pandoc.Writers.Muse,
+                   Text.Pandoc.Writers.CslJson,
                    Text.Pandoc.Writers.Math,
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Writers.OOXML,
@@ -572,7 +582,8 @@ library
                    Text.Pandoc.Emoji,
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.BCP47,
-                   Text.Pandoc.Class
+                   Text.Pandoc.Class,
+                   Text.Pandoc.Citeproc
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,
                    Text.Pandoc.App.Opt,
@@ -651,6 +662,12 @@ library
                    Text.Pandoc.Translations,
                    Text.Pandoc.Slides,
                    Text.Pandoc.Image,
+                   Text.Pandoc.Citeproc.BibTeX,
+                   Text.Pandoc.Citeproc.CslJson,
+                   Text.Pandoc.Citeproc.Data,
+                   Text.Pandoc.Citeproc.Locator,
+                   Text.Pandoc.Citeproc.MetaValue,
+                   Text.Pandoc.Citeproc.Util,
                    Paths_pandoc
   autogen-modules: Paths_pandoc
   buildable:       True

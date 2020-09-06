@@ -1,0 +1,254 @@
+bibliography|Kirjallisuusluettelo|Kirjallisuus
+references|Viitteet|Viitteet
+shorthands|Lyhenteet|Lyhenteet
+editor|toimittanut|toim\adddot
+editors|toimittaneet|toim\adddot
+compiler|koontanut|koontanut
+compilers|koontaneet|koontaneet
+redactor|toimittanut|toim\adddot
+redactors|toimittaneet|toim\adddot
+reviser|toimittanut|toim\adddot
+revisers|toimittaneet|toim\adddot
+founder|perustaja|perustaja
+founders|perustajat|perustajat
+continuator|jatkaja|jatkaja
+continuators|jatkajat|jatkajat
+collaborator|avustaja|avustaja
+collaborators|avustajat|avustajat
+translator|k\"a\"ant\"anyt|k\"a\"ant\adddot
+translators|k\"a\"ant\"anyt|k\"a\"ant\adddot
+commentator|kommentaarin kirjoittanut|kommentaarin kirjoittanut
+commentators|kommentaarin kirjoittaneet|kommentaarin kirjoittaneet
+annotator|selityksin varustanut|selityksin varustanut
+annotators|selityksin varustaneet|selityksin varustaneet
+commentary|kommentaari|kommentaari
+annotations|selitykset|selitykset
+introduction|johdanto|johdanto
+foreword|esipuhe|esipuhe
+afterword|j\"alkisanat|j\"alkisanat
+organizer|toimittanut|toim\adddot
+organizers|toimittaneet|toim\adddot
+byorganizer|toimittanut|toim\adddot
+byauthor|kirjoittanut|kirj\adddot
+byeditor|toimittanut|toim\adddot
+bycompiler|koontanut|koontanut
+byredactor|toimittanut|toim\adddot
+byreviser|toimittanut|toim\adddot
+byreviewer|toimittanut|toim\adddot
+byfounder|perustanut|perustanut
+bycontinuator|jatkanut|jatkanut
+bycollaborator|yhteisty\"oss\"a|yhteisty\"oss\"a
+bytranslator|\lbx@lfromlang k\"a\"ant\"anyt|\lbx@sfromlang k\"a\"ant\adddot
+bycommentator|kommentaarin kirjoittanut|kommentaarin kirjoittanut
+byannotator|selityksin varustanut|selityksin varustanut
+withcommentator|kommentaarin kirjoittanut|kommentaarin kirjoittanut
+withannotator|selityksin varustanut|selityksin varustanut
+withintroduction|johdannon kirjottanut|johdannon kirjottanut
+withforeword|esipuheen kirjoittanut|esipuheen kirjoittanut
+withafterword|j\"alkisanat kirjoittanut|j\"alkisanat kirjoittanut
+and|ja|ja
+andothers|et\addabbrvspace al\adddot|et\addabbrvspace al\adddot
+andmore|jne\adddot|jne\adddot
+volume|volyymi|vol\adddot
+volumes|volyymit|vol\adddot
+involumes||
+jourvol|volyymi|vol\adddot
+jourser|sarja|sarja
+book|kirja|kirja
+part|osa|osa
+issue|numero|numero
+newseries|uusi sarja|uusi sarja
+oldseries|vanha sarja|vanha sarja
+edition|painos|painos
+reprint|j\"alkipainos|j\"alkipainos
+reprintof|julkaistu aiemmin nimell\"a|julkaistu aiemmin nimell\"a
+reprintas|julkaistu uudelleen nimell\"a|julkaistu uudelleen nimell\"a
+reprintfrom|julkaistu aiemmin nimell\"a|julkaistu aiemmin nimell\"a
+translationof|k\"a\"ann\"os teoksesta|k\"a\"ann\"os teoksesta
+translationas|k\"a\"annetty nimell\"a|k\"a\"annetty nimell\"a
+translationfrom|k\"a\"annetty kielest\"a|k\"a\"annetty kielest\"a
+reviewof|arvostelu teoksesta|arvostelu teoksesta
+origpubas|julkaistu ensi kerran nimell\"a|julkaistu ensi kerran nimell\"a
+origpubin|julkaistu ensi kerran vuonna|julkaistu ensi kerran vuonna
+astitle|nimell\"a|nimell\"a
+bypublisher|julkaissut|julkaissut
+page|sivu|s\adddot
+pages|sivut|s\adddot
+column|palsta|palsta
+columns|palstat|palstat
+line|rivi|rivi
+lines|rivit|rivit
+nodate|ei julkaisup\"aiv\"a\"a|ei julkaisup\"aiv\"a\"a
+verse|s\"ae|s\"ae
+verses|s\"akeet|s\"akeet
+section|kohta|kohta
+sections|kohdat|kohdat
+paragraph|kappale|kappale
+paragraphs|kappaleet|kappaleet
+pagetotal|sivu|s\adddot
+pagetotals|sivut|s\adddot
+columntotal|palsta|palsta
+columntotals|palstat|palstat
+linetotal|rivi|rivi
+linetotals|rivit|rivit
+versetotal|s\"ae|s\"ae
+versetotals|s\"akeet|s\"akeet
+sectiontotal|kohta|kohta
+sectiontotals|kohdat|kohdat
+paragraphtotal|kappale|kappale
+paragraphtotals|kappaleet|kappaleet
+in|teoksessa|teoksessa
+inseries|sarjassa|sarjassa
+ofseries|sarjassa|sarjassa
+number|numero|nro
+chapter|luku|luku
+bathesis|tutkielma|tutkielma
+mathesis|tutkielma|tutkielma
+phdthesis|tohtorinv\"ait\"oskirja|tohtorinv\"ait\"oskirja
+candthesis|kanditaatintutkielma|kanditaatintutkielma
+resreport|tutkimusraportti|tutkimusraportti
+techreport|tekninen raportti|tekninen raportti
+software|ohjelmisto|ohjelmisto
+datacd|data-CD|data-CD
+audiocd|\"a\"ani-CD|\"a\"ani-CD
+version|versio|versio
+url|url|url
+urlfrom|saatavilla osoitteesta|saatavilla osoitteesta
+urlseen|viitattu|viitattu
+inpreparation|valmisteilla|valmisteilla
+submitted|l\"ahetetty|l\"ahetetty
+forthcoming|hyv\"aksytty julkaistavaksi|hyv\"aksytty julkaistavaksi
+inpress|painossa|painossa
+prepublished|esijulkaistu|esijulkaistu
+citedas|jatkossa|jatkossa
+thiscite|sama|sama
+seenote|katso viite|katso viite
+quotedin|lainattu teoksessa|lainattu teoksessa
+idem|idem|id\adddot
+idemsf|idem|id\adddot
+idemsm|idem|id\adddot
+idemsn|idem|id\adddot
+idempf|idem|id\adddot
+idempm|idem|id\adddot
+idempn|idem|id\adddot
+idempp|idem|id\adddot
+ibidem|ibidem|ibid\adddot
+opcit|op\adddotspace cit\adddot|op\adddotspace cit\adddot
+loccit|loc\adddotspace cit\adddot|loc\adddotspace cit\adddot
+confer|cf\adddot|cf\adddot
+sequens|sq\adddot|sq\adddot
+sequentes|sqq\adddot|sqq\adddot
+passim|passim|pass\adddot
+see|katso|ks\adddot
+seealso|katso my\"os|katso my\"os
+backrefpage|katso sivu|ks\adddotspace s\adddot
+backrefpages|katso sivut|ks\adddotspace s\adddot
+january|tammikuuta|tammikuuta
+february|helmikuuta|helmikuuta
+march|maaliskuuta|maaliskuuta
+april|huhtikuuta|huhtikuuta
+may|toukokuuta|toukokuuta
+june|kes\"akuuta|kes\"akuuta
+july|hein\"akuuta|hein\"akuuta
+august|elokuuta|elokuuta
+september|syyskuuta|syyskuuta
+october|lokakuuta|lokakuuta
+november|marraskuuta|marraskuuta
+december|joulukuuta|joulukuuta
+basicjanuary|tammikuu|tammikuu
+basicfebruary|helmikuu|helmikuu
+basicmarch|maaliskuu|maaliskuu
+basicapril|huhtikuu|huhtikuu
+basicmay|toukokuu|toukokuu
+basicjune|kes\"akuu|kes\"akuu
+basicjuly|hein\"akuu|hein\"akuu
+basicaugust|elokuu|elokuu
+basicseptember|syyskuu|syyskuu
+basicoctober|lokakuu|lokakuu
+basicnovember|marraskuu|marraskuu
+basicdecember|joulukuu|joulukuu
+langamerican|amerikanenglanti|amerikanenglanti
+langbrazilian|brasilianportugali|brasilianportugali
+langbulgarian|bulgaria|bulgaria
+langcatalan|katalonia|katalonia
+langcroatian|kroatia|kroatia
+langdanish|tanska|tanska
+langdutch|hollanti|hollanti
+langenglish|englanti|englanti
+langestonian|viro|viro
+langfinnish|suomi|suomi
+langfrench|ranska|ranska
+langgalician|galicia|galicia
+langgerman|saksa|saksa
+langgreek|kreikka|kreikka
+langhungarian|unkari|unkari
+langitalian|italia|italia
+langlatin|latina|latina
+langlatvian|latvia|latvia
+langnorwegian|norja|norja
+langpolish|puola|puola
+langportuguese|portugali|portugali
+langrussian|ven\"aj\"a|ven\"aj\"a
+langslovak|slovakia|slovakia
+langslovene|slovenia|slovenia
+langspanish|espanja|espanja
+langswedish|ruotsi|ruotsi
+fromamerican|englannin kielest\"a|englannin kielest\"a
+frombrazilian|portugalin kielest\"a|portugalin kielest\"a
+frombulgarian|bulgarian kielest\"a|bulgarian kielest\"a
+fromcatalan|katalonian kielest\"a|katalonian kielest\"a
+fromcroatian|kroatian kielest\"a|kroatian kielest\"a
+fromdanish|tanskan kielest\"a|tanskan kielest\"a
+fromdutch|hollannin kielest\"a|hollannin kielest\"a
+fromenglish|englannin kielest\"a|englannin kielest\"a
+fromestonian|viron kielest\"a|viron kielest\"a
+fromfinnish|suomen kielest\"a|suomen kielest\"a
+fromfrench|ranskan kielest\"a|ranskan kielest\"a
+fromgalician|galician kielest\"a|galician kielest\"a
+fromgerman|saksan kielest\"a|saksan kielest\"a
+fromgreek|kreikan kielest\"a|kreikan kielest\"a
+fromhungarian|unkarin kielest\"a|unkarin kielest\"a
+fromitalian|italian kielest\"a|italian kielest\"a
+fromlatin|latinan kielest\"a|latinan kielest\"a
+fromlatvian|latvian kielest\"a|latvian kielest\"a
+fromnorwegian|norjan kielest\"a|norjan kielest\"a
+frompolish|puolan kielest\"a|puolan kielest\"a
+fromportuguese|portugalin kielest\"a|portugalin kielest\"a
+fromrussian|ven\"aj\"an kielest\"a|ven\"aj\"an kielest\"a
+fromslovak|slovakian kielest\"a|slovakian kielest\"a
+fromslovene|slovenian kielest\"a|slovenian kielest\"a
+fromspanish|espanjan kielest\"a|espanjan kielest\"a
+fromswedish|ruotsin kielest\"a|ruotsin kielest\"a
+countryde|Saksa|DE
+countryeu|Euroopan Unioni|EU
+countryep|Euroopan Unioni|EP
+countryfr|Ranska|FR
+countryuk|Iso-Britannia|GB
+countryus|Yhdysvallat|US
+patent|patentti|pat\adddot
+patentde|saksalainen patentti|saksalainen pat\adddot
+patenteu|Euroopan Unionin patentti|Euroopan Unionin pat\adddot
+patentfr|ranskalainen patentti|ranskalainen pat\adddot
+patentuk|isobritannialainen patentti|isobritannialainen pat\adddot
+patentus|yhdysvaltalainen patentti|yhdysvaltalainen pat\adddot
+patreq|patenttihakemus|pat\adddot\ hak\adddot
+patreqde|saksalainen patenttihakemus|saksalainen pat\adddot\ hak\adddot
+patreqeu|Euroopan Unionin patenttihakemus|Euroopan Unionin pat\adddot\ hak\adddot
+patreqfr|ranskalainen patenttihakemus|ranskalainen pat\adddot\ hak\adddot
+patrequk|isobritannialainen patenttihakemus|isobritannialainen pat\adddot\ hak\adddot
+patrequs|yhdysvaltalainen patenttihakemus|yhdysvaltalainen pat\adddot\ hak\adddot
+file|tiedosto|tiedosto
+library|kirjasto|kirjasto
+abstract|tiivistelm\"a|tiivistelm\"a
+annotation|selitykset|selitykset
+commonera|j\"alkeen ajanlaskun alun|jaa\adddot
+beforecommonera|ennen ajanlaskun alkua|eaa\adddot
+annodomini|j\"alkeen Kristuksen syntym\"an|jKr\adddot
+beforechrist|ennen Kristuksen syntym\"a\"a|eKr\adddot
+circa|noin|n\adddot
+spring|kev\"at|kev\"at
+summer|kes\"a|kes\"a
+autumn|syksy|syksy
+winter|talvi|talvi
+am|ap\adddot|ip\adddot
+pm|ip\adddot|ip\adddot

@@ -1,0 +1,100 @@
+bibliography|Bibliografia|Bibliografia
+references|Bibliografia|Bibliografia
+editor|redaktor|red\adddot
+editors|redaktorzy|red\adddot
+compiler|redaktor|red\adddot
+compilers|redaktorzy|red\adddot
+redactor|redaktor|red\adddot
+redactors|redaktorzy|red\adddot
+reviser|korektor|kor\adddot
+revisers|korektorzy|kor\adddot
+collaborator|uczestnik|ucz\adddot
+collaborators|uczestnicy|ucz\adddot
+translator|t\l umacz|t\l um\adddot
+translators|t\l umacze|t\l um\adddot
+commentator|komentator|kom\adddot
+commentators|komentatorzy|kom\adddot
+annotator|uwaga|uw\adddot
+annotators|uwagi|uw\adddot
+commentary|komentarz|kom\adddot
+annotations|komentarze|kom\adddot
+foreword|przedmowa|przedm\adddot
+afterword|pos\l owie|pos\l \adddot
+editortr|redaktor i t\l umacz|red\adddotspace i per\adddot
+editorstr|redaktorzy i t\l umacze|red\adddotspace i per\adddot
+editorco|redaktor i komentator|red\adddotspace i kom\adddot
+translatorco|t\l umacz i komentator|t\l um\adddotspace i kom\adddot
+translatorsco|t\l umacze i komentatorzy|t\l um\adddotspace i kom\adddot
+organizer|organizator|org\adddot
+organizers|organizatorzy|org\adddot
+byorganizer|organizowane|org\adddot
+byauthor|autorstwo|aut\adddot
+byeditor|redagowa\l|red\adddot
+byredactor|zredagowano|zred\adddot
+byreviser|poprawione|popr\adddot
+byreviewer|recenzja|rec\adddot
+bytranslator|t\l umaczenie \lbx@lfromlang|t\l um\adddotspace \lbx@sfromlang
+bycommentator|skomentowane przez|skom\adddot
+byannotator|uwagi od|uw\adddot
+withcommentator|komentarze|kom\adddot
+withannotator|uwagi|uw\adddot
+withforeword|przedmowa|przedm\adddot
+withafterword|pos\l owie|pos\l \adddot
+byeditoran|zredagowany i z uwagami|zredag\adddotspace i z uw\adddot
+byeditoraf|zredagowany, z pos\l owiem|zred., z pos\l \adddot
+byeditorcofo|zredagowany, komentarze i przedmowa|zred., kom\adddotspace i przedm\adddot
+byeditorcoaf|zredagowany, komentarze i pos\l owie|zred., kom\adddotspace i pos\l \adddot
+byeditoranfo|zredagowany, uwagi i przedmowa|zred., uw\adddotspace i przedm\adddot
+byeditoranaf|zredagowany, uwagi i pos\l owie|zred., uw\adddotspace i pos\l \adddot
+and|i|i
+andothers|i inni|i in\adddot
+andmore|i inni|i in\adddot
+volume|tom|t\adddot
+volumes|tomy|t\adddot
+involumes|w|w
+jourvol|tom|t\adddot
+jourser|seria|ser\adddot
+issue|wydanie|wyd\adddot
+newseries|nowa seria|now\adddotspace ser\adddot
+oldseries|stara seria|star\adddotspace ser\adddot
+edition|wydruk|wyd\adddot
+reprint|przedruk|przedr\adddot
+reprintof|przedruk|przedr\adddot
+reprintas|przedrukowano jako|przedr\adddotspace jako
+reprintfrom|przedrukowano z|przedr\adddotspace z
+translationof|t\l umaczenie|t\l um\adddot
+translationas|t\l umaczenie jako|t\l um\adddotspace jako
+translationfrom|t\l umaczenie z|t\l um\adddotspace z
+reviewof|recenzja na\addcolon|rec\adddotspace na\addcolon
+origpubin|pierwodruk wydano w|pierw\adddotspace wyd\adddotspace w
+astitle|pod tytu\l em|pod tyt\adddot
+page|strona|s\adddot
+pages|strony|s\adddot
+column|kolumna|kol\adddot
+columns|kolumny|kol\adddot
+line|linijka|l\adddot
+lines|linijki|l\adddot
+nodate|bez daty|b\adddot d\adddot
+verse|werset|wer\adddot
+verses|wersety|wer\adddot
+section|paragraf|par\adddot
+sections|paragrafy|par\adddot
+paragraph|akapit|akap\adddot
+paragraphs|akapity|akap\adddot
+pagetotal|strona|s\adddot
+pagetotals|strony|s\adddot
+columntotal|kolumna|kol\adddot
+columntotals|kolumny|kol\adddot
+linetotal|wers|wer\adddot
+linetotals|wersy|wer\adddot
+versetotal|wiersz|wier\adddot
+versetotals|wiersze|wier\adddot
+sectiontotal|paragraf|par\adddot
+sectiontotals|paragrafy|par\adddot
+paragraphtotal|akapit|akap\adddot
+paragraphtotals|akapit|akap\adddot
+in|w|w
+inseries|w|w
+ofseries|z|z
+number|numer|nr\adddot
+chapter|rozdzia\l |rozd\adddot

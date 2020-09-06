@@ -1,0 +1,190 @@
+references|Referencias|Referencias
+shorthands|Lista de abreviaturas|Abreviaturas
+editor|edici\'on|ed\adddot
+editors|edici\'on|eds\adddot
+commentator|comentario|com\adddot
+commentators|comentarios|coms\adddot
+annotator|anotaciones|anot\adddot
+annotators|anotaciones|anots\adddot
+commentary|comentario|com\adddot
+annotations|notas|notas
+introduction|introducci\'on|intr\adddot
+foreword|pr\'ologo|pr\'ol\adddot
+organizer|organizaci\'on|org\adddot
+organizers|organizaci\'on|orgs\adddot
+byorganizer|organizado por|org\adddotspace por
+byauthor|de|de
+byeditor|editado por|ed\adddotspace por
+bycompiler|compilado por|comp\adddotspace por
+byredactor|redacci\'on de|red\adddotspace de
+byreviser|revisado por|rev\adddotspace por
+byfounder|fundado por|fund\adddotspace por
+bycontinuator|continuado por|cont\adddotspace por
+bytranslator|traducido \lbx@lfromlang\ por|trad\adddot \lbx@sfromlang\ por
+bycommentator|comentado por|com\adddotspace por
+byannotator|anotado por|anot\adddotspace por
+withcommentator|con comentario de|con com\adddotspace de
+withannotator|con notas de|con notas de
+withintroduction|con introduci\'on de|con intr\adddotspace de
+withforeword|con pr\'ologo de|con pr\'ol\adddotspace de
+and|y|y
+andothers|y~col\adddot|y~col\adddot
+andmore|et\adddotspace al\adddot|et\adddotspace al\adddot
+volume|volumen|vol\adddot
+volumes|vol\'umenes|vols\adddot
+involumes|en|en
+jourvol|volumen|vol\adddot
+jourser|\'epoca|\'ep\adddot
+book|libro|libro
+part|parte|parte
+issue|n\'umero|n\'um\adddot
+newseries|nueva \'epoca|n\adddotspace \'ep\adddot
+oldseries|antigua \'epoca|ant\adddotspace \'ep\adddot
+edition|edici\'on|ed\adddot
+reprintas|reimpreso como|reimp\adddotspace como
+translationas|traducido como|trad\adddotspace como
+translationfrom|traducido del|trad\adddotspace del
+origpubas|publicado originalmente como|pub\adddotspace orig\adddotspace como
+origpubin|publicado originalmente en|pub\adddot orig\adddot en
+bypublisher|por la editorial|por la ed\adddot
+page|p\'agina|p\'ag\adddot
+pages|p\'aginas|p\'ags\adddot
+column|columna|col\adddot
+columns|columnas|cols\adddot
+verse|verso|v\adddot
+verses|versos|vv\adddot
+sections|secciones|secs\adddot
+pagetotal|p\'agina|p\'ag\adddot
+pagetotals|p\'aginas|p\'ags\adddot
+columntotal|columna|col\adddot
+columntotals|columnas|cols\adddot
+versetotal|verso|v\adddot
+versetotals|versos|vv\adddot
+sectiontotals|secciones|secs\adddot
+in|en|en
+inseries|en|en
+ofseries|de|de
+number|n\'umero|n\sptext{o
+chapter|cap\'itulo|cap\adddot
+bathesis|Tesis de licenciatura|Tesis de lic\adddot
+phdthesis|Tesis doctoral|Tesis doct\adddot
+candthesis|Tesis de candidatura doctoral|Tesis de cand\adddotspace doct\adddot
+techreport|informe t\'ecnico|inf\adddotspace t\'ec\adddot
+software|programa|prog\adddot
+datacd|disco de datos|CD de datos
+audiocd|disco de audio|CD de audio
+version|versi\'on|ver\adddot
+url|direcci\'on|direcci\'on
+urlfrom|disponible desde|disp\adddotspace desde
+urlseen|visitado|visitado
+submitted|enviado|enviado
+forthcoming|pr\'oximamente|prox\adddot
+inpress|en prensa|en prensa
+prepublished|previamente publicado|prepublicado
+citedas|citado en adelante como|cit\adddotspace en adelante como
+thiscite|especialmente|esp\adddot
+seenote|ver nota|ver n\adddot
+quotedin|citado en|cit\adddotspace en
+loccit|loc\adddotspace cit\adddot|loc\adddot cit\adddot
+confer|cf\adddot|cf\adddot
+sequens|s\adddot|s\adddot
+sequentes|ss\adddot|ss\adddot
+passim|p\'assim|p\'assim
+see|v\'ease|vid\adddot
+seealso|v\'ease tambi\'en|vid\adddotspace tambi\'en
+backrefpage|v\'ease p\'agina|vid\adddotspace p\'ag\adddot
+backrefpages|v\'eanse p\'aginas|vid\adddotspace p\'ags\adddot
+january|enero|ene\adddot
+february|febrero|feb\adddot
+march|marzo|mar\adddot
+april|abril|abr\adddot
+may|mayo|mayo
+june|junio|jun\adddot
+july|julio|jul\adddot
+august|agosto|ago\adddot
+september|septiembre|sep\adddot
+october|octubre|oct\adddot
+november|noviembre|nov\adddot
+december|diciembre|dic\adddot
+langbrazilian|brasile\~no|brasile\~no
+langbulgarian|b\'ulgaro|b\'ulgaro
+langcroatian|croata|croata
+langczech|checo|checo
+langdanish|dan\'es|dan\'es
+langdutch|neerland\'es|neerland\'es
+langenglish|ingl\'es|ingl\'es
+langestonian|estonio|estonio
+langfrench|franc\'es|franc\'es
+langgalician|gallego|gallego
+langgerman|alem\'an|alem\'an
+langgreek|griego|griego
+langhungarian|h\'ungaro|h\'ungaro
+langitalian|italiano|italiano
+langjapanese|japon\'es|japon\'es
+langlatvian|lituano|lituano
+langnorwegian|noruego|noruego
+langpolish|polaco|polaco
+langportuguese|portugu\'es|portugu\'es
+langrussian|ruso|ruso
+langslovak|eslovaco|eslovaco
+langslovene|esloveno|esloveno
+langspanish|espa\~nol|espa\~nol
+langswedish|sueco|sueco
+langukrainian|ucraniano|ucraniano
+frombrazilian|del brasile\~no|del brasile\~no
+frombulgarian|del b\'ulgaro|del b\'ulgaro
+fromcroatian|del croata|del croata
+fromczech|del checo|del checo
+fromdanish|del dan\'es|del dan\'es
+fromdutch|del neerland\'es|del neerland\'es
+fromenglish|del ingl\'es|del ingl\'es
+fromestonian|del estonio|del estonio
+fromfrench|del franc\'es|del franc\'es
+fromgalician|del gallego|del gallego
+fromgerman|del alem\'an|del alem\'an
+fromgreek|del griego|del griego
+fromhungarian|del h\'ungaro|del h\'ungaro
+fromitalian|del italiano|del italiano
+fromjapanese|del japon\'es|del japon\'es
+fromlatvian|del lituano|del lituano
+fromnorwegian|del noruego|del noruego
+frompolish|del polaco|del polaco
+fromportuguese|del portugu\'es|del portugu\'es
+fromrussian|del ruso|del ruso
+fromslovak|del eslovaco|del eslovaco
+fromslovene|del esloveno|del esloveno
+fromspanish|del espa\~nol|del espa\~nol
+fromswedish|del sueco|del sueco
+fromukrainian|del ucraniano|del ucraniano
+countryde|Alemania|DE
+countryeu|Uni\'on Europea|EU
+countryep|Uni\'on Europea|EP
+countryfr|Francia|FR
+countryuk|Reino Unido|GB
+countryus|Estados Unidos|US
+patent|patente|pat\adddot
+patentde|patente alemana|pat\adddotspace alemana
+patenteu|patente europea|pat\adddotspace europea
+patentfr|patente francesa|pat\adddotspace francesa
+patentuk|patente brit\'anica|pat\adddotspace brit\'anica
+patentus|patente estadounidense|pat\adddotspace estadounidense
+patreq|solicitud de patente|sol\adddotspace de pat\adddot
+patreqde|solicitud de patente alemana|sol\adddotspace de pat\adddot alemana
+patreqeu|solicitud de patente europea|sol\adddotspace de pat\adddot europea
+patreqfr|solicitud de patente francesa|sol\adddotspace de pat\adddot francesa
+patrequk|solicitud de patente brit\'anica|sol\adddotspace de pat\adddot brit\'anica
+patrequs|solicitud de patente estadounidense|sol\adddotspace de pat\adddot estadounidense
+file|archivo|archivo
+library|biblioteca|bibl\adddot
+abstract|resumen|resumen
+commonera|era com\'un|e\adddotspace c\adddot
+beforecommonera|antes de la era com\'un|a\adddotspace e\adddotspace c\adddot
+annodomini|despu\'es de Cristo|d\adddotspace C\adddot
+beforechrist|antes de Cristo|a\adddotspace C\adddot
+circa|circa|ca\adddot
+spring|primavera|prim\adddot
+summer|verano|ver\adddot
+autumn|oto\~no|ot\adddot
+winter|invierno|inv\adddot
+am|a\adddotspace m\adddot|a\adddot m\adddot
+pm|p\adddotspace m\adddot|p\adddot m\adddot

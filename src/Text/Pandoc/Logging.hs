@@ -98,6 +98,7 @@ data LogMessage =
   | CouldNotDeduceFormat [Text.Text] Text.Text
   | RunningFilter FilePath
   | FilterCompleted FilePath Integer
+  | CiteprocWarning Text.Text
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -227,6 +228,8 @@ instance ToJSON LogMessage where
       FilterCompleted fp ms ->
            ["path" .= Text.pack fp
            ,"milliseconds" .= Text.pack (show ms) ]
+      CiteprocWarning msg ->
+           ["message" .= msg]
 
 showPos :: SourcePos -> Text.Text
 showPos pos = Text.pack $ sn ++ "line " ++
@@ -338,6 +341,7 @@ showLogMessage msg =
        RunningFilter fp -> "Running filter " <> Text.pack fp
        FilterCompleted fp ms -> "Completed filter " <> Text.pack fp <>
           " in " <> Text.pack (show ms) <> " ms"
+       CiteprocWarning ms -> "Citeproc: " <> ms
 
 messageVerbosity :: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -383,3 +387,4 @@ messageVerbosity msg =
        CouldNotDeduceFormat{}        -> WARNING
        RunningFilter{}               -> INFO
        FilterCompleted{}             -> INFO
+       CiteprocWarning{}             -> WARNING

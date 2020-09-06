@@ -74,5 +74,6 @@ formatFromFilePath x =
     ".xhtml"    -> Just "html"
     ".ipynb"    -> Just "ipynb"
     ".csv"      -> Just "csv"
+    ".bib"      -> Just "biblatex"
     ['.',y]     | y `elem` ['1'..'9'] -> Just "man"
     _           -> Nothing

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0" default-locale="en-US">
+  <info>
+    <title>Issue 160 Test Style</title>
+    <id>issue-160-test</id>
+    <category citation-format="label"/>
+    <updated>2017-02-04T19:31:46+0000</updated>
+  </info>
+  <citation>
+    <layout prefix="[" suffix="]" delimiter=",">
+      <text variable="citation-label"/>
+    </layout>
+  </citation>
+  <bibliography>
+    <layout>
+      <text variable="citation-label" prefix="[" suffix="] "/>
+      <group delimiter=". " suffix=".">
+        <names variable="author">
+          <name delimiter=", " delimiter-precedes-last="always"/>
+        </names>
+        <text variable="title"/>
+        <date variable="issued">
+          <date-part name="year"/>
+        </date>
+      </group>
+    </layout>
+  </bibliography>
+</style>

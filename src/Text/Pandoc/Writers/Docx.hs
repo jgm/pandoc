@@ -1184,6 +1184,18 @@ inlineToOpenXML' _ (Str str) =
   formattedString str
 inlineToOpenXML' opts Space = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
+inlineToOpenXML' opts (Span ("",["csl-block"],[]) ils) =
+  inlinesToOpenXML opts ils
+inlineToOpenXML' opts (Span ("",["csl-left-margin"],[]) ils) =
+  inlinesToOpenXML opts ils
+inlineToOpenXML' opts (Span ("",["csl-right-inline"],[]) ils) =
+  ([mknode "w:r" []
+    (mknode "w:t"
+      [("xml:space","preserve")]
+      ("\t" :: String))] ++)
+    <$> inlinesToOpenXML opts ils
+inlineToOpenXML' opts (Span ("",["csl-indent"],[]) ils) =
+  inlinesToOpenXML opts ils
 inlineToOpenXML' _ (Span (ident,["comment-start"],kvs) ils) = do
   -- prefer the "id" in kvs, since that is the one produced by the docx
   -- reader.

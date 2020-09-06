@@ -86,6 +86,8 @@ data WriterState = WriterState
     , stSlideLevel   :: Int     -- ^ Slide level
     , stInSection    :: Bool    -- ^ Content is in a section (revealjs)
     , stCodeBlockNum :: Int     -- ^ Number of code block
+    , stCsl          :: Bool    -- ^ Has CSL references
+    , stCslEntrySpacing :: Maybe Int  -- ^ CSL entry spacing
     }
 
 defaultWriterState :: WriterState
@@ -96,7 +98,9 @@ defaultWriterState = WriterState {stNotes= [], stMath = False, stQuotes = False,
                                   stSlideVariant = NoSlides,
                                   stSlideLevel = 1,
                                   stInSection = False,
-                                  stCodeBlockNum = 0}
+                                  stCodeBlockNum = 0,
+                                  stCsl = False,
+                                  stCslEntrySpacing = Nothing}
 
 -- Helpers to render HTML with the appropriate function.
 
@@ -316,39 +320,48 @@ pandocToHtml opts (Pandoc meta blocks) = do
                                 Just sty -> defField "highlighting-css"
                                               (T.pack $ styleToCss sty)
                                 Nothing  -> id
-                      else id) $
+                      else id) .
+                  (if stCsl st
+                      then defField "csl-css" True .
+                           (case stCslEntrySpacing st of
+                              Nothing -> id
+                              Just 0  -> id
+                              Just n  ->
+                                defField "csl-entry-spacing"
+                                  (tshow n <> "em"))
+                      else id) .
                   (if stMath st
                       then defField "math" (renderHtml' math)
-                      else id) $
+                      else id) .
                   (case writerHTMLMathMethod opts of
                         MathJax u -> defField "mathjax" True .
                                      defField "mathjaxurl"
                                        (T.takeWhile (/='?') u)
-                        _         -> defField "mathjax" False) $
+                        _         -> defField "mathjax" False) .
                   (case writerHTMLMathMethod opts of
                         PlainMath -> defField "displaymath-css" True
                         WebTeX _  -> defField "displaymath-css" True
-                        _         -> id) $
-                  defField "document-css" (isNothing mCss && slideVariant == NoSlides) $
-                  defField "quotes" (stQuotes st) $
+                        _         -> id) .
+                  defField "document-css" (isNothing mCss && slideVariant == NoSlides) .
+                  defField "quotes" (stQuotes st) .
                   -- for backwards compatibility we populate toc
                   -- with the contents of the toc, rather than a
                   -- boolean:
-                  maybe id (defField "toc") toc $
-                  maybe id (defField "table-of-contents") toc $
-                  defField "author-meta" authsMeta $
+                  maybe id (defField "toc") toc .
+                  maybe id (defField "table-of-contents") toc .
+                  defField "author-meta" authsMeta .
                   maybe id (defField "date-meta")
-                    (normalizeDate dateMeta) $
+                    (normalizeDate dateMeta) .
                   defField "pagetitle"
-                      (stringifyHTML . docTitle $ meta) $
-                  defField "idprefix" (writerIdentifierPrefix opts) $
+                      (stringifyHTML . docTitle $ meta) .
+                  defField "idprefix" (writerIdentifierPrefix opts) .
                   -- these should maybe be set in pandoc.hs
                   defField "slidy-url"
-                    ("https://www.w3.org/Talks/Tools/Slidy2" :: Text) $
-                  defField "slideous-url" ("slideous" :: Text) $
+                    ("https://www.w3.org/Talks/Tools/Slidy2" :: Text) .
+                  defField "slideous-url" ("slideous" :: Text) .
                   defField "revealjs-url" ("https://unpkg.com/reveal.js@^4/" :: Text) $
-                  defField "s5-url" ("s5/default" :: Text) $
-                  defField "html5" (stHtml5 st)
+                  defField "s5-url" ("s5/default" :: Text) .
+                  defField "html5" (stHtml5 st) $
                   metadata
   return (thebody, context)
 
@@ -743,12 +756,17 @@ blockToHtml opts (Div (ident, "section":dclasses, dkvs)
 blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
   html5 <- gets stHtml5
   slideVariant <- gets stSlideVariant
+  let isCslBibBody = ident == "refs" || "csl-bib-body" `elem` classes
+  when isCslBibBody $ modify $ \st -> st{ stCsl = True
+                                        , stCslEntrySpacing =
+                                           lookup "entry-spacing" kvs' >>=
+                                           safeRead }
+  let isCslBibEntry = "csl-entry" `elem` classes
   let kvs = [(k,v) | (k,v) <- kvs', k /= "width"] ++
             [("style", "width:" <> w <> ";") | "column" `elem` classes,
              ("width", w) <- kvs'] ++
-            [("role", "doc-bibliography") | ident == "refs" && html5] ++
-            [("role", "doc-biblioentry")
-              | "ref-" `T.isPrefixOf` ident && html5]
+            [("role", "doc-bibliography") | isCslBibBody && html5] ++
+            [("role", "doc-biblioentry") | isCslBibEntry && html5]
   let speakerNotes = "notes" `elem` classes
   -- we don't want incremental output inside speaker notes, see #1394
   let opts' = if | speakerNotes -> opts{ writerIncremental = False }
@@ -765,7 +783,9 @@ blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
                       -- a newline between the column divs, which throws
                       -- off widths! see #4028
                       mconcat <$> mapM (blockToHtml opts) bs
-                 else blockListToHtml opts' bs
+                 else if isCslBibEntry
+                         then mconcat <$> mapM (cslEntryToHtml opts') bs
+                         else blockListToHtml opts' bs
   let contents' = nl opts >> contents >> nl opts
   let (divtag, classes'') = if html5 && "section" `elem` classes'
                             then (H5.section, filter (/= "section") classes')
@@ -1438,6 +1458,23 @@ blockListToNote opts ref blocks = do
                                        customAttribute "role" "doc-endnote"
                        _          -> noteItem
   return $ nl opts >> noteItem'
+
+cslEntryToHtml :: PandocMonad m
+               => WriterOptions
+               -> Block
+               -> StateT WriterState m Html
+cslEntryToHtml opts (Para xs) = do
+  html5 <- gets stHtml5
+  let inDiv :: Text -> Html -> Html
+      inDiv cls x = ((if html5 then H5.div else H.div)
+                      x ! A.class_ (toValue cls))
+  let go (Span ("",[cls],[]) ils)
+        | cls == "csl-block" || cls == "csl-left-margin" ||
+          cls == "csl-right-inline" || cls == "csl-indent"
+        = inDiv cls <$> inlineListToHtml opts ils
+      go il = inlineToHtml opts il
+  mconcat <$> mapM go xs
+cslEntryToHtml opts x = blockToHtml opts x
 
 isMathEnvironment :: Text -> Bool
 isMathEnvironment s = "\\begin{" `T.isPrefixOf` s &&

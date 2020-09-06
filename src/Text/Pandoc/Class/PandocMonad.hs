@@ -553,7 +553,7 @@ getDefaultReferencePptx = do
                      mapM pathToEntry paths
 
 -- | Read file from user data directory or,
--- if not found there, from Cabal data directory.
+-- if not found there, from the default data files.
 readDataFile :: PandocMonad m => FilePath -> m B.ByteString
 readDataFile fname = do
   datadir <- getUserDataDir
@@ -565,7 +565,7 @@ readDataFile fname = do
             then readFileStrict (userDir </> fname)
             else readDefaultDataFile fname
 
--- | Read file from from Cabal data directory.
+-- | Read file from from the default data files.
 readDefaultDataFile :: PandocMonad m => FilePath -> m B.ByteString
 readDefaultDataFile "reference.docx" =
   B.concat . BL.toChunks . fromArchive <$> getDefaultReferenceDocx

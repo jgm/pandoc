@@ -51,8 +51,6 @@
                            Key="Software\John MacFarlane\Pandoc"
                            Name="Version" Type="string" Value="[ProductVersion]"
                            KeyPath="yes"/>
-            <File Id="pandoc_citeprocEXE" Name="pandoc-citeproc.exe"
-                  Source="$(var.BINPATH)\pandoc-citeproc.exe" />
           </Component>
 
           <Component Id="Documentation"

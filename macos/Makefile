@@ -6,9 +6,8 @@ ALL=$(BASE)-macOS.pkg $(BASE)-macOS.zip
 all: $(ALL) notarize
 
 signed.txt: $(DEST)
-	chmod +x $(DEST)/bin/pandoc $(DEST)/bin/pandoc-citeproc
+	chmod +x $(DEST)/bin/pandoc
 	codesign --force --options runtime -s "5U2WKE6DES" $(DEST)/bin/pandoc
-	codesign --force --options runtime -s "5U2WKE6DES" $(DEST)/bin/pandoc-citeproc
 	echo "SIGNED" > signed.txt
 
 pandoc.pkg: signed.txt

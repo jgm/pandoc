@@ -294,6 +294,11 @@ doOpt (k',v) = do
       parseYAML v >>= \x -> return (\o -> o{ optColumns = x })
     "filters" ->
       parseYAML v >>= \x -> return (\o -> o{ optFilters = optFilters o <> x })
+    "citeproc" ->
+      parseYAML v >>= \x ->
+        if x
+           then return (\o -> o{ optFilters = CiteprocFilter : optFilters o })
+           else return id
     "email-obfuscation" ->
       parseYAML v >>= \x -> return (\o -> o{ optEmailObfuscation = x })
     "identifier-prefix" ->

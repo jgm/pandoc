@@ -48,12 +48,12 @@ jobs:
     - name: Install dependencies
       run: |
           stack update
-          stack build ${{ matrix.versions.stack_opts }} --dependencies-only pandoc pandoc-citeproc
+          stack build ${{ matrix.versions.stack_opts }} --dependencies-only pandoc
     - name: Create windows package
       shell: cmd
       run: |
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
-          stack build  ${{ matrix.versions.stack_opts }} pandoc pandoc-citeproc
+          stack build  ${{ matrix.versions.stack_opts }} pandoc
           for /f "tokens=1-2 delims= " %%a in ('stack exec pandoc -- --version') do (
             @set VERSION=%%b
             goto :next
@@ -67,7 +67,7 @@ jobs:
           @set WINDOWS=%CD%\windows
           @set RELEASE=%WINDOWS%\pandoc-%VERSION%
           mkdir %RELEASE%
-          forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C echo @path && echo %%WINDOWS%% && copy @path %%RELEASE%%"
+          forfiles /P .\.stack-work\install /M pandoc.exe /S /C "cmd /C echo @path && echo %%WINDOWS%% && copy @path %%RELEASE%%"
           stack exec pandoc -- -s --toc MANUAL.txt -o %RELEASE%\MANUAL.html
           stack exec pandoc -- -s COPYING.md -t rtf -o %RELEASE%\COPYING.rtf
           copy %RELEASE%\COPYING.rtf %WINDOWS%

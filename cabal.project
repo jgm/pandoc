@@ -4,13 +4,9 @@ package pandoc
   flags: +embed_data_files -trypandoc
   ghc-options: -j +RTS -A64m -RTS
 
-package pandoc-citeproc
-  flags: +embed_data_files +bibutils -unicode_collation -test_citeproc -debug
-  ghc-options: -j +RTS -A64m -RTS
-
 source-repository-package
     type: git
-    location: https://github.com/jgm/pandoc-citeproc
-    tag: 159bbb566858c0bc522e6404eb989671cd7236fd
+    location: https://github.com/jgm/citeproc
+    tag: e3695de4f34f33e32c6d3c33e8cdcf3fa96f6a5b
 
 constraints: base16-bytestring < 1
