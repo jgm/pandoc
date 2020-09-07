@@ -444,16 +444,19 @@
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#headers" Name="Destination" DestinationUniqueKey="1" />
     <Content>Headers</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#level-2-with-an-embedded-link" Name="Destination" DestinationUniqueKey="1" />
     <Content>Level 2 with an </Content>
   </CharacterStyleRange>
   <HyperlinkTextSource Self="htss-1" Name="" Hidden="false">
     <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Link">
+      <HyperlinkTextDestination Self="HyperlinkTextDestination/#level-2-with-an-embedded-link" Name="Destination" DestinationUniqueKey="1" />
       <Content>embedded link</Content>
     </CharacterStyleRange>
   </HyperlinkTextSource>
@@ -461,42 +464,50 @@
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header3">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#level-3-with-emphasis" Name="Destination" DestinationUniqueKey="1" />
     <Content>Level 3 with </Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#level-3-with-emphasis" Name="Destination" DestinationUniqueKey="1" />
     <Content>emphasis</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header4">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#level-4" Name="Destination" DestinationUniqueKey="1" />
     <Content>Level 4</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header5">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#level-5" Name="Destination" DestinationUniqueKey="1" />
     <Content>Level 5</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#level-1" Name="Destination" DestinationUniqueKey="1" />
     <Content>Level 1</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#level-2-with-emphasis" Name="Destination" DestinationUniqueKey="1" />
     <Content>Level 2 with </Content>
   </CharacterStyleRange>
   <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#level-2-with-emphasis" Name="Destination" DestinationUniqueKey="1" />
     <Content>emphasis</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header3">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#level-3" Name="Destination" DestinationUniqueKey="1" />
     <Content>Level 3</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -509,6 +520,7 @@
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#level-2" Name="Destination" DestinationUniqueKey="1" />
     <Content>Level 2</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -521,6 +533,7 @@
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#paragraphs" Name="Destination" DestinationUniqueKey="1" />
     <Content>Paragraphs</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -557,6 +570,7 @@
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#block-quotes" Name="Destination" DestinationUniqueKey="1" />
     <Content>Block Quotes</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -637,6 +651,7 @@
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#code-blocks" Name="Destination" DestinationUniqueKey="1" />
     <Content>Code Blocks</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -675,12 +690,14 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#lists" Name="Destination" DestinationUniqueKey="1" />
     <Content>Lists</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#unordered" Name="Destination" DestinationUniqueKey="1" />
     <Content>Unordered</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -831,6 +848,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#ordered" Name="Destination" DestinationUniqueKey="1" />
     <Content>Ordered</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -963,6 +981,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#nested" Name="Destination" DestinationUniqueKey="1" />
     <Content>Nested</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -1071,6 +1090,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#tabs-and-spaces" Name="Destination" DestinationUniqueKey="1" />
     <Content>Tabs and spaces</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -1101,6 +1121,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#fancy-list-markers" Name="Destination" DestinationUniqueKey="1" />
     <Content>Fancy list markers</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -1221,6 +1242,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#definition-lists" Name="Destination" DestinationUniqueKey="1" />
     <Content>Definition Lists</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -1533,6 +1555,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#html-blocks" Name="Destination" DestinationUniqueKey="1" />
     <Content>HTML Blocks</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -1691,6 +1714,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#inline-markup" Name="Destination" DestinationUniqueKey="1" />
     <Content>Inline Markup</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -1885,6 +1909,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#smart-quotes-ellipses-dashes" Name="Destination" DestinationUniqueKey="1" />
     <Content>Smart quotes, ellipses, dashes</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -2019,6 +2044,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#latex" Name="Destination" DestinationUniqueKey="1" />
     <Content>LaTeX</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -2198,6 +2224,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#special-characters" Name="Destination" DestinationUniqueKey="1" />
     <Content>Special Characters</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -2366,12 +2393,14 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#links" Name="Destination" DestinationUniqueKey="1" />
     <Content>Links</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#explicit" Name="Destination" DestinationUniqueKey="1" />
     <Content>Explicit</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -2468,6 +2497,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#reference" Name="Destination" DestinationUniqueKey="1" />
     <Content>Reference</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -2595,6 +2625,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#with-ampersands" Name="Destination" DestinationUniqueKey="1" />
     <Content>With ampersands</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -2657,6 +2688,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header2">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#autolinks" Name="Destination" DestinationUniqueKey="1" />
     <Content>Autolinks</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -2731,6 +2763,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#images" Name="Destination" DestinationUniqueKey="1" />
     <Content>Images</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
@@ -2815,6 +2848,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 <Br />
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Header1">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
+    <HyperlinkTextDestination Self="HyperlinkTextDestination/#footnotes" Name="Destination" DestinationUniqueKey="1" />
     <Content>Footnotes</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
