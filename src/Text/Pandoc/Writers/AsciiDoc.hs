@@ -138,7 +138,6 @@ blockToAsciiDoc opts (Div (id',"section":_,_)
 blockToAsciiDoc opts (Plain inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   return $ contents <> blankline
-
 blockToAsciiDoc opts (Para [Image attr alternate (src,tgt)])
   -- image::images/logo.png[Company logo, title="blah"]
   | Just tit <- T.stripPrefix "fig:" tgt
@@ -148,7 +147,6 @@ blockToAsciiDoc opts (Para [Image attr alternate (src,tgt)])
   func :: Doc Text -> Doc Text
   func (Concat (Concat (Text 6 "image:") bb) b) = Concat (Concat (Text 7 "image::") bb) b
   func t = t -- If this line is reached it means `blockToAsciiDoc` function for Image has a differet output now
-
 blockToAsciiDoc opts (Para inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   -- escape if para starts with ordered list marker
@@ -526,7 +524,6 @@ inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
   return $ if useAuto
               then literal srcSuffix
               else prefix <> literal src <> "[" <> linktext <> "]"
-
 inlineToAsciiDoc opts (Image attr alternate (src, tit)) = do
 -- image:images/logo.png[Company logo, title="blah"]
   let txt = if null alternate || (alternate == [Str ""])
@@ -548,7 +545,6 @@ inlineToAsciiDoc opts (Image attr alternate (src, tit)) = do
                 then empty
                 else "," <> mconcat (intersperse "," dimList)
   return $ "image:" <> literal src <> "[" <> linktext <> linktitle <> dims <> "]"
-
 inlineToAsciiDoc opts (Note [Para inlines]) =
   inlineToAsciiDoc opts (Note [Plain inlines])
 inlineToAsciiDoc opts (Note [Plain inlines]) = do
