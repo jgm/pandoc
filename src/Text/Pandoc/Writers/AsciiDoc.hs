@@ -141,12 +141,14 @@ blockToAsciiDoc opts (Plain inlines) = do
 blockToAsciiDoc opts (Para [Image attr alternate (src,tgt)])
   -- image::images/logo.png[Company logo, title="blah"]
   | Just tit <- T.stripPrefix "fig:" tgt
-  -- = (fmap (\t -> "image::" <> T.drop (T.length "image:") t)) <$> blockToAsciiDoc opts (Para [Image attr alternate (src,tit)])
-  = func <$> blockToAsciiDoc opts (Para [Image attr alternate (src,tit)])
+  = blockImage <$> blockToAsciiDoc opts (Para [Image attr alternate (src,tit)])
   where
-  func :: Doc Text -> Doc Text
-  func (Concat (Concat (Text 6 "image:") bb) b) = Concat (Concat (Text 7 "image::") bb) b
-  func t = t -- If this line is reached it means `blockToAsciiDoc` function for Image has a differet output now
+  blockImage :: Doc Text -> Doc Text
+  blockImage (Concat (Concat (Text 6 "image:") bb) b) =
+     Concat (Concat (Text 7 "image::") bb) b
+  -- If this line is reached it means `blockToAsciiDoc` function for Image has a
+  -- differet output now
+  blockImage t = t 
 blockToAsciiDoc opts (Para inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   -- escape if para starts with ordered list marker
