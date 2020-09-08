@@ -2168,7 +2168,7 @@ parseTableRow envname prefsufs = do
   cells <- mapM (\ts -> setInput ts >> parseTableCell) rawcells
   setInput oldInput
   spaces
-  -- Because of table normalization performed by Text.Pandoc.Builder.table, 
+  -- Because of table normalization performed by Text.Pandoc.Builder.table,
   -- we need to remove empty cells
   return $ Row nullAttr $ filter (\c -> c /= emptyCell) cells
 
@@ -2176,9 +2176,9 @@ parseTableCell :: PandocMonad m => LP m Cell
 parseTableCell = do
   spaces
   updateState $ \st -> st{ sInTableCell = True }
-  cell' <- ( multicolumnCell 
-         <|> multirowCell 
-         <|> parseSimpleCell 
+  cell' <- ( multicolumnCell
+         <|> multirowCell
+         <|> parseSimpleCell
          <|> parseEmptyCell
            )
   updateState $ \st -> st{ sInTableCell = False }
@@ -2186,7 +2186,7 @@ parseTableCell = do
   return cell'
   where
     -- The parsing of empty cells is important in LaTeX, especially when dealing
-    -- with multirow/multicolumn. See #6603. 
+    -- with multirow/multicolumn. See #6603.
     parseEmptyCell = optional spaces >> return emptyCell <* optional spaces
 
 cellAlignment :: PandocMonad m => LP m Alignment
@@ -2213,7 +2213,7 @@ multirowCell = controlSeq "multirow" >> do
   -- However, everything except `nrows` and `text` make
   -- sense in the context of the Pandoc AST
   _ <- optional $ symbol '[' *> cellAlignment <* symbol ']'   -- vertical position
-  nrows <- fmap (fromMaybe 1 . safeRead . untokenize) braced    
+  nrows <- fmap (fromMaybe 1 . safeRead . untokenize) braced
   _ <- optional $ symbol '[' *> manyTill anyTok (symbol ']')  -- bigstrut-related
   _ <- symbol '{' *> manyTill anyTok (symbol '}')             -- Cell width
   _ <- optional $ symbol '[' *> manyTill anyTok (symbol ']')  -- Length used for fine-tuning
@@ -2228,7 +2228,7 @@ multicolumnCell = controlSeq "multicolumn" >> do
   let singleCell = do
         content <- plainify <$> blocks
         return $ cell alignment (RowSpan 1) (ColSpan span') content
-  
+
   -- Two possible contents: either a \multirow cell, or content.
   -- E.g. \multicol{1}{c}{\multirow{2}{1em}{content}}
   -- Note that a \multirow cell can be nested in a \multicolumn,
