@@ -1137,7 +1137,7 @@ data ParserState = ParserState
       stateNotes'            :: NoteTable',    -- ^ List of notes (parsed bodies)
       stateNoteRefs          :: Set.Set Text, -- ^ List of note references used
       stateInNote            :: Bool,          -- ^ True if parsing note contents
-      stateLastNoteNumber    :: Int,           -- ^ Last note number for citations
+      stateNoteNumber        :: Int,           -- ^ Last note number for citations
       stateMeta              :: Meta,          -- ^ Document metadata
       stateMeta'             :: F Meta,        -- ^ Document metadata
       stateCitations         :: M.Map Text Text, -- ^ RST-style citations
@@ -1250,7 +1250,7 @@ defaultParserState =
                   stateNotes'          = M.empty,
                   stateNoteRefs        = Set.empty,
                   stateInNote          = False,
-                  stateLastNoteNumber  = 0,
+                  stateNoteNumber      = 0,
                   stateMeta            = nullMeta,
                   stateMeta'           = return nullMeta,
                   stateCitations       = M.empty,

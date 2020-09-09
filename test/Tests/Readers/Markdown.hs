@@ -471,7 +471,7 @@ tests = [ testGroup "inline code"
                         , citationPrefix  = []
                         , citationSuffix  = []
                         , citationMode    = AuthorInText
-                        , citationNoteNum = 0
+                        , citationNoteNum = 1
                         , citationHash    = 0
                         }
                 ] "@item1")
@@ -481,12 +481,12 @@ tests = [ testGroup "inline code"
                         , citationPrefix  = []
                         , citationSuffix  = []
                         , citationMode    = AuthorInText
-                        , citationNoteNum = 0
+                        , citationNoteNum = 1
                         , citationHash    = 0
                         }
                 ] "@1657:huyghens")
           ]
-        , let citation = cite [Citation "cita" [] [] AuthorInText 0 0] (str "@cita")
+        , let citation = cite [Citation "cita" [] [] AuthorInText 1 0] (str "@cita")
           in testGroup "footnote/link following citation" -- issue #2083
           [ "footnote" =:
               T.unlines [ "@cita[^note]"
@@ -523,7 +523,7 @@ tests = [ testGroup "inline code"
           , "regular citation" =:
               "@cita [foo]" =?>
               para (
-                cite [Citation "cita" [] [Str "foo"] AuthorInText 0 0]
+                cite [Citation "cita" [] [Str "foo"] AuthorInText 1 0]
                   (str "@cita" <> space <> str "[foo]")
               )
           ]

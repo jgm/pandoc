@@ -36,6 +36,7 @@ import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
                                  isCommentTag, isInlineTag, isTextTag)
@@ -380,6 +381,7 @@ noteBlock = do
      char ':'
      optional blankline
      optional indentSpaces
+     updateState $ \st -> st{ stateInNote = True }
      first <- rawLines
      rest <- many $ try $ blanklines >> indentSpaces >> rawLines
      let raw = T.unlines (first:rest) <> "\n"
@@ -390,7 +392,8 @@ noteBlock = do
        Just _  -> logMessage $ DuplicateNoteReference ref pos
        Nothing -> return ()
      updateState $ \s -> s { stateNotes' =
-       M.insert ref (pos, parsed) oldnotes }
+       M.insert ref (pos, parsed) oldnotes,
+                             stateInNote = False }
      return mempty
 
 --
@@ -1866,7 +1869,9 @@ note :: PandocMonad m => MarkdownParser m (F Inlines)
 note = try $ do
   guardEnabled Ext_footnotes
   ref <- noteMarker
-  updateState $ \st -> st{ stateNoteRefs = Set.insert ref (stateNoteRefs st) }
+  updateState $ \st -> st{ stateNoteRefs = Set.insert ref (stateNoteRefs st)
+                         , stateNoteNumber = stateNoteNumber st + 1 }
+  noteNum <- stateNoteNumber <$> getState
   return $ do
     notes <- asksF stateNotes'
     case M.lookup ref notes of
@@ -1877,13 +1882,21 @@ note = try $ do
           -- notes, to avoid infinite looping with notes inside
           -- notes:
           let contents' = runF contents st{ stateNotes' = M.empty }
-          return $ B.note contents'
+          let addCitationNoteNum (c@Citation{}) =
+                c{ citationNoteNum = noteNum }
+          let adjustCite (Cite cs ils) =
+                Cite (map addCitationNoteNum cs) ils
+              adjustCite x = x
+          return $ B.note $ walk adjustCite contents'
 
 inlineNote :: PandocMonad m => MarkdownParser m (F Inlines)
 inlineNote = try $ do
   guardEnabled Ext_inline_notes
   char '^'
+  updateState $ \st -> st{ stateInNote = True
+                         , stateNoteNumber = stateNoteNumber st + 1 }
   contents <- inlinesInBalancedBrackets
+  updateState $ \st -> st{ stateInNote = False }
   return $ B.note . B.para <$> contents
 
 rawLaTeXInline' :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -2004,6 +2017,12 @@ emoji = try $ do
 cite :: PandocMonad m => MarkdownParser m (F Inlines)
 cite = do
   guardEnabled Ext_citations
+  -- We only use stateNoteNumber for assigning citationNoteNum,
+  -- so we just assume that all citations produce notes.
+  -- citationNoteNum doesn't affect non-note styles.
+  inNote <- stateInNote <$> getState
+  unless inNote $
+    updateState $ \st -> st{ stateNoteNumber = stateNoteNumber st + 1 }
   textualCite
             <|> do (cs, raw) <- withRaw normalCite
                    return $ flip B.cite (B.text raw) <$> cs
@@ -2011,13 +2030,14 @@ cite = do
 textualCite :: PandocMonad m => MarkdownParser m (F Inlines)
 textualCite = try $ do
   (suppressAuthor, key) <- citeKey
+  noteNum <- stateNoteNumber <$> getState
   let first = Citation{ citationId      = key
                       , citationPrefix  = []
                       , citationSuffix  = []
                       , citationMode    = if suppressAuthor
                                              then SuppressAuthor
                                              else AuthorInText
-                      , citationNoteNum = 0
+                      , citationNoteNum = noteNum
                       , citationHash    = 0
                       }
   mbrest <- option Nothing $ try $ spnl >> Just <$> withRaw normalCite
@@ -2090,6 +2110,7 @@ citation = try $ do
   pref <- prefix
   (suppress_author, key) <- citeKey
   suff <- suffix
+  noteNum <- stateNoteNumber <$> getState
   return $ do
     x <- pref
     y <- suff
@@ -2099,7 +2120,7 @@ citation = try $ do
                    , citationMode    = if suppress_author
                                           then SuppressAuthor
                                           else NormalCitation
-                   , citationNoteNum = 0
+                   , citationNoteNum = noteNum
                    , citationHash    = 0
                    }
 
