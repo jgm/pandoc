@@ -141,14 +141,7 @@ blockToAsciiDoc opts (Plain inlines) = do
 blockToAsciiDoc opts (Para [Image attr alternate (src,tgt)])
   -- image::images/logo.png[Company logo, title="blah"]
   | Just tit <- T.stripPrefix "fig:" tgt
-  = blockImage <$> blockToAsciiDoc opts (Para [Image attr alternate (src,tit)])
-  where
-  blockImage :: Doc Text -> Doc Text
-  blockImage (Concat (Concat (Text 6 "image:") bb) b) =
-     Concat (Concat (Text 7 "image::") bb) b
-  -- If this line is reached it means `blockToAsciiDoc` function for Image has a
-  -- differet output now
-  blockImage t = t 
+  = ("image::" <>) <$> imageHelper opts attr alternate src tit
 blockToAsciiDoc opts (Para inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   -- escape if para starts with ordered list marker
@@ -526,27 +519,8 @@ inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
   return $ if useAuto
               then literal srcSuffix
               else prefix <> literal src <> "[" <> linktext <> "]"
-inlineToAsciiDoc opts (Image attr alternate (src, tit)) = do
--- image:images/logo.png[Company logo, title="blah"]
-  let txt = if null alternate || (alternate == [Str ""])
-               then [Str "image"]
-               else alternate
-  linktext <- inlineListToAsciiDoc opts txt
-  let linktitle = if T.null tit
-                     then empty
-                     else ",title=\"" <> literal tit <> "\""
-      showDim dir = case dimension dir attr of
-                      Just (Percent a) ->
-                        ["scaledwidth=" <> text (show (Percent a))]
-                      Just dim         ->
-                        [text (show dir) <> "=" <> literal (showInPixel opts dim)]
-                      Nothing          ->
-                        []
-      dimList = showDim Width ++ showDim Height
-      dims = if null dimList
-                then empty
-                else "," <> mconcat (intersperse "," dimList)
-  return $ "image:" <> literal src <> "[" <> linktext <> linktitle <> dims <> "]"
+inlineToAsciiDoc opts (Image attr alternate (src, tit)) =
+  ("image:" <>) <$> imageHelper opts attr alternate src tit
 inlineToAsciiDoc opts (Note [Para inlines]) =
   inlineToAsciiDoc opts (Note [Plain inlines])
 inlineToAsciiDoc opts (Note [Plain inlines]) = do
@@ -564,3 +538,29 @@ inlineToAsciiDoc opts (Span (ident,classes,_) ils) = do
        let modifier = brackets $ literal $ T.unwords $
             [ "#" <> ident | not (T.null ident)] ++ map ("." <>) classes
        return $ modifier <> marker <> contents <> marker
+
+-- | Provides the arguments for both `image:` and `image::`
+-- e.g.: sunset.jpg[Sunset,300,200]
+imageHelper :: PandocMonad m => WriterOptions ->
+  (Text, [Text], [(Text, Text)]) -> [Inline] -> Text -> Text ->
+  ADW m (Doc Text)
+imageHelper opts attr altText src title = do
+  let txt = if null altText || (altText == [Str ""])
+               then [Str "image"]
+               else altText
+  linktext <- inlineListToAsciiDoc opts txt
+  let linktitle = if T.null title
+                     then empty
+                     else ",title=\"" <> literal title <> "\""
+      showDim dir = case dimension dir attr of
+                      Just (Percent a) ->
+                        ["scaledwidth=" <> text (show (Percent a))]
+                      Just dim         ->
+                        [text (show dir) <> "=" <> literal (showInPixel opts dim)]
+                      Nothing          ->
+                        []
+      dimList = showDim Width ++ showDim Height
+      dims = if null dimList
+                then empty
+                else "," <> mconcat (intersperse "," dimList)
+  return $ literal src <> "[" <> linktext <> linktitle <> dims <> "]"
