@@ -542,7 +542,7 @@ inlineToAsciiDoc opts (Span (ident,classes,_) ils) = do
 -- | Provides the arguments for both `image:` and `image::`
 -- e.g.: sunset.jpg[Sunset,300,200]
 imageArguments :: PandocMonad m => WriterOptions ->
-  (Text, [Text], [(Text, Text)]) -> [Inline] -> Text -> Text ->
+  Attr -> [Inline] -> Text -> Text ->
   ADW m (Doc Text)
 imageArguments opts attr altText src title = do
   let txt = if null altText || (altText == [Str ""])
@@ -556,7 +556,8 @@ imageArguments opts attr altText src title = do
                       Just (Percent a) ->
                         ["scaledwidth=" <> text (show (Percent a))]
                       Just dim         ->
-                        [text (show dir) <> "=" <> literal (showInPixel opts dim)]
+                        [text (show dir) <> "=" <>
+                          literal (showInPixel opts dim)]
                       Nothing          ->
                         []
       dimList = showDim Width ++ showDim Height
