@@ -70,10 +70,22 @@ parseNumPart =
   parseX <|>
   parseSpace
  where
-  parseDecimalNum =
-    str . T.pack <$> many1 (satisfy (\c -> isDigit c || c == '.'))
+  parseDecimalNum = do
+    basenum <- T.pack <$> many1 (satisfy (\c -> isDigit c || c == '.'))
+    uncertainty <- option mempty $ T.pack <$> parseParens
+    if T.null uncertainty
+       then return $ str basenum
+       else return $ str $ basenum <> "\xa0\xb1\xa0" <>
+             case T.break (=='.') basenum of
+              (_,ys)
+                | T.length ys <= 1 -> uncertainty
+                | otherwise -> "0." <>
+                   T.replicate (T.length ys - 1 - T.length uncertainty) "0"
+                     <> uncertainty
   parseComma = str "." <$ char ','
   parsePlusMinus = str "\xa0\xb1\xa0" <$ try (string "+-")
+  parseParens =
+    char '(' *> many1 (satisfy (\c -> isDigit c || c == '.')) <* char ')'
   parseI = str "i" <$ char 'i'
   parseX = str "\xa0\xd7\xa0" <$ char 'x'
   parseExp = (\n -> str ("\xa0\xd7\xa0" <> "10") <> superscript n)
