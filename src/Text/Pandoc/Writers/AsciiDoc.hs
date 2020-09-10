@@ -66,7 +66,8 @@ writeAsciiDoc opts document =
 -- | Convert Pandoc to AsciiDoctor compatible AsciiDoc.
 writeAsciiDoctor :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeAsciiDoctor opts document =
-  evalStateT (pandocToAsciiDoc opts document) defaultWriterState{ asciidoctorVariant = True }
+  evalStateT (pandocToAsciiDoc opts document)
+    defaultWriterState{ asciidoctorVariant = True }
 
 type ADW = StateT WriterState
 
@@ -141,7 +142,8 @@ blockToAsciiDoc opts (Plain inlines) = do
 blockToAsciiDoc opts (Para [Image attr alternate (src,tgt)])
   -- image::images/logo.png[Company logo, title="blah"]
   | Just tit <- T.stripPrefix "fig:" tgt
-  = (\args -> "image::" <> args <> blankline) <$> imageArguments opts attr alternate src tit
+  = (\args -> "image::" <> args <> blankline) <$>
+    imageArguments opts attr alternate src tit
 blockToAsciiDoc opts (Para inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   -- escape if para starts with ordered list marker
@@ -193,7 +195,8 @@ blockToAsciiDoc opts (BlockQuote blocks) = do
   let bar = text "____"
   return $ bar $$ chomp contents' $$ bar <> blankline
 blockToAsciiDoc opts (Table _ blkCapt specs thead tbody tfoot) = do
-  let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+  let (caption, aligns, widths, headers, rows) =
+        toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlineListToAsciiDoc opts caption
   let caption'' = if null caption
                      then empty
@@ -382,7 +385,10 @@ blockListToAsciiDoc opts blocks =
 data SpacyLocation = End | Start
 
 -- | Convert list of Pandoc inline elements to asciidoc.
-inlineListToAsciiDoc :: PandocMonad m => WriterOptions -> [Inline] -> ADW m (Doc Text)
+inlineListToAsciiDoc :: PandocMonad m =>
+                        WriterOptions ->
+                        [Inline] ->
+                        ADW m (Doc Text)
 inlineListToAsciiDoc opts lst = do
   oldIntraword <- gets intraword
   setIntraword False
