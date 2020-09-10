@@ -141,7 +141,7 @@ blockToAsciiDoc opts (Plain inlines) = do
 blockToAsciiDoc opts (Para [Image attr alternate (src,tgt)])
   -- image::images/logo.png[Company logo, title="blah"]
   | Just tit <- T.stripPrefix "fig:" tgt
-  = ("image::" <>) <$> imageHelper opts attr alternate src tit
+  = (\args -> "image::" <> args <> blankline) <$> imageHelper opts attr alternate src tit
 blockToAsciiDoc opts (Para inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   -- escape if para starts with ordered list marker
