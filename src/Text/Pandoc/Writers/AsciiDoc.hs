@@ -141,7 +141,7 @@ blockToAsciiDoc opts (Plain inlines) = do
 blockToAsciiDoc opts (Para [Image attr alternate (src,tgt)])
   -- image::images/logo.png[Company logo, title="blah"]
   | Just tit <- T.stripPrefix "fig:" tgt
-  = (\args -> "image::" <> args <> blankline) <$> imageHelper opts attr alternate src tit
+  = (\args -> "image::" <> args <> blankline) <$> imageArguments opts attr alternate src tit
 blockToAsciiDoc opts (Para inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   -- escape if para starts with ordered list marker
@@ -520,7 +520,7 @@ inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
               then literal srcSuffix
               else prefix <> literal src <> "[" <> linktext <> "]"
 inlineToAsciiDoc opts (Image attr alternate (src, tit)) =
-  ("image:" <>) <$> imageHelper opts attr alternate src tit
+  ("image:" <>) <$> imageArguments opts attr alternate src tit
 inlineToAsciiDoc opts (Note [Para inlines]) =
   inlineToAsciiDoc opts (Note [Plain inlines])
 inlineToAsciiDoc opts (Note [Plain inlines]) = do
@@ -541,10 +541,10 @@ inlineToAsciiDoc opts (Span (ident,classes,_) ils) = do
 
 -- | Provides the arguments for both `image:` and `image::`
 -- e.g.: sunset.jpg[Sunset,300,200]
-imageHelper :: PandocMonad m => WriterOptions ->
+imageArguments :: PandocMonad m => WriterOptions ->
   (Text, [Text], [(Text, Text)]) -> [Inline] -> Text -> Text ->
   ADW m (Doc Text)
-imageHelper opts attr altText src title = do
+imageArguments opts attr altText src title = do
   let txt = if null altText || (altText == [Str ""])
                then [Str "image"]
                else altText
