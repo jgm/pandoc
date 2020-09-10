@@ -140,6 +140,12 @@ jobs:
   macos:
 
     runs-on: macOS-10.15
+    strategy:
+      fail-fast: true
+      matrix:
+        versions:
+          - ghc: '8.10.1'
+            cabal: '3.2'
 
     steps:
     - uses: actions/checkout@v1
@@ -147,32 +153,43 @@ jobs:
     - name: Install recent cabal/ghc
       uses: actions/setup-haskell@v1.1
       with:
-        ghc-version: '8.6.5'
-        enable-stack: true
-        stack-version: 'latest'
+        ghc-version: '8.10.1'
+        cabal-version: '3.2'
+
+    - name: Install recent cabal/ghc
+      uses: actions/setup-haskell@v1.1
+      with:
+        ghc-version: ${{ matrix.versions.ghc }}
+        cabal-version: ${{ matrix.versions.cabal }}
 
     # declare/restore cached things
-    # caching doesn't work for scheduled runs yet https://github.com/actions/cache/issues/63
+    # caching doesn't work for scheduled runs yet
+    # https://github.com/actions/cache/issues/63
 
-    - name: Cache stack global package db
-      id:   stack-global
+    - name: Cache cabal global package db
+      id:   cabal-global
       uses: actions/cache@v2
       with:
         path: |
-          ~/.stack
-        key: ${{ runner.os }}-stack-global-${{ hashFiles('stack.yaml') }}
+          ~/.cabal
+        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ hashFiles('cabal.project') }}
 
-    # stack's local package db
-    # - name: Cache .stack-work
-    #   uses: actions/cache@v1
-    #   with:
-    #     path: .stack-work
-    #     key: ${{ runner.os }}-stack-work
+    - name: Cache cabal work
+      id:   cabal-local
+      uses: actions/cache@v2
+      with:
+        path: |
+          dist-newstyle
+        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local
 
     - name: Install dependencies
       run: |
-          stack update
-          stack test --dependencies-only --fast
+          cabal v2-update
+          cabal v2-build --dependencies-only --enable-tests --disable-optimization
     - name: Build and test
       run: |
-          stack test --fast --test-arguments=--hide-successes
+          cabal v2-build --enable-tests --disable-optimization 2>&1 | tee build.log
+          # fail if warnings in local build
+          ! grep -q ": *[Ww]arning:" build.log || exit 1
+          cabal v2-test --disable-optimization
+
