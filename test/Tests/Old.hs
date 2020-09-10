@@ -67,8 +67,11 @@ tests pandocPath =
       ]
     ]
   , testGroup "html"
-    [ testGroup "writer" (writerTests' "html4" ++ writerTests' "html5" ++
-        lhsWriterTests' "html")
+    [ testGroup "writer" $ mconcat
+      [ extWriterTests' "html4"
+      , extWriterTests' "html5"
+      , lhsWriterTests' "html"
+      ]
     , test' "reader" ["-r", "html", "-w", "native", "-s"]
       "html-reader.html" "html-reader.native"
     ]
@@ -225,6 +228,7 @@ tests pandocPath =
     fb2WriterTest'  = fb2WriterTest pandocPath
     lhsWriterTests' = lhsWriterTests pandocPath
     lhsReaderTest'  = lhsReaderTest pandocPath
+    extWriterTests' = extendedWriterTests pandocPath
 
 -- makes sure file is fully closed after reading
 readFile' :: FilePath -> IO String
@@ -255,6 +259,19 @@ writerTests pandocPath format
         "basic"  (opts ++ ["-s"]) "testsuite.native" ("writer" <.> format)
     , test pandocPath
        "tables" opts             "tables.native"    ("tables" <.> format)
+    ]
+  where
+    opts = ["-r", "native", "-w", format, "--columns=78",
+            "--variable", "pandoc-version="]
+
+extendedWriterTests :: FilePath -> String -> [TestTree]
+extendedWriterTests pandocPath format
+  = writerTests pandocPath format ++
+    [ test pandocPath
+           "tables"
+           opts
+           ("tables" </> "planets.native")
+           ("tables" </> "planets" <.> format)
     ]
   where
     opts = ["-r", "native", "-w", format, "--columns=78",
