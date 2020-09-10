@@ -76,12 +76,17 @@ parseNumPart =
     if T.null uncertainty
        then return $ str basenum
        else return $ str $ basenum <> "\xa0\xb1\xa0" <>
-             case T.break (=='.') basenum of
-              (_,ys)
-                | T.length ys <= 1 -> uncertainty
-                | otherwise -> "0." <>
-                   T.replicate (T.length ys - 1 - T.length uncertainty) "0"
-                     <> uncertainty
+             let (_,ys) = T.break (=='.') basenum
+              in case (T.length ys - 1, T.length uncertainty) of
+                   (0,_) -> uncertainty
+                   (x,y)
+                     | x > y  -> "0." <> T.replicate (x - y) "0" <>
+                                      T.dropWhileEnd (=='0') uncertainty
+                     | otherwise -> T.take (y - x) uncertainty <>
+                                      case T.dropWhileEnd (=='0')
+                                             (T.drop (y - x) uncertainty) of
+                                             t | T.null t -> mempty
+                                               | otherwise -> "." <> t
   parseComma = str "." <$ char ','
   parsePlusMinus = str "\xa0\xb1\xa0" <$ try (string "+-")
   parseParens =
