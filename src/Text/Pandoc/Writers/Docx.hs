@@ -854,8 +854,8 @@ blocksToOpenXML opts = fmap concat . mapM (blockToOpenXML opts) . separateTables
 -- them.  See #4315.
 separateTables :: [Block] -> [Block]
 separateTables [] = []
-separateTables (x@Table{}:y@Table{}:zs) =
-  x : RawBlock (Format "openxml") "<w:p />" : separateTables (y:zs)
+separateTables (x@Table{}:xs@(Table{}:_)) =
+  x : RawBlock (Format "openxml") "<w:p />" : separateTables xs
 separateTables (x:xs) = x : separateTables xs
 
 pStyleM :: (PandocMonad m) => ParaStyleName -> WS m XML.Element
