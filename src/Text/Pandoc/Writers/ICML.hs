@@ -291,7 +291,7 @@ hyperlinksToDoc (x:xs) = hyp x $$ hyperlinksToDoc xs
                 else selfClosingTag "HyperlinkURLDestination"
                   [("Self", "HyperlinkURLDestination/"<>escapeColons url), ("Name","link"), ("DestinationURL",url), ("DestinationUniqueKey","1")] -- HyperlinkURLDestination with more than one colon crashes CS6
         hlink = inTags True "Hyperlink" [("Self","uf-"<>tshow ident),  ("Name",url),
-                    ("Source","htss-"<>tshow ident), ("Visible","true"), ("DestinationUniqueKey","1")]
+                    ("Source","htss-"<>tshow ident), ("Visible","false"), ("DestinationUniqueKey","1")]
                   $ inTags True "Properties" []
                   $ inTags False "BorderColor" [("type","enumeration")] (text "Black")
                  $$ inTags False "Destination" [("type","object")] (makeDest url)

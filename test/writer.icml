@@ -2999,203 +2999,203 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
 
   </Story>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/http%3a//google.com" Name="link" DestinationURL="http://google.com" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-29" Name="http://google.com" Source="htss-29" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-29" Name="http://google.com" Source="htss-29" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/http%3a//google.com</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/http%3a//example.com/" Name="link" DestinationURL="http://example.com/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-28" Name="http://example.com/" Source="htss-28" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-28" Name="http://example.com/" Source="htss-28" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/http%3a//example.com/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/mailto%3anobody@nowhere.net" Name="link" DestinationURL="mailto:nobody@nowhere.net" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-27" Name="mailto:nobody@nowhere.net" Source="htss-27" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-27" Name="mailto:nobody@nowhere.net" Source="htss-27" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/mailto%3anobody@nowhere.net</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/http%3a//example.com/" Name="link" DestinationURL="http://example.com/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-26" Name="http://example.com/" Source="htss-26" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-26" Name="http://example.com/" Source="htss-26" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/http%3a//example.com/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/http%3a//example.com/?foo=1&amp;bar=2" Name="link" DestinationURL="http://example.com/?foo=1&amp;bar=2" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-25" Name="http://example.com/?foo=1&amp;bar=2" Source="htss-25" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-25" Name="http://example.com/?foo=1&amp;bar=2" Source="htss-25" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/http%3a//example.com/?foo=1&amp;bar=2</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//script?foo=1&amp;bar=2" Name="link" DestinationURL="/script?foo=1&amp;bar=2" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-24" Name="/script?foo=1&amp;bar=2" Source="htss-24" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-24" Name="/script?foo=1&amp;bar=2" Source="htss-24" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//script?foo=1&amp;bar=2</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//script?foo=1&amp;bar=2" Name="link" DestinationURL="/script?foo=1&amp;bar=2" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-23" Name="/script?foo=1&amp;bar=2" Source="htss-23" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-23" Name="/script?foo=1&amp;bar=2" Source="htss-23" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//script?foo=1&amp;bar=2</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/http%3a//att.com/" Name="link" DestinationURL="http://att.com/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-22" Name="http://att.com/" Source="htss-22" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-22" Name="http://att.com/" Source="htss-22" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/http%3a//att.com/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/http%3a//example.com/?foo=1&amp;bar=2" Name="link" DestinationURL="http://example.com/?foo=1&amp;bar=2" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-21" Name="http://example.com/?foo=1&amp;bar=2" Source="htss-21" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-21" Name="http://example.com/?foo=1&amp;bar=2" Source="htss-21" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/http%3a//example.com/?foo=1&amp;bar=2</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-20" Name="/url/" Source="htss-20" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-20" Name="/url/" Source="htss-20" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-19" Name="/url/" Source="htss-19" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-19" Name="/url/" Source="htss-19" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url" Name="link" DestinationURL="/url" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-18" Name="/url" Source="htss-18" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-18" Name="/url" Source="htss-18" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url" Name="link" DestinationURL="/url" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-17" Name="/url" Source="htss-17" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-17" Name="/url" Source="htss-17" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url" Name="link" DestinationURL="/url" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-16" Name="/url" Source="htss-16" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-16" Name="/url" Source="htss-16" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-15" Name="/url/" Source="htss-15" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-15" Name="/url/" Source="htss-15" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-14" Name="/url/" Source="htss-14" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-14" Name="/url/" Source="htss-14" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-13" Name="/url/" Source="htss-13" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-13" Name="/url/" Source="htss-13" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/" Name="link" DestinationURL="" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-12" Name="" Source="htss-12" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-12" Name="" Source="htss-12" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/mailto%3anobody@nowhere.net" Name="link" DestinationURL="mailto:nobody@nowhere.net" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-11" Name="mailto:nobody@nowhere.net" Source="htss-11" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-11" Name="mailto:nobody@nowhere.net" Source="htss-11" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/mailto%3anobody@nowhere.net</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/with_underscore" Name="link" DestinationURL="/url/with_underscore" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-10" Name="/url/with_underscore" Source="htss-10" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-10" Name="/url/with_underscore" Source="htss-10" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url/with_underscore</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-9" Name="/url/" Source="htss-9" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-9" Name="/url/" Source="htss-9" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-8" Name="/url/" Source="htss-8" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-8" Name="/url/" Source="htss-8" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-7" Name="/url/" Source="htss-7" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-7" Name="/url/" Source="htss-7" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-6" Name="/url/" Source="htss-6" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-6" Name="/url/" Source="htss-6" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-5" Name="/url/" Source="htss-5" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-5" Name="/url/" Source="htss-5" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url/" Name="link" DestinationURL="/url/" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-4" Name="/url/" Source="htss-4" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-4" Name="/url/" Source="htss-4" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url/</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/http%3a//example.com/?foo=1&amp;bar=2" Name="link" DestinationURL="http://example.com/?foo=1&amp;bar=2" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-3" Name="http://example.com/?foo=1&amp;bar=2" Source="htss-3" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-3" Name="http://example.com/?foo=1&amp;bar=2" Source="htss-3" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/http%3a//example.com/?foo=1&amp;bar=2</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url" Name="link" DestinationURL="/url" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-2" Name="/url" Source="htss-2" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-2" Name="/url" Source="htss-2" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url</Destination>
     </Properties>
   </Hyperlink>
   <HyperlinkURLDestination Self="HyperlinkURLDestination//url" Name="link" DestinationURL="/url" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-1" Name="/url" Source="htss-1" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-1" Name="/url" Source="htss-1" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination//url</Destination>
