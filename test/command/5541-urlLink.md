@@ -102,7 +102,7 @@ some more text that [links to](https://www.pandoc.org) Pandoc.
 
   </Story>
   <HyperlinkURLDestination Self="HyperlinkURLDestination/https%3a//www.pandoc.org" Name="link" DestinationURL="https://www.pandoc.org" DestinationUniqueKey="1" />
-  <Hyperlink Self="uf-1" Name="https://www.pandoc.org" Source="htss-1" Visible="true" DestinationUniqueKey="1">
+  <Hyperlink Self="uf-1" Name="https://www.pandoc.org" Source="htss-1" Visible="false" DestinationUniqueKey="1">
     <Properties>
       <BorderColor type="enumeration">Black</BorderColor>
       <Destination type="object">HyperlinkURLDestination/https%3a//www.pandoc.org</Destination>
