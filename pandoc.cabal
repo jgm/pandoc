@@ -288,6 +288,9 @@ extra-source-files:
                  test/tables.muse
                  test/tables.custom
                  test/tables.xwiki
+                 test/tables/*.html4
+                 test/tables/*.html5
+                 test/tables/*.native
                  test/testsuite.txt
                  test/writer.latex
                  test/writer.context

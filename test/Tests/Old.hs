@@ -267,12 +267,13 @@ writerTests pandocPath format
 extendedWriterTests :: FilePath -> String -> [TestTree]
 extendedWriterTests pandocPath format
   = writerTests pandocPath format ++
-    [ test pandocPath
-           "tables"
-           opts
-           ("tables" </> "planets.native")
-           ("tables" </> "planets" <.> format)
-    ]
+    let testForTable name =
+          test pandocPath
+               (name ++ " table")
+               opts
+               ("tables" </> name <.> "native")
+               ("tables" </> name <.> format)
+    in map testForTable ["planets", "nordics"]
   where
     opts = ["-r", "native", "-w", format, "--columns=78",
             "--variable", "pandoc-version="]

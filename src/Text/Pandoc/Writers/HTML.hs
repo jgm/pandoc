@@ -910,7 +910,7 @@ tableToHtml :: PandocMonad m
             => WriterOptions
             -> Ann.Table
             -> StateT WriterState m Html
-tableToHtml opts (Ann.Table attr caption colspecs thead tbodies _tfoot) = do
+tableToHtml opts (Ann.Table attr caption colspecs thead tbodies tfoot) = do
   captionDoc <- case caption of
     Caption _ [] -> return mempty
     Caption _ longCapt -> do
@@ -921,11 +921,11 @@ tableToHtml opts (Ann.Table attr caption colspecs thead tbodies _tfoot) = do
   coltags <- colSpecListToHtml opts colspecs
   head' <- tableHeadToHtml opts thead
   body' <- mconcat <$> mapM (tableBodyToHtml opts) tbodies
+  foot' <- tableFootToHtml opts tfoot
   let (ident,classes,kvs) = attr
   -- When widths of columns are < 100%, we need to set width for the whole
   -- table, or some browsers give us skinny columns with lots of space
   -- between:
-  -- let totalWidth = sum widths
   let colWidth = \case
         ColWidth d -> d
         ColWidthDefault -> 0
@@ -936,8 +936,14 @@ tableToHtml opts (Ann.Table attr caption colspecs thead tbodies _tfoot) = do
                          T.pack (show (round (totalWidth * 100) :: Int))
                          <> "%;"):kvs)
                 _ -> attr
-  addAttrs opts attr' $ H.table $
-    nl opts *> captionDoc *> coltags *> head' *> body' *> nl opts
+  addAttrs opts attr' $ H.table $ do
+    nl opts
+    captionDoc
+    coltags
+    head'
+    body'
+    foot'
+    nl opts
 
 tableBodyToHtml :: PandocMonad m
                 => WriterOptions
@@ -951,36 +957,57 @@ tableHeadToHtml :: PandocMonad m
                 -> Ann.TableHead
                 -> StateT WriterState m Html
 tableHeadToHtml opts (Ann.TableHead attr rows) =
+  tablePartToHtml opts Thead attr rows
+
+tableFootToHtml :: PandocMonad m
+                => WriterOptions
+                -> Ann.TableFoot
+                -> StateT WriterState m Html
+tableFootToHtml opts (Ann.TableFoot attr rows) =
+  tablePartToHtml opts Tfoot attr rows
+
+tablePartToHtml :: PandocMonad m
+                => WriterOptions
+                -> TablePart
+                -> Attr
+                -> [Ann.HeaderRow]
+                -> StateT WriterState m Html
+tablePartToHtml opts tblpart attr rows =
   if null rows || all isEmptyRow rows
   then return mempty
   else do
-    contents <- headerRowsToHtml opts rows
-    headElement <- addAttrs opts attr $ H.thead contents
+    let tag' = case tblpart of
+                 Thead -> H.thead
+                 Tfoot -> H.tfoot
+                 Tbody -> H.tbody -- this would be unexpected
+    contents <- headerRowsToHtml opts tblpart rows
+    tablePartElement <- addAttrs opts attr $ tag' contents
     return $ do
-      headElement
+      tablePartElement
       nl opts
   where
     isEmptyRow (Ann.HeaderRow _attr _rownum cells) = all isEmptyCell cells
     isEmptyCell (Ann.Cell _colspecs _colnum cell) =
       cell == Cell nullAttr AlignDefault (RowSpan 1) (ColSpan 1) []
 
-
-data RowType = HeaderRow | FooterRow | BodyRow
+-- | The part of a table; header, footer, or body.
+data TablePart = Thead | Tfoot | Tbody
   deriving (Eq)
 
 data CellType = HeaderCell | BodyCell
 
-data TableRow = TableRow RowType Attr Ann.RowNumber Ann.RowHead Ann.RowBody
+data TableRow = TableRow TablePart Attr Ann.RowNumber Ann.RowHead Ann.RowBody
 
 headerRowsToHtml :: PandocMonad m
-              => WriterOptions
-              -> [Ann.HeaderRow]
-              -> StateT WriterState m Html
-headerRowsToHtml opts =
+                 => WriterOptions
+                 -> TablePart
+                 -> [Ann.HeaderRow]
+                 -> StateT WriterState m Html
+headerRowsToHtml opts tablepart =
   rowListToHtml opts . map toTableRow
   where
     toTableRow (Ann.HeaderRow attr rownum rowbody) =
-      TableRow HeaderRow attr rownum [] rowbody
+      TableRow tablepart attr rownum [] rowbody
 
 bodyRowsToHtml :: PandocMonad m
                => WriterOptions
@@ -990,7 +1017,7 @@ bodyRowsToHtml opts =
   rowListToHtml opts . zipWith toTableRow [1..]
   where
     toTableRow rownum (Ann.BodyRow attr _rownum rowhead rowbody) =
-      TableRow BodyRow attr rownum rowhead rowbody
+      TableRow Tbody attr rownum rowhead rowbody
 
 
 rowListToHtml :: PandocMonad m
@@ -1034,14 +1061,14 @@ tableRowToHtml :: PandocMonad m
                => WriterOptions
                -> TableRow
                -> StateT WriterState m Html
-tableRowToHtml opts (TableRow rowtype _attr rownum rowhead rowbody) = do
+tableRowToHtml opts (TableRow tblpart _attr rownum rowhead rowbody) = do
   let rowclass = A.class_ $ case rownum of
-        Ann.RowNumber x | x `rem` 2 == 1       -> "odd"
-        _               | rowtype /= HeaderRow -> "even"
-        _                                      -> "header"
-  let celltype = case rowtype of
-        HeaderRow -> HeaderCell
-        _         -> BodyCell
+        Ann.RowNumber x | x `rem` 2 == 1   -> "odd"
+        _               | tblpart /= Thead -> "even"
+        _                                  -> "header"
+  let celltype = case tblpart of
+                   Thead -> HeaderCell
+                   _     -> BodyCell
   head' <- mapM (cellToHtml opts HeaderCell) rowhead
   body <- mapM (cellToHtml opts celltype) rowbody
   return $ do
