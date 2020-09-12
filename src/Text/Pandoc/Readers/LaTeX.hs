@@ -31,7 +31,7 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isLetter, toUpper, chr)
 import Data.Default
-import Data.Functor (($>), (<$))
+import Data.Functor (($>))
 import Data.List (intercalate)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
