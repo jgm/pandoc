@@ -216,7 +216,7 @@ imageMimeType src kvs =
                   (T.takeWhile (/='/') <$> mbMT)
       subtype = fromMaybe "" $
                   lookup "mime-subtype" kvs `mplus`
-                  ((T.drop 1 . T.dropWhile (/='/')) <$> mbMT)
+                  (T.drop 1 . T.dropWhile (/='/') <$> mbMT)
   in (maintype, subtype)
 
 languageFor :: [Text] -> Text
@@ -372,7 +372,7 @@ blockToJATS opts (Table _ blkCapt specs th tb tf) =
       thead <- if all null headers
                   then return empty
                   else inTagsIndented "thead" <$> tableRowToJATS opts True headers
-      tbody <- (inTagsIndented "tbody" . vcat) <$>
+      tbody <- inTagsIndented "tbody" . vcat <$>
                     mapM (tableRowToJATS opts False) rows
       return $ inTags True "table" [] $ coltags $$ thead $$ tbody
 
@@ -389,7 +389,7 @@ tableRowToJATS :: PandocMonad m
                   -> [[Block]]
                   -> JATS m (Doc Text)
 tableRowToJATS opts isHeader cols =
-  (inTagsIndented "tr" . vcat) <$> mapM (tableItemToJATS opts isHeader) cols
+  inTagsIndented "tr" . vcat <$> mapM (tableItemToJATS opts isHeader) cols
 
 tableItemToJATS :: PandocMonad m
                    => WriterOptions
@@ -400,7 +400,7 @@ tableItemToJATS opts isHeader [Plain item] =
   inTags False (if isHeader then "th" else "td") [] <$>
     inlinesToJATS opts item
 tableItemToJATS opts isHeader item =
-  (inTags False (if isHeader then "th" else "td") [] . vcat) <$>
+  inTags False (if isHeader then "th" else "td") [] . vcat <$>
     mapM (blockToJATS opts) item
 
 -- | Convert a list of inline elements to JATS.
@@ -547,7 +547,7 @@ inlineToJATS _ (Image (ident,_,kvs) _ (src, tit)) = do
                   (T.takeWhile (/='/') <$> mbMT)
   let subtype = fromMaybe "" $
                   lookup "mime-subtype" kvs `mplus`
-                  ((T.drop 1 . T.dropWhile (/='/')) <$> mbMT)
+                  (T.drop 1 . T.dropWhile (/='/') <$> mbMT)
   let attr = [("id", ident) | not (T.null ident)] ++
              [("mimetype", maintype),
               ("mime-subtype", subtype),

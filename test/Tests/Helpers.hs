@@ -1,7 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {- |
    Module      : Tests.Helpers
    Copyright   : © 2006-2020 John MacFarlane
@@ -104,7 +103,7 @@ findPandoc = do
              -- cabalv1
              "test-pandoc" : "build" : ps
                -> joinPath (reverse ps) </> "build" </> "pandoc"
-             _ -> error $ "findPandoc: could not find pandoc executable"
+             _ -> error "findPandoc: could not find pandoc executable"
   let pandocPath = pandocDir </> "pandoc"
 #ifdef _WINDOWS
                              <.> "exe"

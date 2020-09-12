@@ -1025,7 +1025,7 @@ htmlBlock = do
   guardEnabled Ext_raw_html
   try (do
       (TagOpen _ attrs) <- lookAhead $ fst <$> htmlTag isBlockTag
-      (return . B.rawBlock "html") <$> rawVerbatimBlock
+      return . B.rawBlock "html" <$> rawVerbatimBlock
         <|> (do guardEnabled Ext_markdown_attribute
                 oldMarkdownAttribute <- stateMarkdownAttribute <$> getState
                 markdownAttribute <-
@@ -1582,7 +1582,7 @@ ender c n = try $ do
 three :: PandocMonad m => Char -> MarkdownParser m (F Inlines)
 three c = do
   contents <- mconcat <$> many (notFollowedBy (ender c 1) >> inline)
-  (ender c 3 >> updateLastStrPos >> return ((B.strong . B.emph) <$> contents))
+  (ender c 3 >> updateLastStrPos >> return (B.strong . B.emph <$> contents))
     <|> (ender c 2 >> updateLastStrPos >> one c (B.strong <$> contents))
     <|> (ender c 1 >> updateLastStrPos >> two c (B.emph <$> contents))
     <|> return (return (B.str $ T.pack [c,c,c]) <> contents)
@@ -1617,7 +1617,7 @@ inlinesBetween :: PandocMonad m
                -> MarkdownParser m b
                -> MarkdownParser m (F Inlines)
 inlinesBetween start end =
-  (trimInlinesF . mconcat) <$> try (start >> many1Till inner end)
+  trimInlinesF . mconcat <$> try (start >> many1Till inner end)
     where inner      = innerSpace <|> (notFollowedBy' (() <$ whitespace) >> inline)
           innerSpace = try $ whitespace <* notFollowedBy' end
 
@@ -1720,7 +1720,7 @@ source = do
             try parenthesizedChars
         <|> (notFollowedBy (oneOf " )") >> countChar 1 litChar)
         <|> try (many1Char spaceChar <* notFollowedBy (oneOf "\"')"))
-  let sourceURL = (T.unwords . T.words . T.concat) <$> many urlChunk
+  let sourceURL = T.unwords . T.words . T.concat <$> many urlChunk
   let betweenAngles = try $
          char '<' >> manyTillChar litChar (char '>')
   src <- try betweenAngles <|> sourceURL
@@ -2023,7 +2023,7 @@ textualCite = try $ do
   mbrest <- option Nothing $ try $ spnl >> Just <$> withRaw normalCite
   case mbrest of
        Just (rest, raw) ->
-         return $ (flip B.cite (B.text $ "@" <> key <> " " <> raw) . (first:))
+         return $ flip B.cite (B.text $ "@" <> key <> " " <> raw) . (first:)
                <$> rest
        Nothing   ->
          (do
@@ -2130,4 +2130,4 @@ toRow :: [Blocks] -> Row
 toRow = Row nullAttr . map B.simpleCell
 
 toHeaderRow :: [Blocks] -> [Row]
-toHeaderRow l = if null l then [] else [toRow l]
+toHeaderRow l = [toRow l | not (null l)]

@@ -18,7 +18,7 @@ import Data.Either (rights)
 import Data.Foldable (asum)
 import Data.Generics
 import Data.List (intersperse,elemIndex)
-import Data.Maybe (fromMaybe,catMaybes)
+import Data.Maybe (fromMaybe,mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup.Entity (lookupEntity)
@@ -781,7 +781,7 @@ parseBlock (Elem e) =
         "para"  -> parseMixed para (elContent e)
         "formalpara" -> do
            tit <- case filterChild (named "title") e of
-                        Just t  -> (para . strong . (<> str ".")) <$>
+                        Just t  -> para . strong . (<> str ".") <$>
                                      getInlines t
                         Nothing -> return mempty
            (tit <>) <$> parseMixed para (elContent e)
@@ -897,7 +897,7 @@ parseBlock (Elem e) =
          parseBlockquote = do
             attrib <- case filterChild (named "attribution") e of
                              Nothing  -> return mempty
-                             Just z   -> (para . (str "— " <>) . mconcat)
+                             Just z   -> para . (str "— " <>) . mconcat
                                          <$>
                                               mapM parseInline (elContent z)
             contents <- getBlocks e
@@ -931,7 +931,7 @@ parseBlock (Elem e) =
                                            _      -> filterChildren isColspec e'
                       let colnames = case colspecs of
                                        [] -> []
-                                       cs -> catMaybes $ map (findAttr (unqual "colname" )) cs
+                                       cs -> mapMaybe (findAttr (unqual "colname" )) cs
                       let isRow x = named "row" x || named "tr" x
                       headrows <- case filterChild (named "thead") e' of
                                        Just h  -> case filterChild isRow h of
@@ -968,7 +968,7 @@ parseBlock (Elem e) =
                                                             in  ColWidth . (/ tot) <$> ws'
                                                 Nothing  -> replicate numrows ColWidthDefault
                       let toRow = Row nullAttr
-                          toHeaderRow l = if null l then [] else [toRow l]
+                          toHeaderRow l = [toRow l | not (null l)]
                       return $ table (simpleCaption $ plain capt)
                                      (zip aligns widths)
                                      (TableHead nullAttr $ toHeaderRow headrows)
@@ -1008,7 +1008,7 @@ parseBlock (Elem e) =
 parseMixed :: PandocMonad m => (Inlines -> Blocks) -> [Content] -> DB m Blocks
 parseMixed container conts = do
   let (ils,rest) = break isBlockElement conts
-  ils' <- (trimInlines . mconcat) <$> mapM parseInline ils
+  ils' <- trimInlines . mconcat <$> mapM parseInline ils
   let p = if ils' == mempty then mempty else container ils'
   case rest of
     [] -> return p
@@ -1036,10 +1036,10 @@ parseEntry cn el = do
         case (mStrt, mEnd) of
           (Just start, Just end) -> colDistance start end
           _ -> 1
-  (fmap (cell AlignDefault 1 (toColSpan el)) . (parseMixed plain) . elContent) el
+  (fmap (cell AlignDefault 1 (toColSpan el)) . parseMixed plain . elContent) el
 
 getInlines :: PandocMonad m => Element -> DB m Inlines
-getInlines e' = (trimInlines . mconcat) <$>
+getInlines e' = trimInlines . mconcat <$>
                  mapM parseInline (elContent e')
 
 strContentRecursive :: Element -> String
@@ -1136,7 +1136,7 @@ parseInline (Elem e) =
                              "strong"        -> strong <$> innerInlines
                              "strikethrough" -> strikeout <$> innerInlines
                              _               -> emph <$> innerInlines
-        "footnote" -> (note . mconcat) <$>
+        "footnote" -> note . mconcat <$>
                          mapM parseBlock (elContent e)
         "title" -> return mempty
         "affiliation" -> skip
@@ -1149,14 +1149,14 @@ parseInline (Elem e) =
            lift $ report $ IgnoredElement $ T.pack $ qName (elName e)
            return mempty
 
-         innerInlines = (trimInlines . mconcat) <$>
+         innerInlines = trimInlines . mconcat <$>
                           mapM parseInline (elContent e)
          codeWithLang = do
            let classes' = case attrValue "language" e of
                                "" -> []
                                l  -> [l]
            return $ codeWith (attrValue "id" e,classes',[]) $ T.pack $ strContentRecursive e
-         simpleList = (mconcat . intersperse (str "," <> space)) <$> mapM getInlines
+         simpleList = mconcat . intersperse (str "," <> space) <$> mapM getInlines
                          (filterChildren (named "member") e)
          segmentedList = do
            tit <- maybe (return mempty) getInlines $ filterChild (named "title") e

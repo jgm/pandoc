@@ -54,7 +54,7 @@ simpleTable'' spec headers rows
           (TableFoot nullAttr [])
   where
     toRow = Row nullAttr . map simpleCell
-    toHeaderRow l = if null l then [] else [toRow l]
+    toHeaderRow l = [toRow l | not (null l)]
 
 tests :: [TestTree]
 tests =

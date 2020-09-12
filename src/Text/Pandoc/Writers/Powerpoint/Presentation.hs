@@ -537,10 +537,10 @@ withAttr _ sp = sp
 blockToShape :: Block -> Pres Shape
 blockToShape (Plain ils) = blockToShape (Para ils)
 blockToShape (Para (il:_))  | Image attr ils (url, _) <- il =
-      (withAttr attr . Pic def (T.unpack url)) <$> inlinesToParElems ils
+      withAttr attr . Pic def (T.unpack url) <$> inlinesToParElems ils
 blockToShape (Para (il:_))  | Link _ (il':_) target <- il
                             , Image attr ils (url, _) <- il' =
-      (withAttr attr . Pic def{picPropLink = Just $ ExternalTarget target} (T.unpack url))
+      withAttr attr . Pic def{picPropLink = Just $ ExternalTarget target} (T.unpack url)
       <$> inlinesToParElems ils
 blockToShape (Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, algn, _, hdrCells, rows) = toLegacyTable blkCapt specs thead tbody tfoot
@@ -721,7 +721,7 @@ makeNoteEntry (n, blks) =
   let enum = Str (tshow n <> ".")
   in
     case blks of
-      (Para ils : blks') -> (Para $ enum : Space : ils) : blks'
+      (Para ils : blks') -> Para (enum : Space : ils) : blks'
       _ -> Para [enum] : blks
 
 forceFontSize :: Pixels -> Pres a -> Pres a
@@ -767,7 +767,7 @@ getMetaSlide  = do
          mempty
 
 addSpeakerNotesToMetaSlide :: Slide -> [Block] -> Pres (Slide, [Block])
-addSpeakerNotesToMetaSlide (Slide sldId layout@(MetadataSlide{}) spkNotes) blks =
+addSpeakerNotesToMetaSlide (Slide sldId layout@MetadataSlide{} spkNotes) blks =
   do let (ntsBlks, blks') = span isNotesDiv blks
      spkNotes' <- mconcat <$> mapM blockToSpeakerNotes ntsBlks
      return (Slide sldId layout (spkNotes <> spkNotes'), blks')

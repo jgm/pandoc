@@ -68,7 +68,7 @@ tests = [
   testGroup "Escapes" [
       "fonts" =:
       "aa\\fIbb\\fRcc"
-      =?>para (str "aa" <> (emph $ str "bb") <> str "cc")
+      =?>para (str "aa" <> emph (str "bb") <> str "cc")
     , "nested fonts" =:
       "\\f[BI]hi\\f[I] there\\f[R]"
       =?> para (emph (strong (text "hi") <> text " there"))

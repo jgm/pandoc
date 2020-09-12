@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns      #-}
 {- |
@@ -54,7 +55,7 @@ escapeStringForXML = T.concatMap escapeCharForXML . T.filter isLegalXMLChar
 
 -- | Escape newline characters as &#10;
 escapeNls :: Text -> Text
-escapeNls = T.concatMap $ \x -> case x of
+escapeNls = T.concatMap $ \case
   '\n' -> "&#10;"
   c    -> T.singleton c
 

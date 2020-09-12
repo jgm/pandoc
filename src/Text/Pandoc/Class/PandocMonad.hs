@@ -433,7 +433,7 @@ getDefaultReferenceDocx = do
                "word/theme/theme1.xml"]
   let toLazy = BL.fromChunks . (:[])
   let pathToEntry path = do
-        epochtime <- (floor . utcTimeToPOSIXSeconds) <$> getCurrentTime
+        epochtime <- floor . utcTimeToPOSIXSeconds <$> getCurrentTime
         contents <- toLazy <$> readDataFile ("docx/" ++ path)
         return $ toEntry path epochtime contents
   datadir <- getUserDataDir
@@ -536,7 +536,7 @@ getDefaultReferencePptx = do
               ]
   let toLazy = BL.fromChunks . (:[])
   let pathToEntry path = do
-        epochtime <- (floor . utcTimeToPOSIXSeconds) <$> getCurrentTime
+        epochtime <- floor . utcTimeToPOSIXSeconds <$> getCurrentTime
         contents <- toLazy <$> readDataFile ("pptx/" ++ path)
         return $ toEntry path epochtime contents
   datadir <- getUserDataDir
@@ -568,11 +568,11 @@ readDataFile fname = do
 -- | Read file from from Cabal data directory.
 readDefaultDataFile :: PandocMonad m => FilePath -> m B.ByteString
 readDefaultDataFile "reference.docx" =
-  (B.concat . BL.toChunks . fromArchive) <$> getDefaultReferenceDocx
+  B.concat . BL.toChunks . fromArchive <$> getDefaultReferenceDocx
 readDefaultDataFile "reference.pptx" =
-  (B.concat . BL.toChunks . fromArchive) <$> getDefaultReferencePptx
+  B.concat . BL.toChunks . fromArchive <$> getDefaultReferencePptx
 readDefaultDataFile "reference.odt" =
-  (B.concat . BL.toChunks . fromArchive) <$> getDefaultReferenceODT
+  B.concat . BL.toChunks . fromArchive <$> getDefaultReferenceODT
 readDefaultDataFile fname =
 #ifdef EMBED_DATA_FILES
   case lookup (makeCanonical fname) dataFiles of

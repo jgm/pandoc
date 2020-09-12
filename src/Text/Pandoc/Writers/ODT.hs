@@ -71,7 +71,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
   refArchive <-
        case writerReferenceDoc opts of
              Just f -> liftM toArchive $ lift $ P.readFileLazy f
-             Nothing -> lift $ (toArchive . B.fromStrict) <$>
+             Nothing -> lift $ toArchive . B.fromStrict <$>
                                 P.readDataFile "reference.odt"
   -- handle formulas and pictures
   -- picEntriesRef <- P.newIORef ([] :: [Entry])

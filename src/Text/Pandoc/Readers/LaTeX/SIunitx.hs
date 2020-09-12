@@ -103,9 +103,9 @@ doSIang = do
   ps <- T.splitOn ";" . untokenize <$> braced
   case ps ++ repeat "" of
     (d:m:s:_) -> return $
-      (if T.null d then mempty else (str d <> str "\xb0")) <>
-      (if T.null m then mempty else (str m <> str "\x2032")) <>
-      (if T.null s then mempty else (str s <> str "\x2033"))
+      (if T.null d then mempty else str d <> str "\xb0") <>
+      (if T.null m then mempty else str m <> str "\x2032") <>
+      (if T.null s then mempty else str s <> str "\x2033")
     _ -> return mempty
 
 -- converts e.g. \SIrange{100}{200}{\ms} to "100 ms--200 ms"

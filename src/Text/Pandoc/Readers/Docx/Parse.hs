@@ -404,12 +404,8 @@ archiveToNotes zf =
                >>= (parseXMLDoc . UTF8.toStringLazy . fromEntry)
       enElem = findEntryByPath "word/endnotes.xml" zf
                >>= (parseXMLDoc . UTF8.toStringLazy . fromEntry)
-      fn_namespaces = case fnElem of
-        Just e  -> elemToNameSpaces e
-        Nothing -> []
-      en_namespaces = case enElem of
-        Just e  -> elemToNameSpaces e
-        Nothing -> []
+      fn_namespaces = maybe [] elemToNameSpaces fnElem
+      en_namespaces = maybe [] elemToNameSpaces enElem
       ns = unionBy (\x y -> fst x == fst y) fn_namespaces en_namespaces
       fn = fnElem >>= walkDocument ns >>= elemToNotes ns "footnote"
       en = enElem >>= walkDocument ns >>= elemToNotes ns "endnote"
@@ -420,9 +416,7 @@ archiveToComments :: Archive -> Comments
 archiveToComments zf =
   let cmtsElem = findEntryByPath "word/comments.xml" zf
                >>= (parseXMLDoc . UTF8.toStringLazy . fromEntry)
-      cmts_namespaces = case cmtsElem of
-        Just e  -> elemToNameSpaces e
-        Nothing -> []
+      cmts_namespaces = maybe [] elemToNameSpaces cmtsElem
       cmts = elemToComments cmts_namespaces <$> (cmtsElem >>= walkDocument cmts_namespaces)
   in
     case cmts of

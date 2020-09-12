@@ -50,9 +50,8 @@ pushModule = do
 -- | Squashes a list of blocks into inlines.
 blocksToInlines :: [Block] -> Lua.Optional [Inline] -> PandocLua [Inline]
 blocksToInlines blks optSep = liftPandocLua $ do
-  let sep = case Lua.fromOptional optSep of
-              Just x -> B.fromList x
-              Nothing -> Shared.defaultBlocksSeparator
+  let sep = maybe Shared.defaultBlocksSeparator B.fromList
+            $ Lua.fromOptional optSep
   return $ B.toList (Shared.blocksToInlinesWithSep sep blks)
 
 -- | Convert list of Pandoc blocks into sections using Divs.

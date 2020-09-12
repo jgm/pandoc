@@ -205,14 +205,14 @@ tableRowToTEI :: PandocMonad m
               -> [[Block]]
               -> m (Doc Text)
 tableRowToTEI opts cols =
-  (inTagsIndented "row" . vcat) <$> mapM (tableItemToTEI opts) cols
+  inTagsIndented "row" . vcat <$> mapM (tableItemToTEI opts) cols
 
 tableHeadersToTEI :: PandocMonad m
                   => WriterOptions
                   -> [[Block]]
                   -> m (Doc Text)
 tableHeadersToTEI opts cols =
-  (inTags True "row" [("role","label")] . vcat) <$>
+  inTags True "row" [("role","label")] . vcat <$>
     mapM (tableItemToTEI opts) cols
 
 tableItemToTEI :: PandocMonad m
@@ -220,7 +220,7 @@ tableItemToTEI :: PandocMonad m
                -> [Block]
                -> m (Doc Text)
 tableItemToTEI opts item =
-  (inTags False "cell" [] . vcat) <$> mapM (blockToTEI opts) item
+  inTags False "cell" [] . vcat <$> mapM (blockToTEI opts) item
 
 -- | Convert a list of inline elements to TEI.
 inlinesToTEI :: PandocMonad m => WriterOptions -> [Inline] -> m (Doc Text)

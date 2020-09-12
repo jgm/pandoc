@@ -28,7 +28,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 
 type Notes = [[Block]]
-data WriterState = WriterState { stNotes :: Notes }
+newtype WriterState = WriterState { stNotes :: Notes }
 instance Default WriterState
   where def = WriterState{ stNotes = [] }
 

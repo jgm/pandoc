@@ -241,12 +241,12 @@ blockToRTF _ _ b@(RawBlock f str)
   | otherwise         = do
       report $ BlockNotRendered b
       return ""
-blockToRTF indent alignment (BulletList lst) = (spaceAtEnd . T.concat) <$>
+blockToRTF indent alignment (BulletList lst) = spaceAtEnd . T.concat <$>
   mapM (listItemToRTF alignment indent (bulletMarker indent)) lst
 blockToRTF indent alignment (OrderedList attribs lst) =
-  (spaceAtEnd . T.concat) <$>
+  spaceAtEnd . T.concat <$>
    zipWithM (listItemToRTF alignment indent) (orderedMarkers indent attribs) lst
-blockToRTF indent alignment (DefinitionList lst) = (spaceAtEnd . T.concat) <$>
+blockToRTF indent alignment (DefinitionList lst) = spaceAtEnd . T.concat <$>
   mapM (definitionListItemToRTF alignment indent) lst
 blockToRTF indent _ HorizontalRule = return $
   rtfPar indent 0 AlignCenter "\\emdash\\emdash\\emdash\\emdash\\emdash"

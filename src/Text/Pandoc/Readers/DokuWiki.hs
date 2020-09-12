@@ -472,7 +472,7 @@ table = do
                             else ([], rows)
   let attrs = (AlignDefault, ColWidthDefault) <$ transpose rows
   let toRow = Row nullAttr . map B.simpleCell
-      toHeaderRow l = if null l then [] else [toRow l]
+      toHeaderRow l = [toRow l | not (null l)]
   pure $ B.table B.emptyCaption
                  attrs
                  (TableHead nullAttr $ toHeaderRow headerRow)

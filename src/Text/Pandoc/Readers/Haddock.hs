@@ -86,7 +86,7 @@ docHToBlocks d' =
                     }
       -> let toCells = map (docHToBlocks . tableCellContents) . tableRowCells
              toRow = Row nullAttr . map B.simpleCell
-             toHeaderRow l = if null l then [] else [toRow l]
+             toHeaderRow l = [toRow l | not (null l)]
              (header, body) =
                if null headerRows
                   then ([], map toCells bodyRows)

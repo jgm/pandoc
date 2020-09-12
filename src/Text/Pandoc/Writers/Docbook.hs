@@ -179,7 +179,7 @@ blockToDocbook opts (Div (id',"section":_,_) (Header lvl _ ils : xs)) = do
 blockToDocbook opts (Div (ident,_,_) [Para lst]) =
   let attribs = [("id", ident) | not (T.null ident)] in
   if hasLineBreaks lst
-     then (flush . nowrap . inTags False "literallayout" attribs)
+     then flush . nowrap . inTags False "literallayout" attribs
                          <$> inlinesToDocbook opts lst
      else inTags True "para" attribs <$> inlinesToDocbook opts lst
 blockToDocbook opts (Div (ident,_,_) bs) = do
@@ -206,7 +206,7 @@ blockToDocbook opts (Para [Image attr txt (src,T.stripPrefix "fig:" -> Just _)])
              (imageToDocbook opts attr src) $$
            inTagsSimple "textobject" (inTagsSimple "phrase" alt))
 blockToDocbook opts (Para lst)
-  | hasLineBreaks lst = (flush . nowrap . inTagsSimple "literallayout")
+  | hasLineBreaks lst = flush . nowrap . inTagsSimple "literallayout"
                         <$> inlinesToDocbook opts lst
   | otherwise         = inTagsIndented "para" <$> inlinesToDocbook opts lst
 blockToDocbook opts (LineBlock lns) =
@@ -277,7 +277,7 @@ blockToDocbook opts (Table _ blkCapt specs thead tbody tfoot) = do
   head' <- if all null headers
               then return empty
               else inTagsIndented "thead" <$> tableRowToDocbook opts headers
-  body' <- (inTagsIndented "tbody" . vcat) <$>
+  body' <- inTagsIndented "tbody" . vcat <$>
               mapM (tableRowToDocbook opts) rows
   return $ inTagsIndented tableType $ captionDoc $$
         inTags True "tgroup" [("cols", tshow (length aligns))] (
@@ -305,14 +305,14 @@ tableRowToDocbook :: PandocMonad m
                   -> [[Block]]
                   -> DB m (Doc Text)
 tableRowToDocbook opts cols =
-  (inTagsIndented "row" . vcat) <$> mapM (tableItemToDocbook opts) cols
+  inTagsIndented "row" . vcat <$> mapM (tableItemToDocbook opts) cols
 
 tableItemToDocbook :: PandocMonad m
                    => WriterOptions
                    -> [Block]
                    -> DB m (Doc Text)
 tableItemToDocbook opts item =
-  (inTags True "entry" [] . vcat) <$> mapM (blockToDocbook opts) item
+  inTags True "entry" [] . vcat <$> mapM (blockToDocbook opts) item
 
 -- | Convert a list of inline elements to Docbook.
 inlinesToDocbook :: PandocMonad m => WriterOptions -> [Inline] -> DB m (Doc Text)

@@ -387,7 +387,7 @@ blockToOpenDocument o bs
                            r <- vcat  <$> mapM (deflistItemToOpenDocument o) b
                            setInDefinitionList False
                            return r
-      preformatted  s = (flush . vcat) <$> mapM (inPreformattedTags . escapeStringForXML) (T.lines s)
+      preformatted  s = flush . vcat <$> mapM (inPreformattedTags . escapeStringForXML) (T.lines s)
       mkBlockQuote  b = do increaseIndent
                            i <- paraStyle
                                  [("style:parent-style-name","Quotations")]

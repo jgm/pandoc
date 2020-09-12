@@ -1,4 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MultiWayIf          #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -998,7 +997,7 @@ rowListToHtml :: PandocMonad m
               -> [TableRow]
               -> StateT WriterState m Html
 rowListToHtml opts rows =
-  (\x -> (nl opts *> mconcat x)) <$>
+  (\x -> nl opts *> mconcat x) <$>
      mapM (tableRowToHtml opts) rows
 
 colSpecListToHtml :: PandocMonad m

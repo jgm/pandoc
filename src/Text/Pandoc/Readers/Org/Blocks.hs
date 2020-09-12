@@ -34,6 +34,7 @@ import Text.Pandoc.Shared (compactify, compactifyDL, safeRead)
 import Control.Monad (foldM, guard, mplus, mzero, void)
 import Data.Char (isSpace)
 import Data.Default (Default)
+import Data.Functor (($>))
 import Data.List (foldl', intersperse)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
@@ -103,9 +104,7 @@ attrFromBlockAttributes :: BlockAttributes -> Attr
 attrFromBlockAttributes BlockAttributes{..} =
   let
     ident   = fromMaybe mempty $ lookup "id" blockAttrKeyValues
-    classes = case lookup "class" blockAttrKeyValues of
-                Nothing     -> []
-                Just clsStr -> T.words clsStr
+    classes = maybe [] T.words $ lookup "class" blockAttrKeyValues
     kv      = filter ((`notElem` ["id", "class"]) . fst) blockAttrKeyValues
   in (ident, classes, kv)
 
@@ -576,10 +575,10 @@ rawExportLine = try $ do
 rawOrgLine :: PandocMonad m => OrgParser m (F Blocks)
 rawOrgLine = do
   line <- metaLineStart *> anyLine
-  returnF $ B.rawBlock "org" $ ("#+" <> line)
+  returnF $ B.rawBlock "org" $ "#+" <> line
 
 commentLine :: Monad m => OrgParser m Blocks
-commentLine = commentLineStart *> anyLine *> pure mempty
+commentLine = commentLineStart *> anyLine $> mempty
 
 
 --
@@ -648,12 +647,12 @@ orgToPandocTable (OrgTable colProps heads lns) caption =
              (TableFoot nullAttr [])
  where
    toRow = Row nullAttr . map B.simpleCell
-   toHeaderRow l = if null l then [] else [toRow l]
+   toHeaderRow l = [toRow l | not (null l)]
    convertColProp :: Maybe Int -> ColumnProperty -> (Alignment, ColWidth)
    convertColProp totalWidth colProp =
      let
        align' = fromMaybe AlignDefault $ columnAlignment colProp
-       width' = (\w t -> (fromIntegral w / fromIntegral t))
+       width' = (\w t -> fromIntegral w / fromIntegral t)
                 <$> columnRelWidth colProp
                 <*> totalWidth
      in (align', maybe ColWidthDefault ColWidth width')
@@ -691,9 +690,9 @@ columnPropertyCell = emptyOrgCell <|> propCell <?> "alignment info"
 
 tableAlignFromChar :: Monad m => OrgParser m Alignment
 tableAlignFromChar = try $
-  choice [ char 'l' *> return AlignLeft
-         , char 'c' *> return AlignCenter
-         , char 'r' *> return AlignRight
+  choice [ char 'l' $> AlignLeft
+         , char 'c' $> AlignCenter
+         , char 'r' $> AlignRight
          ]
 
 tableHline :: Monad m => OrgParser m OrgTableRow
@@ -796,13 +795,13 @@ paraOrPlain = try $ do
   -- Make sure we are not looking at a headline
   notFollowedBy' headerStart
   ils <- inlines
-  nl <- option False (newline *> return True)
+  nl <- option False (newline $> True)
   -- Read block as paragraph, except if we are in a list context and the block
   -- is directly followed by a list item, in which case the block is read as
   -- plain text.
   try (guard nl
        *> notFollowedBy (inList *> (orderedListStart <|> bulletListStart))
-       *> return (B.para <$> ils))
+       $> (B.para <$> ils))
     <|>  return (B.plain <$> ils)
 
 

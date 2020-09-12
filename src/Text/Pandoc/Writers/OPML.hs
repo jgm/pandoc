@@ -40,7 +40,7 @@ writeOPML opts (Pandoc meta blocks) = do
                 writeMarkdown def (Pandoc nullMeta [Plain ils]))
               meta'
   let blocks' = makeSections False (Just 1) blocks
-  main <- (render colwidth . vcat) <$>
+  main <- render colwidth . vcat <$>
              mapM (blockToOPML opts) blocks'
   let context = defField "body" main metadata
   return $

@@ -14,7 +14,6 @@ module Tests.Old (tests) where
 
 import Prelude
 import Data.Algorithm.Diff
-import Prelude hiding (readFile)
 import Data.List (intercalate)
 import Data.Maybe (catMaybes)
 import System.Exit
@@ -290,7 +289,7 @@ fb2WriterTest pandocPath title opts inputfile normfile =
   where
     formatXML xml = splitTags $ zip xml (drop 1 xml)
     splitTags []               = []
-    splitTags [end]            = fst end : snd end : []
+    splitTags [end]            = [fst end, snd end]
     splitTags (('>','<'):rest) = ">\n" ++ splitTags rest
     splitTags ((c,_):rest)     = c : splitTags rest
     ignoreBinary = unlines . filter (not . startsWith "<binary ") . lines

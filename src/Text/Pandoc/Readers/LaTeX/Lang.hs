@@ -152,4 +152,4 @@ babelLangToBCP47 s =
        "newzealand" -> Just $ Lang "en" "" "NZ" []
        "american" -> Just $ Lang "en" "" "US" []
        "classiclatin" -> Just $ Lang "la" "" "" ["x-classic"]
-       _ -> fmap ($ "") $ M.lookup s polyglossiaLangToBCP47
+       _ -> ($ "") <$> M.lookup s polyglossiaLangToBCP47

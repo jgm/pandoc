@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, CPP #-}
-{-# LANGUAGE ViewPatterns      #-}
 {- |
 Module      : Text.Pandoc.Image
 Copyright   : Copyright (C) 2020 John MacFarlane

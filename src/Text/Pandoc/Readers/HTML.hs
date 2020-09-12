@@ -517,7 +517,7 @@ pTable = try $ do
                        else replicate cols (ColWidth (1.0 / fromIntegral cols))
                   else widths'
   let toRow = Row nullAttr . map B.simpleCell
-      toHeaderRow l = if null l then [] else [toRow l]
+      toHeaderRow l = [toRow l | not (null l)]
   return $ B.tableWith attribs
                    (B.simpleCaption $ B.plain caption)
                    (zip aligns widths)
