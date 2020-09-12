@@ -56,7 +56,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
-import Text.Pandoc.Writers.Tables
+import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 import Text.Pandoc.XML (escapeStringForXML, fromEntities, toEntities,
                         html5Attributes, html4Attributes, rdfaAttributes)
 import qualified Text.Blaze.XHtml5 as H5
@@ -904,13 +904,13 @@ blockToHtml opts (DefinitionList lst) = do
                                         intersperse (nl opts) defs') lst
   defList opts contents
 blockToHtml opts (Table attr caption colspecs thead tbody tfoot) =
-  tableToHtml opts (toAnnTable attr caption colspecs thead tbody tfoot)
+  tableToHtml opts (Ann.toTable attr caption colspecs thead tbody tfoot)
 
 tableToHtml :: PandocMonad m
             => WriterOptions
-            -> AnnTable
+            -> Ann.Table
             -> StateT WriterState m Html
-tableToHtml opts (AnnTable attr caption colspecs thead tbodies _tfoot) = do
+tableToHtml opts (Ann.Table attr caption colspecs thead tbodies _tfoot) = do
   captionDoc <- case caption of
     Caption _ [] -> return mempty
     Caption _ longCapt -> do
@@ -941,16 +941,16 @@ tableToHtml opts (AnnTable attr caption colspecs thead tbodies _tfoot) = do
 
 tableBodyToHtml :: PandocMonad m
                 => WriterOptions
-                -> AnnTableBody
+                -> Ann.TableBody
                 -> StateT WriterState m Html
-tableBodyToHtml opts (AnnTableBody _attr _rowHeadCols _intm rows) =
+tableBodyToHtml opts (Ann.TableBody _attr _rowHeadCols _intm rows) =
   H.tbody <$> bodyRowsToHtml opts rows
 
 tableHeadToHtml :: PandocMonad m
                 => WriterOptions
-                -> AnnTableHead
+                -> Ann.TableHead
                 -> StateT WriterState m Html
-tableHeadToHtml opts (AnnTableHead attr rows) =
+tableHeadToHtml opts (Ann.TableHead attr rows) =
   if null rows || all isEmptyRow rows
   then return mempty
   else do
@@ -960,8 +960,8 @@ tableHeadToHtml opts (AnnTableHead attr rows) =
       headElement
       nl opts
   where
-    isEmptyRow (AnnHeaderRow _attr _rownum cells) = all isEmptyCell cells
-    isEmptyCell (AnnCell _colspecs _colnum cell) =
+    isEmptyRow (Ann.HeaderRow _attr _rownum cells) = all isEmptyCell cells
+    isEmptyCell (Ann.Cell _colspecs _colnum cell) =
       cell == Cell nullAttr AlignDefault (RowSpan 1) (ColSpan 1) []
 
 
@@ -970,26 +970,26 @@ data RowType = HeaderRow | FooterRow | BodyRow
 
 data CellType = HeaderCell | BodyCell
 
-data TableRow = TableRow RowType Attr RowNumber AnnRowHead AnnRowBody
+data TableRow = TableRow RowType Attr Ann.RowNumber Ann.RowHead Ann.RowBody
 
 headerRowsToHtml :: PandocMonad m
               => WriterOptions
-              -> [AnnHeaderRow]
+              -> [Ann.HeaderRow]
               -> StateT WriterState m Html
 headerRowsToHtml opts =
   rowListToHtml opts . map toTableRow
   where
-    toTableRow (AnnHeaderRow attr rownum rowbody) =
+    toTableRow (Ann.HeaderRow attr rownum rowbody) =
       TableRow HeaderRow attr rownum [] rowbody
 
 bodyRowsToHtml :: PandocMonad m
                => WriterOptions
-               -> [AnnBodyRow]
+               -> [Ann.BodyRow]
                -> StateT WriterState m Html
 bodyRowsToHtml opts =
   rowListToHtml opts . zipWith toTableRow [1..]
   where
-    toTableRow rownum (AnnBodyRow attr _rownum rowhead rowbody) =
+    toTableRow rownum (Ann.BodyRow attr _rownum rowhead rowbody) =
       TableRow BodyRow attr rownum rowhead rowbody
 
 
@@ -1036,9 +1036,9 @@ tableRowToHtml :: PandocMonad m
                -> StateT WriterState m Html
 tableRowToHtml opts (TableRow rowtype _attr rownum rowhead rowbody) = do
   let rowclass = A.class_ $ case rownum of
-        RowNumber x | x `rem` 2 == 1       -> "odd"
-        _           | rowtype /= HeaderRow -> "even"
-        _                                  -> "header"
+        Ann.RowNumber x | x `rem` 2 == 1       -> "odd"
+        _               | rowtype /= HeaderRow -> "even"
+        _                                      -> "header"
   let celltype = case rowtype of
         HeaderRow -> HeaderCell
         _         -> BodyCell
@@ -1068,9 +1068,9 @@ rowspanAttrib = \case
 cellToHtml :: PandocMonad m
            => WriterOptions
            -> CellType
-           -> AnnCell
+           -> Ann.Cell
            -> StateT WriterState m Html
-cellToHtml opts celltype (AnnCell (colspec :| _) _colNum cell) =
+cellToHtml opts celltype (Ann.Cell (colspec :| _) _colNum cell) =
   let align = fst colspec
   in tableCellToHtml opts celltype align cell
 
