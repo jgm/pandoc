@@ -272,7 +272,7 @@ extendedWriterTests pandocPath format
                opts
                ("tables" </> name <.> "native")
                ("tables" </> name <.> format)
-    in map testForTable ["planets", "nordics"]
+    in map testForTable ["planets", "nordics", "students"]
   where
     opts = ["-r", "native", "-w", format, "--columns=78",
             "--variable", "pandoc-version="]

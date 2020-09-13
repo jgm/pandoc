@@ -919,7 +919,7 @@ tableToHtml opts (Ann.Table attr caption colspecs thead tbodies tfoot) = do
         nl opts
   coltags <- colSpecListToHtml opts colspecs
   head' <- tableHeadToHtml opts thead
-  body' <- mconcat <$> mapM (tableBodyToHtml opts) tbodies
+  bodies <- intersperse (nl opts) <$> mapM (tableBodyToHtml opts) tbodies
   foot' <- tableFootToHtml opts tfoot
   let (ident,classes,kvs) = attr
   -- When widths of columns are < 100%, we need to set width for the whole
@@ -940,7 +940,7 @@ tableToHtml opts (Ann.Table attr caption colspecs thead tbodies tfoot) = do
     captionDoc
     coltags
     head'
-    body'
+    mconcat bodies
     foot'
     nl opts
 
@@ -948,8 +948,14 @@ tableBodyToHtml :: PandocMonad m
                 => WriterOptions
                 -> Ann.TableBody
                 -> StateT WriterState m Html
-tableBodyToHtml opts (Ann.TableBody attr _rowHeadCols _intm rows) =
-  addAttrs opts attr . H.tbody =<< bodyRowsToHtml opts rows
+tableBodyToHtml opts (Ann.TableBody attr _rowHeadCols inthead rows) =
+  addAttrs opts attr . H.tbody =<< do
+    intermediateHead <-
+      if null inthead
+      then return mempty
+      else headerRowsToHtml opts Thead inthead
+    bodyRows <- bodyRowsToHtml opts rows
+    return $ intermediateHead <> bodyRows
 
 tableHeadToHtml :: PandocMonad m
                 => WriterOptions

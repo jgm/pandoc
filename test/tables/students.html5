@@ -1,0 +1,55 @@
+<table id="students" data-source="mdn">
+<caption><p>List of Students</p></caption>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Student ID</th>
+<th style="text-align: center;">Name</th>
+</tr>
+</thead>
+<tbody class="souvereign-states">
+<tr class="odd">
+<th style="text-align: left;" colspan="2">Computer Science</th>
+</tr>
+
+<tr class="odd">
+<td style="text-align: left;">3741255</td>
+<td style="text-align: left;">Jones, Martha</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4077830</td>
+<td style="text-align: left;">Pierce, Benjamin</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">5151701</td>
+<td style="text-align: left;">Kirk, James</td>
+</tr>
+</tbody>
+<tbody>
+<tr class="odd">
+<th style="text-align: left;" colspan="2">Russian Literature</th>
+</tr>
+
+<tr class="odd">
+<td style="text-align: left;">3971244</td>
+<td style="text-align: left;">Nim, Victor</td>
+</tr>
+</tbody>
+<tbody>
+<tr class="odd">
+<th style="text-align: left;" colspan="2">Astrophysics</th>
+</tr>
+
+<tr class="odd">
+<td style="text-align: left;">4100332</td>
+<td style="text-align: left;">Petrov, Alexandra</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4100332</td>
+<td style="text-align: left;">Toyota, Hiroko</td>
+</tr>
+</tbody>
+</table>
