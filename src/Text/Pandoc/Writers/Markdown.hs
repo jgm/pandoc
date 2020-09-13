@@ -126,7 +126,7 @@ pandocTitleBlock tit auths dat =
 
 mmdTitleBlock :: Context Text -> Doc Text
 mmdTitleBlock (Context hashmap) =
-  vcat $ map go $ sortOn fst $ M.toList hashmap
+  vcat $ map go $ sortOn (T.toCaseFold . fst) $ M.toList hashmap
   where go (k,v) =
           case (text (T.unpack k), v) of
                (k', ListVal xs)
@@ -155,7 +155,7 @@ yamlMetadataBlock v = "---" $$ contextToYaml v $$ "---"
 
 contextToYaml :: Context Text -> Doc Text
 contextToYaml (Context o) =
-  vcat $ map keyvalToYaml $ sortOn fst $ M.toList o
+  vcat $ map keyvalToYaml $ sortOn (T.toCaseFold . fst) $ M.toList o
  where
   keyvalToYaml (k,v) =
           case (text (T.unpack k), v) of
