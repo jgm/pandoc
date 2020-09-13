@@ -3565,30 +3565,6 @@ list marker.  That is, example lists always behave as if the
 labels tend to be long, and indenting content to the
 first non-space character after the label would be awkward.
 
-### Compact and loose lists ###
-
-Pandoc behaves differently from `Markdown.pl` on some "edge
-cases" involving lists.  Consider this source:
-
-    +   First
-    +   Second:
-        -   Fee
-        -   Fie
-        -   Foe
-
-    +   Third
-
-Pandoc transforms this into a "compact list" (with no `<p>` tags around
-"First", "Second", or "Third"), while Markdown puts `<p>` tags around
-"Second" and "Third" (but not "First"), because of the blank space
-around "Third". Pandoc follows a simple rule: if the text is followed by
-a blank line, it is treated as a paragraph. Since "Second" is followed
-by a list, and not a blank line, it isn't treated as a paragraph. The
-fact that the list is followed by a blank line is irrelevant. (Note:
-Pandoc works this way even when the `markdown_strict` format is specified. This
-behavior is consistent with the official Markdown syntax description,
-even though it is different from that of `Markdown.pl`.)
-
 
 ### Ending a list ###
 
