@@ -67,9 +67,7 @@ pandocToMs opts (Pandoc meta blocks) = do
   let authorsMeta = map (escapeStr opts . stringify) $ docAuthors meta
   hasHighlighting <- gets stHighlighting
   let highlightingMacros = if hasHighlighting
-                              then case writerHighlightStyle opts of
-                                        Nothing  -> mempty
-                                        Just sty -> styleToMs sty
+                              then maybe mempty styleToMs $ writerHighlightStyle opts
                               else mempty
 
   let context = defField "body" main
@@ -523,7 +521,7 @@ msFormatter opts _fmtopts =
  where
   fmtLine = mconcat . map fmtToken
   fmtToken (toktype, tok) =
-    "\\*[" <> (tshow toktype) <> " \"" <> (escapeStr opts tok) <> "\"]"
+    "\\*[" <> tshow toktype <> " \"" <> escapeStr opts tok <> "\"]"
 
 highlightCode :: PandocMonad m => WriterOptions -> Attr -> Text -> MS m (Doc Text)
 highlightCode opts attr str =

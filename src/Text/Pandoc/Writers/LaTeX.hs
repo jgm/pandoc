@@ -1049,7 +1049,7 @@ wrapDiv (_,classes,kvs) t = do
                            let valign = maybe "T" mapAlignment (lookup "align" kvs)
                                totalwidth = maybe [] (\x -> ["totalwidth=" <> x])
                                  (lookup "totalwidth" kvs)
-                               onlytextwidth = filter ((==) "onlytextwidth") classes
+                               onlytextwidth = filter ("onlytextwidth" ==) classes
                                options = text $ T.unpack $ T.intercalate "," $
                                  valign : totalwidth ++ onlytextwidth 
                            in inCmd "begin" "columns" <> brackets options
@@ -1458,8 +1458,8 @@ citeArgumentsList (CiteGroup _ _ []) = return empty
 citeArgumentsList (CiteGroup pfxs sfxs ids) = do
       pdoc <- inlineListToLaTeX pfxs
       sdoc <- inlineListToLaTeX sfxs'
-      return $ (optargs pdoc sdoc) <>
-              (braces (literal (T.intercalate "," (reverse ids))))
+      return $ optargs pdoc sdoc <>
+              braces (literal (T.intercalate "," (reverse ids)))
       where sfxs' = stripLocatorBraces $ case sfxs of
                 (Str t : r) -> case T.uncons t of
                   Just (x, xs)
@@ -1516,12 +1516,12 @@ citationsToBiblatex (c:cs)
 
       groups <- mapM citeArgumentsList (reverse (foldl' grouper [] (c:cs)))
 
-      return $ text cmd <> (mconcat groups)
+      return $ text cmd <> mconcat groups
 
   where grouper prev cit = case prev of
          ((CiteGroup oPfx oSfx ids):rest)
-             | null oSfx && null pfx -> (CiteGroup oPfx sfx (cid:ids)):rest
-         _ -> (CiteGroup pfx sfx [cid]):prev
+             | null oSfx && null pfx -> CiteGroup oPfx sfx (cid:ids) : rest
+         _ -> CiteGroup pfx sfx [cid] : prev
          where pfx = citationPrefix cit
                sfx = citationSuffix cit
                cid = citationId cit

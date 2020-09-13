@@ -31,6 +31,7 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isLetter, toUpper, chr)
 import Data.Default
+import Data.Functor (($>))
 import Data.List (intercalate)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
@@ -136,15 +137,15 @@ rawLaTeXBlock = do
   inp <- getInput
   let toks = tokenize "source" inp
   snd <$> (rawLaTeXParser toks False (macroDef (const mempty)) blocks
-      <|> (rawLaTeXParser toks True
+      <|> rawLaTeXParser toks True
              (do choice (map controlSeq
                    ["include", "input", "subfile", "usepackage"])
                  skipMany opt
                  braced
-                 return mempty) blocks)
+                 return mempty) blocks
       <|> rawLaTeXParser toks True
            (environment <|> blockCommand)
-           (mconcat <$> (many (block <|> beginOrEndCommand))))
+           (mconcat <$> many (block <|> beginOrEndCommand)))
 
 -- See #4667 for motivation; sometimes people write macros
 -- that just evaluate to a begin or end command, which blockCommand
@@ -187,10 +188,10 @@ inlineCommand = do
 -- inline elements:
 
 word :: PandocMonad m => LP m Inlines
-word = (str . untoken) <$> satisfyTok isWordTok
+word = str . untoken <$> satisfyTok isWordTok
 
 regularSymbol :: PandocMonad m => LP m Inlines
-regularSymbol = (str . untoken) <$> satisfyTok isRegularSymbol
+regularSymbol = str . untoken <$> satisfyTok isRegularSymbol
   where isRegularSymbol (Tok _ Symbol t) = not $ T.any isSpecial t
         isRegularSymbol _                = False
         isSpecial c = c `Set.member` specialChars
@@ -206,7 +207,7 @@ inlineGroup = do
 
 doLHSverb :: PandocMonad m => LP m Inlines
 doLHSverb =
-  (codeWith ("",["haskell"],[]) . untokenize)
+  codeWith ("",["haskell"],[]) . untokenize
     <$> manyTill (satisfyTok (not . isNewlineTok)) (symbol '|')
 
 mkImage :: PandocMonad m => [(Text, Text)] -> Text -> LP m Inlines
@@ -342,7 +343,7 @@ doverb = do
               Just (c, ts) | T.null ts -> return c
               _            -> mzero
   withVerbatimMode $
-    (code . untokenize) <$>
+    code . untokenize <$>
       manyTill (notFollowedBy newlineTok >> verbTok marker) (symbol marker)
 
 verbTok :: PandocMonad m => Char -> LP m Tok
@@ -383,7 +384,7 @@ doinlinecode classes = do
               _            -> mzero
   let stopchar = if marker == '{' then '}' else marker
   withVerbatimMode $
-    (codeWith ("",classes,[]) . T.map nlToSpace . untokenize) <$>
+    codeWith ("",classes,[]) . T.map nlToSpace . untokenize <$>
       manyTill (verbTok stopchar) (symbol stopchar)
 
 nlToSpace :: Char -> Char
@@ -402,7 +403,7 @@ dollarsMath = do
   display <- option False (True <$ symbol '$')
   (do contents <- try $ untokenize <$> pDollarsMath 0
       if display
-         then (mathDisplay contents <$ symbol '$')
+         then mathDisplay contents <$ symbol '$'
          else return $ mathInline contents)
    <|> (guard display >> return (mathInline ""))
 
@@ -415,7 +416,7 @@ pDollarsMath n = do
               , n == 0 -> return []
               | t == "\\" -> do
                   tk' <- anyTok
-                  ((tk :) . (tk' :)) <$> pDollarsMath n
+                  (tk :) . (tk' :) <$> pDollarsMath n
               | t == "{" -> (tk :) <$> pDollarsMath (n+1)
               | t == "}" ->
                 if n > 0
@@ -477,7 +478,7 @@ cites mode multi = try $ do
                tempCits <- many1 simpleCiteArgs
                case tempCits of
                  (k:ks) -> case ks of
-                             (_:_) -> return $ ((addMprenote pre k):init ks) ++
+                             (_:_) -> return $ (addMprenote pre k : init ks) ++
                                                  [addMpostnote suf (last ks)]
                              _ -> return [addMprenote pre (addMpostnote suf k)]
                  _ -> return [[]]
@@ -521,7 +522,7 @@ complexNatbibCitation mode = try $ do
       bgroup
       items <- mconcat <$>
                 many1 (notFollowedBy (symbol ';') >> inline)
-                  `sepBy1` (symbol ';')
+                  `sepBy1` symbol ';'
       egroup
       return $ map handleCitationPart items
   case cs of
@@ -660,7 +661,7 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("eqref", rawInlineOr "eqref" $ doref "eqref")   -- from amsmath.sty
   , ("mbox", rawInlineOr "mbox" $ processHBox <$> tok)
   , ("hbox", rawInlineOr "hbox" $ processHBox <$> tok)
-  , ("lettrine", rawInlineOr "lettrine" $ lettrine)
+  , ("lettrine", rawInlineOr "lettrine" lettrine)
   , ("(", mathInline . untokenize <$> manyTill anyTok (controlSeq ")"))
   , ("[", mathDisplay . untokenize <$> manyTill anyTok (controlSeq "]"))
   , ("ensuremath", mathInline . untokenize <$> braced)
@@ -1073,7 +1074,7 @@ coloredInline stylename = do
   spanWith ("",[],[("style",stylename <> ": " <> untokenize color)]) <$> tok
 
 ttfamily :: PandocMonad m => LP m Inlines
-ttfamily = (code . stringify . toList) <$> tok
+ttfamily = code . stringify . toList <$> tok
 
 rawInlineOr :: PandocMonad m => Text -> LP m Inlines -> LP m Inlines
 rawInlineOr name' fallback = do
@@ -1235,8 +1236,8 @@ doSubfile = do
 include :: (PandocMonad m, Monoid a) => Text -> LP m a
 include name = do
   skipMany opt
-  fs <- (map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
-         untokenize) <$> braced
+  fs <- map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
+         untokenize <$> braced
   let defaultExt | name == "usepackage" = ".sty"
                  | otherwise            = ".tex"
   mapM_ (insertIncluded defaultExt) fs
@@ -1251,7 +1252,7 @@ insertIncluded defaultExtension f' = do
                 ".tex" -> f'
                 ".sty" -> f'
                 _      -> addExtension f' defaultExtension
-  dirs <- (map T.unpack . splitTextBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
+  dirs <- map T.unpack . splitTextBy (==':') . fromMaybe "." <$> lookupEnv "TEXINPUTS"
   pos <- getPosition
   containers <- getIncludeFiles <$> getState
   when (T.pack f `elem` containers) $
@@ -1564,7 +1565,7 @@ blockCommands = M.fromList
    , ("frametitle", section nullAttr 3)
    , ("framesubtitle", section nullAttr 4)
    -- letters
-   , ("opening", (para . trimInlines) <$> (skipopts *> tok))
+   , ("opening", para . trimInlines <$> (skipopts *> tok))
    , ("closing", skipopts *> closing)
    -- memoir
    , ("plainbreak", braced >> pure horizontalRule)
@@ -1578,10 +1579,10 @@ blockCommands = M.fromList
    --
    , ("hrule", pure horizontalRule)
    , ("strut", pure mempty)
-   , ("rule", skipopts *> tok *> tok *> pure horizontalRule)
+   , ("rule", skipopts *> tok *> tok $> horizontalRule)
    , ("item", looseItem)
    , ("documentclass", skipopts *> braced *> preamble)
-   , ("centerline", (para . trimInlines) <$> (skipopts *> tok))
+   , ("centerline", para . trimInlines <$> (skipopts *> tok))
    , ("caption", mempty <$ setCaption)
    , ("bibliography", mempty <$ (skipopts *> braced >>=
          addMeta "bibliography" . splitBibs . untokenize))
@@ -1623,7 +1624,7 @@ environments :: PandocMonad m => M.Map Text (LP m Blocks)
 environments = M.fromList
    [ ("document", env "document" blocks <* skipMany anyTok)
    , ("abstract", mempty <$ (env "abstract" blocks >>= addMeta "abstract"))
-   , ("sloppypar", env "sloppypar" $ blocks)
+   , ("sloppypar", env "sloppypar" blocks)
    , ("letter", env "letter" letterContents)
    , ("minipage", env "minipage" $
           skipopts *> spaces *> optional braced *> spaces *> blocks)
@@ -1709,7 +1710,7 @@ proof = do
   bs <- env "proof" blocks
   return $
     B.divWith ("", ["proof"], []) $
-      addQed $ addTitle (B.emph (title <> ".")) $ bs
+      addQed $ addTitle (B.emph (title <> ".")) bs
 
 addTitle :: Inlines -> Blocks -> Blocks
 addTitle ils bs =
@@ -1753,8 +1754,7 @@ theoremEnvironment name = do
             then do
                let name' = fromMaybe name $ theoremSeries tspec
                num <- getNextNumber
-                   (fromMaybe (DottedNum [0]) .
-                    fmap theoremLastNum .
+                   (maybe (DottedNum [0]) theoremLastNum .
                     M.lookup name' . sTheoremMap)
                updateState $ \s ->
                  s{ sTheoremMap =
@@ -1866,7 +1866,7 @@ inputMinted = do
   pos <- getPosition
   attr <- mintedAttr
   f <- T.filter (/='"') . untokenize <$> braced
-  dirs <- (map T.unpack . splitTextBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
+  dirs <- map T.unpack . splitTextBy (==':') . fromMaybe "." <$> lookupEnv "TEXINPUTS"
   mbCode <- readFileFromDirs dirs (T.unpack f)
   rawcode <- case mbCode of
                   Just s -> return s
@@ -1979,7 +1979,7 @@ inputListing = do
   pos <- getPosition
   options <- option [] keyvals
   f <- T.filter (/='"') . untokenize <$> braced
-  dirs <- (map T.unpack . splitTextBy (==':') . fromMaybe ".") <$> lookupEnv "TEXINPUTS"
+  dirs <- map T.unpack . splitTextBy (==':') . fromMaybe "." <$> lookupEnv "TEXINPUTS"
   mbCode <- readFileFromDirs dirs (T.unpack f)
   codeLines <- case mbCode of
                       Just s -> return $ T.lines s
@@ -2176,18 +2176,17 @@ parseTableCell :: PandocMonad m => LP m Cell
 parseTableCell = do
   spaces
   updateState $ \st -> st{ sInTableCell = True }
-  cell' <- ( multicolumnCell
+  cell' <-   multicolumnCell
          <|> multirowCell
          <|> parseSimpleCell
          <|> parseEmptyCell
-           )
   updateState $ \st -> st{ sInTableCell = False }
   spaces
   return cell'
   where
     -- The parsing of empty cells is important in LaTeX, especially when dealing
     -- with multirow/multicolumn. See #6603.
-    parseEmptyCell = optional spaces >> return emptyCell <* optional spaces
+    parseEmptyCell = spaces $> emptyCell
 
 cellAlignment :: PandocMonad m => LP m Alignment
 cellAlignment = skipMany (symbol '|') *> alignment <* skipMany (symbol '|')
@@ -2237,8 +2236,8 @@ multicolumnCell = controlSeq "multicolumn" >> do
         (Cell _ _ (RowSpan rs) _ bs) <- multirowCell
         return $ cell
                   alignment
-                  (RowSpan $ rs)
-                  (ColSpan $ span')
+                  (RowSpan rs)
+                  (ColSpan span')
                   (fromList bs)
 
   symbol '{' *> (nestedCell <|> singleCell) <* symbol '}'
@@ -2276,7 +2275,7 @@ simpTable envname hasWidthParameter = try $ do
   lookAhead $ controlSeq "end" -- make sure we're at end
   return $ table emptyCaption
                  (zip aligns widths)
-                 (TableHead nullAttr $ header')
+                 (TableHead nullAttr header')
                  [TableBody nullAttr 0 [] rows]
                  (TableFoot nullAttr [])
 

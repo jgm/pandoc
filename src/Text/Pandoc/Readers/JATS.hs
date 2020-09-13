@@ -189,7 +189,7 @@ parseBlock (Elem e) =
         _       -> getBlocks e
    where parseMixed container conts = do
            let (ils,rest) = break isBlockElement conts
-           ils' <- (trimInlines . mconcat) <$> mapM parseInline ils
+           ils' <- trimInlines . mconcat <$> mapM parseInline ils
            let p = if ils' == mempty then mempty else container ils'
            case rest of
                  []     -> return p
@@ -206,7 +206,7 @@ parseBlock (Elem e) =
          parseBlockquote = do
             attrib <- case filterChild (named "attribution") e of
                              Nothing  -> return mempty
-                             Just z   -> (para . (str "— " <>) . mconcat)
+                             Just z   -> para . (str "— " <>) . mconcat
                                          <$>
                                               mapM parseInline (elContent z)
             contents <- getBlocks e
@@ -281,7 +281,7 @@ parseBlock (Elem e) =
                                                             in  ColWidth . (/ tot) <$> ws'
                                                 Nothing  -> replicate numrows ColWidthDefault
                       let toRow = Row nullAttr . map simpleCell
-                          toHeaderRow l = if null l then [] else [toRow l]
+                          toHeaderRow l = [toRow l | not (null l)]
                       return $ table (simpleCaption $ plain capt)
                                      (zip aligns widths)
                                      (TableHead nullAttr $ toHeaderRow headrows)
@@ -309,7 +309,7 @@ parseBlock (Elem e) =
                      return $ headerWith (ident,[],[]) n' headerText <> b
 
 getInlines :: PandocMonad m => Element -> JATS m Inlines
-getInlines e' = (trimInlines . mconcat) <$>
+getInlines e' = trimInlines . mconcat <$>
                  mapM parseInline (elContent e')
 
 parseMetadata :: PandocMonad m => Element -> JATS m Blocks
@@ -518,10 +518,10 @@ parseInline (Elem e) =
         "email" -> return $ link ("mailto:" <> textContent e) ""
                           $ str $ textContent e
         "uri" -> return $ link (textContent e) "" $ str $ textContent e
-        "fn" -> (note . mconcat) <$>
+        "fn" -> note . mconcat <$>
                          mapM parseBlock (elContent e)
         _          -> innerInlines
-   where innerInlines = (trimInlines . mconcat) <$>
+   where innerInlines = trimInlines . mconcat <$>
                           mapM parseInline (elContent e)
          mathML x =
             case readMathML . T.pack . showElement $ everywhere (mkT removePrefix) x of

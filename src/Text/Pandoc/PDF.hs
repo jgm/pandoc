@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP                 #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
@@ -201,8 +202,7 @@ convertImage opts tmpdir fname = do
       (\(e :: E.SomeException) -> return $ Left $
           "check that rsvg-convert is in path.\n" <>
           tshow e)
-    _ -> JP.readImage fname >>= \res ->
-          case res of
+    _ -> JP.readImage fname >>= \case
                Left e    -> return $ Left $ T.pack e
                Right img ->
                  E.catch (Right pngOut <$ JP.savePngImage pngOut img) $

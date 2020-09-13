@@ -209,7 +209,7 @@ blockToConTeXt (Div (ident,_,kvs) bs) = do
                                      <> literal lng <> "]" $$ txt $$ "\\stop"
                        Nothing  -> txt
       wrapBlank txt = blankline <> txt <> blankline
-  (wrapBlank . wrapLang . wrapDir . wrapRef) <$> blockListToConTeXt bs
+  wrapBlank . wrapLang . wrapDir . wrapRef <$> blockListToConTeXt bs
 blockToConTeXt (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst
   return $ ("\\startitemize" <> if isTightList lst
@@ -332,7 +332,7 @@ alignToConTeXt align = case align of
                          AlignDefault -> empty
 
 listItemToConTeXt :: PandocMonad m => [Block] -> WM m (Doc Text)
-listItemToConTeXt list = (("\\item" $$) . nest 2) <$> blockListToConTeXt list
+listItemToConTeXt list = ("\\item" $$) . nest 2 <$> blockListToConTeXt list
 
 defListItemToConTeXt :: PandocMonad m => ([Inline], [[Block]]) -> WM m (Doc Text)
 defListItemToConTeXt (term, defs) = do
@@ -487,7 +487,7 @@ inlineToConTeXt (Span (_,_,kvs) ils) = do
                        Just lng -> braces ("\\language" <>
                                            brackets (literal lng) <> txt)
                        Nothing -> txt
-  (wrapLang . wrapDir) <$> inlineListToConTeXt ils
+  wrapLang . wrapDir <$> inlineListToConTeXt ils
 
 -- | Craft the section header, inserting the section reference, if supplied.
 sectionHeader :: PandocMonad m

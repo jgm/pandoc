@@ -162,7 +162,7 @@ parseTable = do
       _   -> Nothing
 
   toRow = Row nullAttr . map simpleCell
-  toHeaderRow l = if null l then [] else [toRow l]
+  toHeaderRow l = [toRow l | not (null l)]
 
 parseNewParagraph :: PandocMonad m => ManParser m Blocks
 parseNewParagraph = do

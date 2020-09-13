@@ -62,7 +62,7 @@ import Text.DocTemplates (FromContext(lookupContext), Context(..),
                           ToContext(toVal), Val(..))
 
 -- A Chapter includes a list of blocks.
-data Chapter = Chapter [Block]
+newtype Chapter = Chapter [Block]
   deriving (Show)
 
 data EPUBState = EPUBState {
@@ -711,10 +711,10 @@ pandocToEPUB version opts doc = do
                          | writerTableOfContents opts ] ++
                   map chapterRefNode chapterEntries)
           , unode "guide" $
-             [ unode "reference" !
-                   [("type","toc"),("title", tocTitle),
-                    ("href","nav.xhtml")] $ ()
-             ] ++
+             (unode "reference" !
+                 [("type","toc"),("title", tocTitle),
+                  ("href","nav.xhtml")] $ ()
+             ) :
              [ unode "reference" !
                    [("type","cover")
                    ,("title","Cover")
@@ -838,14 +838,12 @@ pandocToEPUB version opts doc = do
                                 ] | writerTableOfContents opts
                               ]
                          else []
-  let landmarks = if null landmarkItems
-                     then []
-                     else [RawBlock (Format "html") $ TS.pack $ ppElement $
-                            unode "nav" ! [("epub:type","landmarks")
-                                          ,("id","landmarks")
-                                          ,("hidden","hidden")] $
-                            [ unode "ol" landmarkItems ]
-                          ]
+  let landmarks = [RawBlock (Format "html") $ TS.pack $ ppElement $
+                    unode "nav" ! [("epub:type","landmarks")
+                                  ,("id","landmarks")
+                                  ,("hidden","hidden")] $
+                    [ unode "ol" landmarkItems ]
+                  | not (null landmarkItems)]
   navData <- lift $ writeHtml opts'{ writerVariables =
                      Context (M.fromList [("navpage", toVal' "true")])
                      <> cssvars False <> vars }
@@ -940,7 +938,7 @@ metadataElement version md currentTime =
           | version == EPUB2 = [dcNode "identifier" !
               (("id",id') : maybe [] (\x -> [("opf:scheme", x)]) scheme) $
               txt]
-          | otherwise = [dcNode "identifier" ! [("id",id')] $ txt] ++
+          | otherwise = (dcNode "identifier" ! [("id",id')] $ txt) :
               maybe [] ((\x -> [unode "meta" !
                                 [ ("refines",'#':id')
                                 , ("property","identifier-type")

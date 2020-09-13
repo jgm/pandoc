@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {- |
    Module      : Text.Pandoc.Logging
@@ -51,8 +52,7 @@ instance FromJSON Verbosity where
   parseJSON _      =  mzero
 
 instance FromYAML Verbosity where
-  parseYAML = withStr "Verbosity" $ \t ->
-    case t of
+  parseYAML = withStr "Verbosity" $ \case
          "ERROR"   -> return ERROR
          "WARNING" -> return WARNING
          "INFO"    -> return INFO

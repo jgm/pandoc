@@ -282,7 +282,7 @@ definitionListStart = try $ do
 -- break.
 definitionListItem :: PandocMonad m => ParserT Text ParserState m (Inlines, [Blocks])
 definitionListItem = try $ do
-  term <- (mconcat . intersperse B.linebreak) <$> many1 definitionListStart
+  term <- mconcat . intersperse B.linebreak <$> many1 definitionListStart
   def' <- string ":=" *> optional whitespace *> (multilineDef <|> inlineDef)
   return (term, def')
   where inlineDef :: PandocMonad m => ParserT Text ParserState m [Blocks]
@@ -378,7 +378,7 @@ table = try $ do
   let nbOfCols = maximum $ map length (headers:rows)
   let aligns = map minimum $ transpose $ map (map (snd . fst)) (headers:rows)
   let toRow = Row nullAttr . map B.simpleCell
-      toHeaderRow l = if null l then [] else [toRow l]
+      toHeaderRow l = [toRow l | not (null l)]
   return $ B.table (B.simpleCaption $ B.plain caption)
     (zip aligns (replicate nbOfCols ColWidthDefault))
     (TableHead nullAttr $ toHeaderRow $ map snd headers)
@@ -439,7 +439,7 @@ inlineParsers = [ str
                 , link
                 , image
                 , mark
-                , (B.str . T.singleton) <$> characterReference
+                , B.str . T.singleton <$> characterReference
                 , smartPunctuation inline
                 , symbol
                 ]

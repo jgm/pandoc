@@ -653,7 +653,7 @@ museToPandocTable (MuseTable caption headers body footers) =
   where attrs = (AlignDefault, ColWidthDefault) <$ transpose (headers ++ body ++ footers)
         (headRow, rows) = fromMaybe ([], []) $ uncons headers
         toRow = Row nullAttr . map B.simpleCell
-        toHeaderRow l = if null l then [] else [toRow l]
+        toHeaderRow l = [toRow l | not (null l)]
 
 museAppendElement :: MuseTableElement
                   -> MuseTable

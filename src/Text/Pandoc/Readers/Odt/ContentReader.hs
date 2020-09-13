@@ -220,9 +220,9 @@ uniqueIdentFrom :: AnchorPrefix -> [Anchor] -> Anchor
 uniqueIdentFrom baseIdent usedIdents =
   let  numIdent n = baseIdent <> "-" <> T.pack (show n)
   in  if baseIdent `elem` usedIdents
-        then case find (\x -> numIdent x `notElem` usedIdents) ([1..60000] :: [Int]) of
-                  Just x  -> numIdent x
-                  Nothing -> baseIdent   -- if we have more than 60,000, allow repeats
+        then maybe baseIdent numIdent
+             $ find (\x -> numIdent x `notElem` usedIdents) ([1..60000] :: [Int])
+               -- if we have more than 60,000, allow repeats
         else baseIdent
 
 -- | First argument: basis for a new "pretty" anchor if none exists yet

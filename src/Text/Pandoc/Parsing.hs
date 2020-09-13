@@ -574,15 +574,15 @@ romanNumeral upperCase = do
     let fivehundred = rchar 'D'
     let thousand    = rchar 'M'
     lookAhead $ choice [one, five, ten, fifty, hundred, fivehundred, thousand]
-    thousands <- ((1000 *) . length) <$> many thousand
+    thousands <- (1000 *) . length <$> many thousand
     ninehundreds <- option 0 $ try $ hundred >> thousand >> return 900
     fivehundreds <- option 0 $ 500 <$ fivehundred
     fourhundreds <- option 0 $ try $ hundred >> fivehundred >> return 400
-    hundreds <- ((100 *) . length) <$> many hundred
+    hundreds <- (100 *) . length <$> many hundred
     nineties <- option 0 $ try $ ten >> hundred >> return 90
     fifties <- option 0 (50 <$ fifty)
     forties <- option 0 $ try $ ten >> fifty >> return 40
-    tens <- ((10 *) . length) <$> many ten
+    tens <- (10 *) . length <$> many ten
     nines <- option 0 $ try $ one >> ten >> return 9
     fives <- option 0 (5 <$ five)
     fours <- option 0 $ try $ one >> five >> return 4
@@ -951,7 +951,7 @@ tableWith' headerParser rowParser lineParser footerParser = try $ do
                     then replicate (length aligns) 0.0
                     else widthsFromIndices numColumns indices
     let toRow =  Row nullAttr . map B.simpleCell
-        toHeaderRow l = if null l then [] else [toRow l]
+        toHeaderRow l = [toRow l | not (null l)]
     return (aligns, widths, toHeaderRow <$> heads, map toRow <$> lines')
 
 -- Calculate relative widths of table columns, based on indices
@@ -1170,7 +1170,7 @@ class HasReaderOptions st where
   extractReaderOptions :: st -> ReaderOptions
   getOption            :: (Stream s m t) => (ReaderOptions -> b) -> ParserT s st m b
   -- default
-  getOption  f         = (f . extractReaderOptions) <$> getState
+  getOption  f         = f . extractReaderOptions <$> getState
 
 instance HasReaderOptions ParserState where
   extractReaderOptions = stateOptions
@@ -1492,10 +1492,8 @@ extractIdClass :: Attr -> Attr
 extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
   where
     ident' = fromMaybe ident (lookup "id" kvs)
-    cls'   = case lookup "class" kvs of
-               Just cl -> T.words cl
-               Nothing -> cls
-    kvs'  = filter (\(k,_) -> k /= "id" || k /= "class") kvs
+    cls'   = maybe cls T.words $ lookup "class" kvs
+    kvs'   = filter (\(k,_) -> k /= "id" || k /= "class") kvs
 
 insertIncludedFile' :: (PandocMonad m, HasIncludeFiles st)
                     => ParserT a st m (mf Blocks)

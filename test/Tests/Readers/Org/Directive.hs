@@ -30,7 +30,7 @@ testWithFiles :: (ToString c)
               -> (T.Text, c)    -- ^ (input, expected value)
               -> TestTree
 testWithFiles fileDefs = test (orgWithFiles fileDefs)
-  where
+
 orgWithFiles :: [(FilePath, BS.ByteString)] -> T.Text -> Pandoc
 orgWithFiles fileDefs input =
   let readOrg' = readOrg def{ readerExtensions = getDefaultExtensions "org" }

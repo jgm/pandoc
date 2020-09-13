@@ -42,7 +42,7 @@ weighWriter :: Pandoc -> String -> (Pandoc -> Text) -> Weigh ()
 weighWriter doc name writer = func (name ++ " writer") writer doc
 
 weighReader :: Pandoc -> Text -> (Text -> Pandoc) -> Weigh ()
-weighReader doc name reader = do
+weighReader doc name reader =
   case lookup name writers of
        Just (TextWriter writer) ->
          let inp = either (error . show) id $ runPure $ writer def{ writerWrapText = WrapAuto} doc

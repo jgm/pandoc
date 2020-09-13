@@ -48,7 +48,7 @@ displayDiff elemA elemB =
   showDiff (1,1) $ getDiff (lines $ ppContent elemA) (lines $ ppContent elemB)
 
 goldenArchive :: FilePath -> IO Archive
-goldenArchive fp = (toArchive . BL.fromStrict) <$> BS.readFile fp
+goldenArchive fp = toArchive . BL.fromStrict <$> BS.readFile fp
 
 testArchive :: (WriterOptions -> Pandoc -> PandocIO BL.ByteString)
             -> WriterOptions

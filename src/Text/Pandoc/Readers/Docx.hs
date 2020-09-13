@@ -91,9 +91,9 @@ readDocx :: PandocMonad m
          => ReaderOptions
          -> B.ByteString
          -> m Pandoc
-readDocx opts bytes = do
+readDocx opts bytes =
   case toArchiveOrFail bytes of
-    Right archive -> do
+    Right archive ->
       case archiveToDocxWithWarnings archive of
         Right (docx, parserWarnings) -> do
           mapM_ (P.report . DocxParserWarning) parserWarnings
@@ -291,9 +291,9 @@ runStyleToTransform rPr' = do
             spanWith ("",[],[("dir","ltr")]) . go rPr{isRTL = Nothing}
         | Just SupScrpt <- rVertAlign rPr =
             superscript . go rPr{rVertAlign = Nothing}
-        | Just SubScrpt <- rVertAlign rPr = do
+        | Just SubScrpt <- rVertAlign rPr =
             subscript . go rPr{rVertAlign = Nothing}
-        | Just "single" <- rUnderline rPr = do
+        | Just "single" <- rUnderline rPr =
             Pandoc.underline . go rPr{rUnderline = Nothing}
         | otherwise = id
   return $ go rPr'
@@ -658,7 +658,7 @@ bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
       rowLength (Docx.Row c) = length c
 
   let toRow = Pandoc.Row nullAttr . map simpleCell
-      toHeaderRow l = if null l then [] else [toRow l]
+      toHeaderRow l = [toRow l | not (null l)]
 
   -- pad cells.  New Text.Pandoc.Builder will do that for us,
   -- so this is for compatibility while we switch over.

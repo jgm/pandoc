@@ -1,8 +1,9 @@
 {-# LANGUAGE CPP                #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
 {- |
    Module      : Text.Pandoc.Options
    Copyright   : Copyright (C) 2012-2020 John MacFarlane
@@ -327,7 +328,7 @@ $(deriveJSON defaultOptions{ constructorTagModifier =
                            } ''CiteMethod)
 
 $(deriveJSON defaultOptions{ constructorTagModifier =
-                            \t -> case t of
+                            \case
                                     "NoObfuscation"         -> "none"
                                     "ReferenceObfuscation"  -> "references"
                                     "JavascriptObfuscation" -> "javascript"

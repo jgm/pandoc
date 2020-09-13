@@ -45,7 +45,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Writers.MediaWiki (highlightingLangs)
 import Text.Pandoc.Writers.Shared (toLegacyTable)
 
-data WriterState = WriterState {
+newtype WriterState = WriterState {
   listLevel :: Text -- String at the beginning of items
 }
 

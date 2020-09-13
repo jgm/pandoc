@@ -1030,7 +1030,7 @@ blockToOpenXML' opts (Table _ blkCapt specs thead tbody tfoot) = do
   let rowwidth = fullrow * sum widths
   let mkgridcol w = mknode "w:gridCol"
                        [("w:w", show (floor (textwidth * w) :: Integer))] ()
-  let hasHeader = any (not . null) headers
+  let hasHeader = not $ all null headers
   modify $ \s -> s { stInTable = False }
   return $
     caption' ++

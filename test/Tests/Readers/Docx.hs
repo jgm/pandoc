@@ -33,7 +33,7 @@ import Text.Pandoc.UTF8 as UTF8
 -- tests. Since we do our own normalization, we want to make sure
 -- we're doing it right.
 
-data NoNormPandoc = NoNormPandoc {unNoNorm :: Pandoc}
+newtype NoNormPandoc = NoNormPandoc {unNoNorm :: Pandoc}
                  deriving Show
 
 noNorm :: Pandoc -> NoNormPandoc

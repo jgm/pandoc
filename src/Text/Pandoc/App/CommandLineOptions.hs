@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP                 #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -868,9 +869,7 @@ options =
     , Option "" ["print-highlight-style"]
                  (ReqArg
                   (\arg opt -> do
-                     let write = case optOutputFile opt of
-                                        Just f  -> B.writeFile f
-                                        Nothing -> B.putStr
+                     let write = maybe B.putStr B.writeFile $ optOutputFile opt
                      sty <- runIOorExplode $ lookupHighlightStyle arg
                      write $ encodePretty'
                        defConfig{confIndent = Spaces 4
@@ -1017,7 +1016,7 @@ lookupHighlightStyle s
 deprecatedOption :: String -> String -> IO ()
 deprecatedOption o msg =
   runIO (report $ Deprecated (T.pack o) (T.pack msg)) >>=
-    \r -> case r of
+    \case
        Right () -> return ()
        Left e   -> E.throwIO e
 

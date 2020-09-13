@@ -230,9 +230,7 @@ peekCaption idx = do
 instance Peekable ColWidth where
   peek idx = do
     width <- Lua.fromOptional <$> Lua.peek idx
-    return $ case width of
-      Nothing -> ColWidthDefault
-      Just w  -> ColWidth w
+    return $ maybe ColWidthDefault ColWidth width
 
 instance Pushable ColWidth where
   push = \case

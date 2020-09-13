@@ -122,7 +122,7 @@ data OrgParserState = OrgParserState
   , orgMacros                    :: M.Map Text Macro
   }
 
-data OrgParserLocal = OrgParserLocal
+newtype OrgParserLocal = OrgParserLocal
   { orgLocalQuoteContext :: QuoteContext
   }
 

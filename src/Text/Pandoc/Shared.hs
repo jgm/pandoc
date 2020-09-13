@@ -580,7 +580,7 @@ makeSections numbering mbBaseLevel bs =
     let kvs' = -- don't touch number if already present
                case lookup "number" kvs of
                   Nothing | numbering
-                          , not ("unnumbered" `elem` classes) ->
+                          , "unnumbered" `notElem` classes ->
                         ("number", T.intercalate "." (map tshow newnum)) : kvs
                   _ -> kvs
     let divattr = (ident, "section":classes, kvs')
@@ -626,11 +626,9 @@ headerLtEq _ _                   = False
 uniqueIdent :: Extensions -> [Inline] -> Set.Set T.Text -> T.Text
 uniqueIdent exts title' usedIdents =
   if baseIdent `Set.member` usedIdents
-     then case find (\x -> numIdent x `Set.notMember` usedIdents)
-               ([1..60000] :: [Int]) of
-            Just x  -> numIdent x
-            Nothing -> baseIdent
-            -- if we have more than 60,000, allow repeats
+     then maybe baseIdent numIdent
+          $ find (\x -> numIdent x `Set.notMember` usedIdents) ([1..60000] :: [Int])
+          -- if we have more than 60,000, allow repeats
      else baseIdent
   where
     baseIdent = case inlineListToIdentifier exts title' of

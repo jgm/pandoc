@@ -1,5 +1,6 @@
 {-# LANGUAGE TupleSections   #-}
 {-# LANGUAGE GADTs           #-}
+{-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE PatternGuards   #-}
 {- |
    Module      : Text.Pandoc.Readers.Odt.Generic.XMLConverter
@@ -691,7 +692,7 @@ makeMatcherC nsID name c = (    second (    contentToElem
                             >>% recover)
                     &&&^ snd
         contentToElem :: FallibleXMLConverter nsID extraState XML.Content XML.Element
-        contentToElem = arr $ \e -> case e of
+        contentToElem = arr $ \case
                                      XML.Elem e' -> succeedWith e'
                                      _           -> failEmpty
 

@@ -303,11 +303,11 @@ makeSpeakerNotesMap (Presentation _ slides) =
 
 presentationToArchive :: PandocMonad m => WriterOptions -> Presentation -> m Archive
 presentationToArchive opts pres = do
-  distArchive <- (toArchive . BL.fromStrict) <$>
+  distArchive <- toArchive . BL.fromStrict <$>
                       P.readDefaultDataFile "reference.pptx"
   refArchive <- case writerReferenceDoc opts of
                      Just f  -> toArchive <$> P.readFileLazy f
-                     Nothing -> (toArchive . BL.fromStrict) <$>
+                     Nothing -> toArchive . BL.fromStrict <$>
                         P.readDataFile "reference.pptx"
 
   utctime <- P.getCurrentTime
@@ -351,10 +351,10 @@ curSlideHasSpeakerNotes =
 getLayout :: PandocMonad m => Layout -> P m Element
 getLayout layout = do
   let layoutpath = case layout of
-        (MetadataSlide{}) -> "ppt/slideLayouts/slideLayout1.xml"
-        (TitleSlide _)          -> "ppt/slideLayouts/slideLayout3.xml"
-        (ContentSlide _ _)      -> "ppt/slideLayouts/slideLayout2.xml"
-        (TwoColumnSlide{})    -> "ppt/slideLayouts/slideLayout4.xml"
+        MetadataSlide{}  -> "ppt/slideLayouts/slideLayout1.xml"
+        TitleSlide{}     -> "ppt/slideLayouts/slideLayout3.xml"
+        ContentSlide{}   -> "ppt/slideLayouts/slideLayout2.xml"
+        TwoColumnSlide{} -> "ppt/slideLayouts/slideLayout4.xml"
   refArchive <- asks envRefArchive
   distArchive <- asks envDistArchive
   parseXml refArchive distArchive layoutpath
@@ -547,7 +547,7 @@ registerMedia fp caption = do
 
 makeMediaEntry :: PandocMonad m => MediaInfo -> P m Entry
 makeMediaEntry mInfo = do
-  epochtime <- (floor . utcTimeToPOSIXSeconds) <$> asks envUTCTime
+  epochtime <- floor . utcTimeToPOSIXSeconds <$> asks envUTCTime
   (imgBytes, _) <- P.fetchItem (T.pack $ mInfoFilePath mInfo)
   let ext = fromMaybe "" (mInfoExt mInfo)
   let fp = "ppt/media/image" <>
@@ -1473,7 +1473,7 @@ presentationToRelsEntry pres = do
 
 elemToEntry :: PandocMonad m => FilePath -> Element -> P m Entry
 elemToEntry fp element = do
-  epochtime <- (floor . utcTimeToPOSIXSeconds) <$> asks envUTCTime
+  epochtime <- floor . utcTimeToPOSIXSeconds <$> asks envUTCTime
   return $ toEntry fp epochtime $ renderXml element
 
 slideToEntry :: PandocMonad m => Slide -> P m Entry
@@ -1500,8 +1500,7 @@ slideToSpeakerNotesEntry slide = do
 
 slideToSpeakerNotesRelElement :: PandocMonad m => Slide -> P m (Maybe Element)
 slideToSpeakerNotesRelElement (Slide _ _ (SpeakerNotes [])) = return Nothing
-slideToSpeakerNotesRelElement slide@(
-  Slide{}) = do
+slideToSpeakerNotesRelElement slide@Slide{} = do
   idNum <- slideNum slide
   return $ Just $
     mknode "Relationships"
@@ -1585,10 +1584,10 @@ slideToSlideRelElement :: PandocMonad m => Slide -> P m Element
 slideToSlideRelElement slide = do
   idNum <- slideNum slide
   let target =  case slide of
-        (Slide _ (MetadataSlide{}) _) -> "../slideLayouts/slideLayout1.xml"
-        (Slide _ (TitleSlide _) _)          -> "../slideLayouts/slideLayout3.xml"
-        (Slide _ (ContentSlide _ _) _)      -> "../slideLayouts/slideLayout2.xml"
-        (Slide _ (TwoColumnSlide{}) _)  -> "../slideLayouts/slideLayout4.xml"
+        (Slide _ MetadataSlide{} _)  -> "../slideLayouts/slideLayout1.xml"
+        (Slide _ TitleSlide{} _)     -> "../slideLayouts/slideLayout3.xml"
+        (Slide _ ContentSlide{} _)   -> "../slideLayouts/slideLayout2.xml"
+        (Slide _ TwoColumnSlide{} _) -> "../slideLayouts/slideLayout4.xml"
 
   speakerNotesRels <- maybeToList <$> speakerNotesSlideRelElement slide
 
@@ -1819,7 +1818,7 @@ getSpeakerNotesFilePaths = do
 
 presentationToContentTypes :: PandocMonad m => Presentation -> P m ContentTypes
 presentationToContentTypes p@(Presentation _ slides) = do
-  mediaInfos <- (mconcat . M.elems) <$> gets stMediaIds
+  mediaInfos <- mconcat . M.elems <$> gets stMediaIds
   filePaths <- patternsToFilePaths $ inheritedPatterns p
   let mediaFps = filter (match (compile "ppt/media/image*")) filePaths
   let defaults = [ DefaultContentType "xml" "application/xml"

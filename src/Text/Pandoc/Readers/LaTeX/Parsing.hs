@@ -1,8 +1,8 @@
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE ViewPatterns          #-}
 {- |
    Module      : Text.Pandoc.Readers.LaTeX.Parsing
    Copyright   : Copyright (C) 2006-2020 John MacFarlane
@@ -736,14 +736,14 @@ keyval = try $ do
              (mconcat <$> many1 (
                  (untokenize . snd <$> withRaw braced)
                  <|>
-                 (untokenize <$> (many1
+                 (untokenize <$> many1
                       (satisfyTok
-                         (\t -> case t of
+                         (\case
                                 Tok _ Symbol "]" -> False
                                 Tok _ Symbol "," -> False
                                 Tok _ Symbol "{" -> False
                                 Tok _ Symbol "}" -> False
-                                _                -> True))))))
+                                _                -> True)))))
   optional (symbol ',')
   sp
   return (key, T.strip val)
@@ -756,8 +756,7 @@ verbEnv name = withVerbatimMode $ do
   optional blankline
   res <- manyTill anyTok (end_ name)
   return $ stripTrailingNewline
-         $ untokenize
-         $ res
+         $ untokenize res
 
 -- Strip single final newline and any spaces following it.
 -- Input is unchanged if it doesn't end with newline +
@@ -819,8 +818,7 @@ overlaySpecification = try $ do
 
 overlayTok :: PandocMonad m => LP m Tok
 overlayTok =
-  satisfyTok (\t ->
-                  case t of
+  satisfyTok (\case
                     Tok _ Word _       -> True
                     Tok _ Spaces _     -> True
                     Tok _ Symbol c     -> c `elem` ["-","+","@","|",":",","]

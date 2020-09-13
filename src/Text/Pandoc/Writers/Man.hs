@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns      #-}
 {- |
@@ -232,8 +233,7 @@ definitionListItemToMan opts (label, defs) = do
   labelText <- inlineListToMan opts $ makeCodeBold label
   contents <- if null defs
                  then return empty
-                 else liftM vcat $ forM defs $ \blocks ->
-                        case blocks of
+                 else liftM vcat $ forM defs $ \case
                           (x:xs) -> do
                             first' <- blockToMan opts $
                                       case x of
