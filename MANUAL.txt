@@ -2894,7 +2894,7 @@ This extension can be enabled/disabled for the following formats:
 output formats
 :  `odt`, `opendocument`
 
-#### Extension: `styles` {#ext-styles} ####
+#### Extension: `styles` #### {#ext-styles}
 
 When converting from docx, read all docx styles as divs (for
 paragraph styles) and spans (for character styles) regardless
