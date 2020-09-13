@@ -1,4 +1,4 @@
-<table>
+<table id="nordics" data-source="wikipedia">
 <caption><p>States belonging to the <em>Nordics.</em></p></caption>
 <colgroup>
 <col style="width: 30%" />
@@ -6,7 +6,7 @@
 <col style="width: 20%" />
 <col style="width: 20%" />
 </colgroup>
-<thead>
+<thead class="simple-head">
 <tr class="header">
 <th style="text-align: center;">Name</th>
 <th style="text-align: center;">Capital</th>
@@ -16,43 +16,43 @@
 (in km<sup>2</sup>)</th>
 </tr>
 </thead>
-<tbody>
-<tr class="odd">
+<tbody class="souvereign-states">
+<tr class="odd" class="country">
 <th style="text-align: center;">Denmark</th>
 <td style="text-align: left;">Copenhagen</td>
 <td style="text-align: left;">5,809,502</td>
 <td style="text-align: left;">43,094</td>
 </tr>
-<tr class="even">
+<tr class="even" class="country">
 <th style="text-align: center;">Finland</th>
 <td style="text-align: left;">Helsinki</td>
 <td style="text-align: left;">5,537,364</td>
 <td style="text-align: left;">338,145</td>
 </tr>
-<tr class="odd">
+<tr class="odd" class="country">
 <th style="text-align: center;">Iceland</th>
 <td style="text-align: left;">Reykjavik</td>
 <td style="text-align: left;">343,518</td>
 <td style="text-align: left;">103,000</td>
 </tr>
-<tr class="even">
+<tr class="even" class="country">
 <th style="text-align: center;">Norway</th>
 <td style="text-align: left;">Oslo</td>
 <td style="text-align: left;">5,372,191</td>
 <td style="text-align: left;">323,802</td>
 </tr>
-<tr class="odd">
+<tr class="odd" class="country">
 <th style="text-align: center;">Sweden</th>
 <td style="text-align: left;">Stockholm</td>
 <td style="text-align: left;">10,313,447</td>
 <td style="text-align: left;">450,295</td>
 </tr>
 </tbody><tfoot>
-<tr class="even">
+<tr class="even" id="summary">
 <td style="text-align: center;">Total</td>
 <td style="text-align: left;"></td>
-<td style="text-align: left;">27,376,022</td>
-<td style="text-align: left;">1,258,336</td>
+<td style="text-align: left;" id="total-population">27,376,022</td>
+<td style="text-align: left;" id="total-area">1,258,336</td>
 </tr>
 </tfoot>
 

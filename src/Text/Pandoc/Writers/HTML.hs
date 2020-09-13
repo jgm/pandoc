@@ -948,8 +948,8 @@ tableBodyToHtml :: PandocMonad m
                 => WriterOptions
                 -> Ann.TableBody
                 -> StateT WriterState m Html
-tableBodyToHtml opts (Ann.TableBody _attr _rowHeadCols _intm rows) =
-  H.tbody <$> bodyRowsToHtml opts rows
+tableBodyToHtml opts (Ann.TableBody attr _rowHeadCols _intm rows) =
+  addAttrs opts attr . H.tbody =<< bodyRowsToHtml opts rows
 
 tableHeadToHtml :: PandocMonad m
                 => WriterOptions
@@ -1060,7 +1060,7 @@ tableRowToHtml :: PandocMonad m
                => WriterOptions
                -> TableRow
                -> StateT WriterState m Html
-tableRowToHtml opts (TableRow tblpart _attr rownum rowhead rowbody) = do
+tableRowToHtml opts (TableRow tblpart attr rownum rowhead rowbody) = do
   let rowclass = A.class_ $ case rownum of
         Ann.RowNumber x | x `rem` 2 == 1   -> "odd"
         _               | tblpart /= Thead -> "even"
@@ -1068,10 +1068,14 @@ tableRowToHtml opts (TableRow tblpart _attr rownum rowhead rowbody) = do
   let celltype = case tblpart of
                    Thead -> HeaderCell
                    _     -> BodyCell
-  head' <- mapM (cellToHtml opts HeaderCell) rowhead
-  body <- mapM (cellToHtml opts celltype) rowbody
+  headcells <- mapM (cellToHtml opts HeaderCell) rowhead
+  bodycells <- mapM (cellToHtml opts celltype) rowbody
+  rowHtml <- addAttrs opts attr $ H.tr ! rowclass $ do
+    nl opts
+    mconcat headcells
+    mconcat bodycells
   return $ do
-    H.tr ! rowclass $ nl opts *> mconcat (head' <> body)
+    rowHtml
     nl opts
 
 alignmentToString :: Alignment -> Maybe Text
