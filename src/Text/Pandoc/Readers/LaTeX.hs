@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -2144,6 +2145,8 @@ parseAligns = try $ do
     toColWidth _                = ColWidthDefault
     toSpec (x, y, z) = (x, toColWidth y, z)
 
+-- N.B. this parser returns a Row that may have erroneous empty cells
+-- in it. See the note above fixTableHead for details.
 parseTableRow :: PandocMonad m
               => Text   -- ^ table environment name
               -> [([Tok], [Tok])] -- ^ pref/suffixes
@@ -2168,9 +2171,7 @@ parseTableRow envname prefsufs = do
   cells <- mapM (\ts -> setInput ts >> parseTableCell) rawcells
   setInput oldInput
   spaces
-  -- Because of table normalization performed by Text.Pandoc.Builder.table,
-  -- we need to remove empty cells
-  return $ Row nullAttr $ filter (\c -> c /= emptyCell) cells
+  return $ Row nullAttr cells
 
 parseTableCell :: PandocMonad m => LP m Cell
 parseTableCell = do
@@ -2246,6 +2247,80 @@ multicolumnCell = controlSeq "multicolumn" >> do
 parseSimpleCell :: PandocMonad m => LP m Cell
 parseSimpleCell = simpleCell <$> (plainify <$> blocks)
 
+-- LaTeX tables are stored with empty cells underneath multirow cells
+-- denoting the grid spaces taken up by them. More specifically, if a
+-- cell spans m rows, then it will overwrite all the cells in the
+-- columns it spans for (m-1) rows underneath it, requiring padding
+-- cells in these places. These padding cells need to be removed for
+-- proper table reading. See #6603.
+--
+-- These fixTable functions do not otherwise fix up malformed
+-- input tables: that is left to the table builder.
+fixTableHead :: TableHead -> TableHead
+fixTableHead (TableHead attr rows) = TableHead attr rows'
+  where
+    rows' = fixTableRows rows
+
+fixTableBody :: TableBody -> TableBody
+fixTableBody (TableBody attr rhc th tb)
+  = TableBody attr rhc th' tb'
+  where
+    th' = fixTableRows th
+    tb' = fixTableRows tb
+
+fixTableRows :: [Row] -> [Row]
+fixTableRows = fixTableRows' $ repeat Nothing
+  where
+    fixTableRows' oldHang (Row attr cells : rs)
+      = let (newHang, cells') = fixTableRow oldHang cells
+            rs'               = fixTableRows' newHang rs
+        in Row attr cells' : rs'
+    fixTableRows' _ [] = []
+
+-- The overhang is represented as Just (relative cell dimensions) or
+-- Nothing for an empty grid space.
+fixTableRow :: [Maybe (ColSpan, RowSpan)] -> [Cell] -> ([Maybe (ColSpan, RowSpan)], [Cell])
+fixTableRow oldHang cells
+  -- If there's overhang, drop cells until their total width meets the
+  -- width of the occupied grid spaces (or we run out)
+  | (n, prefHang, restHang) <- splitHang oldHang
+  , n > 0
+  = let cells' = dropToWidth getCellW n cells
+        (restHang', cells'') = fixTableRow restHang cells'
+    in (prefHang restHang', cells'')
+  -- Otherwise record the overhang of a pending cell and fix the rest
+  -- of the row
+  | c@(Cell _ _ h w _):cells' <- cells
+  = let h' = max 1 h
+        w' = max 1 w
+        oldHang' = dropToWidth getHangW w' oldHang
+        (newHang, cells'') = fixTableRow oldHang' cells'
+    in (toHang w' h' <> newHang, c : cells'')
+  | otherwise
+  = (oldHang, [])
+  where
+    getCellW (Cell _ _ _ w _) = w
+    getHangW = maybe 1 fst
+    getCS (ColSpan n) = n
+
+    toHang c r
+      | r > 1     = [Just (c, r)]
+      | otherwise = replicate (getCS c) Nothing
+
+    -- Take the prefix of the overhang list representing filled grid
+    -- spaces. Also return the remainder and the length of this prefix.
+    splitHang = splitHang' 0 id
+
+    splitHang' !n l (Just (c, r):xs)
+      = splitHang' (n + c) (l . (toHang c (r-1) ++)) xs
+    splitHang' n l xs = (n, l, xs)
+
+    -- Drop list items until the total width of the dropped items
+    -- exceeds the passed width.
+    dropToWidth _     n l | n < 1 = l
+    dropToWidth wproj n (c:cs)    = dropToWidth wproj (n - wproj c) cs
+    dropToWidth _     _ []        = []
+
 simpTable :: PandocMonad m => Text -> Bool -> LP m Blocks
 simpTable envname hasWidthParameter = try $ do
   when hasWidthParameter $ () <$ (spaces >> tok)
@@ -2273,11 +2348,10 @@ simpTable envname hasWidthParameter = try $ do
   optional lbreak
   spaces
   lookAhead $ controlSeq "end" -- make sure we're at end
-  return $ table emptyCaption
-                 (zip aligns widths)
-                 (TableHead nullAttr header')
-                 [TableBody nullAttr 0 [] rows]
-                 (TableFoot nullAttr [])
+  let th  = fixTableHead $ TableHead nullAttr header'
+  let tbs = [fixTableBody $ TableBody nullAttr 0 [] rows]
+  let tf  = TableFoot nullAttr []
+  return $ table emptyCaption (zip aligns widths) th tbs tf
 
 addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
 addTableCaption = walkM go
