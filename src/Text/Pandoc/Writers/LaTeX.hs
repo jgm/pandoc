@@ -72,6 +72,7 @@ data WriterState =
               , stEmptyLine     :: Bool          -- true if no content on line
               , stHasCslRefs    :: Bool          -- has a Div with class refs
               , stCslHangingIndent :: Bool       -- use hanging indent for bib
+              , stIsFirstInDefinition :: Bool    -- first block in a defn list
               }
 
 startingState :: WriterOptions -> WriterState
@@ -102,7 +103,8 @@ startingState options = WriterState {
                 , stBeamer = False
                 , stEmptyLine = True
                 , stHasCslRefs = False
-                , stCslHangingIndent = False }
+                , stCslHangingIndent = False
+                , stIsFirstInDefinition = False }
 
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -682,19 +684,25 @@ blockToLaTeX b@(RawBlock f x) = do
 blockToLaTeX (BulletList []) = return empty  -- otherwise latex error
 blockToLaTeX (BulletList lst) = do
   incremental <- gets stIncremental
+  isFirstInDefinition <- gets stIsFirstInDefinition
   beamer <- gets stBeamer
   let inc = if beamer && incremental then "[<+->]" else ""
   items <- mapM listItemToLaTeX lst
   let spacing = if isTightList lst
                    then text "\\tightlist"
                    else empty
-  return $ text ("\\begin{itemize}" <> inc) $$ spacing $$ vcat items $$
+  return $ text ("\\begin{itemize}" <> inc) $$
+             spacing $$
+             -- force list at beginning of definition to start on new line
+             (if isFirstInDefinition then "\\item[]" else mempty) $$
+             vcat items $$
              "\\end{itemize}"
 blockToLaTeX (OrderedList _ []) = return empty -- otherwise latex error
 blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   st <- get
   let inc = if stBeamer st && stIncremental st then "[<+->]" else ""
   let oldlevel = stOLLevel st
+  isFirstInDefinition <- gets stIsFirstInDefinition
   put $ st {stOLLevel = oldlevel + 1}
   items <- mapM listItemToLaTeX lst
   modify (\s -> s {stOLLevel = oldlevel})
@@ -738,6 +746,8 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
          $$ stylecommand
          $$ resetcounter
          $$ spacing
+         -- force list at beginning of definition to start on new line
+         $$ (if isFirstInDefinition then "\\item[]" else mempty)
          $$ vcat items
          $$ "\\end{enumerate}"
 blockToLaTeX (DefinitionList []) = return empty
@@ -948,7 +958,14 @@ defListItemToLaTeX (term, defs) = do
     let term'' = if any isInternalLink term
                     then braces term'
                     else term'
-    def'  <- liftM vsep $ mapM blockListToLaTeX defs
+    def'  <- case concat defs of
+               [] -> return mempty
+               (x:xs) -> do
+                 modify $ \s -> s{stIsFirstInDefinition = True }
+                 firstitem <- blockToLaTeX x
+                 modify $ \s -> s{stIsFirstInDefinition = False }
+                 rest <- blockListToLaTeX xs
+                 return $ firstitem $+$ rest
     return $ case defs of
      ((Header{} : _) : _)    ->
        "\\item" <> brackets term'' <> " ~ " $$ def'
