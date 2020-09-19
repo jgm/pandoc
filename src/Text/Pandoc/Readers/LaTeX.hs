@@ -200,7 +200,7 @@ regularSymbol = str . untoken <$> satisfyTok isRegularSymbol
 inlineGroup :: PandocMonad m => LP m Inlines
 inlineGroup = do
   ils <- grouped inline
-  if isNull ils
+  if null ils
      then return mempty
      else return $ spanWith nullAttr ils
           -- we need the span so we can detitlecase bibtex entries;

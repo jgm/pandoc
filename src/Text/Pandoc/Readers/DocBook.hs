@@ -758,7 +758,7 @@ getMediaobject e = do
                         Nothing -> return mempty
                         Just z  -> mconcat <$>
                                          mapM parseInline (elContent z)
-  let (capt, title) = if isNull figTitle
+  let (capt, title) = if null figTitle
                          then (getCaption e, "")
                          else (return figTitle, "fig:")
   fmap (imageWith attr imageUrl title) capt

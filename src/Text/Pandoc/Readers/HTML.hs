@@ -585,7 +585,7 @@ pBlockQuote = do
 pPlain :: PandocMonad m => TagParser m Blocks
 pPlain = do
   contents <- setInPlain $ trimInlines . mconcat <$> many1 inline
-  if B.isNull contents
+  if null contents
      then return mempty
      else return $ B.plain contents
 
@@ -593,7 +593,7 @@ pPara :: PandocMonad m => TagParser m Blocks
 pPara = do
   contents <- trimInlines <$> pInTags "p" inline
   (do guardDisabled Ext_empty_paragraphs
-      guard (B.isNull contents)
+      guard (null contents)
       return mempty)
     <|> return (B.para contents)
 

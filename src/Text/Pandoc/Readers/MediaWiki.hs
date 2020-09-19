@@ -434,7 +434,7 @@ defListItem :: PandocMonad m => MWParser m (Inlines, [Blocks])
 defListItem = try $ do
   terms <- mconcat . intersperse B.linebreak <$> many defListTerm
   -- we allow dd with no dt, or dt with no dd
-  defs  <- if B.isNull terms
+  defs  <- if null terms
               then notFollowedBy
                     (try $ skipMany1 (char ':') >> string "<math>") *>
                        many1 (listItem ':')

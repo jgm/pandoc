@@ -576,7 +576,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
       then do modify $ \s -> s { docxDropCap = ils' }
               return mempty
       else do modify $ \s -> s { docxDropCap = mempty }
-              let ils'' = (if isNull prevParaIls then mempty
+              let ils'' = (if null prevParaIls then mempty
                           else prevParaIls <> space) <> ils'
                   handleInsertion = do
                     modify $ \s -> s {docxPrevPara = mempty}
@@ -584,7 +584,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
                     return $ transform $ paraOrPlain ils''
               opts <- asks docxOptions
               case (pChange pPr', readerTrackChanges opts) of
-                  _ | isNull ils'', not (isEnabled Ext_empty_paragraphs opts) ->
+                  _ | null ils'', not (isEnabled Ext_empty_paragraphs opts) ->
                     return mempty
                   (Just (TrackedChange Insertion _), AcceptChanges) ->
                       handleInsertion

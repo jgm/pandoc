@@ -222,9 +222,9 @@ pandocTitleBlock = try $ do
                  author' <- author
                  date' <- date
                  return $
-                     (if B.isNull title' then id else B.setMeta "title" title')
+                     (if null title' then id else B.setMeta "title" title')
                    . (if null author' then id else B.setMeta "author" author')
-                   . (if B.isNull date' then id else B.setMeta "date" date')
+                   . (if null date' then id else B.setMeta "date" date')
                    $ nullMeta
   updateState $ \st -> st{ stateMeta' = stateMeta' st <> meta' }
 
