@@ -14,8 +14,8 @@ packages:
 extra-deps:
 - pandoc-citeproc-0.17.0.2
 - pandoc-types-1.22
+- texmath-0.12.0.3
 - rfc5051-0.2
-- texmath-0.12.0.2
 - haddock-library-1.9.0
 - skylighting-0.10.0.2
 - skylighting-core-0.10.0.2
@@ -28,7 +28,7 @@ extra-deps:
 - doctemplates-0.8.2
 - commonmark-0.1.0.2
 - commonmark-extensions-0.2.0.1
-- commonmark-pandoc-0.2.0.0
+- commonmark-pandoc-0.2.0.1
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
