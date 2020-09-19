@@ -310,6 +310,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                           "/*]]>*/\n")
                           | otherwise -> mempty
                     Nothing -> mempty
+  let mCss :: Maybe [Text] = lookupContext "css" $ metadata
   let context =   (if stHighlighting st
                       then case writerHighlightStyle opts of
                                 Just sty -> defField "highlighting-css"
@@ -328,6 +329,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                         PlainMath -> defField "displaymath-css" True
                         WebTeX _  -> defField "displaymath-css" True
                         _         -> id) $
+                  defField "document-css" (isNothing mCss && slideVariant == NoSlides) $
                   defField "quotes" (stQuotes st) $
                   -- for backwards compatibility we populate toc
                   -- with the contents of the toc, rather than a

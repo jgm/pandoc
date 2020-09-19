@@ -1,3 +1,111 @@
+$if(document-css)$
+html {
+  line-height: $if(linestretch)$$linestretch$$else$1.7$endif$;
+  font-family: $if(mainfont)$$mainfont$$else$Georgia, serif$endif$;
+  font-size: $if(fontsize)$$fontsize$$else$20px$endif$;
+  color: $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
+  background-color: $if(backgroundcolor)$$backgroundcolor$$else$#fdfdfd$endif$;
+}
+body {
+  margin: 0 auto;
+  max-width: 40em;
+  padding-left: $if(margin-left)$$margin-left$$else$50px$endif$;
+  padding-right: $if(margin-right)$$margin-right$$else$50px$endif$;
+  padding-top: $if(margin-top)$$margin-top$$else$50px$endif$;
+  padding-bottom: $if(margin-bottom)$$margin-bottom$$else$50px$endif$;
+  hyphens: auto;
+  word-wrap: break-word;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+}
+@media (max-width: 600px) {
+  body {
+    font-size: 0.9em;
+    padding: 1em;
+  }
+}
+@media print {
+  body {
+    background-color: transparent;
+    color: black;
+  }
+  p, h2, h3 {
+    orphans: 3;
+    widows: 3;
+  }
+  h2, h3, h4 {
+    page-break-after: avoid;
+  }
+}
+p {
+  margin-top: 1.7em;
+}
+a {
+  color: $if(linkcolor)$$linkcolor$$else$#1a1a1a$endif$;
+}
+a:visited {
+  color: $if(linkcolor)$$linkcolor$$else$#1a1a1a$endif$;
+}
+img {
+  max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 1.7em;
+}
+ol, ul {
+  padding-left: 1.7em;
+  margin-top: 1.7em;
+}
+li > ol, li > ul {
+  margin-top: 0;
+}
+blockquote {
+  margin: 1.7em 0 1.7em 1.7em;
+  padding-left: 1em;
+  border-left: 2px solid #e6e6e6;
+  font-style: italic;
+}
+code {
+  font-family: $if(monofont)$$monofont$$else$Menlo, Monaco, 'Lucida Console', Consolas, monospace$endif$;
+  background-color: #f0f0f0;
+  font-size: 85%;
+  margin: 0;
+  padding: .2em .4em;
+}
+pre {
+  line-height: 1.5em;
+  padding: 1em;
+  background-color: #f0f0f0;
+  overflow: auto;
+}
+pre code {
+  padding: 0;
+  overflow: visible;
+}
+hr {
+  background-color: #1a1a1a;
+  border: none;
+  height: 1px;
+  margin-top: 1.7em;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  overflow-x: auto;
+  display: block;
+}
+th, td {
+  border-bottom: 1px solid lightgray;
+  padding: 1em 3em 1em 0;
+}
+header {
+  margin-bottom: 6em;
+  text-align: center;
+}
+nav a:not(:hover) {
+  text-decoration: none;
+}
+$endif$
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 span.underline{text-decoration: underline;}
