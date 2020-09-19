@@ -31,6 +31,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Printf (printf)
 import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
+import Text.Pandoc.Shared (tshow)
 
 type Input = Text
 
@@ -144,6 +145,3 @@ err exitCode msg = do
   UTF8.hPutStrLn stderr (T.unpack msg)
   exitWith $ ExitFailure exitCode
   return undefined
-
-tshow :: Show a => a -> Text
-tshow = T.pack . show
