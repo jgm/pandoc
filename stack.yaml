@@ -12,7 +12,6 @@ flags:
 packages:
 - '.'
 extra-deps:
-- pandoc-citeproc-0.17.0.2
 - pandoc-types-1.22
 - texmath-0.12.0.3
 - rfc5051-0.2
@@ -29,6 +28,8 @@ extra-deps:
 - commonmark-0.1.0.2
 - commonmark-extensions-0.2.0.1
 - commonmark-pandoc-0.2.0.1
+- git: https://github.com/jgm/pandoc-citeproc
+  commit: 159bbb566858c0bc522e6404eb989671cd7236fd
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
