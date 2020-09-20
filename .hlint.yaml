@@ -78,6 +78,7 @@
       - Tests.Writers.Native
       - Text.Pandoc.Extensions
       - Text.Pandoc.Lua.Marshaling.Version
+      - Text.Pandoc.Lua.Module.Utils
       - Text.Pandoc.Readers.Odt.ContentReader
       - Text.Pandoc.Readers.Odt.Namespaces
 

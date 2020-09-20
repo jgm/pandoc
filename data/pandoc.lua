@@ -1058,6 +1058,30 @@ M.ListAttributes.behavior.__pairs = function(t)
   return make_next_function(fields), t, nil
 end
 
+--
+-- Legacy and compatibility types
+--
+
+--- Creates a simple (old style) table element.
+-- @function SimpleTable
+-- @tparam      {Inline,...} caption    table caption
+-- @tparam      {AlignDefault|AlignLeft|AlignRight|AlignCenter,...} aligns alignments
+-- @tparam      {int,...}    widths     column widths
+-- @tparam      {Block,...}  headers    header row
+-- @tparam      {{Block,...}} rows      table rows
+-- @treturn     Block                   table element
+M.SimpleTable = function(caption, aligns, widths, headers, rows)
+  return {
+    caption = ensureInlineList(caption),
+    aligns = List:new(aligns),
+    widths = List:new(widths),
+    headers = List:new(headers),
+    rows = List:new(rows),
+    tag = "SimpleTable",
+    t = "SimpleTable",
+  }
+end
+
 
 ------------------------------------------------------------------------
 -- Constants

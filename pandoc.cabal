@@ -633,6 +633,7 @@ library
                    Text.Pandoc.Lua.Marshaling.MediaBag,
                    Text.Pandoc.Lua.Marshaling.PandocError,
                    Text.Pandoc.Lua.Marshaling.ReaderOptions,
+                   Text.Pandoc.Lua.Marshaling.SimpleTable,
                    Text.Pandoc.Lua.Marshaling.Version,
                    Text.Pandoc.Lua.Module.MediaBag,
                    Text.Pandoc.Lua.Module.Pandoc,

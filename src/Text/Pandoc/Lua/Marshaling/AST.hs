@@ -260,7 +260,7 @@ instance Peekable TableBody where
     return $ TableBody attr (RowHeadColumns rowHeadColumns) head' body
 
 instance Pushable TableHead where
-  push (TableHead attr cells) = Lua.push (attr, cells)
+  push (TableHead attr rows) = Lua.push (attr, rows)
 
 instance Peekable TableHead where
   peek = fmap (uncurry TableHead) . Lua.peek

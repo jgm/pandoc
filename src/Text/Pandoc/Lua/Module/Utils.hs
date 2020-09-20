@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Utils
@@ -7,7 +8,7 @@
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
    Stability   : alpha
 
-Utility module for lua, exposing internal helper functions.
+Utility module for Lua, exposing internal helper functions.
 -}
 module Text.Pandoc.Lua.Module.Utils
   ( pushModule
@@ -15,13 +16,17 @@ module Text.Pandoc.Lua.Module.Utils
 
 import Control.Applicative ((<|>))
 import Control.Monad.Catch (try)
+import Data.Data (showConstr, toConstr)
 import Data.Default (def)
 import Data.Version (Version)
-import Foreign.Lua (Peekable, Lua, NumResults)
-import Text.Pandoc.Definition ( Pandoc, Meta, MetaValue (..), Block, Inline
-                              , Citation, Attr, ListAttributes)
+import Foreign.Lua (Peekable, Lua, NumResults (..))
+import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshaling ()
+import Text.Pandoc.Lua.Marshaling.SimpleTable
+  ( SimpleTable (..)
+  , pushSimpleTable
+  )
 import Text.Pandoc.Lua.PandocLua (PandocLua, addFunction, liftPandocLua)
 
 import qualified Data.Digest.Pure.SHA as SHA
@@ -31,19 +36,22 @@ import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Shared as Shared
+import qualified Text.Pandoc.Writers.Shared as Shared
 
--- | Push the "pandoc.utils" module to the lua stack.
+-- | Push the "pandoc.utils" module to the Lua stack.
 pushModule :: PandocLua NumResults
 pushModule = do
   liftPandocLua Lua.newtable
   addFunction "blocks_to_inlines" blocksToInlines
   addFunction "equals" equals
+  addFunction "from_simple_table" from_simple_table
   addFunction "make_sections" makeSections
   addFunction "normalize_date" normalizeDate
   addFunction "run_json_filter" runJSONFilter
   addFunction "sha1" sha1
   addFunction "stringify" stringify
   addFunction "to_roman_numeral" toRomanNumeral
+  addFunction "to_simple_table" to_simple_table
   addFunction "Version" (return :: Version -> Lua Version)
   return 1
 
@@ -130,6 +138,37 @@ instance Peekable AstElement where
       Right x -> return x
       Left (_ :: PandocError) -> Lua.throwMessage
         "Expected an AST element, but could not parse value as such."
+
+-- | Converts an old/simple table into a normal table block element.
+from_simple_table :: SimpleTable -> Lua NumResults
+from_simple_table (SimpleTable capt aligns widths head' body) = do
+  Lua.push $ Table
+    nullAttr
+    (Caption Nothing [Plain capt])
+    (zipWith (\a w -> (a, toColWidth w)) aligns widths)
+    (TableHead nullAttr [blockListToRow head'])
+    [TableBody nullAttr 0 [] $ map blockListToRow body]
+    (TableFoot nullAttr [])
+  return (NumResults 1)
+  where
+    blockListToRow :: [[Block]] -> Row
+    blockListToRow = Row nullAttr . map (B.simpleCell . B.fromList)
+
+    toColWidth :: Double -> ColWidth
+    toColWidth 0 = ColWidthDefault
+    toColWidth w = ColWidth w
+
+-- | Converts a table into an old/simple table.
+to_simple_table :: Block -> Lua NumResults
+to_simple_table = \case
+  Table _attr caption specs thead tbodies tfoot -> do
+    let (capt, aligns, widths, headers, rows) =
+          Shared.toLegacyTable caption specs thead tbodies tfoot
+    pushSimpleTable $ SimpleTable capt aligns widths headers rows
+    return (NumResults 1)
+  blk ->
+    Lua.throwMessage $
+      "Expected Table, got " <> showConstr (toConstr blk) <> "."
 
 -- | Convert a number < 4000 to uppercase roman numeral.
 toRomanNumeral :: Lua.Integer -> PandocLua T.Text

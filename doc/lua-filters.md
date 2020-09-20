@@ -1744,6 +1744,36 @@ table into a List.
 A pandoc log message. Objects have no fields, but can be
 converted to a string via `tostring`.
 
+## SimpleTable {#type-simpletable}
+
+A simple table is a table structure which resembles the old (pre
+pandoc 2.10) Table type. Bi-directional conversion from and to
+[Tables](#type-table) is possible with the
+[`pandoc.utils.to_simple_table`](#pandoc.utils.to_simple_table)
+and
+[`pandoc.utils.from_simple_table`](#pandoc.utils.from_simple_table)
+function, respectively. Instances of this type can also be created
+directly with the [`pandoc.SimpleTable`](#pandoc.simpletable)
+constructor.
+
+Fields:
+
+`caption`:
+:   [List] of [Inlines]
+
+`aligns`:
+:   column alignments ([List] of [Alignments](#type-alignment))
+
+`widths`:
+:   column widths; a  ([List] of numbers)
+
+`headers`:
+:   table header row ([List] of lists of [Blocks])
+
+`rows`:
+:   table rows ([List] of rows, where a row is a list of lists of
+    [Blocks])
+
 ## Version {#type-version}
 
 A version object. This represents a software version like
@@ -1816,6 +1846,8 @@ Usage:
 [Pandoc]: #type-pandoc
 [Para]: #type-para
 [Rows]: #type-row
+[SimpleTable]: #type-simpletable
+[Table]: #type-table
 [TableBody]: #type-tablebody
 [TableFoot]: #type-tablefoot
 [TableHead]: #type-tablehead
@@ -2491,6 +2523,51 @@ format, and functions to filter and modify a subtree.
 
     Returns: [ListAttributes](#type-listattributes) object
 
+## Legacy types
+
+[`SimpleTable (caption, aligns, widths, headers, rows)`]{#pandoc.simpletable}
+
+:   Creates a simple table resembling the old (pre pandoc 2.10)
+    table type.
+
+    Parameters:
+
+    `caption`:
+    :   [List] of [Inlines]
+
+    `aligns`:
+    :   column alignments ([List] of [Alignments](#type-alignment))
+
+    `widths`:
+    :   column widths; a  ([List] of numbers)
+
+    `headers`:
+    :   table header row ([List] of lists of [Blocks])
+
+    `rows`:
+    :   table rows ([List] of rows, where a row is a list of lists
+        of [Blocks])
+
+    Returns: [SimpleTable] object
+
+    Usage:
+
+        local caption = "Overview"
+        local aligns = {pandoc.AlignDefault, pandoc.AlignDefault}
+        local widths = {0, 0} -- let pandoc determine col widths
+        local headers = {"Language", "Typing"}
+        local rows = {
+          {{pandoc.Plain "Haskell"}, {pandoc.Plain "static"}},
+          {{pandoc.Plain "Lua"}, {pandoc.Plain "Dynamic"}},
+        }
+        simple_table = pandoc.SimpleTable(
+          caption,
+          aligns,
+          widths,
+          headers,
+          rows
+        )
+
 ## Constants
 
 [`AuthorInText`]{#pandoc.authorintext}
@@ -2753,6 +2830,26 @@ Returns:
 
 -   Whether the two objects represent the same element (boolean)
 
+### from\_simple\_table {#pandoc.utils.from_simple_table}
+
+`from_simple_table (table)`
+
+Creates a [Table] block element from a [SimpleTable]. This is
+useful for dealing with legacy code which was written for pandoc
+versions older than 2.10.
+
+Returns:
+
+-   table block element ([Table])
+
+Usage:
+
+    local simple = pandoc.SimpleTable(table)
+    -- modify, using pre pandoc 2.10 methods
+    simple.caption = pandoc.SmallCaps(simple.caption)
+    -- create normal table block again
+    table = pandoc.utils.from_simple_table(simple)
+
 ### make\_sections {#pandoc.utils.make_sections}
 
 `make_sections (number_sections, base_level, blocks)`
@@ -2871,6 +2968,24 @@ Usage:
     local to_roman_numeral = pandoc.utils.to_roman_numeral
     local pandoc_birth_year = to_roman_numeral(2006)
     -- pandoc_birth_year == 'MMVI'
+
+### to\_simple\_table {#pandoc.utils.to_simple_table}
+
+`to_simple_table (table)`
+
+Creates a [SimpleTable] out of a [Table] block.
+
+Returns:
+
+-   a simple table object ([SimpleTable])
+
+Usage:
+
+    local simple = pandoc.utils.to_simple_table(table)
+    -- modify, using pre pandoc 2.10 methods
+    simple.caption = pandoc.SmallCaps(simple.caption)
+    -- create normal table block again
+    table = pandoc.utils.from_simple_table(simple)
 
 # Module pandoc.mediabag
 
