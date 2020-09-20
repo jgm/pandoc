@@ -51,9 +51,9 @@ jobs:
             cabal: '2.4'
           - ghc: '8.6.5'
             cabal: '3.2'
-          - ghc: '8.8.3'
+          - ghc: '8.8.4'
             cabal: '3.2'
-          - ghc: '8.10.1'
+          - ghc: '8.10.2'
             cabal: '3.2'
     steps:
     - uses: actions/checkout@v1
@@ -144,7 +144,7 @@ jobs:
       fail-fast: true
       matrix:
         versions:
-          - ghc: '8.10.1'
+          - ghc: '8.10.2'
             cabal: '3.2'
 
     steps:
@@ -186,4 +186,3 @@ jobs:
           # fail if warnings in local build
           ! grep -q ": *[Ww]arning:" build.log || exit 1
           cabal v2-test --disable-optimization
-
