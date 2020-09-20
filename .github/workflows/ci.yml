@@ -153,12 +153,6 @@ jobs:
     - name: Install recent cabal/ghc
       uses: actions/setup-haskell@v1.1
       with:
-        ghc-version: '8.10.1'
-        cabal-version: '3.2'
-
-    - name: Install recent cabal/ghc
-      uses: actions/setup-haskell@v1.1
-      with:
         ghc-version: ${{ matrix.versions.ghc }}
         cabal-version: ${{ matrix.versions.cabal }}
 
