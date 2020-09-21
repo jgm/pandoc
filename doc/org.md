@@ -102,6 +102,53 @@ Pandoc recognizes some export options not used by Emacs Org.
   field is included by default on the title slide of beamer
   presentations.
 
+Other options
+-------------
+
+Any export option or directive not listed above has no effect when
+parsing with pandoc. However, the information is retained as a
+*raw block*. It can be accessed through a
+[filter](https://pandoc.org/filters.html) and will be included in
+org output.
+
+### Directives as metadata
+
+As an example, we will restore an old behavior of pandoc versions
+prior to 2.10. Unknown keywords were treated as variable
+definitions, and were added the document's metadata. Typing
+`#+key: value` in the org-file used to have the same effect as
+running pandoc with the `--metadata key=value` option.
+
+Since pandoc 2.10, each unhandled line starting with `#+` is kept
+internally as a raw block with format `org`. This block can be
+inspected and processed by a filter. Below is a [Lua
+filter](https://pandoc.org/lua-filters.html) which converts these
+unhandled lines into metadata key-value pairs.
+
+``` lua
+-- intermediate store for variables and their values
+local variables = {}
+
+--- Function called for each raw block element.
+function RawBlock (raw)
+  -- Don't do anything unless the block contains *org* markup.
+  if raw.format ~= 'org' then return nil end
+
+  -- extract variable name and value
+  local name, value = raw.text:match '#%+(%w+):%s*(.+)$'
+  if name and value then
+    variables[name] = value
+  end
+end
+
+-- Add the extracted variables to the document's metadata.
+function Meta (meta)
+  for name, value in pairs(variables) do
+    meta[name] = value
+  end
+  return meta
+end
+```
 
 Citations
 =========
