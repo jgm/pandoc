@@ -56,7 +56,7 @@ jobs:
           - ghc: '8.10.2'
             cabal: '3.2'
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     # need to install older cabal/ghc versions from ppa repository
 
@@ -102,11 +102,12 @@ jobs:
     runs-on: windows-2019
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Install stack
-      shell: cmd
-      run: |
-          choco install haskell-stack
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-haskell@v1.1
+      with:
+        enable-stack: true
+        stack-version: 'latest'
 
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet
@@ -148,7 +149,7 @@ jobs:
             cabal: '3.2'
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - name: Install recent cabal/ghc
       uses: actions/setup-haskell@v1.1

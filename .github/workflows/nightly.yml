@@ -9,7 +9,7 @@ jobs:
 
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
           export PATH=/opt/cabal/3.2/bin:/opt/ghc/8.8.3/bin:$PATH
@@ -41,7 +41,7 @@ jobs:
     runs-on: windows-2019
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Install stack
       shell: cmd
       run: |
@@ -71,7 +71,7 @@ jobs:
     runs-on: macOS-10.15
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Install stack
       run: |
           curl -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz -o stack.tar.gz
