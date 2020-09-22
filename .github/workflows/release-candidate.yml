@@ -31,20 +31,10 @@ jobs:
         versions:
           - osarch: "windows-x86_64"
             arch: "x64"
-            choco_opts: ""
             stack_opts: "-j1"
-        # - osarch: "windows-i386"
-        #   arch: "x86"
-        #   choco_opts: "--x86 --version 2.1.3.20190715"
-        #   stack_opts: "-j1 --flag hslua:lua_32bits"
-        #   # we use stack 2.1.3 because 2.3.1 doesn't support i386
 
     steps:
     - uses: actions/checkout@v1
-    - name: Install stack
-      shell: cmd
-      run: |
-          choco install haskell-stack ${{ matrix.versions.choco_opts }}
     - name: Install dependencies
       run: |
           stack update
@@ -92,50 +82,3 @@ jobs:
       with:
         name: windows-release-candidate
         path: windows-release-candidate
-
-# We now build for macos on travis-ci.com
-# macos:
-
-#   runs-on: macOS-10.15
-
-#   steps:
-#   - uses: actions/checkout@v1
-#   - name: Install stack
-#     run: |
-#         curl -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz -o stack.tar.gz
-#         tar xzvf stack.tar.gz --strip-components=1 'stack*/stack'
-#   - name: Install dependencies
-#     run: |
-#         ./stack update
-#         ./stack build --dependencies-only pandoc pandoc-citeproc
-#   - name: Create macOS package
-#     run: |
-#         export VERSION=$(grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
-#         export BASEDIR=$(pwd)
-#         export ARTIFACTS=${BASEDIR}/macos-release-candidate
-#         export RESOURCES=${ARTIFACTS}/Resources
-#         export ROOT=${ARTIFACTS}/pandoc
-#         export DEST=${ROOT}/usr/local
-#         export ME=$(whoami)
-#         export BASE=pandoc-$VERSION
-#         mkdir -p ${ARTIFACTS}
-#         mkdir -p ${RESOURCES}
-#         mkdir -p ${DEST}/bin
-#         mkdir -p ${DEST}/share/man/man1
-#         ./stack build pandoc pandoc-citeproc
-#         for f in $(find .stack-work/install -name 'pandoc*' -perm +001 -type f); do cp $f ${DEST}/bin/; done
-#         strip ${DEST}/bin/pandoc
-#         strip ${DEST}/bin/pandoc-citeproc
-#         cp man/pandoc.1 ${DEST}/share/man/man1/pandoc.1
-#         ${DEST}/bin/pandoc-citeproc --man > \
-#           $DEST/share/man/man1/pandoc-citeproc.1
-#         ${DEST}/bin/pandoc -t html5 -s COPYING.md -Vpagetitle=License \
-#           -o ${RESOURCES}/license.html
-#         chown -R $ME:staff ${ROOT}
-#         sed -e "s/PANDOCVERSION/${VERSION}/" macos/distribution.xml.in > ${ARTIFACTS}/distribution.xml
-#         cp macos/Makefile ${ARTIFACTS}/
-#         echo ${VERSION} > ${ARTIFACTS}/version.txt
-#   - uses: actions/upload-artifact@v2
-#     with:
-#       name: macos-release-candidate
-#       path: macos-release-candidate
