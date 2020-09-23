@@ -17,6 +17,7 @@ module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
 import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Strict hiding (when)
 import Data.Char (chr)
+import Data.Foldable (find)
 import Data.List (sortOn, sortBy, foldl')
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe, isNothing)
@@ -35,6 +36,7 @@ import Text.DocLayout
 import Text.Pandoc.Shared (linesToPara, tshow, blocksToInlines)
 import Text.Pandoc.Templates (renderTemplate)
 import qualified Text.Pandoc.Translations as Term (Term(Figure, Table))
+import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
@@ -54,6 +56,11 @@ plainToPara x         = x
 
 type OD m = StateT WriterState m
 
+data ReferenceType
+  = HeaderRef
+  | TableRef
+  | ImageRef
+
 data WriterState =
     WriterState { stNotes          :: [Doc Text]
                 , stTableStyles    :: [Doc Text]
@@ -69,6 +76,7 @@ data WriterState =
                 , stImageId        :: Int
                 , stTableCaptionId :: Int
                 , stImageCaptionId :: Int
+                , stIdentTypes     :: [(Text,ReferenceType)]
                 }
 
 defaultWriterState :: WriterState
@@ -86,6 +94,7 @@ defaultWriterState =
                 , stImageId        = 1
                 , stTableCaptionId = 1
                 , stImageCaptionId = 1
+                , stIdentTypes     = []
                 }
 
 when :: Bool -> Doc Text -> Doc Text
@@ -243,6 +252,12 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                         meta
   ((body, metadata),s) <- flip runStateT
         defaultWriterState $ do
+           let collectInlineIdent (Image (ident,_,_) _ _) = [(ident,ImageRef)]
+               collectInlineIdent _                       = []
+           let collectBlockIdent (Header _ (ident,_,_) _)      = [(ident,HeaderRef)]
+               collectBlockIdent (Table (ident,_,_) _ _ _ _ _) = [(ident,TableRef)]
+               collectBlockIdent _                             = []
+           modify $ \s -> s{ stIdentTypes = query collectBlockIdent blocks ++ query collectInlineIdent blocks }
            m <- metaToContext opts
                   (blocksToOpenDocument opts)
                   (fmap chomp . inlinesToOpenDocument opts)
@@ -411,7 +426,7 @@ blockToOpenDocument o bs
                            inTags True "text:list" [ ("text:style-name", "L" <> tshow ln)]
                                       <$> orderedListToOpenDocument o pn b
       table :: PandocMonad m => Ann.Table -> OD m (Doc Text)
-      table (Ann.Table _ (Caption _ c) colspecs thead tbodies _) = do
+      table (Ann.Table (ident, _, _) (Caption _ c) colspecs thead tbodies _) = do
         tn <- length <$> gets stTableStyles
         pn <- length <$> gets stParaStyles
         let  genIds      = map chr [65..]
@@ -433,7 +448,7 @@ blockToOpenDocument o bs
                       then return empty
                       else inlinesToOpenDocument o (blocksToInlines c) >>=
                              if isEnabled Ext_native_numbering o
-                                then numberedTableCaption
+                                then numberedTableCaption ident
                                 else unNumberedCaption "TableCaption"
         th <- colHeadsToOpenDocument o (map fst paraHStyles) thead
         tr <- mapM (tableBodyToOpenDocument o (map fst paraStyles)) tbodies
@@ -442,36 +457,39 @@ blockToOpenDocument o bs
                           , ("table:style-name", name)
                           ] (vcat columns $$ th $$ vcat tr)
         return $ captionDoc $$ tableDoc
-      figure attr caption source title | null caption =
+      figure attr@(ident, _, _) caption source title | null caption =
         withParagraphStyle o "Figure" [Para [Image attr caption (source,title)]]
                                   | otherwise    = do
         imageDoc <- withParagraphStyle o "FigureWithCaption" [Para [Image attr caption (source,title)]]
         captionDoc <- inlinesToOpenDocument o caption >>=
                          if isEnabled Ext_native_numbering o
-                            then numberedFigureCaption
+                            then numberedFigureCaption ident
                             else unNumberedCaption "FigureCaption"
         return $ imageDoc $$ captionDoc
 
 
-numberedTableCaption :: PandocMonad m => Doc Text -> OD m (Doc Text)
-numberedTableCaption caption = do
+numberedTableCaption :: PandocMonad m => Text -> Doc Text -> OD m (Doc Text)
+numberedTableCaption ident caption = do
     id' <- gets stTableCaptionId
     modify (\st -> st{ stTableCaptionId = id' + 1 })
     capterm <- translateTerm Term.Table
-    return $ numberedCaption "TableCaption" capterm "Table" id' caption
+    return $ numberedCaption "TableCaption" capterm "Table" id' ident caption
 
-numberedFigureCaption :: PandocMonad m => Doc Text -> OD m (Doc Text)
-numberedFigureCaption caption = do
+numberedFigureCaption :: PandocMonad m => Text -> Doc Text -> OD m (Doc Text)
+numberedFigureCaption ident caption = do
     id' <- gets stImageCaptionId
     modify (\st -> st{ stImageCaptionId = id' + 1 })
     capterm <- translateTerm Term.Figure
-    return $ numberedCaption "FigureCaption" capterm "Illustration" id' caption
+    return $ numberedCaption "FigureCaption" capterm  "Illustration" id' ident caption
 
-numberedCaption :: Text -> Text -> Text -> Int -> Doc Text -> Doc Text
-numberedCaption style term name num caption =
+numberedCaption :: Text -> Text -> Text -> Int -> Text -> Doc Text -> Doc Text
+numberedCaption style term name num ident caption =
     let t = text $ T.unpack term
         r = num - 1
-        s = inTags False "text:sequence" [ ("text:ref-name", "ref" <> name <> tshow r),
+        ident' = case ident of
+          "" -> "ref" <> name <> tshow r
+          _ -> ident
+        s = inTags False "text:sequence" [ ("text:ref-name", ident'),
                                            ("text:name", name),
                                            ("text:formula", "ooow:" <> name <> "+1"),
                                            ("style:num-format", "1") ] $ text $ show num
@@ -607,7 +625,9 @@ inlineToOpenDocument o ils
                        else do
                          report $ InlineNotRendered ils
                          return empty
-    Link _ l (s,t) ->  mkLink s t <$> inlinesToOpenDocument o l
+    Link _ l (s,t) -> do
+      identTypes <- gets stIdentTypes
+      mkLink o identTypes s t <$> inlinesToOpenDocument o l
     Image attr _ (s,t) -> mkImg attr s t
     Note        l  -> mkNote l
     where
@@ -619,10 +639,6 @@ inlineToOpenDocument o ils
       unhighlighted s = inlinedCode $ preformatted s
       preformatted s = handleSpaces $ escapeStringForXML s
       inlinedCode s = return $ inTags False "text:span" [("text:style-name", "Source_Text")] s
-      mkLink   s t = inTags False "text:a" [ ("xlink:type" , "simple")
-                                           , ("xlink:href" , s       )
-                                           , ("office:name", t       )
-                                           ] . inSpanTags "Definition"
       mkImg (_, _, kvs) s _ = do
                id' <- gets stImageId
                modify (\st -> st{ stImageId = id' + 1 })
@@ -658,6 +674,45 @@ inlineToOpenDocument o ils
         nn <- footNote <$> withParagraphStyle o "Footnote" l
         addNote nn
         return nn
+
+mkLink :: WriterOptions -> [(Text,ReferenceType)] -> Text -> Text -> Doc Text -> Doc Text
+mkLink o identTypes s t d =
+  let maybeIdentAndType = case T.uncons s of
+                            Just ('#', ident) -> find ((ident ==) . fst) identTypes
+                            _                 -> Nothing
+      d' = inSpanTags "Definition" d
+      ref refType format ident       = inTags False refType
+                                       [ ("text:reference-format", format ),
+                                         ("text:ref-name", ident) ]
+      inlineSpace                    = selfClosingTag "text:s" []
+      bookmarkRef                    = ref "text:bookmark-ref"
+      bookmarkRefNumber ident        = bookmarkRef "number" ident mempty
+      bookmarkRefName ident          = bookmarkRef "text" ident d
+      bookmarkRefNameNumber ident    = bookmarkRefNumber ident <> inlineSpace <> bookmarkRefName ident
+      bookmarkRef'
+        | isEnabled Ext_xrefs_number o && isEnabled Ext_xrefs_name o = bookmarkRefNameNumber
+        | isEnabled Ext_xrefs_name o                                 = bookmarkRefName
+        | otherwise                                                  = bookmarkRefNumber
+      sequenceRef                    = ref "text:sequence-ref"
+      sequenceRefNumber ident        = sequenceRef "value" ident mempty
+      sequenceRefName ident          = sequenceRef "caption" ident d
+      sequenceRefNameNumber ident    = sequenceRefNumber ident <> inlineSpace <> sequenceRefName ident
+      sequenceRef'
+        | isEnabled Ext_xrefs_number o && isEnabled Ext_xrefs_name o = sequenceRefNameNumber
+        | isEnabled Ext_xrefs_name o                                 = sequenceRefName
+        | otherwise                                                  = sequenceRefNumber
+      link = inTags False "text:a" [ ("xlink:type" , "simple")
+                                          , ("xlink:href" , s       )
+                                          , ("office:name", t       )
+                                          ] d'
+      linkOrReference = case maybeIdentAndType of
+                          Just (ident, HeaderRef) -> bookmarkRef' ident
+                          Just (ident, TableRef)  -> sequenceRef' ident
+                          Just (ident, ImageRef)  -> sequenceRef' ident
+                          _                       -> link
+      in if isEnabled Ext_xrefs_name o || isEnabled Ext_xrefs_number o
+            then linkOrReference
+            else link
 
 bulletListStyle :: PandocMonad m => Int -> OD m (Int,(Int,[Doc Text]))
 bulletListStyle l = do

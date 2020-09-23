@@ -149,6 +149,8 @@ data Extension =
     | Ext_tex_math_dollars    -- ^ TeX math between $..$ or $$..$$
     | Ext_tex_math_double_backslash  -- ^ TeX math btw \\(..\\) \\[..\\]
     | Ext_tex_math_single_backslash  -- ^ TeX math btw \(..\) \[..\]
+    | Ext_xrefs_name          -- ^ Use xrefs with names
+    | Ext_xrefs_number        -- ^ Use xrefs with numbers
     | Ext_yaml_metadata_block -- ^ YAML metadata block
     | Ext_gutenberg           -- ^ Use Project Gutenberg conventions for plain
     | Ext_attributes          -- ^ Generic attribute syntax
@@ -465,6 +467,8 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "opendocument"    = extensionsFromList
     [ Ext_empty_paragraphs
     , Ext_native_numbering
+    , Ext_xrefs_name
+    , Ext_xrefs_number
     ]
   getAll "odt"             = getAll "opendocument" <> autoIdExtensions
   getAll "muse"            = autoIdExtensions <>
