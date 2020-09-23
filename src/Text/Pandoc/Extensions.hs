@@ -134,6 +134,7 @@ data Extension =
     | Ext_raw_html            -- ^ Allow raw HTML
     | Ext_raw_tex             -- ^ Allow raw TeX (other than math)
     | Ext_raw_markdown        -- ^ Parse markdown in ipynb as raw markdown
+    | Ext_references_over_links -- ^ Prefer references over links in formats which support both
     | Ext_shortcut_reference_links -- ^ Shortcut reference links
     | Ext_simple_tables       -- ^ Pandoc-style simple tables
     | Ext_smart               -- ^ "Smart" quotes, apostrophes, ellipses, dashes
@@ -465,6 +466,7 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "opendocument"    = extensionsFromList
     [ Ext_empty_paragraphs
     , Ext_native_numbering
+    , Ext_references_over_links
     ]
   getAll "odt"             = getAll "opendocument" <> autoIdExtensions
   getAll "muse"            = autoIdExtensions <>
