@@ -18,13 +18,15 @@ jobs:
           cabal v2-build --dependencies-only all
     - name: Build
       run: |
-          cabal v2-install --install-method=copy --installdir=. all
-          strip pandoc
+          cabal v2-install all
+          strip $HOME/.cabal/bin/pandoc
     - name: Install artifact
       run: |
           export ARTIFACTS=nightly-linux/pandoc-nightly-linux-$(date +%Y-%m-%d)
           mkdir -p ${ARTIFACTS}
-          cp pandoc ${ARTIFACTS}/pandoc-nightly-${GITHUB_SHA}
+          cp $HOME/.cabal/bin/pandoc ${ARTIFACTS}/
+          cp COPYRIGHT ${ARTIFACTS}/
+          echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
     - uses: actions/upload-artifact@master
       with:
         name: nightly-linux
@@ -38,18 +40,19 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
-          ghc --version
-          cabal --version
-          cabal v2-update
-          cabal v2-build --dependencies-only all
+          stack update
+          stack build --dependencies-only pandoc
     - name: Build artifacts
       shell: cmd
       run: |
-          cabal v2-install --install-method=copy --installdir=. all
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
           set ARTIFACTS=%CD%\nightly-windows\pandoc-nightly-windows-%THEDATE%
           mkdir %ARTIFACTS%
-          copy pandoc.exe %ARTIFACTS%\pandoc-nightly-%GITHUB_SHA%.exe
+          stack build pandoc
+          forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C copy @path %%ARTIFACTS%%"
+          copy COPYRIGHT %ARTIFACTS%
+          ren %ARTIFACTS%\COPYRIGHT COPYRIGHT.txt
+          echo Built from %GITHUB_SHA% > %ARTIFACTS%\README.nightly.txt
     - uses: actions/upload-artifact@master
       with:
         name: nightly-windows
@@ -63,19 +66,17 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
-          ghc --version
-          cabal --version
-          cabal v2-update
-          cabal v2-build --dependencies-only all
-    - name: Build
+          stack update
+          stack build --dependencies-only pandoc
+    - name: Build artifacts
       run: |
-          cabal v2-install --install-method=copy --installdir=. all
-          strip pandoc
-    - name: Install artifact
-      run: |
-          export ARTIFACTS=nightly-linux/pandoc-nightly-linux-$(date +%Y-%m-%d)
+          export ARTIFACTS=nightly-macos/pandoc-nightly-macos-$(date +%Y-%m-%d)
           mkdir -p ${ARTIFACTS}
-          cp pandoc ${ARTIFACTS}/pandoc-nightly-${GITHUB_SHA}
+          stack build pandoc
+          for f in $(find .stack-work/install -name 'pandoc*' -perm +001 -type f); do cp $f ${ARTIFACTS}/; done
+          mv ${ARTIFACTS}/pandoc ${ARTIFACTS}/pandoc
+          cp COPYRIGHT ${ARTIFACTS}/
+          echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
     - uses: actions/upload-artifact@master
       with:
         name: nightly-macos
