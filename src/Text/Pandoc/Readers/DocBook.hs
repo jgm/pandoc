@@ -943,11 +943,6 @@ parseBlock (Elem e) =
                                                   $ filterChildren isRow b
                                        Nothing -> mapM (parseRow colnames)
                                                   $ filterChildren isRow e'
-                      let toAlignment c = case findAttr (unqual "align") c of
-                                                Just "left"   -> AlignLeft
-                                                Just "right"  -> AlignRight
-                                                Just "center" -> AlignCenter
-                                                _             -> AlignDefault
                       let toWidth c = do
                             w <- findAttr (unqual "colwidth") c
                             n <- safeRead $ "0" <> T.filter (\x ->
@@ -1005,6 +1000,14 @@ parseBlock (Elem e) =
            -- we also attach the label as a class, so it can be styled properly
            return $ divWith (attrValue "id" e,[label],[]) (title <> b)
 
+toAlignment :: Element -> Alignment
+toAlignment c = case findAttr (unqual "align") c of
+                  Just "left"   -> AlignLeft
+                  Just "right"  -> AlignRight
+                  Just "center" -> AlignCenter
+                  _             -> AlignDefault
+
+
 parseMixed :: PandocMonad m => (Inlines -> Blocks) -> [Content] -> DB m Blocks
 parseMixed container conts = do
   let (ils,rest) = break isBlockElement conts
@@ -1036,7 +1039,9 @@ parseEntry cn el = do
         case (mStrt, mEnd) of
           (Just start, Just end) -> colDistance start end
           _ -> 1
-  (fmap (cell AlignDefault 1 (toColSpan el)) . parseMixed plain . elContent) el
+  let colSpan = toColSpan el
+  let align = toAlignment el
+  (fmap (cell align 1 colSpan) . (parseMixed plain) . elContent) el
 
 getInlines :: PandocMonad m => Element -> DB m Inlines
 getInlines e' = trimInlines . mconcat <$>
