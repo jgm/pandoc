@@ -247,6 +247,7 @@ writeOpenDocument opts (Pandoc meta blocks) = do
   let automaticStyles = vcat $ reverse $ styles ++ listStyles
   let context = defField "body" body
               . defField "toc" (writerTableOfContents opts)
+              . defField "toc-depth" (tshow $ writerTOCDepth opts)
               . defField "automatic-styles" automaticStyles
               $ metadata
   return $ render colwidth $

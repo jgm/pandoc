@@ -31,7 +31,7 @@ $include-before$
 $endfor$
 $if(toc)$
 <text:table-of-content>
-  <text:table-of-content-source text:outline-level="10">
+  <text:table-of-content-source text:outline-level="$toc-depth$">
     <text:index-title-template text:style-name="Contents_20_Heading">$toc-title$</text:index-title-template>
     <text:table-of-content-entry-template text:outline-level="1"
     text:style-name="Contents_20_1">
