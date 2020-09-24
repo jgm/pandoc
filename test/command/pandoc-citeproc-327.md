@@ -43,7 +43,7 @@ I referenced something here^\[1\]^
 
 ::: {#refs .references .csl-bib-body}
 ::: {#ref-LiLiaoDongWanHaiYuDiQiDongWuCiJiShengChanLiYanJiuJiShengJingGuaYiXingPingJie2017 .csl-entry}
-[\[1\]]{.csl-left-margin}[李轶平, 于旭光, 孙明, 等.
+[\[1\] ]{.csl-left-margin}[李轶平, 于旭光, 孙明, 等.
 辽东湾海域底栖动物次级生产力研究及生境适宜性评价\[J\]. 水产科学,
 2017(06): 728--734.]{.csl-right-inline}
 :::

@@ -135,8 +135,8 @@ processCitations (Pandoc meta bs) = do
                    Just ls | ls > 1 -> (("line-spacing",T.pack $ show ls):)
                    _ -> id) $ []
   let bibs = mconcat $ map (\(ident, out) ->
-                     B.divWith ("ref-" <> ident,["csl-entry"],[]) . B.para $
-                       walk (convertQuotes locale) out)
+                     B.divWith ("ref-" <> ident,["csl-entry"],[]) . B.para .
+                       walk (convertQuotes locale) .  insertSpace $ out)
                       (resultBibliography result)
   let moveNotes = maybe True truish $
                         lookupMeta "notes-after-punctuation" meta
@@ -154,6 +154,20 @@ processCitations (Pandoc meta bs) = do
          evalState (walkM insertResolvedCitations $ Pandoc meta' bs)
          $ cits
   return $ Pandoc meta'' $ insertRefs refkvs classes meta'' (B.toList bibs) bs'
+
+-- If we have a span.csl-left-margin followed by span.csl-right-inline,
+-- we insert a space. This ensures that they will be separated by a space,
+-- even in formats that don't have special handling for the display spans.
+insertSpace :: Inlines -> Inlines
+insertSpace ils =
+  case Seq.viewl (unMany ils) of
+    (Span ("",["csl-left-margin"],[]) xs) Seq.:< rest ->
+      case Seq.lookup 0 rest of
+        Just (Span ("",["csl-right-inline"],[]) _) ->
+          Many $
+            Span ("",["csl-left-margin"],[]) (xs ++ [Space]) Seq.<| rest
+        _ -> ils
+    _ -> ils
 
 getRefsFromBib :: PandocMonad m
                => Locale -> (Text -> Bool) -> Text -> m [Reference Inlines]
