@@ -165,7 +165,10 @@ insertSpace ils =
       case Seq.lookup 0 rest of
         Just (Span ("",["csl-right-inline"],[]) _) ->
           Many $
-            Span ("",["csl-left-margin"],[]) (xs ++ [Space]) Seq.<| rest
+            Span ("",["csl-left-margin"],[]) (xs ++ case lastMay xs of
+                                                      Just Space -> []
+                                                      _          -> [Space])
+            Seq.<| rest
         _ -> ils
     _ -> ils
 
