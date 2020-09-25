@@ -264,6 +264,34 @@ Use normal latex citation commands like `\cite{x}` or
 [org-ref]: https://github.com/jkitchin/org-ref
 [John Kitchen]: https://kitchingroup.cheme.cmu.edu/
 
+Tables
+======
+
+Pandoc supports normal org tables (sometimes calles "pipe tables")
+and grid tables (tables created by [table.el]).
+
+Column widths
+-------------
+
+Org mode tables don't allow line-breaks within cells, and lines
+which contain text can get very long. This often leads to tables
+which run off the page when exporting, especially when exporting
+to PDF via LaTeX. Overlong lines in the source text are this is
+usually hidden by setting a [column width], but the default Emacs
+exporters ignore that setting. Pandoc deviates from Emacs's
+behavior and uses this information to resize the table columns
+when exporting.
+
+Limitations
+-----------
+
+There is no support yet for cells spanning multiple columns or
+rows. The table.el grid tables allows rowspans and colspans and so
+does pandoc's internal structure since 2.10, but the parser has
+not been updated yet.
+
+[table.el]: http://table.sourceforge.net/
+[column width]: https://orgmode.org/manual/Column-Width-and-Alignment.html
 
 Emphasis rules
 ==============
