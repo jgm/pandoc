@@ -72,47 +72,47 @@
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 8)
+   [Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 8)
     [Para [Strong [Str "Octet",Space,Str "no.",Space,Str "1"]]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 8)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 8)
     [Para [Strong [Str "Octet",Space,Str "no.",Space,Str "2"]]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "16"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "15"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "14"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "13"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "12"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "11"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "10"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "9"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "8"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "7"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 8)
+   [Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 8)
     [Para [Str "Code",Space,Str "A"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 8)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 8)
     [Para [Str "Code",Space,Str "B"]]]])]
  (TableFoot ("",[],[])
  [])]
@@ -142,47 +142,47 @@
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 8)
+   [Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 8)
     [Para [Strong [Str "Octet",Space,Str "no.",Space,Str "1"]]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 8)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 8)
     [Para [Strong [Str "Octet",Space,Str "no.",Space,Str "2"]]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "16"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "15"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "14"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "13"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "12"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "11"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "10"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "9"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "8"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "7"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "6"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "3"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Para [Str "1"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 8)
+   [Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 8)
     [Para [Str "Code",Space,Str "A"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 8)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 8)
     [Para [Str "Code",Space,Str "B"]]]])]
  (TableFoot ("",[],[])
  [])]
