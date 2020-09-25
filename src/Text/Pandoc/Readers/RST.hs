@@ -758,7 +758,12 @@ directive' = do
             children <- case body of
                 "" -> block
                 _  -> parseFromString' parseBlocks  body'
-            return $ B.divWith attrs children
+            return $
+              case B.toList children of
+                [Header lev attrs' ils]
+                  | T.null body -> -- # see #6699
+                     B.headerWith (attrs' <> attrs) lev (B.fromList ils)
+                _ -> B.divWith attrs children
         other     -> do
             pos <- getPosition
             logMessage $ SkippedContent (".. " <> other) pos
