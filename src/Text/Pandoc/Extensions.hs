@@ -458,7 +458,7 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "markdown"          = allMarkdownExtensions
   getAll "ipynb"             = allMarkdownExtensions <> extensionsFromList
     [ Ext_raw_markdown ]
-  getAll "docx"            = extensionsFromList
+  getAll "docx"            = autoIdExtensions <> extensionsFromList
     [ Ext_empty_paragraphs
     , Ext_styles
     ]
