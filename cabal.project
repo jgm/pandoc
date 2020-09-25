@@ -7,6 +7,5 @@ package pandoc
 source-repository-package
     type: git
     location: https://github.com/jgm/citeproc
-    tag: e3695de4f34f33e32c6d3c33e8cdcf3fa96f6a5b
-
+    tag: 2b591a5b4ba6be13444566699eccdfc23ba291f8
 constraints: base16-bytestring < 1
