@@ -494,7 +494,7 @@ endOfParagraph = try $ skipSpaces *> newline *> endOfBlock
 
 -- | Example code marked up by a leading colon.
 example :: Monad m => OrgParser m (F Blocks)
-example = try $ returnF . exampleCode =<< T.unlines <$> many1 exampleLine
+example = try $ returnF . exampleCode . T.unlines =<< many1 exampleLine
  where
    exampleLine :: Monad m => OrgParser m Text
    exampleLine = try $ exampleLineStart *> anyLine
@@ -619,7 +619,7 @@ orgTable = try $ do
   -- tables start at first non-space character on the line
   let isFirstInListItem st = orgStateParserContext st == ListItemState &&
                              isNothing (orgStateLastPreCharPos st)
-  guard =<< not . isFirstInListItem <$> getState
+  guard . not . isFirstInListItem =<< getState
   blockAttrs <- blockAttributes
   lookAhead tableStart
   rows <- tableRows
