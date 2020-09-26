@@ -263,13 +263,12 @@ itemToReference locale variant item = do
                      B.toList . resolveKey lang <$>
                         getTitle "series") <|>
                     return Nothing
-    shortTitle' <- Just <$>
-                    ((guard (not hasMaintitle || isChapterlike) >>
-                      getTitle "shorttitle")
-                      <|> if (subtitle' /= mempty || titleaddon' /= mempty) &&
-                             not hasMaintitle
-                             then getShortTitle False "title"
-                             else getShortTitle True  "title")
+    shortTitle' <- (Just <$> (guard (not hasMaintitle || isChapterlike) >>
+                              getTitle "shorttitle"))
+                 <|> (if (subtitle' /= mempty || titleaddon' /= mempty) &&
+                          not hasMaintitle
+                          then getShortTitle False "title"
+                          else getShortTitle True  "title")
                  <|> return Nothing
 
     eventTitle' <- Just <$> getTitle "eventtitle" <|> return Nothing
@@ -747,12 +746,12 @@ getTitle f = do
   let processTitle = if utc then unTitlecase (Just lang) else id
   return $ processTitle ils
 
-getShortTitle :: Bool -> Text -> Bib Inlines
+getShortTitle :: Bool -> Text -> Bib (Maybe Inlines)
 getShortTitle requireColon f = do
   ils <- splitStrWhen (==':') . B.toList <$> getTitle f
   if not requireColon || containsColon ils
-     then return $ B.fromList $ upToColon ils
-     else return mempty
+     then return $ Just $ B.fromList $ upToColon ils
+     else return Nothing
 
 containsColon :: [Inline] -> Bool
 containsColon xs = Str ":" `elem` xs

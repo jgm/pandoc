@@ -102,33 +102,37 @@ Sam Smith. Oxford: Oxford University Press, 2007.
 
 [^2]: [**Nonexistent?**](#ref-nonexistent)
 
-[^3]: [2005](#ref-item1).
+[^3]: [*First Book*, 2005](#ref-item1).
 
 [^4]: [Ibid., 30](#ref-item1).
 
 [^5]: [Ibid.](#ref-item1), with suffix.
 
-[^6]: [2005](#ref-item1); [2006, 30](#ref-item2); see also [Doe and
-    Roe](#ref-пункт3).
+[^6]: [*First Book*, 2005](#ref-item1); ["Article," 2006,
+    30](#ref-item2); see also [Doe and Roe, "Why Water Is
+    Wet"](#ref-пункт3).
 
-[^7]: [Doe and Roe](#ref-пункт3) ([12](#ref-пункт3)) and a citation
-    without locators ([Doe and Roe](#ref-пункт3)).
+[^7]: [Doe and Roe](#ref-пункт3) (["Why Water Is Wet," 12](#ref-пункт3))
+    and a citation without locators ([Doe and Roe, "Why Water Is
+    Wet"](#ref-пункт3)).
 
-[^8]: See [Doe, 2005, chap. 3](#ref-item1); also [Doe and Roe,
-    34--35](#ref-пункт3).
+[^8]: See [Doe, *First Book*, 2005, chap. 3](#ref-item1); also [Doe and
+    Roe, "Why Water Is Wet," 34--35](#ref-пункт3).
 
-[^9]: See [Doe, 2005, 34--35](#ref-item1).
+[^9]: See [Doe, *First Book*, 2005, 34--35](#ref-item1).
 
-[^10]: Some citations (See [ibid., chap. 3](#ref-item1); [Doe and
-    Roe](#ref-пункт3); [Doe, 2006](#ref-item2)).
+[^10]: Some citations (See [ibid., chap. 3](#ref-item1); [Doe and Roe,
+    "Why Water Is Wet"](#ref-пункт3); [Doe, "Article,"
+    2006](#ref-item2)).
 
-[^11]: [Doe, 2005, 33, 35--37](#ref-item1), and nowhere else.
+[^11]: [Doe, *First Book*, 2005, 33, 35--37](#ref-item1), and nowhere
+    else.
 
-[^12]: [Doe, 2005](#ref-item1) and nowhere else.
+[^12]: [Doe, *First Book*, 2005](#ref-item1) and nowhere else.
 
 [^13]: Like a citation without author: ([Ibid.](#ref-item1)), and again
-    ([Ibid.](#ref-item1)), and now Doe with a locator ([2006,
+    ([Ibid.](#ref-item1)), and now Doe with a locator (["Article," 2006,
     44](#ref-item2)).
 
-[^14]: *See* [Doe, 2005, 32](#ref-item1).
+[^14]: *See* [Doe, *First Book*, 2005, 32](#ref-item1).
 ```
