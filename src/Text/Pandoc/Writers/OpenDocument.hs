@@ -505,14 +505,12 @@ rowspanAttrib rs =
     RowSpan n -> [("table:number-rows-spanned", tshow n)]
 
 alignAttrib :: Alignment -> [(Text,Text)]
-alignAttrib a = do
-  let attr = case a of
-               AlignRight -> [("fo:text-align","end")]
-               AlignCenter -> [("fo:text-align","center")]
-               _ -> []
-  case attr of
-           [] -> []
-           x -> x ++ [("style:justify-single-word","false")]
+alignAttrib a = case a of
+  AlignRight  -> ("fo:text-align","end") : style
+  AlignCenter -> ("fo:text-align","center") : style
+  _ -> []
+  where
+    style = [("style:justify-single-word","false")]
 
 tableItemToOpenDocument :: PandocMonad m
                         => WriterOptions -> Text -> (Text,Ann.Cell)
