@@ -30,8 +30,7 @@ import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Shared (stringify)
 import qualified Text.Pandoc.Walk       as Walk
 import Citeproc.Types
-import Citeproc.CaseTransform (withSentenceCase)
-import Citeproc.Pandoc (caseTransform)
+import Citeproc.Pandoc
 import Text.Pandoc.Citeproc.Util (toIETF)
 import Text.Pandoc.Citeproc.Data (biblatexStringMap)
 import Data.Default
@@ -736,7 +735,7 @@ protectCase f = Walk.walk unprotect . f . Walk.walk protect
   startsWithLowercase _           = False
 
 unTitlecase :: Maybe Lang -> Inlines -> Inlines
-unTitlecase mblang = protectCase (caseTransform (withSentenceCase mblang))
+unTitlecase mblang = protectCase (addTextCase mblang SentenceCase)
 
 getTitle :: Text -> Bib Inlines
 getTitle f = do
