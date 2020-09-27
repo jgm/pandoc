@@ -492,7 +492,6 @@ tableRowToOpenDocument o ns r =
     in inTagsIndented "table:table-row" . vcat <$>
     mapM (tableItemToOpenDocument o "TableRowCell") (zip ns c)
 
-
 colspanAttrib :: ColSpan -> [(Text, Text)]
 colspanAttrib cs =
   case cs of
@@ -505,17 +504,32 @@ rowspanAttrib rs =
     RowSpan 1 -> mempty
     RowSpan n -> [("table:number-rows-spanned", tshow n)]
 
+alignAttrib :: Alignment -> [(Text,Text)]
+alignAttrib a = case a of
+  AlignRight  -> ("fo:text-align","end") : style
+  AlignCenter -> ("fo:text-align","center") : style
+  _ -> []
+  where
+    style = [("style:justify-single-word","false")]
+
 tableItemToOpenDocument :: PandocMonad m
                         => WriterOptions -> Text -> (Text,Ann.Cell)
                         -> OD m (Doc Text)
-tableItemToOpenDocument o s (n,c) =
-  let (Ann.Cell _colspecs _colnum (Cell _ _ rs cs i) ) = c
+tableItemToOpenDocument o s (n,c) = do
+  let (Ann.Cell _colspecs _colnum (Cell _ align rs cs i) ) = c
       csa = colspanAttrib cs
       rsa = rowspanAttrib rs
+      aa = alignAttrib align
       a = [ ("table:style-name" , s )
           , ("office:value-type", "string" ) ] ++ csa ++ rsa
-  in  inTags True "table:table-cell" a <$>
-      withParagraphStyle o n (map plainToPara i)
+  itemParaStyle <- case aa of
+                     [] -> return 0
+                     _  -> paraStyleFromParent n aa
+  let itemParaStyle' = case itemParaStyle of
+                         0 -> n
+                         x -> "P" <> tshow x
+  inTags True "table:table-cell" a <$>
+    withParagraphStyle o itemParaStyle' (map plainToPara i)
 
 -- | Convert a list of inline elements to OpenDocument.
 inlinesToOpenDocument :: PandocMonad m => WriterOptions -> [Inline] -> OD m (Doc Text)
@@ -712,6 +726,20 @@ paraStyle attrs = do
                              "style:paragraph-properties" attributes
   addParaStyle $ inTags True "style:style" (styleAttr <> attrs) paraProps
   return pn
+
+paraStyleFromParent :: PandocMonad m => Text -> [(Text,Text)] -> OD m Int
+paraStyleFromParent parent attrs = do
+  pn <- (+) 1 . length  <$> gets stParaStyles
+  let styleAttr = [ ("style:name"             , "P" <> tshow pn)
+                  , ("style:family"           , "paragraph")
+                  , ("style:parent-style-name", parent)]
+      paraProps = if null attrs
+                     then mempty
+                     else selfClosingTag
+                          "style:paragraph-properties" attrs
+  addParaStyle $ inTags True "style:style" styleAttr paraProps
+  return pn
+
 
 paraListStyle :: PandocMonad m => Int -> OD m Int
 paraListStyle l = paraStyle
