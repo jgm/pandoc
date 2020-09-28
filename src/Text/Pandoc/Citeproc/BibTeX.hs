@@ -30,7 +30,7 @@ import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Shared (stringify)
 import qualified Text.Pandoc.Walk       as Walk
 import Citeproc.Types
-import Citeproc.Pandoc
+import Citeproc.Pandoc ()
 import Text.Pandoc.Citeproc.Util (toIETF)
 import Text.Pandoc.Citeproc.Data (biblatexStringMap)
 import Data.Default
