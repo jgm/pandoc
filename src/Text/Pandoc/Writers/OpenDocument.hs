@@ -19,7 +19,7 @@ import Control.Monad.State.Strict hiding (when)
 import Data.Char (chr)
 import Data.List (sortOn, sortBy, foldl')
 import qualified Data.Map as Map
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isNothing)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -40,6 +40,8 @@ import Text.Pandoc.Writers.Shared
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 import Text.Pandoc.XML
 import Text.Printf (printf)
+import Text.Pandoc.Highlighting (highlight)
+import Skylighting
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -563,7 +565,7 @@ inlineToOpenDocument o ils
     SoftBreak
      | writerWrapText o == WrapPreserve
                   -> return $ preformatted "\n"
-     | otherwise  ->return space
+     | otherwise  -> return space
     Span attr xs  -> withLangFromAttr attr (inlinesToOpenDocument o xs)
     LineBreak     -> return $ selfClosingTag "text:line-break" []
     Str         s -> return $ handleSpaces $ escapeStringForXML s
@@ -575,7 +577,14 @@ inlineToOpenDocument o ils
     Subscript   l -> withTextStyle Sub    $ inlinesToOpenDocument o l
     SmallCaps   l -> withTextStyle SmallC $ inlinesToOpenDocument o l
     Quoted    t l -> inQuotes t <$> inlinesToOpenDocument o l
-    Code      _ s -> inlinedCode $ preformatted s
+    Code      attrs s -> if isNothing (writerHighlightStyle o)
+      then unhighlighted s
+      else case highlight (writerSyntaxMap o)
+                  formatOpenDocument attrs s of
+                Right h  -> return $ mconcat $ mconcat h
+                Left msg -> do
+                  unless (T.null msg) $ report $ CouldNotHighlight msg
+                  unhighlighted s
     Math      t s -> lift (texMathToInlines t s) >>=
                          inlinesToOpenDocument o
     Cite      _ l -> inlinesToOpenDocument o l
@@ -588,6 +597,12 @@ inlineToOpenDocument o ils
     Image attr _ (s,t) -> mkImg attr s t
     Note        l  -> mkNote l
     where
+      formatOpenDocument :: FormatOptions -> [SourceLine] -> [[Doc Text]]
+      formatOpenDocument _fmtOpts = map (map toHlTok)
+      toHlTok :: Token -> Doc Text
+      toHlTok (toktype,tok) =
+        inTags False "text:span" [("text:style-name", (T.pack $ show toktype))] $ preformatted tok
+      unhighlighted s = inlinedCode $ preformatted s
       preformatted s = handleSpaces $ escapeStringForXML s
       inlinedCode s = return $ inTags False "text:span" [("text:style-name", "Source_Text")] s
       mkLink   s t = inTags False "text:a" [ ("xlink:type" , "simple")
