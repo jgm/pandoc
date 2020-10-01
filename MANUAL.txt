@@ -327,6 +327,7 @@ header when requesting a document from a URL:
     - `rtf` ([Rich Text Format])
     - `texinfo` ([GNU Texinfo])
     - `textile` ([Textile])
+    - `sile` ([SILE])
     - `slideous` ([Slideous] HTML and JavaScript slide show)
     - `slidy` ([Slidy] HTML and JavaScript slide show)
     - `dzslides` ([DZSlides] HTML5 + JavaScript slide show),
@@ -448,6 +449,7 @@ header when requesting a document from a URL:
 [MultiMarkdown]: https://fletcherpenney.net/multimarkdown/
 [reStructuredText]: https://docutils.sourceforge.io/docs/ref/rst/introduction.html
 [S5]: https://meyerweb.com/eric/tools/s5/
+[SILE]: https://www.sile-typesetter.org/
 [Slidy]: https://www.w3.org/Talks/Tools/Slidy2/
 [Slideous]: https://goessner.net/articles/slideous/
 [HTML]: https://www.w3.org/html/
@@ -913,7 +915,7 @@ header when requesting a document from a URL:
 
 `--no-check-certificate`
 
-:   Disable the certificate verification to allow access to 
+:   Disable the certificate verification to allow access to
     unsecure HTTP resources (for example when the certificate
     is no longer valid or self signed).
 
@@ -976,7 +978,7 @@ header when requesting a document from a URL:
 
 `--top-level-division=[default|section|chapter|part]`
 
-:   Treat top-level headings as the given division type in LaTeX, ConTeXt,
+:   Treat top-level headings as the given division type in LaTeX, ConTeXt, SILE,
     DocBook, and  TEI output. The hierarchy order is part, chapter, then section;
     all headings are shifted such that the top-level heading becomes the specified
     type. The default behavior is to determine the best division type via
@@ -989,7 +991,7 @@ header when requesting a document from a URL:
 
 `-N`, `--number-sections`
 
-:   Number section headings in LaTeX, ConTeXt, HTML, Docx, or EPUB output.
+:   Number section headings in LaTeX, ConTeXt, SILE, HTML, Docx, or EPUB output.
     By default, sections are not numbered.  Sections with class
     `unnumbered` will never be numbered, even if `--number-sections`
     is specified.
@@ -2067,7 +2069,7 @@ Currently the following pipes are predefined:
 
 `title`, `author`, `date`
 :   allow identification of basic aspects of the document.  Included
-    in PDF metadata through LaTeX and ConTeXt.  These can be set
+    in PDF metadata through LaTeX, ConTeXt, and SILE.  These can be set
     through a [pandoc title block][Extension: `pandoc_title_block`],
     which allows for multiple authors, or through a
     [YAML metadata block][Extension: `yaml_metadata_block`]:
@@ -2085,12 +2087,12 @@ Currently the following pipes are predefined:
     on `title`, `author`, and `date`.)
 
 `subtitle`
-:   document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, and docx
-    documents
+:   document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, SILE,
+    and docx documents
 
 `abstract`
-:   document summary, included in LaTeX, ConTeXt, AsciiDoc, and docx
-    documents
+:   document summary, included in LaTeX, ConTeXt, AsciiDoc,
+    and docx documents
 
 `keywords`
 :   list of keywords to be included in HTML, PDF, ODT, pptx, docx
@@ -2105,6 +2107,9 @@ Currently the following pipes are predefined:
 
 `category`
 :   document category, included in docx and pptx metadata
+
+`rights`
+:   rights string, included in SILE and EPUB metadata
 
 Additionally,
 any root-level string metadata, not included in ODT, docx
@@ -2135,7 +2140,8 @@ ODT or pptx.
     tags (following the [BCP 47] standard), such as `en` or `en-GB`.
     The [Language subtag lookup] tool can look up or verify these tags.
     This affects most formats, and controls hyphenation in PDF output
-    when using LaTeX (through [`babel`] and [`polyglossia`]) or ConTeXt.
+    when using LaTeX (through [`babel`] and [`polyglossia`]), ConTeXt,
+    or SILE.
 
     Use native pandoc [Divs and Spans] with the `lang` attribute to
     switch the language:
@@ -2573,6 +2579,33 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
 [`setupinterlinespace`]: https://wiki.contextgarden.net/Command/setupinterlinespace
 [`setuppagenumbering`]: https://wiki.contextgarden.net/Command/setuppagenumbering
 
+### Variables for SILE
+
+The following variables are placed appropriately in standalone SILE documents.
+
+`classoption`
+:   options for document class; repeat for multiple options:
+
+        ---
+        classoption:
+        - layout: yoko
+        ...
+
+`documentclass`
+:   document class: usually one of the standard classes, [`plain`], or [`book`].
+
+`fontsize`
+:   font size for body text (e.g. `10pt`, `12pt`)
+
+`links-as-notes`
+:   causes links to be printed as footnotes
+
+`mainfont`, `sansfont`, `monofont`
+:   font families: take the name of any system font
+
+`papersize`
+:   paper size, e.g. `letter`, `a4`
+
 ### Variables for `wkhtmltopdf`
 
 Pandoc uses these variables when [creating a PDF] with [`wkhtmltopdf`].
@@ -2800,7 +2833,7 @@ another. A link to this section, for example, might look like this:
     [heading identifiers](#heading-identifiers-in-html-latex-and-context).
 
 Note, however, that this method of providing links to sections works
-only in HTML, LaTeX, and ConTeXt formats.
+only in HTML, LaTeX, ConTeXt, and SILE formats.
 
 If the `--section-divs` option is specified, then each section will
 be wrapped in a `section` (or a `div`, if `html4` was specified),
@@ -3119,7 +3152,7 @@ Note that although this syntax allows assignment of classes and key/value
 attributes, writers generally don't use all of this information.  Identifiers,
 classes, and key/value attributes are used in HTML and HTML-based formats such
 as EPUB and slidy.  Identifiers are used for labels and link anchors in the
-LaTeX, ConTeXt, Textile, Jira markup, and AsciiDoc writers.
+LaTeX, ConTeXt, SILE, Textile, Jira markup, and AsciiDoc writers.
 
 Headings with the class `unnumbered` will not be numbered, even if
 `--number-sections` is specified.  A single hyphen (`-`) in an attribute
@@ -3135,7 +3168,7 @@ is just the same as
 If the `unlisted` class is present in addition to `unnumbered`,
 the heading will not be included in a table of contents.
 (Currently this feature is only implemented for certain
-formats: those based on LaTeX and HTML, PowerPoint, and RTF.)
+formats: those based on LaTeX, SILE, HTML, PowerPoint, and RTF.)
 
 #### Extension: `implicit_header_references` ####
 
@@ -3292,7 +3325,7 @@ this syntax:
 Here `mycode` is an identifier, `haskell` and `numberLines` are classes, and
 `startFrom` is an attribute with value `100`. Some output formats can use this
 information to do syntax highlighting. Currently, the only output formats
-that uses this information are HTML, LaTeX, Docx, Ms, and PowerPoint. If
+that uses this information are HTML, LaTeX, SILE, Docx, Ms, and PowerPoint. If
 highlighting is supported for your output format and language, then the code
 block above will appear highlighted, with numbered lines. (To see which
 languages are supported, type `pandoc --list-highlight-languages`.) Otherwise,
@@ -4580,7 +4613,7 @@ or
     [Introduction]: #introduction
 
 Internal links are currently supported for HTML formats (including
-HTML slide shows and EPUB), LaTeX, and ConTeXt.
+HTML slide shows and EPUB), LaTeX, ConTeXt, and SILE.
 
 ## Images
 
@@ -4657,9 +4690,10 @@ For example:
     (If you're using a custom template, you need to configure `graphicx`
     as in the default template.)
   - ConTeXt: `\externalfigure[file.jpg][width=0.5\textwidth]`
+  - SILE: `\img[src=file.jpg][width=50%lw]`
 - Some output formats have a notion of a class
   ([ConTeXt](https://wiki.contextgarden.net/Using_Graphics#Multiple_Image_Settings))
-  or a unique identifier (LaTeX `\caption`), or both (HTML).
+  or a unique identifier (LaTeX `\caption`), or both (HTML, SILE).
 - When no `width` or `height` attributes are specified, the fallback
   is to look at the image resolution and the dpi metadata embedded in
   the image file.

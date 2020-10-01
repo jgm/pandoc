@@ -23,7 +23,7 @@ description:     Pandoc is a Haskell library for converting from one markup
                  OPML, Emacs Org-Mode, Emacs Muse, txt2tags, ipynb (Jupyter
                  notebooks), Vimwiki, Word Docx, ODT, EPUB, FictionBook2,
                  roff man, Textile, and CSV, and it can write Markdown,
-                 reStructuredText, XHTML, HTML 5, LaTeX, ConTeXt, DocBook,
+                 reStructuredText, XHTML, HTML 5, LaTeX, ConTeXt, SILE, DocBook,
                  JATS, OPML, TEI, OpenDocument, ODT, Word docx,
                  PowerPoint pptx, RTF, MediaWiki, DokuWiki, XWiki,
                  ZimWiki, Textile, Jira, roff man, roff ms, plain text,
@@ -56,6 +56,7 @@ data-files:
                  data/templates/default.opml
                  data/templates/default.latex
                  data/templates/default.context
+                 data/templates/default.sile
                  data/templates/default.texinfo
                  data/templates/default.jira
                  data/templates/default.man
@@ -538,6 +539,7 @@ library
                    Text.Pandoc.Writers.Jira,
                    Text.Pandoc.Writers.LaTeX,
                    Text.Pandoc.Writers.ConTeXt,
+                   Text.Pandoc.Writers.SILE,
                    Text.Pandoc.Writers.OpenDocument,
                    Text.Pandoc.Writers.Texinfo,
                    Text.Pandoc.Writers.Man,
@@ -825,6 +827,7 @@ test-suite test-pandoc
                   Tests.Readers.DokuWiki
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
+                  Tests.Writers.SILE
                   Tests.Writers.Docbook
                   Tests.Writers.HTML
                   Tests.Writers.JATS
@@ -836,6 +839,7 @@ test-suite test-pandoc
                   Tests.Writers.LaTeX
                   Tests.Writers.Docx
                   Tests.Writers.RST
+                  Tests.Writers.SILE
                   Tests.Writers.TEI
                   Tests.Writers.Muse
                   Tests.Writers.FB2
