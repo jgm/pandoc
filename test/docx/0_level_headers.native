@@ -10,7 +10,7 @@
     []]
   ,Row ("",[],[])
    [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "User\8217s",Space,Str "Guide"]]]
+    [Plain [Strong [Str "User\8217s",Space,Str "Guide"]]]]
   ,Row ("",[],[])
    [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     []]
@@ -37,11 +37,11 @@
     []]])]
  (TableFoot ("",[],[])
  [])
-,Para [Str "CONTENTS"]
+,Para [Strong [Str "CONTENTS"]]
 ,Para [Strong [Str "Section",Space,Str "Page"]]
-,Para [Str "FIGURES",Space,Str "iv"]
-,Para [Str "TABLES",Space,Str "v"]
-,Para [Str "SECTION",Space,Str "1",Space,Str "Introduction",Space,Str "2"]
+,Para [Strong [Str "FIGURES",Space,Str "iv"]]
+,Para [Strong [Str "TABLES"],Space,Strong [Str "v"]]
+,Para [Strong [Str "SECTION",Space,Str "1"],Space,Strong [Str "Introduction"],Space,Strong [Str "2"]]
 ,Header 1 ("figures",["Heading-0"],[]) [Str "FIGURES"]
 ,Para [Strong [Str "Figure",Space,Str "Page"]]
 ,Para [Strong [Str "No",Space,Str "table",Space,Str "of",Space,Str "figures",Space,Str "entries",Space,Str "found."]]

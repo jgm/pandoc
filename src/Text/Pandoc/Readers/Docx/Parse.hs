@@ -30,7 +30,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , VertAlign(..)
                                       , ParIndentation(..)
                                       , ParagraphStyle(..)
-                                      , ParStyle
+                                      , ParStyle()
                                       , CharStyle(cStyleData)
                                       , Row(..)
                                       , Cell(..)
@@ -48,6 +48,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , archiveToDocxWithWarnings
                                       , getStyleNames
                                       , pHeading
+                                      , pRunStyle
                                       , constructBogusParStyleData
                                       , leftBiasedMergeRunStyle
                                       ) where
@@ -258,18 +259,19 @@ newtype Cell = Cell [BodyPart]
 
 leftBiasedMergeRunStyle :: RunStyle -> RunStyle -> RunStyle
 leftBiasedMergeRunStyle a b = RunStyle
-    { isBold = isBold a <|> isBold b
-    , isBoldCTL = isBoldCTL a <|> isBoldCTL b
-    , isItalic = isItalic a <|> isItalic b
-    , isItalicCTL = isItalicCTL a <|> isItalicCTL b
-    , isSmallCaps = isSmallCaps a <|> isSmallCaps b
-    , isStrike = isStrike a <|> isStrike b
-    , isRTL = isRTL a <|> isRTL b
-    , isForceCTL = isForceCTL a <|> isForceCTL b
-    , rVertAlign = rVertAlign a <|> rVertAlign b
-    , rUnderline = rUnderline a <|> rUnderline b
+    { isBold       = merge isBold
+    , isBoldCTL    = merge isBoldCTL
+    , isItalic     = merge isItalic
+    , isItalicCTL  = merge isItalicCTL
+    , isSmallCaps  = merge isSmallCaps
+    , isStrike     = merge isStrike
+    , isRTL        = merge isRTL
+    , isForceCTL   = merge isForceCTL
+    , rVertAlign   = merge rVertAlign
+    , rUnderline   = merge rUnderline
     , rParentStyle = rParentStyle a
     }
+    where merge f = f a <|> f b
 
 -- (width, height) in EMUs
 type Extent = Maybe (Double, Double)
@@ -396,6 +398,7 @@ constructBogusParStyleData stName = ParStyle
   , psParentStyle = Nothing
   , pStyleName = stName
   , pStyleId = ParaStyleId . T.filter (/=' ') . fromStyleName $ stName
+  , psRunStyle = defaultRunStyle
   }
 
 archiveToNotes :: Archive -> Notes
@@ -626,6 +629,9 @@ testBitMask bitMaskS n =
 
 pHeading :: ParagraphStyle -> Maybe (ParaStyleName, Int)
 pHeading = getParStyleField headingLev . pStyle
+
+pRunStyle :: ParagraphStyle -> Maybe RunStyle
+pRunStyle = getParStyleField (Just . psRunStyle) . pStyle
 
 pNumInfo :: ParagraphStyle -> Maybe (T.Text, T.Text)
 pNumInfo = getParStyleField numInfo . pStyle
