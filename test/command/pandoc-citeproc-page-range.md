@@ -24,9 +24,9 @@ Test 2.[^2]
 
 Test 3.[^3]
 
-[^1]: 93--101, <https://johnmacfarlane.net/vagueness.pdf>.
+[^1]: N.d., 93--101, <https://johnmacfarlane.net/vagueness.pdf>.
 
-[^2]: 93--101, <https://pandoc.org>.
+[^2]: N.d., 93--101, <https://pandoc.org>.
 
-[^3]: 93--101, <https://johnmacfarlane.net>.
+[^3]: N.d., 93--101, <https://johnmacfarlane.net>.
 ```
