@@ -56,7 +56,7 @@ Pandoc with citeproc-hs
 
 [^2]
 
-[Doe](#ref-item1)[^3] says blah.
+[John Doe](#ref-item1)[^3] says blah.
 
 [Doe](#ref-item1)[^4] says blah.
 
@@ -102,15 +102,17 @@ Sam Smith. Oxford: Oxford University Press, 2007.
 
 [^2]: [**Nonexistent?**](#ref-nonexistent)
 
-[^3]: [*First Book*, 2005](#ref-item1).
+[^3]: [*First Book* (Cambridge: Cambridge University Press,
+    2005)](#ref-item1).
 
 [^4]: [Ibid., 30](#ref-item1).
 
 [^5]: [Ibid.](#ref-item1), with suffix.
 
-[^6]: [*First Book*, 2005](#ref-item1); ["Article," 2006,
-    30](#ref-item2); see also [Doe and Roe, "Why Water Is
-    Wet"](#ref-пункт3).
+[^6]: [*First Book*, 2005](#ref-item1); ["Article," *Journal of Generic
+    Studies* 6 (2006): 30](#ref-item2); see also [John Doe and Jenny
+    Roe, "Why Water Is Wet," in *Third Book*, ed. Sam Smith (Oxford:
+    Oxford University Press, 2007)](#ref-пункт3).
 
 [^7]: [Doe and Roe](#ref-пункт3) (["Why Water Is Wet," 12](#ref-пункт3))
     and a citation without locators ([Doe and Roe, "Why Water Is
