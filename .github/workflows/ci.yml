@@ -132,6 +132,7 @@ jobs:
     - name: Install dependencies
       run: |
           stack update
+          stack install happy
           stack test --dependencies-only --fast
     - name: Build and test
       shell: cmd
