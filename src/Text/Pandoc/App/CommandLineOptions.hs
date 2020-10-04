@@ -840,7 +840,7 @@ options =
                                  , sShortname s `notElem`
                                     [T.pack "Alert", T.pack "Alert_indent"]
                                  ]
-                     mapM_ (UTF8.hPutStrLn stdout) langs
+                     mapM_ (UTF8.hPutStrLn stdout) (sort langs)
                      exitSuccess ))
                  ""
 
