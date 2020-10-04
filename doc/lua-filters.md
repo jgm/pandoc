@@ -1465,6 +1465,22 @@ Fields:
 `tag`, `t`
 :   the literal `Superscript` (string)
 
+### Underline {#type-underline}
+
+Underlined text
+
+Values of this type can be created with the
+[`pandoc.Underline`](#pandoc.underline) constructor.
+
+Fields:
+
+`content`
+:   inline content ([List] of [Inlines])
+
+`tag`, `t`
+:   the literal `Underline` (string)
+
+
 ## Element components
 
 ### Attr {#type-attr}
@@ -2460,6 +2476,17 @@ format, and functions to filter and modify a subtree.
     :   inline content
 
     Returns: [Superscript](#type-superscript) object
+
+[`Underline (content)`]{#pandoc.underline}
+
+:   Creates an Underline inline element
+
+    Parameters:
+
+    `content`:
+    :   inline content
+
+    Returns: [Underline](#type-underline) object
 
 ## Element components
 
