@@ -8,7 +8,7 @@
 
 # Specify additional command line arguments
 #
-- arguments: [--color, --cpp-ansi]
+- arguments: [--color=auto, --cpp-ansi]
 
 
 # Control which extensions/flags/modules/functions can be used
