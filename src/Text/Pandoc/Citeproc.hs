@@ -18,12 +18,13 @@ import Text.Pandoc.Citeproc.Locator (parseLocator)
 import Text.Pandoc.Citeproc.CslJson (cslJsonToReferences)
 import Text.Pandoc.Citeproc.BibTeX (readBibtexString, Variant(..))
 import Text.Pandoc.Citeproc.MetaValue (metaValueToReference, metaValueToText)
+import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as L
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Walk
 import Text.Pandoc.Builder as B
-import Text.Pandoc (PandocMonad(..), PandocError(..), readMarkdown,
+import Text.Pandoc (PandocMonad(..), PandocError(..),
                     readDataFile, ReaderOptions(..), pandocExtensions,
                     report, LogMessage(..), fetchItem)
 import Text.Pandoc.Shared (stringify, ordNub, blocksToInlines)
@@ -203,10 +204,8 @@ getRefs locale format idpred raw =
              (return . filter (idpred . unItemId . referenceId)) .
         cslJsonToReferences $ raw
     Format_yaml -> do
-      Pandoc meta _ <-
-           readMarkdown
-             def{ readerExtensions = pandocExtensions }
-             (UTF8.toText raw)
+      meta <- yamlToMeta def{ readerExtensions = pandocExtensions }
+                          (L.fromStrict raw)
       case lookupMeta "references" meta of
           Just (MetaList rs) ->
                return $ mapMaybe (metaValueToReference idpred) rs
