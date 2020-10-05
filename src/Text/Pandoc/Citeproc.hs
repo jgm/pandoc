@@ -97,7 +97,8 @@ processCitations (Pandoc meta bs) = do
                               c `Set.member` nocites)
   refs <- map (linkifyVariables . legacyDateRanges) <$>
           case lookupMeta "references" meta of
-            Just (MetaList rs) -> return $ mapMaybe metaValueToReference rs
+            Just (MetaList rs) -> return $
+              mapMaybe (metaValueToReference idpred) rs
             _                  ->
               case lookupMeta "bibliography" meta of
                  Just (MetaList xs) ->
@@ -111,7 +112,8 @@ processCitations (Pandoc meta bs) = do
                  Nothing -> return []
   let otherIdsMap = foldr (\ref m ->
                              case T.words . extractText <$>
-                                  M.lookup "other-ids" (referenceVariables ref) of
+                                  M.lookup "other-ids"
+                                      (referenceVariables ref) of
                                 Nothing  -> m
                                 Just ids -> foldr
                                   (\id' ->
@@ -207,8 +209,7 @@ getRefs locale format idpred raw =
              (UTF8.toText raw)
       case lookupMeta "references" meta of
           Just (MetaList rs) ->
-               return $ filter (idpred . unItemId . referenceId)
-                      $ mapMaybe metaValueToReference rs
+               return $ mapMaybe (metaValueToReference idpred) rs
           _ -> throwError $ PandocAppError "No references field"
 
 -- localized quotes
