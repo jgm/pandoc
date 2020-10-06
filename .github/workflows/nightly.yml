@@ -2,7 +2,7 @@ name: Nightly
 
 on:
   schedule:
-    - cron: '53 6 * * *'
+    - cron: '53 7 * * *'
 
 jobs:
   linux:
