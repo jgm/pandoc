@@ -102,27 +102,19 @@ dateToMetaValue date =
        | otherwise  -> printf "%04d" y
       _             -> mempty
 
-metaValueToReference :: (Text -> Bool)  -- ^ predicate on IDs to include
-                     -> MetaValue
+metaValueToReference :: MetaValue
                      -> Maybe (Reference Inlines)
-metaValueToReference idpred (MetaMap m) = do
+metaValueToReference (MetaMap m) = do
   let m' = M.mapKeys normalizeKey m
   id' <- M.lookup "id" m' >>= metaValueToText
-  let mbotherids =
-        case M.lookup "other-ids" m' of
-           Just (MetaList xs) -> map metaValueToText xs
-           _                  -> []
-  if idpred id' || any (maybe False idpred) mbotherids
-     then do
-       type' <- (M.lookup "type" m' >>= metaValueToText) <|> pure ""
-       let m'' = M.delete "id" $ M.delete "type" m'
-       let vars = M.mapKeys toVariable $ M.mapWithKey metaValueToVal m''
-       return $ Reference { referenceId = ItemId id'
-                          , referenceType = type'
-                          , referenceDisambiguation = Nothing
-                          , referenceVariables = vars }
-     else Nothing
-metaValueToReference _ _ = Nothing
+  type' <- (M.lookup "type" m' >>= metaValueToText) <|> pure ""
+  let m'' = M.delete "id" $ M.delete "type" m'
+  let vars = M.mapKeys toVariable $ M.mapWithKey metaValueToVal m''
+  return $ Reference { referenceId = ItemId id'
+                     , referenceType = type'
+                     , referenceDisambiguation = Nothing
+                     , referenceVariables = vars }
+metaValueToReference _ = Nothing
 
 metaValueToVal :: Text -> MetaValue -> Val Inlines
 metaValueToVal k v

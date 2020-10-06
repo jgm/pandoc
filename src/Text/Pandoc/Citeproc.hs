@@ -107,8 +107,7 @@ processCitations (Pandoc meta bs) = do
                               c `Set.member` nocites)
   refs <- map (linkifyVariables . legacyDateRanges) <$>
           case lookupMeta "references" meta of
-            Just (MetaList rs) -> return $
-              mapMaybe (metaValueToReference idpred) rs
+            Just (MetaList rs) -> return $ mapMaybe metaValueToReference rs
             _                  ->
               case lookupMeta "bibliography" meta of
                  Just (MetaList xs) ->
@@ -216,7 +215,7 @@ getRefs locale format idpred raw =
       rs <- yamlToRefs idpred
               def{ readerExtensions = pandocExtensions }
               (L.fromStrict raw)
-      return $ mapMaybe (metaValueToReference idpred . MetaMap) rs
+      return $ mapMaybe (metaValueToReference . MetaMap) rs
 
 -- localized quotes
 convertQuotes :: Locale -> Inline -> Inline
