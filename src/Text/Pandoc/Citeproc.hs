@@ -19,6 +19,7 @@ import Text.Pandoc.Citeproc.CslJson (cslJsonToReferences)
 import Text.Pandoc.Citeproc.BibTeX (readBibtexString, Variant(..))
 import Text.Pandoc.Citeproc.MetaValue (metaValueToReference, metaValueToText)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
+import Text.Pandoc.Class (setResourcePath, getResourcePath, getUserDataDir)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as L
 import Text.Pandoc.Definition as Pandoc
@@ -53,21 +54,29 @@ processCitations (Pandoc meta bs) = do
   let cslfile = (lookupMeta "csl" meta <|> lookupMeta "citation-style" meta)
                 >>= metaValueToText
 
-  let getFile fp = catchError (fst <$> fetchItem fp)
-                      (\e -> catchError (readDataFile
-                                         (T.unpack $ "csl/" <> fp))
-                               (\_ -> throwError e))
+  let getFile defaultExtension fp = do
+        oldRp <- getResourcePath
+        mbUdd <- getUserDataDir
+        setResourcePath $ oldRp ++ maybe []
+                                   (\u -> [u <> "/csl",
+                                           u <> "/csl/dependent"]) mbUdd
+        let fp' = if T.any (=='.') fp
+                     then fp
+                     else fp <> defaultExtension
+        (result, _) <- fetchItem fp'
+        setResourcePath oldRp
+        return result
 
   let getCslDefault = readDataFile "default.csl"
 
-  cslContents <- UTF8.toText <$> maybe getCslDefault getFile cslfile
+  cslContents <- UTF8.toText <$> maybe getCslDefault (getFile ".csl") cslfile
 
   let abbrevFile = lookupMeta "citation-abbreviations" meta >>= metaValueToText
 
   mbAbbrevs <- case abbrevFile of
                  Nothing -> return Nothing
                  Just fp -> do
-                   rawAbbr <- getFile fp
+                   rawAbbr <- getFile ".json" fp
                    case eitherDecode (L.fromStrict rawAbbr) of
                      Left err -> throwError $ PandocCiteprocError $
                                  CiteprocParseError $
