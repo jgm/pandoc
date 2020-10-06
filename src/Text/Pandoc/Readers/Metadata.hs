@@ -20,6 +20,7 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Map as M
+import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.YAML as YAML
@@ -51,28 +52,49 @@ yamlBsToMeta pMetaValue bstr = do
                                    (T.pack err') pos
                       return . return $ mempty
 
+
+fakePos :: YAML.Pos
+fakePos = YAML.Pos (-1) (-1) 1 0
+
+lookupYAML :: Text
+           -> YAML.Node YE.Pos
+           -> Maybe (YAML.Node YE.Pos)
+lookupYAML t (YAML.Mapping _ _ m) =
+  M.lookup (YAML.Scalar fakePos (YAML.SUnknown YE.untagged t)) m
+    `mplus`
+    M.lookup (YAML.Scalar fakePos (YAML.SStr t)) m
+lookupYAML _ _ = Nothing
+
 -- Returns filtered list of references.
 yamlBsToRefs :: PandocMonad m
              => ParserT Text ParserState m (F MetaValue)
              -> (Text -> Bool) -- ^ Filter for id
              -> BL.ByteString
-             -> ParserT Text ParserState m (F [M.Map Text MetaValue])
+             -> ParserT Text ParserState m (F [MetaValue])
 yamlBsToRefs pMetaValue idpred bstr = do
   pos <- getPosition
   case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
-       Right (YAML.Doc (YAML.Mapping _ _ o):_)
-                -> case YAML.parseEither (o YAML..: "references") of
-                     Right ns -> do
-                       let g n = case YAML.parseEither (n YAML..: "id") of
-                                    Right t -> idpred t ||
-                                      case YAML.parseEither (n YAML..:
-                                             "other-ids") of
-                                            Right (oids :: [Text]) ->
-                                              any idpred oids
+       Right (YAML.Doc o@(YAML.Mapping _ _ _):_)
+                -> case lookupYAML "references" o of
+                     Just (YAML.Sequence _ _ ns) -> do
+                       let g n = case lookupYAML "id" n of
+                                    Just n' ->
+                                      case nodeToKey n' of
+                                        Nothing -> False
+                                        Just t -> idpred t ||
+                                          case lookupYAML "other-ids" n of
+                                            Just (YAML.Sequence _ _ ns') ->
+                                              let ts' = mapMaybe nodeToKey ns'
+                                               in any idpred ts'
                                             _ -> False
-                                    _       -> False
-                       sequence <$> mapM (yamlMap pMetaValue) (filter g ns)
-                     Left _ -> do
+                                    Nothing   -> False
+                       sequence <$>
+                         mapM (yamlToMetaValue pMetaValue) (filter g ns)
+                     Just _ -> do
+                       logMessage $ CouldNotParseYamlMetadata
+                            ("expecting sequence in 'references' field") pos
+                       return . return $ mempty
+                     Nothing -> do
                        logMessage $ CouldNotParseYamlMetadata
                                       ("expecting 'references' field") pos
                        return . return $ mempty
@@ -90,13 +112,10 @@ yamlBsToRefs pMetaValue idpred bstr = do
 
 
 
-nodeToKey :: PandocMonad m
-          => YAML.Node YE.Pos
-          -> m Text
-nodeToKey (YAML.Scalar _ (YAML.SStr t))       = return t
-nodeToKey (YAML.Scalar _ (YAML.SUnknown _ t)) = return t
-nodeToKey _  = throwError $ PandocParseError
-                              "Non-string key in YAML mapping"
+nodeToKey :: YAML.Node YE.Pos -> Maybe Text
+nodeToKey (YAML.Scalar _ (YAML.SStr t))       = Just t
+nodeToKey (YAML.Scalar _ (YAML.SUnknown _ t)) = Just t
+nodeToKey _                                   = Nothing
 
 normalizeMetaValue :: PandocMonad m
                    => ParserT Text ParserState m (F MetaValue)
@@ -149,7 +168,9 @@ yamlMap :: PandocMonad m
         -> ParserT Text ParserState m (F (M.Map Text MetaValue))
 yamlMap pMetaValue o = do
     kvs <- forM (M.toList o) $ \(key, v) -> do
-             k <- nodeToKey key
+             k <- maybe (throwError $ PandocParseError
+                            "Non-string key in YAML mapping")
+                        return $ nodeToKey key
              return (k, v)
     let kvs' = filter (not . ignorable . fst) kvs
     fmap M.fromList . sequence <$> mapM toMeta kvs'

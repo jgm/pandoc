@@ -85,7 +85,7 @@ yamlToRefs :: PandocMonad m
            => (Text -> Bool)
            -> ReaderOptions
            -> BL.ByteString
-           -> m [M.Map Text MetaValue]
+           -> m [MetaValue]
 yamlToRefs idpred opts bstr = do
   let parser = do
         refs <- yamlBsToRefs (fmap B.toMetaValue <$> parseBlocks) idpred bstr

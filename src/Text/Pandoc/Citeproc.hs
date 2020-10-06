@@ -215,7 +215,7 @@ getRefs locale format idpred raw =
       rs <- yamlToRefs idpred
               def{ readerExtensions = pandocExtensions }
               (L.fromStrict raw)
-      return $ mapMaybe (metaValueToReference . MetaMap) rs
+      return $ mapMaybe metaValueToReference rs
 
 -- localized quotes
 convertQuotes :: Locale -> Inline -> Inline
