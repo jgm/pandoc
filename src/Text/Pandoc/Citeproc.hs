@@ -18,7 +18,7 @@ import Text.Pandoc.Citeproc.Locator (parseLocator)
 import Text.Pandoc.Citeproc.CslJson (cslJsonToReferences)
 import Text.Pandoc.Citeproc.BibTeX (readBibtexString, Variant(..))
 import Text.Pandoc.Citeproc.MetaValue (metaValueToReference, metaValueToText)
-import Text.Pandoc.Readers.Markdown (yamlToMeta)
+import Text.Pandoc.Readers.Markdown (yamlToRefs)
 import Text.Pandoc.Class (setResourcePath, getResourcePath, getUserDataDir)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as L
@@ -213,12 +213,10 @@ getRefs locale format idpred raw =
              (return . filter (idpred . unItemId . referenceId)) .
         cslJsonToReferences $ raw
     Format_yaml -> do
-      meta <- yamlToMeta def{ readerExtensions = pandocExtensions }
-                          (L.fromStrict raw)
-      case lookupMeta "references" meta of
-          Just (MetaList rs) ->
-               return $ mapMaybe (metaValueToReference idpred) rs
-          _ -> throwError $ PandocAppError "No references field"
+      rs <- yamlToRefs idpred
+              def{ readerExtensions = pandocExtensions }
+              (L.fromStrict raw)
+      return $ mapMaybe (metaValueToReference idpred . MetaMap) rs
 
 -- localized quotes
 convertQuotes :: Locale -> Inline -> Inline

@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Readers.Metadata
    Copyright   : Copyright (C) 2006-2020 John MacFarlane
@@ -10,7 +11,10 @@
 
 Parse YAML/JSON metadata to 'Pandoc' 'Meta'.
 -}
-module Text.Pandoc.Readers.Metadata ( yamlBsToMeta, yamlMap ) where
+module Text.Pandoc.Readers.Metadata (
+  yamlBsToMeta,
+  yamlBsToRefs,
+  yamlMap ) where
 
 import Control.Monad
 import Control.Monad.Except (throwError)
@@ -46,6 +50,45 @@ yamlBsToMeta pMetaValue bstr = do
                 -> do logMessage $ CouldNotParseYamlMetadata
                                    (T.pack err') pos
                       return . return $ mempty
+
+-- Returns filtered list of references.
+yamlBsToRefs :: PandocMonad m
+             => ParserT Text ParserState m (F MetaValue)
+             -> (Text -> Bool) -- ^ Filter for id
+             -> BL.ByteString
+             -> ParserT Text ParserState m (F [M.Map Text MetaValue])
+yamlBsToRefs pMetaValue idpred bstr = do
+  pos <- getPosition
+  case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
+       Right (YAML.Doc (YAML.Mapping _ _ o):_)
+                -> case YAML.parseEither (o YAML..: "references") of
+                     Right ns -> do
+                       let g n = case YAML.parseEither (n YAML..: "id") of
+                                    Right t -> idpred t ||
+                                      case YAML.parseEither (n YAML..:
+                                             "other-ids") of
+                                            Right (oids :: [Text]) ->
+                                              any idpred oids
+                                            _ -> False
+                                    _       -> False
+                       sequence <$> mapM (yamlMap pMetaValue) (filter g ns)
+                     Left _ -> do
+                       logMessage $ CouldNotParseYamlMetadata
+                                      ("expecting 'references' field") pos
+                       return . return $ mempty
+
+       Right [] -> return . return $ mempty
+       Right [YAML.Doc (YAML.Scalar _ YAML.SNull)]
+                -> return . return $ mempty
+       Right _  -> do logMessage $ CouldNotParseYamlMetadata "not an object"
+                                   pos
+                      return . return $ mempty
+       Left (_pos, err')
+                -> do logMessage $ CouldNotParseYamlMetadata
+                                   (T.pack err') pos
+                      return . return $ mempty
+
+
 
 nodeToKey :: PandocMonad m
           => YAML.Node YE.Pos

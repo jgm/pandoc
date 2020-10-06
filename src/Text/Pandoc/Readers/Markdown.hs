@@ -13,7 +13,10 @@
 
 Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
-module Text.Pandoc.Readers.Markdown ( readMarkdown, yamlToMeta ) where
+module Text.Pandoc.Readers.Markdown (
+  readMarkdown,
+  yamlToMeta,
+  yamlToRefs ) where
 
 import Control.Monad
 import Control.Monad.Except (throwError)
@@ -44,7 +47,7 @@ import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (fromEntities)
-import Text.Pandoc.Readers.Metadata (yamlBsToMeta)
+import Text.Pandoc.Readers.Metadata (yamlBsToMeta, yamlBsToRefs)
 
 type MarkdownParser m = ParserT Text ParserState m
 
@@ -74,6 +77,26 @@ yamlToMeta opts bstr = do
   case parsed of
     Right result -> return result
     Left e       -> throwError e
+
+-- | Read a YAML string and extract references from the
+-- 'references' field, filter using an id predicate and
+-- parsing fields as Markdown.
+yamlToRefs :: PandocMonad m
+           => (Text -> Bool)
+           -> ReaderOptions
+           -> BL.ByteString
+           -> m [M.Map Text MetaValue]
+yamlToRefs idpred opts bstr = do
+  let parser = do
+        refs <- yamlBsToRefs (fmap B.toMetaValue <$> parseBlocks) idpred bstr
+        return $ runF refs defaultParserState
+  parsed <- readWithM parser def{ stateOptions = opts } ""
+  case parsed of
+    Right result -> return result
+    Left e       -> throwError e
+
+
+
 
 --
 -- Constants and data structure definitions
