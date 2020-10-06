@@ -1,0 +1,9 @@
+[Para [ Str "Here", Space, Str "is", Space, Str "a", Space
+      , Span ("",["deletion"],[("author","Author")]) [Str "dummy"]
+      , Span ("",["insertion"],[("author","Author")]) [Str "test"]
+      , Space
+      , Span ("",["comment-start"],[("id","3"),("author","Author")]) 
+        [Str "With",Space,Str "a",Space,Str "comment!"]
+      , Str "document",Span ("",["comment-end"],[("id","3")]) [],Str "."
+      ]
+]

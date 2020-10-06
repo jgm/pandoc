@@ -213,7 +213,7 @@ data ParIndentation = ParIndentation { leftParIndent    :: Maybe Integer
 data ChangeType = Insertion | Deletion
                 deriving Show
 
-data ChangeInfo = ChangeInfo ChangeId Author ChangeDate
+data ChangeInfo = ChangeInfo ChangeId Author (Maybe ChangeDate)
                 deriving Show
 
 data TrackedChange = TrackedChange ChangeType ChangeInfo
@@ -276,7 +276,7 @@ type Extent = Maybe (Double, Double)
 
 data ParPart = PlainRun Run
              | ChangedRuns TrackedChange [Run]
-             | CommentStart CommentId Author CommentDate [BodyPart]
+             | CommentStart CommentId Author (Maybe CommentDate) [BodyPart]
              | CommentEnd CommentId
              | BookMark BookMarkId Anchor
              | InternalHyperLink Anchor [Run]
@@ -852,7 +852,7 @@ elemToCommentStart ns element
   | isElem ns "w" "comment" element
   , Just cmtId <- findAttrTextByName ns "w" "id" element
   , Just cmtAuthor <- findAttrTextByName ns "w" "author" element
-  , Just cmtDate <- findAttrTextByName ns "w" "date" element = do
+  , cmtDate <- findAttrTextByName ns "w" "date" element = do
       bps <- mapD (elemToBodyPart ns) (elChildren element)
       return $ CommentStart cmtId cmtAuthor cmtDate bps
 elemToCommentStart _ _ = throwError WrongElem
@@ -958,14 +958,14 @@ getTrackedChange ns element
   | isElem ns "w" "ins" element || isElem ns "w" "moveTo" element
   , Just cId <- findAttrTextByName ns "w" "id" element
   , Just cAuthor <- findAttrTextByName ns "w" "author" element
-  , Just cDate <- findAttrTextByName ns "w" "date" element =
-      Just $ TrackedChange Insertion (ChangeInfo cId cAuthor cDate)
+  , mcDate <- findAttrTextByName ns "w" "date" element =
+      Just $ TrackedChange Insertion (ChangeInfo cId cAuthor mcDate)
 getTrackedChange ns element
   | isElem ns "w" "del" element || isElem ns "w" "moveFrom" element
   , Just cId <- findAttrTextByName ns "w" "id" element
   , Just cAuthor <- findAttrTextByName ns "w" "author" element
-  , Just cDate <- findAttrTextByName ns "w" "date" element =
-      Just $ TrackedChange Deletion (ChangeInfo cId cAuthor cDate)
+  , mcDate <- findAttrTextByName ns "w" "date" element =
+      Just $ TrackedChange Deletion (ChangeInfo cId cAuthor mcDate)
 getTrackedChange _ _ = Nothing
 
 elemToParagraphStyle :: NameSpaces -> Element -> ParStyleMap -> ParagraphStyle

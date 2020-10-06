@@ -150,6 +150,11 @@ tests = [ testGroup "inlines"
             def
             "docx/comments.native"
             "docx/golden/comments.docx"
+          , docxTest
+            "scrubbed metadata"
+            def
+            "docx/track_changes_scrubbed_metadata.native"
+            "docx/golden/track_changes_scrubbed_metadata.docx"
           ]
         , testGroup "custom styles"
           [ docxTest "custom styles without reference.docx"

@@ -1244,33 +1244,29 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
                   else id)
       getChangeAuthorDate = do
         defaultAuthor <- asks envChangesAuthor
-        defaultDate <- asks envChangesDate
         let author = fromMaybe defaultAuthor (lookup "author" kvs)
-            date   = fromMaybe defaultDate (lookup "date" kvs)
-        return (author, date)
+        let mdate = lookup "date" kvs
+        return $ ("w:author", T.unpack author) :
+                   maybe [] (\date -> [("w:date", T.unpack date)]) mdate
   insmod <- if "insertion" `elem` classes
                then do
-                 (author, date) <- getChangeAuthorDate
+                 changeAuthorDate <- getChangeAuthorDate
                  insId <- gets stInsId
                  modify $ \s -> s{stInsId = insId + 1}
                  return $ \f -> do
                    x <- f
                    return [ mknode "w:ins"
-                              [("w:id", show insId),
-                              ("w:author", T.unpack author),
-                              ("w:date", T.unpack date)] x ]
+                              (("w:id", show insId) : changeAuthorDate) x]
                else return id
   delmod <- if "deletion" `elem` classes
                then do
-                 (author, date) <- getChangeAuthorDate
+                 changeAuthorDate <- getChangeAuthorDate
                  delId <- gets stDelId
                  modify $ \s -> s{stDelId = delId + 1}
                  return $ \f -> local (\env->env{envInDel=True}) $ do
                    x <- f
                    return [mknode "w:del"
-                           [("w:id", show delId),
-                           ("w:author", T.unpack author),
-                           ("w:date", T.unpack date)] x]
+                           (("w:id", show delId) : changeAuthorDate) x]
                else return id
   contents <- insmod $ delmod $ dirmod $ stylemod $ pmod
                      $ inlinesToOpenXML opts ils
