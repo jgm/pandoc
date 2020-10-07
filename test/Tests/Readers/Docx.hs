@@ -405,6 +405,10 @@ tests = [ testGroup "document"
             "paragraph insertion/deletion (all)"
             "docx/paragraph_insertion_deletion.docx"
             "docx/paragraph_insertion_deletion_all.native"
+          , testCompareWithOpts def{readerTrackChanges=AllChanges}
+            "paragraph insertion/deletion (all)"
+            "docx/track_changes_scrubbed_metadata.docx"
+            "docx/track_changes_scrubbed_metadata.native"
           , testForWarningsWithOpts def{readerTrackChanges=AcceptChanges}
             "comment warnings (accept -- no warnings)"
             "docx/comments_warning.docx"
