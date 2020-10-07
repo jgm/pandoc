@@ -46,8 +46,7 @@ Here is a test citation.[^2]
 
 [^1]: J. D. Watson and F. H. C. Crick, "Molecular Structure of Nucleic
     Acids: A Structure for Deoxyribose Nucleic Acid," *Nature* 171, no.
-    4356 (April 25, 1953): 737--38,
-    doi:[10.1038/171737a0](https://doi.org/10.1038/171737a0).
+    4356 (April 25, 1953): 737--38, <https://doi.org/10.1038/171737a0>.
 
-[^2]: Ibid.
+[^2]: Watson and Crick.
 ```

@@ -49,8 +49,8 @@ Pontifical Institute of Mediaeval Studies, 1992.
     Care*, Studies and Texts 108 (Toronto: Pontifical Institute of
     Mediaeval Studies, 1992), 501--3.
 
-[^2]: Excerpts from this text were previously printed in ibid., 508--14;
-    it was also briefly described in ibid., 141--42.
+[^2]: Excerpts from this text were previously printed in Goering,
+    508--14; it was also briefly described in Goering, 141--42.
 
 [^3]: Goering, *William de Montibus*, 141--42.
 ```

@@ -34,7 +34,7 @@ Doe, John. "Test," n.d.
 
 [^1]: John Doe, "Test," n.d., 12.
 
-[^2]: Ibid.
+[^2]: Doe, 12.
 
 [^3]: asdfasdf
 

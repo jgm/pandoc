@@ -52,12 +52,12 @@ Doe, John, III, n.d.
 Dumboldt, Ezekiel, III, n.d.
 :::
 
-::: {#ref-item3 .csl-entry}
-Humboldt, Alexander von, n.d.
+::: {#ref-item2 .csl-entry}
+Gogh, Vincent van, n.d.
 :::
 
-::: {#ref-item2 .csl-entry}
-van Gogh, Vincent, n.d.
+::: {#ref-item3 .csl-entry}
+Humboldt, Alexander von, n.d.
 :::
 :::
 

@@ -105,9 +105,9 @@ Sam Smith. Oxford: Oxford University Press, 2007.
 [^3]: [*First Book* (Cambridge: Cambridge University Press,
     2005)](#ref-item1).
 
-[^4]: [Ibid., 30](#ref-item1).
+[^4]: [30](#ref-item1).
 
-[^5]: [Ibid.](#ref-item1), with suffix.
+[^5]: [30](#ref-item1), with suffix.
 
 [^6]: [*First Book*, 2005](#ref-item1); ["Article," *Journal of Generic
     Studies* 6 (2006): 30](#ref-item2); see also [John Doe and Jenny
@@ -123,7 +123,7 @@ Sam Smith. Oxford: Oxford University Press, 2007.
 
 [^9]: See [Doe, *First Book*, 2005, 34--35](#ref-item1).
 
-[^10]: Some citations (See [ibid., chap. 3](#ref-item1); [Doe and Roe,
+[^10]: Some citations (See [Doe, chap. 3](#ref-item1); [Doe and Roe,
     "Why Water Is Wet"](#ref-пункт3); [Doe, "Article,"
     2006](#ref-item2)).
 
@@ -132,9 +132,8 @@ Sam Smith. Oxford: Oxford University Press, 2007.
 
 [^12]: [Doe, *First Book*, 2005](#ref-item1) and nowhere else.
 
-[^13]: Like a citation without author: ([Ibid.](#ref-item1)), and again
-    ([Ibid.](#ref-item1)), and now Doe with a locator (["Article," 2006,
-    44](#ref-item2)).
+[^13]: Like a citation without author: (), and again (), and now Doe
+    with a locator (["Article," 2006, 44](#ref-item2)).
 
 [^14]: *See* [Doe, *First Book*, 2005, 32](#ref-item1).
 ```

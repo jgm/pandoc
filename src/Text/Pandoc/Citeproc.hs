@@ -164,9 +164,9 @@ processCitations (Pandoc meta bs) = do
          walk (fixQuotes .  mvPunct moveNotes locale) $ walk deNote $
          evalState (walkM insertResolvedCitations $ Pandoc meta' bs)
          $ cits
-  return $ Pandoc meta''
-         $ insertRefs refkvs classes meta''
-            (walk fixLinks $ B.toList bibs) bs'
+  return $ walk fixLinks
+         $ Pandoc meta''
+         $ insertRefs refkvs classes meta'' (B.toList bibs) bs'
 
 -- If we have a span.csl-left-margin followed by span.csl-right-inline,
 -- we insert a space. This ensures that they will be separated by a space,
