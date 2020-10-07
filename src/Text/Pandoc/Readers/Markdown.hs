@@ -67,11 +67,17 @@ readMarkdown opts s = do
 -- String scalars in the YAML are parsed as Markdown.
 yamlToMeta :: PandocMonad m
            => ReaderOptions
+           -> Maybe FilePath
            -> BL.ByteString
            -> m Meta
-yamlToMeta opts bstr = do
+yamlToMeta opts mbfp bstr = do
   let parser = do
+        oldPos <- getPosition
+        case mbfp of
+          Nothing -> return ()
+          Just fp -> setPosition $ initialPos fp
         meta <- yamlBsToMeta (fmap B.toMetaValue <$> parseBlocks) bstr
+        setPosition oldPos
         return $ runF meta defaultParserState
   parsed <- readWithM parser def{ stateOptions = opts } ""
   case parsed of
@@ -84,11 +90,17 @@ yamlToMeta opts bstr = do
 yamlToRefs :: PandocMonad m
            => (Text -> Bool)
            -> ReaderOptions
+           -> Maybe FilePath
            -> BL.ByteString
            -> m [MetaValue]
-yamlToRefs idpred opts bstr = do
+yamlToRefs idpred opts mbfp bstr = do
   let parser = do
+        oldPos <- getPosition
+        case mbfp of
+          Nothing -> return ()
+          Just fp -> setPosition $ initialPos fp
         refs <- yamlBsToRefs (fmap B.toMetaValue <$> parseBlocks) idpred bstr
+        setPosition oldPos
         return $ runF refs defaultParserState
   parsed <- readWithM parser def{ stateOptions = opts } ""
   case parsed of

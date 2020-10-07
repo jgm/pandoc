@@ -221,8 +221,9 @@ convertWithOpts opts = do
     metadataFromFile <-
       case optMetadataFiles opts of
         []    -> return mempty
-        paths -> mapM readFileLazy paths >>=
-                    fmap mconcat . mapM (yamlToMeta readerOpts)
+        paths -> mconcat <$>
+           mapM (\path -> do raw <- readFileLazy path
+                             yamlToMeta readerOpts (Just path) raw) paths
 
     let transforms = (case optShiftHeadingLevelBy opts of
                           0             -> id

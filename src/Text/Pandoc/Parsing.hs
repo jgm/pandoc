@@ -179,7 +179,9 @@ module Text.Pandoc.Parsing ( take1WhileP,
                              setSourceColumn,
                              setSourceLine,
                              incSourceColumn,
+                             incSourceLine,
                              newPos,
+                             initialPos,
                              Line,
                              Column
                              )

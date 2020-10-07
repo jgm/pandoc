@@ -37,21 +37,19 @@ yamlBsToMeta :: PandocMonad m
              -> BL.ByteString
              -> ParserT Text ParserState m (F Meta)
 yamlBsToMeta pMetaValue bstr = do
-  pos <- getPosition
   case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
        Right (YAML.Doc (YAML.Mapping _ _ o):_)
                 -> fmap Meta <$> yamlMap pMetaValue o
        Right [] -> return . return $ mempty
        Right [YAML.Doc (YAML.Scalar _ YAML.SNull)]
                 -> return . return $ mempty
-       Right _  -> do logMessage $ CouldNotParseYamlMetadata "not an object"
-                                   pos
-                      return . return $ mempty
-       Left (_pos, err')
-                -> do logMessage $ CouldNotParseYamlMetadata
-                                   (T.pack err') pos
-                      return . return $ mempty
-
+       Right _  -> fail "expected YAML object"
+       Left (yamlpos, err')
+                -> do pos <- getPosition
+                      setPosition $ incSourceLine
+                            (setSourceColumn pos (YE.posColumn yamlpos))
+                            (YE.posLine yamlpos - 1)
+                      fail err'
 
 fakePos :: YAML.Pos
 fakePos = YAML.Pos (-1) (-1) 1 0
@@ -71,8 +69,7 @@ yamlBsToRefs :: PandocMonad m
              -> (Text -> Bool) -- ^ Filter for id
              -> BL.ByteString
              -> ParserT Text ParserState m (F [MetaValue])
-yamlBsToRefs pMetaValue idpred bstr = do
-  pos <- getPosition
+yamlBsToRefs pMetaValue idpred bstr =
   case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
        Right (YAML.Doc o@(YAML.Mapping _ _ _):_)
                 -> case lookupYAML "references" o of
@@ -90,26 +87,17 @@ yamlBsToRefs pMetaValue idpred bstr = do
                                     Nothing   -> False
                        sequence <$>
                          mapM (yamlToMetaValue pMetaValue) (filter g ns)
-                     Just _ -> do
-                       logMessage $ CouldNotParseYamlMetadata
-                            ("expecting sequence in 'references' field") pos
-                       return . return $ mempty
-                     Nothing -> do
-                       logMessage $ CouldNotParseYamlMetadata
-                                      ("expecting 'references' field") pos
-                       return . return $ mempty
+                     Just _ ->
+                       fail "expecting sequence in 'references' field"
+                     Nothing ->
+                       fail "expecting 'references' field"
 
        Right [] -> return . return $ mempty
        Right [YAML.Doc (YAML.Scalar _ YAML.SNull)]
                 -> return . return $ mempty
-       Right _  -> do logMessage $ CouldNotParseYamlMetadata "not an object"
-                                   pos
-                      return . return $ mempty
+       Right _  -> fail "expecting YAML object"
        Left (_pos, err')
-                -> do logMessage $ CouldNotParseYamlMetadata
-                                   (T.pack err') pos
-                      return . return $ mempty
-
+                -> fail err'
 
 
 nodeToKey :: YAML.Node YE.Pos -> Maybe Text

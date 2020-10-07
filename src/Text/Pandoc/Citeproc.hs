@@ -191,7 +191,7 @@ getRefsFromBib locale idpred t = do
   let fp = T.unpack t
   raw <- readFileStrict fp
   case formatFromExtension fp of
-    Just f -> getRefs locale f idpred raw
+    Just f -> getRefs locale f idpred (Just fp) raw
     Nothing -> throwError $ PandocAppError $
                  "Could not deterine bibliography format for " <> t
 
@@ -199,9 +199,10 @@ getRefs :: PandocMonad m
         => Locale
         -> BibFormat
         -> (Text -> Bool)
+        -> Maybe FilePath
         -> ByteString
         -> m [Reference Inlines]
-getRefs locale format idpred raw =
+getRefs locale format idpred mbfp raw =
   case format of
     Format_bibtex ->
       either (throwError . PandocAppError . T.pack . show) return .
@@ -216,6 +217,7 @@ getRefs locale format idpred raw =
     Format_yaml -> do
       rs <- yamlToRefs idpred
               def{ readerExtensions = pandocExtensions }
+              mbfp
               (L.fromStrict raw)
       return $ mapMaybe metaValueToReference rs
 
