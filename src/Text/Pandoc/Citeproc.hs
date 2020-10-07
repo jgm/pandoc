@@ -475,11 +475,16 @@ linkifyVariables ref =
   ref{ referenceVariables = M.mapWithKey go $ referenceVariables ref }
  where
   go "URL" x    = tolink "https://" x
-  go "DOI" x    = tolink "https://doi.org/" x
+  go "DOI" x    = tolink "https://doi.org/" (fixShortDOI x)
   go "ISBN" x   = tolink "https://worldcat.org/isbn/" x
   go "PMID" x   = tolink "https://www.ncbi.nlm.nih.gov/pubmed/" x
   go "PMCID" x  = tolink "https://www.ncbi.nlm.nih.gov/pmc/articles/" x
   go _ x        = x
+  fixShortDOI x = let x' = extractText x
+                  in  if "10/" `T.isPrefixOf` x'
+                         then TextVal $ T.drop 3 x'
+                              -- see http://shortdoi.org
+                         else TextVal x'
   tolink pref x = let x' = extractText x
                       x'' = if "://" `T.isInfixOf` x'
                                then x'
