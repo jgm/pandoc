@@ -23,7 +23,6 @@ import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Error
 import Text.Pandoc.Class
-import Text.Pandoc.XML (fromEntities)
 import Control.Monad.Except (throwError)
 import Data.ByteString.Lazy (toStrict)
 import Data.ByteString (ByteString)
@@ -86,6 +85,5 @@ toCslJson locale = toStrict .
                          , confCompare = compare
                          , confNumFormat = Generic }
   . map (runIdentity .  traverse (return .
-                                  fromEntities .
-                                  renderCslJson locale .
+                                  renderCslJson False locale .
                                   foldMap fromInline))
