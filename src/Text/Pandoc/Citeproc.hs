@@ -164,7 +164,9 @@ processCitations (Pandoc meta bs) = do
          walk (fixQuotes .  mvPunct moveNotes locale) $ walk deNote $
          evalState (walkM insertResolvedCitations $ Pandoc meta' bs)
          $ cits
-  return $ Pandoc meta'' $ insertRefs refkvs classes meta'' (B.toList bibs) bs'
+  return $ Pandoc meta''
+         $ insertRefs refkvs classes meta''
+            (walk fixLinks $ B.toList bibs) bs'
 
 -- If we have a span.csl-left-margin followed by span.csl-right-inline,
 -- we insert a space. This ensures that they will be separated by a space,
@@ -375,6 +377,15 @@ mvPunct moveNotes locale (Cite cs ils : Str "." : ys)
   = Cite cs ils : mvPunct moveNotes locale ys
 mvPunct moveNotes locale (x:xs) = x : mvPunct moveNotes locale xs
 mvPunct _ _ [] = []
+
+-- move https://doi.org etc. prefix inside link text (#6723):
+fixLinks :: [Inline] -> [Inline]
+fixLinks (Str t : Link attr [Str u1] (u2,tit) : xs)
+  | t <> u1 == u2
+  = Link attr [Str (t <> u1)] (u2,tit) : fixLinks xs
+fixLinks (x:xs) = x : fixLinks xs
+fixLinks [] = []
+
 
 endWithPunct :: Bool -> [Inline] -> Bool
 endWithPunct _ [] = False
