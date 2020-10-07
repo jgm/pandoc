@@ -28,7 +28,6 @@ import qualified Data.YAML.Event as YE
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
-import Text.Pandoc.Logging
 import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Shared
 
