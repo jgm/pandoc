@@ -33,7 +33,7 @@ import Text.Pandoc.Shared (crFilter, mapLeft)
 import Text.Pandoc.Readers.Roff  -- TODO explicit imports
 import Text.Parsec hiding (tokenPrim)
 import qualified Text.Parsec as Parsec
-import Text.Parsec.Pos (updatePosString, initialPos)
+import Text.Parsec.Pos (updatePosString)
 import qualified Data.Foldable as Foldable
 
 data ManState = ManState { readerOptions   :: ReaderOptions
