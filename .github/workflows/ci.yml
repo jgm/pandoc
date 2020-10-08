@@ -146,7 +146,7 @@ jobs:
       fail-fast: true
       matrix:
         versions:
-          - ghc: '8.10.2'
+          - ghc: '8.8.4'
             cabal: '3.2'
 
     steps:
