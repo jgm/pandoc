@@ -21,7 +21,7 @@ local stringify = (require "pandoc.utils").stringify
 -- configure the writer.
 local meta = PANDOC_DOCUMENT.meta
 
--- Chose the image format based on the value of the
+-- Choose the image format based on the value of the
 -- `image_format` meta value.
 local image_format = meta.image_format
   and stringify(meta.image_format)
@@ -45,9 +45,9 @@ local function escape(s, in_attribute)
         return '&gt;'
       elseif x == '&' then
         return '&amp;'
-      elseif x == '"' then
+      elseif in_attribute and x == '"' then
         return '&quot;'
-      elseif x == "'" then
+      elseif in_attribute and x == "'" then
         return '&#39;'
       else
         return x
@@ -141,8 +141,8 @@ function Strikeout(s)
   return '<del>' .. s .. '</del>'
 end
 
-function Link(s, src, tit, attr)
-  return "<a href='" .. escape(src,true) .. "' title='" ..
+function Link(s, tgt, tit, attr)
+  return "<a href='" .. escape(tgt,true) .. "' title='" ..
          escape(tit,true) .. "'>" .. s .. "</a>"
 end
 
@@ -271,7 +271,7 @@ end
 
 -- Convert pandoc alignment to something HTML can use.
 -- align is AlignLeft, AlignRight, AlignCenter, or AlignDefault.
-function html_align(align)
+local function html_align(align)
   if align == 'AlignLeft' then
     return 'left'
   elseif align == 'AlignRight' then
@@ -286,7 +286,7 @@ end
 function CaptionedImage(src, tit, caption, attr)
    return '<div class="figure">\n<img src="' .. escape(src,true) ..
       '" title="' .. escape(tit,true) .. '"/>\n' ..
-      '<p class="caption">' .. caption .. '</p>\n</div>'
+      '<p class="caption">' .. escape(caption) .. '</p>\n</div>'
 end
 
 -- Caption is a string, aligns is an array of strings,
@@ -357,4 +357,3 @@ meta.__index =
     return function() return "" end
   end
 setmetatable(_G, meta)
-
