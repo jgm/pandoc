@@ -65,10 +65,10 @@ references:
   editor:
   - family: Hercz
     given: J.
-  id: "averroes-hercz"
+  id: averroes-hercz
   issued: 1869
   keyword: primary
-  language: "de-DE"
+  language: de-DE
   publisher: S. Hermann
   publisher-place: Berlin
   title: "Drei Abhandlungen über die Conjunction des separaten

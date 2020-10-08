@@ -55,11 +55,11 @@ references:
     given: John C.
   - family: Lauda
     given: Aaron D.
-  id: "baez-online"
-  issued: "2004-10-27"
-  language: "en-US"
+  id: baez-online
+  issued: 2004-10-27
+  language: en-US
   title: "Higher-dimensional algebra V: 2-groups"
-  title-short: "Higher-dimensional algebra V"
+  title-short: Higher-dimensional algebra V
   type: webpage
   url: "http://arxiv.org/abs/math/0307200v3"
   version: 3

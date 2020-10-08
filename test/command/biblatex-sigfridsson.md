@@ -81,9 +81,9 @@ references:
     charges will be used, and CHELMO, which estimates the charges
     directly from the electrostatic multipole moments. Different
     criteria for the quality of the charges are discussed."
-  annote: "An article entry with volume, number, and doi fields. Note
+  annote: An article entry with volume, number, and doi fields. Note
     that the [doi]{.smallcaps} is transformed into a clickable link if
-    hyperref support has been enabled"
+    hyperref support has been enabled
   author:
   - family: Sigfridsson
     given: Emma
@@ -94,11 +94,11 @@ references:
   id: sigfridsson
   issue: 4
   issued: 1998
-  language: "en-US"
-  page: "377-395"
+  language: en-US
+  page: 377-395
   title: Comparison of methods for deriving atomic charges from the
     electrostatic potential and moments
-  type: "article-journal"
+  type: article-journal
   volume: 19
 ---
 

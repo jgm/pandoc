@@ -10,7 +10,7 @@
 nocite: "[@*]"
 references:
 - id: item1
-  language: "en-US"
+  language: en-US
   title: "The title: New series"
   title-short: The title
   type: book

@@ -31,7 +31,7 @@ references:
   container-title: "Maintitle: Mainsubtitle. Maintitleaddon"
   id: item1
   issued: 2011
-  language: "fr-FR"
+  language: fr-FR
   publisher: Publisher
   publisher-place: Location
   title: "Title of the \"inbook\" Entry: Subtitle. Titleaddon"

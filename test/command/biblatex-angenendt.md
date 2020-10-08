@@ -45,20 +45,20 @@ Patrozinienkunde. *Revue d’Histoire Ecclésiastique*, *97*, 431–456,
 ---
 nocite: "[@*]"
 references:
-- annote: "A German article in a French journal. Apart from that, a
-    typical article entry. Note the indextitle field"
+- annote: A German article in a French journal. Apart from that, a
+    typical article entry. Note the indextitle field
   author:
   - family: Angenendt
     given: Arnold
-  container-title: "Revue d'Histoire Ecclésiastique"
+  container-title: Revue d'Histoire Ecclésiastique
   id: angenendt
   issued: 2002
-  language: "de-DE"
-  page: "431-456, 791-823"
-  title: "In Honore Salvatoris -- Vom Sinn und Unsinn der
-    Patrozinienkunde"
+  language: de-DE
+  page: 431-456, 791-823
+  title: In Honore Salvatoris -- Vom Sinn und Unsinn der
+    Patrozinienkunde
   title-short: In Honore Salvatoris
-  type: "article-journal"
+  type: article-journal
   volume: 97
 ---
 

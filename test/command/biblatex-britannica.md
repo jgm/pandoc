@@ -60,22 +60,22 @@ NOTES:
 ---
 nocite: "[@*]"
 references:
-- annote: "This is a collection entry for an encyclopedia. Note the
+- annote: This is a collection entry for an encyclopedia. Note the
     useeditor option in the options field as well as the sorttitle
     field. We want this entry to be cited and alphabetized by title even
     though there is an editor. In addition to that, we want the title to
     be alphabetized under 'E' rather than 'T'. Also note the label field
-    which is provided for author-year citation styles"
+    which is provided for author-year citation styles
   edition: 15
   editor:
   - family: Preece
     given: Warren E.
   id: britannica
   issued: 2003
-  language: "en-GB"
+  language: en-GB
   number-of-volumes: 32
   publisher: Encyclopædia Britannica
-  publisher-place: "Chicago, Ill."
+  publisher-place: Chicago, Ill.
   title: The new encyclopædia Britannica
   title-short: Encyclopædia Britannica
   type: book

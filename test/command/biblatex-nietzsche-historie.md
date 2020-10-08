@@ -64,11 +64,11 @@ Walter de Gruyter.
 ---
 nocite: "[@*]"
 references:
-- annote: "A single essay from the critical edition of Nietzsche's
-    works. This inbook entry explicitly refers to an essay found in the
-    first volume. Note the title, booktitle, and maintitle fields. Also
-    note the sorttitle and sortyear fields. We want this entry to be
-    listed after the entry referring to the entire first volume"
+- annote: A single essay from the critical edition of Nietzsche's works.
+    This inbook entry explicitly refers to an essay found in the first
+    volume. Note the title, booktitle, and maintitle fields. Also note
+    the sorttitle and sortyear fields. We want this entry to be listed
+    after the entry referring to the entire first volume
   author:
   - family: Nietzsche
     given: Friedrich
@@ -83,17 +83,17 @@ references:
     given: Mazzino
   id: "nietzsche:historie"
   issued: 1988
-  language: "de-DE"
-  page: "243-334"
-  publisher: "Deutscher Taschenbuch-Verlag; Walter de Gruyter"
+  language: de-DE
+  page: 243-334
+  publisher: Deutscher Taschenbuch-Verlag; Walter de Gruyter
   publisher-place: München; Berlin; New York
   title: "Unzeitgemässe Betrachtungen. Zweites Stück: Vom Nutzen und
     Nachtheil der Historie für das Leben"
   title-short: Vom Nutzen und Nachtheil der Historie
   type: chapter
   volume: 1
-  volume-title: "Die Geburt der Tragödie. Unzeitgemäße Betrachtungen
-    I--IV. Nachgelassene Schriften 1870--1973"
+  volume-title: Die Geburt der Tragödie. Unzeitgemäße Betrachtungen
+    I--IV. Nachgelassene Schriften 1870--1973
 ---
 
 

@@ -57,12 +57,12 @@ NOTES:
 ---
 nocite: "[@*]"
 references:
-- abstract: "We discuss the limitations of 't Hooft's proposal for the
+- abstract: We discuss the limitations of 't Hooft's proposal for the
     black hole S-matrix. We find that the validity of the S-matrix
     implies violation of the semi-classical approximation at scales
     large compared to the Planck scale. We also show that the effect of
     the centrifugal barrier on the S-matrix is crucial even for large
-    transverse distances."
+    transverse distances.
   annote: An online reference from arXiv. Note the eprint and eprinttype
     fields. Also note that the arXiv reference is transformed into a
     clickable link if hyperref support has been enabled
@@ -70,10 +70,9 @@ references:
   - family: Itzhaki
     given: Nissan
   id: itzhaki
-  issued: "1996-03-11"
-  language: "en-US"
-  title: "Some remarks on '[t Hooft's]{.nocase} S-matrix for black
-    holes"
+  issued: 1996-03-11
+  language: en-US
+  title: Some remarks on '[t Hooft's]{.nocase} S-matrix for black holes
   type: webpage
   url: "http://arxiv.org/abs/hep-th/9603067"
   version: 1

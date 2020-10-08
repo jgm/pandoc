@@ -47,7 +47,7 @@ references:
     given: Pablo
   id: piccato
   issued: 2001
-  language: "en-US"
+  language: en-US
   publisher: Duke University Press
   publisher-place: Durham; London
   title: "City of suspects: Crime in Mexico City, 1900--1931"

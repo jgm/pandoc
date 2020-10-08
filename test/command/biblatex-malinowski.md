@@ -53,7 +53,7 @@ references:
   edition: 8
   id: malinowski
   issued: 1972
-  language: "en-GB"
+  language: en-GB
   publisher: Routledge and Kegan Paul
   publisher-place: London
   title: "Argonauts of the Western Pacific: An account of native

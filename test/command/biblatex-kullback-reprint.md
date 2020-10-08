@@ -58,9 +58,9 @@ references:
     given: Solomon
   id: "kullback:reprint"
   issued: 1997
-  language: "en-US"
+  language: en-US
   original-date: 1959
-  original-publisher: "John Wiley & Sons"
+  original-publisher: John Wiley & Sons
   publisher: Dover Publications
   publisher-place: New York
   title: Information theory and statistics

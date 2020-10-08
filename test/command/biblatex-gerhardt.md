@@ -51,7 +51,7 @@ references:
     given: Michael J.
   id: gerhardt
   issued: 2000
-  language: "en-US"
+  language: en-US
   publisher: Duke University Press
   publisher-place: Durham; London
   title: "The federal appointments process: A constitutional and

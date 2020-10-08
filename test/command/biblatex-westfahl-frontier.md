@@ -48,9 +48,9 @@ references:
     given: Gary
   id: "westfahl:frontier"
   issued: 2000
-  language: "en-US"
+  language: en-US
   publisher: Greenwood
-  publisher-place: "Westport, Conn.; London"
+  publisher-place: Westport, Conn.; London
   title: "Space and beyond: The frontier theme in science fiction"
   title-short: Space and beyond
   type: book

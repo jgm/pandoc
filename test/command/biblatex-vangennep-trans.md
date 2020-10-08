@@ -53,7 +53,7 @@ references:
     non-dropping-particle: van
   id: "vangennep:trans"
   issued: 1960
-  language: "en-US"
+  language: en-US
   publisher: University of Chicago Press
   title: The rites of passage
   title-short: Rites of passage

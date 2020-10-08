@@ -55,7 +55,7 @@ references:
     given: Monika
   id: maron
   issued: 2000
-  language: "en-US"
+  language: en-US
   publisher: University of Nebraska Press
   publisher-place: Lincoln
   title: Animal triste

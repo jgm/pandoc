@@ -44,8 +44,8 @@ cultural cognition. *American Anthropologist, new series*, *93*(1),
 ---
 nocite: "[@*]"
 references:
-- annote: "An article entry with series, volume, and number fields. Note
-    the format of the series which is a localization key"
+- annote: An article entry with series, volume, and number fields. Note
+    the format of the series which is a localization key
   author:
   - family: Shore
     given: Bradd
@@ -53,12 +53,12 @@ references:
   container-title: American Anthropologist
   id: shore
   issue: 1
-  issued: "1991-03"
-  page: "9-27"
+  issued: 1991-03
+  page: 9-27
   title: "Twice-born, once conceived: Meaning construction and cultural
     cognition"
-  title-short: "Twice-born, once conceived"
-  type: "article-journal"
+  title-short: Twice-born, once conceived
+  type: article-journal
   volume: 93
 ---
 

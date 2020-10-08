@@ -33,7 +33,7 @@ references:
   id: nussbaum
   issued: 1978
   keyword: secondary
-  language: "en-US"
+  language: en-US
   publisher: Princeton University Press
   publisher-place: Princeton
   title: "Aristotle's \"De Motu Animalium\""

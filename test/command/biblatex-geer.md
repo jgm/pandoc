@@ -57,12 +57,12 @@ references:
   genre: PhD thesis
   id: geer
   issued: 1985
-  language: "en-GB"
+  language: en-GB
   publisher: Uppsala Universitet
   publisher-place: Uppsala
   title: "Earl, saint, bishop, skald -- and music: The Orkney earldom of
     the twelfth century. A musicological study"
-  title-short: "Earl, saint, bishop, skald -- and music"
+  title-short: Earl, saint, bishop, skald -- and music
   type: thesis
 ---
 

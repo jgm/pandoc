@@ -66,10 +66,10 @@ references:
   editor:
   - family: Bland
     given: Kalman P.
-  id: "averroes-bland"
+  id: averroes-bland
   issued: 1982
   keyword: primary
-  language: "en-US"
+  language: en-US
   publisher: Jewish Theological Seminary of America
   publisher-place: New York
   title: The epistle on the possibility of conjunction with the active

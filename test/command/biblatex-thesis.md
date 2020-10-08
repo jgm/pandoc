@@ -42,25 +42,25 @@ references:
   genre: PhD thesis
   id: geer
   issued: 1985
-  language: "en-GB"
+  language: en-GB
   publisher: Uppsala Universitet
   publisher-place: Uppsala
   title: "Earl, saint, bishop, skald -- and music: The Orkney earldom of
     the twelfth century. A musicological study"
-  title-short: "Earl, saint, bishop, skald -- and music"
+  title-short: Earl, saint, bishop, skald -- and music
   type: thesis
 - annote: This is a typical thesis entry for an MA thesis. Note the type
     field in the database file which uses a localization key
   author:
   - family: Loh
     given: Nin C.
-  genre: "Master's thesis"
+  genre: Master's thesis
   id: loh
   issued: 1992
-  language: "en-US"
+  language: en-US
   publisher: Massachusetts Institute of Technology
-  publisher-place: "Cambridge, Mass."
-  title: "High-resolution micromachined interferometric accelerometer"
+  publisher-place: Cambridge, Mass.
+  title: High-resolution micromachined interferometric accelerometer
   type: thesis
 ---
 

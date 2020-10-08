@@ -63,12 +63,12 @@ references:
   id: pines
   issued: 1979
   keyword: secondary
-  language: "en-US"
-  page: "82-109"
+  language: en-US
+  page: 82-109
   publisher: Harvard University Press
-  publisher-place: "Cambridge, Mass."
-  title: "The limitations of human knowledge according to Al-Farabi,
-    [ibn Bajja]{.nocase}, and Maimonides"
+  publisher-place: Cambridge, Mass.
+  title: The limitations of human knowledge according to Al-Farabi, [ibn
+    Bajja]{.nocase}, and Maimonides
   title-short: Limitations of human knowledge
   type: chapter
 ---

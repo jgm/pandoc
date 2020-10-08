@@ -71,7 +71,7 @@ Amherst, Mass.: University of Massachusetts.
 ---
 nocite: "[@*]"
 references:
-- abstract: "The steady state performance of a bulk transfer TCP flow
+- abstract: The steady state performance of a bulk transfer TCP flow
     (i.e., a flow with a large amount of data to send, such as FTP
     transfers) may be characterized by three quantities. The first is
     the send rate, which is the amount of data sent by the sender in
@@ -90,7 +90,7 @@ references:
     stochastic analysis. Second, we build upon the previous analysis to
     provide both an approximate formula as well as a more accurate
     stochastic model for the steady state throughput of a bulk transfer
-    TCP flow."
+    TCP flow.
   annote: This is a report entry for a technical report. Note the format
     of the type field in the database file which uses a localization
     key. The number of the report is given in the number field. Also
@@ -105,10 +105,10 @@ references:
   genre: technical report
   id: padhye
   issued: 1999
-  language: "en-US"
-  number: "99-02"
+  language: en-US
+  number: 99-02
   publisher: University of Massachusetts
-  publisher-place: "Amherst, Mass."
+  publisher-place: Amherst, Mass.
   title: A stochastic model of TCP Reno congestion avoidance and control
   type: report
 ---

@@ -21,10 +21,10 @@ references:
     given: Alex
   genre: Dissertation
   id: Leavitt_2016
-  issued: "2016-08"
-  language: "en-US"
+  issued: 2016-08
+  language: en-US
   publisher: University of Southern California
-  publisher-place: "Los Angeles, CA"
+  publisher-place: Los Angeles, CA
   title: "Upvoting the news: Breaking news aggregation, crowd
     collaboration, and algorithm-driven attention on reddit.com"
   title-short: Upvoting the news

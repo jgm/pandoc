@@ -57,7 +57,7 @@ references:
     non-dropping-particle: van
   id: "vangennep:related"
   issued: 1909
-  language: "fr-FR"
+  language: fr-FR
   publisher: Nourry
   publisher-place: Paris
   title: Les rites de passage

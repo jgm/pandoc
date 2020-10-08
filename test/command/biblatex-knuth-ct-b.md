@@ -49,17 +49,17 @@ NOTES:
 ---
 nocite: "[@*]"
 references:
-- annote: "The second volume of a five-volume book. Note the sorttitle
-    and sortyear fields. Also note the indexsorttitle field"
+- annote: The second volume of a five-volume book. Note the sorttitle
+    and sortyear fields. Also note the indexsorttitle field
   author:
   - family: Knuth
     given: Donald E.
   id: "knuth:ct:b"
   issued: 1986
-  language: "en-US"
-  publisher: "Addison-Wesley"
-  publisher-place: "Reading, Mass."
-  title: "Computers & typesetting"
+  language: en-US
+  publisher: Addison-Wesley
+  publisher-place: Reading, Mass.
+  title: Computers & typesetting
   title-short: TeX
   type: book
   volume: B

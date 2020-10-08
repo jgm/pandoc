@@ -52,7 +52,7 @@ references:
     related and relatedtype fields
   id: "vizedom:related"
   issued: 1960
-  language: "en-US"
+  language: en-US
   publisher: University of Chicago Press
   title: The rites of passage
   title-short: Rites of passage

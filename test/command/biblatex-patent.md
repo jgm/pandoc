@@ -57,9 +57,9 @@ TODO: Is there a CSL counterpart for the biblatex field "holder"?}
 ---
 nocite: "[@*]"
 references:
-- annote: "This is a patent entry with a location field. The number is
+- annote: This is a patent entry with a location field. The number is
     given in the number field. Note the format of the location field in
-    the database file. Compare laufenberg, sorace, and kowalik"
+    the database file. Compare laufenberg, sorace, and kowalik
   author:
   - family: Almendro
     given: José L.
@@ -72,14 +72,14 @@ references:
   id: almendro
   issued: 1998
   jurisdiction: France; United Kingdom; Germany
-  language: "de-DE"
-  number: "EU-29702195U"
+  language: de-DE
+  number: EU-29702195U
   title: Elektromagnetisches Signalhorn
   type: patent
-- annote: "This is a patent entry for a French patent request with a
-    full date. The number is given in the number field. Note the format
-    of the type and date fields in the database file. Compare almendro,
-    laufenberg, and sorace"
+- annote: This is a patent entry for a French patent request with a full
+    date. The number is given in the number field. Note the format of
+    the type and date fields in the database file. Compare almendro,
+    laufenberg, and sorace
   author:
   - family: Kowalik
     given: F.
@@ -87,22 +87,22 @@ references:
     given: M.
   genre: French patent request
   id: kowalik
-  issued: "1995-01-11"
-  language: "fr-FR"
+  issued: 1995-01-11
+  language: fr-FR
   number: 9500261
-  title: "Estimateur d'un défaut de fonctionnement d'un modulateur en
-    quadrature et étage de modulation l'utilisant"
+  title: Estimateur d'un défaut de fonctionnement d'un modulateur en
+    quadrature et étage de modulation l'utilisant
   type: patent
-- abstract: "The invention relates to an electric device comprising a
+- abstract: The invention relates to an electric device comprising a
     generator, in particular for use in the vehicle electric system of a
     motor vehicle and a controller for controlling the generator
     voltage. The device is equipped with a control zone, in which the
     voltage is controlled and zones, in which the torque is controlled.
     The invention also relates to methods for operating a device of this
-    type."
-  annote: "This is a patent entry with a holder field. Note the format
-    of the type and location fields in the database file. Compare
-    almendro, sorace, and kowalik"
+    type.
+  annote: This is a patent entry with a holder field. Note the format of
+    the type and location fields in the database file. Compare almendro,
+    sorace, and kowalik
   author:
   - family: Laufenberg
     given: Xaver
@@ -114,7 +114,7 @@ references:
     given: Stephan
   - family: Spaeth
     given: Matthias
-  - family: "Neuser-Hoffmann"
+  - family: Neuser-Hoffmann
     given: Miriam
   - family: Myrzik
     given: Christian
@@ -130,14 +130,14 @@ references:
     given: Norbert
   genre: European patent
   id: laufenberg
-  issued: "2006-09-13"
-  language: "de-DE"
+  issued: 2006-09-13
+  language: de-DE
   number: 1700367
   title: Elektrische Einrichtung und Betriebsverfahren
   type: patent
-- annote: "This is a patent entry with a holder field. Note the format
-    of the type and date fields in the database file. Compare almendro,
-    laufenberg, and kowalik"
+- annote: This is a patent entry with a holder field. Note the format of
+    the type and date fields in the database file. Compare almendro,
+    laufenberg, and kowalik
   author:
   - family: Sorace
     given: Ronald E.
@@ -147,10 +147,10 @@ references:
     given: Steven A.
   genre: U.S. patent
   id: sorace
-  issued: "1997-09-16"
-  language: "en-US"
+  issued: 1997-09-16
+  language: en-US
   number: 5668842
-  title: "High-speed digital-to-RF converter"
+  title: High-speed digital-to-RF converter
   type: patent
 ---
 

@@ -25,47 +25,47 @@ test should be revised.
 ---
 nocite: "[@*]"
 references:
-- id: "item3-3"
+- id: item3-3
   issued: 1998/
-  type: "article-journal"
-- id: "item3-4"
+  type: article-journal
+- id: item3-4
   issued: 1999/
-  type: "article-journal"
-- id: "item3-10"
-  issued: "2004-04-05"
-  type: "article-journal"
-- id: "item5-1"
-  type: "article-journal"
-- id: "item5-2"
+  type: article-journal
+- id: item3-10
+  issued: 2004-04-05
+  type: article-journal
+- id: item5-1
+  type: article-journal
+- id: item5-2
   issued: "-0876"
-  type: "article-journal"
-- id: "item5-3"
+  type: article-journal
+- id: item5-3
   issued: "-0877/-0866"
-  type: "article-journal"
-- id: "item5-5"
+  type: article-journal
+- id: item5-5
   issued: "-0343-02"
-  type: "article-journal"
-- id: "item5-8"
+  type: article-journal
+- id: item5-8
   issued: 1723\~
-  type: "article-journal"
-- id: "item5-9"
+  type: article-journal
+- id: item5-9
   issued: 1723
-  type: "article-journal"
-- id: "item5-10"
+  type: article-journal
+- id: item5-10
   issued: 1723\~
-  type: "article-journal"
-- id: "item5-11"
-  issued: "2004-22"
-  type: "article-journal"
-- id: "item5-12"
-  issued: "2004-24"
-  type: "article-journal"
-- id: "item5-13"
+  type: article-journal
+- id: item5-11
+  issued: 2004-22
+  type: article-journal
+- id: item5-12
+  issued: 2004-24
+  type: article-journal
+- id: item5-13
   issued: 2000/2099
-  type: "article-journal"
-- id: "item5-14"
-  issued: "y-123456789"
-  type: "article-journal"
+  type: article-journal
+- id: item5-14
+  issued: y-123456789
+  type: article-journal
 ---
 
 

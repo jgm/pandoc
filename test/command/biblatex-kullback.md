@@ -41,8 +41,8 @@ references:
     given: Solomon
   id: kullback
   issued: 1959
-  language: "en-US"
-  publisher: "John Wiley & Sons"
+  language: en-US
+  publisher: John Wiley & Sons
   publisher-place: New York
   title: Information theory and statistics
   type: book

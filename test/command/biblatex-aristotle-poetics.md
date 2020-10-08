@@ -53,7 +53,7 @@ references:
   id: "aristotle:poetics"
   issued: 1968
   keyword: primary
-  language: "en-GB"
+  language: en-GB
   publisher: Clarendon Press
   publisher-place: Oxford
   title: Poetics

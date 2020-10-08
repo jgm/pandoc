@@ -55,9 +55,9 @@ NOTES:
 ---
 nocite: "[@*]"
 references:
-- annote: "An edition of Kant's *Collected Works*, volume five. This is
+- annote: An edition of Kant's *Collected Works*, volume five. This is
     an inbook entry which explicitly refers to the *Critique of
-    Judgment* only, not to the entire fifth volume"
+    Judgment* only, not to the entire fifth volume
   author:
   - family: Kant
     given: Immanuel
@@ -67,8 +67,8 @@ references:
   container-title: Kants Werke. Akademie Textausgabe
   id: "kant:ku"
   issued: 1968
-  language: "de-DE"
-  page: "165-485"
+  language: de-DE
+  page: 165-485
   publisher: Walter de Gruyter
   publisher-place: Berlin
   title: Kritik der Urtheilskraft

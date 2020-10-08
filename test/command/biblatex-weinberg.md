@@ -42,9 +42,9 @@ references:
   container-title: Phys. Rev. Lett.
   id: weinberg
   issued: 1967
-  page: "1264-1266"
+  page: 1264-1266
   title: A model of leptons
-  type: "article-journal"
+  type: article-journal
   volume: 19
 ---
 

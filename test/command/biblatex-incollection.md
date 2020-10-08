@@ -58,10 +58,10 @@
 ---
 nocite: "[@*]"
 references:
-- annote: "An incollection entry with a series and a number. Note the
+- annote: An incollection entry with a series and a number. Note the
     format of the printed name and compare the useprefix option in the
     options field as well as vangennep. Also note the indextitle, and
-    indexsorttitle fields"
+    indexsorttitle fields
   author:
   - dropping-particle: von
     family: Brandt
@@ -70,15 +70,15 @@ references:
     given: Erich
   collection-number: 2
   collection-title: Handbuch der europäischen Geschichte
-  container-title: "Europa im Hoch- und Spätmittelalter"
+  container-title: Europa im Hoch- und Spätmittelalter
   editor:
   - family: Seibt
     given: Ferdinand
   id: brandt
   issued: 1987
-  language: "de-DE"
-  page: "884-917"
-  publisher: "Klett-Cotta"
+  language: de-DE
+  page: 884-917
+  publisher: Klett-Cotta
   publisher-place: Stuttgart
   title: Die nordischen Länder von der Mitte des 11. Jahrhunderts bis
     1448
@@ -92,18 +92,18 @@ references:
   collection-title: Studies in philosophy and the history of philosophy
   container-title: Studies in Aristotle
   editor:
-  - family: "O'Meara"
+  - family: O'Meara
     given: Dominic J.
   id: hyman
   issued: 1981
   keyword: secondary
-  language: "en-US"
-  page: "161-191"
+  language: en-US
+  page: 161-191
   publisher: The Catholic University of America Press
-  publisher-place: "Washington, D.C."
-  title: "Aristotle's theory of the intellect and its interpretation by
-    Averroes"
-  title-short: "Aristotle's theory of the intellect"
+  publisher-place: Washington, D.C.
+  title: Aristotle's theory of the intellect and its interpretation by
+    Averroes
+  title-short: Aristotle's theory of the intellect
   type: chapter
 - annote: A typical incollection entry. Note the indextitle field
   author:
@@ -116,12 +116,12 @@ references:
   id: pines
   issued: 1979
   keyword: secondary
-  language: "en-US"
-  page: "82-109"
+  language: en-US
+  page: 82-109
   publisher: Harvard University Press
-  publisher-place: "Cambridge, Mass."
-  title: "The limitations of human knowledge according to Al-Farabi,
-    [ibn Bajja]{.nocase}, and Maimonides"
+  publisher-place: Cambridge, Mass.
+  title: The limitations of human knowledge according to Al-Farabi, [ibn
+    Bajja]{.nocase}, and Maimonides
   title-short: Limitations of human knowledge
   type: chapter
 ---

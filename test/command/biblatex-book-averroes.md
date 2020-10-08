@@ -69,7 +69,7 @@ references:
   id: averroes/bland
   issued: 1982
   keyword: primary
-  language: "en-US"
+  language: en-US
   publisher: Jewish Theological Seminary of America
   publisher-place: New York
   title: The epistle on the possibility of conjunction with the active
@@ -79,9 +79,9 @@ references:
   - family: Bland
     given: Kalman P.
   type: book
-- annote: "An annotated edition. Note the concatenation of the editor,
+- annote: An annotated edition. Note the concatenation of the editor,
     translator, and annotator fields. Also note the shorttitle,
-    indextitle, sorttitle, and indexsorttitle fields"
+    indextitle, sorttitle, and indexsorttitle fields
   author:
   - family: Averroes
   editor:
@@ -90,7 +90,7 @@ references:
   id: averroes/hannes
   issued: 1892
   keyword: primary
-  language: "de-DE"
+  language: de-DE
   publisher: C. A. Kaemmerer
   publisher-place: Halle an der Saale
   title: "Des Averroës Abhandlung: \"Über die Möglichkeit der
@@ -111,7 +111,7 @@ references:
   id: averroes/hercz
   issued: 1869
   keyword: primary
-  language: "de-DE"
+  language: de-DE
   publisher: S. Hermann
   publisher-place: Berlin
   title: "Drei Abhandlungen über die Conjunction des separaten

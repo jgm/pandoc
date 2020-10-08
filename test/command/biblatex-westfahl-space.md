@@ -66,9 +66,9 @@ science fiction*. Westport, Conn.; London: Greenwood.
 ---
 nocite: "[@*]"
 references:
-- annote: "A cross-referenced article from a collection. This is an
+- annote: A cross-referenced article from a collection. This is an
     incollection entry with a crossref field. Note the subtitle and
-    indextitle fields"
+    indextitle fields
   author:
   - family: Westfahl
     given: Gary
@@ -79,10 +79,10 @@ references:
     given: Gary
   id: "westfahl:space"
   issued: 2000
-  language: "en-US"
-  page: "55-65"
+  language: en-US
+  page: 55-65
   publisher: Greenwood
-  publisher-place: "Westport, Conn.; London"
+  publisher-place: Westport, Conn.; London
   title: "The true frontier: Confronting and avoiding the realities of
     space in American science fiction films"
   title-short: The true frontier
@@ -94,9 +94,9 @@ references:
     given: Gary
   id: "westfahl:frontier"
   issued: 2000
-  language: "en-US"
+  language: en-US
   publisher: Greenwood
-  publisher-place: "Westport, Conn.; London"
+  publisher-place: Westport, Conn.; London
   title: "Space and beyond: The frontier theme in science fiction"
   title-short: Space and beyond
   type: book

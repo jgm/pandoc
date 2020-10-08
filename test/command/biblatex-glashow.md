@@ -41,9 +41,9 @@ references:
   container-title: Nucl. Phys.
   id: glashow
   issued: 1961
-  page: "579-588"
+  page: 579-588
   title: Partial symmetries of weak interactions
-  type: "article-journal"
+  type: article-journal
   volume: 22
 ---
 

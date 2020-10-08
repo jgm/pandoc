@@ -72,14 +72,14 @@ references:
     given: W. Jackson
   id: coleridge
   issued: 1983
-  language: "en-GB"
+  language: en-GB
   publisher: Routledge and Kegan Paul
   publisher-place: London
   title: The collected works of Samuel Taylor Coleridge
   type: book
   volume: 7.2
-  volume-title: "Biographia literaria, or Biographical sketches of my
-    literary life and opinions"
+  volume-title: Biographia literaria, or Biographical sketches of my
+    literary life and opinions
 ---
 
 

@@ -54,11 +54,11 @@ references:
   id: bertram
   issue: 2
   issued: 1996
-  language: "en-US"
-  page: "529-571"
+  language: en-US
+  page: 529-571
   title: Gromov invariants for holomorphic maps on Riemann surfaces
   title-short: Gromov invariants
-  type: "article-journal"
+  type: article-journal
   volume: 9
 ---
 

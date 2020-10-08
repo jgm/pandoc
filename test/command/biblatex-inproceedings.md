@@ -40,9 +40,9 @@
 ---
 nocite: "[@*]"
 references:
-- annote: "This is a typical inproceedings entry. Note the booksubtitle,
+- annote: This is a typical inproceedings entry. Note the booksubtitle,
     shorttitle, indextitle, and indexsorttitle fields. Also note the
-    eventdate field."
+    eventdate field.
   author:
   - family: Moraux
     given: Paul
@@ -57,14 +57,14 @@ references:
   id: moraux
   issued: 1979
   keyword: secondary
-  language: "fr-FR"
-  page: "281-324"
+  language: fr-FR
+  page: 281-324
   publisher: Cambridge University Press
   publisher-place: Cambridge
   title: "Le *De Anima* dans la tradition grècque: Quelques aspects de
     l'interpretation du traité, de Theophraste à Themistius"
-  title-short: "*De Anima* dans la tradition grècque"
-  type: "paper-conference"
+  title-short: *De Anima* dans la tradition grècque
+  type: paper-conference
 - author:
   - family: Salam
     given: Abdus
@@ -73,15 +73,15 @@ references:
   editor:
   - family: Svartholm
     given: Nils
-  event-date: "1968-05-19/1968-05-25"
-  event-place: "Aspenäsgarden, Lerum"
+  event-date: 1968-05-19/1968-05-25
+  event-place: Aspenäsgarden, Lerum
   id: salam
   issued: 1968
-  page: "367-377"
-  publisher: "Almquist & Wiksell"
+  page: 367-377
+  publisher: Almquist & Wiksell
   publisher-place: Stockholm
   title: Weak and electromagnetic interactions
-  type: "paper-conference"
+  type: paper-conference
 ---
 
 

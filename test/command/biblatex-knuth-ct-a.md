@@ -54,21 +54,21 @@ NOTES:
 ---
 nocite: "[@*]"
 references:
-- annote: "The first volume of a five-volume book. Note the sorttitle
-    and sortyear fields. We want this volume to be listed after the
-    entry referring to the entire five-volume set. Also note the
-    indextitle and indexsorttitle fields. Indexing packages that don't
-    generate robust index entries require some control sequences to be
-    protected from expansion"
+- annote: The first volume of a five-volume book. Note the sorttitle and
+    sortyear fields. We want this volume to be listed after the entry
+    referring to the entire five-volume set. Also note the indextitle
+    and indexsorttitle fields. Indexing packages that don't generate
+    robust index entries require some control sequences to be protected
+    from expansion
   author:
   - family: Knuth
     given: Donald E.
   id: "knuth:ct:a"
   issued: 1984
-  language: "en-US"
-  publisher: "Addison-Wesley"
-  publisher-place: "Reading, Mass."
-  title: "Computers & typesetting"
+  language: en-US
+  publisher: Addison-Wesley
+  publisher-place: Reading, Mass.
+  title: Computers & typesetting
   type: book
   volume: A
   volume-title: The TeX book

@@ -43,9 +43,9 @@ Cotton, F. A., Wilkinson, G., Murillio, C. A., & Bochmann, M. (1999).
 ---
 nocite: "[@*]"
 references:
-- annote: "A book entry with author authors and an edition field. By
+- annote: A book entry with author authors and an edition field. By
     default, long author and editor lists are automatically truncated.
-    This is configurable"
+    This is configurable
   author:
   - family: Cotton
     given: Frank Albert
@@ -58,7 +58,7 @@ references:
   edition: 6
   id: cotton
   issued: 1999
-  language: "en-GB"
+  language: en-GB
   publisher: Wiley
   publisher-place: Chichester
   title: Advanced inorganic chemistry

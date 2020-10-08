@@ -51,7 +51,7 @@ references:
   id: "aristotle:anima"
   issued: 1907
   keyword: primary
-  language: "en-GB"
+  language: en-GB
   publisher: Cambridge University Press
   publisher-place: Cambridge
   title: De anima

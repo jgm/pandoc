@@ -67,10 +67,10 @@ references:
   id: aksin
   issue: 13
   issued: 2006
-  page: "3027-3036"
-  title: "Effect of immobilization on catalytic characteristics of
-    saturated Pd-N-heterocyclic carbenes in Mizoroki-Heck reactions"
-  type: "article-journal"
+  page: 3027-3036
+  title: Effect of immobilization on catalytic characteristics of
+    saturated Pd-N-heterocyclic carbenes in Mizoroki-Heck reactions
+  type: article-journal
   volume: 691
 ---
 

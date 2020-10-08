@@ -40,15 +40,15 @@ references:
   container-title: Journal
   id: item1
   issued: 2012
-  title: "Title, any entry type except online"
-  type: "article-journal"
+  title: Title, any entry type except online
+  type: article-journal
 - author:
   - family: Author
     given: Andy
   container-title: Journal
   id: item2
   issued: 2012
-  title: "Title, entry type online"
+  title: Title, entry type online
   type: webpage
   url: "http://foo.bar"
 ---

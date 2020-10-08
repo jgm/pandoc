@@ -27,7 +27,7 @@ references:
   collection-title: Series
   id: item1
   issued: 2013
-  language: "fr-FR"
+  language: fr-FR
   publisher: Publisher
   publisher-place: Location
   title: "Maintitle: Mainsubtitle. Maintitleaddon"

@@ -58,11 +58,10 @@ references:
   container-title: Publications of the English Goethe Society
   id: gillies
   issued: 1933
-  language: "en-GB"
-  page: "46-67"
-  title: "Herder and the preparation of Goethe's idea of world
-    literature"
-  type: "article-journal"
+  language: en-GB
+  page: 46-67
+  title: Herder and the preparation of Goethe's idea of world literature
+  type: article-journal
   volume: 9
 ---
 

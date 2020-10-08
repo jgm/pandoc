@@ -50,8 +50,8 @@ NOTES:
 ---
 nocite: "[@*]"
 references:
-- annote: "A multivolume book cited as a whole. This is a book entry
-    with volumes, note, sorttitle, and indextitle fields"
+- annote: A multivolume book cited as a whole. This is a book entry with
+    volumes, note, sorttitle, and indextitle fields
   author:
   - family: Vázques de Parga
     given: Luis
@@ -59,10 +59,10 @@ references:
     given: José María
   - family: Uría Ríu
     given: Juan
-  id: "vazques-de-parga"
+  id: vazques-de-parga
   issued: 1993
-  language: "es-ES"
-  note: "Ed. facs. de la realizada en 1948--49"
+  language: es-ES
+  note: Ed. facs. de la realizada en 1948--49
   number-of-volumes: 3
   publisher: Iberdrola
   publisher-place: Pamplona

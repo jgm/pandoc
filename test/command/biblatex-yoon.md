@@ -55,11 +55,11 @@ references:
   id: yoon
   issue: 10
   issued: 2006
-  page: "2409-2411"
+  page: 2409-2411
   title: "Palladium pincer complexes with reduced bond angle strain:
     Efficient catalysts for the Heck reaction"
   title-short: Palladium pincer complexes with reduced bond angle strain
-  type: "article-journal"
+  type: article-journal
   volume: 25
 ---
 

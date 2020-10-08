@@ -16,7 +16,7 @@ references:
   title: "The title: *Italics*, **bold**, ~subscript~, ^superscript^,
     [small-caps]{.smallcaps}"
   title-short: The title
-  type: "article-journal"
+  type: article-journal
 ---
 
 

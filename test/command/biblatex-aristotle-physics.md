@@ -46,7 +46,7 @@ references:
   id: "aristotle:physics"
   issued: 1929
   keyword: primary
-  language: "en-US"
+  language: en-US
   publisher: G. P. Putnam
   publisher-place: New York
   title: Physics

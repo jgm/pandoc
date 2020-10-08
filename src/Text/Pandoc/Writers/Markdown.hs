@@ -179,19 +179,26 @@ valToYaml (SimpleVal x)
   | otherwise =
       if hasNewlines x
          then hang 0 ("|" <> cr) x
-         else if any hasPunct x
+         else if fst $ foldr needsDoubleQuotes (False, True) x
            then "\"" <> fmap escapeInDoubleQuotes x <> "\""
            else x
     where
+      needsDoubleQuotes t (positive, isFirst)
+        = if T.any isBadAnywhere t ||
+             (isFirst && T.any isYamlPunct (T.take 1 t))
+              then (True, False)
+              else (positive, False)
+      isBadAnywhere '#' = True
+      isBadAnywhere ':' = True
+      isBadAnywhere '`' = False
+      isBadAnywhere _   = False
       hasNewlines NewLine = True
       hasNewlines BlankLines{} = True
       hasNewlines CarriageReturn = True
       hasNewlines (Concat w z) = hasNewlines w || hasNewlines z
       hasNewlines _ = False
-      hasPunct = T.any isYamlPunct
       isYamlPunct = (`elem` ['-','?',':',',','[',']','{','}',
-                             '#','&','*','!','|','>','\'','"',
-                             '%','@','`',',','[',']','{','}'])
+                             '#','&','*','!','|','>','\'','"', '%','@','`'])
       escapeInDoubleQuotes = T.replace "\"" "\\\"" . T.replace "\\" "\\\\"
 valToYaml _ = empty
 

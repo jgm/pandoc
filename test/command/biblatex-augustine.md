@@ -44,7 +44,7 @@ references:
     given: Robert L.
   id: augustine
   issued: 1995
-  language: "en-US"
+  language: en-US
   publisher: Marcel Dekker
   publisher-place: New York
   title: Heterogeneous catalysis for the synthetic chemist

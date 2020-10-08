@@ -46,17 +46,17 @@ NOTES:
 ---
 nocite: "[@*]"
 references:
-- annote: "The fifth volume of a five-volume book. Note the sorttitle
-    and sortyear fields"
+- annote: The fifth volume of a five-volume book. Note the sorttitle and
+    sortyear fields
   author:
   - family: Knuth
     given: Donald E.
   id: "knuth:ct:e"
   issued: 1986
-  language: "en-US"
-  publisher: "Addison-Wesley"
-  publisher-place: "Reading, Mass."
-  title: "Computers & typesetting"
+  language: en-US
+  publisher: Addison-Wesley
+  publisher-place: Reading, Mass.
+  title: Computers & typesetting
   type: book
   volume: E
   volume-title: Computer modern typefaces

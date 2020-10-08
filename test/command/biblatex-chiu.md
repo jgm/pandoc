@@ -65,8 +65,8 @@ references:
   genre: research report
   id: chiu
   issued: 1978
-  language: "en-US"
-  number: "RC-6947"
+  language: en-US
+  number: RC-6947
   publisher: IBM
   title: A hybrid hierarchical model of a multiple virtual storage (MVS)
     operating system

@@ -59,10 +59,10 @@ references:
   id: herrmann
   issue: 23
   issued: 2006
-  page: "3859-3862"
-  title: "A carbocyclic carbene as an efficient catalyst ligand for C--C
-    coupling reactions"
-  type: "article-journal"
+  page: 3859-3862
+  title: A carbocyclic carbene as an efficient catalyst ligand for C--C
+    coupling reactions
+  type: article-journal
   volume: 45
 ---
 
