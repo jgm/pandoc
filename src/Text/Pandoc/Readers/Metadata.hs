@@ -42,13 +42,13 @@ yamlBsToMeta pMetaValue bstr = do
        Right [] -> return . return $ mempty
        Right [YAML.Doc (YAML.Scalar _ YAML.SNull)]
                 -> return . return $ mempty
-       Right _  -> fail "expected YAML object"
+       Right _  -> Prelude.fail "expected YAML object"
        Left (yamlpos, err')
                 -> do pos <- getPosition
                       setPosition $ incSourceLine
                             (setSourceColumn pos (YE.posColumn yamlpos))
                             (YE.posLine yamlpos - 1)
-                      fail err'
+                      Prelude.fail err'
 
 fakePos :: YAML.Pos
 fakePos = YAML.Pos (-1) (-1) 1 0
@@ -87,16 +87,16 @@ yamlBsToRefs pMetaValue idpred bstr =
                        sequence <$>
                          mapM (yamlToMetaValue pMetaValue) (filter g ns)
                      Just _ ->
-                       fail "expecting sequence in 'references' field"
+                       Prelude.fail "expecting sequence in 'references' field"
                      Nothing ->
-                       fail "expecting 'references' field"
+                       Prelude.fail "expecting 'references' field"
 
        Right [] -> return . return $ mempty
        Right [YAML.Doc (YAML.Scalar _ YAML.SNull)]
                 -> return . return $ mempty
-       Right _  -> fail "expecting YAML object"
+       Right _  -> Prelude.fail "expecting YAML object"
        Left (_pos, err')
-                -> fail err'
+                -> Prelude.fail err'
 
 
 nodeToKey :: YAML.Node YE.Pos -> Maybe Text
