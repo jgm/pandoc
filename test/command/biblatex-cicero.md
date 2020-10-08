@@ -53,27 +53,27 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'A bilingual edition of Cicero''s *De natura deorum*, with a
+- annote: "A bilingual edition of Cicero's *De natura deorum*, with a
     German translation. Note the format of the language field in the
     database file, the concatenation of the editor and translator
-    fields, and the afterword field'
+    fields, and the afterword field"
   author:
   - family: Cicero
     given: Marcus Tullius
   editor:
-  - family: 'Blank-Sangmeister'
+  - family: "Blank-Sangmeister"
     given: Ursula
   id: cicero
   issued: 1995
-  language: 'de-DE'
+  language: "de-DE"
   publisher: Reclam
   publisher-place: Stuttgart
   title: De natura deorum. Über das Wesen der Götter
   title-short: De natura deorum
   translator:
-  - family: 'Blank-Sangmeister'
+  - family: "Blank-Sangmeister"
     given: Ursula
   type: book
 ---

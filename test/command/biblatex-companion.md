@@ -42,11 +42,11 @@ companion* (1st ed.). Reading, Mass.: Addison-Wesley.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'A book with three authors. Note the formatting of the author
+- annote: "A book with three authors. Note the formatting of the author
     list. By default, only the first name is reversed in the
-    bibliography'
+    bibliography"
   author:
   - family: Goossens
     given: Michel
@@ -57,10 +57,10 @@ references:
   edition: 1
   id: companion
   issued: 1994
-  language: 'en-US'
+  language: "en-US"
   number-of-pages: 528
-  publisher: 'Addison-Wesley'
-  publisher-place: 'Reading, Mass.'
+  publisher: "Addison-Wesley"
+  publisher-place: "Reading, Mass."
   title: The LaTeX companion
   title-short: LaTeX companion
   type: book

@@ -40,34 +40,34 @@ CSL “container-title-short” could also be set
 }
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - id: item4
-  title: 'The title: With a colon in the "title" field: And a subtitle,
-    in two separate fields; plus a separate "shorttitle" field'
+  title: "The title: With a colon in the \"title\" field: And a subtitle,
+    in two separate fields; plus a separate \"shorttitle\" field"
   title-short: The shorttitle
   type: book
 - id: item3
-  title: 'The title: With a colon in the "title" field: And a subtitle,
-    in two separate fields'
+  title: "The title: With a colon in the \"title\" field: And a subtitle,
+    in two separate fields"
   title-short: The title
   type: book
 - id: item2
-  title: 'The title: The subtitle, in two separate fields'
+  title: "The title: The subtitle, in two separate fields"
   title-short: The title
   type: book
 - id: item1
-  title: 'The title: And the subtitle, all in the "title" field'
+  title: "The title: And the subtitle, all in the \"title\" field"
   title-short: The title
   type: book
-- container-title: 'The title: And the subtitle, all in the "title"
-    field'
+- container-title: "The title: And the subtitle, all in the \"title\"
+    field"
   id: item5
-  title: 'The inbook title: And the subtitle, all in the "title" field'
+  title: "The inbook title: And the subtitle, all in the \"title\" field"
   title-short: The inbook title
   type: chapter
 - id: item6
-  title: 'The title: And the subtitle, all in the "title" field'
+  title: "The title: And the subtitle, all in the \"title\" field"
   title-short: The shorttitle
   type: book
 ---

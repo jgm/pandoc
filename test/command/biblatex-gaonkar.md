@@ -38,7 +38,7 @@ Duke University Press.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: This is a collection entry. Note the format of the location
     field in the database file as well as the isbn field
@@ -46,9 +46,9 @@ references:
   - family: Gaonkar
     given: Dilip Parameshwar
   id: gaonkar
-  isbn: '0-822-32714-7'
+  isbn: "0-822-32714-7"
   issued: 2001
-  language: 'en-US'
+  language: "en-US"
   publisher: Duke University Press
   publisher-place: Durham; London
   title: Alternative modernities

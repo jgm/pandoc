@@ -44,20 +44,20 @@ NOTES:
 }
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: This is a typical thesis entry for an MA thesis. Note the type
     field in the database file which uses a localization key
   author:
   - family: Loh
     given: Nin C.
-  genre: 'Master''s thesis'
+  genre: "Master's thesis"
   id: loh
   issued: 1992
-  language: 'en-US'
+  language: "en-US"
   publisher: Massachusetts Institute of Technology
-  publisher-place: 'Cambridge, Mass.'
-  title: 'High-resolution micromachined interferometric accelerometer'
+  publisher-place: "Cambridge, Mass."
+  title: "High-resolution micromachined interferometric accelerometer"
   type: thesis
 ---
 

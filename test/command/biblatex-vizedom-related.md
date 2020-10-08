@@ -46,13 +46,13 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: A translated work from vangennep. Note the format of the
     related and relatedtype fields
-  id: 'vizedom:related'
+  id: "vizedom:related"
   issued: 1960
-  language: 'en-US'
+  language: "en-US"
   publisher: University of Chicago Press
   title: The rites of passage
   title-short: Rites of passage

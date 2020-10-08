@@ -40,7 +40,7 @@ University Press.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: A book entry with an author and an editor
   author:
@@ -48,10 +48,10 @@ references:
   editor:
   - family: Hicks
     given: Robert Drew
-  id: 'aristotle:anima'
+  id: "aristotle:anima"
   issued: 1907
   keyword: primary
-  language: 'en-GB'
+  language: "en-GB"
   publisher: Cambridge University Press
   publisher-place: Cambridge
   title: De anima

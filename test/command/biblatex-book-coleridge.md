@@ -25,7 +25,7 @@ Combine biblatex “volume = 7” and “part = 2” to CSL “volume: 7.2”
 	Volume = 7}
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: One (partial) volume of a multivolume book. This is a book
     entry with a volume and a part field which explicitly refers to the
@@ -45,14 +45,14 @@ references:
     given: W. Jackson
   id: coleridge
   issued: 1983
-  language: 'en-GB'
+  language: "en-GB"
   publisher: Routledge and Kegan Paul
   publisher-place: London
   title: The collected works of Samuel Taylor Coleridge
   type: book
   volume: 7.2
-  volume-title: 'Biographia literaria, or Biographical sketches of my
-    literary life and opinions'
+  volume-title: "Biographia literaria, or Biographical sketches of my
+    literary life and opinions"
 ---
 
 

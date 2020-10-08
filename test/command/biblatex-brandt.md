@@ -54,12 +54,12 @@ und Spätmittelalter* (pp. 884–917). Stuttgart: Klett-Cotta.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'An incollection entry with a series and a number. Note the
+- annote: "An incollection entry with a series and a number. Note the
     format of the printed name and compare the useprefix option in the
     options field as well as vangennep. Also note the indextitle, and
-    indexsorttitle fields'
+    indexsorttitle fields"
   author:
   - dropping-particle: von
     family: Brandt
@@ -68,15 +68,15 @@ references:
     given: Erich
   collection-number: 2
   collection-title: Handbuch der europäischen Geschichte
-  container-title: 'Europa im Hoch- und Spätmittelalter'
+  container-title: "Europa im Hoch- und Spätmittelalter"
   editor:
   - family: Seibt
     given: Ferdinand
   id: brandt
   issued: 1987
-  language: 'de-DE'
-  page: '884-917'
-  publisher: 'Klett-Cotta'
+  language: "de-DE"
+  page: "884-917"
+  publisher: "Klett-Cotta"
   publisher-place: Stuttgart
   title: Die nordischen Länder von der Mitte des 11. Jahrhunderts bis
     1448

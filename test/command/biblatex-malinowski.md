@@ -43,7 +43,7 @@ Guinea* (8th ed.). London: Routledge and Kegan Paul.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: This is a book entry. Note the format of the publisher and
     edition fields as well as the subtitle field
@@ -53,12 +53,12 @@ references:
   edition: 8
   id: malinowski
   issued: 1972
-  language: 'en-GB'
+  language: "en-GB"
   publisher: Routledge and Kegan Paul
   publisher-place: London
-  title: 'Argonauts of the Western Pacific: An account of native
+  title: "Argonauts of the Western Pacific: An account of native
     enterprise and adventure in the [Archipelagoes of Melanesian New
-    Guinea]{.nocase}'
+    Guinea]{.nocase}"
   title-short: Argonauts
   type: book
 ---

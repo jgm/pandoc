@@ -40,7 +40,7 @@ for automatic capturing of the font outlines. *Computers and Graphics*,
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: An article entry with an issn field
   author:
@@ -50,14 +50,14 @@ references:
     given: M. F. A.
   container-title: Computers and Graphics
   id: sarfraz
-  issn: '0097-8493'
+  issn: "0097-8493"
   issue: 5
   issued: 2002
-  page: '795-804'
-  title: 'Technical section: An algorithm for automatic capturing of the
-    font outlines'
+  page: "795-804"
+  title: "Technical section: An algorithm for automatic capturing of the
+    font outlines"
   title-short: Technical section
-  type: 'article-journal'
+  type: "article-journal"
   volume: 26
 ---
 

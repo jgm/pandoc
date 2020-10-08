@@ -55,7 +55,7 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: A book entry. Note the concatenation of the editor and
     translator fields as well as the indextitle and indexsorttitle
@@ -65,15 +65,15 @@ references:
   editor:
   - family: Hercz
     given: J.
-  id: 'averroes-hercz'
+  id: "averroes-hercz"
   issued: 1869
   keyword: primary
-  language: 'de-DE'
+  language: "de-DE"
   publisher: S. Hermann
   publisher-place: Berlin
-  title: 'Drei Abhandlungen über die Conjunction des separaten
+  title: "Drei Abhandlungen über die Conjunction des separaten
     Intellects mit dem Menschen: Von Averroes (Vater und Sohn), aus dem
-    Arabischen übersetzt von Samuel Ibn Tibbon'
+    Arabischen übersetzt von Samuel Ibn Tibbon"
   title-short: Drei Abhandlungen
   translator:
   - family: Hercz

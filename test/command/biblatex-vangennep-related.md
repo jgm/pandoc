@@ -47,7 +47,7 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: A variant of the vangennep entry related to its translation.
     Note the format of the related and relatedtype fields
@@ -55,9 +55,9 @@ references:
   - family: Gennep
     given: Arnold
     non-dropping-particle: van
-  id: 'vangennep:related'
+  id: "vangennep:related"
   issued: 1909
-  language: 'fr-FR'
+  language: "fr-FR"
   publisher: Nourry
   publisher-place: Paris
   title: Les rites de passage

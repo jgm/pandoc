@@ -57,14 +57,14 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'The critical edition of Nietzsche''s works. This is a book
+- annote: "The critical edition of Nietzsche's works. This is a book
     entry referring to a 15-volume work as a whole. Note the volumes
     field and the format of the publisher and location fields in the
     database file. Also note the sorttitle and sortyear fields which are
     used to fine-tune the sorting order of the bibliography. We want
-    this item listed first in the bibliography'
+    this item listed first in the bibliography"
   author:
   - family: Nietzsche
     given: Friedrich
@@ -74,13 +74,13 @@ references:
     given: Giorgio
   - family: Montinari
     given: Mazzino
-  id: 'nietzsche:ksa'
+  id: "nietzsche:ksa"
   issued: 1988
-  language: 'de-DE'
+  language: "de-DE"
   number-of-volumes: 15
-  publisher: 'Deutscher Taschenbuch-Verlag; Walter de Gruyter'
+  publisher: "Deutscher Taschenbuch-Verlag; Walter de Gruyter"
   publisher-place: München; Berlin; New York
-  title: 'Sämtliche Werke: Kritische Studienausgabe'
+  title: "Sämtliche Werke: Kritische Studienausgabe"
   title-short: Sämtliche Werke
   type: book
 ---

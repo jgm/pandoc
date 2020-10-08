@@ -48,23 +48,23 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'The fourth volume of a five-volume book. Note the sorttitle
-    and sortyear fields'
+- annote: "The fourth volume of a five-volume book. Note the sorttitle
+    and sortyear fields"
   author:
   - family: Knuth
     given: Donald E.
-  id: 'knuth:ct:d'
+  id: "knuth:ct:d"
   issued: 1986
-  language: 'en-US'
-  publisher: 'Addison-Wesley'
-  publisher-place: 'Reading, Mass.'
-  title: 'Computers & typesetting'
+  language: "en-US"
+  publisher: "Addison-Wesley"
+  publisher-place: "Reading, Mass."
+  title: "Computers & typesetting"
   title-short: METAFONT
   type: book
   volume: D
-  volume-title: 'METAFONT: The program'
+  volume-title: "METAFONT: The program"
 ---
 
 

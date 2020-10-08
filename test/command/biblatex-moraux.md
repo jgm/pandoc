@@ -61,11 +61,11 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'This is a typical inproceedings entry. Note the booksubtitle,
+- annote: "This is a typical inproceedings entry. Note the booksubtitle,
     shorttitle, indextitle, and indexsorttitle fields. Also note the
-    eventdate field.'
+    eventdate field."
   author:
   - family: Moraux
     given: Paul
@@ -80,14 +80,14 @@ references:
   id: moraux
   issued: 1979
   keyword: secondary
-  language: 'fr-FR'
-  page: '281-324'
+  language: "fr-FR"
+  page: "281-324"
   publisher: Cambridge University Press
   publisher-place: Cambridge
-  title: 'Le *De Anima* dans la tradition grècque: Quelques aspects de
-    l''interpretation du traité, de Theophraste à Themistius'
-  title-short: '*De Anima* dans la tradition grècque'
-  type: 'paper-conference'
+  title: "Le *De Anima* dans la tradition grècque: Quelques aspects de
+    l'interpretation du traité, de Theophraste à Themistius"
+  title-short: "*De Anima* dans la tradition grècque"
+  type: "paper-conference"
 ---
 
 

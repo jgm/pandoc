@@ -53,7 +53,7 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: A book entry with a series and a number. Note the
     concatenation of the editor and translator fields as well as the
@@ -61,15 +61,15 @@ references:
   author:
   - family: Averroes
   collection-number: 7
-  collection-title: 'Moreshet: Studies in Jewish history, literature and
-    thought'
+  collection-title: "Moreshet: Studies in Jewish history, literature and
+    thought"
   editor:
   - family: Bland
     given: Kalman P.
-  id: 'averroes-bland'
+  id: "averroes-bland"
   issued: 1982
   keyword: primary
-  language: 'en-US'
+  language: "en-US"
   publisher: Jewish Theological Seminary of America
   publisher-place: New York
   title: The epistle on the possibility of conjunction with the active

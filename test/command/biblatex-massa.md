@@ -36,7 +36,7 @@ Spinger.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: A book entry with an edition field
   author:
@@ -45,7 +45,7 @@ references:
   edition: 2
   id: massa
   issued: 2004
-  language: 'en-GB'
+  language: "en-GB"
   publisher: Spinger
   publisher-place: Berlin
   title: Crystal structure determination

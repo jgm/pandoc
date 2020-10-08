@@ -36,7 +36,7 @@ Moore, G. E. (1965). Cramming more components onto integrated circuits.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - author:
   - family: Moore
@@ -45,10 +45,10 @@ references:
   id: moore
   issue: 8
   issued: 1965
-  language: 'en-US'
-  page: '114-117'
+  language: "en-US"
+  page: "114-117"
   title: Cramming more components onto integrated circuits
-  type: 'article-journal'
+  type: "article-journal"
   volume: 38
 ---
 

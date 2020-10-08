@@ -45,17 +45,17 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'An English translation of a German novel with a French title.
+- annote: "An English translation of a German novel with a French title.
     In other words: a book entry with a translator field. Note the
-    origlanguage field which is concatenated with the translator'
+    origlanguage field which is concatenated with the translator"
   author:
   - family: Maron
     given: Monika
   id: maron
   issued: 2000
-  language: 'en-US'
+  language: "en-US"
   publisher: University of Nebraska Press
   publisher-place: Lincoln
   title: Animal triste

@@ -43,12 +43,12 @@ l’utilisant. French patent request.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'This is a patent entry for a French patent request with a
+- annote: "This is a patent entry for a French patent request with a
     full date. The number is given in the number field. Note the format
     of the type and date fields in the database file. Compare almendro,
-    laufenberg, and sorace'
+    laufenberg, and sorace"
   author:
   - family: Kowalik
     given: F.
@@ -56,11 +56,11 @@ references:
     given: M.
   genre: French patent request
   id: kowalik
-  issued: '1995-01-11'
-  language: 'fr-FR'
+  issued: "1995-01-11"
+  language: "fr-FR"
   number: 9500261
-  title: 'Estimateur d''un défaut de fonctionnement d''un modulateur en
-    quadrature et étage de modulation l''utilisant'
+  title: "Estimateur d'un défaut de fonctionnement d'un modulateur en
+    quadrature et étage de modulation l'utilisant"
   type: patent
 ---
 

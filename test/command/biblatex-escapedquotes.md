@@ -17,7 +17,7 @@
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - author:
   - family: Koff
@@ -41,10 +41,10 @@ references:
   - family: Volkening
     given: Andrew
   container-title: Journal of digital imaging
-  id: 'Koff2009-gn'
-  title: 'Pan-canadian evaluation of irreversible compression ratios
-    (\"lossy\" compression) for development of national guidelines'
-  type: 'article-journal'
+  id: "Koff2009-gn"
+  title: "Pan-canadian evaluation of irreversible compression ratios
+    (\\\"lossy\\\" compression) for development of national guidelines"
+  type: "article-journal"
 ---
 
 

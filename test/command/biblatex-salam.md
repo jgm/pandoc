@@ -44,25 +44,25 @@ Almquist & Wiksell.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - author:
   - family: Salam
     given: Abdus
-  container-title: 'Elementary particle theory: Relativistic groups and
-    analyticity. Proceedings of the eighth Nobel symposium'
+  container-title: "Elementary particle theory: Relativistic groups and
+    analyticity. Proceedings of the eighth Nobel symposium"
   editor:
   - family: Svartholm
     given: Nils
-  event-date: '1968-05-19/1968-05-25'
-  event-place: 'Aspenäsgarden, Lerum'
+  event-date: "1968-05-19/1968-05-25"
+  event-place: "Aspenäsgarden, Lerum"
   id: salam
   issued: 1968
-  page: '367-377'
-  publisher: 'Almquist & Wiksell'
+  page: "367-377"
+  publisher: "Almquist & Wiksell"
   publisher-place: Stockholm
   title: Weak and electromagnetic interactions
-  type: 'paper-conference'
+  type: "paper-conference"
 ---
 
 

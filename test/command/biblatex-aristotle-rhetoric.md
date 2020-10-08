@@ -54,20 +54,20 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'A commented edition. Note the concatenation of the editor and
+- annote: "A commented edition. Note the concatenation of the editor and
     commentator fields as well as the volumes, sorttitle, and indextitle
-    fields'
+    fields"
   author:
   - family: Aristotle
   editor:
   - family: Cope
     given: Edward Meredith
-  id: 'aristotle:rhetoric'
+  id: "aristotle:rhetoric"
   issued: 1877
   keyword: primary
-  language: 'en-GB'
+  language: "en-GB"
   number-of-volumes: 3
   publisher: Cambridge University Press
   title: The rhetoric of Aristotle with a commentary by the late Edward

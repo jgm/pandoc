@@ -44,7 +44,7 @@ Uppsala Universitet, Uppsala.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: This is a typical thesis entry for a PhD thesis. Note the type
     field in the database file which uses a localization key. Also note
@@ -57,12 +57,12 @@ references:
   genre: PhD thesis
   id: geer
   issued: 1985
-  language: 'en-GB'
+  language: "en-GB"
   publisher: Uppsala Universitet
   publisher-place: Uppsala
-  title: 'Earl, saint, bishop, skald -- and music: The Orkney earldom of
-    the twelfth century. A musicological study'
-  title-short: 'Earl, saint, bishop, skald -- and music'
+  title: "Earl, saint, bishop, skald -- and music: The Orkney earldom of
+    the twelfth century. A musicological study"
+  title-short: "Earl, saint, bishop, skald -- and music"
   type: thesis
 ---
 

@@ -41,7 +41,7 @@ Oxford: International Union of Crystallography; Oxford University Press.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: A book entry. Note the sorttitle and indextitle fields as well
     as the format of the publisher field
@@ -50,7 +50,7 @@ references:
     given: Christopher
   id: hammond
   issued: 1997
-  language: 'en-GB'
+  language: "en-GB"
   publisher: International Union of Crystallography; Oxford University
     Press
   publisher-place: Oxford

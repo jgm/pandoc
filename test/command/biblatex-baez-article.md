@@ -48,26 +48,26 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'An article with eprint and eprinttype fields. Note that the
+- annote: "An article with eprint and eprinttype fields. Note that the
     arXiv reference is transformed into a clickable link if hyperref
     support has been enabled. Compare baez/online, which is the same
-    item given as an online entry'
+    item given as an online entry"
   author:
   - family: Baez
     given: John C.
   - family: Lauda
     given: Aaron D.
   container-title: Theory and Applications of Categories
-  id: 'baez-article'
+  id: "baez-article"
   issued: 2004
-  language: 'en-US'
-  page: '423-491'
-  title: 'Higher-dimensional algebra V: 2-groups'
-  title-short: 'Higher-dimensional algebra V'
-  type: 'article-journal'
-  url: 'http://arxiv.org/abs/math/0307200v3'
+  language: "en-US"
+  page: "423-491"
+  title: "Higher-dimensional algebra V: 2-groups"
+  title-short: "Higher-dimensional algebra V"
+  type: "article-journal"
+  url: "http://arxiv.org/abs/math/0307200v3"
   version: 3
   volume: 12
 ---

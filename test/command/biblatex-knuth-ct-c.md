@@ -47,19 +47,19 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'The third volume of a five-volume book. Note the sorttitle
-    and sortyear fields as well as the indextitle field'
+- annote: "The third volume of a five-volume book. Note the sorttitle
+    and sortyear fields as well as the indextitle field"
   author:
   - family: Knuth
     given: Donald E.
-  id: 'knuth:ct:c'
+  id: "knuth:ct:c"
   issued: 1986
-  language: 'en-US'
-  publisher: 'Addison-Wesley'
-  publisher-place: 'Reading, Mass.'
-  title: 'Computers & typesetting'
+  language: "en-US"
+  publisher: "Addison-Wesley"
+  publisher-place: "Reading, Mass."
+  title: "Computers & typesetting"
   type: book
   volume: C
   volume-title: The METAFONTbook

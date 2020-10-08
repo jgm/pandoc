@@ -45,20 +45,20 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'A five-volume book cited as a whole. This is a book entry,
-    note the volumes field'
+- annote: "A five-volume book cited as a whole. This is a book entry,
+    note the volumes field"
   author:
   - family: Knuth
     given: Donald E.
-  id: 'knuth:ct'
+  id: "knuth:ct"
   issued: 1984/1986
-  language: 'en-US'
+  language: "en-US"
   number-of-volumes: 5
-  publisher: 'Addison-Wesley'
-  publisher-place: 'Reading, Mass.'
-  title: 'Computers & typesetting'
+  publisher: "Addison-Wesley"
+  publisher-place: "Reading, Mass."
+  title: "Computers & typesetting"
   type: book
 ---
 

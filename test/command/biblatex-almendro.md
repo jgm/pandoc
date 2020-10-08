@@ -44,11 +44,11 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'This is a patent entry with a location field. The number is
+- annote: "This is a patent entry with a location field. The number is
     given in the number field. Note the format of the location field in
-    the database file. Compare laufenberg, sorace, and kowalik'
+    the database file. Compare laufenberg, sorace, and kowalik"
   author:
   - family: Almendro
     given: José L.
@@ -61,8 +61,8 @@ references:
   id: almendro
   issued: 1998
   jurisdiction: France; United Kingdom; Germany
-  language: 'de-DE'
-  number: 'EU-29702195U'
+  language: "de-DE"
+  number: "EU-29702195U"
   title: Elektromagnetisches Signalhorn
   type: patent
 ---

@@ -39,7 +39,7 @@ University Press.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - author:
   - family: Gaonkar
@@ -48,10 +48,10 @@ references:
   editor:
   - family: Gaonkar
     given: Dilip Parameshwar
-  id: 'gaonkar:in'
-  isbn: '0-822-32714-7'
+  id: "gaonkar:in"
+  isbn: "0-822-32714-7"
   issued: 2001
-  page: '1-23'
+  page: "1-23"
   publisher: Duke University Press
   publisher-place: Durham; London
   title: On alternative modernities

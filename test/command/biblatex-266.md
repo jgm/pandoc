@@ -10,7 +10,7 @@
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - author:
   - dropping-particle: von
@@ -24,7 +24,7 @@ references:
     given: Albrecht
   id: goethe2005
   issued: 2005
-  language: 'de-DE'
+  language: "de-DE"
   publisher-place: Frankfurt am Main
   title: Not A Real Book
   type: book

@@ -51,22 +51,22 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- accessed: '2006-10-01'
-  annote: 'This is an online entry. The [url]{.smallcaps}, which is
+- accessed: "2006-10-01"
+  annote: "This is an online entry. The [url]{.smallcaps}, which is
     given in the url field, is transformed into a clickable link if
     hyperref support has been enabled. Note the format of the urldate
     field (yyyy-mm-dd) in the database file. Also note the label field
     which may be used as a fallback by citation styles which need an
-    author and/or a year'
+    author and/or a year"
   id: ctan
   issued: 2006
-  language: 'en-US'
-  title: 'CTAN: The Comprehensive TeX Archive Network'
+  language: "en-US"
+  title: "CTAN: The Comprehensive TeX Archive Network"
   title-short: CTAN
   type: webpage
-  url: 'http://www.ctan.org'
+  url: "http://www.ctan.org"
 ---
 
 

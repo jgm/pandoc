@@ -54,7 +54,7 @@ and a {camelCase} Word and Some Units, 400~{nm}, 3~{cm}, and a Quote,
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - author:
   - family: Author
@@ -62,11 +62,11 @@ references:
   container-title: Journal
   id: item1
   issued: 2013
-  language: 'en-US'
-  title: 'A title, in English, with a Proper Name and an ACRONYM and a
+  language: "en-US"
+  title: "A title, in English, with a Proper Name and an ACRONYM and a
     [camelCase]{.nocase} word and some units, 400 [nm]{.nocase},
-    3 [cm]{.nocase}, and a quote, *Alea [iacta est]{.nocase}*'
-  type: 'article-journal'
+    3 [cm]{.nocase}, and a quote, *Alea [iacta est]{.nocase}*"
+  type: "article-journal"
 ---
 
 

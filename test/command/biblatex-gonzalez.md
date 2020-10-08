@@ -39,18 +39,18 @@ Tucson: The University of Arizona Press.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'A collection of short stories. This is a book entry. Note the
-    sorttitle and indextitle fields in the database file. There''s also
-    an isbn field'
+- annote: "A collection of short stories. This is a book entry. Note the
+    sorttitle and indextitle fields in the database file. There's also
+    an isbn field"
   author:
   - family: Gonzalez
     given: Ray
   id: gonzalez
-  isbn: '0-816-52066-6'
+  isbn: "0-816-52066-6"
   issued: 2001
-  language: 'en-US'
+  language: "en-US"
   publisher: The University of Arizona Press
   publisher-place: Tucson
   title: The ghost of John Wayne and other stories

@@ -180,7 +180,7 @@ valToYaml (SimpleVal x)
       if hasNewlines x
          then hang 0 ("|" <> cr) x
          else if any hasPunct x
-           then "'" <> fmap escapeSingleQuotes x <> "'"
+           then "\"" <> fmap escapeInDoubleQuotes x <> "\""
            else x
     where
       hasNewlines NewLine = True
@@ -192,7 +192,7 @@ valToYaml (SimpleVal x)
       isYamlPunct = (`elem` ['-','?',':',',','[',']','{','}',
                              '#','&','*','!','|','>','\'','"',
                              '%','@','`',',','[',']','{','}'])
-      escapeSingleQuotes = T.replace "'" "''"
+      escapeInDoubleQuotes = T.replace "\"" "\\\"" . T.replace "\\" "\\\\"
 valToYaml _ = empty
 
 -- | Return markdown representation of document.

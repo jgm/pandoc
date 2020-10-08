@@ -21,23 +21,23 @@
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - author:
   - family: Author
     given: Al
   collection-number: 3
   collection-title: Series
-  container-title: 'Maintitle: Mainsubtitle. Maintitleaddon'
+  container-title: "Maintitle: Mainsubtitle. Maintitleaddon"
   id: item1
   issued: 2011
-  language: 'fr-FR'
+  language: "fr-FR"
   publisher: Publisher
   publisher-place: Location
-  title: 'Title of the "inbook" Entry: Subtitle. Titleaddon'
+  title: "Title of the \"inbook\" Entry: Subtitle. Titleaddon"
   type: chapter
   volume: 4
-  volume-title: 'Booktitle: Booksubtitle. Booktitleaddon'
+  volume-title: "Booktitle: Booksubtitle. Booktitleaddon"
 ---
 
 

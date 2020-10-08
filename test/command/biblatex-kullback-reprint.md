@@ -48,7 +48,7 @@ York: Dover Publications.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: A reprint of the kullback entry. Note the format of origyear
     and origpublisher. These fields are not used by the standard
@@ -56,11 +56,11 @@ references:
   author:
   - family: Kullback
     given: Solomon
-  id: 'kullback:reprint'
+  id: "kullback:reprint"
   issued: 1997
-  language: 'en-US'
+  language: "en-US"
   original-date: 1959
-  original-publisher: 'John Wiley & Sons'
+  original-publisher: "John Wiley & Sons"
   publisher: Dover Publications
   publisher-place: New York
   title: Information theory and statistics

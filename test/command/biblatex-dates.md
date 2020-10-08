@@ -80,82 +80,82 @@
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - author:
   - family: Author
     given: Al
   container-title: Journal
-  id: 'year-month-old'
-  issued: '1999-08'
-  title: 'Year and month, bibtex style, supported by biblatex for
-    backwards compatibility'
-  type: 'article-journal'
+  id: "year-month-old"
+  issued: "1999-08"
+  title: "Year and month, bibtex style, supported by biblatex for
+    backwards compatibility"
+  type: "article-journal"
 - author:
   - family: Author
     given: Al
   container-title: Journal
-  id: 'year-month-new'
-  issued: '1999-08'
-  title: 'Year and month, biblatex style; note that biblatex does not
-    have a "day" field'
-  type: 'article-journal'
-- accessed: '1999-05-23'
+  id: "year-month-new"
+  issued: "1999-08"
+  title: "Year and month, biblatex style; note that biblatex does not
+    have a \"day\" field"
+  type: "article-journal"
+- accessed: "1999-05-23"
   author:
   - family: Author
     given: Al
   container-title: Journal
-  event-date: '2011-10-03'
+  event-date: "2011-10-03"
   id: dates
-  issued: '2012-12-13'
-  original-date: '1888-10-01'
-  title: 'Dates, default biblatex style; year, month to be ignored if
-    date exists'
-  type: 'article-journal'
-- accessed: '2012-10-12/2013-01-31'
+  issued: "2012-12-13"
+  original-date: "1888-10-01"
+  title: "Dates, default biblatex style; year, month to be ignored if
+    date exists"
+  type: "article-journal"
+- accessed: "2012-10-12/2013-01-31"
   author:
   - family: Author
     given: Al
   container-title: Journal
-  event-date: '1999-12/2000-01'
-  id: 'date-ranges-different-years'
-  issued: '1999-10-14/2010-01-23'
-  original-date: '1888-01-02/1913-12-13'
+  event-date: "1999-12/2000-01"
+  id: "date-ranges-different-years"
+  issued: "1999-10-14/2010-01-23"
+  original-date: "1888-01-02/1913-12-13"
   title: Date ranges; different years
-  type: 'article-journal'
-- accessed: '2012-10-31/2012-11-01'
+  type: "article-journal"
+- accessed: "2012-10-31/2012-11-01"
   author:
   - family: Author
     given: Al
   container-title: Journal
-  event-date: '1999-10/1999-11'
-  id: 'date-ranges-same-year'
-  issued: '1999-10-14/1999-10-15'
-  original-date: '1888-01-02/1888-12-13'
+  event-date: "1999-10/1999-11"
+  id: "date-ranges-same-year"
+  issued: "1999-10-14/1999-10-15"
+  original-date: "1888-01-02/1888-12-13"
   title: Date ranges; same year
-  type: 'article-journal'
-- accessed: '2012-10-31/'
+  type: "article-journal"
+- accessed: "2012-10-31/"
   author:
   - family: Author
     given: Al
   container-title: Journal
-  event-date: '1999-10/'
-  id: 'date-ranges-open'
-  issued: '1999-10-14/'
-  original-date: '1888-01-02/'
-  title: 'Date ranges, open-ended'
-  type: 'article-journal'
-- accessed: '0999-12-14'
+  event-date: "1999-10/"
+  id: "date-ranges-open"
+  issued: "1999-10-14/"
+  original-date: "1888-01-02/"
+  title: "Date ranges, open-ended"
+  type: "article-journal"
+- accessed: "0999-12-14"
   author:
   - family: Author
     given: Al
   container-title: Journal
-  event-date: '0311-10-03'
-  id: 'dates-very-old'
-  issued: '0712-12-13'
-  original-date: '0088-10-01'
-  title: 'Dates, year less than 1000'
-  type: 'article-journal'
+  event-date: "0311-10-03"
+  id: "dates-very-old"
+  issued: "0712-12-13"
+  original-date: "0088-10-01"
+  title: "Dates, year less than 1000"
+  type: "article-journal"
 ---
 
 

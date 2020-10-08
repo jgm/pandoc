@@ -7,11 +7,11 @@
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - id: item1
-  language: 'en-US'
-  title: 'The title: New series'
+  language: "en-US"
+  title: "The title: New series"
   title-short: The title
   type: book
 ---

@@ -65,7 +65,7 @@ NOTES
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: An article entry cited as an excerpt from a collection entry.
     Note the format of the related and relatedstring fields
@@ -76,20 +76,20 @@ references:
   id: doody
   issue: 3
   issued: 1974
-  language: 'en-US'
-  page: '212-225'
-  title: 'Hemingway''s style and Jake''s narration'
-  type: 'article-journal'
+  language: "en-US"
+  page: "212-225"
+  title: "Hemingway's style and Jake's narration"
+  type: "article-journal"
   volume: 4
 - annote: A collection entry providing the excerpt information for the
     doody entry. Note the format of the pages field
   editor:
   - family: Matuz
     given: Roger
-  id: 'matuz:doody'
+  id: "matuz:doody"
   issued: 1990
-  language: 'en-US'
-  page: '204-208'
+  language: "en-US"
+  page: "204-208"
   publisher: Gale
   publisher-place: Detroit
   title: Contemporary literary criticism

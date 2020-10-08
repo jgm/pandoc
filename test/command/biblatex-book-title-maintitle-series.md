@@ -18,7 +18,7 @@
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - author:
   - family: Author
@@ -27,12 +27,12 @@ references:
   collection-title: Series
   id: item1
   issued: 2013
-  language: 'fr-FR'
+  language: "fr-FR"
   publisher: Publisher
   publisher-place: Location
-  title: 'Maintitle: Mainsubtitle. Maintitleaddon'
+  title: "Maintitle: Mainsubtitle. Maintitleaddon"
   type: book
-  volume-title: 'Title of the Book: Subtitle. Titleaddon'
+  volume-title: "Title of the Book: Subtitle. Titleaddon"
 ---
 
 

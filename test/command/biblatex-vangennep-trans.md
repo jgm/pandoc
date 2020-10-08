@@ -43,17 +43,17 @@ Caffee, Trans.). University of Chicago Press.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'A translation of the vangennep entry. Note the translator and
-    origlanguage fields. Compare with the vangennep:related entry.'
+- annote: "A translation of the vangennep entry. Note the translator and
+    origlanguage fields. Compare with the vangennep:related entry."
   author:
   - family: Gennep
     given: Arnold
     non-dropping-particle: van
-  id: 'vangennep:trans'
+  id: "vangennep:trans"
   issued: 1960
-  language: 'en-US'
+  language: "en-US"
   publisher: University of Chicago Press
   title: The rites of passage
   title-short: Rites of passage

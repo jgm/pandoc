@@ -5,7 +5,7 @@
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - id: x1
   title: Blah

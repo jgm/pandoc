@@ -44,7 +44,7 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: A book with eprint and eprinttype fields.
   author:
@@ -54,11 +54,11 @@ references:
   id: wilde
   issued: 1899
   publisher: Leonard Smithers and Company
-  title: 'The importance of being earnest: A trivial comedy for serious
-    people'
+  title: "The importance of being earnest: A trivial comedy for serious
+    people"
   title-short: The importance of being earnest
   type: book
-  url: 'http://books.google.com?id=4HIWAAAAYAAJ'
+  url: "http://books.google.com?id=4HIWAAAAYAAJ"
 ---
 
 

@@ -42,7 +42,7 @@ Princeton University Press.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: A book entry. Note the sorttitle and indexsorttitle fields and
     the markup of the quotes in the database file
@@ -52,10 +52,10 @@ references:
   id: nussbaum
   issued: 1978
   keyword: secondary
-  language: 'en-US'
+  language: "en-US"
   publisher: Princeton University Press
   publisher-place: Princeton
-  title: 'Aristotle''s "De Motu Animalium"'
+  title: "Aristotle's \"De Motu Animalium\""
   type: book
 ---
 

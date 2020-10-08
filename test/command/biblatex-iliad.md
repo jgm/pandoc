@@ -43,18 +43,18 @@ Düsseldorf; Zürich: Artemis & Winkler.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'A German translation of the *Iliad*. Note the translator and
+- annote: "A German translation of the *Iliad*. Note the translator and
     introduction fields and the format of the location field in the
-    database file. Also note the sorttitle and indextitle fields'
+    database file. Also note the sorttitle and indextitle fields"
   author:
   - family: Homer
   edition: 3
   id: iliad
   issued: 2004
-  language: 'de-DE'
-  publisher: 'Artemis & Winkler'
+  language: "de-DE"
+  publisher: "Artemis & Winkler"
   publisher-place: Düsseldorf; Zürich
   title: Die Ilias
   title-short: Ilias

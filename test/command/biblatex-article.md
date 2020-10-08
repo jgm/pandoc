@@ -81,45 +81,45 @@ wouldn't fit all styles or locales.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - author:
   - family: Author
     given: Ann
   container-title: The Journaltitle
-  id: 'article-req'
-  issued: '2013-07-29'
-  language: 'en-US'
+  id: "article-req"
+  issued: "2013-07-29"
+  language: "en-US"
   title: An article entry with just the required fields
-  type: 'article-journal'
-- accessed: '2013-07-29'
+  type: "article-journal"
+- accessed: "2013-07-29"
   author:
   - family: Author
     given: Ann A.
     suffix: Jr.
   collection-title: new series
-  container-title: 'The Journaltitle: The Journalsubtitle'
+  container-title: "The Journaltitle: The Journalsubtitle"
   doi: 10.1086/520976
   editor:
   - family: Editor
     given: Edward
-  id: 'article-opt'
+  id: "article-opt"
   issn: issn
-  issue: 'number, issue'
-  issued: '2008-12-31'
-  language: 'en-US'
+  issue: "number, issue"
+  issued: "2008-12-31"
+  language: "en-US"
   note: The Note. The Addendum
   page: pages
   status: in press
-  title: 'An article entry with the required and all optional fields:
-    The subtitle. The titleaddon'
+  title: "An article entry with the required and all optional fields:
+    The subtitle. The titleaddon"
   title-short: An article entry with the required and all optional
     fields
   translator:
   - family: Translator
     given: Ted
-  type: 'article-journal'
-  url: 'http://foo.bar.baz/'
+  type: "article-journal"
+  url: "http://foo.bar.baz/"
   version: version
   volume: volume
 ---

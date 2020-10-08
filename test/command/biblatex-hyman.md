@@ -50,7 +50,7 @@ America Press.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: An incollection entry with a series and number field
   author:
@@ -60,18 +60,18 @@ references:
   collection-title: Studies in philosophy and the history of philosophy
   container-title: Studies in Aristotle
   editor:
-  - family: 'O''Meara'
+  - family: "O'Meara"
     given: Dominic J.
   id: hyman
   issued: 1981
   keyword: secondary
-  language: 'en-US'
-  page: '161-191'
+  language: "en-US"
+  page: "161-191"
   publisher: The Catholic University of America Press
-  publisher-place: 'Washington, D.C.'
-  title: 'Aristotle''s theory of the intellect and its interpretation by
-    Averroes'
-  title-short: 'Aristotle''s theory of the intellect'
+  publisher-place: "Washington, D.C."
+  title: "Aristotle's theory of the intellect and its interpretation by
+    Averroes"
+  title-short: "Aristotle's theory of the intellect"
   type: chapter
 ---
 

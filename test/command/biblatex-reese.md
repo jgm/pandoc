@@ -47,12 +47,12 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'An article entry with a series and a volume field. Note the
+- annote: "An article entry with a series and a volume field. Note the
     format of the series. If the value of the series field is an
     integer, this number is printed as an ordinal and the string
-    ''series'' is appended automatically'
+    'series' is appended automatically"
   author:
   - family: Reese
     given: Trevor R.
@@ -60,10 +60,10 @@ references:
   container-title: William and Mary Quarterly
   id: reese
   issued: 1958
-  language: 'en-US'
-  page: '168-190'
-  title: 'Georgia in Anglo-Spanish diplomacy, 1736-1739'
-  type: 'article-journal'
+  language: "en-US"
+  page: "168-190"
+  title: "Georgia in Anglo-Spanish diplomacy, 1736-1739"
+  type: "article-journal"
   volume: 15
 ---
 

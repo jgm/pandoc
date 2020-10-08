@@ -51,7 +51,7 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: An article entry. Note the sorttitle and indexsorttitle fields
     and the markup of the quotes in the database file
@@ -61,12 +61,12 @@ references:
   container-title: Studia Philosophica
   id: spiegelberg
   issued: 1969
-  language: 'de-DE'
-  page: '189-216'
-  title: '"Intention" und "Intentionalität" in der Scholastik, bei
-    Brentano und Husserl'
+  language: "de-DE"
+  page: "189-216"
+  title: "\"Intention\" und \"Intentionalität\" in der Scholastik, bei
+    Brentano und Husserl"
   title-short: Intention und Intentionalität
-  type: 'article-journal'
+  type: "article-journal"
   volume: 29
 ---
 

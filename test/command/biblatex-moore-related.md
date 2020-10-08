@@ -44,21 +44,21 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'A reprint of Moore''s law. Note the related and relatedtype
-    fields'
+- annote: "A reprint of Moore's law. Note the related and relatedtype
+    fields"
   author:
   - family: Moore
     given: Gordon E.
   container-title: Proceedings of the IEEE
-  id: 'moore:related'
+  id: "moore:related"
   issue: 1
   issued: 1998
-  language: 'en-US'
-  page: '82-85'
+  language: "en-US"
+  page: "82-85"
   title: Cramming more components onto integrated circuits
-  type: 'article-journal'
+  type: "article-journal"
   volume: 86
 ---
 

@@ -79,9 +79,9 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- abstract: 'The computation of ionic solvation free energies from
+- abstract: "The computation of ionic solvation free energies from
     atomistic simulations is a surprisingly difficult problem that has
     found no satisfactory solution for more than 15 years. The reason is
     that the charging free energies evaluated from such simulations are
@@ -99,10 +99,10 @@ references:
     matter of on-going debate. The goal of the present article is to
     settle this long-standing controversy by carefully analyzing (both
     analytically and numerically) the properties of the electrostatic
-    potential in molecular liquids (and inside cavities within them).'
-  annote: 'An article entry with an eid and a doi field. Note that the
+    potential in molecular liquids (and inside cavities within them)."
+  annote: "An article entry with an eid and a doi field. Note that the
     [doi]{.smallcaps} is transformed into a clickable link if hyperref
-    support has been enabled'
+    support has been enabled"
   author:
   - family: Kastenholz
     given: M. A.
@@ -112,13 +112,13 @@ references:
   doi: 10.1063/1.2172593
   id: kastenholz
   issued: 2006
-  language: 'en-US'
-  title: 'Computation of methodology-independent ionic solvation free
+  language: "en-US"
+  title: "Computation of methodology-independent ionic solvation free
     energies from molecular simulations: I. The electrostatic potential
-    in molecular liquids'
-  title-short: 'Computation of methodology-independent ionic solvation
-    free energies from molecular simulations'
-  type: 'article-journal'
+    in molecular liquids"
+  title-short: "Computation of methodology-independent ionic solvation
+    free energies from molecular simulations"
+  type: "article-journal"
   volume: 124
 ---
 

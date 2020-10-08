@@ -28,36 +28,36 @@
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- accessed: '2006-10-01'
-  annote: 'An online entry for a tutorial. Note the format of the date
-    field (yyyy-mm-dd) in the database file.'
+- accessed: "2006-10-01"
+  annote: "An online entry for a tutorial. Note the format of the date
+    field (yyyy-mm-dd) in the database file."
   author:
   - family: Markey
     given: Nicolas
   id: markey
-  issued: '2005-10-16'
-  language: 'en-US'
-  title: 'Tame the BeaST: The B to X of BibTeX'
+  issued: "2005-10-16"
+  language: "en-US"
+  title: "Tame the BeaST: The B to X of BibTeX"
   title-short: Tame the BeaST
   type: webpage
-  url: 'http://tug.ctan.org/tex-archive/info/bibtex/tamethebeast/ttb_en.pdf'
+  url: "http://tug.ctan.org/tex-archive/info/bibtex/tamethebeast/ttb_en.pdf"
   version: 1.3
-- accessed: '2006-10-01'
-  annote: 'This is an online entry. The [url]{.smallcaps}, which is
+- accessed: "2006-10-01"
+  annote: "This is an online entry. The [url]{.smallcaps}, which is
     given in the url field, is transformed into a clickable link if
     hyperref support has been enabled. Note the format of the urldate
     field (yyyy-mm-dd) in the database file. Also note the label field
     which may be used as a fallback by citation styles which need an
-    author and/or a year'
+    author and/or a year"
   id: CTAN
   issued: 2006
-  language: 'en-US'
-  title: 'CTAN: The Comprehensive TeX Archive Network'
+  language: "en-US"
+  title: "CTAN: The Comprehensive TeX Archive Network"
   title-short: CTAN
   type: webpage
-  url: 'http://www.ctan.org'
+  url: "http://www.ctan.org"
 ---
 
 

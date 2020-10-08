@@ -40,7 +40,7 @@ Press.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: A book entry with an author and an editor as well as a series
     field
@@ -50,10 +50,10 @@ references:
   editor:
   - family: Lucas
     given: D. W.
-  id: 'aristotle:poetics'
+  id: "aristotle:poetics"
   issued: 1968
   keyword: primary
-  language: 'en-GB'
+  language: "en-GB"
   publisher: Clarendon Press
   publisher-place: Oxford
   title: Poetics

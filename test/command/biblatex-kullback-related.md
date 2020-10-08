@@ -42,16 +42,16 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: A reprint of the kullback entry. Note the format of the
     related and relatedtype fields
   author:
   - family: Kullback
     given: Solomon
-  id: 'kullback:related'
+  id: "kullback:related"
   issued: 1997
-  language: 'en-US'
+  language: "en-US"
   publisher: Dover Publications
   publisher-place: New York
   title: Information theory and statistics

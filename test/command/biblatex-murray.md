@@ -53,17 +53,17 @@ properties as a function of core size. *Langmuir*, *14*(1), 17–30.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'An article entry with author authors. By default, long author
-    and editor lists are automatically truncated. This is configurable'
+- annote: "An article entry with author authors. By default, long author
+    and editor lists are automatically truncated. This is configurable"
   author:
   - family: Hostetler
     given: Michael J.
   - family: Wingate
     given: Julia E.
   - family: Zhong
-    given: 'Chuan-Jian'
+    given: "Chuan-Jian"
   - family: Harris
     given: Jay E.
   - family: Vachet
@@ -90,13 +90,13 @@ references:
   id: murray
   issue: 1
   issued: 1998
-  language: 'en-US'
-  page: '17-30'
-  title: 'Alkanethiolate gold cluster molecules with core diameters from
+  language: "en-US"
+  page: "17-30"
+  title: "Alkanethiolate gold cluster molecules with core diameters from
     1.5 to 5.2 [nm]{.nocase}: Core and monolayer properties as a
-    function of core size'
+    function of core size"
   title-short: Alkanethiolate gold cluster molecules
-  type: 'article-journal'
+  type: "article-journal"
   volume: 14
 ---
 

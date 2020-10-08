@@ -38,7 +38,7 @@ Durham; London: Duke University Press.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: This is a book entry. Note the format of the location field in
     the database file
@@ -47,10 +47,10 @@ references:
     given: Pablo
   id: piccato
   issued: 2001
-  language: 'en-US'
+  language: "en-US"
   publisher: Duke University Press
   publisher-place: Durham; London
-  title: 'City of suspects: Crime in Mexico City, 1900--1931'
+  title: "City of suspects: Crime in Mexico City, 1900--1931"
   title-short: City of suspects
   type: book
 ---

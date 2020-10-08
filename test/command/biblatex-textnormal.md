@@ -6,10 +6,10 @@
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - id: item1
-  title: 'The title [of this book]{.nodecor}'
+  title: "The title [of this book]{.nodecor}"
   type: book
 ---
 

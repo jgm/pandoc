@@ -39,7 +39,7 @@ van Gennep, A. (1909). *Les rites de passage*. Paris: Nourry.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - annote: A book entry. Note the format of the printed name and compare
     the useprefix option in the options field as well as brandt and geer
@@ -49,7 +49,7 @@ references:
     non-dropping-particle: van
   id: vangennep
   issued: 1909
-  language: 'fr-FR'
+  language: "fr-FR"
   publisher: Nourry
   publisher-place: Paris
   title: Les rites de passage

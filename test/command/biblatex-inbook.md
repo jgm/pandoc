@@ -63,14 +63,14 @@ TODO / citeproc: in biblatex "inbook" entries, citeproc should suppress bookauth
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'An edition of Kant''s *Collected Works*, volume five. This is
+- annote: "An edition of Kant's *Collected Works*, volume five. This is
     an inbook entry which explicitly refers to the *Critique of
     Practical Reason* only, not to the entire fifth volume. Note the
     author and bookauthor fields in the database file. By default, the
     bookauthor is omitted if the values of the author and bookauthor
-    fields are identical'
+    fields are identical"
   author:
   - family: Kant
     given: Immanuel
@@ -78,10 +78,10 @@ references:
   - family: Kant
     given: Immanuel
   container-title: Kants Werke. Akademie Textausgabe
-  id: 'kant:kpv'
+  id: "kant:kpv"
   issued: 1968
-  language: 'de-DE'
-  page: '1-163'
+  language: "de-DE"
+  page: "1-163"
   publisher: Walter de Gruyter
   publisher-place: Berlin
   title: Kritik der praktischen Vernunft
@@ -90,9 +90,9 @@ references:
   volume: 5
   volume-title: Kritik der praktischen Vernunft. Kritik der
     Urtheilskraft
-- annote: 'An edition of Kant''s *Collected Works*, volume five. This is
+- annote: "An edition of Kant's *Collected Works*, volume five. This is
     an inbook entry which explicitly refers to the *Critique of
-    Judgment* only, not to the entire fifth volume'
+    Judgment* only, not to the entire fifth volume"
   author:
   - family: Kant
     given: Immanuel
@@ -100,10 +100,10 @@ references:
   - family: Kant
     given: Immanuel
   container-title: Kants Werke. Akademie Textausgabe
-  id: 'kant:ku'
+  id: "kant:ku"
   issued: 1968
-  language: 'de-DE'
-  page: '165-485'
+  language: "de-DE"
+  page: "165-485"
   publisher: Walter de Gruyter
   publisher-place: Berlin
   title: Kritik der Urtheilskraft
@@ -111,36 +111,36 @@ references:
   volume: 5
   volume-title: Kritik der praktischen Vernunft. Kritik der
     Urtheilskraft
-- annote: 'A single essay from the critical edition of Nietzsche''s
+- annote: "A single essay from the critical edition of Nietzsche's
     works. This inbook entry explicitly refers to an essay found in the
     first volume. Note the title, booktitle, and maintitle fields. Also
     note the sorttitle and sortyear fields. We want this entry to be
-    listed after the entry referring to the entire first volume'
+    listed after the entry referring to the entire first volume"
   author:
   - family: Nietzsche
     given: Friedrich
   container-author:
   - family: Nietzsche
     given: Friedrich
-  container-title: 'Sämtliche Werke: Kritische Studienausgabe'
+  container-title: "Sämtliche Werke: Kritische Studienausgabe"
   editor:
   - family: Colli
     given: Giorgio
   - family: Montinari
     given: Mazzino
-  id: 'nietzsche:historie'
+  id: "nietzsche:historie"
   issued: 1988
-  language: 'de-DE'
-  page: '243-334'
-  publisher: 'Deutscher Taschenbuch-Verlag; Walter de Gruyter'
+  language: "de-DE"
+  page: "243-334"
+  publisher: "Deutscher Taschenbuch-Verlag; Walter de Gruyter"
   publisher-place: München; Berlin; New York
-  title: 'Unzeitgemässe Betrachtungen. Zweites Stück: Vom Nutzen und
-    Nachtheil der Historie für das Leben'
+  title: "Unzeitgemässe Betrachtungen. Zweites Stück: Vom Nutzen und
+    Nachtheil der Historie für das Leben"
   title-short: Vom Nutzen und Nachtheil der Historie
   type: chapter
   volume: 1
-  volume-title: 'Die Geburt der Tragödie. Unzeitgemäße Betrachtungen
-    I--IV. Nachgelassene Schriften 1870--1973'
+  volume-title: "Die Geburt der Tragödie. Unzeitgemäße Betrachtungen
+    I--IV. Nachgelassene Schriften 1870--1973"
 ---
 
 

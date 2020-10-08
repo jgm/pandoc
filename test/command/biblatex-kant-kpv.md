@@ -57,14 +57,14 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'An edition of Kant''s *Collected Works*, volume five. This is
+- annote: "An edition of Kant's *Collected Works*, volume five. This is
     an inbook entry which explicitly refers to the *Critique of
     Practical Reason* only, not to the entire fifth volume. Note the
     author and bookauthor fields in the database file. By default, the
     bookauthor is omitted if the values of the author and bookauthor
-    fields are identical'
+    fields are identical"
   author:
   - family: Kant
     given: Immanuel
@@ -72,10 +72,10 @@ references:
   - family: Kant
     given: Immanuel
   container-title: Kants Werke. Akademie Textausgabe
-  id: 'kant:kpv'
+  id: "kant:kpv"
   issued: 1968
-  language: 'de-DE'
-  page: '1-163'
+  language: "de-DE"
+  page: "1-163"
   publisher: Walter de Gruyter
   publisher-place: Berlin
   title: Kritik der praktischen Vernunft

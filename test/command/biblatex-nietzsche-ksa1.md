@@ -60,13 +60,13 @@ NOTES:
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'A single volume from the critical edition of Nietzsche''s
+- annote: "A single volume from the critical edition of Nietzsche's
     works. This book entry explicitly refers to the first volume only.
     Note the title and maintitle fields. Also note the sorttitle and
     sortyear fields. We want this entry to be listed after the entry
-    referring to the entire edition'
+    referring to the entire edition"
   author:
   - family: Nietzsche
     given: Friedrich
@@ -79,16 +79,16 @@ references:
     given: Giorgio
   - family: Montinari
     given: Mazzino
-  id: 'nietzsche:ksa1'
+  id: "nietzsche:ksa1"
   issued: 1988
-  language: 'de-DE'
-  publisher: 'Deutscher Taschenbuch-Verlag; Walter de Gruyter'
+  language: "de-DE"
+  publisher: "Deutscher Taschenbuch-Verlag; Walter de Gruyter"
   publisher-place: München; Berlin; New York
-  title: 'Sämtliche Werke: Kritische Studienausgabe'
+  title: "Sämtliche Werke: Kritische Studienausgabe"
   type: book
   volume: 1
-  volume-title: 'Die Geburt der Tragödie. Unzeitgemäße Betrachtungen
-    I--IV. Nachgelassene Schriften 1870--1973'
+  volume-title: "Die Geburt der Tragödie. Unzeitgemäße Betrachtungen
+    I--IV. Nachgelassene Schriften 1870--1973"
 ---
 
 

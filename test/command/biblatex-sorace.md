@@ -40,11 +40,11 @@ High-speed digital-to-RF converter. U.S. patent.
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
-- annote: 'This is a patent entry with a holder field. Note the format
+- annote: "This is a patent entry with a holder field. Note the format
     of the type and date fields in the database file. Compare almendro,
-    laufenberg, and kowalik'
+    laufenberg, and kowalik"
   author:
   - family: Sorace
     given: Ronald E.
@@ -54,10 +54,10 @@ references:
     given: Steven A.
   genre: U.S. patent
   id: sorace
-  issued: '1997-09-16'
-  language: 'en-US'
+  issued: "1997-09-16"
+  language: "en-US"
   number: 5668842
-  title: 'High-speed digital-to-RF converter'
+  title: "High-speed digital-to-RF converter"
   type: patent
 ---
 
