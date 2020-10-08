@@ -57,7 +57,7 @@ It is pretty short.</p>
 <p>Code in a block quote:</p>
 
 <pre><code>sub status {
-    print &quot;working&quot;;
+    print "working";
 }</code></pre>
 
 <p>A list:</p>
@@ -92,7 +92,7 @@ It is pretty short.</p>
 <pre><code>---- (should be four hyphens)
 
 sub status {
-    print &quot;working&quot;;
+    print "working";
 }
 
 this code block is indented by one tab</code></pre>
