@@ -305,22 +305,23 @@ end
 This makes it possible to apply these functions on strings using
 colon syntax (`mystring:uc_upper()`).
 
-# Debugging Lua filters in a REPL
+# Debugging Lua filters
 
-It is possible to use a debugging interface to halt exectution
-and step through a Lua filter line by line as it is run inside 
-Pandoc. This is accomplished using the remote-debugging interface
-of [`mobdebug`](https://github.com/pkulchenko/MobDebug). Although
-mobdebug can be run from the terminal, it is much more useful
-run withing the specialist Lua editor and IDE, [Zerobrane](https://studio.zerobrane.com/).
+It is possible to use a debugging interface to halt execution and step 
+through a Lua filter line by line as it is run inside Pandoc. This is 
+accomplished using the remote-debugging interface of the package 
+[`mobdebug`](https://github.com/pkulchenko/MobDebug). Although mobdebug 
+can be run from the terminal, it is more useful run within the 
+donation-ware Lua editor and IDE, [Zerobrane](https://studio.zerobrane.com/). 
+Zerobrane offers a REPL console and UI to step-through and view all 
+variables and state.
 
-If you have Lua 5.3 installed, you should add `mobdebug` and dependency
-`luasocket` using [`luarocks`](https://luarocks.org). Zerobrane
-includes both of these in its package, so if you don't want to 
-install Lua, you should modify your lua path and cpath to include 
-the correct locations, see [detailed instructions here](https://studio.zerobrane.com/doc-remote-debugging).
-
-A sample filter with more instructions is available here: <https://github.com/pandoc/lua-filters>
+If you already have Lua 5.3 installed, you can add `mobdebug` and its 
+dependency `luasocket` using [`luarocks`](https://luarocks.org), which 
+should then be available on the path. Zerobrane also includes both of these 
+in its package, so if you don't want to install Lua seperately, you should 
+modify your lua path and cpath to include the correct locations; 
+[see detailed instructions here](https://studio.zerobrane.com/doc-remote-debugging).
 
 # Examples
 
