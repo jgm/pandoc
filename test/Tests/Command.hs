@@ -28,18 +28,17 @@ import System.IO.Unsafe (unsafePerformIO)
 import System.Process
 import Test.Tasty
 import Test.Tasty.HUnit
+import Test.Tasty.Golden.Advanced (goldenTest)
 import Tests.Helpers
 import Text.Pandoc
 import qualified Text.Pandoc.UTF8 as UTF8
 
--- | Run a test with normalize function, return True if test passed.
-runTest :: String    -- ^ Title of test
-        -> FilePath  -- ^ Path to pandoc
-        -> String    -- ^ Shell command
-        -> String    -- ^ Input text
-        -> String    -- ^ Expected output
-        -> TestTree
-runTest testname pandocpath cmd inp norm = testCase testname $ do
+-- | Run a test with and return output.
+execTest :: FilePath  -- ^ Path to pandoc
+         -> String    -- ^ Shell command
+         -> String    -- ^ Input text
+         -> IO (ExitCode, String)  -- ^ Exit code and actual output
+execTest pandocpath cmd inp = do
   mldpath   <- Env.lookupEnv "LD_LIBRARY_PATH"
   mdyldpath <- Env.lookupEnv "DYLD_LIBRARY_PATH"
   let findDynlibDir []           = Nothing
@@ -47,13 +46,32 @@ runTest testname pandocpath cmd inp norm = testCase testname $ do
       findDynlibDir (_:xs)       = findDynlibDir xs
   let mbDynlibDir = findDynlibDir (reverse $ splitDirectories $
                                    takeDirectory $ takeWhile (/=' ') cmd)
-  let dynlibEnv = [("DYLD_LIBRARY_PATH", intercalate ":" $ catMaybes [mbDynlibDir, mdyldpath])
-                  ,("LD_LIBRARY_PATH",   intercalate ":" $ catMaybes [mbDynlibDir, mldpath])]
-  let env' = dynlibEnv ++ [("PATH",takeDirectory pandocpath),("TMP","."),("LANG","en_US.UTF-8"),("HOME", "./"),("pandoc_datadir", "..")]
+  let dynlibEnv = [("DYLD_LIBRARY_PATH",
+                    intercalate ":" $ catMaybes [mbDynlibDir, mdyldpath])
+                  ,("LD_LIBRARY_PATH",
+                    intercalate ":" $ catMaybes [mbDynlibDir, mldpath])]
+  let env' = dynlibEnv ++ [("PATH",takeDirectory pandocpath),("TMP","."),
+                           ("LANG","en_US.UTF-8"),
+                           ("HOME", "./"),
+                           ("pandoc_datadir", "..")]
   let pr = (shell cmd){ env = Just env' }
   (ec, out', err') <- readCreateProcessWithExitCode pr inp
   -- filter \r so the tests will work on Windows machines
   let out = filter (/= '\r') $ err' ++ out'
+  case ec of
+    ExitFailure _ -> hPutStr stderr err'
+    ExitSuccess   -> return ()
+  return (ec, out)
+
+-- | Run a test, return True if test passed.
+runTest :: String    -- ^ Title of test
+        -> FilePath  -- ^ Path to pandoc
+        -> String    -- ^ Shell command
+        -> String    -- ^ Input text
+        -> String    -- ^ Expected output
+        -> TestTree
+runTest testname pandocpath cmd inp norm = testCase testname $ do
+  (ec, out) <- execTest pandocpath cmd inp
   result  <- if ec == ExitSuccess
                 then
                   if out == norm
@@ -61,9 +79,7 @@ runTest testname pandocpath cmd inp norm = testCase testname $ do
                      else return
                           $ TestFailed cmd "expected"
                           $ getDiff (lines out) (lines norm)
-                else do
-                  hPutStr stderr err'
-                  return $ TestError ec
+                else return $ TestError ec
   assertBool (show result) (result == TestPassed)
 
 tests :: FilePath -> TestTree
@@ -86,18 +102,34 @@ dropPercent :: String -> String
 dropPercent ('%':xs) = dropWhile (== ' ') xs
 dropPercent xs       = xs
 
-runCommandTest :: FilePath -> Int -> String -> TestTree
-runCommandTest pandocpath num code =
-  let codelines = lines code
-      (continuations, r1) = span ("\\" `isSuffixOf`) codelines
-      (cmd, r2) = (dropPercent (unwords (map init continuations ++ take 1 r1)),
-                   drop 1 r1)
-      (inplines, r3) = break (=="^D") r2
-      normlines = takeWhile (/=".") (drop 1 r3)
-      input = unlines inplines
-      norm = unlines normlines
-      shcmd = cmd -- trimr $ takeDirectory pandocpath </> cmd
-  in  runTest ("#" ++ show num) pandocpath shcmd input norm
+runCommandTest :: FilePath -> FilePath -> Int -> String -> TestTree
+runCommandTest pandocpath fp num code =
+  goldenTest testname getExpected getActual compareValues updateGolden
+ where
+  testname = "#" <> show num
+  codelines = lines code
+  (continuations, r1) = span ("\\" `isSuffixOf`) codelines
+  cmd = dropPercent (unwords (map init continuations ++ take 1 r1))
+  r2 = drop 1 r1
+  (inplines, r3) = break (=="^D") r2
+  normlines = takeWhile (/=".") (drop 1 r3)
+  input = unlines inplines
+  norm = unlines normlines
+  getExpected = return norm
+  getActual = snd <$> execTest pandocpath cmd input
+  compareValues expected actual
+    | actual == expected = return Nothing
+    | otherwise = return $ Just $ "--- test/command/" ++ fp ++ "\n+++ " ++
+                                cmd ++ "\n" ++ showDiff (1,1)
+                                   (getDiff (lines actual) (lines expected))
+  updateGolden newnorm = do
+    let fp' = "command" </> fp
+    raw <- UTF8.readFile fp'
+    let cmdline = "% " <> cmd
+    let x = cmdline <> "\n" <> input <> "^D\n" <> norm
+    let y = cmdline <> "\n" <> input <> "^D\n" <> newnorm
+    let updated = T.unpack $ T.replace (T.pack x) (T.pack y) (T.pack raw)
+    UTF8.writeFile fp' updated
 
 extractCommandTest :: FilePath -> FilePath -> TestTree
 extractCommandTest pandocpath fp = unsafePerformIO $ do
@@ -105,5 +137,5 @@ extractCommandTest pandocpath fp = unsafePerformIO $ do
   Pandoc _ blocks <- runIOorExplode (readMarkdown
                         def{ readerExtensions = pandocExtensions } contents)
   let codeblocks = map extractCode $ filter isCodeBlock blocks
-  let cases = zipWith (runCommandTest pandocpath) [1..] codeblocks
+  let cases = zipWith (runCommandTest pandocpath fp) [1..] codeblocks
   return $ testGroup fp cases
