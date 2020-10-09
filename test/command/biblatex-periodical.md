@@ -1,6 +1,7 @@
 ```
 % pandoc -f biblatex -t markdown -s
-@comment{excerpt from http://mirrors.ctan.org/macros/latex/contrib/biblatex/doc/examples/biblatex-examples.bib
+@comment{excerpt from
+http://mirrors.ctan.org/macros/latex/contrib/biblatex/doc/examples/biblatex-examples.bib}
 
 @periodical{jcg,
 	Annotation = {This is a periodical entry with an issn field.},

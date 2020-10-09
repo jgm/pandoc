@@ -1,7 +1,8 @@
 ```
 % pandoc -f biblatex -t markdown -s
 @comment{
-adapted from http://mirrors.ctan.org/macros/latex/contrib/biblatex/doc/examples/biblatex-examples.bib
+adapted from
+http://mirrors.ctan.org/macros/latex/contrib/biblatex/doc/examples/biblatex-examples.bib}
 
 @book{averroes/bland,
 	Annotation = {A book entry with a series and a number. Note the concatenation of the editor and translator fields as well as the indextitle field},
