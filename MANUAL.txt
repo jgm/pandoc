@@ -5137,6 +5137,18 @@ section from a BibTeX, BibLaTeX, or CSL JSON bibliography:
     pandoc chem.bib -s -t markdown
     pandoc chem.json -s -t markdown
 
+`pandoc` can also be used to produce CSL JSON bibliography
+from BibTeX, BibLaTeX, or markdown YAML:
+
+    pandoc chem.bib -s -t csljson
+    pandoc chem.yaml -s -t csljson
+
+Running pandoc on a bibliography file with the `--citeproc`
+option will create a formatted bibliography in the format
+of your choice:
+
+    pandoc chem.bib -s --citeproc -o chem.html
+    pandoc chem.bib -s --citeproc -o chem.pdf
 
 ### Capitalization in titles
 
