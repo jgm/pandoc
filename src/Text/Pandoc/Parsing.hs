@@ -183,7 +183,8 @@ module Text.Pandoc.Parsing ( take1WhileP,
                              newPos,
                              initialPos,
                              Line,
-                             Column
+                             Column,
+                             ParseError
                              )
 where
 
