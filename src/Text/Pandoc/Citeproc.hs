@@ -84,7 +84,11 @@ processCitations (Pandoc meta bs) = do
                                  <> "\n" <> T.pack err
                      Right abbr -> return $ Just abbr
 
-  let getParentStyle url = UTF8.toText . fst <$> fetchItem url
+  let getParentStyle url = do
+        -- first, try to retrieve the style locally, then use HTTP.
+        let basename = T.takeWhileEnd (/='/') url
+        UTF8.toText <$>
+          catchError (getFile ".csl" basename) (\_ -> fst <$> fetchItem url)
 
   -- TODO check .csl directory if not found
   styleRes <- Citeproc.parseStyle getParentStyle cslContents
