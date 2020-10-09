@@ -122,7 +122,7 @@ data TheoremStyle =
 
 data TheoremSpec =
   TheoremSpec
-    { theoremName    :: Text
+    { theoremName    :: Inlines
     , theoremStyle   :: TheoremStyle
     , theoremSeries  :: Maybe Text
     , theoremSyncTo  :: Maybe Text
