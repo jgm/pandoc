@@ -4,9 +4,4 @@ package pandoc
   flags: +embed_data_files -trypandoc
   ghc-options: -j +RTS -A64m -RTS
 
-source-repository-package
-    type: git
-    location: https://github.com/jgm/citeproc
-    tag: f7f1c21535614c013e42ae71be7e39926cba5150
-
 constraints: base16-bytestring < 1

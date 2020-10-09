@@ -6,8 +6,7 @@ flags:
 packages:
 - '.'
 extra-deps:
-- git: https://github.com/jgm/citeproc
-  commit: f7f1c21535614c013e42ae71be7e39926cba5150
+- citeproc-0.1
 - pandoc-types-1.22
 - texmath-0.12.0.3
 - rfc5051-0.2
