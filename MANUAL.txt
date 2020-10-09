@@ -143,15 +143,15 @@ contains images), [`hyperref`], [`xcolor`],
 [`ulem`], [`geometry`] (with the `geometry` variable set),
 [`setspace`] (with `linestretch`), and
 [`babel`] (with `lang`).  The use of `xelatex` or `lualatex` as
-the PDF engine requires [`fontspec`].  `xelatex` uses
-[`polyglossia`] (with `lang`), [`xecjk`], and [`bidi`] (with the
-`dir` variable set). If the `mathspec` variable is set,
-`xelatex` will use [`mathspec`] instead of [`unicode-math`].
-The [`upquote`] and [`microtype`] packages are used if
-available, and [`csquotes`] will be used for [typography]
-if the `csquotes` variable or metadata field is set to a
-true value.  The [`natbib`], [`biblatex`], [`bibtex`], and
-[`biber`] packages can optionally be used for [citation
+the PDF engine requires [`fontspec`].  `lualatex` uses
+[`selnolig`]. `xelatex` uses [`polyglossia`] (with `lang`),
+[`xecjk`], and [`bidi`] (with the `dir` variable set). If the
+`mathspec` variable is set, `xelatex` will use [`mathspec`]
+instead of [`unicode-math`].  The [`upquote`] and [`microtype`]
+packages are used if available, and [`csquotes`] will be used
+for [typography] if the `csquotes` variable or metadata field is
+set to a true value.  The [`natbib`], [`biblatex`], [`bibtex`],
+and [`biber`] packages can optionally be used for [citation
 rendering].  The following packages will be used to improve
 output quality if present, but pandoc does not require them to
 be present: [`upquote`] (for straight quotes in verbatim
@@ -200,6 +200,7 @@ footnotes in tables).
 [`xcolor`]: https://ctan.org/pkg/xcolor
 [`xecjk`]: https://ctan.org/pkg/xecjk
 [`xurl`]: https://ctan.org/pkg/xurl
+[`selnolig`]: https://ctan.org/pkg/selnolig
 
 
 
