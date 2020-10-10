@@ -20,7 +20,7 @@ module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument
 import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Strict hiding (when)
 import Data.Char (chr)
-import Data.List (sortOn, sortBy, foldl', intercalate)
+import Data.List (sortOn, sortBy, foldl', intercalate, intersperse)
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Ord (comparing)
@@ -153,8 +153,7 @@ withTextStyle s f = do
 
 inSourceCodeTags :: PandocMonad m => Doc Text -> OD m (Doc Text)
 inSourceCodeTags d = do
-  modify $ \st -> st { stFirstPara = False }
-  return $ inTags False "text:p" [("text:style-name", "Source_Code")] d
+  return $ inTags False "text:p" [("text:style-name", "Source_20_Code")] d
 
 inTextStyle :: PandocMonad m => Doc Text -> OD m (Doc Text)
 inTextStyle d = do
@@ -376,7 +375,7 @@ blockToOpenDocument o bs
     | DefinitionList b <- bs = setFirstPara >> defList b
     | BulletList     b <- bs = setFirstPara >> bulletListToOpenDocument o b
     | OrderedList  a b <- bs = setFirstPara >> orderedList a b
-    | CodeBlock    a s <- bs = inSourceCodeTags =<< inlinesToOpenDocument o [Code a s]                                     
+    | CodeBlock    a s <- bs = setFirstPara >> (inlinesToOpenDocument o [Code a s] >>= inSourceCodeTags)
     | Table a bc s th tb tf <- bs =  setFirstPara >> table (Ann.toTable a bc s th tb tf)
     | HorizontalRule   <- bs = setFirstPara >> return (selfClosingTag "text:p"
                                 [ ("text:style-name", "Horizontal_20_Line") ])
@@ -599,15 +598,21 @@ inlineToOpenDocument o ils
     Image attr _ (s,t) -> mkImg attr s t
     Note        l  -> mkNote l
     where
+      br :: Doc Text
       br = selfClosingTag "text:line-break" []
       formatOpenDocument :: FormatOptions -> [SourceLine] -> [Doc Text]
       formatOpenDocument _fmtOpts = intercalate [br] . map (map toHlTok)
       toHlTok :: Token -> Doc Text
       toHlTok (toktype,tok) =
         inTags False "text:span" [("text:style-name", (T.pack $ show toktype))] $ preformatted tok
-      unhighlighted s = mconcat $ intercalate [br] `fmap` mapM inlinedCode $ map preformatted (T.lines s)
+      formattedInlinedCodes :: Text -> [Doc Text]
+      formattedInlinedCodes s = map inlinedCode $ map preformatted (T.lines s)
+      unhighlighted :: Text -> Doc Text
+      unhighlighted s = mconcat $ intersperse br $ formattedInlinedCodes s
+      preformatted :: Text -> Doc Text
       preformatted s = handleSpaces $ escapeStringForXML s
-      inlinedCode s = return $ inTags False "text:span" [("text:style-name", "Source_Text")] s
+      inlinedCode :: Doc Text -> Doc Text
+      inlinedCode s = inTags False "text:span" [("text:style-name", "Source_Text")] s
       mkLink   s t = inTags False "text:a" [ ("xlink:type" , "simple")
                                            , ("xlink:href" , s       )
                                            , ("office:name", t       )
