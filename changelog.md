@@ -111,6 +111,7 @@
     + Table cell parser not consuming spaces correctly (#6596,
       Laurent P. René de Cotret).
     + Change `SIRange` to `SIrange` (#6617, Emerson Harkin).
+    + Allow blank lines inside `\author` (#6324).
 
   * DocBook reader:
 
