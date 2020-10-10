@@ -1522,9 +1522,22 @@ include-after-body: []
 include-in-header: []
 resource-path: ["."]
 
-# filters will be assumed to be Lua filters if they have
+# turn on built-in citation processing.  Note that if you need
+# control over when the citeproc processing is done relative
+# to other filters, you should instead use `citeproc` in the
+# list of `filters` (see below).
+citeproc: true
+csl: ieee
+bibliography:
+- foobar.bib
+- barbaz.json
+
+# Filters will be assumed to be Lua filters if they have
 # the .lua extension, and json filters otherwise.  But
-# the filter type can also be specified explicitly, as shown:
+# the filter type can also be specified explicitly, as shown.
+# Filters are run in the order specified.
+# To include the built-in citeproc filter, use either `citeproc`
+# or `{type: citeproc}`.
 filters:
 - wordcount.lua
 - type: json
