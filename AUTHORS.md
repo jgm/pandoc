@@ -31,6 +31,7 @@
 - Beni Cherniavsky-Paskin
 - Benoit Schweblin
 - Bjorn Buckwalter
+- Blake Eryx
 - Bradley Kuhn
 - Brent Yorgey
 - Brian Leung
@@ -62,7 +63,9 @@
 - Denis Laxalde
 - Denis Maier
 - Derek Chen-Becker
+- Diego Balseiro
 - Dmitry Pogodin
+- Dmitry Volodin
 - Douglas Calvert
 - Eigil Rischel
 - Emanuel Evans
@@ -150,6 +153,7 @@
 - Lars-Dominik Braun
 - Laurent P. René de Cotret
 - Leif Metcalf
+- Leonard Rosenthol
 - Lila
 - Lucas Escot
 - Luke Plant
@@ -173,6 +177,7 @@
 - Merijn Verstraaten
 - Michael Beaumont
 - Michael Chladek
+- Michael Hoffmann
 - Michael Peyton Jones
 - Michael Reed
 - Michael Snoyman
@@ -257,7 +262,9 @@
 - Yoan Blanc
 - Yuchen Pei
 - Zihang Chen
+- a-vrma
 - andrebauer
+- argent0
 - blmage
 - bucklereed
 - bumper314
@@ -285,6 +292,7 @@
 - shreevatsa.public
 - takahashim
 - tgkokk
+- the-solipsist
 - thsutton
 - vijayphoenix
 - wiefling
