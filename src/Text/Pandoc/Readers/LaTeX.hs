@@ -538,7 +538,7 @@ inNote ils =
 inlineCommand' :: PandocMonad m => LP m Inlines
 inlineCommand' = try $ do
   Tok _ (CtrlSeq name) cmd <- anyControlSeq
-  guard $ name /= "begin" && name /= "end"
+  guard $ name /= "begin" && name /= "end" && name /= "and"
   star <- option "" ("*" <$ symbol '*' <* sp)
   overlay <- option "" overlaySpecification
   let name' = name <> star <> overlay
@@ -1275,10 +1275,7 @@ addMeta field val = updateState $ \st ->
 authors :: PandocMonad m => LP m ()
 authors = try $ do
   bgroup
-  let oneAuthor = mconcat <$>
-       many1 (notFollowedBy' (controlSeq "and") >>
-               (inline <|> mempty <$ blockCommand))
-               -- skip e.g. \vspace{10pt}
+  let oneAuthor = blocksToInlines' . B.toList . mconcat <$> many1 block
   auths <- sepBy oneAuthor (controlSeq "and")
   egroup
   addMeta "author" (map trimInlines auths)
@@ -1468,7 +1465,7 @@ section (ident, classes, kvs) lvl = do
 blockCommand :: PandocMonad m => LP m Blocks
 blockCommand = try $ do
   Tok _ (CtrlSeq name) txt <- anyControlSeq
-  guard $ name /= "begin" && name /= "end"
+  guard $ name /= "begin" && name /= "end" && name /= "and"
   star <- option "" ("*" <$ symbol '*' <* sp)
   let name' = name <> star
   let names = ordNub [name', name]
