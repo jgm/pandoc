@@ -3,5 +3,3 @@ packages: pandoc.cabal
 package pandoc
   flags: +embed_data_files -trypandoc
   ghc-options: -j +RTS -A64m -RTS
-
-constraints: base16-bytestring < 1
