@@ -31,7 +31,7 @@ install:
   mkdir -p ${DEST}/share/man/man1
   stack build --dependencies-only pandoc
   stack build pandoc
-  for f in $(find .stack-work/install -name 'pandoc*' -perm +001 -type f); do cp $f ${DEST}/bin/; done
+  for f in $(find .stack-work/install -name 'pandoc' -perm +001 -type f); do cp $f ${DEST}/bin/; done
   strip ${DEST}/bin/pandoc
   cp man/pandoc.1 ${DEST}/share/man/man1/pandoc.1
   ${DEST}/bin/pandoc -t html5 -s COPYING.md -Vpagetitle=License \
