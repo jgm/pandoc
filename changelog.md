@@ -41,6 +41,11 @@
       directory) before resorting to HTTP.  In addition, you may
       omit the `.csl` extension, e.g. `--csl zoology`.
 
+    - Using the `--bibliography` option (or including
+      `bibliography` in YAML metadata) no longer triggers
+      citation processing implicitly: one must always use the
+      `--citeproc` option if citation processing is wanted.
+
   * Add `csljson` as and input and output format. This allows pandoc
     to convert between `csljson` and other bibliography formats
     (e.g. `-f csljson -t markdown -s` or `-f bibtex -t csljson`),
