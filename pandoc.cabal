@@ -22,14 +22,15 @@ description:     Pandoc is a Haskell library for converting from one markup
                  TikiWiki markup, Jira markup, Creole 1.0, Haddock markup,
                  OPML, Emacs Org-Mode, Emacs Muse, txt2tags, ipynb (Jupyter
                  notebooks), Vimwiki, Word Docx, ODT, EPUB, FictionBook2,
-                 roff man, Textile, and CSV, and it can write Markdown,
+                 roff man, Textile, BibTeX, BibLaTeX, CSL JSON,
+                 , and CSV, and it can write Markdown,
                  reStructuredText, XHTML, HTML 5, LaTeX, ConTeXt, DocBook,
                  JATS, OPML, TEI, OpenDocument, ODT, Word docx,
                  PowerPoint pptx, RTF, MediaWiki, DokuWiki, XWiki,
                  ZimWiki, Textile, Jira, roff man, roff ms, plain text,
                  Emacs Org-Mode, AsciiDoc, Haddock markup,
                  EPUB (v2 and v3), ipynb, FictionBook2,
-                 InDesign ICML, Muse, LaTeX beamer slides,
+                 InDesign ICML, Muse, CSL JSON, LaTeX beamer slides,
                  and several kinds of HTML/JavaScript slide shows
                  (S5, Slidy, Slideous, DZSlides, reveal.js).
                  .
