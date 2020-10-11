@@ -28,10 +28,15 @@ library. It can convert *from*
 
 <div id="input-formats">
 
+-   `bibtex` ([BibTeX](https://ctan.org/pkg/bibtex) bibliography)
+-   `biblatex` ([BibLaTeX](https://ctan.org/pkg/biblatex) bibliography)
 -   `commonmark` ([CommonMark](https://commonmark.org) Markdown)
 -   `commonmark_x` ([CommonMark](https://commonmark.org) Markdown with
     extensions)
 -   `creole` ([Creole 1.0](http://www.wikicreole.org/wiki/Creole1.0))
+-   `csljson` ([CSL
+    JSON](https://citeproc-js.readthedocs.io/en/latest/csl-json/markup.html)
+    bibliography)
 -   `csv` ([CSV](https://tools.ietf.org/html/rfc4180) table)
 -   `docbook` ([DocBook](https://docbook.org))
 -   `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
@@ -96,6 +101,9 @@ It can convert *to*
 -   `commonmark_x` ([CommonMark](https://commonmark.org) Markdown with
     extensions)
 -   `context` ([ConTeXt](https://www.contextgarden.net/))
+-   `csljson` ([CSL
+    JSON](https://citeproc-js.readthedocs.io/en/latest/csl-json/markup.html)
+    bibliography)
 -   `docbook` or `docbook4` ([DocBook](https://docbook.org) 4)
 -   `docbook5` (DocBook 5)
 -   `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
