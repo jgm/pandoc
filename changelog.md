@@ -30,8 +30,8 @@
     - Some of the bibliography formats supported by pandoc-citeproc (via
       hs-bibutils) are no longer supported:  Copac, EndNote,
       ISI, MEDLINE, MODS, and RIS.  If you use one of these formats,
-      you may use the `bibutils` utility to convert to CSL JSON
-      or BibTeX. We now support only BibTeX, BibLaTeX, CSL JSON,
+      you may use the `bibutils` utility to convert to BibLaTeX.
+      We now support only BibTeX, BibLaTeX, CSL JSON,
       and pandoc's YAML/Markdown analogue of CSL JSON.
 
     - pandoc-citeproc would always retrieve the independent parent
