@@ -2738,9 +2738,21 @@ format, and functions to filter and modify a subtree.
 Runs command with arguments, passing it some input, and returns
 the output.
 
+Parameters:
+
+`command`
+:   program to run; the executable will be resolved using default
+    system methods (string).
+
+`args`
+:   list of arguments to pass to the program (list of strings).
+
+`input`
+:   data which is piped into the program via stdin (string).
+
 Returns:
 
--   Output of command.
+-   Output of command, i.e. data printed to stdout (string)
 
 Raises:
 
