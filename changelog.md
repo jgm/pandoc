@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.11 (YYYY-MM-DD)
+## pandoc 2.11 (2020-10-11)
 
   * Add `--citeproc` (`-C`) option to trigger built-in citation processing.
     It is no longer necessary to use the external `pandoc-citeproc`
