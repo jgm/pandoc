@@ -267,8 +267,8 @@
   * Add data files needed for Text.Pandoc.Citeproc:  these include
     `default.csl` in the data directory and a `citeproc` directory that
     is only used at compile-time for biblatex localizations.  Note that we've
-    added `file-embed` as a mandatory rather than a conditional depedency,
-    because of the biblatex localization files.
+    added `file-embed` as a mandatory rather than a conditional
+    dependency, because of the biblatex localization files.
 
   * Lua filters:
 
@@ -505,7 +505,7 @@
   * Ms writer:
 
     + Fix code highlighting with blank lines.  Previously blank lines
-      were simply omitted from highligted code.
+      were simply omitted from highlighted code.
     + Escape starting periods in ms writer code blocks (#6505, Michael
       Hoffmann).  If a line of ms code block output starts with a period (.),
       it should be prepended by `\&` so that it is not interpreted as a roff
@@ -968,7 +968,7 @@
   * Make it possible to compile using Stack on NixOS (#6439, Mathieu
     Boespflug).
 
-  * CI action to check for commit messsage length (Nikolay Yakimov, #6398).
+  * CI action to check for commit message length (Nikolay Yakimov, #6398).
 
 
 ## pandoc 2.9.2.1 (2020-03-23)
@@ -1535,7 +1535,7 @@
       The main impact of this change is better reflowing of
       content interpolated into templates.  Previously,
       interpolated variables were rendered independently and
-      intepolated as strings, which could lead to overly long
+      interpolated as strings, which could lead to overly long
       lines. Now the templates interpolated as Doc values which
       may include breaking spaces, and reflowing occurs after
       template interpolation rather than before.
@@ -2014,7 +2014,7 @@
       a margin and font size according to their level.
       Furthermore this commit allows changing the font with which code is
       formatted via the `monofont` option.
-    + Start numbering at appopriate numbers (Jesse Rosenthal, #5709).
+    + Start numbering at appropriate numbers (Jesse Rosenthal, #5709).
       Starting numbers for ordered lists were previously ignored. Now
       we specify the number if it is something other than 1.
 
@@ -3465,7 +3465,7 @@
     + Set default listings language for lua, assembler (#5227, John
       MacFarlane).  Otherwise we get an error when trying to compile code
       with lua or assembler code.  To change the default dialect
-      (currenty 5.3 for lua and x86masm for assembler), you can use
+      (currently 5.3 for lua and x86masm for assembler), you can use
       `--include-in-header` to inject something like
       `\lstset{defaultdialect=[5.2]Lua}`.
 
@@ -7162,7 +7162,7 @@
 
   * Removed `hard_line_breaks` extension from `markdown_github` (#3594).
     GitHub has two Markdown modes, one for long-form documents like READMEs
-    and one for short things like issue coments. In issue comments, a line
+    and one for short things like issue comments. In issue comments, a line
     break is treated as a hard line break. In README, wikis, etc., it is
     treated as a space as in regular Markdown.  Since pandoc is more likely to
     be used to convert long-form documents from GitHub Markdown,
@@ -7515,7 +7515,7 @@
     top-level `Text.Pandoc` module.
 
     + Changed `StringWriter` -> `TextWriter`.
-    + `getWriter` now retuns a pair of a reader and
+    + `getWriter` now returns a pair of a reader and
       `Extensions`, instead of building the extensions into the
       reader (#3659).  The calling code must explicitly set
       `readerExtensions` using the `Extensions` returned.  The
@@ -8467,7 +8467,7 @@
     + Use `unicode-math` (Vaclav Haisman).  Use `mathspec` with only
       XeLaTeX on request.
     + Don't load `fontspec` before `unicode-math` (over there).
-      The `unicode-math` package loads `fontspec` so explict loading of
+      The `unicode-math` package loads `fontspec` so explicit loading of
       `fontspec` before `unicode-math` is not necessary.
     + Use `unicode-math` by default in default.latex template.  mathspec will
       be used in xelatex if the `mathspec` variable is set; otherwise
@@ -9148,7 +9148,7 @@
     is now used in parsing RST and Markdown line blocks, DocBook
     `linegroup`/`line` combinations, and Org-mode `VERSE` blocks.
     Previously `Para` blocks with hard linebreaks were used.  `LineBlock`s
-    are handled specially in the following ouput formats: AsciiDoc
+    are handled specially in the following output formats: AsciiDoc
     (as `[verse]` blocks), ConTeXt (`\startlines`/`\endlines`),
     HTML (`div` with a style), Markdown (line blocks if `line_blocks`
     is enabled), Org-mode (`VERSE` blocks), RST (line blocks). In
@@ -9295,7 +9295,7 @@
       comma-separated list.
     + Give precedence to later meta lines.  The last meta-line of any given
       type is the significant line.  Previously the value of the first line
-      was kept, even if more lines of the same type were encounterd.
+      was kept, even if more lines of the same type were encountered.
     + Read LaTeX_header as header-includes.  LaTeX-specific header commands
       can be defined in `#+LaTeX_header` lines.  They are parsed as
       format-specific inlines to ensure that they will only show up in LaTeX
@@ -9343,7 +9343,7 @@
       be able to figure out internal links to a header in a docx if the
       anchor span was empty. We change that to read the inlines out of the
       first anchor span in a header.
-    + Let headers use exisiting id.  Previously we always generated an id for
+    + Let headers use existing id.  Previously we always generated an id for
       headers (since they wouldn't bring one from Docx). Now we let it use an
       existing one if possible. This should allow us to recurs through anchor
       spans.
@@ -9922,7 +9922,7 @@
       character.  Empty rows where parsed as alignment rows and dropped from
       the output.
     + Fix spacing after LaTeX-style symbols.
-      The org-reader was droping space after unescaped LaTeX-style symbol
+      The org-reader was dropping space after unescaped LaTeX-style symbol
       commands: `\ForAll \Auml` resulted in `∀Ä` but should give `∀ Ä`
       instead.  This seems to be because the LaTeX-reader treats the
       command-terminating space as part of the command.  Dropping the trailing
@@ -10257,7 +10257,7 @@
 
   * Entity handling fixes: improved handling of entities like
     `&lang;` that require a trailing semicolon.  Allow uppercase
-    `x` in numerical hexidecimal character references, working
+    `x` in numerical hexadecimal character references, working
     around a tagsoup bug.
 
   * `stack.yaml` - use lts-4.0, but with older aeson to avoid excessive
@@ -11742,7 +11742,7 @@
   * `Text.Pandoc.Shared`:
 
     + Make safeRead safe (#1801, Matthew Pickering).
-    + Addded `mapLeft`, `hush` (Matthew Pickering).
+    + Added `mapLeft`, `hush` (Matthew Pickering).
 
   * `Text.Pandoc.Pretty`:
 
@@ -11810,7 +11810,7 @@
 
     + Use `text:p` instead of `text:h` for title.
       Using `text:h` causes problems with numbering.  Closes #2059.
-      Thansk to @nkalvi for diagnosing this.
+      Thanks to @nkalvi for diagnosing this.
 
   * reveal.js template:
 
@@ -12076,7 +12076,7 @@
   * RST writer:
 
     + Ensure blank line after figure.
-    + Avoid exces whitespace after last list item (#1777).
+    + Avoid excess whitespace after last list item (#1777).
     + Wrap line blocks with spaces before continuations (#1656).
     + Fixed double-rendering of footnotes in RST tables (#1769).
 
@@ -12138,7 +12138,7 @@
     + Renumber header and footer relationships to avoid collisions (Jesse
       Rosenthal). We previously took the old relationship names of the
       headers and footer in secptr. That led to collisions. We now make
-      a map of availabl names in the relationships file, and then rename
+      a map of available names in the relationships file, and then rename
      in secptr.
 
   * ConTeXt writer:
@@ -12861,7 +12861,7 @@
     different versions of the `directory` library.
 
   + Added `Text.Pandoc.Compat.Except` to allow building against
-    different verions of `mtl`.
+    different versions of `mtl`.
 
   * Code cleanup in some writers, using Reader monad to avoid
     passing options parameter around (Matej Kollar).
@@ -14500,7 +14500,7 @@
     + Include HTML TOC, even in epub2.  The TOC is included in `<spine>`,
       but `linear` is set to `no` unless the `--toc` option is specified.
       Include `<guide>` element in OPF.  This should allow the TOC to
-      be useable in Kindles when converted with kindlegen. Closes #773.
+      be usable in Kindles when converted with kindlegen. Closes #773.
 
   * `Text.Pandoc.Parsing`: Optimized `oneOfStringsCI`.
     This dramatically reduces the speed penalty that comes from enabling the
@@ -15096,7 +15096,7 @@
       be a parenthesized emphasized "hello".
       The new list is taken from the PHP source of textile 2.4.
     + Fixed autolinks.  Previously the textile reader and writer
-      incorrectly implented RST-style autolinks for URLs and email
+      incorrectly implemented RST-style autolinks for URLs and email
       addresses.  This has been fixed.  Now an autolink is done this way:
       `"$":http://myurl.com`.
     + Fixed footnotes bug in textile.  This affected notes occurring
@@ -16159,7 +16159,7 @@
     Items are no longer installed as root.
     Man pages are zipped and given proper permissions.
 
-  * Modified windows installer generater to use cabal-dev.
+  * Modified windows installer generator to use cabal-dev.
 
   * Setup: Making man pages now works with cabal-dev (at least on OSX). In
     Setup.hs we now invoke 'runghc' in a way that points it to the correct
