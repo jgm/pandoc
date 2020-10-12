@@ -32,7 +32,7 @@ Starting with version 2.0, pandoc makes it possible to write
 filters in Lua without any external dependencies at all. A Lua
 interpreter (version 5.3) and a Lua library for creating pandoc
 filters is built into the pandoc executable. Pandoc data types
-are marshalled to Lua directly, avoiding the overhead of writing
+are marshaled to Lua directly, avoiding the overhead of writing
 JSON to stdout and reading it from stdin.
 
 Here is an example of a Lua filter that converts strong emphasis
@@ -75,7 +75,7 @@ Python (`smallcaps.py`):
   `pandoc --lua-filter ./smallcaps.lua`   1.03s
 
 As you can see, the Lua filter avoids the substantial overhead
-associated with marshalling to and from JSON over a pipe.
+associated with marshaling to and from JSON over a pipe.
 
 # Lua filter structure
 
@@ -292,7 +292,7 @@ use-case would be to load additional modules, or even to alter
 default modules.
 
 The following snippet is an example of code that might be useful
-when added to `init.lua`. The snippet adds all unicode-aware
+when added to `init.lua`. The snippet adds all Unicode-aware
 functions defined in the [`text` module](#module-text) to the
 default `string` module, prefixed with the string `uc_`.
 
@@ -307,21 +307,25 @@ colon syntax (`mystring:uc_upper()`).
 
 # Debugging Lua filters
 
-It is possible to use a debugging interface to halt execution and step through a
-Lua filter line by line as it is run inside Pandoc. This is accomplished using
-the remote-debugging interface of the package
-[`mobdebug`](https://github.com/pkulchenko/MobDebug). Although mobdebug can be
-run from the terminal, it is more useful run within the donation-ware Lua editor
-and IDE, [Zerobrane](https://studio.zerobrane.com/). Zerobrane offers a REPL
-console and UI to step-through and view all variables and state.
+It is possible to use a debugging interface to halt execution and
+step through a Lua filter line by line as it is run inside Pandoc.
+This is accomplished using the remote-debugging interface of the
+package [`mobdebug`](https://github.com/pkulchenko/MobDebug).
+Although mobdebug can be run from the terminal, it is more useful
+run within the donation-ware Lua editor and IDE,
+[ZeroBrane](https://studio.zerobrane.com/). ZeroBrane offers a
+REPL console and UI to step-through and view all variables and
+state.
 
 If you already have Lua 5.3 installed, you can add
-[`mobdebug`](https://luarocks.org/modules/paulclinger/mobdebug) and its
-dependency [`luasocket`](https://luarocks.org/modules/luasocket/luasocket) using
-[`luarocks`](https://luarocks.org), which should then be available on the path.
-Zerobrane also includes both of these in its package, so if you don't want to
-install Lua seperately, you should add/modify your `LUA_PATH` and `LUA_CPATH` to
-include the correct locations; [see detailed instructions
+[`mobdebug`](https://luarocks.org/modules/paulclinger/mobdebug)
+and its dependency
+[`luasocket`](https://luarocks.org/modules/luasocket/luasocket)
+using [`luarocks`](https://luarocks.org), which should then be
+available on the path. ZeroBrane also includes both of these in
+its package, so if you don't want to install Lua separately, you
+should add/modify your `LUA_PATH` and `LUA_CPATH` to include the
+correct locations; [see detailed instructions
 here](https://studio.zerobrane.com/doc-remote-debugging).
 
 # Examples
@@ -1765,7 +1769,7 @@ A list is any Lua table with integer indices. Indices start at
 one, so if `alist = {'value'}` then `alist[1] == 'value'`.
 
 Lists, when part of an element, or when generated during
-marshalling, are made instances of the `pandoc.List` type for
+marshaling, are made instances of the `pandoc.List` type for
 convenience. The `pandoc.List` type is defined in the
 [*pandoc.List*](#module-pandoc.list) module. See there for
 available methods.
@@ -2250,7 +2254,7 @@ format, and functions to filter and modify a subtree.
 
 [`Emph (content)`]{#pandoc.emph}
 
-:   Creates an inline element representing emphasised text.
+:   Creates an inline element representing emphasized text.
 
     Parameters:
 
@@ -2453,7 +2457,7 @@ format, and functions to filter and modify a subtree.
 
 [`Strikeout (content)`]{#pandoc.strikeout}
 
-:   Creates text which is striked out.
+:   Creates text which is struck out.
 
     Parameters:
 
@@ -2912,7 +2916,7 @@ Usage:
 
 `make_sections (number_sections, base_level, blocks)`
 
-Converst list of [Blocks](#type-block) into sections.
+Converts list of [Blocks](#type-block) into sections.
 `Div`s will be created beginning at each `Header`
 and containing following content until the next `Header`
 of comparable level.  If `number_sections` is true,
