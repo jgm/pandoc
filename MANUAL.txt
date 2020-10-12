@@ -594,7 +594,7 @@ header when requesting a document from a URL:
 `-L` *SCRIPT*, `--lua-filter=`*SCRIPT*
 
 :   Transform the document in a similar fashion as JSON filters (see
-    `--filter`), but use pandoc's build-in Lua filtering system.  The given
+    `--filter`), but use pandoc's built-in Lua filtering system.  The given
     Lua script is expected to return a list of Lua filters which will be
     applied in order.  Each Lua filter must contain element-transforming
     functions indexed by the name of the AST element on which the filter
@@ -2994,7 +2994,7 @@ extensions to Emacs Muse markup.
 In the `ipynb` input format, this causes Markdown cells
 to be included as raw Markdown blocks (allowing lossless
 round-tripping) rather than being parsed.  Use this only
-when you are targetting `ipynb` or a markdown-based
+when you are targeting `ipynb` or a markdown-based
 output format.
 
 #### Extension: `citations` {#org-citations}
@@ -5265,7 +5265,7 @@ and escaped in the output, rather than being passed through raw.
 
 This feature allows stylesheets to be customized to give
 different output for different output formats.  However,
-stylesheets customized in this way will not be useable
+stylesheets customized in this way will not be usable
 by other CSL implementations.
 
 
