@@ -206,7 +206,7 @@ Example:
 
 ### Parenthetical citation
 
-Citations surrounded by parantheses. The syntax is identical to
+Citations surrounded by parentheses. The syntax is identical to
 in-text citations, except for the additional parentheses enclosing
 the initial `cite` tag.
 
@@ -267,7 +267,7 @@ Use normal latex citation commands like `\cite{x}` or
 Tables
 ======
 
-Pandoc supports normal org tables (sometimes calles "pipe tables")
+Pandoc supports normal org tables (sometimes called "pipe tables")
 and grid tables (tables created by [table.el]).
 
 Column widths
