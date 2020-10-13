@@ -1635,6 +1635,7 @@ toPolyglossia (Lang "grc" _ _ _)          = ("greek",   "variant=ancient")
 toPolyglossia (Lang "hsb" _ _  _)         = ("usorbian", "")
 toPolyglossia (Lang "la" _ _ vars)
   | "x-classic" `elem` vars               = ("latin", "variant=classic")
+toPolyglossia (Lang "pt" _ "BR" _)        = ("portuguese", "variant=brazilian")
 toPolyglossia (Lang "sl" _ _ _)           = ("slovenian", "")
 toPolyglossia x                           = (commonFromBcp47 x, "")
 
@@ -1669,6 +1670,7 @@ toBabel (Lang "grc" _ _ _)              = "polutonikogreek"
 toBabel (Lang "hsb" _ _ _)              = "uppersorbian"
 toBabel (Lang "la" _ _ vars)
   | "x-classic" `elem` vars             = "classiclatin"
+toBabel (Lang "pt" _ "BR" _)            = "brazilian"
 toBabel (Lang "sl" _ _ _)               = "slovene"
 toBabel x                               = commonFromBcp47 x
 
@@ -1676,9 +1678,6 @@ toBabel x                               = commonFromBcp47 x
 -- and converts it to a string shared by Babel and Polyglossia.
 -- https://tools.ietf.org/html/bcp47#section-2.1
 commonFromBcp47 :: Lang -> Text
-commonFromBcp47 (Lang "pt" _ "BR" _)            = "brazil"
--- Note: documentation says "brazilian" works too, but it doesn't seem to work
--- on some systems.  See #2953.
 commonFromBcp47 (Lang "sr" "Cyrl" _ _)          = "serbianc"
 commonFromBcp47 (Lang "zh" "Latn" _ vars)
   | "pinyin" `elem` vars                        = "pinyin"
