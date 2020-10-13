@@ -1296,13 +1296,7 @@ inlineToMarkdown opts (Cite (c:cs) lst)
            return $ pdoc <+> r
         modekey SuppressAuthor = "-"
         modekey _              = ""
-inlineToMarkdown opts lnk@(Link attr txt (src, tit))
-  | isEnabled Ext_raw_html opts &&
-    not (isEnabled Ext_link_attributes opts) &&
-    attr /= nullAttr = -- use raw HTML
-    literal . T.strip <$>
-      writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [Plain [lnk]])
-  | otherwise = do
+inlineToMarkdown opts lnk@(Link attr txt (src, tit)) = do
   variant <- asks envVariant
   linktext <- inlineListToMarkdown opts txt
   let linktitle = if T.null tit
@@ -1320,23 +1314,28 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit))
   reftext <- if useRefLinks
                 then literal <$> getReference attr linktext (src, tit)
                 else return mempty
-  return $ if useAuto
-              then case variant of
-                     PlainText -> literal srcSuffix
-                     _ -> "<" <> literal srcSuffix <> ">"
-              else if useRefLinks
-                      then let first  = "[" <> linktext <> "]"
-                               second = if getKey linktext == getKey reftext
-                                           then if useShortcutRefLinks
-                                                   then ""
-                                                   else "[]"
-                                           else "[" <> reftext <> "]"
-                           in  first <> second
-                      else case variant of
-                             PlainText -> linktext
-                             _ -> "[" <> linktext <> "](" <>
-                                   literal src <> linktitle <> ")" <>
-                                   linkAttributes opts attr
+  case variant of
+    PlainText
+      | useAuto -> return $ literal srcSuffix
+      | otherwise -> return linktext
+    _ | useAuto -> return $ "<" <> literal srcSuffix <> ">"
+      | useRefLinks ->
+           let first  = "[" <> linktext <> "]"
+               second = if getKey linktext == getKey reftext
+                           then if useShortcutRefLinks
+                                   then ""
+                                   else "[]"
+                           else "[" <> reftext <> "]"
+           in  return $ first <> second
+      | isEnabled Ext_raw_html opts
+      , not (isEnabled Ext_link_attributes opts)
+      , attr /= nullAttr -> -- use raw HTML to render attributes
+          literal . T.strip <$>
+            writeHtml5String opts{ writerTemplate = Nothing }
+            (Pandoc nullMeta [Plain [lnk]])
+      | otherwise -> return $
+         "[" <> linktext <> "](" <> literal src <> linktitle <> ")" <>
+         linkAttributes opts attr
 inlineToMarkdown opts img@(Image attr alternate (source, tit))
   | isEnabled Ext_raw_html opts &&
     not (isEnabled Ext_link_attributes opts) &&
