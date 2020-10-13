@@ -103,8 +103,8 @@ edited by Sam Smith. Oxford: Oxford University Press.
 [^1]: [Doe and Roe](#ref-пункт3) ([2007, 12](#ref-пункт3)) and a
     citation without locators ([Doe and Roe 2007](#ref-пункт3)).
 
-[^2]: Some citations (see [Doe 2005, chap. 3](#ref-item1); [Doe and Roe
-    2007](#ref-пункт3); [Doe 2006](#ref-item2)).
+[^2]: Some citations (see [Doe 2005, chap. 3](#ref-item1);
+    [2006](#ref-item2); [Doe and Roe 2007](#ref-пункт3)).
 
 [^3]: Like a citation without author: ([2005](#ref-item1)), and now Doe
     with a locator ([2006, 44](#ref-item2)).
