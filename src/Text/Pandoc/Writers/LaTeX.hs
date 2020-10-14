@@ -635,6 +635,7 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   let listingsCodeBlock = do
         st <- get
         ref <- toLabel identifier
+        let esc = escapeStringUsing (backslashEscapes "\\{}%~_&#^")
         let params = if writerListings (stOptions st)
                      then (case getListingsLanguage classes of
                                 Just l  -> [ "language=" <> mbBraced l ]
@@ -644,7 +645,7 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                              || "number-lines" `elem` classes ] ++
                           [ (if key == "startFrom"
                                 then "firstnumber"
-                                else key) <> "=" <> mbBraced attr |
+                                else key) <> "=" <> mbBraced (esc attr) |
                                 (key,attr) <- keyvalAttr,
                                 key `notElem` ["exports", "tangle", "results"]
                                 -- see #4889
