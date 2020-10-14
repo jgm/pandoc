@@ -1,5 +1,39 @@
 # Revision history for pandoc
 
+## pandoc 2.11.0.1 (2020-10-13)
+
+  * LaTeX reader: support more acronym commands (#6746):
+    `\acl`, `\aclp`, and capitalized versions of already
+    supported commands.
+
+  * Commonmark reader: add `pipe_table` extension *after* defaults (#6739).
+    Otherwise we get bad results for non-table, non-paragraph
+    lines containing pipe characters.
+
+  * Markdown writer: Fix autolinks rendering for gfm (#6740).
+    Previously, autolinks rendered as raw HTML, due to the
+    `class="uri"` added by pandoc's markdown reader.
+
+  * LaTeX writer:
+
+    + Escape option values in lstlistings environment (#6742).
+    + Fix handling of `lang` `pt-BR` (#2953).  For polyglossia we now
+      use `\setmainlanguage[variant=brazilian]{portuguese}` and for babel
+      `\usepackage[shorthands=off,main=brazilian]{babel}`.
+
+  * Depend on latest citeproc (0.1.0.1).
+
+    + This fixes the citation number issue with ieee.csl and other
+      styles that do not explicitly sort bibliographies (#6741). (Pandoc
+      was numbering them by their order in the bibliography file,
+      rather than the order cited, as required by the CSL spec.)
+    + Fixes groupin/collapsing with citation items with prefixes.
+
+  * default.latex: fix `CSLReference` macro definition.
+
+  * Fix spelling errors in chengelog, MANUAL.txt, `doc/org.md` (#6738).
+
+
 ## pandoc 2.11 (2020-10-11)
 
   * Add `--citeproc` (`-C`) option to trigger built-in citation processing.
