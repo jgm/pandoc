@@ -369,7 +369,7 @@ tests =
                 ] =?>
       para (emph "Hello, World")
 
-  , "Macro repeting its argument" =:
+  , "Macro duplicating its argument" =:
       T.unlines [ "#+MACRO: HELLO $1$1"
                 , "{{{HELLO(moin)}}}"
                 ] =?>

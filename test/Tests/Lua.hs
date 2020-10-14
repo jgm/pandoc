@@ -179,7 +179,7 @@ tests = map (localOption (QuickCheckTests 20))
       (doc $ para (str . T.pack $ "lua" </> "require-file.lua"))
 
   , testCase "Allow singleton inline in constructors" . runLuaTest $ do
-      Lua.liftIO . assertEqual "Not the exptected Emph" (Emph [Str "test"])
+      Lua.liftIO . assertEqual "Not the expected Emph" (Emph [Str "test"])
         =<< Lua.callFunc "pandoc.Emph" (Str "test")
       Lua.liftIO . assertEqual "Unexpected element" (Para [Str "test"])
         =<< Lua.callFunc "pandoc.Para" ("test" :: String)
