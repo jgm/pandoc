@@ -6048,8 +6048,8 @@ section from a BibTeX, BibLaTeX, or CSL JSON bibliography:
 .IP
 .nf
 \f[C]
-pandoc chem.bib -s -t markdown
-pandoc chem.json -s -t markdown
+pandoc chem.bib -s -f biblatex -t markdown
+pandoc chem.json -s -f csljson -t markdown
 \f[R]
 .fi
 .PP
@@ -6058,8 +6058,8 @@ BibTeX, BibLaTeX, or markdown YAML:
 .IP
 .nf
 \f[C]
-pandoc chem.bib -s -t csljson
-pandoc chem.yaml -s -t csljson
+pandoc chem.bib -s -f biblatex -t csljson
+pandoc chem.yaml -s -f markdown -t csljson
 \f[R]
 .fi
 .PP
