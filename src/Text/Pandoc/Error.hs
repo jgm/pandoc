@@ -10,8 +10,8 @@
    Stability   : alpha
    Portability : portable
 
-This module provides a standard way to deal with possible errors encounted
-during parsing.
+This module provides a standard way to deal with possible errors
+encountered during parsing.
 
 -}
 module Text.Pandoc.Error (

@@ -33,7 +33,7 @@
 
   * Fix MANUAL.txt CSL JSON conversion examples.
 
-  * Fix spelling errors in chengelog, MANUAL.txt, `doc/org.md` (#6738).
+  * Fix spelling errors in changelog, MANUAL.txt, `doc/org.md` (#6738).
 
 
 ## pandoc 2.11 (2020-10-11)
@@ -3369,7 +3369,7 @@
   * Man/Ms writers: Don't escape `-` as `\-`. The `\-` gets rendered
     in HTML and PDF as a unicode minus sign.
 
-  * Ms writer: Ensure we have a newline after .EN in disply math (#5251).
+  * Ms writer: Ensure we have a newline after .EN in display math (#5251).
 
   * RST writer: Don't wrap simple table header lines (#5128).
 
@@ -9016,11 +9016,11 @@
     +   Allow alignments to be specified in Markdown grid tables. For
         example,
 
-            +-------+---------------+--------------------+
+            +-------|---------------|--------------------+
             | Right    | Left                 | Centered |
             +=========:+:=================+:=============:+
             | Bananas | $1.34         | built-in wrapper |
-            +-------+---------------+--------------------+
+            +-------|---------------|--------------------+
 
     +   Allow Small Caps elements to be created using bracketed spans (as
         they already can be using HTML-syntax spans) (#3191, Kolen Cheung).

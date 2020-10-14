@@ -197,7 +197,7 @@ getRefsFromBib locale idpred t = do
   case formatFromExtension fp of
     Just f -> getRefs locale f idpred (Just fp) raw
     Nothing -> throwError $ PandocAppError $
-                 "Could not deterine bibliography format for " <> t
+                 "Could not determine bibliography format for " <> t
 
 getRefs :: PandocMonad m
         => Locale
@@ -532,6 +532,3 @@ removeFinalPeriod ils =
   case lastMay ils of
     Just (Str ".") -> initSafe ils
     _              -> ils
-
-
-

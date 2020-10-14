@@ -34,7 +34,7 @@ instance Peekable MediaItems where
   peek = peekMediaItems
 
 -- | Push an iterator triple to be used with Lua's @for@ loop construct.
--- Each iterator invokation returns a tripple consisting of an item's
+-- Each iterator invocation returns a triple containing the item's
 -- filename, MIME type, and content.
 pushIterator :: MediaBag -> Lua NumResults
 pushIterator mb = do

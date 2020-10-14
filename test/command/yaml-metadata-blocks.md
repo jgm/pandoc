@@ -21,18 +21,18 @@ scientific: 3.7e-5
 bool: true
 more: False
 nothing: null
-emtpy: []
+empty: []
 nested:
   int: 8
   float: 2.5
   bool: true
   more: False
   nothing: null
-  emtpy: []
+  empty: []
   scientific: 3.7e-5
 ---
 ^D
-Pandoc (Meta {unMeta = fromList [("bool",MetaBool True),("emtpy",MetaList []),("float",MetaInlines [Str "1.5"]),("int",MetaInlines [Str "7"]),("more",MetaBool False),("nested",MetaMap (fromList [("bool",MetaBool True),("emtpy",MetaList []),("float",MetaInlines [Str "2.5"]),("int",MetaInlines [Str "8"]),("more",MetaBool False),("nothing",MetaInlines [Str "null"]),("scientific",MetaInlines [Str "3.7e-5"])])),("nothing",MetaInlines [Str "null"]),("scientific",MetaInlines [Str "3.7e-5"])]})
+Pandoc (Meta {unMeta = fromList [("bool",MetaBool True),("empty",MetaList []),("float",MetaInlines [Str "1.5"]),("int",MetaInlines [Str "7"]),("more",MetaBool False),("nested",MetaMap (fromList [("bool",MetaBool True),("empty",MetaList []),("float",MetaInlines [Str "2.5"]),("int",MetaInlines [Str "8"]),("more",MetaBool False),("nothing",MetaInlines [Str "null"]),("scientific",MetaInlines [Str "3.7e-5"])])),("nothing",MetaInlines [Str "null"]),("scientific",MetaInlines [Str "3.7e-5"])]})
 []
 ```
 ```

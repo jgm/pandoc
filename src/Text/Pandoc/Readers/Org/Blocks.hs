@@ -289,7 +289,7 @@ verseBlock blockType = try $ do
      return (trimInlinesF $ pure nbspIndent <> line)
 
 -- | Read a code block and the associated results block if present.  Which of
--- boths blocks is included in the output is determined using the "exports"
+-- the blocks is included in the output is determined using the "exports"
 -- argument in the block header.
 codeBlock :: PandocMonad m => BlockAttributes -> Text -> OrgParser m (F Blocks)
 codeBlock blockAttrs blockType = do

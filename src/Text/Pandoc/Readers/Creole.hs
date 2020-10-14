@@ -252,7 +252,7 @@ inlineNowiki = B.code <$> (start >> manyTillChar (noneOf "\n\r") end)
     end = try $ string "}}}" >> lookAhead (noneOf "}")
 
 placeholder :: PandocMonad m => CRLParser m B.Inlines
--- The semantics of the placeholder is basicallly implementation
+-- The semantics of the placeholder is basically implementation
 -- dependent, so there is no way to DTRT for all cases.
 -- So for now we just drop them.
 placeholder = B.text <$> try (string "<<<" >> manyTill anyChar (string ">>>")

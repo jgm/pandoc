@@ -29,7 +29,7 @@
  [(TableBody ("",[],[]) (RowHeadColumns 3)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 4) (ColSpan 2) [Plain [Str "Terrestial planets"]]
+   [Cell ("",[],[]) AlignDefault (RowSpan 4) (ColSpan 2) [Plain [Str "Terrestrial planets"]]
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Mercury"]]
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "0.330"]]
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "4,879"]]

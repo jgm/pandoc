@@ -41,7 +41,7 @@ import Data.Maybe
 -- > foldr (.) id
 -- where '(.)' are 'id' are the ones from "Control.Category"
 -- and 'foldr' is the one from "Data.Foldable".
--- The noun-form was chosen to be consistend with 'sum', 'product' etc
+-- The noun-form was chosen to be consistent with 'sum', 'product' etc
 -- based on the discussion at
 -- <https://groups.google.com/forum/#!topic/haskell-cafe/VkOZM1zaHOI>
 -- (that I was not part of)

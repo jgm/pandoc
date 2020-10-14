@@ -600,7 +600,7 @@ makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
         go (_:as) ".." = as
         go as     x    = x : as
 
--- | Trys to run an action on a file: for each directory given, a
+-- | Tries to run an action on a file: for each directory given, a
 -- filepath is created from the given filename, and the action is run on
 -- that filepath. Returns the result of the first successful execution
 -- of the action, or throws a @PandocResourceNotFound@ exception if the

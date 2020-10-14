@@ -90,7 +90,7 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Emph [Strong [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em."]],LineBreak,Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word",Space,Str "and",Space,Emph [Strong [Str "that",Space,Str "one"]],Str ".",LineBreak,Strikeout [Str "This",Space,Str "is",Space,Str "strikeout",Space,Str "and",Space,Strong [Str "strong"]]]
 ,Para [Str "Superscripts:",Space,Str "a",Superscript [Str "bc"],Str "d",Space,Str "a",Space,Superscript [Strong [Str "hello"]],Space,Str "a",Superscript [Str "hello",Space,Str "there"],Str ".",LineBreak,Str "Subscripts:",Space,Subscript [Str "here"],Space,Str "H",Space,Subscript [Str "2"],Str "O,",Space,Str "H",Space,Subscript [Str "23"],Str "O,",Space,Str "H",Space,Subscript [Str "many",Space,Str "of",Space,Str "them"],Str "O."]
 ,Para [Str "Dashes",Space,Str ":",Space,Str "How",Space,Str "cool",Space,Str "\8212",Space,Str "automatic",Space,Str "dashes."]
-,Para [Str "Elipses",Space,Str ":",Space,Str "He",Space,Str "thought",Space,Str "and",Space,Str "thought",Space,Str "\8230",Space,Str "and",Space,Str "then",Space,Str "thought",Space,Str "some",Space,Str "more."]
+,Para [Str "Ellipses",Space,Str ":",Space,Str "He",Space,Str "thought",Space,Str "and",Space,Str "thought",Space,Str "\8230",Space,Str "and",Space,Str "then",Space,Str "thought",Space,Str "some",Space,Str "more."]
 ,Para [Str "Quotes",Space,Str "and",Space,Str "apostrophes",Space,Str ":",Space,Quoted DoubleQuote [Str "I\8217d",Space,Str "like",Space,Str "to",Space,Str "thank",Space,Str "you"],Space,Str "for",Space,Str "example."]
 ,Header 1 ("links",[],[]) [Str "Links"]
 ,Header 2 ("explicit",[],[]) [Str "Explicit"]

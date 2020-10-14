@@ -2,7 +2,7 @@
 % pandoc -f biblatex -t markdown -s
 @comment{excerpted from http://mirrors.ctan.org/macros/latex/contrib/biblatex/doc/examples/biblatex-examples.bib
 
-TODO: Uppercase letters follwing hyphens need to be converted to lowercase, too (e.g., "r" in "High-Resolution". -- Same for citeproc when doing title-case conversion!)
+TODO: Uppercase letters following hyphens need to be converted to lowercase, too (e.g., "r" in "High-Resolution". -- Same for citeproc when doing title-case conversion!)
 }
 
 @thesis{geer,
