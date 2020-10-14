@@ -31,6 +31,8 @@
 
   * default.latex: fix `CSLReference` macro definition.
 
+  * Fix MANUAL.txt CSL JSON conversion examples.
+
   * Fix spelling errors in chengelog, MANUAL.txt, `doc/org.md` (#6738).
 
 
