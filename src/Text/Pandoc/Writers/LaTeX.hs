@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
@@ -635,7 +636,8 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   let listingsCodeBlock = do
         st <- get
         ref <- toLabel identifier
-        let esc = escapeStringUsing (backslashEscapes "\\{}%~_&#^")
+        kvs <- mapM (\(k,v) -> (k,) <$>
+                       stringToLaTeX TextString v) keyvalAttr
         let params = if writerListings (stOptions st)
                      then (case getListingsLanguage classes of
                                 Just l  -> [ "language=" <> mbBraced l ]
@@ -645,8 +647,8 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                              || "number-lines" `elem` classes ] ++
                           [ (if key == "startFrom"
                                 then "firstnumber"
-                                else key) <> "=" <> mbBraced (esc attr) |
-                                (key,attr) <- keyvalAttr,
+                                else key) <> "=" <> mbBraced attr |
+                                (key,attr) <- kvs,
                                 key `notElem` ["exports", "tangle", "results"]
                                 -- see #4889
                           ] ++
