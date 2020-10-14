@@ -5147,14 +5147,14 @@ array of YAML-encoded references, for example:
 Note that `pandoc` can be used to produce such a YAML metadata
 section from a BibTeX, BibLaTeX, or CSL JSON bibliography:
 
-    pandoc chem.bib -s -t markdown
-    pandoc chem.json -s -t markdown
+    pandoc chem.bib -s -f biblatex -t markdown
+    pandoc chem.json -s -f csljson -t markdown
 
 `pandoc` can also be used to produce CSL JSON bibliography
 from BibTeX, BibLaTeX, or markdown YAML:
 
-    pandoc chem.bib -s -t csljson
-    pandoc chem.yaml -s -t csljson
+    pandoc chem.bib -s -f biblatex -t csljson
+    pandoc chem.yaml -s -f markdown -t csljson
 
 Running pandoc on a bibliography file with the `--citeproc`
 option will create a formatted bibliography in the format
