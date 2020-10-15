@@ -120,7 +120,7 @@ getVerbosity :: PandocMonad m => m Verbosity
 -- | Set the verbosity level.
 setVerbosity :: PandocMonad m => Verbosity -> m ()
 
--- Get the accomulated log messages (in temporal order).
+-- Get the accumulated log messages (in temporal order).
 getLog :: PandocMonad m => m [LogMessage]
 getLog = reverse <$> getsCommonState stLog
 
@@ -337,7 +337,7 @@ use `throwError`.
 In addition to errors, which stop execution of the conversion
 pipeline, one can generate informational messages.
 Use `report` from [Text.Pandoc.Class] to issue a `LogMessage`.
-For a list of cosntructors for `LogMessage`, see
+For a list of constructors for `LogMessage`, see
 [Text.Pandoc.Logging].  Note that each type of log message
 is associated with a verbosity level.  The verbosity level
 (`setVerbosity`/`getVerbosity`) determines whether the report
@@ -432,7 +432,7 @@ structure and calling this function.
 1. Pandoc's parsers can exhibit pathological behavior on some
    inputs.  So it is always a good idea to wrap uses of pandoc
    in a timeout function (e.g. `System.Timeout.timeout` from `base`)
-   to prevent DOS attacks.
+   to prevent DoS attacks.
 
 2. If pandoc generates HTML from untrusted user input, it is
    always a good idea to filter the generated HTML through
