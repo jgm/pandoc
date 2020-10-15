@@ -9016,11 +9016,11 @@
     +   Allow alignments to be specified in Markdown grid tables. For
         example,
 
-            +-------|---------------|--------------------+
+            +-------+---------------+--------------------+
             | Right    | Left                 | Centered |
             +=========:+:=================+:=============:+
             | Bananas | $1.34         | built-in wrapper |
-            +-------|---------------|--------------------+
+            +-------+---------------+--------------------+
 
     +   Allow Small Caps elements to be created using bracketed spans (as
         they already can be using HTML-syntax spans) (#3191, Kolen Cheung).
