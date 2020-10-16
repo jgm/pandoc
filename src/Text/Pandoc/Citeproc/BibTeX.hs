@@ -61,7 +61,8 @@ readBibtexString :: Variant           -- ^ bibtex or biblatex
 readBibtexString variant locale idpred contents = do
   case runParser (((resolveCrossRefs variant <$> bibEntries) <* eof) >>=
                    mapM (itemToReference locale variant) .
-                      filter (idpred . identifier))
+                      filter (\item -> idpred (identifier item) &&
+                                        entryType item /= "xdata"))
            (fromMaybe defaultLang $ localeLanguage locale, Map.empty)
            "" contents of
           Left err -> Left err
@@ -1058,7 +1059,6 @@ getTypeAndGenre :: Bib (Text, Maybe Text)
 getTypeAndGenre = do
   lang <- gets localeLang
   et <- asks entryType
-  guard $ et /= "xdata"
   reftype' <- resolveKey' lang <$> getRawField "type"
          <|> return mempty
   st <- getRawField "entrysubtype" <|> return mempty
