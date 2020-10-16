@@ -160,7 +160,7 @@ setVerbosity verbosity =
 getVerbosity :: PandocMonad m => m Verbosity
 getVerbosity = getsCommonState stVerbosity
 
--- | Get the accomulated log messages (in temporal order).
+-- | Get the accumulated log messages (in temporal order).
 getLog :: PandocMonad m => m [LogMessage]
 getLog = reverse <$> getsCommonState stLog
 
