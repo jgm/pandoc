@@ -2861,7 +2861,7 @@ their respective sections of [Pandoc's Markdown]:
   for the following formats (in addition to `markdown`):
 
   input formats
-  :  `latex`, `org`, `textile`, `html` (environments, `\ref`, and
+  :  `latex`, `textile`, `html` (environments, `\ref`, and
      `\eqref` only), `ipynb`
 
   output formats
