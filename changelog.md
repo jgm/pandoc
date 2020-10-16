@@ -1,5 +1,18 @@
 # Revision history for pandoc
 
+## pandoc 2.11.0.2 (2020-10-15)
+
+  * Fix handling of `xdata` in bibtex/biblatex bibliographies (#6752).
+
+  * Fix some small typos in the API documentation (#6751, Michael Hoffmann).
+
+  * Require citeproc 0.1.0.2.  This fixes a regression from pandoc-citeproc
+    involving spacing between components of a reference in certain styles
+    (e.g. `cell.csl`).
+
+  * Fix typos in comments, doc strings, error messages, and tests
+    (Albert Krewinkel, #6738).
+
 ## pandoc 2.11.0.1 (2020-10-13)
 
   * LaTeX reader: support more acronym commands (#6746):
