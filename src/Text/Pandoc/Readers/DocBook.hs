@@ -44,7 +44,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [o] address - A real-world address, generally a postal address
 [ ] affiliation - The institutional affiliation of an individual
 [ ] alt - Text representation for a graphical element
-[o] anchor - A spot in the document
+[x] anchor - A spot in the document
 [x] answer - An answer to a question posed in a QandASet
 [x] appendix - An appendix in a Book or Article
 [x] appendixinfo - Meta-information for an Appendix
@@ -72,7 +72,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] bibliographyinfo - Meta-information for a Bibliography
 [ ] biblioid - An identifier for a document
 [o] bibliolist - A wrapper for a set of bibliography entries
-[ ] bibliomisc - Untyped bibliographic information
+[x] bibliomisc - Untyped bibliographic information
 [x] bibliomixed - An entry in a Bibliography
 [ ] bibliomset - A cooked container for related bibliographic information
 [ ] biblioref - A cross reference to a bibliographic entry
@@ -644,6 +644,7 @@ blockTags =
   , "bibliodiv"
   , "biblioentry"
   , "bibliography"
+  , "bibliomisc"
   , "bibliomixed"
   , "blockquote"
   , "book"
@@ -793,8 +794,13 @@ parseBlock (Elem e) =
         "titleabbrev" -> skip
         "authorinitials" -> skip
         "bibliography" -> sect 0
-        "bibliodiv" -> sect 1
+        "bibliodiv" -> do
+           tit <- case filterChild (named "title") e of
+                    Just _  -> sect 1
+                    Nothing -> return mempty
+           (tit <>) <$> parseMixed para (elContent e)
         "biblioentry" -> parseMixed para (elContent e)
+        "bibliomisc" -> parseMixed para (elContent e)
         "bibliomixed" -> parseMixed para (elContent e)
         "equation"         -> para <$> equation e displayMath
         "informalequation" -> para <$> equation e displayMath
@@ -1061,6 +1067,8 @@ parseInline (CRef ref) =
   return $ text $ maybe (T.toUpper $ T.pack ref) T.pack $ lookupEntity ref
 parseInline (Elem e) =
   case qName (elName e) of
+        "anchor" -> do
+           return $ spanWith (attrValue "id" e, [], []) mempty
         "phrase" -> do
           let ident = attrValue "id" e
           let classes = T.words $ attrValue "class" e
