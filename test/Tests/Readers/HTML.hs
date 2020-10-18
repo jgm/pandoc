@@ -84,6 +84,10 @@ tests = [ testGroup "base tag"
           [ test html "anchor without href" $ "<a name=\"anchor\"/>" =?>
             plain (spanWith ("anchor",[],[]) mempty)
           ]
+        , testGroup "img"
+          [ test html "data-external attribute" $ "<img data-external=\"1\" src=\"http://example.com/stickman.gif\">" =?>
+            plain (imageWith ("", [], [("data-external", "1")]) "http://example.com/stickman.gif" "" "")
+          ]
         , testGroup "lang"
           [ test html "lang on <html>" $ "<html lang=\"es\">hola" =?>
             setMeta "lang" (text "es") (doc (plain (text "hola")))

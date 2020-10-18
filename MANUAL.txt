@@ -5864,6 +5864,12 @@ with the `src` attribute.  For example:
       </source>
     </audio>
 
+When using HTML as the input format (as opposed to the raw HTML
+extension), then the `data-external="1"` attribute also works the same
+as described above, but only for the `<img>` element.  The other
+elements have no representation in pandoc's AST and any attributes
+will hence be ignored.
+
 # Jupyter notebooks
 
 When creating a [Jupyter notebook], pandoc will try to infer the

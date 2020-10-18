@@ -1060,7 +1060,8 @@ transformInline  :: PandocMonad m
                  => WriterOptions
                  -> Inline
                  -> E m Inline
-transformInline _opts (Image attr lab (src,tit)) = do
+transformInline _opts (Image attr@(_,_,kvs) lab (src,tit))
+  | isNothing (lookup "data-external" kvs) = do
     newsrc <- modifyMediaRef $ TS.unpack src
     return $ Image attr lab ("../" <> newsrc, tit)
 transformInline opts x@(Math t m)
