@@ -227,5 +227,6 @@ writeMedia dir mediabag subpath = do
 -- returns the element unchanged otherwise.
 adjustImagePath :: FilePath -> [FilePath] -> Inline -> Inline
 adjustImagePath dir paths (Image attr lab (src, tit))
-   | unpack src `elem` paths = Image attr lab (pack dir <> "/" <> src, tit)
+   | unpack src `elem` paths
+     = Image attr lab (pack (normalise $ dir </> unpack src), tit)
 adjustImagePath _ _ x = x
