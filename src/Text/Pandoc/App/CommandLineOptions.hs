@@ -914,7 +914,7 @@ options =
                      defaultDatadirs <- defaultUserDataDirs
                      UTF8.hPutStrLn stdout (prg ++ " " ++ T.unpack pandocVersion ++
                        compileInfo ++
-                       "\nDefault user data directory:\n  " ++
+                       "\nUser data directory: " ++
                        intercalate " or " defaultDatadirs ++
                        ('\n':copyrightMessage))
                      exitSuccess ))
@@ -951,9 +951,10 @@ copyrightMessage = intercalate "\n" [
 
 compileInfo :: String
 compileInfo =
-  "\nCompiled with:\n  pandoc-types " ++ VERSION_pandoc_types ++
+  "\nCompiled with pandoc-types " ++ VERSION_pandoc_types ++
   ", texmath " ++ VERSION_texmath ++ ", skylighting " ++
-  VERSION_skylighting ++ ", citeproc " ++ VERSION_citeproc
+  VERSION_skylighting ++ ",\nciteproc " ++ VERSION_citeproc ++
+  ", ipynb " ++ VERSION_ipynb
 
 handleUnrecognizedOption :: String -> [String] -> [String]
 handleUnrecognizedOption "--smart" =
