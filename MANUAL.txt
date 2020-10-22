@@ -2364,7 +2364,7 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
         ...
 
 `indent`
-:   uses document class settings for indentation (the default LaTeX template
+:   if true, pandoc will use document class settings for indentation (the default LaTeX template
     otherwise removes indentation and adds space between paragraphs)
 
 `linestretch`
