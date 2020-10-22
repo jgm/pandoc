@@ -524,11 +524,14 @@ deNote (Note bs) = Note $ walk go bs
   go x = x
 deNote x = x
 
--- Note: we can't use dropTextWhileEnd because this would
--- remove the final period on abbreviations like Ibid.
--- But removing a final Str "." is safe.
+-- Note: we can't use dropTextWhileEnd indiscriminately,
+-- because this would remove the final period on abbreviations like Ibid.
+-- But it turns out that when the note citation ends with Ibid.
+-- (or Ed. etc.), the last inline will be Str "" as a result of
+-- the punctuation-fixing mechanism that removes the double '.'.
 removeFinalPeriod :: [Inline] -> [Inline]
 removeFinalPeriod ils =
   case lastMay ils of
-    Just (Str ".") -> initSafe ils
-    _              -> ils
+    Just (Str t)
+      | T.takeEnd 1 t == "." -> initSafe ils ++ [Str (T.dropEnd 1 t)]
+    _ -> ils
