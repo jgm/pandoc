@@ -22,7 +22,8 @@ extra-deps:
 - commonmark-0.1.0.2
 - commonmark-extensions-0.2.0.1
 - commonmark-pandoc-0.2.0.1
-- citeproc-0.1.0.2
+- git: https://github.com/jgm/citeproc
+  commit: 3230fb6fa1beff3e27389be20217a31d3c1207e9
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
