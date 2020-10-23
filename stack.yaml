@@ -10,8 +10,8 @@ extra-deps:
 - texmath-0.12.0.3
 - rfc5051-0.2
 - haddock-library-1.9.0
-- skylighting-0.10.0.2
-- skylighting-core-0.10.0.2
+- skylighting-0.10.0.3
+- skylighting-core-0.10.0.3
 - doclayout-0.3
 - emojis-0.1
 - hslua-1.1.2
