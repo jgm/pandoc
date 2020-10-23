@@ -943,7 +943,9 @@ header when requesting a document from a URL:
 
 `--html-q-tags`
 
-:   Use `<q>` tags for quotes in HTML.
+:   Use `<q>` tags for quotes in HTML.  (This option only has an
+    effect if the `smart` extension is enabled for the input
+    format used.)
 
 `--ascii`
 
