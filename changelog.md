@@ -12,6 +12,9 @@
 
   * Use latest sylighting, with support for `groovy`.
 
+  * Document that --html-q-tags requires the smart extension on the reader
+    (#6766).
+
 ## pandoc 2.11.0.3 (2020-10-20)
 
   * Use latest citeproc (closes #6765). This fixes a problem with
@@ -31,7 +34,7 @@
 
   * Modify `--version` output.  Use space more efficiently and report the
     citeproc and ipynb versions, along with skylighting, texmath, and
-    pandoc-types.  Drop the word default before "user data directory."
+    pandoc-types.  Drop the word "default" before "user data directory."
 
   * DocBook reader: bibliomisc and anchor support (#6754, Nils Carlson).
     Also ensure that bibliodiv without a title no longer results in
