@@ -1,5 +1,45 @@
 # Revision history for pandoc
 
+## pandoc 2.11.0.3 (2020-10-20)
+
+  * Use latest citeproc (closes #6765). This fixes a problem with
+    author-in-text citations for references including both an author
+    and an editor. Previously, both were included in the text, but only
+    the author should be.
+
+  * With `--citeproc`, ensure that the final period is removed when
+    citations that occur in notes in note-based styles get put in
+    parentheses.  See jgm/citeproc#20.
+
+  * Normalize rewritten image paths with `--extract-media` (#6761).
+    This change will avoid mixed paths like this one when
+    `--extract-media` is used with a Word file:
+    `![](C:\Git\TIJ4\Markdown/media/image30.wmf)`.  Instead we'll get
+    `![](C:\Git\TIJ4\Markdown`media`image30.wmf)`.
+
+  * Modify `--version` output.  Use space more efficiently and report the
+    citeproc and ipynb versions, along with skylighting, texmath, and
+    pandoc-types.  Drop the word default before "user data directory."
+
+  * DocBook reader: bibliomisc and anchor support (#6754, Nils Carlson).
+    Also ensure that bibliodiv without a title no longer results in
+    an empty Header.
+
+  * ConTeXt template: adds `\setupinterlinespace` to fonts larger
+    than normal (#6763, Denis Maier).
+
+  * LaTeX template: Do not load amssymb if not needed (#6469, Angelo Peronio).
+    See <https://tex.stackexchange.com/a/549938>.
+
+  * Relax upper bound on hslua, allow hslua-1.3.* (Albert Krewinkel).
+
+  * MANUAL:
+
+    + Improve explanation of "indent" variable (#6767, Cyrus Yip).
+    + Remove org from list of input formats supporting raw_tex (#6753,
+      Nick Fleisher).
+
+
 ## pandoc 2.11.0.2 (2020-10-15)
 
   * Fix handling of `xdata` in bibtex/biblatex bibliographies (#6752).
