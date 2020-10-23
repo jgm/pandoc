@@ -1,5 +1,12 @@
 # Revision history for pandoc
 
+## pandoc 2.11.0.4 (2020-10-20)
+
+  * Use released version of citeproc.  (This fixes a mis-step
+    in the 2.11.0.3 release, which is now deprecated.)
+
+  * Use latest sylighting, with support for `groovy`.
+
 ## pandoc 2.11.0.3 (2020-10-20)
 
   * Use latest citeproc (closes #6765). This fixes a problem with
