@@ -32,9 +32,9 @@
 
 \setupwhitespace[medium]
 
-\setuphead[chapter]            [style=\tfd,header=empty]
-\setuphead[section]            [style=\tfc]
-\setuphead[subsection]         [style=\tfb]
+\setuphead[chapter]            [style=\tfd\setupinterlinespace,header=empty]
+\setuphead[section]            [style=\tfc\setupinterlinespace]
+\setuphead[subsection]         [style=\tfb\setupinterlinespace]
 \setuphead[subsubsection]      [style=\bf]
 \setuphead[subsubsubsection]   [style=\sc]
 \setuphead[subsubsubsubsection][style=\it]
