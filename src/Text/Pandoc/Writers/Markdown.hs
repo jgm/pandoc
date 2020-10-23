@@ -419,6 +419,7 @@ blockToMarkdown' :: PandocMonad m
 blockToMarkdown' _ Null = return empty
 blockToMarkdown' opts (Div attrs ils) = do
   contents <- blockListToMarkdown opts ils
+  variant <- asks envVariant
   return $
     case () of
          _ | isEnabled Ext_fenced_divs opts &&
@@ -428,7 +429,8 @@ blockToMarkdown' opts (Div attrs ils) = do
                 literal ":::" <> blankline
            | isEnabled Ext_native_divs opts ||
              (isEnabled Ext_raw_html opts &&
-              isEnabled Ext_markdown_in_html_blocks opts) ->
+              (variant == Commonmark ||
+               isEnabled Ext_markdown_in_html_blocks opts)) ->
                 tagWithAttrs "div" attrs <> blankline <>
                 contents <> blankline <> "</div>" <> blankline
            | isEnabled Ext_raw_html opts &&
