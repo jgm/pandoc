@@ -1,6 +1,11 @@
 # Revision history for pandoc
 
-## pandoc 2.11.0.4 (2020-10-20)
+## pandoc 2.11.0.4 (2020-10-21)
+
+  * Commonmark writer: fix regression with fenced divs (#6768).
+    Starting with 2.10.1, fenced divs no longer render with
+    HTML div tags in commonmark output.  This is a regression
+    due to our transition from cmark-gfm.  This commit fixes it.
 
   * Use released version of citeproc.  (This fixes a mis-step
     in the 2.11.0.3 release, which is now deprecated.)
