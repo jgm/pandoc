@@ -47,6 +47,7 @@ import Text.Pandoc.Builder (Blocks, HasMeta (..), Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.LaTeX (rawLaTeXInline)
 import Text.Pandoc.Readers.LaTeX.Types (Macro)
@@ -65,6 +66,7 @@ import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
+import Data.ByteString.Base64 (encode)
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: PandocMonad m
@@ -655,6 +657,7 @@ inline = choice
            , pLineBreak
            , pLink
            , pImage
+           , pSvg
            , pBdo
            , pCode
            , pCodeWithClass [("samp","sample"),("var","variable")]
@@ -792,6 +795,20 @@ pImage = do
                    v  -> [(k, v)]
   let kvs = concatMap getAtt ["width", "height", "sizes", "srcset"]
   return $ B.imageWith (uid, cls, kvs) (escapeURI url) title (B.text alt)
+
+pSvg :: PandocMonad m => TagParser m Inlines
+pSvg = do
+  exts <- getOption readerExtensions
+  -- if raw_html enabled, parse svg tag as raw
+  guard $ not (extensionEnabled Ext_raw_html exts)
+  opent@(TagOpen _ attr') <- pSatisfy (matchTagOpen "svg" [])
+  let (ident,cls,_) = toAttr attr'
+  contents <- many (notFollowedBy (pCloses "svg") >> pAny)
+  closet <- TagClose "svg" <$ (pCloses "svg" <|> eof)
+  let rawText = T.strip $ renderTags' (opent : contents ++ [closet])
+  let svgData = "data:image/svg+xml;base64," <>
+                   UTF8.toText (encode $ UTF8.fromText rawText)
+  return $ B.imageWith (ident,cls,[]) svgData mempty mempty
 
 pCodeWithClass :: PandocMonad m => [(T.Text,Text)] -> TagParser m Inlines
 pCodeWithClass elemToClass = try $ do
