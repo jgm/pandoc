@@ -89,7 +89,7 @@ readHtml opts inp = do
   result <- flip runReaderT def $
        runParserT parseDoc
        (HTMLState def{ stateOptions = opts }
-         [] Nothing Set.empty [] M.empty)
+         [] Nothing Set.empty [] M.empty opts)
        "source" tags
   case result of
     Right doc -> return doc
@@ -112,7 +112,8 @@ data HTMLState =
      baseHref    :: Maybe URI,
      identifiers :: Set.Set Text,
      logMessages :: [LogMessage],
-     macros      :: M.Map Text Macro
+     macros      :: M.Map Text Macro,
+     readerOpts  :: ReaderOptions
   }
 
 data HTMLLocal = HTMLLocal { quoteContext :: QuoteContext
@@ -185,6 +186,7 @@ block = do
             , pDiv
             , pPlain
             , pFigure
+            , pIframe
             , pRawHtmlBlock
             ]
   trace (T.take 60 $ tshow $ B.toList res)
@@ -400,6 +402,18 @@ pDiv = try $ do
                then ("role", "main"):kvs
                else kvs
   return $ B.divWith (ident, classes', kvs') contents
+
+pIframe :: PandocMonad m => TagParser m Blocks
+pIframe = try $ do
+  guardDisabled Ext_raw_html
+  tag <- pSatisfy (tagOpen (=="iframe") (isJust . lookup "src"))
+  pCloses "iframe" <|> eof
+  url <- canonicalizeUrl $ fromAttrib "src" tag
+  (bs, _) <- openURL url
+  let inp = UTF8.toText bs
+  opts <- readerOpts <$> getState
+  Pandoc _ contents <- readHtml opts inp
+  return $ B.divWith ("",["iframe"],[]) $ B.fromList contents
 
 pRawHtmlBlock :: PandocMonad m => TagParser m Blocks
 pRawHtmlBlock = do
@@ -798,9 +812,8 @@ pImage = do
 
 pSvg :: PandocMonad m => TagParser m Inlines
 pSvg = do
-  exts <- getOption readerExtensions
+  guardDisabled Ext_raw_html
   -- if raw_html enabled, parse svg tag as raw
-  guard $ not (extensionEnabled Ext_raw_html exts)
   opent@(TagOpen _ attr') <- pSatisfy (matchTagOpen "svg" [])
   let (ident,cls,_) = toAttr attr'
   contents <- many (notFollowedBy (pCloses "svg") >> pAny)
