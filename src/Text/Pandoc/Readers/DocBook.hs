@@ -794,11 +794,10 @@ parseBlock (Elem e) =
         "titleabbrev" -> skip
         "authorinitials" -> skip
         "bibliography" -> sect 0
-        "bibliodiv" -> do
-           tit <- case filterChild (named "title") e of
-                    Just _  -> sect 1
-                    Nothing -> return mempty
-           (tit <>) <$> parseMixed para (elContent e)
+        "bibliodiv" ->
+          case filterChild (named "title") e of
+            Just _  -> sect 1
+            Nothing -> return mempty
         "biblioentry" -> parseMixed para (elContent e)
         "bibliomisc" -> parseMixed para (elContent e)
         "bibliomixed" -> parseMixed para (elContent e)
