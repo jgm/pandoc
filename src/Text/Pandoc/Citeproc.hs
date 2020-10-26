@@ -28,7 +28,7 @@ import Text.Pandoc.Builder as B
 import Text.Pandoc (PandocMonad(..), PandocError(..),
                     readDataFile, ReaderOptions(..), pandocExtensions,
                     report, LogMessage(..), fetchItem)
-import Text.Pandoc.Shared (stringify, ordNub, blocksToInlines)
+import Text.Pandoc.Shared (stringify, ordNub, blocksToInlines, tshow)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Aeson (eitherDecode)
 import Data.Default
@@ -206,16 +206,18 @@ getRefs :: PandocMonad m
         -> Maybe FilePath
         -> ByteString
         -> m [Reference Inlines]
-getRefs locale format idpred mbfp raw =
+getRefs locale format idpred mbfp raw = do
+  let err' = throwError .
+             PandocBibliographyError (maybe mempty T.pack mbfp)
   case format of
     Format_bibtex ->
-      either (throwError . PandocAppError . T.pack . show) return .
+      either (err' . tshow) return .
         readBibtexString Bibtex locale idpred . UTF8.toText $ raw
     Format_biblatex ->
-      either (throwError . PandocAppError . T.pack . show) return .
+      either (err' . tshow) return .
         readBibtexString Biblatex locale idpred . UTF8.toText $ raw
     Format_json ->
-      either (throwError . PandocAppError . T.pack)
+      either (err' . T.pack)
              (return . filter (idpred . unItemId . referenceId)) .
         cslJsonToReferences $ raw
     Format_yaml -> do
