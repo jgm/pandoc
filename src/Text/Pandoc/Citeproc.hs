@@ -60,7 +60,7 @@ processCitations (Pandoc meta bs) = do
         setResourcePath $ oldRp ++ maybe []
                                    (\u -> [u <> "/csl",
                                            u <> "/csl/dependent"]) mbUdd
-        let fp' = if T.any (=='.') fp
+        let fp' = if T.any (=='.') fp || "data:" `T.isPrefixOf` fp
                      then fp
                      else fp <> defaultExtension
         (result, _) <- fetchItem fp'
