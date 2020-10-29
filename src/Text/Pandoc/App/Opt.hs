@@ -367,6 +367,11 @@ doOpt (k',v) = do
                                                     foldr addItem o xs)
           <|>
           (parseYAML v >>= \(x :: Text) -> return $ \o -> addItem x o)
+    "citation-abbreviations" ->
+      parseYAML v >>= \x ->
+             return (\o -> o{ optMetadata =
+                                addMeta "citation-abbreviations" (T.unpack x)
+                                  (optMetadata o) })
     "ipynb-output" ->
       parseYAML v >>= \x -> return (\o -> o{ optIpynbOutput = x })
     "include-before-body" ->

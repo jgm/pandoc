@@ -1533,6 +1533,7 @@ csl: ieee
 bibliography:
 - foobar.bib
 - barbaz.json
+citation-abbreviations: abbrevs.json
 
 # Filters will be assumed to be Lua filters if they have
 # the .lua extension, and json filters otherwise.  But
