@@ -851,9 +851,6 @@ tableRowToLaTeX :: PandocMonad m
                 -> [[Block]]
                 -> LW m (Doc Text)
 tableRowToLaTeX header aligns widths cols = do
-  -- scale factor compensates for extra space between columns
-  -- so the whole table isn't larger than columnwidth
-  let scaleFactor = 0.97 ** fromIntegral (length aligns)
   let isSimple [Plain _] = True
       isSimple [Para  _] = True
       isSimple []        = True
@@ -861,9 +858,10 @@ tableRowToLaTeX header aligns widths cols = do
   -- simple tables have to have simple cells:
   let widths' = if all (== 0) widths && not (all isSimple cols)
                    then replicate (length aligns)
-                          (scaleFactor / fromIntegral (length aligns))
-                   else map (scaleFactor *) widths
-  cells <- mapM (tableCellToLaTeX header) $ zip3 widths' aligns cols
+                          (1 / fromIntegral (length aligns))
+                   else widths
+  let numcols = length widths'
+  cells <- mapM (tableCellToLaTeX header numcols) $ zip3 widths' aligns cols
   return $ hsep (intersperse "&" cells) <> "\\tabularnewline"
 
 -- For simple latex tables (without minipages or parboxes),
@@ -890,11 +888,12 @@ displayMathToInline :: Inline -> Inline
 displayMathToInline (Math DisplayMath x) = Math InlineMath x
 displayMathToInline x                    = x
 
-tableCellToLaTeX :: PandocMonad m => Bool -> (Double, Alignment, [Block])
+tableCellToLaTeX :: PandocMonad m
+                 => Bool -> Int -> (Double, Alignment, [Block])
                  -> LW m (Doc Text)
-tableCellToLaTeX _      (0,     _,     blocks) =
+tableCellToLaTeX _ _    (0,     _,     blocks) =
   blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
-tableCellToLaTeX header (width, align, blocks) = do
+tableCellToLaTeX header numcols (width, align, blocks) = do
   beamer <- gets stBeamer
   externalNotes <- gets stExternalNotes
   inMinipage <- gets stInMinipage
@@ -912,9 +911,12 @@ tableCellToLaTeX header (width, align, blocks) = do
                AlignCenter  -> "\\centering"
                AlignDefault -> "\\raggedright"
   return $ "\\begin{minipage}" <> valign <>
-           braces (text (printf "%.2f\\columnwidth" width)) <>
+           braces (text (printf
+              "(\\columnwidth - %d\\tabcolsep) * \\real{%.2f}"
+              (numcols - 1) width)) <>
            halign <> cr <> cellContents <> "\\strut" <> cr <>
            "\\end{minipage}"
+-- (\columnwidth - 8\tabcolsep) * \real{0.15}
 
 notesToLaTeX :: [Doc Text] -> Doc Text
 notesToLaTeX [] = empty
