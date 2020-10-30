@@ -163,8 +163,10 @@ processCitations (Pandoc meta bs) = do
                     _ -> id
 
   let Pandoc meta'' bs' =
-         maybe id (setMeta "nocite") metanocites $
-         walk (fixQuotes .  mvPunct moveNotes locale) $ walk deNote $
+         maybe id (setMeta "nocite") metanocites .
+         walk (map capitalizeNoteCitation .
+                fixQuotes .  mvPunct moveNotes locale) .
+         walk deNote .
          evalState (walkM insertResolvedCitations $ Pandoc meta' bs)
          $ cits
   return $ Pandoc meta''
@@ -514,6 +516,13 @@ extractText (TextVal x)  = x
 extractText (FancyVal x) = toText x
 extractText (NumVal n)   = T.pack (show n)
 extractText _            = mempty
+
+capitalizeNoteCitation :: Inline -> Inline
+capitalizeNoteCitation (Cite cs [Note [Para ils]]) =
+  Cite cs
+  [Note [Para $ B.toList $ addTextCase Nothing CapitalizeFirst
+              $ B.fromList ils]]
+capitalizeNoteCitation x = x
 
 deNote :: Inline -> Inline
 deNote (Note bs) = Note $ walk go bs

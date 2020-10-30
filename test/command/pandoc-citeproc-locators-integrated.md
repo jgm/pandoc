@@ -29,7 +29,7 @@ See <https://github.com/jgm/pandoc-citeproc/pull/362>.
 
 [@citekey, p. \[89\]]
 
-[@citekey and nothing else].
+[@citekey and nothing else]
 
 [@citekey, 123(4)\[5\]6, and suffix]
 
@@ -79,7 +79,7 @@ See <https://github.com/jgm/pandoc-citeproc/pull/362>.
 
 [^9]
 
-.[^10]
+[^10]
 
 [^11]
 
