@@ -14,6 +14,13 @@ $endif$
 $if(journal.pmc)$
 <journal-id journal-id-type="pmc">$journal.pmc$</journal-id>
 $endif$
+$-- Fallback: an empty journal-id in case none is available.
+$if(journal.publisher-id)$
+$elseif(journal.nlm-ta)$
+$elseif(journal.pmc)$
+$else$
+<journal-id></journal-id>
+$endif$
 <journal-title-group>
 $if(journal.title)$
 <journal-title>$journal.title$</journal-title>
@@ -27,6 +34,12 @@ $if(journal.pissn)$
 $endif$
 $if(journal.eissn)$
 <issn pub-type="epub">$journal.eissn$</issn>
+$endif$
+$-- At least one issn element is required; use empty issn as fallback
+$if(journal.pissn)$
+$elseif(journal.eissn)$
+$else$
+<issn></issn>
 $endif$
 <publisher>
 <publisher-name>$journal.publisher-name$</publisher-name>
