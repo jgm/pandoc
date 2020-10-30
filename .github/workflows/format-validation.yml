@@ -1,0 +1,47 @@
+name: Format validation
+
+on:
+  push:
+    paths-ignore:
+      - '*'
+      - '!/test/writer.*'
+      - '!/test/tables.*'
+  pull_request:
+    paths-ignore:
+      - '*'
+      - '!/test/writer.*'
+      - '!/test/tables.*'
+
+jobs:
+  jats:
+    name: JATS
+    runs-on: ubuntu-latest
+    env:
+      VALIDATOR_URL: "https://jats-validator.hubmed.org/dtd/"
+    strategy:
+      fail-fast: false
+      matrix:
+        tagset:
+          - articleauthoring
+          - publishing
+          - archiving
+        file:
+          - writer
+          # tables are not supported yet, the files contain only snippets.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Validate
+        run: |
+          filename=test/${{ matrix.file }}.jats_${{ matrix.tagset }}
+          echo "$filename"
+          json="$(curl --form "xml=@${filename}" --silent "$VALIDATOR_URL")"
+          echo "$json"
+          err_count="$(echo "$json" | jq '.errors | length')"
+          if [ "$err_count" -eq 0 ]; then
+              exit 0
+          else
+              printf "Validator report:\n%s" "$json"
+              exit 1
+          fi
