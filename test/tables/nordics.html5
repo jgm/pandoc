@@ -17,38 +17,38 @@
 </tr>
 </thead>
 <tbody class="souvereign-states">
-<tr class="odd" class="country">
+<tr class="odd country">
 <th style="text-align: center;">Denmark</th>
 <td style="text-align: left;">Copenhagen</td>
 <td style="text-align: left;">5,809,502</td>
 <td style="text-align: left;">43,094</td>
 </tr>
-<tr class="even" class="country">
+<tr class="even country">
 <th style="text-align: center;">Finland</th>
 <td style="text-align: left;">Helsinki</td>
 <td style="text-align: left;">5,537,364</td>
 <td style="text-align: left;">338,145</td>
 </tr>
-<tr class="odd" class="country">
+<tr class="odd country">
 <th style="text-align: center;">Iceland</th>
 <td style="text-align: left;">Reykjavik</td>
 <td style="text-align: left;">343,518</td>
 <td style="text-align: left;">103,000</td>
 </tr>
-<tr class="even" class="country">
+<tr class="even country">
 <th style="text-align: center;">Norway</th>
 <td style="text-align: left;">Oslo</td>
 <td style="text-align: left;">5,372,191</td>
 <td style="text-align: left;">323,802</td>
 </tr>
-<tr class="odd" class="country">
+<tr class="odd country">
 <th style="text-align: center;">Sweden</th>
 <td style="text-align: left;">Stockholm</td>
 <td style="text-align: left;">10,313,447</td>
 <td style="text-align: left;">450,295</td>
 </tr>
 </tbody><tfoot>
-<tr class="even" id="summary">
+<tr id="summary" class="even">
 <td style="text-align: center;">Total</td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;" id="total-population">27,376,022</td>

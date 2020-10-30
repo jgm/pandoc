@@ -1089,16 +1089,18 @@ tableRowToHtml :: PandocMonad m
                -> TableRow
                -> StateT WriterState m Html
 tableRowToHtml opts (TableRow tblpart attr rownum rowhead rowbody) = do
-  let rowclass = A.class_ $ case rownum of
+  let rowclass = case rownum of
         Ann.RowNumber x | x `rem` 2 == 1   -> "odd"
         _               | tblpart /= Thead -> "even"
         _                                  -> "header"
+  let attr' = case attr of
+                (id', classes, rest) -> (id', rowclass:classes, rest)
   let celltype = case tblpart of
                    Thead -> HeaderCell
                    _     -> BodyCell
   headcells <- mapM (cellToHtml opts HeaderCell) rowhead
   bodycells <- mapM (cellToHtml opts celltype) rowbody
-  rowHtml <- addAttrs opts attr $ H.tr ! rowclass $ do
+  rowHtml <- addAttrs opts attr' $ H.tr $ do
     nl opts
     mconcat headcells
     mconcat bodycells
