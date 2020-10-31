@@ -67,7 +67,7 @@ blockquote {
 }
 code {
   font-family: $if(monofont)$$monofont$$else$Menlo, Monaco, 'Lucida Console', Consolas, monospace$endif$;
-  background-color: #f0f0f0;
+  background-color: $if(monobackgroundcolor)$$monobackgroundcolor$$else$#f0f0f0$endif$;
   font-size: 85%;
   margin: 0;
   padding: .2em .4em;
@@ -76,7 +76,7 @@ pre {
   margin: 1.7em 0;
   line-height: 1.5em;
   padding: 1em;
-  background-color: #f0f0f0;
+  background-color: $if(monobackgroundcolor)$$monobackgroundcolor$$else$#f0f0f0$endif$;
   overflow: auto;
 }
 pre code {
