@@ -101,9 +101,21 @@ table {
   display: block;
   font-variant-numeric: lining-nums tabular-nums;
 }
-th, td {
-  border-bottom: 1px solid lightgray;
-  padding: 0.5em 2em 0.5em 0;
+table caption {
+  margin-bottom: 0.75em;
+}
+tbody {
+  border-top: 1px solid $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
+  border-bottom: 1px solid $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
+}
+th {
+  border-top: 1px solid $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
+  padding: 0.25em 0.5em 0.25em 0.5em;
+  line-height: 1;
+}
+td {
+  padding: 0.125em 0.5em 0.25em 0.5em;
+  line-height: 1;
 }
 header {
   margin-bottom: 6em;
