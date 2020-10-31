@@ -1,7 +1,6 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
-{-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE ViewPatterns      #-}
 {- |
@@ -736,4 +735,3 @@ docxToOutput opts (Docx (Document _ body)) =
 addAuthorAndDate :: T.Text -> Maybe T.Text -> [(T.Text, T.Text)]
 addAuthorAndDate author mdate =
   ("author", author) : maybe [] (\date -> [("date", date)]) mdate
-
