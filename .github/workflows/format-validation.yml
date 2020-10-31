@@ -2,15 +2,21 @@ name: Format validation
 
 on:
   push:
-    paths-ignore:
+    branches:
       - '*'
-      - '!/test/writer.*'
-      - '!/test/tables.*'
+      - '!rc/*'
+    paths:
+      - 'test/writer.jats_articleauthoring'
+      - 'test/writer.jats_publishing'
+      - 'test/writer.jats_archiving'
   pull_request:
-    paths-ignore:
+    branches:
       - '*'
-      - '!/test/writer.*'
-      - '!/test/tables.*'
+      - '!rc/*'
+    paths:
+      - 'test/writer.jats_articleauthoring'
+      - 'test/writer.jats_publishing'
+      - 'test/writer.jats_archiving'
 
 jobs:
   jats:
@@ -35,11 +41,11 @@ jobs:
       - name: Validate
         run: |
           filename=test/${{ matrix.file }}.jats_${{ matrix.tagset }}
-          echo "$filename"
+          printf "Validating file %s\n" "$filename"
           json="$(curl --form "xml=@${filename}" --silent "$VALIDATOR_URL")"
-          echo "$json"
           err_count="$(echo "$json" | jq '.errors | length')"
           if [ "$err_count" -eq 0 ]; then
+              printf "File was validated successfully.\n"
               exit 0
           else
               printf "Validator report:\n%s" "$json"
