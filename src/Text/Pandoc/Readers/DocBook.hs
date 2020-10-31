@@ -960,12 +960,22 @@ parseBlock (Elem e) =
                       let aligns = case colspecs of
                                      [] -> replicate numrows AlignDefault
                                      cs -> map toAlignment cs
+                      let parseWidth s = safeRead (T.filter (\x -> (x >= '0' && x <= '9')
+                                                                   || x == '.') s)
+                      let textWidth = case filterChild (named "?dbfo") e of
+                                        Just d  -> case attrValue "table-width" d of
+                                                     "" -> 1.0
+                                                     w  -> fromMaybe 100.0 (parseWidth w) / 100.0
+                                        Nothing -> 1.0
                       let widths = case colspecs of
                                      [] -> replicate numrows ColWidthDefault
                                      cs -> let ws = map toWidth cs
                                            in case sequence ws of
-                                                Just ws' -> let tot = sum ws'
-                                                            in  ColWidth . (/ tot) <$> ws'
+                                                Just ws' -> let colTot = sum ws'
+                                                                scale
+                                                                  | textWidth == 1.0 = (/ colTot)
+                                                                  | otherwise = (* (textWidth / colTot) )
+                                                            in  ColWidth . scale <$> ws'
                                                 Nothing  -> replicate numrows ColWidthDefault
                       let toRow = Row nullAttr
                           toHeaderRow l = [toRow l | not (null l)]
