@@ -1918,7 +1918,7 @@ note = try $ do
           -- notes, to avoid infinite looping with notes inside
           -- notes:
           let contents' = runF contents st{ stateNotes' = M.empty }
-          let addCitationNoteNum (c@Citation{}) =
+          let addCitationNoteNum c@Citation{} =
                 c{ citationNoteNum = noteNum }
           let adjustCite (Cite cs ils) =
                 Cite (map addCitationNoteNum cs) ils

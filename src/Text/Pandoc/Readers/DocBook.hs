@@ -1046,7 +1046,7 @@ parseEntry cn el = do
           _ -> 1
   let colSpan = toColSpan el
   let align = toAlignment el
-  (fmap (cell align 1 colSpan) . (parseMixed plain) . elContent) el
+  (fmap (cell align 1 colSpan) . parseMixed plain . elContent) el
 
 getInlines :: PandocMonad m => Element -> DB m Inlines
 getInlines e' = trimInlines . mconcat <$>

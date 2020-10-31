@@ -26,7 +26,7 @@ import qualified Data.ByteString.Lazy as BL (ByteString)
 import Data.List (isInfixOf)
 import qualified Data.Text as T
 import qualified Data.Map as M (Map, elems, fromList, lookup)
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (mapMaybe)
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Network.URI (unEscapeString)
@@ -139,8 +139,7 @@ parseManifest content coverId = do
   where
     findCover e = maybe False (isInfixOf "cover-image")
                   (findAttr (emptyName "properties") e)
-               || fromMaybe False
-                  (liftM2 (==) coverId (findAttr (emptyName "id") e))
+               || Just True == liftM2 (==) coverId (findAttr (emptyName "id") e)
     parseItem e = do
       uid <- findAttrE (emptyName "id") e
       href <- findAttrE (emptyName "href") e
@@ -191,7 +190,7 @@ getManifest archive = do
   let rootdir = dropFileName manifestFile
   --mime <- lookup "media-type" as
   manifest <- findEntryByPathE manifestFile archive
-  fmap ((,) rootdir) (parseXMLDocE . UTF8.toStringLazy . fromEntry $ manifest)
+  (rootdir,) <$> (parseXMLDocE . UTF8.toStringLazy . fromEntry $ manifest)
 
 -- Fixup
 

@@ -108,7 +108,7 @@ docToJATS opts (Pandoc meta blocks) = do
                  (fmap chomp . inlinesToJATS opts)
                  meta
   main <- fromBlocks bodyblocks
-  notes <- reverse . map snd <$> gets jatsNotes
+  notes <- gets (reverse . map snd . jatsNotes)
   backs <- fromBlocks backblocks
   tagSet <- ask
   -- In the "Article Authoring" tag set, occurrence of fn-group elements

@@ -601,7 +601,7 @@ inlineToOpenDocument o ils
       formatOpenDocument _fmtOpts = map (map toHlTok)
       toHlTok :: Token -> Doc Text
       toHlTok (toktype,tok) =
-        inTags False "text:span" [("text:style-name", (T.pack $ show toktype))] $ preformatted tok
+        inTags False "text:span" [("text:style-name", T.pack $ show toktype)] $ preformatted tok
       unhighlighted s = inlinedCode $ preformatted s
       preformatted s = handleSpaces $ escapeStringForXML s
       inlinedCode s = return $ inTags False "text:span" [("text:style-name", "Source_Text")] s

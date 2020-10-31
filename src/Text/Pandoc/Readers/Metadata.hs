@@ -70,7 +70,7 @@ yamlBsToRefs :: PandocMonad m
              -> ParserT Text ParserState m (F [MetaValue])
 yamlBsToRefs pMetaValue idpred bstr =
   case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
-       Right (YAML.Doc o@(YAML.Mapping _ _ _):_)
+       Right (YAML.Doc o@YAML.Mapping{}:_)
                 -> case lookupYAML "references" o of
                      Just (YAML.Sequence _ _ ns) -> do
                        let g n = case lookupYAML "id" n of

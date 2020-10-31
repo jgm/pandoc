@@ -314,7 +314,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                           "/*]]>*/\n")
                           | otherwise -> mempty
                     Nothing -> mempty
-  let mCss :: Maybe [Text] = lookupContext "css" $ metadata
+  let mCss :: Maybe [Text] = lookupContext "css" metadata
   let context =   (if stHighlighting st
                       then case writerHighlightStyle opts of
                                 Just sty -> defField "highlighting-css"
@@ -1290,8 +1290,9 @@ inlineToHtml opts inline = do
                                         | any ((=="cite") . fst) kvs
                                           -> (Just attr, cs)
                                       cs -> (Nothing, cs)
-                                 H.q `fmap` inlineListToHtml opts lst'
-                                   >>= maybe return (addAttrs opts) maybeAttr
+                                 let addAttrsMb = maybe return (addAttrs opts)
+                                 inlineListToHtml opts lst' >>=
+                                   addAttrsMb maybeAttr . H.q
                                else (\x -> leftQuote >> x >> rightQuote)
                                     `fmap` inlineListToHtml opts lst
     (Math t str) -> do
@@ -1468,8 +1469,8 @@ cslEntryToHtml :: PandocMonad m
 cslEntryToHtml opts (Para xs) = do
   html5 <- gets stHtml5
   let inDiv :: Text -> Html -> Html
-      inDiv cls x = ((if html5 then H5.div else H.div)
-                      x ! A.class_ (toValue cls))
+      inDiv cls x = (if html5 then H5.div else H.div)
+                      x ! A.class_ (toValue cls)
   let go (Span ("",[cls],[]) ils)
         | cls == "csl-block" || cls == "csl-left-margin" ||
           cls == "csl-right-inline" || cls == "csl-indent"

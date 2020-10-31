@@ -25,6 +25,7 @@ module Text.Pandoc.Readers.Odt.ContentReader
 
 import Control.Applicative hiding (liftA, liftA2, liftA3)
 import Control.Arrow
+import Control.Monad ((<=<))
 
 import qualified Data.ByteString.Lazy as B
 import Data.Foldable (fold)
@@ -352,11 +353,11 @@ modifierFromStyleDiff propertyTriple  =
 
     lookupPreviousValue f = lookupPreviousStyleValue (fmap f . textProperties)
 
-    lookupPreviousValueM f = lookupPreviousStyleValue ((f =<<).textProperties)
+    lookupPreviousValueM f = lookupPreviousStyleValue (f <=< textProperties)
 
     lookupPreviousStyleValue f (ReaderState{..},_,mFamily)
       =     findBy f (extendedStylePropertyChain styleTrace styleSet)
-        <|> ( f =<< fmap (lookupDefaultStyle' styleSet) mFamily         )
+        <|> (f . lookupDefaultStyle' styleSet =<< mFamily)
 
 
 type ParaModifier = Blocks -> Blocks
