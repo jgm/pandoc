@@ -1,0 +1,30 @@
+name: Lint
+
+# Trigger the workflow on push or pull request, but only for the
+# master branch
+on:
+  pull_request:
+    branch: [master]
+  push:
+    branch: [master]
+    paths-ignore:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+      - stack.yaml
+      - .travis.yml
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    env:
+      hlint_script: https://raw.github.com/ndmitchell/hlint/master/misc/run.sh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download and run hlint
+        run: |
+          curl -sSL "${hlint_script}" | sh -s .
