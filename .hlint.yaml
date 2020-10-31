@@ -2,85 +2,107 @@
 # https://github.com/ndmitchell/hlint
 ##########################
 
-# This file contains a template configuration file, which is typically
-# placed as .hlint.yaml in the root of your project
-
-
 # Specify additional command line arguments
 #
 - arguments: [--color=auto, --cpp-ansi]
 
-
-# Control which extensions/flags/modules/functions can be used
-#
-# - extensions:
-#   - default: false # all extension are banned by default
-#   - name: [PatternGuards, ViewPatterns] # only these listed extensions can be used
-#   - {name: CPP, within: CrossPlatform} # CPP can only be used in a given module
-#
-# - flags:
-#   - {name: -w, within: []} # -w is allowed nowhere
-#
-# - modules:
-#   - {name: [Data.Set, Data.HashSet], as: Set} # if you import Data.Set qualified, it must be as 'Set'
-#   - {name: Control.Arrow, within: []} # Certain modules are banned entirely
-#
-# - functions:
-#   - {name: unsafePerformIO, within: []} # unsafePerformIO can only appear in no modules
-
-
-# Add custom hints for this project
-#
-# Will suggest replacing "wibbleMany [myvar]" with "wibbleOne myvar"
-# - error: {lhs: "wibbleMany [x]", rhs: wibbleOne x}
-
-
-# Turn on hints that are off by default
-#
-# Ban "module X(module X) where", to require a real export list
-# - warn: {name: Use explicit module export list}
-#
-# Replace a $ b $ c with a . b $ c
-# - group: {name: dollar, enabled: true}
-#
-# Generalise map to fmap, ++ to <>
-# - group: {name: generalise, enabled: true}
-
-
 # Ignore some builtin hints
-# - ignore: {name: Use let}
-# - ignore: {name: Use const, within: SpecialModule} # Only within certain modules
-# - ignore: {name: "Use section"}
-# - ignore: {name: "Use camelCase"}
-# - ignore: {name: "Use list comprehension"}
-# - ignore: {name: "Redundant if"}
+#
 - ignore: {name: "Avoid lambda"}
 - ignore: {name: "Eta reduce"}
 - ignore: {name: "Evaluate"}
-- ignore: {name: "Monad law, left identity", module: "Text.Pandoc.App.OutputSettings"}
-- ignore: {name: "Reduce duplication", module: "Text.Pandoc.Readers.Markdown"}
+- ignore: {name: "Reduce duplication"} # TODO: could be more fine-grained
 - ignore: {name: "Use &&&"}
 - ignore: {name: "Use String"}
 - ignore: {name: "Use fmap"}  # specific for GHC 7.8 compat
-- ignore: {name: "Use forM_", module: "Text.Pandoc.Readers.DocBook"}
 - ignore: {name: "Use isDigit"}
-- ignore: {name: "Use tuple-section", module: "Text.Pandoc.Readers.EPUB"}
-- ignore: {name: "Use uncurry", module: "Text.Pandoc.Readers.Docx.Combine"}
+
+- ignore:
+    name: "Monad law, left identity"
+    within: Text.Pandoc.App.OutputSettings
+
+- ignore:
+    name: "Move brackets to avoid $"
+    within: Text.Pandoc.Writers.CslJson
+
+- ignore:
+    name: "Redundant <$>"
+    within:
+      - Text.Pandoc.Readers.Docx.Parse
+      - Text.Pandoc.Writers.MediaWiki
+      - Text.Pandoc.Writers.OpenDocument
+      - Text.Pandoc.Writers.Powerpoint.Output
+      - Text.Pandoc.Writers.Powerpoint.Presentation
+
+- ignore:
+    name: "Redundant return"
+    within: Text.Pandoc.Citeproc.BibTeX
+
+# TODO: check
+- ignore:
+    name: "Redundant bracket"
+    within:
+      - Text.Pandoc.Citeproc
+      - Text.Pandoc.Citeproc.BibTeX
+      - Text.Pandoc.Citeproc.MetaValue
+
 - ignore:
     name: "Use <$>"
     within:
       - Text.Pandoc.Readers.LaTeX
       - Text.Pandoc.Readers.Markdown
+
 - ignore:
     name: "Use camelCase"
     within:
       - Tests.Writers.Docbook
       - Tests.Writers.Native
+      - Text.Pandoc.Citeproc
       - Text.Pandoc.Extensions
       - Text.Pandoc.Lua.Marshaling.Version
       - Text.Pandoc.Lua.Module.Utils
       - Text.Pandoc.Readers.Odt.ContentReader
       - Text.Pandoc.Readers.Odt.Namespaces
+
+- ignore:
+    name: "Use forM_"
+    within:
+      - Text.Pandoc.Readers.DocBook
+
+- ignore:
+    name: "Use Just"
+    within:
+      - Text.Pandoc.Citeproc.MetaValue
+      - Text.Pandoc.Readers.Odt.ContentReader
+      - Text.Pandoc.Writers.Roff
+
+- ignore:
+    name: "Use list comprehension"
+    within: Text.Pandoc.Citeproc.BibTeX
+
+- ignore:
+    name: "Use list literal pattern"
+    within: Text.Pandoc.Citeproc.MetaValue
+
+# TODO: check
+- ignore:
+    name: "Use second"
+    within:
+      - Text.Pandoc.Citeproc.BibTeX
+      - Text.Pandoc.Citeproc.Locator
+
+# TODO: check
+- ignore:
+    name: "Use sortOn"
+    within: Text.Pandoc.Writers.OpenDocument
+
+- ignore:
+    name: "Use tuple-section"
+    within:
+      - Text.Pandoc.Readers.EPUB
+      - Text.Pandoc.ImageSize
+      - Text.Pandoc.Readers.Markdown
+      - Text.Pandoc.Readers.RST
 
 # Define some custom infix operators
 # - fixity: infixr 3 ~^#^~
