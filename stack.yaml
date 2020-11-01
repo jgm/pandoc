@@ -19,8 +19,8 @@ extra-deps:
 - HsYAML-0.2.1.0
 - HsYAML-aeson-0.2.0.0
 - doctemplates-0.8.2
-- commonmark-0.1.0.2
-- commonmark-extensions-0.2.0.1
+- commonmark-0.1.1
+- commonmark-extensions-0.2.0.2
 - commonmark-pandoc-0.2.0.1
 - git: https://github.com/jgm/citeproc
   commit: 1860f189e9995c1dc27a68893bedfbf8de1ee67f
