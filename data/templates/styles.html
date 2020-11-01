@@ -52,6 +52,13 @@ img {
 h1, h2, h3, h4, h5, h6 {
   margin-top: 1.7em;
 }
+h5, h6 {
+  font-size: $if(fontsize)$$fontsize$$else$20px$endif$;
+  font-style: italic;
+}
+h6 {
+  font-weight: normal;
+}
 ol, ul {
   padding-left: 1.7em;
   margin-top: 1.7em;
