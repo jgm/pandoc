@@ -114,7 +114,7 @@ Sam Smith. Oxford: Oxford University Press, 2007.
     Roe, "Why Water Is Wet," in *Third Book*, ed. Sam Smith (Oxford:
     Oxford University Press, 2007)](#ref-пункт3).
 
-[^7]: [Doe and Roe](#ref-пункт3) (["Why Water Is Wet," 12](#ref-пункт3))
+[^7]: [Doe and Roe](#ref-пункт3), ["Why Water Is Wet," 12](#ref-пункт3)
     and a citation without locators ([Doe and Roe, "Why Water Is
     Wet"](#ref-пункт3)).
 

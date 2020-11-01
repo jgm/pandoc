@@ -524,16 +524,26 @@ capitalizeNoteCitation (Cite cs [Note [Para ils]]) =
               $ B.fromList ils]]
 capitalizeNoteCitation x = x
 
-deNote :: Inline -> Inline
-deNote (Note bs) = Note $ walk go bs
+deNote :: [Inline] -> [Inline]
+deNote [] = []
+deNote (Note bs:rest) =
+  Note (walk go bs) : deNote rest
  where
-  go (Cite cs ils) = Cite cs (concatMap removeNote ils)
+  go (Cite (c:cs) ils)
+    | citationMode c == AuthorInText
+      = Cite cs (concatMap noteAfterComma ils)
+    | otherwise
+      = Cite cs (concatMap noteInParens ils)
   go x = x
-  removeNote (Note bs')
-       = Space : Str "(" : (removeFinalPeriod
-                            (blocksToInlines bs')) ++ [Str ")"]
-  removeNote x = [x]
-deNote x = x
+  noteInParens (Note bs')
+       = Space : Str "(" :
+         removeFinalPeriod (blocksToInlines bs') ++ [Str ")"]
+  noteInParens x = [x]
+  noteAfterComma (Note bs')
+       = Str "," : Space :
+         removeFinalPeriod (blocksToInlines bs')
+  noteAfterComma x = [x]
+deNote (x:xs) = x : deNote xs
 
 -- Note: we can't use dropTextWhileEnd indiscriminately,
 -- because this would remove the final period on abbreviations like Ibid.
