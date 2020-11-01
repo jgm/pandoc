@@ -81,16 +81,12 @@
     }
     code {
       font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
-      background-color: #f0f0f0;
       font-size: 85%;
       margin: 0;
-      padding: .2em .4em;
     }
     pre {
       margin: 1.7em 0;
       line-height: 1.5em;
-      padding: 1em;
-      background-color: #f0f0f0;
       overflow: auto;
     }
     pre code {

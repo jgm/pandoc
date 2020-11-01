@@ -2215,7 +2215,8 @@ ODT or pptx.
 :   sets the CSS `font-family` property on `code` elements.
 
 `monobackgroundcolor`
-:   sets the CSS `background-color` property on `code` elements.
+:   sets the CSS `background-color` property on `code` elements
+    and adds extra padding.
 
 `linestretch`
 :   sets the CSS `line-height` property on the `html` element,
