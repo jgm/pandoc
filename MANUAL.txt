@@ -2190,7 +2190,7 @@ ODT or pptx.
 ### Variables for HTML
 
 `document-css`
-:   Enables inclusion of most of the CSS in the `styles.html`
+:   Enables inclusion of most of the [CSS] in the `styles.html`
     [partial](#partials) (have a look with
     `pandoc --print-default-data-file=templates/styles.html`).
     Unless you use [`--css`](#option--css), this variable
@@ -2214,6 +2214,9 @@ ODT or pptx.
 `monofont`
 :   sets the CSS `font-family` property on `code` elements.
 
+`monobackgroundcolor`
+:   sets the CSS `background-color` property on `code` elements.
+
 `linestretch`
 :   sets the CSS `line-height` property on the `html` element,
     which is preferred to be unitless.
@@ -2223,6 +2226,28 @@ ODT or pptx.
 
 `margin-left`, `margin-right`, `margin-top`, `margin-bottom`
 :   sets the corresponding CSS `padding` properties on the `body` element.
+
+To override or extend some [CSS] for just one document, include for example:
+
+    ---
+    header-includes: |
+      <style>
+      blockquote {
+        font-style: italic;
+      }
+      tr.even {
+        background-color: #f0f0f0;
+      }
+      td, th {
+        padding: 0.5em 2em 0.5em 0.5em;
+      }
+      tbody {
+        border-bottom: none;
+      }
+      </style>
+    ---
+
+[CSS]: https://developer.mozilla.org/en-US/docs/Learn/CSS
 
 ### Variables for HTML math
 
