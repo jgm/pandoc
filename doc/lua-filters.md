@@ -2605,7 +2605,8 @@ format, and functions to filter and modify a subtree.
         local caption = "Overview"
         local aligns = {pandoc.AlignDefault, pandoc.AlignDefault}
         local widths = {0, 0} -- let pandoc determine col widths
-        local headers = {"Language", "Typing"}
+        local headers = {{pandoc.Plain({pandoc.Str "Language"})},
+                         {pandoc.Plain({pandoc.Str "Typing"})}}
         local rows = {
           {{pandoc.Plain "Haskell"}, {pandoc.Plain "static"}},
           {{pandoc.Plain "Lua"}, {pandoc.Plain "Dynamic"}},
