@@ -527,11 +527,12 @@ capitalizeNoteCitation x = x
 deNote :: Inline -> Inline
 deNote (Note bs) = Note $ walk go bs
  where
-  go (Note bs')
-       = Span ("",[],[]) (Space : Str "(" :
-                          (removeFinalPeriod
-                            (blocksToInlines bs')) ++ [Str ")"])
+  go (Cite cs ils) = Cite cs (concatMap removeNote ils)
   go x = x
+  removeNote (Note bs')
+       = Space : Str "(" : (removeFinalPeriod
+                            (blocksToInlines bs')) ++ [Str ")"]
+  removeNote x = [x]
 deNote x = x
 
 -- Note: we can't use dropTextWhileEnd indiscriminately,
