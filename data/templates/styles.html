@@ -1,14 +1,14 @@
 $if(document-css)$
 html {
-  line-height: $if(linestretch)$$linestretch$$else$1.7$endif$;
+  line-height: $if(linestretch)$$linestretch$$else$1.5$endif$;
   font-family: $if(mainfont)$$mainfont$$else$Georgia, serif$endif$;
-  font-size: $if(fontsize)$$fontsize$$else$18px$endif$;
+  font-size: $if(fontsize)$$fontsize$$else$20px$endif$;
   color: $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
   background-color: $if(backgroundcolor)$$backgroundcolor$$else$#fdfdfd$endif$;
 }
 body {
   margin: 0 auto;
-  max-width: 40em;
+  max-width: 36em;
   padding-left: $if(margin-left)$$margin-left$$else$50px$endif$;
   padding-right: $if(margin-right)$$margin-right$$else$50px$endif$;
   padding-top: $if(margin-top)$$margin-top$$else$50px$endif$;
@@ -28,6 +28,7 @@ body {
   body {
     background-color: transparent;
     color: black;
+    font-size: 12pt;
   }
   p, h2, h3 {
     orphans: 3;
@@ -38,7 +39,7 @@ body {
   }
 }
 p {
-  margin: 1.7em 0;
+  margin: 1em 0;
 }
 a {
   color: $if(linkcolor)$$linkcolor$$else$#1a1a1a$endif$;
@@ -50,10 +51,10 @@ img {
   max-width: 100%;
 }
 h1, h2, h3, h4, h5, h6 {
-  margin-top: 1.7em;
+  margin-top: 1.4em;
 }
 h5, h6 {
-  font-size: $if(fontsize)$$fontsize$$else$18px$endif$;
+  font-size: 1em;
   font-style: italic;
 }
 h6 {
@@ -61,13 +62,13 @@ h6 {
 }
 ol, ul {
   padding-left: 1.7em;
-  margin-top: 1.7em;
+  margin-top: 1em;
 }
 li > ol, li > ul {
   margin-top: 0;
 }
 blockquote {
-  margin: 1.7em 0 1.7em 1.7em;
+  margin: 1em 0 1em 1.7em;
   padding-left: 1em;
   border-left: 2px solid #e6e6e6;
   color: #606060;
@@ -82,8 +83,7 @@ $endif$
   margin: 0;
 }
 pre {
-  margin: 1.7em 0;
-  line-height: 1.5em;
+  margin: 1em 0;
 $if(monobackgroundcolor)$
   background-color: $monobackgroundcolor$;
   padding: 1em;
@@ -102,10 +102,10 @@ hr {
   background-color: #1a1a1a;
   border: none;
   height: 1px;
-  margin: 1.7em 0;
+  margin: 1em 0;
 }
 table {
-  margin: 1.7em 0;
+  margin: 1em 0;
   border-collapse: collapse;
   width: 100%;
   overflow-x: auto;
@@ -116,20 +116,19 @@ table caption {
   margin-bottom: 0.75em;
 }
 tbody {
+  margin-top: 0.5em;
   border-top: 1px solid $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
   border-bottom: 1px solid $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
 }
 th {
   border-top: 1px solid $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
   padding: 0.25em 0.5em 0.25em 0.5em;
-  line-height: 1;
 }
 td {
   padding: 0.125em 0.5em 0.25em 0.5em;
-  line-height: 1;
 }
 header {
-  margin-bottom: 6em;
+  margin-bottom: 4em;
   text-align: center;
 }
 #TOC li {
