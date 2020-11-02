@@ -484,7 +484,11 @@ doMacros' n inp =
            Nothing -> mzero
            Just (Macro expansionPoint argspecs optarg newtoks) -> do
              let getargs' = do
-                   args <- case optarg of
+                   args <-
+                     (case expansionPoint of
+                        ExpandWhenUsed    -> withVerbatimMode
+                        ExpandWhenDefined -> id)
+                     $ case optarg of
                              Nothing -> getargs M.empty argspecs
                              Just o  -> do
                                 x <- option o bracketedToks
