@@ -97,6 +97,9 @@
 
   * Clarify manual on `--track-changes` (#6801).
 
+  * Add `doc/jats.md` to document pandoc's handling of JATS
+    (#6794, Albert Krewinkel).
+
   * Fix code example in lua-filters.md (#6795).
 
 ## pandoc 2.11.0.4 (2020-10-21)
