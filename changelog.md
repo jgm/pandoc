@@ -1,5 +1,95 @@
 # Revision history for pandoc
 
+## pandoc 2.11.1 (2020-11-03)
+
+  * DocBook Reader: fix duplicate bibliography bug (#6773, Nils Carlson).
+
+  * HTML reader:
+
+    + Parse contents of iframes (#6770).
+    + Parse inline svg as image unless `raw_html` is set in the reader (in
+      which case the svg is passed through as raw HTML) (#6770).
+
+  * LaTeX reader: fix bug parsing macro arguments (#6796).
+    If `\cL` is defined as `\mathcal{L}`, and `\til` as `\tilde{#1}`,
+    then `\til\cL` should expand to `\tilde{\mathcal{L}}`, but pandoc
+    was expanding it to `\tilde\mathcal{L}`.  This is fixed by
+    parsing the arguments in "verbatim mode" when the macro expands
+    arguments at the point of use.
+
+  * LaTeX writer: Improved calculation of table column widths.
+    We now have LaTeX do the calculation, using `\tabcolsep`.
+    So we should now have accurate relative column widths no
+    matter what the text width.  The default template has been modified to load
+    the calc package if tables are used.
+
+  * HTML writer: Fix duplicate "class" attribute for table
+    rows (Andy Morris).
+
+  * Text.Pandoc.Filter: allow shorter YAML representation of Citeproc
+    (Albert Krewinkel).  The map-based YAML representation of filters expects
+    `type` and `path` fields. The path field had to be present for all filter
+    types, but is not used for citeproc filters. The field can now be omitted
+    when type is "citeproc", as described in the MANUAL.
+
+  * Text.Pandoc.Error: Add `PandocBibliographyError` constructor
+    for `PandocError` [API change].  This ensures that bibliography parsing
+    errors generate messages that include the bibliography file name --
+    otherwise it can be quite mysterious where it is coming from.
+
+  * Citeproc: properly handle `csl` field with `data:` URI (#6783).
+    This is used with the JATS writer, so this fixes a regression
+    in pandoc 2.11 with JATS output and citeproc.
+
+  * Allow `citation-abbreviations` in defaults file.
+
+  * JATS templates: ensure `jats_publishing` output is valid
+    (Albert Krewinkel).
+
+  * HTML template: default CSS tweaks (Mauro Bieg and John
+    MacFarlane).
+
+    - Fix margin before codeblock
+    - Add `monobackgroundcolor` variable, making the background color
+      and padding of code optional.
+    - Ensure that backgrounds from highlighting styles take precedence over
+      monobackgroundcolor
+    - Remove list markers from TOC
+    - Add margin-bottom where needed
+    - Remove italics from blockquote styling
+    - Change borders and spacing in tables to be more consistent with other
+       output formats
+    - Style h5, h6
+    - Set font-size for print media to 12pt.
+    - Reduce interline space.
+    - Reduce interparagraph space.
+    - Reduce line width.
+    - Remove the special `line-height: 1` for table cells.
+    - Remove the special line-height for pre.
+    - Ensure that there is a bit more space before a heading
+      than after.
+    - Slightly reduced space after title header.
+    - Add CSS example to MANUAL
+
+  * Use latest commonmark, commonmark-extensions.
+    This fixes a bug with nested blocks in footnotes with the
+    `footnote` extension to `commonmark`.  See jgm/commonmark-hs#63.
+
+  * Citeproc: use comma for in-text citations inside footnotes.
+    When an author-in-text citation like `@foo` occurs in a footnote,
+    we now render it with:  `AUTHOR NAME + COMMA + SPACE + REST`.
+    Previously we rendered: `AUTHOR NAME + SPACE + "(" + REST + ")"`.
+    This gives better results.  Note that normal citations are still
+    rendered in parentheses.
+
+  * Use latest citeproc:
+
+    + citeproc no longer capitalizes notes, so we do it
+      in pandoc when appropriate.
+    + Closes #6783.
+
+  * Fix code example in lua-filters.md (#6795).
+
 ## pandoc 2.11.0.4 (2020-10-21)
 
   * Commonmark writer: fix regression with fenced divs (#6768).

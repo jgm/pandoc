@@ -1,6 +1,6 @@
 cabal-version:   2.2
 name:            pandoc
-version:         2.11.0.4
+version:         2.11.1
 build-type:      Simple
 license:         GPL-2.0-or-later
 license-file:    COPYING.md
