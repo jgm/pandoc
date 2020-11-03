@@ -309,18 +309,19 @@ enquote starred mblang = do
      else doubleQuoted . langspan <$> withQuoteContext InDoubleQuote tok
 
 blockquote :: PandocMonad m => Bool -> Maybe Text -> LP m Blocks
-blockquote citations mblang = do
-  citePar <- if citations
-                then do
-                  cs <- cites NormalCitation False
-                  return $ para (cite cs mempty)
-                else return mempty
+blockquote cvariant mblang = do
+  citepar <- if cvariant
+                then (\xs -> para (cite xs mempty))
+                       <$> cites NormalCitation False
+                else option mempty $ para <$> bracketed inline
   let lang = mblang >>= babelLangToBCP47
   let langdiv = case lang of
                       Nothing -> id
                       Just l  -> divWith ("",[],[("lang", renderLang l)])
+  _closingPunct <- option mempty $ bracketed inline -- currently ignored
   bs <- grouped block
-  return $ blockQuote . langdiv $ (bs <> citePar)
+  optional $ symbolIn (".:;?!" :: [Char])  -- currently ignored
+  return $ blockQuote . langdiv $ (bs <> citepar)
 
 doAcronym :: PandocMonad m => Text -> LP m Inlines
 doAcronym form = do
