@@ -10,12 +10,16 @@
     + Parse inline svg as image unless `raw_html` is set in the reader (in
       which case the svg is passed through as raw HTML) (#6770).
 
-  * LaTeX reader: fix bug parsing macro arguments (#6796).
-    If `\cL` is defined as `\mathcal{L}`, and `\til` as `\tilde{#1}`,
-    then `\til\cL` should expand to `\tilde{\mathcal{L}}`, but pandoc
-    was expanding it to `\tilde\mathcal{L}`.  This is fixed by
-    parsing the arguments in "verbatim mode" when the macro expands
-    arguments at the point of use.
+  * LaTeX reader:
+
+    + Fix bug parsing macro arguments (#6796).  If `\cL` is
+      defined as `\mathcal{L}`, and `\til` as `\tilde{#1}`, then
+      `\til\cL` should expand to `\tilde{\mathcal{L}}`, but
+      pandoc was expanding it to `\tilde\mathcal{L}`.  This is
+      fixed by parsing the arguments in "verbatim mode" when the
+      macro expands arguments at the point of use.
+    + Properly support optional (cite) argument for
+      `\blockquote` from `csquotes` (#6802).
 
   * LaTeX writer: Improved calculation of table column widths.
     We now have LaTeX do the calculation, using `\tabcolsep`.
@@ -45,6 +49,9 @@
 
   * JATS templates: ensure `jats_publishing` output is valid
     (Albert Krewinkel).
+
+  * LaTeX template:  Fix `CSLRightInline`, so that it does not
+    run over the right margin.
 
   * HTML template: default CSS tweaks (Mauro Bieg and John
     MacFarlane).
@@ -87,6 +94,8 @@
     + citeproc no longer capitalizes notes, so we do it
       in pandoc when appropriate.
     + Closes #6783.
+
+  * Clarify manual on `--track-changes` (#6801).
 
   * Fix code example in lua-filters.md (#6795).
 
