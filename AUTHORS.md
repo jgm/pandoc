@@ -17,6 +17,7 @@
 - Anders Waldenborg
 - Andreas Lööw
 - Andrew Dunning
+- Andy Morris
 - Antoine Latter
 - Antonio Terceiro
 - Arata Mizuki
