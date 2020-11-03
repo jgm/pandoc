@@ -78,6 +78,9 @@
     - Slightly reduced space after title header.
     - Add CSS example to MANUAL
 
+  * man template:  Change comment that triggers `tbl` from
+    `.\"t` to `'\" t`, as specified in groff_man(7) (#6803).
+
   * Use latest commonmark, commonmark-extensions.
     This fixes a bug with nested blocks in footnotes with the
     `footnote` extension to `commonmark`.  See jgm/commonmark-hs#63.
