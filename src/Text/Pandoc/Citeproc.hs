@@ -106,8 +106,7 @@ processCitations (Pandoc meta bs) = do
   let citeIds = query getCiteId (Pandoc meta bs)
   let idpred = if "*" `Set.member` nocites
                   then const True
-                  else (\c -> c `Set.member` citeIds ||
-                              c `Set.member` nocites)
+                  else (`Set.member` citeIds)
   refs <- map (linkifyVariables . legacyDateRanges) <$>
           case lookupMeta "references" meta of
             Just (MetaList rs) -> return $ mapMaybe metaValueToReference rs
