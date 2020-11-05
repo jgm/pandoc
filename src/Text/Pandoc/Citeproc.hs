@@ -35,7 +35,7 @@ import Data.Default
 import Data.Ord ()
 import qualified Data.Map as M
 import qualified Data.Set as Set
-import Data.Char (isPunctuation)
+import Data.Char (isPunctuation, isUpper)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Control.Monad.State
@@ -528,20 +528,27 @@ deNote [] = []
 deNote (Note bs:rest) =
   Note (walk go bs) : deNote rest
  where
-  go (Cite (c:cs) ils)
+  go [] = []
+  go (Cite (c:cs) ils : zs)
     | citationMode c == AuthorInText
-      = Cite cs (concatMap noteAfterComma ils)
+      = Cite cs (concatMap (noteAfterComma (needsPeriod zs)) ils) : go zs
     | otherwise
-      = Cite cs (concatMap noteInParens ils)
-  go x = x
+      = Cite cs (concatMap noteInParens ils) : go zs
+  go (x:xs) = x : go xs
+  needsPeriod [] = True
+  needsPeriod (Str t:_) = not (T.null t) && isUpper (T.head t)
+  needsPeriod (Space:zs) = needsPeriod zs
+  needsPeriod _ = False
   noteInParens (Note bs')
        = Space : Str "(" :
          removeFinalPeriod (blocksToInlines bs') ++ [Str ")"]
   noteInParens x = [x]
-  noteAfterComma (Note bs')
+  noteAfterComma needsPer (Note bs')
        = Str "," : Space :
-         removeFinalPeriod (blocksToInlines bs')
-  noteAfterComma x = [x]
+         (if needsPer
+             then id
+             else removeFinalPeriod) (blocksToInlines bs')
+  noteAfterComma _ x = [x]
 deNote (x:xs) = x : deNote xs
 
 -- Note: we can't use dropTextWhileEnd indiscriminately,
