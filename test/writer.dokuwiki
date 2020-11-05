@@ -56,6 +56,7 @@ sub status {
     print "working";
 }
 </code>
+
 A list:
 
   - item one
@@ -87,6 +88,7 @@ sub status {
 
 this code block is indented by one tab
 </code>
+
 And:
 
 <code>
@@ -94,6 +96,7 @@ And:
 
 These should not be escaped:  \$ \\ \> \[ \{
 </code>
+
 
 ----
 
@@ -277,6 +280,7 @@ Multiple blocks with italics:
 <code>
 { orange code block }
 </code>
+
 > <HTML><p></HTML>orange block quote<HTML></p></HTML>
 <HTML></dd></HTML><HTML></dl></HTML>
 
@@ -343,11 +347,13 @@ This should be a code block, though:
     foo
 </div>
 </code>
+
 As should this:
 
 <code>
 <div>foo</div>
 </code>
+
 Now, nested:
 
 foo
@@ -375,6 +381,7 @@ Code block:
 <code>
 <!-- Comment -->
 </code>
+
 Just plain comment, with trailing spaces on the line:
 
 <HTML>
@@ -385,6 +392,7 @@ Code:
 <code>
 <hr />
 </code>
+
 Hr’s:
 
 <HTML>
@@ -571,6 +579,7 @@ This should [not][] be a link.
 <code>
 [not]: /url
 </code>
+
 Foo [[url/|bar]].
 
 Foo [[url/|biz]].
@@ -603,6 +612,7 @@ Auto-links should not occur here: ''%%<http://example.com/>%%''
 or here: <http://example.com/>
 </code>
 
+
 ----
 
 ====== Images ======
@@ -626,6 +636,7 @@ Subsequent blocks are indented to show that they belong to the footnote (as with
 <code>
   { <code> }
 </code>
+
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
 )) This should //not// be a footnote reference, because it contains a space.[^my note] Here is an inline note.((This is //easier// to type. Inline notes may contain [[http://google.com|links]] and ''%%]%%'' verbatim characters, as well as [bracketed text].
 ))

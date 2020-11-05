@@ -26,7 +26,7 @@ import Control.Monad (zipWithM)
 import Control.Monad.Reader (ReaderT, asks, local, runReaderT)
 import Control.Monad.State.Strict (StateT, evalStateT)
 import Data.Default (Default (..))
-import Data.List (intersect, transpose)
+import Data.List (transpose)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
@@ -39,6 +39,7 @@ import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, isURI, linesToPara,
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocLayout (render, literal)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
+import qualified Data.Map as M
 
 data WriterState = WriterState {
   }
@@ -145,20 +146,13 @@ blockToDokuWiki opts (Header level _ inlines) = do
   let eqs = T.replicate ( 7 - level ) "="
   return $ eqs <> " " <> contents <> " " <> eqs <> "\n"
 
-blockToDokuWiki _ (CodeBlock (_,classes,_) str) = do
-  let at  = classes `intersect` ["actionscript", "ada", "apache", "applescript", "asm", "asp",
-                       "autoit", "bash", "blitzbasic", "bnf", "c", "c_mac", "caddcl", "cadlisp", "cfdg", "cfm",
-                       "cpp", "cpp-qt", "csharp", "css", "d", "delphi", "diff", "div", "dos", "eiffel", "fortran",
-                       "freebasic", "gml", "groovy", "html4strict", "idl", "ini", "inno", "io", "java", "java5",
-                       "javascript", "latex", "lisp", "lua", "matlab", "mirc", "mpasm", "mysql", "nsis", "objc",
-                       "ocaml", "ocaml-brief", "oobas", "oracle8", "pascal", "perl", "php", "php-brief", "plsql",
-                       "python", "qbasic", "rails", "reg", "robots", "ruby", "sas", "scheme", "sdlbasic",
-                       "smalltalk", "smarty", "sql", "tcl", "", "thinbasic", "tsql", "vb", "vbnet", "vhdl",
-                       "visualfoxpro", "winbatch", "xml", "xpp", "z80"]
+blockToDokuWiki _ (CodeBlock (_,classes,_) str) =
   return $ "<code" <>
-                (case at of
-                      []    -> ">\n"
-                      (x:_) -> " " <> x <> ">\n") <> str <> "\n</code>"
+           (case classes of
+               []    -> ""
+               (x:_) -> " " <> maybe x id (M.lookup x languageNames)) <>
+           ">\n" <> str <>
+           (if "\n" `T.isSuffixOf` str then "" else "\n") <> "</code>\n"
 
 blockToDokuWiki opts (BlockQuote blocks) = do
   contents <- blockListToDokuWiki opts blocks
@@ -507,3 +501,19 @@ imageDims opts attr = go (toPx $ dimension Width attr) (toPx $ dimension Height 
     go (Just w) (Just h) = "?" <> w <> "x" <> h
     go Nothing  (Just h) = "?0x" <> h
     go Nothing  Nothing  = ""
+
+languageNames :: M.Map Text Text
+languageNames = M.fromList $
+  [("cs", "csharp")
+  ,("coffee", "cofeescript")
+  ,("commonlisp", "lisp")
+  ,("gcc", "c")
+  ,("html", "html5")
+  ,("makefile", "make")
+  ,("objectivec", "objc")
+  ,("r", "rsplus")
+  ,("sqlmysql", "mysql")
+  ,("sqlpostgresql", "postgresql")
+  ,("sci", "scilab")
+  ,("xorg", "xorgconf")
+  ]
