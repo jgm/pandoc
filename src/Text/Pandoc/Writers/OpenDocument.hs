@@ -13,11 +13,14 @@
 
 Conversion of 'Pandoc' documents to OpenDocument XML.
 -}
-module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
+module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument
+                                        , textStyleAttr
+                                        , TextStyle(..)
+                                        ) where
 import Control.Arrow ((***), (>>>))
 import Control.Monad.State.Strict hiding (when)
 import Data.Char (chr)
-import Data.List (sortOn, sortBy, foldl')
+import Data.List (sortOn, sortBy, foldl', intercalate, intersperse)
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Ord (comparing)
@@ -148,6 +151,10 @@ withTextStyle s f = do
   modify $ \st -> st{ stTextStyleAttr = oldTextStyleAttr }
   return res
 
+inSourceCodeTags :: PandocMonad m => Doc Text -> OD m (Doc Text)
+inSourceCodeTags d = do
+  return $ inTags False "text:p" [("text:style-name", "Source_20_Code")] d
+
 inTextStyle :: PandocMonad m => Doc Text -> OD m (Doc Text)
 inTextStyle d = do
   at <- gets stTextStyleAttr
@@ -266,11 +273,6 @@ withParagraphStyle  o s (b:bs)
     where go i = (<>) i <$>  withParagraphStyle o s bs
 withParagraphStyle _ _ [] = return empty
 
-inPreformattedTags :: PandocMonad m => Text -> OD m (Doc Text)
-inPreformattedTags s = do
-  n <- paraStyle [("style:parent-style-name","Preformatted_20_Text")]
-  return . inParagraphTagsWithStyle ("P" <> tshow n) . handleSpaces $ s
-
 orderedListToOpenDocument :: PandocMonad m
                           => WriterOptions -> Int -> [[Block]] -> OD m (Doc Text)
 orderedListToOpenDocument o pn bs =
@@ -373,7 +375,7 @@ blockToOpenDocument o bs
     | DefinitionList b <- bs = setFirstPara >> defList b
     | BulletList     b <- bs = setFirstPara >> bulletListToOpenDocument o b
     | OrderedList  a b <- bs = setFirstPara >> orderedList a b
-    | CodeBlock    _ s <- bs = setFirstPara >> preformatted s
+    | CodeBlock    a s <- bs = setFirstPara >> (inlinesToOpenDocument o [Code a s] >>= inSourceCodeTags)
     | Table a bc s th tb tf <- bs =  setFirstPara >> table (Ann.toTable a bc s th tb tf)
     | HorizontalRule   <- bs = setFirstPara >> return (selfClosingTag "text:p"
                                 [ ("text:style-name", "Horizontal_20_Line") ])
@@ -389,7 +391,6 @@ blockToOpenDocument o bs
                            r <- vcat  <$> mapM (deflistItemToOpenDocument o) b
                            setInDefinitionList False
                            return r
-      preformatted  s = flush . vcat <$> mapM (inPreformattedTags . escapeStringForXML) (T.lines s)
       mkBlockQuote  b = do increaseIndent
                            i <- paraStyle
                                  [("style:parent-style-name","Quotations")]
@@ -567,7 +568,7 @@ inlineToOpenDocument o ils
                   -> return $ preformatted "\n"
      | otherwise  -> return space
     Span attr xs  -> withLangFromAttr attr (inlinesToOpenDocument o xs)
-    LineBreak     -> return $ selfClosingTag "text:line-break" []
+    LineBreak     -> return $ br
     Str         s -> return $ handleSpaces $ escapeStringForXML s
     Emph        l -> withTextStyle Italic $ inlinesToOpenDocument o l
     Underline   l -> withTextStyle Under  $ inlinesToOpenDocument o l
@@ -578,13 +579,13 @@ inlineToOpenDocument o ils
     SmallCaps   l -> withTextStyle SmallC $ inlinesToOpenDocument o l
     Quoted    t l -> inQuotes t <$> inlinesToOpenDocument o l
     Code      attrs s -> if isNothing (writerHighlightStyle o)
-      then unhighlighted s
+      then return $ unhighlighted s
       else case highlight (writerSyntaxMap o)
                   formatOpenDocument attrs s of
-                Right h  -> return $ mconcat $ mconcat h
+                Right h  -> return $ mconcat h
                 Left msg -> do
                   unless (T.null msg) $ report $ CouldNotHighlight msg
-                  unhighlighted s
+                  return $ unhighlighted s
     Math      t s -> lift (texMathToInlines t s) >>=
                          inlinesToOpenDocument o
     Cite      _ l -> inlinesToOpenDocument o l
@@ -597,14 +598,21 @@ inlineToOpenDocument o ils
     Image attr _ (s,t) -> mkImg attr s t
     Note        l  -> mkNote l
     where
-      formatOpenDocument :: FormatOptions -> [SourceLine] -> [[Doc Text]]
-      formatOpenDocument _fmtOpts = map (map toHlTok)
+      br :: Doc Text
+      br = selfClosingTag "text:line-break" []
+      formatOpenDocument :: FormatOptions -> [SourceLine] -> [Doc Text]
+      formatOpenDocument _fmtOpts = intercalate [br] . map (map toHlTok)
       toHlTok :: Token -> Doc Text
       toHlTok (toktype,tok) =
         inTags False "text:span" [("text:style-name", (T.pack $ show toktype))] $ preformatted tok
-      unhighlighted s = inlinedCode $ preformatted s
+      formattedInlinedCodes :: Text -> [Doc Text]
+      formattedInlinedCodes s = map inlinedCode $ map preformatted (T.lines s)
+      unhighlighted :: Text -> Doc Text
+      unhighlighted s = mconcat $ intersperse br $ formattedInlinedCodes s
+      preformatted :: Text -> Doc Text
       preformatted s = handleSpaces $ escapeStringForXML s
-      inlinedCode s = return $ inTags False "text:span" [("text:style-name", "Source_Text")] s
+      inlinedCode :: Doc Text -> Doc Text
+      inlinedCode s = inTags False "text:span" [("text:style-name", "Source_Text")] s
       mkLink   s t = inTags False "text:a" [ ("xlink:type" , "simple")
                                            , ("xlink:href" , s       )
                                            , ("office:name", t       )
