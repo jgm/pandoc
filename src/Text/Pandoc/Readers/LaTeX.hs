@@ -2168,6 +2168,8 @@ parseTableRow envname prefsufs = do
         contents <- mconcat <$>
             many ( snd <$> withRaw (controlSeq "parbox" >> parbox) -- #5711
                   <|>
+                   snd <$> withRaw (inlineEnvironment <|> dollarsMath)
+                  <|>
                    (do notFollowedBy
                          (() <$ amp <|> () <$ lbreak <|> end_ envname)
                        count 1 anyTok) )
