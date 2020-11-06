@@ -425,3 +425,13 @@ the Japanese characters (e.g. "Noto Sans CJK TC"), and add
 5.  Find all code blocks with class `python` and run them
     using the python interpreter, printing the results to the console.
 
+# Appendix: Global variables
+
+Pandoc passes additional data to filters by setting global
+variables.
+
+`PANDOC_READER_OPTIONS`
+:   JSON dictionary of the options which were provided to the parser.
+
+`PANDOC_VERSION`
+:   Contains the pandoc version as a string. E.g. 2.11.1.
