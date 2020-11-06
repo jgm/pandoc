@@ -77,6 +77,7 @@ fromInline (Image _ ils _) = fromInlines ils
 fromInline (Note _) = CslEmpty
 fromInline (Span (_,[cl],_) ils)
   | "csl-" `T.isPrefixOf` cl = CslDiv cl (fromInlines ils)
+  | cl == "nocase" = CslNoCase (fromInlines ils)
 fromInline (Span _ ils) = fromInlines ils
 
 toCslJson :: Locale -> [Reference Inlines] -> ByteString
