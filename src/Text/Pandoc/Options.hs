@@ -314,6 +314,7 @@ defaultMathJaxURL = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.j
 defaultKaTeXURL :: Text
 defaultKaTeXURL = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/"
 
+-- Update documentation in doc/filters.md if this is changed.
 $(deriveJSON defaultOptions ''ReaderOptions)
 
 $(deriveJSON defaultOptions{
@@ -337,6 +338,7 @@ $(deriveJSON defaultOptions{ constructorTagModifier =
 
 $(deriveJSON defaultOptions ''HTMLSlideVariant)
 
+-- Update documentation in doc/filters.md if this is changed.
 $(deriveJSON defaultOptions{ constructorTagModifier =
                                camelCaseStrToHyphenated
                            } ''TrackChanges)
