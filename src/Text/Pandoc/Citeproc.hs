@@ -1,18 +1,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE StrictData #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE DeriveFoldable #-}
-{-# LANGUAGE DeriveTraversable #-}
 module Text.Pandoc.Citeproc
   ( processCitations )
 where
 
-import Citeproc as Citeproc
+import Citeproc
 import Citeproc.Pandoc ()
 import Text.Pandoc.Citeproc.Locator (parseLocator)
 import Text.Pandoc.Citeproc.CslJson (cslJsonToReferences)

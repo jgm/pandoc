@@ -83,7 +83,7 @@ pandocToFB2 opts (Pandoc meta blocks) = do
      secs <- renderSections 1 blocks
      let body = el "body" $ el "title" (el "p" title) : secs
      notes <- renderFootnotes
-     (imgs,missing) <- fmap imagesToFetch get >>= \s -> lift (fetchImages s)
+     (imgs,missing) <- get >>= (lift . fetchImages . imagesToFetch)
      let body' = replaceImagesWithAlt missing body
      let fb2_xml = el "FictionBook" (fb2_attrs, [desc, body'] ++ notes ++ imgs)
      return $ pack $ xml_head ++ showContent fb2_xml ++ "\n"

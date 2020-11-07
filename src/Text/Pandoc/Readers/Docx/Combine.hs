@@ -109,7 +109,7 @@ ilModifierAndInnards ils = case viewl $ unMany ils of
     Underline lst     -> Just (Modifier underline, lst)
     Superscript lst   -> Just (Modifier superscript, lst)
     Subscript lst     -> Just (Modifier subscript, lst)
-    Link attr lst tgt -> Just (Modifier $ linkWith attr (fst tgt) (snd tgt), lst)
+    Link attr lst tgt -> Just (Modifier $ uncurry (linkWith attr) tgt, lst)
     Span attr lst     -> Just (AttrModifier spanWith attr, lst)
     _                 -> Nothing
   _ -> Nothing

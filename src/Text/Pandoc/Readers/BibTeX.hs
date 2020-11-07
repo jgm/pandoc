@@ -26,7 +26,6 @@ import Text.Pandoc.Builder (setMeta, cite, str)
 import Data.Text (Text)
 import Citeproc (Lang(..), parseLang)
 import Citeproc.Locale (getLocale)
-import Data.Maybe (fromMaybe)
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Class (PandocMonad, lookupEnv)
 import Text.Pandoc.Citeproc.BibTeX as BibTeX
@@ -49,7 +48,7 @@ readBibLaTeX = readBibTeX' BibTeX.Biblatex
 
 readBibTeX' :: PandocMonad m => Variant -> ReaderOptions -> Text -> m Pandoc
 readBibTeX' variant _opts t = do
-  lang <- fromMaybe (Lang "en" (Just "US")) . fmap parseLang
+  lang <- maybe (Lang "en" (Just "US")) parseLang
              <$> lookupEnv "LANG"
   locale <- case getLocale lang of
                Left e  -> throwError $ PandocCiteprocError e
@@ -67,4 +66,3 @@ readBibTeX' variant _opts t = do
                                             , citationHash = 0}]
                                             (str "[@*]"))
                         $ Pandoc nullMeta []
-

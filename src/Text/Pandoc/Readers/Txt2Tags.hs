@@ -464,7 +464,7 @@ macro = try $ do
   name <- string "%%" *> oneOfStringsCI (map fst commands)
   optional (try $ enclosed (char '(') (char ')') anyChar)
   lookAhead (spaceChar <|> oneOf specialChars <|> newline)
-  maybe (return mempty) (\f -> B.str <$> asks f) (lookup name commands)
+  maybe (return mempty) (\f -> asks (B.str . f)) (lookup name commands)
   where
     commands = [ ("date", date), ("mtime", mtime)
                , ("infile", T.pack . infile), ("outfile", T.pack . outfile)]

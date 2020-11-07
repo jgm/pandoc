@@ -489,8 +489,8 @@ cslEntryToMs atStart opts (Para xs) =
       | otherwise
          -> case xs of
            [] -> return mempty
-           (x:rest) -> (<>) <$> (inlineToMs opts x)
-                            <*> (cslEntryToMs False opts (Para rest))
+           (x:rest) -> (<>) <$> inlineToMs opts x
+                            <*> cslEntryToMs False opts (Para rest)
 cslEntryToMs _ opts x = blockToMs opts x
 
 

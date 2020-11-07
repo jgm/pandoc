@@ -194,7 +194,7 @@ toJiraInlines inlines = do
                               Jira.Monospaced (escapeSpecialChars cs)
         Emph xs            -> styled Jira.Emphasis xs
         Underline xs       -> styled Jira.Insert xs
-        Image attr cap tgt -> imageToJira attr cap (fst tgt) (snd tgt)
+        Image attr cap tgt -> uncurry (imageToJira attr cap) tgt
         LineBreak          -> pure . singleton $ Jira.Linebreak
         Link attr xs tgt   -> toJiraLink attr tgt xs
         Math mtype cs      -> mathToJira mtype cs

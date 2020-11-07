@@ -1,4 +1,3 @@
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE ViewPatterns  #-}
 {- |
    Module      : Text.Pandoc.Reader.Odt.Generic.Utils

@@ -147,7 +147,7 @@ metaValueToDate (MetaMap m) =
                   mapMaybe metaValueToDateParts xs
                 Just _ -> []
                 Nothing ->
-                  maybe [] (:[]) $ metaValueToDateParts (MetaMap m)
+                  maybeToList $ metaValueToDateParts (MetaMap m)
   circa = fromMaybe False $
             M.lookup "circa" m >>= metaValueToBool
   season = M.lookup "season" m >>= metaValueToInt
@@ -251,4 +251,3 @@ normalizeKey k =
     "pmid"  -> "PMID"
     "url"   -> "URL"
     x       -> x
-

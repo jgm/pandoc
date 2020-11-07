@@ -160,7 +160,7 @@ mconcatMapM :: (Monad m) => (a -> m [a]) -> [a] -> m [a]
 mconcatMapM f = fmap mconcat . mapM f
 
 hasOneOf :: LuaFilter -> [String] -> Bool
-hasOneOf (LuaFilter fnMap) = any (\k -> Map.member k fnMap)
+hasOneOf (LuaFilter fnMap) = any (`Map.member` fnMap)
 
 contains :: LuaFilter -> String -> Bool
 contains (LuaFilter fnMap) = (`Map.member` fnMap)

@@ -1,7 +1,6 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
-{-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE ViewPatterns      #-}
 {- |
@@ -417,7 +416,7 @@ parPartToInlines' (BookMark _ anchor) =
           (modify $ \s -> s { docxAnchorMap = M.insert anchor prevAnchor anchorMap})
         return mempty
       Nothing -> do
-        exts <- readerExtensions <$> asks docxOptions
+        exts <- asks (readerExtensions . docxOptions)
         let newAnchor =
               if not inHdrBool && anchor `elem` M.elems anchorMap
               then uniqueIdent exts [Str anchor]
@@ -462,7 +461,7 @@ makeHeaderAnchor' (Header n (ident, classes, kvs) ils)
   | (c:_) <- filter isAnchorSpan ils
   , (Span (anchIdent, ["anchor"], _) cIls) <- c = do
     hdrIDMap <- gets docxAnchorMap
-    exts <- readerExtensions <$> asks docxOptions
+    exts <- asks (readerExtensions . docxOptions)
     let newIdent = if T.null ident
                    then uniqueIdent exts ils (Set.fromList $ M.elems hdrIDMap)
                    else ident
@@ -475,7 +474,7 @@ makeHeaderAnchor' (Header n (ident, classes, kvs) ils)
 makeHeaderAnchor' (Header n (ident, classes, kvs) ils) =
   do
     hdrIDMap <- gets docxAnchorMap
-    exts <- readerExtensions <$> asks docxOptions
+    exts <- asks (readerExtensions . docxOptions)
     let newIdent = if T.null ident
                    then uniqueIdent exts ils (Set.fromList $ M.elems hdrIDMap)
                    else ident
@@ -736,4 +735,3 @@ docxToOutput opts (Docx (Document _ body)) =
 addAuthorAndDate :: T.Text -> Maybe T.Text -> [(T.Text, T.Text)]
 addAuthorAndDate author mdate =
   ("author", author) : maybe [] (\date -> [("date", date)]) mdate
-

@@ -90,7 +90,7 @@ escapeString e = Text.concat . escapeString' e . Text.unpack
                 AllowUTF8 -> Text.singleton x : escapeString' escapeMode xs
                 AsciiOnly ->
                   let accents = catMaybes $ takeWhile isJust
-                        (map (\c -> Map.lookup c combiningAccentsMap) xs)
+                        (map (`Map.lookup` combiningAccentsMap) xs)
                       rest = drop (length accents) xs
                       s = case Map.lookup x characterCodeMap of
                             Just t  -> "\\[" <> Text.unwords (t:accents) <> "]"
