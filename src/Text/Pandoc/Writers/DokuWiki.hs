@@ -39,6 +39,7 @@ import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, isURI, linesToPara,
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocLayout (render, literal)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
+import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 
 data WriterState = WriterState {
@@ -150,7 +151,7 @@ blockToDokuWiki _ (CodeBlock (_,classes,_) str) =
   return $ "<code" <>
            (case classes of
                []    -> ""
-               (x:_) -> " " <> maybe x id (M.lookup x languageNames)) <>
+               (x:_) -> " " <> fromMaybe x (M.lookup x languageNames)) <>
            ">\n" <> str <>
            (if "\n" `T.isSuffixOf` str then "" else "\n") <> "</code>\n"
 
@@ -503,7 +504,7 @@ imageDims opts attr = go (toPx $ dimension Width attr) (toPx $ dimension Height 
     go Nothing  Nothing  = ""
 
 languageNames :: M.Map Text Text
-languageNames = M.fromList $
+languageNames = M.fromList
   [("cs", "csharp")
   ,("coffee", "cofeescript")
   ,("commonlisp", "lisp")
