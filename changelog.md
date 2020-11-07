@@ -1,5 +1,37 @@
 # Revision history for pandoc
 
+## pandoc 2.11.1.1 (2020-11-07)
+
+  * Citeproc: improve punctuation in in-text note citations (#6813).
+    Previously in-text note citations inside a footnote would sometimes have
+    the final period stripped, even if it was needed (e.g. on the end of
+    'ibid').
+
+  * Use citeproc 0.1.1.1.  This improves the decision about when
+    to use `ibid` in cases where citations are used inside
+    a footnote (#6813).
+
+  * Support `nocase` spans for `csljson` output.
+
+  * Require latest commonmark, commonmark-extensions.
+    This fixes a bug with `autolink_bare_uris` and commonmark.
+
+  * LaTeX reader: better handling of `\\` inside math in table cells (#6811).
+
+  * DokuWiki writer:  translate language names for code elements
+    and improve whitespace (#6807).
+
+  * MediaWiki writer: use `syntaxhighlight` tag instead of deprecated
+    `source` for highlighted code (#6810).  Also support `startFrom`
+    attribute and `numberLines`.
+
+  * Lint code in PRs and when committing to master (#6790,
+    Albert Krewinkel).
+
+  * doc/filters.md: describe technical details of filter invocations (#6815,
+    Albert Krewinkel).
+
+
 ## pandoc 2.11.1 (2020-11-03)
 
   * DocBook Reader: fix duplicate bibliography bug (#6773, Nils Carlson).
