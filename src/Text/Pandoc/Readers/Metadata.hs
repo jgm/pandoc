@@ -112,13 +112,16 @@ normalizeMetaValue pMetaValue x =
    -- Note: a standard quoted or unquoted YAML value will
    -- not end in a newline, but a "block" set off with
    -- `|` or `>` will.
-   if "\n" `T.isSuffixOf` x
+   if "\n" `T.isSuffixOf` (T.dropWhileEnd isSpaceChar x) -- see #6823
       then parseFromString' pMetaValue (x <> "\n")
       else parseFromString' asInlines x
   where asInlines = fmap b2i <$> pMetaValue
         b2i (MetaBlocks [Plain ils]) = MetaInlines ils
         b2i (MetaBlocks [Para ils]) = MetaInlines ils
         b2i bs = bs
+        isSpaceChar ' '  = True
+        isSpaceChar '\t' = True
+        isSpaceChar _    = False
 
 checkBoolean :: Text -> Maybe Bool
 checkBoolean t
