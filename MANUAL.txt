@@ -5360,7 +5360,7 @@ or BibLaTeX (for `--biblatex`) format.
 
 A few other metadata fields affect bibliography formatting:
 
-`link-citation`
+`link-citations`
 :   If true, citations will be
     hyperlinked to the corresponding bibliography entries
     (for author-date and numerical styles only).
