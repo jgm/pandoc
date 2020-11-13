@@ -137,7 +137,7 @@ handleError (Left e) =
                   " -t latex|beamer|context|ms|html5" <>
                  "\nand specify an output file with " <>
                  ".pdf extension (-o filename.pdf)."
-         "doc" -> "\nPandoc can convert to DOCX, but not from DOC."
+         "doc" -> "\nPandoc can convert to DOCX, but not to DOC."
          _     -> ""
     PandocUnsupportedExtensionError ext f -> err 23 $
       "The extension " <> ext <> " is not supported " <>
