@@ -40,25 +40,13 @@ import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocTemplates (Context(..), Val(..))
+import Text.Pandoc.Writers.JATS.Table (tableToJATS)
+import Text.Pandoc.Writers.JATS.Types
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
 import Text.TeXMath
 import qualified Text.XML.Light as Xml
-
--- | JATS tag set variant
-data JATSTagSet
-  = TagSetArchiving         -- ^ Archiving and Interchange Tag Set
-  | TagSetPublishing        -- ^ Journal Publishing Tag Set
-  | TagSetArticleAuthoring  -- ^ Article Authoring Tag Set
-  deriving (Eq)
-
--- | Internal state used by the writer.
-newtype JATSState = JATSState
-  { jatsNotes :: [(Int, Doc Text)] }
-
--- | JATS writer type
-type JATS a = StateT JATSState (ReaderT JATSTagSet a)
 
 -- | Convert a @'Pandoc'@ document to JATS (Archiving and Interchange
 -- Tag Set.)
@@ -83,9 +71,14 @@ writeJATS = writeJatsArchiving
 -- | Convert a @'Pandoc'@ document to JATS.
 writeJats :: PandocMonad m => JATSTagSet -> WriterOptions -> Pandoc -> m Text
 writeJats tagSet opts d =
-  runReaderT (evalStateT (docToJATS opts d)
-               (JATSState{ jatsNotes = [] }))
-             tagSet
+  runReaderT (evalStateT (docToJATS opts d) initialState)
+             environment
+  where initialState = JATSState { jatsNotes = [] }
+        environment = JATSEnv
+          { jatsTagSet = tagSet
+          , jatsInlinesWriter = inlinesToJATS
+          , jatsBlockWriter = blockToJATS
+          }
 
 -- | Convert Pandoc document to string in JATS format.
 docToJATS :: PandocMonad m => WriterOptions -> Pandoc -> JATS m Text
@@ -110,7 +103,7 @@ docToJATS opts (Pandoc meta blocks) = do
   main <- fromBlocks bodyblocks
   notes <- gets (reverse . map snd . jatsNotes)
   backs <- fromBlocks backblocks
-  tagSet <- ask
+  tagSet <- asks jatsTagSet
   -- In the "Article Authoring" tag set, occurrence of fn-group elements
   -- is restricted to table footers. Footnotes have to be placed inline.
   let fns = if null notes || tagSet == TagSetArticleAuthoring
@@ -311,7 +304,7 @@ blockToJATS opts (Para lst) =
 blockToJATS opts (LineBlock lns) =
   blockToJATS opts $ linesToPara lns
 blockToJATS opts (BlockQuote blocks) = do
-  tagSet <- ask
+  tagSet <- asks jatsTagSet
   let blocksToJats' = if tagSet == TagSetArticleAuthoring
                       then wrappedBlocksToJATS (not . isPara)
                       else blocksToJATS
@@ -326,7 +319,7 @@ blockToJATS opts (BulletList lst) =
   listItemsToJATS opts Nothing lst
 blockToJATS _ (OrderedList _ []) = return empty
 blockToJATS opts (OrderedList (start, numstyle, delimstyle) items) = do
-  tagSet <- ask
+  tagSet <- asks jatsTagSet
   let listType =
         -- The Article Authoring tag set doesn't allow a more specific
         -- @list-type@ attribute than "order".
@@ -356,52 +349,8 @@ blockToJATS _ b@(RawBlock f str)
       report $ BlockNotRendered b
       return empty
 blockToJATS _ HorizontalRule = return empty -- not semantic
-blockToJATS opts (Table _ blkCapt specs th tb tf) =
-  case toLegacyTable blkCapt specs th tb tf of
-    ([], aligns, widths, headers, rows) -> captionlessTable aligns widths headers rows
-    (caption, aligns, widths, headers, rows) -> do
-      captionDoc <- inTagsIndented "caption" <$> blockToJATS opts (Para caption)
-      tbl <- captionlessTable aligns widths headers rows
-      return $ inTags True "table-wrap" [] $ captionDoc $$ tbl
-  where
-    captionlessTable aligns widths headers rows = do
-      let percent w = tshow (truncate (100*w) :: Integer) <> "*"
-      let coltags = vcat $ zipWith (\w al -> selfClosingTag "col"
-                           ([("width", percent w) | w > 0] ++
-                            [("align", alignmentToText al)])) widths aligns
-      thead <- if all null headers
-                  then return empty
-                  else inTagsIndented "thead" <$> tableRowToJATS opts True headers
-      tbody <- inTagsIndented "tbody" . vcat <$>
-                    mapM (tableRowToJATS opts False) rows
-      return $ inTags True "table" [] $ coltags $$ thead $$ tbody
-
-alignmentToText :: Alignment -> Text
-alignmentToText alignment = case alignment of
-                                 AlignLeft    -> "left"
-                                 AlignRight   -> "right"
-                                 AlignCenter  -> "center"
-                                 AlignDefault -> "left"
-
-tableRowToJATS :: PandocMonad m
-                  => WriterOptions
-                  -> Bool
-                  -> [[Block]]
-                  -> JATS m (Doc Text)
-tableRowToJATS opts isHeader cols =
-  inTagsIndented "tr" . vcat <$> mapM (tableItemToJATS opts isHeader) cols
-
-tableItemToJATS :: PandocMonad m
-                   => WriterOptions
-                   -> Bool
-                   -> [Block]
-                   -> JATS m (Doc Text)
-tableItemToJATS opts isHeader [Plain item] =
-  inTags False (if isHeader then "th" else "td") [] <$>
-    inlinesToJATS opts item
-tableItemToJATS opts isHeader item =
-  inTags False (if isHeader then "th" else "td") [] . vcat <$>
-    mapM (blockToJATS opts) item
+blockToJATS opts (Table attr blkCapt specs th tb tf) =
+  tableToJATS opts attr blkCapt specs th tb tf
 
 -- | Convert a list of inline elements to JATS.
 inlinesToJATS :: PandocMonad m => WriterOptions -> [Inline] -> JATS m (Doc Text)
@@ -458,7 +407,7 @@ inlineToJATS opts SoftBreak
   | writerWrapText opts == WrapPreserve = return cr
   | otherwise = return space
 inlineToJATS opts (Note contents) = do
-  tagSet <- ask
+  tagSet <- asks jatsTagSet
   -- Footnotes must occur inline when using the Article Authoring tag set.
   if tagSet == TagSetArticleAuthoring
     then inTagsIndented "fn" <$> wrappedBlocksToJATS (not . isPara) opts contents
@@ -504,7 +453,7 @@ inlineToJATS _ (Math t str) = do
   let rawtex = text "<![CDATA[" <> literal str <> text "]]>"
   let texMath = inTagsSimple "tex-math" rawtex
 
-  tagSet <- ask
+  tagSet <- asks jatsTagSet
   return . inTagsSimple tagtype $
     case res of
       Right r  -> let mathMl = text (Xml.ppcElement conf $ fixNS r)

@@ -629,6 +629,8 @@ library
                    Text.Pandoc.Readers.Metadata,
                    Text.Pandoc.Readers.Roff,
                    Text.Pandoc.Writers.Docx.StyleMap,
+                   Text.Pandoc.Writers.JATS.Table,
+                   Text.Pandoc.Writers.JATS.Types,
                    Text.Pandoc.Writers.Roff,
                    Text.Pandoc.Writers.Powerpoint.Presentation,
                    Text.Pandoc.Writers.Powerpoint.Output,
