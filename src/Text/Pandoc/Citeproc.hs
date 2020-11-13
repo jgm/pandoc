@@ -532,7 +532,9 @@ deNote (Note bs:rest) =
       = Cite cs (concatMap noteInParens ils) : go zs
   go (x:xs) = x : go xs
   needsPeriod [] = True
-  needsPeriod (Str t:_) = not (T.null t) && isUpper (T.head t)
+  needsPeriod (Str t:_) = case T.uncons t of
+                            Nothing    -> False
+                            Just (c,_) -> isUpper c
   needsPeriod (Space:zs) = needsPeriod zs
   needsPeriod _ = False
   noteInParens (Note bs')
@@ -555,6 +557,25 @@ deNote (x:xs) = x : deNote xs
 removeFinalPeriod :: [Inline] -> [Inline]
 removeFinalPeriod ils =
   case lastMay ils of
+    Just (Span attr ils')
+      -> initSafe ils ++ [Span attr (removeFinalPeriod ils')]
+    Just (Emph ils')
+      -> initSafe ils ++ [Emph (removeFinalPeriod ils')]
+    Just (Strong ils')
+      -> initSafe ils ++ [Strong (removeFinalPeriod ils')]
+    Just (SmallCaps ils')
+      -> initSafe ils ++ [SmallCaps (removeFinalPeriod ils')]
     Just (Str t)
       | T.takeEnd 1 t == "." -> initSafe ils ++ [Str (T.dropEnd 1 t)]
+      | isRightQuote (T.takeEnd 1 t)
+        -> removeFinalPeriod
+             (initSafe ils ++ [Str tInit | not (T.null tInit)]) ++ [Str tEnd]
+             where
+               tEnd  = T.takeEnd 1 t
+               tInit = T.dropEnd 1 t
     _ -> ils
+ where
+  isRightQuote "\8221" = True
+  isRightQuote "\8217" = True
+  isRightQuote "\187"  = True
+  isRightQuote _       = False
