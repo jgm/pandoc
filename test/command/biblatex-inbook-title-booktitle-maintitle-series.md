@@ -1,5 +1,5 @@
 ```
-% pandoc -f biblatex -t markdown -s
+% pandoc -f biblatex -t markdown -s --markdown-headings=setext
 @inbook{item1,
 	Author = {Author, Al},
 	Booksubtitle = {Booksubtitle},

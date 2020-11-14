@@ -1,5 +1,5 @@
 ```
-% pandoc -f biblatex -t markdown -s
+% pandoc -f biblatex -t markdown -s --markdown-headings=setext
 @comment{excerpt from http://mirrors.ctan.org/macros/latex/contrib/biblatex/doc/examples/biblatex-examples.bib}
 
 @string{anch-ie = {Angew.~Chem. Int.~Ed.}}

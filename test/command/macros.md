@@ -1,5 +1,5 @@
 ```
-% pandoc -f markdown+latex_macros -t markdown+raw_tex-raw_attribute
+% pandoc -f markdown+latex_macros -t markdown+raw_tex-raw_attribute --markdown-headings=setext
 \newcommand{\my}{\phi}
 $\my+\my$
 ^D
@@ -9,7 +9,7 @@ $\phi+\phi$
 ```
 
 ```
-% pandoc -f markdown-latex_macros -t markdown+raw_tex-raw_attribute
+% pandoc -f markdown-latex_macros -t markdown+raw_tex-raw_attribute --markdown-headings=setext
 \newcommand{\my}{\phi}
 $\my+\my$
 ^D
@@ -70,7 +70,7 @@ x &= y\\\end{aligned}\]
 ```
 
 ```
-% pandoc -f markdown+latex_macros -t markdown+raw_tex-raw_attribute
+% pandoc -f markdown+latex_macros -t markdown+raw_tex-raw_attribute --markdown-headings=setext
 \newcommand{\my}{\phi}
 \begin{equation}
 \my+\my
@@ -84,7 +84,7 @@ x &= y\\\end{aligned}\]
 ```
 
 ```
-% pandoc -f markdown-latex_macros -t markdown+raw_tex-raw_attribute
+% pandoc -f markdown-latex_macros -t markdown+raw_tex-raw_attribute --markdown-headings=setext
 \newcommand{\my}{\phi}
 \begin{equation}
 \my+\my
@@ -98,7 +98,7 @@ x &= y\\\end{aligned}\]
 ```
 
 ```
-% pandoc -f markdown+latex_macros -t markdown+raw_tex-raw_attribute
+% pandoc -f markdown+latex_macros -t markdown+raw_tex-raw_attribute --markdown-headings=setext
 \newcommand{\my}{\emph{a}}
 \my
 ^D

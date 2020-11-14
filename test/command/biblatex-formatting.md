@@ -1,5 +1,5 @@
 ```
-% pandoc -f biblatex -t markdown -s
+% pandoc -f biblatex -t markdown -s --markdown-headings=setext
 @article{item1,
     Title = {The Title:
      \textit{italics},

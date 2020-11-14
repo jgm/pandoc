@@ -98,6 +98,7 @@ data LogMessage =
   | RunningFilter FilePath
   | FilterCompleted FilePath Integer
   | CiteprocWarning Text.Text
+  | CannotRenderATXHeading
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -224,6 +225,7 @@ instance ToJSON LogMessage where
            ,"milliseconds" .= Text.pack (show ms) ]
       CiteprocWarning msg ->
            ["message" .= msg]
+      CannotRenderATXHeading -> []
 
 showPos :: SourcePos -> Text.Text
 showPos pos = Text.pack $ sn ++ "line " ++
@@ -333,6 +335,10 @@ showLogMessage msg =
        FilterCompleted fp ms -> "Completed filter " <> Text.pack fp <>
           " in " <> Text.pack (show ms) <> " ms"
        CiteprocWarning ms -> "Citeproc: " <> ms
+       CannotRenderATXHeading ->
+         "Rendering heading as paragraph, because # is not allowed in column 1 of" <>
+         "lhs files.\nConsider using --markdown-headings=setext to force" <>
+         "setext-style headings."
 
 messageVerbosity :: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -378,3 +384,4 @@ messageVerbosity msg =
        RunningFilter{}               -> INFO
        FilterCompleted{}             -> INFO
        CiteprocWarning{}             -> WARNING
+       CannotRenderATXHeading        -> WARNING

@@ -1,5 +1,5 @@
 ```
-% pandoc --citeproc -t markdown-citations
+% pandoc --citeproc -t markdown-citations --markdown-headings=setext
 ---
 csl: 'command/chinese-gb7714-2005-numeric.csl'
 references:

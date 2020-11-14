@@ -1,5 +1,5 @@
 ```
-% pandoc --citeproc -t markdown-citations
+% pandoc --citeproc -t markdown-citations --markdown-headings=setext
 ---
 csl: 'command/advanced-optical-materials.csl'
 references:

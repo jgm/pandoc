@@ -45,7 +45,7 @@ pandoc -t jats --ascii
 ```
 
 ```
-pandoc -t markdown-smart --ascii
+pandoc -t markdown-smart --ascii --markdown-headings=setext
 "äéıå"
 ^D
 &ldquo;&auml;&eacute;&imath;&aring;&rdquo;

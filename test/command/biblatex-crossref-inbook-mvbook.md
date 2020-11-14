@@ -1,5 +1,5 @@
 ```
-% pandoc -f biblatex -t markdown -s
+% pandoc -f biblatex -t markdown -s --markdown-headings=setext
 @comment{
 
 crossref, directly from inbook to mvbook

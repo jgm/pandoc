@@ -1,5 +1,5 @@
 ```
-% pandoc -s --toc -t markdown
+% pandoc -s --toc -t markdown --markdown-headings=setext
 # A
 ## b
 # B

@@ -1,5 +1,5 @@
 ```
-% pandoc -f biblatex -t markdown -s
+% pandoc -f biblatex -t markdown -s --markdown-headings=setext
 @comment{excerpt from http://mirrors.ctan.org/macros/latex/contrib/biblatex/doc/examples/biblatex-examples.bib
 
 \mkbibquote{} should be replaced by a matching set of quotation marks that can be used by citeproc for quote substitution and flipflopping. English smart double quotation marks seem best, as they cannot be confused with apostrophes.

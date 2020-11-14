@@ -1,5 +1,5 @@
 ```
-% pandoc --citeproc -t markdown-citations
+% pandoc --citeproc -t markdown-citations --markdown-headings=setext
 ---
 bibliography: 'command/biblatex-examples.bib'
 csl: command/apa.csl

@@ -1,5 +1,5 @@
 ```
-% pandoc -f biblatex -t markdown -s
+% pandoc -f biblatex -t markdown -s --markdown-headings=setext
 @book{item1,
 	Title = {The Title: \bibstring{newseries}},
         Hyphenation = {english}

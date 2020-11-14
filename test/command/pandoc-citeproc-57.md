@@ -1,5 +1,5 @@
 ```
-% pandoc --citeproc -t markdown-citations
+% pandoc --citeproc -t markdown-citations --markdown-headings=setext
 ---
 csl: 'command/chicago-author-date-with-original-date-and-status.csl'
 references:

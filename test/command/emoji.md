@@ -1,12 +1,12 @@
 ```
-% pandoc -t markdown+emoji -f markdown+emoji
+% pandoc -t markdown+emoji -f markdown+emoji --markdown-headings=setext
 :smile:
 ^D
 :smile:
 ```
 
 ```
-% pandoc -t markdown-emoji -f markdown+emoji
+% pandoc -t markdown-emoji -f markdown+emoji --markdown-headings=setext
 :smile:
 ^D
 😄

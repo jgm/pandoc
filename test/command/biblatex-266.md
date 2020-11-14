@@ -1,5 +1,5 @@
 ```
-% pandoc -f biblatex -t markdown -s
+% pandoc -f biblatex -t markdown -s --markdown-headings=setext
 @book{goethe2005,
   langid = {german},
   location = {{Frankfurt am Main}},

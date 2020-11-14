@@ -1,5 +1,5 @@
 ```
-% pandoc -f biblatex -t markdown -s
+% pandoc -f biblatex -t markdown -s --markdown-headings=setext
 @thesis{Leavitt_2016,
 location = {{Los Angeles, CA}},
 title = {Upvoting the News: {{Breaking}} News Aggregation, Crowd Collaboration,

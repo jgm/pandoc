@@ -1,5 +1,5 @@
 ```
-% pandoc -f biblatex -t markdown -s
+% pandoc -f biblatex -t markdown -s --markdown-headings=setext
 @comment{excerpted from http://mirrors.ctan.org/macros/latex/contrib/biblatex/doc/examples/biblatex-examples.bib
 
 TODO: Uppercase letters following hyphens need to be converted to lowercase, too (e.g., "r" in "High-Resolution". -- Same for citeproc when doing title-case conversion!)

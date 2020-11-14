@@ -1,5 +1,5 @@
 ```
-% pandoc -f biblatex -t markdown -s
+% pandoc -f biblatex -t markdown -s --markdown-headings=setext
 Note that current CSL doesn't give us a way
 to distinguish between /open and /unknown,
 so item3-3 and item3-4 get parsed similarly.

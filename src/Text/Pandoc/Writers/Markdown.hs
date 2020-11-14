@@ -514,6 +514,11 @@ blockToMarkdown' opts b@(RawBlock f str) = do
 blockToMarkdown' opts HorizontalRule =
   return $ blankline <> literal (T.replicate (writerColumns opts) "-") <> blankline
 blockToMarkdown' opts (Header level attr inlines) = do
+
+  when (writerSetextHeaders opts &&
+    isEnabled Ext_literate_haskell opts) $
+    report CannotRenderATXHeading
+
   -- first, if we're putting references at the end of a section, we
   -- put them here.
   blkLevel <- asks envBlockLevel

@@ -104,7 +104,7 @@ latex task list test:
 round trip:
 
 ```
-% pandoc -f markdown -t markdown
+% pandoc -f markdown -t markdown --markdown-headings=setext
 - [ ] foo
 - [x] bar
 ^D

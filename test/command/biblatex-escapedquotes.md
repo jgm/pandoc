@@ -1,5 +1,5 @@
 ```
-% pandoc -f biblatex -t markdown -s
+% pandoc -f biblatex -t markdown -s --markdown-headings=setext
 @comment{From jgm/pandoc#1568.  Double quotes escaped using {"}.}
 
 @ARTICLE{Koff2009-gn,

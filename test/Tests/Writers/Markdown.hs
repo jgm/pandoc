@@ -12,7 +12,9 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 defopts :: WriterOptions
-defopts = def{ writerExtensions = pandocExtensions }
+defopts = def
+  { writerExtensions = pandocExtensions
+  , writerSetextHeaders = True }
 
 markdown :: (ToPandoc a) => a -> String
 markdown = unpack . purely (writeMarkdown defopts) . toPandoc
