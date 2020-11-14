@@ -1535,6 +1535,11 @@ ltSign = do
   char '<'
   return $ return $ B.str "<"
 
+-- Note that if the citations extension is enabled, example refs will be
+-- parsed as citations, and handled by a clause in the parser for citations,
+-- since we won't know whether we have an example ref until the
+-- whole document has been parsed.  But we need this parser
+-- here in case citations is disabled.
 exampleRef :: PandocMonad m => MarkdownParser m (F Inlines)
 exampleRef = try $ do
   guardEnabled Ext_example_lists
@@ -2066,6 +2071,13 @@ cite = do
 textualCite :: PandocMonad m => MarkdownParser m (F Inlines)
 textualCite = try $ do
   (suppressAuthor, key) <- citeKey
+  -- If this is a reference to an earlier example list item,
+  -- then don't parse it as a citation.  If the example list
+  -- item comes later, we'll parse it here and figure out in
+  -- the runF stage if it's a citation.  But it helps with
+  -- issue #6836 to filter out known example list references
+  -- at this stage, so we don't increment stateNoteNumber.
+  getState >>= guard . isNothing . M.lookup key . stateExamples
   noteNum <- stateNoteNumber <$> getState
   let first = Citation{ citationId      = key
                       , citationPrefix  = []

@@ -328,7 +328,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
 ,Header 2 ("reference-link-fallbacks",[],[]) [Str "Reference",Space,Str "link",Space,Str "fallbacks"]
 ,Para [Str "[",Emph [Str "not",Space,Str "a",Space,Str "link"],Str "]",Space,Str "[",Emph [Str "nope"],Str "]\8230"]
 ,Header 2 ("reference-link-followed-by-a-citation",[],[]) [Str "Reference",Space,Str "link",Space,Str "followed",Space,Str "by",Space,Str "a",Space,Str "citation"]
-,Para [Str "MapReduce",Space,Str "is",Space,Str "a",Space,Str "paradigm",Space,Str "popularized",Space,Str "by",Space,Link ("",[],[]) [Str "Google"] ("http://google.com",""),Space,Cite [Citation {citationId = "mapreduce", citationPrefix = [], citationSuffix = [], citationMode = NormalCitation, citationNoteNum = 3, citationHash = 0}] [Str "[@mapreduce]"],Space,Str "as",Space,Str "its",SoftBreak,Str "most",Space,Str "vocal",Space,Str "proponent."]
+,Para [Str "MapReduce",Space,Str "is",Space,Str "a",Space,Str "paradigm",Space,Str "popularized",Space,Str "by",Space,Link ("",[],[]) [Str "Google"] ("http://google.com",""),Space,Cite [Citation {citationId = "mapreduce", citationPrefix = [], citationSuffix = [], citationMode = NormalCitation, citationNoteNum = 2, citationHash = 0}] [Str "[@mapreduce]"],Space,Str "as",Space,Str "its",SoftBreak,Str "most",Space,Str "vocal",Space,Str "proponent."]
 ,Header 2 ("empty-reference-links",[],[]) [Str "Empty",Space,Str "reference",Space,Str "links"]
 ,Para [Str "bar"]
 ,Para [Link ("",[],[]) [Str "foo2"] ("","")]
