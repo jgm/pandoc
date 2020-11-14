@@ -529,8 +529,25 @@ options =
 
     , Option "" ["atx-headers"]
                  (NoArg
-                  (\opt -> return opt { optSetextHeaders = False } ))
+                  (\opt -> do
+                    deprecatedOption "--atx-headers"
+                      "use --markdown-headings=atx"
+                    return opt { optSetextHeaders = False } ))
                  "" -- "Use atx-style headers for markdown"
+
+    , Option "" ["markdown-headings"]
+                  (ReqArg
+                    (\arg opt -> do
+                      headingFormat <- case arg of
+                        "setext" -> pure True
+                        "atx" -> pure False
+                        _ -> E.throwIO $ PandocOptionError $ T.pack
+                          ("Unknown markdown heading format: " ++ arg ++
+                            ". Expecting atx or setext")
+                      pure opt { optSetextHeaders = headingFormat }
+                    )
+                  "setext|atx")
+                  ""
 
     , Option "" ["listings"]
                  (NoArg

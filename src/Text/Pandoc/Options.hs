@@ -289,7 +289,7 @@ instance Default WriterOptions where
                       , writerTopLevelDivision = TopLevelDefault
                       , writerListings         = False
                       , writerHighlightStyle   = Just pygments
-                      , writerSetextHeaders    = True
+                      , writerSetextHeaders    = False
                       , writerEpubSubdirectory = "EPUB"
                       , writerEpubMetadata     = Nothing
                       , writerEpubFonts        = []

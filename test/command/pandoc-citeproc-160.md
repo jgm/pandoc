@@ -26,13 +26,11 @@ Expected
 >
 > \[Jane11\] Jane Doe. A book. 2011.
 ^D
-No citation-label
------------------
+## No citation-label
 
 Foo \[Jane11\].
 
-Expected
---------
+## Expected
 
 > Foo \[Jane11\].
 >

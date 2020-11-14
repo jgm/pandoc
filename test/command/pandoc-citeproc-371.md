@@ -26,8 +26,7 @@ References {#references .unnumbered}
 ^D
 Foo (Doe 2018, in press).
 
-References {#references .unnumbered}
-==========
+# References {#references .unnumbered}
 
 ::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-item2 .csl-entry}

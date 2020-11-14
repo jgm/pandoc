@@ -215,7 +215,8 @@ tests pandocPath =
     [ test' "reader" ["-f", "ipynb-raw_html-raw_tex+raw_attribute",
                       "-t", "native", "-s"]
       "ipynb/simple.ipynb" "ipynb/simple.out.native"
-    , test' "writer" ["-f", "native", "-t",
+    , test' "writer" ["-f", "native",
+                      "--markdown-headings=setext", "-t",
                       "ipynb-raw_html-raw_tex+raw_attribute", "-s"]
       "ipynb/simple.in.native" "ipynb/simple.ipynb"
     ]
@@ -241,7 +242,8 @@ lhsWriterTests pandocPath format
     ]
   where
     t n f = test pandocPath
-             n ["--wrap=preserve", "-r", "native", "-s", "-w", f]
+             n ["--wrap=preserve", "-r", "native", "-s",
+              "--markdown-headings=setext", "-w", f]
              "lhs-test.native" ("lhs-test" <.> f)
 
 lhsReaderTest :: FilePath -> String -> TestTree

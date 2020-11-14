@@ -514,6 +514,7 @@ blockToMarkdown' opts b@(RawBlock f str) = do
 blockToMarkdown' opts HorizontalRule =
   return $ blankline <> literal (T.replicate (writerColumns opts) "-") <> blankline
 blockToMarkdown' opts (Header level attr inlines) = do
+
   -- first, if we're putting references at the end of a section, we
   -- put them here.
   blkLevel <- asks envBlockLevel
@@ -543,8 +544,12 @@ blockToMarkdown' opts (Header level attr inlines) = do
                       isEnabled Ext_gutenberg opts
                       then capitalize inlines
                       else inlines
+
   let setext = writerSetextHeaders opts
-      hdr = nowrap $ case level of
+  when (not setext && isEnabled Ext_literate_haskell opts) $
+    report $ ATXHeadingInLHS level (render Nothing contents)
+
+  let hdr = nowrap $ case level of
             1 | variant == PlainText ->
                 if isEnabled Ext_gutenberg opts
                    then blanklines 3 <> contents <> blanklines 2

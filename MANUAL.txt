@@ -963,21 +963,26 @@ header when requesting a document from a URL:
     placement of link references is affected by the
     `--reference-location` option.
 
-`--reference-location = block`|`section`|`document`
+`--reference-location=block`|`section`|`document`
 
 :   Specify whether footnotes (and references, if `reference-links` is
     set) are placed at the end of the current (top-level) block, the
     current section, or the document. The default is
     `document`. Currently only affects the markdown writer.
 
+`--markdown-headings=setext`|`atx
+
+:   Specify whether to use ATX-style (`#`-prefixed) or
+    Setext-style (underlined) headings for level 1 and 2
+    headings in Markdown output.  (ATX is the default.)
+    ATX headings are always used for levels 3+.
+    This option also affects Markdown cells in `ipynb` output.
+
 `--atx-headers`
 
-:   Use ATX-style headings in Markdown output. The default is
-    to use setext-style headings for levels 1 to 2, and then ATX headings.
-    (Note: for `gfm` output, ATX headings are always used.)
-    This option also affects markdown cells in `ipynb` output.
+:   *Deprecated synonym for `--markdown-headings=atx`.*
 
-`--top-level-division=[default|section|chapter|part]`
+`--top-level-division=default`|`section`|`chapter`|`part`
 
 :   Treat top-level headings as the given division type in LaTeX, ConTeXt,
     DocBook, and  TEI output. The hierarchy order is part, chapter, then section;
@@ -1624,7 +1629,7 @@ epub-cover-image: cover.jpg
 reference-links: true
 # block, section, or document
 reference-location: block
-atx-headers: false
+markdown-headings: setext
 
 # accept, reject, or all
 track-changes: accept

@@ -25,8 +25,7 @@ References
 ^D
 (Faraday, forthcoming)
 
-References {#references .unnumbered}
-==========
+# References {#references .unnumbered}
 
 ::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-Faraday-forthcoming .csl-entry}

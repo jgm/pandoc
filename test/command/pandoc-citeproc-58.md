@@ -22,8 +22,7 @@ References
 In this item, the title replaces the (unknown) author (see 14.79)
 (*Stanze in lode della donna brutta* 1547, 12).
 
-References {#references .unnumbered}
-==========
+# References {#references .unnumbered}
 
 ::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-stanze .csl-entry}

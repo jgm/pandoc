@@ -20,8 +20,7 @@ References {#references .unnumbered}
 ^D
 Foo (Author 1998).
 
-References {#references .unnumbered}
-==========
+# References {#references .unnumbered}
 
 ::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-item1 .csl-entry}

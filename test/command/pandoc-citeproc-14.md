@@ -54,8 +54,7 @@ References {#references .unnumbered}
 Foo (Pelikan 1971b, 1:12). Bar (Pelikan 1971c, 1:12). Baz (Pelikan
 1971a, 12).
 
-References {#references .unnumbered}
-==========
+# References {#references .unnumbered}
 
 ::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-CTv1c2 .csl-entry}

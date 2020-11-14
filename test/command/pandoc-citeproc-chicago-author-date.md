@@ -48,8 +48,7 @@ References {#references .unnumbered}
     locator [-@item2 p. 44].
 ^D
 [WARNING] Citeproc: citation nonexistent not found
-Pandoc with citeproc-hs
-=======================
+# Pandoc with citeproc-hs
 
 ([**nonexistent?**](#ref-nonexistent))
 
@@ -82,8 +81,7 @@ Now some modifiers.[^3]
 
 With some markup (*see* [Doe 2005, 32](#ref-item1)).
 
-References {#references .unnumbered}
-==========
+# References {#references .unnumbered}
 
 ::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-item1 .csl-entry}

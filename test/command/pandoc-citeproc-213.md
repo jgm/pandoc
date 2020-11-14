@@ -23,8 +23,7 @@ References {#references .unnumbered}
 ^D
 Foo (Doe 1999).
 
-References {#references .unnumbered}
-==========
+# References {#references .unnumbered}
 
 ::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-doe1 .csl-entry}

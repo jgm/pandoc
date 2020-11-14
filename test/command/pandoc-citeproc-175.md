@@ -27,13 +27,11 @@ Expected
 
 > Doe, Jane. 2011. "A Title." *A Magazine*, January--February.
 ^D
-Missing en-dash between months
-------------------------------
+## Missing en-dash between months
 
 Foo (Doe 2011).
 
-Expected
---------
+## Expected
 
 > Doe, Jane. 2011. "A Title." *A Magazine*, January--February.
 

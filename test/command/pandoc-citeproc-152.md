@@ -43,13 +43,11 @@ I have two citations [@Feminism2013gf; @Feminism2011ces].
 References
 ==========
 ^D
-Test
-====
+# Test
 
 I have two citations ("Communities," 2011; "Geek Feminism," 2013).
 
-References {#references .unnumbered}
-==========
+# References {#references .unnumbered}
 
 ::: {#refs .references .csl-bib-body .hanging-indent line-spacing="2"}
 ::: {#ref-Feminism2011ces .csl-entry}

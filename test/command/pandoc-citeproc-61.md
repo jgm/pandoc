@@ -41,8 +41,7 @@ Foo [@doe, CL, 89]
 References
 ==========
 ^D
-Text
-====
+# Text
 
 Foo[^1]
 
@@ -54,8 +53,7 @@ Foo[^4]
 
 Foo[^5]
 
-References {#references .unnumbered}
-==========
+# References {#references .unnumbered}
 
 ::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-doe .csl-entry}

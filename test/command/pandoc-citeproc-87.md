@@ -120,8 +120,7 @@ Doe (2006e) -- article-newspaper
 
 Doe (2006b) -- article-newspaper YM
 
-References {#references .unnumbered}
-==========
+# References {#references .unnumbered}
 
 ::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-item2a .csl-entry}

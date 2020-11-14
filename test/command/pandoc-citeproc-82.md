@@ -24,8 +24,7 @@ Some text.[^1]
 
 [^1]: Comment regarding text, supported by citation [@OCLC_i1099].
 ^D
-Title
-=====
+# Title
 
 Some text.[^1]
 

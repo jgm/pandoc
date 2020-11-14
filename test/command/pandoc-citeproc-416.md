@@ -42,8 +42,7 @@ references:
 ^D
 Blah blah (Doe 2010, 2007, 2008).
 
-References {#references .unnumbered}
-==========
+# References {#references .unnumbered}
 
 ::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-item2 .csl-entry}

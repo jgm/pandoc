@@ -330,6 +330,12 @@ doOpt (k',v) = do
       parseYAML v >>= \x -> return (\o -> o{ optSlideLevel = x })
     "atx-headers" ->
       parseYAML v >>= \x -> return (\o -> o{ optSetextHeaders = not x })
+    "markdown-headings" ->
+      parseYAML v >>= \x -> return (\o ->
+        case (T.toLower x) of
+          "atx"    -> o{ optSetextHeaders = False }
+          "setext" -> o{ optSetextHeaders = True }
+          _        -> o)
     "ascii" ->
       parseYAML v >>= \x -> return (\o -> o{ optAscii = x })
     "default-image-extension" ->
@@ -469,7 +475,7 @@ defaultOpts = Opt
     , optPdfEngine             = Nothing
     , optPdfEngineOpts         = []
     , optSlideLevel            = Nothing
-    , optSetextHeaders         = True
+    , optSetextHeaders         = False
     , optAscii                 = False
     , optDefaultImageExtension = ""
     , optExtractMedia          = Nothing

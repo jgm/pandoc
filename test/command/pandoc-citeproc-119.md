@@ -12,8 +12,7 @@ References {#references .unnumbered}
 ^D
 Averroes (1982); Averroes (1892); Averroes (1869)
 
-References {#references .unnumbered}
-==========
+# References {#references .unnumbered}
 
 ::: {#refs .references .csl-bib-body .hanging-indent line-spacing="2"}
 ::: {#ref-averroes/hercz .csl-entry}

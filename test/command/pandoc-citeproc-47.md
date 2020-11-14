@@ -90,8 +90,7 @@ coauthors' last names (regardless of how many coauthors there are)." and
 chronological order is maintained, regardless of the added abbreviation.
 \[ed., trans., comp., or whatever\]"
 
-References {#references .unnumbered}
-==========
+# References {#references .unnumbered}
 
 ::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-doe .csl-entry}

@@ -25,8 +25,7 @@ Minimal example
 
 Here is some text that needs a citation [@AuthorOne2014].
 ^D
-Minimal example
-===============
+# Minimal example
 
 Here is some text that needs a citation (*1*).
 
