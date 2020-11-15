@@ -531,7 +531,7 @@ options =
                  (NoArg
                   (\opt -> do
                     deprecatedOption "--atx-headers"
-                      "use --markdown-headings=atx"
+                      "Use --markdown-headings=atx instead."
                     return opt { optSetextHeaders = False } ))
                  "" -- "Use atx-style headers for markdown"
 
