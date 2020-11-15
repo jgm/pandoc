@@ -60,7 +60,10 @@ import Text.Pandoc.Logging
 
 #ifdef _WINDOWS
 changePathSeparators :: FilePath -> FilePath
-changePathSeparators = intercalate "/" . splitDirectories
+changePathSeparators =
+  -- We filter out backslashes because an initial `C:\` gets
+  -- retained by `splitDirectories`, see #6173:
+  intercalate "/" . map (filter (/='\\')) . splitDirectories
 #endif
 
 makePDF :: String              -- ^ pdf creator (pdflatex, lualatex, xelatex,
