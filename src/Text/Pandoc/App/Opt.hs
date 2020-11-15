@@ -332,7 +332,7 @@ doOpt (k',v) = do
       parseYAML v >>= \x -> return (\o -> o{ optSetextHeaders = not x })
     "markdown-headings" ->
       parseYAML v >>= \x -> return (\o ->
-        case (T.toLower x) of
+        case T.toLower x of
           "atx"    -> o{ optSetextHeaders = False }
           "setext" -> o{ optSetextHeaders = True }
           _        -> o)
