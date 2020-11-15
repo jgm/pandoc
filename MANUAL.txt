@@ -970,12 +970,12 @@ header when requesting a document from a URL:
     current section, or the document. The default is
     `document`. Currently only affects the markdown writer.
 
-`--markdown-headings=setext`|`atx
+`--markdown-headings=setext`|`atx`
 
 :   Specify whether to use ATX-style (`#`-prefixed) or
     Setext-style (underlined) headings for level 1 and 2
-    headings in Markdown output.  (ATX is the default.)
-    ATX headings are always used for levels 3+.
+    headings in Markdown output.  (The default is `atx`.)
+    ATX-style headings are always used for levels 3+.
     This option also affects Markdown cells in `ipynb` output.
 
 `--atx-headers`
