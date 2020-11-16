@@ -206,6 +206,31 @@ or Powerpoint to ensure that they weren't corrupted and that
 they had the expected result, and mention the Word/Powerpoint
 version and OS in your commit comment.
 
+Code style
+----------
+
+Pandoc uses [hlint] to identify opportunities for code improvements
+like redundant brackets or unnecessary `Language` extensions.
+However, sometimes there are cases where there are good reasons to
+use code different from what hlint proposes. In these cases, the
+respective warning should be disabled in the file `.hlint.yaml`.
+
+There should be no errors when running `hlint .`; this is checked by
+the continuous integration (CI) setup. It is recommended that
+contributors check their code with a local hlint installation, but
+relying on the CI is fine, too.
+
+A good way to ensure no new warnings are introduced is to use a Git
+[pre-commit hook] which runs hlint on all updated Haskell files
+before creating a commit:
+
+    #!/bin/sh
+    git diff --cached --name-only | grep '.hs$' | xargs hlint
+
+Saving this to `.git/hooks/pre-commit`, and making the script
+executable, will prevent accidental introduction of potentially
+problematic code.
+
 Benchmarks
 ----------
 
@@ -359,7 +384,9 @@ you may want to consider submitting a pull request to the
 [FAQs]:  http://pandoc.org/faqs.html
 [EditorConfig]: http://editorconfig.org/
 [Haskell platform]: http://www.haskell.org/platform/
+[hlint]: https://hackage.haskell.org/package/hlint
 [hsb2hs]: http://hackage.haskell.org/package/hsb2hs
+[pre-commit hook]: https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks
 [GitHub labels]: https://github.com/jgm/pandoc/labels
 [good first issue]:https://github.com/jgm/pandoc/labels/good%20first%20issue
 [enhancement]: https://github.com/jgm/pandoc/labels/enhancement
