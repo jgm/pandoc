@@ -2076,7 +2076,7 @@ textualCite = try $ do
   -- item comes later, we'll parse it here and figure out in
   -- the runF stage if it's a citation.  But it helps with
   -- issue #6836 to filter out known example list references
-  -- at this stage, so we don't increment stateNoteNumber.
+  -- at this stage, so that we don't increment stateNoteNumber.
   getState >>= guard . isNothing . M.lookup key . stateExamples
   noteNum <- stateNoteNumber <$> getState
   let first = Citation{ citationId      = key
@@ -2088,30 +2088,29 @@ textualCite = try $ do
                       , citationNoteNum = noteNum
                       , citationHash    = 0
                       }
-  mbrest <- option Nothing $ try $ spnl >> Just <$> withRaw normalCite
-  case mbrest of
-       Just (rest, raw) ->
-         return $ flip B.cite (B.text $ "@" <> key <> " " <> raw) . (first:)
-               <$> rest
-       Nothing   ->
-         (do
-          (cs, raw) <- withRaw $ bareloc first
-          let (spaces',raw') = T.span isSpace raw
-              spc | T.null spaces' = mempty
-                  | otherwise      = B.space
-          lab <- parseFromString' inlines $ dropBrackets raw'
-          fallback <- referenceLink B.linkWith (lab,raw')
-          return $ do
-            fallback' <- fallback
-            cs' <- cs
-            return $
-              case B.toList fallback' of
-                Link{}:_ -> B.cite [first] (B.str $ "@" <> key) <> spc <> fallback'
-                _        -> B.cite cs' (B.text $ "@" <> key <> " " <> raw))
-         <|> return (do st <- askF
-                        return $ case M.lookup key (stateExamples st) of
-                                 Just n -> B.str $ tshow n
-                                 _      -> B.cite [first] $ B.str $ "@" <> key)
+  (do -- parse [braced] material after author-in-text cite
+      (cs, raw) <- withRaw $
+                        (fmap (first:) <$> try (spnl *> normalCite))
+                    <|> bareloc first
+      let (spaces',raw') = T.span isSpace raw
+          spc | T.null spaces' = mempty
+              | otherwise      = B.space
+      lab <- parseFromString' inlines $ dropBrackets raw'
+      fallback <- referenceLink B.linkWith (lab,raw')
+      -- undo any incrementing of stateNoteNumber from last step:
+      updateState $ \st -> st{ stateNoteNumber = noteNum }
+      return $ do
+        fallback' <- fallback
+        cs' <- cs
+        return $
+          case B.toList fallback' of
+            Link{}:_ -> B.cite [first] (B.str $ "@" <> key) <> spc <> fallback'
+            _        -> B.cite cs' (B.text $ "@" <> key <> " " <> raw))
+    <|> -- no braced material
+        return (do st <- askF
+                   return $ case M.lookup key (stateExamples st) of
+                            Just n -> B.str $ tshow n
+                            _      -> B.cite [first] $ B.str $ "@" <> key)
 
 bareloc :: PandocMonad m => Citation -> MarkdownParser m (F [Citation])
 bareloc c = try $ do
@@ -2119,7 +2118,7 @@ bareloc c = try $ do
   char '['
   notFollowedBy $ char '^'
   suff <- suffix
-  rest <- option (return []) $ try $ char ';' >> citeList
+  rest <- option (return []) $ try $ char ';' >> spnl >> citeList
   spnl
   char ']'
   notFollowedBy $ oneOf "[("
@@ -2148,7 +2147,11 @@ suffix = try $ do
 
 prefix :: PandocMonad m => MarkdownParser m (F Inlines)
 prefix = trimInlinesF . mconcat <$>
-  manyTill inline (char ']' <|> fmap (const ']') (lookAhead citeKey))
+  manyTill inline (char ']'
+   <|> lookAhead
+         (try $ do optional (try (char ';' >> spnl))
+                   citeKey
+                   return ']'))
 
 citeList :: PandocMonad m => MarkdownParser m (F [Citation])
 citeList = fmap sequence $ sepBy1 citation (try $ char ';' >> spnl)
