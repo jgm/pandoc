@@ -58,7 +58,7 @@ doSInumlist = do
              text ", & " <> last xs
 
 parseNum :: Parser Text () Inlines
-parseNum = mconcat <$> many parseNumPart
+parseNum = (mconcat <$> many parseNumPart) <* eof
 
 parseNumPart :: Parser Text () Inlines
 parseNumPart =
@@ -71,7 +71,9 @@ parseNumPart =
   parseSpace
  where
   parseDecimalNum = do
-    basenum <- T.pack <$> many1 (satisfy (\c -> isDigit c || c == '.'))
+    pref <- option mempty $ (mempty <$ char '+') <|> ("-" <$ char '-')
+    basenum <- (pref <>) . T.pack
+                <$> many1 (satisfy (\c -> isDigit c || c == '.'))
     uncertainty <- option mempty $ T.pack <$> parseParens
     if T.null uncertainty
        then return $ str basenum
