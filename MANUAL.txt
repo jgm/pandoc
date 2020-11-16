@@ -2111,7 +2111,8 @@ Currently the following pipes are predefined:
     including a title block in the document itself, you can
     set the `title-meta`, `author-meta`, and `date-meta`
     variables.  (By default these are set automatically, based
-    on `title`, `author`, and `date`.)
+    on `title`, `author`, and `date`.) The page title in HTML
+    is set by `pagetitle`, which is equal to `title` by default.
 
 `subtitle`
 :   document subtitle, included in HTML, EPUB, LaTeX, ConTeXt, and docx
