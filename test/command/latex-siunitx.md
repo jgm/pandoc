@@ -1,0 +1,26 @@
+# `Negative numbers with siunitx`
+
+```
+% pandoc -f latex -t native
+\SI{123}{\celsius}
+
+^D
+[Para [Str "123\160\176C"]]
+```
+
+```
+% pandoc -f latex -t native
+\SI{-123}{\celsius}
+
+^D
+[Para [Str "\8722\&123\160\176C"]]
+```
+
+```
+% pandoc -f latex -t native
+\SI{+123}{\celsius}
+
+^D
+[Para [Str "123\160\176C"]]
+```
+

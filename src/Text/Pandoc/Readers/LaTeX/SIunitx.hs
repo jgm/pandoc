@@ -65,6 +65,8 @@ parseNumPart =
   parseDecimalNum <|>
   parseComma <|>
   parsePlusMinus <|>
+  parseMinus <|>
+  parsePlus <|>
   parseI <|>
   parseExp <|>
   parseX <|>
@@ -89,6 +91,8 @@ parseNumPart =
                                                | otherwise -> "." <> t
   parseComma = str "." <$ char ','
   parsePlusMinus = str "\xa0\xb1\xa0" <$ try (string "+-")
+  parseMinus = str "\x2212" <$ char '-'
+  parsePlus = mempty <$ char '+' -- just like LaTeX does
   parseParens =
     char '(' *> many1 (satisfy (\c -> isDigit c || c == '.')) <* char ')'
   parseI = str "i" <$ char 'i'
