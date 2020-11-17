@@ -1923,32 +1923,6 @@ addImageCaption = walkM go
           return $ Image attr' alt' (src, tit')
         go x = return x
 
-getNextNumber :: Monad m
-              => (LaTeXState -> DottedNum) -> LP m DottedNum
-getNextNumber getCurrentNum = do
-  st <- getState
-  let chapnum =
-        case sLastHeaderNum st of
-             DottedNum (n:_) | sHasChapters st -> Just n
-             _                                 -> Nothing
-  return . DottedNum $
-    case getCurrentNum st of
-       DottedNum [m,n]  ->
-         case chapnum of
-              Just m' | m' == m   -> [m, n+1]
-                      | otherwise -> [m', 1]
-              Nothing             -> [1]
-                                      -- shouldn't happen
-       DottedNum [n]   ->
-         case chapnum of
-              Just m  -> [m, 1]
-              Nothing -> [n + 1]
-       _               ->
-         case chapnum of
-               Just n  -> [n, 1]
-               Nothing -> [1]
-
-
 coloredBlock :: PandocMonad m => Text -> LP m Blocks
 coloredBlock stylename = try $ do
   skipopts
