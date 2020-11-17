@@ -241,6 +241,7 @@ convertWithOpts opts = do
                          then (eastAsianLineBreakFilter :)
                          else id) .
                      (case optIpynbOutput opts of
+                       _ | readerNameBase /= "ipynb" -> id
                        IpynbOutputAll  -> id
                        IpynbOutputNone -> (filterIpynbOutput Nothing :)
                        IpynbOutputBest -> (filterIpynbOutput (Just $
