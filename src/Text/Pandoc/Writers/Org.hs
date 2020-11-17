@@ -439,18 +439,22 @@ pandocLangToOrg :: Text -> Text
 pandocLangToOrg cs =
   case cs of
     "c"          -> "C"
-    "cpp"        -> "C++"
     "commonlisp" -> "lisp"
     "r"          -> "R"
-    "bash"       -> "sh"
+    "bash"       -> "shell"
+    "lillypond"  -> "ly"
     _            -> cs
 
 -- | List of language identifiers recognized by org-mode.
 orgLangIdentifiers :: [Text]
 orgLangIdentifiers =
-  [ "asymptote", "awk", "C", "C++", "clojure", "css", "d", "ditaa", "dot"
-  , "calc", "emacs-lisp", "fortran", "gnuplot", "haskell", "java", "js"
-  , "latex", "ledger", "lisp", "lilypond", "matlab", "mscgen", "ocaml"
-  , "octave", "org", "oz", "perl", "plantuml", "processing", "python", "R"
-  , "ruby", "sass", "scheme", "screen", "sed", "sh", "sql", "sqlite"
+  [ "abc", "asymptote", "awk", "axiom", "C", "cpp", "calc", "clojure","comint"
+  , "coq", "css", "D", "ditaa", "dot", "ebnf", "elixir", "eukleides", "fomus"
+  , "forth", "F90", "gnuplot", "Translate", "groovy", "haskell" , "browser"
+  , "request", "io", "ipython", "J", "java", "js", "julia", "kotlin", "latex"
+  , "ledger", "ly", "lisp", "Flavored", "makefile", "mathematica", "mathomatic"
+  , "matlab", "max", "mongo", "mscgen", "cypher", "Caml", "octave" , "org", "oz"
+  , "perl", "picolisp", "plantuml", "processing", "prolog", "python" , "R"
+  , "rec", "ruby", "sass", "scala", "scheme", "screen", "sed", "shell", "shen"
+  , "sql", "sqlite", "stan", "ML", "stata", "tcl", "typescript", "vala"
   ]
