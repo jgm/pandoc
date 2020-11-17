@@ -1,0 +1,56 @@
+<table-wrap>
+  <caption>
+    <p>List of Students</p>
+  </caption>
+  <table id="students">
+    <colgroup>
+      <col width="50%" />
+      <col width="50%" />
+    </colgroup>
+    <thead>
+      <tr>
+        <th align="center">Student ID</th>
+        <th align="center">Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th align="left" colspan="2">Computer Science</th>
+      </tr>
+      <tr>
+        <td align="left">3741255</td>
+        <td align="left">Jones, Martha</td>
+      </tr>
+      <tr>
+        <td align="left">4077830</td>
+        <td align="left">Pierce, Benjamin</td>
+      </tr>
+      <tr>
+        <td align="left">5151701</td>
+        <td align="left">Kirk, James</td>
+      </tr>
+    </tbody>
+    <tbody>
+      <tr>
+        <th align="left" colspan="2">Russian Literature</th>
+      </tr>
+      <tr>
+        <td align="left">3971244</td>
+        <td align="left">Nim, Victor</td>
+      </tr>
+    </tbody>
+    <tbody>
+      <tr>
+        <th align="left" colspan="2">Astrophysics</th>
+      </tr>
+      <tr>
+        <td align="left">4100332</td>
+        <td align="left">Petrov, Alexandra</td>
+      </tr>
+      <tr>
+        <td align="left">4100332</td>
+        <td align="left">Toyota, Hiroko</td>
+      </tr>
+    </tbody>
+  </table>
+</table-wrap>

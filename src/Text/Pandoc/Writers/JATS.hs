@@ -46,6 +46,7 @@ import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
 import Text.TeXMath
+import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 import qualified Text.XML.Light as Xml
 
 -- | Convert a @'Pandoc'@ document to JATS (Archiving and Interchange
@@ -349,8 +350,8 @@ blockToJATS _ b@(RawBlock f str)
       report $ BlockNotRendered b
       return empty
 blockToJATS _ HorizontalRule = return empty -- not semantic
-blockToJATS opts (Table attr blkCapt specs th tb tf) =
-  tableToJATS opts attr blkCapt specs th tb tf
+blockToJATS opts (Table attr caption colspecs thead tbody tfoot) =
+  tableToJATS opts (Ann.toTable attr caption colspecs thead tbody tfoot)
 
 -- | Convert a list of inline elements to JATS.
 inlinesToJATS :: PandocMonad m => WriterOptions -> [Inline] -> JATS m (Doc Text)

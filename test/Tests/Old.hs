@@ -101,7 +101,7 @@ tests pandocPath =
   , testGroup "jats"
     [ testGroup "writer"
       [ testGroup "jats_archiving" $
-        writerTests' "jats_archiving"
+        extWriterTests' "jats_archiving"
       , testGroup "jats_articleauthoring" $
         writerTests' "jats_articleauthoring"
       , testGroup "jats_publishing" $

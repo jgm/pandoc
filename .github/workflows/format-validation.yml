@@ -10,6 +10,9 @@ on:
       - 'test/writer.jats_publishing'
       - 'test/writer.jats_archiving'
       - 'test/tables.jats_archiving'
+      - 'test/tables/nordics.jats_archiving'
+      - 'test/tables/planets.jats_archiving'
+      - 'test/tables/students.jats_archiving'
   pull_request:
     branches:
       - '*'
@@ -19,6 +22,9 @@ on:
       - 'test/writer.jats_publishing'
       - 'test/writer.jats_archiving'
       - 'test/tables.jats_archiving'
+      - 'test/tables/nordics.jats_archiving'
+      - 'test/tables/planets.jats_archiving'
+      - 'test/tables/students.jats_archiving'
 
 jobs:
   jats:
@@ -65,13 +71,18 @@ jobs:
           EOF
           )"
           jats_file="$(mktemp jats-tables.XXXXX)"
-          printf "$tmpl" "$(cat test/tables.jats_archiving)" > "$jats_file"
-          json="$(curl --form "xml=@${jats_file}" --silent "$VALIDATOR_URL")"
-          err_count="$(printf "%s" "$json" | jq '.errors | length')"
-          if [ "$err_count" -eq 0 ]; then
-              printf "Table output is valid when used as body content.\n"
-              exit 0
-          else
-              printf "Validator report:\n%s" "$json"
-              exit 1
-          fi
+          exit_code=0
+          for f in tables tables/nordics tables/planets tables/students; do
+              filename=test/$f.jats_archiving
+              printf "Validating %s...\n" "$filename"
+              printf "$tmpl" "$(cat $filename)" > "$jats_file"
+              json="$(curl --form "xml=@${jats_file}" --silent "$VALIDATOR_URL")"
+              err_count="$(printf "%s" "$json" | jq '.errors | length')"
+              if [ "$err_count" -eq 0 ]; then
+                  printf "Table output is valid when used as body content.\n"
+              else
+                  printf "Validator report:\n%s" "$json"
+                  exit_code=1
+              fi
+          done
+          exit "$exit_code"
