@@ -131,9 +131,10 @@ convertWithOpts opts = do
                                  (map (T.pack . takeExtension) sources) "markdown"
                              return "markdown"
 
+    let readerNameBase = T.takeWhile (\c -> c /= '+' && c /= '-') readerName
     let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
 
-    when (pdfOutput && readerName == "latex") $
+    when (pdfOutput && readerNameBase == "latex") $
       case optInputFiles opts of
         Just (inputFile:_) -> report $ UnusualConversion $ T.pack $
           "to convert a .tex file to PDF, you get better results by using pdflatex "
@@ -144,8 +145,8 @@ convertWithOpts opts = do
     (reader :: Reader PandocIO, readerExts) <- getReader readerName
 
     let convertTabs = tabFilter (if optPreserveTabs opts ||
-                                      readerName == "t2t" ||
-                                      readerName == "man"
+                                      readerNameBase == "t2t" ||
+                                      readerNameBase == "man"
                                     then 0
                                     else optTabStop opts)
 
@@ -159,11 +160,12 @@ convertWithOpts opts = do
     let format = outputFormat outputSettings
     let writer = outputWriter outputSettings
     let writerName = outputWriterName outputSettings
+    let writerNameBase = T.takeWhile (\c -> c /= '+' && c /= '-') writerName
     let writerOptions = outputWriterOptions outputSettings
 
-    let bibOutput = writerName == "bibtex" ||
-                    writerName == "biblatex" ||
-                    writerName == "csljson"
+    let bibOutput = writerNameBase == "bibtex" ||
+                    writerNameBase == "biblatex" ||
+                    writerNameBase == "csljson"
 
     let standalone = optStandalone opts ||
                      not (isTextFormat format) ||
@@ -255,7 +257,7 @@ convertWithOpts opts = do
         sourceToDoc sources' =
            case reader of
                 TextReader r
-                  | optFileScope opts || readerName == "json" ->
+                  | optFileScope opts || readerNameBase == "json" ->
                       mconcat <$> mapM (readSource >=> r readerOpts) sources'
                   | otherwise ->
                       readSources sources' >>= r readerOpts
@@ -263,8 +265,8 @@ convertWithOpts opts = do
                   mconcat <$> mapM (readFile' >=> r readerOpts) sources'
 
 
-    when (readerName == "markdown_github" ||
-          writerName == "markdown_github") $
+    when (readerNameBase == "markdown_github" ||
+          writerNameBase == "markdown_github") $
       report $ Deprecated "markdown_github" "Use gfm instead."
 
     mapM_ (uncurry setRequestHeader) (optRequestHeaders opts)
