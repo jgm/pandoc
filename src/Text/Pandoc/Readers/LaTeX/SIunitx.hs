@@ -71,7 +71,7 @@ parseNumPart =
   parseSpace
  where
   parseDecimalNum = do
-    pref <- option mempty $ (mempty <$ char '+') <|> ("-" <$ char '-')
+    pref <- option mempty $ (mempty <$ char '+') <|> ("\x2212" <$ char '-')
     basenum <- (pref <>) . T.pack
                 <$> many1 (satisfy (\c -> isDigit c || c == '.'))
     uncertainty <- option mempty $ T.pack <$> parseParens
