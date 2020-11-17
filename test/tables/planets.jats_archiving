@@ -1,0 +1,128 @@
+<table-wrap>
+  <caption>
+    <p>Data about the planets of our solar system.</p>
+  </caption>
+  <table>
+    <thead>
+      <tr>
+        <th align="center" colspan="2"></th>
+        <th>Name</th>
+        <th align="right">Mass (10^24kg)</th>
+        <th align="right">Diameter (km)</th>
+        <th align="right">Density (kg/m^3)</th>
+        <th align="right">Gravity (m/s^2)</th>
+        <th align="right">Length of day (hours)</th>
+        <th align="right">Distance from Sun (10^6km)</th>
+        <th align="right">Mean temperature (C)</th>
+        <th align="right">Number of moons</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th align="center" rowspan="4" colspan="2">Terrestrial planets</th>
+        <th>Mercury</th><td align="right">0.330</td>
+        <td align="right">4,879</td>
+        <td align="right">5427</td>
+        <td align="right">3.7</td>
+        <td align="right">4222.6</td>
+        <td align="right">57.9</td>
+        <td align="right">167</td>
+        <td align="right">0</td>
+        <td>Closest to the Sun</td>
+      </tr>
+      <tr>
+        <th>Venus</th><td align="right">4.87</td>
+        <td align="right">12,104</td>
+        <td align="right">5243</td>
+        <td align="right">8.9</td>
+        <td align="right">2802.0</td>
+        <td align="right">108.2</td>
+        <td align="right">464</td>
+        <td align="right">0</td>
+        <td></td>
+      </tr>
+      <tr>
+        <th>Earth</th><td align="right">5.97</td>
+        <td align="right">12,756</td>
+        <td align="right">5514</td>
+        <td align="right">9.8</td>
+        <td align="right">24.0</td>
+        <td align="right">149.6</td>
+        <td align="right">15</td>
+        <td align="right">1</td>
+        <td>Our world</td>
+      </tr>
+      <tr>
+        <th>Mars</th><td align="right">0.642</td>
+        <td align="right">6,792</td>
+        <td align="right">3933</td>
+        <td align="right">3.7</td>
+        <td align="right">24.7</td>
+        <td align="right">227.9</td>
+        <td align="right">-65</td>
+        <td align="right">2</td>
+        <td>The red planet</td>
+      </tr>
+      <tr>
+        <th align="center" rowspan="4">Jovian planets</th>
+        <th align="center" rowspan="2">Gas giants</th>
+        <th>Jupiter</th><td align="right">1898</td>
+        <td align="right">142,984</td>
+        <td align="right">1326</td>
+        <td align="right">23.1</td>
+        <td align="right">9.9</td>
+        <td align="right">778.6</td>
+        <td align="right">-110</td>
+        <td align="right">67</td>
+        <td>The largest planet</td>
+      </tr>
+      <tr>
+        <th>Saturn</th><td align="right">568</td>
+        <td align="right">120,536</td>
+        <td align="right">687</td>
+        <td align="right">9.0</td>
+        <td align="right">10.7</td>
+        <td align="right">1433.5</td>
+        <td align="right">-140</td>
+        <td align="right">62</td>
+        <td></td>
+      </tr>
+      <tr>
+        <th align="center" rowspan="2">Ice giants</th>
+        <th>Uranus</th><td align="right">86.8</td>
+        <td align="right">51,118</td>
+        <td align="right">1271</td>
+        <td align="right">8.7</td>
+        <td align="right">17.2</td>
+        <td align="right">2872.5</td>
+        <td align="right">-195</td>
+        <td align="right">27</td>
+        <td></td>
+      </tr>
+      <tr>
+        <th>Neptune</th><td align="right">102</td>
+        <td align="right">49,528</td>
+        <td align="right">1638</td>
+        <td align="right">11.0</td>
+        <td align="right">16.1</td>
+        <td align="right">4495.1</td>
+        <td align="right">-200</td>
+        <td align="right">14</td>
+        <td></td>
+      </tr>
+      <tr>
+        <th align="center" colspan="2">Dwarf planets</th>
+        <th>Pluto</th><td align="right">0.0146</td>
+        <td align="right">2,370</td>
+        <td align="right">2095</td>
+        <td align="right">0.7</td>
+        <td align="right">153.3</td>
+        <td align="right">5906.4</td>
+        <td align="right">-225</td>
+        <td align="right">5</td>
+        <td>Declassified as a planet in 2006.</td>
+      </tr>
+    </tbody>
+  </table>
+</table-wrap>

@@ -1,0 +1,58 @@
+<table-wrap>
+  <caption>
+    <p>States belonging to the <italic>Nordics.</italic></p>
+  </caption>
+  <table id="nordics">
+    <colgroup>
+      <col width="30%" />
+      <col width="30%" />
+      <col width="20%" />
+      <col width="20%" />
+    </colgroup>
+    <thead>
+      <tr>
+        <th align="center">Name</th>
+        <th align="center">Capital</th>
+        <th align="center">Population
+        (in 2018)</th>
+        <th align="center">Area
+        (in km<sup>2</sup>)</th>
+      </tr>
+    </thead>
+    <tfoot>
+      <tr id="summary">
+        <td align="center">Total</td>
+        <td align="left"></td>
+        <td align="left" id="total-population">27,376,022</td>
+        <td align="left" id="total-area">1,258,336</td>
+      </tr>
+    </tfoot>
+    <tbody>
+      <tr>
+        <th align="center">Denmark</th><td align="left">Copenhagen</td>
+        <td align="left">5,809,502</td>
+        <td align="left">43,094</td>
+      </tr>
+      <tr>
+        <th align="center">Finland</th><td align="left">Helsinki</td>
+        <td align="left">5,537,364</td>
+        <td align="left">338,145</td>
+      </tr>
+      <tr>
+        <th align="center">Iceland</th><td align="left">Reykjavik</td>
+        <td align="left">343,518</td>
+        <td align="left">103,000</td>
+      </tr>
+      <tr>
+        <th align="center">Norway</th><td align="left">Oslo</td>
+        <td align="left">5,372,191</td>
+        <td align="left">323,802</td>
+      </tr>
+      <tr>
+        <th align="center">Sweden</th><td align="left">Stockholm</td>
+        <td align="left">10,313,447</td>
+        <td align="left">450,295</td>
+      </tr>
+    </tbody>
+  </table>
+</table-wrap>
