@@ -104,10 +104,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - uses: actions/setup-haskell@v1.1.3
-      with:
-        enable-stack: true
-        stack-version: 'latest'
+    # We should have ghc 8.10, cabal, stack pre-installed
+    # - uses: actions/setup-haskell@v1.1.3
+    #   with:
+    #     enable-stack: true
+    #     stack-version: 'latest'
 
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet
