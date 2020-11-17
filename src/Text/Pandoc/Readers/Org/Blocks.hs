@@ -111,23 +111,23 @@ attrFromBlockAttributes BlockAttributes{..} =
 stringyMetaAttribute :: Monad m => OrgParser m (Text, Text)
 stringyMetaAttribute = try $ do
   metaLineStart
-  attrName <- T.toUpper <$> many1TillChar nonspaceChar (char ':')
+  attrName <- T.toLower <$> many1TillChar nonspaceChar (char ':')
   skipSpaces
   attrValue <- anyLine <|> ("" <$ newline)
   return (attrName, attrValue)
 
 -- | Parse a set of block attributes. Block attributes are given through
--- lines like @#+CAPTION: block caption@ or @#+ATTR_HTML: :width 20@.
+-- lines like @#+caption: block caption@ or @#+attr_html: :width 20@.
 -- Parsing will fail if any line contains an attribute different from
 -- those attributes known to work on blocks.
 blockAttributes :: PandocMonad m => OrgParser m BlockAttributes
 blockAttributes = try $ do
   kv <- many stringyMetaAttribute
   guard $ all (isBlockAttr . fst) kv
-  let caption = foldl' (appendValues "CAPTION") Nothing kv
-  let kvAttrs = foldl' (appendValues "ATTR_HTML") Nothing kv
-  let name    = lookup "NAME" kv
-  let label   = lookup "LABEL" kv
+  let caption = foldl' (appendValues "caption") Nothing kv
+  let kvAttrs = foldl' (appendValues "attr_html") Nothing kv
+  let name    = lookup "name" kv
+  let label   = lookup "label" kv
   caption' <- traverse (parseFromString inlines . (<> "\n")) caption
   kvAttrs' <- parseFromString keyValues . (<> "\n") $ fromMaybe mempty kvAttrs
   return BlockAttributes
@@ -139,9 +139,9 @@ blockAttributes = try $ do
  where
    isBlockAttr :: Text -> Bool
    isBlockAttr = flip elem
-                 [ "NAME", "LABEL", "CAPTION"
-                 , "ATTR_HTML", "ATTR_LATEX"
-                 , "RESULTS"
+                 [ "name", "label", "caption"
+                 , "attr_html", "attr_latex"
+                 , "results"
                  ]
 
    appendValues :: Text -> Maybe Text -> (Text, Text) -> Maybe Text
@@ -170,10 +170,10 @@ keyValues = try $
 
 
 --
--- Org Blocks (#+BEGIN_... / #+END_...)
+-- Org Blocks (#+begin_... / #+end_...)
 --
 
--- | Read an org-mode block delimited by #+BEGIN_TYPE and #+END_TYPE.
+-- | Read an org-mode block delimited by #+begin_type and #+end_type.
 orgBlock :: PandocMonad m => OrgParser m (F Blocks)
 orgBlock = try $ do
   blockAttrs <- blockAttributes

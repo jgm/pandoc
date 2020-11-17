@@ -23,48 +23,48 @@ import qualified Data.Text as T
 tests :: [TestTree]
 tests =
   [ "Source block" =:
-       T.unlines [ "  #+BEGIN_SRC haskell"
+       T.unlines [ "  #+begin_src haskell"
                  , "  main = putStrLn greeting"
                  , "    where greeting = \"moin\""
-                 , "  #+END_SRC" ] =?>
+                 , "  #+end_src" ] =?>
        let attr' = ("", ["haskell"], [])
            code' = "main = putStrLn greeting\n" <>
                    "  where greeting = \"moin\"\n"
        in codeBlockWith attr' code'
 
   , "Source block with indented code" =:
-       T.unlines [ "  #+BEGIN_SRC haskell"
+       T.unlines [ "  #+begin_src haskell"
                  , "    main = putStrLn greeting"
                  , "      where greeting = \"moin\""
-                 , "  #+END_SRC" ] =?>
+                 , "  #+end_src" ] =?>
        let attr' = ("", ["haskell"], [])
            code' = "main = putStrLn greeting\n" <>
                    "  where greeting = \"moin\"\n"
        in codeBlockWith attr' code'
 
   , "Source block with tab-indented code" =:
-       T.unlines [ "\t#+BEGIN_SRC haskell"
+       T.unlines [ "\t#+begin_src haskell"
                  , "\tmain = putStrLn greeting"
                  , "\t  where greeting = \"moin\""
-                 , "\t#+END_SRC" ] =?>
+                 , "\t#+end_src" ] =?>
        let attr' = ("", ["haskell"], [])
            code' = "main = putStrLn greeting\n" <>
                    "  where greeting = \"moin\"\n"
        in codeBlockWith attr' code'
 
   , "Empty source block" =:
-       T.unlines [ "  #+BEGIN_SRC haskell"
-                 , "  #+END_SRC" ] =?>
+       T.unlines [ "  #+begin_src haskell"
+                 , "  #+end_src" ] =?>
        let attr' = ("", ["haskell"], [])
            code' = ""
        in codeBlockWith attr' code'
 
   , "Source block between paragraphs" =:
        T.unlines [ "Low German greeting"
-                 , "  #+BEGIN_SRC haskell"
+                 , "  #+begin_src haskell"
                  , "  main = putStrLn greeting"
                  , "    where greeting = \"Moin!\""
-                 , "  #+END_SRC" ] =?>
+                 , "  #+end_src" ] =?>
        let attr' = ("", ["haskell"], [])
            code' = "main = putStrLn greeting\n" <>
                     "  where greeting = \"Moin!\"\n"
@@ -72,10 +72,10 @@ tests =
                   , codeBlockWith attr' code'
                   ]
   , "Source block with babel arguments" =:
-       T.unlines [ "#+BEGIN_SRC emacs-lisp :exports both"
+       T.unlines [ "#+begin_src emacs-lisp :exports both"
                  , "(progn (message \"Hello, World!\")"
                  , "       (+ 23 42))"
-                 , "#+END_SRC" ] =?>
+                 , "#+end_src" ] =?>
        let classes = [ "commonlisp" ] -- as kate doesn't know emacs-lisp syntax
            params = [ ("org-language", "emacs-lisp")
                     , ("exports", "both")
@@ -85,10 +85,10 @@ tests =
        in codeBlockWith ("", classes, params) code'
 
   , "Source block with results and :exports both" =:
-       T.unlines [ "#+BEGIN_SRC emacs-lisp :exports both"
+       T.unlines [ "#+begin_src emacs-lisp :exports both"
                  , "(progn (message \"Hello, World!\")"
                  , "       (+ 23 42))"
-                 , "#+END_SRC"
+                 , "#+end_src"
                  , ""
                  , "#+RESULTS:"
                  , ": 65"] =?>
@@ -104,10 +104,10 @@ tests =
           codeBlockWith ("", ["example"], []) results'
 
   , "Source block with results and :exports code" =:
-       T.unlines [ "#+BEGIN_SRC emacs-lisp :exports code"
+       T.unlines [ "#+begin_src emacs-lisp :exports code"
                  , "(progn (message \"Hello, World!\")"
                  , "       (+ 23 42))"
-                 , "#+END_SRC"
+                 , "#+end_src"
                  , ""
                  , "#+RESULTS:"
                  , ": 65" ] =?>
@@ -120,10 +120,10 @@ tests =
        in codeBlockWith ("", classes, params) code'
 
   , "Source block with results and :exports results" =:
-       T.unlines [ "#+BEGIN_SRC emacs-lisp :exports results"
+       T.unlines [ "#+begin_src emacs-lisp :exports results"
                  , "(progn (message \"Hello, World!\")"
                  , "       (+ 23 42))"
-                 , "#+END_SRC"
+                 , "#+end_src"
                  , ""
                  , "#+RESULTS:"
                  , ": 65" ] =?>
@@ -131,37 +131,37 @@ tests =
        in codeBlockWith ("", ["example"], []) results'
 
   , "Source block with results and :exports none" =:
-       T.unlines [ "#+BEGIN_SRC emacs-lisp :exports none"
+       T.unlines [ "#+begin_src emacs-lisp :exports none"
                  , "(progn (message \"Hello, World!\")"
                  , "       (+ 23 42))"
-                 , "#+END_SRC"
+                 , "#+end_src"
                  , ""
                  , "#+RESULTS:"
                  , ": 65" ] =?>
        (mempty :: Blocks)
 
   , "Source block with toggling header arguments" =:
-    T.unlines [ "#+BEGIN_SRC sh :noeval"
+    T.unlines [ "#+begin_src sh :noeval"
               , "echo $HOME"
-              , "#+END_SRC"
+              , "#+end_src"
               ] =?>
     let classes = [ "bash" ]
         params = [ ("org-language", "sh"), ("noeval", "yes") ]
     in codeBlockWith ("", classes, params) "echo $HOME\n"
 
   , "Source block with line number switch" =:
-    T.unlines [ "#+BEGIN_SRC sh -n 10"
+    T.unlines [ "#+begin_src sh -n 10"
               , ":() { :|:& };:"
-              , "#+END_SRC"
+              , "#+end_src"
               ] =?>
     let classes = [ "bash", "numberLines" ]
         params = [ ("org-language", "sh"), ("startFrom", "10") ]
     in codeBlockWith ("", classes, params) ":() { :|:& };:\n"
 
   , "Source block with multi-word parameter values" =:
-    T.unlines [ "#+BEGIN_SRC dot :cmdline -Kdot -Tpng "
+    T.unlines [ "#+begin_src dot :cmdline -Kdot -Tpng "
               , "digraph { id [label=\"ID\"] }"
-              , "#+END_SRC"
+              , "#+end_src"
               ] =?>
     let classes = [ "dot" ]
         params = [ ("cmdline", "-Kdot -Tpng") ]
@@ -177,12 +177,12 @@ tests =
                      "A chosen representation of\na rule.\n"
 
   , "Code block with caption" =:
-      T.unlines [ "#+CAPTION: Functor laws in Haskell"
-                , "#+NAME: functor-laws"
-                , "#+BEGIN_SRC haskell"
+      T.unlines [ "#+caption: Functor laws in Haskell"
+                , "#+name: functor-laws"
+                , "#+begin_src haskell"
                 , "fmap id = id"
                 , "fmap (p . q) = (fmap p) . (fmap q)"
-                , "#+END_SRC"
+                , "#+end_src"
                 ] =?>
       divWith
          nullAttr
@@ -195,9 +195,9 @@ tests =
                                     ])))
 
   , "Non-letter chars in source block parameters" =:
-      T.unlines [ "#+BEGIN_SRC C :tangle xxxx.c :city Zürich"
+      T.unlines [ "#+begin_src C :tangle xxxx.c :city Zürich"
                 , "code body"
-                , "#+END_SRC"
+                , "#+end_src"
                 ] =?>
       let params  = [ ("org-language", "C")
                     , ("tangle", "xxxx.c")

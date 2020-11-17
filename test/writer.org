@@ -1,7 +1,7 @@
-#+TITLE: Pandoc Test Suite
+#+title: Pandoc Test Suite
 
-#+AUTHOR: John MacFarlane; Anonymous
-#+DATE: July 17, 2006
+#+author: John MacFarlane; Anonymous
+#+date: July 17, 2006
 
 This is a set of tests for pandoc. Most of them are adapted from John Gruber's
 markdown test suite.
@@ -73,18 +73,18 @@ here.
   :END:
 E-mail style:
 
-#+BEGIN_QUOTE
+#+begin_quote
   This is a block quote. It is pretty short.
-#+END_QUOTE
+#+end_quote
 
-#+BEGIN_QUOTE
+#+begin_quote
   Code in a block quote:
 
-  #+BEGIN_EXAMPLE
+  #+begin_example
     sub status {
         print "working";
     }
-  #+END_EXAMPLE
+  #+end_example
 
   A list:
 
@@ -93,14 +93,14 @@ E-mail style:
 
   Nested block quotes:
 
-  #+BEGIN_QUOTE
+  #+begin_quote
     nested
-  #+END_QUOTE
+  #+end_quote
 
-  #+BEGIN_QUOTE
+  #+begin_quote
     nested
-  #+END_QUOTE
-#+END_QUOTE
+  #+end_quote
+#+end_quote
 
 This should not be a block quote: 2 > 1.
 
@@ -114,7 +114,7 @@ And a following paragraph.
   :END:
 Code:
 
-#+BEGIN_EXAMPLE
+#+begin_example
   ---- (should be four hyphens)
 
   sub status {
@@ -122,15 +122,15 @@ Code:
   }
 
   this code block is indented by one tab
-#+END_EXAMPLE
+#+end_example
 
 And:
 
-#+BEGIN_EXAMPLE
+#+begin_example
       this code block is indented by two tabs
 
   These should not be escaped:  \$ \\ \> \[ \{
-#+END_EXAMPLE
+#+end_example
 
 --------------
 
@@ -347,13 +347,13 @@ Multiple blocks with italics:
 
 - /orange/ :: orange fruit
 
-  #+BEGIN_EXAMPLE
+  #+begin_example
     { orange code block }
-  #+END_EXAMPLE
+  #+end_example
 
-  #+BEGIN_QUOTE
+  #+begin_quote
     orange block quote
-  #+END_QUOTE
+  #+end_quote
 
 Multiple definitions, tight:
 
@@ -399,45 +399,45 @@ bar
 
 Interpreted markdown in a table:
 
-#+BEGIN_HTML
+#+begin_html
   <table>
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   <tr>
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   <td>
-#+END_HTML
+#+end_html
 
 This is /emphasized/
 
-#+BEGIN_HTML
+#+begin_html
   </td>
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   <td>
-#+END_HTML
+#+end_html
 
 And this is *strong*
 
-#+BEGIN_HTML
+#+begin_html
   </td>
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   </tr>
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   </table>
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
-#+END_HTML
+#+end_html
 
 Here's a simple block:
 
@@ -445,17 +445,17 @@ foo
 
 This should be a code block, though:
 
-#+BEGIN_EXAMPLE
+#+begin_example
   <div>
       foo
   </div>
-#+END_EXAMPLE
+#+end_example
 
 As should this:
 
-#+BEGIN_EXAMPLE
+#+begin_example
   <div>foo</div>
-#+END_EXAMPLE
+#+end_example
 
 Now, nested:
 
@@ -463,80 +463,80 @@ foo
 
 This should just be an HTML comment:
 
-#+BEGIN_HTML
+#+begin_html
   <!-- Comment -->
-#+END_HTML
+#+end_html
 
 Multiline:
 
-#+BEGIN_HTML
+#+begin_html
   <!--
   Blah
   Blah
   -->
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   <!--
       This is another comment.
   -->
-#+END_HTML
+#+end_html
 
 Code block:
 
-#+BEGIN_EXAMPLE
+#+begin_example
   <!-- Comment -->
-#+END_EXAMPLE
+#+end_example
 
 Just plain comment, with trailing spaces on the line:
 
-#+BEGIN_HTML
+#+begin_html
   <!-- foo -->
-#+END_HTML
+#+end_html
 
 Code:
 
-#+BEGIN_EXAMPLE
+#+begin_example
   <hr />
-#+END_EXAMPLE
+#+end_example
 
 Hr's:
 
-#+BEGIN_HTML
+#+begin_html
   <hr>
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   <hr />
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   <hr />
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   <hr>
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   <hr />
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   <hr />
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   <hr class="foo" id="bar" />
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   <hr class="foo" id="bar" />
-#+END_HTML
+#+end_html
 
-#+BEGIN_HTML
+#+begin_html
   <hr class="foo" id="bar">
-#+END_HTML
+#+end_html
 
 --------------
 
@@ -727,9 +727,9 @@ Indented [[/url][thrice]].
 
 This should [not][] be a link.
 
-#+BEGIN_EXAMPLE
+#+begin_example
   [not]: /url
-#+END_EXAMPLE
+#+end_example
 
 Foo [[/url/][bar]].
 
@@ -760,15 +760,15 @@ With an ampersand: [[http://example.com/?foo=1&bar=2]]
 
 An e-mail address: [[mailto:nobody@nowhere.net][nobody@nowhere.net]]
 
-#+BEGIN_QUOTE
+#+begin_quote
   Blockquoted: [[http://example.com/]]
-#+END_QUOTE
+#+end_quote
 
 Auto-links should not occur here: =<http://example.com/>=
 
-#+BEGIN_EXAMPLE
+#+begin_example
   or here: <http://example.com/>
-#+END_EXAMPLE
+#+end_example
 
 --------------
 
@@ -778,7 +778,7 @@ Auto-links should not occur here: =<http://example.com/>=
   :END:
 From "Voyage dans la Lune" by Georges Melies (1902):
 
-#+CAPTION: lalune
+#+caption: lalune
 [[file:lalune.jpg]]
 
 Here is a movie [[file:movie.jpg]] icon.
@@ -793,9 +793,9 @@ Here is a footnote reference,[fn:1] and another.[fn:2] This should /not/ be a
 footnote reference, because it contains a space.[^my note] Here is an inline
 note.[fn:3]
 
-#+BEGIN_QUOTE
+#+begin_quote
   Notes can go in quotes.[fn:4]
-#+END_QUOTE
+#+end_quote
 
 1. And in list items.[fn:5]
 
@@ -809,9 +809,9 @@ This paragraph should not be part of the note, as it is not indented.
        Subsequent blocks are indented to show that they belong to the footnote
        (as with list items).
 
-       #+BEGIN_EXAMPLE
+       #+begin_example
            { <code> }
-       #+END_EXAMPLE
+       #+end_example
 
        If you want, you can indent every line, but you can also be lazy and
        just indent the first line of each block.

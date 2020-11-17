@@ -106,7 +106,7 @@ blockToOrg (Para [Image attr txt (src,tgt)])
   | Just tit <- T.stripPrefix "fig:" tgt = do
       capt <- if null txt
               then return empty
-              else ("#+CAPTION: " <>) `fmap` inlineListToOrg txt
+              else ("#+caption: " <>) `fmap` inlineListToOrg txt
       img <- inlineToOrg (Image attr txt (src,tit))
       return $ capt $$ img $$ blankline
 blockToOrg (Para inlines) = do
@@ -121,11 +121,11 @@ blockToOrg (LineBlock lns) = do
   let joinWithBlankLines = mconcat . intersperse blankline
   let prettifyStanza ls  = joinWithLinefeeds <$> mapM inlineListToOrg ls
   contents <- joinWithBlankLines <$> mapM prettifyStanza (splitStanza lns)
-  return $ blankline $$ "#+BEGIN_VERSE" $$
-           nest 2 contents $$ "#+END_VERSE" <> blankline
+  return $ blankline $$ "#+begin_verse" $$
+           nest 2 contents $$ "#+end_verse" <> blankline
 blockToOrg (RawBlock "html" str) =
-  return $ blankline $$ "#+BEGIN_HTML" $$
-           nest 2 (literal str) $$ "#+END_HTML" $$ blankline
+  return $ blankline $$ "#+begin_html" $$
+           nest 2 (literal str) $$ "#+end_html" $$ blankline
 blockToOrg b@(RawBlock f str)
   | isRawFormat f = return $ literal str
   | otherwise     = do
@@ -148,19 +148,19 @@ blockToOrg (CodeBlock (_,classes,kvs) str) = do
                       else ""
   let at = map pandocLangToOrg classes `intersect` orgLangIdentifiers
   let (beg, end) = case at of
-                      []    -> ("#+BEGIN_EXAMPLE" <> numberlines, "#+END_EXAMPLE")
-                      (x:_) -> ("#+BEGIN_SRC " <> x <> numberlines, "#+END_SRC")
+                      []    -> ("#+begin_example" <> numberlines, "#+end_example")
+                      (x:_) -> ("#+begin_src " <> x <> numberlines, "#+end_src")
   return $ literal beg $$ nest 2 (literal str) $$ text end $$ blankline
 blockToOrg (BlockQuote blocks) = do
   contents <- blockListToOrg blocks
-  return $ blankline $$ "#+BEGIN_QUOTE" $$
-           nest 2 contents $$ "#+END_QUOTE" $$ blankline
+  return $ blankline $$ "#+begin_quote" $$
+           nest 2 contents $$ "#+end_quote" $$ blankline
 blockToOrg (Table _ blkCapt specs thead tbody tfoot) =  do
   let (caption', _, _, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   caption'' <- inlineListToOrg caption'
   let caption = if null caption'
                    then empty
-                   else "#+CAPTION: " <> caption''
+                   else "#+caption: " <> caption''
   headers' <- mapM blockListToOrg headers
   rawRows <- mapM (mapM blockListToOrg) rows
   let numChars = maximum . map offset
@@ -292,12 +292,12 @@ divToOrg attr bs = do
   case divBlockType attr of
     GreaterBlock blockName attr' ->
       -- Write as greater block. The ID, if present, is added via
-      -- the #+NAME keyword; other classes and key-value pairs
-      -- are kept as #+ATTR_HTML attributes.
+      -- the #+name keyword; other classes and key-value pairs
+      -- are kept as #+attr_html attributes.
       return $ blankline $$ attrHtml attr'
-            $$ "#+BEGIN_" <> literal blockName
+            $$ "#+begin_" <> literal blockName
             $$ contents
-            $$ "#+END_" <> literal blockName $$ blankline
+            $$ "#+end_" <> literal blockName $$ blankline
     Drawer drawerName (_,_,kvs) -> do
       -- Write as drawer. Only key-value pairs are retained.
       let keys = vcat $ map (\(k,v) ->
@@ -320,8 +320,8 @@ attrHtml :: Attr -> Doc Text
 attrHtml (""   , []     , []) = mempty
 attrHtml (ident, classes, kvs) =
   let
-    name = if T.null ident then mempty else "#+NAME: " <> literal ident <> cr
-    keyword = "#+ATTR_HTML"
+    name = if T.null ident then mempty else "#+name: " <> literal ident <> cr
+    keyword = "#+attr_html"
     classKv = ("class", T.unwords classes)
     kvStrings = map (\(k,v) -> ":" <> k <> " " <> v) (classKv:kvs)
   in name <> keyword <> ": " <> literal (T.unwords kvStrings) <> cr

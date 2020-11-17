@@ -167,7 +167,7 @@ tests =
         ]
 
   , "Table with caption" =:
-      T.unlines [ "#+CAPTION: Hitchhiker's Multiplication Table"
+      T.unlines [ "#+caption: Hitchhiker's Multiplication Table"
                 , "| x |  6 |"
                 , "| 9 | 42 |"
                 ] =?>
@@ -180,7 +180,7 @@ tests =
         ]
 
   , "named table" =:
-      T.unlines [ "#+NAME: x-marks-the-spot"
+      T.unlines [ "#+name: x-marks-the-spot"
                 , "| x |"
                 ] =?>
       divWith ("x-marks-the-spot", mempty, mempty)

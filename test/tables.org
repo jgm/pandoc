@@ -5,7 +5,7 @@ Simple table with caption:
 | 12    | 12   | 12     | 12      |
 | 123   | 123  | 123    | 123     |
 | 1     | 1    | 1      | 1       |
-#+CAPTION: Demonstration of simple table syntax.
+#+caption: Demonstration of simple table syntax.
 
 Simple table without caption:
 
@@ -22,7 +22,7 @@ Simple table indented two spaces:
 | 12    | 12   | 12     | 12      |
 | 123   | 123  | 123    | 123     |
 | 1     | 1    | 1      | 1       |
-#+CAPTION: Demonstration of simple table syntax.
+#+caption: Demonstration of simple table syntax.
 
 Multiline table with caption:
 
@@ -30,7 +30,7 @@ Multiline table with caption:
 |-----------------+--------------+---------------+-------------------------------------------------------|
 | First           | row          | 12.0          | Example of a row that spans multiple lines.           |
 | Second          | row          | 5.0           | Here's another one. Note the blank line between rows. |
-#+CAPTION: Here's the caption. It may span multiple lines.
+#+caption: Here's the caption. It may span multiple lines.
 
 Multiline table without caption:
 
