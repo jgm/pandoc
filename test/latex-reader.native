@@ -1,7 +1,8 @@
 Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Space,Str "MacFarlane"],MetaInlines [Str "Anonymous"]]),("date",MetaInlines [Str "July",Space,Str "17,",Space,Str "2006"]),("title",MetaInlines [Str "Pandoc",Space,Str "Test",Space,Str "Suite"])]})
 [RawBlock (Format "latex") "\\maketitle"
 ,Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc.",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",SoftBreak,Str "John",Space,Str "Gruber\8217s",Space,Str "markdown",Space,Str "test",Space,Str "suite."]
-,HorizontalRule
+,Div ("",["center"],[])
+ [HorizontalRule]
 ,Header 1 ("headers",[],[]) [Str "Headers"]
 ,Header 2 ("level-2-with-an-embedded-link",[],[]) [Str "Level",Space,Str "2",Space,Str "with",Space,Str "an",Space,Link ("",[],[]) [Str "embedded",Space,Str "link"] ("/url","")]
 ,Header 3 ("level-3-with-emphasis",[],[]) [Str "Level",Space,Str "3",Space,Str "with",Space,Emph [Str "emphasis"]]
@@ -13,13 +14,15 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "with",Space,Str "no",Space,Str "blank",Space,Str "line"]
 ,Header 2 ("level-2",[],[]) [Str "Level",Space,Str "2"]
 ,Para [Str "with",Space,Str "no",Space,Str "blank",Space,Str "line"]
-,HorizontalRule
+,Div ("",["center"],[])
+ [HorizontalRule]
 ,Header 1 ("paragraphs",[],[]) [Str "Paragraphs"]
 ,Para [Str "Here\8217s",Space,Str "a",Space,Str "regular",Space,Str "paragraph."]
 ,Para [Str "In",Space,Str "Markdown",Space,Str "1.0.0",Space,Str "and",Space,Str "earlier.",Space,Str "Version",Space,Str "8.",Space,Str "This",Space,Str "line",Space,Str "turns",Space,Str "into",Space,Str "a",SoftBreak,Str "list",Space,Str "item.",Space,Str "Because",Space,Str "a",Space,Str "hard-wrapped",Space,Str "line",Space,Str "in",Space,Str "the",Space,Str "middle",Space,Str "of",Space,Str "a",Space,Str "paragraph",SoftBreak,Str "looked",Space,Str "like",Space,Str "a",Space,Str "list",Space,Str "item."]
 ,Para [Str "Here\8217s",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "bullet.",Space,Str "*",Space,Str "criminey."]
 ,Para [Str "There",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "hard",Space,Str "line",Space,Str "break",LineBreak,Str "here."]
-,HorizontalRule
+,Div ("",["center"],[])
+ [HorizontalRule]
 ,Header 1 ("block-quotes",[],[]) [Str "Block",Space,Str "Quotes"]
 ,Para [Str "E-mail",Space,Str "style:"]
 ,BlockQuote
@@ -51,14 +54,16 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,BlockQuote
   [Para [Str "Don\8217t",Space,Str "quote",Space,Str "me."]]]
 ,Para [Str "And",Space,Str "a",Space,Str "following",Space,Str "paragraph."]
-,HorizontalRule
+,Div ("",["center"],[])
+ [HorizontalRule]
 ,Header 1 ("code-blocks",[],[]) [Str "Code",Space,Str "Blocks"]
 ,Para [Str "Code:"]
 ,CodeBlock ("",[],[]) "---- (should be four hyphens)\n\nsub status {\n    print \"working\";\n}\n\nthis code block is indented by one tab"
 ,Para [Str "And:"]
 ,CodeBlock ("",[],[]) "    this code block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{"
 ,Para [Str "this",Space,Str "has",Space,Emph [Str "two",LineBreak,Str "lines"]]
-,HorizontalRule
+,Div ("",["center"],[])
+ [HorizontalRule]
 ,Header 1 ("lists",[],[]) [Str "Lists"]
 ,Header 2 ("unordered",[],[]) [Str "Unordered"]
 ,Para [Str "Asterisks",Space,Str "tight:"]
@@ -179,7 +184,8 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "Should",Space,Str "not",Space,Str "be",Space,Str "a",Space,Str "list",Space,Str "item:"]
 ,Para [Str "M.A.",Space,Str "2007"]
 ,Para [Str "B.",Space,Str "Williams"]
-,HorizontalRule
+,Div ("",["center"],[])
+ [HorizontalRule]
 ,Header 1 ("definition-lists",[],[]) [Str "Definition",Space,Str "Lists"]
 ,Para [Str "Tight",Space,Str "using",Space,Str "spaces:"]
 ,DefinitionList
@@ -233,7 +239,8 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "Code:"]
 ,CodeBlock ("",[],[]) "<hr />"
 ,Para [Str "Hr\8217s:"]
-,HorizontalRule
+,Div ("",["center"],[])
+ [HorizontalRule]
 ,Header 1 ("inline-markup",[],[]) [Str "Inline",Space,Str "Markup"]
 ,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str "."]
 ,Para [Str "This",Space,Str "is",Space,Strong [Str "strong"],Str ",",Space,Str "and",Space,Str "so",Space,Strong [Str "is",Space,Str "this"],Str "."]
@@ -247,7 +254,8 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "Superscripts:",Space,Str "a",Superscript [Str "bc"],Str "d",SoftBreak,Str "a",Superscript [Emph [Str "hello"]],Space,Str "a",Superscript [Str "hello",Space,Str "there"],Str "."]
 ,Para [Str "Subscripts:",Space,Str "H",Subscript [Str "2"],Str "O,",Space,Str "H",Subscript [Str "23"],Str "O,",SoftBreak,Str "H",Subscript [Str "many",Space,Str "of",Space,Str "them"],Str "O."]
 ,Para [Str "These",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "superscripts",Space,Str "or",Space,Str "subscripts,",Space,Str "because",Space,Str "of",Space,Str "the",SoftBreak,Str "unescaped",Space,Str "spaces:",Space,Str "a^b",Space,Str "c^d,",Space,Str "a",Math InlineMath "\\sim",Str "b",SoftBreak,Str "c",Math InlineMath "\\sim",Str "d."]
-,HorizontalRule
+,Div ("",["center"],[])
+ [HorizontalRule]
 ,Header 1 ("smart-quotes-ellipses-dashes",[],[]) [Str "Smart",Space,Str "quotes,",Space,Str "ellipses,",Space,Str "dashes"]
 ,Para [Quoted DoubleQuote [Str "Hello,"],Space,Str "said",Space,Str "the",Space,Str "spider.",Space,Quoted DoubleQuote [Str "\8198",Quoted SingleQuote [Str "Shelob"],Space,Str "is",Space,Str "my",Space,Str "name."]]
 ,Para [Quoted SingleQuote [Str "A"],Str ",",Space,Quoted SingleQuote [Str "B"],Str ",",Space,Str "and",Space,Quoted SingleQuote [Str "C"],Space,Str "are",Space,Str "letters."]
@@ -257,7 +265,8 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "Some",Space,Str "dashes:",Space,Str "one\8212two\8212three\8212four\8212five."]
 ,Para [Str "Dashes",Space,Str "between",Space,Str "numbers:",Space,Str "5\8211\&7,",Space,Str "255\8211\&66,",Space,Str "1987\8211\&1999."]
 ,Para [Str "Ellipses\8230and\8230and\8230."]
-,HorizontalRule
+,Div ("",["center"],[])
+ [HorizontalRule]
 ,Header 1 ("latex",[],[]) [Str "LaTeX"]
 ,BulletList
  [[Para [Cite [Citation {citationId = "smith.1899", citationPrefix = [], citationSuffix = [Str "22-23"], citationMode = NormalCitation, citationNoteNum = 0, citationHash = 0}] [RawInline (Format "latex") "\\cite[22-23]{smith.1899}"]]]
@@ -315,7 +324,8 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
     [Plain [Str "Vegetable"]]]])]
  (TableFoot ("",[],[])
  [])
-,HorizontalRule
+,Div ("",["center"],[])
+ [HorizontalRule]
 ,Header 1 ("special-characters",[],[]) [Str "Special",Space,Str "Characters"]
 ,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "unicode:"]
 ,BulletList
@@ -345,7 +355,8 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
 ,Para [Str "Bang:",Space,Str "!"]
 ,Para [Str "Plus:",Space,Str "+"]
 ,Para [Str "Minus:",Space,Str "-"]
-,HorizontalRule
+,Div ("",["center"],[])
+ [HorizontalRule]
 ,Header 1 ("links",[],[]) [Str "Links"]
 ,Header 2 ("explicit",[],[]) [Str "Explicit"]
 ,Para [Str "Just",Space,Str "a",Space,Link ("",[],[]) [Str "URL"] ("/url/",""),Str "."]
@@ -386,12 +397,14 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  [Para [Str "Blockquoted:",Space,Link ("",[],[]) [Str "http://example.com/"] ("http://example.com/","")]]
 ,Para [Str "Auto-links",Space,Str "should",Space,Str "not",Space,Str "occur",Space,Str "here:",Space,Code ("",[],[]) "<http://example.com/>"]
 ,CodeBlock ("",[],[]) "or here: <http://example.com/>"
-,HorizontalRule
+,Div ("",["center"],[])
+ [HorizontalRule]
 ,Header 1 ("images",[],[]) [Str "Images"]
 ,Para [Str "From",Space,Quoted DoubleQuote [Str "Voyage",Space,Str "dans",Space,Str "la",Space,Str "Lune"],Space,Str "by",Space,Str "Georges",Space,Str "Melies",Space,Str "(1902):"]
 ,Para [Image ("",[],[]) [Str "image"] ("lalune.jpg","")]
 ,Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "movie",Space,Image ("",[],[]) [Str "image"] ("movie.jpg",""),Space,Str "icon."]
-,HorizontalRule
+,Div ("",["center"],[])
+ [HorizontalRule]
 ,Header 1 ("footnotes",[],[]) [Str "Footnotes"]
 ,Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "footnote",SoftBreak,Str "reference,",Note [Para [Str "Here",Space,Str "is",Space,Str "the",Space,Str "footnote.",Space,Str "It",Space,Str "can",Space,Str "go",Space,Str "anywhere",Space,Str "after",Space,Str "the",Space,Str "footnote",SoftBreak,Str "reference.",Space,Str "It",Space,Str "need",Space,Str "not",Space,Str "be",Space,Str "placed",Space,Str "at",Space,Str "the",Space,Str "end",Space,Str "of",Space,Str "the",Space,Str "document."]],SoftBreak,Str "and",SoftBreak,Str "another.",Note [Para [Str "Here\8217s",Space,Str "the",Space,Str "long",Space,Str "note.",Space,Str "This",Space,Str "one",Space,Str "contains",Space,Str "multiple",Space,Str "blocks."],Para [Str "Subsequent",Space,Str "blocks",Space,Str "are",Space,Str "indented",Space,Str "to",Space,Str "show",Space,Str "that",Space,Str "they",Space,Str "belong",Space,Str "to",Space,Str "the",SoftBreak,Str "footnote",Space,Str "(as",Space,Str "with",Space,Str "list",Space,Str "items)."],CodeBlock ("",[],[]) "  { <code> }",Para [Str "If",Space,Str "you",Space,Str "want,",Space,Str "you",Space,Str "can",Space,Str "indent",Space,Str "every",Space,Str "line,",Space,Str "but",Space,Str "you",Space,Str "can",Space,Str "also",Space,Str "be",Space,Str "lazy",SoftBreak,Str "and",Space,Str "just",Space,Str "indent",Space,Str "the",Space,Str "first",Space,Str "line",Space,Str "of",Space,Str "each",Space,Str "block."]],SoftBreak,Str "This",Space,Str "should",Space,Emph [Str "not"],Space,Str "be",Space,Str "a",Space,Str "footnote",Space,Str "reference,",Space,Str "because",Space,Str "it",Space,Str "contains",SoftBreak,Str "a",Space,Str "space.[^my",Space,Str "note]",Space,Str "Here",Space,Str "is",Space,Str "an",Space,Str "inline",SoftBreak,Str "note.",Note [Para [Str "This",Space,Str "is",Space,Emph [Str "easier"],Space,Str "to",Space,Str "type.",Space,Str "Inline",Space,Str "notes",Space,Str "may",Space,Str "contain",SoftBreak,Link ("",[],[]) [Str "links"] ("http://google.com",""),Space,Str "and",Space,Code ("",[],[]) "]",Space,Str "verbatim",Space,Str "characters,",SoftBreak,Str "as",Space,Str "well",Space,Str "as",Space,Str "[bracketed",Space,Str "text]."]]]
 ,BlockQuote

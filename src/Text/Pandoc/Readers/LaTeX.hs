@@ -1639,7 +1639,7 @@ environments = M.fromList
           skipopts *> spaces *> optional braced *> spaces *> blocks)
    , ("figure", env "figure" $ skipopts *> figure)
    , ("subfigure", env "subfigure" $ skipopts *> tok *> figure)
-   , ("center", env "center" blocks)
+   , ("center", divWith ("", ["center"], []) <$> env "center" blocks)
    , ("longtable",  env "longtable" $
           resetCaption *> simpTable "longtable" False >>= addTableCaption)
    , ("table",  env "table" $
