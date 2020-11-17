@@ -75,10 +75,10 @@ tests =
 
   , testGroup "Comments"
     [ "Comment Block" =:
-      T.unlines [ "#+BEGIN_COMMENT"
+      T.unlines [ "#+begin_comment"
                 , "stuff"
                 , "bla"
-                , "#+END_COMMENT"] =?>
+                , "#+end_comment"] =?>
       (mempty::Blocks)
 
     , "Comment line" =:
@@ -92,16 +92,16 @@ tests =
 
   , testGroup "Blocks and fragments"
     [ "HTML block" =:
-      T.unlines [ "#+BEGIN_HTML"
+      T.unlines [ "#+begin_html"
                 , "<aside>HTML5 is pretty nice.</aside>"
-                , "#+END_HTML"
+                , "#+end_html"
                 ] =?>
       rawBlock "html" "<aside>HTML5 is pretty nice.</aside>\n"
 
     , "Quote block" =:
-      T.unlines [ "#+BEGIN_QUOTE"
+      T.unlines [ "#+begin_quote"
                 , "/Niemand/ hat die Absicht, eine Mauer zu errichten!"
-                , "#+END_QUOTE"
+                , "#+end_quote"
                 ] =?>
       blockQuote (para (spcSep [ emph "Niemand", "hat", "die", "Absicht,"
                                , "eine", "Mauer", "zu", "errichten!"
@@ -128,31 +128,31 @@ tests =
         ]
 
     , "Verse block with blank lines" =:
-      T.unlines [ "#+BEGIN_VERSE"
+      T.unlines [ "#+begin_verse"
                 , "foo"
                 , ""
                 , "bar"
-                , "#+END_VERSE"
+                , "#+end_verse"
                 ] =?>
       lineBlock [ "foo", mempty, "bar" ]
 
     , "Verse block with varying indentation" =:
-      T.unlines [ "#+BEGIN_VERSE"
+      T.unlines [ "#+begin_verse"
                 , "  hello darkness"
                 , "my old friend"
-                , "#+END_VERSE"
+                , "#+end_verse"
                 ] =?>
       lineBlock [ "\160\160hello darkness", "my old friend" ]
 
     , "Raw block LaTeX" =:
-      T.unlines [ "#+BEGIN_LaTeX"
+      T.unlines [ "#+begin_latex"
                 , "The category $\\cat{Set}$ is adhesive."
-                , "#+END_LaTeX"
+                , "#+end_latex"
                 ] =?>
       rawBlock "latex" "The category $\\cat{Set}$ is adhesive.\n"
 
     , "Raw LaTeX line" =:
-      "#+LATEX: \\let\\foo\\bar" =?>
+      "#+latex: \\let\\foo\\bar" =?>
       rawBlock "latex" "\\let\\foo\\bar"
 
     , "Raw Beamer line" =:
@@ -160,13 +160,13 @@ tests =
       rawBlock "beamer" "\\pause"
 
     , "Raw HTML line" =:
-      "#+HTML: <aside>not important</aside>" =?>
+      "#+html: <aside>not important</aside>" =?>
       rawBlock "html" "<aside>not important</aside>"
 
     , "Export block HTML" =:
-      T.unlines [ "#+BEGIN_export html"
+      T.unlines [ "#+begin_export html"
                 , "<samp>Hello, World!</samp>"
-                , "#+END_export"
+                , "#+end_export"
                 ] =?>
       rawBlock "html" "<samp>Hello, World!</samp>\n"
 
@@ -197,13 +197,13 @@ tests =
                 ] =?>
       rawBlock "html" "\n<span>boring</span>\n\n"
 
-    , "Accept `ATTR_HTML` attributes for generic block" =:
-      T.unlines [ "#+ATTR_HTML: :title hello, world :id test :class fun code"
-                , "#+BEGIN_TEST"
+    , "Accept `attr_html` attributes for generic block" =:
+      T.unlines [ "#+attr_html: :title hello, world :id test :class fun code"
+                , "#+begin_test"
                 , "nonsense"
-                , "#+END_TEST"
+                , "#+end_test"
                 ] =?>
-      let attr = ("test", ["fun", "code", "TEST"], [("title", "hello, world")])
+      let attr = ("test", ["fun", "code", "test"], [("title", "hello, world")])
       in divWith attr (para "nonsense")
     ]
 

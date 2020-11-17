@@ -1,12 +1,12 @@
 $if(title)$
-#+TITLE: $title$
+#+title: $title$
 
 $endif$
 $if(author)$
-#+AUTHOR: $for(author)$$author$$sep$; $endfor$
+#+author: $for(author)$$author$$sep$; $endfor$
 $endif$
 $if(date)$
-#+DATE: $date$
+#+date: $date$
 
 $endif$
 $for(header-includes)$

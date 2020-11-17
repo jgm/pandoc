@@ -1,5 +1,5 @@
-#+SELECT_TAGS: yes no
-#+EXCLUDE_TAGS: no
+#+select_tags: yes no
+#+exclude_tags: no
 
 In a document containing one or more trees containing a tag
 listed in SELECT_TAGS, only those trees and their ancestor nodes will appear;

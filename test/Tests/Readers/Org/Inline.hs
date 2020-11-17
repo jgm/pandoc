@@ -210,7 +210,7 @@ tests =
              <> image "sunset.jpg" "" "")
 
     , "Image with html attributes" =:
-      T.unlines [ "#+ATTR_HTML: :width 50%"
+      T.unlines [ "#+attr_html: :width 50%"
                 , "[[file:guinea-pig.gif]]"
                 ] =?>
       para (imageWith ("", [], [("width", "50%")]) "guinea-pig.gif" "" "")
