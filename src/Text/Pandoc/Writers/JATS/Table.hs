@@ -32,12 +32,13 @@ tableToJATS :: PandocMonad m
             -> JATS m (Doc Text)
 tableToJATS opts _attr blkCapt specs th tb tf = do
   blockToJATS <- asks jatsBlockWriter
-  case toLegacyTable blkCapt specs th tb tf of
-    ([], aligns, widths, headers, rows) -> captionlessTable aligns widths headers rows
-    (caption, aligns, widths, headers, rows) -> do
-      captionDoc <- inTagsIndented "caption" <$> blockToJATS opts (Para caption)
-      tbl <- captionlessTable aligns widths headers rows
-      return $ inTags True "table-wrap" [] $ captionDoc $$ tbl
+  let (caption, aligns, widths, headers, rows) =
+        toLegacyTable blkCapt specs th tb tf
+  captionDoc <- if null caption
+                then return mempty
+                else inTagsIndented "caption" <$> blockToJATS opts (Para caption)
+  tbl <- captionlessTable aligns widths headers rows
+  return $ inTags True "table-wrap" [] $ captionDoc $$ tbl
   where
     captionlessTable aligns widths headers rows = do
       let percent w = tshow (truncate (100*w) :: Integer) <> "*"
