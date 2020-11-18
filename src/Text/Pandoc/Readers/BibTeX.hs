@@ -51,7 +51,10 @@ readBibTeX' variant _opts t = do
   lang <- maybe (Lang "en" (Just "US")) parseLang
              <$> lookupEnv "LANG"
   locale <- case getLocale lang of
-               Left e  -> throwError $ PandocCiteprocError e
+               Left e  ->
+                 case getLocale (Lang "en" (Just "US")) of
+                   Right l -> return l
+                   Left _  -> throwError $ PandocCiteprocError e
                Right l -> return l
   case BibTeX.readBibtexString variant locale (const True) t of
     Left e -> throwError $ PandocParsecError t e
