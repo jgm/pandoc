@@ -1544,7 +1544,11 @@ exampleRef :: PandocMonad m => MarkdownParser m (F Inlines)
 exampleRef = try $ do
   guardEnabled Ext_example_lists
   char '@'
-  lab <- many1Char (alphaNum <|> oneOf "-_")
+  lab <- mconcat . map T.pack <$>
+                    many (many1 alphaNum <|>
+                          try (do c <- char '_' <|> char '-'
+                                  cs <- many1 alphaNum
+                                  return (c:cs)))
   return $ do
     st <- askF
     return $ case M.lookup lab (stateExamples st) of

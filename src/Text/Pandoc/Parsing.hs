@@ -798,7 +798,11 @@ exampleNum :: Stream s m Char
            => ParserT s ParserState m (ListNumberStyle, Int)
 exampleNum = do
   char '@'
-  lab <- T.pack <$> many (alphaNum <|> satisfy (\c -> c == '_' || c == '-'))
+  lab <- mconcat . map T.pack <$>
+                    many (many1 alphaNum <|>
+                          try (do c <- char '_' <|> char '-'
+                                  cs <- many1 alphaNum
+                                  return (c:cs)))
   st <- getState
   let num = stateNextExample st
   let newlabels = if T.null lab
