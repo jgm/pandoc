@@ -16,7 +16,7 @@ ghc --version
 
 cabal v2-update
 cabal v2-clean
-cabal v2-configure --enable-tests -f-export-dynamic -fstatic -fembed_data_files --enable-executable-static --ghc-options '-optc-Os -optl=-pthread -split-sections' pandoc
+cabal v2-configure --enable-tests -f-export-dynamic -fembed_data_files --enable-executable-static pandoc
 cabal v2-build
 cabal v2-test -j1
 for f in $(find dist-newstyle -name 'pandoc' -type f -perm /400); do cp $f /artifacts/; done
