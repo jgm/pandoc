@@ -50,19 +50,26 @@ makeDataURI (mime, raw) =
                    then mime <> ";charset=utf-8"
                    else mime  -- mime type already has charset
 
+isSourceAttribute :: T.Text -> (T.Text, T.Text) -> Bool
+isSourceAttribute tagname (x,_) =
+  x == "src" ||
+  x == "data-src" ||
+  (x == "href" && tagname == "link") ||
+  x == "poster" ||
+  x == "data-background-image"
+
 convertTags :: PandocMonad m => [Tag T.Text] -> m [Tag T.Text]
 convertTags [] = return []
 convertTags (t@TagOpen{}:ts)
   | fromAttrib "data-external" t == "1" = (t:) <$> convertTags ts
 convertTags (t@(TagOpen tagname as):ts)
-  | tagname `elem`
-     ["img", "embed", "video", "input", "audio", "source", "track",
-      "section"] = do
+  | any (isSourceAttribute tagname) as
+     = do
        as' <- mapM processAttribute as
        rest <- convertTags ts
        return $ TagOpen tagname as' : rest
   where processAttribute (x,y) =
-           if x `elem` ["src", "data-src", "href", "poster", "data-background-image"]
+           if isSourceAttribute tagname (x,y)
               then do
                 enc <- getDataURI (fromAttrib "type" t) y
                 return (x, enc)
