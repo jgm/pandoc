@@ -1,5 +1,125 @@
 # Revision history for pandoc
 
+## pandoc 2.11.2 (2020-11-19)
+
+  * Default to using ATX (`##`-style) headings for Markdown output
+    (#6662, Aner Lucero).  Previously we used Setext (underlined) headings
+    by default for levels 1--2.
+
+  * Add option `--markdown-headings=atx|setext`, and deprecate
+    `--atx-headers` (#6662, Aner Lucero).
+
+  * Support `markdown-headings` in defaults files.
+
+  * Fix corner case in YAML metadata parsing (#6823).  Previously YAML
+    metadata would sometimes not get recognized if a field ended with a
+    newline followed by spaces.
+
+  * `--self-contained`: increase coverage (#6854).
+    Previously we only self-contained attributes for certain tag names
+    (`img`, `embed`, `video`, `input`, `audio`, `source`, `track`,
+    `section`).  Now we self-contain any occurrence of `src`,
+    `data-src`, `poster`, or `data-background-image`, on any tag; and
+    also `href` on `link` tags.
+
+  * Markdown reader:
+
+    + Fix detection of locators following in-text citations.
+      Prevously, if we had `@foo [p. 33; @bar]`, the `p. 33` would be
+      incorrectly parsed as a prefix of `@bar` rather than a suffix of
+      `@foo`.
+    + Improve period suppression algorithm for citations in notes
+      in note citation styles (#6835).
+    + Don't increment `stateNoteNumber` for example list references.
+      This helps with #6836 (a bug in which example list references
+      disturb calculation of citation note number and affect when
+      `ibid` is triggered).
+
+  * LaTeX reader:
+
+    + Move `getNextNumber` from Readers.LaTeX to Readers.LaTeX.Parsing.
+    + Fix negative numbers in siunitx commands.  A change in pandoc 2.11
+      broke negative numbers, e.g.  `\SI{-33}{\celcius}` or `\num{-3}`.
+      This fixes the regression.
+
+  * DocBook reader: drop period in formalpara title
+    and put it in a div with class `formalpara-title`, so that
+    people can reformat with filters (#6562).
+
+  * Man reader: improve handling of `.IP` (#6858).  We now better handle
+    `.IP` when it is used with non-bullet, non-numbered lists, creating a
+    definition list.  We also skip blank lines like groff itself.
+
+  * Bibtex reader: fall back on `en-US` if locale for LANG not found.
+    This reproduces earlier pandoc-citeproc behavior (jgm/citeproc#26).
+
+  * JATS writer:
+
+    + Wrap all tables (Albert Krewinkel).
+      All `<table>` elements are put inside `<table-wrap>` elements, as the
+      former are not valid as immediate child elements of `<body>`.
+    + Move Table handling to separate module (Albert Krewinkel).
+      Adds two new unexported modules:
+      Text.Pandoc.Writers.JATS.Types, Text.Pandoc.Writers.JATS.Table.
+
+  * Org writer:
+
+    + Replace org #+KEYWORDS with #+keywords (TEC).
+      As of ~2 years ago, lower case keywords became the standard (though
+      they are handled case insensitive, as always).
+    + Update org supported languages and identifiers according to the
+      current list contained in
+      <https://orgmode.org/worg/org-contrib/babel/languages/index.html>
+      (TEC).
+
+  * Only use `filterIpynbOutput` if input format is ipynb (#6841).
+    Before this change content could go missing from divs with class
+    `output`, even when non-ipynb was being converted.
+
+  * When checking reader/writer name, check base name now that we permit
+    extensions on formats other than markdown.
+
+  * Text.Pandoc.PDF: Fix `changePathSeparators` for Windows (#6173).
+    Previously a path beginning with a drive, like `C:\foo\bar`, was
+    translated to `C:\/foo/bar`, which caused problems.
+    With this fix, the backslashes are removed.
+
+  * Text.Pandoc.Logging: Add constructor `ATXHeadingInLHS` constructor
+    to `LogMessage` [API change].
+
+  * Fix error that is given when people specify `doc` output (#6834,
+    gison93).
+
+  * LaTeX template:  add a `\break` after parbox in `CSLRightInline`.
+    This should fix spacing problems between entries with numeric styles.
+    Also fix number of params on `CSLReferences`.
+
+  * reveal.js template: Put quotes around `controlsLayout`,
+    `controlsBackArrows`, and `display`, since these require strings.
+    Add `showSlideNumber`, `hashOneBasedIndex`, `pause`.
+
+  * Use citeproc 0.2.  This fixes a bug with title case around parentheses.
+
+  * pandoc.cabal: remove 'static' flag.
+    This isn't really necessary and can be misleading (e.g. on macOS,
+    where a fully static build isn't possible). cabal's new option
+    `--enable-executable-static` does the same. On stack you can add
+    something like this to the options for your executable in package.yaml:
+
+        ld-options: -static -pthread
+
+  * Remove obsolete bibutils flag setting in `linux/make_artifacts.sh`.
+
+  * Manual:
+
+    + Correct `link-citation` -> `link-citations`.
+    + Add a sentence about `pagetitle` for HTML (#6843, Alex Toldaiev).
+
+  * INSTALL.md: Remove references to `pandoc-citeproc` (#6857).
+
+  * CONTRIBUTING: describe hlint and how it's used (#6840, Albert
+    Krewinkel).
+
 ## pandoc 2.11.1.1 (2020-11-07)
 
   * Citeproc: improve punctuation in in-text note citations (#6813).
