@@ -407,12 +407,14 @@ parseBlockQuote = blockQuote <$> continuation
 
 data ListType = Ordered ListAttributes
               | Bullet
+              | Definition T.Text
 
 listTypeMatches :: Maybe ListType -> ListType -> Bool
 listTypeMatches Nothing _            = True
 listTypeMatches (Just Bullet) Bullet = True
 listTypeMatches (Just (Ordered (_,x,y))) (Ordered (_,x',y'))
                                      = x == x' && y == y'
+listTypeMatches (Just (Definition _)) (Definition _) = True
 listTypeMatches (Just _) _           = False
 
 listItem :: PandocMonad m => Maybe ListType -> ManParser m (ListType, Blocks)
@@ -427,20 +429,28 @@ listItem mbListType = try $ do
                   Right (start, listtype, listdelim)
                     | cs == cs' -> Ordered (start, listtype, listdelim)
                     | otherwise -> Ordered (start, listtype, DefaultDelim)
-                  Left _        -> Bullet
+                  Left _
+                    | cs == "\183" || cs == "-" || cs == "*" || cs == "+"
+                                   -> Bullet
+                    | otherwise    -> Definition cs
       guard $ listTypeMatches mbListType lt
+      skipMany memptyLine
       inls <- option mempty parseInlines
+      skipMany memptyLine
       continuations <- mconcat <$> many continuation
       return (lt, para inls <> continuations)
     []          -> mzero
 
 parseList :: PandocMonad m => ManParser m Blocks
 parseList = try $ do
-  (lt, x) <- listItem Nothing
-  xs <- map snd <$> many (listItem (Just lt))
+  x@(lt, _) <- listItem Nothing
+  xs <- many (listItem (Just lt))
+  let toDefItem (Definition t, bs) = (B.text t, [bs])
+      toDefItem _ = mempty
   return $ case lt of
-             Bullet        -> bulletList (x:xs)
-             Ordered lattr -> orderedListWith lattr (x:xs)
+             Bullet        -> bulletList $ map snd (x:xs)
+             Ordered lattr -> orderedListWith lattr $ map snd (x:xs)
+             Definition _  -> definitionList $ map toDefItem (x:xs)
 
 continuation :: PandocMonad m => ManParser m Blocks
 continuation =
@@ -453,11 +463,15 @@ definitionListItem :: PandocMonad m
                    => ManParser m (Inlines, [Blocks])
 definitionListItem = try $ do
   mmacro "TP"  -- args specify indent level, can ignore
+  skipMany memptyLine
   term <- parseInline
+  skipMany memptyLine
   moreterms <- many $ try $ do
                  mmacro "TQ"
                  parseInline
+  skipMany memptyLine
   inls <- option mempty parseInlines
+  skipMany memptyLine
   continuations <- mconcat <$> many continuation
   return ( mconcat (intersperse B.linebreak (term:moreterms))
          , [para inls <> continuations])
