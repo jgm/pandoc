@@ -2,7 +2,6 @@ flags:
   pandoc:
     trypandoc: false
     embed_data_files: true
-    static: false
 packages:
 - '.'
 extra-deps:

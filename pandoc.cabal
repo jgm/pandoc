@@ -376,10 +376,6 @@ source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
 
-flag static
-  Description:   Use static linking for pandoc executable.
-  Default:       False
-
 flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
   Default:       False
@@ -681,11 +677,6 @@ executable pandoc
      hs-source-dirs: prelude
      other-modules:  Prelude
      build-depends:  base-compat >= 0.9
-  if flag(static)
-    ld-options:     -static
-    -- fully static builds are not possible on macos:
-    if os(darwin)
-      buildable:    False
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
   hs-source-dirs:  .
