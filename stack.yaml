@@ -22,7 +22,7 @@ extra-deps:
 - commonmark-0.1.1.2
 - commonmark-extensions-0.2.0.4
 - commonmark-pandoc-0.2.0.1
-- citeproc-0.1.1.1
+- citeproc-0.2
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-14.6
