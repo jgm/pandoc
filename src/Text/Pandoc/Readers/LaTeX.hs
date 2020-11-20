@@ -559,7 +559,9 @@ tok = try $ spaces >> grouped inline <|> inlineCommand' <|> singleChar'
           return $ str t
 
 opt :: PandocMonad m => LP m Inlines
-opt = bracketed inline <|> (str <$> rawopt)
+opt = bracketed inline
+      <|>
+      (str . T.dropWhile (=='[') . T.dropWhileEnd (==']') <$> rawopt)
 
 paropt :: PandocMonad m => LP m Inlines
 paropt = parenWrapped inline
