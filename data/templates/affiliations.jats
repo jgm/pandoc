@@ -1,0 +1,35 @@
+$--
+$-- Affiliations
+$--
+$for(affiliation)$
+<aff id="aff-$affiliation.id$">
+$-- wrap affiliation if it has a known institution identifier
+$if(affiliation.group)$
+<institution content-type="group">$affiliation.group$</institution>
+$endif$
+$if(affiliation.department)$
+<institution content-type="dept">$affiliation.department$</institution>
+$endif$
+<institution-wrap>
+$if(affiliation.organization)$
+<institution>$affiliation.organization$</institution>
+$else$
+<institution>$affiliation.name$</institution>
+$endif$
+$if(affiliation.isni)$
+<institution-id institution-id-type="ISNI">$affiliation.isni$</institution-id>
+$endif$
+$if(affiliation.ringgold)$
+<institution-id institution-id-type="Ringgold">$affiliation.ringgold$</institution-id>
+$endif$
+$if(affiliation.ror)$
+<institution-id institution-id-type="ROR">$affiliation.ror$</institution-id>
+$endif$
+</institution-wrap>$if(affiliation.street-address)$,
+$for(affiliation.street-address)$
+<addr-line>$affiliation.street-address$</addr-line>$sep$,
+$endfor$
+$else$$if(affiliation.city)$, <city>$affiliation.city$</city>$endif$$endif$$if(affiliation.country)$,
+<country$if(affiliation.country-code)$ country="$affiliation.country-code$"$endif$>$affiliation.country$</country>$endif$
+</aff>
+$endfor$
