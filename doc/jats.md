@@ -39,6 +39,12 @@ Metadata Values
         Used as the contents of the [`<email>`][elem:given-names]
         element.
 
+    `affiliation`
+    :   list of affiliation identifiers; marks the organizations
+        with which an author is affiliated. Each identifier in this
+        list must also occur as the `id` of an affiliation listed in
+        the top-level `affiliation` list.
+
     `cor-id`
     :   identifier linking to the contributor's correspondence
         information. The info itself must be stored in as an item in
@@ -47,6 +53,73 @@ Metadata Values
         [`ref-type`][attr:ref-type] `corresp` is added. The
         [`rid`][attr:rid] attribute is set to `cor-<ID>`, where
         `<ID>` is the stringified value of this attribute.
+
+`affiliation`
+:   the list of organizations with which contributors are
+    affiliated. Each institution is added as an [`<aff>`] element to
+    the author's contrib-group.
+
+    The fields are given in the order in which they are included in
+    the output.
+
+    `id`
+    :   internal identifier; used as the [`<aff>`] element's `id`
+        value, prefixed with `aff-`.
+
+    `group`
+    :   name of the research group or other low-level organizational
+        structure; used as value of an [`<institution>`] element with
+        [`content-type`][attr:content-type] set to `group`.
+
+    `department`
+    :   name of the department or other mid-level organizational
+        structure; used as value of an [`<institution>`] element with
+        [`content-type`][attr:content-type] set to `dept`.
+
+    `organization`
+    :   name of the company, university, or other top-level
+        organizational structure; used as value of an
+        [`<institution>`] element. The institution element is wrapped
+        in an [`<institution-wrap>`] element; any identifiers, like
+        `ringgold` or `ror`, are added to the wrapper and must hence
+        belong to this organization (not the department or group).
+
+    `isni`
+    :   International Standard Name Identifier of the organization.
+        Added via an [`<institution-id>`] element with
+        [`institution-id-type`](attr:institution-id-type) set to
+        `ISNI`.
+
+    `ringgold`
+    :   [Ringgold] identifier of the organization. Added via an
+        [`<institution-id>`] element with
+        [`institution-id-type`](attr:institution-id-type) set to
+        `Ringgold`.
+
+    `ror`
+    :   Research Organization Registry identifier of the
+        organization. Added via an [`<institution-id>`] element with
+        [`institution-id-type`](attr:institution-id-type) set to
+        `ROR`.
+
+    `street-address`
+    :   The organization's street address; each list item is wrapped
+        in an [`<addr-line>`] element, separated by a comma and
+        space (`, `).
+
+    `city`
+    :   City in which the organization is located; used only if
+        `street-address` is not given, in which case the value is
+        wrapped in a [`<city>`] element.
+
+    `country`
+    :   Country in which the organization is located; used as the
+        value of a [`<country>`] element.
+
+    `country-code`
+    :   Two letter ISO-3166-1 country identifier; used as the
+        [`country`][attr:country] attribute in element [`<country>`]
+        (if the latter is present).
 
 `copyright`
 :   Licensing and copyright information. This information is
@@ -258,7 +331,10 @@ Required metadata values:
   `journal.pmc`.
 - One or more of `journal.pissn`, `journal.eissn`.
 
+[Ringgold]: https://ringgold.com/
+[attr:content-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/content-type.html
 [attr:fn-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/fn-type.html
+[attr:institution-id-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/institution-id-type.html
 [attr:iso-8601-date]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/iso-8601-date.html
 [attr:journal-id-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/journal-id-type.html
 [attr:kwd-group-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/kwd-group-type.html
@@ -297,3 +373,11 @@ Required metadata values:
 [elem:subject]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/subject.html
 [elem:surname]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/surname.html
 [elem:xref]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/xref.html
+
+[`<addr-line>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/addr-line.html
+[`<aff>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/aff.html
+[`<city>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/city.html
+[`<country>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/country.html
+[`<institution-id>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/institution-id.html
+[`<institution-wrap>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/institution-wrap.html
+[`<institution>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/institution.html
