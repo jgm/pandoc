@@ -355,7 +355,7 @@ getDefaultExtensions "commonmark"      = extensionsFromList
 getDefaultExtensions "commonmark_x"    = extensionsFromList
   [ Ext_pipe_tables
   , Ext_raw_html
-  , Ext_auto_identifiers
+  , Ext_gfm_auto_identifiers
   , Ext_strikeout
   , Ext_task_lists
   , Ext_emoji
@@ -474,9 +474,10 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "plain"           = allMarkdownExtensions
   getAll "gfm"             = getAll "commonmark"
   getAll "commonmark"      =
-    autoIdExtensions <>
     extensionsFromList
-    [ Ext_pipe_tables
+    [ Ext_gfm_auto_identifiers
+    , Ext_ascii_identifiers
+    , Ext_pipe_tables
     , Ext_autolink_bare_uris
     , Ext_strikeout
     , Ext_task_lists
