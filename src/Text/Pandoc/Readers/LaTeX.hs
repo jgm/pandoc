@@ -559,9 +559,14 @@ tok = try $ spaces >> grouped inline <|> inlineCommand' <|> singleChar'
           return $ str t
 
 opt :: PandocMonad m => LP m Inlines
-opt = bracketed inline
-      <|>
-      (str . T.dropWhile (=='[') . T.dropWhileEnd (==']') <$> rawopt)
+opt = do
+  toks <- try (sp *> bracketedToks <* sp)
+  -- now parse the toks as inlines
+  st <- getState
+  parsed <- runParserT (mconcat <$> many inline) st "bracketed option" toks
+  case parsed of
+    Right result -> return result
+    Left e       -> throwError $ PandocParsecError (untokenize toks) e
 
 paropt :: PandocMonad m => LP m Inlines
 paropt = parenWrapped inline
