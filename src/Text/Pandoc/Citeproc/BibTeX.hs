@@ -822,12 +822,11 @@ getOldDate prefix = do
          , dateLiteral = literal }
 
 getRawField :: Text -> Bib Text
-getRawField f =
-  (stringify <$> getField f)
-  <|> do fs <- asks fields
-         case Map.lookup f fs of
-              Just x  -> return x
-              Nothing -> notFound f
+getRawField f = do
+  fs <- asks fields
+  case Map.lookup f fs of
+       Just x  -> return x
+       Nothing -> notFound f
 
 getLiteralList :: Text -> Bib [Inlines]
 getLiteralList f = do
