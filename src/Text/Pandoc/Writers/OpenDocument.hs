@@ -407,13 +407,14 @@ blockToOpenDocument o bs
              fromWidth (ColWidth w) | w > 0 = w
              fromWidth _                    = 0
              widths = map fromWidth mwidths
+             textWidth   = sum widths
              columnIds   = zip genIds widths
              mkColumn  n = selfClosingTag "table:table-column" [("table:style-name", name <> "." <> T.singleton (fst n))]
              columns     = map mkColumn columnIds
              paraHStyles = paraTableStyles "Heading"  pn aligns
              paraStyles  = paraTableStyles "Contents" (pn + length (newPara paraHStyles)) aligns
              newPara     = map snd . filter (not . isEmpty . snd)
-        addTableStyle $ tableStyle tn columnIds
+        addTableStyle $ tableStyle tn textWidth columnIds
         mapM_ addParaStyle . newPara $ paraHStyles ++ paraStyles
         captionDoc <- if null c
                       then return empty
@@ -684,14 +685,19 @@ listLevelStyle i =
                       , ("fo:margin-left", indent <> "in")
                       ]
 
-tableStyle :: Int -> [(Char,Double)] -> Doc Text
-tableStyle num wcs =
+tableStyle :: Int -> Double -> [(Char,Double)] -> Doc Text
+tableStyle num textWidth wcs =
     let tableId        = "Table" <> tshow (num + 1)
+        tableWidthAttr :: [(Text,Text)]
+        tableWidthAttr
+          | textWidth <= 1 && textWidth > 0 = [("style:rel-width",
+                                                T.pack (show (round (textWidth * 100) :: Int) <> "%"))]
+          | otherwise    = []
         table          = inTags True "style:style"
                          [("style:name", tableId)
                          ,("style:family", "table")] $
                          selfClosingTag "style:table-properties"
-                         [("table:align"    , "center")]
+                         (("table:align", "center") : tableWidthAttr)
         colStyle (c,0) = selfClosingTag "style:style"
                          [ ("style:name"  , tableId <> "." <> T.singleton c)
                          , ("style:family", "table-column"       )]
