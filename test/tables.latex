@@ -3,16 +3,16 @@ Simple table with caption:
 \begin{longtable}[]{@{}rlcl@{}}
 \caption{Demonstration of simple table syntax.}\tabularnewline
 \toprule
-Right & Left & Center & Default\tabularnewline
+Right & Left & Center & Default \\ \addlinespace
 \midrule
 \endfirsthead
 \toprule
-Right & Left & Center & Default\tabularnewline
+Right & Left & Center & Default \\ \addlinespace
 \midrule
 \endhead
-12 & 12 & 12 & 12\tabularnewline
-123 & 123 & 123 & 123\tabularnewline
-1 & 1 & 1 & 1\tabularnewline
+12 & 12 & 12 & 12 \\ \addlinespace
+123 & 123 & 123 & 123 \\ \addlinespace
+1 & 1 & 1 & 1 \\ \addlinespace
 \bottomrule
 \end{longtable}
 
@@ -20,12 +20,12 @@ Simple table without caption:
 
 \begin{longtable}[]{@{}rlcl@{}}
 \toprule
-Right & Left & Center & Default\tabularnewline
+Right & Left & Center & Default \\ \addlinespace
 \midrule
 \endhead
-12 & 12 & 12 & 12\tabularnewline
-123 & 123 & 123 & 123\tabularnewline
-1 & 1 & 1 & 1\tabularnewline
+12 & 12 & 12 & 12 \\ \addlinespace
+123 & 123 & 123 & 123 \\ \addlinespace
+1 & 1 & 1 & 1 \\ \addlinespace
 \bottomrule
 \end{longtable}
 
@@ -34,16 +34,16 @@ Simple table indented two spaces:
 \begin{longtable}[]{@{}rlcl@{}}
 \caption{Demonstration of simple table syntax.}\tabularnewline
 \toprule
-Right & Left & Center & Default\tabularnewline
+Right & Left & Center & Default \\ \addlinespace
 \midrule
 \endfirsthead
 \toprule
-Right & Left & Center & Default\tabularnewline
+Right & Left & Center & Default \\ \addlinespace
 \midrule
 \endhead
-12 & 12 & 12 & 12\tabularnewline
-123 & 123 & 123 & 123\tabularnewline
-1 & 1 & 1 & 1\tabularnewline
+12 & 12 & 12 & 12 \\ \addlinespace
+123 & 123 & 123 & 123 \\ \addlinespace
+1 & 1 & 1 & 1 \\ \addlinespace
 \bottomrule
 \end{longtable}
 
@@ -53,58 +53,58 @@ Multiline table with caption:
 \caption{Here's the caption. It may span multiple lines.}\tabularnewline
 \toprule
 \begin{minipage}[b]{(\columnwidth - 3\tabcolsep) * \real{0.15}}\centering
-Centered Header\strut
+Centered Header
 \end{minipage} &
 \begin{minipage}[b]{(\columnwidth - 3\tabcolsep) * \real{0.14}}\raggedright
-Left Aligned\strut
+Left Aligned
 \end{minipage} &
 \begin{minipage}[b]{(\columnwidth - 3\tabcolsep) * \real{0.16}}\raggedleft
-Right Aligned\strut
+Right Aligned
 \end{minipage} &
 \begin{minipage}[b]{(\columnwidth - 3\tabcolsep) * \real{0.35}}\raggedright
-Default aligned\strut
-\end{minipage}\tabularnewline
+Default aligned
+\end{minipage} \\ \addlinespace
 \midrule
 \endfirsthead
 \toprule
 \begin{minipage}[b]{(\columnwidth - 3\tabcolsep) * \real{0.15}}\centering
-Centered Header\strut
+Centered Header
 \end{minipage} &
 \begin{minipage}[b]{(\columnwidth - 3\tabcolsep) * \real{0.14}}\raggedright
-Left Aligned\strut
+Left Aligned
 \end{minipage} &
 \begin{minipage}[b]{(\columnwidth - 3\tabcolsep) * \real{0.16}}\raggedleft
-Right Aligned\strut
+Right Aligned
 \end{minipage} &
 \begin{minipage}[b]{(\columnwidth - 3\tabcolsep) * \real{0.35}}\raggedright
-Default aligned\strut
-\end{minipage}\tabularnewline
+Default aligned
+\end{minipage} \\ \addlinespace
 \midrule
 \endhead
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.15}}\centering
-First\strut
+First
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.14}}\raggedright
-row\strut
+row
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.16}}\raggedleft
-12.0\strut
+12.0
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.35}}\raggedright
-Example of a row that spans multiple lines.\strut
-\end{minipage}\tabularnewline
+Example of a row that spans multiple lines.
+\end{minipage} \\ \addlinespace
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.15}}\centering
-Second\strut
+Second
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.14}}\raggedright
-row\strut
+row
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.16}}\raggedleft
-5.0\strut
+5.0
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.35}}\raggedright
-Here's another one. Note the blank line between rows.\strut
-\end{minipage}\tabularnewline
+Here's another one. Note the blank line between rows.
+\end{minipage} \\ \addlinespace
 \bottomrule
 \end{longtable}
 
@@ -113,43 +113,43 @@ Multiline table without caption:
 \begin{longtable}[]{@{}clrl@{}}
 \toprule
 \begin{minipage}[b]{(\columnwidth - 3\tabcolsep) * \real{0.15}}\centering
-Centered Header\strut
+Centered Header
 \end{minipage} &
 \begin{minipage}[b]{(\columnwidth - 3\tabcolsep) * \real{0.14}}\raggedright
-Left Aligned\strut
+Left Aligned
 \end{minipage} &
 \begin{minipage}[b]{(\columnwidth - 3\tabcolsep) * \real{0.16}}\raggedleft
-Right Aligned\strut
+Right Aligned
 \end{minipage} &
 \begin{minipage}[b]{(\columnwidth - 3\tabcolsep) * \real{0.35}}\raggedright
-Default aligned\strut
-\end{minipage}\tabularnewline
+Default aligned
+\end{minipage} \\ \addlinespace
 \midrule
 \endhead
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.15}}\centering
-First\strut
+First
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.14}}\raggedright
-row\strut
+row
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.16}}\raggedleft
-12.0\strut
+12.0
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.35}}\raggedright
-Example of a row that spans multiple lines.\strut
-\end{minipage}\tabularnewline
+Example of a row that spans multiple lines.
+\end{minipage} \\ \addlinespace
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.15}}\centering
-Second\strut
+Second
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.14}}\raggedright
-row\strut
+row
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.16}}\raggedleft
-5.0\strut
+5.0
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.35}}\raggedright
-Here's another one. Note the blank line between rows.\strut
-\end{minipage}\tabularnewline
+Here's another one. Note the blank line between rows.
+\end{minipage} \\ \addlinespace
 \bottomrule
 \end{longtable}
 
@@ -158,9 +158,9 @@ Table without column headers:
 \begin{longtable}[]{@{}rlcr@{}}
 \toprule
 \endhead
-12 & 12 & 12 & 12\tabularnewline
-123 & 123 & 123 & 123\tabularnewline
-1 & 1 & 1 & 1\tabularnewline
+12 & 12 & 12 & 12 \\ \addlinespace
+123 & 123 & 123 & 123 \\ \addlinespace
+1 & 1 & 1 & 1 \\ \addlinespace
 \bottomrule
 \end{longtable}
 
@@ -170,28 +170,28 @@ Multiline table without column headers:
 \toprule
 \endhead
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.15}}\centering
-First\strut
+First
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.14}}\raggedright
-row\strut
+row
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.16}}\raggedleft
-12.0\strut
+12.0
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.35}}\raggedright
-Example of a row that spans multiple lines.\strut
-\end{minipage}\tabularnewline
+Example of a row that spans multiple lines.
+\end{minipage} \\ \addlinespace
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.15}}\centering
-Second\strut
+Second
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.14}}\raggedright
-row\strut
+row
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.16}}\raggedleft
-5.0\strut
+5.0
 \end{minipage} &
 \begin{minipage}[t]{(\columnwidth - 3\tabcolsep) * \real{0.35}}\raggedright
-Here's another one. Note the blank line between rows.\strut
-\end{minipage}\tabularnewline
+Here's another one. Note the blank line between rows.
+\end{minipage} \\ \addlinespace
 \bottomrule
 \end{longtable}

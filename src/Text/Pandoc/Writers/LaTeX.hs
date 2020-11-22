@@ -862,7 +862,7 @@ tableRowToLaTeX header aligns widths cols = do
                    else widths
   let numcols = length widths'
   cells <- mapM (tableCellToLaTeX header numcols) $ zip3 widths' aligns cols
-  return $ hsep (intersperse "&" cells) <> "\\tabularnewline"
+  return $ hsep (intersperse "&" cells) <> " \\\\ \\addlinespace"
 
 -- For simple latex tables (without minipages or parboxes),
 -- we need to go to some lengths to get line breaks working:
@@ -914,7 +914,7 @@ tableCellToLaTeX header numcols (width, align, blocks) = do
            braces (text (printf
               "(\\columnwidth - %d\\tabcolsep) * \\real{%.2f}"
               (numcols - 1) width)) <>
-           halign <> cr <> cellContents <> "\\strut" <> cr <>
+           halign <> cr <> cellContents <> cr <>
            "\\end{minipage}"
 -- (\columnwidth - 8\tabcolsep) * \real{0.15}
 
