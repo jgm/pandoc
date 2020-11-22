@@ -22,7 +22,8 @@ The following export keywords are supported:
 - EMAIL: author email address; passed as plain-text metadata
   field `email`, but not used by any default templates.
 
-- LANGUAGE: currently unsupported; use `#+LANG:` instead.
+- LANGUAGE: document language; included as plain-text metadata
+  field `lang`. The value should be a [BCP47 language tag].
 
 - SELECT_TAGS: tags which select a tree for export. Currently
   *unsupported*.
@@ -35,6 +36,8 @@ The following export keywords are supported:
 - EXPORT\_FILE\_NAME: target filename; *unsupported*, the output
   defaults to stdout unless a target has to be given as a command
   line option.
+
+[BCP47 language tag]: https://tools.ietf.org/html/bcp47
 
 Format-specific options
 -----------------------

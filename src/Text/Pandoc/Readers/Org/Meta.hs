@@ -93,6 +93,8 @@ keywordHandlers = Map.fromList
   , "institute" ~~> lineOfInlines `parseThen` collectLines "institute"
   -- topic keywords
   , "keywords" ~~> lineOfInlines `parseThen` collectLines "keywords"
+  -- document language
+  , "language" ~~> fmap pure anyLine `parseThen` B.setMeta "lang"
   -- LaTeX-specific export settings
   , "latex_class" ~~> fmap pure anyLine `parseThen` B.setMeta "documentclass"
   , "latex_class_options" ~~>

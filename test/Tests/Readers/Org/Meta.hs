@@ -112,6 +112,10 @@ tests =
       "#+institute: ACME Inc." =?>
       Pandoc (setMeta "institute" ("ACME Inc." :: Inlines) nullMeta) mempty
 
+    , "Document language" =:
+      "#+LANGUAGE: de-DE" =?>
+      Pandoc (setMeta "lang" (MetaString "de-DE") nullMeta) mempty
+
     , testGroup "LaTeX"
       [ "LATEX_HEADER" =:
         "#+latex_header: \\usepackage{tikz}" =?>
