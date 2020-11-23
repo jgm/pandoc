@@ -18,7 +18,7 @@ import Control.Monad (guard)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Text.HTML.TagSoup
-import Text.Pandoc.Builder (Blocks, Inlines)
+import Text.Pandoc.Builder (Blocks)
 import Text.Pandoc.Definition
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Parsing
@@ -59,14 +59,14 @@ pColgroup = try $ do
 
 -- | Parses a simple HTML table
 pTable' :: PandocMonad m
-        => TagParser m Inlines                         -- ^ Caption parser
+        => TagParser m Blocks                          -- ^ Caption parser
         -> (Text -> TagParser m [(Alignment, Blocks)]) -- ^ Table cell parser
         -> TagParser m Blocks
-pTable' inline pCell = try $ do
+pTable' block pCell = try $ do
   TagOpen _ attribs' <- pSatisfy (matchTagOpen "table" [])
   let attribs = toAttr attribs'
   skipMany pBlank
-  caption <- option mempty $ pInTags "caption" inline <* skipMany pBlank
+  caption <- option mempty $ pInTags "caption" block <* skipMany pBlank
   widths' <- (mconcat <$> many1 pColgroup) <|> many pCol
   let pTh = option [] $ pInTags "tr" (pCell "th")
       pTr = try $ skipMany pBlank >>
@@ -104,7 +104,7 @@ pTable' inline pCell = try $ do
   let toRow = Row nullAttr . map B.simpleCell
       toHeaderRow l = [toRow l | not (null l)]
   return $ B.tableWith attribs
-                   (B.simpleCaption $ B.plain caption)
+                   (B.simpleCaption caption)
                    (zip aligns widths)
                    (TableHead nullAttr $ toHeaderRow head')
                    [TableBody nullAttr 0 [] $ map toRow rows]

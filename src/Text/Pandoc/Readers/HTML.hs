@@ -474,7 +474,7 @@ pHrule = do
   return B.horizontalRule
 
 pTable :: PandocMonad m => TagParser m Blocks
-pTable = pTable' inline pCell
+pTable = pTable' block pCell
 
 noColOrRowSpans :: Tag Text -> Bool
 noColOrRowSpans t = isNullOrOne "colspan" && isNullOrOne "rowspan"
