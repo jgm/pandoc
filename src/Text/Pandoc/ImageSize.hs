@@ -120,7 +120,7 @@ findSvgTag :: ByteString -> Bool
 findSvgTag img = "<svg" `B.isInfixOf` img || "<SVG" `B.isInfixOf` img
 
 imageSize :: WriterOptions -> ByteString -> Either T.Text ImageSize
-imageSize opts img =
+imageSize opts img = checkDpi <$>
   case imageType img of
        Just Png  -> mbToEither "could not determine PNG size" $ pngSize img
        Just Gif  -> mbToEither "could not determine GIF size" $ gifSize img
@@ -132,6 +132,12 @@ imageSize opts img =
        Nothing   -> Left "could not determine image type"
   where mbToEither msg Nothing  = Left msg
         mbToEither _   (Just x) = Right x
+        -- see #6880, some defective JPEGs may encode dpi 0, so default to 72
+        -- if that value is 0
+        checkDpi size =
+          size{ dpiX = if dpiX size == 0 then 72 else dpiX size
+              , dpiY = if dpiY size == 0 then 72 else dpiY size }
+
 
 defaultSize :: (Integer, Integer)
 defaultSize = (72, 72)
