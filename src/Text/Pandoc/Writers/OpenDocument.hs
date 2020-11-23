@@ -188,15 +188,23 @@ formulaStyle mt = inTags False "style:style"
                                                   ,("style:horizontal-rel", "paragraph-content")
                                                   ,("style:wrap",           "none")]
 
+inBookmarkTags :: Text -> Doc Text -> Doc Text
+inBookmarkTags ident d =
+  selfClosingTag "text:bookmark-start" [ ("text:name", ident) ]
+  <> d <>
+  selfClosingTag "text:bookmark-end" [ ("text:name", ident) ]
+
+selfClosingBookmark :: Text -> Doc Text
+selfClosingBookmark ident =
+  selfClosingTag "text:bookmark" [("text:name", ident)]
+
 inHeaderTags :: PandocMonad m => Int -> Text -> Doc Text -> OD m (Doc Text)
 inHeaderTags i ident d =
   return $ inTags False "text:h" [ ("text:style-name", "Heading_20_" <> tshow i)
                                  , ("text:outline-level", tshow i)]
          $ if T.null ident
               then d
-              else selfClosingTag "text:bookmark-start" [ ("text:name", ident) ]
-                   <> d <>
-                   selfClosingTag "text:bookmark-end" [ ("text:name", ident) ]
+              else inBookmarkTags ident d
 
 inQuotes :: QuoteType -> Doc Text -> Doc Text
 inQuotes SingleQuote s = char '\8216' <> s <> char '\8217'
@@ -360,12 +368,7 @@ blockToOpenDocument o bs
                                   then return empty
                                   else inParagraphTags =<< inlinesToOpenDocument o b
     | LineBlock      b <- bs = blockToOpenDocument o $ linesToPara b
-    | Div attr xs      <- bs = do
-        let (_,_,kvs) = attr
-        withLangFromAttr attr $
-          case lookup "custom-style" kvs of
-            Just sty -> withParagraphStyle o sty xs
-            _        -> blocksToOpenDocument o xs
+    | Div attr xs      <- bs = mkDiv attr xs
     | Header     i (ident,_,_) b
                        <- bs = setFirstPara >> (inHeaderTags i ident
                                   =<< inlinesToOpenDocument o b)
@@ -390,6 +393,16 @@ blockToOpenDocument o bs
                            setInDefinitionList False
                            return r
       preformatted  s = flush . vcat <$> mapM (inPreformattedTags . escapeStringForXML) (T.lines s)
+      mkDiv    attr s = do
+        let (ident,_,kvs) = attr
+            i = withLangFromAttr attr $
+                case lookup "custom-style" kvs of
+                  Just sty -> withParagraphStyle o sty s
+                  _        -> blocksToOpenDocument o s
+            mkBookmarkedDiv = inTags False "text:section" [("text:name", ident)]
+        if T.null ident
+          then i
+          else fmap mkBookmarkedDiv i
       mkBlockQuote  b = do increaseIndent
                            i <- paraStyle
                                  [("style:parent-style-name","Quotations")]
@@ -567,7 +580,7 @@ inlineToOpenDocument o ils
      | writerWrapText o == WrapPreserve
                   -> return $ preformatted "\n"
      | otherwise  -> return space
-    Span attr xs  -> withLangFromAttr attr (inlinesToOpenDocument o xs)
+    Span attr xs  -> mkSpan attr xs
     LineBreak     -> return $ selfClosingTag "text:line-break" []
     Str         s -> return $ handleSpaces $ escapeStringForXML s
     Emph        l -> withTextStyle Italic $ inlinesToOpenDocument o l
@@ -625,6 +638,16 @@ inlineToOpenDocument o ils
                                                  , ("xlink:type"   , "simple")
                                                  , ("xlink:show"   , "embed" )
                                                  , ("xlink:actuate", "onLoad")]
+      mkSpan attr xs =  do
+        let (ident,_,_) = attr
+            i = withLangFromAttr attr (inlinesToOpenDocument o xs)
+            mkBookmarkedSpan b =
+              if isEmpty b
+                then selfClosingBookmark ident
+                else inBookmarkTags ident b
+        if T.null ident
+          then i
+          else fmap mkBookmarkedSpan i
       mkNote     l = do
         n <- length <$> gets stNotes
         let footNote t = inTags False "text:note"
