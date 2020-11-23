@@ -25,6 +25,9 @@ $endif$
 $if(affiliation.ror)$
 <institution-id institution-id-type="ROR">$affiliation.ror$</institution-id>
 $endif$
+$for(affiliation.pid)$
+<institution-id institution-id-type="$affiliation.pid.type$">$affiliation.pid.id$</institution-id>
+$endfor$
 </institution-wrap>$if(affiliation.street-address)$,
 $for(affiliation.street-address)$
 <addr-line>$affiliation.street-address$</addr-line>$sep$,

@@ -102,6 +102,13 @@ Metadata Values
         [`institution-id-type`](attr:institution-id-type) set to
         `ROR`.
 
+    `pid`
+    :   Array of persistent identifiers which are added as
+        [`<institution-id>`] elements. Each item must contain a map
+        with keys `type`, used as
+        [`institution-id-type`](attr:institution-id-type), and `id`,
+        used as element content.
+
     `street-address`
     :   The organization's street address; each list item is wrapped
         in an [`<addr-line>`] element, separated by a comma and
