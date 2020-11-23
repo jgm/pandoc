@@ -21,19 +21,25 @@ module Text.Pandoc.Readers.HTML.Parsing
   , matchTagClose
   , matchTagOpen
   , isSpace
+  , toAttr
+  , toStringAttr
   )
 where
 
 import Control.Monad (guard, void, mzero)
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Text.HTML.TagSoup
+  ( Tag (..), (~==), isTagText, isTagPosition, isTagOpen, isTagClose )
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Definition (Attr)
 import Text.Pandoc.Parsing
   ( (<|>), eof, getPosition, lookAhead, manyTill, newPos, optional
   , skipMany, setPosition, token, try)
 import Text.Pandoc.Readers.HTML.TagCategories
 import Text.Pandoc.Readers.HTML.Types
 import Text.Pandoc.Shared (tshow)
+import Text.Pandoc.XML (html5Attributes, html4Attributes, rdfaAttributes)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 
@@ -154,3 +160,23 @@ t1 `closes` t2 |
    t2 `Set.notMember` blockTags &&
    t2 `Set.notMember` eitherBlockOrInline = True
 _ `closes` _ = False
+
+toStringAttr :: [(Text, Text)] -> [(Text, Text)]
+toStringAttr = map go
+  where
+   go (x,y) =
+     case T.stripPrefix "data-" x of
+       Just x' | x' `Set.notMember` (html5Attributes <>
+                                     html4Attributes <> rdfaAttributes)
+         -> (x',y)
+       _ -> (x,y)
+
+mkAttr :: [(Text, Text)] -> Attr
+mkAttr attr = (attribsId, attribsClasses, attribsKV)
+  where attribsId = fromMaybe "" $ lookup "id" attr
+        attribsClasses = T.words (fromMaybe "" $ lookup "class" attr) <> epubTypes
+        attribsKV = filter (\(k,_) -> k /= "class" && k /= "id") attr
+        epubTypes = T.words $ fromMaybe "" $ lookup "epub:type" attr
+
+toAttr :: [(Text, Text)] -> Attr
+toAttr = mkAttr . toStringAttr

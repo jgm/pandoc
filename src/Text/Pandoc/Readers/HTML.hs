@@ -50,10 +50,10 @@ import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.HTML.Parsing
+import Text.Pandoc.Readers.HTML.Table (pTable')
 import Text.Pandoc.Readers.HTML.TagCategories
 import Text.Pandoc.Readers.HTML.Types
 import Text.Pandoc.Readers.LaTeX (rawLaTeXInline)
-import Text.Pandoc.XML (html5Attributes, html4Attributes, rdfaAttributes)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (
@@ -64,7 +64,7 @@ import Text.Pandoc.Options (
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
                            extractSpaces, htmlSpanLikeElements, elemText, splitTextBy,
-                           onlySimpleTableCells, safeRead, tshow)
+                           safeRead, tshow)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
@@ -474,79 +474,7 @@ pHrule = do
   return B.horizontalRule
 
 pTable :: PandocMonad m => TagParser m Blocks
-pTable = try $ do
-  TagOpen _ attribs' <- pSatisfy (matchTagOpen "table" [])
-  let attribs = toAttr attribs'
-  skipMany pBlank
-  caption <- option mempty $ pInTags "caption" inline <* skipMany pBlank
-  widths' <- (mconcat <$> many1 pColgroup) <|> many pCol
-  let pTh = option [] $ pInTags "tr" (pCell "th")
-      pTr = try $ skipMany pBlank >>
-                  pInTags "tr" (pCell "td" <|> pCell "th")
-      pTBody = pInTag True "tbody" $ many1 pTr
-  head'' <- pInTag False "thead" (option [] pTr) <|> pInTag True "thead" pTh
-  head'  <- map snd <$>
-             pInTag True "tbody"
-               (if null head'' then pTh else return head'')
-  topfoot <- option [] $ pInTag False "tfoot" $ many pTr
-  rowsLs <- many pTBody
-  bottomfoot <- option [] $ pInTag False "tfoot" $ many pTr
-  TagClose _ <- pSatisfy (matchTagClose "table")
-  let rows'' = concat rowsLs <> topfoot <> bottomfoot
-  let rows''' = map (map snd) rows''
-  -- fail on empty table
-  guard $ not $ null head' && null rows'''
-  let isSimple = onlySimpleTableCells $ fmap B.toList <$> head':rows'''
-  let cols = if null head'
-                then maximum (map length rows''')
-                else length head'
-  -- add empty cells to short rows
-  let addEmpties r = case cols - length r of
-                           n | n > 0 -> r <> replicate n mempty
-                             | otherwise -> r
-  let rows = map addEmpties rows'''
-  let aligns = case rows'' of
-                    (cs:_) -> take cols $ map fst cs ++ repeat AlignDefault
-                    _      -> replicate cols AlignDefault
-  let widths = if null widths'
-                  then if isSimple
-                       then replicate cols ColWidthDefault
-                       else replicate cols (ColWidth (1.0 / fromIntegral cols))
-                  else widths'
-  let toRow = Row nullAttr . map B.simpleCell
-      toHeaderRow l = [toRow l | not (null l)]
-  return $ B.tableWith attribs
-                   (B.simpleCaption $ B.plain caption)
-                   (zip aligns widths)
-                   (TableHead nullAttr $ toHeaderRow head')
-                   [TableBody nullAttr 0 [] $ map toRow rows]
-                   (TableFoot nullAttr [])
-
-pCol :: PandocMonad m => TagParser m ColWidth
-pCol = try $ do
-  TagOpen _ attribs' <- pSatisfy (matchTagOpen "col" [])
-  let attribs = toStringAttr attribs'
-  skipMany pBlank
-  optional $ pSatisfy (matchTagClose "col")
-  skipMany pBlank
-  let width = case lookup "width" attribs of
-                Nothing -> case lookup "style" attribs of
-                  Just (T.stripPrefix "width:" -> Just xs) | T.any (== '%') xs ->
-                    fromMaybe 0.0 $ safeRead (T.filter
-                      (`notElem` (" \t\r\n%'\";" :: [Char])) xs)
-                  _ -> 0.0
-                Just (T.unsnoc -> Just (xs, '%')) ->
-                  fromMaybe 0.0 $ safeRead xs
-                _ -> 0.0
-  if width > 0.0
-    then return $ ColWidth $ width / 100.0
-    else return ColWidthDefault
-
-pColgroup :: PandocMonad m => TagParser m [ColWidth]
-pColgroup = try $ do
-  pSatisfy (matchTagOpen "colgroup" [])
-  skipMany pBlank
-  manyTill pCol (pCloses "colgroup" <|> eof) <* skipMany pBlank
+pTable = pTable' inline pCell
 
 noColOrRowSpans :: Tag Text -> Bool
 noColOrRowSpans t = isNullOrOne "colspan" && isNullOrOne "rowspan"
@@ -847,16 +775,6 @@ pRawHtmlInline = do
 mathMLToTeXMath :: Text -> Either Text Text
 mathMLToTeXMath s = writeTeX <$> readMathML s
 
-toStringAttr :: [(Text, Text)] -> [(Text, Text)]
-toStringAttr = map go
-  where
-   go (x,y) =
-     case T.stripPrefix "data-" x of
-       Just x' | x' `Set.notMember` (html5Attributes <>
-                                     html4Attributes <> rdfaAttributes)
-         -> (x',y)
-       _ -> (x,y)
-
 pScriptMath :: PandocMonad m => TagParser m Inlines
 pScriptMath = try $ do
   TagOpen _ attr' <- pSatisfy $ tagOpen (=="script") (const True)
@@ -1150,16 +1068,6 @@ htmlTag f = try $ do
        TagClose tagname ->
          handleTag tagname
        _ -> mzero
-
-mkAttr :: [(Text, Text)] -> Attr
-mkAttr attr = (attribsId, attribsClasses, attribsKV)
-  where attribsId = fromMaybe "" $ lookup "id" attr
-        attribsClasses = T.words (fromMaybe "" $ lookup "class" attr) <> epubTypes
-        attribsKV = filter (\(k,_) -> k /= "class" && k /= "id") attr
-        epubTypes = T.words $ fromMaybe "" $ lookup "epub:type" attr
-
-toAttr :: [(Text, Text)] -> Attr
-toAttr = mkAttr . toStringAttr
 
 -- Strip namespace prefixes
 stripPrefixes :: [Tag Text] -> [Tag Text]
