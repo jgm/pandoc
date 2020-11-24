@@ -732,9 +732,9 @@ mkLvl marker lvl =
     , mknode "w:lvlText" [("w:val",lvltxt)] ()
     , mknode "w:lvlJc" [("w:val","left")] ()
     , mknode "w:pPr" []
-      [ mknode "w:tabs" []
-        $ mknode "w:tab" [("w:val","num"),("w:pos",show $ lvl * step)] ()
-      , mknode "w:ind" [("w:left",show $ lvl * step + hang),("w:hanging",show hang)] ()
+      [ mknode "w:ind" [ ("w:left",show $ lvl * step + step)
+                       , ("w:hanging",show (hang :: Int))
+                       ] ()
       ]
     ]
     where (fmt, lvltxt, start) =
