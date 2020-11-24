@@ -59,8 +59,8 @@ pColgroup = try $ do
 
 -- | Parses a simple HTML table
 pTable' :: PandocMonad m
-        => TagParser m Blocks                          -- ^ Caption parser
-        -> (Text -> TagParser m [(Alignment, Blocks)]) -- ^ Table cell parser
+        => TagParser m Blocks           -- ^ Caption parser
+        -> (Text -> TagParser m [Cell]) -- ^ Table cell parser
         -> TagParser m Blocks
 pTable' block pCell = try $ do
   TagOpen _ attribs' <- pSatisfy (matchTagOpen "table" [])
@@ -73,35 +73,31 @@ pTable' block pCell = try $ do
                   pInTags "tr" (pCell "td" <|> pCell "th")
       pTBody = pInTag True "tbody" $ many1 pTr
   head'' <- pInTag False "thead" (option [] pTr) <|> pInTag True "thead" pTh
-  head'  <- map snd <$>
-             pInTag True "tbody"
+  head'  <- pInTag True "tbody"
                (if null head'' then pTh else return head'')
   topfoot <- option [] $ pInTag False "tfoot" $ many pTr
   rowsLs <- many pTBody
   bottomfoot <- option [] $ pInTag False "tfoot" $ many pTr
   TagClose _ <- pSatisfy (matchTagClose "table")
-  let rows'' = concat rowsLs <> topfoot <> bottomfoot
-  let rows''' = map (map snd) rows''
+  let rows = concat rowsLs <> topfoot <> bottomfoot
+      rows''' = map (map cellContents) rows
   -- fail on empty table
   guard $ not $ null head' && null rows'''
-  let isSimple = onlySimpleTableCells $ fmap B.toList <$> head':rows'''
+  let isSimple = onlySimpleTableCells $
+                 map cellContents head' : rows'''
   let cols = if null head'
                 then maximum (map length rows''')
                 else length head'
-  -- add empty cells to short rows
-  let addEmpties r = case cols - length r of
-                           n | n > 0 -> r <> replicate n mempty
-                             | otherwise -> r
-  let rows = map addEmpties rows'''
-  let aligns = case rows'' of
-                    (cs:_) -> take cols $ map fst cs ++ repeat AlignDefault
-                    _      -> replicate cols AlignDefault
+  let aligns = case rows of
+                 (cs:_) -> take cols $
+                           concatMap cellAligns cs ++ repeat AlignDefault
+                 _      -> replicate cols AlignDefault
   let widths = if null widths'
                   then if isSimple
                        then replicate cols ColWidthDefault
                        else replicate cols (ColWidth (1.0 / fromIntegral cols))
                   else widths'
-  let toRow = Row nullAttr . map B.simpleCell
+  let toRow = Row nullAttr
       toHeaderRow l = [toRow l | not (null l)]
   return $ B.tableWith attribs
                    (B.simpleCaption caption)
@@ -109,3 +105,9 @@ pTable' block pCell = try $ do
                    (TableHead nullAttr $ toHeaderRow head')
                    [TableBody nullAttr 0 [] $ map toRow rows]
                    (TableFoot nullAttr [])
+
+cellContents :: Cell -> [Block]
+cellContents (Cell _ _ _ _ bs) = bs
+
+cellAligns :: Cell -> [Alignment]
+cellAligns (Cell _ align _ (ColSpan cs) _) = replicate cs align

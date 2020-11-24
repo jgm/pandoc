@@ -476,18 +476,10 @@ pHrule = do
 pTable :: PandocMonad m => TagParser m Blocks
 pTable = pTable' block pCell
 
-noColOrRowSpans :: Tag Text -> Bool
-noColOrRowSpans t = isNullOrOne "colspan" && isNullOrOne "rowspan"
-  where isNullOrOne x = case fromAttrib x t of
-                              ""  -> True
-                              "1" -> True
-                              _   -> False
-
-pCell :: PandocMonad m => Text -> TagParser m [(Alignment, Blocks)]
+pCell :: PandocMonad m => Text -> TagParser m [Cell]
 pCell celltype = try $ do
   skipMany pBlank
-  tag <- lookAhead $
-           pSatisfy (\t -> t ~== TagOpen celltype [] && noColOrRowSpans t)
+  tag <- lookAhead $ pSatisfy (\t -> t ~== TagOpen celltype [])
   let extractAlign' []                 = ""
       extractAlign' ("text-align":x:_) = x
       extractAlign' (_:xs)             = extractAlign' xs
@@ -498,9 +490,13 @@ pCell celltype = try $ do
                    Just "right"  -> AlignRight
                    Just "center" -> AlignCenter
                    _             -> AlignDefault
-  res <- pInTags' celltype noColOrRowSpans block
+  let rowspan = RowSpan . fromMaybe 1 $
+                safeRead =<< maybeFromAttrib "rowspan" tag
+  let colspan = ColSpan . fromMaybe 1 $
+                safeRead =<< maybeFromAttrib "colspan" tag
+  res <- pInTags celltype block
   skipMany pBlank
-  return [(align, res)]
+  return [B.cell align rowspan colspan res]
 
 pBlockQuote :: PandocMonad m => TagParser m Blocks
 pBlockQuote = do
