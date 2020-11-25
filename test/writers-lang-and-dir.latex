@@ -56,7 +56,10 @@
   \setotherlanguage[]{spanish}
   \setotherlanguage[]{french}
 \else
-  \usepackage[shorthands=off,ngerman,british,nswissgerman,spanish,french,main=english]{babel}
+  \usepackage[ngerman,british,nswissgerman,spanish,french,main=english]{babel}
+% get rid of language-specific shorthands (see #6817):
+\let\LanguageShortHands\languageshorthands
+\def\languageshorthands#1{}
   \newcommand{\textgerman}[2][]{\foreignlanguage{ngerman}{#2}}
   \newenvironment{german}[2][]{\begin{otherlanguage}{ngerman}}{\end{otherlanguage}}
   \newcommand{\textenglish}[2][]{\foreignlanguage{british}{#2}}
