@@ -46,7 +46,7 @@ import Text.HTML.TagSoup.Match
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
-import Text.Pandoc.CSS (foldOrElse, pickStyleAttrProps)
+import Text.Pandoc.CSS (pickStyleAttrProps)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.HTML.Parsing
@@ -290,23 +290,14 @@ pOrderedList :: PandocMonad m => TagParser m Blocks
 pOrderedList = try $ do
   TagOpen _ attribs' <- pSatisfy (matchTagOpen "ol" [])
   let attribs = toStringAttr attribs'
-  let (start, style) = (sta', sty')
-                       where sta = fromMaybe "1" $
-                                   lookup "start" attribs
-                             sta' = fromMaybe 1 $ safeRead sta
+  let start = fromMaybe 1 $ lookup "start" attribs >>= safeRead
+  let style = fromMaybe DefaultStyle
+         $  (parseTypeAttr      <$> lookup "type" attribs)
+        <|> (parseListStyleType <$> lookup "class" attribs)
+        <|> (parseListStyleType <$> (lookup "style" attribs >>= pickListStyle))
+        where
+          pickListStyle = pickStyleAttrProps ["list-style-type", "list-style"]
 
-                             pickListStyle = pickStyleAttrProps ["list-style-type", "list-style"]
-
-                             typeAttr  = fromMaybe "" $ lookup "type"  attribs
-                             classAttr = fromMaybe "" $ lookup "class" attribs
-                             styleAttr = fromMaybe "" $ lookup "style" attribs
-                             listStyle = fromMaybe "" $ pickListStyle styleAttr
-
-                             sty' = foldOrElse DefaultStyle
-                                      [ parseTypeAttr      typeAttr
-                                      , parseListStyleType classAttr
-                                      , parseListStyleType listStyle
-                                      ]
   let nonItem = pSatisfy (\t ->
                   not (tagOpen (`elem` ["li","ol","ul","dl"]) (const True) t) &&
                   not (matchTagClose "ol" t))

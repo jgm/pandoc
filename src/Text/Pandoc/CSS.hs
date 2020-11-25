@@ -11,13 +11,13 @@ Portability : portable
 
 Tools for working with CSS.
 -}
-module Text.Pandoc.CSS ( foldOrElse
-                       , pickStyleAttrProps
+module Text.Pandoc.CSS ( pickStyleAttrProps
                        , pickStylesToKVs
                        )
 where
 
 import qualified Data.Text as T
+import Data.Maybe (mapMaybe, listToMaybe)
 import Text.Pandoc.Shared (trim)
 import Text.Parsec
 import Text.Parsec.Text
@@ -30,12 +30,6 @@ ruleParser = do
 
 styleAttrParser :: Parser [(T.Text, T.Text)]
 styleAttrParser = many1 ruleParser
-
-orElse :: Eq a => a -> a -> a -> a
-orElse v x y = if v == x then y else x
-
-foldOrElse :: Eq a => a -> [a] -> a
-foldOrElse v xs = foldr (orElse v) v xs
 
 eitherToMaybe :: Either a b -> Maybe b
 eitherToMaybe (Right x) = Just x
@@ -54,4 +48,4 @@ pickStylesToKVs props styleAttr =
 pickStyleAttrProps :: [T.Text] -> T.Text -> Maybe T.Text
 pickStyleAttrProps lookupProps styleAttr = do
     styles <- eitherToMaybe $ parse styleAttrParser "" styleAttr
-    foldOrElse Nothing $ map (`lookup` styles) lookupProps
+    listToMaybe $ mapMaybe (`lookup` styles) lookupProps
