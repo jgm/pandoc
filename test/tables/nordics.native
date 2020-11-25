@@ -1,46 +1,73 @@
-[Table ("nordics",[],[("source","wikipedia")]) (Caption (Just [Str "Nordic countries"])
- [Para [Str "States", Space, Str "belonging", Space, Str "to", Space, Str "the", Space, Emph [Str "Nordics."]]])
+[Table ("nordics",[],[("source","wikipedia")]) (Caption (Just [Str "Nordic",Space,Str "countries"])
+ [Para [Str "States",Space,Str "belonging",Space,Str "to",Space,Str "the",Space,Emph [Str "Nordics."]]])
  [(AlignCenter,ColWidth 0.3)
  ,(AlignLeft,ColWidth 0.3)
  ,(AlignLeft,ColWidth 0.2)
  ,(AlignLeft,ColWidth 0.2)]
  (TableHead ("",["simple-head"],[])
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1) [Plain [Str "Name"]]
-   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1) [Plain [Str "Capital"]]
-   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1) [Plain [Str "Population", LineBreak, Str "(in", Space, Str "2018)"]]
-   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1) [Plain [Str "Area", LineBreak, Str "(in", Space, Str "km", Superscript [Str "2"], Str ")"]]]])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Name"]]
+  ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Capital"]]
+  ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Population",LineBreak,Str "(in",Space,Str "2018)"]]
+  ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Area",LineBreak,Str "(in",Space,Str "km",Superscript [Str "2"],Str ")"]]]])
  [(TableBody ("",["souvereign-states"],[]) (RowHeadColumns 1)
   []
   [Row ("",["country"],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Denmark"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Copenhagen"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "5,809,502"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "43,094"]]]
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Denmark"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Copenhagen"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "5,809,502"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "43,094"]]]
   ,Row ("",["country"],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Finland"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Helsinki"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "5,537,364"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "338,145"]]]
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Finland"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Helsinki"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "5,537,364"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "338,145"]]]
   ,Row ("",["country"],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Iceland"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Reykjavik"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "343,518"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "103,000"]]]
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Iceland"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Reykjavik"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "343,518"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "103,000"]]]
   ,Row ("",["country"],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Norway"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Oslo"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "5,372,191"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "323,802"]]]
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Norway"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Oslo"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "5,372,191"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "323,802"]]]
   ,Row ("",["country"],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Sweden"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Stockholm"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "10,313,447"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "450,295"]]]])]
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Sweden"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Stockholm"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "10,313,447"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "450,295"]]]])]
  (TableFoot ("",[],[])
-  [Row ("summary",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Total"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) []
-   ,Cell ("total-population",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "27,376,022"]]
-   ,Cell ("total-area",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "1,258,336"]]]])
-]
+ [Row ("summary",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Total"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   []
+  ,Cell ("total-population",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "27,376,022"]]
+  ,Cell ("total-area",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "1,258,336"]]]])]
