@@ -1,37 +1,54 @@
 [Table ("students",[],[("source","mdn")]) (Caption Nothing
- [Para [Str "List", Space, Str "of", Space, Str "Students"]])
+ [Para [Str "List",Space,Str "of",Space,Str "Students"]])
  [(AlignLeft,ColWidth 0.5)
  ,(AlignLeft,ColWidth 0.5)]
  (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Student",Space,Str "ID"]]
+  ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Name"]]]])
+ [(TableBody ("",["souvereign-states"],[]) (RowHeadColumns 0)
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1) [Plain [Str "Student", Space, Str "ID"]]
-   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1) [Plain [Str "Name"]]]])
- [TableBody ("",["souvereign-states"],[]) (RowHeadColumns 0)
-   [Row ("",[],[])
-    [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2) [Plain [Str "Computer", Space, Str "Science"]]]]
-   [Row ("",[],[])
-    [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "3741255"]]
-    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Jones,", Space, Str "Martha"]]]
-   ,Row ("",[],[])
-    [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "4077830"]]
-    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Pierce,", Space, Str "Benjamin"]]]
-   ,Row ("",[],[])
-    [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "5151701"]]
-    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Kirk,", Space, Str "James"]]]]
- ,TableBody ("",[],[]) (RowHeadColumns 0)
-   [Row ("",[],[])
-    [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2) [Plain [Str "Russian", Space, Str "Literature"]]]]
-   [Row ("",[],[])
-    [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "3971244"]]
-    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Nim,", Space, Str "Victor"]]]]
- ,TableBody ("",[],[]) (RowHeadColumns 0)
-   [Row ("",[],[])
-    [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2) [Plain [Str "Astrophysics"]]]]
-   [Row ("",[],[])
-    [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "4100332"]]
-    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Petrov,", Space, Str "Alexandra"]]]
-   ,Row ("",[],[])
-    [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "4100332"]]
-    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Toyota,", Space, Str "Hiroko"]]]]]
- (TableFoot ("",[],[]) [])
-]
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2)
+    [Plain [Str "Computer",Space,Str "Science"]]]]
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "3741255"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Jones,",Space,Str "Martha"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "4077830"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Pierce,",Space,Str "Benjamin"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "5151701"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Kirk,",Space,Str "James"]]]])
+ ,(TableBody ("",[],[]) (RowHeadColumns 0)
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2)
+    [Plain [Str "Russian",Space,Str "Literature"]]]]
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "3971244"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Nim,",Space,Str "Victor"]]]])
+ ,(TableBody ("",[],[]) (RowHeadColumns 0)
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2)
+    [Plain [Str "Astrophysics"]]]]
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "4100332"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Petrov,",Space,Str "Alexandra"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "4100332"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Toyota,",Space,Str "Hiroko"]]]])]
+ (TableFoot ("",[],[])
+ [])]

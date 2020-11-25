@@ -1,5 +1,5 @@
 [Table ("",[],[]) (Caption Nothing
- [Para [Str "Data about the planets of our solar system."]])
+ [Para [Str "Data",Space,Str "about",Space,Str "the",Space,Str "planets",Space,Str "of",Space,Str "our",Space,Str "solar",Space,Str "system."]])
  [(AlignCenter,ColWidthDefault)
  ,(AlignCenter,ColWidthDefault)
  ,(AlignDefault,ColWidthDefault)
@@ -13,126 +13,229 @@
  ,(AlignRight,ColWidthDefault)
  ,(AlignDefault,ColWidthDefault)]
  (TableHead ("",[],[])
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2) [Plain [Str ""]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Name"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Mass (10^24kg)"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Diameter (km)"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Density (kg/m^3)"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Gravity (m/s^2)"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Length of day (hours)"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Distance from Sun (10^6km)"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Mean temperature (C)"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Number of moons"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Notes"]]]]
- )
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2)
+   []
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Name"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Mass",Space,Str "(10^24kg)"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Diameter",Space,Str "(km)"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Density",Space,Str "(kg/m^3)"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Gravity",Space,Str "(m/s^2)"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Length",Space,Str "of",Space,Str "day",Space,Str "(hours)"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Distance",Space,Str "from",Space,Str "Sun",Space,Str "(10^6km)"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Mean",Space,Str "temperature",Space,Str "(C)"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Number",Space,Str "of",Space,Str "moons"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Notes"]]]])
  [(TableBody ("",[],[]) (RowHeadColumns 3)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 4) (ColSpan 2) [Plain [Str "Terrestrial planets"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Mercury"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "0.330"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "4,879"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "5427"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "3.7"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "4222.6"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "57.9"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "167"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "0"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Closest to the Sun"]]]
+   [Cell ("",[],[]) AlignDefault (RowSpan 4) (ColSpan 2)
+    [Plain [Str "Terrestrial",Space,Str "planets"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Mercury"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "0.330"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "4,879"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "5427"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "3.7"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "4222.6"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "57.9"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "167"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "0"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Closest",Space,Str "to",Space,Str "the",Space,Str "Sun"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Venus"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "4.87"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "12,104"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "5243"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "8.9"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "2802.0"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "108.2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "464"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "0"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str ""]]]
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Venus"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "4.87"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "12,104"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "5243"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "8.9"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "2802.0"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "108.2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "464"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "0"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    []]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Earth"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "5.97"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "12,756"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "5514"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "9.8"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "24.0"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "149.6"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "15"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Our world"]]]
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Earth"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "5.97"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "12,756"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "5514"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "9.8"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "24.0"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "149.6"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "15"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Our",Space,Str "world"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Mars"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "0.642"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "6,792"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "3933"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "3.7"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "24.7"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "227.9"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "-65"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "The red planet"]]]
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Mars"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "0.642"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "6,792"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "3933"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "3.7"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "24.7"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "227.9"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "-65"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "The",Space,Str "red",Space,Str "planet"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 4) (ColSpan 1) [Plain [Str "Jovian planets"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 2) (ColSpan 1) [Plain [Str "Gas giants"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Jupiter"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "1898"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "142,984"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "1326"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "23.1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "9.9"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "778.6"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "-110"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "67"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "The largest planet"]]]
+   [Cell ("",[],[]) AlignDefault (RowSpan 4) (ColSpan 1)
+    [Plain [Str "Jovian",Space,Str "planets"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 2) (ColSpan 1)
+    [Plain [Str "Gas",Space,Str "giants"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Jupiter"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "1898"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "142,984"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "1326"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "23.1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "9.9"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "778.6"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "-110"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "67"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "The",Space,Str "largest",Space,Str "planet"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Saturn"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "568"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "120,536"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "687"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "9.0"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "10.7"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "1433.5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "-140"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "62"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str ""]]]
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Saturn"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "568"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "120,536"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "687"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "9.0"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "10.7"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "1433.5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "-140"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "62"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    []]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 2) (ColSpan 1) [Plain [Str "Ice giants"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Uranus"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "86.8"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "51,118"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "1271"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "8.7"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "17.2"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "2872.5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "-195"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "27"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str ""]]]
+   [Cell ("",[],[]) AlignDefault (RowSpan 2) (ColSpan 1)
+    [Plain [Str "Ice",Space,Str "giants"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Uranus"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "86.8"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "51,118"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "1271"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "8.7"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "17.2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "2872.5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "-195"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "27"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    []]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Neptune"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "102"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "49,528"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "1638"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "11.0"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "16.1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "4495.1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "-200"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "14"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str ""]]]
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Neptune"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "102"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "49,528"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "1638"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "11.0"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "16.1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "4495.1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "-200"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "14"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    []]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2) [Plain [Str "Dwarf planets"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Pluto"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "0.0146"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "2,370"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "2095"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "0.7"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "153.3"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "5906.4"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "-225"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "5"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "Declassified as a planet in 2006."]]]])]
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2)
+    [Plain [Str "Dwarf",Space,Str "planets"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Pluto"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "0.0146"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "2,370"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "2095"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "0.7"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "153.3"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "5906.4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "-225"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Declassified",Space,Str "as",Space,Str "a",Space,Str "planet",Space,Str "in",Space,Str "2006."]]]])]
  (TableFoot ("",[],[])
- []
- )
-]
+ [])]
