@@ -527,9 +527,9 @@ deNote (Note bs:rest) =
   go [] = []
   go (Cite (c:cs) ils : zs)
     | citationMode c == AuthorInText
-      = Cite cs (concatMap (noteAfterComma (needsPeriod zs)) ils) : go zs
+      = Cite (c:cs) (concatMap (noteAfterComma (needsPeriod zs)) ils) : go zs
     | otherwise
-      = Cite cs (concatMap noteInParens ils) : go zs
+      = Cite (c:cs) (concatMap noteInParens ils) : go zs
   go (x:xs) = x : go xs
   needsPeriod [] = True
   needsPeriod (Str t:_) = case T.uncons t of
