@@ -778,8 +778,17 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   return hdr
 blockToLaTeX (Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, heads, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+  -- simple tables have to have simple cells:
+  let isSimple [Plain _] = True
+      isSimple [Para  _] = True
+      isSimple []        = True
+      isSimple _         = False
+  let widths' = if all (== 0) widths && not (all (all isSimple) rows)
+                   then replicate (length aligns)
+                          (1 / fromIntegral (length aligns))
+                   else widths
   (captionText, captForLof, captNotes) <- getCaption False caption
-  let toHeaders hs = do contents <- tableRowToLaTeX True aligns widths hs
+  let toHeaders hs = do contents <- tableRowToLaTeX True aligns hs
                         return ("\\toprule" $$ contents $$ "\\midrule")
   let removeNote (Note _) = Span ("", [], []) []
       removeNote x        = x
@@ -796,8 +805,12 @@ blockToLaTeX (Table _ blkCapt specs thead tbody tfoot) = do
                 then empty
                 else "\\caption" <> captForLof <> braces captionText
                          <> "\\tabularnewline"
-  rows' <- mapM (tableRowToLaTeX False aligns widths) rows
-  let colDescriptors = literal $ T.concat $ map toColDescriptor aligns
+  rows' <- mapM (tableRowToLaTeX False aligns) rows
+  let colDescriptors =
+         (if all (== 0) widths'
+             then hcat . map literal
+             else (\xs -> cr <> nest 2 (vcat $ map literal xs))) $
+         zipWith (toColDescriptor (length widths')) aligns widths'
   modify $ \s -> s{ stTable = True }
   notes <- notesToLaTeX <$> gets stNotes
   return $ "\\begin{longtable}[]" <>
@@ -832,13 +845,26 @@ getCaption externalNotes txt = do
                    else return empty
   return (capt, captForLof, footnotes)
 
-toColDescriptor :: Alignment -> Text
-toColDescriptor align =
+toColDescriptor :: Int -> Alignment -> Double -> Text
+toColDescriptor _numcols align 0 =
   case align of
          AlignLeft    -> "l"
          AlignRight   -> "r"
          AlignCenter  -> "c"
          AlignDefault -> "l"
+toColDescriptor numcols align width =
+  T.pack $ printf
+     ">{%s\\arraybackslash}p{(\\columnwidth - %d\\tabcolsep) * \\real{%0.2f}}"
+     align'
+     ((numcols - 1) * 2)
+     width
+ where
+   align' :: String
+   align' = case align of
+              AlignLeft    -> "\\raggedright"
+              AlignRight   -> "\\raggedleft"
+              AlignCenter  -> "\\centering"
+              AlignDefault -> "\\raggedright"
 
 blockListToLaTeX :: PandocMonad m => [Block] -> LW m (Doc Text)
 blockListToLaTeX lst =
@@ -847,21 +873,10 @@ blockListToLaTeX lst =
 tableRowToLaTeX :: PandocMonad m
                 => Bool
                 -> [Alignment]
-                -> [Double]
                 -> [[Block]]
                 -> LW m (Doc Text)
-tableRowToLaTeX header aligns widths cols = do
-  let isSimple [Plain _] = True
-      isSimple [Para  _] = True
-      isSimple []        = True
-      isSimple _         = False
-  -- simple tables have to have simple cells:
-  let widths' = if all (== 0) widths && not (all isSimple cols)
-                   then replicate (length aligns)
-                          (1 / fromIntegral (length aligns))
-                   else widths
-  let numcols = length widths'
-  cells <- mapM (tableCellToLaTeX header numcols) $ zip3 widths' aligns cols
+tableRowToLaTeX header aligns cols = do
+  cells <- mapM (tableCellToLaTeX header) $ zip aligns cols
   return $ hsep (intersperse "&" cells) <> " \\\\ \\addlinespace"
 
 -- For simple latex tables (without minipages or parboxes),
@@ -889,34 +904,39 @@ displayMathToInline (Math DisplayMath x) = Math InlineMath x
 displayMathToInline x                    = x
 
 tableCellToLaTeX :: PandocMonad m
-                 => Bool -> Int -> (Double, Alignment, [Block])
+                 => Bool -> (Alignment, [Block])
                  -> LW m (Doc Text)
-tableCellToLaTeX _ _    (0,     _,     blocks) =
-  blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
-tableCellToLaTeX header numcols (width, align, blocks) = do
+tableCellToLaTeX header (align, blocks) = do
   beamer <- gets stBeamer
   externalNotes <- gets stExternalNotes
   inMinipage <- gets stInMinipage
   -- See #5367 -- footnotehyper/footnote don't work in beamer,
   -- so we need to produce the notes outside the table...
-  modify $ \st -> st{ stExternalNotes = beamer,
-                      stInMinipage = True }
-  cellContents <- blockListToLaTeX blocks
-  modify $ \st -> st{ stExternalNotes = externalNotes,
-                      stInMinipage = inMinipage }
-  let valign = text $ if header then "[b]" else "[t]"
-  let halign = case align of
-               AlignLeft    -> "\\raggedright"
-               AlignRight   -> "\\raggedleft"
-               AlignCenter  -> "\\centering"
-               AlignDefault -> "\\raggedright"
-  return $ "\\begin{minipage}" <> valign <>
-           braces (text (printf
-              "(\\columnwidth - %d\\tabcolsep) * \\real{%.2f}"
-              (2 * (numcols - 1)) width)) <>
-           halign <> cr <> cellContents <> cr <>
-           "\\end{minipage}"
--- (\columnwidth - 8\tabcolsep) * \real{0.15}
+  modify $ \st -> st{ stExternalNotes = beamer }
+  let isPlainOrPara Para{}  = True
+      isPlainOrPara Plain{} = True
+      isPlainOrPara _       = False
+  result <-
+    if all isPlainOrPara blocks
+       then
+         blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
+       else do
+         modify $ \st -> st{ stInMinipage = True }
+         cellContents <- blockListToLaTeX blocks
+         modify $ \st -> st{ stInMinipage = inMinipage }
+         let valign = text $ if header then "[b]" else "[t]"
+         let halign = case align of
+                      AlignLeft    -> "\\raggedright"
+                      AlignRight   -> "\\raggedleft"
+                      AlignCenter  -> "\\centering"
+                      AlignDefault -> "\\raggedright"
+         return $ "\\begin{minipage}" <> valign <>
+                  braces "\\linewidth" <> halign <> cr <>
+                  cellContents <> cr <>
+                  "\\end{minipage}"
+  modify $ \st -> st{ stExternalNotes = externalNotes }
+  return result
+
 
 notesToLaTeX :: [Doc Text] -> Doc Text
 notesToLaTeX [] = empty
