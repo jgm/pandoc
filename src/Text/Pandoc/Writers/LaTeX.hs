@@ -913,7 +913,7 @@ tableCellToLaTeX header numcols (width, align, blocks) = do
   return $ "\\begin{minipage}" <> valign <>
            braces (text (printf
               "(\\columnwidth - %d\\tabcolsep) * \\real{%.2f}"
-              (numcols - 1) width)) <>
+              (2 * (numcols - 1)) width)) <>
            halign <> cr <> cellContents <> cr <>
            "\\end{minipage}"
 -- (\columnwidth - 8\tabcolsep) * \real{0.15}
