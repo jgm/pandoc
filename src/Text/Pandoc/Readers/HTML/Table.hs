@@ -69,15 +69,16 @@ pTable' block pCell = try $ do
   caption <- option mempty $ pInTags "caption" block <* skipMany pBlank
   widths' <- (mconcat <$> many1 pColgroup) <|> many pCol
   let pTh = option [] $ pInTags "tr" (pCell "th")
-      pTr = try $ skipMany pBlank >>
-                  pInTags "tr" (pCell "td" <|> pCell "th")
-      pTBody = pInTag True "tbody" $ many1 pTr
-  head'' <- pInTag False "thead" (option [] pTr) <|> pInTag True "thead" pTh
-  head'  <- pInTag True "tbody"
+      pTr = try $ skipMany pBlank
+               *> pInTags "tr" (pCell "td" <|> pCell "th")
+      pTBody = pInTag TagsOmittable "tbody" $ many1 pTr
+  head'' <- pInTag ClosingTagOptional "thead" (option [] pTr)
+        <|> pInTag TagsOmittable "thead" pTh
+  head'  <- pInTag TagsOmittable "tbody"
                (if null head'' then pTh else return head'')
-  topfoot <- option [] $ pInTag False "tfoot" $ many pTr
+  topfoot <- option [] $ pInTag TagsRequired "tfoot" $ many pTr
   rowsLs <- many pTBody
-  bottomfoot <- option [] $ pInTag False "tfoot" $ many pTr
+  bottomfoot <- option [] $ pInTag ClosingTagOptional "tfoot" $ many pTr
   TagClose _ <- pSatisfy (matchTagClose "table")
   let rows = concat rowsLs <> topfoot <> bottomfoot
       rows''' = map (map cellContents) rows

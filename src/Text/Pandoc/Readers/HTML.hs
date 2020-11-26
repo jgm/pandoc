@@ -514,7 +514,7 @@ pFigure = try $ do
   TagOpen _ _ <- pSatisfy (matchTagOpen "figure" [])
   skipMany pBlank
   let pImg  = (\x -> (Just x, Nothing)) <$>
-               (pInTag True "p" pImage <* skipMany pBlank)
+               (pInTag TagsOmittable "p" pImage <* skipMany pBlank)
       pCapt = (\x -> (Nothing, Just x)) <$> do
                 bs <- pInTags "figcaption" block
                 return $ blocksToInlines' $ B.toList bs

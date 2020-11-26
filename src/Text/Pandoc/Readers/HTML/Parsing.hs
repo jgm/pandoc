@@ -11,7 +11,8 @@
 Parsing functions and utilities.
 -}
 module Text.Pandoc.Readers.HTML.Parsing
-  ( pInTags
+  ( TagOmission (..)
+  , pInTags
   , pInTags'
   , pInTag
   , pAny
@@ -43,6 +44,13 @@ import Text.Pandoc.XML (html5Attributes, html4Attributes, rdfaAttributes)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 
+-- | Whether no tag, the closing tag, or both tags can be omitted.
+data TagOmission
+  = TagsRequired       -- ^ Opening and closing tags are both required
+  | ClosingTagOptional -- ^ The closing tag can be omitted
+  | TagsOmittable      -- ^ Both tags, opening and closing, can be omitted.
+  deriving (Eq)
+
 pInTags :: (PandocMonad m, Monoid a) => Text -> TagParser m a -> TagParser m a
 pInTags tagtype parser = pInTags' tagtype (const True) parser
 
@@ -57,14 +65,18 @@ pInTags' tagtype tagtest parser = try $ do
 
 -- parses p, preceded by an opening tag (optional if tagsOptional)
 -- and followed by a closing tag (optional if tagsOptional)
-pInTag :: PandocMonad m => Bool -> Text -> TagParser m a -> TagParser m a
-pInTag tagsOptional tagtype p = try $ do
+pInTag :: PandocMonad m => TagOmission -> Text -> TagParser m a -> TagParser m a
+pInTag tagOmission tagtype p = try $ do
   skipMany pBlank
-  (if tagsOptional then optional else void) $ pSatisfy (matchTagOpen tagtype [])
+  let openingOptional = tagOmission == TagsOmittable
+  let closingOptional = tagOmission /= TagsRequired
+  (if openingOptional then optional else void) $
+    pSatisfy (matchTagOpen tagtype [])
   skipMany pBlank
   x <- p
   skipMany pBlank
-  (if tagsOptional then optional else void) $ pSatisfy (matchTagClose tagtype)
+  (if closingOptional then optional else void) $
+    pSatisfy (matchTagClose tagtype)
   skipMany pBlank
   return x
 
