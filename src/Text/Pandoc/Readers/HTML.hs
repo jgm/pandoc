@@ -26,7 +26,7 @@ module Text.Pandoc.Readers.HTML ( readHtml
 
 import Control.Applicative ((<|>))
 import Control.Arrow (first)
-import Control.Monad (guard, mplus, msum, mzero, unless, void)
+import Control.Monad (guard, msum, mzero, unless, void)
 import Control.Monad.Except (throwError)
 import Control.Monad.Reader (ask, asks, lift, local, runReaderT)
 import Data.ByteString.Base64 (encode)
@@ -50,7 +50,7 @@ import Text.Pandoc.CSS (pickStyleAttrProps)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.HTML.Parsing
-import Text.Pandoc.Readers.HTML.Table (pTable')
+import Text.Pandoc.Readers.HTML.Table (pTable)
 import Text.Pandoc.Readers.HTML.TagCategories
 import Text.Pandoc.Readers.HTML.Types
 import Text.Pandoc.Readers.LaTeX (rawLaTeXInline)
@@ -63,8 +63,7 @@ import Text.Pandoc.Options (
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
-                           extractSpaces, htmlSpanLikeElements, elemText, splitTextBy,
-                           safeRead, tshow)
+                           extractSpaces, htmlSpanLikeElements, safeRead, tshow)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
@@ -159,7 +158,7 @@ block = do
             , pCodeBlock
             , pList
             , pHrule
-            , pTable
+            , pTable block
             , pHtml
             , pHead
             , pBody
@@ -464,31 +463,6 @@ pHrule = do
   pSelfClosing (=="hr") (const True)
   return B.horizontalRule
 
-pTable :: PandocMonad m => TagParser m Blocks
-pTable = pTable' block pCell
-
-pCell :: PandocMonad m => Text -> TagParser m [Cell]
-pCell celltype = try $ do
-  skipMany pBlank
-  tag <- lookAhead $ pSatisfy (\t -> t ~== TagOpen celltype [])
-  let extractAlign' []                 = ""
-      extractAlign' ("text-align":x:_) = x
-      extractAlign' (_:xs)             = extractAlign' xs
-  let extractAlign = extractAlign' . splitTextBy (`elemText` " \t;:")
-  let align = case maybeFromAttrib "align" tag `mplus`
-                   (extractAlign <$> maybeFromAttrib "style" tag) of
-                   Just "left"   -> AlignLeft
-                   Just "right"  -> AlignRight
-                   Just "center" -> AlignCenter
-                   _             -> AlignDefault
-  let rowspan = RowSpan . fromMaybe 1 $
-                safeRead =<< maybeFromAttrib "rowspan" tag
-  let colspan = ColSpan . fromMaybe 1 $
-                safeRead =<< maybeFromAttrib "colspan" tag
-  res <- pInTags celltype block
-  skipMany pBlank
-  return [B.cell align rowspan colspan res]
-
 pBlockQuote :: PandocMonad m => TagParser m Blocks
 pBlockQuote = do
   contents <- pInTags "blockquote" block
@@ -652,12 +626,6 @@ pLineBreak :: PandocMonad m => TagParser m Inlines
 pLineBreak = do
   pSelfClosing (=="br") (const True)
   return B.linebreak
-
--- Unlike fromAttrib from tagsoup, this distinguishes
--- between a missing attribute and an attribute with empty content.
-maybeFromAttrib :: Text -> Tag Text -> Maybe Text
-maybeFromAttrib name (TagOpen _ attrs) = lookup name attrs
-maybeFromAttrib _ _ = Nothing
 
 pLink :: PandocMonad m => TagParser m Inlines
 pLink = try $ do

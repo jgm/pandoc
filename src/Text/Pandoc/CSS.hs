@@ -11,41 +11,46 @@ Portability : portable
 
 Tools for working with CSS.
 -}
-module Text.Pandoc.CSS ( pickStyleAttrProps
-                       , pickStylesToKVs
-                       )
+module Text.Pandoc.CSS
+  ( cssAttributes
+  , pickStyleAttrProps
+  , pickStylesToKVs
+  )
 where
 
-import qualified Data.Text as T
 import Data.Maybe (mapMaybe, listToMaybe)
+import Data.Text (Text, pack)
 import Text.Pandoc.Shared (trim)
 import Text.Parsec
 import Text.Parsec.Text
 
-ruleParser :: Parser (T.Text, T.Text)
+ruleParser :: Parser (Text, Text)
 ruleParser = do
     p <- many1 (noneOf ":")  <* char ':'
     v <- many1 (noneOf ":;") <* optional (char ';') <* spaces
-    return (trim $ T.pack p, trim $ T.pack v)
+    return (trim $ pack p, trim $ pack v)
 
-styleAttrParser :: Parser [(T.Text, T.Text)]
+styleAttrParser :: Parser [(Text, Text)]
 styleAttrParser = many1 ruleParser
 
-eitherToMaybe :: Either a b -> Maybe b
-eitherToMaybe (Right x) = Just x
-eitherToMaybe _         = Nothing
+-- | Parses a style string, returning the CSS attributes.
+-- Returns an empty list on failure.
+cssAttributes :: Text -> [(Text, Text)]
+cssAttributes styleString =
+  -- Use Data.Either.fromRight once GHC 8.0 is no longer supported
+  case parse styleAttrParser "" styleString of
+    Left _  -> []
+    Right x -> x
 
 -- | takes a list of keys/properties and a CSS string and
 -- returns the corresponding key-value-pairs.
-pickStylesToKVs :: [T.Text] -> T.Text -> [(T.Text, T.Text)]
+pickStylesToKVs :: [Text] -> Text -> [(Text, Text)]
 pickStylesToKVs props styleAttr =
-  case parse styleAttrParser "" styleAttr of
-    Left _       -> []
-    Right styles -> filter (\s -> fst s `elem` props) styles
+  filter (\s -> fst s `elem` props) $ cssAttributes styleAttr
 
 -- | takes a list of key/property synonyms and a CSS string and maybe
 -- returns the value of the first match (in order of the supplied list)
-pickStyleAttrProps :: [T.Text] -> T.Text -> Maybe T.Text
+pickStyleAttrProps :: [Text] -> Text -> Maybe Text
 pickStyleAttrProps lookupProps styleAttr = do
-    styles <- eitherToMaybe $ parse styleAttrParser "" styleAttr
+    styles <- either (const Nothing) Just $ parse styleAttrParser "" styleAttr
     listToMaybe $ mapMaybe (`lookup` styles) lookupProps

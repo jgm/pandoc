@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {- |
    Module      : Text.Pandoc.Readers.HTML.Parsing
@@ -15,6 +16,7 @@ module Text.Pandoc.Readers.HTML.Parsing
   , pInTags
   , pInTags'
   , pInTag
+  , pInTagWithAttribs
   , pAny
   , pCloses
   , pSatisfy
@@ -22,6 +24,7 @@ module Text.Pandoc.Readers.HTML.Parsing
   , matchTagClose
   , matchTagOpen
   , isSpace
+  , maybeFromAttrib
   , toAttr
   , toStringAttr
   )
@@ -31,11 +34,11 @@ import Control.Monad (guard, void, mzero)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Text.HTML.TagSoup
-  ( Tag (..), (~==), isTagText, isTagPosition, isTagOpen, isTagClose )
+  ( Attribute, Tag (..), isTagText, isTagPosition, isTagOpen, isTagClose, (~==) )
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition (Attr)
 import Text.Pandoc.Parsing
-  ( (<|>), eof, getPosition, lookAhead, manyTill, newPos, optional
+  ( (<|>), eof, getPosition, lookAhead, manyTill, newPos, option, optional
   , skipMany, setPosition, token, try)
 import Text.Pandoc.Readers.HTML.TagCategories
 import Text.Pandoc.Readers.HTML.Types
@@ -60,25 +63,41 @@ pInTags' :: (PandocMonad m, Monoid a)
          -> TagParser m a
          -> TagParser m a
 pInTags' tagtype tagtest parser = try $ do
-  pSatisfy (\t -> t ~== TagOpen tagtype [] && tagtest t)
+  pSatisfy $ \t -> matchTagOpen tagtype [] t && tagtest t
   mconcat <$> manyTill parser (pCloses tagtype <|> eof)
 
--- parses p, preceded by an opening tag (optional if tagsOptional)
--- and followed by a closing tag (optional if tagsOptional)
-pInTag :: PandocMonad m => TagOmission -> Text -> TagParser m a -> TagParser m a
-pInTag tagOmission tagtype p = try $ do
-  skipMany pBlank
+pInTag :: PandocMonad m
+       => TagOmission    -- ^ Whether some tags can be omitted
+       -> Text           -- ^ @tagtype@ Tag name
+       -> TagParser m a  -- ^ @p@ Content parser
+       -> TagParser m a
+pInTag tagOmission tagtype = fmap snd . pInTagWithAttribs tagOmission tagtype
+
+-- | Returns the contents of a tag together with its attributes; parses
+-- @p@, preceded by an opening tag (optional if TagsOmittable) and
+-- followed by a closing tag (optional unless TagsRequired).
+pInTagWithAttribs :: PandocMonad m
+                  => TagOmission    -- ^ Whether some tags can be omitted
+                  -> Text           -- ^ @tagtype@ Tag name
+                  -> TagParser m a  -- ^ @p@ Content parser
+                  -> TagParser m ([Attribute Text], a)
+pInTagWithAttribs tagOmission tagtype p = try $ do
   let openingOptional = tagOmission == TagsOmittable
   let closingOptional = tagOmission /= TagsRequired
-  (if openingOptional then optional else void) $
-    pSatisfy (matchTagOpen tagtype [])
+  skipMany pBlank
+  attribs <- (if openingOptional then option [] else id)
+             (getAttribs <$> pSatisfy (matchTagOpen tagtype []))
   skipMany pBlank
   x <- p
   skipMany pBlank
   (if closingOptional then optional else void) $
     pSatisfy (matchTagClose tagtype)
   skipMany pBlank
-  return x
+  return (attribs, x)
+  where
+    getAttribs = \case
+      TagOpen _ attribs -> attribs
+      _                 -> []
 
 pCloses :: PandocMonad m => Text -> TagParser m ()
 pCloses tagtype = try $ do
@@ -182,6 +201,12 @@ toStringAttr = map go
                                      html4Attributes <> rdfaAttributes)
          -> (x',y)
        _ -> (x,y)
+
+-- Unlike fromAttrib from tagsoup, this distinguishes
+-- between a missing attribute and an attribute with empty content.
+maybeFromAttrib :: Text -> Tag Text -> Maybe Text
+maybeFromAttrib name (TagOpen _ attrs) = lookup name attrs
+maybeFromAttrib _ _ = Nothing
 
 mkAttr :: [(Text, Text)] -> Attr
 mkAttr attr = (attribsId, attribsClasses, attribsKV)
