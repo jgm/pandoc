@@ -1,0 +1,37 @@
+cradle:
+  cabal:
+    - path: "prelude"
+      component: "lib:pandoc"
+
+    - path: "src"
+      component: "lib:pandoc"
+
+    - path: "./pandoc.hs"
+      component: "pandoc:exe:pandoc"
+
+    - path: "./Paths_pandoc.hs"
+      component: "pandoc:exe:pandoc"
+
+    - path: "prelude/trypandoc.hs"
+      component: "pandoc:exe:trypandoc"
+
+    - path: "prelude/Prelude.hs"
+      component: "pandoc:exe:trypandoc"
+
+    - path: "prelude/weigh-pandoc.hs"
+      component: "pandoc:bench:weigh-pandoc"
+
+    - path: "prelude/Prelude.hs"
+      component: "pandoc:bench:weigh-pandoc"
+
+    - path: "test"
+      component: "pandoc:test:test-pandoc"
+
+    - path: "prelude"
+      component: "pandoc:test:test-pandoc"
+
+    - path: "prelude/benchmark-pandoc.hs"
+      component: "pandoc:bench:benchmark-pandoc"
+
+    - path: "prelude/Prelude.hs"
+      component: "pandoc:bench:benchmark-pandoc"
