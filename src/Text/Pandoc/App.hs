@@ -23,8 +23,8 @@ module Text.Pandoc.App (
           , applyFilters
           ) where
 import qualified Control.Exception as E
-import Control.Monad
-import Control.Monad.Trans
+import Control.Monad ( (>=>), when )
+import Control.Monad.Trans ( MonadIO(..) )
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
@@ -40,7 +40,7 @@ import qualified Data.Text.Encoding.Error as TSE
 import Network.URI (URI (..), parseURI)
 import System.Directory (doesDirectoryExist)
 import System.Exit (exitSuccess)
-import System.FilePath
+import System.FilePath ( takeBaseName, takeExtension )
 import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
