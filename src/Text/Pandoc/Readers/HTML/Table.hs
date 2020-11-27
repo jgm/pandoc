@@ -1,6 +1,6 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Readers.HTML.Table
    Copyright   : © 2006-2020 John MacFarlane,
@@ -60,13 +60,21 @@ pColgroup = try $ do
   skipMany pBlank
   manyTill pCol (pCloses "colgroup" <|> eof) <* skipMany pBlank
 
+data CellType
+  = HeaderCell
+  | BodyCell
+  deriving Eq
+
 pCell :: PandocMonad m
       => TagParser m Blocks
-      -> Text
-      -> TagParser m [Cell]
+      -> CellType
+      -> TagParser m (CellType, Cell)
 pCell block celltype = try $ do
+  let celltype' = case celltype of
+        HeaderCell -> "th"
+        BodyCell   -> "td"
   skipMany pBlank
-  TagOpen _ attribs <- lookAhead $ pSatisfy (matchTagOpen celltype [])
+  TagOpen _ attribs <- lookAhead $ pSatisfy (matchTagOpen celltype' [])
   let cssAttribs = maybe [] cssAttributes $ lookup "style" attribs
   let align = case lookup "align" attribs <|>
                    lookup "text-align" cssAttribs of
@@ -78,7 +86,7 @@ pCell block celltype = try $ do
                 safeRead =<< lookup "rowspan" attribs
   let colspan = ColSpan . fromMaybe 1 $
                 safeRead =<< lookup "colspan" attribs
-  res <- pInTags celltype block
+  res <- pInTags celltype' block
   skipMany pBlank
   let handledAttribs = ["align", "colspan", "rowspan", "text-align"]
       attribs' = foldr go [] attribs
@@ -89,48 +97,55 @@ pCell block celltype = try $ do
         -- drop attrib if it's already handled
         _ | k `elem` handledAttribs -> acc
         _ -> kv : acc
-  return [B.cellWith (toAttr attribs') align rowspan colspan res]
+  return (celltype, B.cellWith (toAttr attribs') align rowspan colspan res)
 
 -- | Create a style attribute string from a list of CSS attributes
 toStyleString :: [(Text, Text)] -> Text
 toStyleString = T.intercalate "; " . map (\(k, v) -> k <> ": " <> v)
 
-data RowType
-  = HeaderCells
-  | AllCells
-
--- | Parses a table row
+-- | Parses a normal table row; returns the row together with the number
+-- of header cells at the beginning of the row.
 pRow :: PandocMonad m
      => TagParser m Blocks
-     -> RowType
-     -> TagParser m [B.Row]
-pRow block rowType = try $ do
+     -> TagParser m (RowHeadColumns, B.Row)
+pRow block = try $ do
   skipMany pBlank
-  case rowType of
-    HeaderCells -> do
-      maybeCells <- optionMaybe (pInTags "tr" (pCell block "th"))
-      return $ case maybeCells of
-        Nothing    -> []
-        Just cells -> [Row nullAttr cells]
-    AllCells    -> do
-      cells <- pInTags "tr" (pCell block "td" <|> pCell block "th")
-      return [Row nullAttr cells]
+  TagOpen _ attribs <- pSatisfy (matchTagOpen "tr" []) <* skipMany pBlank
+  cells <- many (pCell block BodyCell <|> pCell block HeaderCell)
+  TagClose _ <- pSatisfy (matchTagClose "tr")
+  return ( RowHeadColumns $ length (takeWhile ((== HeaderCell) . fst) cells)
+         , Row (toAttr attribs) $ map snd cells
+         )
 
--- | Parses a table head
+-- | Parses a header row, i.e., a row which containing nothing but
+-- @<th>@ elements.
+pHeaderRow :: PandocMonad m
+           => TagParser m Blocks
+           -> TagParser m B.Row
+pHeaderRow block = try $ do
+  skipMany pBlank
+  let pThs = map snd <$> many (pCell block HeaderCell)
+  let mkRow (attribs, cells) = Row (toAttr attribs) cells
+  mkRow <$> pInTagWithAttribs TagsRequired "tr" pThs
+
+-- | Parses a table head. If there is no @thead@ element, this looks for
+-- a row of @<th>@-only elements as the first line of the table.
 pTableHead :: PandocMonad m
            => TagParser m Blocks
            -> TagParser m TableHead
 pTableHead block = try $ do
   skipMany pBlank
-  (attribs, rows) <-  pInTagWithAttribs ClosingTagOptional "thead"
-                                        (option [] $ pRow block AllCells)
-                  <|> pInTagWithAttribs TagsOmittable "thead"
-                                        (pRow block HeaderCells)
-  let cells = concatMap (\(Row _ cs) -> cs) rows
-  if null cells
-    then TableHead nullAttr <$>
-         pInTag TagsOmittable "tbody" (pRow block HeaderCells)
-    else return $ TableHead (toAttr attribs) [Row nullAttr cells]
+  let pRows = many (pRow block)
+  let pThead = pInTagWithAttribs ClosingTagOptional "thead" pRows
+  optionMaybe pThead >>= \case
+    Just (attribs, rows) ->
+      return $ TableHead (toAttr attribs) $ map snd rows
+    Nothing -> mkTableHead <$> optionMaybe (pHeaderRow block)
+               where
+                 mkTableHead = TableHead nullAttr . \case
+                   -- Use row as header only if it's non-empty
+                   Just row@(Row _ (_:_)) -> [row]
+                   _                      -> []
 
 -- | Parses a table foot
 pTableFoot :: PandocMonad m
@@ -139,7 +154,7 @@ pTableFoot :: PandocMonad m
 pTableFoot block = try $ do
   skipMany pBlank
   TagOpen _ attribs <- pSatisfy (matchTagOpen "tfoot" []) <* skipMany pBlank
-  rows <- mconcat <$> many (pRow block AllCells <* skipMany pBlank)
+  rows <- many (fmap snd $ pRow block <* skipMany pBlank)
   optional $ pSatisfy (matchTagClose "tfoot")
   return $ TableFoot (toAttr attribs) rows
 
@@ -147,12 +162,17 @@ pTableFoot block = try $ do
 pTableBody :: PandocMonad m
            => TagParser m Blocks
            -> TagParser m TableBody
-pTableBody block = do
+pTableBody block = try $ do
   skipMany pBlank
-  (attribs, rows) <- pInTagWithAttribs TagsOmittable "tbody"
-                     (mconcat <$> many1 (pRow block AllCells))
-  return $ TableBody (toAttr attribs) 0 [] rows
-
+  attribs <- option [] $ getAttribs <$> pSatisfy (matchTagOpen "tbody" [])
+             <* skipMany pBlank
+  bodyheads <- many (pHeaderRow block)
+  (rowheads, rows) <- unzip <$> many1 (pRow block <* skipMany pBlank)
+  optional $ pSatisfy (matchTagClose "tbody")
+  return $ TableBody (toAttr attribs) (foldr max 0 rowheads) bodyheads rows
+  where
+    getAttribs (TagOpen _ attribs) = attribs
+    getAttribs _ = []
 
 -- | Parses a simple HTML table
 pTable :: PandocMonad m
