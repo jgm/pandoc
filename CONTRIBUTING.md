@@ -1,6 +1,64 @@
 Contributing to pandoc
 ======================
 
+Welcome to pandoc! Very soon after its beginnings in 2006, pandoc
+has been influenced, improved, and modified, by users, devs, and
+newcomers alike. The project thrives on its active community. It is
+great to have you here.
+
+How can I help?
+---------------
+
+There are many ways in which you can support pandoc. Here are a few
+ideas:
+
+  * Participate in online discussions. The [pandoc-discuss] mailing
+    list is a good place for this. This gives valuable input and
+    makes it easier to improve the program.
+
+  * Help with questions. Every request that is answered by the wider
+    community frees time for programming contributors. This will
+    speed up development of new features and issue fixes. Don't
+    underestimate your knowledge, please share it!
+
+    Good places to help are the [pandoc-discuss] mailing list, Q/A
+    sites like StackOverflow, community forums (e.g.
+    [RStudio][RStudio Community], [Zettlr][Zettlr Forum]), and, for
+    technical questions, the GitHub [issue tracker].
+
+  * Write or improve documentation. If you ran into a problem which
+    took more time to figure out than expected, please consider to
+    save other users from the same experience. People writing the
+    documentation tend to lack an outside few, so please help
+    provide one. Good documentation is both difficult and extremely
+    important.
+
+    The official docs are not the only place for documentation.
+    Pandoc also has a [Wiki][pandoc wiki]. Private blogs can serve
+    as documentation just as the official manual can.
+
+  * Contribute code. No matter whether it's a small fix in a format
+    template or a huge lump of Haskell code: help is welcome. It's
+    usually a good idea to talk about the plans early, as this can
+    prevent unnecessary work. See below for more information.
+
+  * Last but not least: consider funding the development and
+    maintenance of pandoc financially. You can find sponsor buttons
+    on the [pandoc website] and the [GitHub repository][GitHub
+    repo].
+
+A rich ecosystem of libraries, editors, filters, and templates has
+developed around pandoc; conversely, pandoc builds and depends on a
+large number of libraries. Contributing to any of these projects is
+another way that can help to ensure stability, and to keep pushing
+the boundaries of what is possible with pandoc.
+
+[RStudio Community]: https://community.rstudio.com/
+[Zettlr Forum]: https://forum.zettlr.com/
+[pandoc wiki]: https://github.com/jgm/pandoc/wiki
+[pandoc website]: https://pandoc.org
+[GitHub repo]: https://github.com/jgm/pandoc
+
 Have a question?
 ----------------
 
@@ -105,7 +163,12 @@ Explain the rationale for the feature you're requesting.  Why would this
 feature be useful?  Consider also any possible drawbacks, including backwards
 compatibility, new library dependencies, and performance issues.
 
-It is best to discuss a potential new feature on [pandoc-discuss]
+Features are very rarely "implement and forget", as all code must be
+maintained. This is especially relevant for large or complex
+contributions. It is helpful to be sympathetic to that fact, and to
+communicate future plans and availability clearly.
+
+Any potential new feature is best discussed on [pandoc-discuss]
 before opening an issue.
 
 Patches and pull requests
@@ -258,10 +321,10 @@ a ghci REPL for working with pandoc.  With [stack], use
 We recommend using the following `.ghci` file (which can be
 placed in the source directory):
 
-	:set -fobject-code
-	:set -XTypeSynonymInstances
-	:set -XScopedTypeVariables
-	:set -XOverloadedStrings
+    :set -fobject-code
+    :set -XTypeSynonymInstances
+    :set -XScopedTypeVariables
+    :set -XOverloadedStrings
 
 Profiling
 ---------
