@@ -487,6 +487,7 @@ An e-mail address: nobody [at] nowhere.net<blockquote>
     </tbody>
 </table>
 <hr />
+<p>Row headers</p>
 <table>
     <thead>
     <tr>
@@ -656,6 +657,7 @@ An e-mail address: nobody [at] nowhere.net<blockquote>
     </tbody>
 </table>
 <hr />
+<p>tbody tags omitted</p>
 <table>
     <tr>
         <td>1</td>
@@ -669,6 +671,7 @@ An e-mail address: nobody [at] nowhere.net<blockquote>
     </tr>
 </table>
 <hr />
+<p>empty head</p>
 <table>
     <thead>
     </thead>
@@ -686,6 +689,7 @@ An e-mail address: nobody [at] nowhere.net<blockquote>
     </tbody>
 </table>
 <hr />
+<p>explicit body and foot</p>
 <table>
     <tbody>
     <tr>
@@ -701,6 +705,78 @@ An e-mail address: nobody [at] nowhere.net<blockquote>
         <td>6</td>
     </tr>
     </tfoot>
+</table>
+<h2>Colspans and Rowspans</h2>
+<table>
+    <tr>
+        <td colspan="2">1 and 2</td>
+        <td>3</td>
+    </tr>
+    <tr>
+        <td colspan="3">4, 5, and 6</td>
+    </tr>
+</table>
+<hr/>
+<table>
+    <thead>
+    <tr>
+        <th colspan="3">Numbers</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td rowspan="2">1 and 4</td>
+        <td>2</td>
+        <td>3</td>
+    </tr>
+    <tr>
+        <td>5</td>
+        <td>6</td>
+    </tr>
+    </tbody>
+</table>
+<h2>Attributes</h2>
+<table id="attrib-test-table">
+  <thead class="table-head">
+    <tr class="table-head-row">
+      <th abbr="x" colspan="3">Cat X</th>
+    </tr>
+    <tbody data-part="body" class="main">
+    <tr data-part="row">
+        <td data-part="cell">1</td>
+        <td valign="bottom">2</td>
+        <td style="color: #151950">3</td>
+    </tr>
+    </tbody>
+    <tfoot class="summary">
+    <tr bgcolor="#ccc">
+        <td data-square="true">4</td>
+        <td>5</td>
+        <td>6</td>
+    </tr>
+    </tfoot>
+</table>
+<h2>Tag omission</h2>
+<p>thead, tbody, and tfoot</p>
+<table>
+    <thead>
+        <tr>
+            <td>X</td>
+            <td>Y</td>
+            <td>Z</td>
+        </tr>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td>2</td>
+            <td>3</td>
+        </tr>
+    <tfoot>
+        <tr>
+            <td>4</td>
+            <td>5</td>
+            <td>6</td>
+        </tr>
 </table>
 <h2>Empty Tables</h2>
 <p>This section should be empty.</p>

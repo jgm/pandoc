@@ -214,7 +214,8 @@ normalize :: [ColWidth] -> TableHead -> [TableBody] -> TableFoot
           -> Either String ([ColSpec], TableHead, [TableBody], TableFoot)
 normalize widths head' bodies foot = do
   let rows = headRows head' <> concatMap bodyRows bodies <> footRows foot
-  let rowLength = length . rowCells
+  let cellWidth (Cell _ _ _ (ColSpan cs) _) = cs
+  let rowLength = foldr (\cell acc -> cellWidth cell + acc) 0 . rowCells
   let ncols = maximum (map rowLength rows)
   let tblType = tableType (map rowCells rows)
   -- fail on empty table

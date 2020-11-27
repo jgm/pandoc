@@ -395,6 +395,7 @@ Pandoc (Meta {unMeta = fromList [("generator",MetaInlines [Str "pandoc"]),("titl
  (TableFoot ("",[],[])
  [])
 ,HorizontalRule
+,Para [Str "Row",Space,Str "headers"]
 ,Table ("",[],[]) (Caption Nothing
  [])
  [(AlignDefault,ColWidthDefault)
@@ -647,6 +648,7 @@ Pandoc (Meta {unMeta = fromList [("generator",MetaInlines [Str "pandoc"]),("titl
  (TableFoot ("",[],[])
  [])
 ,HorizontalRule
+,Para [Str "tbody",Space,Str "tags",Space,Str "omitted"]
 ,Table ("",[],[]) (Caption Nothing
  [])
  [(AlignDefault,ColWidthDefault)
@@ -673,6 +675,7 @@ Pandoc (Meta {unMeta = fromList [("generator",MetaInlines [Str "pandoc"]),("titl
  (TableFoot ("",[],[])
  [])
 ,HorizontalRule
+,Para [Str "empty",Space,Str "head"]
 ,Table ("",[],[]) (Caption Nothing
  [])
  [(AlignDefault,ColWidthDefault)
@@ -699,6 +702,7 @@ Pandoc (Meta {unMeta = fromList [("generator",MetaInlines [Str "pandoc"]),("titl
  (TableFoot ("",[],[])
  [])
 ,HorizontalRule
+,Para [Str "explicit",Space,Str "body",Space,Str "and",Space,Str "foot"]
 ,Table ("",[],[]) (Caption Nothing
  [])
  [(AlignDefault,ColWidthDefault)
@@ -706,6 +710,111 @@ Pandoc (Meta {unMeta = fromList [("generator",MetaInlines [Str "pandoc"]),("titl
  ,(AlignDefault,ColWidthDefault)]
  (TableHead ("",[],[])
  [])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "3"]]]])]
+ (TableFoot ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "4"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "5"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "6"]]]])
+,Header 2 ("colspans-and-rowspans",[],[]) [Str "Colspans",Space,Str "and",Space,Str "Rowspans"]
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 2)
+    [Plain [Str "1",Space,Str "and",Space,Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 3)
+    [Plain [Str "4,",Space,Str "5,",Space,Str "and",Space,Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,HorizontalRule
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 3)
+   [Plain [Str "Numbers"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 2) (ColSpan 1)
+    [Plain [Str "1",Space,Str "and",Space,Str "4"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "2"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "3"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "5"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "6"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Header 2 ("attributes",[],[]) [Str "Attributes"]
+,Table ("attrib-test-table",[],[]) (Caption Nothing
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",["table-head"],[])
+ [Row ("",["table-head-row"],[])
+  [Cell ("",[],[("abbr","x")]) AlignDefault (RowSpan 1) (ColSpan 3)
+   [Plain [Str "Cat",Space,Str "X"]]]])
+ [(TableBody ("",["main"],[("part","body")]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[("part","row")])
+   [Cell ("",[],[("part","cell")]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "1"]]
+   ,Cell ("",[],[("valign","bottom")]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "2"]]
+   ,Cell ("",[],[("style","color: #151950")]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "3"]]]])]
+ (TableFoot ("",["summary"],[])
+ [Row ("",[],[("bgcolor","#ccc")])
+  [Cell ("",[],[("square","true")]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "4"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "5"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "6"]]]])
+,Header 2 ("tag-omission",[],[]) [Str "Tag",Space,Str "omission"]
+,Para [Str "thead,",Space,Str "tbody,",Space,Str "and",Space,Str "tfoot"]
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "X"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Y"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Z"]]]])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
