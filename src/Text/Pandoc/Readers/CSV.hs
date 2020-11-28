@@ -2,7 +2,7 @@
 
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
-   Module      : Text.Pandoc.Readers.RST
+   Module      : Text.Pandoc.Readers.CSV
    Copyright   : Copyright (C) 2006-2020 John MacFarlane
    License     : GNU GPL, version 2 or above
 
