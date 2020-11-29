@@ -1225,6 +1225,16 @@ preamble = mconcat <$> many preambleBlock
                              anyTok
                              return mempty)
 
+rule :: PandocMonad m => LP m Blocks
+rule = do
+  skipopts
+  width <- T.takeWhile (\c -> isDigit c || c == '.') . stringify <$> tok
+  _thickness <- tok
+  -- 0-width rules are used to fix spacing issues:
+  case safeRead width of
+    Just (0 :: Double) -> return mempty
+    _ -> return horizontalRule
+
 paragraph :: PandocMonad m => LP m Blocks
 paragraph = do
   x <- trimInlines . mconcat <$> many1 inline
@@ -1595,7 +1605,7 @@ blockCommands = M.fromList
    --
    , ("hrule", pure horizontalRule)
    , ("strut", pure mempty)
-   , ("rule", skipopts *> tok *> tok $> horizontalRule)
+   , ("rule", rule)
    , ("item", looseItem)
    , ("documentclass", skipopts *> braced *> preamble)
    , ("centerline", para . trimInlines <$> (skipopts *> tok))
