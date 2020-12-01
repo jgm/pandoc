@@ -6,16 +6,12 @@ packages:
 - '.'
 extra-deps:
 - pandoc-types-1.22
-- texmath-0.12.0.3
 - rfc5051-0.2
 - haddock-library-1.9.0
 - skylighting-0.10.1
 - skylighting-core-0.10.1
-- doclayout-0.3
-- emojis-0.1
 - hslua-1.1.2
 - jira-wiki-markup-1.3.2
-- HsYAML-0.2.1.0
 - HsYAML-aeson-0.2.0.0
 - commonmark-0.1.1.2
 - commonmark-extensions-0.2.0.4
@@ -27,7 +23,7 @@ extra-deps:
   commit: 42b1d154b02435229acbe98ae0f17d01b757ee93
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-14.6
+resolver: lts-16.23
 nix:
   packages: [zlib]
 
