@@ -255,7 +255,7 @@ For a more Pythonic alternative to pandocfilters, see
 the [panflute](https://pypi.org/project/panflute) library.
 Don't like Python? There are also ports of pandocfilters in
 
-- [PHP](https://github.com/vinai/pandocfilters-php)
+- [PHP](https://github.com/vinai/pandocfilters-php),
 - [perl](https://metacpan.org/pod/Pandoc::Filter),
 - TypeScript/JavaScript via Node.js
   - [pandoc-filter](https://github.com/mvhenderson/pandoc-filter-node),
