@@ -16,6 +16,7 @@ import Text.Pandoc.Citeproc.BibTeX (readBibtexString, Variant(..))
 import Text.Pandoc.Citeproc.MetaValue (metaValueToReference, metaValueToText)
 import Text.Pandoc.Readers.Markdown (yamlToRefs)
 import Text.Pandoc.Class (setResourcePath, getResourcePath, getUserDataDir)
+import qualified Text.Pandoc.BCP47 as BCP47
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as L
 import Text.Pandoc.Definition as Pandoc
@@ -91,8 +92,9 @@ processCitations (Pandoc meta bs) = do
     case styleRes of
        Left err    -> throwError $ PandocAppError $ prettyCiteprocError err
        Right style -> return style{ styleAbbreviations = mbAbbrevs }
-  let mblang = parseLang <$>
-         ((lookupMeta "lang" meta <|> lookupMeta "locale" meta) >>= metaValueToText)
+  mblang <- maybe (return Nothing) bcp47LangToIETF
+               ((lookupMeta "lang" meta <|> lookupMeta "locale" meta) >>=
+                 metaValueToText)
   let locale = Citeproc.mergeLocales mblang style
   let getCiteId (Cite cs _) = Set.fromList $ map B.citationId cs
       getCiteId _ = mempty
@@ -579,3 +581,16 @@ removeFinalPeriod ils =
   isRightQuote "\8217" = True
   isRightQuote "\187"  = True
   isRightQuote _       = False
+
+bcp47LangToIETF :: PandocMonad m => Text -> m (Maybe Lang)
+bcp47LangToIETF bcplang =
+  case BCP47.parseBCP47 bcplang of
+    Left _ -> do
+      report $ InvalidLang bcplang
+      return Nothing
+    Right lang ->
+      return $ Just
+             $ Lang (BCP47.langLanguage lang)
+                    (if T.null (BCP47.langRegion lang)
+                        then Nothing
+                        else Just (BCP47.langRegion lang))
