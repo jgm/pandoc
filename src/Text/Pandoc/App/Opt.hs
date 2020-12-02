@@ -20,10 +20,17 @@ module Text.Pandoc.App.Opt (
             Opt(..)
           , LineEnding (..)
           , IpynbOutput (..)
+          , DefaultsState (..)
           , defaultOpts
           , addMeta
+          , applyDefaults
+          , fullDefaultsPath
           ) where
+import Control.Monad.Except (MonadIO, liftIO, throwError, (>=>), foldM)
+import Control.Monad.State.Strict (StateT, modify, gets)
+import System.FilePath ( addExtension, (</>), takeExtension )
 import Data.Char (isLower, toLower)
+import Data.Maybe (fromMaybe)
 import GHC.Generics hiding (Meta)
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Filter (Filter (..))
@@ -34,7 +41,9 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             ReferenceLocation (EndOfDocument),
                             ObfuscationMethod (NoObfuscation),
                             CiteMethod (Citeproc))
-import Text.Pandoc.Shared (camelCaseStrToHyphenated)
+import Text.Pandoc.Class (readFileLazy, fileExists, setVerbosity, PandocMonad)
+import Text.Pandoc.Error (PandocError (PandocParseError, PandocSomeError))
+import Text.Pandoc.Shared (camelCaseStrToHyphenated, defaultUserDataDirs, findM, ordNub)
 import qualified Text.Pandoc.Parsing as P
 import Text.Pandoc.Readers.Metadata (yamlMap)
 import Text.Pandoc.Class.PandocPure
@@ -150,16 +159,77 @@ data Opt = Opt
     } deriving (Generic, Show)
 
 instance FromYAML (Opt -> Opt) where
-  parseYAML (Mapping _ _ m) =
-    foldr (.) id <$> mapM doOpt (M.toList m)
+  parseYAML (Mapping _ _ m) = chain doOpt (M.toList m)
   parseYAML n = failAtNode n "Expected a mapping"
+
+data DefaultsState = DefaultsState
+    {
+      curDefaults      :: Maybe FilePath -- currently parsed file
+    , inheritanceGraph :: [[FilePath]]   -- defaults file inheritance graph
+    } deriving (Show)
+
+instance (PandocMonad m, MonadIO m)
+      => FromYAML (Opt -> StateT DefaultsState m Opt) where
+  parseYAML (Mapping _ _ m) = do
+    let opts = M.mapKeys toText m
+    dataDir <- case M.lookup "data-dir" opts of
+      Nothing -> return Nothing
+      Just v -> Just . unpack <$> parseYAML v
+    f <- parseOptions $ M.toList m
+    case M.lookup "defaults" opts of
+      Just v -> do
+        g <- parseDefaults v dataDir
+        return  $ g >=> f
+      Nothing -> return f
+    where
+      toText (Scalar _ (SStr s)) = s
+      toText _ = ""
+  parseYAML n = failAtNode n "Expected a mapping"
+
+parseDefaults :: (PandocMonad m, MonadIO m)
+              => Node Pos
+              -> Maybe FilePath
+              -> Parser (Opt -> StateT DefaultsState m Opt)
+parseDefaults n dataDir = parseDefsNames n >>= \ds -> return $ \o -> do
+  -- get parent defaults:
+  defsParent <- gets $ fromMaybe "" . curDefaults
+  -- get child defaults:
+  defsChildren <- mapM (fullDefaultsPath dataDir) ds
+  -- expand parent in defaults inheritance graph by children:
+  defsGraph <- gets inheritanceGraph
+  let defsGraphExp = expand defsGraph defsChildren defsParent
+  modify $ \defsState -> defsState{ inheritanceGraph = defsGraphExp }
+  -- check for cyclic inheritance:
+  if cyclic defsGraphExp
+    then throwError $
+      PandocSomeError $ T.pack $
+        "Error: Circular defaults file reference in " ++
+        "'" ++ defsParent ++ "'"
+    else foldM applyDefaults o defsChildren
+  where parseDefsNames x = (parseYAML x >>= \xs -> return $ map unpack xs)
+                       <|> (parseYAML x >>= \x' -> return [unpack x'])
+
+parseOptions :: Monad m
+             => [(Node Pos, Node Pos)]
+             -> Parser (Opt -> StateT DefaultsState m Opt)
+parseOptions ns = do
+  f <- chain doOpt' ns
+  return $ return . f
+
+chain :: Monad m => (a -> m (b -> b)) -> [a] -> m (b -> b)
+chain f = foldM g id
+  where g o n = f n >>= \o' -> return $ o' . o
+
+doOpt' :: (Node Pos, Node Pos) -> Parser (Opt -> Opt)
+doOpt' (k',v) = do
+  k <- parseStringKey k'
+  case k of
+    "defaults" -> return id
+    _ -> doOpt (k',v)
 
 doOpt :: (Node Pos, Node Pos) -> Parser (Opt -> Opt)
 doOpt (k',v) = do
-  k <- case k' of
-         Scalar _ (SStr t) -> return t
-         Scalar _ _ -> failAtNode k' "Non-string key"
-         _ -> failAtNode k' "Non-scalar key"
+  k <- parseStringKey k'
   case k of
     "tab-stop" ->
       parseYAML v >>= \x -> return (\o -> o{ optTabStop = x })
@@ -494,6 +564,12 @@ defaultOpts = Opt
     , optStripComments         = False
     }
 
+parseStringKey ::  Node Pos -> Parser Text
+parseStringKey k = case k of
+  Scalar _ (SStr t) -> return t
+  Scalar _ _ -> failAtNode k "Non-string key"
+  _ -> failAtNode k "Non-scalar key"
+
 yamlToMeta :: Node Pos -> Parser Meta
 yamlToMeta (Mapping _ _ m) =
     either (fail . show) return $ runEverything (yamlMap pMetaString m)
@@ -524,6 +600,52 @@ readMetaValue s
   | s == "FALSE" = MetaBool False
   | otherwise    = MetaString $ T.pack s
 
+-- | Apply defaults from --defaults file.
+applyDefaults :: (PandocMonad m, MonadIO m)
+              => Opt
+              -> FilePath
+              -> StateT DefaultsState m Opt
+applyDefaults opt file = do
+  setVerbosity $ optVerbosity opt
+  modify $ \defsState -> defsState{ curDefaults = Just file }
+  inp <- readFileLazy file
+  case decode1 inp of
+      Right f -> f opt
+      Left (errpos, errmsg)  -> throwError $
+         PandocParseError $ T.pack $
+         "Error parsing " ++ file ++ " line " ++
+          show (posLine errpos) ++ " column " ++
+          show (posColumn errpos) ++ ":\n" ++ errmsg
+
+fullDefaultsPath :: (PandocMonad m, MonadIO m)
+                 => Maybe FilePath
+                 -> FilePath
+                 -> m FilePath
+fullDefaultsPath dataDir file = do
+  let fp = if null (takeExtension file)
+              then addExtension file "yaml"
+              else file
+  dataDirs <- liftIO defaultUserDataDirs
+  let fps = fp : case dataDir of
+                   Nothing -> map (</> ("defaults" </> fp))
+                                    dataDirs
+                   Just dd -> [dd </> "defaults" </> fp]
+  fromMaybe fp <$> findM fileExists fps
+
+-- | In a list of lists, append another list in front of every list which
+-- starts with specific element.
+expand :: Ord a => [[a]] -> [a] -> a -> [[a]]
+expand [] ns n = fmap (\x -> x : [n]) ns
+expand ps ns n = concatMap (ext n ns) ps
+  where
+    ext x xs p = case p of
+      (l : _) | x == l -> fmap (: p) xs
+      _ -> [p]
+
+cyclic :: Ord a => [[a]] -> Bool
+cyclic = any hasDuplicate
+  where
+    hasDuplicate xs = length (ordNub xs) /= length xs
 
 -- see https://github.com/jgm/pandoc/pull/4083
 -- using generic deriving caused long compilation times

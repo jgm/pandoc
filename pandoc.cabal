@@ -216,6 +216,13 @@ extra-source-files:
                  test/command/01.csv
                  test/command/defaults1.yaml
                  test/command/defaults2.yaml
+                 test/command/defaults3.yaml
+                 test/command/defaults4.yaml
+                 test/command/defaults5.yaml
+                 test/command/defaults6.yaml
+                 test/command/defaults7.yaml
+                 test/command/defaults8.yaml
+                 test/command/defaults9.yaml
                  test/command/3533-rst-csv-tables.csv
                  test/command/3880.txt
                  test/command/5182.txt
