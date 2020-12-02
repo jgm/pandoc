@@ -256,7 +256,7 @@ the [panflute](https://pypi.org/project/panflute) library.
 Don't like Python?   There are also ports of pandocfilters in
 [PHP](https://github.com/vinai/pandocfilters-php),
 [perl](https://metacpan.org/pod/Pandoc::Filter),
-[javascript/node.js](https://github.com/mvhenderson/pandoc-filter-node),
+[TypeScript/JavaScript](https://github.com/mu-io/node-pandoc-filter),
 [Groovy](https://github.com/dfrommi/groovy-pandoc), and
 [Ruby](https://heerdebeer.org/Software/markdown/paru/).
 
