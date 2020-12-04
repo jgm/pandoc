@@ -845,7 +845,9 @@ pandocToEPUB version opts doc = do
                     [ unode "ol" landmarkItems ]
                   | not (null landmarkItems)]
   navData <- lift $ writeHtml opts'{ writerVariables =
-                     Context (M.fromList [("navpage", toVal' "true")])
+                     Context (M.fromList [("navpage", toVal' "true")
+                                         ,("body-type",  toVal' "frontmatter")
+                                         ])
                      <> cssvars False <> vars }
             (Pandoc (setMeta "title"
                      (walk removeNote $ fromList $ docTitle' meta) nullMeta)
