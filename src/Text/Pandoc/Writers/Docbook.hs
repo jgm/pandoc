@@ -188,18 +188,36 @@ blockToDocbook opts (Div (id',"section":_,_) (Header lvl _ ils : xs)) = do
   title' <- inlinesToDocbook opts ils
   contents <- blocksToDocbook opts bs
   return $ inTags True tag attribs $ inTagsSimple "title" title' $$ contents
-blockToDocbook opts (Div (ident,_,_) [Para lst]) =
-  let attribs = [("id", ident) | not (T.null ident)] in
-  if hasLineBreaks lst
-     then flush . nowrap . inTags False "literallayout" attribs
-                         <$> inlinesToDocbook opts lst
-     else inTags True "para" attribs <$> inlinesToDocbook opts lst
-blockToDocbook opts (Div (ident,_,_) bs) = do
-  contents <- blocksToDocbook opts (map plainToPara bs)
-  return $
-    (if T.null ident
-        then mempty
-        else selfClosingTag "anchor" [("id", ident)]) $$ contents
+blockToDocbook opts (Div (ident,classes,_) bs) =
+  let identAttribs = [("id", ident) | not (T.null ident)]
+      admonitions = ["attention","caution","danger","error","hint",
+                     "important","note","tip","warning"]
+  in case classes of
+    (l:_) | l `elem` admonitions -> do
+        let (mTitleBs, bodyBs) =
+                case bs of
+                  -- Matches AST produced by the Docbook reader.
+                  (Div (_,["title"],_) ts : rest) -> (Just (blocksToDocbook opts ts), rest)
+                  _ -> (Nothing, bs)
+        admonitionTitle <- case mTitleBs of
+                              Nothing -> return mempty
+                              -- id will be attached to the admonition so let’s pass empty identAttrs.
+                              Just titleBs -> inTags False "title" [] <$> titleBs
+        admonitionBody <- handleDivBody [] bodyBs
+        return (inTags True l identAttribs (admonitionTitle $$ admonitionBody))
+    _ -> handleDivBody identAttribs bs
+  where
+    handleDivBody identAttribs [Para lst] =
+      if hasLineBreaks lst
+         then flush . nowrap . inTags False "literallayout" identAttribs
+                             <$> inlinesToDocbook opts lst
+         else inTags True "para" identAttribs <$> inlinesToDocbook opts lst
+    handleDivBody identAttribs bodyBs = do
+      contents <- blocksToDocbook opts (map plainToPara bodyBs)
+      return $
+        (if null identAttribs
+            then mempty
+            else selfClosingTag "anchor" identAttribs) $$ contents
 blockToDocbook _ h@Header{} = do
   -- should be handled by Div section above, except inside lists/blockquotes
   report $ BlockNotRendered h
