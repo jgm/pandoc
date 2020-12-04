@@ -15,6 +15,7 @@ Conversion of 'Pandoc' documents to Docbook XML.
 module Text.Pandoc.Writers.Docbook ( writeDocbook4, writeDocbook5 ) where
 import Control.Monad.Reader
 import Data.Generics (everywhere, mkT)
+import Data.Maybe (isNothing)
 import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -39,6 +40,18 @@ data DocBookVersion = DocBook4 | DocBook5
      deriving (Eq, Show)
 
 type DB = ReaderT DocBookVersion
+
+-- | Get level of the top-level headers based on the configured top-level division.
+-- The header level can then be used to determine appropriate DocBook element
+-- for each subdivision associated with a header.
+-- The numbering here follows LaTeX's internal numbering
+getStartLvl :: WriterOptions -> Int
+getStartLvl opts =
+  case writerTopLevelDivision opts of
+       TopLevelPart    -> -1
+       TopLevelChapter -> 0
+       TopLevelSection -> 1
+       TopLevelDefault -> 1
 
 -- | Convert list of authors to a docbook <author> section
 authorToDocbook :: PandocMonad m => WriterOptions -> [Inline] -> DB m B.Inlines
@@ -79,12 +92,7 @@ writeDocbook opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
-  -- The numbering here follows LaTeX's internal numbering
-  let startLvl = case writerTopLevelDivision opts of
-                   TopLevelPart    -> -1
-                   TopLevelChapter -> 0
-                   TopLevelSection -> 1
-                   TopLevelDefault -> 1
+  let startLvl = getStartLvl opts
   let fromBlocks = blocksToDocbook opts .
                    makeSections False (Just startLvl)
   auths' <- mapM (authorToDocbook opts) $ docAuthors meta
@@ -170,8 +178,12 @@ blockToDocbook opts (Div (id',"section":_,_) (Header lvl _ ils : xs)) = do
                  then "xml:id"
                  else "id"
       idAttr = [(idName, writerIdentifierPrefix opts <> id') | not (T.null id')]
-      nsAttr = if version == DocBook5 && lvl == 0 then [("xmlns", "http://docbook.org/ns/docbook"),("xmlns:xlink", "http://www.w3.org/1999/xlink")]
-                                      else []
+      -- We want to add namespaces to the root (top-level) element.
+      nsAttr = if version == DocBook5 && lvl == getStartLvl opts && isNothing (writerTemplate opts)
+      -- Though, DocBook 4 does not support namespaces and
+      -- standalone documents will include them in the template.
+                 then [("xmlns", "http://docbook.org/ns/docbook"),("xmlns:xlink", "http://www.w3.org/1999/xlink")]
+                 else []
       attribs = nsAttr <> idAttr
   title' <- inlinesToDocbook opts ils
   contents <- blocksToDocbook opts bs
