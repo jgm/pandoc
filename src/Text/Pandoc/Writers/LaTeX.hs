@@ -553,9 +553,7 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
                              Just s  -> braces (literal s))
                           $$ inner
                           $+$ "\\end{CSLReferences}"
-               else if "csl-entry" `elem` classes
-                       then vcat <$> mapM cslEntryToLaTeX bs
-                       else blockListToLaTeX bs
+               else blockListToLaTeX bs
   modify $ \st -> st{ stIncremental = oldIncremental }
   linkAnchor' <- hypertarget True identifier empty
   -- see #2704 for the motivation for adding \leavevmode:
@@ -1180,23 +1178,6 @@ isQuoted :: Inline -> Bool
 isQuoted (Quoted _ _) = True
 isQuoted _            = False
 
-cslEntryToLaTeX :: PandocMonad m
-                => Block
-                -> LW m (Doc Text)
-cslEntryToLaTeX (Para xs) =
-  mconcat <$> mapM go xs
- where
-   go (Span ("",["csl-block"],[]) ils) =
-     (cr <>) . inCmd "CSLBlock" <$> inlineListToLaTeX ils
-   go (Span ("",["csl-left-margin"],[]) ils) =
-     inCmd "CSLLeftMargin" <$> inlineListToLaTeX ils
-   go (Span ("",["csl-right-inline"],[]) ils) =
-     (cr <>) . inCmd "CSLRightInline" <$> inlineListToLaTeX ils
-   go (Span ("",["csl-indent"],[]) ils) =
-     (cr <>) . inCmd "CSLIndent" <$> inlineListToLaTeX ils
-   go il = inlineToLaTeX il
-cslEntryToLaTeX x = blockToLaTeX x
-
 -- | Convert inline element to LaTeX
 inlineToLaTeX :: PandocMonad m
               => Inline    -- ^ Inline to convert
@@ -1204,23 +1185,38 @@ inlineToLaTeX :: PandocMonad m
 inlineToLaTeX (Span (id',classes,kvs) ils) = do
   linkAnchor <- hypertarget False id' empty
   lang <- toLang $ lookup "lang" kvs
-  let cmds = ["textup" | "csl-no-emph" `elem` classes] ++
-             ["textnormal" | "csl-no-strong" `elem` classes ||
-                             "csl-no-smallcaps" `elem` classes] ++
-             ["RL" | ("dir", "rtl") `elem` kvs] ++
-             ["LR" | ("dir", "ltr") `elem` kvs] ++
-             (case lang of
-                Just lng -> let (l, o) = toPolyglossia lng
-                                ops = if T.null o then "" else "[" <> o <> "]"
-                            in  ["text" <> l <> ops]
-                Nothing  -> [])
+  let classToCmd "csl-no-emph" = Just "textup"
+      classToCmd "csl-no-strong" = Just "textnormal"
+      classToCmd "csl-no-smallcaps" = Just "textnormal"
+      classToCmd "csl-block" = Just "CSLBlock"
+      classToCmd "csl-left-margin" = Just "CSLLeftMargin"
+      classToCmd "csl-right-inline" = Just "CSLRightInline"
+      classToCmd "csl-indent" = Just "CSLIndent"
+      classToCmd _ = Nothing
+      kvToCmd ("dir","rtl") = Just "RL"
+      kvToCmd ("dir","ltr") = Just "LR"
+      kvToCmd _ = Nothing
+      langCmds =
+        case lang of
+           Just lng -> let (l, o) = toPolyglossia lng
+                           ops = if T.null o then "" else "[" <> o <> "]"
+                       in  ["text" <> l <> ops]
+           Nothing  -> []
+  let cmds = mapMaybe classToCmd classes ++ mapMaybe kvToCmd kvs ++ langCmds
   contents <- inlineListToLaTeX ils
-  return $ (if T.null id'
-               then empty
-               else "\\protect" <> linkAnchor) <>
-           (if null cmds
-               then braces contents
-               else foldr inCmd contents cmds)
+  return $
+    (case classes of
+              ["csl-block"] -> (cr <>)
+              ["csl-left-margin"] -> (cr <>)
+              ["csl-right-inline"] -> (cr <>)
+              ["csl-indent"] -> (cr <>)
+              _ -> id) $
+    (if T.null id'
+        then empty
+        else "\\protect" <> linkAnchor) <>
+    (if null cmds
+        then braces contents
+        else foldr inCmd contents cmds)
 inlineToLaTeX (Emph lst) = inCmd "emph" <$> inlineListToLaTeX lst
 inlineToLaTeX (Underline lst) = inCmd "underline" <$> inlineListToLaTeX lst
 inlineToLaTeX (Strong lst) = inCmd "textbf" <$> inlineListToLaTeX lst
