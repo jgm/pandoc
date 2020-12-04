@@ -1058,7 +1058,12 @@ inlineToMarkdown opts (Span ("",["emoji"],kvs) [Str s]) =
 inlineToMarkdown opts (Span attrs ils) = do
   variant <- asks envVariant
   contents <- inlineListToMarkdown opts ils
-  return $ case variant of
+  return $ case attrs of
+             (_,["csl-block"],_) -> (cr <>)
+             (_,["csl-left-margin"],_) -> (cr <>)
+             (_,["csl-indent"],_) -> (cr <>)
+             _ -> id
+         $ case variant of
                 PlainText -> contents
                 _     | attrs == nullAttr -> contents
                       | isEnabled Ext_bracketed_spans opts ->
