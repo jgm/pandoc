@@ -270,7 +270,8 @@ tests =
 
   , "Search links are read as emph" =:
       "[[Wally][Where's Wally?]]" =?>
-      para (emph $ "Where's" <> space <> "Wally?")
+      para (spanWith ("", ["spurious-link"], [("target", "Wally")])
+                     (emph $ "Where's" <> space <> "Wally?"))
 
   , "Link to nonexistent anchor" =:
       T.unlines [ "<<link-here>> Target."
@@ -278,5 +279,6 @@ tests =
                 , "[[link$here][See here!]]"
                 ] =?>
       (para (spanWith ("link-here", [], []) mempty <> "Target.") <>
-       para (emph ("See" <> space <> "here!")))
+       para (spanWith ("", ["spurious-link"], [("target", "link$here")])
+                      (emph ("See" <> space <> "here!"))))
   ]
