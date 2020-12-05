@@ -1812,6 +1812,7 @@ theoremEnvironment name = do
                   _          -> bs
 
 italicize :: Block -> Block
+italicize x@(Para [Image{}]) = x -- see #6925
 italicize (Para ils) = Para [Emph ils]
 italicize (Plain ils) = Plain [Emph ils]
 italicize x = x
