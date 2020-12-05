@@ -3027,6 +3027,43 @@ This extension can be enabled/disabled for the following formats:
 output formats
 :  `odt`, `opendocument`
 
+#### Extension: `xrefs_name` ####
+
+Links to headings, figures and tables inside the document are
+substituted with cross-references that will use the name or caption
+of the referenced item. The original link text is replaced once
+the generated document is refreshed. This extension can be combined
+with `xrefs_number` in which case numbers will appear before the
+name.
+
+Text in cross-references is only made consistent with the referenced
+item once the document has been refreshed.
+
+This extension can be enabled/disabled for the following formats:
+
+output formats
+:  `odt`, `opendocument`
+
+#### Extension: `xrefs_number` ####
+
+Links to headings, figures and tables inside the document are
+substituted with cross-references that will use the number
+of the referenced item. The original link text is discarded.
+This extension can be combined with `xrefs_name` in which case
+the name or caption numbers will appear after the number.
+
+For the `xrefs_number` to be useful heading numbers must be enabled
+in the generated document, also table and figure captions must be enabled
+using for example the `native_numbering` extension.
+
+Numbers in cross-references are only visible in the final document once
+it has been refreshed.
+
+This extension can be enabled/disabled for the following formats:
+
+output formats
+:  `odt`, `opendocument`
+
 #### Extension: `styles` #### {#ext-styles}
 
 When converting from docx, read all docx styles as divs (for
