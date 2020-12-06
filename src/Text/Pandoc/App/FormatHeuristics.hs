@@ -15,16 +15,13 @@ module Text.Pandoc.App.FormatHeuristics
   ) where
 
 import Data.Char (toLower)
+import Data.Monoid (First(First), getFirst)
 import Data.Text (Text)
 import System.FilePath (takeExtension)
 
 -- Determine default format based on file extensions.
 formatFromFilePaths :: [FilePath] -> Maybe Text
-formatFromFilePaths [] = Nothing
-formatFromFilePaths (x:xs) =
-  case formatFromFilePath x of
-    Just f     -> Just f
-    Nothing    -> formatFromFilePaths xs
+formatFromFilePaths = getFirst . foldMap (First . formatFromFilePath)
 
 -- Determine format based on file extension
 formatFromFilePath :: FilePath -> Maybe Text
