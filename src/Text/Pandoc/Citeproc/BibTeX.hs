@@ -601,7 +601,7 @@ inBraces :: BibParser Text
 inBraces = do
   char '{'
   res <- manyTill
-         (  (T.pack <$> many1 (noneOf "{}\\"))
+         (  take1WhileP (\c -> c /= '{' && c /= '}' && c /= '\\')
         <|> (char '\\' >> (  (char '{' >> return "\\{")
                          <|> (char '}' >> return "\\}")
                          <|> return "\\"))
@@ -616,7 +616,7 @@ inQuotes :: BibParser Text
 inQuotes = do
   char '"'
   T.concat <$> manyTill
-             (  (T.pack <$> many1 (noneOf "\"\\{"))
+             ( take1WhileP (\c -> c /= '{' && c /= '"' && c /= '\\')
                <|> (char '\\' >> T.cons '\\' . T.singleton <$> anyChar)
                <|> braced <$> inBraces
             ) (char '"')
