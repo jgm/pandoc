@@ -443,7 +443,13 @@ spaceChar = satisfy $ \c -> c == ' ' || c == '\t'
 
 -- | Parses a nonspace, nonnewline character.
 nonspaceChar :: Stream s m Char => ParserT s st m Char
-nonspaceChar = noneOf ['\t', '\n', ' ', '\r']
+nonspaceChar = satisfy (not . isSpaceChar)
+ where
+  isSpaceChar ' '  = True
+  isSpaceChar '\t' = True
+  isSpaceChar '\n' = True
+  isSpaceChar '\r' = True
+  isSpaceChar _    = False
 
 -- | Skips zero or more spaces or tabs.
 skipSpaces :: Stream s m Char => ParserT s st m ()
