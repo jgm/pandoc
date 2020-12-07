@@ -70,6 +70,72 @@ tests = [ testGroup "line blocks"
                                       , "</para>" ]
                                     )
           ]
+        , testGroup "divs"
+          [ "admonition" =: divWith ("foo", ["warning"], []) (para "This is a test")
+                              =?> unlines
+                                    [ "<warning id=\"foo\">"
+                                    , "  <para>"
+                                    , "    This is a test"
+                                    , "  </para>"
+                                    , "</warning>"
+                                    ]
+          , "admonition-with-title" =:
+                            divWith ("foo", ["attention"], []) (
+                              divWith ("foo", ["title"], [])
+                                (plain (text "This is title")) <>
+                              para "This is a test"
+                            )
+                              =?> unlines
+                                    [ "<attention id=\"foo\">"
+                                    , "  <title>This is title</title>"
+                                    , "  <para>"
+                                    , "    This is a test"
+                                    , "  </para>"
+                                    , "</attention>"
+                                    ]
+          , "admonition-with-title-in-para" =:
+                            divWith ("foo", ["attention"], []) (
+                              divWith ("foo", ["title"], [])
+                                (para "This is title") <>
+                              para "This is a test"
+                            )
+                              =?> unlines
+                                    [ "<attention id=\"foo\">"
+                                    , "  <title>This is title</title>"
+                                    , "  <para>"
+                                    , "    This is a test"
+                                    , "  </para>"
+                                    , "</attention>"
+                                    ]
+          , "single-child" =:
+                            divWith ("foo", [], []) (para "This is a test")
+                              =?> unlines
+                                    [ "<para id=\"foo\">"
+                                    , "  This is a test"
+                                    , "</para>"
+                                    ]
+          , "single-literal-child" =:
+                            divWith ("foo", [], []) lineblock
+                              =?> unlines
+                                    [ "<literallayout id=\"foo\">some text"
+                                    , "and more lines"
+                                    , "and again</literallayout>"
+                                    ]
+          , "multiple-children" =:
+                            divWith ("foo", [], []) (
+                              para "This is a test" <>
+                              para "This is an another test"
+                            )
+                              =?> unlines
+                                    [ "<anchor id=\"foo\" />"
+                                    , "<para>"
+                                    , "  This is a test"
+                                    , "</para>"
+                                    , "<para>"
+                                    , "  This is an another test"
+                                    , "</para>"
+                                    ]
+          ]
         , testGroup "compact lists"
           [ testGroup "bullet"
             [ "compact"    =: bulletList [plain "a", plain "b", plain "c"]

@@ -53,6 +53,13 @@ getStartLvl opts =
        TopLevelSection -> 1
        TopLevelDefault -> 1
 
+-- | Get correct name for the id attribute based on DocBook version.
+-- DocBook 4 used custom id attribute but DocBook 5 adopted the xml:id specification.
+-- https://www.w3.org/TR/xml-id/
+idName :: DocBookVersion -> Text
+idName DocBook5 = "xml:id"
+idName DocBook4 = "id"
+
 -- | Convert list of authors to a docbook <author> section
 authorToDocbook :: PandocMonad m => WriterOptions -> [Inline] -> DB m B.Inlines
 authorToDocbook opts name' = do
@@ -174,10 +181,7 @@ blockToDocbook opts (Div (id',"section":_,_) (Header lvl _ ils : xs)) = do
                                               then "section"
                                               else "sect" <> tshow n
                  _                    -> "simplesect"
-      idName = if version == DocBook5
-                 then "xml:id"
-                 else "id"
-      idAttr = [(idName, writerIdentifierPrefix opts <> id') | not (T.null id')]
+      idAttr = [(idName version, writerIdentifierPrefix opts <> id') | not (T.null id')]
       -- We want to add namespaces to the root (top-level) element.
       nsAttr = if version == DocBook5 && lvl == getStartLvl opts && isNothing (writerTemplate opts)
       -- Though, DocBook 4 does not support namespaces and
@@ -188,18 +192,39 @@ blockToDocbook opts (Div (id',"section":_,_) (Header lvl _ ils : xs)) = do
   title' <- inlinesToDocbook opts ils
   contents <- blocksToDocbook opts bs
   return $ inTags True tag attribs $ inTagsSimple "title" title' $$ contents
-blockToDocbook opts (Div (ident,_,_) [Para lst]) =
-  let attribs = [("id", ident) | not (T.null ident)] in
-  if hasLineBreaks lst
-     then flush . nowrap . inTags False "literallayout" attribs
-                         <$> inlinesToDocbook opts lst
-     else inTags True "para" attribs <$> inlinesToDocbook opts lst
-blockToDocbook opts (Div (ident,_,_) bs) = do
-  contents <- blocksToDocbook opts (map plainToPara bs)
-  return $
-    (if T.null ident
-        then mempty
-        else selfClosingTag "anchor" [("id", ident)]) $$ contents
+blockToDocbook opts (Div (ident,classes,_) bs) = do
+  version <- ask
+  let identAttribs = [(idName version, ident) | not (T.null ident)]
+      admonitions = ["attention","caution","danger","error","hint",
+                     "important","note","tip","warning"]
+  case classes of
+    (l:_) | l `elem` admonitions -> do
+        let (mTitleBs, bodyBs) =
+                case bs of
+                  -- Matches AST produced by the DocBook reader → Markdown writer → Markdown reader chain.
+                  (Div (_,["title"],_) [Para ts] : rest) -> (Just (inlinesToDocbook opts ts), rest)
+                  -- Matches AST produced by the Docbook reader.
+                  (Div (_,["title"],_) ts : rest) -> (Just (blocksToDocbook opts ts), rest)
+                  _ -> (Nothing, bs)
+        admonitionTitle <- case mTitleBs of
+                              Nothing -> return mempty
+                              -- id will be attached to the admonition so let’s pass empty identAttrs.
+                              Just titleBs -> inTags False "title" [] <$> titleBs
+        admonitionBody <- handleDivBody [] bodyBs
+        return (inTags True l identAttribs (admonitionTitle $$ admonitionBody))
+    _ -> handleDivBody identAttribs bs
+  where
+    handleDivBody identAttribs [Para lst] =
+      if hasLineBreaks lst
+         then flush . nowrap . inTags False "literallayout" identAttribs
+                             <$> inlinesToDocbook opts lst
+         else inTags True "para" identAttribs <$> inlinesToDocbook opts lst
+    handleDivBody identAttribs bodyBs = do
+      contents <- blocksToDocbook opts (map plainToPara bodyBs)
+      return $
+        (if null identAttribs
+            then mempty
+            else selfClosingTag "anchor" identAttribs) $$ contents
 blockToDocbook _ h@Header{} = do
   -- should be handled by Div section above, except inside lists/blockquotes
   report $ BlockNotRendered h
@@ -353,11 +378,12 @@ inlineToDocbook opts (Quoted _ lst) =
   inTagsSimple "quote" <$> inlinesToDocbook opts lst
 inlineToDocbook opts (Cite _ lst) =
   inlinesToDocbook opts lst
-inlineToDocbook opts (Span (ident,_,_) ils) =
+inlineToDocbook opts (Span (ident,_,_) ils) = do
+  version <- ask
   ((if T.null ident
        then mempty
-       else selfClosingTag "anchor" [("id", ident)]) <>) <$>
-  inlinesToDocbook opts ils
+       else selfClosingTag "anchor" [(idName version, ident)]) <>) <$>
+    inlinesToDocbook opts ils
 inlineToDocbook _ (Code _ str) =
   return $ inTagsSimple "literal" $ literal (escapeStringForXML str)
 inlineToDocbook opts (Math t str)
