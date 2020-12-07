@@ -654,7 +654,20 @@ uri = try $ do
   let uri' = scheme <> ":" <> fromEntities str'
   return (uri', escapeURI uri')
   where
-    wordChar = alphaNum <|> oneOf "#$%+/@\\_-&="
+    isWordChar '#' = True
+    isWordChar '$' = True
+    isWordChar '%' = True
+    isWordChar '+' = True
+    isWordChar '/' = True
+    isWordChar '@' = True
+    isWordChar '\\' = True
+    isWordChar '_' = True
+    isWordChar '-' = True
+    isWordChar '&' = True
+    isWordChar '=' = True
+    isWordChar c   = isAlphaNum c
+
+    wordChar = satisfy isWordChar
     percentEscaped = try $ (:) <$> char '%' <*> many1 hexDigit
     entity = try $ pure <$> characterReference
     punct = try $ many1 (char ',') <|> fmap pure (satisfy (\c -> not (isSpace c) && c /= '<' && c /= '>'))
