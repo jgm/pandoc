@@ -201,6 +201,8 @@ blockToDocbook opts (Div (ident,classes,_) bs) = do
     (l:_) | l `elem` admonitions -> do
         let (mTitleBs, bodyBs) =
                 case bs of
+                  -- Matches AST produced by the DocBook reader → Markdown writer → Markdown reader chain.
+                  (Div (_,["title"],_) [Para ts] : rest) -> (Just (inlinesToDocbook opts ts), rest)
                   -- Matches AST produced by the Docbook reader.
                   (Div (_,["title"],_) ts : rest) -> (Just (blocksToDocbook opts ts), rest)
                   _ -> (Nothing, bs)

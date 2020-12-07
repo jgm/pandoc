@@ -93,6 +93,20 @@ tests = [ testGroup "line blocks"
                                     , "  </para>"
                                     , "</attention>"
                                     ]
+          , "admonition-with-title-in-para" =:
+                            divWith ("foo", ["attention"], []) (
+                              divWith ("foo", ["title"], [])
+                                (para "This is title") <>
+                              para "This is a test"
+                            )
+                              =?> unlines
+                                    [ "<attention id=\"foo\">"
+                                    , "  <title>This is title</title>"
+                                    , "  <para>"
+                                    , "    This is a test"
+                                    , "  </para>"
+                                    , "</attention>"
+                                    ]
           , "single-child" =:
                             divWith ("foo", [], []) (para "This is a test")
                               =?> unlines
