@@ -641,7 +641,7 @@ uri = try $ do
   scheme <- uriScheme
   char ':'
   -- Avoid parsing e.g. "**Notes:**" as a raw URI:
-  notFollowedBy (oneOf "*_]")
+  notFollowedBy $ satisfy (\c -> c == '*' || c == '_' || c == ']')
   -- We allow sentence punctuation except at the end, since
   -- we don't want the trailing '.' in 'http://google.com.' We want to allow
   -- http://en.wikipedia.org/wiki/State_of_emergency_(disambiguation)
@@ -693,7 +693,7 @@ mathInlineWith op cl = try $ do
                                  (("\\text" <>) <$> inBalancedBraces 0 ""))
                             <|>  (\c -> T.pack ['\\',c]) <$> anyChar))
                    <|> do (blankline <* notFollowedBy' blankline) <|>
-                             (oneOf " \t" <* skipMany (oneOf " \t"))
+                             (spaceChar <* skipMany spaceChar)
                           notFollowedBy (char '$')
                           return " "
                     ) (try $ textStr cl)
@@ -723,7 +723,8 @@ mathInlineWith op cl = try $ do
 mathDisplayWith :: Stream s m Char => Text -> Text -> ParserT s st m Text
 mathDisplayWith op cl = try $ fmap T.pack $ do
   textStr op
-  many1Till (noneOf "\n" <|> (newline <* notFollowedBy' blankline)) (try $ textStr cl)
+  many1Till (satisfy (/= '\n') <|> (newline <* notFollowedBy' blankline))
+            (try $ textStr cl)
 
 mathDisplay :: (HasReaderOptions st, Stream s m Char)
             => ParserT s st m Text
