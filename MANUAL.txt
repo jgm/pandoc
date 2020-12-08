@@ -1000,8 +1000,8 @@ header when requesting a document from a URL:
 
 `-N`, `--number-sections`
 
-:   Number section headings in LaTeX, ConTeXt, HTML, Docx, or EPUB output.
-    By default, sections are not numbered.  Sections with class
+:   Number section headings in LaTeX, ConTeXt, HTML, Docx, ms, or EPUB
+    output.  By default, sections are not numbered.  Sections with class
     `unnumbered` will never be numbered, even if `--number-sections`
     is specified.
 
