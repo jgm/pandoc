@@ -190,7 +190,7 @@ where
 
 import Control.Monad.Identity
 import Control.Monad.Reader
-import Data.Char (chr, isAlphaNum, isAscii, isAsciiUpper,
+import Data.Char (chr, isAlphaNum, isAscii, isAsciiUpper, isAsciiLower,
                   isPunctuation, isSpace, ord, toLower, toUpper)
 import Data.Default
 import Data.Functor (($>))
@@ -444,12 +444,13 @@ spaceChar = satisfy $ \c -> c == ' ' || c == '\t'
 -- | Parses a nonspace, nonnewline character.
 nonspaceChar :: Stream s m Char => ParserT s st m Char
 nonspaceChar = satisfy (not . isSpaceChar)
- where
-  isSpaceChar ' '  = True
-  isSpaceChar '\t' = True
-  isSpaceChar '\n' = True
-  isSpaceChar '\r' = True
-  isSpaceChar _    = False
+
+isSpaceChar :: Char -> Bool
+isSpaceChar ' '  = True
+isSpaceChar '\t' = True
+isSpaceChar '\n' = True
+isSpaceChar '\r' = True
+isSpaceChar _    = False
 
 -- | Skips zero or more spaces or tabs.
 skipSpaces :: Stream s m Char => ParserT s st m ()
@@ -682,7 +683,9 @@ mathInlineWith :: Stream s m Char  => Text -> Text -> ParserT s st m Text
 mathInlineWith op cl = try $ do
   textStr op
   when (op == "$") $ notFollowedBy space
-  words' <- many1Till (countChar 1 (noneOf " \t\n\\")
+  words' <- many1Till (
+                       (T.singleton <$>
+                          satisfy (\c -> not (isSpaceChar c || c == '\\')))
                    <|> (char '\\' >>
                            -- This next clause is needed because \text{..} can
                            -- contain $, \(\), etc.
@@ -840,13 +843,13 @@ defaultNum = do
 -- | Parses a lowercase letter and returns (LowerAlpha, number).
 lowerAlpha :: Stream s m Char => ParserT s st m (ListNumberStyle, Int)
 lowerAlpha = do
-  ch <- oneOf ['a'..'z']
+  ch <- satisfy isAsciiLower
   return (LowerAlpha, ord ch - ord 'a' + 1)
 
 -- | Parses an uppercase letter and returns (UpperAlpha, number).
 upperAlpha :: Stream s m Char => ParserT s st m (ListNumberStyle, Int)
 upperAlpha = do
-  ch <- oneOf ['A'..'Z']
+  ch <- satisfy isAsciiUpper
   return (UpperAlpha, ord ch - ord 'A' + 1)
 
 -- | Parses a roman numeral i or I
