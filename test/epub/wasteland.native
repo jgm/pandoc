@@ -1,8 +1,8 @@
 [Para [Image ("",[],[]) [] ("wasteland-cover.jpg","")]
 ,Para [Span ("wasteland-content.xhtml",[],[]) []]
-,Div ("wasteland-content.xhtml#frontmatter",["section"],[("type","frontmatter")])
+,Div ("wasteland-content.xhtml#frontmatter",["section","frontmatter"],[])
  []
-,Div ("wasteland-content.xhtml#bodymatter",["section"],[("type","bodymatter")])
+,Div ("wasteland-content.xhtml#bodymatter",["section","bodymatter"],[])
  [Div ("wasteland-content.xhtml#ch1",["section"],[])
   [Header 2 ("",[],[]) [Str "I.",Space,Str "THE",Space,Str "BURIAL",Space,Str "OF",Space,Str "THE",Space,Str "DEAD"]
   ,Div ("",["linegroup"],[])
@@ -922,8 +922,8 @@
     [Plain [Str "Datta.",Space,Str "Dayadhvam.",Space,Str "Damyata."]]
    ,Div ("wasteland-content.xhtml#ln434",["linegroup","indent"],[])
     [Plain [Span ("",[],[("lang","sa")]) [Str "Shantih",Space,Str "shantih",Space,Str "shantih",Note [Para [Link ("",[],[]) [Str "434."] ("#wasteland-content.xhtml#ln434",""),Space,Str "Shantih.",Space,Str "Repeated",Space,Str "as",Space,Str "here,",Space,Str "a",Space,Str "formal",Space,Str "ending",Space,Str "to",Space,Str "an",Space,Str "Upanishad.",Space,Str "'The",SoftBreak,Str "Peace",Space,Str "which",Space,Str "passeth",Space,Str "understanding'",Space,Str "is",Space,Str "a",Space,Str "feeble",Space,Str "translation",Space,Str "of",Space,Str "the",SoftBreak,Str "content",Space,Str "of",Space,Str "this",Space,Str "word."]],SoftBreak]]]]]]
-,Div ("wasteland-content.xhtml#backmatter",["section"],[("type","backmatter")])
- [Div ("wasteland-content.xhtml#rearnotes",["section"],[("type","rearnotes")])
+,Div ("wasteland-content.xhtml#backmatter",["section","backmatter"],[])
+ [Div ("wasteland-content.xhtml#rearnotes",["section","rearnotes"],[])
   [Header 2 ("",[],[]) [Str "NOTES",Space,Str "ON",Space,Str "\"THE",Space,Str "WASTE",Space,Str "LAND\""]
   ,Para [Str "Not",Space,Str "only",Space,Str "the",Space,Str "title,",Space,Str "but",Space,Str "the",Space,Str "plan",Space,Str "and",Space,Str "a",Space,Str "good",Space,Str "deal",Space,Str "of",Space,Str "the",Space,Str "incidental",Space,Str "symbolism",Space,Str "of",SoftBreak,Str "the",Space,Str "poem",Space,Str "were",Space,Str "suggested",Space,Str "by",Space,Str "Miss",Space,Str "Jessie",Space,Str "L.",Space,Str "Weston's",Space,Str "book",Space,Str "on",Space,Str "the",Space,Str "Grail",Space,Str "legend:",SoftBreak,Str "From",Space,Str "Ritual",Space,Str "to",Space,Str "Romance"]
   ,Para [Str "Indeed,",Space,Str "so",Space,Str "deeply",Space,Str "am",Space,Str "I",Space,Str "indebted,",Space,Str "Miss",Space,Str "Weston's",Space,Str "book",Space,Str "will",Space,Str "elucidate",Space,Str "the",SoftBreak,Str "difficulties",Space,Str "of",Space,Str "the",Space,Str "poem",Space,Str "much",Space,Str "better",Space,Str "than",Space,Str "my",Space,Str "notes",Space,Str "can",Space,Str "do;",Space,Str "and",Space,Str "I",Space,Str "recommend",Space,Str "it",SoftBreak,Str "(apart",Space,Str "from",Space,Str "the",Space,Str "great",Space,Str "interest",Space,Str "of",Space,Str "the",Space,Str "book",Space,Str "itself)",Space,Str "to",Space,Str "any",Space,Str "who",Space,Str "think",Space,Str "such",SoftBreak,Str "elucidation",Space,Str "of",Space,Str "the",Space,Str "poem",Space,Str "worth",Space,Str "the",Space,Str "trouble.",Space,Str "To",Space,Str "another",Space,Str "work",Space,Str "of",Space,Str "anthropology",Space,Str "I",Space,Str "am",SoftBreak,Str "indebted",Space,Str "in",Space,Str "general,",Space,Str "one",Space,Str "which",Space,Str "has",Space,Str "influenced",Space,Str "our",Space,Str "generation",Space,Str "profoundly;",Space,Str "I",Space,Str "mean",SoftBreak,Str "The",Space,Str "Golden",Space,Str "Bough;",Space,Str "I",Space,Str "have",Space,Str "used",Space,Str "especially",Space,Str "the",Space,Str "two",Space,Str "volumes",Space,Str "Adonis,",Space,Str "Attis,",Space,Str "Osiris.",SoftBreak,Str "Anyone",Space,Str "who",Space,Str "is",Space,Str "acquainted",Space,Str "with",Space,Str "these",Space,Str "works",Space,Str "will",Space,Str "immediately",Space,Str "recognise",Space,Str "in",Space,Str "the",Space,Str "poem",SoftBreak,Str "certain",Space,Str "references",Space,Str "to",Space,Str "vegetation",Space,Str "ceremonies."]

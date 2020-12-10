@@ -74,7 +74,7 @@ readHtml :: PandocMonad m
          -> Text        -- ^ String to parse (assumes @'\n'@ line endings)
          -> m Pandoc
 readHtml opts inp = do
-  let tags = stripPrefixes . canonicalizeTags $
+  let tags = stripPrefixes $ canonicalizeTags $
              parseTagsOptions parseOptions{ optTagPosition = True }
              (crFilter inp)
       parseDoc = do
@@ -95,6 +95,15 @@ readHtml opts inp = do
     Right doc -> return doc
     Left  err -> throwError $ PandocParseError $ T.pack $ getError err
 
+-- Strip namespace prefixes on tags (not attributes)
+stripPrefixes :: [Tag Text] -> [Tag Text]
+stripPrefixes = map stripPrefix
+
+stripPrefix :: Tag Text -> Tag Text
+stripPrefix (TagOpen s as) = TagOpen (T.takeWhileEnd (/=':') s) as
+stripPrefix (TagClose s)   = TagClose (T.takeWhileEnd (/=':') s)
+stripPrefix x = x
+
 replaceNotes :: PandocMonad m => [Block] -> TagParser m [Block]
 replaceNotes bs = do
   st <- getState
@@ -114,7 +123,7 @@ setInPlain = local (\s -> s {inPlain = True})
 pHtml :: PandocMonad m => TagParser m Blocks
 pHtml = try $ do
   (TagOpen "html" attr) <- lookAhead pAny
-  for_ (lookup "lang" attr) $
+  for_ (lookup "lang" attr <|> lookup "xml:lang" attr) $
     updateState . B.setMeta "lang" . B.text
   pInTags "html" block
 
@@ -1023,21 +1032,6 @@ htmlTag f = try $ do
        TagClose tagname ->
          handleTag tagname
        _ -> mzero
-
--- Strip namespace prefixes
-stripPrefixes :: [Tag Text] -> [Tag Text]
-stripPrefixes = map stripPrefix
-
-stripPrefix :: Tag Text -> Tag Text
-stripPrefix (TagOpen s as) =
-    TagOpen (stripPrefix' s) (map (first stripPrefix') as)
-stripPrefix (TagClose s) = TagClose (stripPrefix' s)
-stripPrefix x = x
-
-stripPrefix' :: Text -> Text
-stripPrefix' s =
-  if T.null t then s else T.drop 1 t
-  where (_, t) = T.span (/= ':') s
 
 -- Utilities
 

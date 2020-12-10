@@ -193,14 +193,20 @@ t1 `closes` t2 |
 _ `closes` _ = False
 
 toStringAttr :: [(Text, Text)] -> [(Text, Text)]
-toStringAttr = map go
+toStringAttr = foldr go []
   where
-   go (x,y) =
-     case T.stripPrefix "data-" x of
-       Just x' | x' `Set.notMember` (html5Attributes <>
-                                     html4Attributes <> rdfaAttributes)
-         -> (x',y)
-       _ -> (x,y)
+   go :: (Text, Text) -> [(Text, Text)] -> [(Text, Text)]
+   -- treat xml:lang as lang
+   go ("xml:lang",y) ats = go ("lang",y) ats
+   -- prevent duplicate attributes
+   go (x,y) ats
+     | any (\(x',_) -> x == x') ats = ats
+     | otherwise      =
+        case T.stripPrefix "data-" x of
+          Just x' | x' `Set.notMember` (html5Attributes <>
+                                        html4Attributes <> rdfaAttributes)
+            -> go (x',y) ats
+          _ -> (x,y):ats
 
 -- Unlike fromAttrib from tagsoup, this distinguishes
 -- between a missing attribute and an attribute with empty content.
