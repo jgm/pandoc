@@ -32,11 +32,15 @@ import Data.Typeable
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
 readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
-readCommonMark opts s = do
-  let res = runIdentity $ commonmarkWith (specFor opts) "" s
-  case res of
-    Left err -> throwError $ PandocParsecError s err
-    Right (Cm bls :: Cm () Blocks) -> return $ B.doc bls
+readCommonMark opts s
+  | isEnabled Ext_sourcepos opts =
+    case runIdentity (commonmarkWith (specFor opts) "" s) of
+      Left err -> throwError $ PandocParsecError s err
+      Right (Cm bls :: Cm SourceRange Blocks) -> return $ B.doc bls
+  | otherwise =
+    case runIdentity (commonmarkWith (specFor opts) "" s) of
+      Left err -> throwError $ PandocParsecError s err
+      Right (Cm bls :: Cm () Blocks) -> return $ B.doc bls
 
 specFor :: (Monad m, Typeable m, Typeable a,
             Rangeable (Cm a Inlines), Rangeable (Cm a Blocks))

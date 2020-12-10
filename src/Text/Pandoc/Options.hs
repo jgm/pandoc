@@ -65,6 +65,7 @@ data ReaderOptions = ReaderOptions{
        , readerDefaultImageExtension :: Text -- ^ Default extension for images
        , readerTrackChanges          :: TrackChanges -- ^ Track changes setting for docx
        , readerStripComments         :: Bool -- ^ Strip HTML comments instead of parsing as raw HTML
+                                             -- (only implemented in commonmark)
 } deriving (Show, Read, Data, Typeable, Generic)
 
 instance HasSyntaxExtensions ReaderOptions where

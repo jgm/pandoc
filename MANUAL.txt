@@ -5127,6 +5127,13 @@ for regular emphasis, add extra blank space around headings.
 
   [Project Gutenberg]: https://www.gutenberg.org
 
+#### Extension: `sourcepos` ####
+
+Include source position attributes when parsing `commonmark`.
+For elements that accept attributes, a `data-pos` attribute
+is added; other elements are placed in a surrounding
+Div or Span elemnet with a `data-pos` attribute.
+
 ## Markdown variants
 
 In addition to pandoc's extended Markdown, the following Markdown

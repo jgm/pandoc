@@ -154,6 +154,7 @@ data Extension =
     | Ext_yaml_metadata_block -- ^ YAML metadata block
     | Ext_gutenberg           -- ^ Use Project Gutenberg conventions for plain
     | Ext_attributes          -- ^ Generic attribute syntax
+    | Ext_sourcepos           -- ^ Include source position attributes
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
 
 -- | Extensions to be used with pandoc-flavored markdown.
@@ -503,6 +504,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_implicit_header_references
     , Ext_attributes
     , Ext_fenced_code_attributes
+    , Ext_sourcepos
     ]
   getAll "commonmark_x"    = getAll "commonmark"
   getAll "org"             = autoIdExtensions <>
