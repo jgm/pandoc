@@ -683,7 +683,7 @@ executable pandoc
      build-depends:  base-compat >= 0.9
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
-  hs-source-dirs:  .
+  hs-source-dirs:  app
   main-is:         pandoc.hs
   buildable:       True
   other-modules:   Paths_pandoc
