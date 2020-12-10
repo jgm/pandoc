@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Readers.CommonMark
@@ -27,15 +28,20 @@ import Text.Pandoc.Options
 import Text.Pandoc.Error
 import Control.Monad.Except
 import Data.Functor.Identity (runIdentity)
+import Data.Typeable
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
 readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readCommonMark opts s = do
-  let res = runIdentity $
-              commonmarkWith (foldr ($) defaultSyntaxSpec exts) "input" s
+  let res = runIdentity $ commonmarkWith (specFor opts) "" s
   case res of
     Left err -> throwError $ PandocParsecError s err
     Right (Cm bls :: Cm () Blocks) -> return $ B.doc bls
+
+specFor :: (Monad m, Typeable m, Typeable a,
+            Rangeable (Cm a Inlines), Rangeable (Cm a Blocks))
+        => ReaderOptions -> SyntaxSpec m (Cm a Inlines) (Cm a Blocks)
+specFor opts = foldr ($) defaultSyntaxSpec exts
  where
   exts = [ (hardLineBreaksSpec <>) | isEnabled Ext_hard_line_breaks opts ] ++
          [ (smartPunctuationSpec <>) | isEnabled Ext_smart opts ] ++
