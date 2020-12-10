@@ -25,7 +25,6 @@ module Text.Pandoc.Readers.HTML ( readHtml
                                 ) where
 
 import Control.Applicative ((<|>))
-import Control.Arrow (first)
 import Control.Monad (guard, msum, mzero, unless, void)
 import Control.Monad.Except (throwError)
 import Control.Monad.Reader (ask, asks, lift, local, runReaderT)
@@ -121,14 +120,18 @@ setInPlain :: PandocMonad m => HTMLParser m s a -> HTMLParser m s a
 setInPlain = local (\s -> s {inPlain = True})
 
 pHtml :: PandocMonad m => TagParser m Blocks
-pHtml = try $ do
+pHtml = do
   (TagOpen "html" attr) <- lookAhead pAny
   for_ (lookup "lang" attr <|> lookup "xml:lang" attr) $
     updateState . B.setMeta "lang" . B.text
   pInTags "html" block
 
 pBody :: PandocMonad m => TagParser m Blocks
-pBody = pInTags "body" block
+pBody = do
+  (TagOpen "body" attr) <- lookAhead pAny
+  for_ (lookup "lang" attr <|> lookup "xml:lang" attr) $
+    updateState . B.setMeta "lang" . B.text
+  pInTags "body" block
 
 pHead :: PandocMonad m => TagParser m Blocks
 pHead = pInTags "head" $ pTitle <|> pMetaTag <|> pBaseTag <|> (mempty <$ pAny)
