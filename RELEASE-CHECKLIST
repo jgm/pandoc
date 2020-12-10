@@ -1,7 +1,7 @@
+[ ] use 'policeman' to check API changes and version update
 [ ] make README.md and commit if needed
 [ ] make man/pandoc.1 and commit if needed
 [ ] Finalize changelog
-    tools/changelog-helper.sh
 [ ] push release candidate branch rc/VERSION and (if it builds
     successfully) download artifacts
 [ ] make macospkg to fetch macos package (built on travis)
