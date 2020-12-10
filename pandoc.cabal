@@ -477,7 +477,6 @@ library
   if impl(ghc >= 8.4)
     ghc-options:     -Wincomplete-uni-patterns
                      -Widentities
-                     -Werror=missing-home-modules
                      -fhide-source-paths
 
   default-language: Haskell2010
@@ -696,7 +695,6 @@ executable pandoc
   if impl(ghc >= 8.4)
     ghc-options:     -Wincomplete-uni-patterns
                      -Widentities
-                     -Werror=missing-home-modules
                      -fhide-source-paths
 
 executable trypandoc
@@ -723,7 +721,6 @@ executable trypandoc
   if impl(ghc >= 8.4)
     ghc-options:     -Wincomplete-uni-patterns
                      -Widentities
-                     -Werror=missing-home-modules
                      -fhide-source-paths
 
 benchmark weigh-pandoc
@@ -750,7 +747,6 @@ benchmark weigh-pandoc
   if impl(ghc >= 8.4)
     ghc-options:     -Wincomplete-uni-patterns
                      -Widentities
-                     -Werror=missing-home-modules
                      -fhide-source-paths
 
 
@@ -857,7 +853,6 @@ test-suite test-pandoc
   if impl(ghc >= 8.4)
     ghc-options:     -Wincomplete-uni-patterns
                      -Widentities
-                     -Werror=missing-home-modules
                      -fhide-source-paths
 
 
@@ -888,5 +883,4 @@ benchmark benchmark-pandoc
   if impl(ghc >= 8.4)
     ghc-options:     -Wincomplete-uni-patterns
                      -Widentities
-                     -Werror=missing-home-modules
                      -fhide-source-paths
