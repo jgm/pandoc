@@ -20,7 +20,6 @@ module Text.Pandoc.Writers.LaTeX (
   ) where
 import Control.Applicative ((<|>))
 import Control.Monad.State.Strict
-import Data.Monoid (Any(..))
 import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isSpace,
                   isPunctuation, ord)
 import Data.List (foldl', intersperse, nubBy, (\\), uncons)
@@ -42,68 +41,13 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Slides
-import Text.Pandoc.Walk
+import Text.Pandoc.Walk (query, walk, walkM)
+import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
+import Text.Pandoc.Writers.LaTeX.Table (tableToLaTeX)
+import Text.Pandoc.Writers.LaTeX.Types (LW, WriterState (..), startingState)
 import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
 import qualified Data.Text.Normalize as Normalize
-
-data WriterState =
-  WriterState { stInNote        :: Bool          -- true if we're in a note
-              , stInQuote       :: Bool          -- true if in a blockquote
-              , stExternalNotes :: Bool          -- true if in context where
-                                                 -- we need to store footnotes
-              , stInMinipage    :: Bool          -- true if in minipage
-              , stInHeading     :: Bool          -- true if in a section heading
-              , stInItem        :: Bool          -- true if in \item[..]
-              , stNotes         :: [Doc Text]    -- notes in a minipage
-              , stOLLevel       :: Int           -- level of ordered list nesting
-              , stOptions       :: WriterOptions -- writer options, so they don't have to be parameter
-              , stVerbInNote    :: Bool          -- true if document has verbatim text in note
-              , stTable         :: Bool          -- true if document has a table
-              , stStrikeout     :: Bool          -- true if document has strikeout
-              , stUrl           :: Bool          -- true if document has visible URL link
-              , stGraphics      :: Bool          -- true if document contains images
-              , stLHS           :: Bool          -- true if document has literate haskell code
-              , stHasChapters   :: Bool          -- true if document has chapters
-              , stCsquotes      :: Bool          -- true if document uses csquotes
-              , stHighlighting  :: Bool          -- true if document has highlighted code
-              , stIncremental   :: Bool          -- true if beamer lists should be displayed bit by bit
-              , stInternalLinks :: [Text]      -- list of internal link targets
-              , stBeamer        :: Bool          -- produce beamer
-              , stEmptyLine     :: Bool          -- true if no content on line
-              , stHasCslRefs    :: Bool          -- has a Div with class refs
-              , stIsFirstInDefinition :: Bool    -- first block in a defn list
-              }
-
-startingState :: WriterOptions -> WriterState
-startingState options = WriterState {
-                  stInNote = False
-                , stInQuote = False
-                , stExternalNotes = False
-                , stInHeading = False
-                , stInMinipage = False
-                , stInItem = False
-                , stNotes = []
-                , stOLLevel = 1
-                , stOptions = options
-                , stVerbInNote = False
-                , stTable = False
-                , stStrikeout = False
-                , stUrl = False
-                , stGraphics = False
-                , stLHS = False
-                , stHasChapters = case writerTopLevelDivision options of
-                                    TopLevelPart    -> True
-                                    TopLevelChapter -> True
-                                    _               -> False
-                , stCsquotes = False
-                , stHighlighting = False
-                , stIncremental = writerIncremental options
-                , stInternalLinks = []
-                , stBeamer = False
-                , stEmptyLine = True
-                , stHasCslRefs = False
-                , stIsFirstInDefinition = False }
 
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -116,8 +60,6 @@ writeBeamer :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeBeamer options document =
   evalStateT (pandocToLaTeX options document) $
     (startingState options){ stBeamer = True }
-
-type LW m = StateT WriterState m
 
 pandocToLaTeX :: PandocMonad m
               => WriterOptions -> Pandoc -> LW m Text
@@ -573,7 +515,7 @@ blockToLaTeX (Plain lst) =
 blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,tgt)])
   | Just tit <- T.stripPrefix "fig:" tgt
   = do
-      (capt, captForLof, footnotes) <- getCaption True txt
+      (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True txt
       lab <- labelFor ident
       let caption = "\\caption" <> captForLof <> braces capt <> lab
       img <- inlineToLaTeX (Image attr txt (src,tit))
@@ -774,180 +716,13 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   hdr <- sectionHeader classes id' level lst
   modify $ \s -> s{stInHeading = False}
   return hdr
-blockToLaTeX (Table _ blkCapt specs thead tbody tfoot) = do
-  let (caption, aligns, widths, heads, rows) = toLegacyTable blkCapt specs thead tbody tfoot
-  -- simple tables have to have simple cells:
-  let isSimple [Plain _] = True
-      isSimple [Para  _] = True
-      isSimple []        = True
-      isSimple _         = False
-  let widths' = if all (== 0) widths && not (all (all isSimple) rows)
-                   then replicate (length aligns)
-                          (1 / fromIntegral (length aligns))
-                   else widths
-  (captionText, captForLof, captNotes) <- getCaption False caption
-  let toHeaders hs = do contents <- tableRowToLaTeX True aligns hs
-                        return ("\\toprule" $$ contents $$ "\\midrule")
-  let removeNote (Note _) = Span ("", [], []) []
-      removeNote x        = x
-  firsthead <- if isEmpty captionText || all null heads
-                  then return empty
-                  else ($$ text "\\endfirsthead") <$> toHeaders heads
-  head' <- if all null heads
-              then return "\\toprule"
-              -- avoid duplicate notes in head and firsthead:
-              else toHeaders (if isEmpty firsthead
-                                 then heads
-                                 else walk removeNote heads)
-  let capt = if isEmpty captionText
-                then empty
-                else "\\caption" <> captForLof <> braces captionText
-                         <> "\\tabularnewline"
-  rows' <- mapM (tableRowToLaTeX False aligns) rows
-  let colDescriptors =
-         (if all (== 0) widths'
-             then hcat . map literal
-             else (\xs -> cr <> nest 2 (vcat $ map literal xs))) $
-         zipWith (toColDescriptor (length widths')) aligns widths'
-  modify $ \s -> s{ stTable = True }
-  notes <- notesToLaTeX <$> gets stNotes
-  return $ "\\begin{longtable}[]" <>
-              braces ("@{}" <> colDescriptors <> "@{}")
-              -- the @{} removes extra space at beginning and end
-         $$ capt
-         $$ firsthead
-         $$ head'
-         $$ "\\endhead"
-         $$ vcat rows'
-         $$ "\\bottomrule"
-         $$ "\\end{longtable}"
-         $$ captNotes
-         $$ notes
-
-getCaption :: PandocMonad m
-           => Bool -> [Inline] -> LW m (Doc Text, Doc Text, Doc Text)
-getCaption externalNotes txt = do
-  oldExternalNotes <- gets stExternalNotes
-  modify $ \st -> st{ stExternalNotes = externalNotes, stNotes = [] }
-  capt <- inlineListToLaTeX txt
-  footnotes <- if externalNotes
-                  then notesToLaTeX <$> gets stNotes
-                  else return empty
-  modify $ \st -> st{ stExternalNotes = oldExternalNotes, stNotes = [] }
-  -- We can't have footnotes in the list of figures/tables, so remove them:
-  let getNote (Note _) = Any True
-      getNote _        = Any False
-  let hasNotes = getAny . query getNote
-  captForLof <- if hasNotes txt
-                   then brackets <$> inlineListToLaTeX (walk deNote txt)
-                   else return empty
-  return (capt, captForLof, footnotes)
-
-toColDescriptor :: Int -> Alignment -> Double -> Text
-toColDescriptor _numcols align 0 =
-  case align of
-         AlignLeft    -> "l"
-         AlignRight   -> "r"
-         AlignCenter  -> "c"
-         AlignDefault -> "l"
-toColDescriptor numcols align width =
-  T.pack $ printf
-     ">{%s\\arraybackslash}p{(\\columnwidth - %d\\tabcolsep) * \\real{%0.2f}}"
-     align'
-     ((numcols - 1) * 2)
-     width
- where
-   align' :: String
-   align' = case align of
-              AlignLeft    -> "\\raggedright"
-              AlignRight   -> "\\raggedleft"
-              AlignCenter  -> "\\centering"
-              AlignDefault -> "\\raggedright"
+blockToLaTeX (Table _ blkCapt specs thead tbodies tfoot) =
+  tableToLaTeX inlineListToLaTeX blockListToLaTeX
+               blkCapt specs thead tbodies tfoot
 
 blockListToLaTeX :: PandocMonad m => [Block] -> LW m (Doc Text)
 blockListToLaTeX lst =
   vsep `fmap` mapM (\b -> setEmptyLine True >> blockToLaTeX b) lst
-
-tableRowToLaTeX :: PandocMonad m
-                => Bool
-                -> [Alignment]
-                -> [[Block]]
-                -> LW m (Doc Text)
-tableRowToLaTeX header aligns cols = do
-  cells <- mapM (tableCellToLaTeX header) $ zip aligns cols
-  return $ hsep (intersperse "&" cells) <> " \\\\ \\addlinespace"
-
--- For simple latex tables (without minipages or parboxes),
--- we need to go to some lengths to get line breaks working:
--- as LineBreak bs = \vtop{\hbox{\strut as}\hbox{\strut bs}}.
-fixLineBreaks :: Block -> Block
-fixLineBreaks (Para ils)  = Para $ fixLineBreaks' ils
-fixLineBreaks (Plain ils) = Plain $ fixLineBreaks' ils
-fixLineBreaks x           = x
-
-fixLineBreaks' :: [Inline] -> [Inline]
-fixLineBreaks' ils = case splitBy (== LineBreak) ils of
-                       []     -> []
-                       [xs]   -> xs
-                       chunks -> RawInline "tex" "\\vtop{" :
-                                 concatMap tohbox chunks <>
-                                 [RawInline "tex" "}"]
-  where tohbox ys = RawInline "tex" "\\hbox{\\strut " : ys <>
-                    [RawInline "tex" "}"]
-
--- We also change display math to inline math, since display
--- math breaks in simple tables.
-displayMathToInline :: Inline -> Inline
-displayMathToInline (Math DisplayMath x) = Math InlineMath x
-displayMathToInline x                    = x
-
-tableCellToLaTeX :: PandocMonad m
-                 => Bool -> (Alignment, [Block])
-                 -> LW m (Doc Text)
-tableCellToLaTeX header (align, blocks) = do
-  beamer <- gets stBeamer
-  externalNotes <- gets stExternalNotes
-  inMinipage <- gets stInMinipage
-  -- See #5367 -- footnotehyper/footnote don't work in beamer,
-  -- so we need to produce the notes outside the table...
-  modify $ \st -> st{ stExternalNotes = beamer }
-  let isPlainOrPara Para{}  = True
-      isPlainOrPara Plain{} = True
-      isPlainOrPara _       = False
-  result <-
-    if all isPlainOrPara blocks
-       then
-         blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
-       else do
-         modify $ \st -> st{ stInMinipage = True }
-         cellContents <- blockListToLaTeX blocks
-         modify $ \st -> st{ stInMinipage = inMinipage }
-         let valign = text $ if header then "[b]" else "[t]"
-         let halign = case align of
-                      AlignLeft    -> "\\raggedright"
-                      AlignRight   -> "\\raggedleft"
-                      AlignCenter  -> "\\centering"
-                      AlignDefault -> "\\raggedright"
-         return $ "\\begin{minipage}" <> valign <>
-                  braces "\\linewidth" <> halign <> cr <>
-                  cellContents <> cr <>
-                  "\\end{minipage}"
-  modify $ \st -> st{ stExternalNotes = externalNotes }
-  return result
-
-
-notesToLaTeX :: [Doc Text] -> Doc Text
-notesToLaTeX [] = empty
-notesToLaTeX ns = (case length ns of
-                              n | n > 1 -> "\\addtocounter" <>
-                                           braces "footnote" <>
-                                           braces (text $ show $ 1 - n)
-                                | otherwise -> empty)
-                   $$
-                   vcat (intersperse
-                     ("\\addtocounter" <> braces "footnote" <> braces "1")
-                     $ map (\x -> "\\footnotetext" <> braces x)
-                     $ reverse ns)
 
 listItemToLaTeX :: PandocMonad m => [Block] -> LW m (Doc Text)
 listItemToLaTeX lst
@@ -1081,7 +856,7 @@ mapAlignment a = case a of
                    "top-baseline" -> "t"
                    "bottom" -> "b"
                    "center" -> "c"
-                   _ -> a 
+                   _ -> a
 
 wrapDiv :: PandocMonad m => Attr -> Doc Text -> LW m (Doc Text)
 wrapDiv (_,classes,kvs) t = do
@@ -1095,7 +870,7 @@ wrapDiv (_,classes,kvs) t = do
                                  (lookup "totalwidth" kvs)
                                onlytextwidth = filter ("onlytextwidth" ==) classes
                                options = text $ T.unpack $ T.intercalate "," $
-                                 valign : totalwidth ++ onlytextwidth 
+                                 valign : totalwidth ++ onlytextwidth
                            in inCmd "begin" "columns" <> brackets options
                               $$ contents
                               $$ inCmd "end" "columns"
@@ -1106,8 +881,8 @@ wrapDiv (_,classes,kvs) t = do
                                  maybe ""
                                  (brackets . text . T.unpack . mapAlignment)
                                  (lookup "align" kvs)
-                               w = maybe "0.48" fromPct (lookup "width" kvs) 
-                           in  inCmd "begin" "column" <> 
+                               w = maybe "0.48" fromPct (lookup "width" kvs)
+                           in  inCmd "begin" "column" <>
                                valign <>
                                braces (literal w <> "\\textwidth")
                                $$ contents
