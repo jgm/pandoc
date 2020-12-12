@@ -80,6 +80,7 @@
           <Profile type="string">
             $ID/Embedded
           </Profile>
+          <GraphicBounds Left="0" Top="0" Right="150" Bottom="150" />
         </Properties>
         <Link Self="ueb" LinkResourceURI="file:lalune.jpg" />
       </Image>
