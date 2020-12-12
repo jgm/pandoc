@@ -621,7 +621,12 @@ imageICML opts style attr (src, _) = do
       image  = inTags True "Image"
                    [("Self","ue6"), ("ItemTransform", scale<>" -"<>hw<>" -"<>hh)]
                  $ vcat [
-                     inTags True "Properties" [] $ inTags True "Profile" [("type","string")] $ text "$ID/Embedded"
+                     inTags True "Properties" [] $ vcat [
+                         inTags True "Profile" [("type","string")] $ text "$ID/Embedded"
+                       , selfClosingTag "GraphicBounds" [("Left","0"), ("Top","0")
+                         , ("Right",  showFl $ ow*ow / imgWidth)
+                         , ("Bottom", showFl $ oh*oh / imgHeight)]
+                       ]
                    , selfClosingTag "Link" [("Self", "ueb"), ("LinkResourceURI", src')]
                    ]
       doc    = inTags True "CharacterStyleRange" attrs

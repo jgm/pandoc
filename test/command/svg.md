@@ -23,6 +23,7 @@
           <Profile type="string">
             $ID/Embedded
           </Profile>
+          <GraphicBounds Left="0" Top="0" Right="300" Bottom="200" />
         </Properties>
         <Link Self="ueb" LinkResourceURI="file:command/corrupt.svg" />
       </Image>
@@ -56,6 +57,7 @@
           <Profile type="string">
             $ID/Embedded
           </Profile>
+          <GraphicBounds Left="0" Top="0" Right="300" Bottom="200" />
         </Properties>
         <Link Self="ueb" LinkResourceURI="file:command/SVG_logo.svg" />
       </Image>
@@ -89,6 +91,7 @@
           <Profile type="string">
             $ID/Embedded
           </Profile>
+          <GraphicBounds Left="0" Top="0" Right="300" Bottom="200" />
         </Properties>
         <Link Self="ueb" LinkResourceURI="file:command/SVG_logo-without-xml-declaration.svg" />
       </Image>
@@ -122,6 +125,7 @@
           <Profile type="string">
             $ID/Embedded
           </Profile>
+          <GraphicBounds Left="0" Top="0" Right="109.5" Bottom="130.5" />
         </Properties>
         <Link Self="ueb" LinkResourceURI="file:command/inkscape-cube.svg" />
       </Image>
