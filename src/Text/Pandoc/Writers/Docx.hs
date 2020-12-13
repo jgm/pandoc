@@ -978,7 +978,9 @@ blockToOpenXML' opts (Para lst)
       return [Elem $ mknode "w:p" [] (map Elem paraProps' ++ contents)]
 blockToOpenXML' opts (LineBlock lns) = blockToOpenXML opts $ linesToPara lns
 blockToOpenXML' _ b@(RawBlock format str)
-  | format == Format "openxml" = return (parseXML str)
+  | format == Format "openxml" = return [
+        Text (CData CDataRaw (T.unpack str) Nothing)
+      ]
   | otherwise                  = do
       report $ BlockNotRendered b
       return []
@@ -1312,7 +1314,8 @@ inlineToOpenXML' opts (Strikeout lst) =
   $ inlinesToOpenXML opts lst
 inlineToOpenXML' _ LineBreak = return [Elem br]
 inlineToOpenXML' _ il@(RawInline f str)
-  | f == Format "openxml" = return (parseXML str)
+  | f == Format "openxml" = return
+                            [Text (CData CDataRaw (T.unpack str) Nothing)]
   | otherwise             = do
       report $ InlineNotRendered il
       return []

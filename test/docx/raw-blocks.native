@@ -1,0 +1,6 @@
+[Para [Str "Cell",Space,Str "compartments"]
+,RawBlock (Format "openxml") "<w:tbl>\n<w:tblPr>\n<w:tblW w:w=\"2000\" w:type=\"pct\"/>\n<w:tblBorders>\n<w:top w:val=\"single\" w:sz=\"4\" w:color=\"198200\"/>\n<w:start w:val=\"single\" w:sz=\"4\" w:color=\"198200\"/>\n<w:bottom w:val=\"single\" w:sz=\"4\" w:color=\"198200\"/>\n<w:end w:val=\"single\" w:sz=\"4\" w:color=\"198200\"/>\n</w:tblBorders>\n</w:tblPr>\n<w:tblGrid>\n<w:gridCol w:w=\"1871\" />\n<w:gridCol w:w=\"1872\" />\n</w:tblGrid>\n<w:tr>\n<w:tc>"
+,Para [Str "Ribosome"]
+,RawBlock (Format "openxml") "</w:tc>\n<w:tc>"
+,Para [Str "Lysosome"]
+,RawBlock (Format "openxml") "</w:tc>\n</w:tr>\n</w:tbl>"]
