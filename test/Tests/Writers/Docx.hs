@@ -128,6 +128,16 @@ tests = [ testGroup "inlines"
             def
             "docx/codeblock.native"
             "docx/golden/codeblock.docx"
+          , docxTest
+            "raw OOXML blocks"
+            def
+            "docx/raw-blocks.native"
+            "docx/golden/raw-blocks.docx"
+          , docxTest
+            "raw bookmark markers"
+            def
+            "docx/raw-bookmarks.native"
+            "docx/golden/raw-bookmarks.docx"
           ]
         , testGroup "track changes"
           [ docxTest
