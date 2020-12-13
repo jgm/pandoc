@@ -143,9 +143,12 @@ pictToRST (label, (attr, src, _, mbtarget)) = do
   let (_, cls, _) = attr
       classes = case cls of
                    []               -> empty
-                   ["align-right"]  -> ":align: right"
-                   ["align-left"]   -> ":align: left"
-                   ["align-center"] -> ":align: center"
+                   ["align-top"]    -> ":align: top"
+                   ["align-middle"] -> ":align: middle"
+                   ["align-bottom"] -> ":align: bottom"
+                   ["align-center"] -> empty
+                   ["align-right"]  -> empty
+                   ["align-left"]   -> empty
                    _                -> ":class: " <> literal (T.unwords cls)
   return $ nowrap
          $ ".. |" <> label' <> "| image:: " <> literal src $$ hang 3 empty (classes $$ dims)
@@ -215,19 +218,28 @@ blockToRST (Div (ident,classes,_kvs) bs) = do
            nest 3 contents $$
            blankline
 blockToRST (Plain inlines) = inlineListToRST inlines
--- title beginning with fig: indicates that the image is a figure
-blockToRST (Para [Image attr txt (src,T.stripPrefix "fig:" -> Just tit)]) = do
-  capt <- inlineListToRST txt
+blockToRST (Para [Image attr txt (src, rawtit)]) = do
+  description <- inlineListToRST txt
   dims <- imageDimsToRST attr
-  let fig = "figure:: " <> literal src
-      alt = ":alt: " <> if T.null tit then capt else literal tit
+  -- title beginning with fig: indicates that the image is a figure
+  let (isfig, tit) = case T.stripPrefix "fig:" rawtit of
+                          Nothing   -> (False, rawtit)
+                          Just tit' -> (True, tit')
+  let fig | isfig = "figure:: " <> literal src
+          | otherwise = "image:: " <> literal src
+      alt | isfig = ":alt: " <> if T.null tit then description else literal tit
+          | null txt = empty
+          | otherwise = ":alt: " <> description
+      capt | isfig = description
+           | otherwise = empty
       (_,cls,_) = attr
       classes = case cls of
                    []               -> empty
                    ["align-right"]  -> ":align: right"
                    ["align-left"]   -> ":align: left"
                    ["align-center"] -> ":align: center"
-                   _                -> ":figclass: " <> literal (T.unwords cls)
+                   _ | isfig        -> ":figclass: " <> literal (T.unwords cls)
+                     | otherwise    -> ":class: " <> literal (T.unwords cls)
   return $ hang 3 ".. " (fig $$ alt $$ classes $$ dims $+$ capt) $$ blankline
 blockToRST (Para inlines)
   | LineBreak `elem` inlines =
