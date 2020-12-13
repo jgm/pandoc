@@ -54,6 +54,8 @@ import Control.Monad.Except
 import Control.Applicative
 import Data.Maybe (fromMaybe)
 import qualified Data.Attoparsec.ByteString.Char8 as A
+import qualified Codec.Picture.Metadata as Metadata
+import Codec.Picture (decodeImageWithMetadata)
 
 -- quick and dirty functions to get image sizes
 -- algorithms borrowed from wwwis.pl
@@ -122,7 +124,7 @@ findSvgTag img = "<svg" `B.isInfixOf` img || "<SVG" `B.isInfixOf` img
 imageSize :: WriterOptions -> ByteString -> Either T.Text ImageSize
 imageSize opts img = checkDpi <$>
   case imageType img of
-       Just Png  -> mbToEither "could not determine PNG size" $ pngSize img
+       Just Png  -> pngSize img
        Just Gif  -> mbToEither "could not determine GIF size" $ gifSize img
        Just Jpeg -> jpegSize img
        Just Svg  -> mbToEither "could not determine SVG size" $ svgSize opts img
@@ -300,36 +302,22 @@ pPdfSize = do
             , dpiY = 72 }
    ) <|> pPdfSize
 
-pngSize :: ByteString -> Maybe ImageSize
-pngSize img = do
-  let (h, rest) = B.splitAt 8 img
-  guard $ h == "\x8a\x4d\x4e\x47\x0d\x0a\x1a\x0a" ||
-          h == "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a"
-  let (i, rest') = B.splitAt 4 $ B.drop 4 rest
-  guard $ i == "MHDR" || i == "IHDR"
-  let (sizes, rest'') = B.splitAt 8 rest'
-  (x,y) <- case map fromIntegral $unpack sizes of
-                ([w1,w2,w3,w4,h1,h2,h3,h4] :: [Integer]) -> return
-                    (shift w1 24 + shift w2 16 + shift w3 8 + w4,
-                     shift h1 24 + shift h2 16 + shift h3 8 + h4)
-                _ -> Nothing -- "PNG parse error"
-  (dpix, dpiy) <- findpHYs rest''
-  return ImageSize { pxX  = x, pxY = y, dpiX = dpix, dpiY = dpiy }
-
-findpHYs :: ByteString -> Maybe (Integer, Integer)
-findpHYs x
-  | B.null x || "IDAT" `B.isPrefixOf` x = return (72,72)
-  | "pHYs" `B.isPrefixOf` x =
-    case map fromIntegral $ unpack $ B.take 9 $ B.drop 4 x of
-         [x1,x2,x3,x4,y1,y2,y3,y4,u] -> do
-           let factor = if u == 1 -- dots per meter
-                          then \z -> z * 254 `div` 10000
-                          else const 72
-           return
-              ( factor $ shift x1 24 + shift x2 16 + shift x3 8 + x4,
-                factor $ shift y1 24 + shift y2 16 + shift y3 8 + y4 )
-         _ -> mzero
-  | otherwise = findpHYs $ B.drop 1 x  -- read another byte
+pngSize :: ByteString -> Either T.Text ImageSize
+pngSize img =
+  case decodeImageWithMetadata img of
+    Left e -> Left (T.pack e)
+    Right (_, meta) -> do
+      pxx <- maybe (Left "Could not determine width") Right $
+                   Metadata.lookup Metadata.Width meta
+      pxy <- maybe (Left "Could not determine height") Right $
+                  Metadata.lookup Metadata.Height meta
+      dpix <- maybe (Right 72) Right $ Metadata.lookup Metadata.DpiX meta
+      dpiy <- maybe (Right 72) Right $ Metadata.lookup Metadata.DpiY meta
+      return $ ImageSize
+                { pxX = fromIntegral pxx
+                , pxY = fromIntegral pxy
+                , dpiX = fromIntegral dpix
+                , dpiY = fromIntegral dpiy }
 
 gifSize :: ByteString -> Maybe ImageSize
 gifSize img = do
