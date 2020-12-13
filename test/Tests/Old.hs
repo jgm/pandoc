@@ -58,7 +58,7 @@ tests pandocPath =
     ]
   , testGroup "latex"
     [ testGroup "writer"
-        (writerTests' "latex" ++ lhsWriterTests' "latex")
+        (extWriterTests' "latex" ++ lhsWriterTests' "latex")
     , testGroup "reader"
       [ test' "basic" ["-r", "latex+raw_tex", "-w", "native", "-s"]
         "latex-reader.latex" "latex-reader.native"

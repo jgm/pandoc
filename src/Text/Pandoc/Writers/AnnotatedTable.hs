@@ -1,8 +1,12 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {- |
    Module      : Text.Pandoc.Writers.AnnotatedTable
@@ -45,6 +49,7 @@ import           Data.Generics                  ( Data
 import           Data.List.NonEmpty             ( NonEmpty(..) )
 import           GHC.Generics                   ( Generic )
 import qualified Text.Pandoc.Builder           as B
+import           Text.Pandoc.Walk               ( Walkable (..) )
 
 -- | An annotated table type, corresponding to the Pandoc 'B.Table'
 -- constructor and the HTML @\<table\>@ element. It records the data
@@ -298,3 +303,21 @@ fromBodyRow (BodyRow attr _ rh rb) =
 
 fromCell :: Cell -> B.Cell
 fromCell (Cell _ _ c) = c
+
+--
+-- Instances
+--
+instance Walkable a B.Cell => Walkable a Cell where
+  walkM f (Cell colspecs colnum cell) =
+    Cell colspecs colnum <$> walkM f cell
+  query f (Cell _colspecs _colnum cell) = query f cell
+
+instance Walkable a B.Cell => Walkable a HeaderRow where
+  walkM f (HeaderRow attr rownum cells) =
+    HeaderRow attr rownum <$> walkM f cells
+  query f (HeaderRow _attr _rownum cells) = query f cells
+
+instance Walkable a B.Cell => Walkable a TableHead where
+  walkM f (TableHead attr rows) =
+    TableHead attr <$> walkM f rows
+  query f (TableHead _attr rows) = query f rows

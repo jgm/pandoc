@@ -16,6 +16,7 @@ module Text.Pandoc.Writers.LaTeX.Table
   ) where
 import Control.Monad.State.Strict
 import Data.List (intersperse)
+import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
@@ -23,102 +24,195 @@ import Text.Pandoc.Definition
 import Text.DocLayout
   ( Doc, braces, cr, empty, hcat, hsep, isEmpty, literal, nest
   , text, vcat, ($$) )
-import Text.Pandoc.Shared (splitBy)
+import Text.Pandoc.Shared (blocksToInlines, splitBy, tshow)
 import Text.Pandoc.Walk (walk)
-import Text.Pandoc.Writers.Shared (toLegacyTable)
 import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
 import Text.Pandoc.Writers.LaTeX.Notes (notesToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Types
   ( LW, WriterState (stBeamer, stExternalNotes, stInMinipage, stNotes, stTable) )
 import Text.Printf (printf)
+import qualified Text.Pandoc.Builder as B
+import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 
 tableToLaTeX :: PandocMonad m
              => ([Inline] -> LW m (Doc Text))
              -> ([Block]  -> LW m (Doc Text))
-             -> Caption -> [ColSpec] -> TableHead -> [TableBody] -> TableFoot
+             -> Ann.Table
              -> LW m (Doc Text)
-tableToLaTeX inlnsToLaTeX blksToLaTeX blkCapt specs thead tbody tfoot = do
-  let (caption, aligns, widths, heads, rows) =
-        toLegacyTable blkCapt specs thead tbody tfoot
-  -- simple tables have to have simple cells:
-  let isSimple = \case
-        [Plain _] -> True
-        [Para  _] -> True
-        []        -> True
-        _         -> False
-  let widths' = if all (== 0) widths && not (all (all isSimple) rows)
-                   then replicate (length aligns)
-                          (1 / fromIntegral (length aligns))
-                   else widths
-  (captionText, captForLof, captNotes) <- getCaption inlnsToLaTeX False caption
-  let toHeaders hs = do contents <- tableRowToLaTeX blksToLaTeX True aligns hs
-                        return ("\\toprule" $$ contents $$ "\\midrule")
+tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
+  let (Ann.Table _attr caption _specs thead tbodies tfoot) = tbl
+  CaptionDocs capt captNotes <- captionToLaTeX inlnsToLaTeX caption
   let removeNote (Note _) = Span ("", [], []) []
       removeNote x        = x
-  firsthead <- if isEmpty captionText || all null heads
-                  then return empty
-                  else ($$ text "\\endfirsthead") <$> toHeaders heads
-  head' <- if all null heads
-              then return "\\toprule"
-              -- avoid duplicate notes in head and firsthead:
-              else toHeaders (if isEmpty firsthead
-                                 then heads
-                                 else walk removeNote heads)
-  let capt = if isEmpty captionText
-                then empty
-                else "\\caption" <> captForLof <> braces captionText
-                         <> "\\tabularnewline"
-  rows' <- mapM (tableRowToLaTeX blksToLaTeX False aligns) rows
-  let colDescriptors =
-         (if all (== 0) widths'
-             then hcat . map literal
-             else (\xs -> cr <> nest 2 (vcat $ map literal xs))) $
-         zipWith (toColDescriptor (length widths')) aligns widths'
+  firsthead <- if isEmpty capt || isEmptyHead thead
+               then return empty
+               else ($$ text "\\endfirsthead") <$>
+                    headToLaTeX blksToLaTeX thead
+  head' <- if isEmptyHead thead
+           then return "\\toprule"
+           -- avoid duplicate notes in head and firsthead:
+           else headToLaTeX blksToLaTeX
+                (if isEmpty firsthead
+                 then thead
+                 else walk removeNote thead)
+  rows' <- mapM (rowToLaTeX blksToLaTeX BodyCell) $
+                mconcat (map bodyRows tbodies) <> footRows tfoot
   modify $ \s -> s{ stTable = True }
   notes <- notesToLaTeX <$> gets stNotes
-  return $ "\\begin{longtable}[]" <>
-              braces ("@{}" <> colDescriptors <> "@{}")
-              -- the @{} removes extra space at beginning and end
-         $$ capt
-         $$ firsthead
-         $$ head'
-         $$ "\\endhead"
-         $$ vcat rows'
-         $$ "\\bottomrule"
-         $$ "\\end{longtable}"
-         $$ captNotes
-         $$ notes
+  return
+    $  "\\begin{longtable}[]" <>
+          braces ("@{}" <> colDescriptors tbl <> "@{}")
+          -- the @{} removes extra space at beginning and end
+    $$ capt
+    $$ firsthead
+    $$ head'
+    $$ "\\endhead"
+    $$ vcat rows'
+    $$ "\\bottomrule"
+    $$ "\\end{longtable}"
+    $$ captNotes
+    $$ notes
 
-toColDescriptor :: Int -> Alignment -> Double -> Text
-toColDescriptor _numcols align 0 =
-  case align of
-         AlignLeft    -> "l"
-         AlignRight   -> "r"
-         AlignCenter  -> "c"
-         AlignDefault -> "l"
-toColDescriptor numcols align width =
-  T.pack $ printf
-     ">{%s\\arraybackslash}p{(\\columnwidth - %d\\tabcolsep) * \\real{%0.2f}}"
-     align'
-     ((numcols - 1) * 2)
-     width
- where
-   align' :: String
-   align' = case align of
-              AlignLeft    -> "\\raggedright"
-              AlignRight   -> "\\raggedleft"
-              AlignCenter  -> "\\centering"
-              AlignDefault -> "\\raggedright"
+-- | Creates column descriptors for the table.
+colDescriptors :: Ann.Table -> Doc Text
+colDescriptors (Ann.Table _attr _caption specs thead tbodies tfoot) =
+  let (aligns, widths) = unzip specs
 
-tableRowToLaTeX :: PandocMonad m
-                => ([Block] -> LW m (Doc Text))
-                -> Bool
-                -> [Alignment]
-                -> [[Block]]
-                -> LW m (Doc Text)
-tableRowToLaTeX blockListToLaTeX header aligns cols = do
-  cells <- mapM (tableCellToLaTeX blockListToLaTeX header) $ zip aligns cols
-  return $ hsep (intersperse "&" cells) <> " \\\\ \\addlinespace"
+      defaultWidthsOnly = all (== ColWidthDefault) widths
+      isSimpleTable = all (all isSimpleCell) $ mconcat
+                      [ headRows thead
+                      , concatMap bodyRows tbodies
+                      , footRows tfoot
+                      ]
+
+      relativeWidths = if defaultWidthsOnly
+                       then replicate (length specs)
+                            (1 / fromIntegral (length specs))
+                       else map toRelWidth widths
+  in if defaultWidthsOnly && isSimpleTable
+     then hcat $ map (literal . colAlign) aligns
+     else (cr <>) . nest 2 . vcat . map literal $
+          zipWith (toColDescriptor (length specs))
+                  aligns
+                  relativeWidths
+  where
+    toColDescriptor :: Int -> Alignment -> Double -> Text
+    toColDescriptor numcols align width =
+      T.pack $ printf
+      ">{%s\\arraybackslash}p{(\\columnwidth - %d\\tabcolsep) * \\real{%0.2f}}"
+      (T.unpack (alignCommand align))
+      ((numcols - 1) * 2)
+      width
+
+    isSimpleCell (Ann.Cell _ _ (Cell _attr _align _rowspan _colspan blocks)) =
+      case blocks of
+        [Para _]  -> True
+        [Plain _] -> True
+        []        -> True
+        _         -> False
+
+    toRelWidth ColWidthDefault = 0
+    toRelWidth (ColWidth w)    = w
+
+alignCommand :: Alignment -> Text
+alignCommand = \case
+  AlignLeft    -> "\\raggedright"
+  AlignRight   -> "\\raggedleft"
+  AlignCenter  -> "\\centering"
+  AlignDefault -> "\\raggedright"
+
+colAlign :: Alignment -> Text
+colAlign = \case
+  AlignLeft    -> "l"
+  AlignRight   -> "r"
+  AlignCenter  -> "c"
+  AlignDefault -> "l"
+
+data CaptionDocs =
+  CaptionDocs
+  { captionCommand :: Doc Text
+  , captionNotes :: Doc Text
+  }
+
+captionToLaTeX :: PandocMonad m
+               => ([Inline] -> LW m (Doc Text))
+               -> Caption
+               -> LW m CaptionDocs
+captionToLaTeX inlnsToLaTeX (Caption _maybeShort longCaption) = do
+  let caption = blocksToInlines longCaption
+  (captionText, captForLof, captNotes) <- getCaption inlnsToLaTeX False caption
+  return $ CaptionDocs
+    { captionNotes = captNotes
+    , captionCommand = if isEmpty captionText
+                       then empty
+                       else "\\caption" <> captForLof <>
+                            braces captionText <> "\\tabularnewline"
+    }
+
+type BlocksWriter m = [Block] -> LW m (Doc Text)
+
+headToLaTeX :: PandocMonad m
+            => BlocksWriter m
+            -> Ann.TableHead
+            -> LW m (Doc Text)
+headToLaTeX blocksWriter (Ann.TableHead _attr headerRows) = do
+  rowsContents <- mapM (rowToLaTeX blocksWriter HeaderCell . headerRowCells)
+                       headerRows
+  return ("\\toprule" $$ vcat rowsContents $$ "\\midrule")
+
+-- | Converts a row of table cells into a LaTeX row.
+rowToLaTeX :: PandocMonad m
+           => BlocksWriter m
+           -> CellType
+           -> [Ann.Cell]
+           -> LW m (Doc Text)
+rowToLaTeX blocksWriter celltype row = do
+  cellsDocs <- mapM (cellToLaTeX blocksWriter celltype) (fillRow row)
+  return $ hsep (intersperse "&" cellsDocs) <> " \\\\ \\addlinespace"
+
+-- | Pads row with empty cells to adjust for rowspans above this row.
+fillRow :: [Ann.Cell] -> [Ann.Cell]
+fillRow = go 0
+  where
+    go _ [] = []
+    go n (acell@(Ann.Cell _spec (Ann.ColNumber colnum) cell):cells) =
+      let (Cell _ _ _ (ColSpan colspan) _) = cell
+      in map mkEmptyCell [n .. colnum - 1] ++
+         acell : go (colnum + colspan) cells
+
+    mkEmptyCell :: Int -> Ann.Cell
+    mkEmptyCell colnum =
+      Ann.Cell ((AlignDefault, ColWidthDefault):|[])
+               (Ann.ColNumber colnum)
+               B.emptyCell
+
+isEmptyHead :: Ann.TableHead -> Bool
+isEmptyHead (Ann.TableHead _attr []) = True
+isEmptyHead (Ann.TableHead _attr rows) = all (null . headerRowCells) rows
+
+-- | Gets all cells in a header row.
+headerRowCells :: Ann.HeaderRow -> [Ann.Cell]
+headerRowCells (Ann.HeaderRow _attr _rownum cells) = cells
+
+-- | Gets all cells in a body row.
+bodyRowCells :: Ann.BodyRow -> [Ann.Cell]
+bodyRowCells (Ann.BodyRow _attr _rownum rowhead cells) = rowhead <> cells
+
+-- | Gets a list of rows of the table body, where a row is a simple
+-- list of cells.
+bodyRows :: Ann.TableBody -> [[Ann.Cell]]
+bodyRows (Ann.TableBody _attr _rowheads headerRows rows) =
+  map headerRowCells headerRows <> map bodyRowCells rows
+
+-- | Gets a list of rows of the table head, where a row is a simple
+-- list of cells.
+headRows :: Ann.TableHead -> [[Ann.Cell]]
+headRows (Ann.TableHead _attr rows) = map headerRowCells rows
+
+-- | Gets a list of rows from the foot, where a row is a simple list
+-- of cells.
+footRows :: Ann.TableFoot -> [[Ann.Cell]]
+footRows (Ann.TableFoot _attr rows) = map headerRowCells rows
 
 -- For simple latex tables (without minipages or parboxes),
 -- we need to go to some lengths to get line breaks working:
@@ -144,11 +238,14 @@ displayMathToInline :: Inline -> Inline
 displayMathToInline (Math DisplayMath x) = Math InlineMath x
 displayMathToInline x                    = x
 
-tableCellToLaTeX :: PandocMonad m
-                 => ([Block] -> LW m (Doc Text))
-                 -> Bool -> (Alignment, [Block])
-                 -> LW m (Doc Text)
-tableCellToLaTeX blockListToLaTeX header (align, blocks) = do
+cellToLaTeX :: PandocMonad m
+            => BlocksWriter m
+            -> CellType
+            -> Ann.Cell
+            -> LW m (Doc Text)
+cellToLaTeX blockListToLaTeX celltype annotatedCell = do
+  let (Ann.Cell _specs _colnum cell) = annotatedCell
+  let (Cell _attr align rowspan colspan blocks) = cell
   beamer <- gets stBeamer
   externalNotes <- gets stExternalNotes
   inMinipage <- gets stInMinipage
@@ -167,15 +264,28 @@ tableCellToLaTeX blockListToLaTeX header (align, blocks) = do
          modify $ \st -> st{ stInMinipage = True }
          cellContents <- blockListToLaTeX blocks
          modify $ \st -> st{ stInMinipage = inMinipage }
-         let valign = text $ if header then "[b]" else "[t]"
-         let halign = case align of
-                        AlignLeft    -> "\\raggedright"
-                        AlignRight   -> "\\raggedleft"
-                        AlignCenter  -> "\\centering"
-                        AlignDefault -> "\\raggedright"
+         let valign = text $ case celltype of
+                               HeaderCell -> "[b]"
+                               BodyCell   -> "[t]"
+         let halign = literal $ alignCommand align
          return $ "\\begin{minipage}" <> valign <>
                   braces "\\linewidth" <> halign <> cr <>
                   cellContents <> cr <>
                   "\\end{minipage}"
   modify $ \st -> st{ stExternalNotes = externalNotes }
-  return result
+  let inMultiColumn x = case colspan of
+                          (ColSpan 1) -> x
+                          (ColSpan n) -> "\\multicolumn"
+                                         <> braces (literal (tshow n))
+                                         <> braces (literal $ colAlign align)
+                                         <> braces x
+  let inMultiRow x = case rowspan of
+                       (RowSpan 1) -> x
+                       (RowSpan n) -> let nrows = literal (tshow n)
+                                      in "\\multirow" <> braces nrows
+                                         <> braces "*" <> braces x
+  return . inMultiColumn . inMultiRow $ result
+
+data CellType
+  = HeaderCell
+  | BodyCell
