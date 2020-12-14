@@ -50,6 +50,7 @@ import qualified Data.Text.Encoding as TE
 import Control.Applicative
 import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Codec.Picture.Metadata as Metadata
+import qualified Codec.Picture.Metadata.Exif as Exif
 import Codec.Picture (decodeImageWithMetadata)
 
 -- quick and dirty functions to get image sizes
@@ -300,8 +301,16 @@ getSize img =
     Left e -> Left (T.pack e)
     Right (_, meta) -> do
       pxx <- maybe (Left "Could not determine width") Right $
+                   -- first look for exif image width, then width
+                   (Metadata.lookup
+                     (Metadata.Exif (Exif.TagUnknown 0xA002)) meta >>=
+                       exifDataToWord) <|>
                    Metadata.lookup Metadata.Width meta
       pxy <- maybe (Left "Could not determine height") Right $
+                  -- first look for exif image height, then height
+                  (Metadata.lookup
+                     (Metadata.Exif (Exif.TagUnknown 0xA003)) meta >>=
+                       exifDataToWord) <|>
                   Metadata.lookup Metadata.Height meta
       dpix <- maybe (Right 72) Right $ Metadata.lookup Metadata.DpiX meta
       dpiy <- maybe (Right 72) Right $ Metadata.lookup Metadata.DpiY meta
@@ -310,6 +319,10 @@ getSize img =
                 , pxY = fromIntegral pxy
                 , dpiX = fromIntegral dpix
                 , dpiY = fromIntegral dpiy }
+ where
+  exifDataToWord (Exif.ExifLong x) = Just $ fromIntegral x
+  exifDataToWord (Exif.ExifShort x) = Just $ fromIntegral x
+  exifDataToWord _ = Nothing
 
 
 svgSize :: WriterOptions -> ByteString -> Maybe ImageSize
