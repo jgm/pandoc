@@ -1513,7 +1513,7 @@ with the [`pandoc.Attr`](#pandoc.attr) constructor. For
 convenience, it is usually not necessary to construct the value
 directly if it is part of an element, and it is sufficient to
 pass an HTML-like table. E.g., to create a span with identifier
-"text" and classes "a" and "b", on can write:
+"text" and classes "a" and "b", one can write:
 
     local span = pandoc.Span('text', {id = 'text', class = 'a b'})
 
