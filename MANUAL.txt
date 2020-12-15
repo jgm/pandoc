@@ -899,11 +899,6 @@ header when requesting a document from a URL:
     `--resource-path=.:test` will search the working directory
     and the `test` subdirectory, in that order.
 
-    `--resource-path` only has an effect if (a) the output
-    format embeds images (for example, `docx`, `pdf`, or `html`
-    with `--self-contained`) or (b) it is used together with
-    `--extract-media`.
-
 `--request-header=`*NAME*`:`*VAL*
 
 :   Set the request header *NAME* to the value *VAL* when making
