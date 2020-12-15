@@ -190,24 +190,23 @@ insertSpace ils =
 
 getRefsFromBib :: PandocMonad m
                => Locale -> (Text -> Bool) -> Text -> m [Reference Inlines]
-getRefsFromBib locale idpred t = do
-  let fp = T.unpack t
-  raw <- readFileStrict fp
-  case formatFromExtension fp of
+getRefsFromBib locale idpred fp = do
+  (raw, _) <- fetchItem fp
+  case formatFromExtension (T.unpack fp) of
     Just f -> getRefs locale f idpred (Just fp) raw
     Nothing -> throwError $ PandocAppError $
-                 "Could not determine bibliography format for " <> t
+                 "Could not determine bibliography format for " <> fp
 
 getRefs :: PandocMonad m
         => Locale
         -> BibFormat
         -> (Text -> Bool)
-        -> Maybe FilePath
+        -> Maybe Text
         -> ByteString
         -> m [Reference Inlines]
 getRefs locale format idpred mbfp raw = do
   let err' = throwError .
-             PandocBibliographyError (maybe mempty T.pack mbfp)
+             PandocBibliographyError (fromMaybe mempty mbfp)
   case format of
     Format_bibtex ->
       either (err' . tshow) return .
@@ -222,7 +221,7 @@ getRefs locale format idpred mbfp raw = do
     Format_yaml -> do
       rs <- yamlToRefs idpred
               def{ readerExtensions = pandocExtensions }
-              mbfp
+              (T.unpack <$> mbfp)
               (L.fromStrict raw)
       return $ mapMaybe metaValueToReference rs
 
