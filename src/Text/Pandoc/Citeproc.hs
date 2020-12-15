@@ -105,20 +105,21 @@ processCitations (Pandoc meta bs) = do
   let idpred = if "*" `Set.member` nocites
                   then const True
                   else (`Set.member` citeIds)
-  refs <- map (linkifyVariables . legacyDateRanges) <$>
-          case lookupMeta "references" meta of
-            Just (MetaList rs) -> return $ mapMaybe metaValueToReference rs
-            _                  ->
-              case lookupMeta "bibliography" meta of
-                 Just (MetaList xs) ->
-                   mconcat <$>
-                     mapM (getRefsFromBib locale idpred)
-                       (mapMaybe metaValueToText xs)
-                 Just x ->
-                   case metaValueToText x of
-                     Just fp -> getRefsFromBib locale idpred fp
-                     Nothing -> return []
-                 Nothing -> return []
+  let inlineRefs = case lookupMeta "references" meta of
+                    Just (MetaList rs) -> mapMaybe metaValueToReference rs
+                    _                  -> []
+  externalRefs <- case lookupMeta "bibliography" meta of
+                    Just (MetaList xs) ->
+                      mconcat <$>
+                        mapM (getRefsFromBib locale idpred)
+                          (mapMaybe metaValueToText xs)
+                    Just x ->
+                      case metaValueToText x of
+                        Just fp -> getRefsFromBib locale idpred fp
+                        Nothing -> return []
+                    Nothing -> return []
+  let refs = map (linkifyVariables . legacyDateRanges)
+                 (inlineRefs ++ externalRefs)
   let otherIdsMap = foldr (\ref m ->
                              case T.words . extractText <$>
                                   M.lookup "other-ids"
