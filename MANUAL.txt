@@ -1329,7 +1329,10 @@ header when requesting a document from a URL:
 :   Set the `bibliography` field in the document's metadata to *FILE*,
     overriding any value set in the metadata.  If you supply
     this argument multiple times, each *FILE* will be added to
-    bibliography.
+    bibliography.  If *FILE* is a URL, it will be fetched
+    via HTTP. If *FILE* is not found relative to the
+    working directory, it will be sought in the resource path
+    (see `--resource-path`).
 
 `--csl=`*FILE*
 
@@ -1338,8 +1341,8 @@ header when requesting a document from a URL:
     `--metadata csl=FILE`.)  If *FILE* is a URL, it will be
     fetched via HTTP.  If *FILE* is not found relative to the
     working directory, it will be sought in the resource path
-    and finally in the `csl` subdirectory of the
-    pandoc user data directory.
+    (see `--resource-path`) and finally in the `csl`
+    subdirectory of the pandoc user data directory.
 
 `--citation-abbreviations=`*FILE*
 
@@ -1348,8 +1351,8 @@ header when requesting a document from a URL:
     `--metadata citation-abbreviations=FILE`.)
     If *FILE* is a URL, it will be fetched via HTTP.  If *FILE* is not
     found relative to the working directory, it will be sought
-    in the resource path and finally in the `csl` subdirectory
-    of the pandoc user data directory.
+    in the resource path (see `--resource-path`) and finally in
+    the `csl` subdirectory of the pandoc user data directory.
 
 `--natbib`
 
