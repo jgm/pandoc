@@ -9,8 +9,8 @@ source-repository-package
   location: https://github.com/jgm/doctemplates.git
   tag: 7ccbf7df16edbc7c5d835d955b242c61fd4e6601
 
--- source-repository-package
---   type: git
---   location: https://github.com/jgm/citeproc
---   tag:  42b1d154b02435229acbe98ae0f17d01b757ee93
+source-repository-package
+  type: git
+  location: https://github.com/jgm/citeproc
+  tag: a8193fe375fa2354049bf9a967ba3bad4b1ba053
 

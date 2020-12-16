@@ -119,7 +119,8 @@ processCitations (Pandoc meta bs) = do
                         Nothing -> return []
                     Nothing -> return []
   let refs = map (linkifyVariables . legacyDateRanges)
-                 (inlineRefs ++ externalRefs)
+                 (externalRefs ++ inlineRefs)
+                 -- note that inlineRefs can override externalRefs
   let otherIdsMap = foldr (\ref m ->
                              case T.words . extractText <$>
                                   M.lookup "other-ids"
