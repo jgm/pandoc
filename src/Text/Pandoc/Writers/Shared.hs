@@ -109,8 +109,7 @@ metaValueToVal blockWriter inlineWriter (MetaMap metamap) =
   MapVal . Context <$> mapM (metaValueToVal blockWriter inlineWriter) metamap
 metaValueToVal blockWriter inlineWriter (MetaList xs) = ListVal <$>
   mapM (metaValueToVal blockWriter inlineWriter) xs
-metaValueToVal _ _ (MetaBool True) = return $ SimpleVal "true"
-metaValueToVal _ _ (MetaBool False) = return NullVal
+metaValueToVal _ _ (MetaBool b) = return $ BoolVal b
 metaValueToVal _ inlineWriter (MetaString s) =
    SimpleVal <$> inlineWriter (Builder.toList (Builder.text s))
 metaValueToVal blockWriter _ (MetaBlocks bs) = SimpleVal <$> blockWriter bs

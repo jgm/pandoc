@@ -16,7 +16,10 @@ extra-deps:
 - commonmark-0.1.1.2
 - commonmark-extensions-0.2.0.4
 - commonmark-pandoc-0.2.0.1
-- doctemplates-0.8.3
+# - doctemplates-0.8.3
+- doctemplates:
+  git: https://github.com/jgm/doctemplates.git
+  commit: 6cb8d09264f7c1f4b59ac67ff98b1a664a85e36a
 - citeproc-0.2.0.1
 # - citeproc:
 #   git: https://github.com/jgm/citeproc.git

@@ -174,6 +174,8 @@ valToYaml :: Val Text -> Doc Text
 valToYaml (ListVal xs) =
   vcat $ map (\v -> hang 2 "- " (valToYaml v)) xs
 valToYaml (MapVal c) = contextToYaml c
+valToYaml (BoolVal True) = "true"
+valToYaml (BoolVal False) = "false"
 valToYaml (SimpleVal x)
   | isEmpty x = empty
   | otherwise =
