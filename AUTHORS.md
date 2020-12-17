@@ -1,11 +1,13 @@
 # Contributors
 
 - Anabra
+- Aner Lucero
 - Arata Mizuki
 - Arfon Smith
 - Aaron Wolen
 - Albert Krewinkel
 - Alex Ivkin
+- Alex Toldaiev
 - Alex Vong
 - Alexander Kondratskiy
 - Alexander Krotov
@@ -104,6 +106,7 @@
 - Hubert Plociniczak
 - Ian Max Andolina
 - Igor Khorlo
+- Igor Pashev
 - Ilya V. Portnov
 - Ivan Trubach
 - Ivo Clarysse
@@ -117,6 +120,7 @@
 - Jamie F. Olson
 - Jan Larres
 - Jan Schulz
+- Jan Tojnar
 - Jan-Otto Kröpke
 - Jason Ronallo
 - Jeff Arnold
@@ -227,6 +231,7 @@
 - Shahbaz Youssefi
 - Shaun Attfield
 - Shim Myeongseob
+- Shin Sang-jae
 - Sidarth Kapur
 - Sidharth Kapur
 - Simon Hengel
@@ -270,6 +275,7 @@
 - bucklereed
 - bumper314
 - chinapedia
+- cholonam
 - csforste
 - dbecher-ito
 - d-dorazio
@@ -292,6 +298,8 @@
 - rski
 - shreevatsa.public
 - takahashim
+- taotieren
+- TEC
 - tgkokk
 - the-solipsist
 - thsutton
