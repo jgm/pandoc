@@ -1,130 +1,71 @@
 version: "2.1"
-
-env: &env
-    environment:
-      LC_ALL: "C.UTF-8"
-    docker:
-      - image: fpco/stack-build:lts-13
-
-#-----------------------------------------------------------------------------
-# Common utility stuff, not to be modified usually
-#-----------------------------------------------------------------------------
-
-preinstall: &preinstall
-  run: |
-      echo 'export PATH=/opt/cabal/bin:/opt/ghc/bin:$PATH' >> $BASH_ENV
-      source $BASH_ENV
-      apt-get update
-
-restore: &restore
-  # Needs to happen after installing ca-certificates
-  restore_cache:
-    key: v1-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}
-
-save: &save
-  save_cache:
-      key: v1-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}
-      paths:
-        - ~/.cabal
-        - ~/.ghc
-        - ~/.local
-        - ~/.stack
-
-commands:
-  cabal_build:
-    parameters:
-      ghcversion:
-        type: string
-    steps:
-      - checkout
-      - *preinstall
-      - *restore
-      - run:
-          name: install cabal
-          command: apt-get install -y cabal-install-2.4
-      - run:
-          name: install ghc
-          command: |
-            apt-get install -y ghc-<< parameters.ghcversion >>
-      - run:
-          name: build and test project
-          command: |
-            set -e
-            cabal v2-update
-            TMPDIR=`mktemp -d -t circleci.XXXXXXX`
-            cabal v2-sdist --output-dir=${TMPDIR}
-            cd ${TMPDIR}
-            tar xvzf *.tar.gz
-            cd *
-            cabal v2-build -w ghc-<< parameters.ghcversion >> -j2 --disable-optimization --dependencies-only --enable-tests --enable-benchmarks
-            cabal v2-build -w ghc-<< parameters.ghcversion >> -j2 --disable-optimization --enable-tests --enable-benchmarks 2>build.log
-            cat build.log
-            # fail if we had warnings in local build
-            # this is to work around the fact that cabal v2 doesn't allow
-            # us to use -Werror for just local build:
-            # https://github.com/haskell/cabal/issues/4247
-            ! grep -q "[Ww]arning:" build.log
-            cabal v2-test -w ghc-<< parameters.ghcversion >> -j2 --disable-optimization --enable-tests
-            cabal v2-haddock -w ghc-<< parameters.ghcversion >>
-            cabal check
-      - *save
-
-#-----------------------------------------------------------------------------
-# Build matrix
-#-----------------------------------------------------------------------------
-
 jobs:
-  cabal-ghc-8_8_1:
-      <<: *env
-      steps:
-          - cabal_build:
-              ghcversion: 8.8.1
+  build:
+    macos:
+      xcode: 9.4.1
+    environment:
+      HOMEBREW_NO_AUTO_UPDATE: 1
+    steps:
+    - checkout
+    - restore_cache:
+        # See https://circleci.com/docs/2.0/caching/
+        name: Restore Cached Dependencies
+        keys:
+          - stack-dependencies-{{ checksum "stack.yaml" }}
+    - run:
+        name: Install stack
+        command: stack --version || brew update && brew install haskell-stack
+    - run:
+        name: Resolve/Update Dependencies
+        command: stack --no-terminal setup
+    - run:
+        name: Run tests
+        command: stack --no-terminal test
+    - run:
+        name: Install executable
+        command: stack --no-terminal install
+    - run:
+        name: Create artifacts
+        command: |
+          export VERSION=$(grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
+          export ARTIFACTS=macos-release-candidate
+          export RESOURCES=${ARTIFACTS}/Resources
+          export ROOT=${ARTIFACTS}/pandoc
+          export DEST=${ROOT}/usr/local
+          export ME=$(whoami)
+          export BASE=pandoc-$VERSION
+          mkdir -p ${ARTIFACTS}
+          mkdir -p ${RESOURCES}
+          mkdir -p ${DEST}/bin
+          mkdir -p ${DEST}/share/man/man1
+          cp ~/.local/bin/pandoc ${DEST}/bin/
+          strip ${DEST}/bin/pandoc
+          cp man/pandoc.1 ${DEST}/share/man/man1/pandoc.1
+          ~/.local/bin/pandoc -s COPYING.md -Vpagetitle=License -o ${RESOURCES}/license.html
+          chown -R $ME:staff ${ROOT}
+          sed -e "s/PANDOCVERSION/${VERSION}/" macos/distribution.xml.in > ${ARTIFACTS}/distribution.xml
+          cp macos/Makefile ${ARTIFACTS}/
+          zip -r macos-release-candidate.zip ${ARTIFACTS}
 
-  cabal-ghc-8_6_5:
-      <<: *env
-      steps:
-          - cabal_build:
-              ghcversion: 8.6.5
+    - save_cache:
+        name: Cache Dependencies
+        key: stack-dependencies-{{ checksum "stack.yaml" }}
+        paths:
+        - "/root/.stack"
+        - ".stack-work"
+        - "/usr/local/bin/stack"
 
-  cabal-ghc-8_4_4:
-      <<: *env
-      steps:
-          - cabal_build:
-              ghcversion: 8.4.4
-
-  cabal-ghc-8_2_2:
-      <<: *env
-      steps:
-          - cabal_build:
-              ghcversion: 8.2.2
-
-  cabal-ghc-8_0_2:
-      <<: *env
-      steps:
-          - cabal_build:
-              ghcversion: 8.0.2
-
-  stack-ghc-8_6:
-      <<: *env
-      steps:
-        - checkout
-        - *preinstall
-        - *restore
-        - run: |
-            set -e
-            apt-get install -y ghc-8.6.5
-            stack update
-            stack test --system-ghc --fast --ghc-options="-Werror" .
-        - *save
+    - store_artifacts:
+        # https://circleci.com/docs/2.0/artifacts/
+        path: macos-release-candidate.zip
+        destination: macos-release-candidate.zip
 
 workflows:
-  version: "2.1"
-  build:
+  version: 2
+  release:
     jobs:
-      - cabal-ghc-8_6_5
-      - cabal-ghc-8_4_4
-      - cabal-ghc-8_2_2
-      - cabal-ghc-8_0_2
-      - stack-ghc-8_6
-      # - cabal-ghc-8_8_1
-
+    - build:
+        filters:
+          branches:
+            only:
+            - /rc\/.*/

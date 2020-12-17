@@ -26,4 +26,3 @@ ghc-options:
 resolver: lts-16.23
 nix:
   packages: [zlib]
-
