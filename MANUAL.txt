@@ -5246,6 +5246,10 @@ array of YAML-encoded references, for example:
       language: en-GB
     ...
 
+If both an external bibliography and inline (YAML metadata)
+references are provided, both will be used. In case of
+conflicting `id`s, the inline references will take precedence.
+
 Note that `pandoc` can be used to produce such a YAML metadata
 section from a BibTeX, BibLaTeX, or CSL JSON bibliography:
 
