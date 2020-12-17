@@ -1,5 +1,7 @@
 packages: pandoc.cabal
 
+tests: True
+
 package pandoc
   flags: +embed_data_files -trypandoc
   ghc-options: -j +RTS -A64m -RTS
