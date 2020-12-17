@@ -6,8 +6,8 @@ package pandoc
   flags: +embed_data_files -trypandoc
   ghc-options: -j +RTS -A64m -RTS
 
-source-repository-package
-  type: git
-  location: https://github.com/jgm/citeproc
-  tag: a8193fe375fa2354049bf9a967ba3bad4b1ba053
+-- source-repository-package
+--   type: git
+--   location: https://github.com/jgm/citeproc
+--   tag: a8193fe375fa2354049bf9a967ba3bad4b1ba053
 
