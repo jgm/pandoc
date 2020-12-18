@@ -29,7 +29,7 @@ ideas:
   * Write or improve documentation. If you ran into a problem which
     took more time to figure out than expected, please consider to
     save other users from the same experience. People writing the
-    documentation tend to lack an outside few, so please help
+    documentation tend to lack an outside view, so please help
     provide one. Good documentation is both difficult and extremely
     important.
 
