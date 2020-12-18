@@ -65,7 +65,9 @@ dist: man/pandoc.1
 	cd pandoc-${version}
 	stack setup && stack test && cd .. && rm -rf "pandoc-${version}"
 
-checkdocs: README.md
+check: checkdocs check-cabal
+
+checkdocs:
 	! grep -n -e "\t" MANUAL.txt changelog
 
 debpkg: man/pandoc.1
@@ -112,4 +114,14 @@ update-website:
 clean:
 	stack clean
 
-.PHONY: deps quick full haddock install clean test bench changes_github dist prof download_stats reformat lint weigh doc/lua-filters.md pandoc-templates trypandoc update-website debpkg checkdocs ghcid ghci fix_spacing hlint
+check-cabal: git-test-files.txt sdist-test-files.txt
+	echo "Checking to see if all committed test files are in sdist..."
+	diff -u $^
+
+sdist-test-files.txt: .FORCE
+	cabal sdist --list-only | sed 's/\.\///' | grep '^test\/' | sort > $@
+
+git-test-files.txt: .FORCE
+	git ls-tree -r --name-only HEAD | grep '^test\/' | sort > $@
+
+.PHONY: .FORCE deps quick full haddock install clean test bench changes_github dist prof download_stats reformat lint weigh doc/lua-filters.md pandoc-templates trypandoc update-website debpkg checkdocs ghcid ghci fix_spacing hlint check check-cabal
