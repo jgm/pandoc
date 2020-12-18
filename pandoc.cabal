@@ -287,6 +287,7 @@ extra-source-files:
                  test/tables.opendocument
                  test/tables.org
                  test/tables.asciidoc
+                 test/tables.asciidoctor
                  test/tables.haddock
                  test/tables.texinfo
                  test/tables.rst
@@ -320,6 +321,7 @@ extra-source-files:
                  test/writer.opendocument
                  test/writer.org
                  test/writer.asciidoc
+                 test/writer.asciidoctor
                  test/writer.haddock
                  test/writer.rst
                  test/writer.icml
