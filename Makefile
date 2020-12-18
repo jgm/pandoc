@@ -76,11 +76,6 @@ debpkg: man/pandoc.1
 	           utdemir/ghc-musl:v12-libgmp-ghc8101 bash \
 		   /mnt/linux/make_artifacts.sh
 
-macospkg:
-	rm -rf macos-release-candidate
-	aws s3 sync s3://travis-jgm-pandoc macos-release-candidate
-	make -C macos-release-candidate
-
 man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 	pandoc $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
@@ -117,4 +112,4 @@ update-website:
 clean:
 	stack clean
 
-.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md pandoc-templates trypandoc update-website debpkg macospkg checkdocs ghcid ghci fix_spacing hlint
+.PHONY: deps quick full haddock install clean test bench changes_github dist prof download_stats reformat lint weigh doc/lua-filters.md pandoc-templates trypandoc update-website debpkg checkdocs ghcid ghci fix_spacing hlint
