@@ -4,7 +4,7 @@
 [ ] Finalize changelog
 [ ] push release candidate branch rc/VERSION and (if it builds
     successfully) download artifacts
-[ ] make macospkg to fetch macos package (built on travis)
+[ ] download macos artifacts from CircleCI
 [ ] Use 'make' in macos and windows artifacts to sign code
 [ ] make update-website
 [ ] make trypandoc
