@@ -68,7 +68,7 @@ dist: man/pandoc.1
 check: checkdocs check-cabal
 
 checkdocs:
-	! grep -n -e "\t" MANUAL.txt changelog
+	! grep -q -n -e "\t" MANUAL.txt changelog.md
 
 debpkg: man/pandoc.1
 	docker run -v `pwd`:/mnt \
