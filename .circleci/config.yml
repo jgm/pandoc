@@ -45,6 +45,7 @@ jobs:
           chown -R $ME:staff ${ROOT}
           sed -e "s/PANDOCVERSION/${VERSION}/" macos/distribution.xml.in > ${ARTIFACTS}/distribution.xml
           cp macos/Makefile ${ARTIFACTS}/
+          echo ${VERSION} > ${ARTIFACTS}/version.txt
           zip -r macos-release-candidate.zip ${ARTIFACTS}
 
     - save_cache:
