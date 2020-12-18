@@ -84,6 +84,7 @@ data-files:
                  data/templates/default.epub2
                  data/templates/default.epub3
                  data/templates/article.jats_publishing
+                 data/templates/affiliations.jats
                  -- translations
                  data/translations/*.yaml
                  -- source files for reference.docx
@@ -298,6 +299,7 @@ extra-source-files:
                  test/tables/*.html4
                  test/tables/*.html5
                  test/tables/*.native
+                 test/tables/*.jats_archiving
                  test/testsuite.txt
                  test/writer.latex
                  test/writer.context
