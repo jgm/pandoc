@@ -1,5 +1,18 @@
 # Revision history for pandoc
 
+## pandoc 2.11.3.1 (2020-12-18)
+
+  * Added some missing files to extra-source-files and data
+    files, so they are included in the sdist tarball.  Closes #6961.
+    Cleaned up some extraneous data and test files, and added
+    a CI check to ensure that the test and data files included
+    in the sdist match what is in the git repository.
+
+  * Use citeproc 0.3.0.1, which avoids removing nonbreaking
+    space at the end of the `initialize-with` attribute. (Some
+    journals require nonbreaking space after initials, and this
+    makes that possible.)
+
 ## pandoc 2.11.3 (2020-12-17)
 
   * With `--bibliography` (or `bibliography` in metadata), a
