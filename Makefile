@@ -114,14 +114,14 @@ update-website:
 clean:
 	stack clean
 
-check-cabal: git-test-files.txt sdist-test-files.txt
-	echo "Checking to see if all committed test files are in sdist..."
+check-cabal: git-files.txt sdist-files.txt
+	echo "Checking to see if all committed test/data files are in sdist."
 	diff -u $^
 
-sdist-test-files.txt: .FORCE
-	cabal sdist --list-only | sed 's/\.\///' | grep '^test\/' | sort > $@
+sdist-files.txt: .FORCE
+	cabal sdist --list-only | sed 's/\.\///' | grep '^\(test\|data\)\/' | sort > $@
 
-git-test-files.txt: .FORCE
-	git ls-tree -r --name-only HEAD | grep '^test\/' | sort > $@
+git-files.txt: .FORCE
+	git ls-tree -r --name-only HEAD | grep '^\(test\|data\)\/' | sort > $@
 
 .PHONY: .FORCE deps quick full haddock install clean test bench changes_github dist prof download_stats reformat lint weigh doc/lua-filters.md pandoc-templates trypandoc update-website debpkg checkdocs ghcid ghci fix_spacing hlint check check-cabal

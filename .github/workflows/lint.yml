@@ -26,12 +26,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Check cabal file for missing test files
-        run: |
-          cabal sdist --list-only | sed 's/\.\///' | grep '^test\/' | \
-            sort > sdist-test-files.txt
-          git ls-tree -r --name-only HEAD | grep '^test\/' | \
-            sort > git-test-files.txt
-          diff -u git-test-files.txt sdist-test-files.txt
+        run: make check-cabal
 
       - name: Download and run hlint
         run: |
