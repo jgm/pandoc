@@ -58,6 +58,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Basic sanity checks
+      run: make check
+
     # need to install older cabal/ghc versions from ppa repository
 
     - name: Install recent cabal/ghc
