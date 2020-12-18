@@ -25,10 +25,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Check documentation for tabs
-        run: |
-          ! grep -q -n -e "\t" MANUAL.txt changelog.md
-
       - name: Check cabal file for missing test files
         run: |
           cabal sdist --list-only | sed 's/\.\///' | grep '^test\/' | \
