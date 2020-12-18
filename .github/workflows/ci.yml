@@ -58,9 +58,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Basic sanity checks
-      run: make check
-
     # need to install older cabal/ghc versions from ppa repository
 
     - name: Install recent cabal/ghc
@@ -106,9 +103,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
-    - name: Basic sanity checks
-      run: make check
 
     # We should have ghc 8.10, cabal, stack pre-installed
     # - uses: actions/setup-haskell@v1.1.3
@@ -158,9 +152,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
-    - name: Basic sanity checks
-      run: make check
 
     - name: Install recent cabal/ghc
       uses: actions/setup-haskell@v1.1.3
