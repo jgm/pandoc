@@ -288,7 +288,8 @@ A good way to ensure no new warnings are introduced is to use a Git
 before creating a commit:
 
     #!/bin/sh
-    git diff --cached --name-only | grep '\.hs$' | xargs hlint
+    git diff --diff-filter=MA --cached --name-only | grep '\.hs$' | \
+      xargs hlint --hint .hlint.yaml
 
 Saving this to `.git/hooks/pre-commit`, and making the script
 executable, will prevent accidental introduction of potentially
