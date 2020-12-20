@@ -155,6 +155,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "documentclass" documentClass $
                   defField "verbatim-in-note" (stVerbInNote st) $
                   defField "tables" (stTable st) $
+                  defField "multirow" (stMultiRow st) $
                   defField "strikeout" (stStrikeout st) $
                   defField "url" (stUrl st) $
                   defField "numbersections" (writerNumberSections options) $

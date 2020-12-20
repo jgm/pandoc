@@ -31,6 +31,7 @@ data WriterState =
                                      --   be parameter
   , stVerbInNote    :: Bool          -- ^ true if document has verbatim text in note
   , stTable         :: Bool          -- ^ true if document has a table
+  , stMultiRow      :: Bool          -- ^ true if document has multirow cells
   , stStrikeout     :: Bool          -- ^ true if document has strikeout
   , stUrl           :: Bool          -- ^ true if document has visible URL link
   , stGraphics      :: Bool          -- ^ true if document contains images
@@ -61,6 +62,7 @@ startingState options =
   , stOptions = options
   , stVerbInNote = False
   , stTable = False
+  , stMultiRow = False
   , stStrikeout = False
   , stUrl = False
   , stGraphics = False

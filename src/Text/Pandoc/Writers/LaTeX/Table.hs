@@ -29,7 +29,8 @@ import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
 import Text.Pandoc.Writers.LaTeX.Notes (notesToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Types
-  ( LW, WriterState (stBeamer, stExternalNotes, stInMinipage, stNotes, stTable) )
+  ( LW, WriterState (stBeamer, stExternalNotes, stInMinipage, stMultiRow
+                    , stNotes, stTable) )
 import Text.Printf (printf)
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
@@ -273,6 +274,8 @@ cellToLaTeX blockListToLaTeX celltype annotatedCell = do
                   cellContents <> cr <>
                   "\\end{minipage}"
   modify $ \st -> st{ stExternalNotes = externalNotes }
+  when (rowspan /= RowSpan 1) $
+    modify (\st -> st{ stMultiRow = True })
   let inMultiColumn x = case colspan of
                           (ColSpan 1) -> x
                           (ColSpan n) -> "\\multicolumn"
