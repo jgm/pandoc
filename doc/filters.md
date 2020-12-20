@@ -503,7 +503,8 @@ extension.
   ---------------- --------------
   .py              `python`
   .hs              `runhaskell`
-  .pl              `ruby`
+  .pl              `perl`
+  .rb              `ruby`
   .php             `php`
   .js              `node`
   .r               `Rscript`
