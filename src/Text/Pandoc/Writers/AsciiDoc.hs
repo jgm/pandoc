@@ -45,6 +45,10 @@ data WriterState = WriterState { defListMarker       :: Text
                                , asciidoctorVariant  :: Bool
                                , inList              :: Bool
                                , hasMath             :: Bool
+                               -- |0 is no table
+                               -- 1 is top level table
+                               -- 2 is a table in a table
+                               , tableNestingLevel   :: Int
                                }
 
 defaultWriterState :: WriterState
@@ -56,6 +60,7 @@ defaultWriterState = WriterState { defListMarker      = "::"
                                  , asciidoctorVariant = False
                                  , inList             = False
                                  , hasMath            = False
+                                 , tableNestingLevel  = 0
                                  }
 
 -- | Convert Pandoc to AsciiDoc.
@@ -236,24 +241,46 @@ blockToAsciiDoc opts (Table _ blkCapt specs thead tbody tfoot) = do
              $ zipWith colspec aligns widths')
          <> text ","
          <> headerspec <> text "]"
+         
+  -- construct cells and recurse in case of nested tables
+  parentTableLevel <- gets tableNestingLevel
+  modify $ \st -> st{ tableNestingLevel = parentTableLevel + 1 }
+  let separator = text (if parentTableLevel == 0
+                           then "|"  -- top level separator
+                           else "!") -- nested separator
+  
   let makeCell [Plain x] = do d <- blockListToAsciiDoc opts [Plain x]
-                              return $ text "|" <> chomp d
+                              return $ separator <> chomp d
       makeCell [Para x]  = makeCell [Plain x]
-      makeCell []        = return $ text "|"
+      makeCell []        = return separator
       makeCell bs        = do d <- blockListToAsciiDoc opts bs
-                              return $ text "a|" $$ d
+                              return $ (text "a" <> separator) $$ d
+                              
+  let encloseWithDepthWarning table =
+        if parentTableLevel < 2
+           then table
+           else text ( "// Asciidoc supports nesting tables up to one level, "
+                    ++ "however the following table is originally nested at "
+                    ++ "level " ++ show (parentTableLevel + 1) ++ ", so it will"
+                    ++ " be converted to a table nested at level 1."
+                     )
+               $$ table
+               $$ text ("// End of table originally nested at level "
+                      ++ show (parentTableLevel + 1) )
+  
   let makeRow cells = hsep `fmap` mapM makeCell cells
   rows' <- mapM makeRow rows
   head' <- makeRow headers
+  modify $ \st -> st{ tableNestingLevel = parentTableLevel }
   let head'' = if all null headers then empty else head'
   let colwidth = if writerWrapText opts == WrapAuto
                     then writerColumns opts
                     else 100000
   let maxwidth = maximum $ map offset (head':rows')
   let body = if maxwidth > colwidth then vsep rows' else vcat rows'
-  let border = text "|==="
-  return $
-    caption'' $$ tablespec $$ border $$ head'' $$ body $$ border $$ blankline
+  let border = separator <> text "==="
+  return $ encloseWithDepthWarning (
+    caption'' $$ tablespec $$ border $$ head'' $$ body $$ border) $$ blankline
 blockToAsciiDoc opts (BulletList items) = do
   inlist <- gets inList
   modify $ \st -> st{ inList = True }
