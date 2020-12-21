@@ -48,6 +48,7 @@ import Text.Pandoc.Writers.LaTeX.Types (LW, WriterState (..), startingState)
 import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
 import qualified Data.Text.Normalize as Normalize
+import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -154,6 +155,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "documentclass" documentClass $
                   defField "verbatim-in-note" (stVerbInNote st) $
                   defField "tables" (stTable st) $
+                  defField "multirow" (stMultiRow st) $
                   defField "strikeout" (stStrikeout st) $
                   defField "url" (stUrl st) $
                   defField "numbersections" (writerNumberSections options) $
@@ -716,9 +718,9 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   hdr <- sectionHeader classes id' level lst
   modify $ \s -> s{stInHeading = False}
   return hdr
-blockToLaTeX (Table _ blkCapt specs thead tbodies tfoot) =
+blockToLaTeX (Table attr blkCapt specs thead tbodies tfoot) =
   tableToLaTeX inlineListToLaTeX blockListToLaTeX
-               blkCapt specs thead tbodies tfoot
+               (Ann.toTable attr blkCapt specs thead tbodies tfoot)
 
 blockListToLaTeX :: PandocMonad m => [Block] -> LW m (Doc Text)
 blockListToLaTeX lst =

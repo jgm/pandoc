@@ -299,6 +299,7 @@ extra-source-files:
                  test/tables.xwiki
                  test/tables/*.html4
                  test/tables/*.html5
+                 test/tables/*.latex
                  test/tables/*.native
                  test/tables/*.jats_archiving
                  test/testsuite.txt
