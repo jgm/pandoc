@@ -19,6 +19,7 @@ that it has omitted the construct.
 AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 -}
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc, writeAsciiDoctor) where
+import Control.Monad (when)
 import Control.Monad.State.Strict
 import Data.Char (isPunctuation, isSpace)
 import Data.List (intercalate, intersperse)
@@ -36,6 +37,8 @@ import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
+import Prelude hiding (log)
+
 
 data WriterState = WriterState { defListMarker       :: Text
                                , orderedListLevel    :: Int
@@ -49,6 +52,7 @@ data WriterState = WriterState { defListMarker       :: Text
                                -- 1 is top level table
                                -- 2 is a table in a table
                                , tableNestingLevel   :: Int
+                               , log :: [LogMessage]
                                }
 
 defaultWriterState :: WriterState
@@ -61,6 +65,7 @@ defaultWriterState = WriterState { defListMarker      = "::"
                                  , inList             = False
                                  , hasMath            = False
                                  , tableNestingLevel  = 0
+                                 , log = []
                                  }
 
 -- | Convert Pandoc to AsciiDoc.
@@ -254,20 +259,18 @@ blockToAsciiDoc opts (Table _ blkCapt specs thead tbody tfoot) = do
       makeCell [Para x]  = makeCell [Plain x]
       makeCell []        = return separator
       makeCell bs        = do d <- blockListToAsciiDoc opts bs
-                              return $ (text "a" <> separator) $$ d
-                              
-  let encloseWithDepthWarning table =
-        if parentTableLevel < 2
-           then table
-           else text ( "// Asciidoc supports nesting tables up to one level, "
-                    ++ "however the following table is originally nested at "
-                    ++ "level " ++ show (parentTableLevel + 1) ++ ", so it will"
-                    ++ " be converted to a table nested at level 1."
-                     )
-               $$ table
-               $$ text ("// End of table originally nested at level "
-                      ++ show (parentTableLevel + 1) )
-  
+                              return $ (text "a" <> separator) $$ d                             
+
+  Control.Monad.when (parentTableLevel >= 2)
+    $ report
+        $ UnsupportedByTarget
+            (T.pack "a nested table")
+            (T.pack $ "Asciidoc only supports nesting tables up to one level. "
+                   ++ "However, the table in question is nested at level "
+                   ++ show (parentTableLevel + 1))
+            (T.pack $ "It will be printed at level 1 so no content is lost but "
+                   ++ "will probably need a manual fix by the user.")
+
   let makeRow cells = hsep `fmap` mapM makeCell cells
   rows' <- mapM makeRow rows
   head' <- makeRow headers
@@ -279,8 +282,8 @@ blockToAsciiDoc opts (Table _ blkCapt specs thead tbody tfoot) = do
   let maxwidth = maximum $ map offset (head':rows')
   let body = if maxwidth > colwidth then vsep rows' else vcat rows'
   let border = separator <> text "==="
-  return $ encloseWithDepthWarning (
-    caption'' $$ tablespec $$ border $$ head'' $$ body $$ border) $$ blankline
+  return $ 
+    caption'' $$ tablespec $$ border $$ head'' $$ body $$ border $$ blankline
 blockToAsciiDoc opts (BulletList items) = do
   inlist <- gets inList
   modify $ \st -> st{ inList = True }

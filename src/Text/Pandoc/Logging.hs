@@ -91,6 +91,9 @@ data LogMessage =
   | MissingCharacter Text
   | Deprecated Text Text
   | NoTranslation Text
+  | UnsupportedByTarget Text -- ^ causing element
+                        Text -- ^ reason
+                        Text -- ^ action taken
   | CouldNotLoadTranslations Text Text
   | UnusualConversion Text
   | UnexpectedXmlElement Text Text
@@ -206,6 +209,10 @@ instance ToJSON LogMessage where
             "message" .= msg]
       NoTranslation term ->
            ["term" .= term]
+      UnsupportedByTarget element reason courseOfAction ->
+           ["element" .= element
+           ,"reason" .= reason
+           ,"action" .= courseOfAction]
       CouldNotLoadTranslations lang msg ->
            ["lang" .= lang,
             "message" .= msg]
@@ -321,6 +328,9 @@ showLogMessage msg =
             else ". " <> m
        NoTranslation t ->
          "The term " <> t <> " has no translation defined."
+       UnsupportedByTarget cause reason courseOfAction ->
+         "Target format does not support " <> cause <> " from the input "
+         <> "because " <> reason <> ". " <> courseOfAction
        CouldNotLoadTranslations lang m ->
          "Could not load translations for " <> lang <>
            if Text.null m then "" else "\n" <> m
@@ -382,6 +392,7 @@ messageVerbosity msg =
        MissingCharacter{}            -> WARNING
        Deprecated{}                  -> WARNING
        NoTranslation{}               -> WARNING
+       UnsupportedByTarget{}         -> WARNING
        CouldNotLoadTranslations{}    -> WARNING
        UnusualConversion {}          -> WARNING
        UnexpectedXmlElement {}       -> WARNING
