@@ -507,7 +507,9 @@ linkifyVariables ref =
                       x'' = if "://" `T.isInfixOf` x'
                                then x'
                                else pref <> x'
-                  in  FancyVal (B.link x'' "" (B.str x'))
+                  in  if T.null x'
+                         then x
+                         else FancyVal (B.link x'' "" (B.str x'))
 
 extractText :: Val Inlines -> Text
 extractText (TextVal x)  = x
