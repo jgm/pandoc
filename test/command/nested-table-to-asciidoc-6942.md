@@ -39,7 +39,7 @@ a|
 A table within a table within a table cannot be converted because asciidoc only supports two levels of tables.
 The table on level 3 is thus converted to level 2 and a warning is produced
 ```
-% pandoc -f html -t asciidoc
+% pandoc -f html -t asciidoc --verbose
 <!doctype html>
 <html>
 <head>
@@ -66,18 +66,13 @@ The table on level 3 is thus converted to level 2 and a warning is produced
 </body>
 </html>
 ^D
-[WARNING] Target format does not support a nested table from the input because Asciidoc only supports nesting tables up to one level. However, the table in question is nested at level 3. It will be printed at level 1 so no content is lost but will probably need a manual fix by the user.
+[INFO] Not rendering Table ("",[],[]) (Caption Nothing []) [(AlignDefault,ColWidth 0.5),(AlignDefault,ColWidth 0.5)] (TableHead ("",[],[]) []) [TableBody ("",[],[]) (RowHeadColumns 0) [] [Row ("",[],[]) [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "a1"]],Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Table ("",[],[]) (Caption Nothing []) [(AlignDefault,ColWidthDefault),(AlignDefault,ColWidthDefault)] (TableHead ("",[],[]) []) [TableBody ("",[],[]) (RowHeadColumns 0) [] [Row ("",[],[]) [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "1"]],Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "2"]]]]] (TableFoot ("",[],[]) [])]]]] (TableFoot ("",[],[]) [])
 [width="100%",cols="50%,50%",]
 |===
 a|
 [width="100%",cols="50%,50%",]
 !===
-!a1 a!
-[cols=",",]
-!===
-!1 !2
-!===
-
+!a1 !
 !===
 
 |b

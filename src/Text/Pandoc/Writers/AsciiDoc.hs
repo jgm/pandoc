@@ -19,7 +19,6 @@ that it has omitted the construct.
 AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 -}
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc, writeAsciiDoctor) where
-import Control.Monad (when)
 import Control.Monad.State.Strict
 import Data.Char (isPunctuation, isSpace)
 import Data.List (intercalate, intersperse)
@@ -204,7 +203,7 @@ blockToAsciiDoc opts (BlockQuote blocks) = do
                      else contents
   let bar = text "____"
   return $ bar $$ chomp contents' $$ bar <> blankline
-blockToAsciiDoc opts (Table _ blkCapt specs thead tbody tfoot) = do
+blockToAsciiDoc opts block@(Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) =
         toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlineListToAsciiDoc opts caption
@@ -249,27 +248,26 @@ blockToAsciiDoc opts (Table _ blkCapt specs thead tbody tfoot) = do
          
   -- construct cells and recurse in case of nested tables
   parentTableLevel <- gets tableNestingLevel
-  modify $ \st -> st{ tableNestingLevel = parentTableLevel + 1 }
-  let separator = text (if parentTableLevel == 0
-                           then "|"  -- top level separator
-                           else "!") -- nested separator
+  let currentNestingLevel = parentTableLevel + 1
   
+  modify $ \st -> st{ tableNestingLevel = currentNestingLevel }
+  
+  let separator = text (if parentTableLevel == 0
+                          then "|"  -- top level separator
+                          else "!") -- nested separator
+
   let makeCell [Plain x] = do d <- blockListToAsciiDoc opts [Plain x]
                               return $ separator <> chomp d
       makeCell [Para x]  = makeCell [Plain x]
       makeCell []        = return separator
-      makeCell bs        = do d <- blockListToAsciiDoc opts bs
-                              return $ (text "a" <> separator) $$ d                             
-
-  Control.Monad.when (parentTableLevel >= 2)
-    $ report
-        $ UnsupportedByTarget
-            (T.pack "a nested table")
-            (T.pack $ "Asciidoc only supports nesting tables up to one level. "
-                   ++ "However, the table in question is nested at level "
-                   ++ show (parentTableLevel + 1))
-            (T.pack $ "It will be printed at level 1 so no content is lost but "
-                   ++ "will probably need a manual fix by the user.")
+      makeCell bs        = if currentNestingLevel == 2
+                             then do
+                               --asciidoc only supports nesting once
+                               report $ BlockNotRendered block
+                               return separator
+                             else do
+                               d <- blockListToAsciiDoc opts bs
+                               return $ (text "a" <> separator) $$ d
 
   let makeRow cells = hsep `fmap` mapM makeCell cells
   rows' <- mapM makeRow rows
