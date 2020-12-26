@@ -36,7 +36,8 @@ a|
 |===
 ```
 
-A table within a table within a table cannot be converted because asciidoc only supports two levels of tables.
+A table within a table within a table cannot be converted because asciidoc only
+supports two levels of tables.
 The table on level 3 is thus converted to level 2 and a warning is produced
 ```
 % pandoc -f html -t asciidoc --verbose

@@ -36,7 +36,6 @@ import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
-import Prelude hiding (log)
 
 
 data WriterState = WriterState { defListMarker       :: Text
@@ -63,7 +62,6 @@ defaultWriterState = WriterState { defListMarker      = "::"
                                  , inList             = False
                                  , hasMath            = False
                                  , tableNestingLevel  = 0
-                                 , log = []
                                  }
 
 -- | Convert Pandoc to AsciiDoc.
