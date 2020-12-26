@@ -51,7 +51,6 @@ data WriterState = WriterState { defListMarker       :: Text
                                -- 1 is top level table
                                -- 2 is a table in a table
                                , tableNestingLevel   :: Int
-                               , log :: [LogMessage]
                                }
 
 defaultWriterState :: WriterState
