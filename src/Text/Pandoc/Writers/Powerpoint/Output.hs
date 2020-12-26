@@ -437,10 +437,10 @@ getContentShapeSize ns layout master
 getContentShapeSize _ _ _ = throwError $ PandocSomeError
                             "Attempted to find content shape size in non-layout"
 
-buildSpTree :: NameSpaces -> Element -> [Element] -> Element
+buildSpTree :: NameSpaces -> Element -> [Content] -> Element
 buildSpTree ns spTreeElem newShapes =
   emptySpTreeElem { elContent = newContent }
-  where newContent = elContent emptySpTreeElem <> map Elem newShapes
+  where newContent = elContent emptySpTreeElem <> newShapes
         emptySpTreeElem = spTreeElem { elContent = filter fn (elContent spTreeElem) }
         fn :: Content -> Bool
         fn (Elem e) = isElem ns "p" "nvGrpSpPr" e ||
@@ -744,8 +744,8 @@ makePicElements layout picProps mInfo alt = do
     else return [picShape]
 
 
-paraElemToElements :: PandocMonad m => ParaElem -> P m [Element]
-paraElemToElements Break = return [mknode "a:br" [] ()]
+paraElemToElements :: PandocMonad m => ParaElem -> P m [Content]
+paraElemToElements Break = return [Elem $ mknode "a:br" [] ()]
 paraElemToElements (Run rpr s) = do
   sizeAttrs <- fontSizeAttributes rpr
   let attrs = sizeAttrs <>
@@ -801,19 +801,20 @@ paraElemToElements (Run rpr s) = do
   let codeContents =
         [mknode "a:latin" [("typeface", T.unpack codeFont)] () | rPropCode rpr]
   let propContents = linkProps <> colorContents <> codeContents
-  return [mknode "a:r" [] [ mknode "a:rPr" attrs propContents
-                          , mknode "a:t" [] $ T.unpack s
-                          ]]
+  return [Elem $ mknode "a:r" [] [ mknode "a:rPr" attrs propContents
+                                 , mknode "a:t" [] $ T.unpack s
+                                 ]]
 paraElemToElements (MathElem mathType texStr) = do
   isInSpkrNotes <- asks envInSpeakerNotes
   if isInSpkrNotes
     then paraElemToElements $ Run def $ unTeXString texStr
     else do res <- convertMath writeOMML mathType (unTeXString texStr)
             case res of
-              Right r -> return [mknode "a14:m" [] $ addMathInfo r]
+              Right r -> return [Elem $ mknode "a14:m" [] $ addMathInfo r]
               Left (Str s) -> paraElemToElements (Run def s)
               Left _       -> throwError $ PandocShouldNeverHappenError "non-string math fallback"
-paraElemToElements (RawOOXMLParaElem str) = return [ x | Elem x <- parseXML str ]
+paraElemToElements (RawOOXMLParaElem str) = return
+  [Text (CData CDataRaw (T.unpack str) Nothing)]
 
 
 -- This is a bit of a kludge -- really requires adding an option to
@@ -875,8 +876,9 @@ paragraphToElement par = do
                  [mknode "a:buAutoNum" (autoNumAttrs attrs') ()]
                Nothing -> [mknode "a:buNone" [] ()]
             )
-  paras <- concat <$> mapM paraElemToElements (paraElems par)
-  return $ mknode "a:p" [] $ [mknode "a:pPr" attrs props] <> paras
+  paras <- mapM paraElemToElements (paraElems par)
+  return $ mknode "a:p" [] $
+    [Elem $ mknode "a:pPr" attrs props] <> concat paras
 
 shapeToElement :: PandocMonad m => Element -> Shape -> P m Element
 shapeToElement layout (TextBox paras)
@@ -896,21 +898,22 @@ shapeToElement layout (TextBox paras)
 -- GraphicFrame and Pic should never reach this.
 shapeToElement _ _ = return $ mknode "p:sp" [] ()
 
-shapeToElements :: PandocMonad m => Element -> Shape -> P m [Element]
+shapeToElements :: PandocMonad m => Element -> Shape -> P m [Content]
 shapeToElements layout (Pic picProps fp alt) = do
   mInfo <- registerMedia fp alt
   case mInfoExt mInfo of
-    Just _ ->
+    Just _ -> map Elem <$>
       makePicElements layout picProps mInfo alt
     Nothing -> shapeToElements layout $ TextBox [Paragraph def alt]
-shapeToElements layout (GraphicFrame tbls cptn) =
+shapeToElements layout (GraphicFrame tbls cptn) = map Elem <$>
   graphicFrameToElements layout tbls cptn
-shapeToElements _ (RawOOXMLShape str) = return [ x | Elem x <- parseXML str ]
+shapeToElements _ (RawOOXMLShape str) = return
+  [Text (CData CDataRaw (T.unpack str) Nothing)]
 shapeToElements layout shp = do
   element <- shapeToElement layout shp
-  return [element]
+  return [Elem element]
 
-shapesToElements :: PandocMonad m => Element -> [Shape] -> P m [Element]
+shapesToElements :: PandocMonad m => Element -> [Shape] -> P m [Content]
 shapesToElements layout shps =
  concat <$> mapM (shapeToElements layout) shps
 
@@ -1083,7 +1086,7 @@ contentToElement layout hdrShape shapes
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
       element <- nonBodyTextToElement layout [PHType "title"] hdrShape
-      let hdrShapeElements = [element | not (null hdrShape)]
+      let hdrShapeElements = [Elem element | not (null hdrShape)]
       contentElements <- local
                          (\env -> env {envContentType = NormalContent})
                          (shapesToElements layout shapes)
@@ -1096,7 +1099,7 @@ twoColumnToElement layout hdrShape shapesL shapesR
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
       element <- nonBodyTextToElement layout [PHType "title"] hdrShape
-      let hdrShapeElements = [element | not (null hdrShape)]
+      let hdrShapeElements = [Elem element | not (null hdrShape)]
       contentElementsL <- local
                           (\env -> env {envContentType =TwoColumnLeftContent})
                           (shapesToElements layout shapesL)
@@ -1105,7 +1108,8 @@ twoColumnToElement layout hdrShape shapesL shapesR
                           (shapesToElements layout shapesR)
       -- let contentElementsL' = map (setIdx ns "1") contentElementsL
       --     contentElementsR' = map (setIdx ns "2") contentElementsR
-      return $ buildSpTree ns spTree (hdrShapeElements <> contentElementsL <> contentElementsR)
+      return $ buildSpTree ns spTree $
+        hdrShapeElements <> contentElementsL <> contentElementsR
 twoColumnToElement _ _ _ _= return $ mknode "p:sp" [] ()
 
 
@@ -1115,7 +1119,7 @@ titleToElement layout titleElems
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
   , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
       element <- nonBodyTextToElement layout [PHType "title", PHType "ctrTitle"] titleElems
-      let titleShapeElements = [element | not (null titleElems)]
+      let titleShapeElements = [Elem element | not (null titleElems)]
       return $ buildSpTree ns spTree titleShapeElements
 titleToElement _ _ = return $ mknode "p:sp" [] ()
 
@@ -1135,7 +1139,8 @@ metadataToElement layout titleElems subtitleElems authorsElems dateElems
       dateShapeElements <- if null dateElems
                            then return []
                            else sequence [nonBodyTextToElement layout [PHType "dt"] dateElems]
-      return $ buildSpTree ns spTree (titleShapeElements <> subtitleShapeElements <> dateShapeElements)
+      return . buildSpTree ns spTree . map Elem $
+        (titleShapeElements <> subtitleShapeElements <> dateShapeElements)
 metadataToElement _ _ _ _ _ = return $ mknode "p:sp" [] ()
 
 slideToElement :: PandocMonad m => Slide -> P m Element
