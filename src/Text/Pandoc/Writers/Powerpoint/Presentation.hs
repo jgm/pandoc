@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE PatternGuards              #-}
 {-# LANGUAGE ViewPatterns               #-}
@@ -16,30 +17,32 @@ document, and functions for converting a Pandoc document to
 Presentation.
 -}
 
-module Text.Pandoc.Writers.Powerpoint.Presentation ( documentToPresentation
-                                                   , Presentation(..)
-                                                   , DocProps(..)
-                                                   , Slide(..)
-                                                   , Layout(..)
-                                                   , SpeakerNotes(..)
-                                                   , SlideId(..)
-                                                   , Shape(..)
-                                                   , Graphic(..)
-                                                   , BulletType(..)
-                                                   , Algnment(..)
-                                                   , Paragraph(..)
-                                                   , ParaElem(..)
-                                                   , ParaProps(..)
-                                                   , RunProps(..)
-                                                   , TableProps(..)
-                                                   , Strikethrough(..)
-                                                   , Capitals(..)
-                                                   , Pixels
-                                                   , PicProps(..)
-                                                   , URL
-                                                   , TeXString(..)
-                                                   , LinkTarget(..)
-                                                   ) where
+module Text.Pandoc.Writers.Powerpoint.Presentation
+  ( documentToPresentation
+  , Presentation(..)
+  , DocProps(..)
+  , Slide(..)
+  , Layout(..)
+  , SpeakerNotes(..)
+  , SlideId(..)
+  , Shape(..)
+  , Graphic(..)
+  , BulletType(..)
+  , Algnment(..)
+  , BodyElem(..)
+  , ParaElem(..)
+  , ParaProps(..)
+  , RunProps(..)
+  , TableProps(..)
+  , Strikethrough(..)
+  , Capitals(..)
+  , Pixels
+  , PicProps(..)
+  , URL
+  , TeXString(..)
+  , LinkTarget(..)
+  , modifyParagraph
+  ) where
 
 
 import Control.Monad.Reader
@@ -183,7 +186,7 @@ newtype SlideId = SlideId T.Text
 -- In theory you could have anything on a notes slide but it seems
 -- designed mainly for one textbox, so we'll just put in the contents
 -- of that textbox, to avoid other shapes that won't work as well.
-newtype SpeakerNotes = SpeakerNotes {fromSpeakerNotes :: [Paragraph]}
+newtype SpeakerNotes = SpeakerNotes {fromSpeakerNotes :: [BodyElem]}
   deriving (Show, Eq, Monoid, Semigroup)
 
 data Layout = MetadataSlide [ParaElem] [ParaElem] [[ParaElem]] [ParaElem]
@@ -198,11 +201,11 @@ data Layout = MetadataSlide [ParaElem] [ParaElem] [[ParaElem]] [ParaElem]
 
 data Shape = Pic PicProps FilePath [ParaElem]
            | GraphicFrame [Graphic] [ParaElem]
-           | TextBox [Paragraph]
+           | TextBox [BodyElem]
            | RawOOXMLShape T.Text
   deriving (Show, Eq)
 
-type TableCell = [Paragraph]
+type TableCell = [BodyElem]
 
 -- TODO: remove when better handling of new
 -- tables is implemented
@@ -215,10 +218,21 @@ data TableProps = TableProps { tblPrFirstRow :: Bool
 data Graphic = Tbl TableProps [TableCell] [[TableCell]]
   deriving (Show, Eq)
 
+-- | Element within a slide
+data BodyElem
+  = Paragraph ParaProps [ParaElem]
+  | BodyRawContent T.Text
+  deriving (Show, Eq)
 
-data Paragraph = Paragraph { paraProps :: ParaProps
-                           , paraElems  :: [ParaElem]
-                           } deriving (Show, Eq)
+modifyParaProps :: (ParaProps -> ParaProps) -> BodyElem -> BodyElem
+modifyParaProps f = modifyParagraph f id
+
+modifyParagraph :: (ParaProps -> ParaProps)
+                -> ([ParaElem] -> [ParaElem])
+                -> BodyElem -> BodyElem
+modifyParagraph modProps modElems = \case
+  Paragraph props elems -> Paragraph (modProps props) (modElems elems)
+  x                     -> x
 
 data BulletType = Bullet
                 | AutoNumbering ListAttributes
@@ -409,7 +423,7 @@ blockQuoteSize = 20
 noteSize :: Pixels
 noteSize = 18
 
-blockToParagraphs :: Block -> Pres [Paragraph]
+blockToParagraphs :: Block -> Pres [BodyElem]
 blockToParagraphs (Plain ils) = blockToParagraphs (Para ils)
 blockToParagraphs (Para ils) = do
   parElems <- inlinesToParElems ils
@@ -451,8 +465,9 @@ blockToParagraphs (BlockQuote blks) =
                 , envRunProps = (envRunProps r){rPropForceSize = Just blockQuoteSize}})$
   concatMapM blockToParagraphs blks
 -- TODO: work out the format
-blockToParagraphs blk@(RawBlock _ _) = do addLogMessage $ BlockNotRendered blk
-                                          return []
+blockToParagraphs blk@(RawBlock fmt s) = case fmt of
+  Format "openxml" -> return [BodyRawContent s]
+  _                -> [] <$ addLogMessage (BlockNotRendered blk)
 blockToParagraphs (Header _ (ident, _, _) ils) = do
   -- Note that this function only deals with content blocks, so it
   -- will only touch headers that are above the current slide level --
@@ -485,7 +500,7 @@ blockToParagraphs (OrderedList listAttr blksLst) = do
                                            }}) $
     concatMapM multiParBullet blksLst
 blockToParagraphs (DefinitionList entries) = do
-  let go :: ([Inline], [[Block]]) -> Pres [Paragraph]
+  let go :: ([Inline], [[Block]]) -> Pres [BodyElem]
       go (ils, blksLst) = do
         term <-blockToParagraphs $ Para [Strong ils]
         -- For now, we'll treat each definition term as a
@@ -499,7 +514,7 @@ blockToParagraphs blk = do
   return []
 
 -- Make sure the bullet env gets turned off after the first para.
-multiParBullet :: [Block] -> Pres [Paragraph]
+multiParBullet :: [Block] -> Pres [BodyElem]
 multiParBullet [] = return []
 multiParBullet (b:bs) = do
   pProps <- asks envParaProps
@@ -508,7 +523,7 @@ multiParBullet (b:bs) = do
     concatMapM blockToParagraphs bs
   return $ p ++ ps
 
-cellToParagraphs :: Alignment -> SimpleCell -> Pres [Paragraph]
+cellToParagraphs :: Alignment -> SimpleCell -> Pres [BodyElem]
 cellToParagraphs algn tblCell = do
   paras <- mapM blockToParagraphs tblCell
   let alignment = case algn of
@@ -516,10 +531,11 @@ cellToParagraphs algn tblCell = do
         AlignRight -> Just AlgnRight
         AlignCenter -> Just AlgnCenter
         AlignDefault -> Nothing
-      paras' = map (map (\p -> p{paraProps = (paraProps p){pPropAlign = alignment}})) paras
+  let setAlignProp = modifyParaProps $ \props -> props{pPropAlign = alignment}
+      paras' = map (map setAlignProp) paras
   return $ concat paras'
 
-rowToParagraphs :: [Alignment] -> [SimpleCell] -> Pres [[Paragraph]]
+rowToParagraphs :: [Alignment] -> [SimpleCell] -> Pres [[BodyElem]]
 rowToParagraphs algns tblCells = do
   -- We have to make sure we have the right number of alignments
   let pairs = zip (algns ++ repeat AlignDefault) tblCells
@@ -558,9 +574,10 @@ blockToShape (Table _ blkCapt specs thead tbody tfoot) = do
   return $ GraphicFrame [Tbl tblPr hdrCells' rows'] caption'
 -- If the format isn't openxml, we fall through to blockToPargraphs
 blockToShape (RawBlock (Format "openxml") str) = return $ RawOOXMLShape str
-blockToShape blk = do paras <- blockToParagraphs blk
-                      let paras' = map (\par -> par{paraElems = combineParaElems $ paraElems par}) paras
-                      return $ TextBox paras'
+blockToShape blk = do
+  paras <- blockToParagraphs blk
+  let paras' = map (modifyParagraph id combineParaElems) paras
+  return $ TextBox paras'
 
 combineShapes :: [Shape] -> [Shape]
 combineShapes [] = []
@@ -800,10 +817,14 @@ combineParaElems' (Just pElem') (pElem : pElems)
 combineParaElems :: [ParaElem] -> [ParaElem]
 combineParaElems = combineParaElems' Nothing
 
-applyToParagraph :: Monad m => (ParaElem -> m ParaElem) -> Paragraph -> m Paragraph
-applyToParagraph f para = do
-  paraElems' <- mapM f $ paraElems para
-  return $ para {paraElems = paraElems'}
+applyToParagraph :: Monad m
+                 => (ParaElem -> m ParaElem)
+                 -> BodyElem -> m BodyElem
+applyToParagraph f = \case
+  Paragraph props elems -> do
+    paraElems' <- mapM f elems
+    return $ Paragraph props paraElems'
+  x -> return x
 
 applyToShape :: Monad m => (ParaElem -> m ParaElem) -> Shape -> m Shape
 applyToShape f (Pic pPr fp pes) = Pic pPr fp <$> mapM f pes
@@ -856,8 +877,10 @@ emptyParaElem (MathElem _ ts) =
   T.null $ Shared.trim $ unTeXString ts
 emptyParaElem _ = False
 
-emptyParagraph :: Paragraph -> Bool
-emptyParagraph para = all emptyParaElem $ paraElems para
+emptyParagraph :: BodyElem -> Bool
+emptyParagraph = \case
+  Paragraph _ elems -> all emptyParaElem elems
+  _                 -> False
 
 
 emptyShape :: Shape -> Bool

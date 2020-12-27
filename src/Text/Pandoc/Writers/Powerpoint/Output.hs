@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards #-}
 {- |
@@ -643,7 +644,9 @@ createCaption contentShapeDimensions paraElements = do
   elements <- mapM paragraphToElement [para]
   let ((x, y), (cx, cy)) = contentShapeDimensions
   let txBody = mknode "p:txBody" [] $
-               [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] <> elements
+               map Elem [ mknode "a:bodyPr" [] ()
+                        , mknode "a:lstStyle" [] () ]
+               <> elements
   return $
     mknode "p:sp" [] [ mknode "p:nvSpPr" []
                        [ mknode "p:cNvPr" [("id","1"), ("name","TextBox 3")] ()
@@ -844,41 +847,43 @@ surroundWithMathAlternate element =
            ]
     Nothing -> element
 
-paragraphToElement :: PandocMonad m => Paragraph -> P m Element
-paragraphToElement par = do
-  let
-    attrs = [("lvl", show $ pPropLevel $ paraProps par)] <>
-            (case pPropMarginLeft (paraProps par) of
-               Just px -> [("marL", show $ pixelsToEmu px)]
-               Nothing -> []
-            ) <>
-            (case pPropIndent (paraProps par) of
-               Just px -> [("indent", show $ pixelsToEmu px)]
-               Nothing -> []
-            ) <>
-            (case pPropAlign (paraProps par) of
-               Just AlgnLeft -> [("algn", "l")]
-               Just AlgnRight -> [("algn", "r")]
-               Just AlgnCenter -> [("algn", "ctr")]
-               Nothing -> []
-            )
-    props = [] <>
-            (case pPropSpaceBefore $ paraProps par of
-               Just px -> [mknode "a:spcBef" [] [
-                              mknode "a:spcPts" [("val", show $ 100 * px)] ()
-                              ]
-                          ]
-               Nothing -> []
-            ) <>
-            (case pPropBullet $ paraProps par of
-               Just Bullet -> []
-               Just (AutoNumbering attrs') ->
-                 [mknode "a:buAutoNum" (autoNumAttrs attrs') ()]
-               Nothing -> [mknode "a:buNone" [] ()]
-            )
-  paras <- mapM paraElemToElements (paraElems par)
-  return $ mknode "a:p" [] $
-    [Elem $ mknode "a:pPr" attrs props] <> concat paras
+paragraphToElement :: PandocMonad m => BodyElem -> P m Content
+paragraphToElement = \case
+  BodyRawContent str    -> return $
+    Text (CData CDataRaw (T.unpack str) Nothing)
+  Paragraph props elems -> do
+    let attrs = [("lvl", show $ pPropLevel props)] <>
+                (case pPropMarginLeft props of
+                   Just px -> [("marL", show $ pixelsToEmu px)]
+                   Nothing -> []
+                ) <>
+                (case pPropIndent props of
+                   Just px -> [("indent", show $ pixelsToEmu px)]
+                   Nothing -> []
+                ) <>
+                (case pPropAlign props of
+                   Just AlgnLeft -> [("algn", "l")]
+                   Just AlgnRight -> [("algn", "r")]
+                   Just AlgnCenter -> [("algn", "ctr")]
+                   Nothing -> []
+                )
+        props' = [] <>
+                 (case pPropSpaceBefore props of
+                    Just px -> [mknode "a:spcBef" [] [
+                                   mknode "a:spcPts" [("val", show $ 100 * px)] ()
+                                   ]
+                               ]
+                    Nothing -> []
+                 ) <>
+                 (case pPropBullet props of
+                    Just Bullet -> []
+                    Just (AutoNumbering attrs') ->
+                      [mknode "a:buAutoNum" (autoNumAttrs attrs') ()]
+                    Nothing -> [mknode "a:buNone" [] ()]
+                 )
+    paras <- mapM paraElemToElements elems
+    return . Elem $ mknode "a:p" [] $
+      [Elem $ mknode "a:pPr" attrs props'] <> concat paras
 
 shapeToElement :: PandocMonad m => Element -> Shape -> P m Element
 shapeToElement layout (TextBox paras)
@@ -888,7 +893,9 @@ shapeToElement layout (TextBox paras)
       sp <- getContentShape ns spTree
       elements <- mapM paragraphToElement paras
       let txBody = mknode "p:txBody" [] $
-                   [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] <> elements
+                   map Elem [ mknode "a:bodyPr" [] ()
+                            , mknode "a:lstStyle" [] ()]
+                   <> elements
           emptySpPr = mknode "p:spPr" [] ()
       return
         . surroundWithMathAlternate
@@ -974,13 +981,14 @@ graphicToElement tableWidth (Tbl tblPr hdrCells rows) = do
   let cellToOpenXML paras =
         do elements <- mapM paragraphToElement paras
            let elements' = if null elements
-                           then [mknode "a:p" [] [mknode "a:endParaRPr" [] ()]]
+                           then [Elem $ mknode "a:p" []
+                                 [mknode "a:endParaRPr" [] ()]]
                            else elements
 
            return
              [mknode "a:txBody" [] $
-               [ mknode "a:bodyPr" [] ()
-               , mknode "a:lstStyle" [] ()]
+               map Elem [ mknode "a:bodyPr" [] ()
+                        , mknode "a:lstStyle" [] ()]
                <> elements']
   headers' <- mapM cellToOpenXML hdrCells
   rows' <- mapM (mapM cellToOpenXML) rows
@@ -1074,7 +1082,8 @@ nonBodyTextToElement layout phTypes paraElements
       let hdrPara = Paragraph def paraElements
       element <- paragraphToElement hdrPara
       let txBody = mknode "p:txBody" [] $
-                   [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] <>
+                   map Elem [ mknode "a:bodyPr" [] ()
+                            , mknode "a:lstStyle" [] ()] <>
                    [element]
       return $ replaceNamedChildren ns "p" "txBody" [txBody] sp
   -- XXX: TODO
@@ -1230,21 +1239,22 @@ speakerNotesSlideImage =
 -- we want to wipe links from the speaker notes in the
 -- paragraphs. Powerpoint doesn't allow you to input them, and it
 -- would provide extra complications.
-removeParaLinks :: Paragraph -> Paragraph
-removeParaLinks paragraph = paragraph{paraElems = map f (paraElems paragraph)}
+removeParaLinks :: BodyElem -> BodyElem
+removeParaLinks = modifyParagraph id (map f)
   where f (Run rProps s) = Run rProps{rLink=Nothing} s
         f pe             = pe
 
 -- put an empty paragraph between paragraphs for more expected spacing.
-spaceParas :: [Paragraph] -> [Paragraph]
+spaceParas :: [BodyElem] -> [BodyElem]
 spaceParas = intersperse (Paragraph def [])
 
-speakerNotesBody :: PandocMonad m => [Paragraph] -> P m Element
+speakerNotesBody :: PandocMonad m => [BodyElem] -> P m Element
 speakerNotesBody paras = do
   elements <- local (\env -> env{envInSpeakerNotes = True}) $
               mapM paragraphToElement $ spaceParas $ map removeParaLinks paras
   let txBody = mknode "p:txBody" [] $
-               [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] <> elements
+               map Elem [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()]
+               <> elements
   return $
     mknode "p:sp" []
     [ mknode "p:nvSpPr" []
