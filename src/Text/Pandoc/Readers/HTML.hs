@@ -61,8 +61,9 @@ import Text.Pandoc.Options (
     ReaderOptions (readerExtensions, readerStripComments),
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
-import Text.Pandoc.Shared (addMetaField, blocksToInlines', crFilter, escapeURI,
-                           extractSpaces, htmlSpanLikeElements, safeRead, tshow)
+import Text.Pandoc.Shared (
+    addMetaField, blocksToInlines', crFilter, escapeURI, extractSpaces,
+    htmlSpanLikeElements, renderTags', safeRead, tshow)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
@@ -1045,26 +1046,3 @@ canonicalizeUrl url = do
   return $ case (parseURIReference (T.unpack url), mbBaseHref) of
                 (Just rel, Just bs) -> tshow (rel `nonStrictRelativeTo` bs)
                 _                   -> url
-
--- For now we need a special version here; the one in Shared has String type
-renderTags' :: [Tag Text] -> Text
-renderTags' = renderTagsOptions
-               renderOptions{ optMinimize = matchTags ["hr", "br", "img",
-                                                       "meta", "link"]
-                            , optRawTag   = matchTags ["script", "style"] }
-              where matchTags tags = flip elem tags . T.toLower
-
-
--- EPUB Specific
---
---
-{-
-
-types :: [(String, ([String], Int))]
-types =  -- Document divisions
-   map (\s -> (s, (["section", "body"], 0)))
-    ["volume", "part", "chapter", "division"]
-  <> -- Document section and components
-  [
-    ("abstract",  ([], 0))]
--}
