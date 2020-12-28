@@ -59,7 +59,9 @@ $endif$
 $table-of-contents$
 </nav>
 $endif$
+<main>
 $body$
+</main>
 $for(include-after)$
 $include-after$
 $endfor$
