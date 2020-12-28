@@ -4463,8 +4463,8 @@ into
 
 whereas `Markdown.pl` will preserve it as is.
 
-There is one exception to this rule:  text between `<script>` and
-`<style>` tags is not interpreted as Markdown.
+There is one exception to this rule:  text between `<script>`,
+`<style>`, and `<textarea>` tags is not interpreted as Markdown.
 
 This departure from standard Markdown should make it easier to mix
 Markdown with HTML block elements.  For example, one can surround
