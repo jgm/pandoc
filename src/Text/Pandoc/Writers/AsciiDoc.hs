@@ -37,6 +37,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 
+
 data WriterState = WriterState { defListMarker       :: Text
                                , orderedListLevel    :: Int
                                , bulletListLevel     :: Int
@@ -45,6 +46,10 @@ data WriterState = WriterState { defListMarker       :: Text
                                , asciidoctorVariant  :: Bool
                                , inList              :: Bool
                                , hasMath             :: Bool
+                               -- |0 is no table
+                               -- 1 is top level table
+                               -- 2 is a table in a table
+                               , tableNestingLevel   :: Int
                                }
 
 defaultWriterState :: WriterState
@@ -56,6 +61,7 @@ defaultWriterState = WriterState { defListMarker      = "::"
                                  , asciidoctorVariant = False
                                  , inList             = False
                                  , hasMath            = False
+                                 , tableNestingLevel  = 0
                                  }
 
 -- | Convert Pandoc to AsciiDoc.
@@ -194,7 +200,7 @@ blockToAsciiDoc opts (BlockQuote blocks) = do
                      else contents
   let bar = text "____"
   return $ bar $$ chomp contents' $$ bar <> blankline
-blockToAsciiDoc opts (Table _ blkCapt specs thead tbody tfoot) = do
+blockToAsciiDoc opts block@(Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) =
         toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlineListToAsciiDoc opts caption
@@ -236,23 +242,42 @@ blockToAsciiDoc opts (Table _ blkCapt specs thead tbody tfoot) = do
              $ zipWith colspec aligns widths')
          <> text ","
          <> headerspec <> text "]"
+         
+  -- construct cells and recurse in case of nested tables
+  parentTableLevel <- gets tableNestingLevel
+  let currentNestingLevel = parentTableLevel + 1
+  
+  modify $ \st -> st{ tableNestingLevel = currentNestingLevel }
+  
+  let separator = text (if parentTableLevel == 0
+                          then "|"  -- top level separator
+                          else "!") -- nested separator
+
   let makeCell [Plain x] = do d <- blockListToAsciiDoc opts [Plain x]
-                              return $ text "|" <> chomp d
+                              return $ separator <> chomp d
       makeCell [Para x]  = makeCell [Plain x]
-      makeCell []        = return $ text "|"
-      makeCell bs        = do d <- blockListToAsciiDoc opts bs
-                              return $ text "a|" $$ d
+      makeCell []        = return separator
+      makeCell bs        = if currentNestingLevel == 2
+                             then do
+                               --asciidoc only supports nesting once
+                               report $ BlockNotRendered block
+                               return separator
+                             else do
+                               d <- blockListToAsciiDoc opts bs
+                               return $ (text "a" <> separator) $$ d
+
   let makeRow cells = hsep `fmap` mapM makeCell cells
   rows' <- mapM makeRow rows
   head' <- makeRow headers
+  modify $ \st -> st{ tableNestingLevel = parentTableLevel }
   let head'' = if all null headers then empty else head'
   let colwidth = if writerWrapText opts == WrapAuto
                     then writerColumns opts
                     else 100000
   let maxwidth = maximum $ map offset (head':rows')
   let body = if maxwidth > colwidth then vsep rows' else vcat rows'
-  let border = text "|==="
-  return $
+  let border = separator <> text "==="
+  return $ 
     caption'' $$ tablespec $$ border $$ head'' $$ body $$ border $$ blankline
 blockToAsciiDoc opts (BulletList items) = do
   inlist <- gets inList
