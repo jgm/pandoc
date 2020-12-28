@@ -60,7 +60,7 @@ References {#references .unnumbered}
 
 [Doe](#ref-item1) ([2005, 30](#ref-item1), with suffix) says blah.
 
-[Doe](#ref-item1) ([2005](#ref-item1), [2006, 30](#ref-item2); see also
+[Doe](#ref-item1) ([2005](#ref-item1); [2006, 30](#ref-item2); see also
 [Doe and Roe 2007](#ref-пункт3)) says blah.
 
 In a note.[^1]
