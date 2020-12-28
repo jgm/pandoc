@@ -254,6 +254,8 @@ pandocToHtml opts (Pandoc meta blocks) = do
   let stringifyHTML = escapeStringForXML . stringify
   let authsMeta = map stringifyHTML $ docAuthors meta
   let dateMeta  = stringifyHTML $ docDate meta
+  let descriptionMeta = escapeStringForXML $
+                          lookupMetaString "description" meta
   slideVariant <- gets stSlideVariant
   let sects = adjustNumbers opts $
               makeSections (writerNumberSections opts) Nothing $
@@ -352,6 +354,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   defField "author-meta" authsMeta .
                   maybe id (defField "date-meta")
                     (normalizeDate dateMeta) .
+                  defField "description-meta" descriptionMeta .
                   defField "pagetitle"
                       (stringifyHTML . docTitle $ meta) .
                   defField "idprefix" (writerIdentifierPrefix opts) .
