@@ -14,7 +14,7 @@ jobs:
           - stack-dependencies-{{ checksum "stack.yaml" }}
     - run:
         name: Install stack
-        command: stack --version || brew update && brew install haskell-stack
+        command: stack --version || (curl -sSL https://get.haskellstack.org/ | sh -s - -f)
     - run:
         name: Resolve/Update Dependencies
         command: stack --no-terminal setup
