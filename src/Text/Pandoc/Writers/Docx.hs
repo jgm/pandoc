@@ -1017,7 +1017,9 @@ blockToOpenXML' opts (Table _ blkCapt specs thead tbody tfoot) = do
         es <- withParaProp (alignmentFor al) $ blocksToOpenXML opts cell
         return $
           case reverse (onlyElems es) of
-            e:_ | qName (elName e) == "p" -> es
+            b:e:_ | qName (elName b) == "bookmarkEnd"
+                  , qName (elName e) == "p" -> es
+            e:_   | qName (elName e) == "p" -> es
             _ -> es ++ [Elem $ mknode "w:p" [] ()]
   headers' <- mapM cellToOpenXML $ zip aligns headers
   rows' <- mapM (mapM cellToOpenXML . zip aligns) rows
