@@ -1,5 +1,59 @@
 # Revision history for pandoc
 
+## pandoc 2.11.3.2 (2020-12-29)
+
+  * HTML reader: use renderTags' from Text.Pandoc.Shared (Albert Krewinkel).
+    A side effect of this change is that empty `<col>` elements are written
+    as self-closing tags in raw HTML blocks.
+
+  * Asciidoc writer: Add support for writing nested tables (#6972, timo-a).
+    Asciidoc supports one level of nesting. If deeper tables are to be
+    written, they are omitted and a warning is issued.
+
+  * Docx writer: fix nested tables with captions (#6983).
+    Previously we got unreadable content, because docx seems
+    to want a `<w:p>` element (even an empty one) at the end of
+    every table cell.
+
+  * Powerpoint writer: allow arbitrary OOXML in raw inline elements
+    (Albert Krewinkel).  The raw text is now included verbatim in the
+    output. Previously is was parsed into XML elements, which prevented
+    the inclusion of partial XML snippets.
+
+  * LaTeX writer: support colspans and rowspans in tables (#6950,
+    Albert Krewinkel).  Note that the multirow package is needed for
+    rowspans.  It is included in the latex template under a variable,
+    so that it won't be used unless needed for a table.
+
+  * HTML writer: don't include p tags in CSL bibliography entries
+    (#6966).  Fixes a regression in 2.11.3.
+
+  * Add `meta-description` variable to HTML templates (#6982). This
+    is populated by the writer by stringifying the `description`
+    field of metadata (Jerry Sky).  The `description` meta tag will
+    make the generated HTML documents more complete and SEO-friendly.
+
+  * Citeproc: fix handling of empty URL variables (`DOI`, etc.).
+    The `linkifyVariables` function was changing these to links
+    which then got treated as non-empty by citeproc, leading
+    to wrong results (e.g. ignoring nonempty URL when empty DOI is present).
+    See jgm/citeproc#41.
+
+  * Use citeproc 0.3.0.3.  Fixes an issue in author-only citations when
+    both an author and translator are present, and an issue with
+    citation group delimiters.
+
+  * Require texmath 0.12.1.  This improves siunitx support in math,
+    fixes bugs with `\*mod` family operators and arrays, and avoids
+    italicizing symbols and operator names in docx output.
+
+  * Ensure that the perl interpreter used for filters with `.pl`
+    extension (wuffi).
+
+  * MANUAL: note that textarea content is never parsed as Markdown
+    (Albert Krewinkel).
+
+
 ## pandoc 2.11.3.1 (2020-12-18)
 
   * Added some missing files to extra-source-files and data

@@ -128,6 +128,7 @@
 - Jens Getreu
 - Jens Petersen
 - Jeroen de Haas
+- Jerry Sky
 - Jesse Rosenthal
 - Joe Hermaszewski
 - Joe Hillenbrand
@@ -302,6 +303,8 @@
 - TEC
 - tgkokk
 - the-solipsist
+- timo-a
 - thsutton
 - vijayphoenix
 - wiefling
+- wuffi
