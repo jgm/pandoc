@@ -263,8 +263,10 @@ blockToMs opts (Table _ blkCapt specs thead tbody tfoot) =
                          return $ makeRow cols) rows
   setFirstPara
   return $ literal ".PP" $$ caption' $$
+           literal ".na" $$ -- we don't want justification in table cells
            literal ".TS" $$ literal "delim(@@) tab(\t);" $$ coldescriptions $$
-           colheadings' $$ vcat body $$ literal ".TE"
+           colheadings' $$ vcat body $$ literal ".TE" $$
+           literal ".ad"
 
 blockToMs opts (BulletList items) = do
   contents <- mapM (bulletListItemToMs opts) items
