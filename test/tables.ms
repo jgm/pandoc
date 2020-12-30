@@ -2,6 +2,7 @@
 Simple table with caption:
 .PP
 Demonstration of simple table syntax.
+.na
 .TS
 delim(@@) tab(	);
 r l c l.
@@ -43,9 +44,11 @@ T}	T{
 1
 T}
 .TE
+.ad
 .LP
 Simple table without caption:
 .PP
+.na
 .TS
 delim(@@) tab(	);
 r l c l.
@@ -87,10 +90,12 @@ T}	T{
 1
 T}
 .TE
+.ad
 .LP
 Simple table indented two spaces:
 .PP
 Demonstration of simple table syntax.
+.na
 .TS
 delim(@@) tab(	);
 r l c l.
@@ -132,10 +137,12 @@ T}	T{
 1
 T}
 .TE
+.ad
 .LP
 Multiline table with caption:
 .PP
 Here\[cq]s the caption. It may span multiple lines.
+.na
 .TS
 delim(@@) tab(	);
 cw(10.5n) lw(9.6n) rw(11.4n) lw(24.5n).
@@ -169,9 +176,11 @@ Here\[cq]s another one.
 Note the blank line between rows.
 T}
 .TE
+.ad
 .LP
 Multiline table without caption:
 .PP
+.na
 .TS
 delim(@@) tab(	);
 cw(10.5n) lw(9.6n) rw(11.4n) lw(24.5n).
@@ -205,9 +214,11 @@ Here\[cq]s another one.
 Note the blank line between rows.
 T}
 .TE
+.ad
 .LP
 Table without column headers:
 .PP
+.na
 .TS
 delim(@@) tab(	);
 r l c r.
@@ -239,9 +250,11 @@ T}	T{
 1
 T}
 .TE
+.ad
 .LP
 Multiline table without column headers:
 .PP
+.na
 .TS
 delim(@@) tab(	);
 cw(10.5n) lw(9.6n) rw(11.4n) lw(24.5n).
@@ -265,3 +278,4 @@ Here\[cq]s another one.
 Note the blank line between rows.
 T}
 .TE
+.ad
