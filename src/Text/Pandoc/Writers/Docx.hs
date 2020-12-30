@@ -28,6 +28,7 @@ import Data.Char (isSpace, isLetter)
 import Data.List (intercalate, isPrefixOf, isSuffixOf)
 import Data.String (fromString)
 import qualified Data.Map as M
+import Data.Either (fromRight)
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, maybeToList)
 import qualified Data.Set as Set
 import qualified Data.Text as T
@@ -1402,7 +1403,7 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
     generateImgElt (ident, _, _, img) =
       let
         (xpt,ypt) = desiredSizeInPoints opts attr
-               (either (const def) id (imageSize opts img))
+               (fromRight def (imageSize opts img))
         -- 12700 emu = 1 pt
         (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700)
                                 (pageWidth * 12700)

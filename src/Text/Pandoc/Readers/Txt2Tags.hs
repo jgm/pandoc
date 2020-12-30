@@ -564,7 +564,7 @@ getTarget = do
               _                               -> "html"
 
 atStart :: T2T ()
-atStart = (sourceColumn <$> getPosition) >>= guard . (== 1)
+atStart = getPosition >>= guard . (== 1) . sourceColumn
 
 ignoreSpacesCap :: T2T Text -> T2T Text
 ignoreSpacesCap p = T.toLower <$> (spaces *> p <* spaces)
