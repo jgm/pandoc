@@ -678,19 +678,17 @@ url = do
 -- | Parses a list of inlines between start and end delimiters.
 inlinesBetween :: (PandocMonad m, Show b) => MWParser m a -> MWParser m b -> MWParser m Inlines
 inlinesBetween start end =
-  trimInlines . mconcat <$> try (start >> many1Till inner end)
-    where inner      = innerSpace <|> (notFollowedBy' (() <$ whitespace) >> inline)
-          innerSpace = try $ whitespace <* notFollowedBy' end
+  trimInlines . mconcat <$> try (start >> many1Till inline end)
 
 emph :: PandocMonad m => MWParser m Inlines
 emph = B.emph <$> nested (inlinesBetween start end)
-    where start = sym "''" >> lookAhead nonspaceChar
+    where start = sym "''"
           end   = try $ notFollowedBy' (() <$ strong) >> sym "''"
 
 strong :: PandocMonad m => MWParser m Inlines
 strong = B.strong <$> nested (inlinesBetween start end)
-    where start = sym "'''" >> lookAhead nonspaceChar
-          end   = try $ sym "'''"
+    where start = sym "'''"
+          end   = sym "'''"
 
 doubleQuotes :: PandocMonad m => MWParser m Inlines
 doubleQuotes = do
