@@ -104,5 +104,9 @@
       - Text.Pandoc.Readers.Markdown
       - Text.Pandoc.Readers.RST
 
+# fromRight is only in base >= 4.10
+- ignore:
+    name: "Use fromRight"
+
 # Define some custom infix operators
 # - fixity: infixr 3 ~^#^~
