@@ -294,24 +294,22 @@ verseBlock blockType = try $ do
 codeBlock :: PandocMonad m => BlockAttributes -> Text -> OrgParser m (F Blocks)
 codeBlock blockAttrs blockType = do
   skipSpaces
-  (classes, kv)     <- codeHeaderArgs <|> (mempty <$ ignHeaders)
-  content           <- rawBlockContent blockType
-  resultsContent    <- option mempty babelResultsBlock
-  let id'            = fromMaybe mempty $ blockAttrName blockAttrs
-  let codeBlck       = B.codeBlockWith ( id', classes, kv ) content
-  let labelledBlck   = maybe (pure codeBlck)
-                             (labelDiv codeBlck)
-                             (blockAttrCaption blockAttrs)
+  (classes, kv)  <- codeHeaderArgs <|> (mempty <$ ignHeaders)
+  content        <- rawBlockContent blockType
+  resultsContent <- option mempty babelResultsBlock
+  let identifier = fromMaybe mempty $ blockAttrName blockAttrs
+  let codeBlk    = B.codeBlockWith (identifier, classes, kv) content
+  let wrap       = maybe pure addCaption (blockAttrCaption blockAttrs)
   return $
-    (if exportsCode kv    then labelledBlck   else mempty) <>
+    (if exportsCode kv    then wrap codeBlk   else mempty) <>
     (if exportsResults kv then resultsContent else mempty)
  where
-   labelDiv :: Blocks -> F Inlines -> F Blocks
-   labelDiv blk value =
-     B.divWith nullAttr <$> (mappend <$> labelledBlock value <*> pure blk)
+   addCaption :: F Inlines -> Blocks -> F Blocks
+   addCaption caption blk = B.divWith ("", ["captioned-content"], [])
+                         <$> (mkCaptionBlock caption <> pure blk)
 
-   labelledBlock :: F Inlines -> F Blocks
-   labelledBlock = fmap (B.plain . B.spanWith ("", ["label"], []))
+   mkCaptionBlock :: F Inlines -> F Blocks
+   mkCaptionBlock = fmap (B.divWith ("", ["caption"], []) . B.plain)
 
    exportsResults :: [(Text, Text)] -> Bool
    exportsResults = maybe False (`elem` ["results", "both"]) . lookup "exports"

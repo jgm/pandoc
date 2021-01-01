@@ -185,10 +185,10 @@ tests =
                 , "#+end_src"
                 ] =?>
       divWith
-         nullAttr
+         ("", ["captioned-content"], [] )
          (mappend
-          (plain $ spanWith ("", ["label"], [])
-                            (spcSep [ "Functor", "laws", "in", "Haskell" ]))
+          (divWith ("", ["caption"], []) $
+           plain (spcSep [ "Functor", "laws", "in", "Haskell" ]))
           (codeBlockWith ("functor-laws", ["haskell"], [])
                          (T.unlines [ "fmap id = id"
                                     , "fmap (p . q) = (fmap p) . (fmap q)"
