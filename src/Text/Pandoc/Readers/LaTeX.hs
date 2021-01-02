@@ -1835,7 +1835,7 @@ rawEnv name = do
        report $ SkippedContent beginCommand pos1
        pos2 <- getPosition
        report $ SkippedContent ("\\end{" <> name <> "}") pos2
-       return bs
+       return $ divWith ("",[name],[]) bs
 
 rawVerbEnv :: PandocMonad m => Text -> LP m Blocks
 rawVerbEnv name = do
