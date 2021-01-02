@@ -572,7 +572,7 @@ underline :: PandocMonad m => OrgParser m (F Inlines)
 underline = fmap B.underline    <$> emphasisBetween '_'
 
 verbatim  :: PandocMonad m => OrgParser m (F Inlines)
-verbatim  = return . B.code     <$> verbatimBetween '='
+verbatim  = return . B.codeWith ("", ["verbatim"], []) <$> verbatimBetween '='
 
 code      :: PandocMonad m => OrgParser m (F Inlines)
 code      = return . B.code     <$> verbatimBetween '~'
