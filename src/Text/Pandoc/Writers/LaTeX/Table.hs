@@ -169,7 +169,7 @@ rowToLaTeX :: PandocMonad m
            -> LW m (Doc Text)
 rowToLaTeX blocksWriter celltype row = do
   cellsDocs <- mapM (cellToLaTeX blocksWriter celltype) (fillRow row)
-  return $ hsep (intersperse "&" cellsDocs) <> " \\\\ \\addlinespace"
+  return $ hsep (intersperse "&" cellsDocs) <> " \\\\"
 
 -- | Pads row with empty cells to adjust for rowspans above this row.
 fillRow :: [Ann.Cell] -> [Ann.Cell]

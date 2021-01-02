@@ -3,16 +3,16 @@ Simple table with caption:
 \begin{longtable}[]{@{}rlcl@{}}
 \caption{Demonstration of simple table syntax.}\tabularnewline
 \toprule
-Right & Left & Center & Default \\ \addlinespace
+Right & Left & Center & Default \\
 \midrule
 \endfirsthead
 \toprule
-Right & Left & Center & Default \\ \addlinespace
+Right & Left & Center & Default \\
 \midrule
 \endhead
-12 & 12 & 12 & 12 \\ \addlinespace
-123 & 123 & 123 & 123 \\ \addlinespace
-1 & 1 & 1 & 1 \\ \addlinespace
+12 & 12 & 12 & 12 \\
+123 & 123 & 123 & 123 \\
+1 & 1 & 1 & 1 \\
 \bottomrule
 \end{longtable}
 
@@ -20,12 +20,12 @@ Simple table without caption:
 
 \begin{longtable}[]{@{}rlcl@{}}
 \toprule
-Right & Left & Center & Default \\ \addlinespace
+Right & Left & Center & Default \\
 \midrule
 \endhead
-12 & 12 & 12 & 12 \\ \addlinespace
-123 & 123 & 123 & 123 \\ \addlinespace
-1 & 1 & 1 & 1 \\ \addlinespace
+12 & 12 & 12 & 12 \\
+123 & 123 & 123 & 123 \\
+1 & 1 & 1 & 1 \\
 \bottomrule
 \end{longtable}
 
@@ -34,16 +34,16 @@ Simple table indented two spaces:
 \begin{longtable}[]{@{}rlcl@{}}
 \caption{Demonstration of simple table syntax.}\tabularnewline
 \toprule
-Right & Left & Center & Default \\ \addlinespace
+Right & Left & Center & Default \\
 \midrule
 \endfirsthead
 \toprule
-Right & Left & Center & Default \\ \addlinespace
+Right & Left & Center & Default \\
 \midrule
 \endhead
-12 & 12 & 12 & 12 \\ \addlinespace
-123 & 123 & 123 & 123 \\ \addlinespace
-1 & 1 & 1 & 1 \\ \addlinespace
+12 & 12 & 12 & 12 \\
+123 & 123 & 123 & 123 \\
+1 & 1 & 1 & 1 \\
 \bottomrule
 \end{longtable}
 
@@ -56,19 +56,15 @@ Multiline table with caption:
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.35}}@{}}
 \caption{Here's the caption. It may span multiple lines.}\tabularnewline
 \toprule
-Centered Header & Left Aligned & Right Aligned & Default
-aligned \\ \addlinespace
+Centered Header & Left Aligned & Right Aligned & Default aligned \\
 \midrule
 \endfirsthead
 \toprule
-Centered Header & Left Aligned & Right Aligned & Default
-aligned \\ \addlinespace
+Centered Header & Left Aligned & Right Aligned & Default aligned \\
 \midrule
 \endhead
-First & row & 12.0 & Example of a row that spans multiple
-lines. \\ \addlinespace
-Second & row & 5.0 & Here's another one. Note the blank line between
-rows. \\ \addlinespace
+First & row & 12.0 & Example of a row that spans multiple lines. \\
+Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
 \bottomrule
 \end{longtable}
 
@@ -80,14 +76,11 @@ Multiline table without caption:
   >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.16}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.35}}@{}}
 \toprule
-Centered Header & Left Aligned & Right Aligned & Default
-aligned \\ \addlinespace
+Centered Header & Left Aligned & Right Aligned & Default aligned \\
 \midrule
 \endhead
-First & row & 12.0 & Example of a row that spans multiple
-lines. \\ \addlinespace
-Second & row & 5.0 & Here's another one. Note the blank line between
-rows. \\ \addlinespace
+First & row & 12.0 & Example of a row that spans multiple lines. \\
+Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
 \bottomrule
 \end{longtable}
 
@@ -96,9 +89,9 @@ Table without column headers:
 \begin{longtable}[]{@{}rlcr@{}}
 \toprule
 \endhead
-12 & 12 & 12 & 12 \\ \addlinespace
-123 & 123 & 123 & 123 \\ \addlinespace
-1 & 1 & 1 & 1 \\ \addlinespace
+12 & 12 & 12 & 12 \\
+123 & 123 & 123 & 123 \\
+1 & 1 & 1 & 1 \\
 \bottomrule
 \end{longtable}
 
@@ -111,9 +104,7 @@ Multiline table without column headers:
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.35}}@{}}
 \toprule
 \endhead
-First & row & 12.0 & Example of a row that spans multiple
-lines. \\ \addlinespace
-Second & row & 5.0 & Here's another one. Note the blank line between
-rows. \\ \addlinespace
+First & row & 12.0 & Example of a row that spans multiple lines. \\
+Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
 \bottomrule
 \end{longtable}

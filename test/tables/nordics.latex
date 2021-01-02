@@ -6,21 +6,19 @@
 \caption{States belonging to the \emph{Nordics.}}\tabularnewline
 \toprule
 Name & Capital & \vtop{\hbox{\strut Population}\hbox{\strut (in 2018)}} &
-\vtop{\hbox{\strut Area}\hbox{\strut (in
-km\textsuperscript{2})}} \\ \addlinespace
+\vtop{\hbox{\strut Area}\hbox{\strut (in km\textsuperscript{2})}} \\
 \midrule
 \endfirsthead
 \toprule
 Name & Capital & \vtop{\hbox{\strut Population}\hbox{\strut (in 2018)}} &
-\vtop{\hbox{\strut Area}\hbox{\strut (in
-km\textsuperscript{2})}} \\ \addlinespace
+\vtop{\hbox{\strut Area}\hbox{\strut (in km\textsuperscript{2})}} \\
 \midrule
 \endhead
-Denmark & Copenhagen & 5,809,502 & 43,094 \\ \addlinespace
-Finland & Helsinki & 5,537,364 & 338,145 \\ \addlinespace
-Iceland & Reykjavik & 343,518 & 103,000 \\ \addlinespace
-Norway & Oslo & 5,372,191 & 323,802 \\ \addlinespace
-Sweden & Stockholm & 10,313,447 & 450,295 \\ \addlinespace
-Total & & 27,376,022 & 1,258,336 \\ \addlinespace
+Denmark & Copenhagen & 5,809,502 & 43,094 \\
+Finland & Helsinki & 5,537,364 & 338,145 \\
+Iceland & Reykjavik & 343,518 & 103,000 \\
+Norway & Oslo & 5,372,191 & 323,802 \\
+Sweden & Stockholm & 10,313,447 & 450,295 \\
+Total & & 27,376,022 & 1,258,336 \\
 \bottomrule
 \end{longtable}

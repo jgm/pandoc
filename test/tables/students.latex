@@ -3,21 +3,21 @@
   >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.50}}@{}}
 \caption{List of Students}\tabularnewline
 \toprule
-Student ID & Name \\ \addlinespace
+Student ID & Name \\
 \midrule
 \endfirsthead
 \toprule
-Student ID & Name \\ \addlinespace
+Student ID & Name \\
 \midrule
 \endhead
-\multicolumn{2}{l}{Computer Science} \\ \addlinespace
-3741255 & Jones, Martha \\ \addlinespace
-4077830 & Pierce, Benjamin \\ \addlinespace
-5151701 & Kirk, James \\ \addlinespace
-\multicolumn{2}{l}{Russian Literature} \\ \addlinespace
-3971244 & Nim, Victor \\ \addlinespace
-\multicolumn{2}{l}{Astrophysics} \\ \addlinespace
-4100332 & Petrov, Alexandra \\ \addlinespace
-4100332 & Toyota, Hiroko \\ \addlinespace
+\multicolumn{2}{l}{Computer Science} \\
+3741255 & Jones, Martha \\
+4077830 & Pierce, Benjamin \\
+5151701 & Kirk, James \\
+\multicolumn{2}{l}{Russian Literature} \\
+3971244 & Nim, Victor \\
+\multicolumn{2}{l}{Astrophysics} \\
+4100332 & Petrov, Alexandra \\
+4100332 & Toyota, Hiroko \\
 \bottomrule
 \end{longtable}
