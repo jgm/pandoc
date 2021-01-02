@@ -56,7 +56,7 @@ tests =
 
   , "Verbatim" =:
       "=Robot.rock()=" =?>
-      para (code "Robot.rock()")
+      para (codeWith ("", ["verbatim"], []) "Robot.rock()")
 
   , "Code" =:
       "~word for word~" =?>
@@ -190,7 +190,7 @@ tests =
                   ])
   , "Verbatim text can contain equal signes (=)" =:
       "=is_subst = True=" =?>
-      para (code "is_subst = True")
+      para (codeWith ("", ["verbatim"], []) "is_subst = True")
 
   , testGroup "Images"
     [ "Image" =:
