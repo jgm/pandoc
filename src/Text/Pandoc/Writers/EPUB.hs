@@ -1059,11 +1059,17 @@ getMediaNextNewName ext = do
   let nextName = "file" ++ show nextId ++ ext
   (P.fetchItem (TS.pack nextName) >> getMediaNextNewName ext) `catchError` const (return nextName)
 
+isHtmlFormat :: Format -> Bool
+isHtmlFormat (Format "html") = True
+isHtmlFormat (Format "html4") = True
+isHtmlFormat (Format "html5") = True
+isHtmlFormat _ = False
+
 transformBlock  :: PandocMonad m
                 => Block
                 -> E m Block
 transformBlock (RawBlock fmt raw)
-  | fmt == Format "html" = do
+  | isHtmlFormat fmt = do
   let tags = parseTags raw
   tags' <- mapM transformTag tags
   return $ RawBlock fmt (renderTags' tags')
@@ -1083,7 +1089,7 @@ transformInline opts x@(Math t m)
     return $ Span ("",["math",mathclass],[])
                 [Image nullAttr [x] ("../" <> newsrc, "")]
 transformInline _opts (RawInline fmt raw)
-  | fmt == Format "html" = do
+  | isHtmlFormat fmt = do
   let tags = parseTags raw
   tags' <- mapM transformTag tags
   return $ RawInline fmt (renderTags' tags')
