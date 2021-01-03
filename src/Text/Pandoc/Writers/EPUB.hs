@@ -557,12 +557,18 @@ pandocToEPUB version opts doc = do
   let extractLinkURL' :: Int -> Inline -> [(TS.Text, TS.Text)]
       extractLinkURL' num (Span (ident, _, _) _)
         | not (TS.null ident) = [(ident, TS.pack (showChapter num) <> "#" <> ident)]
+      extractLinkURL' num (Link (ident, _, _) _ _)
+        | not (TS.null ident) = [(ident, TS.pack (showChapter num) <> "#" <> ident)]
+      extractLinkURL' num (Image (ident, _, _) _ _)
+        | not (TS.null ident) = [(ident, TS.pack (showChapter num) <> "#" <> ident)]
       extractLinkURL' _ _ = []
 
   let extractLinkURL :: Int -> Block -> [(TS.Text, TS.Text)]
       extractLinkURL num (Div (ident, _, _) _)
         | not (TS.null ident) = [(ident, TS.pack (showChapter num) <> "#" <> ident)]
       extractLinkURL num (Header _ (ident, _, _) _)
+        | not (TS.null ident) = [(ident, TS.pack (showChapter num) <> "#" <> ident)]
+      extractLinkURL num (Table (ident,_,_) _ _ _ _ _)
         | not (TS.null ident) = [(ident, TS.pack (showChapter num) <> "#" <> ident)]
       extractLinkURL num b = query (extractLinkURL' num) b
 
