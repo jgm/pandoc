@@ -152,6 +152,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sHasChapters   :: Bool
                             , sToggles       :: M.Map Text Bool
                             , sExpanded      :: Bool
+                            , sFileContents  :: M.Map Text Text
                             }
      deriving Show
 
@@ -177,6 +178,7 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sHasChapters   = False
                               , sToggles       = M.empty
                               , sExpanded      = False
+                              , sFileContents  = M.empty
                               }
 
 instance PandocMonad m => HasQuoteContext LaTeXState m where

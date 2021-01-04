@@ -1219,6 +1219,7 @@ preamble :: PandocMonad m => LP m Blocks
 preamble = mconcat <$> many preambleBlock
   where preambleBlock =  (mempty <$ spaces1)
                      <|> macroDef (rawBlock "latex")
+                     <|> filecontents
                      <|> (mempty <$ blockCommand)
                      <|> (mempty <$ braced)
                      <|> (do notFollowedBy (begin_ "document")
@@ -1272,6 +1273,16 @@ include name = do
   mapM_ (insertIncluded defaultExt) fs
   return mempty
 
+readFileFromTexinputs :: PandocMonad m => FilePath -> LP m (Maybe Text)
+readFileFromTexinputs fp = do
+  fileContentsMap <- sFileContents <$> getState
+  case M.lookup (T.pack fp) fileContentsMap of
+    Just t -> return (Just t)
+    Nothing -> do
+      dirs <- map T.unpack . splitTextBy (==':') . fromMaybe "."
+               <$> lookupEnv "TEXINPUTS"
+      readFileFromDirs dirs fp
+
 insertIncluded :: PandocMonad m
                => FilePath
                -> FilePath
@@ -1281,13 +1292,12 @@ insertIncluded defaultExtension f' = do
                 ".tex" -> f'
                 ".sty" -> f'
                 _      -> addExtension f' defaultExtension
-  dirs <- map T.unpack . splitTextBy (==':') . fromMaybe "." <$> lookupEnv "TEXINPUTS"
   pos <- getPosition
   containers <- getIncludeFiles <$> getState
   when (T.pack f `elem` containers) $
     throwError $ PandocParseError $ T.pack $ "Include file loop at " ++ show pos
   updateState $ addIncludeFile $ T.pack f
-  mbcontents <- readFileFromDirs dirs f
+  mbcontents <- readFileFromTexinputs f
   contents <- case mbcontents of
                    Just s -> return s
                    Nothing -> do
@@ -1695,6 +1705,18 @@ environments = M.fromList
    , ("iftoggle", try $ ifToggle >> block)
    ]
 
+filecontents :: PandocMonad m => LP m Blocks
+filecontents = try $ do
+  controlSeq "begin"
+  name <- untokenize <$> braced
+  guard $ name == "filecontents" || name == "filecontents*"
+  skipopts
+  fp <- untokenize <$> braced
+  txt <- verbEnv name
+  updateState $ \st ->
+    st{ sFileContents = M.insert fp txt (sFileContents st) }
+  return mempty
+
 theoremstyle :: PandocMonad m => LP m Blocks
 theoremstyle = do
   stylename <- untokenize <$> braced
@@ -1894,8 +1916,7 @@ inputMinted = do
   pos <- getPosition
   attr <- mintedAttr
   f <- T.filter (/='"') . untokenize <$> braced
-  dirs <- map T.unpack . splitTextBy (==':') . fromMaybe "." <$> lookupEnv "TEXINPUTS"
-  mbCode <- readFileFromDirs dirs (T.unpack f)
+  mbCode <- readFileFromTexinputs (T.unpack f)
   rawcode <- case mbCode of
                   Just s -> return s
                   Nothing -> do
@@ -1981,8 +2002,7 @@ inputListing = do
   pos <- getPosition
   options <- option [] keyvals
   f <- T.filter (/='"') . untokenize <$> braced
-  dirs <- map T.unpack . splitTextBy (==':') . fromMaybe "." <$> lookupEnv "TEXINPUTS"
-  mbCode <- readFileFromDirs dirs (T.unpack f)
+  mbCode <- readFileFromTexinputs (T.unpack f)
   codeLines <- case mbCode of
                       Just s -> return $ T.lines s
                       Nothing -> do
