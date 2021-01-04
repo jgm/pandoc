@@ -561,6 +561,16 @@ pandocToEPUB version opts doc = do
         | not (TS.null ident) = [(ident, TS.pack (showChapter num) <> "#" <> ident)]
       extractLinkURL' num (Image (ident, _, _) _ _)
         | not (TS.null ident) = [(ident, TS.pack (showChapter num) <> "#" <> ident)]
+      extractLinkURL' num (RawInline fmt raw)
+        | isHtmlFormat fmt
+        = foldr (\tag ->
+                   case tag of
+                     TagOpen{} ->
+                       case fromAttrib "id" tag of
+                         "" -> id
+                         x  -> ((x, TS.pack (showChapter num) <> "#" <> x):)
+                     _ -> id)
+            [] (parseTags raw)
       extractLinkURL' _ _ = []
 
   let extractLinkURL :: Int -> Block -> [(TS.Text, TS.Text)]
@@ -570,6 +580,16 @@ pandocToEPUB version opts doc = do
         | not (TS.null ident) = [(ident, TS.pack (showChapter num) <> "#" <> ident)]
       extractLinkURL num (Table (ident,_,_) _ _ _ _ _)
         | not (TS.null ident) = [(ident, TS.pack (showChapter num) <> "#" <> ident)]
+      extractLinkURL num (RawBlock fmt raw)
+        | isHtmlFormat fmt
+        = foldr (\tag ->
+                   case tag of
+                     TagOpen{} ->
+                       case fromAttrib "id" tag of
+                         "" -> id
+                         x  -> ((x, TS.pack (showChapter num) <> "#" <> x):)
+                     _ -> id)
+            [] (parseTags raw)
       extractLinkURL num b = query (extractLinkURL' num) b
 
   let reftable = concat $ zipWith (\(Chapter bs) num ->
