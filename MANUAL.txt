@@ -1507,6 +1507,16 @@ input-files:
 - content.md
 # or you may use input-file: with a single value
 
+# Include options from the specified defaults files.
+# The files will be searched for first in the working directory
+# and then in the defaults subdirectory of the user data directory.
+# The files are included in the same order in which they appear in
+# the list. Options specified in this defaults file always have
+# priority over the included ones.
+defaults:
+- defsA
+- defsB
+
 template: letter
 standalone: true
 self-contained: false

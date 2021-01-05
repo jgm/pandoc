@@ -25,6 +25,7 @@ module Text.Pandoc.App.CommandLineOptions (
 import Control.Monad
 import Control.Monad.Trans
 import Control.Monad.Except (throwError)
+import Control.Monad.State.Strict
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
 import Data.Bifunctor (second)
@@ -46,10 +47,12 @@ import System.FilePath
 import System.IO (stdout)
 import Text.DocTemplates (Context (..), ToContext (toVal), Val (..))
 import Text.Pandoc
-import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..), addMeta)
+import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..),
+                            DefaultsState (..), addMeta, applyDefaults,
+                            fullDefaultsPath)
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
-import Text.Pandoc.Shared (ordNub, elemText, safeStrRead, defaultUserDataDirs, findM)
+import Text.Pandoc.Shared (ordNub, elemText, safeStrRead, defaultUserDataDirs)
 import Text.Printf
 
 #ifdef EMBED_DATA_FILES
@@ -64,7 +67,6 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import qualified Data.Text as T
-import qualified Data.YAML as Y
 import qualified Text.Pandoc.UTF8 as UTF8
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
@@ -166,7 +168,11 @@ options =
 
     , Option "d" ["defaults"]
                  (ReqArg
-                  (\arg opt -> applyDefaults opt arg
+                  (\arg opt -> runIOorExplode $ do
+                     let defsState = DefaultsState { curDefaults = Nothing,
+                                                     inheritanceGraph = [] }
+                     fp <- fullDefaultsPath (optDataDir opt) arg
+                     evalStateT (applyDefaults opt fp) defsState
                   )
                   "FILE")
                 ""
@@ -1011,28 +1017,6 @@ writersNames = sort
 
 splitField :: String -> (String, String)
 splitField = second (tailDef "true") . break (`elemText` ":=")
-
--- | Apply defaults from --defaults file.
-applyDefaults :: Opt -> FilePath -> IO Opt
-applyDefaults opt file = runIOorExplode $ do
-  let fp = if null (takeExtension file)
-              then addExtension file "yaml"
-              else file
-  setVerbosity $ optVerbosity opt
-  dataDirs <- liftIO defaultUserDataDirs
-  let fps = fp : case optDataDir opt of
-              Nothing -> map (</> ("defaults" </> fp))
-                               dataDirs
-              Just dd -> [dd </> "defaults" </> fp]
-  fp' <- fromMaybe fp <$> findM fileExists fps
-  inp <- readFileLazy fp'
-  case Y.decode1 inp of
-      Right (f :: Opt -> Opt) -> return $ f opt
-      Left (errpos, errmsg)  -> throwError $
-         PandocParseError $ T.pack $
-         "Error parsing " ++ fp' ++ " line " ++
-          show (Y.posLine errpos) ++ " column " ++
-          show (Y.posColumn errpos) ++ ":\n" ++ errmsg
 
 lookupHighlightStyle :: PandocMonad m => String -> m Style
 lookupHighlightStyle s
