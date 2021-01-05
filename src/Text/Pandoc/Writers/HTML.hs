@@ -1455,11 +1455,15 @@ blockListToNote opts ref blocks = do
                     else let lastBlock   = last blocks
                              otherBlocks = init blocks
                          in  case lastBlock of
-                                  (Para lst)  -> otherBlocks ++
+                                  Para [Image _ _ (_,tit)]
+                                      | "fig:" `T.isPrefixOf` tit
+                                            -> otherBlocks ++ [lastBlock,
+                                                  Plain backlink]
+                                  Para lst  -> otherBlocks ++
                                                  [Para (lst ++ backlink)]
-                                  (Plain lst) -> otherBlocks ++
+                                  Plain lst -> otherBlocks ++
                                                  [Plain (lst ++ backlink)]
-                                  _           -> otherBlocks ++ [lastBlock,
+                                  _         -> otherBlocks ++ [lastBlock,
                                                  Plain backlink]
   contents <- blockListToHtml opts blocks'
   let noteItem = H.li ! prefixedId opts ("fn" <> ref) $ contents
