@@ -100,8 +100,6 @@ $endif$
 \setupfloat[figure][default={here,nonumber}]
 \setupfloat[table][default={here,nonumber}]
 
-\setupthinrules[width=15em] % width of horizontal rules
-
 \setupxtable[frame=off]
 \setupxtable[head][topframe=on,bottomframe=on]
 \setupxtable[body][]
