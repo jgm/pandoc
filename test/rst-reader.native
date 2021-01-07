@@ -346,13 +346,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignDefault,ColWidth 0.15)
  ,(AlignDefault,ColWidth 0.1625)]
  (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
+ [])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
@@ -378,13 +372,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignDefault,ColWidth 0.15)
  ,(AlignDefault,ColWidth 0.1625)]
  (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
+ [])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
@@ -410,13 +398,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Spa
  ,(AlignDefault,ColWidth 0.15)
  ,(AlignDefault,ColWidth 0.1625)]
  (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
+ [])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])

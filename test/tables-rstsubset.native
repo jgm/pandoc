@@ -276,15 +276,7 @@
  ,(AlignDefault,ColWidth 0.15)
  ,(AlignDefault,ColWidth 0.3375)]
  (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
+ [])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])

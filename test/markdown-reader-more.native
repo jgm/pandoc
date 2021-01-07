@@ -134,13 +134,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
  ,(AlignDefault,ColWidth 0.16666666666666666)
  ,(AlignDefault,ColWidth 0.18055555555555555)]
  (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
+ [])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
@@ -198,13 +192,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
  ,(AlignLeft,ColWidth 0.16666666666666666)
  ,(AlignCenter,ColWidth 0.18055555555555555)]
  (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
+ [])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
@@ -230,13 +218,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
  ,(AlignDefault,ColWidth 0.16666666666666666)
  ,(AlignDefault,ColWidth 0.18055555555555555)]
  (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
+ [])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
@@ -262,13 +244,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
  ,(AlignDefault,ColWidth 0.16666666666666666)
  ,(AlignDefault,ColWidth 0.18055555555555555)]
  (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
+ [])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
@@ -300,11 +276,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Author",S
  [(AlignDefault,ColWidth 5.555555555555555e-2)
  ,(AlignDefault,ColWidth 5.555555555555555e-2)]
  (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
+ [])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])

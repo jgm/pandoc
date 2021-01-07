@@ -1069,24 +1069,24 @@ gridTableHeader :: (Stream s m Char, Monad mf, IsString s, HasLastStrPosition st
                 => Bool -- ^ Headerless table
                 -> ParserT s st m (mf Blocks)
                 -> ParserT s st m (mf [Blocks], [Alignment], [Int])
-gridTableHeader headless blocks = try $ do
+gridTableHeader True _ = do
   optional blanklines
   dashes <- gridDashedLines '-'
-  rawContent  <- if headless
-                    then return $ repeat ""
-                    else many1
-                         (notFollowedBy (gridTableSep '=') >> char '|' >>
+  let aligns = map snd dashes
+  let lines'   = map (snd . fst) dashes
+  let indices  = scanl (+) 0 lines'
+  return (return [], aligns, indices)
+gridTableHeader False blocks = try $ do
+  optional blanklines
+  dashes <- gridDashedLines '-'
+  rawContent  <- many1 (notFollowedBy (gridTableSep '=') >> char '|' >>
                            T.pack <$> many1Till anyChar newline)
-  underDashes <- if headless
-                    then return dashes
-                    else gridDashedLines '='
+  underDashes <- gridDashedLines '='
   guard $ length dashes == length underDashes
   let lines'   = map (snd . fst) underDashes
   let indices  = scanl (+) 0 lines'
   let aligns   = map snd underDashes
-  let rawHeads = if headless
-                    then replicate (length underDashes) ""
-                    else map (T.unlines . map trim) $ transpose
+  let rawHeads = map (T.unlines . map trim) $ transpose
                        $ map (gridTableSplitLine indices) rawContent
   heads <- sequence <$> mapM (parseFromString' blocks . trim) rawHeads
   return (heads, aligns, indices)
