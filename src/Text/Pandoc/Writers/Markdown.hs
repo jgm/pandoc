@@ -674,7 +674,10 @@ blockToMarkdown' opts (BulletList items) = do
   contents <- inList $ mapM (bulletListItemToMarkdown opts) items
   return $ (if isTightList items then vcat else vsep) contents <> blankline
 blockToMarkdown' opts (OrderedList (start,sty,delim) items) = do
-  let start' = if isEnabled Ext_startnum opts then start else 1
+  variant <- asks envVariant
+  let start' = if variant == Commonmark || isEnabled Ext_startnum opts
+                  then start
+                  else 1
   let sty'   = if isEnabled Ext_fancy_lists opts then sty else DefaultStyle
   let delim' = if isEnabled Ext_fancy_lists opts then delim else DefaultDelim
   let attribs = (start', sty', delim')
