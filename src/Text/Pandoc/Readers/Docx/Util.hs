@@ -1,7 +1,7 @@
 {- |
    Module      : Text.Pandoc.Readers.Docx.StyleMaps
    Copyright   : © 2014-2020 Jesse Rosenthal <jrosenthal@jhu.edu>,
-                   2014-2020 John MacFarlane <jgm@berkeley.edu>,
+                   2014-2021 John MacFarlane <jgm@berkeley.edu>,
                    2015 Nikolay Yakimov <root@livid.pp.ru>
    License     : GNU GPL, version 2 or above
 

@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Tests.Command
-   Copyright   : © 2006-2020 John MacFarlane
+   Copyright   : © 2006-2021 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>

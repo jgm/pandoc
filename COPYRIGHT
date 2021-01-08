@@ -1,5 +1,5 @@
 Pandoc
-Copyright (C) 2006-2020 John MacFarlane <jgm at berkeley dot edu>
+Copyright (C) 2006-2021 John MacFarlane <jgm at berkeley dot edu>
 
 With the exceptions noted below, this code is released under the [GPL],
 version 2 or later:
@@ -37,7 +37,7 @@ The modules in the `pandoc-types` repository (Text.Pandoc.Definition,
 Text.Pandoc.Builder, Text.Pandoc.Generics, Text.Pandoc.JSON,
 Text.Pandoc.Walk) are licensed under the BSD 3-clause license:
 
-Copyright (c) 2006-2020, John MacFarlane
+Copyright (c) 2006-2021, John MacFarlane
 
 All rights reserved.
 
@@ -73,7 +73,7 @@ Pandoc's templates (in `data/templates`) are dual-licensed as either
 GPL (v2 or higher, same as pandoc) or (at your option) the BSD
 3-clause license.
 
-Copyright (c) 2014--2020, John MacFarlane
+Copyright (c) 2014--2021, John MacFarlane
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/Muse.hs
@@ -83,19 +83,19 @@ Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/Texinfo.hs
-Copyright (C) 2008-2020 John MacFarlane and Peter Wang
+Copyright (C) 2008-2021 John MacFarlane and Peter Wang
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/OpenDocument.hs
-Copyright (C) 2008-2020 Andrea Rossato and John MacFarlane
+Copyright (C) 2008-2021 Andrea Rossato and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/Org.hs
-Copyright (C) 2010-2020 Puneeth Chaganti, John MacFarlane, and
+Copyright (C) 2010-2021 Puneeth Chaganti, John MacFarlane, and
                         Albert Krewinkel
 
 Released under the GNU General Public License version 2 or later.
@@ -115,7 +115,7 @@ Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Readers/Textile.hs
-Copyright (C) 2010-2020 Paul Rivier and John MacFarlane
+Copyright (C) 2010-2021 Paul Rivier and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
@@ -133,7 +133,7 @@ Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Readers/EPUB.hs
-Copyright (C) 2014-2020 Matthew Pickering and John MacFarlane
+Copyright (C) 2014-2021 Matthew Pickering and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
@@ -141,7 +141,7 @@ Released under the GNU General Public License version 2 or later.
 src/Text/Pandoc/Readers/Org.hs
 src/Text/Pandoc/Readers/Org/*
 test/Tests/Readers/Org/*
-Copyright (C) 2014-2020 Albert Krewinkel
+Copyright (C) 2014-2021 Albert Krewinkel
 
 Released under the GNU General Public License version 2 or later.
 
@@ -149,7 +149,7 @@ Released under the GNU General Public License version 2 or later.
 src/Text/Pandoc/Lua.hs
 src/Text/Pandoc/Lua/*
 test/lua/*
-Copyright (C) 2017--2020 Albert Krewinkel and John MacFarlane
+Copyright (C) 2017--2021 Albert Krewinkel and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
@@ -157,7 +157,7 @@ Released under the GNU General Public License version 2 or later.
 src/Text/Pandoc/Readers/Jira.hs
 src/Text/Pandoc/Writers/Jira.hs
 test/Tests/Readers/Jira.hs
-Copyright (C) 2019--2020 Albert Krewinkel
+Copyright (C) 2019--2021 Albert Krewinkel
 
 Released under the GNU General Public License version 2 or later.
 
@@ -169,7 +169,7 @@ Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 data/pandoc.lua
-Copyright (C) 2017-2020 Albert Krewinkel
+Copyright (C) 2017-2021 Albert Krewinkel
 
 Released under the GNU General Public License version 2 or later.
 
@@ -183,7 +183,7 @@ Released under the Do What the Fuck You Want To Public License.
 ------------------------------------------------------------------------
 Pandoc embeds a lua interpreter (via hslua).
 
-Copyright © 1994–2019 Lua.org, PUC-Rio.
+Copyright © 1994–2020 Lua.org, PUC-Rio.
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

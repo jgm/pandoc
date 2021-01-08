@@ -4,8 +4,8 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.ReaderOptions
-   Copyright   : © 2012-2020 John MacFarlane
-                 © 2017-2020 Albert Krewinkel
+   Copyright   : © 2012-2021 John MacFarlane
+                 © 2017-2021 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
