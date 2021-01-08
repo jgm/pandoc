@@ -3,7 +3,7 @@
 {-# LANGUAGE PatternGuards #-}
 {- |
    Module      : Text.Pandoc.Writers.Jira
-   Copyright   : © 2010-2020 Albert Krewinkel, John MacFarlane
+   Copyright   : © 2010-2021 Albert Krewinkel, John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>

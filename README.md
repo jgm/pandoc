@@ -236,7 +236,7 @@ opening a new issue.
 
 ## License
 
-© 2006-2020 John MacFarlane (jgm@berkeley.edu). Released under the
+© 2006-2021 John MacFarlane (jgm@berkeley.edu). Released under the
 [GPL](http://www.gnu.org/copyleft/gpl.html "GNU General Public License"),
 version 2 or greater. This software carries no warranty of any kind.
 (See COPYRIGHT for full copyright and warranty notices.)
