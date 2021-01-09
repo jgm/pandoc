@@ -239,7 +239,7 @@ lineOfInlines = do
 todoSequence :: Monad m => OrgParser m TodoSequence
 todoSequence = try $ do
   todoKws <- todoKeywords
-  doneKws <- optionMaybe $ todoDoneSep *> todoKeywords
+  doneKws <- optionMaybe $ todoDoneSep *> doneKeywords
   newline
   -- There must be at least one DONE keyword. The last TODO keyword is
   -- taken if necessary.
@@ -250,11 +250,17 @@ todoSequence = try $ do
                     (x:xs) -> return $ keywordsToSequence (reverse xs) [x]
 
  where
+   todoKeyword :: Monad m => OrgParser m Text
+   todoKeyword = many1Char nonspaceChar <* skipSpaces
+
    todoKeywords :: Monad m => OrgParser m [Text]
    todoKeywords = try $
-     let keyword = many1Char nonspaceChar <* skipSpaces
-         endOfKeywords = todoDoneSep <|> void newline
-     in manyTill keyword (lookAhead endOfKeywords)
+     let endOfKeywords = todoDoneSep <|> void newline
+     in manyTill todoKeyword (lookAhead endOfKeywords)
+
+   doneKeywords :: Monad m => OrgParser m [Text]
+   doneKeywords = try $
+     manyTill (todoKeyword <* optional todoDoneSep) (lookAhead newline)
 
    todoDoneSep :: Monad m => OrgParser m ()
    todoDoneSep = void . try $ skipSpaces *> char '|' <* skipSpaces1

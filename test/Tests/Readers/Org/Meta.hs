@@ -116,6 +116,16 @@ tests =
       "#+LANGUAGE: de-DE" =?>
       Pandoc (setMeta "lang" (MetaString "de-DE") nullMeta) mempty
 
+    , testGroup "Todo sequences"
+      [ "not included in document" =:
+        "#+todo: WAITING | FINISHED" =?>
+        Pandoc mempty mempty
+
+      , "can contain multiple pipe characters" =:
+        "#+todo: UNFINISHED | RESEARCH | NOTES | CHART\n" =?>
+        Pandoc mempty mempty
+      ]
+
     , testGroup "LaTeX"
       [ "LATEX_HEADER" =:
         "#+latex_header: \\usepackage{tikz}" =?>
