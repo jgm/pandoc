@@ -6,7 +6,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Pandoc.Citeproc
   ( processCitations,
-    getReferences
+    getReferences,
+    getStyle
   )
 where
 
@@ -50,50 +51,7 @@ import Safe (lastMay, initSafe)
 
 processCitations  :: PandocMonad m => Pandoc -> m Pandoc
 processCitations (Pandoc meta bs) = do
-  let cslfile = (lookupMeta "csl" meta <|> lookupMeta "citation-style" meta)
-                >>= metaValueToText
-
-  let getFile defaultExtension fp = do
-        oldRp <- getResourcePath
-        mbUdd <- getUserDataDir
-        setResourcePath $ oldRp ++ maybe []
-                                   (\u -> [u <> "/csl",
-                                           u <> "/csl/dependent"]) mbUdd
-        let fp' = if T.any (=='.') fp || "data:" `T.isPrefixOf` fp
-                     then fp
-                     else fp <> defaultExtension
-        (result, _) <- fetchItem fp'
-        setResourcePath oldRp
-        return result
-
-  let getCslDefault = readDataFile "default.csl"
-
-  cslContents <- UTF8.toText <$> maybe getCslDefault (getFile ".csl") cslfile
-
-  let abbrevFile = lookupMeta "citation-abbreviations" meta >>= metaValueToText
-
-  mbAbbrevs <- case abbrevFile of
-                 Nothing -> return Nothing
-                 Just fp -> do
-                   rawAbbr <- getFile ".json" fp
-                   case eitherDecode (L.fromStrict rawAbbr) of
-                     Left err -> throwError $ PandocCiteprocError $
-                                 CiteprocParseError $
-                                 "Could not parse abbreviations file " <> fp
-                                 <> "\n" <> T.pack err
-                     Right abbr -> return $ Just abbr
-
-  let getParentStyle url = do
-        -- first, try to retrieve the style locally, then use HTTP.
-        let basename = T.takeWhileEnd (/='/') url
-        UTF8.toText <$>
-          catchError (getFile ".csl" basename) (\_ -> fst <$> fetchItem url)
-
-  styleRes <- Citeproc.parseStyle getParentStyle cslContents
-  style <-
-    case styleRes of
-       Left err    -> throwError $ PandocAppError $ prettyCiteprocError err
-       Right style -> return style{ styleAbbreviations = mbAbbrevs }
+  style <- getStyle (Pandoc meta bs)
 
   mblang <- getLang meta
   let locale = Citeproc.mergeLocales mblang style
@@ -153,6 +111,58 @@ processCitations (Pandoc meta bs) = do
   return $ Pandoc meta''
          $ insertRefs refkvs classes meta''
             (walk fixLinks $ B.toList bibs) bs'
+
+-- | Retrieve the CSL style specified by the csl or citation-style
+-- metadata field in a pandoc document, or the default CSL style
+-- if none is specified.  Retrieve the parent style
+-- if the style is a dependent style.  Add abbreviations defined
+-- in an abbreviation file if one has been specified.
+getStyle :: PandocMonad m => Pandoc -> m (Style Inlines)
+getStyle (Pandoc meta _) = do
+  let cslfile = (lookupMeta "csl" meta <|> lookupMeta "citation-style" meta)
+                >>= metaValueToText
+
+  let getFile defaultExtension fp = do
+        oldRp <- getResourcePath
+        mbUdd <- getUserDataDir
+        setResourcePath $ oldRp ++ maybe []
+                                   (\u -> [u <> "/csl",
+                                           u <> "/csl/dependent"]) mbUdd
+        let fp' = if T.any (=='.') fp || "data:" `T.isPrefixOf` fp
+                     then fp
+                     else fp <> defaultExtension
+        (result, _) <- fetchItem fp'
+        setResourcePath oldRp
+        return result
+
+  let getCslDefault = readDataFile "default.csl"
+
+  cslContents <- UTF8.toText <$> maybe getCslDefault (getFile ".csl") cslfile
+
+  let abbrevFile = lookupMeta "citation-abbreviations" meta >>= metaValueToText
+
+  mbAbbrevs <- case abbrevFile of
+                 Nothing -> return Nothing
+                 Just fp -> do
+                   rawAbbr <- getFile ".json" fp
+                   case eitherDecode (L.fromStrict rawAbbr) of
+                     Left err -> throwError $ PandocCiteprocError $
+                                 CiteprocParseError $
+                                 "Could not parse abbreviations file " <> fp
+                                 <> "\n" <> T.pack err
+                     Right abbr -> return $ Just abbr
+
+  let getParentStyle url = do
+        -- first, try to retrieve the style locally, then use HTTP.
+        let basename = T.takeWhileEnd (/='/') url
+        UTF8.toText <$>
+          catchError (getFile ".csl" basename) (\_ -> fst <$> fetchItem url)
+
+  styleRes <- Citeproc.parseStyle getParentStyle cslContents
+  case styleRes of
+     Left err    -> throwError $ PandocAppError $ prettyCiteprocError err
+     Right style -> return style{ styleAbbreviations = mbAbbrevs }
+
 
 -- Retrieve citeproc lang based on metadata.
 getLang :: PandocMonad m => Meta -> m (Maybe Lang)
