@@ -27,6 +27,9 @@
       <email>matthew.g.roth@yale.edu</email>
       <uri> https://orcid.org/0000-0001-7902-6331</uri>
     </contributor>
+    <contributor>
+      <name>Brenton M. Wiernik</name>
+    </contributor>
     <category citation-format="author-date"/>
     <category field="generic-base"/>
     <summary>The author-date variant of the Chicago style</summary>
@@ -509,8 +512,15 @@
     </choose>
   </macro>
   <macro name="event">
-    <group>
-      <text term="presented at" suffix=" "/>
+    <group delimiter=" ">
+      <choose>
+        <if variable="genre">
+          <text term="presented at"/>
+        </if>
+        <else>
+          <text term="presented at" text-case="capitalize-first"/>
+        </else>
+      </choose>
       <text variable="event"/>
     </group>
   </macro>
