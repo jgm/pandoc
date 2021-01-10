@@ -168,13 +168,15 @@ plainToPara x         = x
 -- | Convert a list of pairs of terms and definitions into a list of
 -- JATS varlistentrys.
 deflistItemsToJATS :: PandocMonad m
-                      => WriterOptions -> [([Inline],[[Block]])] -> JATS m (Doc Text)
+                   => WriterOptions
+                   -> [([Inline],[[Block]])] -> JATS m (Doc Text)
 deflistItemsToJATS opts items =
   vcat <$> mapM (uncurry (deflistItemToJATS opts)) items
 
 -- | Convert a term and a list of blocks into a JATS varlistentry.
 deflistItemToJATS :: PandocMonad m
-                     => WriterOptions -> [Inline] -> [[Block]] -> JATS m (Doc Text)
+                  => WriterOptions
+                  -> [Inline] -> [[Block]] -> JATS m (Doc Text)
 deflistItemToJATS opts term defs = do
   term' <- inlinesToJATS opts term
   def' <- wrappedBlocksToJATS (not . isPara)
@@ -186,7 +188,8 @@ deflistItemToJATS opts term defs = do
 
 -- | Convert a list of lists of blocks to a list of JATS list items.
 listItemsToJATS :: PandocMonad m
-                => WriterOptions -> Maybe [Text] -> [[Block]] -> JATS m (Doc Text)
+                => WriterOptions
+                -> Maybe [Text] -> [[Block]] -> JATS m (Doc Text)
 listItemsToJATS opts markers items =
   case markers of
        Nothing -> vcat <$> mapM (listItemToJATS opts Nothing) items
@@ -194,12 +197,13 @@ listItemsToJATS opts markers items =
 
 -- | Convert a list of blocks into a JATS list item.
 listItemToJATS :: PandocMonad m
-               => WriterOptions -> Maybe Text -> [Block] -> JATS m (Doc Text)
+               => WriterOptions
+               -> Maybe Text -> [Block] -> JATS m (Doc Text)
 listItemToJATS opts mbmarker item = do
   contents <- wrappedBlocksToJATS (not . isParaOrList) opts
                  (walk demoteHeaderAndRefs item)
   return $ inTagsIndented "list-item" $
-           maybe empty (\lbl -> inTagsSimple "label" (text $ T.unpack lbl)) mbmarker
+           maybe empty (inTagsSimple "label" . text . T.unpack) mbmarker
            $$ contents
 
 imageMimeType :: Text -> [(Text, Text)] -> (Text, Text)
@@ -529,7 +533,7 @@ demoteHeaderAndRefs (Div ("refs",cls,kvs) bs) =
 demoteHeaderAndRefs x = x
 
 parseDate :: Text -> Maybe Day
-parseDate s = msum (map (\fs -> parsetimeWith fs $ T.unpack s) formats) :: Maybe Day
+parseDate s = msum (map (`parsetimeWith` T.unpack s) formats)
   where parsetimeWith = parseTimeM True defaultTimeLocale
         formats = ["%x","%m/%d/%Y", "%D","%F", "%d %b %Y",
                     "%e %B %Y", "%b. %e, %Y", "%B %e, %Y",
