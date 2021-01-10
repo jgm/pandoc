@@ -5,7 +5,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Pandoc.Citeproc
-  ( processCitations )
+  ( processCitations,
+    getReferences
+  )
 where
 
 import Citeproc
@@ -46,7 +48,7 @@ import Safe (lastMay, initSafe)
 -- import Debug.Trace as Trace (trace, traceShowId)
 
 
-processCitations :: PandocMonad m => Pandoc -> m Pandoc
+processCitations  :: PandocMonad m => Pandoc -> m Pandoc
 processCitations (Pandoc meta bs) = do
   let cslfile = (lookupMeta "csl" meta <|> lookupMeta "citation-style" meta)
                 >>= metaValueToText
@@ -96,31 +98,9 @@ processCitations (Pandoc meta bs) = do
                ((lookupMeta "lang" meta <|> lookupMeta "locale" meta) >>=
                  metaValueToText)
   let locale = Citeproc.mergeLocales mblang style
-  let getCiteId (Cite cs _) = Set.fromList $ map B.citationId cs
-      getCiteId _ = mempty
-  let metanocites = lookupMeta "nocite" meta
-  let meta' = deleteMeta "nocite" meta
-  let nocites = maybe mempty (query getCiteId) metanocites
-  let citeIds = query getCiteId (Pandoc meta bs)
-  let idpred = if "*" `Set.member` nocites
-                  then const True
-                  else (`Set.member` citeIds)
-  let inlineRefs = case lookupMeta "references" meta of
-                    Just (MetaList rs) -> mapMaybe metaValueToReference rs
-                    _                  -> []
-  externalRefs <- case lookupMeta "bibliography" meta of
-                    Just (MetaList xs) ->
-                      mconcat <$>
-                        mapM (getRefsFromBib locale idpred)
-                          (mapMaybe metaValueToText xs)
-                    Just x ->
-                      case metaValueToText x of
-                        Just fp -> getRefsFromBib locale idpred fp
-                        Nothing -> return []
-                    Nothing -> return []
-  let refs = map (linkifyVariables . legacyDateRanges)
-                 (externalRefs ++ inlineRefs)
-                 -- note that inlineRefs can override externalRefs
+
+  refs <- getReferences (Just locale) (Pandoc meta bs)
+
   let otherIdsMap = foldr (\ref m ->
                              case T.words . extractText <$>
                                   M.lookup "other-ids"
@@ -130,8 +110,10 @@ processCitations (Pandoc meta bs) = do
                                   (\id' ->
                                     M.insert id' (referenceId ref)) m ids)
                           M.empty refs
-  -- TODO: issue warning if no refs defined
+  let meta' = deleteMeta "nocite" meta
   let citations = getCitations locale otherIdsMap $ Pandoc meta' bs
+
+
   let linkCites = maybe False truish $ lookupMeta "link-citations" meta
   let opts = defaultCiteprocOptions{ linkCitations = linkCites }
   let result = Citeproc.citeproc opts style (localeLanguage locale)
@@ -161,6 +143,7 @@ processCitations (Pandoc meta bs) = do
                       B.toList . movePunctuationInsideQuotes .  B.fromList
                     _ -> id
 
+  let metanocites = lookupMeta "nocite" meta
   let Pandoc meta'' bs' =
          maybe id (setMeta "nocite") metanocites .
          walk (map capitalizeNoteCitation .
@@ -171,6 +154,46 @@ processCitations (Pandoc meta bs) = do
   return $ Pandoc meta''
          $ insertRefs refkvs classes meta''
             (walk fixLinks $ B.toList bibs) bs'
+
+-- | Get references defined inline in the metadata and via an external
+-- bibliography.  Only references that are actually cited in the document
+-- (either with a genuine citation or with `nocite`) are returned.
+-- URL variables are converted to links.
+getReferences :: PandocMonad m
+              => Maybe Locale -> Pandoc -> m [Reference Inlines]
+getReferences mblocale (Pandoc meta bs) = do
+  let lang = maybe (Lang "en" (Just "US")) (parseLang . stringify) $
+             lookupMeta "lang" meta
+  let locale = case mblocale of
+                Just l  -> l
+                Nothing -> either mempty id $ getLocale lang
+
+  let getCiteId (Cite cs _) = Set.fromList $ map B.citationId cs
+      getCiteId _ = mempty
+  let metanocites = lookupMeta "nocite" meta
+  let nocites = maybe mempty (query getCiteId) metanocites
+  let citeIds = query getCiteId (Pandoc meta bs)
+  let idpred = if "*" `Set.member` nocites
+                  then const True
+                  else (`Set.member` citeIds)
+  let inlineRefs = case lookupMeta "references" meta of
+                    Just (MetaList rs) -> mapMaybe metaValueToReference rs
+                    _                  -> []
+  externalRefs <- case lookupMeta "bibliography" meta of
+                    Just (MetaList xs) ->
+                      mconcat <$>
+                        mapM (getRefsFromBib locale idpred)
+                          (mapMaybe metaValueToText xs)
+                    Just x ->
+                      case metaValueToText x of
+                        Just fp -> getRefsFromBib locale idpred fp
+                        Nothing -> return []
+                    Nothing -> return []
+  return $ map (linkifyVariables . legacyDateRanges)
+               (externalRefs ++ inlineRefs)
+            -- note that inlineRefs can override externalRefs
+
+
 
 -- If we have a span.csl-left-margin followed by span.csl-right-inline,
 -- we insert a space. This ensures that they will be separated by a space,
