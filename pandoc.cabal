@@ -180,8 +180,6 @@ data-files:
                  data/pandoc.List.lua
                  -- bash completion template
                  data/bash_completion.tpl
-                 -- jats csl
-                 data/jats.csl
                  -- citeproc
                  data/default.csl
                  citeproc/biblatex-localization/*.lbx.strings
