@@ -3,7 +3,7 @@
 {-# LANGUAGE ViewPatterns #-}
 {- |
    Module      : Text.Pandoc.Writers.JATS
-   Copyright   : Copyright (C) 2017-2021 John MacFarlane
+   Copyright   : 2017-2021 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -251,7 +251,9 @@ blockToJATS opts (Div (id',"section":_,kvs) (Header _lvl _ ils : xs)) = do
   return $ inTags True "sec" attribs $
       inTagsSimple "title" title' $$ contents
 -- Bibliography reference:
-blockToJATS opts (Div (T.stripPrefix "ref-" -> Just _,_,_) [Para lst]) =
+blockToJATS opts (Div (ident,_,_) [Para lst]) | "ref-" `T.isPrefixOf` ident =
+  inTags True "ref" [("id", ident)] .
+  inTagsSimple "mixed-citation" <$>
   inlinesToJATS opts lst
 blockToJATS opts (Div ("refs",_,_) xs) = do
   contents <- blocksToJATS opts xs
@@ -474,10 +476,13 @@ inlineToJATS _ (Link _attr [Str t] (T.stripPrefix "mailto:" -> Just email, _))
   | escapeURI t == email =
   return $ inTagsSimple "email" $ literal (escapeStringForXML email)
 inlineToJATS opts (Link (ident,_,kvs) txt (T.uncons -> Just ('#', src), _)) = do
-  let attr = [("id", ident) | not (T.null ident)] ++
-             [("alt", stringify txt) | not (null txt)] ++
-             [("rid", src)] ++
-             [(k,v) | (k,v) <- kvs, k `elem` ["ref-type", "specific-use"]]
+  let attr = mconcat
+             [ [("id", ident) | not (T.null ident)]
+             , [("alt", stringify txt) | not (null txt)]
+             , [("rid", src)]
+             , [(k,v) | (k,v) <- kvs, k `elem` ["ref-type", "specific-use"]]
+             , [("ref-type", "bibr") | "ref-" `T.isPrefixOf` src]
+             ]
   if null txt
      then return $ selfClosingTag "xref" attr
      else do

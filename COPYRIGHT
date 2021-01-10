@@ -181,7 +181,7 @@ http://github.com/paulrouget/dzslides
 Released under the Do What the Fuck You Want To Public License.
 
 ------------------------------------------------------------------------
-Pandoc embeds a lua interpreter (via hslua).
+Pandoc embeds a Lua interpreter (via hslua).
 
 Copyright © 1994–2020 Lua.org, PUC-Rio.
 
@@ -203,12 +203,3 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-------------------------------------------------------------------------
-The template pandoc.jats is Copyright 2013--2015 Martin Fenner,
-released under GPL version 2 or later.
-
-The file data/jats.csl is derived from a csl file by Martin Fenner,
-revised by Martin Paul Eve and then John MacFarlane.
-"This work is licensed under a Creative Commons Attribution-ShareAlike 3.0
-License. Originally by Martin Fenner."
