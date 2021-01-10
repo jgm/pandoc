@@ -465,7 +465,12 @@ pandocToEPUB version opts doc = do
                 case epubCoverImage metadata of
                      Nothing   -> return ([],[])
                      Just img  -> do
-                       let coverImage = takeFileName img
+                       let fp = takeFileName img
+                       mediaPaths <- gets (map (fst . snd) . stMediaPaths)
+                       coverImageName <-  -- see #4206
+                            if ("media/" <> fp) `elem` mediaPaths
+                               then getMediaNextNewName (takeExtension fp)
+                               else return fp
                        imgContent <- lift $ P.readFileLazy img
                        (coverImageWidth, coverImageHeight) <-
                              case imageSize opts' (B.toStrict imgContent) of
@@ -478,7 +483,7 @@ pandocToEPUB version opts doc = do
                                     ("coverpage", toVal' "true"),
                                     ("pagetitle", toVal $
                                       escapeStringForXML $ TS.pack plainTitle),
-                                    ("cover-image", toVal' coverImage),
+                                    ("cover-image", toVal' coverImageName),
                                     ("cover-image-width", toVal' $
                                        show coverImageWidth),
                                     ("cover-image-height", toVal' $
@@ -486,7 +491,7 @@ pandocToEPUB version opts doc = do
                                      cssvars True <> vars }
                             (Pandoc meta [])
                        coverEntry <- mkEntry "text/cover.xhtml" cpContent
-                       coverImageEntry <- mkEntry ("media/" ++ coverImage)
+                       coverImageEntry <- mkEntry ("media/" ++ coverImageName)
                                              imgContent
                        return ( [ coverEntry ]
                               , [ coverImageEntry ] )
@@ -1076,8 +1081,7 @@ getMediaNextNewName :: PandocMonad m => String -> E m String
 getMediaNextNewName ext = do
   nextId <- gets stMediaNextId
   modify $ \st -> st { stMediaNextId = nextId + 1 }
-  let nextName = "file" ++ show nextId ++ ext
-  (P.fetchItem (TS.pack nextName) >> getMediaNextNewName ext) `catchError` const (return nextName)
+  return $ "file" ++ show nextId ++ ext
 
 isHtmlFormat :: Format -> Bool
 isHtmlFormat (Format "html") = True
