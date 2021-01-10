@@ -94,9 +94,8 @@ processCitations (Pandoc meta bs) = do
     case styleRes of
        Left err    -> throwError $ PandocAppError $ prettyCiteprocError err
        Right style -> return style{ styleAbbreviations = mbAbbrevs }
-  mblang <- maybe (return Nothing) bcp47LangToIETF
-               ((lookupMeta "lang" meta <|> lookupMeta "locale" meta) >>=
-                 metaValueToText)
+
+  mblang <- getLang meta
   let locale = Citeproc.mergeLocales mblang style
 
   refs <- getReferences (Just locale) (Pandoc meta bs)
@@ -155,6 +154,12 @@ processCitations (Pandoc meta bs) = do
          $ insertRefs refkvs classes meta''
             (walk fixLinks $ B.toList bibs) bs'
 
+-- Retrieve citeproc lang based on metadata.
+getLang :: PandocMonad m => Meta -> m (Maybe Lang)
+getLang meta = maybe (return Nothing) bcp47LangToIETF
+                 ((lookupMeta "lang" meta <|> lookupMeta "locale" meta) >>=
+                   metaValueToText)
+
 -- | Get references defined inline in the metadata and via an external
 -- bibliography.  Only references that are actually cited in the document
 -- (either with a genuine citation or with `nocite`) are returned.
@@ -162,11 +167,13 @@ processCitations (Pandoc meta bs) = do
 getReferences :: PandocMonad m
               => Maybe Locale -> Pandoc -> m [Reference Inlines]
 getReferences mblocale (Pandoc meta bs) = do
-  let lang = maybe (Lang "en" (Just "US")) (parseLang . stringify) $
-             lookupMeta "lang" meta
-  let locale = case mblocale of
-                Just l  -> l
-                Nothing -> either mempty id $ getLocale lang
+  locale <- case mblocale of
+                Just l  -> return l
+                Nothing -> do
+                  mblang <- getLang meta
+                  case mblang of
+                    Just lang -> return $ either mempty id $ getLocale lang
+                    Nothing   -> return mempty
 
   let getCiteId (Cite cs _) = Set.fromList $ map B.citationId cs
       getCiteId _ = mempty
