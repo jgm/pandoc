@@ -588,8 +588,8 @@ header when requesting a document from a URL:
 
      3. `$PATH` (executable only)
 
-    Filters and Lua-filters are applied in the order specified
-    on the command line.
+    Filters, Lua-filters, and citeproc processing are applied in
+    the order specified on the command line.
 
 `-L` *SCRIPT*, `--lua-filter=`*SCRIPT*
 
@@ -603,26 +603,17 @@ header when requesting a document from a URL:
     The `pandoc` Lua module provides helper functions for element
     creation.  It is always loaded into the script's Lua environment.
 
-    The following is an example Lua script for macro-expansion:
-
-        function expand_hello_world(inline)
-          if inline.c == '{{helloworld}}' then
-            return pandoc.Emph{ pandoc.Str "Hello, World" }
-          else
-            return inline
-          end
-        end
-
-        return {{Str = expand_hello_world}}
+    See the [Lua filters documentation] for further details.
 
     In order of preference, pandoc will look for Lua filters in
 
-     1. a specified full or relative path (executable or
-     non-executable)
+     1. a specified full or relative path
 
-     2. `$DATADIR/filters` (executable or non-executable)
-     where `$DATADIR` is the user data directory (see
-     `--data-dir`, above).
+     2. `$DATADIR/filters` where `$DATADIR` is the user data
+     directory (see `--data-dir`, above).
+
+    Filters, Lua filters, and citeproc processing are applied in
+    the order specified on the command line.
 
 `-M` *KEY*[`=`*VAL*], `--metadata=`*KEY*[`:`*VAL*]
 
@@ -707,6 +698,7 @@ header when requesting a document from a URL:
 [PHP]: https://github.com/vinai/pandocfilters-php
 [perl]: https://metacpan.org/pod/Pandoc::Filter
 [JavaScript/node.js]: https://github.com/mvhenderson/pandoc-filter-node
+[Lua filters documentation]: https://pandoc.org/lua-filters.html
 
 ## General writer options {.options}
 
