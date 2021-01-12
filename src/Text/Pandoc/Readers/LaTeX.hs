@@ -1986,7 +1986,7 @@ svgSourceExtn :: Text -> Text
 svgSourceExtn src = if T.isSuffixOf (T.pack ".svg") src then
                       src
                     else
-                      T.pack $ (T.unpack src) ++ ".svg"
+                      T.pack $ T.unpack src ++ ".svg"
 
 splitBibs :: Text -> [Inlines]
 splitBibs = map (str . T.pack . flip replaceExtension "bib" . T.unpack . trim) . splitTextBy (==',')
