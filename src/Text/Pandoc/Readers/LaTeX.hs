@@ -1983,9 +1983,10 @@ graphicsPath = do
   return mempty
 
 svgSourceExtn :: Text -> Text
-svgSourceExtn src = case (T.isSuffixOf (T.pack ".svg") src) of
-                           True -> src
-                           False -> T.pack $ (T.unpack src)++".svg"
+svgSourceExtn src = if T.isSuffixOf (T.pack ".svg") src then
+                      src
+                    else
+                      T.pack $ (T.unpack src) ++ ".svg"
 
 splitBibs :: Text -> [Inlines]
 splitBibs = map (str . T.pack . flip replaceExtension "bib" . T.unpack . trim) . splitTextBy (==',')
