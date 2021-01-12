@@ -222,7 +222,7 @@ mkImage options (T.unpack -> src) = do
    let attr = ("",[], kvs)
    let alt = str "image"
    defaultExt <- getOption readerDefaultImageExtension
-   let exts' = [".pdf", ".png", ".jpg", ".mps", ".jpeg", ".jbig2", ".jb2"]
+   let exts' = [".pdf", ".png", ".jpg", ".mps", ".jpeg", ".jbig2", ".jb2", ".svg"]
    let exts  = exts' ++ map (map toUpper) exts'
    let findFile s [] = return s
        findFile s (e:es) = do
@@ -776,6 +776,10 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
                            src <- braced
                            mkImage options . unescapeURL . removeDoubleQuotes $
                                untokenize src)
+  , ("includesvg", do options <- option [] keyvals
+                      src <- braced
+                      mkImage options . unescapeURL . removeDoubleQuotes $
+                           svgSourceExtn $ untokenize src)
   , ("enquote*", enquote True Nothing)
   , ("enquote", enquote False Nothing)
   -- foreignquote is supposed to use native quote marks
@@ -1629,6 +1633,7 @@ blockCommands = M.fromList
    , ("lstinputlisting", inputListing)
    , ("inputminted", inputMinted)
    , ("graphicspath", graphicsPath)
+   , ("svgpath", graphicsPath)
    -- polyglossia
    , ("setdefaultlanguage", setDefaultLanguage)
    , ("setmainlanguage", setDefaultLanguage)
@@ -1976,6 +1981,11 @@ graphicsPath = do
           (bgroup *> spaces *> manyTill (braced <* spaces) egroup)
   getResourcePath >>= setResourcePath . (<> ps)
   return mempty
+
+svgSourceExtn :: Text -> Text
+svgSourceExtn src = case (T.isSuffixOf (T.pack ".svg") src) of
+                           True -> src
+                           False -> T.pack $ (T.unpack src)++".svg"
 
 splitBibs :: Text -> [Inlines]
 splitBibs = map (str . T.pack . flip replaceExtension "bib" . T.unpack . trim) . splitTextBy (==',')
