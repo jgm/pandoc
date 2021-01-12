@@ -350,6 +350,21 @@
         <w:right w:w="108" w:type="dxa" />
       </w:tblCellMar>
     </w:tblPr>
+    <w:tblStylePr w:type="firstRow">
+      <w:tblPr>
+        <w:jc w:val="left"/>
+        <w:tblInd w:w="0" w:type="dxa"/>
+      </w:tblPr>
+      <w:trPr>
+        <w:jc w:val="left"/>
+      </w:trPr>
+      <w:tcPr>
+        <w:vAlign w:val="bottom"/>
+        <w:tcBorders>
+          <w:bottom w:val="single"/>
+        </w:tcBorders>
+      </w:tcPr>
+    </w:tblStylePr>
   </w:style>
   <w:style w:type="paragraph" w:customStyle="1" w:styleId="DefinitionTerm">
     <w:name w:val="Definition Term" />

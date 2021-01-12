@@ -1023,23 +1023,15 @@ blockToOpenXML' opts (Table _ blkCapt specs thead tbody tfoot) = do
             _ -> es ++ [Elem $ mknode "w:p" [] ()]
   headers' <- mapM cellToOpenXML $ zip aligns headers
   rows' <- mapM (mapM cellToOpenXML . zip aligns) rows
-  let borderProps = Elem $ mknode "w:tcPr" []
-                    [ mknode "w:tcBorders" []
-                      $ mknode "w:bottom" [("w:val","single")] ()
-                    , mknode "w:vAlign" [("w:val","bottom")] () ]
   compactStyle <- pStyleM "Compact"
   let emptyCell' = [Elem $ mknode "w:p" [] [mknode "w:pPr" [] [compactStyle]]]
-  let mkcell border contents = mknode "w:tc" []
-                            $ [ borderProps | border ] ++
-                            if null contents
-                               then emptyCell'
-                               else contents
-  let mkrow border cells =
+  let mkcell contents = mknode "w:tc" []
+                            $ if null contents
+                                 then emptyCell'
+                                 else contents
+  let mkrow cells =
          mknode "w:tr" [] $
-         [ mknode "w:trPr" []
-           [ mknode "w:cnfStyle" [("w:firstRow","1")] ()]
-         | border]
-         ++ map (mkcell border) cells
+           map mkcell cells
   let textwidth = 7920  -- 5.5 in in twips, 1/20 pt
   let fullrow = 5000 -- 100% specified in pct
   let rowwidth = fullrow * sum widths
@@ -1047,6 +1039,15 @@ blockToOpenXML' opts (Table _ blkCapt specs thead tbody tfoot) = do
                        [("w:w", show (floor (textwidth * w) :: Integer))] ()
   let hasHeader = not $ all null headers
   modify $ \s -> s { stInTable = False }
+  -- for compatibility with Word <= 2007, we include a val with a bitmask
+  -- 0×0020  Apply first row conditional formatting
+  -- 0×0040  Apply last row conditional formatting
+  -- 0×0080  Apply first column conditional formatting
+  -- 0×0100  Apply last column conditional formatting
+  -- 0×0200  Do not apply row banding conditional formatting
+  -- 0×0400  Do not apply column banding conditional formattin
+  let tblLookVal :: Int
+      tblLookVal = if hasHeader then 0x20 else 0
   return $
     caption' ++
     [Elem $
@@ -1059,15 +1060,17 @@ blockToOpenXML' opts (Table _ blkCapt specs thead tbody tfoot) = do
                                ,("w:firstColumn","0")
                                ,("w:lastColumn","0")
                                ,("w:noHBand","0")
-                               ,("w:noVBand","0")] () :
+                               ,("w:noVBand","0")
+                               ,("w:val", printf "%04x" tblLookVal)
+                               ] () :
           [ mknode "w:tblCaption" [("w:val", T.unpack captionStr)] ()
           | not (null caption) ] )
       : mknode "w:tblGrid" []
         (if all (==0) widths
             then []
             else map mkgridcol widths)
-      : [ mkrow True headers' | hasHeader ] ++
-      map (mkrow False) rows'
+      : [ mkrow headers' | hasHeader ] ++
+      map mkrow rows'
       )]
 blockToOpenXML' opts el
   | BulletList lst <- el = addOpenXMLList BulletMarker lst
