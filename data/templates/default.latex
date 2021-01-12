@@ -395,7 +395,7 @@ $if(csl-refs)$
 \newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 $endif$
 $if(csquotes)$
-\usepackage{csquotes}
+\usepackage[$for(csquotesoptions)$$csquotesoptions$$sep$,$endfor$]{csquotes}
 $endif$
 
 $if(title)$
