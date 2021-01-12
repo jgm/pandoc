@@ -940,6 +940,8 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("uline", underline <$> tok)
   -- plain tex stuff that should just be passed through as raw tex
   , ("ifdim", ifdim)
+   -- stackengine
+   , ("addstackgap", skipopts *> tok)
   ]
 
 accent :: PandocMonad m => Char -> Maybe Char -> LP m Inlines
