@@ -94,7 +94,7 @@ README.md: README.template MANUAL.txt tools/update-readme.lua
 default.nix: pandoc.cabal
 	nix-shell --pure -p cabal2nix --run "cabal2nix ." > $@
 
-nix-shell:
+nix-shell: default.nix
 	nix-shell --attr env release.nix
 
 download_stats:
