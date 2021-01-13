@@ -91,10 +91,10 @@ README.md: README.template MANUAL.txt tools/update-readme.lua
 	pandoc --lua-filter tools/update-readme.lua \
 	      --reference-location=section -t gfm $< -o $@
 
-default.nix: pandoc.cabal
+project.nix: pandoc.cabal
 	nix-shell --pure -p cabal2nix --run "cabal2nix ." > $@
 
-nix-shell: default.nix
+nix-shell: project.nix
 	nix-shell --attr env release.nix
 
 download_stats:
