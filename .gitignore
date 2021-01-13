@@ -1,4 +1,6 @@
 *~
+.DS_Store
+*.orig
 deb/.vagrant
 dist/*
 MANUAL.*
