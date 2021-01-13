@@ -91,12 +91,6 @@ README.md: README.template MANUAL.txt tools/update-readme.lua
 	pandoc --lua-filter tools/update-readme.lua \
 	      --reference-location=section -t gfm $< -o $@
 
-project.nix: pandoc.cabal
-	nix-shell --pure -p cabal2nix --run "cabal2nix ." > $@
-
-nix-shell: project.nix
-	nix-shell --attr env release.nix
-
 download_stats:
 	curl https://api.github.com/repos/jgm/pandoc/releases | \
 		jq -r '.[] | .assets | .[] | "\(.download_count)\t\(.name)"'
@@ -130,4 +124,4 @@ sdist-files.txt: .FORCE
 git-files.txt: .FORCE
 	git ls-tree -r --name-only HEAD | grep '^\(test\|data\)\/' | sort > $@
 
-.PHONY: .FORCE deps quick full haddock install clean test bench changes_github dist prof download_stats reformat lint weigh doc/lua-filters.md pandoc-templates trypandoc update-website debpkg checkdocs ghcid ghci fix_spacing hlint check check-cabal nix-shell
+.PHONY: .FORCE deps quick full haddock install clean test bench changes_github dist prof download_stats reformat lint weigh doc/lua-filters.md pandoc-templates trypandoc update-website debpkg checkdocs ghcid ghci fix_spacing hlint check check-cabal
