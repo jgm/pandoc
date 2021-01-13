@@ -291,6 +291,9 @@ before creating a commit:
     git diff --diff-filter=MA --cached --name-only | grep '\.hs$' | \
       xargs hlint --hint .hlint.yaml
 
+(If you are using GNU `xargs`, add the `-r` option immediately
+after `xargs`.)
+
 Saving this to `.git/hooks/pre-commit`, and making the script
 executable, will prevent accidental introduction of potentially
 problematic code.
