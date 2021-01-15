@@ -1787,7 +1787,7 @@ githubWikiLink :: PandocMonad m => MarkdownParser m (F Inlines)
 githubWikiLink = try $ do
   guardEnabled Ext_wikilinks
   string "[["
-  inlinedContents <- option (return $ B.fromList [])
+  inlinedContents <- option (return mempty)
                       $ lookAhead $ try $ mconcat <$> manyTill inline (try $ string "]]")
   rawContents <- manyTillChar anyChar (try $ string "]]")
   let allowedInline x = case x of
