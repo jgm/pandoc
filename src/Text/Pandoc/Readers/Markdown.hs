@@ -1784,38 +1784,25 @@ linkTitle = quotedTitle '"' <|> quotedTitle '\''
 -- Github wiki style link, with optional title
 -- syntax documented under https://help.github.com/en/github/building-a-strong-community/editing-wiki-content
 githubWikiLink :: PandocMonad m => MarkdownParser m (F Inlines)
-githubWikiLink = try $ do
-  guardEnabled Ext_wikilinks
-  string "[["
-  inlinedContents <- option (return mempty)
-                      $ lookAhead $ try $ mconcat <$> manyTill inline (try $ string "]]")
-  rawContents <- manyTillChar anyChar (try $ string "]]")
-  let allowedInline x = case x of
-                          B.Str _   -> True
-                          B.Space   -> True
-                          B.Link {} -> True
-                          _         -> False
-  let hasNotInlines = all allowedInline . B.toList
-  let ilcs = runF inlinedContents defaultParserState
-  let valid = hasNotInlines ilcs
-  let formatUri l = if isURI l
-                      then l
-                      else T.replace " " "-" l
-  let (label, url) = case T.splitOn "|" rawContents of
-                       (l:u:_) -> (l, u)
-                       [l]     -> (l, l)
-                       []      -> error "T.splitOn changed behavior"
-  let dropLastLink' is = case is of
-                           []                           -> []
-                           -- Merge strings, special case
-                           [B.Str p, B.Link _ _ (l, _)] -> [B.Str $ p <> l]
-                           [B.Link _ _ (l, _)]          -> [B.Str l]
-                           [x]                          -> [x]
-                           (x:xs)                       -> x:dropLastLink' xs
-  let dropLastLink is = B.text "[[" <> B.fromList (dropLastLink' $ B.toList is) <> B.text "]]"
-  return $ if valid
-             then B.link (formatUri url)  "wikilink"  (B.text label) <$ inlinedContents
-             else dropLastLink <$> inlinedContents
+githubWikiLink = try $ guardEnabled Ext_wikilinks >> wikilink
+  where
+    wikilink = try $ do
+      string "[["
+      firstPart <- fmap mconcat . sequence <$> wikiText
+      (char '|' *> complexWikilink firstPart)
+        <|> (string "]]" *> return (B.link
+                                      <$> (stringify <$> firstPart)
+                                      <*> return "wikilink"
+                                      <*> firstPart))
+
+    complexWikilink firstPart = do
+      url <- fmap stringify . sequence <$> wikiText
+      string "]]"
+      return $ B.link <$> url
+                      <*> return "wikilink"
+                      <*> firstPart
+
+    wikiText = many (whitespace <|> bareURL <|> str <|> endline <|> escapedChar)
 
 link :: PandocMonad m => MarkdownParser m (F Inlines)
 link = try $ do
