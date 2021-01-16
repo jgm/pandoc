@@ -16,6 +16,10 @@ man/man?/*.html
 *.o
 *.hi
 *.pyc
+.hie/
+.policeman-evidence/
+.projectile/
+.vscode/
 /COPYING.rtf
 /COPYRIGHT.txt
 /cabal-dev/
@@ -28,3 +32,4 @@ data/reference.odt
 /stack.yaml.lock
 cabal.project.local
 /dist-newstyle/
+pandoc-2*/
