@@ -21,6 +21,7 @@ module Text.Pandoc.Readers.Markdown (
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
+import Data.Functor (($>))
 import Data.List (transpose, elemIndex, sortOn)
 import qualified Data.Map as M
 import Data.Maybe
@@ -1790,10 +1791,10 @@ githubWikiLink = try $ guardEnabled Ext_wikilinks >> wikilink
       string "[["
       firstPart <- fmap mconcat . sequence <$> wikiText
       (char '|' *> complexWikilink firstPart)
-        <|> (string "]]" *> return (B.link
-                                      <$> (stringify <$> firstPart)
-                                      <*> return "wikilink"
-                                      <*> firstPart))
+        <|> (string "]]" $> (B.link
+                               <$> (stringify <$> firstPart)
+                               <*> return "wikilink"
+                               <*> firstPart))
 
     complexWikilink firstPart = do
       url <- fmap stringify . sequence <$> wikiText
