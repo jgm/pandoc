@@ -17,6 +17,7 @@ module Text.Pandoc.Lua.Marshaling.AST
   ) where
 
 import Control.Applicative ((<|>))
+import Data.Maybe (fromMaybe)
 import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError)
@@ -224,8 +225,8 @@ pushCaption (Caption shortCaption longCaption) = do
 peekCaption :: StackIndex -> Lua Caption
 peekCaption idx = do
   short <- Lua.fromOptional <$> LuaUtil.rawField idx "short"
-  long  <- LuaUtil.rawField idx "long"
-  return $ Caption short long
+  long  <- Lua.fromOptional <$> LuaUtil.rawField idx "long"
+  return $ Caption short (fromMaybe [] long)
 
 instance Peekable ColWidth where
   peek idx = do

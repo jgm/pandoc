@@ -8,6 +8,7 @@ import GHC.IO.Encoding
 import Test.Tasty
 import qualified Tests.Command
 import qualified Tests.Lua
+import qualified Tests.Lua.Marshalling
 import qualified Tests.Lua.Module
 import qualified Tests.Old
 import qualified Tests.Readers.Creole
@@ -96,6 +97,7 @@ tests pandocPath = testGroup "pandoc tests"
         ,  testGroup "Lua"
           [ testGroup "Lua filters" Tests.Lua.tests
           , testGroup "Lua modules" Tests.Lua.Module.tests
+          , testGroup "Lua marshalling" Tests.Lua.Marshalling.tests
           ]
         ]
 

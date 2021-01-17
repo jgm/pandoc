@@ -31,9 +31,9 @@ import Text.Pandoc.Definition (Block (BlockQuote, Div, Para), Inline (Emph, Str)
                                Attr, Meta, Pandoc, pandocTypesVersion)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Filter (Filter (LuaFilter), applyFilters)
-import Text.Pandoc.Lua (runLua)
 import Text.Pandoc.Options (def)
 import Text.Pandoc.Shared (pandocVersion)
+import Tests.Lua.Helpers (runLuaTest)
 
 import qualified Control.Monad.Catch as Catch
 import qualified Foreign.Lua as Lua
@@ -234,11 +234,3 @@ roundtripEqual x = (x ==) <$> roundtripped
     when (size - oldSize /= 1) $
       error ("not exactly one additional element on the stack: " ++ show size)
     Lua.peek (-1)
-
-runLuaTest :: Lua.Lua a -> IO a
-runLuaTest op = runIOorExplode $ do
-  setUserDataDir (Just "../data")
-  res <- runLua op
-  case res of
-    Left e -> error (show e)
-    Right x -> return x

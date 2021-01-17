@@ -803,6 +803,8 @@ test-suite test-pandoc
                   Tests.Command
                   Tests.Helpers
                   Tests.Lua
+                  Tests.Lua.Helpers
+                  Tests.Lua.Marshalling
                   Tests.Lua.Module
                   Tests.Shared
                   Tests.Readers.LaTeX
