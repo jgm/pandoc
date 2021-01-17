@@ -21,6 +21,7 @@ module Text.Pandoc.Readers.Markdown (
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
+import Data.Functor (($>))
 import Data.List (transpose, elemIndex, sortOn)
 import qualified Data.Map as M
 import Data.Maybe
@@ -1485,6 +1486,7 @@ inline = choice [ whitespace
                 , note
                 , cite
                 , bracketedSpan
+                , githubWikiLink
                 , link
                 , image
                 , math
@@ -1779,6 +1781,29 @@ source = do
 
 linkTitle :: PandocMonad m => MarkdownParser m Text
 linkTitle = quotedTitle '"' <|> quotedTitle '\''
+
+-- Github wiki style link, with optional title
+-- syntax documented under https://help.github.com/en/github/building-a-strong-community/editing-wiki-content
+githubWikiLink :: PandocMonad m => MarkdownParser m (F Inlines)
+githubWikiLink = try $ guardEnabled Ext_wikilinks >> wikilink
+  where
+    wikilink = try $ do
+      string "[["
+      firstPart <- fmap mconcat . sequence <$> wikiText
+      (char '|' *> complexWikilink firstPart)
+        <|> (string "]]" $> (B.link
+                               <$> (stringify <$> firstPart)
+                               <*> return "wikilink"
+                               <*> firstPart))
+
+    complexWikilink firstPart = do
+      url <- fmap stringify . sequence <$> wikiText
+      string "]]"
+      return $ B.link <$> url
+                      <*> return "wikilink"
+                      <*> firstPart
+
+    wikiText = many (whitespace <|> bareURL <|> str <|> endline <|> escapedChar)
 
 link :: PandocMonad m => MarkdownParser m (F Inlines)
 link = try $ do
