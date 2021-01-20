@@ -18,33 +18,36 @@ import Text.Pandoc.Citeproc.CslJson (cslJsonToReferences)
 import Text.Pandoc.Citeproc.BibTeX (readBibtexString, Variant(..))
 import Text.Pandoc.Citeproc.MetaValue (metaValueToReference, metaValueToText)
 import Text.Pandoc.Readers.Markdown (yamlToRefs)
-import Text.Pandoc.Class (setResourcePath, getResourcePath, getUserDataDir)
 import qualified Text.Pandoc.BCP47 as BCP47
-import Data.ByteString (ByteString)
-import qualified Data.ByteString.Lazy as L
+import Text.Pandoc.Builder (Inlines, Many(..), deleteMeta, setMeta)
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Definition as Pandoc
-import Text.Pandoc.Walk
-import Text.Pandoc.Builder as B
-import Text.Pandoc (PandocMonad(..), PandocError(..),
-                    readDataFile, ReaderOptions(..), pandocExtensions,
-                    report, LogMessage(..), fetchItem)
+import Text.Pandoc.Class (PandocMonad(..), getResourcePath, getUserDataDir,
+                          fetchItem, readDataFile, report, setResourcePath)
+import Text.Pandoc.Error (PandocError(..))
+import Text.Pandoc.Extensions (pandocExtensions)
+import Text.Pandoc.Logging (LogMessage(..))
+import Text.Pandoc.Options (ReaderOptions(..))
 import Text.Pandoc.Shared (stringify, ordNub, blocksToInlines, tshow)
 import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Walk (query, walk, walkM)
+import Control.Applicative ((<|>))
+import Control.Monad.Except (catchError, throwError)
+import Control.Monad.State (State, evalState, get, put, runState)
 import Data.Aeson (eitherDecode)
-import Data.Default
-import Data.Ord ()
-import qualified Data.Map as M
-import qualified Data.Set as Set
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Lazy as L
 import Data.Char (isPunctuation, isUpper)
+import Data.Default (Default(def))
+import qualified Data.Foldable as Foldable
+import qualified Data.Map as M
+import Data.Maybe (mapMaybe, fromMaybe)
+import Data.Ord ()
+import qualified Data.Sequence as Seq
+import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import Control.Monad.State
-import qualified Data.Sequence as Seq
-import qualified Data.Foldable as Foldable
-import System.FilePath
-import Control.Applicative
-import Control.Monad.Except
-import Data.Maybe (mapMaybe, fromMaybe)
+import System.FilePath (takeExtension)
 import Safe (lastMay, initSafe)
 -- import Debug.Trace as Trace (trace, traceShowId)
 
