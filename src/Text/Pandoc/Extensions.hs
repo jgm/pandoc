@@ -88,6 +88,7 @@ data Extension =
                                   --   does not affect readers/writers directly; it causes
                                   --   the eastAsianLineBreakFilter to be applied after
                                   --   parsing, in Text.Pandoc.App.convertWithOpts.
+    | Ext_element_citations   -- ^ Use element-citation elements for JATS citations
     | Ext_emoji               -- ^ Support emoji like :smile:
     | Ext_empty_paragraphs -- ^ Allow empty paragraphs
     | Ext_epub_html_exts      -- ^ Recognise the EPUB extended version of HTML
@@ -412,6 +413,11 @@ getDefaultExtensions "textile"         = extensionsFromList
                                            Ext_smart,
                                            Ext_raw_html,
                                            Ext_auto_identifiers]
+getDefaultExtensions "jats"            = extensionsFromList
+                                          [Ext_auto_identifiers]
+getDefaultExtensions "jats_archiving"  = getDefaultExtensions "jats"
+getDefaultExtensions "jats_publishing" = getDefaultExtensions "jats"
+getDefaultExtensions "jats_articleauthoring" = getDefaultExtensions "jats"
 getDefaultExtensions "opml"            = pandocExtensions -- affects notes
 getDefaultExtensions _                 = extensionsFromList
                                           [Ext_auto_identifiers]
@@ -554,6 +560,14 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_smart
     , Ext_raw_tex
     ]
+  getAll "jats"            =
+    extensionsFromList
+    [ Ext_auto_identifiers
+    , Ext_element_citations
+    ]
+  getAll "jats_archiving"  = getAll "jats"
+  getAll "jats_publishing" = getAll "jats"
+  getAll "jats_articleauthoring" = getAll "jats"
   getAll "opml"            = allMarkdownExtensions -- affects notes
   getAll "twiki"           = autoIdExtensions <>
     extensionsFromList
