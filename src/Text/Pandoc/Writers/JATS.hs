@@ -156,9 +156,11 @@ wrappedBlocksToJATS needsWrap opts =
     wrappedBlockToJATS b = do
       inner <- blockToJATS opts b
       return $
-        if needsWrap b
+        if needsWrap b || isBlockQuote b -- see #7041
            then inTags True "p" [("specific-use","wrapper")] inner
            else inner
+    isBlockQuote (BlockQuote _) = True
+    isBlockQuote _ = False
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block

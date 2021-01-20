@@ -78,31 +78,39 @@ Gruber’s markdown test suite.</p>
 <sec id="block-quotes">
   <title>Block Quotes</title>
   <p>E-mail style:</p>
-  <disp-quote>
-    <p>This is a block quote. It is pretty short.</p>
-  </disp-quote>
-  <disp-quote>
-    <p>Code in a block quote:</p>
-    <preformat>sub status {
+  <p specific-use="wrapper">
+    <disp-quote>
+      <p>This is a block quote. It is pretty short.</p>
+    </disp-quote>
+  </p>
+  <p specific-use="wrapper">
+    <disp-quote>
+      <p>Code in a block quote:</p>
+      <preformat>sub status {
     print &quot;working&quot;;
 }</preformat>
-    <p>A list:</p>
-    <list list-type="order">
-      <list-item>
-        <p>item one</p>
-      </list-item>
-      <list-item>
-        <p>item two</p>
-      </list-item>
-    </list>
-    <p>Nested block quotes:</p>
-    <disp-quote>
-      <p>nested</p>
+      <p>A list:</p>
+      <list list-type="order">
+        <list-item>
+          <p>item one</p>
+        </list-item>
+        <list-item>
+          <p>item two</p>
+        </list-item>
+      </list>
+      <p>Nested block quotes:</p>
+      <p specific-use="wrapper">
+        <disp-quote>
+          <p>nested</p>
+        </disp-quote>
+      </p>
+      <p specific-use="wrapper">
+        <disp-quote>
+          <p>nested</p>
+        </disp-quote>
+      </p>
     </disp-quote>
-    <disp-quote>
-      <p>nested</p>
-    </disp-quote>
-  </disp-quote>
+  </p>
   <p>This should not be a block quote: 2 &gt; 1.</p>
   <p>And a following paragraph.</p>
 </sec>
@@ -829,10 +837,12 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       </list-item>
     </list>
     <p>An e-mail address: <email>nobody@nowhere.net</email></p>
-    <disp-quote>
-      <p>Blockquoted:
-      <ext-link ext-link-type="uri" xlink:href="http://example.com/">http://example.com/</ext-link></p>
-    </disp-quote>
+    <p specific-use="wrapper">
+      <disp-quote>
+        <p>Blockquoted:
+        <ext-link ext-link-type="uri" xlink:href="http://example.com/">http://example.com/</ext-link></p>
+      </disp-quote>
+    </p>
     <p>Auto-links should not occur here:
     <monospace>&lt;http://example.com/&gt;</monospace></p>
     <preformat>or here: &lt;http://example.com/&gt;</preformat>
@@ -856,9 +866,11 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <italic>not</italic> be a footnote reference, because it contains a
   space.[^my note] Here is an inline
   note.<xref ref-type="fn" rid="fn3">3</xref></p>
-  <disp-quote>
-    <p>Notes can go in quotes.<xref ref-type="fn" rid="fn4">4</xref></p>
-  </disp-quote>
+  <p specific-use="wrapper">
+    <disp-quote>
+      <p>Notes can go in quotes.<xref ref-type="fn" rid="fn4">4</xref></p>
+    </disp-quote>
+  </p>
   <list list-type="order">
     <list-item>
       <p>And in list items.<xref ref-type="fn" rid="fn5">5</xref></p>
