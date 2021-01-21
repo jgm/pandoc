@@ -281,6 +281,8 @@ header when requesting a document from a URL:
     ::: {#output-formats}
     - `asciidoc` ([AsciiDoc]) or `asciidoctor` ([AsciiDoctor])
     - `beamer` ([LaTeX beamer][`beamer`] slide show)
+    - `bibtex` ([BibTeX] bibliography)
+    - `biblatex` ([BibLaTeX] bibliography)
     - `commonmark` ([CommonMark] Markdown)
     - `commonmark_x` ([CommonMark] Markdown with extensions)
     - `context` ([ConTeXt])
@@ -5258,11 +5260,11 @@ section from a BibTeX, BibLaTeX, or CSL JSON bibliography:
     pandoc chem.bib -s -f biblatex -t markdown
     pandoc chem.json -s -f csljson -t markdown
 
-`pandoc` can also be used to produce CSL JSON bibliography
-from BibTeX, BibLaTeX, or markdown YAML:
+Indeed, `pandoc` can convert between any of these
+citation formats:
 
     pandoc chem.bib -s -f biblatex -t csljson
-    pandoc chem.yaml -s -f markdown -t csljson
+    pandoc chem.yaml -s -f markdown -t biblatex
 
 Running pandoc on a bibliography file with the `--citeproc`
 option will create a formatted bibliography in the format

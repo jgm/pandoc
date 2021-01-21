@@ -573,6 +573,7 @@ library
                    Text.Pandoc.Writers.Shared,
                    Text.Pandoc.Writers.OOXML,
                    Text.Pandoc.Writers.AnnotatedTable,
+                   Text.Pandoc.Writers.BibTeX,
                    Text.Pandoc.Lua,
                    Text.Pandoc.PDF,
                    Text.Pandoc.UTF8,

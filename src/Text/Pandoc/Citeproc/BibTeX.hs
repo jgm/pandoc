@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -17,6 +18,7 @@
 module Text.Pandoc.Citeproc.BibTeX
     ( Variant(..)
     , readBibtexString
+    , writeBibtexString
     )
     where
 
@@ -24,10 +26,11 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Readers.LaTeX (readLaTeX)
 import Text.Pandoc.Extensions (Extension(..), extensionsFromList)
-import Text.Pandoc.Options (ReaderOptions(..))
-import Text.Pandoc.Class (runPure)
+import Text.Pandoc.Options (ReaderOptions(..), WriterOptions)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Shared (stringify)
+import Text.Pandoc.Writers.LaTeX (writeLaTeX)
+import Text.Pandoc.Class (runPure)
 import qualified Text.Pandoc.Walk       as Walk
 import Citeproc.Types
 import Citeproc.Pandoc ()
@@ -46,8 +49,9 @@ import qualified Data.Sequence          as Seq
 import           Data.Char              (isAlphaNum, isDigit, isLetter,
                                          isUpper, toLower, toUpper,
                                          isLower, isPunctuation)
-import           Data.List              (foldl', intercalate)
+import           Data.List              (foldl', intercalate, intersperse)
 import           Safe                   (readMay)
+import           Text.Printf            (printf)
 
 data Variant = Bibtex | Biblatex
   deriving (Show, Eq, Ord)
@@ -67,6 +71,250 @@ readBibtexString variant locale idpred contents = do
            "" contents of
           Left err -> Left err
           Right xs -> return xs
+
+-- | Write BibTeX or BibLaTeX given given a 'Reference'.
+writeBibtexString :: WriterOptions       -- ^ options (for writing LaTex)
+                  -> Variant             -- ^ bibtex or biblatex
+                  -> Maybe Lang          -- ^ Language
+                  -> Reference Inlines   -- ^ Reference to write
+                  -> Text
+writeBibtexString opts variant mblang ref =
+  "@" <> bibtexType <> "{" <> unItemId (referenceId ref) <> ",\n  " <>
+  renderFields fs <> "\n}\n"
+
+ where
+  bibtexType =
+    case referenceType ref of
+      "article-magazine"  -> "article"
+      "article-newspaper" -> "article"
+      "article-journal"   -> "article"
+      "book"              -> "book"
+      "pamphlet"          -> "booklet"
+      "dataset" | variant == Biblatex -> "dataset"
+      "webpage" | variant == Biblatex -> "online"
+      "chapter"           -> case getVariable "editor" of
+                                Just _  -> "incollection"
+                                Nothing -> "inbook"
+      "entry-encyclopedia" | variant == Biblatex -> "inreference"
+                           | otherwise -> "inbook"
+      "paper-conference"  -> "inproceedings"
+      "thesis" -> case getVariableAsText "genre" of
+                    Just "mathesis" -> "mastersthesis"
+                    _               -> "phdthesis"
+      "patent"            | variant == Biblatex -> "patent"
+      "report"            | variant == Biblatex -> "report"
+                          | otherwise -> "techreport"
+      "speech"            -> "unpublished"
+      "manuscript"        -> "unpublished"
+      "graphic"           | variant == Biblatex -> "artwork"
+      "song"              | variant == Biblatex -> "music"
+      "legal_case"        | variant == Biblatex -> "jurisdictionN"
+      "legislation"       | variant == Biblatex -> "legislation"
+      "treaty"            | variant == Biblatex -> "legal"
+      "personal_communication" | variant == Biblatex -> "letter"
+      "motion_picture"    | variant == Biblatex -> "movie"
+      "review"             | variant == Biblatex -> "review"
+      _                   -> "misc"
+  
+  mbSubtype =
+    case referenceType ref of
+      "article-magazine"  -> Just "magazine"
+      "article-newspaper" -> Just "newspaper"
+      _ -> Nothing
+
+  fs =
+    case variant of
+      Biblatex ->
+           [ "author"
+           , "editor"
+           , "translator"
+           , "publisher"
+           , "title"
+           , "booktitle"
+           , "journal"
+           , "series"
+           , "edition"
+           , "volume"
+           , "volumes"
+           , "number"
+           , "pages"
+           , "date"
+           , "eventdate"
+           , "urldate"
+           , "address"
+           , "url"
+           , "doi"
+           , "isbn"
+           , "issn"
+           , "type"
+           , "entrysubtype"
+           , "note"
+           , "language"
+           , "abstract"
+           , "keywords"
+           ]
+      Bibtex ->
+           [ "author"
+           , "editor"
+           , "translator"
+           , "publisher"
+           , "title"
+           , "booktitle"
+           , "journal"
+           , "series"
+           , "edition"
+           , "volume"
+           , "number"
+           , "pages"
+           , "year"
+           , "month"
+           , "address"
+           , "type"
+           , "note"
+           ]
+
+  valToInlines (TextVal t) = B.text t
+  valToInlines (FancyVal ils) = ils
+  valToInlines (NumVal n) = B.text (T.pack $ show n)
+  valToInlines (NamesVal names) =
+    mconcat $ intersperse (B.space <> B.text "and" <> B.space)
+            $ map renderName names
+  valToInlines (DateVal date) = B.text $
+    case dateLiteral date of
+      Just t  -> t
+      Nothing -> T.intercalate "/" (map renderDatePart (dateParts date)) <>
+                    (if dateCirca date then "~" else mempty)
+
+  renderDatePart (DateParts xs) = T.intercalate "-" $
+                                    map (T.pack . printf "%02d") xs
+
+  renderName name =
+    case nameLiteral name of
+      Just t  -> B.text t
+      Nothing -> spacedMaybes
+                  [ nameNonDroppingParticle name
+                  , nameFamily name
+                  , if nameCommaSuffix name
+                        then (", " <>) <$> nameSuffix name
+                        else nameSuffix name ]
+                  <>
+                  spacedMaybes
+                   [ (", " <>) <$> nameGiven name,
+                     nameDroppingParticle name ]
+
+  titlecase = case mblang of
+                Just (Lang "en" _) -> titlecase'
+                Nothing            -> titlecase'
+                _                  -> id
+
+  titlecase' = addTextCase mblang TitleCase .
+    (\ils -> B.fromList
+               (case B.toList ils of
+                  Str t : xs -> Str t : Walk.walk spanAroundCapitalizedWords xs
+                  xs         -> Walk.walk spanAroundCapitalizedWords xs))
+
+  -- protect capitalized words when we titlecase
+  spanAroundCapitalizedWords (Str t)
+    | not (T.all (\c -> isLower c || not (isLetter c)) t) =
+       Span ("",["nocase"],[]) [Str t]
+  spanAroundCapitalizedWords x = x
+
+  spacedMaybes = mconcat . intersperse B.space . mapMaybe (fmap B.text)
+
+  toLaTeX x =
+    case runPure (writeLaTeX opts $ doc (B.plain x)) of
+           Left _  -> Nothing
+           Right t -> Just t
+
+  renderField name = (\contents -> name <> " = {" <> contents <> "}")
+                      <$> getContentsFor name
+
+  getVariable v = lookupVariable (toVariable v) ref
+
+  getVariableAsText v = (stringify . valToInlines) <$> getVariable v
+
+  getYear val =
+    case val of
+       DateVal date ->
+         case dateLiteral date of
+           Just t -> toLaTeX (B.text t)
+           Nothing ->
+             case dateParts date of
+               [DateParts (y1:_), DateParts (y2:_)] ->
+                 Just (T.pack (printf "%04d" y1) <> "--" <>
+                        T.pack (printf "%04d" y2))
+               [DateParts (y1:_)] ->
+                 Just (T.pack (printf "%04d" y1))
+               _ -> Nothing
+       _ -> Nothing
+
+  toMonth 1 = "jan"
+  toMonth 2 = "feb"
+  toMonth 3 = "mar"
+  toMonth 4 = "apr"
+  toMonth 5 = "may"
+  toMonth 6 = "jun"
+  toMonth 7 = "jul"
+  toMonth 8 = "aug"
+  toMonth 9 = "sep"
+  toMonth 10 = "oct"
+  toMonth 11 = "nov"
+  toMonth 12 = "dec"
+  toMonth x  = T.pack $ show x
+
+  getMonth val =
+    case val of
+       DateVal date ->
+         case dateParts date of
+           [DateParts (_:m1:_), DateParts (_:m2:_)] ->
+             Just (toMonth m1 <> "--" <> toMonth m2)
+           [DateParts (_:m1:_)] -> Just (toMonth m1)
+           _ -> Nothing
+       _ -> Nothing
+
+  getContentsFor :: Text -> Maybe Text
+  getContentsFor "type" =
+    getVariableAsText "genre" >>=
+       \case
+          "mathesis"  -> Just "mastersthesis"
+          "phdthesis" -> Just "phdthesis"
+          _           -> Nothing
+  getContentsFor "entrysubtype" = mbSubtype
+  getContentsFor "journal"
+    | bibtexType `elem` ["article", "periodical", "suppperiodical", "review"]
+      = getVariable "container-title" >>= toLaTeX . valToInlines
+    | otherwise = Nothing
+  getContentsFor "booktitle"
+    | bibtexType `elem`
+       ["inbook","incollection","inproceedings","inreference","bookinbook"]
+    = (getVariable "volume-title" <|> getVariable "container-title")
+                               >>= toLaTeX . valToInlines
+    | otherwise = Nothing
+  getContentsFor "series" = getVariable "collection-title"
+                               >>= toLaTeX . valToInlines
+  getContentsFor "address" = getVariable "publisher-place"
+                               >>= toLaTeX . valToInlines
+  getContentsFor "date"  = getVariable "issued" >>= toLaTeX . valToInlines
+  getContentsFor "eventdate" = getVariable "event-date" >>= toLaTeX . valToInlines
+  getContentsFor "urldate"  = getVariable "accessed" >>= toLaTeX . valToInlines
+  getContentsFor "year"  = getVariable "issued" >>= getYear
+  getContentsFor "month"  = getVariable "issued" >>= getMonth
+  getContentsFor "number" = (getVariable "number"
+                         <|> getVariable "collection-number"
+                         <|> getVariable "issue") >>= toLaTeX . valToInlines
+
+  getContentsFor x = getVariable x >>=
+    if isURL x
+       then Just . stringify . valToInlines
+       else toLaTeX .
+            (if x == "title"
+                then titlecase
+                else id) .
+            valToInlines
+
+  isURL x = x `elem` ["url","doi","issn","isbn"]
+
+  renderFields = T.intercalate ",\n  " . mapMaybe renderField
 
 defaultLang :: Lang
 defaultLang = Lang "en" (Just "US")

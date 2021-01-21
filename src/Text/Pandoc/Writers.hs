@@ -21,6 +21,8 @@ module Text.Pandoc.Writers
     , writeAsciiDoc
     , writeAsciiDoctor
     , writeBeamer
+    , writeBibTeX
+    , writeBibLaTeX
     , writeCommonMark
     , writeConTeXt
     , writeCustom
@@ -85,6 +87,7 @@ import Text.Pandoc.Options
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Error
 import Text.Pandoc.Writers.AsciiDoc
+import Text.Pandoc.Writers.BibTeX
 import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.ConTeXt
 import Text.Pandoc.Writers.CslJson
@@ -185,6 +188,8 @@ writers = [
   ,("tei"          , TextWriter writeTEI)
   ,("muse"         , TextWriter writeMuse)
   ,("csljson"      , TextWriter writeCslJson)
+  ,("bibtex"       , TextWriter writeBibTeX)
+  ,("biblatex"     , TextWriter writeBibLaTeX)
   ]
 
 -- | Retrieve writer, extensions based on formatSpec (format+extensions).

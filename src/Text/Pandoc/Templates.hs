@@ -81,6 +81,8 @@ getDefaultTemplate writer = do
   case format of
        "native"  -> return ""
        "csljson" -> return ""
+       "bibtex"  -> return ""
+       "biblatex" -> return ""
        "json"    -> return ""
        "docx"    -> return ""
        "fb2"     -> return ""
