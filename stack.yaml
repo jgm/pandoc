@@ -18,7 +18,7 @@ extra-deps:
 - commonmark-pandoc-0.2.0.1
 - doctemplates-0.9
 - texmath-0.12.1
-- citeproc-0.3.0.4
+- citeproc-0.3.0.5
 # - citeproc:
 #   git: https://github.com/jgm/citeproc.git
 #   commit: d44e24696ab444090d0e63e321c3a573f68b2e74
