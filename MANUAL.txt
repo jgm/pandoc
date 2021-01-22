@@ -3095,6 +3095,13 @@ output format.
 Some aspects of [Pandoc's Markdown citation syntax](#citations)
 are also accepted in `org` input.
 
+#### Extension: `element_citations` ####
+
+In the `jats` output formats, this causes reference items to
+be replaced with `<element-citation>` elements. These
+elements are not influenced by CSL styles, but all information
+on the item is included in tags.
+
 #### Extension: `ntb` ####
 
 In the `context` output format this enables the use of [Natural Tables

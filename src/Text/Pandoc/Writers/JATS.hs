@@ -29,6 +29,7 @@ import Data.Maybe (fromMaybe)
 import Data.Time (toGregorian, Day, parseTimeM, defaultTimeLocale, formatTime)
 import qualified Data.Text as T
 import Data.Text (Text)
+import Text.Pandoc.Citeproc (getReferences)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (languages, languagesByExtension)
@@ -40,6 +41,7 @@ import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocTemplates (Context(..), Val(..))
+import Text.Pandoc.Writers.JATS.References (referencesToJATS)
 import Text.Pandoc.Writers.JATS.Table (tableToJATS)
 import Text.Pandoc.Writers.JATS.Types
 import Text.Pandoc.Writers.Math
@@ -71,15 +73,19 @@ writeJATS = writeJatsArchiving
 
 -- | Convert a @'Pandoc'@ document to JATS.
 writeJats :: PandocMonad m => JATSTagSet -> WriterOptions -> Pandoc -> m Text
-writeJats tagSet opts d =
-  runReaderT (evalStateT (docToJATS opts d) initialState)
-             environment
-  where initialState = JATSState { jatsNotes = [] }
-        environment = JATSEnv
+writeJats tagSet opts d = do
+  refs <- if extensionEnabled Ext_element_citations $ writerExtensions opts
+          then getReferences Nothing d
+          else pure []
+  let environment = JATSEnv
           { jatsTagSet = tagSet
           , jatsInlinesWriter = inlinesToJATS
           , jatsBlockWriter = blockToJATS
+          , jatsReferences = refs
           }
+  let initialState = JATSState { jatsNotes = [] }
+  runReaderT (evalStateT (docToJATS opts d) initialState)
+             environment
 
 -- | Convert Pandoc document to string in JATS format.
 docToJATS :: PandocMonad m => WriterOptions -> Pandoc -> JATS m Text
@@ -258,7 +264,10 @@ blockToJATS opts (Div (ident,_,_) [Para lst]) | "ref-" `T.isPrefixOf` ident =
   inTagsSimple "mixed-citation" <$>
   inlinesToJATS opts lst
 blockToJATS opts (Div ("refs",_,_) xs) = do
-  contents <- blocksToJATS opts xs
+  refs <- asks jatsReferences
+  contents <- if null refs
+              then blocksToJATS opts xs
+              else referencesToJATS opts refs
   return $ inTagsIndented "ref-list" contents
 blockToJATS opts (Div (ident,[cls],kvs) bs) | cls `elem` ["fig", "caption", "table-wrap"] = do
   contents <- blocksToJATS opts bs

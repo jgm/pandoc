@@ -17,11 +17,12 @@ module Text.Pandoc.Writers.JATS.Types
   )
 where
 
+import Citeproc.Types (Reference)
 import Control.Monad.Reader (ReaderT)
 import Control.Monad.State (StateT)
 import Data.Text (Text)
 import Text.DocLayout (Doc)
-import Text.Pandoc.Definition (Block, Inline)
+import Text.Pandoc.Builder (Block, Inline, Inlines)
 import Text.Pandoc.Options (WriterOptions)
 
 -- | JATS tag set variant
@@ -40,6 +41,7 @@ data JATSEnv m = JATSEnv
   { jatsTagSet :: JATSTagSet
   , jatsInlinesWriter :: WriterOptions -> [Inline] -> JATS m (Doc Text)
   , jatsBlockWriter   :: WriterOptions -> Block    -> JATS m (Doc Text)
+  , jatsReferences    :: [Reference Inlines]
   }
 
 -- | JATS writer type
