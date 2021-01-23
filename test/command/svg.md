@@ -36,28 +36,27 @@
 % pandoc -f latex -t icml
 \includegraphics{command/SVG_logo.svg}
 ^D
-[WARNING] Could not determine image size for 'command/SVG_logo.svg': could not determine SVG size
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 150 -100">
+    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 37.5 -37.5">
       <Properties>
         <PathGeometry>
           <GeometryPathType PathOpen="false">
             <PathPointArray>
-              <PathPointType Anchor="-150 -100" LeftDirection="-150 -100" RightDirection="-150 -100" />
-              <PathPointType Anchor="-150 100" LeftDirection="-150 100" RightDirection="-150 100" />
-              <PathPointType Anchor="150 100" LeftDirection="150 100" RightDirection="150 100" />
-              <PathPointType Anchor="150 -100" LeftDirection="150 -100" RightDirection="150 -100" />
+              <PathPointType Anchor="-37.5 -37.5" LeftDirection="-37.5 -37.5" RightDirection="-37.5 -37.5" />
+              <PathPointType Anchor="-37.5 37.5" LeftDirection="-37.5 37.5" RightDirection="-37.5 37.5" />
+              <PathPointType Anchor="37.5 37.5" LeftDirection="37.5 37.5" RightDirection="37.5 37.5" />
+              <PathPointType Anchor="37.5 -37.5" LeftDirection="37.5 -37.5" RightDirection="37.5 -37.5" />
             </PathPointArray>
           </GeometryPathType>
         </PathGeometry>
       </Properties>
-      <Image Self="ue6" ItemTransform="1 0 0 1 -150 -100">
+      <Image Self="ue6" ItemTransform="1 0 0 1 -37.5 -37.5">
         <Properties>
           <Profile type="string">
             $ID/Embedded
           </Profile>
-          <GraphicBounds Left="0" Top="0" Right="300" Bottom="200" />
+          <GraphicBounds Left="0" Top="0" Right="75" Bottom="75" />
         </Properties>
         <Link Self="ueb" LinkResourceURI="file:command/SVG_logo.svg" />
       </Image>
@@ -70,28 +69,27 @@
 % pandoc -f latex -t icml
 \includegraphics{command/SVG_logo-without-xml-declaration.svg}
 ^D
-[WARNING] Could not determine image size for 'command/SVG_logo-without-xml-declaration.svg': could not determine SVG size
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
-    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 150 -100">
+    <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 37.5 -37.5">
       <Properties>
         <PathGeometry>
           <GeometryPathType PathOpen="false">
             <PathPointArray>
-              <PathPointType Anchor="-150 -100" LeftDirection="-150 -100" RightDirection="-150 -100" />
-              <PathPointType Anchor="-150 100" LeftDirection="-150 100" RightDirection="-150 100" />
-              <PathPointType Anchor="150 100" LeftDirection="150 100" RightDirection="150 100" />
-              <PathPointType Anchor="150 -100" LeftDirection="150 -100" RightDirection="150 -100" />
+              <PathPointType Anchor="-37.5 -37.5" LeftDirection="-37.5 -37.5" RightDirection="-37.5 -37.5" />
+              <PathPointType Anchor="-37.5 37.5" LeftDirection="-37.5 37.5" RightDirection="-37.5 37.5" />
+              <PathPointType Anchor="37.5 37.5" LeftDirection="37.5 37.5" RightDirection="37.5 37.5" />
+              <PathPointType Anchor="37.5 -37.5" LeftDirection="37.5 -37.5" RightDirection="37.5 -37.5" />
             </PathPointArray>
           </GeometryPathType>
         </PathGeometry>
       </Properties>
-      <Image Self="ue6" ItemTransform="1 0 0 1 -150 -100">
+      <Image Self="ue6" ItemTransform="1 0 0 1 -37.5 -37.5">
         <Properties>
           <Profile type="string">
             $ID/Embedded
           </Profile>
-          <GraphicBounds Left="0" Top="0" Right="300" Bottom="200" />
+          <GraphicBounds Left="0" Top="0" Right="75" Bottom="75" />
         </Properties>
         <Link Self="ueb" LinkResourceURI="file:command/SVG_logo-without-xml-declaration.svg" />
       </Image>
