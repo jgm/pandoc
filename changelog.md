@@ -1,5 +1,154 @@
 # Revision history for pandoc
 
+## pandoc 2.11.4 (2021-01-22)
+
+  * Add `biblatex`, `bibtex` as output formats (closes #7040).
+
+  * Recognize more extensions as markdown by default (#7034):
+    `mkdn`, `mkd`, `mdwn`, `mdown`, `Rmd`.
+
+  * Implement defaults file inheritance (#6924, David Martschenko).
+    Allow defaults files to inherit options from other defaults files by
+    specifying them with the following syntax:
+    `defaults: [list of defaults files or single defaults file]`.
+
+  * Fix infinite HTTP requests when writing epubs from URL source (#7013).
+    Due to a bug in code added to avoid overwriting the cover image
+    if it had the form `fileX.YYY`, pandoc made an endless sequence
+    of HTTP requests when writing epub with input from a URL.
+
+  * Org reader:
+
+    + Allow multiple pipe chars in todo sequences (Albert Krewinkel, #7014).
+      Additional pipe chars, used to separate "action" state from "no further
+      action" states, are ignored. E.g., for the following sequence, both
+      `DONE` and `FINISHED` are states with no further action required:
+      `#+TODO: UNFINISHED | DONE | FINISHED`.
+    + Restructure output of captioned code blocks (Albert Krewinkel, #6977).
+      The Div wrapper of code blocks with captions now has the class
+      "captioned-content". The caption itself is added as a Plain block
+      inside a Div of class "caption". This makes it easier to write filters
+      which match on captioned code blocks. Existing filters will need to be
+      updated.
+    + Mark verbatim code with class `verbatim` (Dimitri Sabadie, #6998).
+
+  * LaTeX reader:
+
+    + Handle `filecontents` environment (#7003).
+    + Put contents of unknown environments in a Div when `raw_tex` is not
+      enabled (#6997). (When `raw_tex` is enabled, the whole environment is
+      parsed as a raw block.) The class name is the name of the environment.
+      Previously, we just included the contents without the surrounding Div,
+      but having a record of the environment's boundaries and name can be
+      useful.
+
+  * Mediawiki reader:
+
+    + Allow space around storng/emph delimiters (#6993).
+
+  * New module Text.Pandoc.Writers.BibTeX, exporting
+    writeBibTeX and writeBibLaTeX. [API change]
+
+  * LaTeX writer:
+
+    + Revert table line height increase in 2.11.3 (#6996).
+      In 2.11.3 we started adding `\addlinespace`, which produced less dense
+      tables.  This wasn't an intentional change; I misunderstood a comment in
+      the discussion leading up to the change. This commit restores the earlier
+      default table appearance.  Note that if you want a less dense table, you
+      can use something like `\def\arraystretch{1.5}` in your header.
+
+  * EPUB writer:
+
+    + Adjust internal links to identifiers defined in raw HTML sections
+      after splitting into chapters (#7000).
+    + Recognize `Format "html4"`, `Format "html5"` as raw HTML.
+    + Adjust internal links to images, links, and tables after splitting into
+      chapters. Previously we only did this for Div and Span and Header
+      elements (see #7000).
+
+  * Ms writer:
+
+    + Don't justify text inside table cells.
+
+  * JATS writer:
+
+    + Use `<element-citation>` if `element_citations`
+      extension is enabled (Albert Krewinkel).
+    + Fix citations (Albert Krewinkel, #7018).  By default
+      we use formatted citations.
+    + Ensure that `<disp-quote>` is always wrapped in `<p>` (#7041).
+
+  * Markdown writer:
+
+    + Cleaned up raw formats.  We now react appropriately
+      to `gfm`, `commonmark`, and `commonmark_x` as raw formats.
+
+  * RST writer:
+
+    + Fix bug with dropped content from inside spans with a class in
+      some cases (#7039).
+
+  * Docx writer:
+
+    + Handle table header using styles (#7008).  Instead of hard-coding
+      the border and header cell vertical alignment, we now let this
+      be determined by the Table style, making use of Word's
+      "conditional formatting" for the table's first row.  For
+      headerless tables, we use the tblLook element to tell Word
+      not to apply conditional first-row formatting.
+
+  * Commonmark writer:
+
+    + Implement start number on ordered lists (#7009).  Previously they always
+      started at 1, but according to the spec the start number is respected.
+
+  * HTML writer:
+
+    + Fix implicit_figure at end of footnotes (#7006).
+
+  * ConTeXt template: Remove `\setupthinrules` from default template.
+    The width parameter this used is not actually supported,
+    and the command didn't do anything.
+
+  * Text.Pandoc.Extensions:
+
+    + Add `Ext_element_citations` constructor (Albert Krewinkel).
+
+  * Text.Pandoc.Citeproc.BibTeX: New unexported function
+    `writeBibtexString`.
+
+  * Text.Pandoc.Citeproc:
+
+    + Use finer grained imports (Albert Krewinkel).
+    + Factor out and export `getStyle` [API change].
+    + Export `getReferences` [API change, #7106].
+    + Factor out getLang.
+
+  * Text.Pandoc.Parsing: modify `gridTableWith'` for headerless tables.
+    If the table lacks a header, the header row should be an empty
+    list. Previously we got a list of empty cells, which caused
+    an empty header to be emitted instead of no header.  In LaTeX/PDF
+    output that meant we got a double top line with space between.
+
+  * ImageSize:  use `viewBox` for SVG if no length, width attributes (#7045).
+    This change allows pandoc to extract size information from more SVGs.
+
+  * Add simple default.nix.
+
+  * Use commonmark 0.1.1.3.
+
+  * Use citeproc 0.3.0.5.
+
+  * Update default CSL to use latest chicago-author-date.csl.
+
+  * CONTRIBUTING.md: add note on GNU xargs.
+
+  * MANUAL.txt:
+
+    + Update description of `-L`/`--lua-filter`.
+    + Document use of citations in note styles (#6828).
+
 ## pandoc 2.11.3.2 (2020-12-29)
 
   * HTML reader: use renderTags' from Text.Pandoc.Shared (Albert Krewinkel).
