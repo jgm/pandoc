@@ -62,11 +62,13 @@
 - Daniele D'Orazio
 - David A Roberts
 - David Lazar
+- David Martschenko
 - David Röthlisberger
 - Denis Laxalde
 - Denis Maier
 - Derek Chen-Becker
 - Diego Balseiro
+- Dimitri Sabadie
 - Dmitry Pogodin
 - Dmitry Volodin
 - Douglas Calvert
