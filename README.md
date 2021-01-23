@@ -95,6 +95,8 @@ It can convert *to*
 -   `asciidoc` ([AsciiDoc](https://www.methods.co.nz/asciidoc/)) or
     `asciidoctor` ([AsciiDoctor](https://asciidoctor.org/))
 -   `beamer` ([LaTeX beamer](https://ctan.org/pkg/beamer) slide show)
+-   `bibtex` ([BibTeX](https://ctan.org/pkg/bibtex) bibliography)
+-   `biblatex` ([BibLaTeX](https://ctan.org/pkg/biblatex) bibliography)
 -   `commonmark` ([CommonMark](https://commonmark.org) Markdown)
 -   `commonmark_x` ([CommonMark](https://commonmark.org) Markdown with
     extensions)
