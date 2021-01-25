@@ -1,6 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Lua.Packages
    Copyright   : Copyright © 2017-2021 Albert Krewinkel
@@ -15,12 +12,10 @@ module Text.Pandoc.Lua.Packages
   ( installPandocPackageSearcher
   ) where
 
-import Control.Monad.Catch (try)
 import Control.Monad (forM_)
 import Data.ByteString (ByteString)
 import Foreign.Lua (Lua, NumResults)
-import Text.Pandoc.Error (PandocError)
-import Text.Pandoc.Class.PandocMonad (readDataFile)
+import Text.Pandoc.Class.PandocMonad (readDefaultDataFile)
 import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua)
 
 import qualified Foreign.Lua as Lua
@@ -54,18 +49,19 @@ pandocPackageSearcher pkgName =
     "pandoc.types"    -> pushWrappedHsFun Types.pushModule
     "pandoc.utils"    -> pushWrappedHsFun Utils.pushModule
     "text"            -> pushWrappedHsFun Text.pushModule
-    _                 -> searchPureLuaLoader
+    "pandoc.List"     -> loadPureLuaPackage
+    _                 -> reportPandocSearcherFailure
  where
   pushWrappedHsFun f = liftPandocLua $ do
     Lua.pushHaskellFunction f
     return 1
-  searchPureLuaLoader = do
-    let filename = pkgName ++ ".lua"
-    try (readDataFile filename) >>= \case
-      Right script -> pushWrappedHsFun (loadStringAsPackage pkgName script)
-      Left (_ :: PandocError) -> liftPandocLua $ do
-        Lua.push ("\n\tno file '" ++ filename ++ "' in pandoc's datadir")
-        return (1 :: NumResults)
+  loadPureLuaPackage = do
+    let filename = pkgName <> ".lua"
+    readDefaultDataFile filename >>=
+      pushWrappedHsFun . loadStringAsPackage pkgName
+  reportPandocSearcherFailure = liftPandocLua $ do
+    Lua.push ("\n\t" <> pkgName <> "is not one of pandoc's default packages")
+    return (1 :: NumResults)
 
 loadStringAsPackage :: String -> ByteString -> Lua NumResults
 loadStringAsPackage pkgName script = do

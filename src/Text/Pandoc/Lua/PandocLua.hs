@@ -23,16 +23,14 @@ module Text.Pandoc.Lua.PandocLua
   , runPandocLua
   , liftPandocLua
   , addFunction
-  , loadScriptFromDataDir
   ) where
 
-import Control.Monad (when)
 import Control.Monad.Catch (MonadCatch, MonadMask, MonadThrow)
 import Control.Monad.Except (MonadError (catchError, throwError))
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Foreign.Lua (Lua (..), NumResults, Pushable, ToHaskellFunction)
 import Text.Pandoc.Class.PandocIO (PandocIO)
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..), readDataFile)
+import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.ErrorConversion (errorConversion)
@@ -40,7 +38,6 @@ import Text.Pandoc.Lua.ErrorConversion (errorConversion)
 import qualified Control.Monad.Catch as Catch
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Class.IO as IO
-import qualified Text.Pandoc.Lua.Util as LuaUtil
 
 -- | Type providing access to both, pandoc and Lua operations.
 newtype PandocLua a = PandocLua { unPandocLua :: Lua a }
@@ -85,15 +82,6 @@ addFunction name fn = liftPandocLua $ do
   Lua.push name
   Lua.pushHaskellFunction fn
   Lua.rawset (-3)
-
--- | Load a file from pandoc's data directory.
-loadScriptFromDataDir :: FilePath -> PandocLua ()
-loadScriptFromDataDir scriptFile = do
-  script <- readDataFile scriptFile
-  status <- liftPandocLua $ Lua.dostring script
-  when (status /= Lua.OK) . liftPandocLua $
-    LuaUtil.throwTopMessageAsError'
-      (("Couldn't load '" ++ scriptFile ++ "'.\n") ++)
 
 -- | Global variables which should always be set.
 defaultGlobals :: PandocIO [Global]

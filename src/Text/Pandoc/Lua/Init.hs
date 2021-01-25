@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TupleSections #-}
 {- |
    Module      : Text.Pandoc.Lua
    Copyright   : Copyright © 2017-2021 Albert Krewinkel
@@ -12,17 +14,22 @@ module Text.Pandoc.Lua.Init
   ( runLua
   ) where
 
+import Control.Monad (when)
 import Control.Monad.Catch (try)
 import Control.Monad.Trans (MonadIO (..))
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Foreign.Lua (Lua)
 import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
+import System.FilePath ((</>))
+import Text.Pandoc.Class.PandocMonad
+  ( PandocMonad (fileExists, readFileStrict), readDefaultDataFile )
 import Text.Pandoc.Class.PandocIO (PandocIO)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Packages (installPandocPackageSearcher)
-import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua,
-                                  loadScriptFromDataDir, runPandocLua)
-
+import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua, runPandocLua)
+import Text.Pandoc.Lua.Util (throwTopMessageAsError')
+import Text.Pandoc.Shared (defaultUserDataDirs, findM)
+import qualified Control.Monad.Except as Except
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Definition as Pandoc
 import qualified Text.Pandoc.Lua.Module.Pandoc as ModulePandoc
@@ -44,7 +51,7 @@ initLuaState = do
   liftPandocLua Lua.openlibs
   installPandocPackageSearcher
   initPandocModule
-  loadScriptFromDataDir "init.lua"
+  loadInitScript "init.lua"
  where
   initPandocModule :: PandocLua ()
   initPandocModule = do
@@ -60,6 +67,25 @@ initLuaState = do
     putConstructorsInRegistry
     -- assign module to global variable
     liftPandocLua $ Lua.setglobal "pandoc"
+
+  -- Load a file from the user's data directory (cannot be affected by setting
+  -- the data dir to prevent subtle security issues).
+  loadInitScript :: FilePath -> PandocLua ()
+  loadInitScript fname = do
+    confDirs <- liftIO defaultUserDataDirs
+    mScriptAndName <- findM fileExists (map (</> fname) confDirs) >>= \case
+      Just scriptName -> Just . (, scriptName) <$> readFileStrict scriptName
+      Nothing -> (Just . (, "default data file '" <> fname <> "'")
+                  <$> readDefaultDataFile fname)
+                 `Except.catchError` const (pure Nothing)
+    case mScriptAndName of
+      Nothing -> pure ()
+      Just (script, filename) -> do
+        status <- liftPandocLua $ Lua.dostring script
+        when (status /= Lua.OK) . liftPandocLua $
+          throwTopMessageAsError'
+          (("Couldn't load '" ++ filename ++ "'.\n") ++)
+
 
 -- | AST elements are marshaled via normal constructor functions in the
 -- @pandoc@ module. However, accessing Lua globals from Haskell is

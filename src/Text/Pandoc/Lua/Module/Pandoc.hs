@@ -21,11 +21,11 @@ import Data.Maybe (fromMaybe)
 import Foreign.Lua (Lua, NumResults, Optional, Peekable, Pushable)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Class.PandocIO (runIO)
+import Text.Pandoc.Class.PandocMonad (readDefaultDataFile)
 import Text.Pandoc.Definition (Block, Inline)
 import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter, SingletonsList (..))
 import Text.Pandoc.Lua.Marshaling ()
-import Text.Pandoc.Lua.PandocLua (PandocLua, addFunction, liftPandocLua,
-                                  loadScriptFromDataDir)
+import Text.Pandoc.Lua.PandocLua (PandocLua, addFunction, liftPandocLua)
 import Text.Pandoc.Walk (Walkable)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
 import Text.Pandoc.Process (pipeProcess)
@@ -38,16 +38,26 @@ import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
 import Text.Pandoc.Error
 
--- | Push the "pandoc" on the lua stack. Requires the `list` module to be
--- loaded.
+-- | Push the "pandoc" package to the Lua stack. Requires the `List`
+-- module to be loadable.
 pushModule :: PandocLua NumResults
 pushModule = do
-  loadScriptFromDataDir "pandoc.lua"
+  loadPandocScript
   addFunction "read" readDoc
   addFunction "pipe" pipeFn
   addFunction "walk_block" walkBlock
   addFunction "walk_inline" walkInline
   return 1
+ where
+   -- Load the pandoc.lua script from the default data directory. We do
+   -- not load from data directories supplied via command line, as this
+   -- could cause scripts to be executed which have not been passed
+   -- explicitly.
+   loadPandocScript = do
+     script <- readDefaultDataFile "pandoc.lua"
+     status <- liftPandocLua $ Lua.dostring script
+     when (status /= Lua.OK) . liftPandocLua $
+       LuaUtil.throwTopMessageAsError' ("Couldn't load pandoc module.\n" ++)
 
 walkElement :: (Walkable (SingletonsList Inline) a,
                 Walkable (SingletonsList Block) a)
