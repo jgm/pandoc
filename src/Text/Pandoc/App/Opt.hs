@@ -124,6 +124,7 @@ data Opt = Opt
     , optLogFile               :: Maybe FilePath -- ^ File to write JSON log output
     , optFailIfWarnings        :: Bool    -- ^ Fail on warnings
     , optReferenceLinks        :: Bool    -- ^ Use reference links in writing markdown, rst
+    , optListTables            :: Bool -- ^ Use list tables in writing rst
     , optReferenceLocation     :: ReferenceLocation -- ^ location for footnotes and link references in markdown output
     , optDpi                   :: Int     -- ^ Dpi
     , optWrap                  :: WrapOption  -- ^ Options for wrapping text
@@ -354,6 +355,8 @@ doOpt (k',v) = do
       parseYAML v >>= \x -> return (\o -> o{ optFailIfWarnings = x })
     "reference-links" ->
       parseYAML v >>= \x -> return (\o -> o{ optReferenceLinks = x })
+    "list-tables" ->
+      parseYAML v >>= \x -> return (\o -> o{ optListTables = x })
     "reference-location" ->
       parseYAML v >>= \x -> return (\o -> o{ optReferenceLocation = x })
     "dpi" ->
@@ -530,6 +533,7 @@ defaultOpts = Opt
     , optLogFile               = Nothing
     , optFailIfWarnings        = False
     , optReferenceLinks        = False
+    , optListTables            = False
     , optReferenceLocation     = EndOfDocument
     , optDpi                   = 96
     , optWrap                  = WrapAuto

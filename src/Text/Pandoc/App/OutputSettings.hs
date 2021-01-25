@@ -191,6 +191,7 @@ optToOutputSettings opts = do
         , writerSectionDivs      = optSectionDivs opts
         , writerExtensions       = writerExts
         , writerReferenceLinks   = optReferenceLinks opts
+        , writerListTables       = optListTables opts
         , writerReferenceLocation = optReferenceLocation opts
         , writerDpi              = optDpi opts
         , writerWrapText         = optWrap opts

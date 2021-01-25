@@ -952,6 +952,10 @@ header when requesting a document from a URL:
     placement of link references is affected by the
     `--reference-location` option.
 
+`--list-tables`
+
+:   In writing reStructuredText, render tables using the [list table syntax].
+
 `--reference-location=block`|`section`|`document`
 
 :   Specify whether footnotes (and references, if `reference-links` is
@@ -1292,6 +1296,7 @@ header when requesting a document from a URL:
     auxiliary files, use `--pdf-engine-opt=-outdir=foo`.
     Note that no check for duplicate options is done.
 
+[list table syntax]: https://docutils.sourceforge.io/docs/ref/rst/directives.html#list-table
 [Dublin Core elements]: https://www.dublincore.org/specifications/dublin-core/dces/
 [ISO 8601 format]: https://www.w3.org/TR/NOTE-datetime
 [Encoding issue with the listings package]:

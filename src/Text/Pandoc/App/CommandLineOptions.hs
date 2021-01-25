@@ -520,6 +520,11 @@ options =
                   (\opt -> return opt { optReferenceLinks = True } ))
                  "" -- "Use reference links in parsing HTML"
 
+    , Option "" ["list-tables"]
+                 (NoArg
+                  (\opt -> return opt { optListTables = True } ))
+                 "" -- "Use list tables in rendering rST"
+
     , Option "" ["reference-location"]
                  (ReqArg
                   (\arg opt -> do
