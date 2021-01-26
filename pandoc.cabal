@@ -172,8 +172,6 @@ data-files:
                  data/abbreviations
                  -- sample lua custom writer
                  data/sample.lua
-                 -- lua init script
-                 data/init.lua
                  -- pandoc lua module
                  data/pandoc.lua
                  -- lua List module

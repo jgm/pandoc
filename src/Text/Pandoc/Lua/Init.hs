@@ -12,18 +12,15 @@ module Text.Pandoc.Lua.Init
   ( runLua
   ) where
 
-import Control.Monad (when)
 import Control.Monad.Catch (try)
 import Control.Monad.Trans (MonadIO (..))
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Foreign.Lua (Lua)
 import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
-import Text.Pandoc.Class.PandocMonad (readDataFile)
 import Text.Pandoc.Class.PandocIO (PandocIO)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Packages (installPandocPackageSearcher)
 import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua, runPandocLua)
-import Text.Pandoc.Lua.Util (throwTopMessageAsError')
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Definition as Pandoc
 import qualified Text.Pandoc.Lua.Module.Pandoc as ModulePandoc
@@ -45,7 +42,6 @@ initLuaState = do
   liftPandocLua Lua.openlibs
   installPandocPackageSearcher
   initPandocModule
-  loadInitScript "init.lua"
  where
   initPandocModule :: PandocLua ()
   initPandocModule = do
@@ -61,15 +57,6 @@ initLuaState = do
     putConstructorsInRegistry
     -- assign module to global variable
     liftPandocLua $ Lua.setglobal "pandoc"
-
-  loadInitScript :: FilePath -> PandocLua ()
-  loadInitScript scriptFile = do
-    script <- readDataFile scriptFile
-    status <- liftPandocLua $ Lua.dostring script
-    when (status /= Lua.OK) . liftPandocLua $
-      throwTopMessageAsError'
-      (("Couldn't load '" ++ scriptFile ++ "'.\n") ++)
-
 
 -- | AST elements are marshaled via normal constructor functions in the
 -- @pandoc@ module. However, accessing Lua globals from Haskell is
