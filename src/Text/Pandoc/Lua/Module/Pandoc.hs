@@ -25,7 +25,7 @@ import Text.Pandoc.Definition (Block, Inline)
 import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter, SingletonsList (..))
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.PandocLua (PandocLua, addFunction, liftPandocLua,
-                                  loadScriptFromDataDir)
+                                  loadDefaultModule)
 import Text.Pandoc.Walk (Walkable)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
 import Text.Pandoc.Process (pipeProcess)
@@ -38,11 +38,11 @@ import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
 import Text.Pandoc.Error
 
--- | Push the "pandoc" on the lua stack. Requires the `list` module to be
--- loaded.
+-- | Push the "pandoc" package to the Lua stack. Requires the `List`
+-- module to be loadable.
 pushModule :: PandocLua NumResults
 pushModule = do
-  loadScriptFromDataDir "pandoc.lua"
+  loadDefaultModule "pandoc"
   addFunction "read" readDoc
   addFunction "pipe" pipeFn
   addFunction "walk_block" walkBlock

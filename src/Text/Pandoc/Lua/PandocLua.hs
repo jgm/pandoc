@@ -23,24 +23,23 @@ module Text.Pandoc.Lua.PandocLua
   , runPandocLua
   , liftPandocLua
   , addFunction
-  , loadScriptFromDataDir
+  , loadDefaultModule
   ) where
 
-import Control.Monad (when)
 import Control.Monad.Catch (MonadCatch, MonadMask, MonadThrow)
 import Control.Monad.Except (MonadError (catchError, throwError))
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Foreign.Lua (Lua (..), NumResults, Pushable, ToHaskellFunction)
 import Text.Pandoc.Class.PandocIO (PandocIO)
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..), readDataFile)
-import Text.Pandoc.Error (PandocError)
+import Text.Pandoc.Class.PandocMonad (PandocMonad (..), readDefaultDataFile)
+import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.ErrorConversion (errorConversion)
 
 import qualified Control.Monad.Catch as Catch
+import qualified Data.Text as T
 import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Class.IO as IO
-import qualified Text.Pandoc.Lua.Util as LuaUtil
 
 -- | Type providing access to both, pandoc and Lua operations.
 newtype PandocLua a = PandocLua { unPandocLua :: Lua a }
@@ -86,14 +85,22 @@ addFunction name fn = liftPandocLua $ do
   Lua.pushHaskellFunction fn
   Lua.rawset (-3)
 
--- | Load a file from pandoc's data directory.
-loadScriptFromDataDir :: FilePath -> PandocLua ()
-loadScriptFromDataDir scriptFile = do
-  script <- readDataFile scriptFile
+-- | Load a pure Lua module included with pandoc. Leaves the result on
+-- the stack and returns @NumResults 1@.
+--
+-- The script is loaded from the default data directory. We do not load
+-- from data directories supplied via command line, as this could cause
+-- scripts to be executed even though they had not been passed explicitly.
+loadDefaultModule :: String -> PandocLua NumResults
+loadDefaultModule name = do
+  script <- readDefaultDataFile (name <> ".lua")
   status <- liftPandocLua $ Lua.dostring script
-  when (status /= Lua.OK) . liftPandocLua $
-    LuaUtil.throwTopMessageAsError'
-      (("Couldn't load '" ++ scriptFile ++ "'.\n") ++)
+  if status == Lua.OK
+    then return (1 :: NumResults)
+    else do
+      msg <- liftPandocLua Lua.popValue
+      let err = "Error while loading `" <> name <> "`.\n" <> msg
+      throwError $ PandocLuaError (T.pack err)
 
 -- | Global variables which should always be set.
 defaultGlobals :: PandocIO [Global]
