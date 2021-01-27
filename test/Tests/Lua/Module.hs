@@ -25,6 +25,8 @@ tests =
                   ("lua" </> "module" </> "pandoc-list.lua")
   , testPandocLua "pandoc.mediabag"
                   ("lua" </> "module" </> "pandoc-mediabag.lua")
+  , testPandocLua "pandoc.path"
+                  ("lua" </> "module" </> "pandoc-path.lua")
   , testPandocLua "pandoc.types"
                   ("lua" </> "module" </> "pandoc-types.lua")
   , testPandocLua "pandoc.util"
