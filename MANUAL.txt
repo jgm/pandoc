@@ -1568,8 +1568,11 @@ data-dir:
 verbosity: INFO
 log-file: log.json
 
-# citeproc, natbib, or biblatex
+# citeproc, natbib, or biblatex. This only affects LaTeX
+# output.  If you want to use citeproc to format citations,
+# you should also set 'citeproc: true' (see above).
 cite-method: citeproc
+
 # part, chapter, section, or default:
 top-level-division: chapter
 abbreviations:
