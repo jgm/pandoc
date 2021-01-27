@@ -55,8 +55,9 @@ properties as a function of core size. *Langmuir*, *14*(1), 17–30.
 ---
 nocite: "[@*]"
 references:
-- annote: An article entry with author authors. By default, long author
-    and editor lists are automatically truncated. This is configurable
+- annote: An article entry with `\arabic{author}`{=latex} authors. By
+    default, long author and editor lists are automatically truncated.
+    This is configurable
   author:
   - family: Hostetler
     given: Michael J.

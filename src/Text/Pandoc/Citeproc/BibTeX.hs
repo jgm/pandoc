@@ -750,40 +750,9 @@ blocksToInlines bs =
        _          -> B.fromList $ Walk.query (:[]) bs
 
 adjustSpans :: Lang -> Inline -> Inline
-adjustSpans lang (RawInline (Format "latex") s)
-  | s == "\\hyphen" || s == "\\hyphen " = Str "-"
-  | otherwise = parseRawLaTeX lang s
+adjustSpans lang (Span ("",[],[("bibstring",s)]) _) = Str $ resolveKey' lang s
 adjustSpans _ SoftBreak = Space
 adjustSpans _ x = x
-
-parseRawLaTeX :: Lang -> Text -> Inline
-parseRawLaTeX lang t@(T.stripPrefix "\\" -> Just xs) =
-  case parseLaTeX lang contents of
-          Right [Para ys]  -> f command ys
-          Right [Plain ys] -> f command ys
-          Right []         -> f command []
-          _                -> RawInline (Format "latex") t
-   where (command', contents') = T.break (\c -> c =='{' || c =='\\') xs
-         command  = T.strip command'
-         contents = T.drop 1 $ T.dropEnd 1 contents'
-         f "mkbibquote"    ils = Span nullAttr [Quoted DoubleQuote ils]
-         f "mkbibemph"     ils = Span nullAttr [Emph ils]
-         f "mkbibitalic"   ils = Span nullAttr [Emph ils]
-         f "mkbibbold"     ils = Span nullAttr [Strong ils]
-         f "mkbibparens"   ils = Span nullAttr $
-                                  [Str "("] ++ ils ++ [Str ")"]
-         f "mkbibbrackets" ils = Span nullAttr $
-                                  [Str "["] ++ ils ++ [Str "]"]
-         -- ... both should be nestable & should work in year fields
-         f "autocap"    ils    = Span nullAttr ils
-           -- TODO: should work in year fields
-         f "textnormal" ils    = Span ("",["nodecor"],[]) ils
-         f "bibstring" [Str s] = Str $ resolveKey' lang s
-         f "adddot"    []      = Str "."
-         f "adddotspace" []    = Span nullAttr [Str ".", Space]
-         f "addabbrvspace" []  = Space
-         f _            ils    = Span nullAttr ils
-parseRawLaTeX _ t = RawInline (Format "latex") t
 
 latex' :: Text -> Bib [Block]
 latex' t = do

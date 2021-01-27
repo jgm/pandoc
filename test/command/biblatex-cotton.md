@@ -43,9 +43,9 @@ Cotton, F. A., Wilkinson, G., Murillio, C. A., & Bochmann, M. (1999).
 ---
 nocite: "[@*]"
 references:
-- annote: A book entry with author authors and an edition field. By
-    default, long author and editor lists are automatically truncated.
-    This is configurable
+- annote: A book entry with `\arabic{author}`{=latex} authors and an
+    edition field. By default, long author and editor lists are
+    automatically truncated. This is configurable
   author:
   - family: Cotton
     given: Frank Albert

@@ -940,6 +940,24 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("uline", underline <$> tok)
   -- plain tex stuff that should just be passed through as raw tex
   , ("ifdim", ifdim)
+  -- bibtex
+  , ("mkbibquote", spanWith nullAttr . doubleQuoted <$> tok)
+  , ("mkbibemph", spanWith nullAttr . emph <$> tok)
+  , ("mkbibitalic", spanWith nullAttr . emph <$> tok)
+  , ("mkbibbold", spanWith nullAttr . strong <$> tok)
+  , ("mkbibparens",
+       spanWith nullAttr . (\x -> str "(" <> x <> str ")") <$> tok)
+  , ("mkbibbrackets",
+       spanWith nullAttr . (\x -> str "[" <> x <> str "]") <$> tok)
+  , ("autocap", spanWith nullAttr <$> tok)
+  , ("textnormal", spanWith ("",["nodecor"],[]) <$> tok)
+  , ("bibstring",
+       (\x -> spanWith ("",[],[("bibstring",x)]) (str x)) . untokenize
+         <$> braced)
+  , ("adddot", pure (str "."))
+  , ("adddotspace", pure (spanWith nullAttr (str "." <> space)))
+  , ("addabbrvspace", pure space)
+  , ("hyphen", pure (str "-"))
   ]
 
 accent :: PandocMonad m => Char -> Maybe Char -> LP m Inlines
