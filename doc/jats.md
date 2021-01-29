@@ -33,6 +33,11 @@ Metadata Values
 
         See [`<given-names>`][elem:given-names].
 
+    `name`
+    :   full name of the author; included only as a fallback if
+        `author.surname` is not available. Tagged with
+        [`<string-name>`][elem:string-name].
+
     `email`
     :   the contributor's email address.
 

@@ -95,6 +95,8 @@ $if(author.surname)$
 <surname>$author.surname$</surname>
 <given-names>$author.given-names$</given-names>
 </name>
+$elseif(author.name)$
+<string-name>$author.name$</string-name>
 $else$
 <string-name>$author$</string-name>
 $endif$
