@@ -29,7 +29,7 @@ import Text.Pandoc.Builder (Inlines)
 import Text.Pandoc.Options (WriterOptions)
 import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Writers.JATS.Types
-import Text.Pandoc.XML (inTags)
+import Text.Pandoc.XML (escapeStringForXML, inTags)
 import qualified Data.Text as T
 
 referencesToJATS :: PandocMonad m
@@ -78,7 +78,8 @@ referenceToJATS _opts ref = do
     varInTagWith var tagName tagAttribs =
       case lookupVariable var ref >>= valToText of
         Nothing  -> mempty
-        Just val -> inTags' tagName tagAttribs $ literal val
+        Just val -> inTags' tagName tagAttribs . literal $
+                    escapeStringForXML val
 
     authors = case lookupVariable "author" ref of
       Just (NamesVal names) ->
@@ -143,7 +144,9 @@ toNameElements name =
   then inTags' "name" [] nameTags
   else nameLiteral name `inNameTag` "string-name"
     where
-      inNameTag val tag = maybe empty (inTags' tag [] . literal) val
+      inNameTag mVal tag = case mVal of
+        Nothing  -> empty
+        Just val -> inTags' tag [] . literal $ escapeStringForXML val
       surnamePrefix = maybe mempty (`T.snoc` ' ') $
                       nameNonDroppingParticle name
       givenSuffix = maybe mempty (T.cons ' ') $
