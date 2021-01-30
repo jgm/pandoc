@@ -22,7 +22,7 @@ module Text.Pandoc.Writers.Markdown (
   writePlain) where
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-import Data.Char (isAlphaNum)
+import Data.Char (isAlphaNum, isDigit)
 import Data.Default
 import Data.List (find, intersperse, sortOn, transpose)
 import qualified Data.Map as M
@@ -987,6 +987,10 @@ inlineListToMarkdown opts lst = do
   inlist <- asks envInList
   go (if inlist then avoidBadWrapsInList lst else lst)
   where go [] = return empty
+        go (x@Math{}:y@(Str t):zs)
+          | T.all isDigit (T.take 1 t) -- starts with digit -- see #7058
+          = liftM2 (<>) (inlineToMarkdown opts x)
+              (go (RawInline (Format "html") "<!-- -->" : y : zs))
         go (i:is) = case i of
             Link {} -> case is of
                 -- If a link is followed by another link, or '[', '(' or ':'
