@@ -24,8 +24,8 @@ import Control.Monad.Except (throwError, liftIO)
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString as B
 import qualified Data.Text as T
-import Criterion.Main
-import Criterion.Types (Config(..))
+import Test.Tasty.Bench
+import Test.Tasty (withResource)
 import Data.List (intersect)
 import Data.Maybe (mapMaybe, catMaybes)
 import System.Environment (getArgs)
@@ -59,7 +59,7 @@ readerBench doc name = do
                                  <> name
   return $ case res of
        Right (readerFun, inp) ->
-          Just $ bench (T.unpack $ name <> " reader")
+          Just $ bench (T.unpack name)
                $ nf (\i -> either (error . show) id $ runPure (readerFun i))
                  inp
        Left _ -> Nothing
@@ -71,18 +71,18 @@ getImages = do
   return [("lalune.jpg", "image/jpg", ll)
          ,("movie.jpg", "image/jpg", mv)]
 
-writerBench :: Pandoc
+writerBench :: [(FilePath, MimeType, BL.ByteString)]
+            -> Pandoc
             -> T.Text
             -> Maybe Benchmark
-writerBench doc name =
+writerBench imgs doc name =
   case res of
        Right writerFun ->
-          Just $ env getImages $ \imgs ->
-            bench (T.unpack $ name <> " writer")
+          Just $ bench (T.unpack name)
                $ nf (\d -> either (error . show) id $
                             runPure (do mapM_
                                           (\(fp, mt, bs) ->
-                                              insertMedia fp (Just mt) bs)
+                                            insertMedia fp (Just mt) bs)
                                           imgs
                                         writerFun d)) doc
        Left _ -> Nothing
@@ -117,6 +117,9 @@ main = do
               (matchedReaders `intersect` allWriters)
                  -- we need the corresponding writer to generate
                  -- input for the reader
-  let writerBs = mapMaybe (writerBench doc) matchedWriters
-  defaultMainWith defaultConfig{ timeLimit = 6.0 }
-    (writerBs ++ readerBs)
+  imgs <- getImages
+  let writerBs = mapMaybe (writerBench imgs doc) matchedWriters
+  defaultMain
+    [ bgroup "writers" writerBs
+    , bgroup "readers" readerBs
+    ]

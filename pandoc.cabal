@@ -880,7 +880,8 @@ benchmark benchmark-pandoc
                    base        >= 4.8     && < 5,
                    bytestring,
                    containers,
-                   criterion   >= 1.0     && < 1.6,
+                   tasty,
+                   tasty-bench >= 0.1     && <= 0.2,
                    mtl         >= 2.2     && < 2.3,
                    text        >= 1.1.1.0 && < 1.3,
                    time
