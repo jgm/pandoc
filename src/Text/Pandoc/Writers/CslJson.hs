@@ -47,7 +47,7 @@ writeCslJson _opts (Pandoc meta _) = do
                Left e  -> throwError $ PandocCiteprocError e
                Right l -> return l
   let rs = case lookupMeta "references" meta of
-             Just (MetaList rs) -> rs
+             Just (MetaList xs) -> xs
              _ -> []
   return $ UTF8.toText
            (toCslJson locale (mapMaybe metaValueToReference rs)) <> "\n"
