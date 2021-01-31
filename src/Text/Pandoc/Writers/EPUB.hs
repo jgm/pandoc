@@ -980,8 +980,8 @@ metadataElement version md currentTime =
                showDateTimeISO8601 currentTime | version == EPUB3 ]
         belongsToCollectionNodes = 
             maybe []
-                (\belongsToCollection -> [unode "meta" !  [("property", "belongs-to-collection"), ("id", "epub-id-1")] $ belongsToCollection ]
-                ++
+                (\belongsToCollection -> (unode "meta" !  [("property", "belongs-to-collection"), ("id", "epub-id-1")] $ belongsToCollection )
+                :
                 [unode "meta" !  [("refines", "#epub-id-1"), ("property", "collection-type")] $ ("series" :: String) ])
                 (epubBelongsToCollection md)++
             maybe []
