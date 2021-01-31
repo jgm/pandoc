@@ -5932,6 +5932,15 @@ The following fields are recognized:
 
 `rights`
   ~ A string value.
+  
+`belongs-to-collection`
+  ~ A string value.  identifies the name of a collection to which
+    the EPUB Publication belongs.
+
+`group-position`
+  ~ The `group-position` field indicates the numeric position in which
+    the EPUB Publication belongs relative to other works belonging to
+    the same `belongs-to-collection` field.
 
 `cover-image`
   ~ A string value (path to cover image).
