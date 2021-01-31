@@ -877,10 +877,11 @@ csvTableDirective top fields rawcsv = do
                     (bs, _) <- fetchItem u
                     return $ UTF8.toText bs
                   Nothing -> return rawcsv
-  let res = parseCSV opts (case explicitHeader of
-                              Just h  -> h <> "\n" <> rawcsv'
-                              Nothing -> rawcsv')
-  case res of
+  let header' = case explicitHeader of
+                  Just h  -> parseCSV defaultCSVOptions h
+                  Nothing -> Right []
+  let res = parseCSV opts rawcsv'
+  case (<>) <$> header' <*> res of
        Left e  ->
          throwError $ PandocParsecError "csv table" e
        Right rawrows -> do
