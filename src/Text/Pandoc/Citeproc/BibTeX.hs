@@ -115,7 +115,7 @@ writeBibtexString opts variant mblang ref =
       "motion_picture"    | variant == Biblatex -> "movie"
       "review"             | variant == Biblatex -> "review"
       _                   -> "misc"
-  
+
   mbSubtype =
     case referenceType ref of
       "article-magazine"  -> Just "magazine"
@@ -149,7 +149,7 @@ writeBibtexString opts variant mblang ref =
            , "type"
            , "entrysubtype"
            , "note"
-           , "language"
+           , "langid"
            , "abstract"
            , "keywords"
            ]
@@ -202,12 +202,19 @@ writeBibtexString opts variant mblang ref =
                    [ (", " <>) <$> nameGiven name,
                      nameDroppingParticle name ]
 
-  titlecase = case mblang of
+  mblang' = (parseLang <$> getVariableAsText "language") <|> mblang
+
+  titlecase = case mblang' of
                 Just (Lang "en" _) -> titlecase'
                 Nothing            -> titlecase'
-                _                  -> id
+                _                  ->
+                  case variant of
+                    Bibtex         -> B.spanWith nullAttr
+                     -- BibTex lacks a language field, so we wrap non-English
+                     -- titles in {} to protect case.
+                    Biblatex       -> id
 
-  titlecase' = addTextCase mblang TitleCase .
+  titlecase' = addTextCase mblang' TitleCase .
     (\ils -> B.fromList
                (case B.toList ils of
                   Str t : xs -> Str t : Walk.walk spanAroundCapitalizedWords xs
@@ -299,6 +306,8 @@ writeBibtexString opts variant mblang ref =
   getContentsFor "urldate"  = getVariable "accessed" >>= toLaTeX . valToInlines
   getContentsFor "year"  = getVariable "issued" >>= getYear
   getContentsFor "month"  = getVariable "issued" >>= getMonth
+  getContentsFor "pages"  = getVariable "page" >>= toLaTeX . valToInlines
+  getContentsFor "langid"  = getVariable "language" >>= toLaTeX . valToInlines
   getContentsFor "number" = (getVariable "number"
                          <|> getVariable "collection-number"
                          <|> getVariable "issue") >>= toLaTeX . valToInlines

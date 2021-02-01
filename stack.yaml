@@ -19,10 +19,10 @@ extra-deps:
 - doctemplates-0.9
 - texmath-0.12.1
 - tasty-bench-0.1
-- citeproc-0.3.0.6
+- citeproc-0.3.0.7
 #- citeproc:
 #  git: https://github.com/jgm/citeproc.git
-#  commit: da1f9702fa70d7e1bad9a796f897e920e2d578f7
+#  commit: feb3b7580c6738eec3b23921f7c1739cfba611aa
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-16.23
