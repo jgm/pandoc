@@ -6,7 +6,7 @@ RESOLVER?=lts-13
 GHCOPTS=-fdiagnostics-color=always
 WEBSITE=../../web/pandoc.org
 REVISION?=1
-BENCHARGS?="--timeout=6"
+BENCHARGS?="--timeout=6 +RTS -T -RTS"
 
 quick:
 	stack install --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --ghc-options='-j +RTS -A64m -RTS' --test-arguments='-j4 --hide-successes $(TESTARGS)'
@@ -39,7 +39,7 @@ ghcid:
 	ghcid -c "stack repl --flag 'pandoc:embed_data_files'"
 
 bench:
-	stack bench --benchmark-arguments='$(BENCHARGS)' --ghc-options '$(GHCOPTS)'
+	stack bench --benchmark-arguments=$(BENCHARGS) --ghc-options '$(GHCOPTS)'
 
 weigh:
 	stack build --ghc-options '$(GHCOPTS)' pandoc:weigh-pandoc && stack exec weigh-pandoc
