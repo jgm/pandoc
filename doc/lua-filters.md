@@ -3395,7 +3395,8 @@ environment variable.
 
 ### directory (filepath) {#pandoc.path.directory}
 
-Get the directory name; move up one level.
+Gets the directory name, i.e., removes the last directory
+separator and everything after from the given path.
 
 Parameters:
 
@@ -3489,8 +3490,10 @@ Returns:
 
 Normalizes a path.
 
--   `//` outside of the drive can be made blank
--   `/` becomes the `path.separator`
+-   `//` makes sense only as part of a (Windows) network drive;
+    elsewhere, multiple slashes are reduced to a single
+    `path.separator` (platform dependent).
+-   `/` becomes `path.separator` (platform dependent)
 -   `./` -\> ''
 -   an empty path becomes `.`
 
