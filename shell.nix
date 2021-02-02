@@ -92,6 +92,7 @@ let
   ghc = haskellPackages.ghcWithPackages haskellDeps;
 
   nixPackages = [
+    pkgs.zlib
     ghc
     pkgs.gdb
     haskellPackages.ghcid
