@@ -14,6 +14,14 @@ return {
       assert.is_truthy(path.separator:match '^[/\\]$')
     end),
   },
+  group 'search path separator' {
+    test('is string', function ()
+      assert.are_same(type(path.search_path_separator), 'string')
+    end),
+    test('is colon or semicolon', function ()
+      assert.is_truthy(path.search_path_separator:match '^[:;]$')
+    end)
+  },
   group 'module' {
     test('check function existence', function ()
       local functions = {
