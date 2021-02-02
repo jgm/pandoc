@@ -427,7 +427,7 @@ library
                  filepath              >= 1.1      && < 1.5,
                  haddock-library       >= 1.8      && < 1.10,
                  hslua                 >= 1.1      && < 1.4,
-                 hslua-module-path     >= 0.0.1    && < 0.1.0,
+                 hslua-module-path     >= 0.1.0    && < 0.2.0,
                  hslua-module-system   >= 0.2      && < 0.3,
                  hslua-module-text     >= 0.2.1    && < 0.4,
                  http-client           >= 0.4.30   && < 0.8,
