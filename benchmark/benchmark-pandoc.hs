@@ -25,7 +25,6 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString as B
 import qualified Data.Text as T
 import Test.Tasty.Bench
-import Test.Tasty (withResource)
 import Data.List (intersect)
 import Data.Maybe (mapMaybe, catMaybes)
 import System.Environment (getArgs)
