@@ -14,4 +14,23 @@ return {
       assert.is_truthy(path.separator:match '^[/\\]$')
     end),
   },
+  group 'module' {
+    test('check function existence', function ()
+      local functions = {
+        'directory',
+        'filename',
+        'is_absolute',
+        'is_relative',
+        'join',
+        'make_relative',
+        'normalize',
+        'split',
+        'split_extension',
+        'split_search_path',
+      }
+      for _, f in ipairs(functions) do
+        assert.are_equal(type(path[f]), 'function')
+      end
+    end)
+  }
 }
