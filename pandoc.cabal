@@ -56,6 +56,8 @@ data-files:
                  data/templates/default.icml
                  data/templates/default.opml
                  data/templates/default.latex
+                 data/templates/default.bibtex
+                 data/templates/default.biblatex
                  data/templates/default.context
                  data/templates/default.texinfo
                  data/templates/default.jira

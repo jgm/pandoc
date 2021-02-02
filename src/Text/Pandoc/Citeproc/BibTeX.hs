@@ -52,6 +52,8 @@ import           Data.Char              (isAlphaNum, isDigit, isLetter,
 import           Data.List              (foldl', intercalate, intersperse)
 import           Safe                   (readMay)
 import           Text.Printf            (printf)
+import           Text.DocLayout         (literal, hsep, nest, hang, Doc(..),
+                                         braces, ($$), cr)
 
 data Variant = Bibtex | Biblatex
   deriving (Show, Eq, Ord)
@@ -77,10 +79,11 @@ writeBibtexString :: WriterOptions       -- ^ options (for writing LaTex)
                   -> Variant             -- ^ bibtex or biblatex
                   -> Maybe Lang          -- ^ Language
                   -> Reference Inlines   -- ^ Reference to write
-                  -> Text
+                  -> Doc Text
 writeBibtexString opts variant mblang ref =
-  "@" <> bibtexType <> "{" <> unItemId (referenceId ref) <> ",\n  " <>
-  renderFields fs <> "\n}\n"
+  "@" <> bibtexType <> "{" <> literal (unItemId (referenceId ref)) <> ","
+  $$ nest 2 (renderFields fs)
+  $$ "}" <> cr
 
  where
   bibtexType =
@@ -231,10 +234,12 @@ writeBibtexString opts variant mblang ref =
   toLaTeX x =
     case runPure (writeLaTeX opts $ doc (B.plain x)) of
            Left _  -> Nothing
-           Right t -> Just t
+           Right t -> Just $ hsep . map literal $ T.words t
 
-  renderField name = (\contents -> name <> " = {" <> contents <> "}")
-                      <$> getContentsFor name
+  renderField :: Text -> Maybe (Doc Text)
+  renderField name =
+    (((literal name) <>) . hang 2 " = " . braces)
+      <$> getContentsFor name
 
   getVariable v = lookupVariable (toVariable v) ref
 
@@ -248,10 +253,10 @@ writeBibtexString opts variant mblang ref =
            Nothing ->
              case dateParts date of
                [DateParts (y1:_), DateParts (y2:_)] ->
-                 Just (T.pack (printf "%04d" y1) <> "--" <>
+                 Just $ literal (T.pack (printf "%04d" y1) <> "--" <>
                         T.pack (printf "%04d" y2))
                [DateParts (y1:_)] ->
-                 Just (T.pack (printf "%04d" y1))
+                 Just $ literal (T.pack (printf "%04d" y1))
                _ -> Nothing
        _ -> Nothing
 
@@ -274,19 +279,19 @@ writeBibtexString opts variant mblang ref =
        DateVal date ->
          case dateParts date of
            [DateParts (_:m1:_), DateParts (_:m2:_)] ->
-             Just (toMonth m1 <> "--" <> toMonth m2)
-           [DateParts (_:m1:_)] -> Just (toMonth m1)
+             Just $ literal (toMonth m1 <> "--" <> toMonth m2)
+           [DateParts (_:m1:_)] -> Just $ literal (toMonth m1)
            _ -> Nothing
        _ -> Nothing
 
-  getContentsFor :: Text -> Maybe Text
+  getContentsFor :: Text -> Maybe (Doc Text)
   getContentsFor "type" =
     getVariableAsText "genre" >>=
        \case
           "mathesis"  -> Just "mastersthesis"
           "phdthesis" -> Just "phdthesis"
           _           -> Nothing
-  getContentsFor "entrysubtype" = mbSubtype
+  getContentsFor "entrysubtype" = literal <$> mbSubtype
   getContentsFor "journal"
     | bibtexType `elem` ["article", "periodical", "suppperiodical", "review"]
       = getVariable "container-title" >>= toLaTeX . valToInlines
@@ -314,7 +319,7 @@ writeBibtexString opts variant mblang ref =
 
   getContentsFor x = getVariable x >>=
     if isURL x
-       then Just . stringify . valToInlines
+       then Just . literal . stringify . valToInlines
        else toLaTeX .
             (if x == "title"
                 then titlecase
@@ -323,7 +328,7 @@ writeBibtexString opts variant mblang ref =
 
   isURL x = x `elem` ["url","doi","issn","isbn"]
 
-  renderFields = T.intercalate ",\n  " . mapMaybe renderField
+  renderFields = mconcat . intersperse ("," <> cr) . mapMaybe renderField
 
 defaultLang :: Lang
 defaultLang = Lang "en" (Just "US")
@@ -1038,14 +1043,14 @@ getOldDate prefix = do
   let dateparts = filter (\x -> x /= DateParts [])
                   $ map toDateParts [(year',month',day'),
                                      (endyear',endmonth',endday')]
-  literal <- if null dateparts
-                then Just <$> getRawField (prefix <> "year")
-                else return Nothing
+  literal' <- if null dateparts
+                 then Just <$> getRawField (prefix <> "year")
+                 else return Nothing
   return $
     Date { dateParts = dateparts
          , dateCirca = False
          , dateSeason = Nothing
-         , dateLiteral = literal }
+         , dateLiteral = literal' }
 
 getRawField :: Text -> Bib Text
 getRawField f = do
