@@ -74,26 +74,28 @@ data EPUBState = EPUBState {
 type E m = StateT EPUBState m
 
 data EPUBMetadata = EPUBMetadata{
-    epubIdentifier    :: [Identifier]
-  , epubTitle         :: [Title]
-  , epubDate          :: [Date]
-  , epubLanguage      :: String
-  , epubCreator       :: [Creator]
-  , epubContributor   :: [Creator]
-  , epubSubject       :: [String]
-  , epubDescription   :: Maybe String
-  , epubType          :: Maybe String
-  , epubFormat        :: Maybe String
-  , epubPublisher     :: Maybe String
-  , epubSource        :: Maybe String
-  , epubRelation      :: Maybe String
-  , epubCoverage      :: Maybe String
-  , epubRights        :: Maybe String
-  , epubCoverImage    :: Maybe String
-  , epubStylesheets   :: [FilePath]
-  , epubPageDirection :: Maybe ProgressionDirection
-  , epubIbooksFields  :: [(String, String)]
-  , epubCalibreFields :: [(String, String)]
+    epubIdentifier          :: [Identifier]
+  , epubTitle               :: [Title]
+  , epubDate                :: [Date]
+  , epubLanguage            :: String
+  , epubCreator             :: [Creator]
+  , epubContributor         :: [Creator]
+  , epubSubject             :: [String]
+  , epubDescription         :: Maybe String
+  , epubType                :: Maybe String
+  , epubFormat              :: Maybe String
+  , epubPublisher           :: Maybe String
+  , epubSource              :: Maybe String
+  , epubRelation            :: Maybe String
+  , epubCoverage            :: Maybe String
+  , epubRights              :: Maybe String
+  , epubBelongsToCollection :: Maybe String
+  , epubGroupPosition       :: Maybe String
+  , epubCoverImage          :: Maybe String
+  , epubStylesheets         :: [FilePath]
+  , epubPageDirection       :: Maybe ProgressionDirection
+  , epubIbooksFields        :: [(String, String)]
+  , epubCalibreFields       :: [(String, String)]
   } deriving Show
 
 data Date = Date{
@@ -235,6 +237,8 @@ addMetadataFromXML e@(Element (QName name _ (Just "dc")) attrs _ _) md
   | name == "relation" = md { epubRelation = Just $ strContent e }
   | name == "coverage" = md { epubCoverage = Just $ strContent e }
   | name == "rights" = md { epubRights = Just $ strContent e }
+  | name == "belongs-to-collection" = md { epubBelongsToCollection = Just $ strContent e }
+  | name == "group-position" = md { epubGroupPosition = Just $ strContent e }  
   | otherwise = md
   where getAttr n = lookupAttr (opfName n) attrs
 addMetadataFromXML e@(Element (QName "meta" _ _) attrs _ _) md =
@@ -313,26 +317,28 @@ simpleList s meta =
 
 metadataFromMeta :: WriterOptions -> Meta -> EPUBMetadata
 metadataFromMeta opts meta = EPUBMetadata{
-      epubIdentifier         = identifiers
-    , epubTitle              = titles
-    , epubDate               = date
-    , epubLanguage           = language
-    , epubCreator            = creators
-    , epubContributor        = contributors
-    , epubSubject            = subjects
-    , epubDescription        = description
-    , epubType               = epubtype
-    , epubFormat             = format
-    , epubPublisher          = publisher
-    , epubSource             = source
-    , epubRelation           = relation
-    , epubCoverage           = coverage
-    , epubRights             = rights
-    , epubCoverImage         = coverImage
-    , epubStylesheets        = stylesheets
-    , epubPageDirection      = pageDirection
-    , epubIbooksFields       = ibooksFields
-    , epubCalibreFields      = calibreFields
+      epubIdentifier           = identifiers
+    , epubTitle                = titles
+    , epubDate                 = date
+    , epubLanguage             = language
+    , epubCreator              = creators
+    , epubContributor          = contributors
+    , epubSubject              = subjects
+    , epubDescription          = description
+    , epubType                 = epubtype
+    , epubFormat               = format
+    , epubPublisher            = publisher
+    , epubSource               = source
+    , epubRelation             = relation
+    , epubCoverage             = coverage
+    , epubRights               = rights
+    , epubBelongsToCollection  = belongsToCollection
+    , epubGroupPosition        = groupPosition 
+    , epubCoverImage           = coverImage
+    , epubStylesheets          = stylesheets
+    , epubPageDirection        = pageDirection
+    , epubIbooksFields         = ibooksFields
+    , epubCalibreFields        = calibreFields
     }
   where identifiers = getIdentifier meta
         titles = getTitle meta
@@ -350,6 +356,8 @@ metadataFromMeta opts meta = EPUBMetadata{
         relation = metaValueToString <$> lookupMeta "relation" meta
         coverage = metaValueToString <$> lookupMeta "coverage" meta
         rights = metaValueToString <$> lookupMeta "rights" meta
+        belongsToCollection = metaValueToString <$> lookupMeta "belongs-to-collection" meta
+        groupPosition = metaValueToString <$> lookupMeta "group-position" meta       
         coverImage =
             (TS.unpack <$> lookupContext "epub-cover-image"
                               (writerVariables opts))
@@ -931,7 +939,7 @@ metadataElement version md currentTime =
                   ++ descriptionNodes ++ typeNodes ++ formatNodes
                   ++ publisherNodes ++ sourceNodes ++ relationNodes
                   ++ coverageNodes ++ rightsNodes ++ coverImageNodes
-                  ++ modifiedNodes
+                  ++ modifiedNodes ++ belongsToCollectionNodes
         withIds base f = concat . zipWith f (map (\x -> base ++ ('-' : show x))
                          ([1..] :: [Int]))
         identifierNodes = withIds "epub-id" toIdentifierNode $
@@ -970,6 +978,15 @@ metadataElement version md currentTime =
             $ epubCoverImage md
         modifiedNodes = [ unode "meta" ! [("property", "dcterms:modified")] $
                showDateTimeISO8601 currentTime | version == EPUB3 ]
+        belongsToCollectionNodes = 
+            maybe []
+                (\belongsToCollection -> (unode "meta" !  [("property", "belongs-to-collection"), ("id", "epub-id-1")] $ belongsToCollection )
+                :
+                [unode "meta" !  [("refines", "#epub-id-1"), ("property", "collection-type")] $ ("series" :: String) ])
+                (epubBelongsToCollection md)++
+            maybe []
+                (\groupPosition -> [unode "meta" !  [("refines", "#epub-id-1"), ("property", "group-position")] $ groupPosition ])
+                (epubGroupPosition md)
         dcTag n s = unode ("dc:" ++ n) s
         dcTag' n s = [dcTag n s]
         toIdentifierNode id' (Identifier txt scheme)
