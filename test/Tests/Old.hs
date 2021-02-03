@@ -15,10 +15,8 @@ module Tests.Old (tests) where
 
 import Prelude
 import Data.Algorithm.Diff
-import Data.List (intercalate)
-import Data.Maybe (catMaybes)
 import System.Exit
-import System.FilePath (joinPath, splitDirectories, (<.>), (</>))
+import System.FilePath ((<.>), (</>))
 import qualified System.Environment as Env
 import System.Environment.Executable (getExecutablePath)
 import Text.Pandoc.Process (pipeProcess)
@@ -353,8 +351,3 @@ compareValues norm options expected actual = do
         "\n--- " ++ norm ++
         "\n+++ " ++ cmd ++ "\n" ++
         showDiff (1,1) diff ++ dash
-
-findDynlibDir :: [FilePath] -> Maybe FilePath
-findDynlibDir []           = Nothing
-findDynlibDir ("build":xs) = Just $ joinPath (reverse xs) </> "build"
-findDynlibDir (_:xs)       = findDynlibDir xs

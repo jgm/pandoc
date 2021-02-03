@@ -26,10 +26,7 @@ import Prelude
 import Data.Algorithm.Diff
 import qualified Data.Map as M
 import Data.Text (Text, unpack)
-import System.Directory
-import System.Environment.Executable (getExecutablePath)
 import System.Exit
-import System.FilePath
 import Test.Tasty
 import Test.Tasty.HUnit
 import Text.Pandoc.Builder (Blocks, Inlines, doc, plain)

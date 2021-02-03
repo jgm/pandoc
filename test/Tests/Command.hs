@@ -19,12 +19,11 @@ import Data.Algorithm.Diff
 import System.Environment.Executable (getExecutablePath)
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
-import Data.List (isSuffixOf, intercalate)
-import Data.Maybe (catMaybes)
+import Data.List (isSuffixOf)
 import System.Directory
 import qualified System.Environment as Env
 import System.Exit
-import System.FilePath (joinPath, splitDirectories, takeDirectory, (</>))
+import System.FilePath (takeDirectory, (</>))
 import System.IO (hPutStr, stderr)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Process
