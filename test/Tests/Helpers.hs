@@ -15,7 +15,6 @@ Utility functions for the test suite.
 module Tests.Helpers ( test
                      , TestResult(..)
                      , showDiff
-                     , findPandoc
                      , (=?>)
                      , purely
                      , ToString(..)
@@ -85,34 +84,6 @@ showDiff (l,r) (Second ln : ds) =
   printf "-%4d " r ++ ln ++ "\n" ++ showDiff (l,r+1) ds
 showDiff (l,r) (Both _ _ : ds) =
   showDiff (l+1,r+1) ds
-
--- | Find pandoc executable relative to test-pandoc
-findPandoc :: IO FilePath
-findPandoc = do
-  testExePath <- getExecutablePath
-  let pandocDir =
-        case reverse (splitDirectories (takeDirectory testExePath)) of
-             -- cabalv2 with --disable-optimization
-             "test-pandoc" : "build" : "noopt" : "test-pandoc" : "t" : ps
-               -> joinPath (reverse ps) </>
-                  "x" </> "pandoc" </> "noopt" </> "build" </> "pandoc"
-             -- cabalv2 without --disable-optimization
-             "test-pandoc" : "build" : "test-pandoc" : "t" : ps
-               -> joinPath (reverse ps) </>
-                  "x" </> "pandoc" </> "build" </> "pandoc"
-             -- cabalv1
-             "test-pandoc" : "build" : ps
-               -> joinPath (reverse ps) </> "build" </> "pandoc"
-             _ -> error "findPandoc: could not find pandoc executable"
-  let pandocPath = pandocDir </> "pandoc"
-#ifdef _WINDOWS
-                             <.> "exe"
-#endif
-  found <- doesFileExist pandocPath
-  if found
-     then return pandocPath
-     else error $ "findPandoc: could not find pandoc executable at "
-                   ++ pandocPath
 
 vividize :: Diff String -> String
 vividize (Both s _) = "  " ++ s
