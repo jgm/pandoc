@@ -19,6 +19,7 @@ module Text.Pandoc.App (
           , Filter(..)
           , defaultOpts
           , parseOptions
+          , parseOptionsFromArgs
           , options
           , applyFilters
           ) where
@@ -47,7 +48,8 @@ import Text.Pandoc
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
                             IpynbOutput (..) )
-import Text.Pandoc.App.CommandLineOptions (parseOptions, options)
+import Text.Pandoc.App.CommandLineOptions (parseOptions, parseOptionsFromArgs,
+                                           options)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
 import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), applyFilters)

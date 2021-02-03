@@ -17,6 +17,7 @@ Does a pandoc conversion based on command-line options.
 -}
 module Text.Pandoc.App.CommandLineOptions (
             parseOptions
+          , parseOptionsFromArgs
           , options
           , engines
           , lookupHighlightStyle
@@ -73,9 +74,13 @@ parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
   rawArgs <- map UTF8.decodeArg <$> getArgs
   prg <- getProgName
+  parseOptionsFromArgs options' defaults prg rawArgs
 
+parseOptionsFromArgs
+  :: [OptDescr (Opt -> IO Opt)] -> Opt -> String -> [String] -> IO Opt
+parseOptionsFromArgs options' defaults prg rawArgs = do
   let (actions, args, unrecognizedOpts, errors) =
-           getOpt' Permute options' rawArgs
+           getOpt' Permute options' (map UTF8.decodeArg rawArgs)
 
   let unknownOptionErrors =
        foldr (handleUnrecognizedOption . takeWhile (/= '=')) []
