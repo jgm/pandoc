@@ -136,7 +136,7 @@ to output the generated LaTeX. You can then test it with `pdflatex test.tex`.
 When using LaTeX, the following packages need to be available
 (they are included with all recent versions of [TeX Live]):
 [`amsfonts`], [`amsmath`], [`lm`], [`unicode-math`],
-[`ifxetex`], [`ifluatex`], [`listings`] (if the
+[`iftex`], [`listings`] (if the
 `--listings` option is used), [`fancyvrb`], [`longtable`],
 [`booktabs`], [`graphicx`] (if the document
 contains images), [`hyperref`], [`xcolor`],
@@ -180,8 +180,7 @@ footnotes in tables).
 [`graphicx`]: https://ctan.org/pkg/graphicx
 [`grffile`]: https://ctan.org/pkg/grffile
 [`hyperref`]: https://ctan.org/pkg/hyperref
-[`ifluatex`]: https://ctan.org/pkg/ifluatex
-[`ifxetex`]: https://ctan.org/pkg/ifxetex
+[`iftex`]: https://ctan.org/pkg/iftex
 [`listings`]: https://ctan.org/pkg/listings
 [`lm`]: https://ctan.org/pkg/lm
 [`longtable`]: https://ctan.org/pkg/longtable
