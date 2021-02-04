@@ -14,6 +14,7 @@ module Text.Pandoc.Lua.Module.Pandoc
   ( pushModule
   ) where
 
+import Prelude hiding (read)
 import Control.Monad (when)
 import Control.Monad.Except (throwError)
 import Data.Default (Default (..))
@@ -43,10 +44,10 @@ import Text.Pandoc.Error
 pushModule :: PandocLua NumResults
 pushModule = do
   loadDefaultModule "pandoc"
-  addFunction "read" readDoc
-  addFunction "pipe" pipeFn
-  addFunction "walk_block" walkBlock
-  addFunction "walk_inline" walkInline
+  addFunction "read" read
+  addFunction "pipe" pipe
+  addFunction "walk_block" walk_block
+  addFunction "walk_inline" walk_inline
   return 1
 
 walkElement :: (Walkable (SingletonsList Inline) a,
@@ -54,14 +55,14 @@ walkElement :: (Walkable (SingletonsList Inline) a,
             => a -> LuaFilter -> PandocLua a
 walkElement x f = liftPandocLua $ walkInlines f x >>= walkBlocks f
 
-walkInline :: Inline -> LuaFilter -> PandocLua Inline
-walkInline = walkElement
+walk_inline :: Inline -> LuaFilter -> PandocLua Inline
+walk_inline = walkElement
 
-walkBlock :: Block -> LuaFilter -> PandocLua Block
-walkBlock = walkElement
+walk_block :: Block -> LuaFilter -> PandocLua Block
+walk_block = walkElement
 
-readDoc :: T.Text -> Optional T.Text -> PandocLua NumResults
-readDoc content formatSpecOrNil = liftPandocLua $ do
+read :: T.Text -> Optional T.Text -> PandocLua NumResults
+read content formatSpecOrNil = liftPandocLua $ do
   let formatSpec = fromMaybe "markdown" (Lua.fromOptional formatSpecOrNil)
   res <- Lua.liftIO . runIO $
            getReader formatSpec >>= \(rdr,es) ->
@@ -79,11 +80,11 @@ readDoc content formatSpecOrNil = liftPandocLua $ do
     Left  e      -> Lua.raiseError $ show e
 
 -- | Pipes input through a command.
-pipeFn :: String
-       -> [String]
-       -> BL.ByteString
-       -> PandocLua NumResults
-pipeFn command args input = liftPandocLua $ do
+pipe :: String           -- ^ path to executable
+     -> [String]         -- ^ list of arguments
+     -> BL.ByteString    -- ^ input passed to process via stdin
+     -> PandocLua NumResults
+pipe command args input = liftPandocLua $ do
   (ec, output) <- Lua.liftIO $ pipeProcess Nothing command args input
   case ec of
     ExitSuccess -> 1 <$ Lua.push output
