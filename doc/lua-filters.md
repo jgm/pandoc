@@ -3084,7 +3084,8 @@ Clear-out the media bag, deleting all items.
 
 `insert (filepath, mime_type, contents)`
 
-Adds a new entry to pandoc's media bag.
+Adds a new entry to pandoc's media bag. Replaces any existing
+mediabag entry with the same `filepath`.
 
 Parameters:
 
@@ -3092,7 +3093,7 @@ Parameters:
 :   filename and path relative to the output folder.
 
 `mime_type`:
-:   the file's MIME type
+:   the file's MIME type; use `nil` if unknown or unavailable.
 
 `contents`:
 :   the binary contents of the file.
