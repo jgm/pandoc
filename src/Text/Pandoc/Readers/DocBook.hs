@@ -206,7 +206,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] info - A wrapper for information about a component or other block. (DocBook v5)
 [x] informalequation - A displayed mathematical equation without a title
 [x] informalexample - A displayed example without a title
-[ ] informalfigure - A untitled figure
+[x] informalfigure - An untitled figure
 [ ] informaltable - A table without a title
 [ ] initializer - The initializer for a FieldSynopsis
 [x] inlineequation - A mathematical equation or expression occurring inline
@@ -669,6 +669,7 @@ blockTags =
   , "index"
   , "info"
   , "informalexample"
+  , "informalfigure"
   , "informaltable"
   , "itemizedlist"
   , "linegroup"
@@ -855,6 +856,7 @@ parseBlock (Elem e) =
         "variablelist" -> definitionList <$> deflistitems
         "procedure" -> bulletList <$> steps
         "figure" -> getFigure e
+        "informalfigure" -> getFigure e
         "mediaobject" -> para <$> getMediaobject e
         "caption" -> skip
         "info" -> addMetadataFromElement e
