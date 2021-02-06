@@ -1,8 +1,6 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.LaTeX (tests) where
 
-import Prelude
 import Data.Text (unpack)
 import Test.Tasty
 import Tests.Helpers

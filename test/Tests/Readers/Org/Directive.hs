@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Org.Directive
@@ -13,7 +12,6 @@ Tests parsing of org directives (like @#+OPTIONS@).
 -}
 module Tests.Readers.Org.Directive (tests) where
 
-import Prelude
 import Data.Time (UTCTime (UTCTime), secondsToDiffTime)
 import Data.Time.Calendar (Day (ModifiedJulianDay))
 import Test.Tasty (TestTree, testGroup)

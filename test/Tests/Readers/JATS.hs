@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.JATS
@@ -13,7 +12,6 @@ Tests for the JATS reader.
 -}
 module Tests.Readers.JATS (tests) where
 
-import Prelude
 import Data.Text (Text)
 import Test.Tasty
 import Tests.Helpers

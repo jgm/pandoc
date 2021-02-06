@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Org.Inline.Smart
@@ -13,7 +12,6 @@ Test smart parsing of quotes, apostrophe, etc.
 -}
 module Tests.Readers.Org.Inline.Smart (tests) where
 
-import Prelude
 import Data.Text (Text)
 import Test.Tasty (TestTree)
 import Tests.Helpers ((=?>), purely, test)

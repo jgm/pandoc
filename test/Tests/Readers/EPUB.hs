@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {- |
    Module      : Tests.Readers.EPUB
    Copyright   : © 2006-2021 John MacFarlane
@@ -12,7 +11,6 @@ Tests for the EPUB mediabag.
 -}
 module Tests.Readers.EPUB (tests) where
 
-import Prelude
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
 import Test.Tasty

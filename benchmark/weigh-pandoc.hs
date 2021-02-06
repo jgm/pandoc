@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Main
@@ -11,7 +10,6 @@
 
 Benchmarks to determine resource use of readers and writers.
 -}
-import Prelude
 import Weigh
 import Text.Pandoc
 import Data.Text (Text, unpack)

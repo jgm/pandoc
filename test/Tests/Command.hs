@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TupleSections #-}
 {- |
    Module      : Tests.Command
@@ -14,7 +13,6 @@ Run commands, and test results, defined in markdown files.
 module Tests.Command (runTest, tests)
 where
 
-import Prelude
 import Data.Algorithm.Diff
 import System.Environment.Executable (getExecutablePath)
 import qualified Data.ByteString as BS

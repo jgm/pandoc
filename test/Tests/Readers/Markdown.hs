@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Markdown
@@ -13,7 +12,6 @@ Tests for the Markdown reader.
 -}
 module Tests.Readers.Markdown (tests) where
 
-import Prelude
 import Data.Text (Text, unpack)
 import qualified Data.Text as T
 import Test.Tasty

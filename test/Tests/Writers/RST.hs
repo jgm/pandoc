@@ -1,8 +1,6 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.RST (tests) where
 
-import Prelude
 import Control.Monad.Identity
 import Test.Tasty
 import Test.Tasty.HUnit
