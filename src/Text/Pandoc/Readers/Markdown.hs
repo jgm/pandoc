@@ -334,6 +334,8 @@ referenceKey = try $ do
                     skipMany spaceChar
                     notFollowedBy' referenceTitle
                     notFollowedBy' $ guardEnabled Ext_link_attributes >> attributes
+                    notFollowedBy' $ guardEnabled Ext_mmd_link_attributes >>
+                                     try (spnl <* keyValAttr)
                     notFollowedBy' (() <$ reference)
                     many1Char $ notFollowedBy space >> litChar
   let betweenAngles = try $ char '<' >> manyTillChar litChar (char '>')
