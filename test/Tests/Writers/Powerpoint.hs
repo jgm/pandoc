@@ -1,7 +1,5 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 module Tests.Writers.Powerpoint (tests) where
 
-import Prelude
 import Tests.Writers.OOXML (ooxmlTest)
 import Text.Pandoc
 import Test.Tasty

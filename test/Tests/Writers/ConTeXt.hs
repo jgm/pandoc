@@ -1,8 +1,6 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.ConTeXt (tests) where
 
-import Prelude
 import Data.Text (unpack, pack)
 import Test.Tasty
 import Test.Tasty.QuickCheck

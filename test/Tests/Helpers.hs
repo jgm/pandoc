@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {- |
    Module      : Tests.Helpers
@@ -22,7 +21,6 @@ module Tests.Helpers ( test
                      )
                      where
 
-import Prelude
 import Data.Algorithm.Diff
 import qualified Data.Map as M
 import Data.Text (Text, unpack)

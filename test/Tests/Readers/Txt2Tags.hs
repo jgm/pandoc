@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Txt2Tags
@@ -14,7 +13,6 @@ Tests for the Txt2Tags reader.
 -}
 module Tests.Readers.Txt2Tags (tests) where
 
-import Prelude
 import Data.List (intersperse)
 import Data.Text (Text)
 import qualified Data.Text as T

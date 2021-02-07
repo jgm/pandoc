@@ -1,9 +1,7 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wall #-}
 
 module Main where
 
-import Prelude
 import System.Environment (getArgs)
 import qualified Control.Exception as E
 import Text.Pandoc.App (convertWithOpts, defaultOpts, options,

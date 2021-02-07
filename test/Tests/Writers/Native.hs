@@ -1,7 +1,5 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 module Tests.Writers.Native (tests) where
 
-import Prelude
 import Data.Text (unpack)
 import Test.Tasty
 import Test.Tasty.QuickCheck

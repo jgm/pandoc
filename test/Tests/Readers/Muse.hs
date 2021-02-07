@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Muse
@@ -13,7 +12,6 @@ Tests for the Muse reader.
 -}
 module Tests.Readers.Muse (tests) where
 
-import Prelude
 import Data.List (intersperse)
 import Data.Monoid (Any (..))
 import Data.Text (Text)

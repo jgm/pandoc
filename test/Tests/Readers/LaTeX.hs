@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.LaTeX
@@ -13,7 +12,6 @@ Tests for the LaTeX reader.
 -}
 module Tests.Readers.LaTeX (tests) where
 
-import Prelude
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8

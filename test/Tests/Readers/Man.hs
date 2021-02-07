@@ -13,7 +13,6 @@ Tests for the Man reader.
 -}
 module Tests.Readers.Man (tests) where
 
-import Prelude
 import Data.Text (Text)
 import Test.Tasty
 import Tests.Helpers

@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Main
@@ -12,7 +11,6 @@
 Provides a webservice which allows to try pandoc in the browser.
 -}
 module Main where
-import Prelude
 import Network.Wai.Handler.CGI
 import Network.Wai
 import Control.Applicative ((<$>))

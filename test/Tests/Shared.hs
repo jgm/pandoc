@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Shared
@@ -13,7 +12,6 @@ Tests for functions used in many parts of the library.
 -}
 module Tests.Shared (tests) where
 
-import Prelude
 import System.FilePath.Posix (joinPath)
 import Test.Tasty
 import Test.Tasty.HUnit (assertBool, testCase, (@?=))

@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TupleSections #-}
 {- |
    Module      : Tests.Old
@@ -13,7 +12,6 @@
 -}
 module Tests.Old (tests) where
 
-import Prelude
 import Data.Algorithm.Diff
 import System.Exit
 import System.FilePath ((<.>), (</>))

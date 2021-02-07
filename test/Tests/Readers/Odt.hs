@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Odt
@@ -14,7 +13,6 @@ Tests for the ODT reader.
 -}
 module Tests.Readers.Odt (tests) where
 
-import Prelude
 import Control.Monad (liftM)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B

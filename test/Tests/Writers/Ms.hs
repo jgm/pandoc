@@ -1,8 +1,6 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.Ms (tests) where
 
-import Prelude
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc

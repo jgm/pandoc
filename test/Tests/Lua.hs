@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
@@ -14,7 +13,6 @@ Unit and integration tests for pandoc's Lua subsystem.
 -}
 module Tests.Lua ( runLuaTest, tests ) where
 
-import Prelude
 import Control.Monad (when)
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, localOption)
