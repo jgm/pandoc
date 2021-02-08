@@ -1,4 +1,3 @@
-{-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Reader.Odt
@@ -67,29 +66,27 @@ bytesToOdt bytes = case toArchiveOrFail bytes of
 
 --
 archiveToOdt :: Archive -> Either PandocError (Pandoc, MediaBag)
-archiveToOdt archive
-  | Just contentEntry      <- findEntryByPath "content.xml" archive
-  , Just stylesEntry       <- findEntryByPath "styles.xml"  archive
-  , Just contentElem       <- entryToXmlElem contentEntry
-  , Just stylesElem        <- entryToXmlElem stylesEntry
-  , Right styles           <- chooseMax (readStylesAt stylesElem )
-                                        (readStylesAt contentElem)
-  , media                  <- filteredFilesFromArchive archive filePathIsOdtMedia
-  , startState             <- readerState styles media
-  , Right pandocWithMedia  <- runConverter' read_body
-                                            startState
-                                            contentElem
-
-  = Right pandocWithMedia
-
-  | otherwise
-    -- Not very detailed, but I don't think more information would be helpful
-  = Left $ PandocParseError "Couldn't parse odt file."
-    where
-      filePathIsOdtMedia :: FilePath -> Bool
+archiveToOdt archive = either (Left. PandocParseError) Right $ do
+  let onFailure msg Nothing = Left msg
+      onFailure _   (Just x) = Right x
+  contentEntry <- onFailure "Could not find content.xml"
+                   (findEntryByPath "content.xml" archive)
+  stylesEntry <- onFailure "Could not find styles.xml"
+                   (findEntryByPath "styles.xml" archive)
+  contentElem <- onFailure "Could not find content element"
+                   (entryToXmlElem contentEntry)
+  stylesElem <- onFailure "Could not find styles element"
+                   (entryToXmlElem stylesEntry)
+  styles <- either (\_ -> Left "Could not read styles") Right
+               (chooseMax (readStylesAt stylesElem ) (readStylesAt contentElem))
+  let filePathIsOdtMedia :: FilePath -> Bool
       filePathIsOdtMedia fp =
         let (dir, name) = splitFileName fp
         in  (dir == "Pictures/") || (dir /= "./" && name == "content.xml")
+  let media = filteredFilesFromArchive archive filePathIsOdtMedia
+  let startState = readerState styles media
+  either (\_ -> Left "Could not convert opendocument") Right
+    (runConverter' read_body startState contentElem)
 
 
 --
