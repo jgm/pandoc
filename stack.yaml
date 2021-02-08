@@ -5,21 +5,12 @@ flags:
 packages:
 - '.'
 extra-deps:
-- pandoc-types-1.22
-- rfc5051-0.2
-- haddock-library-1.9.0
-- skylighting-0.10.2
-- skylighting-core-0.10.2
 - hslua-1.3.0
 - hslua-module-path-0.1.0
-- hslua-module-text-0.3.0.1
 - jira-wiki-markup-1.3.2
-- HsYAML-aeson-0.2.0.0
 - commonmark-0.1.1.4
 - commonmark-extensions-0.2.0.4
 - commonmark-pandoc-0.2.0.1
-- doctemplates-0.9
-- texmath-0.12.1
 - tasty-bench-0.1
 - citeproc-0.3.0.7
 #- citeproc:
@@ -27,6 +18,6 @@ extra-deps:
 #  commit: feb3b7580c6738eec3b23921f7c1739cfba611aa
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-16.23
+resolver: lts-17.2
 nix:
   packages: [zlib]
