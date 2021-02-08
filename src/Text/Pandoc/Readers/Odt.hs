@@ -23,6 +23,8 @@ import System.FilePath
 
 import Control.Monad.Except (throwError)
 
+import qualified Data.Text as T
+
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
@@ -60,7 +62,8 @@ readOdt' _ bytes = bytesToOdt bytes-- of
 bytesToOdt :: B.ByteString -> Either PandocError (Pandoc, MediaBag)
 bytesToOdt bytes = case toArchiveOrFail bytes of
   Right archive -> archiveToOdt archive
-  Left _        -> Left $ PandocParseError "Couldn't parse odt file."
+  Left err      -> Left $ PandocParseError
+                        $ "Could not unzip ODT: " <> T.pack err
 
 --
 archiveToOdt :: Archive -> Either PandocError (Pandoc, MediaBag)
