@@ -74,6 +74,7 @@ import Text.TeXMath.Readers.OMML (readOMML)
 import Text.TeXMath.Unicode.Fonts (Font (..), getUnicode, textToFont)
 import Text.XML.Light
 import qualified Text.XML.Light.Cursor as XMLC
+import Text.Pandoc.XMLParser (parseXMLElement)
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envComments      :: Comments
@@ -343,10 +344,16 @@ archiveToDocxWithWarnings archive = do
     Right doc -> Right (Docx doc, stateWarnings st)
     Left e    -> Left e
 
+parseXMLFromEntry :: Entry -> Maybe Element
+parseXMLFromEntry entry =
+  case parseXMLElement (UTF8.toTextLazy (fromEntry entry)) of
+    Left _   -> Nothing
+    Right el -> Just el
+
 getDocumentXmlPath :: Archive -> Maybe FilePath
 getDocumentXmlPath zf = do
   entry <- findEntryByPath "_rels/.rels" zf
-  relsElem <- (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
+  relsElem <- parseXMLFromEntry entry
   let rels = filterChildrenName (\n -> qName n == "Relationship") relsElem
   rel <- find (\e -> findAttr (QName "Type" Nothing Nothing) e ==
                        Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument")
@@ -362,7 +369,7 @@ archiveToDocument :: Archive -> D Document
 archiveToDocument zf = do
   docPath <- asks envDocXmlPath
   entry <- maybeToD $ findEntryByPath docPath zf
-  docElem <- maybeToD $ (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
+  docElem <- maybeToD $ parseXMLFromEntry entry
   let namespaces = elemToNameSpaces docElem
   bodyElem <- maybeToD $ findChildByName namespaces "w" "body" docElem
   let bodyElem' = fromMaybe bodyElem (walkDocument namespaces bodyElem)
@@ -401,9 +408,9 @@ constructBogusParStyleData stName = ParStyle
 archiveToNotes :: Archive -> Notes
 archiveToNotes zf =
   let fnElem = findEntryByPath "word/footnotes.xml" zf
-               >>= (parseXMLDoc . UTF8.toStringLazy . fromEntry)
+               >>= parseXMLFromEntry
       enElem = findEntryByPath "word/endnotes.xml" zf
-               >>= (parseXMLDoc . UTF8.toStringLazy . fromEntry)
+               >>= parseXMLFromEntry
       fn_namespaces = maybe [] elemToNameSpaces fnElem
       en_namespaces = maybe [] elemToNameSpaces enElem
       ns = unionBy (\x y -> fst x == fst y) fn_namespaces en_namespaces
@@ -415,7 +422,7 @@ archiveToNotes zf =
 archiveToComments :: Archive -> Comments
 archiveToComments zf =
   let cmtsElem = findEntryByPath "word/comments.xml" zf
-               >>= (parseXMLDoc . UTF8.toStringLazy . fromEntry)
+               >>= parseXMLFromEntry
       cmts_namespaces = maybe [] elemToNameSpaces cmtsElem
       cmts = elemToComments cmts_namespaces <$> (cmtsElem >>= walkDocument cmts_namespaces)
   in
@@ -445,7 +452,7 @@ filePathToRelationships :: Archive -> FilePath -> FilePath ->  [Relationship]
 filePathToRelationships ar docXmlPath fp
   | Just relType <- filePathToRelType fp docXmlPath
   , Just entry <- findEntryByPath fp ar
-  , Just relElems <- (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry =
+  , Just relElems <- parseXMLFromEntry entry =
   mapMaybe (relElemToRelationship relType) $ elChildren relElems
 filePathToRelationships _ _ _ = []
 
@@ -527,7 +534,7 @@ archiveToNumbering' zf =
   case findEntryByPath "word/numbering.xml" zf of
     Nothing -> Just $ Numbering [] [] []
     Just entry -> do
-      numberingElem <- (parseXMLDoc . UTF8.toStringLazy . fromEntry) entry
+      numberingElem <- parseXMLFromEntry entry
       let namespaces = elemToNameSpaces numberingElem
           numElems = findChildrenByName namespaces "w" "num" numberingElem
           absNumElems = findChildrenByName namespaces "w" "abstractNum" numberingElem

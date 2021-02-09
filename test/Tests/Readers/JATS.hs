@@ -88,6 +88,7 @@ tests = [ testGroup "inline code"
             "<p>\n\
             \  <inline-formula><alternatives>\n\
             \  <tex-math><![CDATA[\\sigma|_{\\{x\\}}]]></tex-math>\n\
+            \  </alternatives></inline-formula>\n\
             \</p>"
             =?> para (math "\\sigma|_{\\{x\\}}")
           , test jats "math ml only" $

@@ -19,14 +19,18 @@ import Data.Generics
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Options
+import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.Markdown (readMarkdown)
 import Text.Pandoc.Shared (crFilter, blocksToInlines')
 import Text.XML.Light
+import Text.Pandoc.XMLParser (parseXMLContents)
+import Control.Monad.Except (throwError)
 
 type OPML m = StateT OPMLState m
 
@@ -49,8 +53,10 @@ instance Default OPMLState where
 readOPML :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readOPML opts inp  = do
   (bs, st') <- runStateT
-                 (mapM parseBlock $ normalizeTree $
-                    parseXML (T.unpack (crFilter inp))) def{ opmlOptions = opts }
+                 (case parseXMLContents (TL.fromStrict (crFilter inp)) of
+                     Left msg -> throwError $ PandocXMLError "" msg
+                     Right ns -> mapM parseBlock $ normalizeTree ns)
+                 def{ opmlOptions = opts }
   return $
     setTitle (opmlDocTitle st') $
     setAuthors (opmlDocAuthors st') $

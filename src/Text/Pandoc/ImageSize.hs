@@ -45,7 +45,9 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Text.XML.Light as Xml
+import Text.Pandoc.XMLParser (parseXMLElement)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Encoding as TE
 import Control.Applicative
 import qualified Data.Attoparsec.ByteString.Char8 as A
@@ -327,7 +329,8 @@ getSize img =
 
 svgSize :: WriterOptions -> ByteString -> Maybe ImageSize
 svgSize opts img = do
-  doc <- Xml.parseXMLDoc $ UTF8.toString img
+  doc <- either (const mzero) return $ parseXMLElement
+                                     $ TL.fromStrict $ UTF8.toText img
   let viewboxSize = do
         vb <- Xml.findAttrBy (== Xml.QName "viewBox" Nothing Nothing) doc
         [_,_,w,h] <- mapM safeRead (T.words (T.pack vb))

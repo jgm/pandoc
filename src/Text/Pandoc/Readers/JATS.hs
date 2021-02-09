@@ -14,6 +14,8 @@ Conversion of JATS XML to 'Pandoc' document.
 
 module Text.Pandoc.Readers.JATS ( readJATS ) where
 import Control.Monad.State.Strict
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Error (PandocError(..))
 import Data.Char (isDigit, isSpace, toUpper)
 import Data.Default
 import Data.Generics
@@ -22,6 +24,7 @@ import qualified Data.Map as Map
 import Data.Maybe (maybeToList, fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
@@ -29,6 +32,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared (crFilter, safeRead, extractSpaces)
 import Text.TeXMath (readMathML, writeTeX)
 import Text.XML.Light
+import Text.Pandoc.XMLParser (parseXMLContents)
 import qualified Data.Set as S (fromList, member)
 import Data.Set ((\\))
 
@@ -51,8 +55,9 @@ instance Default JATSState where
 
 readJATS :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readJATS _ inp = do
-  let tree = normalizeTree . parseXML
-               $ T.unpack $ crFilter inp
+  tree <- either (throwError . PandocXMLError "")
+                 (return . normalizeTree) $
+            parseXMLContents (TL.fromStrict $ crFilter inp)
   (bs, st') <- flip runStateT (def{ jatsContent = tree }) $ mapM parseBlock tree
   return $ Pandoc (jatsMeta st') (toList . mconcat $ bs)
 

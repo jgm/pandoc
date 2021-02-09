@@ -48,6 +48,7 @@ data PandocError = PandocIOError Text IOError
                  | PandocFailOnWarningError
                  | PandocPDFProgramNotFoundError Text
                  | PandocPDFError Text
+                 | PandocXMLError Text Text
                  | PandocFilterError Text Text
                  | PandocLuaError Text
                  | PandocCouldNotFindDataFileError Text
@@ -103,6 +104,8 @@ handleError (Left e) =
     PandocPDFProgramNotFoundError pdfprog -> err 47 $
         pdfprog <> " not found. Please select a different --pdf-engine or install " <> pdfprog
     PandocPDFError logmsg -> err 43 $ "Error producing PDF.\n" <> logmsg
+    PandocXMLError fp logmsg -> err 44 $ "Invalid XML" <>
+        (if T.null fp then "" else " in " <> fp) <> ":\n" <> logmsg
     PandocFilterError filtername msg -> err 83 $ "Error running filter " <>
         filtername <> ":\n" <> msg
     PandocLuaError msg -> err 84 $ "Error running Lua:\n" <> msg

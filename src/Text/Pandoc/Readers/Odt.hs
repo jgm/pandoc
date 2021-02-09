@@ -15,6 +15,7 @@ module Text.Pandoc.Readers.Odt ( readOdt ) where
 
 import Codec.Archive.Zip
 import qualified Text.XML.Light as XML
+import Text.Pandoc.XMLParser (parseXMLElement)
 
 import qualified Data.ByteString.Lazy as B
 
@@ -66,18 +67,18 @@ bytesToOdt bytes = case toArchiveOrFail bytes of
 
 --
 archiveToOdt :: Archive -> Either PandocError (Pandoc, MediaBag)
-archiveToOdt archive = either (Left. PandocParseError) Right $ do
-  let onFailure msg Nothing = Left msg
+archiveToOdt archive = do
+  let onFailure msg Nothing = Left $ PandocParseError msg
       onFailure _   (Just x) = Right x
   contentEntry <- onFailure "Could not find content.xml"
                    (findEntryByPath "content.xml" archive)
   stylesEntry <- onFailure "Could not find styles.xml"
                    (findEntryByPath "styles.xml" archive)
-  contentElem <- onFailure "Could not find content element"
-                   (entryToXmlElem contentEntry)
-  stylesElem <- onFailure "Could not find styles element"
-                   (entryToXmlElem stylesEntry)
-  styles <- either (\_ -> Left "Could not read styles") Right
+  contentElem <- entryToXmlElem contentEntry
+  stylesElem <- entryToXmlElem stylesEntry
+  styles <- either
+               (\_ -> Left $ PandocParseError "Could not read styles")
+               Right
                (chooseMax (readStylesAt stylesElem ) (readStylesAt contentElem))
   let filePathIsOdtMedia :: FilePath -> Bool
       filePathIsOdtMedia fp =
@@ -85,10 +86,13 @@ archiveToOdt archive = either (Left. PandocParseError) Right $ do
         in  (dir == "Pictures/") || (dir /= "./" && name == "content.xml")
   let media = filteredFilesFromArchive archive filePathIsOdtMedia
   let startState = readerState styles media
-  either (\_ -> Left "Could not convert opendocument") Right
+  either (\_ -> Left $ PandocParseError "Could not convert opendocument") Right
     (runConverter' read_body startState contentElem)
 
 
 --
-entryToXmlElem :: Entry -> Maybe XML.Element
-entryToXmlElem = XML.parseXMLDoc . UTF8.toStringLazy . fromEntry
+entryToXmlElem :: Entry -> Either PandocError XML.Element
+entryToXmlElem entry =
+  case parseXMLElement . UTF8.toTextLazy . fromEntry $ entry of
+    Right x  -> Right x
+    Left msg -> Left $ PandocXMLError (T.pack $ eRelativePath entry) msg

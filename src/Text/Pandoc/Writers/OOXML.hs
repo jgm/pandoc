@@ -35,6 +35,7 @@ import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.XML.Light as XML
+import Text.Pandoc.XMLParser (parseXMLElement)
 
 mknode :: Node t => String -> [(String,String)] -> t -> Element
 mknode s attrs =
@@ -62,10 +63,10 @@ parseXml refArchive distArchive relpath =
          findEntryByPath relpath distArchive of
             Nothing -> throwError $ PandocSomeError $
                         T.pack relpath <> " missing in reference file"
-            Just e  -> case parseXMLDoc . UTF8.toStringLazy . fromEntry $ e of
-                       Nothing -> throwError $ PandocSomeError $
-                                   T.pack relpath <> " corrupt in reference file"
-                       Just d  -> return d
+            Just e  -> case parseXMLElement . UTF8.toTextLazy . fromEntry $ e of
+                       Left msg ->
+                         throwError $ PandocXMLError (T.pack relpath) msg
+                       Right d  -> return d
 
 -- Copied from Util
 

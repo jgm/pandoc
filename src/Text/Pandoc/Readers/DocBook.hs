@@ -12,7 +12,7 @@ Conversion of DocBook XML to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
 import Control.Monad.State.Strict
-import Data.Char (isSpace, toUpper)
+import Data.Char (isSpace, toUpper, isLetter)
 import Data.Default
 import Data.Either (rights)
 import Data.Foldable (asum)
@@ -21,7 +21,10 @@ import Data.List (intersperse,elemIndex)
 import Data.Maybe (fromMaybe,mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import Control.Monad.Except (throwError)
 import Text.HTML.TagSoup.Entity (lookupEntity)
+import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Options
@@ -29,6 +32,7 @@ import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Shared (crFilter, safeRead, extractSpaces)
 import Text.TeXMath (readMathML, writeTeX)
 import Text.XML.Light
+import Text.Pandoc.XMLParser (parseXMLContents)
 
 {-
 
@@ -537,22 +541,25 @@ instance Default DBState where
 
 readDocBook :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readDocBook _ inp = do
-  let tree = normalizeTree . parseXML . handleInstructions $ crFilter inp
+  tree <- either (throwError . PandocXMLError "") (return . normalizeTree) $
+            parseXMLContents (TL.fromStrict . handleInstructions $ crFilter inp)
   (bs, st') <- flip runStateT (def{ dbContent = tree }) $ mapM parseBlock tree
   return $ Pandoc (dbMeta st') (toList . mconcat $ bs)
 
--- We treat <?asciidoc-br?> specially (issue #1236), converting it
--- to <br/>, since xml-light doesn't parse the instruction correctly.
--- Other xml instructions are simply removed from the input stream.
+-- We treat certain processing instructions by converting them to tags
+-- beginning "pi-".
 handleInstructions :: Text -> Text
-handleInstructions = T.pack . handleInstructions' . T.unpack
-
-handleInstructions' :: String -> String
-handleInstructions' ('<':'?':'a':'s':'c':'i':'i':'d':'o':'c':'-':'b':'r':'?':'>':xs) = '<':'b':'r':'/':'>': handleInstructions' xs
-handleInstructions' xs = case break (=='<') xs of
-                             (ys, [])     -> ys
-                             ([], '<':zs) -> '<' : handleInstructions' zs
-                             (ys, zs)     -> ys ++ handleInstructions' zs
+handleInstructions t =
+  let (x,y) = T.breakOn "<?" t
+   in if T.null y
+         then x
+         else
+           let (w,z) = T.breakOn "?>" y
+            in (if T.takeWhile (\c -> isLetter c || c == '-')
+                    (T.drop 2 w) `elem` ["asciidoc-br", "dbfo"]
+                   then x <> "<pi-" <> T.drop 2 w <> "/>"
+                   else x <> w <> T.take 2 z) <>
+               handleInstructions (T.drop 2 z)
 
 getFigure :: PandocMonad m => Element -> DB m Blocks
 getFigure e = do
@@ -892,7 +899,11 @@ parseBlock (Elem e) =
         "subtitle" -> return mempty  -- handled in parent element
         _       -> skip >> getBlocks e
    where skip = do
-           lift $ report $ IgnoredElement $ T.pack $ qName (elName e)
+           let qn = T.pack $ qName $ elName e
+           let name = if "pi-" `T.isPrefixOf` qn
+                         then "<?" <> qn <> "?>"
+                         else qn
+           lift $ report $ IgnoredElement name
            return mempty
 
          codeBlockWithLang = do
@@ -964,7 +975,7 @@ parseBlock (Elem e) =
                                      cs -> map toAlignment cs
                       let parseWidth s = safeRead (T.filter (\x -> (x >= '0' && x <= '9')
                                                                    || x == '.') s)
-                      let textWidth = case filterChild (named "?dbfo") e of
+                      let textWidth = case filterChild (named "pi-dbfo") e of
                                         Just d  -> case attrValue "table-width" d of
                                                      "" -> 1.0
                                                      w  -> fromMaybe 100.0 (parseWidth w) / 100.0
@@ -1165,12 +1176,15 @@ parseInline (Elem e) =
         "title" -> return mempty
         "affiliation" -> skip
         -- Note: this isn't a real docbook tag; it's what we convert
-        -- <?asciidor-br?> to in handleInstructions, above.  A kludge to
-        -- work around xml-light's inability to parse an instruction.
-        "br" -> return linebreak
+        -- <?asciidor-br?> to in handleInstructions, above.
+        "pi-asciidoc-br" -> return linebreak
         _          -> skip >> innerInlines id
    where skip = do
-           lift $ report $ IgnoredElement $ T.pack $ qName (elName e)
+           let qn = T.pack $ qName $ elName e
+           let name = if "pi-" `T.isPrefixOf` qn
+                         then "<?" <> qn <> "?>"
+                         else qn
+           lift $ report $ IgnoredElement name
            return mempty
 
          innerInlines f = extractSpaces f . mconcat <$>

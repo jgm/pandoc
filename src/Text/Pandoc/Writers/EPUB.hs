@@ -55,8 +55,9 @@ import Text.Pandoc.Walk (query, walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtmlStringForEPUB)
 import Text.Printf (printf)
 import Text.XML.Light (Attr (..), Element (..), Node (..), QName (..),
-                       add_attrs, lookupAttr, node, onlyElems, parseXML,
+                       add_attrs, lookupAttr, node, onlyElems,
                        ppElement, showElement, strContent, unode, unqual)
+import Text.Pandoc.XMLParser (parseXMLContents)
 import Text.Pandoc.XML (escapeStringForXML)
 import Text.DocTemplates (FromContext(lookupContext), Context(..),
                           ToContext(toVal), Val(..))
@@ -160,7 +161,12 @@ mkEntry path content = do
 getEPUBMetadata :: PandocMonad m => WriterOptions -> Meta -> E m EPUBMetadata
 getEPUBMetadata opts meta = do
   let md = metadataFromMeta opts meta
-  let elts = maybe [] (onlyElems . parseXML) $ writerEpubMetadata opts
+  elts <- case writerEpubMetadata opts of
+            Nothing -> return []
+            Just t -> case parseXMLContents (TL.fromStrict t) of
+                          Left msg -> throwError $
+                            PandocXMLError "epub metadata" msg
+                          Right ns -> return (onlyElems ns)
   let md' = foldr addMetadataFromXML md elts
   let addIdentifier m =
        if null (epubIdentifier m)
@@ -836,7 +842,8 @@ pandocToEPUB version opts doc = do
                                             : case subs of
                                                  []    -> []
                                                  (_:_) -> [unode "ol" ! [("class","toc")] $ subs]
-          where titElements = parseXML titRendered
+          where titElements = either (const []) id $
+                                parseXMLContents (TL.fromStrict titRendered)
                 titRendered = case P.runPure
                                (writeHtmlStringForEPUB version
                                  opts{ writerTemplate = Nothing

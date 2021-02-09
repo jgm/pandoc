@@ -1464,6 +1464,7 @@ Nonzero exit codes have the following meanings:
    24 PandocCiteprocError
    31 PandocEpubSubdirectoryError
    43 PandocPDFError
+   44 PandocXMLError
    47 PandocPDFProgramNotFoundError
    61 PandocHttpError
    62 PandocShouldNeverHappenError

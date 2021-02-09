@@ -29,6 +29,7 @@ import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds, posixSecondsToUTCTime)
 import System.FilePath.Posix (splitDirectories, splitExtension, takeExtension)
 import Text.XML.Light
+import Text.Pandoc.XMLParser (parseXMLElement)
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
@@ -77,7 +78,8 @@ getPresentationSize :: Archive -> Archive -> Maybe (Integer, Integer)
 getPresentationSize refArchive distArchive = do
   entry <- findEntryByPath "ppt/presentation.xml" refArchive  `mplus`
            findEntryByPath "ppt/presentation.xml" distArchive
-  presElement <- parseXMLDoc $ UTF8.toStringLazy $ fromEntry entry
+  presElement <- either (const Nothing) return $
+                   parseXMLElement $ UTF8.toTextLazy $ fromEntry entry
   let ns = elemToNameSpaces presElement
   sldSize <- findChild (elemName ns "p" "sldSz") presElement
   cxS <- findAttr (QName "cx" Nothing Nothing) sldSize

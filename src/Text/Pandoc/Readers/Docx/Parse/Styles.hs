@@ -53,6 +53,7 @@ import Data.Coerce
 import Text.Pandoc.Readers.Docx.Util
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.XML.Light
+import Text.Pandoc.XMLParser (parseXMLElement)
 
 newtype CharStyleId   = CharStyleId T.Text
   deriving (Show, Eq, Ord, IsString, FromStyleId)
@@ -135,19 +136,22 @@ defaultRunStyle = RunStyle { isBold = Nothing
                            , rParentStyle = Nothing
                            }
 
-archiveToStyles' :: (Ord k1, Ord k2, ElemToStyle a1, ElemToStyle a2) =>
-                    (a1 -> k1) -> (a2 -> k2) -> Archive -> (M.Map k1 a1, M.Map k2 a2)
+archiveToStyles'
+  :: (Ord k1, Ord k2, ElemToStyle a1, ElemToStyle a2)
+  => (a1 -> k1) -> (a2 -> k2) -> Archive -> (M.Map k1 a1, M.Map k2 a2)
 archiveToStyles' conv1 conv2 zf =
-  let stylesElem = findEntryByPath "word/styles.xml" zf >>=
-                   (parseXMLDoc . UTF8.toStringLazy . fromEntry)
-  in
-   case stylesElem of
-     Nothing -> (M.empty, M.empty)
-     Just styElem ->
-       let namespaces = elemToNameSpaces styElem
-       in
-        ( M.fromList $ map (\r -> (conv1 r, r)) $ buildBasedOnList namespaces styElem Nothing,
-          M.fromList $ map (\p -> (conv2 p, p)) $ buildBasedOnList namespaces styElem Nothing)
+  case findEntryByPath "word/styles.xml" zf of
+    Nothing -> (M.empty, M.empty)
+    Just entry ->
+      case parseXMLElement . UTF8.toTextLazy . fromEntry $ entry of
+        Left _ -> (M.empty, M.empty)
+        Right styElem ->
+          let namespaces = elemToNameSpaces styElem
+          in
+           ( M.fromList $ map (\r -> (conv1 r, r)) $
+               buildBasedOnList namespaces styElem Nothing,
+             M.fromList $ map (\p -> (conv2 p, p)) $
+               buildBasedOnList namespaces styElem Nothing)
 
 isBasedOnStyle :: (ElemToStyle a, FromStyleId (StyleId a)) => NameSpaces -> Element -> Maybe a -> Bool
 isBasedOnStyle ns element parentStyle

@@ -32,6 +32,7 @@ import Data.List (intersperse)
 import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import Data.Default
 import Data.Maybe
 import Text.HTML.TagSoup.Entity (lookupEntity)
@@ -42,6 +43,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (crFilter)
 import Text.XML.Light
+import Text.Pandoc.XMLParser (parseXMLElement)
 
 type FB2 m = StateT FB2State m
 
@@ -64,10 +66,10 @@ instance HasMeta FB2State where
 
 readFB2 :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readFB2 _ inp =
-  case parseXMLDoc $ crFilter inp of
-    Nothing -> throwError $ PandocParseError "Not an XML document"
-    Just e ->  do
-      (bs, st) <- runStateT (parseRootElement e) def
+  case parseXMLElement $ TL.fromStrict $ crFilter inp of
+    Left msg -> throwError $ PandocXMLError "" msg
+    Right el ->  do
+      (bs, st) <- runStateT (parseRootElement el) def
       let authors = if null $ fb2Authors st
                     then id
                     else setMeta "author" (map text $ reverse $ fb2Authors st)

@@ -19,7 +19,7 @@ FictionBook is an XML-based e-book format. For more information see:
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
 import Control.Monad (zipWithM)
-import Control.Monad.Except (catchError)
+import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict (StateT, evalStateT, get, gets, lift, liftM, modify)
 import Data.ByteString.Base64 (encode)
 import Data.Char (isAscii, isControl, isSpace)
@@ -27,16 +27,18 @@ import Data.Either (lefts, rights)
 import Data.List (intercalate)
 import Data.Text (Text, pack)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Encoding as TE
 import Network.HTTP (urlEncode)
 import Text.XML.Light
 import qualified Text.XML.Light as X
 import qualified Text.XML.Light.Cursor as XC
-import qualified Text.XML.Light.Input as XI
+import Text.Pandoc.XMLParser (parseXMLContents)
 
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
+import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
 import Text.Pandoc.Shared (capitalize, isURI, orderedListMarkers,
@@ -307,7 +309,10 @@ blockToXml (CodeBlock _ s) = return . spaceBeforeAfter .
                              map (el "p" . el "code" . T.unpack) . T.lines $ s
 blockToXml (RawBlock f str) =
   if f == Format "fb2"
-    then return $ XI.parseXML str
+    then
+      case parseXMLContents (TL.fromStrict str) of
+         Left msg  -> throwError $ PandocXMLError "" msg
+         Right nds -> return nds
     else return []
 blockToXml (Div _ bs) = cMapM blockToXml bs
 blockToXml (BlockQuote bs) = list . el "cite" <$> cMapM blockToXml bs

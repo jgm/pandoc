@@ -13,7 +13,7 @@ Conversion of 'Pandoc' documents to ODT.
 -}
 module Text.Pandoc.Writers.ODT ( writeODT ) where
 import Codec.Archive.Zip
-import Control.Monad.Except (catchError)
+import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict
 import qualified Data.ByteString.Lazy as B
 import Data.Generics (everywhere', mkT)
@@ -27,6 +27,7 @@ import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
+import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
@@ -35,10 +36,11 @@ import Text.DocLayout
 import Text.Pandoc.Shared (stringify, pandocVersion, tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
                                    fixDisplayMath)
-import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toStringLazy)
+import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toTextLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
 import Text.Pandoc.XML
+import Text.Pandoc.XMLParser (parseXMLElement)
 import Text.TeXMath
 import Text.XML.Light
 
@@ -172,17 +174,18 @@ updateStyleWithLang :: PandocMonad m => Maybe Lang -> Archive -> O m Archive
 updateStyleWithLang Nothing arch = return arch
 updateStyleWithLang (Just lang) arch = do
   epochtime <- floor `fmap` lift P.getPOSIXTime
-  return arch{ zEntries = [if eRelativePath e == "styles.xml"
-                              then case parseXMLDoc
-                                      (toStringLazy (fromEntry e)) of
-                                      Nothing -> e
-                                      Just d ->
-                                        toEntry "styles.xml" epochtime
-                                        ( fromStringLazy
-                                        . ppTopElement
-                                        . addLang lang $ d )
-                              else e
-                            | e <- zEntries arch] }
+  entries <- mapM (\e -> if eRelativePath e == "styles.xml"
+                            then case parseXMLElement
+                                    (toTextLazy (fromEntry e)) of
+                                    Left msg -> throwError $
+                                        PandocXMLError "styles.xml" msg
+                                    Right d -> return $
+                                      toEntry "styles.xml" epochtime
+                                      ( fromStringLazy
+                                      . ppTopElement
+                                      . addLang lang $ d )
+                            else return e) (zEntries arch)
+  return arch{ zEntries = entries }
 
 addLang :: Lang -> Element -> Element
 addLang lang = everywhere' (mkT updateLangAttr)
