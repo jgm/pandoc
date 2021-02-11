@@ -312,7 +312,7 @@ presentationToArchive opts pres = do
                      Nothing -> toArchive . BL.fromStrict <$>
                         P.readDataFile "reference.pptx"
 
-  utctime <- P.getCurrentTime
+  utctime <- P.getTimestamp
 
   presSize <- case getPresentationSize refArchive distArchive of
                 Just sz -> return sz

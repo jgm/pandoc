@@ -217,7 +217,7 @@ writeDocx opts doc = do
   let doc' = Pandoc meta blocks'
 
   username <- P.lookupEnv "USERNAME"
-  utctime <- P.getCurrentTime
+  utctime <- P.getTimestamp
   oldUserDataDir <- P.getUserDataDir
   P.setUserDataDir Nothing
   res <- P.readDefaultDataFile "reference.docx"

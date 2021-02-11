@@ -191,7 +191,7 @@ getEPUBMetadata opts meta = do
   let fixDate m =
        if null (epubDate m)
           then do
-            currentTime <- lift P.getCurrentTime
+            currentTime <- lift P.getTimestamp
             return $ m{ epubDate = [ Date{
                              dateText = showDateTimeISO8601 currentTime
                            , dateEvent = Nothing } ] }
@@ -709,7 +709,7 @@ pandocToEPUB version opts doc = do
   uuid <- case epubIdentifier metadata of
             (x:_) -> return $ identifierText x  -- use first identifier as UUID
             []    -> throwError $ PandocShouldNeverHappenError "epubIdentifier is null"  -- shouldn't happen
-  currentTime <- lift P.getCurrentTime
+  currentTime <- lift P.getTimestamp
   let contentsData = UTF8.fromStringLazy $ ppTopElement $
         unode "package" !
           ([("version", case version of

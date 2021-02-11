@@ -68,7 +68,7 @@ pandocToODT :: PandocMonad m
 pandocToODT opts doc@(Pandoc meta _) = do
   let title = docTitle meta
   let authors = docAuthors meta
-  utctime <- P.getCurrentTime
+  utctime <- P.getTimestamp
   lang <- toLang (getLang opts meta)
   refArchive <-
        case writerReferenceDoc opts of
