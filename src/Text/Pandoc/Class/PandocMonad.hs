@@ -51,6 +51,7 @@ module Text.Pandoc.Class.PandocMonad
   , setTranslations
   , translateTerm
   , makeCanonical
+  , getSourceDateEpoch
   ) where
 
 import Codec.Archive.Zip
@@ -59,7 +60,8 @@ import Control.Monad.Except (MonadError (catchError, throwError),
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.Maybe (fromMaybe)
 import Data.Time (UTCTime)
-import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
+import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds,
+                             posixSecondsToUTCTime)
 import Data.Time.LocalTime (TimeZone, ZonedTime, utcToZonedTime)
 import Network.URI ( escapeURIString, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI,
@@ -74,7 +76,7 @@ import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia)
-import Text.Pandoc.Shared (uriPathToPath)
+import Text.Pandoc.Shared (uriPathToPath, safeRead)
 import Text.Pandoc.Translations (Term(..), Translations, lookupTerm,
                                  readTranslations)
 import Text.Pandoc.Walk (walkM)
@@ -174,6 +176,21 @@ report msg = do
   let level = messageVerbosity msg
   when (level <= verbosity) $ logOutput msg
   modifyCommonState $ \st -> st{ stLog = msg : stLog st }
+
+-- | Get the from the @SOURCE_DATE_EPOCH@
+-- environment variable. The variable should contain an
+-- unix time stamp, the number of seconds since Jan 01
+-- 1970 UTC.  If the variable is not set or cannot be
+-- parsed as a unix time stamp, the current time is returned.
+-- This function is designed to make possible reproducible
+-- builds in formats that include the current date.
+getSourceDateEpoch :: PandocMonad m => m UTCTime
+getSourceDateEpoch = do
+  mbSourceDateEpoch <- lookupEnv "SOURCE_DATE_EPOCH"
+  case mbSourceDateEpoch >>= safeRead of
+    Just (epoch :: Integer) ->
+      return $ posixSecondsToUTCTime $ fromIntegral epoch
+    Nothing -> getCurrentTime
 
 -- | Determine whether tracing is enabled.  This affects
 -- the behavior of 'trace'.  If tracing is not enabled,
