@@ -34,6 +34,9 @@ tests =
   [ testGroup "para"
     [ "Simple sentence" =:
       "Hello, World!" =?> para "Hello, World!"
+
+    , "leading blank lines" =:
+      "\n\ntext" =?> para "text"
     ]
 
   , testGroup "header"
@@ -130,6 +133,10 @@ tests =
       [ "external" =:
         "[Example|https://example.org]" =?>
         para (link "https://example.org" "" "Example")
+
+      , "URL in alias" =:
+        "[See https://example.com|https://example.com]" =?>
+        para (link "https://example.com" "" "See https://example.com")
 
       , "email" =:
         "[mailto:me@example.org]" =?>
