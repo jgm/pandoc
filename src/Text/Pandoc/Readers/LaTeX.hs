@@ -1867,7 +1867,6 @@ rawEnv name = do
   rawOptions <- mconcat <$> many rawopt
   let beginCommand = "\\begin{" <> name <> "}" <> rawOptions
   pos1 <- getPosition
-  (bs, raw) <- withRaw $ env name blocks
   if parseRaw
      then do
        (_, raw) <- withRaw $ env name blocks
