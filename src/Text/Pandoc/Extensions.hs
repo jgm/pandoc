@@ -378,7 +378,6 @@ getDefaultExtensions "commonmark_x"    = extensionsFromList
   , Ext_raw_attribute
   , Ext_implicit_header_references
   , Ext_attributes
-  , Ext_fenced_code_attributes
   ]
 getDefaultExtensions "org"             = extensionsFromList
                                           [Ext_citations,
@@ -509,7 +508,6 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_raw_attribute
     , Ext_implicit_header_references
     , Ext_attributes
-    , Ext_fenced_code_attributes
     , Ext_sourcepos
     ]
   getAll "commonmark_x"    = getAll "commonmark"
