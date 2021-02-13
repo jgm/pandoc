@@ -70,6 +70,7 @@ module Text.Pandoc.Shared (
                      isTightList,
                      taskListItemFromAscii,
                      taskListItemToAscii,
+                     handleTaskListItem,
                      addMetaField,
                      makeMeta,
                      eastAsianLineBreakFilter,
