@@ -382,6 +382,7 @@ getDefaultExtensions "commonmark_x"    = extensionsFromList
   ]
 getDefaultExtensions "org"             = extensionsFromList
                                           [Ext_citations,
+                                           Ext_task_lists,
                                            Ext_auto_identifiers]
 getDefaultExtensions "html"            = extensionsFromList
                                           [Ext_auto_identifiers,
@@ -517,6 +518,7 @@ getAllExtensions f = universalExtensions <> getAll f
     extensionsFromList
     [ Ext_citations
     , Ext_smart
+    , Ext_task_lists
     ]
   getAll "html"            = autoIdExtensions <>
     extensionsFromList

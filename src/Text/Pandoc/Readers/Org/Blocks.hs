@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Blocks
    Copyright   : Copyright (C) 2014-2021 Albert Krewinkel
@@ -850,16 +851,52 @@ definitionListItem parseIndentedMarker = try $ do
    definitionMarker =
      spaceChar *> string "::" <* (spaceChar <|> lookAhead newline)
 
+-- | Checkbox for tasks.
+data Checkbox
+  = UncheckedBox
+  | CheckedBox
+  | SemicheckedBox
+
+-- | Parses a checkbox in a plain list.
+checkbox :: PandocMonad m
+         => OrgParser m Checkbox
+checkbox = do
+  guardEnabled Ext_task_lists
+  try (char '[' *> status <* char ']') <?> "checkbox"
+  where
+    status = choice
+      [ UncheckedBox   <$ char ' '
+      , CheckedBox     <$ char 'X'
+      , SemicheckedBox <$ char '-'
+      ]
+
+checkboxToInlines :: Checkbox -> Inline
+checkboxToInlines = B.Str . \case
+  UncheckedBox   -> "☐"
+  SemicheckedBox -> "☐"
+  CheckedBox     -> "☒"
+
 -- | parse raw text for one list item
 listItem :: PandocMonad m
          => OrgParser m Int
          -> OrgParser m (F Blocks)
 listItem parseIndentedMarker = try . withContext ListItemState $ do
   markerLength <- try parseIndentedMarker
+  box <- optionMaybe checkbox
   firstLine <- anyLineNewline
   blank <- option "" ("\n" <$ blankline)
   rest <- T.concat <$> many (listContinuation markerLength)
-  parseFromString blocks $ firstLine <> blank <> rest
+  contents <- parseFromString blocks $ firstLine <> blank <> rest
+  return (maybe id (prependInlines . checkboxToInlines) box <$> contents)
+
+-- | Prepend inlines to blocks, adding them to the first paragraph or
+-- creating a new Plain element if necessary.
+prependInlines :: Inline -> Blocks -> Blocks
+prependInlines inlns = B.fromList . prepend . B.toList
+  where
+    prepend (Plain is : bs) = Plain (inlns : Space : is) : bs
+    prepend (Para  is : bs) = Para  (inlns : Space : is) : bs
+    prepend bs              = Plain [inlns, Space] : bs
 
 -- continuation of a list item - indented and separated by blankline or endline.
 -- Note: nested lists are parsed as continuations.
