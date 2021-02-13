@@ -26,7 +26,7 @@ module Text.Pandoc.Readers.HTML ( readHtml
 
 import Control.Applicative ((<|>))
 import Control.Monad (guard, msum, mzero, unless, void)
-import Control.Monad.Except (throwError)
+import Control.Monad.Except (throwError, catchError)
 import Control.Monad.Reader (ask, asks, lift, local, runReaderT)
 import Data.ByteString.Base64 (encode)
 import Data.Char (isAlphaNum, isLetter)
@@ -393,11 +393,17 @@ pIframe = try $ do
   tag <- pSatisfy (tagOpen (=="iframe") (isJust . lookup "src"))
   pCloses "iframe" <|> eof
   url <- canonicalizeUrl $ fromAttrib "src" tag
-  (bs, _) <- openURL url
-  let inp = UTF8.toText bs
-  opts <- readerOpts <$> getState
-  Pandoc _ contents <- readHtml opts inp
-  return $ B.divWith ("",["iframe"],[]) $ B.fromList contents
+  if T.null url
+     then ignore $ renderTags' [tag, TagClose "iframe"]
+     else catchError
+       (do (bs, _) <- openURL url
+           let inp = UTF8.toText bs
+           opts <- readerOpts <$> getState
+           Pandoc _ contents <- readHtml opts inp
+           return $ B.divWith ("",["iframe"],[]) $ B.fromList contents)
+       (\e -> do
+         logMessage $ CouldNotFetchResource url (renderError e)
+         ignore $ renderTags' [tag, TagClose "iframe"])
 
 pRawHtmlBlock :: PandocMonad m => TagParser m Blocks
 pRawHtmlBlock = do
