@@ -1869,9 +1869,12 @@ rawEnv name = do
   pos1 <- getPosition
   (bs, raw) <- withRaw $ env name blocks
   if parseRaw
-     then return $ rawBlock "latex"
+     then do
+       (_, raw) <- withRaw $ env name blocks
+       return $ rawBlock "latex"
                  $ beginCommand <> untokenize raw
      else do
+       bs <- env name blocks
        report $ SkippedContent beginCommand pos1
        pos2 <- getPosition
        report $ SkippedContent ("\\end{" <> name <> "}") pos2
