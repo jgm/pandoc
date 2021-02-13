@@ -1054,7 +1054,7 @@ romanNumeralArg = spaces *> (parser <|> inBraces)
       symbol '}'
       return res
     parser = do
-      Tok _ Word s <- satisfyTok isWordTok
+      s <- untokenize <$> many1 (satisfyTok isWordTok)
       let (digits, rest) = T.span isDigit s
       unless (T.null rest) $
         Prelude.fail "Non-digits in argument to \\Rn or \\RN"
@@ -2208,9 +2208,7 @@ parseTableRow envname prefsufs = do
         option [] (count 1 amp)
         return $ map (setpos prefpos) pref ++ contents ++ map (setpos suffpos) suff
   rawcells <- mapM celltoks prefsufs
-  oldInput <- getInput
-  cells <- mapM (\ts -> setInput ts >> parseTableCell) rawcells
-  setInput oldInput
+  cells <- mapM (parseFromToks parseTableCell) rawcells
   spaces
   return $ Row nullAttr cells
 

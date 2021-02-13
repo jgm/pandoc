@@ -32,6 +32,8 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , totoks
   , toksToString
   , satisfyTok
+  , parseFromToks
+  , disablingWithRaw
   , doMacros
   , doMacros'
   , setpos
@@ -87,13 +89,15 @@ import Control.Monad.Trans (lift)
 import Data.Char (chr, isAlphaNum, isDigit, isLetter, ord)
 import Data.Default
 import Data.List (intercalate)
+import qualified Data.IntMap as IntMap
 import qualified Data.Map as M
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
-import Text.Pandoc.Error (PandocError (PandocMacroLoop))
+import Text.Pandoc.Error
+         (PandocError (PandocMacroLoop,PandocShouldNeverHappenError))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
@@ -153,6 +157,8 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sToggles       :: M.Map Text Bool
                             , sExpanded      :: Bool
                             , sFileContents  :: M.Map Text Text
+                            , sEnableWithRaw :: Bool
+                            , sRawTokens     :: IntMap.IntMap [Tok]
                             }
      deriving Show
 
@@ -179,6 +185,8 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sToggles       = M.empty
                               , sExpanded      = False
                               , sFileContents  = M.empty
+                              , sEnableWithRaw = True
+                              , sRawTokens     = IntMap.empty
                               }
 
 instance PandocMonad m => HasQuoteContext LaTeXState m where
@@ -404,11 +412,31 @@ untoken t = untokenAccum t mempty
 toksToString :: [Tok] -> String
 toksToString = T.unpack . untokenize
 
+parseFromToks :: PandocMonad m => LP m a -> [Tok] -> LP m a
+parseFromToks parser toks = do
+  oldInput <- getInput
+  setInput toks
+  result <- disablingWithRaw parser
+  setInput oldInput
+  return result
+
+disablingWithRaw :: PandocMonad m => LP m a -> LP m a
+disablingWithRaw parser = do
+  oldEnableWithRaw <- sEnableWithRaw <$> getState
+  updateState $ \st -> st{ sEnableWithRaw = False }
+  result <- parser
+  updateState $ \st -> st{ sEnableWithRaw = oldEnableWithRaw }
+  return result
+
 satisfyTok :: PandocMonad m => (Tok -> Bool) -> LP m Tok
 satisfyTok f = do
     doMacros -- apply macros on remaining input stream
     res <- tokenPrim (T.unpack . untoken) updatePos matcher
-    updateState $ \st -> st{ sExpanded = False }
+    updateState $ \st -> st{ sExpanded = False
+                           , sRawTokens =
+                              if sEnableWithRaw st
+                                 then IntMap.map (res:) $ sRawTokens st
+                                 else sRawTokens st }
     return res
   where matcher t | f t       = Just t
                   | otherwise = Nothing
@@ -594,18 +622,22 @@ isCommentTok _                 = False
 anyTok :: PandocMonad m => LP m Tok
 anyTok = satisfyTok (const True)
 
+singleCharTok :: PandocMonad m => LP m Tok
+singleCharTok =
+  satisfyTok $ \case
+     Tok _ Word  t   -> T.length t == 1
+     Tok _ Symbol t  -> not (T.any (`Set.member` specialChars) t)
+     _               -> False
+
 singleChar :: PandocMonad m => LP m Tok
-singleChar = try $ do
-  Tok pos toktype t <- satisfyTok (tokTypeIn [Word, Symbol])
-  guard $ not $ toktype == Symbol &&
-                T.any (`Set.member` specialChars) t
-  if T.length t > 1
-     then do
-       let (t1, t2) = (T.take 1 t, T.drop 1 t)
-       inp <- getInput
-       setInput $ Tok (incSourceColumn pos 1) toktype t2 : inp
-       return $ Tok pos toktype t1
-     else return $ Tok pos toktype t
+singleChar = singleCharTok <|> singleCharFromWord
+ where
+  singleCharFromWord = do
+    Tok pos toktype t <- disablingWithRaw $ satisfyTok isWordTok
+    let (t1, t2) = (T.take 1 t, T.drop 1 t)
+    inp <- getInput
+    setInput $ Tok pos toktype t1 : Tok (incSourceColumn pos 1) toktype t2 : inp
+    anyTok
 
 specialChars :: Set.Set Char
 specialChars = Set.fromList "#$%&~_^\\{}"
@@ -725,11 +757,23 @@ ignore raw = do
 
 withRaw :: PandocMonad m => LP m a -> LP m (a, [Tok])
 withRaw parser = do
-  inp <- getInput
+  rawTokensMap <- sRawTokens <$> getState
+  let key = case IntMap.lookupMax rawTokensMap of
+               Nothing     -> 0
+               Just (n,_)  -> n + 1
+  -- insert empty list at key
+  updateState $ \st -> st{ sRawTokens =
+                             IntMap.insert key [] $ sRawTokens st }
   result <- parser
-  nxtpos <- option Nothing ((\(Tok pos' _ _) -> Just pos') <$> lookAhead anyTok)
-  let raw = takeWhile (\(Tok pos _ _) -> maybe True
-                  (\p -> sourceName p /= sourceName pos || pos < p) nxtpos) inp
+  mbRevToks <- IntMap.lookup key . sRawTokens <$> getState
+  raw <- case mbRevToks of
+           Just revtoks -> do
+             updateState $ \st -> st{ sRawTokens =
+                                        IntMap.delete key $ sRawTokens st}
+             return $ reverse revtoks
+           Nothing      ->
+             throwError $ PandocShouldNeverHappenError $
+                "sRawTokens has nothing at key " <> T.pack (show key)
   return (result, raw)
 
 keyval :: PandocMonad m => LP m (Text, Text)
@@ -794,7 +838,7 @@ getRawCommand name txt = do
   (_, rawargs) <- withRaw $
       case name of
            "write" -> do
-             void $ satisfyTok isWordTok -- digits
+             void $ many $ satisfyTok isDigitTok -- digits
              void braced
            "titleformat" -> do
              void braced
@@ -808,6 +852,10 @@ getRawCommand name txt = do
                option "" (try dimenarg)
                void $ many braced
   return $ txt <> untokenize rawargs
+
+isDigitTok :: Tok -> Bool
+isDigitTok (Tok _ Word t) = T.all isDigit t
+isDigitTok _              = False
 
 skipopts :: PandocMonad m => LP m ()
 skipopts = skipMany (void overlaySpecification <|> void rawopt)
