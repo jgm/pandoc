@@ -18,48 +18,37 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 import Text.Pandoc
 import Text.Pandoc.MIME
-import Control.Monad.Except (throwError, liftIO)
+import Control.Monad.Except (throwError)
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString as B
 import qualified Data.Text as T
 import Test.Tasty.Bench
-import Data.List (intersect)
-import Data.Maybe (mapMaybe, catMaybes)
-import System.Environment (getArgs)
 import qualified Data.ByteString.Lazy as BL
-
-data Input = InputText {unInputText :: T.Text}
-           | InputBS {unInputBS :: BL.ByteString}
+import Data.Maybe (mapMaybe)
 
 readerBench :: Pandoc
             -> T.Text
-            -> IO (Maybe Benchmark)
-readerBench doc name = do
-  let (rdr, rexts) = either (error . show) id . runPure $ getReader name
-  res <- runIO $ do
-          (wtr, wexts) <- getWriter name
-          case (rdr, wtr) of
-            (TextReader r, TextWriter w) -> do
-                     setResourcePath ["./test"]
-                     inp <- w def{ writerWrapText = WrapAuto
-                                 , writerExtensions = wexts } doc
-                     return (r def{ readerExtensions = rexts } . unInputText, InputText inp)
-            (ByteStringReader r, ByteStringWriter w) -> do
-                     setResourcePath ["./test"]
-                     tmpl <- Just <$> compileDefaultTemplate name
-                     inp <- w def{ writerWrapText = WrapAuto
-                                 , writerExtensions = wexts
-                                 , writerTemplate = tmpl } doc
-                     liftIO $ BL.writeFile "/tmp/test.odt" inp
-                     return (r def{ readerExtensions = rexts } . unInputBS, InputBS inp)
-            _ -> throwError $ PandocSomeError $ "text/bytestring format mismatch: "
-                                 <> name
-  return $ case res of
-       Right (readerFun, inp) ->
-          Just $ bench (T.unpack name)
-               $ nf (\i -> either (error . show) id $ runPure (readerFun i))
-                 inp
-       Left _ -> Nothing
+            -> Maybe Benchmark
+readerBench doc name = either (const Nothing) Just $
+  runPure $ do
+    (rdr, rexts) <- getReader name
+    (wtr, wexts) <- getWriter name
+    case (rdr, wtr) of
+      (TextReader r, TextWriter w) -> do
+        inp <- w def{ writerWrapText = WrapAuto
+                    , writerExtensions = wexts } doc
+        return $ bench (T.unpack name) $
+          nf (either (error . show) id . runPure . r def) inp
+      (ByteStringReader r, ByteStringWriter w) -> do
+        tmpl <- Just <$> compileDefaultTemplate name
+        inp <- w def{ writerWrapText = WrapAuto
+                    , writerExtensions = wexts
+                    , writerTemplate = tmpl } doc
+        return $ bench (T.unpack name) $
+          nf (either (error . show) id .
+                runPure . r def{readerExtensions = rexts}) inp
+      _ -> throwError $ PandocSomeError $ "text/bytestring format mismatch: "
+                           <> name
 
 getImages :: IO [(FilePath, MimeType, BL.ByteString)]
 getImages = do
@@ -72,51 +61,29 @@ writerBench :: [(FilePath, MimeType, BL.ByteString)]
             -> Pandoc
             -> T.Text
             -> Maybe Benchmark
-writerBench imgs doc name =
-  case res of
-       Right writerFun ->
-          Just $ bench (T.unpack name)
+writerBench imgs doc name = either (const Nothing) Just $
+  runPure $ do
+    (wtr, wexts) <- getWriter name
+    case wtr of
+      TextWriter writerFun ->
+        return $ bench (T.unpack name)
                $ nf (\d -> either (error . show) id $
-                            runPure (do mapM_
-                                          (\(fp, mt, bs) ->
-                                            insertMedia fp (Just mt) bs)
-                                          imgs
-                                        writerFun d)) doc
-       Left _ -> Nothing
-  where res = runPure $ do
-          (wtr, wexts) <- getWriter name
-          case wtr of
-            TextWriter w ->
-              return $ w def{ writerExtensions = wexts }
-            _ -> throwError $ PandocSomeError
-                 $ "could not get text writer for " <> name
+                       runPure $ do
+                         mapM_ (\(fp,mt,bs) -> insertMedia fp (Just mt) bs) imgs
+                         writerFun def{ writerExtensions = wexts} d)
+                    doc
+      _ -> throwError $ PandocSomeError
+                      $ "could not get text writer for " <> name
 
 main :: IO ()
 main = do
-  args <- filter (\x -> T.take 1 x /= "-") . fmap T.pack <$> getArgs
-  print args
-  let matchReader (n, _) =
-         null args || ("reader" `elem` args && n `elem` args)
-      matchWriter (n, TextWriter _) =
-         null args || ("writer" `elem` args && n `elem` args)
-      matchWriter _                 = False
-      allWriters = map fst (writers :: [(T.Text, Writer PandocPure)])
-      matchedReaders = map fst (filter matchReader readers
-                                    :: [(T.Text, Reader PandocPure)])
-      matchedWriters = map fst (filter matchWriter writers
-                                    :: [(T.Text, Writer PandocPure)])
   inp <- UTF8.toText <$> B.readFile "test/testsuite.txt"
   let opts = def
   let doc = either (error . show) id $ runPure $ readMarkdown opts inp
-  readerBs <- fmap catMaybes
-              $ mapM (readerBench doc)
-              $ filter (/="haddock")
-              (matchedReaders `intersect` allWriters)
-                 -- we need the corresponding writer to generate
-                 -- input for the reader
   imgs <- getImages
-  let writerBs = mapMaybe (writerBench imgs doc) matchedWriters
   defaultMain
-    [ bgroup "writers" writerBs
-    , bgroup "readers" readerBs
+    [ bgroup "writers" $ mapMaybe (writerBench imgs doc . fst)
+                         (writers :: [(T.Text, Writer PandocPure)])
+    , bgroup "readers" $ mapMaybe (readerBench doc . fst)
+                         (readers :: [(T.Text, Reader PandocPure)])
     ]
