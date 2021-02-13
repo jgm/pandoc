@@ -16,9 +16,10 @@ encountered during parsing.
 -}
 module Text.Pandoc.Error (
   PandocError(..),
+  renderError,
   handleError) where
 
-import Control.Exception (Exception)
+import Control.Exception (Exception, displayException)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Data.Text (Text)
@@ -68,19 +69,17 @@ data PandocError = PandocIOError Text IOError
 
 instance Exception PandocError
 
--- | Handle PandocError by exiting with an error message.
-handleError :: Either PandocError a -> IO a
-handleError (Right r) = return r
-handleError (Left e) =
+renderError :: PandocError -> Text
+renderError e =
   case e of
-    PandocIOError _ err' -> ioError err'
-    PandocHttpError u err' -> err 61 $
+    PandocIOError _ err' -> T.pack $ displayException err'
+    PandocHttpError u err' ->
       "Could not fetch " <> u <> "\n" <> tshow err'
-    PandocShouldNeverHappenError s -> err 62 $
+    PandocShouldNeverHappenError s ->
       "Something we thought was impossible happened!\n" <>
       "Please report this to pandoc's developers: " <> s
-    PandocSomeError s -> err 63 s
-    PandocParseError s -> err 64 s
+    PandocSomeError s -> s
+    PandocParseError s -> s
     PandocParsecError input err' ->
         let errPos = errorPos err'
             errLine = sourceLine errPos
@@ -91,41 +90,41 @@ handleError (Left e) =
                                           ,"\n", T.replicate (errColumn - 1) " "
                                           ,"^"]
                         else ""
-        in  err 65 $ "\nError at " <> tshow  err' <>
+        in  "\nError at " <> tshow  err' <>
                      -- if error comes from a chunk or included file,
                      -- then we won't get the right text this way:
                      if sourceName errPos == "source"
                         then errorInFile
                         else ""
-    PandocMakePDFError s -> err 66 s
-    PandocOptionError s -> err 6 s
-    PandocSyntaxMapError s -> err 67 s
-    PandocFailOnWarningError -> err 3 "Failing because there were warnings."
-    PandocPDFProgramNotFoundError pdfprog -> err 47 $
+    PandocMakePDFError s -> s
+    PandocOptionError s -> s
+    PandocSyntaxMapError s -> s
+    PandocFailOnWarningError -> "Failing because there were warnings."
+    PandocPDFProgramNotFoundError pdfprog ->
         pdfprog <> " not found. Please select a different --pdf-engine or install " <> pdfprog
-    PandocPDFError logmsg -> err 43 $ "Error producing PDF.\n" <> logmsg
-    PandocXMLError fp logmsg -> err 44 $ "Invalid XML" <>
+    PandocPDFError logmsg -> "Error producing PDF.\n" <> logmsg
+    PandocXMLError fp logmsg -> "Invalid XML" <>
         (if T.null fp then "" else " in " <> fp) <> ":\n" <> logmsg
-    PandocFilterError filtername msg -> err 83 $ "Error running filter " <>
+    PandocFilterError filtername msg -> "Error running filter " <>
         filtername <> ":\n" <> msg
-    PandocLuaError msg -> err 84 $ "Error running Lua:\n" <> msg
-    PandocCouldNotFindDataFileError fn -> err 97 $
+    PandocLuaError msg -> "Error running Lua:\n" <> msg
+    PandocCouldNotFindDataFileError fn ->
         "Could not find data file " <> fn
-    PandocResourceNotFound fn -> err 99 $
+    PandocResourceNotFound fn ->
         "File " <> fn <> " not found in resource path"
-    PandocTemplateError s -> err 5 $ "Error compiling template " <> s
-    PandocAppError s -> err 4 s
-    PandocEpubSubdirectoryError s -> err 31 $
+    PandocTemplateError s -> "Error compiling template " <> s
+    PandocAppError s -> s
+    PandocEpubSubdirectoryError s ->
       "EPUB subdirectory name '" <> s <> "' contains illegal characters"
-    PandocMacroLoop s -> err 91 $
+    PandocMacroLoop s ->
       "Loop encountered in expanding macro " <> s
-    PandocUTF8DecodingError f offset w -> err 92 $
+    PandocUTF8DecodingError f offset w ->
       "UTF-8 decoding error in " <> f <> " at byte offset " <> tshow offset <>
       " (" <> T.pack (printf "%2x" w) <> ").\n" <>
       "The input must be a UTF-8 encoded text."
-    PandocIpynbDecodingError w -> err 93 $
+    PandocIpynbDecodingError w ->
       "ipynb decoding error: " <> w
-    PandocUnknownReaderError r -> err 21 $
+    PandocUnknownReaderError r ->
       "Unknown input format " <> r <>
       case r of
         "doc" -> "\nPandoc can convert from DOCX, but not from DOC." <>
@@ -133,7 +132,7 @@ handleError (Left e) =
                  " and convert that with pandoc."
         "pdf" -> "\nPandoc can convert to PDF, but not from PDF."
         _     -> ""
-    PandocUnknownWriterError w -> err 22 $
+    PandocUnknownWriterError w ->
        "Unknown output format " <> w <>
        case w of
          "pdf" -> "To create a pdf using pandoc, use" <>
@@ -142,13 +141,53 @@ handleError (Left e) =
                  ".pdf extension (-o filename.pdf)."
          "doc" -> "\nPandoc can convert to DOCX, but not to DOC."
          _     -> ""
-    PandocUnsupportedExtensionError ext f -> err 23 $
+    PandocUnsupportedExtensionError ext f ->
       "The extension " <> ext <> " is not supported " <>
       "for " <> f
-    PandocCiteprocError e' -> err 24 $
+    PandocCiteprocError e' ->
       prettyCiteprocError e'
-    PandocBibliographyError fp msg -> err 25 $
+    PandocBibliographyError fp msg ->
       "Error reading bibliography file " <> fp <> ":\n" <> msg
+
+
+-- | Handle PandocError by exiting with an error message.
+handleError :: Either PandocError a -> IO a
+handleError (Right r) = return r
+handleError (Left e) =
+  case e of
+    PandocIOError _ err' -> ioError err'
+    _ -> err exitCode (renderError e)
+ where
+  exitCode =
+    case e of
+      PandocIOError{} -> 1
+      PandocHttpError{} -> 61
+      PandocShouldNeverHappenError{} -> 62
+      PandocSomeError{} -> 63
+      PandocParseError{} -> 64
+      PandocParsecError{} -> 65
+      PandocMakePDFError{} -> 66
+      PandocOptionError{} -> 6
+      PandocSyntaxMapError{} -> 67
+      PandocFailOnWarningError{} -> 3
+      PandocPDFProgramNotFoundError{} -> 47
+      PandocPDFError{} -> 43
+      PandocXMLError{} -> 44
+      PandocFilterError{} -> 83
+      PandocLuaError{} -> 84
+      PandocCouldNotFindDataFileError{} -> 97
+      PandocResourceNotFound fn -> 99
+      PandocTemplateError{} -> 5
+      PandocAppError{} -> 4
+      PandocEpubSubdirectoryError{} -> 31
+      PandocMacroLoop s -> 91
+      PandocUTF8DecodingError{} -> 92
+      PandocIpynbDecodingError{} -> 93
+      PandocUnknownReaderError{} -> 21
+      PandocUnknownWriterError{} -> 22
+      PandocUnsupportedExtensionError{} -> 23
+      PandocCiteprocError{} -> 24
+      PandocBibliographyError{} -> 25
 
 err :: Int -> Text -> IO a
 err exitCode msg = do
