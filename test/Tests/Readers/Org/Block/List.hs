@@ -118,6 +118,19 @@ tests =
                 ] =?>
       bulletList [ plain "", plain "" ]
 
+  , "Task list" =:
+    T.unlines [ "- [ ] nope"
+              , "- [X] yup"
+              , "- [-] started"
+              , "  1. [X] sure"
+              , "  2. [ ] nuh-uh"
+              ] =?>
+    bulletList [ plain "☐ nope", plain "☒ yup"
+               , mconcat [ plain "☐ started"
+                         , orderedList [plain "☒ sure", plain "☐ nuh-uh"]
+                         ]
+               ]
+
   , "Simple Ordered List" =:
       ("1. Item1\n" <>
        "2. Item2\n") =?>

@@ -213,12 +213,12 @@ blockToOrg (DefinitionList items) = do
 -- | Convert bullet list item (list of blocks) to Org.
 bulletListItemToOrg :: PandocMonad m => [Block] -> Org m (Doc Text)
 bulletListItemToOrg items = do
-  contents <- blockListToOrg items
+  exts <- gets $ writerExtensions . stOptions
+  contents <- blockListToOrg (taskListItemToOrg exts items)
   return $ hang 2 "- " contents $$
           if endsWithPlain items
              then cr
              else blankline
-
 
 -- | Convert ordered list item (a list of blocks) to Org.
 orderedListItemToOrg :: PandocMonad m
@@ -226,11 +226,21 @@ orderedListItemToOrg :: PandocMonad m
                      -> [Block]  -- ^ list item (list of blocks)
                      -> Org m (Doc Text)
 orderedListItemToOrg marker items = do
-  contents <- blockListToOrg items
+  exts <- gets $ writerExtensions . stOptions
+  contents <- blockListToOrg (taskListItemToOrg exts items)
   return $ hang (T.length marker + 1) (literal marker <> space) contents $$
           if endsWithPlain items
              then cr
              else blankline
+
+-- | Convert a list item containing text starting with @U+2610 BALLOT BOX@
+-- or @U+2612 BALLOT BOX WITH X@ to org checkbox syntax (e.g. @[X]@).
+taskListItemToOrg :: Extensions -> [Block] -> [Block]
+taskListItemToOrg = handleTaskListItem toOrg
+  where
+    toOrg (Str "☐" : Space : is) = Str "[ ]" : Space : is
+    toOrg (Str "☒" : Space : is) = Str "[X]" : Space : is
+    toOrg is = is
 
 -- | Convert definition list item (label, list of blocks) to Org.
 definitionListItemToOrg :: PandocMonad m
