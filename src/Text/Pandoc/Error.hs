@@ -176,11 +176,11 @@ handleError (Left e) =
       PandocFilterError{} -> 83
       PandocLuaError{} -> 84
       PandocCouldNotFindDataFileError{} -> 97
-      PandocResourceNotFound fn -> 99
+      PandocResourceNotFound{} -> 99
       PandocTemplateError{} -> 5
       PandocAppError{} -> 4
       PandocEpubSubdirectoryError{} -> 31
-      PandocMacroLoop s -> 91
+      PandocMacroLoop{} -> 91
       PandocUTF8DecodingError{} -> 92
       PandocIpynbDecodingError{} -> 93
       PandocUnknownReaderError{} -> 21
