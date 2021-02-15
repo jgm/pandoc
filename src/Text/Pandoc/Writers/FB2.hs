@@ -25,15 +25,12 @@ import Data.ByteString.Base64 (encode)
 import Data.Char (isAscii, isControl, isSpace)
 import Data.Either (lefts, rights)
 import Data.List (intercalate)
-import Data.Text (Text, pack)
+import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Encoding as TE
 import Network.HTTP (urlEncode)
-import Text.XML.Light
-import qualified Text.XML.Light as X
-import qualified Text.XML.Light.Cursor as XC
-import Text.Pandoc.XMLParser (parseXMLContents)
+import Text.Pandoc.XML.Light as X
 
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import qualified Text.Pandoc.Class.PandocMonad as P
@@ -44,6 +41,7 @@ import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
 import Text.Pandoc.Shared (capitalize, isURI, orderedListMarkers,
                            makeSections, tshow, stringify)
 import Text.Pandoc.Writers.Shared (lookupMetaString, toLegacyTable)
+import Data.Generics (everywhere, mkT)
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.
@@ -88,7 +86,7 @@ pandocToFB2 opts (Pandoc meta blocks) = do
      (imgs,missing) <- get >>= (lift . fetchImages . imagesToFetch)
      let body' = replaceImagesWithAlt missing body
      let fb2_xml = el "FictionBook" (fb2_attrs, [desc, body'] ++ notes ++ imgs)
-     return $ pack $ xml_head ++ showContent fb2_xml ++ "\n"
+     return $ xml_head <> showContent fb2_xml <> "\n"
   where
   xml_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
   fb2_attrs =
@@ -100,8 +98,8 @@ pandocToFB2 opts (Pandoc meta blocks) = do
 description :: PandocMonad m => Meta -> FBM m Content
 description meta' = do
   let genre = case lookupMetaString "genre" meta' of
-                "" -> el "genre" ("unrecognised" :: String)
-                s  -> el "genre" (T.unpack s)
+                "" -> el "genre" ("unrecognised" :: Text)
+                s  -> el "genre" s
   bt <- booktitle meta'
   let as = authors meta'
   dd <- docdate meta'
@@ -112,7 +110,7 @@ description meta' = do
                Just (MetaInlines [Str s]) -> [el "lang" $ iso639 s]
                Just (MetaString s)        -> [el "lang" $ iso639 s]
                _                          -> []
-             where iso639 = T.unpack . T.takeWhile (/= '-') -- Convert BCP 47 to ISO 639
+             where iso639 = T.takeWhile (/= '-') -- Convert BCP 47 to ISO 639
   let coverimage url = do
         let img = Image nullAttr mempty (url, "")
         im <- insertImage InlineImage img
@@ -124,7 +122,7 @@ description meta' = do
   return $ el "description"
     [ el "title-info" (genre :
                       (as ++ bt ++ annotation ++ dd ++ coverpage ++ lang))
-    , el "document-info" [el "program-used" ("pandoc" :: String)]
+    , el "document-info" [el "program-used" ("pandoc" :: Text)]
     ]
 
 booktitle :: PandocMonad m => Meta -> FBM m [Content]
@@ -137,15 +135,15 @@ authors meta' = cMap author (docAuthors meta')
 
 author :: [Inline] -> [Content]
 author ss =
-  let ws = words . cMap plain $ ss
-      email = el "email" <$> take 1 (filter ('@' `elem`) ws)
-      ws' = filter ('@' `notElem`) ws
+  let ws = T.words $ mconcat $ map plain ss
+      email = el "email" <$> take 1 (filter (T.any (=='@')) ws)
+      ws' = filter (not . T.any (== '@')) ws
       names = case ws' of
                 [nickname] -> [ el "nickname" nickname ]
                 [fname, lname] -> [ el "first-name" fname
                                     , el "last-name" lname ]
                 (fname:rest) -> [ el "first-name" fname
-                                , el "middle-name" (concat . init $ rest)
+                                , el "middle-name" (T.concat . init $ rest)
                                 , el "last-name" (last rest) ]
                 [] -> []
   in  list $ el "author" (names ++ email)
@@ -206,7 +204,7 @@ renderFootnotes = do
          el "body" ([uattr "name" "notes"], map renderFN (reverse fns))
   where
     renderFN (n, idstr, cs) =
-        let fn_texts = el "title" (el "p" (show n)) : cs
+        let fn_texts = el "title" (el "p" (tshow n)) : cs
         in  el "section" ([uattr "id" idstr], fn_texts)
 
 -- | Fetch images and encode them for the FictionBook XML.
@@ -282,7 +280,7 @@ isMimeType s =
  where
    types =  ["text","image","audio","video","application","message","multipart"]
    valid c = isAscii c && not (isControl c) && not (isSpace c) &&
-             c `notElem` ("()<>@,;:\\\"/[]?=" :: String)
+             c `notElem` ("()<>@,;:\\\"/[]?=" :: [Char])
 
 footnoteID :: Int -> Text
 footnoteID i = "n" <> tshow i
@@ -306,7 +304,7 @@ blockToXml (Para [Image atr alt (src,tgt)])
   = insertImage NormalImage (Image atr alt (src,tit))
 blockToXml (Para ss) = list . el "p" <$> cMapM toXml ss
 blockToXml (CodeBlock _ s) = return . spaceBeforeAfter .
-                             map (el "p" . el "code" . T.unpack) . T.lines $ s
+                             map (el "p" . el "code") . T.lines $ s
 blockToXml (RawBlock f str) =
   if f == Format "fb2"
     then
@@ -346,11 +344,11 @@ blockToXml (Table _ blkCapt specs thead tbody tfoot) = do
     c <- el "emphasis" <$> cMapM toXml caption
     return [el "table" (hd <> bd), el "p" c]
     where
-      mkrow :: PandocMonad m => String -> [[Block]] -> [Alignment] -> FBM m Content
+      mkrow :: PandocMonad m => Text -> [[Block]] -> [Alignment] -> FBM m Content
       mkrow tag cells aligns' =
         el "tr" <$> mapM (mkcell tag) (zip cells aligns')
       --
-      mkcell :: PandocMonad m => String -> ([Block], Alignment) -> FBM m Content
+      mkcell :: PandocMonad m => Text -> ([Block], Alignment) -> FBM m Content
       mkcell tag (cell, align) = do
         cblocks <- cMapM blockToXml cell
         return $ el tag ([align_attr align], cblocks)
@@ -424,7 +422,7 @@ toXml (Quoted DoubleQuote ss) = do
   inner <- cMapM toXml ss
   return $ [txt "“"] ++ inner ++ [txt "”"]
 toXml (Cite _ ss) = cMapM toXml ss  -- FIXME: support citation styles
-toXml (Code _ s) = return [el "code" $ T.unpack s]
+toXml (Code _ s) = return [el "code" s]
 toXml Space = return [txt " "]
 toXml SoftBreak = return [txt "\n"]
 toXml LineBreak = return [txt "\n"]
@@ -456,7 +454,7 @@ insertMath immode formula = do
        let imgurl = url <> T.pack (urlEncode $ T.unpack formula)
        let img = Image nullAttr alt (imgurl, "")
        insertImage immode img
-    _ -> return [el "code" $ T.unpack formula]
+    _ -> return [el "code" formula]
 
 insertImage :: PandocMonad m => ImageMode -> Inline -> FBM m [Content]
 insertImage immode (Image _ alt (url,ttl)) = do
@@ -471,31 +469,16 @@ insertImage immode (Image _ alt (url,ttl)) = do
          el "image" $
             [ attr ("l","href") ("#" <> fname)
             , attr ("l","type") (tshow immode)
-            , uattr "alt" (T.pack $ cMap plain alt) ]
+            , uattr "alt" (mconcat $ map plain alt) ]
             ++ ttlattr
 insertImage _ _ = error "unexpected inline instead of image"
 
 replaceImagesWithAlt :: [Text] -> Content -> Content
-replaceImagesWithAlt missingHrefs body =
-  let cur = XC.fromContent body
-      cur' = replaceAll cur
-  in  XC.toTree . XC.root $ cur'
+replaceImagesWithAlt missingHrefs = everywhere (mkT go)
   where
-  --
-    replaceAll :: XC.Cursor -> XC.Cursor
-    replaceAll c =
-        let n = XC.current c
-            c' = if isImage n && isMissing n
-                 then XC.modifyContent replaceNode c
-                 else c
-        in  case XC.nextDF c' of
-              (Just cnext) -> replaceAll cnext
-              Nothing      -> c'  -- end of document
-  --
-    isImage :: Content -> Bool
-    isImage (Elem e) = elName e == uname "image"
-    isImage _        = False
-  --
+    go c = if isMissing c
+              then replaceNode c
+              else c
     isMissing (Elem img@Element{}) =
         let imgAttrs = elAttribs img
             badAttrs = map (attr ("l","href")) missingHrefs
@@ -505,18 +488,18 @@ replaceImagesWithAlt missingHrefs body =
     replaceNode :: Content -> Content
     replaceNode n@(Elem img@Element{}) =
         let attrs = elAttribs img
-            alt = getAttrVal attrs (uname "alt")
+            alt = getAttrVal attrs (unqual "alt")
             imtype = getAttrVal attrs (qname "l" "type")
         in case (alt, imtype) of
              (Just alt', Just imtype') ->
-                 if imtype' == show NormalImage
+                 if imtype' == tshow NormalImage
                  then el "p" alt'
-                 else txt $ T.pack alt'
-             (Just alt', Nothing) -> txt $ T.pack alt'  -- no type attribute
+                 else txt alt'
+             (Just alt', Nothing) -> txt alt'  -- no type attribute
              _ -> n   -- don't replace if alt text is not found
     replaceNode n = n
   --
-    getAttrVal :: [X.Attr] -> QName -> Maybe String
+    getAttrVal :: [X.Attr] -> QName -> Maybe Text
     getAttrVal attrs name =
         case filter ((name ==) . attrKey) attrs of
            (a:_) -> Just (attrVal a)
@@ -524,7 +507,7 @@ replaceImagesWithAlt missingHrefs body =
 
 
 -- | Wrap all inlines with an XML tag (given its unqualified name).
-wrap :: PandocMonad m => String -> [Inline] -> FBM m Content
+wrap :: PandocMonad m => Text -> [Inline] -> FBM m Content
 wrap tagname inlines = el tagname `liftM` cMapM toXml inlines
 
 -- " Create a singleton list.
@@ -532,31 +515,31 @@ list :: a -> [a]
 list = (:[])
 
 -- | Convert an 'Inline' to plaintext.
-plain :: Inline -> String
-plain (Str s)               = T.unpack s
-plain (Emph ss)             = cMap plain ss
-plain (Underline ss)        = cMap plain ss
-plain (Span _ ss)           = cMap plain ss
-plain (Strong ss)           = cMap plain ss
-plain (Strikeout ss)        = cMap plain ss
-plain (Superscript ss)      = cMap plain ss
-plain (Subscript ss)        = cMap plain ss
-plain (SmallCaps ss)        = cMap plain ss
-plain (Quoted _ ss)         = cMap plain ss
-plain (Cite _ ss)           = cMap plain ss  -- FIXME
-plain (Code _ s)            = T.unpack s
+plain :: Inline -> Text
+plain (Str s)               = s
+plain (Emph ss)             = mconcat $ map plain ss
+plain (Underline ss)        = mconcat $ map plain ss
+plain (Span _ ss)           = mconcat $ map plain ss
+plain (Strong ss)           = mconcat $ map plain ss
+plain (Strikeout ss)        = mconcat $ map plain ss
+plain (Superscript ss)      = mconcat $ map plain ss
+plain (Subscript ss)        = mconcat $ map plain ss
+plain (SmallCaps ss)        = mconcat $ map plain ss
+plain (Quoted _ ss)         = mconcat $ map plain ss
+plain (Cite _ ss)           = mconcat $ map plain ss  -- FIXME
+plain (Code _ s)            = s
 plain Space                 = " "
 plain SoftBreak             = " "
 plain LineBreak             = "\n"
-plain (Math _ s)            = T.unpack s
+plain (Math _ s)            = s
 plain (RawInline _ _)       = ""
-plain (Link _ text (url,_)) = concat (map plain text ++ [" <", T.unpack url, ">"])
-plain (Image _ alt _)       = cMap plain alt
+plain (Link _ text (url,_)) = mconcat (map plain text ++ [" <", url, ">"])
+plain (Image _ alt _)       = mconcat $ map plain alt
 plain (Note _)              = ""  -- FIXME
 
 -- | Create an XML element.
 el :: (Node t)
-   => String   -- ^ unqualified element name
+   => Text     -- ^ unqualified element name
    -> t        -- ^ node contents
    -> Content  -- ^ XML content
 el name cs = Elem $ unode name cs
@@ -569,22 +552,18 @@ spaceBeforeAfter cs =
 
 -- | Create a plain-text XML content.
 txt :: Text -> Content
-txt s = Text $ CData CDataText (T.unpack s) Nothing
+txt s = Text $ CData CDataText s Nothing
 
 -- | Create an XML attribute with an unqualified name.
-uattr :: String -> Text -> Text.XML.Light.Attr
-uattr name = Attr (uname name) . T.unpack
+uattr :: Text -> Text -> X.Attr
+uattr name = Attr (unqual name)
 
 -- | Create an XML attribute with a qualified name from given namespace.
-attr :: (String, String) -> Text -> Text.XML.Light.Attr
-attr (ns, name) = Attr (qname ns name) . T.unpack
-
--- | Unqualified name
-uname :: String -> QName
-uname name = QName name Nothing Nothing
+attr :: (Text, Text) -> Text -> X.Attr
+attr (ns, name) = Attr (qname ns name)
 
 -- | Qualified name
-qname :: String -> String -> QName
+qname :: Text -> Text -> QName
 qname ns name = QName name Nothing (Just ns)
 
 -- | Abbreviation for 'concatMap'.

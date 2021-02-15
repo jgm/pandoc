@@ -23,8 +23,8 @@ import Control.DeepSeq (NFData, deepseq)
 import Control.Monad (guard, liftM, liftM2, mplus)
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL (ByteString)
-import Data.List (isInfixOf)
 import qualified Data.Text as T
+import Data.Text (Text)
 import qualified Data.Map as M (Map, elems, fromList, lookup)
 import Data.Maybe (mapMaybe)
 import qualified Data.Text.Lazy as TL
@@ -40,13 +40,12 @@ import Text.Pandoc.Extensions (Extension (Ext_raw_html), enableExtension)
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Options (ReaderOptions (..))
 import Text.Pandoc.Readers.HTML (readHtml)
-import Text.Pandoc.Shared (addMetaField, collapseFilePath, escapeURI)
+import Text.Pandoc.Shared (addMetaField, collapseFilePath, escapeURI, tshow)
 import qualified Text.Pandoc.UTF8 as UTF8 (toTextLazy)
 import Text.Pandoc.Walk (query, walk)
-import Text.XML.Light
-import Text.Pandoc.XMLParser (parseXMLElement)
+import Text.Pandoc.XML.Light
 
-type Items = M.Map String (FilePath, MimeType)
+type Items = M.Map Text (FilePath, MimeType)
 
 readEPUB :: PandocMonad m => ReaderOptions -> BL.ByteString -> m Pandoc
 readEPUB opts bytes = case toArchiveOrFail bytes of
@@ -126,26 +125,27 @@ imageToPandoc s = B.doc . B.para $ B.image (T.pack s) "" mempty
 imageMimes :: [MimeType]
 imageMimes = ["image/gif", "image/jpeg", "image/png"]
 
-type CoverId = String
+type CoverId = Text
 
 type CoverImage = FilePath
 
-parseManifest :: (PandocMonad m) => Element -> Maybe CoverId -> m (Maybe CoverImage, Items)
+parseManifest :: (PandocMonad m)
+              => Element -> Maybe CoverId -> m (Maybe CoverImage, Items)
 parseManifest content coverId = do
   manifest <- findElementE (dfName "manifest") content
   let items = findChildren (dfName "item") manifest
   r <- mapM parseItem items
   let cover = findAttr (emptyName "href") =<< filterChild findCover manifest
-  return (cover `mplus` coverId, M.fromList r)
+  return (T.unpack <$> (cover `mplus` coverId), M.fromList r)
   where
-    findCover e = maybe False (isInfixOf "cover-image")
+    findCover e = maybe False (T.isInfixOf "cover-image")
                   (findAttr (emptyName "properties") e)
                || Just True == liftM2 (==) coverId (findAttr (emptyName "id") e)
     parseItem e = do
       uid <- findAttrE (emptyName "id") e
       href <- findAttrE (emptyName "href") e
       mime <- findAttrE (emptyName "media-type") e
-      return (uid, (href, T.pack mime))
+      return (uid, (T.unpack href, mime))
 
 parseSpine :: PandocMonad m => Items -> Element -> m [(FilePath, MimeType)]
 parseSpine is e = do
@@ -173,11 +173,11 @@ parseMeta content = do
 -- http://www.idpf.org/epub/30/spec/epub30-publications.html#sec-metadata-elem
 parseMetaItem :: Element -> Meta -> Meta
 parseMetaItem e@(stripNamespace . elName -> field) meta =
-  addMetaField (renameMeta field) (B.str $ T.pack $ strContent e) meta
+  addMetaField (renameMeta field) (B.str $ strContent e) meta
 
-renameMeta :: String -> T.Text
+renameMeta :: Text -> Text
 renameMeta "creator" = "author"
-renameMeta s         = T.pack s
+renameMeta s         = s
 
 getManifest :: PandocMonad m => Archive -> m (String, Element)
 getManifest archive = do
@@ -187,7 +187,7 @@ getManifest archive = do
   ns <- mkE "xmlns not in namespaces" (lookup "xmlns" namespaces)
   as <- fmap (map attrToPair . elAttribs)
     (findElementE (QName "rootfile" (Just ns) Nothing) docElem)
-  manifestFile <- mkE "Root not found" (lookup "full-path" as)
+  manifestFile <- T.unpack <$> mkE "Root not found" (lookup "full-path" as)
   let rootdir = dropFileName manifestFile
   --mime <- lookup "media-type" as
   manifest <- findEntryByPathE manifestFile archive
@@ -201,7 +201,8 @@ fixInternalReferences pathToFile =
   . walk (fixBlockIRs filename)
   . walk (fixInlineIRs filename)
   where
-    (root, T.unpack . escapeURI . T.pack -> filename) = splitFileName pathToFile
+    (root, T.unpack . escapeURI . T.pack -> filename) =
+      splitFileName pathToFile
 
 fixInlineIRs :: String -> Inline -> Inline
 fixInlineIRs s (Span as v) =
@@ -214,7 +215,7 @@ fixInlineIRs s (Link as is t) =
   Link (fixAttrs s as) is t
 fixInlineIRs _ v = v
 
-prependHash :: [T.Text] -> Inline -> Inline
+prependHash :: [Text] -> Inline -> Inline
 prependHash ps l@(Link attr is (url, tit))
   | or [s `T.isPrefixOf` url | s <- ps] =
     Link attr is ("#" <> url, tit)
@@ -231,16 +232,17 @@ fixBlockIRs s (CodeBlock as code) =
 fixBlockIRs _ b = b
 
 fixAttrs :: FilePath -> B.Attr -> B.Attr
-fixAttrs s (ident, cs, kvs) = (addHash s ident, filter (not . T.null) cs, removeEPUBAttrs kvs)
+fixAttrs s (ident, cs, kvs) =
+  (addHash s ident, filter (not . T.null) cs, removeEPUBAttrs kvs)
 
-addHash :: String -> T.Text -> T.Text
+addHash :: FilePath -> Text -> Text
 addHash _ ""    = ""
 addHash s ident = T.pack (takeFileName s) <> "#" <> ident
 
-removeEPUBAttrs :: [(T.Text, T.Text)] -> [(T.Text, T.Text)]
+removeEPUBAttrs :: [(Text, Text)] -> [(Text, Text)]
 removeEPUBAttrs kvs = filter (not . isEPUBAttr) kvs
 
-isEPUBAttr :: (T.Text, a) -> Bool
+isEPUBAttr :: (Text, a) -> Bool
 isEPUBAttr (k, _) = "epub:" `T.isPrefixOf` k
 
 -- Library
@@ -257,33 +259,33 @@ uncurry3 f (a, b, c) = f a b c
 
 -- Utility
 
-stripNamespace :: QName -> String
+stripNamespace :: QName -> Text
 stripNamespace (QName v _ _) = v
 
-attrToNSPair :: Attr -> Maybe (String, String)
+attrToNSPair :: Attr -> Maybe (Text, Text)
 attrToNSPair (Attr (QName "xmlns" _ _) val) = Just ("xmlns", val)
 attrToNSPair _                              = Nothing
 
-attrToPair :: Attr -> (String, String)
+attrToPair :: Attr -> (Text, Text)
 attrToPair (Attr (QName name _ _) val) = (name, val)
 
-defaultNameSpace :: Maybe String
+defaultNameSpace :: Maybe Text
 defaultNameSpace = Just "http://www.idpf.org/2007/opf"
 
-dfName :: String -> QName
+dfName :: Text -> QName
 dfName s = QName s defaultNameSpace Nothing
 
-emptyName :: String -> QName
+emptyName :: Text -> QName
 emptyName s = QName s Nothing Nothing
 
 -- Convert Maybe interface to Either
 
-findAttrE :: PandocMonad m => QName -> Element -> m String
+findAttrE :: PandocMonad m => QName -> Element -> m Text
 findAttrE q e = mkE "findAttr" $ findAttr q e
 
 findEntryByPathE :: PandocMonad m => FilePath -> Archive -> m Entry
 findEntryByPathE (normalise . unEscapeString -> path) a =
-  mkE ("No entry on path: " ++ path) $ findEntryByPath path a
+  mkE ("No entry on path: " <> T.pack path) $ findEntryByPath path a
 
 parseXMLDocE :: PandocMonad m => Entry -> m Element
 parseXMLDocE entry =
@@ -293,7 +295,8 @@ parseXMLDocE entry =
   fp  = T.pack $ eRelativePath entry
 
 findElementE :: PandocMonad m => QName -> Element -> m Element
-findElementE e x = mkE ("Unable to find element: " ++ show e) $ findElement e x
+findElementE e x =
+  mkE ("Unable to find element: " <> tshow e) $ findElement e x
 
-mkE :: PandocMonad m => String -> Maybe a -> m a
-mkE s = maybe (throwError . PandocParseError $ T.pack s) return
+mkE :: PandocMonad m => Text -> Maybe a -> m a
+mkE s = maybe (throwError . PandocParseError $ s) return

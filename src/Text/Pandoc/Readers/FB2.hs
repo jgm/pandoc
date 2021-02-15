@@ -25,7 +25,6 @@ TODO:
 module Text.Pandoc.Readers.FB2 ( readFB2 ) where
 import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict
-import Data.ByteString.Lazy.Char8 ( pack )
 import Data.ByteString.Base64.Lazy
 import Data.Functor
 import Data.List (intersperse)
@@ -42,8 +41,8 @@ import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (crFilter)
-import Text.XML.Light
-import Text.Pandoc.XMLParser (parseXMLElement)
+import Text.Pandoc.XML.Light
+import qualified Text.Pandoc.UTF8 as UTF8
 
 type FB2 m = StateT FB2State m
 
@@ -85,12 +84,12 @@ removeHash t = case T.uncons t of
   Just ('#', xs) -> xs
   _              -> t
 
-convertEntity :: String -> Text
-convertEntity e = maybe (T.toUpper $ T.pack e) T.pack $ lookupEntity e
+convertEntity :: Text -> Text
+convertEntity e = maybe (T.toUpper e) T.pack $ lookupEntity (T.unpack e)
 
 parseInline :: PandocMonad m => Content -> FB2 m Inlines
 parseInline (Elem e) =
-  case T.pack $ qName $ elName e of
+  case qName $ elName e of
     "strong" -> strong <$> parseStyleType e
     "emphasis" -> emph <$> parseStyleType e
     "style" -> parseNamedStyle e
@@ -98,12 +97,12 @@ parseInline (Elem e) =
     "strikethrough" -> strikeout <$> parseStyleType e
     "sub" -> subscript <$> parseStyleType e
     "sup" -> superscript <$> parseStyleType e
-    "code" -> pure $ code $ T.pack $ strContent e
+    "code" -> pure $ code $ strContent e
     "image" -> parseInlineImageElement e
     name -> do
       report $ IgnoredElement name
       pure mempty
-parseInline (Text x) = pure $ text $ T.pack $ cdData x
+parseInline (Text x) = pure $ text $ cdData x
 parseInline (CRef r) = pure $ str $ convertEntity r
 
 parseSubtitle :: PandocMonad m => Element -> FB2 m Blocks
@@ -113,7 +112,7 @@ parseSubtitle e = headerWith ("", ["unnumbered"], []) <$> gets fb2SectionLevel <
 
 parseRootElement :: PandocMonad m => Element -> FB2 m Blocks
 parseRootElement e =
-  case T.pack $ qName $ elName e of
+  case qName $ elName e of
     "FictionBook" -> do
       -- Parse notes before parsing the rest of the content.
       case filterChild isNotesBody e of
@@ -146,7 +145,7 @@ parseNote e =
     Just sectionId -> do
       content <- mconcat <$> mapM parseSectionChild (dropTitle $ elChildren e)
       oldNotes <- gets fb2Notes
-      modify $ \s -> s { fb2Notes = M.insert ("#" <> T.pack sectionId) content oldNotes }
+      modify $ \s -> s { fb2Notes = M.insert ("#" <> sectionId) content oldNotes }
       pure ()
   where
     isTitle x = qName (elName x) == "title"
@@ -158,7 +157,7 @@ parseNote e =
 -- | Parse a child of @\<FictionBook>@ element.
 parseFictionBookChild :: PandocMonad m => Element -> FB2 m Blocks
 parseFictionBookChild e =
-  case T.pack $ qName $ elName e of
+  case qName $ elName e of
     "stylesheet" -> pure mempty -- stylesheet is ignored
     "description" -> mempty <$ mapM_ parseDescriptionChild (elChildren e)
     "body" -> if isNotesBody e
@@ -170,7 +169,7 @@ parseFictionBookChild e =
 -- | Parse a child of @\<description>@ element.
 parseDescriptionChild :: PandocMonad m => Element -> FB2 m ()
 parseDescriptionChild e =
-  case T.pack $ qName $ elName e of
+  case qName $ elName e of
     "title-info" -> mapM_ parseTitleInfoChild (elChildren e)
     "src-title-info" -> pure () -- ignore
     "document-info" -> pure ()
@@ -184,7 +183,7 @@ parseDescriptionChild e =
 -- | Parse a child of @\<body>@ element.
 parseBodyChild :: PandocMonad m => Element -> FB2 m Blocks
 parseBodyChild e =
-  case T.pack $ qName $ elName e of
+  case qName $ elName e of
     "image" -> parseImageElement e
     "title" -> header <$> gets fb2SectionLevel <*> parseTitleType (elContent e)
     "epigraph" -> parseEpigraph e
@@ -198,7 +197,10 @@ parseBinaryElement e =
     (Nothing, _) -> report $ IgnoredElement "binary without id attribute"
     (Just _, Nothing) ->
       report $ IgnoredElement "binary without content-type attribute"
-    (Just filename, contentType) -> insertMedia filename (T.pack <$> contentType) (decodeLenient (pack (strContent e)))
+    (Just filename, contentType) ->
+      insertMedia (T.unpack filename) contentType
+                    (decodeLenient
+                      (UTF8.fromTextLazy . TL.fromStrict . strContent $ e))
 
 -- * Type parsers
 
@@ -208,13 +210,13 @@ parseAuthor e = T.unwords . catMaybes <$> mapM parseAuthorChild (elChildren e)
 
 parseAuthorChild :: PandocMonad m => Element -> FB2 m (Maybe Text)
 parseAuthorChild e =
-  case T.pack $ qName $ elName e of
-    "first-name" -> pure $ Just $ T.pack $ strContent e
-    "middle-name" -> pure $ Just $ T.pack $ strContent e
-    "last-name" -> pure $ Just $ T.pack $ strContent e
-    "nickname" -> pure $ Just $ T.pack $ strContent e
-    "home-page" -> pure $ Just $ T.pack $ strContent e
-    "email" -> pure $ Just $ T.pack $ strContent e
+  case qName $ elName e of
+    "first-name" -> pure $ Just $ strContent e
+    "middle-name" -> pure $ Just $ strContent e
+    "last-name" -> pure $ Just $ strContent e
+    "nickname" -> pure $ Just $ strContent e
+    "home-page" -> pure $ Just $ strContent e
+    "email" -> pure $ Just $ strContent e
     name -> do
       report $ IgnoredElement $ name <> " in author"
       pure Nothing
@@ -238,13 +240,13 @@ parseTitleContent _ = pure Nothing
 parseImageElement :: PandocMonad m => Element -> FB2 m Blocks
 parseImageElement e =
   case href of
-    Just src -> pure $ para $ imageWith (imgId, [], []) (removeHash $ T.pack src) title alt
+    Just src -> pure $ para $ imageWith (imgId, [], []) (removeHash src) title alt
     Nothing -> do
       report $ IgnoredElement " image without href"
       pure mempty
-  where alt = maybe mempty (str . T.pack) $ findAttr (unqual "alt") e
-        title = maybe "" T.pack $ findAttr (unqual "title") e
-        imgId = maybe "" T.pack $ findAttr (unqual "id") e
+  where alt = maybe mempty str $ findAttr (unqual "alt") e
+        title = fromMaybe "" $ findAttr (unqual "title") e
+        imgId = fromMaybe "" $ findAttr (unqual "id") e
         href = findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e
 
 -- | Parse @pType@
@@ -258,7 +260,7 @@ parseCite e = blockQuote . mconcat <$> mapM parseCiteChild (elChildren e)
 -- | Parse @citeType@ child
 parseCiteChild :: PandocMonad m => Element -> FB2 m Blocks
 parseCiteChild e =
-  case T.pack $ qName $ elName e of
+  case qName $ elName e of
     "p" -> para <$> parsePType e
     "poem" -> parsePoem e
     "empty-line" -> pure horizontalRule
@@ -273,13 +275,13 @@ parsePoem e = mconcat <$> mapM parsePoemChild (elChildren e)
 
 parsePoemChild :: PandocMonad m => Element -> FB2 m Blocks
 parsePoemChild e =
-  case T.pack $ qName $ elName e of
+  case qName $ elName e of
     "title" -> parseTitle e
     "subtitle" -> parseSubtitle e
     "epigraph" -> parseEpigraph e
     "stanza" -> parseStanza e
     "text-author" -> para <$> parsePType e
-    "date" -> pure $ para $ text $ T.pack $ strContent e
+    "date" -> pure $ para $ text $ strContent e
     name -> report (UnexpectedXmlElement name "poem") $> mempty
 
 parseStanza :: PandocMonad m => Element -> FB2 m Blocks
@@ -292,7 +294,7 @@ joinLineBlocks [] = []
 
 parseStanzaChild :: PandocMonad m => Element -> FB2 m Blocks
 parseStanzaChild e =
-  case T.pack $ qName $ elName e of
+  case qName $ elName e of
     "title" -> parseTitle e
     "subtitle" -> parseSubtitle e
     "v" -> lineBlock . (:[]) <$> parsePType e
@@ -302,11 +304,11 @@ parseStanzaChild e =
 parseEpigraph :: PandocMonad m => Element -> FB2 m Blocks
 parseEpigraph e =
   divWith (divId, ["epigraph"], []) . mconcat <$> mapM parseEpigraphChild (elChildren e)
-  where divId = maybe "" T.pack $ findAttr (unqual "id") e
+  where divId = fromMaybe "" $ findAttr (unqual "id") e
 
 parseEpigraphChild :: PandocMonad m => Element -> FB2 m Blocks
 parseEpigraphChild e =
-  case T.pack $ qName $ elName e of
+  case qName $ elName e of
     "p" -> para <$> parsePType e
     "poem" -> parsePoem e
     "cite" -> parseCite e
@@ -320,7 +322,7 @@ parseAnnotation e = mconcat <$> mapM parseAnnotationChild (elChildren e)
 
 parseAnnotationChild :: PandocMonad m => Element -> FB2 m Blocks
 parseAnnotationChild e =
-  case T.pack $ qName $ elName e of
+  case qName $ elName e of
     "p" -> para <$> parsePType e
     "poem" -> parsePoem e
     "cite" -> parseCite e
@@ -334,14 +336,14 @@ parseSection :: PandocMonad m => Element -> FB2 m Blocks
 parseSection e = do
   n <- gets fb2SectionLevel
   modify $ \st -> st{ fb2SectionLevel = n + 1 }
-  let sectionId = maybe "" T.pack $ findAttr (unqual "id") e
+  let sectionId = fromMaybe "" $ findAttr (unqual "id") e
   bs <- divWith (sectionId, ["section"], []) . mconcat <$> mapM parseSectionChild (elChildren e)
   modify $ \st -> st{ fb2SectionLevel = n }
   pure bs
 
 parseSectionChild :: PandocMonad m => Element -> FB2 m Blocks
 parseSectionChild e =
-  case T.pack $ qName $ elName e of
+  case qName $ elName e of
     "title" -> parseBodyChild e
     "epigraph" -> parseEpigraph e
     "image" -> parseImageElement e
@@ -363,16 +365,16 @@ parseStyleType e = mconcat <$> mapM parseInline (elContent e)
 parseNamedStyle :: PandocMonad m => Element -> FB2 m Inlines
 parseNamedStyle e = do
   content <- mconcat <$> mapM parseNamedStyleChild (elContent e)
-  let lang = maybeToList $ ("lang",) . T.pack <$> findAttr (QName "lang" Nothing (Just "xml")) e
+  let lang = maybeToList $ ("lang",) <$> findAttr (QName "lang" Nothing (Just "xml")) e
   case findAttr (unqual "name") e of
-    Just name -> pure $ spanWith ("", [T.pack name], lang) content
+    Just name -> pure $ spanWith ("", [name], lang) content
     Nothing -> do
       report $ IgnoredElement "link without required name"
       pure mempty
 
 parseNamedStyleChild :: PandocMonad m => Content -> FB2 m Inlines
 parseNamedStyleChild (Elem e) =
-  case T.pack $ qName (elName e) of
+  case qName (elName e) of
     "strong" -> strong <$> parseStyleType e
     "emphasis" -> emph <$> parseStyleType e
     "style" -> parseNamedStyle e
@@ -380,7 +382,7 @@ parseNamedStyleChild (Elem e) =
     "strikethrough" -> strikeout <$> parseStyleType e
     "sub" -> subscript <$> parseStyleType e
     "sup" -> superscript <$> parseStyleType e
-    "code" -> pure $ code $ T.pack $ strContent e
+    "code" -> pure $ code $ strContent e
     "image" -> parseInlineImageElement e
     name -> do
       report $ IgnoredElement $ name <> " in style"
@@ -392,7 +394,7 @@ parseLinkType :: PandocMonad m => Element -> FB2 m Inlines
 parseLinkType e = do
   content <- mconcat <$> mapM parseStyleLinkType (elContent e)
   notes <- gets fb2Notes
-  case T.pack <$> findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e of
+  case findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e of
     Just href -> case findAttr (QName "type" Nothing Nothing) e of
                    Just "note" -> case M.lookup href notes of
                                     Nothing -> pure $ link href "" content
@@ -419,15 +421,14 @@ parseTable _ = pure mempty -- TODO: tables are not supported yet
 -- | Parse @title-infoType@
 parseTitleInfoChild :: PandocMonad m => Element -> FB2 m ()
 parseTitleInfoChild e =
-  case T.pack $ qName (elName e) of
+  case qName (elName e) of
     "genre" -> pure ()
     "author" -> parseAuthor e >>= \author -> modify (\st -> st {fb2Authors = author:fb2Authors st})
-    "book-title" -> modify (setMeta "title" (text $ T.pack $ strContent e))
+    "book-title" -> modify (setMeta "title" (text $ strContent e))
     "annotation" -> parseAnnotation e >>= modify . setMeta "abstract"
     "keywords" -> modify (setMeta "keywords" (map (MetaString . trim) $ T.splitOn ","
-                                                                      $ T.pack
                                                                       $ strContent e))
-    "date" -> modify (setMeta "date" (text $ T.pack $ strContent e))
+    "date" -> modify (setMeta "date" (text $ strContent e))
     "coverpage" -> parseCoverPage e
     "lang" -> pure ()
     "src-lang" -> pure ()
@@ -441,7 +442,7 @@ parseCoverPage e =
     Just img -> case href of
                   Just src -> modify (setMeta "cover-image" (MetaString $ removeHash src))
                   Nothing -> pure ()
-                where href = T.pack <$> findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) img
+                where href = findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) img
     Nothing -> pure ()
 
 -- | Parse @inlineImageType@ element
@@ -454,5 +455,5 @@ parseInlineImageElement e =
     Nothing -> do
       report $ IgnoredElement "inline image without href"
       pure mempty
-  where alt = maybe mempty (str . T.pack) $ findAttr (unqual "alt") e
-        href = T.pack <$> findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e
+  where alt = maybe mempty str $ findAttr (unqual "alt") e
+        href = findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e

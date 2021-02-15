@@ -43,7 +43,8 @@ compareXMLBool _ _ = False
 
 displayDiff :: Content -> Content -> String
 displayDiff elemA elemB =
-  showDiff (1,1) $ getDiff (lines $ ppContent elemA) (lines $ ppContent elemB)
+  showDiff (1,1)
+    (getDiff (lines $ showContent elemA) (lines $ showContent elemB))
 
 goldenArchive :: FilePath -> IO Archive
 goldenArchive fp = toArchive . BL.fromStrict <$> BS.readFile fp

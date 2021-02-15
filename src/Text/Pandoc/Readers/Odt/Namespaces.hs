@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Reader.Odt.Namespaces
    Copyright   : Copyright (C) 2015 Martin Linnemann
@@ -13,10 +14,10 @@ Namespaces used in odt files.
 module Text.Pandoc.Readers.Odt.Namespaces ( Namespace (..)
                                           ) where
 
-import Data.List (isPrefixOf)
 import qualified Data.Map as M (empty, insert)
 import Data.Maybe (fromMaybe, listToMaybe)
-
+import Data.Text (Text)
+import qualified Data.Text as T
 import Text.Pandoc.Readers.Odt.Generic.Namespaces
 
 
@@ -30,7 +31,7 @@ instance NameSpaceID Namespace where
 
 
 findID :: NameSpaceIRI -> Maybe Namespace
-findID iri = listToMaybe [nsID | (iri',nsID) <- nsIDs, iri' `isPrefixOf` iri]
+findID iri = listToMaybe [nsID | (iri',nsID) <- nsIDs, iri' `T.isPrefixOf` iri]
 
 nsIDmap :: NameSpaceIRIs Namespace
 nsIDmap = foldr (uncurry $ flip M.insert) M.empty nsIDs
@@ -54,12 +55,12 @@ data Namespace = -- Open Document core
                  -- Core XML (basically only for the 'id'-attribute)
                | NsXML
                  -- Fallback
-               | NsOther String
+               | NsOther Text
   deriving ( Eq, Ord, Show )
 
 -- | Not the actual iri's, but large prefixes of them - this way there are
 -- less versioning problems and the like.
-nsIDs :: [(String,Namespace)]
+nsIDs :: [(Text, Namespace)]
 nsIDs = [
   ("urn:oasis:names:tc:opendocument:xmlns:animation"        , NsAnim         ),
   ("urn:oasis:names:tc:opendocument:xmlns:chart"            , NsChart        ),

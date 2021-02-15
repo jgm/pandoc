@@ -687,7 +687,7 @@ library
                    Text.Pandoc.Lua.PandocLua,
                    Text.Pandoc.Lua.Util,
                    Text.Pandoc.Lua.Walk,
-                   Text.Pandoc.XMLParser,
+                   Text.Pandoc.XML.Light,
                    Text.Pandoc.CSS,
                    Text.Pandoc.CSV,
                    Text.Pandoc.RoffChar,

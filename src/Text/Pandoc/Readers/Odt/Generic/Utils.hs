@@ -20,7 +20,6 @@ module Text.Pandoc.Readers.Odt.Generic.Utils
 , reverseComposition
 , tryToRead
 , Lookupable(..)
-, readLookupables
 , readLookupable
 , readPercent
 , findBy
@@ -30,11 +29,11 @@ module Text.Pandoc.Readers.Odt.Generic.Utils
 
 import Control.Category (Category, (<<<), (>>>))
 import qualified Control.Category as Cat (id)
-import Control.Monad (msum)
-
+import Data.Char (isSpace)
 import qualified Data.Foldable as F (Foldable, foldr)
 import Data.Maybe
-
+import Data.Text (Text)
+import qualified Data.Text as T
 
 -- | Equivalent to
 -- > foldr (.) id
@@ -76,8 +75,8 @@ swing = flip.(.flip id)
 -- (nobody wants that) while the latter returns "to much" for simple purposes.
 -- This function instead applies 'reads' and returns the first match (if any)
 -- in a 'Maybe'.
-tryToRead :: (Read r) => String -> Maybe r
-tryToRead = reads >>> listToMaybe >>> fmap fst
+tryToRead :: (Read r) => Text -> Maybe r
+tryToRead = (reads . T.unpack) >>> listToMaybe >>> fmap fst
 
 -- | A version of 'reads' that requires a '%' sign after the number
 readPercent :: ReadS Int
@@ -88,26 +87,12 @@ readPercent s = [ (i,s') | (i   , r ) <- reads s
 -- | Data that can be looked up.
 -- This is mostly a utility to read data with kind *.
 class Lookupable a where
-  lookupTable :: [(String, a)]
-
--- | The idea is to use this function as if there was a declaration like
---
--- > instance (Lookupable a) => (Read a) where
--- >   readsPrec _ = readLookupables
--- .
--- But including this code in this form would need UndecideableInstances.
--- That is a bad idea. Luckily 'readLookupable' (without the s at the end)
--- can be used directly in almost any case.
-readLookupables :: (Lookupable a) => String -> [(a,String)]
-readLookupables s = [ (a,rest) | (word,rest) <- lex s,
-                                 a <- maybeToList (lookup word lookupTable)
-                    ]
+  lookupTable :: [(Text, a)]
 
 -- | Very similar to a simple 'lookup' in the 'lookupTable', but with a lexer.
-readLookupable :: (Lookupable a) => String -> Maybe a
-readLookupable s = msum
-                 $ map ((`lookup` lookupTable).fst)
-                 $ lex s
+readLookupable :: (Lookupable a) => Text -> Maybe a
+readLookupable s =
+  lookup (T.takeWhile (not . isSpace) $ T.dropWhile isSpace s) lookupTable
 
 uncurry3 :: (a->b->c                -> z) -> (a,b,c          ) -> z
 uncurry4 :: (a->b->c->d             -> z) -> (a,b,c,d        ) -> z

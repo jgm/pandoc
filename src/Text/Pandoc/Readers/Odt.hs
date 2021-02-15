@@ -14,8 +14,7 @@ Entry point to the odt reader.
 module Text.Pandoc.Readers.Odt ( readOdt ) where
 
 import Codec.Archive.Zip
-import qualified Text.XML.Light as XML
-import Text.Pandoc.XMLParser (parseXMLElement)
+import Text.Pandoc.XML.Light
 
 import qualified Data.ByteString.Lazy as B
 
@@ -91,7 +90,7 @@ archiveToOdt archive = do
 
 
 --
-entryToXmlElem :: Entry -> Either PandocError XML.Element
+entryToXmlElem :: Entry -> Either PandocError Element
 entryToXmlElem entry =
   case parseXMLElement . UTF8.toTextLazy . fromEntry $ entry of
     Right x  -> Right x

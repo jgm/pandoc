@@ -40,9 +40,9 @@ import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toTextLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
 import Text.Pandoc.XML
-import Text.Pandoc.XMLParser (parseXMLElement)
+import Text.Pandoc.XML.Light
 import Text.TeXMath
-import Text.XML.Light
+import qualified Text.XML.Light as XL
 
 newtype ODTState = ODTState { stEntries :: [Entry]
                          }
@@ -181,18 +181,20 @@ updateStyleWithLang (Just lang) arch = do
                                         PandocXMLError "styles.xml" msg
                                     Right d -> return $
                                       toEntry "styles.xml" epochtime
-                                      ( fromStringLazy
+                                      ( fromTextLazy
+                                      . TL.fromStrict
                                       . ppTopElement
                                       . addLang lang $ d )
                             else return e) (zEntries arch)
   return arch{ zEntries = entries }
 
+-- TODO FIXME avoid this generic traversal!
 addLang :: Lang -> Element -> Element
 addLang lang = everywhere' (mkT updateLangAttr)
     where updateLangAttr (Attr n@(QName "language" _ (Just "fo")) _)
-                           = Attr n (T.unpack $ langLanguage lang)
+                           = Attr n (langLanguage lang)
           updateLangAttr (Attr n@(QName "country" _ (Just "fo")) _)
-                           = Attr n (T.unpack $ langRegion lang)
+                           = Attr n (langRegion lang)
           updateLangAttr x = x
 
 -- | transform both Image and Math elements
@@ -238,8 +240,8 @@ transformPicMath _ (Math t math) = do
   case writeMathML dt <$> readTeX math of
        Left  _ -> return $ Math t math
        Right r -> do
-         let conf = useShortEmptyTags (const False) defaultConfigPP
-         let mathml = ppcTopElement conf r
+         let conf = XL.useShortEmptyTags (const False) XL.defaultConfigPP
+         let mathml = XL.ppcTopElement conf r
          epochtime <- floor `fmap` lift P.getPOSIXTime
          let dirname = "Formula-" ++ show (length entries) ++ "/"
          let fname = dirname ++ "content.xml"

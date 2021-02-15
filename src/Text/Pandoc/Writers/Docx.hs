@@ -31,6 +31,7 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, maybeToList)
 import qualified Data.Set as Set
 import qualified Data.Text as T
+import Data.Text (Text)
 import qualified Data.Text.Lazy as TL
 import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
@@ -57,19 +58,19 @@ import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
 import Text.TeXMath
-import Text.XML.Light as XML
-import Text.XML.Light.Cursor as XMLC
 import Text.Pandoc.Writers.OOXML
+import Text.Pandoc.XML.Light as XML
+import Data.Generics (mkT, everywhere)
 
 data ListMarker = NoMarker
                 | BulletMarker
                 | NumberMarker ListNumberStyle ListNumberDelim Int
                 deriving (Show, Read, Eq, Ord)
 
-listMarkerToId :: ListMarker -> String
+listMarkerToId :: ListMarker -> Text
 listMarkerToId NoMarker = "990"
 listMarkerToId BulletMarker = "991"
-listMarkerToId (NumberMarker sty delim n) =
+listMarkerToId (NumberMarker sty delim n) = T.pack $
   '9' : '9' : styNum : delimNum : show n
   where styNum = case sty of
                       DefaultStyle -> '2'
@@ -106,8 +107,8 @@ data WriterEnv = WriterEnv{ envTextProperties :: EnvProps
                           , envListLevel      :: Int
                           , envListNumId      :: Int
                           , envInDel          :: Bool
-                          , envChangesAuthor  :: T.Text
-                          , envChangesDate    :: T.Text
+                          , envChangesAuthor  :: Text
+                          , envChangesDate    :: Text
                           , envPrintWidth     :: Integer
                           }
 
@@ -125,9 +126,9 @@ defaultWriterEnv = WriterEnv{ envTextProperties = mempty
 
 data WriterState = WriterState{
          stFootnotes      :: [Element]
-       , stComments       :: [([(T.Text, T.Text)], [Inline])]
-       , stSectionIds     :: Set.Set T.Text
-       , stExternalLinks  :: M.Map String String
+       , stComments       :: [([(Text, Text)], [Inline])]
+       , stSectionIds     :: Set.Set Text
+       , stExternalLinks  :: M.Map Text Text
        , stImages         :: M.Map FilePath (String, String, Maybe MimeType, B.ByteString)
        , stLists          :: [ListMarker]
        , stInsId          :: Int
@@ -164,18 +165,18 @@ defaultWriterState = WriterState{
 
 type WS m = ReaderT WriterEnv (StateT WriterState m)
 
-renumIdMap :: Int -> [Element] -> M.Map String String
+renumIdMap :: Int -> [Element] -> M.Map Text Text
 renumIdMap _ [] = M.empty
 renumIdMap n (e:es)
   | Just oldId <- findAttr (QName "Id" Nothing Nothing) e =
-      M.insert oldId ("rId" ++ show n) (renumIdMap (n+1) es)
+      M.insert oldId ("rId" <> tshow n) (renumIdMap (n+1) es)
   | otherwise = renumIdMap n es
 
-replaceAttr :: (QName -> Bool) -> String -> [XML.Attr] -> [XML.Attr]
+replaceAttr :: (QName -> Bool) -> Text -> [XML.Attr] -> [XML.Attr]
 replaceAttr f val = map $
     \a -> if f (attrKey a) then XML.Attr (attrKey a) val else a
 
-renumId :: (QName -> Bool) -> M.Map String String -> Element -> Element
+renumId :: (QName -> Bool) -> M.Map Text Text -> Element -> Element
 renumId f renumMap e
   | Just oldId <- findAttrBy f e
   , Just newId <- M.lookup oldId renumMap =
@@ -184,18 +185,12 @@ renumId f renumMap e
      e { elAttribs = attrs' }
   | otherwise = e
 
-renumIds :: (QName -> Bool) -> M.Map String String -> [Element] -> [Element]
+renumIds :: (QName -> Bool) -> M.Map Text Text -> [Element] -> [Element]
 renumIds f renumMap = map (renumId f renumMap)
-
-findAttrTextBy :: (QName -> Bool) -> Element -> Maybe T.Text
-findAttrTextBy x = fmap T.pack . findAttrBy x
-
-lookupAttrTextBy :: (QName -> Bool) -> [XML.Attr] -> Maybe T.Text
-lookupAttrTextBy x = fmap T.pack . lookupAttrBy x
 
 -- | Certain characters are invalid in XML even if escaped.
 -- See #1992
-stripInvalidChars :: T.Text -> T.Text
+stripInvalidChars :: Text -> Text
 stripInvalidChars = T.filter isValidChar
 
 -- | See XML reference
@@ -234,11 +229,11 @@ writeDocx opts doc = do
 
   -- Gets the template size
   let mbpgsz = mbsectpr >>= filterElementName (wname (=="pgSz"))
-  let mbAttrSzWidth = mbpgsz >>= lookupAttrTextBy ((=="w") . qName) . elAttribs
+  let mbAttrSzWidth = mbpgsz >>= lookupAttrBy ((=="w") . qName) . elAttribs
 
   let mbpgmar = mbsectpr >>= filterElementName (wname (=="pgMar"))
-  let mbAttrMarLeft = mbpgmar >>= lookupAttrTextBy ((=="left") . qName) . elAttribs
-  let mbAttrMarRight = mbpgmar >>= lookupAttrTextBy ((=="right") . qName) . elAttribs
+  let mbAttrMarLeft = mbpgmar >>= lookupAttrBy ((=="left") . qName) . elAttribs
+  let mbAttrMarRight = mbpgmar >>= lookupAttrBy ((=="right") . qName) . elAttribs
 
   -- Get the available area (converting the size and the margins to int and
   -- doing the difference
@@ -250,24 +245,21 @@ writeDocx opts doc = do
 
   -- styles
   mblang <- toLang $ getLang opts meta
+  -- TODO FIXME avoid this generic traversal!
+  -- lang is in w:docDefaults /  w:rPr  /  w:lang
   let addLang :: Element -> Element
-      addLang e = case (\l -> XMLC.toTree . go (T.unpack $ renderLang l) $
-                                 XMLC.fromElement e) <$> mblang of
-                    Just (Elem e') -> e'
-                    _              -> e -- return original
-        where go :: String -> Cursor -> Cursor
-              go l cursor = case XMLC.findRec (isLangElt . current) cursor of
-                              Nothing -> cursor
-                              Just t  -> XMLC.modifyContent (setval l) t
-              setval :: String -> Content -> Content
-              setval l (Elem e') = Elem $ e'{ elAttribs = map (setvalattr l) $
-                                               elAttribs e' }
-              setval _ x         = x
-              setvalattr :: String -> XML.Attr -> XML.Attr
-              setvalattr l (XML.Attr qn@(QName "val" _ _) _) = XML.Attr qn l
-              setvalattr _ x                                 = x
-              isLangElt (Elem e') = qName (elName e') == "lang"
-              isLangElt _         = False
+      addLang = case mblang of
+                  Nothing -> id
+                  Just l  -> everywhere (mkT (go (renderLang l)))
+        where
+          go :: Text -> Element -> Element
+          go l e'
+            | qName (elName e') == "lang"
+                = e'{ elAttribs = map (setvalattr l) $ elAttribs e' }
+            | otherwise = e'
+
+          setvalattr l (XML.Attr qn@(QName "val" _ _) _) = XML.Attr qn l
+          setvalattr _ x                                 = x
 
   let stylepath = "word/styles.xml"
   styledoc <- addLang <$> parseXml refArchive distArchive stylepath
@@ -337,12 +329,13 @@ writeDocx opts doc = do
 
   -- [Content_Types].xml
   let mkOverrideNode (part', contentType') = mknode "Override"
-               [("PartName",part'),("ContentType",contentType')] ()
+               [("PartName", T.pack part')
+               ,("ContentType", contentType')] ()
   let mkImageOverride (_, imgpath, mbMimeType, _) =
-          mkOverrideNode ("/word/" ++ imgpath,
-                          maybe "application/octet-stream" T.unpack mbMimeType)
+          mkOverrideNode ("/word/" <> imgpath,
+                          fromMaybe "application/octet-stream" mbMimeType)
   let mkMediaOverride imgpath =
-          mkOverrideNode ('/':imgpath, T.unpack $ getMimeTypeDef imgpath)
+          mkOverrideNode ("/" <> imgpath, getMimeTypeDef imgpath)
   let overrides = map mkOverrideNode (
                   [("/word/webSettings.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.webSettings+xml")
@@ -369,13 +362,14 @@ writeDocx opts doc = do
                   ,("/word/footnotes.xml",
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml")
                   ] ++
-                  map (\x -> (maybe "" ("/word/" ++) $ extractTarget x,
+                  map (\x -> (maybe "" (T.unpack . ("/word/" <>)) (extractTarget x),
                        "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml")) headers ++
-                  map (\x -> (maybe "" ("/word/" ++) $ extractTarget x,
+                  map (\x -> (maybe "" (T.unpack . ("/word/" <>)) (extractTarget x),
                        "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml")) footers) ++
                     map mkImageOverride imgs ++
-                    [ mkMediaOverride (eRelativePath e) | e <- zEntries refArchive
-                                        , "word/media/" `isPrefixOf` eRelativePath e ]
+                    [ mkMediaOverride (eRelativePath e)
+                        | e <- zEntries refArchive
+                        , "word/media/" `isPrefixOf` eRelativePath e ]
 
   let defaultnodes = [mknode "Default"
               [("Extension","xml"),("ContentType","application/xml")] (),
@@ -421,7 +415,7 @@ writeDocx opts doc = do
   let renumHeaders = renumIds (\q -> qName q == "Id") idMap headers
   let renumFooters = renumIds (\q -> qName q == "Id") idMap footers
   let baserels = baserels' ++ renumHeaders ++ renumFooters
-  let toImgRel (ident,path,_,_) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"),("Id",ident),("Target",path)] ()
+  let toImgRel (ident,path,_,_) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"),("Id",T.pack ident),("Target",T.pack path)] ()
   let imgrels = map toImgRel imgs
   let toLinkRel (src,ident) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"),("Id",ident),("Target",src),("TargetMode","External") ] ()
   let linkrels = map toLinkRel $ M.toList $ stExternalLinks st
@@ -489,10 +483,10 @@ writeDocx opts doc = do
   numbering <- parseXml refArchive distArchive numpath
   let newNumElts = mkNumbering (stLists st)
   let pandocAdded e =
-       case findAttrTextBy ((== "abstractNumId") . qName) e >>= safeRead of
+       case findAttrBy ((== "abstractNumId") . qName) e >>= safeRead of
          Just numid -> numid >= (990 :: Int)
          Nothing    ->
-           case findAttrTextBy ((== "numId") . qName) e >>= safeRead of
+           case findAttrBy ((== "numId") . qName) e >>= safeRead of
              Just numid -> numid >= (1000 :: Int)
              Nothing    -> False
   let oldElts = filter (not . pandocAdded) $ onlyElems (elContent numbering)
@@ -514,7 +508,7 @@ writeDocx opts doc = do
   let extraCoreProps = ["subject","lang","category","description"]
   let extraCorePropsMap = M.fromList $ zip extraCoreProps
                        ["dc:subject","dc:language","cp:category","dc:description"]
-  let lookupMetaString' :: T.Text -> Meta -> T.Text
+  let lookupMetaString' :: Text -> Meta -> Text
       lookupMetaString' key' meta' =
         case key' of
              "description"    -> T.intercalate "_x000d_\n" (map stringify $ lookupMetaBlocks "description" meta')
@@ -530,21 +524,21 @@ writeDocx opts doc = do
           : mktnode "dc:creator" [] (T.intercalate "; " (map stringify $ docAuthors meta))
           : [ mktnode (M.findWithDefault "" k extraCorePropsMap) [] (lookupMetaString' k meta)
             | k <- M.keys (unMeta meta), k `elem` extraCoreProps]
-          ++ mknode "cp:keywords" [] (T.unpack $ T.intercalate ", " keywords)
+          ++ mknode "cp:keywords" [] (T.intercalate ", " keywords)
           : (\x -> [ mknode "dcterms:created" [("xsi:type","dcterms:W3CDTF")] x
                    , mknode "dcterms:modified" [("xsi:type","dcterms:W3CDTF")] x
-                   ]) (formatTime defaultTimeLocale "%FT%XZ" utctime)
+                   ]) (T.pack $ formatTime defaultTimeLocale "%FT%XZ" utctime)
   let docPropsEntry = toEntry docPropsPath epochtime $ renderXml docProps
 
   -- docProps/custom.xml
-  let customProperties :: [(String, String)]
-      customProperties = [ (T.unpack k, T.unpack $ lookupMetaString k meta)
+  let customProperties :: [(Text, Text)]
+      customProperties = [ (k, lookupMetaString k meta)
                          | k <- M.keys (unMeta meta)
                          , k `notElem` (["title", "author", "keywords"]
                                        ++ extraCoreProps)]
   let mkCustomProp (k, v) pid = mknode "property"
          [("fmtid","{D5CDD505-2E9C-101B-9397-08002B2CF9AE}")
-         ,("pid", show pid)
+         ,("pid", tshow pid)
          ,("name", k)] $ mknode "vt:lpwstr" [] v
   let customPropsPath = "docProps/custom.xml"
   let customProps = mknode "Properties"
@@ -594,7 +588,8 @@ writeDocx opts doc = do
   fontTableEntry <- entryFromArchive refArchive "word/fontTable.xml"
   webSettingsEntry <- entryFromArchive refArchive "word/webSettings.xml"
   headerFooterEntries <- mapM (entryFromArchive refArchive . ("word/" ++)) $
-                     mapMaybe extractTarget (headers ++ footers)
+                         mapMaybe (fmap T.unpack . extractTarget)
+                         (headers ++ footers)
   let miscRelEntries = [ e | e <- zEntries refArchive
                        , "word/_rels/" `isPrefixOf` eRelativePath e
                        , ".xml.rels" `isSuffixOf` eRelativePath e
@@ -620,8 +615,8 @@ newParaPropToOpenXml (fromStyleName -> s) =
   let styleId = T.filter (not . isSpace) s
   in mknode "w:style" [ ("w:type", "paragraph")
                       , ("w:customStyle", "1")
-                      , ("w:styleId", T.unpack styleId)]
-     [ mknode "w:name" [("w:val", T.unpack s)] ()
+                      , ("w:styleId", styleId)]
+     [ mknode "w:name" [("w:val", s)] ()
      , mknode "w:basedOn" [("w:val","BodyText")] ()
      , mknode "w:qFormat" [] ()
      ]
@@ -631,8 +626,8 @@ newTextPropToOpenXml (fromStyleName -> s) =
   let styleId = T.filter (not . isSpace) s
   in mknode "w:style" [ ("w:type", "character")
                       , ("w:customStyle", "1")
-                      , ("w:styleId", T.unpack styleId)]
-     [ mknode "w:name" [("w:val", T.unpack s)] ()
+                      , ("w:styleId", styleId)]
+     [ mknode "w:name" [("w:val", s)] ()
      , mknode "w:basedOn" [("w:val","BodyTextChar")] ()
      ]
 
@@ -643,13 +638,14 @@ styleToOpenXml sm style =
         toStyle toktype | hasStyleName (fromString $ show toktype) (smCharStyle sm) = Nothing
                         | otherwise = Just $
                           mknode "w:style" [("w:type","character"),
-                           ("w:customStyle","1"),("w:styleId",show toktype)]
-                             [ mknode "w:name" [("w:val",show toktype)] ()
+                           ("w:customStyle","1"),("w:styleId", tshow toktype)]
+                             [ mknode "w:name" [("w:val", tshow toktype)] ()
                              , mknode "w:basedOn" [("w:val","VerbatimChar")] ()
                              , mknode "w:rPr" [] $
-                               [ mknode "w:color" [("w:val",tokCol toktype)] ()
+                               [ mknode "w:color" [("w:val", tokCol toktype)] ()
                                  | tokCol toktype /= "auto" ] ++
-                               [ mknode "w:shd" [("w:val","clear"),("w:fill",tokBg toktype)] ()
+                               [ mknode "w:shd" [("w:val","clear")
+                                                ,("w:fill",tokBg toktype)] ()
                                  | tokBg toktype /= "auto" ] ++
                                [ mknode "w:b" [] () | tokFeature tokenBold toktype ] ++
                                [ mknode "w:i" [] () | tokFeature tokenItalic toktype ] ++
@@ -657,10 +653,10 @@ styleToOpenXml sm style =
                              ]
         tokStyles = tokenStyles style
         tokFeature f toktype = maybe False f $ M.lookup toktype tokStyles
-        tokCol toktype = maybe "auto" (drop 1 . fromColor)
+        tokCol toktype = maybe "auto" (T.pack . drop 1 . fromColor)
                          $ (tokenColor =<< M.lookup toktype tokStyles)
                            `mplus` defaultColor style
-        tokBg toktype = maybe "auto" (drop 1 . fromColor)
+        tokBg toktype = maybe "auto" (T.pack . drop 1 . fromColor)
                          $ (tokenBackground =<< M.lookup toktype tokStyles)
                            `mplus` backgroundColor style
         parStyle | hasStyleName "Source Code" (smParaStyle sm) = Nothing
@@ -673,10 +669,11 @@ styleToOpenXml sm style =
                              , mknode "w:pPr" []
                                $ mknode "w:wordWrap" [("w:val","off")] ()
                                :
-                         maybe [] (\col -> [mknode "w:shd" [("w:val","clear"),("w:fill",drop 1 $ fromColor col)] ()]) (backgroundColor style)
+                         maybe [] (\col -> [mknode "w:shd" [("w:val","clear"),("w:fill", T.pack $ drop 1 $ fromColor col)] ()]) (backgroundColor style)
                              ]
 
-copyChildren :: (PandocMonad m) => Archive -> Archive -> String -> Integer -> [String] -> m Entry
+copyChildren :: (PandocMonad m)
+             => Archive -> Archive -> String -> Integer -> [Text] -> m Entry
 copyChildren refArchive distArchive path timestamp elNames = do
   ref  <- parseXml refArchive distArchive path
   dist <- parseXml distArchive distArchive path
@@ -685,7 +682,7 @@ copyChildren refArchive distArchive path timestamp elNames = do
     }
   where
     strName QName{qName=name, qPrefix=prefix}
-      | Just p <- prefix = p++":"++name
+      | Just p <- prefix = p <> ":" <> name
       | otherwise        = name
     shouldCopy = (`elem` elNames) . strName
     cleanElem el@Element{elName=name} = Elem el{elName=name{qURI=Nothing}}
@@ -706,35 +703,35 @@ maxListLevel = 8
 
 mkNum :: ListMarker -> Int -> Element
 mkNum marker numid =
-  mknode "w:num" [("w:numId",show numid)]
+  mknode "w:num" [("w:numId",tshow numid)]
    $ mknode "w:abstractNumId" [("w:val",listMarkerToId marker)] ()
    : case marker of
        NoMarker     -> []
        BulletMarker -> []
        NumberMarker _ _ start ->
-          map (\lvl -> mknode "w:lvlOverride" [("w:ilvl",show (lvl :: Int))]
-              $ mknode "w:startOverride" [("w:val",show start)] ())
+          map (\lvl -> mknode "w:lvlOverride" [("w:ilvl",tshow (lvl :: Int))]
+              $ mknode "w:startOverride" [("w:val",tshow start)] ())
                 [0..maxListLevel]
 
 mkAbstractNum :: ListMarker -> Integer -> Element
 mkAbstractNum marker nsid =
   mknode "w:abstractNum" [("w:abstractNumId",listMarkerToId marker)]
-    $ mknode "w:nsid" [("w:val", printf "%8x" nsid)] ()
+    $ mknode "w:nsid" [("w:val", T.pack $ printf "%8x" nsid)] ()
     : mknode "w:multiLevelType" [("w:val","multilevel")] ()
     : map (mkLvl marker)
       [0..maxListLevel]
 
 mkLvl :: ListMarker -> Int -> Element
 mkLvl marker lvl =
-  mknode "w:lvl" [("w:ilvl",show lvl)] $
+  mknode "w:lvl" [("w:ilvl",tshow lvl)] $
     [ mknode "w:start" [("w:val",start)] ()
       | marker /= NoMarker && marker /= BulletMarker ] ++
     [ mknode "w:numFmt" [("w:val",fmt)] ()
-    , mknode "w:lvlText" [("w:val",lvltxt)] ()
+    , mknode "w:lvlText" [("w:val", lvltxt)] ()
     , mknode "w:lvlJc" [("w:val","left")] ()
     , mknode "w:pPr" []
-      [ mknode "w:ind" [ ("w:left",show $ lvl * step + step)
-                       , ("w:hanging",show (hang :: Int))
+      [ mknode "w:ind" [ ("w:left",tshow $ lvl * step + step)
+                       , ("w:hanging",tshow (hang :: Int))
                        ] ()
       ]
     ]
@@ -743,8 +740,8 @@ mkLvl marker lvl =
                  NoMarker             -> ("bullet"," ","1")
                  BulletMarker         -> ("bullet",bulletFor lvl,"1")
                  NumberMarker st de n -> (styleFor st lvl
-                                         ,patternFor de ("%" ++ show (lvl + 1))
-                                         ,show n)
+                                         ,patternFor de ("%" <> tshow (lvl + 1))
+                                         ,tshow n)
           step = 720
           hang = 480
           bulletFor 0 = "\x2022"  -- filled circle
@@ -767,9 +764,9 @@ mkLvl marker lvl =
           styleFor DefaultStyle 5 = "lowerRoman"
           styleFor DefaultStyle x = styleFor DefaultStyle (x `mod` 6)
           styleFor _ _            = "decimal"
-          patternFor OneParen s  = s ++ ")"
-          patternFor TwoParens s = "(" ++ s ++ ")"
-          patternFor _ s         = s ++ "."
+          patternFor OneParen s  = s <> ")"
+          patternFor TwoParens s = "(" <> s <> ")"
+          patternFor _ s         = s <> "."
 
 getNumId :: (PandocMonad m) => WS m Int
 getNumId = (((baseListId - 1) +) . length) `fmap` gets stLists
@@ -777,8 +774,8 @@ getNumId = (((baseListId - 1) +) . length) `fmap` gets stLists
 
 makeTOC :: (PandocMonad m) => WriterOptions -> WS m [Element]
 makeTOC opts = do
-  let depth = "1-"++show (writerTOCDepth opts)
-  let tocCmd = "TOC \\o \""++depth++"\" \\h \\z \\u"
+  let depth = "1-" <> tshow (writerTOCDepth opts)
+  let tocCmd = "TOC \\o \"" <> depth <> "\" \\h \\z \\u"
   tocTitle <- gets stTocTitle
   title <- withParaPropM (pStyleM "TOC Heading") (blocksToOpenXML opts [Para tocTitle])
   return
@@ -831,7 +828,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
   let toComment (kvs, ils) = do
         annotation <- inlinesToOpenXML opts ils
         return $
-          mknode "w:comment" [('w':':':T.unpack k,T.unpack v) | (k,v) <- kvs]
+          mknode "w:comment" [("w:" <> k, v) | (k,v) <- kvs]
             [ mknode "w:p" [] $
               map Elem
               [ mknode "w:pPr" []
@@ -867,24 +864,24 @@ pStyleM :: (PandocMonad m) => ParaStyleName -> WS m XML.Element
 pStyleM styleName = do
   pStyleMap <- gets (smParaStyle . stStyleMaps)
   let sty' = getStyleIdFromName styleName pStyleMap
-  return $ mknode "w:pStyle" [("w:val", T.unpack $ fromStyleId sty')] ()
+  return $ mknode "w:pStyle" [("w:val", fromStyleId sty')] ()
 
 rStyleM :: (PandocMonad m) => CharStyleName -> WS m XML.Element
 rStyleM styleName = do
   cStyleMap <- gets (smCharStyle . stStyleMaps)
   let sty' = getStyleIdFromName styleName cStyleMap
-  return $ mknode "w:rStyle" [("w:val", T.unpack $ fromStyleId sty')] ()
+  return $ mknode "w:rStyle" [("w:val", fromStyleId sty')] ()
 
-getUniqueId :: (PandocMonad m) => WS m String
+getUniqueId :: (PandocMonad m) => WS m Text
 -- the + 20 is to ensure that there are no clashes with the rIds
 -- already in word/document.xml.rel
 getUniqueId = do
   n <- gets stCurId
   modify $ \st -> st{stCurId = n + 1}
-  return $ show n
+  return $ tshow n
 
 -- | Key for specifying user-defined docx styles.
-dynamicStyleKey :: T.Text
+dynamicStyleKey :: Text
 dynamicStyleKey = "custom-style"
 
 -- | Convert a Pandoc block element to OpenXML.
@@ -979,7 +976,7 @@ blockToOpenXML' opts (Para lst)
 blockToOpenXML' opts (LineBlock lns) = blockToOpenXML opts $ linesToPara lns
 blockToOpenXML' _ b@(RawBlock format str)
   | format == Format "openxml" = return [
-        Text (CData CDataRaw (T.unpack str) Nothing)
+        Text (CData CDataRaw str Nothing)
       ]
   | otherwise                  = do
       report $ BlockNotRendered b
@@ -1036,7 +1033,7 @@ blockToOpenXML' opts (Table _ blkCapt specs thead tbody tfoot) = do
   let fullrow = 5000 -- 100% specified in pct
   let rowwidth = fullrow * sum widths
   let mkgridcol w = mknode "w:gridCol"
-                       [("w:w", show (floor (textwidth * w) :: Integer))] ()
+                       [("w:w", tshow (floor (textwidth * w) :: Integer))] ()
   let hasHeader = not $ all null headers
   modify $ \s -> s { stInTable = False }
   -- for compatibility with Word <= 2007, we include a val with a bitmask
@@ -1054,16 +1051,16 @@ blockToOpenXML' opts (Table _ blkCapt specs thead tbody tfoot) = do
      mknode "w:tbl" []
       ( mknode "w:tblPr" []
         (   mknode "w:tblStyle" [("w:val","Table")] () :
-            mknode "w:tblW" [("w:type", "pct"), ("w:w", show rowwidth)] () :
+            mknode "w:tblW" [("w:type", "pct"), ("w:w", tshow rowwidth)] () :
             mknode "w:tblLook" [("w:firstRow",if hasHeader then "1" else "0")
                                ,("w:lastRow","0")
                                ,("w:firstColumn","0")
                                ,("w:lastColumn","0")
                                ,("w:noHBand","0")
                                ,("w:noVBand","0")
-                               ,("w:val", printf "%04x" tblLookVal)
+                               ,("w:val", T.pack $ printf "%04x" tblLookVal)
                                ] () :
-          [ mknode "w:tblCaption" [("w:val", T.unpack captionStr)] ()
+          [ mknode "w:tblCaption" [("w:val", captionStr)] ()
           | not (null caption) ] )
       : mknode "w:tblGrid" []
         (if all (==0) widths
@@ -1126,7 +1123,7 @@ listItemToOpenXML opts numid (first:rest) = do
   modify $ \st -> st{ stInList = oldInList }
   return $ first'' ++ rest''
 
-alignmentToString :: Alignment -> [Char]
+alignmentToString :: Alignment -> Text
 alignmentToString alignment = case alignment of
                                  AlignLeft    -> "left"
                                  AlignRight   -> "right"
@@ -1169,8 +1166,8 @@ getParaProps displayMathPara = do
   listLevel <- asks envListLevel
   numid <- asks envListNumId
   let listPr = [mknode "w:numPr" []
-                [ mknode "w:ilvl" [("w:val",show listLevel)] ()
-                , mknode "w:numId" [("w:val",show numid)] () ] | listLevel >= 0 && not displayMathPara]
+                [ mknode "w:ilvl" [("w:val",tshow listLevel)] ()
+                , mknode "w:numId" [("w:val",tshow numid)] () ] | listLevel >= 0 && not displayMathPara]
   return $ case listPr ++ squashProps props of
                 [] -> []
                 ps -> [mknode "w:pPr" [] ps]
@@ -1185,7 +1182,7 @@ withParaPropM md p = do
   d <- md
   withParaProp d p
 
-formattedString :: PandocMonad m => T.Text -> WS m [Element]
+formattedString :: PandocMonad m => Text -> WS m [Element]
 formattedString str =
   -- properly handle soft hyphens
   case splitTextBy (=='\173') str of
@@ -1194,7 +1191,7 @@ formattedString str =
          sh <- formattedRun [mknode "w:softHyphen" [] ()]
          intercalate sh <$> mapM formattedString' ws
 
-formattedString' :: PandocMonad m => T.Text -> WS m [Element]
+formattedString' :: PandocMonad m => Text -> WS m [Element]
 formattedString' str = do
   inDel <- asks envInDel
   formattedRun [ mktnode (if inDel then "w:delText" else "w:t")
@@ -1226,7 +1223,7 @@ inlineToOpenXML' opts (Span ("",["csl-right-inline"],[]) ils) =
      mknode "w:r" []
      (mknode "w:t"
        [("xml:space","preserve")]
-       ("\t" :: String))] ++)
+       ("\t" :: Text))] ++)
     <$> inlinesToOpenXML opts ils
 inlineToOpenXML' opts (Span ("",["csl-indent"],[]) ils) =
   inlinesToOpenXML opts ils
@@ -1236,17 +1233,17 @@ inlineToOpenXML' _ (Span (ident,["comment-start"],kvs) ils) = do
   let ident' = fromMaybe ident (lookup "id" kvs)
       kvs' = filter (("id" /=) . fst) kvs
   modify $ \st -> st{ stComments = (("id",ident'):kvs', ils) : stComments st }
-  return [ Elem $ mknode "w:commentRangeStart" [("w:id", T.unpack ident')] () ]
+  return [ Elem $ mknode "w:commentRangeStart" [("w:id", ident')] () ]
 inlineToOpenXML' _ (Span (ident,["comment-end"],kvs) _) =
   -- prefer the "id" in kvs, since that is the one produced by the docx
   -- reader.
   let ident' = fromMaybe ident (lookup "id" kvs)
   in return . map Elem $
-     [ mknode "w:commentRangeEnd" [("w:id", T.unpack ident')] ()
+     [ mknode "w:commentRangeEnd" [("w:id", ident')] ()
      , mknode "w:r" []
        [ mknode "w:rPr" []
          [ mknode "w:rStyle" [("w:val", "CommentReference")] () ]
-       , mknode "w:commentReference" [("w:id", T.unpack ident')] () ]
+       , mknode "w:commentReference" [("w:id", ident')] () ]
      ]
 inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
   stylemod <- case lookup dynamicStyleKey kvs of
@@ -1270,8 +1267,8 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
         defaultAuthor <- asks envChangesAuthor
         let author = fromMaybe defaultAuthor (lookup "author" kvs)
         let mdate = lookup "date" kvs
-        return $ ("w:author", T.unpack author) :
-                   maybe [] (\date -> [("w:date", T.unpack date)]) mdate
+        return $ ("w:author", author) :
+                   maybe [] (\date -> [("w:date", date)]) mdate
   insmod <- if "insertion" `elem` classes
                then do
                  changeAuthorDate <- getChangeAuthorDate
@@ -1281,7 +1278,7 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
                    x <- f
                    return [Elem $
                            mknode "w:ins"
-                             (("w:id", show insId) : changeAuthorDate) x]
+                             (("w:id", tshow insId) : changeAuthorDate) x]
                else return id
   delmod <- if "deletion" `elem` classes
                then do
@@ -1291,7 +1288,7 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
                  return $ \f -> local (\env->env{envInDel=True}) $ do
                    x <- f
                    return [Elem $ mknode "w:del"
-                             (("w:id", show delId) : changeAuthorDate) x]
+                             (("w:id", tshow delId) : changeAuthorDate) x]
                else return id
   contents <- insmod $ delmod $ dirmod $ stylemod $ pmod
                      $ inlinesToOpenXML opts ils
@@ -1322,7 +1319,7 @@ inlineToOpenXML' opts (Strikeout lst) =
 inlineToOpenXML' _ LineBreak = return [Elem br]
 inlineToOpenXML' _ il@(RawInline f str)
   | f == Format "openxml" = return
-                            [Text (CData CDataRaw (T.unpack str) Nothing)]
+                            [Text (CData CDataRaw str Nothing)]
   | otherwise             = do
       report $ InlineNotRendered il
       return []
@@ -1335,7 +1332,7 @@ inlineToOpenXML' opts (Math mathType str) = do
   when (mathType == DisplayMath) setFirstPara
   res <- (lift . lift) (convertMath writeOMML mathType str)
   case res of
-       Right r -> return [Elem r]
+       Right r -> return [Elem $ fromXLElement r]
        Left il -> inlineToOpenXML' opts il
 inlineToOpenXML' opts (Cite _ lst) = inlinesToOpenXML opts lst
 inlineToOpenXML' opts (Code attrs str) = do
@@ -1348,7 +1345,7 @@ inlineToOpenXML' opts (Code attrs str) = do
         mknode "w:r" []
           [ mknode "w:rPr" [] $
             maybeToList (lookup toktype tokTypesMap)
-            , mknode "w:t" [("xml:space","preserve")] (T.unpack tok) ]
+            , mknode "w:t" [("xml:space","preserve")] tok ]
   withTextPropM (rStyleM "Verbatim Char")
     $ if isNothing (writerHighlightStyle opts)
           then unhighlighted
@@ -1365,7 +1362,7 @@ inlineToOpenXML' opts (Note bs) = do
   let notemarker = mknode "w:r" []
                    [ mknode "w:rPr" [] footnoteStyle
                    , mknode "w:footnoteRef" [] () ]
-  let notemarkerXml = RawInline (Format "openxml") $ T.pack $ ppElement notemarker
+  let notemarkerXml = RawInline (Format "openxml") $ ppElement notemarker
   let insertNoteRef (Plain ils : xs) = Plain (notemarkerXml : Space : ils) : xs
       insertNoteRef (Para ils  : xs) = Para  (notemarkerXml : Space : ils) : xs
       insertNoteRef xs               = Para [notemarkerXml] : xs
@@ -1384,17 +1381,17 @@ inlineToOpenXML' opts (Note bs) = do
 inlineToOpenXML' opts (Link _ txt (T.uncons -> Just ('#', xs),_)) = do
   contents <- withTextPropM (rStyleM "Hyperlink") $ inlinesToOpenXML opts txt
   return
-    [ Elem $ mknode "w:hyperlink" [("w:anchor", T.unpack $ toBookmarkName xs)] contents ]
+    [ Elem $ mknode "w:hyperlink" [("w:anchor", toBookmarkName xs)] contents ]
 -- external link:
 inlineToOpenXML' opts (Link _ txt (src,_)) = do
   contents <- withTextPropM (rStyleM "Hyperlink") $ inlinesToOpenXML opts txt
   extlinks <- gets stExternalLinks
-  id' <- case M.lookup (T.unpack src) extlinks of
+  id' <- case M.lookup src extlinks of
             Just i   -> return i
             Nothing  -> do
-              i <- ("rId"++) `fmap` getUniqueId
+              i <- ("rId" <>) <$> getUniqueId
               modify $ \st -> st{ stExternalLinks =
-                        M.insert (T.unpack src) i extlinks }
+                        M.insert src i extlinks }
               return i
   return [ Elem $ mknode "w:hyperlink" [("r:id",id')] contents ]
 inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
@@ -1414,17 +1411,17 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
                                              ,("noChangeAspect","1")] ()
         nvPicPr  = mknode "pic:nvPicPr" []
                         [ mknode "pic:cNvPr"
-                            [("descr",T.unpack src),("id","0"),("name","Picture")] ()
+                            [("descr",src),("id","0"),("name","Picture")] ()
                         , cNvPicPr ]
         blipFill = mknode "pic:blipFill" []
-          [ mknode "a:blip" [("r:embed",ident)] ()
+          [ mknode "a:blip" [("r:embed",T.pack ident)] ()
           , mknode "a:stretch" [] $
               mknode "a:fillRect" [] ()
           ]
         xfrm =    mknode "a:xfrm" []
                         [ mknode "a:off" [("x","0"),("y","0")] ()
-                        , mknode "a:ext" [("cx",show xemu)
-                                         ,("cy",show yemu)] () ]
+                        , mknode "a:ext" [("cx",tshow xemu)
+                                         ,("cy",tshow yemu)] () ]
         prstGeom = mknode "a:prstGeom" [("prst","rect")] $
                          mknode "a:avLst" [] ()
         ln =      mknode "a:ln" [("w","9525")]
@@ -1445,12 +1442,12 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
         imgElt = mknode "w:r" [] $
           mknode "w:drawing" [] $
             mknode "wp:inline" []
-              [ mknode "wp:extent" [("cx",show xemu),("cy",show yemu)] ()
+              [ mknode "wp:extent" [("cx",tshow xemu),("cy",tshow yemu)] ()
               , mknode "wp:effectExtent"
                 [("b","0"),("l","0"),("r","0"),("t","0")] ()
               , mknode "wp:docPr"
-                [ ("descr", T.unpack $ stringify alt)
-                , ("title", T.unpack title)
+                [ ("descr", stringify alt)
+                , ("title", title)
                 , ("id","1")
                 , ("name","Picture")
                 ] ()
@@ -1463,7 +1460,7 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
     Just imgData -> return [Elem $ generateImgElt imgData]
     Nothing -> ( do --try
       (img, mt) <- P.fetchItem src
-      ident <- ("rId"++) `fmap` getUniqueId
+      ident <- ("rId" <>) <$> getUniqueId
 
       let
         imgext = case mt >>= extensionFromMimeType of
@@ -1477,10 +1474,10 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
             Just Svg  -> ".svg"
             Just Emf  -> ".emf"
             Nothing   -> ""
-        imgpath = "media/" <> ident <> T.unpack imgext
-        mbMimeType = mt <|> getMimeType imgpath
+        imgpath = "media/" <> ident <> imgext
+        mbMimeType = mt <|> getMimeType (T.unpack imgpath)
 
-        imgData = (ident, imgpath, mbMimeType, img)
+        imgData = (T.unpack ident, T.unpack imgpath, mbMimeType, img)
 
       if T.null imgext
          then -- without an extension there is no rule for content type
@@ -1538,20 +1535,20 @@ withDirection x = do
                                     , envTextProperties = EnvProps textStyle textProps'
                                     }
 
-wrapBookmark :: (PandocMonad m) => T.Text -> [Content] -> WS m [Content]
+wrapBookmark :: (PandocMonad m) => Text -> [Content] -> WS m [Content]
 wrapBookmark "" contents = return contents
 wrapBookmark ident contents = do
   id' <- getUniqueId
   let bookmarkStart = mknode "w:bookmarkStart"
                        [("w:id", id')
-                       ,("w:name", T.unpack $ toBookmarkName ident)] ()
+                       ,("w:name", toBookmarkName ident)] ()
       bookmarkEnd = mknode "w:bookmarkEnd" [("w:id", id')] ()
   return $ Elem bookmarkStart : contents ++ [Elem bookmarkEnd]
 
 -- Word imposes a 40 character limit on bookmark names and requires
 -- that they begin with a letter.  So we just use a hash of the
 -- identifier when otherwise we'd have an illegal bookmark name.
-toBookmarkName :: T.Text -> T.Text
+toBookmarkName :: Text -> Text
 toBookmarkName s
   | Just (c, _) <- T.uncons s
   , isLetter c

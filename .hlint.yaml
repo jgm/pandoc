@@ -14,6 +14,7 @@
 - ignore: {name: "Reduce duplication"} # TODO: could be more fine-grained
 - ignore: {name: "Use &&&"}
 - ignore: {name: "Use String"}
+- ignore: {name: "Use camelCase"}
 - ignore: {name: "Use fmap"}  # specific for GHC 7.8 compat
 - ignore: {name: "Use isDigit"}
 

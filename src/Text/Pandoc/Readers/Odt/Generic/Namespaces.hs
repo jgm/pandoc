@@ -14,9 +14,10 @@ typesafe Haskell namespace identifiers and unsafe "real world" namespaces.
 module Text.Pandoc.Readers.Odt.Generic.Namespaces where
 
 import qualified Data.Map as M
+import Data.Text (Text)
 
 --
-type NameSpaceIRI          = String
+type NameSpaceIRI          = Text
 
 --
 type NameSpaceIRIs     nsID = M.Map nsID NameSpaceIRI

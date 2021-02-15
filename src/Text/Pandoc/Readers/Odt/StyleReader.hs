@@ -2,6 +2,7 @@
 {-# LANGUAGE Arrows          #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections   #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Odt.StyleReader
    Copyright   : Copyright (C) 2015 Martin Linnemann
@@ -46,11 +47,13 @@ import qualified Data.Foldable as F
 import Data.List (unfoldr)
 import qualified Data.Map as M
 import Data.Maybe
+import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Set as S
 
-import qualified Text.XML.Light as XML
+import qualified Text.Pandoc.XML.Light as XML
 
-import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.Shared (safeRead, tshow)
 
 import Text.Pandoc.Readers.Odt.Arrows.Utils
 
@@ -90,7 +93,7 @@ instance Default FontPitch where
 --
 -- Thus, we want
 
-type FontFaceName = String
+type FontFaceName = Text
 
 type FontPitches = M.Map FontFaceName FontPitch
 
@@ -151,7 +154,7 @@ findPitch =     ( lookupAttr NsStyle "font-pitch"
 -- Definitions of main data
 --------------------------------------------------------------------------------
 
-type StyleName        = String
+type StyleName        = Text
 
 -- | There are two types of styles: named styles with a style family and an
 -- optional style parent, and default styles for each style family,
@@ -355,8 +358,8 @@ getListLevelStyle level ListStyle{..} =
   -- \^ simpler, but in general less efficient
 
 data ListLevelStyle = ListLevelStyle { listLevelType  :: ListLevelType
-                                     , listItemPrefix :: Maybe String
-                                     , listItemSuffix :: Maybe String
+                                     , listItemPrefix :: Maybe Text
+                                     , listItemSuffix :: Maybe Text
                                      , listItemFormat :: ListItemNumberFormat
                                      , listItemStart  :: Int
                                      }
@@ -366,9 +369,9 @@ instance Show ListLevelStyle where
   show ListLevelStyle{..} =    "<LLS|"
                             ++ show listLevelType
                             ++ "|"
-                            ++ maybeToString listItemPrefix
+                            ++ maybeToString (T.unpack <$> listItemPrefix)
                             ++ show listItemFormat
-                            ++ maybeToString listItemSuffix
+                            ++ maybeToString (T.unpack <$> listItemSuffix)
                             ++ ">"
     where maybeToString = fromMaybe ""
 
@@ -471,7 +474,7 @@ readTextProperties =
      )
   where isFontEmphasised = [("normal",False),("italic",True),("oblique",True)]
         isFontBold = ("normal",False):("bold",True)
-                    :map ((,True).show) ([100,200..900]::[Int])
+                    :map ((,True) . tshow) ([100,200..900]::[Int])
 
 readUnderlineMode     :: StyleReaderSafe _x (Maybe UnderlineMode)
 readUnderlineMode     = readLineMode "text-underline-mode"
@@ -481,7 +484,7 @@ readStrikeThroughMode :: StyleReaderSafe _x (Maybe UnderlineMode)
 readStrikeThroughMode = readLineMode "text-line-through-mode"
                                      "text-line-through-style"
 
-readLineMode :: String -> String -> StyleReaderSafe _x (Maybe UnderlineMode)
+readLineMode :: Text -> Text -> StyleReaderSafe _x (Maybe UnderlineMode)
 readLineMode modeAttr styleAttr = proc x -> do
   isUL <- searchAttr  NsStyle styleAttr False isLinePresent -< x
   mode <- lookupAttr' NsStyle  modeAttr                     -< x

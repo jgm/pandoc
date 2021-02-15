@@ -29,33 +29,32 @@ import Control.Monad.Except (throwError)
 import Text.Pandoc.Error
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.ByteString.Lazy.Char8 as BL8
 import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
+import Data.Text (Text)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.XML.Light as XML
-import Text.Pandoc.XMLParser (parseXMLElement)
+import Text.Pandoc.XML.Light
 
-mknode :: Node t => String -> [(String,String)] -> t -> Element
+mknode :: Node t => Text -> [(Text,Text)] -> t -> Element
 mknode s attrs =
   add_attrs (map (\(k,v) -> Attr (nodename k) v) attrs) .  node (nodename s)
 
-mktnode :: String -> [(String,String)] -> T.Text -> Element
-mktnode s attrs = mknode s attrs . T.unpack
+mktnode :: Text -> [(Text,Text)] -> T.Text -> Element
+mktnode s attrs = mknode s attrs
 
-nodename :: String -> QName
+nodename :: Text -> QName
 nodename s = QName{ qName = name, qURI = Nothing, qPrefix = prefix }
- where (name, prefix) = case break (==':') s of
-                             (xs,[])    -> (xs, Nothing)
-                             (ys, _:zs) -> (zs, Just ys)
+ where (name, prefix) = case T.break (==':') s of
+                          (xs,ys) -> case T.uncons ys of
+                                       Nothing     -> (xs, Nothing)
+                                       Just (_,zs) -> (zs, Just xs)
 
 toLazy :: B.ByteString -> BL.ByteString
 toLazy = BL.fromChunks . (:[])
 
 renderXml :: Element -> BL.ByteString
-renderXml elt = BL8.pack "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" <>
-  UTF8.fromStringLazy (showElement elt)
+renderXml elt = BL.fromStrict (UTF8.fromText (showTopElement elt))
 
 parseXml :: PandocMonad m => Archive -> Archive -> String -> m Element
 parseXml refArchive distArchive relpath =
@@ -70,25 +69,25 @@ parseXml refArchive distArchive relpath =
 
 -- Copied from Util
 
-attrToNSPair :: XML.Attr -> Maybe (String, String)
-attrToNSPair (XML.Attr (QName s _ (Just "xmlns")) val) = Just (s, val)
+attrToNSPair :: Attr -> Maybe (Text, Text)
+attrToNSPair (Attr (QName s _ (Just "xmlns")) val) = Just (s, val)
 attrToNSPair _                                     = Nothing
 
 
 elemToNameSpaces :: Element -> NameSpaces
 elemToNameSpaces = mapMaybe attrToNSPair . elAttribs
 
-elemName :: NameSpaces -> String -> String -> QName
+elemName :: NameSpaces -> Text -> Text -> QName
 elemName ns prefix name =
-  QName name (lookup prefix ns) (if null prefix then Nothing else Just prefix)
+  QName name (lookup prefix ns) (if T.null prefix then Nothing else Just prefix)
 
-isElem :: NameSpaces -> String -> String -> Element -> Bool
+isElem :: NameSpaces -> Text -> Text -> Element -> Bool
 isElem ns prefix name element =
   let ns' = ns ++ elemToNameSpaces element
   in qName (elName element) == name &&
      qURI (elName element) == lookup prefix ns'
 
-type NameSpaces = [(String, String)]
+type NameSpaces = [(Text, Text)]
 
 -- | Scales the image to fit the page
 -- sizes are passed in emu

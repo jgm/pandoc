@@ -29,14 +29,14 @@ import Control.Monad ((<=<))
 
 import qualified Data.ByteString.Lazy as B
 import Data.Foldable (fold)
-import Data.List (find, stripPrefix)
+import Data.List (find)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Maybe
 import Data.Semigroup (First(..), Option(..))
 
 import Text.TeXMath (readMathML, writeTeX)
-import qualified Text.XML.Light as XML
+import qualified Text.Pandoc.XML.Light as XML
 
 import Text.Pandoc.Builder hiding (underline)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
@@ -557,7 +557,7 @@ read_plain_text =  fst ^&&& read_plain_text' >>% recover
                        >>?% mappend
     --
     extractText     :: XML.Content -> Fallible T.Text
-    extractText (XML.Text cData) = succeedWith (T.pack $ XML.cdData cData)
+    extractText (XML.Text cData) = succeedWith (XML.cdData cData)
     extractText         _        = failEmpty
 
 read_text_seq :: InlineMatcher
@@ -777,14 +777,14 @@ read_frame_img =
       ""   -> returnV mempty -< ()
       src' -> do
         let exts = extensionsFromList [Ext_auto_identifiers]
-        resource   <- lookupResource                          -< src'
+        resource   <- lookupResource                          -< T.unpack src'
         _          <- updateMediaWithResource                 -< resource
         w          <- findAttrText' NsSVG "width"             -< ()
         h          <- findAttrText' NsSVG "height"            -< ()
         titleNodes <- matchChildContent' [ read_frame_title ] -< ()
         alt        <- matchChildContent [] read_plain_text    -< ()
         arr (firstMatch . uncurry4 imageWith)                 -<
-          (image_attributes w h, T.pack src', inlineListToIdentifier exts (toList titleNodes), alt)
+          (image_attributes w h, src', inlineListToIdentifier exts (toList titleNodes), alt)
 
 read_frame_title :: InlineMatcher
 read_frame_title = matchingElement NsSVG "title" (matchChildContent [] read_plain_text)
@@ -804,7 +804,8 @@ read_frame_mathml =
     case fold src of
       ""   -> returnV mempty -< ()
       src' -> do
-        let path = fromMaybe src' (stripPrefix "./" src') ++ "/content.xml"
+        let path = T.unpack $
+                    fromMaybe src' (T.stripPrefix "./" src') <> "/content.xml"
         (_, mathml) <- lookupResource -< path
         case readMathML (UTF8.toText $ B.toStrict mathml) of
           Left _     -> returnV mempty -< ()
