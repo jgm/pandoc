@@ -173,7 +173,8 @@ Metadata Values
 
     The publication date is recorded in the document via the
     [`<pub-date>`][elem:pub-date] element and its sub-elements. The
-    [`pub-type`][attr:pub-type] attribute is always set to `epub`.
+    [`publication-format`][attr:publication-format] attribute is
+    always set to `electronic`.
 
     `iso-8601`
     :   ISO-8601 representation of the publication date. Used as the
@@ -300,12 +301,14 @@ Metadata Values
     `pissn`
     :   ISSN identifier of the publication's print version. Used as
         content of the [`<issn>`][elem:issn] element with the
-        [`pub-type`][attr:pub-type] attribute set to `ppub`.
+        [`publication-format`][attr:publication-format] attribute
+        set to `print`.
 
     `eissn`
     :   ISSN identifier of the publication's electronic version.
         Used as content of the [`<issn>`][elem:issn] element with
-        the [`pub-type`][attr:pub-type] attribute set to `epub`.
+        the [`publication-format`][attr:publication-format]
+        attribute set to `electronic`.
 
     `publisher-name`
     :   name of the publishing entity (person, company, or other).
@@ -352,7 +355,7 @@ Required metadata values:
 [attr:kwd-group-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/kwd-group-type.html
 [attr:license-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/license-type.html
 [attr:pub-id-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/pub-id-type.html
-[attr:pub-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/pub-type.html
+[attr:publication-format]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/publication-format.html
 [attr:ref-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/ref-type.html
 [attr:rid]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/rid.html
 [attr:subj-group-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/subj-group-type.html
