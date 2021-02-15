@@ -172,13 +172,13 @@ Metadata Values
     pass these components directly.
 
     The publication date is recorded in the document via the
-    [`<pub-date>`][elem:pub-date] element and its sub-elements. The
+    [`<pub-date>`] element and its sub-elements. The
     [`publication-format`][attr:publication-format] attribute is
     always set to `electronic`.
 
     `iso-8601`
     :   ISO-8601 representation of the publication date. Used as the
-        value of the [`pub-date`][elem:pub-date] element's
+        value of the [`<pub-date>`] element's
         [`iso-8601-date`][attr:iso-8601-date] attribute.
 
         This value is set automatically if pandoc can parse the
@@ -191,6 +191,12 @@ Metadata Values
 
         The values are set automatically if pandoc can parse the
         `date` value as a date.
+
+    `type`
+    :   The type of event marked by this date. The value is set as
+        the [`date-type`][attr:date-type] attribute on the
+        [`<pub-date>`] element and defaults to "pub" if not
+        specified.
 
 `article`
 :   information concerning the article that identifies or describes
@@ -348,6 +354,7 @@ Required metadata values:
 
 [Ringgold]: https://ringgold.com/
 [attr:content-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/content-type.html
+[attr:date-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/date-type.html
 [attr:fn-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/fn-type.html
 [attr:institution-id-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/institution-id-type.html
 [attr:iso-8601-date]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/iso-8601-date.html
@@ -380,7 +387,6 @@ Required metadata values:
 [elem:license]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/license.html
 [elem:notes]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/notes.html
 [elem:permissions]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/permissions.html
-[elem:pub-date]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/pub-date.html
 [elem:publisher-loc]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/publisher-loc.html
 [elem:publisher-name]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/publisher-name.html
 [elem:string-name]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/string-name.html
@@ -396,3 +402,4 @@ Required metadata values:
 [`<institution-id>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/institution-id.html
 [`<institution-wrap>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/institution-wrap.html
 [`<institution>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/institution.html
+[`<pub-date>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/pub-date.html

@@ -130,7 +130,7 @@ $endif$
 </author-notes>
 $endif$
 $if(date)$
-<pub-date publication-format="electronic"$if(date.iso-8601)$ iso-8601-date="$date.iso-8601$"$endif$>
+<pub-date date-type="$if(date.type)$$date.type$$else$pub$endif$" publication-format="electronic"$if(date.iso-8601)$ iso-8601-date="$date.iso-8601$"$endif$>
 $if(date.day)$
 <day>$date.day$</day>
 $endif$
