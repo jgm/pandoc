@@ -22,42 +22,42 @@ module Text.Pandoc.Readers.Docx.Util (
                                       , findAttrByName
                                       ) where
 
-import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import Data.Text (Text)
 import Text.Pandoc.XML.Light
+import qualified Data.Map as M
 
-type NameSpaces = [(Text, Text)]
+type NameSpaces = M.Map Text Text
 
 elemToNameSpaces :: Element -> NameSpaces
-elemToNameSpaces = mapMaybe attrToNSPair . elAttribs
-
-attrToNSPair :: Attr -> Maybe (Text, Text)
-attrToNSPair (Attr (QName s _ (Just "xmlns")) val) = Just (s, val)
-attrToNSPair _                                     = Nothing
+elemToNameSpaces = foldr (\(Attr qn val) ->
+                             case qn of
+                               QName s _ (Just "xmlns") -> M.insert s val
+                               _ -> id) mempty . elAttribs
 
 elemName :: NameSpaces -> Text -> Text -> QName
 elemName ns prefix name =
-  QName name (lookup prefix ns) (if T.null prefix then Nothing else Just prefix)
+  QName name (M.lookup prefix ns)
+             (if T.null prefix then Nothing else Just prefix)
 
 isElem :: NameSpaces -> Text -> Text -> Element -> Bool
 isElem ns prefix name element =
-  let ns' = ns ++ elemToNameSpaces element
+  let ns' = ns <> elemToNameSpaces element
   in qName (elName element) == name &&
-     qURI (elName element) == lookup prefix ns'
+     qURI (elName element) == M.lookup prefix ns'
 
 findChildByName :: NameSpaces -> Text -> Text -> Element -> Maybe Element
 findChildByName ns pref name el =
-  let ns' = ns ++ elemToNameSpaces el
+  let ns' = ns <> elemToNameSpaces el
   in  findChild (elemName ns' pref name) el
 
 findChildrenByName :: NameSpaces -> Text -> Text -> Element -> [Element]
 findChildrenByName ns pref name el =
-  let ns' = ns ++ elemToNameSpaces el
+  let ns' = ns <> elemToNameSpaces el
   in  findChildren (elemName ns' pref name) el
 
 findAttrByName :: NameSpaces -> Text -> Text -> Element -> Maybe Text
 findAttrByName ns pref name el =
-  let ns' = ns ++ elemToNameSpaces el
+  let ns' = ns <> elemToNameSpaces el
   in  findAttr (elemName ns' pref name) el
 

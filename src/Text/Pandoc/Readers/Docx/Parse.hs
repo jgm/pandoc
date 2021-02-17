@@ -396,9 +396,9 @@ archiveToNotes zf =
                >>= parseXMLFromEntry
       enElem = findEntryByPath "word/endnotes.xml" zf
                >>= parseXMLFromEntry
-      fn_namespaces = maybe [] elemToNameSpaces fnElem
-      en_namespaces = maybe [] elemToNameSpaces enElem
-      ns = unionBy (\x y -> fst x == fst y) fn_namespaces en_namespaces
+      fn_namespaces = maybe mempty elemToNameSpaces fnElem
+      en_namespaces = maybe mempty elemToNameSpaces enElem
+      ns = M.union fn_namespaces en_namespaces
       fn = fnElem >>= elemToNotes ns "footnote" . walkDocument ns
       en = enElem >>= elemToNotes ns "endnote" . walkDocument ns
   in
@@ -408,7 +408,7 @@ archiveToComments :: Archive -> Comments
 archiveToComments zf =
   let cmtsElem = findEntryByPath "word/comments.xml" zf
                >>= parseXMLFromEntry
-      cmts_namespaces = maybe [] elemToNameSpaces cmtsElem
+      cmts_namespaces = maybe mempty elemToNameSpaces cmtsElem
       cmts = elemToComments cmts_namespaces . walkDocument cmts_namespaces <$>
                cmtsElem
   in
@@ -518,7 +518,7 @@ levelElemToLevel _ _ = Nothing
 archiveToNumbering' :: Archive -> Maybe Numbering
 archiveToNumbering' zf =
   case findEntryByPath "word/numbering.xml" zf of
-    Nothing -> Just $ Numbering [] [] []
+    Nothing -> Just $ Numbering mempty [] []
     Just entry -> do
       numberingElem <- parseXMLFromEntry entry
       let namespaces = elemToNameSpaces numberingElem
@@ -530,7 +530,7 @@ archiveToNumbering' zf =
 
 archiveToNumbering :: Archive -> Numbering
 archiveToNumbering archive =
-  fromMaybe (Numbering [] [] []) (archiveToNumbering' archive)
+  fromMaybe (Numbering mempty [] []) (archiveToNumbering' archive)
 
 elemToNotes :: NameSpaces -> Text -> Element -> Maybe (M.Map T.Text Element)
 elemToNotes ns notetype element
@@ -875,7 +875,7 @@ childElemToRun ns element
   = let (title, alt) = getTitleAndAlt ns element
         a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
         drawing = findElement (QName "blip" (Just a_ns) (Just "a")) picElem
-                  >>= findAttr (QName "embed" (lookup "r" ns) (Just "r"))
+                  >>= findAttr (QName "embed" (M.lookup "r" ns) (Just "r"))
     in
      case drawing of
        Just s -> expandDrawingId s >>=
