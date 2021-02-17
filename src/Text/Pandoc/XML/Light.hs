@@ -15,16 +15,13 @@ instead of Text, and the parser falls over on processing instructions
 (see #7091).
 
 This module exports much of the API of xml-light, but using Text instead
-of String. In addition, the xml-light parsers are replaced by xml-conduit's
-well-tested parser.  (The xml-conduit types are mapped to types
+of String. In addition, the xml-light parsers are replaced by xeno's
+fast parser.  (The xeno types are mapped to types
 isomorphic to xml-light's, to avoid the need for massive code modifications
 elsewhere.)  Bridge functions to map xml-light types to this module's
 types are also provided (since libraries like texmath still use xml-light).
 
-Another advantage of the xml-conduit parser is that it gives us
-detailed information on xml parse errors.
-
-In the future we may want to move to using xml-conduit or another
+In the future we may want to move to using xeno or another
 xml library in the code base, but this change gives us
 better performance and accuracy without much change in the
 code that used xml-light.
@@ -39,51 +36,51 @@ module Text.Pandoc.XML.Light
   ) where
 
 import qualified Control.Exception as E
-import qualified Text.XML as Conduit
-import Text.XML.Unresolved (InvalidEventStream(..))
+import qualified Xeno.DOM as X
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import qualified Data.Map as M
-import Data.Maybe (mapMaybe)
 import Text.Pandoc.XML.Light.Types
 import Text.Pandoc.XML.Light.Proc
 import Text.Pandoc.XML.Light.Output
+import Text.Pandoc.XML (fromEntities)
+import qualified Data.ByteString as B
+import qualified Text.Pandoc.UTF8 as UTF8
 
 -- Drop in replacement for parseXMLDoc in xml-light.
 parseXMLElement :: TL.Text -> Either T.Text Element
 parseXMLElement t =
-  elementToElement .  Conduit.documentRoot <$>
+  elementToElement <$>
     either (Left . T.pack . E.displayException) Right
-    (Conduit.parseText Conduit.def{ Conduit.psRetainNamespaces = True } t)
+    (X.parse $ UTF8.fromText $ TL.toStrict t)
 
 parseXMLContents :: TL.Text -> Either T.Text [Content]
 parseXMLContents t =
-  case Conduit.parseText Conduit.def{ Conduit.psRetainNamespaces = True } t of
-    Left e ->
-      case E.fromException e of
-        Just (ContentAfterRoot _) ->
-          elContent <$> parseXMLElement ("<wrapper>" <> t <> "</wrapper>")
-        _ -> Left . T.pack . E.displayException $ e
-    Right x -> Right [Elem . elementToElement . Conduit.documentRoot $ x]
+  elContent <$> parseXMLElement ("<wrapper>" <> t <> "</wrapper>")
 
-elementToElement :: Conduit.Element -> Element
-elementToElement (Conduit.Element name attribMap nodes) =
-  Element (nameToQname name) attrs (mapMaybe nodeToContent nodes) Nothing
+elementToElement :: X.Node -> Element
+elementToElement nd =
+  Element (nameToQName (X.name nd))
+          attrs
+          (map contentToContent (X.contents nd))
+          Nothing
  where
-  attrs = map (\(n,v) -> Attr (nameToQname n) v) $
-              M.toList attribMap
-  nameToQname (Conduit.Name localName mbns mbpref) =
-    case mbpref of
-      Nothing ->
-        case T.stripPrefix "xmlns:" localName of
-          Just rest -> QName rest mbns (Just "xmlns")
-          Nothing   -> QName localName mbns mbpref
-      _ -> QName localName mbns mbpref
+  attrs = map (\(k,v) -> Attr (nameToQName k) (UTF8.toText v))
+              (X.attributes nd)
+  nameToQName n =
+    let t = UTF8.toText n
+        (x, y) = T.break (== ':') t
+    in  if T.null y
+           then QName x Nothing Nothing
+           else QName x Nothing (Just (T.drop 1 y))
 
-nodeToContent :: Conduit.Node -> Maybe Content
-nodeToContent (Conduit.NodeElement el) =
-  Just (Elem (elementToElement el))
-nodeToContent (Conduit.NodeContent t) =
-  Just (Text (CData CDataText t Nothing))
-nodeToContent _ = Nothing
+contentToContent :: X.Content -> Content
+contentToContent (X.Element nd) =
+  Elem (elementToElement nd)
+contentToContent (X.Text bs) =
+  Text (CData CDataText (resolveEntities $ UTF8.toText bs) Nothing)
+   where resolveEntities
+           | B.any (== 38) bs = fromEntities
+           | otherwise        = id
+contentToContent (X.CData bs) =
+  Text (CData CDataVerbatim (UTF8.toText bs) Nothing)
 
