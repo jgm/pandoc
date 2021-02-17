@@ -2,13 +2,16 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {- |
    Module      : Text.Pandoc.XML.Light.Types
-   Copyright   : Copyright (C) 2021 John MacFarlane
+   Copyright   : Copyright (C) 2007 Galois, Inc., 2021 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
    Portability : portable
 
+   This code is taken from xml-light, released under the BSD3 license.
+   It has been modified to use Text instead of String, and the fromXL*
+   functions have been added.
 -}
 module Text.Pandoc.XML.Light.Types
   ( -- * Basic types, duplicating those from xml-light but with Text

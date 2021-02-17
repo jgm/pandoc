@@ -2,12 +2,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.XML.Light.Output
-   Copyright   : Copyright (C) 2021 John MacFarlane
+   Copyright   : Copyright (C) 2007 Galois, Inc., 2021 John MacFarlane
    License     : GNU GPL, version 2 or above
+
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
    Portability : portable
+
+   This code is based on code from xml-light, released under the BSD3 license.
+   We use a text Builder instead of ShowS.
 -}
 module Text.Pandoc.XML.Light.Output
   ( -- * Replacement for xml-light's Text.XML.Output

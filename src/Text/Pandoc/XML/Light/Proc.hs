@@ -2,12 +2,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.XML.Light.Proc
-   Copyright   : Copyright (C) 2021 John MacFarlane
+   Copyright   : Copyright (C) 2007 Galois, Inc., 2021 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
    Portability : portable
+
+   This code is taken from xml-light, released under the BSD3 license.
 -}
 module Text.Pandoc.XML.Light.Proc
   ( 
