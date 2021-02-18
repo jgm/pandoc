@@ -322,7 +322,7 @@ linkLikeOrgRefCite = try $ do
 -- from the `org-ref-cite-re` variable in `org-ref.el`.
 orgRefCiteKey :: PandocMonad m => OrgParser m Text
 orgRefCiteKey =
-  let citeKeySpecialChars = "-_:\\./," :: String
+  let citeKeySpecialChars = "-_:\\./" :: String
       isCiteKeySpecialChar c = c `elem` citeKeySpecialChars
       isCiteKeyChar c = isAlphaNum c || isCiteKeySpecialChar c
       endOfCitation = try $ do
