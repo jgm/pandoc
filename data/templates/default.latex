@@ -181,6 +181,7 @@ $endif$
 \IfFileExists{microtype.sty}{% use microtype if available
   \usepackage[$for(microtypeoptions)$$microtypeoptions$$sep$,$endfor$]{microtype}
   \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+  \DisableLigatures[?,!]{encoding=T1} % disable ?` and !` ligatures
 }{}
 $if(indent)$
 $else$

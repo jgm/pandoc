@@ -21,6 +21,7 @@
 \IfFileExists{microtype.sty}{% use microtype if available
   \usepackage[]{microtype}
   \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+  \DisableLigatures[?,!]{encoding=T1} % disable ?` and !` ligatures
 }{}
 \makeatletter
 \@ifundefined{KOMAClassName}{% if non-KOMA class
