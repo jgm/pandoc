@@ -151,21 +151,22 @@ splitBy :: (a -> Bool) -> [a] -> [[a]]
 splitBy _ [] = []
 splitBy isSep lst =
   let (first, rest) = break isSep lst
-      rest'         = dropWhile isSep rest
-  in  first:splitBy isSep rest'
+  in  first:splitBy isSep (dropWhile isSep rest)
 
+-- | Split text by groups of one or more separator.
 splitTextBy :: (Char -> Bool) -> T.Text -> [T.Text]
 splitTextBy isSep t
   | T.null t = []
   | otherwise = let (first, rest) = T.break isSep t
-                    rest'         = T.dropWhile isSep rest
-                in  first : splitTextBy isSep rest'
+                in  first : splitTextBy isSep (T.dropWhile isSep rest)
 
+{-# DEPRECATED splitByIndices "This function is slated for removal" #-}
 splitByIndices :: [Int] -> [a] -> [[a]]
 splitByIndices [] lst = [lst]
 splitByIndices (x:xs) lst = first:splitByIndices (map (\y -> y - x)  xs) rest
   where (first, rest) = splitAt x lst
 
+{-# DEPRECATED splitStringByIndices "This function is slated for removal" #-}
 -- | Split string into chunks divided at specified indices.
 splitStringByIndices :: [Int] -> [Char] -> [[Char]]
 splitStringByIndices [] lst = [lst]
@@ -173,15 +174,22 @@ splitStringByIndices (x:xs) lst =
   let (first, rest) = splitAt' x lst in
   first : splitStringByIndices (map (\y -> y - x) xs) rest
 
-splitTextByIndices :: [Int] -> T.Text -> [T.Text]
-splitTextByIndices ns = fmap T.pack . splitStringByIndices ns . T.unpack
-
+-- DEPRECATED: can be removed when splitStringByIndices is
 splitAt' :: Int -> [Char] -> ([Char],[Char])
 splitAt' _ []          = ([],[])
 splitAt' n xs | n <= 0 = ([],xs)
 splitAt' n (x:xs)      = (x:ys,zs)
   where (ys,zs) = splitAt' (n - charWidth x) xs
 
+splitTextByIndices :: [Int] -> T.Text -> [T.Text]
+splitTextByIndices ns = splitTextByRelIndices (zipWith (-) ns (0:ns))
+ where
+  splitTextByRelIndices [] t = [t]
+  splitTextByRelIndices (x:xs) t =
+    let (first, rest) = T.splitAt x t
+     in first : splitTextByRelIndices xs rest
+
+{-# DEPRECATED substitute "This function is slated for removal" #-}
 -- | Replace each occurrence of one sublist in a list with another.
 substitute :: (Eq a) => [a] -> [a] -> [a] -> [a]
 substitute _ _ [] = []
@@ -254,17 +262,24 @@ notElemText c = T.all (/= c)
 stripTrailingNewlines :: T.Text -> T.Text
 stripTrailingNewlines = T.dropWhileEnd (== '\n')
 
+isWS :: Char -> Bool
+isWS ' '  = True
+isWS '\r' = True
+isWS '\n' = True
+isWS '\t' = True
+isWS _    = False
+
 -- | Remove leading and trailing space (including newlines) from string.
 trim :: T.Text -> T.Text
-trim = T.dropAround (`elemText` " \r\n\t")
+trim = T.dropAround isWS
 
 -- | Remove leading space (including newlines) from string.
 triml :: T.Text -> T.Text
-triml = T.dropWhile (`elemText` " \r\n\t")
+triml = T.dropWhile isWS
 
 -- | Remove trailing space (including newlines) from string.
 trimr :: T.Text -> T.Text
-trimr = T.dropWhileEnd (`elemText` " \r\n\t")
+trimr = T.dropWhileEnd isWS
 
 -- | Trim leading space and trailing space unless after \.
 trimMath :: T.Text -> T.Text
@@ -275,7 +290,7 @@ trimMath = triml . T.reverse . stripBeginSpace . T.reverse -- no Text.spanEnd
       | Just ('\\', _) <- T.uncons suff = T.cons (T.last pref) suff
       | otherwise = suff
       where
-        (pref, suff) = T.span (`elemText` " \t\n\r") t
+        (pref, suff) = T.span isWS t
 
 -- | Strip leading and trailing characters from string
 stripFirstAndLast :: T.Text -> T.Text
