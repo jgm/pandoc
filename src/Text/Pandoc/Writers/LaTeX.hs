@@ -500,12 +500,13 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
                else blockListToLaTeX bs
   modify $ \st -> st{ stIncremental = oldIncremental }
   linkAnchor' <- hypertarget True identifier empty
-  -- see #2704 for the motivation for adding \leavevmode:
+  -- see #2704 for the motivation for adding \leavevmode
+  -- and #7078 for \vadjust pre
   let linkAnchor =
         case bs of
           Para _ : _
             | not (isEmpty linkAnchor')
-              -> "\\leavevmode" <> linkAnchor' <> "%"
+              -> "\\leavevmode\\vadjust pre{" <> linkAnchor' <> "}%"
           _ -> linkAnchor'
       wrapNotes txt = if beamer && "notes" `elem` classes
                          then "\\note" <> braces txt -- speaker notes
