@@ -168,7 +168,7 @@ blockToDocbook :: PandocMonad m => WriterOptions -> Block -> DB m (Doc Text)
 blockToDocbook _ Null = return empty
 -- Add ids to paragraphs in divs with ids - this is needed for
 -- pandoc-citeproc to get link anchors in bibliographies:
-blockToDocbook opts (Div (id',"section":_,_) (Header lvl _ ils : xs)) = do
+blockToDocbook opts (Div (id',"section":_,_) (Header lvl (_,_,attrs) ils : xs)) = do
   version <- ask
   -- Docbook doesn't allow sections with no content, so insert some if needed
   let bs = if null xs
@@ -188,7 +188,10 @@ blockToDocbook opts (Div (id',"section":_,_) (Header lvl _ ils : xs)) = do
       -- standalone documents will include them in the template.
                  then [("xmlns", "http://docbook.org/ns/docbook"),("xmlns:xlink", "http://www.w3.org/1999/xlink")]
                  else []
-      attribs = nsAttr <> idAttr
+      
+      -- Populate miscAttr with Header.Attr.attributes, filtering out non-valid DocBook section attributes, id, and xml:id
+      miscAttr = filter (isSectionAttr version) attrs
+      attribs = nsAttr <> idAttr <> miscAttr
   title' <- inlinesToDocbook opts ils
   contents <- blocksToDocbook opts bs
   return $ inTags True tag attribs $ inTagsSimple "title" title' $$ contents
@@ -451,3 +454,43 @@ idAndRole (id',cls,_) = ident <> role
   where
     ident = [("id", id') | not (T.null id')]
     role  = [("role", T.unwords cls) | not (null cls)]
+
+isSectionAttr :: DocBookVersion -> (Text, Text) -> Bool
+isSectionAttr _ ("label",_) = True
+isSectionAttr _ ("status",_) = True
+isSectionAttr DocBook5 ("annotations",_) = True
+isSectionAttr DocBook5 ("dir","ltr") = True
+isSectionAttr DocBook5 ("dir","rtl") = True
+isSectionAttr DocBook5 ("dir","lro") = True
+isSectionAttr DocBook5 ("dir","rlo") = True
+isSectionAttr _ ("remap",_) = True
+isSectionAttr _ ("revisionflag","changed") = True
+isSectionAttr _ ("revisionflag","added") = True
+isSectionAttr _ ("revisionflag","deleted") = True
+isSectionAttr _ ("revisionflag","off") = True
+isSectionAttr _ ("role",_) = True
+isSectionAttr DocBook5 ("version",_) = True
+isSectionAttr DocBook5 ("xml:base",_) = True
+isSectionAttr DocBook5 ("xml:lang",_) = True
+isSectionAttr _ ("xreflabel",_) = True
+isSectionAttr DocBook5 ("linkend",_) = True
+isSectionAttr DocBook5 ("linkends",_) = True
+isSectionAttr DocBook5 ("xlink:actuate",_) = True
+isSectionAttr DocBook5 ("xlink:arcrole",_) = True
+isSectionAttr DocBook5 ("xlink:from",_) = True
+isSectionAttr DocBook5 ("xlink:href",_) = True
+isSectionAttr DocBook5 ("xlink:label",_) = True
+isSectionAttr DocBook5 ("xlink:role",_) = True
+isSectionAttr DocBook5 ("xlink:show",_) = True
+isSectionAttr DocBook5 ("xlink:title",_) = True
+isSectionAttr DocBook5 ("xlink:to",_) = True
+isSectionAttr DocBook5 ("xlink:type",_) = True
+isSectionAttr DocBook4 ("arch",_) = True
+isSectionAttr DocBook4 ("condition",_) = True
+isSectionAttr DocBook4 ("conformance",_) = True
+isSectionAttr DocBook4 ("lang",_) = True
+isSectionAttr DocBook4 ("os",_) = True
+isSectionAttr DocBook4 ("revision",_) = True
+isSectionAttr DocBook4 ("security",_) = True
+isSectionAttr DocBook4 ("vendor",_) = True
+isSectionAttr _ (_,_) = False
