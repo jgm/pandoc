@@ -1,6 +1,5 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.XML
    Copyright   : Copyright (C) 2006-2021 John MacFarlane
@@ -123,23 +122,20 @@ html5EntityMap = foldr go mempty htmlEntities
 
 -- Unescapes XML entities
 fromEntities :: Text -> Text
-fromEntities = T.pack . fromEntities'
+fromEntities t
+  = let (x, y) = T.break (== '&') t
+     in if T.null y
+           then t
+           else x <>
+             let (ent, rest) = T.break (\c -> isSpace c || c == ';') y
+                 rest' = case T.uncons rest of
+                            Just (';',ys) -> ys
+                            _ -> rest
+                 ent' = T.drop 1 ent <> ";"
+              in case T.pack <$> lookupEntity (T.unpack ent') of
+                   Just c  -> c <> fromEntities rest'
+                   Nothing  -> ent <> fromEntities rest
 
-fromEntities' :: Text -> String
-fromEntities' (T.uncons -> Just ('&', xs)) =
-  case lookupEntity $ T.unpack ent' of
-        Just c  -> c <> fromEntities' rest
-        Nothing -> "&" <> fromEntities' xs
-    where (ent, rest) = case T.break (\c -> isSpace c || c == ';') xs of
-                          (zs,T.uncons -> Just (';',ys)) -> (zs,ys)
-                          (zs, ys) -> (zs,ys)
-          ent'
-            | Just ys <- T.stripPrefix "#X" ent = "#x" <> ys  -- workaround tagsoup bug
-            | Just ('#', _) <- T.uncons ent     = ent
-            | otherwise                         = ent <> ";"
-fromEntities' t = case T.uncons t of
-  Just (x, xs) -> x : fromEntities' xs
-  Nothing      -> ""
 
 html5Attributes :: Set.Set Text
 html5Attributes = Set.fromList
