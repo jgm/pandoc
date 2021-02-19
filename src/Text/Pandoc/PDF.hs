@@ -43,6 +43,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
 import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
+import Text.Pandoc.Extensions (disableExtension, Extension(Ext_smart))
 import Text.Pandoc.Process (pipeProcess)
 import System.Process (readProcessWithExitCode)
 import Text.Pandoc.Shared (inDirectory, stringify, tshow)
@@ -114,7 +115,10 @@ makePDF program pdfargs writer opts doc =
         runIOorExplode $ do
           putCommonState commonState
           doc' <- handleImages opts tmpdir doc
-          source <- writer opts doc'
+          source <- writer opts{ writerExtensions = -- disable use of quote
+                                    -- ligatures to avoid bad ligatures like ?`
+                                    disableExtension Ext_smart
+                                     (writerExtensions opts) } doc'
           res <- case baseProg of
             "context" -> context2pdf verbosity program pdfargs tmpdir source
             "tectonic" -> tectonic2pdf verbosity program pdfargs tmpdir source
