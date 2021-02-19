@@ -350,7 +350,7 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.2">
     </style:style>
     <style:style style:name="First_20_paragraph"
     style:display-name="First paragraph" style:family="paragraph"
-    style:parent-style-name="Standard"
+    style:parent-style-name="Text_20_body"
     style:next-style-name="Text_20_body" style:class="text" />
     <style:style style:name="Numbering_20_Symbols"
     style:display-name="Numbering Symbols" style:family="text" />
