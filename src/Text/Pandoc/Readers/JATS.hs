@@ -54,29 +54,10 @@ instance Default JATSState where
 
 readJATS :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readJATS _ inp = do
-  tree <- either (throwError . PandocXMLError "")
-                 (return . normalizeTree) $
+  tree <- either (throwError . PandocXMLError "") return $
             parseXMLContents (TL.fromStrict $ crFilter inp)
   (bs, st') <- flip runStateT (def{ jatsContent = tree }) $ mapM parseBlock tree
   return $ Pandoc (jatsMeta st') (toList . mconcat $ bs)
-
--- normalize input, consolidating adjacent Text and CRef elements
-normalizeTree :: [Content] -> [Content]
-normalizeTree = everywhere (mkT go)
-  where go :: [Content] -> [Content]
-        go (Text (CData CDataRaw _ _):xs) = xs
-        go (Text (CData CDataText s1 z):Text (CData CDataText s2 _):xs) =
-           Text (CData CDataText (s1 <> s2) z):xs
-        go (Text (CData CDataText s1 z):CRef r:xs) =
-           Text (CData CDataText (s1 <> convertEntity r) z):xs
-        go (CRef r:Text (CData CDataText s1 z):xs) =
-             Text (CData CDataText (convertEntity r <> s1) z):xs
-        go (CRef r1:CRef r2:xs) =
-             Text (CData CDataText (convertEntity r1 <> convertEntity r2) Nothing):xs
-        go xs = xs
-
-convertEntity :: Text -> Text
-convertEntity e = maybe (T.toUpper e) T.pack (lookupEntity $ T.unpack e)
 
 -- convenience function to get an attribute value, defaulting to ""
 attrValue :: Text -> Element -> Text
@@ -454,7 +435,8 @@ elementToStr x = x
 
 parseInline :: PandocMonad m => Content -> JATS m Inlines
 parseInline (Text (CData _ s _)) = return $ text s
-parseInline (CRef ref) = return . text . convertEntity $ ref
+parseInline (CRef ref) = return $ maybe (text $ T.toUpper ref) (text . T.pack)
+                                $ lookupEntity (T.unpack ref)
 parseInline (Elem e) =
   case qName (elName e) of
         "italic" -> innerInlines emph

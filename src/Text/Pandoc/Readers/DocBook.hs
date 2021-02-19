@@ -12,7 +12,7 @@ Conversion of DocBook XML to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
 import Control.Monad.State.Strict
-import Data.Char (isSpace, toUpper, isLetter)
+import Data.Char (isSpace, isLetter)
 import Data.Default
 import Data.Either (rights)
 import Data.Foldable (asum)
@@ -540,8 +540,9 @@ instance Default DBState where
 
 readDocBook :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readDocBook _ inp = do
-  tree <- either (throwError . PandocXMLError "") (return . normalizeTree) $
-            parseXMLContents (TL.fromStrict . handleInstructions $ crFilter inp)
+  tree <- either (throwError . PandocXMLError "") return $
+            parseXMLContents
+              (TL.fromStrict . handleInstructions $ crFilter inp)
   (bs, st') <- flip runStateT (def{ dbContent = tree }) $ mapM parseBlock tree
   return $ Pandoc (dbMeta st') (toList . mconcat $ bs)
 
@@ -570,25 +571,6 @@ getFigure e = do
   res <- getBlocks e
   modify $ \st -> st{ dbFigureTitle = mempty, dbFigureId = mempty }
   return res
-
--- normalize input, consolidating adjacent Text and CRef elements
-normalizeTree :: [Content] -> [Content]
-normalizeTree = everywhere (mkT go)
-  where go :: [Content] -> [Content]
-        go (Text (CData CDataRaw _ _):xs) = xs
-        go (Text (CData CDataText s1 z):Text (CData CDataText s2 _):xs) =
-           Text (CData CDataText (s1 <> s2) z):xs
-        go (Text (CData CDataText s1 z):CRef r:xs) =
-           Text (CData CDataText (s1 <> convertEntity r) z):xs
-        go (CRef r:Text (CData CDataText s1 z):xs) =
-             Text (CData CDataText (convertEntity r <> s1) z):xs
-        go (CRef r1:CRef r2:xs) =
-             Text (CData CDataText (convertEntity r1 <>
-                                    convertEntity r2) Nothing):xs
-        go xs = xs
-
-convertEntity :: Text -> Text
-convertEntity e = maybe (T.map toUpper e) T.pack (lookupEntity $ T.unpack e)
 
 -- convenience function to get an attribute value, defaulting to ""
 attrValue :: Text -> Element -> Text

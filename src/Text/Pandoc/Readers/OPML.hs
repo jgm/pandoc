@@ -14,12 +14,10 @@ Conversion of OPML to 'Pandoc' document.
 module Text.Pandoc.Readers.OPML ( readOPML ) where
 import Control.Monad.State.Strict
 import Data.Default
-import Data.Generics
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Options
@@ -53,31 +51,13 @@ readOPML opts inp  = do
   (bs, st') <- runStateT
                  (case parseXMLContents (TL.fromStrict (crFilter inp)) of
                      Left msg -> throwError $ PandocXMLError "" msg
-                     Right ns -> mapM parseBlock $ normalizeTree ns)
+                     Right ns -> mapM parseBlock ns)
                  def{ opmlOptions = opts }
   return $
     setTitle (opmlDocTitle st') $
     setAuthors (opmlDocAuthors st') $
     setDate (opmlDocDate st') $
     doc $ mconcat bs
-
--- normalize input, consolidating adjacent Text and CRef elements
-normalizeTree :: [Content] -> [Content]
-normalizeTree = everywhere (mkT go)
-  where go :: [Content] -> [Content]
-        go (Text (CData CDataRaw _ _):xs) = xs
-        go (Text (CData CDataText s1 z):Text (CData CDataText s2 _):xs) =
-           Text (CData CDataText (s1 <> s2) z):xs
-        go (Text (CData CDataText s1 z):CRef r:xs) =
-           Text (CData CDataText (s1 <> convertEntity r) z):xs
-        go (CRef r:Text (CData CDataText s1 z):xs) =
-             Text (CData CDataText (convertEntity r <> s1) z):xs
-        go (CRef r1:CRef r2:xs) =
-             Text (CData CDataText (convertEntity r1 <> convertEntity r2) Nothing):xs
-        go xs = xs
-
-convertEntity :: Text -> Text
-convertEntity e = maybe (T.toUpper e) T.pack (lookupEntity (T.unpack e))
 
 -- convenience function to get an attribute value, defaulting to ""
 attrValue :: Text -> Element -> Text
