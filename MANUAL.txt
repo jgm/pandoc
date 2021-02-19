@@ -3481,6 +3481,9 @@ line must begin with a space.
     | 200 Main St.
     | Berkeley, CA 94718
 
+Inline formatting (such as emphasis) is allowed in the content,
+but not block-level formatting (such as block quotes or lists).
+
 This syntax is borrowed from [reStructuredText].
 
 ## Lists
