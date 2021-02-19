@@ -11,9 +11,14 @@ import Text.Pandoc.Builder
 docbook :: (ToPandoc a) => a -> String
 docbook = docbookWithOpts def{ writerWrapText = WrapNone }
 
+docbook5 :: (ToPandoc a) => a -> String
+docbook5 = docbook5WithOpts def{ writerWrapText = WrapNone }
+
 docbookWithOpts :: ToPandoc a => WriterOptions -> a -> String
 docbookWithOpts opts = unpack . purely (writeDocbook4 opts) . toPandoc
 
+docbook5WithOpts :: ToPandoc a => WriterOptions -> a -> String
+docbook5WithOpts opts = unpack . purely (writeDocbook5 opts) . toPandoc
 {-
   "my test" =: X =?> Y
 
@@ -366,4 +371,36 @@ tests = [ testGroup "line blocks"
                       ]
             ]
           ]
+          , testGroup "section attributes" $
+            let
+              headers =  headerWith ("myid1",[],[("role","internal"),("xml:id","anotherid"),("dir","rtl")]) 1 "header1"
+                      <> headerWith ("myid2",[],[("invalidname","value"),("arch","linux"),("dir","invaliddir")]) 1 "header2"
+            in
+            [ test docbook5 "sections with attributes (db5)" $
+              headers =?>
+              unlines [ "<section xmlns=\"http://docbook.org/ns/docbook\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:id=\"myid1\" role=\"internal\" dir=\"rtl\">"
+                      , "  <title>header1</title>"
+                      , "  <para>"
+                      , "  </para>"
+                      , "</section>"
+                      , "<section xmlns=\"http://docbook.org/ns/docbook\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:id=\"myid2\">"
+                      , "  <title>header2</title>"
+                      , "  <para>"
+                      , "  </para>"
+                      , "</section>"
+                      ]
+            , test docbook "sections with attributes (db4)" $
+              headers =?>
+              unlines [ "<sect1 id=\"myid1\" role=\"internal\">"
+                      , "  <title>header1</title>"
+                      , "  <para>"
+                      , "  </para>"
+                      , "</sect1>"
+                      , "<sect1 id=\"myid2\" arch=\"linux\">"
+                      , "  <title>header2</title>"
+                      , "  <para>"
+                      , "  </para>"
+                      , "</sect1>"
+                      ]
+            ]
         ]
