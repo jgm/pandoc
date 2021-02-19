@@ -827,6 +827,6 @@ benchmark benchmark-pandoc
   build-depends:   bytestring,
                    containers,
                    tasty,
-                   tasty-bench >= 0.1     && <= 0.2,
+                   tasty-bench >= 0.2     && <= 0.3,
                    mtl         >= 2.2     && < 2.3,
                    time

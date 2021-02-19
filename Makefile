@@ -2,6 +2,7 @@ version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 SOURCEFILES?=$(shell git ls-tree -r master --name-only | grep "\.hs$$")
 BRANCH?=master
+COMMIT=$(shell git rev-parse --short HEAD)
 GHCOPTS=-fdiagnostics-color=always
 WEBSITE=../../web/pandoc.org
 REVISION?=1
@@ -38,7 +39,7 @@ ghcid:
 	ghcid -c "stack repl --flag 'pandoc:embed_data_files'"
 
 bench:
-	stack bench --benchmark-arguments='$(BENCHARGS)' --ghc-options '$(GHCOPTS)'
+	stack bench --benchmark-arguments='$(BENCHARGS) --csv bench-$(COMMIT).csv' --ghc-options '$(GHCOPTS)'
 
 weigh:
 	stack build --ghc-options '$(GHCOPTS)' pandoc:weigh-pandoc && stack exec weigh-pandoc

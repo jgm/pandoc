@@ -11,7 +11,7 @@ extra-deps:
 - commonmark-0.1.1.4
 - commonmark-extensions-0.2.0.4
 - commonmark-pandoc-0.2.0.1
-- tasty-bench-0.1
+- tasty-bench-0.2.1
 - citeproc-0.3.0.7
 #- citeproc:
 #  git: https://github.com/jgm/citeproc.git
