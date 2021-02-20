@@ -159,29 +159,65 @@ pHead = pInTags "head" $ pTitle <|> pMetaTag <|> pBaseTag <|> (mempty <$ pAny)
 
 block :: PandocMonad m => TagParser m Blocks
 block = do
-  res <- choice
-            [ eSection
-            , eSwitch B.para block
-            , mempty <$ eFootnote
-            , mempty <$ eTOC
-            , mempty <$ eTitlePage
-            , pPara
-            , pHeader
-            , pBlockQuote
-            , pCodeBlock
-            , pList
-            , pHrule
-            , pTable block
-            , pHtml
-            , pHead
-            , pBody
-            , pLineBlock
-            , pDiv
-            , pPlain
-            , pFigure
-            , pIframe
-            , pRawHtmlBlock
-            ]
+  exts <- getOption readerExtensions
+  tag <- lookAhead pAny
+  res <-
+   (case tag of
+    TagOpen name attr ->
+      let type' = fromMaybe "" $
+                     lookup "type" attr <|> lookup "epub:type" attr
+          epubExts = extensionEnabled Ext_epub_html_exts exts
+      in
+      case name of
+        _ | name `elem` sectioningContent
+          , epubExts
+          , "chapter" `T.isInfixOf` type'
+          -> eSection
+        _ | epubExts
+          , type' `elem` ["footnote", "rearnote"]
+          -> mempty <$ eFootnote
+        _ | epubExts
+          , type' == "toc"
+          -> mempty <$ eTOC
+        _ | "titlepage" `T.isInfixOf` type'
+          , name `elem` ("section" : groupingContent)
+          -> mempty <$ eTitlePage
+        "p" -> pPara
+        "h1" -> pHeader
+        "h2" -> pHeader
+        "h3" -> pHeader
+        "h4" -> pHeader
+        "h5" -> pHeader
+        "h6" -> pHeader
+        "blockquote" -> pBlockQuote
+        "pre" -> pCodeBlock
+        "ul" -> pBulletList
+        "ol" -> pOrderedList
+        "dl" -> pDefinitionList
+        "table" -> pTable block
+        "hr" -> pHrule
+        "html" -> pHtml
+        "head" -> pHead
+        "body" -> pBody
+        "div"
+          | extensionEnabled Ext_line_blocks exts
+          , Just "line-block" <- lookup "class" attr
+          -> pLineBlock
+          | otherwise
+          -> pDiv
+        "section" -> pDiv
+        "main" -> pDiv
+        "figure" -> pFigure
+        "iframe" -> pIframe
+        "style" -> pRawHtmlBlock
+        "textarea" -> pRawHtmlBlock
+        "switch"
+          | epubExts
+          -> eSwitch B.para block
+        _ -> mzero
+    _ -> mzero)
+   <|> pPlain
+   <|> pRawHtmlBlock
   trace (T.take 60 $ tshow $ B.toList res)
   return res
 
@@ -255,9 +291,6 @@ eTOC = try $ do
   (TagOpen tag attr) <- lookAhead pAny
   guard $ (lookup "type" attr <|> lookup "epub:type" attr) == Just "toc"
   void (pInTags tag block)
-
-pList :: PandocMonad m => TagParser m Blocks
-pList = pBulletList <|> pOrderedList <|> pDefinitionList
 
 pBulletList :: PandocMonad m => TagParser m Blocks
 pBulletList = try $ do
@@ -369,13 +402,15 @@ pLineBlock = try $ do
             B.toList ils
   return $ B.lineBlock lns
 
+isDivLike :: Text -> Bool
+isDivLike "div"     = True
+isDivLike "section" = True
+isDivLike "main"    = True
+isDivLike _         = False
+
 pDiv :: PandocMonad m => TagParser m Blocks
 pDiv = try $ do
   guardEnabled Ext_native_divs
-  let isDivLike "div"     = True
-      isDivLike "section" = True
-      isDivLike "main"    = True
-      isDivLike _         = False
   TagOpen tag attr' <- lookAhead $ pSatisfy $ tagOpen isDivLike (const True)
   let (ident, classes, kvs) = toAttr attr'
   contents <- pInTags tag block
@@ -544,31 +579,47 @@ tagToText (TagOpen "br" _) = "\n"
 tagToText _                = ""
 
 inline :: PandocMonad m => TagParser m Inlines
-inline = choice
-           [ eNoteref
-           , eSwitch id inline
-           , pTagText
-           , pQ
-           , pEmph
-           , pStrong
-           , pSuperscript
-           , pSubscript
-           , pSpanLike
-           , pSmall
-           , pStrikeout
-           , pUnderline
-           , pLineBreak
-           , pLink
-           , pImage
-           , pSvg
-           , pBdo
-           , pCode
-           , pCodeWithClass [("samp","sample"),("var","variable")]
-           , pSpan
-           , pMath False
-           , pScriptMath
-           , pRawHtmlInline
-           ]
+inline = do
+  exts <- getOption readerExtensions
+  tag <- lookAhead pAny
+  case tag of
+    TagOpen name attr ->
+      case name of
+        "a" | extensionEnabled Ext_epub_html_exts exts
+          , Just "noteref" <- lookup "type" attr <|> lookup "epub:type" attr
+          , Just ('#',_) <- lookup "href" attr >>= T.uncons
+            -> eNoteref
+            | otherwise -> pLink
+        "switch" -> eSwitch id inline
+        "q" -> pQ
+        "em" -> pEmph
+        "i"  -> pEmph
+        "strong" -> pStrong
+        "b" -> pStrong
+        "sup" -> pSuperscript
+        "sub" -> pSubscript
+        "small" -> pSmall
+        "s" -> pStrikeout
+        "strike" -> pStrikeout
+        "del" -> pStrikeout
+        "u" -> pUnderline
+        "ins" -> pUnderline
+        "br" -> pLineBreak
+        "img" -> pImage
+        "svg" -> pSvg
+        "bdo" -> pBdo
+        "code" -> pCode
+        "samp" -> pCodeWithClass "samp" "sample"
+        "var" -> pCodeWithClass "var" "variable"
+        "span" -> pSpan
+        "math" -> pMath False
+        "script"
+          | Just x <- lookup "type" attr
+          , "math/tex" `T.isPrefixOf` x -> pScriptMath
+        _ | name `elem` htmlSpanLikeElements -> pSpanLike
+        _ -> pRawHtmlInline
+    TagText _ -> pTagText
+    _ -> pRawHtmlInline
 
 pSelfClosing :: PandocMonad m
              => (Text -> Bool) -> ([Attribute Text] -> Bool)
@@ -579,27 +630,25 @@ pSelfClosing f g = do
   return open
 
 pQ :: PandocMonad m => TagParser m Inlines
-pQ = choice $ map try [citedQuote, normalQuote]
-  where citedQuote = do
-          tag <- pSatisfy $ tagOpenLit "q" (any ((=="cite") . fst))
-
-          url <- canonicalizeUrl $ fromAttrib "cite" tag
-          let uid = fromMaybe (fromAttrib "name" tag) $
-                       maybeFromAttrib "id" tag
-          let cls = T.words $ fromAttrib "class" tag
-
-          makeQuote $ B.spanWith (uid, cls, [("cite", escapeURI url)])
-        normalQuote = do
-          pSatisfy $ tagOpenLit "q" (const True)
-          makeQuote id
-        makeQuote wrapper = do
-          ctx <- asks quoteContext
-          let (constructor, innerContext) = case ctx of
-                        InDoubleQuote -> (B.singleQuoted, InSingleQuote)
-                        _             -> (B.doubleQuoted, InDoubleQuote)
-
-          content <- withQuoteContext innerContext (mconcat <$> manyTill inline (pCloses "q"))
-          return $ extractSpaces (constructor . wrapper) content
+pQ = do
+  TagOpen _ attrs <- pSatisfy $ tagOpenLit "q" (const True)
+  case lookup "cite" attrs of
+    Just url -> do
+      let uid = fromMaybe mempty $
+                   lookup "name" attrs <> lookup "id" attrs
+      let cls = maybe [] T.words $ lookup "class" attrs
+      url' <- canonicalizeUrl url
+      makeQuote $ B.spanWith (uid, cls, [("cite", escapeURI url')])
+    Nothing -> makeQuote id
+ where
+  makeQuote wrapper = do
+    ctx <- asks quoteContext
+    let (constructor, innerContext) = case ctx of
+                  InDoubleQuote -> (B.singleQuoted, InSingleQuote)
+                  _             -> (B.doubleQuoted, InDoubleQuote)
+    content <- withQuoteContext innerContext
+                  (mconcat <$> manyTill inline (pCloses "q"))
+    return $ extractSpaces (constructor . wrapper) content
 
 pEmph :: PandocMonad m => TagParser m Inlines
 pEmph = pInlinesInTags "em" B.emph <|> pInlinesInTags "i" B.emph
@@ -690,13 +739,12 @@ pSvg = do
                    UTF8.toText (encode $ UTF8.fromText rawText)
   return $ B.imageWith (ident,cls,[]) svgData mempty mempty
 
-pCodeWithClass :: PandocMonad m => [(T.Text,Text)] -> TagParser m Inlines
-pCodeWithClass elemToClass = try $ do
-  let tagTest = flip elem . fmap fst $ elemToClass
-  TagOpen open attr' <- pSatisfy $ tagOpen tagTest (const True)
+pCodeWithClass :: PandocMonad m => Text -> Text -> TagParser m Inlines
+pCodeWithClass name class' = try $ do
+  TagOpen open attr' <- pSatisfy $ tagOpen (== name) (const True)
   result <- manyTill pAny (pCloses open)
   let (ids,cs,kvs) = toAttr attr'
-      cs'          = maybe cs (:cs) . lookup open $ elemToClass
+      cs'          = class' : cs
   return . B.codeWith (ids,cs',kvs) .
     T.unwords . T.lines . innerText $ result
 
