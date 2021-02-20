@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -}
 import Text.Pandoc
 import Text.Pandoc.MIME
+import Control.Monad (when)
 import Control.Monad.Except (throwError)
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString as B
@@ -25,12 +26,15 @@ import qualified Data.Text as T
 import Test.Tasty.Bench
 import qualified Data.ByteString.Lazy as BL
 import Data.Maybe (mapMaybe)
+import Data.List (sortOn)
 
 readerBench :: Pandoc
             -> T.Text
             -> Maybe Benchmark
 readerBench doc name = either (const Nothing) Just $
   runPure $ do
+    when (name `elem` ["bibtex", "biblatex", "csljson"]) $
+      throwError $ PandocSomeError $ name <> " not supported for benchmark"
     (rdr, rexts) <- getReader name
     (wtr, wexts) <- getWriter name
     case (rdr, wtr) of
@@ -63,6 +67,8 @@ writerBench :: [(FilePath, MimeType, BL.ByteString)]
             -> Maybe Benchmark
 writerBench imgs doc name = either (const Nothing) Just $
   runPure $ do
+    when (name `elem` ["bibtex", "biblatex", "csljson"]) $
+      throwError $ PandocSomeError $ name <> " not supported for benchmark"
     (wtr, wexts) <- getWriter name
     case wtr of
       TextWriter writerFun ->
@@ -72,8 +78,13 @@ writerBench imgs doc name = either (const Nothing) Just $
                          mapM_ (\(fp,mt,bs) -> insertMedia fp (Just mt) bs) imgs
                          writerFun def{ writerExtensions = wexts} d)
                     doc
-      _ -> throwError $ PandocSomeError
-                      $ "could not get text writer for " <> name
+      ByteStringWriter writerFun ->
+        return $ bench (T.unpack name)
+               $ nf (\d -> either (error . show) id $
+                       runPure $ do
+                         mapM_ (\(fp,mt,bs) -> insertMedia fp (Just mt) bs) imgs
+                         writerFun def{ writerExtensions = wexts} d)
+                    doc
 
 main :: IO ()
 main = do
@@ -83,7 +94,9 @@ main = do
   imgs <- getImages
   defaultMain
     [ bgroup "writers" $ mapMaybe (writerBench imgs doc . fst)
-                         (writers :: [(T.Text, Writer PandocPure)])
+                         (sortOn fst
+                           writers :: [(T.Text, Writer PandocPure)])
     , bgroup "readers" $ mapMaybe (readerBench doc . fst)
-                         (readers :: [(T.Text, Reader PandocPure)])
+                         (sortOn fst
+                           readers :: [(T.Text, Reader PandocPure)])
     ]
