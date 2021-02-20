@@ -83,7 +83,7 @@ $endif$
       // https://revealjs.com/config/
       Reveal.initialize({
 $if(center)$
-        // Determines wether slide content should be vertically centered
+        // Determines whether slide content should be vertically centered
         center: $center$,
 $endif$      
 $if(controls)$
