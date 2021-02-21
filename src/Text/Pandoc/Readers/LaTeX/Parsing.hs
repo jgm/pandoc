@@ -446,30 +446,25 @@ satisfyTok f = do
 
 doMacros :: PandocMonad m => LP m ()
 doMacros = do
-  expanded <- sExpanded <$> getState
-  verbatimMode <- sVerbatimMode <$> getState
-  unless (expanded || verbatimMode) $ do
-      getInput >>= doMacros' 1 >>= setInput
-      updateState $ \st -> st{ sExpanded = True }
+  st <- getState
+  unless (sExpanded st || sVerbatimMode st || M.null (sMacros st)) $ do
+    getInput >>= doMacros' 1 >>= setInput
+    updateState $ \s -> s{ sExpanded = True }
 
 doMacros' :: PandocMonad m => Int -> [Tok] -> LP m [Tok]
-doMacros' n inp = do
-  macros <- sMacros <$> getState
-  if M.null macros
-     then return inp
-     else
-       case inp of
-          Tok spos (CtrlSeq "begin") _ : Tok _ Symbol "{" :
-           Tok _ Word name : Tok _ Symbol "}" : ts
-             -> handleMacros macros n spos name ts <|> return inp
-          Tok spos (CtrlSeq "end") _ : Tok _ Symbol "{" :
-           Tok _ Word name : Tok _ Symbol "}" : ts
-             -> handleMacros macros n spos ("end" <> name) ts <|> return inp
-          Tok _ (CtrlSeq "expandafter") _ : t : ts
-             -> combineTok t <$> doMacros' n ts
-          Tok spos (CtrlSeq name) _ : ts
-             -> handleMacros macros n spos name ts <|> return inp
-          _ -> return inp
+doMacros' n inp =
+  case inp of
+     Tok spos (CtrlSeq "begin") _ : Tok _ Symbol "{" :
+      Tok _ Word name : Tok _ Symbol "}" : ts
+        -> handleMacros n spos name ts <|> return inp
+     Tok spos (CtrlSeq "end") _ : Tok _ Symbol "{" :
+      Tok _ Word name : Tok _ Symbol "}" : ts
+        -> handleMacros n spos ("end" <> name) ts <|> return inp
+     Tok _ (CtrlSeq "expandafter") _ : t : ts
+        -> combineTok t <$> doMacros' n ts
+     Tok spos (CtrlSeq name) _ : ts
+        -> handleMacros n spos name ts <|> return inp
+     _ -> return inp
 
   where
     combineTok (Tok spos (CtrlSeq name) x) (Tok _ Word w : ts)
@@ -510,9 +505,10 @@ doMacros' n inp = do
         Tok spos (CtrlSeq x) (txt <> " ") : acc
     addTok _ _ spos t acc = setpos spos t : acc
 
-    handleMacros macros n' spos name ts = do
+    handleMacros n' spos name ts = do
       when (n' > 20)  -- detect macro expansion loops
         $ throwError $ PandocMacroLoop name
+      macros <- sMacros <$> getState
       case M.lookup name macros of
            Nothing -> mzero
            Just (Macro expansionPoint argspecs optarg newtoks) -> do
