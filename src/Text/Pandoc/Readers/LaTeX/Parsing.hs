@@ -155,7 +155,6 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sLabels        :: M.Map Text [Inline]
                             , sHasChapters   :: Bool
                             , sToggles       :: M.Map Text Bool
-                            , sExpanded      :: Bool
                             , sFileContents  :: M.Map Text Text
                             , sEnableWithRaw :: Bool
                             , sRawTokens     :: IntMap.IntMap [Tok]
@@ -183,7 +182,6 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sLabels        = M.empty
                               , sHasChapters   = False
                               , sToggles       = M.empty
-                              , sExpanded      = False
                               , sFileContents  = M.empty
                               , sEnableWithRaw = True
                               , sRawTokens     = IntMap.empty
@@ -256,7 +254,6 @@ rawLaTeXParser toks retokenize parser valParser = do
        Right toks' -> do
          res <- lift $ runParserT (do when retokenize $ do
                                         -- retokenize, applying macros
-                                        doMacros
                                         ts <- many (satisfyTok (const True))
                                         setInput ts
                                       rawparser)
@@ -432,8 +429,7 @@ satisfyTok :: PandocMonad m => (Tok -> Bool) -> LP m Tok
 satisfyTok f = do
     doMacros -- apply macros on remaining input stream
     res <- tokenPrim (T.unpack . untoken) updatePos matcher
-    updateState $ \st -> st{ sExpanded = False
-                           , sRawTokens =
+    updateState $ \st -> st{ sRawTokens =
                               if sEnableWithRaw st
                                  then IntMap.map (res:) $ sRawTokens st
                                  else sRawTokens st }
@@ -447,9 +443,8 @@ satisfyTok f = do
 doMacros :: PandocMonad m => LP m ()
 doMacros = do
   st <- getState
-  unless (sExpanded st || sVerbatimMode st || M.null (sMacros st)) $ do
+  unless (sVerbatimMode st || M.null (sMacros st)) $ do
     getInput >>= doMacros' 1 >>= setInput
-    updateState $ \s -> s{ sExpanded = True }
 
 doMacros' :: PandocMonad m => Int -> [Tok] -> LP m [Tok]
 doMacros' n inp =
