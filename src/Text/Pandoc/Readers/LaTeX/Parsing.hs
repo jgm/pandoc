@@ -461,16 +461,15 @@ doMacros' n inp = do
        case inp of
           Tok spos (CtrlSeq "begin") _ : Tok _ Symbol "{" :
            Tok _ Word name : Tok _ Symbol "}" : ts
-             -> handleMacros macros n spos name ts
+             -> handleMacros macros n spos name ts <|> return inp
           Tok spos (CtrlSeq "end") _ : Tok _ Symbol "{" :
            Tok _ Word name : Tok _ Symbol "}" : ts
-             -> handleMacros macros n spos ("end" <> name) ts
+             -> handleMacros macros n spos ("end" <> name) ts <|> return inp
           Tok _ (CtrlSeq "expandafter") _ : t : ts
              -> combineTok t <$> doMacros' n ts
           Tok spos (CtrlSeq name) _ : ts
-             -> handleMacros macros n spos name ts
+             -> handleMacros macros n spos name ts <|> return inp
           _ -> return inp
-        <|> return inp
 
   where
     combineTok (Tok spos (CtrlSeq name) x) (Tok _ Word w : ts)
