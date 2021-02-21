@@ -157,11 +157,10 @@ pHead = pInTags "head" $ pTitle <|> pMetaTag <|> pBaseTag <|> (mempty <$ pAny)
           return mempty
 
 block :: PandocMonad m => TagParser m Blocks
-block = do
+block = ((do
+  tag <- lookAhead (pSatisfy isBlockTag)
   exts <- getOption readerExtensions
-  tag <- lookAhead pAny
-  res <-
-   (case tag of
+  case tag of
     TagOpen name attr ->
       let type' = fromMaybe "" $
                      lookup "type" attr <|> lookup "epub:type" attr
@@ -214,11 +213,8 @@ block = do
           | epubExts
           -> eSwitch B.para block
         _ -> mzero
-    _ -> mzero)
-   <|> pPlain
-   <|> pRawHtmlBlock
-  trace (T.take 60 $ tshow $ B.toList res)
-  return res
+    _ -> mzero) <|> pPlain <|> pRawHtmlBlock) >>= \res ->
+        res <$ trace (T.take 60 $ tshow $ B.toList res)
 
 namespaces :: PandocMonad m => [(Text, TagParser m Inlines)]
 namespaces = [(mathMLNamespace, pMath True)]
