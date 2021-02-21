@@ -680,28 +680,25 @@ grouped parser = try $ do
   -- {{a,b}} should be parsed the same as {a,b}
   try (grouped parser <* egroup) <|> (mconcat <$> manyTill parser egroup)
 
-braced' :: PandocMonad m => LP m Tok -> Int -> LP m [Tok]
-braced' getTok n =
-  handleEgroup <|> handleBgroup <|> handleOther
-  where handleEgroup = do
-          t <- symbol '}'
-          if n == 1
-             then return []
-             else (t:) <$> braced' getTok (n - 1)
-        handleBgroup = do
-          t <- symbol '{'
-          (t:) <$> braced' getTok (n + 1)
-        handleOther = do
-          t <- getTok
-          (t:) <$> braced' getTok n
+braced' :: PandocMonad m => LP m Tok -> LP m [Tok]
+braced' getTok = symbol '{' *> go (1 :: Int)
+ where
+  go n = do
+    t <- getTok
+    case t of
+      Tok _ Symbol "}"
+        | n > 1     -> (t:) <$> go (n - 1)
+        | otherwise -> return []
+      Tok _ Symbol "{" -> (t:) <$> go (n + 1)
+      _ -> (t:) <$> go n
 
 braced :: PandocMonad m => LP m [Tok]
-braced = symbol '{' *> braced' anyTok 1
+braced = braced' anyTok
 
 -- URLs require special handling, because they can contain %
 -- characters.  So we retonenize comments as we go...
 bracedUrl :: PandocMonad m => LP m [Tok]
-bracedUrl = bgroup *> braced' (retokenizeComment >> anyTok) 1
+bracedUrl = braced' (retokenizeComment >> anyTok)
 
 -- For handling URLs, which allow literal % characters...
 retokenizeComment :: PandocMonad m => LP m ()
