@@ -21,10 +21,7 @@ module Text.Pandoc.Shared (
                      -- * List processing
                      splitBy,
                      splitTextBy,
-                     splitByIndices,
-                     splitStringByIndices,
                      splitTextByIndices,
-                     substitute,
                      ordNub,
                      findM,
                      -- * Text processing
@@ -74,7 +71,6 @@ module Text.Pandoc.Shared (
                      addMetaField,
                      makeMeta,
                      eastAsianLineBreakFilter,
-                     underlineSpan,
                      htmlSpanLikeElements,
                      splitSentences,
                      filterIpynbOutput,
@@ -113,7 +109,7 @@ import qualified Data.Bifunctor as Bifunctor
 import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
-import Data.List (find, intercalate, intersperse, stripPrefix, sortOn)
+import Data.List (find, intercalate, intersperse, sortOn)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Monoid (Any (..))
@@ -160,27 +156,6 @@ splitTextBy isSep t
   | otherwise = let (first, rest) = T.break isSep t
                 in  first : splitTextBy isSep (T.dropWhile isSep rest)
 
-{-# DEPRECATED splitByIndices "This function is slated for removal" #-}
-splitByIndices :: [Int] -> [a] -> [[a]]
-splitByIndices [] lst = [lst]
-splitByIndices (x:xs) lst = first:splitByIndices (map (\y -> y - x)  xs) rest
-  where (first, rest) = splitAt x lst
-
-{-# DEPRECATED splitStringByIndices "This function is slated for removal" #-}
--- | Split string into chunks divided at specified indices.
-splitStringByIndices :: [Int] -> [Char] -> [[Char]]
-splitStringByIndices [] lst = [lst]
-splitStringByIndices (x:xs) lst =
-  let (first, rest) = splitAt' x lst in
-  first : splitStringByIndices (map (\y -> y - x) xs) rest
-
--- DEPRECATED: can be removed when splitStringByIndices is
-splitAt' :: Int -> [Char] -> ([Char],[Char])
-splitAt' _ []          = ([],[])
-splitAt' n xs | n <= 0 = ([],xs)
-splitAt' n (x:xs)      = (x:ys,zs)
-  where (ys,zs) = splitAt' (n - charWidth x) xs
-
 splitTextByIndices :: [Int] -> T.Text -> [T.Text]
 splitTextByIndices ns = splitTextByRelIndices (zipWith (-) ns (0:ns))
  where
@@ -188,16 +163,6 @@ splitTextByIndices ns = splitTextByRelIndices (zipWith (-) ns (0:ns))
   splitTextByRelIndices (x:xs) t =
     let (first, rest) = T.splitAt x t
      in first : splitTextByRelIndices xs rest
-
-{-# DEPRECATED substitute "This function is slated for removal" #-}
--- | Replace each occurrence of one sublist in a list with another.
-substitute :: (Eq a) => [a] -> [a] -> [a] -> [a]
-substitute _ _ [] = []
-substitute [] _ xs = xs
-substitute target replacement lst@(x:xs) =
-    case stripPrefix target lst of
-      Just lst' -> replacement ++ substitute target replacement lst'
-      Nothing   -> x : substitute target replacement xs
 
 ordNub :: (Ord a) => [a] -> [a]
 ordNub l = go Set.empty l
@@ -764,13 +729,6 @@ eastAsianLineBreakFilter = bottomUp go
           = x:SoftBreak:y:zs
         go xs
           = xs
-
-{-# DEPRECATED underlineSpan "Use Text.Pandoc.Builder.underline instead" #-}
--- | Builder for underline (deprecated).
--- This probably belongs in Builder.hs in pandoc-types.
--- Will be replaced once Underline is an element.
-underlineSpan :: Inlines -> Inlines
-underlineSpan = B.underline
 
 -- | Set of HTML elements that are represented as Span with a class equal as
 -- the element tag itself.
