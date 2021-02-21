@@ -429,11 +429,11 @@ satisfyTok :: PandocMonad m => (Tok -> Bool) -> LP m Tok
 satisfyTok f = do
     doMacros -- apply macros on remaining input stream
     res <- tokenPrim (T.unpack . untoken) updatePos matcher
-    updateState $ \st -> st{ sRawTokens =
-                              if sEnableWithRaw st
-                                 then IntMap.map (res:) $ sRawTokens st
-                                 else sRawTokens st }
-    return res
+    updateState $ \st ->
+      if sEnableWithRaw st
+         then st{ sRawTokens = IntMap.map (res:) $ sRawTokens st }
+         else st
+    return $! res
   where matcher t | f t       = Just t
                   | otherwise = Nothing
         updatePos :: SourcePos -> Tok -> [Tok] -> SourcePos
