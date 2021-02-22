@@ -60,6 +60,7 @@ data PandocError = PandocIOError Text IOError
                  | PandocMacroLoop Text
                  | PandocUTF8DecodingError Text Int Word8
                  | PandocIpynbDecodingError Text
+                 | PandocUnsupportedCharsetError Text
                  | PandocUnknownReaderError Text
                  | PandocUnknownWriterError Text
                  | PandocUnsupportedExtensionError Text Text
@@ -124,6 +125,8 @@ renderError e =
       "The input must be a UTF-8 encoded text."
     PandocIpynbDecodingError w ->
       "ipynb decoding error: " <> w
+    PandocUnsupportedCharsetError charset ->
+      "Unsupported charset " <> charset
     PandocUnknownReaderError r ->
       "Unknown input format " <> r <>
       case r of
@@ -183,6 +186,7 @@ handleError (Left e) =
       PandocMacroLoop{} -> 91
       PandocUTF8DecodingError{} -> 92
       PandocIpynbDecodingError{} -> 93
+      PandocUnsupportedCharsetError{} -> 94
       PandocUnknownReaderError{} -> 21
       PandocUnknownWriterError{} -> 22
       PandocUnsupportedExtensionError{} -> 23

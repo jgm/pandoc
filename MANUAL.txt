@@ -1477,6 +1477,7 @@ Nonzero exit codes have the following meanings:
    91 PandocMacroLoop
    92 PandocUTF8DecodingError
    93 PandocIpynbDecodingError
+   94 PandocUnsupportedCharsetError
    97 PandocCouldNotFindDataFileError
    99 PandocResourceNotFound
 ----- ------------------------------------
