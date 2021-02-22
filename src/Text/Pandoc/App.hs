@@ -28,6 +28,7 @@ import Control.Monad ( (>=>), when )
 import Control.Monad.Trans ( MonadIO(..) )
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
 import Data.Char (toLower)
 import Data.Maybe (fromMaybe, isJust, isNothing)
@@ -45,6 +46,7 @@ import System.FilePath ( takeBaseName, takeExtension )
 import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
+import Text.Pandoc.MIME (getCharset)
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
                             IpynbOutput (..) )
@@ -344,7 +346,13 @@ readSource src = case parseURI src of
                          _ -> PandocAppError (tshow e))
 
 readURI :: FilePath -> PandocIO Text
-readURI src = UTF8.toText . fst <$> openURL (T.pack src)
+readURI src = do
+  (bs, mt) <- openURL (T.pack src)
+  case mt >>= getCharset of
+    Just "UTF-8"      -> return $ UTF8.toText bs
+    Just "ISO-8859-1" -> return $ T.pack $ B8.unpack bs
+    Just charset      -> throwError $ PandocUnsupportedCharsetError charset
+    Nothing           -> return $ UTF8.toText bs
 
 readFile' :: MonadIO m => FilePath -> m BL.ByteString
 readFile' "-" = liftIO BL.getContents
