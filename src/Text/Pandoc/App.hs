@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -352,7 +353,12 @@ readURI src = do
     Just "UTF-8"      -> return $ UTF8.toText bs
     Just "ISO-8859-1" -> return $ T.pack $ B8.unpack bs
     Just charset      -> throwError $ PandocUnsupportedCharsetError charset
-    Nothing           -> return $ UTF8.toText bs
+    Nothing           -> liftIO $ -- try first as UTF-8, then as latin1
+                          E.catch (return $! UTF8.toText bs)
+                                  (\case
+                                      TSE.DecodeError{} ->
+                                        return $ T.pack $ B8.unpack bs
+                                      e -> E.throwIO e)
 
 readFile' :: MonadIO m => FilePath -> m BL.ByteString
 readFile' "-" = liftIO BL.getContents
