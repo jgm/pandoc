@@ -1,5 +1,360 @@
 # Revision history for pandoc
 
+## pandoc 2.12 (UNRELEASED -- PROVISIONAL)
+
+  * Add new unexported module Text.Pandoc.XML.Light, as well
+    as Text.Pandoc.XML.Light.Types, Text.Pantoc.XML.Light.Proc,
+    Text.Pandoc.XML.Light.Output.  (Closes #6001, #6565, #7091).
+
+    This module exports definitions of `Element` and `Content`
+    that are isomorphic to xml-light's, but with Text
+    instead of String.  This allows us to keep most of the code in existing
+    readers that use xml-light, but avoid lots of unnecessary allocation.
+
+    We also add versions of the functions from xml-light's
+    Text.XML.Light.Output and Text.XML.Light.Proc that operate on our
+    modified XML types, and functions that convert xml-light types to our
+    types (since some of our dependencies, like texmath, use xml-light).
+
+    We export functions that use xml-conduit's parser to produce an
+    `Element` or `[Content]`.  This allows existing pandoc code to use
+    a better parser without much modification.
+
+    The new parser is used in all places where xml-light's parser was
+    previously used.  Benchmarks show a significant performance improvement
+    in parsing XML-based formats (with docbook, opml, jats, and docx
+    almost twice as fast, odt and fb2 more than twice as fast).
+
+    In addition, the new parser gives us better error reporting than
+    xml-light.  We report XML errors, when possible, using the new
+    `PandocXMLError` constructor in `PandocError`.
+
+    These changes revealed the need for some changes in the tests.  The
+    docbook-reader.docbook test lacked definitions for the entities it used;
+    these have been added. And the docx golden tests have been updated,
+    because the new parser does not preserve the order of attributes.
+
+  * Text.Pandoc.App
+
+    + Add `parseOptionsFromArgs` [API change, new exported function].
+
+  * Text.Pandoc.Citeproc.BibTeX
+
+    + `Text.Pandoc.Citeproc.writeBibTeXString` now returns
+      `Doc Text` instead of `Text` (#7068).
+    + Correctly handle `pages` (= `page` in CSL) (#7067).
+    + Correctly handle BibLaTeX `langid` (= `language` in CSL, #7067).
+    + In BibTeX output, protect foreign titles since there's no language
+      field (#7067).
+    + Clean up BibTeX parsing (#7049).  Previously there was a messy code
+      path that gave strange results in some cases, not passing through raw
+      tex but trying to extract a string content.  This was an artefact of
+      trying to handle some special bibtex-specific commands in the BibTeX
+      reader. Now we just handle these in the LaTeX reader and simplify
+      parsing in the BibTeX reader. This does mean that more raw tex will
+      be passed through (and currently this is not sensitive to the
+      `raw_tex` extension; this should be fixed).
+
+  * Text.Pandoc.Citeproc.MetaValue
+
+    + Correctly parse "raw" date value in markdown references metadata.
+      (See jgm/citeproc#53.)
+
+  * Text.Pandoc.Class
+
+    + Add `getTimestamp` [API change].  This attempts to read the
+      `SOURCE_DATE_EPOCH` environment variable and parse a UTC time
+      from it (treating it as a unix date stamp, see
+      https://reproducible-builds.org/specs/source-date-epoch/). If the
+      variable is not set or can't be parsed as a unix date stamp, then the
+      function returns the current date.
+
+  * Text.Pandoc.Error
+
+    + Remove unused variables (Albert Krewinkel)
+    + Export `renderError` [API change].
+    + Refactor `handleError` to use `renderError`. This allows us render
+      error messages without exiting.
+
+  * Text.Pandoc.Extensions
+
+    + `Ext_task_lists` is now supported by org (and turned
+      on by default) (Albert Krewinkel, #6336).
+    + Remove `Ext_fenced_code_attributes` from allowed commonmark attributes
+      (#7097).  This attribute was listed as allowed, but it didn't actually
+      do anything. Use `attributes` for code attributes and more.
+
+  * Lua subsystem:
+
+    + Always load built-in Lua scripts from default data-dir (Albert
+      Krewinkel).  The Lua modules `pandoc` and `pandoc.List` are now always
+      loaded from the system's default data directory. Loading from a
+      different directory by overriding the default path, e.g. via
+      `--data-dir`, is no longer supported to avoid unexpected behavior
+      and to address security concerns.
+    + Add module "pandoc.path" (Albert Krewinkel, #6001, #6565).
+      The module allows to work with file paths in a convenient and
+      platform-independent manner.
+
+  * Text.Pandoc.PDF
+
+    + Disable `smart` extension when building PDF via LaTeX.
+      This is to prevent accidental creation of ligatures like
+      `` ?` `` and `` !` `` (especially in languages with quotations like
+      German), and similar ligature issues.  (See jgm/citeproc#54.)
+
+  * DocBook reader:
+
+    + Avoid expensive tree normalization step, as it is not necessary
+      with the new XML parser.
+    + Support `informalfigure` (#7079) (Nils Carlson).
+
+  * Docx reader:
+
+    + Use Map instead of list for Namespaces.  This gives a speedup of
+      about 5-10%. With this and the XML parsing changes, the docx reader
+      is now about twice as fast as in the previous release.
+
+  * HTML reader:
+
+    + Small performance tweaks.
+    + Also, remove exported class `NamedTag(..)` [API change]. This was just
+      intended to smooth over the transition from String to Text and is no
+      longer needed.
+    + As a result, the functions `isInlineTag` and `isBlockTag`
+      are no longer polymorphic; they apply to a `Tag Text` [API change].
+    + Do a lookahead to find the right parser to use.  This takes
+      benchmarks from 34ms to 23ms, with less allocation.
+    + Fix bad handling of empty `src` attribute in `iframe` (#7099).
+      If `src` is empty, we simply skip the `iframe`.
+      If `src` is invalid or cannot be fetched, we issue a warning
+      nd skip instead of failing with an error.
+
+  * JATS reader:
+
+    + Avoid tree normalization, which is no longer necessary given the
+      new XML parser.
+
+  * LaTeX reader:
+
+    + Code cleanup, removing some unnecessary things.
+    + Rewrite `withRaw` so it doesn't rely on fragile assumptions
+      about token positions (which break when macros are expanded)
+      (#7092).  This requires the addition of `sEnableWithRaw` and
+      `sRawTokens` in `LaTeXState`, and a new combinator `disablingWithRaw`
+      to disable collecting of raw tokens in certain contexts.
+      Add `parseFromToks` to Text.Pandoc.Readers.LaTeX.Parsing.
+      Fix parsing of single character tokens so it doesn't mess
+      up the new raw token collecting.  These changes slightly increase
+      allocations and have a small performance impact.
+    + Handle some bibtex/biblatex-specific commands that used to be
+      dealt with in pandoc-citeproc (#7049).
+    + Optimize `satisfyTok`, avoiding unnecessary macro expansion steps.
+      Benchmarks after this change show 2/3 of the run time and 2/3 of the
+      allocation of the Feb. 10 benchmarks.
+    + Removed `sExpanded` in state.  This isn't actually needed and checking
+      it doesn't change anything.
+    + Improve `braced'`.  Remove the parameter, have it parse the
+      opening brace, and make it more efficient.
+
+  * Markdown reader:
+
+    + Improved handling of mmd link attributes in references (#7080).
+      Previously they only worked for links that had titles.
+
+  * OPML reader:
+
+    + Avoid tree normalization, which is no longer necessary with the
+      new XML parser.
+
+  * ODT reader:
+
+    + Finer-grained errors on parse failure (#7091).
+    + Give more information if the zip container can't be unpacked.
+
+  * Org reader:
+
+    + Support `task_lists` extension (Albert Krewinkel, #6336).
+    + Fix bug in org-ref citation parsing (Albert Krewinkel, #7101).
+      The org-ref syntax allows to list multiple citations separated by
+      comma.  Previously commas were accepted as part of the citation id,
+      so all citation lists were parsed as one single citation.
+
+  * RST reader:
+
+    + Use `getTimestamp` instead of `getCurrentTime` to fetch timestamp.
+      Setting `SOURCE_DATE_EPOCH` will allow reproducible builds.
+    + RST reader: fix handling of header in CSV tables (#7064).
+      The interpretation of this line is not affected by the delim option.
+
+  * Jira reader:
+
+    + Modified the Doc parser to skip leading blank lines. This fixes
+      parsing of documents which start with multiple blank lines (#7095).
+    + Prevent URLs within link aliases to be treated as autolinks
+      (#6944).
+
+  * Text.Pandoc.Shared
+
+    + Remove formerly exported functions that are no longer used in the
+      code base: `splitByIndices`, `splitStringByIndicies`, `substitute`,
+      and `underlineSpan` (which had been deprecated in April 2020)
+      [API change].
+    + Export `handleTaskListItem` (Albert Krewinkel) [API change].
+
+  * BibTeX writer:
+
+    + BibTeX writer: use doclayout and doctemplate.  This change allows
+      bibtex/biblatex output to wrap as other formats do,
+      depending on the settings of `--wrap` and `--columns` (#7068).
+
+  * CSL JSON writer:
+
+    + Output `[]` if no references in input, instead of raising a
+      PandocAppError as before.
+
+  * Docx writer:
+
+    + Use `getTimestamp` instead of `getCurrentTime` for timestamp.
+      Setting `SOURCE_DATE_EPOCH` will allow reproducible builds.
+
+  * Text.Pandoc.Writers.EPUB
+
+    + Use `getTimestamp` instead of `getCurrentTime` for timestamp.
+      Setting `SOURCE_DATE_EPOCH` will allow reproducible builds (#7093).
+      This does not suffice to fully enable reproducible in EPUB, since
+      a unique id is still being generated for each build.
+    + Support `belongs-to-collection` metadata (#7063) (Nick Berendsen).
+
+  * JATS writer:
+
+    + Escape special chars in reference elements (Albert Krewinkel).
+      Prevents the generation of invalid markup if a citation element
+      contains an ampersand or another character with a special meaning
+      in XML.
+
+  * LaTeX writer:
+
+    + Adjust hypertargets to beginnings of paragraphs (#7078).
+      Use `\vadjust pre` so that the hypertarget takes you to the beginning
+      of the paragraph rather than one line down.
+      This makes a particular difference for links to citations using
+      `--citeproc` and `link-citations: true`.
+    + Change BCP47 lang tag from `jp` to `ja` (Mauro Bieg, #7047).
+
+  * Markdown writer:
+
+    + Handle math right before digit.  We insert an HTML comment to
+      avoid a `$` right before a digit, which pandoc will not recognize
+      as a math delimiter.
+
+  * ODT writer:
+
+    + Use `getTimestamp` instead of `getCurrentTime` for timestamp.
+      Setting `SOURCE_DATE_EPOCH` will allow reproducible builds.
+    + Update default ODT style (Lorenzo).  Previously, the "First paragraph"
+      style inherited from "Standard" but not from "Text body." Now
+      it is adjusted to inherit from "Text body", to avoid some ugly
+      spacing issues. It may be necessary to update a custom `reference.odt`
+      in light of this change.
+
+  * Org writer:
+
+    + Support `task_lists` extension (Albert Krewinkel, #6336).
+
+  * Pptx writer:
+
+    + Use `getTimestamp` instead of `getCurrentTime` for timestamp.
+      Setting `SOURCE_DATE_EPOCH` will allow reproducible builds.
+
+  * JATS templates: tag `author.name` as `string-name` (Albert Krewinkel).
+    The partitioning the components of a name into surname, given names,
+    etc. is not always possible or not available. Using `author.name`
+    allows to give the full name as a fallback to be used when
+    `author.surname` is not available.
+
+  * Add default templates for bibtex and biblatex, so that
+    the variables `header-include`, `include-before`, `include-after`
+    (or alternatively the command line options
+    `--include-in-header`, `--include-before-body`, `--include-after-body`)
+    may be used.
+
+  * LaTeX template: Update to iftex package (#7073) (Andrew Dunning)
+
+  * revealjs template: Add 'center' option for vertical slide centering.
+    (maurerle, #7104).
+
+  * Text.Pandoc.XML: Improve efficiency of `fromEntities`.
+
+  * Test suite: a more robust way of testing the executable.
+    Many of our tests require running the pandoc executable. This is
+    problematic for a few different reasons. First, cabal-install will
+    sometimes run the test suite after building the library but before
+    building the executable, which means the executable isn't in place for
+    the tests. One can work around that by first building, then building and
+    running the tests, but that's fragile.  Second, we have to find the
+    executable. So far, we've done that using a function `findPandoc` that
+    attempts to locate it relative to the test executable (which can be
+    located using findExecutablePath).  But the logic here is delicate and
+    work with every combination of options.  To solve both problems, we add
+    an `--emulate` option to the `test-pandoc` executable.  When `--emulate`
+    occurs as the first argument passed to `test-pandoc`, the program simply
+    emulates the regular pandoc executable, using the rest of the arguments
+    (after `--emulate`). Thus, `test-pandoc --emulate -f markdown -t latex`
+    is just like `pandoc -f markdown -t latex`.
+    Since all the work is done by library functions, implementing this
+    emulation just takes a couple lines of code and should be entirely
+    reliable.  With this change, we can test the pandoc executable by running
+    the test program itself (locatable using `findExecutablePath`) with the
+    `--emulate` option. This removes the need for the fragile `findPandoc`
+    step, and it means we can run our integration tests even when we're just
+    building the library, not the executable.  [Note: part of this change
+    involved simplifying some complex handling to set environment variables
+    for dynamic library paths.  I have tested a build with
+    `--enable-dynamic-executable`, and it works, but further testing may be
+    needed.]
+
+  * MANUAL.txt
+
+    + MANUAL: block-level formatting is not allowed in line blocks (#7107).
+    + Clarify `tex_math_dollars` extension.  Note that no blank lines
+      are allowed between the delimiters in display math.
+    + Add MANUAL section on reproducible builds.
+    + Document no template fallback for absolute path (#7077, Nixon
+      Enraght-Moony.)
+    + Improve docs for cite-method.
+    + Update README and man page.
+
+  * Makefile: in `make bench`, create CSV files for comparison and compare
+    against previous benchmark run.  Add timestamp to CSV filenames.
+
+  * doc/lua-filters.md: improve documentation for
+    `pandoc.mediabag.insert`, `pandoc.mediabag.fetch`,
+    `directory`, `normalize` (Albert Krewinkel).
+
+  * Allow base64-bytestring-1.2.* (Dmitrii Kovanikov)
+
+  * Require jira-wiki-markup 1.3.3 (Albert Krewinkel)
+
+  * Require citeproc 0.3.0.7, which correctly titlecases when titles
+    contain non-ASCII characters.
+
+  * Avoid unnecessary use of NoImplicitPrelude pragma (#7089) (Albert
+    Krewinkel)
+
+  * Benchmarks
+
+    + Use the lighter-weight tasty-bench instead of criterion.
+    + Run writer benchmarks for binary formats too.
+    + Alphabetize benchmarks.
+    + Don't run benchmarks for bibliography formats
+      (yet; we need a special input for them).
+    + Show allocation data
+    + Clean up benchmark code.
+    + Allow specifying patterns using `-p blah'.
+
+
+
 ## pandoc 2.11.4 (2021-01-22)
 
   * Add `biblatex`, `bibtex` as output formats (closes #7040).
