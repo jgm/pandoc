@@ -22,6 +22,7 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden.Advanced (goldenTest)
 import Tests.Helpers hiding (test)
 import qualified Text.Pandoc.UTF8 as UTF8
+import qualified Data.Text as T
 
 tests :: FilePath -> [TestTree]
 tests pandocPath =
@@ -231,7 +232,7 @@ tests pandocPath =
 -- makes sure file is fully closed after reading
 readFile' :: FilePath -> IO String
 readFile' f = do s <- UTF8.readFile f
-                 return $! (length s `seq` s)
+                 return $! (T.length s `seq` T.unpack s)
 
 lhsWriterTests :: FilePath -> String -> [TestTree]
 lhsWriterTests pandocPath format
@@ -333,7 +334,7 @@ testWithNormalize normalizer pandocPath testname opts inp norm =
                              $ UTF8.toStringLazy out
                    -- filter \r so the tests will work on Windows machines
                  else fail $ "Pandoc failed with error code " ++ show ec
-        updateGolden = UTF8.writeFile norm
+        updateGolden = UTF8.writeFile norm . T.pack
         options = ["--data-dir=../data","--quiet"] ++ [inp] ++ opts
 
 compareValues :: FilePath -> [String] -> String -> String -> IO (Maybe String)

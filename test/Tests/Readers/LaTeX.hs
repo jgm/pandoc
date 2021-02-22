@@ -54,7 +54,7 @@ tokUntokRt s = untokenize (tokenize "random" t) == t
 tests :: [TestTree]
 tests = [ testGroup "tokenization"
           [ testCase "tokenizer round trip on test case" $ do
-                 orig <- T.pack <$> UTF8.readFile "../test/latex-reader.latex"
+                 orig <- UTF8.readFile "../test/latex-reader.latex"
                  let new = untokenize $ tokenize "../test/latex-reader.latex"
                              orig
                  assertEqual "untokenize . tokenize is identity" orig new

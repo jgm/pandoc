@@ -59,8 +59,8 @@ optToOutputSettings opts = do
   let outputFile = fromMaybe "-" (optOutputFile opts)
 
   when (optDumpArgs opts) . liftIO $ do
-    UTF8.hPutStrLn stdout outputFile
-    mapM_ (UTF8.hPutStrLn stdout) (fromMaybe [] $ optInputFiles opts)
+    UTF8.hPutStrLn stdout (T.pack outputFile)
+    mapM_ (UTF8.hPutStrLn stdout . T.pack) (fromMaybe [] $ optInputFiles opts)
     exitSuccess
 
   epubMetadata <- traverse readUtf8File $ optEpubMetadata opts

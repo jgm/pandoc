@@ -1148,7 +1148,7 @@ testStringWith :: Show a
                => ParserT Text ParserState Identity a
                -> Text
                -> IO ()
-testStringWith parser str = UTF8.putStrLn $ show $
+testStringWith parser str = UTF8.putStrLn $ tshow $
                             readWith parser defaultParserState str
 
 -- | Parsing options.

@@ -130,7 +130,7 @@ runCommandTest testExePath fp num code =
     let cmdline = "% " <> cmd
     let x = cmdline <> "\n" <> input <> "^D\n" <> norm
     let y = cmdline <> "\n" <> input <> "^D\n" <> newnorm
-    let updated = T.unpack $ T.replace (T.pack x) (T.pack y) (T.pack raw)
+    let updated = T.replace (T.pack x) (T.pack y) raw
     UTF8.writeFile fp' updated
 
 extractCommandTest :: FilePath -> FilePath -> TestTree

@@ -812,10 +812,10 @@ options =
                            map (\c -> ['-',c]) shorts ++
                            map ("--" ++) longs
                      let allopts = unwords (concatMap optnames options)
-                     UTF8.hPutStrLn stdout $ printf tpl allopts
-                         (unwords readersNames)
-                         (unwords writersNames)
-                         (unwords $ map (T.unpack . fst) highlightingStyles)
+                     UTF8.hPutStrLn stdout $ T.pack $ printf tpl allopts
+                         (T.unpack $ T.unwords readersNames)
+                         (T.unpack $ T.unwords writersNames)
+                         (T.unpack $ T.unwords $ map fst highlightingStyles)
                          (unwords datafiles)
                      exitSuccess ))
                  "" -- "Print bash completion script"
@@ -854,7 +854,7 @@ options =
                                else if extensionEnabled x allExts
                                        then '-'
                                        else ' ') : drop 4 (show x)
-                     mapM_ (UTF8.hPutStrLn stdout . showExt)
+                     mapM_ (UTF8.hPutStrLn stdout . T.pack . showExt)
                        [ex | ex <- extList, extensionEnabled ex allExts]
                      exitSuccess )
                   "FORMAT")
@@ -868,14 +868,14 @@ options =
                                  , sShortname s `notElem`
                                     [T.pack "Alert", T.pack "Alert_indent"]
                                  ]
-                     mapM_ (UTF8.hPutStrLn stdout) (sort langs)
+                     mapM_ (UTF8.hPutStrLn stdout . T.pack) (sort langs)
                      exitSuccess ))
                  ""
 
     , Option "" ["list-highlight-styles"]
                  (NoArg
                   (\_ -> do
-                     mapM_ (UTF8.hPutStrLn stdout . T.unpack . fst) highlightingStyles
+                     mapM_ (UTF8.hPutStrLn stdout . fst) highlightingStyles
                      exitSuccess ))
                  ""
 
@@ -893,7 +893,7 @@ options =
                             | T.null t -> -- e.g. for docx, odt, json:
                                 E.throwIO $ PandocCouldNotFindDataFileError $ T.pack
                                   ("templates/default." ++ arg)
-                            | otherwise -> write . T.unpack $ t
+                            | otherwise -> write t
                           Left e  -> E.throwIO e
                      exitSuccess)
                   "FORMAT")
@@ -940,11 +940,13 @@ options =
                   (\_ -> do
                      prg <- getProgName
                      defaultDatadirs <- defaultUserDataDirs
-                     UTF8.hPutStrLn stdout (prg ++ " " ++ T.unpack pandocVersion ++
-                       compileInfo ++
-                       "\nUser data directory: " ++
-                       intercalate " or " defaultDatadirs ++
-                       ('\n':copyrightMessage))
+                     UTF8.hPutStrLn stdout
+                      $ T.pack
+                      $ prg ++ " " ++ T.unpack pandocVersion ++
+                        compileInfo ++
+                        "\nUser data directory: " ++
+                        intercalate " or " defaultDatadirs ++
+                        ('\n':copyrightMessage)
                      exitSuccess ))
                  "" -- "Print version"
 
@@ -952,7 +954,7 @@ options =
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     UTF8.hPutStr stdout (usageMessage prg options)
+                     UTF8.hPutStr stdout (T.pack $ usageMessage prg options)
                      exitSuccess ))
                  "" -- "Show help"
     ]
@@ -1013,12 +1015,12 @@ handleUnrecognizedOption "-R" = handleUnrecognizedOption "--parse-raw"
 handleUnrecognizedOption x =
   (("Unknown option " ++ x ++ ".") :)
 
-readersNames :: [String]
-readersNames = sort (map (T.unpack . fst) (readers :: [(Text, Reader PandocIO)]))
+readersNames :: [Text]
+readersNames = sort (map fst (readers :: [(Text, Reader PandocIO)]))
 
-writersNames :: [String]
+writersNames :: [Text]
 writersNames = sort
-  ("pdf" : map (T.unpack . fst) (writers :: [(Text, Writer PandocIO)]))
+  ("pdf" : map fst (writers :: [(Text, Writer PandocIO)]))
 
 splitField :: String -> (String, String)
 splitField = second (tailDef "true") . break (`elemText` ":=")

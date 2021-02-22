@@ -183,7 +183,7 @@ getModificationTime = liftIOError System.Directory.getModificationTime
 logOutput :: (PandocMonad m, MonadIO m) => LogMessage -> m ()
 logOutput msg = liftIO $ do
   UTF8.hPutStr stderr $
-      "[" ++ show (messageVerbosity msg) ++ "] "
+      "[" <> T.pack (show (messageVerbosity msg)) <> "] "
   alertIndent $ T.lines $ showLogMessage msg
 
 -- | Prints the list of lines to @stderr@, indenting every but the first
@@ -191,10 +191,10 @@ logOutput msg = liftIO $ do
 alertIndent :: [Text] -> IO ()
 alertIndent [] = return ()
 alertIndent (l:ls) = do
-  UTF8.hPutStrLn stderr $ unpack l
+  UTF8.hPutStrLn stderr l
   mapM_ go ls
   where go l' = do UTF8.hPutStr stderr "  "
-                   UTF8.hPutStrLn stderr $ unpack l'
+                   UTF8.hPutStrLn stderr l'
 
 -- | Extract media from the mediabag into a directory.
 extractMedia :: (PandocMonad m, MonadIO m) => FilePath -> Pandoc -> m Pandoc

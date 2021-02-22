@@ -73,8 +73,9 @@ convertWithOpts opts = do
   let verbosity = optVerbosity opts
 
   when (optDumpArgs opts) $
-    do UTF8.hPutStrLn stdout outputFile
-       mapM_ (UTF8.hPutStrLn stdout) (fromMaybe ["-"] $ optInputFiles opts)
+    do UTF8.hPutStrLn stdout (T.pack outputFile)
+       mapM_ (UTF8.hPutStrLn stdout . T.pack)
+             (fromMaybe ["-"] $ optInputFiles opts)
        exitSuccess
 
   let sources = case optInputFiles opts of
@@ -354,6 +355,5 @@ writeFnBinary "-" = liftIO . BL.putStr
 writeFnBinary f   = liftIO . BL.writeFile (UTF8.encodePath f)
 
 writerFn :: MonadIO m => IO.Newline -> FilePath -> Text -> m ()
--- TODO this implementation isn't maximally efficient:
-writerFn eol "-" = liftIO . UTF8.putStrWith eol . T.unpack
-writerFn eol f   = liftIO . UTF8.writeFileWith eol f . T.unpack
+writerFn eol "-" = liftIO . UTF8.putStrWith eol
+writerFn eol f   = liftIO . UTF8.writeFileWith eol f

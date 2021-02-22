@@ -39,67 +39,65 @@ where
 
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy.Char8 as BL
+import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.IO as TIO
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Prelude hiding (getContents, putStr, putStrLn, readFile, writeFile)
 import System.IO hiding (getContents, hGetContents, hPutStr, hPutStrLn, putStr,
                   putStrLn, readFile, writeFile)
-import qualified System.IO as IO
 
-readFile :: FilePath -> IO String
+readFile :: FilePath -> IO Text
 readFile f = do
   h <- openFile (encodePath f) ReadMode
   hGetContents h
 
-getContents :: IO String
+getContents :: IO Text
 getContents = hGetContents stdin
 
-writeFileWith :: Newline -> FilePath -> String -> IO ()
+writeFileWith :: Newline -> FilePath -> Text -> IO ()
 writeFileWith eol f s =
   withFile (encodePath f) WriteMode $ \h -> hPutStrWith eol h s
 
-writeFile :: FilePath -> String -> IO ()
+writeFile :: FilePath -> Text -> IO ()
 writeFile = writeFileWith nativeNewline
 
-putStrWith :: Newline -> String -> IO ()
+putStrWith :: Newline -> Text -> IO ()
 putStrWith eol s = hPutStrWith eol stdout s
 
-putStr :: String -> IO ()
+putStr :: Text -> IO ()
 putStr = putStrWith nativeNewline
 
-putStrLnWith :: Newline -> String -> IO ()
+putStrLnWith :: Newline -> Text -> IO ()
 putStrLnWith eol s = hPutStrLnWith eol stdout s
 
-putStrLn :: String -> IO ()
+putStrLn :: Text -> IO ()
 putStrLn = putStrLnWith nativeNewline
 
-hPutStrWith :: Newline -> Handle -> String -> IO ()
+hPutStrWith :: Newline -> Handle -> Text -> IO ()
 hPutStrWith eol h s =
   hSetNewlineMode h (NewlineMode eol eol) >>
-  hSetEncoding h utf8 >> IO.hPutStr h s
+  hSetEncoding h utf8 >> TIO.hPutStr h s
 
-hPutStr :: Handle -> String -> IO ()
+hPutStr :: Handle -> Text -> IO ()
 hPutStr = hPutStrWith nativeNewline
 
-hPutStrLnWith :: Newline -> Handle -> String -> IO ()
+hPutStrLnWith :: Newline -> Handle -> Text -> IO ()
 hPutStrLnWith eol h s =
   hSetNewlineMode h (NewlineMode eol eol) >>
-  hSetEncoding h utf8 >> IO.hPutStrLn h s
+  hSetEncoding h utf8 >> TIO.hPutStrLn h s
 
-hPutStrLn :: Handle -> String -> IO ()
+hPutStrLn :: Handle -> Text -> IO ()
 hPutStrLn = hPutStrLnWith nativeNewline
 
-hGetContents :: Handle -> IO String
-hGetContents = fmap toString . B.hGetContents
--- hGetContents h = hSetEncoding h utf8_bom
---                   >> hSetNewlineMode h universalNewlineMode
---                   >> IO.hGetContents h
+hGetContents :: Handle -> IO Text
+hGetContents = fmap toText . B.hGetContents
 
 -- | Convert UTF8-encoded ByteString to Text, also
 -- removing '\r' characters.
-toText :: B.ByteString -> T.Text
+toText :: B.ByteString -> Text
 toText = T.decodeUtf8 . filterCRs . dropBOM
   where dropBOM bs =
          if "\xEF\xBB\xBF" `B.isPrefixOf` bs
@@ -127,7 +125,7 @@ toTextLazy = TL.decodeUtf8 . filterCRs . dropBOM
 toStringLazy :: BL.ByteString -> String
 toStringLazy = TL.unpack . toTextLazy
 
-fromText :: T.Text -> B.ByteString
+fromText :: Text -> B.ByteString
 fromText = T.encodeUtf8
 
 fromTextLazy :: TL.Text -> BL.ByteString
