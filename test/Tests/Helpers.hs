@@ -35,7 +35,7 @@ import Text.Pandoc.Shared (trimr)
 import Text.Pandoc.Writers.Native (writeNative)
 import Text.Printf
 
-test :: (ToString a, ToString b, ToString c)
+test :: (ToString a, ToString b, ToString c, HasCallStack)
      => (a -> b)  -- ^ function to test
      -> String    -- ^ name of test case
      -> (a, c)    -- ^ (input, expected value)
