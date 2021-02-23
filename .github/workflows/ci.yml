@@ -192,3 +192,59 @@ jobs:
           # fail if warnings in local build
           ! grep -q ": *[Ww]arning:" build.log || exit 1
           cabal v2-test --disable-optimization
+
+  linux/benchmark:
+
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: true
+      matrix:
+        versions:
+          - ghc: '8.8.4'
+            cabal: '3.2'
+          - ghc: '8.10.2'
+            cabal: '3.2'
+    steps:
+    - uses: actions/checkout@v2
+
+    # need to install older cabal/ghc versions from ppa repository
+
+    - name: Install recent cabal/ghc
+      uses: haskell/actions/setup@v1
+      with:
+        ghc-version: ${{ matrix.versions.ghc }}
+        cabal-version: ${{ matrix.versions.cabal }}
+
+    # declare/restore cached things
+    # caching doesn't work for scheduled runs yet
+    # https://github.com/actions/cache/issues/63
+
+    - name: Cache cabal global package db
+      id:   cabal-global
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cabal
+        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ hashFiles('cabal.project') }}
+
+    - name: Cache cabal work
+      id:   cabal-local
+      uses: actions/cache@v2
+      with:
+        path: |
+          dist-newstyle
+        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local
+
+    - name: Install dependencies
+      run: |
+          v2=$([ "${{ matrix.versions.cabal }}" = "2.2" ] && printf 'new' || printf 'v2')
+          cabal $v2-update
+          cabal $v2-build --dependencies-only --enable-optimization=1 --enable-benchmarks
+
+    - name: Build and test
+      run: |
+          v2=$([ "${{ matrix.versions.cabal }}" = "2.2" ] && printf 'new' || printf 'v2')
+          cabal $v2-build --enable-optimization=1 --enable-benchmarks 2>&1 | tee build.log
+          # fail if warnings in local build
+          ! grep -q ": *[Ww]arning:" build.log || exit 1
+          cabal $v2-bench --enable-optimization=1
