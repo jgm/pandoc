@@ -725,14 +725,6 @@ executable trypandoc
   else
     buildable:     False
 
-benchmark weigh-pandoc
-  import:          common-executable
-  type:            exitcode-stdio-1.0
-  main-is:         weigh-pandoc.hs
-  hs-source-dirs:  benchmark
-  build-depends:   mtl     >= 2.2 && < 2.3,
-                   weigh   >= 0.0 && < 0.1,
-
 test-suite test-pandoc
   import:         common-executable
   type:           exitcode-stdio-1.0
