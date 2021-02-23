@@ -193,7 +193,7 @@ jobs:
           ! grep -q ": *[Ww]arning:" build.log || exit 1
           cabal v2-test --disable-optimization
 
-  linux/benchmark:
+  benchmark:
 
     runs-on: ubuntu-18.04
     strategy:
