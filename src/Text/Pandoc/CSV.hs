@@ -68,8 +68,7 @@ escaped opts = try $
 
 pCSVUnquotedCell :: CSVOptions -> Parser Text
 pCSVUnquotedCell opts = T.pack <$>
-  many (satisfy (\c -> c /= csvDelim opts && c /= '\r' && c /= '\n'
-                  && c /= csvQuote opts))
+  many (satisfy (\c -> c /= csvDelim opts && c /= '\r' && c /= '\n'))
 
 pCSVDelim :: CSVOptions -> Parser ()
 pCSVDelim opts = do
