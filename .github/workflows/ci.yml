@@ -225,7 +225,7 @@ jobs:
       with:
         path: |
           ~/.cabal
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ hashFiles('cabal.project') }}
+        key: benchmark-${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ hashFiles('cabal.project') }}
 
     - name: Cache cabal work
       id:   cabal-local
@@ -233,7 +233,7 @@ jobs:
       with:
         path: |
           dist-newstyle
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local
+        key: benchmark-${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local
 
     - name: Install dependencies
       run: |
