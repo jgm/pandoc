@@ -270,7 +270,7 @@ FTP.DOMAIN.COM
 [img.png]
 
 %%% Syntax: Image pointing to a link: [[img] link]
-[[img.png] http://txt2tags.org]
+[[img.png] https://txt2tags.org]
 
 %%% Align: Image position is preserved when inside paragraph
 [img.png] Image at the line beginning.

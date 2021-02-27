@@ -372,7 +372,7 @@ The code
 --------
 
 Pandoc has a publicly accessible git repository on
-GitHub: <http://github.com/jgm/pandoc>.  To get a local copy of the source:
+GitHub: <https://github.com/jgm/pandoc>.  To get a local copy of the source:
 
     git clone https://github.com/jgm/pandoc.git
 
@@ -382,7 +382,7 @@ the pandoc library is in `src/`, the source for the tests is in
 
 The modules `Text.Pandoc.Definition`, `Text.Pandoc.Builder`, and
 `Text.Pandoc.Generic` are in a separate library `pandoc-types`.  The code can
-be found in <http://github.com/jgm/pandoc-types>.
+be found in <https://github.com/jgm/pandoc-types>.
 
 To build pandoc, you will need a working installation of the
 [Haskell platform].
@@ -445,14 +445,14 @@ you may want to consider submitting a pull request to the
 [closed issues]: https://github.com/jgm/pandoc/issues?q=is%3Aissue+is%3Aclosed
 [latest released version]: https://github.com/jgm/pandoc/releases/latest
 [Nightly builds]: https://github.com/jgm/pandoc/actions?query=workflow%3ANightly
-[pandoc-discuss]: http://groups.google.com/group/pandoc-discuss
+[pandoc-discuss]: https://groups.google.com/group/pandoc-discuss
 [issue tracker]: https://github.com/jgm/pandoc/issues
-[User's Guide]: http://pandoc.org/MANUAL.html
-[FAQs]:  http://pandoc.org/faqs.html
-[EditorConfig]: http://editorconfig.org/
-[Haskell platform]: http://www.haskell.org/platform/
+[User's Guide]: https://pandoc.org/MANUAL.html
+[FAQs]:  https://pandoc.org/faqs.html
+[EditorConfig]: https://editorconfig.org/
+[Haskell platform]: https://www.haskell.org/platform/
 [hlint]: https://hackage.haskell.org/package/hlint
-[hsb2hs]: http://hackage.haskell.org/package/hsb2hs
+[hsb2hs]: https://hackage.haskell.org/package/hsb2hs
 [pre-commit hook]: https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks
 [GitHub labels]: https://github.com/jgm/pandoc/labels
 [good first issue]:https://github.com/jgm/pandoc/labels/good%20first%20issue

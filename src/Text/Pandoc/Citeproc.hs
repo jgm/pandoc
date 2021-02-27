@@ -544,7 +544,7 @@ linkifyVariables ref =
   fixShortDOI x = let x' = extractText x
                   in  if "10/" `T.isPrefixOf` x'
                          then TextVal $ T.drop 3 x'
-                              -- see http://shortdoi.org
+                              -- see https://shortdoi.org
                          else TextVal x'
   tolink pref x = let x' = extractText x
                       x'' = if "://" `T.isInfixOf` x'

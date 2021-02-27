@@ -14,7 +14,7 @@
 
 Conversion of 'Pandoc' documents to markdown-formatted plain text.
 
-Markdown:  <http://daringfireball.net/projects/markdown/>
+Markdown:  <https://daringfireball.net/projects/markdown/>
 -}
 module Text.Pandoc.Writers.Markdown (
   writeMarkdown,

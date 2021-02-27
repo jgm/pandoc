@@ -22,11 +22,11 @@ The GNU General Public License is available in the file COPYING.md in
 the source distribution.  On Debian systems, the complete text of the
 GPL can be found in `/usr/share/common-licenses/GPL`.
 
-[GPL]: http://www.gnu.org/copyleft/gpl.html
+[GPL]: https://www.gnu.org/copyleft/gpl.html
 
 Pandoc's complete source code is available from the [Pandoc home page].
 
-[Pandoc home page]: http://pandoc.org
+[Pandoc home page]: https://pandoc.org
 
 Pandoc includes some code with different copyrights, or subject to different
 licenses.  The copyright and license statements for these sources are included
@@ -176,7 +176,7 @@ Released under the GNU General Public License version 2 or later.
 ----------------------------------------------------------------------
 The dzslides template contains JavaScript and CSS from Paul Rouget's
 dzslides template.
-http://github.com/paulrouget/dzslides
+https://github.com/paulrouget/dzslides
 
 Released under the Do What the Fuck You Want To Public License.
 

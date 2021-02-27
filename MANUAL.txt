@@ -486,7 +486,7 @@ header when requesting a document from a URL:
 [Emacs Org mode]: https://orgmode.org
 [AsciiDoc]: https://www.methods.co.nz/asciidoc/
 [AsciiDoctor]: https://asciidoctor.org/
-[DZSlides]: http://paulrouget.com/dzslides/
+[DZSlides]: https://paulrouget.com/dzslides/
 [Word docx]: https://en.wikipedia.org/wiki/Office_Open_XML
 [PDF]: https://www.adobe.com/pdf/
 [reveal.js]: https://revealjs.com/

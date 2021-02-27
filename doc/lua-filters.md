@@ -3478,7 +3478,7 @@ Contract a filename, based on a relative path. Note that the
 resulting path will usually not introduce `..` paths, as the
 presence of symlinks means `../b` may not reach `a/b` if it starts
 from `a/c`. For a worked example see [this blog
-post](http://neilmitchell.blogspot.co.uk/2015/10/filepaths-are-subtle-symlinks-are-hard.html).
+post](https://neilmitchell.blogspot.co.uk/2015/10/filepaths-are-subtle-symlinks-are-hard.html).
 
 Set `unsafe` to a truthy value to a allow `..` in paths.
 

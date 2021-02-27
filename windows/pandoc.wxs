@@ -123,8 +123,8 @@
 
 
     <!-- Set properties for add/remove programs -->
-    <Property Id="ARPURLINFOABOUT" Value="http://pandoc.org" />
-    <Property Id="ARPHELPLINK" Value="http://pandoc.org" />
+    <Property Id="ARPURLINFOABOUT" Value="https://pandoc.org" />
+    <Property Id="ARPHELPLINK" Value="https://pandoc.org" />
     <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />    <!-- Remove repair -->
     <Property Id="ARPNOMODIFY" Value="yes" Secure="yes" />    <!-- Remove modify -->
 
