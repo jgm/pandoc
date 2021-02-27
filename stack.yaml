@@ -13,8 +13,8 @@ extra-deps:
 - commonmark-pandoc-0.2.0.1
 - tasty-bench-0.2.1
 - citeproc-0.3.0.7
-- skylighting-0.10.3
-- skylighting-core-0.10.3
+- skylighting-0.10.4
+- skylighting-core-0.10.4
 #- citeproc:
 #  git: https://github.com/jgm/citeproc.git
 #  commit: feb3b7580c6738eec3b23921f7c1739cfba611aa
