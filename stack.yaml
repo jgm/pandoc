@@ -15,6 +15,7 @@ extra-deps:
 - citeproc-0.3.0.7
 - skylighting-0.10.4
 - skylighting-core-0.10.4
+- xml-conduit-1.9.1.0
 #- citeproc:
 #  git: https://github.com/jgm/citeproc.git
 #  commit: feb3b7580c6738eec3b23921f7c1739cfba611aa
