@@ -11,7 +11,7 @@
    Portability : portable
 
 Conversion from Textile to 'Pandoc' document, based on the spec
-available at http://redcloth.org/textile.
+available at https://www.promptworks.com/textile/.
 
 Implemented and parsed:
  - Paragraphs

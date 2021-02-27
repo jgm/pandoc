@@ -577,10 +577,10 @@ itemToReference locale variant item = do
                  eprint <- getRawField "eprint"
                  let baseUrl =
                        case T.toLower etype of
-                         "arxiv"       -> "http://arxiv.org/abs/"
-                         "jstor"       -> "http://www.jstor.org/stable/"
-                         "pubmed"      -> "http://www.ncbi.nlm.nih.gov/pubmed/"
-                         "googlebooks" -> "http://books.google.com?id="
+                         "arxiv"       -> "https://arxiv.org/abs/"
+                         "jstor"       -> "https://www.jstor.org/stable/"
+                         "pubmed"      -> "https://www.ncbi.nlm.nih.gov/pubmed/"
+                         "googlebooks" -> "https://books.google.com?id="
                          _             -> ""
                  if T.null baseUrl
                     then mzero

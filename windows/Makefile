@@ -6,5 +6,5 @@ all: $(SIGNED)
 .PHONY: all
 
 pandoc-%.msi: pandoc-%-UNSIGNED.msi
-	osslsigncode sign -pkcs12 $$HOME/Private/SectigoCodeSigning.exp2023.p12 -in $< -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass && rm $<
+	osslsigncode sign -pkcs12 $$HOME/Private/SectigoCodeSigning.exp2023.p12 -in $< -i https://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass && rm $<
 
