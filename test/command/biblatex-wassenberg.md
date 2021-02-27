@@ -75,7 +75,7 @@ references:
   language: en-US
   title: Faster radix sort via virtual memory and write-combining
   type: webpage
-  url: "http://arxiv.org/abs/1008.2849v1"
+  url: "https://arxiv.org/abs/1008.2849v1"
   version: 1
 ---
 

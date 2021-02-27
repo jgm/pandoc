@@ -74,7 +74,7 @@ references:
   language: en-US
   title: Some remarks on '[t Hooft's]{.nocase} S-matrix for black holes
   type: webpage
-  url: "http://arxiv.org/abs/hep-th/9603067"
+  url: "https://arxiv.org/abs/hep-th/9603067"
   version: 1
 ---
 

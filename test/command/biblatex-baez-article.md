@@ -67,7 +67,7 @@ references:
   title: "Higher-dimensional algebra V: 2-groups"
   title-short: Higher-dimensional algebra V
   type: article-journal
-  url: "http://arxiv.org/abs/math/0307200v3"
+  url: "https://arxiv.org/abs/math/0307200v3"
   version: 3
   volume: 12
 ---
