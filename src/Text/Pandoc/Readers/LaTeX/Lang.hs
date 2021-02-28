@@ -12,13 +12,31 @@ Functions for parsing polyglossia and babel language specifiers to
 BCP47 'Lang'.
 -}
 module Text.Pandoc.Readers.LaTeX.Lang
-  ( polyglossiaLangToBCP47
+  ( setDefaultLanguage
+  , polyglossiaLangToBCP47
   , babelLangToBCP47
   )
 where
 import qualified Data.Map as M
 import qualified Data.Text as T
-import Text.Pandoc.BCP47 (Lang(..))
+import Text.Pandoc.BCP47 (Lang(..), renderLang)
+import Text.Pandoc.Class (PandocMonad(..), setTranslations)
+import Text.Pandoc.Readers.LaTeX.Parsing
+import Text.Pandoc.Parsing (updateState, option)
+import Text.Pandoc.Builder (Blocks, setMeta, str)
+
+setDefaultLanguage :: PandocMonad m => LP m Blocks
+setDefaultLanguage = do
+  o <- option "" $ T.filter (\c -> c /= '[' && c /= ']')
+                <$> rawopt
+  polylang <- untokenize <$> braced
+  case M.lookup polylang polyglossiaLangToBCP47 of
+       Nothing -> return mempty -- TODO mzero? warning?
+       Just langFunc -> do
+         let l = langFunc o
+         setTranslations l
+         updateState $ setMeta "lang" $ str (renderLang l)
+         return mempty
 
 polyglossiaLangToBCP47 :: M.Map T.Text (T.Text -> Lang)
 polyglossiaLangToBCP47 = M.fromList

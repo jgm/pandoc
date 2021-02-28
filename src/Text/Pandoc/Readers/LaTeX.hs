@@ -44,7 +44,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocPure (PandocPure)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), getResourcePath,
                                       readFileFromDirs, report, setResourcePath,
-                                      setTranslations, translateTerm)
+                                      translateTerm)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocParsecError))
 import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
@@ -59,7 +59,7 @@ import Text.Pandoc.Readers.LaTeX.Accent (accentCommands)
 import Text.Pandoc.Readers.LaTeX.Citation (citationCommands, cites)
 import Text.Pandoc.Readers.LaTeX.Table (tableEnvironments)
 import Text.Pandoc.Readers.LaTeX.Lang (polyglossiaLangToBCP47,
-                                       babelLangToBCP47)
+                                       babelLangToBCP47, setDefaultLanguage)
 import Text.Pandoc.Readers.LaTeX.SIunitx
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.Translations as Translations
@@ -1856,15 +1856,3 @@ block = do
 blocks :: PandocMonad m => LP m Blocks
 blocks = mconcat <$> many block
 
-setDefaultLanguage :: PandocMonad m => LP m Blocks
-setDefaultLanguage = do
-  o <- option "" $ T.filter (\c -> c /= '[' && c /= ']')
-                <$> rawopt
-  polylang <- untokenize <$> braced
-  case M.lookup polylang polyglossiaLangToBCP47 of
-       Nothing -> return mempty -- TODO mzero? warning?
-       Just langFunc -> do
-         let l = langFunc o
-         setTranslations l
-         updateState $ setMeta "lang" $ str (renderLang l)
-         return mempty
