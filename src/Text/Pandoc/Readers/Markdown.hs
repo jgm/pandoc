@@ -1504,7 +1504,7 @@ inline = do
      '~'     -> strikeout <|> subscript
      '<'     -> autoLink <|> spanHtml <|> rawHtmlInline <|> ltSign
      '\\'    -> escapedNewline <|> escapedChar <|> rawLaTeXInline'
-     '@'     -> exampleRef
+     '@'     -> cite <|> exampleRef
      '"'     -> smart
      '\''    -> smart
      '\8216' -> smart
