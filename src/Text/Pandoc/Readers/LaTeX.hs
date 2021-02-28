@@ -975,9 +975,7 @@ inline = (mempty <$ comment)
      <|> doubleQuote
      <|> singleQuote
      <|> (str "”" <$ try (symbol '\'' >> symbol '\''))
-     <|> (str "”" <$ symbol '”')
      <|> (str "’" <$ symbol '\'')
-     <|> (str "’" <$ symbol '’')
      <|> (str "\160" <$ symbol '~')
      <|> dollarsMath
      <|> (guardEnabled Ext_literate_haskell *> symbol '|' *> doLHSverb)
