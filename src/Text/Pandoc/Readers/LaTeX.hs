@@ -191,12 +191,6 @@ inlineCommand = do
 word :: PandocMonad m => LP m Inlines
 word = str . untoken <$> satisfyTok isWordTok
 
-regularSymbol :: PandocMonad m => LP m Inlines
-regularSymbol = str . untoken <$> satisfyTok isRegularSymbol
-  where isRegularSymbol (Tok _ Symbol t) = not $ T.any isSpecial t
-        isRegularSymbol _                = False
-        isSpecial c = c `Set.member` specialChars
-
 inlineGroup :: PandocMonad m => LP m Inlines
 inlineGroup = do
   ils <- grouped inline
@@ -961,31 +955,48 @@ lookupListDefault d = (fromMaybe d .) . lookupList
   where lookupList l m = msum $ map (`M.lookup` m) l
 
 inline :: PandocMonad m => LP m Inlines
-inline = (mempty <$ comment)
-     <|> (space  <$ whitespace)
-     <|> (softbreak <$ endline)
-     <|> word
-     <|> macroDef (rawInline "latex")
-     <|> inlineCommand'
-     <|> inlineEnvironment
-     <|> inlineGroup
-     <|> (symbol '-' *>
-           option (str "-") (symbol '-' *>
-             option (str "–") (str "—" <$ symbol '-')))
-     <|> doubleQuote
-     <|> singleQuote
-     <|> (str "”" <$ try (symbol '\'' >> symbol '\''))
-     <|> (str "’" <$ symbol '\'')
-     <|> (str "\160" <$ symbol '~')
-     <|> dollarsMath
-     <|> (guardEnabled Ext_literate_haskell *> symbol '|' *> doLHSverb)
-     <|> (str . T.singleton <$> primEscape)
-     <|> regularSymbol
-     <|> (do res <- symbolIn "#^'`\"[]&"
-             pos <- getPosition
-             let s = untoken res
-             report $ ParsingUnescaped s pos
-             return $ str s)
+inline = do
+  Tok pos toktype t <- lookAhead anyTok
+  let symbolAsString = str . untoken <$> anySymbol
+  let unescapedSymbolAsString =
+        do s <- untoken <$> anySymbol
+           report $ ParsingUnescaped s pos
+           return $ str s
+  case toktype of
+    Comment     -> mempty <$ comment
+    Spaces      -> space <$ whitespace
+    Newline     -> softbreak <$ endline
+    Word        -> word
+    Esc1        -> str . T.singleton <$> primEscape
+    Esc2        -> str . T.singleton <$> primEscape
+    Symbol      ->
+      case t of
+        "-"     -> symbol '-' *>
+                    option (str "-") (symbol '-' *>
+                      option (str "–") (str "—" <$ symbol '-'))
+        "'"     -> symbol '\'' *>
+                  option (str "’") (str  "”" <$ symbol '\'')
+        "~"     -> str "\160" <$ symbol '~'
+        "`"     -> doubleQuote <|> singleQuote <|> symbolAsString
+        "\""    -> doubleQuote <|> singleQuote <|> symbolAsString
+        "“"     -> doubleQuote <|> symbolAsString
+        "‘"     -> singleQuote <|> symbolAsString
+        "$"     -> dollarsMath <|> unescapedSymbolAsString
+        "|"     -> (guardEnabled Ext_literate_haskell *>
+                    symbol '|' *> doLHSverb) <|> symbolAsString
+        "{"     -> inlineGroup
+        "#"     -> unescapedSymbolAsString
+        "&"     -> unescapedSymbolAsString
+        "_"     -> unescapedSymbolAsString
+        "^"     -> unescapedSymbolAsString
+        "\\"    -> mzero
+        "}"     -> mzero
+        _       -> symbolAsString
+    CtrlSeq _   -> macroDef (rawInline "latex")
+                  <|> inlineCommand'
+                  <|> inlineEnvironment
+                  <|> inlineGroup
+    _           -> mzero
 
 inlines :: PandocMonad m => LP m Inlines
 inlines = mconcat <$> many inline
