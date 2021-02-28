@@ -631,6 +631,7 @@ library
                    Text.Pandoc.Readers.LaTeX.Lang,
                    Text.Pandoc.Readers.LaTeX.SIunitx,
                    Text.Pandoc.Readers.LaTeX.Accent,
+                   Text.Pandoc.Readers.LaTeX.Citation,
                    Text.Pandoc.Readers.LaTeX.Table,
                    Text.Pandoc.Readers.Odt.Base,
                    Text.Pandoc.Readers.Odt.Namespaces,

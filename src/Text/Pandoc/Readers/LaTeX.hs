@@ -56,6 +56,7 @@ import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
                                         ArgSpec (..), Tok (..), TokType (..))
 import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.Readers.LaTeX.Accent (accentCommands)
+import Text.Pandoc.Readers.LaTeX.Citation (citationCommands, cites)
 import Text.Pandoc.Readers.LaTeX.Table (tableEnvironments)
 import Text.Pandoc.Readers.LaTeX.Lang (polyglossiaLangToBCP47,
                                        babelLangToBCP47)
@@ -169,7 +170,7 @@ rawLaTeXInline = do
   let toks = tokenize "source" inp
   raw <- snd <$>
           (   rawLaTeXParser toks True
-              (mempty <$ (controlSeq "input" >> skipMany opt >> braced))
+              (mempty <$ (controlSeq "input" >> skipMany rawopt >> braced))
               inlines
           <|> rawLaTeXParser toks True (inlineEnvironment <|> inlineCommand')
               inlines
@@ -311,7 +312,7 @@ blockquote :: PandocMonad m => Bool -> Maybe Text -> LP m Blocks
 blockquote cvariant mblang = do
   citepar <- if cvariant
                 then (\xs -> para (cite xs mempty))
-                       <$> cites NormalCitation False
+                       <$> cites inline NormalCitation False
                 else option mempty $ para <$> bracketed inline
   let lang = mblang >>= babelLangToBCP47
   let langdiv = case lang of
@@ -425,116 +426,6 @@ pDollarsMath n = do
                 else mzero
        _ -> (tk :) <$> pDollarsMath n
 
--- citations
-
-addPrefix :: [Inline] -> [Citation] -> [Citation]
-addPrefix p (k:ks) = k {citationPrefix = p ++ citationPrefix k} : ks
-addPrefix _ _      = []
-
-addSuffix :: [Inline] -> [Citation] -> [Citation]
-addSuffix s ks@(_:_) =
-  let k = last ks
-  in  init ks ++ [k {citationSuffix = citationSuffix k ++ s}]
-addSuffix _ _ = []
-
-simpleCiteArgs :: PandocMonad m => LP m [Citation]
-simpleCiteArgs = try $ do
-  first  <- optionMaybe $ toList <$> opt
-  second <- optionMaybe $ toList <$> opt
-  keys <- try $ bgroup *> manyTill citationLabel egroup
-  let (pre, suf) = case (first  , second ) of
-        (Just s , Nothing) -> (mempty, s )
-        (Just s , Just t ) -> (s , t )
-        _                  -> (mempty, mempty)
-      conv k = Citation { citationId      = k
-                        , citationPrefix  = []
-                        , citationSuffix  = []
-                        , citationMode    = NormalCitation
-                        , citationHash    = 0
-                        , citationNoteNum = 0
-                        }
-  return $ addPrefix pre $ addSuffix suf $ map conv keys
-
-citationLabel :: PandocMonad m => LP m Text
-citationLabel  = do
-  sp
-  untokenize <$>
-    (many1 (satisfyTok isWordTok <|> symbolIn bibtexKeyChar)
-          <* sp
-          <* optional (symbol ',')
-          <* sp)
-  where bibtexKeyChar = ".:;?!`'()/*@_+=-&[]" :: [Char]
-
-cites :: PandocMonad m => CitationMode -> Bool -> LP m [Citation]
-cites mode multi = try $ do
-  cits <- if multi
-             then do
-               multiprenote <- optionMaybe $ toList <$> paropt
-               multipostnote <- optionMaybe $ toList <$> paropt
-               let (pre, suf) = case (multiprenote, multipostnote) of
-                     (Just s , Nothing) -> (mempty, s)
-                     (Nothing , Just t) -> (mempty, t)
-                     (Just s , Just t ) -> (s, t)
-                     _                  -> (mempty, mempty)
-               tempCits <- many1 simpleCiteArgs
-               case tempCits of
-                 (k:ks) -> case ks of
-                             (_:_) -> return $ (addMprenote pre k : init ks) ++
-                                                 [addMpostnote suf (last ks)]
-                             _ -> return [addMprenote pre (addMpostnote suf k)]
-                 _ -> return [[]]
-             else count 1 simpleCiteArgs
-  let cs = concat cits
-  return $ case mode of
-        AuthorInText -> case cs of
-                             (c:rest) -> c {citationMode = mode} : rest
-                             []       -> []
-        _            -> map (\a -> a {citationMode = mode}) cs
-  where mprenote (k:ks) = (k:ks) ++ [Space]
-        mprenote _ = mempty
-        mpostnote (k:ks) = [Str ",", Space] ++ (k:ks)
-        mpostnote _ = mempty
-        addMprenote mpn (k:ks) =
-          let mpnfinal = case citationPrefix k of
-                           (_:_) -> mprenote mpn
-                           _ -> mpn
-          in addPrefix mpnfinal (k:ks)
-        addMprenote _ _ = []
-        addMpostnote = addSuffix . mpostnote
-
-citation :: PandocMonad m => Text -> CitationMode -> Bool -> LP m Inlines
-citation name mode multi = do
-  (c,raw) <- withRaw $ cites mode multi
-  return $ cite c (rawInline "latex" $ "\\" <> name <> untokenize raw)
-
-handleCitationPart :: Inlines -> [Citation]
-handleCitationPart ils =
-  let isCite Cite{} = True
-      isCite _      = False
-      (pref, rest) = break isCite (toList ils)
-  in case rest of
-          (Cite cs _:suff) -> addPrefix pref $ addSuffix suff cs
-          _                -> []
-
-complexNatbibCitation :: PandocMonad m => CitationMode -> LP m Inlines
-complexNatbibCitation mode = try $ do
-  (cs, raw) <-
-    withRaw $ concat <$> do
-      bgroup
-      items <- mconcat <$>
-                many1 (notFollowedBy (symbol ';') >> inline)
-                  `sepBy1` symbol ';'
-      egroup
-      return $ map handleCitationPart items
-  case cs of
-       []       -> mzero
-       (c:cits) -> return $ cite (c{ citationMode = mode }:cits)
-                      (rawInline "latex" $ "\\citetext" <> untokenize raw)
-
-inNote :: Inlines -> Inlines
-inNote ils =
-  note $ para $ ils <> str "."
-
 inlineCommand' :: PandocMonad m => LP m Inlines
 inlineCommand' = try $ do
   Tok _ (CtrlSeq name) cmd <- anyControlSeq
@@ -552,19 +443,6 @@ inlineCommand' = try $ do
 
 tok :: PandocMonad m => LP m Inlines
 tok = tokWith inline
-
-opt :: PandocMonad m => LP m Inlines
-opt = do
-  toks <- try (sp *> bracketedToks <* sp)
-  -- now parse the toks as inlines
-  st <- getState
-  parsed <- runParserT (mconcat <$> many inline) st "bracketed option" toks
-  case parsed of
-    Right result -> return result
-    Left e       -> throwError $ PandocParsecError (untokenize toks) e
-
-paropt :: PandocMonad m => LP m Inlines
-paropt = parenWrapped inline
 
 inBrackets :: Inlines -> Inlines
 inBrackets x = str "[" <> x <> str "]"
@@ -629,6 +507,7 @@ inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
 inlineCommands =
   M.union inlineLanguageCommands $
   M.union (accentCommands tok) $
+  M.union (citationCommands inline) $
   M.fromList
   [ ("emph", extractSpaces emph <$> tok)
   , ("textit", extractSpaces emph <$> tok)
@@ -703,7 +582,7 @@ inlineCommands =
   , ("/", pure mempty) -- italic correction
   , ("\\", linebreak <$ (do inTableCell <- sInTableCell <$> getState
                             guard $ not inTableCell
-                            optional opt
+                            optional rawopt
                             spaces))
   , (",", lit "\8198")
   , ("@", pure mempty)
@@ -761,61 +640,6 @@ inlineCommands =
   , ("proofname", doTerm Translations.Proof)
   , ("glossaryname", doTerm Translations.Glossary)
   , ("lstlistingname", doTerm Translations.Listing)
-  , ("cite", citation "cite" NormalCitation False)
-  , ("Cite", citation "Cite" NormalCitation False)
-  , ("citep", citation "citep" NormalCitation False)
-  , ("citep*", citation "citep*" NormalCitation False)
-  , ("citeal", citation "citeal" NormalCitation False)
-  , ("citealp", citation "citealp" NormalCitation False)
-  , ("citealp*", citation "citealp*" NormalCitation False)
-  , ("autocite", citation "autocite" NormalCitation False)
-  , ("smartcite", citation "smartcite" NormalCitation False)
-  , ("footcite", inNote <$> citation "footcite" NormalCitation False)
-  , ("parencite", citation "parencite" NormalCitation False)
-  , ("supercite", citation "supercite" NormalCitation False)
-  , ("footcitetext", inNote <$> citation "footcitetext" NormalCitation False)
-  , ("citeyearpar", citation "citeyearpar" SuppressAuthor False)
-  , ("citeyear", citation "citeyear" SuppressAuthor False)
-  , ("autocite*", citation "autocite*" SuppressAuthor False)
-  , ("cite*", citation "cite*" SuppressAuthor False)
-  , ("parencite*", citation "parencite*" SuppressAuthor False)
-  , ("textcite", citation "textcite" AuthorInText False)
-  , ("citet", citation "citet" AuthorInText False)
-  , ("citet*", citation "citet*" AuthorInText False)
-  , ("citealt", citation "citealt" AuthorInText False)
-  , ("citealt*", citation "citealt*" AuthorInText False)
-  , ("textcites", citation "textcites" AuthorInText True)
-  , ("cites", citation "cites" NormalCitation True)
-  , ("autocites", citation "autocites" NormalCitation True)
-  , ("footcites", inNote <$> citation "footcites" NormalCitation True)
-  , ("parencites", citation "parencites" NormalCitation True)
-  , ("supercites", citation "supercites" NormalCitation True)
-  , ("footcitetexts", inNote <$> citation "footcitetexts" NormalCitation True)
-  , ("Autocite", citation "Autocite" NormalCitation False)
-  , ("Smartcite", citation "Smartcite" NormalCitation False)
-  , ("Footcite", inNote <$> citation "Footcite" NormalCitation False)
-  , ("Parencite", citation "Parencite" NormalCitation False)
-  , ("Supercite", citation "Supercite" NormalCitation False)
-  , ("Footcitetext", inNote <$> citation "Footcitetext" NormalCitation False)
-  , ("Citeyearpar", citation "Citeyearpar" SuppressAuthor False)
-  , ("Citeyear", citation "Citeyear" SuppressAuthor False)
-  , ("Autocite*", citation "Autocite*" SuppressAuthor False)
-  , ("Cite*", citation "Cite*" SuppressAuthor False)
-  , ("Parencite*", citation "Parencite*" SuppressAuthor False)
-  , ("Textcite", citation "Textcite" AuthorInText False)
-  , ("Textcites", citation "Textcites" AuthorInText True)
-  , ("Cites", citation "Cites" NormalCitation True)
-  , ("Autocites", citation "Autocites" NormalCitation True)
-  , ("Footcites", inNote <$> citation "Footcites" NormalCitation True)
-  , ("Parencites", citation "Parencites" NormalCitation True)
-  , ("Supercites", citation "Supercites" NormalCitation True)
-  , ("Footcitetexts", inNote <$> citation "Footcitetexts" NormalCitation True)
-  , ("citetext", complexNatbibCitation NormalCitation)
-  , ("citeauthor", (try (tok *> sp *> controlSeq "citetext") *>
-                        complexNatbibCitation AuthorInText)
-                   <|> citation "citeauthor" AuthorInText False)
-  , ("nocite", mempty <$ (citation "nocite" NormalCitation False >>=
-                          addMeta "nocite"))
   , ("hyperlink", hyperlink)
   , ("hypertarget", hypertargetInline)
   -- glossaries package
@@ -918,7 +742,7 @@ inlineCommands =
 
 lettrine :: PandocMonad m => LP m Inlines
 lettrine = do
-  optional opt
+  optional rawopt
   x <- tok
   y <- tok
   return $ extractSpaces (spanWith ("",["lettrine"],[])) x <> smallcaps y
@@ -1168,6 +992,16 @@ inline = (mempty <$ comment)
 inlines :: PandocMonad m => LP m Inlines
 inlines = mconcat <$> many inline
 
+opt :: PandocMonad m => LP m Inlines
+opt = do
+  toks <- try (sp *> bracketedToks <* sp)
+  -- now parse the toks as inlines
+  st <- getState
+  parsed <- runParserT (mconcat <$> many inline) st "bracketed option" toks
+  case parsed of
+    Right result -> return result
+    Left e       -> throwError $ PandocParsecError (untokenize toks) e
+
 -- block elements:
 
 preamble :: PandocMonad m => LP m Blocks
@@ -1260,10 +1094,6 @@ insertIncluded defaultExtension f' = do
                      return ""
   getInput >>= setInput . (tokenize f contents ++)
   updateState dropLatestIncludeFile
-
-addMeta :: PandocMonad m => ToMetaValue a => Text -> a -> LP m ()
-addMeta field val = updateState $ \st ->
-   st{ sMeta = addMetaField field val $ sMeta st }
 
 authors :: PandocMonad m => LP m ()
 authors = try $ do

@@ -85,6 +85,7 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , setCaption
   , resetCaption
   , env
+  , addMeta
   ) where
 
 import Control.Applicative (many, (<|>))
@@ -947,3 +948,7 @@ tokWith inlineParser = try $ spaces >>
   where singleChar' = do
           Tok _ _ t <- singleChar
           return $ str t
+
+addMeta :: PandocMonad m => ToMetaValue a => Text -> a -> LP m ()
+addMeta field val = updateState $ \st ->
+   st{ sMeta = addMetaField field val $ sMeta st }
