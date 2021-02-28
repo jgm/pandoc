@@ -1855,12 +1855,18 @@ orderedList' = try $ do
 
 block :: PandocMonad m => LP m Blocks
 block = do
-  res <- (mempty <$ spaces1)
-    <|> environment
-    <|> macroDef (rawBlock "latex")
-    <|> blockCommand
-    <|> paragraph
-    <|> grouped block
+  Tok _ toktype _ <- lookAhead anyTok
+  res <- (case toktype of
+            Newline           -> mempty <$ spaces1
+            Spaces            -> mempty <$ spaces1
+            Comment           -> mempty <$ spaces1
+            Word              -> paragraph
+            CtrlSeq "begin"   -> environment
+            CtrlSeq _         -> macroDef (rawBlock "latex")
+                               <|> blockCommand
+            _                 -> mzero)
+          <|> paragraph
+          <|> grouped block
   trace (T.take 60 $ tshow $ B.toList res)
   return res
 
