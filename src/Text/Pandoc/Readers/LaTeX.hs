@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -32,7 +31,6 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isLetter, toUpper, chr)
 import Data.Default
-import Data.Functor (($>))
 import Data.List (intercalate)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList)
@@ -58,6 +56,7 @@ import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
                                         ArgSpec (..), Tok (..), TokType (..))
 import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.Readers.LaTeX.Accent (accentCommands)
+import Text.Pandoc.Readers.LaTeX.Table (tableEnvironments)
 import Text.Pandoc.Readers.LaTeX.Lang (polyglossiaLangToBCP47,
                                        babelLangToBCP47)
 import Text.Pandoc.Readers.LaTeX.SIunitx
@@ -551,12 +550,8 @@ inlineCommand' = try $ do
          <|> ignore rawcommand
   lookupListDefault raw names inlineCommands
 
-
 tok :: PandocMonad m => LP m Inlines
-tok = try $ spaces >> grouped inline <|> inlineCommand' <|> singleChar'
-  where singleChar' = do
-          Tok _ _ t <- singleChar
-          return $ str t
+tok = tokWith inline
 
 opt :: PandocMonad m => LP m Inlines
 opt = do
@@ -1118,12 +1113,6 @@ treatAsInline = Set.fromList
   , "pagebreak"
   ]
 
-label :: PandocMonad m => LP m ()
-label = do
-  controlSeq "label"
-  t <- braced
-  updateState $ \st -> st{ sLastLabel = Just $ untokenize t }
-
 dolabel :: PandocMonad m => LP m Inlines
 dolabel = do
   v <- braced
@@ -1421,13 +1410,6 @@ bracketedNum = do
        Just i -> return i
        _      -> return 0
 
-setCaption :: PandocMonad m => LP m ()
-setCaption = try $ do
-  skipopts
-  ils <- tok
-  optional $ try $ spaces *> label
-  updateState $ \st -> st{ sCaption = Just ils }
-
 looseItem :: PandocMonad m => LP m Blocks
 looseItem = do
   inListItem <- sInListItem <$> getState
@@ -1440,10 +1422,6 @@ epigraph = do
   p1 <- grouped block
   p2 <- grouped block
   return $ divWith ("", ["epigraph"], []) (p1 <> p2)
-
-resetCaption :: PandocMonad m => LP m ()
-resetCaption = updateState $ \st -> st{ sCaption   = Nothing
-                                      , sLastLabel = Nothing }
 
 section :: PandocMonad m => Attr -> Int -> LP m Blocks
 section (ident, classes, kvs) lvl = do
@@ -1585,7 +1563,7 @@ blockCommands = M.fromList
    , ("item", looseItem)
    , ("documentclass", skipopts *> braced *> preamble)
    , ("centerline", para . trimInlines <$> (skipopts *> tok))
-   , ("caption", mempty <$ setCaption)
+   , ("caption", mempty <$ setCaption inline)
    , ("bibliography", mempty <$ (skipopts *> braced >>=
          addMeta "bibliography" . splitBibs . untokenize))
    , ("addbibresource", mempty <$ (skipopts *> braced >>=
@@ -1623,7 +1601,8 @@ blockCommands = M.fromList
 
 
 environments :: PandocMonad m => M.Map Text (LP m Blocks)
-environments = M.fromList
+environments = M.union (tableEnvironments blocks inline) $
+   M.fromList
    [ ("document", env "document" blocks <* skipMany anyTok)
    , ("abstract", mempty <$ (env "abstract" blocks >>= addMeta "abstract"))
    , ("sloppypar", env "sloppypar" blocks)
@@ -1633,13 +1612,6 @@ environments = M.fromList
    , ("figure", env "figure" $ skipopts *> figure)
    , ("subfigure", env "subfigure" $ skipopts *> tok *> figure)
    , ("center", divWith ("", ["center"], []) <$> env "center" blocks)
-   , ("longtable",  env "longtable" $
-          resetCaption *> simpTable "longtable" False >>= addTableCaption)
-   , ("table",  env "table" $
-          skipopts *> resetCaption *> blocks >>= addTableCaption)
-   , ("tabular*", env "tabular*" $ simpTable "tabular*" True)
-   , ("tabularx", env "tabularx" $ simpTable "tabularx" True)
-   , ("tabular", env "tabular"  $ simpTable "tabular" False)
    , ("quote", blockQuote <$> env "quote" blocks)
    , ("quotation", blockQuote <$> env "quotation" blocks)
    , ("verse", blockQuote <$> env "verse" blocks)
@@ -1804,9 +1776,6 @@ italicize x@(Para [Image{}]) = x -- see #6925
 italicize (Para ils) = Para [Emph ils]
 italicize (Plain ils) = Plain [Emph ils]
 italicize x = x
-
-env :: PandocMonad m => Text -> LP m a -> LP m a
-env name p = p <* end_ name
 
 rawEnv :: PandocMonad m => Text -> LP m Blocks
 rawEnv name = do
@@ -2044,333 +2013,6 @@ orderedList' = try $ do
                                       return 1
   bs <- listenv "enumerate" (many item)
   return $ orderedListWith (start, style, delim) bs
-
--- tables
-
-hline :: PandocMonad m => LP m ()
-hline = try $ do
-  spaces
-  controlSeq "hline" <|>
-    -- booktabs rules:
-    controlSeq "toprule" <|>
-    controlSeq "bottomrule" <|>
-    controlSeq "midrule" <|>
-    controlSeq "endhead" <|>
-    controlSeq "endfirsthead"
-  spaces
-  optional opt
-  return ()
-
-lbreak :: PandocMonad m => LP m Tok
-lbreak = (controlSeq "\\" <|> controlSeq "tabularnewline")
-         <* skipopts <* spaces
-
-amp :: PandocMonad m => LP m Tok
-amp = symbol '&'
-
--- Split a Word into individual Symbols (for parseAligns)
-splitWordTok :: PandocMonad m => LP m ()
-splitWordTok = do
-  inp <- getInput
-  case inp of
-       (Tok spos Word t : rest) ->
-         setInput $ map (Tok spos Symbol . T.singleton) (T.unpack t) <> rest
-       _ -> return ()
-
-parseAligns :: PandocMonad m => LP m [(Alignment, ColWidth, ([Tok], [Tok]))]
-parseAligns = try $ do
-  let maybeBar = skipMany
-        (try $ sp *> (() <$ symbol '|' <|> () <$ (symbol '@' >> braced)))
-  let cAlign = AlignCenter <$ symbol 'c'
-  let lAlign = AlignLeft <$ symbol 'l'
-  let rAlign = AlignRight <$ symbol 'r'
-  let parAlign = AlignLeft <$ symbol 'p'
-  -- aligns from tabularx
-  let xAlign = AlignLeft <$ symbol 'X'
-  let mAlign = AlignLeft <$ symbol 'm'
-  let bAlign = AlignLeft <$ symbol 'b'
-  let alignChar = splitWordTok *> (  cAlign <|> lAlign <|> rAlign <|> parAlign
-                                 <|> xAlign <|> mAlign <|> bAlign )
-  let alignPrefix = symbol '>' >> braced
-  let alignSuffix = symbol '<' >> braced
-  let colWidth = try $ do
-        symbol '{'
-        ds <- trim . untokenize <$> manyTill anyTok (controlSeq "linewidth")
-        spaces
-        symbol '}'
-        return $ safeRead ds
-  let alignSpec = do
-        pref <- option [] alignPrefix
-        spaces
-        al <- alignChar
-        width <- colWidth <|> option Nothing (do s <- untokenize <$> braced
-                                                 pos <- getPosition
-                                                 report $ SkippedContent s pos
-                                                 return Nothing)
-        spaces
-        suff <- option [] alignSuffix
-        return (al, width, (pref, suff))
-  let starAlign = do -- '*{2}{r}' == 'rr', we just expand like a macro
-        symbol '*'
-        spaces
-        ds <- trim . untokenize <$> braced
-        spaces
-        spec <- braced
-        case safeRead ds of
-             Just n  ->
-               getInput >>= setInput . (mconcat (replicate n spec) ++)
-             Nothing -> Prelude.fail $ "Could not parse " <> T.unpack ds <> " as number"
-  bgroup
-  spaces
-  maybeBar
-  aligns' <- many $ try $ spaces >> optional starAlign >>
-                            (alignSpec <* maybeBar)
-  spaces
-  egroup
-  spaces
-  return $ map toSpec aligns'
-  where
-    toColWidth (Just w) | w > 0 = ColWidth w
-    toColWidth _                = ColWidthDefault
-    toSpec (x, y, z) = (x, toColWidth y, z)
-
--- N.B. this parser returns a Row that may have erroneous empty cells
--- in it. See the note above fixTableHead for details.
-parseTableRow :: PandocMonad m
-              => Text   -- ^ table environment name
-              -> [([Tok], [Tok])] -- ^ pref/suffixes
-              -> LP m Row
-parseTableRow envname prefsufs = do
-  notFollowedBy (spaces *> end_ envname)
-  -- add prefixes and suffixes in token stream:
-  let celltoks (pref, suff) = do
-        prefpos <- getPosition
-        contents <- mconcat <$>
-            many ( snd <$> withRaw (controlSeq "parbox" >> parbox) -- #5711
-                  <|>
-                   snd <$> withRaw (inlineEnvironment <|> dollarsMath)
-                  <|>
-                   (do notFollowedBy
-                         (() <$ amp <|> () <$ lbreak <|> end_ envname)
-                       count 1 anyTok) )
-
-        suffpos <- getPosition
-        option [] (count 1 amp)
-        return $ map (setpos prefpos) pref ++ contents ++ map (setpos suffpos) suff
-  rawcells <- mapM celltoks prefsufs
-  cells <- mapM (parseFromToks parseTableCell) rawcells
-  spaces
-  return $ Row nullAttr cells
-
-parseTableCell :: PandocMonad m => LP m Cell
-parseTableCell = do
-  spaces
-  updateState $ \st -> st{ sInTableCell = True }
-  cell' <-   multicolumnCell
-         <|> multirowCell
-         <|> parseSimpleCell
-         <|> parseEmptyCell
-  updateState $ \st -> st{ sInTableCell = False }
-  spaces
-  return cell'
-  where
-    -- The parsing of empty cells is important in LaTeX, especially when dealing
-    -- with multirow/multicolumn. See #6603.
-    parseEmptyCell = spaces $> emptyCell
-
-cellAlignment :: PandocMonad m => LP m Alignment
-cellAlignment = skipMany (symbol '|') *> alignment <* skipMany (symbol '|')
-  where
-    alignment = do
-      c <- untoken <$> singleChar
-      return $ case c of
-        "l" -> AlignLeft
-        "r" -> AlignRight
-        "c" -> AlignCenter
-        "*" -> AlignDefault
-        _   -> AlignDefault
-
-plainify :: Blocks -> Blocks
-plainify bs = case toList bs of
-                [Para ils] -> plain (fromList ils)
-                _          -> bs
-
-multirowCell :: PandocMonad m => LP m Cell
-multirowCell = controlSeq "multirow" >> do
-  -- Full prototype for \multirow macro is:
-  --     \multirow[vpos]{nrows}[bigstruts]{width}[vmove]{text}
-  -- However, everything except `nrows` and `text` make
-  -- sense in the context of the Pandoc AST
-  _ <- optional $ symbol '[' *> cellAlignment <* symbol ']'   -- vertical position
-  nrows <- fmap (fromMaybe 1 . safeRead . untokenize) braced
-  _ <- optional $ symbol '[' *> manyTill anyTok (symbol ']')  -- bigstrut-related
-  _ <- symbol '{' *> manyTill anyTok (symbol '}')             -- Cell width
-  _ <- optional $ symbol '[' *> manyTill anyTok (symbol ']')  -- Length used for fine-tuning
-  content <- symbol '{' *> (plainify <$> blocks) <* symbol '}'
-  return $ cell AlignDefault (RowSpan nrows) (ColSpan 1) content
-
-multicolumnCell :: PandocMonad m => LP m Cell
-multicolumnCell = controlSeq "multicolumn" >> do
-  span' <- fmap (fromMaybe 1 . safeRead . untokenize) braced
-  alignment <- symbol '{' *> cellAlignment <* symbol '}'
-
-  let singleCell = do
-        content <- plainify <$> blocks
-        return $ cell alignment (RowSpan 1) (ColSpan span') content
-
-  -- Two possible contents: either a \multirow cell, or content.
-  -- E.g. \multicol{1}{c}{\multirow{2}{1em}{content}}
-  -- Note that a \multirow cell can be nested in a \multicolumn,
-  -- but not the other way around. See #6603
-  let nestedCell = do
-        (Cell _ _ (RowSpan rs) _ bs) <- multirowCell
-        return $ cell
-                  alignment
-                  (RowSpan rs)
-                  (ColSpan span')
-                  (fromList bs)
-
-  symbol '{' *> (nestedCell <|> singleCell) <* symbol '}'
-
--- Parse a simple cell, i.e. not multirow/multicol
-parseSimpleCell :: PandocMonad m => LP m Cell
-parseSimpleCell = simpleCell <$> (plainify <$> blocks)
-
--- LaTeX tables are stored with empty cells underneath multirow cells
--- denoting the grid spaces taken up by them. More specifically, if a
--- cell spans m rows, then it will overwrite all the cells in the
--- columns it spans for (m-1) rows underneath it, requiring padding
--- cells in these places. These padding cells need to be removed for
--- proper table reading. See #6603.
---
--- These fixTable functions do not otherwise fix up malformed
--- input tables: that is left to the table builder.
-fixTableHead :: TableHead -> TableHead
-fixTableHead (TableHead attr rows) = TableHead attr rows'
-  where
-    rows' = fixTableRows rows
-
-fixTableBody :: TableBody -> TableBody
-fixTableBody (TableBody attr rhc th tb)
-  = TableBody attr rhc th' tb'
-  where
-    th' = fixTableRows th
-    tb' = fixTableRows tb
-
-fixTableRows :: [Row] -> [Row]
-fixTableRows = fixTableRows' $ repeat Nothing
-  where
-    fixTableRows' oldHang (Row attr cells : rs)
-      = let (newHang, cells') = fixTableRow oldHang cells
-            rs'               = fixTableRows' newHang rs
-        in Row attr cells' : rs'
-    fixTableRows' _ [] = []
-
--- The overhang is represented as Just (relative cell dimensions) or
--- Nothing for an empty grid space.
-fixTableRow :: [Maybe (ColSpan, RowSpan)] -> [Cell] -> ([Maybe (ColSpan, RowSpan)], [Cell])
-fixTableRow oldHang cells
-  -- If there's overhang, drop cells until their total width meets the
-  -- width of the occupied grid spaces (or we run out)
-  | (n, prefHang, restHang) <- splitHang oldHang
-  , n > 0
-  = let cells' = dropToWidth getCellW n cells
-        (restHang', cells'') = fixTableRow restHang cells'
-    in (prefHang restHang', cells'')
-  -- Otherwise record the overhang of a pending cell and fix the rest
-  -- of the row
-  | c@(Cell _ _ h w _):cells' <- cells
-  = let h' = max 1 h
-        w' = max 1 w
-        oldHang' = dropToWidth getHangW w' oldHang
-        (newHang, cells'') = fixTableRow oldHang' cells'
-    in (toHang w' h' <> newHang, c : cells'')
-  | otherwise
-  = (oldHang, [])
-  where
-    getCellW (Cell _ _ _ w _) = w
-    getHangW = maybe 1 fst
-    getCS (ColSpan n) = n
-
-    toHang c r
-      | r > 1     = [Just (c, r)]
-      | otherwise = replicate (getCS c) Nothing
-
-    -- Take the prefix of the overhang list representing filled grid
-    -- spaces. Also return the remainder and the length of this prefix.
-    splitHang = splitHang' 0 id
-
-    splitHang' !n l (Just (c, r):xs)
-      = splitHang' (n + c) (l . (toHang c (r-1) ++)) xs
-    splitHang' n l xs = (n, l, xs)
-
-    -- Drop list items until the total width of the dropped items
-    -- exceeds the passed width.
-    dropToWidth _     n l | n < 1 = l
-    dropToWidth wproj n (c:cs)    = dropToWidth wproj (n - wproj c) cs
-    dropToWidth _     _ []        = []
-
-simpTable :: PandocMonad m => Text -> Bool -> LP m Blocks
-simpTable envname hasWidthParameter = try $ do
-  when hasWidthParameter $ () <$ (spaces >> tok)
-  skipopts
-  colspecs <- parseAligns
-  let (aligns, widths, prefsufs) = unzip3 colspecs
-  optional $ controlSeq "caption" *> setCaption
-  spaces
-  optional label
-  spaces
-  optional lbreak
-  spaces
-  skipMany hline
-  spaces
-  header' <- option [] . try . fmap (:[]) $
-             parseTableRow envname prefsufs <* lbreak <* many1 hline
-  spaces
-  rows <- sepEndBy (parseTableRow envname prefsufs)
-                    (lbreak <* optional (skipMany hline))
-  spaces
-  optional $ controlSeq "caption" *> setCaption
-  spaces
-  optional label
-  spaces
-  optional lbreak
-  spaces
-  lookAhead $ controlSeq "end" -- make sure we're at end
-  let th  = fixTableHead $ TableHead nullAttr header'
-  let tbs = [fixTableBody $ TableBody nullAttr 0 [] rows]
-  let tf  = TableFoot nullAttr []
-  return $ table emptyCaption (zip aligns widths) th tbs tf
-
-addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
-addTableCaption = walkM go
-  where go (Table attr c spec th tb tf) = do
-          st <- getState
-          let mblabel = sLastLabel st
-          capt <- case (sCaption st, mblabel) of
-                   (Just ils, Nothing)  -> return $ caption Nothing (plain ils)
-                   (Just ils, Just lab) -> do
-                     num <- getNextNumber sLastTableNum
-                     setState
-                       st{ sLastTableNum = num
-                         , sLabels = M.insert lab
-                                    [Str (renderDottedNum num)]
-                                    (sLabels st) }
-                     return $ caption Nothing (plain ils) -- add number??
-                   (Nothing, _)  -> return c
-          let attr' = case (attr, mblabel) of
-                        ((_,classes,kvs), Just ident) ->
-                           (ident,classes,kvs)
-                        _ -> attr
-          return $ addAttrDiv attr' $ Table nullAttr capt spec th tb tf
-        go x = return x
-
--- TODO: For now we add a Div to contain table attributes, since
--- most writers don't do anything yet with attributes on Table.
--- This can be removed when that changes.
-addAttrDiv :: Attr -> Block -> Block
-addAttrDiv ("",[],[]) b = b
-addAttrDiv attr b       = Div attr [b]
 
 block :: PandocMonad m => LP m Blocks
 block = do

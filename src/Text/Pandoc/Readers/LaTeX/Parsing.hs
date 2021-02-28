@@ -54,6 +54,7 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , comment
   , anyTok
   , singleChar
+  , tokWith
   , specialChars
   , endline
   , blankline
@@ -80,6 +81,10 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , rawopt
   , overlaySpecification
   , getNextNumber
+  , label
+  , setCaption
+  , resetCaption
+  , env
   ) where
 
 import Control.Applicative (many, (<|>))
@@ -914,3 +919,31 @@ getNextNumber getCurrentNum = do
                Just n  -> [n, 1]
                Nothing -> [1]
 
+label :: PandocMonad m => LP m ()
+label = do
+  controlSeq "label"
+  t <- braced
+  updateState $ \st -> st{ sLastLabel = Just $ untokenize t }
+
+setCaption :: PandocMonad m => LP m Inlines -> LP m ()
+setCaption inline = try $ do
+  skipopts
+  ils <- tokWith inline
+  optional $ try $ spaces *> label
+  updateState $ \st -> st{ sCaption = Just ils }
+
+resetCaption :: PandocMonad m => LP m ()
+resetCaption = updateState $ \st -> st{ sCaption   = Nothing
+                                      , sLastLabel = Nothing }
+
+env :: PandocMonad m => Text -> LP m a -> LP m a
+env name p = p <* end_ name
+
+tokWith :: PandocMonad m => LP m Inlines -> LP m Inlines
+tokWith inlineParser = try $ spaces >>
+                                 grouped inlineParser
+                            <|> (lookAhead anyControlSeq >> inlineParser)
+                            <|> singleChar'
+  where singleChar' = do
+          Tok _ _ t <- singleChar
+          return $ str t
