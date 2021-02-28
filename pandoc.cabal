@@ -723,7 +723,7 @@ executable trypandoc
   main-is:         trypandoc.hs
   hs-source-dirs:  trypandoc
   if flag(trypandoc)
-    build-depends: aeson, http-types, wai >= 0.3, wai-extra
+    build-depends: aeson, http-types, wai >= 0.3, wai-extra >= 3.0.24
     buildable:     True
   else
     buildable:     False

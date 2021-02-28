@@ -12,6 +12,7 @@ Provides a webservice which allows to try pandoc in the browser.
 -}
 module Main where
 import Network.Wai.Handler.CGI
+import Network.Wai.Middleware.Timeout (timeout)
 import Network.Wai
 import Control.Applicative ((<$>))
 import Data.Maybe (fromMaybe)
@@ -29,7 +30,7 @@ import qualified Data.Text as T
 import Data.Text (Text)
 
 main :: IO ()
-main = run app
+main = run $ timeout 2 app
 
 app :: Application
 app req respond = do
