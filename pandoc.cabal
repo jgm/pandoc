@@ -630,6 +630,7 @@ library
                    Text.Pandoc.Readers.LaTeX.Parsing,
                    Text.Pandoc.Readers.LaTeX.Lang,
                    Text.Pandoc.Readers.LaTeX.SIunitx,
+                   Text.Pandoc.Readers.LaTeX.Accent,
                    Text.Pandoc.Readers.Odt.Base,
                    Text.Pandoc.Readers.Odt.Namespaces,
                    Text.Pandoc.Readers.Odt.StyleReader,

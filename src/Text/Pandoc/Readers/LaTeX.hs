@@ -57,6 +57,7 @@ import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
 import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
                                         ArgSpec (..), Tok (..), TokType (..))
 import Text.Pandoc.Readers.LaTeX.Parsing
+import Text.Pandoc.Readers.LaTeX.Accent (accentCommands)
 import Text.Pandoc.Readers.LaTeX.Lang (polyglossiaLangToBCP47,
                                        babelLangToBCP47)
 import Text.Pandoc.Readers.LaTeX.SIunitx
@@ -64,7 +65,6 @@ import Text.Pandoc.Shared
 import qualified Text.Pandoc.Translations as Translations
 import Text.Pandoc.Walk
 import qualified Text.Pandoc.Builder as B
-import qualified Data.Text.Normalize as Normalize
 import Safe
 
 -- for debugging:
@@ -247,9 +247,6 @@ doxspace =
         startsWithLetter _ = False
 
 
-lit :: Text -> LP m Inlines
-lit = pure . str
-
 removeDoubleQuotes :: Text -> Text
 removeDoubleQuotes t =
   Data.Maybe.fromMaybe t $ T.stripPrefix "\"" t >>= T.stripSuffix "\""
@@ -295,6 +292,9 @@ quoted' f starter ender = do
                               "`"  -> "‘"
                               cs   -> cs)
      else lit startchs
+
+lit :: Text -> LP m Inlines
+lit = pure . str
 
 enquote :: PandocMonad m => Bool -> Maybe Text -> LP m Inlines
 enquote starred mblang = do
@@ -631,7 +631,10 @@ inlineEnvironments = M.fromList [
   ]
 
 inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
-inlineCommands = M.union inlineLanguageCommands $ M.fromList
+inlineCommands =
+  M.union inlineLanguageCommands $
+  M.union (accentCommands tok) $
+  M.fromList
   [ ("emph", extractSpaces emph <$> tok)
   , ("textit", extractSpaces emph <$> tok)
   , ("textsl", extractSpaces emph <$> tok)
@@ -703,48 +706,6 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("MakeTextLowercase", makeLowercase <$> tok)
   , ("lowercase", makeLowercase <$> tok)
   , ("/", pure mempty) -- italic correction
-  , ("aa", lit "å")
-  , ("AA", lit "Å")
-  , ("ss", lit "ß")
-  , ("o", lit "ø")
-  , ("O", lit "Ø")
-  , ("L", lit "Ł")
-  , ("l", lit "ł")
-  , ("ae", lit "æ")
-  , ("AE", lit "Æ")
-  , ("oe", lit "œ")
-  , ("OE", lit "Œ")
-  , ("pounds", lit "£")
-  , ("euro", lit "€")
-  , ("copyright", lit "©")
-  , ("textasciicircum", lit "^")
-  , ("textasciitilde", lit "~")
-  , ("H", accent '\779' Nothing) -- hungarumlaut
-  , ("`", accent '\768' (Just '`')) -- grave
-  , ("'", accent '\769' (Just '\'')) -- acute
-  , ("^", accent '\770' (Just '^')) -- circ
-  , ("~", accent '\771' (Just '~')) -- tilde
-  , ("\"", accent '\776' Nothing) -- umlaut
-  , (".", accent '\775' Nothing) -- dot
-  , ("=", accent '\772' Nothing) -- macron
-  , ("|", accent '\781' Nothing) -- vertical line above
-  , ("b", accent '\817' Nothing) -- macron below
-  , ("c", accent '\807' Nothing) -- cedilla
-  , ("G", accent '\783' Nothing) -- doublegrave
-  , ("h", accent '\777' Nothing) -- hookabove
-  , ("d", accent '\803' Nothing) -- dotbelow
-  , ("f", accent '\785' Nothing)  -- inverted breve
-  , ("r", accent '\778' Nothing)  -- ringabove
-  , ("t", accent '\865' Nothing)  -- double inverted breve
-  , ("U", accent '\782' Nothing)  -- double vertical line above
-  , ("v", accent '\780' Nothing) -- hacek
-  , ("u", accent '\774' Nothing) -- breve
-  , ("k", accent '\808' Nothing) -- ogonek
-  , ("textogonekcentered", accent '\808' Nothing) -- ogonek
-  , ("i", lit "ı")  -- dotless i
-  , ("j", lit "ȷ")  -- dotless j
-  , ("newtie", accent '\785' Nothing) -- inverted breve
-  , ("textcircled", accent '\8413' Nothing) -- combining circle
   , ("\\", linebreak <$ (do inTableCell <- sInTableCell <$> getState
                             guard $ not inTableCell
                             optional opt
@@ -959,19 +920,6 @@ inlineCommands = M.union inlineLanguageCommands $ M.fromList
   , ("addabbrvspace", pure space)
   , ("hyphen", pure (str "-"))
   ]
-
-accent :: PandocMonad m => Char -> Maybe Char -> LP m Inlines
-accent combiningAccent fallBack = try $ do
-  ils <- tok
-  case toList ils of
-       (Str (T.uncons -> Just (x, xs)) : ys) -> return $ fromList $
-         -- try to normalize to the combined character:
-         Str (Normalize.normalize Normalize.NFC
-               (T.pack [x, combiningAccent]) <> xs) : ys
-       [Space]           -> return $ str $ T.singleton $ fromMaybe combiningAccent fallBack
-       []                -> return $ str $ T.singleton $ fromMaybe combiningAccent fallBack
-       _                 -> return ils
-
 
 lettrine :: PandocMonad m => LP m Inlines
 lettrine = do
