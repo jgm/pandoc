@@ -292,7 +292,9 @@ quotedToJira qtype xs = do
 spanToJira :: PandocMonad m
            => Attr -> [Inline]
            -> JiraConverter m [Jira.Inline]
-spanToJira (_, _classes, _) = toJiraInlines
+spanToJira (ident, _classes, _attribs) inls = case ident of
+  "" -> toJiraInlines inls
+  _  -> (Jira.Anchor ident :) <$> toJiraInlines inls
 
 registerNotes :: PandocMonad m => [Block] -> JiraConverter m [Jira.Inline]
 registerNotes contents = do
