@@ -262,7 +262,7 @@ stringToLaTeX context zs = do
         isUrl = ctx == URLString
         mbAccentCmd =
           if writerPreferAscii opts && ctx == TextString
-             then uncons xs >>= \(c,_) -> M.lookup c accents
+             then uncons xs >>= \(c,_) -> lookupAccent c
              else Nothing
         emits s =
           case mbAccentCmd of
@@ -350,32 +350,30 @@ stringToLaTeX context zs = do
                   _   -> emitc x
            | otherwise -> emitc x
 
-accents :: M.Map Char String
-accents = M.fromList
-  [ ('\779' , "\\H")
-  , ('\768' , "\\`")
-  , ('\769' , "\\'")
-  , ('\770' , "\\^")
-  , ('\771' , "\\~")
-  , ('\776' , "\\\"")
-  , ('\775' , "\\.")
-  , ('\772' , "\\=")
-  , ('\781' , "\\|")
-  , ('\817' , "\\b")
-  , ('\807' , "\\c")
-  , ('\783' , "\\G")
-  , ('\777' , "\\h")
-  , ('\803' , "\\d")
-  , ('\785' , "\\f")
-  , ('\778' , "\\r")
-  , ('\865' , "\\t")
-  , ('\782' , "\\U")
-  , ('\780' , "\\v")
-  , ('\774' , "\\u")
-  , ('\808' , "\\k")
-  , ('\785' , "\\newtie")
-  , ('\8413', "\\textcircled")
-  ]
+lookupAccent :: Char -> Maybe String
+lookupAccent '\779'  = Just "\\H"
+lookupAccent '\768'  = Just "\\`"
+lookupAccent '\769'  = Just "\\'"
+lookupAccent '\770'  = Just "\\^"
+lookupAccent '\771'  = Just "\\~"
+lookupAccent '\776'  = Just "\\\""
+lookupAccent '\775'  = Just "\\."
+lookupAccent '\772'  = Just "\\="
+lookupAccent '\781'  = Just "\\|"
+lookupAccent '\817'  = Just "\\b"
+lookupAccent '\807'  = Just "\\c"
+lookupAccent '\783'  = Just "\\G"
+lookupAccent '\777'  = Just "\\h"
+lookupAccent '\803'  = Just "\\d"
+lookupAccent '\785'  = Just "\\f"
+lookupAccent '\778'  = Just "\\r"
+lookupAccent '\865'  = Just "\\t"
+lookupAccent '\782'  = Just "\\U"
+lookupAccent '\780'  = Just "\\v"
+lookupAccent '\774'  = Just "\\u"
+lookupAccent '\808'  = Just "\\k"
+lookupAccent '\8413' = Just "\\textcircled"
+lookupAccent _       = Nothing
 
 toLabel :: PandocMonad m => Text -> LW m Text
 toLabel z = go `fmap` stringToLaTeX URLString z
