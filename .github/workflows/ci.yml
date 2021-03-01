@@ -45,16 +45,28 @@ jobs:
         versions:
           - ghc: '8.0.2'
             cabal: '2.2'
+            prefix: 'new-'
+            testopts: ''
           - ghc: '8.2.2'
             cabal: '2.4'
+            prefix: 'v2-'
+            testopts: ''
           - ghc: '8.4.4'
             cabal: '2.4'
+            prefix: 'v2-'
+            testopts: ''
           - ghc: '8.6.5'
             cabal: '3.2'
+            prefix: ''
+            testopts: '--test-option=--hide-successes'
           - ghc: '8.8.4'
             cabal: '3.2'
+            prefix: ''
+            testopts: '--test-option=--hide-successes'
           - ghc: '8.10.2'
             cabal: '3.2'
+            prefix: ''
+            testopts: '--test-option=--hide-successes'
     steps:
     - uses: actions/checkout@v2
 
@@ -88,18 +100,15 @@ jobs:
 
     - name: Install dependencies
       run: |
-          v2=$([ "${{ matrix.versions.cabal }}" = "2.2" ] && printf 'new' || printf 'v2')
-          cabal $v2-update
-          cabal $v2-build --dependencies-only --enable-tests --disable-optimization
+          cabal ${{ matrix.versions.prefix }}update
+          cabal ${{ matrix.versions.prefix }}build --dependencies-only --enable-tests --disable-optimization
 
     - name: Build and test
       run: |
-          v2=$([ "${{ matrix.versions.cabal }}" = "2.2" ] && printf 'new' || printf 'v2')
-          testopts=$([ "${{ matrix.versions.cabal }}" != "2.2" ] && [ "${{ matrix.versions.cabal }}" != "2.4" ] && printf '--test-option=--hide-successes')
-          cabal $v2-build --enable-tests --disable-optimization 2>&1 | tee build.log
+          cabal ${{ matrix.versions.prefix }}build --enable-tests --disable-optimization 2>&1 | tee build.log
           # fail if warnings in local build
           ! grep -q ": *[Ww]arning:" build.log || exit 1
-          cabal $v2-test --disable-optimization $testopts
+          cabal ${{ matrix.versions.prefix }}test --disable-optimization ${{ matrix.versions.testopts }}
 
   windows:
 
