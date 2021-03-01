@@ -20,10 +20,10 @@ jobs:
         command: stack --no-terminal setup
     - run:
         name: Run tests
-        command: stack --no-terminal test
+        command: stack --no-terminal test --ghc-options=-split-sections
     - run:
         name: Install executable
-        command: stack --no-terminal install
+        command: stack --no-terminal install --ghc-options=-split-sections
     - run:
         name: Create artifacts
         command: |
