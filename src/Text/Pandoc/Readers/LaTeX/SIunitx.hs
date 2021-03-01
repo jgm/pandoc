@@ -1,12 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Pandoc.Readers.LaTeX.SIunitx
-  ( dosi
-  , doSI
-  , doSIrange
-  , doSInum
-  , doSInumlist
-  , doSIang
-  )
+  ( siunitxCommands )
 where
 import Text.Pandoc.Builder
 import Text.Pandoc.Readers.LaTeX.Parsing
@@ -20,6 +14,19 @@ import Data.Char (isDigit)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.List (intersperse)
+
+
+siunitxCommands :: PandocMonad m
+                 => LP m Inlines -> M.Map Text (LP m Inlines)
+siunitxCommands tok = M.fromList
+  [ ("si", skipopts *> dosi tok)
+  , ("SI", doSI tok)
+  , ("SIrange", doSIrange True tok)
+  , ("numrange", doSIrange False tok)
+  , ("numlist", doSInumlist)
+  , ("num", doSInum)
+  , ("ang", doSIang)
+  ]
 
 dosi :: PandocMonad m => LP m Inlines -> LP m Inlines
 dosi tok = grouped (siUnit tok) <|> siUnit tok

@@ -62,7 +62,7 @@ import Text.Pandoc.Readers.LaTeX.Math (dollarsMath, inlineEnvironments,
 import Text.Pandoc.Readers.LaTeX.Table (tableEnvironments)
 import Text.Pandoc.Readers.LaTeX.Lang (polyglossiaLangToBCP47,
                                        babelLangToBCP47, setDefaultLanguage)
-import Text.Pandoc.Readers.LaTeX.SIunitx
+import Text.Pandoc.Readers.LaTeX.SIunitx (siunitxCommands)
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.Translations as Translations
 import Text.Pandoc.Walk
@@ -426,6 +426,7 @@ inlineCommands =
   M.union inlineLanguageCommands $
   M.union (accentCommands tok) $
   M.union (citationCommands inline) $
+  M.union (siunitxCommands tok) $
   M.fromList
   [ ("emph", extractSpaces emph <$> tok)
   , ("textit", extractSpaces emph <$> tok)
@@ -594,14 +595,6 @@ inlineCommands =
   , ("Acfp", doAcronymPlural "full")
   , ("Acsp", doAcronymPlural "abbrv")
   , ("Aclp", doAcronymPlural "long")
-  -- siuntix
-  , ("si", skipopts *> dosi tok)
-  , ("SI", doSI tok)
-  , ("SIrange", doSIrange True tok)
-  , ("numrange", doSIrange False tok)
-  , ("numlist", doSInumlist)
-  , ("num", doSInum)
-  , ("ang", doSIang)
   -- hyphenat
   , ("bshyp", lit "\\\173")
   , ("fshyp", lit "/\173")
