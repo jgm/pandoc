@@ -14,9 +14,7 @@ module Tests.Readers.LaTeX (tests) where
 
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Text.Pandoc.UTF8 as UTF8
 import Test.Tasty
-import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
