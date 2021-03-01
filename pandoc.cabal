@@ -634,6 +634,7 @@ library
                    Text.Pandoc.Readers.LaTeX.Citation,
                    Text.Pandoc.Readers.LaTeX.Math,
                    Text.Pandoc.Readers.LaTeX.Table,
+                   Text.Pandoc.Readers.LaTeX.Macro,
                    Text.Pandoc.Readers.Odt.Base,
                    Text.Pandoc.Readers.Odt.Namespaces,
                    Text.Pandoc.Readers.Odt.StyleReader,
