@@ -19,7 +19,7 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    applyMacros,
                                    rawLaTeXInline,
                                    rawLaTeXBlock,
-                                   inlineCommand,
+                                   inlineCommand
                                  ) where
 
 import Control.Applicative (many, optional, (<|>))
