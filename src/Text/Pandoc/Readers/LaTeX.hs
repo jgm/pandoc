@@ -22,8 +22,6 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                    rawLaTeXInline,
                                    rawLaTeXBlock,
                                    inlineCommand,
-                                   tokenize,
-                                   untokenize
                                  ) where
 
 import Control.Applicative (many, optional, (<|>))

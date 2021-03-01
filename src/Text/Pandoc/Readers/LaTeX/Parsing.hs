@@ -292,6 +292,15 @@ applyMacros s = (guardDisabled Ext_latex_macros >> return s) <|>
            Left e   -> Prelude.fail (show e)
            Right s' -> return s'
 
+{-
+When tokenize or untokenize change, test with this
+QuickCheck property:
+
+> tokUntokRoundtrip :: String -> Bool
+> tokUntokRoundtrip s =
+>   let t = T.pack s in untokenize (tokenize "random" t) == t
+-}
+
 tokenize :: SourceName -> Text -> [Tok]
 tokenize sourcename = totoks (initialPos sourcename)
 

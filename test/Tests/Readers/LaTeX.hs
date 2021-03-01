@@ -15,10 +15,8 @@ module Tests.Readers.LaTeX (tests) where
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Readers.LaTeX (tokenize, untokenize)
 import Test.Tasty
 import Test.Tasty.HUnit
-import Test.Tasty.QuickCheck
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -47,21 +45,8 @@ simpleTable' aligns rows
   where
     toRow = Row nullAttr . map simpleCell
 
-tokUntokRt :: String -> Bool
-tokUntokRt s = untokenize (tokenize "random" t) == t
-  where t = T.pack s
-
 tests :: [TestTree]
-tests = [ testGroup "tokenization"
-          [ testCase "tokenizer round trip on test case" $ do
-                 orig <- UTF8.readFile "../test/latex-reader.latex"
-                 let new = untokenize $ tokenize "../test/latex-reader.latex"
-                             orig
-                 assertEqual "untokenize . tokenize is identity" orig new
-          , testProperty "untokenize . tokenize is identity" tokUntokRt
-          ]
-
-        , testGroup "basic"
+tests = [ testGroup "basic"
           [ "simple" =:
             "word" =?> para "word"
           , "space" =:
