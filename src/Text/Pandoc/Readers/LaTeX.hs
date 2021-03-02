@@ -1,4 +1,7 @@
 {-# LANGUAGE CPP                   #-}
+#ifdef LOWMEM
+{-# OPTIONS_GHC -O0                #-}
+#endif
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PatternGuards         #-}
 {-# LANGUAGE ScopedTypeVariables   #-}

@@ -1,3 +1,7 @@
+{-# LANGUAGE CPP                 #-}
+#ifdef LOWMEM
+{-# OPTIONS_GHC -O0              #-}
+#endif
 {-# LANGUAGE MultiWayIf          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}

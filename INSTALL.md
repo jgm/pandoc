@@ -296,8 +296,12 @@ You will need cabal version 2.0 or higher.
     - `embed_data_files`: embed all data files into the binary (default no).
       This is helpful if you want to create a relocatable binary.
 
-    - `https`:  enable support for downloading resources over https
-      (using the `http-client` and `http-client-tls` libraries).
+    - `lowmem`: disable optimization on a few modules that take
+      a lot of memory to compile.  Use this flag if compiling
+      pandoc fails with out of memory errors.
+
+    - `trypandoc`:  build the `trypandoc` executable (a CGI web
+      app).
 
 3.  Build:
 

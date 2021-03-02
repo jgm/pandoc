@@ -392,6 +392,12 @@ flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
   Default:       False
 
+flag lowmem
+  Description:   Disable optimization on three modules that need a lot
+                 of memory to compile.  Set this flag if your pandoc
+                 build is failing due to out of memory errors.
+  Default:       False
+
 flag trypandoc
   Description:   Build trypandoc cgi executable.
   Default:       False
@@ -505,6 +511,8 @@ library
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
      other-modules: Text.Pandoc.Data
+  if flag(lowmem)
+     cpp-options:   -DLOWMEM
   hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
