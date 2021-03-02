@@ -3,7 +3,7 @@ packages: pandoc.cabal
 tests: True
 
 package pandoc
-  flags: +embed_data_files -trypandoc
+  flags: +embed_data_files
   ghc-options: -j +RTS -A256m -RTS
 
 -- source-repository-package
