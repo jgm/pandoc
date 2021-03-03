@@ -12,7 +12,7 @@ extra-deps:
 - commonmark-extensions-0.2.0.4
 - commonmark-pandoc-0.2.0.1
 - tasty-bench-0.2.1
-- citeproc-0.3.0.7
+- citeproc-0.3.0.8
 - skylighting-0.10.4
 - skylighting-core-0.10.4
 - xml-conduit-1.9.1.0
