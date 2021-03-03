@@ -15,15 +15,43 @@ module Text.Pandoc.Readers.LaTeX.Lang
   ( setDefaultLanguage
   , polyglossiaLangToBCP47
   , babelLangToBCP47
+  , inlineLanguageCommands
   )
 where
 import qualified Data.Map as M
+import Data.Text (Text)
 import qualified Data.Text as T
+import Text.Pandoc.Shared (extractSpaces)
 import Text.Pandoc.BCP47 (Lang(..), renderLang)
 import Text.Pandoc.Class (PandocMonad(..), setTranslations)
 import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.Parsing (updateState, option)
-import Text.Pandoc.Builder (Blocks, setMeta, str)
+import Text.Pandoc.Builder (Blocks, Inlines, setMeta, str, spanWith)
+
+foreignlanguage :: PandocMonad m => LP m Inlines -> LP m Inlines
+foreignlanguage tok = do
+  babelLang <- untokenize <$> braced
+  case babelLangToBCP47 babelLang of
+       Just lang -> spanWith ("", [], [("lang",  renderLang lang)]) <$> tok
+       _ -> tok
+
+inlineLanguageCommands :: PandocMonad m
+                       => LP m Inlines -> M.Map Text (LP m Inlines)
+inlineLanguageCommands tok =
+  M.fromList $
+    ("foreignlanguage", foreignlanguage tok) :
+    (mk <$> M.toList polyglossiaLangToBCP47)
+  where
+    mk (polyglossia, bcp47Func) =
+      ("text" <> polyglossia, inlineLanguage tok bcp47Func)
+
+inlineLanguage :: PandocMonad m
+               => LP m Inlines -> (Text -> Lang) -> LP m Inlines
+inlineLanguage tok bcp47Func = do
+  o <- option "" $ T.filter (\c -> c /= '[' && c /= ']')
+                <$> rawopt
+  let lang = renderLang $ bcp47Func o
+  extractSpaces (spanWith ("", [], [("lang", lang)])) <$> tok
 
 setDefaultLanguage :: PandocMonad m => LP m Blocks
 setDefaultLanguage = do

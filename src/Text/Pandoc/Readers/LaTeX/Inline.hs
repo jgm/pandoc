@@ -13,6 +13,7 @@ module Text.Pandoc.Readers.LaTeX.Inline
   , verbCommands
   , charCommands
   , nameCommands
+  , biblatexInlineCommands
   , refCommands
   , rawInlineOr
   , listingsLanguage
@@ -23,15 +24,17 @@ import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Builder
+import Text.Pandoc.Shared (toRomanNumeral, safeRead)
 import Text.Pandoc.Readers.LaTeX.Types (Tok (..), TokType (..))
-import Control.Applicative (optional)
-import Control.Monad (guard, mzero, mplus)
+import Control.Applicative (optional, (<|>))
+import Control.Monad (guard, mzero, mplus, unless)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), translateTerm)
 import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.Extensions (extensionEnabled, Extension(..))
 import Text.Pandoc.Parsing (getOption, updateState, getState, notFollowedBy,
                             manyTill, getInput, setInput, incSourceColumn,
-                            option)
+                            option, many1)
+import Data.Char (isDigit)
 import Text.Pandoc.Highlighting (fromListingsLanguage,)
 import Data.Maybe (maybeToList)
 import Text.Pandoc.Options (ReaderOptions(..))
@@ -127,6 +130,31 @@ nlToSpace :: Char -> Char
 nlToSpace '\n' = ' '
 nlToSpace x    = x
 
+romanNumeralUpper :: (PandocMonad m) => LP m Inlines
+romanNumeralUpper =
+  str . toRomanNumeral <$> romanNumeralArg
+
+romanNumeralLower :: (PandocMonad m) => LP m Inlines
+romanNumeralLower =
+  str . T.toLower . toRomanNumeral <$> romanNumeralArg
+
+romanNumeralArg :: (PandocMonad m) => LP m Int
+romanNumeralArg = spaces *> (parser <|> inBraces)
+  where
+    inBraces = do
+      symbol '{'
+      spaces
+      res <- parser
+      spaces
+      symbol '}'
+      return res
+    parser = do
+      s <- untokenize <$> many1 (satisfyTok isWordTok)
+      let (digits, rest) = T.span isDigit s
+      unless (T.null rest) $
+        Prelude.fail "Non-digits in argument to \\Rn or \\RN"
+      safeRead digits
+
 
 
 verbCommands :: PandocMonad m => M.Map Text (LP m Inlines)
@@ -157,6 +185,12 @@ charCommands = M.fromList
   , ("{", lit "{")
   , ("}", lit "}")
   , ("qed", lit "\a0\x25FB")
+  , ("lq", return (str "‘"))
+  , ("rq", return (str "’"))
+  , ("textquoteleft", return (str "‘"))
+  , ("textquoteright", return (str "’"))
+  , ("textquotedblleft", return (str "“"))
+  , ("textquotedblright", return (str "”"))
   , ("/", pure mempty) -- italic correction
   , ("\\", linebreak <$ (do inTableCell <- sInTableCell <$> getState
                             guard $ not inTableCell
@@ -183,6 +217,31 @@ charCommands = M.fromList
   , ("dothyp", lit ".\173")
   , ("colonhyp", lit ":\173")
   , ("hyp", lit "-")
+  ]
+
+biblatexInlineCommands :: PandocMonad m
+                       => LP m Inlines -> M.Map Text (LP m Inlines)
+biblatexInlineCommands tok = M.fromList
+  -- biblatex misc
+  [ ("RN", romanNumeralUpper)
+  , ("Rn", romanNumeralLower)
+  , ("mkbibquote", spanWith nullAttr . doubleQuoted <$> tok)
+  , ("mkbibemph", spanWith nullAttr . emph <$> tok)
+  , ("mkbibitalic", spanWith nullAttr . emph <$> tok)
+  , ("mkbibbold", spanWith nullAttr . strong <$> tok)
+  , ("mkbibparens",
+       spanWith nullAttr . (\x -> str "(" <> x <> str ")") <$> tok)
+  , ("mkbibbrackets",
+       spanWith nullAttr . (\x -> str "[" <> x <> str "]") <$> tok)
+  , ("autocap", spanWith nullAttr <$> tok)
+  , ("textnormal", spanWith ("",["nodecor"],[]) <$> tok)
+  , ("bibstring",
+       (\x -> spanWith ("",[],[("bibstring",x)]) (str x)) . untokenize
+         <$> braced)
+  , ("adddot", pure (str "."))
+  , ("adddotspace", pure (spanWith nullAttr (str "." <> space)))
+  , ("addabbrvspace", pure space)
+  , ("hyphen", pure (str "-"))
   ]
 
 nameCommands :: PandocMonad m => M.Map Text (LP m Inlines)

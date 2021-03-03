@@ -34,7 +34,7 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import System.FilePath (addExtension, replaceExtension, takeExtension)
-import Text.Pandoc.BCP47 (Lang (..), renderLang)
+import Text.Pandoc.BCP47 (renderLang)
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocPure (PandocPure)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), getResourcePath,
@@ -58,11 +58,12 @@ import Text.Pandoc.Readers.LaTeX.Math (dollarsMath, inlineEnvironments,
                                        theoremEnvironment)
 import Text.Pandoc.Readers.LaTeX.Table (tableEnvironments)
 import Text.Pandoc.Readers.LaTeX.Macro (macroDef)
-import Text.Pandoc.Readers.LaTeX.Lang (polyglossiaLangToBCP47,
+import Text.Pandoc.Readers.LaTeX.Lang (inlineLanguageCommands,
                                        babelLangToBCP47, setDefaultLanguage)
 import Text.Pandoc.Readers.LaTeX.SIunitx (siunitxCommands)
 import Text.Pandoc.Readers.LaTeX.Inline (acronymCommands, refCommands,
                                          nameCommands, charCommands,
+                                         biblatexInlineCommands,
                                          verbCommands, rawInlineOr,
                                          listingsLanguage)
 import Text.Pandoc.Shared
@@ -350,8 +351,7 @@ unescapeURL = T.concat . go . T.splitOn "\\"
 
 inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
 inlineCommands = M.unions
-  [ inlineLanguageCommands
-  , accentCommands tok
+  [ accentCommands tok
   , citationCommands inline
   , siunitxCommands tok
   , acronymCommands
@@ -359,6 +359,8 @@ inlineCommands = M.unions
   , nameCommands
   , verbCommands
   , charCommands
+  , inlineLanguageCommands tok
+  , biblatexInlineCommands tok
   , rest ]
  where
   rest = M.fromList
@@ -373,12 +375,6 @@ inlineCommands = M.unions
     , ("texttt", ttfamily)
     , ("sout", extractSpaces strikeout <$> tok)
     , ("alert", skipopts >> spanWith ("",["alert"],[]) <$> tok) -- beamer
-    , ("lq", return (str "‘"))
-    , ("rq", return (str "’"))
-    , ("textquoteleft", return (str "‘"))
-    , ("textquoteright", return (str "’"))
-    , ("textquotedblleft", return (str "“"))
-    , ("textquotedblright", return (str "”"))
     , ("textsuperscript", extractSpaces superscript <$> tok)
     , ("textsubscript", extractSpaces subscript <$> tok)
     , ("textbf", extractSpaces strong <$> tok)
@@ -447,11 +443,6 @@ inlineCommands = M.unions
     , ("toggletrue", braced >>= setToggle True)
     , ("togglefalse", braced >>= setToggle False)
     , ("iftoggle", try $ ifToggle >> inline)
-    -- biblatex misc
-    , ("RN", romanNumeralUpper)
-    , ("Rn", romanNumeralLower)
-    -- babel
-    , ("foreignlanguage", foreignlanguage)
     -- include
     , ("input", rawInlineOr "input" $ include "input")
     -- soul package
@@ -460,24 +451,6 @@ inlineCommands = M.unions
     , ("uline", underline <$> tok)
     -- plain tex stuff that should just be passed through as raw tex
     , ("ifdim", ifdim)
-    -- bibtex
-    , ("mkbibquote", spanWith nullAttr . doubleQuoted <$> tok)
-    , ("mkbibemph", spanWith nullAttr . emph <$> tok)
-    , ("mkbibitalic", spanWith nullAttr . emph <$> tok)
-    , ("mkbibbold", spanWith nullAttr . strong <$> tok)
-    , ("mkbibparens",
-         spanWith nullAttr . (\x -> str "(" <> x <> str ")") <$> tok)
-    , ("mkbibbrackets",
-         spanWith nullAttr . (\x -> str "[" <> x <> str "]") <$> tok)
-    , ("autocap", spanWith nullAttr <$> tok)
-    , ("textnormal", spanWith ("",["nodecor"],[]) <$> tok)
-    , ("bibstring",
-         (\x -> spanWith ("",[],[("bibstring",x)]) (str x)) . untokenize
-           <$> braced)
-    , ("adddot", pure (str "."))
-    , ("adddotspace", pure (spanWith nullAttr (str "." <> space)))
-    , ("addabbrvspace", pure space)
-    , ("hyphen", pure (str "-"))
     ]
 
 lettrine :: PandocMonad m => LP m Inlines
@@ -502,26 +475,6 @@ alterStr :: (Text -> Text) -> Inline -> Inline
 alterStr f (Str xs) = Str (f xs)
 alterStr _ x = x
 
-foreignlanguage :: PandocMonad m => LP m Inlines
-foreignlanguage = do
-  babelLang <- untokenize <$> braced
-  case babelLangToBCP47 babelLang of
-       Just lang -> spanWith ("", [], [("lang",  renderLang lang)]) <$> tok
-       _ -> tok
-
-inlineLanguageCommands :: PandocMonad m => M.Map Text (LP m Inlines)
-inlineLanguageCommands = M.fromList $ mk <$> M.toList polyglossiaLangToBCP47
-  where
-    mk (polyglossia, bcp47Func) =
-      ("text" <> polyglossia, inlineLanguage bcp47Func)
-
-inlineLanguage :: PandocMonad m => (Text -> Lang) -> LP m Inlines
-inlineLanguage bcp47Func = do
-  o <- option "" $ T.filter (\c -> c /= '[' && c /= ']')
-                <$> rawopt
-  let lang = renderLang $ bcp47Func o
-  extractSpaces (spanWith ("", [], [("lang", lang)])) <$> tok
-
 hyperlink :: PandocMonad m => LP m Inlines
 hyperlink = try $ do
   src <- untokenize <$> braced
@@ -541,31 +494,6 @@ hypertargetInline = try $ do
   ref <- untokenize <$> braced
   ils <- grouped inline
   return $ spanWith (ref, [], []) ils
-
-romanNumeralUpper :: (PandocMonad m) => LP m Inlines
-romanNumeralUpper =
-  str . toRomanNumeral <$> romanNumeralArg
-
-romanNumeralLower :: (PandocMonad m) => LP m Inlines
-romanNumeralLower =
-  str . T.toLower . toRomanNumeral <$> romanNumeralArg
-
-romanNumeralArg :: (PandocMonad m) => LP m Int
-romanNumeralArg = spaces *> (parser <|> inBraces)
-  where
-    inBraces = do
-      symbol '{'
-      spaces
-      res <- parser
-      spaces
-      symbol '}'
-      return res
-    parser = do
-      s <- untokenize <$> many1 (satisfyTok isWordTok)
-      let (digits, rest) = T.span isDigit s
-      unless (T.null rest) $
-        Prelude.fail "Non-digits in argument to \\Rn or \\RN"
-      safeRead digits
 
 newToggle :: (Monoid a, PandocMonad m) => [Tok] -> LP m a
 newToggle name = do
