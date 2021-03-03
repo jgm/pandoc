@@ -15,6 +15,7 @@ module Text.Pandoc.Readers.LaTeX.Lang
   ( setDefaultLanguage
   , polyglossiaLangToBCP47
   , babelLangToBCP47
+  , enquoteCommands
   , inlineLanguageCommands
   )
 where
@@ -25,8 +26,37 @@ import Text.Pandoc.Shared (extractSpaces)
 import Text.Pandoc.BCP47 (Lang(..), renderLang)
 import Text.Pandoc.Class (PandocMonad(..), setTranslations)
 import Text.Pandoc.Readers.LaTeX.Parsing
-import Text.Pandoc.Parsing (updateState, option)
-import Text.Pandoc.Builder (Blocks, Inlines, setMeta, str, spanWith)
+import Text.Pandoc.Parsing (updateState, option, getState, QuoteContext(..),
+                            withQuoteContext)
+import Text.Pandoc.Builder (Blocks, Inlines, setMeta, str, spanWith,
+                            singleQuoted, doubleQuoted)
+
+enquote :: PandocMonad m
+        => LP m Inlines
+        -> Bool -> Maybe Text -> LP m Inlines
+enquote tok starred mblang = do
+  skipopts
+  let lang = mblang >>= babelLangToBCP47
+  let langspan = case lang of
+                      Nothing -> id
+                      Just l  -> spanWith ("",[],[("lang", renderLang l)])
+  quoteContext <- sQuoteContext <$> getState
+  if starred || quoteContext == InDoubleQuote
+     then singleQuoted . langspan <$> withQuoteContext InSingleQuote tok
+     else doubleQuoted . langspan <$> withQuoteContext InDoubleQuote tok
+
+enquoteCommands :: PandocMonad m
+                => LP m Inlines -> M.Map Text (LP m Inlines)
+enquoteCommands tok = M.fromList
+  [ ("enquote*", enquote tok True Nothing)
+  , ("enquote", enquote tok False Nothing)
+  -- foreignquote is supposed to use native quote marks
+  , ("foreignquote*", braced >>= enquote tok True . Just . untokenize)
+  , ("foreignquote", braced >>= enquote tok False . Just . untokenize)
+  -- hypehnquote uses regular quotes
+  , ("hyphenquote*", braced >>= enquote tok True . Just . untokenize)
+  , ("hyphenquote", braced >>= enquote tok False . Just . untokenize)
+  ]
 
 foreignlanguage :: PandocMonad m => LP m Inlines -> LP m Inlines
 foreignlanguage tok = do

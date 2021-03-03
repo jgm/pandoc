@@ -59,6 +59,7 @@ import Text.Pandoc.Readers.LaTeX.Math (dollarsMath, inlineEnvironments,
 import Text.Pandoc.Readers.LaTeX.Table (tableEnvironments)
 import Text.Pandoc.Readers.LaTeX.Macro (macroDef)
 import Text.Pandoc.Readers.LaTeX.Lang (inlineLanguageCommands,
+                                       enquoteCommands,
                                        babelLangToBCP47, setDefaultLanguage)
 import Text.Pandoc.Readers.LaTeX.SIunitx (siunitxCommands)
 import Text.Pandoc.Readers.LaTeX.Inline (acronymCommands, refCommands,
@@ -293,18 +294,6 @@ quoted' f starter ender = do
 lit :: Text -> LP m Inlines
 lit = pure . str
 
-enquote :: PandocMonad m => Bool -> Maybe Text -> LP m Inlines
-enquote starred mblang = do
-  skipopts
-  let lang = mblang >>= babelLangToBCP47
-  let langspan = case lang of
-                      Nothing -> id
-                      Just l  -> spanWith ("",[],[("lang", renderLang l)])
-  quoteContext <- sQuoteContext <$> getState
-  if starred || quoteContext == InDoubleQuote
-     then singleQuoted . langspan <$> withQuoteContext InSingleQuote tok
-     else doubleQuoted . langspan <$> withQuoteContext InDoubleQuote tok
-
 blockquote :: PandocMonad m => Bool -> Maybe Text -> LP m Blocks
 blockquote cvariant mblang = do
   citepar <- if cvariant
@@ -359,6 +348,7 @@ inlineCommands = M.unions
   , nameCommands
   , verbCommands
   , charCommands
+  , enquoteCommands tok
   , inlineLanguageCommands tok
   , biblatexInlineCommands tok
   , rest ]
@@ -418,14 +408,6 @@ inlineCommands = M.unions
                              src <- braced
                              mkImage options . unescapeURL . removeDoubleQuotes $
                                  untokenize src)
-    , ("enquote*", enquote True Nothing)
-    , ("enquote", enquote False Nothing)
-    -- foreignquote is supposed to use native quote marks
-    , ("foreignquote*", braced >>= enquote True . Just . untokenize)
-    , ("foreignquote", braced >>= enquote False . Just . untokenize)
-    -- hypehnquote uses regular quotes
-    , ("hyphenquote*", braced >>= enquote True . Just . untokenize)
-    , ("hyphenquote", braced >>= enquote False . Just . untokenize)
     , ("hyperlink", hyperlink)
     , ("hypertarget", hypertargetInline)
     -- hyphenat

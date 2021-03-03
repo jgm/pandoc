@@ -155,8 +155,6 @@ romanNumeralArg = spaces *> (parser <|> inBraces)
         Prelude.fail "Non-digits in argument to \\Rn or \\RN"
       safeRead digits
 
-
-
 verbCommands :: PandocMonad m => M.Map Text (LP m Inlines)
 verbCommands = M.fromList
   [ ("verb", doverb)
