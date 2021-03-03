@@ -20,9 +20,8 @@ module Text.Pandoc.Writers.LaTeX (
   ) where
 import Control.Applicative ((<|>))
 import Control.Monad.State.Strict
-import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isSpace,
-                  isPunctuation, ord)
-import Data.List (foldl', intersperse, nubBy, (\\), uncons)
+import Data.Char (isAlphaNum, isAscii, isDigit, isLetter, isSpace, ord)
+import Data.List (intersperse, nubBy, (\\), uncons)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
 import qualified Data.Map as M
 import Data.Text (Text)
@@ -44,6 +43,8 @@ import Text.Pandoc.Slides
 import Text.Pandoc.Walk (query, walk, walkM)
 import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
 import Text.Pandoc.Writers.LaTeX.Table (tableToLaTeX)
+import Text.Pandoc.Writers.LaTeX.Citation (citationsToNatbib,
+                                           citationsToBiblatex)
 import Text.Pandoc.Writers.LaTeX.Types (LW, WriterState (..), startingState)
 import Text.Pandoc.Writers.LaTeX.Lang (toPolyglossiaEnv, toPolyglossia,
                                        toBabel)
@@ -1026,8 +1027,8 @@ inlineToLaTeX (Cite cits lst) = do
   st <- get
   let opts = stOptions st
   case writerCiteMethod opts of
-     Natbib   -> citationsToNatbib cits
-     Biblatex -> citationsToBiblatex cits
+     Natbib   -> citationsToNatbib inlineListToLaTeX cits
+     Biblatex -> citationsToBiblatex inlineListToLaTeX cits
      _        -> inlineListToLaTeX lst
 
 inlineToLaTeX (Code (_,classes,kvs) str) = do
@@ -1237,143 +1238,6 @@ protectCode x = [x]
 
 setEmptyLine :: PandocMonad m => Bool -> LW m ()
 setEmptyLine b = modify $ \st -> st{ stEmptyLine = b }
-
-citationsToNatbib :: PandocMonad m => [Citation] -> LW m (Doc Text)
-citationsToNatbib
-            [one]
-  = citeCommand c p s k
-  where
-    Citation { citationId = k
-             , citationPrefix = p
-             , citationSuffix = s
-             , citationMode = m
-             }
-      = one
-    c = case m of
-             AuthorInText   -> "citet"
-             SuppressAuthor -> "citeyearpar"
-             NormalCitation -> "citep"
-
-citationsToNatbib cits
-  | noPrefix (tail cits) && noSuffix (init cits) && ismode NormalCitation cits
-  = citeCommand "citep" p s ks
-  where
-     noPrefix  = all (null . citationPrefix)
-     noSuffix  = all (null . citationSuffix)
-     ismode m  = all ((==) m  . citationMode)
-     p         = citationPrefix  $
-                 head cits
-     s         = citationSuffix  $
-                 last cits
-     ks        = T.intercalate ", " $ map citationId cits
-
-citationsToNatbib (c:cs) | citationMode c == AuthorInText = do
-     author <- citeCommand "citeauthor" [] [] (citationId c)
-     cits   <- citationsToNatbib (c { citationMode = SuppressAuthor } : cs)
-     return $ author <+> cits
-
-citationsToNatbib cits = do
-  cits' <- mapM convertOne cits
-  return $ text "\\citetext{" <> foldl' combineTwo empty cits' <> text "}"
-  where
-    combineTwo a b | isEmpty a = b
-                   | otherwise = a <> text "; " <> b
-    convertOne Citation { citationId = k
-                        , citationPrefix = p
-                        , citationSuffix = s
-                        , citationMode = m
-                        }
-        = case m of
-               AuthorInText   -> citeCommand "citealt"  p s k
-               SuppressAuthor -> citeCommand "citeyear" p s k
-               NormalCitation -> citeCommand "citealp"  p s k
-
-citeCommand :: PandocMonad m
-            => Text -> [Inline] -> [Inline] -> Text -> LW m (Doc Text)
-citeCommand c p s k = do
-  args <- citeArguments p s k
-  return $ literal ("\\" <> c) <> args
-
-type Prefix = [Inline]
-type Suffix = [Inline]
-type CiteId = Text
-data CiteGroup = CiteGroup Prefix Suffix [CiteId]
-
-citeArgumentsList :: PandocMonad m
-              => CiteGroup -> LW m (Doc Text)
-citeArgumentsList (CiteGroup _ _ []) = return empty
-citeArgumentsList (CiteGroup pfxs sfxs ids) = do
-      pdoc <- inlineListToLaTeX pfxs
-      sdoc <- inlineListToLaTeX sfxs'
-      return $ optargs pdoc sdoc <>
-              braces (literal (T.intercalate "," (reverse ids)))
-      where sfxs' = stripLocatorBraces $ case sfxs of
-                (Str t : r) -> case T.uncons t of
-                  Just (x, xs)
-                    | T.null xs
-                    , isPunctuation x -> dropWhile (== Space) r
-                    | isPunctuation x -> Str xs : r
-                  _ -> sfxs
-                _   -> sfxs
-            optargs pdoc sdoc = case (isEmpty pdoc, isEmpty sdoc) of
-                 (True, True ) -> empty
-                 (True, False) -> brackets sdoc
-                 (_   , _    ) -> brackets pdoc <> brackets sdoc
-
-citeArguments :: PandocMonad m
-              => [Inline] -> [Inline] -> Text -> LW m (Doc Text)
-citeArguments p s k = citeArgumentsList (CiteGroup p s [k])
-
--- strip off {} used to define locator in pandoc-citeproc; see #5722
-stripLocatorBraces :: [Inline] -> [Inline]
-stripLocatorBraces = walk go
-  where go (Str xs) = Str $ T.filter (\c -> c /= '{' && c /= '}') xs
-        go x        = x
-
-citationsToBiblatex :: PandocMonad m => [Citation] -> LW m (Doc Text)
-citationsToBiblatex
-            [one]
-  = citeCommand cmd p s k
-    where
-       Citation { citationId = k
-                , citationPrefix = p
-                , citationSuffix = s
-                , citationMode = m
-                } = one
-       cmd = case m of
-                  SuppressAuthor -> "autocite*"
-                  AuthorInText   -> "textcite"
-                  NormalCitation -> "autocite"
-
-citationsToBiblatex (c:cs)
-  | all (\cit -> null (citationPrefix cit) && null (citationSuffix cit)) (c:cs)
-    = do
-      let cmd = case citationMode c of
-                    SuppressAuthor -> "\\autocite*"
-                    AuthorInText   -> "\\textcite"
-                    NormalCitation -> "\\autocite"
-      return $ text cmd <>
-               braces (literal (T.intercalate "," (map citationId (c:cs))))
-  | otherwise
-    = do
-      let cmd = case citationMode c of
-                    SuppressAuthor -> "\\autocites*"
-                    AuthorInText   -> "\\textcites"
-                    NormalCitation -> "\\autocites"
-
-      groups <- mapM citeArgumentsList (reverse (foldl' grouper [] (c:cs)))
-
-      return $ text cmd <> mconcat groups
-
-  where grouper prev cit = case prev of
-         ((CiteGroup oPfx oSfx ids):rest)
-             | null oSfx && null pfx -> CiteGroup oPfx sfx (cid:ids) : rest
-         _ -> CiteGroup pfx sfx [cid] : prev
-         where pfx = citationPrefix cit
-               sfx = citationSuffix cit
-               cid = citationId cit
-
-citationsToBiblatex _ = return empty
 
 -- Extract a key from divs and spans
 extract :: Text -> Block -> [Text]
