@@ -665,6 +665,8 @@ library
                    Text.Pandoc.Writers.LaTeX.Notes,
                    Text.Pandoc.Writers.LaTeX.Table,
                    Text.Pandoc.Writers.LaTeX.Types,
+                   Text.Pandoc.Writers.Markdown.Types,
+                   Text.Pandoc.Writers.Markdown.Inline,
                    Text.Pandoc.Writers.Roff,
                    Text.Pandoc.Writers.Powerpoint.Presentation,
                    Text.Pandoc.Writers.Powerpoint.Output,
