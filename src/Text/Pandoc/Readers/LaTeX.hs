@@ -35,13 +35,13 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.BCP47 (Lang (..), renderLang)
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocPure (PandocPure)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), getResourcePath,
-                                      readFileFromDirs, report, setResourcePath,
-                                      translateTerm)
+                                      readFileFromDirs, report,
+                                      setResourcePath)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocParsecError))
-import Text.Pandoc.Highlighting (fromListingsLanguage, languagesByExtension)
+import Text.Pandoc.Highlighting (languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
@@ -61,10 +61,12 @@ import Text.Pandoc.Readers.LaTeX.Macro (macroDef)
 import Text.Pandoc.Readers.LaTeX.Lang (polyglossiaLangToBCP47,
                                        babelLangToBCP47, setDefaultLanguage)
 import Text.Pandoc.Readers.LaTeX.SIunitx (siunitxCommands)
+import Text.Pandoc.Readers.LaTeX.Inline (acronymCommands, refCommands,
+                                         nameCommands, charCommands,
+                                         verbCommands, rawInlineOr,
+                                         listingsLanguage)
 import Text.Pandoc.Shared
-import qualified Text.Pandoc.Translations as Translations
 import Text.Pandoc.Walk
-import qualified Text.Pandoc.Builder as B
 import Safe
 
 -- for debugging:
@@ -317,76 +319,6 @@ blockquote cvariant mblang = do
   optional $ symbolIn (".:;?!" :: [Char])  -- currently ignored
   return $ blockQuote . langdiv $ (bs <> citepar)
 
-doAcronym :: PandocMonad m => Text -> LP m Inlines
-doAcronym form = do
-  acro <- braced
-  return . mconcat $ [spanWith ("",[],[("acronym-label", untokenize acro),
-    ("acronym-form", "singular+" <> form)])
-    $ str $ untokenize acro]
-
-doAcronymPlural :: PandocMonad m => Text -> LP m Inlines
-doAcronymPlural form = do
-  acro <- braced
-  plural <- lit "s"
-  return . mconcat $ [spanWith ("",[],[("acronym-label", untokenize acro),
-    ("acronym-form", "plural+" <> form)]) $
-   mconcat [str $ untokenize acro, plural]]
-
-doverb :: PandocMonad m => LP m Inlines
-doverb = do
-  Tok _ Symbol t <- anySymbol
-  marker <- case T.uncons t of
-              Just (c, ts) | T.null ts -> return c
-              _            -> mzero
-  withVerbatimMode $
-    code . untokenize <$>
-      manyTill (notFollowedBy newlineTok >> verbTok marker) (symbol marker)
-
-verbTok :: PandocMonad m => Char -> LP m Tok
-verbTok stopchar = do
-  t@(Tok pos toktype txt) <- anyTok
-  case T.findIndex (== stopchar) txt of
-       Nothing -> return t
-       Just i  -> do
-         let (t1, t2) = T.splitAt i txt
-         inp <- getInput
-         setInput $ Tok (incSourceColumn pos i) Symbol (T.singleton stopchar)
-                  : totoks (incSourceColumn pos (i + 1)) (T.drop 1 t2) ++ inp
-         return $ Tok pos toktype t1
-
-listingsLanguage :: [(Text, Text)] -> Maybe Text
-listingsLanguage opts =
-  case lookup "language" opts of
-    Nothing  -> Nothing
-    Just l   -> fromListingsLanguage l `mplus` Just l
-
-dolstinline :: PandocMonad m => LP m Inlines
-dolstinline = do
-  options <- option [] keyvals
-  let classes = maybeToList $ listingsLanguage options
-  doinlinecode classes
-
-domintinline :: PandocMonad m => LP m Inlines
-domintinline = do
-  skipopts
-  cls <- untokenize <$> braced
-  doinlinecode [cls]
-
-doinlinecode :: PandocMonad m => [Text] -> LP m Inlines
-doinlinecode classes = do
-  Tok _ Symbol t <- anySymbol
-  marker <- case T.uncons t of
-              Just (c, ts) | T.null ts -> return c
-              _            -> mzero
-  let stopchar = if marker == '{' then '}' else marker
-  withVerbatimMode $
-    codeWith ("",classes,[]) . T.map nlToSpace . untokenize <$>
-      manyTill (verbTok stopchar) (symbol stopchar)
-
-nlToSpace :: Char -> Char
-nlToSpace '\n' = ' '
-nlToSpace x    = x
-
 inlineCommand' :: PandocMonad m => LP m Inlines
 inlineCommand' = try $ do
   Tok _ (CtrlSeq name) cmd <- anyControlSeq
@@ -405,9 +337,6 @@ inlineCommand' = try $ do
 tok :: PandocMonad m => LP m Inlines
 tok = tokWith inline
 
-inBrackets :: Inlines -> Inlines
-inBrackets x = str "[" <> x <> str "]"
-
 unescapeURL :: Text -> Text
 unescapeURL = T.concat . go . T.splitOn "\\"
   where
@@ -420,234 +349,136 @@ unescapeURL = T.concat . go . T.splitOn "\\"
       | otherwise = "\\" <> t
 
 inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
-inlineCommands =
-  M.union inlineLanguageCommands $
-  M.union (accentCommands tok) $
-  M.union (citationCommands inline) $
-  M.union (siunitxCommands tok) $
-  M.fromList
-  [ ("emph", extractSpaces emph <$> tok)
-  , ("textit", extractSpaces emph <$> tok)
-  , ("textsl", extractSpaces emph <$> tok)
-  , ("textsc", extractSpaces smallcaps <$> tok)
-  , ("textsf", extractSpaces (spanWith ("",["sans-serif"],[])) <$> tok)
-  , ("textmd", extractSpaces (spanWith ("",["medium"],[])) <$> tok)
-  , ("textrm", extractSpaces (spanWith ("",["roman"],[])) <$> tok)
-  , ("textup", extractSpaces (spanWith ("",["upright"],[])) <$> tok)
-  , ("texttt", ttfamily)
-  , ("sout", extractSpaces strikeout <$> tok)
-  , ("alert", skipopts >> spanWith ("",["alert"],[]) <$> tok) -- beamer
-  , ("lq", return (str "‘"))
-  , ("rq", return (str "’"))
-  , ("textquoteleft", return (str "‘"))
-  , ("textquoteright", return (str "’"))
-  , ("textquotedblleft", return (str "“"))
-  , ("textquotedblright", return (str "”"))
-  , ("textsuperscript", extractSpaces superscript <$> tok)
-  , ("textsubscript", extractSpaces subscript <$> tok)
-  , ("textbackslash", lit "\\")
-  , ("backslash", lit "\\")
-  , ("slash", lit "/")
-  , ("textbf", extractSpaces strong <$> tok)
-  , ("textnormal", extractSpaces (spanWith ("",["nodecor"],[])) <$> tok)
-  , ("underline", underline <$> tok)
-  , ("ldots", lit "…")
-  , ("vdots", lit "\8942")
-  , ("dots", lit "…")
-  , ("mdots", lit "…")
-  , ("sim", lit "~")
-  , ("sep", lit ",")
-  , ("label", rawInlineOr "label" dolabel)
-  , ("ref", rawInlineOr "ref" $ doref "ref")
-  , ("cref", rawInlineOr "cref" $ doref "ref")       -- from cleveref.sty
-  , ("vref", rawInlineOr "vref" $ doref "ref+page")  -- from varioref.sty
-  , ("eqref", rawInlineOr "eqref" $ doref "eqref")   -- from amsmath.sty
-  , ("mbox", rawInlineOr "mbox" $ processHBox <$> tok)
-  , ("hbox", rawInlineOr "hbox" $ processHBox <$> tok)
-  , ("lettrine", rawInlineOr "lettrine" lettrine)
-  , ("(", mathInline . untokenize <$> manyTill anyTok (controlSeq ")"))
-  , ("[", mathDisplay . untokenize <$> manyTill anyTok (controlSeq "]"))
-  , ("ensuremath", mathInline . untokenize <$> braced)
-  , ("texorpdfstring", const <$> tok <*> tok)
-  , ("P", lit "¶")
-  , ("S", lit "§")
-  , ("$", lit "$")
-  , ("%", lit "%")
-  , ("&", lit "&")
-  , ("#", lit "#")
-  , ("_", lit "_")
-  , ("{", lit "{")
-  , ("}", lit "}")
-  , ("qed", lit "\a0\x25FB")
-  -- old TeX commands
-  , ("em", extractSpaces emph <$> inlines)
-  , ("it", extractSpaces emph <$> inlines)
-  , ("sl", extractSpaces emph <$> inlines)
-  , ("bf", extractSpaces strong <$> inlines)
-  , ("tt", code . stringify . toList <$> inlines)
-  , ("rm", inlines)
-  , ("itshape", extractSpaces emph <$> inlines)
-  , ("slshape", extractSpaces emph <$> inlines)
-  , ("scshape", extractSpaces smallcaps <$> inlines)
-  , ("bfseries", extractSpaces strong <$> inlines)
-  , ("MakeUppercase", makeUppercase <$> tok)
-  , ("MakeTextUppercase", makeUppercase <$> tok) -- textcase
-  , ("uppercase", makeUppercase <$> tok)
-  , ("MakeLowercase", makeLowercase <$> tok)
-  , ("MakeTextLowercase", makeLowercase <$> tok)
-  , ("lowercase", makeLowercase <$> tok)
-  , ("/", pure mempty) -- italic correction
-  , ("\\", linebreak <$ (do inTableCell <- sInTableCell <$> getState
-                            guard $ not inTableCell
-                            optional rawopt
-                            spaces))
-  , (",", lit "\8198")
-  , ("@", pure mempty)
-  , (" ", lit "\160")
-  , ("ps", pure $ str "PS." <> space)
-  , ("TeX", lit "TeX")
-  , ("LaTeX", lit "LaTeX")
-  , ("bar", lit "|")
-  , ("textless", lit "<")
-  , ("textgreater", lit ">")
-  , ("thanks", skipopts >> note <$> grouped block)
-  , ("footnote", skipopts >> note <$> grouped block)
-  , ("passthrough", tok) -- \passthrough macro used by latex writer
-                         -- for listings
-  , ("verb", doverb)
-  , ("lstinline", dolstinline)
-  , ("mintinline", domintinline)
-  , ("Verb", doverb)
-  , ("url", (\url -> link url "" (str url)) . unescapeURL . untokenize <$>
-                  bracedUrl)
-  , ("nolinkurl", code . unescapeURL . untokenize <$> bracedUrl)
-  , ("href", do url <- bracedUrl
-                sp
-                link (unescapeURL $ untokenize url) "" <$> tok)
-  , ("includegraphics", do options <- option [] keyvals
-                           src <- braced
-                           mkImage options . unescapeURL . removeDoubleQuotes $
-                               untokenize src)
-  , ("enquote*", enquote True Nothing)
-  , ("enquote", enquote False Nothing)
-  -- foreignquote is supposed to use native quote marks
-  , ("foreignquote*", braced >>= enquote True . Just . untokenize)
-  , ("foreignquote", braced >>= enquote False . Just . untokenize)
-  -- hypehnquote uses regular quotes
-  , ("hyphenquote*", braced >>= enquote True . Just . untokenize)
-  , ("hyphenquote", braced >>= enquote False . Just . untokenize)
-  , ("figurename", doTerm Translations.Figure)
-  , ("prefacename", doTerm Translations.Preface)
-  , ("refname", doTerm Translations.References)
-  , ("bibname", doTerm Translations.Bibliography)
-  , ("chaptername", doTerm Translations.Chapter)
-  , ("partname", doTerm Translations.Part)
-  , ("contentsname", doTerm Translations.Contents)
-  , ("listfigurename", doTerm Translations.ListOfFigures)
-  , ("listtablename", doTerm Translations.ListOfTables)
-  , ("indexname", doTerm Translations.Index)
-  , ("abstractname", doTerm Translations.Abstract)
-  , ("tablename", doTerm Translations.Table)
-  , ("enclname", doTerm Translations.Encl)
-  , ("ccname", doTerm Translations.Cc)
-  , ("headtoname", doTerm Translations.To)
-  , ("pagename", doTerm Translations.Page)
-  , ("seename", doTerm Translations.See)
-  , ("seealsoname", doTerm Translations.SeeAlso)
-  , ("proofname", doTerm Translations.Proof)
-  , ("glossaryname", doTerm Translations.Glossary)
-  , ("lstlistingname", doTerm Translations.Listing)
-  , ("hyperlink", hyperlink)
-  , ("hypertarget", hypertargetInline)
-  -- glossaries package
-  , ("gls", doAcronym "short")
-  , ("Gls", doAcronym "short")
-  , ("glsdesc", doAcronym "long")
-  , ("Glsdesc", doAcronym "long")
-  , ("GLSdesc", doAcronym "long")
-  , ("acrlong", doAcronym "long")
-  , ("Acrlong", doAcronym "long")
-  , ("acrfull", doAcronym "full")
-  , ("Acrfull", doAcronym "full")
-  , ("acrshort", doAcronym "abbrv")
-  , ("Acrshort", doAcronym "abbrv")
-  , ("glspl", doAcronymPlural "short")
-  , ("Glspl", doAcronymPlural "short")
-  , ("glsdescplural", doAcronymPlural "long")
-  , ("Glsdescplural", doAcronymPlural "long")
-  , ("GLSdescplural", doAcronymPlural "long")
-  -- acronyms package
-  , ("ac", doAcronym "short")
-  , ("acf", doAcronym "full")
-  , ("acs", doAcronym "abbrv")
-  , ("acl", doAcronym "long")
-  , ("acp", doAcronymPlural "short")
-  , ("acfp", doAcronymPlural "full")
-  , ("acsp", doAcronymPlural "abbrv")
-  , ("aclp", doAcronymPlural "long")
-  , ("Ac", doAcronym "short")
-  , ("Acf", doAcronym "full")
-  , ("Acs", doAcronym "abbrv")
-  , ("Acl", doAcronym "long")
-  , ("Acp", doAcronymPlural "short")
-  , ("Acfp", doAcronymPlural "full")
-  , ("Acsp", doAcronymPlural "abbrv")
-  , ("Aclp", doAcronymPlural "long")
-  -- hyphenat
-  , ("bshyp", lit "\\\173")
-  , ("fshyp", lit "/\173")
-  , ("dothyp", lit ".\173")
-  , ("colonhyp", lit ":\173")
-  , ("hyp", lit "-")
-  , ("nohyphens", tok)
-  , ("textnhtt", ttfamily)
-  , ("nhttfamily", ttfamily)
-  -- LaTeX colors
-  , ("textcolor", coloredInline "color")
-  , ("colorbox", coloredInline "background-color")
-  -- fontawesome
-  , ("faCheck", lit "\10003")
-  , ("faClose", lit "\10007")
-  -- xspace
-  , ("xspace", doxspace)
-  -- etoolbox
-  , ("ifstrequal", ifstrequal)
-  , ("newtoggle", braced >>= newToggle)
-  , ("toggletrue", braced >>= setToggle True)
-  , ("togglefalse", braced >>= setToggle False)
-  , ("iftoggle", try $ ifToggle >> inline)
-  -- biblatex misc
-  , ("RN", romanNumeralUpper)
-  , ("Rn", romanNumeralLower)
-  -- babel
-  , ("foreignlanguage", foreignlanguage)
-  -- include
-  , ("input", rawInlineOr "input" $ include "input")
-  -- soul package
-  , ("ul", underline <$> tok)
-  -- ulem package
-  , ("uline", underline <$> tok)
-  -- plain tex stuff that should just be passed through as raw tex
-  , ("ifdim", ifdim)
-  -- bibtex
-  , ("mkbibquote", spanWith nullAttr . doubleQuoted <$> tok)
-  , ("mkbibemph", spanWith nullAttr . emph <$> tok)
-  , ("mkbibitalic", spanWith nullAttr . emph <$> tok)
-  , ("mkbibbold", spanWith nullAttr . strong <$> tok)
-  , ("mkbibparens",
-       spanWith nullAttr . (\x -> str "(" <> x <> str ")") <$> tok)
-  , ("mkbibbrackets",
-       spanWith nullAttr . (\x -> str "[" <> x <> str "]") <$> tok)
-  , ("autocap", spanWith nullAttr <$> tok)
-  , ("textnormal", spanWith ("",["nodecor"],[]) <$> tok)
-  , ("bibstring",
-       (\x -> spanWith ("",[],[("bibstring",x)]) (str x)) . untokenize
-         <$> braced)
-  , ("adddot", pure (str "."))
-  , ("adddotspace", pure (spanWith nullAttr (str "." <> space)))
-  , ("addabbrvspace", pure space)
-  , ("hyphen", pure (str "-"))
-  ]
+inlineCommands = M.unions
+  [ inlineLanguageCommands
+  , accentCommands tok
+  , citationCommands inline
+  , siunitxCommands tok
+  , acronymCommands
+  , refCommands
+  , nameCommands
+  , verbCommands
+  , charCommands
+  , rest ]
+ where
+  rest = M.fromList
+    [ ("emph", extractSpaces emph <$> tok)
+    , ("textit", extractSpaces emph <$> tok)
+    , ("textsl", extractSpaces emph <$> tok)
+    , ("textsc", extractSpaces smallcaps <$> tok)
+    , ("textsf", extractSpaces (spanWith ("",["sans-serif"],[])) <$> tok)
+    , ("textmd", extractSpaces (spanWith ("",["medium"],[])) <$> tok)
+    , ("textrm", extractSpaces (spanWith ("",["roman"],[])) <$> tok)
+    , ("textup", extractSpaces (spanWith ("",["upright"],[])) <$> tok)
+    , ("texttt", ttfamily)
+    , ("sout", extractSpaces strikeout <$> tok)
+    , ("alert", skipopts >> spanWith ("",["alert"],[]) <$> tok) -- beamer
+    , ("lq", return (str "‘"))
+    , ("rq", return (str "’"))
+    , ("textquoteleft", return (str "‘"))
+    , ("textquoteright", return (str "’"))
+    , ("textquotedblleft", return (str "“"))
+    , ("textquotedblright", return (str "”"))
+    , ("textsuperscript", extractSpaces superscript <$> tok)
+    , ("textsubscript", extractSpaces subscript <$> tok)
+    , ("textbf", extractSpaces strong <$> tok)
+    , ("textnormal", extractSpaces (spanWith ("",["nodecor"],[])) <$> tok)
+    , ("underline", underline <$> tok)
+    , ("mbox", rawInlineOr "mbox" $ processHBox <$> tok)
+    , ("hbox", rawInlineOr "hbox" $ processHBox <$> tok)
+    , ("lettrine", rawInlineOr "lettrine" lettrine)
+    , ("(", mathInline . untokenize <$> manyTill anyTok (controlSeq ")"))
+    , ("[", mathDisplay . untokenize <$> manyTill anyTok (controlSeq "]"))
+    , ("ensuremath", mathInline . untokenize <$> braced)
+    , ("texorpdfstring", const <$> tok <*> tok)
+    -- old TeX commands
+    , ("em", extractSpaces emph <$> inlines)
+    , ("it", extractSpaces emph <$> inlines)
+    , ("sl", extractSpaces emph <$> inlines)
+    , ("bf", extractSpaces strong <$> inlines)
+    , ("tt", code . stringify . toList <$> inlines)
+    , ("rm", inlines)
+    , ("itshape", extractSpaces emph <$> inlines)
+    , ("slshape", extractSpaces emph <$> inlines)
+    , ("scshape", extractSpaces smallcaps <$> inlines)
+    , ("bfseries", extractSpaces strong <$> inlines)
+    , ("MakeUppercase", makeUppercase <$> tok)
+    , ("MakeTextUppercase", makeUppercase <$> tok) -- textcase
+    , ("uppercase", makeUppercase <$> tok)
+    , ("MakeLowercase", makeLowercase <$> tok)
+    , ("MakeTextLowercase", makeLowercase <$> tok)
+    , ("lowercase", makeLowercase <$> tok)
+    , ("thanks", skipopts >> note <$> grouped block)
+    , ("footnote", skipopts >> note <$> grouped block)
+    , ("passthrough", tok) -- \passthrough macro used by latex writer
+                           -- for listings
+    , ("url", (\url -> link url "" (str url)) . unescapeURL . untokenize <$>
+                    bracedUrl)
+    , ("nolinkurl", code . unescapeURL . untokenize <$> bracedUrl)
+    , ("href", do url <- bracedUrl
+                  sp
+                  link (unescapeURL $ untokenize url) "" <$> tok)
+    , ("includegraphics", do options <- option [] keyvals
+                             src <- braced
+                             mkImage options . unescapeURL . removeDoubleQuotes $
+                                 untokenize src)
+    , ("enquote*", enquote True Nothing)
+    , ("enquote", enquote False Nothing)
+    -- foreignquote is supposed to use native quote marks
+    , ("foreignquote*", braced >>= enquote True . Just . untokenize)
+    , ("foreignquote", braced >>= enquote False . Just . untokenize)
+    -- hypehnquote uses regular quotes
+    , ("hyphenquote*", braced >>= enquote True . Just . untokenize)
+    , ("hyphenquote", braced >>= enquote False . Just . untokenize)
+    , ("hyperlink", hyperlink)
+    , ("hypertarget", hypertargetInline)
+    -- hyphenat
+    , ("nohyphens", tok)
+    , ("textnhtt", ttfamily)
+    , ("nhttfamily", ttfamily)
+    -- LaTeX colors
+    , ("textcolor", coloredInline "color")
+    , ("colorbox", coloredInline "background-color")
+    -- xspace
+    , ("xspace", doxspace)
+    -- etoolbox
+    , ("ifstrequal", ifstrequal)
+    , ("newtoggle", braced >>= newToggle)
+    , ("toggletrue", braced >>= setToggle True)
+    , ("togglefalse", braced >>= setToggle False)
+    , ("iftoggle", try $ ifToggle >> inline)
+    -- biblatex misc
+    , ("RN", romanNumeralUpper)
+    , ("Rn", romanNumeralLower)
+    -- babel
+    , ("foreignlanguage", foreignlanguage)
+    -- include
+    , ("input", rawInlineOr "input" $ include "input")
+    -- soul package
+    , ("ul", underline <$> tok)
+    -- ulem package
+    , ("uline", underline <$> tok)
+    -- plain tex stuff that should just be passed through as raw tex
+    , ("ifdim", ifdim)
+    -- bibtex
+    , ("mkbibquote", spanWith nullAttr . doubleQuoted <$> tok)
+    , ("mkbibemph", spanWith nullAttr . emph <$> tok)
+    , ("mkbibitalic", spanWith nullAttr . emph <$> tok)
+    , ("mkbibbold", spanWith nullAttr . strong <$> tok)
+    , ("mkbibparens",
+         spanWith nullAttr . (\x -> str "(" <> x <> str ")") <$> tok)
+    , ("mkbibbrackets",
+         spanWith nullAttr . (\x -> str "[" <> x <> str "]") <$> tok)
+    , ("autocap", spanWith nullAttr <$> tok)
+    , ("textnormal", spanWith ("",["nodecor"],[]) <$> tok)
+    , ("bibstring",
+         (\x -> spanWith ("",[],[("bibstring",x)]) (str x)) . untokenize
+           <$> braced)
+    , ("adddot", pure (str "."))
+    , ("adddotspace", pure (spanWith nullAttr (str "." <> space)))
+    , ("addabbrvspace", pure space)
+    , ("hyphen", pure (str "-"))
+    ]
 
 lettrine :: PandocMonad m => LP m Inlines
 lettrine = do
@@ -766,9 +597,6 @@ ifToggle = do
                   report $ UndefinedToggle name' pos
   return ()
 
-doTerm :: PandocMonad m => Translations.Term -> LP m Inlines
-doTerm term = str <$> translateTerm term
-
 ifstrequal :: (PandocMonad m, Monoid a) => LP m a
 ifstrequal = do
   str1 <- tok
@@ -788,13 +616,6 @@ coloredInline stylename = do
 
 ttfamily :: PandocMonad m => LP m Inlines
 ttfamily = code . stringify . toList <$> tok
-
-rawInlineOr :: PandocMonad m => Text -> LP m Inlines -> LP m Inlines
-rawInlineOr name' fallback = do
-  parseRaw <- extensionEnabled Ext_raw_tex <$> getOption readerExtensions
-  if parseRaw
-     then rawInline "latex" <$> getRawCommand name' ("\\" <> name')
-     else fallback
 
 processHBox :: Inlines -> Inlines
 processHBox = walk convert
@@ -845,25 +666,6 @@ treatAsInline = Set.fromList
   , "clearpage"
   , "pagebreak"
   ]
-
-dolabel :: PandocMonad m => LP m Inlines
-dolabel = do
-  v <- braced
-  let refstr = untokenize v
-  updateState $ \st ->
-    st{ sLastLabel = Just refstr }
-  return $ spanWith (refstr,[],[("label", refstr)])
-    $ inBrackets $ str $ untokenize v
-
-doref :: PandocMonad m => Text -> LP m Inlines
-doref cls = do
-  v <- braced
-  let refstr = untokenize v
-  return $ linkWith ("",[],[ ("reference-type", cls)
-                           , ("reference", refstr)])
-                    ("#" <> refstr)
-                    ""
-                    (inBrackets $ str refstr)
 
 lookupListDefault :: (Ord k) => v -> [k] -> M.Map k v -> v
 lookupListDefault d = (fromMaybe d .) . lookupList
