@@ -664,6 +664,7 @@ library
                    Text.Pandoc.Writers.LaTeX.Caption,
                    Text.Pandoc.Writers.LaTeX.Notes,
                    Text.Pandoc.Writers.LaTeX.Table,
+                   Text.Pandoc.Writers.LaTeX.Lang,
                    Text.Pandoc.Writers.LaTeX.Types,
                    Text.Pandoc.Writers.Markdown.Types,
                    Text.Pandoc.Writers.Markdown.Inline,
