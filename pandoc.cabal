@@ -461,7 +461,7 @@ library
                  exceptions            >= 0.8      && < 0.11,
                  file-embed            >= 0.0      && < 0.1,
                  filepath              >= 1.1      && < 1.5,
-                 haddock-library       >= 1.8      && < 1.10,
+                 haddock-library       >= 1.8      && < 1.11,
                  hslua                 >= 1.1      && < 1.4,
                  hslua-module-path     >= 0.1.0    && < 0.2.0,
                  hslua-module-system   >= 0.2      && < 0.3,
