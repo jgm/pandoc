@@ -35,8 +35,8 @@ import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.Extensions (extensionEnabled, Extension(..))
 import Text.Pandoc.Parsing (getOption, updateState, getState, notFollowedBy,
                             manyTill, getInput, setInput, incSourceColumn,
-                            option, many1, try, lookAhead)
-import Data.Char (isDigit, isLetter)
+                            option, many1, try)
+import Data.Char (isDigit)
 import Text.Pandoc.Highlighting (fromListingsLanguage,)
 import Data.Maybe (maybeToList, fromMaybe)
 import Text.Pandoc.Options (ReaderOptions(..))
@@ -49,15 +49,6 @@ rawInlineOr name' fallback = do
   if parseRaw
      then rawInline "latex" <$> getRawCommand name' ("\\" <> name')
      else fallback
-
-doxspace :: PandocMonad m => LP m Inlines
-doxspace =
-  (space <$ lookAhead (satisfyTok startsWithLetter)) <|> return mempty
-  where startsWithLetter (Tok _ Word t) =
-          case T.uncons t of
-               Just (c, _) | isLetter c -> True
-               _           -> False
-        startsWithLetter _ = False
 
 dolabel :: PandocMonad m => LP m Inlines
 dolabel = do
@@ -289,8 +280,6 @@ charCommands = M.fromList
   , ("dothyp", lit ".\173")
   , ("colonhyp", lit ":\173")
   , ("hyp", lit "-")
-  -- xspace
-  , ("xspace", doxspace)
   ]
 
 biblatexInlineCommands :: PandocMonad m

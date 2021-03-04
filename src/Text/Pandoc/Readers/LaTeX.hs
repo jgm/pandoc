@@ -38,8 +38,9 @@ import Text.Pandoc.BCP47 (renderLang)
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocPure (PandocPure)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), getResourcePath,
-                                      report, setResourcePath)
-import Text.Pandoc.Error (PandocError (PandocParsecError))
+                                      readFileFromDirs, report,
+                                      setResourcePath)
+import Text.Pandoc.Error (PandocError (PandocParseError, PandocParsecError))
 import Text.Pandoc.Highlighting (languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
@@ -60,8 +61,6 @@ import Text.Pandoc.Readers.LaTeX.Lang (inlineLanguageCommands,
                                        enquoteCommands,
                                        babelLangToBCP47, setDefaultLanguage)
 import Text.Pandoc.Readers.LaTeX.SIunitx (siunitxCommands)
-import Text.Pandoc.Readers.LaTeX.Include (insertIncluded,
-                                          readFileFromTexinputs)
 import Text.Pandoc.Readers.LaTeX.Inline (acronymCommands, refCommands,
                                          nameCommands, charCommands,
                                          accentCommands,
@@ -236,10 +235,19 @@ mkImage options (T.unpack -> src) = do
                _  -> return src
    return $ imageWith attr (T.pack src') "" alt
 
+doxspace :: PandocMonad m => LP m Inlines
+doxspace =
+  (space <$ lookAhead (satisfyTok startsWithLetter)) <|> return mempty
+  where startsWithLetter (Tok _ Word t) =
+          case T.uncons t of
+               Just (c, _) | isLetter c -> True
+               _           -> False
+        startsWithLetter _ = False
+
 
 removeDoubleQuotes :: Text -> Text
 removeDoubleQuotes t =
-  fromMaybe t $ T.stripPrefix "\"" t >>= T.stripSuffix "\""
+  Data.Maybe.fromMaybe t $ T.stripPrefix "\"" t >>= T.stripSuffix "\""
 
 doubleQuote :: PandocMonad m => LP m Inlines
 doubleQuote =
@@ -398,8 +406,8 @@ inlineCommands = M.unions
                   link (unescapeURL $ untokenize url) "" <$> tok)
     , ("includegraphics", do options <- option [] keyvals
                              src <- braced
-                             mkImage options . unescapeURL .
-                               removeDoubleQuotes $ untokenize src)
+                             mkImage options . unescapeURL . removeDoubleQuotes $
+                                 untokenize src)
     , ("hyperlink", hyperlink)
     , ("hypertarget", hypertargetInline)
     -- hyphenat
@@ -409,6 +417,8 @@ inlineCommands = M.unions
     -- LaTeX colors
     , ("textcolor", coloredInline "color")
     , ("colorbox", coloredInline "background-color")
+    -- xspace
+    , ("xspace", doxspace)
     -- etoolbox
     , ("ifstrequal", ifstrequal)
     , ("newtoggle", braced >>= newToggle)
@@ -687,6 +697,39 @@ include name = do
                  | otherwise            = ".tex"
   mapM_ (insertIncluded defaultExt) fs
   return mempty
+
+readFileFromTexinputs :: PandocMonad m => FilePath -> LP m (Maybe Text)
+readFileFromTexinputs fp = do
+  fileContentsMap <- sFileContents <$> getState
+  case M.lookup (T.pack fp) fileContentsMap of
+    Just t -> return (Just t)
+    Nothing -> do
+      dirs <- map T.unpack . splitTextBy (==':') . fromMaybe "."
+               <$> lookupEnv "TEXINPUTS"
+      readFileFromDirs dirs fp
+
+insertIncluded :: PandocMonad m
+               => FilePath
+               -> FilePath
+               -> LP m ()
+insertIncluded defaultExtension f' = do
+  let f = case takeExtension f' of
+                ".tex" -> f'
+                ".sty" -> f'
+                _      -> addExtension f' defaultExtension
+  pos <- getPosition
+  containers <- getIncludeFiles <$> getState
+  when (T.pack f `elem` containers) $
+    throwError $ PandocParseError $ T.pack $ "Include file loop at " ++ show pos
+  updateState $ addIncludeFile $ T.pack f
+  mbcontents <- readFileFromTexinputs f
+  contents <- case mbcontents of
+                   Just s -> return s
+                   Nothing -> do
+                     report $ CouldNotLoadIncludeFile (T.pack f) pos
+                     return ""
+  getInput >>= setInput . (tokenize f contents ++)
+  updateState dropLatestIncludeFile
 
 authors :: PandocMonad m => LP m ()
 authors = try $ do
