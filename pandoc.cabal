@@ -626,7 +626,6 @@ library
                    Text.Pandoc.Readers.HTML.Table,
                    Text.Pandoc.Readers.HTML.TagCategories,
                    Text.Pandoc.Readers.HTML.Types,
-                   Text.Pandoc.Readers.LaTeX.Accent,
                    Text.Pandoc.Readers.LaTeX.Inline,
                    Text.Pandoc.Readers.LaTeX.Citation,
                    Text.Pandoc.Readers.LaTeX.Lang,
