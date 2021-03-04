@@ -99,7 +99,7 @@
       opening brace, and make it more efficient.
     + Factor out pieces of the LaTeX reader to make the module smaller.
       This reduces memory demands when compiling.  Created
-      Text.Pandoc.Readers.{LaTeX,Math,Citation,Table,Macro,Accent}.
+      Text.Pandoc.Readers.{LaTeX,Math,Citation,Table,Macro,Inline}.
       Changed Text.Pandoc.Readers.LaTeX.SIunitx to export a command map
       instead of individual commands.
 
@@ -196,12 +196,16 @@
     + Change BCP47 lang tag from `jp` to `ja` (Mauro Bieg, #7047).
     + Use function instead of map for accent lookup (should be
       more efficient).
+    + Split the module to make it easier to compile on low-memory
+      systems:  added Text.Pandoc.Writers.LaTeX.{Util,Citation,Lang}.
 
   * Markdown writer:
 
     + Handle math right before digit.  We insert an HTML comment to
       avoid a `$` right before a digit, which pandoc will not recognize
       as a math delimiter.
+    + Split the module to make it easier to compile on low-memory
+      systems: added Text.Pandoc.Writers.Markdown.{Types,Inline}.
 
   * ODT writer:
 
@@ -380,6 +384,8 @@
   * Documentation: Update URLs and use `https` where possible (#7122,
     Salim B).
 
+  * Add `doc/libraries.md`, a description of libraries that support pandoc.
+
   * MANUAL.txt
 
     + MANUAL: block-level formatting is not allowed in line blocks (#7107).
@@ -405,7 +411,7 @@
 
   * Require jira-wiki-markup 1.3.3 (Albert Krewinkel)
 
-  * Require citeproc 0.3.0.7, which correctly titlecases when titles
+  * Require citeproc 0.3.0.8, which correctly titlecases when titles
     contain non-ASCII characters.
 
   * Use skylighting 0.10.4.  This version of skylighting uses xml-conduit
