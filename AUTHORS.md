@@ -163,6 +163,8 @@
 - Leif Metcalf
 - Leonard Rosenthol
 - Lila
+- Loïc Grobol
+- Lorenzo
 - Lucas Escot
 - Luke Plant
 - Marc Schreiber
@@ -196,10 +198,12 @@
 - Nathan Gass
 - Neil Mayhew
 - Nick Bart
+- Nick Berendsen
 - Nick Fleisher
 - Nicolas Kaiser
 - Nikolay Yakimov
 - Nils Carlson
+- Nixon Enraght-Moony
 - Nokome Bentley
 - Ole Martin Ruud
 - Oliver Matthews
