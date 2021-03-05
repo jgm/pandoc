@@ -1725,7 +1725,7 @@ str = do
   updateLastStrPos
   (do guardEnabled Ext_smart
       abbrevs <- getOption readerAbbreviations
-      if result `Set.member` abbrevs
+      if not (T.null result) && T.last result == '.' && result `Set.member` abbrevs
          then try (do ils <- whitespace
                       notFollowedBy (() <$ cite <|> () <$ note)
                       -- ?? lookAhead alphaNum
