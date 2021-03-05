@@ -691,9 +691,9 @@ header when requesting a document from a URL:
     system default, use
     `pandoc --print-default-data-file=abbreviations`.  The only
     use pandoc makes of this list is in the Markdown reader.
-    Strings ending in a period that are found in this list will
-    be followed by a nonbreaking space, so that the period will
-    not produce sentence-ending space in formats like LaTeX.
+    Strings found in this list will be followed by a nonbreaking
+    space, and the period will not produce sentence-ending space
+    in formats like LaTeX.  The strings may not contain spaces.
 
 [`pandocfilters`]: https://github.com/jgm/pandocfilters
 [PHP]: https://github.com/vinai/pandocfilters-php
