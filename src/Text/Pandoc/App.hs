@@ -47,10 +47,11 @@ import System.FilePath ( takeBaseName, takeExtension )
 import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
+import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.MIME (getCharset)
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
-                            IpynbOutput (..) )
+                            IpynbOutput (..))
 import Text.Pandoc.App.CommandLineOptions (parseOptions, parseOptionsFromArgs,
                                            options)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
@@ -60,7 +61,7 @@ import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
          headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput,
-         defaultUserDataDirs, tshow, findM)
+         defaultUserDataDir, tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -71,6 +72,15 @@ import System.Posix.Terminal (queryTerminal)
 
 convertWithOpts :: Opt -> IO ()
 convertWithOpts opts = do
+  datadir <- case optDataDir opts of
+                  Nothing   -> do
+                    d <- defaultUserDataDir
+                    exists <- doesDirectoryExist d
+                    return $ if exists
+                                then Just d
+                                else Nothing
+                  Just _    -> return $ optDataDir opts
+
   let outputFile = fromMaybe "-" (optOutputFile opts)
   let filters = optFilters opts
   let verbosity = optVerbosity opts
@@ -84,12 +94,6 @@ convertWithOpts opts = do
   let sources = case optInputFiles opts of
                      Just xs | not (optIgnoreArgs opts) -> xs
                      _ -> ["-"]
-
-  datadir <- case optDataDir opts of
-                  Nothing   -> do
-                    ds <- defaultUserDataDirs
-                    findM doesDirectoryExist ds
-                  Just _    -> return $ optDataDir opts
 
   let runIO' :: PandocIO a -> IO a
       runIO' f = do
@@ -275,12 +279,21 @@ convertWithOpts opts = do
       report $ Deprecated "pandoc-citeproc filter"
                "Use --citeproc instead."
 
+    let cslMetadata =
+          maybe id (setMeta "csl") (optCSL opts) .
+          (case optBibliography opts of
+             [] -> id
+             xs -> setMeta "bibliography" xs) .
+          maybe id (setMeta "citation-abbreviations")
+                         (optCitationAbbreviations opts) $ mempty
+
     doc <- sourceToDoc sources >>=
               (   (if isJust (optExtractMedia opts)
                       then fillMediaBag
                       else return)
               >=> return . adjustMetadata (metadataFromFile <>)
               >=> return . adjustMetadata (<> optMetadata opts)
+              >=> return . adjustMetadata (<> cslMetadata)
               >=> applyTransforms transforms
               >=> applyFilters readerOpts filters [T.unpack format]
               >=> maybe return extractMedia (optExtractMedia opts)

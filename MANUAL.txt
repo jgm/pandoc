@@ -1672,6 +1672,21 @@ one line:
 verbosity: INFO
 ```
 
+In fields that expect a file path (or list of file paths), the
+following syntax may be used to interpolate environment variables:
+
+``` yaml
+csl:  ${HOME}/mycsldir/special.csl
+```
+
+`${USERDATA}` may also be used; this will always resolve to the
+user data directory that is current when the defaults file is
+parsed, regardless of the setting of the environment
+variable `USERDATA`.
+
+This environment variable interpolation syntax *only* works in
+fields that expect file paths.
+
 Default files can be placed in the `defaults` subdirectory of
 the user data directory and used from any directory.  For
 example, one could create a file specifying defaults for writing

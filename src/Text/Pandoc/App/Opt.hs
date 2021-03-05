@@ -32,16 +32,18 @@ import Data.Char (isLower, toLower)
 import Data.Maybe (fromMaybe)
 import GHC.Generics hiding (Meta)
 import Text.Pandoc.Filter (Filter (..))
-import Text.Pandoc.Logging (Verbosity (WARNING))
+import Text.Pandoc.Logging (Verbosity (WARNING), LogMessage(..))
 import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             TrackChanges (AcceptChanges),
                             WrapOption (WrapAuto), HTMLMathMethod (PlainMath),
                             ReferenceLocation (EndOfDocument),
                             ObfuscationMethod (NoObfuscation),
                             CiteMethod (Citeproc))
-import Text.Pandoc.Class (readFileLazy, fileExists, setVerbosity, PandocMonad)
+import Text.Pandoc.Class (readFileLazy, fileExists, setVerbosity, report,
+                          PandocMonad(lookupEnv), getUserDataDir)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocSomeError))
-import Text.Pandoc.Shared (camelCaseStrToHyphenated, defaultUserDataDirs, findM, ordNub)
+import Text.Pandoc.Shared (camelCaseStrToHyphenated, defaultUserDataDir,
+                           findM, ordNub)
 import qualified Text.Pandoc.Parsing as P
 import Text.Pandoc.Readers.Metadata (yamlMap)
 import Text.Pandoc.Class.PandocPure
@@ -176,16 +178,119 @@ instance (PandocMonad m, MonadIO m)
     dataDir <- case M.lookup "data-dir" opts of
       Nothing -> return Nothing
       Just v -> Just . unpack <$> parseYAML v
-    f <- parseOptions $ M.toList m
+    f <- parseOptions (M.toList m)
     case M.lookup "defaults" opts of
       Just v -> do
         g <- parseDefaults v dataDir
-        return  $ g >=> f
-      Nothing -> return f
+        return  $ g >=> f >=> resolveVarsInOpt
+      Nothing -> return $ f >=> resolveVarsInOpt
     where
       toText (Scalar _ (SStr s)) = s
       toText _ = ""
   parseYAML n = failAtNode n "Expected a mapping"
+
+resolveVarsInOpt :: (PandocMonad m, MonadIO m) => Opt -> m Opt
+resolveVarsInOpt
+    opt@Opt
+    { optTemplate              = oTemplate
+    , optMetadataFiles         = oMetadataFiles
+    , optOutputFile            = oOutputFile
+    , optInputFiles            = oInputFiles
+    , optSyntaxDefinitions     = oSyntaxDefinitions
+    , optAbbreviations         = oAbbreviations
+    , optReferenceDoc          = oReferenceDoc
+    , optEpubMetadata          = oEpubMetadata
+    , optEpubFonts             = oEpubFonts
+    , optEpubCoverImage        = oEpubCoverImage
+    , optLogFile               = oLogFile
+    , optFilters               = oFilters
+    , optDataDir               = oDataDir
+    , optExtractMedia          = oExtractMedia
+    , optCss                   = oCss
+    , optIncludeBeforeBody     = oIncludeBeforeBody
+    , optIncludeAfterBody      = oIncludeAfterBody
+    , optIncludeInHeader       = oIncludeInHeader
+    , optResourcePath          = oResourcePath
+    , optCSL                   = oCSL
+    , optBibliography          = oBibliography
+    , optCitationAbbreviations = oCitationAbbreviations
+    }
+  = do
+      oTemplate' <- mapM resolveVars oTemplate
+      oMetadataFiles' <- mapM resolveVars oMetadataFiles
+      oOutputFile' <- mapM resolveVars oOutputFile
+      oInputFiles' <- mapM (mapM resolveVars) oInputFiles
+      oSyntaxDefinitions' <- mapM resolveVars oSyntaxDefinitions
+      oAbbreviations' <- mapM resolveVars oAbbreviations
+      oReferenceDoc' <- mapM resolveVars oReferenceDoc
+      oEpubMetadata' <- mapM resolveVars oEpubMetadata
+      oEpubFonts' <- mapM resolveVars oEpubFonts
+      oEpubCoverImage' <- mapM resolveVars oEpubCoverImage
+      oLogFile' <- mapM resolveVars oLogFile
+      oFilters' <- mapM resolveVarsInFilter oFilters
+      oDataDir' <- mapM resolveVars oDataDir
+      oExtractMedia' <- mapM resolveVars oExtractMedia
+      oCss' <- mapM resolveVars oCss
+      oIncludeBeforeBody' <- mapM resolveVars oIncludeBeforeBody
+      oIncludeAfterBody' <- mapM resolveVars oIncludeAfterBody
+      oIncludeInHeader' <- mapM resolveVars oIncludeInHeader
+      oResourcePath' <- mapM resolveVars oResourcePath
+      oCSL' <- mapM resolveVars oCSL
+      oBibliography' <- mapM resolveVars oBibliography
+      oCitationAbbreviations' <- mapM resolveVars oCitationAbbreviations
+      return opt{ optTemplate              = oTemplate'
+                , optMetadataFiles         = oMetadataFiles'
+                , optOutputFile            = oOutputFile'
+                , optInputFiles            = oInputFiles'
+                , optSyntaxDefinitions     = oSyntaxDefinitions'
+                , optAbbreviations         = oAbbreviations'
+                , optReferenceDoc          = oReferenceDoc'
+                , optEpubMetadata          = oEpubMetadata'
+                , optEpubFonts             = oEpubFonts'
+                , optEpubCoverImage        = oEpubCoverImage'
+                , optLogFile               = oLogFile'
+                , optFilters               = oFilters'
+                , optDataDir               = oDataDir'
+                , optExtractMedia          = oExtractMedia'
+                , optCss                   = oCss'
+                , optIncludeBeforeBody     = oIncludeBeforeBody'
+                , optIncludeAfterBody      = oIncludeAfterBody'
+                , optIncludeInHeader       = oIncludeInHeader'
+                , optResourcePath          = oResourcePath'
+                , optCSL                   = oCSL'
+                , optBibliography          = oBibliography'
+                , optCitationAbbreviations = oCitationAbbreviations'
+                }
+
+ where
+  resolveVars [] = return []
+  resolveVars ('$':'{':xs) =
+    let (ys, zs) = break (=='}') xs
+     in if null zs
+           then return $ '$':'{':xs
+           else do
+             val <- lookupEnv' ys
+             (val ++) <$> resolveVars (drop 1 zs)
+  resolveVars (c:cs) = (c:) <$> resolveVars cs
+  lookupEnv' "USERDATA" = do
+    mbodatadir <- mapM resolveVars oDataDir
+    mbdatadir  <- getUserDataDir
+    defdatadir <- liftIO defaultUserDataDir
+    return $ fromMaybe defdatadir (mbodatadir <|> mbdatadir)
+  lookupEnv' v = do
+    mbval <- fmap T.unpack <$> lookupEnv (T.pack v)
+    case mbval of
+      Nothing -> do
+        report $ EnvironmentVariableUndefined (T.pack v)
+        return mempty
+      Just x  -> return x
+  resolveVarsInFilter (JSONFilter fp) =
+    JSONFilter <$> resolveVars fp
+  resolveVarsInFilter (LuaFilter fp) =
+    LuaFilter <$> resolveVars fp
+  resolveVarsInFilter CiteprocFilter = return CiteprocFilter
+
+
 
 parseDefaults :: (PandocMonad m, MonadIO m)
               => Node Pos
