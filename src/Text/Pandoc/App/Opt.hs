@@ -27,7 +27,8 @@ module Text.Pandoc.App.Opt (
           ) where
 import Control.Monad.Except (MonadIO, liftIO, throwError, (>=>), foldM)
 import Control.Monad.State.Strict (StateT, modify, gets)
-import System.FilePath ( addExtension, (</>), takeExtension )
+import System.FilePath ( addExtension, (</>), takeExtension, takeDirectory )
+import System.Directory ( canonicalizePath )
 import Data.Char (isLower, toLower)
 import Data.Maybe (fromMaybe)
 import GHC.Generics hiding (Meta)
@@ -189,7 +190,8 @@ instance (PandocMonad m, MonadIO m)
       toText _ = ""
   parseYAML n = failAtNode n "Expected a mapping"
 
-resolveVarsInOpt :: (PandocMonad m, MonadIO m) => Opt -> m Opt
+resolveVarsInOpt :: forall m. (PandocMonad m, MonadIO m)
+                 => Opt -> StateT DefaultsState m Opt
 resolveVarsInOpt
     opt@Opt
     { optTemplate              = oTemplate
@@ -263,6 +265,7 @@ resolveVarsInOpt
                 }
 
  where
+  resolveVars :: FilePath -> StateT DefaultsState m FilePath
   resolveVars [] = return []
   resolveVars ('$':'{':xs) =
     let (ys, zs) = break (=='}') xs
@@ -272,6 +275,12 @@ resolveVarsInOpt
              val <- lookupEnv' ys
              (val ++) <$> resolveVars (drop 1 zs)
   resolveVars (c:cs) = (c:) <$> resolveVars cs
+  lookupEnv' :: String -> StateT DefaultsState m String
+  lookupEnv' "." = do
+    mbCurDefaults <- gets curDefaults
+    maybe (return "")
+          (fmap takeDirectory . liftIO . canonicalizePath)
+          mbCurDefaults
   lookupEnv' "USERDATA" = do
     mbodatadir <- mapM resolveVars oDataDir
     mbdatadir  <- getUserDataDir

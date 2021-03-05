@@ -1684,6 +1684,19 @@ user data directory that is current when the defaults file is
 parsed, regardless of the setting of the environment
 variable `USERDATA`.
 
+`${.}` will resolve to the directory containing the default
+file itself.  This allows you to refer to resources contained
+in that directory:
+
+``` yaml
+epub-cover-image: ${.}/cover.jpg
+epub-metadata: ${.}/meta.xml
+resource-path:
+- .             # the working directory from which pandoc is run
+- ${.}/images   # the images subdirectory of the directory
+                # containing this defaults file
+```
+
 This environment variable interpolation syntax *only* works in
 fields that expect file paths.
 
