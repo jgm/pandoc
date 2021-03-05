@@ -100,6 +100,7 @@ data LogMessage =
   | FilterCompleted FilePath Integer
   | CiteprocWarning Text
   | ATXHeadingInLHS Int Text
+  | EnvironmentVariableUndefined Text
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -229,6 +230,8 @@ instance ToJSON LogMessage where
       ATXHeadingInLHS lvl contents ->
            ["level" .= lvl
            ,"contents" .= contents]
+      EnvironmentVariableUndefined var ->
+           ["variable" .= var ]
 
 showPos :: SourcePos -> Text
 showPos pos = Text.pack $ sn ++ "line " ++
@@ -345,6 +348,8 @@ showLogMessage msg =
          if lvl < 3
             then " Consider using --markdown-headings=setext."
             else ""
+       EnvironmentVariableUndefined var ->
+         "Undefined environment variable " <> var <> " in defaults file."
 
 messageVerbosity :: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -391,3 +396,4 @@ messageVerbosity msg =
        FilterCompleted{}             -> INFO
        CiteprocWarning{}             -> WARNING
        ATXHeadingInLHS{}             -> WARNING
+       EnvironmentVariableUndefined{}-> WARNING
