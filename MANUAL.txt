@@ -361,15 +361,15 @@ header when requesting a document from a URL:
     will be used.  On \*nix and macOS systems this will be the `pandoc`
     subdirectory of the XDG data directory (by default,
     `$HOME/.local/share`, overridable by setting the `XDG_DATA_HOME`
-    environment variable).  If that directory does not exist,
-    `$HOME/.pandoc` will be used (for backwards compatibility).
-    In Windows the default user data directory is
+    environment variable).  If that directory does not exist and
+    `$HOME/.pandoc` exists, it will be used (for backwards compatibility).
+    On Windows the default user data directory is
     `C:\Users\USERNAME\AppData\Roaming\pandoc`.
     You can find the default user data directory on your system by
     looking at the output of `pandoc --version`.
-    A `reference.odt`, `reference.docx`, `epub.css`, `templates`,
-    `slidy`, `slideous`, or `s5` directory
-    placed in this directory will override pandoc's normal defaults.
+    Data files placed in this directory (for example, `reference.odt`,
+    `reference.docx`, `epub.css`, `templates`) will override
+    pandoc's normal defaults.
 
 `-d` *FILE*, `--defaults=`*FILE*
 
