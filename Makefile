@@ -3,13 +3,7 @@ pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 SOURCEFILES?=$(shell git ls-tree -r master --name-only | grep "\.hs$$")
 BRANCH?=master
 ARCH=$(shell uname -m)
-ifeq ($(ARCH),amd64)
-  DOCKERIMAGE=registry.gitlab.b-data.ch/ghc/ghc4pandoc:8.10.4@sha256:83cfc60cb1df984b14d6277946002de6bc7bec25c827f5f9de3b0c5d3aeaa571
-else ifeq ($(ARCH),aarch64)
-  DOCKERIMAGE=registry.gitlab.b-data.ch/ghc/ghc4pandoc:8.10.4@sha256:e54a66cf8ef7f8a60b93f6a51cae7a0bd853a763098ffb3dbda2bf91b7ab49ad
-else
-  DOCKERIMAGE=UNSUPPORTEDARCHITECTURE
-endif
+DOCKERIMAGE=registry.gitlab.b-data.ch/ghc/ghc4pandoc:8.10.4
 COMMIT=$(shell git rev-parse --short HEAD)
 TIMESTAMP=$(shell date "+%Y%m%d_%H%M")
 LATESTBENCH=$(word 1,$(shell ls -t bench_*.csv 2>/dev/null))
