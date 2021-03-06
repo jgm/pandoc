@@ -83,7 +83,8 @@ debpkg: man/pandoc.1
                    -v `pwd`/linux/artifacts:/artifacts \
 		   -e REVISION=$(REVISION) \
 		   -w /mnt \
-	           utdemir/ghc-musl:v12-libgmp-ghc8101 bash \
+                   registry.gitlab.b-data.ch/ghc/ghc4pandoc:8.10.4 \
+		   bash \
 		   /mnt/linux/make_artifacts.sh
 
 man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
