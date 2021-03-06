@@ -86,7 +86,6 @@ debpkg: man/pandoc.1
 		   -e REVISION=$(REVISION) \
 		   -w /mnt \
 		   --memory=0 \
-		   --rm \
 		   $(DOCKERIMAGE) \
 		   bash \
 		   /mnt/linux/make_artifacts.sh
