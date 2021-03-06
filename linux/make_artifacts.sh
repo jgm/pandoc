@@ -2,9 +2,10 @@ set -e
 
 MACHINE=$(uname -m)
 case "$MACHINE" in
-  x86_64) ARCHITECTURE=amd64;;
-  i686)   ARCHITECTURE=i386;;
-  i386)   ARCHITECTURE=i386;;
+  x86_64)  ARCHITECTURE=amd64;;
+  i686)    ARCHITECTURE=i386;;
+  i386)    ARCHITECTURE=i386;;
+  aarch64) ARCHITECTURE=arm64;;
 esac
 
 ARTIFACTS="${ARTIFACTS:-/artifacts}"
