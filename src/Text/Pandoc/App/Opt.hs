@@ -583,7 +583,8 @@ doOpt (k',v) = do
                                 optIncludeInHeader o <> [unpack x] }))
     "resource-path" ->
       parseYAML v >>= \x ->
-             return (\o -> o{ optResourcePath = map unpack x })
+             return (\o -> o{ optResourcePath = map unpack x <>
+                                 optResourcePath o })
     "request-headers" ->
       parseYAML v >>= \x ->
              return (\o -> o{ optRequestHeaders = x })

@@ -288,7 +288,8 @@ options =
     , Option "" ["resource-path"]
                 (ReqArg
                   (\arg opt -> return opt { optResourcePath =
-                                   splitSearchPath arg })
+                                   splitSearchPath arg ++
+                                    optResourcePath opt })
                    "SEARCHPATH")
                   "" -- "Paths to search for images and other resources"
 

@@ -891,6 +891,11 @@ header when requesting a document from a URL:
     will not be searched.  For example:
     `--resource-path=.:test` will search the working directory
     and the `test` subdirectory, in that order.
+    This option can be used repeatedly. Search path components
+    that come later on the command line will be searched before
+    those that come earlier, so
+    `--resource-path foo:bar --resource-path baz:bim` is
+    equivalent to `--resource-path baz:bim:foo:bar`.
 
 `--request-header=`*NAME*`:`*VAL*
 
