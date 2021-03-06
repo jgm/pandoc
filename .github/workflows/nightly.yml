@@ -10,6 +10,13 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
+
+    - name: Install recent cabal/ghc
+      uses: haskell/actions/setup@v1
+      with:
+        ghc-version: '8.10.3'
+        cabal-version: '3.2'
+
     - name: Install dependencies
       run: |
           ghc --version
