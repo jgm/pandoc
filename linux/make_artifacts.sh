@@ -6,6 +6,7 @@ case "$MACHINE" in
   i686)    ARCHITECTURE=i386;;
   i386)    ARCHITECTURE=i386;;
   aarch64) ARCHITECTURE=arm64;;
+  *)       ARCHITECTURE=unknown;;
 esac
 
 ARTIFACTS="${ARTIFACTS:-/artifacts}"
