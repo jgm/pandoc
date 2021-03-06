@@ -4,7 +4,7 @@ SOURCEFILES?=$(shell git ls-tree -r master --name-only | grep "\.hs$$")
 BRANCH?=master
 COMMIT=$(shell git rev-parse --short HEAD)
 TIMESTAMP=$(shell date "+%Y%m%d_%H%M")
-LATESTBENCH=$(word 1,$(shell ls -t bench_*.csv))
+LATESTBENCH=$(word 1,$(shell ls -t bench_*.csv || exit 0))
 ifeq ($(LATESTBENCH),)
 BASELINE=
 else
