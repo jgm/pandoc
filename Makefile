@@ -81,7 +81,7 @@ checkdocs:
 	! grep -q -n -e "\t" MANUAL.txt changelog.md
 
 debpkg: man/pandoc.1
-	(docker run -v `pwd`:/mnt \
+	docker run -v `pwd`:/mnt \
                    -v `pwd`/linux/artifacts:/artifacts \
 		   -e REVISION=$(REVISION) \
 		   -w /mnt \
@@ -89,7 +89,7 @@ debpkg: man/pandoc.1
 		   --rm \
 		   $(DOCKERIMAGE) \
 		   bash \
-		   /mnt/linux/make_artifacts.sh) 2>&1 > docker.log
+		   /mnt/linux/make_artifacts.sh 2>&1 > docker.log
 
 man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 	pandoc $< -f markdown -t man -s \
