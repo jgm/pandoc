@@ -41,6 +41,7 @@ done
 # $ ssh -i ~/.ssh/debian-arm-us-east-2.pem admin@$IPADDR
 
 SSH="ssh -i ~/.ssh/debian-arm-us-east-2.pem admin@$IPADDR"
+SCP="scp -r -i ~/.ssh/debian-arm-us-east-2.pem admin@$IPADDR:"
 
 echo "Provisioning..."
 
@@ -79,4 +80,10 @@ do
   $SSH "ls -l linux/artifacts/*.tar.gz" && break
 done
 
+# Retrieve the artifacts
 
+echo "Successful build. Retrieving artifacts..."
+
+$SCP -r src/pandoc/linux/artifacts "arm-build-artifacts-$(date +%s)"
+
+exit 0
