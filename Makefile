@@ -83,6 +83,7 @@ checkdocs:
 debpkg: man/pandoc.1
 	docker run -v `pwd`:/mnt \
                    -v `pwd`/linux/artifacts:/artifacts \
+		   --user $(id -u):$(id -g) \
 		   -e REVISION=$(REVISION) \
 		   -w /mnt \
 		   --memory=0 \
