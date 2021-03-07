@@ -134,6 +134,11 @@ parseTableRow :: PandocMonad m
               -> LP m Row
 parseTableRow blocks inline envname prefsufs = do
   notFollowedBy (spaces *> end_ envname)
+  -- contexts that can contain & that is not colsep:
+  let canContainAmp (Tok _ (CtrlSeq "begin") _) = True
+      canContainAmp (Tok _ (CtrlSeq "verb") _)  = True
+      canContainAmp (Tok _ (CtrlSeq "Verb") _)  = True
+      canContainAmp _       = False
   -- add prefixes and suffixes in token stream:
   let celltoks (pref, suff) = do
         prefpos <- getPosition
@@ -142,7 +147,7 @@ parseTableRow blocks inline envname prefsufs = do
                      ((lookAhead (controlSeq "parbox") >>
                        void blocks) -- #5711
                       <|>
-                      (lookAhead (controlSeq "begin") >> void inline)
+                      (lookAhead (satisfyTok canContainAmp) >> void inline)
                       <|>
                       (lookAhead (symbol '$') >> void inline))
                   <|>
