@@ -398,17 +398,20 @@ inlineCommands = M.unions
     , ("footnote", skipopts >> note <$> grouped block)
     , ("passthrough", tok) -- \passthrough macro used by latex writer
                            -- for listings
+    , ("includegraphics", do options <- option [] keyvals
+                             src <- braced
+                             mkImage options .
+                               unescapeURL .
+                               removeDoubleQuotes $ untokenize src)
+    -- hyperref
     , ("url", (\url -> link url "" (str url)) . unescapeURL . untokenize <$>
                     bracedUrl)
     , ("nolinkurl", code . unescapeURL . untokenize <$> bracedUrl)
     , ("href", do url <- bracedUrl
                   sp
                   link (unescapeURL $ untokenize url) "" <$> tok)
-    , ("includegraphics", do options <- option [] keyvals
-                             src <- braced
-                             mkImage options . unescapeURL . removeDoubleQuotes $
-                                 untokenize src)
     , ("hyperlink", hyperlink)
+    , ("hyperref", hyperref)
     , ("hypertarget", hypertargetInline)
     -- hyphenat
     , ("nohyphens", tok)
@@ -462,6 +465,12 @@ hyperlink = try $ do
   src <- untokenize <$> braced
   lab <- tok
   return $ link ("#" <> src) "" lab
+
+hyperref :: PandocMonad m => LP m Inlines
+hyperref = try $ do
+  url <- (("#" <>) . untokenize <$> try (sp *> bracketedToks <* sp))
+       <|> untokenize <$> (bracedUrl <* bracedUrl <* bracedUrl)
+  link url "" <$> tok
 
 hypertargetBlock :: PandocMonad m => LP m Blocks
 hypertargetBlock = try $ do
