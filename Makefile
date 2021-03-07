@@ -2,6 +2,7 @@ version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 SOURCEFILES?=$(shell git ls-tree -r master --name-only | grep "\.hs$$")
 BRANCH?=master
+ARCH=$(shell uname -m)
 DOCKERIMAGE=registry.gitlab.b-data.ch/ghc/ghc4pandoc:8.10.4
 COMMIT=$(shell git rev-parse --short HEAD)
 TIMESTAMP=$(shell date "+%Y%m%d_%H%M")
@@ -80,14 +81,15 @@ checkdocs:
 	! grep -q -n -e "\t" MANUAL.txt changelog.md
 
 debpkg: man/pandoc.1
-	docker run -v `pwd`:/mnt \
+	(docker run -v `pwd`:/mnt \
                    -v `pwd`/linux/artifacts:/artifacts \
 		   -e REVISION=$(REVISION) \
 		   -w /mnt \
 		   --memory=0 \
+		   --rm \
 		   $(DOCKERIMAGE) \
 		   bash \
-		   /mnt/linux/make_artifacts.sh
+		   /mnt/linux/make_artifacts.sh) 2>&1 > docker.log
 
 man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 	pandoc $< -f markdown -t man -s \
