@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.12 (UNRELEASED -- PROVISIONAL)
+## pandoc 2.12 (2021-03-08)
 
   * `--resource-path` now accumulates if specified multiple
     times (#6152).  Resource paths specified later on the command line are
