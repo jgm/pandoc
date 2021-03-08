@@ -70,5 +70,5 @@ mv pandoc $TARGET/bin
 strip $TARGET/bin/pandoc
 gzip -9 $TARGET/share/man/man1/pandoc.1
 
-tar cvzf $TARGET-linux-amd64.tar.gz $TARGET
+tar cvzf $TARGET-linux-$ARCHITECTURE.tar.gz $TARGET
 rm -r $TARGET
