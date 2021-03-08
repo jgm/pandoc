@@ -92,4 +92,7 @@ echo "Successful build. Retrieving artifacts..."
 
 scp -i "$HOME/.ssh/$KEY_NAME.pem" -r "admin@$IPADDR:src/pandoc/linux/artifacts" "arm-build-artifacts-$(date +%s)"
 
+# Let's see how long this took!
+uptime
+
 exit 0
