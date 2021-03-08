@@ -171,9 +171,10 @@
   * Jira reader:
 
     + Modified the Doc parser to skip leading blank lines. This fixes
-      parsing of documents which start with multiple blank lines (#7095).
-    + Prevent URLs within link aliases to be treated as autolinks
-      (#6944).
+      parsing of documents which start with multiple blank lines (Albert
+      Krewinkel, #7095).
+    + Prevent URLs within link aliases to be treated as autolinks (Albert
+      Krewinkel, #6944).
 
   * Text.Pandoc.Shared
 
@@ -220,7 +221,10 @@
 
   * Jira writer:
 
-    + Use Span identifiers as anchors (Albert Krewinkel,
+    + Use Span identifiers as anchors (Albert Krewinkel).
+    + Use `{noformat}` instead of `{code}` for unknown languages (Albert
+      Krewinkel). Code blocks which are not marked as a language supported
+      by Jira are rendered as preformatted text via `{noformat}` blocks.
 
   * LaTeX writer:
 
@@ -343,7 +347,6 @@
     + Export `renderError` [API change].
     + Refactor `handleError` to use `renderError`. This allows us render
       error messages without exiting.
-    + Remove unused variables (Albert Krewinkel)
 
   * Text.Pandoc.Extensions
 
