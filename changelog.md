@@ -298,6 +298,8 @@
   * Text.Pandoc.App
 
     + Add `parseOptionsFromArgs` [API change, new exported function].
+    + Add fields for CSL options to `Opt` [API change]:
+      `optCSL`, `optbibliography`, `optCitationAbbreviations`.
 
   * Text.Pandoc.Citeproc.BibTeX
 
@@ -1075,8 +1077,11 @@
     translated to `C:\/foo/bar`, which caused problems.
     With this fix, the backslashes are removed.
 
-  * Text.Pandoc.Logging: Add constructor `ATXHeadingInLHS` constructor
-    to `LogMessage` [API change].
+  * Text.Pandoc.Logging:
+
+    + Add constructor `ATXHeadingInLHS` to `LogMessage` [API change].
+    + Add constructor `EnvironmentVariableUndefined` to
+      `LogMessage` [API change].
 
   * Fix error that is given when people specify `doc` output (#6834,
     gison93).
