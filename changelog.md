@@ -2,10 +2,41 @@
 
 ## pandoc 2.12 (UNRELEASED -- PROVISIONAL)
 
+  * `--resource-path` now accumulates if specified multiple
+    times (#6152).  Resource paths specified later on the command line are
+    prepended to those specified earlier.  Thus,
+    `--resource-path foo --resource-path bar:baz` is equivalent to
+    `--resource-path bar:bas:foo`.  (The previous behavior was
+    for the last `--resource-path` to replace all the rest.)
+    `resource-path` in defaults files behaves the same way: it
+    will be prepended to the resource path set by earlier
+    command line options or defaults files.  This change
+    facilitates the use of multiple defaults files: each can
+    specify a directory containing resources it refers to
+    without clobbering the resource paths set by the others.
+
+  * Allow defaults files to refer to the home directory, the
+    user data directory, and the directory containing the defaults file
+    itself (#5871, #5982, #5977).  In fields that expect file paths
+    (and only in these fields),
+
+    + `${VARIABLE}` will expand to the value of the environment variable
+      `VARIABLE` (and in particular `${HOME}` will expand to the path
+      of the home directory).  A warning will be raised for undefined
+      variables.
+    + `${USERDATA}` will expand to the path of the user data
+      directory in force when the defaults file is being processed.
+    + `${.}` will expand to the directory containing the defaults file.
+      (This allows default files to be placed in a directory containing
+      resources they make use of.)
+
   * When downloading content from URL arguments, be sensitive to
     the character encoding (#5600).  We can properly handle UTF-8 and latin1
     (ISO-8859-1); for others we raise an error.  Fall back to latin1 if
     no charset is given in the mime type and UTF-8 decoding fails.
+
+  * Allow abbreviations that don't end in a period to be
+    specified using `--abbreviations` (#7124).
 
   * Add new unexported module Text.Pandoc.XML.Light, as well
     as Text.Pandoc.XML.Light.Types, Text.Pantoc.XML.Light.Proc,
@@ -102,6 +133,7 @@
       Text.Pandoc.Readers.{LaTeX,Math,Citation,Table,Macro,Inline}.
       Changed Text.Pandoc.Readers.LaTeX.SIunitx to export a command map
       instead of individual commands.
+    + Handle table cells containing `&` in `\verb` (#7129).
 
   * Make Text.Pandoc.Readers.LaTeX.Types an unexported module [API change].
 
@@ -150,6 +182,10 @@
       and `underlineSpan` (which had been deprecated in April 2020)
       [API change].
     + Export `handleTaskListItem` (Albert Krewinkel) [API change].
+    + Change `defaultUserDataDirs` to `defaultUserDataDir` [API
+      change].  We determine what is the default user data directory
+      by seeing whether the XDG directory and/or legacy
+      directory exist.
 
   * BibTeX writer:
 
@@ -443,6 +479,9 @@
 
   * Remove `weigh-pandoc`.  It's not really useful any more, now that our
     regular benchmarks include data on allocation.
+
+  * Improve linux package build process and add script to
+    automate building an arm64 binary package.
 
 
 ## pandoc 2.11.4 (2021-01-22)
