@@ -1,5 +1,10 @@
 #!/bin/sh
 
+IMAGE_ID=ami-0fa8979d18f69948b
+INSTANCE_TYPE=t4g.2xlarge
+KEY_NAME=debian-arm-us-east-2
+SECURITY_GROUP_ID=sg-086ffbadc286c5c00
+
 # Spin up an ARM build machine using aws cli, build pandoc, and
 # download the artifact.
 #
@@ -8,22 +13,23 @@
 
 aws configure set default.region us-east-2
 
-# Now start instance with volume 16GB.
-# note, the AMI id is different for different regions.
-# for us east-2 the Debian Buster ARM AMI is  ami-0fa8979d18f69948b:
-
 echo "Creating instance..."
 
-aws ec2 run-instances --image-id ami-0fa8979d18f69948b  --count 1 --instance-type t4g.2xlarge --block-device-mapping 'DeviceName=/dev/xvda,Ebs={VolumeSize=16}' --key-name debian-arm-us-east-2 --security-group-ids sg-086ffbadc286c5c00 > ec2.json
+aws ec2 run-instances --image-id "$IMAGE_ID" --count 1 --instance-type "$INSTANCE_TYPE" --block-device-mapping 'DeviceName=/dev/xvda,Ebs={VolumeSize=16}' --key-name "$KEY_NAME" --security-group-ids "$SECURITY_GROUP_ID" > ec2.json
+
+jq < ec2.json
 
 # Now get the public IP address.
 
 INSTANCEID=$(jq '.Instances[0].InstanceId' ec2.json | sed -e 's/"//g')
 IPADDR=$(aws ec2 describe-instances --instance-ids="$INSTANCEID" --query 'Reservations[0].Instances[0].PublicIpAddress' | sed -e 's/"//g')
 
+echo "IP address is $IPADDR"
+
 clean_up() {
-  echo "Terminating the instance..."
-  aws ec2 terminate-instances --instance-ids "$INSTANCEID"
+  echo "Terminating the instance in 20 seconds..."
+  echo "Ctrl-C to preserve it."
+  sleep 20 && aws ec2 terminate-instances --instance-ids "$INSTANCEID"
 }
 trap clean_up EXIT
 
@@ -40,8 +46,7 @@ done
 # At this point you can connect via SSH, or run this script:
 # $ ssh -i ~/.ssh/debian-arm-us-east-2.pem admin@$IPADDR
 
-SSH="ssh -i ~/.ssh/debian-arm-us-east-2.pem admin@$IPADDR"
-SCP="scp -r -i ~/.ssh/debian-arm-us-east-2.pem admin@$IPADDR:"
+SSH="ssh -i ~/.ssh/$KEY_NAME.pem admin@$IPADDR"
 
 echo "Provisioning..."
 
@@ -74,16 +79,17 @@ EOF
 
 while true
 do
-  sleep 60
-  $SSH "tail -n1 src/pandoc/docker.log && free -h"
+  sleep 20
+  # print last line of log output and free memory
+  $SSH "tail -n1 src/pandoc/docker.log && free -h | grep Mem"
   # Check to see if the artifact has been produced
-  $SSH "ls -l linux/artifacts/*.tar.gz" && break
+  $SSH "ls -l src/pandoc/linux/artifacts/*.tar.gz 2>/dev/null" && break
 done
 
 # Retrieve the artifacts
 
 echo "Successful build. Retrieving artifacts..."
 
-$SCP -r src/pandoc/linux/artifacts "arm-build-artifacts-$(date +%s)"
+scp -i "$HOME/.ssh/$KEY_NAME.pem" -r "admin@$IPADDR:src/pandoc/linux/artifacts" "arm-build-artifacts-$(date +%s)"
 
 exit 0
