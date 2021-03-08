@@ -6,6 +6,8 @@ KEY_NAME=debian-arm-us-east-2
 SECURITY_GROUP_ID=sg-086ffbadc286c5c00
 ARTIFACTS="${ARTIFACTS:-build-artifacts-$(date +%s)}"
 
+STARTTIME=$(date +%H:%M)
+
 # Spin up an ARM build machine using aws cli, build pandoc, and
 # download the artifact.
 #
@@ -96,7 +98,9 @@ scp -i "$HOME/.ssh/$KEY_NAME.pem" -r "admin@$IPADDR:src/pandoc/linux/artifacts" 
 echo "Artifacts saved in $ARTIFACTS"
 ls "$ARTIFACTS"
 
-# Let's see how long this took!
-uptime
+ENDTIME=$(date +%H:%M)
+
+echo "Started:  $STARTTIME"
+echo "Finished: $ENDTIME"
 
 exit 0
