@@ -11,6 +11,13 @@ esac
 
 ARTIFACTS="${ARTIFACTS:-/artifacts}"
 
+rm $ARTIFACTS/*
+
+clean_up() {
+  echo "All done!" > "$ARTIFACTS/DONE"
+}
+trap clean_up EXIT
+
 # build binaries
 
 cabal --version
@@ -72,3 +79,5 @@ gzip -9 $TARGET/share/man/man1/pandoc.1
 
 tar cvzf $TARGET-linux-$ARCHITECTURE.tar.gz $TARGET
 rm -r $TARGET
+
+exit 0

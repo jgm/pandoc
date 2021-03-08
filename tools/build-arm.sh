@@ -86,7 +86,7 @@ do
   # print last line of log output and free memory
   $SSH "tail -n1 src/pandoc/docker.log && free -h | grep Mem"
   # Check to see if the artifact has been produced
-  $SSH "ls -l src/pandoc/linux/artifacts/*.tar.gz 2>/dev/null" && break
+  $SSH "ls -l src/pandoc/linux/artifacts/DONE 2>/dev/null" && break
 done
 
 # Retrieve the artifacts
