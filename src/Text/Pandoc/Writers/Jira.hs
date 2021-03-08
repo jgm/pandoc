@@ -126,13 +126,13 @@ toJiraCode :: PandocMonad m
            -> Text
            -> JiraConverter m [Jira.Block]
 toJiraCode (ident, classes, _attribs) code = do
-  let lang = case find (\c -> T.toLower c `elem` knownLanguages) classes of
-               Nothing -> Jira.Language "java"
-               Just l  -> Jira.Language l
   let addAnchor b = if T.null ident
                     then b
                     else [Jira.Para (singleton (Jira.Anchor ident))] <> b
-  return . addAnchor . singleton $ Jira.Code lang mempty code
+  return . addAnchor . singleton $
+    case find (\c -> T.toLower c `elem` knownLanguages) classes of
+      Nothing -> Jira.NoFormat mempty code
+      Just l  -> Jira.Code (Jira.Language l) mempty code
 
 -- | Creates a Jira definition list
 toJiraDefinitionList :: PandocMonad m
@@ -310,7 +310,7 @@ registerNotes contents = do
 knownLanguages :: [Text]
 knownLanguages =
   [ "actionscript", "ada", "applescript", "bash", "c", "c#", "c++"
-  , "css", "erlang", "go", "groovy", "haskell", "html", "javascript"
+  , "css", "erlang", "go", "groovy", "haskell", "html", "java", "javascript"
   , "json", "lua", "nyan", "objc", "perl", "php", "python", "r", "ruby"
   , "scala", "sql", "swift", "visualbasic", "xml", "yaml"
   ]

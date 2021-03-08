@@ -68,5 +68,15 @@ tests =
         spanWith ("unicorn", [], []) (str "Unicorn") =?>
         "{anchor:unicorn}Unicorn"
       ]
+
+    , testGroup "code"
+      [ "code block with known language" =:
+        codeBlockWith ("", ["java"], []) "Book book = new Book(\"Algebra\")" =?>
+        "{code:java}\nBook book = new Book(\"Algebra\")\n{code}"
+
+      , "code block without language" =:
+        codeBlockWith ("", [], []) "preformatted\n  text.\n" =?>
+        "{noformat}\npreformatted\n  text.\n{noformat}"
+      ]
     ]
   ]

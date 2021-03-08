@@ -33,11 +33,10 @@ bq. This is a block quote. It is pretty short.
 {quote}
 Code in a block quote:
 
-{code:java}
+{noformat}
 sub status {
     print "working";
-}
-{code}
+}{noformat}
 A list:
 
 # item one
@@ -56,22 +55,20 @@ And a following paragraph.
 h1. {anchor:code-blocks}Code Blocks
 Code:
 
-{code:java}
+{noformat}
 ---- (should be four hyphens)
 
 sub status {
     print "working";
 }
 
-this code block is indented by one tab
-{code}
+this code block is indented by one tab{noformat}
 And:
 
-{code:java}
+{noformat}
     this code block is indented by two tabs
 
-These should not be escaped:  \$ \\ \> \[ \{
-{code}
+These should not be escaped:  \$ \\ \> \[ \{{noformat}
 ----
 h1. {anchor:lists}Lists
 h2. {anchor:unordered}Unordered
@@ -236,9 +233,8 @@ red fruit
 contains seeds, crisp, pleasant to taste
 * *_orange_*
 orange fruit
-{code:java}
-{ orange code block }
-{code}
+{noformat}
+{ orange code block }{noformat}
 bq. orange block quote
 
 Multiple definitions, tight:
@@ -292,16 +288,14 @@ foo
 
 This should be a code block, though:
 
-{code:java}
+{noformat}
 <div>
     foo
-</div>
-{code}
+</div>{noformat}
 As should this:
 
-{code:java}
-<div>foo</div>
-{code}
+{noformat}
+<div>foo</div>{noformat}
 Now, nested:
 
 foo
@@ -312,16 +306,14 @@ Multiline:
 
 Code block:
 
-{code:java}
-<!-- Comment -->
-{code}
+{noformat}
+<!-- Comment -->{noformat}
 Just plain comment, with trailing spaces on the line:
 
 Code:
 
-{code:java}
-<hr />
-{code}
+{noformat}
+<hr />{noformat}
 Hr’s:
 
 ----
@@ -478,9 +470,8 @@ Indented [thrice|/url].
 
 This should \[not\]\[\] be a link.
 
-{code:java}
-[not]: /url
-{code}
+{noformat}
+[not]: /url{noformat}
 Foo [bar|/url/].
 
 Foo [biz|/url/].
@@ -506,9 +497,8 @@ An e-mail address: [mailto:nobody@nowhere.net]
 bq. Blockquoted: [http://example.com/]
 Auto-links should not occur here: {{<http://example.com/>}}
 
-{code:java}
-or here: <http://example.com/>
-{code}
+{noformat}
+or here: <http://example.com/>{noformat}
 ----
 h1. {anchor:images}Images
 From "Voyage dans la Lune" by Georges Melies \(1902):
@@ -534,9 +524,8 @@ This paragraph should not be part of the note, as it is not indented.
 
 Subsequent blocks are indented to show that they belong to the footnote \(as with list items).
 
-{code:java}
-  { <code> }
-{code}
+{noformat}
+  { <code> }{noformat}
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
 
 
