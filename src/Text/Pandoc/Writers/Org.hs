@@ -359,7 +359,8 @@ inlineListToOrg lst = hcat <$> mapM inlineToOrg (fixMarkers lst)
         shouldFix Note{} = True    -- Prevent footnotes
         shouldFix (Str "-") = True -- Prevent bullet list items
         shouldFix (Str x)          -- Prevent ordered list items
-          | Just (cs, c) <- T.unsnoc x = T.all isDigit cs && c == '.' || c == ')'
+          | Just (cs, c) <- T.unsnoc x = T.all isDigit cs &&
+                                         (c == '.' || c == ')')
         shouldFix _ = False
 
 -- | Convert Pandoc inline element to Org.
