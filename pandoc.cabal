@@ -398,8 +398,7 @@ flag trypandoc
 
 common common-options
   default-language: Haskell2010
-  build-depends:    base         >= 4.9 && < 5,
-                    text         >= 1.1.1.0 && < 1.3
+  build-depends:    base         >= 4.9 && < 5
   ghc-options:      -Wall -fno-warn-unused-do-bind
                     -Wincomplete-record-updates
                     -Wnoncanonical-monad-instances
@@ -746,7 +745,6 @@ test-suite test-pandoc
                   Diff              >= 0.2     && < 0.5,
                   Glob              >= 0.7     && < 0.11,
                   QuickCheck        >= 2.4     && < 2.15,
-                  base64-bytestring >= 0.1     && < 1.3,
                   bytestring        >= 0.9     && < 0.12,
                   containers        >= 0.4.2.1 && < 0.7,
                   directory         >= 1.2.3   && < 1.4,
@@ -763,7 +761,7 @@ test-suite test-pandoc
                   tasty-hunit       >= 0.9     && < 0.11,
                   tasty-lua         >= 0.2     && < 0.3,
                   tasty-quickcheck  >= 0.8     && < 0.11,
-                  temporary         >= 1.1     && < 1.4,
+                  text              >= 1.1.1.0  && < 1.3,
                   time              >= 1.5     && < 1.10,
                   xml               >= 1.3.12  && < 1.4,
                   zip-archive       >= 0.2.3.4 && < 0.5
