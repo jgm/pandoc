@@ -613,8 +613,9 @@ comment = try $ do
   string ".."
   skipMany1 spaceChar <|> (() <$ lookAhead newline)
   -- notFollowedBy' directiveLabel -- comment comes after directive so unnec.
-  manyTill anyChar blanklines
+  _ <- anyLine
   optional indentedBlock
+  optional blanklines
   return mempty
 
 directiveLabel :: Monad m => RSTParser m Text
