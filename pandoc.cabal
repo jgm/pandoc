@@ -403,8 +403,6 @@ common common-options
                     -Wincomplete-record-updates
                     -Wnoncanonical-monad-instances
 
-  if impl(ghc >= 8.10)
-    ghc-options:      -Wunused-packages
   if impl(ghc < 8.4)
     hs-source-dirs:   prelude
     other-modules:    Prelude
