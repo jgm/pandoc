@@ -17,7 +17,7 @@ Org-Mode:  <http://orgmode.org>
 -}
 module Text.Pandoc.Writers.Org (writeOrg) where
 import Control.Monad.State.Strict
-import Data.Char (isAlphaNum)
+import Data.Char (isAlphaNum, isDigit)
 import Data.List (intersect, intersperse, partition, transpose)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -347,16 +347,19 @@ inlineListToOrg :: PandocMonad m
                 => [Inline]
                 -> Org m (Doc Text)
 inlineListToOrg lst = hcat <$> mapM inlineToOrg (fixMarkers lst)
-  where fixMarkers [] = []  -- prevent note refs and list markers from wrapping, see #4171
+  where -- Prevent note refs and list markers from wrapping, see #4171
+        -- and #7132.
+        fixMarkers [] = []
         fixMarkers (Space : x : rest) | shouldFix x =
           Str " " : x : fixMarkers rest
         fixMarkers (SoftBreak : x : rest) | shouldFix x =
           Str " " : x : fixMarkers rest
         fixMarkers (x : rest) = x : fixMarkers rest
 
-        shouldFix Note{} = True -- Prevent footnotes
+        shouldFix Note{} = True    -- Prevent footnotes
         shouldFix (Str "-") = True -- Prevent bullet list items
-        -- TODO: prevent ordered list items
+        shouldFix (Str x)          -- Prevent ordered list items
+          | Just (cs, c) <- T.unsnoc x = T.all isDigit cs && c == '.' || c == ')'
         shouldFix _ = False
 
 -- | Convert Pandoc inline element to Org.
