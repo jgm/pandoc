@@ -829,4 +829,5 @@ benchmark benchmark-pandoc
                    tasty,
                    tasty-bench >= 0.2     && <= 0.3,
                    mtl         >= 2.2     && < 2.3,
+                   text        >= 1.1.1.0 && < 1.3,
                    time
