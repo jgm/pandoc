@@ -36,6 +36,7 @@ import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Text.Pandoc.Definition
 import Text.Parsec.Pos
+import Text.Pandoc.Shared (tshow)
 
 -- | Verbosity level.
 data Verbosity = ERROR | WARNING | INFO
@@ -101,6 +102,7 @@ data LogMessage =
   | CiteprocWarning Text
   | ATXHeadingInLHS Int Text
   | EnvironmentVariableUndefined Text
+  | DuplicateAttribute Text Text
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -232,6 +234,9 @@ instance ToJSON LogMessage where
            ,"contents" .= contents]
       EnvironmentVariableUndefined var ->
            ["variable" .= var ]
+      DuplicateAttribute attr val ->
+           ["attribute" .= attr
+           ,"value" .= val]
 
 showPos :: SourcePos -> Text
 showPos pos = Text.pack $ sn ++ "line " ++
@@ -350,6 +355,8 @@ showLogMessage msg =
             else ""
        EnvironmentVariableUndefined var ->
          "Undefined environment variable " <> var <> " in defaults file."
+       DuplicateAttribute attr val ->
+         "Ignoring duplicate attribute " <> attr <> "=" <> tshow val <> "."
 
 messageVerbosity :: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -397,3 +404,4 @@ messageVerbosity msg =
        CiteprocWarning{}             -> WARNING
        ATXHeadingInLHS{}             -> WARNING
        EnvironmentVariableUndefined{}-> WARNING
+       DuplicateAttribute{}          -> WARNING

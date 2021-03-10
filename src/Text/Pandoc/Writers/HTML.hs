@@ -32,7 +32,7 @@ import Control.Monad.State.Strict
 import Data.Char (ord)
 import Data.List (intercalate, intersperse, partition, delete, (\\))
 import Data.List.NonEmpty (NonEmpty((:|)))
-import Data.Maybe (fromMaybe, isJust, isNothing, mapMaybe)
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -551,23 +551,28 @@ toAttrs :: PandocMonad m
 toAttrs kvs = do
   html5 <- gets stHtml5
   mbEpubVersion <- gets stEPUBVersion
-  return $ mapMaybe (\(x,y) ->
-            if html5
-               then
-                  if x `Set.member` (html5Attributes <> rdfaAttributes)
-                     || T.any (== ':') x -- e.g. epub: namespace
-                     || "data-" `T.isPrefixOf` x
-                     || "aria-" `T.isPrefixOf` x
-                     then Just $ customAttribute (textTag x) (toValue y)
-                     else Just $ customAttribute (textTag ("data-" <> x))
-                                  (toValue y)
-               else
-                 if mbEpubVersion == Just EPUB2 &&
-                    not (x `Set.member` (html4Attributes <> rdfaAttributes) ||
-                         "xml:" `T.isPrefixOf` x)
-                    then Nothing
-                    else Just $ customAttribute (textTag x) (toValue y))
-            kvs
+  reverse . snd <$> foldM (go html5 mbEpubVersion) (Set.empty, []) kvs
+ where
+  go html5 mbEpubVersion (keys, attrs) (k,v) = do
+    if k `Set.member` keys
+       then do
+         report $ DuplicateAttribute k v
+         return (keys, attrs)
+       else return (Set.insert k keys, addAttr html5 mbEpubVersion k v attrs)
+  addAttr html5 mbEpubVersion x y
+    | html5
+      = if x `Set.member` (html5Attributes <> rdfaAttributes)
+             || T.any (== ':') x -- e.g. epub: namespace
+             || "data-" `T.isPrefixOf` x
+             || "aria-" `T.isPrefixOf` x
+           then (customAttribute (textTag x) (toValue y) :)
+           else (customAttribute (textTag ("data-" <> x)) (toValue y) :)
+    | mbEpubVersion == Just EPUB2
+    , not (x `Set.member` (html4Attributes <> rdfaAttributes) ||
+      "xml:" `T.isPrefixOf` x)
+      = id
+    | otherwise
+      = (customAttribute (textTag x) (toValue y) :)
 
 attrsToHtml :: PandocMonad m
             => WriterOptions -> Attr -> StateT WriterState m [Attribute]
