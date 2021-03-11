@@ -29,8 +29,8 @@ which is in turn shorthand for
 -}
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> TestTree
+(=:) :: (ToText a, ToPandoc a)
+     => String -> (a, Text) -> TestTree
 (=:) = test html
 
 tests :: [TestTree]
@@ -72,17 +72,17 @@ tests = [ testGroup "inline code"
         , testGroup "sample with style"
           [ "samp should wrap highlighted code" =:
             codeWith ("",["sample","haskell"],[]) ">>="
-            =?> ("<samp><code class=\"sourceCode haskell\">" ++
+            =?> ("<samp><code class=\"sourceCode haskell\">" <>
                 "<span class=\"op\">&gt;&gt;=</span></code></samp>")
           ]
         , testGroup "variable with style"
           [ "var should wrap highlighted code" =:
             codeWith ("",["haskell","variable"],[]) ">>="
-            =?> ("<var><code class=\"sourceCode haskell\">" ++
+            =?> ("<var><code class=\"sourceCode haskell\">" <>
                 "<span class=\"op\">&gt;&gt;=</span></code></var>")
           ]
         ]
         where
-          tQ :: (ToString a, ToPandoc a)
-               => String -> (a, String) -> TestTree
+          tQ :: (ToText a, ToPandoc a)
+               => String -> (a, Text) -> TestTree
           tQ = test htmlQTags

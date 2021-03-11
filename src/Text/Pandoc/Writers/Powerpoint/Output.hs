@@ -17,9 +17,8 @@ module Text.Pandoc.Writers.Powerpoint.Output ( presentationToArchive
                                              ) where
 
 import Control.Monad.Except (throwError, catchError)
-import Control.Monad.Reader
-import Control.Monad.State
 import Codec.Archive.Zip
+import Control.Monad (foldM)
 import Data.List (intercalate, stripPrefix, nub, union, isPrefixOf, intersperse)
 import Data.Default
 import Data.Text (Text)
@@ -477,11 +476,12 @@ registerLink link = do
   let maxLinkId = case M.lookup curSlideId linkReg of
         Just mp -> case M.keys mp of
           [] -> if hasSpeakerNotes then 2 else 1
-          ks -> maximum ks
+          ks -> fromMaybe 0 $ viaNonEmpty maximum1 ks
         Nothing -> if hasSpeakerNotes then 2 else 1
       maxMediaId = case M.lookup curSlideId mediaReg of
         Just [] -> if hasSpeakerNotes then 2 else 1
-        Just mInfos -> maximum $ map mInfoLocalId mInfos
+        Just mInfos -> fromMaybe 0 $ viaNonEmpty maximum1
+                                   $ map mInfoLocalId mInfos
         Nothing -> if hasSpeakerNotes then 2 else 1
       maxId = max maxLinkId maxMediaId
       slideLinks = case M.lookup curSlideId linkReg of
@@ -500,17 +500,18 @@ registerMedia fp caption = do
   let maxLinkId = case M.lookup curSlideId linkReg of
         Just mp -> case M.keys mp of
           [] -> if hasSpeakerNotes then 2 else 1
-          ks -> maximum ks
+          ks -> fromMaybe 0 $ viaNonEmpty maximum1 ks
         Nothing -> if hasSpeakerNotes then 2 else 1
       maxMediaId = case M.lookup curSlideId mediaReg of
         Just [] -> if hasSpeakerNotes then 2 else 1
-        Just mInfos -> maximum $ map mInfoLocalId mInfos
+        Just mInfos -> fromMaybe 0 $ viaNonEmpty maximum1
+                                   $ map mInfoLocalId mInfos
         Nothing -> if hasSpeakerNotes then 2 else 1
       maxLocalId = max maxLinkId maxMediaId
 
       maxGlobalId = case M.elems globalIds of
         [] -> 0
-        ids -> maximum ids
+        ids -> fromMaybe 0 $ viaNonEmpty maximum1 ids
 
   (imgBytes, mbMt) <- P.fetchItem $ T.pack fp
   let imgExt = (mbMt >>= extensionFromMimeType >>= (\x -> return $ "." <> x))
@@ -1431,7 +1432,7 @@ presentationToRels pres@(Presentation _ slides) = do
         [] -> 0                 -- doesn't matter in this case, since
                                 -- there will be nothing to map the
                                 -- function over
-        l  -> minimum l
+        l  -> fromMaybe 0 $ viaNonEmpty minimum1 l
 
       modifyRelNum :: Int -> Int
       modifyRelNum 1 = 1

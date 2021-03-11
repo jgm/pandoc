@@ -224,8 +224,8 @@ gridTable :: (Monad m, HasChars a)
           -> m (Doc a)
 gridTable opts blocksToDoc headless aligns widths headers rows = do
   -- the number of columns will be used in case of even widths
-  let numcols = maximum (length aligns : length widths :
-                           map length (headers:rows))
+  let numcols = fromMaybe 0 $ viaNonEmpty maximum1
+                  (length aligns : length widths : map length (headers:rows))
   let officialWidthsInChars widths' = map (
                         (\x -> if x < 1 then 1 else x) .
                         (\x -> x - 3) . floor .
@@ -253,8 +253,7 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
   let handleFullWidths widths' = do
         rawHeaders' <- mapM (blocksToDoc opts) headers
         rawRows' <- mapM (mapM (blocksToDoc opts)) rows
-        let numChars [] = 0
-            numChars xs = maximum . map offset $ xs
+        let numChars = fromMaybe 0 . viaNonEmpty maximum1 . map offset
         let minWidthsInChars =
                 map numChars $ transpose (rawHeaders' : rawRows')
         let widthsInChars' = zipWith max

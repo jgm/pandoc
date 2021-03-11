@@ -16,7 +16,7 @@ module Text.Pandoc.App.FormatHeuristics
 
 import Data.Char (toLower)
 import Data.Text (Text)
-import System.FilePath (takeExtension)
+import System.FilePath (takeExtension, FilePath)
 
 -- Determine default format based on file extensions.
 formatFromFilePaths :: [FilePath] -> Maybe Text

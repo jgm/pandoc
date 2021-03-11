@@ -31,7 +31,6 @@ import Data.Maybe (fromMaybe)
 import Skylighting (defaultSyntaxMap)
 import Skylighting.Parser (addSyntaxDefinition, parseSyntaxDefinition)
 import System.Directory (getCurrentDirectory)
-import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
 import Text.Pandoc

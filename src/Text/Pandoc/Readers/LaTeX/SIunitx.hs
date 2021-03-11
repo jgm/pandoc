@@ -60,9 +60,9 @@ doSInumlist = do
   case xs of
     []  -> return mempty
     [x] -> return x
-    _   -> return $
-             mconcat (intersperse (str "," <> space) (init xs)) <>
-             text ", & " <> last xs
+    _   -> return $ fromMaybe mempty $ viaNonEmpty
+             (\xsNE -> mconcat (intersperse (str "," <> space) (init xsNE)) <>
+             text ", & " <> last xsNE) xs
 
 parseNum :: Parser Text () Inlines
 parseNum = (mconcat <$> many parseNumPart) <* eof

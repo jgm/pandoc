@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Filter.Lua
    Copyright   : Copyright (C) 2006-2021 John MacFarlane

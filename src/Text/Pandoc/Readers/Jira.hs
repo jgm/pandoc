@@ -16,7 +16,7 @@ import Data.Text (Text, append, pack, singleton, unpack)
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Jira.Parser (parse)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
-import Text.Pandoc.Builder hiding (cell)
+import Text.Pandoc.Builder as B hiding (cell)
 import Text.Pandoc.Error (PandocError (PandocParseError))
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Shared (stringify)
@@ -128,7 +128,7 @@ jiraToPandocInlines = \case
                             in imageWith attr (Jira.fromURL url) title mempty
   Jira.Link lt alias url -> jiraLinkToPandoc lt alias url
   Jira.Linebreak         -> linebreak
-  Jira.Monospaced inlns  -> code . stringify . toList . fromInlines $ inlns
+  Jira.Monospaced inlns  -> code . stringify . B.toList . fromInlines $ inlns
   Jira.Space             -> space
   Jira.SpecialChar c     -> str (Data.Text.singleton c)
   Jira.Str t             -> str t

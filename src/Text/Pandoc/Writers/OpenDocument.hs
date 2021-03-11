@@ -15,7 +15,7 @@ Conversion of 'Pandoc' documents to OpenDocument XML.
 -}
 module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
 import Control.Arrow ((***), (>>>))
-import Control.Monad.State.Strict hiding (when)
+import Control.Monad.State.Strict
 import Data.Char (chr)
 import Data.Foldable (find)
 import Data.List (sortOn, sortBy, foldl')
@@ -96,9 +96,6 @@ defaultWriterState =
                 , stImageCaptionId = 1
                 , stIdentTypes     = []
                 }
-
-when :: Bool -> Doc Text -> Doc Text
-when p a = if p then a else empty
 
 addTableStyle :: PandocMonad m => Doc Text -> OD m ()
 addTableStyle i = modify $ \s -> s { stTableStyles = i : stTableStyles s }
@@ -226,7 +223,9 @@ handleSpaces s = case T.uncons s of
   _             -> rm s
   where
     genTag = T.span (==' ') >>> tag . T.length *** rm >>> uncurry (<>)
-    tag n  = when (n /= 0) $ selfClosingTag "text:s" [("text:c", tshow n)]
+    tag n  = if n /= 0
+                then selfClosingTag "text:s" [("text:c", tshow n)]
+                else mempty
     rm t   = case T.uncons t of
       Just ( ' ',xs) -> char ' ' <> genTag xs
       Just ('\t',xs) -> selfClosingTag "text:tab" [] <> genTag xs
@@ -309,9 +308,11 @@ orderedItemToOpenDocument  o n bs = vcat <$> mapM go bs
        go b                 = blockToOpenDocument o b
        newLevel a l = do
          nn <- length <$> gets stParaStyles
-         ls <- head   <$> gets stListStyles
-         modify $ \s -> s { stListStyles = orderedListLevelStyle a ls :
-                                 drop 1 (stListStyles s) }
+         listStyles <- gets stListStyles
+         case listStyles of
+           [] -> return ()
+           (lst:rest) -> modify $ \s -> s { stListStyles =
+                                           orderedListLevelStyle a lst : rest }
          inTagsIndented "text:list" <$> orderedListToOpenDocument o nn l
 
 isTightList :: [[Block]] -> Bool
@@ -720,7 +721,8 @@ bulletListStyle l = do
                     [ ("text:level"      , tshow (i + 1))
                     , ("text:style-name" , "Bullet_20_Symbols"  )
                     , ("style:num-suffix", "."                  )
-                    , ("text:bullet-char", T.singleton (bulletList !! i))
+                    , ("text:bullet-char", maybe mempty T.singleton
+                                            (bulletList !!? i))
                     ] (listLevelStyle (1 + i))
       bulletList  = map chr $ cycle [8226,9702,9642]
       listElStyle = map doStyles [0..9]

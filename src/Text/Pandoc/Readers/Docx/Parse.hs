@@ -60,7 +60,6 @@ import Control.Monad.State.Strict
 import Data.Bits ((.|.))
 import qualified Data.ByteString.Lazy as B
 import Data.Char (chr, ord, readLitChar)
-import Data.List
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -909,7 +908,9 @@ elemToRun ns element
   | isElem ns "w" "r" element
   , Just altCont <- findChildByName ns "mc" "AlternateContent" element =
     do let choices = findChildrenByName ns "mc" "Choice" altCont
-           choiceChildren = map head $ filter (not . null) $ map elChildren choices
+           choiceChildren = mapMaybe (\n -> case elChildren n of
+                                              []    -> Nothing
+                                              (x:_) -> Just x) choices
        outputs <- mapD (childElemToRun ns) choiceChildren
        case outputs of
          r : _ -> return r

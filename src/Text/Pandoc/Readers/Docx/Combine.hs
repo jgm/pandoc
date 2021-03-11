@@ -61,7 +61,7 @@ import Data.List
 import Data.Bifunctor
 import Data.Sequence ( ViewL (..), ViewR (..), viewl, viewr, spanr, spanl
                      , (><), (|>) )
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 
 data Modifier a = Modifier (a -> a)
                 | AttrModifier (Attr -> a -> a) Attr
@@ -101,7 +101,7 @@ unstackInlines ms = case ilModifierAndInnards ms of
 
 ilModifierAndInnards :: Inlines -> Maybe (Modifier Inlines, Inlines)
 ilModifierAndInnards ils = case viewl $ unMany ils of
-  x :< xs | null xs -> second fromList <$> case x of
+  x :< xs | null xs -> second B.fromList <$> case x of
     Emph lst          -> Just (Modifier emph, lst)
     Strong lst        -> Just (Modifier strong, lst)
     SmallCaps lst     -> Just (Modifier smallcaps, lst)

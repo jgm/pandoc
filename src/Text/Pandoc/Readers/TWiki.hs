@@ -23,7 +23,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class as P (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
@@ -116,7 +116,7 @@ block = do
          <|> blockElements
          <|> para
   skipMany blankline
-  trace (T.take 60 $ tshow $ B.toList res)
+  P.trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 blockElements :: PandocMonad m => TWParser m B.Blocks
@@ -223,7 +223,8 @@ table :: PandocMonad m => TWParser m B.Blocks
 table = try $ do
   tableHead <- optionMaybe (unzip <$> many1Till tableParseHeader newline)
   rows <- many1 tableParseRow
-  return $ buildTable mempty rows $ fromMaybe (align rows, columns rows) tableHead
+  return $ buildTable mempty rows $
+    fromMaybe (align rows, columns rows) tableHead
   where
     buildTable caption rows (aligns, heads)
                     = B.table (B.simpleCaption $ B.plain caption)
@@ -231,9 +232,11 @@ table = try $ do
                               (TableHead nullAttr $ toHeaderRow heads)
                               [TableBody nullAttr 0 [] $ map toRow rows]
                               (TableFoot nullAttr [])
-    align rows      = replicate (columCount rows) (AlignDefault, ColWidthDefault)
-    columns rows    = replicate (columCount rows) mempty
-    columCount rows = length $ head rows
+    align rows      = replicate (columnCount rows) (AlignDefault, ColWidthDefault)
+    columns rows    = replicate (columnCount rows) mempty
+    columnCount rows = case rows of
+                        (r:_) -> length r
+                        _     -> 0
     toRow           = Row nullAttr . map B.simpleCell
     toHeaderRow l = [toRow l | not (null l)]
 

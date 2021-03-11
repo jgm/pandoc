@@ -36,10 +36,8 @@ import qualified Data.Text as T
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.BCP47 (renderLang)
 import Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocPure (PandocPure)
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..), getResourcePath,
-                                      readFileFromDirs, report,
-                                      setResourcePath)
+import Text.Pandoc.Class as P (PandocPure, PandocMonad (..), getResourcePath,
+                               readFileFromDirs, report, setResourcePath)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocParsecError))
 import Text.Pandoc.Highlighting (languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
@@ -382,7 +380,7 @@ inlineCommands = M.unions
     , ("it", extractSpaces emph <$> inlines)
     , ("sl", extractSpaces emph <$> inlines)
     , ("bf", extractSpaces strong <$> inlines)
-    , ("tt", code . stringify . toList <$> inlines)
+    , ("tt", code . stringify . B.toList <$> inlines)
     , ("rm", inlines)
     , ("itshape", extractSpaces emph <$> inlines)
     , ("slshape", extractSpaces emph <$> inlines)
@@ -451,10 +449,10 @@ ifdim = do
   return $ rawInline "latex" $ "\\ifdim" <> untokenize contents <> "\\fi"
 
 makeUppercase :: Inlines -> Inlines
-makeUppercase = fromList . walk (alterStr T.toUpper) . toList
+makeUppercase = B.fromList . walk (alterStr T.toUpper) . B.toList
 
 makeLowercase :: Inlines -> Inlines
-makeLowercase = fromList . walk (alterStr T.toLower) . toList
+makeLowercase = B.fromList . walk (alterStr T.toLower) . B.toList
 
 alterStr :: (Text -> Text) -> Inline -> Inline
 alterStr f (Str xs) = Str (f xs)
@@ -476,7 +474,7 @@ hypertargetBlock :: PandocMonad m => LP m Blocks
 hypertargetBlock = try $ do
   ref <- untokenize <$> braced
   bs <- grouped block
-  case toList bs of
+  case B.toList bs of
        [Header 1 (ident,_,_) _] | ident == ref -> return bs
        _                        -> return $ divWith (ref, [], []) bs
 
@@ -534,7 +532,7 @@ coloredInline stylename = do
   spanWith ("",[],[("style",stylename <> ": " <> untokenize color)]) <$> tok
 
 ttfamily :: PandocMonad m => LP m Inlines
-ttfamily = code . stringify . toList <$> tok
+ttfamily = code . stringify . B.toList <$> tok
 
 processHBox :: Inlines -> Inlines
 processHBox = walk convert
@@ -824,7 +822,7 @@ closing = do
       extractInlines _                       = []
   let sigs = case lookupMeta "author" (sMeta st) of
                   Just (MetaList xs) ->
-                    para $ trimInlines $ fromList $
+                    para $ trimInlines $ B.fromList $
                       intercalate [LineBreak] $ map extractInlines xs
                   _ -> mempty
   return $ para (trimInlines contents) <> sigs
@@ -1049,8 +1047,8 @@ fancyverbEnv name = do
 
 obeylines :: PandocMonad m => LP m Blocks
 obeylines =
-  para . fromList . removeLeadingTrailingBreaks .
-   walk softBreakToHard . toList <$> env "obeylines" inlines
+  para . B.fromList . removeLeadingTrailingBreaks .
+   walk softBreakToHard . B.toList <$> env "obeylines" inlines
   where softBreakToHard SoftBreak = LineBreak
         softBreakToHard x         = x
         removeLeadingTrailingBreaks = reverse . dropWhile isLineBreak .
@@ -1095,7 +1093,7 @@ letterContents = do
   -- add signature (author) and address (title)
   let addr = case lookupMeta "address" (sMeta st) of
                   Just (MetaBlocks [Plain xs]) ->
-                     para $ trimInlines $ fromList xs
+                     para $ trimInlines $ B.fromList xs
                   _ -> mempty
   return $ addr <> bs -- sig added by \closing
 
@@ -1110,7 +1108,7 @@ addImageCaption = walkM go
             | not ("fig:" `T.isPrefixOf` tit) = do
           st <- getState
           let (alt', tit') = case sCaption st of
-                               Just ils -> (toList ils, "fig:" <> tit)
+                               Just ils -> (B.toList ils, "fig:" <> tit)
                                Nothing  -> (alt, tit)
               attr' = case sLastLabel st of
                         Just lab -> (lab, cls, kvs)
@@ -1255,7 +1253,7 @@ block = do
             _                 -> mzero)
           <|> paragraph
           <|> grouped block
-  trace (T.take 60 $ tshow $ B.toList res)
+  P.trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 blocks :: PandocMonad m => LP m Blocks

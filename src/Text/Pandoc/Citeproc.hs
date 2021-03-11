@@ -33,7 +33,6 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (query, walk, walkM)
 import Control.Applicative ((<|>))
 import Control.Monad.Except (catchError, throwError)
-import Control.Monad.State (State, evalState, get, put, runState)
 import Data.Aeson (eitherDecode)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as L
@@ -406,13 +405,13 @@ mvPunct moveNotes locale (q : s : x : ys)
                           (dropTextWhile isPunctuation (B.fromList ys)))
            else q : x : mvPunct moveNotes locale ys
 -- 'x[^1],' -> 'x,[^1]'
-mvPunct moveNotes locale (Cite cs ils : ys)
-   | not (null ils)
-   , isNote (last ils)
+mvPunct moveNotes locale (Cite cs (i:is) : ys)
+   | Just True == viaNonEmpty (isNote . last) (i:is)
    , startWithPunct ys
    , moveNotes
    = let s = stringify ys
          spunct = T.takeWhile isPunctuation s
+         ils = i :| is
      in  Cite cs (init ils
                   ++ [Str spunct | not (endWithPunct False (init ils))]
                   ++ [last ils]) :
@@ -556,7 +555,7 @@ linkifyVariables ref =
 
 extractText :: Val Inlines -> Text
 extractText (TextVal x)  = x
-extractText (FancyVal x) = toText x
+extractText (FancyVal x) = Citeproc.toText x
 extractText (NumVal n)   = T.pack (show n)
 extractText _            = mempty
 

@@ -25,7 +25,7 @@ jira :: Text -> Pandoc
 jira = purely $ readJira def
 
 infix 4 =:
-(=:) :: ToString c
+(=:) :: ToText c
      => String -> (Text, c) -> TestTree
 (=:) = test jira
 

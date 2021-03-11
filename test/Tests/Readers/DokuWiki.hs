@@ -19,13 +19,13 @@ import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 
 dokuwiki :: Text -> Pandoc
 dokuwiki = purely $ readDokuWiki def{ readerStandalone = True }
 
 infix 4 =:
-(=:) :: ToString c
+(=:) :: ToText c
      => String -> (Text, c) -> TestTree
 (=:) = test dokuwiki
 

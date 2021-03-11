@@ -40,8 +40,8 @@ noNorm = NoNormPandoc
 defopts :: ReaderOptions
 defopts = def{ readerExtensions = getDefaultExtensions "docx" }
 
-instance ToString NoNormPandoc where
-  toString d = T.unpack $ purely (writeNative def{ writerTemplate = s }) $ toPandoc d
+instance ToText NoNormPandoc where
+  toText d = purely (writeNative def{ writerTemplate = s }) $ toPandoc d
    where s = case d of
                   NoNormPandoc (Pandoc (Meta m) _)
                     | M.null m  -> Nothing
@@ -73,14 +73,14 @@ testCompareWithOpts opts name docxFile nativeFile =
 testCompare :: String -> FilePath -> FilePath -> TestTree
 testCompare = testCompareWithOpts defopts
 
-testForWarningsWithOptsIO :: ReaderOptions -> String -> FilePath -> [String] -> IO TestTree
+testForWarningsWithOptsIO :: ReaderOptions -> String -> FilePath -> [Text] -> IO TestTree
 testForWarningsWithOptsIO opts name docxFile expected = do
   df <- B.readFile docxFile
   logs <-  runIOorExplode $ setVerbosity ERROR >> readDocx opts df >> P.getLog
   let warns = [m | DocxParserWarning m <- logs]
-  return $ test id name (T.unlines warns, unlines expected)
+  return $ test id name (T.unlines warns, T.unlines expected)
 
-testForWarningsWithOpts :: ReaderOptions -> String -> FilePath -> [String] -> TestTree
+testForWarningsWithOpts :: ReaderOptions -> String -> FilePath -> [Text] -> TestTree
 testForWarningsWithOpts opts name docxFile expected =
   unsafePerformIO $ testForWarningsWithOptsIO opts name docxFile expected
 
@@ -96,10 +96,10 @@ compareMediaPathIO mediaPath mediaBag docxPath = do
   docxMedia <- getMedia docxPath mediaPath
   let mbBS   = case lookupMedia mediaPath mediaBag of
                  Just (_, bs) -> bs
-                 Nothing      -> error ("couldn't find " ++
+                 Nothing      -> error $ T.pack ("couldn't find " ++
                                         mediaPath ++
                                         " in media bag")
-      docxBS = fromMaybe (error ("couldn't find " ++
+      docxBS = fromMaybe (error $ T.pack ("couldn't find " ++
                         mediaPath ++
                         " in media bag")) docxMedia
   return $ mbBS == docxBS

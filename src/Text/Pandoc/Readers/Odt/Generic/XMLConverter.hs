@@ -73,7 +73,7 @@ import           Text.Pandoc.Readers.Odt.Arrows.Utils
 import           Text.Pandoc.Readers.Odt.Generic.Namespaces
 import           Text.Pandoc.Readers.Odt.Generic.Utils
 import           Text.Pandoc.Readers.Odt.Generic.Fallible
-
+import           Prelude hiding (withState, first, second)
 --------------------------------------------------------------------------------
 --  Basis types for readability
 --------------------------------------------------------------------------------
@@ -101,7 +101,7 @@ data XMLConverterState nsID extraState where
          -- Arguably, a real Zipper would be better. But that is an
          -- optimization that can be made at a later time, e.g. when
          -- replacing Text.XML.Light.
-         parentElements    :: [XML.Element]
+         parentElements    :: NonEmpty XML.Element
          -- | A map from internal namespace IDs to the namespace prefixes
          -- used in XML elements
        , namespacePrefixes :: NameSpacePrefixes nsID
@@ -126,7 +126,7 @@ createStartState :: (NameSpaceID nsID)
                     -> XMLConverterState nsID extraState
 createStartState element extraState =
   XMLConverterState
-       { parentElements    = [element]
+       { parentElements    = element :| []
        , namespacePrefixes = M.empty
        , namespaceIRIs     = getInitialIRImap
        , moreState         = extraState
@@ -152,8 +152,8 @@ currentElement state = head (parentElements state)
 -- | Replace the current position by another, modifying the extra state
 -- in the process
 swapStack'          :: XMLConverterState nsID extraState
-                    -> [XML.Element]
-                    -> ( XMLConverterState nsID extraState , [XML.Element] )
+                    -> NonEmpty XML.Element
+                    -> ( XMLConverterState nsID extraState , NonEmpty XML.Element )
 swapStack' state stack
                      = ( state { parentElements = stack }
                        , parentElements state
@@ -163,13 +163,13 @@ swapStack' state stack
 pushElement         :: XML.Element
                     -> XMLConverterState nsID extraState
                     -> XMLConverterState nsID extraState
-pushElement e state  = state { parentElements = e:parentElements state }
+pushElement e state  = state { parentElements = e :| toList (parentElements state) }
 
 -- | Pop the top element from the call stack, unless it is the last one.
 popElement          :: XMLConverterState nsID extraState
                     -> Maybe (XMLConverterState nsID extraState)
 popElement state
-  | _:es@(_:_) <- parentElements state = Just $ state { parentElements = es }
+  | _:|(e:es) <- parentElements state = Just $ state { parentElements = e:|es }
   | otherwise                          = Nothing
 
 --------------------------------------------------------------------------------
@@ -293,7 +293,7 @@ readNSattributes         = fromState $ \state -> maybe (state, failEmpty     )
                          => XMLConverterState nsID extraState
                          -> Maybe (XMLConverterState nsID extraState)
     extractNSAttrs startState
-                         = foldl (\state d -> state >>= addNS d)
+                         = foldl' (\state d -> state >>= addNS d)
                                  (Just startState)
                                  nsAttribs
       where nsAttribs    = mapMaybe readNSattr (XML.elAttribs element)
@@ -553,7 +553,7 @@ jumpThere              = withState (\state element
                                    )
 
 --
-swapStack             :: XMLConverter nsID extraState [XML.Element] [XML.Element]
+swapStack             :: XMLConverter nsID extraState (NonEmpty XML.Element) (NonEmpty XML.Element)
 swapStack             = withState swapStack'
 
 --
@@ -568,7 +568,7 @@ jumpBack               = tryModifyState (popElement >>> maybeToChoice)
 -- accessible to the converter.
 switchingTheStack      :: XMLConverter nsID moreState a b
                        -> XMLConverter nsID moreState (a, XML.Element) b
-switchingTheStack a    =     second ( (:[]) ^>> swapStack )
+switchingTheStack a    =     second ( (:|[]) ^>> swapStack )
                          >>> first  a
                          >>> second swapStack
                          >>^ fst

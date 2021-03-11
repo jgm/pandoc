@@ -18,14 +18,14 @@ import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 
 latex :: Text -> Pandoc
 latex = purely $ readLaTeX def{
                    readerExtensions = getDefaultExtensions "latex" }
 
 infix 4 =:
-(=:) :: ToString c
+(=:) :: ToText c
      => String -> (Text, c) -> TestTree
 (=:) = test latex
 
@@ -338,10 +338,10 @@ natbibCitations = testGroup "natbib"
     =?> para (cite [baseCitation] (rt "\\citet{item1}"))
   , "suffix" =: "\\citet[p.~30]{item1}"
     =?> para
-        (cite [baseCitation{ citationSuffix = toList $ text "p.\160\&30" }] (rt "\\citet[p.~30]{item1}"))
+        (cite [baseCitation{ citationSuffix = B.toList $ text "p.\160\&30" }] (rt "\\citet[p.~30]{item1}"))
   , "suffix long" =: "\\citet[p.~30, with suffix]{item1}"
     =?> para (cite [baseCitation{ citationSuffix =
-                       toList $ text "p.\160\&30, with suffix" }] (rt "\\citet[p.~30, with suffix]{item1}"))
+                       B.toList $ text "p.\160\&30, with suffix" }] (rt "\\citet[p.~30, with suffix]{item1}"))
   , "multiple" =: "\\citeauthor{item1} \\citetext{\\citeyear{item1}; \\citeyear[p.~30]{item2}; \\citealp[see also][]{item3}}"
     =?> para (cite [baseCitation{ citationMode = AuthorInText }
                    ,baseCitation{ citationMode = SuppressAuthor
@@ -365,7 +365,7 @@ natbibCitations = testGroup "natbib"
                                 , citationSuffix = [Str "pp.\160\&33,",Space,Str "35\8211\&37,",Space,Str "and",Space,Str "nowhere",Space, Str "else"] }] (rt "\\citep[pp.~33, 35--37, and nowhere else]{item1}"))
   , "suffix only" =: "\\citep[and nowhere else]{item1}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation
-                                , citationSuffix = toList $ text "and nowhere else" }] (rt "\\citep[and nowhere else]{item1}"))
+                                , citationSuffix = B.toList $ text "and nowhere else" }] (rt "\\citep[and nowhere else]{item1}"))
   , "no author" =: "\\citeyearpar{item1}, and now Doe with a locator \\citeyearpar[p.~44]{item2}"
     =?> para (cite [baseCitation{ citationMode = SuppressAuthor }] (rt "\\citeyearpar{item1}") <>
               text ", and now Doe with a locator " <>
@@ -385,10 +385,10 @@ biblatexCitations = testGroup "biblatex"
     =?> para (cite [baseCitation] (rt "\\textcite{item1}"))
   , "suffix" =: "\\textcite[p.~30]{item1}"
     =?> para
-        (cite [baseCitation{ citationSuffix = toList $ text "p.\160\&30" }] (rt "\\textcite[p.~30]{item1}"))
+        (cite [baseCitation{ citationSuffix = B.toList $ text "p.\160\&30" }] (rt "\\textcite[p.~30]{item1}"))
   , "suffix long" =: "\\textcite[p.~30, with suffix]{item1}"
     =?> para (cite [baseCitation{ citationSuffix =
-                       toList $ text "p.\160\&30, with suffix" }] (rt "\\textcite[p.~30, with suffix]{item1}"))
+                       B.toList $ text "p.\160\&30, with suffix" }] (rt "\\textcite[p.~30, with suffix]{item1}"))
   , "multiple" =: "\\textcites{item1}[p.~30]{item2}[see also][]{item3}"
     =?> para (cite [baseCitation{ citationMode = AuthorInText }
                    ,baseCitation{ citationMode = NormalCitation
@@ -412,7 +412,7 @@ biblatexCitations = testGroup "biblatex"
                                 , citationSuffix = [Str "pp.\160\&33,",Space,Str "35\8211\&37,",Space,Str "and",Space,Str "nowhere",Space, Str "else"] }] (rt "\\autocite[pp.~33, 35--37, and nowhere else]{item1}"))
   , "suffix only" =: "\\autocite[and nowhere else]{item1}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation
-                                , citationSuffix = toList $ text "and nowhere else" }] (rt "\\autocite[and nowhere else]{item1}"))
+                                , citationSuffix = B.toList $ text "and nowhere else" }] (rt "\\autocite[and nowhere else]{item1}"))
   , "no author" =: "\\autocite*{item1}, and now Doe with a locator \\autocite*[p.~44]{item2}"
     =?> para (cite [baseCitation{ citationMode = SuppressAuthor }] (rt "\\autocite*{item1}") <>
               text ", and now Doe with a locator " <>

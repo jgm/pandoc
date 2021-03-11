@@ -21,17 +21,18 @@ module Text.Pandoc.Readers.HTML.TagCategories
   )
 where
 
-import Data.Set (Set, fromList, unions)
+import Data.Set (Set)
+import qualified Data.Set as Set
 import Data.Text (Text)
 
 eitherBlockOrInline :: Set Text
-eitherBlockOrInline = fromList
+eitherBlockOrInline = Set.fromList
   ["audio", "applet", "button", "iframe", "embed",
    "del", "ins", "progress", "map", "area", "noscript", "script",
    "object", "svg", "video", "source"]
 
 blockHtmlTags :: Set Text
-blockHtmlTags = fromList
+blockHtmlTags = Set.fromList
    ["?xml", "!DOCTYPE", "address", "article", "aside",
     "blockquote", "body", "canvas",
     "caption", "center", "col", "colgroup", "dd", "details",
@@ -48,7 +49,7 @@ blockHtmlTags = fromList
 -- We want to allow raw docbook in markdown documents, so we
 -- include docbook block tags here too.
 blockDocBookTags :: Set Text
-blockDocBookTags = fromList
+blockDocBookTags = Set.fromList
    ["calloutlist", "bibliolist", "glosslist", "itemizedlist",
     "orderedlist", "segmentedlist", "simplelist",
     "variablelist", "caution", "important", "note", "tip",
@@ -63,10 +64,10 @@ blockDocBookTags = fromList
     "sidebar", "title"]
 
 epubTags :: Set Text
-epubTags = fromList ["case", "switch", "default"]
+epubTags = Set.fromList ["case", "switch", "default"]
 
 blockTags :: Set Text
-blockTags = unions [blockHtmlTags, blockDocBookTags, epubTags]
+blockTags = Set.unions [blockHtmlTags, blockDocBookTags, epubTags]
 
 sectioningContent :: [Text]
 sectioningContent = ["article", "aside", "nav", "section"]

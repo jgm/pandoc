@@ -17,7 +17,7 @@ module Text.Pandoc.Readers.Docx.Lists ( blocksToBullets
                                       , listParagraphStyles
                                       ) where
 
-import Data.List
+import Data.List (intersect, delete, (\\))
 import Data.Maybe
 import Data.String (fromString)
 import qualified Data.Text as T
@@ -109,12 +109,15 @@ handleListParagraphs (blk:blks) = blk : handleListParagraphs blks
 
 separateBlocks' :: Block -> [[Block]] -> [[Block]]
 separateBlocks' blk [[]] = [[blk]]
-separateBlocks' b@(BulletList _) acc = init acc ++ [last acc ++ [b]]
-separateBlocks' b@(OrderedList _ _) acc = init acc ++ [last acc ++ [b]]
+separateBlocks' b@(BulletList _) acc = fromMaybe acc $ flip viaNonEmpty acc $
+   \accNE -> init accNE ++ [last accNE ++ [b]]
+separateBlocks' b@(OrderedList _ _) acc = fromMaybe acc $ flip viaNonEmpty acc $
+   \accNE -> init accNE ++ [last accNE ++ [b]]
 -- The following is for the invisible bullet lists. This is how
 -- pandoc-generated ooxml does multiparagraph item lists.
 separateBlocks' b acc | fmap trim (getText b) == Just "" =
-  init acc ++ [last acc ++ [b]]
+  fromMaybe acc $ flip viaNonEmpty acc $
+     \accNE -> init accNE ++ [last accNE ++ [b]]
 separateBlocks' b acc = acc ++ [[b]]
 
 separateBlocks :: [Block] -> [[Block]]
@@ -178,9 +181,9 @@ blocksToDefinitions' ((defTerm, defItems):defs) acc
         defItems2 = if remainingAttr2 == ("", [], [])
           then blks2
           else [Div remainingAttr2 blks2]
-        defAcc' = if null defItems
-          then (defTerm, [defItems2]) : defs
-          else (defTerm, init defItems ++ [last defItems ++ defItems2]) : defs
+        defAcc' = fromMaybe ((defTerm, [defItems2]) : defs) $
+                  flip viaNonEmpty defItems $ \items ->
+                    (defTerm, init items ++ [last items ++ defItems2]) : defs
     in
      blocksToDefinitions' defAcc' acc blks
 blocksToDefinitions' [] acc (b:blks) =

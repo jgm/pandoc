@@ -25,7 +25,7 @@ rst :: Text -> Pandoc
 rst = purely $ readRST def{ readerStandalone = True }
 
 infix 4 =:
-(=:) :: ToString c
+(=:) :: ToText c
      => String -> (Text, c) -> TestTree
 (=:) = test rst
 

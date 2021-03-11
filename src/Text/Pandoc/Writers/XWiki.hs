@@ -36,7 +36,7 @@ module Text.Pandoc.Writers.XWiki ( writeXWiki ) where
 import Control.Monad.Reader (ReaderT, asks, local, runReaderT)
 import qualified Data.Set as Set
 import qualified Data.Text as Text
-import Data.Text (Text, intercalate, replace, split)
+import Data.Text (Text, replace, split)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
@@ -59,7 +59,7 @@ writeXWiki _ (Pandoc _ blocks) =
 
 -- | Concatenates strings with line breaks between them.
 vcat :: [Text] -> Text
-vcat = intercalate "\n"
+vcat = Text.intercalate "\n"
 
 -- If an id is provided, we can generate an anchor using the id macro
 -- https://extensions.xwiki.org/xwiki/bin/view/Extension/Id%20Macro
@@ -139,7 +139,7 @@ tableCellXWiki :: PandocMonad m => Bool -> [Block] -> XWikiReader m Text
 tableCellXWiki isHeader cell = do
   contents <- blockListToXWiki cell
   let isMultiline = (length . split (== '\n')) contents > 1
-  let contents' = intercalate contents $ if isMultiline then ["(((", ")))"] else [mempty, mempty]
+  let contents' = Text.intercalate contents $ if isMultiline then ["(((", ")))"] else [mempty, mempty]
   let cellBorder = if isHeader then "|=" else "|"
   return $ cellBorder <> contents'
 
@@ -260,7 +260,7 @@ definitionListItemToMediaWiki (label, items) = do
   contents <- mapM blockListToXWiki items
   marker <- asks listLevel
   return $ marker <> " " <> labelText <> "\n" <>
-    intercalate "\n" (map (\d -> Text.init marker <> ": " <> d) contents)
+    Text.intercalate "\n" (map (\d -> Text.init marker <> ": " <> d) contents)
 
 -- Escape the escape character, as well as formatting pairs
 escapeXWikiString :: Text -> Text

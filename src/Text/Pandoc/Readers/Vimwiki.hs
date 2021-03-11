@@ -54,17 +54,9 @@ import Data.List (isInfixOf)
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Builder (Blocks, Inlines, fromList, toList, trimInlines)
-import qualified Text.Pandoc.Builder as B (blockQuote, bulletList, code,
-                                           codeBlockWith, definitionList,
-                                           displayMath, divWith, emph,
-                                           headerWith, horizontalRule, image,
-                                           imageWith, link, math, orderedList,
-                                           para, plain, setMeta, simpleTable,
-                                           softbreak, space, spanWith, str,
-                                           strikeout, strong, subscript,
-                                           superscript)
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Class as P (PandocMonad(..))
 import Text.Pandoc.Definition (Attr, Block (BulletList, OrderedList),
                                Inline (Space), ListNumberDelim (..),
                                ListNumberStyle (..), Pandoc (..),
@@ -110,7 +102,7 @@ parseVimwiki = do
   eof
   st <- getState
   let meta = stateMeta st
-  return $ Pandoc meta (toList bs)
+  return $ Pandoc meta (B.toList bs)
 
 -- block parser
 
@@ -129,7 +121,7 @@ block = do
                 , definitionList
                 , para
                 ]
-  trace (T.take 60 $ tshow $ toList res)
+  P.trace (T.take 60 $ tshow $ toList res)
   return res
 
 blockML :: PandocMonad m => VwParser m Blocks
@@ -244,13 +236,13 @@ syntax _ = []
 
 nameValue :: Text -> Maybe (Text, Text)
 nameValue s =
-  let t = splitTextBy (== '=') s in
-    if length t /= 2
-      then Nothing
-      else let (a, b) = (head t, last t) in
-             if (T.length b < 2) || ((T.head b, T.last b) /= ('"', '"'))
-               then Nothing
-               else Just (a, stripFirstAndLast b)
+  case splitTextBy (== '=') s of
+    [a,b]
+      | T.length b >= 2
+      , T.head b == '"'
+      , T.last b == '"'
+      -> Just (a, stripFirstAndLast b)
+    _ -> Nothing
 
 
 displayMath :: PandocMonad m => VwParser m Blocks
@@ -286,8 +278,8 @@ mathTagLaTeX s = case s of
 
 mixedList :: PandocMonad m => VwParser m Blocks
 mixedList = try $ do
-  (bl, _) <- mixedList' (-1)
-  return $ head bl
+  (b:_, _) <- mixedList' (-1)
+  return b
 
 mixedList' :: PandocMonad m => Int -> VwParser m ([Blocks], Int)
 mixedList' prevInd = do
@@ -358,9 +350,9 @@ makeListMarkerSpan x =
 
 combineList :: Blocks -> [Blocks] -> [Blocks]
 combineList x [y] = case toList y of
-                            [BulletList z] -> [fromList $ toList x
+                            [BulletList z] -> [B.fromList $ B.toList x
                                               ++ [BulletList z]]
-                            [OrderedList attr z] -> [fromList $ toList x
+                            [OrderedList attr z] -> [B.fromList $ B.toList x
                                                     ++ [OrderedList attr z]]
                             _ -> x:[y]
 combineList x xs = x:xs
@@ -401,8 +393,8 @@ table1 = try $ do
 -- headerless table
 table2 :: PandocMonad m => VwParser m ([Blocks], [[Blocks]])
 table2 = try $ do
-  trs <- many1 tableRow
-  return (replicate (length $ head trs) mempty, trs)
+  trs@(firstRow:_) <- many1 tableRow
+  return (replicate (length firstRow) mempty, trs)
 
 tableHeaderSeparator :: PandocMonad m => VwParser m ()
 tableHeaderSeparator = try $ do
@@ -502,8 +494,8 @@ bareURL = try $ do
 strong :: PandocMonad m => VwParser m Inlines
 strong = try $ do
   s <- lookAhead $ between (char '*') (char '*') (many1 $ noneOf "*")
-  guard $ (head s `notElem` spaceChars)
-             && (last s `notElem` spaceChars)
+  guard $ Just True == viaNonEmpty (\s' ->
+    (head s' `notElem` spaceChars) && (last s' `notElem` spaceChars)) s
   char '*'
   contents <- mconcat <$>manyTill inline' (char '*'
     >> notFollowedBy alphaNum)
@@ -516,8 +508,8 @@ makeId i = T.concat (stringify <$> toList i)
 emph :: PandocMonad m => VwParser m Inlines
 emph = try $ do
   s <- lookAhead $ between (char '_') (char '_') (many1 $ noneOf "_")
-  guard $ (head s `notElem` spaceChars)
-          && (last s `notElem` spaceChars)
+  guard $ Just True == viaNonEmpty (\s' ->
+    (head s' `notElem` spaceChars) && (last s' `notElem` spaceChars)) s
   char '_'
   contents <- mconcat <$>manyTill inline' (char '_'
     >> notFollowedBy alphaNum)
@@ -618,8 +610,8 @@ tag = try $ do
   char ':'
   s <- manyTillChar (noneOf spaceChars) (try (char ':' >> lookAhead space))
   guard $ not $ "::" `T.isInfixOf` (":" <> s <> ":")
-  let ss = splitTextBy (==':') s
-  return $ mconcat $ makeTagSpan' (head ss):(makeTagSpan <$> tail ss)
+  let (ssHead:ssTail) = splitTextBy (==':') s
+  return $ mconcat $ makeTagSpan' ssHead : (makeTagSpan <$> ssTail)
 
 todoMark :: PandocMonad m => VwParser m Inlines
 todoMark = try $ do

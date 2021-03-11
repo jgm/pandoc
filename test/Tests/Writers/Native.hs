@@ -6,14 +6,15 @@ import Test.Tasty.QuickCheck
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
+import Text.Pandoc.Shared (safeRead)
 
 p_write_rt :: Pandoc -> Bool
 p_write_rt d =
-  read (unpack $ purely (writeNative def{ writerTemplate = Just mempty }) d) == d
+  safeRead (purely (writeNative def{ writerTemplate = Just mempty }) d) == Just d
 
 p_write_blocks_rt :: [Block] -> Bool
 p_write_blocks_rt bs =
-  read (unpack $ purely (writeNative def) (Pandoc nullMeta bs)) == bs
+  safeRead (purely (writeNative def) (Pandoc nullMeta bs)) == Just bs
 
 tests :: [TestTree]
 tests = [ testProperty "p_write_rt" p_write_rt

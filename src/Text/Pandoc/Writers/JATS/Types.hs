@@ -18,9 +18,6 @@ module Text.Pandoc.Writers.JATS.Types
 where
 
 import Citeproc.Types (Reference)
-import Control.Monad.Reader (ReaderT)
-import Control.Monad.State (StateT)
-import Data.Text (Text)
 import Text.DocLayout (Doc)
 import Text.Pandoc.Builder (Block, Inline, Inlines)
 import Text.Pandoc.Options (WriterOptions)

@@ -35,7 +35,7 @@ import           Test.Tasty.QuickCheck          ( QuickCheckTests(..)
                                                 , elements
                                                 )
 import           Text.Pandoc.Arbitrary          ( )
-import           Text.Pandoc.Builder
+import           Text.Pandoc.Builder           as B
 import qualified Text.Pandoc.Writers.AnnotatedTable
                                                as Ann
 
@@ -150,7 +150,7 @@ propBuilderAnnTable th tbs tf = withColSpec $ \cs ->
   convertTable (table emptyCaption cs th tbs tf)
     === convertAnnTable (Ann.toTable nullAttr emptyCaption cs th tbs tf)
  where
-  convertTable blks = case toList blks of
+  convertTable blks = case B.toList blks of
     [Table _ _ colspec a b c] -> Right (colspec, a, b, c)
     x                         -> Left x
   convertAnnTable x = case Ann.fromTable x of

@@ -30,7 +30,7 @@ import qualified Data.Text as T
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class as P (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
@@ -192,7 +192,7 @@ block = do
      <|> blockTag
      <|> (B.rawBlock "mediawiki" <$> template)
      <|> para
-  trace (T.take 60 $ tshow $ B.toList res)
+  P.trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 para :: PandocMonad m => MWParser m Blocks

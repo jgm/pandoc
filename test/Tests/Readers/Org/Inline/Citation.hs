@@ -15,7 +15,7 @@ module Tests.Readers.Org.Inline.Citation (tests) where
 import Test.Tasty (TestTree, testGroup)
 import Tests.Helpers ((=?>))
 import Tests.Readers.Org.Shared ((=:))
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 
 tests :: [TestTree]
 tests =
@@ -160,8 +160,8 @@ tests =
       "[[citep:Dominik201408][See page 20::, for example]]" =?>
       let citation = Citation
                      { citationId = "Dominik201408"
-                     , citationPrefix = toList "See page 20"
-                     , citationSuffix = toList ", for example"
+                     , citationPrefix = B.toList "See page 20"
+                     , citationSuffix = B.toList ", for example"
                      , citationMode = NormalCitation
                      , citationNoteNum = 0
                      , citationHash = 0
@@ -198,17 +198,17 @@ tests =
       , "Berkeley-style parenthetical citation list" =:
         "[(cite): see; @Dominik201408;also @Pandoc; and others]" =?>
         let pandocCite'  = pandocCite {
-                             citationPrefix = toList "also"
-                           , citationSuffix = toList "and others"
+                             citationPrefix = B.toList "also"
+                           , citationSuffix = B.toList "and others"
                            }
             dominikCite' = dominikCite {
-                             citationPrefix = toList "see"
+                             citationPrefix = B.toList "see"
                            }
         in (para $ cite [dominikCite', pandocCite'] "")
 
       , "Berkeley-style plain citation list" =:
         "[cite: See; @Dominik201408; and @Pandoc; and others]" =?>
-        let pandocCite' = pandocInText { citationPrefix = toList "and" }
+        let pandocCite' = pandocInText { citationPrefix = B.toList "and" }
         in (para $ "See "
              <> cite [dominikInText] ""
              <> "," <> space

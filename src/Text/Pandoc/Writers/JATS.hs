@@ -20,8 +20,6 @@ module Text.Pandoc.Writers.JATS
   , writeJatsPublishing
   , writeJatsArticleAuthoring
   ) where
-import Control.Monad.Reader
-import Control.Monad.State
 import Data.Generics (everywhere, mkT)
 import Data.List (partition)
 import qualified Data.Map as M
@@ -50,6 +48,7 @@ import Text.Pandoc.XML
 import Text.TeXMath
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 import qualified Text.XML.Light as Xml
+import Control.Monad (msum)
 
 -- | Convert a @'Pandoc'@ document to JATS (Archiving and Interchange
 -- Tag Set.)

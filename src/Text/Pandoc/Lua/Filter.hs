@@ -204,7 +204,7 @@ walkMeta lf (Pandoc m bs) = do
 
 walkPandoc :: LuaFilter -> Pandoc -> Lua Pandoc
 walkPandoc (LuaFilter fnMap) =
-  case foldl mplus Nothing (map (`Map.lookup` fnMap) pandocFilterNames) of
+  case foldl' mplus Nothing (map (`Map.lookup` fnMap) pandocFilterNames) of
     Just fn -> \x -> runFilterFunction fn x *> singleElement x
     Nothing -> return
 

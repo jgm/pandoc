@@ -17,6 +17,7 @@
 - ignore: {name: "Use camelCase"}
 - ignore: {name: "Use fmap"}  # specific for GHC 7.8 compat
 - ignore: {name: "Use isDigit"}
+- ignore: {name: "Use unwords"}
 
 - ignore:
     name: "Monad law, left identity"
@@ -112,3 +113,5 @@
 
 # Define some custom infix operators
 # - fixity: infixr 3 ~^#^~
+#
+

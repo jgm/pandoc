@@ -140,10 +140,12 @@ blockToZimWiki opts (Table _ blkCapt specs thead tbody tfoot) = do
                       c <- inlineListToZimWiki opts capt
                       return $ "" <> c <> "\n"
   headers' <- if all null headers
-                 then zipWithM (tableItemToZimWiki opts) aligns (head rows)
+                 then fromMaybe (return []) $ viaNonEmpty
+                       (zipWithM (tableItemToZimWiki opts) aligns . head) rows
                  else mapM (inlineListToZimWiki opts . removeFormatting)headers  -- emphasis, links etc. are not allowed in table headers
   rows' <- mapM (zipWithM (tableItemToZimWiki opts) aligns) rows
-  let widths = map (maximum . map T.length) $ transpose (headers':rows')
+  let widths = map (fromMaybe 0 . viaNonEmpty maximum1 . map T.length)
+                 $ transpose (headers':rows')
   let padTo (width, al) s =
           case width - T.length s of
                x | x > 0 ->

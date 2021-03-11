@@ -23,11 +23,11 @@ import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BC
+import qualified Data.Text.Lazy.Encoding as TLE
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Data.Text.Lazy.Encoding (decodeUtf8')
 import Text.Printf (printf)
 import Data.Char (ord, isAscii, isSpace)
 import System.Directory
@@ -74,7 +74,7 @@ makePDF :: String              -- ^ pdf creator (pdflatex, lualatex, xelatex,
         -> (WriterOptions -> Pandoc -> PandocIO Text)  -- ^ writer
         -> WriterOptions       -- ^ options
         -> Pandoc              -- ^ document
-        -> PandocIO (Either ByteString ByteString)
+        -> PandocIO (Either BL.ByteString BL.ByteString)
 makePDF program pdfargs writer opts doc =
   case takeBaseName program of
     "wkhtmltopdf" -> makeWithWkhtmltopdf program pdfargs writer opts doc
@@ -136,7 +136,7 @@ makeWithWkhtmltopdf :: String              -- ^ wkhtmltopdf or path
                     -> (WriterOptions -> Pandoc -> PandocIO Text)  -- ^ writer
                     -> WriterOptions       -- ^ options
                     -> Pandoc              -- ^ document
-                    -> PandocIO (Either ByteString ByteString)
+                    -> PandocIO (Either BL.ByteString BL.ByteString)
 makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
   let mathArgs = case writerHTMLMathMethod opts of
                  -- with MathJax, wait til all math is rendered:
@@ -225,7 +225,7 @@ tectonic2pdf :: Verbosity                       -- ^ Verbosity level
              -> [String]                        -- ^ Arguments to the latex-engine
              -> FilePath                        -- ^ temp directory for output
              -> Text                            -- ^ tex source
-             -> PandocIO (Either ByteString ByteString)
+             -> PandocIO (Either BL.ByteString BL.ByteString)
 tectonic2pdf verbosity program args tmpDir source = do
   (exit, log', mbPdf) <- runTectonic verbosity program args tmpDir source
   case (exit, mbPdf) of
@@ -240,7 +240,7 @@ tex2pdf :: Verbosity                       -- ^ Verbosity level
         -> [String]                        -- ^ Arguments to the latex-engine
         -> FilePath                        -- ^ temp directory for output
         -> Text                            -- ^ tex source
-        -> PandocIO (Either ByteString ByteString)
+        -> PandocIO (Either BL.ByteString BL.ByteString)
 tex2pdf verbosity program args tmpDir source = do
   let numruns | takeBaseName program == "latexmk"        = 1
               | "\\tableofcontents" `T.isInfixOf` source = 3  -- to get page numbers
@@ -262,7 +262,7 @@ tex2pdf verbosity program args tmpDir source = do
           missingCharacterWarnings verbosity log'
           return $ Right pdf
 
-missingCharacterWarnings :: Verbosity -> ByteString -> PandocIO ()
+missingCharacterWarnings :: Verbosity -> BL.ByteString -> PandocIO ()
 missingCharacterWarnings verbosity log' = do
   let ls = BC.lines log'
   let isMissingCharacterWarning = BC.isPrefixOf "Missing character: "
@@ -279,7 +279,7 @@ missingCharacterWarnings verbosity log' = do
 
 -- parsing output
 
-extractMsg :: ByteString -> ByteString
+extractMsg :: BL.ByteString -> BL.ByteString
 extractMsg log' = do
   let msg'  = dropWhile (not . ("!" `BC.isPrefixOf`)) $ BC.lines log'
   let (msg'',rest) = break ("l." `BC.isPrefixOf`) msg'
@@ -288,7 +288,7 @@ extractMsg log' = do
      then log'
      else BC.unlines (msg'' ++ lineno)
 
-extractConTeXtMsg :: ByteString -> ByteString
+extractConTeXtMsg :: BL.ByteString -> BL.ByteString
 extractConTeXtMsg log' = do
   let msg'  = take 1 $
               dropWhile (not . ("tex error" `BC.isPrefixOf`)) $ BC.lines log'
@@ -299,7 +299,7 @@ extractConTeXtMsg log' = do
 -- running tex programs
 
 runTectonic :: Verbosity -> String -> [String] -> FilePath
-              -> Text -> PandocIO (ExitCode, ByteString, Maybe ByteString)
+              -> Text -> PandocIO (ExitCode, BL.ByteString, Maybe BL.ByteString)
 runTectonic verbosity program args' tmpDir' source = do
     let getOutDir acc (a:b:xs) = if a `elem` ["-o", "--outdir"]
                                     then (reverse acc ++ xs, Just b)
@@ -328,7 +328,7 @@ runTectonic verbosity program args' tmpDir' source = do
 
 -- read a pdf that has been written to a temporary directory, and optionally read
 -- logs
-getResultingPDF :: Maybe String -> String -> PandocIO (Maybe ByteString, Maybe ByteString)
+getResultingPDF :: Maybe String -> String -> PandocIO (Maybe BL.ByteString, Maybe BL.ByteString)
 getResultingPDF logFile pdfFile = do
     pdfExists <- liftIO $ doesFileExist pdfFile
     pdf <- if pdfExists
@@ -353,7 +353,7 @@ getResultingPDF logFile pdfFile = do
 -- contents of stdout, contents of produced PDF if any).  Rerun
 -- a fixed number of times to resolve references.
 runTeXProgram :: Verbosity -> String -> [String] -> Int -> FilePath
-              -> Text -> PandocIO (ExitCode, ByteString, Maybe ByteString)
+              -> Text -> PandocIO (ExitCode, BL.ByteString, Maybe BL.ByteString)
 runTeXProgram verbosity program args numRuns tmpDir' source = do
     let isOutdirArg x = "-outdir=" `isPrefixOf` x ||
                         "-output-directory=" `isPrefixOf` x
@@ -401,7 +401,7 @@ generic2pdf :: Verbosity
             -> String
             -> [String]
             -> Text
-            -> IO (Either ByteString ByteString)
+            -> IO (Either BL.ByteString BL.ByteString)
 generic2pdf verbosity program args source = do
   env' <- getEnvironment
   when (verbosity >= INFO) $
@@ -419,7 +419,7 @@ html2pdf  :: Verbosity    -- ^ Verbosity level
           -> String       -- ^ Program (wkhtmltopdf, weasyprint, prince, or path)
           -> [String]     -- ^ Args to program
           -> Text         -- ^ HTML5 source
-          -> IO (Either ByteString ByteString)
+          -> IO (Either BL.ByteString BL.ByteString)
 html2pdf verbosity program args source =
   -- write HTML to temp file so we don't have to rewrite
   -- all links in `a`, `img`, `style`, `script`, etc. tags,
@@ -458,7 +458,7 @@ context2pdf :: Verbosity    -- ^ Verbosity level
             -> [String]     -- ^ extra arguments
             -> FilePath     -- ^ temp directory for output
             -> Text         -- ^ ConTeXt source
-            -> PandocIO (Either ByteString ByteString)
+            -> PandocIO (Either BL.ByteString BL.ByteString)
 context2pdf verbosity program pdfargs tmpDir source =
   liftIO $ inDirectory tmpDir $ do
     let file = "input.tex"
@@ -504,7 +504,7 @@ showVerboseInfo mbTmpDir program programArgs env source = do
     Nothing -> return ()
   UTF8.hPutStrLn stderr "[makePDF] Command line:"
   UTF8.hPutStrLn stderr $
-       T.pack program <> " " <> T.pack (unwords (map show programArgs))
+       T.pack program <> " " <> T.unwords (map (UTF8.toText . show) programArgs)
   UTF8.hPutStr stderr "\n"
   UTF8.hPutStrLn stderr "[makePDF] Environment:"
   mapM_ (UTF8.hPutStrLn stderr . tshow) env
@@ -518,8 +518,8 @@ handlePDFProgramNotFound program e
       E.throwIO $ PandocPDFProgramNotFoundError $ T.pack program
   | otherwise = E.throwIO e
 
-utf8ToText :: ByteString -> Text
+utf8ToText :: BL.ByteString -> Text
 utf8ToText lbs =
-  case decodeUtf8' lbs of
+  case TLE.decodeUtf8' lbs of
     Left _  -> T.pack $ BC.unpack lbs  -- if decoding fails, treat as latin1
     Right t -> TL.toStrict t

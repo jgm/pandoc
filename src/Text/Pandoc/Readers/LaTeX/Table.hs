@@ -194,8 +194,8 @@ cellAlignment = skipMany (symbol '|') *> alignment <* skipMany (symbol '|')
         _   -> AlignDefault
 
 plainify :: Blocks -> Blocks
-plainify bs = case toList bs of
-                [Para ils] -> plain (fromList ils)
+plainify bs = case B.toList bs of
+                [Para ils] -> plain (B.fromList ils)
                 _          -> bs
 
 multirowCell :: PandocMonad m => LP m Blocks -> LP m Cell
@@ -231,7 +231,7 @@ multicolumnCell blocks = controlSeq "multicolumn" >> do
                   alignment
                   (RowSpan rs)
                   (ColSpan span')
-                  (fromList bs)
+                  (B.fromList bs)
 
   symbol '{' *> (nestedCell <|> singleCell) <* symbol '}'
 

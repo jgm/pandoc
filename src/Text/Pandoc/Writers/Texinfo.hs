@@ -271,7 +271,7 @@ tableAnyRowToTexinfo :: PandocMonad m
                      -> [[Block]]
                      -> TI m (Doc Text)
 tableAnyRowToTexinfo itemtype aligns cols =
-  (literal itemtype $$) . foldl (\row item -> row $$
+  (literal itemtype $$) . foldl' (\row item -> row $$
   (if isEmpty row then empty else text " @tab ") <> item) empty <$> zipWithM alignedBlock aligns cols
 
 alignedBlock :: PandocMonad m

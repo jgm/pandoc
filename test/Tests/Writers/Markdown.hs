@@ -14,11 +14,11 @@ defopts = def
   { writerExtensions = pandocExtensions
   , writerSetextHeaders = True }
 
-markdown :: (ToPandoc a) => a -> String
-markdown = unpack . purely (writeMarkdown defopts) . toPandoc
+markdown :: (ToPandoc a) => a -> Text
+markdown = purely (writeMarkdown defopts) . toPandoc
 
-markdownWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
-markdownWithOpts opts x = unpack . purely (writeMarkdown opts) $ toPandoc x
+markdownWithOpts :: (ToPandoc a) => WriterOptions -> a -> Text
+markdownWithOpts opts x = purely (writeMarkdown opts) $ toPandoc x
 
 {-
   "my test" =: X =?> Y
@@ -33,8 +33,8 @@ which is in turn shorthand for
 -}
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> TestTree
+(=:) :: (ToText a, ToPandoc a)
+     => String -> (a, Text) -> TestTree
 (=:) = test markdown
 
 tests :: [TestTree]
@@ -182,9 +182,9 @@ noteTests = testGroup "note and reference location"
 shortcutLinkRefsTests :: TestTree
 shortcutLinkRefsTests =
   let infix 4 =:
-      (=:) :: (ToString a, ToPandoc a)
+      (=:) :: (ToText a, ToPandoc a)
 
-        => String -> (a, String) -> TestTree
+        => String -> (a, Text) -> TestTree
       (=:) = test (purely (writeMarkdown defopts{writerReferenceLinks = True}) . toPandoc)
   in testGroup "Shortcut reference links"
      [ "Simple link (shortcutable)"

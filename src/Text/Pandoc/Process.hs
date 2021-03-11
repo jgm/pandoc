@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Process
    Copyright   : Copyright (C) 2013-2021 John MacFarlane
@@ -11,8 +12,7 @@ ByteString variant of 'readProcessWithExitCode'.
 -}
 module Text.Pandoc.Process (pipeProcess)
 where
-import Control.Concurrent (MVar, forkIO, killThread, newEmptyMVar, putMVar,
-                           takeMVar)
+import Control.Concurrent (MVar, forkIO, killThread)
 import Control.Exception (SomeException (..))
 import qualified Control.Exception as E
 import Control.Monad (unless)

@@ -612,7 +612,7 @@ checkExistence fn = do
 -- | Canonicalizes a file path by removing redundant @.@ and @..@.
 makeCanonical :: FilePath -> FilePath
 makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
- where  transformPathParts = reverse . foldl go []
+ where  transformPathParts = reverse . foldl' go []
         go as     "."  = as
         go (_:as) ".." = as
         go as     x    = x : as

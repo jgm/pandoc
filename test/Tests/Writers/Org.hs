@@ -9,7 +9,7 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
+(=:) :: (ToText a, ToPandoc a)
      => String -> (a, Text) -> TestTree
 (=:) = test org
 

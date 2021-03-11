@@ -58,7 +58,8 @@ getT2TMeta = do
     curMtime <- case inps of
                   [] -> formatTime defaultTimeLocale "%T" <$> P.getZonedTime
                   _ -> catchError
-                        (maximum <$> mapM getModTime inps)
+                        (fromMaybe mempty . viaNonEmpty maximum1
+                          <$> mapM getModTime inps)
                         (const (return ""))
     return $ T2TMeta (T.pack curDate) (T.pack curMtime) (intercalate ", " inps) outp
 
@@ -261,9 +262,11 @@ table = try $ do
   rows <- many1 (many commentLine *> tableRow)
   let columns = transpose rows
   let ncolumns = length columns
-  let aligns = map (foldr1 findAlign . map fst) columns
+  let aligns = map (fromMaybe AlignDefault .
+                      viaNonEmpty (foldl1' findAlign) .  map fst)
+                   columns
   let rows' = map (map snd) rows
-  let size = maximum (map length rows')
+  let size = fromMaybe 0 $ viaNonEmpty maximum1 (map length rows')
   let rowsPadded = map (pad size) rows'
   let headerPadded = if null tableHeader then mempty else pad size tableHeader
   let toRow = Row nullAttr . map B.simpleCell
@@ -445,9 +448,9 @@ titleLink = try $ do
   tokens <- sepBy1 (manyChar $ noneOf " ]") space
   guard (length tokens >= 2)
   char ']'
-  let link' = last tokens
+  let link' = fromMaybe mempty $ viaNonEmpty last tokens
   guard $ not $ T.null link'
-  let tit = T.unwords (init tokens)
+  let tit = maybe mempty T.unwords (viaNonEmpty init tokens)
   return $ B.link link' "" (B.text tit)
 
 -- Link with image

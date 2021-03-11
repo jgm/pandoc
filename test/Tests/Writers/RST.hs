@@ -12,19 +12,19 @@ import Text.Pandoc.Writers.RST
 import qualified Data.Text as T
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> TestTree
+(=:) :: (ToText a, ToPandoc a)
+     => String -> (a, Text) -> TestTree
 (=:) = test (purely (writeRST def . toPandoc))
 
-testTemplate :: (ToString a, ToString c, ToPandoc a) =>
+testTemplate :: (ToText a, ToText c, ToPandoc a) =>
                 String -> String -> (a, c) -> TestTree
 testTemplate t = case runIdentity (compileTemplate [] (T.pack t)) of
-    Left e -> error $ "Could not compile RST template: " ++ e
+    Left e -> error $ T.pack $ "Could not compile RST template: " ++ e
     Right templ -> test (purely (writeRST def{ writerTemplate = Just templ }) . toPandoc)
 
 bodyTemplate :: Template T.Text
 bodyTemplate = case runIdentity (compileTemplate [] "$body$\n") of
-                    Left e      -> error $
+                    Left e      -> error $ T.pack $
                       "Could not compile RST bodyTemplate" ++ e
                     Right templ -> templ
 

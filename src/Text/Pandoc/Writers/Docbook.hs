@@ -81,7 +81,8 @@ authorToDocbook opts name' = do
                   (firstname, lastname) = case lengthname of
                     0 -> ("","")
                     1 -> ("", name)
-                    n -> (T.unwords (take (n-1) namewords), last namewords)
+                    n -> (T.unwords (take (n-1) namewords),
+                           fromMaybe mempty (viaNonEmpty last namewords))
                in inTagsSimple "firstname" (literal $ escapeStringForXML firstname) $$
                   inTagsSimple "surname" (literal $ escapeStringForXML lastname)
 
@@ -253,10 +254,9 @@ blockToDocbook opts (BlockQuote blocks) =
 blockToDocbook _ (CodeBlock (_,classes,_) str) = return $
   literal ("<programlisting" <> lang <> ">") <> cr <>
      flush (literal (escapeStringForXML str) <> cr <> literal "</programlisting>")
-    where lang  = if null langs
-                     then ""
-                     else " language=\"" <> escapeStringForXML (head langs) <>
-                          "\""
+    where lang  = case langs of
+                    []    -> ""
+                    (l:_) -> " language=\"" <> escapeStringForXML l <> "\""
           isLang l    = T.toLower l `elem` map T.toLower languages
           langsFrom s = if isLang s
                            then [s]

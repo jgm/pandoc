@@ -383,9 +383,7 @@ inlineToMarkdown opts (Quoted DoubleQuote lst) = do
                    else "“" <> contents <> "”"
 inlineToMarkdown opts (Code attr str) = do
   let tickGroups = filter (T.any (== '`')) $ T.group str
-  let longest    = if null tickGroups
-                     then 0
-                     else maximum $ map T.length tickGroups
+  let longest    = fromMaybe 0 $ viaNonEmpty maximum1 $ map T.length tickGroups
   let marker     = T.replicate (longest + 1) "`"
   let spacer     = if longest == 0 then "" else " "
   let attrs      = if isEnabled Ext_inline_code_attributes opts && attr /= nullAttr
@@ -440,7 +438,8 @@ inlineToMarkdown opts il@(RawInline f str) = do
   let tickGroups = filter (T.any (== '`')) $ T.group str
   let numticks   = if null tickGroups
                      then 1
-                     else 1 + maximum (map T.length tickGroups)
+                     else maybe 1 (1 +) $
+                           viaNonEmpty maximum1 (map T.length tickGroups)
   variant <- asks envVariant
   let Format fmt = f
   let rawAttribInline = return $

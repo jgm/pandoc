@@ -25,7 +25,7 @@ creole :: Text -> Pandoc
 creole = purely $ readCreole def{ readerStandalone = True }
 
 infix 4 =:
-(=:) :: ToString c
+(=:) :: ToText c
      => String -> (Text, c) -> TestTree
 (=:) = test creole
 

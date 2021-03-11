@@ -43,7 +43,7 @@ import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class as P (PandocMonad (..))
 import Text.Pandoc.CSS (pickStyleAttrProps)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
@@ -214,7 +214,7 @@ block = ((do
           -> eSwitch B.para block
         _ -> mzero
     _ -> mzero) <|> pPlain <|> pRawHtmlBlock) >>= \res ->
-        res <$ trace (T.take 60 $ tshow $ B.toList res)
+        res <$ P.trace (T.take 60 $ tshow $ B.toList res)
 
 namespaces :: PandocMonad m => [(Text, TagParser m Inlines)]
 namespaces = [(mathMLNamespace, pMath True)]
@@ -360,7 +360,8 @@ pDefListItem = try $ do
   terms <- many1 (try $ skipMany nonItem >> pInTags "dt" inline)
   defs  <- many1 (try $ skipMany nonItem >> pInTags "dd" block)
   skipMany nonItem
-  let term = foldl1 (\x y -> x <> B.linebreak <> y) $ map trimInlines terms
+  let term = fromMaybe mempty $ viaNonEmpty
+               (foldl1' (\x y -> x <> B.linebreak <> y)) $ map trimInlines terms
   return (term, map (fixPlains True) defs)
 
 fixPlains :: Bool -> Blocks -> Blocks
@@ -611,7 +612,7 @@ inline = pTagText <|> do
         "script"
           | Just x <- lookup "type" attr
           , "math/tex" `T.isPrefixOf` x -> pScriptMath
-        _ | name `elem` htmlSpanLikeElements -> pSpanLike
+        _ | name `Set.member` htmlSpanLikeElements -> pSpanLike
         _ -> pRawHtmlInline
     TagText _ -> pTagText
     _ -> pRawHtmlInline

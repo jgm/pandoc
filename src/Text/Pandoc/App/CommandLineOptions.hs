@@ -43,7 +43,6 @@ import Safe (tailDef)
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)
 import System.Console.GetOpt
 import System.Environment (getArgs, getProgName)
-import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
 import Text.DocTemplates (Context (..), ToContext (toVal), Val (..))
@@ -71,6 +70,8 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
 
+import Prelude hiding (Option, Reader)
+
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
   rawArgs <- map UTF8.decodeArg <$> getArgs
@@ -88,12 +89,12 @@ parseOptionsFromArgs options' defaults prg rawArgs = do
        unrecognizedOpts
 
   unless (null errors && null unknownOptionErrors) $
-     E.throwIO $ PandocOptionError $ T.pack $
-        concat errors ++ unlines unknownOptionErrors ++
-        ("Try " ++ prg ++ " --help for more information.")
+     E.throwIO $ PandocOptionError $ T.pack (concat errors) <>
+        T.unlines unknownOptionErrors <>
+        ("Try " <> T.pack prg <> " --help for more information.")
 
   -- thread option data structure through all supplied option actions
-  opts <- foldl (>>=) (return defaults) actions
+  opts <- foldl' (>>=) (return defaults) actions
   let mbArgs = case args of
                  [] -> Nothing
                  xs -> Just xs
@@ -813,12 +814,12 @@ options =
                      let optnames (Option shorts longs _ _) =
                            map (\c -> ['-',c]) shorts ++
                            map ("--" ++) longs
-                     let allopts = unwords (concatMap optnames options)
+                     let allopts = intercalate " " (concatMap optnames options)
                      UTF8.hPutStrLn stdout $ T.pack $ printf tpl allopts
                          (T.unpack $ T.unwords readersNames)
                          (T.unpack $ T.unwords writersNames)
                          (T.unpack $ T.unwords $ map fst highlightingStyles)
-                         (unwords datafiles)
+                         (intercalate " " datafiles)
                      exitSuccess ))
                  "" -- "Print bash completion script"
 
@@ -987,9 +988,9 @@ compileInfo =
   VERSION_skylighting ++ ",\nciteproc " ++ VERSION_citeproc ++
   ", ipynb " ++ VERSION_ipynb
 
-handleUnrecognizedOption :: String -> [String] -> [String]
+handleUnrecognizedOption :: String -> [Text] -> [Text]
 handleUnrecognizedOption "--smart" =
-  (("--smart/-S has been removed.  Use +smart or -smart extension instead.\n" ++
+  (("--smart/-S has been removed.  Use +smart or -smart extension instead.\n" <>
     "For example: pandoc -f markdown+smart -t markdown-smart.") :)
 handleUnrecognizedOption "--normalize" =
   ("--normalize has been removed.  Normalization is now automatic." :)
@@ -1014,7 +1015,7 @@ handleUnrecognizedOption "--epub-stylesheet" =
   ("--epub-stylesheet has been removed. Use --css instead.\n" :)
 handleUnrecognizedOption "-R" = handleUnrecognizedOption "--parse-raw"
 handleUnrecognizedOption x =
-  (("Unknown option " ++ x ++ ".") :)
+  (("Unknown option " <> T.pack x <> ".") :)
 
 readersNames :: [Text]
 readersNames = sort (map fst (readers :: [(Text, Reader PandocIO)]))

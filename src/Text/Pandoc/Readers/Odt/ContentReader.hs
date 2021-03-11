@@ -23,22 +23,22 @@ module Text.Pandoc.Readers.Odt.ContentReader
 , read_body
 ) where
 
-import Control.Applicative hiding (liftA, liftA2, liftA3)
-import Control.Arrow
+import Prelude hiding (liftA, liftA2, liftA3, first, second)
+import Control.Applicative ((<|>))
 import Control.Monad ((<=<))
-
+import Control.Arrow (ArrowChoice(..), (>>^), (^>>), first, second,
+                      arr, returnA)
 import qualified Data.ByteString.Lazy as B
 import Data.Foldable (fold)
 import Data.List (find)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Maybe
-import Data.Semigroup (First(..), Option(..))
 
 import Text.TeXMath (readMathML, writeTeX)
 import qualified Text.Pandoc.XML.Light as XML
 
-import Text.Pandoc.Builder hiding (underline)
+import Text.Pandoc.Builder as B hiding (underline)
 import Text.Pandoc.MediaBag (MediaBag, insertMedia)
 import Text.Pandoc.Shared
 import Text.Pandoc.Extensions (extensionsFromList, Extension(..))
@@ -244,7 +244,7 @@ getHeaderAnchor :: OdtReaderSafe Inlines Anchor
 getHeaderAnchor = proc title -> do
   state <- getExtraState -< ()
   let exts = extensionsFromList [Ext_auto_identifiers]
-  let anchor = uniqueIdent exts (toList title)
+  let anchor = uniqueIdent exts (B.toList title)
                 (Set.fromList $ usedAnchors state)
   modifyExtraState (putPrettyAnchor anchor anchor) -<< anchor
 
@@ -306,7 +306,7 @@ withNewStyle a = proc x -> do
     isCodeStyle _             = False
 
     inlineCode :: Inlines -> Inlines
-    inlineCode = code . T.concat . map stringify . toList
+    inlineCode = code . T.concat . map stringify . B.toList
 
 type PropertyTriple = (ReaderState, TextProperties, Maybe StyleFamily)
 type InlineModifier = Inlines -> Inlines
@@ -510,7 +510,7 @@ newtype FirstMatch a = FirstMatch (Option (First a))
                      deriving (Foldable, Monoid, Semigroup)
 
 firstMatch :: a -> FirstMatch a
-firstMatch = FirstMatch . Option . Just . First
+firstMatch = FirstMatch . Option . Just . First . Just
 
 
 --
@@ -571,7 +571,7 @@ read_text_seq  = matchingElement NsText "sequence"
 read_spaces      :: InlineMatcher
 read_spaces       = matchingElement NsText "s" (
                           readAttrWithDefault NsText "c" 1 -- how many spaces?
-                      >>^ fromList.(`replicate` Space)
+                      >>^ B.fromList.(`replicate` Space)
                     )
 --
 read_line_break  :: InlineMatcher
@@ -733,8 +733,7 @@ read_table         = matchingElement NsTable "table"
 -- | Infers the number of headers from rows
 simpleTable' :: [[Blocks]] -> Blocks
 simpleTable' []         = simpleTable [] []
-simpleTable' (x : rest) = simpleTable (fmap (const defaults) x) (x : rest)
-  where defaults = fromList []
+simpleTable' (x : rest) = simpleTable (fmap (const mempty) x) (x : rest)
 
 --
 read_table_row    :: ElementMatcher [[Blocks]]
@@ -784,7 +783,7 @@ read_frame_img =
         titleNodes <- matchChildContent' [ read_frame_title ] -< ()
         alt        <- matchChildContent [] read_plain_text    -< ()
         arr (firstMatch . uncurry4 imageWith)                 -<
-          (image_attributes w h, src', inlineListToIdentifier exts (toList titleNodes), alt)
+          (image_attributes w h, src', inlineListToIdentifier exts (B.toList titleNodes), alt)
 
 read_frame_title :: InlineMatcher
 read_frame_title = matchingElement NsSVG "title" (matchChildContent [] read_plain_text)
@@ -814,7 +813,7 @@ read_frame_mathml =
 read_frame_text_box :: OdtReaderSafe XML.Element (FirstMatch Inlines)
 read_frame_text_box = proc box -> do
     paragraphs <- executeIn (matchChildContent' [ read_paragraph ]) -< box
-    arr read_img_with_caption -< toList paragraphs
+    arr read_img_with_caption -< B.toList paragraphs
 
 read_img_with_caption :: [Block] -> FirstMatch Inlines
 read_img_with_caption (Para [Image attr alt (src,title)] : _) =

@@ -24,7 +24,6 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Error
 import Text.Pandoc.Class
 import Control.Monad.Except (throwError)
-import Data.ByteString.Lazy (toStrict)
 import Data.ByteString (ByteString)
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder as B

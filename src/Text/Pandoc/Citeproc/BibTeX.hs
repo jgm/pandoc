@@ -1203,10 +1203,10 @@ toName opts ils = do
                -- whole string. von is the longest sequence of whitespace
                -- separated words whose last word starts with lower case
                -- and that is not the whole string.
-               [fvl]      -> let (caps', rest') = span isCapitalized fvl
-                             in  if null rest' && not (null caps')
-                                 then (init caps', [last caps'], [])
-                                 else (caps', rest', [])
+               [fvl]      -> case span isCapitalized fvl of
+                                   (x:xs, []) ->
+                                     (init (x :| xs), [last (x :| xs)], [])
+                                   (caps', rest') -> (caps', rest', [])
                [vl,f]     -> (f, vl, [])
                (vl:j:f:_) -> (f, vl, j )
                []         -> ([], [], [])
@@ -1215,10 +1215,10 @@ toName opts ils = do
          if bibtex
             then case span isCapitalized $ reverse vonlast of
                         ([],w:ws) -> (reverse ws, [w])
-                        (vs, ws)    -> (reverse ws, reverse vs)
+                        (vs, ws)  -> (reverse ws, reverse vs)
             else case break isCapitalized vonlast of
-                        (vs@(_:_), []) -> (init vs, [last vs])
-                        (vs, ws)       -> (vs, ws)
+                        (v:vs, []) -> (init (v :| vs), [last (v :| vs)])
+                        (vs, ws)   -> (vs, ws)
   let prefix = T.unwords $ map stringify von
   let family = T.unwords $ map stringify lastname
   let suffix = T.unwords $ map stringify jr

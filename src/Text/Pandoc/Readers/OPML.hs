@@ -18,7 +18,7 @@ import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Options
 import Text.Pandoc.Error (PandocError(..))
@@ -77,7 +77,7 @@ asMarkdown :: PandocMonad m => Text -> OPML m Blocks
 asMarkdown s = do
   opts <- gets opmlOptions
   Pandoc _ bs <- readMarkdown def{ readerExtensions = readerExtensions opts } s
-  return $ fromList bs
+  return $ B.fromList bs
 
 getBlocks :: PandocMonad m => Element -> OPML m Blocks
 getBlocks e =  mconcat <$> mapM parseBlock (elContent e)

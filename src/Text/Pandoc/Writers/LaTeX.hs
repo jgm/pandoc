@@ -107,11 +107,12 @@ pandocToLaTeX options (Pandoc meta blocks) = do
      Nothing      -> return ()
      Just "false" -> return ()
      Just _       -> modify $ \s -> s{stCsquotes = True}
-  let (blocks'', lastHeader) = if writerCiteMethod options == Citeproc then
-                                 (blocks', [])
-                               else case reverse blocks' of
-                                 Header 1 _ il : _ -> (init blocks', il)
-                                 _                 -> (blocks', [])
+  let (blocks'', lastHeader) =
+        if writerCiteMethod options == Citeproc
+           then (blocks', [])
+           else case viaNonEmpty (\bs -> (last bs, init bs)) blocks' of
+                  Just (Header 1 _ il, bsInit) -> (bsInit, il)
+                  _                            -> (blocks', [])
   blocks''' <- if beamer
                   then toSlides blocks''
                   else return $ makeSections False Nothing blocks''
@@ -851,12 +852,12 @@ inlineToLaTeX (Quoted qt lst) = do
                DoubleQuote -> "\\enquote" <> braces contents
                SingleQuote -> "\\enquote*" <> braces contents
      else do
-       let s1 = if not (null lst) && isQuoted (head lst)
-                   then "\\,"
-                   else empty
-       let s2 = if not (null lst) && isQuoted (last lst)
-                   then "\\,"
-                   else empty
+       let s1 = case lst of
+                  (x:_) | isQuoted x -> "\\,"
+                  _ -> empty
+       let s2 = case viaNonEmpty last lst of
+                  Just x | isQuoted x -> "\\,"
+                  _ -> empty
        let inner = s1 <> contents <> s2
        return $ case qt of
                 DoubleQuote ->

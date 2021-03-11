@@ -53,13 +53,14 @@ import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Codec.Picture.Metadata as Metadata
 import qualified Codec.Picture.Metadata.Exif as Exif
 import Codec.Picture (decodeImageWithMetadata)
+import qualified GHC.Show
 
 -- quick and dirty functions to get image sizes
 -- algorithms borrowed from wwwis.pl
 
 data ImageType = Png | Gif | Jpeg | Svg | Pdf | Eps | Emf deriving Show
 data Direction = Width | Height
-instance Show Direction where
+instance GHC.Show.Show Direction where
   show Width  = "width"
   show Height = "height"
 

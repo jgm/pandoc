@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TypeApplications   #-}
 {- |
    Module      : Text.Pandoc.Writers.Custom
    Copyright   : Copyright (C) 2012-2021 John MacFarlane
@@ -63,7 +64,7 @@ instance Pushable (Stringify Citation) where
     addField "citationId" $ citationId cit
     addField "citationPrefix" . Stringify $ citationPrefix cit
     addField "citationSuffix" . Stringify $ citationSuffix cit
-    addField "citationMode" $ show (citationMode cit)
+    addField "citationMode" $ show @String (citationMode cit)
     addField "citationNoteNum" $ citationNoteNum cit
     addField "citationHash" $ citationHash cit
 
@@ -142,7 +143,7 @@ blockToCustom (BlockQuote blocks) =
 
 blockToCustom (Table _ blkCapt specs thead tbody tfoot) =
   let (capt, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
-      aligns' = map show aligns
+      aligns' = map (show @String) aligns
       capt' = Stringify capt
       headers' = map Stringify headers
       rows' = map (map Stringify) rows
@@ -152,7 +153,8 @@ blockToCustom (BulletList items) =
   Lua.callFunc "BulletList" (map Stringify items)
 
 blockToCustom (OrderedList (num,sty,delim) items) =
-  Lua.callFunc "OrderedList" (map Stringify items) num (show sty) (show delim)
+  Lua.callFunc "OrderedList" (map Stringify items)
+       num (show @String sty) (show @String delim)
 
 blockToCustom (DefinitionList items) =
   Lua.callFunc "DefinitionList"

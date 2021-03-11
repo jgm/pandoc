@@ -22,7 +22,7 @@ module Text.Pandoc.Class.PandocIO
 
 import Control.Monad.Except (ExceptT, MonadError, runExceptT)
 import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.State (StateT, evalStateT, lift, get, put)
+import Control.Monad.State (lift)
 import Data.Default (Default (def))
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Class.PandocMonad

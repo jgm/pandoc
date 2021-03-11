@@ -9,8 +9,8 @@ import Text.Pandoc.Builder
 
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> TestTree
+(=:) :: (ToText a, ToPandoc a)
+     => String -> (a, Text) -> TestTree
 (=:) = test (purely (writePlain def{ writerExtensions =
                           enableExtension Ext_gutenberg plainExtensions }) .
                       toPandoc)

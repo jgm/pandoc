@@ -43,16 +43,19 @@ citationsToNatbib inlineListToLaTeX [one]
              NormalCitation -> "citep"
 
 citationsToNatbib inlineListToLaTeX cits
-  | noPrefix (tail cits) && noSuffix (init cits) && ismode NormalCitation cits
-  = citeCommand inlineListToLaTeX "citep" p s ks
+  | Just citsTail <- viaNonEmpty tail cits
+  , Just citsInit <- viaNonEmpty init cits
+  , Just citsHead <- viaNonEmpty head cits
+  , Just citsLast <- viaNonEmpty last cits
+  , noPrefix citsTail
+  , noSuffix citsInit
+  , ismode NormalCitation cits
+  = citeCommand inlineListToLaTeX "citep"
+                (citationPrefix citsHead) (citationSuffix citsLast) ks
   where
      noPrefix  = all (null . citationPrefix)
      noSuffix  = all (null . citationSuffix)
      ismode m  = all ((==) m  . citationMode)
-     p         = citationPrefix  $
-                 head cits
-     s         = citationSuffix  $
-                 last cits
      ks        = T.intercalate ", " $ map citationId cits
 
 citationsToNatbib inlineListToLaTeX (c:cs)

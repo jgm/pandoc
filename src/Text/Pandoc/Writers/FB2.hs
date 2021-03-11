@@ -42,6 +42,7 @@ import Text.Pandoc.Shared (capitalize, isURI, orderedListMarkers,
                            makeSections, tshow, stringify)
 import Text.Pandoc.Writers.Shared (lookupMetaString, toLegacyTable)
 import Data.Generics (everywhere, mkT)
+import qualified GHC.Show
 
 -- | Data to be written at the end of the document:
 -- (foot)notes, URLs, references, images.
@@ -61,7 +62,7 @@ newFB = FbRenderState { footnotes = [], imagesToFetch = []
                       , writerOptions = def }
 
 data ImageMode = NormalImage | InlineImage deriving (Eq)
-instance Show ImageMode where
+instance GHC.Show.Show ImageMode where
     show NormalImage = "imageType"
     show InlineImage = "inlineImageType"
 
@@ -143,8 +144,11 @@ author ss =
                 [fname, lname] -> [ el "first-name" fname
                                     , el "last-name" lname ]
                 (fname:rest) -> [ el "first-name" fname
-                                , el "middle-name" (T.concat . init $ rest)
-                                , el "last-name" (last rest) ]
+                                , el "middle-name"
+                                   (maybe mempty T.concat
+                                     (viaNonEmpty init rest))
+                                , el "last-name"
+                                   (fromMaybe mempty (viaNonEmpty last rest)) ]
                 [] -> []
   in  list $ el "author" (names ++ email)
 

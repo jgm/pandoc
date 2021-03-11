@@ -25,8 +25,8 @@ import qualified Data.Text.Lazy as TL
 import Control.Monad.Except (throwError)
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Error (PandocError(..))
-import Text.Pandoc.Builder
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
+import Text.Pandoc.Builder as B
+import Text.Pandoc.Class as P (PandocMonad, report)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Shared (crFilter, safeRead, extractSpaces)
@@ -544,7 +544,7 @@ readDocBook _ inp = do
             parseXMLContents
               (TL.fromStrict . handleInstructions $ crFilter inp)
   (bs, st') <- flip runStateT (def{ dbContent = tree }) $ mapM parseBlock tree
-  return $ Pandoc (dbMeta st') (toList . mconcat $ bs)
+  return $ Pandoc (dbMeta st') (B.toList . mconcat $ bs)
 
 -- We treat certain processing instructions by converting them to tags
 -- beginning "pi-".
@@ -714,8 +714,8 @@ trimNl = T.dropAround (== '\n')
 -- assumes Blocks start with a Para; if not, does nothing.
 addToStart :: Inlines -> Blocks -> Blocks
 addToStart toadd bs =
-  case toList bs of
-    (Para xs : rest) -> para (toadd <> fromList xs) <> fromList rest
+  case B.toList bs of
+    (Para xs : rest) -> para (toadd <> B.fromList xs) <> B.fromList rest
     _                -> bs
 
 -- function that is used by both mediaobject (in parseBlock)
@@ -949,9 +949,8 @@ parseBlock (Elem e) =
                                                      (x >= '0' && x <= '9')
                                                       || x == '.') w
                             if n > 0 then Just n else Nothing
-                      let numrows = case bodyrows of
-                                         [] -> 0
-                                         xs -> maximum $ map length xs
+                      let numrows = fromMaybe 0 $
+                                    viaNonEmpty maximum1 $ map length bodyrows
                       let aligns = case colspecs of
                                      [] -> replicate numrows AlignDefault
                                      cs -> map toAlignment cs

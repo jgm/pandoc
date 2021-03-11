@@ -773,7 +773,10 @@ withRaw parser = do
   let raw = case inplines of
                 []  -> ""
                 [l] -> T.take (c2 - c1) l
-                ls  -> T.unlines (init ls) <> T.take (c2 - 1) (last ls)
+                _   -> fromMaybe "" $
+                        viaNonEmpty (\ls ->
+                          T.unlines (init ls) <> T.take (c2 - 1) (last ls))
+                        inplines
   return (result, raw)
 
 -- | Parses backslash, then applies character parser.
@@ -990,7 +993,7 @@ widthsFromIndices :: Int      -- Number of columns on terminal
                   -> [Double] -- Fractional relative sizes of columns
 widthsFromIndices _ [] = []
 widthsFromIndices numColumns' indices =
-  let numColumns = max numColumns' (if null indices then 0 else last indices)
+  let numColumns = max numColumns' (fromMaybe 0 $ viaNonEmpty last indices)
       lengths' = zipWith (-) indices (0:indices)
       lengths  = reverse $
                  case reverse lengths' of
@@ -1006,8 +1009,8 @@ widthsFromIndices numColumns' indices =
       quotient = if totLength > numColumns
                    then fromIntegral totLength
                    else fromIntegral numColumns
-      fracs = map (\l -> fromIntegral l / quotient) lengths in
-  tail fracs
+      fracs = map (\l -> fromIntegral l / quotient) lengths
+   in fromMaybe [] $ viaNonEmpty tail fracs
 
 ---
 
@@ -1034,8 +1037,9 @@ gridTableWith' blocks headless =
              (gridTableSep '-') gridTableFooter
 
 gridTableSplitLine :: [Int] -> Text -> [Text]
-gridTableSplitLine indices line = map removeFinalBar $ tail $
-  splitTextByIndices (init indices) $ trimr line
+gridTableSplitLine indices line = maybe [] (map removeFinalBar) $
+  viaNonEmpty tail $
+  splitTextByIndices (fromMaybe [] $ viaNonEmpty init indices) $ trimr line
 
 gridPart :: Stream s m Char => Char -> ParserT s st m ((Int, Int), Alignment)
 gridPart ch = do

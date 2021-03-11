@@ -218,7 +218,8 @@ blockToTextile opts x@(BulletList items) = do
         modify $ \s -> s { stListLevel = stListLevel s <> "*" }
         level <- gets $ length . stListLevel
         contents <- mapM (listItemToTextile opts) items
-        modify $ \s -> s { stListLevel = init (stListLevel s) }
+        modify $ \s -> s { stListLevel =
+          fromMaybe [] $ viaNonEmpty init (stListLevel s) }
         return $ vcat contents <> (if level > 1 then "" else "\n")
 
 blockToTextile opts x@(OrderedList attribs@(start, _, _) items) = do
@@ -236,7 +237,8 @@ blockToTextile opts x@(OrderedList attribs@(start, _, _) items) = do
                                            else Nothing }
         level <- gets $ length . stListLevel
         contents <- mapM (listItemToTextile opts) items
-        modify $ \s -> s { stListLevel = init (stListLevel s),
+        modify $ \s -> s { stListLevel =
+                             fromMaybe [] $ viaNonEmpty init (stListLevel s),
                            stStartNum = Nothing }
         return $ vcat contents <> (if level > 1 then "" else "\n")
 

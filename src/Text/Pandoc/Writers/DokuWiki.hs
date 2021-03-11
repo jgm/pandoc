@@ -172,7 +172,8 @@ blockToDokuWiki opts (Table _ blkCapt specs thead tbody tfoot) = do
                  then return []
                  else zipWithM (tableItemToDokuWiki opts) aligns headers
   rows' <- mapM (zipWithM (tableItemToDokuWiki opts) aligns) rows
-  let widths = map (maximum . map T.length) $ transpose (headers':rows')
+  let widths = map (fromMaybe 0 . viaNonEmpty maximum1 . map T.length) $
+                transpose (headers' : rows')
   let padTo (width, al) s =
           case width - T.length s of
                x | x > 0 ->

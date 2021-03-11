@@ -33,7 +33,7 @@ import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup hiding (Row)
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..), report)
+import Text.Pandoc.Class as P (PandocMonad (..), report)
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Error
@@ -357,7 +357,7 @@ referenceKey = try $ do
   addKvs <- option [] $ guardEnabled Ext_mmd_link_attributes
                           >> many (try $ spnl >> keyValAttr)
   blanklines
-  let attr'  = extractIdClass $ foldl (\x f -> f x) attr addKvs
+  let attr'  = extractIdClass $ foldl' (\x f -> f x) attr addKvs
       target = (escapeURI $ trimr src, tit)
   st <- getState
   let oldkeys = stateKeys st
@@ -476,7 +476,7 @@ block = do
                , para
                , plain
                ] <?> "block"
-  trace (T.take 60 $ tshow $ B.toList $ runF res defaultParserState)
+  P.trace (T.take 60 $ tshow $ B.toList $ runF res defaultParserState)
   return res
 
 --
@@ -613,7 +613,7 @@ attributes = try $ do
   spnl
   attrs <- many (attribute <* spnl)
   char '}'
-  return $ foldl (\x f -> f x) nullAttr attrs
+  return $ foldl' (\x f -> f x) nullAttr attrs
 
 attribute :: PandocMonad m => MarkdownParser m (Attr -> Attr)
 attribute = identifierAttr <|> classAttr <|> keyValAttr <|> specialAttr
@@ -1204,10 +1204,9 @@ simpleTableHeader headless = try $ do
   let (lengths, lines') = unzip dashes
   let indices  = scanl (+) (T.length initSp) lines'
   -- If no header, calculate alignment on basis of first row of text
-  rawHeads <- fmap (tail . splitTextByIndices (init indices)) $
-              if headless
-                 then lookAhead anyLine
-                 else return rawContent
+  rawHeads <- splitLine indices <$> if headless
+                                       then lookAhead anyLine
+                                       else return rawContent
   let aligns   = zipWith alignType (map (: []) rawHeads) lengths
   let rawHeads' = if headless
                      then []
@@ -1216,6 +1215,10 @@ simpleTableHeader headless = try $ do
            $
             mapM (parseFromString' (mconcat <$> many plain).trim) rawHeads'
   return (heads, aligns, indices)
+
+splitLine :: [Int] -> Text -> [Text]
+splitLine indices =
+  drop 1 .  splitTextByIndices (fromMaybe [] $ viaNonEmpty init indices)
 
 -- Returns an alignment type for a table, based on a list of strings
 -- (the rows of the column header) and a number (the length of the
@@ -1251,8 +1254,7 @@ rawTableLine :: PandocMonad m
 rawTableLine indices = do
   notFollowedBy' (blanklines' <|> tableFooter)
   line <- take1WhileP (/='\n') <* newline
-  return $ map trim $ tail $
-           splitTextByIndices (init indices) line
+  return $ map trim $ splitLine indices line
 
 -- Parse a table line and return a list of lists of blocks (columns).
 tableLine :: PandocMonad m
@@ -1322,11 +1324,9 @@ multilineTableHeader headless = try $ do
                       []     -> []
                       (x:xs) -> reverse (x+1:xs)
   rawHeadsList <- if headless
-                     then fmap (map (:[]) . tail .
-                              splitTextByIndices (init indices')) $ lookAhead anyLine
+                     then map (:[]) . splitLine indices' <$> lookAhead anyLine
                      else return $ transpose $ map
-                           (tail . splitTextByIndices (init indices'))
-                           rawContent
+                           (splitLine indices') rawContent
   let aligns   = zipWith alignType rawHeadsList lengths
   let rawHeads = if headless
                     then []
@@ -1363,8 +1363,8 @@ pipeTable = try $ do
   let heads' = take (length aligns) <$> heads
   lines' <- many pipeTableRow
   let lines'' = map (take (length aligns) <$>) lines'
-  let maxlength = maximum $
-       map (\x -> T.length . stringify $ runF x def) (heads' : lines'')
+  let maxlength = maximum1 $
+       fmap (\x -> T.length . stringify $ runF x def) (heads' :| lines'')
   numColumns <- getOption readerColumns
   let widths = if maxlength > numColumns
                   then map (\len ->
@@ -1626,9 +1626,9 @@ enclosure c = do
   (return (B.str cs) <>) <$> whitespace
     <|>
         case T.length cs of
-             3 -> three c
-             2 -> two   c mempty
-             1 -> one   c mempty
+             3 -> three' c
+             2 -> two'   c mempty
+             1 -> one'   c mempty
              _ -> return (return $ B.str cs)
 
 ender :: PandocMonad m => Char -> Int -> MarkdownParser m ()
@@ -1642,18 +1642,18 @@ ender c n = try $ do
 -- If one c, emit emph and then parse two.
 -- If two cs, emit strong and then parse one.
 -- Otherwise, emit ccc then the results.
-three :: PandocMonad m => Char -> MarkdownParser m (F Inlines)
-three c = do
+three' :: PandocMonad m => Char -> MarkdownParser m (F Inlines)
+three' c = do
   contents <- mconcat <$> many (notFollowedBy (ender c 1) >> inline)
   (ender c 3 >> updateLastStrPos >> return (B.strong . B.emph <$> contents))
-    <|> (ender c 2 >> updateLastStrPos >> one c (B.strong <$> contents))
-    <|> (ender c 1 >> updateLastStrPos >> two c (B.emph <$> contents))
+    <|> (ender c 2 >> updateLastStrPos >> one' c (B.strong <$> contents))
+    <|> (ender c 1 >> updateLastStrPos >> two' c (B.emph <$> contents))
     <|> return (return (B.str $ T.pack [c,c,c]) <> contents)
 
 -- Parse inlines til you hit two c's, and emit strong.
 -- If you never do hit two cs, emit ** plus inlines parsed.
-two :: PandocMonad m => Char -> F Inlines -> MarkdownParser m (F Inlines)
-two c prefix' = do
+two' :: PandocMonad m => Char -> F Inlines -> MarkdownParser m (F Inlines)
+two' c prefix' = do
   contents <- mconcat <$> many (try $ notFollowedBy (ender c 2) >> inline)
   (ender c 2 >> updateLastStrPos >>
                 return (B.strong <$> (prefix' <> contents)))
@@ -1661,12 +1661,12 @@ two c prefix' = do
 
 -- Parse inlines til you hit a c, and emit emph.
 -- If you never hit a c, emit * plus inlines parsed.
-one :: PandocMonad m => Char -> F Inlines -> MarkdownParser m (F Inlines)
-one c prefix' = do
+one' :: PandocMonad m => Char -> F Inlines -> MarkdownParser m (F Inlines)
+one' c prefix' = do
   contents <- mconcat <$> many (  (notFollowedBy (ender c 1) >> inline)
                            <|> try (string [c,c] >>
                                     notFollowedBy (ender c 1) >>
-                                    two c mempty) )
+                                    two' c mempty) )
   (ender c 1 >> updateLastStrPos >> return (B.emph <$> (prefix' <> contents)))
     <|> return (return (B.str $ T.singleton c) <> (prefix' <> contents))
 

@@ -50,7 +50,8 @@ import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Set as S
-
+import Text.Read
+import qualified GHC.Show
 import qualified Text.Pandoc.XML.Light as XML
 
 import Text.Pandoc.Shared (safeRead, tshow)
@@ -64,6 +65,8 @@ import Text.Pandoc.Readers.Odt.Generic.XMLConverter
 
 import Text.Pandoc.Readers.Odt.Base
 import Text.Pandoc.Readers.Odt.Namespaces
+
+import Prelude hiding (liftA3, liftA2)
 
 readStylesAt :: XML.Element -> Fallible Styles
 readStylesAt e = runConverter' readAllStyles mempty e
@@ -120,7 +123,7 @@ fontPitchReader = executeInSub NsOffice "font-face-decls" (
                               &&&
                               lookupDefaultingAttr NsStyle "font-pitch"
                             ))
-                    >>?^ ( M.fromList . foldl accumLegalPitches [] )
+                    >>?^ ( M.fromList . foldl' accumLegalPitches [] )
                   ) `ifFailedDo` returnV (Right M.empty)
   where accumLegalPitches ls (Nothing,_) = ls
         accumLegalPitches ls (Just n,p)  = (n,p):ls
@@ -305,7 +308,7 @@ data XslUnit = XslUnitMM | XslUnitCM
              | XslUnitPixel
              | XslUnitEM
 
-instance Show XslUnit where
+instance GHC.Show.Show XslUnit where
   show XslUnitMM     = "mm"
   show XslUnitCM     = "cm"
   show XslUnitInch   = "in"

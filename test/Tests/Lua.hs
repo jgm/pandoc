@@ -230,7 +230,7 @@ roundtripEqual x = (x ==) <$> roundtripped
     Lua.push x
     size <- Lua.gettop
     when (size - oldSize /= 1) $
-      error ("not exactly one additional element on the stack: " ++ show size)
+      error ("not exactly one additional element on the stack: " <> show size)
     Lua.peek (-1)
 
 runLuaTest :: Lua.Lua a -> IO a

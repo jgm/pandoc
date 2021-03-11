@@ -175,8 +175,7 @@ blockToMan opts (BulletList items) = do
   return (vcat contents)
 blockToMan opts (OrderedList attribs items) = do
   let markers = take (length items) $ orderedListMarkers attribs
-  let indent = 1 +
-                     maximum (map T.length markers)
+  let indent = 1 + fromMaybe 0 (viaNonEmpty maximum1 (map T.length markers))
   contents <- mapM (\(num, item) -> orderedListItemToMan opts num indent item) $
               zip markers items
   return (vcat contents)

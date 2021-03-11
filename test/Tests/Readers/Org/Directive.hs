@@ -15,14 +15,14 @@ module Tests.Readers.Org.Directive (tests) where
 import Data.Time (UTCTime (UTCTime), secondsToDiffTime)
 import Data.Time.Calendar (Day (ModifiedJulianDay))
 import Test.Tasty (TestTree, testGroup)
-import Tests.Helpers ((=?>), ToString, purely, test)
+import Tests.Helpers ((=?>), ToString, ToText, purely, test)
 import Tests.Readers.Org.Shared ((=:), tagSpan)
 import Text.Pandoc
 import Text.Pandoc.Builder
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
 
-testWithFiles :: (ToString c)
+testWithFiles :: (ToText c)
               => [(FilePath, BS.ByteString)]
               -> String         -- ^ name of test case
               -> (T.Text, c)    -- ^ (input, expected value)

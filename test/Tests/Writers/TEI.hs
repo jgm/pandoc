@@ -20,7 +20,7 @@ which is in turn shorthand for
 -}
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
+(=:) :: (ToText a, ToPandoc a)
      => String -> (a, String) -> TestTree
 (=:) = test (purely (writeTEI def) . toPandoc)
 

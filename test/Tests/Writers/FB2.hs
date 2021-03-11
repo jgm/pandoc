@@ -7,13 +7,13 @@ import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
-fb2 :: String -> String
-fb2 x = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++
-        "<FictionBook xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\" xmlns:l=\"http://www.w3.org/1999/xlink\"><description><title-info><genre>unrecognised</genre></title-info><document-info><program-used>pandoc</program-used></document-info></description><body><title><p /></title><section>" ++ x ++ "</section></body></FictionBook>"
+fb2 :: Text -> Text
+fb2 x = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" <>
+        "<FictionBook xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\" xmlns:l=\"http://www.w3.org/1999/xlink\"><description><title-info><genre>unrecognised</genre></title-info><document-info><program-used>pandoc</program-used></document-info></description><body><title><p /></title><section>" <> x <> "</section></body></FictionBook>"
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> TestTree
+(=:) :: (ToText a, ToPandoc a)
+     => String -> (a, Text) -> TestTree
 (=:) = test (purely (writeFB2 def) . toPandoc)
 
 tests :: [TestTree]

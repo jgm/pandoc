@@ -71,7 +71,7 @@ import Data.Maybe (isJust, fromMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
-import Text.Pandoc.Builder as Pandoc
+import Text.Pandoc.Builder as B
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.Docx.Combine
@@ -182,7 +182,7 @@ bodyPartsToMeta' (bp : bps)
       f (MetaInlines ils) (MetaBlocks blks) = MetaBlocks (Para ils : blks)
       f m (MetaList mv) = MetaList (m : mv)
       f m n             = MetaList [m, n]
-    return $ M.insertWith f metaField (MetaInlines (toList inlines)) remaining
+    return $ M.insertWith f metaField (MetaInlines (B.toList inlines)) remaining
 bodyPartsToMeta' (_ : bps) = bodyPartsToMeta' bps
 
 bodyPartsToMeta :: PandocMonad m => [BodyPart] -> DocxContext m Meta
@@ -293,7 +293,7 @@ runStyleToTransform rPr' = do
         | Just SubScrpt <- rVertAlign rPr =
             subscript . go rPr{rVertAlign = Nothing}
         | Just "single" <- rUnderline rPr =
-            Pandoc.underline . go rPr{rUnderline = Nothing}
+            B.underline . go rPr{rUnderline = Nothing}
         | otherwise = id
   return $ go rPr'
 
@@ -335,7 +335,7 @@ blocksToInlinesWarn cmtId blks = do
   unless (all paraOrPlain blks) $
     lift $ P.report $ DocxParserWarning $
       "Docx comment " <> cmtId <> " will not retain formatting"
-  return $ blocksToInlines' (toList blks)
+  return $ blocksToInlines' (B.toList blks)
 
 -- The majority of work in this function is done in the primed
 -- subfunction `partPartToInlines'`. We make this wrapper so that we
@@ -493,7 +493,7 @@ singleParaToPlain blks = blks
 cellToBlocks :: PandocMonad m => Docx.Cell -> DocxContext m Blocks
 cellToBlocks (Docx.Cell bps) = do
   blks <- smushBlocks <$> mapM bodyPartToBlocks bps
-  return $ fromList $ blocksToDefinitions $ blocksToBullets $ toList blks
+  return $ B.fromList $ blocksToDefinitions $ blocksToBullets $ B.toList blks
 
 rowToBlocksList :: PandocMonad m => Docx.Row -> DocxContext m [Blocks]
 rowToBlocksList (Docx.Row cells) = do
@@ -647,16 +647,11 @@ bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
 
   cells <- mapM rowToBlocksList rows
 
-  let width = maybe 0 maximum $ nonEmpty $ map rowLength parts
-      -- Data.List.NonEmpty is not available with ghc 7.10 so we roll out
-      -- our own, see
-      -- https://github.com/jgm/pandoc/pull/4361#issuecomment-365416155
-      nonEmpty [] = Nothing
-      nonEmpty l  = Just l
+  let width = fromMaybe 0 $ viaNonEmpty maximum1 $ map rowLength parts
       rowLength :: Docx.Row -> Int
       rowLength (Docx.Row c) = length c
 
-  let toRow = Pandoc.Row nullAttr . map simpleCell
+  let toRow = B.Row nullAttr . map simpleCell
       toHeaderRow l = [toRow l | not (null l)]
 
   -- pad cells.  New Text.Pandoc.Builder will do that for us,
@@ -720,7 +715,7 @@ bodyToOutput (Body bps) = do
   let (metabps, blkbps) = sepBodyParts bps
   meta <- bodyPartsToMeta metabps
   blks <- smushBlocks <$> mapM bodyPartToBlocks blkbps
-  blks' <- rewriteLinks $ blocksToDefinitions $ blocksToBullets $ toList blks
+  blks' <- rewriteLinks $ blocksToDefinitions $ blocksToBullets $ B.toList blks
   blks'' <- removeOrphanAnchors blks'
   return (meta, blks'')
 

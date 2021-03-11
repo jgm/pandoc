@@ -245,7 +245,10 @@ definitionListItemToMediaWiki (label, items) = do
      else do
        marker <- asks listLevel
        return $ T.pack marker <> " " <> labelText <> "\n" <>
-           T.intercalate "\n" (map (\d -> T.pack (init marker) <> ": " <> d) contents)
+           T.intercalate "\n"
+           (map (\d ->
+             maybe mempty T.pack (viaNonEmpty init marker) <>
+               ": " <> d) contents)
 
 -- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
 isSimpleList :: Block -> Bool

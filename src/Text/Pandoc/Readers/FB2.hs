@@ -35,7 +35,7 @@ import qualified Data.Text.Lazy as TL
 import Data.Default
 import Data.Maybe
 import Text.HTML.TagSoup.Entity (lookupEntity)
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad, insertMedia, report)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
@@ -72,7 +72,7 @@ readFB2 _ inp =
       let authors = if null $ fb2Authors st
                     then id
                     else setMeta "author" (map text $ reverse $ fb2Authors st)
-      pure $ Pandoc (authors $ fb2Meta st) $ toList bs
+      pure $ Pandoc (authors $ fb2Meta st) $ B.toList bs
 
 -- * Utility functions
 
@@ -285,7 +285,7 @@ parsePoemChild e =
     name -> report (UnexpectedXmlElement name "poem") $> mempty
 
 parseStanza :: PandocMonad m => Element -> FB2 m Blocks
-parseStanza e = fromList . joinLineBlocks . toList . mconcat <$> mapM parseStanzaChild (elChildren e)
+parseStanza e = B.fromList . joinLineBlocks . B.toList . mconcat <$> mapM parseStanzaChild (elChildren e)
 
 joinLineBlocks :: [Block] -> [Block]
 joinLineBlocks (LineBlock xs:LineBlock ys:zs) = joinLineBlocks (LineBlock (xs ++ ys) : zs)

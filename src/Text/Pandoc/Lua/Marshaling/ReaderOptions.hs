@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -31,7 +32,7 @@ import qualified Text.Pandoc.Lua.Util as LuaUtil
 -- Reader Options
 --
 instance Pushable Extensions where
-  push exts = Lua.push (show exts)
+  push exts = Lua.push (show @String exts)
 
 instance Pushable TrackChanges where
   push = Lua.push . showConstr . toConstr

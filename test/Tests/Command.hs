@@ -1,4 +1,5 @@
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Command
    Copyright   : © 2006-2021 John MacFarlane
@@ -35,8 +36,8 @@ import qualified Text.Pandoc.UTF8 as UTF8
 -- | Run a test with and return output.
 execTest :: String    -- ^ Path to test executable
          -> String    -- ^ Shell command
-         -> String    -- ^ Input text
-         -> IO (ExitCode, String)  -- ^ Exit code and actual output
+         -> Text    -- ^ Input text
+         -> IO (ExitCode, Text)  -- ^ Exit code and actual output
 execTest testExePath cmd inp = do
   mldpath   <- Env.lookupEnv "LD_LIBRARY_PATH"
   mdyldpath <- Env.lookupEnv "DYLD_LIBRARY_PATH"
@@ -48,9 +49,9 @@ execTest testExePath cmd inp = do
              maybe [] ((:[]) . ("LD_LIBRARY_PATH",)) mldpath ++
              maybe [] ((:[]) . ("DYLD_LIBRARY_PATH",)) mdyldpath
   let pr = (shell (pandocToEmulate True cmd)){ env = Just env' }
-  (ec, out', err') <- readCreateProcessWithExitCode pr inp
+  (ec, out', err') <- readCreateProcessWithExitCode pr (T.unpack inp)
   -- filter \r so the tests will work on Windows machines
-  let out = filter (/= '\r') $ err' ++ out'
+  let out = T.pack $ filter (/= '\r') $ err' ++ out'
   case ec of
     ExitFailure _ -> hPutStr stderr err'
     ExitSuccess   -> return ()
@@ -68,8 +69,8 @@ pandocToEmulate _ [] = []
 runTest :: String    -- ^ Path to test executable
         -> String    -- ^ Title of test
         -> String    -- ^ Shell command
-        -> String    -- ^ Input text
-        -> String    -- ^ Expected output
+        -> Text      -- ^ Input text
+        -> Text      -- ^ Expected output
         -> TestTree
 runTest testExePath testname cmd inp norm = testCase testname $ do
   (ec, out) <- execTest testExePath cmd inp
@@ -96,22 +97,23 @@ isCodeBlock :: Block -> Bool
 isCodeBlock (CodeBlock _ _) = True
 isCodeBlock _               = False
 
-extractCode :: Block -> String
-extractCode (CodeBlock _ code) = T.unpack code
+extractCode :: Block -> Text
+extractCode (CodeBlock _ code) = code
 extractCode _                  = ""
 
 dropPercent :: String -> String
 dropPercent ('%':xs) = dropWhile (== ' ') xs
 dropPercent xs       = xs
 
-runCommandTest :: FilePath -> FilePath -> Int -> String -> TestTree
+runCommandTest :: FilePath -> FilePath -> Int -> Text -> TestTree
 runCommandTest testExePath fp num code =
   goldenTest testname getExpected getActual compareValues updateGolden
  where
   testname = "#" <> show num
   codelines = lines code
-  (continuations, r1) = span ("\\" `isSuffixOf`) codelines
-  cmd = dropPercent (unwords (map init continuations ++ take 1 r1))
+  (continuations, r1) = span ("\\" `T.isSuffixOf`) codelines
+  cmd = dropPercent $ T.unpack $ T.unwords $
+          map (T.dropEnd 1) continuations ++ take 1 r1
   r2 = drop 1 r1
   (inplines, r3) = break (=="^D") r2
   normlines = takeWhile (/=".") (drop 1 r3)
@@ -123,14 +125,16 @@ runCommandTest testExePath fp num code =
     | actual == expected = return Nothing
     | otherwise = return $ Just $ "--- test/command/" ++ fp ++ "\n+++ " ++
                                 cmd ++ "\n" ++ showDiff (1,1)
-                                   (getDiff (lines actual) (lines expected))
+                                   (getDiff
+                                     (lines actual)
+                                     (lines expected))
   updateGolden newnorm = do
     let fp' = "command" </> fp
     raw <- UTF8.readFile fp'
-    let cmdline = "% " <> cmd
+    let cmdline = "% " <> T.pack cmd
     let x = cmdline <> "\n" <> input <> "^D\n" <> norm
     let y = cmdline <> "\n" <> input <> "^D\n" <> newnorm
-    let updated = T.replace (T.pack x) (T.pack y) raw
+    let updated = T.replace x y raw
     UTF8.writeFile fp' updated
 
 extractCommandTest :: FilePath -> FilePath -> TestTree

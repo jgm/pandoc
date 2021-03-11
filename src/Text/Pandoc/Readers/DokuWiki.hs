@@ -24,7 +24,7 @@ import Data.Maybe (fromMaybe, catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class as P (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Options
@@ -388,7 +388,7 @@ block = do
          <|> blockElements
          <|> para
   skipMany blankline
-  trace (T.take 60 $ tshow $ B.toList res)
+  P.trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 blockElements :: PandocMonad m => DWParser m B.Blocks
@@ -466,10 +466,9 @@ blockPhp = try $ B.codeBlockWith ("", ["php"], [])
 table :: PandocMonad m => DWParser m B.Blocks
 table = do
   firstSeparator <- lookAhead tableCellSeparator
-  rows <- tableRows
-  let (headerRow, body) = if firstSeparator == '^'
-                            then (head rows, tail rows)
-                            else ([], rows)
+  rows@(headerRow:body) <- if firstSeparator == '^'
+                              then tableRows
+                              else ([]:) <$> tableRows
   let attrs = (AlignDefault, ColWidthDefault) <$ transpose rows
   let toRow = Row nullAttr . map B.simpleCell
       toHeaderRow l = [toRow l | not (null l)]

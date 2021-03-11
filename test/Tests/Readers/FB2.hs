@@ -16,7 +16,7 @@ import Tests.Helpers
 import Test.Tasty.Golden (goldenVsString)
 import qualified Data.ByteString as BS
 import Text.Pandoc
-import Text.Pandoc.UTF8 (toText, fromStringLazy)
+import Text.Pandoc.UTF8 as UTF8
 import Data.Text (Text, unpack)
 import System.FilePath (replaceExtension)
 
@@ -25,7 +25,7 @@ fb2ToNative = purely (writeNative def{ writerTemplate = Just mempty }) . purely 
 
 fb2Test :: TestName -> FilePath -> TestTree
 fb2Test name path = goldenVsString name native
-  (fromStringLazy . filter (/='\r') . unpack . fb2ToNative . toText
+  (UTF8.fromStringLazy . filter (/='\r') . unpack . fb2ToNative . UTF8.toText
     <$> BS.readFile path)
   where native = replaceExtension path ".native"
 

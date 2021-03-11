@@ -542,8 +542,7 @@ include = try $ do
     in case (minlvl >>= safeRead :: Maybe Int) of
          Nothing -> blks
          Just lvl -> let levels = Walk.query headerLevel blks
-                         -- CAVE: partial function in else
-                         curMin = if null levels then 0 else minimum levels
+                         curMin = fromMaybe 0 $ viaNonEmpty minimum1 levels
                      in Walk.walk (shiftHeader (curMin - lvl)) blks
 
   headerLevel :: Block -> [Int]

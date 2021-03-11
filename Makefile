@@ -34,7 +34,7 @@ full:
 	stack install --flag 'pandoc:embed_data_files' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 -j4 $(GHCOPTS)'
 
 ghci:
-	stack ghci --flag 'pandoc:embed_data_files'
+	stack ghci --ghc-options=-XNoImplicitPrelude --flag 'pandoc:embed_data_files'
 
 haddock:
 	stack haddock
@@ -45,7 +45,7 @@ test:
 	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes $(TESTARGS)' --ghc-options '$(GHCOPTS)'
 
 ghcid:
-	ghcid -c "stack repl --flag 'pandoc:embed_data_files'"
+	ghcid -c "stack repl --ghc-options=-XNoImplicitPrelude --flag 'pandoc:embed_data_files'"
 
 ghcid-test:
 	ghcid -c "stack repl --ghc-options=-XNoImplicitPrelude --flag 'pandoc:embed_data_files' --ghci-options=-fobject-code pandoc:lib pandoc:test-pandoc"

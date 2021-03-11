@@ -14,7 +14,6 @@
 Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
-import Control.Arrow (second)
 import Control.Monad (forM_, guard, liftM, mplus, mzero, when)
 import Control.Monad.Except (throwError)
 import Control.Monad.Identity (Identity (..))
@@ -99,12 +98,13 @@ titleTransform (bs, meta) =
        case bs of
           (Header 1 _ head1:Header 2 _ head2:rest)
            | not (any (isHeader 1) rest || any (isHeader 2) rest) -> -- tit/sub
-            (promoteHeaders 2 rest, setMeta "title" (fromList head1) $
-              setMeta "subtitle" (fromList head2) meta)
+            (promoteHeaders 2 rest,
+              setMeta "title" (B.fromList head1) $
+              setMeta "subtitle" (B.fromList head2) meta)
           (Header 1 _ head1:rest)
            | not (any (isHeader 1) rest) -> -- title only
             (promoteHeaders 1 rest,
-                setMeta "title" (fromList head1) meta)
+                setMeta "title" (B.fromList head1) meta)
           _ -> (bs, meta)
   in   case bs' of
           (DefinitionList ds : rest) ->
@@ -113,7 +113,8 @@ titleTransform (bs, meta) =
 
 metaFromDefList :: [([Inline], [[Block]])] -> Meta -> Meta
 metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
- where f (k,v) = setMeta (T.toLower $ stringify k) (mconcat $ map fromList v)
+ where f (k,v) = setMeta (T.toLower $ stringify k)
+                         (mconcat (map B.fromList v))
        adjustAuthors (Meta metamap) = Meta $ M.adjust splitAuthors "author"
                                            $ M.adjust toPlain "date"
                                            $ M.adjust toPlain "title"
@@ -501,7 +502,8 @@ includeDirective top fields body = do
                            setInput oldInput
                            setPosition oldPos
                            updateState $ \s -> s{ stateContainers =
-                                         tail $ stateContainers s }
+                              fromMaybe [] $ viaNonEmpty tail
+                                           $ stateContainers s }
                            return bs
 
 
@@ -837,7 +839,7 @@ listTableDirective top fields body = do
              (TableFoot nullAttr [])
     where takeRows [BulletList rows] = map takeCells rows
           takeRows _                 = []
-          takeCells [BulletList cells] = map B.fromList cells
+          takeCells [BulletList cells] = map B.fromList cells :: [Blocks]
           takeCells _                  = []
           normWidths ws = strictPos . (/ max 1 (sum ws)) <$> ws
           strictPos w
@@ -888,7 +890,7 @@ csvTableDirective top fields rawcsv = do
        Right rawrows -> do
          let singleParaToPlain bs =
                case B.toList bs of
-                 [Para ils] -> B.fromList [Plain ils]
+                 [Para ils] -> B.plain (B.fromList ils)
                  _          -> bs
          let parseCell t = singleParaToPlain
                 <$> parseFromString' parseBlocks (t <> "\n\n")
@@ -1291,8 +1293,12 @@ simpleTableRow indices = do
 
 simpleTableSplitLine :: [Int] -> Text -> [Text]
 simpleTableSplitLine indices line =
-  map trimr
-  $ tail $ splitTextByIndices (init indices) line
+   case viaNonEmpty init indices of
+     Nothing          -> []
+     Just indicesInit ->
+       case splitTextByIndices indicesInit line of
+         (_:xs) -> map trimr xs
+         []     -> []
 
 simpleTableHeader :: PandocMonad m
                   => Bool  -- ^ Headerless table

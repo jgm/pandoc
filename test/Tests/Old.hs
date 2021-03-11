@@ -1,4 +1,5 @@
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Old
    Copyright   : © 2006-2021 John MacFarlane
@@ -229,10 +230,6 @@ tests pandocPath =
     lhsReaderTest'  = lhsReaderTest pandocPath
     extWriterTests' = extendedWriterTests pandocPath
 
--- makes sure file is fully closed after reading
-readFile' :: FilePath -> IO String
-readFile' f = do s <- UTF8.readFile f
-                 return $! (T.length s `seq` T.unpack s)
 
 lhsWriterTests :: FilePath -> String -> [TestTree]
 lhsWriterTests pandocPath format
@@ -289,13 +286,9 @@ fb2WriterTest pandocPath title opts inputfile normfile =
   testWithNormalize (ignoreBinary . formatXML) pandocPath
                     title (["-t", "fb2"]++opts) inputfile normfile
   where
-    formatXML xml = splitTags $ zip xml (drop 1 xml)
-    splitTags []               = []
-    splitTags [end]            = [fst end, snd end]
-    splitTags (('>','<'):rest) = ">\n" ++ splitTags rest
-    splitTags ((c,_):rest)     = c : splitTags rest
+    formatXML = T.replace "><" ">\n<"
     ignoreBinary = unlines . filter (not . startsWith "<binary ") . lines
-    startsWith tag str = all (uncurry (==)) $ zip tag str
+    startsWith tag str = tag `T.isPrefixOf` str
 
 -- | Run a test without normalize function, return True if test passed.
 test :: FilePath  -- ^ Path of pandoc executable
@@ -307,7 +300,7 @@ test :: FilePath  -- ^ Path of pandoc executable
 test = testWithNormalize id
 
 -- | Run a test with normalize function, return True if test passed.
-testWithNormalize  :: (String -> String) -- ^ Normalize function for output
+testWithNormalize  :: (Text -> Text) -- ^ Normalize function for output
                    -> FilePath  -- ^ Path to pandoc executable
                    -> String    -- ^ Title of test
                    -> [String]  -- ^ Options to pass to pandoc
@@ -317,7 +310,7 @@ testWithNormalize  :: (String -> String) -- ^ Normalize function for output
 testWithNormalize normalizer pandocPath testname opts inp norm =
   goldenTest testname getExpected getActual
     (compareValues norm options) updateGolden
-  where getExpected = normalizer <$> readFile' norm
+  where getExpected = normalizer <$> UTF8.readFile norm
         getActual   = do
               mldpath   <- Env.lookupEnv "LD_LIBRARY_PATH"
               mdyldpath <- Env.lookupEnv "DYLD_LIBRARY_PATH"
@@ -330,23 +323,23 @@ testWithNormalize normalizer pandocPath testname opts inp norm =
               (ec, out) <- pipeProcess (Just env) pandocPath
                              ("--emulate":options) mempty
               if ec == ExitSuccess
-                 then return $ filter (/='\r') . normalizer
+                 then return $ normalizer $ T.pack $ filter (/='\r')
                              $ UTF8.toStringLazy out
                    -- filter \r so the tests will work on Windows machines
                  else fail $ "Pandoc failed with error code " ++ show ec
-        updateGolden = UTF8.writeFile norm . T.pack
+        updateGolden = UTF8.writeFile norm
         options = ["--data-dir=../data","--quiet"] ++ [inp] ++ opts
 
-compareValues :: FilePath -> [String] -> String -> String -> IO (Maybe String)
+compareValues :: FilePath -> [String] -> Text -> Text -> IO (Maybe String)
 compareValues norm options expected actual = do
   testExePath <- getExecutablePath
-  let cmd  = testExePath ++ " --emulate " ++ unwords options
+  let cmd  = testExePath ++ " --emulate " ++ intercalate " " options
   let dash = replicate 72 '-'
   let diff = getDiff (lines actual) (lines expected)
   if expected == actual
      then return Nothing
      else return $ Just $
-        '\n' : dash ++
-        "\n--- " ++ norm ++
-        "\n+++ " ++ cmd ++ "\n" ++
-        showDiff (1,1) diff ++ dash
+        "\n" <> dash <>
+        "\n--- " <> norm <>
+        "\n<>+ " <> cmd <> "\n" <>
+        showDiff (1,1) diff <> dash

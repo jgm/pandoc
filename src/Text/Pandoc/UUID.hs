@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.UUID
    Copyright   : Copyright (C) 2010-2021 John MacFarlane
@@ -18,11 +19,12 @@ import Data.Word
 import System.Random (RandomGen, randoms)
 import Text.Printf (printf)
 import Text.Pandoc.Class.PandocMonad
+import qualified GHC.Show
 
 data UUID = UUID Word8 Word8 Word8 Word8 Word8 Word8 Word8 Word8
                  Word8 Word8 Word8 Word8 Word8 Word8 Word8 Word8
 
-instance Show UUID where
+instance GHC.Show.Show UUID where
   show (UUID a b c d e f g h i j k l m n o p) =
    "urn:uuid:" ++
    printf "%02x" a ++
