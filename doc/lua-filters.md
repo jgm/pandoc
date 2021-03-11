@@ -390,7 +390,7 @@ current date, if a date isn't already set:
 ``` lua
 function Meta(m)
   if m.date == nil then
-    m.date = os.date("%B %e, %Y")
+    m.date = os.date("%B %d, %Y")
     return m
   end
 end
