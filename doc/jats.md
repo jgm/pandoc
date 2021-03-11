@@ -50,6 +50,13 @@ Metadata Values
         list must also occur as the `id` of an affiliation listed in
         the top-level `affiliation` list.
 
+    `equal-contrib`
+    :   boolean attribute used to mark authors who contributed
+        equally to the work. The
+        [`equal-contrib`][attr:equal-contrib] attribute is added
+        to the author's [`<contrib>`] element if this is set to a
+        truthy value.
+
     `cor-id`
     :   identifier linking to the contributor's correspondence
         information. The info itself must be stored in as an item in
@@ -355,6 +362,7 @@ Required metadata values:
 [Ringgold]: https://ringgold.com/
 [attr:content-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/content-type.html
 [attr:date-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/date-type.html
+[attr:equal-contrib]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/equal-contrib.html
 [attr:fn-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/fn-type.html
 [attr:institution-id-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/institution-id-type.html
 [attr:iso-8601-date]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/iso-8601-date.html
@@ -398,6 +406,7 @@ Required metadata values:
 [`<addr-line>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/addr-line.html
 [`<aff>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/aff.html
 [`<city>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/city.html
+[`<contrib>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/contrib.html
 [`<country>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/country.html
 [`<institution-id>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/institution-id.html
 [`<institution-wrap>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/institution-wrap.html
