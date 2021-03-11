@@ -464,22 +464,20 @@ plainToPara :: Block -> Block
 plainToPara (Plain ils) = Para ils
 plainToPara x = x
 
+
 -- | Like @compactify@, but acts on items of definition lists.
 compactifyDL :: [(Inlines, [Blocks])] -> [(Inlines, [Blocks])]
 compactifyDL items =
-  let defs = concatMap snd items
-  in  case reverse (concatMap B.toList defs) of
-           (Para x:xs)
-             | not (any isPara xs) ->
-                   let (t,ds) = last items
-                       lastDef = B.toList $ last ds
-                       ds' = init ds ++
-                             if null lastDef
-                                then [B.fromList lastDef]
-                                else [B.fromList $ init lastDef ++ [Plain x]]
-                    in init items ++ [(t, ds')]
-             | otherwise           -> items
-           _                       -> items
+  case reverse items of
+        ((t,ds):ys) ->
+           case reverse (map (reverse . B.toList) ds) of
+             ((Para x:xs) : zs) | not (any isPara xs) ->
+                  reverse ys ++
+                    [(t, reverse (map B.fromList zs) ++
+                         [B.fromList (reverse (Plain x:xs))])]
+             _     -> items
+        _          -> items
+
 
 -- | Combine a list of lines by adding hard linebreaks.
 combineLines :: [[Inline]] -> [Inline]
