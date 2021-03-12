@@ -49,7 +49,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import System.FilePath (takeExtension)
 import Safe (lastMay, initSafe)
--- import Debug.Trace as Trace (trace, traceShowId)
 
 
 processCitations  :: PandocMonad m => Pandoc -> m Pandoc
@@ -91,11 +90,12 @@ processCitations (Pandoc meta bs) = do
                    _ -> id) $ []
   let bibs = mconcat $ map (\(ident, out) ->
                      B.divWith ("ref-" <> ident,["csl-entry"],[]) . B.para .
-                       walk (convertQuotes locale) .  insertSpace $ out)
+                         walk (convertQuotes locale) .
+                         insertSpace $ out)
                       (resultBibliography result)
   let moveNotes = maybe True truish $
                         lookupMeta "notes-after-punctuation" meta
-  let cits = map (walk fixLinks . walk (convertQuotes locale)) $
+  let cits = map (walk (convertQuotes locale)) $
                resultCitations result
 
   let fixQuotes = case localePunctuationInQuote locale of
@@ -294,7 +294,7 @@ insertResolvedCitations (Cite cs ils) = do
     [] -> return (Cite cs ils)
     (x:xs) -> do
       put xs
-      return $ Cite cs (B.toList x)
+      return $ Cite cs (walk fixLinks $ B.toList x)
 insertResolvedCitations x = return x
 
 getCitations :: Locale
@@ -431,7 +431,7 @@ mvPunct _ _ [] = []
 -- move https://doi.org etc. prefix inside link text (#6723):
 fixLinks :: [Inline] -> [Inline]
 fixLinks (Str t : Link attr [Str u1] (u2,tit) : xs)
-  | t <> u1 == u2
+  | u2 == t <> u1
   = Link attr [Str (t <> u1)] (u2,tit) : fixLinks xs
 fixLinks (x:xs) = x : fixLinks xs
 fixLinks [] = []
