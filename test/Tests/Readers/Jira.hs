@@ -96,6 +96,12 @@ tests =
       simpleTable [para "Name"] [[para "Test"]]
     ]
 
+  , testGroup "panel"
+    [ "simple panel" =:
+      "{panel}\nInterviewer: Jane Doe{panel}\n" =?>
+      divWith ("", ["panel"], []) (para "Interviewer: Jane Doe")
+    ]
+
   , testGroup "inlines"
     [ "emphasis" =:
       "*quid pro quo*" =?>

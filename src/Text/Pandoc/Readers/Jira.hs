@@ -71,10 +71,10 @@ toPandocCodeBlocks langMay params txt =
                   Nothing                   -> []
   in codeBlockWith ("", classes, map paramToPair params) txt
 
--- | Create a pandoc @'Div'@
+-- | Create a pandoc @'Div'@ from a panel.
 toPandocDiv :: [Jira.Parameter] -> [Jira.Block] -> Blocks
 toPandocDiv params =
-  divWith ("", [], map paramToPair params) . foldMap jiraToPandocBlocks
+  divWith ("", ["panel"], map paramToPair params) . foldMap jiraToPandocBlocks
 
 paramToPair :: Jira.Parameter -> (Text, Text)
 paramToPair (Jira.Parameter key value) = (key, value)
