@@ -34,6 +34,10 @@ without SVG support), [Python] (to use Pandoc filters), and
 
     choco install rsvg-convert python miktex
 
+Using multiple installation methods can result in two separate
+installations of pandoc; it is recommended to properly uninstall
+pandoc before switching to an alternative installation method.
+
 By default, Pandoc creates PDFs using LaTeX.
 We recommend installing it via [MiKTeX].
 
