@@ -47,6 +47,9 @@ test:
 ghcid:
 	ghcid -c "stack repl --flag 'pandoc:embed_data_files'"
 
+ghcid-test:
+	ghcid -c "stack repl --ghc-options=-XNoImplicitPrelude --flag 'pandoc:embed_data_files' --ghci-options=-fobject-code pandoc:lib pandoc:test-pandoc"
+
 bench:
 	stack bench --benchmark-arguments='$(BENCHARGS) $(BASELINE) --csv bench_$(TIMESTAMP).csv' --ghc-options '$(GHCOPTS)'
 
