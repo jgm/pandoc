@@ -79,4 +79,34 @@ tests =
         "{noformat}\npreformatted\n  text.\n{noformat}"
       ]
     ]
+
+  , testGroup "blocks"
+    [ testGroup "div"
+      [ "empty attributes" =:
+        divWith nullAttr (para "interesting text") =?>
+        "interesting text"
+
+      , "just identifier" =:
+        divWith ("a", [], []) (para "interesting text") =?>
+        "{anchor:a}interesting text"
+
+      , "with class 'panel'" =:
+        divWith ("", ["panel"], []) (para "Contents!") =?>
+        "{panel}\nContents\\!\n{panel}\n"
+
+      , "panel with id" =:
+        divWith ("b", ["panel"], []) (para "text") =?>
+        "{panel}\n{anchor:b}text\n{panel}\n"
+
+      , "title attribute" =:
+        divWith ("", [], [("title", "Gimme!")]) (para "Contents!") =?>
+        "{panel:title=Gimme!}\nContents\\!\n{panel}\n"
+
+      , "nested panels" =:
+        let panelAttr = ("", ["panel"], [])
+        in divWith panelAttr (para "hi" <>
+                              divWith panelAttr (para "wassup?")) =?>
+        "{panel}\nhi\n\nwassup?\n{panel}\n"
+      ]
+    ]
   ]
