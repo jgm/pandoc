@@ -15,18 +15,24 @@ module Text.Pandoc.App.FormatHeuristics
   ) where
 
 import Data.Char (toLower)
+import Data.Foldable (asum)
 import Data.Text (Text)
 import System.FilePath (takeExtension)
 
--- Determine default format based on file extensions.
+-- | Determines default format based on file extensions; uses the format
+-- of the first extension that's associated with a format.
+--
+-- Examples:
+--
+-- > formatFromFilePaths ["text.unknown", "no-extension"]
+-- Nothing
+--
+-- > formatFromFilePaths ["my.md", "other.rst"]
+-- Just "markdown"
 formatFromFilePaths :: [FilePath] -> Maybe Text
-formatFromFilePaths [] = Nothing
-formatFromFilePaths (x:xs) =
-  case formatFromFilePath x of
-    Just f     -> Just f
-    Nothing    -> formatFromFilePaths xs
+formatFromFilePaths = asum . map formatFromFilePath
 
--- Determine format based on file extension
+-- | Determines format based on file extension.
 formatFromFilePath :: FilePath -> Maybe Text
 formatFromFilePath x =
   case takeExtension (map toLower x) of
