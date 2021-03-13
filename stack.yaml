@@ -8,6 +8,7 @@ extra-deps:
 - hslua-1.3.0
 - hslua-module-path-0.1.0
 - jira-wiki-markup-1.3.4
+- citeproc-0.3.0.9
 #- citeproc:
 #  git: https://github.com/jgm/citeproc.git
 #  commit: feb3b7580c6738eec3b23921f7c1739cfba611aa
