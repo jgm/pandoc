@@ -112,12 +112,14 @@ newBlockTags = ["haskell","syntaxhighlight","source","gallery","references"]
 isBlockTag' :: Tag Text -> Bool
 isBlockTag' tag@(TagOpen t _) = (isBlockTag tag || t `elem` newBlockTags) &&
   t `notElem` eitherBlockOrInline
+isBlockTag' (TagClose "ref") = True -- needed so 'special' doesn't parse it
 isBlockTag' tag@(TagClose t) = (isBlockTag tag || t `elem` newBlockTags) &&
   t `notElem` eitherBlockOrInline
 isBlockTag' tag = isBlockTag tag
 
 isInlineTag' :: Tag Text -> Bool
 isInlineTag' (TagComment _) = True
+isInlineTag' (TagClose "ref") = False -- see below inlineTag
 isInlineTag' t              = not (isBlockTag' t)
 
 eitherBlockOrInline :: [Text]
@@ -554,11 +556,17 @@ variable = try $ do
   contents <- manyTillChar anyChar (try $ string "}}}")
   return $ "{{{" <> contents <> "}}}"
 
+singleParaToPlain :: Blocks -> Blocks
+singleParaToPlain bs =
+  case B.toList bs of
+    [Para ils] -> B.fromList [Plain ils]
+    _ -> bs
+
 inlineTag :: PandocMonad m => MWParser m Inlines
 inlineTag = do
   (tag, _) <- lookAhead $ htmlTag isInlineTag'
   case tag of
-       TagOpen "ref" _ -> B.note . B.plain <$> inlinesInTags "ref"
+       TagOpen "ref" _ -> B.note . singleParaToPlain <$> blocksInTags "ref"
        TagOpen "nowiki" _ -> try $ do
           (_,raw) <- htmlTag (~== tag)
           if T.any (== '/') raw
