@@ -45,8 +45,7 @@ A list:
 Nested block quotes:
 
 bq. nested
-bq. nested
-{quote}
+bq. nested{quote}
 This should not be a block quote: 2 > 1.
 
 And a following paragraph.

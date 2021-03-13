@@ -164,7 +164,7 @@ Pandoc (Meta {unMeta = fromList []})
 ,Para [Str "[Not",Space,Str "a",Space,Str "link|not",Space,Str "a",Space,Str "URL]."]
 ,Header 2 ("",[],[]) [Str "Reference"]
 ,Para [Str "With",Space,Link ("",[],[]) [Str "embedded",Space,Str "[brackets]"] ("https://example.net/url/",""),Str "."]
-,Para [Link ("",[],[]) [Str "https://pandoc.org by itself should be a link."] ("https://pandoc.org by itself should be a link.","")]
+,Para [Link ("",[],[]) [Str "https://pandoc.org"] ("https://pandoc.org",""),Space,Str "by",Space,Str "itself",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "link."]
 ,Header 2 ("",[],[]) [Str "With",Space,Str "ampersands"]
 ,Para [Str "Here\8217s",Space,Str "a",Space,Link ("",[],[]) [Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "URL"] ("http://example.com/?foo=1&bar=2",""),Str "."]
 ,Para [Str "Here\8217s",Space,Str "a",Space,Str "link",Space,Str "with",Space,Str "an",Space,Str "ampersand",Space,Str "in",Space,Str "the",Space,Str "link",Space,Str "text:",Space,Link ("",[],[]) [Str "AT&T"] ("http://att.com/",""),Str "."]
