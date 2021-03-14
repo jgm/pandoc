@@ -1002,7 +1002,7 @@ widthsFromIndices numColumns' indices =
                       (x:y:zs) -> if x < y && y - x <= 2
                                      then y:y:zs
                                      else x:y:zs
-      totLength = sum lengths
+      totLength = sum' lengths
       quotient = if totLength > numColumns
                    then fromIntegral totLength
                    else fromIntegral numColumns

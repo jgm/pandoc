@@ -43,7 +43,7 @@ import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class as P (PandocMonad (..))
 import Text.Pandoc.CSS (pickStyleAttrProps)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
@@ -66,6 +66,7 @@ import Text.Pandoc.Shared (
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
+import Data.List.NonEmpty (nonEmpty, NonEmpty(..))
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: PandocMonad m
@@ -214,7 +215,7 @@ block = ((do
           -> eSwitch B.para block
         _ -> mzero
     _ -> mzero) <|> pPlain <|> pRawHtmlBlock) >>= \res ->
-        res <$ trace (T.take 60 $ tshow $ B.toList res)
+        res <$ P.trace (T.take 60 $ tshow $ B.toList res)
 
 namespaces :: PandocMonad m => [(Text, TagParser m Inlines)]
 namespaces = [(mathMLNamespace, pMath True)]
@@ -360,7 +361,10 @@ pDefListItem = try $ do
   terms <- many1 (try $ skipMany nonItem >> pInTags "dt" inline)
   defs  <- many1 (try $ skipMany nonItem >> pInTags "dd" block)
   skipMany nonItem
-  let term = foldl1 (\x y -> x <> B.linebreak <> y) $ map trimInlines terms
+  let term = case nonEmpty (map trimInlines terms) of
+               Just (z :| zs) ->
+                 foldl' (\x y -> x <> B.linebreak <> y) z zs
+               Nothing -> mempty
   return (term, map (fixPlains True) defs)
 
 fixPlains :: Bool -> Blocks -> Blocks

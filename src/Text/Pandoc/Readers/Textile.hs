@@ -45,7 +45,7 @@ import Text.HTML.TagSoup (Tag (..), fromAttrib)
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class as P (PandocMonad (..))
 import Text.Pandoc.CSS
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
@@ -123,7 +123,7 @@ blockParsers = [ codeBlock
 block :: PandocMonad m => ParserT Text ParserState m Blocks
 block = do
   res <- choice blockParsers <?> "block"
-  trace (T.take 60 $ tshow $ B.toList res)
+  P.trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 commentBlock :: PandocMonad m => ParserT Text ParserState m Blocks

@@ -17,8 +17,7 @@ module Text.Pandoc.Readers.Docx.Lists ( blocksToBullets
                                       , listParagraphStyles
                                       ) where
 
-import Data.List
-import Data.Maybe
+import Data.List (delete, intersect, (\\))
 import Data.String (fromString)
 import qualified Data.Text as T
 import Text.Pandoc.Generic (bottomUp)

@@ -637,7 +637,7 @@ orgToPandocTable :: OrgTable
                  -> Blocks
 orgToPandocTable (OrgTable colProps heads lns) caption =
   let totalWidth = if any (isJust . columnRelWidth) colProps
-                   then Just . sum $ map (fromMaybe 1 . columnRelWidth) colProps
+                   then Just . sum' $ map (fromMaybe 1 . columnRelWidth) colProps
                    else Nothing
   in B.table (B.simpleCaption $ B.plain caption)
              (map (convertColProp totalWidth) colProps)

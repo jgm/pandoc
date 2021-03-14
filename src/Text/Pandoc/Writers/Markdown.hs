@@ -675,7 +675,7 @@ pandocTable opts multiline headless aligns widths rawHeaders rawRows = do
   let underline = mconcat $ intersperse (literal " ") $
                   map (\width -> literal (T.replicate width "-")) widthsInChars
   let border
-        | multiline = literal (T.replicate (sum widthsInChars +
+        | multiline = literal (T.replicate (sum' widthsInChars +
                         length widthsInChars - 1) "-")
         | headless  = underline
         | otherwise = empty

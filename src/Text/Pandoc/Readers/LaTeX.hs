@@ -36,10 +36,8 @@ import qualified Data.Text as T
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.BCP47 (renderLang)
 import Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocPure (PandocPure)
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..), getResourcePath,
-                                      readFileFromDirs, report,
-                                      setResourcePath)
+import Text.Pandoc.Class as P (PandocPure, PandocMonad (..), getResourcePath,
+                               readFileFromDirs, report, setResourcePath)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocParsecError))
 import Text.Pandoc.Highlighting (languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
@@ -1255,7 +1253,7 @@ block = do
             _                 -> mzero)
           <|> paragraph
           <|> grouped block
-  trace (T.take 60 $ tshow $ B.toList res)
+  P.trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 blocks :: PandocMonad m => LP m Blocks

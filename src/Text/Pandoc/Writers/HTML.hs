@@ -375,12 +375,12 @@ prefixedId opts s =
     "" -> mempty
     _  -> A.id $ toValue $ writerIdentifierPrefix opts <> s
 
-toList :: PandocMonad m
+toList' :: PandocMonad m
        => (Html -> Html)
        -> WriterOptions
        -> [Html]
        -> StateT WriterState m Html
-toList listop opts items = do
+toList' listop opts items = do
     slideVariant <- gets stSlideVariant
     return $
       if writerIncremental opts
@@ -391,15 +391,15 @@ toList listop opts items = do
 
 unordList :: PandocMonad m
           => WriterOptions -> [Html] -> StateT WriterState m Html
-unordList opts = toList H.ul opts . toListItems opts
+unordList opts = toList' H.ul opts . toListItems opts
 
 ordList :: PandocMonad m
         => WriterOptions -> [Html] -> StateT WriterState m Html
-ordList opts = toList H.ol opts . toListItems opts
+ordList opts = toList' H.ol opts . toListItems opts
 
 defList :: PandocMonad m
         => WriterOptions -> [Html] -> StateT WriterState m Html
-defList opts items = toList H.dl opts (items ++ [nl opts])
+defList opts items = toList' H.dl opts (items ++ [nl opts])
 
 isTaskListItem :: [Block] -> Bool
 isTaskListItem (Plain (Str "☐":Space:_):_) = True
@@ -961,7 +961,7 @@ tableToHtml opts (Ann.Table attr caption colspecs thead tbodies tfoot) = do
   let colWidth = \case
         ColWidth d -> d
         ColWidthDefault -> 0
-  let totalWidth = sum . map (colWidth . snd) $ colspecs
+  let totalWidth = sum' . map (colWidth . snd) $ colspecs
   let attr' = case lookup "style" kvs of
                 Nothing | totalWidth < 1 && totalWidth > 0
                   -> (ident,classes, ("style","width:" <>

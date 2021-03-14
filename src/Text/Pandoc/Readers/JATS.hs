@@ -262,7 +262,7 @@ parseBlock (Elem e) =
                                      [] -> replicate numrows ColWidthDefault
                                      cs -> let ws = map toWidth cs
                                            in case sequence ws of
-                                                Just ws' -> let tot = sum ws'
+                                                Just ws' -> let tot = sum' ws'
                                                             in  ColWidth . (/ tot) <$> ws'
                                                 Nothing  -> replicate numrows ColWidthDefault
                       let toRow = Row nullAttr . map simpleCell

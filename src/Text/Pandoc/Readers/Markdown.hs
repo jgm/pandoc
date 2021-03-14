@@ -33,7 +33,7 @@ import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup hiding (Row)
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..), report)
+import Text.Pandoc.Class as P (PandocMonad (..), report)
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Error
@@ -476,7 +476,7 @@ block = do
                , para
                , plain
                ] <?> "block"
-  trace (T.take 60 $ tshow $ B.toList $ runF res defaultParserState)
+  P.trace (T.take 60 $ tshow $ B.toList $ runF res defaultParserState)
   return res
 
 --
@@ -1368,7 +1368,7 @@ pipeTable = try $ do
   numColumns <- getOption readerColumns
   let widths = if maxlength > numColumns
                   then map (\len ->
-                         fromIntegral len / fromIntegral (sum seplengths))
+                         fromIntegral len / fromIntegral (sum' seplengths))
                          seplengths
                   else replicate (length aligns) 0.0
   return (aligns, widths, toHeaderRow <$> heads', map toRow <$> sequence lines'')
@@ -1460,7 +1460,7 @@ table = try $ do
                   Nothing -> option (return mempty) tableCaption
                   Just c  -> return c
   -- renormalize widths if greater than 100%:
-  let totalWidth = sum widths
+  let totalWidth = sum' widths
   let widths' = if totalWidth < 1
                    then widths
                    else map (/ totalWidth) widths

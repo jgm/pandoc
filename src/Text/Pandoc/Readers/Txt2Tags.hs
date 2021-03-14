@@ -31,7 +31,8 @@ import Data.Time (defaultTimeLocale)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (space, spaces, uri)
-import Text.Pandoc.Shared (compactify, compactifyDL, crFilter, escapeURI)
+import Text.Pandoc.Shared (compactify, compactifyDL, crFilter, escapeURI,
+                           ordNub)
 
 type T2T = ParserT Text ParserState (Reader T2TMeta)
 
@@ -261,7 +262,9 @@ table = try $ do
   rows <- many1 (many commentLine *> tableRow)
   let columns = transpose rows
   let ncolumns = length columns
-  let aligns = map (foldr1 findAlign . map fst) columns
+  let aligns = map (\rs -> case ordNub $ map fst rs of
+                             [x] -> x
+                             _   -> AlignDefault) columns
   let rows' = map (map snd) rows
   let size = maximum (map length rows')
   let rowsPadded = map (pad size) rows'
@@ -277,11 +280,6 @@ table = try $ do
 pad :: (Monoid a) => Int -> [a] -> [a]
 pad n xs = xs ++ replicate (n - length xs) mempty
 
-
-findAlign :: Alignment -> Alignment -> Alignment
-findAlign x y
-  | x == y = x
-  | otherwise = AlignDefault
 
 headerRow :: T2T [(Alignment, Blocks)]
 headerRow = genericRow (string "||")

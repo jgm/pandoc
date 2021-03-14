@@ -16,7 +16,6 @@ module Text.Pandoc.Readers.Odt.Generic.Utils
 , uncurry4
 , uncurry5
 , uncurry6
-, swap
 , reverseComposition
 , tryToRead
 , Lookupable(..)
@@ -103,9 +102,6 @@ uncurry3 fun (a,b,c          ) = fun a b c
 uncurry4 fun (a,b,c,d        ) = fun a b c d
 uncurry5 fun (a,b,c,d,e      ) = fun a b c d e
 uncurry6 fun (a,b,c,d,e,f    ) = fun a b c d e f
-
-swap :: (a,b) -> (b,a)
-swap (a,b) = (b,a)
 
 -- | A version of "Data.List.find" that uses a converter to a Maybe instance.
 -- The returned value is the first which the converter returns in a 'Just'

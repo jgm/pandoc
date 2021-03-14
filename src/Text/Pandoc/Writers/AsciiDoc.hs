@@ -210,17 +210,17 @@ blockToAsciiDoc opts block@(Table _ blkCapt specs thead tbody tfoot) = do
   let isSimple = all (== 0) widths
   let relativePercentWidths = if isSimple
                                  then widths
-                                 else map (/ sum widths) widths
+                                 else map (/ sum' widths) widths
   let widths'' :: [Integer]
       widths'' = map (floor . (* 100)) relativePercentWidths
-  -- ensure that the widths sum to 100
+  -- ensure that the widths sum' to 100
   let widths' = case widths'' of
                      _ | isSimple -> widths''
-                     (w:ws) | sum (w:ws) < 100
-                               -> (100 - sum ws) : ws
+                     (w:ws) | sum' (w:ws) < 100
+                               -> (100 - sum' ws) : ws
                      ws        -> ws
   let totalwidth :: Integer
-      totalwidth = floor $ sum widths * 100
+      totalwidth = floor $ sum' widths * 100
   let colspec al wi = (case al of
                          AlignLeft    -> "<"
                          AlignCenter  -> "^"

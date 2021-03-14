@@ -64,7 +64,7 @@ import qualified Text.Pandoc.Builder as B (blockQuote, bulletList, code,
                                            softbreak, space, spanWith, str,
                                            strikeout, strong, subscript,
                                            superscript)
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class as P (PandocMonad (..))
 import Text.Pandoc.Definition (Attr, Block (BulletList, OrderedList),
                                Inline (Space), ListNumberDelim (..),
                                ListNumberStyle (..), Pandoc (..),
@@ -129,7 +129,7 @@ block = do
                 , definitionList
                 , para
                 ]
-  trace (T.take 60 $ tshow $ toList res)
+  P.trace (T.take 60 $ tshow $ toList res)
   return res
 
 blockML :: PandocMonad m => VwParser m Blocks

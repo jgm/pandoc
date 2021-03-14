@@ -60,8 +60,8 @@ import Control.Monad.State.Strict
 import Data.Bits ((.|.))
 import qualified Data.ByteString.Lazy as B
 import Data.Char (chr, ord, readLitChar)
-import Data.List
 import qualified Data.Map as M
+import Data.List (find)
 import qualified Data.Text as T
 import Data.Text (Text)
 import Data.Maybe
