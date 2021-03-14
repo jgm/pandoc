@@ -18,6 +18,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
 import Text.DocLayout
+import Text.Show hiding (show)
 
 prettyList :: [Doc Text] -> Doc Text
 prettyList ds =

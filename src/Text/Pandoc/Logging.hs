@@ -43,7 +43,7 @@ data Verbosity = ERROR | WARNING | INFO
      deriving (Show, Read, Eq, Data, Enum, Ord, Bounded, Typeable, Generic)
 
 instance ToJSON Verbosity where
-  toJSON x = toJSON (show x)
+  toJSON x = toJSON (show x :: Text)
 instance FromJSON Verbosity where
   parseJSON (String t) =
     case t of
@@ -108,7 +108,7 @@ data LogMessage =
 instance ToJSON LogMessage where
   toJSON x = object $
     "verbosity" .= toJSON (messageVerbosity x) :
-    "type" .= toJSON (show $ toConstr x) :
+    "type" .= toJSON (show (toConstr x) :: Text) :
     case x of
       SkippedContent s pos ->
            ["contents" .= s,

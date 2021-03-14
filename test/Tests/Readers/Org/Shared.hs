@@ -29,7 +29,7 @@ org :: Text -> Pandoc
 org = purely $ readOrg def{ readerExtensions = getDefaultExtensions "org" }
 
 infix 4 =:
-(=:) :: ToString c
+(=:) :: ToText c
      => String -> (Text, c) -> TestTree
 (=:) = test org
 

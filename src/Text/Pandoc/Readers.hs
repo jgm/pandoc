@@ -102,6 +102,7 @@ import Text.Pandoc.Readers.CslJson
 import Text.Pandoc.Readers.BibTeX
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Parsec.Error
+import Prelude hiding (Reader)
 
 data Reader m = TextReader (ReaderOptions -> Text -> m Pandoc)
               | ByteStringReader (ReaderOptions -> BL.ByteString -> m Pandoc)

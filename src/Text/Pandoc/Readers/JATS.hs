@@ -26,7 +26,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Text.HTML.TagSoup.Entity (lookupEntity)
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (crFilter, safeRead, extractSpaces)
@@ -57,7 +57,7 @@ readJATS _ inp = do
   tree <- either (throwError . PandocXMLError "") return $
             parseXMLContents (TL.fromStrict $ crFilter inp)
   (bs, st') <- flip runStateT (def{ jatsContent = tree }) $ mapM parseBlock tree
-  return $ Pandoc (jatsMeta st') (toList . mconcat $ bs)
+  return $ Pandoc (jatsMeta st') (B.toList . mconcat $ bs)
 
 -- convenience function to get an attribute value, defaulting to ""
 attrValue :: Text -> Element -> Text

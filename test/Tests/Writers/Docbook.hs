@@ -8,11 +8,11 @@ import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
-docbook :: (ToPandoc a) => a -> String
+docbook :: (ToPandoc a) => a -> Text
 docbook = docbookWithOpts def{ writerWrapText = WrapNone }
 
-docbookWithOpts :: ToPandoc a => WriterOptions -> a -> String
-docbookWithOpts opts = unpack . purely (writeDocbook4 opts) . toPandoc
+docbookWithOpts :: ToPandoc a => WriterOptions -> a -> Text
+docbookWithOpts opts = purely (writeDocbook4 opts) . toPandoc
 
 {-
   "my test" =: X =?> Y
@@ -27,15 +27,16 @@ which is in turn shorthand for
 -}
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> TestTree
+(=:) :: (ToText a, ToPandoc a)
+     => String -> (a, Text) -> TestTree
 (=:) = test docbook
 
 lineblock :: Blocks
 lineblock = para ("some text" <> linebreak <>
                   "and more lines" <> linebreak <>
                   "and again")
-lineblock_out :: [String]
+
+lineblock_out :: [Text]
 lineblock_out = [ "<literallayout>some text"
                 , "and more lines"
                 , "and again</literallayout>"
@@ -304,7 +305,7 @@ tests = [ testGroup "line blocks"
                       <> header 3 (text "header3")
 
               docbookTopLevelDiv :: (ToPandoc a)
-                                 => TopLevelDivision -> a -> String
+                                 => TopLevelDivision -> a -> Text
               docbookTopLevelDiv division =
                 docbookWithOpts def{ writerTopLevelDivision = division }
             in

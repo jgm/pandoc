@@ -23,7 +23,7 @@ module Text.Pandoc.Writers.Markdown (
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Default
-import Data.List (intersperse, sortOn, transpose)
+import Data.List (intersperse, sortOn, transpose, zipWith3)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Set as Set
@@ -497,7 +497,10 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
                                    , T.pack [c,c,c] `T.isPrefixOf` ln
                                    , T.all (== c) ln] of
                                [] -> T.replicate 3 $ T.singleton c
-                               xs -> T.replicate (maximum xs + 1) $ T.singleton c
+                               xs -> T.replicate
+                                      (fromMaybe 0
+                                        (viaNonEmpty maximum1 xs) + 1)
+                                      (T.singleton c)
          backticks = endline '`'
          tildes = endline '~'
          attrs  = if isEnabled Ext_fenced_code_attributes opts
@@ -517,8 +520,8 @@ blockToMarkdown' opts (BlockQuote blocks) = do
   return $ prefixed leader contents <> blankline
 blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
-  let numcols = maximum (length aligns : length widths :
-                           map length (headers:rows))
+  let numcols = maximum1
+               (length aligns :| length widths : map length (headers:rows))
   caption' <- inlineListToMarkdown opts caption
   let caption''
         | null caption = blankline
@@ -619,7 +622,8 @@ pipeTable headless aligns rawHeaders rawRows = do
       blockFor AlignCenter x y = cblock (x + 2) (sp <> y <> sp) <> lblock 0 empty
       blockFor AlignRight  x y = rblock (x + 2) (y <> sp) <> lblock 0 empty
       blockFor _           x y = lblock (x + 2) (sp <> y) <> lblock 0 empty
-  let widths = map (max 3 . maximum . map offset) $ transpose (rawHeaders : rawRows)
+  let widths = map (max 3 . fromMaybe 0 . viaNonEmpty maximum1 . map offset)
+               $ transpose (rawHeaders : rawRows)
   let torow cs = nowrap $ literal "|" <>
                     hcat (intersperse (literal "|") $
                           zipWith3 blockFor aligns widths (map chomp cs))
@@ -653,11 +657,11 @@ pandocTable opts multiline headless aligns widths rawHeaders rawRows = do
   -- Number of characters per column necessary to output every cell
   -- without requiring a line break.
   -- The @+2@ is needed for specifying the alignment.
-  let numChars    = (+ 2) . maximum . map offset
+  let numChars    = (+ 2) . fromMaybe 0 . viaNonEmpty maximum1 . map offset
   -- Number of characters per column necessary to output every cell
   -- without requiring a line break *inside a word*.
   -- The @+2@ is needed for specifying the alignment.
-  let minNumChars = (+ 2) . maximum . map minOffset
+  let minNumChars = (+ 2) . fromMaybe 0 . viaNonEmpty maximum1 . map minOffset
   let columns = transpose (rawHeaders : rawRows)
   -- minimal column width without wrapping a single word
   let relWidth w col =

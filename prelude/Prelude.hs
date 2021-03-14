@@ -1,15 +1,14 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
--- The intent is that this Prelude provide the API of
--- the base 4.11 Prelude in a way that is portable for
--- all base versions.
-
 module Prelude
 (
-  module Prelude.Compat
-, Semigroup(..)
+  module Relude
+, module Relude.Extra.Foldable1
+, lookup
 )
 where
 
-import Prelude.Compat
-import Data.Semigroup (Semigroup(..))  -- includes (<>)
+import Relude hiding (Alternative(..), optional, getOption, lookupEnv, getArgs)
+import Relude.Extra.Foldable1
+-- not sure why these are left out of Relude.List.Reexport
+import Data.List (lookup)

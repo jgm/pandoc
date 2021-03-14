@@ -21,7 +21,7 @@ import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Shared (isHeaderBlock)
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 import Text.Pandoc.Walk (walk)
 
 html :: Text -> Pandoc
@@ -47,7 +47,7 @@ removeRawInlines x           = x
 roundTrip :: Blocks -> Bool
 roundTrip b = d'' == d'''
   where d = walk removeRawInlines $
-            walk makeRoundTrip $ Pandoc nullMeta $ toList b
+            walk makeRoundTrip $ Pandoc nullMeta $ B.toList b
         d' = rewrite d
         d'' = rewrite d'
         d''' = rewrite d''

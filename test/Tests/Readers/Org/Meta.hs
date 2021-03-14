@@ -16,7 +16,7 @@ import Test.Tasty (TestTree, testGroup)
 import Tests.Helpers ((=?>))
 import Tests.Readers.Org.Shared ((=:), spcSep)
 import Text.Pandoc
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 import qualified Data.Text as T
 
 tests :: [TestTree]
@@ -43,14 +43,14 @@ tests =
   , testGroup "Export settings"
     [ "Title" =:
       "#+title: Hello, World" =?>
-      let titleInline = toList $ "Hello," <> space <> "World"
+      let titleInline = B.toList $ "Hello," <> space <> "World"
           meta = setMeta "title" (MetaInlines titleInline) nullMeta
       in Pandoc meta mempty
 
     , testGroup "Author"
       [ "sets 'author' field" =:
         "#+author: John /Emacs-Fanboy/ Doe" =?>
-        let author = toList . spcSep $ [ "John", emph "Emacs-Fanboy", "Doe" ]
+        let author = B.toList . spcSep $ [ "John", emph "Emacs-Fanboy", "Doe" ]
             meta = setMeta "author" (MetaInlines author) nullMeta
         in Pandoc meta mempty
 
@@ -58,8 +58,8 @@ tests =
         T.unlines [ "#+author: James Dewey Watson,"
                   , "#+author: Francis Harry Compton Crick"
                   ] =?>
-        let watson = toList "James Dewey Watson,"
-            crick = toList "Francis Harry Compton Crick"
+        let watson = B.toList "James Dewey Watson,"
+            crick = B.toList "Francis Harry Compton Crick"
             meta = setMeta "author"
                            (MetaInlines (watson ++ SoftBreak : crick))
                            nullMeta
@@ -68,7 +68,7 @@ tests =
 
     , "Date" =:
       "#+date: Feb. *28*, 2014" =?>
-      let date = toList . spcSep $ [ "Feb.", strong "28" <> ",", "2014" ]
+      let date = B.toList . spcSep $ [ "Feb.", strong "28" <> ",", "2014" ]
           meta = setMeta "date" (MetaInlines date) nullMeta
       in Pandoc meta mempty
 
@@ -102,7 +102,7 @@ tests =
       T.unlines [ "#+keywords: pandoc, testing,"
                 , "#+keywords: Org"
                 ] =?>
-      let keywords = toList $ "pandoc, testing," <> softbreak <> "Org"
+      let keywords = B.toList $ "pandoc, testing," <> softbreak <> "Org"
           meta = setMeta "keywords" (MetaInlines keywords) nullMeta
       in Pandoc meta mempty
 
@@ -128,7 +128,7 @@ tests =
       [ "LATEX_HEADER" =:
         "#+latex_header: \\usepackage{tikz}" =?>
         let latexInlines = rawInline "latex" "\\usepackage{tikz}"
-            inclList = MetaList [MetaInlines (toList latexInlines)]
+            inclList = MetaList [MetaInlines (B.toList latexInlines)]
             meta = setMeta "header-includes" inclList nullMeta
         in Pandoc meta mempty
 
@@ -162,7 +162,7 @@ tests =
       [ "HTML_HEAD values are added to header-includes" =:
         "#+html_head: <meta/>" =?>
         let html = rawInline "html" "<meta/>"
-            inclList = MetaList [MetaInlines (toList html)]
+            inclList = MetaList [MetaInlines (B.toList html)]
             meta = setMeta "header-includes" inclList nullMeta
         in Pandoc meta mempty
 

@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE BangPatterns         #-}
 {-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE TypeApplications     #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.AST
    Copyright   : © 2012-2021 John MacFarlane
@@ -78,12 +79,12 @@ instance Peekable Citation where
     <*> LuaUtil.rawField idx "hash"
 
 instance Pushable Alignment where
-  push = Lua.push . show
+  push = Lua.push . show @String
 instance Peekable Alignment where
   peek = Lua.peekRead
 
 instance Pushable CitationMode where
-  push = Lua.push . show
+  push = Lua.push . show @String
 instance Peekable CitationMode where
   peek = Lua.peekRead
 
@@ -93,22 +94,22 @@ instance Peekable Format where
   peek idx = Format <$!> Lua.peek idx
 
 instance Pushable ListNumberDelim where
-  push = Lua.push . show
+  push = Lua.push . show @String
 instance Peekable ListNumberDelim where
   peek = Lua.peekRead
 
 instance Pushable ListNumberStyle where
-  push = Lua.push . show
+  push = Lua.push . show @String
 instance Peekable ListNumberStyle where
   peek = Lua.peekRead
 
 instance Pushable MathType where
-  push = Lua.push . show
+  push = Lua.push . show @String
 instance Peekable MathType where
   peek = Lua.peekRead
 
 instance Pushable QuoteType where
-  push = Lua.push . show
+  push = Lua.push . show @String
 instance Peekable QuoteType where
   peek = Lua.peekRead
 

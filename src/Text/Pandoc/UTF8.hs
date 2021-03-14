@@ -45,7 +45,8 @@ import qualified Data.Text.IO as TIO
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
-import Prelude hiding (getContents, putStr, putStrLn, readFile, writeFile)
+import Prelude hiding (getContents, putStr, putStrLn, readFile, writeFile,
+                       toText, toTextLazy, toString, fromString)
 import System.IO hiding (getContents, hGetContents, hPutStr, hPutStrLn, putStr,
                   putStrLn, readFile, writeFile)
 

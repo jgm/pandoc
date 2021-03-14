@@ -7,8 +7,8 @@ import Text.Pandoc
 import Text.Pandoc.Builder
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> TestTree
+(=:) :: (ToText a, ToPandoc a)
+     => String -> (a, Text) -> TestTree
 (=:) = test (purely (writeMs def . toPandoc))
 
 tests :: [TestTree]

@@ -13,7 +13,7 @@ jira :: (ToPandoc a) => a -> String
 jira = unpack . purely (writeJira def) . toPandoc
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a, HasCallStack)
+(=:) :: (ToText a, ToPandoc a, HasCallStack)
      => String -> (a, String) -> TestTree
 (=:) = test jira
 

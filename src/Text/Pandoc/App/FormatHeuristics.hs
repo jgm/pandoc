@@ -17,7 +17,7 @@ module Text.Pandoc.App.FormatHeuristics
 import Data.Char (toLower)
 import Data.Foldable (asum)
 import Data.Text (Text)
-import System.FilePath (takeExtension)
+import System.FilePath (takeExtension, FilePath)
 
 -- | Determines default format based on file extensions; uses the format
 -- of the first extension that's associated with a format.

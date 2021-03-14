@@ -22,7 +22,7 @@ import Test.Tasty.Options (IsOption(defaultValue))
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 import Text.Pandoc.Writers.Shared (toLegacyTable)
 import Text.Pandoc.Walk
 
@@ -33,7 +33,7 @@ emacsMuse :: Text -> Pandoc
 emacsMuse = purely $ readMuse def { readerExtensions = emptyExtensions }
 
 infix 4 =:
-(=:) :: ToString c
+(=:) :: ToText c
      => String -> (Text, c) -> TestTree
 (=:) = test amuse
 
@@ -59,7 +59,8 @@ makeRoundTrip t@(Table tattr blkCapt specs thead tbody tfoot) =
     then t
     else Para [Str "table was here"]
   where (_, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
-        numcols = maximum (length aligns : length widths : map length (headers:rows))
+        numcols = maximum1
+                  (length aligns :| length widths : map length (headers:rows))
         isLineBreak LineBreak = Any True
         isLineBreak _         = Any False
         hasLineBreak = getAny . query isLineBreak
@@ -107,7 +108,7 @@ makeRoundTrip x = x
 -- Currently we remove tables and compare first rewrite to the second.
 roundTrip :: Blocks -> Bool
 roundTrip b = d' == d''
-  where d = walk makeRoundTrip $ Pandoc nullMeta $ toList b
+  where d = walk makeRoundTrip $ Pandoc nullMeta $ B.toList b
         d' = rewrite d
         d'' = rewrite d'
         rewrite = amuse . T.pack . (++ "\n") . T.unpack .
@@ -801,7 +802,7 @@ tests =
       , testGroup "Directives"
         [ "Title" =:
           "#title Document title" =?>
-          let titleInline = toList "Document title"
+          let titleInline = B.toList "Document title"
               meta = setMeta "title" (MetaInlines titleInline) nullMeta
           in Pandoc meta mempty
         -- Emacs Muse documentation says that "You can use any combination
@@ -809,25 +810,25 @@ tests =
         -- but also allows '-', which is not documented, but used for disable-tables.
         , test emacsMuse "Disable tables"
           ("#disable-tables t" =?>
-          Pandoc (setMeta "disable-tables" (MetaInlines $ toList "t") nullMeta) mempty)
+          Pandoc (setMeta "disable-tables" (MetaInlines $ B.toList "t") nullMeta) mempty)
         , "Multiple directives" =:
           T.unlines [ "#title Document title"
                     , "#subtitle Document subtitle"
                     ] =?>
-          Pandoc (setMeta "title" (MetaInlines $ toList "Document title") $
-                  setMeta "subtitle" (MetaInlines $ toList "Document subtitle") nullMeta) mempty
+          Pandoc (setMeta "title" (MetaInlines $ B.toList "Document title") $
+                  setMeta "subtitle" (MetaInlines $ B.toList "Document subtitle") nullMeta) mempty
         , "Multiline directive" =:
           T.unlines [ "#title Document title"
                     , "#notes First line"
                     , "and second line"
                     , "#author Name"
                     ] =?>
-          Pandoc (setMeta "title" (MetaInlines $ toList "Document title") $
-                  setMeta "notes" (MetaInlines $ toList "First line\nand second line") $
-                  setMeta "author" (MetaInlines $ toList "Name") nullMeta) mempty
+          Pandoc (setMeta "title" (MetaInlines $ B.toList "Document title") $
+                  setMeta "notes" (MetaInlines $ B.toList "First line\nand second line") $
+                  setMeta "author" (MetaInlines $ B.toList "Name") nullMeta) mempty
         , "Amusewiki's #cover is translated to pandoc's #cover-image" =:
           "#cover cover.png" =?>
-          let titleInline = toList "cover.png"
+          let titleInline = B.toList "cover.png"
               meta = setMeta "cover-image" (MetaInlines titleInline) nullMeta
           in Pandoc meta mempty
         ]

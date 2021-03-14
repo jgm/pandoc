@@ -88,12 +88,12 @@ docHToBlocks d' =
              toRow = Row nullAttr . map B.simpleCell
              toHeaderRow l = [toRow l | not (null l)]
              (header, body) =
-               if null headerRows
-                  then ([], map toCells bodyRows)
-                  else (toCells (head headerRows),
-                        map toCells (tail headerRows ++ bodyRows))
-             colspecs = replicate (maximum (map length body))
-                             (AlignDefault, ColWidthDefault)
+               case headerRows of
+                 []     -> ([], map toCells bodyRows)
+                 (x:xs) -> (toCells x, map toCells (xs ++ bodyRows))
+             colspecs = replicate
+                         (fromMaybe 0 $ viaNonEmpty maximum1 (map length body))
+                         (AlignDefault, ColWidthDefault)
          in  B.table B.emptyCaption
                      colspecs
                      (TableHead nullAttr $ toHeaderRow header)

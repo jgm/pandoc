@@ -7,7 +7,7 @@ import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 
 defopts :: WriterOptions
 defopts = def{ writerWrapText = WrapPreserve,
@@ -21,7 +21,7 @@ museWithOpts :: (ToPandoc a) => WriterOptions -> a -> Text
 museWithOpts opts = purely (writeMuse opts) . toPandoc
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
+(=:) :: (ToText a, ToPandoc a)
      => String -> (a, Text) -> TestTree
 (=:) = test muse
 
@@ -446,7 +446,7 @@ tests = [ testGroup "block elements"
             , "escape hash to avoid accidental anchors" =: text "#foo bar"
               =?> "<verbatim>#foo</verbatim> bar"
             , "escape definition list markers" =: str "::" =?> "<verbatim>::</verbatim>"
-            , "normalize strings before escaping" =: fromList [Str ":", Str ":"] =?> "<verbatim>::</verbatim>"
+            , "normalize strings before escaping" =: B.fromList [Str ":", Str ":"] =?> "<verbatim>::</verbatim>"
             -- We don't want colons to be escaped if they can't be confused
             -- with definition list item markers.
             , "do not escape colon" =: str ":" =?> ":"

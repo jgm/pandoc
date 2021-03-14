@@ -16,6 +16,7 @@ import Data.Maybe (catMaybes, mapMaybe)
 import Tests.Helpers
 import Data.Algorithm.Diff
 import System.FilePath.Glob (compile, match)
+import qualified Data.Text as T
 
 compareXMLBool :: Content -> Content -> Bool
 -- We make a special exception for times at the moment, and just pass
@@ -41,10 +42,11 @@ compareXMLBool (CRef myStr) (CRef goodStr) =
   myStr == goodStr
 compareXMLBool _ _ = False
 
-displayDiff :: Content -> Content -> String
+displayDiff :: Content -> Content -> Text
 displayDiff elemA elemB =
-  showDiff (1,1)
-    (getDiff (lines $ showContent elemA) (lines $ showContent elemB))
+  T.pack $ showDiff (1,1)
+    (getDiff (lines $ T.pack $ showContent elemA)
+             (lines $ T.pack $ showContent elemB))
 
 goldenArchive :: FilePath -> IO Archive
 goldenArchive fp = toArchive . BL.fromStrict <$> BS.readFile fp
@@ -58,7 +60,7 @@ testArchive writerFn opts fp = do
   bs <- runIOorExplode $ readNative def txt >>= writerFn opts
   return $ toArchive bs
 
-compareFileList :: FilePath -> Archive -> Archive -> Maybe String
+compareFileList :: FilePath -> Archive -> Archive -> Maybe Text
 compareFileList goldenFP goldenArch testArch =
   let testFiles = filesInArchive testArch
       goldenFiles = filesInArchive goldenArch
@@ -69,54 +71,58 @@ compareFileList goldenFP goldenArch testArch =
         [ if null diffGoldenTest
           then Nothing
           else Just $
-               "Files in " ++ goldenFP ++ " but not in generated archive:\n" ++
-               intercalate ", " diffGoldenTest
+               "Files in " <> T.pack goldenFP <>
+               " but not in generated archive:\n" <>
+               T.pack (intercalate ", " diffGoldenTest)
         , if null diffTestGolden
           then Nothing
           else Just $
-               "Files in generated archive but not in " ++ goldenFP ++ ":\n" ++
-               intercalate ", " diffTestGolden
+               "Files in generated archive but not in " <> T.pack goldenFP <>
+               ":\n" <> T.pack (intercalate ", " diffTestGolden)
         ]
   in
     if null $ catMaybes results
     then Nothing
-    else Just $ intercalate "\n" $ catMaybes results
+    else Just $ T.intercalate "\n" $ catMaybes results
 
-compareXMLFile' :: FilePath -> Archive -> Archive -> Either String ()
+compareXMLFile' :: FilePath -> Archive -> Archive -> Either Text ()
 compareXMLFile' fp goldenArch testArch = do
   testEntry <- case findEntryByPath fp testArch of
                  Just entry -> Right entry
                  Nothing -> Left $
-                   "Can't extract " ++ fp ++ " from generated archive"
+                   "Can't extract " <> T.pack fp <> " from generated archive"
   testXMLDoc <- case parseXMLDoc $ fromEntry testEntry of
                   Just doc -> Right doc
                   Nothing -> Left $
-                    "Can't parse xml in  " ++ fp ++ " from generated archive"
+                    "Can't parse xml in  " <> T.pack fp <>
+                    " from generated archive"
 
   goldenEntry <- case findEntryByPath fp goldenArch of
                  Just entry -> Right entry
                  Nothing -> Left $
-                   "Can't extract " ++ fp ++ " from archive in stored file"
+                   "Can't extract " <> T.pack fp <>
+                   " from archive in stored file"
   goldenXMLDoc <- case parseXMLDoc $ fromEntry goldenEntry of
                   Just doc -> Right doc
                   Nothing -> Left $
-                    "Can't parse xml in  " ++ fp ++ " from archive in stored file"
+                    "Can't parse xml in  " <> T.pack fp <>
+                    " from archive in stored file"
 
   let testContent = Elem testXMLDoc
       goldenContent = Elem goldenXMLDoc
 
   if compareXMLBool goldenContent testContent
     then Right ()
-    else Left $
-    "Non-matching xml in " ++ fp ++ ":\n" ++ displayDiff testContent goldenContent
+    else Left $ "Non-matching xml in " <> T.pack fp <> ":\n" <>
+                displayDiff testContent goldenContent
 
-compareXMLFile :: FilePath -> Archive -> Archive -> Maybe String
+compareXMLFile :: FilePath -> Archive -> Archive -> Maybe Text
 compareXMLFile fp goldenArch testArch =
   case compareXMLFile' fp goldenArch testArch of
     Right _ -> Nothing
     Left s -> Just s
 
-compareAllXMLFiles :: Archive -> Archive -> Maybe String
+compareAllXMLFiles :: Archive -> Archive -> Maybe Text
 compareAllXMLFiles goldenArch testArch =
   let allFiles = filesInArchive goldenArch `union` filesInArchive testArch
       allXMLFiles = sort $
@@ -130,29 +136,30 @@ compareAllXMLFiles goldenArch testArch =
     then Nothing
     else Just $ unlines results
 
-compareMediaFile' :: FilePath -> Archive -> Archive -> Either String ()
+compareMediaFile' :: FilePath -> Archive -> Archive -> Either Text ()
 compareMediaFile' fp goldenArch testArch = do
   testEntry <- case findEntryByPath fp testArch of
                  Just entry -> Right entry
                  Nothing -> Left $
-                   "Can't extract " ++ fp ++ " from generated archive"
+                   "Can't extract " <> T.pack fp <> " from generated archive"
   goldenEntry <- case findEntryByPath fp goldenArch of
                  Just entry -> Right entry
                  Nothing -> Left $
-                   "Can't extract " ++ fp ++ " from archive in stored file"
+                   "Can't extract " <> T.pack fp <>
+                   " from archive in stored file"
 
   if fromEntry testEntry == fromEntry goldenEntry
     then Right ()
     else Left $
-    "Non-matching binary file: " ++ fp
+    "Non-matching binary file: " <> T.pack fp
 
-compareMediaFile :: FilePath -> Archive -> Archive -> Maybe String
+compareMediaFile :: FilePath -> Archive -> Archive -> Maybe Text
 compareMediaFile fp goldenArch testArch =
   case compareMediaFile' fp goldenArch testArch of
     Right _ -> Nothing
     Left s -> Just s
 
-compareAllMediaFiles :: Archive -> Archive -> Maybe String
+compareAllMediaFiles :: Archive -> Archive -> Maybe Text
 compareAllMediaFiles goldenArch testArch =
   let allFiles = filesInArchive goldenArch `union` filesInArchive testArch
       mediaPattern = compile "*/media/*"
@@ -181,5 +188,5 @@ ooxmlTest writerFn testName opts nativeFP goldenFP =
                          , compareAllXMLFiles goldenArch testArch
                          , compareAllMediaFiles goldenArch testArch
                          ]
-     in return $ if null res then Nothing else Just $ unlines res)
+     in return $ if null res then Nothing else Just $ T.unpack $ unlines res)
   (\a -> BL.writeFile goldenFP $ fromArchive a)

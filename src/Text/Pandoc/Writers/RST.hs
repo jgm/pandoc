@@ -266,7 +266,7 @@ blockToRST (Header level (name,classes,_) inlines) = do
   isTopLevel <- gets stTopLevel
   if isTopLevel
     then do
-          let headerChar = if level > 5 then ' ' else "=-~^'" !! (level - 1)
+          let headerChar = fromMaybe ' ' $ "=-~^'" !!? (level - 1)
           let border = literal $ T.replicate (offset contents) $ T.singleton headerChar
           let anchor | T.null name || name == autoId = empty
                      | otherwise = ".. _" <> literal name <> ":" $$ blankline
@@ -335,7 +335,8 @@ blockToRST (OrderedList (start, style', delim) items) = do
                    then replicate (length items) "#."
                    else take (length items) $ orderedListMarkers
                                               (start, style', delim)
-  let maxMarkerLength = maximum $ map T.length markers
+  let maxMarkerLength =
+        fromMaybe 0 $ viaNonEmpty maximum1 $ map T.length markers
   let markers' = map (\m -> let s = maxMarkerLength - T.length m
                             in  m <> T.replicate s " ") markers
   contents <- zipWithM orderedListItemToRST markers' items
@@ -509,7 +510,7 @@ flatten outer
   | null contents = [outer]
   | otherwise     = combineAll contents
   where contents = dropInlineParent outer
-        combineAll = foldl combine []
+        combineAll = foldl' combine []
 
         combine :: [Inline] -> Inline -> [Inline]
         combine f i =
@@ -539,9 +540,12 @@ flatten outer
         appendToLast :: [Inline] -> [Inline] -> [Inline]
         appendToLast [] toAppend = [setInlineChildren outer toAppend]
         appendToLast flattened toAppend
-          | isOuter lastFlat = init flattened <> [appendTo lastFlat toAppend]
+          | Just lastFlat <- mblastFlat
+          , isOuter lastFlat =
+               fromMaybe [] (viaNonEmpty init flattened)
+                   <> [appendTo lastFlat toAppend]
           | otherwise =  flattened <> [setInlineChildren outer toAppend]
-          where lastFlat = last flattened
+          where mblastFlat = viaNonEmpty last flattened
                 appendTo o i = mapNested (<> i) o
                 isOuter i = emptyParent i == emptyParent outer
                 emptyParent i = setInlineChildren i []
@@ -761,8 +765,7 @@ simpleTable opts blocksToDoc headers rows = do
                    then return []
                    else fixEmpties <$> mapM (blocksToDoc opts) headers
   rowDocs <- mapM (fmap fixEmpties . mapM (blocksToDoc opts)) rows
-  let numChars [] = 0
-      numChars xs = maximum . map offset $ xs
+  let numChars = fromMaybe 0 . viaNonEmpty maximum1 . map offset
   let colWidths = map numChars $ transpose (headerDocs : rowDocs)
   let toRow = mconcat . intersperse (lblock 1 " ") . zipWith lblock colWidths
   let hline = nowrap $ hsep (map (\n -> literal (T.replicate n "=")) colWidths)

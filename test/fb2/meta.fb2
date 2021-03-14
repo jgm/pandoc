@@ -1,3 +1,2 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:l="http://www.w3.org/1999/xlink"><description><title-info><genre>unrecognised</genre><book-title>Book title</book-title><annotation><p>This is the abstract.</p><p>It consists of two paragraphs.</p></annotation></title-info><document-info><program-used>pandoc</program-used></document-info></description><body><title><p>Book title</p></title></body></FictionBook>
-

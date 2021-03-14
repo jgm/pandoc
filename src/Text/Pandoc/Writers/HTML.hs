@@ -375,12 +375,12 @@ prefixedId opts s =
     "" -> mempty
     _  -> A.id $ toValue $ writerIdentifierPrefix opts <> s
 
-toList :: PandocMonad m
-       => (Html -> Html)
-       -> WriterOptions
-       -> [Html]
-       -> StateT WriterState m Html
-toList listop opts items = do
+toList' :: PandocMonad m
+        => (Html -> Html)
+        -> WriterOptions
+        -> [Html]
+        -> StateT WriterState m Html
+toList' listop opts items = do
     slideVariant <- gets stSlideVariant
     return $
       if writerIncremental opts
@@ -391,15 +391,15 @@ toList listop opts items = do
 
 unordList :: PandocMonad m
           => WriterOptions -> [Html] -> StateT WriterState m Html
-unordList opts = toList H.ul opts . toListItems opts
+unordList opts = toList' H.ul opts . toListItems opts
 
 ordList :: PandocMonad m
         => WriterOptions -> [Html] -> StateT WriterState m Html
-ordList opts = toList H.ol opts . toListItems opts
+ordList opts = toList' H.ol opts . toListItems opts
 
 defList :: PandocMonad m
         => WriterOptions -> [Html] -> StateT WriterState m Html
-defList opts items = toList H.dl opts (items ++ [nl opts])
+defList opts items = toList' H.dl opts (items ++ [nl opts])
 
 isTaskListItem :: [Block] -> Bool
 isTaskListItem (Plain (Str "☐":Space:_):_) = True
@@ -544,7 +544,7 @@ tagWithAttributes opts html5 selfClosing tagname attr =
 
 addAttrs :: PandocMonad m
          => WriterOptions -> Attr -> Html -> StateT WriterState m Html
-addAttrs opts attr h = foldl (!) h <$> attrsToHtml opts attr
+addAttrs opts attr h = foldl' (!) h <$> attrsToHtml opts attr
 
 toAttrs :: PandocMonad m
         => [(Text, Text)] -> StateT WriterState m [Attribute]
@@ -926,7 +926,7 @@ blockToHtml opts (OrderedList (startnum, numstyle, _) lst) = do
                                    numstyle']
                    else [])
   l <- ordList opts contents
-  return $ foldl (!) l attribs
+  return $ foldl' (!) l attribs
 blockToHtml opts (DefinitionList lst) = do
   contents <- mapM (\(term, defs) ->
                   do term' <- liftM H.dt $ inlineListToHtml opts term
@@ -1075,7 +1075,8 @@ colSpecListToHtml opts colspecs = do
   let hasDefaultWidth (_, ColWidthDefault) = True
       hasDefaultWidth _                    = False
 
-  let percent w = show (truncate (100*w) :: Integer) <> "%"
+  let percent :: Double -> Text
+      percent w = show (truncate (100*w) :: Integer) <> "%"
 
   let col :: ColWidth -> Html
       col cw = do
@@ -1238,7 +1239,7 @@ inlineToHtml opts inline = do
                         in case spanLikeTag of
                             Just tag -> do
                               h <- inlineListToHtml opts ils
-                              addAttrs opts (id',tail classes',kvs') $ tag h
+                              addAttrs opts (id',drop 1 classes',kvs') $ tag h
                             Nothing -> do
                               h <- inlineListToHtml opts ils
                               addAttrs opts (id',classes',kvs') (H.span h)
@@ -1407,7 +1408,7 @@ inlineToHtml opts inline = do
                               Just "audio" -> mediaTag H5.audio "Audio"
                               Just _       -> (H5.embed, [])
                               _            -> imageTag
-                        return $ foldl (!) tag $ attributes ++ specAttrs
+                        return $ foldl' (!) tag $ attributes ++ specAttrs
                         -- note:  null title included, as in Markdown.pl
     (Note contents) -> do
                         notes <- gets stNotes
@@ -1455,10 +1456,9 @@ blockListToNote opts ref blocks = do
   let kvs = [("role","doc-backlink") | html5]
   let backlink = [Link ("",["footnote-back"],kvs)
                     [Str "↩"] ("#" <> "fnref" <> ref,"")]
-  let blocks'  = if null blocks
-                    then []
-                    else let lastBlock   = last blocks
-                             otherBlocks = init blocks
+  let blocks'  = fromMaybe [] $ flip viaNonEmpty blocks $ \bs ->
+                         let lastBlock   = last bs
+                             otherBlocks = init bs
                          in  case lastBlock of
                                   Para [Image _ _ (_,tit)]
                                       | "fig:" `T.isPrefixOf` tit

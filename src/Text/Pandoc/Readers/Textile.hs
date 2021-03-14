@@ -45,7 +45,7 @@ import Text.HTML.TagSoup (Tag (..), fromAttrib)
 import Text.HTML.TagSoup.Match
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class as P (PandocMonad (..))
 import Text.Pandoc.CSS
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
@@ -123,7 +123,7 @@ blockParsers = [ codeBlock
 block :: PandocMonad m => ParserT Text ParserState m Blocks
 block = do
   res <- choice blockParsers <?> "block"
-  trace (T.take 60 $ tshow $ B.toList res)
+  P.trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 commentBlock :: PandocMonad m => ParserT Text ParserState m Blocks
@@ -375,8 +375,9 @@ table = try $ do
                              (toprow:rest) | any (fst . fst) toprow ->
                                 (toprow, rest)
                              _ -> (mempty, rawrows)
-  let nbOfCols = maximum $ map length (headers:rows)
-  let aligns = map minimum $ transpose $ map (map (snd . fst)) (headers:rows)
+  let nbOfCols = maximum1 $ fmap length (headers :| rows)
+  let aligns = map (fromMaybe AlignDefault . viaNonEmpty minimum1)
+               $ transpose $ map (map (snd . fst)) (headers:rows)
   let toRow = Row nullAttr . map B.simpleCell
       toHeaderRow l = [toRow l | not (null l)]
   return $ B.table (B.simpleCaption $ B.plain caption)
@@ -627,7 +628,7 @@ code2 = do
 
 -- | Html / CSS attributes
 attributes :: PandocMonad m => ParserT Text ParserState m Attr
-attributes = foldl (flip ($)) ("",[],[]) <$>
+attributes = foldl' (flip ($)) ("",[],[]) <$>
   try (do special <- option id specialAttribute
           attrs <- many attribute
           return (special : attrs))

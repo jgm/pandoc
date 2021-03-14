@@ -17,7 +17,7 @@ import Control.Monad (liftM)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
-import Data.Text (unpack)
+import qualified Data.Text as T
 import System.IO.Unsafe (unsafePerformIO)
 import Test.Tasty
 import Tests.Helpers
@@ -54,9 +54,8 @@ testsComparingToNative      = map nameToTest namesOfTestsComparingToNative
 newtype NoNormPandoc = NoNormPandoc {unNoNorm :: Pandoc}
   deriving ( Show )
 
-instance ToString NoNormPandoc where
-  toString d = unpack $
-               purely (writeNative def{ writerTemplate = s }) $ toPandoc d
+instance ToText NoNormPandoc where
+  toText d = purely (writeNative def{ writerTemplate = s }) $ toPandoc d
    where s = case d of
                   NoNormPandoc (Pandoc (Meta m) _)
                     | M.null m  -> Nothing
@@ -66,7 +65,8 @@ instance ToPandoc NoNormPandoc where
   toPandoc = unNoNorm
 
 getNoNormVia :: (a -> Pandoc) -> String -> Either PandocError a -> NoNormPandoc
-getNoNormVia _ readerName (Left  _) = error (readerName ++ " reader failed")
+getNoNormVia _ readerName (Left  _) =
+  error $ T.pack (readerName ++ " reader failed")
 getNoNormVia f _          (Right a) = NoNormPandoc (f a)
 
 type TestCreator =  ReaderOptions

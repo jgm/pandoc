@@ -42,7 +42,6 @@ import qualified Data.Text.Encoding.Error as TE
 import qualified Data.Text.Encoding.Error as TSE
 import Network.URI (URI (..), parseURI)
 import System.Directory (doesDirectoryExist)
-import System.Exit (exitSuccess)
 import System.FilePath ( takeBaseName, takeExtension )
 import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
@@ -69,6 +68,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import System.Posix.IO (stdOutput)
 import System.Posix.Terminal (queryTerminal)
 #endif
+import Prelude hiding (Reader)
 
 convertWithOpts :: Opt -> IO ()
 convertWithOpts opts = do

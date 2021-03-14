@@ -26,7 +26,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import GHC.Generics (Generic)
 import Network.HTTP.Client (HttpException)
-import System.Exit (ExitCode (..), exitWith)
+import System.Exit (ExitCode (..))
 import System.IO (stderr)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Printf (printf)
@@ -34,6 +34,7 @@ import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
 import Text.Pandoc.Shared (tshow)
 import Citeproc (CiteprocError, prettyCiteprocError)
+import System.IO.Error (IOError, ioError)
 
 type Input = Text
 
@@ -87,9 +88,13 @@ renderError e =
             errColumn = sourceColumn errPos
             ls = T.lines input <> [""]
             errorInFile = if length ls > errLine - 1
-                            then T.concat ["\n", ls !! (errLine - 1)
-                                          ,"\n", T.replicate (errColumn - 1) " "
-                                          ,"^"]
+                            then
+                              case ls !!? (errLine - 1) of
+                                Nothing -> ""
+                                Just x  ->
+                                  T.concat ["\n", x, "\n",
+                                            T.replicate (errColumn - 1) " ",
+                                           "^"]
                         else ""
         in  "\nError at " <> tshow  err' <>
                      -- if error comes from a chunk or included file,

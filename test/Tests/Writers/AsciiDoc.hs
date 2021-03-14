@@ -11,9 +11,9 @@ import Text.Pandoc.Builder
 asciidoc :: (ToPandoc a) => a -> String
 asciidoc = unpack . purely (writeAsciiDoc def{ writerWrapText = WrapNone }) . toPandoc
 
-testAsciidoc :: (ToString a, ToPandoc a)
+testAsciidoc :: (ToText a, ToPandoc a)
              => String
-             -> (a, String)
+             -> (a, Text)
              -> TestTree
 testAsciidoc = test asciidoc
 

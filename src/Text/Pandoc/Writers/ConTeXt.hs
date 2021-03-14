@@ -228,8 +228,9 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
                         Period       -> "stopper=."
                         OneParen     -> "stopper=)"
                         TwoParens    -> "left=(,stopper=)"
-    let width = maximum $ map T.length $ take (length contents)
-                          (orderedListMarkers (start, style', delim))
+    let width = fromMaybe 0 $ viaNonEmpty maximum1
+                            $ map T.length $ take (length contents)
+                               (orderedListMarkers (start, style', delim))
     let width' = (toEnum width + 1) / 2
     let width'' = if width' > (1.5 :: Double)
                      then "width=" <> tshow width' <> "em"
@@ -239,7 +240,8 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
                     then ""
                     else "[" <> T.intercalate "," specs2Items <> "]"
     let style'' = '[': (case style' of
-                          DefaultStyle -> orderedListStyles !! level
+                          DefaultStyle -> fromMaybe 'n' $
+                                            orderedListStyles !!? level
                           Decimal      -> 'n'
                           Example      -> 'n'
                           LowerRoman   -> 'r'
@@ -280,20 +282,20 @@ tableToConTeXt Xtb heads rows =
     (if isEmpty heads
       then empty
       else "\\startxtablehead[head]" $$ heads $$ "\\stopxtablehead") $$
-    (if null rows
-      then empty
-      else "\\startxtablebody[body]" $$ vcat (init rows) $$ "\\stopxtablebody" $$
-           "\\startxtablefoot[foot]" $$ last rows $$ "\\stopxtablefoot") $$
+    fromMaybe empty
+      (flip viaNonEmpty rows $ \rs ->
+        "\\startxtablebody[body]" $$ vcat (init rs) $$ "\\stopxtablebody" $$
+        "\\startxtablefoot[foot]" $$ last rs $$ "\\stopxtablefoot") $$
     "\\stopxtable"
 tableToConTeXt Ntb heads rows =
   return $ "\\startTABLE" $$
     (if isEmpty heads
       then empty
       else "\\startTABLEhead" $$ heads $$ "\\stopTABLEhead") $$
-    (if null rows
-      then empty
-      else "\\startTABLEbody" $$ vcat (init rows) $$ "\\stopTABLEbody" $$
-           "\\startTABLEfoot" $$ last rows $$ "\\stopTABLEfoot") $$
+    fromMaybe empty
+      (flip viaNonEmpty rows $ \rs ->
+        "\\startTABLEbody" $$ vcat (init rs) $$ "\\stopTABLEbody" $$
+        "\\startTABLEfoot" $$ last rs $$ "\\stopTABLEfoot") $$
     "\\stopTABLE"
 
 tableRowToConTeXt :: PandocMonad m => Tabl -> [Alignment] -> [Double] -> [[Block]] -> WM m (Doc Text)
@@ -456,9 +458,9 @@ inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
       dims = if null dimList
                 then empty
                 else brackets $ mconcat (intersperse "," dimList)
-      clas = if null cls
-                then empty
-                else brackets $ literal $ toLabel $ head cls
+      clas = case cls of
+               []    -> empty
+               (x:_) -> brackets $ literal $ toLabel x
       -- Use / for path separators on Windows; see #4918
       fixPathSeparators = T.map $ \c -> case c of
                                           '\\' -> '/'

@@ -30,7 +30,7 @@ t2t = purely $ \s -> do
   readTxt2Tags def s
 
 infix 4 =:
-(=:) :: ToString c
+(=:) :: ToText c
      => String -> (Text, c) -> TestTree
 (=:) = test t2t
 

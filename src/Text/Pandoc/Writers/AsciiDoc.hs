@@ -274,7 +274,7 @@ blockToAsciiDoc opts block@(Table _ blkCapt specs thead tbody tfoot) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then writerColumns opts
                     else 100000
-  let maxwidth = maximum $ map offset (head':rows')
+  let maxwidth = maximum1 $ fmap offset (head' :| rows')
   let body = if maxwidth > colwidth then vsep rows' else vcat rows'
   let border = separator <> text "==="
   return $ 

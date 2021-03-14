@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
 {- |
    Module      : Text.Pandoc.MediaBag
    Copyright   : Copyright (C) 2014-2015, 2017-2021 John MacFarlane
@@ -29,6 +30,7 @@ import Data.Typeable (Typeable)
 import System.FilePath
 import qualified System.FilePath.Posix as Posix
 import Text.Pandoc.MIME (MimeType, getMimeTypeDef)
+import GHC.Show
 
 -- | A container for a collection of binary resources, with names and
 -- mime types.  Note that a 'MediaBag' is a Monoid, so 'mempty'
@@ -38,7 +40,7 @@ newtype MediaBag = MediaBag (M.Map [FilePath] (MimeType, BL.ByteString))
         deriving (Semigroup, Monoid, Data, Typeable)
 
 instance Show MediaBag where
-  show bag = "MediaBag " ++ show (mediaDirectory bag)
+  show bag = "MediaBag " ++ GHC.Show.show (mediaDirectory bag)
 
 -- | Delete a media item from a 'MediaBag', or do nothing if no item corresponds
 -- to the given path.

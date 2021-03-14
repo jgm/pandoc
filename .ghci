@@ -1,0 +1,4 @@
+:load prelude/Prelude.hs
+import Prelude
+:set -XImplicitPrelude
+:set -XOverloadedStrings

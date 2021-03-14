@@ -35,7 +35,7 @@ import qualified Data.Text.Lazy as TL
 import Network.HTTP (urlEncode)
 import System.FilePath (takeExtension, takeFileName, makeRelative)
 import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
-import Text.Pandoc.Builder (fromList, setMeta)
+import Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import qualified Text.Pandoc.Class.PandocPure as P
 import qualified Text.Pandoc.Class.PandocMonad as P
@@ -644,8 +644,8 @@ pandocToEPUB version opts doc = do
                      (Div (_,"section":_,kvs)
                        (Header _ _ xs : _) : _) ->
                        -- remove notes or we get doubled footnotes
-                       (Pandoc (setMeta "title"
-                           (walk removeNote $ fromList xs) nullMeta) bs,
+                       (Pandoc (B.setMeta "title"
+                           (walk removeNote $ B.fromList xs) nullMeta) bs,
                         case lookup "epub:type" kvs of
                              Nothing -> "bodymatter"
                              Just x
@@ -903,8 +903,8 @@ pandocToEPUB version opts doc = do
                                          ,("body-type",  toVal' "frontmatter")
                                          ])
                      <> cssvars False <> vars }
-            (Pandoc (setMeta "title"
-                     (walk removeNote $ fromList $ docTitle' meta) nullMeta)
+            (Pandoc (B.setMeta "title"
+                     (walk removeNote $ B.fromList $ docTitle' meta) nullMeta)
                (navBlocks ++ landmarks))
   navEntry <- mkEntry "nav.xhtml" navData
 

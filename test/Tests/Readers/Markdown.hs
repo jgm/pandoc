@@ -19,6 +19,7 @@ import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
+import qualified Relude.Unsafe as Unsafe
 
 markdown :: Text -> Pandoc
 markdown = purely $ readMarkdown def { readerExtensions =
@@ -37,7 +38,7 @@ markdownGH = purely $ readMarkdown def {
                 readerExtensions = githubMarkdownExtensions }
 
 infix 4 =:
-(=:) :: ToString c
+(=:) :: ToText c
      => String -> (Text, c) -> TestTree
 (=:) = test markdown
 
@@ -205,15 +206,15 @@ tests = [ testGroup "inline code"
              ]
           <> [ "lists with newlines and indent in backticks" =:
                T.intercalate ("\n" <> T.replicate 4 " ") (zipWith (\i (_, lt, _) -> lt <> i) lis lsts)
-               =?> let (_, _, f) = head lsts
-                   in f [plain $ code $ T.intercalate (T.replicate 5 " ") $ head lis' : zipWith (\i (_, lt, _) -> lt <> i) (tail lis') (tail lsts)]
+               =?> let (_, _, f) = Unsafe.head lsts
+                   in f [plain $ code $ T.intercalate (T.replicate 5 " ") $ Unsafe.head lis' : zipWith (\i (_, lt, _) -> lt <> i) (Unsafe.tail lis') (Unsafe.tail lsts)]
              | lsts <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
              ]
           <> [ "lists with blank lines and indent in backticks" =:
                T.intercalate ("\n\n" <> T.replicate 4 " ") (zipWith (\i (_, lt, _) -> lt <> i) lis lsts)
                <> "\n"
-               =?> let (_, _, f) = head lsts
-                   in f . pure $ (para . text $ head lis) <> bldLsts para (tail lsts) (tail lis)
+               =?> let (_, _, f) = Unsafe.head lsts
+                   in f . pure $ (para . text $ Unsafe.head lis) <> bldLsts para (Unsafe.tail lsts) (Unsafe.tail lis)
              | lsts <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
              ]
         , testGroup "emph and strong"

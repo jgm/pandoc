@@ -42,8 +42,7 @@ module Text.Pandoc.Writers.Powerpoint.Presentation ( documentToPresentation
                                                    ) where
 
 
-import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.State (liftM)
 import Data.List (intercalate)
 import Data.Default
 import Text.Pandoc.Definition
@@ -363,9 +362,7 @@ inlineToParElems (Note blks) = do
     then return []
     else do
     notes <- gets stNoteIds
-    let maxNoteId = case M.keys notes of
-          [] -> 0
-          lst -> maximum lst
+    let maxNoteId = fromMaybe 0 $ viaNonEmpty maximum1 $ M.keys notes
         curNoteId = maxNoteId + 1
     modify $ \st -> st { stNoteIds = M.insert curNoteId blks notes }
     local (\env -> env{envRunProps = (envRunProps env){rLink = Just $ InternalTarget endNotesSlideId}}) $

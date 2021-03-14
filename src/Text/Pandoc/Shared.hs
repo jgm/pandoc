@@ -164,13 +164,6 @@ splitTextByIndices ns = splitTextByRelIndices (zipWith (-) ns (0:ns))
     let (first, rest) = T.splitAt x t
      in first : splitTextByRelIndices xs rest
 
-ordNub :: (Ord a) => [a] -> [a]
-ordNub l = go Set.empty l
-  where
-    go _ [] = []
-    go s (x:xs) = if x `Set.member` s then go s xs
-                                      else x : go (Set.insert x s) xs
-
 findM :: forall m t a. (Monad m, Foldable t) => (a -> m Bool) -> t a -> m (Maybe a)
 findM p = foldr go (pure Nothing)
   where
@@ -183,26 +176,9 @@ findM p = foldr go (pure Nothing)
 -- Text processing
 --
 
-class ToString a where
-  toString :: a -> String
-
-instance ToString String where
-  toString = id
-
-instance ToString T.Text where
-  toString = T.unpack
-
-class ToText a where
-  toText :: a -> T.Text
-
-instance ToText String where
-  toText = T.pack
-
-instance ToText T.Text where
-  toText = id
-
+{-# DEPRECATED tshow "Use show instead" #-}
 tshow :: Show a => a -> T.Text
-tshow = T.pack . show
+tshow = show
 
 -- | Returns an association list of backslash escapes for the
 -- designated characters.
@@ -449,16 +425,17 @@ capitalize = walk go
 -- blocks besides possibly at the end), turn any @Plain@s into @Para@s (#5285).
 compactify :: [Blocks]  -- ^ List of list items (each a list of blocks)
            -> [Blocks]
-compactify [] = []
-compactify items =
-  let (others, final) = (init items, last items)
-  in  case reverse (B.toList final) of
-           (Para a:xs)
-             | null [Para x | Para x <- xs ++ concatMap B.toList others]
-             -> others ++ [B.fromList (reverse (Plain a : xs))]
-           _ | null [Para x | Para x <- concatMap B.toList items]
-             -> items
-           _ -> map (fmap plainToPara) items
+compactify items' =
+  fromMaybe [] $ viaNonEmpty
+    (\items ->
+       let (others, final) = (init items, last items)
+       in  case reverse (B.toList final) of
+                (Para a:xs)
+                  | null [Para x | Para x <- xs ++ concatMap B.toList others]
+                  -> others ++ [B.fromList (reverse (Plain a : xs))]
+                _ | null [Para x | Para x <- concatMap B.toList items']
+                  -> items'
+                _ -> map (fmap plainToPara) items') items'
 
 plainToPara :: Block -> Block
 plainToPara (Plain ils) = Para ils
@@ -546,7 +523,8 @@ makeSections numbering mbBaseLevel bs =
           if level' > 0
              then case length lastnum' of
                       x | "unnumbered" `elem` classes -> []
-                        | x >= level' -> init lastnum' ++ [last lastnum' + 1]
+                        | x >= level' -> take (x - 1) lastnum' ++
+                                          ((+ 1) <$> drop (x - 1) lastnum')
                         | otherwise -> lastnum ++
                              replicate (level' - length lastnum - 1) 0 ++ [1]
              else []
@@ -840,7 +818,7 @@ mapLeft = Bifunctor.first
 -- > collapseFilePath "parent/foo/.." ==  "parent"
 -- > collapseFilePath "/parent/foo/../../bar" ==  "/bar"
 collapseFilePath :: FilePath -> FilePath
-collapseFilePath = Posix.joinPath . reverse . foldl go [] . splitDirectories
+collapseFilePath = Posix.joinPath . reverse . foldl' go [] . splitDirectories
   where
     go rs "." = rs
     go r@(p:rs) ".." = case p of

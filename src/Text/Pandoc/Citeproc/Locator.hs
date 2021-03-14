@@ -139,7 +139,7 @@ pBalancedBraces braces p = try $ do
   where
       except = notFollowedBy pBraces >> p
       -- outer and inner
-      surround = foldl (\a (open, close) -> sur open close except <|> a)
+      surround = foldl' (\a (open, close) -> sur open close except <|> a)
                        except
                        braces
 

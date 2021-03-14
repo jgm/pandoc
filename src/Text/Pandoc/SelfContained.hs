@@ -33,7 +33,7 @@ import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Shared (isURI, renderTags', trim)
-import Text.Pandoc.UTF8 (toString, toText, fromText)
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Parsec (ParsecT, runParserT)
 import qualified Text.Parsec as P
 
@@ -43,8 +43,9 @@ isOk c = isAscii c && isAlphaNum c
 makeDataURI :: (MimeType, ByteString) -> T.Text
 makeDataURI (mime, raw) =
   if textual
-     then "data:" <> mime' <> "," <> T.pack (escapeURIString isOk (toString raw))
-     else "data:" <> mime' <> ";base64," <> toText (encode raw)
+     then "data:" <> mime' <> "," <>
+           T.pack (escapeURIString isOk (UTF8.toString raw))
+     else "data:" <> mime' <> ";base64," <> UTF8.toText (encode raw)
   where textual = "text/" `T.isPrefixOf` mime
         mime' = if textual && T.any (== ';') mime
                    then mime <> ";charset=utf-8"
@@ -92,7 +93,7 @@ convertTags (t@(TagOpen "script" as):TagClose "script":ts) =
                      not ("</script" `B.isInfixOf` bs) ->
                      return $
                        TagOpen "script" [("type", typeAttr)|not (T.null typeAttr)]
-                       : TagText (toText bs)
+                       : TagText (UTF8.toText bs)
                        : TagClose "script"
                        : rest
                   | otherwise ->
@@ -119,7 +120,7 @@ convertTags (t@(TagOpen "link" as):ts) =
                                  dropWhile (==TagClose "link") ts
                       return $
                        TagOpen "style" [("type", "text/css")] -- see #5725
-                       : TagText (toText bs)
+                       : TagText (UTF8.toText bs)
                        : TagClose "style"
                        : rest
                   | otherwise -> do
@@ -181,14 +182,15 @@ pCSSUrl d = P.try $ do
        Left b -> return b
        Right (mt,b) -> do
          let enc = makeDataURI (mt, b)
-         return $ fromText $ "url(" <> enc <> ")"
+         return $ UTF8.fromText $ "url(" <> enc <> ")"
 
 pQuoted :: PandocMonad m
         => ParsecT ByteString () m (T.Text, ByteString)
 pQuoted = P.try $ do
   quote <- P.oneOf "\"'"
   url <- T.pack <$> P.manyTill P.anyChar (P.char quote)
-  let fallback = fromText $ T.singleton quote <> trim url <> T.singleton quote
+  let fallback = UTF8.fromText $
+                  T.singleton quote <> trim url <> T.singleton quote
   return (url, fallback)
 
 pUrl :: PandocMonad m
@@ -200,8 +202,9 @@ pUrl = P.try $ do
   url <- T.pack <$> P.manyTill P.anyChar (maybe (P.lookAhead (P.char ')')) P.char quote)
   P.spaces
   P.char ')'
-  let fallback = fromText ("url(" <> maybe "" T.singleton quote <> trim url <>
-                            maybe "" T.singleton quote <> ")")
+  let fallback = UTF8.fromText
+                    ("url(" <> maybe "" T.singleton quote <> trim url <>
+                               maybe "" T.singleton quote <> ")")
   return (url, fallback)
 
 handleCSSUrl :: PandocMonad m
@@ -215,7 +218,8 @@ handleCSSUrl d (url, fallback) =
       u ->  do let url' = if isURI (T.pack u) then T.pack u else T.pack (d </> u)
                res <- lift $ getData "" url'
                case res of
-                    Left uri -> return $ Left (fromText $ "url(" <> uri <> ")")
+                    Left uri -> return $
+                                 Left (UTF8.fromText $ "url(" <> uri <> ")")
                     Right (mt', raw) -> do
                       -- note that the downloaded CSS may
                       -- itself contain url(...).

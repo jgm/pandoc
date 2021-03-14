@@ -15,7 +15,7 @@ module Text.Pandoc.Readers.Org.DocumentTree
   , unprunedHeadlineToBlocks
   ) where
 
-import Control.Arrow ((***), first)
+import Control.Arrow ((***))
 import Control.Monad (guard)
 import Data.List (intersperse)
 import Data.Maybe (mapMaybe)

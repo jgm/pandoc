@@ -50,9 +50,6 @@ nodename s = QName{ qName = name, qURI = Nothing, qPrefix = prefix }
                                        Nothing     -> (xs, Nothing)
                                        Just (_,zs) -> (zs, Just xs)
 
-toLazy :: B.ByteString -> BL.ByteString
-toLazy = BL.fromChunks . (:[])
-
 renderXml :: Element -> BL.ByteString
 renderXml elt = BL.fromStrict (UTF8.fromText (showTopElement elt))
 

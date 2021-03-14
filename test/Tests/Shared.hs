@@ -16,7 +16,7 @@ import System.FilePath.Posix (joinPath)
 import Test.Tasty
 import Test.Tasty.HUnit (assertBool, testCase, (@?=))
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.Shared (toLegacyTable)
 
@@ -58,7 +58,7 @@ testLegacyTable =
   , testCase "decomposes a table without head" $ gen2 @?= expect2
   ]
   where
-    pln = toList . plain . str
+    pln = B.toList . plain . str
     cl a h w = Cell ("", [], []) AlignDefault h w $ pln a
     rws = map $ Row nullAttr
     th = TableHead nullAttr . rws

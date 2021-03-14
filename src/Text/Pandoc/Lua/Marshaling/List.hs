@@ -20,8 +20,8 @@ import Data.Data (Data)
 import Foreign.Lua (Peekable, Pushable)
 import Text.Pandoc.Walk (Walkable (..))
 import Text.Pandoc.Lua.Util (defineHowTo, pushViaConstructor)
-
 import qualified Foreign.Lua as Lua
+import Prelude hiding (fromList)
 
 -- | List wrapper which is marshalled as @pandoc.List@.
 newtype List a = List { fromList :: [a] }

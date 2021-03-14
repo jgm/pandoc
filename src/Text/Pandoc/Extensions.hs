@@ -593,7 +593,7 @@ parseFormatSpec :: T.Text
 parseFormatSpec = parse formatSpec ""
   where formatSpec = do
           name <- formatName
-          (extsToEnable, extsToDisable) <- foldl (flip ($)) ([],[]) <$>
+          (extsToEnable, extsToDisable) <- foldl' (flip ($)) ([],[]) <$>
                                              many extMod
           return (T.pack name, reverse extsToEnable, reverse extsToDisable)
         formatName = many1 $ noneOf "-+"

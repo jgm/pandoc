@@ -88,15 +88,15 @@ addPrefix p (k:ks) = k {citationPrefix = p ++ citationPrefix k} : ks
 addPrefix _ _      = []
 
 addSuffix :: [Inline] -> [Citation] -> [Citation]
-addSuffix s ks@(_:_) =
-  let k = last ks
-  in  init ks ++ [k {citationSuffix = citationSuffix k ++ s}]
-addSuffix _ _ = []
+addSuffix s =
+  fromMaybe [] . viaNonEmpty
+    (\ks' -> let k = last ks'
+              in init ks' ++ [k {citationSuffix = citationSuffix k ++ s}])
 
 simpleCiteArgs :: forall m . PandocMonad m => LP m Inlines -> LP m [Citation]
 simpleCiteArgs inline = try $ do
-  first  <- optionMaybe $ toList <$> opt
-  second <- optionMaybe $ toList <$> opt
+  first  <- optionMaybe $ B.toList <$> opt
+  second <- optionMaybe $ B.toList <$> opt
   keys <- try $ bgroup *> manyTill citationLabel egroup
   let (pre, suf) = case (first  , second ) of
         (Just s , Nothing) -> (mempty, s )
@@ -140,8 +140,8 @@ cites inline mode multi = try $ do
   let paropt = parenWrapped inline
   cits <- if multi
              then do
-               multiprenote <- optionMaybe $ toList <$> paropt
-               multipostnote <- optionMaybe $ toList <$> paropt
+               multiprenote <- optionMaybe $ B.toList <$> paropt
+               multipostnote <- optionMaybe $ B.toList <$> paropt
                let (pre, suf) = case (multiprenote, multipostnote) of
                      (Just s , Nothing) -> (mempty, s)
                      (Nothing , Just t) -> (mempty, t)
@@ -149,10 +149,11 @@ cites inline mode multi = try $ do
                      _                  -> (mempty, mempty)
                tempCits <- many1 $ simpleCiteArgs inline
                case tempCits of
-                 (k:ks) -> case ks of
-                             (_:_) -> return $ (addMprenote pre k : init ks) ++
-                                                 [addMpostnote suf (last ks)]
-                             _ -> return [addMprenote pre (addMpostnote suf k)]
+                 (k:ks) ->
+                   return $ fromMaybe [addMprenote pre (addMpostnote suf k)]
+                          $ viaNonEmpty
+                            (\ks' -> addMprenote pre k : init ks' ++
+                                     [addMpostnote suf (last ks')]) ks
                  _ -> return [[]]
              else count 1 $ simpleCiteArgs inline
   let cs = concat cits
@@ -183,7 +184,7 @@ handleCitationPart :: Inlines -> [Citation]
 handleCitationPart ils =
   let isCite Cite{} = True
       isCite _      = False
-      (pref, rest) = break isCite (toList ils)
+      (pref, rest) = break isCite (B.toList ils)
   in case rest of
           (Cite cs _:suff) -> addPrefix pref $ addSuffix suff cs
           _                -> []

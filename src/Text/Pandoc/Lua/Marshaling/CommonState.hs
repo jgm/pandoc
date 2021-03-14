@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TypeApplications     #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.CommonState
    Copyright   : © 2012-2021 John MacFarlane
@@ -66,7 +67,7 @@ pairsCommonState st = do
         (key, pushValue):_ -> 2 <$ (Lua.push key *> pushValue st)
       Lua.TypeString -> do
         key <- Lua.peek idx
-        case tail $ dropWhile ((/= key) . fst) commonStateFields of
+        case drop 1 $ dropWhile ((/= key) . fst) commonStateFields of
           []                     -> 2 <$ (Lua.pushnil *> Lua.pushnil)
           (nextKey, pushValue):_ -> 2 <$ (Lua.push nextKey *> pushValue st)
       _ -> 2 <$ (Lua.pushnil *> Lua.pushnil)
@@ -81,7 +82,7 @@ commonStateFields =
   , ("source_url", Lua.push . Lua.Optional . stSourceURL)
   , ("user_data_dir", Lua.push . Lua.Optional . stUserDataDir)
   , ("trace", Lua.push . stTrace)
-  , ("verbosity", Lua.push . show . stVerbosity)
+  , ("verbosity", Lua.push . show @String . stVerbosity)
   ]
 
 -- | Name used by Lua for the @CommonState@ type.

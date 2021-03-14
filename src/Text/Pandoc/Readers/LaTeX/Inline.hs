@@ -25,7 +25,7 @@ where
 import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 import Text.Pandoc.Shared (toRomanNumeral, safeRead)
 import Text.Pandoc.Readers.LaTeX.Types (Tok (..), TokType (..))
 import Control.Applicative (optional, (<|>))
@@ -162,8 +162,8 @@ accentWith :: PandocMonad m
            => LP m Inlines -> Char -> Maybe Char -> LP m Inlines
 accentWith tok combiningAccent fallBack = try $ do
   ils <- tok
-  case toList ils of
-       (Str (T.uncons -> Just (x, xs)) : ys) -> return $ fromList $
+  case B.toList ils of
+       (Str (T.uncons -> Just (x, xs)) : ys) -> return $ B.fromList $
          -- try to normalize to the combined character:
          Str (Normalize.normalize Normalize.NFC
                (T.pack [x, combiningAccent]) <> xs) : ys

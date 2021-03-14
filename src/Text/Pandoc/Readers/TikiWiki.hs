@@ -24,8 +24,8 @@ import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.CommonState (CommonState (..))
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class (CommonState (..), PandocMonad (..))
+import Text.Pandoc.Class as P
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging (Verbosity (..))
 import Text.Pandoc.Options
@@ -87,7 +87,7 @@ block = do
          <|> para
   skipMany blankline
   when (verbosity >= INFO) $
-    trace (T.pack $ printf "line %d: %s" (sourceLine pos) (take 60 $ show $ B.toList res))
+    P.trace (T.pack $ printf "line %d: %s" (sourceLine pos) (take 60 $ show $ B.toList res))
   return res
 
 blockElements :: PandocMonad m => TikiWikiParser m B.Blocks
@@ -163,11 +163,12 @@ table = try $ do
   string "||"
   newline
   -- return $ B.simpleTable (headers rows) $ trace ("rows: " ++ (show rows)) rows
-  return $B.simpleTable (headers rows) rows
+  return $ B.simpleTable (headers rows) rows
   where
     -- The headers are as many empty strings as the number of columns
     -- in the first row
-    headers rows = map (B.plain . B.str) $replicate (length $ head rows) ""
+    headers rows@(firstRow:_) =
+      replicate (length firstRow) (B.plain $ B.str "")
 
 para :: PandocMonad m => TikiWikiParser m B.Blocks
 para =  fmap (result . mconcat) ( many1Till inline endOfParaElement)
@@ -232,35 +233,31 @@ mixedList = try $ do
 fixListNesting :: [B.Blocks] -> [B.Blocks]
 fixListNesting [] = []
 fixListNesting [first] = [recurseOnList first]
--- fixListNesting nestall | trace ("\n\nfixListNesting: " ++ (show nestall)) False = undefined
--- fixListNesting nestall@(first:second:rest) =
 fixListNesting (first:second:rest) =
-  let secondBlock = head $ B.toList second in
-    case secondBlock of
-      BulletList _ -> fixListNesting $ mappend (recurseOnList first) (recurseOnList second) : rest
-      OrderedList _ _ -> fixListNesting $ mappend (recurseOnList first) (recurseOnList second) : rest
-      _ -> recurseOnList first : fixListNesting (second:rest)
+  case B.toList second of
+    (BulletList{}:_) -> fixListNesting $
+      mappend (recurseOnList first) (recurseOnList second) : rest
+    (OrderedList{}:_) -> fixListNesting $
+      mappend (recurseOnList first) (recurseOnList second) : rest
+    _ -> recurseOnList first : fixListNesting (second:rest)
 
 -- This function walks the Block structure for fixListNesting,
 -- because it's a bit complicated, what with converting to and from
 -- lists and so on.
 recurseOnList :: B.Blocks -> B.Blocks
--- recurseOnList item | trace ("rOL: " ++ (show $ length $ B.toList item) ++ ", " ++ (show $ B.toList item)) False = undefined
 recurseOnList items
-  | length (B.toList items) == 1 =
-    let itemBlock = head $ B.toList items in
-      case itemBlock of
-        BulletList listItems -> B.bulletList $ fixListNesting $ map B.fromList listItems
-        OrderedList _ listItems -> B.orderedList $ fixListNesting $ map B.fromList listItems
-        _ -> items
-
+  = case B.toList items of
+      [BulletList listItems] ->
+        B.bulletList $ fixListNesting $ map B.fromList listItems
+      [OrderedList _ listItems] ->
+        B.orderedList $ fixListNesting $ map B.fromList listItems
+      _ -> items
   -- The otherwise works because we constructed the blocks, and we
   -- know for a fact that no mappends have been run on them; each
   -- Blocks consists of exactly one Block.
   --
   -- Anything that's not like that has already been processed by
   -- fixListNesting; don't bother to process it again.
-  | otherwise = items
 
 
 -- Turn the list if list items into a tree by breaking off the first

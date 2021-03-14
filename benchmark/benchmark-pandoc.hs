@@ -27,6 +27,7 @@ import Test.Tasty.Bench
 import qualified Data.ByteString.Lazy as BL
 import Data.Maybe (mapMaybe)
 import Data.List (sortOn)
+import Prelude hiding (Reader)
 
 readerBench :: Pandoc
             -> T.Text

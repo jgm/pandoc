@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Pandoc
    Copyright   : Copyright © 2017-2021 Albert Krewinkel
@@ -77,7 +78,7 @@ read content formatSpecOrNil = liftPandocLua $ do
        "Unknown reader: " <> f
     Left  (PandocUnsupportedExtensionError e f) -> Lua.raiseError $
        "Extension " <> e <> " not supported for " <> f
-    Left  e      -> Lua.raiseError $ show e
+    Left  e      -> Lua.raiseError $ show @String e
 
 -- | Pipes input through a command.
 pipe :: String           -- ^ path to executable

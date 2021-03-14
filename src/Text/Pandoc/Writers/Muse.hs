@@ -158,7 +158,8 @@ simpleTable caption headers rows = do
   caption' <- inlineListToMuse caption
   headers' <- mapM blockListToMuse headers
   rows' <- mapM (mapM blockListToMuse) rows
-  let widthsInChars = maximum . map offset <$> transpose (headers' : rows')
+  let widthsInChars = fromMaybe 0 . viaNonEmpty maximum1 . map offset
+                       <$> transpose (headers' : rows')
   let hpipeBlocks sep blocks = hcat $ intersperse sep' blocks
         where sep' = lblock (T.length sep) $ literal sep
   let makeRow sep = hpipeBlocks sep . zipWith lblock widthsInChars
@@ -238,8 +239,8 @@ blockToMuse (DefinitionList items) = do
           label' <- local (\env -> env { envOneLine = True, envAfterSpace = True }) $ inlineListToMuse' label
           let ind = offset' label' -- using Text.DocLayout.offset results in round trip failures
           hang ind (nowrap label') . vcat <$> mapM descriptionToMuse defs
-          where offset' d = maximum (0: map T.length
-                                         (T.lines $ render Nothing d))
+          where offset' d = maximum1
+                             (0 :| map T.length (T.lines $ render Nothing d))
         descriptionToMuse :: PandocMonad m
                           => [Block]
                           -> Muse m (Doc Text)
@@ -269,7 +270,8 @@ blockToMuse (Table _ blkCapt specs thead tbody tfoot) =
     (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
     blocksToDoc opts blocks =
       local (\env -> env { envOptions = opts }) $ blockListToMuse blocks
-    numcols = maximum (length aligns : length widths : map length (headers:rows))
+    numcols = maximum1
+               (length aligns :| length widths : map length (headers:rows))
     isSimple = onlySimpleTableCells (headers : rows) && all (== 0) widths
 blockToMuse (Div _ bs) = flatBlockListToMuse bs
 blockToMuse Null = return empty
@@ -711,7 +713,11 @@ inlineToMuse (Span (anchor,names,kvs) inlines) = do
                      then mempty
                      else literal ("#" <> anchor) <> space
   modify $ \st -> st { stUseTags = False }
-  return $ anchorDoc <> (if null inlines && not (T.null anchor)
-                         then mempty
-                         else (if null names then (if hasDir then contents' else "<class>" <> contents' <> "</class>")
-                               else "<class name=\"" <> literal (head names) <> "\">" <> contents' <> "</class>"))
+  return $ anchorDoc <>
+           (if null inlines && not (T.null anchor)
+               then mempty
+               else case names of
+                       [] | hasDir    -> contents'
+                          | otherwise -> "<class>" <> contents' <> "</class>"
+                       (n:_)          -> "<class name=\"" <> literal n <>
+                                           "\">" <> contents' <> "</class>")

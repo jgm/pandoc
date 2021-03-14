@@ -342,9 +342,9 @@ blockToICML opts style (Table _ blkCapt specs thead tbody tfoot) =
                      then "0"
                      else "1"
       nrRows = length rows
-      nrCols = if null rows
-                  then 0
-                  else length $ head rows
+      nrCols = case rows of
+                 []    -> 0
+                 (r:_) -> length r
       rowsToICML [] _ = return empty
       rowsToICML (col:rest) rowNr =
         liftM2 ($$) (colsToICML col aligns rowNr (0::Int)) $ rowsToICML rest (rowNr+1)
@@ -416,14 +416,15 @@ listItemToICML opts style isFirst attribs item =
                then firstListItemName:style
                else style
       stl' = makeNumbStart attribs ++ stl
-  in  if length item > 1
-         then do
-           let insertTab (Para lst) = blockToICML opts (subListParName:style) $ Para $ Str "\t":lst
+  in  case item of
+        (x:xs@(_:_)) -> do
+           let insertTab (Para lst) = blockToICML opts (subListParName:style)
+                                      $ Para $ Str "\t":lst
                insertTab block      = blockToICML opts style block
-           f <- blockToICML opts stl' $ head item
-           r <- mapM insertTab $ tail item
+           f <- blockToICML opts stl' x
+           r <- mapM insertTab xs
            return $ intersperseBrs (f : r)
-         else blocksToICML opts stl' item
+        _ -> blocksToICML opts stl' item
 
 definitionListItemToICML :: PandocMonad m => WriterOptions -> Style -> ([Inline],[[Block]]) -> WS m (Doc Text)
 definitionListItemToICML opts style (term,defs) = do
@@ -470,9 +471,9 @@ inlineToICML _ _ _ il@(RawInline f str)
 inlineToICML opts style ident (Link _ lst (url, title)) = do
   content <- inlinesToICML opts (linkName:style) ident lst
   state $ \st ->
-            let link_id = if null $ links st
-                            then 1::Int
-                            else 1 + fst (head $ links st)
+            let link_id = case links st of
+                            []    -> 1 :: Int
+                            (l:_) -> 1 + fst l
                 newst = st{ links = (link_id, url):links st }
                 cont  = inTags True "HyperlinkTextSource"
                          [("Self","htss-"<>tshow link_id), ("Name",title), ("Hidden","false")] content
@@ -531,11 +532,11 @@ parStyle opts style ident lst =
       attrs' =  if firstListItemName `elem` style
                    then let ats = attrs : [("NumberingContinue", "false")]
                             begins = filter (Text.isPrefixOf beginsWithName) style
-                        in  if null begins
-                               then ats
-                               else let i = fromMaybe "" $ Text.stripPrefix beginsWithName
-                                                         $ head begins
-                                    in  ("NumberingStartAt", i) : ats
+                        in  case begins of
+                              []    -> ats
+                              (b:_) -> let i = fromMaybe "" $
+                                            Text.stripPrefix beginsWithName b
+                                        in  ("NumberingStartAt", i) : ats
                    else [attrs]
   in  do
       content <- inlinesToICML opts [] ident lst
