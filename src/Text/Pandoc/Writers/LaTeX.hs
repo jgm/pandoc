@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -145,6 +146,11 @@ pandocToLaTeX options (Pandoc meta blocks) = do
 
   let dirs = query (extract "dir") blocks
 
+  let nociteIds = query (\case
+                           Cite cs _ -> map citationId cs
+                           _         -> [])
+                    $ lookupMetaInlines "nocite" meta
+
   let context  =  defField "toc" (writerTableOfContents options) $
                   defField "toc-depth" (tshow
                                         (writerTOCDepth options -
@@ -177,9 +183,11 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                       else id) $
                   (case writerCiteMethod options of
                          Natbib   -> defField "biblio-title" biblioTitle .
-                                     defField "natbib" True
+                                     defField "natbib" True .
+                                     defField "nocite-ids" nociteIds
                          Biblatex -> defField "biblio-title" biblioTitle .
-                                     defField "biblatex" True
+                                     defField "biblatex" True .
+                                     defField "nocite-ids" nociteIds
                          _        -> id) $
                   defField "colorlinks" (any hasStringValue
                            ["citecolor", "urlcolor", "linkcolor", "toccolor",
