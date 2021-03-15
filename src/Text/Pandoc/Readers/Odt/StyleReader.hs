@@ -44,7 +44,7 @@ import Control.Arrow
 
 import Data.Default
 import qualified Data.Foldable as F
-import Data.List (unfoldr)
+import Data.List (unfoldr, foldl')
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Text (Text)
@@ -120,7 +120,7 @@ fontPitchReader = executeInSub NsOffice "font-face-decls" (
                               &&&
                               lookupDefaultingAttr NsStyle "font-pitch"
                             ))
-                    >>?^ ( M.fromList . foldl accumLegalPitches [] )
+                    >>?^ ( M.fromList . foldl' accumLegalPitches [] )
                   ) `ifFailedDo` returnV (Right M.empty)
   where accumLegalPitches ls (Nothing,_) = ls
         accumLegalPitches ls (Just n,p)  = (n,p):ls

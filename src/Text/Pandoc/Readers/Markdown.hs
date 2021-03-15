@@ -21,7 +21,7 @@ module Text.Pandoc.Readers.Markdown (
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
-import Data.List (transpose, elemIndex, sortOn)
+import Data.List (transpose, elemIndex, sortOn, foldl')
 import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Set as Set
@@ -357,7 +357,7 @@ referenceKey = try $ do
   addKvs <- option [] $ guardEnabled Ext_mmd_link_attributes
                           >> many (try $ spnl >> keyValAttr)
   blanklines
-  let attr'  = extractIdClass $ foldl (\x f -> f x) attr addKvs
+  let attr'  = extractIdClass $ foldl' (\x f -> f x) attr addKvs
       target = (escapeURI $ trimr src, tit)
   st <- getState
   let oldkeys = stateKeys st
@@ -613,7 +613,7 @@ attributes = try $ do
   spnl
   attrs <- many (attribute <* spnl)
   char '}'
-  return $ foldl (\x f -> f x) nullAttr attrs
+  return $ foldl' (\x f -> f x) nullAttr attrs
 
 attribute :: PandocMonad m => MarkdownParser m (Attr -> Attr)
 attribute = identifierAttr <|> classAttr <|> keyValAttr <|> specialAttr

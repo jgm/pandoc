@@ -22,6 +22,7 @@ import Control.Monad.Catch (finally, try)
 import Data.Data (Data, DataType, dataTypeConstrs, dataTypeName, dataTypeOf,
                   showConstr, toConstr, tyconUQname)
 import Data.Foldable (foldrM)
+import Data.List (foldl')
 import Data.Map (Map)
 import Data.Maybe (fromMaybe)
 import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
@@ -204,7 +205,7 @@ walkMeta lf (Pandoc m bs) = do
 
 walkPandoc :: LuaFilter -> Pandoc -> Lua Pandoc
 walkPandoc (LuaFilter fnMap) =
-  case foldl mplus Nothing (map (`Map.lookup` fnMap) pandocFilterNames) of
+  case foldl' mplus Nothing (map (`Map.lookup` fnMap) pandocFilterNames) of
     Just fn -> \x -> runFilterFunction fn x *> singleElement x
     Nothing -> return
 

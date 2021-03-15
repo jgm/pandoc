@@ -38,7 +38,7 @@ module Text.Pandoc.Readers.Textile ( readTextile) where
 import Control.Monad (guard, liftM)
 import Control.Monad.Except (throwError)
 import Data.Char (digitToInt, isUpper)
-import Data.List (intersperse, transpose)
+import Data.List (intersperse, transpose, foldl')
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup (Tag (..), fromAttrib)
@@ -627,7 +627,7 @@ code2 = do
 
 -- | Html / CSS attributes
 attributes :: PandocMonad m => ParserT Text ParserState m Attr
-attributes = foldl (flip ($)) ("",[],[]) <$>
+attributes = foldl' (flip ($)) ("",[],[]) <$>
   try (do special <- option id specialAttribute
           attrs <- many attribute
           return (special : attrs))

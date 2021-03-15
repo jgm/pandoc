@@ -34,6 +34,7 @@ module Text.Pandoc.Extensions ( Extension(..)
 where
 import Data.Bits (clearBit, setBit, testBit, (.|.))
 import Data.Data (Data)
+import Data.List (foldl')
 import qualified Data.Text as T
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
@@ -593,7 +594,7 @@ parseFormatSpec :: T.Text
 parseFormatSpec = parse formatSpec ""
   where formatSpec = do
           name <- formatName
-          (extsToEnable, extsToDisable) <- foldl (flip ($)) ([],[]) <$>
+          (extsToEnable, extsToDisable) <- foldl' (flip ($)) ([],[]) <$>
                                              many extMod
           return (T.pack name, reverse extsToEnable, reverse extsToDisable)
         formatName = many1 $ noneOf "-+"

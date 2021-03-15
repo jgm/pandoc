@@ -16,7 +16,7 @@ reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 module Text.Pandoc.Writers.RST ( writeRST, flatten ) where
 import Control.Monad.State.Strict
 import Data.Char (isSpace)
-import Data.List (transpose, intersperse)
+import Data.List (transpose, intersperse, foldl')
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -509,7 +509,7 @@ flatten outer
   | null contents = [outer]
   | otherwise     = combineAll contents
   where contents = dropInlineParent outer
-        combineAll = foldl combine []
+        combineAll = foldl' combine []
 
         combine :: [Inline] -> Inline -> [Inline]
         combine f i =

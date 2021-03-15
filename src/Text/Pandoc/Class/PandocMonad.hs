@@ -59,6 +59,7 @@ import Control.Monad.Except (MonadError (catchError, throwError),
                              MonadTrans, lift, when)
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.Maybe (fromMaybe)
+import Data.List (foldl')
 import Data.Time (UTCTime)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds,
                              posixSecondsToUTCTime)
@@ -612,7 +613,7 @@ checkExistence fn = do
 -- | Canonicalizes a file path by removing redundant @.@ and @..@.
 makeCanonical :: FilePath -> FilePath
 makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
- where  transformPathParts = reverse . foldl go []
+ where  transformPathParts = reverse . foldl' go []
         go as     "."  = as
         go (_:as) ".." = as
         go as     x    = x : as

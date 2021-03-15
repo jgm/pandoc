@@ -7,6 +7,7 @@ where
 import Citeproc.Types
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.List (foldl')
 import Text.Parsec
 import Text.Pandoc.Definition
 import Text.Pandoc.Parsing (romanNumeral)
@@ -139,7 +140,7 @@ pBalancedBraces braces p = try $ do
   where
       except = notFollowedBy pBraces >> p
       -- outer and inner
-      surround = foldl (\a (open, close) -> sur open close except <|> a)
+      surround = foldl' (\a (open, close) -> sur open close except <|> a)
                        except
                        braces
 

@@ -109,7 +109,7 @@ import qualified Data.Bifunctor as Bifunctor
 import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
-import Data.List (find, intercalate, intersperse, sortOn)
+import Data.List (find, intercalate, intersperse, sortOn, foldl')
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Monoid (Any (..))
@@ -840,7 +840,7 @@ mapLeft = Bifunctor.first
 -- > collapseFilePath "parent/foo/.." ==  "parent"
 -- > collapseFilePath "/parent/foo/../../bar" ==  "/bar"
 collapseFilePath :: FilePath -> FilePath
-collapseFilePath = Posix.joinPath . reverse . foldl go [] . splitDirectories
+collapseFilePath = Posix.joinPath . reverse . foldl' go [] . splitDirectories
   where
     go rs "." = rs
     go r@(p:rs) ".." = case p of

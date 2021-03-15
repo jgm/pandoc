@@ -64,12 +64,12 @@ import qualified Data.Map             as M
 import           Data.Text (Text)
 import           Data.Default
 import           Data.Maybe
+import           Data.List (foldl')
 
 import qualified Text.Pandoc.XML.Light as XML
 
 import           Text.Pandoc.Readers.Odt.Arrows.State
 import           Text.Pandoc.Readers.Odt.Arrows.Utils
-
 import           Text.Pandoc.Readers.Odt.Generic.Namespaces
 import           Text.Pandoc.Readers.Odt.Generic.Utils
 import           Text.Pandoc.Readers.Odt.Generic.Fallible
@@ -293,7 +293,7 @@ readNSattributes         = fromState $ \state -> maybe (state, failEmpty     )
                          => XMLConverterState nsID extraState
                          -> Maybe (XMLConverterState nsID extraState)
     extractNSAttrs startState
-                         = foldl (\state d -> state >>= addNS d)
+                         = foldl' (\state d -> state >>= addNS d)
                                  (Just startState)
                                  nsAttribs
       where nsAttribs    = mapMaybe readNSattr (XML.elAttribs element)

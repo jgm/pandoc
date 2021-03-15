@@ -31,7 +31,7 @@ import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
 import Data.Bifunctor (second)
 import Data.Char (toLower)
-import Data.List (intercalate, sort)
+import Data.List (intercalate, sort, foldl')
 #ifdef _WINDOWS
 #if MIN_VERSION_base(4,12,0)
 import Data.List (isPrefixOf)
@@ -93,7 +93,7 @@ parseOptionsFromArgs options' defaults prg rawArgs = do
         ("Try " ++ prg ++ " --help for more information.")
 
   -- thread option data structure through all supplied option actions
-  opts <- foldl (>>=) (return defaults) actions
+  opts <- foldl' (>>=) (return defaults) actions
   let mbArgs = case args of
                  [] -> Nothing
                  xs -> Just xs

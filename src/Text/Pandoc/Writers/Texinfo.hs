@@ -15,7 +15,7 @@ module Text.Pandoc.Writers.Texinfo ( writeTexinfo ) where
 import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict
 import Data.Char (chr, ord)
-import Data.List (maximumBy, transpose)
+import Data.List (maximumBy, transpose, foldl')
 import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -271,7 +271,7 @@ tableAnyRowToTexinfo :: PandocMonad m
                      -> [[Block]]
                      -> TI m (Doc Text)
 tableAnyRowToTexinfo itemtype aligns cols =
-  (literal itemtype $$) . foldl (\row item -> row $$
+  (literal itemtype $$) . foldl' (\row item -> row $$
   (if isEmpty row then empty else text " @tab ") <> item) empty <$> zipWithM alignedBlock aligns cols
 
 alignedBlock :: PandocMonad m

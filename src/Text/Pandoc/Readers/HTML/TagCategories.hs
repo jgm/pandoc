@@ -23,6 +23,7 @@ where
 
 import Data.Set (Set, fromList, unions)
 import Data.Text (Text)
+import Data.List (foldl')
 
 eitherBlockOrInline :: Set Text
 eitherBlockOrInline = fromList
