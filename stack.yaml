@@ -10,7 +10,7 @@ extra-deps:
 - jira-wiki-markup-1.3.4
 - skylighting-core-0.10.4.1
 - skylighting-0.10.4.1
-- doclayout-0.3.0.1
+- doclayout-0.3.0.2
 - citeproc-0.3.0.9
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
