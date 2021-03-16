@@ -12,7 +12,7 @@ BASELINE=
 else
 BASELINE=--baseline $(LATESTBENCH)
 endif
-GHCOPTS=-fdiagnostics-color=always
+GHCOPTS=-fdiagnostics-color=always -j4 +RTS -A256m -RTS
 WEBSITE=../../web/pandoc.org
 REVISION?=1
 BENCHARGS?=--small --time-limit=2  --match=pattern $(PATTERN)
