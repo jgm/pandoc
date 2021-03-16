@@ -51,10 +51,17 @@ ghcid-test:
 	ghcid -c "stack repl --ghc-options=-XNoImplicitPrelude --flag 'pandoc:embed_data_files' --ghci-options=-fobject-code pandoc:lib pandoc:test-pandoc"
 
 bench:
-	stack bench --benchmark-arguments='$(BENCHARGS) $(BASELINE) --csv bench_$(TIMESTAMP).csv' --ghc-options '-Rghc-timing $(GHCOPTS)'
+	stack bench \
+	  --ghc-options '-Rghc-timing $(GHCOPTS)' \
+	  --benchmark-arguments='--small --time-limit=2 \
+	  --match=pattern $(PATTERN)' 2>&1 | \
+	  tee "bench_latest.txt"
+	perl -pe 's/\x1b\[[0-9;]*[mGK]//g;s/\r//;' bench_latest.txt > \
+	  "bench_$(TIMESTAMP).txt"
 
-weigh:
-	stack build --ghc-options '$(GHCOPTS)' pandoc:weigh-pandoc && stack exec weigh-pandoc
+
+# With tasty-bench, we used
+# --benchmark-arguments='$(BENCHARGS) $(BASELINE) --csv bench_$(TIMESTAMP).csv' --ghc-options '-Rghc-timing $(GHCOPTS)'
 
 reformat:
 	for f in $(SOURCEFILES); do echo $$f; stylish-haskell -i $$f ; done
