@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.LaTeX.Caption
    Copyright   : Copyright (C) 2006-2021 John MacFarlane

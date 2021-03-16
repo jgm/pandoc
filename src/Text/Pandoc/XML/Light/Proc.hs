@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.XML.Light.Proc
    Copyright   : Copyright (C) 2007 Galois, Inc., 2021 John MacFarlane
