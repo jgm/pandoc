@@ -56,10 +56,10 @@ readerBench doc name = either (const Nothing) Just $
 
 getImages :: IO [(FilePath, MimeType, BL.ByteString)]
 getImages = do
-  ll <- BL.readFile "test/lalune.jpg"
-  mv <- BL.readFile "test/movie.jpg"
-  return [("lalune.jpg", "image/jpg", ll)
-         ,("movie.jpg", "image/jpg", mv)]
+  ll <- B.readFile "test/lalune.jpg"
+  mv <- B.readFile "test/movie.jpg"
+  return [("lalune.jpg", "image/jpg", BL.fromStrict ll)
+         ,("movie.jpg", "image/jpg", BL.fromStrict mv)]
 
 writerBench :: [(FilePath, MimeType, BL.ByteString)]
             -> Pandoc
@@ -91,9 +91,9 @@ main = do
   inp <- UTF8.toText <$> B.readFile "test/testsuite.txt"
   let opts = def
   let doc = either (error . show) id $ runPure $ readMarkdown opts inp
-  imgs <- getImages
   defaultMain
-    [ bgroup "writers" $ mapMaybe (writerBench imgs doc . fst)
+    [ env getImages $ \imgs ->
+      bgroup "writers" $ mapMaybe (writerBench imgs doc . fst)
                          (sortOn fst
                            writers :: [(T.Text, Writer PandocPure)])
     , bgroup "readers" $ mapMaybe (readerBench doc . fst)
