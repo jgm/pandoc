@@ -257,4 +257,4 @@ jobs:
           cabal $v2-build --enable-optimization=1 --enable-benchmarks --disable-tests 2>&1 | tee build.log
           # fail if warnings in local build
           ! grep -q ": *[Ww]arning:" build.log || exit 1
-          cabal $v2-bench --enable-optimization=1 --benchmark-options='--timeout=6 +RTS -T -RTS'
+          cabal $v2-bench --enable-optimization=1 --benchmark-options='--small'
