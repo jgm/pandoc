@@ -39,16 +39,10 @@
     name: "Redundant return"
     within: Text.Pandoc.Citeproc.BibTeX
 
-# TODO: check
+# With recent hlint this rule has given false positives on TH
 - ignore:
     name: "Redundant bracket"
-    within:
-      - Text.Pandoc.Citeproc
-      - Text.Pandoc.Citeproc.BibTeX
-      - Text.Pandoc.Citeproc.MetaValue
-      - Text.Pandoc.Options
-      - Text.Pandoc.App.Opt
-      - Text.Pandoc.Extensions
+
 
 - ignore:
     name: "Use <$>"
