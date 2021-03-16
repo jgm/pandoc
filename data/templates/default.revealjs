@@ -69,7 +69,7 @@ $body$
 
   <script src="$revealjs-url$/dist/reveal.js"></script>
 
-  // reveal.js plugins
+  <!-- reveal.js plugins -->
   <script src="$revealjs-url$/plugin/notes/notes.js"></script>
   <script src="$revealjs-url$/plugin/search/search.js"></script>
   <script src="$revealjs-url$/plugin/zoom/zoom.js"></script>
