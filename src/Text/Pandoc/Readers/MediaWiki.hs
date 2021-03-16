@@ -22,7 +22,6 @@ import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isSpace)
 import qualified Data.Foldable as F
 import Data.List (intersperse)
-import Data.Maybe (fromMaybe, maybeToList)
 import Data.Sequence (ViewL (..), viewl, (<|))
 import qualified Data.Set as Set
 import Data.Text (Text)

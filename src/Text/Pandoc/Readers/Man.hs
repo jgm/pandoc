@@ -19,7 +19,6 @@ import Data.Default (Default)
 import Control.Monad (liftM, mzero, guard, void)
 import Control.Monad.Trans (lift)
 import Control.Monad.Except (throwError)
-import Data.Maybe (catMaybes, isJust)
 import Data.List (intersperse, intercalate)
 import qualified Data.Text as T
 import Text.Pandoc.Builder as B

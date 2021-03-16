@@ -67,7 +67,6 @@ import Data.List (delete, intersect)
 import Data.Char (isSpace)
 import qualified Data.Map as M
 import qualified Data.Text as T
-import Data.Maybe (isJust, fromMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set

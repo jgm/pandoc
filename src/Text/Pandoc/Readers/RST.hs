@@ -21,7 +21,6 @@ import Control.Monad.Identity (Identity (..))
 import Data.Char (isHexDigit, isSpace, toUpper, isAlphaNum)
 import Data.List (deleteFirstsBy, elemIndex, nub, sort, transpose)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, maybeToList, isJust)
 import Data.Sequence (ViewR (..), viewr)
 import Data.Text (Text)
 import qualified Data.Text as T

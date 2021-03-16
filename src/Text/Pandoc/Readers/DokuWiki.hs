@@ -20,7 +20,6 @@ import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isDigit)
 import qualified Data.Foldable as F
 import Data.List (transpose)
-import Data.Maybe (fromMaybe, catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B

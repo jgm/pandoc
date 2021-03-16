@@ -25,7 +25,6 @@ import Control.Monad.State.Strict
 import Data.Default
 import Data.List (intersperse, sortOn, transpose)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T

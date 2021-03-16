@@ -38,7 +38,6 @@ import Text.Pandoc.Parsing (getOption, updateState, getState, notFollowedBy,
                             option, many1, try)
 import Data.Char (isDigit)
 import Text.Pandoc.Highlighting (fromListingsLanguage,)
-import Data.Maybe (maybeToList, fromMaybe)
 import Text.Pandoc.Options (ReaderOptions(..))
 import qualified Data.Text.Normalize as Normalize
 import qualified Text.Pandoc.Translations as Translations

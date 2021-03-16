@@ -63,7 +63,6 @@ import           Data.Either ( rights )
 import qualified Data.Map             as M
 import           Data.Text (Text)
 import           Data.Default
-import           Data.Maybe
 import           Data.List (foldl')
 
 import qualified Text.Pandoc.XML.Light as XML

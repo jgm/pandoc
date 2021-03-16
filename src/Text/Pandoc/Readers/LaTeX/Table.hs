@@ -11,7 +11,6 @@ import Text.Pandoc.Readers.LaTeX.Types
 import Text.Pandoc.Builder as B
 import qualified Data.Map as M
 import Data.Text (Text)
-import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Control.Applicative ((<|>), optional, many)
 import Control.Monad (when, void)

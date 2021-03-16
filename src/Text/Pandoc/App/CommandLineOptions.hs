@@ -37,7 +37,6 @@ import Data.List (intercalate, sort, foldl')
 import Data.List (isPrefixOf)
 #endif
 #endif
-import Data.Maybe (fromMaybe, isJust)
 import Data.Text (Text)
 import Safe (tailDef)
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)

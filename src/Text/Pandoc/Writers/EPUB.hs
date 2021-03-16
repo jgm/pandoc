@@ -27,7 +27,6 @@ import qualified Data.ByteString.Lazy.Char8 as B8
 import Data.Char (isAlphaNum, isAscii, isDigit)
 import Data.List (isInfixOf, isPrefixOf)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isNothing, mapMaybe, isJust)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)

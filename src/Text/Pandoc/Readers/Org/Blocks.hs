@@ -37,7 +37,6 @@ import Data.Char (isSpace)
 import Data.Default (Default)
 import Data.Functor (($>))
 import Data.List (foldl', intersperse)
-import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
 
 import qualified Data.Text as T

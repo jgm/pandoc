@@ -58,7 +58,6 @@ import Codec.Archive.Zip
 import Control.Monad.Except (MonadError (catchError, throwError),
                              MonadTrans, lift, when)
 import Data.Digest.Pure.SHA (sha1, showDigest)
-import Data.Maybe (fromMaybe)
 import Data.List (foldl')
 import Data.Time (UTCTime)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds,

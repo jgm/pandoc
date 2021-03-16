@@ -20,7 +20,6 @@ import Data.Char (chr)
 import Data.Foldable (find)
 import Data.List (sortOn, sortBy, foldl')
 import qualified Data.Map as Map
-import Data.Maybe (fromMaybe, isNothing)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)

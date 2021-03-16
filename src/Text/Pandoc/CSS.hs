@@ -18,7 +18,6 @@ module Text.Pandoc.CSS
   )
 where
 
-import Data.Maybe (mapMaybe, listToMaybe)
 import Data.Text (Text, pack)
 import Text.Pandoc.Shared (trim)
 import Text.Parsec

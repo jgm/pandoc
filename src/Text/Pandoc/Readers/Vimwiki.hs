@@ -51,7 +51,6 @@ import Control.Monad (guard)
 import Control.Monad.Except (throwError)
 import Data.Default
 import Data.List (isInfixOf)
-import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, toList, trimInlines)

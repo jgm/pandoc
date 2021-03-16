@@ -24,7 +24,6 @@ import Data.Data (Data, DataType, dataTypeConstrs, dataTypeName, dataTypeOf,
 import Data.Foldable (foldrM)
 import Data.List (foldl')
 import Data.Map (Map)
-import Data.Maybe (fromMaybe)
 import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError)

@@ -35,7 +35,6 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            ) where
 import Control.Applicative ((<|>))
 import Data.Char (toLower)
-import Data.Maybe (fromMaybe)
 import Data.Data (Data)
 import Data.Default
 import Data.Text (Text)

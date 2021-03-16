@@ -20,7 +20,6 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import qualified Data.Foldable as F
 import Data.List (dropWhileEnd)
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
@@ -339,7 +338,7 @@ listItemLine nest = lineContent >>= parseContent
     lineContent = do
       content <- anyLine
       continuation <- optionMaybe listContinuation
-      return $ filterSpaces content <> "\n" <> Data.Maybe.fromMaybe "" continuation
+      return $ filterSpaces content <> "\n" <> fromMaybe "" continuation
     filterSpaces = T.dropWhileEnd (== ' ')
     listContinuation = string (replicate nest '+') >> lineContent
     parseContent x = do

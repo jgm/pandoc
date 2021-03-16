@@ -29,7 +29,6 @@ import Control.Monad.Except (throwError)
 import Text.Pandoc.Error
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import Data.Text (Text)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)

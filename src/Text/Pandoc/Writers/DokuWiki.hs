@@ -39,7 +39,6 @@ import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, isURI, linesToPara,
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocLayout (render, literal)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
-import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 
 data WriterState = WriterState {

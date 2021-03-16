@@ -27,7 +27,6 @@ import Control.Monad.Except (throwError)
 import Control.Monad.Trans
 import Data.Char (toLower)
 import Data.List (find)
-import Data.Maybe (fromMaybe)
 import Skylighting (defaultSyntaxMap)
 import Skylighting.Parser (addSyntaxDefinition, parseSyntaxDefinition)
 import System.Directory (getCurrentDirectory)

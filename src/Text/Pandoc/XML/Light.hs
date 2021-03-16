@@ -44,7 +44,6 @@ import Text.XML.Unresolved (InvalidEventStream(..))
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe)
 import Text.Pandoc.XML.Light.Types
 import Text.Pandoc.XML.Light.Proc
 import Text.Pandoc.XML.Light.Output

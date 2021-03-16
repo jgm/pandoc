@@ -33,7 +33,6 @@ import Data.Default (Default (..), def)
 import Data.Foldable (for_)
 import Data.List.Split (splitWhen)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Monoid (First (..))
 import qualified Data.Set as Set
 import Data.Text (Text)

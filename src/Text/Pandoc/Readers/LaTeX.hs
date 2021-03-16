@@ -29,7 +29,6 @@ import Data.Char (isDigit, isLetter, toUpper, chr)
 import Data.Default
 import Data.List (intercalate)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -245,7 +244,7 @@ doxspace =
 
 removeDoubleQuotes :: Text -> Text
 removeDoubleQuotes t =
-  Data.Maybe.fromMaybe t $ T.stripPrefix "\"" t >>= T.stripSuffix "\""
+  fromMaybe t $ T.stripPrefix "\"" t >>= T.stripSuffix "\""
 
 doubleQuote :: PandocMonad m => LP m Inlines
 doubleQuote =

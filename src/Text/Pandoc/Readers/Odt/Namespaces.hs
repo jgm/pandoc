@@ -15,7 +15,6 @@ module Text.Pandoc.Readers.Odt.Namespaces ( Namespace (..)
                                           ) where
 
 import qualified Data.Map as M (empty, insert)
-import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Readers.Odt.Generic.Namespaces

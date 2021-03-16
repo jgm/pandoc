@@ -18,7 +18,6 @@ import Data.Either (rights)
 import Data.Foldable (asum)
 import Data.Generics
 import Data.List (intersperse,elemIndex)
-import Data.Maybe (fromMaybe,mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL

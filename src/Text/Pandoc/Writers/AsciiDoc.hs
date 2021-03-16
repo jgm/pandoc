@@ -22,7 +22,6 @@ module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc, writeAsciiDoctor) where
 import Control.Monad.State.Strict
 import Data.Char (isPunctuation, isSpace)
 import Data.List (intercalate, intersperse)
-import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)

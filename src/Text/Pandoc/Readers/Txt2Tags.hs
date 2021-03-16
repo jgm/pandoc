@@ -19,7 +19,6 @@ import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Reader (Reader, asks, runReader)
 import Data.Default
 import Data.List (intercalate, transpose)
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Format (formatTime)

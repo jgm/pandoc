@@ -22,7 +22,6 @@ import Data.Default (Default (..))
 import Data.List (transpose)
 import qualified Data.Map as Map
 import Text.DocLayout (render, literal)
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)

@@ -20,7 +20,6 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Map as M
-import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.YAML as YAML

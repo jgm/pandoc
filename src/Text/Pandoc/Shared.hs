@@ -111,7 +111,6 @@ import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
 import Data.List (find, intercalate, intersperse, sortOn, foldl')
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Monoid (Any (..))
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
 import qualified Data.Set as Set

@@ -20,7 +20,6 @@ module Text.Pandoc.Writers.ICML (writeICML) where
 import Control.Monad.Except (catchError)
 import Control.Monad.State.Strict
 import Data.List (intersperse)
-import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Text (Text)

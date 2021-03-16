@@ -17,7 +17,6 @@ module Text.Pandoc.Writers.RST ( writeRST, flatten ) where
 import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.List (transpose, intersperse, foldl')
-import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Data.Text (Text)
 import qualified Text.Pandoc.Builder as B

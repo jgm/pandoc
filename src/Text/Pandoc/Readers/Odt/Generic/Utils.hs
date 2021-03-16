@@ -30,7 +30,6 @@ import Control.Category (Category, (<<<), (>>>))
 import qualified Control.Category as Cat (id)
 import Data.Char (isSpace)
 import qualified Data.Foldable as F (Foldable, foldr)
-import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 

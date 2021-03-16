@@ -40,7 +40,6 @@ import Data.Default
 import           Data.Text              (Text)
 import qualified Data.Text              as T
 import qualified Data.Map               as Map
-import           Data.Maybe
 import           Text.Pandoc.Parsing hiding ((<|>), many)
 import           Control.Applicative
 import           Data.List.Split        (splitOn, splitWhen, wordsBy)

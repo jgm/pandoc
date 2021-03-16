@@ -35,7 +35,6 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 ) where
 import Control.Monad
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Skylighting
 import Text.Pandoc.Definition

@@ -16,7 +16,6 @@ Conversion of 'Pandoc' documents to roff man page format.
 module Text.Pandoc.Writers.Man ( writeMan ) where
 import Control.Monad.State.Strict
 import Data.List (intersperse)
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Builder (deleteMeta)

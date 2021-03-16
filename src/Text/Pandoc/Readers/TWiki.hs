@@ -18,7 +18,6 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum)
 import qualified Data.Foldable as F
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup

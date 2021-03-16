@@ -41,7 +41,6 @@ import Data.Char (isPunctuation, isUpper)
 import Data.Default (Default(def))
 import qualified Data.Foldable as Foldable
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Ord ()
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set

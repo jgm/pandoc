@@ -12,7 +12,6 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.IO as T
 import Data.List (isSuffixOf, sort, (\\), intercalate, union)
-import Data.Maybe (catMaybes, mapMaybe)
 import Tests.Helpers
 import Data.Algorithm.Diff
 import System.FilePath.Glob (compile, match)

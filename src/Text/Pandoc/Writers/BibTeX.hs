@@ -20,7 +20,6 @@ where
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Data.Text (Text)
-import Data.Maybe (mapMaybe)
 import Citeproc (parseLang)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Citeproc.BibTeX as BibTeX

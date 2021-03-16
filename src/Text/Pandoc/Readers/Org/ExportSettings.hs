@@ -19,7 +19,6 @@ import Text.Pandoc.Readers.Org.Parsing
 
 import Control.Monad (mzero, void)
 import Data.Char (toLower)
-import Data.Maybe (listToMaybe)
 import Data.Text (Text, unpack)
 
 -- | Read and handle space separated org-mode export settings.

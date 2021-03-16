@@ -32,7 +32,6 @@ import Data.Foldable (fold)
 import Data.List (find)
 import qualified Data.Map as M
 import qualified Data.Text as T
-import Data.Maybe
 import Data.Semigroup (First(..), Option(..))
 
 import Text.TeXMath (readMathML, writeTeX)

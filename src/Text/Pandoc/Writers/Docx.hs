@@ -28,7 +28,6 @@ import Data.Char (isSpace, isLetter)
 import Data.List (intercalate, isPrefixOf, isSuffixOf)
 import Data.String (fromString)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isNothing, mapMaybe, maybeToList)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)

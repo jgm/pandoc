@@ -20,7 +20,6 @@ module Text.Pandoc.MIME (
 import Data.List (isPrefixOf, isSuffixOf)
 import qualified Data.Map as M
 import qualified Data.Text as T
-import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Tuple (swap)
 import System.FilePath
 

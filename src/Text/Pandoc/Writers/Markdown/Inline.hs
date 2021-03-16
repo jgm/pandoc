@@ -18,7 +18,6 @@ import Control.Monad.State.Strict
 import Data.Char (isAlphaNum, isDigit)
 import Data.List (find, intersperse)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.HTTP (urlEncode)

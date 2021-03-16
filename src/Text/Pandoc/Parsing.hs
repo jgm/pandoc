@@ -196,7 +196,6 @@ import Data.Default
 import Data.Functor (($>))
 import Data.List (intercalate, transpose)
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, fromMaybe)
 import qualified Data.Set as Set
 import Data.String
 import Data.Text (Text)

@@ -26,7 +26,6 @@ import qualified Data.ByteString.Lazy as BL (ByteString)
 import qualified Data.Text as T
 import Data.Text (Text)
 import qualified Data.Map as M (Map, elems, fromList, lookup)
-import Data.Maybe (mapMaybe)
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Network.URI (unEscapeString)

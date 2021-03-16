@@ -11,7 +11,6 @@ module Text.Pandoc.Readers.LaTeX.Math
   , proof
   )
 where
-import Data.Maybe (fromMaybe)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Builder as B
 import qualified Data.Sequence as Seq
