@@ -26,9 +26,9 @@ ghc --version
 
 cabal v2-update
 cabal v2-clean
-cabal v2-configure --enable-tests -f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-split-sections -optc-Os -optl=-pthread' pandoc
+cabal v2-configure --enable-tests -f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' pandoc
 cabal v2-build
-cabal v2-test -j1
+cabal v2-test -j4
 for f in $(find dist-newstyle -name 'pandoc' -type f -perm /400); do cp $f /artifacts/; done
 
 # make deb
