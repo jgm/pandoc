@@ -244,9 +244,16 @@ Or with stack:
 
     stack test --test-arguments='-p markdown'
 
-It is often helpful to add `-j4` (run tests in parallel)
-and `--hide-successes` (don't clutter output with successes)
-to the test arguments as well.
+It is often helpful to add `-j4` (run tests in parallel) and
+`--hide-successes` (don't clutter output with successes) to the test
+arguments as well. Collecting all options in a `cabal.project.local`
+file in the project's root directory can help to keep `cabal`
+commands short. E.g.:
+
+    flags: +embed_data_files
+    tests: True
+    test-show-details: direct
+    test-options: -j4 --hide-successes
 
 If you add a new feature to pandoc, please add tests as well, following
 the pattern of the existing tests. The test suite code is in
