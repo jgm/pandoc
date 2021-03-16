@@ -18,7 +18,6 @@ module Text.Pandoc.Readers.Markdown (
   yamlToMeta,
   yamlToRefs ) where
 
-import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
 import Data.List (transpose, elemIndex, sortOn, foldl')
@@ -199,7 +198,7 @@ inlinesInBalancedBrackets =
                 rawLaTeXInline') >> go openBrackets)
           <|>
           (do char ']'
-              Control.Monad.when (openBrackets > 1) $ go (openBrackets - 1))
+              when (openBrackets > 1) $ go (openBrackets - 1))
           <|>
           (char '[' >> go (openBrackets + 1))
           <|>
@@ -820,7 +819,7 @@ orderedListStart mbstydelim = try $ do
        return (num, style, delim))
 
 listStart :: PandocMonad m => MarkdownParser m ()
-listStart = bulletListStart <|> Control.Monad.void (orderedListStart Nothing)
+listStart = bulletListStart <|> void (orderedListStart Nothing)
 
 listLine :: PandocMonad m => Int -> MarkdownParser m Text
 listLine continuationIndent = try $ do
@@ -996,7 +995,7 @@ defRawBlock compact = try $ do
 definitionList :: PandocMonad m => MarkdownParser m (F Blocks)
 definitionList = try $ do
   lookAhead (anyLine >>
-             optional (blankline >> notFollowedBy (Control.Monad.void table)) >>
+             optional (blankline >> notFollowedBy (void table)) >>
              -- don't capture table caption as def list!
              defListMarker)
   compactDefinitionList <|> normalDefinitionList

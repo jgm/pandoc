@@ -12,7 +12,6 @@ module Text.Pandoc.Lua.Packages
   ( installPandocPackageSearcher
   ) where
 
-import Control.Monad (forM_)
 import Foreign.Lua (NumResults)
 import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua, loadDefaultModule)
 

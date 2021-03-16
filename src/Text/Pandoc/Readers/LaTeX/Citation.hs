@@ -12,7 +12,6 @@ import Text.Pandoc.Builder as B
 import qualified Data.Map as M
 import Data.Text (Text)
 import Control.Applicative ((<|>), optional, many)
-import Control.Monad (mzero)
 import Control.Monad.Trans (lift)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Error (PandocError(PandocParsecError))

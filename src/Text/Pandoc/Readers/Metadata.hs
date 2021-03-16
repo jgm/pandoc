@@ -16,7 +16,6 @@ module Text.Pandoc.Readers.Metadata (
   yamlBsToRefs,
   yamlMap ) where
 
-import Control.Monad
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Map as M

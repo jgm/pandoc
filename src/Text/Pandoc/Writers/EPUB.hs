@@ -18,7 +18,6 @@ module Text.Pandoc.Writers.EPUB ( writeEPUB2, writeEPUB3 ) where
 import Codec.Archive.Zip (Entry, addEntryToArchive, eRelativePath, emptyArchive,
                           fromArchive, fromEntry, toEntry)
 import Control.Applicative ( (<|>) )
-import Control.Monad (mplus, unless, when, zipWithM)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict (StateT, evalState, evalStateT, get,
                                    gets, lift, modify)

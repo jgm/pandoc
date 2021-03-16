@@ -18,7 +18,6 @@ TODO:
 -}
 module Text.Pandoc.Readers.Muse (readMuse) where
 
-import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.Except (throwError)
 import Data.Bifunctor

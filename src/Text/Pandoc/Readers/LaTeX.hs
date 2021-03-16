@@ -23,7 +23,6 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                  ) where
 
 import Control.Applicative (many, optional, (<|>))
-import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isLetter, toUpper, chr)
 import Data.Default

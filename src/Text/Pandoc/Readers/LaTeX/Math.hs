@@ -21,7 +21,6 @@ import Text.Pandoc.Shared (trimMath, stripTrailingNewlines)
 import Text.Pandoc.Parsing hiding (blankline, mathDisplay, mathInline,
                             optional, space, spaces, withRaw, (<|>))
 import Control.Applicative ((<|>), optional)
-import Control.Monad (guard, mzero)
 import qualified Data.Map as M
 import Data.Text (Text)
 

@@ -18,7 +18,6 @@ module Text.Pandoc.Lua.Marshaling.AST
   ) where
 
 import Control.Applicative ((<|>))
-import Control.Monad ((<$!>))
 import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError)

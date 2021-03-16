@@ -14,7 +14,6 @@ module Text.Pandoc.Lua.Module.MediaBag
   ) where
 
 import Prelude hiding (lookup)
-import Control.Monad (zipWithM_)
 import Foreign.Lua (Lua, NumResults, Optional)
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Class.PandocMonad (fetchItem, getMediaBag, modifyCommonState,

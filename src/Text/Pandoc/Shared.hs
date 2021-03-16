@@ -102,7 +102,6 @@ module Text.Pandoc.Shared (
 
 import Codec.Archive.Zip
 import qualified Control.Exception as E
-import Control.Monad (MonadPlus (..), msum, unless)
 import qualified Control.Monad.State.Strict as S
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Bifunctor as Bifunctor

@@ -14,7 +14,6 @@ Conversion of twiki text to 'Pandoc' document.
 module Text.Pandoc.Readers.TWiki ( readTWiki
                                  ) where
 
-import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum)
 import qualified Data.Foldable as F

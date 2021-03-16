@@ -15,7 +15,6 @@ Conversion of DokuWiki text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.DokuWiki (readDokuWiki) where
 
-import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isDigit)
 import qualified Data.Foldable as F

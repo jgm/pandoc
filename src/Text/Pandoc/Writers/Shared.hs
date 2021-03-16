@@ -39,7 +39,6 @@ module Text.Pandoc.Writers.Shared (
 where
 import Safe (lastMay)
 import qualified Data.ByteString.Lazy as BL
-import Control.Monad (zipWithM)
 import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace)
 import Data.List (groupBy, intersperse, transpose, foldl')

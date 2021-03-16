@@ -24,7 +24,6 @@ module Text.Pandoc.Readers.HTML ( readHtml
                                 ) where
 
 import Control.Applicative ((<|>))
-import Control.Monad (guard, msum, mzero, unless, void)
 import Control.Monad.Except (throwError, catchError)
 import Control.Monad.Reader (ask, asks, lift, local, runReaderT)
 import Data.ByteString.Base64 (encode)

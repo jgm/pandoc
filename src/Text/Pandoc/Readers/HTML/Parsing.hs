@@ -30,7 +30,6 @@ module Text.Pandoc.Readers.HTML.Parsing
   )
 where
 
-import Control.Monad (guard, void, mzero)
 import Data.Text (Text)
 import Text.HTML.TagSoup
   ( Attribute, Tag (..), isTagText, isTagPosition, isTagOpen, isTagClose, (~==) )

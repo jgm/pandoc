@@ -20,7 +20,6 @@ module Text.Pandoc.Readers.EPUB
 import Codec.Archive.Zip (Archive (..), Entry(..), findEntryByPath, fromEntry,
                           toArchiveOrFail)
 import Control.DeepSeq (NFData, deepseq)
-import Control.Monad (guard, liftM, liftM2, mplus)
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL (ByteString)
 import qualified Data.Text as T

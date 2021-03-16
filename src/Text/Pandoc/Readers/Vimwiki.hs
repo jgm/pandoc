@@ -47,7 +47,6 @@ Conversion of vimwiki text to 'Pandoc' document.
 
 module Text.Pandoc.Readers.Vimwiki ( readVimwiki
                                  ) where
-import Control.Monad (guard)
 import Control.Monad.Except (throwError)
 import Data.Default
 import Data.List (isInfixOf)

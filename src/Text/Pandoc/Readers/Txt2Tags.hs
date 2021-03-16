@@ -14,7 +14,6 @@ module Text.Pandoc.Readers.Txt2Tags ( readTxt2Tags
                                     )
                                     where
 
-import Control.Monad (guard, void, when)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Reader (Reader, asks, runReader)
 import Data.Default

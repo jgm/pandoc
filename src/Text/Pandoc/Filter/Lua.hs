@@ -12,7 +12,6 @@ Apply Lua filters to modify a pandoc documents programmatically.
 module Text.Pandoc.Filter.Lua (apply) where
 
 import Control.Exception (throw)
-import Control.Monad ((>=>))
 import qualified Data.Text as T
 import Text.Pandoc.Class.PandocIO (PandocIO)
 import Text.Pandoc.Definition (Pandoc)

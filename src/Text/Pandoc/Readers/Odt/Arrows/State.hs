@@ -21,7 +21,6 @@ module Text.Pandoc.Readers.Odt.Arrows.State where
 
 import Control.Arrow
 import qualified Control.Category as Cat
-import Control.Monad
 import Data.List (foldl')
 import Text.Pandoc.Readers.Odt.Arrows.Utils
 import Text.Pandoc.Readers.Odt.Generic.Fallible

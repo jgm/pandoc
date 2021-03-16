@@ -15,7 +15,6 @@ module Text.Pandoc.Lua.Module.Pandoc
   ) where
 
 import Prelude hiding (read)
-import Control.Monad (when)
 import Control.Monad.Except (throwError)
 import Data.Default (Default (..))
 import Foreign.Lua (Lua, NumResults, Optional, Peekable, Pushable)

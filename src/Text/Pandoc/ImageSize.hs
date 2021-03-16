@@ -37,7 +37,6 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as BL
 import Data.Binary.Get
 import Data.Char (isDigit)
-import Control.Monad
 import Text.Pandoc.Shared (safeRead)
 import Data.Default (Default)
 import Numeric (showFFloat)

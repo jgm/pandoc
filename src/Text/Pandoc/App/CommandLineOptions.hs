@@ -23,7 +23,6 @@ module Text.Pandoc.App.CommandLineOptions (
           , lookupHighlightStyle
           , setVariable
           ) where
-import Control.Monad
 import Control.Monad.Trans
 import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict

@@ -15,7 +15,6 @@ import Control.Concurrent (MVar, forkIO, killThread, newEmptyMVar, putMVar,
                            takeMVar)
 import Control.Exception (SomeException (..))
 import qualified Control.Exception as E
-import Control.Monad (unless)
 import Control.DeepSeq (rnf)
 import qualified Data.ByteString.Lazy as BL
 import Foreign.C (Errno (Errno), ePIPE)

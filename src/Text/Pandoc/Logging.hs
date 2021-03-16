@@ -23,7 +23,6 @@ module Text.Pandoc.Logging (
   , messageVerbosity
   ) where
 
-import Control.Monad (mzero)
 import Data.YAML (withStr, FromYAML(..))
 import Data.Aeson
 import Data.Aeson.Encode.Pretty (Config (..), defConfig, encodePretty',

@@ -16,7 +16,6 @@ module Text.Pandoc.Readers.Org.DocumentTree
   ) where
 
 import Control.Arrow ((***), first)
-import Control.Monad (guard)
 import Data.List (intersperse)
 import Data.Text (Text)
 import Text.Pandoc.Builder (Blocks, Inlines)

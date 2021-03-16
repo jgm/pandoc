@@ -17,7 +17,6 @@ module Text.Pandoc.BCP47 (
                      , renderLang
                      )
 where
-import Control.Monad (guard)
 import Data.Char (isAlphaNum, isAscii, isLetter, isLower, isUpper)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options

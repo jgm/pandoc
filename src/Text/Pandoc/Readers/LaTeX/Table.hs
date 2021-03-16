@@ -13,7 +13,6 @@ import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
 import Control.Applicative ((<|>), optional, many)
-import Control.Monad (when, void)
 import Text.Pandoc.Shared (safeRead, trim)
 import Text.Pandoc.Logging (LogMessage(SkippedContent))
 import Text.Pandoc.Walk (walkM)

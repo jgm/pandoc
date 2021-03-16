@@ -16,7 +16,6 @@ Conversion of TikiWiki text to 'Pandoc' document.
 module Text.Pandoc.Readers.TikiWiki ( readTikiWiki
                                     ) where
 
-import Control.Monad
 import Control.Monad.Except (throwError)
 import qualified Data.Foldable as F
 import Data.List (dropWhileEnd)
@@ -54,7 +53,7 @@ tryMsg :: Text -> TikiWikiParser m a -> TikiWikiParser m a
 tryMsg msg p = try p <?> T.unpack msg
 
 skip :: TikiWikiParser m a -> TikiWikiParser m ()
-skip parser = Control.Monad.void parser
+skip parser = void parser
 
 nested :: PandocMonad m => TikiWikiParser m a -> TikiWikiParser m a
 nested p = do

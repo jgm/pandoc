@@ -17,7 +17,6 @@ module Text.Pandoc.PDF ( makePDF ) where
 
 import qualified Codec.Picture as JP
 import qualified Control.Exception as E
-import Control.Monad (when)
 import Control.Monad.Trans (MonadIO (..))
 import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (ByteString)
