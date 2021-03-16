@@ -15,7 +15,9 @@ endif
 GHCOPTS=-fdiagnostics-color=always
 WEBSITE=../../web/pandoc.org
 REVISION?=1
-BENCHARGS?=--timeout=6 +RTS -T -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
+BENCHARGS?=--small --time-limit=2  --match=pattern $(PATTERN)
+# For tasty-bench:
+# BENCHARGS?=--csv bench_$(TIMESTAMP).csv --timeout=6 +RTS -T -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 
 quick:
 	stack install --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --ghc-options='-j4 +RTS -A256m -RTS' --test-arguments='-j4 --hide-successes $(TESTARGS)'
@@ -53,15 +55,10 @@ ghcid-test:
 bench:
 	stack bench \
 	  --ghc-options '-Rghc-timing $(GHCOPTS)' \
-	  --benchmark-arguments='--small --time-limit=2 \
-	  --match=pattern $(PATTERN)' 2>&1 | \
+	  --benchmark-arguments='$(BENCHARGS)' 2>&1 | \
 	  tee "bench_latest.txt"
 	perl -pe 's/\x1b\[[0-9;]*[mGK]//g;s/\r//;' bench_latest.txt > \
 	  "bench_$(TIMESTAMP).txt"
-
-
-# With tasty-bench, we used
-# --benchmark-arguments='$(BENCHARGS) $(BASELINE) --csv bench_$(TIMESTAMP).csv' --ghc-options '-Rghc-timing $(GHCOPTS)'
 
 reformat:
 	for f in $(SOURCEFILES); do echo $$f; stylish-haskell -i $$f ; done
