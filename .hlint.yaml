@@ -46,6 +46,7 @@
       - Text.Pandoc.Citeproc
       - Text.Pandoc.Citeproc.BibTeX
       - Text.Pandoc.Citeproc.MetaValue
+      - Text.Pandoc.Options
       - Text.Pandoc.App.Opt
       - Text.Pandoc.Extensions
 
