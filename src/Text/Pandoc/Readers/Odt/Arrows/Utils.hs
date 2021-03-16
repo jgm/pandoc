@@ -22,7 +22,6 @@ with an equivalent return value.
 module Text.Pandoc.Readers.Odt.Arrows.Utils where
 
 import Control.Arrow
-import Control.Monad (join)
 
 import Text.Pandoc.Readers.Odt.Generic.Fallible
 import Text.Pandoc.Readers.Odt.Generic.Utils

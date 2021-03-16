@@ -23,7 +23,6 @@ module Text.Pandoc.Readers.Org.BlockStarts
   , endOfBlock
   ) where
 
-import Control.Monad (void)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Readers.Org.Parsing

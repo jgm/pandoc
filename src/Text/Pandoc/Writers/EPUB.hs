@@ -18,7 +18,6 @@ module Text.Pandoc.Writers.EPUB ( writeEPUB2, writeEPUB3 ) where
 import Codec.Archive.Zip (Entry, addEntryToArchive, eRelativePath, emptyArchive,
                           fromArchive, fromEntry, toEntry)
 import Control.Applicative ( (<|>) )
-import Control.Monad (mplus, unless, when, zipWithM)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict (StateT, evalState, evalStateT, get,
                                    gets, lift, modify)
@@ -27,7 +26,6 @@ import qualified Data.ByteString.Lazy.Char8 as B8
 import Data.Char (isAlphaNum, isAscii, isDigit)
 import Data.List (isInfixOf, isPrefixOf)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isNothing, mapMaybe, isJust)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)

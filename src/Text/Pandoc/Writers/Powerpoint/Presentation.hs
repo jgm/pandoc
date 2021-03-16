@@ -60,7 +60,6 @@ import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
                                  , toLegacyTable)
 import qualified Data.Map as M
 import qualified Data.Set as S
-import Data.Maybe (maybeToList, fromMaybe)
 import Text.Pandoc.Highlighting
 import qualified Data.Text as T
 import Control.Applicative ((<|>))

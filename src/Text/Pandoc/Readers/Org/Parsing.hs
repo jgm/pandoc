@@ -110,7 +110,6 @@ import Text.Pandoc.Parsing hiding (F, anyLine, blanklines, newline,
                             parseFromString)
 import qualified Text.Pandoc.Parsing as P
 
-import Control.Monad (guard)
 import Control.Monad.Reader (ReaderT)
 
 -- | The parser used to read org files.

@@ -14,7 +14,6 @@ Conversion of 'Pandoc' documents to RTF (rich text format).
 module Text.Pandoc.Writers.RTF ( writeRTF
                                ) where
 import Control.Monad.Except (catchError, throwError)
-import Control.Monad
 import qualified Data.ByteString as B
 import Data.Char (chr, isDigit, ord)
 import qualified Data.Map as M

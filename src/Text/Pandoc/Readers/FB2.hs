@@ -33,7 +33,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Default
-import Data.Maybe
 import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad, insertMedia, report)

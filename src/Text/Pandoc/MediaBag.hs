@@ -24,7 +24,6 @@ module Text.Pandoc.MediaBag (
 import qualified Data.ByteString.Lazy as BL
 import Data.Data (Data)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe)
 import Data.Typeable (Typeable)
 import System.FilePath
 import qualified System.FilePath.Posix as Posix

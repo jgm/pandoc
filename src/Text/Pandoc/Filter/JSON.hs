@@ -12,11 +12,9 @@ Programmatically modifications of pandoc documents via JSON filters.
 -}
 module Text.Pandoc.Filter.JSON (apply) where
 
-import Control.Monad (unless, when)
 import Control.Monad.Trans (MonadIO (liftIO))
 import Data.Aeson (eitherDecode', encode)
 import Data.Char (toLower)
-import Data.Maybe (isNothing)
 import qualified Data.Text as T
 import System.Directory (executable, doesFileExist, findExecutable,
                          getPermissions)

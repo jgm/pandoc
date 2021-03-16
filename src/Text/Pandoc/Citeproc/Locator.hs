@@ -12,7 +12,6 @@ import Text.Parsec
 import Text.Pandoc.Definition
 import Text.Pandoc.Parsing (romanNumeral)
 import Text.Pandoc.Shared (stringify)
-import Control.Monad (mzero)
 import qualified Data.Map as M
 import Data.Char (isSpace, isPunctuation, isDigit)
 

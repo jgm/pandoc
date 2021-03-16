@@ -15,7 +15,6 @@ a lua writer.
 module Text.Pandoc.Writers.Custom ( writeCustom ) where
 import Control.Arrow ((***))
 import Control.Exception
-import Control.Monad (when)
 import Data.List (intersperse)
 import qualified Data.Map as M
 import qualified Data.Text as T

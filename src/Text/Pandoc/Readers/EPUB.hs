@@ -20,13 +20,11 @@ module Text.Pandoc.Readers.EPUB
 import Codec.Archive.Zip (Archive (..), Entry(..), findEntryByPath, fromEntry,
                           toArchiveOrFail)
 import Control.DeepSeq (NFData, deepseq)
-import Control.Monad (guard, liftM, liftM2, mplus)
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL (ByteString)
 import qualified Data.Text as T
 import Data.Text (Text)
 import qualified Data.Map as M (Map, elems, fromList, lookup)
-import Data.Maybe (mapMaybe)
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Network.URI (unEscapeString)

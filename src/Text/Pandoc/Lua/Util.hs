@@ -25,7 +25,6 @@ module Text.Pandoc.Lua.Util
   , dofileWithTraceback
   ) where
 
-import Control.Monad (unless, when)
 import Data.Text (Text)
 import Foreign.Lua ( Lua, NumArgs, NumResults, Peekable, Pushable, StackIndex
                    , Status, ToHaskellFunction )

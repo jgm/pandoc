@@ -17,7 +17,6 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import qualified Data.Text as T
-import Data.Maybe
 import System.IO.Unsafe
 import Test.Tasty
 import Test.Tasty.HUnit

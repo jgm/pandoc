@@ -31,7 +31,6 @@ import Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
 import Text.TeXMath (DisplayType (..), readTeX, writePandoc)
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 
-import Control.Monad (guard, mplus, mzero, unless, void, when)
 import Control.Monad.Trans (lift)
 import Data.Char (isAlphaNum, isSpace)
 import Data.List (intersperse)

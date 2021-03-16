@@ -16,13 +16,11 @@ http://zim-wiki.org/manual/Help/Wiki_Syntax.html
 -}
 
 module Text.Pandoc.Writers.ZimWiki ( writeZimWiki ) where
-import Control.Monad (zipWithM)
 import Control.Monad.State.Strict (StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (transpose)
 import qualified Data.Map as Map
 import Text.DocLayout (render, literal)
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)

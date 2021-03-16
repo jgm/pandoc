@@ -16,7 +16,6 @@ Ipynb (Jupyter notebook JSON format) reader for pandoc.
 module Text.Pandoc.Readers.Ipynb ( readIpynb )
 where
 import Data.Char (isDigit)
-import Data.Maybe (fromMaybe)
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Text.Pandoc.Options
 import qualified Data.Scientific as Scientific

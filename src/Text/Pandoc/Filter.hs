@@ -35,7 +35,6 @@ import qualified Data.Text as T
 import System.FilePath (takeExtension)
 import Control.Applicative ((<|>))
 import Control.Monad.Trans (MonadIO (liftIO))
-import Control.Monad (foldM, when)
 
 -- | Type of filter and path to filter file.
 data Filter = LuaFilter FilePath

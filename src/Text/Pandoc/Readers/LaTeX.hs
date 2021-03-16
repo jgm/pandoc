@@ -23,23 +23,19 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
                                  ) where
 
 import Control.Applicative (many, optional, (<|>))
-import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isLetter, toUpper, chr)
 import Data.Default
 import Data.List (intercalate)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Pandoc.BCP47 (renderLang)
 import Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocPure (PandocPure)
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..), getResourcePath,
-                                      readFileFromDirs, report,
-                                      setResourcePath)
+import Text.Pandoc.Class as P (PandocPure, PandocMonad (..), getResourcePath,
+                               readFileFromDirs, report, setResourcePath)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocParsecError))
 import Text.Pandoc.Highlighting (languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
@@ -247,7 +243,7 @@ doxspace =
 
 removeDoubleQuotes :: Text -> Text
 removeDoubleQuotes t =
-  Data.Maybe.fromMaybe t $ T.stripPrefix "\"" t >>= T.stripSuffix "\""
+  fromMaybe t $ T.stripPrefix "\"" t >>= T.stripSuffix "\""
 
 doubleQuote :: PandocMonad m => LP m Inlines
 doubleQuote =
@@ -1255,7 +1251,7 @@ block = do
             _                 -> mzero)
           <|> paragraph
           <|> grouped block
-  trace (T.take 60 $ tshow $ B.toList res)
+  P.trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 blocks :: PandocMonad m => LP m Blocks

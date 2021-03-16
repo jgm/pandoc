@@ -28,7 +28,6 @@ import Data.Char (isSpace, isLetter)
 import Data.List (intercalate, isPrefixOf, isSuffixOf)
 import Data.String (fromString)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isNothing, mapMaybe, maybeToList)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -1031,7 +1030,7 @@ blockToOpenXML' opts (Table _ blkCapt specs thead tbody tfoot) = do
            map mkcell cells
   let textwidth = 7920  -- 5.5 in in twips, 1/20 pt
   let fullrow = 5000 -- 100% specified in pct
-  let (rowwidth :: Int) = round $ fullrow * sum widths
+  let (rowwidth :: Int) = round $ fullrow * sum' widths
   let mkgridcol w = mknode "w:gridCol"
                        [("w:w", tshow (floor (textwidth * w) :: Integer))] ()
   let hasHeader = not $ all null headers

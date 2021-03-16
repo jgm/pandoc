@@ -22,7 +22,6 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 -}
 
 module Text.Pandoc.Writers.DokuWiki ( writeDokuWiki ) where
-import Control.Monad (zipWithM)
 import Control.Monad.Reader (ReaderT, asks, local, runReaderT)
 import Control.Monad.State.Strict (StateT, evalStateT)
 import Data.Default (Default (..))
@@ -39,7 +38,6 @@ import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, isURI, linesToPara,
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocLayout (render, literal)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
-import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 
 data WriterState = WriterState {

@@ -16,7 +16,6 @@ HTML table parser.
 module Text.Pandoc.Readers.HTML.Table (pTable) where
 
 import Control.Applicative ((<|>))
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks)

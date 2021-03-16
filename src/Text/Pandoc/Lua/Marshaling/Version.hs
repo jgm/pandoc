@@ -20,7 +20,6 @@ module Text.Pandoc.Lua.Marshaling.Version
   where
 
 import Data.Text (Text)
-import Data.Maybe (fromMaybe)
 import Data.Version (Version (..), makeVersion, parseVersion, showVersion)
 import Foreign.Lua (Lua, Optional (..), NumResults,
                     Peekable, Pushable, StackIndex)

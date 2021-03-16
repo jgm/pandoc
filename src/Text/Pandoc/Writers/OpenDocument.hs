@@ -20,7 +20,6 @@ import Data.Char (chr)
 import Data.Foldable (find)
 import Data.List (sortOn, sortBy, foldl')
 import qualified Data.Map as Map
-import Data.Maybe (fromMaybe, isNothing)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -96,9 +95,6 @@ defaultWriterState =
                 , stImageCaptionId = 1
                 , stIdentTypes     = []
                 }
-
-when :: Bool -> Doc Text -> Doc Text
-when p a = if p then a else empty
 
 addTableStyle :: PandocMonad m => Doc Text -> OD m ()
 addTableStyle i = modify $ \s -> s { stTableStyles = i : stTableStyles s }
@@ -226,7 +222,9 @@ handleSpaces s = case T.uncons s of
   _             -> rm s
   where
     genTag = T.span (==' ') >>> tag . T.length *** rm >>> uncurry (<>)
-    tag n  = when (n /= 0) $ selfClosingTag "text:s" [("text:c", tshow n)]
+    tag n  = if n /= 0
+                then selfClosingTag "text:s" [("text:c", tshow n)]
+                else mempty
     rm t   = case T.uncons t of
       Just ( ' ',xs) -> char ' ' <> genTag xs
       Just ('\t',xs) -> selfClosingTag "text:tab" [] <> genTag xs
@@ -435,7 +433,7 @@ blockToOpenDocument o bs
              fromWidth (ColWidth w) | w > 0 = w
              fromWidth _                    = 0
              widths = map fromWidth mwidths
-             textWidth   = sum widths
+             textWidth   = sum' widths
              columnIds   = zip genIds widths
              mkColumn  n = selfClosingTag "table:table-column" [("table:style-name", name <> "." <> T.singleton (fst n))]
              columns     = map mkColumn columnIds

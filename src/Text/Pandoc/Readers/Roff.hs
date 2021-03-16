@@ -29,7 +29,6 @@ module Text.Pandoc.Readers.Roff
 where
 
 import Safe (lastDef)
-import Control.Monad (void, mzero, mplus, guard)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class.PandocMonad
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)

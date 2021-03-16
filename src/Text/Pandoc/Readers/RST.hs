@@ -15,13 +15,11 @@ Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
 import Control.Arrow (second)
-import Control.Monad (forM_, guard, liftM, mplus, mzero, when)
 import Control.Monad.Except (throwError)
 import Control.Monad.Identity (Identity (..))
 import Data.Char (isHexDigit, isSpace, toUpper, isAlphaNum)
 import Data.List (deleteFirstsBy, elemIndex, nub, sort, transpose)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, maybeToList, isJust)
 import Data.Sequence (ViewR (..), viewr)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -799,7 +797,7 @@ tableDirective top fields body = do
        _ -> return mempty
   where
     -- only valid on the very first row of a table section
-    rowLength (Row _ rb) = sum $ cellLength <$> rb
+    rowLength (Row _ rb) = sum' $ cellLength <$> rb
     cellLength (Cell _ _ _ (ColSpan w) _) = max 1 w
     strictPos w
       | w > 0     = ColWidth w
@@ -839,7 +837,7 @@ listTableDirective top fields body = do
           takeRows _                 = []
           takeCells [BulletList cells] = map B.fromList cells
           takeCells _                  = []
-          normWidths ws = strictPos . (/ max 1 (sum ws)) <$> ws
+          normWidths ws = strictPos . (/ max 1 (sum' ws)) <$> ws
           strictPos w
             | w > 0     = ColWidth w
             | otherwise = ColWidthDefault
@@ -904,7 +902,7 @@ csvTableDirective top fields rawcsv = do
          let strictPos w
                | w > 0     = ColWidth w
                | otherwise = ColWidthDefault
-         let normWidths ws = strictPos . (/ max 1 (sum ws)) <$> ws
+         let normWidths ws = strictPos . (/ max 1 (sum' ws)) <$> ws
          let widths =
                case trim <$> lookup "widths" fields of
                  Just "auto" -> replicate numOfCols ColWidthDefault

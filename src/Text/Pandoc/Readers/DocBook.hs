@@ -18,7 +18,6 @@ import Data.Either (rights)
 import Data.Foldable (asum)
 import Data.Generics
 import Data.List (intersperse,elemIndex)
-import Data.Maybe (fromMaybe,mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -966,7 +965,7 @@ parseBlock (Elem e) =
                                      [] -> replicate numrows ColWidthDefault
                                      cs -> let ws = map toWidth cs
                                            in case sequence ws of
-                                                Just ws' -> let colTot = sum ws'
+                                                Just ws' -> let colTot = sum' ws'
                                                                 scale
                                                                   | textWidth == 1.0 = (/ colTot)
                                                                   | otherwise = (* (textWidth / colTot) )

@@ -28,10 +28,8 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (blocksToInlines, safeRead)
 
-import Control.Monad (mzero, void)
 import Data.List (intercalate, intersperse)
 import Data.Map (Map)
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Network.HTTP (urlEncode)
 import qualified Data.Map as Map

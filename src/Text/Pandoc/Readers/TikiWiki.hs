@@ -16,16 +16,13 @@ Conversion of TikiWiki text to 'Pandoc' document.
 module Text.Pandoc.Readers.TikiWiki ( readTikiWiki
                                     ) where
 
-import Control.Monad
 import Control.Monad.Except (throwError)
 import qualified Data.Foldable as F
 import Data.List (dropWhileEnd)
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.CommonState (CommonState (..))
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class as P (CommonState (..), PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging (Verbosity (..))
 import Text.Pandoc.Options
@@ -56,7 +53,7 @@ tryMsg :: Text -> TikiWikiParser m a -> TikiWikiParser m a
 tryMsg msg p = try p <?> T.unpack msg
 
 skip :: TikiWikiParser m a -> TikiWikiParser m ()
-skip parser = Control.Monad.void parser
+skip parser = void parser
 
 nested :: PandocMonad m => TikiWikiParser m a -> TikiWikiParser m a
 nested p = do
@@ -87,7 +84,7 @@ block = do
          <|> para
   skipMany blankline
   when (verbosity >= INFO) $
-    trace (T.pack $ printf "line %d: %s" (sourceLine pos) (take 60 $ show $ B.toList res))
+    P.trace (T.pack $ printf "line %d: %s" (sourceLine pos) (take 60 $ show $ B.toList res))
   return res
 
 blockElements :: PandocMonad m => TikiWikiParser m B.Blocks
@@ -340,7 +337,7 @@ listItemLine nest = lineContent >>= parseContent
     lineContent = do
       content <- anyLine
       continuation <- optionMaybe listContinuation
-      return $ filterSpaces content <> "\n" <> Data.Maybe.fromMaybe "" continuation
+      return $ filterSpaces content <> "\n" <> fromMaybe "" continuation
     filterSpaces = T.dropWhileEnd (== ' ')
     listContinuation = string (replicate nest '+') >> lineContent
     parseContent x = do

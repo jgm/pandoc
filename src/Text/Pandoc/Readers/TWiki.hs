@@ -14,16 +14,14 @@ Conversion of twiki text to 'Pandoc' document.
 module Text.Pandoc.Readers.TWiki ( readTWiki
                                  ) where
 
-import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum)
 import qualified Data.Foldable as F
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class as P (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
@@ -116,7 +114,7 @@ block = do
          <|> blockElements
          <|> para
   skipMany blankline
-  trace (T.take 60 $ tshow $ B.toList res)
+  P.trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 blockElements :: PandocMonad m => TWParser m B.Blocks

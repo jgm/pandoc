@@ -11,7 +11,6 @@ module Text.Pandoc.Readers.LaTeX.Math
   , proof
   )
 where
-import Data.Maybe (fromMaybe)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Builder as B
 import qualified Data.Sequence as Seq
@@ -22,7 +21,6 @@ import Text.Pandoc.Shared (trimMath, stripTrailingNewlines)
 import Text.Pandoc.Parsing hiding (blankline, mathDisplay, mathInline,
                             optional, space, spaces, withRaw, (<|>))
 import Control.Applicative ((<|>), optional)
-import Control.Monad (guard, mzero)
 import qualified Data.Map as M
 import Data.Text (Text)
 

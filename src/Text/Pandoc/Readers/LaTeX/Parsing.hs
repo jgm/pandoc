@@ -89,7 +89,6 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   ) where
 
 import Control.Applicative (many, (<|>))
-import Control.Monad
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans (lift)
 import Data.Char (chr, isAlphaNum, isDigit, isLetter, ord)

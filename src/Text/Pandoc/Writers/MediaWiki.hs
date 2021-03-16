@@ -16,7 +16,6 @@ MediaWiki:  <http://www.mediawiki.org/wiki/MediaWiki>
 module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki, highlightingLangs ) where
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-import Data.Maybe (fromMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T

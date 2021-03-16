@@ -17,14 +17,12 @@ module Text.Pandoc.Lua.Filter ( LuaFilterFunction
                               , module Text.Pandoc.Lua.Walk
                               ) where
 import Control.Applicative ((<|>))
-import Control.Monad (mplus, (>=>))
 import Control.Monad.Catch (finally, try)
 import Data.Data (Data, DataType, dataTypeConstrs, dataTypeName, dataTypeOf,
                   showConstr, toConstr, tyconUQname)
 import Data.Foldable (foldrM)
 import Data.List (foldl')
 import Data.Map (Map)
-import Data.Maybe (fromMaybe)
 import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError)

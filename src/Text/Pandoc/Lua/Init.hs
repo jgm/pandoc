@@ -12,7 +12,6 @@ module Text.Pandoc.Lua.Init
   ( runLua
   ) where
 
-import Control.Monad (when)
 import Control.Monad.Catch (try)
 import Control.Monad.Trans (MonadIO (..))
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)

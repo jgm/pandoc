@@ -17,12 +17,10 @@ _ parse templates?
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
-import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isDigit, isSpace)
 import qualified Data.Foldable as F
 import Data.List (intersperse)
-import Data.Maybe (fromMaybe, maybeToList)
 import Data.Sequence (ViewL (..), viewl, (<|))
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -30,7 +28,7 @@ import qualified Data.Text as T
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class as P (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
@@ -192,7 +190,7 @@ block = do
      <|> blockTag
      <|> (B.rawBlock "mediawiki" <$> template)
      <|> para
-  trace (T.take 60 $ tshow $ B.toList res)
+  P.trace (T.take 60 $ tshow $ B.toList res)
   return res
 
 para :: PandocMonad m => MWParser m Blocks
@@ -218,7 +216,7 @@ table = do
   hasheader <- option False $ True <$ lookAhead (skipSpaces *> char '!')
   (cellspecs',hdr) <- unzip <$> tableRow
   let widths = map ((tableWidth *) . snd) cellspecs'
-  let restwidth = tableWidth - sum widths
+  let restwidth = tableWidth - sum' widths
   let zerocols = length $ filter (==0.0) widths
   let defaultwidth = if zerocols == 0 || zerocols == length widths
                         then ColWidthDefault

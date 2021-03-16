@@ -17,7 +17,6 @@ module Text.Pandoc.Lua.Walk
   )
 where
 
-import Control.Monad ((<=<))
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
 

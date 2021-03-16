@@ -15,7 +15,6 @@ Conversion of 'Pandoc' documents to Docbook XML.
 module Text.Pandoc.Writers.Docbook ( writeDocbook4, writeDocbook5 ) where
 import Control.Monad.Reader
 import Data.Generics (everywhere, mkT)
-import Data.Maybe (isNothing)
 import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T

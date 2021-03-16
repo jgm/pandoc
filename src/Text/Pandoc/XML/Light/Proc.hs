@@ -37,7 +37,6 @@ module Text.Pandoc.XML.Light.Proc
   ) where
 
 import Data.Text (Text)
-import Data.Maybe (listToMaybe)
 import Data.List(find)
 import Text.Pandoc.XML.Light.Types
 

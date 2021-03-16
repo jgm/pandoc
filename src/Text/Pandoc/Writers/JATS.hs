@@ -25,7 +25,6 @@ import Control.Monad.State
 import Data.Generics (everywhere, mkT)
 import Data.List (partition)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe)
 import Data.Time (toGregorian, Day, parseTimeM, defaultTimeLocale, formatTime)
 import qualified Data.Text as T
 import Data.Text (Text)

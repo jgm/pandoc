@@ -16,7 +16,6 @@ module Text.Pandoc.CSV (
   ParseError
 ) where
 
-import Control.Monad (unless, void)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Parsec

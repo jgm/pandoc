@@ -21,7 +21,6 @@ import Data.Default
 import Data.Generics
 import Data.List (foldl', intersperse)
 import qualified Data.Map as Map
-import Data.Maybe (maybeToList, fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -262,7 +261,7 @@ parseBlock (Elem e) =
                                      [] -> replicate numrows ColWidthDefault
                                      cs -> let ws = map toWidth cs
                                            in case sequence ws of
-                                                Just ws' -> let tot = sum ws'
+                                                Just ws' -> let tot = sum' ws'
                                                             in  ColWidth . (/ tot) <$> ws'
                                                 Nothing  -> replicate numrows ColWidthDefault
                       let toRow = Row nullAttr . map simpleCell

@@ -32,12 +32,10 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (compactify, compactifyDL, safeRead)
 
-import Control.Monad (foldM, guard, mplus, mzero, void)
 import Data.Char (isSpace)
 import Data.Default (Default)
 import Data.Functor (($>))
 import Data.List (foldl', intersperse)
-import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
 
 import qualified Data.Text as T
@@ -637,7 +635,7 @@ orgToPandocTable :: OrgTable
                  -> Blocks
 orgToPandocTable (OrgTable colProps heads lns) caption =
   let totalWidth = if any (isJust . columnRelWidth) colProps
-                   then Just . sum $ map (fromMaybe 1 . columnRelWidth) colProps
+                   then Just . sum' $ map (fromMaybe 1 . columnRelWidth) colProps
                    else Nothing
   in B.table (B.simpleCaption $ B.plain caption)
              (map (convertColProp totalWidth) colProps)

@@ -18,12 +18,10 @@ module Text.Pandoc.Readers.Markdown (
   yamlToMeta,
   yamlToRefs ) where
 
-import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
 import Data.List (transpose, elemIndex, sortOn, foldl')
 import qualified Data.Map as M
-import Data.Maybe
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -33,7 +31,7 @@ import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup hiding (Row)
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..), report)
+import Text.Pandoc.Class as P (PandocMonad (..), report)
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Error
@@ -200,7 +198,7 @@ inlinesInBalancedBrackets =
                 rawLaTeXInline') >> go openBrackets)
           <|>
           (do char ']'
-              Control.Monad.when (openBrackets > 1) $ go (openBrackets - 1))
+              when (openBrackets > 1) $ go (openBrackets - 1))
           <|>
           (char '[' >> go (openBrackets + 1))
           <|>
@@ -476,7 +474,7 @@ block = do
                , para
                , plain
                ] <?> "block"
-  trace (T.take 60 $ tshow $ B.toList $ runF res defaultParserState)
+  P.trace (T.take 60 $ tshow $ B.toList $ runF res defaultParserState)
   return res
 
 --
@@ -821,7 +819,7 @@ orderedListStart mbstydelim = try $ do
        return (num, style, delim))
 
 listStart :: PandocMonad m => MarkdownParser m ()
-listStart = bulletListStart <|> Control.Monad.void (orderedListStart Nothing)
+listStart = bulletListStart <|> void (orderedListStart Nothing)
 
 listLine :: PandocMonad m => Int -> MarkdownParser m Text
 listLine continuationIndent = try $ do
@@ -997,7 +995,7 @@ defRawBlock compact = try $ do
 definitionList :: PandocMonad m => MarkdownParser m (F Blocks)
 definitionList = try $ do
   lookAhead (anyLine >>
-             optional (blankline >> notFollowedBy (Control.Monad.void table)) >>
+             optional (blankline >> notFollowedBy (void table)) >>
              -- don't capture table caption as def list!
              defListMarker)
   compactDefinitionList <|> normalDefinitionList
@@ -1368,7 +1366,7 @@ pipeTable = try $ do
   numColumns <- getOption readerColumns
   let widths = if maxlength > numColumns
                   then map (\len ->
-                         fromIntegral len / fromIntegral (sum seplengths))
+                         fromIntegral len / fromIntegral (sum' seplengths))
                          seplengths
                   else replicate (length aligns) 0.0
   return (aligns, widths, toHeaderRow <$> heads', map toRow <$> sequence lines'')
@@ -1460,7 +1458,7 @@ table = try $ do
                   Nothing -> option (return mempty) tableCaption
                   Just c  -> return c
   -- renormalize widths if greater than 100%:
-  let totalWidth = sum widths
+  let totalWidth = sum' widths
   let widths' = if totalWidth < 1
                    then widths
                    else map (/ totalWidth) widths

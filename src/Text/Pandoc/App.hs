@@ -25,14 +25,12 @@ module Text.Pandoc.App (
           , applyFilters
           ) where
 import qualified Control.Exception as E
-import Control.Monad ( (>=>), when )
 import Control.Monad.Trans ( MonadIO(..) )
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
 import Data.Char (toLower)
-import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T

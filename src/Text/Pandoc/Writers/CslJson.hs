@@ -34,7 +34,6 @@ import Control.Monad.Identity
 import Citeproc.Locale (getLocale)
 import Citeproc.CslJson
 import Text.Pandoc.Options (WriterOptions)
-import Data.Maybe (mapMaybe)
 import Data.Aeson.Encode.Pretty         (Config (..), Indent (Spaces),
                                          NumberFormat (Generic),
                                          defConfig, encodePretty')

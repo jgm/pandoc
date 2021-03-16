@@ -22,12 +22,10 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 import Text.DocTemplates (toVal, Context(..), Val(..))
 import qualified Control.Exception as E
-import Control.Monad
 import Control.Monad.Except (throwError)
 import Control.Monad.Trans
 import Data.Char (toLower)
 import Data.List (find)
-import Data.Maybe (fromMaybe)
 import Skylighting (defaultSyntaxMap)
 import Skylighting.Parser (addSyntaxDefinition, parseSyntaxDefinition)
 import System.Directory (getCurrentDirectory)

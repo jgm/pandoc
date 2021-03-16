@@ -102,7 +102,6 @@ module Text.Pandoc.Shared (
 
 import Codec.Archive.Zip
 import qualified Control.Exception as E
-import Control.Monad (MonadPlus (..), msum, unless)
 import qualified Control.Monad.State.Strict as S
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Bifunctor as Bifunctor
@@ -111,7 +110,6 @@ import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
 import Data.List (find, intercalate, intersperse, sortOn, foldl')
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Monoid (Any (..))
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
 import qualified Data.Set as Set

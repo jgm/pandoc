@@ -46,7 +46,6 @@ import Data.Default
 import qualified Data.Foldable as F
 import Data.List (unfoldr, foldl')
 import qualified Data.Map as M
-import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Set as S

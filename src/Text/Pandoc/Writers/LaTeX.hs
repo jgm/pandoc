@@ -22,7 +22,6 @@ module Text.Pandoc.Writers.LaTeX (
 import Control.Monad.State.Strict
 import Data.Char (isDigit)
 import Data.List (intersperse, nubBy, (\\))
-import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
 import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T

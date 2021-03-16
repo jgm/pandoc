@@ -45,7 +45,7 @@ test:
 	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes $(TESTARGS)' --ghc-options '$(GHCOPTS)'
 
 ghcid:
-	ghcid -c "stack repl --flag 'pandoc:embed_data_files'"
+	ghcid -c "stack repl --ghc-options=-XNoImplicitPrelude --flag 'pandoc:embed_data_files'"
 
 ghcid-test:
 	ghcid -c "stack repl --ghc-options=-XNoImplicitPrelude --flag 'pandoc:embed_data_files' --ghci-options=-fobject-code pandoc:lib pandoc:test-pandoc"

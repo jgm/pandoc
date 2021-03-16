@@ -76,7 +76,6 @@ module Text.Pandoc.Writers
     ) where
 
 import Control.Monad.Except (throwError)
-import Control.Monad (unless)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.Text (Text)

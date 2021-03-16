@@ -25,7 +25,6 @@ import Control.Monad.State.Strict
 import Data.Default
 import Data.List (intersperse, sortOn, transpose)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -675,7 +674,7 @@ pandocTable opts multiline headless aligns widths rawHeaders rawRows = do
   let underline = mconcat $ intersperse (literal " ") $
                   map (\width -> literal (T.replicate width "-")) widthsInChars
   let border
-        | multiline = literal (T.replicate (sum widthsInChars +
+        | multiline = literal (T.replicate (sum' widthsInChars +
                         length widthsInChars - 1) "-")
         | headless  = underline
         | otherwise = empty

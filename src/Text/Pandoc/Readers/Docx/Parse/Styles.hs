@@ -50,7 +50,6 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Text.Read
 import Data.Text (Text)
-import Data.Maybe
 import Data.Coerce
 import Text.Pandoc.Readers.Docx.Util
 import qualified Text.Pandoc.UTF8 as UTF8

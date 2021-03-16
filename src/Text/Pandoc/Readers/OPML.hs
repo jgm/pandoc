@@ -14,7 +14,6 @@ Conversion of OPML to 'Pandoc' document.
 module Text.Pandoc.Readers.OPML ( readOPML ) where
 import Control.Monad.State.Strict
 import Data.Default
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL

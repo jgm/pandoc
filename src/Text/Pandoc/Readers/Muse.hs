@@ -18,7 +18,6 @@ TODO:
 -}
 module Text.Pandoc.Readers.Muse (readMuse) where
 
-import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.Except (throwError)
 import Data.Bifunctor
@@ -26,12 +25,11 @@ import Data.Default
 import Data.List (transpose, uncons)
 import qualified Data.Map as M
 import qualified Data.Set as Set
-import Data.Maybe (fromMaybe, isNothing, maybeToList)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Builder (Blocks, Inlines, underline)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class as P (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging
@@ -293,7 +291,7 @@ listItemContentsUntil col pre end = p
 parseBlock :: PandocMonad m => MuseParser m (F Blocks)
 parseBlock = do
   res <- blockElements <|> para
-  trace (T.take 60 $ tshow $ B.toList $ runF res def)
+  P.trace (T.take 60 $ tshow $ B.toList $ runF res def)
   return res
   where para = fst <$> paraUntil (try (eof <|> void (lookAhead blockElements)))
 

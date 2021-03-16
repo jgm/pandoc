@@ -23,7 +23,6 @@ module Text.Pandoc.App.CommandLineOptions (
           , lookupHighlightStyle
           , setVariable
           ) where
-import Control.Monad
 import Control.Monad.Trans
 import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict
@@ -37,7 +36,6 @@ import Data.List (intercalate, sort, foldl')
 import Data.List (isPrefixOf)
 #endif
 #endif
-import Data.Maybe (fromMaybe, isJust)
 import Data.Text (Text)
 import Safe (tailDef)
 import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)

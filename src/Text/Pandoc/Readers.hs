@@ -59,7 +59,6 @@ module Text.Pandoc.Readers
   , getDefaultExtensions
   ) where
 
-import Control.Monad (unless)
 import Control.Monad.Except (throwError)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL

@@ -15,7 +15,6 @@ module Text.Pandoc.Readers.Creole ( readCreole
 
 import Control.Monad.Except (guard, liftM2, throwError)
 import qualified Data.Foldable as F
-import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
