@@ -51,7 +51,7 @@ ghcid-test:
 	ghcid -c "stack repl --ghc-options=-XNoImplicitPrelude --flag 'pandoc:embed_data_files' --ghci-options=-fobject-code pandoc:lib pandoc:test-pandoc"
 
 bench:
-	stack bench --benchmark-arguments='$(BENCHARGS) $(BASELINE) --csv bench_$(TIMESTAMP).csv' --ghc-options '$(GHCOPTS)'
+	stack bench --benchmark-arguments='$(BENCHARGS) $(BASELINE) --csv bench_$(TIMESTAMP).csv' --ghc-options '-Rghc-timing $(GHCOPTS)'
 
 weigh:
 	stack build --ghc-options '$(GHCOPTS)' pandoc:weigh-pandoc && stack exec weigh-pandoc
