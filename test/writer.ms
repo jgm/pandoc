@@ -700,7 +700,7 @@ LaTeX
 .IP \[bu] 3
 Here\[cq]s some display math:
 .EQ
-d over {d x} f ( x ) = lim sub {h -> 0} {f ( x + h ) \[u2212] f ( x )} over h
+d over {d x} f left ( x right ) = lim sub {h -> 0} {f left ( x + h right ) \[u2212] f left ( x right )} over h
 .EN
 .IP \[bu] 3
 Here\[cq]s one that has a line break in it: @alpha + omega times x sup 2@.
