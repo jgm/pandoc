@@ -192,7 +192,6 @@ import "base" Prelude hiding (read, head, last, init, tail, (!!),
                               maximum, minimum)
 import qualified "base" Prelude as StandardPrelude
 import Data.Maybe
-import Data.Char hiding (Char)
 import Data.Either
 import Data.Ord
 import qualified Data.List as List
@@ -203,7 +202,6 @@ import Control.Monad
 import qualified Debug.Trace as Trace
 import Data.Data
 import Data.Typeable
-import qualified Data.String as String
 import Safe (atMay, headMay, lastMay, initMay, tailMay, readMay)
 -- TODO
 
