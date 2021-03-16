@@ -4,7 +4,7 @@ tests: True
 
 package pandoc
   flags: +embed_data_files
-  ghc-options: -j +RTS -A256m -RTS
+  ghc-options: +RTS -A256m -RTS
 
 -- source-repository-package
 --  type: git
