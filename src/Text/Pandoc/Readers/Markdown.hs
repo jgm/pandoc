@@ -1503,7 +1503,7 @@ inline = do
      '$'     -> math
      '~'     -> strikeout <|> subscript
      '<'     -> autoLink <|> spanHtml <|> rawHtmlInline <|> ltSign
-     '\\'    -> escapedNewline <|> escapedChar <|> rawLaTeXInline'
+     '\\'    -> math <|> escapedNewline <|> escapedChar <|> rawLaTeXInline'
      '@'     -> cite <|> exampleRef
      '"'     -> smart
      '\''    -> smart
