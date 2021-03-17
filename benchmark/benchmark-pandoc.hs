@@ -23,8 +23,8 @@ import Control.Monad.Except (throwError)
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.ByteString as B
 import qualified Data.Text as T
--- import Test.Tasty.Bench
-import Gauge
+import Test.Tasty.Bench
+-- import Gauge
 import qualified Data.ByteString.Lazy as BL
 import Data.Maybe (mapMaybe)
 import Data.List (sortOn)

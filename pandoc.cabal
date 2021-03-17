@@ -826,9 +826,11 @@ benchmark benchmark-pandoc
   hs-source-dirs:  benchmark
   build-depends:   bytestring,
                    containers,
-                   gauge       >= 0.2     && < 0.3,
-                   -- tasty-bench >= 0.2     && <= 0.3,
+                   -- gauge       >= 0.2     && < 0.3,
+                   tasty-bench >= 0.2     && <= 0.3,
                    mtl         >= 2.2     && < 2.3,
                    text        >= 1.1.1.0 && < 1.3,
                    time,
                    deepseq
+  -- we increase heap size to avoid benchmarking garbage collection:
+  ghc-options:     -rtsopts -with-rtsopts=-A256m -threaded
