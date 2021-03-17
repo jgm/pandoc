@@ -15,6 +15,9 @@ endif
 GHCOPTS=-fdiagnostics-color=always -j4 +RTS -A256m -RTS
 WEBSITE=../../web/pandoc.org
 REVISION?=1
+# Note: for benchmarks we use +RTS -A256m -I0 -RTS ; otherwise the benchmarks
+# are measuring garbage collecting, and this can vary depending on which
+# other benchmarks are run.
 # For gauge:
 BENCHARGS?=--small --ci=0.90 --match=pattern $(PATTERN) +RTS -T -A256m -I0 -RTS
 # For tasty-bench:
