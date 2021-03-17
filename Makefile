@@ -21,7 +21,7 @@ BENCHARGS?=--small --ci=0.90 --match=pattern $(PATTERN) +RTS -T -A256m -I0 -RTS
 # BENCHARGS?=--csv bench_$(TIMESTAMP).csv --timeout=6 +RTS -T -A256m -I0 -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 
 quick:
-	stack install --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --ghc-options='$(GHCOPTS)' --test-arguments='-j4 --hide-successes $(TESTARGS)'
+	stack install --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --static --fast --test --ghc-options='$(GHCOPTS)' --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 quick-cabal:
 	cabal new-configure . --ghc-options '$(GHCOPTS)' --disable-optimization --enable-tests
