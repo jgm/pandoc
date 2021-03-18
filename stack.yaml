@@ -2,6 +2,8 @@ flags:
   pandoc:
     trypandoc: false
     embed_data_files: true
+  QuickCheck:
+    old-random: false
 packages:
 - '.'
 extra-deps:
@@ -13,6 +15,7 @@ extra-deps:
 - doclayout-0.3.0.2
 - citeproc-0.3.0.9
 - texmath-0.12.2
+- random-1.2.0
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-17.5
