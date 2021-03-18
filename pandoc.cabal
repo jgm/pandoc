@@ -833,4 +833,4 @@ benchmark benchmark-pandoc
                    time,
                    deepseq
   -- we increase heap size to avoid benchmarking garbage collection:
-  ghc-options:     -rtsopts -with-rtsopts=-A256m -threaded
+  ghc-options:     -rtsopts -with-rtsopts=-A8m -threaded
