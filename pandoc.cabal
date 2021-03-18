@@ -426,7 +426,7 @@ common common-options
 common common-executable
   import:           common-options
   build-depends:    pandoc
-  ghc-options:      -rtsopts -with-rtsopts=-K16m -threaded
+  ghc-options:      -rtsopts -with-rtsopts=-K16m -with-rtsopts=-A8m -threaded
 
 
 library
