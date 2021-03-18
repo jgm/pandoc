@@ -49,6 +49,8 @@ done
 # At this point you can connect via SSH, or run this script:
 # $ ssh -i ~/.ssh/debian-arm-us-east-2.pem admin@$IPADDR
 
+ssh -o "StrictHostKeyChecking=no" -i "~/.ssh/$KEY_NAME.pem" admin@$IPADDR uname -a
+
 SSH="ssh -i ~/.ssh/$KEY_NAME.pem admin@$IPADDR"
 
 echo "Provisioning..."
