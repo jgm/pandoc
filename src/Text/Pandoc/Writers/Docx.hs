@@ -36,7 +36,6 @@ import qualified Data.Text.Lazy as TL
 import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
-import System.Random (randomRs, mkStdGen)
 import Text.Pandoc.BCP47 (getLang, renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class.PandocMonad as P
@@ -695,8 +694,7 @@ baseListId = 1000
 mkNumbering :: [ListMarker] -> [Element]
 mkNumbering lists =
   elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
-    where elts = zipWith mkAbstractNum (ordNub lists) $
-                     randomRs (0x10000000, 0xFFFFFFFF) $ mkStdGen 1848
+    where elts = map mkAbstractNum (ordNub lists)
 
 maxListLevel :: Int
 maxListLevel = 8
@@ -713,10 +711,10 @@ mkNum marker numid =
               $ mknode "w:startOverride" [("w:val",tshow start)] ())
                 [0..maxListLevel]
 
-mkAbstractNum :: ListMarker -> Integer -> Element
-mkAbstractNum marker nsid =
+mkAbstractNum :: ListMarker -> Element
+mkAbstractNum marker =
   mknode "w:abstractNum" [("w:abstractNumId",listMarkerToId marker)]
-    $ mknode "w:nsid" [("w:val", T.pack $ printf "%8x" nsid)] ()
+    $ mknode "w:nsid" [("w:val", "A" <> listMarkerToId marker)] ()
     : mknode "w:multiLevelType" [("w:val","multilevel")] ()
     : map (mkLvl marker)
       [0..maxListLevel]
