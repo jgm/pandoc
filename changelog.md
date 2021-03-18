@@ -1,5 +1,98 @@
 # Revision history for pandoc
 
+## pandoc 2.12.1 (PROVISIONAL)
+
+  * Handle `nocite` better with `--biblatex` and `--natbib` (#4585).
+    Previously the nocite metadata field was ignored with
+    these formats.  Now it populates a `nocite-ids` template
+    variable and causes a `\nocite` command to be issued.
+
+  * Text.Pandoc.Citeproc: apply `fixLinks` correctly (#7130).  This is code
+    that incorporates a prefix like `https://doi.org/` into a following link
+    when appropriate.
+
+  * Markdown reader: Fix regression with `tex_math_backslash` in
+    Markdown reader (#7155).
+
+  * MediaWiki reader: Allow block-level content in notes (ref) (#7145).
+
+  * Jira reader (Albert Krewinkel):
+
+    + Fixed parsing of autolinks (i.e., of bare URLs in the text).
+      Previously an autolink would take up the rest of a line, as spaces
+      were allowed characters in these items.
+    + Emoji character sequences no longer cause parsing failures. This was
+      due to missing backtracking when emoji parsing fails.
+    + Mark divs created from panels with class "panel".
+      (tarleb/jira-wiki-markup#2).
+
+  * RST reader: fix logic for ending comments (#7134).  Previously comments
+    sometimes got extended too far.
+
+  * Docx writer:
+
+    + Make `nsid` in `abstractNum` deterministic.  Previously we assigned
+      a random number, but we don't need random values, so now we just
+      assign a value based on the list marker.
+    + Use integral values for `w:tblW` (#7141).
+
+  * Jira writer (Albert Krewinkel):
+
+    + Block quotes are only rendered as `bq.` if they do not contain a
+      linebreak.
+    + Jira writer: improve div/panel handling.  Include div attributes in
+      panels, always render divs with class `panel` as panels, and
+      avoid nesting of panels.
+
+  * HTML writer: Add warnings on duplicate attribute values.
+    This prevents emitting invalid HTML.  Ultimately it would be good to
+    prevent this in the types themselves, but this is better for now.
+
+  * Org writer: Prevent unintended creation of ordered list items (#7132,
+    Albert Krewinkel).  Adjust line wrapping if default wrapping would cause
+    a line to be read as an ordered list item.
+
+  * JATS templates: support 'equal-contrib' attrib for authors (Albert
+    Krewinkel).  Authors who contributed equally to a paper may be marked
+    with `equal-contrib`.
+
+  * reveal.js template: replace JS comment with HTML (#7154, Florian Kohrt).
+
+  * Text.Pandoc.Shared: Simplify `compactDL`.
+
+  * Text.Pandoc.Logging: Add `DuplicateAttribute` constructor to `LogMessage`.
+    [API change]
+
+  * Use `-j4` for linux release build.  This speeds up the build
+    dramatically on arm.
+
+  * cabal.project: remove `-j`.
+
+  * Require latest texmath, skylighting, citeproc, jira-wiki-markup.
+
+  * Use doclayout 0.3.0.2.  This significantly reduces the time and memory
+    needed to compile pandoc.
+
+  * Use `foldl'` instead of `foldl` everywhere.
+
+  * Update bounds for random (#7156, Alexey Kuleshevich).
+
+  * Benchmark improvements.
+
+    + Build `+RTS -A8m -RTS` into default ghc-options for benchmark.
+      This is necessary to get accurate benchmark results; otherwise
+      we are largely measuring garbage collecting, some not related
+      to the current benchmark.
+    + Allow specifying BASELINE file in 'make bench' for comparison
+      (otherwise the latest benchmark is chosen by default).
+    + Force `readFile` in benchmarks early (Bodigrim).
+
+  * CONTRIBUTING: suggest using a `cabal.project.local` file (#7153,
+    Albert Krewinkel).
+
+  * Add ghcid-test to Makefile.  This loads the test suite in ghcid.
+
+
 ## pandoc 2.12 (2021-03-08)
 
   * `--resource-path` now accumulates if specified multiple
