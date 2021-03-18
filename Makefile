@@ -13,7 +13,7 @@ BASELINECMD=
 else
 BASELINECMD=--baseline $(BASELINE)
 endif
-GHCOPTS=-fdiagnostics-color=always -j4 +RTS -A256m -RTS
+GHCOPTS=-fdiagnostics-color=always -j4 +RTS -A8m -RTS
 WEBSITE=../../web/pandoc.org
 REVISION?=1
 # For gauge:
