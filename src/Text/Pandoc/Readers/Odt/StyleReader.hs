@@ -563,12 +563,13 @@ readListLevelStyle levelType =      readAttr NsText "level"
 
 --
 chooseMostSpecificListLevelStyle :: S.Set ListLevelStyle -> Maybe ListLevelStyle
-chooseMostSpecificListLevelStyle ls | ls == mempty = Nothing
-                                    | otherwise    = Just ( F.foldr1 select ls )
+chooseMostSpecificListLevelStyle ls = F.foldr select Nothing ls
   where
-   select ( ListLevelStyle       t1            p1          s1          f1          b1 )
-          ( ListLevelStyle       t2            p2          s2          f2          _ )
-        =   ListLevelStyle (select' t1 t2) (p1 <|> p2) (s1 <|> s2) (selectLinf f1 f2) b1
+   select l Nothing = Just l
+   select ( ListLevelStyle t1 p1 s1 f1 b1 )
+          ( Just ( ListLevelStyle t2 p2 s2 f2 _ ))
+        =   Just $ ListLevelStyle (select' t1 t2) (p1 <|> p2) (s1 <|> s2)
+                                  (selectLinf f1 f2) b1
    select' LltNumbered _           = LltNumbered
    select' _           LltNumbered = LltNumbered
    select' _           _           = LltBullet
