@@ -46,26 +46,32 @@ jobs:
           - ghc: '8.0.2'
             cabal: '2.2'
             prefix: 'new-'
+            cabalopts: ''
             testopts: ''
           - ghc: '8.2.2'
             cabal: '2.4'
             prefix: 'v2-'
+            cabalopts: ''
             testopts: ''
           - ghc: '8.4.4'
             cabal: '2.4'
             prefix: 'v2-'
+            cabalopts: '-f-embed_data_files'
             testopts: ''
           - ghc: '8.6.5'
             cabal: '3.2'
             prefix: ''
+            cabalopts: ''
             testopts: '--test-option=--hide-successes'
           - ghc: '8.8.4'
             cabal: '3.2'
             prefix: ''
+            cabalopts: ''
             testopts: '--test-option=--hide-successes'
           - ghc: '8.10.2'
             cabal: '3.2'
             prefix: ''
+            cabalopts: '-ftrypandoc'
             testopts: '--test-option=--hide-successes'
     steps:
     - uses: actions/checkout@v2
@@ -101,14 +107,14 @@ jobs:
     - name: Install dependencies
       run: |
           cabal ${{ matrix.versions.prefix }}update
-          cabal ${{ matrix.versions.prefix }}build --dependencies-only --enable-tests --disable-optimization
+          cabal ${{ matrix.versions.prefix }}build ${{ matrix.versions.cabalopts }} --dependencies-only --enable-tests --disable-optimization
 
     - name: Build and test
       run: |
-          cabal ${{ matrix.versions.prefix }}build --enable-tests --disable-optimization 2>&1 | tee build.log
+          cabal ${{ matrix.versions.prefix }}build ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization 2>&1 | tee build.log
           # fail if warnings in local build
           ! grep -q ": *[Ww]arning:" build.log || exit 1
-          cabal ${{ matrix.versions.prefix }}test --disable-optimization ${{ matrix.versions.testopts }}
+          cabal ${{ matrix.versions.prefix }}test ${{ matrix.versions.cabalopts }} --disable-optimization ${{ matrix.versions.testopts }}
 
   windows:
 
