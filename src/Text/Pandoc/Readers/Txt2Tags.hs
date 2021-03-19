@@ -261,7 +261,7 @@ table = try $ do
   rows <- many1 (many commentLine *> tableRow)
   let columns = transpose rows
   let ncolumns = length columns
-  let aligns = map (foldr1 findAlign . map fst) columns
+  let aligns = map (fromMaybe AlignDefault . foldr findAlign Nothing) columns
   let rows' = map (map snd) rows
   let size = maximum (map length rows')
   let rowsPadded = map (pad size) rows'
@@ -278,10 +278,11 @@ pad :: (Monoid a) => Int -> [a] -> [a]
 pad n xs = xs ++ replicate (n - length xs) mempty
 
 
-findAlign :: Alignment -> Alignment -> Alignment
-findAlign x y
-  | x == y = x
-  | otherwise = AlignDefault
+findAlign :: (Alignment, a) -> Maybe Alignment -> Maybe Alignment
+findAlign (x,_) (Just y)
+  | x == y = Just x
+  | otherwise = Just AlignDefault
+findAlign (x,_) Nothing = Just x
 
 headerRow :: T2T [(Alignment, Blocks)]
 headerRow = genericRow (string "||")
