@@ -50,6 +50,7 @@ import Text.Pandoc.Writers.Math (convertMath)
 import Text.Pandoc.Writers.Powerpoint.Presentation
 import Text.Pandoc.Shared (tshow)
 import Skylighting (fromColor)
+import Safe (minimumDef)
 
 -- |The 'EMU' type is used to specify sizes in English Metric Units.
 type EMU = Integer
@@ -1427,11 +1428,7 @@ presentationToRels pres@(Presentation _ slides) = do
   -- all relWithoutSlide rels (unless they're 1)
   -- 3. If we have a notesmaster slide, we make space for that as well.
 
-  let minRelNotOne = case filter (1<) $ map relId relsWeKeep of
-        [] -> 0                 -- doesn't matter in this case, since
-                                -- there will be nothing to map the
-                                -- function over
-        l  -> minimum l
+  let minRelNotOne = minimumDef 0 $ filter (1 <) $ map relId relsWeKeep
 
       modifyRelNum :: Int -> Int
       modifyRelNum 1 = 1

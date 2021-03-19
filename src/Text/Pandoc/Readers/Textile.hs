@@ -53,6 +53,7 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared (crFilter, trim, tshow)
+import Safe (minimumDef)
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: PandocMonad m
@@ -376,7 +377,8 @@ table = try $ do
                                 (toprow, rest)
                              _ -> (mempty, rawrows)
   let nbOfCols = maximum $ map length (headers:rows)
-  let aligns = map minimum $ transpose $ map (map (snd . fst)) (headers:rows)
+  let aligns = map (minimumDef AlignDefault) $
+                transpose $ map (map (snd . fst)) (headers:rows)
   let toRow = Row nullAttr . map B.simpleCell
       toHeaderRow l = [toRow l | not (null l)]
   return $ B.table (B.simpleCaption $ B.plain caption)
