@@ -24,6 +24,7 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Default
 import Data.List (intersperse, sortOn, transpose)
+import Data.List.NonEmpty (nonEmpty, NonEmpty(..))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Set as Set
@@ -492,19 +493,20 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
            | isEnabled Ext_fenced_code_blocks opts ->
           tildes <> attrs <> cr <> literal str <> cr <> tildes <> blankline
      _ -> nest (writerTabStop opts) (literal str) <> blankline
-   where endline c = literal $ case [T.length ln
-                                   | ln <- map trim (T.lines str)
-                                   , T.pack [c,c,c] `T.isPrefixOf` ln
-                                   , T.all (== c) ln] of
-                               [] -> T.replicate 3 $ T.singleton c
-                               xs -> T.replicate (maximum xs + 1) $ T.singleton c
-         backticks = endline '`'
-         tildes = endline '~'
-         attrs  = if isEnabled Ext_fenced_code_attributes opts
-                     then nowrap $ " " <> attrsToMarkdown attribs
-                     else case attribs of
-                                (_,cls:_,_) -> " " <> literal cls
-                                _             -> empty
+   where
+     endlineLen c = maybe 3 ((+1) . maximum) $ nonEmpty $
+                        [T.length ln
+                         | ln <- map trim (T.lines str)
+                         , T.pack [c,c,c] `T.isPrefixOf` ln
+                         , T.all (== c) ln]
+     endline c = literal $ T.replicate (endlineLen c) $ T.singleton c
+     backticks = endline '`'
+     tildes = endline '~'
+     attrs  = if isEnabled Ext_fenced_code_attributes opts
+                 then nowrap $ " " <> attrsToMarkdown attribs
+                 else case attribs of
+                            (_,cls:_,_) -> " " <> literal cls
+                            _             -> empty
 blockToMarkdown' opts (BlockQuote blocks) = do
   variant <- asks envVariant
   -- if we're writing literate haskell, put a space before the bird tracks
@@ -517,7 +519,7 @@ blockToMarkdown' opts (BlockQuote blocks) = do
   return $ prefixed leader contents <> blankline
 blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
-  let numcols = maximum (length aligns : length widths :
+  let numcols = maximum (length aligns :| length widths :
                            map length (headers:rows))
   caption' <- inlineListToMarkdown opts caption
   let caption''
@@ -619,7 +621,8 @@ pipeTable headless aligns rawHeaders rawRows = do
       blockFor AlignCenter x y = cblock (x + 2) (sp <> y <> sp) <> lblock 0 empty
       blockFor AlignRight  x y = rblock (x + 2) (y <> sp) <> lblock 0 empty
       blockFor _           x y = lblock (x + 2) (sp <> y) <> lblock 0 empty
-  let widths = map (max 3 . maximum . map offset) $ transpose (rawHeaders : rawRows)
+  let widths = map (max 3 . maybe 3 maximum . nonEmpty . map offset) $
+                     transpose (rawHeaders : rawRows)
   let torow cs = nowrap $ literal "|" <>
                     hcat (intersperse (literal "|") $
                           zipWith3 blockFor aligns widths (map chomp cs))
@@ -653,11 +656,11 @@ pandocTable opts multiline headless aligns widths rawHeaders rawRows = do
   -- Number of characters per column necessary to output every cell
   -- without requiring a line break.
   -- The @+2@ is needed for specifying the alignment.
-  let numChars    = (+ 2) . maximum . map offset
+  let numChars    = (+ 2) . maybe 0 maximum . nonEmpty . map offset
   -- Number of characters per column necessary to output every cell
   -- without requiring a line break *inside a word*.
   -- The @+2@ is needed for specifying the alignment.
-  let minNumChars = (+ 2) . maximum . map minOffset
+  let minNumChars = (+ 2) . maybe 0 maximum . nonEmpty . map minOffset
   let columns = transpose (rawHeaders : rawRows)
   -- minimal column width without wrapping a single word
   let relWidth w col =

@@ -17,6 +17,7 @@ module Text.Pandoc.Readers.Haddock
 
 import Control.Monad.Except (throwError)
 import Data.List (intersperse)
+import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, unpack)
 import qualified Data.Text as T
@@ -92,7 +93,7 @@ docHToBlocks d' =
                   then ([], map toCells bodyRows)
                   else (toCells (head headerRows),
                         map toCells (tail headerRows ++ bodyRows))
-             colspecs = replicate (maximum (map length body))
+             colspecs = replicate (maybe 0 maximum (nonEmpty (map length body)))
                              (AlignDefault, ColWidthDefault)
          in  B.table B.emptyCaption
                      colspecs

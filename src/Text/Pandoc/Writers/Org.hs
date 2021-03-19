@@ -19,6 +19,7 @@ module Text.Pandoc.Writers.Org (writeOrg) where
 import Control.Monad.State.Strict
 import Data.Char (isAlphaNum, isDigit)
 import Data.List (intersect, intersperse, partition, transpose)
+import Data.List.NonEmpty (nonEmpty)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
@@ -163,7 +164,7 @@ blockToOrg (Table _ blkCapt specs thead tbody tfoot) =  do
                    else "#+caption: " <> caption''
   headers' <- mapM blockListToOrg headers
   rawRows <- mapM (mapM blockListToOrg) rows
-  let numChars = maximum . map offset
+  let numChars = maybe 0 maximum . nonEmpty . map offset
   -- FIXME: width is not being used.
   let widthsInChars =
        map numChars $ transpose (headers' : rawRows)
@@ -198,7 +199,7 @@ blockToOrg (OrderedList (start, _, delim) items) = do
                     x         -> x
   let markers = take (length items) $ orderedListMarkers
                                       (start, Decimal, delim')
-  let maxMarkerLength = maximum $ map T.length markers
+  let maxMarkerLength = maybe 0 maximum . nonEmpty $ map T.length markers
   let markers' = map (\m -> let s = maxMarkerLength - T.length m
                             in  m <> T.replicate s " ") markers
   contents <- zipWithM orderedListItemToOrg markers' items

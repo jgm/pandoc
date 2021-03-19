@@ -16,6 +16,7 @@ module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Control.Monad.State.Strict
 import Data.Char (ord, isDigit)
 import Data.List (intersperse)
+import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -228,8 +229,9 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
                         Period       -> "stopper=."
                         OneParen     -> "stopper=)"
                         TwoParens    -> "left=(,stopper=)"
-    let width = maximum $ map T.length $ take (length contents)
-                          (orderedListMarkers (start, style', delim))
+    let width = maybe 0 maximum $ nonEmpty $ map T.length $
+                  take (length contents)
+                       (orderedListMarkers (start, style', delim))
     let width' = (toEnum width + 1) / 2
     let width'' = if width' > (1.5 :: Double)
                      then "width=" <> tshow width' <> "em"

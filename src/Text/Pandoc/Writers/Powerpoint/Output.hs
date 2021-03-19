@@ -475,15 +475,16 @@ registerLink link = do
   linkReg <- gets stLinkIds
   mediaReg <- gets stMediaIds
   hasSpeakerNotes <- curSlideHasSpeakerNotes
-  let maxLinkId = case M.lookup curSlideId linkReg of
-        Just mp -> case M.keys mp of
-          [] -> if hasSpeakerNotes then 2 else 1
-          ks -> maximum ks
-        Nothing -> if hasSpeakerNotes then 2 else 1
-      maxMediaId = case M.lookup curSlideId mediaReg of
-        Just [] -> if hasSpeakerNotes then 2 else 1
-        Just mInfos -> maximum $ map mInfoLocalId mInfos
-        Nothing -> if hasSpeakerNotes then 2 else 1
+  let maxLinkId = case M.lookup curSlideId linkReg >>= nonEmpty . M.keys of
+        Just xs -> maximum xs
+        Nothing
+          | hasSpeakerNotes -> 2
+          | otherwise       -> 1
+      maxMediaId = case M.lookup curSlideId mediaReg >>= nonEmpty of
+        Just mInfos -> maximum $ fmap mInfoLocalId mInfos
+        Nothing
+          | hasSpeakerNotes -> 2
+          | otherwise       -> 1
       maxId = max maxLinkId maxMediaId
       slideLinks = case M.lookup curSlideId linkReg of
         Just mp -> M.insert (maxId + 1) link mp
@@ -498,20 +499,19 @@ registerMedia fp caption = do
   mediaReg <- gets stMediaIds
   globalIds <- gets stMediaGlobalIds
   hasSpeakerNotes <- curSlideHasSpeakerNotes
-  let maxLinkId = case M.lookup curSlideId linkReg of
-        Just mp -> case M.keys mp of
-          [] -> if hasSpeakerNotes then 2 else 1
-          ks -> maximum ks
-        Nothing -> if hasSpeakerNotes then 2 else 1
-      maxMediaId = case M.lookup curSlideId mediaReg of
-        Just [] -> if hasSpeakerNotes then 2 else 1
-        Just mInfos -> maximum $ map mInfoLocalId mInfos
-        Nothing -> if hasSpeakerNotes then 2 else 1
+  let maxLinkId = case M.lookup curSlideId linkReg >>= nonEmpty . M.keys of
+          Just ks -> maximum ks
+          Nothing
+            | hasSpeakerNotes -> 2
+            | otherwise       -> 1
+      maxMediaId = case M.lookup curSlideId mediaReg >>= nonEmpty of
+          Just mInfos -> maximum $ fmap mInfoLocalId mInfos
+          Nothing
+            | hasSpeakerNotes -> 2
+            | otherwise       -> 1
       maxLocalId = max maxLinkId maxMediaId
 
-      maxGlobalId = case M.elems globalIds of
-        [] -> 0
-        ids -> maximum ids
+      maxGlobalId = maybe 0 maximum $ nonEmpty $ M.elems globalIds
 
   (imgBytes, mbMt) <- P.fetchItem $ T.pack fp
   let imgExt = (mbMt >>= extensionFromMimeType >>= (\x -> return $ "." <> x))

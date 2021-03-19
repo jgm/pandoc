@@ -23,6 +23,7 @@ module Text.Pandoc.Writers.Ms ( writeMs ) where
 import Control.Monad.State.Strict
 import Data.Char (isLower, isUpper, ord)
 import Data.List (intercalate, intersperse)
+import Data.List.NonEmpty (nonEmpty)
 import qualified Data.Map as Map
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
@@ -274,8 +275,7 @@ blockToMs opts (BulletList items) = do
   return (vcat contents)
 blockToMs opts (OrderedList attribs items) = do
   let markers = take (length items) $ orderedListMarkers attribs
-  let indent = 2 +
-                     maximum (map T.length markers)
+  let indent = 2 + maybe 0 maximum (nonEmpty (map T.length markers))
   contents <- mapM (\(num, item) -> orderedListItemToMs opts num indent item) $
               zip markers items
   setFirstPara

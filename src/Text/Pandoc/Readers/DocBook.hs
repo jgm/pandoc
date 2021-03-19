@@ -18,6 +18,7 @@ import Data.Either (rights)
 import Data.Foldable (asum)
 import Data.Generics
 import Data.List (intersperse,elemIndex)
+import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (fromMaybe,mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -949,9 +950,8 @@ parseBlock (Elem e) =
                                                      (x >= '0' && x <= '9')
                                                       || x == '.') w
                             if n > 0 then Just n else Nothing
-                      let numrows = case bodyrows of
-                                         [] -> 0
-                                         xs -> maximum $ map length xs
+                      let numrows = maybe 0 maximum $ nonEmpty
+                                                    $ map length bodyrows
                       let aligns = case colspecs of
                                      [] -> replicate numrows AlignDefault
                                      cs -> map toAlignment cs

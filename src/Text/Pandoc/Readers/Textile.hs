@@ -39,6 +39,7 @@ import Control.Monad (guard, liftM)
 import Control.Monad.Except (throwError)
 import Data.Char (digitToInt, isUpper)
 import Data.List (intersperse, transpose, foldl')
+import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup (Tag (..), fromAttrib)
@@ -53,7 +54,6 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared (crFilter, trim, tshow)
-import Data.List.NonEmpty (nonEmpty)
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: PandocMonad m
@@ -376,7 +376,7 @@ table = try $ do
                              (toprow:rest) | any (fst . fst) toprow ->
                                 (toprow, rest)
                              _ -> (mempty, rawrows)
-  let nbOfCols = maximum $ map length (headers:rows)
+  let nbOfCols = maximum $ fmap length (headers :| rows)
   let aligns = map (maybe AlignDefault minimum . nonEmpty) $
                 transpose $ map (map (snd . fst)) (headers:rows)
   let toRow = Row nullAttr . map B.simpleCell

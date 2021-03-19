@@ -31,6 +31,7 @@ import Control.Monad.State.Strict
 import Data.Char (isAlphaNum, isAsciiLower, isAsciiUpper, isDigit, isSpace)
 import Data.Default
 import Data.List (intersperse, transpose)
+import Data.List.NonEmpty (nonEmpty, NonEmpty(..))
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -158,7 +159,8 @@ simpleTable caption headers rows = do
   caption' <- inlineListToMuse caption
   headers' <- mapM blockListToMuse headers
   rows' <- mapM (mapM blockListToMuse) rows
-  let widthsInChars = maximum . map offset <$> transpose (headers' : rows')
+  let widthsInChars = maybe 0 maximum . nonEmpty . map offset <$>
+                       transpose (headers' : rows')
   let hpipeBlocks sep blocks = hcat $ intersperse sep' blocks
         where sep' = lblock (T.length sep) $ literal sep
   let makeRow sep = hpipeBlocks sep . zipWith lblock widthsInChars
@@ -238,7 +240,7 @@ blockToMuse (DefinitionList items) = do
           label' <- local (\env -> env { envOneLine = True, envAfterSpace = True }) $ inlineListToMuse' label
           let ind = offset' label' -- using Text.DocLayout.offset results in round trip failures
           hang ind (nowrap label') . vcat <$> mapM descriptionToMuse defs
-          where offset' d = maximum (0: map T.length
+          where offset' d = maximum (0 :| map T.length
                                          (T.lines $ render Nothing d))
         descriptionToMuse :: PandocMonad m
                           => [Block]
@@ -269,7 +271,8 @@ blockToMuse (Table _ blkCapt specs thead tbody tfoot) =
     (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
     blocksToDoc opts blocks =
       local (\env -> env { envOptions = opts }) $ blockListToMuse blocks
-    numcols = maximum (length aligns : length widths : map length (headers:rows))
+    numcols = maximum
+              (length aligns :| length widths : map length (headers:rows))
     isSimple = onlySimpleTableCells (headers : rows) && all (== 0) widths
 blockToMuse (Div _ bs) = flatBlockListToMuse bs
 blockToMuse Null = return empty

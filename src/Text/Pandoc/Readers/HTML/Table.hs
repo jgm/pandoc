@@ -17,6 +17,7 @@ module Text.Pandoc.Readers.HTML.Table (pTable) where
 
 import Control.Applicative ((<|>))
 import Data.Maybe (fromMaybe)
+import Data.List.NonEmpty (nonEmpty)
 import Data.Text (Text)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks)
@@ -216,7 +217,7 @@ normalize widths head' bodies foot = do
   let rows = headRows head' <> concatMap bodyRows bodies <> footRows foot
   let cellWidth (Cell _ _ _ (ColSpan cs) _) = cs
   let rowLength = foldr (\cell acc -> cellWidth cell + acc) 0 . rowCells
-  let ncols = maximum (map rowLength rows)
+  let ncols = maybe 0 maximum $ nonEmpty $ map rowLength rows
   let tblType = tableType (map rowCells rows)
   -- fail on empty table
   if null rows

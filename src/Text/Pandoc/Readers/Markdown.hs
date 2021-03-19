@@ -22,6 +22,7 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
 import Data.List (transpose, elemIndex, sortOn, foldl')
+import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Set as Set
@@ -1364,7 +1365,7 @@ pipeTable = try $ do
   lines' <- many pipeTableRow
   let lines'' = map (take (length aligns) <$>) lines'
   let maxlength = maximum $
-       map (\x -> T.length . stringify $ runF x def) (heads' : lines'')
+       fmap (\x -> T.length . stringify $ runF x def) (heads' :| lines'')
   numColumns <- getOption readerColumns
   let widths = if maxlength > numColumns
                   then map (\len ->

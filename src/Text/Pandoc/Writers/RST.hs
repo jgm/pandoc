@@ -17,6 +17,7 @@ module Text.Pandoc.Writers.RST ( writeRST, flatten ) where
 import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.List (transpose, intersperse, foldl')
+import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -335,7 +336,7 @@ blockToRST (OrderedList (start, style', delim) items) = do
                    then replicate (length items) "#."
                    else take (length items) $ orderedListMarkers
                                               (start, style', delim)
-  let maxMarkerLength = maximum $ map T.length markers
+  let maxMarkerLength = maybe 0 maximum $ nonEmpty $ map T.length markers
   let markers' = map (\m -> let s = maxMarkerLength - T.length m
                             in  m <> T.replicate s " ") markers
   contents <- zipWithM orderedListItemToRST markers' items
@@ -761,8 +762,7 @@ simpleTable opts blocksToDoc headers rows = do
                    then return []
                    else fixEmpties <$> mapM (blocksToDoc opts) headers
   rowDocs <- mapM (fmap fixEmpties . mapM (blocksToDoc opts)) rows
-  let numChars [] = 0
-      numChars xs = maximum . map offset $ xs
+  let numChars = maybe 0 maximum . nonEmpty . map offset
   let colWidths = map numChars $ transpose (headerDocs : rowDocs)
   let toRow = mconcat . intersperse (lblock 1 " ") . zipWith lblock colWidths
   let hline = nowrap $ hsep (map (\n -> literal (T.replicate n "=")) colWidths)

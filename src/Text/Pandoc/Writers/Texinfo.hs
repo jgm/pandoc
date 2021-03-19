@@ -16,6 +16,7 @@ import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict
 import Data.Char (chr, ord)
 import Data.List (maximumBy, transpose, foldl')
+import Data.List.NonEmpty (nonEmpty)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -238,9 +239,13 @@ blockToTexinfo (Table _ blkCapt specs thead tbody tfoot) = do
   colDescriptors <-
     if all (== 0) widths
        then do -- use longest entry instead of column widths
-            cols <- mapM (mapM (liftM (T.unpack . render Nothing . hcat) . mapM blockToTexinfo)) $
+            cols <- mapM (mapM (fmap (T.unpack . render Nothing . hcat) .
+                           mapM blockToTexinfo)) $
                         transpose $ heads : rows
-            return $ concatMap ((\x -> "{"++x++"} ") .  maximumBy (comparing length)) cols
+            return $ concatMap
+                ((\x -> "{"++x++"} ") .
+                        maybe "" (maximumBy (comparing length)) . nonEmpty)
+                cols
        else return $ "@columnfractions " ++ concatMap (printf "%.2f ") widths
   let tableBody = text ("@multitable " ++ colDescriptors) $$
                   headers $$

@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 {- |
    Module      : Text.Pandoc.Readers.Txt2Tags
    Copyright   : Copyright (C) 2014 Matthew Pickering
@@ -19,6 +20,7 @@ import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Reader (Reader, asks, runReader)
 import Data.Default
 import Data.List (intercalate, transpose)
+import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -53,14 +55,16 @@ getT2TMeta = do
     inps <- P.getInputFiles
     outp <- fromMaybe "" <$> P.getOutputFile
     curDate <- formatTime defaultTimeLocale "%F" <$> P.getZonedTime
-    let getModTime = fmap (formatTime defaultTimeLocale "%T") .
-                       P.getModificationTime
-    curMtime <- case inps of
-                  [] -> formatTime defaultTimeLocale "%T" <$> P.getZonedTime
-                  _ -> catchError
-                        (maximum <$> mapM getModTime inps)
-                        (const (return ""))
-    return $ T2TMeta (T.pack curDate) (T.pack curMtime) (intercalate ", " inps) outp
+    curMtime <- catchError
+                 ((nonEmpty <$> mapM P.getModificationTime inps) >>=
+                    \case
+                       Nothing ->
+                         formatTime defaultTimeLocale "%T" <$> P.getZonedTime
+                       Just ts -> return $
+                         formatTime defaultTimeLocale "%T" $ maximum ts)
+                (const (return ""))
+    return $ T2TMeta (T.pack curDate) (T.pack curMtime)
+                     (intercalate ", " inps) outp
 
 -- | Read Txt2Tags from an input string returning a Pandoc document
 readTxt2Tags :: PandocMonad m
@@ -263,7 +267,7 @@ table = try $ do
   let ncolumns = length columns
   let aligns = map (fromMaybe AlignDefault . foldr findAlign Nothing) columns
   let rows' = map (map snd) rows
-  let size = maximum (map length rows')
+  let size = maybe 0 maximum $ nonEmpty $ map length rows'
   let rowsPadded = map (pad size) rows'
   let headerPadded = if null tableHeader then mempty else pad size tableHeader
   let toRow = Row nullAttr . map B.simpleCell

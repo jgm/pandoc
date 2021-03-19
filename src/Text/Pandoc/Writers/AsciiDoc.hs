@@ -22,6 +22,7 @@ module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc, writeAsciiDoctor) where
 import Control.Monad.State.Strict
 import Data.Char (isPunctuation, isSpace)
 import Data.List (intercalate, intersperse)
+import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Set as Set
 import qualified Data.Text as T
@@ -274,7 +275,7 @@ blockToAsciiDoc opts block@(Table _ blkCapt specs thead tbody tfoot) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then writerColumns opts
                     else 100000
-  let maxwidth = maximum $ map offset (head':rows')
+  let maxwidth = maximum $ fmap offset (head' :| rows')
   let body = if maxwidth > colwidth then vsep rows' else vcat rows'
   let border = separator <> text "==="
   return $ 

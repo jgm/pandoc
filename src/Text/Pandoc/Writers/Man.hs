@@ -16,6 +16,7 @@ Conversion of 'Pandoc' documents to roff man page format.
 module Text.Pandoc.Writers.Man ( writeMan ) where
 import Control.Monad.State.Strict
 import Data.List (intersperse)
+import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -175,8 +176,7 @@ blockToMan opts (BulletList items) = do
   return (vcat contents)
 blockToMan opts (OrderedList attribs items) = do
   let markers = take (length items) $ orderedListMarkers attribs
-  let indent = 1 +
-                     maximum (map T.length markers)
+  let indent = 1 + maybe 0 maximum (nonEmpty (map T.length markers))
   contents <- mapM (\(num, item) -> orderedListItemToMan opts num indent item) $
               zip markers items
   return (vcat contents)
