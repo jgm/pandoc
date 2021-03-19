@@ -85,6 +85,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
+import Data.List.NonEmpty (nonEmpty)
 
 readDocx :: PandocMonad m
          => ReaderOptions
@@ -648,11 +649,6 @@ bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
   cells <- mapM rowToBlocksList rows
 
   let width = maybe 0 maximum $ nonEmpty $ map rowLength parts
-      -- Data.List.NonEmpty is not available with ghc 7.10 so we roll out
-      -- our own, see
-      -- https://github.com/jgm/pandoc/pull/4361#issuecomment-365416155
-      nonEmpty [] = Nothing
-      nonEmpty l  = Just l
       rowLength :: Docx.Row -> Int
       rowLength (Docx.Row c) = length c
 
