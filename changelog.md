@@ -3,16 +3,15 @@
 ## pandoc 2.12.1 (PROVISIONAL)
 
   * Handle `nocite` better with `--biblatex` and `--natbib` (#4585).
-    Previously the nocite metadata field was ignored with
-    these formats.  Now it populates a `nocite-ids` template
-    variable and causes a `\nocite` command to be issued.
+    Previously the nocite metadata field was ignored with these formats.
+    Now it populates a `nocite-ids` template variable and causes a
+    `\nocite` command to be issued.
 
   * Text.Pandoc.Citeproc: apply `fixLinks` correctly (#7130).  This is code
     that incorporates a prefix like `https://doi.org/` into a following link
     when appropriate.
 
-  * Markdown reader: Fix regression with `tex_math_backslash` in
-    Markdown reader (#7155).
+  * Markdown reader: Fix regression with `tex_math_backslash` (#7155).
 
   * MediaWiki reader: Allow block-level content in notes (ref) (#7145).
 
@@ -24,7 +23,6 @@
     + Emoji character sequences no longer cause parsing failures. This was
       due to missing backtracking when emoji parsing fails.
     + Mark divs created from panels with class "panel".
-      (tarleb/jira-wiki-markup#2).
 
   * RST reader: fix logic for ending comments (#7134).  Previously comments
     sometimes got extended too far.
