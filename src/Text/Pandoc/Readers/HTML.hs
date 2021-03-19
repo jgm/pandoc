@@ -32,6 +32,7 @@ import Data.Char (isAlphaNum, isLetter)
 import Data.Default (Default (..), def)
 import Data.Foldable (for_)
 import Data.List.Split (splitWhen)
+import Data.List (foldl')
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Monoid (First (..))
@@ -360,7 +361,10 @@ pDefListItem = try $ do
   terms <- many1 (try $ skipMany nonItem >> pInTags "dt" inline)
   defs  <- many1 (try $ skipMany nonItem >> pInTags "dd" block)
   skipMany nonItem
-  let term = foldl1 (\x y -> x <> B.linebreak <> y) $ map trimInlines terms
+  let term = foldl' (\x y -> if null x
+                                then trimInlines y
+                                else x <> B.linebreak <> trimInlines y)
+                    mempty terms
   return (term, map (fixPlains True) defs)
 
 fixPlains :: Bool -> Blocks -> Blocks
