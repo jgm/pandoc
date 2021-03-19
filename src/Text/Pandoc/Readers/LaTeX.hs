@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PatternGuards         #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -97,11 +96,7 @@ parseLaTeX = do
   let doc' = doc bs
   let headerLevel (Header n _ _) = [n]
       headerLevel _              = []
-#if MIN_VERSION_safe(0,3,18)
   let bottomLevel = minimumBound 1 $ query headerLevel doc'
-#else
-  let bottomLevel = minimumDef 1 $ query headerLevel doc'
-#endif
   let adjustHeaders m (Header n attr ils) = Header (n+m) attr ils
       adjustHeaders _ x                   = x
   let (Pandoc _ bs') =
