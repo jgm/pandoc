@@ -68,7 +68,7 @@ import Text.Pandoc.Readers.LaTeX.Inline (acronymCommands, refCommands,
                                          listingsLanguage)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
-import Safe
+import Data.List.NonEmpty (nonEmpty)
 
 -- for debugging:
 -- import Text.Pandoc.Extensions (getDefaultExtensions)
@@ -96,7 +96,7 @@ parseLaTeX = do
   let doc' = doc bs
   let headerLevel (Header n _ _) = [n]
       headerLevel _              = []
-  let bottomLevel = minimumDef 1 $ query headerLevel doc'
+  let bottomLevel = maybe 1 minimum $ nonEmpty $ query headerLevel doc'
   let adjustHeaders m (Header n attr ils) = Header (n+m) attr ils
       adjustHeaders _ x                   = x
   let (Pandoc _ bs') =

@@ -39,7 +39,7 @@ import Data.Functor (($>))
 import Data.List (foldl', intersperse)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
-import Safe (minimumDef)
+import Data.List.NonEmpty (nonEmpty)
 
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
@@ -543,7 +543,7 @@ include = try $ do
     in case (minlvl >>= safeRead :: Maybe Int) of
          Nothing -> blks
          Just lvl -> let levels = Walk.query headerLevel blks
-                         curMin = minimumDef 0 levels
+                         curMin = maybe 0 minimum $ nonEmpty levels
                      in Walk.walk (shiftHeader (curMin - lvl)) blks
 
   headerLevel :: Block -> [Int]
