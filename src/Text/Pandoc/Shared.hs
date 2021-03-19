@@ -25,8 +25,6 @@ module Text.Pandoc.Shared (
                      ordNub,
                      findM,
                      -- * Text processing
-                     ToString (..),
-                     ToText (..),
                      tshow,
                      backslashEscapes,
                      escapeStringUsing,
@@ -182,24 +180,6 @@ findM p = foldr go (pure Nothing)
 --
 -- Text processing
 --
-
-class ToString a where
-  toString :: a -> String
-
-instance ToString String where
-  toString = id
-
-instance ToString T.Text where
-  toString = T.unpack
-
-class ToText a where
-  toText :: a -> T.Text
-
-instance ToText String where
-  toText = T.pack
-
-instance ToText T.Text where
-  toText = id
 
 tshow :: Show a => a -> T.Text
 tshow = T.pack . show
