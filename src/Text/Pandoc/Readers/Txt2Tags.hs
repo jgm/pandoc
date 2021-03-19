@@ -56,12 +56,13 @@ getT2TMeta = do
     outp <- fromMaybe "" <$> P.getOutputFile
     curDate <- formatTime defaultTimeLocale "%F" <$> P.getZonedTime
     curMtime <- catchError
-                 ((nonEmpty <$> mapM P.getModificationTime inps) >>=
-                    \case
+                 (mapM P.getModificationTime inps >>=
+                   (\case
                        Nothing ->
                          formatTime defaultTimeLocale "%T" <$> P.getZonedTime
                        Just ts -> return $
                          formatTime defaultTimeLocale "%T" $ maximum ts)
+                    . nonEmpty)
                 (const (return ""))
     return $ T2TMeta (T.pack curDate) (T.pack curMtime)
                      (intercalate ", " inps) outp
