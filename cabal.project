@@ -1,10 +1,6 @@
 packages: pandoc.cabal
-
 tests: True
-
-package pandoc
-  flags: +embed_data_files
-  ghc-options: +RTS -A256m -RTS
+flags: +embed_data_files
 
 -- source-repository-package
 --  type: git
