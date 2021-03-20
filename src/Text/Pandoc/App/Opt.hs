@@ -686,7 +686,8 @@ yamlToMeta (Mapping _ _ m) =
     either (fail . show) return $ runEverything (yamlMap pMetaString m)
   where
     pMetaString = pure . MetaString <$> P.manyChar P.anyChar
-    runEverything p = runPure (P.readWithM p def "")
+    runEverything p =
+      runPure (P.readWithM p (def :: P.ParserState) "")
       >>= fmap (Meta . flip P.runF def)
 yamlToMeta _ = return mempty
 

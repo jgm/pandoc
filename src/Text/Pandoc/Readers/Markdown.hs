@@ -52,6 +52,8 @@ import Text.Pandoc.Readers.Metadata (yamlBsToMeta, yamlBsToRefs)
 
 type MarkdownParser m = ParserT Text ParserState m
 
+type F = Future ParserState
+
 -- | Read markdown from an input string and return a Pandoc document.
 readMarkdown :: PandocMonad m
              => ReaderOptions -- ^ Reader options

@@ -106,8 +106,8 @@ module Text.Pandoc.Readers.Org.Parsing
 import Data.Text (Text)
 import Text.Pandoc.Readers.Org.ParserState
 
-import Text.Pandoc.Parsing hiding (F, anyLine, blanklines, newline,
-                            parseFromString)
+import Text.Pandoc.Parsing hiding (anyLine, blanklines, newline,
+                                   parseFromString)
 import qualified Text.Pandoc.Parsing as P
 
 import Control.Monad (guard)

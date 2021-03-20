@@ -36,7 +36,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (F)
+import Text.Pandoc.Parsing
 import Text.Pandoc.Shared (crFilter, trimr, tshow)
 
 -- | Read Muse from an input string and return a Pandoc document.

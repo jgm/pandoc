@@ -112,7 +112,6 @@ module Text.Pandoc.Parsing ( take1WhileP,
                              citeKey,
                              Parser,
                              ParserT,
-                             F,
                              Future(..),
                              runF,
                              askF,
@@ -228,8 +227,6 @@ type ParserT = ParsecT
 -- in the parser state.
 newtype Future s a = Future { runDelayed :: Reader s a }
   deriving (Monad, Applicative, Functor)
-
-type F = Future ParserState
 
 runF :: Future s a -> s -> a
 runF = runReader . runDelayed
@@ -1169,7 +1166,7 @@ data ParserState = ParserState
       stateInNote            :: Bool,          -- ^ True if parsing note contents
       stateNoteNumber        :: Int,           -- ^ Last note number for citations
       stateMeta              :: Meta,          -- ^ Document metadata
-      stateMeta'             :: F Meta,        -- ^ Document metadata
+      stateMeta'             :: Future ParserState Meta, -- ^ Document metadata
       stateCitations         :: M.Map Text Text, -- ^ RST-style citations
       stateHeaderTable       :: [HeaderType],  -- ^ Ordered list of header types used
       stateIdentifiers       :: Set.Set Text, -- ^ Header identifiers used
@@ -1348,7 +1345,7 @@ data QuoteContext
 
 type NoteTable = [(Text, Text)]
 
-type NoteTable' = M.Map Text (SourcePos, F Blocks)
+type NoteTable' = M.Map Text (SourcePos, Future ParserState Blocks)
 -- used in markdown reader
 
 newtype Key = Key Text deriving (Show, Read, Eq, Ord)
