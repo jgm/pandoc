@@ -354,6 +354,7 @@ getDefaultExtensions "gfm"             = extensionsFromList
   , Ext_strikeout
   , Ext_task_lists
   , Ext_emoji
+  , Ext_yaml_metadata_block
   ]
 getDefaultExtensions "commonmark"      = extensionsFromList
                                           [Ext_raw_html]
@@ -379,6 +380,7 @@ getDefaultExtensions "commonmark_x"    = extensionsFromList
   , Ext_raw_attribute
   , Ext_implicit_header_references
   , Ext_attributes
+  , Ext_yaml_metadata_block
   ]
 getDefaultExtensions "org"             = extensionsFromList
                                           [Ext_citations,
@@ -511,6 +513,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_implicit_header_references
     , Ext_attributes
     , Ext_sourcepos
+    , Ext_yaml_metadata_block
     ]
   getAll "commonmark_x"    = getAll "commonmark"
   getAll "org"             = autoIdExtensions <>

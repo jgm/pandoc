@@ -517,7 +517,7 @@ parseFromString :: (Stream s m Char, IsString s)
                 -> ParserT s st m r
 parseFromString parser str = do
   oldPos <- getPosition
-  setPosition $ initialPos "chunk"
+  setPosition $ initialPos " chunk"
   oldInput <- getInput
   setInput $ fromString $ T.unpack str
   result <- parser

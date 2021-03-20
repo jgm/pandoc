@@ -4240,6 +4240,22 @@ will be interpreted as markdown. For example:
       \renewcommand{\section}[1]{\clearpage\oldsection{#1}}
       ```
 
+Note:  the `yaml_metadata_block` extension works with
+`commonmark` as well as `markdown` (and it is enabled by default
+in `gfm` and `commonmark_x`).  However, in these formats the
+following restrictions apply:
+
+- The YAML metadata block must occur at the beginning of the
+  document (and there can be only one).  If multiple files are
+  given as arguments to pandoc, only the first can be a YAML
+  metadata block.
+
+- The leaf nodes of the YAML structure are parsed in isolation from
+  each other and from the rest of the document.  So, for
+  example,  you can't use a reference link in these contexts
+  if the link definition is somewhere else in the document.
+
+
 ## Backslash escapes
 
 #### Extension: `all_symbols_escapable` ####

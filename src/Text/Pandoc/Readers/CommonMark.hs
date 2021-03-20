@@ -26,13 +26,43 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Options
 import Text.Pandoc.Error
+import Text.Pandoc.Readers.Metadata (yamlMetaBlock)
 import Control.Monad.Except
 import Data.Functor.Identity (runIdentity)
 import Data.Typeable
+import Text.Pandoc.Parsing (runParserT, getPosition, sourceLine,
+                            runF, defaultParserState, take1WhileP, option)
+import qualified Data.Text as T
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
 readCommonMark :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
 readCommonMark opts s
+  | isEnabled Ext_yaml_metadata_block opts
+  , "---" `T.isPrefixOf` s = do
+       let metaValueParser = do
+             inp <- option "" $ take1WhileP (const True)
+             case runIdentity
+                    (commonmarkWith (specFor opts) "metadata value" inp) of
+                    Left _ -> mzero
+                    Right (Cm bls :: Cm () Blocks)
+                             -> return $ return $ B.toMetaValue bls
+       res <- runParserT (do meta <- yamlMetaBlock metaValueParser
+                             pos <- getPosition
+                             return (meta, pos))
+                         defaultParserState "YAML metadata" s
+       case res of
+         Left _ -> readCommonMarkBody opts s
+         Right (meta, pos) -> do
+           let dropLines 0 = id
+               dropLines n = dropLines (n - 1) . T.drop 1 . T.dropWhile (/='\n')
+           let metaLines = sourceLine pos - 1
+           let body = T.replicate metaLines "\n" <> dropLines metaLines s
+           Pandoc _ bs <- readCommonMarkBody opts body
+           return $ Pandoc (runF meta defaultParserState) bs
+  | otherwise = readCommonMarkBody opts s
+
+readCommonMarkBody :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
+readCommonMarkBody opts s
   | isEnabled Ext_sourcepos opts =
     case runIdentity (commonmarkWith (specFor opts) "" s) of
       Left err -> throwError $ PandocParsecError s err
