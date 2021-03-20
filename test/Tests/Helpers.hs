@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {- |
    Module      : Tests.Helpers
@@ -13,6 +14,7 @@ Utility functions for the test suite.
 -}
 module Tests.Helpers ( test
                      , TestResult(..)
+                     , setupEnvironment
                      , showDiff
                      , (=?>)
                      , purely
@@ -25,6 +27,8 @@ import Data.Algorithm.Diff
 import qualified Data.Map as M
 import Data.Text (Text, unpack)
 import System.Exit
+import System.FilePath (takeDirectory)
+import qualified System.Environment as Env
 import Test.Tasty
 import Test.Tasty.HUnit
 import Text.Pandoc.Builder (Blocks, Inlines, doc, plain)
@@ -56,6 +60,25 @@ test fn name (input, expected) =
            diff = getDiff expected' actual'
            dashes "" = replicate 72 '-'
            dashes x  = replicate (72 - length x - 5) '-' ++ " " ++ x ++ " ---"
+
+-- | Set up environment for pandoc command tests.
+setupEnvironment :: FilePath -> IO [(String, String)]
+setupEnvironment testExePath = do
+  mldpath   <- Env.lookupEnv "LD_LIBRARY_PATH"
+  mdyldpath <- Env.lookupEnv "DYLD_LIBRARY_PATH"
+  mpdd <- Env.lookupEnv "pandoc_datadir"
+  -- Note that Cabal sets the pandoc_datadir environment variable
+  -- to point to the source directory, since otherwise getDataFilename
+  -- will look in the data directory into which pandoc will be installed
+  -- (but has not yet been).  So when we spawn a new process with
+  -- pandoc, we need to make sure this environment variable is set.
+  return $ ("PATH",takeDirectory testExePath) :
+           ("TMP",".") :
+           ("LANG","en_US.UTF-8") :
+           ("HOME", "./") :
+           maybe [] ((:[]) . ("pandoc_datadir",)) mpdd ++
+           maybe [] ((:[]) . ("LD_LIBRARY_PATH",)) mldpath ++
+           maybe [] ((:[]) . ("DYLD_LIBRARY_PATH",)) mdyldpath
 
 data TestResult = TestPassed
                 | TestError ExitCode

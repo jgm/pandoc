@@ -1,4 +1,3 @@
-{-# LANGUAGE TupleSections #-}
 {- |
    Module      : Tests.Command
    Copyright   : © 2006-2021 John MacFarlane
@@ -19,9 +18,8 @@ import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import Data.List (isSuffixOf)
 import System.Directory
-import qualified System.Environment as Env
 import System.Exit
-import System.FilePath (takeDirectory, (</>))
+import System.FilePath ((</>))
 import System.IO (hPutStr, stderr)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Process
@@ -38,16 +36,7 @@ execTest :: String    -- ^ Path to test executable
          -> String    -- ^ Input text
          -> IO (ExitCode, String)  -- ^ Exit code and actual output
 execTest testExePath cmd inp = do
-  mldpath   <- Env.lookupEnv "LD_LIBRARY_PATH"
-  mdyldpath <- Env.lookupEnv "DYLD_LIBRARY_PATH"
-  mpdd <- Env.lookupEnv "pandoc_datadir"
-  let env' = ("PATH",takeDirectory testExePath) :
-             ("TMP",".") :
-             ("LANG","en_US.UTF-8") :
-             ("HOME", "./") :
-             maybe [] ((:[]) . ("pandoc_datadir",)) mpdd ++
-             maybe [] ((:[]) . ("LD_LIBRARY_PATH",)) mldpath ++
-             maybe [] ((:[]) . ("DYLD_LIBRARY_PATH",)) mdyldpath
+  env' <- setupEnvironment testExePath
   let pr = (shell (pandocToEmulate True cmd)){ env = Just env' }
   (ec, out', err') <- readCreateProcessWithExitCode pr inp
   -- filter \r so the tests will work on Windows machines
