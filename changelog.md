@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.13 (PROVISIONAL)
+## pandoc 2.13 (2021-03-21)
 
   * Fix fallback to default partials when custom templates are
     used.  If the directory containing a template does not
