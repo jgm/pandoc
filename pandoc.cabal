@@ -748,7 +748,6 @@ test-suite test-pandoc
                   directory         >= 1.2.3   && < 1.4,
                   doctemplates      >= 0.9     && < 0.10,
                   exceptions        >= 0.8     && < 0.11,
-                  executable-path   >= 0.0     && < 0.1,
                   filepath          >= 1.1     && < 1.5,
                   hslua             >= 1.1     && < 1.4,
                   mtl               >= 2.2     && < 2.3,

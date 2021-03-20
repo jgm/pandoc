@@ -13,7 +13,7 @@ module Tests.Command (runTest, tests)
 where
 
 import Data.Algorithm.Diff
-import System.Environment.Executable (getExecutablePath)
+import System.Environment (getExecutablePath)
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import Data.List (isSuffixOf)

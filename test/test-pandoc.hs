@@ -2,12 +2,11 @@
 
 module Main where
 
-import System.Environment (getArgs)
+import System.Environment (getArgs, getExecutablePath)
 import qualified Control.Exception as E
 import Text.Pandoc.App (convertWithOpts, defaultOpts, options,
                         parseOptionsFromArgs)
 import Text.Pandoc.Error (handleError)
-import System.Environment.Executable (getExecutablePath)
 import GHC.IO.Encoding
 import Test.Tasty
 import qualified Tests.Command

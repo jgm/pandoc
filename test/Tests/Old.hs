@@ -14,7 +14,7 @@ module Tests.Old (tests) where
 import Data.Algorithm.Diff
 import System.Exit
 import System.FilePath ((<.>), (</>))
-import System.Environment.Executable (getExecutablePath)
+import System.Environment (getExecutablePath)
 import Text.Pandoc.Process (pipeProcess)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Golden.Advanced (goldenTest)
