@@ -14,6 +14,7 @@ Parse YAML/JSON metadata to 'Pandoc' 'Meta'.
 module Text.Pandoc.Readers.Metadata (
   yamlBsToMeta,
   yamlBsToRefs,
+  yamlMetaBlock,
   yamlMap ) where
 
 import Control.Monad
@@ -30,6 +31,8 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Shared
+import qualified Data.Text.Lazy as TL
+import qualified Text.Pandoc.UTF8 as UTF8
 
 yamlBsToMeta :: (PandocMonad m, HasLastStrPosition st)
              => ParserT Text st m (Future st MetaValue)
@@ -171,3 +174,20 @@ yamlMap pMetaValue o = do
       return $ do
         v' <- fv
         return (k, v')
+
+-- | Parse a YAML metadata block using the supplied 'MetaValue' parser.
+yamlMetaBlock :: (HasLastStrPosition st, PandocMonad m)
+              => ParserT Text st m (Future st MetaValue)
+              -> ParserT Text st m (Future st Meta)
+yamlMetaBlock parser = try $ do
+  string "---"
+  blankline
+  notFollowedBy blankline  -- if --- is followed by a blank it's an HRULE
+  rawYamlLines <- manyTill anyLine stopLine
+  -- by including --- and ..., we allow yaml blocks with just comments:
+  let rawYaml = T.unlines ("---" : (rawYamlLines ++ ["..."]))
+  optional blanklines
+  yamlBsToMeta parser $ UTF8.fromTextLazy $ TL.fromStrict rawYaml
+
+stopLine :: Monad m => ParserT Text st m ()
+stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()

@@ -15,7 +15,6 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Markdown (
   readMarkdown,
-  yamlMetaBlock,
   yamlToMeta,
   yamlToRefs ) where
 
@@ -29,7 +28,6 @@ import Data.Maybe
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
 import qualified Data.ByteString.Lazy as BL
 import System.FilePath (addExtension, takeExtension)
 import Text.HTML.TagSoup hiding (Row)
@@ -47,9 +45,8 @@ import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
                                  isCommentTag, isInlineTag, isTextTag)
 import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
-import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (fromEntities)
-import Text.Pandoc.Readers.Metadata (yamlBsToMeta, yamlBsToRefs)
+import Text.Pandoc.Readers.Metadata (yamlBsToMeta, yamlBsToRefs, yamlMetaBlock)
 
 type MarkdownParser m = ParserT Text ParserState m
 
@@ -275,30 +272,13 @@ pandocTitleBlock = do
                      $ nullMeta
     updateState $ \st -> st{ stateMeta' = stateMeta' st <> meta' }
 
-yamlMetaBlock :: (HasLastStrPosition st, PandocMonad m)
-              => ParserT Text st m (Future st Blocks)
-              -> ParserT Text st m (Future st Meta)
-yamlMetaBlock parser = try $ do
-  string "---"
-  blankline
-  notFollowedBy blankline  -- if --- is followed by a blank it's an HRULE
-  rawYamlLines <- manyTill anyLine stopLine
-  -- by including --- and ..., we allow yaml blocks with just comments:
-  let rawYaml = T.unlines ("---" : (rawYamlLines ++ ["..."]))
-  optional blanklines
-  yamlBsToMeta (fmap B.toMetaValue <$> parser)
-               $ UTF8.fromTextLazy $ TL.fromStrict rawYaml
-
 yamlMetaBlock' :: PandocMonad m => MarkdownParser m (F Blocks)
 yamlMetaBlock' = do
   guardEnabled Ext_yaml_metadata_block
-  newMetaF <- yamlMetaBlock parseBlocks
+  newMetaF <- yamlMetaBlock (fmap B.toMetaValue <$> parseBlocks)
   -- Since `<>` is left-biased, existing values are not touched:
   updateState $ \st -> st{ stateMeta' = stateMeta' st <> newMetaF }
   return mempty
-
-stopLine :: PandocMonad m => ParserT Text st m ()
-stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()
 
 mmdTitleBlock :: PandocMonad m => MarkdownParser m ()
 mmdTitleBlock = do
