@@ -45,8 +45,8 @@ import Text.Blaze.Internal (MarkupM (Empty), customLeaf, customParent)
 import Text.DocTemplates (FromContext (lookupContext), Context (..))
 import Text.Blaze.Html hiding (contents)
 import Text.Pandoc.Definition
-import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtmlInline, highlight,
-                                 styleToCss)
+import Text.Pandoc.Highlighting (breezeDark, formatHtmlBlock, formatHtmlInline,
+                                 highlight, styleToCss)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
@@ -322,6 +322,10 @@ pandocToHtml opts (Pandoc meta blocks) = do
                                 Just sty -> defField "highlighting-css"
                                               (T.pack $ styleToCss sty)
                                 Nothing  -> id
+                      else id) .
+                  (if stHighlighting st
+                      then defField "highlighting-css-dark"
+                             (T.pack $ styleToCss breezeDark)
                       else id) .
                   (if stCsl st
                       then defField "csl-css" True .
