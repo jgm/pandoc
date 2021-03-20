@@ -15,6 +15,7 @@ Conversion of markdown-formatted plain text to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Markdown (
   readMarkdown,
+  yamlMetaBlock,
   yamlToMeta,
   yamlToRefs ) where
 
@@ -274,24 +275,29 @@ pandocTitleBlock = do
                      $ nullMeta
     updateState $ \st -> st{ stateMeta' = stateMeta' st <> meta' }
 
-yamlMetaBlock :: PandocMonad m => MarkdownParser m (F Blocks)
-yamlMetaBlock = do
-  guardEnabled Ext_yaml_metadata_block
-  try $ do
-    string "---"
-    blankline
-    notFollowedBy blankline  -- if --- is followed by a blank it's an HRULE
-    rawYamlLines <- manyTill anyLine stopLine
-    -- by including --- and ..., we allow yaml blocks with just comments:
-    let rawYaml = T.unlines ("---" : (rawYamlLines ++ ["..."]))
-    optional blanklines
-    newMetaF <- yamlBsToMeta (fmap B.toMetaValue <$> parseBlocks)
-                $ UTF8.fromTextLazy $ TL.fromStrict rawYaml
-    -- Since `<>` is left-biased, existing values are not touched:
-    updateState $ \st -> st{ stateMeta' = stateMeta' st <> newMetaF }
-    return mempty
+yamlMetaBlock :: (HasLastStrPosition st, PandocMonad m)
+              => ParserT Text st m (Future st Blocks)
+              -> ParserT Text st m (Future st Meta)
+yamlMetaBlock parser = try $ do
+  string "---"
+  blankline
+  notFollowedBy blankline  -- if --- is followed by a blank it's an HRULE
+  rawYamlLines <- manyTill anyLine stopLine
+  -- by including --- and ..., we allow yaml blocks with just comments:
+  let rawYaml = T.unlines ("---" : (rawYamlLines ++ ["..."]))
+  optional blanklines
+  yamlBsToMeta (fmap B.toMetaValue <$> parser)
+               $ UTF8.fromTextLazy $ TL.fromStrict rawYaml
 
-stopLine :: PandocMonad m => MarkdownParser m ()
+yamlMetaBlock' :: PandocMonad m => MarkdownParser m (F Blocks)
+yamlMetaBlock' = do
+  guardEnabled Ext_yaml_metadata_block
+  newMetaF <- yamlMetaBlock parseBlocks
+  -- Since `<>` is left-biased, existing values are not touched:
+  updateState $ \st -> st{ stateMeta' = stateMeta' st <> newMetaF }
+  return mempty
+
+stopLine :: PandocMonad m => ParserT Text st m ()
 stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()
 
 mmdTitleBlock :: PandocMonad m => MarkdownParser m ()
@@ -456,7 +462,7 @@ block :: PandocMonad m => MarkdownParser m (F Blocks)
 block = do
   res <- choice [ mempty <$ blanklines
                , codeBlockFenced
-               , yamlMetaBlock
+               , yamlMetaBlock'
                -- note: bulletList needs to be before header because of
                -- the possibility of empty list items: -
                , bulletList
