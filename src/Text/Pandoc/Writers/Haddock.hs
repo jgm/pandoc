@@ -15,6 +15,7 @@ Haddock:  <http://www.haskell.org/haddock/doc/html/>
 -}
 module Text.Pandoc.Writers.Haddock (writeHaddock) where
 import Control.Monad.State.Strict
+import Data.Char (isAlphaNum)
 import Data.Default
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -71,8 +72,18 @@ notesToHaddock opts notes =
 
 -- | Escape special characters for Haddock.
 escapeString :: Text -> Text
-escapeString = escapeStringUsing haddockEscapes
-  where haddockEscapes = backslashEscapes "\\/'`\"@<"
+escapeString t
+  | T.all isAlphaNum t = t
+  | otherwise = T.concatMap escChar t
+ where
+  escChar '\\' = "\\\\"
+  escChar '/'  = "\\/"
+  escChar '\'' = "\\'"
+  escChar '`'  = "\\`"
+  escChar '"'  = "\\\""
+  escChar '@'  = "\\@"
+  escChar '<'  = "\\<"
+  escChar c    = T.singleton c
 
 -- | Convert Pandoc block element to haddock.
 blockToHaddock :: PandocMonad m

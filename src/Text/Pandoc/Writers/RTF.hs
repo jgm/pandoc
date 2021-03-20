@@ -16,7 +16,7 @@ module Text.Pandoc.Writers.RTF ( writeRTF
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad
 import qualified Data.ByteString as B
-import Data.Char (chr, isDigit, ord)
+import Data.Char (chr, isDigit, ord, isAlphaNum)
 import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -137,15 +137,21 @@ handleUnicode = T.concatMap $ \c ->
 
 -- | Escape special characters.
 escapeSpecial :: Text -> Text
-escapeSpecial = escapeStringUsing $
-  [ ('\t',"\\tab ")
-  , ('\8216',"\\u8216'")
-  , ('\8217',"\\u8217'")
-  , ('\8220',"\\u8220\"")
-  , ('\8221',"\\u8221\"")
-  , ('\8211',"\\u8211-")
-  , ('\8212',"\\u8212-")
-  ] <> backslashEscapes "{\\}"
+escapeSpecial t
+  | T.all isAlphaNum t = t
+  | otherwise          = T.concatMap escChar t
+ where
+  escChar '\t' = "\\tab "
+  escChar '\8216' = "\\u8216'"
+  escChar '\8217' = "\\u8217'"
+  escChar '\8220' = "\\u8220\""
+  escChar '\8221' = "\\u8221\""
+  escChar '\8211' = "\\u8211-"
+  escChar '\8212' = "\\u8212-"
+  escChar '{'     = "\\{"
+  escChar '}'     = "\\}"
+  escChar '\\'    = "\\\\"
+  escChar c       = T.singleton c
 
 -- | Escape strings as needed for rich text format.
 stringToRTF :: Text -> Text

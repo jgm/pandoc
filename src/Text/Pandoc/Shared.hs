@@ -26,8 +26,6 @@ module Text.Pandoc.Shared (
                      findM,
                      -- * Text processing
                      tshow,
-                     backslashEscapes,
-                     escapeStringUsing,
                      elemText,
                      notElemText,
                      stripTrailingNewlines,
@@ -183,17 +181,6 @@ findM p = foldr go (pure Nothing)
 
 tshow :: Show a => a -> T.Text
 tshow = T.pack . show
-
--- | Returns an association list of backslash escapes for the
--- designated characters.
-backslashEscapes :: [Char]    -- ^ list of special characters to escape
-                 -> [(Char, T.Text)]
-backslashEscapes = map (\ch -> (ch, T.pack ['\\',ch]))
-
--- | Escape a string of characters, using an association list of
--- characters and strings.
-escapeStringUsing :: [(Char, T.Text)] -> T.Text -> T.Text
-escapeStringUsing tbl = T.concatMap $ \c -> fromMaybe (T.singleton c) $ lookup c tbl
 
 -- | @True@ exactly when the @Char@ appears in the @Text@.
 elemText :: Char -> T.Text -> Bool

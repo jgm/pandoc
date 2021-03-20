@@ -84,12 +84,15 @@ noteToOrg num note = do
 
 -- | Escape special characters for Org.
 escapeString :: Text -> Text
-escapeString = escapeStringUsing
-               [ ('\x2014',"---")
-               , ('\x2013',"--")
-               , ('\x2019',"'")
-               , ('\x2026',"...")
-               ]
+escapeString t
+  | T.all (\c -> c < '\x2013' || c > '\x2026') t = t
+  | otherwise = T.concatMap escChar t
+  where
+   escChar '\x2013' = "--"
+   escChar '\x2014' = "---"
+   escChar '\x2019' = "'"
+   escChar '\x2026' = "..."
+   escChar c        = T.singleton c
 
 isRawFormat :: Format -> Bool
 isRawFormat f =

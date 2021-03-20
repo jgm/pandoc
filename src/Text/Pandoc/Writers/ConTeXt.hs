@@ -434,9 +434,13 @@ inlineToConTeXt (Link _ txt (src, _)) = do
   put $ st {stNextRef = next + 1}
   let ref = "url" <> tshow next
   contents <-  inlineListToConTeXt txt
+  let escChar '#' = "\\#"
+      escChar '%' = "\\%"
+      escChar c   = T.singleton c
+  let escContextURL = T.concatMap escChar
   return $ "\\useURL"
            <> brackets (literal ref)
-           <> brackets (literal $ escapeStringUsing [('#',"\\#"),('%',"\\%")] src)
+           <> brackets (literal $ escContextURL src)
            <> (if isAutolink
                   then empty
                   else brackets empty <> brackets contents)

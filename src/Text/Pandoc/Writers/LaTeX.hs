@@ -825,7 +825,19 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
         let chr = case "!\"'()*,-./:;?@" \\ T.unpack str of
                        (c:_) -> c
                        []    -> '!'
-        let str' = escapeStringUsing (backslashEscapes "\\{}%~_&#^") str
+        let isEscapable '\\' = True
+            isEscapable '{'  = True
+            isEscapable '}'  = True
+            isEscapable '%'  = True
+            isEscapable '~'  = True
+            isEscapable '_'  = True
+            isEscapable '&'  = True
+            isEscapable '#'  = True
+            isEscapable '^'  = True
+            isEscapable _    = False
+        let escChar c | isEscapable c = T.pack ['\\',c]
+                      | otherwise     = T.singleton c
+        let str' = T.concatMap escChar str
         -- we always put lstinline in a dummy 'passthrough' command
         -- (defined in the default template) so that we don't have
         -- to change the way we escape characters depending on whether

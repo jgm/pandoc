@@ -105,8 +105,11 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
 
 -- | Escape special characters for AsciiDoc.
 escapeString :: Text -> Text
-escapeString = escapeStringUsing escs
-  where escs = backslashEscapes "{"
+escapeString t
+  | T.any (== '{') t = T.concatMap escChar t
+  | otherwise        = t
+  where escChar '{' = "\\{"
+        escChar c   = T.singleton c
 
 -- | Ordered list start parser for use in Para below.
 olMarker :: Parser Text ParserState Char
@@ -496,7 +499,9 @@ inlineToAsciiDoc opts (Quoted qt lst) = do
         | otherwise     -> [Str "``"] ++ lst ++ [Str "''"]
 inlineToAsciiDoc _ (Code _ str) = do
   isAsciidoctor <- gets asciidoctorVariant
-  let contents = literal (escapeStringUsing (backslashEscapes "`") str)
+  let escChar '`' = "\\'"
+      escChar c   = T.singleton c
+  let contents = literal (T.concatMap escChar str)
   return $
     if isAsciidoctor
        then text "`+" <> contents <> "+`"
