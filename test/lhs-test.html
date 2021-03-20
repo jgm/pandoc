@@ -218,16 +218,82 @@
         border-color: #707070;
         color: #d3d3d3;
       }
-      pre, code, div.sourceCode {
-        background-color: #1b1b1b;
-      }
       hr {
         background-color: #d3d3d3;
       }
       tbody, th {
         border-color: #d3d3d3;
       }
-    }
+      pre, code {
+        background-color: #1b1b1b;
+      }
+        pre > code.sourceCode { white-space: pre; position: relative; }
+        pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+        pre > code.sourceCode > span:empty { height: 1.2em; }
+        .sourceCode { overflow: visible; }
+        code.sourceCode > span { color: inherit; text-decoration: inherit; }
+        div.sourceCode { margin: 1em 0; }
+        pre.sourceCode { margin: 0; }
+        @media screen {
+        div.sourceCode { overflow: auto; }
+        }
+        @media print {
+        pre > code.sourceCode { white-space: pre-wrap; }
+        pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+        }
+        pre.numberSource code
+          { counter-reset: source-line 0; }
+        pre.numberSource code > span
+          { position: relative; left: -4em; counter-increment: source-line; }
+        pre.numberSource code > span > a:first-child::before
+          { content: counter(source-line);
+            position: relative; left: -1em; text-align: right; vertical-align: baseline;
+            border: none; display: inline-block;
+            -webkit-touch-callout: none; -webkit-user-select: none;
+            -khtml-user-select: none; -moz-user-select: none;
+            -ms-user-select: none; user-select: none;
+            padding: 0 4px; width: 4em;
+            background-color: #232629;
+            color: #7a7c7d;
+          }
+        pre.numberSource { margin-left: 3em; border-left: 1px solid #7a7c7d;  padding-left: 4px; }
+        div.sourceCode
+          { color: #cfcfc2; background-color: #232629; }
+        @media screen {
+        pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+        }
+        code span { color: #cfcfc2; } /* Normal */
+        code span.al { color: #95da4c; background-color: #4d1f24; font-weight: bold; } /* Alert */
+        code span.an { color: #3f8058; } /* Annotation */
+        code span.at { color: #2980b9; } /* Attribute */
+        code span.bn { color: #f67400; } /* BaseN */
+        code span.bu { color: #7f8c8d; } /* BuiltIn */
+        code span.cf { color: #fdbc4b; font-weight: bold; } /* ControlFlow */
+        code span.ch { color: #3daee9; } /* Char */
+        code span.cn { color: #27aeae; font-weight: bold; } /* Constant */
+        code span.co { color: #7a7c7d; } /* Comment */
+        code span.cv { color: #7f8c8d; } /* CommentVar */
+        code span.do { color: #a43340; } /* Documentation */
+        code span.dt { color: #2980b9; } /* DataType */
+        code span.dv { color: #f67400; } /* DecVal */
+        code span.er { color: #da4453; text-decoration: underline; } /* Error */
+        code span.ex { color: #0099ff; font-weight: bold; } /* Extension */
+        code span.fl { color: #f67400; } /* Float */
+        code span.fu { color: #8e44ad; } /* Function */
+        code span.im { color: #27ae60; } /* Import */
+        code span.in { color: #c45b00; } /* Information */
+        code span.kw { color: #cfcfc2; font-weight: bold; } /* Keyword */
+        code span.op { color: #cfcfc2; } /* Operator */
+        code span.ot { color: #27ae60; } /* Other */
+        code span.pp { color: #27ae60; } /* Preprocessor */
+        code span.re { color: #2980b9; background-color: #153042; } /* RegionMarker */
+        code span.sc { color: #3daee9; } /* SpecialChar */
+        code span.ss { color: #da4453; } /* SpecialString */
+        code span.st { color: #f44f4f; } /* String */
+        code span.va { color: #27aeae; } /* Variable */
+        code span.vs { color: #da4453; } /* VerbatimString */
+        code span.wa { color: #da4453; } /* Warning */
+      }
   </style>
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>

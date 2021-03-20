@@ -158,16 +158,16 @@
         border-color: #707070;
         color: #d3d3d3;
       }
-      pre, code, div.sourceCode {
-        background-color: #1b1b1b;
-      }
       hr {
         background-color: #d3d3d3;
       }
       tbody, th {
         border-color: #d3d3d3;
       }
-    }
+      pre, code {
+        background-color: #1b1b1b;
+      }
+      }
   </style>
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
