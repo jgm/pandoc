@@ -107,6 +107,7 @@ data Opt = Opt
     , optSelfContained         :: Bool    -- ^ Make HTML accessible offline
     , optHtmlQTags             :: Bool    -- ^ Use <q> tags in HTML
     , optHighlightStyle        :: Maybe Text -- ^ Style to use for highlighted code
+    , optHighlightStyleDark    :: Maybe Text -- ^ Style to use for highlighted code in dark mode
     , optSyntaxDefinitions     :: [FilePath]  -- ^ xml syntax defs to load
     , optTopLevelDivision      :: TopLevelDivision -- ^ Type of the top-level divisions
     , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
@@ -417,6 +418,8 @@ doOpt (k',v) = do
       parseYAML v >>= \x -> return (\o -> o{ optHtmlQTags = x })
     "highlight-style" ->
       parseYAML v >>= \x -> return (\o -> o{ optHighlightStyle = x })
+    "highlight-style-dark" ->
+      parseYAML v >>= \x -> return (\o -> o{ optHighlightStyleDark = x })
     "syntax-definition" ->
       (parseYAML v >>= \x ->
                 return (\o -> o{ optSyntaxDefinitions =
@@ -620,6 +623,7 @@ defaultOpts = Opt
     , optSelfContained         = False
     , optHtmlQTags             = False
     , optHighlightStyle        = Just "pygments"
+    , optHighlightStyleDark    = Just "breezeDark"
     , optSyntaxDefinitions     = []
     , optTopLevelDivision      = TopLevelDefault
     , optHTMLMathMethod        = PlainMath

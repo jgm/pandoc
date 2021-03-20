@@ -109,6 +109,7 @@ optToOutputSettings opts = do
                      (optSyntaxDefinitions opts)
 
   hlStyle <- traverse (lookupHighlightStyle . T.unpack) $ optHighlightStyle opts
+  hlStyleDark <- traverse (lookupHighlightStyle . T.unpack) $ optHighlightStyleDark opts
 
   let setVariableM k v = return . setVariable k v
 
@@ -202,6 +203,7 @@ optToOutputSettings opts = do
         , writerListings         = optListings opts
         , writerSlideLevel       = optSlideLevel opts
         , writerHighlightStyle   = hlStyle
+        , writerHighlightStyleDark = hlStyleDark
         , writerSetextHeaders    = optSetextHeaders opts
         , writerEpubSubdirectory = T.pack $ optEpubSubdirectory opts
         , writerEpubMetadata     = epubMetadata

@@ -837,6 +837,12 @@ header when requesting a document from a URL:
     To generate the JSON version of an existing style,
     use `--print-highlight-style`.
 
+`--highlight-style-dark=`*STYLE*|*FILE*
+
+:   Specifies the coloring style to be used in highlighted source code
+    in [dark mode] for HTML-based output formats. The default is `breezeDark`.
+    See `--highlight-style` for more information.
+
 `--print-highlight-style=`*STYLE*|*FILE*
 
 :   Prints a JSON version of a highlighting style, which can
@@ -6202,6 +6208,10 @@ scheme used by the Python library pygments (though pygments is not actually
 used to do the highlighting).  To see a list of highlight styles,
 type `pandoc --list-highlight-styles`.
 
+For HTML-based output formats, the color scheme used for [dark mode]
+can be selected using the `--highlight-style-dark` option.
+It defaults to `breezeDark`.
+
 If you are not satisfied with the predefined styles, you can
 use `--print-highlight-style` to generate a JSON `.theme` file which
 can be modified and used as the argument to `--highlight-style`. To
@@ -6223,6 +6233,7 @@ definitions](https://github.com/KDE/syntax-highlighting/tree/master/data/syntax)
 To disable highlighting, use the `--no-highlight` option.
 
 [skylighting]: https://github.com/jgm/skylighting
+[dark mode]: https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme
 
 # Custom Styles
 
