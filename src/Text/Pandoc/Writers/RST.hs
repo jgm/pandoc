@@ -17,7 +17,7 @@ module Text.Pandoc.Writers.RST ( writeRST, flatten ) where
 import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.List (transpose, intersperse, foldl')
-import Data.List.NonEmpty (nonEmpty)
+import qualified Data.List.NonEmpty as NE
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -336,7 +336,7 @@ blockToRST (OrderedList (start, style', delim) items) = do
                    then replicate (length items) "#."
                    else take (length items) $ orderedListMarkers
                                               (start, style', delim)
-  let maxMarkerLength = maybe 0 maximum $ nonEmpty $ map T.length markers
+  let maxMarkerLength = maybe 0 maximum $ NE.nonEmpty $ map T.length markers
   let markers' = map (\m -> let s = maxMarkerLength - T.length m
                             in  m <> T.replicate s " ") markers
   contents <- zipWithM orderedListItemToRST markers' items
@@ -538,11 +538,15 @@ flatten outer
         collapse f i = appendToLast f $ dropInlineParent i
 
         appendToLast :: [Inline] -> [Inline] -> [Inline]
-        appendToLast [] toAppend = [setInlineChildren outer toAppend]
-        appendToLast flattened toAppend
-          | isOuter lastFlat = init flattened <> [appendTo lastFlat toAppend]
-          | otherwise =  flattened <> [setInlineChildren outer toAppend]
-          where lastFlat = last flattened
+        appendToLast flattened toAppend =
+          case NE.nonEmpty flattened of
+            Nothing -> [setInlineChildren outer toAppend]
+            Just xs ->
+              if isOuter lastFlat
+                 then NE.init xs <> [appendTo lastFlat toAppend]
+                 else flattened <> [setInlineChildren outer toAppend]
+               where
+                lastFlat = NE.last xs
                 appendTo o i = mapNested (<> i) o
                 isOuter i = emptyParent i == emptyParent outer
                 emptyParent i = setInlineChildren i []
@@ -762,7 +766,7 @@ simpleTable opts blocksToDoc headers rows = do
                    then return []
                    else fixEmpties <$> mapM (blocksToDoc opts) headers
   rowDocs <- mapM (fmap fixEmpties . mapM (blocksToDoc opts)) rows
-  let numChars = maybe 0 maximum . nonEmpty . map offset
+  let numChars = maybe 0 maximum . NE.nonEmpty . map offset
   let colWidths = map numChars $ transpose (headerDocs : rowDocs)
   let toRow = mconcat . intersperse (lblock 1 " ") . zipWith lblock colWidths
   let hline = nowrap $ hsep (map (\n -> literal (T.replicate n "=")) colWidths)
