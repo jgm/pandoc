@@ -31,10 +31,10 @@ import Text.Pandoc.Error
 import Text.Pandoc.Parsing hiding (tableWith)
 import Text.Pandoc.Shared
 
-yamlBsToMeta :: PandocMonad m
-             => ParserT Text ParserState m (F MetaValue)
+yamlBsToMeta :: (PandocMonad m, HasLastStrPosition st)
+             => ParserT Text st m (Future st MetaValue)
              -> BL.ByteString
-             -> ParserT Text ParserState m (F Meta)
+             -> ParserT Text st m (Future st Meta)
 yamlBsToMeta pMetaValue bstr = do
   case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
        Right (YAML.Doc (YAML.Mapping _ _ o):_)
@@ -63,11 +63,11 @@ lookupYAML t (YAML.Mapping _ _ m) =
 lookupYAML _ _ = Nothing
 
 -- Returns filtered list of references.
-yamlBsToRefs :: PandocMonad m
-             => ParserT Text ParserState m (F MetaValue)
+yamlBsToRefs :: (PandocMonad m, HasLastStrPosition st)
+             => ParserT Text st m (Future st MetaValue)
              -> (Text -> Bool) -- ^ Filter for id
              -> BL.ByteString
-             -> ParserT Text ParserState m (F [MetaValue])
+             -> ParserT Text st m (Future st [MetaValue])
 yamlBsToRefs pMetaValue idpred bstr =
   case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
        Right (YAML.Doc o@YAML.Mapping{}:_)
@@ -104,10 +104,10 @@ nodeToKey (YAML.Scalar _ (YAML.SStr t))       = Just t
 nodeToKey (YAML.Scalar _ (YAML.SUnknown _ t)) = Just t
 nodeToKey _                                   = Nothing
 
-normalizeMetaValue :: PandocMonad m
-                   => ParserT Text ParserState m (F MetaValue)
+normalizeMetaValue :: (PandocMonad m, HasLastStrPosition st)
+                   => ParserT Text st m (Future st MetaValue)
                    -> Text
-                   -> ParserT Text ParserState m (F MetaValue)
+                   -> ParserT Text st m (Future st MetaValue)
 normalizeMetaValue pMetaValue x =
    -- Note: a standard quoted or unquoted YAML value will
    -- not end in a newline, but a "block" set off with
@@ -129,10 +129,10 @@ checkBoolean t
   | t == T.pack "false" || t == T.pack "False" || t == T.pack "FALSE" = Just False
   | otherwise = Nothing
 
-yamlToMetaValue :: PandocMonad m
-                => ParserT Text ParserState m (F MetaValue)
+yamlToMetaValue :: (PandocMonad m, HasLastStrPosition st)
+                => ParserT Text st m (Future st MetaValue)
                 -> YAML.Node YE.Pos
-                -> ParserT Text ParserState m (F MetaValue)
+                -> ParserT Text st m (Future st MetaValue)
 yamlToMetaValue pMetaValue (YAML.Scalar _ x) =
   case x of
        YAML.SStr t       -> normalizeMetaValue pMetaValue t
@@ -152,10 +152,10 @@ yamlToMetaValue pMetaValue (YAML.Mapping _ _ o) =
   fmap MetaMap <$> yamlMap pMetaValue o
 yamlToMetaValue _ _ = return $ return $ MetaString ""
 
-yamlMap :: PandocMonad m
-        => ParserT Text ParserState m (F MetaValue)
+yamlMap :: (PandocMonad m, HasLastStrPosition st)
+        => ParserT Text st m (Future st MetaValue)
         -> M.Map (YAML.Node YE.Pos) (YAML.Node YE.Pos)
-        -> ParserT Text ParserState m (F (M.Map Text MetaValue))
+        -> ParserT Text st m (Future st (M.Map Text MetaValue))
 yamlMap pMetaValue o = do
     kvs <- forM (M.toList o) $ \(key, v) -> do
              k <- maybe (throwError $ PandocParseError
