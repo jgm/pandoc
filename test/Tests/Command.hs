@@ -40,11 +40,12 @@ execTest :: String    -- ^ Path to test executable
 execTest testExePath cmd inp = do
   mldpath   <- Env.lookupEnv "LD_LIBRARY_PATH"
   mdyldpath <- Env.lookupEnv "DYLD_LIBRARY_PATH"
+  mpdd <- Env.lookupEnv "pandoc_datadir"
   let env' = ("PATH",takeDirectory testExePath) :
              ("TMP",".") :
              ("LANG","en_US.UTF-8") :
              ("HOME", "./") :
-             ("pandoc_datadir", "..") :
+             maybe [] ((:[]) . ("pandoc_datadir",)) mpdd ++
              maybe [] ((:[]) . ("LD_LIBRARY_PATH",)) mldpath ++
              maybe [] ((:[]) . ("DYLD_LIBRARY_PATH",)) mdyldpath
   let pr = (shell (pandocToEmulate True cmd)){ env = Just env' }

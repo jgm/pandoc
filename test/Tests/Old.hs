@@ -321,9 +321,11 @@ testWithNormalize normalizer pandocPath testname opts inp norm =
         getActual   = do
               mldpath   <- Env.lookupEnv "LD_LIBRARY_PATH"
               mdyldpath <- Env.lookupEnv "DYLD_LIBRARY_PATH"
+              mpdd <- Env.lookupEnv "pandoc_datadir"
               let env  = ("TMP",".") :
                          ("LANG","en_US.UTF-8") :
                          ("HOME", "./") :
+                         maybe [] ((:[]) . ("pandoc_datadir",)) mpdd ++
                          maybe [] ((:[]) . ("LD_LIBRARY_PATH",)) mldpath ++
                          maybe [] ((:[]) . ("DYLD_LIBRARY_PATH",)) mdyldpath
 
@@ -335,7 +337,7 @@ testWithNormalize normalizer pandocPath testname opts inp norm =
                    -- filter \r so the tests will work on Windows machines
                  else fail $ "Pandoc failed with error code " ++ show ec
         updateGolden = UTF8.writeFile norm . T.pack
-        options = ["--data-dir=../data","--quiet"] ++ [inp] ++ opts
+        options = ["--quiet"] ++ [inp] ++ opts
 
 compareValues :: FilePath -> [String] -> String -> String -> IO (Maybe String)
 compareValues norm options expected actual = do
