@@ -2,10 +2,17 @@
 
 ## pandoc 2.13 (2021-03-21)
 
-  * Fix fallback to default partials when custom templates are
-    used.  If the directory containing a template does not
-    contain the partial, it should be sought in the default
-    templates, but this was not working properly (#7164).
+  * Support `yaml_metadata_block` extension for `commonmark`, `gfm` (#6537).
+    This supported is a bit more limited than with pandoc's
+    `markdown`.  The YAML block must be the first thing in the input,
+    and the leaf notes are parsed in isolation from the rest of
+    the document.  So, for example, you can't use reference
+    links if the references are defined later in the document.
+
+  * Fix fallback to default partials when custom templates are used.
+    If the directory containing a template does not contain the partial,
+    it should be sought in the default templates, but this was not
+    working properly (#7164).
 
   * Handle `nocite` better with `--biblatex` and `--natbib` (#4585).
     Previously the nocite metadata field was ignored with these formats.
@@ -18,21 +25,29 @@
 
   * Text.Pandoc.Shared:
 
-    + Remove `backslashEscapes`, `escapeStringUsing` [API
-      change].  Replace these inefficient association list
-      lookups with more efficient escaping functions in the
-      writers that used them (for a 10-25% performance boost
+    + Remove `backslashEscapes`, `escapeStringUsing` [API change].  Replace
+      these inefficient association list lookups with more efficient escaping
+      functions in the writers that used them (for a 10-25% performance boost
       in org, haddock, rtf, texinfo writers).
-    + Remove `ToString`, `ToText` typeclasses [API change].
-      These were needed for the transition from String to Text,
-      but they are no longer used and may clash with other
-      things.
+    + Remove `ToString`, `ToText` typeclasses [API change].  These were needed
+      for the transition from String to Text, but they are no longer used and
+      may clash with other things.
     + Simplify `compactDL`.
 
-  * Text.Pandoc.Parsing: Change type of `readWithM` so that it
-    is no longer polymorphic.  The `ToText` class has been
-    removed, and now that we've completed the transition to Text
-    we no longer need this to operate on Strings.
+  * Text.Pandoc.Parsing:
+
+    + Change type of `readWithM` so that it is no longer polymorphic
+      [API change].  The `ToText` class has been removed, and now that we've
+      completed the transition to Text we no longer need this to operate
+      on Strings.
+    + Remove `F` type synonym [API change].  Muse and Org were defining their
+      own `F` anyway.
+
+  * Text.Pandoc.Readers.Metadata:
+
+    + Export `yamlMetaBlock` [API change].
+    + Make `yamlBsToMeta`, `yamlBsToRefs` polymorphic on the parser state
+      [API change].
 
   * Markdown reader: Fix regression with `tex_math_backslash` (#7155).
 
@@ -49,6 +64,11 @@
 
   * RST reader: fix logic for ending comments (#7134).  Previously comments
     sometimes got extended too far.
+
+  * DocBook writer:  include Header attributes as XML attributes on
+    section (Erik Rask).  Attributes with key names that are not allowed
+    as XML attributes are dropped, as are attributes with invalid values
+    and `xml:id` (DocBook 5) and `id` (DocBook 4).
 
   * Docx writer:
 
@@ -82,17 +102,16 @@
   * Text.Pandoc.Logging: Add `DuplicateAttribute` constructor to `LogMessage`.
     [API change]
 
-  * Use `-j4` for linux release build.  This speeds up the build
-    dramatically on arm.
+  * Use `-j4` for linux release build.  This speeds up the build dramatically
+    on arm.
 
-  * cabal.project: remove ghcoptions.  Move flags to top level, so
-    they can be set differently on the command line.
+  * cabal.project: remove ghcoptions.  Move flags to top level, so they can
+    be set differently on the command line.
 
   * Require latest texmath, skylighting, citeproc, jira-wiki-markup.
-    (The latest skylighting fixes a bad bug with Haskell syntax
-    highlighting.)  Narrow version bounds for texmath,
-    skylighting, and citeproc, since the test output depend on
-    them.
+    (The latest skylighting fixes a bad bug with Haskell syntax highlighting.)
+    Narrow version bounds for texmath, skylighting, and citeproc, since
+    the test output depend on them.
 
   * Use doclayout 0.3.0.2.  This significantly reduces the time and memory
     needed to compile pandoc.
@@ -107,22 +126,20 @@
 
   * Test improvements:
 
-    + Use `getExecutablePath` from base, avoiding the dependency
-      on `executable-path`.
-    + Factor out `setupEnvironment` in Helpers, to avoid code
-      duplication.
-    + Fix finding of data files by setting teh `pandoc_datadir`
-      environment variable when we shell out to pandoc. This
-      avoids the need to use `--data-dir` for the tests, which
-      caused problems finding `pandoc.lua` when compiling
-      without the `embed_data_files` flag (#7163).
+    + Use `getExecutablePath` from base, avoiding the dependency on
+      `executable-path`.
+    + Factor out `setupEnvironment` in Helpers, to avoid code duplication.
+    + Fix finding of data files by setting teh `pandoc_datadir` environment
+      variable when we shell out to pandoc. This avoids the need to use
+      `--data-dir` for the tests, which caused problems finding `pandoc.lua`
+      when compiling without the `embed_data_files` flag (#7163).
 
   * Benchmark improvements:
 
     + Build `+RTS -A8m -RTS` into default ghc-options for benchmark.
-      This is necessary to get accurate benchmark results; otherwise
-      we are largely measuring garbage collecting, some not related
-      to the current benchmark.
+      This is necessary to get accurate benchmark results; otherwise we
+      are largely measuring garbage collecting, some not related to the
+      current benchmark.
     + Allow specifying BASELINE file in 'make bench' for comparison
       (otherwise the latest benchmark is chosen by default).
     + Force `readFile` in benchmarks early (Bodigrim).

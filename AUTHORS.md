@@ -35,6 +35,7 @@
 - Benoit Schweblin
 - Bjorn Buckwalter
 - Blake Eryx
+- Bodigrim
 - Bradley Kuhn
 - Brent Yorgey
 - Brian Leung
@@ -77,6 +78,7 @@
 - Emerson Harkin
 - Emily Eisenberg
 - Eric Kow
+- Erik Rask
 - Eric Seidel
 - Eric Schrijver
 - Ethan Riley
@@ -86,6 +88,7 @@
 - Florian Beeres
 - Florian Eitel
 - Florian Klink
+- Florian Kohrt
 - Francesco Occhipinti
 - François Gannaz
 - Frederik Elwert
