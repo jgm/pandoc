@@ -10,8 +10,8 @@ extra-deps:
 - hslua-1.3.0
 - hslua-module-path-0.1.0
 - jira-wiki-markup-1.3.4
-- skylighting-core-0.10.5
-- skylighting-0.10.5
+- skylighting-core-0.10.5.1
+- skylighting-0.10.5.1
 - doclayout-0.3.0.2
 - citeproc-0.3.0.9
 - texmath-0.12.2
