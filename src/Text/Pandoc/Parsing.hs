@@ -195,13 +195,13 @@ import Data.Default
 import Data.Functor (($>))
 import Data.List (intercalate, transpose)
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, fromMaybe)
+import Data.Maybe (fromMaybe)
 import qualified Data.Set as Set
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup.Entity (lookupEntity)
-import Text.Pandoc.Asciify (toAsciiChar)
+import Text.Pandoc.Asciify (toAsciiText)
 import Text.Pandoc.Builder (Blocks, HasMeta (..), Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad, readFileFromDirs, report)
@@ -1380,7 +1380,7 @@ registerHeader (ident,classes,kvs) header' = do
      then do
        let id' = uniqueIdent exts (B.toList header') ids
        let id'' = if Ext_ascii_identifiers `extensionEnabled` exts
-                     then T.pack $ mapMaybe toAsciiChar $ T.unpack id'
+                     then toAsciiText id'
                      else id'
        updateState $ updateIdentifierList $ Set.insert id'
        updateState $ updateIdentifierList $ Set.insert id''

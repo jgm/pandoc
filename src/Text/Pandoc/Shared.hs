@@ -123,7 +123,7 @@ import Text.HTML.TagSoup (RenderOptions (..), Tag (..), renderOptions,
 import Text.Pandoc.Builder (Blocks, Inlines, ToMetaValue (..))
 import qualified Text.Pandoc.Builder as B
 import Data.Time
-import Text.Pandoc.Asciify (toAsciiChar)
+import Text.Pandoc.Asciify (toAsciiText)
 import Text.Pandoc.Definition
 import Text.Pandoc.Extensions (Extensions, Extension(..), extensionEnabled)
 import Text.Pandoc.Generic (bottomUp)
@@ -478,7 +478,7 @@ inlineListToIdentifier exts =
       | otherwise = T.dropWhile (not . isAlpha)
     filterAscii
       | extensionEnabled Ext_ascii_identifiers exts
-        = T.pack . mapMaybe toAsciiChar . T.unpack
+        = toAsciiText
       | otherwise = id
     toIdent
       | extensionEnabled Ext_gfm_auto_identifiers exts =
