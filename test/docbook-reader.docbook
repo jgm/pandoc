@@ -6,7 +6,9 @@
 <!ENTITY let "LET" >
 <!ENTITY case "CASE" >
 ]>
-<article>
+<article xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:mml="http://www.w3.org/1998/Math/MathML">
   <articleinfo>
     <title>Pandoc Test Suite</title>
     <authorgroup>

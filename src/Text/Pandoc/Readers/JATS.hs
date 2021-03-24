@@ -491,7 +491,8 @@ parseInline (Elem e) =
 
         "disp-formula" -> formula displayMath
         "inline-formula" -> formula math
-        "math" | qPrefix (elName e) == Just "mml" -> return . math $ mathML e
+        "math" | qURI (elName e) == Just "http://www.w3.org/1998/Math/MathML"
+                   -> return . math $ mathML e
         "tex-math" -> return . math $ textContent e
 
         "email" -> return $ link ("mailto:" <> textContent e) ""
@@ -514,8 +515,9 @@ parseInline (Elem e) =
                             filterChildren isMathML whereToLook
             return . mconcat . take 1 . map constructor $ texMaths ++ mathMLs
 
-         isMathML x = qName   (elName x) == "math" &&
-                      qPrefix (elName x) == Just "mml"
+         isMathML x = qName (elName x) == "math" &&
+                      qURI  (elName x) ==
+                                      Just "http://www.w3.org/1998/Math/MathML"
          removePrefix elname = elname { qPrefix = Nothing }
          codeWithLang = do
            let classes' = case attrValue "language" e of

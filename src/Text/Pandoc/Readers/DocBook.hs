@@ -1239,7 +1239,8 @@ equation e constructor =
   where
     mathMLEquations :: [Text]
     mathMLEquations = map writeTeX $ rights $ readMath
-      (\x -> qName (elName x) == "math" && qPrefix (elName x) == Just "mml")
+      (\x -> qName (elName x) == "math" &&
+             qURI (elName x) == Just "http://www.w3.org/1998/Math/MathML")
       (readMathML . showElement)
 
     latexEquations :: [Text]
