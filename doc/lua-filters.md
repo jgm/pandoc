@@ -3205,7 +3205,7 @@ Usage:
 
 # Module pandoc.List
 
-The this module defines pandoc's list type. It comes with useful
+This module defines pandoc's list type. It comes with useful
 methods and convenience functions.
 
 ## Constructor
