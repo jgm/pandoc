@@ -109,7 +109,7 @@ element filtering function. In other words, filter entries will
 be called for each corresponding element in the document,
 getting the respective element as input.
 
-The return of a filter function must one of the following:
+The return of a filter function must be one of the following:
 
 -   nil: this means that the object should remain unchanged.
 -   a pandoc object: this must be of the same type as the input
