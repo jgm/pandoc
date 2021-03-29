@@ -577,7 +577,10 @@ read_spaces       = matchingElement NsText "s" (
 read_line_break  :: InlineMatcher
 read_line_break   = matchingElement NsText "line-break"
                     $ returnV linebreak
-
+--
+read_tab         :: InlineMatcher
+read_tab          = matchingElement NsText "tab"
+                    $ returnV space
 --
 read_span        :: InlineMatcher
 read_span         = matchingElement NsText "span"
@@ -585,6 +588,7 @@ read_span         = matchingElement NsText "span"
                     $ matchChildContent [ read_span
                                         , read_spaces
                                         , read_line_break
+                                        , read_tab
                                         , read_link
                                         , read_note
                                         , read_citation
@@ -604,6 +608,7 @@ read_paragraph    = matchingElement NsText "p"
                     $ matchChildContent [ read_span
                                         , read_spaces
                                         , read_line_break
+                                        , read_tab
                                         , read_link
                                         , read_note
                                         , read_citation
@@ -630,6 +635,7 @@ read_header       = matchingElement NsText "h"
   children <- ( matchChildContent [ read_span
                                   , read_spaces
                                   , read_line_break
+                                  , read_tab
                                   , read_link
                                   , read_note
                                   , read_citation
