@@ -4353,6 +4353,7 @@ the ordinary use of `~` and `^`, and also bad interactions with
 footnotes.) Thus, if you want the letter P with 'a cat' in
 subscripts, use `P~a\ cat~`, not `P~a cat~`.
 
+
 ### Verbatim ###
 
 To make a short span of text verbatim, put it inside backticks:
@@ -5200,6 +5201,19 @@ Include source position attributes when parsing `commonmark`.
 For elements that accept attributes, a `data-pos` attribute
 is added; other elements are placed in a surrounding
 Div or Span elemnet with a `data-pos` attribute.
+
+#### Extension: `mmd_short_subscript`, `mmd_short_superscript` ####
+
+Parse multimarkdown style subscripts and superscripts, which start with
+a '~' or '^' character, respectively, and end with a space. For example:
+
+    x^2 = 4
+
+or
+
+    CO~2 is a gas.
+
+The text between ~ or ^ and the space character may not contain any newlines.
 
 ## Markdown variants
 

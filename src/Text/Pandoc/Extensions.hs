@@ -124,6 +124,8 @@ data Extension =
     | Ext_mmd_header_identifiers -- ^ Multimarkdown style header identifiers [myid]
     | Ext_mmd_link_attributes     -- ^ MMD style reference link attributes
     | Ext_mmd_title_block     -- ^ Multimarkdown metadata block
+    | Ext_mmd_short_subscript     -- ^ MMD style space delimited subscripts, eg. 'v~i '
+    | Ext_mmd_short_superscript     -- ^ MMD style space delimeted uperscripts, eg. 'x^2 '
     | Ext_multiline_tables    -- ^ Pandoc-style multiline tables
     | Ext_native_divs             -- ^ Use Div blocks for contents of <div> tags
     | Ext_native_spans            -- ^ Use Span inlines for contents of <span>
@@ -284,14 +286,10 @@ multimarkdownExtensions = extensionsFromList
   , Ext_auto_identifiers
   , Ext_mmd_header_identifiers
   , Ext_implicit_figures
-  -- Note: MMD's syntax for superscripts and subscripts
-  -- is a bit more permissive than pandoc's, allowing
-  -- e^2 and a~1 instead of e^2^ and a~1~, so even with
-  -- these options we don't have full support for MMD
-  -- superscripts and subscripts, but there's no reason
-  -- not to include these:
-  , Ext_superscript
+  , Ext_mmd_short_subscript
+  , Ext_mmd_short_superscript
   , Ext_subscript
+  , Ext_superscript
   , Ext_backtick_code_blocks
   , Ext_spaced_reference_links
   -- So far only in dev version of mmd:
@@ -462,6 +460,8 @@ getAllExtensions f = universalExtensions <> getAll f
        , Ext_gutenberg
        , Ext_smart
        , Ext_literate_haskell
+       , Ext_mmd_short_subscript
+       , Ext_mmd_short_superscript
        ]
   getAll "markdown_strict"   = allMarkdownExtensions
   getAll "markdown_phpextra" = allMarkdownExtensions

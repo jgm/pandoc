@@ -36,6 +36,9 @@ markdownGH :: Text -> Pandoc
 markdownGH = purely $ readMarkdown def {
                 readerExtensions = githubMarkdownExtensions }
 
+markdownMMD :: Text -> Pandoc
+markdownMMD = purely $ readMarkdown def {
+                 readerExtensions = multimarkdownExtensions }
 infix 4 =:
 (=:) :: ToString c
      => String -> (Text, c) -> TestTree
@@ -359,6 +362,21 @@ tests = [ testGroup "inline code"
           , test markdownSmart "unclosed double quote"
             ("**this should \"be bold**"
             =?> para (strong "this should \"be bold"))
+          ]
+        , testGroup "sub- and superscripts"
+          [
+            test markdownMMD "normal subscript"
+            ("H~2~"
+            =?> para ("H" <> subscript "2"))
+          , test markdownMMD "normal superscript"
+            ("x^3^"
+            =?> para ("x" <> superscript "3"))
+          , test markdownMMD "short subscript"
+            ("O~2 is dangerous"
+            =?> para ("O" <> subscript "2" <> space <> "is dangerous"))
+          , test markdownMMD "short superscript"
+            ("y^7 = x"
+            =?> para ("y" <> superscript "7" <> space <> "= x"))
           ]
         , testGroup "footnotes"
           [ "indent followed by newline and flush-left text" =:

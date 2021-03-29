@@ -1687,7 +1687,8 @@ superscript = do
     char '^'
     mconcat <$> many1Till (do notFollowedBy spaceChar
                               notFollowedBy newline
-                              inline) (char '^'))
+                              inline) ((char '^') <|> (do guardEnabled Ext_mmd_short_superscript
+                                                          lookAhead spaceChar)))
 
 subscript :: PandocMonad m => MarkdownParser m (F Inlines)
 subscript = do
@@ -1696,7 +1697,8 @@ subscript = do
     char '~'
     mconcat <$> many1Till (do notFollowedBy spaceChar
                               notFollowedBy newline
-                              inline) (char '~'))
+                              inline) ((char '~') <|> (do guardEnabled Ext_mmd_short_subscript
+                                                          lookAhead spaceChar)))
 
 whitespace :: PandocMonad m => MarkdownParser m (F Inlines)
 whitespace = spaceChar >> return <$> (lb <|> regsp) <?> "whitespace"
