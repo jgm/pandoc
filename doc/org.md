@@ -25,8 +25,7 @@ The following export keywords are supported:
 - LANGUAGE: document language; included as plain-text metadata
   field `lang`. The value should be a [BCP47 language tag].
 
-- SELECT_TAGS: tags which select a tree for export. Currently
-  *unsupported*.
+- SELECT_TAGS: tags which select a tree for export.
 
 - EXCLUDE\_TAGS: tags which prevent a subtree from being
   exported. Fully supported.
