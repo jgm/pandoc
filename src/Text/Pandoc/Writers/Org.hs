@@ -404,8 +404,8 @@ inlineToOrg (Str str) = return . literal $ escapeString str
 inlineToOrg (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath
-              then "$" <> literal str <> "$"
-              else "$$" <> literal str <> "$$"
+              then "\\(" <> literal str <> "\\)"
+              else "\\[" <> literal str <> "\\]"
 inlineToOrg il@(RawInline f str)
   | isRawFormat f = return $ literal str
   | otherwise     = do
