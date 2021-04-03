@@ -14,7 +14,7 @@ and types is available at
 Pandoc is structured as a set of *readers*, which translate
 various input formats into an abstract syntax tree (the
 Pandoc AST) representing a structured document, and a set of
-*writers*, which render this AST into various input formats.
+*writers*, which render this AST into various output formats.
 Pictorially:
 
 ```
