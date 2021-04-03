@@ -1075,7 +1075,7 @@ parseInline (Elem e) =
            return $ spanWith (attrValue "id" e, [], []) mempty
         "phrase" -> do
           let ident = attrValue "id" e
-          let classes = T.words $ attrValue "class" e
+          let classes = T.words $ attrValue "role" e
           if ident /= "" || classes /= []
             then innerInlines (spanWith (ident,classes,[]))
             else innerInlines id
