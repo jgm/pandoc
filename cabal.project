@@ -2,6 +2,16 @@ packages: pandoc.cabal
 tests: True
 flags: +embed_data_files
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/citeproc
+  tag: b42857be658b8f2649e989e061978e304986f853
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/unicode-collation
+  tag: 9d229a5c6bcbaf53d7022575234eb223cfa90d55
+
 -- source-repository-package
 --  type: git
 --  location: https://github.com/jgm/citeproc

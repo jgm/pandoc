@@ -13,10 +13,14 @@ extra-deps:
 - skylighting-core-0.10.5.1
 - skylighting-0.10.5.1
 - doclayout-0.3.0.2
-- citeproc-0.3.0.9
 - texmath-0.12.2
 - random-1.2.0
 - xml-conduit-1.9.1.1
+# - citeproc-0.3.0.9
+- git: https://github.com/jgm/citeproc
+  commit: b42857be658b8f2649e989e061978e304986f853
+- git: https://github.com/jgm/unicode-collation
+  commit: 9d229a5c6bcbaf53d7022575234eb223cfa90d55
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-17.5
