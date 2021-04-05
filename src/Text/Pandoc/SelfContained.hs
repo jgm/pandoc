@@ -244,11 +244,10 @@ getData mimetype src
       let raw' = if ext `elem` [".gz", ".svgz"]
                  then B.concat $ L.toChunks $ Gzip.decompress $ L.fromChunks [raw]
                  else raw
-      mime <- case (mimetype, respMime) of
-                ("",Nothing) -> throwError $ PandocSomeError
-                  $ "Could not determine mime type for `" <> src <> "'"
-                (x, Nothing) -> return x
-                (_, Just x ) -> return x
+      let mime = case (mimetype, respMime) of
+                  ("",Nothing) -> "application/octet-stream"
+                  (x, Nothing) -> x
+                  (_, Just x ) -> x
       result <- if "text/css" `T.isPrefixOf` mime
                 then do
                   oldInputs <- getInputFiles
