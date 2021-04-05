@@ -239,7 +239,7 @@ languageFor classes =
 codeAttr :: Attr -> (Text, [(Text, Text)])
 codeAttr (ident,classes,kvs) = (lang, attr)
     where
-       attr = [("id",ident) | not (T.null ident)] ++
+       attr = [("id", escapeNCName ident) | not (T.null ident)] ++
               [("language",lang) | not (T.null lang)] ++
               [(k,v) | (k,v) <- kvs, k `elem` ["code-type",
                 "code-version", "executable",
@@ -251,7 +251,8 @@ codeAttr (ident,classes,kvs) = (lang, attr)
 blockToJATS :: PandocMonad m => WriterOptions -> Block -> JATS m (Doc Text)
 blockToJATS _ Null = return empty
 blockToJATS opts (Div (id',"section":_,kvs) (Header _lvl _ ils : xs)) = do
-  let idAttr = [("id", writerIdentifierPrefix opts <> id') | not (T.null id')]
+  let idAttr = [ ("id", writerIdentifierPrefix opts <> escapeNCName id')
+               | not (T.null id')]
   let otherAttrs = ["sec-type", "specific-use"]
   let attribs = idAttr ++ [(k,v) | (k,v) <- kvs, k `elem` otherAttrs]
   title' <- inlinesToJATS opts ils
@@ -260,7 +261,7 @@ blockToJATS opts (Div (id',"section":_,kvs) (Header _lvl _ ils : xs)) = do
       inTagsSimple "title" title' $$ contents
 -- Bibliography reference:
 blockToJATS opts (Div (ident,_,_) [Para lst]) | "ref-" `T.isPrefixOf` ident =
-  inTags True "ref" [("id", ident)] .
+  inTags True "ref" [("id", escapeNCName ident)] .
   inTagsSimple "mixed-citation" <$>
   inlinesToJATS opts lst
 blockToJATS opts (Div ("refs",_,_) xs) = do
@@ -271,14 +272,14 @@ blockToJATS opts (Div ("refs",_,_) xs) = do
   return $ inTagsIndented "ref-list" contents
 blockToJATS opts (Div (ident,[cls],kvs) bs) | cls `elem` ["fig", "caption", "table-wrap"] = do
   contents <- blocksToJATS opts bs
-  let attr = [("id", ident) | not (T.null ident)] ++
+  let attr = [("id", escapeNCName ident) | not (T.null ident)] ++
              [("xml:lang",l) | ("lang",l) <- kvs] ++
              [(k,v) | (k,v) <- kvs, k `elem` ["specific-use",
                  "content-type", "orientation", "position"]]
   return $ inTags True cls attr contents
 blockToJATS opts (Div (ident,_,kvs) bs) = do
   contents <- blocksToJATS opts bs
-  let attr = [("id", ident) | not (T.null ident)] ++
+  let attr = [("id", escapeNCName ident) | not (T.null ident)] ++
              [("xml:lang",l) | ("lang",l) <- kvs] ++
              [(k,v) | (k,v) <- kvs, k `elem` ["specific-use",
                  "content-type", "orientation", "position"]]
@@ -296,7 +297,7 @@ blockToJATS opts (Para [Image (ident,_,kvs) txt
   let capt = if null txt
                 then empty
                 else inTagsSimple "caption" $ inTagsSimple "p" alt
-  let attr = [("id", ident) | not (T.null ident)] ++
+  let attr = [("id", escapeNCName ident) | not (T.null ident)] ++
              [(k,v) | (k,v) <- kvs, k `elem` ["fig-type", "orientation",
                                               "position", "specific-use"]]
   let graphicattr = [("mimetype",maintype),
@@ -307,7 +308,7 @@ blockToJATS opts (Para [Image (ident,_,kvs) txt
               capt $$ selfClosingTag "graphic" graphicattr
 blockToJATS _ (Para [Image (ident,_,kvs) _ (src, tit)]) = do
   let (maintype, subtype) = imageMimeType src kvs
-  let attr = [("id", ident) | not (T.null ident)] ++
+  let attr = [("id", escapeNCName ident) | not (T.null ident)] ++
              [("mimetype", maintype),
               ("mime-subtype", subtype),
               ("xlink:href", src)] ++
@@ -434,7 +435,7 @@ inlineToJATS opts (Note contents) = do
       let notenum = case notes of
                       (n, _):_ -> n + 1
                       []       -> 1
-      thenote <- inTags True "fn" [("id","fn" <> tshow notenum)]
+      thenote <- inTags True "fn" [("id", "fn" <> tshow notenum)]
                     <$> wrappedBlocksToJATS (not . isPara) opts
                          (walk demoteHeaderAndRefs contents)
       modify $ \st -> st{ jatsNotes = (notenum, thenote) : notes }
@@ -447,7 +448,7 @@ inlineToJATS opts (Cite _ lst) =
 inlineToJATS opts (Span ("",_,[]) ils) = inlinesToJATS opts ils
 inlineToJATS opts (Span (ident,_,kvs) ils) = do
   contents <- inlinesToJATS opts ils
-  let attr = [("id",ident) | not (T.null ident)] ++
+  let attr = [("id", escapeNCName ident) | not (T.null ident)] ++
              [("xml:lang",l) | ("lang",l) <- kvs] ++
              [(k,v) | (k,v) <- kvs
                     ,  k `elem` ["content-type", "rationale",
@@ -488,9 +489,9 @@ inlineToJATS _ (Link _attr [Str t] (T.stripPrefix "mailto:" -> Just email, _))
   return $ inTagsSimple "email" $ literal (escapeStringForXML email)
 inlineToJATS opts (Link (ident,_,kvs) txt (T.uncons -> Just ('#', src), _)) = do
   let attr = mconcat
-             [ [("id", ident) | not (T.null ident)]
+             [ [("id", escapeNCName ident) | not (T.null ident)]
              , [("alt", stringify txt) | not (null txt)]
-             , [("rid", src)]
+             , [("rid", escapeNCName src)]
              , [(k,v) | (k,v) <- kvs, k `elem` ["ref-type", "specific-use"]]
              , [("ref-type", "bibr") | "ref-" `T.isPrefixOf` src]
              ]
@@ -500,7 +501,7 @@ inlineToJATS opts (Link (ident,_,kvs) txt (T.uncons -> Just ('#', src), _)) = do
         contents <- inlinesToJATS opts txt
         return $ inTags False "xref" attr contents
 inlineToJATS opts (Link (ident,_,kvs) txt (src, tit)) = do
-  let attr = [("id", ident) | not (T.null ident)] ++
+  let attr = [("id", escapeNCName ident) | not (T.null ident)] ++
              [("ext-link-type", "uri"),
               ("xlink:href", src)] ++
              [("xlink:title", tit) | not (T.null tit)] ++
@@ -518,7 +519,7 @@ inlineToJATS _ (Image (ident,_,kvs) _ (src, tit)) = do
   let subtype = fromMaybe "" $
                   lookup "mime-subtype" kvs `mplus`
                   (T.drop 1 . T.dropWhile (/='/') <$> mbMT)
-  let attr = [("id", ident) | not (T.null ident)] ++
+  let attr = [("id", escapeNCName ident) | not (T.null ident)] ++
              [("mimetype", maintype),
               ("mime-subtype", subtype),
               ("xlink:href", src)] ++

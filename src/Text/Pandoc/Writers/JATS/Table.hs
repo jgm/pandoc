@@ -24,7 +24,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions)
 import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Writers.JATS.Types
-import Text.Pandoc.XML (inTags, inTagsIndented, selfClosingTag)
+import Text.Pandoc.XML (escapeNCName, inTags, inTagsIndented, selfClosingTag)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 
@@ -216,7 +216,7 @@ cellToJats opts celltype (Ann.Cell (colspec :| _) _colNum cell) =
 
 toAttribs :: Attr -> [Text] -> [(Text, Text)]
 toAttribs (ident, _classes, kvs) knownAttribs =
-  (if T.null ident then id else (("id", ident) :)) $
+  (if T.null ident then id else (("id", escapeNCName ident) :)) $
   filter ((`elem` knownAttribs) . fst) kvs
 
 tableCellToJats :: PandocMonad m

@@ -13,6 +13,7 @@ Functions for escaping and formatting XML.
 -}
 module Text.Pandoc.XML ( escapeCharForXML,
                          escapeStringForXML,
+                         escapeNCName,
                          inTags,
                          selfClosingTag,
                          inTagsSimple,
@@ -24,7 +25,7 @@ module Text.Pandoc.XML ( escapeCharForXML,
                          html5Attributes,
                          rdfaAttributes ) where
 
-import Data.Char (isAscii, isSpace, ord)
+import Data.Char (isAscii, isSpace, ord, isLetter, isDigit)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup.Entity (lookupEntity, htmlEntities)
@@ -119,8 +120,33 @@ html5EntityMap = foldr go mempty htmlEntities
              where ent' = T.takeWhile (/=';') (T.pack ent)
            _   -> entmap
 
+-- | Converts a string into an NCName, i.e., an XML name without colons.
+-- Disallowed characters are escaped using @ux%x@, where @%x@ is the
+-- hexadecimal unicode identifier of the escaped character.
+escapeNCName :: Text -> Text
+escapeNCName t = case T.uncons t of
+  Nothing -> T.empty
+  Just (c, cs) -> escapeStartChar c <> T.concatMap escapeNCNameChar cs
+  where
+    escapeStartChar :: Char -> Text
+    escapeStartChar c = if isLetter c || c == '_'
+                        then T.singleton c
+                        else escapeChar c
 
--- Unescapes XML entities
+    escapeNCNameChar :: Char -> Text
+    escapeNCNameChar c = if isNCNameChar c
+                         then T.singleton c
+                         else escapeChar c
+
+    isNCNameChar :: Char -> Bool
+    isNCNameChar c = isLetter c || c `elem` ("_-.·" :: String) || isDigit c
+      || '\x0300' <= c && c <= '\x036f'
+      || '\x203f' <= c && c <= '\x2040'
+
+    escapeChar :: Char -> Text
+    escapeChar = T.pack . printf "U%04X" . ord
+
+-- | Unescapes XML entities
 fromEntities :: Text -> Text
 fromEntities t
   = let (x, y) = T.break (== '&') t
