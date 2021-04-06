@@ -16,7 +16,6 @@ the HTML using data URIs.
 module Text.Pandoc.SelfContained ( makeDataURI, makeSelfContained ) where
 import Codec.Compression.GZip as Gzip
 import Control.Applicative ((<|>))
-import Control.Monad.Except (throwError)
 import Control.Monad.Trans (lift)
 import Data.ByteString (ByteString)
 import Data.ByteString.Base64
@@ -29,7 +28,6 @@ import System.FilePath (takeDirectory, takeExtension, (</>))
 import Text.HTML.TagSoup
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), fetchItem,
                                       getInputFiles, report, setInputFiles)
-import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Shared (isURI, renderTags', trim)
