@@ -67,7 +67,17 @@ writePlain opts document =
 -- | Convert Pandoc to Commonmark.
 writeCommonMark :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeCommonMark opts document =
-  evalMD (pandocToMarkdown opts document) def{ envVariant = Commonmark } def
+  evalMD (pandocToMarkdown opts' document) def{ envVariant = Commonmark } def
+ where
+  opts' = opts{ writerExtensions =
+                   -- These extensions can't be enabled or disabled
+                   -- for commonmark because they're part of the core;
+                   -- we set them here so that escapeText will behave
+                   -- properly.
+                   enableExtension Ext_all_symbols_escapable $
+                   enableExtension Ext_pipe_tables $
+                   enableExtension Ext_intraword_underscores $
+                     writerExtensions opts }
 
 pandocTitleBlock :: Doc Text -> [Doc Text] -> Doc Text -> Doc Text
 pandocTitleBlock tit auths dat =
