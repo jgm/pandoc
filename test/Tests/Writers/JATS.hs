@@ -142,4 +142,19 @@ tests =
       codeWith ("7y",[],[]) "print 5" =?>
       "<p><monospace id=\"U0037y\">print 5</monospace></p>"
     ]
+
+  , testGroup "spans"
+    [ "unwrapped if no attributes given" =:
+      spanWith nullAttr "text in span" =?>
+      "<p>text in span</p>"
+
+    , "converted to named-content element" =:
+      spanWith ("a", ["ignored"], [("alt", "aa")]) "text" =?>
+      "<p><named-content id=\"a\" alt=\"aa\">text</named-content></p>"
+
+    , "unwrapped if named-content element would have no attributes" =:
+      spanWith ("", ["ignored"], [("hidden", "true")]) "text in span" =?>
+      "<p>text in span</p>"
+
+    ]
   ]

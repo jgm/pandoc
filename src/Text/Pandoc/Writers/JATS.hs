@@ -444,18 +444,19 @@ inlineToJATS opts (Note contents) = do
                                     ("rid", "fn" <> tshow notenum)]
              $ text (show notenum)
 inlineToJATS opts (Cite _ lst) =
-  -- TODO revisit this after examining the jats.csl pipeline
   inlinesToJATS opts lst
-inlineToJATS opts (Span ("",_,[]) ils) = inlinesToJATS opts ils
 inlineToJATS opts (Span (ident,_,kvs) ils) = do
   contents <- inlinesToJATS opts ils
   let attr = [("id", escapeNCName ident) | not (T.null ident)] ++
              [("xml:lang",l) | ("lang",l) <- kvs] ++
              [(k,v) | (k,v) <- kvs
-                    ,  k `elem` ["content-type", "rationale",
-                                 "rid", "specific-use"]]
-  return $ selfClosingTag "milestone-start" attr <> contents <>
-           selfClosingTag "milestone-end" []
+                    ,  k `elem` ["alt", "content-type", "rid", "specific-use",
+                                 "vocab", "vocab-identifier", "vocab-term",
+                                 "vocab-term-identifier"]]
+  return $
+    if null attr
+    then contents  -- unwrap if no relevant attributes are given
+    else inTags False "named-content" attr contents
 inlineToJATS _ (Math t str) = do
   let addPref (Xml.Attr q v)
          | Xml.qName q == "xmlns" = Xml.Attr q{ Xml.qName = "xmlns:mml" } v
