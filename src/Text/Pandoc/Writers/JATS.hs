@@ -436,6 +436,7 @@ inlineToJATS opts (Note contents) = do
                       (n, _):_ -> n + 1
                       []       -> 1
       thenote <- inTags True "fn" [("id", "fn" <> tshow notenum)]
+                     . (inTagsSimple "label" (literal $ tshow notenum) <>)
                     <$> wrappedBlocksToJATS (not . isPara) opts
                          (walk demoteHeaderAndRefs contents)
       modify $ \st -> st{ jatsNotes = (notenum, thenote) : notes }
