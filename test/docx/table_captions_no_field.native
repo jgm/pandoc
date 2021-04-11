@@ -2,9 +2,9 @@
 ,Para [Str "Table",Space,Str "5.1"]
 ,Table ("",[],[]) (Caption Nothing
  [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
+ [(AlignDefault,ColWidth 0.7605739372523825)
+ ,(AlignDefault,ColWidth 0.11971303137380876)
+ ,(AlignDefault,ColWidth 0.11971303137380876)]
  (TableHead ("",[],[])
 [Row ("",[],[])
  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)

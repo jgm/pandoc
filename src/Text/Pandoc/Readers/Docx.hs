@@ -666,7 +666,7 @@ bodyPartToBlocks (TblCaption _ _) =
   return $ para mempty -- collected separately
 bodyPartToBlocks (Tbl _ _ _ []) =
   return $ para mempty
-bodyPartToBlocks (Tbl cap _ look parts) = do
+bodyPartToBlocks (Tbl cap grid look parts) = do
   captions <- gets docxTableCaptions
   fullCaption <- case captions of
     c : cs -> do
@@ -679,7 +679,7 @@ bodyPartToBlocks (Tbl cap _ look parts) = do
 
   let width = maybe 0 maximum $ nonEmpty $ map rowLength parts
       rowLength :: Docx.Row -> Int
-      rowLength (Docx.Row _ c) = length c
+      rowLength (Docx.Row _ c) = sum (fmap (\(Docx.Cell gridSpan _ _) -> fromIntegral gridSpan) c)
 
   headerCells <- rowsToRows hdr
   bodyCells <- rowsToRows rows
@@ -688,7 +688,8 @@ bodyPartToBlocks (Tbl cap _ look parts) = do
       -- it might be difficult, since there doesn't seem to be a column entity
       -- in docx.
   let alignments = replicate width AlignDefault
-      widths = replicate width ColWidthDefault
+      totalWidth = sum grid
+      widths = (\w -> ColWidth (fromInteger w / fromInteger totalWidth)) <$> grid
 
   return $ table cap'
                  (zip alignments widths)

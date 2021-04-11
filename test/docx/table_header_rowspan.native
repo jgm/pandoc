@@ -1,13 +1,13 @@
 [Table ("",[],[]) (Caption Nothing
  [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
+ [(AlignDefault,ColWidth 0.30701754385964913)
+ ,(AlignDefault,ColWidth 0.1364522417153996)
+ ,(AlignDefault,ColWidth 0.10009746588693957)
+ ,(AlignDefault,ColWidth 9.707602339181287e-2)
+ ,(AlignDefault,ColWidth 7.719298245614035e-2)
+ ,(AlignDefault,ColWidth 7.085769980506823e-2)
+ ,(AlignDefault,ColWidth 7.09551656920078e-2)
+ ,(AlignDefault,ColWidth 0.14035087719298245)]
  (TableHead ("",[],[])
 [Row ("",[],[])
  [Cell ("",[],[]) AlignDefault (RowSpan 2) (ColSpan 1)

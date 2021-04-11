@@ -616,7 +616,7 @@ elemToTblGrid :: NameSpaces -> Element -> D TblGrid
 elemToTblGrid ns element | isElem ns "w" "tblGrid" element =
   let cols = findChildrenByName ns "w" "gridCol" element
   in
-   mapD (\e -> maybeToD (findAttrByName ns "w" "val" e >>= stringToInteger))
+   mapD (\e -> maybeToD (findAttrByName ns "w" "w" e >>= stringToInteger))
    cols
 elemToTblGrid _ _ = throwError WrongElem
 

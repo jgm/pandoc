@@ -1,8 +1,8 @@
 [Table ("",[],[]) (Caption Nothing
  [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
+ [(AlignDefault,ColWidth 0.33302433371958284)
+ ,(AlignDefault,ColWidth 0.3332560834298957)
+ ,(AlignDefault,ColWidth 0.33371958285052145)]
  (TableHead ("",[],[])
  [Row ("",[],[])
    [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
