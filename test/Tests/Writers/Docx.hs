@@ -112,6 +112,11 @@ tests = [ testGroup "inlines"
             "docx/tables.native"
             "docx/golden/tables.docx"
           , docxTest
+            "tables without explicit column widths"
+            def
+            "docx/tables-default-widths.native"
+            "docx/golden/tables-default-widths.docx"
+          , docxTest
             "tables with lists in cells"
             def
             "docx/table_with_list_cell.native"

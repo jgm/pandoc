@@ -639,7 +639,7 @@ bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
     bodyPartToBlocks $ Paragraph pPr' parparts
 bodyPartToBlocks (Tbl _ _ _ []) =
   return $ para mempty
-bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
+bodyPartToBlocks (Tbl cap grid look parts@(r:rs)) = do
   let cap' = simpleCaption $ plain $ text cap
       (hdr, rows) = case firstRowFormatting look of
         True | null rs -> (Nothing, [r])
@@ -669,7 +669,8 @@ bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
       -- so should be possible. Alignment might be more difficult,
       -- since there doesn't seem to be a column entity in docx.
   let alignments = replicate width AlignDefault
-      widths = replicate width ColWidthDefault
+      totalWidth = sum grid
+      widths = (\w -> ColWidth (fromInteger w / fromInteger totalWidth)) <$> grid
 
   return $ table cap'
                  (zip alignments widths)
