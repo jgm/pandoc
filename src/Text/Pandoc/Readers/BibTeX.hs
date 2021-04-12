@@ -48,11 +48,14 @@ readBibLaTeX = readBibTeX' BibTeX.Biblatex
 
 readBibTeX' :: PandocMonad m => Variant -> ReaderOptions -> Text -> m Pandoc
 readBibTeX' variant _opts t = do
-  lang <- maybe (Lang "en" (Just "US")) parseLang
-             <$> lookupEnv "LANG"
+  mblangEnv <- lookupEnv "LANG"
+  let defaultLang = Lang "en" Nothing (Just "US") [] [] []
+  let lang = case mblangEnv of
+              Nothing  -> defaultLang
+              Just l   -> either (const defaultLang) id $ parseLang l
   locale <- case getLocale lang of
                Left e  ->
-                 case getLocale (Lang "en" (Just "US")) of
+                 case getLocale (Lang "en" Nothing (Just "US") [] [] []) of
                    Right l -> return l
                    Left _  -> throwError $ PandocCiteprocError e
                Right l -> return l

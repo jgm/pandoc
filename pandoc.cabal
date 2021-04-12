@@ -601,7 +601,6 @@ library
                    Text.Pandoc.Asciify,
                    Text.Pandoc.Emoji,
                    Text.Pandoc.ImageSize,
-                   Text.Pandoc.BCP47,
                    Text.Pandoc.Class,
                    Text.Pandoc.Citeproc
   other-modules:   Text.Pandoc.App.CommandLineOptions,

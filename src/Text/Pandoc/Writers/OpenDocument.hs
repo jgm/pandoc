@@ -25,7 +25,7 @@ import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
+import UnicodeCollation.Lang (Lang (..), parseLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, translateTerm,
                                       setTranslations, toLang)
 import Text.Pandoc.Definition
@@ -236,7 +236,7 @@ handleSpaces s = case T.uncons s of
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeOpenDocument opts (Pandoc meta blocks) = do
-  let defLang = Lang "en" "US" "" []
+  let defLang = Lang "en" (Just "US") Nothing [] [] []
   lang <- case lookupMetaString "lang" meta of
             "" -> pure defLang
             s  -> fromMaybe defLang <$> toLang (Just s)
@@ -893,7 +893,7 @@ textStyleAttr m s
                     Map.insert "style:font-name-complex" "Courier New" $ m
     | Language lang <- s
                   = Map.insert "fo:language" (langLanguage lang) .
-                    Map.insert "fo:country" (langRegion lang) $ m
+                    maybe id (Map.insert "fo:country") (langRegion lang) $ m
     | otherwise   = m
 
 withLangFromAttr :: PandocMonad m => Attr -> OD m a -> OD m a
@@ -901,7 +901,7 @@ withLangFromAttr (_,_,kvs) action =
   case lookup "lang" kvs of
        Nothing -> action
        Just l  ->
-         case parseBCP47 l of
+         case parseLang l of
               Right lang -> withTextStyle (Language lang) action
               Left _ -> do
                 report $ InvalidLang l

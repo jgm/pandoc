@@ -205,10 +205,13 @@ writeBibtexString opts variant mblang ref =
                    [ (", " <>) <$> nameGiven name,
                      nameDroppingParticle name ]
 
-  mblang' = (parseLang <$> getVariableAsText "language") <|> mblang
+  mblang' = case getVariableAsText "language" of
+              Just l  -> either (const Nothing) Just $ parseLang l
+              Nothing -> mblang
 
   titlecase = case mblang' of
-                Just (Lang "en" _) -> titlecase'
+                Just lang | langLanguage lang == "en"
+                                   -> titlecase'
                 Nothing            -> titlecase'
                 _                  ->
                   case variant of
@@ -331,7 +334,7 @@ writeBibtexString opts variant mblang ref =
   renderFields = mconcat . intersperse ("," <> cr) . mapMaybe renderField
 
 defaultLang :: Lang
-defaultLang = Lang "en" (Just "US")
+defaultLang = Lang "en" Nothing (Just "US") [] [] []
 
 -- a map of bibtex "string" macros
 type StringMap = Map.Map Text Text
@@ -351,9 +354,7 @@ itemToReference locale variant item = do
   bib item $ do
     let lang = fromMaybe defaultLang $ localeLanguage locale
     modify $ \st -> st{ localeLang = lang,
-                        untitlecase = case lang of
-                                           (Lang "en" _) -> True
-                                           _             -> False }
+                        untitlecase = langLanguage lang == "en" }
 
     id' <- asks identifier
     otherIds <- (Just <$> getRawField "ids")
@@ -711,7 +712,7 @@ itemToReference locale variant item = do
 
 
 bib :: Item -> Bib a -> BibParser a
-bib entry m = fst <$> evalRWST m entry (BibState True (Lang "en" (Just "US")))
+bib entry m = fst <$> evalRWST m entry (BibState True defaultLang)
 
 resolveCrossRefs :: Variant -> [Item] -> [Item]
 resolveCrossRefs variant entries =
@@ -1456,8 +1457,9 @@ resolveKey lang ils = Walk.walk go ils
         go x       = x
 
 resolveKey' :: Lang -> Text -> Text
-resolveKey' lang@(Lang l _) k =
-  case Map.lookup l biblatexStringMap >>= Map.lookup (T.toLower k) of
+resolveKey' lang k =
+  case Map.lookup (langLanguage lang) biblatexStringMap >>=
+        Map.lookup (T.toLower k) of
     Nothing     -> k
     Just (x, _) -> either (const k) stringify $ parseLaTeX lang x
 

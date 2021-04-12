@@ -70,7 +70,7 @@ import Network.URI ( escapeURIString, nonStrictRelativeTo,
 import System.FilePath ((</>), (<.>), takeExtension, dropExtension,
                         isRelative, splitDirectories)
 import System.Random (StdGen)
-import Text.Pandoc.BCP47 (Lang(..), parseBCP47, renderLang)
+import UnicodeCollation.Lang (Lang(..), parseLang, renderLang)
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
@@ -285,7 +285,7 @@ readFileFromDirs (d:ds) f = catchError
 toLang :: PandocMonad m => Maybe T.Text -> m (Maybe Lang)
 toLang Nothing = return Nothing
 toLang (Just s) =
-  case parseBCP47 s of
+  case parseLang s of
        Left _ -> do
          report $ InvalidLang s
          return Nothing

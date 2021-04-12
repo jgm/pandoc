@@ -18,7 +18,6 @@ import Text.Pandoc.Citeproc.CslJson (cslJsonToReferences)
 import Text.Pandoc.Citeproc.BibTeX (readBibtexString, Variant(..))
 import Text.Pandoc.Citeproc.MetaValue (metaValueToReference, metaValueToText)
 import Text.Pandoc.Readers.Markdown (yamlToRefs)
-import qualified Text.Pandoc.BCP47 as BCP47
 import Text.Pandoc.Builder (Inlines, Many(..), deleteMeta, setMeta)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Definition as Pandoc
@@ -630,13 +629,8 @@ removeFinalPeriod ils =
 
 bcp47LangToIETF :: PandocMonad m => Text -> m (Maybe Lang)
 bcp47LangToIETF bcplang =
-  case BCP47.parseBCP47 bcplang of
+  case parseLang bcplang of
     Left _ -> do
       report $ InvalidLang bcplang
       return Nothing
-    Right lang ->
-      return $ Just
-             $ Lang (BCP47.langLanguage lang)
-                    (if T.null (BCP47.langRegion lang)
-                        then Nothing
-                        else Just (BCP47.langRegion lang))
+    Right lang -> return $ Just lang

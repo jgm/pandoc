@@ -46,7 +46,7 @@ toPolyglossia (Lang "de" _ (Just "AT") vars _ _)
 toPolyglossia (Lang "de" _ (Just "AT") _ _ _)  = ("german", "variant=austrian")
 toPolyglossia (Lang "de" _ (Just "CH") vars _ _)
   | "1901" `elem` vars        = ("german", "variant=swiss, spelling=old")
-toPolyglossia (Lang "de" _ (Just "CH") _ _ _ _) = ("german", "variant=swiss")
+toPolyglossia (Lang "de" _ (Just "CH") _ _ _) = ("german", "variant=swiss")
 toPolyglossia (Lang "de" _ _ _ _ _)           = ("german", "")
 toPolyglossia (Lang "dsb" _ _ _ _ _)          = ("lsorbian", "")
 toPolyglossia (Lang "el" _ _ vars _ _)
@@ -61,9 +61,9 @@ toPolyglossia (Lang "grc" _ _ _ _ _)          = ("greek",   "variant=ancient")
 toPolyglossia (Lang "hsb" _ _ _ _ _)          = ("usorbian", "")
 toPolyglossia (Lang "la" _ _ vars _ _)
   | "x-classic" `elem` vars                   = ("latin", "variant=classic")
-toPolyglossia (Lang "pt" _ "BR" _ _ _)        = ("portuguese", "variant=brazilian")
+toPolyglossia (Lang "pt" _ (Just "BR") _ _ _) = ("portuguese", "variant=brazilian")
 toPolyglossia (Lang "sl" _ _ _ _ _)           = ("slovenian", "")
-toPolyglossia x                           = (commonFromBcp47 x, "")
+toPolyglossia x                               = (commonFromBcp47 x, "")
 
 -- Takes a list of the constituents of a BCP47 language code and
 -- converts it to a Babel language string.
@@ -81,7 +81,7 @@ toBabel (Lang "de" _ _ vars _ _)
   | "1901" `elem` vars                  = "german"
   | otherwise                           = "ngerman"
 toBabel (Lang "dsb" _ _ _ _ _)          = "lowersorbian"
-toBabel (Lang "el" _ _ vars)
+toBabel (Lang "el" _ _ vars _ _)
   | "polyton" `elem` vars               = "polutonikogreek"
 toBabel (Lang "en" _ (Just "AU") _ _ _) = "australian"
 toBabel (Lang "en" _ (Just "CA") _ _ _) = "canadian"

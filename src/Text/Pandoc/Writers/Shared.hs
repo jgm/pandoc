@@ -149,7 +149,7 @@ defField field val (Context m) =
     f _newval oldval = oldval
 
 -- | Get the contents of the `lang` metadata field or variable.
-getLang :: WriterOptions -> Meta -> Maybe Text
+getLang :: WriterOptions -> Meta -> Maybe T.Text
 getLang opts meta =
   case lookupContext "lang" (writerVariables opts) of
         Just s -> Just s

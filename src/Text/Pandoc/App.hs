@@ -55,7 +55,7 @@ import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
 import Text.Pandoc.App.CommandLineOptions (parseOptions, parseOptionsFromArgs,
                                            options)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
-import Text.Pandoc.BCP47 (Lang (..), parseBCP47)
+import UnicodeCollation.Lang (Lang (..), parseLang)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), applyFilters)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.SelfContained (makeSelfContained)
@@ -200,8 +200,8 @@ convertWithOpts opts = do
                     Just f  -> readFileStrict f
 
     case lookupMetaString "lang" (optMetadata opts) of
-           ""      -> setTranslations $ Lang "en" "" "US" []
-           l       -> case parseBCP47 l of
+           ""      -> setTranslations $ Lang "en" Nothing (Just "US") [] [] []
+           l       -> case parseLang l of
                            Left _   -> report $ InvalidLang l
                            Right l' -> setTranslations l'
 
