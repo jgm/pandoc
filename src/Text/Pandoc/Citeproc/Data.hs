@@ -10,7 +10,7 @@ import qualified Data.Text.Encoding as TE
 import qualified Data.Text as T
 import Data.Text (Text)
 import Text.Pandoc.Citeproc.Util (toIETF)
-import Citeproc (Lang(..), parseLang)
+import UnicodeCollation.Lang (Lang(..), parseLang)
 
 biblatexLocalizations :: [(FilePath, ByteString)]
 biblatexLocalizations = $(embedDir "citeproc/biblatex-localization")
@@ -21,7 +21,8 @@ biblatexStringMap :: M.Map Text (M.Map Text (Text, Text))
 biblatexStringMap = foldr go mempty biblatexLocalizations
  where
   go (fp, bs) =
-    let Lang lang _ = parseLang (toIETF $ T.takeWhile (/= '.') $ T.pack fp)
+    let Lang lang _ _ _ _ _ = parseLang
+                                (toIETF $ T.takeWhile (/= '.') $ T.pack fp)
         ls = T.lines $ TE.decodeUtf8 bs
      in if length ls > 4
            then M.insert lang (toStringMap $ map (T.splitOn "|") ls)

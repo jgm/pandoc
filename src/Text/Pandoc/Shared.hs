@@ -852,7 +852,6 @@ filteredFilesFromArchive zf f =
     fileAndBinary :: Archive -> FilePath -> Maybe (FilePath, BL.ByteString)
     fileAndBinary a fp = findEntryByPath fp a >>= \e -> Just (fp, fromEntry e)
 
-
 --
 -- IANA URIs
 --

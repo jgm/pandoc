@@ -20,6 +20,7 @@ module Text.Pandoc.Writers.Shared (
                      , setField
                      , resetField
                      , defField
+                     , getLang
                      , tagWithAttrs
                      , isDisplayMath
                      , fixDisplayMath
@@ -146,6 +147,19 @@ defField field val (Context m) =
   Context (M.insertWith f field (toVal val) m)
   where
     f _newval oldval = oldval
+
+-- | Get the contents of the `lang` metadata field or variable.
+getLang :: WriterOptions -> Meta -> Maybe Text
+getLang opts meta =
+  case lookupContext "lang" (writerVariables opts) of
+        Just s -> Just s
+        _      ->
+          case lookupMeta "lang" meta of
+               Just (MetaBlocks [Para [Str s]])  -> Just s
+               Just (MetaBlocks [Plain [Str s]]) -> Just s
+               Just (MetaInlines [Str s])        -> Just s
+               Just (MetaString s)               -> Just s
+               _                                 -> Nothing
 
 -- | Produce an HTML tag with the given pandoc attributes.
 tagWithAttrs :: HasChars a => T.Text -> Attr -> Doc a

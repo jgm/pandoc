@@ -37,19 +37,6 @@ renderLang :: Lang -> T.Text
 renderLang lang = T.intercalate "-" (langLanguage lang : filter (not . T.null)
                     ([langScript lang, langRegion lang] ++ langVariants lang))
 
--- | Get the contents of the `lang` metadata field or variable.
-getLang :: WriterOptions -> Meta -> Maybe T.Text
-getLang opts meta =
-  case lookupContext "lang" (writerVariables opts) of
-        Just s -> Just s
-        _      ->
-          case lookupMeta "lang" meta of
-               Just (MetaBlocks [Para [Str s]])  -> Just s
-               Just (MetaBlocks [Plain [Str s]]) -> Just s
-               Just (MetaInlines [Str s])        -> Just s
-               Just (MetaString s)               -> Just s
-               _                                 -> Nothing
-
 -- | Parse a BCP 47 string as a Lang.  Currently we parse
 -- extensions and private-use fields as "variants," even
 -- though officially they aren't.
