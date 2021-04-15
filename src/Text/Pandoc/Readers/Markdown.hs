@@ -1500,7 +1500,7 @@ inline = do
      '\145'  -> smart
      '\8220' -> smart
      '\147'  -> smart
-     '-'     -> smart
+     '-'     -> smart <|> cite
      '.'     -> smart
      '&'     -> return . B.singleton <$> charRef
      ':'     -> emoji
