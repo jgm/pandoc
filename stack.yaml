@@ -16,6 +16,7 @@ extra-deps:
 - citeproc-0.3.0.9
 - texmath-0.12.2
 - random-1.2.0
+- xml-conduit-1.9.1.1
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-17.5
