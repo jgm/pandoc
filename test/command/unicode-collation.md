@@ -108,7 +108,7 @@ Ubina, A. J. (1985).
 % pandoc -C -t plain
 ---
 nocite: '@*'
-lang: fr
+lang: fr-FR-u-kb-true
 references:
 - id: cote
   author: cote
