@@ -146,6 +146,29 @@
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
     ul.task-list{list-style: none;}
     .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    @media screen and (prefers-color-scheme: dark) {
+      html {
+        color: #d3d3d3;
+        background-color: #101010;
+      }
+      a, a:visited {
+        color: #d3d3d3;
+      }
+      blockquote {
+        border-color: #707070;
+        color: #d3d3d3;
+      }
+      hr {
+        background-color: #d3d3d3;
+      }
+      tbody, th {
+        border-color: #d3d3d3;
+      }
+      div.sourceCode {
+        filter: invert(1);
+        color: initial;
+      }
+    }
   </style>
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
