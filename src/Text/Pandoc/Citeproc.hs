@@ -74,8 +74,7 @@ processCitations (Pandoc meta bs) = do
 
   let linkCites = maybe False truish $ lookupMeta "link-citations" meta
   let opts = defaultCiteprocOptions{ linkCitations = linkCites }
-  let result = Citeproc.citeproc opts style (localeLanguage locale)
-                  refs citations
+  let result = Citeproc.citeproc opts style mblang refs citations
   mapM_ (report . CiteprocWarning) (resultWarnings result)
   let sopts = styleOptions style
   let classes = "references" : -- TODO remove this or keep for compatibility?
