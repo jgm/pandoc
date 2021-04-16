@@ -34,13 +34,19 @@ tableToJATS :: PandocMonad m
             -> JATS m (Doc Text)
 tableToJATS opts (Ann.Table attr caption colspecs thead tbodies tfoot) = do
   let (Caption _maybeShortCaption captionBlocks) = caption
+  -- Only paragraphs are allowed in captions, all other blocks must be
+  -- wrapped in @<p>@ elements.
+  let needsWrapping = \case
+        Plain{} -> False
+        Para{}  -> False
+        _       -> True
   tbl <- captionlessTable opts attr colspecs thead tbodies tfoot
   captionDoc <- if null captionBlocks
                 then return empty
                 else do
                   blockToJATS <- asks jatsBlockWriter
-                  inTagsIndented "caption" . vcat <$>
-                    mapM (blockToJATS opts) captionBlocks
+                  inTagsIndented "caption" <$>
+                    blockToJATS needsWrapping opts captionBlocks
   return $ inTags True "table-wrap" [] $ captionDoc $$ tbl
 
 captionlessTable :: PandocMonad m
@@ -230,7 +236,7 @@ tableCellToJats opts ctype colAlign (Cell attr align rowspan colspan item) = do
   inlinesToJats <- asks jatsInlinesWriter
   let cellContents = \case
         [Plain inlines] -> inlinesToJats opts inlines
-        blocks          -> vcat <$> mapM (blockToJats opts) blocks
+        blocks          -> blockToJats needsWrapInCell opts blocks
   let tag' = case ctype of
         BodyCell   -> "td"
         HeaderCell -> "th"
@@ -246,3 +252,17 @@ tableCellToJats opts ctype colAlign (Cell attr align rowspan colspan item) = do
               . maybeCons (colspanAttrib colspan)
               $ toAttribs attr validAttribs
   inTags False tag' attribs <$> cellContents item
+
+-- | Whether the JATS produced from this block should be wrapped in a
+-- @<p>@ element when put directly below a @<td>@ element.
+needsWrapInCell :: Block -> Bool
+needsWrapInCell = \case
+  Plain{}          -> False  -- should be unwrapped anyway
+  Para{}           -> False
+  BulletList{}     -> False
+  OrderedList{}    -> False
+  DefinitionList{} -> False
+  HorizontalRule   -> False
+  CodeBlock{}      -> False
+  RawBlock{}       -> False  -- responsibility of the user
+  _                -> True

@@ -1,6 +1,7 @@
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.JATS
    Copyright   : 2017-2021 John MacFarlane
@@ -80,7 +81,7 @@ writeJats tagSet opts d = do
   let environment = JATSEnv
           { jatsTagSet = tagSet
           , jatsInlinesWriter = inlinesToJATS
-          , jatsBlockWriter = blockToJATS
+          , jatsBlockWriter = wrappedBlocksToJATS
           , jatsReferences = refs
           }
   let initialState = JATSState { jatsNotes = [] }
@@ -162,11 +163,9 @@ wrappedBlocksToJATS needsWrap opts =
     wrappedBlockToJATS b = do
       inner <- blockToJATS opts b
       return $
-        if needsWrap b || isBlockQuote b -- see #7041
+        if needsWrap b
            then inTags True "p" [("specific-use","wrapper")] inner
            else inner
-    isBlockQuote (BlockQuote _) = True
-    isBlockQuote _ = False
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -324,10 +323,13 @@ blockToJATS opts (LineBlock lns) =
   blockToJATS opts $ linesToPara lns
 blockToJATS opts (BlockQuote blocks) = do
   tagSet <- asks jatsTagSet
-  let blocksToJats' = if tagSet == TagSetArticleAuthoring
-                      then wrappedBlocksToJATS (not . isPara)
-                      else blocksToJATS
-  inTagsIndented "disp-quote" <$> blocksToJats' opts blocks
+  let needsWrap = if tagSet == TagSetArticleAuthoring
+                  then not . isPara
+                  else \case
+                    Header{}       -> True
+                    HorizontalRule -> True
+                    _              -> False
+  inTagsIndented "disp-quote" <$> wrappedBlocksToJATS needsWrap opts blocks
 blockToJATS _ (CodeBlock a str) = return $
   inTags False tag attr (flush (text (T.unpack $ escapeStringForXML str)))
     where (lang, attr) = codeAttr a

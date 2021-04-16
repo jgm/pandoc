@@ -37,11 +37,20 @@ newtype JATSState = JATSState
   { jatsNotes :: [(Int, Doc Text)]
   }
 
+-- | Environment containing all information relevant for rendering.
 data JATSEnv m = JATSEnv
-  { jatsTagSet :: JATSTagSet
+  { jatsTagSet :: JATSTagSet  -- ^ The tag set that's being ouput
+
+  , jatsBlockWriter   :: (Block -> Bool)
+                      -> WriterOptions -> [Block]  -> JATS m (Doc Text)
+    -- ^ Converts a block list to JATS, wrapping top-level blocks into a
+    -- @<p>@ element if the property evaluates to @True@.
+    -- See #7227.
+
   , jatsInlinesWriter :: WriterOptions -> [Inline] -> JATS m (Doc Text)
-  , jatsBlockWriter   :: WriterOptions -> Block    -> JATS m (Doc Text)
-  , jatsReferences    :: [Reference Inlines]
+    -- ^ Converts an inline list to JATS.
+
+  , jatsReferences    :: [Reference Inlines] -- ^ List of references
   }
 
 -- | JATS writer type
