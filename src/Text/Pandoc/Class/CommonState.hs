@@ -19,7 +19,7 @@ where
 
 import Data.Default (Default (def))
 import Data.Text (Text)
-import UnicodeCollation.Lang (Lang)
+import Text.Collate.Lang (Lang)
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Logging (LogMessage, Verbosity (WARNING))
 import Text.Pandoc.Translations (Translations)

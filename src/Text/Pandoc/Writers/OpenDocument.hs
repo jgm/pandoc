@@ -25,7 +25,7 @@ import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import UnicodeCollation.Lang (Lang (..), parseLang)
+import Text.Collate.Lang (Lang (..), parseLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, translateTerm,
                                       setTranslations, toLang)
 import Text.Pandoc.Definition

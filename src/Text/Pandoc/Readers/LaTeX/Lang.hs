@@ -23,7 +23,7 @@ import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Shared (extractSpaces)
-import UnicodeCollation.Lang (Lang(..), renderLang)
+import Text.Collate.Lang (Lang(..), renderLang)
 import Text.Pandoc.Class (PandocMonad(..), setTranslations)
 import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.Parsing (updateState, option, getState, QuoteContext(..),

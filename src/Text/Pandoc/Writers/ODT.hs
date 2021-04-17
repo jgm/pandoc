@@ -24,7 +24,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Time
 import System.FilePath (takeDirectory, takeExtension, (<.>))
-import UnicodeCollation.Lang (Lang (..), renderLang)
+import Text.Collate.Lang (Lang (..), renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition

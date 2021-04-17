@@ -15,7 +15,7 @@ module Text.Pandoc.Writers.LaTeX.Lang
     toBabel
   ) where
 import Data.Text (Text)
-import UnicodeCollation.Lang (Lang(..))
+import Text.Collate.Lang (Lang(..))
 
 
 -- In environments \Arabic instead of \arabic is used

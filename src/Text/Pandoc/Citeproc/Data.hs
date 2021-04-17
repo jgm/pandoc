@@ -10,7 +10,7 @@ import qualified Data.Text.Encoding as TE
 import qualified Data.Text as T
 import Data.Text (Text)
 import Text.Pandoc.Citeproc.Util (toIETF)
-import UnicodeCollation.Lang (Lang(..), parseLang)
+import Text.Collate.Lang (Lang(..), parseLang)
 
 biblatexLocalizations :: [(FilePath, ByteString)]
 biblatexLocalizations = $(embedDir "citeproc/biblatex-localization")

@@ -55,7 +55,7 @@ import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
 import Text.Pandoc.App.CommandLineOptions (parseOptions, parseOptionsFromArgs,
                                            options)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
-import UnicodeCollation.Lang (Lang (..), parseLang)
+import Text.Collate.Lang (Lang (..), parseLang)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), applyFilters)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.SelfContained (makeSelfContained)

@@ -70,7 +70,7 @@ import Network.URI ( escapeURIString, nonStrictRelativeTo,
 import System.FilePath ((</>), (<.>), takeExtension, dropExtension,
                         isRelative, splitDirectories)
 import System.Random (StdGen)
-import UnicodeCollation.Lang (Lang(..), parseLang, renderLang)
+import Text.Collate.Lang (Lang(..), parseLang, renderLang)
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error

@@ -56,6 +56,10 @@ n.d.; al-'Udhrī, n.d.; Uch, n.d.; Uebel, n.d.; Zzz, n.d.).
 Uch, Ann. n.d.
 :::
 
+::: {#ref-item4 .csl-entry}
+'Udhrī, Jamīl al-. n.d.
+:::
+
 ::: {#ref-item1 .csl-entry}
 ʾUdhrī, Jamīl al-. n.d.
 :::
@@ -66,10 +70,6 @@ Uch, Ann. n.d.
 
 ::: {#ref-item3 .csl-entry}
 \'Udhrī, Jamīl al-. n.d.
-:::
-
-::: {#ref-item4 .csl-entry}
-'Udhrī, Jamīl al-. n.d.
 :::
 
 ::: {#ref-item5 .csl-entry}
