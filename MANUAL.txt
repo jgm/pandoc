@@ -5541,10 +5541,23 @@ A few other metadata fields affect bibliography formatting:
 
 `lang`
 :   The `lang` field will affect how the style is localized,
-    for example in the translation of labels and the use
-    of quotation marks.  (For backwards compatibility,
-    `locale` may be used instead of `lang`, but this use
-    is deprecated.)
+    for example in the translation of labels, the use
+    of quotation marks, and the way items are sorted.
+    (For backwards compatibility, `locale` may be used instead
+    of `lang`, but this use is deprecated.)
+
+    A BCP 47 language tag is expected:  for example, `en`,
+    `de`, `en-US`, `fr-CA`, `ug-Cyrl`.  The unicode extension
+    syntax (after `-u-`) may be used to specify options for
+    collation (sorting) more precisely. Here are some examples:
+
+    - `zh-u-co-pinyin` -- Chinese with the Pinyin collation.
+    - `es-u-co-trad` -- Spanish with the traditional collation
+      (with `Ch` sorting after `C`).
+    - `fr-u-kb` -- French with "backwards" accent sorting
+      (with `coté` sorting after `côte`).
+    - `en-US-u-kf-upper` -- English with uppercase letters sorting
+       before lower (default is lower before upper).
 
 `notes-after-punctuation`
 :    If true (the default), pandoc will put footnote citations
@@ -5554,12 +5567,6 @@ A few other metadata fields affect bibliography formatting:
      the space collapsed.  If false, the space will still be
      collapsed, but the footnote will not be moved after the
      punctuation.
-
-
-
-
-
-
 
 
 # Slide shows
