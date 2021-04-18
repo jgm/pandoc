@@ -19,7 +19,7 @@ extra-deps:
 - unicode-collation-0.1.1
 # - citeproc-0.3.0.9
 - git: https://github.com/jgm/citeproc
-  commit: f9439e07e9271c7c2674a51efcad2fb8c663b2c8
+  commit: 46066cb8939e907e7e3a7126304919c8ed32aed0
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-17.5
