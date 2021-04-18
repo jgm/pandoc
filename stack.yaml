@@ -16,7 +16,7 @@ extra-deps:
 - texmath-0.12.2
 - random-1.2.0
 - xml-conduit-1.9.1.1
-- unicode-collation-0.1
+- unicode-collation-0.1.1
 # - citeproc-0.3.0.9
 - git: https://github.com/jgm/citeproc
   commit: f9439e07e9271c7c2674a51efcad2fb8c663b2c8
