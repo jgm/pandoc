@@ -44,8 +44,8 @@ jobs:
       matrix:
         versions:
           - ghc: '8.0.2'
-            cabal: '2.2'
-            prefix: 'new-'
+            cabal: '2.4'
+            prefix: 'v2-'
             cabalopts: ''
             testopts: ''
           - ghc: '8.2.2'
