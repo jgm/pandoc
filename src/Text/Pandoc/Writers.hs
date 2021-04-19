@@ -81,6 +81,7 @@ import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.Text (Text)
 import qualified Data.Text as T
+import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
@@ -122,7 +123,6 @@ import Text.Pandoc.Writers.Texinfo
 import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.XWiki
 import Text.Pandoc.Writers.ZimWiki
-import Text.Parsec.Error
 
 data Writer m = TextWriter (WriterOptions -> Pandoc -> m Text)
               | ByteStringWriter (WriterOptions -> Pandoc -> m BL.ByteString)
@@ -196,8 +196,8 @@ writers = [
 getWriter :: PandocMonad m => Text -> m (Writer m, Extensions)
 getWriter s =
   case parseFormatSpec s of
-        Left e  -> throwError $ PandocAppError
-                    $ T.intercalate "\n" [T.pack m | Message m <- errorMessages e]
+        Left e  -> throwError $ PandocAppError $
+                    "Error parsing writer format " <> tshow s <> ": " <> tshow e
         Right (writerName, extsToEnable, extsToDisable) ->
            case lookup writerName writers of
                    Nothing  -> throwError $

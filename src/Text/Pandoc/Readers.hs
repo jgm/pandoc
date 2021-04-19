@@ -65,6 +65,7 @@ import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.Text (Text)
 import qualified Data.Text as T
+import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
@@ -101,7 +102,6 @@ import Text.Pandoc.Readers.CSV
 import Text.Pandoc.Readers.CslJson
 import Text.Pandoc.Readers.BibTeX
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Parsec.Error
 
 data Reader m = TextReader (ReaderOptions -> Text -> m Pandoc)
               | ByteStringReader (ReaderOptions -> BL.ByteString -> m Pandoc)
@@ -152,8 +152,8 @@ readers = [ ("native"       , TextReader readNative)
 getReader :: PandocMonad m => Text -> m (Reader m, Extensions)
 getReader s =
   case parseFormatSpec s of
-       Left e  -> throwError $ PandocAppError
-                    $ T.intercalate "\n" [T.pack m | Message m <- errorMessages e]
+       Left e  -> throwError $ PandocAppError $
+                    "Error parsing reader format " <> tshow s <> ": " <> tshow e
        Right (readerName, extsToEnable, extsToDisable) ->
            case lookup readerName readers of
                    Nothing  -> throwError $ PandocUnknownReaderError
