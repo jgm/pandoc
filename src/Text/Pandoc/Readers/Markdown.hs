@@ -298,7 +298,7 @@ kvPair allowEmpty = try $ do
           (try $ newline >> lookAhead (blankline <|> nonspaceChar))
   guard $ allowEmpty || not (T.null val)
   let key' = T.concat $ T.words $ T.toLower key
-  let val' = MetaBlocks $ B.toList $ B.plain $ B.text val
+  let val' = MetaInlines $ B.toList $ B.text val
   return (key',val')
 
 parseMarkdown :: PandocMonad m => MarkdownParser m Pandoc
