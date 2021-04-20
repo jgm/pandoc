@@ -657,6 +657,8 @@ library
                    Text.Pandoc.Readers.Metadata,
                    Text.Pandoc.Readers.Roff,
                    Text.Pandoc.Writers.Docx.StyleMap,
+                   Text.Pandoc.Writers.Docx.Table,
+                   Text.Pandoc.Writers.Docx.Types,
                    Text.Pandoc.Writers.JATS.References,
                    Text.Pandoc.Writers.JATS.Table,
                    Text.Pandoc.Writers.JATS.Types,
