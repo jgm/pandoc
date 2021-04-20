@@ -160,11 +160,11 @@ $endfor$
 $if(toc)$
 \completecontent
 $endif$
-$if(lot)$
-\completelistoftables
-$endif$
 $if(lof)$
 \completelistoffigures
+$endif$
+$if(lot)$
+\completelistoftables
 $endif$
 
 $body$
