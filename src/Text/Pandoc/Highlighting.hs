@@ -52,12 +52,12 @@ highlightingStyles =
    ("breezedark", breezeDark),
    ("haddock", haddock)]
 
-languages :: [T.Text]
-languages = [T.toLower (sName s) | s <- M.elems defaultSyntaxMap]
+languages :: SyntaxMap -> [T.Text]
+languages syntaxmap = [T.toLower (sName s) | s <- M.elems syntaxmap]
 
-languagesByExtension :: T.Text -> [T.Text]
-languagesByExtension ext =
-  [T.toLower (sName s) | s <- syntaxesByExtension defaultSyntaxMap (T.unpack ext)]
+languagesByExtension :: SyntaxMap -> T.Text -> [T.Text]
+languagesByExtension syntaxmap ext =
+  [T.toLower (sName s) | s <- syntaxesByExtension syntaxmap (T.unpack ext)]
 
 highlight :: SyntaxMap
           -> (FormatOptions -> [SourceLine] -> a) -- ^ Formatter

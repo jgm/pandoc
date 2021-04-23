@@ -224,19 +224,21 @@ imageMimeType src kvs =
                   (T.drop 1 . T.dropWhile (/='/') <$> mbMT)
   in (maintype, subtype)
 
-languageFor :: [Text] -> Text
-languageFor classes =
+languageFor :: WriterOptions -> [Text] -> Text
+languageFor opts classes =
   case langs of
      (l:_) -> escapeStringForXML l
      []    -> ""
-    where isLang l    = T.toLower l `elem` map T.toLower languages
+    where
+          syntaxMap = writerSyntaxMap opts
+          isLang l    = T.toLower l `elem` map T.toLower (languages syntaxMap)
           langsFrom s = if isLang s
                            then [s]
-                           else languagesByExtension . T.toLower $ s
+                           else (languagesByExtension syntaxMap) . T.toLower $ s
           langs       = concatMap langsFrom classes
 
-codeAttr :: Attr -> (Text, [(Text, Text)])
-codeAttr (ident,classes,kvs) = (lang, attr)
+codeAttr :: WriterOptions -> Attr -> (Text, [(Text, Text)])
+codeAttr opts (ident,classes,kvs) = (lang, attr)
     where
        attr = [("id", escapeNCName ident) | not (T.null ident)] ++
               [("language",lang) | not (T.null lang)] ++
@@ -244,7 +246,7 @@ codeAttr (ident,classes,kvs) = (lang, attr)
                 "code-version", "executable",
                 "language-version", "orientation",
                     "platforms", "position", "specific-use"]]
-       lang  = languageFor classes
+       lang  = languageFor opts classes
 
 -- | Convert a Pandoc block element to JATS.
 blockToJATS :: PandocMonad m => WriterOptions -> Block -> JATS m (Doc Text)
@@ -330,9 +332,9 @@ blockToJATS opts (BlockQuote blocks) = do
                     HorizontalRule -> True
                     _              -> False
   inTagsIndented "disp-quote" <$> wrappedBlocksToJATS needsWrap opts blocks
-blockToJATS _ (CodeBlock a str) = return $
+blockToJATS opts (CodeBlock a str) = return $
   inTags False tag attr (flush (text (T.unpack $ escapeStringForXML str)))
-    where (lang, attr) = codeAttr a
+    where (lang, attr) = codeAttr opts a
           tag          = if T.null lang then "preformat" else "code"
 blockToJATS _ (BulletList []) = return empty
 blockToJATS opts (BulletList lst) =
@@ -412,9 +414,9 @@ inlineToJATS opts (Quoted SingleQuote lst) = do
 inlineToJATS opts (Quoted DoubleQuote lst) = do
   contents <- inlinesToJATS opts lst
   return $ char '“' <> contents <> char '”'
-inlineToJATS _ (Code a str) =
+inlineToJATS opts (Code a str) =
   return $ inTags False tag attr $ literal (escapeStringForXML str)
-    where (lang, attr) = codeAttr a
+    where (lang, attr) = codeAttr opts a
           tag          = if T.null lang then "monospace" else "code"
 inlineToJATS _ il@(RawInline f x)
   | f == "jats" = return $ literal x
