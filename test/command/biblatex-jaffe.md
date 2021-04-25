@@ -72,8 +72,8 @@ references:
   language: la
   number-of-volumes: 2
   publisher-place: Leipzig
-  title: "Regesta Pontificum Romanorum ab condita ecclesia ad annum post
-    Christum natum [mcxcviii]{.smallcaps}"
+  title: Regesta Pontificum Romanorum ab condita ecclesia ad annum post
+    Christum natum [mcxcviii]{.smallcaps}
   title-short: Regesta Pontificum Romanorum
   type: book
 ---

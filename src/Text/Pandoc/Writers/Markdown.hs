@@ -26,7 +26,7 @@ import Data.Default
 import Data.List (intersperse, sortOn, transpose)
 import Data.List.NonEmpty (nonEmpty, NonEmpty(..))
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (fromMaybe, mapMaybe, isNothing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -142,18 +142,17 @@ valToYaml (SimpleVal x)
   | otherwise =
       if hasNewlines x
          then hang 0 ("|" <> cr) x
-         else if fst $ foldr needsDoubleQuotes (False, True) x
+         else if isNothing $ foldM needsDoubleQuotes True x
            then "\"" <> fmap escapeInDoubleQuotes x <> "\""
            else x
     where
-      needsDoubleQuotes t (positive, isFirst)
+      needsDoubleQuotes isFirst t
         = if T.any isBadAnywhere t ||
              (isFirst && T.any isYamlPunct (T.take 1 t))
-              then (True, False)
-              else (positive, False)
+              then Nothing
+              else Just False
       isBadAnywhere '#' = True
       isBadAnywhere ':' = True
-      isBadAnywhere '`' = False
       isBadAnywhere _   = False
       hasNewlines NewLine = True
       hasNewlines BlankLines{} = True

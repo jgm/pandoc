@@ -63,7 +63,7 @@ references:
   publisher-place: Cambridge
   title: "Le *De Anima* dans la tradition grècque: Quelques aspects de
     l'interpretation du traité, de Theophraste à Themistius"
-  title-short: *De Anima* dans la tradition grècque
+  title-short: "*De Anima* dans la tradition grècque"
   type: paper-conference
 - author:
   - family: Salam

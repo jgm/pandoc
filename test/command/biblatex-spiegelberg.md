@@ -63,8 +63,8 @@ references:
   issued: 1969
   language: de-DE
   page: 189-216
-  title: "Intention" und "Intentionalität" in der Scholastik, bei
-    Brentano und Husserl
+  title: "\"Intention\" und \"Intentionalität\" in der Scholastik, bei
+    Brentano und Husserl"
   title-short: Intention und Intentionalität
   type: article-journal
   volume: 29
