@@ -278,6 +278,12 @@ attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
               escAttrChar '\\' = literal "\\\\"
               escAttrChar c    = literal $ T.singleton c
 
+-- | (Code) blocks with a single class can just use it standalone,
+-- no need to bother with curly braces.
+classOrAttrsToMarkdown :: Attr -> Doc Text
+classOrAttrsToMarkdown ("",[cls],_) = literal cls
+classOrAttrsToMarkdown attrs = attrsToMarkdown attrs
+
 linkAttributes :: WriterOptions -> Attr -> Doc Text
 linkAttributes opts attr =
   if isEnabled Ext_link_attributes opts && attr /= nullAttr
@@ -343,7 +349,7 @@ blockToMarkdown' opts (Div attrs ils) = do
     case () of
          _ | isEnabled Ext_fenced_divs opts &&
              attrs /= nullAttr ->
-                nowrap (literal ":::" <+> attrsToMarkdown attrs) $$
+                nowrap (literal ":::" <+> classOrAttrsToMarkdown attrs) $$
                 chomp contents $$
                 literal ":::" <> blankline
            | isEnabled Ext_native_divs opts ||
@@ -512,7 +518,7 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
      backticks = endline '`'
      tildes = endline '~'
      attrs  = if isEnabled Ext_fenced_code_attributes opts
-                 then nowrap $ " " <> attrsToMarkdown attribs
+                 then nowrap $ " " <> classOrAttrsToMarkdown attribs
                  else case attribs of
                             (_,cls:_,_) -> " " <> literal cls
                             _             -> empty
