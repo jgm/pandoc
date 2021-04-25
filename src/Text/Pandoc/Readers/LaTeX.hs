@@ -1171,7 +1171,8 @@ inputListing = do
   let (ident,classes,kvs) = parseListingsOptions options
   let classes' =
         (case listingsLanguage options of
-           Nothing -> (take 1 (languagesByExtension defaultSyntaxMap (T.pack $ takeExtension $ T.unpack f)) <>)
+           Nothing -> (take 1 (languagesByExtension defaultSyntaxMap
+                                (T.pack $ takeExtension $ T.unpack f)) <>)
            Just _  -> id) classes
   let firstline = fromMaybe 1 $ lookup "firstline" options >>= safeRead
   let lastline = fromMaybe (length codeLines) $
