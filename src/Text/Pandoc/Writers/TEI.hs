@@ -146,16 +146,17 @@ blockToTEI opts (LineBlock lns) =
   blockToTEI opts $ linesToPara lns
 blockToTEI opts (BlockQuote blocks) =
   inTagsIndented "quote" <$> blocksToTEI opts blocks
-blockToTEI _ (CodeBlock (_,classes,_) str) =
+blockToTEI opts (CodeBlock (_,classes,_) str) =
   return $ literal ("<ab type='codeblock " <> lang <> "'>") <> cr <>
      flush (literal (escapeStringForXML str) <> cr <> text "</ab>")
     where lang  = if null langs
                      then ""
                      else escapeStringForXML (head langs)
-          isLang l    = T.toLower l `elem` map T.toLower languages
+          syntaxMap = writerSyntaxMap opts
+          isLang l    = T.toLower l `elem` map T.toLower (languages syntaxMap)
           langsFrom s = if isLang s
                            then [s]
-                           else languagesByExtension . T.toLower $ s
+                           else (languagesByExtension syntaxMap) . T.toLower $ s
           langs       = concatMap langsFrom classes
 blockToTEI opts (BulletList lst) = do
   let attribs = [("type", "unordered")]
