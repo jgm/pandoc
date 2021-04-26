@@ -1,7 +1,8 @@
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
-Module      : Text.Pandoc.Writers.Docx
+Module      : Text.Pandoc.Writers.Docx.Table
 Copyright   : Copyright (C) 2012-2021 John MacFarlane
 License     : GNU GPL, version 2 or above
 Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -87,7 +88,10 @@ tableToOpenXML blocksToOpenXML blkCapt specs thead tbody tfoot = do
      mknode "w:tbl" []
       ( mknode "w:tblPr" []
         (   mknode "w:tblStyle" [("w:val","Table")] () :
-            mknode "w:tblW" [("w:type", "pct"), ("w:w", tshow rowwidth)] () :
+            mknode "w:tblW" (if all (== 0) widths
+                              then [("w:type", "auto"), ("w:w", "0")]
+                              else [("w:type", "pct"), ("w:w", tshow rowwidth)])
+                            () :
             mknode "w:tblLook" [("w:firstRow",if hasHeader then "1" else "0")
                                ,("w:lastRow","0")
                                ,("w:firstColumn","0")
@@ -107,8 +111,8 @@ tableToOpenXML blocksToOpenXML blkCapt specs thead tbody tfoot = do
       )]
 
 alignmentToString :: Alignment -> Text
-alignmentToString alignment = case alignment of
-                                 AlignLeft    -> "left"
-                                 AlignRight   -> "right"
-                                 AlignCenter  -> "center"
-                                 AlignDefault -> "left"
+alignmentToString = \case
+  AlignLeft    -> "left"
+  AlignRight   -> "right"
+  AlignCenter  -> "center"
+  AlignDefault -> "left"
