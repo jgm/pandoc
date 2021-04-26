@@ -13,13 +13,15 @@ extra-deps:
 - skylighting-core-0.10.5.1
 - skylighting-0.10.5.1
 - doclayout-0.3.0.2
-- texmath-0.12.2
 - random-1.2.0
 - xml-conduit-1.9.1.1
-- unicode-collation-0.1.2
+- unicode-collation-0.1.3
+# - texmath-0.12.2
+- git: https://github.com/jgm/texmath
+  commit: 0c34bb7d229389adc62bcbfe20cfbfdc0c8ccc8d
 # - citeproc-0.3.0.9
 - git: https://github.com/jgm/citeproc
-  commit: 46066cb8939e907e7e3a7126304919c8ed32aed0
+  commit: f33b370bd1ab5ad5140720369c0586041e433a47
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-17.5
