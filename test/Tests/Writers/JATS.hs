@@ -148,13 +148,17 @@ tests =
       spanWith nullAttr "text in span" =?>
       "<p>text in span</p>"
 
-    , "converted to named-content element" =:
-      spanWith ("a", ["ignored"], [("alt", "aa")]) "text" =?>
-      "<p><named-content id=\"a\" alt=\"aa\">text</named-content></p>"
+    , "converted to named-content element if class given" =:
+      spanWith ("a", ["genus-species"], [("alt", "aa")]) "C. elegans" =?>
+      ("<p><named-content id=\"a\" alt=\"aa\" content-type=\"genus-species\">"
+       <> "C. elegans</named-content></p>")
 
-    , "unwrapped if named-content element would have no attributes" =:
-      spanWith ("", ["ignored"], [("hidden", "true")]) "text in span" =?>
+    , "unwrapped if styled-content element would have no attributes" =:
+      spanWith ("", [], [("hidden", "true")]) "text in span" =?>
       "<p>text in span</p>"
 
+    , "use content-type attribute if present" =:
+      spanWith ("", [], [("content-type", "species")]) "E. coli" =?>
+      "<p><named-content content-type=\"species\">E. coli</named-content></p>"
     ]
   ]
