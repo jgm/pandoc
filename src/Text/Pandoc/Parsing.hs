@@ -1447,7 +1447,7 @@ singleQuoteStart = do
   guard =<< notAfterString
   try $ do
     charOrRef "'\8216\145"
-    notFollowedBy (satisfy isSpaceChar)
+    void $ lookAhead (satisfy (not . isSpaceChar))
 
 singleQuoteEnd :: Stream s m Char
                => ParserT s st m ()
@@ -1463,7 +1463,7 @@ doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
   guard =<< notAfterString
   try $ do charOrRef "\"\8220\147"
-           notFollowedBy (satisfy isSpaceChar)
+           void $ lookAhead (satisfy (not . isSpaceChar))
 
 doubleQuoteEnd :: Stream s m Char
                => ParserT s st m ()
