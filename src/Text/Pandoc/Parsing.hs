@@ -105,8 +105,9 @@ module Text.Pandoc.Parsing ( take1WhileP,
                              singleQuoteEnd,
                              doubleQuoteStart,
                              doubleQuoteEnd,
-                             ellipses,
                              apostrophe,
+                             doubleCloseQuote,
+                             ellipses,
                              dash,
                              nested,
                              citeKey,
@@ -1398,10 +1399,7 @@ smartPunctuation :: (HasReaderOptions st, HasLastStrPosition st, HasQuoteContext
                  -> ParserT s st m Inlines
 smartPunctuation inlineParser = do
   guardEnabled Ext_smart
-  choice [ quoted inlineParser, apostrophe, dash, ellipses ]
-
-apostrophe :: Stream s m Char => ParserT s st m Inlines
-apostrophe = (char '\'' <|> char '\8217') >> return (B.str "\x2019")
+  choice [ quoted inlineParser, apostrophe, doubleCloseQuote, dash, ellipses ]
 
 quoted :: (HasLastStrPosition st, HasQuoteContext st m, Stream s m Char)
        => ParserT s st m Inlines
@@ -1411,16 +1409,22 @@ quoted inlineParser = doubleQuoted inlineParser <|> singleQuoted inlineParser
 singleQuoted :: (HasLastStrPosition st, HasQuoteContext st m, Stream s m Char)
              => ParserT s st m Inlines
              -> ParserT s st m Inlines
-singleQuoted inlineParser = try $ B.singleQuoted . mconcat
-  <$  singleQuoteStart
-  <*> withQuoteContext InSingleQuote (many1Till inlineParser singleQuoteEnd)
+singleQuoted inlineParser = do
+  singleQuoteStart
+  (B.singleQuoted . mconcat <$>
+    try
+     (withQuoteContext InSingleQuote (many1Till inlineParser singleQuoteEnd)))
+   <|> pure "\8217"
 
-doubleQuoted :: (HasQuoteContext st m, Stream s m Char)
+doubleQuoted :: (HasQuoteContext st m, HasLastStrPosition st, Stream s m Char)
              => ParserT s st m Inlines
              -> ParserT s st m Inlines
-doubleQuoted inlineParser = try $ B.doubleQuoted . mconcat
-  <$  doubleQuoteStart
-  <*> withQuoteContext InDoubleQuote (manyTill inlineParser doubleQuoteEnd)
+doubleQuoted inlineParser = do
+  doubleQuoteStart
+  (B.doubleQuoted . mconcat <$>
+    try
+     (withQuoteContext InDoubleQuote (manyTill inlineParser doubleQuoteEnd)))
+   <|> pure (B.str "\8220")
 
 failIfInQuoteContext :: (HasQuoteContext st m, Stream s m t)
                      => QuoteContext
@@ -1443,7 +1447,7 @@ singleQuoteStart = do
   guard =<< notAfterString
   try $ do
     charOrRef "'\8216\145"
-    notFollowedBy (oneOf [' ', '\t', '\n'])
+    notFollowedBy (satisfy isSpaceChar)
 
 singleQuoteEnd :: Stream s m Char
                => ParserT s st m ()
@@ -1451,16 +1455,25 @@ singleQuoteEnd = try $ do
   charOrRef "'\8217\146"
   notFollowedBy alphaNum
 
-doubleQuoteStart :: (HasQuoteContext st m, Stream s m Char)
+doubleQuoteStart :: (HasLastStrPosition st,
+                     HasQuoteContext st m,
+                     Stream s m Char)
                  => ParserT s st m ()
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
+  guard =<< notAfterString
   try $ do charOrRef "\"\8220\147"
-           notFollowedBy (oneOf [' ', '\t', '\n'])
+           notFollowedBy (satisfy isSpaceChar)
 
 doubleQuoteEnd :: Stream s m Char
                => ParserT s st m ()
 doubleQuoteEnd = void (charOrRef "\"\8221\148")
+
+apostrophe :: Stream s m Char => ParserT s st m Inlines
+apostrophe = (char '\'' <|> char '\8217') >> return (B.str "\8217")
+
+doubleCloseQuote :: Stream s m Char => ParserT s st m Inlines
+doubleCloseQuote = B.str "\8221" <$ char '"'
 
 ellipses :: Stream s m Char
          => ParserT s st m Inlines

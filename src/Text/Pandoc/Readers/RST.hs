@@ -1658,21 +1658,4 @@ note = try $ do
       return $ B.note contents
 
 smart :: PandocMonad m => RSTParser m Inlines
-smart = do
-  guardEnabled Ext_smart
-  doubleQuoted <|> singleQuoted <|>
-    choice [apostrophe, dash, ellipses]
-
-singleQuoted :: PandocMonad m => RSTParser m Inlines
-singleQuoted = try $ do
-  singleQuoteStart
-  withQuoteContext InSingleQuote $
-    B.singleQuoted . trimInlines . mconcat <$>
-      many1Till inline singleQuoteEnd
-
-doubleQuoted :: PandocMonad m => RSTParser m Inlines
-doubleQuoted = try $ do
-  doubleQuoteStart
-  withQuoteContext InDoubleQuote $
-    B.doubleQuoted . trimInlines . mconcat <$>
-      many1Till inline doubleQuoteEnd
+smart = smartPunctuation inline

@@ -358,7 +358,7 @@ tests = [ testGroup "inline code"
               para (text "The value of the " <> math "x" <> text "\8217s and the systems\8217 condition.")
           , test markdownSmart "unclosed double quote"
             ("**this should \"be bold**"
-            =?> para (strong "this should \"be bold"))
+            =?> para (strong "this should \8220be bold"))
           ]
         , testGroup "footnotes"
           [ "indent followed by newline and flush-left text" =:

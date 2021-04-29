@@ -2199,25 +2199,27 @@ citation = try $ do
 smart :: PandocMonad m => MarkdownParser m (F Inlines)
 smart = do
   guardEnabled Ext_smart
-  doubleQuoted <|> singleQuoted <|>
-    choice (map (return <$>) [apostrophe, dash, ellipses])
+  doubleQuoted <|> singleQuoted <|> (return <$> doubleCloseQuote) <|>
+    (return <$> apostrophe) <|> (return <$> dash) <|> (return <$> ellipses)
 
 singleQuoted :: PandocMonad m => MarkdownParser m (F Inlines)
-singleQuoted = try $ do
+singleQuoted = do
   singleQuoteStart
-  withQuoteContext InSingleQuote $
+  (try (withQuoteContext InSingleQuote $
     fmap B.singleQuoted . trimInlinesF . mconcat <$>
-      many1Till inline singleQuoteEnd
+      many1Till inline singleQuoteEnd))
+    <|> (return (return (B.str "\8217")))
 
 -- doubleQuoted will handle regular double-quoted sections, as well
 -- as dialogues with an open double-quote without a close double-quote
 -- in the same paragraph.
 doubleQuoted :: PandocMonad m => MarkdownParser m (F Inlines)
-doubleQuoted = try $ do
+doubleQuoted = do
   doubleQuoteStart
-  withQuoteContext InDoubleQuote $
+  (try (withQuoteContext InDoubleQuote $
     fmap B.doubleQuoted . trimInlinesF . mconcat <$>
-      many1Till inline doubleQuoteEnd
+      many1Till inline doubleQuoteEnd))
+    <|> (return (return (B.str "\8220")))
 
 toRow :: [Blocks] -> Row
 toRow = Row nullAttr . map B.simpleCell

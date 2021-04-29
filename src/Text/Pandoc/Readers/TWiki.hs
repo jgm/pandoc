@@ -469,27 +469,7 @@ symbol :: PandocMonad m => TWParser m B.Inlines
 symbol = B.str <$> countChar 1 nonspaceChar
 
 smart :: PandocMonad m => TWParser m B.Inlines
-smart = do
-  guardEnabled Ext_smart
-  doubleQuoted <|> singleQuoted <|>
-    choice [ apostrophe
-           , dash
-           , ellipses
-           ]
-
-singleQuoted :: PandocMonad m => TWParser m B.Inlines
-singleQuoted = try $ do
-  singleQuoteStart
-  withQuoteContext InSingleQuote
-    (B.singleQuoted . B.trimInlines . mconcat <$> many1Till inline singleQuoteEnd)
-
-doubleQuoted :: PandocMonad m => TWParser m B.Inlines
-doubleQuoted = try $ do
-  doubleQuoteStart
-  contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)
-  withQuoteContext InDoubleQuote (doubleQuoteEnd >>
-   return (B.doubleQuoted $ B.trimInlines contents))
-   <|> return (B.str "\8220" B.<> contents)
+smart = smartPunctuation inline
 
 link :: PandocMonad m => TWParser m B.Inlines
 link = try $ do
