@@ -709,7 +709,8 @@ elemToParPart ns element
      case drawing of
        Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp title alt bs $ elemToExtent drawingElem)
        Nothing -> throwError WrongElem
--- The below is an attempt to deal with images in deprecated vml format.
+-- The two cases below are an attempt to deal with images in deprecated vml format.
+-- Todo: check out title and attr for deprecated format.
 elemToParPart ns element
   | isElem ns "w" "r" element
   , Just _ <- findChildByName ns "w" "pict" element =
@@ -717,9 +718,15 @@ elemToParPart ns element
                   >>= findAttrByName ns "r" "id"
     in
      case drawing of
-       -- Todo: check out title and attr for deprecated format.
        Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp "" "" bs Nothing)
        Nothing -> throwError WrongElem
+elemToParPart ns element
+  | isElem ns "w" "r" element
+  , Just objectElem <- findChildByName ns "w" "object" element
+  , Just shapeElem <- findChildByName ns "v" "shape" objectElem
+  , Just imagedataElem <- findChildByName ns "v" "imagedata" shapeElem
+  , Just drawingId <- findAttrByName ns "r" "id" imagedataElem
+  = expandDrawingId drawingId >>= (\(fp, bs) -> return $ Drawing fp "" "" bs Nothing)
 -- Chart
 elemToParPart ns element
   | isElem ns "w" "r" element
