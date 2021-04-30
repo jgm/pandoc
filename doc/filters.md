@@ -394,6 +394,8 @@ automatically assign it `Just` the target format or `Nothing`.
 
 We compile our script:
 
+    # first, make sure pandoc-types is installed:
+    cabal install --lib pandoc-types --package-env .
     ghc --make handleRuby
 
 Then run it:
