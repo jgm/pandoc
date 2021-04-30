@@ -407,6 +407,8 @@ inlineToOrg (Math t str) = do
               then "\\(" <> literal str <> "\\)"
               else "\\[" <> literal str <> "\\]"
 inlineToOrg il@(RawInline f str)
+  | elem f ["tex", "latex"] && T.isPrefixOf "\\begin" str =
+    return $ cr <> literal str <> cr
   | isRawFormat f = return $ literal str
   | otherwise     = do
       report $ InlineNotRendered il
