@@ -23,21 +23,20 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed)
-import Text.Pandoc.Shared (crFilter)
-
 
 -- | Read creole from an input string and return a Pandoc document.
-readCreole :: PandocMonad m
+readCreole :: (PandocMonad m, ToSources a)
           => ReaderOptions
-          -> Text
+          -> a
           -> m Pandoc
 readCreole opts s = do
-  res <- readWithM parseCreole def{ stateOptions = opts } $ crFilter s <> "\n\n"
+  let sources = ensureFinalNewlines 2 (toSources s)
+  res <- readWithM parseCreole def{ stateOptions = opts } sources
   case res of
        Left e  -> throwError e
        Right d -> return d
 
-type CRLParser = ParserT Text ParserState
+type CRLParser = ParserT Sources ParserState
 
 --
 -- Utility functions

@@ -20,7 +20,7 @@ import Control.Monad (liftM, mzero, guard, void)
 import Control.Monad.Trans (lift)
 import Control.Monad.Except (throwError)
 import Data.Maybe (catMaybes, isJust)
-import Data.List (intersperse, intercalate)
+import Data.List (intersperse)
 import qualified Data.Text as T
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad(..), report)
@@ -29,9 +29,8 @@ import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Walk (query)
-import Text.Pandoc.Shared (crFilter, mapLeft)
+import Text.Pandoc.Shared (mapLeft)
 import Text.Pandoc.Readers.Roff  -- TODO explicit imports
-import Text.Parsec hiding (tokenPrim)
 import qualified Text.Parsec as Parsec
 import Text.Parsec.Pos (updatePosString)
 import qualified Data.Foldable as Foldable
@@ -50,13 +49,20 @@ type ManParser m = ParserT [RoffToken] ManState m
 
 
 -- | Read man (troff) from an input string and return a Pandoc document.
-readMan :: PandocMonad m => ReaderOptions -> T.Text -> m Pandoc
-readMan opts txt = do
-  tokenz <- lexRoff (initialPos "input") (crFilter txt)
+readMan :: (PandocMonad m, ToSources a)
+        => ReaderOptions
+        -> a
+        -> m Pandoc
+readMan opts s = do
+  let Sources inps = toSources s
+  tokenz <- mconcat <$> mapM (uncurry lexRoff) inps
   let state = def {readerOptions = opts} :: ManState
+  let fixError (PandocParsecError _ e) = PandocParsecError (Sources inps) e
+      fixError e = e
   eitherdoc <- readWithMTokens parseMan state
      (Foldable.toList . unRoffTokens $ tokenz)
-  either throwError return eitherdoc
+  either (throwError . fixError) return eitherdoc
+
 
 readWithMTokens :: PandocMonad m
         => ParserT [RoffToken] ManState m a  -- ^ parser
@@ -64,8 +70,9 @@ readWithMTokens :: PandocMonad m
         -> [RoffToken]                       -- ^ input
         -> m (Either PandocError a)
 readWithMTokens parser state input =
-  let leftF = PandocParsecError . T.pack . intercalate "\n" $ show <$> input
+  let leftF = PandocParsecError mempty
   in mapLeft leftF `liftM` runParserT parser state "source" input
+
 
 parseMan :: PandocMonad m => ManParser m Pandoc
 parseMan = do
@@ -89,7 +96,7 @@ parseBlock = choice [ parseList
 
 parseTable :: PandocMonad m => ManParser m Blocks
 parseTable = do
-  modifyState $ \st -> st { tableCellsPlain = True }
+  updateState $ \st -> st { tableCellsPlain = True }
   let isTbl Tbl{} = True
       isTbl _     = False
   Tbl _opts rows pos <- msatisfy isTbl
@@ -135,7 +142,7 @@ parseTable = do
         case res' of
           Left _  -> Prelude.fail "Could not parse table cell"
           Right x -> do
-            modifyState $ \s -> s{ tableCellsPlain = False }
+            updateState $ \s -> s{ tableCellsPlain = False }
             return x
       Right x -> return x
 
@@ -222,7 +229,7 @@ parseTitle = do
                       setMeta "section" (linePartsToInlines y)
          [x]       -> setMeta "title" (linePartsToInlines x)
          []        -> id
-  modifyState $ \st -> st{ metadata = adjustMeta $ metadata st }
+  updateState $ \st -> st{ metadata = adjustMeta $ metadata st }
   return mempty
 
 linePartsToInlines :: [LinePart] -> Inlines

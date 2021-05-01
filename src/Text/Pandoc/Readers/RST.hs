@@ -38,25 +38,24 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Printf (printf)
 import Data.Time.Format
 
 -- TODO:
 -- [ ] .. parsed-literal
 
 -- | Parse reStructuredText string and return Pandoc document.
-readRST :: PandocMonad m
+readRST :: (PandocMonad m, ToSources a)
         => ReaderOptions -- ^ Reader options
-        -> Text          -- ^ Text to parse (assuming @'\n'@ line endings)
+        -> a
         -> m Pandoc
 readRST opts s = do
   parsed <- readWithM parseRST def{ stateOptions = opts }
-               (crFilter s <> "\n\n")
+               (ensureFinalNewlines 2 (toSources s))
   case parsed of
     Right result -> return result
     Left e       -> throwError e
 
-type RSTParser m = ParserT Text ParserState m
+type RSTParser m = ParserT Sources ParserState m
 
 --
 -- Constants and data structure definitions
@@ -151,11 +150,19 @@ parseRST = do
   startPos <- getPosition
   -- go through once just to get list of reference keys and notes
   -- docMinusKeys is the raw document with blanks where the keys were...
-  docMinusKeys <- T.concat <$>
-                  manyTill (referenceKey <|> anchorDef <|>
-                            noteBlock <|> citationBlock <|>
-                            (snd <$> withRaw comment) <|>
-                            headerBlock <|> lineClump) eof
+  let chunk = referenceKey
+              <|> anchorDef
+              <|> noteBlock
+              <|> citationBlock
+              <|> (snd <$> withRaw comment)
+              <|> headerBlock
+              <|> lineClump
+  docMinusKeys <- Sources <$>
+                  manyTill (do pos <- getPosition
+                               t <- chunk
+                               return (pos, t)) eof
+  -- UGLY: we collapse source position information.
+  -- TODO: fix the parser to use the F monad instead of two passes
   setInput docMinusKeys
   setPosition startPos
   st' <- getState
@@ -348,7 +355,7 @@ singleHeader' = try $ do
 -- hrule block
 --
 
-hrule :: Monad m => ParserT Text st m Blocks
+hrule :: Monad m => ParserT Sources st m Blocks
 hrule = try $ do
   chr <- oneOf underlineChars
   count 3 (char chr)
@@ -363,7 +370,7 @@ hrule = try $ do
 
 -- read a line indented by a given string
 indentedLine :: (HasReaderOptions st, Monad m)
-             => Int -> ParserT Text st m Text
+             => Int -> ParserT Sources st m Text
 indentedLine indents = try $ do
   lookAhead spaceChar
   gobbleAtMostSpaces indents
@@ -372,7 +379,7 @@ indentedLine indents = try $ do
 -- one or more indented lines, possibly separated by blank lines.
 -- any amount of indentation will work.
 indentedBlock :: (HasReaderOptions st, Monad m)
-              => ParserT Text st m Text
+              => ParserT Sources st m Text
 indentedBlock = try $ do
   indents <- length <$> lookAhead (many1 spaceChar)
   lns <- many1 $ try $ do b <- option "" blanklines
@@ -381,20 +388,20 @@ indentedBlock = try $ do
   optional blanklines
   return $ T.unlines lns
 
-quotedBlock :: Monad m => ParserT Text st m Text
+quotedBlock :: Monad m => ParserT Sources st m Text
 quotedBlock = try $ do
     quote <- lookAhead $ oneOf "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
     lns <- many1 $ lookAhead (char quote) >> anyLine
     optional blanklines
     return $ T.unlines lns
 
-codeBlockStart :: Monad m => ParserT Text st m Char
+codeBlockStart :: Monad m => ParserT Sources st m Char
 codeBlockStart = string "::" >> blankline >> blankline
 
-codeBlock :: Monad m => ParserT Text ParserState m Blocks
+codeBlock :: Monad m => ParserT Sources ParserState m Blocks
 codeBlock = try $ codeBlockStart >> codeBlockBody
 
-codeBlockBody :: Monad m => ParserT Text ParserState m Blocks
+codeBlockBody :: Monad m => ParserT Sources ParserState m Blocks
 codeBlockBody = do
   lang <- stateRstHighlight <$> getState
   try $ B.codeBlockWith ("", maybeToList lang, []) . stripTrailingNewlines <$>
@@ -410,14 +417,14 @@ lhsCodeBlock = try $ do
   return $ B.codeBlockWith ("", ["haskell","literate"], [])
          $ T.intercalate "\n" lns
 
-latexCodeBlock :: Monad m => ParserT Text st m [Text]
+latexCodeBlock :: Monad m => ParserT Sources st m [Text]
 latexCodeBlock = try $ do
   try (latexBlockLine "\\begin{code}")
   many1Till anyLine (try $ latexBlockLine "\\end{code}")
  where
   latexBlockLine s = skipMany spaceChar >> string s >> blankline
 
-birdCodeBlock :: Monad m => ParserT Text st m [Text]
+birdCodeBlock :: Monad m => ParserT Sources st m [Text]
 birdCodeBlock = filterSpace <$> many1 birdTrackLine
   where filterSpace lns =
             -- if (as is normal) there is always a space after >, drop it
@@ -425,7 +432,7 @@ birdCodeBlock = filterSpace <$> many1 birdTrackLine
                then map (T.drop 1) lns
                else lns
 
-birdTrackLine :: Monad m => ParserT Text st m Text
+birdTrackLine :: Monad m => ParserT Sources st m Text
 birdTrackLine = char '>' >> anyLine
 
 --
@@ -456,7 +463,6 @@ includeDirective top fields body = do
   let (startLine :: Maybe Int) = lookup "start-line" fields >>= safeRead
   let (endLine :: Maybe Int) = lookup "end-line" fields >>= safeRead
   oldPos <- getPosition
-  oldInput <- getInput
   containers <- stateContainers <$> getState
   when (f `elem` containers) $
     throwError $ PandocParseError $ "Include file loop at " <> tshow oldPos
@@ -494,15 +500,11 @@ includeDirective top fields body = do
        Nothing   -> case lookup "literal" fields of
                          Just _  -> return $ B.rawBlock "rst" contents'
                          Nothing -> do
-                           setPosition $ newPos (T.unpack f) 1 1
-                           setInput $ contents' <> "\n"
-                           bs <- optional blanklines >>
-                                  (mconcat <$> many block)
-                           setInput oldInput
-                           setPosition oldPos
+                           addToSources (initialPos (T.unpack f))
+                              (contents' <> "\n")
                            updateState $ \s -> s{ stateContainers =
                                          tail $ stateContainers s }
-                           return bs
+                           return mempty
 
 
 --
@@ -526,7 +528,7 @@ definitionList :: PandocMonad m => RSTParser m Blocks
 definitionList = B.definitionList <$> many1 definitionListItem
 
 -- parses bullet list start and returns its length (inc. following whitespace)
-bulletListStart :: Monad m => ParserT Text st m Int
+bulletListStart :: Monad m => ParserT Sources st m Int
 bulletListStart = try $ do
   notFollowedBy' hrule  -- because hrules start out just like lists
   marker <- oneOf bulletListMarkers
@@ -1103,7 +1105,7 @@ quotedReferenceName = try $ do
 -- plus isolated (no two adjacent) internal hyphens, underscores,
 -- periods, colons and plus signs; no whitespace or other characters
 -- are allowed.
-simpleReferenceName :: Monad m => ParserT Text st m Text
+simpleReferenceName :: Monad m => ParserT Sources st m Text
 simpleReferenceName = do
   x <- alphaNum
   xs <- many $  alphaNum
@@ -1122,7 +1124,7 @@ referenceKey = do
   -- return enough blanks to replace key
   return $ T.replicate (sourceLine endPos - sourceLine startPos) "\n"
 
-targetURI :: Monad m => ParserT Text st m Text
+targetURI :: Monad m => ParserT Sources st m Text
 targetURI = do
   skipSpaces
   optional $ try $ newline >> notFollowedBy blankline
@@ -1160,8 +1162,10 @@ anonymousKey :: Monad m => RSTParser m ()
 anonymousKey = try $ do
   oneOfStrings [".. __:", "__"]
   src <- targetURI
-  pos <- getPosition
-  let key = toKey $ "_" <> T.pack (printf "%09d" (sourceLine pos))
+  -- we need to ensure that the keys are ordered by occurrence in
+  -- the document.
+  numKeys <- M.size . stateKeys <$> getState
+  let key = toKey $ "_" <> T.pack (show numKeys)
   updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
                           stateKeys s }
 
@@ -1250,13 +1254,13 @@ headerBlock = do
 -- Grid tables TODO:
 --  - column spans
 
-dashedLine :: Monad m => Char -> ParserT Text st m (Int, Int)
+dashedLine :: Monad m => Char -> ParserT Sources st m (Int, Int)
 dashedLine ch = do
   dashes <- many1 (char ch)
   sp     <- many (char ' ')
   return (length dashes, length $ dashes ++ sp)
 
-simpleDashedLines :: Monad m => Char -> ParserT Text st m [(Int,Int)]
+simpleDashedLines :: Monad m => Char -> ParserT Sources st m [(Int,Int)]
 simpleDashedLines ch = try $ many1 (dashedLine ch)
 
 -- Parse a table row separator
@@ -1382,7 +1386,7 @@ hyphens = do
   -- don't want to treat endline after hyphen or dash as a space
   return $ B.str result
 
-escapedChar :: Monad m => ParserT Text st m Inlines
+escapedChar :: Monad m => ParserT Sources st m Inlines
 escapedChar = do c <- escaped anyChar
                  return $ if c == ' ' || c == '\n' || c == '\r'
                              -- '\ ' is null in RST

@@ -21,6 +21,7 @@ import Control.Monad.Except (throwError)
 import Data.Text (Text)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Error
+import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 
 -- | Read native formatted text and return a Pandoc document.
 -- The input may be a full pandoc document, a block list, a block,
@@ -32,14 +33,15 @@ import Text.Pandoc.Error
 --
 -- > Pandoc nullMeta [Plain [Str "hi"]]
 --
-readNative :: PandocMonad m
+readNative :: (PandocMonad m, ToSources a)
            => ReaderOptions
-           -> Text       -- ^ String to parse (assuming @'\n'@ line endings)
+           -> a
            -> m Pandoc
 readNative _ s =
-  case maybe (Pandoc nullMeta <$> readBlocks s) Right (safeRead s) of
-    Right doc -> return doc
-    Left _    -> throwError $ PandocParseError "couldn't read native"
+  let t = sourcesToText . toSources $ s
+  in  case maybe (Pandoc nullMeta <$> readBlocks t) Right (safeRead t) of
+        Right doc -> return doc
+        Left _    -> throwError $ PandocParseError "couldn't read native"
 
 readBlocks :: Text -> Either PandocError [Block]
 readBlocks s = maybe ((:[]) <$> readBlock s) Right (safeRead s)

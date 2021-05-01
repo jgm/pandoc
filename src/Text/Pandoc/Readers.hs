@@ -1,4 +1,5 @@
 {-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {- |
@@ -72,6 +73,7 @@ import Text.Pandoc.Error
 import Text.Pandoc.Extensions
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.CommonMark
+import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.Creole
 import Text.Pandoc.Readers.DocBook
 import Text.Pandoc.Readers.Docx
@@ -84,7 +86,6 @@ import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.JATS (readJATS)
 import Text.Pandoc.Readers.Jira (readJira)
 import Text.Pandoc.Readers.LaTeX
-import Text.Pandoc.Readers.Markdown
 import Text.Pandoc.Readers.MediaWiki
 import Text.Pandoc.Readers.Muse
 import Text.Pandoc.Readers.Native
@@ -102,50 +103,52 @@ import Text.Pandoc.Readers.CSV
 import Text.Pandoc.Readers.CslJson
 import Text.Pandoc.Readers.BibTeX
 import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 
-data Reader m = TextReader (ReaderOptions -> Text -> m Pandoc)
+data Reader m = TextReader (forall a . ToSources a =>
+                                ReaderOptions -> a -> m Pandoc)
               | ByteStringReader (ReaderOptions -> BL.ByteString -> m Pandoc)
 
 -- | Association list of formats and readers.
 readers :: PandocMonad m => [(Text, Reader m)]
-readers = [ ("native"       , TextReader readNative)
-           ,("json"         , TextReader readJSON)
-           ,("markdown"     , TextReader readMarkdown)
-           ,("markdown_strict" , TextReader readMarkdown)
-           ,("markdown_phpextra" , TextReader readMarkdown)
-           ,("markdown_github" , TextReader readMarkdown)
-           ,("markdown_mmd",  TextReader readMarkdown)
-           ,("commonmark"   , TextReader readCommonMark)
-           ,("commonmark_x" , TextReader readCommonMark)
-           ,("creole"       , TextReader readCreole)
-           ,("dokuwiki"     , TextReader readDokuWiki)
-           ,("gfm"          , TextReader readCommonMark)
-           ,("rst"          , TextReader readRST)
-           ,("mediawiki"    , TextReader readMediaWiki)
-           ,("vimwiki"      , TextReader readVimwiki)
-           ,("docbook"      , TextReader readDocBook)
-           ,("opml"         , TextReader readOPML)
-           ,("org"          , TextReader readOrg)
-           ,("textile"      , TextReader readTextile) -- TODO : textile+lhs
-           ,("html"         , TextReader readHtml)
-           ,("jats"         , TextReader readJATS)
-           ,("jira"         , TextReader readJira)
-           ,("latex"        , TextReader readLaTeX)
-           ,("haddock"      , TextReader readHaddock)
-           ,("twiki"        , TextReader readTWiki)
-           ,("tikiwiki"     , TextReader readTikiWiki)
-           ,("docx"         , ByteStringReader readDocx)
-           ,("odt"          , ByteStringReader readOdt)
-           ,("t2t"          , TextReader readTxt2Tags)
-           ,("epub"         , ByteStringReader readEPUB)
-           ,("muse"         , TextReader readMuse)
-           ,("man"          , TextReader readMan)
-           ,("fb2"          , TextReader readFB2)
-           ,("ipynb"        , TextReader readIpynb)
-           ,("csv"          , TextReader readCSV)
-           ,("csljson"      , TextReader readCslJson)
-           ,("bibtex"       , TextReader readBibTeX)
-           ,("biblatex"     , TextReader readBibLaTeX)
+readers = [("native"       , TextReader readNative)
+          ,("json"         , TextReader readJSON)
+          ,("markdown"     , TextReader readMarkdown)
+          ,("markdown_strict" , TextReader readMarkdown)
+          ,("markdown_phpextra" , TextReader readMarkdown)
+          ,("markdown_github" , TextReader readMarkdown)
+          ,("markdown_mmd",  TextReader readMarkdown)
+          ,("commonmark"   , TextReader readCommonMark)
+          ,("commonmark_x" , TextReader readCommonMark)
+          ,("creole"       , TextReader readCreole)
+          ,("dokuwiki"     , TextReader readDokuWiki)
+          ,("gfm"          , TextReader readCommonMark)
+          ,("rst"          , TextReader readRST)
+          ,("mediawiki"    , TextReader readMediaWiki)
+          ,("vimwiki"      , TextReader readVimwiki)
+          ,("docbook"      , TextReader readDocBook)
+          ,("opml"         , TextReader readOPML)
+          ,("org"          , TextReader readOrg)
+          ,("textile"      , TextReader readTextile) -- TODO : textile+lhs
+          ,("html"         , TextReader readHtml)
+          ,("jats"         , TextReader readJATS)
+          ,("jira"         , TextReader readJira)
+          ,("latex"        , TextReader readLaTeX)
+          ,("haddock"      , TextReader readHaddock)
+          ,("twiki"        , TextReader readTWiki)
+          ,("tikiwiki"     , TextReader readTikiWiki)
+          ,("docx"         , ByteStringReader readDocx)
+          ,("odt"          , ByteStringReader readOdt)
+          ,("t2t"          , TextReader readTxt2Tags)
+          ,("epub"         , ByteStringReader readEPUB)
+          ,("muse"         , TextReader readMuse)
+          ,("man"          , TextReader readMan)
+          ,("fb2"          , TextReader readFB2)
+          ,("ipynb"        , TextReader readIpynb)
+          ,("csv"          , TextReader readCSV)
+          ,("csljson"      , TextReader readCslJson)
+          ,("bibtex"       , TextReader readBibTeX)
+          ,("biblatex"     , TextReader readBibLaTeX)
            ]
 
 -- | Retrieve reader, extensions based on formatSpec (format+extensions).
@@ -173,9 +176,13 @@ getReader s =
                      return (r, exts)
 
 -- | Read pandoc document from JSON format.
-readJSON :: PandocMonad m
-         => ReaderOptions -> Text -> m Pandoc
-readJSON _ t =
-  case eitherDecode' . BL.fromStrict . UTF8.fromText $ t of
+readJSON :: (PandocMonad m, ToSources a)
+         => ReaderOptions
+         -> a
+         -> m Pandoc
+readJSON _ s =
+  case eitherDecode' . BL.fromStrict . UTF8.fromText
+                     . sourcesToText . toSources $ s of
        Right doc -> return doc
-       Left e    -> throwError $ PandocParseError ("JSON parse error: " <> T.pack e)
+       Left e    -> throwError $ PandocParseError ("JSON parse error: "
+                                                   <> T.pack e)

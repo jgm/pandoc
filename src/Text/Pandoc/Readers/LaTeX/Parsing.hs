@@ -27,6 +27,7 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , rawLaTeXParser
   , applyMacros
   , tokenize
+  , tokenizeSources
   , untokenize
   , untoken
   , totoks
@@ -248,7 +249,7 @@ withVerbatimMode parser = do
 
 rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => [Tok] -> Bool -> LP m a -> LP m a
-               -> ParserT Text s m (a, Text)
+               -> ParserT Sources s m (a, Text)
 rawLaTeXParser toks retokenize parser valParser = do
   pstate <- getState
   let lstate = def{ sOptions = extractReaderOptions pstate }
@@ -268,7 +269,7 @@ rawLaTeXParser toks retokenize parser valParser = do
               Left _    -> mzero
               Right ((val, raw), st) -> do
                 updateState (updateMacros (sMacros st <>))
-                _ <- takeP (T.length (untokenize toks'))
+                void $ count (T.length (untokenize toks')) anyChar
                 let result = untokenize raw
                 -- ensure we end with space if input did, see #4442
                 let result' =
@@ -281,7 +282,7 @@ rawLaTeXParser toks retokenize parser valParser = do
                 return (val, result')
 
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-            => Text -> ParserT Text s m Text
+            => Text -> ParserT Sources s m Text
 applyMacros s = (guardDisabled Ext_latex_macros >> return s) <|>
    do let retokenize = untokenize <$> many (satisfyTok (const True))
       pstate <- getState
@@ -300,6 +301,11 @@ QuickCheck property:
 > tokUntokRoundtrip s =
 >   let t = T.pack s in untokenize (tokenize "random" t) == t
 -}
+
+tokenizeSources :: Sources -> [Tok]
+tokenizeSources = concatMap tokenizeSource . unSources
+ where
+   tokenizeSource (pos, t) = totoks pos t
 
 tokenize :: SourceName -> Text -> [Tok]
 tokenize sourcename = totoks (initialPos sourcename)

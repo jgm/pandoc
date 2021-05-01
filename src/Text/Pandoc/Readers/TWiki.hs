@@ -28,22 +28,22 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
-import Text.Pandoc.Shared (crFilter, tshow)
+import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.XML (fromEntities)
 
 -- | Read twiki from an input string and return a Pandoc document.
-readTWiki :: PandocMonad m
+readTWiki :: (PandocMonad m, ToSources a)
           => ReaderOptions
-          -> Text
+          -> a
           -> m Pandoc
 readTWiki opts s = do
-  res <- readWithM parseTWiki def{ stateOptions = opts }
-             (crFilter s <> "\n\n")
+  let sources = ensureFinalNewlines 2 (toSources s)
+  res <- readWithM parseTWiki def{ stateOptions = opts } sources
   case res of
        Left e  -> throwError e
        Right d -> return d
 
-type TWParser = ParserT Text ParserState
+type TWParser = ParserT Sources ParserState
 
 --
 -- utility functions

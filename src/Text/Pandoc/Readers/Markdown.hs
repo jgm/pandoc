@@ -47,19 +47,20 @@ import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
 import Text.Pandoc.XML (fromEntities)
 import Text.Pandoc.Readers.Metadata (yamlBsToMeta, yamlBsToRefs, yamlMetaBlock)
+-- import Debug.Trace (traceShowId)
 
-type MarkdownParser m = ParserT Text ParserState m
+type MarkdownParser m = ParserT Sources ParserState m
 
 type F = Future ParserState
 
 -- | Read markdown from an input string and return a Pandoc document.
-readMarkdown :: PandocMonad m
+readMarkdown :: (PandocMonad m, ToSources a)
              => ReaderOptions -- ^ Reader options
-             -> Text      -- ^ String to parse (assuming @'\n'@ line endings)
+             -> a             -- ^ Input
              -> m Pandoc
 readMarkdown opts s = do
   parsed <- readWithM parseMarkdown def{ stateOptions = opts }
-               (crFilter s <> "\n\n")
+                (ensureFinalNewlines 3 (toSources s))
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -80,7 +81,7 @@ yamlToMeta opts mbfp bstr = do
         meta <- yamlBsToMeta (fmap B.toMetaValue <$> parseBlocks) bstr
         setPosition oldPos
         return $ runF meta defaultParserState
-  parsed <- readWithM parser def{ stateOptions = opts } ""
+  parsed <- readWithM parser def{ stateOptions = opts } ("" :: Text)
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -103,7 +104,7 @@ yamlToRefs idpred opts mbfp bstr = do
         refs <- yamlBsToRefs (fmap B.toMetaValue <$> parseBlocks) idpred bstr
         setPosition oldPos
         return $ runF refs defaultParserState
-  parsed <- readWithM parser def{ stateOptions = opts } ""
+  parsed <- readWithM parser def{ stateOptions = opts } ("" :: Text)
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -146,14 +147,14 @@ inList = do
   ctx <- stateParserContext <$> getState
   guard (ctx == ListItemState)
 
-spnl :: PandocMonad m => ParserT Text st m ()
+spnl :: PandocMonad m => ParserT Sources st m ()
 spnl = try $ do
   skipSpaces
   optional newline
   skipSpaces
   notFollowedBy (char '\n')
 
-spnl' :: PandocMonad m => ParserT Text st m Text
+spnl' :: PandocMonad m => ParserT Sources st m Text
 spnl' = try $ do
   xs <- many spaceChar
   ys <- option "" $ try $ (:) <$> newline
@@ -568,7 +569,7 @@ registerImplicitHeader raw attr@(ident, _, _)
 -- hrule block
 --
 
-hrule :: PandocMonad m => ParserT Text st m (F Blocks)
+hrule :: PandocMonad m => ParserT Sources st m (F Blocks)
 hrule = try $ do
   skipSpaces
   start <- satisfy isHruleChar
@@ -588,7 +589,7 @@ indentedLine = indentSpaces >> anyLineNewline
 blockDelimiter :: PandocMonad m
                => (Char -> Bool)
                -> Maybe Int
-               -> ParserT Text ParserState m Int
+               -> ParserT Sources ParserState m Int
 blockDelimiter f len = try $ do
   skipNonindentSpaces
   c <- lookAhead (satisfy f)
@@ -732,7 +733,7 @@ lhsCodeBlockBirdWith c = try $ do
   blanklines
   return $ T.intercalate "\n" lns'
 
-birdTrackLine :: PandocMonad m => Char -> ParserT Text st m Text
+birdTrackLine :: PandocMonad m => Char -> ParserT Sources st m Text
 birdTrackLine c = try $ do
   char c
   -- allow html tags on left margin:
@@ -1025,7 +1026,7 @@ para = try $ do
   option (B.plain <$> result)
     $ try $ do
             newline
-            (blanklines >> return mempty)
+            (mempty <$ blanklines)
               <|> (guardDisabled Ext_blank_before_blockquote >> () <$ lookAhead blockQuote)
               <|> (guardEnabled Ext_backtick_code_blocks >> () <$ lookAhead codeBlockFenced)
               <|> (guardDisabled Ext_blank_before_header >> () <$ lookAhead header)
@@ -1170,7 +1171,7 @@ lineBlock = do
 -- and the length including trailing space.
 dashedLine :: PandocMonad m
            => Char
-           -> ParserT Text st m (Int, Int)
+           -> ParserT Sources st m (Int, Int)
 dashedLine ch = do
   dashes <- many1 (char ch)
   sp     <- many spaceChar
@@ -1239,7 +1240,7 @@ rawTableLine :: PandocMonad m
              -> MarkdownParser m [Text]
 rawTableLine indices = do
   notFollowedBy' (blanklines' <|> tableFooter)
-  line <- take1WhileP (/='\n') <* newline
+  line <- anyLine
   return $ map trim $ tail $
            splitTextByIndices (init indices) line
 
@@ -1390,7 +1391,7 @@ pipeTableCell =
       return $ B.plain <$> result)
     <|> return mempty
 
-pipeTableHeaderPart :: PandocMonad m => ParserT Text st m (Alignment, Int)
+pipeTableHeaderPart :: PandocMonad m => ParserT Sources st m (Alignment, Int)
 pipeTableHeaderPart = try $ do
   skipMany spaceChar
   left <- optionMaybe (char ':')
@@ -1406,10 +1407,14 @@ pipeTableHeaderPart = try $ do
       (Just _,Just _)   -> AlignCenter, len)
 
 -- Succeed only if current line contains a pipe.
-scanForPipe :: PandocMonad m => ParserT Text st m ()
+scanForPipe :: PandocMonad m => ParserT Sources st m ()
 scanForPipe = do
-  inp <- getInput
-  case T.break (\c -> c == '\n' || c == '|') inp of
+  Sources inps <- getInput
+  let ln = case inps of
+             [] -> ""
+             ((_,t):(_,t'):_) | T.null t -> t'
+             ((_,t):_) -> t
+  case T.break (\c -> c == '\n' || c == '|') ln of
        (_, T.uncons -> Just ('|', _)) -> return ()
        _                              -> mzero
 
@@ -1703,13 +1708,13 @@ whitespace = spaceChar >> return <$> (lb <|> regsp) <?> "whitespace"
   where lb = spaceChar >> skipMany spaceChar >> option B.space (endline >> return B.linebreak)
         regsp = skipMany spaceChar >> return B.space
 
-nonEndline :: PandocMonad m => ParserT Text st m Char
+nonEndline :: PandocMonad m => ParserT Sources st m Char
 nonEndline = satisfy (/='\n')
 
 str :: PandocMonad m => MarkdownParser m (F Inlines)
 str = do
   result <- mconcat <$> many1
-             ( take1WhileP isAlphaNum
+             ( T.pack <$> (many1 alphaNum)
               <|> "." <$ try (char '.' <* notFollowedBy (char '.')) )
   updateLastStrPos
   (do guardEnabled Ext_smart
@@ -1962,7 +1967,7 @@ rawLaTeXInline' = do
     s <- rawLaTeXInline
     return $ return $ B.rawInline "tex" s -- "tex" because it might be context
 
-rawConTeXtEnvironment :: PandocMonad m => ParserT Text st m Text
+rawConTeXtEnvironment :: PandocMonad m => ParserT Sources st m Text
 rawConTeXtEnvironment = try $ do
   string "\\start"
   completion <- inBrackets (letter <|> digit <|> spaceChar)
@@ -1971,7 +1976,7 @@ rawConTeXtEnvironment = try $ do
                        (try $ string "\\stop" >> textStr completion)
   return $ "\\start" <> completion <> T.concat contents <> "\\stop" <> completion
 
-inBrackets :: PandocMonad m => ParserT Text st m Char -> ParserT Text st m Text
+inBrackets :: PandocMonad m => ParserT Sources st m Char -> ParserT Sources st m Text
 inBrackets parser = do
   char '['
   contents <- manyChar parser

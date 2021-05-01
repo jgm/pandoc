@@ -9,6 +9,7 @@
 # Ignore some builtin hints
 #
 - ignore: {name: "Avoid lambda"}
+- ignore: {name: "Use bimap"}
 - ignore: {name: "Eta reduce"}
 - ignore: {name: "Evaluate"}
 - ignore: {name: "Reduce duplication"} # TODO: could be more fine-grained

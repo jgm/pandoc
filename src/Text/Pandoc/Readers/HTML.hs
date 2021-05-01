@@ -62,21 +62,21 @@ import Text.Pandoc.Options (
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (
-    addMetaField, blocksToInlines', crFilter, escapeURI, extractSpaces,
+    addMetaField, blocksToInlines', escapeURI, extractSpaces,
     htmlSpanLikeElements, renderTags', safeRead, tshow)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
-readHtml :: PandocMonad m
+readHtml :: (PandocMonad m, ToSources a)
          => ReaderOptions -- ^ Reader options
-         -> Text        -- ^ String to parse (assumes @'\n'@ line endings)
+         -> a             -- ^ Input to parse
          -> m Pandoc
 readHtml opts inp = do
   let tags = stripPrefixes $ canonicalizeTags $
              parseTagsOptions parseOptions{ optTagPosition = True }
-             (crFilter inp)
+             (sourcesToText $ toSources inp)
       parseDoc = do
         blocks <- fixPlains False . mconcat <$> manyTill block eof
         meta <- stateMeta . parserState <$> getState
@@ -830,17 +830,19 @@ pInlinesInTags tagtype f = extractSpaces f <$> pInTags tagtype inline
 
 pTagText :: PandocMonad m => TagParser m Inlines
 pTagText = try $ do
+  pos <- getPosition
   (TagText str) <- pSatisfy isTagText
   st <- getState
   qu <- ask
   parsed <- lift $ lift $
-            flip runReaderT qu $ runParserT (many pTagContents) st "text" str
+            flip runReaderT qu $ runParserT (many pTagContents) st "text"
+               (Sources [(pos, str)])
   case parsed of
        Left _        -> throwError $ PandocParseError $
                         "Could not parse `" <> str <> "'"
        Right result  -> return $ mconcat result
 
-type InlinesParser m = HTMLParser m Text
+type InlinesParser m = HTMLParser m Sources
 
 pTagContents :: PandocMonad m => InlinesParser m Inlines
 pTagContents =
@@ -970,13 +972,14 @@ isCommentTag = tagComment (const True)
 -- | Matches a stretch of HTML in balanced tags.
 htmlInBalanced :: Monad m
                => (Tag Text -> Bool)
-               -> ParserT Text st m Text
+               -> ParserT Sources st m Text
 htmlInBalanced f = try $ do
   lookAhead (char '<')
-  inp <- getInput
-  let ts = canonicalizeTags $
-        parseTagsOptions parseOptions{ optTagWarning = True,
-                                       optTagPosition = True } inp
+  sources <- getInput
+  let ts = canonicalizeTags
+        $ parseTagsOptions parseOptions{ optTagWarning = True,
+                                         optTagPosition = True }
+        $ sourcesToText sources
   case ts of
     (TagPosition sr sc : t@(TagOpen tn _) : rest) -> do
        guard $ f t
@@ -1018,15 +1021,17 @@ hasTagWarning _                = False
 -- | Matches a tag meeting a certain condition.
 htmlTag :: (HasReaderOptions st, Monad m)
         => (Tag Text -> Bool)
-        -> ParserT Text st m (Tag Text, Text)
+        -> ParserT Sources st m (Tag Text, Text)
 htmlTag f = try $ do
   lookAhead (char '<')
   startpos <- getPosition
-  inp <- getInput
+  sources <- getInput
+  let inp = sourcesToText sources
   let ts = canonicalizeTags $ parseTagsOptions
                                parseOptions{ optTagWarning = False
                                            , optTagPosition = True }
-                               (inp <> " ") -- add space to ensure that
+                               (inp <> " ")
+                               -- add space to ensure that
                                -- we get a TagPosition after the tag
   (next, ln, col) <- case ts of
                       (TagPosition{} : next : TagPosition ln col : _)

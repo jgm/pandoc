@@ -29,11 +29,12 @@ import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (crFilter, safeRead, extractSpaces)
+import Text.Pandoc.Shared (safeRead, extractSpaces)
 import Text.TeXMath (readMathML, writeTeX)
 import Text.Pandoc.XML.Light
 import qualified Data.Set as S (fromList, member)
 import Data.Set ((\\))
+import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 
 type JATS m = StateT JATSState m
 
@@ -52,10 +53,14 @@ instance Default JATSState where
                  , jatsContent = [] }
 
 
-readJATS :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
+readJATS :: (PandocMonad m, ToSources a)
+         => ReaderOptions
+         -> a
+         -> m Pandoc
 readJATS _ inp = do
+  let sources = toSources inp
   tree <- either (throwError . PandocXMLError "") return $
-            parseXMLContents (TL.fromStrict $ crFilter inp)
+            parseXMLContents (TL.fromStrict . sourcesToText $ sources)
   (bs, st') <- flip runStateT (def{ jatsContent = tree }) $ mapM parseBlock tree
   return $ Pandoc (jatsMeta st') (toList . mconcat $ bs)
 

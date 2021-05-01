@@ -374,8 +374,8 @@ tests = [ testGroup "inline code"
         , testGroup "lhs"
           [ test (purely $ readMarkdown def{ readerExtensions = enableExtension
                        Ext_literate_haskell pandocExtensions })
-              "inverse bird tracks and html" $
-              "> a\n\n< b\n\n<div>\n"
+              "inverse bird tracks and html"
+              $ ("> a\n\n< b\n\n<div>\n" :: Text)
               =?> codeBlockWith ("",["haskell","literate"],[]) "a"
                   <>
                   codeBlockWith ("",["haskell"],[]) "b"

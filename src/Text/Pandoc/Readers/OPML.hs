@@ -24,7 +24,8 @@ import Text.Pandoc.Options
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Readers.HTML (readHtml)
 import Text.Pandoc.Readers.Markdown (readMarkdown)
-import Text.Pandoc.Shared (crFilter, blocksToInlines')
+import Text.Pandoc.Shared (blocksToInlines')
+import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import Text.Pandoc.XML.Light
 import Control.Monad.Except (throwError)
 
@@ -46,10 +47,14 @@ instance Default OPMLState where
                  , opmlOptions = def
                  }
 
-readOPML :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
+readOPML :: (PandocMonad m, ToSources a)
+         => ReaderOptions
+         -> a
+         -> m Pandoc
 readOPML opts inp  = do
-  (bs, st') <- runStateT
-                 (case parseXMLContents (TL.fromStrict (crFilter inp)) of
+  let sources = toSources inp
+  (bs, st') <-
+    runStateT (case parseXMLContents (TL.fromStrict . sourcesToText $ sources) of
                      Left msg -> throwError $ PandocXMLError "" msg
                      Right ns -> mapM parseBlock ns)
                  def{ opmlOptions = opts }

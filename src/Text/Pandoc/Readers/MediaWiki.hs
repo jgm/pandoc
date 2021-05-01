@@ -36,17 +36,18 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (nested)
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag)
-import Text.Pandoc.Shared (crFilter, safeRead, stringify, stripTrailingNewlines,
+import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines,
                            trim, splitTextBy, tshow)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.XML (fromEntities)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
-readMediaWiki :: PandocMonad m
-              => ReaderOptions -- ^ Reader options
-              -> Text          -- ^ String to parse (assuming @'\n'@ line endings)
+readMediaWiki :: (PandocMonad m, ToSources a)
+              => ReaderOptions
+              -> a
               -> m Pandoc
 readMediaWiki opts s = do
+  let sources = toSources s
   parsed <- readWithM parseMediaWiki MWState{ mwOptions = opts
                                             , mwMaxNestingLevel = 4
                                             , mwNextLinkNumber  = 1
@@ -55,7 +56,7 @@ readMediaWiki opts s = do
                                             , mwLogMessages = []
                                             , mwInTT = False
                                             }
-            (crFilter s <> "\n")
+            sources
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -69,7 +70,7 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwInTT            :: Bool
                        }
 
-type MWParser m = ParserT Text MWState m
+type MWParser m = ParserT Sources MWState m
 
 instance HasReaderOptions MWState where
   extractReaderOptions = mwOptions
