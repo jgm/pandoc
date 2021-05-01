@@ -53,6 +53,7 @@ import Text.Pandoc.Writers.Docx.Table
 import Text.Pandoc.Writers.Docx.Types
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
+import qualified Text.Pandoc.Writers.GridTable as Grid
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.TeXMath
@@ -889,8 +890,9 @@ blockToOpenXML' _ HorizontalRule = do
     $ mknode "v:rect" [("style","width:0;height:1.5pt"),
                        ("o:hralign","center"),
                        ("o:hrstd","t"),("o:hr","t")] () ]
-blockToOpenXML' opts (Table _ blkCapt specs thead tbody tfoot) =
-  tableToOpenXML (blocksToOpenXML opts) blkCapt specs thead tbody tfoot
+blockToOpenXML' opts (Table attr caption colspecs thead tbodies tfoot) =
+  tableToOpenXML (blocksToOpenXML opts)
+                 (Grid.toTable attr caption colspecs thead tbodies tfoot)
 blockToOpenXML' opts el
   | BulletList lst <- el = addOpenXMLList BulletMarker lst
   | OrderedList (start, numstyle, numdelim) lst <- el

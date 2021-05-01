@@ -14,65 +14,39 @@ module Text.Pandoc.Writers.Docx.Table
   ) where
 
 import Control.Monad.State.Strict
+import Data.Array
 import Data.Text (Text)
 import Text.Pandoc.Definition
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Writers.Docx.Types
 import Text.Pandoc.Shared
-import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
+import Text.Pandoc.Writers.GridTable hiding (Table)
 import Text.Pandoc.Writers.OOXML
-import Text.Pandoc.XML.Light as XML
+import Text.Pandoc.XML.Light as XML hiding (Attr)
 import qualified Data.Text as T
+import qualified Text.Pandoc.Writers.GridTable as Grid
 
 tableToOpenXML :: PandocMonad m
                => ([Block] -> WS m [Content])
-               -> Caption
-               -> [ColSpec]
-               -> TableHead
-               -> [TableBody]
-               -> TableFoot
+               -> Grid.Table
                -> WS m [Content]
-tableToOpenXML blocksToOpenXML blkCapt specs thead tbody tfoot = do
-  let (caption, aligns, widths, headers, rows) =
-        toLegacyTable blkCapt specs thead tbody tfoot
+tableToOpenXML blocksToOpenXML gridTable = do
   setFirstPara
   modify $ \s -> s { stInTable = True }
-  let captionStr = stringify caption
-  caption' <- if null caption
-                 then return []
-                 else withParaPropM (pStyleM "Table Caption")
-                      $ blocksToOpenXML [Para caption]
-  let alignmentFor al = mknode "w:jc" [("w:val",alignmentToString al)] ()
-  -- Table cells require a <w:p> element, even an empty one!
-  -- Not in the spec but in Word 2007, 2010. See #4953. And
-  -- apparently the last element must be a <w:p>, see #6983.
-  let cellToOpenXML (al, cell) = do
-        es <- withParaProp (alignmentFor al) $ blocksToOpenXML cell
-        return $
-          case reverse (onlyElems es) of
-            b:e:_ | qName (elName b) == "bookmarkEnd"
-                  , qName (elName e) == "p" -> es
-            e:_   | qName (elName e) == "p" -> es
-            _ -> es ++ [Elem $ mknode "w:p" [] ()]
-  headers' <- mapM cellToOpenXML $ zip aligns headers
-  rows' <- mapM (mapM cellToOpenXML . zip aligns) rows
-  compactStyle <- pStyleM "Compact"
-  let emptyCell' = [Elem $ mknode "w:p" [] [mknode "w:pPr" [] [compactStyle]]]
-  let mkcell contents = mknode "w:tc" []
-                            $ if null contents
-                                 then emptyCell'
-                                 else contents
-  let mkrow cells =
-         mknode "w:tr" [] $
-           map mkcell cells
-  let textwidth = 7920  -- 5.5 in in twips, 1/20 pt
-  let fullrow = 5000 -- 100% specified in pct
-  let (rowwidth :: Int) = round $ fullrow * sum widths
-  let mkgridcol w = mknode "w:gridCol"
-                       [("w:w", tshow (floor (textwidth * w) :: Integer))] ()
-  let hasHeader = not $ all null headers
-  modify $ \s -> s { stInTable = False }
+  let (Grid.Table _attr caption colspecs _rowheads thead tbodies tfoot) =
+        gridTable
+  let (Caption _maybeShortCaption captionBlocks) = caption
+  let captionStr = stringify captionBlocks
+  captionXml <- if null captionBlocks
+                then return []
+                else withParaPropM (pStyleM "Table Caption")
+                     $ blocksToOpenXML captionBlocks
+  head' <- cellGridToOpenXML blocksToOpenXML thead
+  bodies <- mapM (cellGridToOpenXML blocksToOpenXML) tbodies
+  foot' <- cellGridToOpenXML blocksToOpenXML tfoot
+
+  let hasHeader = not . null . indices . partRowAttrs $ thead
   -- for compatibility with Word <= 2007, we include a val with a bitmask
   -- 0×0020  Apply first row conditional formatting
   -- 0×0040  Apply last row conditional formatting
@@ -80,18 +54,12 @@ tableToOpenXML blocksToOpenXML blkCapt specs thead tbody tfoot = do
   -- 0×0100  Apply last column conditional formatting
   -- 0×0200  Do not apply row banding conditional formatting
   -- 0×0400  Do not apply column banding conditional formattin
-  let tblLookVal :: Int
-      tblLookVal = if hasHeader then 0x20 else 0
-  return $
-    caption' ++
-    [Elem $
-     mknode "w:tbl" []
-      ( mknode "w:tblPr" []
-        (   mknode "w:tblStyle" [("w:val","Table")] () :
-            mknode "w:tblW" (if all (== 0) widths
-                              then [("w:type", "auto"), ("w:w", "0")]
-                              else [("w:type", "pct"), ("w:w", tshow rowwidth)])
-                            () :
+  let tblLookVal = if hasHeader then (0x20 :: Int) else 0
+  let (gridCols, tblWattr) = tableLayout (elems colspecs)
+  let tbl = mknode "w:tbl" []
+        ( mknode "w:tblPr" []
+          ( mknode "w:tblStyle" [("w:val","Table")] () :
+            mknode "w:tblW" tblWattr () :
             mknode "w:tblLook" [("w:firstRow",if hasHeader then "1" else "0")
                                ,("w:lastRow","0")
                                ,("w:firstColumn","0")
@@ -100,15 +68,14 @@ tableToOpenXML blocksToOpenXML blkCapt specs thead tbody tfoot = do
                                ,("w:noVBand","0")
                                ,("w:val", T.pack $ printf "%04x" tblLookVal)
                                ] () :
-          [ mknode "w:tblCaption" [("w:val", captionStr)] ()
-          | not (null caption) ] )
-      : mknode "w:tblGrid" []
-        (if all (==0) widths
-            then []
-            else map mkgridcol widths)
-      : [ mkrow headers' | hasHeader ] ++
-      map mkrow rows'
-      )]
+            [ mknode "w:tblCaption" [("w:val", captionStr)] ()
+            | not (T.null captionStr) ]
+          )
+          : mknode "w:tblGrid" [] gridCols
+          : head' ++ mconcat bodies ++ foot'
+        )
+  modify $ \s -> s { stInTable = False }
+  return $ captionXml ++ [Elem tbl]
 
 alignmentToString :: Alignment -> Text
 alignmentToString = \case
@@ -116,3 +83,104 @@ alignmentToString = \case
   AlignRight   -> "right"
   AlignCenter  -> "center"
   AlignDefault -> "left"
+
+tableLayout :: [ColSpec] -> ([Element], [(Text, Text)])
+tableLayout specs =
+  let
+    textwidth = 7920  -- 5.5 in in twips       (1 twip == 1/20 pt)
+    fullrow   = 5000  -- 100% specified in pct (1 pct  == 1/50th of a percent)
+    ncols = length specs
+    getWidth = \case
+      ColWidth n -> n
+      _          -> 0
+    widths = map (getWidth . snd) specs
+    rowwidth  = round (fullrow * sum widths) :: Int
+    widthToTwips w = floor (textwidth * w)   :: Int
+    mkGridCol w = mknode "w:gridCol" [("w:w", tshow (widthToTwips w))] ()
+  in if all (== 0) widths
+     then ( replicate ncols $ mkGridCol (1.0 / fromIntegral ncols)
+          , [ ("w:type", "auto"), ("w:w", "0")])
+     else ( map mkGridCol widths
+          , [ ("w:type", "pct"), ("w:w", tshow rowwidth) ])
+
+cellGridToOpenXML :: PandocMonad m
+                   => ([Block] -> WS m [Content])
+                   -> Part
+                   -> WS m [Element]
+cellGridToOpenXML blocksToOpenXML part@(Part _ _ rowAttrs) =
+  if null (indices rowAttrs)
+  then return mempty
+  else mapM (rowToOpenXML blocksToOpenXML) $ partToRows part
+
+data OOXMLCell
+  = OOXMLCell Attr Alignment RowSpan ColSpan [Block]
+  | OOXMLCellMerge ColSpan
+
+data OOXMLRow = OOXMLRow Attr [OOXMLCell]
+
+partToRows :: Part -> [OOXMLRow]
+partToRows part =
+  let
+    toOOXMLCell :: RowIndex -> ColIndex -> GridCell -> [OOXMLCell]
+    toOOXMLCell ridx cidx = \case
+      ContentCell attr align rowspan colspan blocks ->
+        [OOXMLCell attr align rowspan colspan blocks]
+      ContinuationCell idx'@(ridx',cidx') | ridx /= ridx', cidx == cidx' ->
+        case (partCellArray part)!idx' of
+          (ContentCell _ _ _ colspan _) -> [OOXMLCellMerge colspan]
+          x -> error $ "Content cell expected, got, " ++ show x ++
+                       " at index " ++ show idx'
+      _ -> mempty
+    mkRow :: (RowIndex, Attr) -> OOXMLRow
+    mkRow (ridx, attr) = OOXMLRow attr
+                       . concatMap (uncurry $ toOOXMLCell ridx)
+                       . assocs
+                       . rowArray ridx
+                       $ partCellArray part
+  in map mkRow $ assocs (partRowAttrs part)
+
+rowToOpenXML :: PandocMonad m
+             => ([Block] -> WS m [Content])
+             -> OOXMLRow
+             -> WS m Element
+rowToOpenXML blocksToOpenXML (OOXMLRow _attr cells) = do
+  xmlcells <- mapM (ooxmlCellToOpenXML blocksToOpenXML) cells
+  -- let align' = case align of
+  --       AlignDefault -> colAlign
+  --       _            -> align
+  return $ mknode "w:tr" [] xmlcells
+
+ooxmlCellToOpenXML :: PandocMonad m
+                   => ([Block] -> WS m [Content])
+                   -> OOXMLCell
+                   -> WS m Element
+ooxmlCellToOpenXML blocksToOpenXML = \case
+  OOXMLCellMerge (ColSpan colspan) -> do
+    return $ mknode "w:tc" []
+      [ mknode "w:tcPr" [] [ mknode "w:gridSpan" [("w:val", tshow colspan)] ()
+                           , mknode "w:vMerge"   [("w:val", "continue")] () ]
+      , mknode "w:p" [] [mknode "w:pPr" [] ()]]
+  OOXMLCell _attr align rowspan (ColSpan colspan) contents -> do
+    -- we handle rowspans via 'leftpad', so we can ignore those here
+
+    compactStyle <- pStyleM "Compact"
+    es <- withParaProp (alignmentFor align) $ blocksToOpenXML contents
+    -- Table cells require a <w:p> element, even an empty one!
+    -- Not in the spec but in Word 2007, 2010. See #4953. And
+    -- apparently the last element must be a <w:p>, see #6983.
+    return . mknode "w:tc" [] $
+      Elem
+       (mknode "w:tcPr" [] ([ mknode "w:gridSpan" [("w:val", tshow colspan)] ()
+                            | colspan > 1] ++
+                            [ mknode "w:vMerge" [("w:val", "restart")] ()
+                            | rowspan > RowSpan 1 ])) :
+      if null contents
+      then [Elem $ mknode "w:p" [] [mknode "w:pPr" [] [compactStyle]]]
+      else case reverse (onlyElems es) of
+             b:e:_ | qName (elName b) == "bookmarkEnd"  -- y tho?
+                   , qName (elName e) == "p" -> es
+             e:_   | qName (elName e) == "p" -> es
+             _ -> es ++ [Elem $ mknode "w:p" [] ()]
+
+alignmentFor :: Alignment -> Element
+alignmentFor al = mknode "w:jc" [("w:val",alignmentToString al)] ()

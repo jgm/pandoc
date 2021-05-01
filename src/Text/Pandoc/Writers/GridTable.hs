@@ -87,8 +87,8 @@ toTable attr caption colSpecs  thead tbodies tfoot =
     tbGrids = map bodyToGrid tbodies
     tfGrid = let (TableFoot footAttr rows) = tfoot
              in rowsToPart footAttr rows
-    bodyToGrid (TableBody bodyAttr _rowHeadCols _headRows rows) =
-      rowsToPart bodyAttr rows
+    bodyToGrid (TableBody bodyAttr _rowHeadCols headRows rows) =
+      rowsToPart bodyAttr (headRows ++ rows)
 
 data BuilderCell
   = FilledCell GridCell
