@@ -39,10 +39,12 @@ import Data.Aeson as Aeson
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Readers.Markdown (readMarkdown)
 import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 
-readIpynb :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
-readIpynb opts t = do
-  let src = BL.fromStrict (TE.encodeUtf8 t)
+readIpynb :: (PandocMonad m, ToSources a)
+          => ReaderOptions -> a -> m Pandoc
+readIpynb opts x = do
+  let src = BL.fromStrict . TE.encodeUtf8 . sourcesToText $ toSources x
   case eitherDecode src of
     Right (notebook4 :: Notebook NbV4) -> notebookToPandoc opts notebook4
     Left _ ->

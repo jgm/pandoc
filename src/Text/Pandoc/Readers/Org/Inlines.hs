@@ -29,6 +29,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
 import Text.TeXMath (DisplayType (..), readTeX, writePandoc)
+import Text.Pandoc.Sources (ToSources(..))
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 
 import Control.Monad (guard, mplus, mzero, unless, void, when)
@@ -802,7 +803,7 @@ inlineLaTeX = try $ do
    parseAsInlineLaTeX :: PandocMonad m
                       => Text -> TeXExport -> OrgParser m (Maybe Inlines)
    parseAsInlineLaTeX cs = \case
-     TeXExport -> maybeRight <$> runParserT inlineCommand state "" cs
+     TeXExport -> maybeRight <$> runParserT inlineCommand state "" (toSources cs)
      TeXIgnore -> return (Just mempty)
      TeXVerbatim -> return (Just $ B.str cs)
 

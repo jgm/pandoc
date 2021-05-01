@@ -33,9 +33,9 @@ import Data.Time (defaultTimeLocale)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (space, spaces, uri)
-import Text.Pandoc.Shared (compactify, compactifyDL, crFilter, escapeURI)
+import Text.Pandoc.Shared (compactify, compactifyDL, escapeURI)
 
-type T2T = ParserT Text ParserState (Reader T2TMeta)
+type T2T = ParserT Sources ParserState (Reader T2TMeta)
 
 -- | An object for the T2T macros meta information
 -- the contents of each field is simply substituted verbatim into the file
@@ -68,15 +68,15 @@ getT2TMeta = do
                      (intercalate ", " inps) outp
 
 -- | Read Txt2Tags from an input string returning a Pandoc document
-readTxt2Tags :: PandocMonad m
+readTxt2Tags :: (PandocMonad m, ToSources a)
              => ReaderOptions
-             -> Text
+             -> a
              -> m Pandoc
 readTxt2Tags opts s = do
+  let sources = ensureFinalNewlines 2 (toSources s)
   meta <- getT2TMeta
   let parsed = flip runReader meta $
-        readWithM parseT2T (def {stateOptions = opts}) $
-        crFilter s <> "\n\n"
+        readWithM parseT2T (def {stateOptions = opts}) sources
   case parsed of
     Right result -> return result
     Left e       -> throwError e

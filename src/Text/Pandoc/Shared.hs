@@ -298,6 +298,7 @@ tabFilter tabStop = T.unlines . map go . T.lines
                        (tabStop - (T.length s1 `mod` tabStop)) (T.pack " ")
                        <> go (T.drop 1 s2)
 
+{-# DEPRECATED crFilter "readers filter crs automatically" #-}
 -- | Strip out DOS line endings.
 crFilter :: T.Text -> T.Text
 crFilter = T.filter (/= '\r')

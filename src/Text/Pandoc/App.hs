@@ -160,9 +160,11 @@ convertWithOpts opts = do
                                     else optTabStop opts)
 
 
-    let readSources :: [FilePath] -> PandocIO Text
-        readSources srcs = convertTabs . T.intercalate (T.pack "\n") <$>
-                              mapM readSource srcs
+    let readSources :: [FilePath] -> PandocIO [(FilePath, Text)]
+        readSources srcs =
+          mapM (\fp -> do
+                   t <- readSource fp
+                   return (if fp == "-" then "" else fp, convertTabs t)) srcs
 
 
     outputSettings <- optToOutputSettings opts

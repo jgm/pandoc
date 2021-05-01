@@ -241,9 +241,11 @@ instance ToJSON LogMessage where
 showPos :: SourcePos -> Text
 showPos pos = Text.pack $ sn ++ "line " ++
      show (sourceLine pos) ++ " column " ++ show (sourceColumn pos)
-  where sn = if sourceName pos == "source" || sourceName pos == ""
-                then ""
-                else sourceName pos ++ " "
+  where
+    sn' = sourceName pos
+    sn = if sn' == "source" || sn' == "" || sn' == "-"
+            then ""
+            else sn' ++ " "
 
 encodeLogMessages :: [LogMessage] -> BL.ByteString
 encodeLogMessages ms =

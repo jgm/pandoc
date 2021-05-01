@@ -30,7 +30,8 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging (LogMessage(..))
-import Text.Pandoc.Shared (crFilter, safeRead, extractSpaces)
+import Text.Pandoc.Shared (safeRead, extractSpaces)
+import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import Text.TeXMath (readMathML, writeTeX)
 import Text.Pandoc.XML.Light
 
@@ -539,11 +540,15 @@ instance Default DBState where
                , dbContent = [] }
 
 
-readDocBook :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
+readDocBook :: (PandocMonad m, ToSources a)
+            => ReaderOptions
+            -> a
+            -> m Pandoc
 readDocBook _ inp = do
+  let sources = toSources inp
   tree <- either (throwError . PandocXMLError "") return $
             parseXMLContents
-              (TL.fromStrict . handleInstructions $ crFilter inp)
+              (TL.fromStrict . handleInstructions . sourcesToText $ sources)
   (bs, st') <- flip runStateT (def{ dbContent = tree }) $ mapM parseBlock tree
   return $ Pandoc (dbMeta st') (toList . mconcat $ bs)
 

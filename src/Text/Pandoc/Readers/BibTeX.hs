@@ -23,30 +23,33 @@ where
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder (setMeta, cite, str)
-import Data.Text (Text)
 import Citeproc (Lang(..), parseLang)
 import Citeproc.Locale (getLocale)
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Class (PandocMonad, lookupEnv)
 import Text.Pandoc.Citeproc.BibTeX as BibTeX
 import Text.Pandoc.Citeproc.MetaValue (referenceToMetaValue)
+import Text.Pandoc.Sources (ToSources(..))
 import Control.Monad.Except (throwError)
 
 -- | Read BibTeX from an input string and return a Pandoc document.
 -- The document will have only metadata, with an empty body.
 -- The metadata will contain a `references` field with the
 -- bibliography entries, and a `nocite` field with the wildcard `[@*]`.
-readBibTeX :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
+readBibTeX :: (PandocMonad m, ToSources a)
+           => ReaderOptions -> a -> m Pandoc
 readBibTeX = readBibTeX' BibTeX.Bibtex
 
 -- | Read BibLaTeX from an input string and return a Pandoc document.
 -- The document will have only metadata, with an empty body.
 -- The metadata will contain a `references` field with the
 -- bibliography entries, and a `nocite` field with the wildcard `[@*]`.
-readBibLaTeX :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
+readBibLaTeX :: (PandocMonad m, ToSources a)
+             => ReaderOptions -> a -> m Pandoc
 readBibLaTeX = readBibTeX' BibTeX.Biblatex
 
-readBibTeX' :: PandocMonad m => Variant -> ReaderOptions -> Text -> m Pandoc
+readBibTeX' :: (PandocMonad m, ToSources a)
+            => Variant -> ReaderOptions -> a -> m Pandoc
 readBibTeX' variant _opts t = do
   mblangEnv <- lookupEnv "LANG"
   let defaultLang = Lang "en" Nothing (Just "US") [] [] []
@@ -60,7 +63,7 @@ readBibTeX' variant _opts t = do
                    Left _  -> throwError $ PandocCiteprocError e
                Right l -> return l
   case BibTeX.readBibtexString variant locale (const True) t of
-    Left e -> throwError $ PandocParsecError t e
+    Left e -> throwError $ PandocParsecError (toSources t) e
     Right refs -> return $ setMeta "references"
                               (map referenceToMetaValue refs)
                          . setMeta "nocite"

@@ -37,18 +37,19 @@ import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
-import Text.Pandoc.Shared (crFilter, trimr, tshow)
+import Text.Pandoc.Shared (trimr, tshow)
 
 -- | Read Muse from an input string and return a Pandoc document.
-readMuse :: PandocMonad m
+readMuse :: (PandocMonad m, ToSources a)
          => ReaderOptions
-         -> Text
+         -> a
          -> m Pandoc
 readMuse opts s = do
-  let input = crFilter s
-  res <- flip runReaderT def $ runParserT parseMuse def{ museOptions = opts } "source" input
+  let sources = toSources s
+  res <- flip runReaderT def $ runParserT parseMuse def{ museOptions = opts }
+              (initialSourceName sources) sources
   case res of
-       Left e  -> throwError $ PandocParsecError input e
+       Left e  -> throwError $ PandocParsecError sources e
        Right d -> return d
 
 type F = Future MuseState
@@ -82,7 +83,7 @@ instance Default MuseEnv where
                 , museInPara = False
                 }
 
-type MuseParser m = ParserT Text MuseState (ReaderT MuseEnv m)
+type MuseParser m = ParserT Sources MuseState (ReaderT MuseEnv m)
 
 instance HasReaderOptions MuseState where
   extractReaderOptions = museOptions
@@ -155,7 +156,7 @@ firstColumn = getPosition >>= \pos -> guard (sourceColumn pos == 1)
 -- * Parsers
 
 -- | Parse end-of-line, which can be either a newline or end-of-file.
-eol :: Stream s m Char => ParserT s st m ()
+eol :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m ()
 eol = void newline <|> eof
 
 getIndent :: PandocMonad m

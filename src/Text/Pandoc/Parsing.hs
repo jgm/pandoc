@@ -5,7 +5,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE IncoherentInstances        #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE ViewPatterns               #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
    Module      : Text.Pandoc.Parsing
@@ -19,8 +18,7 @@
 A utility library with parsers used in pandoc readers.
 -}
 
-module Text.Pandoc.Parsing ( take1WhileP,
-                             takeP,
+module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              countChar,
                              textStr,
                              anyLine,
@@ -134,22 +132,10 @@ module Text.Pandoc.Parsing ( take1WhileP,
                              getInput,
                              setInput,
                              unexpected,
-                             char,
-                             letter,
-                             digit,
-                             alphaNum,
                              skipMany,
                              skipMany1,
-                             spaces,
-                             space,
-                             anyChar,
-                             satisfy,
-                             newline,
-                             string,
                              count,
                              eof,
-                             noneOf,
-                             oneOf,
                              lookAhead,
                              notFollowedBy,
                              many,
@@ -174,6 +160,8 @@ module Text.Pandoc.Parsing ( take1WhileP,
                              SourcePos,
                              getPosition,
                              setPosition,
+                             sourceName,
+                             setSourceName,
                              sourceColumn,
                              sourceLine,
                              setSourceColumn,
@@ -189,16 +177,25 @@ module Text.Pandoc.Parsing ( take1WhileP,
 where
 
 import Control.Monad.Identity
+    ( guard,
+      join,
+      unless,
+      when,
+      void,
+      liftM2,
+      liftM,
+      Identity(..),
+      MonadPlus(mzero) )
 import Control.Monad.Reader
+    ( asks, runReader, MonadReader(ask), Reader, ReaderT(ReaderT) )
 import Data.Char (chr, isAlphaNum, isAscii, isAsciiUpper, isAsciiLower,
                   isPunctuation, isSpace, ord, toLower, toUpper)
-import Data.Default
+import Data.Default ( Default(..) )
 import Data.Functor (($>))
 import Data.List (intercalate, transpose)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import qualified Data.Set as Set
-import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup.Entity (lookupEntity)
@@ -207,21 +204,107 @@ import Text.Pandoc.Builder (Blocks, HasMeta (..), Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad, readFileFromDirs, report)
 import Text.Pandoc.Definition
+    ( Target,
+      nullMeta,
+      nullAttr,
+      Meta,
+      ColWidth(ColWidthDefault, ColWidth),
+      TableFoot(TableFoot),
+      TableBody(TableBody),
+      Attr,
+      TableHead(TableHead),
+      Row(..),
+      Alignment(..),
+      Inline(Str),
+      ListNumberDelim(..),
+      ListAttributes,
+      ListNumberStyle(..) )
 import Text.Pandoc.Logging
+    ( LogMessage(CouldNotLoadIncludeFile, DuplicateIdentifier) )
 import Text.Pandoc.Options
+    ( extensionEnabled,
+      Extension(Ext_old_dashes, Ext_tex_math_dollars,
+                Ext_tex_math_single_backslash, Ext_tex_math_double_backslash,
+                Ext_auto_identifiers, Ext_ascii_identifiers, Ext_smart),
+      ReaderOptions(readerTabStop, readerColumns, readerExtensions) )
 import Text.Pandoc.Readers.LaTeX.Types (Macro)
 import Text.Pandoc.Shared
+    ( uniqueIdent,
+      tshow,
+      mapLeft,
+      compactify,
+      trim,
+      trimr,
+      splitTextByIndices,
+      safeRead,
+      trimMath,
+      schemes,
+      escapeURI )
+import Text.Pandoc.Sources
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
 import Text.Pandoc.XML (fromEntities)
-import Text.Parsec hiding (token)
-import Text.Parsec.Pos (initialPos, newPos, updatePosString)
-
-import Control.Monad.Except
+import Text.Parsec
+    ( between,
+      setSourceName,
+      Parsec,
+      Column,
+      Line,
+      incSourceLine,
+      incSourceColumn,
+      setSourceLine,
+      setSourceColumn,
+      sourceLine,
+      sourceColumn,
+      sourceName,
+      setSourceName,
+      setPosition,
+      getPosition,
+      updateState,
+      setState,
+      getState,
+      optionMaybe,
+      optional,
+      option,
+      endBy1,
+      endBy,
+      sepEndBy1,
+      sepEndBy,
+      sepBy1,
+      sepBy,
+      try,
+      choice,
+      (<?>),
+      (<|>),
+      manyTill,
+      many1,
+      many,
+      notFollowedBy,
+      lookAhead,
+      eof,
+      count,
+      skipMany1,
+      skipMany,
+      unexpected,
+      setInput,
+      getInput,
+      anyToken,
+      tokenPrim,
+      parse,
+      runParserT,
+      runParser,
+      ParseError,
+      ParsecT,
+      SourcePos,
+      Stream(..) )
+import Text.Parsec.Pos (initialPos, newPos)
+import Control.Monad.Except ( MonadError(throwError) )
 import Text.Pandoc.Error
+    ( PandocError(PandocParseError, PandocParsecError) )
 
 type Parser t s = Parsec t s
 
 type ParserT = ParsecT
+
 
 -- | Reader monad wrapping the parser state. This is used to possibly delay
 -- evaluation until all relevant information has been parsed and made available
@@ -251,70 +334,48 @@ instance (Semigroup a, Monoid a) => Monoid (Future s a) where
   mappend = (<>)
 
 -- | Like @count@, but packs its result
-countChar :: (Stream s m Char, Monad m)
+countChar :: (Stream s m Char, UpdateSourcePos s Char, Monad m)
           => Int
           -> ParsecT s st m Char
           -> ParsecT s st m Text
 countChar n = fmap T.pack . count n
 
 -- | Like @string@, but uses @Text@.
-textStr :: Stream s m Char => Text -> ParsecT s u m Text
+textStr :: (Stream s m Char, UpdateSourcePos s Char)
+        => Text -> ParsecT s u m Text
 textStr t = string (T.unpack t) $> t
 
--- | Parse characters while a predicate is true.
-take1WhileP :: Monad m
-           => (Char -> Bool)
-           -> ParserT Text st m Text
-take1WhileP f = do
-  -- needed to persuade parsec that this won't match an empty string:
-  c <- satisfy f
-  inp <- getInput
-  pos <- getPosition
-  let (t, rest) = T.span f inp
-  setInput rest
-  setPosition $
-    if f '\t' || f '\n'
-       then updatePosString pos $ T.unpack t
-       else incSourceColumn pos (T.length t)
-  return $ T.singleton c <> t
 
--- Parse n characters of input (or the rest of the input if
--- there aren't n characters).
-takeP :: Monad m => Int -> ParserT Text st m Text
-takeP n = do
-  guard (n > 0)
-  -- faster than 'count n anyChar'
-  inp <- getInput
-  pos <- getPosition
-  let (xs, rest) = T.splitAt n inp
-  -- needed to persuade parsec that this won't match an empty string:
-  anyChar
-  setInput rest
-  setPosition $ updatePosString pos $ T.unpack xs
-  return xs
-
--- | Parse any line of text
-anyLine :: Monad m => ParserT Text st m Text
+-- | Parse any line of text, returning the contents without the
+-- final newline.
+anyLine :: Monad m => ParserT Sources st m Text
 anyLine = do
   -- This is much faster than:
   -- manyTill anyChar newline
   inp <- getInput
-  pos <- getPosition
-  case T.break (=='\n') inp of
-       (this, T.uncons -> Just ('\n', rest)) -> do
-         -- needed to persuade parsec that this won't match an empty string:
-         anyChar
-         setInput rest
-         setPosition $ incSourceLine (setSourceColumn pos 1) 1
-         return this
-       _ -> mzero
+  case inp of
+    Sources [] -> mzero
+    Sources ((fp,t):inps) ->
+      -- we assume that lines don't span different input files
+      case T.break (=='\n') t of
+           (this, rest)
+             | T.null rest
+             , not (null inps) ->
+                -- line may span different input files, so do it
+                 -- character by character
+                 T.pack <$> manyTill anyChar newline
+             | otherwise -> do --  either end of inputs or newline in rest
+                 setInput $ Sources ((fp, rest):inps)
+                 char '\n' -- needed so parsec knows we won't match empty string
+                           -- and so source pos is updated
+                 return this
 
 -- | Parse any line, include the final newline in the output
-anyLineNewline :: Monad m => ParserT Text st m Text
+anyLineNewline :: Monad m => ParserT Sources st m Text
 anyLineNewline = (<> "\n") <$> anyLine
 
 -- | Parse indent by specified number of spaces (or equiv. tabs)
-indentWith :: Stream s m Char
+indentWith :: (Stream s m Char, UpdateSourcePos s Char)
            => HasReaderOptions st
            => Int -> ParserT s st m Text
 indentWith num = do
@@ -399,11 +460,13 @@ notFollowedBy' p  = try $ join $  do  a <- try p
                                   return (return ())
 -- (This version due to Andrew Pimlott on the Haskell mailing list.)
 
-oneOfStrings' :: Stream s m Char => (Char -> Char -> Bool) -> [Text] -> ParserT s st m Text
+oneOfStrings' :: (Stream s m Char, UpdateSourcePos s Char)
+              => (Char -> Char -> Bool) -> [Text] -> ParserT s st m Text
 oneOfStrings' f = fmap T.pack . oneOfStrings'' f . fmap T.unpack
 
 -- TODO: This should be re-implemented in a Text-aware way
-oneOfStrings'' :: Stream s m Char => (Char -> Char -> Bool) -> [String] -> ParserT s st m String
+oneOfStrings'' :: (Stream s m Char, UpdateSourcePos s Char)
+               => (Char -> Char -> Bool) -> [String] -> ParserT s st m String
 oneOfStrings'' _ []   = Prelude.fail "no strings"
 oneOfStrings'' matches strs = try $ do
   c <- anyChar
@@ -418,14 +481,16 @@ oneOfStrings'' matches strs = try $ do
 -- | Parses one of a list of strings.  If the list contains
 -- two strings one of which is a prefix of the other, the longer
 -- string will be matched if possible.
-oneOfStrings :: Stream s m Char => [Text] -> ParserT s st m Text
+oneOfStrings :: (Stream s m Char, UpdateSourcePos s Char)
+             => [Text] -> ParserT s st m Text
 oneOfStrings = oneOfStrings' (==)
 
 -- | Parses one of a list of strings (tried in order), case insensitive.
 
 -- TODO: This will not be accurate with general Unicode (neither
 -- Text.toLower nor Text.toCaseFold can be implemented with a map)
-oneOfStringsCI :: Stream s m Char => [Text] -> ParserT s st m Text
+oneOfStringsCI :: (Stream s m Char, UpdateSourcePos s Char)
+               => [Text] -> ParserT s st m Text
 oneOfStringsCI = oneOfStrings' ciMatch
   where ciMatch x y = toLower' x == toLower' y
         -- this optimizes toLower by checking common ASCII case
@@ -436,11 +501,13 @@ oneOfStringsCI = oneOfStrings' ciMatch
                    | otherwise = toLower c
 
 -- | Parses a space or tab.
-spaceChar :: Stream s m Char => ParserT s st m Char
+spaceChar :: (Stream s m Char, UpdateSourcePos s Char)
+          => ParserT s st m Char
 spaceChar = satisfy $ \c -> c == ' ' || c == '\t'
 
 -- | Parses a nonspace, nonnewline character.
-nonspaceChar :: Stream s m Char => ParserT s st m Char
+nonspaceChar :: (Stream s m Char, UpdateSourcePos s Char)
+             => ParserT s st m Char
 nonspaceChar = satisfy (not . isSpaceChar)
 
 isSpaceChar :: Char -> Bool
@@ -451,21 +518,24 @@ isSpaceChar '\r' = True
 isSpaceChar _    = False
 
 -- | Skips zero or more spaces or tabs.
-skipSpaces :: Stream s m Char => ParserT s st m ()
+skipSpaces :: (Stream s m Char, UpdateSourcePos s Char)
+           => ParserT s st m ()
 skipSpaces = skipMany spaceChar
 
 -- | Skips zero or more spaces or tabs, then reads a newline.
-blankline :: Stream s m Char => ParserT s st m Char
+blankline :: (Stream s m Char, UpdateSourcePos s Char)
+          => ParserT s st m Char
 blankline = try $ skipSpaces >> newline
 
 -- | Parses one or more blank lines and returns a string of newlines.
-blanklines :: Stream s m Char => ParserT s st m Text
+blanklines :: (Stream s m Char, UpdateSourcePos s Char)
+           => ParserT s st m Text
 blanklines = T.pack <$> many1 blankline
 
 -- | Gobble n spaces; if tabs are encountered, expand them
 -- and gobble some or all of their spaces, leaving the rest.
 gobbleSpaces :: (HasReaderOptions st, Monad m)
-             => Int -> ParserT Text st m ()
+             => Int -> ParserT Sources st m ()
 gobbleSpaces 0 = return ()
 gobbleSpaces n
   | n < 0     = error "gobbleSpaces called with negative number"
@@ -473,18 +543,26 @@ gobbleSpaces n
       char ' ' <|> eatOneSpaceOfTab
       gobbleSpaces (n - 1)
 
-eatOneSpaceOfTab :: (HasReaderOptions st, Monad m) => ParserT Text st m Char
+eatOneSpaceOfTab :: (HasReaderOptions st, Monad m) => ParserT Sources st m Char
 eatOneSpaceOfTab = do
-  char '\t'
+  lookAhead (char '\t')
+  pos <- getPosition
   tabstop <- getOption readerTabStop
+  -- replace the tab on the input stream with spaces
+  let numSpaces = tabstop - ((sourceColumn pos - 1) `mod` tabstop)
   inp <- getInput
-  setInput $ T.replicate (tabstop - 1) " " <> inp
-  return ' '
+  setInput $
+    case inp of
+      Sources [] -> error "eatOneSpaceOfTab - empty Sources list"
+      Sources ((fp,t):rest) ->
+        -- drop the tab and add spaces
+        Sources ((fp, T.replicate numSpaces " " <> T.drop 1 t):rest)
+  char ' '
 
 -- | Gobble up to n spaces; if tabs are encountered, expand them
 -- and gobble some or all of their spaces, leaving the rest.
 gobbleAtMostSpaces :: (HasReaderOptions st, Monad m)
-                   => Int -> ParserT Text st m Int
+                   => Int -> ParserT Sources st m Int
 gobbleAtMostSpaces 0 = return 0
 gobbleAtMostSpaces n
   | n < 0     = error "gobbleAtMostSpaces called with negative number"
@@ -493,7 +571,8 @@ gobbleAtMostSpaces n
       (+ 1) <$> gobbleAtMostSpaces (n - 1)
 
 -- | Parses material enclosed between start and end parsers.
-enclosed :: (Show end, Stream s  m Char) => ParserT s st m t   -- ^ start parser
+enclosed :: (Show end, Stream s m Char, UpdateSourcePos s Char)
+         => ParserT s st m t   -- ^ start parser
          -> ParserT s st m end  -- ^ end parser
          -> ParserT s st m a    -- ^ content parser (to be used repeatedly)
          -> ParserT s st m [a]
@@ -501,39 +580,41 @@ enclosed start end parser = try $
   start >> notFollowedBy space >> many1Till parser end
 
 -- | Parse string, case insensitive.
-stringAnyCase :: Stream s m Char => Text -> ParserT s st m Text
+stringAnyCase :: (Stream s m Char, UpdateSourcePos s Char)
+              => Text -> ParserT s st m Text
 stringAnyCase = fmap T.pack . stringAnyCase' . T.unpack
 
-stringAnyCase' :: Stream s m Char => String -> ParserT s st m String
+stringAnyCase' :: (Stream s m Char, UpdateSourcePos s Char)
+               => String -> ParserT s st m String
 stringAnyCase' [] = string ""
 stringAnyCase' (x:xs) = do
   firstChar <- char (toUpper x) <|> char (toLower x)
   rest <- stringAnyCase' xs
   return (firstChar:rest)
 
+-- TODO rewrite by just adding to Sources stream?
 -- | Parse contents of 'str' using 'parser' and return result.
-parseFromString :: (Stream s m Char, IsString s)
-                => ParserT s st m r
+parseFromString :: Monad m
+                => ParserT Sources st m r
                 -> Text
-                -> ParserT s st m r
+                -> ParserT Sources st m r
 parseFromString parser str = do
   oldPos <- getPosition
-  setPosition $ initialPos " chunk"
+  setPosition $ initialPos "chunk"
   oldInput <- getInput
-  setInput $ fromString $ T.unpack str
+  setInput $ toSources str
   result <- parser
   spaces
-  eof
   setInput oldInput
   setPosition oldPos
   return result
 
 -- | Like 'parseFromString' but specialized for 'ParserState'.
 -- This resets 'stateLastStrPos', which is almost always what we want.
-parseFromString' :: (Stream s m Char, IsString s, HasLastStrPosition u)
-                 => ParserT s u m a
+parseFromString' :: (Monad m, HasLastStrPosition u)
+                 => ParserT Sources u m a
                  -> Text
-                 -> ParserT s u m a
+                 -> ParserT Sources u m a
 parseFromString' parser str = do
   oldLastStrPos <- getLastStrPos <$> getState
   updateState $ setLastStrPos Nothing
@@ -542,7 +623,7 @@ parseFromString' parser str = do
   return res
 
 -- | Parse raw line block up to and including blank lines.
-lineClump :: Monad m => ParserT Text st m Text
+lineClump :: Monad m => ParserT Sources st m Text
 lineClump = blanklines
           <|> (T.unlines <$> many1 (notFollowedBy blankline >> anyLine))
 
@@ -551,7 +632,7 @@ lineClump = blanklines
 -- pairs of open and close, which must be different. For example,
 -- @charsInBalanced '(' ')' anyChar@ will parse "(hello (there))"
 -- and return "hello (there)".
-charsInBalanced :: Stream s m Char => Char -> Char -> ParserT s st m Char
+charsInBalanced :: (Stream s m Char, UpdateSourcePos s Char) => Char -> Char -> ParserT s st m Char
                 -> ParserT s st m Text
 charsInBalanced open close parser = try $ do
   char open
@@ -570,7 +651,7 @@ charsInBalanced open close parser = try $ do
 -- Auxiliary functions for romanNumeral:
 
 -- | Parses a roman numeral (uppercase or lowercase), returns number.
-romanNumeral :: Stream s m Char => Bool                  -- ^ Uppercase if true
+romanNumeral :: (Stream s m Char, UpdateSourcePos s Char) => Bool                  -- ^ Uppercase if true
              -> ParserT s st m Int
 romanNumeral upperCase = do
     let rchar uc = char $ if upperCase then uc else toLower uc
@@ -606,7 +687,7 @@ romanNumeral upperCase = do
 
 -- | Parses an email address; returns original and corresponding
 -- escaped mailto: URI.
-emailAddress :: Stream s m Char => ParserT s st m (Text, Text)
+emailAddress :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (Text, Text)
 emailAddress = try $ toResult <$> mailbox <*> (char '@' *> domain)
  where toResult mbox dom = let full = fromEntities $ T.pack $ mbox ++ '@':dom
                            in  (full, escapeURI $ "mailto:" <> full)
@@ -630,11 +711,11 @@ emailAddress = try $ toResult <$> mailbox <*> (char '@' *> domain)
        isEmailPunct c    = T.any (== c) "!\"#$%&'*+-/=?^_{|}~;"
 
 
-uriScheme :: Stream s m Char => ParserT s st m Text
+uriScheme :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m Text
 uriScheme = oneOfStringsCI (Set.toList schemes)
 
 -- | Parses a URI. Returns pair of original and URI-escaped version.
-uri :: Stream s m Char => ParserT s st m (Text, Text)
+uri :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (Text, Text)
 uri = try $ do
   scheme <- uriScheme
   char ':'
@@ -677,7 +758,7 @@ uri = try $ do
     uriChunkBetween l r = try $ do chunk <- between (char l) (char r) uriChunk
                                    return (T.pack $ [l] ++ chunk ++ [r])
 
-mathInlineWith :: Stream s m Char  => Text -> Text -> ParserT s st m Text
+mathInlineWith :: (Stream s m Char, UpdateSourcePos s Char)  => Text -> Text -> ParserT s st m Text
 mathInlineWith op cl = try $ do
   textStr op
   when (op == "$") $ notFollowedBy space
@@ -698,10 +779,10 @@ mathInlineWith op cl = try $ do
   notFollowedBy digit  -- to prevent capture of $5
   return $ trimMath $ T.concat words'
  where
-  inBalancedBraces :: Stream s m Char => Int -> Text -> ParserT s st m Text
+  inBalancedBraces :: (Stream s m Char, UpdateSourcePos s Char) => Int -> Text -> ParserT s st m Text
   inBalancedBraces n = fmap T.pack . inBalancedBraces' n . T.unpack
 
-  inBalancedBraces' :: Stream s m Char => Int -> String -> ParserT s st m String
+  inBalancedBraces' :: (Stream s m Char, UpdateSourcePos s Char) => Int -> String -> ParserT s st m String
   inBalancedBraces' 0 "" = do
     c <- anyChar
     if c == '{'
@@ -718,13 +799,13 @@ mathInlineWith op cl = try $ do
          '{' -> inBalancedBraces' (numOpen + 1) (c:xs)
          _   -> inBalancedBraces' numOpen (c:xs)
 
-mathDisplayWith :: Stream s m Char => Text -> Text -> ParserT s st m Text
+mathDisplayWith :: (Stream s m Char, UpdateSourcePos s Char) => Text -> Text -> ParserT s st m Text
 mathDisplayWith op cl = try $ fmap T.pack $ do
   textStr op
   many1Till (satisfy (/= '\n') <|> (newline <* notFollowedBy' blankline))
             (try $ textStr cl)
 
-mathDisplay :: (HasReaderOptions st, Stream s m Char)
+mathDisplay :: (HasReaderOptions st, Stream s m Char, UpdateSourcePos s Char)
             => ParserT s st m Text
 mathDisplay =
       (guardEnabled Ext_tex_math_dollars >> mathDisplayWith "$$" "$$")
@@ -733,7 +814,7 @@ mathDisplay =
   <|> (guardEnabled Ext_tex_math_double_backslash >>
        mathDisplayWith "\\\\[" "\\\\]")
 
-mathInline :: (HasReaderOptions st , Stream s m Char)
+mathInline :: (HasReaderOptions st, Stream s m Char, UpdateSourcePos s Char)
            => ParserT s st m Text
 mathInline =
       (guardEnabled Ext_tex_math_dollars >> mathInlineWith "$" "$")
@@ -746,7 +827,7 @@ mathInline =
 -- displacement (the difference between the source column at the end
 -- and the source column at the beginning). Vertical displacement
 -- (source row) is ignored.
-withHorizDisplacement :: Stream s m Char
+withHorizDisplacement :: (Stream s m Char, UpdateSourcePos s Char)
                       => ParserT s st m a  -- ^ Parser to apply
                       -> ParserT s st m (a, Int) -- ^ (result, displacement)
 withHorizDisplacement parser = do
@@ -758,30 +839,37 @@ withHorizDisplacement parser = do
 -- | Applies a parser and returns the raw string that was parsed,
 -- along with the value produced by the parser.
 withRaw :: Monad m
-        => ParsecT Text st m a
-        -> ParsecT Text st m (a, Text)
+        => ParsecT Sources st m a
+        -> ParsecT Sources st m (a, Text)
 withRaw parser = do
-  pos1 <- getPosition
-  inp <- getInput
+  inps1 <- getInput
   result <- parser
-  pos2 <- getPosition
-  let (l1,c1) = (sourceLine pos1, sourceColumn pos1)
-  let (l2,c2) = (sourceLine pos2, sourceColumn pos2)
-  let inplines = take ((l2 - l1) + 1) $ T.lines inp
-  let raw = case inplines of
-                []  -> ""
-                [l] -> T.take (c2 - c1) l
-                ls  -> T.unlines (init ls) <> T.take (c2 - 1) (last ls)
-  return (result, raw)
+  inps2 <- getInput
+  -- 'raw' is the difference between inps1 and inps2
+  return (result, sourcesDifference inps1 inps2)
+
+sourcesDifference :: Sources -> Sources -> Text
+sourcesDifference (Sources is1) (Sources is2) = go is1 is2
+ where
+   go inps1 inps2 =
+    case (inps1, inps2) of
+      ([], _) -> mempty
+      (_, []) -> mconcat $ map snd inps1
+      ((p1,t1):rest1, (p2, t2):rest2)
+        | p1 == p2
+        , t1 == t2  -> go rest1 rest2
+        | p1 == p2
+        , t1 /= t2  -> fromMaybe mempty $ T.stripSuffix t2 t1
+        | otherwise -> t1 <> go rest1 inps2
 
 -- | Parses backslash, then applies character parser.
-escaped :: Stream s m Char
+escaped :: (Stream s m Char, UpdateSourcePos s Char)
         => ParserT s st m Char  -- ^ Parser for character to escape
         -> ParserT s st m Char
 escaped parser = try $ char '\\' >> parser
 
 -- | Parse character entity.
-characterReference :: Stream s m Char => ParserT s st m Char
+characterReference :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m Char
 characterReference = try $ do
   char '&'
   ent <- many1Till nonspaceChar (char ';')
@@ -794,19 +882,19 @@ characterReference = try $ do
        _            -> Prelude.fail "entity not found"
 
 -- | Parses an uppercase roman numeral and returns (UpperRoman, number).
-upperRoman :: Stream s m Char => ParserT s st m (ListNumberStyle, Int)
+upperRoman :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (ListNumberStyle, Int)
 upperRoman = do
   num <- romanNumeral True
   return (UpperRoman, num)
 
 -- | Parses a lowercase roman numeral and returns (LowerRoman, number).
-lowerRoman :: Stream s m Char => ParserT s st m (ListNumberStyle, Int)
+lowerRoman :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (ListNumberStyle, Int)
 lowerRoman = do
   num <- romanNumeral False
   return (LowerRoman, num)
 
 -- | Parses a decimal numeral and returns (Decimal, number).
-decimal :: Stream s m Char => ParserT s st m (ListNumberStyle, Int)
+decimal :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (ListNumberStyle, Int)
 decimal = do
   num <- many1 digit
   return (Decimal, fromMaybe 1 $ safeRead $ T.pack num)
@@ -815,7 +903,7 @@ decimal = do
 -- returns (DefaultStyle, [next example number]).  The next
 -- example number is incremented in parser state, and the label
 -- (if present) is added to the label table.
-exampleNum :: Stream s m Char
+exampleNum :: (Stream s m Char, UpdateSourcePos s Char)
            => ParserT s ParserState m (ListNumberStyle, Int)
 exampleNum = do
   char '@'
@@ -834,37 +922,37 @@ exampleNum = do
   return (Example, num)
 
 -- | Parses a '#' returns (DefaultStyle, 1).
-defaultNum :: Stream s m Char => ParserT s st m (ListNumberStyle, Int)
+defaultNum :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (ListNumberStyle, Int)
 defaultNum = do
   char '#'
   return (DefaultStyle, 1)
 
 -- | Parses a lowercase letter and returns (LowerAlpha, number).
-lowerAlpha :: Stream s m Char => ParserT s st m (ListNumberStyle, Int)
+lowerAlpha :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (ListNumberStyle, Int)
 lowerAlpha = do
   ch <- satisfy isAsciiLower
   return (LowerAlpha, ord ch - ord 'a' + 1)
 
 -- | Parses an uppercase letter and returns (UpperAlpha, number).
-upperAlpha :: Stream s m Char => ParserT s st m (ListNumberStyle, Int)
+upperAlpha :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (ListNumberStyle, Int)
 upperAlpha = do
   ch <- satisfy isAsciiUpper
   return (UpperAlpha, ord ch - ord 'A' + 1)
 
 -- | Parses a roman numeral i or I
-romanOne :: Stream s m Char => ParserT s st m (ListNumberStyle, Int)
+romanOne :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (ListNumberStyle, Int)
 romanOne = (char 'i' >> return (LowerRoman, 1)) <|>
            (char 'I' >> return (UpperRoman, 1))
 
 -- | Parses an ordered list marker and returns list attributes.
-anyOrderedListMarker :: Stream s m Char => ParserT s ParserState m ListAttributes
+anyOrderedListMarker :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s ParserState m ListAttributes
 anyOrderedListMarker = choice
   [delimParser numParser | delimParser <- [inPeriod, inOneParen, inTwoParens],
                            numParser <- [decimal, exampleNum, defaultNum, romanOne,
                            lowerAlpha, lowerRoman, upperAlpha, upperRoman]]
 
 -- | Parses a list number (num) followed by a period, returns list attributes.
-inPeriod :: Stream s m Char
+inPeriod :: (Stream s m Char, UpdateSourcePos s Char)
          => ParserT s st m (ListNumberStyle, Int)
          -> ParserT s st m ListAttributes
 inPeriod num = try $ do
@@ -876,7 +964,7 @@ inPeriod num = try $ do
   return (start, style, delim)
 
 -- | Parses a list number (num) followed by a paren, returns list attributes.
-inOneParen :: Stream s m Char
+inOneParen :: (Stream s m Char, UpdateSourcePos s Char)
            => ParserT s st m (ListNumberStyle, Int)
            -> ParserT s st m ListAttributes
 inOneParen num = try $ do
@@ -885,7 +973,7 @@ inOneParen num = try $ do
   return (start, style, OneParen)
 
 -- | Parses a list number (num) enclosed in parens, returns list attributes.
-inTwoParens :: Stream s m Char
+inTwoParens :: (Stream s m Char, UpdateSourcePos s Char)
             => ParserT s st m (ListNumberStyle, Int)
             -> ParserT s st m ListAttributes
 inTwoParens num = try $ do
@@ -896,7 +984,7 @@ inTwoParens num = try $ do
 
 -- | Parses an ordered list marker with a given style and delimiter,
 -- returns number.
-orderedListMarker :: Stream s m Char
+orderedListMarker :: (Stream s m Char, UpdateSourcePos s Char)
                   => ListNumberStyle
                   -> ListNumberDelim
                   -> ParserT s ParserState m Int
@@ -919,10 +1007,10 @@ orderedListMarker style delim = do
   return start
 
 -- | Parses a character reference and returns a Str element.
-charRef :: Stream s m Char => ParserT s st m Inline
+charRef :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m Inline
 charRef = Str . T.singleton <$> characterReference
 
-lineBlockLine :: Monad m => ParserT Text st m Text
+lineBlockLine :: Monad m => ParserT Sources st m Text
 lineBlockLine = try $ do
   char '|'
   char ' '
@@ -932,11 +1020,11 @@ lineBlockLine = try $ do
   continuations <- many (try $ char ' ' >> anyLine)
   return $ white <> T.unwords (line : continuations)
 
-blankLineBlockLine :: Stream s m Char => ParserT s st m Char
+blankLineBlockLine :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m Char
 blankLineBlockLine = try (char '|' >> blankline)
 
 -- | Parses an RST-style line block and returns a list of strings.
-lineBlockLines :: Monad m => ParserT Text st m [Text]
+lineBlockLines :: Monad m => ParserT Sources st m [Text]
 lineBlockLines = try $ do
   lines' <- many1 (lineBlockLine <|> (T.singleton <$> blankLineBlockLine))
   skipMany blankline
@@ -944,7 +1032,8 @@ lineBlockLines = try $ do
 
 -- | Parse a table using 'headerParser', 'rowParser',
 -- 'lineParser', and 'footerParser'.
-tableWith :: (Stream s m Char, HasReaderOptions st, Monad mf)
+tableWith :: (Stream s m Char, UpdateSourcePos s Char,
+              HasReaderOptions st, Monad mf)
           => ParserT s st m (mf [Blocks], [Alignment], [Int])
           -> ([Int] -> ParserT s st m (mf [Blocks]))
           -> ParserT s st m sep
@@ -964,7 +1053,8 @@ tableWith headerParser rowParser lineParser footerParser = try $ do
 
 type TableComponents mf = ([Alignment], [Double], mf [Row], mf [Row])
 
-tableWith' :: (Stream s m Char, HasReaderOptions st, Monad mf)
+tableWith' :: (Stream s m Char, UpdateSourcePos s Char,
+               HasReaderOptions st, Monad mf)
            => ParserT s st m (mf [Blocks], [Alignment], [Int])
            -> ([Int] -> ParserT s st m (mf [Blocks]))
            -> ParserT s st m sep
@@ -1013,20 +1103,19 @@ widthsFromIndices numColumns' indices =
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTableWith :: (Stream s m Char, HasReaderOptions st, HasLastStrPosition st,
-                  Monad mf, IsString s)
-              => ParserT s st m (mf Blocks)  -- ^ Block list parser
+gridTableWith :: (Monad m, HasReaderOptions st, HasLastStrPosition st, Monad mf)
+              => ParserT Sources st m (mf Blocks)  -- ^ Block list parser
               -> Bool                        -- ^ Headerless table
-              -> ParserT s st m (mf Blocks)
+              -> ParserT Sources st m (mf Blocks)
 gridTableWith blocks headless =
   tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
             (gridTableSep '-') gridTableFooter
 
-gridTableWith' :: (Stream s m Char, HasReaderOptions st, HasLastStrPosition st,
-                   Monad mf, IsString s)
-               => ParserT s st m (mf Blocks)  -- ^ Block list parser
+gridTableWith' :: (Monad m, HasReaderOptions st, HasLastStrPosition st,
+                   Monad mf)
+               => ParserT Sources st m (mf Blocks)  -- ^ Block list parser
                -> Bool                        -- ^ Headerless table
-               -> ParserT s st m (TableComponents mf)
+               -> ParserT Sources st m (TableComponents mf)
 gridTableWith' blocks headless =
   tableWith' (gridTableHeader headless blocks) (gridTableRow blocks)
              (gridTableSep '-') gridTableFooter
@@ -1035,7 +1124,7 @@ gridTableSplitLine :: [Int] -> Text -> [Text]
 gridTableSplitLine indices line = map removeFinalBar $ tail $
   splitTextByIndices (init indices) $ trimr line
 
-gridPart :: Stream s m Char => Char -> ParserT s st m ((Int, Int), Alignment)
+gridPart :: Monad m => Char -> ParserT Sources st m ((Int, Int), Alignment)
 gridPart ch = do
   leftColon <- option False (True <$ char ':')
   dashes <- many1 (char ch)
@@ -1050,7 +1139,7 @@ gridPart ch = do
                        (False, False) -> AlignDefault
   return ((lengthDashes, lengthDashes + 1), alignment)
 
-gridDashedLines :: Stream s m Char => Char -> ParserT s st m [((Int, Int), Alignment)]
+gridDashedLines :: Monad m => Char -> ParserT Sources st m [((Int, Int), Alignment)]
 gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) <* blankline
 
 removeFinalBar :: Text -> Text
@@ -1059,14 +1148,14 @@ removeFinalBar = T.dropWhileEnd go . T.dropWhileEnd (=='|')
     go c = T.any (== c) " \t"
 
 -- | Separator between rows of grid table.
-gridTableSep :: Stream s m Char => Char -> ParserT s st m Char
+gridTableSep :: Monad m => Char -> ParserT Sources st m Char
 gridTableSep ch = try $ gridDashedLines ch >> return '\n'
 
 -- | Parse header for a grid table.
-gridTableHeader :: (Stream s m Char, Monad mf, IsString s, HasLastStrPosition st)
+gridTableHeader :: (Monad m, Monad mf, HasLastStrPosition st)
                 => Bool -- ^ Headerless table
-                -> ParserT s st m (mf Blocks)
-                -> ParserT s st m (mf [Blocks], [Alignment], [Int])
+                -> ParserT Sources st m (mf Blocks)
+                -> ParserT Sources st m (mf [Blocks], [Alignment], [Int])
 gridTableHeader True _ = do
   optional blanklines
   dashes <- gridDashedLines '-'
@@ -1089,17 +1178,17 @@ gridTableHeader False blocks = try $ do
   heads <- sequence <$> mapM (parseFromString' blocks . trim) rawHeads
   return (heads, aligns, indices)
 
-gridTableRawLine :: Stream s m Char => [Int] -> ParserT s st m [Text]
+gridTableRawLine :: (Stream s m Char, UpdateSourcePos s Char) => [Int] -> ParserT s st m [Text]
 gridTableRawLine indices = do
   char '|'
   line <- many1Till anyChar newline
   return (gridTableSplitLine indices $ T.pack line)
 
 -- | Parse row of grid table.
-gridTableRow :: (Stream s m Char, Monad mf, IsString s, HasLastStrPosition st)
-             => ParserT s st m (mf Blocks)
+gridTableRow :: (Monad m, Monad mf, HasLastStrPosition st)
+             => ParserT Sources st m (mf Blocks)
              -> [Int]
-             -> ParserT s st m (mf [Blocks])
+             -> ParserT Sources st m (mf [Blocks])
 gridTableRow blocks indices = do
   colLines <- many1 (gridTableRawLine indices)
   let cols = map ((<> "\n") . T.unlines . removeOneLeadingSpace) $
@@ -1120,34 +1209,38 @@ removeOneLeadingSpace xs =
            Just (c, _) -> c == ' '
 
 -- | Parse footer for a grid table.
-gridTableFooter :: Stream s m Char => ParserT s st m ()
+gridTableFooter :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m ()
 gridTableFooter = optional blanklines
 
 ---
 
 -- | Removes the ParsecT layer from the monad transformer stack
-readWithM :: Monad m
-          => ParserT Text st m a -- ^ parser
-          -> st                  -- ^ initial state
-          -> Text                -- ^ input
+readWithM :: (Monad m, ToSources t)
+          => ParserT Sources st m a  -- ^ parser
+          -> st                      -- ^ initial state
+          -> t                       -- ^ input
           -> m (Either PandocError a)
 readWithM parser state input =
-    mapLeft (PandocParsecError input) <$> runParserT parser state "source" input
+    mapLeft (PandocParsecError sources)
+      <$> runParserT parser state (initialSourceName sources) sources
+ where
+   sources = toSources input
 
 -- | Parse a string with a given parser and state
-readWith :: Parser Text st a
+readWith :: ToSources t
+         => Parser Sources st a
          -> st
-         -> Text
+         -> t
          -> Either PandocError a
 readWith p t inp = runIdentity $ readWithM p t inp
 
 -- | Parse a string with @parser@ (for testing).
 testStringWith :: Show a
-               => ParserT Text ParserState Identity a
+               => ParserT Sources ParserState Identity a
                -> Text
                -> IO ()
 testStringWith parser str = UTF8.putStrLn $ tshow $
-                            readWith parser defaultParserState str
+                            readWith parser defaultParserState (toSources str)
 
 -- | Parsing options.
 data ParserState = ParserState
@@ -1394,19 +1487,23 @@ registerHeader (ident,classes,kvs) header' = do
           updateState $ updateIdentifierList $ Set.insert ident
         return (ident,classes,kvs)
 
-smartPunctuation :: (HasReaderOptions st, HasLastStrPosition st, HasQuoteContext st m, Stream s m Char)
+smartPunctuation :: (HasReaderOptions st, HasLastStrPosition st,
+                     HasQuoteContext st m,
+                     Stream s m Char, UpdateSourcePos s Char)
                  => ParserT s st m Inlines
                  -> ParserT s st m Inlines
 smartPunctuation inlineParser = do
   guardEnabled Ext_smart
   choice [ quoted inlineParser, apostrophe, doubleCloseQuote, dash, ellipses ]
 
-quoted :: (HasLastStrPosition st, HasQuoteContext st m, Stream s m Char)
+quoted :: (HasLastStrPosition st, HasQuoteContext st m,
+           Stream s m Char, UpdateSourcePos s Char)
        => ParserT s st m Inlines
        -> ParserT s st m Inlines
 quoted inlineParser = doubleQuoted inlineParser <|> singleQuoted inlineParser
 
-singleQuoted :: (HasLastStrPosition st, HasQuoteContext st m, Stream s m Char)
+singleQuoted :: (HasLastStrPosition st, HasQuoteContext st m,
+                 Stream s m Char, UpdateSourcePos s Char)
              => ParserT s st m Inlines
              -> ParserT s st m Inlines
 singleQuoted inlineParser = do
@@ -1416,7 +1513,8 @@ singleQuoted inlineParser = do
      (withQuoteContext InSingleQuote (many1Till inlineParser singleQuoteEnd)))
    <|> pure "\8217"
 
-doubleQuoted :: (HasQuoteContext st m, HasLastStrPosition st, Stream s m Char)
+doubleQuoted :: (HasQuoteContext st m, HasLastStrPosition st,
+                 Stream s m Char, UpdateSourcePos s Char)
              => ParserT s st m Inlines
              -> ParserT s st m Inlines
 doubleQuoted inlineParser = do
@@ -1433,13 +1531,14 @@ failIfInQuoteContext context = do
   context' <- getQuoteContext
   when (context' == context) $ Prelude.fail "already inside quotes"
 
-charOrRef :: Stream s m Char => [Char] -> ParserT s st m Char
+charOrRef :: (Stream s m Char, UpdateSourcePos s Char) => [Char] -> ParserT s st m Char
 charOrRef cs =
   oneOf cs <|> try (do c <- characterReference
                        guard (c `elem` cs)
                        return c)
 
-singleQuoteStart :: (HasLastStrPosition st, HasQuoteContext st m, Stream s m Char)
+singleQuoteStart :: (HasLastStrPosition st, HasQuoteContext st m,
+                     Stream s m Char, UpdateSourcePos s Char)
                  => ParserT s st m ()
 singleQuoteStart = do
   failIfInQuoteContext InSingleQuote
@@ -1449,7 +1548,7 @@ singleQuoteStart = do
     charOrRef "'\8216\145"
     void $ lookAhead (satisfy (not . isSpaceChar))
 
-singleQuoteEnd :: Stream s m Char
+singleQuoteEnd :: (Stream s m Char, UpdateSourcePos s Char)
                => ParserT s st m ()
 singleQuoteEnd = try $ do
   charOrRef "'\8217\146"
@@ -1457,7 +1556,7 @@ singleQuoteEnd = try $ do
 
 doubleQuoteStart :: (HasLastStrPosition st,
                      HasQuoteContext st m,
-                     Stream s m Char)
+                     Stream s m Char, UpdateSourcePos s Char)
                  => ParserT s st m ()
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
@@ -1465,21 +1564,21 @@ doubleQuoteStart = do
   try $ do charOrRef "\"\8220\147"
            void $ lookAhead (satisfy (not . isSpaceChar))
 
-doubleQuoteEnd :: Stream s m Char
+doubleQuoteEnd :: (Stream s m Char, UpdateSourcePos s Char)
                => ParserT s st m ()
 doubleQuoteEnd = void (charOrRef "\"\8221\148")
 
-apostrophe :: Stream s m Char => ParserT s st m Inlines
+apostrophe :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m Inlines
 apostrophe = (char '\'' <|> char '\8217') >> return (B.str "\8217")
 
-doubleCloseQuote :: Stream s m Char => ParserT s st m Inlines
+doubleCloseQuote :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m Inlines
 doubleCloseQuote = B.str "\8221" <$ char '"'
 
-ellipses :: Stream s m Char
+ellipses :: (Stream s m Char, UpdateSourcePos s Char)
          => ParserT s st m Inlines
 ellipses = try (string "..." >> return (B.str "\8230"))
 
-dash :: (HasReaderOptions st, Stream s m Char)
+dash :: (HasReaderOptions st, Stream s m Char, UpdateSourcePos s Char)
      => ParserT s st m Inlines
 dash = try $ do
   oldDashes <- extensionEnabled Ext_old_dashes <$> getOption readerExtensions
@@ -1506,7 +1605,7 @@ nested p = do
   updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
   return res
 
-citeKey :: (Stream s m Char, HasLastStrPosition st)
+citeKey :: (Stream s m Char, UpdateSourcePos s Char, HasLastStrPosition st)
         => ParserT s st m (Bool, Text)
 citeKey = try $ do
   guard =<< notAfterString
@@ -1575,10 +1674,11 @@ insertIncludedFile :: (PandocMonad m, HasIncludeFiles st)
 insertIncludedFile blocks totoks dirs f =
   runIdentity <$> insertIncludedFile' (Identity <$> blocks) totoks dirs f
 
+-- TODO: replace this with something using addToSources.
 -- | Parse content of include file as future blocks. Circular includes result in
 -- an @PandocParseError@.
 insertIncludedFileF :: (PandocMonad m, HasIncludeFiles st)
-                    => ParserT Text st m (Future st Blocks)
+                    => ParserT Sources st m (Future st Blocks)
                     -> [FilePath] -> FilePath
-                    -> ParserT Text st m (Future st Blocks)
-insertIncludedFileF p = insertIncludedFile' p id
+                    -> ParserT Sources st m (Future st Blocks)
+insertIncludedFileF p = insertIncludedFile' p (\t -> Sources [(initialPos "",t)])
