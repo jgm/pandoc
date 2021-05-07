@@ -178,8 +178,12 @@ blockToConTeXt (Para lst) = do
   contents <- inlineListToConTeXt lst
   return $ contents <> blankline
 blockToConTeXt (LineBlock lns) = do
-  doclines <- nowrap . vcat <$> mapM inlineListToConTeXt lns
-  return $ "\\startlines" $$ doclines $$ "\\stoplines" <> blankline
+  let emptyToBlankline doc = if isEmpty doc
+                             then blankline
+                             else doc
+  doclines <- mapM inlineListToConTeXt lns
+  let contextLines = vcat . map emptyToBlankline $ doclines
+  return $ "\\startlines" $$ contextLines $$ "\\stoplines" <> blankline
 blockToConTeXt (BlockQuote lst) = do
   contents <- blockListToConTeXt lst
   return $ "\\startblockquote" $$ nest 0 contents $$ "\\stopblockquote" <> blankline
