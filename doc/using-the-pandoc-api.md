@@ -90,8 +90,14 @@ Some notes:
 Let's look at the types of `readMarkdown` and `writeRST`:
 
 ```haskell
-readMarkdown :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
-writeRST :: PandocMonad m => WriterOptions -> Pandoc -> m Text
+readMarkdown :: (PandocMonad m, ToSources a)
+             => ReaderOptions
+             -> a
+             -> m Pandoc
+writeRST     :: PandocMonad m
+             => WriterOptions
+             -> Pandoc
+             -> m Text
 ```
 
 The `PandocMonad m =>` part is a typeclass constraint.
@@ -154,6 +160,13 @@ section, we could do this:
 Note that `PandocIO` is an instance of `MonadIO`, so you can
 use `liftIO` to perform arbitrary IO operations inside a pandoc
 conversion chain.
+
+`readMarkdown` is polymorphic in its second argument, which
+can be any type that is an instance of the `ToSources`
+typeclass.  You can use `Text`, as in the example above.
+But you can also use `[(FilePath, Text)]`, if the input comes
+from multiple files and you want to track source positions
+accurately.
 
 # Options
 
