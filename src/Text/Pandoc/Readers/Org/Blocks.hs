@@ -44,6 +44,7 @@ import Data.List.NonEmpty (nonEmpty)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Walk as Walk
+import Text.Pandoc.Sources (ToSources(..))
 
 --
 -- parsing blocks
@@ -527,7 +528,7 @@ include = try $ do
                      _ -> nullAttr
         return $ pure . B.codeBlockWith attr <$> parseRaw
       _ -> return $ return . B.fromList . blockFilter params <$> blockList
-  insertIncludedFileF blocksParser ["."] filename
+  insertIncludedFile blocksParser toSources ["."] filename Nothing Nothing
  where
   includeTarget :: PandocMonad m => OrgParser m FilePath
   includeTarget = do

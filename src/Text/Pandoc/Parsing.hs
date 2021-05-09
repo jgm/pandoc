@@ -121,7 +121,6 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              (<+?>),
                              extractIdClass,
                              insertIncludedFile,
-                             insertIncludedFileF,
                              -- * Re-exports from Text.Parsec
                              Stream,
                              runParser,
@@ -1638,12 +1637,15 @@ extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
     cls'   = maybe cls T.words $ lookup "class" kvs
     kvs'   = filter (\(k,_) -> k /= "id" || k /= "class") kvs
 
-insertIncludedFile' :: (PandocMonad m, HasIncludeFiles st)
-                    => ParserT a st m (mf Blocks)
-                    -> (Text -> a)
-                    -> [FilePath] -> FilePath
-                    -> ParserT a st m (mf Blocks)
-insertIncludedFile' blocks totoks dirs f = do
+insertIncludedFile :: (PandocMonad m, HasIncludeFiles st)
+                   => ParserT a st m b -- ^ parser to apply
+                   -> (Text -> a) -- ^ convert Text to stream type
+                   -> [FilePath]  -- ^ search path (directories)
+                   -> FilePath    -- ^ path of file to include
+                   -> Maybe Int   -- ^ start line (negative counts from end)
+                   -> Maybe Int   -- ^ end line (negative counts from end)
+                   -> ParserT a st m b
+insertIncludedFile parser toStream dirs f mbstartline mbendline = do
   oldPos <- getPosition
   oldInput <- getInput
   containers <- getIncludeFiles <$> getState
@@ -1652,33 +1654,32 @@ insertIncludedFile' blocks totoks dirs f = do
   updateState $ addIncludeFile $ T.pack f
   mbcontents <- readFileFromDirs dirs f
   contents <- case mbcontents of
-                   Just s -> return s
+                   Just s -> return $ exciseLines mbstartline mbendline s
                    Nothing -> do
                      report $ CouldNotLoadIncludeFile (T.pack f) oldPos
                      return ""
-  setPosition $ newPos f 1 1
-  setInput $ totoks contents
-  bs <- blocks
+  setInput $ toStream contents
+  setPosition $ newPos f (fromMaybe 1 mbstartline) 1
+  result <- parser
   setInput oldInput
   setPosition oldPos
   updateState dropLatestIncludeFile
-  return bs
+  return result
 
--- | Parse content of include file as blocks. Circular includes result in an
--- @PandocParseError@.
-insertIncludedFile :: (PandocMonad m, HasIncludeFiles st)
-                   => ParserT [a] st m Blocks
-                   -> (Text -> [a])
-                   -> [FilePath] -> FilePath
-                   -> ParserT [a] st m Blocks
-insertIncludedFile blocks totoks dirs f =
-  runIdentity <$> insertIncludedFile' (Identity <$> blocks) totoks dirs f
+exciseLines :: Maybe Int -> Maybe Int -> Text -> Text
+exciseLines Nothing Nothing t = t
+exciseLines mbstartline mbendline t =
+  T.unlines $ take (endline' - (startline' - 1))
+            $ drop (startline' - 1) contentLines
+ where
+  contentLines = T.lines t
+  numLines = length contentLines
+  startline' = case mbstartline of
+                 Nothing -> 1
+                 Just x | x >= 0 -> x
+                        | otherwise -> numLines + x -- negative from end
+  endline' = case mbendline of
+                 Nothing -> numLines
+                 Just x | x >= 0 -> x
+                        | otherwise -> numLines + x -- negative from end
 
--- TODO: replace this with something using addToSources.
--- | Parse content of include file as future blocks. Circular includes result in
--- an @PandocParseError@.
-insertIncludedFileF :: (PandocMonad m, HasIncludeFiles st)
-                    => ParserT Sources st m (Future st Blocks)
-                    -> [FilePath] -> FilePath
-                    -> ParserT Sources st m (Future st Blocks)
-insertIncludedFileF p = insertIncludedFile' p (\t -> Sources [(initialPos "",t)])
