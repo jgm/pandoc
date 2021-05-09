@@ -27,8 +27,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, setMeta, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad, fetchItem,
-                                      readFileFromDirs, getTimestamp)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, fetchItem, getTimestamp)
 import Text.Pandoc.CSV (CSVOptions (..), defaultCSVOptions, parseCSV)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
@@ -453,59 +452,38 @@ encoding
 -}
 
 includeDirective :: PandocMonad m
-                 => Text -> [(Text, Text)] -> Text
+                 => Text
+                 -> [(Text, Text)]
+                 -> Text
                  -> RSTParser m Blocks
 includeDirective top fields body = do
-  let f = trim top
-  guard $ not (T.null f)
+  let f = T.unpack $ trim top
+  guard $ not $ null f
   guard $ T.null (trim body)
-  -- options
-  let (startLine :: Maybe Int) = lookup "start-line" fields >>= safeRead
-  let (endLine :: Maybe Int) = lookup "end-line" fields >>= safeRead
-  oldPos <- getPosition
-  containers <- stateContainers <$> getState
-  when (f `elem` containers) $
-    throwError $ PandocParseError $ "Include file loop at " <> tshow oldPos
-  updateState $ \s -> s{ stateContainers = f : stateContainers s }
-  mbContents <- readFileFromDirs ["."] $ T.unpack f
-  contentLines <- case mbContents of
-                       Just s -> return $ T.lines s
-                       Nothing -> do
-                         logMessage $ CouldNotLoadIncludeFile f oldPos
-                         return []
-  let numLines = length contentLines
-  let startLine' = case startLine of
-                        Nothing            -> 1
-                        Just x | x >= 0    -> x
-                               | otherwise -> numLines + x -- negative from end
-  let endLine' = case endLine of
-                        Nothing            -> numLines + 1
-                        Just x | x >= 0    -> x
-                               | otherwise -> numLines + x -- negative from end
-  let contentLines' =   drop (startLine' - 1)
-                      $ take (endLine' - 1) contentLines
-  let contentLines'' = (case trim <$> lookup "end-before" fields of
-                             Just patt -> takeWhile (not . (patt `T.isInfixOf`))
-                             Nothing   -> id) .
-                       (case trim <$> lookup "start-after" fields of
-                             Just patt -> drop 1 .
-                                            dropWhile (not . (patt `T.isInfixOf`))
-                             Nothing   -> id) $ contentLines'
-  let contents' = T.unlines contentLines''
-  case lookup "code" fields of
-       Just lang -> do
-         let classes =  maybe [] T.words (lookup "class" fields)
-         let ident = maybe "" trimr $ lookup "name" fields
-         codeblock ident classes fields (trimr lang) contents' False
-       Nothing   -> case lookup "literal" fields of
-                         Just _  -> return $ B.rawBlock "rst" contents'
-                         Nothing -> do
-                           addToSources (initialPos (T.unpack f))
-                              (contents' <> "\n")
-                           updateState $ \s -> s{ stateContainers =
-                                         tail $ stateContainers s }
-                           return mempty
-
+  let startLine = lookup "start-line" fields >>= safeRead
+  let endLine = lookup "end-line" fields >>= safeRead
+  let classes =  maybe [] T.words (lookup "class" fields)
+  let ident = maybe "" trimr $ lookup "name" fields
+  let parser =
+       case lookup "code" fields of
+         Just lang ->
+           (codeblock ident classes fields (trimr lang) False
+            . sourcesToText) <$> getInput
+         Nothing   ->
+           case lookup "literal" fields of
+             Just _  -> B.rawBlock "rst" . sourcesToText <$> getInput
+             Nothing -> parseBlocks
+  let selectLines =
+        (case trim <$> lookup "end-before" fields of
+                         Just patt -> takeWhile (not . (patt `T.isInfixOf`))
+                         Nothing   -> id) .
+        (case trim <$> lookup "start-after" fields of
+                         Just patt -> drop 1 .
+                                        dropWhile (not . (patt `T.isInfixOf`))
+                         Nothing   -> id)
+  let toStream t =
+        toSources [(f, T.unlines . selectLines . T.lines $ t)]
+  insertIncludedFile parser toStream ["."] f startLine endLine
 
 --
 -- list blocks
@@ -734,8 +712,8 @@ directive' = do
                                      ""   -> stateRstHighlight def
                                      lang -> Just lang })
         x | x == "code" || x == "code-block" || x == "sourcecode" ->
-          codeblock name classes (map (second trimr) fields)
-             (trim top) body True
+          return $ codeblock name classes (map (second trimr) fields)
+             (trim top) True body
         "aafig" -> do
           let attribs = (name, ["aafig"], map (second trimr) fields)
           return $ B.codeBlockWith attribs $ stripTrailingNewlines body
@@ -1021,10 +999,10 @@ toChunks = dropWhile T.null
                           then "\\begin{aligned}\n" <> s <> "\n\\end{aligned}"
                           else s
 
-codeblock :: Text -> [Text] -> [(Text, Text)] -> Text -> Text -> Bool
-          -> RSTParser m Blocks
-codeblock ident classes fields lang body rmTrailingNewlines =
-  return $ B.codeBlockWith attribs $ stripTrailingNewlines' body
+codeblock :: Text -> [Text] -> [(Text, Text)] -> Text -> Bool -> Text
+          -> Blocks
+codeblock ident classes fields lang rmTrailingNewlines body =
+  B.codeBlockWith attribs $ stripTrailingNewlines' body
     where stripTrailingNewlines' = if rmTrailingNewlines
                                      then stripTrailingNewlines
                                      else id
