@@ -38,6 +38,7 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Time.Format
+import System.FilePath (takeDirectory)
 
 -- TODO:
 -- [ ] .. parsed-literal
@@ -483,7 +484,8 @@ includeDirective top fields body = do
                          Nothing   -> id)
   let toStream t =
         toSources [(f, T.unlines . selectLines . T.lines $ t)]
-  insertIncludedFile parser toStream ["."] f startLine endLine
+  currentDir <- takeDirectory . sourceName <$> getPosition
+  insertIncludedFile parser toStream [currentDir] f startLine endLine
 
 --
 -- list blocks
