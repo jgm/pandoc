@@ -99,6 +99,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , getState
   , updateState
   , SourcePos
+  , sourceName
   , getPosition
   ) where
 

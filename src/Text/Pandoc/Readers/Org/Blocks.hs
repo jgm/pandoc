@@ -40,7 +40,7 @@ import Data.List (foldl', intersperse)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
 import Data.List.NonEmpty (nonEmpty)
-
+import System.FilePath
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Walk as Walk
@@ -528,7 +528,9 @@ include = try $ do
                      _ -> nullAttr
         return $ pure . B.codeBlockWith attr <$> parseRaw
       _ -> return $ return . B.fromList . blockFilter params <$> blockList
-  insertIncludedFile blocksParser toSources ["."] filename Nothing Nothing
+  currentDir <- takeDirectory . sourceName <$> getPosition
+  insertIncludedFile blocksParser toSources
+                     [currentDir] filename Nothing Nothing
  where
   includeTarget :: PandocMonad m => OrgParser m FilePath
   includeTarget = do
