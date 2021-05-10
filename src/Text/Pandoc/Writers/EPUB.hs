@@ -991,12 +991,12 @@ metadataElement version md currentTime =
                showDateTimeISO8601 currentTime | version == EPUB3 ]
         belongsToCollectionNodes = 
             maybe []
-                (\belongsToCollection -> (unode "meta" !  [("property", "belongs-to-collection"), ("id", "epub-id-1")] $ belongsToCollection )
+                (\belongsToCollection -> (unode "meta" !  [("property", "belongs-to-collection"), ("id", "epub-collection-1")] $ belongsToCollection )
                 :
-                [unode "meta" !  [("refines", "#epub-id-1"), ("property", "collection-type")] $ ("series" :: Text) ])
+                [unode "meta" !  [("refines", "#epub-collection-1"), ("property", "collection-type")] $ ("series" :: Text) ])
                 (epubBelongsToCollection md)++
             maybe []
-                (\groupPosition -> [unode "meta" !  [("refines", "#epub-id-1"), ("property", "group-position")] $ groupPosition ])
+                (\groupPosition -> [unode "meta" !  [("refines", "#epub-collection-1"), ("property", "group-position")] $ groupPosition ])
                 (epubGroupPosition md)
         dcTag n s = unode ("dc:" <> n) s
         dcTag' n s = [dcTag n s]
