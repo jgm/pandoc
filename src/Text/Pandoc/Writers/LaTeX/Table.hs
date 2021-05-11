@@ -219,9 +219,7 @@ footRows (Ann.TableFoot _attr rows) = map headerRowCells rows
 -- we need to go to some lengths to get line breaks working:
 -- as LineBreak bs = \vtop{\hbox{\strut as}\hbox{\strut bs}}.
 fixLineBreaks :: Block -> Block
-fixLineBreaks (Para ils)  = Para $ fixLineBreaks' ils
-fixLineBreaks (Plain ils) = Plain $ fixLineBreaks' ils
-fixLineBreaks x           = x
+fixLineBreaks = walk fixLineBreaks'
 
 fixLineBreaks' :: [Inline] -> [Inline]
 fixLineBreaks' ils = case splitBy (== LineBreak) ils of
