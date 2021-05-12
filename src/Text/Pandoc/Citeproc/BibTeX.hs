@@ -156,6 +156,7 @@ writeBibtexString opts variant mblang ref =
            , "langid"
            , "abstract"
            , "keywords"
+           , "annote"
            ]
       Bibtex ->
            [ "author"
@@ -175,6 +176,7 @@ writeBibtexString opts variant mblang ref =
            , "address"
            , "type"
            , "note"
+           , "annote"
            ]
 
   valToInlines (TextVal t) = B.text t
