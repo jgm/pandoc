@@ -499,17 +499,13 @@ pHeader = try $ do
                            tagOpen (`elem` ["h1","h2","h3","h4","h5","h6"])
                            (const True)
   let attr = toStringAttr attr'
-  let bodyTitle = TagOpen tagtype attr' ~== TagOpen ("h1" :: Text)
-                                               [("class","title")]
   level <- headerLevel tagtype
   contents <- trimInlines . mconcat <$> manyTill inline (pCloses tagtype <|> eof)
   let ident = fromMaybe "" $ lookup "id" attr
   let classes = maybe [] T.words $ lookup "class" attr
   let keyvals = [(k,v) | (k,v) <- attr, k /= "class", k /= "id"]
   attr'' <- registerHeader (ident, classes, keyvals) contents
-  return $ if bodyTitle
-              then mempty  -- skip a representation of the title in the body
-              else B.headerWith attr'' level contents
+  return $ B.headerWith attr'' level contents
 
 pHrule :: PandocMonad m => TagParser m Blocks
 pHrule = do
