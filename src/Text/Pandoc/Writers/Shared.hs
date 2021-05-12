@@ -394,6 +394,7 @@ toSuperscript '2' = Just '\x00B2'
 toSuperscript '3' = Just '\x00B3'
 toSuperscript '+' = Just '\x207A'
 toSuperscript '-' = Just '\x207B'
+toSuperscript '\x2212' = Just '\x207B' -- unicode minus
 toSuperscript '=' = Just '\x207C'
 toSuperscript '(' = Just '\x207D'
 toSuperscript ')' = Just '\x207E'
