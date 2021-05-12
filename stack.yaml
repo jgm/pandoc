@@ -17,9 +17,7 @@ extra-deps:
 - xml-conduit-1.9.1.1
 - unicode-collation-0.1.3
 - texmath-0.12.3
-# - citeproc-0.3.0.9
-- git: https://github.com/jgm/citeproc
-  commit: f33b370bd1ab5ad5140720369c0586041e433a47
+- citeproc-0.4
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-17.5
