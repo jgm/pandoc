@@ -98,8 +98,12 @@ yamlBsToRefs pMetaValue idpred bstr =
        Right [YAML.Doc (YAML.Scalar _ YAML.SNull)]
                 -> return . return $ mempty
        Right _  -> Prelude.fail "expecting YAML object"
-       Left (_pos, err')
-                -> Prelude.fail err'
+       Left (yamlpos, err')
+                -> do pos <- getPosition
+                      setPosition $ incSourceLine
+                            (setSourceColumn pos (YE.posColumn yamlpos))
+                            (YE.posLine yamlpos - 1)
+                      Prelude.fail err'
 
 
 nodeToKey :: YAML.Node YE.Pos -> Maybe Text

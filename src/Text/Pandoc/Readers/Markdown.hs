@@ -97,12 +97,10 @@ yamlToRefs :: PandocMonad m
            -> m [MetaValue]
 yamlToRefs idpred opts mbfp bstr = do
   let parser = do
-        oldPos <- getPosition
         case mbfp of
           Nothing -> return ()
           Just fp -> setPosition $ initialPos fp
         refs <- yamlBsToRefs (fmap B.toMetaValue <$> parseBlocks) idpred bstr
-        setPosition oldPos
         return $ runF refs defaultParserState
   parsed <- readWithM parser def{ stateOptions = opts } ("" :: Text)
   case parsed of
