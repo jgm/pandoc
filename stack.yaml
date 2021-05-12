@@ -16,9 +16,7 @@ extra-deps:
 - random-1.2.0
 - xml-conduit-1.9.1.1
 - unicode-collation-0.1.3
-# - texmath-0.12.2
-- git: https://github.com/jgm/texmath
-  commit: 0c34bb7d229389adc62bcbfe20cfbfdc0c8ccc8d
+- texmath-0.12.3
 # - citeproc-0.3.0.9
 - git: https://github.com/jgm/citeproc
   commit: f33b370bd1ab5ad5140720369c0586041e433a47
