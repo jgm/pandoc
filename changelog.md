@@ -1,5 +1,231 @@
 # Revision history for pandoc
 
+## pandoc 2.14 (PROVISIONAL)
+
+  * Change reader types, allowing better tracking of source positions
+    [API change].  Previously, when multiple file arguments were provided,
+    pandoc simply concatenated them and passed the contents to the readers,
+    which took a Text argument.  As a result, the readers had no way of knowing
+    which file was the source of any particular bit of text.  This meant that
+    we couldn't report accurate source positions on errors or include accurate
+    source positions as attributes in the AST.  More seriously, it meant that
+    we couldn't resolve resource paths relative to the files containing them
+    (see e.g. #5501, #6632, #6384, #3752).
+
+  * Add Text.Pandoc.Sources (exported module), with a `Sources` type and a
+    `ToSources` class.  A `Sources` wraps a list of `(SourcePos, Text)` pairs
+    [API change]. A parsec `Stream` instance is provided for `Sources`.  The
+    module also exports versions of parsec's `satisfy` and other Char parsers
+    that track source positions accurately from a `Sources` stream (or any
+    instance of the new `UpdateSourcePos` class).
+
+  * Text.Pandoc.Parsing
+
+    + Export the modified Char parsers defined in Text.Pandoc.Sources
+      instead of the ones parsec provides.  Modified parsers to use a
+      `Sources` as stream [API change].
+    + Improve include file functions [API change].  Remove old
+      `insertIncludedFileF`.  Give `insertIncludedFile` a more general type,
+      allowing it to be used where `insertIncludedFileF` was.
+
+  * Text.Pandoc.Error: Modified the constructor `PandocParsecError` to take a
+    `Sources` rather than a `Text` as first argument, so parse error locations
+    can be accurately reported.
+
+  * Fix source position reporting for YAML bibliographies (#7273).
+
+  * Issue error message when  reader or writer format is malformed
+    (#7231).  Previously we exited with an error status but (due to a bug)
+    no message.
+
+  * Smarter smart quotes (#7216, #2103).  Treat a leading `"` with no
+    closing `"` as a left curly quote.  This supports the practice, in
+    fiction, of continuing paragraphs quoting the same speaker without an
+    end quote.  It also helps with quotes that break over lines in line blocks.
+
+  * Markdown reader:  Use MetaInlines not MetaBlocks for multimarkdown
+    metadata fields.  This gives better results in converting to e.g.
+    pandoc markdown.
+
+  * RST reader:
+
+    + Seek include files in the directory of the file
+      containing the include directive, as RST requires (#6632).
+    + Use `insertIncludedFile` from Text.Pandoc.Parsing
+      instead of reproducing much of its code.
+
+  * Org reader: Resolve org includes relative to the directory containing the
+    file containing the INCLUDE directive (#5501).
+
+  * ODT reader: Treat tabs as spaces (#7185, niszet).
+
+  * Docx reader: Add handling of vml image objects (#7257, mbrackeantidot).
+
+  * DocBook/JATS readers:
+
+    + Fix mathml regression caused by the switch in XML libraries (#7173).
+    + Fix "phrase" in DocBook: take classes from "role" not "class" (#7195).
+
+  * Plain writer: handle superscript unicode minus (#7276).
+
+  * LaTeX writer: better handling of line breaks in simple tables (#7272).
+    Now we also handle the case where they're embedded in other
+    elements, e.g. spans.
+
+  * EPUB Writer: Fix belongs-to-collection XML id choice (#7267, nuew).
+    The epub writer previously used the same XML id for both the book
+    identifier and the epub collection. This causes an error on epubcheck.
+
+  * BibTeX/BibLaTeX writer: Handle `annote` field (#7266).
+
+  * ConTeXt writer: support blank lines in line blocks (#6564,
+    Albert Krewinkel, thanks to @denismaier).
+
+  * Org writer:
+
+    + Inline latex envs need newlines (#7252, tecosaur).
+      As specified in https://orgmode.org/manual/LaTeX-fragments.html, an
+      inline \begin{}...\end{} LaTeX block must start on a new line.
+    + Use LaTeX style maths deliminators (#7196, tecosaur).
+
+  * JATS writer (Albert Krewinkel):
+
+    + Use either styled-content or named-content for spans (#7211).
+      If the element has a content-type attribute, or at least one class,
+      then that value is used as `content-type` and the span is put inside
+      a `<named-content>` element. Otherwise a `<styled-content>` element
+      is used instead.
+    + Reduce unnecessary use of <p> elements for wrapping (#7227).
+      The `<p>` element is used for wrapping in cases were the contents
+      would otherwise not be allowed in a certain context. Unnecessary
+      wrapping is avoided, especially around quotes (`<disp-quote>` elements).
+    + Convert spans to `<named-content>` elements (#7211).  Spans with
+      attributes are converted to `<named-content>` elements instead of
+      being wrapped with `<milestone-start/>` and `<milestone-end>`
+      elements. Milestone elements are not allowed in documents using the
+      articleauthoring tag set, so this change ensures the creation of valid
+      documents.
+    + Add footnote number as label in backmatter (#7210).  Footnotes in the
+      backmatter are given the footnote's number as a label.  The
+      articleauthoring output is unaffected from this change, as footnotes
+      are placed inline there.
+    + Escape disallows chars in identifiers.  XML identifiers must start
+      with an underscore or letter, and can contain only a limited set
+      of punctuation characters. Any IDs not adhering to these rules are
+      rewritten by writing the offending characters as `Uxxxx`,
+      where `xxxx` is the character's hex code.
+
+  * Docx writer:
+
+    + Autoset table width if no column has an explicit width (Albert
+      Krewinkel).
+    + Extract Table handling into separate module (Albert Krewinkel).
+    + Support colspans and rowspans in tables (Albert Krewinkel, #6315).
+    + Improve integration of settings from reference.docx (#1209).
+      This change allows users to create a reference.docx that
+      sets `w:proofState` for spelling or grammar to `dirty`,
+      so that spell/grammar checking will be triggered on the
+      generated docx.
+
+  * Writers: Recognize custom syntax definitions (#7241, Jan Tojnar).
+    Languages defined using `--syntax-definition` were not recognized by
+    `languagesByExtension`.  This patch corrects that, allowing the writers
+    to see all custom definitions.  The LaTeX writer still uses the default
+    syntax map, but that's okay in that context, since
+    `--syntax-definition` won't create new listings styles.
+
+  * Markdown writer:
+
+    + Use cleaner braceless syntax for code blocks with a
+      single class (#7242, Jan Tojnar).
+    + Add quotes properly in markdown YAML metadata fields (#7245).
+      This fixes a bug, which caused the writer to look at the *last*
+      rather than the *first* character in determining whether quotes
+      were needed.  So we got spurious quotes in some cases and
+      didn't get necessary quotes in others.
+
+  * Commonmark writer: Use backslash escapes for `<` and `|`...
+    instead of entities (#7208).
+
+  * Powerpoint writer: allow `monofont` to be specified in metadata
+    (#7187).
+
+  * LaTeX template:
+
+    + Use non-starred names for xcolor color names (#6109).
+      This should make svgnames and x11names work properly.
+    + Fix bad vertical spacing after bibliography (#7234, badumont).
+    + List of figures before list of tables (#7235, Julien Dutant).
+
+  * ConTeXt template: List of figures before list of tables (#7235,
+    Julien Dutant).
+
+  * reveal.js template: Support `toc-title` (#7171, Florian Kohrt).
+
+  * Text.Pandoc.XML.Light: add Eq, Ord instances for Content,
+    Element, Attr, CDataKind [API change].
+
+  * Text.Pandoc.Asciify: simplify code and export `toAsciiText` [API change].
+    Instead of encoding a giant (and incomplete) map, we now
+    just use unicode-transforms to normalize the text to
+    a canonical decomposition, and manipulate the result.
+
+  * App: allow tabs expansion even if file-scope is used (Albert Krewinkel,
+    #6709).  Tabs in plain-text inputs  are now handled correctly, even if
+    the `--file-scope` flag is used.
+
+  * Add new internal module Text.Pandoc.Writers.GridTable (Albert Krewinkel).
+
+  * Text.Pandoc.Highlighting: Change type of `languagesByExtension`, adding
+    a parameter for a `SyntaxMap` [API change] (Jan Tojnar).
+
+  * Use metadata's `lang` for the lang parameter of citeproc, overriding
+    `localeLanguage`.
+
+  * Remove Text.Pandoc.BCP47 module [API change].
+    Use types and functions from UnicodeCollation.Lang instead.
+    This is a richer implementation of BCP 47.
+
+  * Text.Pandoc.Shared:
+
+    + Fix regression in grid tables for wide characters (#7214).
+      In the translation from String to Text, a char-width-sensitive
+      `splitAt'` was dropped.  This commit reinstates it and uses it to make
+      `splitTextByInstances` char-width sensitive.
+    + Add `getLang` (formerly in the now-removed BCP47) [API change].
+
+  * Text.Pandoc.SelfContained: use `application/octet-stream`
+    for unknown mime types instead of halting with an error (#7202).
+
+  * Lua filters: respect Inlines/Blocks filter functions in `pandoc.walk_*`
+    (Albert Krewinkel).
+
+  * Add text as build-depend for trypandoc (#7193, Roman Beránek).
+
+  * Use citeproc 0.4.
+
+  * Use texmath 0.12.3.
+
+  * Allow attoparsec 0.14.x.
+
+  * Require latest skylighting (fixes a bug in XML syntax highlighting).
+
+  * Use latest xml-conduit.
+
+  * MANUAL: Add information about `lang` and bibliography sorting.
+
+  * Updated and fixed typos in documentation (Charanjit Singh,
+    Anti-Distinctlyminty, Tatiana Porras, obcat).
+
+  * Add instructions for installing pandoc-types before compiling filter.
+
+  * INSTALL: add note that parallel installations should be avoided
+    (#6865).
+
+  * Remove `biblatex-nussbaum.md` test.  It is basically the same
+    as `biblaetx-quotes.md`.
+
+
 ## pandoc 2.13 (2021-03-21)
 
   * Support `yaml_metadata_block` extension for `commonmark`, `gfm` (#6537).
