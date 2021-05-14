@@ -4177,10 +4177,12 @@ option is used.  All of the metadata will appear in a single block
 at the beginning of the document.
 
 Note that [YAML] escaping rules must be followed. Thus, for example,
-if a title contains a colon, it must be quoted.  The pipe character
-(`|`) can be used to begin an indented block that will be interpreted
-literally, without need for escaping.  This form is necessary
-when the field contains blank lines or block-level formatting:
+if a title contains a colon, it must be quoted, and if it contains a
+backslash escape, then it must be ensured that it is not treated as a
+[YAML escape sequence]. The pipe character (`|`) can be used to begin
+an indented block that will be interpreted literally, without need for
+escaping. This form is necessary when the field contains blank lines
+or block-level formatting:
 
     ---
     title:  'This is the title: it contains a colon'
@@ -4255,6 +4257,7 @@ following restrictions apply:
   example,  you can't use a reference link in these contexts
   if the link definition is somewhere else in the document.
 
+[YAML escape sequence]: https://yaml.org/spec/1.2/spec.html#id2776092
 
 ## Backslash escapes
 
