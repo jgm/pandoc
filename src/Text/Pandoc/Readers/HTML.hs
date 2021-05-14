@@ -942,13 +942,15 @@ getTagName (TagClose t)  = Just t
 getTagName _             = Nothing
 
 isInlineTag :: Tag Text -> Bool
-isInlineTag t =
-  isCommentTag t ||
-  case getTagName t of
-    Nothing  -> False
-    Just "script" -> "math/tex" `T.isPrefixOf` fromAttrib "type" t
-    Just x   -> x `Set.notMember` blockTags ||
-                T.take 1 x == "?" -- processing instr.
+isInlineTag t = isCommentTag t || case t of
+  TagOpen "script" _ -> "math/tex" `T.isPrefixOf` fromAttrib "type" t
+  TagClose "script"  -> True
+  TagOpen name _     -> isInlineTagName name
+  TagClose name      -> isInlineTagName name
+  _                  -> False
+ where isInlineTagName x =
+         x `Set.notMember` blockTags ||
+         T.take 1 x == "?" -- processing instr.
 
 isBlockTag :: Tag Text -> Bool
 isBlockTag t = isBlockTagName || isTagComment t
