@@ -612,8 +612,12 @@ blockToMarkdown' opts (OrderedList (start,sty,delim) items) = do
               zipWithM (orderedListItemToMarkdown opts) markers' items
   return $ (if isTightList items then vcat else vsep) contents <> blankline
 blockToMarkdown' opts (DefinitionList items) = do
-  contents <- inList $ mapM (definitionListItemToMarkdown opts) items
-  return $ mconcat contents <> blankline
+  if isEnabled Ext_definition_lists opts
+    then do
+      contents <- inList $ mapM (definitionListItemToMarkdown opts) items
+      return $ mconcat contents <> blankline
+    else
+      blockToMarkdown' opts $ BulletList $ map (\(label, defs) -> [Para label, BulletList defs]) items
 
 inList :: Monad m => MD m a -> MD m a
 inList p = local (\env -> env {envInList = True}) p
@@ -761,31 +765,26 @@ definitionListItemToMarkdown :: PandocMonad m
 definitionListItemToMarkdown opts (label, defs) = do
   labelText <- blockToMarkdown opts (Plain label)
   defs' <- mapM (mapM (blockToMarkdown opts)) defs
-  if isEnabled Ext_definition_lists opts
+  let tabStop = writerTabStop opts
+  variant <- asks envVariant
+  let leader  = if variant == PlainText then "   " else ":  "
+  let sps = case writerTabStop opts - 3 of
+                 n | n > 0   -> literal $ T.replicate n " "
+                 _ -> literal " "
+  let isTight = case defs of
+                   ((Plain _ : _): _) -> True
+                   _                  -> False
+  if isEnabled Ext_compact_definition_lists opts
      then do
-       let tabStop = writerTabStop opts
-       variant <- asks envVariant
-       let leader  = if variant == PlainText then "   " else ":  "
-       let sps = case writerTabStop opts - 3 of
-                      n | n > 0   -> literal $ T.replicate n " "
-                      _ -> literal " "
-       let isTight = case defs of
-                        ((Plain _ : _): _) -> True
-                        _                  -> False
-       if isEnabled Ext_compact_definition_lists opts
-          then do
-            let contents = vcat $ map (\d -> hang tabStop (leader <> sps)
-                                $ vcat d <> cr) defs'
-            return $ nowrap labelText <> cr <> contents <> cr
-          else do
-            let contents = (if isTight then vcat else vsep) $ map
-                            (\d -> hang tabStop (leader <> sps) $ vcat d)
-                            defs'
-            return $ blankline <> nowrap labelText $$
-                     (if isTight then empty else blankline) <> contents <> blankline
-     else
-       return $ nowrap (chomp labelText <> literal "  " <> cr) <>
-                vsep (map vsep defs') <> blankline
+       let contents = vcat $ map (\d -> hang tabStop (leader <> sps)
+                           $ vcat d <> cr) defs'
+       return $ nowrap labelText <> cr <> contents <> cr
+     else do
+       let contents = (if isTight then vcat else vsep) $ map
+                       (\d -> hang tabStop (leader <> sps) $ vcat d)
+                       defs'
+       return $ blankline <> nowrap labelText $$
+                (if isTight then empty else blankline) <> contents <> blankline
 
 -- | Convert list of Pandoc block elements to markdown.
 blockListToMarkdown :: PandocMonad m
