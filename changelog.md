@@ -95,7 +95,7 @@
       then that value is used as `content-type` and the span is put inside
       a `<named-content>` element. Otherwise a `<styled-content>` element
       is used instead.
-    + Reduce unnecessary use of <p> elements for wrapping (#7227).
+    + Reduce unnecessary use of `<p>` elements for wrapping (#7227).
       The `<p>` element is used for wrapping in cases were the contents
       would otherwise not be allowed in a certain context. Unnecessary
       wrapping is avoided, especially around quotes (`<disp-quote>` elements).
