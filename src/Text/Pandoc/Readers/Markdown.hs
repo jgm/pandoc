@@ -2094,7 +2094,7 @@ cite = do
 
 textualCite :: PandocMonad m => MarkdownParser m (F Inlines)
 textualCite = try $ do
-  (suppressAuthor, key) <- citeKey
+  (suppressAuthor, key) <- citeKey True
   -- If this is a reference to an earlier example list item,
   -- then don't parse it as a citation.  If the example list
   -- item comes later, we'll parse it here and figure out in
@@ -2174,7 +2174,7 @@ prefix = trimInlinesF . mconcat <$>
   manyTill inline (char ']'
    <|> lookAhead
          (try $ do optional (try (char ';' >> spnl))
-                   citeKey
+                   citeKey True
                    return ']'))
 
 citeList :: PandocMonad m => MarkdownParser m (F [Citation])
@@ -2183,7 +2183,7 @@ citeList = fmap sequence $ sepBy1 citation (try $ char ';' >> spnl)
 citation :: PandocMonad m => MarkdownParser m (F Citation)
 citation = try $ do
   pref <- prefix
-  (suppress_author, key) <- citeKey
+  (suppress_author, key) <- citeKey True
   suff <- suffix
   noteNum <- stateNoteNumber <$> getState
   return $ do

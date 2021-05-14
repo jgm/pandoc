@@ -1605,19 +1605,27 @@ nested p = do
   return res
 
 citeKey :: (Stream s m Char, UpdateSourcePos s Char, HasLastStrPosition st)
-        => ParserT s st m (Bool, Text)
-citeKey = try $ do
+        => Bool -- ^ If True, allow expanded @{..} syntax.
+        -> ParserT s st m (Bool, Text)
+citeKey allowBraced = try $ do
   guard =<< notAfterString
   suppress_author <- option False (True <$ char '-')
   char '@'
+  key <- simpleCiteIdentifier
+        <|> if allowBraced
+               then charsInBalanced '{' '}' (satisfy (not . isSpace))
+               else mzero
+  return (suppress_author, key)
+
+simpleCiteIdentifier :: (Stream s m Char, UpdateSourcePos s Char)
+                      => ParserT s st m Text
+simpleCiteIdentifier = do
   firstChar <- alphaNum <|> char '_' <|> char '*' -- @* for wildcard in nocite
   let regchar = satisfy (\c -> isAlphaNum c || c == '_')
   let internal p = try $ p <* lookAhead regchar
   rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/") <|>
                  try (oneOf ":/" <* lookAhead (char '/'))
-  let key = firstChar:rest
-  return (suppress_author, T.pack key)
-
+  return $ T.pack $ firstChar:rest
 
 token :: (Stream s m t)
       => (t -> Text)

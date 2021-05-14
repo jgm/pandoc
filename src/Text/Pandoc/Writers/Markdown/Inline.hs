@@ -491,11 +491,16 @@ inlineToMarkdown opts (Cite (c:cs) lst)
            rest <- mapM convertOne cs
            let inbr = suffs <+> joincits rest
                br   = if isEmpty inbr then empty else char '[' <> inbr <> char ']'
-           return $ literal ("@" <> citationId c) <+> br
+           return $ literal ("@" <> maybeInBraces (citationId c)) <+> br
          else do
            cits <- mapM convertOne (c:cs)
            return $ literal "[" <> joincits cits <> literal "]"
   where
+        maybeInBraces key =
+          case readWith (citeKey False >> spaces >> eof)
+                 defaultParserState ("@" <> key) of
+            Left _  -> "{" <> key <> "}"
+            Right _ -> key
         joincits = hcat . intersperse (literal "; ") . filter (not . isEmpty)
         convertOne Citation { citationId      = k
                             , citationPrefix  = pinlines
@@ -504,7 +509,7 @@ inlineToMarkdown opts (Cite (c:cs) lst)
                                = do
            pdoc <- inlineListToMarkdown opts pinlines
            sdoc <- inlineListToMarkdown opts sinlines
-           let k' = literal (modekey m <> "@" <> k)
+           let k' = literal (modekey m <> "@" <> maybeInBraces k)
                r = case sinlines of
                         Str (T.uncons -> Just (y,_)):_ | y `elem` (",;]@" :: String) -> k' <> sdoc
                         _                                         -> k' <+> sdoc

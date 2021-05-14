@@ -263,7 +263,7 @@ berkeleyCitationList = try $ do
  where
    citationListPart :: PandocMonad m => OrgParser m (F Inlines)
    citationListPart = fmap (trimInlinesF . mconcat) . try . many1 $ do
-     notFollowedBy' citeKey
+     notFollowedBy' $ citeKey False
      notFollowedBy (oneOf ";]")
      inline
 
@@ -278,7 +278,7 @@ berkeleyBareTag' = try $ void (string "cite")
 
 berkeleyTextualCite :: PandocMonad m => OrgParser m (F [Citation])
 berkeleyTextualCite = try $ do
-  (suppressAuthor, key) <- citeKey
+  (suppressAuthor, key) <- citeKey False
   returnF . return $ Citation
     { citationId      = key
     , citationPrefix  = mempty
@@ -351,7 +351,7 @@ citeList = sequence <$> sepEndBy1 citation (try $ char ';' *> skipSpaces)
 citation :: PandocMonad m => OrgParser m (F Citation)
 citation = try $ do
   pref <- prefix
-  (suppress_author, key) <- citeKey
+  (suppress_author, key) <- citeKey False
   suff <- suffix
   return $ do
     x <- pref
@@ -368,7 +368,7 @@ citation = try $ do
       }
  where
    prefix = trimInlinesF . mconcat <$>
-            manyTill inline (char ']' <|> (']' <$ lookAhead citeKey))
+            manyTill inline (char ']' <|> (']' <$ lookAhead (citeKey False)))
    suffix = try $ do
      hasSpace <- option False (notFollowedBy nonspaceChar >> return True)
      skipSpaces

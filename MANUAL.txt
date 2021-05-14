@@ -4949,18 +4949,23 @@ Inline and regular footnotes may be mixed freely.
 #### Extension: `citations` ####
 
 Markdown citations go inside square brackets and are separated
-by semicolons.  Each citation must have a key, composed of '@' +
-the citation identifier from the database, and may optionally
-have a prefix, a locator, and a suffix.  The citation key must
-begin with a letter, digit, or `_`, and may contain
+by semicolons.  Each citation must have a key and may optionally
+have a prefix, a locator, and a suffix.  The citation key
+consists of `@` plus the citation identifier, possibly
+enclosed in curly braces.  If the identifier starts
+with a letter, digit, or `_`, followed by zero or more
 alphanumerics, `_`, and internal punctuation characters
-(`:.#$%&-+?<>~/`).  Here are some examples:
+(`:.#$%&-+?<>~/`), then the curly braces may be omitted.
+Identifiers may not contain whitespace characters or unbalanced
+curly braces.  Here are some examples:
 
     Blah blah [see @doe99, pp. 33-35; also @smith04, chap. 1].
 
     Blah blah [@doe99, pp. 33-35, 38-39 and *passim*].
 
     Blah blah [@smith04; @doe99].
+
+    Blah blah [@{https://example.com/bib?name=foobar&date=2000}, p. 33].
 
 `pandoc` detects locator terms in the [CSL locale files].
 Either abbreviated or unabbreviated forms are accepted. In the `en-US`
