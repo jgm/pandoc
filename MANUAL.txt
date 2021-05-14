@@ -5666,7 +5666,11 @@ rules:
   * A heading at the slide level always starts a new slide.
 
   * Headings *below* the slide level in the hierarchy create
-    headings *within* a slide.
+    headings *within* a slide.  (In beamer, a "block" will be
+    created.  If the heading has the class `example`, an
+    `exampleblock` environment will be used; if it has the class
+    `alert`, an `alertblock` will be used; otherwise a regular
+    `block` will be used.)
 
   * Headings *above* the slide level in the hierarchy create
     "title slides," which just contain the section title

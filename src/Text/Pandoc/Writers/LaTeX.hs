@@ -290,7 +290,12 @@ blockToLaTeX :: PandocMonad m
              => Block     -- ^ Block to convert
              -> LW m (Doc Text)
 blockToLaTeX Null = return empty
-blockToLaTeX (Div attr@(identifier,"block":_,_) (Header _ _ ils : bs)) = do
+blockToLaTeX (Div attr@(identifier,"block":dclasses,_)
+             (Header _ _ ils : bs)) = do
+  let blockname
+        | "example" `elem` dclasses = "exampleblock"
+        | "alert" `elem` dclasses = "alertblock"
+        | otherwise = "block"
   ref <- toLabel identifier
   let anchor = if T.null identifier
                   then empty
@@ -298,8 +303,8 @@ blockToLaTeX (Div attr@(identifier,"block":_,_) (Header _ _ ils : bs)) = do
                        braces (literal ref) <> braces empty
   title' <- inlineListToLaTeX ils
   contents <- blockListToLaTeX bs
-  wrapDiv attr $ ("\\begin{block}" <> braces title' <> anchor) $$
-                 contents $$ "\\end{block}"
+  wrapDiv attr $ ("\\begin" <> braces blockname <> braces title' <> anchor) $$
+                 contents $$ "\\end" <> braces blockname
 blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
                (Header _ (_,hclasses,hkvs) ils : bs)) = do
   -- note: [fragile] is required or verbatim breaks
