@@ -1,5 +1,6 @@
 Pandoc (Meta {unMeta = fromList [("generator",MetaInlines [Str "pandoc"]),("title",MetaInlines [Str "Pandoc",Space,Str "Test",Space,Str "Suite"])]})
-[Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc.",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",Space,Str "John",Space,Str "Gruber's",Space,Str "markdown",Space,Str "test",Space,Str "suite."]
+[Header 1 ("pandoc-test-suite",["title"],[]) [Str "Pandoc",Space,Str "Test",Space,Str "Suite"]
+,Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc.",Space,Str "Most",Space,Str "of",Space,Str "them",Space,Str "are",Space,Str "adapted",Space,Str "from",Space,Str "John",Space,Str "Gruber's",Space,Str "markdown",Space,Str "test",Space,Str "suite."]
 ,HorizontalRule
 ,Header 1 ("headers",[],[]) [Str "Headers"]
 ,Header 2 ("level-2-with-an-embedded-link",[],[]) [Str "Level",Space,Str "2",Space,Str "with",Space,Str "an",Space,Link ("",[],[]) [Str "embedded",Space,Str "link"] ("/url","")]
