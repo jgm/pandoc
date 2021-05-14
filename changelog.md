@@ -27,6 +27,9 @@
     + Improve include file functions [API change].  Remove old
       `insertIncludedFileF`.  Give `insertIncludedFile` a more general type,
       allowing it to be used where `insertIncludedFileF` was.
+    + Add parameter to the `citeKey` parser from
+      Text.Pandoc.Parsing, which controls whether the `@{..}`
+      syntax is allowed [API change].
 
   * Text.Pandoc.Error: Modified the constructor `PandocParsecError` to take a
     `Sources` rather than a `Text` as first argument, so parse error locations
@@ -43,9 +46,17 @@
     fiction, of continuing paragraphs quoting the same speaker without an
     end quote.  It also helps with quotes that break over lines in line blocks.
 
-  * Markdown reader:  Use MetaInlines not MetaBlocks for multimarkdown
-    metadata fields.  This gives better results in converting to e.g.
-    pandoc markdown.
+  * Markdown reader:
+
+    + Use MetaInlines not MetaBlocks for multimarkdown
+      metadata fields.  This gives better results in converting to e.g.
+      pandoc markdown.
+    + Implement curly-brace syntax for Markdown citation keys (#6026).
+      The change provides a way to use citation keys that contain
+      special characters not usable with the standard citation
+      key syntax.  Example: `@{foo_bar{x}'}` for the key `foo_bar{x}`.
+      It also allows separating citation keys from immediately
+      following text, e.g. `@{foo}A`.
 
   * RST reader:
 
@@ -61,6 +72,9 @@
 
   * Docx reader: Add handling of vml image objects (#7257, mbrackeantidot).
 
+  * HTML reader: Don't fail on unmatched closing "script" tag
+    (Albert Krenkel, #7282).
+
   * DocBook/JATS readers:
 
     + Fix mathml regression caused by the switch in XML libraries (#7173).
@@ -68,9 +82,14 @@
 
   * Plain writer: handle superscript unicode minus (#7276).
 
-  * LaTeX writer: better handling of line breaks in simple tables (#7272).
-    Now we also handle the case where they're embedded in other
-    elements, e.g. spans.
+  * LaTeX writer:
+
+    + Better handling of line breaks in simple tables (#7272).
+      Now we also handle the case where they're embedded in other
+      elements, e.g. spans.
+    + For beamer output, support `exampleblock` and `alertblock` (#7278).
+      A block will be rendered as an `exampleblock` if the heading
+      has class `example` and an `alertblock` if it has class `alert`.
 
   * EPUB Writer: Fix belongs-to-collection XML id choice (#7267, nuew).
     The epub writer previously used the same XML id for both the book
@@ -121,18 +140,12 @@
       Krewinkel).
     + Extract Table handling into separate module (Albert Krewinkel).
     + Support colspans and rowspans in tables (Albert Krewinkel, #6315).
+    + Support multirow table headers (Albert Krewinkel).
     + Improve integration of settings from reference.docx (#1209).
       This change allows users to create a reference.docx that
       sets `w:proofState` for spelling or grammar to `dirty`,
       so that spell/grammar checking will be triggered on the
       generated docx.
-
-  * Writers: Recognize custom syntax definitions (#7241, Jan Tojnar).
-    Languages defined using `--syntax-definition` were not recognized by
-    `languagesByExtension`.  This patch corrects that, allowing the writers
-    to see all custom definitions.  The LaTeX writer still uses the default
-    syntax map, but that's okay in that context, since
-    `--syntax-definition` won't create new listings styles.
 
   * Markdown writer:
 
@@ -143,6 +156,7 @@
       rather than the *first* character in determining whether quotes
       were needed.  So we got spurious quotes in some cases and
       didn't get necessary quotes in others.
+    + Use `@{..}` syntax for citations when needed.
 
   * Commonmark writer: Use backslash escapes for `<` and `|`...
     instead of entities (#7208).
@@ -156,6 +170,8 @@
       This should make svgnames and x11names work properly.
     + Fix bad vertical spacing after bibliography (#7234, badumont).
     + List of figures before list of tables (#7235, Julien Dutant).
+    + Move CSL macro definitions before header-includes so they can be
+      overridden (#7286).
 
   * ConTeXt template: List of figures before list of tables (#7235,
     Julien Dutant).
@@ -177,7 +193,12 @@
   * Add new internal module Text.Pandoc.Writers.GridTable (Albert Krewinkel).
 
   * Text.Pandoc.Highlighting: Change type of `languagesByExtension`, adding
-    a parameter for a `SyntaxMap` [API change] (Jan Tojnar).
+    a parameter for a `SyntaxMap` [API change] (Jan Tojnar, #7241).
+    Languages defined using `--syntax-definition` were not recognized by
+    `languagesByExtension`.  This patch corrects that, allowing the writers
+    to see all custom definitions.  The LaTeX writer still uses the default
+    syntax map, but that's okay in that context, since
+    `--syntax-definition` won't create new listings styles.
 
   * Use metadata's `lang` for the lang parameter of citeproc, overriding
     `localeLanguage`.
