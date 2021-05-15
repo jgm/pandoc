@@ -52,6 +52,11 @@ $if(author)$
 $for(author)$$author$$sep$<br/>$endfor$
   </p>
 $endif$
+$if(institute)$
+  <p class="institute">
+$for(institute)$$institute$$sep$<br/>$endfor$
+  </p>
+$endif$
 $if(date)$
   <p class="date">$date$</p>
 $endif$

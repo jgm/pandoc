@@ -61,6 +61,9 @@ $endif$
 $if(author)$
   <h3 class="author">$for(author)$$author$$sep$<br/>$endfor$</h3>
 $endif$
+$if(institute)$
+  <h3 class="institute">$for(institute)$$institute$$sep$<br/>$endfor$</h3>
+$endif$
 $if(date)$
   <h4 class="date">$date$</h4>
 $endif$
