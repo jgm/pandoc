@@ -52,6 +52,9 @@ $endif$
 $for(author)$
   <p class="author">$author$</p>
 $endfor$
+$for(institute)$
+  <p class="institute">$institute$</p>
+$endfor$
 $if(date)$
   <p class="date">$date$</p>
 $endif$
