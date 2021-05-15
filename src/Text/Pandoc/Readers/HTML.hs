@@ -205,6 +205,7 @@ block = ((do
           | otherwise
           -> pDiv
         "section" -> pDiv
+        "header" -> pDiv
         "main" -> pDiv
         "figure" -> pFigure
         "iframe" -> pIframe
@@ -404,6 +405,7 @@ pLineBlock = try $ do
 isDivLike :: Text -> Bool
 isDivLike "div"     = True
 isDivLike "section" = True
+isDivLike "header"  = True
 isDivLike "main"    = True
 isDivLike _         = False
 

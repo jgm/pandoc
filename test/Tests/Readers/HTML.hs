@@ -99,11 +99,15 @@ tests = [ testGroup "base tag"
             plain (codeWith ("",["sample"],[]) "Answer is 42")
           ]
         , testGroup "var"
-        [
-          test html "inline var block" $
-          "<var>result</var>" =?>
-          plain (codeWith ("",["variable"],[]) "result")
-        ]
+          [ test html "inline var block" $
+            "<var>result</var>" =?>
+            plain (codeWith ("",["variable"],[]) "result")
+          ]
+        , testGroup "header"
+          [ test htmlNativeDivs "<header> is parsed as a div" $
+            "<header id=\"title\">Title</header>" =?>
+            divWith ("title", mempty, mempty) (plain "Title")
+          ]
         , askOption $ \(QuickCheckTests numtests) ->
             testProperty "Round trip" $
               withMaxSuccess (if QuickCheckTests numtests == defaultValue
