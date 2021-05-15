@@ -17,16 +17,6 @@
   <w:characterSpacingControl w:val="doNotCompress" />
   <w:savePreviewPicture />
   <w:rsids>
-    <w:rsidRoot w:val="00590D07" />
-    <w:rsid w:val="00011C8B" />
-    <w:rsid w:val="004E29B3" />
-    <w:rsid w:val="00590D07" />
-    <w:rsid w:val="00784D58" />
-    <w:rsid w:val="008D6863" />
-    <w:rsid w:val="00B86B75" />
-    <w:rsid w:val="00BC48D5" />
-    <w:rsid w:val="00C36279" />
-    <w:rsid w:val="00E315A3" />
   </w:rsids>
   <m:mathPr>
     <m:mathFont m:val="Lucida Grande" />
