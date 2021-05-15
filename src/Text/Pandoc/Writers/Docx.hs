@@ -469,12 +469,27 @@ writeDocx opts doc = do
   -- adds references to footnotes or endnotes we don't have...
   -- we do, however, copy some settings over from reference
   let settingsPath = "word/settings.xml"
-      settingsList = [ "autoHyphenation"
+      settingsList = [ "zoom"
+                     , "embedSystemFonts"
+                     , "doNotTrackMoves"
+                     , "defaultTabStop"
+                     , "drawingGridHorizontalSpacing"
+                     , "drawingGridVerticalSpacing"
+                     , "displayHorizontalDrawingGridEvery"
+                     , "displayVerticalDrawingGridEvery"
+                     , "characterSpacingControl"
+                     , "savePreviewPicture"
+                     , "mathPr"
+                     , "themeFontLang"
+                     , "decimalSymbol"
+                     , "listSeparator"
+                     , "autoHyphenation"
                      , "consecutiveHyphenLimit"
                      , "hyphenationZone"
                      , "doNotHyphenateCap"
                      , "evenAndOddHeaders"
                      , "proofState"
+                     , "compat"
                      ]
   settingsEntry <- copyChildren refArchive distArchive settingsPath epochtime settingsList
 
