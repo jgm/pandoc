@@ -2315,8 +2315,8 @@ math equations flush left using [YAML metadata](#layout) or with
 
 These affect HTML output when [producing slide shows with pandoc].
 
-All [reveal.js configuration options] are available as variables.
-To turn off boolean flags that default to true in reveal.js, use `0`.
+`institute`
+:   author affiliations: can be a list when there are multiple authors
 
 `revealjs-url`
 :   base URL for reveal.js documents (defaults to
@@ -2335,6 +2335,9 @@ To turn off boolean flags that default to true in reveal.js, use `0`.
 `title-slide-attributes`
 :   additional attributes for the title slide of reveal.js slide shows.
     See [background in reveal.js and beamer] for an example.
+
+All [reveal.js configuration options] are available as variables.
+To turn off boolean flags that default to true in reveal.js, use `0`.
 
 [reveal.js configuration options]: https://revealjs.com/config/
 
