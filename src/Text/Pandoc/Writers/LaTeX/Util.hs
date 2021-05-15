@@ -120,6 +120,10 @@ stringToLaTeX context zs = do
          '\'' | ctx == CodeString -> emitcseq "\\textquotesingle"
          '\160' -> emits "~"
          '\x200B' -> emits "\\hspace{0pt}"  -- zero-width space
+         '\x200C' -> emits ("\\texorpdfstring{\\nobreak" <>
+                            "\\discretionary{-}{}{\\kern.03em}" <>
+                            "\\nobreak\\hskip\\skip11}{}")
+                           -- zero-width non-joiner
          '\x202F' -> emits "\\,"
          '\x2026' -> emitcseq "\\ldots"
          '\x2018' | ligatures -> emitquote "`"
@@ -270,5 +274,3 @@ mbBraced :: Text -> Text
 mbBraced x = if not (T.all isAlphaNum x)
                 then "{" <> x <> "}"
                 else x
-
-
