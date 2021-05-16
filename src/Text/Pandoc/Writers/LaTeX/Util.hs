@@ -22,6 +22,7 @@ module Text.Pandoc.Writers.LaTeX.Util (
 where
 
 import Control.Applicative ((<|>))
+import Control.Monad (when)
 import Text.Pandoc.Class (PandocMonad, toLang)
 import Text.Pandoc.Options (WriterOptions(..), isEnabled)
 import Text.Pandoc.Writers.LaTeX.Types (LW, WriterState(..))
@@ -30,7 +31,7 @@ import Text.Pandoc.Highlighting (toListingsLanguage)
 import Text.DocLayout
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize (showFl)
-import Control.Monad.State.Strict (gets)
+import Control.Monad.State.Strict (gets, modify)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Extensions (Extension(Ext_smart))
@@ -49,6 +50,8 @@ data StringContext = TextString
 stringToLaTeX :: PandocMonad m => StringContext -> Text -> LW m Text
 stringToLaTeX context zs = do
   opts <- gets stOptions
+  when ('\x200c' `elemText` zs) $
+    modify (\s -> s { stZwnj = True })
   return $ T.pack $
     foldr (go opts context) mempty $ T.unpack $
     if writerPreferAscii opts
@@ -270,5 +273,3 @@ mbBraced :: Text -> Text
 mbBraced x = if not (T.all isAlphaNum x)
                 then "{" <> x <> "}"
                 else x
-
-

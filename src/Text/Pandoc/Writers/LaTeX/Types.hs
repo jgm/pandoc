@@ -40,7 +40,7 @@ data WriterState =
   , stCsquotes      :: Bool          -- ^ true if document uses csquotes
   , stHighlighting  :: Bool          -- ^ true if document has highlighted code
   , stIncremental   :: Bool          -- ^ true if beamer lists should be
-                                     --   displayed bit by bit
+  , stZwnj          :: Bool          -- ^ true if document has a ZWNJ character
   , stInternalLinks :: [Text]        -- ^ list of internal link targets
   , stBeamer        :: Bool          -- ^ produce beamer
   , stEmptyLine     :: Bool          -- ^ true if no content on line
@@ -74,6 +74,7 @@ startingState options =
   , stCsquotes = False
   , stHighlighting = False
   , stIncremental = writerIncremental options
+  , stZwnj = False
   , stInternalLinks = []
   , stBeamer = False
   , stEmptyLine = True

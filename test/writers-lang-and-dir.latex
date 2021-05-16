@@ -17,20 +17,6 @@
   \defaultfontfeatures{Scale=MatchLowercase}
   \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
 \fi
-%% Support for special Unicode characters
-% Zero width non-joiner
-\def\zerowidthnonjoiner{%
-  \texorpdfstring{%
-    \textormath{\nobreak\discretionary{-}{}{\kern.03em}%
-      \ifvmode\else\nobreak\hskip\skip11\fi}{}%
-  }{}%
-}
-\ifPDFTeX
-  \DeclareUnicodeCharacter{200C}{{\zerowidthnonjoiner}}
-\else
-  \catcode`^^^^200c=\active
-  \protected\def ^^^^200c{\zerowidthnonjoiner}
-\fi
 % Use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \IfFileExists{microtype.sty}{% use microtype if available

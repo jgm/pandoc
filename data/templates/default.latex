@@ -156,10 +156,11 @@ $if(CJKmainfont)$
   \fi
 $endif$
 \fi
-%% Support for special Unicode characters
-% Zero width non-joiner
+$if(zero-width-non-joiner)$
+%% Support for zero-width non-joiner characters.
 \makeatletter
 \def\zerowidthnonjoiner{%
+  % Prevent ligatures and adjust kerning, but still support hyphenating.
   \texorpdfstring{%
     \textormath{\nobreak\discretionary{-}{}{\kern.03em}%
       \ifvmode\else\nobreak\hskip\z@skip\fi}{}%
@@ -172,6 +173,8 @@ $endif$
   \catcode`^^^^200c=\active
   \protected\def ^^^^200c{\zerowidthnonjoiner}
 \fi
+%% End of ZWNJ support
+$endif$
 $if(beamer)$
 $if(theme)$
 \usetheme[$for(themeoptions)$$themeoptions$$sep$,$endfor$]{$theme$}
