@@ -43,7 +43,11 @@ import Text.Pandoc.Writers.Markdown.Types (MarkdownVariant(..),
 -- | Escape special characters for Markdown.
 escapeText :: WriterOptions -> Text -> Text
 escapeText opts = T.pack . go . T.unpack
-  where
+ where
+  startsWithSpace (' ':_) = True
+  startsWithSpace ('\t':_) = True
+  startsWithSpace [] = True
+  startsWithSpace _ = False
   go [] = []
   go (c:cs) =
     case c of
@@ -59,7 +63,10 @@ escapeText opts = T.pack . go . T.unpack
                       | isAlphaNum d || d == '_' || d == '{'
                          -> '\\':'@':go cs
                     _ -> '@':go cs
-       _ | c `elem` ['\\','`','*','_','[',']','#'] ->
+       '#' | isEnabled Ext_space_in_atx_header opts
+           , startsWithSpace cs
+           -> '\\':'#':go cs
+       _ | c `elem` ['\\','`','*','_','[',']'] ->
               '\\':c:go cs
        '|' | isEnabled Ext_pipe_tables opts -> '\\':'|':go cs
        '^' | isEnabled Ext_superscript opts -> '\\':'^':go cs
@@ -81,6 +88,8 @@ escapeText opts = T.pack . go . T.unpack
                   | isEnabled Ext_intraword_underscores opts
                   , isAlphaNum c
                   , isAlphaNum x -> c : '_' : x : go xs
+                '#':xs           -> c : '#' : go xs
+                '>':xs           -> c : '>' : go xs
                 _                -> c : go cs
 
 attrsToMarkdown :: Attr -> Doc Text
