@@ -56,7 +56,7 @@ escapeText opts = T.pack . go . T.unpack
        '@' | isEnabled Ext_citations opts ->
                case cs of
                     (d:_)
-                      | isAlphaNum d || d == '_'
+                      | isAlphaNum d || d == '_' || d == '{'
                          -> '\\':'@':go cs
                     _ -> '@':go cs
        _ | c `elem` ['\\','`','*','_','[',']','#'] ->
