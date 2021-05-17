@@ -108,6 +108,17 @@ tests = [ testGroup "base tag"
             "<header id=\"title\">Title</header>" =?>
             divWith ("title", mempty, mempty) (plain "Title")
           ]
+        , testGroup "code block"
+          [ test html "attributes in pre > code element" $
+            "<pre><code id=\"a\" class=\"python\">\nprint('hi')\n</code></pre>"
+            =?>
+            codeBlockWith ("a", ["python"], []) "print('hi')"
+
+          , test html "attributes in pre take precendence" $
+            "<pre id=\"c\"><code id=\"d\">\nprint('hi mom!')\n</code></pre>"
+            =?>
+            codeBlockWith ("c", [], []) "print('hi mom!')"
+          ]
         , askOption $ \(QuickCheckTests numtests) ->
             testProperty "Round trip" $
               withMaxSuccess (if QuickCheckTests numtests == defaultValue
