@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP                        #-}
+{-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {- |
@@ -27,18 +28,23 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Data.Typeable (Typeable)
 import System.FilePath
-import qualified System.FilePath.Posix as Posix
 import Text.Pandoc.MIME (MimeType, getMimeTypeDef)
+import Data.Text (Text)
+import qualified Data.Text as T
 
 -- | A container for a collection of binary resources, with names and
 -- mime types.  Note that a 'MediaBag' is a Monoid, so 'mempty'
 -- can be used for an empty 'MediaBag', and '<>' can be used to append
 -- two 'MediaBag's.
-newtype MediaBag = MediaBag (M.Map [FilePath] (MimeType, BL.ByteString))
+newtype MediaBag = MediaBag (M.Map Text (MimeType, BL.ByteString))
         deriving (Semigroup, Monoid, Data, Typeable)
 
 instance Show MediaBag where
   show bag = "MediaBag " ++ show (mediaDirectory bag)
+
+-- | We represent paths with /, in normalized form.
+canonicalize :: FilePath -> Text
+canonicalize = T.replace "\\" "/" . T.pack . normalise
 
 -- | Delete a media item from a 'MediaBag', or do nothing if no item corresponds
 -- to the given path.
@@ -46,7 +52,7 @@ deleteMedia :: FilePath       -- ^ relative path and canonical name of resource
             -> MediaBag
             -> MediaBag
 deleteMedia fp (MediaBag mediamap) =
-  MediaBag $ M.delete (splitDirectories fp) mediamap
+  MediaBag $ M.delete (canonicalize fp) mediamap
 
 -- | Insert a media item into a 'MediaBag', replacing any existing
 -- value with the same name.
@@ -56,7 +62,7 @@ insertMedia :: FilePath       -- ^ relative path and canonical name of resource
             -> MediaBag
             -> MediaBag
 insertMedia fp mbMime contents (MediaBag mediamap) =
-  MediaBag (M.insert (splitDirectories fp) (mime, contents) mediamap)
+  MediaBag (M.insert (canonicalize fp) (mime, contents) mediamap)
   where mime = fromMaybe fallback mbMime
         fallback = case takeExtension fp of
                         ".gz" -> getMimeTypeDef $ dropExtension fp
@@ -66,16 +72,16 @@ insertMedia fp mbMime contents (MediaBag mediamap) =
 lookupMedia :: FilePath
             -> MediaBag
             -> Maybe (MimeType, BL.ByteString)
-lookupMedia fp (MediaBag mediamap) = M.lookup (splitDirectories fp) mediamap
+lookupMedia fp (MediaBag mediamap) = M.lookup (canonicalize fp) mediamap
 
 -- | Get a list of the file paths stored in a 'MediaBag', with
 -- their corresponding mime types and the lengths in bytes of the contents.
 mediaDirectory :: MediaBag -> [(FilePath, MimeType, Int)]
 mediaDirectory (MediaBag mediamap) =
   M.foldrWithKey (\fp (mime,contents) ->
-      ((Posix.joinPath fp, mime, fromIntegral $ BL.length contents):)) [] mediamap
+      ((T.unpack fp, mime, fromIntegral (BL.length contents)):)) [] mediamap
 
 mediaItems :: MediaBag -> [(FilePath, MimeType, BL.ByteString)]
 mediaItems (MediaBag mediamap) =
   M.foldrWithKey (\fp (mime,contents) ->
-      ((Posix.joinPath fp, mime, contents):)) [] mediamap
+      ((T.unpack fp, mime, contents):)) [] mediamap
