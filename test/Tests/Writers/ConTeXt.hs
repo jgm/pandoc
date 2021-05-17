@@ -43,6 +43,9 @@ tests =
   [ testGroup "inline code"
     [ "with '}'" =: code "}" =?> "\\mono{\\}}"
     , "without '}'" =: code "]" =?> "\\type{]}"
+    , "span with ID" =:
+      spanWith ("city", [], []) "Berlin" =?>
+      "\\reference[city]{}Berlin"
     , testProperty "code property" $ \s -> null s || '\n' `elem` s ||
             if '{' `elem` s || '}' `elem` s
                then context' (code $ pack s) == "\\mono{" ++

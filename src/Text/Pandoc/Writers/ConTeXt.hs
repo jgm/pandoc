@@ -487,7 +487,7 @@ inlineToConTeXt (Note contents) = do
               then literal "\\footnote{" <> nest 2 (chomp contents') <> char '}'
               else literal "\\startbuffer " <> nest 2 (chomp contents') <>
                    literal "\\stopbuffer\\footnote{\\getbuffer}"
-inlineToConTeXt (Span (_,_,kvs) ils) = do
+inlineToConTeXt (Span (ident,_,kvs) ils) = do
   mblang <- fromBCP47 (lookup "lang" kvs)
   let wrapDir txt = case lookup "dir" kvs of
                       Just "rtl" -> braces $ "\\righttoleft " <> txt
@@ -497,7 +497,11 @@ inlineToConTeXt (Span (_,_,kvs) ils) = do
                        Just lng -> braces ("\\language" <>
                                            brackets (literal lng) <> txt)
                        Nothing -> txt
-  wrapLang . wrapDir <$> inlineListToConTeXt ils
+      addReference =
+        if T.null ident
+        then id
+        else (("\\reference" <> brackets (literal ident) <> "{}") <>)
+  addReference . wrapLang . wrapDir <$> inlineListToConTeXt ils
 
 -- | Craft the section header, inserting the section reference, if supplied.
 sectionHeader :: PandocMonad m
