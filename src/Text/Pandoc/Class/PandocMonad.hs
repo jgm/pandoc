@@ -648,12 +648,18 @@ fetchMediaResource src = do
 fillMediaBag :: PandocMonad m => Pandoc -> m Pandoc
 fillMediaBag d = walkM handleImage d
   where handleImage :: PandocMonad m => Inline -> m Inline
-        handleImage (Image attr lab (src, tit)) = catchError
+        handleImage (Image attr@(_,_,kvs) lab (src, tit)) = catchError
           (do mediabag <- getMediaBag
               case lookupMedia (T.unpack src) mediabag of
                 Just (_, _) -> return $ Image attr lab (src, tit)
                 Nothing -> do
-                  (fname, mt, bs) <- fetchMediaResource src
+                  (fname, mt, bs) <-
+                    catchError (fetchMediaResource src) $
+                      \case
+                          e@(PandocResourceNotFound{}) ->
+                             maybe (throwError e) fetchMediaResource
+                               (lookup "basename" kvs)
+                          e -> throwError e
                   insertMedia fname mt bs
                   return $ Image attr lab (T.pack fname, tit))
           (\e ->
