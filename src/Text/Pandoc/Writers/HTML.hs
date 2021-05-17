@@ -882,7 +882,7 @@ blockToHtml opts (BlockQuote blocks) = do
      else do
        contents <- blockListToHtml opts blocks
        return $ H.blockquote $ nl opts >> contents >> nl opts
-blockToHtml opts (Header level attr@(_,classes,kvs) lst) = do
+blockToHtml opts (Header level (ident,classes,kvs) lst) = do
   contents <- inlineListToHtml opts lst
   let secnum = fromMaybe mempty $ lookup "number" kvs
   let contents' = if writerNumberSections opts && not (T.null secnum)
@@ -890,7 +890,13 @@ blockToHtml opts (Header level attr@(_,classes,kvs) lst) = do
                      then (H.span ! A.class_ "header-section-number"
                              $ toHtml secnum) >> strToHtml " " >> contents
                      else contents
-  addAttrs opts attr
+  html5 <- gets stHtml5
+  let kvs' = if html5
+             then kvs
+             else [ (k, v) | (k, v) <- kvs
+                           , k `elem` (["lang", "dir", "title", "style"
+                                      , "align"] ++ intrinsicEventsHTML4)]
+  addAttrs opts (ident,classes,kvs')
          $ case level of
               1 -> H.h1 contents'
               2 -> H.h2 contents'
@@ -1525,6 +1531,12 @@ allowsMathEnvironments (MathJax _) = True
 allowsMathEnvironments MathML      = True
 allowsMathEnvironments (WebTeX _)  = True
 allowsMathEnvironments _           = False
+
+-- | List of intrinsic event attributes allowed on all elements in HTML4.
+intrinsicEventsHTML4 :: [Text]
+intrinsicEventsHTML4 =
+  [ "onclick", "ondblclick", "onmousedown", "onmouseup", "onmouseover"
+  , "onmouseout", "onmouseout", "onkeypress", "onkeydown", "onkeyup"]
 
 isRawHtml :: PandocMonad m => Format -> StateT WriterState m Bool
 isRawHtml f = do
