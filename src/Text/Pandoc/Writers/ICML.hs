@@ -17,7 +17,7 @@ InCopy is the companion word-processor to Adobe InDesign and ICML documents can 
 into InDesign with File -> Place.
 -}
 module Text.Pandoc.Writers.ICML (writeICML) where
-import Control.Monad.Except (catchError)
+import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe, maybeToList)
@@ -587,17 +587,20 @@ styleToStrAttr style =
 
 -- | Assemble an ICML Image.
 imageICML :: PandocMonad m => WriterOptions -> Style -> Attr -> Target -> WS m (Doc Text)
-imageICML opts style attr (src, _) = do
-  imgS <- catchError
-          (do (img, _) <- fetchItem src
+imageICML opts style attr@(_,_,kvs) (src, _) = do
+  let getImageSize s =
+        catchError
+          (do (img, _) <- fetchItem s
               case imageSize opts img of
                 Right size -> return size
                 Left msg   -> do
                   report $ CouldNotDetermineImageSize src msg
                   return def)
            (\e -> do
-               report $ CouldNotFetchResource src $ tshow e
+               report $ CouldNotFetchResource s $ tshow e
                return def)
+  imgS <- catchError (getImageSize src)
+           (\e -> maybe (throwError e) getImageSize (lookup "basename" kvs))
   let (ow, oh) = sizeInPoints imgS
       (imgWidth, imgHeight) = desiredSizeInPoints opts attr imgS
       hw = showFl $ ow / 2
