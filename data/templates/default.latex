@@ -378,6 +378,8 @@ $if(csl-refs)$
 \setlength{\cslhangindent}{1.5em}
 \newlength{\csllabelwidth}
 \setlength{\csllabelwidth}{3em}
+\newlength{\cslentryspacingunit} % times entry-spacing
+\setlength{\cslentryspacingunit}{\parskip}
 \newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
  {% don't indent paragraphs
   \setlength{\parindent}{0pt}
@@ -387,9 +389,7 @@ $if(csl-refs)$
   \def\par{\hangindent=\cslhangindent\oldpar}
   \fi
   % set entry spacing
-  \ifnum #2 > 0
-  \setlength{\parskip}{#2\baselineskip}
-  \fi
+  \setlength{\parskip}{#2\cslentryspacingunit}
  }%
  {}
 \usepackage{calc}
