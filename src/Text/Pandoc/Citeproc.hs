@@ -499,7 +499,7 @@ insertRefs refkvs refclasses meta refs bs =
      put True
      -- refHeader isn't used if you have an explicit references div
      let cs' = ordNub $ cs ++ refclasses
-     return $ Div ("refs",cs',kvs) (xs ++ refs)
+     return $ Div ("refs",cs' ++ refclasses,kvs ++ refkvs) (xs ++ refs)
    go x = return x
 
 refTitle :: Meta -> Maybe [Inline]
