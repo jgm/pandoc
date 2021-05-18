@@ -635,7 +635,7 @@ withPaths (p:ps) action fp =
 fetchMediaResource :: PandocMonad m
               => T.Text -> m (FilePath, Maybe MimeType, BL.ByteString)
 fetchMediaResource src = do
-  (bs, mt) <- downloadOrRead src
+  (bs, mt) <- fetchItem src
   let ext = fromMaybe (T.pack $ takeExtension $ T.unpack src)
                       (mt >>= extensionFromMimeType)
   let bs' = BL.fromChunks [bs]
