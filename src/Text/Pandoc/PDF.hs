@@ -172,9 +172,7 @@ handleImages :: WriterOptions
              -> Pandoc        -- ^ document
              -> PandocIO Pandoc
 handleImages opts tmpdir doc =
-  fillMediaBag doc >>=
-    extractMedia tmpdir >>=
-    walkM (convertImages opts tmpdir)
+  fillMediaBag doc >>= extractMedia tmpdir >>= walkM (convertImages opts tmpdir)
 
 convertImages :: WriterOptions -> FilePath -> Inline -> PandocIO Inline
 convertImages opts tmpdir (Image attr ils (src, tit)) = do

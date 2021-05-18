@@ -86,7 +86,8 @@ rtfEmbedImage _ x = return x
 writeRTF :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeRTF options doc = do
   -- handle images
-  Pandoc meta@(Meta metamap) blocks <- walkM (rtfEmbedImage options) doc
+  Pandoc meta@(Meta metamap) blocks <- P.fillMediaBag doc >>=
+                                       walkM (rtfEmbedImage options)
   let spacer = not $ all null $ docTitle meta : docDate meta : docAuthors meta
   let toPlain (MetaBlocks [Para ils]) = MetaInlines ils
       toPlain x                       = x

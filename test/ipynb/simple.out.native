@@ -12,4 +12,4 @@ Pandoc (Meta {unMeta = fromList [("jupyter",MetaMap (fromList [("nbformat",MetaS
   [RawBlock (Format "html") "<script>\nconsole.log(\"hello\");\n</script>\n<b>HTML</b>\nhello"]]
 ,Div ("",["cell","markdown"],[("tags","[\"foo\",\"bar\"]")])
  [Header 2 ("image",[],[]) [Str "Image"]
- ,Para [Str "This",Space,Str "image",Space,Image ("",[],[]) [Str "the",Space,Str "moon"] ("lalune.jpg",""),Space,Str "will",Space,Str "be",Space,Str "included",Space,Str "as",Space,Str "a",Space,Str "cell",SoftBreak,Str "attachment."]]]
+ ,Para [Str "This",Space,Str "image",Space,Image ("",[],[]) [Str "the",SoftBreak,Str "moon"] ("f9d88c3dbe18f6a7f5670e994a947d51216cdf0e.jpg",""),Space,Str "will",Space,Str "be",SoftBreak,Str "included",Space,Str "as",Space,Str "a",Space,Str "cell",Space,Str "attachment."]]]

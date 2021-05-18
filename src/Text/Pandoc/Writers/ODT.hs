@@ -44,9 +44,9 @@ import Text.Pandoc.XML
 import Text.Pandoc.XML.Light
 import Text.TeXMath
 import qualified Text.XML.Light as XL
+import Text.Pandoc.Class (fillMediaBag)
 
-newtype ODTState = ODTState { stEntries :: [Entry]
-                         }
+newtype ODTState = ODTState { stEntries :: [Entry] }
 
 type O m = StateT ODTState m
 
@@ -55,11 +55,10 @@ writeODT :: PandocMonad m
          => WriterOptions  -- ^ Writer options
          -> Pandoc         -- ^ Document to convert
          -> m B.ByteString
-writeODT  opts doc =
-  let initState = ODTState{ stEntries = []
-                          }
-  in
-    evalStateT (pandocToODT opts doc) initState
+writeODT opts doc = do
+  doc' <- fillMediaBag doc
+  let initState = ODTState{ stEntries = [] }
+  evalStateT (pandocToODT opts doc') initState
 
 -- | Produce an ODT file from a Pandoc document.
 pandocToODT :: PandocMonad m

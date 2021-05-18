@@ -416,7 +416,8 @@ writeEPUB epubVersion opts doc = do
   let initState = EPUBState { stMediaPaths = []
                             , stMediaNextId = 0
                             , stEpubSubdir = T.unpack epubSubdir }
-  evalStateT (pandocToEPUB epubVersion opts doc) initState
+  doc' <- P.fillMediaBag doc
+  evalStateT (pandocToEPUB epubVersion opts doc') initState
 
 pandocToEPUB :: PandocMonad m
              => EPUBVersion

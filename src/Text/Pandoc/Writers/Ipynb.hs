@@ -40,7 +40,7 @@ import Text.DocLayout (literal)
 
 writeIpynb :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeIpynb opts d = do
-  notebook <- pandocToNotebook opts d
+  notebook <- fillMediaBag d >>= pandocToNotebook opts
   return $ TE.decodeUtf8 . BL.toStrict . encodePretty' defConfig{
              confIndent  = Spaces 1,
              confTrailingNewline = True,

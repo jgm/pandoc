@@ -321,7 +321,10 @@ convertWithOpts opts = do
                       | standalone = t
                       | T.null t || T.last t /= '\n' = t <> T.singleton '\n'
                       | otherwise = t
-                output <- ensureNl <$> f writerOptions doc
+                doc' <- if optSelfContained opts && htmlFormat format
+                           then fillMediaBag doc
+                           else return doc
+                output <- ensureNl <$> f writerOptions doc'
                 writerFn eol outputFile =<<
                   if optSelfContained opts && htmlFormat format
                      then makeSelfContained output

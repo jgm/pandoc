@@ -24,7 +24,7 @@ module Text.Pandoc.Writers.Powerpoint (writePowerpoint) where
 import Codec.Archive.Zip
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report, fillMediaBag)
 import Text.Pandoc.Options (WriterOptions)
 import Text.Pandoc.Writers.Shared (fixDisplayMath)
 import Text.Pandoc.Writers.Powerpoint.Presentation (documentToPresentation)
@@ -35,7 +35,8 @@ writePowerpoint :: (PandocMonad m)
                 => WriterOptions  -- ^ Writer options
                 -> Pandoc         -- ^ Document to convert
                 -> m BL.ByteString
-writePowerpoint opts (Pandoc meta blks) = do
+writePowerpoint opts doc = do
+  Pandoc meta blks <- fillMediaBag doc
   let blks' = walk fixDisplayMath blks
   let (pres, logMsgs) = documentToPresentation opts (Pandoc meta blks')
   mapM_ report logMsgs

@@ -21,8 +21,7 @@ module Text.Pandoc.Writers.FB2 (writeFB2)  where
 import Control.Monad (zipWithM)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict (StateT, evalStateT, get, gets, lift, liftM, modify)
-import Data.ByteString.Base64 (encode)
-import Data.Char (isAscii, isControl, isSpace)
+import Data.ByteString.Base64 as Base64
 import Data.Either (lefts, rights)
 import Data.List (intercalate)
 import Data.Text (Text)
@@ -32,13 +31,13 @@ import qualified Data.Text.Encoding as TE
 import Network.HTTP (urlEncode)
 import Text.Pandoc.XML.Light as X
 
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report, fillMediaBag)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
-import Text.Pandoc.Shared (capitalize, isURI, orderedListMarkers,
+import Text.Pandoc.Shared (capitalize, orderedListMarkers,
                            makeSections, tshow, stringify)
 import Text.Pandoc.Writers.Shared (lookupMetaString, toLegacyTable)
 import Data.Generics (everywhere, mkT)
@@ -70,7 +69,8 @@ writeFB2 :: PandocMonad m
          => WriterOptions    -- ^ conversion options
          -> Pandoc           -- ^ document to convert
          -> m Text           -- ^ FictionBook2 document (not encoded yet)
-writeFB2 opts doc = flip evalStateT newFB $ pandocToFB2 opts doc
+writeFB2 opts doc =
+  fillMediaBag doc >>= flip evalStateT newFB . pandocToFB2 opts
 
 pandocToFB2 :: PandocMonad m
             => WriterOptions
@@ -217,70 +217,19 @@ fetchImages links = do
 -- | Fetch image data from disk or from network and make a <binary> XML section.
 -- Return either (Left hrefOfMissingImage) or (Right xmlContent).
 fetchImage :: PandocMonad m => Text -> Text -> m (Either Text Content)
-fetchImage href link = do
-  mbimg <-
-      case (isURI link, readDataURI link) of
-       (True, Just (mime,_,True,base64)) ->
-           let mime' = T.toLower mime
-           in if mime' == "image/png" || mime' == "image/jpeg"
-              then return (Just (mime',base64))
-              else return Nothing
-       (True, Just _) -> return Nothing  -- not base64-encoded
-       _               ->
-         catchError (do (bs, mbmime) <- P.fetchItem link
-                        case mbmime of
-                             Nothing -> do
-                               report $ CouldNotDetermineMimeType link
-                               return Nothing
-                             Just mime -> return $ Just (mime,
-                                                      TE.decodeUtf8 $ encode bs))
-                    (\e ->
-                       do report $ CouldNotFetchResource link (tshow e)
-                          return Nothing)
-  case mbimg of
-    Just (imgtype, imgdata) ->
-        return . Right $ el "binary"
-                   ( [uattr "id" href
-                     , uattr "content-type" imgtype]
-                   , txt imgdata )
-    _ -> return (Left ("#" <> href))
-
-
--- | Extract mime type and encoded data from the Data URI.
-readDataURI :: Text -- ^ URI
-            -> Maybe (Text,Text,Bool,Text)
-               -- ^ Maybe (mime,charset,isBase64,data)
-readDataURI uri =
-  case T.stripPrefix "data:" uri of
-    Nothing   -> Nothing
-    Just rest ->
-      let meta = T.takeWhile (/= ',') rest  -- without trailing ','
-          uridata = T.drop (T.length meta + 1) rest
-          parts = T.split (== ';') meta
-          (mime,cs,enc)=foldr upd ("text/plain","US-ASCII",False) parts
-      in  Just (mime,cs,enc,uridata)
-
- where
-   upd str m@(mime,cs,enc)
-       | isMimeType str                            = (str,cs,enc)
-       | Just str' <- T.stripPrefix "charset=" str = (mime,str',enc)
-       | str ==  "base64"                          = (mime,cs,True)
-       | otherwise                                 = m
-
--- Without parameters like ;charset=...; see RFC 2045, 5.1
-isMimeType :: Text -> Bool
-isMimeType s =
-    case T.split (=='/') s of
-      [mtype,msubtype] ->
-          (T.toLower mtype `elem` types
-           || "x-" `T.isPrefixOf` T.toLower mtype)
-          && T.all valid mtype
-          && T.all valid msubtype
-      _ -> False
- where
-   types =  ["text","image","audio","video","application","message","multipart"]
-   valid c = isAscii c && not (isControl c) && not (isSpace c) &&
-             c `notElem` ("()<>@,;:\\\"/[]?=" :: [Char])
+fetchImage href link =
+  catchError (do (bs, mbmime) <- P.fetchItem link
+                 case mbmime of
+                      Nothing -> do
+                        report $ CouldNotDetermineMimeType link
+                        return $ Left ("#" <> href)
+                      Just mime -> do
+                        return . Right $ el "binary"
+                                   ( [ uattr "id" href
+                                     , uattr "content-type" mime]
+                                   , txt (TE.decodeUtf8 . Base64.encode $ bs)))
+              (\e -> do report $ CouldNotFetchResource link (tshow e)
+                        return $ Left ("#" <> href))
 
 footnoteID :: Int -> Text
 footnoteID i = "n" <> tshow i

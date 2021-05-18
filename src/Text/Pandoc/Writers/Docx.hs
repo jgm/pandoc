@@ -107,7 +107,7 @@ writeDocx :: (PandocMonad m)
           -> Pandoc         -- ^ Document to convert
           -> m BL.ByteString
 writeDocx opts doc = do
-  let Pandoc meta blocks = walk fixDisplayMath doc
+  Pandoc meta blocks <- P.fillMediaBag (walk fixDisplayMath doc)
   let blocks' = makeSections True Nothing blocks
   let doc' = Pandoc meta blocks'
 
