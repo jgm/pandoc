@@ -894,8 +894,9 @@ inlineToLaTeX (Quoted qt lst) = do
                       then char '`' <> inner <> char '\''
                       else char '\x2018' <> inner <> char '\x2019'
     where
-      isQuoted (Quoted _ _) = True
-      isQuoted _            = False
+      isQuoted (Span _ (x:_)) = isQuoted x
+      isQuoted (Quoted _ _)   = True
+      isQuoted _              = False
 inlineToLaTeX (Str str) = do
   setEmptyLine False
   liftM literal $ stringToLaTeX TextString str
