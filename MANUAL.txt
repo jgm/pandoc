@@ -4954,39 +4954,63 @@ Inline and regular footnotes may be mixed freely.
 
 #### Extension: `citations` ####
 
-Markdown citations go inside square brackets and are separated
-by semicolons.  Each citation must have a key and may optionally
-have a prefix, a locator, and a suffix.  The citation key
-consists of `@` plus the citation identifier, possibly
-enclosed in curly braces.  If the identifier starts
-with a letter, digit, or `_`, followed by zero or more
-alphanumerics, `_`, and internal punctuation characters
-(`:.#$%&-+?<>~/`), then the curly braces may be omitted.
-Identifiers may not contain whitespace characters or unbalanced
-curly braces.  Here are some examples:
+To cite a bibliographic item with an identifier foo, use the
+syntax `@foo`.  Normal citations should be included in square
+brackets, with semicolons separating distinct items:
 
-    Blah blah [see @doe99, pp. 33-35; also @smith04, chap. 1].
+    Blah blah [@doe99; @smith2000; @smith2004].
 
-    Blah blah [@doe99, pp. 33-35, 38-39 and *passim*].
+How this is rendered depends on the citation style.  In an
+author-date style, it might render as
 
-    Blah blah [@smith04; @doe99].
+    Blah blah (Doe 1999, Smith 2000, 2004).
 
-    Blah blah [@{https://example.com/bib?name=foobar&date=2000}, p. 33].
+In a footnote style, it might render as
 
-`pandoc` detects locator terms in the [CSL locale files].
-Either abbreviated or unabbreviated forms are accepted. In the `en-US`
-locale, locator terms can be written in either singular or plural forms,
-as `book`, `bk.`/`bks.`; `chapter`, `chap.`/`chaps.`; `column`,
-`col.`/`cols.`; `figure`, `fig.`/`figs.`; `folio`, `fol.`/`fols.`;
-`number`, `no.`/`nos.`; `line`, `l.`/`ll.`; `note`, `n.`/`nn.`; `opus`,
-`op.`/`opp.`; `page`, `p.`/`pp.`; `paragraph`, `para.`/`paras.`; `part`,
-`pt.`/`pts.`; `section`, `sec.`/`secs.`; `sub verbo`, `s.v.`/`s.vv.`;
-`verse`, `v.`/`vv.`; `volume`, `vol.`/`vols.`; `¶`/`¶¶`; `§`/`§§`. If no
+    Blah blah.[^1]
+
+    [^1]:  John Doe, "Frogs," *Journal of Amphibians* 44 (1999);
+    Susan Smith, "Flies," *Journal of Insects* (2000);
+    Susan Smith, "Bees," *Journal of Insects* (2004).
+
+See the [CSL user documentation] for more information about CSL
+styles and how they affect rendering.
+
+If a citation key do not start with a letter, digit, or `_`,
+and contain only alphanumerics and internal punctuation
+characters (`:.#$%&-+?<>~/`), the key must be surrounded
+by curly braces, which are not considered part of the key.
+In `@Foo_bar.baz.`, the key is `Foo_bar.baz`. The final
+period is not *internal* punctuation, so it is not included in
+the key.  In `@{Foo_bar.baz.}`, the key is `Foo_bar.baz.`, including
+the final period.  The curly braces are recommended if you use URLs as
+keys: `[@{https://example.com/bib?name=foobar&date=2000}, p.  33]`.
+
+Citation items may optionally include a prefix, a locator, and
+a suffix.  In
+
+    Blah blah [see @doe99, pp. 33-35 and *passim*; @smith04, chap. 1].
+
+The first item (`doe99`) has prefix `see `, locator `pp.  33-35`,
+and suffix `and *passim*`.  The second item (`smith04`) has
+locator `chap. 1` and no prefix or suffix.
+
+Pandoc uses some heuristics to separate the locator from the
+rest of the subject.  It is sensitive to the locator terms
+defined in the [CSL locale files].  Either abbreviated or
+unabbreviated forms are accepted. In the `en-US` locale, locator
+terms can be written in either singular or plural forms, as
+`book`, `bk.`/`bks.`; `chapter`, `chap.`/`chaps.`; `column`,
+`col.`/`cols.`; `figure`, `fig.`/`figs.`; `folio`,
+`fol.`/`fols.`; `number`, `no.`/`nos.`; `line`, `l.`/`ll.`;
+`note`, `n.`/`nn.`; `opus`, `op.`/`opp.`; `page`, `p.`/`pp.`;
+`paragraph`, `para.`/`paras.`; `part`, `pt.`/`pts.`; `section`,
+`sec.`/`secs.`; `sub verbo`, `s.v.`/`s.vv.`; `verse`,
+`v.`/`vv.`; `volume`, `vol.`/`vols.`; `¶`/`¶¶`; `§`/`§§`. If no
 locator term is used, "page" is assumed.
 
-`pandoc` will use heuristics to distinguish the locator
-from the suffix. In complex cases, the locator can be enclosed
-in curly braces:
+In complex cases, you can force something to be treated as
+a locator by enclosing it in curly braces:
 
     [@smith{ii, A, D-Z}, with a suffix]
     [@smith, {pp. iv, vi-xi, (xv)-(xvii)} with suffix here]
@@ -4997,13 +5021,26 @@ author is already mentioned in the text:
 
     Smith says blah [-@smith04].
 
-You can also write an in-text citation, as follows:
+You can also write an author-in-text citation, by omitting the
+brackets, as follows:
 
     @smith04 says blah.
 
     @smith04 [p. 33] says blah.
 
+This will cause the author's name to be rendered, followed by
+the bibliographical details.  Use this form when you want to
+make the citation the subject of a sentence.
 
+When you are using a note style, it is usually better to let
+citeproc create the footnotes from citations rather than writing
+an explicit note.  If you do write an explicit note that
+contains a citation, note that normal citations will be put in
+parentheses, while author-in-text citations will not.  For
+this reason, it is sometimes preferable to use the
+author-in-text style inside notes, when using a note style.
+
+[CSL user documentation]: https://citationstyles.org/authors/
 [CSL]: https://docs.citationstyles.org/en/stable/specification.html
 [CSL markup specs]: https://docs.citationstyles.org/en/1.0/release-notes.html#rich-text-markup-within-fields
 [Chicago Manual of Style]: https://chicagomanualofstyle.org
