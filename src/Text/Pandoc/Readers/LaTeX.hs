@@ -232,16 +232,6 @@ mkImage options (T.unpack -> src) = do
                _  -> return src
    return $ imageWith attr (T.pack src') "" alt
 
-doxspace :: PandocMonad m => LP m Inlines
-doxspace =
-  (space <$ lookAhead (satisfyTok startsWithLetter)) <|> return mempty
-  where startsWithLetter (Tok _ Word t) =
-          case T.uncons t of
-               Just (c, _) | isLetter c -> True
-               _           -> False
-        startsWithLetter _ = False
-
-
 removeDoubleQuotes :: Text -> Text
 removeDoubleQuotes t =
   Data.Maybe.fromMaybe t $ T.stripPrefix "\"" t >>= T.stripSuffix "\""
@@ -417,8 +407,6 @@ inlineCommands = M.unions
     -- LaTeX colors
     , ("textcolor", coloredInline "color")
     , ("colorbox", coloredInline "background-color")
-    -- xspace
-    , ("xspace", doxspace)
     -- etoolbox
     , ("ifstrequal", ifstrequal)
     , ("newtoggle", braced >>= newToggle)

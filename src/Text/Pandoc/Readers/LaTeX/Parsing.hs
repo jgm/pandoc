@@ -464,7 +464,7 @@ satisfyTok f = do
 doMacros :: PandocMonad m => LP m ()
 doMacros = do
   st <- getState
-  unless (sVerbatimMode st || M.null (sMacros st)) $ do
+  unless (sVerbatimMode st) $
     getInput >>= doMacros' 1 >>= setInput
 
 doMacros' :: PandocMonad m => Int -> [Tok] -> LP m [Tok]
@@ -526,7 +526,7 @@ doMacros' n inp =
         $ throwError $ PandocMacroLoop name
       macros <- sMacros <$> getState
       case M.lookup name macros of
-           Nothing -> mzero
+           Nothing -> trySpecialMacro name ts
            Just (Macro expansionPoint argspecs optarg newtoks) -> do
              let getargs' = do
                    args <-
@@ -553,6 +553,23 @@ doMacros' n inp =
                  case expansionPoint of
                    ExpandWhenUsed    -> doMacros' (n' + 1) result
                    ExpandWhenDefined -> return result
+
+-- | Certain macros do low-level tex manipulations that can't
+-- be represented in our Macro type, so we handle them here.
+trySpecialMacro :: PandocMonad m => Text -> [Tok] -> LP m [Tok]
+trySpecialMacro "xspace" ts = do
+  ts' <- doMacros' 1 ts
+  case ts' of
+    Tok pos Word t : _
+      | startsWithAlphaNum t -> return $ Tok pos Spaces " " : ts'
+    _ -> return ts'
+trySpecialMacro _ _ = mzero
+
+startsWithAlphaNum :: Text -> Bool
+startsWithAlphaNum t =
+  case T.uncons t of
+       Just (c, _) | isAlphaNum c -> True
+       _           -> False
 
 setpos :: SourcePos -> Tok -> Tok
 setpos spos (Tok _ tt txt) = Tok spos tt txt
