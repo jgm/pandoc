@@ -72,8 +72,15 @@
 
   * Docx reader: Add handling of vml image objects (#7257, mbrackeantidot).
 
-  * HTML reader: Don't fail on unmatched closing "script" tag
-    (Albert Krenkel, #7282).
+  * HTML reader:
+
+    + Don't fail on unmatched closing "script" tag (Albert Krenkel, #7282).
+    + Keep h1 tags as normal headers (#2293, Albert Krewinkel).
+      The tags `<title>` and `<h1 class="title">` often contain the same
+      information, so the latter was dropped from the document. However, as
+      this can lead to loss of information, the heading is now always
+      retained.  Use `--shift-heading-level-by=-1` to turn the `<h1>`
+      into the document title, or a filter to restore the previous behavior.
 
   * DocBook/JATS readers:
 
@@ -90,6 +97,11 @@
     + For beamer output, support `exampleblock` and `alertblock` (#7278).
       A block will be rendered as an `exampleblock` if the heading
       has class `example` and an `alertblock` if it has class `alert`.
+    + Separate successive quote chars with thin space (#6958,
+      Albert Krewinkel).  Successive quote characters are separated with
+      a thin space to improve readability and to prevent unwanted ligatures.
+      Detection of these quotes sometimes had failed if the second quote
+      was nested in a span element.
 
   * EPUB Writer: Fix belongs-to-collection XML id choice (#7267, nuew).
     The epub writer previously used the same XML id for both the book
@@ -97,8 +109,23 @@
 
   * BibTeX/BibLaTeX writer: Handle `annote` field (#7266).
 
-  * ConTeXt writer: support blank lines in line blocks (#6564,
-    Albert Krewinkel, thanks to @denismaier).
+  * ConTeXt writer:
+
+    + Support blank lines in line blocks (#6564, Albert Krewinkel,
+      thanks to @denismaier).
+    + Use span identifiers as reference anchors (#7246, Albert Krewinkel).
+
+  * HTML writer:
+
+    + Keep attributes from code nested below `pre` tag (#7221,
+      Albert Krewinkel).  If a code block is defined with `<pre><code
+      class="language-x">…</code></pre>`, where the `<pre>` element has no
+      attributes, then the attributes from the `<code>` element are used
+      instead. Any leading `language-` prefix is dropped in the code's
+      `class` attribute are dropped to improve syntax highlighting.
+    + Ensure headings only have valid attribs in HTML4 (#5944, Albert
+      Krewinkel).
+    + Parse `<header>` as a Div (Albert Krewinkel).
 
   * Org writer:
 
@@ -146,6 +173,19 @@
       sets `w:proofState` for spelling or grammar to `dirty`,
       so that spell/grammar checking will be triggered on the
       generated docx.
+    + Copy over more settings from reference.docx (#7240).  From settings.xml
+      in the reference-doc, we now include: `zoom`, `embedSystemFonts`,
+      `doNotTrackMoves`, `defaultTabStop`, `drawingGridHorizontalSpacing`,
+      `drawingGridVerticalSpacing`, `displayHorizontalDrawingGridEvery`,
+      `displayVerticalDrawingGridEvery`, `characterSpacingControl`,
+      `savePreviewPicture`, `mathPr`, `themeFontLang`, `decimalSymbol`,
+      `listSeparator`, `autoHyphenation`, `compat`.
+    + Set zoom to 100% by default in settings.xml.
+    + Align math options more with current Word defaults (e.g.
+      Cambria Math font).
+    + Remove `rsid`s from default settings.xml.  Word will add these
+      when revisions are made.
+
 
   * Markdown writer:
 
@@ -157,6 +197,9 @@
       were needed.  So we got spurious quotes in some cases and
       didn't get necessary quotes in others.
     + Use `@{..}` syntax for citations when needed.
+    + Use fewer unneeded escapes for `#` (see #6259).
+    + Improve escaping of `@`.  We need to escape literal `@` before
+      `{` because of the new citation syntax.
 
   * Commonmark writer: Use backslash escapes for `<` and `|`...
     instead of entities (#7208).
@@ -172,11 +215,31 @@
     + List of figures before list of tables (#7235, Julien Dutant).
     + Move CSL macro definitions before header-includes so they can be
       overridden (#7286).
+    + Improve treatment of CSL `entry-spacing` (#7296).
+      Previously with the default template settings (`indent` variable
+      not set), we would get interparagraph spaces separating bib
+      entries even with `entry-spacing="0"`.  On the other hand,
+      setting `entry-spacing="2"` gave ridiculously large spacing.
+      This change makes the spacing caused by `entry-spacing` a multiple
+      of `\parskip` by default, which gives aesthetically reasonable
+      output.  Those who want a larger or smaller unit (e.g. because
+      they use `indent` which sets `\parskip` to 0) may
+      `\setlength{\cslentryspacingunit}{10pt}` in header-includes
+      to override the defaults.
+    + Move title, author, date up to top of preamble (#7295).
+      This allows header-includes to use them, and puts them
+      in a position where you can see them immediately.
+    + Define commands for zero width non-joiner character
+      (#6639, Albert Krewinkel).  The zero-width non-joiner character
+      is used to avoid ligatures (e.g. in German).
 
   * ConTeXt template: List of figures before list of tables (#7235,
     Julien Dutant).
 
   * reveal.js template: Support `toc-title` (#7171, Florian Kohrt).
+
+  * HTML-based slide shows: add support for `institute` (#7289, Thomas
+    Hodgson).
 
   * Text.Pandoc.XML.Light: add Eq, Ord instances for Content,
     Element, Attr, CDataKind [API change].
@@ -200,8 +263,13 @@
     syntax map, but that's okay in that context, since
     `--syntax-definition` won't create new listings styles.
 
-  * Use metadata's `lang` for the lang parameter of citeproc, overriding
-    `localeLanguage`.
+  * Text.Pandoc.Citeproc:
+
+    + Ensure that CSL-related attributes are passed on to a Div
+      with id 'refs'.  Otherwise things like `entry-spacing`
+      won't work when such Divs are used.
+    + Use metadata's `lang` for the lang parameter of citeproc, overriding
+      `localeLanguage`.
 
   * Remove Text.Pandoc.BCP47 module [API change].
     Use types and functions from UnicodeCollation.Lang instead.
@@ -233,7 +301,12 @@
 
   * Use latest xml-conduit.
 
-  * MANUAL: Add information about `lang` and bibliography sorting.
+  * MANUAL:
+
+    + Add information about `lang` and bibliography sorting.
+    + Add info about YAML escape sequences, link to spec (#7152,
+      Albert Krewinkel).
+    + Note that `institute` variable works for HTML-based slides.
 
   * Updated and fixed typos in documentation (Charanjit Singh,
     Anti-Distinctlyminty, Tatiana Porras, obcat).
