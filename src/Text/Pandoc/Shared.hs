@@ -70,6 +70,7 @@ module Text.Pandoc.Shared (
                      htmlSpanLikeElements,
                      splitSentences,
                      filterIpynbOutput,
+                     adjustImagePaths,
                      -- * TagSoup HTML handling
                      renderTags',
                      -- * File handling
@@ -116,7 +117,8 @@ import Data.Version (showVersion)
 import Network.URI (URI (uriScheme), escapeURIString, parseURI)
 import Paths_pandoc (version)
 import System.Directory
-import System.FilePath (isPathSeparator, splitDirectories)
+import System.FilePath (isPathSeparator, splitDirectories, (</>), addExtension,
+                       takeExtension)
 import qualified System.FilePath.Posix as Posix
 import Text.HTML.TagSoup (RenderOptions (..), Tag (..), renderOptions,
                           renderTagsOptions)
@@ -775,6 +777,32 @@ filterIpynbOutput mode = walk go
                     | Just (c, cs) <- T.uncons t = T.cons c $ removeANSIEscapes cs
                     | otherwise = ""
         go x = x
+
+-- | Adjust image paths by (a) adding the default extension,
+-- if one is defined and the image lacks an extension, and
+-- (b) adding the (relative) directory of the containing file to the
+-- path (e.g. an image link to @foo.jpg@ that occurs in @bar/baz.md@
+-- would be changed to @bar/foo.jpg@).  When transformation (b)
+-- is done, a @basename@ attribute is added to the image with the
+-- original name. (This may be needed if we have to seek the image in the
+-- resource path.)
+adjustImagePaths :: FilePath -> T.Text -> Inlines -> Inlines
+adjustImagePaths directory defaultExt = fmap go
+ where
+   go :: Inline -> Inline
+   go (Image (ident,classes,kvs) alt (src,tit)) =
+     let attr' = (ident, classes,
+                    if null directory || directory == "."
+                       then kvs
+                       else ("basename", src):kvs)
+         src' = if null directory || directory == "."
+                   then T.unpack src
+                   else directory </> T.unpack src
+         src'' = case takeExtension src' of
+                   "" -> T.pack $ addExtension src' (T.unpack defaultExt)
+                   _  -> T.pack src'
+      in Image attr' alt (src'',tit)
+   go x = x
 
 --
 -- TagSoup HTML handling

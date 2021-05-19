@@ -29,7 +29,7 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.ByteString.Lazy as BL
-import System.FilePath (addExtension, takeExtension, takeDirectory, (</>))
+import System.FilePath (takeDirectory)
 import Text.HTML.TagSoup hiding (Row)
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
@@ -1917,18 +1917,8 @@ image = try $ do
   (lab,raw) <- reference
   loc <- takeDirectory . sourceName <$> getPosition
   defaultExt <- getOption readerDefaultImageExtension
-  let constructor (ident, classes, kvs) src =
-        let attr' = (ident, classes,
-                       if loc == "."
-                          then kvs
-                          else ("basename", src):kvs)
-            src' = if loc == "."
-                      then T.unpack src
-                      else loc </> T.unpack src
-         in case takeExtension src' of
-              "" -> B.imageWith attr' (T.pack $ addExtension src'
-                                                (T.unpack defaultExt))
-              _  -> B.imageWith attr' (T.pack src')
+  let constructor attr src tit = adjustImagePaths loc defaultExt
+                                 . B.imageWith attr src tit
   regLink constructor lab <|> referenceLink constructor (lab,raw)
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
