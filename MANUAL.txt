@@ -4976,9 +4976,9 @@ In a footnote style, it might render as
 See the [CSL user documentation] for more information about CSL
 styles and how they affect rendering.
 
-If a citation key do not start with a letter, digit, or `_`,
-and contain only alphanumerics and internal punctuation
-characters (`:.#$%&-+?<>~/`), the key must be surrounded
+Unless a citation key start with a letter, digit, or `_`,
+and contains only alphanumerics and internal punctuation
+characters (`:.#$%&-+?<>~/`), it must be surrounded
 by curly braces, which are not considered part of the key.
 In `@Foo_bar.baz.`, the key is `Foo_bar.baz`. The final
 period is not *internal* punctuation, so it is not included in
@@ -5022,7 +5022,7 @@ author is already mentioned in the text:
     Smith says blah [-@smith04].
 
 You can also write an author-in-text citation, by omitting the
-brackets, as follows:
+square brackets:
 
     @smith04 says blah.
 
@@ -5038,7 +5038,7 @@ an explicit note.  If you do write an explicit note that
 contains a citation, note that normal citations will be put in
 parentheses, while author-in-text citations will not.  For
 this reason, it is sometimes preferable to use the
-author-in-text style inside notes, when using a note style.
+author-in-text style inside notes when using a note style.
 
 [CSL user documentation]: https://citationstyles.org/authors/
 [CSL]: https://docs.citationstyles.org/en/stable/specification.html
