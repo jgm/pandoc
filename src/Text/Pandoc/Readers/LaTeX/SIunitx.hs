@@ -45,7 +45,9 @@ doSI tok = do
                       unit]
 
 doSInum :: PandocMonad m => LP m Inlines
-doSInum = skipopts *> (tonum . untokenize <$> braced)
+doSInum = skipopts *> (tonum . untokenize . map convertPM <$> braced)
+  where convertPM (Tok pos (CtrlSeq "pm") _) = Tok pos Word "\xb1\xa0"
+        convertPM t = t
 
 tonum :: Text -> Inlines
 tonum value =
