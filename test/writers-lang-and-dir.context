@@ -15,6 +15,7 @@
 
 % use microtypography
 \definefontfeature[default][default][script=latn, protrusion=quality, expansion=quality, itlc=yes, textitalics=yes, onum=yes, pnum=yes]
+\definefontfeature[default:tnum][default][tnum=yes, pnum=no]
 \definefontfeature[smallcaps][script=latn, protrusion=quality, expansion=quality, smcp=yes, onum=yes, pnum=yes]
 \setupalign[hz,hanging]
 \setupitaliccorrection[global, always]
@@ -45,6 +46,9 @@
 
 \setupitemize[autointro]    % prevent orphan list intro
 \setupitemize[indentnext=no]
+
+\defineitemgroup[enumerate]
+\setupenumerate[each][fit][itemalign=left,distance=.5em,style={\feature[+][default:tnum]}]
 
 \setupfloat[figure][default={here,nonumber}]
 \setupfloat[table][default={here,nonumber}]

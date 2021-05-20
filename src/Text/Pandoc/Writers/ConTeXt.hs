@@ -16,7 +16,6 @@ module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Control.Monad.State.Strict
 import Data.Char (ord, isDigit)
 import Data.List (intersperse)
-import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -233,14 +232,7 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
                         Period       -> "stopper=."
                         OneParen     -> "stopper=)"
                         TwoParens    -> "left=(,stopper=)"
-    let width = maybe 0 maximum $ nonEmpty $ map T.length $
-                  take (length contents)
-                       (orderedListMarkers (start, style', delim))
-    let width' = (toEnum width + 1) / 2
-    let width'' = if width' > (1.5 :: Double)
-                     then "width=" <> tshow width' <> "em"
-                     else ""
-    let specs2Items = filter (not . T.null) [start', delim', width'']
+    let specs2Items = filter (not . T.null) [start', delim']
     let specs2 = if null specs2Items
                     then ""
                     else "[" <> T.intercalate "," specs2Items <> "]"
@@ -254,8 +246,8 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
                           UpperAlpha   -> 'A') :
                        if isTightList lst then ",packed]" else "]"
     let specs = T.pack style'' <> specs2
-    return $ "\\startitemize" <> literal specs $$ vcat contents $$
-             "\\stopitemize" <> blankline
+    return $ "\\startenumerate" <> literal specs $$ vcat contents $$
+             "\\stopenumerate" <> blankline
 blockToConTeXt (DefinitionList lst) =
   liftM vcat $ mapM defListItemToConTeXt lst
 blockToConTeXt HorizontalRule = return $ "\\thinrule" <> blankline
