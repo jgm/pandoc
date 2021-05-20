@@ -1682,23 +1682,29 @@ strikeout = fmap B.strikeout <$>
 
 superscript :: PandocMonad m => MarkdownParser m (F Inlines)
 superscript = do
-  guardEnabled Ext_superscript
   fmap B.superscript <$> try (do
     char '^'
-    mconcat <$> many1Till (do notFollowedBy spaceChar
-                              notFollowedBy newline
-                              inline) ((char '^') <|> (do guardEnabled Ext_mmd_short_superscript
-                                                          lookAhead spaceChar)))
+    mconcat <$> (try regularSuperscript <|> try mmdShortSuperscript))
+      where regularSuperscript = many1Till (do guardEnabled Ext_superscript
+                                               notFollowedBy spaceChar
+                                               notFollowedBy newline
+                                               inline) (char '^')
+            mmdShortSuperscript = do guardEnabled Ext_short_subsuperscripts
+                                     result <- take1WhileP isAlphaNum
+                                     return $ return $ return $ B.str result
 
 subscript :: PandocMonad m => MarkdownParser m (F Inlines)
 subscript = do
-  guardEnabled Ext_subscript
   fmap B.subscript <$> try (do
     char '~'
-    mconcat <$> many1Till (do notFollowedBy spaceChar
-                              notFollowedBy newline
-                              inline) ((char '~') <|> (do guardEnabled Ext_mmd_short_subscript
-                                                          lookAhead spaceChar)))
+    mconcat <$> (try regularSubscript <|> mmdShortSubscript))
+      where regularSubscript = many1Till (do guardEnabled Ext_subscript
+                                             notFollowedBy spaceChar
+                                             notFollowedBy newline
+                                             inline) (char '~')
+            mmdShortSubscript = do guardEnabled Ext_short_subsuperscripts
+                                   result <- take1WhileP isAlphaNum
+                                   return $ return $ return $ B.str result
 
 whitespace :: PandocMonad m => MarkdownParser m (F Inlines)
 whitespace = spaceChar >> return <$> (lb <|> regsp) <?> "whitespace"

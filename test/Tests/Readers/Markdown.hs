@@ -371,12 +371,42 @@ tests = [ testGroup "inline code"
           , test markdownMMD "normal superscript"
             ("x^3^"
             =?> para ("x" <> superscript "3"))
-          , test markdownMMD "short subscript"
+          , test markdownMMD "short subscript delimeted by space"
             ("O~2 is dangerous"
             =?> para ("O" <> subscript "2" <> space <> "is dangerous"))
-          , test markdownMMD "short superscript"
-            ("y^7 = x"
-            =?> para ("y" <> superscript "7" <> space <> "= x"))
+          , test markdownMMD "short subscript delimeted by newline"
+            ("O~2\n"
+            =?> para ("O" <> subscript "2"))
+          , test markdownMMD "short subscript delimeted by EOF"
+            ("O~2"
+            =?> para ("O" <> subscript "2"))
+          , test markdownMMD "short subscript delimited by punctuation"
+            ("O~2."
+            =?> para ("O" <> subscript "2" <> "."))
+          , test markdownMMD "short subscript delimited by emph"
+            ("O~2*combustible!*"
+            =?> para ("O" <> subscript "2" <> emph "combustible!"))
+          , test markdownMMD "no nesting in short subscripts"
+            ("y~*2*"
+            =?> para ("y~" <> emph "2"))
+          , test markdownMMD "short superscript delimeted by space"
+            ("x^2 = y"
+            =?> para ("x" <> superscript "2" <> space <> "= y"))
+          , test markdownMMD "short superscript delimeted by newline"
+            ("x^2\n"
+            =?> para ("x" <> superscript "2"))
+          , test markdownMMD "short superscript delimeted by ExF"
+            ("x^2"
+            =?> para ("x" <> superscript "2"))
+          , test markdownMMD "short superscript delimited by punctuation"
+            ("x^2."
+            =?> para ("x" <> superscript "2" <> "."))
+          , test markdownMMD "short superscript delimited by emph"
+            ("x^2*combustible!*"
+            =?> para ("x" <> superscript "2" <> emph "combustible!"))
+          , test markdownMMD "no nesting in short superscripts"
+            ("y^*2*"
+            =?> para ("y^" <> emph "2"))
           ]
         , testGroup "footnotes"
           [ "indent followed by newline and flush-left text" =:

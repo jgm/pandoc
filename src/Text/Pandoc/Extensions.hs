@@ -124,8 +124,7 @@ data Extension =
     | Ext_mmd_header_identifiers -- ^ Multimarkdown style header identifiers [myid]
     | Ext_mmd_link_attributes     -- ^ MMD style reference link attributes
     | Ext_mmd_title_block     -- ^ Multimarkdown metadata block
-    | Ext_mmd_short_subscript     -- ^ MMD style space delimited subscripts, eg. 'v~i '
-    | Ext_mmd_short_superscript     -- ^ MMD style space delimeted uperscripts, eg. 'x^2 '
+    | Ext_short_subsuperscripts -- ^ sub-&superscripts w/o closing char (v~i)
     | Ext_multiline_tables    -- ^ Pandoc-style multiline tables
     | Ext_native_divs             -- ^ Use Div blocks for contents of <div> tags
     | Ext_native_spans            -- ^ Use Span inlines for contents of <span>
@@ -286,8 +285,7 @@ multimarkdownExtensions = extensionsFromList
   , Ext_auto_identifiers
   , Ext_mmd_header_identifiers
   , Ext_implicit_figures
-  , Ext_mmd_short_subscript
-  , Ext_mmd_short_superscript
+  , Ext_short_subsuperscripts
   , Ext_subscript
   , Ext_superscript
   , Ext_backtick_code_blocks
@@ -460,8 +458,7 @@ getAllExtensions f = universalExtensions <> getAll f
        , Ext_gutenberg
        , Ext_smart
        , Ext_literate_haskell
-       , Ext_mmd_short_subscript
-       , Ext_mmd_short_superscript
+       , Ext_short_subsuperscripts
        ]
   getAll "markdown_strict"   = allMarkdownExtensions
   getAll "markdown_phpextra" = allMarkdownExtensions
