@@ -83,8 +83,11 @@ parseNumPart =
     parseExp, parseSpace :: Parser Text () Inlines
   parseDecimalNum = try $ do
     pref <- option mempty $ (mempty <$ char '+') <|> ("\x2212" <$ char '-')
-    basenum <- (pref <>) . T.pack
-                <$> many1 (satisfy (\c -> isDigit c || c == '.'))
+    basenum' <- many1 (satisfy (\c -> isDigit c || c == '.'))
+    let basenum = pref <> T.pack
+                    (case basenum' of
+                      '.':_ -> '0':basenum'
+                      _ -> basenum')
     uncertainty <- option mempty $ T.pack <$> parseParens
     if T.null uncertainty
        then return $ str basenum
