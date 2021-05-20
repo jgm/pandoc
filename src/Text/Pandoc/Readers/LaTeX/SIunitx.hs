@@ -45,9 +45,7 @@ doSI tok = do
                       unit]
 
 doSInum :: PandocMonad m => LP m Inlines
-doSInum = skipopts *> (tonum . untokenize . map convertPM <$> braced)
-  where convertPM (Tok pos (CtrlSeq "pm") _) = Tok pos Word "\xb1\xa0"
-        convertPM t = t
+doSInum = skipopts *> (tonum . untokenize <$> braced)
 
 tonum :: Text -> Inlines
 tonum value =
@@ -74,12 +72,16 @@ parseNumPart =
   parseDecimalNum <|>
   parseComma <|>
   parsePlusMinus <|>
+  parsePM <|>
   parseI <|>
   parseExp <|>
   parseX <|>
   parseSpace
  where
-  parseDecimalNum = do
+  parseDecimalNum, parsePlusMinus, parsePM,
+    parseComma, parseI, parseX,
+    parseExp, parseSpace :: Parser Text () Inlines
+  parseDecimalNum = try $ do
     pref <- option mempty $ (mempty <$ char '+') <|> ("\x2212" <$ char '-')
     basenum <- (pref <>) . T.pack
                 <$> many1 (satisfy (\c -> isDigit c || c == '.'))
@@ -100,6 +102,7 @@ parseNumPart =
                                                | otherwise -> "." <> t
   parseComma = str "." <$ char ','
   parsePlusMinus = str "\xa0\xb1\xa0" <$ try (string "+-")
+  parsePM = str "\xa0\xb1\xa0" <$ try (string "\\pm")
   parseParens =
     char '(' *> many1 (satisfy (\c -> isDigit c || c == '.')) <* char ')'
   parseI = str "i" <$ char 'i'
