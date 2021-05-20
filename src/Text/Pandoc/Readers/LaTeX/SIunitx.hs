@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Pandoc.Readers.LaTeX.SIunitx
   ( siunitxCommands )
@@ -154,40 +155,55 @@ doSIrange includeUnits tok = do
 emptyOr160 :: Inlines -> Inlines
 emptyOr160 x = if x == mempty then x else str "\160"
 
-siUnit :: PandocMonad m => LP m Inlines -> LP m Inlines
-siUnit tok = try (do
-  Tok _ (CtrlSeq name) _ <- anyControlSeq
-  case name of
-    "square" -> do
-       unit <- siUnit tok
-       return $ unit <> superscript "2"
-    "cubic" -> do
-       unit <- siUnit tok
-       return $ unit <> superscript "3"
-    "raisetothe" -> do
-       n <- tok
-       unit <- siUnit tok
-       return $ unit <> superscript n
-    _ ->
-       case M.lookup name siUnitMap of
-            Just il ->
-              option il $
-                choice
-                 [ (il <> superscript "2") <$ controlSeq "squared"
-                 , (il <> superscript "3") <$ controlSeq "cubed"
-                 , (\n -> il <> superscript n) <$> (controlSeq "tothe" *> tok)
-                 ]
-            Nothing -> fail "not an siunit unit command")
- <|> (lookAhead anyControlSeq >> tok)
- <|> (do Tok _ Word t <- satisfyTok isWordTok
-         return $ str t)
- <|> (symbol '^' *> (superscript <$> tok))
- <|> (symbol '_' *> (subscript <$> tok))
- <|> ("\xa0" <$ symbol '.')
- <|> ("\xa0" <$ symbol '~')
- <|> tok
- <|> (do Tok _ _ t <- anyTok
-         return (str t))
+siUnit :: forall m. PandocMonad m => LP m Inlines -> LP m Inlines
+siUnit tok = mconcat <$> many1 siUnitPart
+ where
+  siUnitPart :: LP m Inlines
+  siUnitPart =
+        (siPrefix <*> siUnitPart)
+    <|> (do u <- siBase <|> tok
+            option u $ siSuffix <*> pure u)
+  siPrefix :: LP m (Inlines -> Inlines)
+  siPrefix =
+       (do _ <- controlSeq "per"
+           skipopts -- TODO handle option
+           return (str "/" <>))
+   <|> (do _ <- controlSeq "square"
+           skipopts
+           return (<> superscript "2"))
+   <|> (do _ <- controlSeq "cubic"
+           skipopts
+           return (<> superscript "3"))
+   <|> (do _ <- controlSeq "raisetothe"
+           skipopts
+           n <- tok
+           return (<> superscript n))
+  siSuffix :: LP m (Inlines -> Inlines)
+  siSuffix =
+       (do _ <- controlSeq "squared"
+           skipopts
+           return (<> superscript "2"))
+   <|> (do _ <- controlSeq "cubed"
+           skipopts
+           return (<> superscript "3"))
+   <|> (do _ <- controlSeq "tothe"
+           skipopts
+           n <- tok
+           return (<> superscript n))
+  siBase :: LP m Inlines
+  siBase = mconcat <$> many1
+    ((try
+       (do Tok _ (CtrlSeq name) _ <- anyControlSeq
+           case M.lookup name siUnitMap of
+              Just il -> pure il
+              Nothing -> fail "not a unit command"))
+    <|> (do Tok _ Word t <- satisfyTok isWordTok
+            return $ str t)
+    <|> (symbol '^' *> (superscript <$> tok))
+    <|> (symbol '_' *> (subscript <$> tok))
+    <|> (str "\xa0" <$ symbol '.')
+    <|> (str "\xa0" <$ symbol '~')
+     )
 
 siUnitMap :: M.Map Text Inlines
 siUnitMap = M.fromList
@@ -347,7 +363,6 @@ siUnitMap = M.fromList
   , ("Pa", str "Pa")
   , ("pascal", str "Pa")
   , ("percent", str "%")
-  , ("per", str "/")
   , ("peta", str "P")
   , ("pico", str "p")
   , ("planckbar", emph (str "\x210f"))
