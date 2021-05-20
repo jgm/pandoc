@@ -806,7 +806,8 @@ withRaw parser = do
 
 keyval :: PandocMonad m => LP m (Text, Text)
 keyval = try $ do
-  Tok _ Word key <- satisfyTok isWordTok
+  key <- untokenize <$> many1 (notFollowedBy (symbol '=') >>
+                         (symbol '-' <|> symbol '_' <|> satisfyTok isWordTok))
   sp
   val <- option mempty $ do
            symbol '='
