@@ -17,6 +17,7 @@
 
 % use microtypography
 \definefontfeature[default][default][script=latn, protrusion=quality, expansion=quality, itlc=yes, textitalics=yes, onum=yes, pnum=yes]
+\definefontfeature[default:tnum][default][tnum=yes, pnum=no]
 \definefontfeature[smallcaps][script=latn, protrusion=quality, expansion=quality, smcp=yes, onum=yes, pnum=yes]
 \setupalign[hz,hanging]
 \setupitaliccorrection[global, always]
@@ -47,6 +48,9 @@
 
 \setupitemize[autointro]    % prevent orphan list intro
 \setupitemize[indentnext=no]
+
+\defineitemgroup[enumerate]
+\setupenumerate[each][fit][itemalign=left,distance=.5em,style={\feature[+][default:tnum]}]
 
 \setupfloat[figure][default={here,nonumber}]
 \setupfloat[table][default={here,nonumber}]
@@ -133,12 +137,12 @@ sub status {
 
 A list:
 
-\startitemize[n,packed][stopper=.]
+\startenumerate[n,packed][stopper=.]
 \item
   item one
 \item
   item two
-\stopitemize
+\stopenumerate
 
 Nested block quotes:
 
@@ -255,51 +259,51 @@ Minuses loose:
 
 Tight:
 
-\startitemize[n,packed][stopper=.]
+\startenumerate[n,packed][stopper=.]
 \item
   First
 \item
   Second
 \item
   Third
-\stopitemize
+\stopenumerate
 
 and:
 
-\startitemize[n,packed][stopper=.]
+\startenumerate[n,packed][stopper=.]
 \item
   One
 \item
   Two
 \item
   Three
-\stopitemize
+\stopenumerate
 
 Loose using tabs:
 
-\startitemize[n][stopper=.]
+\startenumerate[n][stopper=.]
 \item
   First
 \item
   Second
 \item
   Third
-\stopitemize
+\stopenumerate
 
 and using spaces:
 
-\startitemize[n][stopper=.]
+\startenumerate[n][stopper=.]
 \item
   One
 \item
   Two
 \item
   Three
-\stopitemize
+\stopenumerate
 
 Multiple paragraphs:
 
-\startitemize[n][stopper=.]
+\startenumerate[n][stopper=.]
 \item
   Item 1, graf one.
 
@@ -308,7 +312,7 @@ Multiple paragraphs:
   Item 2.
 \item
   Item 3.
-\stopitemize
+\stopenumerate
 
 \subsection[title={Nested},reference={nested}]
 
@@ -327,7 +331,7 @@ Multiple paragraphs:
 
 Here's another:
 
-\startitemize[n,packed][stopper=.]
+\startenumerate[n,packed][stopper=.]
 \item
   First
 \item
@@ -342,11 +346,11 @@ Here's another:
   \stopitemize
 \item
   Third
-\stopitemize
+\stopenumerate
 
 Same thing but with paragraphs:
 
-\startitemize[n][stopper=.]
+\startenumerate[n][stopper=.]
 \item
   First
 \item
@@ -362,7 +366,7 @@ Same thing but with paragraphs:
   \stopitemize
 \item
   Third
-\stopitemize
+\stopenumerate
 
 \subsection[title={Tabs and spaces},reference={tabs-and-spaces}]
 
@@ -382,7 +386,7 @@ Same thing but with paragraphs:
 
 \subsection[title={Fancy list markers},reference={fancy-list-markers}]
 
-\startitemize[n][start=2,left=(,stopper=),width=2.0em]
+\startenumerate[n][start=2,left=(,stopper=)]
 \item
   begins with 2
 \item
@@ -390,51 +394,51 @@ Same thing but with paragraphs:
 
   with a continuation
 
-  \startitemize[r,packed][start=4,stopper=.,width=2.0em]
+  \startenumerate[r,packed][start=4,stopper=.]
   \item
     sublist with roman numerals, starting with 4
   \item
     more items
-    \startitemize[A,packed][left=(,stopper=),width=2.0em]
+    \startenumerate[A,packed][left=(,stopper=)]
     \item
       a subsublist
     \item
       a subsublist
-    \stopitemize
-  \stopitemize
-\stopitemize
+    \stopenumerate
+  \stopenumerate
+\stopenumerate
 
 Nesting:
 
-\startitemize[A,packed][stopper=.]
+\startenumerate[A,packed][stopper=.]
 \item
   Upper Alpha
-  \startitemize[R,packed][stopper=.]
+  \startenumerate[R,packed][stopper=.]
   \item
     Upper Roman.
-    \startitemize[n,packed][start=6,left=(,stopper=),width=2.0em]
+    \startenumerate[n,packed][start=6,left=(,stopper=)]
     \item
       Decimal start with 6
-      \startitemize[a,packed][start=3,stopper=)]
+      \startenumerate[a,packed][start=3,stopper=)]
       \item
         Lower alpha with paren
-      \stopitemize
-    \stopitemize
-  \stopitemize
-\stopitemize
+      \stopenumerate
+    \stopenumerate
+  \stopenumerate
+\stopenumerate
 
 Autonumbering:
 
-\startitemize[n,packed]
+\startenumerate[n,packed]
 \item
   Autonumber.
 \item
   More.
-  \startitemize[a,packed]
+  \startenumerate[a,packed]
   \item
     Nested.
-  \stopitemize
-\stopitemize
+  \stopenumerate
+\stopenumerate
 
 Should not be a list item:
 
@@ -547,12 +551,12 @@ Blank line after term, indented marker, alternate markers:
 \startdescription{orange}
   orange fruit
 
-  \startitemize[n,packed][stopper=.]
+  \startenumerate[n,packed][stopper=.]
   \item
     sublist
   \item
     sublist
-  \stopitemize
+  \stopenumerate
 \stopdescription
 
 \section[title={HTML Blocks},reference={html-blocks}]
@@ -897,10 +901,10 @@ note{]} Here is an inline note.\footnote{This is {\em easier} to type. Inline
 Notes can go in quotes.\footnote{In quote.}
 \stopblockquote
 
-\startitemize[n,packed][stopper=.]
+\startenumerate[n,packed][stopper=.]
 \item
   And in list items.\footnote{In list.}
-\stopitemize
+\stopenumerate
 
 This paragraph should not be part of the note, as it is not indented.
 
