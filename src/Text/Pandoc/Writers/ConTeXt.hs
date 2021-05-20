@@ -16,7 +16,6 @@ module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Control.Monad.State.Strict
 import Data.Char (ord, isDigit)
 import Data.List (intersperse)
-import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
