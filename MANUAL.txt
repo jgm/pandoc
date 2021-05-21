@@ -6291,7 +6291,7 @@ Then edit `my.theme` and use it like this:
 If you are not satisfied with the built-in highlighting, or you
 want highlight a language that isn't supported, you can use the
 `--syntax-definition` option to load a [KDE-style XML syntax definition
-file](https://docs.kde.org/stable5/en/applications/katepart/highlight.html).
+file](https://docs.kde.org/stable5/en/kate/katepart/highlight.html).
 Before writing your own, have a look at KDE's [repository of syntax
 definitions](https://github.com/KDE/syntax-highlighting/tree/master/data/syntax).
 
