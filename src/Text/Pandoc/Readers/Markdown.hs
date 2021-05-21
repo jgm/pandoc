@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE FlexibleContexts    #-}
@@ -1819,30 +1820,47 @@ bracketedSpan = do
   try $ do
     (lab,_) <- reference
     attr <- attributes
-    return $ if isSmallCaps attr
-                then B.smallcaps <$> lab
-                else if isUnderline attr
-                        then B.underline <$> lab
-                        else B.spanWith attr <$> lab
+    return $ case smallCapsAttr attr of
+      Just ("", [], []) -> B.smallcaps <$> lab
+      Just scAttr       -> B.spanWith scAttr . B.smallcaps <$> lab
+      Nothing           -> case underlineAttr attr of
+        Just ("", [], []) -> B.underline <$> lab
+        Just ulAttr       -> B.spanWith ulAttr . B.underline <$> lab
+        Nothing           -> B.spanWith attr <$> lab
 
--- | We treat a span as SmallCaps if class is "smallcaps" (and
--- no other attributes are set or if style is "font-variant:small-caps"
--- (and no other attributes are set).
+-- | Returns @Nothing@ if the given attr is not for SmallCaps, and the
+-- modified attributes, with the special class or attribute removed if
+-- it does mark a smallcaps span.
+smallCapsAttr :: Attr -> Maybe Attr
+smallCapsAttr (ident, cls, kvs)= case cls of
+  "smallcaps":cls' -> Just (ident, cls', kvs)
+  _ -> case lookup "style" kvs of
+         Just s | isSmallCapsFontVariant s ->
+                  Just (ident, cls, [(k, v) | (k, v) <- kvs, k /= "style"])
+         _ -> Nothing
+ where
+   isSmallCapsFontVariant s =
+     T.toLower (T.filter (`notElem` [' ', '\t', ';']) s) ==
+     "font-variant:small-caps"
+
+-- | We treat a span as SmallCaps if the first class is "smallcaps" or
+-- if style is "font-variant:small-caps".
 isSmallCaps :: Attr -> Bool
-isSmallCaps ("",["smallcaps"],[]) = True
-isSmallCaps ("",[],kvs) =
-  case lookup "style" kvs of
-       Just s -> T.toLower (T.filter (`notElem` [' ', '\t', ';']) s) ==
-                    "font-variant:small-caps"
-       Nothing -> False
-isSmallCaps _ = False
+isSmallCaps = isJust . smallCapsAttr
+
+-- | Returns @Nothing@ if the given attr is not for underline, and the
+-- modified attributes, with the special "underline" class removed, if
+-- it marks an underline span.
+underlineAttr :: Attr -> Maybe Attr
+underlineAttr = \case
+  (ident, "ul":cls, kvs)        -> Just (ident, cls, kvs)
+  (ident, "underline":cls, kvs) -> Just (ident, cls, kvs)
+  _                             -> Nothing
 
 -- | We treat a span as Underline if class is "ul" or
 -- "underline" (and no other attributes are set).
 isUnderline :: Attr -> Bool
-isUnderline ("",["ul"],[]) = True
-isUnderline ("",["underline"],[]) = True
-isUnderline _ = False
+isUnderline = isJust . underlineAttr
 
 regLink :: PandocMonad m
         => (Attr -> Text -> Text -> Inlines -> Inlines)
