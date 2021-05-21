@@ -143,6 +143,7 @@ Multiline table with caption:
 .PP
 Here\[cq]s the caption. It may span multiple lines.
 .na
+.nr LLold \n[LL]
 .TS
 delim(@@) tab(	);
 cw(10.5n) lw(9.6n) rw(11.4n) lw(24.5n).
@@ -157,30 +158,40 @@ Default aligned
 T}
 _
 T{
+.nr LL 10.5n
 First
 T}	T{
+.nr LL 9.6n
 row
 T}	T{
+.nr LL 11.4n
 12.0
 T}	T{
+.nr LL 24.5n
 Example of a row that spans multiple lines.
 T}
 T{
+.nr LL 10.5n
 Second
 T}	T{
+.nr LL 9.6n
 row
 T}	T{
+.nr LL 11.4n
 5.0
 T}	T{
+.nr LL 24.5n
 Here\[cq]s another one.
 Note the blank line between rows.
 T}
 .TE
+.nr LL \n[LLold]
 .ad
 .LP
 Multiline table without caption:
 .PP
 .na
+.nr LLold \n[LL]
 .TS
 delim(@@) tab(	);
 cw(10.5n) lw(9.6n) rw(11.4n) lw(24.5n).
@@ -195,25 +206,34 @@ Default aligned
 T}
 _
 T{
+.nr LL 10.5n
 First
 T}	T{
+.nr LL 9.6n
 row
 T}	T{
+.nr LL 11.4n
 12.0
 T}	T{
+.nr LL 24.5n
 Example of a row that spans multiple lines.
 T}
 T{
+.nr LL 10.5n
 Second
 T}	T{
+.nr LL 9.6n
 row
 T}	T{
+.nr LL 11.4n
 5.0
 T}	T{
+.nr LL 24.5n
 Here\[cq]s another one.
 Note the blank line between rows.
 T}
 .TE
+.nr LL \n[LLold]
 .ad
 .LP
 Table without column headers:
@@ -255,27 +275,37 @@ T}
 Multiline table without column headers:
 .PP
 .na
+.nr LLold \n[LL]
 .TS
 delim(@@) tab(	);
 cw(10.5n) lw(9.6n) rw(11.4n) lw(24.5n).
 T{
+.nr LL 10.5n
 First
 T}	T{
+.nr LL 9.6n
 row
 T}	T{
+.nr LL 11.4n
 12.0
 T}	T{
+.nr LL 24.5n
 Example of a row that spans multiple lines.
 T}
 T{
+.nr LL 10.5n
 Second
 T}	T{
+.nr LL 9.6n
 row
 T}	T{
+.nr LL 11.4n
 5.0
 T}	T{
+.nr LL 24.5n
 Here\[cq]s another one.
 Note the blank line between rows.
 T}
 .TE
+.nr LL \n[LLold]
 .ad
