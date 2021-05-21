@@ -9,17 +9,11 @@ packages:
 extra-deps:
 - hslua-1.3.0
 - hslua-module-path-0.1.0
-- jira-wiki-markup-1.3.4
-- skylighting-core-0.10.5.1
-- skylighting-0.10.5.1
-- doclayout-0.3.0.2
 - random-1.2.0
-- xml-conduit-1.9.1.1
 - unicode-collation-0.1.3
-- texmath-0.12.3
 - citeproc-0.4
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-17.5
+resolver: lts-17.12
 nix:
   packages: [zlib]
