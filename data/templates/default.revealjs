@@ -124,17 +124,17 @@ $if(showSlideNumber)$
         // 'all', 'print', or 'speaker'
         showSlideNumber: '$showSlideNumber$',
 $endif$
-$if(hash)$
         // Add the current slide number to the URL hash so that reloading the
         // page/copying the URL will return you to the same slide
-        hash: $hash$,
-$endif$
+        hash: $if(hash)$$hash$$else$true$endif$,
 $if(hashOneBasedIndex)$
         // Start with 1 for the hash rather than 0
         hashOneBasedIndex: $hashOneBasedIndex$,
 $endif$
+$if(history)$
         // Push each slide change to the browser history
-        history: $if(history)$$history$$else$true$endif$,
+        history: $history$,
+$endif$
 $if(keyboard)$
         // Enable keyboard shortcuts for navigation
         keyboard: $keyboard$,
