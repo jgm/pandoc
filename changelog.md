@@ -72,6 +72,17 @@
 
   * Docx reader: Add handling of vml image objects (#7257, mbrackeantidot).
 
+  * LaTeX reader:
+
+    + Improved siunitx support (#6658, #6620).
+    + Better support for `\xspace` (#7299).
+
+  * ConTeXt writer: improve ordered lists (#5016, Denis Maier).
+    Change ordered list from itemize to enumerate.  Add new
+    itemgroup for ordered lists.  Remove manual insertion of
+    width attributes.  Use tabular figures in ordered list
+    enumerators.
+
   * HTML reader:
 
     + Don't fail on unmatched closing "script" tag (Albert Krenkel, #7282).
@@ -86,6 +97,8 @@
 
     + Fix mathml regression caused by the switch in XML libraries (#7173).
     + Fix "phrase" in DocBook: take classes from "role" not "class" (#7195).
+
+  * DocBook reader: ensure that first and last names are separated (#6541).
 
   * Plain writer: handle superscript unicode minus (#7276).
 
@@ -102,12 +115,17 @@
       a thin space to improve readability and to prevent unwanted ligatures.
       Detection of these quotes sometimes had failed if the second quote
       was nested in a span element.
+    + Separate successive quote chars with thin space (#6958, Albert
+      Krewinkel).
 
   * EPUB Writer: Fix belongs-to-collection XML id choice (#7267, nuew).
     The epub writer previously used the same XML id for both the book
     identifier and the epub collection. This causes an error on epubcheck.
 
   * BibTeX/BibLaTeX writer: Handle `annote` field (#7266).
+
+  * ZimWiki writer: allow links and emphasis in headers (#6605,
+    Albert Krewinkel).
 
   * ConTeXt writer:
 
@@ -186,6 +204,9 @@
     + Remove `rsid`s from default settings.xml.  Word will add these
       when revisions are made.
 
+  * Ms writer: Handle tables with multiple paragraphs (#7288).
+    Previously they overflowed the table cell width.  We now set line lengths
+    per-cell and restore them after the table has been written.
 
   * Markdown writer:
 
@@ -236,13 +257,23 @@
   * ConTeXt template: List of figures before list of tables (#7235,
     Julien Dutant).
 
-  * reveal.js template: Support `toc-title` (#7171, Florian Kohrt).
+  * reveal.js template:
+
+    + Support `toc-title` (#7171, Florian Kohrt).
+    + Use `hash: true` by default rather than `history: true` (#6968).
 
   * HTML-based slide shows: add support for `institute` (#7289, Thomas
     Hodgson).
 
   * Text.Pandoc.XML.Light: add Eq, Ord instances for Content,
     Element, Attr, CDataKind [API change].
+
+  * Text.Pandoc.MediaBag: change type to use a Text key instead of
+    `[FilePath]`.  We normalize the path and use `/` separators for
+    consistency.
+
+  * Text.Pandoc.Class.PandocMonad: Use `fetchItem` instead of `downloadOrRead`
+    in `fetchMediaResource`.
 
   * Text.Pandoc.Asciify: simplify code and export `toAsciiText` [API change].
     Instead of encoding a giant (and incomplete) map, we now
@@ -307,6 +338,7 @@
     + Add info about YAML escape sequences, link to spec (#7152,
       Albert Krewinkel).
     + Note that `institute` variable works for HTML-based slides.
+    + Update documentation on citation syntax.
 
   * Updated and fixed typos in documentation (Charanjit Singh,
     Anti-Distinctlyminty, Tatiana Porras, obcat).
