@@ -600,16 +600,24 @@ addMetadataFromElement e = do
          Nothing -> return ()
          Just z  -> addMetaField "author" z
     addMetaField "subtitle" e
-    addMetaField "author" e
+    addAuthor e
     addMetaField "date" e
     addMetaField "release" e
     addMetaField "releaseinfo" e
     return mempty
-  where addMetaField fieldname elt =
-            case filterChildren (named fieldname) elt of
-                   []  -> return ()
-                   [z] -> getInlines z >>= addMeta fieldname
-                   zs  -> mapM getInlines zs >>= addMeta fieldname
+  where
+   addAuthor elt =
+     case filterChildren (named "author") elt of
+       [] -> return ()
+       [z] -> fromAuthor z >>= addMeta "author"
+       zs  -> mapM fromAuthor zs >>= addMeta "author"
+   fromAuthor elt =
+     mconcat . intersperse space <$> mapM getInlines (elChildren elt)
+   addMetaField fieldname elt =
+     case filterChildren (named fieldname) elt of
+       []  -> return ()
+       [z] -> getInlines z >>= addMeta fieldname
+       zs  -> mapM getInlines zs >>= addMeta fieldname
 
 addMeta :: PandocMonad m => ToMetaValue a => Text -> a -> DB m ()
 addMeta field val = modify (setMeta field val)
