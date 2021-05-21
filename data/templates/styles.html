@@ -196,10 +196,12 @@ $if(document-css)$
   tbody, th {
     border-color: #d3d3d3;
   }
+$if(invert-highlighting-css-in-dark-mode)$
   div.sourceCode {
     filter: invert(1);
     color: initial;
   }
+$endif$
 }
 $endif$
 
