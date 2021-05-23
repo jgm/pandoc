@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Readers.HTML.Table
    Copyright   : © 2006-2021 John MacFarlane,
@@ -41,15 +42,18 @@ pCol = try $ do
   skipMany pBlank
   optional $ pSatisfy (matchTagClose "col")
   skipMany pBlank
-  let toColWidth = maybe ColWidthDefault (ColWidth . (/100.0)) . safeRead
-  return $ fromMaybe ColWidthDefault $
-    (case lookup "width" attribs >>= T.unsnoc of
-       Just (xs, '%') -> Just (toColWidth xs)
-       _ -> Nothing) <|>
-    (case lookup "style" attribs >>= T.stripPrefix "width" of
-        Just xs | T.any (== '%') xs -> Just . toColWidth $
-                  T.filter (`notElem` (" \t\r\n%'\";" :: [Char])) xs
-        _ -> Nothing)
+  let width = case lookup "width" attribs of
+                Nothing -> case lookup "style" attribs of
+                  Just (T.stripPrefix "width:" -> Just xs) | T.any (== '%') xs ->
+                    fromMaybe 0.0 $ safeRead (T.filter
+                      (`notElem` (" \t\r\n%'\";" :: [Char])) xs)
+                  _ -> 0.0
+                Just (T.unsnoc -> Just (xs, '%')) ->
+                  fromMaybe 0.0 $ safeRead xs
+                _ -> 0.0
+  if width > 0.0
+    then return $ ColWidth $ width / 100.0
+    else return ColWidthDefault
 
 pColgroup :: PandocMonad m => TagParser m [ColWidth]
 pColgroup = try $ do
