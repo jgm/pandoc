@@ -309,9 +309,13 @@ quotedToJira qtype xs = do
 spanToJira :: PandocMonad m
            => Attr -> [Inline]
            -> JiraConverter m [Jira.Inline]
-spanToJira (ident, _classes, _attribs) inls = case ident of
-  "" -> toJiraInlines inls
-  _  -> (Jira.Anchor ident :) <$> toJiraInlines inls
+spanToJira (ident, _classes, attribs) inls =
+  let wrap = case lookup "color" attribs of
+               Nothing -> id
+               Just color -> singleton . Jira.ColorInline (Jira.ColorName color)
+  in wrap <$> case ident of
+    "" -> toJiraInlines inls
+    _  -> (Jira.Anchor ident :) <$> toJiraInlines inls
 
 registerNotes :: PandocMonad m => [Block] -> JiraConverter m [Jira.Inline]
 registerNotes contents = do

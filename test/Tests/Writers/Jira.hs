@@ -67,6 +67,10 @@ tests =
       [ "id is used as anchor" =:
         spanWith ("unicorn", [], []) (str "Unicorn") =?>
         "{anchor:unicorn}Unicorn"
+
+      , "use `color` attribute" =:
+        spanWith ("",[],[("color","red")]) "ruby" =?>
+        "{color:red}ruby{color}"
       ]
 
     , testGroup "code"
