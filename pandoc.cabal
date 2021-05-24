@@ -214,6 +214,10 @@ extra-source-files:
                  test/command/C.txt
                  test/command/D.txt
                  test/command/01.csv
+                 test/command/chap1/spider.png
+                 test/command/chap2/spider.png
+                 test/command/chap1/text.md
+                 test/command/chap2/text.md
                  test/command/defaults1.yaml
                  test/command/defaults2.yaml
                  test/command/defaults3.yaml
