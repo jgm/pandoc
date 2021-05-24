@@ -73,9 +73,9 @@ lookup fp = do
   res <- MB.lookupMedia fp <$> getMediaBag
   liftPandocLua $ case res of
     Nothing -> 1 <$ Lua.pushnil
-    Just (mimeType, contents) -> do
-      Lua.push mimeType
-      Lua.push contents
+    Just item -> do
+      Lua.push $ MB.mediaMimeType item
+      Lua.push $ MB.mediaContents item
       return 2
 
 list :: PandocLua NumResults

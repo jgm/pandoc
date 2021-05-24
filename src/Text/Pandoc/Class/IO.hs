@@ -62,7 +62,7 @@ import Text.Pandoc.Definition (Pandoc, Inline (Image))
 import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.Logging (LogMessage (..), messageVerbosity, showLogMessage)
 import Text.Pandoc.MIME (MimeType)
-import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
+import Text.Pandoc.MediaBag (MediaBag, MediaItem(..), lookupMedia, mediaDirectory)
 import Text.Pandoc.Walk (walk)
 import qualified Control.Exception as E
 import qualified Data.ByteString as B
@@ -213,14 +213,13 @@ writeMedia :: (PandocMonad m, MonadIO m)
 writeMedia dir mediabag subpath = do
   -- we join and split to convert a/b/c to a\b\c on Windows;
   -- in zip containers all paths use /
-  let fullpath = dir </> unEscapeString (normalise subpath)
   let mbcontents = lookupMedia subpath mediabag
   case mbcontents of
        Nothing -> throwError $ PandocResourceNotFound $ pack subpath
-       Just (_, bs) -> do
-         report $ Extracting $ pack fullpath
+       Just item -> do
+         let fullpath = dir </> mediaPath item
          liftIOError (createDirectoryIfMissing True) (takeDirectory fullpath)
-         logIOError $ BL.writeFile fullpath bs
+         logIOError $ BL.writeFile fullpath $ mediaContents item
 
 -- | If the given Inline element is an image with a @src@ path equal to
 -- one in the list of @paths@, then prepends @dir@ to the image source;

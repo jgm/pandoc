@@ -24,7 +24,7 @@ import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
 import qualified Text.Pandoc.Class as P
-import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
+import qualified Text.Pandoc.MediaBag as MB
 import Text.Pandoc.UTF8 as UTF8
 
 -- We define a wrapper around pandoc that doesn't normalize in the
@@ -91,11 +91,11 @@ getMedia :: FilePath -> FilePath -> IO (Maybe B.ByteString)
 getMedia archivePath mediaPath = fmap fromEntry . findEntryByPath
     ("word/" ++ mediaPath) . toArchive <$> B.readFile archivePath
 
-compareMediaPathIO :: FilePath -> MediaBag -> FilePath -> IO Bool
+compareMediaPathIO :: FilePath -> MB.MediaBag -> FilePath -> IO Bool
 compareMediaPathIO mediaPath mediaBag docxPath = do
   docxMedia <- getMedia docxPath mediaPath
-  let mbBS   = case lookupMedia mediaPath mediaBag of
-                 Just (_, bs) -> bs
+  let mbBS   = case MB.lookupMedia mediaPath mediaBag of
+                 Just item    -> MB.mediaContents item
                  Nothing      -> error ("couldn't find " ++
                                         mediaPath ++
                                         " in media bag")
@@ -110,7 +110,7 @@ compareMediaBagIO docxFile = do
     mb <- runIOorExplode $ readDocx defopts df >> P.getMediaBag
     bools <- mapM
              (\(fp, _, _) -> compareMediaPathIO fp mb docxFile)
-             (mediaDirectory mb)
+             (MB.mediaDirectory mb)
     return $ and bools
 
 testMediaBagIO :: String -> FilePath -> IO TestTree

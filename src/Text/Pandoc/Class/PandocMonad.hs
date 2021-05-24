@@ -37,7 +37,6 @@ module Text.Pandoc.Class.PandocMonad
   , setUserDataDir
   , getUserDataDir
   , fetchItem
-  , fetchMediaResource
   , getInputFiles
   , setInputFiles
   , getOutputFile
@@ -57,8 +56,6 @@ module Text.Pandoc.Class.PandocMonad
 import Codec.Archive.Zip
 import Control.Monad.Except (MonadError (catchError, throwError),
                              MonadTrans, lift, when)
-import Data.Digest.Pure.SHA (sha1, showDigest)
-import Data.Maybe (fromMaybe)
 import Data.List (foldl')
 import Data.Time (UTCTime)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds,
@@ -67,7 +64,7 @@ import Data.Time.LocalTime (TimeZone, ZonedTime, utcToZonedTime)
 import Network.URI ( escapeURIString, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI,
                      parseURI, URI(..) )
-import System.FilePath ((</>), (<.>), takeExtension, dropExtension,
+import System.FilePath ((</>), takeExtension, dropExtension,
                         isRelative, splitDirectories)
 import System.Random (StdGen)
 import Text.Collate.Lang (Lang(..), parseLang, renderLang)
@@ -75,8 +72,8 @@ import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
-import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
-import Text.Pandoc.MediaBag (MediaBag, lookupMedia)
+import Text.Pandoc.MIME (MimeType, getMimeType)
+import Text.Pandoc.MediaBag (MediaBag, lookupMedia, MediaItem(..))
 import Text.Pandoc.Shared (uriPathToPath, safeRead)
 import Text.Pandoc.Translations (Term(..), Translations, lookupTerm,
                                  readTranslations)
@@ -376,7 +373,8 @@ fetchItem :: PandocMonad m
 fetchItem s = do
   mediabag <- getMediaBag
   case lookupMedia (T.unpack s) mediabag of
-    Just (mime, bs) -> return (BL.toStrict bs, Just mime)
+    Just item -> return (BL.toStrict (mediaContents item),
+                         Just (mediaMimeType item))
     Nothing -> downloadOrRead s
 
 -- | Returns the content and, if available, the MIME type of a resource.
@@ -629,19 +627,6 @@ withPaths (p:ps) action fp =
   catchError (action (p </> fp))
              (\_ -> withPaths ps action fp)
 
--- | Fetch local or remote resource (like an image) and provide data suitable
--- for adding it to the MediaBag.
-fetchMediaResource :: PandocMonad m
-              => T.Text -> m (FilePath, Maybe MimeType, BL.ByteString)
-fetchMediaResource src = do
-  (bs, mt) <- fetchItem src
-  let ext = fromMaybe (T.pack $ takeExtension $ T.unpack src)
-                      (mt >>= extensionFromMimeType)
-  let bs' = BL.fromChunks [bs]
-  let basename = showDigest $ sha1 bs'
-  let fname = basename <.> T.unpack ext
-  return (fname, mt, bs')
-
 -- | Traverse tree, filling media bag for any images that
 -- aren't already in the media bag.
 fillMediaBag :: PandocMonad m => Pandoc -> m Pandoc
@@ -649,12 +634,18 @@ fillMediaBag d = walkM handleImage d
   where handleImage :: PandocMonad m => Inline -> m Inline
         handleImage (Image attr lab (src, tit)) = catchError
           (do mediabag <- getMediaBag
-              case lookupMedia (T.unpack src) mediabag of
-                Just (_, _) -> return $ Image attr lab (src, tit)
-                Nothing -> do
-                  (fname, mt, bs) <- fetchMediaResource src
-                  insertMedia fname mt bs
-                  return $ Image attr lab (T.pack fname, tit))
+              let fp = T.unpack src
+              src' <- T.pack <$> case lookupMedia fp mediabag of
+                        Just item -> return $ mediaPath item
+                        Nothing -> do
+                          (bs, mt) <- fetchItem src
+                          insertMedia fp mt (BL.fromStrict bs)
+                          mediabag' <- getMediaBag
+                          case lookupMedia fp mediabag' of
+                             Just item -> return $ mediaPath item
+                             Nothing -> throwError $ PandocSomeError $
+                               src <> " not successfully inserted into MediaBag"
+              return $ Image attr lab (src', tit))
           (\e ->
               case e of
                 PandocResourceNotFound _ -> do
