@@ -136,6 +136,8 @@ data Extension =
     | Ext_raw_html            -- ^ Allow raw HTML
     | Ext_raw_tex             -- ^ Allow raw TeX (other than math)
     | Ext_raw_markdown        -- ^ Parse markdown in ipynb as raw markdown
+    | Ext_rebase_relative_paths -- ^ Rebase relative image and link paths,
+                                -- relative to directory of containing file
     | Ext_shortcut_reference_links -- ^ Shortcut reference links
     | Ext_simple_tables       -- ^ Pandoc-style simple tables
     | Ext_smart               -- ^ "Smart" quotes, apostrophes, ellipses, dashes
@@ -462,6 +464,7 @@ getAllExtensions f = universalExtensions <> getAll f
        , Ext_gutenberg
        , Ext_smart
        , Ext_literate_haskell
+       , Ext_rebase_relative_paths
        ]
   getAll "markdown_strict"   = allMarkdownExtensions
   getAll "markdown_phpextra" = allMarkdownExtensions

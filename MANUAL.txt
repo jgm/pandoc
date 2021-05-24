@@ -3755,7 +3755,7 @@ definition:
 Note that space between items in a definition list is required.
 (A variant that loosens this requirement, but disallows "lazy"
 hard wrapping, can be activated with `compact_definition_lists`: see
-[Non-pandoc extensions], below.)
+[Non-default extensions], below.)
 
 [^3]:  I have been influenced by the suggestions of [David
   Wheeler](https://justatheory.com/2009/02/modest-markdown-proposal/).
@@ -5049,12 +5049,36 @@ author-in-text style inside notes when using a note style.
 [finding and editing styles]: https://citationstyles.org/authors/
 [CSL locale files]: https://github.com/citation-style-language/locales
 
-## Non-pandoc extensions
+## Non-default extensions
 
 The following Markdown syntax extensions are not enabled by default
 in pandoc, but may be enabled by adding `+EXTENSION` to the format
 name, where `EXTENSION` is the name of the extension.  Thus, for
 example, `markdown+hard_line_breaks` is Markdown with hard line breaks.
+
+#### Extension: `rebase_relative_paths` ####
+
+Rewrite relative paths for Markdown links and images, depending
+on the path of the file containing the link or image link.  For
+each link or image, pandoc will compute the directory of the
+containing file, relative to the working directory, and prepend
+the resulting path to the link or image path.
+
+The use of this extension is best understood by example.
+Suppose you have a a subdirectory for each chapter of a book,
+`chap1`, `chap2`, `chap3`. Each contains a file `text.md` and a
+number of images used in the chapter.  You would like to have
+`![image](spider.jpg)` in `chap1/text.md` refer to
+`chap1/spider.jpg` and `![image](spider.jpg)` in `chap2/text.md`
+refer to `chap2/spider.jpg`.  To do this, use
+
+    pandoc chap*/*.md -f markdown+rebase_relative_paths
+
+Without this extension, you would have to use
+`![image](chap1/spider.jpg)` in `chap1/text.md` and
+`![image](chap2/spider.jpg)` in `chap2/text.md`.  Links with
+relative paths will be rewritten in the same way as images.
+*This option currently only affects Markdown input.*
 
 #### Extension: `attributes` ####
 

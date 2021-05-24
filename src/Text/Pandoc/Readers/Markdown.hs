@@ -29,7 +29,7 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.ByteString.Lazy as BL
-import System.FilePath (addExtension, takeExtension)
+import System.FilePath (addExtension, takeExtension, isAbsolute, takeDirectory)
 import Text.HTML.TagSoup hiding (Row)
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
@@ -1836,9 +1836,12 @@ regLink :: PandocMonad m
         -> MarkdownParser m (F Inlines)
 regLink constructor lab = try $ do
   (src, tit) <- source
+  rebase <- option False (True <$ guardEnabled Ext_rebase_relative_paths)
+  pos <- getPosition
+  let src' = if rebase then rebasePath pos src else src
   attr <- option nullAttr $
           guardEnabled Ext_link_attributes >> attributes
-  return $ constructor attr src tit <$> lab
+  return $ constructor attr src' tit <$> lab
 
 -- a link like [this][ref] or [this][] or [this]
 referenceLink :: PandocMonad m
@@ -1854,6 +1857,8 @@ referenceLink constructor (lab, raw) = do
                          return (mempty, "")))
       <|>
       try ((guardDisabled Ext_spaced_reference_links <|> spnl) >> reference)
+  rebase <- option False (True <$ guardEnabled Ext_rebase_relative_paths)
+  pos <- getPosition
   when (raw' == "") $ guardEnabled Ext_shortcut_reference_links
   let labIsRef = raw' == "" || raw' == "[]"
   let key = toKey $ if labIsRef then raw else raw'
@@ -1878,7 +1883,9 @@ referenceLink constructor (lab, raw) = do
                    Just ((src, tit), _) -> constructor nullAttr src tit <$> lab
                    Nothing              -> makeFallback
             else makeFallback
-       Just ((src,tit), attr) -> constructor attr src tit <$> lab
+       Just ((src,tit), attr) ->
+          let src' = if rebase then rebasePath pos src else src
+           in constructor attr src' tit <$> lab
 
 dropBrackets :: Text -> Text
 dropBrackets = dropRB . dropLB
@@ -1911,15 +1918,30 @@ autoLink = try $ do
   return $ return $ B.linkWith attr (src <> escapeURI extra) ""
                      (B.str $ orig <> extra)
 
+-- | Rebase a relative path, by adding the (relative) directory
+-- of the containing source position.  Absolute links and URLs
+-- are untouched.
+rebasePath :: SourcePos -> Text -> Text
+rebasePath pos path = do
+  let fp = sourceName pos
+   in if isAbsolute (T.unpack path) || isURI path
+         then path
+         else
+           case takeDirectory fp of
+             ""  -> path
+             "." -> path
+             d   -> T.pack d <> "/" <> path
+
 image :: PandocMonad m => MarkdownParser m (F Inlines)
 image = try $ do
   char '!'
   (lab,raw) <- reference
   defaultExt <- getOption readerDefaultImageExtension
-  let constructor attr' src = case takeExtension (T.unpack src) of
-                          "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
-                                                          $ T.unpack defaultExt)
-                          _  -> B.imageWith attr' src
+  let constructor attr' src =
+         case takeExtension (T.unpack src) of
+            "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
+                                            $ T.unpack defaultExt)
+            _  -> B.imageWith attr' src
   regLink constructor lab <|> referenceLink constructor (lab,raw)
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
