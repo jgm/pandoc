@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE ViewPatterns      #-}
@@ -372,36 +373,32 @@ blocksToOpenDocument o b = vcat <$> mapM (blockToOpenDocument o) b
 
 -- | Convert a Pandoc block element to OpenDocument.
 blockToOpenDocument :: PandocMonad m => WriterOptions -> Block -> OD m (Doc Text)
-blockToOpenDocument o bs
-    | Plain          b <- bs = if null b
-                                  then return empty
-                                  else inParagraphTags =<< inlinesToOpenDocument o b
-    | Para [Image attr c (s,T.stripPrefix "fig:" -> Just t)] <- bs
-                             = figure attr c s t
-    | Para           b <- bs = if null b &&
-                                    not (isEnabled Ext_empty_paragraphs o)
-                                  then return empty
-                                  else inParagraphTags =<< inlinesToOpenDocument o b
-    | LineBlock      b <- bs = blockToOpenDocument o $ linesToPara b
-    | Div attr xs      <- bs = mkDiv attr xs
-    | Header     i (ident,_,_) b
-                       <- bs = setFirstPara >> (inHeaderTags i ident
-                                  =<< inlinesToOpenDocument o b)
-    | BlockQuote     b <- bs = setFirstPara >> mkBlockQuote b
-    | DefinitionList b <- bs = setFirstPara >> defList b
-    | BulletList     b <- bs = setFirstPara >> bulletListToOpenDocument o b
-    | OrderedList  a b <- bs = setFirstPara >> orderedList a b
-    | CodeBlock    _ s <- bs = setFirstPara >> preformatted s
-    | Table a bc s th tb tf <- bs =  setFirstPara >> table (Ann.toTable a bc s th tb tf)
-    | HorizontalRule   <- bs = setFirstPara >> return (selfClosingTag "text:p"
-                                [ ("text:style-name", "Horizontal_20_Line") ])
-    | RawBlock f     s <- bs = if f == Format "opendocument"
-                                  then return $ text $ T.unpack s
-                                  else do
-                                    report $ BlockNotRendered bs
-                                    return empty
-    | Null             <- bs = return empty
-    | otherwise              = return empty
+blockToOpenDocument o = \case
+    Plain          b -> if null b
+                        then return empty
+                        else inParagraphTags =<< inlinesToOpenDocument o b
+    Para [Image attr c (s,T.stripPrefix "fig:" -> Just t)] -> figure attr c s t
+    Para           b -> if null b &&
+                           not (isEnabled Ext_empty_paragraphs o)
+                        then return empty
+                        else inParagraphTags =<< inlinesToOpenDocument o b
+    LineBlock      b -> blockToOpenDocument o $ linesToPara b
+    Div attr xs      -> mkDiv attr xs
+    Header     i (ident,_,_) b -> do
+      setFirstPara
+      inHeaderTags i ident =<< inlinesToOpenDocument o b
+    BlockQuote     b -> setFirstPara >> mkBlockQuote b
+    DefinitionList b -> setFirstPara >> defList b
+    BulletList     b -> setFirstPara >> bulletListToOpenDocument o b
+    OrderedList  a b -> setFirstPara >> orderedList a b
+    CodeBlock    _ s -> setFirstPara >> preformatted s
+    Table a bc s th tb tf -> setFirstPara >> table (Ann.toTable a bc s th tb tf)
+    HorizontalRule   -> setFirstPara >> return (selfClosingTag "text:p"
+                         [ ("text:style-name", "Horizontal_20_Line") ])
+    b@(RawBlock f s) -> if f == Format "opendocument"
+                        then return $ text $ T.unpack s
+                        else empty <$ report (BlockNotRendered b)
+    Null             -> return empty
     where
       defList       b = do setInDefinitionList True
                            r <- vcat  <$> mapM (deflistItemToOpenDocument o) b
@@ -874,27 +871,26 @@ data TextStyle = Italic
 textStyleAttr :: Map.Map Text Text
               -> TextStyle
               -> Map.Map Text Text
-textStyleAttr m s
-    | Italic <- s = Map.insert "fo:font-style" "italic" .
-                    Map.insert "style:font-style-asian" "italic" .
-                    Map.insert "style:font-style-complex" "italic" $ m
-    | Bold   <- s = Map.insert "fo:font-weight" "bold" .
-                    Map.insert "style:font-weight-asian" "bold" .
-                    Map.insert "style:font-weight-complex" "bold" $ m
-    | Under  <- s = Map.insert "style:text-underline-style" "solid" .
-                    Map.insert "style:text-underline-width" "auto" .
-                    Map.insert "style:text-underline-color" "font-color" $ m
-    | Strike <- s = Map.insert "style:text-line-through-style" "solid" m
-    | Sub    <- s = Map.insert "style:text-position" "sub 58%" m
-    | Sup    <- s = Map.insert "style:text-position" "super 58%" m
-    | SmallC <- s = Map.insert "fo:font-variant" "small-caps" m
-    | Pre    <- s = Map.insert "style:font-name" "Courier New" .
-                    Map.insert "style:font-name-asian" "Courier New" .
-                    Map.insert "style:font-name-complex" "Courier New" $ m
-    | Language lang <- s
-                  = Map.insert "fo:language" (langLanguage lang) .
-                    maybe id (Map.insert "fo:country") (langRegion lang) $ m
-    | otherwise   = m
+textStyleAttr m = \case
+  Italic -> Map.insert "fo:font-style" "italic" .
+                Map.insert "style:font-style-asian" "italic" .
+                Map.insert "style:font-style-complex" "italic" $ m
+  Bold   -> Map.insert "fo:font-weight" "bold" .
+                Map.insert "style:font-weight-asian" "bold" .
+                Map.insert "style:font-weight-complex" "bold" $ m
+  Under  -> Map.insert "style:text-underline-style" "solid" .
+                Map.insert "style:text-underline-width" "auto" .
+                Map.insert "style:text-underline-color" "font-color" $ m
+  Strike -> Map.insert "style:text-line-through-style" "solid" m
+  Sub    -> Map.insert "style:text-position" "sub 58%" m
+  Sup    -> Map.insert "style:text-position" "super 58%" m
+  SmallC -> Map.insert "fo:font-variant" "small-caps" m
+  Pre    -> Map.insert "style:font-name" "Courier New" .
+            Map.insert "style:font-name-asian" "Courier New" .
+            Map.insert "style:font-name-complex" "Courier New" $ m
+  Language lang ->
+            Map.insert "fo:language" (langLanguage lang) .
+            maybe id (Map.insert "fo:country") (langRegion lang) $ m
 
 withLangFromAttr :: PandocMonad m => Attr -> OD m a -> OD m a
 withLangFromAttr (_,_,kvs) action =
