@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -409,9 +410,10 @@ downloadOrRead s = do
             _ -> readLocalFile fp -- get from local file system
    where readLocalFile f = do
              resourcePath <- getResourcePath
-             cont <- if isRelative f
-                        then withPaths resourcePath readFileStrict f
-                        else readFileStrict f
+             (fp', cont) <- if isRelative f
+                               then withPaths resourcePath readFileStrict f
+                               else (f,) <$> readFileStrict f
+             report $ LoadedResource f fp'
              return (cont, mime)
          httpcolon = URI{ uriScheme = "http:",
                           uriAuthority = Nothing,
@@ -621,10 +623,11 @@ makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
 -- that filepath. Returns the result of the first successful execution
 -- of the action, or throws a @PandocResourceNotFound@ exception if the
 -- action errors for all filepaths.
-withPaths :: PandocMonad m => [FilePath] -> (FilePath -> m a) -> FilePath -> m a
+withPaths :: PandocMonad m
+          => [FilePath] -> (FilePath -> m a) -> FilePath -> m (FilePath, a)
 withPaths [] _ fp = throwError $ PandocResourceNotFound $ T.pack fp
 withPaths (p:ps) action fp =
-  catchError (action (p </> fp))
+  catchError ((p </> fp,) <$> action (p </> fp))
              (\_ -> withPaths ps action fp)
 
 -- | Traverse tree, filling media bag for any images that
