@@ -85,6 +85,7 @@ data LogMessage =
   | CouldNotParseCSS Text
   | Fetching Text
   | Extracting Text
+  | LoadedResource FilePath FilePath
   | NoTitleElement Text
   | NoLangSpecified
   | InvalidLang Text
@@ -195,6 +196,9 @@ instance ToJSON LogMessage where
            ["path" .= fp]
       Extracting fp ->
            ["path" .= fp]
+      LoadedResource orig found ->
+           ["for"  .= orig
+           ,"from" .= found]
       NoTitleElement fallback ->
            ["fallback" .= fallback]
       NoLangSpecified -> []
@@ -309,6 +313,8 @@ showLogMessage msg =
          "Fetching " <> fp <> "..."
        Extracting fp ->
          "Extracting " <> fp <> "..."
+       LoadedResource orig found ->
+         "Loaded " <> Text.pack orig <> " from " <> Text.pack found
        NoTitleElement fallback ->
          "This document format requires a nonempty <title> element.\n" <>
          "Defaulting to '" <> fallback <> "' as the title.\n" <>
@@ -389,6 +395,7 @@ messageVerbosity msg =
        CouldNotParseCSS{}            -> WARNING
        Fetching{}                    -> INFO
        Extracting{}                  -> INFO
+       LoadedResource{}              -> INFO
        NoTitleElement{}              -> WARNING
        NoLangSpecified               -> INFO
        InvalidLang{}                 -> WARNING
