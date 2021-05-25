@@ -172,6 +172,8 @@ jiraLinkToPandoc linkType alias url =
     Jira.Email      -> link ("mailto:" <> url') "" alias'
     Jira.Attachment -> linkWith ("", ["attachment"], []) url' "" alias'
     Jira.User       -> linkWith ("", ["user-account"], []) url' "" alias'
+    Jira.SmartCard  -> linkWith ("", ["smart-card"], []) url' "" alias'
+    Jira.SmartLink  -> linkWith ("", ["smart-link"], []) url' "" alias'
 
 -- | Get unicode representation of a Jira icon.
 iconUnicode :: Jira.Icon -> Text

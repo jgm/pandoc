@@ -167,6 +167,14 @@ tests =
       , "user with description" =:
         "[John Doe|~johndoe]" =?>
         para (linkWith ("", ["user-account"], []) "~johndoe" "" "John Doe")
+
+      , "'smart' link" =:
+        "[x|http://example.com|smart-link]" =?>
+        para (linkWith ("", ["smart-link"], []) "http://example.com" "" "x")
+
+      , "'smart' card" =:
+        "[x|http://example.com|smart-card]" =?>
+        para (linkWith ("", ["smart-card"], []) "http://example.com" "" "x")
       ]
 
     , "image" =:
