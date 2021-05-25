@@ -1,4 +1,5 @@
 {-# LANGUAGE Arrows            #-}
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE DeriveFoldable    #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternGuards     #-}
@@ -33,7 +34,7 @@ import Data.List (find)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Maybe
-import Data.Semigroup (First(..), Option(..))
+import Data.Monoid (Alt (..))
 
 import Text.TeXMath (readMathML, writeTeX)
 import qualified Text.Pandoc.XML.Light as XML
@@ -505,13 +506,11 @@ type InlineMatcher = ElementMatcher Inlines
 
 type BlockMatcher  = ElementMatcher Blocks
 
-
-newtype FirstMatch a = FirstMatch (Option (First a))
-                     deriving (Foldable, Monoid, Semigroup)
+newtype FirstMatch a = FirstMatch (Alt Maybe a)
+  deriving (Foldable, Monoid, Semigroup)
 
 firstMatch :: a -> FirstMatch a
-firstMatch = FirstMatch . Option . Just . First
-
+firstMatch = FirstMatch . Alt . Just
 
 --
 matchingElement :: (Monoid e)
