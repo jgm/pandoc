@@ -282,7 +282,7 @@ showLogMessage msg =
        ParsingUnescaped s pos ->
          "Parsing unescaped '" <> s <> "' at " <> showPos pos
        CouldNotLoadIncludeFile fp pos ->
-         "Could not load include file '" <> fp <> "' at " <> showPos pos
+         "Could not load include file " <> fp <> " at " <> showPos pos
        MacroAlreadyDefined name pos ->
          "Macro '" <> name <> "' already defined, ignoring at " <> showPos pos
        InlineNotRendered il ->
@@ -294,18 +294,18 @@ showLogMessage msg =
        IgnoredIOError s ->
          "IO Error (ignored): " <> s
        CouldNotFetchResource fp s ->
-         "Could not fetch resource '" <> fp <> "'" <>
+         "Could not fetch resource " <> fp <>
            if Text.null s then "" else ": " <> s
        CouldNotDetermineImageSize fp s ->
-         "Could not determine image size for '" <> fp <> "'" <>
+         "Could not determine image size for " <> fp <>
            if Text.null s then "" else ": " <> s
        CouldNotConvertImage fp s ->
-         "Could not convert image '" <> fp <> "'" <>
+         "Could not convert image " <> fp <>
            if Text.null s then "" else ": " <> s
        CouldNotDetermineMimeType fp ->
-         "Could not determine mime type for '" <> fp <> "'"
+         "Could not determine mime type for " <> fp
        CouldNotConvertTeXMath s m ->
-         "Could not convert TeX math '" <> s <> "', rendering as TeX" <>
+         "Could not convert TeX math " <> s <> ", rendering as TeX" <>
            if Text.null m then "" else ":\n" <> m
        CouldNotParseCSS m ->
          "Could not parse CSS" <> if Text.null m then "" else ":\n" <> m

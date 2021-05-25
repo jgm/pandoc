@@ -2,7 +2,7 @@
 % pandoc -f latex -t icml
 \includegraphics{command/corrupt.svg}
 ^D
-[WARNING] Could not determine image size for 'command/corrupt.svg': could not determine image type
+[WARNING] Could not determine image size for command/corrupt.svg: could not determine image type
 <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Rectangle Self="uec" StrokeWeight="0" ItemTransform="1 0 0 1 150 -100">
