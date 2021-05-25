@@ -12,7 +12,7 @@ stability:       alpha
 homepage:        https://pandoc.org
 category:        Text
 tested-with:     GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5,
-                 GHC == 8.8.4, GHC == 8.10.2
+                 GHC == 8.8.4, GHC == 8.10.2, GHC == 9.0.1
 synopsis:        Conversion between markup formats
 description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
