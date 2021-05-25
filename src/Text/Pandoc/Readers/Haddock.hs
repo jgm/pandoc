@@ -131,7 +131,8 @@ docHToInlines isCode d' =
           DocIdentifier s -> B.codeWith ("",["haskell","identifier"],[]) $ T.pack s
           _               -> mempty
     DocIdentifierUnchecked s -> B.codeWith ("",["haskell","identifier"],[]) $ T.pack s
-    DocModule s -> B.codeWith ("",["haskell","module"],[]) $ T.pack s
+    DocModule s -> B.codeWith ("",["haskell","module"],[]) $
+                   T.pack (modLinkName s)
     DocWarning _ -> mempty -- TODO
     DocEmphasis d -> B.emph (docHToInlines isCode d)
     DocMonospaced (DocString s) -> B.code $ T.pack s
