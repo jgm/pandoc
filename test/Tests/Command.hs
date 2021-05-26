@@ -130,4 +130,7 @@ extractCommandTest testExePath fp = unsafePerformIO $ do
                         def{ readerExtensions = pandocExtensions } contents)
   let codeblocks = map extractCode $ filter isCodeBlock blocks
   let cases = zipWith (runCommandTest testExePath fp) [1..] codeblocks
-  return $ testGroup fp cases
+  return $ testGroup fp
+         $ if null cases
+              then [testCase "!!" $ assertFailure "No command tests defined"]
+              else cases
