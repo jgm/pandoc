@@ -5010,10 +5010,12 @@ terms can be written in either singular or plural forms, as
 locator term is used, "page" is assumed.
 
 In complex cases, you can force something to be treated as
-a locator by enclosing it in curly braces:
+a locator by enclosing it in curly braces or prevent parsing
+the suffix as locator by prepending curly braces:
 
     [@smith{ii, A, D-Z}, with a suffix]
     [@smith, {pp. iv, vi-xi, (xv)-(xvii)} with suffix here]
+    [@smith{}, $a^2$ and following]
 
 A minus sign (`-`) before the `@` will suppress mention of
 the author in the citation.  This can be useful when the
