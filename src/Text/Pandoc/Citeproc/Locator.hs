@@ -181,6 +181,7 @@ pPageUnit = roman <|> plainUnit
       plainUnit = do
           ts <- many1 (notFollowedBy pSpace >>
                        notFollowedBy pLocatorPunct >>
+                       notFollowedBy pMath >>
                        anyToken)
           let s = stringify ts
           -- otherwise look for actual digits or -s
@@ -210,6 +211,12 @@ pMatchChar msg f = satisfyTok f' <?> msg
 
 pSpace :: LocatorParser Inline
 pSpace = satisfyTok (\t -> isSpacey t || t == Str "\160") <?> "space"
+
+pMath :: LocatorParser Inline
+pMath = satisfyTok isMath
+ where
+  isMath (Math{}) = True
+  isMath _ = False
 
 satisfyTok :: (Inline -> Bool) -> LocatorParser Inline
 satisfyTok f = tokenPrim show (\sp _ _ -> sp) (\tok -> if f tok

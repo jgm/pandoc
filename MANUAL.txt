@@ -5015,7 +5015,7 @@ the suffix as locator by prepending curly braces:
 
     [@smith{ii, A, D-Z}, with a suffix]
     [@smith, {pp. iv, vi-xi, (xv)-(xvii)} with suffix here]
-    [@smith{}, $a^2$ and following]
+    [@smith{}, 99 years later]
 
 A minus sign (`-`) before the `@` will suppress mention of
 the author in the citation.  This can be useful when the
