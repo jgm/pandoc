@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE FlexibleContexts    #-}
@@ -1820,47 +1819,34 @@ bracketedSpan = do
   try $ do
     (lab,_) <- reference
     attr <- attributes
-    return $ case smallCapsAttr attr of
-      Just ("", [], []) -> B.smallcaps <$> lab
-      Just scAttr       -> B.spanWith scAttr . B.smallcaps <$> lab
-      Nothing           -> case underlineAttr attr of
-        Just ("", [], []) -> B.underline <$> lab
-        Just ulAttr       -> B.spanWith ulAttr . B.underline <$> lab
-        Nothing           -> B.spanWith attr <$> lab
+    return $ wrapSpan attr <$> lab
 
--- | Returns @Nothing@ if the given attr is not for SmallCaps, and the
--- modified attributes, with the special class or attribute removed if
--- it does mark a smallcaps span.
-smallCapsAttr :: Attr -> Maybe Attr
-smallCapsAttr (ident, cls, kvs)= case cls of
-  "smallcaps":cls' -> Just (ident, cls', kvs)
-  _ -> case lookup "style" kvs of
-         Just s | isSmallCapsFontVariant s ->
-                  Just (ident, cls, [(k, v) | (k, v) <- kvs, k /= "style"])
-         _ -> Nothing
- where
-   isSmallCapsFontVariant s =
-     T.toLower (T.filter (`notElem` [' ', '\t', ';']) s) ==
-     "font-variant:small-caps"
+-- | Given an @Attr@ value, this returns a function to wrap the contents
+-- of a span. Handles special classes (@smallcaps@, @ul@, @underline@)
+-- and uses the respective constructors to handle them.
+wrapSpan :: Attr -> Inlines -> Inlines
+wrapSpan (ident, classes, kvs) =
+  let (initConst, kvs') = case lookup "style" kvs of
+        Just s | isSmallCapsFontVariant s ->
+                   let kvsNoStyle =  [(k, v) | (k, v) <- kvs, k /= "style"]
+                   in (Just B.smallcaps, kvsNoStyle)
+        _ -> (Nothing, kvs)
+      (mConstr, remainingClasses) = foldr go (initConst, []) classes
+      wrapInConstr c = maybe c (c .)
+      go cls (accConstr, other) =
+        case cls of
+          "smallcaps" -> (Just $ wrapInConstr B.smallcaps accConstr, other)
+          "ul"        -> (Just $ wrapInConstr B.underline accConstr, other)
+          "underline" -> (Just $ wrapInConstr B.underline accConstr, other)
+          _           -> (accConstr, cls:other)
+  in case (ident, remainingClasses, kvs') of
+       ("", [], []) -> fromMaybe (B.spanWith nullAttr) mConstr
+       attr         -> wrapInConstr (B.spanWith attr) mConstr
 
--- | We treat a span as SmallCaps if the first class is "smallcaps" or
--- if style is "font-variant:small-caps".
-isSmallCaps :: Attr -> Bool
-isSmallCaps = isJust . smallCapsAttr
-
--- | Returns @Nothing@ if the given attr is not for underline, and the
--- modified attributes, with the special "underline" class removed, if
--- it marks an underline span.
-underlineAttr :: Attr -> Maybe Attr
-underlineAttr = \case
-  (ident, "ul":cls, kvs)        -> Just (ident, cls, kvs)
-  (ident, "underline":cls, kvs) -> Just (ident, cls, kvs)
-  _                             -> Nothing
-
--- | We treat a span as Underline if class is "ul" or
--- "underline" (and no other attributes are set).
-isUnderline :: Attr -> Bool
-isUnderline = isJust . underlineAttr
+isSmallCapsFontVariant :: Text -> Bool
+isSmallCapsFontVariant s =
+  T.toLower (T.filter (`notElem` [' ', '\t', ';']) s) ==
+  "font-variant:small-caps"
 
 regLink :: PandocMonad m
         => (Attr -> Text -> Text -> Inlines -> Inlines)
@@ -2044,11 +2030,7 @@ spanHtml = do
     let ident = fromMaybe "" $ lookup "id" attrs
     let classes = maybe [] T.words $ lookup "class" attrs
     let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
-    return $ if isSmallCaps (ident, classes, keyvals)
-                then B.smallcaps <$> contents
-                else if isUnderline (ident, classes, keyvals)
-                        then B.underline <$> contents
-                        else B.spanWith (ident, classes, keyvals) <$> contents
+    return $ wrapSpan (ident, classes, keyvals) <$> contents
 
 divHtml :: PandocMonad m => MarkdownParser m (F Blocks)
 divHtml = do
