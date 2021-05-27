@@ -1923,7 +1923,8 @@ autoLink = try $ do
 rebasePath :: SourcePos -> Text -> Text
 rebasePath pos path = do
   let fp = sourceName pos
-   in if isAbsolute (T.unpack path) || isURI path
+      isFragment = T.take 1 path == "#"
+   in if isFragment || isAbsolute (T.unpack path) || isURI path
          then path
          else
            case takeDirectory fp of

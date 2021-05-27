@@ -5081,6 +5081,9 @@ Without this extension, you would have to use
 `![image](chap2/spider.jpg)` in `chap2/text.md`.  Links with
 relative paths will be rewritten in the same way as images.
 
+Absolute paths and URLs are not changed.  Neither are paths
+consisting entirely of a fragment, e.g. `[section one](#foo)`.
+
 Note that relative paths in reference links and images will
 be rewritten relative to the file containing the link
 reference definition, not the file containing the reference link
