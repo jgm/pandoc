@@ -113,7 +113,6 @@ import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
                                         ArgSpec (..), Tok (..), TokType (..))
 import Text.Pandoc.Shared
 import Text.Parsec.Pos
--- import Debug.Trace
 
 newtype DottedNum = DottedNum [Int]
   deriving (Show, Eq)
@@ -563,7 +562,25 @@ trySpecialMacro "xspace" ts = do
     Tok pos Word t : _
       | startsWithAlphaNum t -> return $ Tok pos Spaces " " : ts'
     _ -> return ts'
+trySpecialMacro "iftrue" ts = handleIf True ts
+trySpecialMacro "iffalse" ts = handleIf False ts
 trySpecialMacro _ _ = mzero
+
+handleIf :: PandocMonad m => Bool -> [Tok] -> LP m [Tok]
+handleIf b ts = do
+  res' <- lift $ runParserT (ifParser b) defaultLaTeXState "tokens" ts
+  case res' of
+    Left _ -> Prelude.fail "Could not parse conditional"
+    Right ts' -> return ts'
+
+ifParser :: PandocMonad m => Bool -> LP m [Tok]
+ifParser b = do
+  ifToks <- many (notFollowedBy (controlSeq "else" <|> controlSeq "fi")
+                    *> anyTok)
+  elseToks <- (controlSeq "else" >> manyTill anyTok (controlSeq "fi"))
+                 <|> ([] <$ controlSeq "fi")
+  rest <- getInput
+  return $ (if b then ifToks else elseToks) ++ rest
 
 startsWithAlphaNum :: Text -> Bool
 startsWithAlphaNum t =

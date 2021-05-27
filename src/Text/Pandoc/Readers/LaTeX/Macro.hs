@@ -14,6 +14,7 @@ import Text.Pandoc.Parsing hiding (blankline, mathDisplay, mathInline,
 import Control.Applicative ((<|>), optional)
 import qualified Data.Map as M
 import Data.Text (Text)
+import qualified Data.Text as T
 
 macroDef :: (PandocMonad m, Monoid a) => (Text -> a) -> LP m a
 macroDef constructor = do
@@ -22,9 +23,11 @@ macroDef constructor = do
       guardDisabled Ext_latex_macros)
      <|> return mempty
   where commandDef = do
-          (name, macro') <- newcommand <|> letmacro <|> defmacro
+          nameMacroPairs <- newcommand <|> letmacro <|> defmacro <|> newif
           guardDisabled Ext_latex_macros <|>
-           updateState (\s -> s{ sMacros = M.insert name macro' (sMacros s) })
+           mapM_ (\(name, macro') ->
+                   updateState (\s -> s{ sMacros = M.insert name macro'
+                                          (sMacros s) })) nameMacroPairs
         environmentDef = do
           mbenv <- newenvironment
           case mbenv of
@@ -40,7 +43,7 @@ macroDef constructor = do
         -- @\newcommand{\envname}[n-args][default]{begin}@
         -- @\newcommand{\endenvname}@
 
-letmacro :: PandocMonad m => LP m (Text, Macro)
+letmacro :: PandocMonad m => LP m [(Text, Macro)]
 letmacro = do
   controlSeq "let"
   (name, contents) <- withVerbatimMode $ do
@@ -53,18 +56,47 @@ letmacro = do
     contents <- bracedOrToken
     return (name, contents)
   contents' <- doMacros' 0 contents
-  return (name, Macro ExpandWhenDefined [] Nothing contents')
+  return [(name, Macro ExpandWhenDefined [] Nothing contents')]
 
-defmacro :: PandocMonad m => LP m (Text, Macro)
-defmacro = try $
+defmacro :: PandocMonad m => LP m [(Text, Macro)]
+defmacro = do
   -- we use withVerbatimMode, because macros are to be expanded
   -- at point of use, not point of definition
+  controlSeq "def"
   withVerbatimMode $ do
-    controlSeq "def"
     Tok _ (CtrlSeq name) _ <- anyControlSeq
     argspecs <- many (argspecArg <|> argspecPattern)
     contents <- bracedOrToken
-    return (name, Macro ExpandWhenUsed argspecs Nothing contents)
+    return [(name, Macro ExpandWhenUsed argspecs Nothing contents)]
+
+-- \newif\iffoo' defines:
+-- \iffoo to be \iffalse
+-- \footrue to be a command that defines \iffoo to be \iftrue
+-- \foofalse to be a command that defines \iffoo to be \iffalse
+newif :: PandocMonad m => LP m [(Text, Macro)]
+newif = do
+  controlSeq "newif"
+  withVerbatimMode $ do
+    Tok pos (CtrlSeq name) _ <- anyControlSeq
+    -- \def\iffoo\iffalse
+    -- \def\footrue{\def\iffoo\iftrue}
+    -- \def\foofalse{\def\iffoo\iffalse}
+    let base = T.drop 2 name
+    return [ (name, Macro ExpandWhenUsed [] Nothing
+                    [Tok pos (CtrlSeq "iffalse") "\\iffalse"])
+           , (base <> "true",
+                   Macro ExpandWhenUsed [] Nothing
+                   [ Tok pos (CtrlSeq "def") "\\def"
+                   , Tok pos (CtrlSeq name) ("\\" <> name)
+                   , Tok pos (CtrlSeq "iftrue") "\\iftrue"
+                   ])
+           , (base <> "false",
+                   Macro ExpandWhenUsed [] Nothing
+                   [ Tok pos (CtrlSeq "def") "\\def"
+                   , Tok pos (CtrlSeq name) ("\\" <> name)
+                   , Tok pos (CtrlSeq "iffalse") "\\iffalse"
+                   ])
+           ]
 
 argspecArg :: PandocMonad m => LP m ArgSpec
 argspecArg = do
@@ -77,10 +109,9 @@ argspecPattern =
                               (toktype' == Symbol || toktype' == Word) &&
                               (txt /= "{" && txt /= "\\" && txt /= "}")))
 
-newcommand :: PandocMonad m => LP m (Text, Macro)
+newcommand :: PandocMonad m => LP m [(Text, Macro)]
 newcommand = do
-  pos <- getPosition
-  Tok _ (CtrlSeq mtype) _ <- controlSeq "newcommand" <|>
+  Tok pos (CtrlSeq mtype) _ <- controlSeq "newcommand" <|>
                              controlSeq "renewcommand" <|>
                              controlSeq "providecommand" <|>
                              controlSeq "DeclareMathOperator" <|>
@@ -112,9 +143,9 @@ newcommand = do
         Just macro
           | mtype == "newcommand" -> do
               report $ MacroAlreadyDefined txt pos
-              return (name, macro)
-          | mtype == "providecommand" -> return (name, macro)
-        _ -> return (name, Macro ExpandWhenUsed argspecs optarg contents)
+              return [(name, macro)]
+          | mtype == "providecommand" -> return [(name, macro)]
+        _ -> return [(name, Macro ExpandWhenUsed argspecs optarg contents)]
 
 newenvironment :: PandocMonad m => LP m (Maybe (Text, Macro, Macro))
 newenvironment = do
