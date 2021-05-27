@@ -5080,7 +5080,11 @@ Without this extension, you would have to use
 `![image](chap1/spider.jpg)` in `chap1/text.md` and
 `![image](chap2/spider.jpg)` in `chap2/text.md`.  Links with
 relative paths will be rewritten in the same way as images.
-*This option currently only affects Markdown input.*
+
+Note that relative paths in reference links and images will
+be rewritten relative to the file containing the link
+reference definition, not the file containing the reference link
+or image itself, if these differ.
 
 #### Extension: `attributes` ####
 

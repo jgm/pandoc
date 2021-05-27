@@ -2,6 +2,8 @@
 
 A spider: ![spider](spider.png)
 
+Another spider: ![another spider][refspider]
+
 The moon: ![moon](../../lalune.jpg)
 
 Link to [spider picture](spider.png).

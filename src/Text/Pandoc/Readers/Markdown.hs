@@ -336,7 +336,9 @@ referenceKey = try $ do
                     notFollowedBy' (() <$ reference)
                     many1Char $ notFollowedBy space >> litChar
   let betweenAngles = try $ char '<' >> manyTillChar litChar (char '>')
-  src <- try betweenAngles <|> sourceURL
+  rebase <- option False (True <$ guardEnabled Ext_rebase_relative_paths)
+  src <- (if rebase then rebasePath pos else id) <$>
+             (try betweenAngles <|> sourceURL)
   tit <- option "" referenceTitle
   attr   <- option nullAttr $ try $
               do guardEnabled Ext_link_attributes
@@ -1857,8 +1859,6 @@ referenceLink constructor (lab, raw) = do
                          return (mempty, "")))
       <|>
       try ((guardDisabled Ext_spaced_reference_links <|> spnl) >> reference)
-  rebase <- option False (True <$ guardEnabled Ext_rebase_relative_paths)
-  pos <- getPosition
   when (raw' == "") $ guardEnabled Ext_shortcut_reference_links
   let labIsRef = raw' == "" || raw' == "[]"
   let key = toKey $ if labIsRef then raw else raw'
@@ -1884,8 +1884,7 @@ referenceLink constructor (lab, raw) = do
                    Nothing              -> makeFallback
             else makeFallback
        Just ((src,tit), attr) ->
-          let src' = if rebase then rebasePath pos src else src
-           in constructor attr src' tit <$> lab
+           constructor attr src tit <$> lab
 
 dropBrackets :: Text -> Text
 dropBrackets = dropRB . dropLB
