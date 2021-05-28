@@ -383,6 +383,12 @@ biblatexCitations :: TestTree
 biblatexCitations = testGroup "biblatex"
   [ "textcite" =: "\\textcite{item1}"
     =?> para (cite [baseCitation] (rt "\\textcite{item1}"))
+  , "textcite with multiple citations" =: "\\textcite{item1,item2}"
+    =?> para (cite [baseCitation] (rt "\\textcite{item1,item2}") <>
+              str "," <>
+              space <>
+              cite [baseCitation {citationId = "item2"}] (rt "\\textcite{item1,item2}")
+             )
   , "suffix" =: "\\textcite[p.~30]{item1}"
     =?> para
         (cite [baseCitation{ citationSuffix = toList $ text "p.\160\&30" }] (rt "\\textcite[p.~30]{item1}"))

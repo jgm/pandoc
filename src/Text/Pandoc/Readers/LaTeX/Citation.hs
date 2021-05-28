@@ -9,6 +9,7 @@ where
 import Text.Pandoc.Class
 import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.Builder as B
+import qualified Data.List as L
 import qualified Data.Map as M
 import Data.Text (Text)
 import Control.Applicative ((<|>), optional, many)
@@ -18,11 +19,13 @@ import Control.Monad.Except (throwError)
 import Text.Pandoc.Error (PandocError(PandocParsecError))
 import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
                             optional, space, spaces, withRaw, (<|>))
+import Text.Pandoc.Readers.LaTeX.Types (Tok)
 
 citationCommands :: PandocMonad m => LP m Inlines -> M.Map Text (LP m Inlines)
 citationCommands inline =
   let citation = citationWith inline
       tok = spaces *> grouped inline
+      multipleCites = multiCites inline
    in M.fromList
   [ ("cite", citation "cite" NormalCitation False)
   , ("Cite", citation "Cite" NormalCitation False)
@@ -42,7 +45,7 @@ citationCommands inline =
   , ("autocite*", citation "autocite*" SuppressAuthor False)
   , ("cite*", citation "cite*" SuppressAuthor False)
   , ("parencite*", citation "parencite*" SuppressAuthor False)
-  , ("textcite", citation "textcite" AuthorInText False)
+  , ("textcite", multipleCites "textcite" AuthorInText False)
   , ("citet", citation "citet" AuthorInText False)
   , ("citet*", citation "citet*" AuthorInText False)
   , ("citealt", citation "citealt" AuthorInText False)
@@ -177,7 +180,22 @@ citationWith :: PandocMonad m
              => LP m Inlines -> Text -> CitationMode -> Bool -> LP m Inlines
 citationWith inline name mode multi = do
   (c,raw) <- withRaw $ cites inline mode multi
-  return $ cite c (rawInline "latex" $ "\\" <> name <> untokenize raw)
+  return $ cite c (rawLatex name raw)
+
+multiCites :: PandocMonad m
+           => LP m Inlines -> Text -> CitationMode -> Bool -> LP m Inlines
+multiCites inline name mode multi = do
+  (c, raw) <- withRaw $ cites inline mode multi
+  return . mconcat . commaSeparated $ toCite raw <$> c
+  where
+    toCite raw citation =
+      cite [citation {citationMode = AuthorInText}] (rawLatex name raw)
+    commaSeparated =
+      L.intersperse (str "," <> space)
+
+rawLatex :: Text -> [Tok] -> Inlines
+rawLatex name raw =
+  (rawInline "latex" $ "\\" <> name <> untokenize raw)
 
 handleCitationPart :: Inlines -> [Citation]
 handleCitationPart ils =
@@ -202,7 +220,7 @@ complexNatbibCitation inline mode = try $ do
   case cs of
        []       -> mzero
        (c:cits) -> return $ cite (c{ citationMode = mode }:cits)
-                      (rawInline "latex" $ "\\citetext" <> untokenize raw)
+                      (rawLatex "citetext" raw)
 
 inNote :: Inlines -> Inlines
 inNote ils =
