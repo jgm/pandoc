@@ -12,6 +12,11 @@
     we couldn't resolve resource paths relative to the files containing them
     (see e.g. #5501, #6632, #6384, #3752).
 
+  * Add `rebase_relative_paths` extension (#3752).  When enabled, this
+    extension rewrites relative image and link paths by prepending
+    the (relative) directory of the containing file. This
+    extension can be enabled for all markdown and commonmark-based formats.
+
   * Add Text.Pandoc.Sources (exported module), with a `Sources` type and a
     `ToSources` class.  A `Sources` wraps a list of `(SourcePos, Text)` pairs
     [API change]. A parsec `Stream` instance is provided for `Sources`.  The
@@ -70,12 +75,21 @@
 
   * ODT reader: Treat tabs as spaces (#7185, niszet).
 
-  * Docx reader: Add handling of vml image objects (#7257, mbrackeantidot).
+  * Docx reader:
+
+    + Add handling of vml image objects (#7257, mbrackeantidot).
+    + Support new table features (Emily Bourke, #6316):  column
+      spans, row spans, multiple header rows, table description
+      (parsed as a simple caption), captions, column widths.
 
   * LaTeX reader:
 
     + Improved siunitx support (#6658, #6620).
     + Better support for `\xspace` (#7299).
+    - Improve parsing of `\def` macros.  We previously set "verbatim mode"
+      even for parsing the initial `\def`; this caused problems
+      for `\def` nested inside another `\def`.
+    - Implement `\newif`.
 
   * ConTeXt writer: improve ordered lists (#5016, Denis Maier).
     Change ordered list from itemize to enumerate.  Add new
@@ -92,6 +106,8 @@
       this can lead to loss of information, the heading is now always
       retained.  Use `--shift-heading-level-by=-1` to turn the `<h1>`
       into the document title, or a filter to restore the previous behavior.
+    + Handle relative lengths (e.g. `2*`) in HTML column widths (#4063).
+      See <https://www.w3.org/TR/html4/types.html#h-6.6>.
 
   * DocBook/JATS readers:
 
@@ -99,6 +115,15 @@
     + Fix "phrase" in DocBook: take classes from "role" not "class" (#7195).
 
   * DocBook reader: ensure that first and last names are separated (#6541).
+
+  * Jira reader (Albert Krewinkel, #7218):
+
+    + Support "smart" links: `[alias|https://example.com|smart-card]` syntax.
+    + Allow spaces and most unicode characters in attachment links.
+    + No longer require a newline character after `{noformat}`.
+    + Only allow URI path segment characters in bare links.
+    + The `file:` schema is no longer allowed in bare links; these
+      rarely make sense.
 
   * Plain writer: handle superscript unicode minus (#7276).
 
@@ -178,6 +203,9 @@
       of punctuation characters. Any IDs not adhering to these rules are
       rewritten by writing the offending characters as `Uxxxx`,
       where `xxxx` is the character's hex code.
+
+  * Jira writer:  use `{color}` when span has a color attribute
+    (Albert Krewinkel, tarleb/jira-wiki-markup#10).
 
   * Docx writer:
 
@@ -265,15 +293,36 @@
   * HTML-based slide shows: add support for `institute` (#7289, Thomas
     Hodgson).
 
+  * Text.Pandoc.Extensions: Add constructor `Ext_rebase_relative_paths` to
+    `Extensions` [API change].
+
   * Text.Pandoc.XML.Light: add Eq, Ord instances for Content,
     Element, Attr, CDataKind [API change].
 
-  * Text.Pandoc.MediaBag: change type to use a Text key instead of
-    `[FilePath]`.  We normalize the path and use `/` separators for
-    consistency.
+  * Text.Pandoc.MediaBag:
 
-  * Text.Pandoc.Class.PandocMonad: Use `fetchItem` instead of `downloadOrRead`
-    in `fetchMediaResource`.
+    + Change type to use a `Text` key instead of `[FilePath]`.
+      We normalize the path and use `/` separators for consistency.
+    + Export `MediaItem` type [API change].
+    + Change `MediaBag` type to a map from Text to MediaItem [API change].
+    + `lookupMedia` now returns a `MediaItem` [API change].
+    + Change `insertMedia` so it sets the `mediaPath` to
+      a filename based on the SHA1 hash of the contents.
+      This will be used when contents are extracted.
+
+  * Text.Pandoc.Class.PandocMonad:
+
+    + Remove `fetchMediaResource` [API change].  Use `fetchItem`
+      to get resources in `fillMediaBag`.
+    + Add informational message in `downloadOrRead` indicating what path
+      local resources have been loaded from.
+
+  * Text.Pandoc.Logging:
+
+    + Remove single quotes around paths in messages.
+    + Add LoadedResource constructor to LogMessage [API change].
+      This is for INFO-level messages telling where image data has been
+      loaded from.  (This can vary because of the resource path.)
 
   * Text.Pandoc.Asciify: simplify code and export `toAsciiText` [API change].
     Instead of encoding a giant (and incomplete) map, we now
@@ -301,6 +350,10 @@
       won't work when such Divs are used.
     + Use metadata's `lang` for the lang parameter of citeproc, overriding
       `localeLanguage`.
+    + Recognize locators spelled with a capital letter (#7323).
+    + Add a comma and a space in front of the suffix if it doesn't start
+      with space or punctuation (#7324).
+    + Don't detect math elements as locators (#7321).
 
   * Remove Text.Pandoc.BCP47 module [API change].
     Use types and functions from UnicodeCollation.Lang instead.
@@ -322,15 +375,23 @@
 
   * Add text as build-depend for trypandoc (#7193, Roman Beránek).
 
+  * Bump upper-bounds for network-uri, time, attoparsec.
+
   * Use citeproc 0.4.
 
   * Use texmath 0.12.3.
 
-  * Allow attoparsec 0.14.x.
+  * Use jira-wiki-markup 1.3.5 (Albert Krewinkel).
 
   * Require latest skylighting (fixes a bug in XML syntax highlighting).
 
   * Use latest xml-conduit.
+
+  * Use latest commonmark, commonmark-extensions, commonmark-pandoc.
+
+  * Use haddock-library-1.10.0 (Albert Krewinkel).
+
+  * Allow compilation with base 4.15 (Albert Krewinkel).
 
   * MANUAL:
 
@@ -339,6 +400,7 @@
       Albert Krewinkel).
     + Note that `institute` variable works for HTML-based slides.
     + Update documentation on citation syntax.
+    + Add citation example for locators and suffixes (Tristan Stenner)
 
   * Updated and fixed typos in documentation (Charanjit Singh,
     Anti-Distinctlyminty, Tatiana Porras, obcat).
@@ -350,6 +412,9 @@
 
   * Remove `biblatex-nussbaum.md` test.  It is basically the same
     as `biblaetx-quotes.md`.
+
+  * Command tests: fail if a file contains no tests---and fix a
+    test that failed in that way!
 
 
 ## pandoc 2.13 (2021-03-21)
