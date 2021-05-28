@@ -517,6 +517,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_attributes
     , Ext_sourcepos
     , Ext_yaml_metadata_block
+    , Ext_rebase_relative_paths
     ]
   getAll "commonmark_x"    = getAll "commonmark"
   getAll "org"             = autoIdExtensions <>

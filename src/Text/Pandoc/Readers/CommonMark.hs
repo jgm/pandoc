@@ -112,5 +112,7 @@ specFor opts = foldr ($) defaultSyntaxSpec exts
            | isEnabled Ext_implicit_header_references opts ] ++
          [ (footnoteSpec <>) | isEnabled Ext_footnotes opts ] ++
          [ (definitionListSpec <>) | isEnabled Ext_definition_lists opts ] ++
-         [ (taskListSpec <>) | isEnabled Ext_task_lists opts ]
+         [ (taskListSpec <>) | isEnabled Ext_task_lists opts ] ++
+         [ (rebaseRelativePathsSpec <>)
+           | isEnabled Ext_rebase_relative_paths opts ]
 
