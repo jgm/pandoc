@@ -14,7 +14,10 @@
 
   * Add `rebase_relative_paths` extension (#3752).  When enabled, this
     extension rewrites relative image and link paths by prepending
-    the (relative) directory of the containing file. This
+    the (relative) directory of the containing file.  This
+    behavior is useful when your input sources are split
+    into multiple files, across several directories, with files
+    referring to images stored in the same directory.  The
     extension can be enabled for all markdown and commonmark-based formats.
 
   * Add Text.Pandoc.Sources (exported module), with a `Sources` type and a
@@ -53,15 +56,13 @@
 
   * Markdown reader:
 
-    + Use MetaInlines not MetaBlocks for multimarkdown
-      metadata fields.  This gives better results in converting to e.g.
-      pandoc markdown.
+    + Use MetaInlines not MetaBlocks for multimarkdown metadata fields.
+      This gives better results in converting to e.g.  pandoc markdown.
     + Implement curly-brace syntax for Markdown citation keys (#6026).
       The change provides a way to use citation keys that contain
-      special characters not usable with the standard citation
-      key syntax.  Example: `@{foo_bar{x}'}` for the key `foo_bar{x}`.
-      It also allows separating citation keys from immediately
-      following text, e.g. `@{foo}A`.
+      special characters not usable with the standard citation key syntax.
+      Example: `@{foo_bar{x}'}` for the key `foo_bar{x}`.  It also allows
+      separating citation keys from immediately following text, e.g. `@{foo}A`.
 
   * RST reader:
 
@@ -86,10 +87,10 @@
 
     + Improved siunitx support (#6658, #6620).
     + Better support for `\xspace` (#7299).
-    - Improve parsing of `\def` macros.  We previously set "verbatim mode"
+    + Improve parsing of `\def` macros.  We previously set "verbatim mode"
       even for parsing the initial `\def`; this caused problems
       for `\def` nested inside another `\def`.
-    - Implement `\newif`.
+    + Implement `\newif`.
 
   * ConTeXt writer: improve ordered lists (#5016, Denis Maier).
     Change ordered list from itemize to enumerate.  Add new
@@ -130,8 +131,8 @@
   * LaTeX writer:
 
     + Better handling of line breaks in simple tables (#7272).
-      Now we also handle the case where they're embedded in other
-      elements, e.g. spans.
+      Now we also handle the case where they're embedded in other elements,
+      e.g. spans.
     + For beamer output, support `exampleblock` and `alertblock` (#7278).
       A block will be rendered as an `exampleblock` if the heading
       has class `example` and an `alertblock` if it has class `alert`.
@@ -227,8 +228,8 @@
       `savePreviewPicture`, `mathPr`, `themeFontLang`, `decimalSymbol`,
       `listSeparator`, `autoHyphenation`, `compat`.
     + Set zoom to 100% by default in settings.xml.
-    + Align math options more with current Word defaults (e.g.
-      Cambria Math font).
+    + Align math options more with current Word defaults (e.g.  Cambria Math
+      font).
     + Remove `rsid`s from default settings.xml.  Word will add these
       when revisions are made.
 
@@ -306,14 +307,14 @@
     + Export `MediaItem` type [API change].
     + Change `MediaBag` type to a map from Text to MediaItem [API change].
     + `lookupMedia` now returns a `MediaItem` [API change].
-    + Change `insertMedia` so it sets the `mediaPath` to
-      a filename based on the SHA1 hash of the contents.
-      This will be used when contents are extracted.
+    + Change `insertMedia` so it sets the `mediaPath` to a filename based on
+      the SHA1 hash of the contents.  This will be used when contents
+      are extracted.
 
   * Text.Pandoc.Class.PandocMonad:
 
-    + Remove `fetchMediaResource` [API change].  Use `fetchItem`
-      to get resources in `fillMediaBag`.
+    + Remove `fetchMediaResource` [API change].  Use `fetchItem` to get
+      resources in `fillMediaBag`.
     + Add informational message in `downloadOrRead` indicating what path
       local resources have been loaded from.
 
@@ -345,9 +346,9 @@
 
   * Text.Pandoc.Citeproc:
 
-    + Ensure that CSL-related attributes are passed on to a Div
-      with id 'refs'.  Otherwise things like `entry-spacing`
-      won't work when such Divs are used.
+    + Ensure that CSL-related attributes are passed on to a Div with id
+      'refs'.  Otherwise things like `entry-spacing` won't work when
+      such Divs are used.
     + Use metadata's `lang` for the lang parameter of citeproc, overriding
       `localeLanguage`.
     + Recognize locators spelled with a capital letter (#7323).
@@ -355,9 +356,9 @@
       with space or punctuation (#7324).
     + Don't detect math elements as locators (#7321).
 
-  * Remove Text.Pandoc.BCP47 module [API change].
-    Use types and functions from UnicodeCollation.Lang instead.
-    This is a richer implementation of BCP 47.
+  * Remove Text.Pandoc.BCP47 module [API change].  Use types and functions
+    from UnicodeCollation.Lang instead.  This is a richer implementation
+    of BCP 47.
 
   * Text.Pandoc.Shared:
 
