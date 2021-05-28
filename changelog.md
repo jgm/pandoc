@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.14 (PROVISIONAL)
+## pandoc 2.14 (2021-05-28)
 
   * Change reader types, allowing better tracking of source positions
     [API change].  Previously, when multiple file arguments were provided,
