@@ -1,7 +1,7 @@
 ```
 % pandoc --citeproc -t markdown-citations
 ---
-bibliography: 'command/biblatex-examples.bib'
+bibliography: 'command/averroes.bib'
 csl: command/apa.csl
 ---
 

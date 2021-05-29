@@ -208,7 +208,7 @@ extra-source-files:
                  test/command/*.md
                  test/command/*.csl
                  test/command/biblio.bib
-                 test/command/biblatex-examples.bib
+                 test/command/averroes.bib
                  test/command/A.txt
                  test/command/B.txt
                  test/command/C.txt
