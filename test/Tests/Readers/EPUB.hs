@@ -47,7 +47,7 @@ featuresBag = [("img/check.gif","image/gif",1340)
 
 -- with additional meta tag for cover in EPUB2 format
 epub3CoverBag :: [(String, String, Int)]
-epub3CoverBag = [("wasteland-cover.jpg","image/jpeg",103477)]
+epub3CoverBag = [("wasteland-cover.jpg","image/jpeg", 16586)]
 
 epub3NoCoverBag :: [(String, String, Int)]
 epub3NoCoverBag = [("img/check.gif","image/gif",1340)
