@@ -15,7 +15,7 @@ extra-deps:
 - unicode-collation-0.1.3
 - citeproc-0.4
 - commonmark-0.2
-- commonmark-extensions-0.2.1
+- commonmark-extensions-0.2.1.2
 - commonmark-pandoc-0.2.1
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
