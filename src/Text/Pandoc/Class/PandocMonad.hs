@@ -66,7 +66,7 @@ import Network.URI ( escapeURIString, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI,
                      parseURI, URI(..) )
 import System.FilePath ((</>), takeExtension, dropExtension,
-                        isRelative, splitDirectories)
+                        isRelative, splitDirectories, makeRelative)
 import System.Random (StdGen)
 import Text.Collate.Lang (Lang(..), parseLang, renderLang)
 import Text.Pandoc.Class.CommonState (CommonState (..))
@@ -413,7 +413,7 @@ downloadOrRead s = do
              (fp', cont) <- if isRelative f
                                then withPaths resourcePath readFileStrict f
                                else (f,) <$> readFileStrict f
-             report $ LoadedResource f fp'
+             report $ LoadedResource f (makeRelative "." fp')
              return (cont, mime)
          httpcolon = URI{ uriScheme = "http:",
                           uriAuthority = Nothing,
