@@ -33,7 +33,6 @@ tableToOpenXML :: PandocMonad m
                -> WS m [Content]
 tableToOpenXML blocksToOpenXML gridTable = do
   setFirstPara
-  modify $ \s -> s { stInTable = True }
   let (Grid.Table _attr caption colspecs _rowheads thead tbodies tfoot) =
         gridTable
   let (Caption _maybeShortCaption captionBlocks) = caption
@@ -43,6 +42,9 @@ tableToOpenXML blocksToOpenXML gridTable = do
                 then return []
                 else withParaPropM (pStyleM "Table Caption")
                      $ blocksToOpenXML captionBlocks
+  -- We set "in table" after processing the caption, because we don't
+  -- want the "Table Caption" style to be overwritten with "Compact".
+  modify $ \s -> s { stInTable = True }
   head' <- cellGridToOpenXML blocksToOpenXML HeadRow aligns thead
   bodies <- mapM (cellGridToOpenXML blocksToOpenXML BodyRow aligns) tbodies
   foot' <- cellGridToOpenXML blocksToOpenXML FootRow aligns tfoot
