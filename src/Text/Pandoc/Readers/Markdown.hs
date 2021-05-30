@@ -29,7 +29,9 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.ByteString.Lazy as BL
-import System.FilePath (addExtension, takeExtension, isAbsolute, takeDirectory)
+import System.FilePath (addExtension, takeExtension, takeDirectory)
+import qualified System.FilePath.Windows as Windows
+import qualified System.FilePath.Posix as Posix
 import Text.HTML.TagSoup hiding (Row)
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
@@ -1924,9 +1926,8 @@ rebasePath :: SourcePos -> Text -> Text
 rebasePath pos path = do
   let fp = sourceName pos
       isFragment = T.take 1 path == "#"
-      -- check for leading / because on Windows this won't be
-      -- recognized as absolute by isAbsolute
-      isAbsolutePath = isAbsolute (T.unpack path) || T.take 1 path == "/"
+      path' = T.unpack path
+      isAbsolutePath = Posix.isAbsolute path' || Windows.isAbsolute path'
    in if T.null path || isFragment || isAbsolutePath || isURI path
          then path
          else
