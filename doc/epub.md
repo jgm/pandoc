@@ -141,8 +141,15 @@ Pandoc has an EPUB3 writer.  It renders LaTeX math into MathML, which
 EPUB3 readers are supposed to support (but unfortunately few do).
 
 Of course, this isn't much help if you want EPUB2 output (`pandoc -t epub2`)
-or target readers that don't support MathML. Then you should try using the
-`--webtex` option, which will use a web service to convert the TeX to an image.
+or target readers that don't support MathML. Then you have two options:
+
+1.  Use the [`--webtex`](https://pandoc.org/MANUAL.html#option--webtex) option,
+    which will use a web service to convert the TeX to an image.
+2.  Use the [`--gladtex`](https://pandoc.org/MANUAL.html#option--gladtex) option
+    to convert maths into SVG images on your local machine.
+
+Both GladTeX and WebTeX add the LaTeX source of the formula as alternative text
+of the image,  increasing accessibility for blind users.
 
 [KindleGen]: https://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000765211
 [EPUB]:  https://en.wikipedia.org/wiki/EPUB

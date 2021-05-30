@@ -1415,13 +1415,12 @@ results only for basic math, usually you will want to use
 `--gladtex`
 
 :   Enclose TeX math in `<eq>` tags in HTML output.  The resulting HTML
-    can then be processed by [GladTeX] to produce images of the typeset
-    formulas and an HTML file with links to these images.
-    So, the procedure is:
+    can then be processed by [GladTeX] to produce SVG images of the typeset
+    formulas and an HTML file with these images embedded.
 
         pandoc -s --gladtex input.md -o myfile.htex
-        gladtex -d myfile-images myfile.htex
-        # produces myfile.html and images in myfile-images
+        gladtex -d image_dir myfile.htex
+        # produces myfile.html and images in image_dir
 
 [MathML]: https://www.w3.org/Math/
 [MathJax]: https://www.mathjax.org
