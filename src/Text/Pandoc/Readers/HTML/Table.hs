@@ -49,7 +49,7 @@ pCol = try $ do
   return $ case lookup "width" attribs of
                 Nothing -> case lookup "style" attribs of
                   Just (T.stripPrefix "width:" -> Just xs) | T.any (== '%') xs ->
-                    maybe (Right ColWidthDefault) (Right . ColWidth)
+                    maybe (Right ColWidthDefault) (Right . ColWidth . (/ 100.0))
                       $ safeRead (T.filter
                                    (`notElem` (" \t\r\n%'\";" :: [Char])) xs)
                   _ -> Right ColWidthDefault
