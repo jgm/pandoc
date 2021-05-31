@@ -283,8 +283,10 @@
       (#6639, Albert Krewinkel).  The zero-width non-joiner character
       is used to avoid ligatures (e.g. in German).
 
-  * ConTeXt template: List of figures before list of tables (#7235,
-    Julien Dutant).
+  * ConTeXt template:
+
+    + Define `enumerate` itemgroup (#5016, Denis Maier).
+    + List of figures before list of tables (#7235, Julien Dutant).
 
   * reveal.js template:
 
