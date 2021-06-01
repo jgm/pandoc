@@ -19,8 +19,6 @@
 
   * Use commonmark-extensions 0.2.1.2
 
-  * Use smaller images in tests, reducing the size of the source tarball by 8 MB.
-
 ## pandoc 2.14 (2021-05-28)
 
   * Change reader types, allowing better tracking of source positions
@@ -439,6 +437,8 @@
 
   * Command tests: fail if a file contains no tests---and fix a
     test that failed in that way!
+
+  * Use smaller images in tests, reducing the size of the source tarball by 8 MB.
 
 
 ## pandoc 2.13 (2021-03-21)
