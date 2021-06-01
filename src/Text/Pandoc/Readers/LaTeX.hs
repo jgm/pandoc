@@ -24,7 +24,7 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
 import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (isDigit, isLetter, toUpper, chr)
+import Data.Char (isDigit, isLetter, isAlphaNum, toUpper, chr)
 import Data.Default
 import Data.List (intercalate)
 import qualified Data.Map as M
@@ -300,7 +300,9 @@ inlineCommand' :: PandocMonad m => LP m Inlines
 inlineCommand' = try $ do
   Tok _ (CtrlSeq name) cmd <- anyControlSeq
   guard $ name /= "begin" && name /= "end" && name /= "and"
-  star <- option "" ("*" <$ symbol '*' <* sp)
+  star <- if T.all isAlphaNum name
+             then option "" ("*" <$ symbol '*' <* sp)
+             else pure ""
   overlay <- option "" overlaySpecification
   let name' = name <> star <> overlay
   let names = ordNub [name', name] -- check non-starred as fallback
