@@ -1,5 +1,26 @@
 # Revision history for pandoc
 
+## pandoc 2.14.0.1 (2021-06-01)
+
+  * Commonmark reader: Fix regression in 2.14 with YAML metdata block parsing,
+    which could cause the document body to be omitted after metadata (#7339).
+
+  * HTML reader: fix column width regression in 2.14 (#7334).
+    Column widths specified with a style attribute were off by a factor of 100.
+
+  * Markdown reader: in `rebasePaths`, check for both Windows and Posix
+    absolute paths.  Previously Windows pandoc was treating
+    `/foo/bar.jpg` as non-absolute.
+
+  * Text.Pandoc.Logging: In rendering `LoadedResource`, use relative paths.
+
+  * Docx writer: fix regression on captions (#7328).  The "Table Caption"
+    style was no longer getting applied.  (It was overwritten by "Compact.")
+
+  * Use commonmark-extensions 0.2.1.2
+
+  * Use smaller images in tests, reducing the size of the source tarball by 8 MB.
+
 ## pandoc 2.14 (2021-05-28)
 
   * Change reader types, allowing better tracking of source positions
