@@ -30,7 +30,7 @@ import Text.Pandoc.Readers.Metadata (yamlMetaBlock)
 import Control.Monad.Except
 import Data.Functor.Identity (runIdentity)
 import Data.Typeable
-import Text.Pandoc.Parsing (runParserT, getPosition,
+import Text.Pandoc.Parsing (runParserT, getInput,
                             runF, defaultParserState, option, many1, anyChar,
                             Sources(..), ToSources(..), ParserT, Future,
                             sourceName)
@@ -44,14 +44,14 @@ readCommonMark opts s
     let sources = toSources s
     let toks = concatMap sourceToToks (unSources sources)
     res <- runParserT (do meta <- yamlMetaBlock (metaValueParser opts)
-                          pos <- getPosition
-                          return (meta, pos))
+                          rest <- getInput
+                          return (meta, rest))
                       defaultParserState "YAML metadata" (toSources s)
     case res of
       Left _ -> readCommonMarkBody opts sources toks
-      Right (meta, pos) -> do
+      Right (meta, rest) -> do
         -- strip off metadata section and parse body
-        let body = dropWhile (\t -> tokPos t < pos) toks
+        let body = concatMap sourceToToks (unSources rest)
         Pandoc _ bs <- readCommonMarkBody opts sources body
         return $ Pandoc (runF meta defaultParserState) bs
   | otherwise = do
