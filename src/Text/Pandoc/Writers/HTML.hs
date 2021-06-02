@@ -770,9 +770,10 @@ blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
                                            lookup "entry-spacing" kvs' >>=
                                            safeRead }
   let isCslBibEntry = "csl-entry" `elem` classes
-  let kvs = [(k,v) | (k,v) <- kvs', k /= "width"] ++
-            [("style", "width:" <> w <> ";") | "column" `elem` classes,
-             ("width", w) <- kvs'] ++
+  let kvs = [(k,v) | (k,v) <- kvs'
+                   , k /= "width" || "column" `notElem` classes] ++
+            [("style", "width:" <> w <> ";") | "column" `elem` classes
+                                             , ("width", w) <- kvs'] ++
             [("role", "doc-bibliography") | isCslBibBody && html5] ++
             [("role", "doc-biblioentry") | isCslBibEntry && html5]
   let speakerNotes = "notes" `elem` classes
