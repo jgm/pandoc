@@ -2254,4 +2254,4 @@ toRow :: [Blocks] -> Row
 toRow = Row nullAttr . map B.simpleCell
 
 toHeaderRow :: [Blocks] -> [Row]
-toHeaderRow l = [toRow l | not (null l)]
+toHeaderRow l = [toRow l | not (null l) && not (all null l)]
