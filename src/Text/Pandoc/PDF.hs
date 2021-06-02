@@ -507,8 +507,20 @@ showVerboseInfo mbTmpDir program programArgs env source = do
   UTF8.hPutStrLn stderr $
        T.pack program <> " " <> T.pack (unwords (map show programArgs))
   UTF8.hPutStr stderr "\n"
-  UTF8.hPutStrLn stderr "[makePDF] Environment:"
-  mapM_ (UTF8.hPutStrLn stderr . tshow) env
+  UTF8.hPutStrLn stderr "[makePDF] Relevant environment variables:"
+  -- we filter out irrelevant stuff to avoid leaking passwords and keys!
+  let isRelevant ("PATH",_) = True
+      isRelevant ("TMPDIR",_) = True
+      isRelevant ("PWD",_) = True
+      isRelevant ("LANG",_) = True
+      isRelevant ("HOME",_) = True
+      isRelevant ("LUA_PATH",_) = True
+      isRelevant ("LUA_CPATH",_) = True
+      isRelevant ("SHELL",_) = True
+      isRelevant ("TEXINPUTS",_) = True
+      isRelevant ("TEXMFOUTPUT",_) = True
+      isRelevant _ = False
+  mapM_ (UTF8.hPutStrLn stderr . tshow) (filter isRelevant env)
   UTF8.hPutStr stderr "\n"
   UTF8.hPutStrLn stderr "[makePDF] Source:"
   UTF8.hPutStrLn stderr source
