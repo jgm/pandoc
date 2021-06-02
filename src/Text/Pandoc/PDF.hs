@@ -202,7 +202,7 @@ convertImage opts tmpdir fname = do
     Just "image/svg+xml" -> E.catch (do
       (exit, _) <- pipeProcess Nothing "rsvg-convert"
                      ["-f","pdf","-a","--dpi-x",dpi,"--dpi-y",dpi,
-                      "-o",pdfOut,fname] BL.empty
+                      "-o",pdfOut,svgIn] BL.empty
       if exit == ExitSuccess
          then return $ Right pdfOut
          else return $ Left "conversion from SVG failed")
@@ -217,6 +217,7 @@ convertImage opts tmpdir fname = do
   where
     pngOut = replaceDirectory (replaceExtension fname ".png") tmpdir
     pdfOut = replaceDirectory (replaceExtension fname ".pdf") tmpdir
+    svgIn = tmpdir </> fname
     mime = getMimeType fname
     doNothing = return (Right fname)
 
