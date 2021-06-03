@@ -4199,6 +4199,12 @@ or block-level formatting:
       It consists of two paragraphs.
     ...
 
+The literal block after the `|` must be indented relative to the
+line containing the `|`.  If it is not, the YAML will be invalid
+and pandoc will not interpret it as metadata.  For an overview
+of the complex rules governing YAML, see the [Wikipedia entry on
+YAML syntax].
+
 Template variables will be set automatically from the metadata.  Thus, for
 example, in writing HTML, the variable `abstract` will be set to the HTML
 equivalent of the Markdown in the `abstract` field:
@@ -4261,6 +4267,7 @@ following restrictions apply:
   if the link definition is somewhere else in the document.
 
 [YAML escape sequence]: https://yaml.org/spec/1.2/spec.html#id2776092
+[Wikipedia entry on YAML syntax]:  https://en.m.wikipedia.org/wiki/YAML#Syntax
 
 ## Backslash escapes
 
