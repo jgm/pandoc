@@ -211,13 +211,12 @@ writeMedia :: (PandocMonad m, MonadIO m)
            => FilePath -> MediaBag -> FilePath
            -> m ()
 writeMedia dir mediabag subpath = do
-  -- we join and split to convert a/b/c to a\b\c on Windows;
-  -- in zip containers all paths use /
   let mbcontents = lookupMedia subpath mediabag
   case mbcontents of
        Nothing -> throwError $ PandocResourceNotFound $ pack subpath
        Just item -> do
-         let fullpath = dir </> mediaPath item
+         -- we normalize to get proper path separators for the platform
+         let fullpath = dir </> normalise (mediaPath item)
          liftIOError (createDirectoryIfMissing True) (takeDirectory fullpath)
          logIOError $ BL.writeFile fullpath $ mediaContents item
 
