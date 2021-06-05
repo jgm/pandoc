@@ -134,6 +134,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] corpcredit - A corporation or organization credited in a document
 [ ] corpname - The name of a corporation
 [ ] country - The name of a country
+[x] danger - An admonition set off from the text indicating hazardous situation
 [ ] database - The name of a database, or part of a database
 [x] date - The date of publication or revision of a document
 [ ] dedication - A wrapper for the dedication section of a book
@@ -718,7 +719,7 @@ blockTags =
   ] ++ admonitionTags
 
 admonitionTags :: [Text]
-admonitionTags = ["important","caution","note","tip","warning"]
+admonitionTags = ["caution","danger","important","note","tip","warning"]
 
 -- Trim leading and trailing newline characters
 trimNl :: Text -> Text
