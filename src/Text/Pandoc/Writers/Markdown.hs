@@ -322,9 +322,12 @@ blockToMarkdown' opts (Div attrs ils) = do
     case () of
          _ | isEnabled Ext_fenced_divs opts &&
              attrs /= nullAttr ->
-                nowrap (literal ":::" <+> classOrAttrsToMarkdown attrs) $$
-                chomp contents $$
-                literal ":::" <> blankline
+                let attrsToMd = if variant == Commonmark
+                                then attrsToMarkdown
+                                else classOrAttrsToMarkdown
+                in nowrap (literal ":::" <+> attrsToMd attrs) $$
+                   chomp contents $$
+                   literal ":::" <> blankline
            | isEnabled Ext_native_divs opts ||
              (isEnabled Ext_raw_html opts &&
               (variant == Commonmark ||
