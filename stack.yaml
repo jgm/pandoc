@@ -13,7 +13,7 @@ extra-deps:
 - jira-wiki-markup-1.4.0
 - random-1.2.0
 - unicode-collation-0.1.3
-- citeproc-0.4
+- citeproc-0.4.0.1
 - commonmark-0.2
 - commonmark-extensions-0.2.1.2
 - commonmark-pandoc-0.2.1
