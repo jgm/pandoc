@@ -43,7 +43,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.DocTemplates (Val(..), Context(..), FromContext(..))
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
-import Text.Pandoc.Writers.Markdown.Inline (inlineListToMarkdown)
+import Text.Pandoc.Writers.Markdown.Inline (inlineListToMarkdown, linkAttributes, attrsToMarkdown)
 import Text.Pandoc.Writers.Markdown.Types (MarkdownVariant(..),
                                            WriterState(..),
                                            WriterEnv(..),
@@ -257,38 +257,11 @@ noteToMarkdown opts num blocks = do
               then hang (writerTabStop opts) (marker <> spacer) contents
               else marker <> spacer <> contents
 
-attrsToMarkdown :: Attr -> Doc Text
-attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
-        where attribId = case attribs of
-                                ("",_,_) -> empty
-                                (i,_,_)  -> "#" <> escAttr i
-              attribClasses = case attribs of
-                                (_,[],_) -> empty
-                                (_,cs,_) -> hsep $
-                                            map (escAttr . ("."<>))
-                                            cs
-              attribKeys = case attribs of
-                                (_,_,[]) -> empty
-                                (_,_,ks) -> hsep $
-                                            map (\(k,v) -> escAttr k
-                                              <> "=\"" <>
-                                              escAttr v <> "\"") ks
-              escAttr          = mconcat . map escAttrChar . T.unpack
-              escAttrChar '"'  = literal "\\\""
-              escAttrChar '\\' = literal "\\\\"
-              escAttrChar c    = literal $ T.singleton c
-
 -- | (Code) blocks with a single class can just use it standalone,
 -- no need to bother with curly braces.
 classOrAttrsToMarkdown :: Attr -> Doc Text
 classOrAttrsToMarkdown ("",[cls],_) = literal cls
 classOrAttrsToMarkdown attrs = attrsToMarkdown attrs
-
-linkAttributes :: WriterOptions -> Attr -> Doc Text
-linkAttributes opts attr =
-  if isEnabled Ext_link_attributes opts && attr /= nullAttr
-     then attrsToMarkdown attr
-     else empty
 
 -- | Ordered list start parser for use in Para below.
 olMarker :: Parser Text ParserState ()
