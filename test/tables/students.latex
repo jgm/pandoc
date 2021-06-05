@@ -3,11 +3,19 @@
   >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.50}}@{}}
 \caption{List of Students}\tabularnewline
 \toprule
-Student ID & Name \\
+\begin{minipage}[b]{\linewidth}\centering
+Student ID
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+Name
+\end{minipage} \\
 \midrule
 \endfirsthead
 \toprule
-Student ID & Name \\
+\begin{minipage}[b]{\linewidth}\centering
+Student ID
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+Name
+\end{minipage} \\
 \midrule
 \endhead
 \multicolumn{2}{l}{Computer Science} \\

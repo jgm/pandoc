@@ -16,6 +16,7 @@ module Text.Pandoc.Writers.LaTeX.Table
   ) where
 import Control.Monad.State.Strict
 import Data.List (intersperse)
+import qualified Data.List.NonEmpty as NonEmpty
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -243,8 +244,13 @@ cellToLaTeX :: PandocMonad m
             -> Ann.Cell
             -> LW m (Doc Text)
 cellToLaTeX blockListToLaTeX celltype annotatedCell = do
-  let (Ann.Cell _specs _colnum cell) = annotatedCell
-  let (Cell _attr align rowspan colspan blocks) = cell
+  let (Ann.Cell specs _colnum cell) = annotatedCell
+  let hasWidths = snd (NonEmpty.head specs) /= ColWidthDefault
+  let specAlign = fst (NonEmpty.head specs)
+  let (Cell _attr align' rowspan colspan blocks) = cell
+  let align = case align' of
+                AlignDefault -> specAlign
+                _            -> align'
   beamer <- gets stBeamer
   externalNotes <- gets stExternalNotes
   inMinipage <- gets stInMinipage
@@ -256,7 +262,7 @@ cellToLaTeX blockListToLaTeX celltype annotatedCell = do
         Plain{} -> True
         _       -> False
   result <-
-    if all isPlainOrPara blocks
+    if not hasWidths || (celltype /= HeaderCell && all isPlainOrPara blocks)
        then
          blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
        else do
@@ -290,3 +296,4 @@ cellToLaTeX blockListToLaTeX celltype annotatedCell = do
 data CellType
   = HeaderCell
   | BodyCell
+  deriving Eq

@@ -56,11 +56,27 @@ Multiline table with caption:
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.35}}@{}}
 \caption{Here's the caption. It may span multiple lines.}\tabularnewline
 \toprule
-Centered Header & Left Aligned & Right Aligned & Default aligned \\
+\begin{minipage}[b]{\linewidth}\centering
+Centered Header
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Left Aligned
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Right Aligned
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Default aligned
+\end{minipage} \\
 \midrule
 \endfirsthead
 \toprule
-Centered Header & Left Aligned & Right Aligned & Default aligned \\
+\begin{minipage}[b]{\linewidth}\centering
+Centered Header
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Left Aligned
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Right Aligned
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Default aligned
+\end{minipage} \\
 \midrule
 \endhead
 First & row & 12.0 & Example of a row that spans multiple lines. \\
@@ -76,7 +92,15 @@ Multiline table without caption:
   >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.16}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.35}}@{}}
 \toprule
-Centered Header & Left Aligned & Right Aligned & Default aligned \\
+\begin{minipage}[b]{\linewidth}\centering
+Centered Header
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Left Aligned
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Right Aligned
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Default aligned
+\end{minipage} \\
 \midrule
 \endhead
 First & row & 12.0 & Example of a row that spans multiple lines. \\
