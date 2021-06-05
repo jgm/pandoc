@@ -366,7 +366,7 @@ blockToMarkdown' opts (Plain inlines) = do
 -- title beginning with fig: indicates figure
 blockToMarkdown' opts (Para [Image attr alt (src,tgt@(T.stripPrefix "fig:" -> Just tit))])
   | isEnabled Ext_raw_html opts &&
-    not (isEnabled Ext_link_attributes opts) &&
+    not (isEnabled Ext_link_attributes opts || isEnabled Ext_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
     (<> blankline) . literal . T.strip <$>
       writeHtml5String opts{ writerTemplate = Nothing }
@@ -431,7 +431,8 @@ blockToMarkdown' opts (Header level attr inlines) = do
                                  && id' == autoId -> empty
                    (id',_,_)   | isEnabled Ext_mmd_header_identifiers opts ->
                                     space <> brackets (literal id')
-                   _ | isEnabled Ext_header_attributes opts ->
+                   _ | isEnabled Ext_header_attributes opts ||
+                       isEnabled Ext_attributes opts ->
                                     space <> attrsToMarkdown attr
                      | otherwise -> empty
   contents <- inlineListToMarkdown opts $
@@ -490,7 +491,8 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
      endline c = literal $ T.replicate (endlineLen c) $ T.singleton c
      backticks = endline '`'
      tildes = endline '~'
-     attrs  = if isEnabled Ext_fenced_code_attributes opts
+     attrs  = if isEnabled Ext_fenced_code_attributes opts ||
+                 isEnabled Ext_attributes opts
                  then nowrap $ " " <> classOrAttrsToMarkdown attribs
                  else case attribs of
                             (_,cls:_,_) -> " " <> literal cls
