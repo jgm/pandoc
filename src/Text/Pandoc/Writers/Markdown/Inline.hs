@@ -117,7 +117,7 @@ attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
 
 linkAttributes :: WriterOptions -> Attr -> Doc Text
 linkAttributes opts attr =
-  if isEnabled Ext_link_attributes opts && attr /= nullAttr
+  if (isEnabled Ext_link_attributes opts || isEnabled Ext_attributes opts) && attr /= nullAttr
      then attrsToMarkdown attr
      else empty
 
@@ -394,13 +394,15 @@ inlineToMarkdown opts (Quoted DoubleQuote lst) = do
                    then "&ldquo;" <> contents <> "&rdquo;"
                    else "“" <> contents <> "”"
 inlineToMarkdown opts (Code attr str) = do
-  let tickGroups = filter (T.any (== '`')) $ T.group str
-  let longest    = maybe 0 maximum $ nonEmpty $ map T.length tickGroups
-  let marker     = T.replicate (longest + 1) "`"
-  let spacer     = if longest == 0 then "" else " "
-  let attrs      = if isEnabled Ext_inline_code_attributes opts && attr /= nullAttr
-                      then attrsToMarkdown attr
-                      else empty
+  let tickGroups   = filter (T.any (== '`')) $ T.group str
+  let longest      = maybe 0 maximum $ nonEmpty $ map T.length tickGroups
+  let marker       = T.replicate (longest + 1) "`"
+  let spacer       = if longest == 0 then "" else " "
+  let attrsEnabled = isEnabled Ext_inline_code_attributes opts ||
+                     isEnabled Ext_attributes opts
+  let attrs        = if attrsEnabled && attr /= nullAttr
+                        then attrsToMarkdown attr
+                        else empty
   variant <- asks envVariant
   case variant of
      PlainText -> return $ literal str
@@ -559,7 +561,7 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit)) = do
                            else "[" <> reftext <> "]"
            in  return $ first <> second
       | isEnabled Ext_raw_html opts
-      , not (isEnabled Ext_link_attributes opts)
+      , not (isEnabled Ext_link_attributes opts || isEnabled Ext_attributes opts)
       , attr /= nullAttr -> -- use raw HTML to render attributes
           literal . T.strip <$>
             writeHtml5String opts{ writerTemplate = Nothing }
@@ -569,7 +571,7 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit)) = do
          linkAttributes opts attr
 inlineToMarkdown opts img@(Image attr alternate (source, tit))
   | isEnabled Ext_raw_html opts &&
-    not (isEnabled Ext_link_attributes opts) &&
+    not (isEnabled Ext_link_attributes opts || isEnabled Ext_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
     literal . T.strip <$>
       writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [Plain [img]])
