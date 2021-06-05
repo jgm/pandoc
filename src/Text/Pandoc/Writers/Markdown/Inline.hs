@@ -11,7 +11,9 @@
    Portability : portable
 -}
 module Text.Pandoc.Writers.Markdown.Inline (
-  inlineListToMarkdown
+  inlineListToMarkdown,
+  linkAttributes,
+  attrsToMarkdown
   ) where
 import Control.Monad.Reader
 import Control.Monad.State.Strict
