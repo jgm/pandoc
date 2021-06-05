@@ -198,8 +198,7 @@ blockToDocbook opts (Div (id',"section":_,_) (Header lvl (_,_,attrs) ils : xs)) 
 blockToDocbook opts (Div (ident,classes,_) bs) = do
   version <- ask
   let identAttribs = [(idName version, ident) | not (T.null ident)]
-      admonitions = ["attention","caution","danger","error","hint",
-                     "important","note","tip","warning"]
+      admonitions = ["caution","danger","important","note","tip","warning"]
   case classes of
     (l:_) | l `elem` admonitions -> do
         let (mTitleBs, bodyBs) =
