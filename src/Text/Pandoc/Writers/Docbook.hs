@@ -429,7 +429,9 @@ inlineToDocbook opts (Link attr txt (src, _))
   | otherwise = do
       version <- ask
       (if "#" `T.isPrefixOf` src
-            then inTags False "link" $ ("linkend", writerIdentifierPrefix opts <> T.drop 1 src) : idAndRole attr
+            then let tag = if null txt then "xref" else "link"
+                 in  inTags False tag $
+                     ("linkend", writerIdentifierPrefix opts <> T.drop 1 src) : idAndRole attr
             else if version == DocBook5
                     then inTags False "link" $ ("xlink:href", src) : idAndRole attr
                     else inTags False "ulink" $ ("url", src) : idAndRole attr )

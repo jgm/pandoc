@@ -32,9 +32,11 @@ which is in turn shorthand for
 -}
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> TestTree
+(=:), testDb4, testDb5 :: (ToString a, ToPandoc a)
+                       => String -> (a, String) -> TestTree
 (=:) = test docbook
+testDb4 = test docbook
+testDb5 = test docbook5
 
 lineblock :: Blocks
 lineblock = para ("some text" <> linebreak <>
@@ -47,7 +49,19 @@ lineblock_out = [ "<literallayout>some text"
                 ]
 
 tests :: [TestTree]
-tests = [ testGroup "line blocks"
+tests = [ testGroup "inline elements"
+          [ testGroup "links"
+            [ testDb4 "db4 external link" $ link "https://example.com" "" "Hello"
+                                            =?> "<ulink url=\"https://example.com\">Hello</ulink>"
+            , testDb5 "db5 external link" $ link "https://example.com" "" "Hello"
+                                            =?> "<link xlink:href=\"https://example.com\">Hello</link>"
+            , testDb5 "anchor"            $ link "#foo" "" "Hello"
+                                            =?> "<link linkend=\"foo\">Hello</link>"
+            , testDb5 "automatic anchor"  $ link "#foo" "" ""
+                                            =?> "<xref linkend=\"foo\"></xref>"
+            ]
+          ]
+        , testGroup "line blocks"
           [ "none"       =: para "This is a test"
                               =?> unlines
                                     [ "<para>"
