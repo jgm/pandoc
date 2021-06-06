@@ -196,6 +196,11 @@ $if(document-css)$
   tbody, th {
     border-color: #d3d3d3;
   }
+$if(monobackgroundcolor)$
+  pre, code {
+    background-color: initial;
+  }
+$endif$
 $if(invert-highlighting-css-in-dark-mode)$
   div.sourceCode {
     filter: invert(1);
