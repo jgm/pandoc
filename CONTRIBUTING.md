@@ -406,11 +406,11 @@ The library is structured as follows:
     tree automatically.
   - `Text.Pandoc.Readers.*` are the readers, and `Text.Pandoc.Writers.*`
     are the writers.
-  - `Text.Pandoc.Biblio` is a utility module for formatting citations
-    using citeproc-hs.
+  - `Text.Pandoc.Citeproc.*` contain the code for citation handling,
+    including an interface to the [citeproc] library.
   - `Text.Pandoc.Data` is used to embed data files when the `embed_data_files`
-    cabal flag is used.  It is generated from `src/Text/Pandoc/Data.hsb` using
-    the preprocessor [hsb2hs].
+    cabal flag is used.
+  - `Text.Pandoc.Emoji` is a thin wrapper around [emojis].
   - `Text.Pandoc.Highlighting` contains the interface to the
     skylighting library, which is used for code syntax highlighting.
   - `Text.Pandoc.ImageSize` is a utility module containing functions for
@@ -421,7 +421,6 @@ The library is structured as follows:
   - `Text.Pandoc.PDF` contains functions for producing a PDF from a
     LaTeX source.
   - `Text.Pandoc.Parsing` contains parsing functions used in multiple readers.
-  - `Text.Pandoc.Pretty` is a pretty-printing library specialized to
     the needs of pandoc.
   - `Text.Pandoc.SelfContained` contains functions for making an HTML
     file "self-contained," by importing remotely linked images, CSS,
@@ -456,6 +455,8 @@ you may want to consider submitting a pull request to the
 [EditorConfig]: https://editorconfig.org/
 [Haskell platform]: https://www.haskell.org/platform/
 [hlint]: https://hackage.haskell.org/package/hlint
+[citeproc]: https://hackage.haskell.org/package/citeproc
+[emojis]: https://hackage.haskell.org/package/emojis
 [hsb2hs]: https://hackage.haskell.org/package/hsb2hs
 [pre-commit hook]: https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks
 [GitHub labels]: https://github.com/jgm/pandoc/labels
