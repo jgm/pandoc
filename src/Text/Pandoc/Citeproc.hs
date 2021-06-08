@@ -49,7 +49,6 @@ import qualified Data.Text as T
 import System.FilePath (takeExtension)
 import Safe (lastMay, initSafe)
 
-
 processCitations  :: PandocMonad m => Pandoc -> m Pandoc
 processCitations (Pandoc meta bs) = do
   style <- getStyle (Pandoc meta bs)
@@ -499,7 +498,8 @@ insertRefs refkvs refclasses meta refs bs =
      put True
      -- refHeader isn't used if you have an explicit references div
      let cs' = ordNub $ cs ++ refclasses
-     return $ Div ("refs",cs' ++ refclasses,kvs ++ refkvs) (xs ++ refs)
+     let kvs' = ordNub $ kvs ++ refkvs
+     return $ Div ("refs",cs',kvs') (xs ++ refs)
    go x = return x
 
 refTitle :: Meta -> Maybe [Inline]
