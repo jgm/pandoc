@@ -139,7 +139,7 @@ report :: PandocMonad m => LogMessage -> m ()
 -- | Fetch an image or other item from the local filesystem or the net.
 -- Returns raw content and maybe mime type.
 fetchItem :: PandocMonad m
-          => String
+          => Text
           -> m (B.ByteString, Maybe MimeType)
 
 -- Set the resource path searched by 'fetchItem'.
@@ -213,8 +213,8 @@ of the Monoid typeclass and can easily be concatenated:
 import Text.Pandoc.Builder
 
 mydoc :: Pandoc
-mydoc = doc $ header 1 (text "Hello!")
-           <> para (emph (text "hello world") <> text ".")
+mydoc = doc $ header 1 (text (T.pack "Hello!"))
+           <> para (emph (text (T.pack "hello world")) <> text (T.pack "."))
 
 main :: IO ()
 main = print mydoc
@@ -261,16 +261,16 @@ import qualified Data.Text as T
 import Data.List (intersperse)
 
 data Station = Station{
-    address        :: String
-  , name           :: String
-  , cardsAccepted  :: [String]
+    address        :: T.Text
+  , name           :: T.Text
+  , cardsAccepted  :: [T.Text]
   } deriving Show
 
 instance FromJSON Station where
     parseJSON (Object v) = Station <$>
        v .: "street_address" <*>
        v .: "station_name" <*>
-       (words <$> (v .:? "cards_accepted" .!= ""))
+       (T.words <$> (v .:? "cards_accepted" .!= ""))
     parseJSON _          = mzero
 
 createLetter :: [Station] -> Pandoc
@@ -328,7 +328,7 @@ users to override the system defaults.  If you want to disable
 this behavior, use `setUserDataDir Nothing`.
 
 To render a template, use `renderTemplate'`, which takes two
-arguments, a template (String) and a context (any instance
+arguments, a template (Text) and a context (any instance
 of ToJSON).  If you want to create a context from the metadata
 part of a Pandoc document, use `metaToJSON'` from
 [Text.Pandoc.Writers.Shared].  If you also want to incorporate
@@ -426,7 +426,7 @@ concatenated together.  Here's an example that returns a
 list of the URLs linked to in a document:
 
 ```haskell
-listURLs :: Pandoc -> [String]
+listURLs :: Pandoc -> [Text]
 listURLs = query urls
   where urls (Link _ _ (src, _)) = [src]
         urls _                   = []
