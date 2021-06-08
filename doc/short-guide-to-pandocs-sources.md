@@ -234,8 +234,7 @@ The library is structured as follows:
     with extensions.
   - `Text.Pandoc.Lua.*` implement Lua filters.
   - `Text.Pandoc.Options` defines reader and writer options.
-  - `Text.Pandoc.PDF` contains functions for producing a PDF from a
-    LaTeX source.
+  - `Text.Pandoc.PDF` contains functions for producing PDFs.
   - `Text.Pandoc.Parsing` contains parsing functions used in multiple readers.
     the needs of pandoc.
   - `Text.Pandoc.SelfContained` contains functions for making an HTML
