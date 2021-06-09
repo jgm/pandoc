@@ -104,9 +104,7 @@ blockToOrg :: PandocMonad m
            -> Org m (Doc Text)
 blockToOrg (Div attr bs) = divToOrg attr bs
 blockToOrg (Plain inlines) = inlineListToOrg inlines
--- title beginning with fig: indicates that the image is a figure
-blockToOrg (Para [Image attr txt (src,tgt)])
-  | Just tit <- T.stripPrefix "fig:" tgt = do
+blockToOrg (SimpleFigure attr txt (src, tit)) = do
       capt <- if null txt
               then return empty
               else ("#+caption: " <>) `fmap` inlineListToOrg txt

@@ -107,9 +107,7 @@ blockToDokuWiki opts (Plain inlines) =
 
 -- title beginning with fig: indicates that the image is a figure
 -- dokuwiki doesn't support captions - so combine together alt and caption into alt
-blockToDokuWiki opts (Para [Image attr txt (src,tgt)])
-  | Just tit <- T.stripPrefix "fig:" tgt
-  = do
+blockToDokuWiki opts (SimpleFigure attr txt (src, tit)) = do
       capt <- if null txt
               then return ""
               else (" " <>) `fmap` inlineListToDokuWiki opts txt

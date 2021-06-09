@@ -474,15 +474,16 @@ figure = try $ do
        figCaption = fromMaybe mempty $ blockAttrCaption figAttrs
        figKeyVals = blockAttrKeyValues figAttrs
        attr       = (figLabel, mempty, figKeyVals)
-       figTitle   = (if isFigure then withFigPrefix else id) figName
-     in
-       B.para . B.imageWith attr imgSrc figTitle <$> figCaption
-
-   withFigPrefix :: Text -> Text
-   withFigPrefix cs =
-     if "fig:" `T.isPrefixOf` cs
-     then cs
-     else "fig:" <> cs
+     in if isFigure
+           then (\c ->
+               B.simpleFigureWith
+                   attr c imgSrc (unstackFig figName)) <$> figCaption
+           else B.para . B.imageWith attr imgSrc figName <$> figCaption
+   unstackFig :: Text -> Text
+   unstackFig figName =
+       if "fig:" `T.isPrefixOf` figName
+           then T.drop 4 figName
+           else figName
 
 -- | Succeeds if looking at the end of the current paragraph
 endOfParagraph :: Monad m => OrgParser m ()

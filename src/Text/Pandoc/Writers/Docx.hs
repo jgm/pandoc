@@ -853,8 +853,7 @@ blockToOpenXML' opts (Plain lst) = do
      then withParaProp prop block
      else block
 -- title beginning with fig: indicates that the image is a figure
-blockToOpenXML' opts (Para [Image attr@(imgident,_,_) alt
-                             (src,T.stripPrefix "fig:" -> Just tit)]) = do
+blockToOpenXML' opts (SimpleFigure attr@(imgident, _, _) alt (src, tit)) = do
   setFirstPara
   fignum <- gets stNextFigureNum
   unless (null alt) $ modify $ \st -> st{ stNextFigureNum = fignum + 1 }

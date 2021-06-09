@@ -299,9 +299,8 @@ blockToXml :: PandocMonad m => Block -> FBM m [Content]
 blockToXml (Plain ss) = cMapM toXml ss  -- FIXME: can lead to malformed FB2
 blockToXml (Para [Math DisplayMath formula]) = insertMath NormalImage formula
 -- title beginning with fig: indicates that the image is a figure
-blockToXml (Para [Image atr alt (src,tgt)])
-  | Just tit <- T.stripPrefix "fig:" tgt
-  = insertImage NormalImage (Image atr alt (src,tit))
+blockToXml (SimpleFigure atr alt (src, tit)) =
+    insertImage NormalImage (Image atr alt (src,tit))
 blockToXml (Para ss) = list . el "p" <$> cMapM toXml ss
 blockToXml (CodeBlock _ s) = return . spaceBeforeAfter .
                              map (el "p" . el "code") . T.lines $ s

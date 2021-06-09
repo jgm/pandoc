@@ -2,7 +2,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
-{-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Writers.OpenDocument
    Copyright   : Copyright (C) 2008-2020 Andrea Rossato and John MacFarlane
@@ -377,7 +376,7 @@ blockToOpenDocument o = \case
     Plain          b -> if null b
                         then return empty
                         else inParagraphTags =<< inlinesToOpenDocument o b
-    Para [Image attr c (s,T.stripPrefix "fig:" -> Just t)] -> figure attr c s t
+    SimpleFigure attr c (s, t) -> figure attr c s t
     Para           b -> if null b &&
                            not (isEnabled Ext_empty_paragraphs o)
                         then return empty
