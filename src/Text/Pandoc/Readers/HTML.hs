@@ -551,7 +551,7 @@ pFigure = try $ do
   let caption = fromMaybe mempty mbcap
   case B.toList <$> mbimg of
        Just [Image attr _ (url, tit)] ->
-         return $ B.para $ B.imageWith attr url ("fig:" <> tit) caption
+         return $ B.simpleFigureWith attr caption url tit
        _ -> mzero
 
 pCodeBlock :: PandocMonad m => TagParser m Blocks

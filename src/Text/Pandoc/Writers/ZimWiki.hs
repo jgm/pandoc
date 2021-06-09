@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Writers.ZimWiki
    Copyright   : © 2008-2021 John MacFarlane,
@@ -86,9 +85,8 @@ blockToZimWiki opts (Div _attrs bs) = do
 
 blockToZimWiki opts (Plain inlines) = inlineListToZimWiki opts inlines
 
--- title beginning with fig: indicates that the image is a figure
 -- ZimWiki doesn't support captions - so combine together alt and caption into alt
-blockToZimWiki opts (Para [Image attr txt (src,T.stripPrefix "fig:" -> Just tit)]) = do
+blockToZimWiki opts (SimpleFigure attr txt (src, tit)) = do
   capt <- if null txt
              then return ""
              else (" " <>) `fmap` inlineListToZimWiki opts txt

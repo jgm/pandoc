@@ -346,10 +346,7 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
   wrapNotes <$> wrapDiv (identifier,classes,kvs) result
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX lst
--- title beginning with fig: indicates that the image is a figure
-blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,tgt)])
-  | Just tit <- T.stripPrefix "fig:" tgt
-  = do
+blockToLaTeX (SimpleFigure attr@(ident, _, _) txt (src, tit)) = do
       (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True txt
       lab <- labelFor ident
       let caption = "\\caption" <> captForLof <> braces capt <> lab

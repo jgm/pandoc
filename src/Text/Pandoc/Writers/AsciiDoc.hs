@@ -149,9 +149,8 @@ blockToAsciiDoc opts (Div (id',"section":_,_)
 blockToAsciiDoc opts (Plain inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   return $ contents <> blankline
-blockToAsciiDoc opts (Para [Image attr alternate (src,tgt)])
+blockToAsciiDoc opts (SimpleFigure attr alternate (src, tit))
   -- image::images/logo.png[Company logo, title="blah"]
-  | Just tit <- T.stripPrefix "fig:" tgt
   = (\args -> "image::" <> args <> blankline) <$>
     imageArguments opts attr alternate src tit
 blockToAsciiDoc opts (Para inlines) = do

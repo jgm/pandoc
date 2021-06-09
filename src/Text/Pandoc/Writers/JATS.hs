@@ -291,9 +291,7 @@ blockToJATS opts (Header _ _ title) = do
   return $ inTagsSimple "title" title'
 -- No Plain, everything needs to be in a block-level tag
 blockToJATS opts (Plain lst) = blockToJATS opts (Para lst)
--- title beginning with fig: indicates that the image is a figure
-blockToJATS opts (Para [Image (ident,_,kvs) txt
-  (src,T.stripPrefix "fig:" -> Just tit)]) = do
+blockToJATS opts (SimpleFigure (ident, _, kvs) txt (src, tit)) = do
   alt <- inlinesToJATS opts txt
   let (maintype, subtype) = imageMimeType src kvs
   let capt = if null txt
