@@ -35,6 +35,7 @@ import Text.Pandoc.XML.Light
 import qualified Data.Set as S (fromList, member)
 import Data.Set ((\\))
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
+import qualified Data.Foldable as DF
 
 type JATS m = StateT JATSState m
 
@@ -226,9 +227,19 @@ parseBlock (Elem e) =
                                           mapM getInlines
                                           (filterChildren (const True) t)
                                         Nothing -> return mempty
-                         img <- getGraphic (Just (capt, attrValue "id" e)) g
-                         return $ para img
+
+                         let figAttributes = DF.toList $
+                              ("alt", ) . strContent <$>
+                              filterChild (named "alt-text") e
+
+                         return $ simpleFigureWith
+                          (attrValue "id" e, [], figAttributes)
+                          capt
+                          (attrValue "href" g)
+                          (attrValue "title" g)
+
                   _   -> divWith (attrValue "id" e, ["fig"], []) <$> getBlocks e
+
          parseTable = do
                       let isCaption x = named "title" x || named "caption" x
                       capt <- case filterChild isCaption e of
