@@ -116,8 +116,8 @@ cellGridToOpenXML :: PandocMonad m
                   -> [Alignment]
                   -> Part
                   -> WS m [Element]
-cellGridToOpenXML blocksToOpenXML rowType aligns part@(Part _ _ rowAttrs) =
-  if null (indices rowAttrs)
+cellGridToOpenXML blocksToOpenXML rowType aligns part@(Part _ cellArray _) =
+  if null (elems cellArray)
   then return mempty
   else mapM (rowToOpenXML blocksToOpenXML) $
        partToRows rowType aligns part
