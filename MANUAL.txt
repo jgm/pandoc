@@ -675,12 +675,12 @@ header when requesting a document from a URL:
 :   Extract images and other media contained in or linked from
     the source document to the path *DIR*, creating it if
     necessary, and adjust the images references in the document
-    so they point to the extracted files.  If the source format is
-    a binary container (docx, epub, or odt), the media is
-    extracted from the container and the original
-    filenames are used. Otherwise the media is read from the
-    file system or downloaded, and new filenames are constructed
-    based on SHA1 hashes of the contents.
+    so they point to the extracted files.  Media are downloaded,
+    read from the file system, or extracted from a binary
+    container (e.g. docx), as needed.  The original file paths
+    are used if they are relative paths not containing `..`.
+    Otherwise filenames are constructed from the SHA1 hash of
+    the contents.
 
 `--abbreviations=`*FILE*
 

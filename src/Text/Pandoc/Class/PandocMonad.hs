@@ -638,17 +638,12 @@ fillMediaBag d = walkM handleImage d
         handleImage (Image attr lab (src, tit)) = catchError
           (do mediabag <- getMediaBag
               let fp = T.unpack src
-              src' <- T.pack <$> case lookupMedia fp mediabag of
-                        Just item -> return $ mediaPath item
-                        Nothing -> do
-                          (bs, mt) <- fetchItem src
-                          insertMedia fp mt (BL.fromStrict bs)
-                          mediabag' <- getMediaBag
-                          case lookupMedia fp mediabag' of
-                             Just item -> return $ mediaPath item
-                             Nothing -> throwError $ PandocSomeError $
-                               src <> " not successfully inserted into MediaBag"
-              return $ Image attr lab (src', tit))
+              case lookupMedia fp mediabag of
+                Just _ -> return ()
+                Nothing -> do
+                  (bs, mt) <- fetchItem src
+                  insertMedia fp mt (BL.fromStrict bs)
+              return $ Image attr lab (src, tit))
           (\e ->
               case e of
                 PandocResourceNotFound _ -> do

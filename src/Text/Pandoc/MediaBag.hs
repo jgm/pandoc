@@ -71,16 +71,21 @@ insertMedia :: FilePath       -- ^ relative path and canonical name of resource
             -> MediaBag
             -> MediaBag
 insertMedia fp mbMime contents (MediaBag mediamap) =
-  MediaBag (M.insert (canonicalize fp) mediaItem mediamap)
-  where mediaItem = MediaItem{ mediaPath = showDigest (sha1 contents) <>
-                                 "." <> ext
+  MediaBag (M.insert fp' mediaItem mediamap)
+  where mediaItem = MediaItem{ mediaPath = newpath
                              , mediaContents = contents
                              , mediaMimeType = mt }
+        fp' = canonicalize fp
+        newpath = if isRelative fp && ".." `notElem` splitPath fp
+                     then T.unpack fp'
+                     else showDigest (sha1 contents) <> "." <> ext
         fallback = case takeExtension fp of
                         ".gz" -> getMimeTypeDef $ dropExtension fp
                         _     -> getMimeTypeDef fp
         mt = fromMaybe fallback mbMime
-        ext = maybe (takeExtension fp) T.unpack $ extensionFromMimeType mt
+        ext = case takeExtension fp of
+               '.':e  -> e
+               _      -> maybe "" T.unpack $ extensionFromMimeType mt
 
 
 -- | Lookup a media item in a 'MediaBag', returning mime type and contents.
@@ -92,13 +97,11 @@ lookupMedia fp (MediaBag mediamap) = M.lookup (canonicalize fp) mediamap
 -- | Get a list of the file paths stored in a 'MediaBag', with
 -- their corresponding mime types and the lengths in bytes of the contents.
 mediaDirectory :: MediaBag -> [(FilePath, MimeType, Int)]
-mediaDirectory (MediaBag mediamap) =
-  M.foldrWithKey (\fp item ->
-      ((T.unpack fp, mediaMimeType item,
-        fromIntegral (BL.length (mediaContents item))):)) [] mediamap
+mediaDirectory mediabag =
+  map (\(fp, mt, bs) -> (fp, mt, fromIntegral (BL.length bs)))
+    (mediaItems mediabag)
 
 mediaItems :: MediaBag -> [(FilePath, MimeType, BL.ByteString)]
 mediaItems (MediaBag mediamap) =
-  M.foldrWithKey (\fp item ->
-      ((T.unpack fp, mediaMimeType item, mediaContents item):))
-     [] mediamap
+  map (\item -> (mediaPath item, mediaMimeType item, mediaContents item))
+      (M.elems mediamap)
