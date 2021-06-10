@@ -146,7 +146,7 @@ from_simple_table (SimpleTable capt aligns widths head' body) = do
     nullAttr
     (Caption Nothing [Plain capt])
     (zipWith (\a w -> (a, toColWidth w)) aligns widths)
-    (TableHead nullAttr [blockListToRow head'])
+    (TableHead nullAttr [blockListToRow head' | not (null head') ])
     [TableBody nullAttr 0 [] $ map blockListToRow body]
     (TableFoot nullAttr [])
   return (NumResults 1)
