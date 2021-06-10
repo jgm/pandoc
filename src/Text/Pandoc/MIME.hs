@@ -43,6 +43,16 @@ getMimeTypeDef :: FilePath -> MimeType
 getMimeTypeDef = fromMaybe "application/octet-stream" . getMimeType
 
 extensionFromMimeType :: MimeType -> Maybe T.Text
+-- few special cases, where there are multiple options:
+extensionFromMimeType "text/plain" = Just "txt"
+extensionFromMimeType "video/quicktime" = Just "mov"
+extensionFromMimeType "video/mpeg" = Just "mpeg"
+extensionFromMimeType "video/dv" = Just "dv"
+extensionFromMimeType "image/vnd.djvu" = Just "djvu"
+extensionFromMimeType "image/tiff" = Just "tiff"
+extensionFromMimeType "image/jpeg" = Just "jpg"
+extensionFromMimeType "application/xml" = Just "xml"
+extensionFromMimeType "application/ogg" = Just "ogg"
 extensionFromMimeType mimetype =
   M.lookup (T.takeWhile (/=';') mimetype) reverseMimeTypes
   -- note:  we just look up the basic mime type, dropping the content-encoding etc.
