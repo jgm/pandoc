@@ -39,9 +39,9 @@
  [])
 ,Para [Str "CONTENTS"]
 ,Para [Strong [Str "Section",Space,Str "Page"]]
-,Para [Str "FIGURES",Space,Str "iv"]
-,Para [Str "TABLES",Space,Str "v"]
-,Para [Str "SECTION",Space,Str "1",Space,Str "Introduction",Space,Str "2"]
+,Para [Str "FIGURES",Space,Link ("",[],[]) [Str "iv"] ("#figures","")]
+,Para [Str "TABLES",Space,Link ("",[],[]) [Str "v"] ("#tables","")]
+,Para [Str "SECTION",Space,Str "1",Space,Str "Introduction",Space,Link ("",[],[]) [Str "2"] ("#introduction","")]
 ,Header 1 ("figures",["Heading-0"],[]) [Str "FIGURES"]
 ,Para [Strong [Str "Figure",Space,Str "Page"]]
 ,Para [Strong [Str "No",Space,Str "table",Space,Str "of",Space,Str "figures",Space,Str "entries",Space,Str "found."]]

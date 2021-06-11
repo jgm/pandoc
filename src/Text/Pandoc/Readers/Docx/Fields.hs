@@ -21,8 +21,11 @@ import Text.Parsec
 import Text.Parsec.Text (Parser)
 
 type URL = T.Text
+type Anchor = T.Text
 
 data FieldInfo = HyperlinkField URL
+                -- The boolean indicates whether the field is a hyperlink.
+               | PagerefField Anchor Bool
                | UnknownField
                deriving (Show)
 
@@ -32,6 +35,8 @@ parseFieldInfo = parse fieldInfo ""
 fieldInfo :: Parser FieldInfo
 fieldInfo =
   try (HyperlinkField <$> hyperlink)
+  <|>
+  try ((uncurry PagerefField) <$> pageref) 
   <|>
   return UnknownField
 
@@ -72,3 +77,23 @@ hyperlink = do
               ("\\l", s) : _ -> farg <> "#" <> s
               _              -> farg
   return url
+
+-- See §17.16.5.45
+pagerefSwitch :: Parser (T.Text, T.Text)
+pagerefSwitch = do
+  sw <- string "\\h"
+  spaces
+  farg <- fieldArgument
+  return (T.pack sw, farg)
+
+pageref :: Parser (Anchor, Bool)
+pageref = do
+  many space
+  string "PAGEREF"
+  spaces
+  farg <- fieldArgument
+  switches <- spaces *> many pagerefSwitch
+  let isLink = case switches of
+              ("\\h", _) : _ -> True 
+              _              -> False
+  return (farg, isLink)

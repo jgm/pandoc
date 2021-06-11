@@ -152,6 +152,10 @@ tests = [ testGroup "document"
             "docx/nested_instrText.docx"
             "docx/nested_instrText.native"
           , testCompare
+            "pageref hyperlinks in <w:instrText> tag"
+            "docx/pageref.docx"
+            "docx/pageref.native"
+          , testCompare
             "inline image"
             "docx/image.docx"
             "docx/image_no_embed.native"
