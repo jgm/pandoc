@@ -1,14 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Pandoc User's Guide
-    url: https://pandoc.org/MANUAL.html
-    about: "Official manual for pandoc"
-  - name: pandoc-discuss mailing list
+  - name: Ask a question
     url: https://groups.google.com/forum/#!forum/pandoc-discuss
     about: "Discussion forum for pandoc (may be used as an email list)"
-  - name: Frequently Asked Questions
-    url: https://pandoc.org/faqs.html
-    about: "Some frequently asked questions (and answers)"
   - name: Contributing Guidelines
     url: https://pandoc.org/CONTRIBUTING.html
     about: "Guidelines for submitting bug reports and code improvements"
