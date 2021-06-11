@@ -9,4 +9,7 @@ contact_links:
   - name: Frequently Asked Questions
     url: https://pandoc.org/faqs.html
     about: "Some frequently asked qusetions (and answers)"
+  - name: Contributing Guidelines
+    url: https://github.com/jgm/pandoc/CONTRIBUTING.md
+    about: "Guidelines for submitting bug reports and code improvements"
 
