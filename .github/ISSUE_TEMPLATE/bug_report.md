@@ -9,8 +9,7 @@ assignees: ''
 
 Thank you for reporting an issue! Before you continue, please make sure that you have
 
-- searched the issue tracker for similar issues (including
-  closed issues): https://github.com/jgm/pandoc/issues
+- searched the issue tracker for similar issues (including closed issues): https://github.com/jgm/pandoc/issues
 - searched the pandoc-discuss mailing list for solutions: https://groups.google.com/forum/#!forum/pandoc-discuss
 - reproduced your issue on the latest release of pandoc, or on https://pandoc.org/try
 
