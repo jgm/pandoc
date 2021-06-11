@@ -2,37 +2,20 @@
 name: Bug report
 about: Create a report to help us improve
 title: ''
-labels: ''
+labels: 'bug'
 assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+Thank you for reporting an issue! Before you continue, please make sure that you have
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+- [ ] searched [the issue tracker](https://github.com/jgm/pandoc/issues) for similar issues (the closed issues too)
+- [ ] searched [pandoc-discuss](https://groups.google.com/forum/#!forum/pandoc-discuss) for solutions
+- [ ] reproduced your issue on [the latest release](https://github.com/jgm/pandoc/releases) doom-emacs/commit) of pandoc, or on [try pandoc](https://pandoc.org/try)
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**Explain the problem.**
+Include the exact command line you used and all inputs necessary to reproduce the issue.  Please create as minimal an example as possible, to help the maintainers isolate the problem.  Explain the output you received and how it differs from what you expected.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Pandoc version?**
+What version of pandoc are you using (`pandoc --version`), on what OS?
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
-
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
-
-**Additional context**
-Add any other context about the problem here.
