@@ -8,8 +8,8 @@ contact_links:
     about: "Discussion forum for pandoc (may be used as an email list)"
   - name: Frequently Asked Questions
     url: https://pandoc.org/faqs.html
-    about: "Some frequently asked qusetions (and answers)"
+    about: "Some frequently asked questions (and answers)"
   - name: Contributing Guidelines
-    url: https://github.com/jgm/pandoc/CONTRIBUTING.md
+    url: https://pandoc.org/CONTRIBUTING.html
     about: "Guidelines for submitting bug reports and code improvements"
 
