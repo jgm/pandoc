@@ -1,5 +1,106 @@
 # Revision history for pandoc
 
+## pandoc 2.14.0.2 (2021-06-11)
+
+  * Fix MediaBag regressions (#7345). iIn the 2.14 release `--extract-media`
+    stopped working as before; there could be mismatches between the
+    paths in the rendered document and the extracted media.
+    This patch makes several changes that restore the earlier behavior
+    (while keeping the same API).  The `mediaPath` in 2.14 was always
+    constructed from the SHA1 hash of the media contents.  Now, we
+    preserve the original path unless it's an absolute path or contains
+    `..` segments (in that case we use a path based on the SHA1 hash of
+    the contents).
+
+    In Text.Pandoc.MediaBag, `mediaDirectory` and `mediaItems` now use the
+    `mediaPath`, rather than the mediabag key, for the first component of the
+    tuple.  This makes more sense, I think, and fits with the documentation of
+    these functions; eventually, though, we should rework the API so that
+    `mediaItems` returns both the keys and the MediaItems.
+
+    In Text.Pandoc.Class.IO, rewriting of source paths in `extractMedia` has
+    been fixed.
+
+    In Text.Pandoc.Class.PandocMonad, `fillMediaBag` has been modified so that
+    it doesn't modify image paths (that was part of the problem in #7345).
+
+    We now do path normalization (e.g. `\` separators on Windows) in
+    writing the media.
+
+  * Text.Pandoc.PDF:
+
+    + Text.Pandoc.PDF: Fix regression in 2.14 for generation of PDFs with
+      SVGs (#7344).
+    + Only print relevant part of environment on `--verbose`.  Since
+      `--verbose` output might be put in an issue, we want to avoid
+      spilling out secrets in environment variables.
+
+  * Markdown reader: fix pipe table regression in 2.11.4 (#7343).
+    Previously pipe tables with empty headers (that is, a header
+    line with all empty cells) would be rendered as headerless
+    tables.  This broke in 2.11.4.  The fix here is to produce an
+    AST with an empty table head when a pipe table has all empty
+    header cells.
+
+  * LaTeX reader: don't allow optional `*` on symbol control sequences
+    (#7340).  Generally we allow optional starred variants of LaTeX commands
+    (since many allow them, and if we don't accept these explicitly,
+    ignoring the star usually gives acceptable results).  But we
+    don't want to do this for `\(*\)` and similar cases.
+
+  * Docx writer: fix handling of empty table headers (Albert Krewinkel,
+    #7369).  A table header which does not contain any cells is now treated as
+    an empty header.
+
+  * LaTeX writer: Fix regression in table header position (#7347).
+    In recent versions the table headers were no longer bottom-aligned
+    (if more than one line).  This patch fixes that by using minipages
+    for table headers in non-simple tables.
+
+  * CommonMark writer:
+
+    + Do not use simple class for fenced-divs (Jan Tojnar, amends #7242.)
+    + Do not throw away attributes when `Ext_attributes` is enabled.
+      `Ext_attributes` covers at least the following:
+      `Ext_fenced_code_attributes`, `Ext_header_attributes`,
+      `Ext_inline_code_attributes`, `Ext_link_attributes`.
+
+  * Markdown writer: re-use functions from Text.Pandoc.Markdown.Inline (Jan
+    Tojnar).
+
+  * DocBook writer: Remove non-existent admonitions (Jan Tojnar).
+    `attention`, `error` and `hint` are reStructuredText specific.
+
+  * HTML writer: Don't omit width attribute on div (#7342).
+
+  * Text.Pandoc.MIME, `extensionFromMimeType`: add a few special cases.
+    When we do a reverse lookup in the MIME table, we just get the
+    last match, so when the same mime type is associated with several
+    different extensions, we sometimes got weird results, e.g. `.vs`
+    for `text/plain`.  These special cases help us get the most standard
+    extensions for mime types like `text/plain`.
+
+  * Lua utils: fix handling of table headers in `from_simple_table` (Albert
+    Krewinkel, #7369).  Passing an empty list of header cells now results
+    in an empty table header.
+
+  * Text.Pandoc.Citeproc: avoid duplicate classes and attributes on
+    references div.
+
+  * Require citeproc 0.4.0.1.  This fixes a bug which led to doubled
+    "et al." in some (rare) circumstances.
+
+  * MANUAL.txt:
+
+    + Mention GladTeX for EPUB export (Sebastian Humenda).
+      This updates the manual and the web site about the GladTeX usage.
+    + More details and a useful link for YAML syntax.
+
+  * CONTRIBUTING.md: update modules overview (Albert Krewinkel).
+
+  * using-the-pandoc-api.md: switch from String to Text (Albert Krewinkel).
+
+
 ## pandoc 2.14.0.1 (2021-06-01)
 
   * Commonmark reader: Fix regression in 2.14 with YAML metdata block parsing,
