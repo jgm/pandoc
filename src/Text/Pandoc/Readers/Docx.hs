@@ -448,6 +448,7 @@ parPartToInlines' (PlainOMath exps) =
 parPartToInlines' (Field info children) =
   case info of
     HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url children
+    PagerefField fieldAnchor True -> parPartToInlines' $ InternalHyperLink fieldAnchor children
     _ -> smushInlines <$> mapM parPartToInlines' children
 parPartToInlines' NullParPart = return mempty
 

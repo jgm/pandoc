@@ -1,0 +1,4 @@
+[Para [Str "Title",Space,Link ("",[],[]) [Str "2"] ("#title","")]
+,Para [Str "Title2",Space,Link ("",[],[]) [Str "2"] ("#title2","")]
+,Header 1 ("title", [],[]) [Str "Title"]
+,Header 1 ("title2",[],[]) [Str "Title2"]]
