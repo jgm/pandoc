@@ -1,0 +1,44 @@
+---
+name: 📝 Bug Report
+description: Report a bug, error, or misbehavior
+title: "Briefly summarize your issue here"
+labels: ["bug"]
+body:
+- type: markdown
+  attributes:
+    value: |
+      **Thank you for reporting an issue to our issue tracker!**
+      Before you proceed, please consult our available resources and collect as much information about your issue as possible:
+
+- type: checkboxes
+  attributes:
+    options:
+      - label: I have searched [the manual](https://pandoc.org/MANUAL.html) for solutions.
+        required: true
+      - label: I have searched [the FAQs](https://pandoc.org/faqs.html) for solutions.
+        required: true
+      - label: I have searched [the issue tracker](https://github.com/jgm/pandoc/issues) for similar issues (the closed issues too).
+        required: true
+      - label: I have searched [pandoc-discuss](https://groups.google.com/forum/#!forum/pandoc-discuss) for solutions.
+        required: true
+      - label: I can reproduce my issue on [the latest release](https://github.com/jgm/pandoc/releases) doom-emacs/commit) of pandoc, or on [try pandoc](https://pandoc.org/try).
+        required: true
+      - label: If reporting a behavior change, I have searched the [changelog](https://github.com/jgm/pandoc/changelog.md) to see if it was intentional.
+        required: true
+- type: textarea
+  attributes:
+    label: Explain how to reproduce the problem.
+    description: |
+      + Please give as minimal an example as you can to reproduce the issue.
+      + Include full command line and all files necessary to reproduce.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: What happened, and what did you expect to happen?
+- type: textarea
+  attributes:
+    label: What pandoc version did you use? (`pandoc --version`)
+  validations:
+    required: true
+
