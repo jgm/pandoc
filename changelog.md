@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.14.0.2 (2021-06-11)
+## pandoc 2.14.0.2 (2021-06-12)
 
   * Fix MediaBag regressions (#7345). iIn the 2.14 release `--extract-media`
     stopped working as before; there could be mismatches between the
@@ -48,6 +48,8 @@
     ignoring the star usually gives acceptable results).  But we
     don't want to do this for `\(*\)` and similar cases.
 
+  * Docx reader: handle absolute URIs in Relationship Target (#7374).
+
   * Docx writer: fix handling of empty table headers (Albert Krewinkel,
     #7369).  A table header which does not contain any cells is now treated as
     an empty header.
@@ -65,8 +67,11 @@
       `Ext_fenced_code_attributes`, `Ext_header_attributes`,
       `Ext_inline_code_attributes`, `Ext_link_attributes`.
 
-  * Markdown writer: re-use functions from Text.Pandoc.Markdown.Inline (Jan
-    Tojnar).
+  * Markdown writer:
+
+    + Allow `pipe_tables` to be disabled for commonmark formats
+      (`commonmark_x`, `gfm`) (#7375).
+    + Re-use functions from Text.Pandoc.Markdown.Inline (Jan Tojnar).
 
   * DocBook writer: Remove non-existent admonitions (Jan Tojnar).
     `attention`, `error` and `hint` are reStructuredText specific.
@@ -84,8 +89,13 @@
     Krewinkel, #7369).  Passing an empty list of header cells now results
     in an empty table header.
 
-  * Text.Pandoc.Citeproc: avoid duplicate classes and attributes on
-    references div.
+  * Text.Pandoc.Citeproc:
+
+    + Avoid duplicate classes and attributes on references div.
+    + Fix regression in citeproc processing (#7376).  If inline
+      references are used (in the metadata `references` field), we
+      should still only include in the bibliography items that are
+      actually cited (unless `nocite` is used).
 
   * Require citeproc 0.4.0.1.  This fixes a bug which led to doubled
     "et al." in some (rare) circumstances.
