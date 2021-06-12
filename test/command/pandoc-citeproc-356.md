@@ -15,11 +15,6 @@ references:
 
 [@bar]
 ^D
-(Alice 2042)
-
-::: {#refs .references .csl-bib-body .hanging-indent}
-::: {#ref-foo .csl-entry}
-Alice. 2042.
-:::
-:::
+[WARNING] Citeproc: citation bar not found
+(**bar?**)
 ```

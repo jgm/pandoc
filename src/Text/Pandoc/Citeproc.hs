@@ -194,7 +194,9 @@ getReferences mblocale (Pandoc meta bs) = do
                   then const True
                   else (`Set.member` citeIds)
   let inlineRefs = case lookupMeta "references" meta of
-                    Just (MetaList rs) -> mapMaybe metaValueToReference rs
+                    Just (MetaList rs) ->
+                      filter (idpred . unItemId . referenceId)
+                         $  mapMaybe metaValueToReference rs
                     _                  -> []
   externalRefs <- case lookupMeta "bibliography" meta of
                     Just (MetaList xs) ->
