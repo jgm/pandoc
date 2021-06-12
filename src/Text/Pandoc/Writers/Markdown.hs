@@ -75,7 +75,6 @@ writeCommonMark opts document =
                    -- we set them here so that escapeText will behave
                    -- properly.
                    enableExtension Ext_all_symbols_escapable $
-                   enableExtension Ext_pipe_tables $
                    enableExtension Ext_intraword_underscores $
                      writerExtensions opts }
 
