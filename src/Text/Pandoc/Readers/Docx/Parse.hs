@@ -479,20 +479,26 @@ filePathToRelType path docXmlPath =
   then Just InDocument
   else Nothing
 
-relElemToRelationship :: DocumentLocation -> Element -> Maybe Relationship
-relElemToRelationship relType element | qName (elName element) == "Relationship" =
+relElemToRelationship :: FilePath -> DocumentLocation -> Element
+                      -> Maybe Relationship
+relElemToRelationship fp relType element | qName (elName element) == "Relationship" =
   do
     relId <- findAttr (QName "Id" Nothing Nothing) element
     target <- findAttr (QName "Target" Nothing Nothing) element
-    return $ Relationship relType relId target
-relElemToRelationship _ _ = Nothing
+    -- target may be relative (media/image1.jpeg) or absolute
+    -- (/word/media/image1.jpeg); we need to relativize it (see #7374)
+    let frontOfFp = T.pack $ takeWhile (/= '_') fp
+    let target' = fromMaybe target $
+           T.stripPrefix frontOfFp $ T.dropWhile (== '/') target
+    return $ Relationship relType relId target'
+relElemToRelationship _ _ _ = Nothing
 
 filePathToRelationships :: Archive -> FilePath -> FilePath ->  [Relationship]
 filePathToRelationships ar docXmlPath fp
   | Just relType <- filePathToRelType fp docXmlPath
   , Just entry <- findEntryByPath fp ar
   , Just relElems <- parseXMLFromEntry entry =
-  mapMaybe (relElemToRelationship relType) $ elChildren relElems
+  mapMaybe (relElemToRelationship fp relType) $ elChildren relElems
 filePathToRelationships _ _ _ = []
 
 archiveToRelationships :: Archive -> FilePath -> [Relationship]
