@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.14.0.2 (2021-06-12)
+## pandoc 2.14.0.2 (2021-06-13)
 
   * Fix MediaBag regressions (#7345). iIn the 2.14 release `--extract-media`
     stopped working as before; there could be mismatches between the
