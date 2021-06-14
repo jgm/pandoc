@@ -246,8 +246,8 @@ runToText _                = ""
 
 parPartToText :: ParPart -> T.Text
 parPartToText (PlainRun run)             = runToText run
-parPartToText (InternalHyperLink _ runs) = T.concat $ map runToText runs
-parPartToText (ExternalHyperLink _ runs) = T.concat $ map runToText runs
+parPartToText (InternalHyperLink _ children) = T.concat $ map parPartToText children
+parPartToText (ExternalHyperLink _ children) = T.concat $ map parPartToText children
 parPartToText _                          = ""
 
 blacklistedCharStyles :: [CharStyleName]
@@ -437,18 +437,18 @@ parPartToInlines' Chart =
   return $ spanWith ("", ["chart"], []) $ text "[CHART]"
 parPartToInlines' Diagram =
   return $ spanWith ("", ["diagram"], []) $ text "[DIAGRAM]"
-parPartToInlines' (InternalHyperLink anchor runs) = do
-  ils <- smushInlines <$> mapM runToInlines runs
+parPartToInlines' (InternalHyperLink anchor children) = do
+  ils <- smushInlines <$> mapM parPartToInlines' children
   return $ link ("#" <> anchor) "" ils
-parPartToInlines' (ExternalHyperLink target runs) = do
-  ils <- smushInlines <$> mapM runToInlines runs
+parPartToInlines' (ExternalHyperLink target children) = do
+  ils <- smushInlines <$> mapM parPartToInlines' children
   return $ link target "" ils
 parPartToInlines' (PlainOMath exps) =
   return $ math $ writeTeX exps
-parPartToInlines' (Field info runs) =
+parPartToInlines' (Field info children) =
   case info of
-    HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url runs
-    UnknownField -> smushInlines <$> mapM runToInlines runs
+    HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url children
+    _ -> smushInlines <$> mapM parPartToInlines' children
 parPartToInlines' NullParPart = return mempty
 
 isAnchorSpan :: Inline -> Bool

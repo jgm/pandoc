@@ -93,14 +93,13 @@ data ReaderEnv = ReaderEnv { envNotes         :: Notes
                deriving Show
 
 data ReaderState = ReaderState { stateWarnings :: [T.Text]
-                               , stateFldCharState :: FldCharState
+                               , stateFldCharState :: [FldCharState]
                                }
                  deriving Show
 
 data FldCharState = FldCharOpen
                   | FldCharFieldInfo FieldInfo
-                  | FldCharContent FieldInfo [Run]
-                  | FldCharClosed
+                  | FldCharContent FieldInfo [ParPart]
                   deriving (Show)
 
 data DocxError = DocxError
@@ -314,13 +313,13 @@ data ParPart = PlainRun Run
              | CommentStart CommentId Author (Maybe CommentDate) [BodyPart]
              | CommentEnd CommentId
              | BookMark BookMarkId Anchor
-             | InternalHyperLink Anchor [Run]
-             | ExternalHyperLink URL [Run]
+             | InternalHyperLink Anchor [ParPart]
+             | ExternalHyperLink URL [ParPart]
              | Drawing FilePath T.Text T.Text B.ByteString Extent -- title, alt
              | Chart                                              -- placeholder for now
              | Diagram                                            -- placeholder for now
              | PlainOMath [Exp]
-             | Field FieldInfo [Run]
+             | Field FieldInfo [ParPart]
              | NullParPart      -- when we need to return nothing, but
                                 -- not because of an error.
              deriving Show
@@ -373,7 +372,7 @@ archiveToDocxWithWarnings archive = do
                        , envDocXmlPath = docXmlPath
                        }
       rState = ReaderState { stateWarnings = []
-                           , stateFldCharState = FldCharClosed
+                           , stateFldCharState = []
                            }
       (eitherDoc, st) = runD (archiveToDocument archive) rEnv rState
   case eitherDoc of
@@ -701,28 +700,31 @@ elemToBodyPart ns element
 elemToBodyPart ns element
   | isElem ns "w" "p" element = do
       parstyle <- elemToParagraphStyle ns element <$> asks envParStyles
-      parparts <- mapD (elemToParPart ns) (elChildren element)
+      parparts' <- mapD (elemToParPart ns) (elChildren element)
+      fldCharState <- gets stateFldCharState
+      modify $ \st -> st {stateFldCharState = emptyFldCharContents fldCharState}
       -- Word uses list enumeration for numbered headings, so we only
       -- want to infer a list from the styles if it is NOT a heading.
-      case pHeading parstyle of
-        Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
-                    levelInfo <- lookupLevel numId lvl <$> asks envNumbering
-                    return $ ListItem parstyle numId lvl levelInfo parparts
-        _ -> let
-          hasCaptionStyle = elem "Caption" (pStyleId <$> pStyle parstyle)
+      let parparts = parparts' ++ (openFldCharsToParParts fldCharState) in
+        case pHeading parstyle of
+          Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
+                      levelInfo <- lookupLevel numId lvl <$> asks envNumbering
+                      return $ ListItem parstyle numId lvl levelInfo parparts
+          _ -> let
+            hasCaptionStyle = elem "Caption" (pStyleId <$> pStyle parstyle)
 
-          hasSimpleTableField = fromMaybe False $ do
-            fldSimple <- findChildByName ns "w" "fldSimple" element
-            instr <- findAttrByName ns "w" "instr" fldSimple
-            pure ("Table" `elem` T.words instr)
+            hasSimpleTableField = fromMaybe False $ do
+              fldSimple <- findChildByName ns "w" "fldSimple" element
+              instr <- findAttrByName ns "w" "instr" fldSimple
+              pure ("Table" `elem` T.words instr)
 
-          hasComplexTableField = fromMaybe False $ do
-            instrText <- findElementByName ns "w" "instrText" element
-            pure ("Table" `elem` T.words (strContent instrText))
+            hasComplexTableField = fromMaybe False $ do
+              instrText <- findElementByName ns "w" "instrText" element
+              pure ("Table" `elem` T.words (strContent instrText))
 
-          in if hasCaptionStyle && (hasSimpleTableField || hasComplexTableField)
-             then return $ TblCaption parstyle parparts
-             else return $ Paragraph parstyle parparts
+            in if hasCaptionStyle && (hasSimpleTableField || hasComplexTableField)
+              then return $ TblCaption parstyle parparts
+              else return $ Paragraph parstyle parparts
 
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do
@@ -754,6 +756,19 @@ lookupRelationship docLocation relid rels =
   where
     pairs = map (\(Relationship loc relid' target) -> ((loc, relid'), target)) rels
 
+openFldCharsToParParts :: [FldCharState] -> [ParPart]
+openFldCharsToParParts [] = []
+openFldCharsToParParts (FldCharContent info children : ancestors) = case openFldCharsToParParts ancestors of
+  Field parentInfo siblings : _ -> [Field parentInfo $ siblings ++ [Field info $ reverse children]]
+  _ -> [Field info $ reverse children]
+openFldCharsToParParts (_ : ancestors) = openFldCharsToParParts ancestors
+
+emptyFldCharContents :: [FldCharState] -> [FldCharState]
+emptyFldCharContents = map
+  (\x -> case x of
+    FldCharContent info _ -> FldCharContent info []
+    _ -> x)
+
 expandDrawingId :: T.Text -> D (FilePath, B.ByteString)
 expandDrawingId s = do
   location <- asks envLocation
@@ -778,51 +793,6 @@ getTitleAndAlt ns element =
   in (title, alt)
 
 elemToParPart :: NameSpaces -> Element -> D ParPart
-elemToParPart ns element
-  | isElem ns "w" "r" element
-  , Just drawingElem <- findChildByName ns "w" "drawing" element
-  , pic_ns <- "http://schemas.openxmlformats.org/drawingml/2006/picture"
-  , Just picElem <- findElement (QName "pic" (Just pic_ns) (Just "pic")) drawingElem
-  = let (title, alt) = getTitleAndAlt ns drawingElem
-        a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
-        drawing = findElement (QName "blip" (Just a_ns) (Just "a")) picElem
-                  >>= findAttrByName ns "r" "embed"
-    in
-     case drawing of
-       Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp title alt bs $ elemToExtent drawingElem)
-       Nothing -> throwError WrongElem
--- The two cases below are an attempt to deal with images in deprecated vml format.
--- Todo: check out title and attr for deprecated format.
-elemToParPart ns element
-  | isElem ns "w" "r" element
-  , Just _ <- findChildByName ns "w" "pict" element =
-    let drawing = findElement (elemName ns "v" "imagedata") element
-                  >>= findAttrByName ns "r" "id"
-    in
-     case drawing of
-       Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp "" "" bs Nothing)
-       Nothing -> throwError WrongElem
-elemToParPart ns element
-  | isElem ns "w" "r" element
-  , Just objectElem <- findChildByName ns "w" "object" element
-  , Just shapeElem <- findChildByName ns "v" "shape" objectElem
-  , Just imagedataElem <- findChildByName ns "v" "imagedata" shapeElem
-  , Just drawingId <- findAttrByName ns "r" "id" imagedataElem
-  = expandDrawingId drawingId >>= (\(fp, bs) -> return $ Drawing fp "" "" bs Nothing)
--- Diagram
-elemToParPart ns element
-  | isElem ns "w" "r" element
-  , Just drawingElem <- findChildByName ns "w" "drawing" element
-  , d_ns <- "http://schemas.openxmlformats.org/drawingml/2006/diagram"
-  , Just _ <- findElement (QName "relIds" (Just d_ns) (Just "dgm")) drawingElem
-  = return Diagram
--- Chart
-elemToParPart ns element
-  | isElem ns "w" "r" element
-  , Just drawingElem <- findChildByName ns "w" "drawing" element
-  , c_ns <- "http://schemas.openxmlformats.org/drawingml/2006/chart"
-  , Just _ <- findElement (QName "chart" (Just c_ns) (Just "c")) drawingElem
-  = return Chart
 {-
 The next one is a bit complicated. fldChar fields work by first
 having a <w:fldChar fldCharType="begin"> in a run, then a run with
@@ -854,8 +824,13 @@ example (omissions and my comments in brackets):
 So we do this in a number of steps. If we encounter the fldchar begin
 tag, we start open a fldchar state variable (see state above). We add
 the instrtext to it as FieldInfo. Then we close that and start adding
-the runs when we get to separate. Then when we get to end, we produce
-the Field type with appropriate FieldInfo and Runs.
+the children when we get to separate. Then when we get to end, we produce
+the Field type with appropriate FieldInfo and ParParts.
+
+Since there can be nested fields, the fldchar state needs to be a stack,
+so we can have multiple fldchars open at the same time. When a fldchar is
+closed, we either add the resulting field to its parent or we return it if
+there is no parent.
 -}
 elemToParPart ns element
   | isElem ns "w" "r" element
@@ -863,78 +838,138 @@ elemToParPart ns element
   , Just fldCharType <- findAttrByName ns "w" "fldCharType" fldChar = do
       fldCharState <- gets stateFldCharState
       case fldCharState of
-        FldCharClosed | fldCharType == "begin" -> do
-          modify $ \st -> st {stateFldCharState = FldCharOpen}
+        _ | fldCharType == "begin" -> do
+          modify $ \st -> st {stateFldCharState = FldCharOpen : fldCharState}
           return NullParPart
-        FldCharFieldInfo info | fldCharType == "separate" -> do
-          modify $ \st -> st {stateFldCharState = FldCharContent info []}
+        FldCharFieldInfo info : ancestors | fldCharType == "separate" -> do
+          modify $ \st -> st {stateFldCharState = FldCharContent info [] : ancestors}
           return NullParPart
-        FldCharContent info runs | fldCharType == "end" -> do
-          modify $ \st -> st {stateFldCharState = FldCharClosed}
-          return $ Field info $ reverse runs
+        [FldCharContent info children] | fldCharType == "end" -> do
+          modify $ \st -> st {stateFldCharState = []}
+          return $ Field info $ reverse children
+        FldCharContent info children : FldCharContent parentInfo siblings : ancestors | fldCharType == "end" ->
+          let parent = FldCharContent parentInfo $ (Field info (reverse children)) : siblings in do
+            modify $ \st -> st {stateFldCharState = parent : ancestors}
+            return NullParPart
         _ -> throwError WrongElem
 elemToParPart ns element
   | isElem ns "w" "r" element
   , Just instrText <- findChildByName ns "w" "instrText" element = do
       fldCharState <- gets stateFldCharState
       case fldCharState of
-        FldCharOpen -> do
+        FldCharOpen : ancestors -> do
           info <- eitherToD $ parseFieldInfo $ strContent instrText
-          modify $ \st -> st{stateFldCharState = FldCharFieldInfo info}
+          modify $ \st -> st {stateFldCharState = FldCharFieldInfo info : ancestors}
           return NullParPart
         _ -> return NullParPart
-elemToParPart ns element
+{-
+There is an open fldchar, so we calculate the element and add it to the
+children. For this we need to first change the fldchar state to an empty
+stack to avoid descendants of children simply being added to the state instead
+of to their direct parent element. This would happen in the case of a
+w:hyperlink element for example.
+-}
+elemToParPart ns element = do
+  fldCharState <- gets stateFldCharState
+  case fldCharState of
+    FldCharContent info children : ancestors -> do
+      modify $ \st -> st {stateFldCharState = []}
+      parPart <- elemToParPart' ns element `catchError` \_ -> return NullParPart
+      modify $ \st -> st{stateFldCharState = FldCharContent info (parPart : children) : ancestors}
+      return NullParPart
+    _ -> elemToParPart' ns element
+
+elemToParPart' :: NameSpaces -> Element -> D ParPart
+elemToParPart' ns element
+  | isElem ns "w" "r" element
+  , Just drawingElem <- findChildByName ns "w" "drawing" element
+  , pic_ns <- "http://schemas.openxmlformats.org/drawingml/2006/picture"
+  , Just picElem <- findElement (QName "pic" (Just pic_ns) (Just "pic")) drawingElem
+  = let (title, alt) = getTitleAndAlt ns drawingElem
+        a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
+        drawing = findElement (QName "blip" (Just a_ns) (Just "a")) picElem
+                  >>= findAttrByName ns "r" "embed"
+    in
+     case drawing of
+       Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp title alt bs $ elemToExtent drawingElem)
+       Nothing -> throwError WrongElem
+-- The two cases below are an attempt to deal with images in deprecated vml format.
+-- Todo: check out title and attr for deprecated format.
+elemToParPart' ns element
+  | isElem ns "w" "r" element
+  , Just _ <- findChildByName ns "w" "pict" element =
+    let drawing = findElement (elemName ns "v" "imagedata") element
+                  >>= findAttrByName ns "r" "id"
+    in
+     case drawing of
+       Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp "" "" bs Nothing)
+       Nothing -> throwError WrongElem
+elemToParPart' ns element
+  | isElem ns "w" "r" element
+  , Just objectElem <- findChildByName ns "w" "object" element
+  , Just shapeElem <- findChildByName ns "v" "shape" objectElem
+  , Just imagedataElem <- findChildByName ns "v" "imagedata" shapeElem
+  , Just drawingId <- findAttrByName ns "r" "id" imagedataElem
+  = expandDrawingId drawingId >>= (\(fp, bs) -> return $ Drawing fp "" "" bs Nothing)
+-- Diagram
+elemToParPart' ns element
+  | isElem ns "w" "r" element
+  , Just drawingElem <- findChildByName ns "w" "drawing" element
+  , d_ns <- "http://schemas.openxmlformats.org/drawingml/2006/diagram"
+  , Just _ <- findElement (QName "relIds" (Just d_ns) (Just "dgm")) drawingElem
+  = return Diagram
+-- Chart
+elemToParPart' ns element
+  | isElem ns "w" "r" element
+  , Just drawingElem <- findChildByName ns "w" "drawing" element
+  , c_ns <- "http://schemas.openxmlformats.org/drawingml/2006/chart"
+  , Just _ <- findElement (QName "chart" (Just c_ns) (Just "c")) drawingElem
+  = return Chart
+elemToParPart' ns element
   | isElem ns "w" "r" element = do
     run <- elemToRun ns element
-    -- we check to see if we have an open FldChar in state that we're
-    -- recording.
-    fldCharState <- gets stateFldCharState
-    case fldCharState of
-      FldCharContent info runs -> do
-        modify $ \st -> st{stateFldCharState = FldCharContent info (run : runs)}
-        return NullParPart
-      _ -> return $ PlainRun run
-elemToParPart ns element
+    return $ PlainRun run
+elemToParPart' ns element
   | Just change <- getTrackedChange ns element = do
       runs <- mapD (elemToRun ns) (elChildren element)
       return $ ChangedRuns change runs
-elemToParPart ns element
+elemToParPart' ns element
   | isElem ns "w" "bookmarkStart" element
   , Just bmId <- findAttrByName ns "w" "id" element
   , Just bmName <- findAttrByName ns "w" "name" element =
     return $ BookMark bmId bmName
-elemToParPart ns element
+elemToParPart' ns element
   | isElem ns "w" "hyperlink" element
   , Just relId <- findAttrByName ns "r" "id" element = do
     location <- asks envLocation
-    runs <- mapD (elemToRun ns) (elChildren element)
+    children <- mapD (elemToParPart ns) (elChildren element)
     rels <- asks envRelationships
     case lookupRelationship location relId rels of
       Just target ->
          case findAttrByName ns "w" "anchor" element of
-             Just anchor -> return $ ExternalHyperLink (target <> "#" <> anchor) runs
-             Nothing -> return $ ExternalHyperLink target runs
-      Nothing     -> return $ ExternalHyperLink "" runs
-elemToParPart ns element
+             Just anchor -> return $ ExternalHyperLink (target <> "#" <> anchor) children
+             Nothing -> return $ ExternalHyperLink target children
+      Nothing     -> return $ ExternalHyperLink "" children
+elemToParPart' ns element
   | isElem ns "w" "hyperlink" element
   , Just anchor <- findAttrByName ns "w" "anchor" element = do
-    runs <- mapD (elemToRun ns) (elChildren element)
-    return $ InternalHyperLink anchor runs
-elemToParPart ns element
+    children <- mapD (elemToParPart ns) (elChildren element)
+    return $ InternalHyperLink anchor children
+elemToParPart' ns element
   | isElem ns "w" "commentRangeStart" element
   , Just cmtId <- findAttrByName ns "w" "id" element = do
       (Comments _ commentMap) <- asks envComments
       case M.lookup cmtId commentMap of
         Just cmtElem -> elemToCommentStart ns cmtElem
         Nothing      -> throwError WrongElem
-elemToParPart ns element
+elemToParPart' ns element
   | isElem ns "w" "commentRangeEnd" element
   , Just cmtId <- findAttrByName ns "w" "id" element =
     return $ CommentEnd cmtId
-elemToParPart ns element
+elemToParPart' ns element
   | isElem ns "m" "oMath" element =
     fmap PlainOMath (eitherToD $ readOMML $ showElement element)
-elemToParPart _ _ = throwError WrongElem
+elemToParPart' _ _ = throwError WrongElem
 
 elemToCommentStart :: NameSpaces -> Element -> D ParPart
 elemToCommentStart ns element
