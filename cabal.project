@@ -22,4 +22,3 @@ source-repository-package
   location: https://github.com/jgm/commonmark-hs.git
   tag: 3cba9f874db7516f49d221a94171b4af010b5bea
   subdir: commonmark-pandoc
-
