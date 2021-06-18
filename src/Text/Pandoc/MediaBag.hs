@@ -26,13 +26,14 @@ module Text.Pandoc.MediaBag (
 import qualified Data.ByteString.Lazy as BL
 import Data.Data (Data)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isNothing)
 import Data.Typeable (Typeable)
 import System.FilePath
 import Text.Pandoc.MIME (MimeType, getMimeTypeDef, extensionFromMimeType)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Digest.Pure.SHA (sha1, showDigest)
+import Network.URI (URI (..), parseURI)
 
 data MediaItem =
   MediaItem
@@ -76,16 +77,20 @@ insertMedia fp mbMime contents (MediaBag mediamap) =
                              , mediaContents = contents
                              , mediaMimeType = mt }
         fp' = canonicalize fp
-        newpath = if isRelative fp && ".." `notElem` splitPath fp
+        uri = parseURI fp
+        newpath = if isRelative fp
+                       && isNothing uri
+                       && ".." `notElem` splitPath fp
                      then T.unpack fp'
                      else showDigest (sha1 contents) <> "." <> ext
         fallback = case takeExtension fp of
                         ".gz" -> getMimeTypeDef $ dropExtension fp
                         _     -> getMimeTypeDef fp
         mt = fromMaybe fallback mbMime
-        ext = case takeExtension fp of
-               '.':e  -> e
-               _      -> maybe "" T.unpack $ extensionFromMimeType mt
+        path = maybe fp uriPath uri
+        ext = case takeExtension path of
+                '.':e -> e
+                _ -> maybe "" T.unpack $ extensionFromMimeType mt
 
 
 -- | Lookup a media item in a 'MediaBag', returning mime type and contents.
