@@ -149,9 +149,8 @@ blockToAsciiDoc opts (Div (id',"section":_,_)
 blockToAsciiDoc opts (Plain inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   return $ contents <> blankline
-blockToAsciiDoc opts (Para [Image attr alternate (src,tgt)])
+blockToAsciiDoc opts (SimpleFigure attr alternate (src, tit))
   -- image::images/logo.png[Company logo, title="blah"]
-  | Just tit <- T.stripPrefix "fig:" tgt
   = (\args -> "image::" <> args <> blankline) <$>
     imageArguments opts attr alternate src tit
 blockToAsciiDoc opts (Para inlines) = do
@@ -187,7 +186,7 @@ blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
   return $ identifier $$
            nowrap (text (replicate (level + 1) '=') <> space <> contents) <>
            blankline
-
+blockToAsciiDoc opts (Figure attr _ body) = blockToAsciiDoc opts $ Div attr body
 blockToAsciiDoc _ (CodeBlock (_,classes,_) str) = return $ flush (
   if null classes
      then "...." $$ literal str $$ "...."

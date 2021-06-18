@@ -383,10 +383,7 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
   wrapNotes <$> wrapDiv (identifier,classes,kvs) result
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX lst
--- title beginning with fig: indicates that the image is a figure
-blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,tgt)])
-  | Just tit <- T.stripPrefix "fig:" tgt
-  = do
+blockToLaTeX (SimpleFigure attr@(ident, _, _) txt (src, tit)) = do
       (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True txt
       lab <- labelFor ident
       let caption = "\\caption" <> captForLof <> braces capt <> lab
@@ -596,6 +593,7 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
 blockToLaTeX (Table attr blkCapt specs thead tbodies tfoot) =
   tableToLaTeX inlineListToLaTeX blockListToLaTeX
                (Ann.toTable attr blkCapt specs thead tbodies tfoot)
+blockToLaTeX (Figure attr _ body) = blockToLaTeX $ Div attr body
 
 blockListToLaTeX :: PandocMonad m => [Block] -> LW m (Doc Text)
 blockListToLaTeX lst =

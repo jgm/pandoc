@@ -123,14 +123,13 @@ blockToTexinfo (Plain lst) =
   inlineListToTexinfo lst
 
 -- title beginning with fig: indicates that the image is a figure
-blockToTexinfo (Para [Image attr txt (src,tgt)])
-  | Just tit <- T.stripPrefix "fig:" tgt = do
+blockToTexinfo (SimpleFigure attr txt (src, tit)) = do
       capt <- if null txt
               then return empty
               else (\c -> text "@caption" <> braces c) `fmap`
                      inlineListToTexinfo txt
       img  <- inlineToTexinfo (Image attr txt (src,tit))
-      return $ text "@float" $$ img $$ capt $$ text "@end float"
+      return $ text "@float Figure" $$ img $$ capt $$ text "@end float"
 
 blockToTexinfo (Para lst) =
   inlineListToTexinfo lst    -- this is handled differently from Plain in blockListToTexinfo
@@ -255,10 +254,38 @@ blockToTexinfo (Table _ blkCapt specs thead tbody tfoot) = do
                   text "@end multitable"
   return $ if isEmpty captionText
               then tableBody <> blankline
-              else text "@float" $$
+              else text "@float Table" $$
                    tableBody $$
                    inCmd "caption" captionText $$
                    text "@end float"
+
+blockToTexinfo (Figure _ (Caption _ caption) [SimpleFigure attr figCaption target]) =
+  blockToTexinfo (SimpleFigure attr (if null figCaption
+                                        then blocksToInlines caption
+                                        else figCaption)
+                                    target)
+
+blockToTexinfo (Figure _ fCaption [
+    Table attr tCaption@(Caption _ cbody) specs thead tbody tfoot]) = do
+  let caption = blocksToInlines cbody
+  captionText <- inlineListToTexinfo caption
+  blockToTexinfo (Table attr (if null captionText
+                                        then fCaption
+                                        else tCaption)
+                                    specs thead tbody tfoot)
+
+blockToTexinfo (Figure _ (Caption _ caption) body) = do
+  captionText <- inlineListToTexinfo $ blocksToInlines caption
+  content <- blockListToTexinfo body
+  return $ text ("@float" ++ floatType body) $$ content $$ (
+      if isEmpty captionText
+         then empty
+         else inCmd "caption" captionText
+    ) $$ text "@end float"
+  where
+  floatType [SimpleFigure {}] = " Figure"
+  floatType [Table {}] = " Table"
+  floatType _ = ""
 
 tableHeadToTexinfo :: PandocMonad m
                    => [Alignment]

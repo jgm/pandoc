@@ -162,10 +162,7 @@ blockToConTeXt (Div attr@(_,"section":_,_)
   innerContents <- blockListToConTeXt xs
   return $ header' $$ innerContents $$ footer'
 blockToConTeXt (Plain lst) = inlineListToConTeXt lst
--- title beginning with fig: indicates that the image is a figure
-blockToConTeXt (Para [Image attr txt (src,tgt)])
-  | Just _ <- T.stripPrefix "fig:" tgt
-  = do
+blockToConTeXt (SimpleFigure attr txt (src, _)) = do
       capt <- inlineListToConTeXt txt
       img  <- inlineToConTeXt (Image attr txt (src, ""))
       let (ident, _, _) = attr
@@ -270,6 +267,7 @@ blockToConTeXt (Table _ blkCapt specs thead tbody tfoot) = do
         then "location=none"
         else "title=" <> braces captionText
       ) $$ body $$ "\\stopplacetable" <> blankline
+blockToConTeXt (Figure attr _ body) = blockToConTeXt $ Div attr body
 
 tableToConTeXt :: PandocMonad m
                => Tabl -> Doc Text -> [Doc Text] -> WM m (Doc Text)

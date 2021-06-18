@@ -997,7 +997,7 @@ or here: <http://example.com/>
 @anchor{#images}
 From ``Voyage dans la Lune'' by Georges Melies (1902):
 
-@float
+@float Figure
 @image{lalune,,,lalune,jpg}
 @caption{lalune}
 @end float

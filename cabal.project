@@ -2,3 +2,7 @@ packages: pandoc.cabal
 tests: True
 flags: +embed_data_files
 
+source-repository-package
+  type: git
+  location: https://github.com/argent0/pandoc-types
+  tag: 5b32019746d1692c593c080f9a8ee45c7d25ecba

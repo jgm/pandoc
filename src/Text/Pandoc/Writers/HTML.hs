@@ -716,8 +716,8 @@ blockToHtml opts (Para [Image attr@(_,classes,_) txt (src,tit)])
          inlineToHtml opts (Image attr txt (src, tit))
        _ -> figure opts attr txt (src, tit)
 -- title beginning with fig: indicates that the image is a figure
-blockToHtml opts (Para [Image attr txt (s,T.stripPrefix "fig:" -> Just tit)]) =
-  figure opts attr txt (s,tit)
+blockToHtml opts (SimpleFigure attr caption (src, title)) =
+  figure opts attr caption (src, title)
 blockToHtml opts (Para lst) = do
   contents <- inlineListToHtml opts lst
   case contents of
@@ -993,6 +993,31 @@ blockToHtml opts (DefinitionList lst) = do
   defList opts contents
 blockToHtml opts (Table attr caption colspecs thead tbody tfoot) =
   tableToHtml opts (Ann.toTable attr caption colspecs thead tbody tfoot)
+blockToHtml opts (Figure attrs (Caption _ captBody)  body) = do
+  html5 <- gets stHtml5
+
+  htmlAttrs <- attrsToHtml opts attrs
+  contents <- blockListToHtml opts body
+
+  if html5
+     then do
+         capt <- if null captBody
+                    then return mempty
+                    else blockListToHtml opts captBody >>= \cb -> return $ mconcat
+                         [ H5.figcaption cb
+                         , nl opts ]
+         return $ foldl (!) H5.figure htmlAttrs $ mconcat
+             [nl opts, contents, nl opts, capt]
+     else do
+         capt <- if null captBody
+                    then return mempty
+                    else blockListToHtml opts captBody >>= \cb -> return $
+                            mconcat
+                                [ (H.div ! A.class_ "figcaption") cb
+                                , nl opts ]
+
+         return $ foldl (!) H.div (A.class_ "float" : htmlAttrs) $ mconcat
+             [nl opts, contents, nl opts, capt]
 
 tableToHtml :: PandocMonad m
             => WriterOptions

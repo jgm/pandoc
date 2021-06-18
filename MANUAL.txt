@@ -3171,6 +3171,17 @@ In the `context` output format this enables the use of [Natural Tables
 Natural tables allow more fine-grained global customization but come
 at a performance penalty compared to extreme tables.
 
+#### Extension: `native_figures` ####
+
+Use pandoc's native `Figure` element for content inside `<figure>` tags, in the
+case of HTML, or `figure` environments, in case of LaTeX. This, in turn, allows
+some writers to produce more accurate representations of figures. It also
+allows the use of the `Figure` element in filters, for custom figure output.
+
+This extension can be enabled/disabled for the following formats:
+
+input formats
+: `latex` `html`
 
 # Pandoc's Markdown
 

@@ -191,6 +191,7 @@ blockToTEI _ HorizontalRule = return $
   selfClosingTag "milestone" [("unit","undefined")
                              ,("type","separator")
                              ,("rendition","line")]
+blockToTEI _ (Figure {}) = return empty
 
 -- | TEI Tables
 -- TEI Simple's tables are composed of cells and rows; other

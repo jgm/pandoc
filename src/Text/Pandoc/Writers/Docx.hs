@@ -854,7 +854,7 @@ blockToOpenXML' opts (Plain lst) = do
      then withParaProp prop block
      else block
 -- title beginning with fig: indicates that the image is a figure
-blockToOpenXML' opts (Para [Image attr alt (src,T.stripPrefix "fig:" -> Just tit)]) = do
+blockToOpenXML' opts (SimpleFigure attr alt (src, tit)) = do
   setFirstPara
   fignum <- gets stNextFigureNum
   unless (null alt) $ modify $ \st -> st{ stNextFigureNum = fignum + 1 }
@@ -944,6 +944,8 @@ blockToOpenXML' opts (DefinitionList items) = do
   l <- concat `fmap` mapM (definitionListItemToOpenXML opts) items
   setFirstPara
   return l
+blockToOpenXML' opts (Figure attr _ body) =
+  blockToOpenXML' opts $ Div attr body
 
 definitionListItemToOpenXML  :: (PandocMonad m)
                              => WriterOptions -> ([Inline],[[Block]])

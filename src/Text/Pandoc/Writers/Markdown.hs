@@ -2,7 +2,6 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.Markdown
    Copyright   : Copyright (C) 2006-2021 John MacFarlane
@@ -23,7 +22,7 @@ module Text.Pandoc.Writers.Markdown (
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Default
-import Data.List (intersperse, sortOn, transpose)
+import Data.List (intersperse, sortOn, transpose, union)
 import Data.List.NonEmpty (nonEmpty, NonEmpty(..))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, mapMaybe, isNothing)
@@ -365,14 +364,13 @@ blockToMarkdown' opts (Plain inlines) = do
                   _ -> inlines
   contents <- inlineListToMarkdown opts inlines'
   return $ contents <> cr
--- title beginning with fig: indicates figure
-blockToMarkdown' opts (Para [Image attr alt (src,tgt@(T.stripPrefix "fig:" -> Just tit))])
+blockToMarkdown' opts (SimpleFigure attr alt (src, tit))
   | isEnabled Ext_raw_html opts &&
     not (isEnabled Ext_link_attributes opts || isEnabled Ext_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
     (<> blankline) . literal . T.strip <$>
       writeHtml5String opts{ writerTemplate = Nothing }
-        (Pandoc nullMeta [Para [Image attr alt (src,tgt)]])
+        (Pandoc nullMeta [SimpleFigure attr alt (src, tit)])
   | otherwise = blockToMarkdown opts (Para [Image attr alt (src,tit)])
 blockToMarkdown' opts (Para inlines) =
   (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
@@ -591,6 +589,8 @@ blockToMarkdown' opts (OrderedList (start,sty,delim) items) = do
 blockToMarkdown' opts (DefinitionList items) = do
   contents <- inList $ mapM (definitionListItemToMarkdown opts) items
   return $ mconcat contents <> blankline
+blockToMarkdown' opts (Figure (ident, classes, kvs) _ body) =
+  blockToMarkdown' opts (Div (ident, ["figure"] `union` classes, kvs) body)
 
 inList :: Monad m => MD m a -> MD m a
 inList p = local (\env -> env {envInList = True}) p

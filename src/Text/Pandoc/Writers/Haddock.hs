@@ -98,8 +98,7 @@ blockToHaddock opts (Plain inlines) = do
   contents <- inlineListToHaddock opts inlines
   return $ contents <> cr
 -- title beginning with fig: indicates figure
-blockToHaddock opts (Para [Image attr alt (src,tgt)])
-  | Just tit <- T.stripPrefix "fig:" tgt
+blockToHaddock opts (SimpleFigure attr alt (src, tit))
   = blockToHaddock opts (Para [Image attr alt (src,tit)])
 blockToHaddock opts (Para inlines) =
   -- TODO:  if it contains linebreaks, we need to use a @...@ block
@@ -150,6 +149,8 @@ blockToHaddock opts (OrderedList (start,_,delim) items) = do
 blockToHaddock opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToHaddock opts) items
   return $ vcat contents <> blankline
+blockToHaddock opts (Figure _ _ body) =
+  fmap (<> blankline) (blockListToHaddock opts body)
 
 -- | Convert bullet list item (list of blocks) to haddock
 bulletListItemToHaddock :: PandocMonad m

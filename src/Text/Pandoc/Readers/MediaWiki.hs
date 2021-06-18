@@ -201,7 +201,12 @@ para = do
   contents <- trimInlines . mconcat <$> many1 inline
   if F.all (==Space) contents
      then return mempty
-     else return $ B.para contents
+     else case B.toList contents of
+         -- For the MediaWiki format all images are considered figures
+         [Image attr figureCaption (src, title)] ->
+             return $ B.simpleFigureWith
+                 attr (B.fromList figureCaption) src title
+         _ -> return $ B.para contents
 
 table :: PandocMonad m => MWParser m Blocks
 table = do
@@ -631,7 +636,7 @@ image = try $ do
   let attr = ("", [], kvs)
   caption <-   (B.str fname <$ sym "]]")
            <|> try (char '|' *> (mconcat <$> manyTill inline (sym "]]")))
-  return $ B.imageWith attr fname ("fig:" <> stringify caption) caption
+  return $ B.imageWith attr fname (stringify caption) caption
 
 imageOption :: PandocMonad m => MWParser m Text
 imageOption = try $ char '|' *> opt

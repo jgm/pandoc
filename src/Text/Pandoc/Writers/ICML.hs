@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE ViewPatterns #-}
 
 {- |
    Module      : Text.Pandoc.Writers.ICML
@@ -309,9 +308,8 @@ blocksToICML opts style lst = do
 -- | Convert a Pandoc block element to ICML.
 blockToICML :: PandocMonad m => WriterOptions -> Style -> Block -> WS m (Doc Text)
 blockToICML opts style (Plain lst) = parStyle opts style "" lst
--- title beginning with fig: indicates that the image is a figure
-blockToICML opts style (Para img@[Image _ txt (_,Text.stripPrefix "fig:" -> Just _)]) = do
-  figure  <- parStyle opts (figureName:style) "" img
+blockToICML opts style (SimpleFigure attr txt (src, tit)) = do
+  figure  <- parStyle opts (figureName:style) "" [Image attr txt (src, tit)]
   caption <- parStyle opts (imgCaptionName:style) "" txt
   return $ intersperseBrs [figure, caption]
 blockToICML opts style (Para lst) = parStyle opts (paragraphName:style) "" lst
@@ -382,6 +380,8 @@ blockToICML opts style (Div (_ident, _, kvs) lst) =
   let dynamicStyle = maybeToList $ lookup dynamicStyleKey kvs
   in  blocksToICML opts (dynamicStyle <> style) lst
 blockToICML _ _ Null = return empty
+blockToICML opts style (Figure attr _ body) =
+  blockToICML opts style $ Div attr body
 
 -- | Convert a list of lists of blocks to ICML list items.
 listItemsToICML :: PandocMonad m => WriterOptions -> Text -> Style -> Maybe ListAttributes -> [[Block]] -> WS m (Doc Text)

@@ -30,6 +30,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
+import Text.Pandoc.Shared (blocksToInlines)
 
 import qualified Foreign.Lua as Lua
 
@@ -162,6 +163,9 @@ blockToCustom (DefinitionList items) =
 
 blockToCustom (Div attr items) =
   Lua.callFunc "Div" (Stringify items) (attrToMap attr)
+
+blockToCustom (Figure attr (Caption _ cbody) content) =
+  Lua.callFunc "Figure" (Stringify content) (Stringify $ blocksToInlines cbody) (attrToMap attr)
 
 -- | Convert list of Pandoc block elements to Custom.
 blockListToCustom :: [Block]       -- ^ List of block elements

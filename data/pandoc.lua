@@ -469,6 +469,22 @@ M.Div = M.Block:create_constructor(
   {{attr = {"identifier", "classes", "attributes"}}, "content"}
 )
 
+
+--- Creates a figure element.
+-- @function Figure
+-- @tparam      {Block,...}  content     figure block contents
+-- @tparam      Caption      caption     figure caption
+-- @tparam[opt] Attr         attr        element attributes
+-- @treturn     Block                    figure element
+M.Figure = M.Block:create_constructor(
+  "Figure",
+  function(content, caption, attr)
+    return {c = {ensureAttr(attr), caption, ensureList(content)}}
+  end,
+  {{attr = {"identifier", "classes", "attributes"}}, "caption", "content"}
+)
+
+
 --- Creates a header element.
 -- @function Header
 -- @tparam      int          level       header level

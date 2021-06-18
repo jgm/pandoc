@@ -122,6 +122,10 @@ blockToXWiki (DefinitionList items) = do
   contents <- local (\s -> s { listLevel = listLevel s <> ";" }) $ mapM definitionListItemToMediaWiki items
   return $ vcat contents <> if Text.null lev then "\n" else ""
 
+blockToXWiki (Figure attr _ body) = do
+  content <- blockToXWiki $ Div attr body
+  return $ intercalate content ["(((\n", ")))"]
+
 -- TODO: support more features
 blockToXWiki (Table _ blkCapt specs thead tbody tfoot) = do
   let (_, _, _, headers, rows') = toLegacyTable blkCapt specs thead tbody tfoot

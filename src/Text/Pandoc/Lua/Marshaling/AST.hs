@@ -160,6 +160,7 @@ pushBlock = \case
   CodeBlock attr code      -> pushViaConstructor "CodeBlock" code (LuaAttr attr)
   DefinitionList items     -> pushViaConstructor "DefinitionList" items
   Div attr blcks           -> pushViaConstructor "Div" blcks (LuaAttr attr)
+  Figure attr capt blcks   -> pushViaConstructor "Figure" blcks capt (LuaAttr attr)
   Header lvl attr inlns    -> pushViaConstructor "Header" lvl inlns (LuaAttr attr)
   HorizontalRule           -> pushViaConstructor "HorizontalRule"
   LineBlock blcks          -> pushViaConstructor "LineBlock" blcks
@@ -182,6 +183,8 @@ peekBlock idx = defineHowTo "get Block value" $! do
       "CodeBlock"      -> withAttr CodeBlock <$!> elementContent
       "DefinitionList" -> DefinitionList <$!> elementContent
       "Div"            -> withAttr Div <$!> elementContent
+      "Figure"         -> (\(LuaAttr attr, capt, bs) -> Figure attr capt bs)
+                          <$!> elementContent
       "Header"         -> (\(lvl, LuaAttr attr, lst) -> Header lvl attr lst)
                           <$!> elementContent
       "HorizontalRule" -> return HorizontalRule

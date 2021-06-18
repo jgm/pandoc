@@ -14,6 +14,8 @@ extra-deps:
 - doctemplates-0.10
 - texmath-0.12.3.1
 - citeproc-0.5
+- git: https://github.com/argent0/pandoc-types
+  commit: 5b32019746d1692c593c080f9a8ee45c7d25ecba
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.0

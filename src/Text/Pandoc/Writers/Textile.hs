@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Writers.Textile
    Copyright   : Copyright (C) 2010-2021 John MacFarlane
@@ -111,8 +110,7 @@ blockToTextile opts (Div attr bs) = do
 blockToTextile opts (Plain inlines) =
   inlineListToTextile opts inlines
 
--- title beginning with fig: indicates that the image is a figure
-blockToTextile opts (Para [Image attr txt (src,T.stripPrefix "fig:" -> Just tit)]) = do
+blockToTextile opts (SimpleFigure attr txt (src, tit)) = do
   capt <- blockToTextile opts (Para txt)
   im <- inlineToTextile opts (Image attr txt (src,tit))
   return $ im <> "\n" <> capt
@@ -243,6 +241,19 @@ blockToTextile opts x@(OrderedList attribs@(start, _, _) items) = do
 blockToTextile opts (DefinitionList items) = do
   contents <- withUseTags $ mapM (definitionListItemToTextile opts) items
   return $ "<dl>\n" <> vcat contents <> "\n</dl>\n"
+
+blockToTextile opts (Figure attr (Caption _ caption)  body) = do
+  let startTag = render Nothing $ tagWithAttrs "figure" attr
+  let endTag = "</figure>"
+  let captionInlines = blocksToInlines caption
+  captionMarkup <- if null captionInlines
+                      then return ""
+                      else ((<> "\n\n</figcaption>\n\n") .  ("<figcaption>\n\n" <>)) <$>
+                          inlineListToTextile opts (blocksToInlines caption)
+  contents <- blockListToTextile opts body
+  return $ startTag <> "\n\n" <>
+    captionMarkup <>
+    contents <> "\n\n" <> endTag <> "\n"
 
 -- Auxiliary functions for lists:
 

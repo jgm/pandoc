@@ -291,9 +291,7 @@ blockToJATS opts (Header _ _ title) = do
   return $ inTagsSimple "title" title'
 -- No Plain, everything needs to be in a block-level tag
 blockToJATS opts (Plain lst) = blockToJATS opts (Para lst)
--- title beginning with fig: indicates that the image is a figure
-blockToJATS opts (Para [Image (ident,_,kvs) txt
-  (src,T.stripPrefix "fig:" -> Just tit)]) = do
+blockToJATS opts (SimpleFigure (ident, _, kvs) txt (src, tit)) = do
   alt <- inlinesToJATS opts txt
   let (maintype, subtype) = imageMimeType src kvs
   let capt = if null txt
@@ -375,6 +373,8 @@ blockToJATS _ b@(RawBlock f str)
 blockToJATS _ HorizontalRule = return empty -- not semantic
 blockToJATS opts (Table attr caption colspecs thead tbody tfoot) =
   tableToJATS opts (Ann.toTable attr caption colspecs thead tbody tfoot)
+blockToJATS opts (Figure attrs _ body) =
+  blockToJATS opts (Div attrs body)
 
 -- | Convert a list of inline elements to JATS.
 inlinesToJATS :: PandocMonad m => WriterOptions -> [Inline] -> JATS m (Doc Text)

@@ -73,14 +73,14 @@ runTest testExePath testname cmd inp norm = testCase testname $ do
                 else return $ TestError ec
   assertBool (show result) (result == TestPassed)
 
-tests :: TestTree
+tests :: FilePath -> TestTree
 {-# NOINLINE tests #-}
-tests = unsafePerformIO $ do
+tests root = unsafePerformIO $ do
   files <- filter (".md" `isSuffixOf`) <$>
-               getDirectoryContents "command"
+               getDirectoryContents root
   testExePath <- getExecutablePath
-  let cmds = map (extractCommandTest testExePath) files
-  return $ testGroup "Command:" cmds
+  let cmds = map (extractCommandTest root testExePath) files
+  return $ testGroup ("Command folder: " <> root) cmds
 
 isCodeBlock :: Block -> Bool
 isCodeBlock (CodeBlock _ _) = True
@@ -94,9 +94,9 @@ dropPercent :: String -> String
 dropPercent ('%':xs) = dropWhile (== ' ') xs
 dropPercent xs       = xs
 
-runCommandTest :: FilePath -> FilePath -> Int -> String -> TestTree
-runCommandTest testExePath fp num code =
-  goldenTest testname getExpected getActual compareValues' updateGolden
+runCommandTest :: FilePath -> FilePath -> FilePath -> Int -> String -> TestTree
+runCommandTest root testExePath fp num code =
+  goldenTest testname getExpected getActual compareValues updateGolden
  where
   testname = "#" <> show num
   codelines = lines code
@@ -109,13 +109,13 @@ runCommandTest testExePath fp num code =
   norm = unlines normlines
   getExpected = return norm
   getActual = snd <$> execTest testExePath cmd input
-  compareValues' expected actual
+  compareValues expected actual
     | actual == expected = return Nothing
-    | otherwise = return $ Just $ "--- test/command/" ++ fp ++ "\n+++ " ++
+    | otherwise = return $ Just $ "--- test" </> root </> fp ++ "\n+++ " ++
                                 cmd ++ "\n" ++ showDiff (1,1)
                                    (getDiff (lines actual) (lines expected))
   updateGolden newnorm = do
-    let fp' = "command" </> fp
+    let fp' = "command/figures" </> fp
     raw <- UTF8.readFile fp'
     let cmdline = "% " <> cmd
     let x = cmdline <> "\n" <> input <> "^D\n" <> norm
@@ -123,13 +123,13 @@ runCommandTest testExePath fp num code =
     let updated = T.replace (T.pack x) (T.pack y) raw
     UTF8.writeFile fp' updated
 
-extractCommandTest :: FilePath -> FilePath -> TestTree
-extractCommandTest testExePath fp = unsafePerformIO $ do
-  contents <- UTF8.toText <$> BS.readFile ("command" </> fp)
+extractCommandTest :: FilePath -> FilePath -> FilePath -> TestTree
+extractCommandTest root testExePath fp = unsafePerformIO $ do
+  contents <- UTF8.toText <$> BS.readFile (root </> fp)
   Pandoc _ blocks <- runIOorExplode (readMarkdown
                         def{ readerExtensions = pandocExtensions } contents)
   let codeblocks = map extractCode $ filter isCodeBlock blocks
-  let cases = zipWith (runCommandTest testExePath fp) [1..] codeblocks
+  let cases = zipWith (runCommandTest root testExePath fp) [1..] codeblocks
   return $ testGroup fp
          $ if null cases
               then [testCase "!!" $ assertFailure "No command tests defined"]

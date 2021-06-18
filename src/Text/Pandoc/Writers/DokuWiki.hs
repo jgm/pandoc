@@ -109,9 +109,7 @@ blockToDokuWiki opts (Plain inlines) =
 
 -- title beginning with fig: indicates that the image is a figure
 -- dokuwiki doesn't support captions - so combine together alt and caption into alt
-blockToDokuWiki opts (Para [Image attr txt (src,tgt)])
-  | Just tit <- T.stripPrefix "fig:" tgt
-  = do
+blockToDokuWiki opts (SimpleFigure attr txt (src, tit)) = do
       capt <- if null txt
               then return ""
               else (" " <>) `fmap` inlineListToDokuWiki opts txt
@@ -222,6 +220,9 @@ blockToDokuWiki opts x@(OrderedList attribs items) = do
                                    , stBackSlashLB = backSlash})
                       (mapM (orderedListItemToDokuWiki opts) items)
         return $ vcat contents <> if T.null indent then "\n" else ""
+
+blockToDokuWiki opts (Figure attrs _ body) =
+  blockToDokuWiki opts $ Div attrs body
 
 -- TODO Need to decide how to make definition lists work on dokuwiki - I don't think there
 --      is a specific representation of them.

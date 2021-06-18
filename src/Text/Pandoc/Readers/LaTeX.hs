@@ -32,6 +32,7 @@ import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Either (partitionEithers)
 import Skylighting (defaultSyntaxMap)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Collate.Lang (renderLang)
@@ -935,8 +936,8 @@ environments = M.union (tableEnvironments blocks inline) $
    , ("letter", env "letter" letterContents)
    , ("minipage", env "minipage" $
           skipopts *> spaces *> optional braced *> spaces *> blocks)
-   , ("figure", env "figure" $ skipopts *> figure)
-   , ("subfigure", env "subfigure" $ skipopts *> tok *> figure)
+   , ("figure", env "figure" $ skipopts *> Text.Pandoc.Readers.LaTeX.figure)
+   , ("subfigure", env "subfigure" $ skipopts *> tok *> Text.Pandoc.Readers.LaTeX.figure)
    , ("center", divWith ("", ["center"], []) <$> env "center" blocks)
    , ("quote", blockQuote <$> env "quote" blocks)
    , ("quotation", blockQuote <$> env "quotation" blocks)
@@ -1088,30 +1089,55 @@ letterContents = do
   return $ addr <> bs -- sig added by \closing
 
 figure :: PandocMonad m => LP m Blocks
-figure = try $ do
+figure = do
+  has_native_figures <-
+    extensionEnabled Ext_native_figures <$> getOption readerExtensions
+  if has_native_figures
+     then nativeFigure
+     else try $ do
+            resetCaption
+            blocks >>= addImageCaption
+
+nativeFigure :: PandocMonad m => LP m Blocks
+nativeFigure = try $ do
   resetCaption
-  blocks >>= addImageCaption
+  innerContent <- many $ try (Left <$> label) <|> (Right <$> block)
+  let content = walk go $ mconcat $ snd $ partitionEithers innerContent
+  labelResult <- sLastLabel <$> getState
+  let attr = case labelResult of
+                Just lab -> (lab, [], [])
+                _ -> nullAttr
+  captResult <- sCaption <$> getState
+  case captResult of
+    Nothing -> return $ B.figureWith attr (Caption Nothing []) content
+    Just capt -> return $ B.figureWith attr (B.caption Nothing $ B.plain capt) content
+
+  where
+  -- Remove the `Image` caption b.c. it's on the `Figure`
+  go (Para [Image attr _ target]) = Plain [Image attr [] target]
+  go x = x
 
 addImageCaption :: PandocMonad m => Blocks -> LP m Blocks
 addImageCaption = walkM go
-  where go (Image attr@(_, cls, kvs) alt (src,tit))
+  where go p@(Para [Image attr@(_, cls, kvs) _ (src, tit)])
             | not ("fig:" `T.isPrefixOf` tit) = do
           st <- getState
-          let (alt', tit') = case sCaption st of
-                               Just ils -> (toList ils, "fig:" <> tit)
-                               Nothing  -> (alt, tit)
-              attr' = case sLastLabel st of
-                        Just lab -> (lab, cls, kvs)
-                        Nothing  -> attr
-          case attr' of
-               ("", _, _)    -> return ()
-               (ident, _, _) -> do
-                  num <- getNextNumber sLastFigureNum
-                  setState
-                    st{ sLastFigureNum = num
-                      , sLabels = M.insert ident
-                                 [Str (renderDottedNum num)] (sLabels st) }
-          return $ Image attr' alt' (src, tit')
+          case sCaption st of
+            Nothing -> return p
+            Just figureCaption -> do
+              let attr' = case sLastLabel st of
+                            Just lab -> (lab, cls, kvs)
+                            Nothing  -> attr
+              case attr' of
+                   ("", _, _)    -> return ()
+                   (ident, _, _) -> do
+                      num <- getNextNumber sLastFigureNum
+                      setState
+                        st{ sLastFigureNum = num
+                          , sLabels = M.insert ident
+                                     [Str (renderDottedNum num)] (sLabels st) }
+
+              return $ SimpleFigure attr' (B.toList figureCaption) (src, tit)
         go x = return x
 
 coloredBlock :: PandocMonad m => Text -> LP m Blocks

@@ -989,6 +989,7 @@ blockIsBlank
       DefinitionList ds -> all (uncurry (&&) . bimap (all inlineIsBlank) (all (all blockIsBlank))) ds
       Header _ _ ils -> all inlineIsBlank ils
       HorizontalRule -> True
+      Figure _ _ bls -> all blockIsBlank bls
       Table{} -> False
       Div _ bls -> all blockIsBlank bls
       Null -> True

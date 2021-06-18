@@ -54,7 +54,8 @@ import Text.Pandoc.Shared (inDirectory)
 
 tests :: FilePath -> TestTree
 tests pandocPath = testGroup "pandoc tests"
-        [ Tests.Command.tests
+        [ Tests.Command.tests "command"
+        , Tests.Command.tests "command/figures"
         , testGroup "Old" (Tests.Old.tests pandocPath)
         , testGroup "Shared" Tests.Shared.tests
         , testGroup "Writers"

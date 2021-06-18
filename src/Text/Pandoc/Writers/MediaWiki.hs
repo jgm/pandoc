@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Writers.MediaWiki
    Copyright   : Copyright (C) 2008-2021 John MacFarlane
@@ -17,6 +16,7 @@ module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki, highlightingLangs ) where
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Maybe (fromMaybe)
+import qualified Data.List as DL
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -91,8 +91,7 @@ blockToMediaWiki (Div attrs bs) = do
 blockToMediaWiki (Plain inlines) =
   inlineListToMediaWiki inlines
 
--- title beginning with fig: indicates that the image is a figure
-blockToMediaWiki (Para [Image attr txt (src,T.stripPrefix "fig:" -> Just tit)]) = do
+blockToMediaWiki (SimpleFigure attr txt (src, tit)) = do
   capt <- inlineListToMediaWiki txt
   img  <- imageToMediaWiki attr
   let opt = if T.null tit
@@ -206,6 +205,9 @@ blockToMediaWiki x@(DefinitionList items) = do
         lev <- asks listLevel
         contents <- local (\s -> s { listLevel = listLevel s <> ";" }) $ mapM definitionListItemToMediaWiki items
         return $ vcat contents <> if null lev then "\n" else ""
+
+blockToMediaWiki (Figure (ident, classes, kvs) _ body) =
+  blockToMediaWiki (Div (ident, ["figure"] `DL.union` classes, kvs) body)
 
 -- Auxiliary functions for lists:
 

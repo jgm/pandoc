@@ -35,6 +35,7 @@ import Data.List.Split (splitWhen)
 import Data.List (foldl')
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Either (partitionEithers)
 import Data.Monoid (First (..))
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -57,7 +58,8 @@ import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (
     Extension (Ext_epub_html_exts, Ext_empty_paragraphs, Ext_native_divs,
-               Ext_native_spans, Ext_raw_html, Ext_line_blocks, Ext_raw_tex),
+               Ext_native_spans, Ext_raw_html, Ext_line_blocks, Ext_raw_tex,
+               Ext_native_figures),
     ReaderOptions (readerExtensions, readerStripComments),
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
@@ -535,24 +537,43 @@ pPara = do
     <|> return (B.para contents)
 
 pFigure :: PandocMonad m => TagParser m Blocks
-pFigure = try $ do
-  TagOpen _ _ <- pSatisfy (matchTagOpen "figure" [])
-  skipMany pBlank
-  let pImg  = (\x -> (Just x, Nothing)) <$>
-               (pInTag TagsOmittable "p" pImage <* skipMany pBlank)
-      pCapt = (\x -> (Nothing, Just x)) <$> do
-                bs <- pInTags "figcaption" block
-                return $ blocksToInlines' $ B.toList bs
-      pSkip = (Nothing, Nothing) <$ pSatisfy (not . matchTagClose "figure")
-  res <- many (pImg <|> pCapt <|> pSkip)
-  let mbimg = msum $ map fst res
-  let mbcap = msum $ map snd res
-  TagClose _ <- pSatisfy (matchTagClose "figure")
-  let caption = fromMaybe mempty mbcap
-  case B.toList <$> mbimg of
-       Just [Image attr _ (url, tit)] ->
-         return $ B.para $ B.imageWith attr url ("fig:" <> tit) caption
-       _ -> mzero
+pFigure = do
+  has_native_figures <-
+    extensionEnabled Ext_native_figures <$> getOption readerExtensions
+  if has_native_figures
+     then pNativeFigure
+     else try $ do
+        TagOpen _ _ <- pSatisfy (matchTagOpen "figure" [])
+        skipMany pBlank
+        let pImg  = (\x -> (Just x, Nothing)) <$>
+                     (pInTag TagsOmittable "p" pImage <* skipMany pBlank)
+            pCapt = (\x -> (Nothing, Just x)) <$> do
+                      bs <- pInTags "figcaption" block
+                      return $ blocksToInlines' $ B.toList bs
+            pSkip = (Nothing, Nothing) <$ pSatisfy (not . matchTagClose "figure")
+        -- res :: [(Maybe Inlines, Maybe Inlines)]
+        -- [(Just img, Nothing), (Nothing, Just caption), ...]
+        res <- many (pImg <|> pCapt <|> pSkip)
+        -- Takes the first image and the first caption, if any, drop the rest.
+        let mbimg = msum $ map fst res
+        let mbcap = msum $ map snd res -- mbcap :: Maybe Inlines
+        TagClose _ <- pSatisfy (matchTagClose "figure")
+        let caption = fromMaybe mempty mbcap
+        -- only process one image
+        case B.toList <$> mbimg of
+             Just [Image attr _ (url, tit)] ->
+               return $ B.simpleFigureWith attr caption url tit
+             _ -> mzero
+
+pNativeFigure :: PandocMonad m => TagParser m Blocks
+pNativeFigure = try $ do
+  TagOpen tag attrList <- lookAhead $ pSatisfy (matchTagOpen "figure" [])
+  --let (ident, classes, kvs) = toAttr attr
+  contents <- pInTags tag (many $ Left <$> pInTags "figcaption" block <|> (Right <$> block))
+
+  let (captions, rest) = partitionEithers contents
+  -- I should capture the caption
+  return $ B.figureWith (toAttr attrList) (Caption Nothing (B.toList (mconcat captions))) $ mconcat rest
 
 pCodeBlock :: PandocMonad m => TagParser m Blocks
 pCodeBlock = try $ do

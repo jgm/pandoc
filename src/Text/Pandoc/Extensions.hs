@@ -126,6 +126,7 @@ data Extension =
     | Ext_mmd_title_block     -- ^ Multimarkdown metadata block
     | Ext_multiline_tables    -- ^ Pandoc-style multiline tables
     | Ext_native_divs             -- ^ Use Div blocks for contents of <div> tags
+    | Ext_native_figures      -- ^ Use Figure blocks for contenst of <figure> tags.
     | Ext_native_spans            -- ^ Use Span inlines for contents of <span>
     | Ext_native_numbering    -- ^ Use output format's native numbering for figures and tables
     | Ext_ntb                 -- ^ ConTeXt Natural Tables
@@ -527,6 +528,7 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "html"            = autoIdExtensions <>
     extensionsFromList
     [ Ext_native_divs
+    , Ext_native_figures
     , Ext_line_blocks
     , Ext_native_spans
     , Ext_empty_paragraphs
@@ -552,6 +554,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_raw_tex
     , Ext_task_lists
     , Ext_literate_haskell
+    , Ext_native_figures
     ]
   getAll "beamer"          = getAll "latex"
   getAll "context"         = autoIdExtensions <>
