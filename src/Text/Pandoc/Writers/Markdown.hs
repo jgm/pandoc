@@ -256,10 +256,10 @@ noteToMarkdown opts num blocks = do
               then hang (writerTabStop opts) (marker <> spacer) contents
               else marker <> spacer <> contents
 
--- | (Code) blocks with a single class can just use it standalone,
--- no need to bother with curly braces.
+-- | (Code) blocks with a single class and no attributes can just use it
+-- standalone, no need to bother with curly braces.
 classOrAttrsToMarkdown :: Attr -> Doc Text
-classOrAttrsToMarkdown ("",[cls],_) = literal cls
+classOrAttrsToMarkdown ("",[cls],[]) = literal cls
 classOrAttrsToMarkdown attrs = attrsToMarkdown attrs
 
 -- | Ordered list start parser for use in Para below.
