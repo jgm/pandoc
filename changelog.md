@@ -1,5 +1,17 @@
 # Revision history for pandoc
 
+## pandoc 2.14.0.3 (2021-06-20)
+
+  * Text.Pandoc.MediaBag `insertMediaBag`: ensure we get a sane mediaPath
+    for URLs (#7391).  In earlier 2.14.x versions, we'd get
+    incorrect paths for resources downloaded from URLs when the
+    media are extracted (including in PDF production).
+  * Use lts-18.0 stack resolver.
+  * Require skylighting 0.10.5.2 (adding support for Swift).
+  * Require commonmark 0.2.1.
+  * Rephrase section on unsafe HTML in manual.
+  * Create SECURITY.md
+
 ## pandoc 2.14.0.2 (2021-06-13)
 
   * Fix MediaBag regressions (#7345). iIn the 2.14 release `--extract-media`
