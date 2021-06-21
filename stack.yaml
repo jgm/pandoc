@@ -7,18 +7,9 @@ flags:
 packages:
 - '.'
 extra-deps:
-- haddock-library-1.10.0
-- hslua-1.3.0
-- hslua-module-path-0.1.0
-- jira-wiki-markup-1.4.0
-- random-1.2.0
-- unicode-collation-0.1.3
-- citeproc-0.4.0.1
 - commonmark-0.2.1
-- commonmark-extensions-0.2.1.2
-- commonmark-pandoc-0.2.1
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-17.12
+resolver: lts-18.0
 nix:
   packages: [zlib]
