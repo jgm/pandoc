@@ -317,6 +317,10 @@ pandocToHtml opts (Pandoc meta blocks) = do
                           | otherwise -> mempty
                     Nothing -> mempty
   let mCss :: Maybe [Text] = lookupContext "css" metadata
+  let true :: Text
+      true = "true"
+  let false :: Text
+      false = "false"
   let context =   (if stHighlighting st
                       then case writerHighlightStyle opts of
                                 Just sty -> defField "highlighting-css"
@@ -344,6 +348,52 @@ pandocToHtml opts (Pandoc meta blocks) = do
                         PlainMath -> defField "displaymath-css" True
                         WebTeX _  -> defField "displaymath-css" True
                         _         -> id) .
+                  (if slideVariant == RevealJsSlides
+                      then -- set boolean options explicitly, since
+                           -- template can't distinguish False/undefined
+                         defField "controls" true .
+                         defField "controlsTutorial" true .
+                         defField "controlsLayout" ("bottom-right" :: Text) .
+                         defField "controlsBackArrows" ("faded" :: Text) .
+                         defField "progress" true .
+                         defField "slideNumber" false .
+                         defField "showSlideNumber" ("all" :: Text) .
+                         defField "hashOneBasedIndex" false .
+                         defField "hash" false .
+                         defField "respondToHashChanges" true .
+                         defField "history" false .
+                         defField "keyboard" true .
+                         defField "overview" true .
+                         defField "disableLayout" false .
+                         defField "center" true .
+                         defField "touch" true .
+                         defField "loop" false .
+                         defField "rtl" false .
+                         defField "navigationMode" ("default" :: Text) .
+                         defField "shuffle" false .
+                         defField "fragments" true .
+                         defField "fragmentInURL" true .
+                         defField "embedded" false .
+                         defField "help" true .
+                         defField "pause" true .
+                         defField "showNotes" false .
+                         defField "autoPlayMedia" ("null" :: Text) .
+                         defField "preloadIframes" ("null" :: Text) .
+                         defField "autoSlide" ("0" :: Text) .
+                         defField "autoSlideStoppable" true .
+                         defField "autoSlideMethod" ("null" :: Text) .
+                         defField "defaultTiming" ("null" :: Text) .
+                         defField "mouseWheel" false .
+                         defField "display" ("block" :: Text) .
+                         defField "hideInactiveCursor" true .
+                         defField "hideCursorTime" ("5000" :: Text) .
+                         defField "previewLinks" false .
+                         defField "transition" ("slide" :: Text) .
+                         defField "transitionSpeed" ("default" :: Text) .
+                         defField "backgroundTransition" ("fade" :: Text) .
+                         defField "viewDistance" ("3" :: Text) .
+                         defField "mobileViewDistance" ("2" :: Text)
+                      else id) .
                   defField "document-css" (isNothing mCss && slideVariant == NoSlides) .
                   defField "quotes" (stQuotes st) .
                   -- for backwards compatibility we populate toc
