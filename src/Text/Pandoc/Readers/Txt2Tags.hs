@@ -478,8 +478,28 @@ macro = try $ do
 -- raw URLs in text are automatically linked
 url :: T2T Inlines
 url = try $ do
-  (rawUrl, escapedUrl) <- try uri <|> emailAddress
+  (rawUrl, escapedUrl) <- try uri <|> emailAddress'
   return $ B.link rawUrl "" (B.str escapedUrl)
+
+emailAddress' :: T2T (Text, Text)
+emailAddress' = do
+  (base, mailURI) <- emailAddress
+  query <- option "" emailQuery
+  return (base <> query, mailURI <> query)
+
+emailQuery :: T2T Text
+emailQuery = do
+  char '?'
+  parts <- kv `sepBy1` (char '&')
+  return $ "?" <> T.intercalate "&" parts
+
+kv :: T2T Text
+kv = do
+  k <- T.pack <$> many1 alphaNum
+  char '='
+  let vchar = alphaNum <|> try (oneOf "%._/~:,=$@&+-;*" <* lookAhead alphaNum)
+  v <- T.pack <$> many1 vchar
+  return (k <> "=" <> v)
 
 uri :: T2T (Text, Text)
 uri = try $ do

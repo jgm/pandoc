@@ -693,13 +693,12 @@ emailAddress = try $ toResult <$> mailbox <*> (char '@' *> domain)
        mailbox           = intercalate "." <$> (emailWord `sepBy1'` dot)
        domain            = intercalate "." <$> (subdomain `sepBy1'` dot)
        dot               = char '.'
-       subdomain         = many1 $ alphaNum <|> innerPunct
+       subdomain         = many1 $ alphaNum <|> innerPunct (=='-')
        -- this excludes some valid email addresses, since an
        -- email could contain e.g. '__', but gives better results
        -- for our purposes, when combined with markdown parsing:
-       innerPunct        = try (satisfy (\c -> isEmailPunct c || c == '@')
-                                 <* notFollowedBy space
-                                 <* notFollowedBy (satisfy isPunctuation))
+       innerPunct f      = try (satisfy f
+                                 <* notFollowedBy (satisfy (not . isAlphaNum)))
        -- technically an email address could begin with a symbol,
        -- but allowing this creates too many problems.
        -- See e.g. https://github.com/jgm/pandoc/issues/2940
