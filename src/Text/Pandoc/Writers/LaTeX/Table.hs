@@ -26,7 +26,8 @@ import Text.DocLayout
   ( Doc, braces, cr, empty, hcat, hsep, isEmpty, literal, nest
   , text, vcat, ($$) )
 import Text.Pandoc.Shared (blocksToInlines, splitBy, tshow)
-import Text.Pandoc.Walk (walk)
+import Text.Pandoc.Walk (walk, query)
+import Data.Monoid (Any(..))
 import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
 import Text.Pandoc.Writers.LaTeX.Notes (notesToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Types
@@ -261,8 +262,12 @@ cellToLaTeX blockListToLaTeX celltype annotatedCell = do
         Para{}  -> True
         Plain{} -> True
         _       -> False
+  let hasLineBreak LineBreak = Any True
+      hasLineBreak _ = Any False
   result <-
-    if not hasWidths || (celltype /= HeaderCell && all isPlainOrPara blocks)
+    if not hasWidths || (celltype /= HeaderCell
+                           && all isPlainOrPara blocks
+                           && not (getAny (query hasLineBreak blocks)))
        then
          blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
        else do
