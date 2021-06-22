@@ -264,10 +264,11 @@ cellToLaTeX blockListToLaTeX celltype annotatedCell = do
         _       -> False
   let hasLineBreak LineBreak = Any True
       hasLineBreak _ = Any False
+  let hasLineBreaks = getAny $ query hasLineBreak blocks
   result <-
     if not hasWidths || (celltype /= HeaderCell
                            && all isPlainOrPara blocks
-                           && not (getAny (query hasLineBreak blocks)))
+                           && not hasLineBreaks)
        then
          blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
        else do
@@ -280,7 +281,9 @@ cellToLaTeX blockListToLaTeX celltype annotatedCell = do
          let halign = literal $ alignCommand align
          return $ "\\begin{minipage}" <> valign <>
                   braces "\\linewidth" <> halign <> cr <>
-                  cellContents <> cr <>
+                  cellContents <>
+                  (if hasLineBreaks then "\\strut" else mempty)
+                  <> cr <>
                   "\\end{minipage}"
   modify $ \st -> st{ stExternalNotes = externalNotes }
   when (rowspan /= RowSpan 1) $

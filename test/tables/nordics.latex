@@ -11,10 +11,10 @@ Name
 Capital
 \end{minipage} & \begin{minipage}[b]{\linewidth}\centering
 Population\\
-(in 2018)
+(in 2018)\strut
 \end{minipage} & \begin{minipage}[b]{\linewidth}\centering
 Area\\
-(in km\textsuperscript{2})
+(in km\textsuperscript{2})\strut
 \end{minipage} \\
 \midrule
 \endfirsthead
@@ -25,10 +25,10 @@ Name
 Capital
 \end{minipage} & \begin{minipage}[b]{\linewidth}\centering
 Population\\
-(in 2018)
+(in 2018)\strut
 \end{minipage} & \begin{minipage}[b]{\linewidth}\centering
 Area\\
-(in km\textsuperscript{2})
+(in km\textsuperscript{2})\strut
 \end{minipage} \\
 \midrule
 \endhead
