@@ -919,7 +919,7 @@ inlineToLaTeX il@(RawInline f str) = do
 inlineToLaTeX LineBreak = do
   emptyLine <- gets stEmptyLine
   setEmptyLine True
-  return $ (if emptyLine then "\\strut " else "") <> "\\\\ \\strut" <> cr
+  return $ (if emptyLine then "\\strut " else "") <> "\\\\" <> cr
 inlineToLaTeX SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
   case wrapText of
