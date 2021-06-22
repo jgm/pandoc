@@ -1,11 +1,37 @@
 # Revision history for pandoc
 
-## pandoc 2.14.0.3 (2021-06-20)
+## pandoc 2.14.0.3 (2021-06-22)
 
   * Text.Pandoc.MediaBag `insertMediaBag`: ensure we get a sane mediaPath
     for URLs (#7391).  In earlier 2.14.x versions, we'd get
     incorrect paths for resources downloaded from URLs when the
     media are extracted (including in PDF production).
+  * Text.Pandoc.Parsing: improve `emailAddress` (#7398).
+    Previously the parser would accept characters in domains
+    that are illegal in domains, and this sometimes caused it
+    to gobble bits of the following text.
+  * txt2tags reader: modify the email address parser so
+    it still includes form parameters, even after the change to
+    `emailAddress` in Text.Pandoc.Parsing.
+  * Text.Pandoc.Readers.Metadata: Fix regression with comment-only YAML
+    metadata blocks (#7400).
+  * reveal.js writer and template: better handling of options.  Previously
+    it was impossible to specify false values for options that default to
+    true (e.g. `center`); setting the option to false just caused the portion
+    of the template setting the option to be omitted.  Now we prepopulate
+    all the variables with their default values, including them all
+    unconditionally and allowing them to be overridden.
+  * Markdown writer: Fix regression in code blocks with attributes (#7397).
+    Code blocks with a single class but nonempty attributes
+    were having attributes drop as a result of #7242.
+  * LaTeX writer:
+    + Add strut at end of minipage if it contains line breaks.
+      Without them, the last line is not as tall as it should be in
+      some cases.
+    + Always use a minipage for cells with line breaks, when
+      width information is available (#7393).  Otherwise the way we treat them
+      can lead to content that overflows a cell.
+    + Use `\strut` instead of `~` before `\\` in empty line.
   * Use lts-18.0 stack resolver.
   * Require skylighting 0.10.5.2 (adding support for Swift).
   * Require commonmark 0.2.1.
