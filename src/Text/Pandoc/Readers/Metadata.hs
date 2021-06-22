@@ -45,6 +45,9 @@ yamlBsToMeta pMetaValue bstr = do
        Right [] -> return . return $ mempty
        Right [YAML.Doc (YAML.Scalar _ YAML.SNull)]
                 -> return . return $ mempty
+       -- the following is what we get from a comment:
+       Right [YAML.Doc (YAML.Scalar _ (YAML.SUnknown _ ""))]
+                -> return . return $ mempty
        Right _  -> Prelude.fail "expected YAML object"
        Left (yamlpos, err')
                 -> do pos <- getPosition
