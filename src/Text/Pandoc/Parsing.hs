@@ -188,7 +188,7 @@ import Control.Monad.Identity
 import Control.Monad.Reader
     ( asks, runReader, MonadReader(ask), Reader, ReaderT(ReaderT) )
 import Data.Char (chr, isAlphaNum, isAscii, isAsciiUpper, isAsciiLower,
-                  isPunctuation, isSpace, ord, toLower, toUpper)
+                  isSpace, ord, toLower, toUpper)
 import Data.Default ( Default(..) )
 import Data.Functor (($>))
 import Data.List (intercalate, transpose)
