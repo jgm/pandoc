@@ -91,11 +91,11 @@ $endif$
       // https://revealjs.com/config/
       Reveal.initialize({
         // Display controls in the bottom right corner
-        controls: $controls$,
+        controls: $if(controls)$true$else$false$endif$,
 
         // Help the user learn the controls by providing hints, for example by
         // bouncing the down arrow when they first encounter a vertical slide
-        controlsTutorial: $controlsTutorial$,
+        controlsTutorial: $if(controlsTutorial)$true$else$false$endif$,
 
         // Determines where controls appear, "edges" or "bottom-right"
         controlsLayout: '$controlsLayout$',
@@ -105,75 +105,75 @@ $endif$
         controlsBackArrows: '$controlsBackArrows$',
 
         // Display a presentation progress bar
-        progress: $progress$,
+        progress: $if(progress)$true$else$false$endif$,
 
         // Display the page number of the current slide
-        slideNumber: $slideNumber$,
+        slideNumber: $if(slideNumber)$$slideNumber$$else$false$endif$,
 
         // 'all', 'print', or 'speaker'
         showSlideNumber: '$showSlideNumber$',
 
         // Add the current slide number to the URL hash so that reloading the
         // page/copying the URL will return you to the same slide
-        hash: $hash$,
+        hash: $if(hash)$$hash$$else$false$endif$,
 
         // Start with 1 for the hash rather than 0
-        hashOneBasedIndex: $hashOneBasedIndex$,
+        hashOneBasedIndex: $if(hashOneBasedIndex)$$hashOneBasedIndex$$else$false$endif$,
 
         // Flags if we should monitor the hash and change slides accordingly
-        respondToHashChanges: $respondToHashChanges$,
+        respondToHashChanges: $if(respondToHashChanges)$true$else$false$endif$,
 
         // Push each slide change to the browser history
-        history: $history$,
+        history: $if(history)$$history$$else$false$endif$,
 
         // Enable keyboard shortcuts for navigation
-        keyboard: $keyboard$,
+        keyboard: $if(keyboard)$true$else$false$endif$,
 
         // Enable the slide overview mode
-        overview: $overview$,
+        overview: $if(overview)$true$else$false$endif$,
 
         // Disables the default reveal.js slide layout (scaling and centering)
         // so that you can use custom CSS layout
         disableLayout: false,
 
         // Vertical centering of slides
-        center: $center$,
+        center: $if(center)$true$else$false$endif$,
 
         // Enables touch navigation on devices with touch input
-        touch: $touch$,
+        touch: $if(touch)$true$else$false$endif$,
 
         // Loop the presentation
-        loop: $loop$,
+        loop: $if(loop)$$loop$$else$false$endif$,
 
         // Change the presentation direction to be RTL
-        rtl: $rtl$,
+        rtl: $if(rtl)$$rtl$$else$false$endif$,
 
         // see https://revealjs.com/vertical-slides/#navigation-mode
         navigationMode: '$navigationMode$',
 
         // Randomizes the order of slides each time the presentation loads
-        shuffle: $shuffle$,
+        shuffle: $if(shuffle)$$shuffle$$else$false$endif$,
 
         // Turns fragments on and off globally
-        fragments: $fragments$,
+        fragments: $if(fragments)$true$else$false$endif$,
 
         // Flags whether to include the current fragment in the URL,
         // so that reloading brings you to the same fragment position
-        fragmentInURL: $fragmentInURL$,
+        fragmentInURL: $if(fragmentInURL)$true$else$false$endif$,
 
         // Flags if the presentation is running in an embedded mode,
         // i.e. contained within a limited portion of the screen
-        embedded: $embedded$,
+        embedded: $if(embedded)$$embedded$$else$false$endif$,
 
         // Flags if we should show a help overlay when the questionmark
         // key is pressed
-        help: $help$,
+        help: $if(help)$true$else$false$endif$,
 
         // Flags if it should be possible to pause the presentation (blackout)
-        pause: $pause$,
+        pause: $if(pause)$true$else$false$endif$,
 
         // Flags if speaker notes should be visible to all viewers
-        showNotes: $showNotes$,
+        showNotes: $if(showNotes)$$showNotes$$else$false$endif$,
 
         // Global override for autoplaying embedded media (null/true/false)
         autoPlayMedia: $autoPlayMedia$,
@@ -187,7 +187,7 @@ $endif$
         autoSlide: $autoSlide$,
 
         // Stop auto-sliding after user input
-        autoSlideStoppable: $autoSlideStoppable$,
+        autoSlideStoppable: $if(autoSlideStoppable)$true$else$false$endif$,
 
         // Use this method for navigation when auto-sliding
         autoSlideMethod: $autoSlideMethod$,
@@ -198,19 +198,19 @@ $endif$
         defaultTiming: $defaultTiming$,
 
         // Enable slide navigation via mouse wheel
-        mouseWheel: $mouseWheel$,
+        mouseWheel: $if(mouseWheel)$$mouseWheel$$else$false$endif$,
 
         // The display mode that will be used to show slides
         display: '$display$',
 
         // Hide cursor if inactive
-        hideInactiveCursor: $hideInactiveCursor$,
+        hideInactiveCursor: $if(hideInactiveCursor)$true$else$false$endif$,
 
         // Time before the cursor is hidden (in ms)
         hideCursorTime: $hideCursorTime$,
 
         // Opens links in an iframe preview overlay
-        previewLinks: $previewLinks$,
+        previewLinks: $if(previewLinks)$$previewLinks$$else$false$endif$,
 
         // Transition style (none/fade/slide/convex/concave/zoom)
         transition: '$transition$',
