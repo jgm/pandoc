@@ -317,10 +317,6 @@ pandocToHtml opts (Pandoc meta blocks) = do
                           | otherwise -> mempty
                     Nothing -> mempty
   let mCss :: Maybe [Text] = lookupContext "css" metadata
-  let true :: Text
-      true = "true"
-  let false :: Text
-      false = "false"
   let context =   (if stHighlighting st
                       then case writerHighlightStyle opts of
                                 Just sty -> defField "highlighting-css"
@@ -351,43 +347,43 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   (if slideVariant == RevealJsSlides
                       then -- set boolean options explicitly, since
                            -- template can't distinguish False/undefined
-                         defField "controls" true .
-                         defField "controlsTutorial" true .
+                         defField "controls" True .
+                         defField "controlsTutorial" True .
                          defField "controlsLayout" ("bottom-right" :: Text) .
                          defField "controlsBackArrows" ("faded" :: Text) .
-                         defField "progress" true .
-                         defField "slideNumber" false .
+                         defField "progress" True .
+                         defField "slideNumber" False .
                          defField "showSlideNumber" ("all" :: Text) .
-                         defField "hashOneBasedIndex" false .
-                         defField "hash" false .
-                         defField "respondToHashChanges" true .
-                         defField "history" false .
-                         defField "keyboard" true .
-                         defField "overview" true .
-                         defField "disableLayout" false .
-                         defField "center" true .
-                         defField "touch" true .
-                         defField "loop" false .
-                         defField "rtl" false .
+                         defField "hashOneBasedIndex" False .
+                         defField "hash" False .
+                         defField "respondToHashChanges" True .
+                         defField "history" False .
+                         defField "keyboard" True .
+                         defField "overview" True .
+                         defField "disableLayout" False .
+                         defField "center" True .
+                         defField "touch" True .
+                         defField "loop" False .
+                         defField "rtl" False .
                          defField "navigationMode" ("default" :: Text) .
-                         defField "shuffle" false .
-                         defField "fragments" true .
-                         defField "fragmentInURL" true .
-                         defField "embedded" false .
-                         defField "help" true .
-                         defField "pause" true .
-                         defField "showNotes" false .
+                         defField "shuffle" False .
+                         defField "fragments" True .
+                         defField "fragmentInURL" True .
+                         defField "embedded" False .
+                         defField "help" True .
+                         defField "pause" True .
+                         defField "showNotes" False .
                          defField "autoPlayMedia" ("null" :: Text) .
                          defField "preloadIframes" ("null" :: Text) .
                          defField "autoSlide" ("0" :: Text) .
-                         defField "autoSlideStoppable" true .
+                         defField "autoSlideStoppable" True .
                          defField "autoSlideMethod" ("null" :: Text) .
                          defField "defaultTiming" ("null" :: Text) .
-                         defField "mouseWheel" false .
+                         defField "mouseWheel" False .
                          defField "display" ("block" :: Text) .
-                         defField "hideInactiveCursor" true .
+                         defField "hideInactiveCursor" True .
                          defField "hideCursorTime" ("5000" :: Text) .
-                         defField "previewLinks" false .
+                         defField "previewLinks" False .
                          defField "transition" ("slide" :: Text) .
                          defField "transitionSpeed" ("default" :: Text) .
                          defField "backgroundTransition" ("fade" :: Text) .
