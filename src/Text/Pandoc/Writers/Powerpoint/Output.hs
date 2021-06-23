@@ -537,6 +537,7 @@ registerMedia fp caption = do
                  Just Eps  -> Just ".eps"
                  Just Svg  -> Just ".svg"
                  Just Emf  -> Just ".emf"
+                 Just Tiff -> Just ".tiff"
                  Nothing   -> Nothing
 
   let newGlobalId = fromMaybe (maxGlobalId + 1) (M.lookup fp globalIds)
