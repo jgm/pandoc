@@ -844,6 +844,10 @@ elemToParPart ns element
         FldCharFieldInfo info : ancestors | fldCharType == "separate" -> do
           modify $ \st -> st {stateFldCharState = FldCharContent info [] : ancestors}
           return NullParPart
+        -- Some fields have no content, since Pandoc doesn't understand any of those fields, we can just close it.
+        FldCharFieldInfo _ : ancestors | fldCharType == "end" -> do
+          modify $ \st -> st {stateFldCharState = ancestors}
+          return NullParPart
         [FldCharContent info children] | fldCharType == "end" -> do
           modify $ \st -> st {stateFldCharState = []}
           return $ Field info $ reverse children
