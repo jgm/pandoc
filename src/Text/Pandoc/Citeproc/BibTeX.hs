@@ -71,9 +71,11 @@ readBibtexString variant locale idpred contents = do
                       filter (\item -> idpred (identifier item) &&
                                         entryType item /= "xdata"))
            (fromMaybe defaultLang $ localeLanguage locale, Map.empty)
-           "" (toSources contents) of
+           (initialSourceName sources) sources of
           Left err -> Left err
           Right xs -> return xs
+ where
+  sources = toSources contents
 
 -- | Write BibTeX or BibLaTeX given given a 'Reference'.
 writeBibtexString :: WriterOptions       -- ^ options (for writing LaTex)
