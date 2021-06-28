@@ -97,13 +97,13 @@ renderError e =
                 []  -> ""
                 ((pos,txt):_) ->
                   let ls = T.lines txt <> [""]
-                      ln = errLine - sourceLine pos
-                   in if length ls > ln - 1
+                      ln = (errLine - sourceLine pos) + 1
+                   in if length ls > ln && ln >= 1
                          then T.concat ["\n", ls !! (ln - 1)
                                        ,"\n", T.replicate (errColumn - 1) " "
                                        ,"^"]
                          else ""
-        in  "\nError at " <> tshow  err' <> errorInFile
+        in  "Error at " <> tshow  err' <> errorInFile
     PandocMakePDFError s -> s
     PandocOptionError s -> s
     PandocSyntaxMapError s -> s
