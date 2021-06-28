@@ -791,6 +791,9 @@ blockListToMarkdown opts blocks = do
            b1 : commentSep : fixBlocks (b2:bs)
       fixBlocks (Plain ils : bs@(RawBlock{}:_)) =
            Plain ils : fixBlocks bs
+      fixBlocks (Plain ils : bs@(Div{}:_))
+          | isEnabled Ext_fenced_divs opts =
+           Para ils : fixBlocks bs
       fixBlocks (Plain ils : bs) | inlist =
            Plain ils : fixBlocks bs
       fixBlocks (Plain ils : bs) =
