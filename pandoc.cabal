@@ -453,7 +453,7 @@ library
                  citeproc              >= 0.4.0.1  && < 0.4.1,
                  commonmark            >= 0.2.1    && < 0.3,
                  commonmark-extensions >= 0.2.1.2  && < 0.3,
-                 commonmark-pandoc     >= 0.2.1    && < 0.3,
+                 commonmark-pandoc     >= 0.2.1.1  && < 0.3,
                  connection            >= 0.3.1,
                  containers            >= 0.4.2.1  && < 0.7,
                  data-default          >= 0.4      && < 0.8,

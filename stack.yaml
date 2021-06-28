@@ -8,6 +8,7 @@ packages:
 - '.'
 extra-deps:
 - commonmark-0.2.1
+- commonmark-pandoc-0.2.1.1
 - skylighting-core-0.10.5.2
 - skylighting-0.10.5.2
 - git: https://github.com/jgm/doctemplates
