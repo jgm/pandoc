@@ -868,7 +868,7 @@ fieldName = resolveAlias . T.toLower
 
 isBibtexKeyChar :: Char -> Bool
 isBibtexKeyChar c =
-  isAlphaNum c || c `elem` (".:;?!`'()/*@_+=-[]*&" :: [Char])
+  isAlphaNum c || c `elem` (".:;?!`'()$/*@_+=-[]*&" :: [Char])
 
 bibItem :: BibParser Item
 bibItem = do
