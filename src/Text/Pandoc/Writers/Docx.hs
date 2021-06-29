@@ -856,7 +856,7 @@ blockToOpenXML' opts (Plain lst) = do
 blockToOpenXML' opts (Para [Image attr alt (src,T.stripPrefix "fig:" -> Just tit)]) = do
   setFirstPara
   fignum <- gets stNextFigureNum
-  modify $ \st -> st{ stNextFigureNum = fignum + 1 }
+  unless (null alt) $ modify $ \st -> st{ stNextFigureNum = fignum + 1 }
   let figid = "fig" <> tshow fignum
   figname <- translateTerm Term.Figure
   prop <- pStyleM $
@@ -870,10 +870,9 @@ blockToOpenXML' opts (Para [Image attr alt (src,T.stripPrefix "fig:" -> Just tit
                     else withParaPropM (pStyleM "Image Caption")
                          $ blockToOpenXML opts
                             (Para $ Span (figid,[],[])
-                               [Str "Figure\160",
+                               [Str (figname <> "\160"),
                                 RawInline (Format "openxml")
-                                ("<w:fldSimple w:instr=\"SEQ "
-                                <> figname
+                                ("<w:fldSimple w:instr=\"SEQ Figure"
                                 <> " \\* ARABIC \"><w:r><w:t>"
                                 <> tshow fignum
                                 <> "</w:t></w:r></w:fldSimple>"),
