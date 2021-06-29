@@ -14,7 +14,7 @@ extra-deps:
 - git: https://github.com/jgm/doctemplates
   commit: 428c26d5303cf7a2b1051fe1ffd9aafe9ba71c81
 - git: https://github.com/jgm/citeproc
-  commit: d201ddc812b1550d70c3e448eec6d9c3af72d96b
+  commit: 85277c4baa6c0350baf29247583ae0f438f7c9c5
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.0
