@@ -55,7 +55,9 @@ testArchive :: (WriterOptions -> Pandoc -> PandocIO BL.ByteString)
             -> IO Archive
 testArchive writerFn opts fp = do
   txt <- T.readFile fp
-  bs <- runIOorExplode $ readNative def txt >>= writerFn opts
+  bs <- runIOorExplode $ do
+    setTranslations "en-US"
+    readNative def txt >>= writerFn opts
   return $ toArchive bs
 
 compareFileList :: FilePath -> Archive -> Archive -> Maybe String

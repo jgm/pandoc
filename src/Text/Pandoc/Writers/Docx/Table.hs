@@ -17,7 +17,7 @@ import Control.Monad.State.Strict
 import Data.Array
 import Data.Text (Text)
 import Text.Pandoc.Definition
-import Text.Pandoc.Class.PandocMonad (PandocMonad)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, translateTerm)
 import Text.Pandoc.Writers.Docx.Types
 import Text.Pandoc.Shared
 import Text.Printf (printf)
@@ -25,6 +25,7 @@ import Text.Pandoc.Writers.GridTable hiding (Table)
 import Text.Pandoc.Writers.OOXML
 import Text.Pandoc.XML.Light as XML hiding (Attr)
 import qualified Data.Text as T
+import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Writers.GridTable as Grid
 
 tableToOpenXML :: PandocMonad m
@@ -33,15 +34,23 @@ tableToOpenXML :: PandocMonad m
                -> WS m [Content]
 tableToOpenXML blocksToOpenXML gridTable = do
   setFirstPara
-  let (Grid.Table _attr caption colspecs _rowheads thead tbodies tfoot) =
+  let (Grid.Table (ident,_,_) caption colspecs _rowheads thead tbodies tfoot) =
         gridTable
   let (Caption _maybeShortCaption captionBlocks) = caption
+  tablenum <- gets stNextTableNum
+  unless (null captionBlocks) $
+    modify $ \st -> st{ stNextTableNum = tablenum + 1 }
+  let tableid = if T.null ident
+                   then "table" <> tshow tablenum
+                   else ident
+  tablename <- translateTerm Term.Table
   let captionStr = stringify captionBlocks
   let aligns = map fst $ elems colspecs
   captionXml <- if null captionBlocks
                 then return []
                 else withParaPropM (pStyleM "Table Caption")
-                     $ blocksToOpenXML captionBlocks
+                     $ blocksToOpenXML
+                     $ addLabel tableid tablename tablenum captionBlocks
   -- We set "in table" after processing the caption, because we don't
   -- want the "Table Caption" style to be overwritten with "Compact".
   modify $ \s -> s { stInTable = True }
@@ -80,6 +89,22 @@ tableToOpenXML blocksToOpenXML gridTable = do
         )
   modify $ \s -> s { stInTable = False }
   return $ captionXml ++ [Elem tbl]
+
+addLabel :: Text -> Text -> Int -> [Block] -> [Block]
+addLabel tableid tablename tablenum bs =
+  case bs of
+    (Para ils : rest)  -> Para (label : Space : ils) : rest
+    (Plain ils : rest) -> Plain (label : Space : ils) : rest
+    _ -> Para [label] : bs
+ where
+  label = Span (tableid,[],[])
+            [Str (tablename <> "\160"),
+             RawInline (Format "openxml")
+               ("<w:fldSimple w:instr=\"SEQ Table"
+               <> " \\* ARABIC \"><w:r><w:t>"
+               <> tshow tablenum
+               <> "</w:t></w:r></w:fldSimple>"),
+             Str ":"]
 
 -- | Parts of a table
 data RowType = HeadRow | BodyRow | FootRow
