@@ -36,7 +36,8 @@ import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
 import Text.Collate.Lang (renderLang)
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang, translateTerm)
+import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Data.Time
 import Text.Pandoc.UTF8 (fromTextLazy)
@@ -854,14 +855,29 @@ blockToOpenXML' opts (Plain lst) = do
 -- title beginning with fig: indicates that the image is a figure
 blockToOpenXML' opts (Para [Image attr alt (src,T.stripPrefix "fig:" -> Just tit)]) = do
   setFirstPara
+  fignum <- gets stNextFigureNum
+  modify $ \st -> st{ stNextFigureNum = fignum + 1 }
+  let figid = "fig" <> tshow fignum
+  figname <- translateTerm Term.Figure
   prop <- pStyleM $
         if null alt
         then "Figure"
         else "Captioned Figure"
   paraProps <- local (\env -> env { envParaProperties = EnvProps (Just prop) [] <> envParaProperties env }) (getParaProps False)
   contents <- inlinesToOpenXML opts [Image attr alt (src,tit)]
-  captionNode <- withParaPropM (pStyleM "Image Caption")
-                 $ blockToOpenXML opts (Para alt)
+  captionNode <- if null alt
+                    then return []
+                    else withParaPropM (pStyleM "Image Caption")
+                         $ blockToOpenXML opts
+                            (Para $ Span (figid,[],[])
+                               [Str "Figure\160",
+                                RawInline (Format "openxml")
+                                ("<w:fldSimple w:instr=\"SEQ "
+                                <> figname
+                                <> " \\* ARABIC \"><w:r><w:t>"
+                                <> tshow fignum
+                                <> "</w:t></w:r></w:fldSimple>"),
+                                Str ":", Space] : alt)
   return $
     Elem (mknode "w:p" [] (map Elem paraProps ++ contents))
     : captionNode

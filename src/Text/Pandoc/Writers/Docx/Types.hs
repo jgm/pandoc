@@ -117,6 +117,7 @@ data WriterState = WriterState{
        , stDynamicParaProps :: Set.Set ParaStyleName
        , stDynamicTextProps :: Set.Set CharStyleName
        , stCurId          :: Int
+       , stNextFigureNum  :: Int
        }
 
 defaultWriterState :: WriterState
@@ -137,6 +138,7 @@ defaultWriterState = WriterState{
       , stDynamicParaProps = Set.empty
       , stDynamicTextProps = Set.empty
       , stCurId          = 20
+      , stNextFigureNum  = 1
       }
 
 setFirstPara :: PandocMonad m => WS m ()
