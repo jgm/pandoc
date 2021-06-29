@@ -90,21 +90,15 @@ processCitations (Pandoc meta bs) = do
                          walk (convertQuotes locale) .
                          insertSpace $ out)
                       (resultBibliography result)
-  let moveNotes = maybe True truish $
-                        lookupMeta "notes-after-punctuation" meta
+  let moveNotes = styleIsNoteStyle sopts &&
+           maybe True truish (lookupMeta "notes-after-punctuation" meta)
   let cits = map (walk (convertQuotes locale)) $
                resultCitations result
-
-  let fixQuotes = case localePunctuationInQuote locale of
-                    Just True ->
-                      B.toList . movePunctuationInsideQuotes .  B.fromList
-                    _ -> id
 
   let metanocites = lookupMeta "nocite" meta
   let Pandoc meta'' bs' =
          maybe id (setMeta "nocite") metanocites .
-         walk (map capitalizeNoteCitation .
-                fixQuotes .  mvPunct moveNotes locale) .
+         walk (map capitalizeNoteCitation .  mvPunct moveNotes locale) .
          walk deNote .
          evalState (walkM insertResolvedCitations $ Pandoc meta' bs)
          $ cits
@@ -375,7 +369,6 @@ formatFromExtension fp = case dropWhile (== '.') $ takeExtension fp of
 
 
 isNote :: Inline -> Bool
-isNote (Note _)          = True
 isNote (Cite _ [Note _]) = True
  -- the following allows citation styles that are "in-text" but use superscript
  -- references to be treated as if they are "notes" for the purposes of moving
@@ -388,6 +381,12 @@ isSpacy Space     = True
 isSpacy SoftBreak = True
 isSpacy _         = False
 
+movePunctInsideQuotes :: Locale -> [Inline] -> [Inline]
+movePunctInsideQuotes locale
+  | localePunctuationInQuote locale == Just True
+    = B.toList . movePunctuationInsideQuotes . B.fromList
+  | otherwise
+    = id
 
 mvPunct :: Bool -> Locale -> [Inline] -> [Inline]
 mvPunct moveNotes locale (x : xs)
@@ -400,7 +399,8 @@ mvPunct moveNotes locale (q : s : x : ys)
     in  if moveNotes
            then if T.null spunct
                    then q : x : mvPunct moveNotes locale ys
-                   else q : Str spunct : x : mvPunct moveNotes locale
+                   else movePunctInsideQuotes locale
+                        [q , Str spunct , x] ++ mvPunct moveNotes locale
                         (B.toList
                           (dropTextWhile isPunctuation (B.fromList ys)))
            else q : x : mvPunct moveNotes locale ys
@@ -412,9 +412,10 @@ mvPunct moveNotes locale (Cite cs ils : ys)
    , moveNotes
    = let s = stringify ys
          spunct = T.takeWhile isPunctuation s
-     in  Cite cs (init ils
-                  ++ [Str spunct | not (endWithPunct False (init ils))]
-                  ++ [last ils]) :
+     in  Cite cs (movePunctInsideQuotes locale $
+                    init ils
+                    ++ [Str spunct | not (endWithPunct False (init ils))]
+                    ++ [last ils]) :
          mvPunct moveNotes locale
            (B.toList (dropTextWhile isPunctuation (B.fromList ys)))
 mvPunct moveNotes locale (s : x : ys) | isSpacy s, isNote x =
