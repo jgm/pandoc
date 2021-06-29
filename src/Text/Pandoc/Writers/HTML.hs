@@ -1433,7 +1433,7 @@ inlineToHtml opts inline = do
                         return $ if T.null tit
                                     then link'
                                     else link' ! A.title (toValue tit)
-    (Image attr txt (s,tit)) -> do
+    (Image attr@(_, _, attrList) txt (s, tit)) -> do
                         let alternate = stringify txt
                         slideVariant <- gets stSlideVariant
                         let isReveal = slideVariant == RevealJsSlides
@@ -1446,7 +1446,8 @@ inlineToHtml opts inline = do
                               [A.title $ toValue tit | not (T.null tit)] ++
                               attrs
                             imageTag = (if html5 then H5.img else H.img
-                              , [A.alt $ toValue alternate | not (null txt)] )
+                              , [A.alt $ toValue alternate | not (null txt) &&
+                                  isNothing (lookup "alt" attrList)] )
                             mediaTag tg fallbackTxt =
                               let linkTxt = if null txt
                                             then fallbackTxt
