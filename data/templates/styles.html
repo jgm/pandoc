@@ -14,7 +14,7 @@ body {
   padding-top: $if(margin-top)$$margin-top$$else$50px$endif$;
   padding-bottom: $if(margin-bottom)$$margin-bottom$$else$50px$endif$;
   hyphens: auto;
-  word-wrap: break-word;
+  overflow-wrap: break-word;
   text-rendering: optimizeLegibility;
   font-kerning: normal;
 }
@@ -93,6 +93,7 @@ $endif$
 pre code {
   padding: 0;
   overflow: visible;
+  overflow-wrap: normal;
 }
 .sourceCode {
  background-color: transparent;
