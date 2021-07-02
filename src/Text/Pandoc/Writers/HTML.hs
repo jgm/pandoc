@@ -659,17 +659,20 @@ dimensionsToAttrList attr = consolidateStyles $ go Width ++ go Height
 figure :: PandocMonad m
        => WriterOptions -> Attr -> [Inline] -> (Text, Text)
        -> StateT WriterState m Html
-figure opts attr txt (s,tit) = do
+figure opts attr@(_, _, attrList) txt (s,tit) = do
   html5 <- gets stHtml5
   -- Screen-readers will normally read the @alt@ text and the figure; we
   -- want to avoid them reading the same text twice. With HTML5 we can
   -- use aria-hidden for the caption; with HTML4, we use an empty
   -- alt-text instead.
+  -- When the alt text differs from the caption both should be read.
   let alt = if html5 then txt else [Str ""]
   let tocapt = if html5
-                  then H5.figcaption !
-                       H5.customAttribute (textTag "aria-hidden")
-                                          (toValue @Text "true")
+                  then (H5.figcaption !) $
+                       if isJust (lookup "alt" attrList)
+                          then mempty
+                          else H5.customAttribute (textTag "aria-hidden")
+                                                  (toValue @Text "true")
                   else H.p ! A.class_ "caption"
   img <- inlineToHtml opts (Image attr alt (s,tit))
   capt <- if null txt
