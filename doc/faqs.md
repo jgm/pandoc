@@ -106,5 +106,23 @@ When using `\AtEndPreamble`, keep any `makeatletter` or
 `makeatother` outside of the `\AtEndPreamble`, as shown in the
 example.
 
+## How can I convert PDFs to other formats using pandoc?
+
+You can't. You can try opening the PDF in Word or Google Docs
+and saving in a format from which pandoc can convert directly.
+
+## Do I really need to install a 1 GB TeX installation to produce a PDF using pandoc?
+
+No.  You can get by with a relatively small TeX installation,
+for example, by starting with MacTeX's Basic TeX distribution
+and using the `tlmgr` tool to install a few packages required by pandoc
+(see https://pandoc.org/MANUAL.html#creating-a-pdf).
+
+Or, you can produce PDFs via HTML and `wkhtmltopdf`,
+or via groff ms and `pdfroff`.  (These don't produce as nice
+topography as TeX, particularly when it comes to math, but they
+may be fine for many purposes.)
+
+
 :::
 
