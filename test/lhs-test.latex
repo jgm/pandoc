@@ -4,9 +4,6 @@
 %
 \documentclass[
 ]{article}
-\author{}
-\date{}
-
 \usepackage{amsmath,amssymb}
 \usepackage{lmodern}
 \usepackage{iftex}
@@ -87,6 +84,9 @@
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
+
+\author{}
+\date{}
 
 \begin{document}
 

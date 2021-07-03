@@ -5,9 +5,6 @@
 \documentclass[
   english,
 ]{article}
-\author{}
-\date{}
-
 \usepackage{amsmath,amssymb}
 \usepackage{lmodern}
 \usepackage{iftex}
@@ -86,6 +83,9 @@
   \newenvironment{RTL}{\beginR}{\endR}
   \newenvironment{LTR}{\beginL}{\endL}
 \fi
+
+\author{}
+\date{}
 
 \begin{document}
 

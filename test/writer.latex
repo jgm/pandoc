@@ -4,10 +4,6 @@
 %
 \documentclass[
 ]{article}
-\title{Pandoc Test Suite}
-\author{John MacFarlane \and Anonymous}
-\date{July 17, 2006}
-
 \usepackage{amsmath,amssymb}
 \usepackage{lmodern}
 \usepackage{iftex}
@@ -70,6 +66,10 @@
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
+
+\title{Pandoc Test Suite}
+\author{John MacFarlane \and Anonymous}
+\date{July 17, 2006}
 
 \begin{document}
 \maketitle
