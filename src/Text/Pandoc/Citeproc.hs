@@ -27,7 +27,7 @@ import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Extensions (pandocExtensions)
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options (ReaderOptions(..))
-import Text.Pandoc.Shared (stringify, ordNub, blocksToInlines, tshow)
+import Text.Pandoc.Shared (stringify, ordNub, tshow)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (query, walk, walkM)
 import Control.Applicative ((<|>))
@@ -48,6 +48,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import System.FilePath (takeExtension)
 import Safe (lastMay, initSafe)
+
 
 processCitations  :: PandocMonad m => Pandoc -> m Pandoc
 processCitations (Pandoc meta bs) = do
@@ -99,7 +100,9 @@ processCitations (Pandoc meta bs) = do
   let Pandoc meta'' bs' =
          maybe id (setMeta "nocite") metanocites .
          walk (map capitalizeNoteCitation .  mvPunct moveNotes locale) .
-         walk deNote .
+         (if styleIsNoteStyle sopts
+             then walk addNote .  walk deNote
+             else id) .
          evalState (walkM insertResolvedCitations $ Pandoc meta' bs)
          $ cits
   return $ Pandoc meta''
@@ -568,33 +571,46 @@ capitalizeNoteCitation (Cite cs [Note [Para ils]]) =
               $ B.fromList ils]]
 capitalizeNoteCitation x = x
 
+addNote :: Inline -> Inline
+addNote (Span ("",["csl-note"],[]) ils) = Note [Para ils]
+addNote x = x
+
 deNote :: [Inline] -> [Inline]
 deNote [] = []
 deNote (Note bs:rest) =
-  Note (walk go bs) : deNote rest
+  case bs of
+    [Para (cit@(Cite (c:_) _) : ils)]
+       | citationMode c /= AuthorInText ->
+         -- if citation is first in note, no need to parenthesize.
+         Note [Para (walk removeNotes $ cit : walk addParens ils)]
+             : deNote rest
+    _ -> Note (walk removeNotes . walk addParens $ bs) : deNote rest
  where
-  go [] = []
-  go (Cite (c:cs) ils : zs)
+  addParens [] = []
+  addParens (Cite (c:cs) ils : zs)
     | citationMode c == AuthorInText
-      = Cite (c:cs) (concatMap (noteAfterComma (needsPeriod zs)) ils) : go zs
+      = Cite (c:cs) (concatMap (noteAfterComma (needsPeriod zs)) ils) :
+        addParens zs
     | otherwise
-      = Cite (c:cs) (concatMap noteInParens ils) : go zs
-  go (x:xs) = x : go xs
+      = Cite (c:cs) (concatMap noteInParens ils) : addParens zs
+  addParens (x:xs) = x : addParens xs
+  removeNotes (Span ("",["csl-note"],[]) ils) = Span ("",[],[]) ils
+  removeNotes x = x
   needsPeriod [] = True
   needsPeriod (Str t:_) = case T.uncons t of
                             Nothing    -> False
                             Just (c,_) -> isUpper c
   needsPeriod (Space:zs) = needsPeriod zs
   needsPeriod _ = False
-  noteInParens (Note bs')
+  noteInParens (Span ("",["csl-note"],[]) ils)
        = Space : Str "(" :
-         removeFinalPeriod (blocksToInlines bs') ++ [Str ")"]
+         removeFinalPeriod ils ++ [Str ")"]
   noteInParens x = [x]
-  noteAfterComma needsPer (Note bs')
+  noteAfterComma needsPer (Span ("",["csl-note"],[]) ils)
        = Str "," : Space :
-         (if needsPer
-             then id
-             else removeFinalPeriod) (blocksToInlines bs')
+         if needsPer
+            then ils
+            else removeFinalPeriod ils
   noteAfterComma _ x = [x]
 deNote (x:xs) = x : deNote xs
 
