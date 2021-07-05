@@ -99,7 +99,7 @@ processCitations (Pandoc meta bs) = do
   let metanocites = lookupMeta "nocite" meta
   let Pandoc meta'' bs' =
          maybe id (setMeta "nocite") metanocites .
-         walk (map capitalizeNoteCitation .  mvPunct moveNotes locale) .
+         walk (mvPunct moveNotes locale) .
          (if styleIsNoteStyle sopts
              then walk addNote .  walk deNote
              else id) .
@@ -564,27 +564,28 @@ extractText (FancyVal x) = toText x
 extractText (NumVal n)   = T.pack (show n)
 extractText _            = mempty
 
-capitalizeNoteCitation :: Inline -> Inline
-capitalizeNoteCitation (Cite cs [Note [Para ils]]) =
-  Cite cs
-  [Note [Para $ B.toList $ addTextCase Nothing CapitalizeFirst
-              $ B.fromList ils]]
-capitalizeNoteCitation x = x
-
+-- Here we take the Spans with class csl-note that are left
+-- after deNote has removed nested ones, and convert them
+-- into real notes.
 addNote :: Inline -> Inline
-addNote (Span ("",["csl-note"],[]) ils) = Note [Para ils]
+addNote (Span ("",["csl-note"],[]) ils) =
+  Note [Para $
+         B.toList . addTextCase Nothing CapitalizeFirst . B.fromList $ ils]
 addNote x = x
 
-deNote :: [Inline] -> [Inline]
-deNote [] = []
-deNote (Note bs:rest) =
+-- Here we handle citation notes that occur inside footnotes
+-- or other citation notes, in a note style.  We don't want
+-- notes inside notes, so we convert these to parenthesized
+-- or comma-separated citations.
+deNote :: Inline -> Inline
+deNote (Note bs) =
   case bs of
     [Para (cit@(Cite (c:_) _) : ils)]
        | citationMode c /= AuthorInText ->
          -- if citation is first in note, no need to parenthesize.
          Note [Para (walk removeNotes $ cit : walk addParens ils)]
-             : deNote rest
-    _ -> Note (walk removeNotes . walk addParens $ bs) : deNote rest
+    _ -> Note (walk removeNotes . walk addParens $ bs)
+
  where
   addParens [] = []
   addParens (Cite (c:cs) ils : zs)
@@ -594,25 +595,30 @@ deNote (Note bs:rest) =
     | otherwise
       = Cite (c:cs) (concatMap noteInParens ils) : addParens zs
   addParens (x:xs) = x : addParens xs
+
   removeNotes (Span ("",["csl-note"],[]) ils) = Span ("",[],[]) ils
   removeNotes x = x
+
   needsPeriod [] = True
   needsPeriod (Str t:_) = case T.uncons t of
                             Nothing    -> False
                             Just (c,_) -> isUpper c
   needsPeriod (Space:zs) = needsPeriod zs
   needsPeriod _ = False
+
   noteInParens (Span ("",["csl-note"],[]) ils)
        = Space : Str "(" :
          removeFinalPeriod ils ++ [Str ")"]
   noteInParens x = [x]
+
   noteAfterComma needsPer (Span ("",["csl-note"],[]) ils)
        = Str "," : Space :
          if needsPer
             then ils
             else removeFinalPeriod ils
   noteAfterComma _ x = [x]
-deNote (x:xs) = x : deNote xs
+
+deNote x = x
 
 -- Note: we can't use dropTextWhileEnd indiscriminately,
 -- because this would remove the final period on abbreviations like Ibid.
