@@ -612,6 +612,7 @@ deNote (Note bs) =
   noteInParens x = [x]
 
   noteAfterComma needsPer (Span ("",["csl-note"],[]) ils)
+    | not (null ils)
        = Str "," : Space :
          if needsPer
             then ils
