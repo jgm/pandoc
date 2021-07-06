@@ -77,6 +77,8 @@ tests = [ testGroup "base tag"
         , testGroup "img"
           [ test html "data-external attribute" $ "<img data-external=\"1\" src=\"http://example.com/stickman.gif\">" =?>
             plain (imageWith ("", [], [("external", "1")]) "http://example.com/stickman.gif" "" "")
+          , test html "title" $ "<img title=\"The title\" src=\"http://example.com/stickman.gif\">" =?>
+            plain (imageWith ("", [], []) "http://example.com/stickman.gif" "The title" "")
           ]
         , testGroup "lang"
           [ test html "lang on <html>" $ "<html lang=\"es\">hola" =?>
