@@ -722,17 +722,12 @@ pLink = try $ do
 
 pImage :: PandocMonad m => TagParser m Inlines
 pImage = do
-  tag <- pSelfClosing (=="img") (isJust . lookup "src")
+  tag@(TagOpen _ attr') <- pSelfClosing (=="img") (isJust . lookup "src")
   url <- canonicalizeUrl $ fromAttrib "src" tag
   let title = fromAttrib "title" tag
   let alt = fromAttrib "alt" tag
-  let uid = fromAttrib "id" tag
-  let cls = T.words $ fromAttrib "class" tag
-  let getAtt k = case fromAttrib k tag of
-                   "" -> []
-                   v  -> [(k, v)]
-  let kvs = concatMap getAtt ["width", "height", "sizes", "srcset"]
-  return $ B.imageWith (uid, cls, kvs) (escapeURI url) title (B.text alt)
+  let attr = toAttr $ filter (\(k,_) -> k /= "alt" && k /= "title" && k /= "src") attr'
+  return $ B.imageWith attr (escapeURI url) title (B.text alt)
 
 pSvg :: PandocMonad m => TagParser m Inlines
 pSvg = do
