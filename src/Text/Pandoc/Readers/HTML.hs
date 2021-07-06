@@ -728,11 +728,14 @@ pImage = do
   let alt = fromAttrib "alt" tag
   let uid = fromAttrib "id" tag
   let cls = T.words $ fromAttrib "class" tag
+  let external = case fromAttrib "data-external" tag of
+                   "" -> []
+                   v  -> [("external", v)]
   let getAtt k = case fromAttrib k tag of
                    "" -> []
                    v  -> [(k, v)]
   let kvs = concatMap getAtt ["width", "height", "sizes", "srcset"]
-  return $ B.imageWith (uid, cls, kvs) (escapeURI url) title (B.text alt)
+  return $ B.imageWith (uid, cls, kvs <> external) (escapeURI url) title (B.text alt)
 
 pSvg :: PandocMonad m => TagParser m Inlines
 pSvg = do
