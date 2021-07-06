@@ -6177,6 +6177,12 @@ with the `src` attribute.  For example:
       </source>
     </audio>
 
+If the input format already is HTML then `data-external="1"` will work
+as expected for `<img>` elements. Similarly, for Markdown, external
+images can be declared with `![img](url){external=1}`. Note that this
+only works for images; the other media elements have no native
+representation in pandoc's AST and requires the use of raw HTML.
+
 # Jupyter notebooks
 
 When creating a [Jupyter notebook], pandoc will try to infer the
