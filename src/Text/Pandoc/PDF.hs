@@ -215,9 +215,9 @@ convertImage opts tmpdir fname = do
                  E.catch (Right pngOut <$ JP.savePngImage pngOut img) $
                      \(e :: E.SomeException) -> return (Left (tshow e))
   where
-    pngOut = replaceDirectory (replaceExtension fname ".png") tmpdir
-    pdfOut = replaceDirectory (replaceExtension fname ".pdf") tmpdir
-    svgIn = tmpdir </> fname
+    pngOut = normalise $ replaceDirectory (replaceExtension fname ".png") tmpdir
+    pdfOut = normalise $ replaceDirectory (replaceExtension fname ".pdf") tmpdir
+    svgIn = normalise $ tmpdir </> fname
     mime = getMimeType fname
     doNothing = return (Right fname)
 
