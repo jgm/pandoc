@@ -1121,6 +1121,7 @@ rawTeXBlock = do
 rawHtmlBlocks :: PandocMonad m => MarkdownParser m (F Blocks)
 rawHtmlBlocks = do
   (TagOpen tagtype _, raw) <- htmlTag isBlockTag
+  let selfClosing = "/>" `T.isSuffixOf` raw
   -- we don't want '<td>    text' to be a code block:
   skipMany spaceChar
   indentlevel <- (blankline >> length <$> many (char ' ')) <|> return 0
@@ -1134,7 +1135,9 @@ rawHtmlBlocks = do
                  gobbleAtMostSpaces indentlevel
                  notFollowedBy' closer
                  block
-  contents <- mconcat <$> many block'
+  contents <- if selfClosing
+                 then return mempty
+                 else mconcat <$> many block'
   result <-
     try
     (do gobbleAtMostSpaces indentlevel
