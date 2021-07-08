@@ -97,7 +97,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] chapterinfo - Meta-information for a Chapter
 [ ] citation - An inline bibliographic reference to another published work
 [ ] citebiblioid - A citation of a bibliographic identifier
-[ ] citerefentry - A citation to a reference page
+[x] citerefentry - A citation to a reference page
 [ ] citetitle - The title of a cited work
 [ ] city - The name of a city in an address
 [x] classname - The name of a class, in the object-oriented programming sense
@@ -1112,6 +1112,10 @@ parseInline (Elem e) =
         "segmentedlist" -> segmentedList
         "classname" -> codeWithLang
         "code" -> codeWithLang
+        "citerefentry" -> do
+             let title = maybe mempty strContent $ filterChild (named "refentrytitle") e
+             let manvolnum = maybe mempty (\el -> "(" <> strContent el <> ")") $ filterChild (named "manvolnum") e
+             return $ codeWith ("",["interpreted-text"],[("role","manpage")]) (title <> manvolnum)
         "filename" -> codeWithLang
         "envar" -> codeWithLang
         "literal" -> codeWithLang
