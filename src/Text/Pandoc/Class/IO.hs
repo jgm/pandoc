@@ -226,6 +226,6 @@ adjustImagePath dir mediabag (Image attr lab (src, tit)) =
   case lookupMedia (T.unpack src) mediabag of
     Nothing -> Image attr lab (src, tit)
     Just item ->
-      let fullpath = dir </> mediaPath item
+      let fullpath = dir <> "/" <> mediaPath item
       in  Image attr lab (T.pack fullpath, tit)
 adjustImagePath _ _ x = x
