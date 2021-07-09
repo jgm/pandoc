@@ -213,6 +213,7 @@ extra-source-files:
                  test/command/B.txt
                  test/command/C.txt
                  test/command/D.txt
+                 test/command/three.txt
                  test/command/01.csv
                  test/command/chap1/spider.png
                  test/command/chap2/spider.png

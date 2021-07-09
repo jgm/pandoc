@@ -474,6 +474,7 @@ includeDirective top fields body = do
            case lookup "literal" fields of
              Just _  -> B.rawBlock "rst" . sourcesToText <$> getInput
              Nothing -> parseBlocks
+  let isLiteral = isJust (lookup "code" fields `mplus` lookup "literal" fields)
   let selectLines =
         (case trim <$> lookup "end-before" fields of
                          Just patt -> takeWhile (not . (patt `T.isInfixOf`))
@@ -482,8 +483,11 @@ includeDirective top fields body = do
                          Just patt -> drop 1 .
                                         dropWhile (not . (patt `T.isInfixOf`))
                          Nothing   -> id)
+
   let toStream t =
-        toSources [(f, T.unlines . selectLines . T.lines $ t)]
+        Sources [(initialPos f,
+                   (T.unlines . selectLines . T.lines $ t) <>
+                    if isLiteral then mempty else "\n")]  -- see #7436
   currentDir <- takeDirectory . sourceName <$> getPosition
   insertIncludedFile parser toStream [currentDir] f startLine endLine
 
