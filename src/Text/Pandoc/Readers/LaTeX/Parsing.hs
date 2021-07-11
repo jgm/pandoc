@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -28,6 +29,7 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , applyMacros
   , tokenize
   , tokenizeSources
+  , getInputTokens
   , untokenize
   , untoken
   , totoks
@@ -246,18 +248,23 @@ withVerbatimMode parser = do
        updateState $ \st -> st{ sVerbatimMode = False }
        return result
 
-rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s)
+rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s, Show a)
                => [Tok] -> Bool -> LP m a -> LP m a
                -> ParserT Sources s m (a, Text)
 rawLaTeXParser toks retokenize parser valParser = do
   pstate <- getState
   let lstate = def{ sOptions = extractReaderOptions pstate }
   let lstate' = lstate { sMacros = extractMacros pstate }
+  let setStartPos = case toks of
+                      Tok pos _ _ : _ -> setPosition pos
+                      _ -> return ()
+  let preparser = setStartPos >> parser
   let rawparser = (,) <$> withRaw valParser <*> getState
-  res' <- lift $ runParserT (snd <$> withRaw parser) lstate "chunk" toks
+  res' <- lift $ runParserT (withRaw (preparser >> getPosition))
+                            lstate "chunk" toks
   case res' of
        Left _    -> mzero
-       Right toks' -> do
+       Right (endpos, toks') -> do
          res <- lift $ runParserT (do when retokenize $ do
                                         -- retokenize, applying macros
                                         ts <- many (satisfyTok (const True))
@@ -268,7 +275,13 @@ rawLaTeXParser toks retokenize parser valParser = do
               Left _    -> mzero
               Right ((val, raw), st) -> do
                 updateState (updateMacros (sMacros st <>))
-                void $ count (T.length (untokenize toks')) anyChar
+                let skipTilPos stopPos = do
+                      anyChar
+                      pos <- getPosition
+                      if pos >= stopPos
+                         then return ()
+                         else skipTilPos stopPos
+                skipTilPos endpos
                 let result = untokenize raw
                 -- ensure we end with space if input did, see #4442
                 let result' =
@@ -305,6 +318,17 @@ tokenizeSources :: Sources -> [Tok]
 tokenizeSources = concatMap tokenizeSource . unSources
  where
    tokenizeSource (pos, t) = totoks pos t
+
+-- Return tokens from input sources. Ensure that starting position is
+-- correct.
+getInputTokens :: PandocMonad m => ParserT Sources s m [Tok]
+getInputTokens = do
+  pos <- getPosition
+  ss <- getInput
+  return $
+    case ss of
+      Sources [] -> []
+      Sources ((_,t):rest) -> tokenizeSources $ Sources ((pos,t):rest)
 
 tokenize :: SourceName -> Text -> [Tok]
 tokenize sourcename = totoks (initialPos sourcename)
@@ -433,8 +457,13 @@ parseFromToks :: PandocMonad m => LP m a -> [Tok] -> LP m a
 parseFromToks parser toks = do
   oldInput <- getInput
   setInput toks
+  oldpos <- getPosition
+  case toks of
+     Tok pos _ _ : _ -> setPosition pos
+     _ -> return ()
   result <- disablingWithRaw parser
   setInput oldInput
+  setPosition oldpos
   return result
 
 disablingWithRaw :: PandocMonad m => LP m a -> LP m a
@@ -458,7 +487,7 @@ satisfyTok f = do
                   | otherwise = Nothing
         updatePos :: SourcePos -> Tok -> [Tok] -> SourcePos
         updatePos _spos _ (Tok pos _ _ : _) = pos
-        updatePos spos _ []                 = incSourceColumn spos 1
+        updatePos spos (Tok _ _ t)  []      = incSourceColumn spos (T.length t)
 
 doMacros :: PandocMonad m => LP m ()
 doMacros = do

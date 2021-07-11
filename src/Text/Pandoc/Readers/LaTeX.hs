@@ -136,8 +136,7 @@ rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
               => ParserT Sources s m Text
 rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
-  inp <- getInput
-  let toks = tokenizeSources inp
+  toks <- getInputTokens
   snd <$> (rawLaTeXParser toks False (macroDef (const mempty)) blocks
       <|> rawLaTeXParser toks True
              (do choice (map controlSeq
@@ -167,8 +166,7 @@ rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
                => ParserT Sources s m Text
 rawLaTeXInline = do
   lookAhead (try (char '\\' >> letter))
-  inp <- getInput
-  let toks = tokenizeSources inp
+  toks <- getInputTokens
   raw <- snd <$>
           (   rawLaTeXParser toks True
               (mempty <$ (controlSeq "input" >> skipMany rawopt >> braced))
@@ -182,8 +180,7 @@ rawLaTeXInline = do
 inlineCommand :: PandocMonad m => ParserT Sources ParserState m Inlines
 inlineCommand = do
   lookAhead (try (char '\\' >> letter))
-  inp <- getInput
-  let toks = tokenizeSources inp
+  toks <- getInputTokens
   fst <$> rawLaTeXParser toks True (inlineEnvironment <|> inlineCommand')
           inlines
 
