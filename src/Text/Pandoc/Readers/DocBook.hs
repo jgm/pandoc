@@ -741,9 +741,9 @@ getMediaobject e = do
   figTitle <- gets dbFigureTitle
   ident <- gets dbFigureId
   (imageUrl, attr) <-
-    case filterChild (named "imageobject") e of
-      Nothing  -> return (mempty, nullAttr)
-      Just z   -> case filterChild (named "imagedata") z of
+    case filterElements (named "imageobject") e of
+      []  -> return (mempty, nullAttr)
+      (z:_) -> case filterChild (named "imagedata") z of
                     Nothing -> return (mempty, nullAttr)
                     Just i  -> let atVal a = attrValue a i
                                    w = case atVal "width" of
