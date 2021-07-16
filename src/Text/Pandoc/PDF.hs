@@ -217,7 +217,7 @@ convertImage opts tmpdir fname = do
   where
     pngOut = normalise $ replaceDirectory (replaceExtension fname ".png") tmpdir
     pdfOut = normalise $ replaceDirectory (replaceExtension fname ".pdf") tmpdir
-    svgIn = normalise $ tmpdir </> fname
+    svgIn = normalise fname
     mime = getMimeType fname
     doNothing = return (Right fname)
 
