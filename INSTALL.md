@@ -163,6 +163,12 @@ Pandoc can be run through
 [GitHub Actions](https://github.com/features/actions).  For some
 examples, see <https://github.com/pandoc/pandoc-action-example>.
 
+## GitLab CI/CD
+
+Pandoc can be run through
+[GitLab CI/CD](https://about.gitlab.com/stages-devops-lifecycle/continuous-integration/).  For some
+examples, see <https://gitlab.com/pandoc/pandoc-ci-example>.
+
 ## Compiling from source
 
 If for some reason a binary package is not available for your
