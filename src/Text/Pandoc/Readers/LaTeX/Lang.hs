@@ -105,7 +105,7 @@ polyglossiaLangToBCP47 = M.fromList
        "locale=morocco"    -> Lang "ar" Nothing (Just "MA") [] [] []
        "locale=mauritania" -> Lang "ar" Nothing (Just "MR") [] [] []
        "locale=tunisia"    -> Lang "ar" Nothing (Just "TN") [] [] []
-       _                   -> Lang "ar" Nothing (Just "")   [] [] [])
+       _                   -> Lang "ar" Nothing Nothing     [] [] [])
   , ("german", \o -> case T.filter (/=' ') o of
        "spelling=old" -> Lang "de" Nothing (Just "DE") ["1901"] [] []
        "variant=austrian,spelling=old"
@@ -126,7 +126,7 @@ polyglossiaLangToBCP47 = M.fromList
        "variant=british"    -> Lang "en" Nothing (Just "GB") [] [] []
        "variant=newzealand" -> Lang "en" Nothing (Just "NZ") [] [] []
        "variant=american"   -> Lang "en" Nothing (Just "US") [] [] []
-       _                    -> Lang "en" Nothing (Just "")   [] [] [])
+       _                    -> Lang "en" Nothing Nothing     [] [] [])
   , ("usorbian", \_ -> Lang "hsb" Nothing Nothing [] [] [])
   , ("latin", \o -> case T.filter (/=' ') o of
        "variant=classic" -> Lang "la" Nothing Nothing ["x-classic"] [] []
