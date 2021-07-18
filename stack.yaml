@@ -9,8 +9,8 @@ packages:
 extra-deps:
 - commonmark-0.2.1
 - commonmark-pandoc-0.2.1.1
-- skylighting-core-0.10.5.2
-- skylighting-0.10.5.2
+- skylighting-core-0.11
+- skylighting-0.11
 - git: https://github.com/jgm/doctemplates
   commit: 428c26d5303cf7a2b1051fe1ffd9aafe9ba71c81
 - git: https://github.com/jgm/citeproc
