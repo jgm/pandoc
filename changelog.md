@@ -1,5 +1,141 @@
 # Revision history for pandoc
 
+## pandoc 2.14.1 (2021-07-18)
+
+  * Text.Pandoc.ImageSize: Add Tiff constructor for ImageType (#7405)
+    [Minor API change].  This allows pandoc to get size information from
+    tiff images.
+
+  * Markdown reader:  don't try to read contents in self-closing HTML tag.
+    Previously we had problems parsing raw HTML with self-closing
+    tags like `<col/>`. The problem was that pandoc would look
+    for a closing tag to close the markdown contents, but the
+    closing tag had, in effect, already been parsed by `htmlTag`.
+
+  * LaTeX reader:
+
+    + Avoid trailing hyphen in translating languages (#7447).
+      Previously `\foreignlanguage{english}` turned into `<span lang="en-">`.
+      The same issue affected Arabic.
+    + Support `\cline` in LaTeX tables (#7442).
+    + Improved parsing of raw LaTeX from Text streams (`rawLaTeXParser`,
+      used to read LaTeX in Markdown files, #7434).  We now use source
+      positions from the token stream to tell us how much of the text stream
+      to consume.  Getting this to work required a few other changes to
+      make token source positions accurate.
+
+  * DocBook reader:
+
+    + Handle images with imageobjectco elements (#7440).
+    + Add support for citerefentry (#7437, Jan Tojnar).
+
+  * RST reader: fix regression with code includes (#7436).
+    With the recent changes to include infrastructure,
+    included code blocks were getting an extra newline.
+
+  * HTML reader:
+
+    + Recognize data-external when reading HTML img tags (#7429,
+      Michael Hoffmann).  Preserve all attributes in img tags.  If attributes
+      have a `data-` prefix, it will be stripped.  In particular, this
+      preserves a `data-external` attribute as an `external` attribute in
+      the pandoc AST.
+    + Add col, colgroup to 'closes' definitions
+
+  * HTML writer:
+
+    + Remove duplicated alt text in HTML output (Aner Lucero).
+    + Remove `aria-hidden` when explicit alt text is provided (Aner Lucero).
+    + Set boolean values for reveal.js variables.
+
+  * Docx writer:
+
+    + Add table numbering for captioned tables.
+      The numbers are added using fields, so that Word can
+      create a list of tables that will update automatically.
+    + Support figure numbers.  These are set up in such a way that they
+      will work with Word's automatic table of figures (#7392).
+
+  * Markdown writer: put space between Plain and following fenced Div
+    (#4465).
+
+  * EPUB writer: Don't incorporate externally linked images in EPUB documents
+    (#7430, Michael Hoffmann).  Just as it is possible to avoid incorporating
+    an image in EPUB by passing `data-external="1"` to a raw HTML snippet,
+    this makes the same possible for native Images, by looking for an
+    associated `external` attribute.
+
+  * Text.Pandoc.PDF:
+
+    + Fix `svgIn` path error (#7431).  We were duplicating
+      the temp directory; this didn't cause problems on macOS or linux
+      because there we use absolute paths for the temp directory.
+      But on Windows it caused errors converting SVG files.
+    + `convertImage`: normalize paths (#7431).  This will avoid paths
+      on Windows with mixed path separators.
+
+  * Text.Pandoc.Class: Always use / when adding directory to image destination
+    with `extractMedia`, even on Windows.
+
+  * Text.Pandoc.Citeproc:
+
+    + Allow `$` characters in bibtex keys (#7409).
+    + Set proper initial source name in parsing BibTeX (for better error
+      messages.)
+    + Revamp note citation handling (#7394).  Use latest
+      citeproc, which uses a Span with a class rather than a Note for notes.
+      This helps us distinguish between user notes and citation notes.  Don't
+      put citations at the beginning of a note in parentheses.  Fix small bug
+      in handling of citations in notes, which led to commas at the end of
+      sentences in some cases.
+    + Cleanup and efficiency improvement in `deNote`.
+    + Improve punctuation moving with `--citeproc`.  Previously, using
+      `--citeproc` could cause punctuation to move in quotes even when
+      there aer no citations. This has been changed; punctuation moving
+      is now limited to citations.  In addition, we only move footnotes
+      around punctuation if the style is a note style, even if
+      `notes-after-punctuation` is `true`.
+
+  * Use citeproc 0.10. This helps improve note citations (see above)
+    and eliminates double hyperlinks in author-in-text citations.
+    Author-only citations are no longer hyperlinked.  See jgm/citeproc#77.
+    It also fixes moving of punctuation inside quotes to conform to
+    the CSL spec: only comma and period are moved, not question
+    mark or exclamation point.
+
+  * Text.Pandoc.Error: fix line calculations in reporting parsec errors.
+    Also remove a spurious initial newline in the error report.
+
+  * Use doctemplates 0.4.1, which gives us better support for boolean
+    variable values.  Previously `$if(foo)$` would evaluate to true
+    for variables with boolean `false` values, because it cared only
+    about the string rendering (#7402).
+
+  * Require commonmark-pandoc >= 0.2.2.1.
+    This fixes task lists with multiple paragraphs.
+
+  * Use skylighting 0.11.
+
+  * CSS in HTML template: reset overflow-wrap on code blocks
+    (Mauro Bieg, #7423).
+
+  * LaTeX template: Revert change in PR #7295: "move title, author, date up
+    to top of preamble." The change caused problem for people who used
+    LaTeX commands defined defined later in the preamble in the title
+    or author fields (#7422).
+
+  * Add `doc/faqs.md`.  This is imported from the website; in the future the
+    website version will be drawn from here.
+    Added a FAQ on the use of `\AtEndPreamble` for cases when the contents of
+    `header-includes` need to refer to definitions that come later in the
+    preamble.  See #7422.
+
+  * Upgrade Debian 10 AMI for build-arm.sh.
+
+  * CircleCI: change to using xcode 11.1.0 (macOS 10.14.4).
+    We previously built on 10.13, but 10.13 no longer gets
+    security updates and CirclCI is deprecating.
+
 ## pandoc 2.14.0.3 (2021-06-22)
 
   * Text.Pandoc.MediaBag `insertMediaBag`: ensure we get a sane mediaPath
