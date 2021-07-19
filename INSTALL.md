@@ -163,6 +163,11 @@ Pandoc can be run through
 [GitHub Actions](https://github.com/features/actions).  For some
 examples, see <https://github.com/pandoc/pandoc-action-example>.
 
+## GitLab CI/CD
+
+Pandoc can be run through [GitLab CI/CD].  For some
+examples, see <https://gitlab.com/pandoc/pandoc-ci-example>.
+
 ## Compiling from source
 
 If for some reason a binary package is not available for your
@@ -392,6 +397,7 @@ To run just the markdown benchmarks:
 [Fedora]: https://apps.fedoraproject.org/packages/pandoc
 [FreeBSD ports]: https://www.freshports.org/textproc/hs-pandoc/
 [GHC]:  https://www.haskell.org/ghc/
+[GitLab CI/CD]: https://about.gitlab.com/stages-devops-lifecycle/continuous-integration/
 [Haskell platform]: https://hackage.haskell.org/platform/
 [MacPorts]: https://trac.macports.org/browser/trunk/dports/textproc/pandoc/Portfile
 [MacTeX]: https://tug.org/mactex/
