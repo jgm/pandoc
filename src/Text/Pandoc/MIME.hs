@@ -528,7 +528,7 @@ mimeTypesList =
            ,("wvx","video/x-ms-wvx")
            ,("wz","application/x-wingz")
            ,("xbm","image/x-xbitmap")
-           ,("xcf","application/x-xcf")
+           ,("xcf","image/x-xcf")
            ,("xht","application/xhtml+xml")
            ,("xhtml","application/xhtml+xml")
            ,("xlb","application/vnd.ms-excel")
