@@ -29,7 +29,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Encoding as TE
-import Network.HTTP (urlEncode)
+import Text.Pandoc.Network.HTTP (urlEncode)
 import Text.Pandoc.XML.Light as X
 
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
@@ -451,7 +451,7 @@ insertMath immode formula = do
   case htmlMath of
     WebTeX url -> do
        let alt = [Code nullAttr formula]
-       let imgurl = url <> T.pack (urlEncode $ T.unpack formula)
+       let imgurl = url <> urlEncode formula
        let img = Image nullAttr alt (imgurl, "")
        insertImage immode img
     _ -> return [el "code" formula]

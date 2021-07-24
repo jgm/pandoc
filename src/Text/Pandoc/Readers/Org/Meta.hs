@@ -27,13 +27,13 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (blocksToInlines, safeRead)
+import Text.Pandoc.Network.HTTP (urlEncode)
 
 import Control.Monad (mzero, void)
 import Data.List (intercalate, intersperse)
 import Data.Map (Map)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import Network.HTTP (urlEncode)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Text as T
@@ -188,7 +188,7 @@ parseFormat = try $ replacePlain <|> replaceUrl <|> justAppend
    -- inefficient
    replacePlain = try $ (\x -> T.concat . flip intersperse x)
                      <$> sequence [tillSpecifier 's', rest]
-   replaceUrl   = try $ (\x -> T.concat . flip intersperse x . T.pack . urlEncode . T.unpack)
+   replaceUrl   = try $ (\x -> T.concat . flip intersperse x . urlEncode)
                      <$> sequence [tillSpecifier 'h', rest]
    justAppend   = try $ (<>) <$> rest
 
