@@ -599,9 +599,9 @@ parseFromString :: Monad m
                 -> ParserT Sources st m r
 parseFromString parser str = do
   oldPos <- getPosition
-  setPosition $ initialPos "chunk"
   oldInput <- getInput
   setInput $ toSources str
+  setPosition $ initialPos $ sourceName oldPos <> "_chunk"
   result <- parser
   spaces
   setInput oldInput
