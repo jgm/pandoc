@@ -27,6 +27,7 @@ import qualified Tests.Readers.Muse
 import qualified Tests.Readers.Odt
 import qualified Tests.Readers.Org
 import qualified Tests.Readers.RST
+import qualified Tests.Readers.RTF
 import qualified Tests.Readers.Txt2Tags
 import qualified Tests.Readers.Man
 import qualified Tests.Shared
@@ -85,6 +86,7 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "Jira" Tests.Readers.Jira.tests
           , testGroup "Org" Tests.Readers.Org.tests
           , testGroup "RST" Tests.Readers.RST.tests
+          , testGroup "RTF" Tests.Readers.RTF.tests
           , testGroup "Docx" Tests.Readers.Docx.tests
           , testGroup "Odt" Tests.Readers.Odt.tests
           , testGroup "Txt2Tags" Tests.Readers.Txt2Tags.tests

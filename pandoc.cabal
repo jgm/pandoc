@@ -376,6 +376,8 @@ extra-source-files:
                  test/docx/*.native
                  test/epub/*.epub
                  test/epub/*.native
+                 test/rtf/*.native
+                 test/rtf/*.rtf
                  test/pptx/*.pptx
                  test/pptx/*.native
                  test/ipynb/*.in.native
@@ -552,6 +554,7 @@ library
                    Text.Pandoc.Readers.DokuWiki,
                    Text.Pandoc.Readers.Ipynb,
                    Text.Pandoc.Readers.CSV,
+                   Text.Pandoc.Readers.RTF,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
@@ -798,6 +801,7 @@ test-suite test-pandoc
                   Tests.Readers.Org.Meta
                   Tests.Readers.Org.Shared
                   Tests.Readers.RST
+                  Tests.Readers.RTF
                   Tests.Readers.Docx
                   Tests.Readers.Odt
                   Tests.Readers.Txt2Tags
