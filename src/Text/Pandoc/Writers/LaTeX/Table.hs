@@ -102,7 +102,7 @@ colDescriptors (Ann.Table _attr _caption specs thead tbodies tfoot) =
     toColDescriptor :: Int -> Alignment -> Double -> Text
     toColDescriptor numcols align width =
       T.pack $ printf
-      ">{%s\\arraybackslash}p{(\\columnwidth - %d\\tabcolsep) * \\real{%0.2f}}"
+      ">{%s\\arraybackslash}p{(\\columnwidth - %d\\tabcolsep) * \\real{%0.4f}}"
       (T.unpack (alignCommand align))
       ((numcols - 1) * 2)
       width
