@@ -124,5 +124,13 @@ topography as TeX, particularly when it comes to math, but they
 may be fine for many purposes.)
 
 
+## Converting to PDF on an M1 Mac, I get a "Cannot allocate memory" error.
+
+We are not sure why this happens, but we have found that
+fully specifying the `pdflatex` path avoids the error. For
+example,
+
+    pandoc -o my.pdf --pdf-engine=/Library/TeX/texbin/pdflatex
+
 :::
 
