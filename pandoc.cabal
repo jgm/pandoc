@@ -598,7 +598,6 @@ library
                    Text.Pandoc.UTF8,
                    Text.Pandoc.Templates,
                    Text.Pandoc.XML,
-                   Text.Pandoc.Network.HTTP,
                    Text.Pandoc.SelfContained,
                    Text.Pandoc.Highlighting,
                    Text.Pandoc.Logging,
