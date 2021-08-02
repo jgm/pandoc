@@ -64,7 +64,7 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = catchError
                         -- twip = 1/1440in = 1/20pt
                         where (xpx, ypx) = sizeInPixels sz
                               (xpt, ypt) = desiredSizeInPoints opts attr sz
-             let raw = "{\\pict" <> filetype <> sizeSpec <> "\\bin " <>
+             let raw = "{\\pict" <> filetype <> sizeSpec <> " " <>
                         T.concat bytes <> "}"
              if B.null imgdata
                 then do
