@@ -24,7 +24,6 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Network.HTTP (urlEncode)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
@@ -32,6 +31,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.Network.HTTP (urlEncode)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
@@ -423,7 +423,7 @@ inlineToMarkdown opts (Str str) = do
 inlineToMarkdown opts (Math InlineMath str) =
   case writerHTMLMathMethod opts of
        WebTeX url -> inlineToMarkdown opts
-                       (Image nullAttr [Str str] (url <> T.pack (urlEncode $ T.unpack str), str))
+                       (Image nullAttr [Str str] (url <> urlEncode str, str))
        _ | isEnabled Ext_tex_math_dollars opts ->
              return $ "$" <> literal str <> "$"
          | isEnabled Ext_tex_math_single_backslash opts ->
@@ -439,7 +439,7 @@ inlineToMarkdown opts (Math DisplayMath str) =
   case writerHTMLMathMethod opts of
       WebTeX url -> (\x -> blankline <> x <> blankline) `fmap`
              inlineToMarkdown opts (Image nullAttr [Str str]
-                    (url <> T.pack (urlEncode $ T.unpack str), str))
+                    (url <> urlEncode str, str))
       _ | isEnabled Ext_tex_math_dollars opts ->
             return $ "$$" <> literal str <> "$$"
         | isEnabled Ext_tex_math_single_backslash opts ->

@@ -32,7 +32,6 @@ import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)
 import qualified Data.Text.Lazy as TL
-import Network.HTTP (urlEncode)
 import System.FilePath (takeExtension, takeFileName, makeRelative)
 import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
 import Text.Pandoc.Builder (fromList, setMeta)
@@ -45,6 +44,7 @@ import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType)
+import Text.Pandoc.Network.HTTP (urlEncode)
 import Text.Pandoc.Options (EPUBVersion (..), HTMLMathMethod (..),
                             ObfuscationMethod (NoObfuscation), WrapOption (..),
                             WriterOptions (..))
@@ -1137,7 +1137,7 @@ transformInline _opts (Image attr@(_,_,kvs) lab (src,tit))
     return $ Image attr lab ("../" <> newsrc, tit)
 transformInline opts x@(Math t m)
   | WebTeX url <- writerHTMLMathMethod opts = do
-    newsrc <- modifyMediaRef (T.unpack url <> urlEncode (T.unpack m))
+    newsrc <- modifyMediaRef (T.unpack (url <> urlEncode m))
     let mathclass = if t == DisplayMath then "display" else "inline"
     return $ Span ("",["math",mathclass],[])
                 [Image nullAttr [x] ("../" <> newsrc, "")]

@@ -437,7 +437,6 @@ common common-executable
 library
   import:        common-options
   build-depends: Glob                  >= 0.7      && < 0.11,
-                 HTTP                  >= 4000.0.5 && < 4000.4,
                  HsYAML                >= 0.2      && < 0.3,
                  JuicyPixels           >= 3.1.6.1  && < 3.4,
                  SHA                   >= 1.6      && < 1.7,
@@ -710,6 +709,7 @@ library
                    Text.Pandoc.XML.Light.Types,
                    Text.Pandoc.XML.Light.Proc,
                    Text.Pandoc.XML.Light.Output,
+                   Text.Pandoc.Network.HTTP,
                    Text.Pandoc.CSS,
                    Text.Pandoc.CSV,
                    Text.Pandoc.RoffChar,
