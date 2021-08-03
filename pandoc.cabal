@@ -709,6 +709,7 @@ library
                    Text.Pandoc.XML.Light.Types,
                    Text.Pandoc.XML.Light.Proc,
                    Text.Pandoc.XML.Light.Output,
+                   Text.Pandoc.Network.HTTP,
                    Text.Pandoc.CSS,
                    Text.Pandoc.CSV,
                    Text.Pandoc.RoffChar,
