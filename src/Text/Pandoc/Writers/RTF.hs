@@ -259,7 +259,8 @@ blockToRTF indent _ HorizontalRule = return $
 blockToRTF indent alignment (Header level _ lst) = do
   contents <- inlinesToRTF lst
   return $ rtfPar indent 0 alignment $
-             "\\b \\fs" <> tshow (40 - (level * 4)) <> " " <> contents
+             "\\outlinelevel" <> tshow (level - 1) <>
+             " \\b \\fs" <> tshow (40 - (level * 4)) <> " " <> contents
 blockToRTF indent alignment (Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, sizes, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlinesToRTF caption
