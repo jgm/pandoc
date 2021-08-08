@@ -1027,9 +1027,7 @@ header when requesting a document from a URL:
     slides (for `beamer`, `s5`, `slidy`, `slideous`, `dzslides`).  Headings
     above this level in the hierarchy are used to divide the
     slide show into sections; headings below this level create
-    subheads within a slide.  Note that content that is
-    not contained under slide-level headings will not appear in
-    the slide show.  The default is to set the slide level based
+    subheads within a slide.  The default is to set the slide level based
     on the contents of the document; see [Structuring the slide
     show].
 
