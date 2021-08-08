@@ -1025,11 +1025,13 @@ header when requesting a document from a URL:
 
 :   Specifies that headings with the specified level create
     slides (for `beamer`, `s5`, `slidy`, `slideous`, `dzslides`).  Headings
-    above this level in the hierarchy are used to divide the
-    slide show into sections; headings below this level create
-    subheads within a slide.  The default is to set the slide level based
-    on the contents of the document; see [Structuring the slide
-    show].
+    above this level in the hierarchy are used to divide the slide show
+    into sections; headings below this level create subheads within a slide.
+    Valid values are 0-6.  If a slide level of 0 is specified, slides will
+    not be split automatically on headings, and horizontal rules must be used
+    to indicate slide boundaries.  If a slide level is not specified
+    explicitly, the slide level will be set automatically based on
+    the contents of the document; see [Structuring the slide show].
 
 `--section-divs`
 
