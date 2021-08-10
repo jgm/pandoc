@@ -1165,13 +1165,18 @@ header when requesting a document from a URL:
         `.pptx` or `.potx` extension) are known to work, as are most
         templates derived from these.
 
-        The specific requirement is that the template should begin with
-        the following first four layouts:
+        The specific requirement is that the template should contain layouts
+        with the following names (as seen within PowerPoint):
 
-        1. Title Slide
-        2. Title and Content
-        3. Section Header
-        4. Two Content
+        - Title Slide
+        - Title and Content
+        - Section Header
+        - Two Content
+
+        For each name, the first layout found with that name will be used.
+        If no layout is found with one of the names, pandoc will output a
+        warning and use the layout with that name from the default reference
+        doc instead.
 
         All templates included with a recent version of MS PowerPoint
         will fit these criteria. (You can click on `Layout` under the

@@ -7,18 +7,21 @@ import System.FilePath
 import Text.DocTemplates (ToContext(toVal), Context(..))
 import qualified Data.Map as M
 import Data.Text (pack)
+import Data.List (unzip4)
 
 -- templating is important enough, and can break enough things, that
 -- we want to run all our tests with both default formatting and a
 -- template.
 
-modifyPptxName :: FilePath -> FilePath
-modifyPptxName fp =
-  addExtension (dropExtension fp ++ "_templated") "pptx"
+modifyPptxName :: FilePath -> String -> FilePath
+modifyPptxName fp suffix =
+  addExtension (dropExtension fp ++ suffix) "pptx"
 
-pptxTests :: String -> WriterOptions -> FilePath -> FilePath -> (TestTree, TestTree)
+pptxTests :: String -> WriterOptions -> FilePath -> FilePath -> (TestTree, TestTree, TestTree, TestTree)
 pptxTests name opts native pptx =
   let referenceDoc = "pptx/reference_depth.pptx"
+      movedLayoutsReferenceDoc = "pptx/reference_moved_layouts.pptx"
+      deletedLayoutsReferenceDoc = "pptx/reference_deleted_layouts.pptx"
   in
     ( ooxmlTest
       writePowerpoint
@@ -31,15 +34,29 @@ pptxTests name opts native pptx =
       name
       opts{writerReferenceDoc=Just referenceDoc}
       native
-      (modifyPptxName pptx)
+      (modifyPptxName pptx "_templated")
+    , ooxmlTest
+      writePowerpoint
+      name
+      opts{writerReferenceDoc=Just movedLayoutsReferenceDoc}
+      native
+      (modifyPptxName pptx "_moved_layouts")
+    , ooxmlTest
+      writePowerpoint
+      name
+      opts{writerReferenceDoc=Just deletedLayoutsReferenceDoc}
+      native
+      (modifyPptxName pptx "_deleted_layouts")
     )
 
-groupPptxTests :: [(TestTree, TestTree)] -> [TestTree]
+groupPptxTests :: [(TestTree, TestTree, TestTree, TestTree)] -> [TestTree]
 groupPptxTests pairs =
-  let (noRefs, refs) = unzip pairs
+  let (noRefs, refs, movedLayouts, deletedLayouts) = unzip4 pairs
   in
     [ testGroup "Default slide formatting" noRefs
     , testGroup "With `--reference-doc` pptx file" refs
+    , testGroup "With layouts in reference doc moved" movedLayouts
+    , testGroup "With layouts in reference doc deleted" deletedLayouts
     ]
 
 
