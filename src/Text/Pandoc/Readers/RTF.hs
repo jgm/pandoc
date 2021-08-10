@@ -648,7 +648,7 @@ emitBlocks bs = do
   let prop = case annotatedToks of
                [] -> def
                ((p,_):_) -> p
-  tbl <- if gInTable prop
+  tbl <- if gInTable prop || null annotatedToks
             then pure mempty
             else closeTable
   new <-
