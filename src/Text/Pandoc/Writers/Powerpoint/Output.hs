@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards #-}
 {- |
@@ -21,14 +22,19 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Codec.Archive.Zip
 import Data.List (intercalate, stripPrefix, nub, union, isPrefixOf, intersperse)
+import Data.CaseInsensitive (CI)
+import qualified Data.CaseInsensitive as CI
 import Data.Default
+import Data.Foldable (toList)
+import Data.List.NonEmpty (nonEmpty, NonEmpty ((:|)))
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Read
+import Data.Text.Read (decimal)
 import Data.Time (formatTime, defaultTimeLocale)
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds, posixSecondsToUTCTime)
-import System.FilePath.Posix (splitDirectories, splitExtension, takeExtension)
+import Data.Traversable (for)
+import System.FilePath.Posix (splitDirectories, splitExtension, takeExtension, takeFileName)
 import Text.Pandoc.XML.Light as XML
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -48,11 +54,11 @@ import System.FilePath.Glob
 import Text.DocTemplates (FromContext(lookupContext), Context)
 import Text.DocLayout (literal)
 import Text.TeXMath
+import Text.Pandoc.Logging (LogMessage(TemplateWarning))
 import Text.Pandoc.Writers.Math (convertMath)
 import Text.Pandoc.Writers.Powerpoint.Presentation
 import Text.Pandoc.Shared (tshow, stringify)
 import Skylighting (fromColor)
-import Data.List.NonEmpty (nonEmpty)
 
 -- |The 'EMU' type is used to specify sizes in English Metric Units.
 type EMU = Integer
@@ -117,6 +123,7 @@ data WriterEnv = WriterEnv { envRefArchive :: Archive
                            -- no entry in the map for it.
                            , envSpeakerNotesIdMap :: M.Map Int Int
                            , envInSpeakerNotes :: Bool
+                           , envSlideLayouts :: Maybe SlideLayouts
                            }
                  deriving (Show)
 
@@ -136,7 +143,32 @@ instance Default WriterEnv where
                   , envSlideIdMap = mempty
                   , envSpeakerNotesIdMap = mempty
                   , envInSpeakerNotes = False
+                  , envSlideLayouts = Nothing
                   }
+
+type SlideLayouts = SlideLayoutsOf SlideLayout
+
+data SlideLayoutsOf a = SlideLayouts
+  { metadata :: a
+  , title :: a
+  , content :: a
+  , twoColumn :: a
+  } deriving (Show, Functor, Foldable, Traversable)
+
+data SlideLayout = SlideLayout
+  { slElement :: Element
+  , slInReferenceDoc :: Bool
+    -- ^ True if the layout is in the provided reference doc, False if it's in
+    -- the default reference doc.
+  , slPath :: FilePath
+  , slEntry :: Entry
+  } deriving (Show)
+
+getSlideLayouts :: PandocMonad m => P m SlideLayouts
+getSlideLayouts = asks envSlideLayouts >>= maybe (throwError e) pure
+  where
+    e = PandocSomeError ("Slide layouts aren't defined, even though they should "
+      <> "always be. This is a bug in pandoc.")
 
 data ContentType = NormalContent
                  | TwoColumnLeftContent
@@ -264,7 +296,24 @@ presentationToArchiveP p@(Presentation docProps slides) = do
       T.unlines (map (T.pack . ("  " <>)) missingFiles)
     )
 
-  newArch' <- foldM copyFileToArchive emptyArchive filePaths
+  newArch <- foldM copyFileToArchive emptyArchive filePaths
+
+  -- Add any layouts taken from the default archive,
+  -- overwriting any already added.
+  slideLayouts <- getSlideLayouts
+  let f layout =
+        if not (slInReferenceDoc layout)
+        then addEntryToArchive (slEntry layout)
+        else id
+  let newArch' = foldr f newArch slideLayouts
+
+  -- Update the master to make sure it includes any layouts we've just added
+  master <- getMaster
+  masterRels <- getMasterRels
+  let (updatedMasterElem, updatedMasterRelElem) = updateMasterElems slideLayouts master masterRels
+  updatedMasterEntry <- elemToEntry "ppt/slideMasters/slideMaster1.xml" updatedMasterElem
+  updatedMasterRelEntry <- elemToEntry "ppt/slideMasters/_rels/slideMaster1.xml.rels" updatedMasterRelElem
+
   -- we make a modified ppt/viewProps.xml out of the presentation viewProps
   viewPropsEntry <- makeViewPropsEntry
   -- we make a docProps/core.xml entry out of the presentation docprops
@@ -293,8 +342,81 @@ presentationToArchiveP p@(Presentation docProps slides) = do
     spkNotesEntries <>
     spkNotesRelEntries <>
     mediaEntries <>
+    [updatedMasterEntry, updatedMasterRelEntry]  <>
     [contentTypesEntry, docPropsEntry, docCustomPropsEntry, relsEntry,
      presEntry, presRelsEntry, viewPropsEntry]
+
+updateMasterElems :: SlideLayouts -> Element -> Element -> (Element, Element)
+updateMasterElems layouts master masterRels = (updatedMaster, updatedMasterRels)
+  where
+    updatedMaster = master { elContent = updateSldLayoutIdLst <$> elContent master }
+    (updatedRelationshipIds, updatedMasterRels) = addLayoutRels masterRels
+
+    updateSldLayoutIdLst :: Content -> Content
+    updateSldLayoutIdLst (Elem e) = case elName e of
+      (QName "sldLayoutIdLst" _ _) -> let
+        mkChild relationshipId (lastId, children) = let
+          thisId = lastId + 1
+          newChild = Element
+            { elName = QName "sldLayoutId" Nothing (Just "p")
+            , elAttribs =
+              [ Attr (QName "id" Nothing Nothing) (T.pack (show thisId))
+              , Attr (QName "id" Nothing (Just "r")) relationshipId
+              ]
+            , elContent = []
+            , elLine = Nothing
+            }
+          in (thisId, Elem newChild : children)
+        newChildren = snd (foldr mkChild (maxIdNumber' e, []) updatedRelationshipIds)
+        in Elem e { elContent = elContent e <> newChildren }
+      _ -> Elem e
+    updateSldLayoutIdLst c = c
+
+    addLayoutRels ::
+      Element ->
+      ([Text], Element)
+    addLayoutRels e = let
+      layoutsToAdd = filter (not . slInReferenceDoc) (toList layouts)
+      newRelationships = snd (foldr mkRelationship (maxIdNumber e, []) layoutsToAdd)
+      newRelationshipIds = mapMaybe getRelationshipId newRelationships
+      mkRelationship layout (lastId, relationships) = let
+        thisId = lastId + 1
+        slideLayoutPath = "../slideLayouts/" <> T.pack (takeFileName (slPath layout))
+        newRelationship = Element
+          { elName = QName "Relationship" Nothing Nothing
+          , elAttribs =
+            [ Attr (QName "Id" Nothing Nothing) ("rId" <> T.pack (show thisId))
+            , Attr (QName "Type" Nothing Nothing) "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout"
+            , Attr (QName "Target" Nothing Nothing) slideLayoutPath
+            ]
+          , elContent = []
+          , elLine = Nothing
+          }
+        in (thisId, Elem newRelationship : relationships)
+      in (newRelationshipIds, e {elContent = elContent e <> newRelationships})
+
+    getRelationshipId :: Content -> Maybe Text
+    getRelationshipId (Elem e) = findAttr (QName "Id" Nothing Nothing) e
+    getRelationshipId _ = Nothing
+
+    maxIdNumber :: Element -> Integer
+    maxIdNumber relationships = maximum (0 : idNumbers)
+      where
+        idNumbers = fst <$> mapMaybe (hush . decimal . T.drop 3) idAttributes
+        idAttributes = mapMaybe getIdAttribute (elContent relationships)
+        getIdAttribute (Elem e) = findAttr (QName "Id" Nothing Nothing) e
+        getIdAttribute _ = Nothing
+
+    maxIdNumber' :: Element -> Integer
+    maxIdNumber' sldLayouts = maximum (0 : idNumbers)
+      where
+        idNumbers = fst <$> mapMaybe (hush . decimal) idAttributes
+        idAttributes = mapMaybe getIdAttribute (elContent sldLayouts)
+        getIdAttribute (Elem e) = findAttr (QName "id" Nothing Nothing) e
+        getIdAttribute _ = Nothing
+
+    hush :: Either a b -> Maybe b
+    hush = either (const Nothing) Just
 
 makeSlideIdMap :: Presentation -> M.Map SlideId Int
 makeSlideIdMap (Presentation _ slides) =
@@ -317,6 +439,40 @@ presentationToArchive opts meta pres = do
                      Just f  -> toArchive <$> P.readFileLazy f
                      Nothing -> toArchive . BL.fromStrict <$>
                         P.readDataFile "reference.pptx"
+
+  let (referenceLayouts, defaultReferenceLayouts) =
+        (getLayoutsFromArchive refArchive, getLayoutsFromArchive distArchive)
+  let layoutTitles = SlideLayouts { metadata = "Title Slide" :: Text
+                                  , title = "Section Header"
+                                  , content = "Title and Content"
+                                  , twoColumn = "Two Content"
+                                  }
+  layouts <- for layoutTitles $ \layoutTitle -> do
+        let layout = M.lookup (CI.mk layoutTitle) referenceLayouts
+        let defaultLayout = M.lookup (CI.mk layoutTitle) defaultReferenceLayouts
+        case (layout, defaultLayout) of
+          (Nothing, Nothing) ->
+            throwError (PandocSomeError ("Couldn't find layout named \""
+                                         <> layoutTitle <> "\" in the provided "
+                                         <> "reference doc or in the default "
+                                         <> "reference doc included with pandoc."))
+          (Nothing, Just ((element, path, entry) :| _)) -> do
+            P.logOutput (TemplateWarning ("Couldn't find layout named \""
+                                          <> layoutTitle <> "\" in provided "
+                                          <> "reference doc. Falling back to "
+                                          <> "the default included with pandoc."))
+            pure SlideLayout { slElement = element
+                             , slPath = path
+                             , slEntry = entry
+                             , slInReferenceDoc = False
+                             }
+          (Just ((element, path, entry) :| _), _ ) ->
+            pure SlideLayout { slElement = element
+                             , slPath = path
+                             , slEntry = entry
+                             , slInReferenceDoc = True
+                             }
+
 
   utctime <- P.getTimestamp
 
@@ -341,6 +497,7 @@ presentationToArchive opts meta pres = do
                 , envPresentationSize = presSize
                 , envSlideIdMap = makeSlideIdMap pres
                 , envSpeakerNotesIdMap = makeSpeakerNotesMap pres
+                , envSlideLayouts = Just layouts
                 }
 
   let st = def { stMediaGlobalIds = initialGlobalIds refArchive distArchive
@@ -348,7 +505,30 @@ presentationToArchive opts meta pres = do
 
   runP env st $ presentationToArchiveP pres
 
-
+-- | Get all slide layouts from an archive, as a map where the layout's name
+-- gives the map key.
+--
+-- For each layout, the map contains its XML representation, its path within
+-- the archive, and the archive entry.
+getLayoutsFromArchive :: Archive -> M.Map (CI Text) (NonEmpty (Element, FilePath, Entry))
+getLayoutsFromArchive archive =
+  M.fromListWith (<>) ((\t@(e, _, _) -> (CI.mk (name e), pure t)) <$> layouts)
+  where
+    layouts :: [(Element, FilePath, Entry)]
+    layouts = mapMaybe findElementByPath paths
+    parseXml' entry = case parseXMLElement (UTF8.toTextLazy (fromEntry entry)) of
+            Left _ -> Nothing
+            Right element -> Just element
+    findElementByPath :: FilePath -> Maybe (Element, FilePath, Entry)
+    findElementByPath path = do
+      entry <- findEntryByPath path archive
+      element <- parseXml' entry
+      pure (element, path, entry)
+    paths = filter (match (compile "ppt/slideLayouts/slideLayout*.xml")) (filesInArchive archive)
+    name element = fromMaybe "Untitled layout" $ do
+            let ns = elemToNameSpaces element
+            cSld <- findChild (elemName ns "p" "cSld") element
+            findAttr (QName "name" Nothing Nothing) cSld
 
 --------------------------------------------------
 
@@ -365,15 +545,14 @@ curSlideHasSpeakerNotes =
 --------------------------------------------------
 
 getLayout :: PandocMonad m => Layout -> P m Element
-getLayout layout = do
-  let layoutpath = case layout of
-        MetadataSlide{}  -> "ppt/slideLayouts/slideLayout1.xml"
-        TitleSlide{}     -> "ppt/slideLayouts/slideLayout3.xml"
-        ContentSlide{}   -> "ppt/slideLayouts/slideLayout2.xml"
-        TwoColumnSlide{} -> "ppt/slideLayouts/slideLayout4.xml"
-  refArchive <- asks envRefArchive
-  distArchive <- asks envDistArchive
-  parseXml refArchive distArchive layoutpath
+getLayout layout = getElement <$> getSlideLayouts
+  where
+    getElement =
+      slElement . case layout of
+        MetadataSlide{}  -> metadata
+        TitleSlide{}     -> title
+        ContentSlide{}   -> content
+        TwoColumnSlide{} -> twoColumn
 
 shapeHasId :: NameSpaces -> T.Text -> Element -> Bool
 shapeHasId ns ident element
@@ -603,6 +782,12 @@ getMaster = do
   refArchive <- asks envRefArchive
   distArchive <- asks envDistArchive
   parseXml refArchive distArchive "ppt/slideMasters/slideMaster1.xml"
+
+getMasterRels :: PandocMonad m => P m Element
+getMasterRels = do
+  refArchive <- asks envRefArchive
+  distArchive <- asks envDistArchive
+  parseXml refArchive distArchive "ppt/slideMasters/_rels/slideMaster1.xml.rels"
 
 -- We want to get the header dimensions, so we can make sure that the
 -- image goes underneath it. We only use this in a content slide if it
@@ -1606,11 +1791,13 @@ speakerNotesSlideRelElement slide = do
 slideToSlideRelElement :: PandocMonad m => Slide -> P m Element
 slideToSlideRelElement slide = do
   idNum <- slideNum slide
-  let target =  case slide of
-        (Slide _ MetadataSlide{} _)  -> "../slideLayouts/slideLayout1.xml"
-        (Slide _ TitleSlide{} _)     -> "../slideLayouts/slideLayout3.xml"
-        (Slide _ ContentSlide{} _)   -> "../slideLayouts/slideLayout2.xml"
-        (Slide _ TwoColumnSlide{} _) -> "../slideLayouts/slideLayout4.xml"
+  target <- flip fmap getSlideLayouts $
+    T.pack . ("../slideLayouts/" <>) . takeFileName .
+    slPath . case slide of
+        (Slide _ MetadataSlide{} _)  -> metadata
+        (Slide _ TitleSlide{} _)     -> title
+        (Slide _ ContentSlide{} _)   -> content
+        (Slide _ TwoColumnSlide{} _) -> twoColumn
 
   speakerNotesRels <- maybeToList <$> speakerNotesSlideRelElement slide
 
