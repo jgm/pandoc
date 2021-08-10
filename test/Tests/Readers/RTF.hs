@@ -44,5 +44,6 @@ tests = map rtfTest [ "footnote"
                     , "list_complex"
                     , "bookmark"
                     , "table_simple"
+                    , "table_error_codes"
                     ]
 
