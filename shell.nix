@@ -41,6 +41,7 @@ let
     file-embed
     filepath
     haddock-library
+    haskell-language-server
     hsc2hs
     hslua
     hslua-module-system
