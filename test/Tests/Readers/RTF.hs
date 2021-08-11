@@ -13,24 +13,17 @@ module Tests.Readers.RTF (tests) where
 
 import Test.Tasty
 import Tests.Helpers
-import Test.Tasty.Golden (goldenVsString)
-import qualified Data.ByteString as BS
 import Text.Pandoc
-import Text.Pandoc.UTF8 (toText, fromStringLazy)
-import Data.Text (Text, unpack)
 import System.FilePath (replaceExtension, (</>), (<.>))
 
-rtfToNative :: Text -> Text
-rtfToNative =
-  purely (writeNative def{ writerTemplate = Just mempty }) .
-    purely (readRTF def)
-
 rtfTest :: TestName -> TestTree
-rtfTest name = goldenVsString name native
-  (fromStringLazy . filter (/='\r') . unpack . rtfToNative . toText
-    <$> BS.readFile path)
+rtfTest name = testGolden name native path
+   (\t -> runIOorExplode
+            (readRTF def t >>=
+              writeNative def{ writerTemplate = Just mempty }))
   where native = replaceExtension path ".native"
         path = "rtf" </> name <.> "rtf"
+
 
 tests :: [TestTree]
 tests = map rtfTest [ "footnote"

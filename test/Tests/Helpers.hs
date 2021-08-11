@@ -16,6 +16,7 @@ module Tests.Helpers ( test
                      , TestResult(..)
                      , setupEnvironment
                      , showDiff
+                     , testGolden
                      , (=?>)
                      , purely
                      , ToString(..)
@@ -23,13 +24,16 @@ module Tests.Helpers ( test
                      )
                      where
 
+import System.FilePath
 import Data.Algorithm.Diff
 import qualified Data.Map as M
+import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Text (Text, unpack)
+import qualified Data.Text as T
 import System.Exit
-import System.FilePath (takeDirectory)
 import qualified System.Environment as Env
 import Test.Tasty
+import Test.Tasty.Golden.Advanced (goldenTest)
 import Test.Tasty.HUnit
 import Text.Pandoc.Builder (Blocks, Inlines, doc, plain)
 import Text.Pandoc.Class
@@ -60,6 +64,23 @@ test fn name (input, expected) =
            diff = getDiff expected' actual'
            dashes "" = replicate 72 '-'
            dashes x  = replicate (72 - length x - 5) '-' ++ " " ++ x ++ " ---"
+
+testGolden :: TestName -> FilePath -> FilePath -> (Text -> IO Text) -> TestTree
+testGolden  name expectedPath inputPath fn =
+  goldenTest
+    name
+    (UTF8.readFile expectedPath)
+    (UTF8.readFile inputPath >>= fn)
+    compareVals
+    (UTF8.writeFile expectedPath)
+ where
+  compareVals expected actual
+    | expected == actual = return Nothing
+    | otherwise =  return $ Just $
+        "\n--- " ++ expectedPath ++ "\n+++\n" ++
+        showDiff (1,1)
+          (getDiff (lines . filter (/='\r') $ T.unpack actual)
+                   (lines . filter (/='\r') $ T.unpack expected))
 
 -- | Set up environment for pandoc command tests.
 setupEnvironment :: FilePath -> IO [(String, String)]
