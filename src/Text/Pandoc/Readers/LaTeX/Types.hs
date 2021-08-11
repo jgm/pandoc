@@ -15,6 +15,7 @@ module Text.Pandoc.Readers.LaTeX.Types ( Tok(..)
                                        , Macro(..)
                                        , ArgSpec(..)
                                        , ExpansionPoint(..)
+                                       , MacroScope(..)
                                        , SourcePos
                                        )
 where
@@ -43,7 +44,10 @@ tokToText (Tok _ _ t) = t
 data ExpansionPoint = ExpandWhenDefined | ExpandWhenUsed
      deriving (Eq, Ord, Show)
 
-data Macro = Macro ExpansionPoint [ArgSpec] (Maybe [Tok]) [Tok]
+data MacroScope = GlobalScope | GroupScope
+  deriving (Eq, Ord, Show)
+
+data Macro = Macro MacroScope ExpansionPoint [ArgSpec] (Maybe [Tok]) [Tok]
      deriving Show
 
 data ArgSpec = ArgNum Int | Pattern [Tok]
