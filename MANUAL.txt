@@ -1932,7 +1932,7 @@ ${ styles.html() }
 ```
 
 (If a partial is not found in the directory of the
-template and the template path is given as a relative 
+template and the template path is given as a relative
 path, it will also be sought in the `templates`
 subdirectory of the user data directory.)
 
@@ -4984,13 +4984,16 @@ See the [CSL user documentation] for more information about CSL
 styles and how they affect rendering.
 
 Unless a citation key start with a letter, digit, or `_`,
-and contains only alphanumerics and internal punctuation
+and contains only alphanumerics and single internal punctuation
 characters (`:.#$%&-+?<>~/`), it must be surrounded
 by curly braces, which are not considered part of the key.
-In `@Foo_bar.baz.`, the key is `Foo_bar.baz`. The final
+In `@Foo_bar.baz.`, the key is `Foo_bar.baz` because the final
 period is not *internal* punctuation, so it is not included in
 the key.  In `@{Foo_bar.baz.}`, the key is `Foo_bar.baz.`, including
-the final period.  The curly braces are recommended if you use URLs as
+the final period.
+In `@Foo_bar--baz`, the key is `Foo_bar` because the repeated internal
+punctuation characters terminate the key.
+The curly braces are recommended if you use URLs as
 keys: `[@{https://example.com/bib?name=foobar&date=2000}, p.  33]`.
 
 Citation items may optionally include a prefix, a locator, and
@@ -6086,7 +6089,7 @@ The following fields are recognized:
 
 `rights`
   ~ A string value.
-  
+
 `belongs-to-collection`
   ~ A string value.  identifies the name of a collection to which
     the EPUB Publication belongs.
