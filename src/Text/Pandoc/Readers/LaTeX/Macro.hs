@@ -25,8 +25,8 @@ macroDef constructor = do
       guardDisabled Ext_latex_macros)
      <|> return mempty
   where commandDef = do
-          nameMacroPairs <- newcommand <|> letmacro <|>
-            edefmacro <|> defmacro <|> newif
+          nameMacroPairs <- newcommand <|>
+            checkGlobal (letmacro <|> edefmacro <|> defmacro <|> newif)
           guardDisabled Ext_latex_macros <|>
             mapM_ insertMacro nameMacroPairs
         environmentDef = do
@@ -76,6 +76,14 @@ letmacro = do
          <|> pure [(name,
                     Macro GroupScope ExpandWhenDefined [] Nothing [target])]
       _ -> pure [(name, Macro GroupScope ExpandWhenDefined [] Nothing [target])]
+
+checkGlobal :: PandocMonad m => LP m [(Text, Macro)] -> LP m [(Text, Macro)]
+checkGlobal p =
+  (do controlSeq "global"
+      ms <- p
+      return $ map (\(n, Macro _ expand arg optarg contents) ->
+                      (n, Macro GlobalScope expand arg optarg contents)) ms)
+   <|> p
 
 edefmacro :: PandocMonad m => LP m [(Text, Macro)]
 edefmacro = do
