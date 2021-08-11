@@ -25,7 +25,7 @@ expanded at point of use:
 ```
 % pandoc -f latex -t latex
 \let\a\b
-\newcommand{\b}{\emph{ouk}}
+\def\b{\emph{ouk}}
 \a a
 ^D
 a̱
@@ -121,5 +121,41 @@ x &= y\\\end{aligned}\]
 hello+hello
 
 hello+goodbye
+```
+
+```
+% pandoc -f latex -t plain
+\def\txt{a}
+\def\foo{\txt}
+\let\bar\foo
+\bar % -> a
+\def\txt{b}
+\bar % -> b
+\def\foo{OH}
+\bar % -> b
+^D
+a b b
+```
+
+```
+% pandoc -f latex -t plain
+\def\aaa{aaa}
+\def\bbb{x\aaa}
+\edef\ccc{y\aaa}
+\def\aaa{AAA}
+\bbb \ccc
+^D
+xAAAyaaa
+```
+
+```
+% pandoc -f latex -t plain
+\gdef\aaa{aaa}
+\gdef\bbb{x\aaa}
+\xdef\ccc{y\aaa}
+\gdef\aaa{AAA}
+\bbb \ccc
+^D
+xAAAyaaa
 ```
 

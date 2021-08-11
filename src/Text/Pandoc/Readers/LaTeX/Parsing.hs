@@ -267,7 +267,7 @@ rawLaTeXParser toks retokenize parser valParser = do
        Right (endpos, toks') -> do
          res <- lift $ runParserT (do when retokenize $ do
                                         -- retokenize, applying macros
-                                        ts <- many (satisfyTok (const True))
+                                        ts <- many anyTok
                                         setInput ts
                                       rawparser)
                         lstate' "chunk" toks'
@@ -296,7 +296,7 @@ rawLaTeXParser toks retokenize parser valParser = do
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
             => Text -> ParserT Sources s m Text
 applyMacros s = (guardDisabled Ext_latex_macros >> return s) <|>
-   do let retokenize = untokenize <$> many (satisfyTok (const True))
+   do let retokenize = untokenize <$> many anyTok
       pstate <- getState
       let lstate = def{ sOptions = extractReaderOptions pstate
                       , sMacros  = extractMacros pstate }

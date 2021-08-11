@@ -23,7 +23,8 @@ macroDef constructor = do
       guardDisabled Ext_latex_macros)
      <|> return mempty
   where commandDef = do
-          nameMacroPairs <- newcommand <|> letmacro <|> defmacro <|> newif
+          nameMacroPairs <- newcommand <|> letmacro <|>
+            edefmacro <|> defmacro <|> newif
           guardDisabled Ext_latex_macros <|>
            mapM_ (\(name, macro') ->
                    updateState (\s -> s{ sMacros = M.insert name macro'
@@ -46,23 +47,45 @@ macroDef constructor = do
 letmacro :: PandocMonad m => LP m [(Text, Macro)]
 letmacro = do
   controlSeq "let"
-  (name, contents) <- withVerbatimMode $ do
+  withVerbatimMode $ do
     Tok _ (CtrlSeq name) _ <- anyControlSeq
     optional $ symbol '='
     spaces
     -- we first parse in verbatim mode, and then expand macros,
     -- because we don't want \let\foo\bar to turn into
     -- \let\foo hello if we have previously \def\bar{hello}
+    macros <- sMacros <$> getState
+    target <- anyControlSeq <|> singleChar
+    case target of
+      (Tok _ (CtrlSeq name') _) ->
+        case M.lookup name' macros of
+          Just m -> return [(name, m)]
+          Nothing -> return [(name, Macro ExpandWhenDefined [] Nothing [target])]
+      _ -> return [(name, Macro ExpandWhenDefined [] Nothing [target])]
+
+edefmacro :: PandocMonad m => LP m [(Text, Macro)]
+edefmacro = do
+  controlSeq "edef" <|> controlSeq "xdef"
+  -- TODO Currently we don't distinguish these.  \edef should only
+  -- affect its own group, while \xdef sets a global macro.
+  (name, contents) <- withVerbatimMode $ do
+    Tok _ (CtrlSeq name) _ <- anyControlSeq
+    -- we first parse in verbatim mode, and then expand macros,
+    -- because we don't want \let\foo\bar to turn into
+    -- \let\foo hello if we have previously \def\bar{hello}
     contents <- bracedOrToken
     return (name, contents)
-  contents' <- doMacros' 0 contents
+  -- expand macros
+  contents' <- parseFromToks (many anyTok) contents
   return [(name, Macro ExpandWhenDefined [] Nothing contents')]
 
 defmacro :: PandocMonad m => LP m [(Text, Macro)]
 defmacro = do
   -- we use withVerbatimMode, because macros are to be expanded
   -- at point of use, not point of definition
-  controlSeq "def"
+  controlSeq "def" <|> controlSeq "gdef"
+  -- TODO Currently we don't distinguish these.  \def should only
+  -- affect its own group, while \gdef sets a global macro.
   withVerbatimMode $ do
     Tok _ (CtrlSeq name) _ <- anyControlSeq
     argspecs <- many (argspecArg <|> argspecPattern)
