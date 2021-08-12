@@ -224,8 +224,8 @@ instance HasIncludeFiles LaTeXState where
 
 instance HasMacros LaTeXState where
   extractMacros  st  = NonEmpty.head $ sMacros st
-  updateMacros f st  = st{ sMacros = f (NonEmpty.head $ sMacros st)
-                                     :| (NonEmpty.tail $ sMacros st) }
+  updateMacros f st  = st{ sMacros = f (NonEmpty.head (sMacros st))
+                                     :| NonEmpty.tail (sMacros st) }
 
 instance HasReaderOptions LaTeXState where
   extractReaderOptions = sOptions
