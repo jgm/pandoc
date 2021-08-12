@@ -143,7 +143,7 @@ end
 
 function Link(s, tgt, tit, attr)
   return "<a href='" .. escape(tgt,true) .. "' title='" ..
-         escape(tit,true) .. "'>" .. s .. "</a>"
+         escape(tit,true) .. "'" .. attributes(attr) .. ">" .. s .. "</a>"
 end
 
 function Image(s, src, tit, attr)
@@ -284,9 +284,15 @@ local function html_align(align)
 end
 
 function CaptionedImage(src, tit, caption, attr)
-   return '<div class="figure">\n<img src="' .. escape(src,true) ..
-      '" title="' .. escape(tit,true) .. '"/>\n' ..
-      '<p class="caption">' .. escape(caption) .. '</p>\n</div>'
+  if #caption == 0 then
+    return '<p><img src="' .. escape(src,true) .. '" id="' .. attr.id ..
+      '"/></p>'
+  else
+    local ecaption = escape(caption)
+    return '<figure>\n<img src="' .. escape(src,true) ..
+        '" id="' .. attr.id .. '" alt="' .. ecaption  .. '"/>' ..
+        '<figcaption>' .. ecaption .. '</figcaption>\n</figure>'
+  end
 end
 
 -- Caption is a string, aligns is an array of strings,
@@ -299,7 +305,7 @@ function Table(caption, aligns, widths, headers, rows)
   end
   add("<table>")
   if caption ~= "" then
-    add("<caption>" .. caption .. "</caption>")
+    add("<caption>" .. escape(caption) .. "</caption>")
   end
   if widths and widths[1] ~= 0 then
     for _, w in pairs(widths) do
@@ -313,9 +319,7 @@ function Table(caption, aligns, widths, headers, rows)
     table.insert(header_row,'<th align="' .. align .. '">' .. h .. '</th>')
     empty_header = empty_header and h == ""
   end
-  if empty_header then
-    head = ""
-  else
+  if not empty_header then
     add('<tr class="header">')
     for _,h in pairs(header_row) do
       add(h)
