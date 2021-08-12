@@ -413,7 +413,7 @@ common common-options
   if impl(ghc < 8.6)
     hs-source-dirs:   prelude
     other-modules:    Prelude
-    build-depends:    base-compat >= 0.9
+    build-depends:    base-compat >= 0.10.5
     other-extensions: NoImplicitPrelude
 
   if os(windows)
