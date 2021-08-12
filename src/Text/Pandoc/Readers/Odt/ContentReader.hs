@@ -7,9 +7,6 @@
 {-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE ViewPatterns      #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE FlexibleContexts   #-}
 {- |
    Module      : Text.Pandoc.Readers.Odt.ContentReader
    Copyright   : Copyright (C) 2015 Martin Linnemann
@@ -510,8 +507,7 @@ type InlineMatcher = ElementMatcher Inlines
 type BlockMatcher  = ElementMatcher Blocks
 
 newtype FirstMatch a = FirstMatch (Alt Maybe a)
-  deriving (Monoid, Semigroup)
-deriving instance Foldable FirstMatch
+  deriving (Foldable, Monoid, Semigroup)
 
 firstMatch :: a -> FirstMatch a
 firstMatch = FirstMatch . Alt . Just

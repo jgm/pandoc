@@ -410,7 +410,7 @@ common common-options
                     -Wincomplete-record-updates
                     -Wnoncanonical-monad-instances
 
-  if impl(ghc < 8.4)
+  if impl(ghc < 8.6)
     hs-source-dirs:   prelude
     other-modules:    Prelude
     build-depends:    base-compat >= 0.9
