@@ -88,13 +88,11 @@ processCitations (Pandoc meta bs) = do
                    _ -> id) $ []
   let bibs = mconcat $ map (\(ident, out) ->
                      B.divWith ("ref-" <> ident,["csl-entry"],[]) . B.para .
-                         walk (convertQuotes locale) .
                          insertSpace $ out)
                       (resultBibliography result)
   let moveNotes = styleIsNoteStyle sopts &&
            maybe True truish (lookupMeta "notes-after-punctuation" meta)
-  let cits = map (walk (convertQuotes locale)) $
-               resultCitations result
+  let cits = resultCitations result
 
   let metanocites = lookupMeta "nocite" meta
   let Pandoc meta'' bs' =
@@ -264,23 +262,6 @@ getRefs locale format idpred mbfp raw = do
               (T.unpack <$> mbfp)
               (L.fromStrict raw)
       return $ mapMaybe metaValueToReference rs
-
--- localized quotes
-convertQuotes :: Locale -> Inline -> Inline
-convertQuotes locale (Quoted qt ils) =
-  case (M.lookup openterm terms, M.lookup closeterm terms) of
-    (Just ((_,oq):_), Just ((_,cq):_)) ->
-         Span ("",[],[]) (Str oq : ils ++ [Str cq])
-    _ -> Quoted qt ils
-  where
-   terms = localeTerms locale
-   openterm = case qt of
-                DoubleQuote -> "open-quote"
-                SingleQuote -> "open-inner-quote"
-   closeterm = case qt of
-                 DoubleQuote -> "close-quote"
-                 SingleQuote -> "close-inner-quote"
-convertQuotes _ x = x
 
 -- assumes we walk in same order as query
 insertResolvedCitations :: Inline -> State [Inlines] Inline

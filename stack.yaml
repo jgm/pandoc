@@ -12,9 +12,13 @@ extra-deps:
 - skylighting-core-0.11
 - skylighting-0.11
 - doctemplates-0.10
-- citeproc-0.4.1
+# - citeproc-0.4.1
+- git: https://github.com/jgm/citeproc.git
+  commit: 8b190eceb0cbbbf2d436bab9a5891a31be0c9865
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.0
 nix:
   packages: [zlib]
+
+
