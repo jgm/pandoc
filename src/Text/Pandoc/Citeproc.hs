@@ -208,7 +208,9 @@ getReferences mblocale (Pandoc meta bs) = do
                         Just fp -> getRefsFromBib locale idpred fp
                         Nothing -> return []
                     Nothing -> return []
-  return $ map (linkifyVariables . legacyDateRanges)
+  let addQuoteSpan (Quoted _ xs) = Span ("",["csl-quoted"],[]) xs
+      addQuoteSpan x = x
+  return $ map (linkifyVariables . legacyDateRanges . walk addQuoteSpan)
                (externalRefs ++ inlineRefs)
             -- note that inlineRefs can override externalRefs
 

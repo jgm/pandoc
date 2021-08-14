@@ -14,3 +14,45 @@ references:
 ^D
 Foo (Aristotele, s.d., 50: «Disse: "bar"»). «Disse: "baz"»
 ```
+
+For en, the localized quotes match what Quoted would produce,
+so the Quoted is passed to citeproc as a Span ("",["csl-quoted"],[])
+and flipflopping and localization occur.
+```
+% pandoc -C -t plain -Mlang=en
+---
+references:
+- id: a
+  author:
+    - literal: Aristotele
+  title: Metafisica et "Physica"
+  type: article-journal
+...
+
+Foo [@a 50].
+^D
+Foo (Aristotele, n.d., 50).
+
+Aristotele. n.d. “Metafisica Et ‘Physica’.”
+```
+
+For cs, there is no such match, so the Quoted is left alone
+and has the same effect it would have elsewhere in a pandoc document.
+```
+% pandoc -C -t plain -Mlang=it
+---
+references:
+- id: a
+  author:
+    - literal: Aristotele
+  title: Metafisica et "Physica"
+  type: article-journal
+...
+
+Foo [@a 50].
+^D
+Foo (Aristotele, s.d., 50).
+
+Aristotele. s.d. «Metafisica et “Physica”».
+```
+
