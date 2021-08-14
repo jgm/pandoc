@@ -103,9 +103,14 @@ processCitations (Pandoc meta bs) = do
              else id) .
          evalState (walkM insertResolvedCitations $ Pandoc meta' bs)
          $ cits
-  return $ Pandoc meta''
+  return $ walk removeQuoteSpan
+         $ Pandoc meta''
          $ insertRefs refkvs classes meta''
             (walk fixLinks $ B.toList bibs) bs'
+
+removeQuoteSpan :: Inline -> Inline
+removeQuoteSpan (Span ("",["csl-quoted"],[]) xs) = Span nullAttr xs
+removeQuoteSpan x = x
 
 -- | Retrieve the CSL style specified by the csl or citation-style
 -- metadata field in a pandoc document, or the default CSL style
