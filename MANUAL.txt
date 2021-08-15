@@ -3068,7 +3068,7 @@ starts at 1.
 This extension can be enabled/disabled for the following formats:
 
 output formats
-:  `odt`, `opendocument`
+:  `odt`, `opendocument`, `docx`
 
 #### Extension: `xrefs_name` ####
 
