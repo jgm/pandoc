@@ -31,7 +31,8 @@ tests = [ testGroup "inlines"
             "docx/golden/links.docx"
           , docxTest
             "inline image"
-            def
+            def{ writerExtensions =
+                   enableExtension Ext_native_numbering (writerExtensions def) }
             "docx/image_writer_test.native"
             "docx/golden/image.docx"
           , docxTest

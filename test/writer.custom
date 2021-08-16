@@ -712,18 +712,18 @@ So is &lsquo;pine.&rsquo;</p>
 
 <h2 id="autolinks">Autolinks</h2>
 
-<p>With an ampersand: <a href='http://example.com/?foo=1&amp;bar=2' title=''>http://example.com/?foo=1&amp;bar=2</a></p>
+<p>With an ampersand: <a href='http://example.com/?foo=1&amp;bar=2' title='' class="uri">http://example.com/?foo=1&amp;bar=2</a></p>
 
 <ul>
 <li>In a list?</li>
-<li><a href='http://example.com/' title=''>http://example.com/</a></li>
+<li><a href='http://example.com/' title='' class="uri">http://example.com/</a></li>
 <li>It should.</li>
 </ul>
 
-<p>An e-mail address: <a href='mailto:nobody@nowhere.net' title=''>nobody@nowhere.net</a></p>
+<p>An e-mail address: <a href='mailto:nobody@nowhere.net' title='' class="email">nobody@nowhere.net</a></p>
 
 <blockquote>
-<p>Blockquoted: <a href='http://example.com/' title=''>http://example.com/</a></p>
+<p>Blockquoted: <a href='http://example.com/' title='' class="uri">http://example.com/</a></p>
 </blockquote>
 
 <p>Auto-links should not occur here: <code>&lt;http://example.com/&gt;</code></p>
@@ -736,10 +736,9 @@ So is &lsquo;pine.&rsquo;</p>
 
 <p>From &ldquo;Voyage dans la Lune&rdquo; by Georges Melies (1902):</p>
 
-<div class="figure">
-<img src="lalune.jpg" title="fig:Voyage dans la Lune"/>
-<p class="caption">lalune</p>
-</div>
+<figure>
+<img src="lalune.jpg" id="" alt="lalune"/><figcaption>lalune</figcaption>
+</figure>
 
 <p>Here is a movie <img src='movie.jpg' title=''/> icon.</p>
 

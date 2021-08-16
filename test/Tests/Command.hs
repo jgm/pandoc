@@ -96,7 +96,7 @@ dropPercent xs       = xs
 
 runCommandTest :: FilePath -> FilePath -> Int -> String -> TestTree
 runCommandTest testExePath fp num code =
-  goldenTest testname getExpected getActual compareValues updateGolden
+  goldenTest testname getExpected getActual compareValues' updateGolden
  where
   testname = "#" <> show num
   codelines = lines code
@@ -109,7 +109,7 @@ runCommandTest testExePath fp num code =
   norm = unlines normlines
   getExpected = return norm
   getActual = snd <$> execTest testExePath cmd input
-  compareValues expected actual
+  compareValues' expected actual
     | actual == expected = return Nothing
     | otherwise = return $ Just $ "--- test/command/" ++ fp ++ "\n+++ " ++
                                 cmd ++ "\n" ++ showDiff (1,1)

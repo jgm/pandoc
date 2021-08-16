@@ -869,14 +869,17 @@ blockToOpenXML' opts (Para [Image attr alt (src,T.stripPrefix "fig:" -> Just tit
                     then return []
                     else withParaPropM (pStyleM "Image Caption")
                          $ blockToOpenXML opts
-                            (Para $ Span (figid,[],[])
-                               [Str (figname <> "\160"),
-                                RawInline (Format "openxml")
-                                ("<w:fldSimple w:instr=\"SEQ Figure"
-                                <> " \\* ARABIC \"><w:r><w:t>"
-                                <> tshow fignum
-                                <> "</w:t></w:r></w:fldSimple>"),
-                                Str ":", Space] : alt)
+                         $ Para
+                         $ if isEnabled Ext_native_numbering opts
+                              then Span (figid,[],[])
+                                          [Str (figname <> "\160"),
+                                           RawInline (Format "openxml")
+                                           ("<w:fldSimple w:instr=\"SEQ Figure"
+                                           <> " \\* ARABIC \"><w:r><w:t>"
+                                           <> tshow fignum
+                                           <> "</w:t></w:r></w:fldSimple>"),
+                                           Str ":", Space] : alt
+                              else alt
   return $
     Elem (mknode "w:p" [] (map Elem paraProps ++ contents))
     : captionNode
@@ -922,7 +925,8 @@ blockToOpenXML' _ HorizontalRule = do
                        ("o:hralign","center"),
                        ("o:hrstd","t"),("o:hr","t")] () ]
 blockToOpenXML' opts (Table attr caption colspecs thead tbodies tfoot) =
-  tableToOpenXML (blocksToOpenXML opts)
+  tableToOpenXML opts
+                 (blocksToOpenXML opts)
                  (Grid.toTable attr caption colspecs thead tbodies tfoot)
 blockToOpenXML' opts el
   | BulletList lst <- el = addOpenXMLList BulletMarker lst

@@ -20,6 +20,8 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Class.PandocMonad (PandocMonad, translateTerm)
 import Text.Pandoc.Writers.Docx.Types
 import Text.Pandoc.Shared
+import Text.Pandoc.Options (WriterOptions, isEnabled)
+import Text.Pandoc.Extensions (Extension(Ext_native_numbering))
 import Text.Printf (printf)
 import Text.Pandoc.Writers.GridTable hiding (Table)
 import Text.Pandoc.Writers.OOXML
@@ -29,10 +31,11 @@ import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Writers.GridTable as Grid
 
 tableToOpenXML :: PandocMonad m
-               => ([Block] -> WS m [Content])
+               => WriterOptions
+               -> ([Block] -> WS m [Content])
                -> Grid.Table
                -> WS m [Content]
-tableToOpenXML blocksToOpenXML gridTable = do
+tableToOpenXML opts blocksToOpenXML gridTable = do
   setFirstPara
   let (Grid.Table (ident,_,_) caption colspecs _rowheads thead tbodies tfoot) =
         gridTable
@@ -50,7 +53,9 @@ tableToOpenXML blocksToOpenXML gridTable = do
                 then return []
                 else withParaPropM (pStyleM "Table Caption")
                      $ blocksToOpenXML
-                     $ addLabel tableid tablename tablenum captionBlocks
+                     $ if isEnabled Ext_native_numbering opts
+                          then addLabel tableid tablename tablenum captionBlocks
+                          else captionBlocks
   -- We set "in table" after processing the caption, because we don't
   -- want the "Table Caption" style to be overwritten with "Compact".
   modify $ \s -> s { stInTable = True }

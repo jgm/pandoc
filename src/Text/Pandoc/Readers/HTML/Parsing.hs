@@ -30,11 +30,11 @@ module Text.Pandoc.Readers.HTML.Parsing
   )
 where
 
-import Control.Monad (guard, void, mzero)
+import Control.Monad (void, mzero)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Text.HTML.TagSoup
-  ( Attribute, Tag (..), isTagText, isTagPosition, isTagOpen, isTagClose, (~==) )
+  ( Attribute, Tag (..), isTagPosition, isTagOpen, isTagClose, (~==) )
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition (Attr)
 import Text.Pandoc.Parsing
@@ -118,9 +118,11 @@ pCloses tagtype = try $ do
        _ -> mzero
 
 pBlank :: PandocMonad m => TagParser m ()
-pBlank = try $ do
-  (TagText str) <- pSatisfy isTagText
-  guard $ T.all isSpace str
+pBlank = void $ pSatisfy isBlank
+ where
+  isBlank (TagText t) = T.all isSpace t
+  isBlank (TagComment _) = True
+  isBlank _ = False
 
 pLocation :: PandocMonad m => TagParser m ()
 pLocation = do

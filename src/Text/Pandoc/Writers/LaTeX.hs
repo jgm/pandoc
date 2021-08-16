@@ -429,6 +429,7 @@ blockToLaTeX (BlockQuote lst) = do
 blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   opts <- gets stOptions
   lab <- labelFor identifier
+  inNote <- stInNote <$> get
   linkAnchor' <- hypertarget True identifier lab
   let linkAnchor = if isEmpty linkAnchor'
                       then empty
@@ -438,8 +439,7 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
         return $ flush (linkAnchor $$ "\\begin{code}" $$ literal str $$
                             "\\end{code}") $$ cr
   let rawCodeBlock = do
-        st <- get
-        env <- if stInNote st
+        env <- if inNote
                   then modify (\s -> s{ stVerbInNote = True }) >>
                        return "Verbatim"
                   else return "verbatim"
@@ -475,14 +475,13 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                  "\\end{lstlisting}") $$ cr
   let highlightedCodeBlock =
         case highlight (writerSyntaxMap opts)
-                 formatLaTeXBlock ("",classes,keyvalAttr) str of
+                 formatLaTeXBlock ("",classes ++ ["default"],keyvalAttr) str of
                Left msg -> do
                  unless (T.null msg) $
                    report $ CouldNotHighlight msg
                  rawCodeBlock
                Right h -> do
-                  st <- get
-                  when (stInNote st) $ modify (\s -> s{ stVerbInNote = True })
+                  when inNote $ modify (\s -> s{ stVerbInNote = True })
                   modify (\s -> s{ stHighlighting = True })
                   return (flush $ linkAnchor $$ text (T.unpack h))
   case () of
@@ -491,6 +490,12 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
        | writerListings opts                 -> listingsCodeBlock
        | not (null classes) && isJust (writerHighlightStyle opts)
                                              -> highlightedCodeBlock
+       -- we don't want to use \begin{verbatim} if our code
+       -- contains \end{verbatim}:
+       | inNote
+       , "\\end{Verbatim}" `T.isInfixOf` str -> highlightedCodeBlock
+       | not inNote
+       , "\\end{verbatim}" `T.isInfixOf` str -> highlightedCodeBlock
        | otherwise                           -> rawCodeBlock
 blockToLaTeX b@(RawBlock f x) = do
   beamer <- gets stBeamer
