@@ -42,7 +42,6 @@ import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared (safeRead)
-import Text.Parsec hiding (tokenPrim)
 import Text.Pandoc.RoffChar (characterCodes, combiningAccents)
 import qualified Data.Sequence as Seq
 import qualified Data.Foldable as Foldable
@@ -122,16 +121,16 @@ instance Default RoffState where
                   , afterConditional = False
                   }
 
-type RoffLexer m = ParserT T.Text RoffState m
+type RoffLexer m = ParserT Sources RoffState m
 
 --
 -- Lexer: T.Text -> RoffToken
 --
 
-eofline :: Stream s m Char => ParsecT s u m ()
+eofline :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s u m ()
 eofline = void newline <|> eof <|> () <$ lookAhead (string "\\}")
 
-spacetab :: Stream s m Char => ParsecT s u m Char
+spacetab :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s u m Char
 spacetab = char ' ' <|> char '\t'
 
 characterCodeMap :: M.Map T.Text Char
@@ -303,8 +302,7 @@ expandString = try $ do
   char '*'
   cs <- escapeArg <|> countChar 1 anyChar
   s <- linePartsToText <$> resolveText cs pos
-  getInput >>= setInput . (s <>)
-  return ()
+  addToInput s
 
 -- Parses: '..'
 quoteArg :: PandocMonad m => RoffLexer m T.Text
@@ -316,7 +314,7 @@ escFont = do
   font' <- if T.null font || font == "P"
               then prevFont <$> getState
               else return $ foldr processFontLetter defaultFontSpec $ T.unpack font
-  modifyState $ \st -> st{ prevFont = currentFont st
+  updateState $ \st -> st{ prevFont = currentFont st
                          , currentFont = font' }
   return [Font font']
   where
@@ -372,8 +370,8 @@ lexTable pos = do
   spaces
   opts <- try tableOptions <|> [] <$ optional (char ';')
   case lookup "tab" opts of
-    Just (T.uncons -> Just (c, _)) -> modifyState $ \st -> st{ tableTabChar = c }
-    _                              -> modifyState $ \st -> st{ tableTabChar = '\t' }
+    Just (T.uncons -> Just (c, _)) -> updateState $ \st -> st{ tableTabChar = c }
+    _                              -> updateState $ \st -> st{ tableTabChar = '\t' }
   spaces
   skipMany lexComment
   spaces
@@ -489,18 +487,18 @@ lexConditional mname = do
   ifPart <- do
       optional $ try $ char '\\' >> newline
       lexGroup
-       <|> do modifyState $ \s -> s{ afterConditional = True }
+       <|> do updateState $ \s -> s{ afterConditional = True }
               t <- manToken
-              modifyState $ \s -> s{ afterConditional = False }
+              updateState $ \s -> s{ afterConditional = False }
               return t
   case mbtest of
     Nothing    -> do
-      putState st  -- reset state, so we don't record macros in skipped section
+      setState st  -- reset state, so we don't record macros in skipped section
       report $ SkippedContent (T.cons '.' mname) pos
       return mempty
     Just True  -> return ifPart
     Just False -> do
-      putState st
+      setState st
       return mempty
 
 expression :: PandocMonad m => RoffLexer m (Maybe Bool)
@@ -515,7 +513,7 @@ expression = do
       _    -> Nothing
   where
     returnValue v = do
-      modifyState $ \st -> st{ lastExpression = v }
+      updateState $ \st -> st{ lastExpression = v }
       return v
 
 lexGroup :: PandocMonad m => RoffLexer m RoffTokens
@@ -536,7 +534,7 @@ lexIncludeFile args = do
       result <- readFileFromDirs dirs $ T.unpack fp
       case result of
         Nothing  -> report $ CouldNotLoadIncludeFile fp pos
-        Just s   -> getInput >>= setInput . (s <>)
+        Just s   -> addToInput s
       return mempty
     []    -> return mempty
 
@@ -564,13 +562,13 @@ lexStringDef args = do -- string definition
      (x:ys) -> do
        let ts = singleTok $ TextLine (intercalate [RoffStr " " ] ys)
        let stringName = linePartsToText x
-       modifyState $ \st ->
+       updateState $ \st ->
          st{ customMacros = M.insert stringName ts (customMacros st) }
    return mempty
 
 lexMacroDef :: PandocMonad m => [Arg] -> RoffLexer m RoffTokens
 lexMacroDef args = do -- macro definition
-   modifyState $ \st -> st{ roffMode = CopyMode }
+   updateState $ \st -> st{ roffMode = CopyMode }
    (macroName, stopMacro) <-
      case args of
        (x : y : _) -> return (linePartsToText x, linePartsToText y)
@@ -584,7 +582,7 @@ lexMacroDef args = do -- macro definition
          _ <- lexArgs
          return ()
    ts <- mconcat <$> manyTill manToken stop
-   modifyState $ \st ->
+   updateState $ \st ->
      st{ customMacros = M.insert macroName ts (customMacros st)
        , roffMode = NormalMode }
    return mempty

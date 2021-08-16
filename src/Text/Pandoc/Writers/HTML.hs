@@ -37,7 +37,6 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Network.HTTP (urlEncode)
 import Network.URI (URI (..), parseURIReference)
 import Numeric (showHex)
 import Text.DocLayout (render, literal)
@@ -56,6 +55,7 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
+import Text.Pandoc.Network.HTTP (urlEncode)
 import Text.Pandoc.XML (escapeStringForXML, fromEntities, toEntities,
                         html5Attributes, html4Attributes, rdfaAttributes)
 import qualified Text.Blaze.XHtml5 as H5
@@ -344,6 +344,52 @@ pandocToHtml opts (Pandoc meta blocks) = do
                         PlainMath -> defField "displaymath-css" True
                         WebTeX _  -> defField "displaymath-css" True
                         _         -> id) .
+                  (if slideVariant == RevealJsSlides
+                      then -- set boolean options explicitly, since
+                           -- template can't distinguish False/undefined
+                         defField "controls" True .
+                         defField "controlsTutorial" True .
+                         defField "controlsLayout" ("bottom-right" :: Text) .
+                         defField "controlsBackArrows" ("faded" :: Text) .
+                         defField "progress" True .
+                         defField "slideNumber" False .
+                         defField "showSlideNumber" ("all" :: Text) .
+                         defField "hashOneBasedIndex" False .
+                         defField "hash" False .
+                         defField "respondToHashChanges" True .
+                         defField "history" False .
+                         defField "keyboard" True .
+                         defField "overview" True .
+                         defField "disableLayout" False .
+                         defField "center" True .
+                         defField "touch" True .
+                         defField "loop" False .
+                         defField "rtl" False .
+                         defField "navigationMode" ("default" :: Text) .
+                         defField "shuffle" False .
+                         defField "fragments" True .
+                         defField "fragmentInURL" True .
+                         defField "embedded" False .
+                         defField "help" True .
+                         defField "pause" True .
+                         defField "showNotes" False .
+                         defField "autoPlayMedia" ("null" :: Text) .
+                         defField "preloadIframes" ("null" :: Text) .
+                         defField "autoSlide" ("0" :: Text) .
+                         defField "autoSlideStoppable" True .
+                         defField "autoSlideMethod" ("null" :: Text) .
+                         defField "defaultTiming" ("null" :: Text) .
+                         defField "mouseWheel" False .
+                         defField "display" ("block" :: Text) .
+                         defField "hideInactiveCursor" True .
+                         defField "hideCursorTime" ("5000" :: Text) .
+                         defField "previewLinks" False .
+                         defField "transition" ("slide" :: Text) .
+                         defField "transitionSpeed" ("default" :: Text) .
+                         defField "backgroundTransition" ("fade" :: Text) .
+                         defField "viewDistance" ("3" :: Text) .
+                         defField "mobileViewDistance" ("2" :: Text)
+                      else id) .
                   defField "document-css" (isNothing mCss && slideVariant == NoSlides) .
                   defField "quotes" (stQuotes st) .
                   -- for backwards compatibility we populate toc
@@ -613,17 +659,20 @@ dimensionsToAttrList attr = consolidateStyles $ go Width ++ go Height
 figure :: PandocMonad m
        => WriterOptions -> Attr -> [Inline] -> (Text, Text)
        -> StateT WriterState m Html
-figure opts attr txt (s,tit) = do
+figure opts attr@(_, _, attrList) txt (s,tit) = do
   html5 <- gets stHtml5
   -- Screen-readers will normally read the @alt@ text and the figure; we
   -- want to avoid them reading the same text twice. With HTML5 we can
   -- use aria-hidden for the caption; with HTML4, we use an empty
   -- alt-text instead.
+  -- When the alt text differs from the caption both should be read.
   let alt = if html5 then txt else [Str ""]
   let tocapt = if html5
-                  then H5.figcaption !
-                       H5.customAttribute (textTag "aria-hidden")
-                                          (toValue @Text "true")
+                  then (H5.figcaption !) $
+                       if isJust (lookup "alt" attrList)
+                          then mempty
+                          else H5.customAttribute (textTag "aria-hidden")
+                                                  (toValue @Text "true")
                   else H.p ! A.class_ "caption"
   img <- inlineToHtml opts (Image attr alt (s,tit))
   capt <- if null txt
@@ -770,9 +819,10 @@ blockToHtml opts (Div attr@(ident, classes, kvs') bs) = do
                                            lookup "entry-spacing" kvs' >>=
                                            safeRead }
   let isCslBibEntry = "csl-entry" `elem` classes
-  let kvs = [(k,v) | (k,v) <- kvs', k /= "width"] ++
-            [("style", "width:" <> w <> ";") | "column" `elem` classes,
-             ("width", w) <- kvs'] ++
+  let kvs = [(k,v) | (k,v) <- kvs'
+                   , k /= "width" || "column" `notElem` classes] ++
+            [("style", "width:" <> w <> ";") | "column" `elem` classes
+                                             , ("width", w) <- kvs'] ++
             [("role", "doc-bibliography") | isCslBibBody && html5] ++
             [("role", "doc-biblioentry") | isCslBibEntry && html5]
   let speakerNotes = "notes" `elem` classes
@@ -882,7 +932,7 @@ blockToHtml opts (BlockQuote blocks) = do
      else do
        contents <- blockListToHtml opts blocks
        return $ H.blockquote $ nl opts >> contents >> nl opts
-blockToHtml opts (Header level attr@(_,classes,kvs) lst) = do
+blockToHtml opts (Header level (ident,classes,kvs) lst) = do
   contents <- inlineListToHtml opts lst
   let secnum = fromMaybe mempty $ lookup "number" kvs
   let contents' = if writerNumberSections opts && not (T.null secnum)
@@ -890,7 +940,13 @@ blockToHtml opts (Header level attr@(_,classes,kvs) lst) = do
                      then (H.span ! A.class_ "header-section-number"
                              $ toHtml secnum) >> strToHtml " " >> contents
                      else contents
-  addAttrs opts attr
+  html5 <- gets stHtml5
+  let kvs' = if html5
+             then kvs
+             else [ (k, v) | (k, v) <- kvs
+                           , k `elem` (["lang", "dir", "title", "style"
+                                      , "align"] ++ intrinsicEventsHTML4)]
+  addAttrs opts (ident,classes,kvs')
          $ case level of
               1 -> H.h1 contents'
               2 -> H.h2 contents'
@@ -1321,7 +1377,7 @@ inlineToHtml opts inline = do
                            InlineMath  -> "\\textstyle "
                            DisplayMath -> "\\displaystyle "
               return $ imtag ! A.style "vertical-align:middle"
-                             ! A.src (toValue $ url <> T.pack (urlEncode (T.unpack $ s <> str)))
+                             ! A.src (toValue . (url <>) . urlEncode $ s <> str)
                              ! A.alt (toValue str)
                              ! A.title (toValue str)
                              ! A.class_ mathClass
@@ -1380,7 +1436,7 @@ inlineToHtml opts inline = do
                         return $ if T.null tit
                                     then link'
                                     else link' ! A.title (toValue tit)
-    (Image attr txt (s,tit)) -> do
+    (Image attr@(_, _, attrList) txt (s, tit)) -> do
                         let alternate = stringify txt
                         slideVariant <- gets stSlideVariant
                         let isReveal = slideVariant == RevealJsSlides
@@ -1393,7 +1449,8 @@ inlineToHtml opts inline = do
                               [A.title $ toValue tit | not (T.null tit)] ++
                               attrs
                             imageTag = (if html5 then H5.img else H.img
-                              , [A.alt $ toValue alternate | not (null txt)] )
+                              , [A.alt $ toValue alternate | not (null txt) &&
+                                  isNothing (lookup "alt" attrList)] )
                             mediaTag tg fallbackTxt =
                               let linkTxt = if null txt
                                             then fallbackTxt
@@ -1525,6 +1582,12 @@ allowsMathEnvironments (MathJax _) = True
 allowsMathEnvironments MathML      = True
 allowsMathEnvironments (WebTeX _)  = True
 allowsMathEnvironments _           = False
+
+-- | List of intrinsic event attributes allowed on all elements in HTML4.
+intrinsicEventsHTML4 :: [Text]
+intrinsicEventsHTML4 =
+  [ "onclick", "ondblclick", "onmousedown", "onmouseup", "onmouseover"
+  , "onmouseout", "onmouseout", "onkeypress", "onkeydown", "onkeyup"]
 
 isRawHtml :: PandocMonad m => Format -> StateT WriterState m Bool
 isRawHtml f = do

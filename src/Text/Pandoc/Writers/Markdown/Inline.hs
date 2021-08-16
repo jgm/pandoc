@@ -11,7 +11,9 @@
    Portability : portable
 -}
 module Text.Pandoc.Writers.Markdown.Inline (
-  inlineListToMarkdown
+  inlineListToMarkdown,
+  linkAttributes,
+  attrsToMarkdown
   ) where
 import Control.Monad.Reader
 import Control.Monad.State.Strict
@@ -22,7 +24,6 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Network.HTTP (urlEncode)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
@@ -30,6 +31,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.Network.HTTP (urlEncode)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
@@ -43,7 +45,11 @@ import Text.Pandoc.Writers.Markdown.Types (MarkdownVariant(..),
 -- | Escape special characters for Markdown.
 escapeText :: WriterOptions -> Text -> Text
 escapeText opts = T.pack . go . T.unpack
-  where
+ where
+  startsWithSpace (' ':_) = True
+  startsWithSpace ('\t':_) = True
+  startsWithSpace [] = True
+  startsWithSpace _ = False
   go [] = []
   go (c:cs) =
     case c of
@@ -56,10 +62,13 @@ escapeText opts = T.pack . go . T.unpack
        '@' | isEnabled Ext_citations opts ->
                case cs of
                     (d:_)
-                      | isAlphaNum d || d == '_'
+                      | isAlphaNum d || d == '_' || d == '{'
                          -> '\\':'@':go cs
                     _ -> '@':go cs
-       _ | c `elem` ['\\','`','*','_','[',']','#'] ->
+       '#' | isEnabled Ext_space_in_atx_header opts
+           , startsWithSpace cs
+           -> '\\':'#':go cs
+       _ | c `elem` ['\\','`','*','_','[',']'] ->
               '\\':c:go cs
        '|' | isEnabled Ext_pipe_tables opts -> '\\':'|':go cs
        '^' | isEnabled Ext_superscript opts -> '\\':'^':go cs
@@ -81,6 +90,8 @@ escapeText opts = T.pack . go . T.unpack
                   | isEnabled Ext_intraword_underscores opts
                   , isAlphaNum c
                   , isAlphaNum x -> c : '_' : x : go xs
+                '#':xs           -> c : '#' : go xs
+                '>':xs           -> c : '>' : go xs
                 _                -> c : go cs
 
 attrsToMarkdown :: Attr -> Doc Text
@@ -106,7 +117,7 @@ attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
 
 linkAttributes :: WriterOptions -> Attr -> Doc Text
 linkAttributes opts attr =
-  if isEnabled Ext_link_attributes opts && attr /= nullAttr
+  if (isEnabled Ext_link_attributes opts || isEnabled Ext_attributes opts) && attr /= nullAttr
      then attrsToMarkdown attr
      else empty
 
@@ -383,13 +394,15 @@ inlineToMarkdown opts (Quoted DoubleQuote lst) = do
                    then "&ldquo;" <> contents <> "&rdquo;"
                    else "“" <> contents <> "”"
 inlineToMarkdown opts (Code attr str) = do
-  let tickGroups = filter (T.any (== '`')) $ T.group str
-  let longest    = maybe 0 maximum $ nonEmpty $ map T.length tickGroups
-  let marker     = T.replicate (longest + 1) "`"
-  let spacer     = if longest == 0 then "" else " "
-  let attrs      = if isEnabled Ext_inline_code_attributes opts && attr /= nullAttr
-                      then attrsToMarkdown attr
-                      else empty
+  let tickGroups   = filter (T.any (== '`')) $ T.group str
+  let longest      = maybe 0 maximum $ nonEmpty $ map T.length tickGroups
+  let marker       = T.replicate (longest + 1) "`"
+  let spacer       = if longest == 0 then "" else " "
+  let attrsEnabled = isEnabled Ext_inline_code_attributes opts ||
+                     isEnabled Ext_attributes opts
+  let attrs        = if attrsEnabled && attr /= nullAttr
+                        then attrsToMarkdown attr
+                        else empty
   variant <- asks envVariant
   case variant of
      PlainText -> return $ literal str
@@ -410,7 +423,7 @@ inlineToMarkdown opts (Str str) = do
 inlineToMarkdown opts (Math InlineMath str) =
   case writerHTMLMathMethod opts of
        WebTeX url -> inlineToMarkdown opts
-                       (Image nullAttr [Str str] (url <> T.pack (urlEncode $ T.unpack str), str))
+                       (Image nullAttr [Str str] (url <> urlEncode str, str))
        _ | isEnabled Ext_tex_math_dollars opts ->
              return $ "$" <> literal str <> "$"
          | isEnabled Ext_tex_math_single_backslash opts ->
@@ -426,7 +439,7 @@ inlineToMarkdown opts (Math DisplayMath str) =
   case writerHTMLMathMethod opts of
       WebTeX url -> (\x -> blankline <> x <> blankline) `fmap`
              inlineToMarkdown opts (Image nullAttr [Str str]
-                    (url <> T.pack (urlEncode $ T.unpack str), str))
+                    (url <> urlEncode str, str))
       _ | isEnabled Ext_tex_math_dollars opts ->
             return $ "$$" <> literal str <> "$$"
         | isEnabled Ext_tex_math_single_backslash opts ->
@@ -491,11 +504,16 @@ inlineToMarkdown opts (Cite (c:cs) lst)
            rest <- mapM convertOne cs
            let inbr = suffs <+> joincits rest
                br   = if isEmpty inbr then empty else char '[' <> inbr <> char ']'
-           return $ literal ("@" <> citationId c) <+> br
+           return $ literal ("@" <> maybeInBraces (citationId c)) <+> br
          else do
            cits <- mapM convertOne (c:cs)
            return $ literal "[" <> joincits cits <> literal "]"
   where
+        maybeInBraces key =
+          case readWith (citeKey False >> spaces >> eof)
+                 defaultParserState ("@" <> key) of
+            Left _  -> "{" <> key <> "}"
+            Right _ -> key
         joincits = hcat . intersperse (literal "; ") . filter (not . isEmpty)
         convertOne Citation { citationId      = k
                             , citationPrefix  = pinlines
@@ -504,7 +522,7 @@ inlineToMarkdown opts (Cite (c:cs) lst)
                                = do
            pdoc <- inlineListToMarkdown opts pinlines
            sdoc <- inlineListToMarkdown opts sinlines
-           let k' = literal (modekey m <> "@" <> k)
+           let k' = literal (modekey m <> "@" <> maybeInBraces k)
                r = case sinlines of
                         Str (T.uncons -> Just (y,_)):_ | y `elem` (",;]@" :: String) -> k' <> sdoc
                         _                                         -> k' <+> sdoc
@@ -543,7 +561,7 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit)) = do
                            else "[" <> reftext <> "]"
            in  return $ first <> second
       | isEnabled Ext_raw_html opts
-      , not (isEnabled Ext_link_attributes opts)
+      , not (isEnabled Ext_link_attributes opts || isEnabled Ext_attributes opts)
       , attr /= nullAttr -> -- use raw HTML to render attributes
           literal . T.strip <$>
             writeHtml5String opts{ writerTemplate = Nothing }
@@ -553,7 +571,7 @@ inlineToMarkdown opts lnk@(Link attr txt (src, tit)) = do
          linkAttributes opts attr
 inlineToMarkdown opts img@(Image attr alternate (source, tit))
   | isEnabled Ext_raw_html opts &&
-    not (isEnabled Ext_link_attributes opts) &&
+    not (isEnabled Ext_link_attributes opts || isEnabled Ext_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
     literal . T.strip <$>
       writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [Plain [img]])

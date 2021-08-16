@@ -2,7 +2,7 @@ version: "2.1"
 jobs:
   build:
     macos:
-      xcode: 9.4.1
+      xcode: 11.1.0
     environment:
       HOMEBREW_NO_AUTO_UPDATE: 1
     steps:

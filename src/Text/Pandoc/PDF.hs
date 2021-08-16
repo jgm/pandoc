@@ -202,7 +202,7 @@ convertImage opts tmpdir fname = do
     Just "image/svg+xml" -> E.catch (do
       (exit, _) <- pipeProcess Nothing "rsvg-convert"
                      ["-f","pdf","-a","--dpi-x",dpi,"--dpi-y",dpi,
-                      "-o",pdfOut,fname] BL.empty
+                      "-o",pdfOut,svgIn] BL.empty
       if exit == ExitSuccess
          then return $ Right pdfOut
          else return $ Left "conversion from SVG failed")
@@ -215,8 +215,9 @@ convertImage opts tmpdir fname = do
                  E.catch (Right pngOut <$ JP.savePngImage pngOut img) $
                      \(e :: E.SomeException) -> return (Left (tshow e))
   where
-    pngOut = replaceDirectory (replaceExtension fname ".png") tmpdir
-    pdfOut = replaceDirectory (replaceExtension fname ".pdf") tmpdir
+    pngOut = normalise $ replaceDirectory (replaceExtension fname ".png") tmpdir
+    pdfOut = normalise $ replaceDirectory (replaceExtension fname ".pdf") tmpdir
+    svgIn = normalise fname
     mime = getMimeType fname
     doNothing = return (Right fname)
 
@@ -506,8 +507,20 @@ showVerboseInfo mbTmpDir program programArgs env source = do
   UTF8.hPutStrLn stderr $
        T.pack program <> " " <> T.pack (unwords (map show programArgs))
   UTF8.hPutStr stderr "\n"
-  UTF8.hPutStrLn stderr "[makePDF] Environment:"
-  mapM_ (UTF8.hPutStrLn stderr . tshow) env
+  UTF8.hPutStrLn stderr "[makePDF] Relevant environment variables:"
+  -- we filter out irrelevant stuff to avoid leaking passwords and keys!
+  let isRelevant ("PATH",_) = True
+      isRelevant ("TMPDIR",_) = True
+      isRelevant ("PWD",_) = True
+      isRelevant ("LANG",_) = True
+      isRelevant ("HOME",_) = True
+      isRelevant ("LUA_PATH",_) = True
+      isRelevant ("LUA_CPATH",_) = True
+      isRelevant ("SHELL",_) = True
+      isRelevant ("TEXINPUTS",_) = True
+      isRelevant ("TEXMFOUTPUT",_) = True
+      isRelevant _ = False
+  mapM_ (UTF8.hPutStrLn stderr . tshow) (filter isRelevant env)
   UTF8.hPutStr stderr "\n"
   UTF8.hPutStrLn stderr "[makePDF] Source:"
   UTF8.hPutStrLn stderr source

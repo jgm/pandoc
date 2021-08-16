@@ -23,8 +23,10 @@ import Foreign.Lua (Lua, NumResults, Optional, Peekable, Pushable)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Class.PandocIO (runIO)
 import Text.Pandoc.Definition (Block, Inline)
-import Text.Pandoc.Lua.Filter (walkInlines, walkBlocks, LuaFilter, SingletonsList (..))
+import Text.Pandoc.Lua.Filter (LuaFilter, SingletonsList (..), walkInlines,
+                               walkInlineLists, walkBlocks, walkBlockLists)
 import Text.Pandoc.Lua.Marshaling ()
+import Text.Pandoc.Lua.Marshaling.List (List (..))
 import Text.Pandoc.Lua.PandocLua (PandocLua, addFunction, liftPandocLua,
                                   loadDefaultModule)
 import Text.Pandoc.Walk (Walkable)
@@ -51,9 +53,12 @@ pushModule = do
   return 1
 
 walkElement :: (Walkable (SingletonsList Inline) a,
-                Walkable (SingletonsList Block) a)
+                Walkable (SingletonsList Block) a,
+                Walkable (List Inline) a,
+                Walkable (List Block) a)
             => a -> LuaFilter -> PandocLua a
-walkElement x f = liftPandocLua $ walkInlines f x >>= walkBlocks f
+walkElement x f = liftPandocLua $
+  walkInlines f x >>= walkInlineLists f >>= walkBlocks f >>= walkBlockLists f
 
 walk_inline :: Inline -> LuaFilter -> PandocLua Inline
 walk_inline = walkElement

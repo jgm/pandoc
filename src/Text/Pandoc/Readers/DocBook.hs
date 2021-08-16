@@ -30,7 +30,8 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging (LogMessage(..))
-import Text.Pandoc.Shared (crFilter, safeRead, extractSpaces)
+import Text.Pandoc.Shared (safeRead, extractSpaces)
+import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import Text.TeXMath (readMathML, writeTeX)
 import Text.Pandoc.XML.Light
 
@@ -96,7 +97,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] chapterinfo - Meta-information for a Chapter
 [ ] citation - An inline bibliographic reference to another published work
 [ ] citebiblioid - A citation of a bibliographic identifier
-[ ] citerefentry - A citation to a reference page
+[x] citerefentry - A citation to a reference page
 [ ] citetitle - The title of a cited work
 [ ] city - The name of a city in an address
 [x] classname - The name of a class, in the object-oriented programming sense
@@ -133,6 +134,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] corpcredit - A corporation or organization credited in a document
 [ ] corpname - The name of a corporation
 [ ] country - The name of a country
+[x] danger - An admonition set off from the text indicating hazardous situation
 [ ] database - The name of a database, or part of a database
 [x] date - The date of publication or revision of a document
 [ ] dedication - A wrapper for the dedication section of a book
@@ -539,11 +541,15 @@ instance Default DBState where
                , dbContent = [] }
 
 
-readDocBook :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
+readDocBook :: (PandocMonad m, ToSources a)
+            => ReaderOptions
+            -> a
+            -> m Pandoc
 readDocBook _ inp = do
+  let sources = toSources inp
   tree <- either (throwError . PandocXMLError "") return $
             parseXMLContents
-              (TL.fromStrict . handleInstructions $ crFilter inp)
+              (TL.fromStrict . handleInstructions . sourcesToText $ sources)
   (bs, st') <- flip runStateT (def{ dbContent = tree }) $ mapM parseBlock tree
   return $ Pandoc (dbMeta st') (toList . mconcat $ bs)
 
@@ -595,16 +601,24 @@ addMetadataFromElement e = do
          Nothing -> return ()
          Just z  -> addMetaField "author" z
     addMetaField "subtitle" e
-    addMetaField "author" e
+    addAuthor e
     addMetaField "date" e
     addMetaField "release" e
     addMetaField "releaseinfo" e
     return mempty
-  where addMetaField fieldname elt =
-            case filterChildren (named fieldname) elt of
-                   []  -> return ()
-                   [z] -> getInlines z >>= addMeta fieldname
-                   zs  -> mapM getInlines zs >>= addMeta fieldname
+  where
+   addAuthor elt =
+     case filterChildren (named "author") elt of
+       [] -> return ()
+       [z] -> fromAuthor z >>= addMeta "author"
+       zs  -> mapM fromAuthor zs >>= addMeta "author"
+   fromAuthor elt =
+     mconcat . intersperse space <$> mapM getInlines (elChildren elt)
+   addMetaField fieldname elt =
+     case filterChildren (named fieldname) elt of
+       []  -> return ()
+       [z] -> getInlines z >>= addMeta fieldname
+       zs  -> mapM getInlines zs >>= addMeta fieldname
 
 addMeta :: PandocMonad m => ToMetaValue a => Text -> a -> DB m ()
 addMeta field val = modify (setMeta field val)
@@ -705,7 +719,7 @@ blockTags =
   ] ++ admonitionTags
 
 admonitionTags :: [Text]
-admonitionTags = ["important","caution","note","tip","warning"]
+admonitionTags = ["caution","danger","important","note","tip","warning"]
 
 -- Trim leading and trailing newline characters
 trimNl :: Text -> Text
@@ -727,9 +741,9 @@ getMediaobject e = do
   figTitle <- gets dbFigureTitle
   ident <- gets dbFigureId
   (imageUrl, attr) <-
-    case filterChild (named "imageobject") e of
-      Nothing  -> return (mempty, nullAttr)
-      Just z   -> case filterChild (named "imagedata") z of
+    case filterElements (named "imageobject") e of
+      []  -> return (mempty, nullAttr)
+      (z:_) -> case filterChild (named "imagedata") z of
                     Nothing -> return (mempty, nullAttr)
                     Just i  -> let atVal a = attrValue a i
                                    w = case atVal "width" of
@@ -1075,7 +1089,7 @@ parseInline (Elem e) =
            return $ spanWith (attrValue "id" e, [], []) mempty
         "phrase" -> do
           let ident = attrValue "id" e
-          let classes = T.words $ attrValue "class" e
+          let classes = T.words $ attrValue "role" e
           if ident /= "" || classes /= []
             then innerInlines (spanWith (ident,classes,[]))
             else innerInlines id
@@ -1098,6 +1112,10 @@ parseInline (Elem e) =
         "segmentedlist" -> segmentedList
         "classname" -> codeWithLang
         "code" -> codeWithLang
+        "citerefentry" -> do
+             let title = maybe mempty strContent $ filterChild (named "refentrytitle") e
+             let manvolnum = maybe mempty (\el -> "(" <> strContent el <> ")") $ filterChild (named "manvolnum") e
+             return $ codeWith ("",["citerefentry"],[]) (title <> manvolnum)
         "filename" -> codeWithLang
         "envar" -> codeWithLang
         "literal" -> codeWithLang

@@ -361,7 +361,7 @@ tests = [ testGroup "inline code"
               para (text "The value of the " <> math "x" <> text "\8217s and the systems\8217 condition.")
           , test markdownSmart "unclosed double quote"
             ("**this should \"be bold**"
-            =?> para (strong "this should \"be bold"))
+            =?> para (strong "this should \8220be bold"))
           ]
         , testGroup "sub- and superscripts"
           [
@@ -422,8 +422,8 @@ tests = [ testGroup "inline code"
         , testGroup "lhs"
           [ test (purely $ readMarkdown def{ readerExtensions = enableExtension
                        Ext_literate_haskell pandocExtensions })
-              "inverse bird tracks and html" $
-              "> a\n\n< b\n\n<div>\n"
+              "inverse bird tracks and html"
+              $ ("> a\n\n< b\n\n<div>\n" :: Text)
               =?> codeBlockWith ("",["haskell","literate"],[]) "a"
                   <>
                   codeBlockWith ("",["haskell"],[]) "b"

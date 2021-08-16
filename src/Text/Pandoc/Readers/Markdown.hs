@@ -29,7 +29,9 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.ByteString.Lazy as BL
-import System.FilePath (addExtension, takeExtension)
+import System.FilePath (addExtension, takeExtension, takeDirectory)
+import qualified System.FilePath.Windows as Windows
+import qualified System.FilePath.Posix as Posix
 import Text.HTML.TagSoup hiding (Row)
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
@@ -47,19 +49,20 @@ import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
 import Text.Pandoc.XML (fromEntities)
 import Text.Pandoc.Readers.Metadata (yamlBsToMeta, yamlBsToRefs, yamlMetaBlock)
+-- import Debug.Trace (traceShowId)
 
-type MarkdownParser m = ParserT Text ParserState m
+type MarkdownParser m = ParserT Sources ParserState m
 
 type F = Future ParserState
 
 -- | Read markdown from an input string and return a Pandoc document.
-readMarkdown :: PandocMonad m
+readMarkdown :: (PandocMonad m, ToSources a)
              => ReaderOptions -- ^ Reader options
-             -> Text      -- ^ String to parse (assuming @'\n'@ line endings)
+             -> a             -- ^ Input
              -> m Pandoc
 readMarkdown opts s = do
   parsed <- readWithM parseMarkdown def{ stateOptions = opts }
-               (crFilter s <> "\n\n")
+                (ensureFinalNewlines 3 (toSources s))
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -80,7 +83,7 @@ yamlToMeta opts mbfp bstr = do
         meta <- yamlBsToMeta (fmap B.toMetaValue <$> parseBlocks) bstr
         setPosition oldPos
         return $ runF meta defaultParserState
-  parsed <- readWithM parser def{ stateOptions = opts } ""
+  parsed <- readWithM parser def{ stateOptions = opts } ("" :: Text)
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -96,14 +99,12 @@ yamlToRefs :: PandocMonad m
            -> m [MetaValue]
 yamlToRefs idpred opts mbfp bstr = do
   let parser = do
-        oldPos <- getPosition
         case mbfp of
           Nothing -> return ()
           Just fp -> setPosition $ initialPos fp
         refs <- yamlBsToRefs (fmap B.toMetaValue <$> parseBlocks) idpred bstr
-        setPosition oldPos
         return $ runF refs defaultParserState
-  parsed <- readWithM parser def{ stateOptions = opts } ""
+  parsed <- readWithM parser def{ stateOptions = opts } ("" :: Text)
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -146,14 +147,14 @@ inList = do
   ctx <- stateParserContext <$> getState
   guard (ctx == ListItemState)
 
-spnl :: PandocMonad m => ParserT Text st m ()
+spnl :: PandocMonad m => ParserT Sources st m ()
 spnl = try $ do
   skipSpaces
   optional newline
   skipSpaces
   notFollowedBy (char '\n')
 
-spnl' :: PandocMonad m => ParserT Text st m Text
+spnl' :: PandocMonad m => ParserT Sources st m Text
 spnl' = try $ do
   xs <- many spaceChar
   ys <- option "" $ try $ (:) <$> newline
@@ -298,7 +299,7 @@ kvPair allowEmpty = try $ do
           (try $ newline >> lookAhead (blankline <|> nonspaceChar))
   guard $ allowEmpty || not (T.null val)
   let key' = T.concat $ T.words $ T.toLower key
-  let val' = MetaBlocks $ B.toList $ B.plain $ B.text val
+  let val' = MetaInlines $ B.toList $ B.text val
   return (key',val')
 
 parseMarkdown :: PandocMonad m => MarkdownParser m Pandoc
@@ -337,7 +338,9 @@ referenceKey = try $ do
                     notFollowedBy' (() <$ reference)
                     many1Char $ notFollowedBy space >> litChar
   let betweenAngles = try $ char '<' >> manyTillChar litChar (char '>')
-  src <- try betweenAngles <|> sourceURL
+  rebase <- option False (True <$ guardEnabled Ext_rebase_relative_paths)
+  src <- (if rebase then rebasePath pos else id) <$>
+             (try betweenAngles <|> sourceURL)
   tit <- option "" referenceTitle
   attr   <- option nullAttr $ try $
               do guardEnabled Ext_link_attributes
@@ -568,7 +571,7 @@ registerImplicitHeader raw attr@(ident, _, _)
 -- hrule block
 --
 
-hrule :: PandocMonad m => ParserT Text st m (F Blocks)
+hrule :: PandocMonad m => ParserT Sources st m (F Blocks)
 hrule = try $ do
   skipSpaces
   start <- satisfy isHruleChar
@@ -588,7 +591,7 @@ indentedLine = indentSpaces >> anyLineNewline
 blockDelimiter :: PandocMonad m
                => (Char -> Bool)
                -> Maybe Int
-               -> ParserT Text ParserState m Int
+               -> ParserT Sources ParserState m Int
 blockDelimiter f len = try $ do
   skipNonindentSpaces
   c <- lookAhead (satisfy f)
@@ -732,7 +735,7 @@ lhsCodeBlockBirdWith c = try $ do
   blanklines
   return $ T.intercalate "\n" lns'
 
-birdTrackLine :: PandocMonad m => Char -> ParserT Text st m Text
+birdTrackLine :: PandocMonad m => Char -> ParserT Sources st m Text
 birdTrackLine c = try $ do
   char c
   -- allow html tags on left margin:
@@ -1025,7 +1028,7 @@ para = try $ do
   option (B.plain <$> result)
     $ try $ do
             newline
-            (blanklines >> return mempty)
+            (mempty <$ blanklines)
               <|> (guardDisabled Ext_blank_before_blockquote >> () <$ lookAhead blockQuote)
               <|> (guardEnabled Ext_backtick_code_blocks >> () <$ lookAhead codeBlockFenced)
               <|> (guardDisabled Ext_blank_before_header >> () <$ lookAhead header)
@@ -1118,6 +1121,7 @@ rawTeXBlock = do
 rawHtmlBlocks :: PandocMonad m => MarkdownParser m (F Blocks)
 rawHtmlBlocks = do
   (TagOpen tagtype _, raw) <- htmlTag isBlockTag
+  let selfClosing = "/>" `T.isSuffixOf` raw
   -- we don't want '<td>    text' to be a code block:
   skipMany spaceChar
   indentlevel <- (blankline >> length <$> many (char ' ')) <|> return 0
@@ -1131,7 +1135,9 @@ rawHtmlBlocks = do
                  gobbleAtMostSpaces indentlevel
                  notFollowedBy' closer
                  block
-  contents <- mconcat <$> many block'
+  contents <- if selfClosing
+                 then return mempty
+                 else mconcat <$> many block'
   result <-
     try
     (do gobbleAtMostSpaces indentlevel
@@ -1170,7 +1176,7 @@ lineBlock = do
 -- and the length including trailing space.
 dashedLine :: PandocMonad m
            => Char
-           -> ParserT Text st m (Int, Int)
+           -> ParserT Sources st m (Int, Int)
 dashedLine ch = do
   dashes <- many1 (char ch)
   sp     <- many spaceChar
@@ -1239,7 +1245,7 @@ rawTableLine :: PandocMonad m
              -> MarkdownParser m [Text]
 rawTableLine indices = do
   notFollowedBy' (blanklines' <|> tableFooter)
-  line <- take1WhileP (/='\n') <* newline
+  line <- anyLine
   return $ map trim $ tail $
            splitTextByIndices (init indices) line
 
@@ -1390,7 +1396,7 @@ pipeTableCell =
       return $ B.plain <$> result)
     <|> return mempty
 
-pipeTableHeaderPart :: PandocMonad m => ParserT Text st m (Alignment, Int)
+pipeTableHeaderPart :: PandocMonad m => ParserT Sources st m (Alignment, Int)
 pipeTableHeaderPart = try $ do
   skipMany spaceChar
   left <- optionMaybe (char ':')
@@ -1406,10 +1412,14 @@ pipeTableHeaderPart = try $ do
       (Just _,Just _)   -> AlignCenter, len)
 
 -- Succeed only if current line contains a pipe.
-scanForPipe :: PandocMonad m => ParserT Text st m ()
+scanForPipe :: PandocMonad m => ParserT Sources st m ()
 scanForPipe = do
-  inp <- getInput
-  case T.break (\c -> c == '\n' || c == '|') inp of
+  Sources inps <- getInput
+  let ln = case inps of
+             [] -> ""
+             ((_,t):(_,t'):_) | T.null t -> t'
+             ((_,t):_) -> t
+  case T.break (\c -> c == '\n' || c == '|') ln of
        (_, T.uncons -> Just ('|', _)) -> return ()
        _                              -> mzero
 
@@ -1711,13 +1721,13 @@ whitespace = spaceChar >> return <$> (lb <|> regsp) <?> "whitespace"
   where lb = spaceChar >> skipMany spaceChar >> option B.space (endline >> return B.linebreak)
         regsp = skipMany spaceChar >> return B.space
 
-nonEndline :: PandocMonad m => ParserT Text st m Char
+nonEndline :: PandocMonad m => ParserT Sources st m Char
 nonEndline = satisfy (/='\n')
 
 str :: PandocMonad m => MarkdownParser m (F Inlines)
 str = do
   result <- mconcat <$> many1
-             ( take1WhileP isAlphaNum
+             ( T.pack <$> (many1 alphaNum)
               <|> "." <$ try (char '.' <* notFollowedBy (char '.')) )
   updateLastStrPos
   (do guardEnabled Ext_smart
@@ -1841,9 +1851,12 @@ regLink :: PandocMonad m
         -> MarkdownParser m (F Inlines)
 regLink constructor lab = try $ do
   (src, tit) <- source
+  rebase <- option False (True <$ guardEnabled Ext_rebase_relative_paths)
+  pos <- getPosition
+  let src' = if rebase then rebasePath pos src else src
   attr <- option nullAttr $
           guardEnabled Ext_link_attributes >> attributes
-  return $ constructor attr src tit <$> lab
+  return $ constructor attr src' tit <$> lab
 
 -- a link like [this][ref] or [this][] or [this]
 referenceLink :: PandocMonad m
@@ -1883,7 +1896,8 @@ referenceLink constructor (lab, raw) = do
                    Just ((src, tit), _) -> constructor nullAttr src tit <$> lab
                    Nothing              -> makeFallback
             else makeFallback
-       Just ((src,tit), attr) -> constructor attr src tit <$> lab
+       Just ((src,tit), attr) ->
+           constructor attr src tit <$> lab
 
 dropBrackets :: Text -> Text
 dropBrackets = dropRB . dropLB
@@ -1916,15 +1930,33 @@ autoLink = try $ do
   return $ return $ B.linkWith attr (src <> escapeURI extra) ""
                      (B.str $ orig <> extra)
 
+-- | Rebase a relative path, by adding the (relative) directory
+-- of the containing source position.  Absolute links and URLs
+-- are untouched.
+rebasePath :: SourcePos -> Text -> Text
+rebasePath pos path = do
+  let fp = sourceName pos
+      isFragment = T.take 1 path == "#"
+      path' = T.unpack path
+      isAbsolutePath = Posix.isAbsolute path' || Windows.isAbsolute path'
+   in if T.null path || isFragment || isAbsolutePath || isURI path
+         then path
+         else
+           case takeDirectory fp of
+             ""  -> path
+             "." -> path
+             d   -> T.pack d <> "/" <> path
+
 image :: PandocMonad m => MarkdownParser m (F Inlines)
 image = try $ do
   char '!'
   (lab,raw) <- reference
   defaultExt <- getOption readerDefaultImageExtension
-  let constructor attr' src = case takeExtension (T.unpack src) of
-                          "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
-                                                          $ T.unpack defaultExt)
-                          _  -> B.imageWith attr' src
+  let constructor attr' src =
+         case takeExtension (T.unpack src) of
+            "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
+                                            $ T.unpack defaultExt)
+            _  -> B.imageWith attr' src
   regLink constructor lab <|> referenceLink constructor (lab,raw)
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -1970,7 +2002,7 @@ rawLaTeXInline' = do
     s <- rawLaTeXInline
     return $ return $ B.rawInline "tex" s -- "tex" because it might be context
 
-rawConTeXtEnvironment :: PandocMonad m => ParserT Text st m Text
+rawConTeXtEnvironment :: PandocMonad m => ParserT Sources st m Text
 rawConTeXtEnvironment = try $ do
   string "\\start"
   completion <- inBrackets (letter <|> digit <|> spaceChar)
@@ -1979,7 +2011,7 @@ rawConTeXtEnvironment = try $ do
                        (try $ string "\\stop" >> textStr completion)
   return $ "\\start" <> completion <> T.concat contents <> "\\stop" <> completion
 
-inBrackets :: PandocMonad m => ParserT Text st m Char -> ParserT Text st m Text
+inBrackets :: PandocMonad m => ParserT Sources st m Char -> ParserT Sources st m Text
 inBrackets parser = do
   char '['
   contents <- manyChar parser
@@ -2099,7 +2131,7 @@ cite = do
 
 textualCite :: PandocMonad m => MarkdownParser m (F Inlines)
 textualCite = try $ do
-  (suppressAuthor, key) <- citeKey
+  (suppressAuthor, key) <- citeKey True
   -- If this is a reference to an earlier example list item,
   -- then don't parse it as a citation.  If the example list
   -- item comes later, we'll parse it here and figure out in
@@ -2179,7 +2211,7 @@ prefix = trimInlinesF . mconcat <$>
   manyTill inline (char ']'
    <|> lookAhead
          (try $ do optional (try (char ';' >> spnl))
-                   citeKey
+                   citeKey True
                    return ']'))
 
 citeList :: PandocMonad m => MarkdownParser m (F [Citation])
@@ -2188,7 +2220,7 @@ citeList = fmap sequence $ sepBy1 citation (try $ char ';' >> spnl)
 citation :: PandocMonad m => MarkdownParser m (F Citation)
 citation = try $ do
   pref <- prefix
-  (suppress_author, key) <- citeKey
+  (suppress_author, key) <- citeKey True
   suff <- suffix
   noteNum <- stateNoteNumber <$> getState
   return $ do
@@ -2207,28 +2239,30 @@ citation = try $ do
 smart :: PandocMonad m => MarkdownParser m (F Inlines)
 smart = do
   guardEnabled Ext_smart
-  doubleQuoted <|> singleQuoted <|>
-    choice (map (return <$>) [apostrophe, dash, ellipses])
+  doubleQuoted <|> singleQuoted <|> (return <$> doubleCloseQuote) <|>
+    (return <$> apostrophe) <|> (return <$> dash) <|> (return <$> ellipses)
 
 singleQuoted :: PandocMonad m => MarkdownParser m (F Inlines)
-singleQuoted = try $ do
+singleQuoted = do
   singleQuoteStart
-  withQuoteContext InSingleQuote $
+  (try (withQuoteContext InSingleQuote $
     fmap B.singleQuoted . trimInlinesF . mconcat <$>
-      many1Till inline singleQuoteEnd
+      many1Till inline singleQuoteEnd))
+    <|> (return (return (B.str "\8217")))
 
 -- doubleQuoted will handle regular double-quoted sections, as well
 -- as dialogues with an open double-quote without a close double-quote
 -- in the same paragraph.
 doubleQuoted :: PandocMonad m => MarkdownParser m (F Inlines)
-doubleQuoted = try $ do
+doubleQuoted = do
   doubleQuoteStart
-  withQuoteContext InDoubleQuote $
+  (try (withQuoteContext InDoubleQuote $
     fmap B.doubleQuoted . trimInlinesF . mconcat <$>
-      many1Till inline doubleQuoteEnd
+      many1Till inline doubleQuoteEnd))
+    <|> (return (return (B.str "\8220")))
 
 toRow :: [Blocks] -> Row
 toRow = Row nullAttr . map B.simpleCell
 
 toHeaderRow :: [Blocks] -> [Row]
-toHeaderRow l = [toRow l | not (null l)]
+toHeaderRow l = [toRow l | not (null l) && not (all null l)]

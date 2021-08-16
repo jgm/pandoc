@@ -153,12 +153,20 @@ splitTextBy isSep t
                 in  first : splitTextBy isSep (T.dropWhile isSep rest)
 
 splitTextByIndices :: [Int] -> T.Text -> [T.Text]
-splitTextByIndices ns = splitTextByRelIndices (zipWith (-) ns (0:ns))
+splitTextByIndices ns = splitTextByRelIndices (zipWith (-) ns (0:ns)) . T.unpack
  where
-  splitTextByRelIndices [] t = [t]
-  splitTextByRelIndices (x:xs) t =
-    let (first, rest) = T.splitAt x t
-     in first : splitTextByRelIndices xs rest
+  splitTextByRelIndices [] cs = [T.pack cs]
+  splitTextByRelIndices (x:xs) cs =
+    let (first, rest) = splitAt' x cs
+     in T.pack first : splitTextByRelIndices xs rest
+
+-- Note: don't replace this with T.splitAt, which is not sensitive
+-- to character widths!
+splitAt' :: Int -> [Char] -> ([Char],[Char])
+splitAt' _ []          = ([],[])
+splitAt' n xs | n <= 0 = ([],xs)
+splitAt' n (x:xs)      = (x:ys,zs)
+  where (ys,zs) = splitAt' (n - charWidth x) xs
 
 ordNub :: (Ord a) => [a] -> [a]
 ordNub l = go Set.empty l
@@ -290,6 +298,7 @@ tabFilter tabStop = T.unlines . map go . T.lines
                        (tabStop - (T.length s1 `mod` tabStop)) (T.pack " ")
                        <> go (T.drop 1 s2)
 
+{-# DEPRECATED crFilter "readers filter crs automatically" #-}
 -- | Strip out DOS line endings.
 crFilter :: T.Text -> T.Text
 crFilter = T.filter (/= '\r')
@@ -843,7 +852,6 @@ filteredFilesFromArchive zf f =
   where
     fileAndBinary :: Archive -> FilePath -> Maybe (FilePath, BL.ByteString)
     fileAndBinary a fp = findEntryByPath fp a >>= \e -> Just (fp, fromEntry e)
-
 
 --
 -- IANA URIs

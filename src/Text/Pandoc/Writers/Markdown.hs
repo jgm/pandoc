@@ -26,7 +26,7 @@ import Data.Default
 import Data.List (intersperse, sortOn, transpose)
 import Data.List.NonEmpty (nonEmpty, NonEmpty(..))
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (fromMaybe, mapMaybe, isNothing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -43,7 +43,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.DocTemplates (Val(..), Context(..), FromContext(..))
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
-import Text.Pandoc.Writers.Markdown.Inline (inlineListToMarkdown)
+import Text.Pandoc.Writers.Markdown.Inline (inlineListToMarkdown, linkAttributes, attrsToMarkdown)
 import Text.Pandoc.Writers.Markdown.Types (MarkdownVariant(..),
                                            WriterState(..),
                                            WriterEnv(..),
@@ -67,7 +67,16 @@ writePlain opts document =
 -- | Convert Pandoc to Commonmark.
 writeCommonMark :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeCommonMark opts document =
-  evalMD (pandocToMarkdown opts document) def{ envVariant = Commonmark } def
+  evalMD (pandocToMarkdown opts' document) def{ envVariant = Commonmark } def
+ where
+  opts' = opts{ writerExtensions =
+                   -- These extensions can't be enabled or disabled
+                   -- for commonmark because they're part of the core;
+                   -- we set them here so that escapeText will behave
+                   -- properly.
+                   enableExtension Ext_all_symbols_escapable $
+                   enableExtension Ext_intraword_underscores $
+                     writerExtensions opts }
 
 pandocTitleBlock :: Doc Text -> [Doc Text] -> Doc Text -> Doc Text
 pandocTitleBlock tit auths dat =
@@ -132,18 +141,17 @@ valToYaml (SimpleVal x)
   | otherwise =
       if hasNewlines x
          then hang 0 ("|" <> cr) x
-         else if fst $ foldr needsDoubleQuotes (False, True) x
+         else if isNothing $ foldM needsDoubleQuotes True x
            then "\"" <> fmap escapeInDoubleQuotes x <> "\""
            else x
     where
-      needsDoubleQuotes t (positive, isFirst)
+      needsDoubleQuotes isFirst t
         = if T.any isBadAnywhere t ||
              (isFirst && T.any isYamlPunct (T.take 1 t))
-              then (True, False)
-              else (positive, False)
+              then Nothing
+              else Just False
       isBadAnywhere '#' = True
       isBadAnywhere ':' = True
-      isBadAnywhere '`' = False
       isBadAnywhere _   = False
       hasNewlines NewLine = True
       hasNewlines BlankLines{} = True
@@ -248,32 +256,11 @@ noteToMarkdown opts num blocks = do
               then hang (writerTabStop opts) (marker <> spacer) contents
               else marker <> spacer <> contents
 
-attrsToMarkdown :: Attr -> Doc Text
-attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
-        where attribId = case attribs of
-                                ("",_,_) -> empty
-                                (i,_,_)  -> "#" <> escAttr i
-              attribClasses = case attribs of
-                                (_,[],_) -> empty
-                                (_,cs,_) -> hsep $
-                                            map (escAttr . ("."<>))
-                                            cs
-              attribKeys = case attribs of
-                                (_,_,[]) -> empty
-                                (_,_,ks) -> hsep $
-                                            map (\(k,v) -> escAttr k
-                                              <> "=\"" <>
-                                              escAttr v <> "\"") ks
-              escAttr          = mconcat . map escAttrChar . T.unpack
-              escAttrChar '"'  = literal "\\\""
-              escAttrChar '\\' = literal "\\\\"
-              escAttrChar c    = literal $ T.singleton c
-
-linkAttributes :: WriterOptions -> Attr -> Doc Text
-linkAttributes opts attr =
-  if isEnabled Ext_link_attributes opts && attr /= nullAttr
-     then attrsToMarkdown attr
-     else empty
+-- | (Code) blocks with a single class and no attributes can just use it
+-- standalone, no need to bother with curly braces.
+classOrAttrsToMarkdown :: Attr -> Doc Text
+classOrAttrsToMarkdown ("",[cls],[]) = literal cls
+classOrAttrsToMarkdown attrs = attrsToMarkdown attrs
 
 -- | Ordered list start parser for use in Para below.
 olMarker :: Parser Text ParserState ()
@@ -334,9 +321,12 @@ blockToMarkdown' opts (Div attrs ils) = do
     case () of
          _ | isEnabled Ext_fenced_divs opts &&
              attrs /= nullAttr ->
-                nowrap (literal ":::" <+> attrsToMarkdown attrs) $$
-                chomp contents $$
-                literal ":::" <> blankline
+                let attrsToMd = if variant == Commonmark
+                                then attrsToMarkdown
+                                else classOrAttrsToMarkdown
+                in nowrap (literal ":::" <+> attrsToMd attrs) $$
+                   chomp contents $$
+                   literal ":::" <> blankline
            | isEnabled Ext_native_divs opts ||
              (isEnabled Ext_raw_html opts &&
               (variant == Commonmark ||
@@ -378,7 +368,7 @@ blockToMarkdown' opts (Plain inlines) = do
 -- title beginning with fig: indicates figure
 blockToMarkdown' opts (Para [Image attr alt (src,tgt@(T.stripPrefix "fig:" -> Just tit))])
   | isEnabled Ext_raw_html opts &&
-    not (isEnabled Ext_link_attributes opts) &&
+    not (isEnabled Ext_link_attributes opts || isEnabled Ext_attributes opts) &&
     attr /= nullAttr = -- use raw HTML
     (<> blankline) . literal . T.strip <$>
       writeHtml5String opts{ writerTemplate = Nothing }
@@ -443,7 +433,8 @@ blockToMarkdown' opts (Header level attr inlines) = do
                                  && id' == autoId -> empty
                    (id',_,_)   | isEnabled Ext_mmd_header_identifiers opts ->
                                     space <> brackets (literal id')
-                   _ | isEnabled Ext_header_attributes opts ->
+                   _ | isEnabled Ext_header_attributes opts ||
+                       isEnabled Ext_attributes opts ->
                                     space <> attrsToMarkdown attr
                      | otherwise -> empty
   contents <- inlineListToMarkdown opts $
@@ -502,8 +493,9 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
      endline c = literal $ T.replicate (endlineLen c) $ T.singleton c
      backticks = endline '`'
      tildes = endline '~'
-     attrs  = if isEnabled Ext_fenced_code_attributes opts
-                 then nowrap $ " " <> attrsToMarkdown attribs
+     attrs  = if isEnabled Ext_fenced_code_attributes opts ||
+                 isEnabled Ext_attributes opts
+                 then nowrap $ " " <> classOrAttrsToMarkdown attribs
                  else case attribs of
                             (_,cls:_,_) -> " " <> literal cls
                             _             -> empty
@@ -799,6 +791,9 @@ blockListToMarkdown opts blocks = do
            b1 : commentSep : fixBlocks (b2:bs)
       fixBlocks (Plain ils : bs@(RawBlock{}:_)) =
            Plain ils : fixBlocks bs
+      fixBlocks (Plain ils : bs@(Div{}:_))
+          | isEnabled Ext_fenced_divs opts =
+           Para ils : fixBlocks bs
       fixBlocks (Plain ils : bs) | inlist =
            Plain ils : fixBlocks bs
       fixBlocks (Plain ils : bs) =

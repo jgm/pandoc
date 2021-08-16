@@ -61,7 +61,7 @@ import Data.List
 import Data.Bifunctor
 import Data.Sequence ( ViewL (..), ViewR (..), viewl, viewr, spanr, spanl
                      , (><), (|>) )
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder as B
 
 data Modifier a = Modifier (a -> a)
                 | AttrModifier (Attr -> a -> a) Attr
@@ -116,12 +116,12 @@ ilModifierAndInnards ils = case viewl $ unMany ils of
 
 inlinesL :: Inlines -> (Inlines, Inlines)
 inlinesL ils = case viewl $ unMany ils of
-  (s :< sq) -> (singleton s, Many sq)
+  (s :< sq) -> (B.singleton s, Many sq)
   _         -> (mempty, ils)
 
 inlinesR :: Inlines -> (Inlines, Inlines)
 inlinesR ils = case viewr $ unMany ils of
-  (sq :> s) -> (Many sq, singleton s)
+  (sq :> s) -> (Many sq, B.singleton s)
   _         -> (ils, mempty)
 
 combineInlines :: Inlines -> Inlines -> Inlines

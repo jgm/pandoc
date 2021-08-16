@@ -726,6 +726,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
     More code: <classname>Class</classname> and <type>Type</type>
   </para>
   <para>
+    Referencing a man page: <citerefentry><refentrytitle>nix.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+  </para>
+  <para>
     <emphasis role="strikethrough">This is
     <emphasis>strikeout</emphasis>.</emphasis>
   </para>

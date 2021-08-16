@@ -61,13 +61,14 @@ module Text.Pandoc.Readers.Docx
 import Codec.Archive.Zip
 import Control.Monad.Reader
 import Control.Monad.State.Strict
+import Data.Bifunctor (bimap, first)
 import qualified Data.ByteString.Lazy as B
 import Data.Default (Default)
-import Data.List (delete, intersect)
+import Data.List (delete, intersect, foldl')
 import Data.Char (isSpace)
 import qualified Data.Map as M
 import qualified Data.Text as T
-import Data.Maybe (isJust, fromMaybe)
+import Data.Maybe (catMaybes, isJust, fromMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
@@ -113,6 +114,7 @@ data DState = DState { docxAnchorMap :: M.Map T.Text T.Text
                      -- restarting
                      , docxListState :: M.Map (T.Text, T.Text) Integer
                      , docxPrevPara  :: Inlines
+                     , docxTableCaptions :: [Blocks]
                      }
 
 instance Default DState where
@@ -123,6 +125,7 @@ instance Default DState where
                , docxDropCap   = mempty
                , docxListState = M.empty
                , docxPrevPara  = mempty
+               , docxTableCaptions = []
                }
 
 data DEnv = DEnv { docxOptions       :: ReaderOptions
@@ -491,15 +494,32 @@ singleParaToPlain blks
       singleton $ Plain ils
 singleParaToPlain blks = blks
 
-cellToBlocks :: PandocMonad m => Docx.Cell -> DocxContext m Blocks
-cellToBlocks (Docx.Cell bps) = do
+cellToCell :: PandocMonad m => RowSpan -> Docx.Cell -> DocxContext m Pandoc.Cell
+cellToCell rowSpan (Docx.Cell gridSpan _ bps) = do
   blks <- smushBlocks <$> mapM bodyPartToBlocks bps
-  return $ fromList $ blocksToDefinitions $ blocksToBullets $ toList blks
+  let blks' = singleParaToPlain $ fromList $ blocksToDefinitions $ blocksToBullets $ toList blks
+  return (cell AlignDefault rowSpan (ColSpan (fromIntegral gridSpan)) blks')
 
-rowToBlocksList :: PandocMonad m => Docx.Row -> DocxContext m [Blocks]
-rowToBlocksList (Docx.Row cells) = do
-  blksList <- mapM cellToBlocks cells
-  return $ map singleParaToPlain blksList
+rowsToRows :: PandocMonad m => [Docx.Row] -> DocxContext m [Pandoc.Row]
+rowsToRows rows = do
+  let rowspans = (fmap . fmap) (first RowSpan) (Docx.rowsToRowspans rows)
+  cells <- traverse (traverse (uncurry cellToCell)) rowspans
+  return (fmap (Pandoc.Row nullAttr) cells)
+
+splitHeaderRows :: Bool -> [Docx.Row] -> ([Docx.Row], [Docx.Row])
+splitHeaderRows hasFirstRowFormatting rs = bimap reverse reverse $ fst
+  $ if hasFirstRowFormatting
+    then foldl' f ((take 1 rs, []), True) (drop 1 rs)
+    else foldl' f (([], []), False) rs
+  where
+    f ((headerRows, bodyRows), previousRowWasHeader) r@(Docx.Row h cs)
+      | h == HasTblHeader || (previousRowWasHeader && any isContinuationCell cs)
+        = ((r : headerRows, bodyRows), True)
+      | otherwise
+        = ((headerRows, r : bodyRows), False)
+
+    isContinuationCell (Docx.Cell _ vm _) = vm == Docx.Continue
+
 
 -- like trimInlines, but also take out linebreaks
 trimSps :: Inlines -> Inlines
@@ -545,6 +565,11 @@ normalizeToClassName :: (FromStyleName a) => a -> T.Text
 normalizeToClassName = T.map go . fromStyleName
   where go c | isSpace c = '-'
              | otherwise = c
+
+bodyPartToTableCaption :: PandocMonad m => BodyPart -> DocxContext m (Maybe Blocks)
+bodyPartToTableCaption (TblCaption pPr parparts) =
+  Just <$> bodyPartToBlocks (Paragraph pPr parparts)
+bodyPartToTableCaption _ = pure Nothing
 
 bodyPartToBlocks :: PandocMonad m => BodyPart -> DocxContext m Blocks
 bodyPartToBlocks (Paragraph pPr parparts)
@@ -637,48 +662,42 @@ bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
   let pPr' = pPr {pStyle = constructBogusParStyleData "list-paragraph": pStyle pPr}
   in
     bodyPartToBlocks $ Paragraph pPr' parparts
+bodyPartToBlocks (TblCaption _ _) =
+  return $ para mempty -- collected separately
 bodyPartToBlocks (Tbl _ _ _ []) =
   return $ para mempty
-bodyPartToBlocks (Tbl cap _ look parts@(r:rs)) = do
-  let cap' = simpleCaption $ plain $ text cap
-      (hdr, rows) = case firstRowFormatting look of
-        True | null rs -> (Nothing, [r])
-             | otherwise -> (Just r, rs)
-        False -> (Nothing, r:rs)
-
-  cells <- mapM rowToBlocksList rows
+bodyPartToBlocks (Tbl cap grid look parts) = do
+  captions <- gets docxTableCaptions
+  fullCaption <- case captions of
+    c : cs -> do
+      modify (\s -> s { docxTableCaptions = cs })
+      return c
+    [] -> return $ if T.null cap then mempty else plain (text cap)
+  let shortCaption = if T.null cap then Nothing else Just (toList (text cap))
+      cap' = caption shortCaption fullCaption
+      (hdr, rows) = splitHeaderRows (firstRowFormatting look) parts
 
   let width = maybe 0 maximum $ nonEmpty $ map rowLength parts
       rowLength :: Docx.Row -> Int
-      rowLength (Docx.Row c) = length c
+      rowLength (Docx.Row _ c) = sum (fmap (\(Docx.Cell gridSpan _ _) -> fromIntegral gridSpan) c)
 
-  let toRow = Pandoc.Row nullAttr . map simpleCell
-      toHeaderRow l = [toRow l | not (null l)]
+  headerCells <- rowsToRows hdr
+  bodyCells <- rowsToRows rows
 
-  -- pad cells.  New Text.Pandoc.Builder will do that for us,
-  -- so this is for compatibility while we switch over.
-  let cells' = map (\row -> toRow $ take width (row ++ repeat mempty)) cells
-
-  hdrCells <- case hdr of
-    Just r' -> toHeaderRow <$> rowToBlocksList r'
-    Nothing -> return []
-
-      -- The two following variables (horizontal column alignment and
-      -- relative column widths) go to the default at the
-      -- moment. Width information is in the TblGrid field of the Tbl,
-      -- so should be possible. Alignment might be more difficult,
-      -- since there doesn't seem to be a column entity in docx.
+      -- Horizontal column alignment goes to the default at the moment. Getting
+      -- it might be difficult, since there doesn't seem to be a column entity
+      -- in docx.
   let alignments = replicate width AlignDefault
-      widths = replicate width ColWidthDefault
+      totalWidth = sum grid
+      widths = (\w -> ColWidth (fromInteger w / fromInteger totalWidth)) <$> grid
 
   return $ table cap'
                  (zip alignments widths)
-                 (TableHead nullAttr hdrCells)
-                 [TableBody nullAttr 0 [] cells']
+                 (TableHead nullAttr headerCells)
+                 [TableBody nullAttr 0 [] bodyCells]
                  (TableFoot nullAttr [])
 bodyPartToBlocks (OMathPara e) =
   return $ para $ displayMath (writeTeX e)
-
 
 -- replace targets with generated anchors.
 rewriteLink' :: PandocMonad m => Inline -> DocxContext m Inline
@@ -715,6 +734,8 @@ bodyToOutput :: PandocMonad m => Body -> DocxContext m (Meta, [Block])
 bodyToOutput (Body bps) = do
   let (metabps, blkbps) = sepBodyParts bps
   meta <- bodyPartsToMeta metabps
+  captions <- catMaybes <$> mapM bodyPartToTableCaption blkbps
+  modify (\s -> s { docxTableCaptions = captions })
   blks <- smushBlocks <$> mapM bodyPartToBlocks blkbps
   blks' <- rewriteLinks $ blocksToDefinitions $ blocksToBullets $ toList blks
   blks'' <- removeOrphanAnchors blks'

@@ -57,7 +57,8 @@ import Codec.Picture (decodeImageWithMetadata)
 -- quick and dirty functions to get image sizes
 -- algorithms borrowed from wwwis.pl
 
-data ImageType = Png | Gif | Jpeg | Svg | Pdf | Eps | Emf deriving Show
+data ImageType = Png | Gif | Jpeg | Svg | Pdf | Eps | Emf | Tiff
+                 deriving Show
 data Direction = Width | Height
 instance Show Direction where
   show Width  = "width"
@@ -100,6 +101,8 @@ imageType :: ByteString -> Maybe ImageType
 imageType img = case B.take 4 img of
                      "\x89\x50\x4e\x47" -> return Png
                      "\x47\x49\x46\x38" -> return Gif
+                     "\x49\x49\x2a\x00" -> return Tiff
+                     "\x4D\x4D\x00\x2a" -> return Tiff
                      "\xff\xd8\xff\xe0" -> return Jpeg  -- JFIF
                      "\xff\xd8\xff\xe1" -> return Jpeg  -- Exif
                      "%PDF"             -> return Pdf
@@ -124,6 +127,7 @@ imageSize opts img = checkDpi <$>
        Just Png  -> getSize img
        Just Gif  -> getSize img
        Just Jpeg -> getSize img
+       Just Tiff -> getSize img
        Just Svg  -> mbToEither "could not determine SVG size" $ svgSize opts img
        Just Eps  -> mbToEither "could not determine EPS size" $ epsSize img
        Just Pdf  -> mbToEither "could not determine PDF size" $ pdfSize img

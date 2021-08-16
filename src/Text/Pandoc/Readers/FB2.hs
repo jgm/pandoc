@@ -40,9 +40,9 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad, insertMedia, report)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (crFilter)
 import Text.Pandoc.XML.Light
 import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 
 type FB2 m = StateT FB2State m
 
@@ -63,9 +63,12 @@ instance HasMeta FB2State where
   setMeta field v s = s {fb2Meta = setMeta field v (fb2Meta s)}
   deleteMeta field s = s {fb2Meta = deleteMeta field (fb2Meta s)}
 
-readFB2 :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
+readFB2 :: (PandocMonad m, ToSources a)
+        => ReaderOptions
+        -> a
+        -> m Pandoc
 readFB2 _ inp =
-  case parseXMLElement $ TL.fromStrict $ crFilter inp of
+  case parseXMLElement $ TL.fromStrict $ sourcesToText $ toSources inp of
     Left msg -> throwError $ PandocXMLError "" msg
     Right el ->  do
       (bs, st) <- runStateT (parseRootElement el) def

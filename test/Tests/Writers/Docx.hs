@@ -31,7 +31,8 @@ tests = [ testGroup "inlines"
             "docx/golden/links.docx"
           , docxTest
             "inline image"
-            def
+            def{ writerExtensions =
+                   enableExtension Ext_native_numbering (writerExtensions def) }
             "docx/image_writer_test.native"
             "docx/golden/image.docx"
           , docxTest
@@ -111,6 +112,11 @@ tests = [ testGroup "inlines"
             def
             "docx/tables.native"
             "docx/golden/tables.docx"
+          , docxTest
+            "tables without explicit column widths"
+            def
+            "docx/tables-default-widths.native"
+            "docx/golden/tables-default-widths.docx"
           , docxTest
             "tables with lists in cells"
             def

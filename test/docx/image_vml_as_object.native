@@ -1,0 +1,2 @@
+[Para [Str "Test",Space,Str "with",Space,Str "object",Space,Str "as",Space,Str "image:"]
+,Para [Image ("",[],[]) [] ("media/image1.emf","")]]

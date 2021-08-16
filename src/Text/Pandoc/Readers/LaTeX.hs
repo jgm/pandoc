@@ -24,7 +24,7 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
 import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (isDigit, isLetter, toUpper, chr)
+import Data.Char (isDigit, isLetter, isAlphaNum, toUpper, chr)
 import Data.Default
 import Data.List (intercalate)
 import qualified Data.Map as M
@@ -32,8 +32,9 @@ import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
+import Skylighting (defaultSyntaxMap)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
-import Text.Pandoc.BCP47 (renderLang)
+import Text.Collate.Lang (renderLang)
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocPure (PandocPure)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), getResourcePath,
@@ -76,16 +77,17 @@ import Data.List.NonEmpty (nonEmpty)
 -- import Debug.Trace (traceShowId)
 
 -- | Parse LaTeX from string and return 'Pandoc' document.
-readLaTeX :: PandocMonad m
+readLaTeX :: (PandocMonad m, ToSources a)
           => ReaderOptions -- ^ Reader options
-          -> Text        -- ^ String to parse (assumes @'\n'@ line endings)
+          -> a             -- ^ Input to parse
           -> m Pandoc
 readLaTeX opts ltx = do
+  let sources = toSources ltx
   parsed <- runParserT parseLaTeX def{ sOptions = opts } "source"
-               (tokenize "source" (crFilter ltx))
+               (tokenizeSources sources)
   case parsed of
     Right result -> return result
-    Left e       -> throwError $ PandocParsecError ltx e
+    Left e       -> throwError $ PandocParsecError sources e
 
 parseLaTeX :: PandocMonad m => LP m Pandoc
 parseLaTeX = do
@@ -131,11 +133,10 @@ resolveRefs _ x = x
 
 
 rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-              => ParserT Text s m Text
+              => ParserT Sources s m Text
 rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
-  inp <- getInput
-  let toks = tokenize "source" inp
+  toks <- getInputTokens
   snd <$> (rawLaTeXParser toks False (macroDef (const mempty)) blocks
       <|> rawLaTeXParser toks True
              (do choice (map controlSeq
@@ -162,11 +163,10 @@ beginOrEndCommand = try $ do
                     (txt <> untokenize rawargs)
 
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-               => ParserT Text s m Text
+               => ParserT Sources s m Text
 rawLaTeXInline = do
   lookAhead (try (char '\\' >> letter))
-  inp <- getInput
-  let toks = tokenize "source" inp
+  toks <- getInputTokens
   raw <- snd <$>
           (   rawLaTeXParser toks True
               (mempty <$ (controlSeq "input" >> skipMany rawopt >> braced))
@@ -177,11 +177,10 @@ rawLaTeXInline = do
   finalbraces <- mconcat <$> many (try (string "{}")) -- see #5439
   return $ raw <> T.pack finalbraces
 
-inlineCommand :: PandocMonad m => ParserT Text ParserState m Inlines
+inlineCommand :: PandocMonad m => ParserT Sources ParserState m Inlines
 inlineCommand = do
   lookAhead (try (char '\\' >> letter))
-  inp <- getInput
-  let toks = tokenize "source" inp
+  toks <- getInputTokens
   fst <$> rawLaTeXParser toks True (inlineEnvironment <|> inlineCommand')
           inlines
 
@@ -229,16 +228,6 @@ mkImage options (T.unpack -> src) = do
                   | otherwise -> findFile src exts
                _  -> return src
    return $ imageWith attr (T.pack src') "" alt
-
-doxspace :: PandocMonad m => LP m Inlines
-doxspace =
-  (space <$ lookAhead (satisfyTok startsWithLetter)) <|> return mempty
-  where startsWithLetter (Tok _ Word t) =
-          case T.uncons t of
-               Just (c, _) | isLetter c -> True
-               _           -> False
-        startsWithLetter _ = False
-
 
 removeDoubleQuotes :: Text -> Text
 removeDoubleQuotes t =
@@ -308,7 +297,9 @@ inlineCommand' :: PandocMonad m => LP m Inlines
 inlineCommand' = try $ do
   Tok _ (CtrlSeq name) cmd <- anyControlSeq
   guard $ name /= "begin" && name /= "end" && name /= "and"
-  star <- option "" ("*" <$ symbol '*' <* sp)
+  star <- if T.all isAlphaNum name
+             then option "" ("*" <$ symbol '*' <* sp)
+             else pure ""
   overlay <- option "" overlaySpecification
   let name' = name <> star <> overlay
   let names = ordNub [name', name] -- check non-starred as fallback
@@ -415,8 +406,6 @@ inlineCommands = M.unions
     -- LaTeX colors
     , ("textcolor", coloredInline "color")
     , ("colorbox", coloredInline "background-color")
-    -- xspace
-    , ("xspace", doxspace)
     -- etoolbox
     , ("ifstrequal", ifstrequal)
     , ("newtoggle", braced >>= newToggle)
@@ -640,7 +629,7 @@ opt = do
   parsed <- runParserT (mconcat <$> many inline) st "bracketed option" toks
   case parsed of
     Right result -> return result
-    Left e       -> throwError $ PandocParsecError (untokenize toks) e
+    Left e       -> throwError $ PandocParsecError (toSources toks) e
 
 -- block elements:
 
@@ -1170,7 +1159,8 @@ inputListing = do
   let (ident,classes,kvs) = parseListingsOptions options
   let classes' =
         (case listingsLanguage options of
-           Nothing -> (take 1 (languagesByExtension (T.pack $ takeExtension $ T.unpack f)) <>)
+           Nothing -> (take 1 (languagesByExtension defaultSyntaxMap
+                                (T.pack $ takeExtension $ T.unpack f)) <>)
            Just _  -> id) classes
   let firstline = fromMaybe 1 $ lookup "firstline" options >>= safeRead
   let lastline = fromMaybe (length codeLines) $

@@ -24,7 +24,7 @@ import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
 import qualified Text.Pandoc.Class as P
-import Text.Pandoc.MediaBag (MediaBag, lookupMedia, mediaDirectory)
+import qualified Text.Pandoc.MediaBag as MB
 import Text.Pandoc.UTF8 as UTF8
 
 -- We define a wrapper around pandoc that doesn't normalize in the
@@ -91,11 +91,11 @@ getMedia :: FilePath -> FilePath -> IO (Maybe B.ByteString)
 getMedia archivePath mediaPath = fmap fromEntry . findEntryByPath
     ("word/" ++ mediaPath) . toArchive <$> B.readFile archivePath
 
-compareMediaPathIO :: FilePath -> MediaBag -> FilePath -> IO Bool
+compareMediaPathIO :: FilePath -> MB.MediaBag -> FilePath -> IO Bool
 compareMediaPathIO mediaPath mediaBag docxPath = do
   docxMedia <- getMedia docxPath mediaPath
-  let mbBS   = case lookupMedia mediaPath mediaBag of
-                 Just (_, bs) -> bs
+  let mbBS   = case MB.lookupMedia mediaPath mediaBag of
+                 Just item    -> MB.mediaContents item
                  Nothing      -> error ("couldn't find " ++
                                         mediaPath ++
                                         " in media bag")
@@ -110,7 +110,7 @@ compareMediaBagIO docxFile = do
     mb <- runIOorExplode $ readDocx defopts df >> P.getMediaBag
     bools <- mapM
              (\(fp, _, _) -> compareMediaPathIO fp mb docxFile)
-             (mediaDirectory mb)
+             (MB.mediaDirectory mb)
     return $ and bools
 
 testMediaBagIO :: String -> FilePath -> IO TestTree
@@ -155,6 +155,10 @@ tests = [ testGroup "document"
             "VML image"
             "docx/image_vml.docx"
             "docx/image_vml.native"
+          , testCompare
+            "VML image as object"
+            "docx/image_vml_as_object.docx"
+            "docx/image_vml_as_object.native"
           , testCompare
             "inline image in links"
             "docx/inline_images.docx"
@@ -314,13 +318,29 @@ tests = [ testGroup "document"
             "docx/table_with_list_cell.docx"
             "docx/table_with_list_cell.native"
           , testCompare
+            "a table with a header which contains rowspans greater than 1"
+            "docx/table_header_rowspan.docx"
+            "docx/table_header_rowspan.native"
+          , testCompare
             "tables with one row"
             "docx/table_one_row.docx"
             "docx/table_one_row.native"
           , testCompare
+            "tables with just one row, which is a header"
+            "docx/table_one_header_row.docx"
+            "docx/table_one_header_row.native"
+          , testCompare
             "tables with variable width"
             "docx/table_variable_width.docx"
             "docx/table_variable_width.native"
+          , testCompare
+            "tables with captions which contain a Table field"
+            "docx/table_captions_with_field.docx"
+            "docx/table_captions_with_field.native"
+          , testCompare
+            "tables with captions which don't contain a Table field"
+            "docx/table_captions_no_field.docx"
+            "docx/table_captions_no_field.native"
           , testCompare
             "code block"
             "docx/codeblock.docx"

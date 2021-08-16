@@ -1,6 +1,8 @@
 #!/bin/sh
 
-IMAGE_ID=ami-0fa8979d18f69948b
+#old version:
+#IMAGE_ID=ami-0fa8979d18f69948b
+IMAGE_ID=ami-0cd6b53a434812702
 INSTANCE_TYPE=t4g.2xlarge
 KEY_NAME=debian-arm-us-east-2
 SECURITY_GROUP_ID=sg-086ffbadc286c5c00

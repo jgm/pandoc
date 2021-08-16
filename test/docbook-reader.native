@@ -188,6 +188,7 @@ Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "John",Sof
 ,Para [Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word."]
 ,Para [Str "This",Space,Str "is",Space,Str "code:",Space,Code ("",[],[]) ">",Str ",",Space,Code ("",[],[]) "$",Str ",",SoftBreak,Code ("",[],[]) "\\",Str ",",Space,Code ("",[],[]) "\\$",Str ",",SoftBreak,Code ("",[],[]) "<html>",Str "."]
 ,Para [Str "More",Space,Str "code:",Space,Code ("",[],[]) "Class",Space,Str "and",Space,Code ("",[],[]) "Type"]
+,Para [Str "Referencing",Space,Str "a",Space,Str "man",Space,Str "page:",Space,Code ("",["citerefentry"],[]) "nix.conf(5)"]
 ,Para [Strikeout [Str "This",Space,Str "is",SoftBreak,Emph [Str "strikeout"],Str "."]]
 ,Para [Str "Superscripts:",Space,Str "a",Superscript [Str "bc"],Str "d",SoftBreak,Str "a",Superscript [Emph [Str "hello"]],SoftBreak,Str "a",Superscript [Str "hello\160there"],Str "."]
 ,Para [Str "Subscripts:",Space,Str "H",Subscript [Str "2"],Str "O,",Space,Str "H",Subscript [Str "23"],Str "O,",SoftBreak,Str "H",Subscript [Str "many\160of\160them"],Str "O."]

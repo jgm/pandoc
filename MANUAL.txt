@@ -1,7 +1,7 @@
 ---
 title: Pandoc User's Guide
 author: John MacFarlane
-date: March 20, 2021
+date: July 18, 2021
 ---
 
 # Synopsis
@@ -259,6 +259,7 @@ header when requesting a document from a URL:
     - `odt` ([ODT])
     - `opml` ([OPML])
     - `org` ([Emacs Org mode])
+    - `rtf` ([Rich Text Format])
     - `rst` ([reStructuredText])
     - `t2t` ([txt2tags])
     - `textile` ([Textile])
@@ -675,12 +676,12 @@ header when requesting a document from a URL:
 :   Extract images and other media contained in or linked from
     the source document to the path *DIR*, creating it if
     necessary, and adjust the images references in the document
-    so they point to the extracted files.  If the source format is
-    a binary container (docx, epub, or odt), the media is
-    extracted from the container and the original
-    filenames are used. Otherwise the media is read from the
-    file system or downloaded, and new filenames are constructed
-    based on SHA1 hashes of the contents.
+    so they point to the extracted files.  Media are downloaded,
+    read from the file system, or extracted from a binary
+    container (e.g. docx), as needed.  The original file paths
+    are used if they are relative paths not containing `..`.
+    Otherwise filenames are constructed from the SHA1 hash of
+    the contents.
 
 `--abbreviations=`*FILE*
 
@@ -1025,13 +1026,13 @@ header when requesting a document from a URL:
 
 :   Specifies that headings with the specified level create
     slides (for `beamer`, `s5`, `slidy`, `slideous`, `dzslides`).  Headings
-    above this level in the hierarchy are used to divide the
-    slide show into sections; headings below this level create
-    subheads within a slide.  Note that content that is
-    not contained under slide-level headings will not appear in
-    the slide show.  The default is to set the slide level based
-    on the contents of the document; see [Structuring the slide
-    show].
+    above this level in the hierarchy are used to divide the slide show
+    into sections; headings below this level create subheads within a slide.
+    Valid values are 0-6.  If a slide level of 0 is specified, slides will
+    not be split automatically on headings, and horizontal rules must be used
+    to indicate slide boundaries.  If a slide level is not specified
+    explicitly, the slide level will be set automatically based on
+    the contents of the document; see [Structuring the slide show].
 
 `--section-divs`
 
@@ -1415,13 +1416,12 @@ results only for basic math, usually you will want to use
 `--gladtex`
 
 :   Enclose TeX math in `<eq>` tags in HTML output.  The resulting HTML
-    can then be processed by [GladTeX] to produce images of the typeset
-    formulas and an HTML file with links to these images.
-    So, the procedure is:
+    can then be processed by [GladTeX] to produce SVG images of the typeset
+    formulas and an HTML file with these images embedded.
 
         pandoc -s --gladtex input.md -o myfile.htex
-        gladtex -d myfile-images myfile.htex
-        # produces myfile.html and images in myfile-images
+        gladtex -d image_dir myfile.htex
+        # produces myfile.html and images in image_dir
 
 [MathML]: https://www.w3.org/Math/
 [MathJax]: https://www.mathjax.org
@@ -1932,7 +1932,7 @@ ${ styles.html() }
 ```
 
 (If a partial is not found in the directory of the
-template and the template path is given as a relative 
+template and the template path is given as a relative
 path, it will also be sought in the `templates`
 subdirectory of the user data directory.)
 
@@ -2315,8 +2315,8 @@ math equations flush left using [YAML metadata](#layout) or with
 
 These affect HTML output when [producing slide shows with pandoc].
 
-All [reveal.js configuration options] are available as variables.
-To turn off boolean flags that default to true in reveal.js, use `0`.
+`institute`
+:   author affiliations: can be a list when there are multiple authors
 
 `revealjs-url`
 :   base URL for reveal.js documents (defaults to
@@ -2335,6 +2335,9 @@ To turn off boolean flags that default to true in reveal.js, use `0`.
 `title-slide-attributes`
 :   additional attributes for the title slide of reveal.js slide shows.
     See [background in reveal.js and beamer] for an example.
+
+All [reveal.js configuration options] are available as variables.
+To turn off boolean flags that default to true in reveal.js, use `0`.
 
 [reveal.js configuration options]: https://revealjs.com/config/
 
@@ -3065,7 +3068,7 @@ starts at 1.
 This extension can be enabled/disabled for the following formats:
 
 output formats
-:  `odt`, `opendocument`
+:  `odt`, `opendocument`, `docx`
 
 #### Extension: `xrefs_name` ####
 
@@ -3752,7 +3755,7 @@ definition:
 Note that space between items in a definition list is required.
 (A variant that loosens this requirement, but disallows "lazy"
 hard wrapping, can be activated with `compact_definition_lists`: see
-[Non-pandoc extensions], below.)
+[Non-default extensions], below.)
 
 [^3]:  I have been influenced by the suggestions of [David
   Wheeler](https://justatheory.com/2009/02/modest-markdown-proposal/).
@@ -4177,10 +4180,12 @@ option is used.  All of the metadata will appear in a single block
 at the beginning of the document.
 
 Note that [YAML] escaping rules must be followed. Thus, for example,
-if a title contains a colon, it must be quoted.  The pipe character
-(`|`) can be used to begin an indented block that will be interpreted
-literally, without need for escaping.  This form is necessary
-when the field contains blank lines or block-level formatting:
+if a title contains a colon, it must be quoted, and if it contains a
+backslash escape, then it must be ensured that it is not treated as a
+[YAML escape sequence]. The pipe character (`|`) can be used to begin
+an indented block that will be interpreted literally, without need for
+escaping. This form is necessary when the field contains blank lines
+or block-level formatting:
 
     ---
     title:  'This is the title: it contains a colon'
@@ -4193,6 +4198,12 @@ when the field contains blank lines or block-level formatting:
 
       It consists of two paragraphs.
     ...
+
+The literal block after the `|` must be indented relative to the
+line containing the `|`.  If it is not, the YAML will be invalid
+and pandoc will not interpret it as metadata.  For an overview
+of the complex rules governing YAML, see the [Wikipedia entry on
+YAML syntax].
 
 Template variables will be set automatically from the metadata.  Thus, for
 example, in writing HTML, the variable `abstract` will be set to the HTML
@@ -4255,6 +4266,8 @@ following restrictions apply:
   example,  you can't use a reference link in these contexts
   if the link definition is somewhere else in the document.
 
+[YAML escape sequence]: https://yaml.org/spec/1.2/spec.html#id2776092
+[Wikipedia entry on YAML syntax]:  https://en.m.wikipedia.org/wiki/YAML#Syntax
 
 ## Backslash escapes
 
@@ -4382,6 +4395,18 @@ Attributes can be attached to verbatim text, just as with
 [fenced code blocks]:
 
     `<$>`{.haskell}
+
+### Underline ###
+
+To underline text, use the `underline` class:
+
+    [Underline]{.underline}
+
+Or, without the `bracketed_spans` extension (but with `native_spans`):
+
+    <span class="underline">Underline</span>
+
+This will work in all output formats that support underline.
 
 ### Small caps ###
 
@@ -4948,37 +4973,71 @@ Inline and regular footnotes may be mixed freely.
 
 #### Extension: `citations` ####
 
-Markdown citations go inside square brackets and are separated
-by semicolons.  Each citation must have a key, composed of '@' +
-the citation identifier from the database, and may optionally
-have a prefix, a locator, and a suffix.  The citation key must
-begin with a letter, digit, or `_`, and may contain
-alphanumerics, `_`, and internal punctuation characters
-(`:.#$%&-+?<>~/`).  Here are some examples:
+To cite a bibliographic item with an identifier foo, use the
+syntax `@foo`.  Normal citations should be included in square
+brackets, with semicolons separating distinct items:
 
-    Blah blah [see @doe99, pp. 33-35; also @smith04, chap. 1].
+    Blah blah [@doe99; @smith2000; @smith2004].
 
-    Blah blah [@doe99, pp. 33-35, 38-39 and *passim*].
+How this is rendered depends on the citation style.  In an
+author-date style, it might render as
 
-    Blah blah [@smith04; @doe99].
+    Blah blah (Doe 1999, Smith 2000, 2004).
 
-`pandoc` detects locator terms in the [CSL locale files].
-Either abbreviated or unabbreviated forms are accepted. In the `en-US`
-locale, locator terms can be written in either singular or plural forms,
-as `book`, `bk.`/`bks.`; `chapter`, `chap.`/`chaps.`; `column`,
-`col.`/`cols.`; `figure`, `fig.`/`figs.`; `folio`, `fol.`/`fols.`;
-`number`, `no.`/`nos.`; `line`, `l.`/`ll.`; `note`, `n.`/`nn.`; `opus`,
-`op.`/`opp.`; `page`, `p.`/`pp.`; `paragraph`, `para.`/`paras.`; `part`,
-`pt.`/`pts.`; `section`, `sec.`/`secs.`; `sub verbo`, `s.v.`/`s.vv.`;
-`verse`, `v.`/`vv.`; `volume`, `vol.`/`vols.`; `¶`/`¶¶`; `§`/`§§`. If no
+In a footnote style, it might render as
+
+    Blah blah.[^1]
+
+    [^1]:  John Doe, "Frogs," *Journal of Amphibians* 44 (1999);
+    Susan Smith, "Flies," *Journal of Insects* (2000);
+    Susan Smith, "Bees," *Journal of Insects* (2004).
+
+See the [CSL user documentation] for more information about CSL
+styles and how they affect rendering.
+
+Unless a citation key start with a letter, digit, or `_`,
+and contains only alphanumerics and single internal punctuation
+characters (`:.#$%&-+?<>~/`), it must be surrounded
+by curly braces, which are not considered part of the key.
+In `@Foo_bar.baz.`, the key is `Foo_bar.baz` because the final
+period is not *internal* punctuation, so it is not included in
+the key.  In `@{Foo_bar.baz.}`, the key is `Foo_bar.baz.`, including
+the final period.
+In `@Foo_bar--baz`, the key is `Foo_bar` because the repeated internal
+punctuation characters terminate the key.
+The curly braces are recommended if you use URLs as
+keys: `[@{https://example.com/bib?name=foobar&date=2000}, p.  33]`.
+
+Citation items may optionally include a prefix, a locator, and
+a suffix.  In
+
+    Blah blah [see @doe99, pp. 33-35 and *passim*; @smith04, chap. 1].
+
+The first item (`doe99`) has prefix `see `, locator `pp.  33-35`,
+and suffix `and *passim*`.  The second item (`smith04`) has
+locator `chap. 1` and no prefix or suffix.
+
+Pandoc uses some heuristics to separate the locator from the
+rest of the subject.  It is sensitive to the locator terms
+defined in the [CSL locale files].  Either abbreviated or
+unabbreviated forms are accepted. In the `en-US` locale, locator
+terms can be written in either singular or plural forms, as
+`book`, `bk.`/`bks.`; `chapter`, `chap.`/`chaps.`; `column`,
+`col.`/`cols.`; `figure`, `fig.`/`figs.`; `folio`,
+`fol.`/`fols.`; `number`, `no.`/`nos.`; `line`, `l.`/`ll.`;
+`note`, `n.`/`nn.`; `opus`, `op.`/`opp.`; `page`, `p.`/`pp.`;
+`paragraph`, `para.`/`paras.`; `part`, `pt.`/`pts.`; `section`,
+`sec.`/`secs.`; `sub verbo`, `s.v.`/`s.vv.`; `verse`,
+`v.`/`vv.`; `volume`, `vol.`/`vols.`; `¶`/`¶¶`; `§`/`§§`. If no
 locator term is used, "page" is assumed.
 
-`pandoc` will use heuristics to distinguish the locator
-from the suffix. In complex cases, the locator can be enclosed
-in curly braces:
+In complex cases, you can force something to be treated as
+a locator by enclosing it in curly braces or prevent parsing
+the suffix as locator by prepending curly braces:
 
     [@smith{ii, A, D-Z}, with a suffix]
     [@smith, {pp. iv, vi-xi, (xv)-(xvii)} with suffix here]
+    [@smith{}, 99 years later]
 
 A minus sign (`-`) before the `@` will suppress mention of
 the author in the citation.  This can be useful when the
@@ -4986,13 +5045,26 @@ author is already mentioned in the text:
 
     Smith says blah [-@smith04].
 
-You can also write an in-text citation, as follows:
+You can also write an author-in-text citation, by omitting the
+square brackets:
 
     @smith04 says blah.
 
     @smith04 [p. 33] says blah.
 
+This will cause the author's name to be rendered, followed by
+the bibliographical details.  Use this form when you want to
+make the citation the subject of a sentence.
 
+When you are using a note style, it is usually better to let
+citeproc create the footnotes from citations rather than writing
+an explicit note.  If you do write an explicit note that
+contains a citation, note that normal citations will be put in
+parentheses, while author-in-text citations will not.  For
+this reason, it is sometimes preferable to use the
+author-in-text style inside notes when using a note style.
+
+[CSL user documentation]: https://citationstyles.org/authors/
 [CSL]: https://docs.citationstyles.org/en/stable/specification.html
 [CSL markup specs]: https://docs.citationstyles.org/en/1.0/release-notes.html#rich-text-markup-within-fields
 [Chicago Manual of Style]: https://chicagomanualofstyle.org
@@ -5001,12 +5073,43 @@ You can also write an in-text citation, as follows:
 [finding and editing styles]: https://citationstyles.org/authors/
 [CSL locale files]: https://github.com/citation-style-language/locales
 
-## Non-pandoc extensions
+## Non-default extensions
 
 The following Markdown syntax extensions are not enabled by default
 in pandoc, but may be enabled by adding `+EXTENSION` to the format
 name, where `EXTENSION` is the name of the extension.  Thus, for
 example, `markdown+hard_line_breaks` is Markdown with hard line breaks.
+
+#### Extension: `rebase_relative_paths` ####
+
+Rewrite relative paths for Markdown links and images, depending
+on the path of the file containing the link or image link.  For
+each link or image, pandoc will compute the directory of the
+containing file, relative to the working directory, and prepend
+the resulting path to the link or image path.
+
+The use of this extension is best understood by example.
+Suppose you have a a subdirectory for each chapter of a book,
+`chap1`, `chap2`, `chap3`. Each contains a file `text.md` and a
+number of images used in the chapter.  You would like to have
+`![image](spider.jpg)` in `chap1/text.md` refer to
+`chap1/spider.jpg` and `![image](spider.jpg)` in `chap2/text.md`
+refer to `chap2/spider.jpg`.  To do this, use
+
+    pandoc chap*/*.md -f markdown+rebase_relative_paths
+
+Without this extension, you would have to use
+`![image](chap1/spider.jpg)` in `chap1/text.md` and
+`![image](chap2/spider.jpg)` in `chap2/text.md`.  Links with
+relative paths will be rewritten in the same way as images.
+
+Absolute paths and URLs are not changed.  Neither are empty
+paths or paths consisting entirely of a fragment, e.g., `#foo`.
+
+Note that relative paths in reference links and images will
+be rewritten relative to the file containing the link
+reference definition, not the file containing the reference link
+or image itself, if these differ.
 
 #### Extension: `attributes` ####
 
@@ -5553,10 +5656,23 @@ A few other metadata fields affect bibliography formatting:
 
 `lang`
 :   The `lang` field will affect how the style is localized,
-    for example in the translation of labels and the use
-    of quotation marks.  (For backwards compatibility,
-    `locale` may be used instead of `lang`, but this use
-    is deprecated.)
+    for example in the translation of labels, the use
+    of quotation marks, and the way items are sorted.
+    (For backwards compatibility, `locale` may be used instead
+    of `lang`, but this use is deprecated.)
+
+    A BCP 47 language tag is expected:  for example, `en`,
+    `de`, `en-US`, `fr-CA`, `ug-Cyrl`.  The unicode extension
+    syntax (after `-u-`) may be used to specify options for
+    collation (sorting) more precisely. Here are some examples:
+
+    - `zh-u-co-pinyin` -- Chinese with the Pinyin collation.
+    - `es-u-co-trad` -- Spanish with the traditional collation
+      (with `Ch` sorting after `C`).
+    - `fr-u-kb` -- French with "backwards" accent sorting
+      (with `coté` sorting after `côte`).
+    - `en-US-u-kf-upper` -- English with uppercase letters sorting
+       before lower (default is lower before upper).
 
 `notes-after-punctuation`
 :    If true (the default), pandoc will put footnote citations
@@ -5566,12 +5682,6 @@ A few other metadata fields affect bibliography formatting:
      the space collapsed.  If false, the space will still be
      collapsed, but the footnote will not be moved after the
      punctuation.
-
-
-
-
-
-
 
 
 # Slide shows
@@ -5666,7 +5776,11 @@ rules:
   * A heading at the slide level always starts a new slide.
 
   * Headings *below* the slide level in the hierarchy create
-    headings *within* a slide.
+    headings *within* a slide.  (In beamer, a "block" will be
+    created.  If the heading has the class `example`, an
+    `exampleblock` environment will be used; if it has the class
+    `alert`, an `alertblock` will be used; otherwise a regular
+    `block` will be used.)
 
   * Headings *above* the slide level in the hierarchy create
     "title slides," which just contain the section title
@@ -5999,7 +6113,7 @@ The following fields are recognized:
 
 `rights`
   ~ A string value.
-  
+
 `belongs-to-collection`
   ~ A string value.  identifies the name of a collection to which
     the EPUB Publication belongs.
@@ -6090,6 +6204,12 @@ with the `src` attribute.  For example:
               data-external="1" type="audio/mpeg">
       </source>
     </audio>
+
+If the input format already is HTML then `data-external="1"` will work
+as expected for `<img>` elements. Similarly, for Markdown, external
+images can be declared with `![img](url){external=1}`. Note that this
+only works for images; the other media elements have no native
+representation in pandoc's AST and requires the use of raw HTML.
 
 # Jupyter notebooks
 
@@ -6244,7 +6364,7 @@ Then edit `my.theme` and use it like this:
 If you are not satisfied with the built-in highlighting, or you
 want highlight a language that isn't supported, you can use the
 `--syntax-definition` option to load a [KDE-style XML syntax definition
-file](https://docs.kde.org/stable5/en/applications/katepart/highlight.html).
+file](https://docs.kde.org/stable5/en/kate/katepart/highlight.html).
 Before writing your own, have a look at KDE's [repository of syntax
 definitions](https://github.com/KDE/syntax-highlighting/tree/master/data/syntax).
 
@@ -6418,9 +6538,9 @@ application, here are some things to keep in mind:
 4. The HTML generated by pandoc is not guaranteed to be safe.
    If `raw_html` is enabled for the Markdown input, users can
    inject arbitrary HTML.  Even if `raw_html` is disabled,
-   users can include dangerous content in attributes for
-   headings, spans, and code blocks.  To be safe, you should
-   run all the generated HTML through an HTML sanitizer.
+   users can include dangerous content in URLs and attributes.
+   To be safe, you should run all the generated HTML through
+   an HTML sanitizer.
 
 # Authors
 

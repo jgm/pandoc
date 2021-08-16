@@ -61,12 +61,24 @@ tests =
       , "user link with user as description" =:
         linkWith ("", ["user-account"], []) "~johndoe" "" "~johndoe" =?>
         "[~johndoe]"
+
+      , "'smart' link" =:
+        para (linkWith ("", ["smart-link"], []) "http://example.com" "" "x") =?>
+        "[x|http://example.com|smart-link]"
+
+      , "'smart' card" =:
+        para (linkWith ("", ["smart-card"], []) "http://example.org" "" "x") =?>
+        "[x|http://example.org|smart-card]"
       ]
 
     , testGroup "spans"
       [ "id is used as anchor" =:
         spanWith ("unicorn", [], []) (str "Unicorn") =?>
         "{anchor:unicorn}Unicorn"
+
+      , "use `color` attribute" =:
+        spanWith ("",[],[("color","red")]) "ruby" =?>
+        "{color:red}ruby{color}"
       ]
 
     , testGroup "code"

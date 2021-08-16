@@ -22,7 +22,7 @@ references:
   issued:
     date-parts:
     - - 2009
-  language: French
+  language: fr
   page: '155--174'
   publisher: 'Fédération Internationale des Instituts d''Études
     Médiévales'
@@ -42,7 +42,7 @@ references:
   issued:
     date-parts:
     - - 1955
-  language: Latin
+  language: la
   note: 'ArticleType: research-article / Full publication date: 1955 /
     Copyright © 1955 Fordham University'
   page: '163--193'

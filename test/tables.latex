@@ -50,17 +50,33 @@ Right & Left & Center & Default \\
 Multiline table with caption:
 
 \begin{longtable}[]{@{}
-  >{\centering\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.15}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.14}}
-  >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.16}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.35}}@{}}
+  >{\centering\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1375}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1625}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3500}}@{}}
 \caption{Here's the caption. It may span multiple lines.}\tabularnewline
 \toprule
-Centered Header & Left Aligned & Right Aligned & Default aligned \\
+\begin{minipage}[b]{\linewidth}\centering
+Centered Header
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Left Aligned
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Right Aligned
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Default aligned
+\end{minipage} \\
 \midrule
 \endfirsthead
 \toprule
-Centered Header & Left Aligned & Right Aligned & Default aligned \\
+\begin{minipage}[b]{\linewidth}\centering
+Centered Header
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Left Aligned
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Right Aligned
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Default aligned
+\end{minipage} \\
 \midrule
 \endhead
 First & row & 12.0 & Example of a row that spans multiple lines. \\
@@ -71,12 +87,20 @@ Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
 Multiline table without caption:
 
 \begin{longtable}[]{@{}
-  >{\centering\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.15}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.14}}
-  >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.16}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.35}}@{}}
+  >{\centering\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1375}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1625}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3500}}@{}}
 \toprule
-Centered Header & Left Aligned & Right Aligned & Default aligned \\
+\begin{minipage}[b]{\linewidth}\centering
+Centered Header
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Left Aligned
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Right Aligned
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Default aligned
+\end{minipage} \\
 \midrule
 \endhead
 First & row & 12.0 & Example of a row that spans multiple lines. \\
@@ -98,10 +122,10 @@ Table without column headers:
 Multiline table without column headers:
 
 \begin{longtable}[]{@{}
-  >{\centering\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.15}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.14}}
-  >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.16}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.35}}@{}}
+  >{\centering\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1375}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1625}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3500}}@{}}
 \toprule
 \endhead
 First & row & 12.0 & Example of a row that spans multiple lines. \\

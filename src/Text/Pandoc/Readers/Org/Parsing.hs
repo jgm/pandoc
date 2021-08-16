@@ -63,8 +63,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , ellipses
   , citeKey
   , gridTableWith
-  , insertIncludedFileF
-  -- * Re-exports from Text.Pandoc.Parsec
+  , insertIncludedFile
   , runParser
   , runParserT
   , getInput
@@ -100,6 +99,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , getState
   , updateState
   , SourcePos
+  , sourceName
   , getPosition
   ) where
 
@@ -114,7 +114,7 @@ import Control.Monad (guard)
 import Control.Monad.Reader (ReaderT)
 
 -- | The parser used to read org files.
-type OrgParser m = ParserT Text OrgParserState (ReaderT OrgParserLocal m)
+type OrgParser m = ParserT Sources OrgParserState (ReaderT OrgParserLocal m)
 
 --
 -- Adaptions and specializations of parsing utilities

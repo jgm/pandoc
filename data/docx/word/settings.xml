@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <w:settings xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:sl="http://schemas.openxmlformats.org/schemaLibrary/2006/main">
-  <w:zoom w:percent="90" />
+  <w:zoom w:percent="100" />
   <w:embedSystemFonts />
   <w:proofState w:spelling="clean" w:grammar="clean" />
   <w:stylePaneFormatFilter w:val="0004" />
@@ -17,28 +17,18 @@
   <w:characterSpacingControl w:val="doNotCompress" />
   <w:savePreviewPicture />
   <w:rsids>
-    <w:rsidRoot w:val="00590D07" />
-    <w:rsid w:val="00011C8B" />
-    <w:rsid w:val="004E29B3" />
-    <w:rsid w:val="00590D07" />
-    <w:rsid w:val="00784D58" />
-    <w:rsid w:val="008D6863" />
-    <w:rsid w:val="00B86B75" />
-    <w:rsid w:val="00BC48D5" />
-    <w:rsid w:val="00C36279" />
-    <w:rsid w:val="00E315A3" />
   </w:rsids>
   <m:mathPr>
-    <m:mathFont m:val="Lucida Grande" />
+    <m:mathFont m:val="Cambria Math" />
     <m:brkBin m:val="before" />
     <m:brkBinSub m:val="--" />
-    <m:smallFrac m:val="false" />
-    <m:dispDef m:val="false" />
+    <m:smallFrac m:val="0" />
+    <m:dispDef />
     <m:lMargin m:val="0" />
     <m:rMargin m:val="0" />
     <m:wrapRight />
     <m:intLim m:val="subSup" />
-    <m:naryLim m:val="subSup" />
+    <m:naryLim m:val="undOvr" />
   </m:mathPr>
   <w:themeFontLang w:val="en-US" />
   <w:clrSchemeMapping w:bg1="light1" w:t1="dark1" w:bg2="light2" w:t2="dark2" w:accent1="accent1" w:accent2="accent2" w:accent3="accent3" w:accent4="accent4" w:accent5="accent5" w:accent6="accent6" w:hyperlink="hyperlink" w:followedHyperlink="followedHyperlink" />

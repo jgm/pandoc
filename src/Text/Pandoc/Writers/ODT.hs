@@ -16,6 +16,7 @@ import Codec.Archive.Zip
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict
 import qualified Data.ByteString.Lazy as B
+import Data.Maybe (fromMaybe)
 import Data.Generics (everywhere', mkT)
 import Data.List (isPrefixOf)
 import qualified Data.Map as Map
@@ -23,7 +24,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Time
 import System.FilePath (takeDirectory, takeExtension, (<.>))
-import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang)
+import Text.Collate.Lang (Lang (..), renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
@@ -35,7 +36,7 @@ import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
 import Text.DocLayout
 import Text.Pandoc.Shared (stringify, pandocVersion, tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
-                                   fixDisplayMath)
+                                   fixDisplayMath, getLang)
 import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toTextLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
@@ -194,7 +195,7 @@ addLang lang = everywhere' (mkT updateLangAttr)
     where updateLangAttr (Attr n@(QName "language" _ (Just "fo")) _)
                            = Attr n (langLanguage lang)
           updateLangAttr (Attr n@(QName "country" _ (Just "fo")) _)
-                           = Attr n (langRegion lang)
+                           = Attr n (fromMaybe "" $ langRegion lang)
           updateLangAttr x = x
 
 -- | transform both Image and Math elements

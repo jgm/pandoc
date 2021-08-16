@@ -38,17 +38,19 @@ import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Options
 import Text.Pandoc.MIME
 import qualified Data.ByteString.Lazy as BL
+import Text.Pandoc.Writers.Shared (metaToContext)
 import Text.Pandoc.Writers.OOXML
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe, listToMaybe, fromMaybe, maybeToList, catMaybes, isJust)
 import Text.Pandoc.ImageSize
 import Control.Applicative ((<|>))
 import System.FilePath.Glob
-import Text.DocTemplates (FromContext(lookupContext))
+import Text.DocTemplates (FromContext(lookupContext), Context)
+import Text.DocLayout (literal)
 import Text.TeXMath
 import Text.Pandoc.Writers.Math (convertMath)
 import Text.Pandoc.Writers.Powerpoint.Presentation
-import Text.Pandoc.Shared (tshow)
+import Text.Pandoc.Shared (tshow, stringify)
 import Skylighting (fromColor)
 import Data.List.NonEmpty (nonEmpty)
 
@@ -97,6 +99,7 @@ data WriterEnv = WriterEnv { envRefArchive :: Archive
                            , envDistArchive :: Archive
                            , envUTCTime :: UTCTime
                            , envOpts :: WriterOptions
+                           , envContext :: Context Text
                            , envPresentationSize :: (Integer, Integer)
                            , envSlideHasHeader :: Bool
                            , envInList :: Bool
@@ -122,6 +125,7 @@ instance Default WriterEnv where
                   , envDistArchive = emptyArchive
                   , envUTCTime = posixSecondsToUTCTime 0
                   , envOpts = def
+                  , envContext = mempty
                   , envPresentationSize = (720, 540)
                   , envSlideHasHeader = False
                   , envInList = False
@@ -168,7 +172,7 @@ runP env st p = evalStateT (runReaderT p env) st
 
 monospaceFont :: Monad m => P m T.Text
 monospaceFont = do
-  vars <- writerVariables <$> asks envOpts
+  vars <- asks envContext
   case lookupContext "monofont" vars of
     Just s -> return s
     Nothing -> return "Courier"
@@ -304,8 +308,9 @@ makeSpeakerNotesMap (Presentation _ slides) =
                                  then Nothing
                                  else Just n
 
-presentationToArchive :: PandocMonad m => WriterOptions -> Presentation -> m Archive
-presentationToArchive opts pres = do
+presentationToArchive :: PandocMonad m
+                      => WriterOptions -> Meta -> Presentation -> m Archive
+presentationToArchive opts meta pres = do
   distArchive <- toArchive . BL.fromStrict <$>
                       P.readDefaultDataFile "reference.pptx"
   refArchive <- case writerReferenceDoc opts of
@@ -321,10 +326,18 @@ presentationToArchive opts pres = do
                            PandocSomeError
                            "Could not determine presentation size"
 
+  -- note, we need writerTemplate to be Just _ or metaToContext does
+  -- nothing
+  context <- metaToContext opts{ writerTemplate =
+                                  writerTemplate opts <|> Just mempty }
+                (return . literal . stringify)
+                (return . literal . stringify) meta
+
   let env = def { envRefArchive = refArchive
                 , envDistArchive = distArchive
                 , envUTCTime = utctime
                 , envOpts = opts
+                , envContext = context
                 , envPresentationSize = presSize
                 , envSlideIdMap = makeSlideIdMap pres
                 , envSpeakerNotesIdMap = makeSpeakerNotesMap pres
@@ -524,6 +537,7 @@ registerMedia fp caption = do
                  Just Eps  -> Just ".eps"
                  Just Svg  -> Just ".svg"
                  Just Emf  -> Just ".emf"
+                 Just Tiff -> Just ".tiff"
                  Nothing   -> Nothing
 
   let newGlobalId = fromMaybe (maxGlobalId + 1) (M.lookup fp globalIds)

@@ -14,7 +14,7 @@ references:
   id: 'stotz:1996handbuch'
   issued:
     literal: 1996_2004
-  language: German
+  language: de
   number-of-volumes: 5
   publisher: Beck
   publisher-place: Munich

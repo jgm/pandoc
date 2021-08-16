@@ -62,21 +62,21 @@ import Text.Pandoc.Options (
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (
-    addMetaField, blocksToInlines', crFilter, escapeURI, extractSpaces,
+    addMetaField, blocksToInlines', escapeURI, extractSpaces,
     htmlSpanLikeElements, renderTags', safeRead, tshow)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
-readHtml :: PandocMonad m
+readHtml :: (PandocMonad m, ToSources a)
          => ReaderOptions -- ^ Reader options
-         -> Text        -- ^ String to parse (assumes @'\n'@ line endings)
+         -> a             -- ^ Input to parse
          -> m Pandoc
 readHtml opts inp = do
   let tags = stripPrefixes $ canonicalizeTags $
              parseTagsOptions parseOptions{ optTagPosition = True }
-             (crFilter inp)
+             (sourcesToText $ toSources inp)
       parseDoc = do
         blocks <- fixPlains False . mconcat <$> manyTill block eof
         meta <- stateMeta . parserState <$> getState
@@ -205,6 +205,7 @@ block = ((do
           | otherwise
           -> pDiv
         "section" -> pDiv
+        "header" -> pDiv
         "main" -> pDiv
         "figure" -> pFigure
         "iframe" -> pIframe
@@ -404,6 +405,7 @@ pLineBlock = try $ do
 isDivLike :: Text -> Bool
 isDivLike "div"     = True
 isDivLike "section" = True
+isDivLike "header"  = True
 isDivLike "main"    = True
 isDivLike _         = False
 
@@ -499,17 +501,13 @@ pHeader = try $ do
                            tagOpen (`elem` ["h1","h2","h3","h4","h5","h6"])
                            (const True)
   let attr = toStringAttr attr'
-  let bodyTitle = TagOpen tagtype attr' ~== TagOpen ("h1" :: Text)
-                                               [("class","title")]
   level <- headerLevel tagtype
   contents <- trimInlines . mconcat <$> manyTill inline (pCloses tagtype <|> eof)
   let ident = fromMaybe "" $ lookup "id" attr
   let classes = maybe [] T.words $ lookup "class" attr
   let keyvals = [(k,v) | (k,v) <- attr, k /= "class", k /= "id"]
   attr'' <- registerHeader (ident, classes, keyvals) contents
-  return $ if bodyTitle
-              then mempty  -- skip a representation of the title in the body
-              else B.headerWith attr'' level contents
+  return $ B.headerWith attr'' level contents
 
 pHrule :: PandocMonad m => TagParser m Blocks
 pHrule = do
@@ -559,7 +557,18 @@ pFigure = try $ do
 pCodeBlock :: PandocMonad m => TagParser m Blocks
 pCodeBlock = try $ do
   TagOpen _ attr' <- pSatisfy (matchTagOpen "pre" [])
-  let attr = toAttr attr'
+  -- if the `pre` has no attributes, try if it is followed by a `code`
+  -- element and use those attributes if possible.
+  attr <- case attr' of
+    _:_ -> pure (toAttr attr')
+    []  -> option nullAttr $ do
+      TagOpen _ codeAttr <- pSatisfy (matchTagOpen "code" [])
+      pure $ toAttr
+        [ (k, v') | (k, v) <- codeAttr
+                    -- strip language from class
+                  , let v' = if k == "class"
+                             then fromMaybe v (T.stripPrefix "language-" v)
+                             else v ]
   contents <- manyTill pAny (pCloses "pre" <|> eof)
   let rawText = T.concat $ map tagToText contents
   -- drop leading newline if any
@@ -713,17 +722,12 @@ pLink = try $ do
 
 pImage :: PandocMonad m => TagParser m Inlines
 pImage = do
-  tag <- pSelfClosing (=="img") (isJust . lookup "src")
+  tag@(TagOpen _ attr') <- pSelfClosing (=="img") (isJust . lookup "src")
   url <- canonicalizeUrl $ fromAttrib "src" tag
   let title = fromAttrib "title" tag
   let alt = fromAttrib "alt" tag
-  let uid = fromAttrib "id" tag
-  let cls = T.words $ fromAttrib "class" tag
-  let getAtt k = case fromAttrib k tag of
-                   "" -> []
-                   v  -> [(k, v)]
-  let kvs = concatMap getAtt ["width", "height", "sizes", "srcset"]
-  return $ B.imageWith (uid, cls, kvs) (escapeURI url) title (B.text alt)
+  let attr = toAttr $ filter (\(k,_) -> k /= "alt" && k /= "title" && k /= "src") attr'
+  return $ B.imageWith attr (escapeURI url) title (B.text alt)
 
 pSvg :: PandocMonad m => TagParser m Inlines
 pSvg = do
@@ -830,17 +834,19 @@ pInlinesInTags tagtype f = extractSpaces f <$> pInTags tagtype inline
 
 pTagText :: PandocMonad m => TagParser m Inlines
 pTagText = try $ do
+  pos <- getPosition
   (TagText str) <- pSatisfy isTagText
   st <- getState
   qu <- ask
   parsed <- lift $ lift $
-            flip runReaderT qu $ runParserT (many pTagContents) st "text" str
+            flip runReaderT qu $ runParserT (many pTagContents) st "text"
+               (Sources [(pos, str)])
   case parsed of
        Left _        -> throwError $ PandocParseError $
                         "Could not parse `" <> str <> "'"
        Right result  -> return $ mconcat result
 
-type InlinesParser m = HTMLParser m Text
+type InlinesParser m = HTMLParser m Sources
 
 pTagContents :: PandocMonad m => InlinesParser m Inlines
 pTagContents =
@@ -940,13 +946,15 @@ getTagName (TagClose t)  = Just t
 getTagName _             = Nothing
 
 isInlineTag :: Tag Text -> Bool
-isInlineTag t =
-  isCommentTag t ||
-  case getTagName t of
-    Nothing  -> False
-    Just "script" -> "math/tex" `T.isPrefixOf` fromAttrib "type" t
-    Just x   -> x `Set.notMember` blockTags ||
-                T.take 1 x == "?" -- processing instr.
+isInlineTag t = isCommentTag t || case t of
+  TagOpen "script" _ -> "math/tex" `T.isPrefixOf` fromAttrib "type" t
+  TagClose "script"  -> True
+  TagOpen name _     -> isInlineTagName name
+  TagClose name      -> isInlineTagName name
+  _                  -> False
+ where isInlineTagName x =
+         x `Set.notMember` blockTags ||
+         T.take 1 x == "?" -- processing instr.
 
 isBlockTag :: Tag Text -> Bool
 isBlockTag t = isBlockTagName || isTagComment t
@@ -970,13 +978,14 @@ isCommentTag = tagComment (const True)
 -- | Matches a stretch of HTML in balanced tags.
 htmlInBalanced :: Monad m
                => (Tag Text -> Bool)
-               -> ParserT Text st m Text
+               -> ParserT Sources st m Text
 htmlInBalanced f = try $ do
   lookAhead (char '<')
-  inp <- getInput
-  let ts = canonicalizeTags $
-        parseTagsOptions parseOptions{ optTagWarning = True,
-                                       optTagPosition = True } inp
+  sources <- getInput
+  let ts = canonicalizeTags
+        $ parseTagsOptions parseOptions{ optTagWarning = True,
+                                         optTagPosition = True }
+        $ sourcesToText sources
   case ts of
     (TagPosition sr sc : t@(TagOpen tn _) : rest) -> do
        guard $ f t
@@ -1018,15 +1027,17 @@ hasTagWarning _                = False
 -- | Matches a tag meeting a certain condition.
 htmlTag :: (HasReaderOptions st, Monad m)
         => (Tag Text -> Bool)
-        -> ParserT Text st m (Tag Text, Text)
+        -> ParserT Sources st m (Tag Text, Text)
 htmlTag f = try $ do
   lookAhead (char '<')
   startpos <- getPosition
-  inp <- getInput
+  sources <- getInput
+  let inp = sourcesToText sources
   let ts = canonicalizeTags $ parseTagsOptions
                                parseOptions{ optTagWarning = False
                                            , optTagPosition = True }
-                               (inp <> " ") -- add space to ensure that
+                               (inp <> " ")
+                               -- add space to ensure that
                                -- we get a TagPosition after the tag
   (next, ln, col) <- case ts of
                       (TagPosition{} : next : TagPosition ln col : _)

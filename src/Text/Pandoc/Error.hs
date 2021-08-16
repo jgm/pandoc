@@ -23,26 +23,27 @@ import Control.Exception (Exception, displayException)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Data.Text (Text)
+import Data.List (sortOn)
 import qualified Data.Text as T
+import Data.Ord (Down(..))
 import GHC.Generics (Generic)
 import Network.HTTP.Client (HttpException)
 import System.Exit (ExitCode (..), exitWith)
 import System.IO (stderr)
 import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Sources (Sources(..))
 import Text.Printf (printf)
 import Text.Parsec.Error
 import Text.Parsec.Pos hiding (Line)
 import Text.Pandoc.Shared (tshow)
 import Citeproc (CiteprocError, prettyCiteprocError)
 
-type Input = Text
-
 data PandocError = PandocIOError Text IOError
                  | PandocHttpError Text HttpException
                  | PandocShouldNeverHappenError Text
                  | PandocSomeError Text
                  | PandocParseError Text
-                 | PandocParsecError Input ParseError
+                 | PandocParsecError Sources ParseError
                  | PandocMakePDFError Text
                  | PandocOptionError Text
                  | PandocSyntaxMapError Text
@@ -81,22 +82,28 @@ renderError e =
       "Please report this to pandoc's developers: " <> s
     PandocSomeError s -> s
     PandocParseError s -> s
-    PandocParsecError input err' ->
+    PandocParsecError (Sources inputs) err' ->
         let errPos = errorPos err'
             errLine = sourceLine errPos
             errColumn = sourceColumn errPos
-            ls = T.lines input <> [""]
-            errorInFile = if length ls > errLine - 1
-                            then T.concat ["\n", ls !! (errLine - 1)
-                                          ,"\n", T.replicate (errColumn - 1) " "
-                                          ,"^"]
-                        else ""
-        in  "\nError at " <> tshow  err' <>
-                     -- if error comes from a chunk or included file,
-                     -- then we won't get the right text this way:
-                     if sourceName errPos == "source"
-                        then errorInFile
-                        else ""
+            errFile = sourceName errPos
+            errorInFile =
+              case sortOn (Down . sourceLine . fst)
+                      [ (pos,t)
+                        | (pos,t) <- inputs
+                        , sourceName pos == errFile
+                        , sourceLine pos <= errLine
+                      ] of
+                []  -> ""
+                ((pos,txt):_) ->
+                  let ls = T.lines txt <> [""]
+                      ln = (errLine - sourceLine pos) + 1
+                   in if length ls > ln && ln >= 1
+                         then T.concat ["\n", ls !! (ln - 1)
+                                       ,"\n", T.replicate (errColumn - 1) " "
+                                       ,"^"]
+                         else ""
+        in  "Error at " <> tshow  err' <> errorInFile
     PandocMakePDFError s -> s
     PandocOptionError s -> s
     PandocSyntaxMapError s -> s

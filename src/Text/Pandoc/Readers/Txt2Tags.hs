@@ -33,9 +33,9 @@ import Data.Time (defaultTimeLocale)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (space, spaces, uri)
-import Text.Pandoc.Shared (compactify, compactifyDL, crFilter, escapeURI)
+import Text.Pandoc.Shared (compactify, compactifyDL, escapeURI)
 
-type T2T = ParserT Text ParserState (Reader T2TMeta)
+type T2T = ParserT Sources ParserState (Reader T2TMeta)
 
 -- | An object for the T2T macros meta information
 -- the contents of each field is simply substituted verbatim into the file
@@ -68,15 +68,15 @@ getT2TMeta = do
                      (intercalate ", " inps) outp
 
 -- | Read Txt2Tags from an input string returning a Pandoc document
-readTxt2Tags :: PandocMonad m
+readTxt2Tags :: (PandocMonad m, ToSources a)
              => ReaderOptions
-             -> Text
+             -> a
              -> m Pandoc
 readTxt2Tags opts s = do
+  let sources = ensureFinalNewlines 2 (toSources s)
   meta <- getT2TMeta
   let parsed = flip runReader meta $
-        readWithM parseT2T (def {stateOptions = opts}) $
-        crFilter s <> "\n\n"
+        readWithM parseT2T (def {stateOptions = opts}) sources
   case parsed of
     Right result -> return result
     Left e       -> throwError e
@@ -478,8 +478,28 @@ macro = try $ do
 -- raw URLs in text are automatically linked
 url :: T2T Inlines
 url = try $ do
-  (rawUrl, escapedUrl) <- try uri <|> emailAddress
+  (rawUrl, escapedUrl) <- try uri <|> emailAddress'
   return $ B.link rawUrl "" (B.str escapedUrl)
+
+emailAddress' :: T2T (Text, Text)
+emailAddress' = do
+  (base, mailURI) <- emailAddress
+  query <- option "" emailQuery
+  return (base <> query, mailURI <> query)
+
+emailQuery :: T2T Text
+emailQuery = do
+  char '?'
+  parts <- kv `sepBy1` (char '&')
+  return $ "?" <> T.intercalate "&" parts
+
+kv :: T2T Text
+kv = do
+  k <- T.pack <$> many1 alphaNum
+  char '='
+  let vchar = alphaNum <|> try (oneOf "%._/~:,=$@&+-;*" <* lookAhead alphaNum)
+  v <- T.pack <$> many1 vchar
+  return (k <> "=" <> v)
 
 uri :: T2T (Text, Text)
 uri = try $ do

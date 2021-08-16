@@ -1,3 +1,5 @@
+```
+% pandoc -f biblatex -t markdown -s
 @Book{item1,
 author="John Doe",
 title="First Book",
@@ -27,7 +29,7 @@ year="2007"
 
 ^D
 ---
-nocite: '[@*]'
+nocite: "[@*]"
 references:
 - author:
   - family: Doe
@@ -44,9 +46,9 @@ references:
   container-title: Journal of Generic Studies
   id: item2
   issued: 2006
-  page: '33-34'
+  page: 33-34
   title: Article
-  type: 'article-journal'
+  type: article-journal
   volume: 6
 - author:
   - family: Doe

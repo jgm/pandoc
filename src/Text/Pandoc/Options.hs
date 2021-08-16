@@ -316,6 +316,23 @@ defaultKaTeXURL :: Text
 defaultKaTeXURL = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/"
 
 -- Update documentation in doc/filters.md if this is changed.
+$(deriveJSON defaultOptions{ constructorTagModifier =
+                               camelCaseStrToHyphenated
+                           } ''TrackChanges)
+
+$(deriveJSON defaultOptions{ constructorTagModifier =
+                               camelCaseStrToHyphenated
+                           } ''WrapOption)
+
+$(deriveJSON defaultOptions{ constructorTagModifier =
+                               camelCaseStrToHyphenated . drop 8
+                           } ''TopLevelDivision)
+
+$(deriveJSON defaultOptions{ constructorTagModifier =
+                               camelCaseStrToHyphenated
+                           } ''ReferenceLocation)
+
+-- Update documentation in doc/filters.md if this is changed.
 $(deriveJSON defaultOptions ''ReaderOptions)
 
 $(deriveJSON defaultOptions{
@@ -338,20 +355,3 @@ $(deriveJSON defaultOptions{ constructorTagModifier =
                            } ''ObfuscationMethod)
 
 $(deriveJSON defaultOptions ''HTMLSlideVariant)
-
--- Update documentation in doc/filters.md if this is changed.
-$(deriveJSON defaultOptions{ constructorTagModifier =
-                               camelCaseStrToHyphenated
-                           } ''TrackChanges)
-
-$(deriveJSON defaultOptions{ constructorTagModifier =
-                               camelCaseStrToHyphenated
-                           } ''WrapOption)
-
-$(deriveJSON defaultOptions{ constructorTagModifier =
-                               camelCaseStrToHyphenated . drop 8
-                           } ''TopLevelDivision)
-
-$(deriveJSON defaultOptions{ constructorTagModifier =
-                               camelCaseStrToHyphenated
-                           } ''ReferenceLocation)

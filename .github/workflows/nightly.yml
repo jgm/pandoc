@@ -22,10 +22,10 @@ jobs:
           ghc --version
           cabal --version
           cabal v2-update
-          cabal v2-build --dependencies-only all
+          cabal v2-build --dependencies-only
     - name: Build
       run: |
-          cabal v2-install all
+          cabal v2-install
           strip $HOME/.cabal/bin/pandoc
     - name: Install artifact
       run: |

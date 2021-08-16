@@ -32,7 +32,6 @@ import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)
 import qualified Data.Text.Lazy as TL
-import Network.HTTP (urlEncode)
 import System.FilePath (takeExtension, takeFileName, makeRelative)
 import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
 import Text.Pandoc.Builder (fromList, setMeta)
@@ -45,6 +44,7 @@ import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType)
+import Text.Pandoc.Network.HTTP (urlEncode)
 import Text.Pandoc.Options (EPUBVersion (..), HTMLMathMethod (..),
                             ObfuscationMethod (NoObfuscation), WrapOption (..),
                             WriterOptions (..))
@@ -991,12 +991,12 @@ metadataElement version md currentTime =
                showDateTimeISO8601 currentTime | version == EPUB3 ]
         belongsToCollectionNodes = 
             maybe []
-                (\belongsToCollection -> (unode "meta" !  [("property", "belongs-to-collection"), ("id", "epub-id-1")] $ belongsToCollection )
+                (\belongsToCollection -> (unode "meta" !  [("property", "belongs-to-collection"), ("id", "epub-collection-1")] $ belongsToCollection )
                 :
-                [unode "meta" !  [("refines", "#epub-id-1"), ("property", "collection-type")] $ ("series" :: Text) ])
+                [unode "meta" !  [("refines", "#epub-collection-1"), ("property", "collection-type")] $ ("series" :: Text) ])
                 (epubBelongsToCollection md)++
             maybe []
-                (\groupPosition -> [unode "meta" !  [("refines", "#epub-id-1"), ("property", "group-position")] $ groupPosition ])
+                (\groupPosition -> [unode "meta" !  [("refines", "#epub-collection-1"), ("property", "group-position")] $ groupPosition ])
                 (epubGroupPosition md)
         dcTag n s = unode ("dc:" <> n) s
         dcTag' n s = [dcTag n s]
@@ -1131,12 +1131,13 @@ transformInline  :: PandocMonad m
                  => WriterOptions
                  -> Inline
                  -> E m Inline
-transformInline _opts (Image attr lab (src,tit)) = do
+transformInline _opts (Image attr@(_,_,kvs) lab (src,tit))
+  | isNothing (lookup "external" kvs) = do
     newsrc <- modifyMediaRef $ T.unpack src
     return $ Image attr lab ("../" <> newsrc, tit)
 transformInline opts x@(Math t m)
   | WebTeX url <- writerHTMLMathMethod opts = do
-    newsrc <- modifyMediaRef (T.unpack url <> urlEncode (T.unpack m))
+    newsrc <- modifyMediaRef (T.unpack (url <> urlEncode m))
     let mathclass = if t == DisplayMath then "display" else "inline"
     return $ Span ("",["math",mathclass],[])
                 [Image nullAttr [x] ("../" <> newsrc, "")]

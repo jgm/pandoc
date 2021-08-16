@@ -8,6 +8,14 @@ indent_size = 2
 insert_final_newline = true
 trim_trailing_whitespace = true
 
+[*.{zip,docx}]
+charset =
+end_of_line =
+indent_style =
+indent_size =
+insert_final_newline =
+trim_trailing_whitespace =
+
 [*.{markdown,md}]
 trim_trailing_whitespace = false
 

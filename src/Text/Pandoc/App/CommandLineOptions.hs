@@ -576,10 +576,10 @@ options =
                  (ReqArg
                   (\arg opt ->
                       case safeStrRead arg of
-                           Just t | t >= 1 && t <= 6 ->
+                           Just t | t >= 0 && t <= 6 ->
                                     return opt { optSlideLevel = Just t }
                            _      -> E.throwIO $ PandocOptionError
-                                    "slide level must be a number between 1 and 6")
+                                    "slide level must be a number between 0 and 6")
                  "NUMBER")
                  "" -- "Force header level for slides"
 

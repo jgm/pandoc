@@ -44,8 +44,8 @@ jobs:
       matrix:
         versions:
           - ghc: '8.0.2'
-            cabal: '2.2'
-            prefix: 'new-'
+            cabal: '2.4'
+            prefix: 'v2-'
             cabalopts: ''
             testopts: ''
           - ghc: '8.2.2'
@@ -68,13 +68,22 @@ jobs:
             prefix: ''
             cabalopts: ''
             testopts: '--test-option=--hide-successes'
-          - ghc: '8.10.2'
+          - ghc: '8.10.4'
             cabal: '3.2'
             prefix: ''
             cabalopts: '-ftrypandoc'
             testopts: '--test-option=--hide-successes'
+          - ghc: '9.0.1'
+            cabal: '3.4'
+            prefix: ''
+            cabalopts: ''
+            testopts: '--test-option=--hide-successes'
     steps:
     - uses: actions/checkout@v2
+
+    # needed by memory
+    - name: Install numa
+      run: sudo apt-get install libnuma-dev
 
     # need to install older cabal/ghc versions from ppa repository
 

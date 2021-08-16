@@ -7,17 +7,19 @@ flags:
 packages:
 - '.'
 extra-deps:
-- hslua-1.3.0
-- hslua-module-path-0.1.0
-- jira-wiki-markup-1.3.4
-- skylighting-core-0.10.5.1
-- skylighting-0.10.5.1
-- doclayout-0.3.0.2
-- citeproc-0.3.0.9
-- texmath-0.12.2
-- random-1.2.0
+- commonmark-0.2.1
+- commonmark-pandoc-0.2.1.1
+- skylighting-core-0.11
+- skylighting-0.11
+- doctemplates-0.10
+- texmath-0.12.3.1
+# - citeproc-0.4.1
+- git: https://github.com/jgm/citeproc.git
+  commit: 8d03cb722fac3ea8f17f432ac20abe35361df551
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-17.5
+resolver: lts-18.0
 nix:
   packages: [zlib]
+
+

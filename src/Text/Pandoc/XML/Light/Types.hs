@@ -53,7 +53,7 @@ type Line     = Integer
 data Content  = Elem Element
               | Text CData
               | CRef Text
-                deriving (Show, Typeable, Data)
+                deriving (Show, Typeable, Data, Ord, Eq)
 
 -- | XML elements
 data Element  = Element {
@@ -61,7 +61,7 @@ data Element  = Element {
                   elAttribs   :: [Attr],
                   elContent   :: [Content],
                   elLine      :: Maybe Line
-                } deriving (Show, Typeable, Data)
+                } deriving (Show, Typeable, Data, Ord, Eq)
 
 -- | XML attributes
 data Attr     = Attr {
@@ -74,13 +74,13 @@ data CData    = CData {
                   cdVerbatim  :: CDataKind,
                   cdData      :: Text,
                   cdLine      :: Maybe Line
-                } deriving (Show, Typeable, Data)
+                } deriving (Show, Typeable, Data, Ord, Eq)
 
 data CDataKind
  = CDataText      -- ^ Ordinary character data; pretty printer escapes &, < etc.
  | CDataVerbatim  -- ^ Unescaped character data; pretty printer embeds it in <![CDATA[..
  | CDataRaw       -- ^ As-is character data; pretty printer passes it along without any escaping or CDATA wrap-up.
-   deriving ( Eq, Show, Typeable, Data )
+   deriving ( Eq, Ord, Show, Typeable, Data )
 
 -- | XML qualified names
 data QName    = QName {

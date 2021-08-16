@@ -83,32 +83,32 @@ tests = [ testGroup "line blocks"
                                     , "</warning>"
                                     ]
           , "admonition-with-title" =:
-                            divWith ("foo", ["attention"], []) (
+                            divWith ("foo", ["note"], []) (
                               divWith ("foo", ["title"], [])
                                 (plain (text "This is title")) <>
                               para "This is a test"
                             )
                               =?> unlines
-                                    [ "<attention id=\"foo\">"
+                                    [ "<note id=\"foo\">"
                                     , "  <title>This is title</title>"
                                     , "  <para>"
                                     , "    This is a test"
                                     , "  </para>"
-                                    , "</attention>"
+                                    , "</note>"
                                     ]
           , "admonition-with-title-in-para" =:
-                            divWith ("foo", ["attention"], []) (
+                            divWith ("foo", ["note"], []) (
                               divWith ("foo", ["title"], [])
                                 (para "This is title") <>
                               para "This is a test"
                             )
                               =?> unlines
-                                    [ "<attention id=\"foo\">"
+                                    [ "<note id=\"foo\">"
                                     , "  <title>This is title</title>"
                                     , "  <para>"
                                     , "    This is a test"
                                     , "  </para>"
-                                    , "</attention>"
+                                    , "</note>"
                                     ]
           , "single-child" =:
                             divWith ("foo", [], []) (para "This is a test")

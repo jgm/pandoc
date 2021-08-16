@@ -30,11 +30,11 @@ module Text.Pandoc.Readers.HTML.Parsing
   )
 where
 
-import Control.Monad (guard, void, mzero)
+import Control.Monad (void, mzero)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Text.HTML.TagSoup
-  ( Attribute, Tag (..), isTagText, isTagPosition, isTagOpen, isTagClose, (~==) )
+  ( Attribute, Tag (..), isTagPosition, isTagOpen, isTagClose, (~==) )
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition (Attr)
 import Text.Pandoc.Parsing
@@ -118,9 +118,11 @@ pCloses tagtype = try $ do
        _ -> mzero
 
 pBlank :: PandocMonad m => TagParser m ()
-pBlank = try $ do
-  (TagText str) <- pSatisfy isTagText
-  guard $ T.all isSpace str
+pBlank = void $ pSatisfy isBlank
+ where
+  isBlank (TagText t) = T.all isSpace t
+  isBlank (TagComment _) = True
+  isBlank _ = False
 
 pLocation :: PandocMonad m => TagParser m ()
 pLocation = do
@@ -161,10 +163,12 @@ _ `closes` "html" = False
 "li" `closes` "li" = True
 "th" `closes` t | t `elem` ["th","td"] = True
 "td" `closes` t | t `elem` ["th","td"] = True
-"tr" `closes` t | t `elem` ["th","td","tr"] = True
+"tr" `closes` t | t `elem` ["th","td","tr","colgroup"] = True
 "dd" `closes` t | t `elem` ["dt", "dd"] = True
 "dt" `closes` t | t `elem` ["dt","dd"] = True
 "rt" `closes` t | t `elem` ["rb", "rt", "rtc"] = True
+"col" `closes` "col" = True
+"colgroup" `closes` "col" = True
 "optgroup" `closes` "optgroup" = True
 "optgroup" `closes` "option" = True
 "option" `closes` "option" = True

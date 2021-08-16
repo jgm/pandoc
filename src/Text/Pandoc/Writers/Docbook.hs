@@ -198,8 +198,7 @@ blockToDocbook opts (Div (id',"section":_,_) (Header lvl (_,_,attrs) ils : xs)) 
 blockToDocbook opts (Div (ident,classes,_) bs) = do
   version <- ask
   let identAttribs = [(idName version, ident) | not (T.null ident)]
-      admonitions = ["attention","caution","danger","error","hint",
-                     "important","note","tip","warning"]
+      admonitions = ["caution","danger","important","note","tip","warning"]
   case classes of
     (l:_) | l `elem` admonitions -> do
         let (mTitleBs, bodyBs) =
@@ -253,17 +252,18 @@ blockToDocbook opts (LineBlock lns) =
   blockToDocbook opts $ linesToPara lns
 blockToDocbook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" <$> blocksToDocbook opts blocks
-blockToDocbook _ (CodeBlock (_,classes,_) str) = return $
+blockToDocbook opts (CodeBlock (_,classes,_) str) = return $
   literal ("<programlisting" <> lang <> ">") <> cr <>
      flush (literal (escapeStringForXML str) <> cr <> literal "</programlisting>")
     where lang  = if null langs
                      then ""
                      else " language=\"" <> escapeStringForXML (head langs) <>
                           "\""
-          isLang l    = T.toLower l `elem` map T.toLower languages
+          syntaxMap = writerSyntaxMap opts
+          isLang l    = T.toLower l `elem` map T.toLower (languages syntaxMap)
           langsFrom s = if isLang s
                            then [s]
-                           else languagesByExtension . T.toLower $ s
+                           else (languagesByExtension syntaxMap) . T.toLower $ s
           langs       = concatMap langsFrom classes
 blockToDocbook opts (BulletList lst) = do
   let attribs = [("spacing", "compact") | isTightList lst]

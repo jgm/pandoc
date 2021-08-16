@@ -18,7 +18,6 @@ import Text.Pandoc.Citeproc.CslJson (cslJsonToReferences)
 import Text.Pandoc.Citeproc.BibTeX (readBibtexString, Variant(..))
 import Text.Pandoc.Citeproc.MetaValue (metaValueToReference, metaValueToText)
 import Text.Pandoc.Readers.Markdown (yamlToRefs)
-import qualified Text.Pandoc.BCP47 as BCP47
 import Text.Pandoc.Builder (Inlines, Many(..), deleteMeta, setMeta)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Definition as Pandoc
@@ -28,7 +27,7 @@ import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Extensions (pandocExtensions)
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options (ReaderOptions(..))
-import Text.Pandoc.Shared (stringify, ordNub, blocksToInlines, tshow)
+import Text.Pandoc.Shared (stringify, ordNub, tshow)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (query, walk, walkM)
 import Control.Applicative ((<|>))
@@ -75,8 +74,7 @@ processCitations (Pandoc meta bs) = do
 
   let linkCites = maybe False truish $ lookupMeta "link-citations" meta
   let opts = defaultCiteprocOptions{ linkCitations = linkCites }
-  let result = Citeproc.citeproc opts style (localeLanguage locale)
-                  refs citations
+  let result = Citeproc.citeproc opts style mblang refs citations
   mapM_ (report . CiteprocWarning) (resultWarnings result)
   let sopts = styleOptions style
   let classes = "references" : -- TODO remove this or keep for compatibility?
@@ -90,30 +88,29 @@ processCitations (Pandoc meta bs) = do
                    _ -> id) $ []
   let bibs = mconcat $ map (\(ident, out) ->
                      B.divWith ("ref-" <> ident,["csl-entry"],[]) . B.para .
-                         walk (convertQuotes locale) .
                          insertSpace $ out)
                       (resultBibliography result)
-  let moveNotes = maybe True truish $
-                        lookupMeta "notes-after-punctuation" meta
-  let cits = map (walk (convertQuotes locale)) $
-               resultCitations result
-
-  let fixQuotes = case localePunctuationInQuote locale of
-                    Just True ->
-                      B.toList . movePunctuationInsideQuotes .  B.fromList
-                    _ -> id
+  let moveNotes = styleIsNoteStyle sopts &&
+           maybe True truish (lookupMeta "notes-after-punctuation" meta)
+  let cits = resultCitations result
 
   let metanocites = lookupMeta "nocite" meta
   let Pandoc meta'' bs' =
          maybe id (setMeta "nocite") metanocites .
-         walk (map capitalizeNoteCitation .
-                fixQuotes .  mvPunct moveNotes locale) .
-         walk deNote .
+         walk (mvPunct moveNotes locale) .
+         (if styleIsNoteStyle sopts
+             then walk addNote .  walk deNote
+             else id) .
          evalState (walkM insertResolvedCitations $ Pandoc meta' bs)
          $ cits
-  return $ Pandoc meta''
+  return $ walk removeQuoteSpan
+         $ Pandoc meta''
          $ insertRefs refkvs classes meta''
             (walk fixLinks $ B.toList bibs) bs'
+
+removeQuoteSpan :: Inline -> Inline
+removeQuoteSpan (Span ("",["csl-quoted"],[]) xs) = Span nullAttr xs
+removeQuoteSpan x = x
 
 -- | Retrieve the CSL style specified by the csl or citation-style
 -- metadata field in a pandoc document, or the default CSL style
@@ -197,7 +194,9 @@ getReferences mblocale (Pandoc meta bs) = do
                   then const True
                   else (`Set.member` citeIds)
   let inlineRefs = case lookupMeta "references" meta of
-                    Just (MetaList rs) -> mapMaybe metaValueToReference rs
+                    Just (MetaList rs) ->
+                      filter (idpred . unItemId . referenceId)
+                         $  mapMaybe metaValueToReference rs
                     _                  -> []
   externalRefs <- case lookupMeta "bibliography" meta of
                     Just (MetaList xs) ->
@@ -209,7 +208,9 @@ getReferences mblocale (Pandoc meta bs) = do
                         Just fp -> getRefsFromBib locale idpred fp
                         Nothing -> return []
                     Nothing -> return []
-  return $ map (linkifyVariables . legacyDateRanges)
+  let addQuoteSpan (Quoted _ xs) = Span ("",["csl-quoted"],[]) xs
+      addQuoteSpan x = x
+  return $ map (linkifyVariables . legacyDateRanges . walk addQuoteSpan)
                (externalRefs ++ inlineRefs)
             -- note that inlineRefs can override externalRefs
 
@@ -268,23 +269,6 @@ getRefs locale format idpred mbfp raw = do
               (T.unpack <$> mbfp)
               (L.fromStrict raw)
       return $ mapMaybe metaValueToReference rs
-
--- localized quotes
-convertQuotes :: Locale -> Inline -> Inline
-convertQuotes locale (Quoted qt ils) =
-  case (M.lookup openterm terms, M.lookup closeterm terms) of
-    (Just ((_,oq):_), Just ((_,cq):_)) ->
-         Span ("",[],[]) (Str oq : ils ++ [Str cq])
-    _ -> Quoted qt ils
-  where
-   terms = localeTerms locale
-   openterm = case qt of
-                DoubleQuote -> "open-quote"
-                SingleQuote -> "open-inner-quote"
-   closeterm = case qt of
-                 DoubleQuote -> "close-quote"
-                 SingleQuote -> "close-inner-quote"
-convertQuotes _ x = x
 
 -- assumes we walk in same order as query
 insertResolvedCitations :: Inline -> State [Inlines] Inline
@@ -376,7 +360,6 @@ formatFromExtension fp = case dropWhile (== '.') $ takeExtension fp of
 
 
 isNote :: Inline -> Bool
-isNote (Note _)          = True
 isNote (Cite _ [Note _]) = True
  -- the following allows citation styles that are "in-text" but use superscript
  -- references to be treated as if they are "notes" for the purposes of moving
@@ -389,6 +372,12 @@ isSpacy Space     = True
 isSpacy SoftBreak = True
 isSpacy _         = False
 
+movePunctInsideQuotes :: Locale -> [Inline] -> [Inline]
+movePunctInsideQuotes locale
+  | localePunctuationInQuote locale == Just True
+    = B.toList . movePunctuationInsideQuotes . B.fromList
+  | otherwise
+    = id
 
 mvPunct :: Bool -> Locale -> [Inline] -> [Inline]
 mvPunct moveNotes locale (x : xs)
@@ -401,7 +390,8 @@ mvPunct moveNotes locale (q : s : x : ys)
     in  if moveNotes
            then if T.null spunct
                    then q : x : mvPunct moveNotes locale ys
-                   else q : Str spunct : x : mvPunct moveNotes locale
+                   else movePunctInsideQuotes locale
+                        [q , Str spunct , x] ++ mvPunct moveNotes locale
                         (B.toList
                           (dropTextWhile isPunctuation (B.fromList ys)))
            else q : x : mvPunct moveNotes locale ys
@@ -413,9 +403,10 @@ mvPunct moveNotes locale (Cite cs ils : ys)
    , moveNotes
    = let s = stringify ys
          spunct = T.takeWhile isPunctuation s
-     in  Cite cs (init ils
-                  ++ [Str spunct | not (endWithPunct False (init ils))]
-                  ++ [last ils]) :
+     in  Cite cs (movePunctInsideQuotes locale $
+                    init ils
+                    ++ [Str spunct | not (endWithPunct False (init ils))]
+                    ++ [last ils]) :
          mvPunct moveNotes locale
            (B.toList (dropTextWhile isPunctuation (B.fromList ys)))
 mvPunct moveNotes locale (s : x : ys) | isSpacy s, isNote x =
@@ -501,7 +492,8 @@ insertRefs refkvs refclasses meta refs bs =
      put True
      -- refHeader isn't used if you have an explicit references div
      let cs' = ordNub $ cs ++ refclasses
-     return $ Div ("refs",cs',kvs) (xs ++ refs)
+     let kvs' = ordNub $ kvs ++ refkvs
+     return $ Div ("refs",cs',kvs') (xs ++ refs)
    go x = return x
 
 refTitle :: Meta -> Maybe [Inline]
@@ -560,42 +552,62 @@ extractText (FancyVal x) = toText x
 extractText (NumVal n)   = T.pack (show n)
 extractText _            = mempty
 
-capitalizeNoteCitation :: Inline -> Inline
-capitalizeNoteCitation (Cite cs [Note [Para ils]]) =
-  Cite cs
-  [Note [Para $ B.toList $ addTextCase Nothing CapitalizeFirst
-              $ B.fromList ils]]
-capitalizeNoteCitation x = x
+-- Here we take the Spans with class csl-note that are left
+-- after deNote has removed nested ones, and convert them
+-- into real notes.
+addNote :: Inline -> Inline
+addNote (Span ("",["csl-note"],[]) ils) =
+  Note [Para $
+         B.toList . addTextCase Nothing CapitalizeFirst . B.fromList $ ils]
+addNote x = x
 
-deNote :: [Inline] -> [Inline]
-deNote [] = []
-deNote (Note bs:rest) =
-  Note (walk go bs) : deNote rest
+-- Here we handle citation notes that occur inside footnotes
+-- or other citation notes, in a note style.  We don't want
+-- notes inside notes, so we convert these to parenthesized
+-- or comma-separated citations.
+deNote :: Inline -> Inline
+deNote (Note bs) =
+  case bs of
+    [Para (cit@(Cite (c:_) _) : ils)]
+       | citationMode c /= AuthorInText ->
+         -- if citation is first in note, no need to parenthesize.
+         Note [Para (walk removeNotes $ cit : walk addParens ils)]
+    _ -> Note (walk removeNotes . walk addParens $ bs)
+
  where
-  go [] = []
-  go (Cite (c:cs) ils : zs)
+  addParens [] = []
+  addParens (Cite (c:cs) ils : zs)
     | citationMode c == AuthorInText
-      = Cite (c:cs) (concatMap (noteAfterComma (needsPeriod zs)) ils) : go zs
+      = Cite (c:cs) (concatMap (noteAfterComma (needsPeriod zs)) ils) :
+        addParens zs
     | otherwise
-      = Cite (c:cs) (concatMap noteInParens ils) : go zs
-  go (x:xs) = x : go xs
+      = Cite (c:cs) (concatMap noteInParens ils) : addParens zs
+  addParens (x:xs) = x : addParens xs
+
+  removeNotes (Span ("",["csl-note"],[]) ils) = Span ("",[],[]) ils
+  removeNotes x = x
+
   needsPeriod [] = True
   needsPeriod (Str t:_) = case T.uncons t of
                             Nothing    -> False
                             Just (c,_) -> isUpper c
   needsPeriod (Space:zs) = needsPeriod zs
   needsPeriod _ = False
-  noteInParens (Note bs')
+
+  noteInParens (Span ("",["csl-note"],[]) ils)
        = Space : Str "(" :
-         removeFinalPeriod (blocksToInlines bs') ++ [Str ")"]
+         removeFinalPeriod ils ++ [Str ")"]
   noteInParens x = [x]
-  noteAfterComma needsPer (Note bs')
+
+  noteAfterComma needsPer (Span ("",["csl-note"],[]) ils)
+    | not (null ils)
        = Str "," : Space :
-         (if needsPer
-             then id
-             else removeFinalPeriod) (blocksToInlines bs')
+         if needsPer
+            then ils
+            else removeFinalPeriod ils
   noteAfterComma _ x = [x]
-deNote (x:xs) = x : deNote xs
+
+deNote x = x
 
 -- Note: we can't use dropTextWhileEnd indiscriminately,
 -- because this would remove the final period on abbreviations like Ibid.
@@ -630,13 +642,8 @@ removeFinalPeriod ils =
 
 bcp47LangToIETF :: PandocMonad m => Text -> m (Maybe Lang)
 bcp47LangToIETF bcplang =
-  case BCP47.parseBCP47 bcplang of
+  case parseLang bcplang of
     Left _ -> do
       report $ InvalidLang bcplang
       return Nothing
-    Right lang ->
-      return $ Just
-             $ Lang (BCP47.langLanguage lang)
-                    (if T.null (BCP47.langRegion lang)
-                        then Nothing
-                        else Just (BCP47.langRegion lang))
+    Right lang -> return $ Just lang

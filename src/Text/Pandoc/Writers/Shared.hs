@@ -20,6 +20,7 @@ module Text.Pandoc.Writers.Shared (
                      , setField
                      , resetField
                      , defField
+                     , getLang
                      , tagWithAttrs
                      , isDisplayMath
                      , fixDisplayMath
@@ -146,6 +147,19 @@ defField field val (Context m) =
   Context (M.insertWith f field (toVal val) m)
   where
     f _newval oldval = oldval
+
+-- | Get the contents of the `lang` metadata field or variable.
+getLang :: WriterOptions -> Meta -> Maybe T.Text
+getLang opts meta =
+  case lookupContext "lang" (writerVariables opts) of
+        Just s -> Just s
+        _      ->
+          case lookupMeta "lang" meta of
+               Just (MetaBlocks [Para [Str s]])  -> Just s
+               Just (MetaBlocks [Plain [Str s]]) -> Just s
+               Just (MetaInlines [Str s])        -> Just s
+               Just (MetaString s)               -> Just s
+               _                                 -> Nothing
 
 -- | Produce an HTML tag with the given pandoc attributes.
 tagWithAttrs :: HasChars a => T.Text -> Attr -> Doc a
@@ -380,6 +394,7 @@ toSuperscript '2' = Just '\x00B2'
 toSuperscript '3' = Just '\x00B3'
 toSuperscript '+' = Just '\x207A'
 toSuperscript '-' = Just '\x207B'
+toSuperscript '\x2212' = Just '\x207B' -- unicode minus
 toSuperscript '=' = Just '\x207C'
 toSuperscript '(' = Just '\x207D'
 toSuperscript ')' = Just '\x207E'

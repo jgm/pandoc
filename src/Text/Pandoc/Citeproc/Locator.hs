@@ -20,7 +20,7 @@ parseLocator :: Locale -> [Inline] -> (Maybe (Text, Text), [Inline])
 parseLocator locale inp =
   case parse (pLocatorWords (toLocatorMap locale)) "suffix" $ splitInp inp of
        Right r -> r
-       Left _  -> (Nothing, inp)
+       Left _  -> (Nothing, maybeAddComma inp)
 
 splitInp :: [Inline] -> [Inline]
 splitInp = splitStrWhen (\c -> isSpace c || (isPunctuation c && c /= ':'))
@@ -42,8 +42,16 @@ pLocatorWords locMap = do
   -- i.e. the first one will be " 9"
   return $
     if T.null la && T.null lo
-       then (Nothing, s)
+       then (Nothing, maybeAddComma s)
        else (Just (la, T.strip lo), s)
+
+maybeAddComma :: [Inline] -> [Inline]
+maybeAddComma [] = []
+maybeAddComma ils@(Space : _) = ils
+maybeAddComma ils@(Str t : _)
+  | Just (c, _) <- T.uncons t
+  , isPunctuation c = ils
+maybeAddComma ils = Str "," : Space : ils
 
 pLocatorDelimited :: LocatorMap -> LocatorParser (Text, Text)
 pLocatorDelimited locMap = try $ do
@@ -97,7 +105,7 @@ pLocatorLabel' locMap lim = go ""
           t <- anyToken
           ts <- manyTill anyToken (try $ lookAhead lim)
           let s = acc <> stringify (t:ts)
-          case M.lookup (T.strip s) locMap of
+          case M.lookup (T.toCaseFold $ T.strip s) locMap of
             -- try to find a longer one, or return this one
             Just l -> go s <|> return (l, False)
             Nothing -> go s
@@ -181,6 +189,7 @@ pPageUnit = roman <|> plainUnit
       plainUnit = do
           ts <- many1 (notFollowedBy pSpace >>
                        notFollowedBy pLocatorPunct >>
+                       notFollowedBy pMath >>
                        anyToken)
           let s = stringify ts
           -- otherwise look for actual digits or -s
@@ -210,6 +219,12 @@ pMatchChar msg f = satisfyTok f' <?> msg
 
 pSpace :: LocatorParser Inline
 pSpace = satisfyTok (\t -> isSpacey t || t == Str "\160") <?> "space"
+
+pMath :: LocatorParser Inline
+pMath = satisfyTok isMath
+ where
+  isMath (Math{}) = True
+  isMath _ = False
 
 satisfyTok :: (Inline -> Bool) -> LocatorParser Inline
 satisfyTok f = tokenPrim show (\sp _ _ -> sp) (\tok -> if f tok

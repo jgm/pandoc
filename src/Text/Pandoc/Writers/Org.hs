@@ -404,9 +404,11 @@ inlineToOrg (Str str) = return . literal $ escapeString str
 inlineToOrg (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath
-              then "$" <> literal str <> "$"
-              else "$$" <> literal str <> "$$"
+              then "\\(" <> literal str <> "\\)"
+              else "\\[" <> literal str <> "\\]"
 inlineToOrg il@(RawInline f str)
+  | elem f ["tex", "latex"] && T.isPrefixOf "\\begin" str =
+    return $ cr <> literal str <> cr
   | isRawFormat f = return $ literal str
   | otherwise     = do
       report $ InlineNotRendered il

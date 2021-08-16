@@ -41,6 +41,7 @@ hline :: PandocMonad m => LP m ()
 hline = try $ do
   spaces
   controlSeq "hline" <|>
+    (controlSeq "cline" <* braced) <|>
     -- booktabs rules:
     controlSeq "toprule" <|>
     controlSeq "bottomrule" <|>

@@ -1,0 +1,34 @@
+[Para [Str "See",Space,Str "Table",Space,Str "5.1."]
+,Para [Str "Table",Space,Str "5.1"]
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignDefault,ColWidth 0.7605739372523825)
+ ,(AlignDefault,ColWidth 0.11971303137380876)
+ ,(AlignDefault,ColWidth 0.11971303137380876)]
+ (TableHead ("",[],[])
+[Row ("",[],[])
+ [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  []
+ ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "Count"]]
+ ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "%"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+ [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "First",Space,Str "option"]]
+ ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "242"]]
+ ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "45"]]]
+,Row ("",[],[])
+ [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "Second",Space,Str "option"]]
+ ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "99"]]
+ ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+  [Plain [Str "18"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Header 2 ("section", [], []) []]

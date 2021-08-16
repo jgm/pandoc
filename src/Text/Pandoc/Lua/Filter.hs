@@ -13,7 +13,9 @@ module Text.Pandoc.Lua.Filter ( LuaFilterFunction
                               , LuaFilter
                               , runFilterFile
                               , walkInlines
+                              , walkInlineLists
                               , walkBlocks
+                              , walkBlockLists
                               , module Text.Pandoc.Lua.Walk
                               ) where
 import Control.Applicative ((<|>))

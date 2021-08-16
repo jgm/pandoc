@@ -22,7 +22,6 @@ import Control.Applicative ((<|>))
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Reader
 import Control.Monad.State.Strict
-import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import Data.Char (isSpace, isLetter)
 import Data.List (intercalate, isPrefixOf, isSuffixOf)
@@ -36,8 +35,9 @@ import qualified Data.Text.Lazy as TL
 import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
-import Text.Pandoc.BCP47 (getLang, renderLang)
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
+import Text.Collate.Lang (renderLang)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang, translateTerm)
+import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Data.Time
 import Text.Pandoc.UTF8 (fromTextLazy)
@@ -47,122 +47,24 @@ import Text.Pandoc.Highlighting (highlight)
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
-import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType,
-                         getMimeTypeDef)
+import Text.Pandoc.MIME (extensionFromMimeType, getMimeType, getMimeTypeDef)
 import Text.Pandoc.Options
 import Text.Pandoc.Writers.Docx.StyleMap
+import Text.Pandoc.Writers.Docx.Table
+import Text.Pandoc.Writers.Docx.Types
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
+import qualified Text.Pandoc.Writers.GridTable as Grid
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
-import Text.Printf (printf)
 import Text.TeXMath
 import Text.Pandoc.Writers.OOXML
 import Text.Pandoc.XML.Light as XML
 import Data.Generics (mkT, everywhere)
 
-data ListMarker = NoMarker
-                | BulletMarker
-                | NumberMarker ListNumberStyle ListNumberDelim Int
-                deriving (Show, Read, Eq, Ord)
-
-listMarkerToId :: ListMarker -> Text
-listMarkerToId NoMarker = "990"
-listMarkerToId BulletMarker = "991"
-listMarkerToId (NumberMarker sty delim n) = T.pack $
-  '9' : '9' : styNum : delimNum : show n
-  where styNum = case sty of
-                      DefaultStyle -> '2'
-                      Example      -> '3'
-                      Decimal      -> '4'
-                      LowerRoman   -> '5'
-                      UpperRoman   -> '6'
-                      LowerAlpha   -> '7'
-                      UpperAlpha   -> '8'
-        delimNum = case delim of
-                      DefaultDelim -> '0'
-                      Period       -> '1'
-                      OneParen     -> '2'
-                      TwoParens    -> '3'
-
-data EnvProps = EnvProps{ styleElement  :: Maybe Element
-                        , otherElements :: [Element]
-                        }
-
-instance Semigroup EnvProps where
-  EnvProps s es <> EnvProps s' es' = EnvProps (s <|> s') (es ++ es')
-
-instance Monoid EnvProps where
-  mempty = EnvProps Nothing []
-  mappend = (<>)
-
 squashProps :: EnvProps -> [Element]
 squashProps (EnvProps Nothing es) = es
 squashProps (EnvProps (Just e) es) = e : es
-
-data WriterEnv = WriterEnv{ envTextProperties :: EnvProps
-                          , envParaProperties :: EnvProps
-                          , envRTL            :: Bool
-                          , envListLevel      :: Int
-                          , envListNumId      :: Int
-                          , envInDel          :: Bool
-                          , envChangesAuthor  :: Text
-                          , envChangesDate    :: Text
-                          , envPrintWidth     :: Integer
-                          }
-
-defaultWriterEnv :: WriterEnv
-defaultWriterEnv = WriterEnv{ envTextProperties = mempty
-                            , envParaProperties = mempty
-                            , envRTL = False
-                            , envListLevel = -1
-                            , envListNumId = 1
-                            , envInDel = False
-                            , envChangesAuthor  = "unknown"
-                            , envChangesDate    = "1969-12-31T19:00:00Z"
-                            , envPrintWidth     = 1
-                            }
-
-data WriterState = WriterState{
-         stFootnotes      :: [Element]
-       , stComments       :: [([(Text, Text)], [Inline])]
-       , stSectionIds     :: Set.Set Text
-       , stExternalLinks  :: M.Map Text Text
-       , stImages         :: M.Map FilePath (String, String, Maybe MimeType, B.ByteString)
-       , stLists          :: [ListMarker]
-       , stInsId          :: Int
-       , stDelId          :: Int
-       , stStyleMaps      :: StyleMaps
-       , stFirstPara      :: Bool
-       , stInTable        :: Bool
-       , stInList         :: Bool
-       , stTocTitle       :: [Inline]
-       , stDynamicParaProps :: Set.Set ParaStyleName
-       , stDynamicTextProps :: Set.Set CharStyleName
-       , stCurId          :: Int
-       }
-
-defaultWriterState :: WriterState
-defaultWriterState = WriterState{
-        stFootnotes      = defaultFootnotes
-      , stComments       = []
-      , stSectionIds     = Set.empty
-      , stExternalLinks  = M.empty
-      , stImages         = M.empty
-      , stLists          = [NoMarker]
-      , stInsId          = 1
-      , stDelId          = 1
-      , stStyleMaps      = StyleMaps M.empty M.empty
-      , stFirstPara      = False
-      , stInTable        = False
-      , stInList         = False
-      , stTocTitle       = [Str "Table of Contents"]
-      , stDynamicParaProps = Set.empty
-      , stDynamicTextProps = Set.empty
-      , stCurId          = 20
-      }
-
-type WS m = ReaderT WriterEnv (StateT WriterState m)
 
 renumIdMap :: Int -> [Element] -> M.Map Text Text
 renumIdMap _ [] = M.empty
@@ -568,12 +470,27 @@ writeDocx opts doc = do
   -- adds references to footnotes or endnotes we don't have...
   -- we do, however, copy some settings over from reference
   let settingsPath = "word/settings.xml"
-      settingsList = [ "w:autoHyphenation"
-                     , "w:consecutiveHyphenLimit"
-                     , "w:hyphenationZone"
-                     , "w:doNotHyphenateCap"
-                     , "w:evenAndOddHeaders"
-                     , "w:proofState"
+      settingsList = [ "zoom"
+                     , "embedSystemFonts"
+                     , "doNotTrackMoves"
+                     , "defaultTabStop"
+                     , "drawingGridHorizontalSpacing"
+                     , "drawingGridVerticalSpacing"
+                     , "displayHorizontalDrawingGridEvery"
+                     , "displayVerticalDrawingGridEvery"
+                     , "characterSpacingControl"
+                     , "savePreviewPicture"
+                     , "mathPr"
+                     , "themeFontLang"
+                     , "decimalSymbol"
+                     , "listSeparator"
+                     , "autoHyphenation"
+                     , "consecutiveHyphenLimit"
+                     , "hyphenationZone"
+                     , "doNotHyphenateCap"
+                     , "evenAndOddHeaders"
+                     , "proofState"
+                     , "compat"
                      ]
   settingsEntry <- copyChildren refArchive distArchive settingsPath epochtime settingsList
 
@@ -676,16 +593,17 @@ copyChildren :: (PandocMonad m)
 copyChildren refArchive distArchive path timestamp elNames = do
   ref  <- parseXml refArchive distArchive path
   dist <- parseXml distArchive distArchive path
+  let elsToCopy =
+        map cleanElem $ filterChildrenName (\e -> qName e `elem` elNames) ref
+  let elsToKeep =
+        [e | Elem e <- elContent dist, not (any (hasSameNameAs e) elsToCopy)]
   return $ toEntry path timestamp $ renderXml dist{
-      elContent = elContent dist ++ copyContent ref
+      elContent = map Elem elsToKeep ++ map Elem elsToCopy
     }
   where
-    strName QName{qName=name, qPrefix=prefix}
-      | Just p <- prefix = p <> ":" <> name
-      | otherwise        = name
-    shouldCopy = (`elem` elNames) . strName
-    cleanElem el@Element{elName=name} = Elem el{elName=name{qURI=Nothing}}
-    copyContent = map cleanElem . filterChildrenName shouldCopy
+    hasSameNameAs (Element {elName = n1}) (Element {elName = n2}) =
+      qName n1 == qName n2
+    cleanElem el@Element{elName=name} = el{elName=name{qURI=Nothing}}
 
 -- this is the lowest number used for a list numId
 baseListId :: Int
@@ -858,12 +776,6 @@ separateTables (x@Table{}:xs@(Table{}:_)) =
   x : RawBlock (Format "openxml") "<w:p />" : separateTables xs
 separateTables (x:xs) = x : separateTables xs
 
-pStyleM :: (PandocMonad m) => ParaStyleName -> WS m XML.Element
-pStyleM styleName = do
-  pStyleMap <- gets (smParaStyle . stStyleMaps)
-  let sty' = getStyleIdFromName styleName pStyleMap
-  return $ mknode "w:pStyle" [("w:val", fromStyleId sty')] ()
-
 rStyleM :: (PandocMonad m) => CharStyleName -> WS m XML.Element
 rStyleM styleName = do
   cStyleMap <- gets (smCharStyle . stStyleMaps)
@@ -943,14 +855,31 @@ blockToOpenXML' opts (Plain lst) = do
 -- title beginning with fig: indicates that the image is a figure
 blockToOpenXML' opts (Para [Image attr alt (src,T.stripPrefix "fig:" -> Just tit)]) = do
   setFirstPara
+  fignum <- gets stNextFigureNum
+  unless (null alt) $ modify $ \st -> st{ stNextFigureNum = fignum + 1 }
+  let figid = "fig" <> tshow fignum
+  figname <- translateTerm Term.Figure
   prop <- pStyleM $
         if null alt
         then "Figure"
         else "Captioned Figure"
   paraProps <- local (\env -> env { envParaProperties = EnvProps (Just prop) [] <> envParaProperties env }) (getParaProps False)
   contents <- inlinesToOpenXML opts [Image attr alt (src,tit)]
-  captionNode <- withParaPropM (pStyleM "Image Caption")
-                 $ blockToOpenXML opts (Para alt)
+  captionNode <- if null alt
+                    then return []
+                    else withParaPropM (pStyleM "Image Caption")
+                         $ blockToOpenXML opts
+                         $ Para
+                         $ if isEnabled Ext_native_numbering opts
+                              then Span (figid,[],[])
+                                          [Str (figname <> "\160"),
+                                           RawInline (Format "openxml")
+                                           ("<w:fldSimple w:instr=\"SEQ Figure"
+                                           <> " \\* ARABIC \"><w:r><w:t>"
+                                           <> tshow fignum
+                                           <> "</w:t></w:r></w:fldSimple>"),
+                                           Str ":", Space] : alt
+                              else alt
   return $
     Elem (mknode "w:p" [] (map Elem paraProps ++ contents))
     : captionNode
@@ -995,78 +924,10 @@ blockToOpenXML' _ HorizontalRule = do
     $ mknode "v:rect" [("style","width:0;height:1.5pt"),
                        ("o:hralign","center"),
                        ("o:hrstd","t"),("o:hr","t")] () ]
-blockToOpenXML' opts (Table _ blkCapt specs thead tbody tfoot) = do
-  let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
-  setFirstPara
-  modify $ \s -> s { stInTable = True }
-  let captionStr = stringify caption
-  caption' <- if null caption
-                 then return []
-                 else withParaPropM (pStyleM "Table Caption")
-                      $ blockToOpenXML opts (Para caption)
-  let alignmentFor al = mknode "w:jc" [("w:val",alignmentToString al)] ()
-  -- Table cells require a <w:p> element, even an empty one!
-  -- Not in the spec but in Word 2007, 2010. See #4953. And
-  -- apparently the last element must be a <w:p>, see #6983.
-  let cellToOpenXML (al, cell) = do
-        es <- withParaProp (alignmentFor al) $ blocksToOpenXML opts cell
-        return $
-          case reverse (onlyElems es) of
-            b:e:_ | qName (elName b) == "bookmarkEnd"
-                  , qName (elName e) == "p" -> es
-            e:_   | qName (elName e) == "p" -> es
-            _ -> es ++ [Elem $ mknode "w:p" [] ()]
-  headers' <- mapM cellToOpenXML $ zip aligns headers
-  rows' <- mapM (mapM cellToOpenXML . zip aligns) rows
-  compactStyle <- pStyleM "Compact"
-  let emptyCell' = [Elem $ mknode "w:p" [] [mknode "w:pPr" [] [compactStyle]]]
-  let mkcell contents = mknode "w:tc" []
-                            $ if null contents
-                                 then emptyCell'
-                                 else contents
-  let mkrow cells =
-         mknode "w:tr" [] $
-           map mkcell cells
-  let textwidth = 7920  -- 5.5 in in twips, 1/20 pt
-  let fullrow = 5000 -- 100% specified in pct
-  let (rowwidth :: Int) = round $ fullrow * sum widths
-  let mkgridcol w = mknode "w:gridCol"
-                       [("w:w", tshow (floor (textwidth * w) :: Integer))] ()
-  let hasHeader = not $ all null headers
-  modify $ \s -> s { stInTable = False }
-  -- for compatibility with Word <= 2007, we include a val with a bitmask
-  -- 0×0020  Apply first row conditional formatting
-  -- 0×0040  Apply last row conditional formatting
-  -- 0×0080  Apply first column conditional formatting
-  -- 0×0100  Apply last column conditional formatting
-  -- 0×0200  Do not apply row banding conditional formatting
-  -- 0×0400  Do not apply column banding conditional formattin
-  let tblLookVal :: Int
-      tblLookVal = if hasHeader then 0x20 else 0
-  return $
-    caption' ++
-    [Elem $
-     mknode "w:tbl" []
-      ( mknode "w:tblPr" []
-        (   mknode "w:tblStyle" [("w:val","Table")] () :
-            mknode "w:tblW" [("w:type", "pct"), ("w:w", tshow rowwidth)] () :
-            mknode "w:tblLook" [("w:firstRow",if hasHeader then "1" else "0")
-                               ,("w:lastRow","0")
-                               ,("w:firstColumn","0")
-                               ,("w:lastColumn","0")
-                               ,("w:noHBand","0")
-                               ,("w:noVBand","0")
-                               ,("w:val", T.pack $ printf "%04x" tblLookVal)
-                               ] () :
-          [ mknode "w:tblCaption" [("w:val", captionStr)] ()
-          | not (null caption) ] )
-      : mknode "w:tblGrid" []
-        (if all (==0) widths
-            then []
-            else map mkgridcol widths)
-      : [ mkrow headers' | hasHeader ] ++
-      map mkrow rows'
-      )]
+blockToOpenXML' opts (Table attr caption colspecs thead tbodies tfoot) =
+  tableToOpenXML opts
+                 (blocksToOpenXML opts)
+                 (Grid.toTable attr caption colspecs thead tbodies tfoot)
 blockToOpenXML' opts el
   | BulletList lst <- el = addOpenXMLList BulletMarker lst
   | OrderedList (start, numstyle, numdelim) lst <- el
@@ -1121,13 +982,6 @@ listItemToOpenXML opts numid (first:rest) = do
   modify $ \st -> st{ stInList = oldInList }
   return $ first'' ++ rest''
 
-alignmentToString :: Alignment -> Text
-alignmentToString alignment = case alignment of
-                                 AlignLeft    -> "left"
-                                 AlignRight   -> "right"
-                                 AlignCenter  -> "center"
-                                 AlignDefault -> "left"
-
 -- | Convert a list of inline elements to OpenXML.
 inlinesToOpenXML :: PandocMonad m => WriterOptions -> [Inline] -> WS m [Content]
 inlinesToOpenXML opts lst = concat `fmap` mapM (inlineToOpenXML opts) lst
@@ -1137,10 +991,6 @@ withNumId numid = local $ \env -> env{ envListNumId = numid }
 
 asList :: (PandocMonad m) => WS m a -> WS m a
 asList = local $ \env -> env{ envListLevel = envListLevel env + 1 }
-
-isStyle :: Element -> Bool
-isStyle e = isElem [] "w" "rStyle" e ||
-            isElem [] "w" "pStyle" e
 
 getTextProps :: (PandocMonad m) => WS m [Element]
 getTextProps = do
@@ -1170,16 +1020,6 @@ getParaProps displayMathPara = do
                 [] -> []
                 ps -> [mknode "w:pPr" [] ps]
 
-withParaProp :: PandocMonad m => Element -> WS m a -> WS m a
-withParaProp d p =
-  local (\env -> env {envParaProperties = ep <> envParaProperties env}) p
-  where ep = if isStyle d then EnvProps (Just d) [] else EnvProps Nothing [d]
-
-withParaPropM :: PandocMonad m => WS m Element -> WS m a -> WS m a
-withParaPropM md p = do
-  d <- md
-  withParaProp d p
-
 formattedString :: PandocMonad m => Text -> WS m [Element]
 formattedString str =
   -- properly handle soft hyphens
@@ -1199,9 +1039,6 @@ formattedRun :: PandocMonad m => [Element] -> WS m [Element]
 formattedRun els = do
   props <- getTextProps
   return [ mknode "w:r" [] $ props ++ els ]
-
-setFirstPara :: PandocMonad m => WS m ()
-setFirstPara =  modify $ \s -> s { stFirstPara = True }
 
 -- | Convert an inline element to OpenXML.
 inlineToOpenXML :: PandocMonad m => WriterOptions -> Inline -> WS m [Content]
@@ -1471,6 +1308,7 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
             Just Eps  -> ".eps"
             Just Svg  -> ".svg"
             Just Emf  -> ".emf"
+            Just Tiff -> ".tiff"
             Nothing   -> ""
         imgpath = "media/" <> ident <> imgext
         mbMimeType = mt <|> getMimeType (T.unpack imgpath)
@@ -1493,22 +1331,6 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
 
 br :: Element
 br = mknode "w:r" [] [mknode "w:br" [] ()]
-
--- Word will insert these footnotes into the settings.xml file
--- (whether or not they're visible in the document). If they're in the
--- file, but not in the footnotes.xml file, it will produce
--- problems. So we want to make sure we insert them into our document.
-defaultFootnotes :: [Element]
-defaultFootnotes = [ mknode "w:footnote"
-                     [("w:type", "separator"), ("w:id", "-1")]
-                     [ mknode "w:p" []
-                       [mknode "w:r" []
-                        [ mknode "w:separator" [] ()]]]
-                   , mknode "w:footnote"
-                     [("w:type", "continuationSeparator"), ("w:id", "0")]
-                     [ mknode "w:p" []
-                       [ mknode "w:r" []
-                         [ mknode "w:continuationSeparator" [] ()]]]]
 
 
 withDirection :: PandocMonad m => WS m a -> WS m a

@@ -16,12 +16,11 @@ module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Control.Monad.State.Strict
 import Data.Char (ord, isDigit)
 import Data.List (intersperse)
-import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
-import Text.Pandoc.BCP47
+import Text.Collate.Lang (Lang(..))
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
@@ -178,8 +177,12 @@ blockToConTeXt (Para lst) = do
   contents <- inlineListToConTeXt lst
   return $ contents <> blankline
 blockToConTeXt (LineBlock lns) = do
-  doclines <- nowrap . vcat <$> mapM inlineListToConTeXt lns
-  return $ "\\startlines" $$ doclines $$ "\\stoplines" <> blankline
+  let emptyToBlankline doc = if isEmpty doc
+                             then blankline
+                             else doc
+  doclines <- mapM inlineListToConTeXt lns
+  let contextLines = vcat . map emptyToBlankline $ doclines
+  return $ "\\startlines" $$ contextLines $$ "\\stoplines" <> blankline
 blockToConTeXt (BlockQuote lst) = do
   contents <- blockListToConTeXt lst
   return $ "\\startblockquote" $$ nest 0 contents $$ "\\stopblockquote" <> blankline
@@ -229,14 +232,7 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
                         Period       -> "stopper=."
                         OneParen     -> "stopper=)"
                         TwoParens    -> "left=(,stopper=)"
-    let width = maybe 0 maximum $ nonEmpty $ map T.length $
-                  take (length contents)
-                       (orderedListMarkers (start, style', delim))
-    let width' = (toEnum width + 1) / 2
-    let width'' = if width' > (1.5 :: Double)
-                     then "width=" <> tshow width' <> "em"
-                     else ""
-    let specs2Items = filter (not . T.null) [start', delim', width'']
+    let specs2Items = filter (not . T.null) [start', delim']
     let specs2 = if null specs2Items
                     then ""
                     else "[" <> T.intercalate "," specs2Items <> "]"
@@ -250,8 +246,8 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
                           UpperAlpha   -> 'A') :
                        if isTightList lst then ",packed]" else "]"
     let specs = T.pack style'' <> specs2
-    return $ "\\startitemize" <> literal specs $$ vcat contents $$
-             "\\stopitemize" <> blankline
+    return $ "\\startenumerate" <> literal specs $$ vcat contents $$
+             "\\stopenumerate" <> blankline
 blockToConTeXt (DefinitionList lst) =
   liftM vcat $ mapM defListItemToConTeXt lst
 blockToConTeXt HorizontalRule = return $ "\\thinrule" <> blankline
@@ -483,7 +479,7 @@ inlineToConTeXt (Note contents) = do
               then literal "\\footnote{" <> nest 2 (chomp contents') <> char '}'
               else literal "\\startbuffer " <> nest 2 (chomp contents') <>
                    literal "\\stopbuffer\\footnote{\\getbuffer}"
-inlineToConTeXt (Span (_,_,kvs) ils) = do
+inlineToConTeXt (Span (ident,_,kvs) ils) = do
   mblang <- fromBCP47 (lookup "lang" kvs)
   let wrapDir txt = case lookup "dir" kvs of
                       Just "rtl" -> braces $ "\\righttoleft " <> txt
@@ -493,7 +489,11 @@ inlineToConTeXt (Span (_,_,kvs) ils) = do
                        Just lng -> braces ("\\language" <>
                                            brackets (literal lng) <> txt)
                        Nothing -> txt
-  wrapLang . wrapDir <$> inlineListToConTeXt ils
+      addReference =
+        if T.null ident
+        then id
+        else (("\\reference" <> brackets (literal ident) <> "{}") <>)
+  addReference . wrapLang . wrapDir <$> inlineListToConTeXt ils
 
 -- | Craft the section header, inserting the section reference, if supplied.
 sectionHeader :: PandocMonad m
@@ -555,26 +555,26 @@ fromBCP47 mbs = fromBCP47' <$> toLang mbs
 -- https://tools.ietf.org/html/bcp47#section-2.1
 -- http://wiki.contextgarden.net/Language_Codes
 fromBCP47' :: Maybe Lang -> Maybe Text
-fromBCP47' (Just (Lang "ar" _ "SY" _)     ) = Just "ar-sy"
-fromBCP47' (Just (Lang "ar" _ "IQ" _)     ) = Just "ar-iq"
-fromBCP47' (Just (Lang "ar" _ "JO" _)     ) = Just "ar-jo"
-fromBCP47' (Just (Lang "ar" _ "LB" _)     ) = Just "ar-lb"
-fromBCP47' (Just (Lang "ar" _ "DZ" _)     ) = Just "ar-dz"
-fromBCP47' (Just (Lang "ar" _ "MA" _)     ) = Just "ar-ma"
-fromBCP47' (Just (Lang "de" _ _ ["1901"]) ) = Just "deo"
-fromBCP47' (Just (Lang "de" _ "DE" _)     ) = Just "de-de"
-fromBCP47' (Just (Lang "de" _ "AT" _)     ) = Just "de-at"
-fromBCP47' (Just (Lang "de" _ "CH" _)     ) = Just "de-ch"
-fromBCP47' (Just (Lang "el" _ _ ["poly"]) ) = Just "agr"
-fromBCP47' (Just (Lang "en" _ "US" _)     ) = Just "en-us"
-fromBCP47' (Just (Lang "en" _ "GB" _)     ) = Just "en-gb"
-fromBCP47' (Just (Lang "grc"_  _ _)       ) = Just "agr"
-fromBCP47' (Just (Lang "el" _ _ _)        ) = Just "gr"
-fromBCP47' (Just (Lang "eu" _ _ _)        ) = Just "ba"
-fromBCP47' (Just (Lang "he" _ _ _)        ) = Just "il"
-fromBCP47' (Just (Lang "jp" _ _ _)        ) = Just "ja"
-fromBCP47' (Just (Lang "uk" _ _ _)        ) = Just "ua"
-fromBCP47' (Just (Lang "vi" _ _ _)        ) = Just "vn"
-fromBCP47' (Just (Lang "zh" _ _ _)        ) = Just "cn"
-fromBCP47' (Just (Lang l _ _ _)           ) = Just l
-fromBCP47' Nothing                          = Nothing
+fromBCP47' (Just (Lang "ar" _ (Just "SY") _ _ _)) = Just "ar-sy"
+fromBCP47' (Just (Lang "ar" _ (Just "IQ") _ _ _)) = Just "ar-iq"
+fromBCP47' (Just (Lang "ar" _ (Just "JO") _ _ _)) = Just "ar-jo"
+fromBCP47' (Just (Lang "ar" _ (Just "LB") _ _ _)) = Just "ar-lb"
+fromBCP47' (Just (Lang "ar" _ (Just "DZ") _ _ _)) = Just "ar-dz"
+fromBCP47' (Just (Lang "ar" _ (Just "MA") _ _ _)) = Just "ar-ma"
+fromBCP47' (Just (Lang "de" _ _ ["1901"] _ _))    = Just "deo"
+fromBCP47' (Just (Lang "de" _ (Just "DE") _ _ _)) = Just "de-de"
+fromBCP47' (Just (Lang "de" _ (Just "AT") _ _ _)) = Just "de-at"
+fromBCP47' (Just (Lang "de" _ (Just "CH") _ _ _)) = Just "de-ch"
+fromBCP47' (Just (Lang "el" _ _ ["poly"] _ _))    = Just "agr"
+fromBCP47' (Just (Lang "en" _ (Just "US") _ _ _)) = Just "en-us"
+fromBCP47' (Just (Lang "en" _ (Just "GB") _ _ _)) = Just "en-gb"
+fromBCP47' (Just (Lang "grc"_ _ _ _ _))           = Just "agr"
+fromBCP47' (Just (Lang "el" _ _ _ _ _))           = Just "gr"
+fromBCP47' (Just (Lang "eu" _ _ _ _ _))           = Just "ba"
+fromBCP47' (Just (Lang "he" _ _ _ _ _))           = Just "il"
+fromBCP47' (Just (Lang "jp" _ _ _ _ _))           = Just "ja"
+fromBCP47' (Just (Lang "uk" _ _ _ _ _))           = Just "ua"
+fromBCP47' (Just (Lang "vi" _ _ _ _ _))           = Just "vn"
+fromBCP47' (Just (Lang "zh" _ _ _ _ _))           = Just "cn"
+fromBCP47' (Just (Lang l _ _ _ _ _))              = Just l
+fromBCP47' Nothing                                = Nothing

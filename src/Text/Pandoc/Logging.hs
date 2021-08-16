@@ -85,6 +85,7 @@ data LogMessage =
   | CouldNotParseCSS Text
   | Fetching Text
   | Extracting Text
+  | LoadedResource FilePath FilePath
   | NoTitleElement Text
   | NoLangSpecified
   | InvalidLang Text
@@ -195,6 +196,9 @@ instance ToJSON LogMessage where
            ["path" .= fp]
       Extracting fp ->
            ["path" .= fp]
+      LoadedResource orig found ->
+           ["for"  .= orig
+           ,"from" .= found]
       NoTitleElement fallback ->
            ["fallback" .= fallback]
       NoLangSpecified -> []
@@ -241,9 +245,11 @@ instance ToJSON LogMessage where
 showPos :: SourcePos -> Text
 showPos pos = Text.pack $ sn ++ "line " ++
      show (sourceLine pos) ++ " column " ++ show (sourceColumn pos)
-  where sn = if sourceName pos == "source" || sourceName pos == ""
-                then ""
-                else sourceName pos ++ " "
+  where
+    sn' = sourceName pos
+    sn = if sn' == "source" || sn' == "" || sn' == "-"
+            then ""
+            else sn' ++ " "
 
 encodeLogMessages :: [LogMessage] -> BL.ByteString
 encodeLogMessages ms =
@@ -276,7 +282,7 @@ showLogMessage msg =
        ParsingUnescaped s pos ->
          "Parsing unescaped '" <> s <> "' at " <> showPos pos
        CouldNotLoadIncludeFile fp pos ->
-         "Could not load include file '" <> fp <> "' at " <> showPos pos
+         "Could not load include file " <> fp <> " at " <> showPos pos
        MacroAlreadyDefined name pos ->
          "Macro '" <> name <> "' already defined, ignoring at " <> showPos pos
        InlineNotRendered il ->
@@ -288,18 +294,18 @@ showLogMessage msg =
        IgnoredIOError s ->
          "IO Error (ignored): " <> s
        CouldNotFetchResource fp s ->
-         "Could not fetch resource '" <> fp <> "'" <>
+         "Could not fetch resource " <> fp <>
            if Text.null s then "" else ": " <> s
        CouldNotDetermineImageSize fp s ->
-         "Could not determine image size for '" <> fp <> "'" <>
+         "Could not determine image size for " <> fp <>
            if Text.null s then "" else ": " <> s
        CouldNotConvertImage fp s ->
-         "Could not convert image '" <> fp <> "'" <>
+         "Could not convert image " <> fp <>
            if Text.null s then "" else ": " <> s
        CouldNotDetermineMimeType fp ->
-         "Could not determine mime type for '" <> fp <> "'"
+         "Could not determine mime type for " <> fp
        CouldNotConvertTeXMath s m ->
-         "Could not convert TeX math '" <> s <> "', rendering as TeX" <>
+         "Could not convert TeX math " <> s <> ", rendering as TeX" <>
            if Text.null m then "" else ":\n" <> m
        CouldNotParseCSS m ->
          "Could not parse CSS" <> if Text.null m then "" else ":\n" <> m
@@ -307,6 +313,8 @@ showLogMessage msg =
          "Fetching " <> fp <> "..."
        Extracting fp ->
          "Extracting " <> fp <> "..."
+       LoadedResource orig found ->
+         "Loaded " <> Text.pack orig <> " from " <> Text.pack found
        NoTitleElement fallback ->
          "This document format requires a nonempty <title> element.\n" <>
          "Defaulting to '" <> fallback <> "' as the title.\n" <>
@@ -387,6 +395,7 @@ messageVerbosity msg =
        CouldNotParseCSS{}            -> WARNING
        Fetching{}                    -> INFO
        Extracting{}                  -> INFO
+       LoadedResource{}              -> INFO
        NoTitleElement{}              -> WARNING
        NoLangSpecified               -> INFO
        InvalidLang{}                 -> WARNING

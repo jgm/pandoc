@@ -34,6 +34,10 @@ without SVG support), [Python] (to use Pandoc filters), and
 
     choco install rsvg-convert python miktex
 
+Using multiple installation methods can result in two separate
+installations of pandoc; it is recommended to properly uninstall
+pandoc before switching to an alternative installation method.
+
 By default, Pandoc creates PDFs using LaTeX.
 We recommend installing it via [MiKTeX].
 
@@ -158,6 +162,11 @@ To run pandoc using Docker, converting `README.md` to `README.pdf`:
 Pandoc can be run through
 [GitHub Actions](https://github.com/features/actions).  For some
 examples, see <https://github.com/pandoc/pandoc-action-example>.
+
+## GitLab CI/CD
+
+Pandoc can be run through [GitLab CI/CD].  For some
+examples, see <https://gitlab.com/pandoc/pandoc-ci-example>.
 
 ## Compiling from source
 
@@ -388,6 +397,7 @@ To run just the markdown benchmarks:
 [Fedora]: https://apps.fedoraproject.org/packages/pandoc
 [FreeBSD ports]: https://www.freshports.org/textproc/hs-pandoc/
 [GHC]:  https://www.haskell.org/ghc/
+[GitLab CI/CD]: https://about.gitlab.com/stages-devops-lifecycle/continuous-integration/
 [Haskell platform]: https://hackage.haskell.org/platform/
 [MacPorts]: https://trac.macports.org/browser/trunk/dports/textproc/pandoc/Portfile
 [MacTeX]: https://tug.org/mactex/

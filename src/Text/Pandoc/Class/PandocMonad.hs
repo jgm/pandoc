@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -37,7 +38,6 @@ module Text.Pandoc.Class.PandocMonad
   , setUserDataDir
   , getUserDataDir
   , fetchItem
-  , fetchMediaResource
   , getInputFiles
   , setInputFiles
   , getOutputFile
@@ -57,8 +57,6 @@ module Text.Pandoc.Class.PandocMonad
 import Codec.Archive.Zip
 import Control.Monad.Except (MonadError (catchError, throwError),
                              MonadTrans, lift, when)
-import Data.Digest.Pure.SHA (sha1, showDigest)
-import Data.Maybe (fromMaybe)
 import Data.List (foldl')
 import Data.Time (UTCTime)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds,
@@ -67,16 +65,16 @@ import Data.Time.LocalTime (TimeZone, ZonedTime, utcToZonedTime)
 import Network.URI ( escapeURIString, nonStrictRelativeTo,
                      unEscapeString, parseURIReference, isAllowedInURI,
                      parseURI, URI(..) )
-import System.FilePath ((</>), (<.>), takeExtension, dropExtension,
-                        isRelative, splitDirectories)
+import System.FilePath ((</>), takeExtension, dropExtension,
+                        isRelative, splitDirectories, makeRelative)
 import System.Random (StdGen)
-import Text.Pandoc.BCP47 (Lang(..), parseBCP47, renderLang)
+import Text.Collate.Lang (Lang(..), parseLang, renderLang)
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
-import Text.Pandoc.MIME (MimeType, getMimeType, extensionFromMimeType)
-import Text.Pandoc.MediaBag (MediaBag, lookupMedia)
+import Text.Pandoc.MIME (MimeType, getMimeType)
+import Text.Pandoc.MediaBag (MediaBag, lookupMedia, MediaItem(..))
 import Text.Pandoc.Shared (uriPathToPath, safeRead)
 import Text.Pandoc.Translations (Term(..), Translations, lookupTerm,
                                  readTranslations)
@@ -285,7 +283,7 @@ readFileFromDirs (d:ds) f = catchError
 toLang :: PandocMonad m => Maybe T.Text -> m (Maybe Lang)
 toLang Nothing = return Nothing
 toLang (Just s) =
-  case parseBCP47 s of
+  case parseLang s of
        Left _ -> do
          report $ InvalidLang s
          return Nothing
@@ -376,7 +374,8 @@ fetchItem :: PandocMonad m
 fetchItem s = do
   mediabag <- getMediaBag
   case lookupMedia (T.unpack s) mediabag of
-    Just (mime, bs) -> return (BL.toStrict bs, Just mime)
+    Just item -> return (BL.toStrict (mediaContents item),
+                         Just (mediaMimeType item))
     Nothing -> downloadOrRead s
 
 -- | Returns the content and, if available, the MIME type of a resource.
@@ -411,9 +410,10 @@ downloadOrRead s = do
             _ -> readLocalFile fp -- get from local file system
    where readLocalFile f = do
              resourcePath <- getResourcePath
-             cont <- if isRelative f
-                        then withPaths resourcePath readFileStrict f
-                        else readFileStrict f
+             (fp', cont) <- if isRelative f
+                               then withPaths resourcePath readFileStrict f
+                               else (f,) <$> readFileStrict f
+             report $ LoadedResource f (makeRelative "." fp')
              return (cont, mime)
          httpcolon = URI{ uriScheme = "http:",
                           uriAuthority = Nothing,
@@ -623,24 +623,12 @@ makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
 -- that filepath. Returns the result of the first successful execution
 -- of the action, or throws a @PandocResourceNotFound@ exception if the
 -- action errors for all filepaths.
-withPaths :: PandocMonad m => [FilePath] -> (FilePath -> m a) -> FilePath -> m a
+withPaths :: PandocMonad m
+          => [FilePath] -> (FilePath -> m a) -> FilePath -> m (FilePath, a)
 withPaths [] _ fp = throwError $ PandocResourceNotFound $ T.pack fp
 withPaths (p:ps) action fp =
-  catchError (action (p </> fp))
+  catchError ((p </> fp,) <$> action (p </> fp))
              (\_ -> withPaths ps action fp)
-
--- | Fetch local or remote resource (like an image) and provide data suitable
--- for adding it to the MediaBag.
-fetchMediaResource :: PandocMonad m
-              => T.Text -> m (FilePath, Maybe MimeType, BL.ByteString)
-fetchMediaResource src = do
-  (bs, mt) <- downloadOrRead src
-  let ext = fromMaybe (T.pack $ takeExtension $ T.unpack src)
-                      (mt >>= extensionFromMimeType)
-  let bs' = BL.fromChunks [bs]
-  let basename = showDigest $ sha1 bs'
-  let fname = basename <.> T.unpack ext
-  return (fname, mt, bs')
 
 -- | Traverse tree, filling media bag for any images that
 -- aren't already in the media bag.
@@ -649,12 +637,13 @@ fillMediaBag d = walkM handleImage d
   where handleImage :: PandocMonad m => Inline -> m Inline
         handleImage (Image attr lab (src, tit)) = catchError
           (do mediabag <- getMediaBag
-              case lookupMedia (T.unpack src) mediabag of
-                Just (_, _) -> return $ Image attr lab (src, tit)
+              let fp = T.unpack src
+              case lookupMedia fp mediabag of
+                Just _ -> return ()
                 Nothing -> do
-                  (fname, mt, bs) <- fetchMediaResource src
-                  insertMedia fname mt bs
-                  return $ Image attr lab (T.pack fname, tit))
+                  (bs, mt) <- fetchItem src
+                  insertMedia fp mt (BL.fromStrict bs)
+              return $ Image attr lab (src, tit))
           (\e ->
               case e of
                 PandocResourceNotFound _ -> do

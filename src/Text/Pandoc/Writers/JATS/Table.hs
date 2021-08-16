@@ -24,7 +24,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions)
 import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Writers.JATS.Types
-import Text.Pandoc.XML (inTags, inTagsIndented, selfClosingTag)
+import Text.Pandoc.XML (escapeNCName, inTags, inTagsIndented, selfClosingTag)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 
@@ -34,13 +34,19 @@ tableToJATS :: PandocMonad m
             -> JATS m (Doc Text)
 tableToJATS opts (Ann.Table attr caption colspecs thead tbodies tfoot) = do
   let (Caption _maybeShortCaption captionBlocks) = caption
+  -- Only paragraphs are allowed in captions, all other blocks must be
+  -- wrapped in @<p>@ elements.
+  let needsWrapping = \case
+        Plain{} -> False
+        Para{}  -> False
+        _       -> True
   tbl <- captionlessTable opts attr colspecs thead tbodies tfoot
   captionDoc <- if null captionBlocks
                 then return empty
                 else do
                   blockToJATS <- asks jatsBlockWriter
-                  inTagsIndented "caption" . vcat <$>
-                    mapM (blockToJATS opts) captionBlocks
+                  inTagsIndented "caption" <$>
+                    blockToJATS needsWrapping opts captionBlocks
   return $ inTags True "table-wrap" [] $ captionDoc $$ tbl
 
 captionlessTable :: PandocMonad m
@@ -216,7 +222,7 @@ cellToJats opts celltype (Ann.Cell (colspec :| _) _colNum cell) =
 
 toAttribs :: Attr -> [Text] -> [(Text, Text)]
 toAttribs (ident, _classes, kvs) knownAttribs =
-  (if T.null ident then id else (("id", ident) :)) $
+  (if T.null ident then id else (("id", escapeNCName ident) :)) $
   filter ((`elem` knownAttribs) . fst) kvs
 
 tableCellToJats :: PandocMonad m
@@ -230,7 +236,7 @@ tableCellToJats opts ctype colAlign (Cell attr align rowspan colspan item) = do
   inlinesToJats <- asks jatsInlinesWriter
   let cellContents = \case
         [Plain inlines] -> inlinesToJats opts inlines
-        blocks          -> vcat <$> mapM (blockToJats opts) blocks
+        blocks          -> blockToJats needsWrapInCell opts blocks
   let tag' = case ctype of
         BodyCell   -> "td"
         HeaderCell -> "th"
@@ -246,3 +252,17 @@ tableCellToJats opts ctype colAlign (Cell attr align rowspan colspan item) = do
               . maybeCons (colspanAttrib colspan)
               $ toAttribs attr validAttribs
   inTags False tag' attribs <$> cellContents item
+
+-- | Whether the JATS produced from this block should be wrapped in a
+-- @<p>@ element when put directly below a @<td>@ element.
+needsWrapInCell :: Block -> Bool
+needsWrapInCell = \case
+  Plain{}          -> False  -- should be unwrapped anyway
+  Para{}           -> False
+  BulletList{}     -> False
+  OrderedList{}    -> False
+  DefinitionList{} -> False
+  HorizontalRule   -> False
+  CodeBlock{}      -> False
+  RawBlock{}       -> False  -- responsibility of the user
+  _                -> True

@@ -2,7 +2,7 @@
 \PassOptionsToPackage{unicode$for(hyperrefoptions)$,$hyperrefoptions$$endfor$}{hyperref}
 \PassOptionsToPackage{hyphens}{url}
 $if(colorlinks)$
-\PassOptionsToPackage{dvipsnames,svgnames*,x11names*}{xcolor}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
 $endif$
 $if(dir)$
 $if(latex-dir-rtl)$
@@ -156,6 +156,25 @@ $if(CJKmainfont)$
   \fi
 $endif$
 \fi
+$if(zero-width-non-joiner)$
+%% Support for zero-width non-joiner characters.
+\makeatletter
+\def\zerowidthnonjoiner{%
+  % Prevent ligatures and adjust kerning, but still support hyphenating.
+  \texorpdfstring{%
+    \textormath{\nobreak\discretionary{-}{}{\kern.03em}%
+      \ifvmode\else\nobreak\hskip\z@skip\fi}{}%
+  }{}%
+}
+\makeatother
+\ifPDFTeX
+  \DeclareUnicodeCharacter{200C}{\zerowidthnonjoiner}
+\else
+  \catcode`^^^^200c=\active
+  \protected\def ^^^^200c{\zerowidthnonjoiner}
+\fi
+%% End of ZWNJ support
+$endif$
 $if(beamer)$
 $if(theme)$
 \usetheme[$for(themeoptions)$$themeoptions$$sep$,$endfor$]{$theme$}
@@ -296,6 +315,7 @@ $if(links-as-notes)$
 \DeclareRobustCommand{\href}[2]{#2\footnote{\url{#1}}}
 $endif$
 $if(strikeout)$
+$-- also used for underline
 \usepackage[normalem]{ulem}
 % Avoid problems with \sout in headers with hyperref
 \pdfstringdefDisableCommands{\renewcommand{\sout}{}}
@@ -324,6 +344,31 @@ $endif$
 $endif$
 $if(pagestyle)$
 \pagestyle{$pagestyle$}
+$endif$
+$if(csl-refs)$
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newlength{\cslentryspacingunit} % times entry-spacing
+\setlength{\cslentryspacingunit}{\parskip}
+\newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
+ {% don't indent paragraphs
+  \setlength{\parindent}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+  \let\oldpar\par
+  \def\par{\hangindent=\cslhangindent\oldpar}
+  \fi
+  % set entry spacing
+  \setlength{\parskip}{#2\cslentryspacingunit}
+ }%
+ {}
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{#1\hfill\break}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 $endif$
 $for(header-includes)$
 $header-includes$
@@ -374,28 +419,6 @@ $endfor$
 $endif$
 $if(nocite-ids)$
 \nocite{$for(nocite-ids)$$it$$sep$, $endfor$}
-$endif$
-$if(csl-refs)$
-\newlength{\cslhangindent}
-\setlength{\cslhangindent}{1.5em}
-\newlength{\csllabelwidth}
-\setlength{\csllabelwidth}{3em}
-\newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
- {% don't indent paragraphs
-  \setlength{\parindent}{0pt}
-  % turn on hanging indent if param 1 is 1
-  \ifodd #1 \everypar{\setlength{\hangindent}{\cslhangindent}}\ignorespaces\fi
-  % set entry spacing
-  \ifnum #2 > 0
-  \setlength{\parskip}{#2\baselineskip}
-  \fi
- }%
- {}
-\usepackage{calc}
-\newcommand{\CSLBlock}[1]{#1\hfill\break}
-\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
-\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
-\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 $endif$
 $if(csquotes)$
 \usepackage{csquotes}
@@ -472,11 +495,11 @@ $endif$
 }
 $endif$
 $endif$
-$if(lot)$
-\listoftables
-$endif$
 $if(lof)$
 \listoffigures
+$endif$
+$if(lot)$
+\listoftables
 $endif$
 $if(linestretch)$
 \setstretch{$linestretch$}

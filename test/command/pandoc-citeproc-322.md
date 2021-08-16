@@ -19,7 +19,7 @@ references:
   type: 'article-journal'
 ---
 
-Foo[@timmory__justice_1950].
+Foo [@timmory__justice_1950].
 ^D
 Foo.[^1]
 

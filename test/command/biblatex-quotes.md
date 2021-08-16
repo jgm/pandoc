@@ -36,7 +36,7 @@ references:
   language: en-US
   publisher: Princeton University Press
   publisher-place: Princeton
-  title: "Aristotle's \"De Motu Animalium\""
+  title: Aristotle's "De Motu Animalium"
   type: book
 ---
 

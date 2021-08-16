@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Pandoc.Readers.LaTeX.SIunitx
   ( siunitxCommands )
@@ -9,27 +10,32 @@ import Text.Pandoc.Class
 import Text.Pandoc.Parsing hiding (blankline, mathDisplay, mathInline,
                             optional, space, spaces, withRaw, (<|>))
 import Control.Applicative ((<|>))
+import Control.Monad (void)
 import qualified Data.Map as M
 import Data.Char (isDigit)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.List (intersperse)
-
+import qualified Data.Sequence as Seq
+import Text.Pandoc.Walk (walk)
 
 siunitxCommands :: PandocMonad m
                  => LP m Inlines -> M.Map Text (LP m Inlines)
 siunitxCommands tok = M.fromList
-  [ ("si", skipopts *> dosi tok)
+  [ ("si", dosi tok)
   , ("SI", doSI tok)
   , ("SIrange", doSIrange True tok)
   , ("numrange", doSIrange False tok)
   , ("numlist", doSInumlist)
+  , ("SIlist", doSIlist tok)
   , ("num", doSInum)
   , ("ang", doSIang)
   ]
 
 dosi :: PandocMonad m => LP m Inlines -> LP m Inlines
-dosi tok = grouped (siUnit tok) <|> siUnit tok
+dosi tok = do
+  options <- option [] keyvals
+  grouped (siUnit options tok) <|> siUnit options tok
 
 -- converts e.g. \SI{1}[\$]{} to "$ 1" or \SI{1}{\euro} to "1 €"
 doSI :: PandocMonad m => LP m Inlines -> LP m Inlines
@@ -64,23 +70,50 @@ doSInumlist = do
              mconcat (intersperse (str "," <> space) (init xs)) <>
              text ", & " <> last xs
 
+doSIlist :: PandocMonad m => LP m Inlines -> LP m Inlines
+doSIlist tok = do
+  options <- option [] keyvals
+  nums <- map tonum . T.splitOn ";" . untokenize <$> braced
+  unit <- grouped (siUnit options tok) <|> siUnit options tok
+  let xs = map (<> (str "\xa0" <> unit)) nums
+  case xs of
+    []  -> return mempty
+    [x] -> return x
+    _   -> return $
+             mconcat (intersperse (str "," <> space) (init xs)) <>
+             text ", & " <> last xs
+
 parseNum :: Parser Text () Inlines
 parseNum = (mconcat <$> many parseNumPart) <* eof
+
+minus :: Text
+minus = "\x2212"
+
+hyphenToMinus :: Inline -> Inline
+hyphenToMinus (Str t) = Str (T.replace "-" minus t)
+hyphenToMinus x = x
 
 parseNumPart :: Parser Text () Inlines
 parseNumPart =
   parseDecimalNum <|>
   parseComma <|>
   parsePlusMinus <|>
+  parsePM <|>
   parseI <|>
   parseExp <|>
   parseX <|>
   parseSpace
  where
-  parseDecimalNum = do
-    pref <- option mempty $ (mempty <$ char '+') <|> ("\x2212" <$ char '-')
-    basenum <- (pref <>) . T.pack
-                <$> many1 (satisfy (\c -> isDigit c || c == '.'))
+  parseDecimalNum, parsePlusMinus, parsePM,
+    parseComma, parseI, parseX,
+    parseExp, parseSpace :: Parser Text () Inlines
+  parseDecimalNum = try $ do
+    pref <- option mempty $ (mempty <$ char '+') <|> (minus <$ char '-')
+    basenum' <- many1 (satisfy (\c -> isDigit c || c == '.'))
+    let basenum = pref <> T.pack
+                    (case basenum' of
+                      '.':_ -> '0':basenum'
+                      _ -> basenum')
     uncertainty <- option mempty $ T.pack <$> parseParens
     if T.null uncertainty
        then return $ str basenum
@@ -98,6 +131,7 @@ parseNumPart =
                                                | otherwise -> "." <> t
   parseComma = str "." <$ char ','
   parsePlusMinus = str "\xa0\xb1\xa0" <$ try (string "+-")
+  parsePM = str "\xa0\xb1\xa0" <$ try (string "\\pm")
   parseParens =
     char '(' *> many1 (satisfy (\c -> isDigit c || c == '.')) <* char ')'
   parseI = str "i" <$ char 'i'
@@ -110,11 +144,14 @@ doSIang :: PandocMonad m => LP m Inlines
 doSIang = do
   skipopts
   ps <- T.splitOn ";" . untokenize <$> braced
+  let dropPlus t = case T.uncons t of
+                     Just ('+',t') -> t'
+                     _ -> t
   case ps ++ repeat "" of
     (d:m:s:_) -> return $
-      (if T.null d then mempty else str d <> str "\xb0") <>
-      (if T.null m then mempty else str m <> str "\x2032") <>
-      (if T.null s then mempty else str s <> str "\x2033")
+      (if T.null d then mempty else str (dropPlus d) <> str "\xb0") <>
+      (if T.null m then mempty else str (dropPlus m) <> str "\x2032") <>
+      (if T.null s then mempty else str (dropPlus s) <> str "\x2033")
     _ -> return mempty
 
 -- converts e.g. \SIrange{100}{200}{\ms} to "100 ms--200 ms"
@@ -143,40 +180,99 @@ doSIrange includeUnits tok = do
 emptyOr160 :: Inlines -> Inlines
 emptyOr160 x = if x == mempty then x else str "\160"
 
-siUnit :: PandocMonad m => LP m Inlines -> LP m Inlines
-siUnit tok = try (do
-  Tok _ (CtrlSeq name) _ <- anyControlSeq
-  case name of
-    "square" -> do
-       unit <- siUnit tok
-       return $ unit <> superscript "2"
-    "cubic" -> do
-       unit <- siUnit tok
-       return $ unit <> superscript "3"
-    "raisetothe" -> do
-       n <- tok
-       unit <- siUnit tok
-       return $ unit <> superscript n
-    _ ->
-       case M.lookup name siUnitMap of
-            Just il ->
-              option il $
-                choice
-                 [ (il <> superscript "2") <$ controlSeq "squared"
-                 , (il <> superscript "3") <$ controlSeq "cubed"
-                 , (\n -> il <> superscript n) <$> (controlSeq "tothe" *> tok)
-                 ]
-            Nothing -> fail "not an siunit unit command")
- <|> (lookAhead anyControlSeq >> tok)
- <|> (do Tok _ Word t <- satisfyTok isWordTok
-         return $ str t)
- <|> (symbol '^' *> (superscript <$> tok))
- <|> (symbol '_' *> (subscript <$> tok))
- <|> ("\xa0" <$ symbol '.')
- <|> ("\xa0" <$ symbol '~')
- <|> tok
- <|> (do Tok _ _ t <- anyTok
-         return (str t))
+siUnit :: forall m. PandocMonad m => [(Text,Text)] -> LP m Inlines -> LP m Inlines
+siUnit options tok = mconcat . intersperse (str "\xa0") <$> many1 siUnitPart
+ where
+  siUnitPart :: LP m Inlines
+  siUnitPart = try $ do
+    skipMany (void (symbol '.') <|> void (symbol '~') <|> spaces1)
+    x <- ((siPrefix <*> siBase)
+            <|> (do u <- siBase <|> tok
+                    option u $ siSuffix <*> pure u))
+    option x (siInfix x)
+  siInfix :: Inlines -> LP m Inlines
+  siInfix u1 = try $
+       (do _ <- controlSeq "per"
+           u2 <- siUnitPart
+           let useSlash = lookup "per-mode" options == Just "symbol"
+           if useSlash
+              then return (u1 <> str "/" <> u2)
+              else return (u1 <> str "\xa0" <> negateExponent u2))
+   <|> (do _ <- symbol '/'
+           u2 <- siUnitPart
+           return (u1 <> str "/" <> u2))
+  siPrefix :: LP m (Inlines -> Inlines)
+  siPrefix =
+       (do _ <- controlSeq "square"
+           skipopts
+           return (<> superscript "2"))
+   <|> (do _ <- controlSeq "cubic"
+           skipopts
+           return (<> superscript "3"))
+   <|> (do _ <- controlSeq "raisetothe"
+           skipopts
+           n <- walk hyphenToMinus <$> tok
+           return (<> superscript n))
+  siSuffix :: LP m (Inlines -> Inlines)
+  siSuffix =
+       (do _ <- controlSeq "squared"
+           skipopts
+           return (<> superscript "2"))
+   <|> (do _ <- controlSeq "cubed"
+           skipopts
+           return (<> superscript "3"))
+   <|> (do _ <- controlSeq "tothe"
+           skipopts
+           n <- walk hyphenToMinus <$> tok
+           return (<> superscript n))
+   <|> (symbol '^' *> (do n <- walk hyphenToMinus <$> tok
+                          return (<> superscript n)))
+   <|> (symbol '_' *> (do n <- walk hyphenToMinus <$> tok
+                          return (<> subscript n)))
+  negateExponent :: Inlines -> Inlines
+  negateExponent ils =
+    case Seq.viewr (unMany ils) of
+      xs Seq.:> Superscript ss -> (Many xs) <>
+                                     superscript (str minus <> fromList ss)
+      _ -> ils <> superscript (str (minus <> "1"))
+  siBase :: LP m Inlines
+  siBase =
+    ((try
+       (do Tok _ (CtrlSeq name) _ <- anyControlSeq
+           case M.lookup name siUnitModifierMap of
+              Just il -> (il <>) <$> siBase
+              Nothing ->
+                case M.lookup name siUnitMap of
+                   Just il -> pure il
+                   Nothing -> fail "not a unit command"))
+    <|> (do Tok _ Word t <- satisfyTok isWordTok
+            return $ str t)
+     )
+
+siUnitModifierMap :: M.Map Text Inlines
+siUnitModifierMap = M.fromList
+  [ ("atto", str "a")
+  , ("centi", str "c")
+  , ("deca", str "d")
+  , ("deci", str "d")
+  , ("deka", str "d")
+  , ("exa", str "E")
+  , ("femto", str "f")
+  , ("giga", str "G")
+  , ("hecto", str "h")
+  , ("kilo", str "k")
+  , ("mega", str "M")
+  , ("micro", str "μ")
+  , ("milli", str "m")
+  , ("nano", str "n")
+  , ("peta", str "P")
+  , ("pico", str "p")
+  , ("tera", str "T")
+  , ("yocto", str "y")
+  , ("yotta", str "Y")
+  , ("zepto", str "z")
+  , ("zetta", str "Z")
+  ]
 
 siUnitMap :: M.Map Text Inlines
 siUnitMap = M.fromList
@@ -276,7 +372,6 @@ siUnitMap = M.fromList
   , ("arcsecond", str "″")
   , ("astronomicalunit", str "ua")
   , ("atomicmassunit", str "u")
-  , ("atto", str "a")
   , ("bar", str "bar")
   , ("barn", str "b")
   , ("becquerel", str "Bq")
@@ -284,51 +379,38 @@ siUnitMap = M.fromList
   , ("bohr", emph (str "a") <> subscript (str "0"))
   , ("candela", str "cd")
   , ("celsius", str "°C")
-  , ("centi", str "c")
   , ("clight", emph (str "c") <> subscript (str "0"))
   , ("coulomb", str "C")
   , ("dalton", str "Da")
   , ("day", str "d")
-  , ("deca", str "d")
-  , ("deci", str "d")
   , ("decibel", str "db")
   , ("degreeCelsius",str "°C")
   , ("degree", str "°")
-  , ("deka", str "d")
   , ("electronmass", emph (str "m") <> subscript (str "e"))
   , ("electronvolt", str "eV")
   , ("elementarycharge", emph (str "e"))
-  , ("exa", str "E")
   , ("farad", str "F")
-  , ("femto", str "f")
-  , ("giga", str "G")
   , ("gram", str "g")
   , ("gray", str "Gy")
   , ("hartree", emph (str "E") <> subscript (str "h"))
   , ("hectare", str "ha")
-  , ("hecto", str "h")
   , ("henry", str "H")
   , ("hertz", str "Hz")
   , ("hour", str "h")
   , ("joule", str "J")
   , ("katal", str "kat")
   , ("kelvin", str "K")
-  , ("kilo", str "k")
   , ("kilogram", str "kg")
   , ("knot", str "kn")
   , ("liter", str "L")
   , ("litre", str "l")
   , ("lumen", str "lm")
   , ("lux", str "lx")
-  , ("mega", str "M")
   , ("meter", str "m")
   , ("metre", str "m")
-  , ("micro", str "μ")
-  , ("milli", str "m")
   , ("minute", str "min")
   , ("mmHg", str "mmHg")
   , ("mole", str "mol")
-  , ("nano", str "n")
   , ("nauticalmile", str "M")
   , ("neper", str "Np")
   , ("newton", str "N")
@@ -336,25 +418,17 @@ siUnitMap = M.fromList
   , ("Pa", str "Pa")
   , ("pascal", str "Pa")
   , ("percent", str "%")
-  , ("per", str "/")
-  , ("peta", str "P")
-  , ("pico", str "p")
   , ("planckbar", emph (str "\x210f"))
   , ("radian", str "rad")
   , ("second", str "s")
   , ("siemens", str "S")
   , ("sievert", str "Sv")
   , ("steradian", str "sr")
-  , ("tera", str "T")
   , ("tesla", str "T")
   , ("tonne", str "t")
   , ("volt", str "V")
   , ("watt", str "W")
   , ("weber", str "Wb")
-  , ("yocto", str "y")
-  , ("yotta", str "Y")
-  , ("zepto", str "z")
-  , ("zetta", str "Z")
   ]
 
 

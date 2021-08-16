@@ -90,7 +90,7 @@ references:
   - family: Ryde
     given: Ulf
   container-title: Journal of Computational Chemistry
-  doi: "10.1002/(SICI)1096-987X(199803)19:4\\<377::AID-JCC1\\>3.0.CO;2-P"
+  doi: "10.1002/(SICI)1096-987X(199803)19:4\\<377::AID-JCC1>3.0.CO;2-P"
   id: sigfridsson
   issue: 4
   issued: 1998

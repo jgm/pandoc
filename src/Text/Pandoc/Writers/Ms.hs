@@ -245,13 +245,17 @@ blockToMs opts (Table _ blkCapt specs thead tbody tfoot) =
       aligncode AlignDefault = "l"
   in do
   caption' <- inlineListToMs' opts caption
-  let iwidths = if all (== 0) widths
-                   then repeat ""
-                   else map (T.pack . printf "w(%0.1fn)" . (70 *)) widths
+  let isSimple = all (== 0) widths
+  let totalWidth = 70
   -- 78n default width - 8n indent = 70n
   let coldescriptions = literal $ T.unwords
-                        (zipWith (\align width -> aligncode align <> width)
-                        alignments iwidths) <> "."
+                        (zipWith (\align width -> aligncode align <>
+                                    if width == 0
+                                       then ""
+                                       else T.pack $
+                                              printf "w(%0.1fn)"
+                                              (totalWidth * width))
+                        alignments widths) <> "."
   colheadings <- mapM (blockListToMs opts) headers
   let makeRow cols = literal "T{" $$
                      vcat (intersperse (literal "T}\tT{") cols) $$
@@ -260,13 +264,25 @@ blockToMs opts (Table _ blkCapt specs thead tbody tfoot) =
                         then empty
                         else makeRow colheadings $$ char '_'
   body <- mapM (\row -> do
-                         cols <- mapM (blockListToMs opts) row
+                         cols <- mapM (\(cell, w) ->
+                                   (if isSimple
+                                       then id
+                                       else (literal (".nr LL " <>
+                                              T.pack (printf "%0.1fn"
+                                                (w * totalWidth))) $$)) <$>
+                                   blockListToMs opts cell) (zip row widths)
                          return $ makeRow cols) rows
   setFirstPara
   return $ literal ".PP" $$ caption' $$
            literal ".na" $$ -- we don't want justification in table cells
+           (if isSimple
+               then ""
+               else ".nr LLold \\n[LL]") $$
            literal ".TS" $$ literal "delim(@@) tab(\t);" $$ coldescriptions $$
            colheadings' $$ vcat body $$ literal ".TE" $$
+           (if isSimple
+               then ""
+               else ".nr LL \\n[LLold]") $$
            literal ".ad"
 
 blockToMs opts (BulletList items) = do

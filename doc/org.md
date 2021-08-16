@@ -25,8 +25,7 @@ The following export keywords are supported:
 - LANGUAGE: document language; included as plain-text metadata
   field `lang`. The value should be a [BCP47 language tag].
 
-- SELECT_TAGS: tags which select a tree for export. Currently
-  *unsupported*.
+- SELECT_TAGS: tags which select a tree for export.
 
 - EXCLUDE\_TAGS: tags which prevent a subtree from being
   exported. Fully supported.
@@ -36,6 +35,21 @@ The following export keywords are supported:
 - EXPORT\_FILE\_NAME: target filename; *unsupported*, the output
   defaults to stdout unless a target has to be given as a command
   line option.
+
+::: {.alert .alert-info}
+Pandoc tries to be compatible with org-mode when exporting an org document. If
+you find some behavior confusing, please do refer to org-mode
+[Export-Settings](https://orgmode.org/manual/Export-Settings.html)
+documentation. For example, a common confusion
+([#3214](https://github.com/jgm/pandoc/issues/3214 "Problem with headers lower
+then 3 in org-mode reader"), [#5169](https://github.com/jgm/pandoc/issues/5169
+"org mode headings past level three converted to numbered outline list"),
+[#6145](https://github.com/jgm/pandoc/issues/6145 "Headers 4 levels deep render
+differently"), [#7236](https://github.com/jgm/pandoc/issues/7236 "In Org mode,
+Header with level > 3 are not recognized as headers")) is treatment of headers
+with level > 3 differently because org-mode sets `org-export-headline-levels`
+(configurable with `#+OPTIONS: H:3`) to 3 by default.
+:::
 
 [BCP47 language tag]: https://tools.ietf.org/html/bcp47
 

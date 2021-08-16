@@ -1,0 +1,10 @@
+Pandoc (Meta {unMeta = fromList [("operator",MetaInlines [Str "John",Space,Str "MacFarlane"])]})
+[Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "test",Space,Str "of",Space,Str "FORMATTING.",Space,Str "This",Space,Str "is",Space,Str "hidden:",Space,Str "."]
+,Para [SmallCaps [Str "Small",Space,Str "Caps"]]
+,Para [Strong [Str "bold"]]
+,Para [Emph [Str "italics"]]
+,Para [Strong [Str "bold",Space,Emph [Str "and",Space,Str "italics"]]]
+,Para [Underline [Str "underlined"]]
+,Para [Strikeout [Str "strikeout"]]
+,Para [Str "x",Superscript [Str "superscript"]]
+,Para [Str "x",Subscript [Str "subscript"]]]

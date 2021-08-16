@@ -39,5 +39,5 @@ writePowerpoint opts (Pandoc meta blks) = do
   let blks' = walk fixDisplayMath blks
   let (pres, logMsgs) = documentToPresentation opts (Pandoc meta blks')
   mapM_ report logMsgs
-  archv <- presentationToArchive opts pres
+  archv <- presentationToArchive opts meta pres
   return $ fromArchive archv

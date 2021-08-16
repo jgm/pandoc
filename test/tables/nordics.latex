@@ -1,17 +1,35 @@
 \begin{longtable}[]{@{}
-  >{\centering\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.30}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.30}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.20}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.20}}@{}}
+  >{\centering\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2000}}@{}}
 \caption{States belonging to the \emph{Nordics.}}\tabularnewline
 \toprule
-Name & Capital & \vtop{\hbox{\strut Population}\hbox{\strut (in 2018)}} &
-\vtop{\hbox{\strut Area}\hbox{\strut (in km\textsuperscript{2})}} \\
+\begin{minipage}[b]{\linewidth}\centering
+Name
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+Capital
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+Population\\
+(in 2018)\strut
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+Area\\
+(in km\textsuperscript{2})\strut
+\end{minipage} \\
 \midrule
 \endfirsthead
 \toprule
-Name & Capital & \vtop{\hbox{\strut Population}\hbox{\strut (in 2018)}} &
-\vtop{\hbox{\strut Area}\hbox{\strut (in km\textsuperscript{2})}} \\
+\begin{minipage}[b]{\linewidth}\centering
+Name
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+Capital
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+Population\\
+(in 2018)\strut
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+Area\\
+(in km\textsuperscript{2})\strut
+\end{minipage} \\
 \midrule
 \endhead
 Denmark & Copenhagen & 5,809,502 & 43,094 \\

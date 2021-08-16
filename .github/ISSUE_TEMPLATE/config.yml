@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://groups.google.com/forum/#!forum/pandoc-discuss
+    about: "Discussion forum for pandoc (may be used as an email list)"
+  - name: Contributing Guidelines
+    url: https://pandoc.org/CONTRIBUTING.html
+    about: "Guidelines for submitting bug reports and code improvements"
+

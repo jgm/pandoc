@@ -1,10 +1,10 @@
 [Header 2 ("a-table-with-and-without-a-header-row",[],[]) [Str "A",Space,Str "table,",Space,Str "with",Space,Str "and",Space,Str "without",Space,Str "a",Space,Str "header",Space,Str "row"]
 ,Table ("",[],[]) (Caption Nothing
  [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
+ [(AlignDefault,ColWidth 0.25)
+ ,(AlignDefault,ColWidth 0.25)
+ ,(AlignDefault,ColWidth 0.25)
+ ,(AlignDefault,ColWidth 0.25)]
  (TableHead ("",[],[])
  [Row ("",[],[])
   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
@@ -48,8 +48,8 @@
  [])
 ,Table ("",[],[]) (Caption Nothing
  [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
+ [(AlignDefault,ColWidth 0.5)
+ ,(AlignDefault,ColWidth 0.5)]
  (TableHead ("",[],[])
  [])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
@@ -68,8 +68,8 @@
  [])
 ,Table ("",[],[]) (Caption Nothing
  [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
+ [(AlignDefault,ColWidth 0.5)
+ ,(AlignDefault,ColWidth 0.5)]
  (TableHead ("",[],[])
  [])
  [(TableBody ("",[],[]) (RowHeadColumns 0)

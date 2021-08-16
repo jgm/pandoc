@@ -1,4 +1,5 @@
 {-# LANGUAGE Arrows            #-}
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE DeriveFoldable    #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PatternGuards     #-}
@@ -33,7 +34,7 @@ import Data.List (find)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Maybe
-import Data.Semigroup (First(..), Option(..))
+import Data.Monoid (Alt (..))
 
 import Text.TeXMath (readMathML, writeTeX)
 import qualified Text.Pandoc.XML.Light as XML
@@ -505,13 +506,11 @@ type InlineMatcher = ElementMatcher Inlines
 
 type BlockMatcher  = ElementMatcher Blocks
 
-
-newtype FirstMatch a = FirstMatch (Option (First a))
-                     deriving (Foldable, Monoid, Semigroup)
+newtype FirstMatch a = FirstMatch (Alt Maybe a)
+  deriving (Foldable, Monoid, Semigroup)
 
 firstMatch :: a -> FirstMatch a
-firstMatch = FirstMatch . Option . Just . First
-
+firstMatch = FirstMatch . Alt . Just
 
 --
 matchingElement :: (Monoid e)
@@ -577,7 +576,10 @@ read_spaces       = matchingElement NsText "s" (
 read_line_break  :: InlineMatcher
 read_line_break   = matchingElement NsText "line-break"
                     $ returnV linebreak
-
+--
+read_tab         :: InlineMatcher
+read_tab          = matchingElement NsText "tab"
+                    $ returnV space
 --
 read_span        :: InlineMatcher
 read_span         = matchingElement NsText "span"
@@ -585,6 +587,7 @@ read_span         = matchingElement NsText "span"
                     $ matchChildContent [ read_span
                                         , read_spaces
                                         , read_line_break
+                                        , read_tab
                                         , read_link
                                         , read_note
                                         , read_citation
@@ -604,6 +607,7 @@ read_paragraph    = matchingElement NsText "p"
                     $ matchChildContent [ read_span
                                         , read_spaces
                                         , read_line_break
+                                        , read_tab
                                         , read_link
                                         , read_note
                                         , read_citation
@@ -630,6 +634,7 @@ read_header       = matchingElement NsText "h"
   children <- ( matchChildContent [ read_span
                                   , read_spaces
                                   , read_line_break
+                                  , read_tab
                                   , read_link
                                   , read_note
                                   , read_citation

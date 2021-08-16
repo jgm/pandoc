@@ -171,7 +171,7 @@ $if(subtitle)$
   <h1 class="subtitle">$subtitle$</h1>
 $endif$
   <footer>
-    $if(author)$<span class="author">$for(author)$$author$$sep$, $endfor$</span>$endif$ · $if(date)$<span class="date">$date$</span>$endif$
+    $if(author)$<span class="author">$for(author)$$author$$sep$, $endfor$</span> · $endif$$if(institute)$<span class="institute">$for(institute)$$institute$$sep$, $endfor$</span> · $endif$$if(date)$<span class="date">$date$</span>$endif$
   </footer>
 </section>
 $endif$

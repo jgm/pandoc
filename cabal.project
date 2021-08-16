@@ -2,7 +2,7 @@ packages: pandoc.cabal
 tests: True
 flags: +embed_data_files
 
--- source-repository-package
---  type: git
---  location: https://github.com/jgm/citeproc
---  tag: d44e24696ab444090d0e63e321c3a573f68b2e74
+source-repository-package
+  type: git
+  location: https://github.com/jgm/citeproc.git
+  tag: 8d03cb722fac3ea8f17f432ac20abe35361df551

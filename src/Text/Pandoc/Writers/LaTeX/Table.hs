@@ -16,6 +16,7 @@ module Text.Pandoc.Writers.LaTeX.Table
   ) where
 import Control.Monad.State.Strict
 import Data.List (intersperse)
+import qualified Data.List.NonEmpty as NonEmpty
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -25,7 +26,8 @@ import Text.DocLayout
   ( Doc, braces, cr, empty, hcat, hsep, isEmpty, literal, nest
   , text, vcat, ($$) )
 import Text.Pandoc.Shared (blocksToInlines, splitBy, tshow)
-import Text.Pandoc.Walk (walk)
+import Text.Pandoc.Walk (walk, query)
+import Data.Monoid (Any(..))
 import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
 import Text.Pandoc.Writers.LaTeX.Notes (notesToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Types
@@ -100,7 +102,7 @@ colDescriptors (Ann.Table _attr _caption specs thead tbodies tfoot) =
     toColDescriptor :: Int -> Alignment -> Double -> Text
     toColDescriptor numcols align width =
       T.pack $ printf
-      ">{%s\\arraybackslash}p{(\\columnwidth - %d\\tabcolsep) * \\real{%0.2f}}"
+      ">{%s\\arraybackslash}p{(\\columnwidth - %d\\tabcolsep) * \\real{%0.4f}}"
       (T.unpack (alignCommand align))
       ((numcols - 1) * 2)
       width
@@ -219,9 +221,7 @@ footRows (Ann.TableFoot _attr rows) = map headerRowCells rows
 -- we need to go to some lengths to get line breaks working:
 -- as LineBreak bs = \vtop{\hbox{\strut as}\hbox{\strut bs}}.
 fixLineBreaks :: Block -> Block
-fixLineBreaks (Para ils)  = Para $ fixLineBreaks' ils
-fixLineBreaks (Plain ils) = Plain $ fixLineBreaks' ils
-fixLineBreaks x           = x
+fixLineBreaks = walk fixLineBreaks'
 
 fixLineBreaks' :: [Inline] -> [Inline]
 fixLineBreaks' ils = case splitBy (== LineBreak) ils of
@@ -245,8 +245,13 @@ cellToLaTeX :: PandocMonad m
             -> Ann.Cell
             -> LW m (Doc Text)
 cellToLaTeX blockListToLaTeX celltype annotatedCell = do
-  let (Ann.Cell _specs _colnum cell) = annotatedCell
-  let (Cell _attr align rowspan colspan blocks) = cell
+  let (Ann.Cell specs _colnum cell) = annotatedCell
+  let hasWidths = snd (NonEmpty.head specs) /= ColWidthDefault
+  let specAlign = fst (NonEmpty.head specs)
+  let (Cell _attr align' rowspan colspan blocks) = cell
+  let align = case align' of
+                AlignDefault -> specAlign
+                _            -> align'
   beamer <- gets stBeamer
   externalNotes <- gets stExternalNotes
   inMinipage <- gets stInMinipage
@@ -257,8 +262,13 @@ cellToLaTeX blockListToLaTeX celltype annotatedCell = do
         Para{}  -> True
         Plain{} -> True
         _       -> False
+  let hasLineBreak LineBreak = Any True
+      hasLineBreak _ = Any False
+  let hasLineBreaks = getAny $ query hasLineBreak blocks
   result <-
-    if all isPlainOrPara blocks
+    if not hasWidths || (celltype /= HeaderCell
+                           && all isPlainOrPara blocks
+                           && not hasLineBreaks)
        then
          blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
        else do
@@ -271,7 +281,9 @@ cellToLaTeX blockListToLaTeX celltype annotatedCell = do
          let halign = literal $ alignCommand align
          return $ "\\begin{minipage}" <> valign <>
                   braces "\\linewidth" <> halign <> cr <>
-                  cellContents <> cr <>
+                  cellContents <>
+                  (if hasLineBreaks then "\\strut" else mempty)
+                  <> cr <>
                   "\\end{minipage}"
   modify $ \st -> st{ stExternalNotes = externalNotes }
   when (rowspan /= RowSpan 1) $
@@ -292,3 +304,4 @@ cellToLaTeX blockListToLaTeX celltype annotatedCell = do
 data CellType
   = HeaderCell
   | BodyCell
+  deriving Eq

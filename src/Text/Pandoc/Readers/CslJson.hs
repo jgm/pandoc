@@ -24,21 +24,22 @@ import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder (setMeta, cite, str)
 import qualified Text.Pandoc.UTF8 as UTF8
-import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Citeproc.CslJson (cslJsonToReferences)
 import Text.Pandoc.Citeproc.MetaValue (referenceToMetaValue)
 import Control.Monad.Except (throwError)
+import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 
 -- | Read CSL JSON from an input string and return a Pandoc document.
 -- The document will have only metadata, with an empty body.
 -- The metadata will contain a `references` field with the
 -- bibliography entries, and a `nocite` field with the wildcard `[@*]`.
-readCslJson :: PandocMonad m => ReaderOptions -> Text -> m Pandoc
-readCslJson _opts t =
-  case cslJsonToReferences (UTF8.fromText t) of
+readCslJson :: (PandocMonad m, ToSources a)
+            => ReaderOptions -> a -> m Pandoc
+readCslJson _opts x =
+  case cslJsonToReferences (UTF8.fromText $ sourcesToText $ toSources x) of
     Left e -> throwError $ PandocParseError $ T.pack e
     Right refs -> return $ setMeta "references"
                               (map referenceToMetaValue refs)

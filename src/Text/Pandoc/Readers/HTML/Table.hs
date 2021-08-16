@@ -17,6 +17,7 @@ module Text.Pandoc.Readers.HTML.Table (pTable) where
 
 import Control.Applicative ((<|>))
 import Data.Maybe (fromMaybe)
+import Data.Either (lefts, rights)
 import Data.List.NonEmpty (nonEmpty)
 import Data.Text (Text)
 import Text.HTML.TagSoup
@@ -33,33 +34,50 @@ import Text.Pandoc.Shared (onlySimpleTableCells, safeRead)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 
--- | Parses a @<col>@ element, returning the column's width. Defaults to
--- @'ColWidthDefault'@ if the width is not set or cannot be determined.
-pCol :: PandocMonad m => TagParser m ColWidth
+-- | Parses a @<col>@ element, returning the column's width.
+-- An Either value is used:  Left i means a "relative length" with
+-- integral value i (see https://www.w3.org/TR/html4/types.html#h-6.6);
+-- Right w means a regular width.  Defaults to @'Right ColWidthDefault'@
+-- if the width is not set or cannot be determined.
+pCol :: PandocMonad m => TagParser m (Either Int ColWidth)
 pCol = try $ do
   TagOpen _ attribs' <- pSatisfy (matchTagOpen "col" [])
   let attribs = toStringAttr attribs'
   skipMany pBlank
   optional $ pSatisfy (matchTagClose "col")
   skipMany pBlank
-  let width = case lookup "width" attribs of
+  return $ case lookup "width" attribs of
                 Nothing -> case lookup "style" attribs of
                   Just (T.stripPrefix "width:" -> Just xs) | T.any (== '%') xs ->
-                    fromMaybe 0.0 $ safeRead (T.filter
-                      (`notElem` (" \t\r\n%'\";" :: [Char])) xs)
-                  _ -> 0.0
+                    maybe (Right ColWidthDefault) (Right . ColWidth . (/ 100.0))
+                      $ safeRead (T.filter
+                                   (`notElem` (" \t\r\n%'\";" :: [Char])) xs)
+                  _ -> Right ColWidthDefault
+                Just (T.unsnoc -> Just (xs, '*')) ->
+                  maybe (Left 1) Left $ safeRead xs
                 Just (T.unsnoc -> Just (xs, '%')) ->
-                  fromMaybe 0.0 $ safeRead xs
-                _ -> 0.0
-  if width > 0.0
-    then return $ ColWidth $ width / 100.0
-    else return ColWidthDefault
+                  maybe (Right ColWidthDefault)
+                        (Right . ColWidth . (/ 100.0)) $ safeRead xs
+                _ -> Right ColWidthDefault
 
-pColgroup :: PandocMonad m => TagParser m [ColWidth]
+pColgroup :: PandocMonad m => TagParser m [Either Int ColWidth]
 pColgroup = try $ do
   pSatisfy (matchTagOpen "colgroup" [])
   skipMany pBlank
   manyTill pCol (pCloses "colgroup" <|> eof) <* skipMany pBlank
+
+resolveRelativeLengths :: [Either Int ColWidth] -> [ColWidth]
+resolveRelativeLengths ws =
+  let remaining = 1 - sum (map getColWidth $ rights ws)
+      relatives = sum $ lefts ws
+      relUnit = remaining / fromIntegral relatives
+      toColWidth (Right x) = x
+      toColWidth (Left i) = ColWidth (fromIntegral i * relUnit)
+  in  map toColWidth ws
+
+getColWidth :: ColWidth -> Double
+getColWidth ColWidthDefault = 0
+getColWidth (ColWidth w) = w
 
 data CellType
   = HeaderCell
@@ -182,7 +200,8 @@ pTable :: PandocMonad m
 pTable block = try $ do
   TagOpen _ attribs <- pSatisfy (matchTagOpen "table" [])  <* skipMany pBlank
   caption <- option mempty $ pInTags "caption" block       <* skipMany pBlank
-  widths  <- ((mconcat <$> many1 pColgroup) <|> many pCol) <* skipMany pBlank
+  widths <- resolveRelativeLengths <$>
+              ((mconcat <$> many1 pColgroup) <|> many pCol) <* skipMany pBlank
   thead   <- pTableHead block               <* skipMany pBlank
   topfoot <- optionMaybe (pTableFoot block) <* skipMany pBlank
   tbodies <- many (pTableBody block)        <* skipMany pBlank

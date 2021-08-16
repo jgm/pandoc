@@ -29,7 +29,7 @@ import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import Text.DocTemplates (FromContext(lookupContext), renderTemplate,
                           Val(..), Context(..))
-import Text.Pandoc.BCP47 (Lang (..), getLang, renderLang)
+import Text.Collate.Lang (Lang (..), renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
@@ -173,6 +173,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "has-chapters" (stHasChapters st) $
                   defField "has-frontmatter" (documentClass `elem` frontmatterClasses) $
                   defField "listings" (writerListings options || stLHS st) $
+                  defField "zero-width-non-joiner" (stZwnj st) $
                   defField "beamer" beamer $
                   (if stHighlighting st
                       then case writerHighlightStyle options of
@@ -290,7 +291,12 @@ blockToLaTeX :: PandocMonad m
              => Block     -- ^ Block to convert
              -> LW m (Doc Text)
 blockToLaTeX Null = return empty
-blockToLaTeX (Div attr@(identifier,"block":_,_) (Header _ _ ils : bs)) = do
+blockToLaTeX (Div attr@(identifier,"block":dclasses,_)
+             (Header _ _ ils : bs)) = do
+  let blockname
+        | "example" `elem` dclasses = "exampleblock"
+        | "alert" `elem` dclasses = "alertblock"
+        | otherwise = "block"
   ref <- toLabel identifier
   let anchor = if T.null identifier
                   then empty
@@ -298,8 +304,8 @@ blockToLaTeX (Div attr@(identifier,"block":_,_) (Header _ _ ils : bs)) = do
                        braces (literal ref) <> braces empty
   title' <- inlineListToLaTeX ils
   contents <- blockListToLaTeX bs
-  wrapDiv attr $ ("\\begin{block}" <> braces title' <> anchor) $$
-                 contents $$ "\\end{block}"
+  wrapDiv attr $ ("\\begin" <> braces blockname <> braces title' <> anchor) $$
+                 contents $$ "\\end" <> braces blockname
 blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
                (Header _ (_,hclasses,hkvs) ils : bs)) = do
   -- note: [fragile] is required or verbatim breaks
@@ -423,6 +429,7 @@ blockToLaTeX (BlockQuote lst) = do
 blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   opts <- gets stOptions
   lab <- labelFor identifier
+  inNote <- stInNote <$> get
   linkAnchor' <- hypertarget True identifier lab
   let linkAnchor = if isEmpty linkAnchor'
                       then empty
@@ -432,8 +439,7 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
         return $ flush (linkAnchor $$ "\\begin{code}" $$ literal str $$
                             "\\end{code}") $$ cr
   let rawCodeBlock = do
-        st <- get
-        env <- if stInNote st
+        env <- if inNote
                   then modify (\s -> s{ stVerbInNote = True }) >>
                        return "Verbatim"
                   else return "verbatim"
@@ -469,14 +475,13 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                  "\\end{lstlisting}") $$ cr
   let highlightedCodeBlock =
         case highlight (writerSyntaxMap opts)
-                 formatLaTeXBlock ("",classes,keyvalAttr) str of
+                 formatLaTeXBlock ("",classes ++ ["default"],keyvalAttr) str of
                Left msg -> do
                  unless (T.null msg) $
                    report $ CouldNotHighlight msg
                  rawCodeBlock
                Right h -> do
-                  st <- get
-                  when (stInNote st) $ modify (\s -> s{ stVerbInNote = True })
+                  when inNote $ modify (\s -> s{ stVerbInNote = True })
                   modify (\s -> s{ stHighlighting = True })
                   return (flush $ linkAnchor $$ text (T.unpack h))
   case () of
@@ -485,6 +490,12 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
        | writerListings opts                 -> listingsCodeBlock
        | not (null classes) && isJust (writerHighlightStyle opts)
                                              -> highlightedCodeBlock
+       -- we don't want to use \begin{verbatim} if our code
+       -- contains \end{verbatim}:
+       | inNote
+       , "\\end{Verbatim}" `T.isInfixOf` str -> highlightedCodeBlock
+       | not inNote
+       , "\\end{verbatim}" `T.isInfixOf` str -> highlightedCodeBlock
        | otherwise                           -> rawCodeBlock
 blockToLaTeX b@(RawBlock f x) = do
   beamer <- gets stBeamer
@@ -780,7 +791,9 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
         then braces contents
         else foldr inCmd contents cmds)
 inlineToLaTeX (Emph lst) = inCmd "emph" <$> inlineListToLaTeX lst
-inlineToLaTeX (Underline lst) = inCmd "underline" <$> inlineListToLaTeX lst
+inlineToLaTeX (Underline lst) = do
+  modify $ \st -> st{ stStrikeout = True } -- this gives us the ulem package
+  inCmd "uline" <$> inlineListToLaTeX lst
 inlineToLaTeX (Strong lst) = inCmd "textbf" <$> inlineListToLaTeX lst
 inlineToLaTeX (Strikeout lst) = do
   -- we need to protect VERB in an mbox or we get an error
@@ -888,8 +901,9 @@ inlineToLaTeX (Quoted qt lst) = do
                       then char '`' <> inner <> char '\''
                       else char '\x2018' <> inner <> char '\x2019'
     where
-      isQuoted (Quoted _ _) = True
-      isQuoted _            = False
+      isQuoted (Span _ (x:_)) = isQuoted x
+      isQuoted (Quoted _ _)   = True
+      isQuoted _              = False
 inlineToLaTeX (Str str) = do
   setEmptyLine False
   liftM literal $ stringToLaTeX TextString str
@@ -912,7 +926,7 @@ inlineToLaTeX il@(RawInline f str) = do
 inlineToLaTeX LineBreak = do
   emptyLine <- gets stEmptyLine
   setEmptyLine True
-  return $ (if emptyLine then "~" else "") <> "\\\\" <> cr
+  return $ (if emptyLine then "\\strut " else "") <> "\\\\" <> cr
 inlineToLaTeX SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
   case wrapText of
@@ -1043,5 +1057,3 @@ extractInline _ _               = []
 -- Look up a key in an attribute and give a list of its values
 lookKey :: Text -> Attr -> [Text]
 lookKey key (_,_,kvs) =  maybe [] T.words $ lookup key kvs
-
-

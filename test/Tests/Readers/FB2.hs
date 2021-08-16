@@ -7,7 +7,7 @@
    Stability   : alpha
    Portability : portable
 
-Tests for the EPUB mediabag.
+Tests for the FB2 reader.
 -}
 module Tests.Readers.FB2 (tests) where
 

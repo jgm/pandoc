@@ -116,7 +116,7 @@ blockToZimWiki opts b@(RawBlock f str)
 blockToZimWiki _ HorizontalRule = return "\n----\n"
 
 blockToZimWiki opts (Header level _ inlines) = do
-  contents <- inlineListToZimWiki opts $ removeFormatting inlines   -- emphasis, links etc. not allowed in headers
+  contents <- inlineListToZimWiki opts inlines
   let eqs = T.replicate ( 7 - level ) "="
   return $ eqs <> " " <> contents <> " " <> eqs <> "\n"
 

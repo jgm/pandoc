@@ -120,7 +120,7 @@ simpleCiteArgs inline = try $ do
       runParserT (mconcat <$> many inline) st "bracketed option" toks
     case parsed of
       Right result -> return result
-      Left e       -> throwError $ PandocParsecError (untokenize toks) e
+      Left e       -> throwError $ PandocParsecError (toSources toks) e
 
 
 

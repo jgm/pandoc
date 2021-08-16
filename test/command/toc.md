@@ -31,7 +31,7 @@
 
 ## b
 
-::: {.interior}
+::: interior
 # C
 
 ## cc
@@ -39,7 +39,7 @@
 # D
 :::
 
-::: {.blue}
+::: blue
 # E
 
 ## e

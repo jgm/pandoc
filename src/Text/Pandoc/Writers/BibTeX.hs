@@ -43,7 +43,7 @@ writeBibTeX' :: PandocMonad m => Variant -> WriterOptions -> Pandoc -> m Text
 writeBibTeX' variant opts (Pandoc meta _) = do
   let mblang = case lookupMetaString "lang" meta of
                  "" -> Nothing
-                 t  -> Just $ parseLang t
+                 t  -> either (const Nothing) Just $ parseLang t
   let refs = case lookupMeta "references" meta of
                Just (MetaList xs) -> mapMaybe metaValueToReference xs
                _ -> []

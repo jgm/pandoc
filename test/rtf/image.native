@@ -1,0 +1,2 @@
+Pandoc (Meta {unMeta = fromList []})
+[Para [Image ("",[],[("width","2.0in"),("height","2.0in")]) [Str "image"] ("f9d88c3dbe18f6a7f5670e994a947d51216cdf0e.jpg","")]]

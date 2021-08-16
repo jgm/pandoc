@@ -16,7 +16,6 @@ the HTML using data URIs.
 module Text.Pandoc.SelfContained ( makeDataURI, makeSelfContained ) where
 import Codec.Compression.GZip as Gzip
 import Control.Applicative ((<|>))
-import Control.Monad.Except (throwError)
 import Control.Monad.Trans (lift)
 import Data.ByteString (ByteString)
 import Data.ByteString.Base64
@@ -29,7 +28,6 @@ import System.FilePath (takeDirectory, takeExtension, (</>))
 import Text.HTML.TagSoup
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), fetchItem,
                                       getInputFiles, report, setInputFiles)
-import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Shared (isURI, renderTags', trim)
@@ -244,11 +242,10 @@ getData mimetype src
       let raw' = if ext `elem` [".gz", ".svgz"]
                  then B.concat $ L.toChunks $ Gzip.decompress $ L.fromChunks [raw]
                  else raw
-      mime <- case (mimetype, respMime) of
-                ("",Nothing) -> throwError $ PandocSomeError
-                  $ "Could not determine mime type for `" <> src <> "'"
-                (x, Nothing) -> return x
-                (_, Just x ) -> return x
+      let mime = case (mimetype, respMime) of
+                  ("",Nothing) -> "application/octet-stream"
+                  (x, Nothing) -> x
+                  (_, Just x ) -> x
       result <- if "text/css" `T.isPrefixOf` mime
                 then do
                   oldInputs <- getInputFiles

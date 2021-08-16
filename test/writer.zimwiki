@@ -8,9 +8,9 @@ This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
 
 ====== Headers ======
 
-===== Level 2 with an embedded link =====
+===== Level 2 with an [[url|embedded link]] =====
 
-==== Level 3 with emphasis ====
+==== Level 3 with //emphasis// ====
 
 === Level 4 ===
 
@@ -18,7 +18,7 @@ This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
 
 ====== Level 1 ======
 
-===== Level 2 with emphasis =====
+===== Level 2 with //emphasis// =====
 
 ==== Level 3 ====
 

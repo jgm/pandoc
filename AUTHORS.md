@@ -20,6 +20,7 @@
 - Andreas Lööw
 - Andrew Dunning
 - Andy Morris
+- Anti-Distinctlyminty
 - Antoine Latter
 - Antonio Terceiro
 - Arata Mizuki
@@ -46,6 +47,7 @@
 - Carlos Sosa
 - Cécile Chemin
 - Cédric Couralet
+- Charanjit Singh
 - Chris Black
 - Christian Conkle
 - Christian Despres
@@ -76,6 +78,7 @@
 - Eigil Rischel
 - Emanuel Evans
 - Emerson Harkin
+- Emily Bourke
 - Emily Eisenberg
 - Eric Kow
 - Erik Rask
@@ -149,6 +152,7 @@
 - Josef Svenningsson
 - Joseph C. Sible
 - Julien Cretel
+- Julien Dutant
 - Juliette Fourcot
 - Juliusz Gonera
 - Justin Bogner
@@ -231,6 +235,7 @@
 - Raymond Ehlers
 - Recai Oktaş
 - Roland Hieber
+- Roman Beránek
 - RyanGlScott
 - Salim B
 - Sascha Wilde
@@ -248,6 +253,7 @@
 - Stefan Dresselhaus
 - Sumit Sahrawat
 - Tarik Graba
+- Tatiana Porras
 - Thenaesh Elango
 - Thomas Hodgson
 - Thomas Weißschuh
@@ -281,6 +287,7 @@
 - a-vrma
 - andrebauer
 - argent0
+- badumont
 - blmage
 - bucklereed
 - bumper314
@@ -296,8 +303,11 @@
 - kaizshang91
 - lux-lth
 - lwolfsonkin
+- mbrackeantidot
 - nkalvi
 - niszet
+- nuew
+- obcat
 - oltolm
 - oquechy
 - quasicomputational
@@ -309,6 +319,7 @@
 - shreevatsa.public
 - takahashim
 - taotieren
+- tecosaur
 - TEC
 - tgkokk
 - the-solipsist

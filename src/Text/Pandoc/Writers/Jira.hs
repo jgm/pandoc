@@ -280,6 +280,8 @@ toJiraLink (_, classes, _) (url, _) alias = do
     | Just email <- T.stripPrefix "mailto:" url' = (Jira.Email, email)
     | "user-account" `elem` classes              = (Jira.User, dropTilde url)
     | "attachment" `elem` classes                = (Jira.Attachment, url)
+    | "smart-card" `elem` classes                = (Jira.SmartCard, url)
+    | "smart-link" `elem` classes                = (Jira.SmartLink, url)
     | otherwise                                  = (Jira.External, url)
   dropTilde txt = case T.uncons txt of
     Just ('~', username) -> username
@@ -309,9 +311,13 @@ quotedToJira qtype xs = do
 spanToJira :: PandocMonad m
            => Attr -> [Inline]
            -> JiraConverter m [Jira.Inline]
-spanToJira (ident, _classes, _attribs) inls = case ident of
-  "" -> toJiraInlines inls
-  _  -> (Jira.Anchor ident :) <$> toJiraInlines inls
+spanToJira (ident, _classes, attribs) inls =
+  let wrap = case lookup "color" attribs of
+               Nothing -> id
+               Just color -> singleton . Jira.ColorInline (Jira.ColorName color)
+  in wrap <$> case ident of
+    "" -> toJiraInlines inls
+    _  -> (Jira.Anchor ident :) <$> toJiraInlines inls
 
 registerNotes :: PandocMonad m => [Block] -> JiraConverter m [Jira.Inline]
 registerNotes contents = do
