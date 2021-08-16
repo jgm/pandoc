@@ -28,6 +28,7 @@ fromCslJson (CslSub x) = B.subscript (fromCslJson x)
 fromCslJson (CslSup x) = B.superscript (fromCslJson x)
 fromCslJson (CslNoCase x) = B.spanWith ("",["nocase"],[]) (fromCslJson x)
 fromCslJson (CslDiv t x) = B.spanWith ("",["csl-" <> t],[]) (fromCslJson x)
+fromCslJson (CslLink u x) = B.link u "" (fromCslJson x)
 
 cslJsonToReferences :: ByteString -> Either String [Reference Inlines]
 cslJsonToReferences raw =
