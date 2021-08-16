@@ -4398,7 +4398,7 @@ Attributes can be attached to verbatim text, just as with
 
 ### Underline ###
 
-To underline text, use the `underline` (or `ul`) class:
+To underline text, use the `underline` class:
 
     [Underline]{.underline}
 
