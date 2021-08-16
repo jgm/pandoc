@@ -36,6 +36,9 @@ markdownGH :: Text -> Pandoc
 markdownGH = purely $ readMarkdown def {
                 readerExtensions = githubMarkdownExtensions }
 
+markdownMMD :: Text -> Pandoc
+markdownMMD = purely $ readMarkdown def {
+                 readerExtensions = multimarkdownExtensions }
 infix 4 =:
 (=:) :: ToString c
      => String -> (Text, c) -> TestTree
@@ -359,6 +362,51 @@ tests = [ testGroup "inline code"
           , test markdownSmart "unclosed double quote"
             ("**this should \"be bold**"
             =?> para (strong "this should \8220be bold"))
+          ]
+        , testGroup "sub- and superscripts"
+          [
+            test markdownMMD "normal subscript"
+            ("H~2~"
+            =?> para ("H" <> subscript "2"))
+          , test markdownMMD "normal superscript"
+            ("x^3^"
+            =?> para ("x" <> superscript "3"))
+          , test markdownMMD "short subscript delimeted by space"
+            ("O~2 is dangerous"
+            =?> para ("O" <> subscript "2" <> space <> "is dangerous"))
+          , test markdownMMD "short subscript delimeted by newline"
+            ("O~2\n"
+            =?> para ("O" <> subscript "2"))
+          , test markdownMMD "short subscript delimeted by EOF"
+            ("O~2"
+            =?> para ("O" <> subscript "2"))
+          , test markdownMMD "short subscript delimited by punctuation"
+            ("O~2."
+            =?> para ("O" <> subscript "2" <> "."))
+          , test markdownMMD "short subscript delimited by emph"
+            ("O~2*combustible!*"
+            =?> para ("O" <> subscript "2" <> emph "combustible!"))
+          , test markdownMMD "no nesting in short subscripts"
+            ("y~*2*"
+            =?> para ("y~" <> emph "2"))
+          , test markdownMMD "short superscript delimeted by space"
+            ("x^2 = y"
+            =?> para ("x" <> superscript "2" <> space <> "= y"))
+          , test markdownMMD "short superscript delimeted by newline"
+            ("x^2\n"
+            =?> para ("x" <> superscript "2"))
+          , test markdownMMD "short superscript delimeted by ExF"
+            ("x^2"
+            =?> para ("x" <> superscript "2"))
+          , test markdownMMD "short superscript delimited by punctuation"
+            ("x^2."
+            =?> para ("x" <> superscript "2" <> "."))
+          , test markdownMMD "short superscript delimited by emph"
+            ("x^2*combustible!*"
+            =?> para ("x" <> superscript "2" <> emph "combustible!"))
+          , test markdownMMD "no nesting in short superscripts"
+            ("y^*2*"
+            =?> para ("y^" <> emph "2"))
           ]
         , testGroup "footnotes"
           [ "indent followed by newline and flush-left text" =:

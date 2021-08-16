@@ -5304,6 +5304,18 @@ For elements that accept attributes, a `data-pos` attribute
 is added; other elements are placed in a surrounding
 Div or Span elemnet with a `data-pos` attribute.
 
+#### Extension: `short_subsuperscript` ####
+
+Parse multimarkdown style subscripts and superscripts, which start with
+a '~' or '^' character, respectively, and include the alphanumeric sequence
+that follows. For example:
+
+    x^2 = 4
+
+or
+
+    Oxygen is O~2.
+
 ## Markdown variants
 
 In addition to pandoc's extended Markdown, the following Markdown
