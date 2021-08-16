@@ -1700,7 +1700,7 @@ superscript = do
                                                notFollowedBy newline
                                                inline) (char '^')
             mmdShortSuperscript = do guardEnabled Ext_short_subsuperscripts
-                                     result <- take1WhileP isAlphaNum
+                                     result <- T.pack <$> many1 alphaNum
                                      return $ return $ return $ B.str result
 
 subscript :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -1713,7 +1713,7 @@ subscript = do
                                              notFollowedBy newline
                                              inline) (char '~')
             mmdShortSubscript = do guardEnabled Ext_short_subsuperscripts
-                                   result <- take1WhileP isAlphaNum
+                                   result <- T.pack <$> many1 alphaNum
                                    return $ return $ return $ B.str result
 
 whitespace :: PandocMonad m => MarkdownParser m (F Inlines)
