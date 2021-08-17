@@ -457,7 +457,8 @@ presentationToArchive opts meta pres = do
                                          <> "reference doc or in the default "
                                          <> "reference doc included with pandoc."))
           (Nothing, Just ((element, path, entry) :| _)) -> do
-            P.logOutput (TemplateWarning ("Couldn't find layout named \""
+            P.logOutput (PowerpointTemplateWarning
+                                         ("Couldn't find layout named \""
                                           <> layoutTitle <> "\" in provided "
                                           <> "reference doc. Falling back to "
                                           <> "the default included with pandoc."))
