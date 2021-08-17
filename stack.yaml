@@ -13,9 +13,7 @@ extra-deps:
 - skylighting-0.11
 - doctemplates-0.10
 - texmath-0.12.3.1
-# - citeproc-0.4.1
-- git: https://github.com/jgm/citeproc.git
-  commit: 8d03cb722fac3ea8f17f432ac20abe35361df551
+- citeproc-0.5
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.0
