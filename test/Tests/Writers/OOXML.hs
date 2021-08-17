@@ -84,6 +84,7 @@ testArchive writerFn opts fp = do
   txt <- T.readFile fp
   bs <- runIOorExplode $ do
     setTranslations "en-US"
+    setVerbosity ERROR -- otherwise test output is confusingly noisy
     readNative def txt >>= writerFn opts
   return $ toArchive bs
 
