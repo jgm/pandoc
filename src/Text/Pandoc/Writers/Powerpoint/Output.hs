@@ -54,7 +54,7 @@ import System.FilePath.Glob
 import Text.DocTemplates (FromContext(lookupContext), Context)
 import Text.DocLayout (literal)
 import Text.TeXMath
-import Text.Pandoc.Logging (LogMessage(TemplateWarning))
+import Text.Pandoc.Logging (LogMessage(PowerpointTemplateWarning))
 import Text.Pandoc.Writers.Math (convertMath)
 import Text.Pandoc.Writers.Powerpoint.Presentation
 import Text.Pandoc.Shared (tshow, stringify)
@@ -457,11 +457,11 @@ presentationToArchive opts meta pres = do
                                          <> "reference doc or in the default "
                                          <> "reference doc included with pandoc."))
           (Nothing, Just ((element, path, entry) :| _)) -> do
-            P.logOutput (PowerpointTemplateWarning
-                                         ("Couldn't find layout named \""
-                                          <> layoutTitle <> "\" in provided "
-                                          <> "reference doc. Falling back to "
-                                          <> "the default included with pandoc."))
+            P.report (PowerpointTemplateWarning
+                                     ("Couldn't find layout named \""
+                                      <> layoutTitle <> "\" in provided "
+                                      <> "reference doc. Falling back to "
+                                      <> "the default included with pandoc."))
             pure SlideLayout { slElement = element
                              , slPath = path
                              , slEntry = entry

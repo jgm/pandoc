@@ -28,8 +28,7 @@ references:
 ::: {#ref-item-1 .csl-entry}
 [Wolfinger, Christine]{.smallcaps}: *Keine Angst vor Linux, Unix: ein
 Lehrbuch für Linux- und Unix-Anwender*. 11., vollst. überarb. Aufl.
-Aufl. Berlin \[u.a.\] : Springer Vieweg, 2013
---- ISBN [978-3-642-32078-1](https://worldcat.org/isbn/978-3-642-32078-1)
+Aufl. Berlin \[u.a.\] : Springer Vieweg, 2013 --- ISBN 978-3-642-32078-1
 :::
 :::
 ```

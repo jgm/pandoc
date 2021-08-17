@@ -73,7 +73,9 @@ processCitations (Pandoc meta bs) = do
 
 
   let linkCites = maybe False truish $ lookupMeta "link-citations" meta
-  let opts = defaultCiteprocOptions{ linkCitations = linkCites }
+  let linkBib = maybe True truish $ lookupMeta "link-bibliography" meta
+  let opts = defaultCiteprocOptions{ linkCitations = linkCites
+                                   , linkBibliography = linkBib }
   let result = Citeproc.citeproc opts style mblang refs citations
   mapM_ (report . CiteprocWarning) (resultWarnings result)
   let sopts = styleOptions style
@@ -105,8 +107,7 @@ processCitations (Pandoc meta bs) = do
          $ cits
   return $ walk removeQuoteSpan
          $ Pandoc meta''
-         $ insertRefs refkvs classes meta''
-            (walk fixLinks $ B.toList bibs) bs'
+         $ insertRefs refkvs classes meta'' (B.toList bibs) bs'
 
 removeQuoteSpan :: Inline -> Inline
 removeQuoteSpan (Span ("",["csl-quoted"],[]) xs) = Span nullAttr xs
@@ -210,7 +211,7 @@ getReferences mblocale (Pandoc meta bs) = do
                     Nothing -> return []
   let addQuoteSpan (Quoted _ xs) = Span ("",["csl-quoted"],[]) xs
       addQuoteSpan x = x
-  return $ map (linkifyVariables . legacyDateRanges . walk addQuoteSpan)
+  return $ map (legacyDateRanges . walk addQuoteSpan)
                (externalRefs ++ inlineRefs)
             -- note that inlineRefs can override externalRefs
 
@@ -278,7 +279,7 @@ insertResolvedCitations (Cite cs ils) = do
     [] -> return (Cite cs ils)
     (x:xs) -> do
       put xs
-      return $ Cite cs (walk fixLinks $ B.toList x)
+      return $ Cite cs (B.toList x)
 insertResolvedCitations x = return x
 
 getCitations :: Locale
@@ -419,15 +420,6 @@ mvPunct moveNotes locale (Cite cs ils : Str "." : ys)
 mvPunct moveNotes locale (x:xs) = x : mvPunct moveNotes locale xs
 mvPunct _ _ [] = []
 
--- move https://doi.org etc. prefix inside link text (#6723):
-fixLinks :: [Inline] -> [Inline]
-fixLinks (Str t : Link attr [Str u1] (u2,tit) : xs)
-  | u2 == t <> u1
-  = Link attr [Str (t <> u1)] (u2,tit) : fixLinks xs
-fixLinks (x:xs) = x : fixLinks xs
-fixLinks [] = []
-
-
 endWithPunct :: Bool -> [Inline] -> Bool
 endWithPunct _ [] = False
 endWithPunct onlyFinal xs@(_:_) =
@@ -522,29 +514,6 @@ legacyDateRanges ref =
                    Nothing -> DateVal d
         _ -> DateVal d
   go x = x
-
-linkifyVariables :: Reference Inlines -> Reference Inlines
-linkifyVariables ref =
-  ref{ referenceVariables = M.mapWithKey go $ referenceVariables ref }
- where
-  go "URL" x    = tolink "https://" x
-  go "DOI" x    = tolink "https://doi.org/" (fixShortDOI x)
-  go "ISBN" x   = tolink "https://worldcat.org/isbn/" x
-  go "PMID" x   = tolink "https://www.ncbi.nlm.nih.gov/pubmed/" x
-  go "PMCID" x  = tolink "https://www.ncbi.nlm.nih.gov/pmc/articles/" x
-  go _ x        = x
-  fixShortDOI x = let x' = extractText x
-                  in  if "10/" `T.isPrefixOf` x'
-                         then TextVal $ T.drop 3 x'
-                              -- see https://shortdoi.org
-                         else TextVal x'
-  tolink pref x = let x' = extractText x
-                      x'' = if "://" `T.isInfixOf` x'
-                               then x'
-                               else pref <> x'
-                  in  if T.null x'
-                         then x
-                         else FancyVal (B.link x'' "" (B.str x'))
 
 extractText :: Val Inlines -> Text
 extractText (TextVal x)  = x
