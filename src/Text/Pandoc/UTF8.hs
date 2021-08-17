@@ -96,7 +96,7 @@ hGetContents :: Handle -> IO Text
 hGetContents = fmap toText . B.hGetContents
 
 -- | Convert UTF8-encoded ByteString to Text, also
--- removing '\r' characters.
+-- removing '\\r' characters.
 toText :: B.ByteString -> Text
 toText = T.decodeUtf8 . filterCRs . dropBOM
   where dropBOM bs =
@@ -106,12 +106,12 @@ toText = T.decodeUtf8 . filterCRs . dropBOM
         filterCRs = B.filter (/='\r')
 
 -- | Convert UTF8-encoded ByteString to String, also
--- removing '\r' characters.
+-- removing '\\r' characters.
 toString :: B.ByteString -> String
 toString = T.unpack . toText
 
 -- | Convert UTF8-encoded ByteString to Text, also
--- removing '\r' characters.
+-- removing '\\r' characters.
 toTextLazy :: BL.ByteString -> TL.Text
 toTextLazy = TL.decodeUtf8 . filterCRs . dropBOM
   where dropBOM bs =
@@ -121,7 +121,7 @@ toTextLazy = TL.decodeUtf8 . filterCRs . dropBOM
         filterCRs = BL.filter (/='\r')
 
 -- | Convert UTF8-encoded ByteString to String, also
--- removing '\r' characters.
+-- removing '\\r' characters.
 toStringLazy :: BL.ByteString -> String
 toStringLazy = TL.unpack . toTextLazy
 
