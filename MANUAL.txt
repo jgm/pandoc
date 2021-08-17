@@ -5655,9 +5655,16 @@ or BibLaTeX (for `--biblatex`) format.
 A few other metadata fields affect bibliography formatting:
 
 `link-citations`
-:   If true, citations will be
-    hyperlinked to the corresponding bibliography entries
-    (for author-date and numerical styles only).
+:   If true, citations will be hyperlinked to the
+    corresponding bibliography entries (for author-date and
+    numerical styles only).  Defaults to false.
+
+`link-bibliography`
+:   If true, DOIs, PMCIDs, PMID, and URLs in bibliographies will
+    be rendered as hyperlinks.  (If an entry contains a DOI, PMCID,
+    PMID, or URL, but none of these fields are rendered by the style,
+    then the title, or in the absence of a title the whole entry, will
+    be hyperlinked.)  Defaults to true.
 
 `lang`
 :   The `lang` field will affect how the style is localized,
