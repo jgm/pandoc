@@ -49,7 +49,6 @@ compareXML (Elem myElem) (Elem goodElem) =
 compareXML (Text myCData) (Text goodCData) =
   (if cdVerbatim myCData == cdVerbatim goodCData
     && cdData myCData == cdData goodCData
-    && cdLine myCData == cdLine goodCData
    then Nothing
    else Just (CDatasDiffer (Comparison { mine = myCData, good = goodCData })))
 compareXML (CRef myStr) (CRef goodStr) =
