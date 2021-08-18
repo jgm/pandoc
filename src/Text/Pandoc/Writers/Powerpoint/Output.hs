@@ -872,9 +872,10 @@ makePicElements :: PandocMonad m
                 => Element
                 -> PicProps
                 -> MediaInfo
+                -> Text
                 -> [ParaElem]
                 -> P m [Element]
-makePicElements layout picProps mInfo alt = do
+makePicElements layout picProps mInfo titleText alt = do
   opts <- asks envOpts
   (pageWidth, pageHeight) <- asks envPresentationSize
   -- hasHeader <- asks envSlideHasHeader
@@ -907,7 +908,11 @@ makePicElements layout picProps mInfo alt = do
                                      ,("noChangeAspect","1")] ()
   -- cNvPr will contain the link information so we do that separately,
   -- and register the link if necessary.
-  let cNvPrAttr = [("descr", T.pack $ mInfoFilePath mInfo),
+  let description = (if T.null titleText
+                      then ""
+                      else titleText <> "\n\n")
+                      <> T.pack (mInfoFilePath mInfo)
+  let cNvPrAttr = [("descr", description),
                    ("id","0"),
                    ("name","Picture 1")]
   cNvPr <- case picPropLink picProps of
@@ -1106,11 +1111,11 @@ shapeToElement layout (TextBox paras)
 shapeToElement _ _ = return $ mknode "p:sp" [] ()
 
 shapeToElements :: PandocMonad m => Element -> Shape -> P m [Content]
-shapeToElements layout (Pic picProps fp alt) = do
+shapeToElements layout (Pic picProps fp titleText alt) = do
   mInfo <- registerMedia fp alt
   case mInfoExt mInfo of
     Just _ -> map Elem <$>
-      makePicElements layout picProps mInfo alt
+      makePicElements layout picProps mInfo titleText alt
     Nothing -> shapeToElements layout $ TextBox [Paragraph def alt]
 shapeToElements layout (GraphicFrame tbls cptn) = map Elem <$>
   graphicFrameToElements layout tbls cptn

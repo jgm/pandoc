@@ -197,7 +197,8 @@ data Layout = MetadataSlide [ParaElem] [ParaElem] [[ParaElem]] [ParaElem]
             --               heading    left    right
             deriving (Show, Eq)
 
-data Shape = Pic PicProps FilePath [ParaElem]
+data Shape = Pic PicProps FilePath T.Text [ParaElem]
+           --                      title  alt-text
            | GraphicFrame [Graphic] [ParaElem]
            | TextBox [Paragraph]
            | RawOOXMLShape T.Text
@@ -525,21 +526,22 @@ rowToParagraphs algns tblCells = do
   mapM (uncurry cellToParagraphs) pairs
 
 withAttr :: Attr -> Shape -> Shape
-withAttr attr (Pic picPr url caption) =
+withAttr attr (Pic picPr url title caption) =
   let picPr' = picPr { picWidth = dimension Width attr
                      , picHeight = dimension Height attr
                      }
   in
-    Pic picPr' url caption
+    Pic picPr' url title caption
 withAttr _ sp = sp
 
 blockToShape :: Block -> Pres Shape
 blockToShape (Plain ils) = blockToShape (Para ils)
-blockToShape (Para (il:_))  | Image attr ils (url, _) <- il =
-      withAttr attr . Pic def (T.unpack url) <$> inlinesToParElems ils
+blockToShape (Para (il:_))  | Image attr ils (url, title) <- il =
+      withAttr attr . Pic def (T.unpack url) title <$> inlinesToParElems ils
 blockToShape (Para (il:_))  | Link _ (il':_) target <- il
-                            , Image attr ils (url, _) <- il' =
-      withAttr attr . Pic def{picPropLink = Just $ ExternalTarget target} (T.unpack url)
+                            , Image attr ils (url, title) <- il' =
+      withAttr attr .
+      Pic def{picPropLink = Just $ ExternalTarget target} (T.unpack url) title
       <$> inlinesToParElems ils
 blockToShape (Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, algn, _, hdrCells, rows) = toLegacyTable blkCapt specs thead tbody tfoot
@@ -805,7 +807,7 @@ applyToParagraph f para = do
   return $ para {paraElems = paraElems'}
 
 applyToShape :: Monad m => (ParaElem -> m ParaElem) -> Shape -> m Shape
-applyToShape f (Pic pPr fp pes) = Pic pPr fp <$> mapM f pes
+applyToShape f (Pic pPr fp title pes) = Pic pPr fp title <$> mapM f pes
 applyToShape f (GraphicFrame gfx pes) = GraphicFrame gfx <$> mapM f pes
 applyToShape f (TextBox paras) = TextBox <$> mapM (applyToParagraph f) paras
 applyToShape _ (RawOOXMLShape str) = return $ RawOOXMLShape str
