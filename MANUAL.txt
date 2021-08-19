@@ -4179,6 +4179,10 @@ A document may contain multiple metadata blocks.  If two
 metadata blocks attempt to set the same field, the value from
 the second block will be taken.
 
+Each metadata block is handled internally as an independent YAML document.
+This means, for example, that any YAML anchors defined in a block cannot be
+referenced in another block.
+
 When pandoc is used with `-t markdown` to create a Markdown document,
 a YAML metadata block will be produced only if the `-s/--standalone`
 option is used.  All of the metadata will appear in a single block
