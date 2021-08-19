@@ -507,9 +507,7 @@ archiveToRelationships archive docXmlPath =
 
 filePathIsMedia :: FilePath -> Bool
 filePathIsMedia fp =
-  let (dir, _) = splitFileName fp
-  in
-   (dir == "word/media/")
+  "media" `elem` splitPath (takeDirectory fp)
 
 lookupLevel :: T.Text -> T.Text -> Numbering -> Maybe Level
 lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do
@@ -774,8 +772,11 @@ expandDrawingId s = do
   target <- asks (fmap T.unpack . lookupRelationship location s . envRelationships)
   case target of
     Just filepath -> do
-      bytes <- asks (lookup ("word/" ++ filepath) . envMedia)
-      case bytes of
+      media <- asks envMedia
+      let filepath' = case filepath of
+                        ('/':rest) -> rest
+                        _ -> "word/" ++ filepath
+      case lookup filepath' media of
         Just bs -> return (filepath, bs)
         Nothing -> throwError DocxError
     Nothing -> throwError DocxError
