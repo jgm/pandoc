@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE RecordWildCards #-}
 {- |
    Module      : Text.Pandoc.Writers.Powerpoint.Output
    Copyright   : Copyright (C) 2017-2020 Jesse Rosenthal
@@ -115,7 +116,7 @@ data WriterEnv = WriterEnv { envRefArchive :: Archive
                            -- the end of the slide file name and
                            -- the rId number
                            , envSlideIdOffset :: Int
-                           , envContentType :: ContentType
+                           , envPlaceholder :: Placeholder
                            , envSlideIdMap :: M.Map SlideId Int
                            -- maps the slide number to the
                            -- corresponding notes id number. If there
@@ -139,7 +140,7 @@ instance Default WriterEnv where
                   , envInNoteSlide = False
                   , envCurSlideId = 1
                   , envSlideIdOffset = 1
-                  , envContentType = NormalContent
+                  , envPlaceholder = Placeholder ObjType 0
                   , envSlideIdMap = mempty
                   , envSpeakerNotesIdMap = mempty
                   , envInSpeakerNotes = False
@@ -153,6 +154,9 @@ data SlideLayoutsOf a = SlideLayouts
   , title :: a
   , content :: a
   , twoColumn :: a
+  , comparison :: a
+  , contentWithCaption :: a
+  , blank :: a
   } deriving (Show, Functor, Foldable, Traversable)
 
 data SlideLayout = SlideLayout
@@ -170,10 +174,14 @@ getSlideLayouts = asks envSlideLayouts >>= maybe (throwError e) pure
     e = PandocSomeError ("Slide layouts aren't defined, even though they should "
       <> "always be. This is a bug in pandoc.")
 
-data ContentType = NormalContent
-                 | TwoColumnLeftContent
-                 | TwoColumnRightContent
-                 deriving (Show, Eq)
+-- | A placeholder within a layout, identified by type and index.
+--
+-- E.g., @Placeholder ObjType 2@ is the third placeholder of type 'ObjType' in
+-- the layout.
+data Placeholder = Placeholder
+  { placeholderType :: PHType
+  , index :: Int
+  } deriving (Show, Eq)
 
 data MediaInfo = MediaInfo { mInfoFilePath :: FilePath
                            , mInfoLocalId  :: Int
@@ -446,6 +454,9 @@ presentationToArchive opts meta pres = do
                                   , title = "Section Header"
                                   , content = "Title and Content"
                                   , twoColumn = "Two Content"
+                                  , comparison = "Comparison"
+                                  , contentWithCaption = "Content with Caption"
+                                  , blank = "Blank"
                                   }
   layouts <- for layoutTitles $ \layoutTitle -> do
         let layout = M.lookup (CI.mk layoutTitle) referenceLayouts
@@ -550,10 +561,13 @@ getLayout layout = getElement <$> getSlideLayouts
   where
     getElement =
       slElement . case layout of
-        MetadataSlide{}  -> metadata
-        TitleSlide{}     -> title
-        ContentSlide{}   -> content
-        TwoColumnSlide{} -> twoColumn
+        MetadataSlide{}           -> metadata
+        TitleSlide{}              -> title
+        ContentSlide{}            -> content
+        TwoColumnSlide{}          -> twoColumn
+        ComparisonSlide{}         -> comparison
+        ContentWithCaptionSlide{} -> contentWithCaption
+        BlankSlide{}              -> blank
 
 shapeHasId :: NameSpaces -> T.Text -> Element -> Bool
 shapeHasId ns ident element
@@ -566,16 +580,30 @@ shapeHasId ns ident element
 getContentShape :: PandocMonad m => NameSpaces -> Element -> P m Element
 getContentShape ns spTreeElem
   | isElem ns "p" "spTree" spTreeElem = do
-      contentType <- asks envContentType
-      let contentShapes = getShapesByPlaceHolderType ns spTreeElem ObjType
-      case contentType of
-        NormalContent | (sp : _) <- contentShapes -> return sp
-        TwoColumnLeftContent | (sp : _) <- contentShapes -> return sp
-        TwoColumnRightContent | (_ : sp : _) <- contentShapes -> return sp
-        _ -> throwError $ PandocSomeError
-             "Could not find shape for Powerpoint content"
+      ph@Placeholder{..} <- asks envPlaceholder
+      case drop index (getShapesByPlaceHolderType ns spTreeElem placeholderType) of
+        sp : _ -> return sp
+        [] -> throwError $ PandocSomeError $ missingPlaceholderMessage ph
 getContentShape _ _ = throwError $ PandocSomeError
                       "Attempted to find content on non shapeTree"
+
+missingPlaceholderMessage :: Placeholder -> Text
+missingPlaceholderMessage Placeholder{..} =
+  "Could not find a " <> ordinal
+  <> " placeholder of type " <> placeholderText
+  where
+    ordinal = T.pack (show index) <>
+      case (index `mod` 100, index `mod` 10) of
+        (11, _) -> "th"
+        (12, _) -> "th"
+        (13, _) -> "th"
+        (_,  1) -> "st"
+        (_,  2) -> "nd"
+        (_,  3) -> "rd"
+        _       -> "th"
+    placeholderText = case placeholderType of
+      ObjType -> "obj (or nothing)"
+      PHType t -> t
 
 getShapeDimensions :: NameSpaces
                    -> Element
@@ -1302,7 +1330,7 @@ contentToElement layout hdrShape shapes
       element <- nonBodyTextToElement layout [PHType "title"] hdrShape
       let hdrShapeElements = [Elem element | not (null hdrShape)]
       contentElements <- local
-                         (\env -> env {envContentType = NormalContent})
+                         (\env -> env {envPlaceholder = Placeholder ObjType 0})
                          (shapesToElements layout shapes)
       return $ buildSpTree ns spTree (hdrShapeElements <> contentElements)
 contentToElement _ _ _ = return $ mknode "p:sp" [] ()
@@ -1315,10 +1343,10 @@ twoColumnToElement layout hdrShape shapesL shapesR
       element <- nonBodyTextToElement layout [PHType "title"] hdrShape
       let hdrShapeElements = [Elem element | not (null hdrShape)]
       contentElementsL <- local
-                          (\env -> env {envContentType =TwoColumnLeftContent})
+                          (\env -> env {envPlaceholder = Placeholder ObjType 0})
                           (shapesToElements layout shapesL)
       contentElementsR <- local
-                          (\env -> env {envContentType =TwoColumnRightContent})
+                          (\env -> env {envPlaceholder = Placeholder ObjType 1})
                           (shapesToElements layout shapesR)
       -- let contentElementsL' = map (setIdx ns "1") contentElementsL
       --     contentElementsR' = map (setIdx ns "2") contentElementsR
@@ -1326,6 +1354,76 @@ twoColumnToElement layout hdrShape shapesL shapesR
         hdrShapeElements <> contentElementsL <> contentElementsR
 twoColumnToElement _ _ _ _= return $ mknode "p:sp" [] ()
 
+comparisonToElement ::
+  PandocMonad m =>
+  Element ->
+  [ParaElem] ->
+  ([Shape], [Shape]) ->
+  ([Shape], [Shape]) ->
+  P m Element
+comparisonToElement layout hdrShape (shapesL1, shapesL2) (shapesR1, shapesR2)
+  | ns <- elemToNameSpaces layout
+  , Just cSld <- findChild (elemName ns "p" "cSld") layout
+  , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
+      element <- nonBodyTextToElement layout [PHType "title"] hdrShape
+      let hdrShapeElements = [Elem element | not (null hdrShape)]
+      contentElementsL1 <- local
+                          (\env -> env {envPlaceholder = Placeholder (PHType "body") 0})
+                          (shapesToElements layout shapesL1)
+      contentElementsL2 <- local
+                          (\env -> env {envPlaceholder = Placeholder ObjType 0})
+                          (shapesToElements layout shapesL2)
+      contentElementsR1 <- local
+                          (\env -> env {envPlaceholder = Placeholder (PHType "body") 1})
+                          (shapesToElements layout shapesR1)
+      contentElementsR2 <- local
+                          (\env -> env {envPlaceholder = Placeholder ObjType 1})
+                          (shapesToElements layout shapesR2)
+      return $ buildSpTree ns spTree $
+        mconcat [ hdrShapeElements
+                , contentElementsL1
+                , contentElementsL2
+                , contentElementsR1
+                , contentElementsR2
+                ]
+comparisonToElement _ _ _ _= return $ mknode "p:sp" [] ()
+
+contentWithCaptionToElement ::
+  PandocMonad m =>
+  Element ->
+  [ParaElem] ->
+  [Shape] ->
+  [Shape] ->
+  P m Element
+contentWithCaptionToElement layout hdrShape textShapes contentShapes
+  | ns <- elemToNameSpaces layout
+  , Just cSld <- findChild (elemName ns "p" "cSld") layout
+  , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
+      element <- nonBodyTextToElement layout [PHType "title"] hdrShape
+      let hdrShapeElements = [Elem element | not (null hdrShape)]
+      textElements <- local
+                       (\env -> env {envPlaceholder = Placeholder (PHType "body") 0})
+                       (shapesToElements layout textShapes)
+      contentElements <- local
+                          (\env -> env {envPlaceholder = Placeholder ObjType 0})
+                          (shapesToElements layout contentShapes)
+      return $ buildSpTree ns spTree $
+        mconcat [ hdrShapeElements
+                , textElements
+                , contentElements
+                ]
+contentWithCaptionToElement _ _ _ _ = return $ mknode "p:sp" [] ()
+
+blankToElement ::
+  PandocMonad m =>
+  Element ->
+  P m Element
+blankToElement layout
+  | ns <- elemToNameSpaces layout
+  , Just cSld <- findChild (elemName ns "p" "cSld") layout
+  , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
+      return $ buildSpTree ns spTree []
+blankToElement _ = return $ mknode "p:sp" [] ()
 
 titleToElement :: PandocMonad m => Element -> [ParaElem] -> P m Element
 titleToElement layout titleElems
@@ -1380,6 +1478,17 @@ slideToElement (Slide _ l@(TwoColumnSlide hdrElems shapesL shapesR) _) = do
       ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
       ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
     ] [mknode "p:cSld" [] [spTree]]
+slideToElement (Slide _ l@(ComparisonSlide hdrElems shapesL shapesR) _) = do
+  layout <- getLayout l
+  spTree <- local (\env -> if null hdrElems
+                           then env
+                           else env{envSlideHasHeader=True}) $
+            comparisonToElement layout hdrElems shapesL shapesR
+  return $ mknode "p:sld"
+    [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main"),
+      ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
+      ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
+    ] [mknode "p:cSld" [] [spTree]]
 slideToElement (Slide _ l@(TitleSlide hdrElems) _) = do
   layout <- getLayout l
   spTree <- titleToElement layout hdrElems
@@ -1396,7 +1505,22 @@ slideToElement (Slide _ l@(MetadataSlide titleElems subtitleElems authorElems da
       ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
       ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
     ] [mknode "p:cSld" [] [spTree]]
-
+slideToElement (Slide _ l@(ContentWithCaptionSlide hdrElems captionShapes contentShapes) _) = do
+  layout <- getLayout l
+  spTree <- contentWithCaptionToElement layout hdrElems captionShapes contentShapes
+  return $ mknode "p:sld"
+    [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main"),
+      ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
+      ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
+    ] [mknode "p:cSld" [] [spTree]]
+slideToElement (Slide _ BlankSlide _) = do
+  layout <- getLayout BlankSlide
+  spTree <- blankToElement layout
+  return $ mknode "p:sld"
+    [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main"),
+      ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
+      ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
+    ] [mknode "p:cSld" [] [spTree]]
 
 --------------------------------------------------------------------
 -- Notes:
@@ -1800,10 +1924,13 @@ slideToSlideRelElement slide = do
   target <- flip fmap getSlideLayouts $
     T.pack . ("../slideLayouts/" <>) . takeFileName .
     slPath . case slide of
-        (Slide _ MetadataSlide{} _)  -> metadata
-        (Slide _ TitleSlide{} _)     -> title
-        (Slide _ ContentSlide{} _)   -> content
-        (Slide _ TwoColumnSlide{} _) -> twoColumn
+        (Slide _ MetadataSlide{} _)           -> metadata
+        (Slide _ TitleSlide{} _)              -> title
+        (Slide _ ContentSlide{} _)            -> content
+        (Slide _ TwoColumnSlide{} _)          -> twoColumn
+        (Slide _ ComparisonSlide{} _)         -> comparison
+        (Slide _ ContentWithCaptionSlide{} _) -> contentWithCaption
+        (Slide _ BlankSlide _)                -> blank
 
   speakerNotesRels <- maybeToList <$> speakerNotesSlideRelElement slide
 

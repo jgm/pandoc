@@ -1,0 +1,21 @@
+[Header 1 ("a-slide",[],[]) [Str "A",Space,Str "slide"]
+,Div ("",["columns"],[])
+ [Div ("",["column"],[])
+  [Para [Str "A",Space,Str "paragraph",Space,Str "here"]
+  ,Table ("",[],[]) (Caption Nothing
+   [])
+   [(AlignDefault,ColWidth 0.125)
+   ,(AlignDefault,ColWidth 0.125)]
+   (TableHead ("",[],[])
+   [])
+   [(TableBody ("",[],[]) (RowHeadColumns 0)
+    []
+    [Row ("",[],[])
+     [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+      [Plain [Str "plus"]]
+     ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+      [Plain [Str "a",Space,Str "table"]]]])]
+   (TableFoot ("",[],[])
+   [])]
+ ,Div ("",["column"],[])
+  [Para [Str "Only",Space,Str "a",Space,Str "paragraph",Space,Str "here"]]]]
