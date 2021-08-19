@@ -1182,11 +1182,15 @@ header when requesting a document from a URL:
         - Title and Content
         - Section Header
         - Two Content
+        - Comparison
+        - Content with Caption
+        - Blank
 
         For each name, the first layout found with that name will be used.
         If no layout is found with one of the names, pandoc will output a
         warning and use the layout with that name from the default reference
-        doc instead.
+        doc instead. (How these layouts are used is described in [PowerPoint
+        layout choice](#powerpoint-layout-choice).)
 
         All templates included with a recent version of MS PowerPoint
         will fit these criteria. (You can click on `Layout` under the
@@ -1195,8 +1199,8 @@ header when requesting a document from a URL:
         You can also modify the default `reference.pptx`: first run
         `pandoc -o custom-reference.pptx --print-default-data-file
         reference.pptx`, and then modify `custom-reference.pptx`
-        in MS PowerPoint (pandoc will use the first four layout
-        slides, as mentioned above).
+        in MS PowerPoint (pandoc will use the layouts with the names
+        listed above).
 
 `--epub-cover-image=`*FILE*
 
@@ -5832,6 +5836,48 @@ and level-2 headings building vertically. It is not recommended that
 you use deeper nesting of section levels with reveal.js unless you set
 `--slide-level=0` (which lets reveal.js produce a one-dimensional layout
 and only interprets horizontal rules as slide boundaries).
+
+### PowerPoint layout choice
+
+When creating slides, the pptx writer chooses from a number of pre-defined
+layouts, based on the content of the slide:
+
+Title Slide
+:   This layout is used for the initial slide, which is generated and
+    filled from the metadata fields `date`, `author`, and `title`, if
+    they are present.
+
+Section Header
+:   This layout is used for what pandoc calls “title slides”, i.e.
+    slides which start with a header which is above the slide level in
+    the hierarchy.
+
+Two Content
+:   This layout is used for two-column slides, i.e. slides containing a
+    div with class `columns` which contains at least two divs with class
+    `column`.
+
+Comparison
+:   This layout is used instead of “Two Content” for any two-column
+    slides in which at least one column contains text followed by
+    non-text (e.g. an image or a table).
+
+Content with Caption
+:   This layout is used for any non-two-column slides which contain text
+    followed by non-text (e.g. an image or a table).
+
+Blank
+:   This layout is used for any slides which only contain blank content,
+    e.g. a slide containing only speaker notes, or a slide containing
+    only a non-breaking space.
+
+Title and Content
+:   This layout is used for all slides which do not match the criteria
+    for another layout.
+
+These layouts are chosen from the default pptx reference doc included with
+pandoc, unless an alternative reference doc is specified using
+`--reference-doc`.
 
 ## Incremental lists
 

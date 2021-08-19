@@ -166,9 +166,66 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          "pptx/slide-level-0/h1-with-table/output.pptx"
                        , pptxTests ("Using slide level 0, if the first thing on "
                                     <> "a slide is a heading it's used as the "
-                                    <> "slide title (two headings forces a "
-                                    <> "slide break though)")
+                                    <> "slide title (content with caption layout)")
                          def { writerSlideLevel = Just 0 }
                          "pptx/slide-level-0/h1-h2-with-table/input.native"
                          "pptx/slide-level-0/h1-h2-with-table/output.pptx"
+                       , pptxTests ("comparison layout used when two columns "
+                                    <> "contain text plus non-text")
+                         def
+                         "pptx/comparison/both-columns/input.native"
+                         "pptx/comparison/both-columns/output.pptx"
+                       , pptxTests ("comparison layout used even when only one "
+                                    <> "column contains text plus non-text")
+                         def
+                         "pptx/comparison/one-column/input.native"
+                         "pptx/comparison/one-column/output.pptx"
+                       , pptxTests ("extra text in one column in comparison "
+                                    <> "layout gets overlaid")
+                         def
+                         "pptx/comparison/extra-text/input.native"
+                         "pptx/comparison/extra-text/output.pptx"
+                       , pptxTests ("extra image in one column in comparison "
+                                   <> "layout gets overlaid")
+                         def
+                         "pptx/comparison/extra-image/input.native"
+                         "pptx/comparison/extra-image/output.pptx"
+                       , pptxTests "comparison not used if the non-text comes first"
+                         def
+                         "pptx/comparison/non-text-first/input.native"
+                         "pptx/comparison/non-text-first/output.pptx"
+                       , pptxTests ("Heading, text and an image on the same "
+                                    <> "slide uses the Content with Caption "
+                                    <> "layout")
+                         def
+                         "pptx/content-with-caption/heading-text-image/input.native"
+                         "pptx/content-with-caption/heading-text-image/output.pptx"
+                       , pptxTests ("Text and an image on the same "
+                                    <> "slide uses the Content with Caption "
+                                    <> "layout")
+                         def
+                         "pptx/content-with-caption/text-image/input.native"
+                         "pptx/content-with-caption/text-image/output.pptx"
+                       , pptxTests ("If the image comes first, Content with "
+                                    <> "Caption is not used")
+                         def
+                         "pptx/content-with-caption/image-text/input.native"
+                         "pptx/content-with-caption/image-text/output.pptx"
+                       , pptxTests ("If a slide contains only speaker notes, the "
+                                    <> "Blank layout is used")
+                         def
+                         "pptx/blanks/just-speaker-notes/input.native"
+                         "pptx/blanks/just-speaker-notes/output.pptx"
+                       , pptxTests ("If a slide contains only an empty heading "
+                                    <> "with a body of only non-breaking spaces"
+                                    <> ", the Blank layout is used")
+                         def
+                         "pptx/blanks/nbsp-in-body/input.native"
+                         "pptx/blanks/nbsp-in-body/output.pptx"
+                       , pptxTests ("If a slide contains only a heading "
+                                    <> "containing only non-breaking spaces, "
+                                    <> "the Blank layout is used")
+                         def
+                         "pptx/blanks/nbsp-in-heading/input.native"
+                         "pptx/blanks/nbsp-in-heading/output.pptx"
                        ]

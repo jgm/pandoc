@@ -2,6 +2,7 @@
 {-# LANGUAGE PatternGuards              #-}
 {-# LANGUAGE ViewPatterns               #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase #-}
 {- |
    Module      : Text.Pandoc.Writers.Powerpoint.Presentation
    Copyright   : Copyright (C) 2017-2020 Jesse Rosenthal
@@ -61,11 +62,13 @@ import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
                                  , toLegacyTable)
 import qualified Data.Map as M
 import qualified Data.Set as S
-import Data.Maybe (maybeToList, fromMaybe)
+import Data.Maybe (maybeToList, fromMaybe, listToMaybe)
 import Text.Pandoc.Highlighting
 import qualified Data.Text as T
 import Control.Applicative ((<|>))
 import Skylighting
+import Data.Bifunctor (bimap)
+import Data.Char (isSpace)
 
 data WriterEnv = WriterEnv { envMetadata :: Meta
                            , envRunProps :: RunProps
@@ -195,6 +198,11 @@ data Layout = MetadataSlide [ParaElem] [ParaElem] [[ParaElem]] [ParaElem]
             --             heading    content
             | TwoColumnSlide [ParaElem] [Shape] [Shape]
             --               heading    left    right
+            | ComparisonSlide [ParaElem] ([Shape], [Shape]) ([Shape], [Shape])
+            --                heading  left@(text, content) right@(text, content)
+            | ContentWithCaptionSlide [ParaElem] [Shape] [Shape]
+            --                   heading     text    content
+            | BlankSlide
             deriving (Show, Eq)
 
 data Shape = Pic PicProps FilePath T.Text [ParaElem]
@@ -584,7 +592,30 @@ isImage Image{} = True
 isImage (Link _ (Image{} : _) _) = True
 isImage _ = False
 
-splitBlocks' :: [Block] -> [[Block]] -> [Block] -> Pres [[Block]]
+plainOrPara :: Block -> Maybe [Inline]
+plainOrPara (Plain ils) = Just ils
+plainOrPara (Para ils) = Just ils
+plainOrPara _ = Nothing
+
+notText :: Block -> Bool
+notText block | startsWithImage block = True
+notText Table{} = True
+notText _ = False
+
+startsWithImage :: Block -> Bool
+startsWithImage block = fromMaybe False $ do
+  inline <- plainOrPara block >>= listToMaybe
+  pure (isImage inline)
+
+-- | Group blocks into a number of "splits"
+splitBlocks' ::
+  -- | Blocks so far in the current split
+  [Block] ->
+  -- | Splits so far
+  [[Block]] ->
+  -- | All remaining blocks
+  [Block] ->
+  Pres [[Block]]
 splitBlocks' cur acc [] = return $ acc ++ ([cur | not (null cur)])
 splitBlocks' cur acc (HorizontalRule : blks) =
   splitBlocks' [] (acc ++ ([cur | not (null cur)])) blks
@@ -609,7 +640,9 @@ splitBlocks' cur acc (Para (il:ils) : blks) | isImage il = do
                             (acc ++ [cur ++ [Para [il]] ++ nts])
                             (if null ils then blks' else Para ils : blks')
     _ -> splitBlocks' []
-         (acc ++ ([cur | not (null cur)]) ++ [Para [il] : nts])
+         (if any notText cur
+          then acc ++ ([cur | not (null cur)]) ++ [Para [il] : nts]
+          else acc ++ [cur ++ [Para [il]] ++ nts])
          (if null ils then blks' else Para ils : blks')
 splitBlocks' cur acc (tbl@Table{} : blks) = do
   slideLevel <- asks envSlideLevel
@@ -617,7 +650,11 @@ splitBlocks' cur acc (tbl@Table{} : blks) = do
   case cur of
     [Header n _ _] | n == slideLevel || slideLevel == 0 ->
                             splitBlocks' [] (acc ++ [cur ++ [tbl] ++ nts]) blks'
-    _ ->  splitBlocks' [] (acc ++ ([cur | not (null cur)]) ++ [tbl : nts]) blks'
+    _ -> splitBlocks' []
+         (if any notText cur
+          then acc ++ ([cur | not (null cur)]) ++ [tbl : nts]
+          else acc ++ ([cur ++ [tbl] ++ nts]))
+         blks'
 splitBlocks' cur acc (d@(Div (_, classes, _) _): blks) | "columns" `elem` classes =  do
   slideLevel <- asks envSlideLevel
   let (nts, blks') = span isNotesDiv blks
@@ -639,38 +676,56 @@ bodyBlocksToSlide _ (blk : blks) spkNotes
   , Div (_, clsL, _) blksL : Div (_, clsR, _) blksR : remaining <- divBlks
   , "column" `elem` clsL, "column" `elem` clsR = do
       mapM_ (addLogMessage . BlockNotRendered) (blks ++ remaining)
-      mbSplitBlksL <- splitBlocks blksL
-      mbSplitBlksR <- splitBlocks blksR
-      let blksL' = case mbSplitBlksL of
-            bs : _ -> bs
-            []     -> []
-      let blksR' = case mbSplitBlksR of
-            bs : _ -> bs
-            []     -> []
-      shapesL <- blocksToShapes blksL'
-      shapesR <- blocksToShapes blksR'
-      sldId <- asks envCurSlideId
-      return $ Slide
-        sldId
-        (TwoColumnSlide [] shapesL shapesR)
-        spkNotes
+      let mkTwoColumn left right = do
+            blksL' <- join . take 1 <$> splitBlocks left
+            blksR' <- join . take 1 <$> splitBlocks right
+            shapesL <- blocksToShapes blksL'
+            shapesR <- blocksToShapes blksR'
+            sldId <- asks envCurSlideId
+            return $ Slide
+              sldId
+              (TwoColumnSlide [] shapesL shapesR)
+              spkNotes
+      let mkComparison blksL1  blksL2 blksR1 blksR2 = do
+            shapesL1 <- blocksToShapes blksL1
+            shapesL2 <- blocksToShapes blksL2
+            shapesR1 <- blocksToShapes blksR1
+            shapesR2 <- blocksToShapes blksR2
+            sldId <- asks envCurSlideId
+            return $ Slide
+              sldId
+              (ComparisonSlide [] (shapesL1, shapesL2) (shapesR1, shapesR2))
+              spkNotes
+      case (break notText blksL, break notText blksR) of
+        ((_, []), (_, [])) -> mkTwoColumn blksL blksR
+        (([], _), ([], _)) -> mkTwoColumn blksL blksR
+        ((blksL1, blksL2), (blksR1, blksR2)) -> mkComparison blksL1 blksL2 blksR1 blksR2
 bodyBlocksToSlide _ (blk : blks) spkNotes = do
-      inNoteSlide <- asks envInNoteSlide
-      shapes <- if inNoteSlide
-                then forceFontSize noteSize $ blocksToShapes (blk : blks)
-                else blocksToShapes (blk : blks)
       sldId <- asks envCurSlideId
-      return $
-        Slide
-        sldId
-        (ContentSlide [] shapes)
-        spkNotes
+      inNoteSlide <- asks envInNoteSlide
+      let mkSlide s =
+            Slide sldId s spkNotes
+      if inNoteSlide
+      then mkSlide . ContentSlide [] <$>
+          forceFontSize noteSize (blocksToShapes (blk : blks))
+      else let
+        contentOrBlankSlide =
+          if makesBlankSlide (blk : blks)
+          then pure (mkSlide BlankSlide)
+          else mkSlide . ContentSlide [] <$> blocksToShapes (blk : blks)
+        in case break notText (blk : blks) of
+          ([], _) -> contentOrBlankSlide
+          (_, []) -> contentOrBlankSlide
+          (textBlocks, contentBlocks) -> do
+            textShapes <- blocksToShapes textBlocks
+            contentShapes <- blocksToShapes contentBlocks
+            return (mkSlide (ContentWithCaptionSlide [] textShapes contentShapes))
 bodyBlocksToSlide _ [] spkNotes = do
   sldId <- asks envCurSlideId
   return $
     Slide
     sldId
-    (ContentSlide [] [])
+    BlankSlide
     spkNotes
 
 blocksToSlide' :: Int -> [Block] -> SpeakerNotes -> Pres Slide
@@ -689,6 +744,9 @@ blocksToSlide' lvl (Header n (ident, _, _) ils : blks) spkNotes
       let layout = case slideLayout slide of
             ContentSlide _ cont          -> ContentSlide hdr cont
             TwoColumnSlide _ contL contR -> TwoColumnSlide hdr contL contR
+            ComparisonSlide _ contL contR -> ComparisonSlide hdr contL contR
+            ContentWithCaptionSlide _ text content -> ContentWithCaptionSlide hdr text content
+            BlankSlide -> if all inlineIsBlank ils then BlankSlide else ContentSlide hdr []
             layout'                     -> layout'
       return $ slide{slideLayout = layout}
 blocksToSlide' lvl blks spkNotes = bodyBlocksToSlide lvl blks spkNotes
@@ -834,6 +892,19 @@ applyToLayout f (TwoColumnSlide hdr contentL contentR) = do
   contentL' <- mapM (applyToShape f) contentL
   contentR' <- mapM (applyToShape f) contentR
   return $ TwoColumnSlide hdr' contentL' contentR'
+applyToLayout f (ComparisonSlide hdr (contentL1, contentL2) (contentR1, contentR2)) = do
+  hdr' <- mapM f hdr
+  contentL1' <- mapM (applyToShape f) contentL1
+  contentL2' <- mapM (applyToShape f) contentL2
+  contentR1' <- mapM (applyToShape f) contentR1
+  contentR2' <- mapM (applyToShape f) contentR2
+  return $ ComparisonSlide hdr' (contentL1', contentL2') (contentR1', contentR2')
+applyToLayout f (ContentWithCaptionSlide hdr textShapes contentShapes) = do
+  hdr' <- mapM f hdr
+  textShapes' <- mapM (applyToShape f) textShapes
+  contentShapes' <- mapM (applyToShape f) contentShapes
+  return $ ContentWithCaptionSlide hdr' textShapes' contentShapes'
+applyToLayout _ BlankSlide = pure BlankSlide
 
 applyToSlide :: Monad m => (ParaElem -> m ParaElem) -> Slide -> m Slide
 applyToSlide f slide = do
@@ -885,9 +956,69 @@ emptyLayout layout = case layout of
     all emptyParaElem hdr &&
     all emptyShape shapes1 &&
     all emptyShape shapes2
+  ComparisonSlide hdr (shapesL1, shapesL2) (shapesR1, shapesR2) ->
+    all emptyParaElem hdr &&
+    all emptyShape shapesL1 &&
+    all emptyShape shapesL2 &&
+    all emptyShape shapesR1 &&
+    all emptyShape shapesR2
+  ContentWithCaptionSlide hdr textShapes contentShapes ->
+    all emptyParaElem hdr &&
+    all emptyShape textShapes &&
+    all emptyShape contentShapes
+  BlankSlide -> False
+
 
 emptySlide :: Slide -> Bool
 emptySlide (Slide _ layout notes) = (notes == mempty) && emptyLayout layout
+
+makesBlankSlide :: [Block] -> Bool
+makesBlankSlide = all blockIsBlank
+
+blockIsBlank :: Block -> Bool
+blockIsBlank
+  = \case
+      Plain ins -> all inlineIsBlank ins
+      Para ins -> all inlineIsBlank ins
+      LineBlock inss -> all (all inlineIsBlank) inss
+      CodeBlock _ txt -> textIsBlank txt
+      RawBlock _ txt -> textIsBlank txt
+      BlockQuote bls -> all blockIsBlank bls
+      OrderedList _ blss -> all (all blockIsBlank) blss
+      BulletList blss -> all (all blockIsBlank) blss
+      DefinitionList ds -> all (uncurry (&&) . bimap (all inlineIsBlank) (all (all blockIsBlank))) ds
+      Header _ _ ils -> all inlineIsBlank ils
+      HorizontalRule -> True
+      Table{} -> False
+      Div _ bls -> all blockIsBlank bls
+      Null -> True
+
+textIsBlank :: T.Text -> Bool
+textIsBlank = T.all isSpace
+
+inlineIsBlank :: Inline -> Bool
+inlineIsBlank
+  = \case
+      (Str txt) -> textIsBlank txt
+      (Emph ins) -> all inlineIsBlank ins
+      (Underline ins) -> all inlineIsBlank ins
+      (Strong ins) -> all inlineIsBlank ins
+      (Strikeout ins) -> all inlineIsBlank ins
+      (Superscript ins) -> all inlineIsBlank ins
+      (Subscript ins) -> all inlineIsBlank ins
+      (SmallCaps ins) -> all inlineIsBlank ins
+      (Quoted _ ins) -> all inlineIsBlank ins
+      (Cite _ _) -> False
+      (Code _ txt) -> textIsBlank txt
+      Space -> True
+      SoftBreak -> True
+      LineBreak -> True
+      (Math _ txt) -> textIsBlank txt
+      (RawInline _ txt) -> textIsBlank txt
+      (Link _ ins (t1, t2)) -> all inlineIsBlank ins && textIsBlank t1 && textIsBlank t2
+      (Image _ ins (t1, t2)) -> all inlineIsBlank ins && textIsBlank t1 && textIsBlank t2
+      (Note bls) -> all blockIsBlank bls
+      (Span _ ins) -> all inlineIsBlank ins
 
 blocksToPresentationSlides :: [Block] -> Pres [Slide]
 blocksToPresentationSlides blks = do

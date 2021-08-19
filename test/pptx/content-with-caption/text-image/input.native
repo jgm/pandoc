@@ -1,0 +1,2 @@
+[Para [Str "Some",Space,Str "text",Space,Str "here"]
+,Para [Image ("",[],[]) [Str "Followed",Space,Str "by",Space,Str "a",Space,Str "picture"] ("lalune.jpg","fig:")]]

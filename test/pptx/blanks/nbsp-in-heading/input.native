@@ -1,0 +1,5 @@
+[Header 1 ("first-slide",[],[]) [Str "First",Space,Str "slide"]
+,Para [Str "Uninteresting,",Space,Str "normal"]
+,Header 1 ("section",[],[]) [Str "\160"]
+,Header 1 ("third-slide",[],[]) [Str "Third",Space,Str "slide"]
+,Para [Str "Was",Space,Str "the",Space,Str "previous",Space,Str "one",Space,Str "blank?"]]

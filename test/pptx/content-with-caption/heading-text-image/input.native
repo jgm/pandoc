@@ -1,0 +1,3 @@
+[Header 1 ("a-slide",[],[]) [Str "A",Space,Str "slide"]
+,Para [Str "Some",Space,Str "text",Space,Str "here"]
+,Para [Image ("",[],[]) [Str "Followed",Space,Str "by",Space,Str "a",Space,Str "picture"] ("lalune.jpg","fig:")]]
