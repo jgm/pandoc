@@ -1,0 +1,2 @@
+[Header 1 ("hello",[],[]) [Str "Hello"]
+,Para [Image ("",[],[]) [Str "An",Space,Str "image"] ("lalune.jpg","fig:")]]
