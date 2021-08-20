@@ -33,6 +33,7 @@
 - Ben Gamari
 - Ben Steinberg
 - Beni Cherniavsky-Paskin
+- Benjamin Bray
 - Benoit Schweblin
 - Bjorn Buckwalter
 - Blake Eryx
@@ -212,6 +213,7 @@
 - Nils Carlson
 - Nixon Enraght-Moony
 - Nokome Bentley
+- OCzarnecki
 - Ole Martin Ruud
 - Oliver Matthews
 - Ophir Lifshitz
@@ -224,6 +226,7 @@
 - Paul Rivier
 - Paulo Tanimoto
 - Pete Ryland
+- Peter Fabinksi
 - Peter Wang
 - Philip Pesca
 - Philippe Ombredanne
@@ -272,12 +275,14 @@
 - Vaibhav Sagar
 - Vanessa McHale
 - Vasily Alferov
+- Veratyr
 - Viktor Kronvall
 - Vincent
 - Vlad Hanciuta
 - Wandmalfarbe
 - Waldir Pimenta
 - Wikiwide
+- William Lupton
 - Winnie Hellmann
 - Xavier Olive
 - Yan Pashkovsky
@@ -304,6 +309,7 @@
 - lux-lth
 - lwolfsonkin
 - mbrackeantidot
+- mt_caret
 - nkalvi
 - niszet
 - nuew

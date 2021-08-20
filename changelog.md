@@ -1,5 +1,176 @@
 # Revision history for pandoc
 
+## pandoc 2.14.2 (provisional)
+
+  * Allow `--slide-level=0` (#7476). When the slide level is set
+    to 0, headings won't be used at all in splitting the document
+    into slides. Horizontal rules must be used to separate slides.
+
+  * Add RTF reader (#3982). `rtf` is now supported as an input
+    format as well as an output format. New module
+    Text.Pandoc.Readers.RTF (exporting `readRTF`). [API change]
+
+  * HTML reader:  treat commments as blank when parsing (#7482).
+
+   * Markdown reader:
+
+     + Fix raw LaTeX injection issue (#7497). Using a code block
+       containing `\end{verbatim}`, one could inject raw TeX into a
+       LaTeX document even when `raw_tex` is disabled. Thanks to
+       Augustin Laville for noticing the bug.
+     + Multimarkdown sub- and superscripts (#5512, OCzarnecki).
+       Added an extension `short_subsuperscripts` which modifies
+       the behavior of `subscript` and `superscript`, allowing
+       subscripts or superscripts containing only alphanumerics
+       to end with a space character (eg. `x^2 = 4` or `H~2 is
+       combustible`).  This improves support for multimarkdown.
+
+  * LaTeX reader:
+
+    + Proper implicit grouping around environment macros.
+    + Support `\global` before `\def`, `\let`, etc. (#7494).
+    + Fix scope for LaTeX macros (#7494). They should by default
+      scope over the group in which they are defined (except `\gdef`
+      and `\xdef`, which are global). In addition, environments must
+      be treated as groups.
+    + Improve handling of plain TeX macro primitives (#7474).
+      Fixed semantics for `\let`.
+    + Implement `\edef`, `\gdef`, and `\xdef`.
+
+  * Docx reader: Improve docx reader's robustness in extracting
+    images (#7511). The docx reader made some assumptions about
+    how docx containers were laid out that were not always true, with
+    the result that some images in documents did not get
+    extracted.
+
+  * LaTeX writer: Increase table column width precision (#7466,
+    Peter Fabinski). In some cases, the rounding performed by the
+    LaTeX table writer would introduce visible overrun outside
+    the text area. This adds two more decimal places to the width
+    values.
+
+  * Powerpoint writer:
+
+    + Include image title in description (#7352, Emily Bourke). The
+      image title (i.e. `![alt text](link "title")`) was previously
+      ignored when writing to pptx. This commit includes it in
+      PowerPoint's description of the image, along with the link.
+    + Select layouts from reference doc by name (Emily Bourke). Until
+      now, users had to make sure that their reference doc contains
+      layouts in a specific order: the first four layouts in the file
+      had to have a specific structure. Now the layout selection uses
+      the layout names rather than order: users must make sure their
+      reference doc contains four layouts with specific names, and if
+      a layout with the right name isn’t found pandoc will emit
+      a warning and use the corresponding layout from the default
+      reference doc as a fallback.
+
+  * Docx writer: be sensitive to the `native_numbering` extension
+    (#7499).  Figure and table numbers are now only included if
+    `native_numbering` is enabled.  (By default it is disabled.)
+    This is a behavior change with respect to 2.14.1, but the
+    default behavior is now that of previous versions.  The
+    change was necessary to avoid incompatibilities between
+    pandoc's native numbering and third-party cross reference
+    filters like pandoc-crossref.
+
+  * RTF writer:
+
+    + Omit `\bin` in `\pict`. According to the spec, this is not
+      needed or wanted when the data is in hexadecimal format, as
+      here.
+    + Emit `\outlinelevel`` for section headings.
+
+  * RTF template: specify font family for fixed-width font f1.
+    According to the spec, this is mandatory.
+
+  * LaTeX writer: Use ulem for underline (#7351). ulem is
+    conditionally included already when the `strikeout` variable
+    is set, so we set this when there is underlined text, and use
+    `\uline` instead of `\underline`. This fixes wrapping for
+    underlined text.
+
+  * Text.Pandoc.Citeproc:
+
+    + Revise citeproc code to fit new citeproc 0.5 API (thanks to
+      Benjamin Bray). Linkification of URLs in the bibliography
+      is now done in the citeproc library, depending on the
+      setting of an option.  We set that option depending on the
+      value of the metadata field `link-bibliography` (defaulting
+      to true, for consistency with earlier behavior). If a DOI,
+      PMID, PMCID, or URL field is present but not explicitly
+      rendered, the title (or if no title, the whole entry) is
+      hyperlinked. These changes implement the recommendations
+      from the draft CSL v1.0.2 spec (Appendix VI):
+      <https://github.com/citation-style-language/documentation/blob/master/specification.rst#appendix-vi-links>
+    + Avoid odd handling of quotes. Recent citeproc changes
+      allow us to ignore Quoted elements; citeproc now uses its own
+      method for represented quoted things, and only localizes and
+      flipflops quotes it adds itself. Convert Quoted in bib
+      entries to special Spans before passing them off to
+      citeproc. This ensures that we get proper localization and
+      flipflopping if, e.g., quotes are used in titles
+      (jgm/citeproc#87).
+    + Removed quote localization from citeproc processing.
+      This is now done in citeproc itself.
+
+  * Text.Pandoc.Logging: Add PowerpointTemplateWarning log message
+    type [API change] (Emily Bourke).
+
+  * Text.Pandoc.Extension: Add `Ext_short_subsuperscripts`
+    constructor to `Extension` [API change] (OCzarnecki).
+
+  * Various sample.lua editorial fixes (#7493, #7487, William
+    Lupton).
+
+  * Bump base-compat version so we get compatibility with base 4.12.
+
+  * Use Prelude from base-compat for ghc 8.4 too.
+
+  * Add haskell-language-server to shell.nix (#7496, Emily Bourke).
+
+  * Tests.Helpers: export testGolden and use it in RTF reader.
+    This gives a diff output on failure.
+
+  * Remove obsolete and incorrect sentence in `--slide-level` docs.
+
+  * Add internal module Text.Pandoc.Network.HTTP, exporting
+    `urlEncode`.
+
+  * Text.Pandoc.Parsing: `parseFromString`: preserve at least
+    the source directory (#7464). Previously we just set the
+    source name to "chunk" when parsing from strings, to avoid
+    misleading source positions. This had the side effect that
+    `rebase_relative_paths` would break inside sections that
+    were parsed as strings. So, now we use
+    "ORIGINAL_SOURCE_PATH_chunk" instead of just "chunk".
+
+  * Text.Pandoc.MIME: use image/x-xcf instead of application/x-xcf
+    (#7454).
+
+  * Don’t compare `cdLine` in OOXML golden tests (Emily Bourke).
+    The `cdLine` field gives the line of the file some CData was
+    found on, which reflects irrelevant formatting differences.
+
+  * Provide more detailed XML diff in tests (Emily Bourke).
+
+  * OOXML tests: silence warnings. These can make the test output
+    confusing, making people think tests are failing when they're
+    passing.
+
+  * INSTALL.md: Add GitLab CI/CD example (#7448, Veratyr).
+
+  * MANUAL.txt clarifications (William Lupton).
+
+  * Document use of the 'underline' class (#7492, #7484, William
+    Lupton).
+
+  * Add a FAQ about the "Cannot allocate memory" error on M1 macs.
+
+  * Use released citeproc 0.5.
+
+  * Remove dependency on HTTP package (#7456, mt_caret).
+
 ## pandoc 2.14.1 (2021-07-18)
 
   * Text.Pandoc.ImageSize: Add Tiff constructor for ImageType (#7405)
