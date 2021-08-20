@@ -242,6 +242,7 @@ extra-source-files:
                  test/command/sub-file-chapter-1.tex
                  test/command/sub-file-chapter-2.tex
                  test/command/bar.tex
+                 test/command/bar-endinput.tex
                  test/command/yaml-metadata.yaml
                  test/command/3510-subdoc.org
                  test/command/3510-export.latex

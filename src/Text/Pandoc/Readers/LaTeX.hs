@@ -890,7 +890,7 @@ blockCommands = M.fromList
          addMeta "bibliography" . splitBibs . untokenize))
    , ("addbibresource", mempty <$ (skipopts *> braced >>=
          addMeta "bibliography" . splitBibs . untokenize))
-   , ("endinput", mempty <$ skipMany anyTok)
+   , ("endinput", mempty <$ skipSameFileToks)
    -- includes
    , ("lstinputlisting", inputListing)
    , ("inputminted", inputMinted)
@@ -921,6 +921,10 @@ blockCommands = M.fromList
    , ("epigraph", epigraph)
    ]
 
+skipSameFileToks :: PandocMonad m => LP m ()
+skipSameFileToks = do
+    pos <- getPosition
+    skipMany $ infile (sourceName pos)
 
 environments :: PandocMonad m => M.Map Text (LP m Blocks)
 environments = M.union (tableEnvironments blocks inline) $
