@@ -604,7 +604,7 @@ splitBlocks' cur acc (Para (il:ils) : blks) | isImage il = do
                      then span isNotesDiv blks
                      else ([], blks)
   case cur of
-    [Header n _ _] | n == slideLevel ->
+    [Header n _ _] | n == slideLevel || slideLevel == 0 ->
                             splitBlocks' []
                             (acc ++ [cur ++ [Para [il]] ++ nts])
                             (if null ils then blks' else Para ils : blks')
@@ -615,14 +615,14 @@ splitBlocks' cur acc (tbl@Table{} : blks) = do
   slideLevel <- asks envSlideLevel
   let (nts, blks') = span isNotesDiv blks
   case cur of
-    [Header n _ _] | n == slideLevel ->
+    [Header n _ _] | n == slideLevel || slideLevel == 0 ->
                             splitBlocks' [] (acc ++ [cur ++ [tbl] ++ nts]) blks'
     _ ->  splitBlocks' [] (acc ++ ([cur | not (null cur)]) ++ [tbl : nts]) blks'
 splitBlocks' cur acc (d@(Div (_, classes, _) _): blks) | "columns" `elem` classes =  do
   slideLevel <- asks envSlideLevel
   let (nts, blks') = span isNotesDiv blks
   case cur of
-    [Header n _ _] | n == slideLevel ->
+    [Header n _ _] | n == slideLevel || slideLevel == 0 ->
                             splitBlocks' [] (acc ++ [cur ++ [d] ++ nts]) blks'
     _ ->  splitBlocks' [] (acc ++ ([cur | not (null cur)]) ++ [d : nts]) blks'
 splitBlocks' cur acc (blk : blks) = splitBlocks' (cur ++ [blk]) acc blks
@@ -630,25 +630,10 @@ splitBlocks' cur acc (blk : blks) = splitBlocks' (cur ++ [blk]) acc blks
 splitBlocks :: [Block] -> Pres [[Block]]
 splitBlocks = splitBlocks' [] []
 
-blocksToSlide' :: Int -> [Block] -> SpeakerNotes -> Pres Slide
-blocksToSlide' lvl (Header n (ident, _, _) ils : blks) spkNotes
-  | n < lvl = do
-      registerAnchorId ident
-      sldId <- asks envCurSlideId
-      hdr <- inlinesToParElems ils
-      return $ Slide sldId (TitleSlide hdr) spkNotes
-  | n == lvl = do
-      registerAnchorId ident
-      hdr <- inlinesToParElems ils
-      -- Now get the slide without the header, and then add the header
-      -- in.
-      slide <- blocksToSlide' lvl blks spkNotes
-      let layout = case slideLayout slide of
-            ContentSlide _ cont          -> ContentSlide hdr cont
-            TwoColumnSlide _ contL contR -> TwoColumnSlide hdr contL contR
-            layout'                     -> layout'
-      return $ slide{slideLayout = layout}
-blocksToSlide' _ (blk : blks) spkNotes
+-- | Assuming the slide title is already handled, convert these blocks to the
+-- body content for the slide.
+bodyBlocksToSlide :: Int -> [Block] -> SpeakerNotes -> Pres Slide
+bodyBlocksToSlide _ (blk : blks) spkNotes
   | Div (_, classes, _) divBlks <- blk
   , "columns" `elem` classes
   , Div (_, clsL, _) blksL : Div (_, clsR, _) blksR : remaining <- divBlks
@@ -669,7 +654,7 @@ blocksToSlide' _ (blk : blks) spkNotes
         sldId
         (TwoColumnSlide [] shapesL shapesR)
         spkNotes
-blocksToSlide' _ (blk : blks) spkNotes = do
+bodyBlocksToSlide _ (blk : blks) spkNotes = do
       inNoteSlide <- asks envInNoteSlide
       shapes <- if inNoteSlide
                 then forceFontSize noteSize $ blocksToShapes (blk : blks)
@@ -680,13 +665,33 @@ blocksToSlide' _ (blk : blks) spkNotes = do
         sldId
         (ContentSlide [] shapes)
         spkNotes
-blocksToSlide' _ [] spkNotes = do
+bodyBlocksToSlide _ [] spkNotes = do
   sldId <- asks envCurSlideId
   return $
     Slide
     sldId
     (ContentSlide [] [])
     spkNotes
+
+blocksToSlide' :: Int -> [Block] -> SpeakerNotes -> Pres Slide
+blocksToSlide' lvl (Header n (ident, _, _) ils : blks) spkNotes
+  | n < lvl = do
+      registerAnchorId ident
+      sldId <- asks envCurSlideId
+      hdr <- inlinesToParElems ils
+      return $ Slide sldId (TitleSlide hdr) spkNotes
+  | n == lvl || lvl == 0 = do
+      registerAnchorId ident
+      hdr <- inlinesToParElems ils
+      -- Now get the slide without the header, and then add the header
+      -- in.
+      slide <- bodyBlocksToSlide lvl blks spkNotes
+      let layout = case slideLayout slide of
+            ContentSlide _ cont          -> ContentSlide hdr cont
+            TwoColumnSlide _ contL contR -> TwoColumnSlide hdr contL contR
+            layout'                     -> layout'
+      return $ slide{slideLayout = layout}
+blocksToSlide' lvl blks spkNotes = bodyBlocksToSlide lvl blks spkNotes
 
 blockToSpeakerNotes :: Block -> Pres SpeakerNotes
 blockToSpeakerNotes (Div (_, ["notes"], _) blks) =

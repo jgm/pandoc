@@ -146,4 +146,29 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                                  [(pack "monofont", toVal $ pack "Consolas")] }
                          "pptx/code.native"
                          "pptx/code-custom.pptx"
+                       , pptxTests ("Using slide level 0, if the first thing on "
+                                    <> "a slide is a h1 it's used as the "
+                                    <> "slide title")
+                         def { writerSlideLevel = Just 0 }
+                         "pptx/slide-level-0-h1-with-image.native"
+                         "pptx/slide-level-0-h1-with-image.pptx"
+                       , pptxTests ("Using slide level 0, if the first thing on "
+                                    <> "a slide is a h2 it's used as the "
+                                    <> "slide title")
+                         def { writerSlideLevel = Just 0 }
+                         "pptx/slide-level-0-h2-with-image.native"
+                         "pptx/slide-level-0-h2-with-image.pptx"
+                       , pptxTests ("Using slide level 0, if the first thing on "
+                                    <> "a slide is a heading it's used as the "
+                                    <> "slide title (works with a table)")
+                         def { writerSlideLevel = Just 0 }
+                         "pptx/slide-level-0-h1-with-table.native"
+                         "pptx/slide-level-0-h1-with-table.pptx"
+                       , pptxTests ("Using slide level 0, if the first thing on "
+                                    <> "a slide is a heading it's used as the "
+                                    <> "slide title (two headings forces a "
+                                    <> "slide break though)")
+                         def { writerSlideLevel = Just 0 }
+                         "pptx/slide-level-0-h1-h2-with-table.native"
+                         "pptx/slide-level-0-h1-h2-with-table.pptx"
                        ]

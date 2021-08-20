@@ -1,0 +1,13 @@
+[Header 1 ("hello",[],[]) [Str "Hello"]
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignDefault,ColWidth 5.555555555555555e-2)]
+ (TableHead ("",[],[])
+ [])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "1"]]]])]
+ (TableFoot ("",[],[])
+ [])]
