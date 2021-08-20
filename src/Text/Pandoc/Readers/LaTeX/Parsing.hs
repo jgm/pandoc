@@ -45,6 +45,7 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , isNewlineTok
   , isWordTok
   , isArgTok
+  , infile
   , spaces
   , spaces1
   , tokTypeIn
@@ -645,6 +646,9 @@ isWordTok _              = False
 isArgTok :: Tok -> Bool
 isArgTok (Tok _ (Arg _) _) = True
 isArgTok _                 = False
+
+infile :: PandocMonad m => SourceName -> LP m Tok
+infile reference = satisfyTok (\(Tok source _ _) -> (sourceName source) == reference)
 
 spaces :: PandocMonad m => LP m ()
 spaces = skipMany (satisfyTok (tokTypeIn [Comment, Spaces, Newline]))
