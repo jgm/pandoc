@@ -466,14 +466,11 @@ includeDirective top fields body = do
   let classes =  maybe [] T.words (lookup "class" fields)
   let ident = maybe "" trimr $ lookup "name" fields
   let parser =
-       case lookup "code" fields of
+       case lookup "code" fields `mplus` lookup "literal" fields of
          Just lang ->
            (codeblock ident classes fields (trimr lang) False
             . sourcesToText) <$> getInput
-         Nothing   ->
-           case lookup "literal" fields of
-             Just _  -> B.rawBlock "rst" . sourcesToText <$> getInput
-             Nothing -> parseBlocks
+         Nothing   -> parseBlocks
   let isLiteral = isJust (lookup "code" fields `mplus` lookup "literal" fields)
   let selectLines =
         (case trim <$> lookup "end-before" fields of
