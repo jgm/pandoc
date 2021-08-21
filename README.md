@@ -76,6 +76,8 @@ library. It can convert *from*
 -   `odt` ([ODT](https://en.wikipedia.org/wiki/OpenDocument))
 -   `opml` ([OPML](http://dev.opml.org/spec2.html))
 -   `org` ([Emacs Org mode](https://orgmode.org))
+-   `rtf` ([Rich Text
+    Format](https://en.wikipedia.org/wiki/Rich_Text_Format))
 -   `rst`
     ([reStructuredText](https://docutils.sourceforge.io/docs/ref/rst/introduction.html))
 -   `t2t` ([txt2tags](https://txt2tags.org))
