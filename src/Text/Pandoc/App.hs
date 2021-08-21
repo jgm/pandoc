@@ -95,33 +95,15 @@ convertWithOpts opts = do
                      Just xs | not (optIgnoreArgs opts) -> xs
                      _ -> ["-"]
 
-  let runIO' :: PandocIO a -> IO a
-      runIO' f = do
-        (res, reports) <- runIOorExplode $ do
-                             setTrace (optTrace opts)
-                             setVerbosity verbosity
-                             x <- f
-                             rs <- getLog
-                             return (x, rs)
-        case optLogFile opts of
-             Nothing      -> return ()
-             Just logfile -> BL.writeFile logfile (encodeLogMessages reports)
-        let isWarning msg = messageVerbosity msg == WARNING
-        when (optFailIfWarnings opts && any isWarning reports) $
-            E.throwIO PandocFailOnWarningError
-        return res
-
-  let eol = case optEol opts of
-                 CRLF   -> IO.CRLF
-                 LF     -> IO.LF
-                 Native -> nativeNewline
 #ifdef _WINDOWS
   let istty = True
 #else
   istty <- liftIO $ queryTerminal stdOutput
 #endif
 
-  runIO' $ do
+  (output, reports) <- runIOorExplode $ do
+    setTrace (optTrace opts)
+    setVerbosity verbosity
     setUserDataDir datadir
     setResourcePath (optResourcePath opts)
 
@@ -305,14 +287,14 @@ convertWithOpts opts = do
               >=> maybe return extractMedia (optExtractMedia opts)
               )
 
-    case writer of
-      ByteStringWriter f -> f writerOptions doc >>= writeFnBinary outputFile
+    output <- case writer of
+      ByteStringWriter f -> BinaryOutput <$> f writerOptions doc
       TextWriter f -> case outputPdfProgram outputSettings of
         Just pdfProg -> do
                 res <- makePDF pdfProg (optPdfEngineOpts opts) f
                         writerOptions doc
                 case res of
-                     Right pdf -> writeFnBinary outputFile pdf
+                     Right pdf -> return $ BinaryOutput pdf
                      Left err' -> throwError $ PandocPDFError $
                                      TL.toStrict (TE.decodeUtf8With TE.lenientDecode err')
 
@@ -321,11 +303,29 @@ convertWithOpts opts = do
                       | standalone = t
                       | T.null t || T.last t /= '\n' = t <> T.singleton '\n'
                       | otherwise = t
-                output <- ensureNl <$> f writerOptions doc
-                writerFn eol outputFile =<<
-                  if optSelfContained opts && htmlFormat format
-                     then makeSelfContained output
-                     else return output
+                textOutput <- ensureNl <$> f writerOptions doc
+                if optSelfContained opts && htmlFormat format
+                   then TextOutput <$> makeSelfContained textOutput
+                   else return $ TextOutput textOutput
+    reports <- getLog
+    return (output, reports)
+
+  case optLogFile opts of
+       Nothing      -> return ()
+       Just logfile -> BL.writeFile logfile (encodeLogMessages reports)
+  let isWarning msg = messageVerbosity msg == WARNING
+  when (optFailIfWarnings opts && any isWarning reports) $
+      E.throwIO PandocFailOnWarningError
+  let eol = case optEol opts of
+                 CRLF   -> IO.CRLF
+                 LF     -> IO.LF
+                 Native -> nativeNewline
+  case output of
+    TextOutput t    -> writerFn eol outputFile t
+    BinaryOutput bs -> writeFnBinary outputFile bs
+
+data PandocOutput = TextOutput Text | BinaryOutput BL.ByteString
+  deriving (Show)
 
 type Transform = Pandoc -> Pandoc
 
