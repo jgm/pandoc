@@ -188,6 +188,11 @@ options =
                   (\opt -> return opt { optFileScope = True }))
                  "" -- "Parse input files before combining"
 
+    , Option "" ["sandbox"]
+                 (NoArg
+                  (\opt -> return opt { optSandbox = True }))
+                 ""
+
     , Option "s" ["standalone"]
                  (NoArg
                   (\opt -> return opt { optStandalone = True }))

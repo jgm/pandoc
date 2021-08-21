@@ -160,6 +160,7 @@ data Opt = Opt
     , optCSL                   :: Maybe FilePath -- ^ CSL stylesheet
     , optBibliography          :: [FilePath]  -- ^ Bibliography files
     , optCitationAbbreviations :: Maybe FilePath -- ^ Citation abbreviations
+    , optSandbox               :: Bool
     } deriving (Generic, Show)
 
 instance FromYAML (Opt -> Opt) where
@@ -595,6 +596,8 @@ doOpt (k',v) = do
       parseYAML v >>= \x -> return (\o -> o{ optEol = x })
     "strip-comments" ->
       parseYAML v >>= \x -> return (\o -> o  { optStripComments = x })
+    "sandbox" ->
+      parseYAML v >>= \x -> return (\o -> o  { optSandbox = x })
     _ -> failAtNode k' $ "Unknown option " ++ show k
 
 -- | Defaults for command-line options.
@@ -673,6 +676,7 @@ defaultOpts = Opt
     , optCSL                   = Nothing
     , optBibliography          = []
     , optCitationAbbreviations = Nothing
+    , optSandbox               = False
     }
 
 parseStringKey ::  Node Pos -> Parser Text

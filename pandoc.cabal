@@ -622,6 +622,7 @@ library
                    Text.Pandoc.Class.PandocMonad,
                    Text.Pandoc.Class.PandocIO,
                    Text.Pandoc.Class.PandocPure,
+                   Text.Pandoc.Class.Sandbox,
                    Text.Pandoc.Filter.JSON,
                    Text.Pandoc.Filter.Lua,
                    Text.Pandoc.Filter.Path,
