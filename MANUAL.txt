@@ -730,6 +730,16 @@ header when requesting a document from a URL:
     document in standalone mode. If no *VAL* is specified, the
     key will be given the value `true`.
 
+`--sandbox`
+
+:   Run pandoc in a sandbox, limiting IO operations in readers
+    and writers to reading the files specified on the command line.
+    Note that this option does not limit IO operations by
+    filters or in the production of PDF documents.  But it does
+    offer security against, for example, disclosure of files
+    through the use of `include` directives.  Anyone using
+    pandoc on untrusted user input should use this option.
+
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
 
 :   Print the system default template for an output *FORMAT*. (See `-t`
@@ -6543,7 +6553,8 @@ application, here are some things to keep in mind:
 2. Several input formats (including HTML, Org, and RST) support `include`
    directives that allow the contents of a file to be included in the
    output. An untrusted attacker could use these to view the contents of
-   files on the file system.
+   files on the file system.  (Using the `--sandbox` option can
+   protect against this threat.)
 
 3. If your application uses pandoc as a Haskell library (rather than
    shelling out to the executable), it is possible to use it in a mode

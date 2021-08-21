@@ -19,6 +19,7 @@ module Text.Pandoc.Class
   , module Text.Pandoc.Class.PandocIO
   , module Text.Pandoc.Class.PandocMonad
   , module Text.Pandoc.Class.PandocPure
+  , module Text.Pandoc.Class.Sandbox
   , Translations
   ) where
 
@@ -27,3 +28,4 @@ import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Class.PandocIO
 import Text.Pandoc.Class.PandocPure
 import Text.Pandoc.Translations (Translations)
+import Text.Pandoc.Class.Sandbox

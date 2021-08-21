@@ -139,7 +139,26 @@ convertWithOpts opts = do
             <> "` instead of `pandoc " <> inputFile <> " -o " <> outputFile <> "`."
         _ -> return ()
 
-    (reader, readerExts) <- getReader readerName
+
+    let makeSandboxed pureReader =
+          let files = maybe id (:) (optReferenceDoc opts) .
+                      maybe id (:) (optEpubMetadata opts) .
+                      maybe id (:) (optEpubCoverImage opts) .
+                      maybe id (:) (optCSL opts) .
+                      maybe id (:) (optCitationAbbreviations opts) $
+                      optEpubFonts opts ++
+                      optBibliography opts
+           in  case pureReader of
+                 TextReader r -> TextReader $ \o t -> sandbox files (r o t)
+                 ByteStringReader r
+                            -> ByteStringReader $ \o t -> sandbox files (r o t)
+
+    (reader, readerExts) <-
+      if optSandbox opts
+         then case runPure (getReader readerName) of
+                Left e -> throwError e
+                Right (r, rexts) -> return (makeSandboxed r, rexts)
+         else getReader readerName
 
     outputSettings <- optToOutputSettings opts
     let format = outputFormat outputSettings
@@ -274,8 +293,9 @@ convertWithOpts opts = do
              ByteStringReader r ->
                mconcat <$> mapM (r readerOpts . inputToLazyByteString) inputs)
             >>=
-              (   (if isJust (optExtractMedia opts)
-                        || writerNameBase == "docx" -- for fallback png creation
+              (   (if not (optSandbox opts) &&
+                      (isJust (optExtractMedia opts)
+                       || writerNameBase == "docx") -- for fallback pngs
                       then fillMediaBag
                       else return)
               >=> return . adjustMetadata (metadataFromFile <>)
@@ -286,7 +306,8 @@ convertWithOpts opts = do
               >=> maybe return extractMedia (optExtractMedia opts)
               )
 
-    when (writerNameBase == "docx") $ do -- create fallback pngs for svgs
+    when (writerNameBase == "docx" && not (optSandbox opts)) $ do
+      -- create fallback pngs for svgs
       items <- mediaItems <$> getMediaBag
       forM_ items $ \(fp, mt, bs) ->
         case T.takeWhile (/=';') mt of
