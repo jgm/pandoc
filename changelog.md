@@ -10,7 +10,7 @@
     format as well as an output format. New module
     Text.Pandoc.Readers.RTF (exporting `readRTF`). [API change]
 
-  * HTML reader:  treat commments as blank when parsing (#7482).
+  * HTML reader:  treat comments as blank when parsing (#7482).
 
   * Markdown reader:
 
