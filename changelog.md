@@ -173,6 +173,8 @@
 
   * Add a FAQ about the "Cannot allocate memory" error on M1 macs.
 
+  * Use texmath 0.12.3.1.
+
   * Use released citeproc 0.5.
 
   * Remove dependency on HTTP package (#7456, mt_caret).
