@@ -12,18 +12,21 @@
 
   * HTML reader:  treat commments as blank when parsing (#7482).
 
-   * Markdown reader:
+  * Markdown reader:
 
-     + Fix raw LaTeX injection issue (#7497). Using a code block
-       containing `\end{verbatim}`, one could inject raw TeX into a
-       LaTeX document even when `raw_tex` is disabled. Thanks to
-       Augustin Laville for noticing the bug.
-     + Multimarkdown sub- and superscripts (#5512, OCzarnecki).
-       Added an extension `short_subsuperscripts` which modifies
-       the behavior of `subscript` and `superscript`, allowing
-       subscripts or superscripts containing only alphanumerics
-       to end with a space character (eg. `x^2 = 4` or `H~2 is
-       combustible`).  This improves support for multimarkdown.
+    + Fix raw LaTeX injection issue (#7497). Using a code block
+      containing `\end{verbatim}`, one could inject raw TeX into a
+      LaTeX document even when `raw_tex` is disabled. Thanks to
+      Augustin Laville for noticing the bug.
+    + Multimarkdown sub- and superscripts (#5512, OCzarnecki).
+      Added an extension `short_subsuperscripts` which modifies
+      the behavior of `subscript` and `superscript`, allowing
+      subscripts or superscripts containing only alphanumerics
+      to end with a space character (eg. `x^2 = 4` or `H~2 is
+      combustible`).  This improves support for multimarkdown.
+
+  * RST reader: Fix `:literal:` includes (#7513).  These should create
+    code blocks, not insert raw RST.
 
   * LaTeX reader:
 
@@ -160,7 +163,10 @@
 
   * INSTALL.md: Add GitLab CI/CD example (#7448, Veratyr).
 
-  * MANUAL.txt clarifications (William Lupton).
+  * MANUAL.txt
+
+    - Clarifications (William Lupton).
+    - Add a note on security risks of include directives.
 
   * Document use of the 'underline' class (#7492, #7484, William
     Lupton).
