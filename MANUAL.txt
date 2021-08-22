@@ -5781,8 +5781,8 @@ By default, the *slide level* is the highest heading level in
 the hierarchy that is followed immediately by content, and not another
 heading, somewhere in the document. In the example above, level-1 headings
 are always followed by level-2 headings, which are followed by content,
-so the slide level is 2.  This default can be overridden using
-the `--slide-level` option.
+so the slide level is 2. This default can be overridden using the
+`--slide-level` option.
 
 The document is carved up into slides according to the following
 rules:
@@ -5806,19 +5806,20 @@ rules:
     subsequent slide with the same title (for beamer).
 
   * A title page is constructed automatically from the document's title
-    block, if present.  (In the case of beamer, this can be disabled
+    block, if present. (In the case of beamer, this can be disabled
     by commenting out some lines in the default template.)
 
 These rules are designed to support many different styles of slide show. If
 you don't care about structuring your slides into sections and subsections,
-you can just use level-1 headings for all each slide. (In that case, level-1
-will be the slide level.) But you can also structure the slide show into
-sections, as in the example above.
+you can either just use level-1 headings for all slides (in that case, level 1
+will be the slide level) or you can set `--slide-level=0`.
 
 Note:  in reveal.js slide shows, if slide level is 2, a two-dimensional
 layout will be produced, with level-1 headings building horizontally
-and level-2 headings building vertically.  It is not recommended that
-you use deeper nesting of section levels with reveal.js.
+and level-2 headings building vertically. It is not recommended that
+you use deeper nesting of section levels with reveal.js unless you set
+`--slide-level=0` (which lets reveal.js produce a one-dimensional layout
+and only interprets horizontal rules as slide boundaries).
 
 ## Incremental lists
 
