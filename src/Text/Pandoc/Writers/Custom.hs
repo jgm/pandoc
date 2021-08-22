@@ -22,11 +22,12 @@ import qualified Data.Text as T
 import Data.Text (Text, pack)
 import Foreign.Lua (Lua, Pushable)
 import Text.DocLayout (render, literal)
-import Text.Pandoc.Class.PandocIO (PandocIO)
+import Control.Monad.IO.Class (MonadIO)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua (Global (..), runLua, setGlobals)
 import Text.Pandoc.Lua.Util (addField, dofileWithTraceback)
 import Text.Pandoc.Options
+import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 
@@ -79,7 +80,8 @@ instance (Pushable a, Pushable b) => Pushable (KeyValue a b) where
     Lua.rawset (Lua.nthFromTop 3)
 
 -- | Convert Pandoc to custom markup.
-writeCustom :: FilePath -> WriterOptions -> Pandoc -> PandocIO Text
+writeCustom :: (PandocMonad m, MonadIO m)
+            => FilePath -> WriterOptions -> Pandoc -> m Text
 writeCustom luaFile opts doc@(Pandoc meta _) = do
   let globals = [ PANDOC_DOCUMENT doc
                 , PANDOC_SCRIPT_FILE luaFile
