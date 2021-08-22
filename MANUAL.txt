@@ -1472,6 +1472,7 @@ Nonzero exit codes have the following meanings:
    22 PandocUnknownWriterError
    23 PandocUnsupportedExtensionError
    24 PandocCiteprocError
+   25 PandocBibliographyError
    31 PandocEpubSubdirectoryError
    43 PandocPDFError
    44 PandocXMLError
