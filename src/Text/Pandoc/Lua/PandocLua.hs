@@ -30,7 +30,6 @@ import Control.Monad.Catch (MonadCatch, MonadMask, MonadThrow)
 import Control.Monad.Except (MonadError (catchError, throwError))
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Foreign.Lua (Lua (..), NumResults, Pushable, ToHaskellFunction)
-import Text.Pandoc.Class.PandocIO (PandocIO)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), readDefaultDataFile)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
@@ -59,7 +58,7 @@ liftPandocLua = PandocLua
 
 -- | Evaluate a @'PandocLua'@ computation, running all contained Lua
 -- operations..
-runPandocLua :: PandocLua a -> PandocIO a
+runPandocLua :: (PandocMonad m, MonadIO m) => PandocLua a -> m a
 runPandocLua pLua = do
   origState <- getCommonState
   globals <- defaultGlobals
@@ -103,7 +102,7 @@ loadDefaultModule name = do
       throwError $ PandocLuaError (T.pack err)
 
 -- | Global variables which should always be set.
-defaultGlobals :: PandocIO [Global]
+defaultGlobals :: PandocMonad m => m [Global]
 defaultGlobals = do
   commonState <- getCommonState
   return
