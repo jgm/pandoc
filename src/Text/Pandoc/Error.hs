@@ -67,6 +67,7 @@ data PandocError = PandocIOError Text IOError
                  | PandocUnsupportedExtensionError Text Text
                  | PandocCiteprocError CiteprocError
                  | PandocBibliographyError Text Text
+                 | PandocSandboxError Text
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
@@ -158,6 +159,8 @@ renderError e =
       prettyCiteprocError e'
     PandocBibliographyError fp msg ->
       "Error reading bibliography file " <> fp <> ":\n" <> msg
+    PandocSandboxError fp ->
+      "Attempt to access resource outside sandbox: " <> fp
 
 
 -- | Handle PandocError by exiting with an error message.
@@ -199,6 +202,7 @@ handleError (Left e) =
       PandocUnsupportedExtensionError{} -> 23
       PandocCiteprocError{} -> 24
       PandocBibliographyError{} -> 25
+      PandocSandboxError{} -> 26
 
 err :: Int -> Text -> IO a
 err exitCode msg = do
