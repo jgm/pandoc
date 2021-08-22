@@ -5998,13 +5998,13 @@ the [Beamer User's Guide] may also be used: `allowdisplaybreaks`,
 
 ## Background in reveal.js and beamer
 
-Background images can be added to self-contained reveal.js slideshows and
-to beamer slideshows.
+Background images can be added to self-contained reveal.js slide shows and
+to beamer slide shows.
 
 For the same image on every slide, use the  configuration
 option `background-image` either in the YAML metadata block
 or as a command-line variable. (There are no other options in
-beamer and the rest of this section concerns reveal.js slideshows.)
+beamer and the rest of this section concerns reveal.js slide shows.)
 
 For reveal.js, you can instead use the reveal.js-native option
 `parallaxBackgroundImage`. You can also set `parallaxBackgroundHorizontal`
@@ -6033,7 +6033,7 @@ For example in reveal.js:
 
 ```
 ---
-title: My Slideshow
+title: My Slide Show
 parallaxBackgroundImage: /path/to/my/background_image.png
 title-slide-attributes:
     data-background-image: /path/to/title_image.png
