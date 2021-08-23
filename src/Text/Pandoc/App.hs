@@ -103,7 +103,7 @@ convertWithOpts opts = do
   istty <- liftIO $ queryTerminal stdOutput
 #endif
 
-  res <- runIO $ do
+  res <- runSandboxed $ do
 
     setTrace (optTrace opts)
     setVerbosity verbosity
