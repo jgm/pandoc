@@ -21,8 +21,7 @@ module Text.Pandoc.Filter
 import System.CPUTime (getCPUTime)
 import Data.Aeson.TH (deriveJSON, defaultOptions)
 import GHC.Generics (Generic)
-import Text.Pandoc.Class.PandocIO (PandocIO)
-import Text.Pandoc.Class.PandocMonad (report, getVerbosity)
+import Text.Pandoc.Class (report, getVerbosity, PandocMonad)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Logging
@@ -66,11 +65,12 @@ instance FromYAML Filter where
            _       -> JSONFilter fp) node
 
 -- | Modify the given document using a filter.
-applyFilters :: ReaderOptions
+applyFilters :: (PandocMonad m, MonadIO m)
+             => ReaderOptions
              -> [Filter]
              -> [String]
              -> Pandoc
-             -> PandocIO Pandoc
+             -> m Pandoc
 applyFilters ropts filters args d = do
   expandedFilters <- mapM expandFilterPath filters
   foldM applyFilter d expandedFilters
@@ -92,7 +92,7 @@ applyFilters ropts filters args d = do
   toMilliseconds picoseconds = picoseconds `div` 1000000000
 
 -- | Expand paths of filters, searching the data directory.
-expandFilterPath :: Filter -> PandocIO Filter
+expandFilterPath :: (PandocMonad m, MonadIO m) => Filter -> m Filter
 expandFilterPath (LuaFilter fp) = LuaFilter <$> Path.expandFilterPath fp
 expandFilterPath (JSONFilter fp) = JSONFilter <$> Path.expandFilterPath fp
 expandFilterPath CiteprocFilter = return CiteprocFilter
