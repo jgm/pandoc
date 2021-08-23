@@ -29,6 +29,7 @@ import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import qualified Text.Pandoc.Class.IO as IO
+import Control.Monad.Catch (MonadCatch, MonadMask, MonadThrow)
 
 -- | Evaluate a 'PandocIO' operation.
 runIO :: PandocIO a -> IO (Either PandocError a)
@@ -45,6 +46,9 @@ newtype PandocIO a = PandocIO {
              , Functor
              , Applicative
              , Monad
+             , MonadCatch
+             , MonadMask
+             , MonadThrow
              , MonadError PandocError
              )
 
