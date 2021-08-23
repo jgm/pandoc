@@ -17,6 +17,7 @@ reading include files or images).
 module Text.Pandoc.Class
   ( module Text.Pandoc.Class.CommonState
   , module Text.Pandoc.Class.PandocIO
+  , module Text.Pandoc.Class.PandocSandboxed
   , module Text.Pandoc.Class.PandocMonad
   , module Text.Pandoc.Class.PandocPure
   , Translations
@@ -25,5 +26,6 @@ module Text.Pandoc.Class
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Class.PandocIO
+import Text.Pandoc.Class.PandocSandboxed
 import Text.Pandoc.Class.PandocPure
 import Text.Pandoc.Translations (Translations)

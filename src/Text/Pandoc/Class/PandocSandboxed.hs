@@ -1,23 +1,22 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {- |
-Module      : Text.Pandoc.Class.PandocIO
-Copyright   : Copyright (C) 2016-2020 Jesse Rosenthal, John MacFarlane
+Module      : Text.Pandoc.Class.PandocSandboxed
+Copyright   : Copyright (C) 2021 John MacFarlane
 License     : GNU GPL, version 2 or above
 
-Maintainer  : Jesse Rosenthal <jrosenthal@jhu.edu>
+Maintainer  : John MacFarlane <jgm@berkeley.edu>
 Stability   : alpha
 Portability : portable
 
-This module defines @'PandocIO'@, an IO-based instance of the
+This module defines @'PandocSandboxed'@, an IO-based instance of the
 @'PandocMonad'@ type class. File, data, and network access all are run
-using IO operators.
+using IO operators, but only a whitelisted set of resources can be
+accessed.
 -}
-module Text.Pandoc.Class.PandocIO
-  ( PandocIO(..)
-  , runIO
-  , runIOorExplode
-  , extractMedia
+module Text.Pandoc.Class.PandocSandboxed
+  ( PandocSandboxed(..)
+  , runSandboxed
  ) where
 
 import Control.Monad.Except (ExceptT, MonadError, runExceptT)
@@ -31,17 +30,12 @@ import Text.Pandoc.Error
 import qualified Text.Pandoc.Class.IO as IO
 import Control.Monad.Catch (MonadCatch, MonadMask, MonadThrow)
 
--- | Evaluate a 'PandocIO' operation.
-runIO :: PandocIO a -> IO (Either PandocError a)
-runIO ma = flip evalStateT def $ runExceptT $ unPandocIO ma
+-- | Evaluate a 'PandocSandboxed' operation.
+runSandboxed :: PandocSandboxed a -> IO (Either PandocError a)
+runSandboxed ma = flip evalStateT def $ runExceptT $ unPandocSandboxed ma
 
--- | Evaluate a 'PandocIO' operation, handling any errors
--- by exiting with an appropriate message and error status.
-runIOorExplode :: PandocIO a -> IO a
-runIOorExplode ma = runIO ma >>= handleError
-
-newtype PandocIO a = PandocIO {
-  unPandocIO :: ExceptT PandocError (StateT CommonState IO) a
+newtype PandocSandboxed a = PandocSandboxed {
+  unPandocSandboxed :: ExceptT PandocError (StateT CommonState IO) a
   } deriving ( MonadIO
              , Functor
              , Applicative
@@ -52,7 +46,7 @@ newtype PandocIO a = PandocIO {
              , MonadError PandocError
              )
 
-instance PandocMonad PandocIO where
+instance PandocMonad PandocSandboxed where
   lookupEnv = IO.lookupEnv
   getCurrentTime = IO.getCurrentTime
   getCurrentTimeZone = IO.getCurrentTimeZone
@@ -69,11 +63,8 @@ instance PandocMonad PandocIO where
   getDataFileName = IO.getDataFileName
   getModificationTime = IO.getModificationTime
 
-  getCommonState = PandocIO $ lift get
-  putCommonState = PandocIO . lift . put
+  getCommonState = PandocSandboxed $ lift get
+  putCommonState = PandocSandboxed . lift . put
 
   logOutput = IO.logOutput
 
--- | Extract media from the mediabag into a directory.
-extractMedia :: (PandocMonad m, MonadIO m) => FilePath -> Pandoc -> m Pandoc
-extractMedia = IO.extractMedia
