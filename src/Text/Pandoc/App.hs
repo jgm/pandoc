@@ -138,7 +138,7 @@ convertWithOpts opts = do
             <> "` instead of `pandoc " <> inputFile <> " -o " <> outputFile <> "`."
         _ -> return ()
 
-    (reader :: Reader PandocIO, readerExts) <- getReader readerName
+    (reader, readerExts) <- getReader readerName
 
     outputSettings <- optToOutputSettings opts
     let format = outputFormat outputSettings
