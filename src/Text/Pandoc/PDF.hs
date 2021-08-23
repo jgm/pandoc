@@ -2,6 +2,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {- |
    Module      : Text.Pandoc.PDF
    Copyright   : Copyright (C) 2012-2021 John MacFarlane
@@ -54,9 +55,8 @@ import Text.Pandoc.Writers.Shared (getField, metaToContext)
 import Data.List (intercalate)
 #endif
 import Data.List (isPrefixOf, find)
-import Text.Pandoc.Class.PandocIO (PandocIO, extractMedia, runIOorExplode)
-import Text.Pandoc.Class.PandocMonad (fillMediaBag, getCommonState, getVerbosity,
-                                      putCommonState, report, setVerbosity)
+import Text.Pandoc.Class.PandocIO (PandocIO, extractMedia)
+import Text.Pandoc.Class.PandocMonad (fillMediaBag, getVerbosity, report)
 import Text.Pandoc.Logging
 
 #ifdef _WINDOWS
@@ -86,50 +86,42 @@ makePDF program pdfargs writer opts doc =
       source <- writer opts doc
       let args   = ["-ms", "-mpdfmark", "-mspdf",
                     "-e", "-t", "-k", "-KUTF-8", "-i"] ++ pdfargs
-      verbosity <- getVerbosity
-      liftIO $ generic2pdf verbosity program args source
+      generic2pdf program args source
     baseProg -> do
-      commonState <- getCommonState
-      verbosity <- getVerbosity
       -- latex has trouble with tildes in paths, which
       -- you find in Windows temp dir paths with longer
       -- user names (see #777)
-      let withTempDir templ action = do
-            tmp <- getTemporaryDirectory
-            uname <- E.catch
+      let withTempDir :: FilePath -> (FilePath -> PandocIO a) -> PandocIO a
+          withTempDir templ action = do
+            tmp <- liftIO getTemporaryDirectory
+            uname <- liftIO $ E.catch
               (do (ec, sout, _) <- readProcessWithExitCode "uname" ["-o"] ""
                   if ec == ExitSuccess
                      then return $ Just $ filter (not . isSpace) sout
                      else return Nothing)
-              (\(_ :: E.SomeException) -> return Nothing)
+              (\(_  :: E.SomeException) -> return Nothing)
             if '~' `elem` tmp || uname == Just "Cygwin" -- see #5451
                    then withTempDirectory "." templ action
                    else withSystemTempDirectory templ action
-      (newCommonState, res) <- liftIO $ withTempDir "tex2pdf." $ \tmpdir' -> do
+      withTempDir "tex2pdf." $ \tmpdir' -> do
 #ifdef _WINDOWS
         -- note:  we want / even on Windows, for TexLive
         let tmpdir = changePathSeparators tmpdir'
 #else
         let tmpdir = tmpdir'
 #endif
-        runIOorExplode $ do
-          putCommonState commonState
-          doc' <- handleImages opts tmpdir doc
-          source <- writer opts{ writerExtensions = -- disable use of quote
-                                    -- ligatures to avoid bad ligatures like ?`
-                                    disableExtension Ext_smart
-                                     (writerExtensions opts) } doc'
-          res <- case baseProg of
-            "context" -> context2pdf verbosity program pdfargs tmpdir source
-            "tectonic" -> tectonic2pdf verbosity program pdfargs tmpdir source
-            prog | prog `elem` ["pdflatex", "lualatex", "xelatex", "latexmk"]
-                -> tex2pdf verbosity program pdfargs tmpdir source
-            _ -> return $ Left $ UTF8.fromStringLazy
-                               $ "Unknown program " ++ program
-          cs <- getCommonState
-          return (cs, res)
-      putCommonState newCommonState
-      return res
+        doc' <- handleImages opts tmpdir doc
+        source <- writer opts{ writerExtensions = -- disable use of quote
+                                  -- ligatures to avoid bad ligatures like ?`
+                                  disableExtension Ext_smart
+                                   (writerExtensions opts) } doc'
+        case baseProg of
+          "context" -> context2pdf program pdfargs tmpdir source
+          "tectonic" -> tectonic2pdf program pdfargs tmpdir source
+          prog | prog `elem` ["pdflatex", "lualatex", "xelatex", "latexmk"]
+              -> tex2pdf program pdfargs tmpdir source
+          _ -> return $ Left $ UTF8.fromStringLazy
+                             $ "Unknown program " ++ program
 
 makeWithWkhtmltopdf :: String              -- ^ wkhtmltopdf or path
                     -> [String]            -- ^ arguments
@@ -221,33 +213,30 @@ convertImage opts tmpdir fname = do
     mime = getMimeType fname
     doNothing = return (Right fname)
 
-tectonic2pdf :: Verbosity                       -- ^ Verbosity level
-             -> String                          -- ^ tex program
+tectonic2pdf :: String                          -- ^ tex program
              -> [String]                        -- ^ Arguments to the latex-engine
              -> FilePath                        -- ^ temp directory for output
              -> Text                            -- ^ tex source
              -> PandocIO (Either ByteString ByteString)
-tectonic2pdf verbosity program args tmpDir source = do
-  (exit, log', mbPdf) <- runTectonic verbosity program args tmpDir source
+tectonic2pdf program args tmpDir source = do
+  (exit, log', mbPdf) <- runTectonic program args tmpDir source
   case (exit, mbPdf) of
        (ExitFailure _, _)      -> return $ Left $ extractMsg log'
        (ExitSuccess, Nothing)  -> return $ Left ""
        (ExitSuccess, Just pdf) -> do
-          missingCharacterWarnings verbosity log'
+          missingCharacterWarnings log'
           return $ Right pdf
 
-tex2pdf :: Verbosity                       -- ^ Verbosity level
-        -> String                          -- ^ tex program
+tex2pdf :: String                          -- ^ tex program
         -> [String]                        -- ^ Arguments to the latex-engine
         -> FilePath                        -- ^ temp directory for output
         -> Text                            -- ^ tex source
         -> PandocIO (Either ByteString ByteString)
-tex2pdf verbosity program args tmpDir source = do
+tex2pdf program args tmpDir source = do
   let numruns | takeBaseName program == "latexmk"        = 1
               | "\\tableofcontents" `T.isInfixOf` source = 3  -- to get page numbers
               | otherwise                                = 2  -- 1 run won't give you PDF bookmarks
-  (exit, log', mbPdf) <- runTeXProgram verbosity program args numruns
-                          tmpDir source
+  (exit, log', mbPdf) <- runTeXProgram program args numruns tmpDir source
   case (exit, mbPdf) of
        (ExitFailure _, _)      -> do
           let logmsg = extractMsg log'
@@ -260,11 +249,11 @@ tex2pdf verbosity program args tmpDir source = do
           return $ Left $ logmsg <> extramsg
        (ExitSuccess, Nothing)  -> return $ Left ""
        (ExitSuccess, Just pdf) -> do
-          missingCharacterWarnings verbosity log'
+          missingCharacterWarnings log'
           return $ Right pdf
 
-missingCharacterWarnings :: Verbosity -> ByteString -> PandocIO ()
-missingCharacterWarnings verbosity log' = do
+missingCharacterWarnings :: ByteString -> PandocIO ()
+missingCharacterWarnings log' = do
   let ls = BC.lines log'
   let isMissingCharacterWarning = BC.isPrefixOf "Missing character: "
   let toCodePoint c
@@ -275,7 +264,6 @@ missingCharacterWarnings verbosity log' = do
                  | l <- ls
                  , isMissingCharacterWarning l
                  ]
-  setVerbosity verbosity
   mapM_ (report . MissingCharacter) warnings
 
 -- parsing output
@@ -299,9 +287,9 @@ extractConTeXtMsg log' = do
 
 -- running tex programs
 
-runTectonic :: Verbosity -> String -> [String] -> FilePath
+runTectonic :: String -> [String] -> FilePath
               -> Text -> PandocIO (ExitCode, ByteString, Maybe ByteString)
-runTectonic verbosity program args' tmpDir' source = do
+runTectonic program args' tmpDir' source = do
     let getOutDir acc (a:b:xs) = if a `elem` ["-o", "--outdir"]
                                     then (reverse acc ++ xs, Just b)
                                     else getOutDir (b:a:acc) xs
@@ -313,6 +301,7 @@ runTectonic verbosity program args' tmpDir' source = do
     let sourceBL = BL.fromStrict $ UTF8.fromText source
     let programArgs = ["--outdir", tmpDir] ++ args ++ ["-"]
     env <- liftIO getEnvironment
+    verbosity <- getVerbosity
     when (verbosity >= INFO) $ liftIO $
       showVerboseInfo (Just tmpDir) program programArgs env
          (utf8ToText sourceBL)
@@ -353,9 +342,9 @@ getResultingPDF logFile pdfFile = do
 -- Run a TeX program on an input bytestring and return (exit code,
 -- contents of stdout, contents of produced PDF if any).  Rerun
 -- a fixed number of times to resolve references.
-runTeXProgram :: Verbosity -> String -> [String] -> Int -> FilePath
+runTeXProgram :: String -> [String] -> Int -> FilePath
               -> Text -> PandocIO (ExitCode, ByteString, Maybe ByteString)
-runTeXProgram verbosity program args numRuns tmpDir' source = do
+runTeXProgram program args numRuns tmpDir' source = do
     let isOutdirArg x = "-outdir=" `isPrefixOf` x ||
                         "-output-directory=" `isPrefixOf` x
     let tmpDir =
@@ -378,6 +367,7 @@ runTeXProgram verbosity program args numRuns tmpDir' source = do
                 ("TEXMFOUTPUT", tmpDir) :
                   [(k,v) | (k,v) <- env'
                          , k /= "TEXINPUTS" && k /= "TEXMFOUTPUT"]
+    verbosity <- getVerbosity
     when (verbosity >= INFO) $ liftIO $
         UTF8.readFile file >>=
          showVerboseInfo (Just tmpDir) program programArgs env''
@@ -398,16 +388,16 @@ runTeXProgram verbosity program args numRuns tmpDir' source = do
                return (exit, fromMaybe out log', pdf)
     runTeX 1
 
-generic2pdf :: Verbosity
-            -> String
+generic2pdf :: String
             -> [String]
             -> Text
-            -> IO (Either ByteString ByteString)
-generic2pdf verbosity program args source = do
-  env' <- getEnvironment
+            -> PandocIO (Either ByteString ByteString)
+generic2pdf program args source = do
+  env' <- liftIO getEnvironment
+  verbosity <- getVerbosity
   when (verbosity >= INFO) $
-    showVerboseInfo Nothing program args env' source
-  (exit, out) <- E.catch
+    liftIO $ showVerboseInfo Nothing program args env' source
+  (exit, out) <- liftIO $ E.catch
     (pipeProcess (Just env') program args
                      (BL.fromStrict $ UTF8.fromText source))
     (handlePDFProgramNotFound program)
@@ -454,19 +444,19 @@ html2pdf verbosity program args source =
                  (ExitSuccess, Nothing)  -> Left ""
                  (ExitSuccess, Just pdf) -> Right pdf
 
-context2pdf :: Verbosity    -- ^ Verbosity level
-            -> String       -- ^ "context" or path to it
+context2pdf :: String       -- ^ "context" or path to it
             -> [String]     -- ^ extra arguments
             -> FilePath     -- ^ temp directory for output
             -> Text         -- ^ ConTeXt source
             -> PandocIO (Either ByteString ByteString)
-context2pdf verbosity program pdfargs tmpDir source =
+context2pdf program pdfargs tmpDir source = do
+  verbosity <- getVerbosity
   liftIO $ inDirectory tmpDir $ do
     let file = "input.tex"
     BS.writeFile file $ UTF8.fromText source
     let programArgs = "--batchmode" : pdfargs ++ [file]
     env' <- getEnvironment
-    when (verbosity >= INFO) $
+    when (verbosity >= INFO) $ liftIO $
       UTF8.readFile file >>=
         showVerboseInfo (Just tmpDir) program programArgs env'
     (exit, out) <- E.catch
