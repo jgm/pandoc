@@ -23,7 +23,7 @@ import qualified Data.Text as T
 import Text.DocTemplates (toVal, Context(..), Val(..))
 import qualified Control.Exception as E
 import Control.Monad
-import Control.Monad.Except (throwError)
+import Control.Monad.Except (throwError, catchError)
 import Control.Monad.Trans
 import Data.Char (toLower)
 import Data.List (find)
@@ -128,7 +128,7 @@ optToOutputSettings opts = do
         xs <- mapM getTextContents fps
         setListVariableM k xs ctx
 
-  curdir <- liftIO getCurrentDirectory
+  curdir <- catchError (liftIO getCurrentDirectory) (const $ return "")
 
   variables <-
     return (optVariables opts)

@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {- |
@@ -19,8 +20,8 @@ module Text.Pandoc.Class.PandocSandboxed
   , runSandboxed
  ) where
 
-import Control.Monad.Except (ExceptT, MonadError, runExceptT)
-import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.Except (ExceptT, MonadError, runExceptT, throwError)
+import Control.Monad.IO.Class (MonadIO(liftIO))
 import Control.Monad.State (StateT, evalStateT, lift, get, put)
 import Data.Default (Default (def))
 import Text.Pandoc.Class.CommonState (CommonState (..))
@@ -28,16 +29,16 @@ import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import qualified Text.Pandoc.Class.IO as IO
+import Text.Pandoc.Class.PandocIO (PandocIO, runIO)
 import Control.Monad.Catch (MonadCatch, MonadMask, MonadThrow)
 
 -- | Evaluate a 'PandocSandboxed' operation.
 runSandboxed :: PandocSandboxed a -> IO (Either PandocError a)
-runSandboxed ma = flip evalStateT def $ runExceptT $ unPandocSandboxed ma
+runSandboxed = runIO . unPandocSandboxed
 
 newtype PandocSandboxed a = PandocSandboxed {
-  unPandocSandboxed :: ExceptT PandocError (StateT CommonState IO) a
-  } deriving ( MonadIO
-             , Functor
+  unPandocSandboxed :: PandocIO a
+  } deriving ( Functor
              , Applicative
              , Monad
              , MonadCatch
@@ -46,25 +47,29 @@ newtype PandocSandboxed a = PandocSandboxed {
              , MonadError PandocError
              )
 
+instance MonadIO PandocSandboxed where
+  liftIO act = PandocSandboxed $ throwError $
+                 PandocSandboxError "IO action"
+
 instance PandocMonad PandocSandboxed where
-  lookupEnv = IO.lookupEnv
-  getCurrentTime = IO.getCurrentTime
-  getCurrentTimeZone = IO.getCurrentTimeZone
-  newStdGen = IO.newStdGen
-  newUniqueHash = IO.newUniqueHash
+  lookupEnv = PandocSandboxed . lookupEnv
+  getCurrentTime = PandocSandboxed getCurrentTime
+  getCurrentTimeZone = PandocSandboxed getCurrentTimeZone
+  newStdGen = PandocSandboxed newStdGen
+  newUniqueHash = PandocSandboxed newUniqueHash
 
-  openURL = IO.openURL
-  readFileLazy = IO.readFileLazy
-  readFileStrict = IO.readFileStrict
-  readStdinStrict = IO.readStdinStrict
+  openURL = PandocSandboxed . openURL
+  readFileLazy = PandocSandboxed . readFileLazy
+  readFileStrict = PandocSandboxed . readFileStrict
+  readStdinStrict = PandocSandboxed readStdinStrict
 
-  glob = IO.glob
-  fileExists = IO.fileExists
-  getDataFileName = IO.getDataFileName
-  getModificationTime = IO.getModificationTime
+  glob = PandocSandboxed . glob
+  fileExists = PandocSandboxed . fileExists
+  getDataFileName = PandocSandboxed . getDataFileName
+  getModificationTime = PandocSandboxed . getModificationTime
 
-  getCommonState = PandocSandboxed $ lift get
-  putCommonState = PandocSandboxed . lift . put
+  getCommonState = PandocSandboxed getCommonState
+  putCommonState = PandocSandboxed . putCommonState
 
-  logOutput = IO.logOutput
+  logOutput = PandocSandboxed . logOutput
 
