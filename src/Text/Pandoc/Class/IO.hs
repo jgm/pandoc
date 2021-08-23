@@ -30,6 +30,7 @@ module Text.Pandoc.Class.IO
   , openURL
   , readFileLazy
   , readFileStrict
+  , readStdinStrict
   , extractMedia
  ) where
 
@@ -157,6 +158,11 @@ readFileLazy s = liftIOError BL.readFile s
 -- raising an error on failure.
 readFileStrict :: (PandocMonad m, MonadIO m) => FilePath -> m B.ByteString
 readFileStrict s = liftIOError B.readFile s
+
+-- | Read the strict ByteString contents from stdin, raising
+-- an error on failure.
+readStdinStrict :: (PandocMonad m, MonadIO m) => m B.ByteString
+readStdinStrict = liftIOError (const B.getContents) "stdin"
 
 -- | Return a list of paths that match a glob, relative to the working
 -- directory. See 'System.FilePath.Glob' for the glob syntax.

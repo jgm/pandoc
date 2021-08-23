@@ -64,6 +64,7 @@ data PureState = PureState
   , stReferencePptx :: Archive
   , stReferenceODT :: Archive
   , stFiles :: FileTree
+  , stStdin :: B.ByteString
   , stUserDataFiles :: FileTree
   , stCabalDataFiles :: FileTree
   }
@@ -80,6 +81,7 @@ instance Default PureState where
         , stReferencePptx = emptyArchive
         , stReferenceODT = emptyArchive
         , stFiles = mempty
+        , stStdin = mempty
         , stUserDataFiles = mempty
         , stCabalDataFiles = mempty
         }
@@ -192,6 +194,8 @@ instance PandocMonad PandocPure where
     case infoFileContents <$> getFileInfo fp fps of
       Just bs -> return bs
       Nothing -> throwError $ PandocResourceNotFound $ T.pack fp
+
+  readStdinStrict = getsPureState stStdin
 
   glob s = do
     FileTree ftmap <- getsPureState stFiles

@@ -126,6 +126,7 @@ instance PandocMonad PandocLua where
 
   readFileLazy = IO.readFileLazy
   readFileStrict = IO.readFileStrict
+  readStdinStrict = IO.readStdinStrict
 
   glob = IO.glob
   fileExists = IO.fileExists
