@@ -75,5 +75,5 @@ instance PandocMonad PandocIO where
   logOutput = IO.logOutput
 
 -- | Extract media from the mediabag into a directory.
-extractMedia :: FilePath -> Pandoc -> PandocIO Pandoc
+extractMedia :: (PandocMonad m, MonadIO m) => FilePath -> Pandoc -> m Pandoc
 extractMedia = IO.extractMedia
