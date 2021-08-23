@@ -133,7 +133,7 @@ convertWithOpts opts = do
             <> "` instead of `pandoc " <> inputFile <> " -o " <> outputFile <> "`."
         _ -> return ()
 
-    (reader :: Reader PandocIO, readerExts) <- getReader readerName
+    (reader, readerExts) <- getReader readerName
 
     let convertTabs = tabFilter (if optPreserveTabs opts ||
                                       readerNameBase == "t2t" ||

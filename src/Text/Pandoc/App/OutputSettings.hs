@@ -45,16 +45,16 @@ readUtf8File :: PandocMonad m => FilePath -> m T.Text
 readUtf8File = fmap UTF8.toText . readFileStrict
 
 -- | Settings specifying how document output should be produced.
-data OutputSettings = OutputSettings
+data OutputSettings m = OutputSettings
   { outputFormat :: T.Text
-  , outputWriter :: Writer PandocIO
+  , outputWriter :: Writer m
   , outputWriterName :: T.Text
   , outputWriterOptions :: WriterOptions
   , outputPdfProgram :: Maybe String
   }
 
 -- | Get output settings from command line options.
-optToOutputSettings :: Opt -> PandocIO OutputSettings
+optToOutputSettings :: (PandocMonad m, MonadIO m) => Opt -> m (OutputSettings m)
 optToOutputSettings opts = do
   let outputFile = fromMaybe "-" (optOutputFile opts)
 
@@ -90,11 +90,10 @@ optToOutputSettings opts = do
                   then writerName
                   else T.toLower $ baseWriterName writerName
 
-  (writer :: Writer PandocIO, writerExts) <-
+  (writer, writerExts) <-
             if ".lua" `T.isSuffixOf` format
                then return (TextWriter
-                       (\o d -> writeCustom (T.unpack writerName) o d)
-                               :: Writer PandocIO, mempty)
+                       (\o d -> writeCustom (T.unpack writerName) o d), mempty)
                else getWriter (T.toLower writerName)
 
   let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
