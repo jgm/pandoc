@@ -62,6 +62,7 @@ instance PandocMonad PandocIO where
   openURL = IO.openURL
   readFileLazy = IO.readFileLazy
   readFileStrict = IO.readFileStrict
+  readStdinStrict = IO.readStdinStrict
 
   glob = IO.glob
   fileExists = IO.fileExists

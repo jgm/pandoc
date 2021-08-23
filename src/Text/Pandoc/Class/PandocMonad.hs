@@ -117,6 +117,9 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   -- | Read the strict ByteString contents from a file path,
   -- raising an error on failure.
   readFileStrict :: FilePath -> m B.ByteString
+  -- | Read the contents of stdin as a strict ByteString, raising
+  -- an error on failure.
+  readStdinStrict :: m B.ByteString
   -- | Return a list of paths that match a glob, relative to
   -- the working directory.  See 'System.FilePath.Glob' for
   -- the glob syntax.
@@ -674,6 +677,7 @@ instance (MonadTrans t, PandocMonad m, Functor (t m),
   openURL = lift . openURL
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
+  readStdinStrict = lift readStdinStrict
   glob = lift . glob
   fileExists = lift . fileExists
   getDataFileName = lift . getDataFileName
@@ -691,6 +695,7 @@ instance {-# OVERLAPS #-} PandocMonad m => PandocMonad (ParsecT s st m) where
   openURL = lift . openURL
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
+  readStdinStrict = lift readStdinStrict
   glob = lift . glob
   fileExists = lift . fileExists
   getDataFileName = lift . getDataFileName
