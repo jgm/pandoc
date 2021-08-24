@@ -829,7 +829,7 @@ listLineCommon :: PandocMonad m => MarkdownParser m Text
 listLineCommon = T.concat <$> manyTill
               (  many1Char (satisfy $ \c -> c `notElem` ['\n', '<', '`'])
              <|> fmap snd (withRaw code)
-             <|> fmap snd (htmlTag isCommentTag)
+             <|> fmap (renderTags . (:[]) . fst) (htmlTag isCommentTag)
              <|> countChar 1 anyChar
               ) newline
 
