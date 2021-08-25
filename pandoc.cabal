@@ -380,7 +380,60 @@ extra-source-files:
                  test/rtf/*.native
                  test/rtf/*.rtf
                  test/pptx/*.pptx
-                 test/pptx/*.native
+                 test/pptx/code-custom/*.pptx
+                 test/pptx/code/input.native
+                 test/pptx/code/*.pptx
+                 test/pptx/comparison-both-columns/input.native
+                 test/pptx/comparison-both-columns/*.pptx
+                 test/pptx/comparison-extra-text/input.native
+                 test/pptx/comparison-extra-text/*.pptx
+                 test/pptx/comparison-non-text-first/input.native
+                 test/pptx/comparison-non-text-first/*.pptx
+                 test/pptx/comparison-one-column/input.native
+                 test/pptx/comparison-one-column/*.pptx
+                 test/pptx/document-properties-short-desc/input.native
+                 test/pptx/document-properties-short-desc/*.pptx
+                 test/pptx/document-properties/input.native
+                 test/pptx/document-properties/*.pptx
+                 test/pptx/endnotes-toc/*.pptx
+                 test/pptx/endnotes/input.native
+                 test/pptx/endnotes/*.pptx
+                 test/pptx/images/input.native
+                 test/pptx/images/*.pptx
+                 test/pptx/inline-formatting/input.native
+                 test/pptx/inline-formatting/*.pptx
+                 test/pptx/lists/input.native
+                 test/pptx/lists/*.pptx
+                 test/pptx/raw-ooxml/input.native
+                 test/pptx/raw-ooxml/*.pptx
+                 test/pptx/remove-empty-slides/input.native
+                 test/pptx/remove-empty-slides/*.pptx
+                 test/pptx/slide-breaks-slide-level-1/*.pptx
+                 test/pptx/slide-breaks-toc/*.pptx
+                 test/pptx/slide-breaks/input.native
+                 test/pptx/slide-breaks/*.pptx
+                 test/pptx/slide-level-0/h1-h2-with-table/input.native
+                 test/pptx/slide-level-0/h1-h2-with-table/*.pptx
+                 test/pptx/slide-level-0/h1-with-image/input.native
+                 test/pptx/slide-level-0/h1-with-image/*.pptx
+                 test/pptx/slide-level-0/h1-with-table/input.native
+                 test/pptx/slide-level-0/h1-with-table/*.pptx
+                 test/pptx/slide-level-0/h2-with-image/input.native
+                 test/pptx/slide-level-0/h2-with-image/*.pptx
+                 test/pptx/speaker-notes-after-metadata/input.native
+                 test/pptx/speaker-notes-after-metadata/*.pptx
+                 test/pptx/speaker-notes-afterheader/input.native
+                 test/pptx/speaker-notes-afterheader/*.pptx
+                 test/pptx/speaker-notes-afterseps/input.native
+                 test/pptx/speaker-notes-afterseps/*.pptx
+                 test/pptx/speaker-notes/input.native
+                 test/pptx/speaker-notes/*.pptx
+                 test/pptx/start-numbering-at/input.native
+                 test/pptx/start-numbering-at/*.pptx
+                 test/pptx/tables/input.native
+                 test/pptx/tables/*.pptx
+                 test/pptx/two-column/input.native
+                 test/pptx/two-column/*.pptx
                  test/ipynb/*.in.native
                  test/ipynb/*.out.native
                  test/ipynb/*.ipynb
