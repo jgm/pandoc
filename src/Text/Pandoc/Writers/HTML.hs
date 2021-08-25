@@ -323,6 +323,12 @@ pandocToHtml opts (Pandoc meta blocks) = do
                                               (T.pack $ styleToCss sty)
                                 Nothing  -> id
                       else id) .
+                  (if stHighlighting st
+                      then case writerHighlightStyleDark opts of
+                                Just sty -> defField "highlighting-css-dark"
+                                              (T.pack $ styleToCss sty)
+                                Nothing  -> id
+                      else id) .
                   (if stCsl st
                       then defField "csl-css" True .
                            (case stCslEntrySpacing st of

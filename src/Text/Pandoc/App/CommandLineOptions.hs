@@ -319,7 +319,9 @@ options =
 
     , Option "" ["no-highlight"]
                 (NoArg
-                 (\opt -> return opt { optHighlightStyle = Nothing }))
+                 (\opt -> return opt { optHighlightStyle     = Nothing
+                                     , optHighlightStyleDark = Nothing
+                                     }))
                  "" -- "Don't highlight source code"
 
     , Option "" ["highlight-style"]
@@ -329,6 +331,14 @@ options =
                                  T.pack $ normalizePath arg })
                  "STYLE|FILE")
                  "" -- "Style for highlighted code"
+
+    , Option "" ["highlight-style-dark"]
+                (ReqArg
+                 (\arg opt ->
+                     return opt{ optHighlightStyleDark = Just $
+                                 T.pack $ normalizePath arg })
+                 "STYLE|FILE")
+                 "" -- "Style for highlighted code in dark mode"
 
     , Option "" ["syntax-definition"]
                 (ReqArg

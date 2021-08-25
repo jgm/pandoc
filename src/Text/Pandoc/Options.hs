@@ -45,7 +45,7 @@ import GHC.Generics (Generic)
 import Skylighting (SyntaxMap, defaultSyntaxMap)
 import Text.DocTemplates (Context(..), Template)
 import Text.Pandoc.Extensions
-import Text.Pandoc.Highlighting (Style, pygments)
+import Text.Pandoc.Highlighting (Style, breezeDark, pygments)
 import Text.Pandoc.Shared (camelCaseStrToHyphenated)
 import Data.Aeson.TH (deriveJSON, defaultOptions, Options(..),
                       SumEncoding(..))
@@ -255,6 +255,7 @@ data WriterOptions = WriterOptions
   , writerListings          :: Bool       -- ^ Use listings package for code
   , writerHighlightStyle    :: Maybe Style  -- ^ Style to use for highlighting
                                            -- (Nothing = no highlighting)
+  , writerHighlightStyleDark :: Maybe Style  -- ^ Style to use for highlighting dark mode
   , writerSetextHeaders     :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
   , writerEpubSubdirectory  :: Text       -- ^ Subdir for epub in OCF
   , writerEpubMetadata      :: Maybe Text -- ^ Metadata to include in EPUB
@@ -290,6 +291,7 @@ instance Default WriterOptions where
                       , writerTopLevelDivision = TopLevelDefault
                       , writerListings         = False
                       , writerHighlightStyle   = Just pygments
+                      , writerHighlightStyleDark = Just breezeDark
                       , writerSetextHeaders    = False
                       , writerEpubSubdirectory = "EPUB"
                       , writerEpubMetadata     = Nothing
