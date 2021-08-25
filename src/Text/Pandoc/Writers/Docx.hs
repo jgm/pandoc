@@ -24,7 +24,7 @@ import Control.Monad.Reader
 import Control.Monad.State.Strict
 import qualified Data.ByteString.Lazy as BL
 import Data.Char (isSpace, isLetter)
-import Data.List (intercalate, isPrefixOf, isSuffixOf)
+import Data.List (intercalate, isPrefixOf, isSuffixOf, sortOn)
 import Data.String (fromString)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, maybeToList)
@@ -168,6 +168,28 @@ writeDocx opts doc = do
   -- parse styledoc for heading styles
   let styleMaps = getStyleMaps refArchive
 
+  -- footnotes
+  let footnotepath = "word/footnotes.xml"
+  footnotedoc <- addLang <$> parseXml refArchive distArchive footnotepath
+  let footnote = filterElementsName (wname (=="footnote")) footnotedoc
+  let hasAttr f q = case lookupAttrBy f q of
+                  Nothing -> False
+                  Just _ -> True
+  
+  -- sort by footnote id
+  let addid el = (fromMaybe "" $ findAttrBy ((== "id") . qName) el, el)
+  let sortbyid els = map snd $ sortOn fst $ map addid els
+
+  let footnotetype = sortbyid $ mapMaybe (filterElement (hasAttr((== "type") . qName) . elAttribs)) footnote
+
+  -- reconstruct footnote tag to remove attributes in p tags
+  -- TODO raise error if type and id are missing?
+  let renewfootnote el = mknode "w:footnote" [("w:type", fromMaybe "" $ findAttrBy ((== "type"). qName) el), 
+                                    ("w:id", fromMaybe "" $ findAttrBy ((== "id") . qName) el)]
+                                   $ map (mknode "w:p" [] . elChildren) $ filterChildrenName (wname (== "p")) el
+
+  let footnote' = map renewfootnote footnotetype
+
   let tocTitle = case lookupMetaInlines "toc-title" meta of
                    [] -> stTocTitle defaultWriterState
                    ls -> ls
@@ -175,6 +197,7 @@ writeDocx opts doc = do
   let initialSt = defaultWriterState {
           stStyleMaps  = styleMaps
         , stTocTitle   = tocTitle
+        , stFootnotes  = footnote'
         }
 
   let isRTLmeta = case lookupMeta "dir" meta of
