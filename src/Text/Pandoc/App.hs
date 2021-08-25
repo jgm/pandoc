@@ -71,7 +71,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import System.Posix.IO (stdOutput)
 import System.Posix.Terminal (queryTerminal)
 #endif
-import Debug.Trace
+-- import Debug.Trace
 
 convertWithOpts :: Opt -> IO ()
 convertWithOpts opts = do
