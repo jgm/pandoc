@@ -175,6 +175,7 @@ writeDocx opts doc = do
   let initialSt = defaultWriterState {
           stStyleMaps  = styleMaps
         , stTocTitle   = tocTitle
+        , stCurId      = 20
         }
 
   let isRTLmeta = case lookupMeta "dir" meta of
@@ -783,8 +784,6 @@ rStyleM styleName = do
   return $ mknode "w:rStyle" [("w:val", fromStyleId sty')] ()
 
 getUniqueId :: (PandocMonad m) => WS m Text
--- the + 20 is to ensure that there are no clashes with the rIds
--- already in word/document.xml.rel
 getUniqueId = do
   n <- gets stCurId
   modify $ \st -> st{stCurId = n + 1}
@@ -1234,7 +1233,9 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
   imgs <- gets stImages
   let
     stImage = M.lookup (T.unpack src) imgs
-    generateImgElt (ident, _, _, img) =
+    generateImgElt (ident, _, _, img) = do
+      docprid <- getUniqueId
+      nvpicprid <- getUniqueId
       let
         (xpt,ypt) = desiredSizeInPoints opts attr
                (either (const def) id (imageSize opts img))
@@ -1246,7 +1247,9 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
                                              ,("noChangeAspect","1")] ()
         nvPicPr  = mknode "pic:nvPicPr" []
                         [ mknode "pic:cNvPr"
-                            [("descr",src),("id","0"),("name","Picture")] ()
+                            [("descr",src)
+                            ,("id", nvpicprid)
+                            ,("name","Picture")] ()
                         , cNvPicPr ]
         blipFill = mknode "pic:blipFill" []
           [ mknode "a:blip" [("r:embed",T.pack ident)] ()
@@ -1283,16 +1286,15 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
               , mknode "wp:docPr"
                 [ ("descr", stringify alt)
                 , ("title", title)
-                , ("id","1")
+                , ("id", docprid)
                 , ("name","Picture")
                 ] ()
               , graphic
               ]
-      in
-        imgElt
+      return [Elem imgElt]
 
   wrapBookmark imgident =<< case stImage of
-    Just imgData -> return [Elem $ generateImgElt imgData]
+    Just imgData -> generateImgElt imgData
     Nothing -> ( do --try
       (img, mt) <- P.fetchItem src
       ident <- ("rId" <>) <$> getUniqueId
@@ -1321,7 +1323,7 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
          else do
            -- insert mime type to use in constructing [Content_Types].xml
            modify $ \st -> st { stImages = M.insert (T.unpack src) imgData $ stImages st }
-           return [Elem $ generateImgElt imgData]
+           generateImgElt imgData
       )
       `catchError` ( \e -> do
         report $ CouldNotFetchResource src $ T.pack (show e)
