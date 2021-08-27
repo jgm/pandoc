@@ -21,7 +21,7 @@ import qualified Control.Exception as E
 
 -- | Convert svg image to png. rsvg-convert
 -- is used and must be available on the path.
-svgToPng :: Int
+svgToPng :: Int           -- ^ DPI
          -> L.ByteString  -- ^ Input image as bytestring
          -> IO (Either Text L.ByteString)
 svgToPng dpi bs = do
