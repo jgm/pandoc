@@ -21,14 +21,14 @@ import qualified Control.Exception as E
 
 -- | Convert svg image to png. rsvg-convert
 -- is used and must be available on the path.
-svgToPng :: WriterOptions
+svgToPng :: Int
          -> L.ByteString  -- ^ Input image as bytestring
          -> IO (Either Text L.ByteString)
-svgToPng opts bs = do
-  let dpi = show $ writerDpi opts
+svgToPng dpi bs = do
+  let dpi' = show dpi
   E.catch
        (do (exit, out) <- pipeProcess Nothing "rsvg-convert"
-                          ["-f","png","-a","--dpi-x",dpi,"--dpi-y",dpi]
+                          ["-f","png","-a","--dpi-x",dpi',"--dpi-y",dpi']
                           bs
            return $ if exit == ExitSuccess
               then Right out
