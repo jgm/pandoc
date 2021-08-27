@@ -5124,7 +5124,8 @@ or image itself, if these differ.
 #### Extension: `attributes` ####
 
 Allows attributes to be attached to any inline or block-level
-element.  The syntax for the attributes is the same as that
+element when parsing `commonmark`.
+The syntax for the attributes is the same as that
 used in [`header_attributes`][Extension: `header_attributes`].
 
 - Attributes that occur immediately after an inline
