@@ -38,7 +38,7 @@ import Skylighting
 import Text.Collate.Lang (renderLang)
 import Text.Pandoc.Class (PandocMonad, report, toLang, translateTerm,
                            getMediaBag)
-import Text.Pandoc.MediaBag (lookupMedia, mediaItems, MediaItem(..))
+import Text.Pandoc.MediaBag (lookupMedia, MediaItem(..))
 import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Data.Time
