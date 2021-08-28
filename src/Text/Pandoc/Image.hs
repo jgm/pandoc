@@ -11,22 +11,23 @@ Portability : portable
 Functions for converting images.
 -}
 module Text.Pandoc.Image ( svgToPng ) where
-import Text.Pandoc.Options (WriterOptions(..))
 import Text.Pandoc.Process (pipeProcess)
 import qualified Data.ByteString.Lazy as L
 import System.Exit
 import Data.Text (Text)
 import Text.Pandoc.Shared (tshow)
 import qualified Control.Exception as E
+import Control.Monad.IO.Class (MonadIO(liftIO))
 
 -- | Convert svg image to png. rsvg-convert
 -- is used and must be available on the path.
-svgToPng :: Int           -- ^ DPI
+svgToPng :: MonadIO m
+         => Int           -- ^ DPI
          -> L.ByteString  -- ^ Input image as bytestring
-         -> IO (Either Text L.ByteString)
+         -> m (Either Text L.ByteString)
 svgToPng dpi bs = do
   let dpi' = show dpi
-  E.catch
+  liftIO $ E.catch
        (do (exit, out) <- pipeProcess Nothing "rsvg-convert"
                           ["-f","png","-a","--dpi-x",dpi',"--dpi-y",dpi']
                           bs
