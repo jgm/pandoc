@@ -36,7 +36,9 @@ import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
 import Text.Collate.Lang (renderLang)
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang, translateTerm)
+import Text.Pandoc.Class (PandocMonad, report, toLang, translateTerm,
+                           getMediaBag)
+import Text.Pandoc.MediaBag (lookupMedia, mediaItems, MediaItem(..))
 import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Data.Time
@@ -1233,9 +1235,42 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
   imgs <- gets stImages
   let
     stImage = M.lookup (T.unpack src) imgs
-    generateImgElt (ident, _, _, img) = do
+    generateImgElt (ident, _fp, mt, img) = do
       docprid <- getUniqueId
       nvpicprid <- getUniqueId
+      (blipAttrs, blipContents) <-
+        case T.takeWhile (/=';') <$> mt of
+          Just "image/svg+xml" -> do
+            -- get fallback png
+            mediabag <- getMediaBag
+            mbFallback <-
+              case lookupMedia (T.unpack (src <> ".png")) mediabag of
+                Just item -> do
+                  id' <- T.unpack . ("rId" <>) <$> getUniqueId
+                  let fp' = "media/" <> id' <> ".png"
+                  let imgdata = (id',
+                                 fp',
+                                 Just (mediaMimeType item),
+                                 BL.toStrict $ mediaContents item)
+                  modify $ \st -> st { stImages =
+                            M.insert fp' imgdata $ stImages st }
+                  return $ Just id'
+                Nothing -> return Nothing
+            let extLst = mknode "a:extLst" []
+                            [ mknode "a:ext"
+                              [("uri","{28A0092B-C50C-407E-A947-70E740481C1C}")]
+                              [ mknode "a14:useLocalDpi"
+                                [("xmlns:a14","http://schemas.microsoft.com/office/drawing/2010/main"),
+                                 ("val","0")] () ]
+                            , mknode "a:ext"
+                              [("uri","{96DAC541-7B7A-43D3-8B79-37D633B846F1}")]
+                              [ mknode "asvg:svgBlip"
+                                [("xmlns:asvg", "http://schemas.microsoft.com/office/drawing/2016/SVG/main"),
+                                 ("r:embed",T.pack ident)] () ]
+                            ]
+            return (maybe [] (\id'' -> [("r:embed", T.pack id'')]) mbFallback,
+                    [extLst])
+          _ -> return ([("r:embed", T.pack ident)], [])
       let
         (xpt,ypt) = desiredSizeInPoints opts attr
                (either (const def) id (imageSize opts img))
@@ -1252,7 +1287,7 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
                             ,("name","Picture")] ()
                         , cNvPicPr ]
         blipFill = mknode "pic:blipFill" []
-          [ mknode "a:blip" [("r:embed",T.pack ident)] ()
+          [ mknode "a:blip" blipAttrs blipContents
           , mknode "a:stretch" [] $
               mknode "a:fillRect" [] ()
           ]
