@@ -546,6 +546,7 @@ inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
 -- or my@email.com[email john]
   linktext <- inlineListToAsciiDoc opts txt
   let isRelative = T.all (/= ':') src
+  let needsPassthrough = "--" `T.isInfixOf` src
   let prefix = if isRelative
                   then text "link:"
                   else empty
@@ -553,9 +554,16 @@ inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
   let useAuto = case txt of
                       [Str s] | escapeURI s == srcSuffix -> True
                       _       -> False
-  return $ if useAuto
-              then literal srcSuffix
-              else prefix <> literal src <> "[" <> linktext <> "]"
+  return $
+    if needsPassthrough
+       then
+         if useAuto
+            then "link:++" <> literal srcSuffix <> "++[]"
+            else "link:++" <> literal src <> "++[" <> linktext <> "]"
+       else
+         if useAuto
+            then literal srcSuffix
+            else prefix <> literal src <> "[" <> linktext <> "]"
 inlineToAsciiDoc opts (Image attr alternate (src, tit)) =
   ("image:" <>) <$> imageArguments opts attr alternate src tit
 inlineToAsciiDoc opts (Note [Para inlines]) =
