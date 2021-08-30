@@ -10,6 +10,7 @@
 #
 - ignore: {name: "Avoid lambda"}
 - ignore: {name: "Use bimap"}
+- ignore: {name: "Use void"}
 - ignore: {name: "Eta reduce"}
 - ignore: {name: "Evaluate"}
 - ignore: {name: "Reduce duplication"} # TODO: could be more fine-grained
