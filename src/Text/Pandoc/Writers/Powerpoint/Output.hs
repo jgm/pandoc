@@ -1981,7 +1981,7 @@ presentationToPresentationElement pres@(Presentation _ slds) = do
 
       notesMasterElem =  mknode "p:notesMasterIdLst" []
                          [ mknode
-                           "p:NotesMasterId"
+                           "p:notesMasterId"
                            [("r:id", "rId" <> tshow notesMasterRId)]
                            ()
                          ]
