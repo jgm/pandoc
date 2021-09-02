@@ -384,9 +384,11 @@ updateMasterElems layouts master masterRels = (updatedMaster, updatedMasterRels)
       Element ->
       ([Text], Element)
     addLayoutRels e = let
-      layoutsToAdd = filter (not . slInReferenceDoc) (toList layouts)
+      layoutsToAdd = filter (\l -> not (slInReferenceDoc l) && isNew e l)
+                            (toList layouts)
       newRelationships = snd (foldr mkRelationship (maxIdNumber e, []) layoutsToAdd)
-      newRelationshipIds = mapMaybe getRelationshipId newRelationships
+      newRelationshipIds =
+        mapMaybe (findElemAttr (QName "Id" Nothing Nothing)) newRelationships
       mkRelationship layout (lastId, relationships) = let
         thisId = lastId + 1
         slideLayoutPath = "../slideLayouts/" <> T.pack (takeFileName (slPath layout))
@@ -403,9 +405,16 @@ updateMasterElems layouts master masterRels = (updatedMaster, updatedMasterRels)
         in (thisId, Elem newRelationship : relationships)
       in (newRelationshipIds, e {elContent = elContent e <> newRelationships})
 
-    getRelationshipId :: Content -> Maybe Text
-    getRelationshipId (Elem e) = findAttr (QName "Id" Nothing Nothing) e
-    getRelationshipId _ = Nothing
+    -- | Whether the layout needs to be added to the Relationships element.
+    isNew :: Element -> SlideLayout -> Bool
+    isNew relationships SlideLayout{..} = let
+      toDetails = fmap (takeFileName . T.unpack)
+        . findElemAttr (QName "Target" Nothing Nothing)
+      in takeFileName slPath `notElem` mapMaybe toDetails (elContent relationships)
+
+    findElemAttr :: QName -> Content -> Maybe Text
+    findElemAttr attr (Elem e) = findAttr attr e
+    findElemAttr _ _ = Nothing
 
     maxIdNumber :: Element -> Integer
     maxIdNumber relationships = maximum (0 : idNumbers)
