@@ -237,6 +237,10 @@ convertWithOpts opts = do
                        _ | readerNameBase /= "ipynb" -> id
                        IpynbOutputAll  -> id
                        IpynbOutputNone -> (filterIpynbOutput Nothing :)
+                       IpynbOutputHTML -> (filterIpynbOutput (Just $
+                                     Format "html") :)
+                       IpynbOutputLaTeX -> (filterIpynbOutput (Just $
+                                     Format "latex") :)
                        IpynbOutputBest -> (filterIpynbOutput (Just $
                                      if htmlFormat format
                                         then Format "html"

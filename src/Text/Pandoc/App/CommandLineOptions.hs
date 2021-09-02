@@ -686,6 +686,8 @@ options =
                       "all" -> return opt{ optIpynbOutput = IpynbOutputAll }
                       "best" -> return opt{ optIpynbOutput = IpynbOutputBest }
                       "none" -> return opt{ optIpynbOutput = IpynbOutputNone }
+                      "html" -> return opt{ optIpynbOutput = IpynbOutputHTML }
+                      "latex" -> return opt{ optIpynbOutput = IpynbOutputLaTeX }
                       _ -> E.throwIO $ PandocOptionError
                              "ipynb-output must be all, none, or best")
                  "all|none|best")

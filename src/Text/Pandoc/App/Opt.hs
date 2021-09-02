@@ -75,6 +75,8 @@ data IpynbOutput =
     IpynbOutputAll
   | IpynbOutputNone
   | IpynbOutputBest
+  | IpynbOutputHTML
+  | IpynbOutputLaTeX
   deriving (Show, Generic)
 
 instance FromYAML IpynbOutput where
@@ -83,6 +85,8 @@ instance FromYAML IpynbOutput where
       "none"  -> return IpynbOutputNone
       "all"   -> return IpynbOutputAll
       "best"  -> return IpynbOutputBest
+      "html"  -> return IpynbOutputHTML
+      "latex"  -> return IpynbOutputLaTeX
       _       -> fail $ "Unknown ipynb output type " ++ show t
 
 -- | Data structure for command line options.
