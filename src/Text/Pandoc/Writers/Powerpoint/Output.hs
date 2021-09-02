@@ -239,8 +239,8 @@ alwaysInheritedPatterns =
               , "ppt/slideLayouts/_rels/slideLayout*.xml.rels"
               , "ppt/slideMasters/slideMaster1.xml"
               , "ppt/slideMasters/_rels/slideMaster1.xml.rels"
-              , "ppt/theme/theme1.xml"
-              , "ppt/theme/_rels/theme1.xml.rels"
+              , "ppt/theme/theme*.xml"
+              , "ppt/theme/_rels/theme*.xml.rels"
               , "ppt/presProps.xml"
               , "ppt/tableStyles.xml"
               , "ppt/media/image*"
@@ -252,8 +252,6 @@ contingentInheritedPatterns pres = [] <>
   if presHasSpeakerNotes pres
   then map compile [ "ppt/notesMasters/notesMaster*.xml"
                    , "ppt/notesMasters/_rels/notesMaster*.xml.rels"
-                   , "ppt/theme/theme2.xml"
-                   , "ppt/theme/_rels/theme2.xml.rels"
                    ]
   else []
 
