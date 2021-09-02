@@ -115,7 +115,6 @@ data WriterEnv = WriterEnv { envRefArchive :: Archive
                            -- the difference between the number at
                            -- the end of the slide file name and
                            -- the rId number
-                           , envSlideIdOffset :: Int
                            , envPlaceholder :: Placeholder
                            , envSlideIdMap :: M.Map SlideId Int
                            -- maps the slide number to the
@@ -139,7 +138,6 @@ instance Default WriterEnv where
                   , envInList = False
                   , envInNoteSlide = False
                   , envCurSlideId = 1
-                  , envSlideIdOffset = 1
                   , envPlaceholder = Placeholder ObjType 0
                   , envSlideIdMap = mempty
                   , envSpeakerNotesIdMap = mempty
@@ -329,10 +327,9 @@ presentationToArchiveP p@(Presentation docProps slides) = do
   -- we make this ourself in case there's something unexpected in the
   -- one in the reference doc.
   relsEntry <- topLevelRelsEntry
-  -- presentation entry and rels. We have to do the rels first to make
-  -- sure we know the correct offset for the rIds.
-  presEntry <- presentationToPresEntry p
-  presRelsEntry <- presentationToRelsEntry p
+  -- presentation entry and rels.
+  (presentationRIdUpdateData, presRelsEntry) <- presentationToRelsEntry p
+  presEntry <- presentationToPresEntry presentationRIdUpdateData p
   slideEntries <- mapM slideToEntry slides
   slideRelEntries <- mapM slideToSlideRelEntry slides
   spkNotesEntries <- catMaybes <$> mapM slideToSpeakerNotesEntry slides
@@ -430,8 +427,8 @@ updateMasterElems layouts master masterRels = (updatedMaster, updatedMasterRels)
         getIdAttribute (Elem e) = findAttr (QName "id" Nothing Nothing) e
         getIdAttribute _ = Nothing
 
-    hush :: Either a b -> Maybe b
-    hush = either (const Nothing) Just
+hush :: Either a b -> Maybe b
+hush = either (const Nothing) Just
 
 makeSlideIdMap :: Presentation -> M.Map SlideId Int
 makeSlideIdMap (Presentation _ slides) =
@@ -1695,11 +1692,14 @@ slideToFilePath slide = do
   idNum <- slideNum slide
   return $ "slide" <> show idNum <> ".xml"
 
-slideToRelId :: PandocMonad m => Slide -> P m T.Text
-slideToRelId slide = do
+slideToRelId ::
+  PandocMonad m =>
+  MinimumRId ->
+  Slide ->
+  P m T.Text
+slideToRelId minSlideRId slide = do
   n <- slideNum slide
-  offset <- asks envSlideIdOffset
-  return $ "rId" <> tshow (n + offset)
+  return $ "rId" <> tshow (n + minSlideRId - 1)
 
 
 data Relationship = Relationship { relId :: Int
@@ -1718,19 +1718,18 @@ elementToRel element
          return $ Relationship num type' (T.unpack target)
   | otherwise = Nothing
 
-slideToPresRel :: PandocMonad m => Slide -> P m Relationship
-slideToPresRel slide = do
+slideToPresRel :: PandocMonad m => Int -> Slide -> P m Relationship
+slideToPresRel minimumSlideRId slide = do
   idNum <- slideNum slide
-  n <- asks envSlideIdOffset
-  let rId = idNum + n
+  let rId = idNum + minimumSlideRId - 1
       fp = "slides/" <> idNumToFilePath idNum
   return $ Relationship { relId = rId
                         , relType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide"
                         , relTarget = fp
                         }
 
-getRels :: PandocMonad m => P m [Relationship]
-getRels = do
+getPresentationRels :: PandocMonad m => P m [Relationship]
+getPresentationRels = do
   refArchive <- asks envRefArchive
   distArchive <- asks envDistArchive
   relsElem <- parseXml refArchive distArchive "ppt/_rels/presentation.xml.rels"
@@ -1738,42 +1737,77 @@ getRels = do
   let relElems = findChildren (QName "Relationship" (Just globalNS) Nothing) relsElem
   return $ mapMaybe elementToRel relElems
 
-presentationToRels :: PandocMonad m => Presentation -> P m [Relationship]
+-- | Info required to update a presentation rId from the reference doc for the
+-- output.
+type PresentationRIdUpdateData = (ReferenceMinRIdAfterSlides, NewRIdBounds)
+
+-- | The minimum and maximum rIds for presentation relationships created from
+-- the presentation content (as opposed to from the reference doc).
+--
+-- Relationships taken from the reference doc should have their rId number
+-- adjusted to make sure it sits outside this range.
+type NewRIdBounds = (MinimumRId, MaximumRId)
+
+-- | The minimum presentation rId from the reference doc which comes after the
+-- first slide rId (in the reference doc).
+type ReferenceMinRIdAfterSlides = Int
+type MinimumRId = Int
+type MaximumRId = Int
+
+-- | Given a presentation rId from the reference doc, return the value it should
+-- have in the output.
+updatePresentationRId :: PresentationRIdUpdateData -> Int -> Int
+updatePresentationRId (minOverlappingRId, (minNewId, maxNewId)) n
+  | n < minNewId = n
+  | otherwise = n - minOverlappingRId + maxNewId + 1
+
+presentationToRels ::
+  PandocMonad m =>
+  Presentation ->
+  P m (PresentationRIdUpdateData, [Relationship])
 presentationToRels pres@(Presentation _ slides) = do
-  mySlideRels <- mapM slideToPresRel slides
+  rels <- getPresentationRels
+
+  -- We want to make room for the slides in the id space. We'll assume the slide
+  -- masters come first (this seems to be what PowerPoint does by default, and
+  -- is true of the reference doc), and we'll put the slides next. So we find
+  -- the starting rId for the slides by finding the maximum rId for the masters
+  -- and adding 1.
+  --
+  -- Then:
+  -- 1. We look to see what the minimum rId which is greater than or equal to
+  --    the minimum slide rId is, in the rels we're keeping from the reference
+  --    doc (i.e. the minimum rId which might overlap with the slides).
+  -- 2. We increase this minimum overlapping rId to 1 higher than the last slide
+  --    rId (or the notesMaster rel, if we're including one), and increase all
+  --    rIds higher than this minimum by the same amount.
+
+  let masterRels = filter (T.isSuffixOf "slideMaster" . relType) rels
+      slideStartId = maybe 1 ((+ 1) . maximum . fmap relId) (nonEmpty masterRels)
+      -- we remove the slide rels and the notesmaster (if it's
+      -- there). We'll put these back in ourselves, if necessary.
+      relsWeKeep = filter
+                   (\r -> relType r /= "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" &&
+                          relType r /= "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster")
+                   rels
+      minOverlappingRel = maybe 0 minimum
+                                 (nonEmpty (filter (slideStartId <=)
+                                                   (relId <$> relsWeKeep)))
+
+  mySlideRels <- mapM (slideToPresRel slideStartId) slides
+
   let notesMasterRels =
-        [Relationship { relId = length mySlideRels + 2
+        [Relationship { relId = slideStartId + length mySlideRels
                          , relType = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster"
                          , relTarget = "notesMasters/notesMaster1.xml"
                          } | presHasSpeakerNotes pres]
       insertedRels = mySlideRels <> notesMasterRels
-  rels <- getRels
-  -- we remove the slide rels and the notesmaster (if it's
-  -- there). We'll put these back in ourselves, if necessary.
-  let relsWeKeep = filter
-                   (\r -> relType r /= "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" &&
-                          relType r /= "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster")
-                   rels
-  -- We want to make room for the slides in the id space. The slides
-  -- will start at Id2 (since Id1 is for the slide master). There are
-  -- two slides in the data file, but that might change in the future,
-  -- so we will do this:
-  --
-  -- 1. We look to see what the minimum relWithoutSlide id (greater than 1) is.
-  -- 2. We add the difference between this and the number of slides to
-  -- all relWithoutSlide rels (unless they're 1)
-  -- 3. If we have a notesmaster slide, we make space for that as well.
+      newRIdBounds = (slideStartId, slideStartId + length insertedRels - 1)
+      updateRId = updatePresentationRId (minOverlappingRel, newRIdBounds)
 
-  let minRelNotOne = maybe 0 minimum $ nonEmpty
-                                     $ filter (1 <) $ map relId relsWeKeep
+      relsWeKeep' = map (\r -> r{relId = updateRId $ relId r}) relsWeKeep
 
-      modifyRelNum :: Int -> Int
-      modifyRelNum 1 = 1
-      modifyRelNum n = n - minRelNotOne + 2 + length insertedRels
-
-      relsWeKeep' = map (\r -> r{relId = modifyRelNum $ relId r}) relsWeKeep
-
-  return $ insertedRels <> relsWeKeep'
+  return ((minOverlappingRel, newRIdBounds), insertedRels <> relsWeKeep')
 
 -- We make this ourselves, in case there's a thumbnail in the one from
 -- the template.
@@ -1810,10 +1844,14 @@ relsToElement rels = mknode "Relationships"
                      [("xmlns", "http://schemas.openxmlformats.org/package/2006/relationships")]
                      (map relToElement rels)
 
-presentationToRelsEntry :: PandocMonad m => Presentation -> P m Entry
+presentationToRelsEntry ::
+  PandocMonad m =>
+  Presentation ->
+  P m (PresentationRIdUpdateData, Entry)
 presentationToRelsEntry pres = do
-  rels <- presentationToRels pres
-  elemToEntry "ppt/_rels/presentation.xml.rels" $ relsToElement rels
+  (presentationRIdUpdateData, rels) <- presentationToRels pres
+  element <- elemToEntry "ppt/_rels/presentation.xml.rels" $ relsToElement rels
+  pure (presentationRIdUpdateData, element)
 
 elemToEntry :: PandocMonad m => FilePath -> Element -> P m Entry
 elemToEntry fp element = do
@@ -1959,24 +1997,37 @@ slideToSlideRelElement slide = do
                            , ("Target", target)] ()
     ] <> speakerNotesRels <> linkRels <> mediaRels)
 
-slideToSldIdElement :: PandocMonad m => Slide -> P m Element
-slideToSldIdElement slide = do
+slideToSldIdElement ::
+  PandocMonad m =>
+  MinimumRId ->
+  Slide ->
+  P m Element
+slideToSldIdElement minimumSlideRId slide = do
   n <- slideNum slide
   let id' = tshow $ n + 255
-  rId <- slideToRelId slide
+  rId <- slideToRelId minimumSlideRId slide
   return $ mknode "p:sldId" [("id", id'), ("r:id", rId)] ()
 
-presentationToSldIdLst :: PandocMonad m => Presentation -> P m Element
-presentationToSldIdLst (Presentation _ slides) = do
-  ids <- mapM slideToSldIdElement slides
+presentationToSldIdLst ::
+  PandocMonad m =>
+  MinimumRId ->
+  Presentation ->
+  P m Element
+presentationToSldIdLst minimumSlideRId (Presentation _ slides) = do
+  ids <- mapM (slideToSldIdElement minimumSlideRId) slides
   return $ mknode "p:sldIdLst" [] ids
 
-presentationToPresentationElement :: PandocMonad m => Presentation -> P m Element
-presentationToPresentationElement pres@(Presentation _ slds) = do
+presentationToPresentationElement ::
+  PandocMonad m =>
+  PresentationRIdUpdateData ->
+  Presentation ->
+  P m Element
+presentationToPresentationElement presentationUpdateRIdData pres = do
+  let (_, (minSlideRId, maxSlideRId)) = presentationUpdateRIdData
   refArchive <- asks envRefArchive
   distArchive <- asks envDistArchive
   element <- parseXml refArchive distArchive "ppt/presentation.xml"
-  sldIdLst <- presentationToSldIdLst pres
+  sldIdLst <- presentationToSldIdLst minSlideRId pres
 
   let modifySldIdLst :: Content -> Content
       modifySldIdLst (Elem e) = case elName e of
@@ -1984,7 +2035,7 @@ presentationToPresentationElement pres@(Presentation _ slds) = do
         _                      -> Elem e
       modifySldIdLst ct = ct
 
-      notesMasterRId = length slds + 2
+      notesMasterRId = maxSlideRId
 
       notesMasterElem =  mknode "p:notesMasterIdLst" []
                          [ mknode
@@ -2019,16 +2070,33 @@ presentationToPresentationElement pres@(Presentation _ slds) = do
                           then concatMap insertNotesMaster'
                           else id
 
+      updateRIds :: Content -> Content
+      updateRIds (Elem el) =
+        Elem (el { elAttribs = fmap updateRIdAttribute (elAttribs el)
+                 , elContent = fmap updateRIds (elContent el)
+                 })
+      updateRIds content = content
+
+      updateRIdAttribute :: XML.Attr -> XML.Attr
+      updateRIdAttribute attr = fromMaybe attr $ do
+        (oldValue, _) <- case attrKey attr of
+          QName "id" _ (Just "r") ->
+            T.stripPrefix "rId" (attrVal attr) >>= (hush . decimal)
+          _ -> Nothing
+        let newValue = updatePresentationRId presentationUpdateRIdData oldValue
+        pure attr {attrVal = "rId" <> T.pack (show newValue)}
+
       newContent = insertNotesMaster $
                    removeUnwantedMaster $
-                   map modifySldIdLst $
+                   (modifySldIdLst . updateRIds) <$>
                    elContent element
 
   return $ element{elContent = newContent}
 
-presentationToPresEntry :: PandocMonad m => Presentation -> P m Entry
-presentationToPresEntry pres = presentationToPresentationElement pres >>=
-  elemToEntry "ppt/presentation.xml"
+presentationToPresEntry :: PandocMonad m => PresentationRIdUpdateData -> Presentation -> P m Entry
+presentationToPresEntry presentationRIdUpdateData pres =
+  presentationToPresentationElement presentationRIdUpdateData pres >>=
+    elemToEntry "ppt/presentation.xml"
 
 -- adapted from the Docx writer
 docPropsElement :: PandocMonad m => DocProps -> P m Element
