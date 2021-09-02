@@ -1282,14 +1282,18 @@ header when requesting a document from a URL:
     the EPUB-specific contents.  The default is `EPUB`.  To put
     the EPUB contents in the top level, use an empty string.
 
-`--ipynb-output=all|none|best`
+`--ipynb-output=all|none|best|html|latex`
 
 :   Determines how ipynb output cells are treated. `all` means
     that all of the data formats included in the original are
     preserved.  `none` means that the contents of data cells
     are omitted.  `best` causes pandoc to try to pick the
     richest data block in each output cell that is compatible
-    with the output format.  The default is `best`.
+    with the output format. `html|latex` is similar to `best`,
+    but manually choose the one best for `html|latex` respectively,
+    which can be useful when multiple pipes are used so that the
+    output format is not immediately known to pandoc.
+    The default is `best`.
 
 `--pdf-engine=`*PROGRAM*
 
