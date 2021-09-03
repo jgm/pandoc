@@ -1216,7 +1216,7 @@ Fields:
 :   path to the image file (string)
 
 `title`
-:   brief image description
+:   brief image description (string)
 
 `identifier`
 :   alias for `attr.identifier` (string)
