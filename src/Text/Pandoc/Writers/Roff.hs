@@ -55,6 +55,7 @@ defaultWriterState = WriterState{ stHasInlineMath = False
                                                        ('I',False)
                                                      , ('B',False)
                                                      , ('C',False)
+                                                     , ('V',False)
                                                      ]
                                 , stHasTables     = False
                                 }
@@ -106,6 +107,7 @@ fontChange = do
   features <- gets stFontFeatures
   inHeader <- gets stInHeader
   let filling = ['C' | fromMaybe False $ Map.lookup 'C' features] ++
+                ['V' | fromMaybe False $ Map.lookup 'V' features] ++
                 ['B' | inHeader ||
                        fromMaybe False (Map.lookup 'B' features)] ++
                 ['I' | fromMaybe False $ Map.lookup 'I' features]
