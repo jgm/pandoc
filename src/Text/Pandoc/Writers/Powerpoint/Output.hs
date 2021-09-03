@@ -242,6 +242,7 @@ alwaysInheritedPatterns =
               , "ppt/presProps.xml"
               , "ppt/tableStyles.xml"
               , "ppt/media/image*"
+              , "ppt/fonts/*"
               ]
 
 -- We only look for these under special conditions
