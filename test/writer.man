@@ -1,3 +1,11 @@
+.\" Define V font for inline verbatim, using CB font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+.\}
+.el \{\
+. ftr V CB
+.\}
 .TH "Pandoc Test Suite" "" "July 17, 2006" "" ""
 .hy
 .PP
@@ -487,9 +495,8 @@ So is \f[B]\f[BI]this\f[B]\f[R] word.
 .PP
 So is \f[B]\f[BI]this\f[B]\f[R] word.
 .PP
-This is code: \f[B]\f[CB]>\f[B]\f[R], \f[B]\f[CB]$\f[B]\f[R],
-\f[B]\f[CB]\[rs]\f[B]\f[R], \f[B]\f[CB]\[rs]$\f[B]\f[R],
-\f[B]\f[CB]<html>\f[B]\f[R].
+This is code: \f[V]>\f[R], \f[V]$\f[R], \f[V]\[rs]\f[R], \f[V]\[rs]$\f[R],
+\f[V]<html>\f[R].
 .PP
 [STRIKEOUT:This is \f[I]strikeout\f[R].]
 .PP
@@ -513,7 +520,7 @@ So is `pine.'
 .PP
 `He said, \[lq]I want to go.\[rq]' Were you alive in the 70\[cq]s?
 .PP
-Here is some quoted `\f[B]\f[CB]code\f[B]\f[R]' and a \[lq]quoted
+Here is some quoted `\f[V]code\f[R]' and a \[lq]quoted
 link (http://example.com/?foo=1&bar=2)\[rq].
 .PP
 Some dashes: one\[em]two \[em] three\[em]four \[em] five.
@@ -546,7 +553,7 @@ Here\[cq]s one that has a line break in it:
 .PP
 These shouldn\[cq]t be math:
 .IP \[bu] 2
-To get the famous equation, write \f[B]\f[CB]$e = mc\[ha]2$\f[B]\f[R].
+To get the famous equation, write \f[V]$e = mc\[ha]2$\f[R].
 .IP \[bu] 2
 $22,000 is a \f[I]lot\f[R] of money.
 So is $34,000.
@@ -554,7 +561,7 @@ So is $34,000.
 .IP \[bu] 2
 Shoes ($20) and socks ($5).
 .IP \[bu] 2
-Escaped \f[B]\f[CB]$\f[B]\f[R]: $73 \f[I]this should be emphasized\f[R] 23$.
+Escaped \f[V]$\f[R]: $73 \f[I]this should be emphasized\f[R] 23$.
 .PP
 Here\[cq]s a LaTeX table:
 .PP
@@ -687,7 +694,7 @@ An e-mail address: <nobody@nowhere.net>
 Blockquoted: <http://example.com/>
 .RE
 .PP
-Auto-links should not occur here: \f[B]\f[CB]<http://example.com/>\f[B]\f[R]
+Auto-links should not occur here: \f[V]<http://example.com/>\f[R]
 .IP
 .nf
 \f[C]
@@ -743,8 +750,8 @@ the first line of each block.
 .SS [3]
 .PP
 This is \f[I]easier\f[R] to type.
-Inline notes may contain links (http://google.com) and \f[B]\f[CB]]\f[B]\f[R]
-verbatim characters, as well as [bracketed text].
+Inline notes may contain links (http://google.com) and \f[V]]\f[R] verbatim
+characters, as well as [bracketed text].
 .SS [4]
 .PP
 In quote.
