@@ -1206,9 +1206,6 @@ Values of this type can be created with the
 
 Fields:
 
-`attr`
-:   attributes ([Attr])
-
 `caption`
 :   text used to describe the image ([List] of [Inlines])
 
@@ -1217,6 +1214,9 @@ Fields:
 
 `title`
 :   brief image description (string)
+
+`attr`
+:   attributes ([Attr])
 
 `identifier`
 :   alias for `attr.identifier` (string)
