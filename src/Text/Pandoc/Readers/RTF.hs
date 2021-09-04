@@ -395,15 +395,15 @@ isUnderline _ = False
 processTok :: PandocMonad m => Blocks -> Tok -> RTFParser m Blocks
 processTok bs (Tok pos tok') = do
   setPosition pos
-  -- ignore \* at beginning of group:
-  let tok'' = case tok' of
-                Grouped (Tok _ (ControlSymbol '*') : toks) -> Grouped toks
-                _ -> tok'
-  case tok'' of
+  case tok' of
     HexVal{} -> return ()
     UnformattedText{} -> return ()
     _ -> updateState $ \s -> s{ sEatChars = 0 }
-  case tok'' of
+  case tok' of
+    Grouped (Tok _ (ControlSymbol '*') : toks) ->
+      bs <$ (do oldTextContent <- sTextContent <$> getState
+                processTok mempty (Tok pos (Grouped toks))
+                updateState $ \st -> st{ sTextContent = oldTextContent })
     Grouped (Tok _ (ControlWord "fonttbl" _) : toks) -> inGroup $ do
       updateState $ \s -> s{ sFontTable = processFontTable toks }
       pure bs
@@ -440,10 +440,10 @@ processTok bs (Tok pos tok') = do
       -- TODO ideally we'd put the span around bkmkstart/end, but this
       -- is good for now:
       modifyGroup (\g -> g{ gAnchor = Just $ T.strip t })
-      addText ""
+      pure bs
+    Grouped (Tok _ (ControlWord "bkmkend" _) : _) -> do
       modifyGroup (\g -> g{ gAnchor = Nothing })
       pure bs
-    Grouped (Tok _ (ControlWord "bkmkend" _) : _) -> pure bs -- TODO
     Grouped (Tok _ (ControlWord f _) : _) | isHeaderFooter f -> pure bs
     Grouped (Tok _ (ControlWord "footnote" _) : toks) -> do
       noteBs <- inGroup $ processDestinationToks toks
