@@ -124,7 +124,6 @@ data Extension =
     | Ext_mmd_header_identifiers -- ^ Multimarkdown style header identifiers [myid]
     | Ext_mmd_link_attributes     -- ^ MMD style reference link attributes
     | Ext_mmd_title_block     -- ^ Multimarkdown metadata block
-    | Ext_short_subsuperscripts -- ^ sub-&superscripts w/o closing char (v~i)
     | Ext_multiline_tables    -- ^ Pandoc-style multiline tables
     | Ext_native_divs             -- ^ Use Div blocks for contents of <div> tags
     | Ext_native_spans            -- ^ Use Span inlines for contents of <span>
@@ -139,6 +138,7 @@ data Extension =
     | Ext_raw_markdown        -- ^ Parse markdown in ipynb as raw markdown
     | Ext_rebase_relative_paths -- ^ Rebase relative image and link paths,
                                 -- relative to directory of containing file
+    | Ext_short_subsuperscripts -- ^ sub-&superscripts w/o closing char (v~i)
     | Ext_shortcut_reference_links -- ^ Shortcut reference links
     | Ext_simple_tables       -- ^ Pandoc-style simple tables
     | Ext_smart               -- ^ "Smart" quotes, apostrophes, ellipses, dashes
