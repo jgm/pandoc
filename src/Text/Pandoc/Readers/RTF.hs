@@ -207,8 +207,8 @@ parseRTF = do
   bs <- (case toks of
           -- if we start with {\rtf1...}, parse that and ignore
           -- what follows (which in certain cases can be non-RTF content)
-          tok@(Tok _ (Grouped (Tok _ (ControlWord "rtf" (Just 1)) : _))) : _
-            -> foldM processTok mempty [tok]
+          rtftok@(Tok _ (Grouped (Tok _ (ControlWord "rtf" (Just 1)) : _))) : _
+            -> foldM processTok mempty [rtftok]
           _ -> foldM processTok mempty toks)
         >>= emitBlocks
   unclosed <- closeContainers
