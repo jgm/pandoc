@@ -204,7 +204,13 @@ parseRTF = do
   skipMany nl
   toks <- many tok
   -- return $! traceShowId toks
-  bs <- (foldM processTok mempty toks >>= emitBlocks)
+  bs <- (case toks of
+          -- if we start with {\rtf1...}, parse that and ignore
+          -- what follows (which in certain cases can be non-RTF content)
+          tok@(Tok _ (Grouped (Tok _ (ControlWord "rtf" (Just 1)) : _))) : _
+            -> foldM processTok mempty [tok]
+          _ -> foldM processTok mempty toks)
+        >>= emitBlocks
   unclosed <- closeContainers
   let doc = B.doc $ bs <> unclosed
   kvs <- sMetadata <$> getState
