@@ -411,6 +411,7 @@ processTok bs (Tok pos tok') = do
       -- eject any previous list items...sometimes TextEdit
       -- doesn't put in a \par
       emitBlocks bs
+    Grouped (Tok _ (ControlWord "pgdsc" _) : _) -> pure bs
     Grouped (Tok _ (ControlWord "colortbl" _) : _) -> pure bs
     Grouped (Tok _ (ControlWord "listtable" _) : toks) ->
       bs <$ inGroup (handleListTable toks)
