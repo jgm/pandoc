@@ -3442,7 +3442,7 @@ filepath
 
 Returns:
 
--   `true` iff `filepath` is an absolute path, `false` otherwise.
+-   `true` if `filepath` is an absolute path, `false` otherwise.
     (boolean)
 
 ### is_relative (filepath) {#pandoc.path.is_relative}
@@ -3456,7 +3456,7 @@ filepath
 
 Returns:
 
--   `true` iff `filepath` is a relative path, `false` otherwise.
+-   `true` if `filepath` is a relative path, `false` otherwise.
     (boolean)
 
 ### join (filepaths) {#pandoc.path.join}
