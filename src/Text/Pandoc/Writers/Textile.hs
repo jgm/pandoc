@@ -241,8 +241,8 @@ blockToTextile opts x@(OrderedList attribs@(start, _, _) items) = do
         return $ vcat contents <> (if level > 1 then "" else "\n")
 
 blockToTextile opts (DefinitionList items) = do
-  contents <- withUseTags $ mapM (definitionListItemToTextile opts) items
-  return $ "<dl>\n" <> vcat contents <> "\n</dl>\n"
+  contents <- mapM (definitionListItemToTextile opts) items
+  return $ vcat contents $$ blankline
 
 -- Auxiliary functions for lists:
 
@@ -282,8 +282,7 @@ definitionListItemToTextile :: PandocMonad m
 definitionListItemToTextile opts (label, items) = do
   labelText <- inlineListToTextile opts label
   contents <- mapM (blockListToTextile opts) items
-  return $ "<dt>" <> labelText <> "</dt>\n" <>
-          T.intercalate "\n" (map (\d -> "<dd>" <> d <> "</dd>") contents)
+  return $ "- " <> labelText <> " := " <>) contents) $$ cr
 
 -- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
 isSimpleList :: Block -> Bool
