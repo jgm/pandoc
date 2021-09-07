@@ -1,8 +1,9 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE MultiWayIf                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE PatternGuards              #-}
 {-# LANGUAGE ViewPatterns               #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE LambdaCase #-}
 {- |
    Module      : Text.Pandoc.Writers.Powerpoint.Presentation
    Copyright   : Copyright (C) 2017-2020 Jesse Rosenthal
@@ -80,6 +81,8 @@ data WriterEnv = WriterEnv { envMetadata :: Meta
                            , envInNoteSlide :: Bool
                            , envCurSlideId :: SlideId
                            , envInSpeakerNotes :: Bool
+                           , envInIncrementalDiv :: Maybe InIncrementalDiv
+                           , envInListInBlockQuote :: Bool
                            }
                  deriving (Show)
 
@@ -94,6 +97,8 @@ instance Default WriterEnv where
                   , envInNoteSlide = False
                   , envCurSlideId = SlideId "Default"
                   , envInSpeakerNotes = False
+                  , envInIncrementalDiv = Nothing
+                  , envInListInBlockQuote = False
                   }
 
 
@@ -113,6 +118,23 @@ instance Default WriterState where
                     , stLog = []
                     , stSpeakerNotes = mempty
                     }
+
+data InIncrementalDiv
+  = InIncremental
+  -- ^ The current content is contained within an "incremental" div.
+  | InNonIncremental
+  -- ^ The current content is contained within a "nonincremental" div.
+  deriving (Show)
+
+listShouldBeIncremental :: Pres Bool
+listShouldBeIncremental = do
+  incrementalOption <- asks (writerIncremental . envOpts)
+  inIncrementalDiv <- asks envInIncrementalDiv
+  inBlockQuote <- asks envInListInBlockQuote
+  let toBoolean = (\case InIncremental -> True
+                         InNonIncremental -> False)
+      maybeInvert = if inBlockQuote then not else id
+  pure (maybeInvert (maybe incrementalOption toBoolean inIncrementalDiv))
 
 metadataSlideId :: SlideId
 metadataSlideId = SlideId "Metadata"
@@ -227,7 +249,7 @@ data Graphic = Tbl TableProps [TableCell] [[TableCell]]
 
 
 data Paragraph = Paragraph { paraProps :: ParaProps
-                           , paraElems  :: [ParaElem]
+                           , paraElems :: [ParaElem]
                            } deriving (Show, Eq)
 
 data BulletType = Bullet
@@ -244,6 +266,7 @@ data ParaProps = ParaProps { pPropMarginLeft :: Maybe Pixels
                            , pPropAlign :: Maybe Algnment
                            , pPropSpaceBefore :: Maybe Pixels
                            , pPropIndent :: Maybe Pixels
+                           , pPropIncremental :: Bool
                            } deriving (Show, Eq)
 
 instance Default ParaProps where
@@ -254,6 +277,7 @@ instance Default ParaProps where
                   , pPropAlign = Nothing
                   , pPropSpaceBefore = Nothing
                   , pPropIndent = Just 0
+                  , pPropIncremental = False
                   }
 
 newtype TeXString = TeXString {unTeXString :: T.Text}
@@ -449,7 +473,8 @@ blockToParagraphs (CodeBlock attr str) = do
 -- (BlockQuote List) as a list to maintain compatibility with other
 -- formats.
 blockToParagraphs (BlockQuote (blk : blks)) | isListType blk = do
-  ps  <- blockToParagraphs blk
+  ps  <- local (\env -> env { envInListInBlockQuote = True })
+           (blockToParagraphs blk)
   ps' <- blockToParagraphs $ BlockQuote blks
   return $ ps ++ ps'
 blockToParagraphs (BlockQuote blks) =
@@ -474,25 +499,30 @@ blockToParagraphs (Header _ (ident, _, _) ils) = do
   return [Paragraph def{pPropSpaceBefore = Just 30} parElems]
 blockToParagraphs (BulletList blksLst) = do
   pProps <- asks envParaProps
+  incremental <- listShouldBeIncremental
   let lvl = pPropLevel pProps
   local (\env -> env{ envInList = True
                     , envParaProps = pProps{ pPropLevel = lvl + 1
                                            , pPropBullet = Just Bullet
                                            , pPropMarginLeft = Nothing
                                            , pPropIndent = Nothing
+                                           , pPropIncremental = incremental
                                            }}) $
     concatMapM multiParBullet blksLst
 blockToParagraphs (OrderedList listAttr blksLst) = do
   pProps <- asks envParaProps
+  incremental <- listShouldBeIncremental
   let lvl = pPropLevel pProps
   local (\env -> env{ envInList = True
                     , envParaProps = pProps{ pPropLevel = lvl + 1
                                            , pPropBullet = Just (AutoNumbering listAttr)
                                            , pPropMarginLeft = Nothing
                                            , pPropIndent = Nothing
+                                           , pPropIncremental = incremental
                                            }}) $
     concatMapM multiParBullet blksLst
 blockToParagraphs (DefinitionList entries) = do
+  incremental <- listShouldBeIncremental
   let go :: ([Inline], [[Block]]) -> Pres [Paragraph]
       go (ils, blksLst) = do
         term <-blockToParagraphs $ Para [Strong ils]
@@ -500,8 +530,17 @@ blockToParagraphs (DefinitionList entries) = do
         -- blockquote. We can extend this further later.
         definition <- concatMapM (blockToParagraphs . BlockQuote) blksLst
         return $ term ++ definition
-  concatMapM go entries
-blockToParagraphs (Div _ blks)  = concatMapM blockToParagraphs blks
+  local (\env -> env {envParaProps =
+                       (envParaProps env) {pPropIncremental = incremental}})
+    $ concatMapM go entries
+blockToParagraphs (Div (_, classes, _) blks) = let
+  hasIncremental = "incremental" `elem` classes
+  hasNonIncremental = "nonincremental" `elem` classes
+  incremental = if | hasIncremental -> Just InIncremental
+                   | hasNonIncremental -> Just InNonIncremental
+                   | otherwise -> Nothing
+  addIncremental env = env { envInIncrementalDiv = incremental }
+  in local addIncremental (concatMapM blockToParagraphs blks)
 blockToParagraphs blk = do
   addLogMessage $ BlockNotRendered blk
   return []

@@ -1,0 +1,137 @@
+[Header 1 ("slide-1-content",[],[]) [Str "Slide",Space,Str "1",Space,Str "(Content)"]
+,Div ("",["incremental"],[])
+ [BulletList
+  [[Plain [Str "These"]]
+  ,[Plain [Str "bullets"]]
+  ,[Plain [Str "should"]]
+  ,[Plain [Str "be"]]
+  ,[Plain [Str "incremental"]]]]
+,Header 1 ("slide-2-content",[],[]) [Str "Slide",Space,Str "2",Space,Str "(Content)"]
+,BulletList
+ [[Plain [Str "These"]]
+ ,[Plain [Str "are"]]
+ ,[Plain [Str "not"]]]
+,Header 1 ("slide-3-content",[],[]) [Str "Slide",Space,Str "3",Space,Str "(Content)"]
+,Para [Str "Even",Space,Str "with",Space,Str "some",Space,Str "text",Space,Str "first,",Space,Str "these",Space,Str "should:"]
+,Div ("",["incremental"],[])
+ [BulletList
+  [[Plain [Str "also"]]
+  ,[Plain [Str "be"]]
+  ,[Plain [Str "incremental"]]]]
+,Header 1 ("slide-4-content",[],[]) [Str "Slide",Space,Str "4",Space,Str "(Content)"]
+,Div ("",["incremental"],[])
+ [OrderedList (1,Decimal,Period)
+  [[Plain [Str "These"]]
+  ,[Plain [Str "are"]]
+  ,[Plain [Str "incremental"]]]]
+,Para [Str "But",Space,Str "this",Space,Str "text",Space,Str "isn\8217t"]
+,Header 1 ("slide-5-two-content",[],[]) [Str "Slide",Space,Str "5",Space,Str "(Two",Space,Str "Content)"]
+,Div ("",["columns"],[])
+ [Div ("",["column"],[])
+  [Para [Str "Incremental",Space,Str "on",Space,Str "the",Space,Str "left:"]
+  ,Div ("",["incremental"],[])
+   [BulletList
+    [[Plain [Str "one"]]
+    ,[Plain [Str "by"]]
+    ,[Plain [Str "one"]]]]
+  ,Para [Str "With",Space,Str "something",Space,Str "below"]]
+ ,Div ("",["column"],[])
+  [Para [Str "Incremental",Space,Str "on",Space,Str "the",Space,Str "right:"]
+  ,Div ("",["incremental"],[])
+   [BulletList
+    [[Plain [Str "one"]]
+    ,[Plain [Str "by"]]
+    ,[Plain [Str "one"]]]]
+  ,BulletList
+   [[Plain [Str "already"]]
+   ,[Plain [Str "here"]]
+   ,[Plain [Str "though"]]]]]
+,Header 1 ("slide-6-two-content-right",[],[]) [Str "Slide",Space,Str "6",Space,Str "(Two",Space,Str "Content",Space,Str "Right)"]
+,Div ("",["columns"],[])
+ [Div ("",["column"],[])
+  [Para [Image ("",[],[]) [Str "an",Space,Str "image"] ("lalune.jpg","fig:")]]
+ ,Div ("",["column"],[])
+  [Div ("",["incremental"],[])
+   [BulletList
+    [[Plain [Str "An"]]
+    ,[Plain [Str "Incremental"]]
+    ,[Plain [Str "List"]]]]]]
+,Header 1 ("slide-7-content-with-caption",[],[]) [Str "Slide",Space,Str "7",Space,Str "(Content",Space,Str "with",Space,Str "Caption)"]
+,Para [Str "First,",Space,Str "we",Space,Str "have",Space,Str "some",Space,Str "incremental",Space,Str "bullets:"]
+,Div ("",["incremental"],[])
+ [BulletList
+  [[Plain [Str "one"]]
+  ,[Plain [Str "two"]]
+  ,[Plain [Str "three"]]]]
+,Para [Str "Then,",Space,Str "a",Space,Str "picture:"]
+,Para [Image ("",[],[]) [Str "An",Space,Str "image"] ("./lalune.jpg","fig:")]
+,Header 1 ("slide-8-comparison",[],[]) [Str "Slide",Space,Str "8",Space,Str "(Comparison)"]
+,Div ("",["columns"],[])
+ [Div ("",["column"],[])
+  [Div ("",["incremental"],[])
+   [BulletList
+    [[Plain [Str "one"]]
+    ,[Plain [Str "two"]]
+    ,[Plain [Str "three"]]]]
+  ,Para [Image ("",[],[]) [Str "An",Space,Str "image"] ("./lalune.jpg","fig:")]]
+ ,Div ("",["column"],[])
+  [Div ("",["incremental"],[])
+   [OrderedList (1,Decimal,Period)
+    [[Plain [Str "one"]]
+    ,[Plain [Str "two"]]
+    ,[Plain [Str "three"]]]]
+  ,Table ("",[],[]) (Caption Nothing
+   [])
+   [(AlignDefault,ColWidth 5.555555555555555e-2)]
+   (TableHead ("",[],[])
+   [Row ("",[],[])
+    [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+     [Plain [Str "1"]]]])
+   [(TableBody ("",[],[]) (RowHeadColumns 0)
+    []
+    [Row ("",[],[])
+     [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+      [Plain [Str "2"]]]])]
+   (TableFoot ("",[],[])
+   [])]]
+,Header 1 ("slide-10-content",[],[]) [Str "Slide",Space,Str "10",Space,Str "(Content)"]
+,Div ("",["incremental","nonincremental"],[])
+ [BulletList
+  [[Plain [Str "these"]]
+  ,[Plain [Str "are"]]
+  ,[Plain [Str "incremental"]]
+  ,[Plain [Str "(the",Space,Str "incremental",Space,Str "class",Space,Str "wins)"]]]]
+,Header 1 ("slide-11-content",[],[]) [Str "Slide",Space,Str "11",Space,Str "(Content)"]
+,Para [Str "These",Space,Str "bullets",Space,Str "are",Space,Str "incremental:"]
+,BlockQuote
+ [BulletList
+  [[Plain [Str "one"]]
+  ,[Plain [Str "two"]]
+  ,[Plain [Str "three"]]]]
+,Para [Str "These",Space,Str "are",Space,Str "not:"]
+,Div ("",["incremental"],[])
+ [BlockQuote
+  [BulletList
+   [[Plain [Str "one"]]
+   ,[Plain [Str "two"]]
+   ,[Plain [Str "three"]]]]]
+,Para [Str "These",Space,Str "are:"]
+,BlockQuote
+ [Div ("",["incremental"],[])
+  [BulletList
+   [[Plain [Str "one"]]
+   ,[Plain [Str "two"]]
+   ,[Plain [Str "three"]]]]]
+,Header 1 ("slide-12-content",[],[]) [Str "Slide",Space,Str "12",Space,Str "(Content)"]
+,Div ("",["nonincremental"],[])
+ [Div ("",["incremental"],[])
+  [BulletList
+   [[Plain [Str "these"]]
+   ,[Plain [Str "are"]]
+   ,[Plain [Str "incremental"]]]]]
+,Div ("",["incremental"],[])
+ [Div ("",["nonincremental"],[])
+  [BulletList
+   [[Plain [Str "these"]]
+   ,[Plain [Str "are"]]
+   ,[Plain [Str "not"]]]]]]
