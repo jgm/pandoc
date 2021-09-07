@@ -5919,9 +5919,6 @@ option):
 Both methods allow incremental and nonincremental lists to be mixed
 in a single document.
 
-Note: Neither the `-i/--incremental` option nor any of the
-methods described here currently works for PowerPoint output.
-
 ## Inserting pauses
 
 You can add "pauses" within a slide by including a paragraph containing

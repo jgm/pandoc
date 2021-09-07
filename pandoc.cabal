@@ -414,6 +414,10 @@ extra-source-files:
                  test/pptx/endnotes/*.pptx
                  test/pptx/images/input.native
                  test/pptx/images/*.pptx
+                 test/pptx/incremental-lists/with-flag/input.native
+                 test/pptx/incremental-lists/with-flag/*.pptx
+                 test/pptx/incremental-lists/without-flag/input.native
+                 test/pptx/incremental-lists/without-flag/*.pptx
                  test/pptx/inline-formatting/input.native
                  test/pptx/inline-formatting/*.pptx
                  test/pptx/lists/input.native

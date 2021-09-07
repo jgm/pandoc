@@ -232,4 +232,12 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          def
                          "pptx/blanks/nbsp-in-heading/input.native"
                          "pptx/blanks/nbsp-in-heading/output.pptx"
+                       , pptxTests ("Incremental lists are supported")
+                         def { writerIncremental = True }
+                         "pptx/incremental-lists/with-flag/input.native"
+                         "pptx/incremental-lists/with-flag/output.pptx"
+                       , pptxTests ("One-off incremental lists are supported")
+                         def
+                         "pptx/incremental-lists/without-flag/input.native"
+                         "pptx/incremental-lists/without-flag/output.pptx"
                        ]
