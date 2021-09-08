@@ -22,20 +22,20 @@ REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 
 quick:
-	stack install --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --ghc-options='$(GHCOPTS)' --test-arguments='-j4 --hide-successes $(TESTARGS)'
+	stack install --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --ghc-options='$(GHCOPTS)' --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
 
 quick-cabal:
-	cabal new-configure . --ghc-options '$(GHCOPTS)' --disable-optimization --enable-tests
-	cabal new-build -j4 . --disable-optimization
-	cabal new-run test-pandoc --disable-optimization -- --hide-successes $(TESTARGS)
+	cabal v2-configure . --ghc-options '$(GHCOPTS)' --disable-optimization --enable-tests
+	cabal v2-build -j4 . --disable-optimization
+	cabal v2-run test-pandoc --disable-optimization -- --hide-successes --ansi-tricks=false $(TESTARGS)
 
 full-cabal:
-	cabal new-configure . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files +trypandoc' --enable-tests --enable-benchmarks
-	cabal new-build . --disable-optimization
-	cabal new-run test-pandoc --disable-optimization -- --hide-successes $(TESTARGS)
+	cabal v2-configure . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files +trypandoc' --enable-tests --enable-benchmarks
+	cabal v2-build . --disable-optimization
+	cabal v2-run test-pandoc --disable-optimization -- --hide-successes --ansi-tricks=false $(TESTARGS)
 
 full:
-	stack install --flag 'pandoc:embed_data_files' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 $(GHCOPTS)'
+	stack install --flag 'pandoc:embed_data_files' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes--ansi-tricks-false' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 $(GHCOPTS)'
 
 ghci:
 	stack ghci --flag 'pandoc:embed_data_files'
@@ -46,7 +46,7 @@ haddock:
 # Note:  to accept current results of golden tests,
 # make test TESTARGS='--accept'
 test:
-	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes $(TESTARGS)' --ghc-options '$(GHCOPTS)'
+	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)' --ghc-options '$(GHCOPTS)'
 
 ghcid:
 	ghcid -c "stack repl --flag 'pandoc:embed_data_files'"
