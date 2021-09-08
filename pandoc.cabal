@@ -446,8 +446,10 @@ extra-source-files:
                  test/pptx/start-numbering-at/*.pptx
                  test/pptx/tables/input.native
                  test/pptx/tables/*.pptx
-                 test/pptx/two-column/input.native
-                 test/pptx/two-column/*.pptx
+                 test/pptx/two-column/all-text/input.native
+                 test/pptx/two-column/all-text/*.pptx
+                 test/pptx/two-column/text-and-image/input.native
+                 test/pptx/two-column/text-and-image/*.pptx
                  test/ipynb/*.in.native
                  test/ipynb/*.out.native
                  test/ipynb/*.ipynb

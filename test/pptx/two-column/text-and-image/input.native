@@ -1,0 +1,12 @@
+[Header 1 ("slide-1",[],[]) [Str "Slide",Space,Str "1"]
+,Div ("",["columns"],[])
+ [Div ("",["column"],[])
+  [Para [Image ("",[],[]) [Str "an",Space,Str "image"] ("lalune.jpg","fig:")]]
+ ,Div ("",["column"],[])
+  [Para [Str "This",Space,Str "should",Space,Str "use",Space,Str "Two",Space,Str "Content,",Space,Emph [Str "not"],Space,Str "Comparison!"]]]
+,Header 1 ("slide-2",[],[]) [Str "Slide",Space,Str "2"]
+,Div ("",["columns"],[])
+ [Div ("",["column"],[])
+  [Para [Str "This",Space,Str "should",Space,Str "also",Space,Str "use",Space,Str "Two",Space,Str "Content"]]
+ ,Div ("",["column"],[])
+  [Para [Image ("",[],[]) [Str "an",Space,Str "image"] ("lalune.jpg","fig:")]]]]
