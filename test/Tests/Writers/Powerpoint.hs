@@ -103,8 +103,12 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          "pptx/images/output.pptx"
                        , pptxTests "two-column layout"
                          def
-                         "pptx/two-column/input.native"
-                         "pptx/two-column/output.pptx"
+                         "pptx/two-column/all-text/input.native"
+                         "pptx/two-column/all-text/output.pptx"
+                       , pptxTests "two-column (not comparison)"
+                         def
+                         "pptx/two-column/text-and-image/input.native"
+                         "pptx/two-column/text-and-image/output.pptx"
                        , pptxTests "speaker notes"
                          def
                          "pptx/speaker-notes/input.native"

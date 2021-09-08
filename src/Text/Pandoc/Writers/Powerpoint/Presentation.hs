@@ -696,10 +696,11 @@ bodyBlocksToSlide _ (blk : blks) spkNotes
               sldId
               (ComparisonSlide [] (shapesL1, shapesL2) (shapesR1, shapesR2))
               spkNotes
-      case (break notText blksL, break notText blksR) of
-        ((_, []), (_, [])) -> mkTwoColumn blksL blksR
-        (([], _), ([], _)) -> mkTwoColumn blksL blksR
-        ((blksL1, blksL2), (blksR1, blksR2)) -> mkComparison blksL1 blksL2 blksR1 blksR2
+      let (blksL1, blksL2) = break notText blksL
+          (blksR1, blksR2) = break notText blksR
+      if (any null [blksL1, blksL2]) && (any null [blksR1, blksR2])
+      then mkTwoColumn blksL blksR
+      else mkComparison blksL1 blksL2 blksR1 blksR2
 bodyBlocksToSlide _ (blk : blks) spkNotes = do
       sldId <- asks envCurSlideId
       inNoteSlide <- asks envInNoteSlide
