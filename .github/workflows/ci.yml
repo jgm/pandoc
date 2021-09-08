@@ -62,22 +62,22 @@ jobs:
             cabal: '3.2'
             prefix: ''
             cabalopts: ''
-            testopts: '--test-option=--hide-successes'
+            testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
           - ghc: '8.8.4'
             cabal: '3.2'
             prefix: ''
             cabalopts: ''
-            testopts: '--test-option=--hide-successes'
+            testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
           - ghc: '8.10.4'
             cabal: '3.2'
             prefix: ''
             cabalopts: '-ftrypandoc'
-            testopts: '--test-option=--hide-successes'
+            testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
           - ghc: '9.0.1'
             cabal: '3.4'
             prefix: ''
             cabalopts: ''
-            testopts: '--test-option=--hide-successes'
+            testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
     steps:
     - uses: actions/checkout@v2
 
@@ -166,7 +166,7 @@ jobs:
     - name: Build and test
       shell: cmd
       run: |
-          stack test --fast --test-arguments=--hide-successes
+          stack test --fast --test-arguments="--hide-successes --ansi-tricks=false"
 
   macos:
 
@@ -216,7 +216,7 @@ jobs:
           cabal v2-build --enable-tests --disable-optimization 2>&1 | tee build.log
           # fail if warnings in local build
           ! grep -q ": *[Ww]arning:" build.log || exit 1
-          cabal v2-test --disable-optimization
+          cabal v2-test --disable-optimization --test-option=--hide-successes --test-option=--ansi-tricks=false
 
   benchmark:
 
