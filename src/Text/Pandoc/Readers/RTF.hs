@@ -31,7 +31,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared (safeRead, tshow)
-import Data.Char (isAlphaNum, chr, digitToInt, isAscii, isLetter, isSpace)
+import Data.Char (isAlphaNum, chr, digitToInt, isAscii, isLetter, isSpace, ord)
 import qualified Data.ByteString.Lazy as BL
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.Maybe (mapMaybe, fromMaybe)
@@ -223,6 +223,7 @@ data TokContents =
     ControlWord Text (Maybe Int)
   | ControlSymbol Char
   | UnformattedText Text
+  | BinData BL.ByteString
   | HexVal Word8
   | Grouped [Tok]
   deriving (Show, Eq)
@@ -234,9 +235,22 @@ tok = do
  where
   controlThing = do
     char '\\' *>
-      ( (ControlWord <$> letterSequence <*> (parameter <* optional delimChar))
+      ( binData
+     <|> (ControlWord <$> letterSequence <*> (parameter <* optional delimChar))
      <|> (HexVal <$> hexVal)
      <|> (ControlSymbol <$> anyChar) )
+  binData = try $ do
+    string "bin" <* notFollowedBy letter
+    n <- fromMaybe 0 <$> parameter
+    spaces
+    -- NOTE: We assume here that if the document contains binary
+    -- data, it will not be valid UTF-8 and hence it will have been
+    -- read as latin1, so we can recover the data in the following
+    -- way.  This is probably not completely reliable, but I don't
+    -- know if we can do better without making this reader take
+    -- a ByteString input.
+    dat <- BL.pack . map (fromIntegral . ord) <$> count n anyChar
+    return $ BinData dat
   parameter = do
     hyph <- string "-" <|> pure ""
     rest <- many digit
@@ -860,14 +874,10 @@ handlePict :: PandocMonad m => [Tok] -> RTFParser m ()
 handlePict toks = do
   let pict = foldl' getPictData def toks
   let altText = "image"
-  let binToWord = T.foldl' (\acc x -> acc * 2 + fromIntegral (digitToInt x)) 0
-  let isBinaryDigit '0' = True
-      isBinaryDigit '1' = True
-      isBinaryDigit _   = False
-  let bytes = BL.pack $
-              if picBinary pict && T.all isBinaryDigit (picData pict)
-                 then map binToWord $ T.chunksOf 8 $ picData pict
-                 else map hexToWord $ T.chunksOf 2 $ picData pict
+  let bytes =
+        if picBinary pict
+           then picBytes pict
+           else BL.pack $ map hexToWord $ T.chunksOf 2 $ picData pict
   let (mimetype, ext) =
         case picType pict of
           Just Emfblip -> (Just "image/x-emf", ".emf")
@@ -894,7 +904,8 @@ handlePict toks = do
       ControlWord "pich" (Just h) -> pict{ picHeight = Just h }
       ControlWord "picwgoal" (Just w) -> pict{ picWidthGoal = Just w }
       ControlWord "pichgoal" (Just h) -> pict{ picHeightGoal = Just h }
-      ControlWord "bin" _ -> pict{ picBinary = True }
+      BinData d | not (BL.null d)
+                  -> pict{ picBinary = True, picBytes = picBytes pict <> d }
       UnformattedText t -> pict{ picData = t }
       _ -> pict
 
