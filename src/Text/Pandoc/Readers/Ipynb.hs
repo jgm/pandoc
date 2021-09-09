@@ -192,6 +192,9 @@ handleData metadata (MimeBundle mb) =
     dataBlock ("text/latex", TextualData t)
       = return $ B.rawBlock "latex" t
 
+    dataBlock ("text/markdown", TextualData t)
+      = return $ B.rawBlock "markdown" t
+
     dataBlock ("text/plain", TextualData t) =
       return $ B.codeBlock t
 
