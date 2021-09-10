@@ -665,7 +665,7 @@ Blah
 <li>And in list items.<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></li>
 </ol>
 <p>This paragraph should not be part of the note, as it is not indented.</p>
-<div class="footnotes">
+<div class="footnotes footnotes-end-of-document">
 <hr />
 <ol>
 <li id="fn1"><p>Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>

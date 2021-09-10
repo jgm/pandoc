@@ -972,7 +972,7 @@ header when requesting a document from a URL:
 :   Specify whether footnotes (and references, if `reference-links` is
     set) are placed at the end of the current (top-level) block, the
     current section, or the document. The default is
-    `document`. Currently only affects the markdown writer.
+    `document`. Currently only affects the markdown and HTML writers.
 
 `--markdown-headings=setext`|`atx`
 
