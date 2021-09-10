@@ -45,30 +45,10 @@
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \setcounter{secnumdepth}{-\maxdimen} % remove section numbering
-\ifXeTeX
-  % Load polyglossia as late as possible: uses bidi with RTL langages (e.g. Hebrew, Arabic)
-  \usepackage{polyglossia}
-  \setmainlanguage[]{english}
-  \setotherlanguage[]{german}
-  \setotherlanguage[variant=british]{english}
-  \setotherlanguage[variant=swiss]{german}
-  \setotherlanguage[]{spanish}
-  \setotherlanguage[]{french}
-\else
-  \usepackage[ngerman,british,nswissgerman,spanish,french,main=english]{babel}
+\usepackage[ngerman,british,nswissgerman,spanish,french,main=english]{babel}
 % get rid of language-specific shorthands (see #6817):
 \let\LanguageShortHands\languageshorthands
 \def\languageshorthands#1{}
-  \newcommand{\textgerman}[2][]{\foreignlanguage{ngerman}{#2}}
-  \newenvironment{german}[2][]{\begin{otherlanguage}{ngerman}}{\end{otherlanguage}}
-  \newcommand{\textenglish}[2][]{\foreignlanguage{british}{#2}}
-  \newenvironment{english}[2][]{\begin{otherlanguage}{british}}{\end{otherlanguage}}
-  \let\oritextspanish\textspanish
-  \AddBabelHook{spanish}{beforeextras}{\renewcommand{\textspanish}{\oritextspanish}}
-  \AddBabelHook{spanish}{afterextras}{\renewcommand{\textspanish}[2][]{\foreignlanguage{spanish}{##2}}}
-  \newcommand{\textfrench}[2][]{\foreignlanguage{french}{#2}}
-  \newenvironment{french}[2][]{\begin{otherlanguage}{french}}{\end{otherlanguage}}
-\fi
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
@@ -123,18 +103,19 @@ word-that-includesa\LR{ltrspan}right?
 
 Some text and
 
-\begin{german}
+\begin{otherlanguage}{ngerman}
 
 German div contents
 
-\end{german}
+\end{otherlanguage}
 
 and more text.
 
-Next paragraph with a \textenglish[variant=british]{British span} and a
-word-that-includesa\textgerman[variant=swiss]{Swiss German span}right?
+Next paragraph with a \foreignlanguage{british}{British span} and a
+word-that-includesa\foreignlanguage{nswissgerman}{Swiss German
+span}right?
 
-Some \textspanish{Spanish text}.
+Some \foreignlanguage{spanish}{Spanish text}.
 
 \hypertarget{combined}{%
 \section{Combined}\label{combined}}
@@ -142,17 +123,17 @@ Some \textspanish{Spanish text}.
 Some text and
 
 \begin{RTL}
-\begin{french}
+\begin{otherlanguage}{french}
 
 French rtl div contents
 
-\end{french}
+\end{otherlanguage}
 \end{RTL}
 
 and more text.
 
-Next paragraph with a \LR{\textenglish[variant=british]{British ltr
-span}} and a word-that-includesa\LR{\textgerman[variant=swiss]{Swiss
-German ltr span}}right?
+Next paragraph with a \LR{\foreignlanguage{british}{British ltr span}}
+and a word-that-includesa\LR{\foreignlanguage{nswissgerman}{Swiss German
+ltr span}}right?
 
 \end{document}

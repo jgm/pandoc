@@ -142,11 +142,11 @@ When using LaTeX, the following packages need to be available
 contains images), [`hyperref`], [`xcolor`],
 [`ulem`], [`geometry`] (with the `geometry` variable set),
 [`setspace`] (with `linestretch`), and
-[`babel`] (with `lang`).  The use of `xelatex` or `lualatex` as
+[`babel`] (with `lang`).  If `CJKmainfont` is set, [`xeCJK`]
+is needed.  The use of `xelatex` or `lualatex` as
 the PDF engine requires [`fontspec`].  `lualatex` uses
-[`selnolig`]. `xelatex` uses [`polyglossia`] (with `lang`),
-[`xecjk`], and [`bidi`] (with the `dir` variable set). If the
-`mathspec` variable is set, `xelatex` will use [`mathspec`]
+[`selnolig`]. `xelatex` uses [`bidi`] (with the `dir` variable set).
+If the `mathspec` variable is set, `xelatex` will use [`mathspec`]
 instead of [`unicode-math`].  The [`upquote`] and [`microtype`]
 packages are used if available, and [`csquotes`] will be used
 for [typography] if the `csquotes` variable or metadata field is
@@ -197,7 +197,7 @@ footnotes in tables).
 [`weasyprint`]: https://weasyprint.org
 [`wkhtmltopdf`]: https://wkhtmltopdf.org
 [`xcolor`]: https://ctan.org/pkg/xcolor
-[`xecjk`]: https://ctan.org/pkg/xecjk
+[`xeCJK`]: https://ctan.org/pkg/xecjk
 [`xurl`]: https://ctan.org/pkg/xurl
 [`selnolig`]: https://ctan.org/pkg/selnolig
 
