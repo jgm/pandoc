@@ -21,15 +21,13 @@ module Text.Pandoc.Writers.LaTeX (
   ) where
 import Control.Monad.State.Strict
 import Data.Char (isDigit)
-import Data.List (intersperse, nubBy, (\\))
+import Data.List (intersperse, (\\))
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
-import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
-import Text.DocTemplates (FromContext(lookupContext), renderTemplate,
-                          Val(..), Context(..))
-import Text.Collate.Lang (Lang (..), renderLang)
+import Text.DocTemplates (FromContext(lookupContext), renderTemplate)
+import Text.Collate.Lang (renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
@@ -46,7 +44,7 @@ import Text.Pandoc.Writers.LaTeX.Table (tableToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Citation (citationsToNatbib,
                                            citationsToBiblatex)
 import Text.Pandoc.Writers.LaTeX.Types (LW, WriterState (..), startingState)
-import Text.Pandoc.Writers.LaTeX.Lang (toPolyglossia, toBabel)
+import Text.Pandoc.Writers.LaTeX.Lang (toBabel)
 import Text.Pandoc.Writers.LaTeX.Util (stringToLaTeX, StringContext(..),
                                        toLabel, inCmd,
                                        wrapDiv, hypertarget, labelFor,
@@ -132,12 +130,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                               ,("tmargin","margin-top")
                               ,("bmargin","margin-bottom")
                               ]
-  let toPolyObj :: Lang -> Val Text
-      toPolyObj lang = MapVal $ Context $
-                        M.fromList [ ("name" , SimpleVal $ literal name)
-                                   , ("options" , SimpleVal $ literal opts) ]
-        where
-          (name, opts) = toPolyglossia lang
   mblang <- toLang $ case getLang options meta of
                           Just l -> Just l
                           Nothing | null docLangs -> Nothing
@@ -216,36 +208,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                       (literal $ toBabel l)) mblang
         $ defField "babel-otherlangs"
              (map (literal . toBabel) docLangs)
-        $ defField "babel-newcommands" (vcat $
-           map (\(poly, babel) -> literal $
-            -- \textspanish and \textgalician are already used by babel
-            -- save them as \oritext... and let babel use that
-            if poly `elem` ["spanish", "galician"]
-               then "\\let\\oritext" <> poly <> "\\text" <> poly <> "\n" <>
-                    "\\AddBabelHook{" <> poly <> "}{beforeextras}" <>
-                      "{\\renewcommand{\\text" <> poly <> "}{\\oritext"
-                      <> poly <> "}}\n" <>
-                    "\\AddBabelHook{" <> poly <> "}{afterextras}" <>
-                      "{\\renewcommand{\\text" <> poly <> "}[2][]{\\foreignlanguage{"
-                      <> poly <> "}{##2}}}"
-               else (if poly == "latin" -- see #4161
-                        then "\\providecommand{\\textlatin}{}\n\\renewcommand"
-                        else "\\newcommand") <> "{\\text" <> poly <>
-                    "}[2][]{\\foreignlanguage{" <> babel <> "}{#2}}\n" <>
-                    "\\newenvironment{" <> poly <>
-                    "}[2][]{\\begin{otherlanguage}{" <>
-                    babel <> "}}{\\end{otherlanguage}}"
-            )
-            -- eliminate duplicates that have same polyglossia name
-            $ nubBy (\a b -> fst a == fst b)
-            -- find polyglossia and babel names of languages used in the document
-            $ map (\l -> (fst $ toPolyglossia l, toBabel l)) docLangs
-          )
-        $ maybe id (defField "polyglossia-lang" . toPolyObj) mblang
-        $ defField "polyglossia-otherlangs"
-             (ListVal (map toPolyObj docLangs :: [Val Text]))
-        $
-                  defField "latex-dir-rtl"
+        $ defField "latex-dir-rtl"
            ((render Nothing <$> getField "dir" context) ==
                Just ("rtl" :: Text)) context
   return $ render colwidth $
@@ -771,9 +734,8 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
       kvToCmd _ = Nothing
       langCmds =
         case lang of
-           Just lng -> let (l, o) = toPolyglossia lng
-                           ops = if T.null o then "" else "[" <> o <> "]"
-                       in  ["text" <> l <> ops]
+           Just lng -> let l = toBabel lng
+                       in  ["foreignlanguage{" <> l <> "}"]
            Nothing  -> []
   let cmds = mapMaybe classToCmd classes ++ mapMaybe kvToCmd kvs ++ langCmds
   contents <- inlineListToLaTeX ils

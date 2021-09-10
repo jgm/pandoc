@@ -26,7 +26,7 @@ import Control.Monad (when)
 import Text.Pandoc.Class (PandocMonad, toLang)
 import Text.Pandoc.Options (WriterOptions(..), isEnabled)
 import Text.Pandoc.Writers.LaTeX.Types (LW, WriterState(..))
-import Text.Pandoc.Writers.LaTeX.Lang (toPolyglossiaEnv)
+import Text.Pandoc.Writers.LaTeX.Lang (toBabel)
 import Text.Pandoc.Highlighting (toListingsLanguage)
 import Text.DocLayout
 import Text.Pandoc.Definition
@@ -238,13 +238,11 @@ wrapDiv (_,classes,kvs) t = do
                   Just "ltr" -> align "LTR"
                   _          -> id
       wrapLang txt = case lang of
-                       Just lng -> let (l, o) = toPolyglossiaEnv lng
-                                       ops = if T.null o
-                                             then ""
-                                             else brackets $ literal o
-                                   in  inCmd "begin" (literal l) <> ops
+                       Just lng -> let l = toBabel lng
+                                   in  inCmd "begin" "otherlanguage"
+                                            <> (braces (literal l))
                                        $$ blankline <> txt <> blankline
-                                       $$ inCmd "end" (literal l)
+                                       $$ inCmd "end" "otherlanguage"
                        Nothing  -> txt
   return $ wrapColumns . wrapColumn . wrapDir . wrapLang $ t
 
