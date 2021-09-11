@@ -147,7 +147,7 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
                   "revealjs" -> "text/html"
                   "latex"    -> "text/latex"
                   "markdown" -> "text/markdown"
-                  "rst"      -> "text/x-rst"
+                  "rst"      -> "text/restructuredtext"
                   "asciidoc" -> "text/asciidoc"
                   _          -> f
           (Ipynb.Cell{
@@ -155,7 +155,7 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
             , cellSource = Source $ breakLines raw
             , cellMetadata = if format' == "ipynb" -- means no format given
                                 then mempty
-                                else M.insert "format"
+                                else M.insert "raw_mimetype"
                                        (Aeson.String format') mempty
             , cellAttachments = Nothing } :) <$> extractCells opts bs
         _ -> extractCells opts bs
