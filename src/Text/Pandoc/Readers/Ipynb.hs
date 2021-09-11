@@ -19,6 +19,7 @@ import Data.Char (isDigit)
 import Data.Maybe (fromMaybe)
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Text.Pandoc.Options
+import Control.Applicative ((<|>))
 import qualified Data.Scientific as Scientific
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Logging
@@ -94,7 +95,7 @@ cellToBlocks opts lang c = do
              $ B.fromList bs
     Ipynb.Raw -> do
       -- we use ipynb to indicate no format given (a wildcard in nbformat)
-      let format = fromMaybe "ipynb" $ lookup "format" kvs
+      let format = fromMaybe "ipynb" $ lookup "raw_mimetype" kvs <|> lookup "format" kvs
       let format' =
             case format of
               "text/html"             -> "html"
