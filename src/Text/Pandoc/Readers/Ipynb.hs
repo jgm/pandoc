@@ -101,7 +101,7 @@ cellToBlocks opts lang c = do
               "text/latex"      -> "latex"
               "application/pdf" -> "latex"
               "text/markdown"   -> "markdown"
-              "text/x-rsrt"     -> "rst"
+              "text/x-rst"      -> "rst"
               _                 -> format
       return $ B.divWith ("",["cell","raw"],kvs) $ B.rawBlock format' source
     Ipynb.Code{ codeOutputs = outputs, codeExecutionCount = ec } -> do
