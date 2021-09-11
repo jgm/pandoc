@@ -8,8 +8,11 @@ import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
+htmlWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
+htmlWithOpts opts = unpack . purely (writeHtml4String opts{ writerWrapText = WrapNone }) . toPandoc
+
 html :: (ToPandoc a) => a -> String
-html = unpack . purely (writeHtml4String def{ writerWrapText = WrapNone }) . toPandoc
+html = htmlWithOpts def
 
 htmlQTags :: (ToPandoc a) => a -> String
 htmlQTags = unpack
@@ -32,6 +35,21 @@ infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
      => String -> (a, String) -> TestTree
 (=:) = test html
+
+noteTestDoc :: Blocks
+noteTestDoc =
+  header 1 "Page title" <>
+  header 2 "First section" <>
+  para ("This is a footnote." <>
+        note (para "Down here.") <>
+        " And this is a " <>
+        link "https://www.google.com" "" "link" <>
+        ".") <>
+  blockQuote (para ("A note inside a block quote." <>
+                    note (para "The second note.")) <>
+              para "A second paragraph.") <>
+  header 2 "Second section" <>
+  para "Some more text."
 
 tests :: [TestTree]
 tests =
@@ -86,6 +104,61 @@ tests =
       =?> ("<var><code class=\"sourceCode haskell\">" ++
           "<span class=\"op\">&gt;&gt;=</span></code></var>")
     ]
+  , testGroup "footnotes"
+      [ test (htmlWithOpts def{writerReferenceLocation=EndOfDocument})
+        "at the end of a document" $
+        noteTestDoc =?>
+        concat
+          [ "<h1>Page title</h1>"
+          , "<h2>First section</h2>"
+          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
+          , "<blockquote><p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p><p>A second paragraph.</p></blockquote>"
+          , "<h2>Second section</h2>"
+          , "<p>Some more text.</p>"
+          , "<div class=\"footnotes footnotes-end-of-document\"><hr /><ol><li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li><li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li></ol></div>"
+          ]
+      , test (htmlWithOpts def{writerReferenceLocation=EndOfBlock})
+        "at the end of a block" $
+        noteTestDoc =?>
+        concat
+          [ "<h1>Page title</h1>"
+          , "<h2>First section</h2>"
+          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
+          , "<div class=\"footnotes footnotes-end-of-block\"><ol><li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li></ol></div>"
+          , "<blockquote><p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p><p>A second paragraph.</p></blockquote>"
+          , "<div class=\"footnotes footnotes-end-of-block\"><ol start=\"2\"><li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li></ol></div>"
+          , "<h2>Second section</h2>"
+          , "<p>Some more text.</p>"
+          ]
+      , test (htmlWithOpts def{writerReferenceLocation=EndOfSection})
+        "at the end of a section" $
+        noteTestDoc =?>
+        concat
+          [ "<h1>Page title</h1>"
+          , "<h2>First section</h2>"
+          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
+          , "<blockquote><p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p><p>A second paragraph.</p></blockquote>"
+          , "<div class=\"footnotes footnotes-end-of-section\"><hr /><ol><li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li><li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li></ol></div>"
+          , "<h2>Second section</h2>"
+          , "<p>Some more text.</p>"
+          ]
+      , test (htmlWithOpts def{writerReferenceLocation=EndOfSection, writerSectionDivs=True})
+        "at the end of a section, with section divs" $
+        noteTestDoc =?>
+        -- Footnotes are rendered _after_ their section (in this case after the level2 section
+        -- that contains it).
+        concat
+          [ "<div class=\"section level1\">"
+          , "<h1>Page title</h1>"
+          , "<div class=\"section level2\">"
+          , "<h2>First section</h2>"
+          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p><blockquote><p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p><p>A second paragraph.</p></blockquote>"
+          , "</div>"
+          , "<div class=\"footnotes footnotes-end-of-section\"><hr /><ol><li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li><li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li></ol></div>"
+          , "<div class=\"section level2\"><h2>Second section</h2><p>Some more text.</p></div>"
+          , "</div>"
+          ]
+      ]
   ]
   where
     tQ :: (ToString a, ToPandoc a)

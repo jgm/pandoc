@@ -105,6 +105,7 @@ data LogMessage =
   | ATXHeadingInLHS Int Text
   | EnvironmentVariableUndefined Text
   | DuplicateAttribute Text Text
+  | NotUTF8Encoded FilePath
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -244,6 +245,8 @@ instance ToJSON LogMessage where
       DuplicateAttribute attr val ->
            ["attribute" .= attr
            ,"value" .= val]
+      NotUTF8Encoded src ->
+           ["source" .= src]
 
 showPos :: SourcePos -> Text
 showPos pos = Text.pack $ sn ++ "line " ++
@@ -370,6 +373,9 @@ showLogMessage msg =
          "Undefined environment variable " <> var <> " in defaults file."
        DuplicateAttribute attr val ->
          "Ignoring duplicate attribute " <> attr <> "=" <> tshow val <> "."
+       NotUTF8Encoded src ->
+         Text.pack src <>
+           " is not UTF-8 encoded: falling back to latin1."
 
 messageVerbosity :: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -420,3 +426,4 @@ messageVerbosity msg =
        ATXHeadingInLHS{}             -> WARNING
        EnvironmentVariableUndefined{}-> WARNING
        DuplicateAttribute{}          -> WARNING
+       NotUTF8Encoded{}              -> WARNING

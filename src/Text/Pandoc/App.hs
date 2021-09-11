@@ -426,8 +426,12 @@ inputToText convTabs (fp, (bs,mt)) =
     Nothing           -> catchError
                            (utf8ToText fp bs)
                            (\case
-                              PandocUTF8DecodingError{} ->
-                                        return $ T.pack $ B8.unpack bs
+                              PandocUTF8DecodingError{} -> do
+                                report $ NotUTF8Encoded
+                                  (if null fp
+                                      then "input"
+                                      else fp)
+                                return $ T.pack $ B8.unpack bs
                               e -> throwError e)
 
 inputToLazyByteString :: (FilePath, (BS.ByteString, Maybe MimeType))

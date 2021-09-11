@@ -890,7 +890,10 @@ listItem parseIndentedMarker = try . withContext ListItemState $ do
   firstLine <- anyLineNewline
   blank <- option "" ("\n" <$ blankline)
   rest <- T.concat <$> many (listContinuation markerLength)
-  contents <- parseFromString blocks $ firstLine <> blank <> rest
+  contents <- parseFromString (do initial <- paraOrPlain <|> pure mempty
+                                  subsequent <- blocks
+                                  return $ initial <> subsequent)
+                (firstLine <> blank <> rest)
   return (maybe id (prependInlines . checkboxToInlines) box <$> contents)
 
 -- | Prepend inlines to blocks, adding them to the first paragraph or
