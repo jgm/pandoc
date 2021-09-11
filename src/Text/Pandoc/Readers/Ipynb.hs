@@ -97,12 +97,16 @@ cellToBlocks opts lang c = do
       let format = fromMaybe "ipynb" $ lookup "format" kvs
       let format' =
             case format of
-              "text/html"       -> "html"
-              "text/latex"      -> "latex"
-              "application/pdf" -> "latex"
-              "text/markdown"   -> "markdown"
-              "text/x-rst"      -> "rst"
-              _                 -> format
+              "text/html"             -> "html"
+              "slides"                -> "html"
+              "text/latex"            -> "latex"
+              "application/pdf"       -> "latex"
+              "pdf"                   -> "latex"
+              "text/markdown"         -> "markdown"
+              "text/x-rst"            -> "rst"
+              "text/restructuredtext" -> "rst"
+              "text/asciidoc"         -> "asciidoc"
+              _                       -> format
       return $ B.divWith ("",["cell","raw"],kvs) $ B.rawBlock format' source
     Ipynb.Code{ codeOutputs = outputs, codeExecutionCount = ec } -> do
       outputBlocks <- mconcat <$> mapM outputToBlock outputs
