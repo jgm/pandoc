@@ -138,10 +138,17 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
           let format' =
                 case T.toLower f of
                   "html"     -> "text/html"
+                  "html4"    -> "text/html"
+                  "html5"    -> "text/html"
+                  "s5"       -> "text/html"
+                  "slidy"    -> "text/html"
+                  "slideous" -> "text/html"
+                  "dzslides" -> "text/html"
                   "revealjs" -> "text/html"
                   "latex"    -> "text/latex"
                   "markdown" -> "text/markdown"
                   "rst"      -> "text/x-rst"
+                  "asciidoc" -> "text/asciidoc"
                   _          -> f
           (Ipynb.Cell{
               cellType = Raw
