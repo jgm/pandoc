@@ -854,11 +854,14 @@ blockToOpenXML' opts (Plain lst) = do
      then withParaProp prop block
      else block
 -- title beginning with fig: indicates that the image is a figure
-blockToOpenXML' opts (Para [Image attr alt (src,T.stripPrefix "fig:" -> Just tit)]) = do
+blockToOpenXML' opts (Para [Image attr@(imgident,_,_) alt
+                             (src,T.stripPrefix "fig:" -> Just tit)]) = do
   setFirstPara
   fignum <- gets stNextFigureNum
   unless (null alt) $ modify $ \st -> st{ stNextFigureNum = fignum + 1 }
-  let figid = "fig" <> tshow fignum
+  let refid = if T.null imgident
+                     then "ref_fig" <> tshow fignum
+                     else "ref_" <> imgident
   figname <- translateTerm Term.Figure
   prop <- pStyleM $
         if null alt
@@ -872,7 +875,7 @@ blockToOpenXML' opts (Para [Image attr alt (src,T.stripPrefix "fig:" -> Just tit
                          $ blockToOpenXML opts
                          $ Para
                          $ if isEnabled Ext_native_numbering opts
-                              then Span (figid,[],[])
+                              then Span (refid,[],[])
                                           [Str (figname <> "\160"),
                                            RawInline (Format "openxml")
                                            ("<w:fldSimple w:instr=\"SEQ Figure"
