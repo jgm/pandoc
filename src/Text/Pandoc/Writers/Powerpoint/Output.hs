@@ -31,6 +31,7 @@ import qualified Data.CaseInsensitive as CI
 import Data.Default
 import Data.Foldable (toList)
 import Data.List.NonEmpty (nonEmpty, NonEmpty ((:|)))
+import Data.Ratio ((%), Ratio)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Read (decimal)
@@ -439,9 +440,9 @@ makeSpeakerNotesMap :: Presentation -> M.Map Int Int
 makeSpeakerNotesMap (Presentation _ slides) =
   M.fromList $
     mapMaybe f (slides `zip` [1..]) `zip` [1..]
-  where f (Slide _ _ notes, n) = if notes == mempty
-                                 then Nothing
-                                 else Just n
+  where f (Slide _ _ notes _, n) = if notes == mempty
+                                   then Nothing
+                                   else Just n
 
 presentationToArchive :: PandocMonad m
                       => WriterOptions -> Meta -> Presentation -> m Archive
@@ -1570,8 +1571,9 @@ metadataToElement layout titleElems subtitleElems authorsElems dateElems
 metadataToElement _ _ _ _ _ = return (Nothing, mknode "p:sp" [] ())
 
 slideToElement :: PandocMonad m => Slide -> P m Element
-slideToElement (Slide _ l@(ContentSlide hdrElems shapes) _ )= do
+slideToElement (Slide _ l@(ContentSlide hdrElems shapes) _ backgroundImage) = do
   layout <- getLayout l
+  backgroundImageElement <- traverse backgroundImageToElement backgroundImage
   (shapeIds, spTree)
      <- local (\env -> if null hdrElems
                        then env
@@ -1585,9 +1587,10 @@ slideToElement (Slide _ l@(ContentSlide hdrElems shapes) _ )= do
     [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main"),
       ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
       ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
-    ] (mknode "p:cSld" [] [spTree] : animations)
-slideToElement (Slide _ l@(TwoColumnSlide hdrElems shapesL shapesR) _) = do
+    ] (mknode "p:cSld" [] (toList backgroundImageElement <> [spTree]) : animations)
+slideToElement (Slide _ l@(TwoColumnSlide hdrElems shapesL shapesR) _ backgroundImage) = do
   layout <- getLayout l
+  backgroundImageElement <- traverse backgroundImageToElement backgroundImage
   (shapeIds, spTree) <- local (\env -> if null hdrElems
                            then env
                            else env{envSlideHasHeader=True}) $
@@ -1601,9 +1604,10 @@ slideToElement (Slide _ l@(TwoColumnSlide hdrElems shapesL shapesR) _) = do
     [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main"),
       ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
       ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
-    ] (mknode "p:cSld" [] [spTree] : animations)
-slideToElement (Slide _ l@(ComparisonSlide hdrElems shapesL shapesR) _) = do
+    ] (mknode "p:cSld" [] (toList backgroundImageElement <> [spTree]) : animations)
+slideToElement (Slide _ l@(ComparisonSlide hdrElems shapesL shapesR) _ backgroundImage) = do
   layout <- getLayout l
+  backgroundImageElement <- traverse backgroundImageToElement backgroundImage
   (shapeIds, spTree) <- local (\env -> if null hdrElems
                            then env
                            else env{envSlideHasHeader=True}) $
@@ -1620,25 +1624,36 @@ slideToElement (Slide _ l@(ComparisonSlide hdrElems shapesL shapesR) _) = do
     [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main"),
       ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
       ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
-    ] (mknode "p:cSld" [] [spTree] : animations)
-slideToElement (Slide _ l@(TitleSlide hdrElems) _) = do
+    ] (mknode "p:cSld" [] (toList backgroundImageElement <> [spTree]) : animations)
+slideToElement (Slide _ l@(TitleSlide hdrElems) _ backgroundImage) = do
   layout <- getLayout l
+  backgroundImageElement <- traverse backgroundImageToElement backgroundImage
   (_, spTree) <- titleToElement layout hdrElems
   return $ mknode "p:sld"
     [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main"),
       ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
       ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
-    ] [mknode "p:cSld" [] [spTree]]
-slideToElement (Slide _ l@(MetadataSlide titleElems subtitleElems authorElems dateElems) _) = do
+    ] [mknode "p:cSld" [] (toList backgroundImageElement <> [spTree])]
+slideToElement (Slide
+                _
+                l@(MetadataSlide titleElems subtitleElems authorElems dateElems)
+                _
+                backgroundImage) = do
   layout <- getLayout l
+  backgroundImageElement <- traverse backgroundImageToElement backgroundImage
   (_, spTree) <- metadataToElement layout titleElems subtitleElems authorElems dateElems
   return $ mknode "p:sld"
     [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main"),
       ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
       ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
-    ] [mknode "p:cSld" [] [spTree]]
-slideToElement (Slide _ l@(ContentWithCaptionSlide hdrElems captionShapes contentShapes) _) = do
+    ] [mknode "p:cSld" [] (toList backgroundImageElement <> [spTree])]
+slideToElement (Slide
+                _
+                l@(ContentWithCaptionSlide hdrElems captionShapes contentShapes)
+                _
+                backgroundImage) = do
   layout <- getLayout l
+  backgroundImageElement <- traverse backgroundImageToElement backgroundImage
   (shapeIds, spTree) <- contentWithCaptionToElement layout hdrElems captionShapes contentShapes
   let animations = case shapeIds of
         Nothing -> []
@@ -1650,15 +1665,63 @@ slideToElement (Slide _ l@(ContentWithCaptionSlide hdrElems captionShapes conten
     [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main"),
       ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
       ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
-    ] (mknode "p:cSld" [] [spTree] : animations)
-slideToElement (Slide _ BlankSlide _) = do
+    ] (mknode "p:cSld" [] (toList backgroundImageElement <> [spTree]) : animations)
+slideToElement (Slide _ BlankSlide _ backgroundImage) = do
   layout <- getLayout BlankSlide
+  backgroundImageElement <- traverse backgroundImageToElement backgroundImage
   spTree <- blankToElement layout
   return $ mknode "p:sld"
     [ ("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main"),
       ("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"),
       ("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main")
-    ] [mknode "p:cSld" [] [spTree]]
+    ] [mknode "p:cSld" [] (toList backgroundImageElement <> [spTree])]
+
+backgroundImageToElement :: PandocMonad m => FilePath -> P m Element
+backgroundImageToElement path = do
+  MediaInfo{mInfoLocalId, mInfoFilePath} <- registerMedia path []
+  (imgBytes, _) <- P.fetchItem (T.pack mInfoFilePath)
+  opts <- asks envOpts
+  let imageDimensions = either (const Nothing)
+                               (Just . sizeInPixels)
+                               (imageSize opts imgBytes)
+  pageSize <- asks envPresentationSize
+  let fillRectAttributes = maybe [] (offsetAttributes pageSize) imageDimensions
+  let rId = "rId" <> T.pack (show mInfoLocalId)
+  return
+    $ mknode "p:bg" []
+    $ mknode "p:bgPr" []
+    [ mknode "a:blipFill" [("dpi", "0"), ("rotWithShape", "1")]
+      [ mknode "a:blip" [("r:embed", rId)]
+        $ mknode "a:lum" [] ()
+      , mknode "a:srcRect" [] ()
+      , mknode "a:stretch" []
+        $ mknode "a:fillRect" fillRectAttributes ()
+      ]
+    , mknode "a:effectsLst" [] ()
+    ]
+  where
+    offsetAttributes :: (Integer, Integer) -> (Integer, Integer) -> [(Text, Text)]
+    offsetAttributes (pageWidth, pageHeight) (pictureWidth, pictureHeight) = let
+      widthRatio = pictureWidth % pageWidth
+      heightRatio = pictureHeight % pageHeight
+      getOffset :: Ratio Integer -> Text
+      getOffset proportion = let
+          percentageOffset = (proportion - 1) * (-100 % 2)
+          integerOffset = round percentageOffset * 1000 :: Integer
+        in T.pack (show integerOffset)
+      in case compare widthRatio heightRatio of
+        EQ -> []
+        LT -> let
+          offset = getOffset ((pictureHeight % pageHeight) / widthRatio)
+          in [ ("t", offset)
+             , ("b", offset)
+             ]
+        GT -> let
+          offset = getOffset ((pictureWidth % pageWidth) / heightRatio)
+          in [ ("l", offset)
+             , ("r", offset)
+             ]
+
 
 slideToIncrementalAnimations ::
   [(ShapeId, Shape)] ->
@@ -1790,8 +1853,8 @@ speakerNotesSlideNumber pgNum fieldId =
   ]
 
 slideToSpeakerNotesElement :: PandocMonad m => Slide -> P m (Maybe Element)
-slideToSpeakerNotesElement (Slide _ _ (SpeakerNotes [])) = return Nothing
-slideToSpeakerNotesElement slide@(Slide _ _ (SpeakerNotes paras)) = do
+slideToSpeakerNotesElement (Slide _ _ (SpeakerNotes []) _) = return Nothing
+slideToSpeakerNotesElement slide@(Slide _ _ (SpeakerNotes paras) _) = do
   master <- getNotesMaster
   fieldId  <- getSlideNumberFieldId master
   num <- slideNum slide
@@ -2037,7 +2100,7 @@ slideToSpeakerNotesEntry slide = do
       _ -> return Nothing
 
 slideToSpeakerNotesRelElement :: PandocMonad m => Slide -> P m (Maybe Element)
-slideToSpeakerNotesRelElement (Slide _ _ (SpeakerNotes [])) = return Nothing
+slideToSpeakerNotesRelElement (Slide _ _ (SpeakerNotes []) _) = return Nothing
 slideToSpeakerNotesRelElement slide@Slide{} = do
   idNum <- slideNum slide
   return $ Just $
@@ -2124,13 +2187,13 @@ slideToSlideRelElement slide = do
   target <- flip fmap getSlideLayouts $
     T.pack . ("../slideLayouts/" <>) . takeFileName .
     slPath . case slide of
-        (Slide _ MetadataSlide{} _)           -> metadata
-        (Slide _ TitleSlide{} _)              -> title
-        (Slide _ ContentSlide{} _)            -> content
-        (Slide _ TwoColumnSlide{} _)          -> twoColumn
-        (Slide _ ComparisonSlide{} _)         -> comparison
-        (Slide _ ContentWithCaptionSlide{} _) -> contentWithCaption
-        (Slide _ BlankSlide _)                -> blank
+        (Slide _ MetadataSlide{} _ _)           -> metadata
+        (Slide _ TitleSlide{} _ _)              -> title
+        (Slide _ ContentSlide{} _ _)            -> content
+        (Slide _ TwoColumnSlide{} _ _)          -> twoColumn
+        (Slide _ ComparisonSlide{} _ _)         -> comparison
+        (Slide _ ContentWithCaptionSlide{} _ _) -> contentWithCaption
+        (Slide _ BlankSlide _ _)                -> blank
 
   speakerNotesRels <- maybeToList <$> speakerNotesSlideRelElement slide
 

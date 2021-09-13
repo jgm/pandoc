@@ -380,6 +380,8 @@ extra-source-files:
                  test/rtf/*.native
                  test/rtf/*.rtf
                  test/pptx/*.pptx
+                 test/pptx/background-image/input.native
+                 test/pptx/background-image/*.pptx
                  test/pptx/blanks/just-speaker-notes/input.native
                  test/pptx/blanks/just-speaker-notes/*.pptx
                  test/pptx/blanks/nbsp-in-body/input.native

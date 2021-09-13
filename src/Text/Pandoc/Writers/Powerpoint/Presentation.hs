@@ -63,7 +63,7 @@ import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
                                  , toLegacyTable)
 import qualified Data.Map as M
 import qualified Data.Set as S
-import Data.Maybe (maybeToList, fromMaybe, listToMaybe)
+import Data.Maybe (maybeToList, fromMaybe, listToMaybe, isNothing)
 import Text.Pandoc.Highlighting
 import qualified Data.Text as T
 import Control.Applicative ((<|>))
@@ -201,6 +201,7 @@ data DocProps = DocProps { dcTitle :: Maybe T.Text
 data Slide = Slide { slideId :: SlideId
                    , slideLayout :: Layout
                    , slideSpeakerNotes :: SpeakerNotes
+                   , slideBackgroundImage :: Maybe FilePath
                    } deriving (Show, Eq)
 
 newtype SlideId = SlideId T.Text
@@ -223,7 +224,7 @@ data Layout = MetadataSlide [ParaElem] [ParaElem] [[ParaElem]] [ParaElem]
             | ComparisonSlide [ParaElem] ([Shape], [Shape]) ([Shape], [Shape])
             --                heading  left@(text, content) right@(text, content)
             | ContentWithCaptionSlide [ParaElem] [Shape] [Shape]
-            --                   heading     text    content
+            --                        heading     text    content
             | BlankSlide
             deriving (Show, Eq)
 
@@ -725,6 +726,7 @@ bodyBlocksToSlide _ (blk : blks) spkNotes
               sldId
               (TwoColumnSlide [] shapesL shapesR)
               spkNotes
+              Nothing
       let mkComparison blksL1  blksL2 blksR1 blksR2 = do
             shapesL1 <- blocksToShapes blksL1
             shapesL2 <- blocksToShapes blksL2
@@ -735,6 +737,7 @@ bodyBlocksToSlide _ (blk : blks) spkNotes
               sldId
               (ComparisonSlide [] (shapesL1, shapesL2) (shapesR1, shapesR2))
               spkNotes
+              Nothing
       let (blksL1, blksL2) = break notText blksL
           (blksR1, blksR2) = break notText blksR
       if (any null [blksL1, blksL2]) && (any null [blksR1, blksR2])
@@ -744,7 +747,7 @@ bodyBlocksToSlide _ (blk : blks) spkNotes = do
       sldId <- asks envCurSlideId
       inNoteSlide <- asks envInNoteSlide
       let mkSlide s =
-            Slide sldId s spkNotes
+            Slide sldId s spkNotes Nothing
       if inNoteSlide
       then mkSlide . ContentSlide [] <$>
           forceFontSize noteSize (blocksToShapes (blk : blks))
@@ -767,14 +770,15 @@ bodyBlocksToSlide _ [] spkNotes = do
     sldId
     BlankSlide
     spkNotes
+    Nothing
 
 blocksToSlide' :: Int -> [Block] -> SpeakerNotes -> Pres Slide
-blocksToSlide' lvl (Header n (ident, _, _) ils : blks) spkNotes
+blocksToSlide' lvl (Header n (ident, _, attributes) ils : blks) spkNotes
   | n < lvl = do
       registerAnchorId ident
       sldId <- asks envCurSlideId
       hdr <- inlinesToParElems ils
-      return $ Slide sldId (TitleSlide hdr) spkNotes
+      return $ Slide sldId (TitleSlide hdr) spkNotes backgroundImage
   | n == lvl || lvl == 0 = do
       registerAnchorId ident
       hdr <- inlinesToParElems ils
@@ -788,7 +792,10 @@ blocksToSlide' lvl (Header n (ident, _, _) ils : blks) spkNotes
             ContentWithCaptionSlide _ text content -> ContentWithCaptionSlide hdr text content
             BlankSlide -> if all inlineIsBlank ils then BlankSlide else ContentSlide hdr []
             layout'                     -> layout'
-      return $ slide{slideLayout = layout}
+      return $ slide{slideLayout = layout, slideBackgroundImage = backgroundImage}
+  where
+    backgroundImage = T.unpack <$> (lookup "background-image" attributes
+                                   <|> lookup "data-background-image" attributes)
 blocksToSlide' lvl blks spkNotes = bodyBlocksToSlide lvl blks spkNotes
 
 blockToSpeakerNotes :: Block -> Pres SpeakerNotes
@@ -869,12 +876,13 @@ getMetaSlide  = do
          metadataSlideId
          (MetadataSlide title subtitle authors date)
          mempty
+         Nothing
 
 addSpeakerNotesToMetaSlide :: Slide -> [Block] -> Pres (Slide, [Block])
-addSpeakerNotesToMetaSlide (Slide sldId layout@MetadataSlide{} spkNotes) blks =
+addSpeakerNotesToMetaSlide (Slide sldId layout@MetadataSlide{} spkNotes backgroundImage) blks =
   do let (ntsBlks, blks') = span isNotesDiv blks
      spkNotes' <- mconcat <$> mapM blockToSpeakerNotes ntsBlks
-     return (Slide sldId layout (spkNotes <> spkNotes'), blks')
+     return (Slide sldId layout (spkNotes <> spkNotes') backgroundImage, blks')
 addSpeakerNotesToMetaSlide sld blks = return (sld, blks)
 
 makeTOCSlide :: [Block] -> Pres Slide
@@ -1010,7 +1018,10 @@ emptyLayout layout = case layout of
 
 
 emptySlide :: Slide -> Bool
-emptySlide (Slide _ layout notes) = (notes == mempty) && emptyLayout layout
+emptySlide (Slide _ layout notes backgroundImage)
+  = (notes == mempty)
+  && emptyLayout layout
+  && isNothing backgroundImage
 
 makesBlankSlide :: [Block] -> Bool
 makesBlankSlide = all blockIsBlank

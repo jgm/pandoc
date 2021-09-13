@@ -1,0 +1,17 @@
+[Header 1 ("section-header-with-background-image",[],[("background-image","movie.jpg")]) [Str "Section",Space,Str "Header",Space,Str "(with",Space,Str "background",Space,Str "image)"]
+,Header 2 ("slide-1",[],[("background-image","lalune.jpg")]) [Str "Slide",Space,Str "1"]
+,Para [Str "This",Space,Str "slide",Space,Str "has",Space,Str "a",Space,Str "moon",Space,Str "background."]
+,Header 2 ("slide-2",[],[("background-image","movie.jpg")]) [Str "Slide",Space,Str "2"]
+,Para [Str "This",Space,Str "slide",Space,Str "has",Space,Str "a",Space,Str "movie",Space,Str "background."]
+,Header 2 ("slide-3",[],[("background-image","movie.jpg")]) [Str "Slide",Space,Str "3"]
+,Div ("",["columns"],[])
+ [Div ("",["column"],[])
+  [Para [Str "Background",Space,Str "images",Space,Str "work",Space,Str "in",Space,Str "two-column",Space,Str "layout."]]
+ ,Div ("",["column"],[])
+  [Para [Str "hello"]]]
+,Header 2 ("slide-4",[],[("background-image","movie.jpg")]) [Str "Slide",Space,Str "4"]
+,Para [Str "You",Space,Str "can",Space,Str "have",Space,Str "images",Space,Str "on",Space,Str "slides",Space,Str "that",Space,Str "have",Space,Str "background",Space,Str "images:"]
+,Para [Image ("",[],[]) [Str "An",Space,Str "image"] ("lalune.jpg","fig:")]
+,Header 2 ("section",[],[("background-image","lalune.jpg")]) []
+,Div ("",["notes"],[])
+ [Para [Str "Blank",Space,Str "slides",Space,Str "can",Space,Str "have",Space,Str "background",Space,Str "images."]]]
