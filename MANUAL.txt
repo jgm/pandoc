@@ -6054,40 +6054,61 @@ the [Beamer User's Guide] may also be used: `allowdisplaybreaks`,
 `allowframebreaks`, `b`, `c`, `t`, `environment`, `label`, `plain`,
 `shrink`, `standout`, `noframenumbering`.
 
-## Background in reveal.js and beamer
+## Background in reveal.js, beamer, and pptx
 
-Background images can be added to self-contained reveal.js slide shows and
-to beamer slide shows.
+Background images can be added to self-contained reveal.js slide shows,
+beamer slide shows, and pptx slide shows.
 
-For the same image on every slide, use the  configuration
-option `background-image` either in the YAML metadata block
-or as a command-line variable. (There are no other options in
-beamer and the rest of this section concerns reveal.js slide shows.)
+### On all slides (beamer, reveal.js, pptx)
 
-For reveal.js, you can instead use the reveal.js-native option
-`parallaxBackgroundImage`. You can also set `parallaxBackgroundHorizontal`
-and `parallaxBackgroundVertical` the same way and must also set
-`parallaxBackgroundSize` to have your values take effect.
+With beamer and reveal.js, the configuration option `background-image` can be
+used either in the YAML metadata block or as a command-line variable to get the
+same image on every slide.
 
-To set an image for a particular reveal.js slide, add
-`{data-background-image="/path/to/image"}`
-to the first slide-level heading on the slide (which may even be empty).
+For pptx, you can use a [reference doc](#option--reference-doc) in which
+background images have been set on the [relevant
+layouts](#powerpoint-layout-choice).
+
+#### `parallaxBackgroundImage` (reveal.js)
+
+For reveal.js, there is also the reveal.js-native option
+`parallaxBackgroundImage`, which can be used instead of `background-image` to
+produce a parallax scrolling background. You must also set
+`parallaxBackgroundSize`, and can optionally set `parallaxBackgroundHorizontal`
+and `parallaxBackgroundVertical` to configure the scrolling behaviour. See the
+[reveal.js documentation](https://revealjs.com/backgrounds/#parallax-background)
+for more details about the meaning of these options.
 
 In reveal.js's overview mode, the parallaxBackgroundImage will show up
 only on the first slide.
 
-Other reveal.js background settings also work on individual slides, including
-`data-background-size`, `data-background-repeat`, `data-background-color`,
-`data-transition`, and `data-transition-speed`.
+### On individual slides (reveal.js, pptx)
 
-To add a background image to the automatically generated title slide, use the
-`title-slide-attributes` variable in the YAML metadata block. It must contain
-a map of attribute names and values.
+To set an image for a particular reveal.js or pptx slide, add
+`{background-image="/path/to/image"}` to the first slide-level heading on the
+slide (which may even be empty).
 
-See the [reveal.js documentation](https://revealjs.com/backgrounds/) for more
-details.
+As the [HTML writers pass unknown attributes
+through](#extension-link_attributes), other reveal.js background settings also
+work on individual slides, including `background-size`, `background-repeat`,
+`background-color`, `transition`, and `transition-speed`. (The `data-` prefix
+will automatically be added.)
 
-For example in reveal.js:
+Note: `data-background-image` is also supported in pptx for consistency with
+reveal.js – if `background-image` isn’t found, `data-background-image` will be
+checked.
+
+### On the title slide (reveal.js, pptx)
+
+To add a background image to the automatically generated title slide for
+reveal.js, use the `title-slide-attributes` variable in the YAML metadata block.
+It must contain a map of attribute names and values. (Note that the `data-`
+prefix is required here, as it isn’t added automatically.)
+
+For pptx, pass a [reference doc](#option--reference-doc) with the background
+image set on the “Title Slide” layout.
+
+### Example (reveal.js)
 
 ```
 ---
@@ -6102,7 +6123,7 @@ title-slide-attributes:
 
 Slide 1 has background_image.png as its background.
 
-## {data-background-image="/path/to/special_image.jpg"}
+## {background-image="/path/to/special_image.jpg"}
 
 Slide 2 has a special image for its background, even though the heading has no content.
 ```

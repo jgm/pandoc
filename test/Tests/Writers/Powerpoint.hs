@@ -240,4 +240,8 @@ tests = groupPptxTests [ pptxTests "Inline formatting"
                          def
                          "pptx/incremental-lists/without-flag/input.native"
                          "pptx/incremental-lists/without-flag/output.pptx"
+                       , pptxTests "Background images"
+                         def
+                         "pptx/background-image/input.native"
+                         "pptx/background-image/output.pptx"
                        ]
