@@ -1155,10 +1155,11 @@ referenceNames = do
   let rn = try $ do
              string ".. _"
              ref <- quotedReferenceName
-                  <|> manyChar (  noneOf ":\n"
+                  <|> manyChar (  noneOf "\\:\n"
                               <|> try (char '\n' <*
                                        string "   " <*
                                        notFollowedBy blankline)
+                              <|> try (char '\\' *> char ':')
                               <|> try (char ':' <* lookAhead alphaNum)
                                )
              char ':'
