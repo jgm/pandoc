@@ -1,0 +1,66 @@
+Pandoc (Meta {unMeta = fromList [("author",MetaInlines [Str "Me"]),("date",MetaInlines [Str "14/09/1995"]),("title",MetaInlines [Str "Slides"])]})
+[Header 2 ("slide-1",[],[]) [Str "Slide",Space,Str "1"]
+,Para [Str "Hello",Space,Str "there"]
+,Header 1 ("layouts",[],[]) [Str "Layouts"]
+,Header 2 ("slide-3",[],[]) [Str "Slide",Space,Str "3"]
+,Para [Str "Does",Space,Str "it",Space,Str "work",Space,Str "on",Space,Str "other",Space,Str "layouts?"]
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignDefault,ColWidth 5.555555555555555e-2)
+ ,(AlignDefault,ColWidth 5.555555555555555e-2)]
+ (TableHead ("",[],[])
+ [])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "2"]]]])]
+ (TableFoot ("",[],[])
+ [])
+,Header 2 ("slide-4",[],[]) [Str "Slide",Space,Str "4"]
+,Div ("",["columns"],[])
+ [Div ("",["column"],[])
+  [Para [Str "hello",Space,Str "hello"]]
+ ,Div ("",["column"],[])
+  [Para [Str "goood",Space,Str "bye"]]]
+,Header 2 ("slide-5",[],[]) [Str "Slide",Space,Str "5"]
+,Div ("",["columns"],[])
+ [Div ("",["column"],[])
+  [Para [Str "Hello",Space,Str "there"]
+  ,Table ("",[],[]) (Caption Nothing
+   [])
+   [(AlignDefault,ColWidth 5.555555555555555e-2)
+   ,(AlignDefault,ColWidth 5.555555555555555e-2)]
+   (TableHead ("",[],[])
+   [])
+   [(TableBody ("",[],[]) (RowHeadColumns 0)
+    []
+    [Row ("",[],[])
+     [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+      [Plain [Str "1"]]
+     ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+      [Plain [Str "2"]]]])]
+   (TableFoot ("",[],[])
+   [])]
+ ,Div ("",["column"],[])
+  [Para [Str "oh",Space,Str "wait"]
+  ,Table ("",[],[]) (Caption Nothing
+   [])
+   [(AlignDefault,ColWidth 5.555555555555555e-2)
+   ,(AlignDefault,ColWidth 5.555555555555555e-2)]
+   (TableHead ("",[],[])
+   [])
+   [(TableBody ("",[],[]) (RowHeadColumns 0)
+    []
+    [Row ("",[],[])
+     [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+      [Plain [Str "1"]]
+     ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+      [Plain [Str "2"]]]])]
+   (TableFoot ("",[],[])
+   [])]]
+,Header 2 ("section",[],[]) []
+,Div ("",["notes"],[])
+ [Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "blank",Space,Str "slide:",Space,Str "does",Space,Str "it",Space,Str "have",Space,Str "a",Space,Str "footer?"]]]

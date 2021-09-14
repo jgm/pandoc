@@ -414,6 +414,11 @@ extra-source-files:
                  test/pptx/endnotes-toc/*.pptx
                  test/pptx/endnotes/input.native
                  test/pptx/endnotes/*.pptx
+                 test/pptx/footer/input.native
+                 test/pptx/footer/basic/*.pptx
+                 test/pptx/footer/fixed-date/*.pptx
+                 test/pptx/footer/higher-slide-number/*.pptx
+                 test/pptx/footer/no-title-slide/*.pptx
                  test/pptx/images/input.native
                  test/pptx/images/*.pptx
                  test/pptx/incremental-lists/with-flag/input.native

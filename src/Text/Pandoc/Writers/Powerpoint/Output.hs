@@ -2,6 +2,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 {- |
@@ -159,7 +160,7 @@ data SlideLayoutsOf a = SlideLayouts
   , comparison :: a
   , contentWithCaption :: a
   , blank :: a
-  } deriving (Show, Functor, Foldable, Traversable)
+  } deriving (Show, Eq, Functor, Foldable, Traversable)
 
 data SlideLayout = SlideLayout
   { slElement :: Element
@@ -197,12 +198,14 @@ data WriterState = WriterState { stLinkIds :: M.Map Int (M.Map Int LinkTarget)
                                -- (FP, Local ID, Global ID, Maybe Mime)
                                , stMediaIds :: M.Map Int [MediaInfo]
                                , stMediaGlobalIds :: M.Map FilePath Int
+                               , stFooterInfo :: Maybe FooterInfo
                                } deriving (Show, Eq)
 
 instance Default WriterState where
   def = WriterState { stLinkIds = mempty
                     , stMediaIds = mempty
                     , stMediaGlobalIds = mempty
+                    , stFooterInfo = Nothing
                     }
 
 type P m = ReaderT WriterEnv (StateT WriterState m)
@@ -316,8 +319,14 @@ presentationToArchiveP p@(Presentation docProps slides) = do
         else id
   let newArch' = foldr f newArch slideLayouts
 
-  -- Update the master to make sure it includes any layouts we've just added
   master <- getMaster
+  refArchive <- asks envRefArchive
+  distArchive <- asks envDistArchive
+  presentationElement <- parseXml refArchive distArchive "ppt/presentation.xml"
+  modify (\s -> s {stFooterInfo =
+                   getFooterInfo slideLayouts master presentationElement})
+
+  -- Update the master to make sure it includes any layouts we've just added
   masterRels <- getMasterRels
   let (updatedMasterElem, updatedMasterRelElem) = updateMasterElems slideLayouts master masterRels
   updatedMasterEntry <- elemToEntry "ppt/slideMasters/slideMaster1.xml" updatedMasterElem
@@ -431,6 +440,56 @@ updateMasterElems layouts master masterRels = (updatedMaster, updatedMasterRels)
         idAttributes = mapMaybe getIdAttribute (elContent sldLayouts)
         getIdAttribute (Elem e) = findAttr (QName "id" Nothing Nothing) e
         getIdAttribute _ = Nothing
+
+data FooterInfo = FooterInfo
+  { fiDate :: SlideLayoutsOf (Maybe Element)
+  , fiFooter :: SlideLayoutsOf (Maybe Element)
+  , fiSlideNumber :: SlideLayoutsOf (Maybe Element)
+  , fiShowOnFirstSlide :: Bool
+  } deriving (Show, Eq)
+
+getFooterInfo :: SlideLayouts -> Element -> Element -> Maybe FooterInfo
+getFooterInfo layouts master presentation = do
+  let ns = elemToNameSpaces master
+  hf <- findChild (elemName ns "p" "hf") master
+  let fiDate = getShape "dt" hf . slElement <$> layouts
+      fiFooter = getShape "ftr" hf . slElement <$> layouts
+      fiSlideNumber = getShape "sldNum" hf . slElement <$> layouts
+      fiShowOnFirstSlide =
+        fromMaybe True
+        (getBooleanAttribute "showSpecialPlsOnTitleSld" presentation)
+  pure FooterInfo{..}
+    where
+      getShape t hf layout =
+        if fromMaybe True (getBooleanAttribute t hf)
+        then do
+          let ns = elemToNameSpaces layout
+          cSld <- findChild (elemName ns "p" "cSld") layout
+          spTree <- findChild (elemName ns "p" "spTree") cSld
+          let containsPlaceholder sp = fromMaybe False $ do
+                nvSpPr <- findChild (elemName ns "p" "nvSpPr") sp
+                nvPr <- findChild (elemName ns "p" "nvPr") nvSpPr
+                ph <- findChild (elemName ns "p" "ph") nvPr
+                placeholderType <- findAttr (QName "type" Nothing Nothing) ph
+                pure (placeholderType == t)
+          listToMaybe (filterChildren containsPlaceholder spTree)
+        else Nothing
+
+      getBooleanAttribute t e =
+        (`elem` ["1", "true"]) <$>
+          (findAttr (QName t Nothing Nothing) e)
+
+footerElements ::
+  PandocMonad m =>
+  (forall a. SlideLayoutsOf a -> a) ->
+  P m [Content]
+footerElements layout = do
+  footerInfo <- gets stFooterInfo
+  pure
+    $ Elem <$>
+      (toList (footerInfo >>= layout . fiDate)
+       <> toList (footerInfo >>= layout . fiFooter)
+       <> toList (footerInfo >>= layout . fiSlideNumber))
 
 makeSlideIdMap :: Presentation -> M.Map SlideId Int
 makeSlideIdMap (Presentation _ slides) =
@@ -1372,13 +1431,14 @@ contentToElement layout hdrShape shapes
       (shapeId, element) <- nonBodyTextToElement layout [PHType "title"] hdrShape
       let hdrShapeElements = [Elem element | not (null hdrShape)]
           contentHeaderId = if null hdrShape then Nothing else shapeId
-      content <- local
+      content' <- local
                          (\env -> env {envPlaceholder = Placeholder ObjType 0})
                          (shapesToElements layout shapes)
-      let contentContentIds = mapMaybe fst content
-          contentElements = snd <$> content
+      let contentContentIds = mapMaybe fst content'
+          contentElements = snd <$> content'
+      footer <- footerElements content
       return ( Just ContentShapeIds{..}
-             , buildSpTree ns spTree (hdrShapeElements <> contentElements)
+             , buildSpTree ns spTree (hdrShapeElements <> contentElements <> footer)
              )
 contentToElement _ _ _ = return (Nothing, mknode "p:sp" [] ())
 
@@ -1412,10 +1472,11 @@ twoColumnToElement layout hdrShape shapesL shapesR
           contentElementsR = snd <$> contentR
       -- let contentElementsL' = map (setIdx ns "1") contentElementsL
       --     contentElementsR' = map (setIdx ns "2") contentElementsR
+      footer <- footerElements twoColumn
       return
         $ (Just TwoColumnShapeIds{..}, )
         $ buildSpTree ns spTree
-        $ hdrShapeElements <> contentElementsL <> contentElementsR
+        $ hdrShapeElements <> contentElementsL <> contentElementsR <> footer
 twoColumnToElement _ _ _ _ = return (Nothing, mknode "p:sp" [] ())
 
 data ComparisonShapeIds = ComparisonShapeIds
@@ -1456,6 +1517,7 @@ comparisonToElement layout hdrShape (shapesL1, shapesL2) (shapesR1, shapesR2)
                          (shapesToElements layout shapesR2)
       let comparisonRightContentIds = mapMaybe fst contentR2
           contentElementsR2 = snd <$> contentR2
+      footer <- footerElements comparison
       return
         $ (Just ComparisonShapeIds{..}, )
         $ buildSpTree ns spTree
@@ -1464,7 +1526,7 @@ comparisonToElement layout hdrShape (shapesL1, shapesL2) (shapesR1, shapesR2)
                   , contentElementsL2
                   , contentElementsR1
                   , contentElementsR2
-                  ]
+                  ] <> footer
 comparisonToElement _ _ _ _= return (Nothing, mknode "p:sp" [] ())
 
 data ContentWithCaptionShapeIds = ContentWithCaptionShapeIds
@@ -1495,13 +1557,14 @@ contentWithCaptionToElement layout hdrShape textShapes contentShapes
                        (shapesToElements layout contentShapes)
       let contentWithCaptionContentIds = mapMaybe fst content
           contentElements = snd <$> content
+      footer <- footerElements contentWithCaption
       return
         $ (Just ContentWithCaptionShapeIds{..}, )
         $ buildSpTree ns spTree
         $ mconcat [ hdrShapeElements
                   , textElements
                   , contentElements
-                  ]
+                  ] <> footer
 contentWithCaptionToElement _ _ _ _ = return (Nothing, mknode "p:sp" [] ())
 
 blankToElement ::
@@ -1511,8 +1574,8 @@ blankToElement ::
 blankToElement layout
   | ns <- elemToNameSpaces layout
   , Just cSld <- findChild (elemName ns "p" "cSld") layout
-  , Just spTree <- findChild (elemName ns "p" "spTree") cSld = do
-      return $ buildSpTree ns spTree []
+  , Just spTree <- findChild (elemName ns "p" "spTree") cSld =
+      buildSpTree ns spTree <$> footerElements blank
 blankToElement _ = return $ mknode "p:sp" [] ()
 
 newtype TitleShapeIds = TitleShapeIds
@@ -1531,7 +1594,10 @@ titleToElement layout titleElems
       (shapeId, element) <- nonBodyTextToElement layout [PHType "title", PHType "ctrTitle"] titleElems
       let titleShapeElements = [Elem element | not (null titleElems)]
           titleHeaderId = if null titleElems then Nothing else shapeId
-      return $ (Just TitleShapeIds{..}, ) $ buildSpTree ns spTree titleShapeElements
+      footer <- footerElements title
+      return
+        $ (Just TitleShapeIds{..}, )
+        $ buildSpTree ns spTree (titleShapeElements <> footer)
 titleToElement _ _ = return (Nothing, mknode "p:sp" [] ())
 
 data MetadataShapeIds = MetadataShapeIds
@@ -1561,13 +1627,20 @@ metadataToElement layout titleElems subtitleElems authorsElems dateElems
           metadataTitleId = if null titleElems then Nothing else titleId
           subtitleShapeElements = [subtitleElement | not (null subtitleAndAuthorElems)]
           metadataSubtitleId = if null subtitleAndAuthorElems then Nothing else subtitleId
-          dateShapeElements = [dateElement | not (null dateElems)]
+      footerInfo <- gets stFooterInfo
+      footer <- (if maybe False fiShowOnFirstSlide footerInfo
+                 then id
+                 else const []) <$> footerElements metadata
+      let dateShapeElements = [dateElement
+                              | not (null dateElems
+                                || isJust (footerInfo >>= metadata . fiDate))
+                              ]
           metadataDateId = if null dateElems then Nothing else dateId
       return
         $ (Just MetadataShapeIds{..}, )
         $ buildSpTree ns spTree
-        $ map Elem
-        $ titleShapeElements <> subtitleShapeElements <> dateShapeElements
+        $ map Elem (titleShapeElements <> subtitleShapeElements <> dateShapeElements)
+        <> footer
 metadataToElement _ _ _ _ _ = return (Nothing, mknode "p:sp" [] ())
 
 slideToElement :: PandocMonad m => Slide -> P m Element
