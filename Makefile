@@ -25,9 +25,8 @@ quick:
 	stack install --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --ghc-options='$(GHCOPTS)' --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
 
 quick-cabal:
-	cabal v2-configure . --ghc-options '$(GHCOPTS)' --disable-optimization --enable-tests
-	cabal v2-build -j4 . --disable-optimization
-	cabal v2-run test-pandoc --disable-optimization -- --hide-successes --ansi-tricks=false $(TESTARGS)
+	cabal v2-build -j8 --ghc-options '$(GHCOPTS)' --disable-optimization --enable-tests
+	cabal v2-test --hide-successes --ansi-tricks=false $(TESTARGS)
 
 full-cabal:
 	cabal v2-configure . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files +trypandoc' --enable-tests --enable-benchmarks
