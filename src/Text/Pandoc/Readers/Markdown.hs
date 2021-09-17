@@ -1127,10 +1127,9 @@ rawHtmlBlocks = do
   tabStop <- getOption readerTabStop
   indentlevel <- option 0 $
                  do blankline
-                    foldr (+) 0 <$>
-                      many ( (1 <$ char ' ')
-                            <|>
-                             (tabStop <$ char '\t') )
+                    sum <$> many ( (1 <$ char ' ')
+                                   <|>
+                                   (tabStop <$ char '\t') )
   -- try to find closing tag
   -- we set stateInHtmlBlock so that closing tags that can be either block or
   -- inline will not be parsed as inline tags
