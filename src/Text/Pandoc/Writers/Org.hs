@@ -154,7 +154,7 @@ blockToOrg (CodeBlock (_,classes,kvs) str) = do
   let (beg, end) = case at of
                       []    -> ("#+begin_example" <> numberlines, "#+end_example")
                       (x:_) -> ("#+begin_src " <> x <> numberlines, "#+end_src")
-  return $ literal beg $$ nest 2 (literal str) $$ text end $$ blankline
+  return $ literal beg $$ literal str $$ text end $$ blankline
 blockToOrg (BlockQuote blocks) = do
   contents <- blockListToOrg blocks
   return $ blankline $$ "#+begin_quote" $$

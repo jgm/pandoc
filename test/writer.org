@@ -81,9 +81,9 @@ E-mail style:
   Code in a block quote:
 
   #+begin_example
-    sub status {
-        print "working";
-    }
+  sub status {
+      print "working";
+  }
   #+end_example
 
   A list:
@@ -115,21 +115,21 @@ And a following paragraph.
 Code:
 
 #+begin_example
-  ---- (should be four hyphens)
+---- (should be four hyphens)
 
-  sub status {
-      print "working";
-  }
+sub status {
+    print "working";
+}
 
-  this code block is indented by one tab
+this code block is indented by one tab
 #+end_example
 
 And:
 
 #+begin_example
-      this code block is indented by two tabs
+    this code block is indented by two tabs
 
-  These should not be escaped:  \$ \\ \> \[ \{
+These should not be escaped:  \$ \\ \> \[ \{
 #+end_example
 
 --------------
@@ -348,7 +348,7 @@ Multiple blocks with italics:
 - /orange/ :: orange fruit
 
   #+begin_example
-    { orange code block }
+  { orange code block }
   #+end_example
 
   #+begin_quote
@@ -446,15 +446,15 @@ foo
 This should be a code block, though:
 
 #+begin_example
-  <div>
-      foo
-  </div>
+<div>
+    foo
+</div>
 #+end_example
 
 As should this:
 
 #+begin_example
-  <div>foo</div>
+<div>foo</div>
 #+end_example
 
 Now, nested:
@@ -485,7 +485,7 @@ Multiline:
 Code block:
 
 #+begin_example
-  <!-- Comment -->
+<!-- Comment -->
 #+end_example
 
 Just plain comment, with trailing spaces on the line:
@@ -497,7 +497,7 @@ Just plain comment, with trailing spaces on the line:
 Code:
 
 #+begin_example
-  <hr />
+<hr />
 #+end_example
 
 Hr's:
@@ -728,7 +728,7 @@ Indented [[/url][thrice]].
 This should [not][] be a link.
 
 #+begin_example
-  [not]: /url
+[not]: /url
 #+end_example
 
 Foo [[/url/][bar]].
@@ -767,7 +767,7 @@ An e-mail address: [[mailto:nobody@nowhere.net][nobody@nowhere.net]]
 Auto-links should not occur here: =<http://example.com/>=
 
 #+begin_example
-  or here: <http://example.com/>
+or here: <http://example.com/>
 #+end_example
 
 --------------
@@ -810,7 +810,7 @@ This paragraph should not be part of the note, as it is not indented.
        (as with list items).
 
        #+begin_example
-           { <code> }
+         { <code> }
        #+end_example
 
        If you want, you can indent every line, but you can also be lazy and
