@@ -66,6 +66,10 @@ tests = let
                      def
                      "pptx/start-numbering-at/input.native"
                      "pptx/start-numbering-at/output.pptx"
+                   , pptxTests "List continuation paragraph indentation"
+                     def
+                     "pptx/list-level/input.native"
+                     "pptx/list-level/output.pptx"
                    , pptxTests "tables"
                      def
                      "pptx/tables/input.native"

@@ -429,6 +429,8 @@ extra-source-files:
                  test/pptx/inline-formatting/*.pptx
                  test/pptx/lists/input.native
                  test/pptx/lists/*.pptx
+                 test/pptx/list-level/input.native
+                 test/pptx/list-level/*.pptx
                  test/pptx/raw-ooxml/input.native
                  test/pptx/raw-ooxml/*.pptx
                  test/pptx/remove-empty-slides/input.native

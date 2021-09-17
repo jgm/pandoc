@@ -1,0 +1,20 @@
+[Header 1 ("slide",[],[]) [Str "Slide"]
+,BulletList
+ [[Para [Str "Top-level"]
+  ,Para [Str "With",Space,Str "continuation",Space,Str "paragraph"]]
+ ,[Para [Str "Then:"]
+  ,BulletList
+   [[Plain [Str "nested"]]
+   ,[Plain [Str "list"]]
+   ,[Plain [Str "items"]]]]]
+,Header 1 ("slide-1",[],[]) [Str "Slide"]
+,Para [Str "Paragraph."]
+,OrderedList (1,Decimal,Period)
+ [[Para [Str "Top-level"]
+  ,Para [Str "Continuation"]
+  ,OrderedList (1,Decimal,Period)
+   [[Para [Str "Sub-list"]
+    ,Para [Str "With",Space,Str "Continuation"]]
+   ,[Para [Str "(still",Space,Str "sub-list)"]]]]
+ ,[Para [Str "(back",Space,Str "to",Space,Str "top-level)"]]]
+,Para [Str "Paragraph."]]
