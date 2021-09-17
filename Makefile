@@ -22,11 +22,12 @@ REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 
 quick:
-	stack install --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --ghc-options='$(GHCOPTS)' --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
+	stack install --ghc-options='$(GHCOPTS)' --system-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
 
 quick-cabal:
 	cabal v2-build -j8 --ghc-options '$(GHCOPTS)' --disable-optimization --enable-tests
 	cabal v2-test --test-option=--hide-successes --test-option=--ansi-tricks=false $(TESTARGS)
+	cabal v2-install --disable-optimization
 
 full-cabal:
 	cabal v2-configure . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files +trypandoc' --enable-tests --enable-benchmarks
