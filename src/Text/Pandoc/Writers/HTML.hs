@@ -367,7 +367,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          defField "slideNumber" False .
                          defField "showSlideNumber" ("all" :: Text) .
                          defField "hashOneBasedIndex" False .
-                         defField "hash" False .
+                         defField "hash" True .
                          defField "respondToHashChanges" True .
                          defField "history" False .
                          defField "keyboard" True .
