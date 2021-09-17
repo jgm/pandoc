@@ -26,7 +26,7 @@ quick:
 
 quick-cabal:
 	cabal v2-build -j8 --ghc-options '$(GHCOPTS)' --disable-optimization --enable-tests
-	cabal v2-test --hide-successes --ansi-tricks=false $(TESTARGS)
+	cabal v2-test --test-option=--hide-successes --test-option=--ansi-tricks=false $(TESTARGS)
 
 full-cabal:
 	cabal v2-configure . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files +trypandoc' --enable-tests --enable-benchmarks
