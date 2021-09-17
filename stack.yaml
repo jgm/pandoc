@@ -7,8 +7,6 @@ flags:
 packages:
 - '.'
 extra-deps:
-- commonmark-0.2.1
-- commonmark-pandoc-0.2.1.1
 - skylighting-core-0.11
 - skylighting-0.11
 - doctemplates-0.10
@@ -18,7 +16,7 @@ extra-deps:
   commit: b27201c3ac48ffd2853f77152df19b6e2cf36987
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-18.0
+resolver: lts-18.10
 nix:
   packages: [zlib]
 
