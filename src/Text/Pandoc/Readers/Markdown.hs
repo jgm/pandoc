@@ -1124,7 +1124,13 @@ rawHtmlBlocks = do
   let selfClosing = "/>" `T.isSuffixOf` raw
   -- we don't want '<td>    text' to be a code block:
   skipMany spaceChar
-  indentlevel <- (blankline >> length <$> many (char ' ')) <|> return 0
+  tabStop <- getOption readerTabStop
+  indentlevel <- option 0 $
+                 do blankline
+                    foldr (+) 0 <$>
+                      many ( (1 <$ char ' ')
+                            <|>
+                             (tabStop <$ char '\t') )
   -- try to find closing tag
   -- we set stateInHtmlBlock so that closing tags that can be either block or
   -- inline will not be parsed as inline tags
