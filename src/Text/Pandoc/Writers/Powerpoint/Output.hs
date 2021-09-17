@@ -323,8 +323,10 @@ presentationToArchiveP p@(Presentation docProps slides) = do
   refArchive <- asks envRefArchive
   distArchive <- asks envDistArchive
   presentationElement <- parseXml refArchive distArchive "ppt/presentation.xml"
-  modify (\s -> s {stFooterInfo =
-                   getFooterInfo slideLayouts master presentationElement})
+  modify (\s ->
+    s {stFooterInfo =
+        getFooterInfo (dcDate docProps) slideLayouts master presentationElement
+      })
 
   -- Update the master to make sure it includes any layouts we've just added
   masterRels <- getMasterRels
@@ -448,11 +450,19 @@ data FooterInfo = FooterInfo
   , fiShowOnFirstSlide :: Bool
   } deriving (Show, Eq)
 
-getFooterInfo :: SlideLayouts -> Element -> Element -> Maybe FooterInfo
-getFooterInfo layouts master presentation = do
+getFooterInfo :: Maybe Text -> SlideLayouts -> Element -> Element -> Maybe FooterInfo
+getFooterInfo date layouts master presentation = do
   let ns = elemToNameSpaces master
   hf <- findChild (elemName ns "p" "hf") master
-  let fiDate = getShape "dt" hf . slElement <$> layouts
+  let fiDate = let
+        f layoutDate =
+          case date of
+            Nothing -> layoutDate
+            Just d ->
+              if dateIsAutomatic (elemToNameSpaces layoutDate) layoutDate
+              then layoutDate
+              else replaceDate d layoutDate
+        in fmap f . getShape "dt" hf . slElement <$> layouts
       fiFooter = getShape "ftr" hf . slElement <$> layouts
       fiSlideNumber = getShape "sldNum" hf . slElement <$> layouts
       fiShowOnFirstSlide =
@@ -474,6 +484,29 @@ getFooterInfo layouts master presentation = do
                 pure (placeholderType == t)
           listToMaybe (filterChildren containsPlaceholder spTree)
         else Nothing
+
+      dateIsAutomatic :: NameSpaces -> Element -> Bool
+      dateIsAutomatic ns shape = isJust $ do
+        txBody <- findChild (elemName ns "p" "txBody") shape
+        p <- findChild (elemName ns "a" "p") txBody
+        findChild (elemName ns "a" "fld") p
+
+      replaceDate :: Text -> Element -> Element
+      replaceDate newDate e =
+        e { elContent =
+            case (elName e) of
+              QName "t" _ (Just "a") ->
+                [ Text (CData { cdVerbatim = CDataText
+                              , cdData = newDate
+                              , cdLine = Nothing
+                              })
+                ]
+              _ -> ifElem (replaceDate newDate) <$> elContent e
+           }
+
+      ifElem :: (Element -> Element) -> (Content -> Content)
+      ifElem f (Elem e) = Elem (f e)
+      ifElem _ c = c
 
       getBooleanAttribute t e =
         (`elem` ["1", "true"]) <$>

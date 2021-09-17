@@ -55,7 +55,6 @@ import Text.Pandoc.Slides (getSlideLevel)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging
 import Text.Pandoc.Walk
-import Data.Time (UTCTime)
 import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
 import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
@@ -193,7 +192,7 @@ data DocProps = DocProps { dcTitle :: Maybe T.Text
                          , dcKeywords :: Maybe [T.Text]
                          , dcDescription :: Maybe T.Text
                          , cpCategory :: Maybe T.Text
-                         , dcCreated :: Maybe UTCTime
+                         , dcDate :: Maybe T.Text
                          , customProperties :: Maybe [(T.Text, T.Text)]
                          } deriving (Show, Eq)
 
@@ -1149,7 +1148,11 @@ metaToDocProps meta =
             , dcKeywords = keywords
             , dcDescription = description
             , cpCategory = Shared.stringify <$> lookupMeta "category" meta
-            , dcCreated = Nothing
+            , dcDate =
+              let t = Shared.stringify (docDate meta)
+              in if T.null t
+                 then Nothing
+                 else Just t
             , customProperties = customProperties'
             }
 
