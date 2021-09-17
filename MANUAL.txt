@@ -2816,7 +2816,7 @@ on the output format, and include the following:
 
 `toc-title`
 :   title of table of contents (works only with EPUB,
-    HTML, opendocument, odt, docx, pptx, beamer, LaTeX)
+    HTML, revealjs, opendocument, odt, docx, pptx, beamer, LaTeX)
 
 [pandoc-templates]: https://github.com/jgm/pandoc-templates
 
