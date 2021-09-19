@@ -74,6 +74,7 @@ data Extension =
     | Ext_angle_brackets_escapable  -- ^ Make < and > escapable
     | Ext_ascii_identifiers   -- ^ ascii-only identifiers for headers;
                               -- presupposes Ext_auto_identifiers
+    | Ext_attributes          -- ^ Generic attribute syntax
     | Ext_auto_identifiers    -- ^ Automatic identifiers for headers
     | Ext_autolink_bare_uris  -- ^ Make all absolute URIs into links
     | Ext_backtick_code_blocks    -- ^ GitHub style ``` code blocks
@@ -105,6 +106,7 @@ data Extension =
                               -- header identifiers; presupposes
                               -- Ext_auto_identifiers
     | Ext_grid_tables         -- ^ Grid tables (pandoc, reST)
+    | Ext_gutenberg           -- ^ Use Project Gutenberg conventions for plain
     | Ext_hard_line_breaks    -- ^ All newlines become hard line breaks
     | Ext_header_attributes   -- ^ Explicit header attributes {#id .class k=v}
     | Ext_ignore_line_breaks  -- ^ Newlines in paragraphs are ignored
@@ -142,6 +144,7 @@ data Extension =
     | Ext_shortcut_reference_links -- ^ Shortcut reference links
     | Ext_simple_tables       -- ^ Pandoc-style simple tables
     | Ext_smart               -- ^ "Smart" quotes, apostrophes, ellipses, dashes
+    | Ext_sourcepos           -- ^ Include source position attributes
     | Ext_space_in_atx_header -- ^ Require space between # and header text
     | Ext_spaced_reference_links -- ^ Allow space between two parts of ref link
     | Ext_startnum            -- ^ Make start number of ordered list significant
@@ -157,9 +160,6 @@ data Extension =
     | Ext_xrefs_name          -- ^ Use xrefs with names
     | Ext_xrefs_number        -- ^ Use xrefs with numbers
     | Ext_yaml_metadata_block -- ^ YAML metadata block
-    | Ext_gutenberg           -- ^ Use Project Gutenberg conventions for plain
-    | Ext_attributes          -- ^ Generic attribute syntax
-    | Ext_sourcepos           -- ^ Include source position attributes
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
 
 -- | Extensions to be used with pandoc-flavored markdown.
