@@ -307,7 +307,7 @@ inlineToMarkdown opts (Underline lst) = do
   case variant of
     PlainText -> return contents
     _     | isEnabled Ext_bracketed_spans opts ->
-            return $ "[" <> contents <> "]" <> "{.ul}"
+            return $ "[" <> contents <> "]" <> "{.underline}"
           | isEnabled Ext_native_spans opts ->
             return $ tagWithAttrs "span" ("", ["underline"], [])
               <> contents
