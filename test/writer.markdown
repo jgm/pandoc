@@ -9,7 +9,7 @@ title: Pandoc Test Suite
 This is a set of tests for pandoc. Most of them are adapted from John Gruber's
 markdown test suite.
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Headers
 
@@ -33,7 +33,7 @@ with no blank line
 
 with no blank line
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Paragraphs
 
@@ -48,7 +48,7 @@ Here's one with a bullet. \* criminey.
 There should be a hard line break\
 here.
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Block Quotes
 
@@ -77,7 +77,7 @@ This should not be a block quote: 2 \> 1.
 
 And a following paragraph.
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Code Blocks
 
@@ -97,7 +97,7 @@ And:
 
     These should not be escaped:  \$ \\ \> \[ \{
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Lists
 
@@ -254,7 +254,7 @@ M.A. 2007
 
 B. Williams
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Definition Lists
 
@@ -507,7 +507,7 @@ Hr's:
 <hr class="foo" id="bar">
 ```
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Inline Markup
 
@@ -533,10 +533,10 @@ Superscripts: a^bc^d a^*hello*^ a^hello there^.
 
 Subscripts: H~2~O, H~23~O, H~many of them~O.
 
-These should not be superscripts or subscripts, because of the unescaped
-spaces: a\^b c\^d, a\~b c\~d.
+These should not be superscripts or subscripts, because of the unescaped spaces:
+a\^b c\^d, a\~b c\~d.
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Smart quotes, ellipses, dashes
 
@@ -557,7 +557,7 @@ Dashes between numbers: 5--7, 255--66, 1987--1999.
 
 Ellipses...and...and....
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # LaTeX
 
@@ -589,7 +589,7 @@ Cat    & 1      \\ \hline
 \end{tabular}
 ```
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Special Characters
 
@@ -643,7 +643,7 @@ Plus: +
 
 Minus: -
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Links
 
@@ -693,8 +693,7 @@ Foo [biz](/url/ "Title with "quote" inside").
 
 Here's a [link with an ampersand in the URL](http://example.com/?foo=1&bar=2).
 
-Here's a link with an amersand in the link text:
-[AT&T](http://att.com/ "AT&T").
+Here's a link with an amersand in the link text: [AT&T](http://att.com/ "AT&T").
 
 Here's an [inline link](/script?foo=1&bar=2).
 
@@ -716,7 +715,7 @@ Auto-links should not occur here: `<http://example.com/>`
 
     or here: <http://example.com/>
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Images
 
@@ -726,13 +725,13 @@ From "Voyage dans la Lune" by Georges Melies (1902):
 
 Here is a movie ![movie](movie.jpg) icon.
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Footnotes
 
 Here is a footnote reference,[^1] and another.[^2] This should *not* be a
-footnote reference, because it contains a space.\[\^my note\] Here is an
-inline note.[^3]
+footnote reference, because it contains a space.\[\^my note\] Here is an inline
+note.[^3]
 
 > Notes can go in quotes.[^4]
 
@@ -740,13 +739,13 @@ inline note.[^3]
 
 This paragraph should not be part of the note, as it is not indented.
 
-[^1]: Here is the footnote. It can go anywhere after the footnote reference.
-    It need not be placed at the end of the document.
+[^1]: Here is the footnote. It can go anywhere after the footnote reference. It
+    need not be placed at the end of the document.
 
 [^2]: Here's the long note. This one contains multiple blocks.
 
-    Subsequent blocks are indented to show that they belong to the footnote
-    (as with list items).
+    Subsequent blocks are indented to show that they belong to the footnote (as
+    with list items).
 
           { <code> }
 

@@ -711,8 +711,8 @@ a\textsuperscript{hello~there}.
 Subscripts: H\textsubscript{2}O, H\textsubscript{23}O,
 H\textsubscript{many~of~them}O.
 
-These should not be superscripts or subscripts, because of the unescaped
-spaces: a\^{}b c\^{}d, a\textasciitilde b c\textasciitilde d.
+These should not be superscripts or subscripts, because of the unescaped spaces:
+a\^{}b c\^{}d, a\textasciitilde b c\textasciitilde d.
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -905,8 +905,7 @@ Foo \href{/url/}{biz}.
 Here's a \href{http://example.com/?foo=1\&bar=2}{link with an ampersand in the
 URL}.
 
-Here's a link with an amersand in the link text:
-\href{http://att.com/}{AT\&T}.
+Here's a link with an amersand in the link text: \href{http://att.com/}{AT\&T}.
 
 Here's an \href{/script?foo=1\&bar=2}{inline link}.
 
@@ -961,9 +960,9 @@ Here is a movie \includegraphics{movie.jpg} icon.
 \hypertarget{footnotes}{%
 \section{Footnotes}\label{footnotes}}
 
-Here is a footnote reference,\footnote{Here is the footnote. It can go
-  anywhere after the footnote reference. It need not be placed at the end of
-  the document.} and another.\footnote{Here's the long note. This one contains
+Here is a footnote reference,\footnote{Here is the footnote. It can go anywhere
+  after the footnote reference. It need not be placed at the end of the
+  document.} and another.\footnote{Here's the long note. This one contains
   multiple blocks.
 
   Subsequent blocks are indented to show that they belong to the footnote (as
@@ -977,8 +976,8 @@ Here is a footnote reference,\footnote{Here is the footnote. It can go
   indent the first line of each block.} This should \emph{not} be a footnote
 reference, because it contains a space.{[}\^{}my note{]} Here is an inline
 note.\footnote{This is \emph{easier} to type. Inline notes may contain
-  \href{http://google.com}{links} and \texttt{{]}} verbatim characters, as
-  well as {[}bracketed text{]}.}
+  \href{http://google.com}{links} and \texttt{{]}} verbatim characters, as well
+  as {[}bracketed text{]}.}
 
 \begin{quote}
 Notes can go in quotes.\footnote{In quote.}

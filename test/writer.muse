@@ -483,8 +483,8 @@ Superscripts: a<sup>bc</sup>d a<sup>*hello*</sup> a<sup>hello there</sup>.
 
 Subscripts: H<sub>2</sub>O, H<sub>23</sub>O, H<sub>many of them</sub>O.
 
-These should not be superscripts or subscripts, because of the unescaped
-spaces: a^b c^d, a~b c~d.
+These should not be superscripts or subscripts, because of the unescaped spaces:
+a^b c^d, a~b c~d.
 
 ----
 
@@ -643,8 +643,7 @@ Foo [[/url/][biz]].
 
 ** With ampersands
 
-Here’s a [[http://example.com/?foo=1&bar=2][link with an ampersand in the
-URL]].
+Here’s a [[http://example.com/?foo=1&bar=2][link with an ampersand in the URL]].
 
 Here’s a link with an amersand in the link text: [[http://att.com/][AT&T]].
 
@@ -686,9 +685,8 @@ Here is a movie [[movie.jpg][movie]] icon.
 
 * Footnotes
 
-Here is a footnote reference,[1] and another.[2] This should *not* be a
-footnote reference, because it contains a space.[^my note] Here is an inline
-note.[3]
+Here is a footnote reference,[1] and another.[2] This should *not* be a footnote
+reference, because it contains a space.[^my note] Here is an inline note.[3]
 
 <quote>
 Notes can go in quotes.[4]
@@ -703,8 +701,8 @@ This paragraph should not be part of the note, as it is not indented.
 
 [2] Here’s the long note. This one contains multiple blocks.
 
-    Subsequent blocks are indented to show that they belong to the footnote
-    (as with list items).
+    Subsequent blocks are indented to show that they belong to the footnote (as
+    with list items).
 
     <example>
       { <code> }

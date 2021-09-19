@@ -653,8 +653,8 @@ Superscripts: a\*{bc\*}d a\*{\f[I]hello\f[R]\*} a\*{hello\ there\*}.
 .PP
 Subscripts: H\*<2\*>O, H\*<23\*>O, H\*<many\ of\ them\*>O.
 .PP
-These should not be superscripts or subscripts, because of the unescaped
-spaces: a\[ha]b c\[ha]d, a\[ti]b c\[ti]d.
+These should not be superscripts or subscripts, because of the unescaped spaces:
+a\[ha]b c\[ha]d, a\[ti]b c\[ti]d.
 .HLINE
 .SH 1
 Smart quotes, ellipses, dashes
@@ -973,8 +973,8 @@ and another.\**
 Here\[cq]s the long note.
 This one contains multiple blocks.
 .PP
-Subsequent blocks are indented to show that they belong to the footnote (as
-with list items).
+Subsequent blocks are indented to show that they belong to the footnote (as with
+list items).
 .IP
 .nf
 \f[C]
@@ -982,8 +982,8 @@ with list items).
 \f[]
 .fi
 .LP
-If you want, you can indent every line, but you can also be lazy and just
-indent the first line of each block.
+If you want, you can indent every line, but you can also be lazy and just indent
+the first line of each block.
 .FE
 This should \f[I]not\f[R] be a footnote reference, because it contains a
 space.[\[ha]my note] Here is an inline note.\**

@@ -4,21 +4,42 @@
 % pandoc -f latex -t native
 Hello \textcolor{red}{World}
 ^D
-[Para [Str "Hello",Space,Span ("",[],[("style","color: red")]) [Str "World"]]]
+[ Para
+  [ Str "Hello"
+  , Space
+  , Span
+    ( "", [], [ ( "style", "color: red" ) ] )
+    [ Str "World" ]
+  ]
+]
 ```
 
 ```
 % pandoc -f latex -t native
 \textcolor{red}{Hello} World
 ^D
-[Para [Span ("",[],[("style","color: red")]) [Str "Hello"],Space,Str "World"]]
+[ Para
+  [ Span
+    ( "", [], [ ( "style", "color: red" ) ] )
+    [ Str "Hello" ]
+  , Space
+  , Str "World"
+  ]
+]
 ```
 
 ```
 % pandoc -f latex -t native
 Hello \textcolor{blue}{\textbf{World}}
 ^D
-[Para [Str "Hello",Space,Span ("",[],[("style","color: blue")]) [Strong [Str "World"]]]]
+[ Para
+  [ Str "Hello"
+  , Space
+  , Span
+    ( "", [], [ ( "style", "color: blue" ) ] )
+    [ Strong [ Str "World" ] ]
+  ]
+]
 ```
 
 
@@ -26,7 +47,15 @@ Hello \textcolor{blue}{\textbf{World}}
 % pandoc -f latex -t native
 Hello \textcolor{blue}{\textbf{World}}.
 ^D
-[Para [Str "Hello",Space,Span ("",[],[("style","color: blue")]) [Strong [Str "World"]],Str "."]]
+[ Para
+  [ Str "Hello"
+  , Space
+  , Span
+    ( "", [], [ ( "style", "color: blue" ) ] )
+    [ Strong [ Str "World" ] ]
+  , Str "."
+  ]
+]
 ```
 
 ```
@@ -38,10 +67,16 @@ Hello \textcolor{blue}{\textbf{World}}.
 \end{itemize}
 }
 ^D
-[Div ("",[],[("style","color: orange")])
- [BulletList
-  [[Para [Str "Item",Space,Str "1"]]
-  ,[Para [Str "Item",Space,Str "2"]]]]]
+[ Div
+  ( "", [], [ ( "style", "color: orange" ) ] )
+  [ BulletList
+    [
+      [ Para [ Str "Item", Space, Str "1" ] ]
+    ,
+      [ Para [ Str "Item", Space, Str "2" ] ]
+    ]
+  ]
+]
 ```
 
 ```
@@ -53,11 +88,18 @@ Hello \textcolor{blue}{\textbf{World}}.
 \end{itemize}
 } some more text
 ^D
-[Div ("",[],[("style","color: blue")])
- [BulletList
-  [[Para [Str "Item",Space,Str "1"]]
-  ,[Para [Str "Item",Space,Str "2"]]]]
-,Para [Str "some",Space,Str "more",Space,Str "text"]]
+[ Div
+  ( "", [], [ ( "style", "color: blue" ) ] )
+  [ BulletList
+    [
+      [ Para [ Str "Item", Space, Str "1" ] ]
+    ,
+      [ Para [ Str "Item", Space, Str "2" ] ]
+    ]
+  ]
+, Para
+  [ Str "some", Space, Str "more", Space, Str "text" ]
+]
 ```
 
 # `\colorbox{}{}`
@@ -67,28 +109,57 @@ Hello \textcolor{blue}{\textbf{World}}.
 % pandoc -f latex -t native
 Hello \colorbox{red}{World}
 ^D
-[Para [Str "Hello",Space,Span ("",[],[("style","background-color: red")]) [Str "World"]]]
+[ Para
+  [ Str "Hello"
+  , Space
+  , Span
+    ( "", [], [ ( "style", "background-color: red" ) ] )
+    [ Str "World" ]
+  ]
+]
 ```
 
 ```
 % pandoc -f latex -t native
 \colorbox{red}{Hello} World
 ^D
-[Para [Span ("",[],[("style","background-color: red")]) [Str "Hello"],Space,Str "World"]]
+[ Para
+  [ Span
+    ( "", [], [ ( "style", "background-color: red" ) ] )
+    [ Str "Hello" ]
+  , Space
+  , Str "World"
+  ]
+]
 ```
 
 ```
 % pandoc -f latex -t native
 Hello \colorbox{blue}{\textbf{World}}
 ^D
-[Para [Str "Hello",Space,Span ("",[],[("style","background-color: blue")]) [Strong [Str "World"]]]]
+[ Para
+  [ Str "Hello"
+  , Space
+  , Span
+    ( "", [], [ ( "style", "background-color: blue" ) ] )
+    [ Strong [ Str "World" ] ]
+  ]
+]
 ```
 
 ```
 % pandoc -f latex -t native
 Hello \colorbox{blue}{\textbf{World}}.
 ^D
-[Para [Str "Hello",Space,Span ("",[],[("style","background-color: blue")]) [Strong [Str "World"]],Str "."]]
+[ Para
+  [ Str "Hello"
+  , Space
+  , Span
+    ( "", [], [ ( "style", "background-color: blue" ) ] )
+    [ Strong [ Str "World" ] ]
+  , Str "."
+  ]
+]
 ```
 
 ```
@@ -102,10 +173,16 @@ Hello \colorbox{blue}{\textbf{World}}.
 \end{minipage}
 }
 ^D
-[Div ("",[],[("style","background-color: orange")])
- [BulletList
-  [[Para [Str "Item",Space,Str "1"]]
-  ,[Para [Str "Item",Space,Str "2"]]]]]
+[ Div
+  ( "", [], [ ( "style", "background-color: orange" ) ] )
+  [ BulletList
+    [
+      [ Para [ Str "Item", Space, Str "1" ] ]
+    ,
+      [ Para [ Str "Item", Space, Str "2" ] ]
+    ]
+  ]
+]
 ```
 
 ```
@@ -119,9 +196,16 @@ Hello \colorbox{blue}{\textbf{World}}.
 \end{minipage}
 } some more text
 ^D
-[Div ("",[],[("style","background-color: blue")])
- [BulletList
-  [[Para [Str "Item",Space,Str "1"]]
-  ,[Para [Str "Item",Space,Str "2"]]]]
-,Para [Str "some",Space,Str "more",Space,Str "text"]]
+[ Div
+  ( "", [], [ ( "style", "background-color: blue" ) ] )
+  [ BulletList
+    [
+      [ Para [ Str "Item", Space, Str "1" ] ]
+    ,
+      [ Para [ Str "Item", Space, Str "2" ] ]
+    ]
+  ]
+, Para
+  [ Str "some", Space, Str "more", Space, Str "text" ]
+]
 ```

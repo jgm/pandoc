@@ -1,7 +1,7 @@
 This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
 markdown test suite.
 
-______________________________________________________________________________
+________________________________________________________________________________
 
 = Headers
 #headers#
@@ -34,7 +34,7 @@ with no blank line
 
 with no blank line
 
-______________________________________________________________________________
+________________________________________________________________________________
 
 = Paragraphs
 #paragraphs#
@@ -50,7 +50,7 @@ Here’s one with a bullet. * criminey.
 There should be a hard line break
 here.
 
-______________________________________________________________________________
+________________________________________________________________________________
 
 = Block Quotes
 #block-quotes#
@@ -80,7 +80,7 @@ This should not be a block quote: 2 > 1.
 
 And a following paragraph.
 
-______________________________________________________________________________
+________________________________________________________________________________
 
 = Code Blocks
 #code-blocks#
@@ -101,7 +101,7 @@ And:
 >
 > These should not be escaped:  \$ \\ \> \[ \{
 
-______________________________________________________________________________
+________________________________________________________________________________
 
 = Lists
 #lists#
@@ -265,7 +265,7 @@ M.A. 2007
 
 B. Williams
 
-______________________________________________________________________________
+________________________________________________________________________________
 
 = Definition Lists
 #definition-lists#
@@ -398,7 +398,7 @@ Code:
 
 Hr’s:
 
-______________________________________________________________________________
+________________________________________________________________________________
 
 = Inline Markup
 #inline-markup#
@@ -425,10 +425,10 @@ Superscripts: abcd a/hello/ ahello there.
 
 Subscripts: H2O, H23O, Hmany of themO.
 
-These should not be superscripts or subscripts, because of the unescaped
-spaces: a^b c^d, a~b c~d.
+These should not be superscripts or subscripts, because of the unescaped spaces:
+a^b c^d, a~b c~d.
 
-______________________________________________________________________________
+________________________________________________________________________________
 
 = Smart quotes, ellipses, dashes
 #smart-quotes-ellipses-dashes#
@@ -450,7 +450,7 @@ Dashes between numbers: 5–7, 255–66, 1987–1999.
 
 Ellipses…and…and….
 
-______________________________________________________________________________
+________________________________________________________________________________
 
 = LaTeX
 #latex#
@@ -475,7 +475,7 @@ These shouldn’t be math:
 
 Here’s a LaTeX table:
 
-______________________________________________________________________________
+________________________________________________________________________________
 
 = Special Characters
 #special-characters#
@@ -530,7 +530,7 @@ Plus: +
 
 Minus: -
 
-______________________________________________________________________________
+________________________________________________________________________________
 
 = Links
 #links#
@@ -607,7 +607,7 @@ Auto-links should not occur here: @\<http:\/\/example.com\/>@
 
 > or here: <http://example.com/>
 
-______________________________________________________________________________
+________________________________________________________________________________
 
 = Images
 #images#
@@ -618,14 +618,14 @@ From “Voyage dans la Lune” by Georges Melies (1902):
 
 Here is a movie <<movie.jpg movie>> icon.
 
-______________________________________________________________________________
+________________________________________________________________________________
 
 = Footnotes
 #footnotes#
 
 Here is a footnote reference,<#notes [1]> and another.<#notes [2]> This should
-/not/ be a footnote reference, because it contains a space.[^my note] Here is
-an inline note.<#notes [3]>
+/not/ be a footnote reference, because it contains a space.[^my note] Here is an
+inline note.<#notes [3]>
 
 Notes can go in quotes.<#notes [4]>
 
@@ -640,17 +640,16 @@ This paragraph should not be part of the note, as it is not indented.
 
 2.  Here’s the long note. This one contains multiple blocks.
 
-    Subsequent blocks are indented to show that they belong to the footnote
-    (as with list items).
+    Subsequent blocks are indented to show that they belong to the footnote (as
+    with list items).
 
     >   { <code> }
 
     If you want, you can indent every line, but you can also be lazy and just
     indent the first line of each block.
 
-3.  This is /easier/ to type. Inline notes may contain
-    <http://google.com links> and @]@ verbatim characters, as well as
-    [bracketed text].
+3.  This is /easier/ to type. Inline notes may contain <http://google.com links>
+    and @]@ verbatim characters, as well as [bracketed text].
 
 4.  In quote.
 

@@ -431,8 +431,8 @@ Superscripts: a^bc^d a^_hello_^ a^hello there^.
 
 Subscripts: H~2~O, H~23~O, H~many of them~O.
 
-These should not be superscripts or subscripts, because of the unescaped
-spaces: a^b c^d, a~b c~d.
+These should not be superscripts or subscripts, because of the unescaped spaces:
+a^b c^d, a~b c~d.
 
 '''''
 
@@ -630,10 +630,10 @@ Here is a movie image:movie.jpg[movie] icon.
 
 == Footnotes
 
-Here is a footnote reference,footnote:[Here is the footnote. It can go
-anywhere after the footnote reference. It need not be placed at the end of the
-document.] and another.[multiblock footnote omitted] This should _not_ be a
-footnote reference, because it contains a space.[^my note] Here is an inline
+Here is a footnote reference,footnote:[Here is the footnote. It can go anywhere
+after the footnote reference. It need not be placed at the end of the document.]
+and another.[multiblock footnote omitted] This should _not_ be a footnote
+reference, because it contains a space.[^my note] Here is an inline
 note.footnote:[This is _easier_ to type. Inline notes may contain
 http://google.com[links] and `]` verbatim characters, as well as [bracketed
 text].]

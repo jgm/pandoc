@@ -732,8 +732,8 @@ Superscripts: a@sup{bc}d a@sup{@emph{hello}} a@sup{hello@ there}.
 
 Subscripts: H@sub{2}O, H@sub{23}O, H@sub{many@ of@ them}O.
 
-These should not be superscripts or subscripts, because of the unescaped
-spaces: a^b c^d, a~b c~d.
+These should not be superscripts or subscripts, because of the unescaped spaces:
+a^b c^d, a~b c~d.
 
 @iftex
 @bigskip@hrule@bigskip
@@ -1014,24 +1014,22 @@ Here is a movie @image{movie,,,movie,jpg} icon.
 @node Footnotes
 @chapter Footnotes
 @anchor{#footnotes}
-Here is a footnote reference,@footnote{Here is the footnote. It can go
-anywhere after the footnote reference. It need not be placed at the end of the
-document.} and another.@footnote{Here's the long note. This one contains
-multiple blocks.
+Here is a footnote reference,@footnote{Here is the footnote. It can go anywhere
+after the footnote reference. It need not be placed at the end of the document.}
+and another.@footnote{Here's the long note. This one contains multiple blocks.
 
-Subsequent blocks are indented to show that they belong to the footnote (as
-with list items).
+Subsequent blocks are indented to show that they belong to the footnote (as with
+list items).
 
 @verbatim
   { <code> }
 @end verbatim
 
-If you want, you can indent every line, but you can also be lazy and just
-indent the first line of each block.} This should @emph{not} be a footnote
-reference, because it contains a space.[^my note] Here is an inline
-note.@footnote{This is @emph{easier} to type. Inline notes may contain
-@uref{http://google.com,links} and @code{]} verbatim characters, as well as
-[bracketed text].}
+If you want, you can indent every line, but you can also be lazy and just indent
+the first line of each block.} This should @emph{not} be a footnote reference,
+because it contains a space.[^my note] Here is an inline note.@footnote{This is
+@emph{easier} to type. Inline notes may contain @uref{http://google.com,links}
+and @code{]} verbatim characters, as well as [bracketed text].}
 
 @quotation
 Notes can go in quotes.@footnote{In quote.}

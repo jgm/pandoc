@@ -68,9 +68,9 @@ Gruber’s markdown test suite.</p>
 <sec id="paragraphs">
   <title>Paragraphs</title>
   <p>Here’s a regular paragraph.</p>
-  <p>In Markdown 1.0.0 and earlier. Version 8. This line turns into a list
-  item. Because a hard-wrapped line in the middle of a paragraph looked like a
-  list item.</p>
+  <p>In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
+  Because a hard-wrapped line in the middle of a paragraph looked like a list
+  item.</p>
   <p>Here’s one with a bullet. * criminey.</p>
   <p>There should be a hard line break
   here.</p>
@@ -634,8 +634,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <p><strike>This is <italic>strikeout</italic>.</strike></p>
   <p>Superscripts: a<sup>bc</sup>d a<sup><italic>hello</italic></sup>
   a<sup>hello there</sup>.</p>
-  <p>Subscripts: H<sub>2</sub>O, H<sub>23</sub>O,
-  H<sub>many of them</sub>O.</p>
+  <p>Subscripts: H<sub>2</sub>O, H<sub>23</sub>O, H<sub>many of them</sub>O.</p>
   <p>These should not be superscripts or subscripts, because of the unescaped
   spaces: a^b c^d, a~b c~d.</p>
 </sec>
@@ -689,8 +688,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mfrac><mml:mi>d</mml:mi><mml:mrow><mml:mi>d</mml:mi><mml:mi>x</mml:mi></mml:mrow></mml:mfrac><mml:mi>f</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mi>x</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mo>=</mml:mo><mml:munder><mml:mo>lim</mml:mo><mml:mrow><mml:mi>h</mml:mi><mml:mo>→</mml:mo><mml:mn>0</mml:mn></mml:mrow></mml:munder><mml:mfrac><mml:mrow><mml:mi>f</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mi>x</mml:mi><mml:mo>+</mml:mo><mml:mi>h</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mo>−</mml:mo><mml:mi>f</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mi>x</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow><mml:mi>h</mml:mi></mml:mfrac></mml:mrow></mml:math></alternatives></disp-formula></p>
     </list-item>
     <list-item>
-      <p>Here’s one that has a line break in it:
-      <inline-formula><alternatives>
+      <p>Here’s one that has a line break in it: <inline-formula><alternatives>
       <tex-math><![CDATA[\alpha + \omega \times x^2]]></tex-math>
       <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>α</mml:mi><mml:mo>+</mml:mo><mml:mi>ω</mml:mi><mml:mo>×</mml:mo><mml:msup><mml:mi>x</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives></inline-formula>.</p>
     </list-item>
@@ -780,8 +778,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   </sec>
   <sec id="reference">
     <title>Reference</title>
-    <p>Foo
-    <ext-link ext-link-type="uri" xlink:href="/url/">bar</ext-link>.</p>
+    <p>Foo <ext-link ext-link-type="uri" xlink:href="/url/">bar</ext-link>.</p>
     <p>With <ext-link ext-link-type="uri" xlink:href="/url/">embedded
     [brackets]</ext-link>.</p>
     <p><ext-link ext-link-type="uri" xlink:href="/url/">b</ext-link> by itself
@@ -853,9 +850,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <title>Footnotes</title>
   <p>Here is a footnote reference,<xref ref-type="fn" rid="fn1">1</xref> and
   another.<xref ref-type="fn" rid="fn2">2</xref> This should
-  <italic>not</italic> be a footnote reference, because it contains a
-  space.[^my note] Here is an inline
-  note.<xref ref-type="fn" rid="fn3">3</xref></p>
+  <italic>not</italic> be a footnote reference, because it contains a space.[^my
+  note] Here is an inline note.<xref ref-type="fn" rid="fn3">3</xref></p>
   <disp-quote>
     <p>Notes can go in quotes.<xref ref-type="fn" rid="fn4">4</xref></p>
   </disp-quote>
@@ -881,12 +877,12 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
     <p specific-use="wrapper">
       <preformat>  { &lt;code&gt; }</preformat>
     </p>
-    <p>If you want, you can indent every line, but you can also be lazy and
-    just indent the first line of each block.</p>
+    <p>If you want, you can indent every line, but you can also be lazy and just
+    indent the first line of each block.</p>
   </fn>
   <fn id="fn3">
-    <label>3</label><p>This is <italic>easier</italic> to type. Inline notes
-    may contain
+    <label>3</label><p>This is <italic>easier</italic> to type. Inline notes may
+    contain
     <ext-link ext-link-type="uri" xlink:href="http://google.com">links</ext-link>
     and <monospace>]</monospace> verbatim characters, as well as [bracketed
     text].</p>

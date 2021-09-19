@@ -201,8 +201,8 @@ syntax.</text:p>
 </table:table>
 <text:p text:style-name="First_20_paragraph">Multiline table with
 caption:</text:p>
-<text:p text:style-name="TableCaption">Here’s the caption. It may span
-multiple lines.</text:p>
+<text:p text:style-name="TableCaption">Here’s the caption. It may span multiple
+lines.</text:p>
 <table:table table:name="Table4" table:style-name="Table4">
   <table:table-column table:style-name="Table4.A" />
   <table:table-column table:style-name="Table4.B" />

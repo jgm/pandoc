@@ -146,7 +146,7 @@ tests pandocPath =
       "dokuwiki_external_images.native" "dokuwiki_external_images.dokuwiki"
     ]
   , testGroup "opml"
-    [ test' "basic" ["-r", "native", "-w", "opml", "--columns=78", "-s"]
+    [ test' "basic" ["-r", "native", "-w", "opml", "--columns=80", "-s"]
        "testsuite.native" "writer.opml"
     , test' "reader" ["-r", "opml", "-w", "native", "-s"]
       "opml-reader.opml" "opml-reader.native"
@@ -262,7 +262,7 @@ writerTests pandocPath format
        "tables" opts             "tables.native"    ("tables" <.> format)
     ]
   where
-    opts = ["-r", "native", "-w", format, "--columns=78",
+    opts = ["-r", "native", "-w", format, "--columns=80",
             "--variable", "pandoc-version="]
 
 extendedWriterTests :: FilePath -> String -> [TestTree]
@@ -276,7 +276,7 @@ extendedWriterTests pandocPath format
                ("tables" </> name <.> format)
     in map testForTable ["planets", "nordics", "students"]
   where
-    opts = ["-r", "native", "-w", format, "--columns=78",
+    opts = ["-r", "native", "-w", format, "--columns=80",
             "--variable", "pandoc-version="]
 
 s5WriterTest :: FilePath -> String -> [String] -> String -> TestTree
