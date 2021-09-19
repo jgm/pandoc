@@ -941,12 +941,19 @@ getRawCommand name txt = do
              void $ count 4 braced
            "def" ->
              void $ manyTill anyTok braced
+           "vadjust" ->
+             void (manyTill anyTok braced) <|>
+                void (satisfyTok isPreTok) -- see #7531
            _ | isFontSizeCommand name -> return ()
              | otherwise -> do
                skipopts
                option "" (try dimenarg)
                void $ many braced
   return $ txt <> untokenize rawargs
+
+isPreTok :: Tok -> Bool
+isPreTok (Tok _ Word "pre") = True
+isPreTok _ = False
 
 isDigitTok :: Tok -> Bool
 isDigitTok (Tok _ Word t) = T.all isDigit t
