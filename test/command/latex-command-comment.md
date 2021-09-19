@@ -3,5 +3,5 @@
 \emph%
 {hi}
 ^D
-[Para [Emph [Str "hi"]]]
+[ Para [ Emph [ Str "hi" ] ] ]
 ```

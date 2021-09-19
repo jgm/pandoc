@@ -36,31 +36,31 @@ Multiline table with caption:
 
 .. table:: Here’s the caption. It may span multiple lines.
 
-   +----------+---------+-----------+--------------------------+
-   | Centered | Left    | Right     | Default aligned          |
-   | Header   | Aligned | Aligned   |                          |
-   +==========+=========+===========+==========================+
-   | First    | row     | 12.0      | Example of a row that    |
-   |          |         |           | spans multiple lines.    |
-   +----------+---------+-----------+--------------------------+
-   | Second   | row     | 5.0       | Here’s another one. Note |
-   |          |         |           | the blank line between   |
-   |          |         |           | rows.                    |
-   +----------+---------+-----------+--------------------------+
+   +-----------+----------+------------+---------------------------+
+   | Centered  | Left     | Right      | Default aligned           |
+   | Header    | Aligned  | Aligned    |                           |
+   +===========+==========+============+===========================+
+   | First     | row      | 12.0       | Example of a row that     |
+   |           |          |            | spans multiple lines.     |
+   +-----------+----------+------------+---------------------------+
+   | Second    | row      | 5.0        | Here’s another one. Note  |
+   |           |          |            | the blank line between    |
+   |           |          |            | rows.                     |
+   +-----------+----------+------------+---------------------------+
 
 Multiline table without caption:
 
-+----------+---------+-----------+--------------------------+
-| Centered | Left    | Right     | Default aligned          |
-| Header   | Aligned | Aligned   |                          |
-+==========+=========+===========+==========================+
-| First    | row     | 12.0      | Example of a row that    |
-|          |         |           | spans multiple lines.    |
-+----------+---------+-----------+--------------------------+
-| Second   | row     | 5.0       | Here’s another one. Note |
-|          |         |           | the blank line between   |
-|          |         |           | rows.                    |
-+----------+---------+-----------+--------------------------+
++-----------+----------+------------+---------------------------+
+| Centered  | Left     | Right      | Default aligned           |
+| Header    | Aligned  | Aligned    |                           |
++===========+==========+============+===========================+
+| First     | row      | 12.0       | Example of a row that     |
+|           |          |            | spans multiple lines.     |
++-----------+----------+------------+---------------------------+
+| Second    | row      | 5.0        | Here’s another one. Note  |
+|           |          |            | the blank line between    |
+|           |          |            | rows.                     |
++-----------+----------+------------+---------------------------+
 
 Table without column headers:
 
@@ -72,11 +72,11 @@ Table without column headers:
 
 Multiline table without column headers:
 
-+----------+---------+-----------+--------------------------+
-| First    | row     | 12.0      | Example of a row that    |
-|          |         |           | spans multiple lines.    |
-+----------+---------+-----------+--------------------------+
-| Second   | row     | 5.0       | Here’s another one. Note |
-|          |         |           | the blank line between   |
-|          |         |           | rows.                    |
-+----------+---------+-----------+--------------------------+
++-----------+----------+------------+---------------------------+
+| First     | row      | 12.0       | Example of a row that     |
+|           |          |            | spans multiple lines.     |
++-----------+----------+------------+---------------------------+
+| Second    | row      | 5.0        | Here’s another one. Note  |
+|           |          |            | the blank line between    |
+|           |          |            | rows.                     |
++-----------+----------+------------+---------------------------+

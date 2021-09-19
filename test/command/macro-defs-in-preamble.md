@@ -9,8 +9,13 @@
 $\vara \varb$
 \end{document}
 ^D
-Pandoc (Meta {unMeta = fromList []})
-[RawBlock (Format "latex") "\\newcommand{\\vara}{\\alpha}"
-,RawBlock (Format "latex") "\\newcommand{\\varb}{b}"
-,Para [Math InlineMath "\\vara \\varb"]]
+Pandoc
+  ( Meta { unMeta = fromList [] } )
+  [ RawBlock
+    ( Format "latex" ) "\\newcommand{\\vara}{\\alpha}"
+  , RawBlock
+    ( Format "latex" ) "\\newcommand{\\varb}{b}"
+  , Para
+    [ Math InlineMath "\\vara \\varb" ]
+  ]
 ```

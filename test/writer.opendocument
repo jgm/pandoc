@@ -1207,9 +1207,9 @@ link</text:span></text:a><text:bookmark-end text:name="level-2-with-an-embedded-
 <text:h text:style-name="Heading_20_1" text:outline-level="1"><text:bookmark-start text:name="paragraphs" />Paragraphs<text:bookmark-end text:name="paragraphs" /></text:h>
 <text:p text:style-name="First_20_paragraph">Here’s a regular
 paragraph.</text:p>
-<text:p text:style-name="Text_20_body">In Markdown 1.0.0 and earlier. Version
-8. This line turns into a list item. Because a hard-wrapped line in the middle
-of a paragraph looked like a list item.</text:p>
+<text:p text:style-name="Text_20_body">In Markdown 1.0.0 and earlier. Version 8.
+This line turns into a list item. Because a hard-wrapped line in the middle of a
+paragraph looked like a list item.</text:p>
 <text:p text:style-name="Text_20_body">Here’s one with a bullet. *
 criminey.</text:p>
 <text:p text:style-name="Text_20_body">There should be a hard line
@@ -1218,8 +1218,7 @@ break<text:line-break />here.</text:p>
 <text:h text:style-name="Heading_20_1" text:outline-level="1"><text:bookmark-start text:name="block-quotes" />Block
 Quotes<text:bookmark-end text:name="block-quotes" /></text:h>
 <text:p text:style-name="First_20_paragraph">E-mail style:</text:p>
-<text:p text:style-name="P1">This is a block quote. It is pretty
-short.</text:p>
+<text:p text:style-name="P1">This is a block quote. It is pretty short.</text:p>
 <text:p text:style-name="P2">Code in a block quote:</text:p>
 <text:p text:style-name="P3">sub status {</text:p>
 <text:p text:style-name="P4"><text:s text:c="4" />print &quot;working&quot;;</text:p>
@@ -1236,8 +1235,8 @@ short.</text:p>
 <text:p text:style-name="P2">Nested block quotes:</text:p>
 <text:p text:style-name="P7">nested</text:p>
 <text:p text:style-name="P8">nested</text:p>
-<text:p text:style-name="First_20_paragraph">This should not be a block quote:
-2 &gt; 1.</text:p>
+<text:p text:style-name="First_20_paragraph">This should not be a block quote: 2
+&gt; 1.</text:p>
 <text:p text:style-name="Text_20_body">And a following paragraph.</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
 <text:h text:style-name="Heading_20_1" text:outline-level="1"><text:bookmark-start text:name="code-blocks" />Code
@@ -1464,12 +1463,12 @@ and spaces<text:bookmark-end text:name="tabs-and-spaces" /></text:h>
     <text:p text:style-name="P37">this is a list item indented with
     spaces</text:p><text:list text:style-name="L21">
       <text:list-item>
-        <text:p text:style-name="P38">this is an example list item indented
-        with tabs</text:p>
+        <text:p text:style-name="P38">this is an example list item indented with
+        tabs</text:p>
       </text:list-item>
       <text:list-item>
-        <text:p text:style-name="P38">this is an example list item indented
-        with spaces</text:p>
+        <text:p text:style-name="P38">this is an example list item indented with
+        spaces</text:p>
       </text:list-item>
     </text:list>
   </text:list-item>
@@ -1485,8 +1484,8 @@ list markers<text:bookmark-end text:name="fancy-list-markers" /></text:h>
     <text:p text:style-name="P39">with a continuation</text:p>
     <text:list>
       <text:list-item>
-        <text:p text:style-name="P39">sublist with roman numerals, starting
-        with 4</text:p>
+        <text:p text:style-name="P39">sublist with roman numerals, starting with
+        4</text:p>
       </text:list-item>
       <text:list-item>
         <text:p text:style-name="P39">more items</text:p>
@@ -1537,8 +1536,7 @@ list markers<text:bookmark-end text:name="fancy-list-markers" /></text:h>
     </text:list>
   </text:list-item>
 </text:list>
-<text:p text:style-name="First_20_paragraph">Should not be a list
-item:</text:p>
+<text:p text:style-name="First_20_paragraph">Should not be a list item:</text:p>
 <text:p text:style-name="Text_20_body">M.A. 2007</text:p>
 <text:p text:style-name="Text_20_body">B. Williams</text:p>
 <text:p text:style-name="Horizontal_20_Line" />
@@ -1573,8 +1571,8 @@ fruit</text:p>
 italics:</text:p>
 <text:p text:style-name="Definition_20_Term"><text:span text:style-name="T1">apple</text:span></text:p>
 <text:p text:style-name="Definition_20_Definition">red
-fruit</text:p><text:p text:style-name="Definition_20_Definition">contains
-seeds, crisp, pleasant to taste</text:p>
+fruit</text:p><text:p text:style-name="Definition_20_Definition">contains seeds,
+crisp, pleasant to taste</text:p>
 <text:p text:style-name="Definition_20_Term"><text:span text:style-name="T1">orange</text:span></text:p>
 <text:p text:style-name="Definition_20_Definition">orange
 fruit</text:p><text:p text:style-name="P42">{ orange code block }</text:p><text:p text:style-name="P43">orange
@@ -1613,15 +1611,12 @@ fruit</text:p><text:list text:style-name="L25">
 </text:list>
 <text:h text:style-name="Heading_20_1" text:outline-level="1"><text:bookmark-start text:name="html-blocks" />HTML
 Blocks<text:bookmark-end text:name="html-blocks" /></text:h>
-<text:p text:style-name="First_20_paragraph">Simple block on one
-line:</text:p>
+<text:p text:style-name="First_20_paragraph">Simple block on one line:</text:p>
 <text:p text:style-name="Text_20_body">foo</text:p>
-<text:p text:style-name="Text_20_body">And nested without
-indentation:</text:p>
+<text:p text:style-name="Text_20_body">And nested without indentation:</text:p>
 <text:p text:style-name="Text_20_body">foo</text:p>
 <text:p text:style-name="Text_20_body">bar</text:p>
-<text:p text:style-name="Text_20_body">Interpreted markdown in a
-table:</text:p>
+<text:p text:style-name="Text_20_body">Interpreted markdown in a table:</text:p>
 <text:p text:style-name="Text_20_body">This is
 <text:span text:style-name="T1">emphasized</text:span></text:p>
 <text:p text:style-name="Text_20_body">And this is
@@ -1689,13 +1684,13 @@ subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.</text:p>
 <text:h text:style-name="Heading_20_1" text:outline-level="1"><text:bookmark-start text:name="smart-quotes-ellipses-dashes" />Smart
 quotes, ellipses,
 dashes<text:bookmark-end text:name="smart-quotes-ellipses-dashes" /></text:h>
-<text:p text:style-name="First_20_paragraph">“Hello,” said the spider.
-“‘Shelob’ is my name.”</text:p>
+<text:p text:style-name="First_20_paragraph">“Hello,” said the spider. “‘Shelob’
+is my name.”</text:p>
 <text:p text:style-name="Text_20_body">‘A’, ‘B’, and ‘C’ are letters.</text:p>
 <text:p text:style-name="Text_20_body">‘Oak,’ ‘elm,’ and ‘beech’ are names of
 trees. So is ‘pine.’</text:p>
-<text:p text:style-name="Text_20_body">‘He said, “I want to go.”’ Were you
-alive in the 70’s?</text:p>
+<text:p text:style-name="Text_20_body">‘He said, “I want to go.”’ Were you alive
+in the 70’s?</text:p>
 <text:p text:style-name="Text_20_body">Here is some quoted
 ‘<text:span text:style-name="Source_Text">code</text:span>’ and a
 “<text:a xlink:type="simple" xlink:href="http://example.com/?foo=1&amp;bar=2" office:name=""><text:span text:style-name="Definition">quoted
@@ -1743,8 +1738,8 @@ five.</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P52">$22,000 is a
-    <text:span text:style-name="T1">lot</text:span> of money. So is $34,000.
-    (It worked if “lot” is emphasized.)</text:p>
+    <text:span text:style-name="T1">lot</text:span> of money. So is $34,000. (It
+    worked if “lot” is emphasized.)</text:p>
   </text:list-item>
   <text:list-item>
     <text:p text:style-name="P52">Shoes ($20) and socks ($5).</text:p>
@@ -1778,8 +1773,8 @@ Characters<text:bookmark-end text:name="special-characters" /></text:h>
     <text:p text:style-name="P53">copyright: ©</text:p>
   </text:list-item>
 </text:list>
-<text:p text:style-name="First_20_paragraph">AT&amp;T has an ampersand in
-their name.</text:p>
+<text:p text:style-name="First_20_paragraph">AT&amp;T has an ampersand in their
+name.</text:p>
 <text:p text:style-name="Text_20_body">AT&amp;T is another way to write
 it.</text:p>
 <text:p text:style-name="Text_20_body">This &amp; that.</text:p>
@@ -1888,25 +1883,23 @@ icon.</text:p>
 <text:h text:style-name="Heading_20_1" text:outline-level="1"><text:bookmark-start text:name="footnotes" />Footnotes<text:bookmark-end text:name="footnotes" /></text:h>
 <text:p text:style-name="First_20_paragraph">Here is a footnote
 reference,<text:note text:id="ftn0" text:note-class="footnote"><text:note-citation>1</text:note-citation><text:note-body><text:p text:style-name="Footnote">Here
-is the footnote. It can go anywhere after the footnote reference. It need not
-be placed at the end of the document.</text:p></text:note-body></text:note>
-and
+is the footnote. It can go anywhere after the footnote reference. It need not be
+placed at the end of the document.</text:p></text:note-body></text:note> and
 another.<text:note text:id="ftn1" text:note-class="footnote"><text:note-citation>2</text:note-citation><text:note-body><text:p text:style-name="Footnote">Here’s
 the long note. This one contains multiple
 blocks.</text:p><text:p text:style-name="Footnote">Subsequent blocks are
 indented to show that they belong to the footnote (as with list
 items).</text:p><text:p text:style-name="P58"><text:s text:c="2" />{ &lt;code&gt; }</text:p><text:p text:style-name="Footnote">If
 you want, you can indent every line, but you can also be lazy and just indent
-the first line of each block.</text:p></text:note-body></text:note> This
-should <text:span text:style-name="T1">not</text:span> be a footnote
-reference, because it contains a space.[^my note] Here is an inline
+the first line of each block.</text:p></text:note-body></text:note> This should
+<text:span text:style-name="T1">not</text:span> be a footnote reference, because
+it contains a space.[^my note] Here is an inline
 note.<text:note text:id="ftn2" text:note-class="footnote"><text:note-citation>3</text:note-citation><text:note-body><text:p text:style-name="Footnote">This
-is <text:span text:style-name="T1">easier</text:span> to type. Inline notes
-may contain
+is <text:span text:style-name="T1">easier</text:span> to type. Inline notes may
+contain
 <text:a xlink:type="simple" xlink:href="http://google.com" office:name=""><text:span text:style-name="Definition">links</text:span></text:a>
-and <text:span text:style-name="Source_Text">]</text:span> verbatim
-characters, as well as [bracketed
-text].</text:p></text:note-body></text:note></text:p>
+and <text:span text:style-name="Source_Text">]</text:span> verbatim characters,
+as well as [bracketed text].</text:p></text:note-body></text:note></text:p>
 <text:p text:style-name="P59">Notes can go in
 quotes.<text:note text:id="ftn3" text:note-class="footnote"><text:note-citation>4</text:note-citation><text:note-body><text:p text:style-name="Footnote">In
 quote.</text:p></text:note-body></text:note></text:p>

@@ -643,8 +643,8 @@ Superscripts: a\high{bc}d a\high{{\em hello}} a\high{hello~there}.
 
 Subscripts: H\low{2}O, H\low{23}O, H\low{many~of~them}O.
 
-These should not be superscripts or subscripts, because of the unescaped
-spaces: a^b c^d, a\lettertilde{}b c\lettertilde{}d.
+These should not be superscripts or subscripts, because of the unescaped spaces:
+a^b c^d, a\lettertilde{}b c\lettertilde{}d.
 
 \thinrule
 
@@ -878,10 +878,10 @@ Here is a movie {\externalfigure[movie.jpg]} icon.
 
 \section[title={Footnotes},reference={footnotes}]
 
-Here is a footnote reference,\footnote{Here is the footnote. It can go
-  anywhere after the footnote reference. It need not be placed at the end of
-  the document.} and another.\startbuffer Here's the long note. This one
-  contains multiple blocks.
+Here is a footnote reference,\footnote{Here is the footnote. It can go anywhere
+  after the footnote reference. It need not be placed at the end of the
+  document.} and another.\startbuffer Here's the long note. This one contains
+  multiple blocks.
 
   Subsequent blocks are indented to show that they belong to the footnote (as
   with list items).

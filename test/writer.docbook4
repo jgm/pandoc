@@ -66,8 +66,8 @@
     </para>
     <para>
       In Markdown 1.0.0 and earlier. Version 8. This line turns into a list
-      item. Because a hard-wrapped line in the middle of a paragraph looked
-      like a list item.
+      item. Because a hard-wrapped line in the middle of a paragraph looked like
+      a list item.
     </para>
     <para>
       Here’s one with a bullet. * criminey.
@@ -1014,19 +1014,19 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <sect1 id="smart-quotes-ellipses-dashes">
     <title>Smart quotes, ellipses, dashes</title>
     <para>
-      <quote>Hello,</quote> said the spider. <quote><quote>Shelob</quote> is
-      my name.</quote>
+      <quote>Hello,</quote> said the spider. <quote><quote>Shelob</quote> is my
+      name.</quote>
     </para>
     <para>
       <quote>A</quote>, <quote>B</quote>, and <quote>C</quote> are letters.
     </para>
     <para>
-      <quote>Oak,</quote> <quote>elm,</quote> and <quote>beech</quote> are
-      names of trees. So is <quote>pine.</quote>
+      <quote>Oak,</quote> <quote>elm,</quote> and <quote>beech</quote> are names
+      of trees. So is <quote>pine.</quote>
     </para>
     <para>
-      <quote>He said, <quote>I want to go.</quote></quote> Were you alive in
-      the 70’s?
+      <quote>He said, <quote>I want to go.</quote></quote> Were you alive in the
+      70’s?
     </para>
     <para>
       Here is some quoted <quote><literal>code</literal></quote> and a
@@ -1366,8 +1366,8 @@ or here: &lt;http://example.com/&gt;
     <para>
       Here is a footnote reference,<footnote>
         <para>
-          Here is the footnote. It can go anywhere after the footnote
-          reference. It need not be placed at the end of the document.
+          Here is the footnote. It can go anywhere after the footnote reference.
+          It need not be placed at the end of the document.
         </para>
       </footnote> and another.<footnote>
         <para>
@@ -1384,14 +1384,12 @@ or here: &lt;http://example.com/&gt;
           If you want, you can indent every line, but you can also be lazy and
           just indent the first line of each block.
         </para>
-      </footnote> This should <emphasis>not</emphasis> be a footnote
-      reference, because it contains a space.[^my note] Here is an inline
-      note.<footnote>
+      </footnote> This should <emphasis>not</emphasis> be a footnote reference,
+      because it contains a space.[^my note] Here is an inline note.<footnote>
         <para>
-          This is <emphasis>easier</emphasis> to type. Inline notes may
-          contain <ulink url="http://google.com">links</ulink> and
-          <literal>]</literal> verbatim characters, as well as [bracketed
-          text].
+          This is <emphasis>easier</emphasis> to type. Inline notes may contain
+          <ulink url="http://google.com">links</ulink> and <literal>]</literal>
+          verbatim characters, as well as [bracketed text].
         </para>
       </footnote>
     </para>
