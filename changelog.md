@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.14.2 (provisional)
+## pandoc 2.14.2 (2021-08-21)
 
   * Allow `--slide-level=0` (#7476). When the slide level is set
     to 0, headings won't be used at all in splitting the document
