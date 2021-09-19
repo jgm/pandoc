@@ -583,7 +583,9 @@ library
                  xml-conduit           >= 1.9.1.1  && < 1.10,
                  unicode-collation     >= 0.1.1    && < 0.2,
                  zip-archive           >= 0.2.3.4  && < 0.5,
-                 zlib                  >= 0.5      && < 0.7
+                 zlib                  >= 0.5      && < 0.7,
+                 pretty                >= 1.1      && < 1.2,
+                 pretty-show           >= 1.10     && < 1.11
   if os(windows) && arch(i386)
      build-depends: basement >= 0.0.10,
                     foundation >= 0.0.23

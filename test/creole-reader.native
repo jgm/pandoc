@@ -1,132 +1,970 @@
-Pandoc (Meta {unMeta = fromList []})
-[Header 1 ("",[],[]) [Str "Top-level heading (1)"]
-,Header 2 ("",[],[]) [Str "This a test for creole 0.1 (2)"]
-,Header 3 ("",[],[]) [Str "This is a Subheading (3)"]
-,Header 4 ("",[],[]) [Str "Subsub (4)"]
-,Header 5 ("",[],[]) [Str "Subsubsub (5)"]
-,Para [Str "The",Space,Str "ending",Space,Str "equal",Space,Str "signs",Space,Str "should",Space,Str "not",Space,Str "be",Space,Str "displayed:"]
-,Header 1 ("",[],[]) [Str "Top-level heading (1)"]
-,Header 2 ("",[],[]) [Str "This a test for creole 0.1 (2)"]
-,Header 3 ("",[],[]) [Str "This is a Subheading (3)"]
-,Header 4 ("",[],[]) [Str "Subsub (4)"]
-,Header 5 ("",[],[]) [Str "Subsubsub (5)"]
-,Para [Str "You",Space,Str "can",Space,Str "make",Space,Str "things",Space,Strong [Str "bold"],Space,Str "or",Space,Emph [Str "italic"],Space,Str "or",Space,Strong [Emph [Str "both"]],Space,Str "or",Space,Emph [Strong [Str "both"]],Str "."]
-,Para [Str "Character",Space,Str "formatting",Space,Str "extends",Space,Str "across",Space,Str "line",Space,Str "breaks:",Space,Strong [Str "bold,",Space,Str "this",Space,Str "is",Space,Str "still",Space,Str "bold.",Space,Str "This",Space,Str "line",Space,Str "deliberately",Space,Str "does",Space,Str "not",Space,Str "end",Space,Str "in",Space,Str "star-star."]]
-,Para [Str "Not",Space,Str "bold.",Space,Str "Character",Space,Str "formatting",Space,Str "does",Space,Str "not",Space,Str "cross",Space,Str "paragraph",Space,Str "boundaries."]
-,Para [Str "You",Space,Str "can",Space,Str "use",Space,Link ("",[],[]) [Str "internal links"] ("internal links",""),Space,Str "or",Space,Link ("",[],[]) [Str "external links"] ("http://www.wikicreole.org",""),Str ",",Space,Str "give",Space,Str "the",Space,Str "link",Space,Str "a",Space,Link ("",[],[]) [Str "different"] ("internal links",""),Space,Str "name."]
-,Para [Str "Here's",Space,Str "another",Space,Str "sentence:",Space,Str "This",Space,Str "wisdom",Space,Str "is",Space,Str "taken",Space,Str "from",Space,Link ("",[],[]) [Str "Ward Cunningham's"] ("Ward Cunningham's",""),Space,Link ("",[],[]) [Str "Presentation at the Wikisym 06"] ("http://www.c2.com/doc/wikisym/WikiSym2006.pdf",""),Str "."]
-,Para [Str "Here's",Space,Str "a",Space,Str "external",Space,Str "link",Space,Str "without",Space,Str "a",Space,Str "description:",Space,Link ("",[],[]) [Str "http://www.wikicreole.org"] ("http://www.wikicreole.org","")]
-,Para [Str "Be",Space,Str "careful",Space,Str "that",Space,Str "italic",Space,Str "links",Space,Str "are",Space,Str "rendered",Space,Str "properly:",Space,Emph [Link ("",[],[]) [Str "My Book Title"] ("http://my.book.example/","")]]
-,Para [Str "Free",Space,Str "links",Space,Str "without",Space,Str "braces",Space,Str "should",Space,Str "be",Space,Str "rendered",Space,Str "as",Space,Str "well,",Space,Str "like",Space,Link ("",[],[]) [Str "http://www.wikicreole.org/"] ("http://www.wikicreole.org/",""),Space,Str "and",Space,Link ("",[],[]) [Str "http://www.wikicreole.org/users/~example"] ("http://www.wikicreole.org/users/~example",""),Str "."]
-,Para [Str "Creole1.0",Space,Str "specifies",Space,Str "that",Space,Link ("",[],[]) [Str "http://bar"] ("http://bar",""),Space,Str "and",Space,Link ("",[],[]) [Str "ftp://bar"] ("ftp://bar",""),Space,Str "should",Space,Str "not",Space,Str "render",Space,Str "italic,",Space,Str "something",Space,Str "like",Space,Str "foo:",Emph [Str "bar",Space,Str "should",Space,Str "render",Space,Str "as",Space,Str "italic."]]
-,Para [Str "You",Space,Str "can",Space,Str "use",Space,Str "this",Space,Str "to",Space,Str "draw",Space,Str "a",Space,Str "line",Space,Str "to",Space,Str "separate",Space,Str "the",Space,Str "page:"]
-,HorizontalRule
-,Para [Str "You",Space,Str "can",Space,Str "use",Space,Str "lists,",Space,Str "start",Space,Str "it",Space,Str "at",Space,Str "the",Space,Str "first",Space,Str "column",Space,Str "for",Space,Str "now,",Space,Str "please..."]
-,Para [Str "unnumbered",Space,Str "lists",Space,Str "are",Space,Str "like"]
-,BulletList
- [[Plain [Str "item",Space,Str "a"]]
- ,[Plain [Str "item",Space,Str "b"]]
- ,[Plain [Strong [Str "bold",Space,Str "item",Space,Str "c"]]]]
-,Para [Str "blank",Space,Str "space",Space,Str "is",Space,Str "also",Space,Str "permitted",Space,Str "before",Space,Str "lists",Space,Str "like:"]
-,BulletList
- [[Plain [Str "item",Space,Str "a"]]
- ,[Plain [Str "item",Space,Str "b"]]
- ,[Plain [Str "item",Space,Str "c"]
-  ,BulletList
-   [[Plain [Str "item",Space,Str "c.a"]]]]]
-,Para [Str "or",Space,Str "you",Space,Str "can",Space,Str "number",Space,Str "them"]
-,OrderedList (1,DefaultStyle,DefaultDelim)
- [[Plain [Link ("",[],[]) [Str "item 1"] ("item 1","")]]
- ,[Plain [Str "item",Space,Str "2"]]
- ,[Plain [Emph [Space,Str "italic",Space,Str "item",Space,Str "3",Space]]
-  ,OrderedList (1,DefaultStyle,DefaultDelim)
-   [[Plain [Str "item",Space,Str "3.1"]]
-   ,[Plain [Str "item",Space,Str "3.2"]]]]]
-,Para [Str "up",Space,Str "to",Space,Str "five",Space,Str "levels"]
-,BulletList
- [[Plain [Str "1"]
-  ,BulletList
-   [[Plain [Str "2"]
-    ,BulletList
-     [[Plain [Str "3"]
-      ,BulletList
-       [[Plain [Str "4"]
-        ,BulletList
-         [[Plain [Str "5"]]]]]]]]]]]
-,BulletList
- [[Plain [Str "You",Space,Str "can",Space,Str "have",Space,Str "multiline",Space,Str "list",Space,Str "items"]]
- ,[Plain [Str "this",Space,Str "is",Space,Str "a",Space,Str "second",Space,Str "multiline",Space,Str "list",Space,Str "item"]]]
-,Para [Str "You",Space,Str "can",Space,Str "use",Space,Str "nowiki",Space,Str "syntax",Space,Str "if",Space,Str "you",Space,Str "would",Space,Str "like",Space,Str "do",Space,Str "stuff",Space,Str "like",Space,Str "this:"]
-,CodeBlock ("",[],[]) "Guitar Chord C:\n\n||---|---|---|\n||-0-|---|---|\n||---|---|---|\n||---|-0-|---|\n||---|---|-0-|\n||---|---|---|"
-,Para [Str "You",Space,Str "can",Space,Str "also",Space,Str "use",Space,Str "it",Space,Str "inline",Space,Str "nowiki",Space,Code ("",[],[]) " in a sentence ",Space,Str "like",Space,Str "this."]
-,Header 1 ("",[],[]) [Str "Escapes"]
-,Para [Str "Normal",Space,Str "Link:",Space,Link ("",[],[]) [Str "http://wikicreole.org/"] ("http://wikicreole.org/",""),Space,Str "-",Space,Str "now",Space,Str "same",Space,Str "link,",Space,Str "but",Space,Str "escaped:",Space,Str "http://wikicreole.org/"]
-,Para [Str "Normal",Space,Str "asterisks:",Space,Str "**not",Space,Str "bold**"]
-,Para [Str "a",Space,Str "tilde",Space,Str "alone:",Space,Str "~"]
-,Para [Str "a",Space,Str "tilde",Space,Str "escapes",Space,Str "itself:",Space,Str "~xxx"]
-,Header 3 ("",[],[]) [Str "Creole 0.2"]
-,Para [Str "This",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "flower",Space,Str "with",Space,Str "the",Space,Str "ALT",Space,Str "text",Space,Str "\"this",Space,Str "is",Space,Str "a",Space,Str "flower\"",Space,Str "if",Space,Str "your",Space,Str "wiki",Space,Str "supports",Space,Str "ALT",Space,Str "text",Space,Str "on",Space,Str "images:"]
-,Para [Image ("",[],[]) [Str "here is a red flower"] ("Red-Flower.jpg","")]
-,Header 3 ("",[],[]) [Str "Creole 0.4"]
-,Para [Str "Tables",Space,Str "are",Space,Str "done",Space,Str "like",Space,Str "this:"]
-,Table ("",[],[]) (Caption Nothing
- [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "header",Space,Str "col1"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "header",Space,Str "col2"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "col1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "col2"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "you"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "can"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "also"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "align",LineBreak,Str "it."]]]])]
- (TableFoot ("",[],[])
- [])
-,Para [Str "You",Space,Str "can",Space,Str "format",Space,Str "an",Space,Str "address",Space,Str "by",Space,Str "simply",Space,Str "forcing",Space,Str "linebreaks:"]
-,Para [Str "My",Space,Str "contact",Space,Str "dates:",LineBreak,Str "Pone:",Space,Str "xyz",LineBreak,Str "Fax:",Space,Str "+45",LineBreak,Str "Mobile:",Space,Str "abc"]
-,Header 3 ("",[],[]) [Str "Creole 0.5"]
-,Table ("",[],[]) (Caption Nothing
- [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "Header",Space,Str "title"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "Another",Space,Str "header",Space,Str "title"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Code ("",[],[]) " //not italic text// "]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Code ("",[],[]) " **not bold text** "]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Emph [Str "italic",Space,Str "text"]]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Strong [Space,Str "bold",Space,Str "text",Space]]]]])]
- (TableFoot ("",[],[])
- [])
-,Header 3 ("",[],[]) [Str "Creole 1.0"]
-,Para [Str "If",Space,Str "interwiki",Space,Str "links",Space,Str "are",Space,Str "setup",Space,Str "in",Space,Str "your",Space,Str "wiki,",Space,Str "this",Space,Str "links",Space,Str "to",Space,Str "the",Space,Str "WikiCreole",Space,Str "page",Space,Str "about",Space,Str "Creole",Space,Str "1.0",Space,Str "test",Space,Str "cases:",Space,Link ("",[],[]) [Str "WikiCreole:Creole1.0TestCases"] ("WikiCreole:Creole1.0TestCases",""),Str "."]
-,HorizontalRule
-,Para [Str "The",Space,Str "above",Space,Str "test",Space,Str "document",Space,Str "was",Space,Str "found",Space,Str "on",Space,Link ("",[],[]) [Str "http://www.wikicreole.org/wiki/Creole1.0TestCases"] ("http://www.wikicreole.org/wiki/Creole1.0TestCases",""),Space,Str "and",Space,Str "downloaded",Space,Str "from",Space,Link ("",[],[]) [Str "http://www.wikicreole.org/attach/Creole1.0TestCases/creole1.0test.txt"] ("http://www.wikicreole.org/attach/Creole1.0TestCases/creole1.0test.txt",""),Str "."]
-,Para [Str "The",Space,Str "Creole",Space,Str "Wiki",Space,Str "is",Space,Str "licensed:",Space,Str "Copyright",Space,Str "(C)",Space,Str "by",Space,Str "the",Space,Str "contributors.",Space,Str "Some",Space,Str "rights",Space,Str "reserved,",Space,Str "license",Space,Link ("",[],[]) [Str "https://creativecommons.org/licenses/by-sa/1.0/"] ("BY-SA",""),Str "."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 1 ( "" , [] , [] ) [ Str "Top-level heading (1)" ]
+  , Header
+      2 ( "" , [] , [] ) [ Str "This a test for creole 0.1 (2)" ]
+  , Header
+      3 ( "" , [] , [] ) [ Str "This is a Subheading (3)" ]
+  , Header 4 ( "" , [] , [] ) [ Str "Subsub (4)" ]
+  , Header 5 ( "" , [] , [] ) [ Str "Subsubsub (5)" ]
+  , Para
+      [ Str "The"
+      , Space
+      , Str "ending"
+      , Space
+      , Str "equal"
+      , Space
+      , Str "signs"
+      , Space
+      , Str "should"
+      , Space
+      , Str "not"
+      , Space
+      , Str "be"
+      , Space
+      , Str "displayed:"
+      ]
+  , Header 1 ( "" , [] , [] ) [ Str "Top-level heading (1)" ]
+  , Header
+      2 ( "" , [] , [] ) [ Str "This a test for creole 0.1 (2)" ]
+  , Header
+      3 ( "" , [] , [] ) [ Str "This is a Subheading (3)" ]
+  , Header 4 ( "" , [] , [] ) [ Str "Subsub (4)" ]
+  , Header 5 ( "" , [] , [] ) [ Str "Subsubsub (5)" ]
+  , Para
+      [ Str "You"
+      , Space
+      , Str "can"
+      , Space
+      , Str "make"
+      , Space
+      , Str "things"
+      , Space
+      , Strong [ Str "bold" ]
+      , Space
+      , Str "or"
+      , Space
+      , Emph [ Str "italic" ]
+      , Space
+      , Str "or"
+      , Space
+      , Strong [ Emph [ Str "both" ] ]
+      , Space
+      , Str "or"
+      , Space
+      , Emph [ Strong [ Str "both" ] ]
+      , Str "."
+      ]
+  , Para
+      [ Str "Character"
+      , Space
+      , Str "formatting"
+      , Space
+      , Str "extends"
+      , Space
+      , Str "across"
+      , Space
+      , Str "line"
+      , Space
+      , Str "breaks:"
+      , Space
+      , Strong
+          [ Str "bold,"
+          , Space
+          , Str "this"
+          , Space
+          , Str "is"
+          , Space
+          , Str "still"
+          , Space
+          , Str "bold."
+          , Space
+          , Str "This"
+          , Space
+          , Str "line"
+          , Space
+          , Str "deliberately"
+          , Space
+          , Str "does"
+          , Space
+          , Str "not"
+          , Space
+          , Str "end"
+          , Space
+          , Str "in"
+          , Space
+          , Str "star-star."
+          ]
+      ]
+  , Para
+      [ Str "Not"
+      , Space
+      , Str "bold."
+      , Space
+      , Str "Character"
+      , Space
+      , Str "formatting"
+      , Space
+      , Str "does"
+      , Space
+      , Str "not"
+      , Space
+      , Str "cross"
+      , Space
+      , Str "paragraph"
+      , Space
+      , Str "boundaries."
+      ]
+  , Para
+      [ Str "You"
+      , Space
+      , Str "can"
+      , Space
+      , Str "use"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "internal links" ]
+          ( "internal links" , "" )
+      , Space
+      , Str "or"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "external links" ]
+          ( "http://www.wikicreole.org" , "" )
+      , Str ","
+      , Space
+      , Str "give"
+      , Space
+      , Str "the"
+      , Space
+      , Str "link"
+      , Space
+      , Str "a"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "different" ]
+          ( "internal links" , "" )
+      , Space
+      , Str "name."
+      ]
+  , Para
+      [ Str "Here's"
+      , Space
+      , Str "another"
+      , Space
+      , Str "sentence:"
+      , Space
+      , Str "This"
+      , Space
+      , Str "wisdom"
+      , Space
+      , Str "is"
+      , Space
+      , Str "taken"
+      , Space
+      , Str "from"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "Ward Cunningham's" ]
+          ( "Ward Cunningham's" , "" )
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "Presentation at the Wikisym 06" ]
+          ( "http://www.c2.com/doc/wikisym/WikiSym2006.pdf" , "" )
+      , Str "."
+      ]
+  , Para
+      [ Str "Here's"
+      , Space
+      , Str "a"
+      , Space
+      , Str "external"
+      , Space
+      , Str "link"
+      , Space
+      , Str "without"
+      , Space
+      , Str "a"
+      , Space
+      , Str "description:"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "http://www.wikicreole.org" ]
+          ( "http://www.wikicreole.org" , "" )
+      ]
+  , Para
+      [ Str "Be"
+      , Space
+      , Str "careful"
+      , Space
+      , Str "that"
+      , Space
+      , Str "italic"
+      , Space
+      , Str "links"
+      , Space
+      , Str "are"
+      , Space
+      , Str "rendered"
+      , Space
+      , Str "properly:"
+      , Space
+      , Emph
+          [ Link
+              ( "" , [] , [] )
+              [ Str "My Book Title" ]
+              ( "http://my.book.example/" , "" )
+          ]
+      ]
+  , Para
+      [ Str "Free"
+      , Space
+      , Str "links"
+      , Space
+      , Str "without"
+      , Space
+      , Str "braces"
+      , Space
+      , Str "should"
+      , Space
+      , Str "be"
+      , Space
+      , Str "rendered"
+      , Space
+      , Str "as"
+      , Space
+      , Str "well,"
+      , Space
+      , Str "like"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "http://www.wikicreole.org/" ]
+          ( "http://www.wikicreole.org/" , "" )
+      , Space
+      , Str "and"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "http://www.wikicreole.org/users/~example" ]
+          ( "http://www.wikicreole.org/users/~example" , "" )
+      , Str "."
+      ]
+  , Para
+      [ Str "Creole1.0"
+      , Space
+      , Str "specifies"
+      , Space
+      , Str "that"
+      , Space
+      , Link
+          ( "" , [] , [] ) [ Str "http://bar" ] ( "http://bar" , "" )
+      , Space
+      , Str "and"
+      , Space
+      , Link
+          ( "" , [] , [] ) [ Str "ftp://bar" ] ( "ftp://bar" , "" )
+      , Space
+      , Str "should"
+      , Space
+      , Str "not"
+      , Space
+      , Str "render"
+      , Space
+      , Str "italic,"
+      , Space
+      , Str "something"
+      , Space
+      , Str "like"
+      , Space
+      , Str "foo:"
+      , Emph
+          [ Str "bar"
+          , Space
+          , Str "should"
+          , Space
+          , Str "render"
+          , Space
+          , Str "as"
+          , Space
+          , Str "italic."
+          ]
+      ]
+  , Para
+      [ Str "You"
+      , Space
+      , Str "can"
+      , Space
+      , Str "use"
+      , Space
+      , Str "this"
+      , Space
+      , Str "to"
+      , Space
+      , Str "draw"
+      , Space
+      , Str "a"
+      , Space
+      , Str "line"
+      , Space
+      , Str "to"
+      , Space
+      , Str "separate"
+      , Space
+      , Str "the"
+      , Space
+      , Str "page:"
+      ]
+  , HorizontalRule
+  , Para
+      [ Str "You"
+      , Space
+      , Str "can"
+      , Space
+      , Str "use"
+      , Space
+      , Str "lists,"
+      , Space
+      , Str "start"
+      , Space
+      , Str "it"
+      , Space
+      , Str "at"
+      , Space
+      , Str "the"
+      , Space
+      , Str "first"
+      , Space
+      , Str "column"
+      , Space
+      , Str "for"
+      , Space
+      , Str "now,"
+      , Space
+      , Str "please..."
+      ]
+  , Para
+      [ Str "unnumbered"
+      , Space
+      , Str "lists"
+      , Space
+      , Str "are"
+      , Space
+      , Str "like"
+      ]
+  , BulletList
+      [ [ Plain [ Str "item" , Space , Str "a" ] ]
+      , [ Plain [ Str "item" , Space , Str "b" ] ]
+      , [ Plain
+            [ Strong
+                [ Str "bold" , Space , Str "item" , Space , Str "c" ]
+            ]
+        ]
+      ]
+  , Para
+      [ Str "blank"
+      , Space
+      , Str "space"
+      , Space
+      , Str "is"
+      , Space
+      , Str "also"
+      , Space
+      , Str "permitted"
+      , Space
+      , Str "before"
+      , Space
+      , Str "lists"
+      , Space
+      , Str "like:"
+      ]
+  , BulletList
+      [ [ Plain [ Str "item" , Space , Str "a" ] ]
+      , [ Plain [ Str "item" , Space , Str "b" ] ]
+      , [ Plain [ Str "item" , Space , Str "c" ]
+        , BulletList
+            [ [ Plain [ Str "item" , Space , Str "c.a" ] ] ]
+        ]
+      ]
+  , Para
+      [ Str "or"
+      , Space
+      , Str "you"
+      , Space
+      , Str "can"
+      , Space
+      , Str "number"
+      , Space
+      , Str "them"
+      ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Plain
+            [ Link ( "" , [] , [] ) [ Str "item 1" ] ( "item 1" , "" ) ]
+        ]
+      , [ Plain [ Str "item" , Space , Str "2" ] ]
+      , [ Plain
+            [ Emph
+                [ Space
+                , Str "italic"
+                , Space
+                , Str "item"
+                , Space
+                , Str "3"
+                , Space
+                ]
+            ]
+        , OrderedList
+            ( 1 , DefaultStyle , DefaultDelim )
+            [ [ Plain [ Str "item" , Space , Str "3.1" ] ]
+            , [ Plain [ Str "item" , Space , Str "3.2" ] ]
+            ]
+        ]
+      ]
+  , Para
+      [ Str "up"
+      , Space
+      , Str "to"
+      , Space
+      , Str "five"
+      , Space
+      , Str "levels"
+      ]
+  , BulletList
+      [ [ Plain [ Str "1" ]
+        , BulletList
+            [ [ Plain [ Str "2" ]
+              , BulletList
+                  [ [ Plain [ Str "3" ]
+                    , BulletList
+                        [ [ Plain [ Str "4" ]
+                          , BulletList [ [ Plain [ Str "5" ] ] ]
+                          ]
+                        ]
+                    ]
+                  ]
+              ]
+            ]
+        ]
+      ]
+  , BulletList
+      [ [ Plain
+            [ Str "You"
+            , Space
+            , Str "can"
+            , Space
+            , Str "have"
+            , Space
+            , Str "multiline"
+            , Space
+            , Str "list"
+            , Space
+            , Str "items"
+            ]
+        ]
+      , [ Plain
+            [ Str "this"
+            , Space
+            , Str "is"
+            , Space
+            , Str "a"
+            , Space
+            , Str "second"
+            , Space
+            , Str "multiline"
+            , Space
+            , Str "list"
+            , Space
+            , Str "item"
+            ]
+        ]
+      ]
+  , Para
+      [ Str "You"
+      , Space
+      , Str "can"
+      , Space
+      , Str "use"
+      , Space
+      , Str "nowiki"
+      , Space
+      , Str "syntax"
+      , Space
+      , Str "if"
+      , Space
+      , Str "you"
+      , Space
+      , Str "would"
+      , Space
+      , Str "like"
+      , Space
+      , Str "do"
+      , Space
+      , Str "stuff"
+      , Space
+      , Str "like"
+      , Space
+      , Str "this:"
+      ]
+  , CodeBlock
+      ( "" , [] , [] )
+      "Guitar Chord C:\n\n||---|---|---|\n||-0-|---|---|\n||---|---|---|\n||---|-0-|---|\n||---|---|-0-|\n||---|---|---|"
+  , Para
+      [ Str "You"
+      , Space
+      , Str "can"
+      , Space
+      , Str "also"
+      , Space
+      , Str "use"
+      , Space
+      , Str "it"
+      , Space
+      , Str "inline"
+      , Space
+      , Str "nowiki"
+      , Space
+      , Code ( "" , [] , [] ) " in a sentence "
+      , Space
+      , Str "like"
+      , Space
+      , Str "this."
+      ]
+  , Header 1 ( "" , [] , [] ) [ Str "Escapes" ]
+  , Para
+      [ Str "Normal"
+      , Space
+      , Str "Link:"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "http://wikicreole.org/" ]
+          ( "http://wikicreole.org/" , "" )
+      , Space
+      , Str "-"
+      , Space
+      , Str "now"
+      , Space
+      , Str "same"
+      , Space
+      , Str "link,"
+      , Space
+      , Str "but"
+      , Space
+      , Str "escaped:"
+      , Space
+      , Str "http://wikicreole.org/"
+      ]
+  , Para
+      [ Str "Normal"
+      , Space
+      , Str "asterisks:"
+      , Space
+      , Str "**not"
+      , Space
+      , Str "bold**"
+      ]
+  , Para
+      [ Str "a"
+      , Space
+      , Str "tilde"
+      , Space
+      , Str "alone:"
+      , Space
+      , Str "~"
+      ]
+  , Para
+      [ Str "a"
+      , Space
+      , Str "tilde"
+      , Space
+      , Str "escapes"
+      , Space
+      , Str "itself:"
+      , Space
+      , Str "~xxx"
+      ]
+  , Header 3 ( "" , [] , [] ) [ Str "Creole 0.2" ]
+  , Para
+      [ Str "This"
+      , Space
+      , Str "should"
+      , Space
+      , Str "be"
+      , Space
+      , Str "a"
+      , Space
+      , Str "flower"
+      , Space
+      , Str "with"
+      , Space
+      , Str "the"
+      , Space
+      , Str "ALT"
+      , Space
+      , Str "text"
+      , Space
+      , Str "\"this"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "flower\""
+      , Space
+      , Str "if"
+      , Space
+      , Str "your"
+      , Space
+      , Str "wiki"
+      , Space
+      , Str "supports"
+      , Space
+      , Str "ALT"
+      , Space
+      , Str "text"
+      , Space
+      , Str "on"
+      , Space
+      , Str "images:"
+      ]
+  , Para
+      [ Image
+          ( "" , [] , [] )
+          [ Str "here is a red flower" ]
+          ( "Red-Flower.jpg" , "" )
+      ]
+  , Header 3 ( "" , [] , [] ) [ Str "Creole 0.4" ]
+  , Para
+      [ Str "Tables"
+      , Space
+      , Str "are"
+      , Space
+      , Str "done"
+      , Space
+      , Str "like"
+      , Space
+      , Str "this:"
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "header" , Space , Str "col1" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "header" , Space , Str "col2" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "col1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "col2" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "you" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "can" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "also" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "align" , LineBreak , Str "it." ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para
+      [ Str "You"
+      , Space
+      , Str "can"
+      , Space
+      , Str "format"
+      , Space
+      , Str "an"
+      , Space
+      , Str "address"
+      , Space
+      , Str "by"
+      , Space
+      , Str "simply"
+      , Space
+      , Str "forcing"
+      , Space
+      , Str "linebreaks:"
+      ]
+  , Para
+      [ Str "My"
+      , Space
+      , Str "contact"
+      , Space
+      , Str "dates:"
+      , LineBreak
+      , Str "Pone:"
+      , Space
+      , Str "xyz"
+      , LineBreak
+      , Str "Fax:"
+      , Space
+      , Str "+45"
+      , LineBreak
+      , Str "Mobile:"
+      , Space
+      , Str "abc"
+      ]
+  , Header 3 ( "" , [] , [] ) [ Str "Creole 0.5" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Header" , Space , Str "title" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain
+                     [ Str "Another"
+                     , Space
+                     , Str "header"
+                     , Space
+                     , Str "title"
+                     ]
+                 ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Code ( "" , [] , [] ) " //not italic text// " ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Code ( "" , [] , [] ) " **not bold text** " ]
+                  ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Emph [ Str "italic" , Space , Str "text" ] ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Strong
+                          [ Space
+                          , Str "bold"
+                          , Space
+                          , Str "text"
+                          , Space
+                          ]
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Header 3 ( "" , [] , [] ) [ Str "Creole 1.0" ]
+  , Para
+      [ Str "If"
+      , Space
+      , Str "interwiki"
+      , Space
+      , Str "links"
+      , Space
+      , Str "are"
+      , Space
+      , Str "setup"
+      , Space
+      , Str "in"
+      , Space
+      , Str "your"
+      , Space
+      , Str "wiki,"
+      , Space
+      , Str "this"
+      , Space
+      , Str "links"
+      , Space
+      , Str "to"
+      , Space
+      , Str "the"
+      , Space
+      , Str "WikiCreole"
+      , Space
+      , Str "page"
+      , Space
+      , Str "about"
+      , Space
+      , Str "Creole"
+      , Space
+      , Str "1.0"
+      , Space
+      , Str "test"
+      , Space
+      , Str "cases:"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "WikiCreole:Creole1.0TestCases" ]
+          ( "WikiCreole:Creole1.0TestCases" , "" )
+      , Str "."
+      ]
+  , HorizontalRule
+  , Para
+      [ Str "The"
+      , Space
+      , Str "above"
+      , Space
+      , Str "test"
+      , Space
+      , Str "document"
+      , Space
+      , Str "was"
+      , Space
+      , Str "found"
+      , Space
+      , Str "on"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "http://www.wikicreole.org/wiki/Creole1.0TestCases" ]
+          ( "http://www.wikicreole.org/wiki/Creole1.0TestCases" , "" )
+      , Space
+      , Str "and"
+      , Space
+      , Str "downloaded"
+      , Space
+      , Str "from"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str
+              "http://www.wikicreole.org/attach/Creole1.0TestCases/creole1.0test.txt"
+          ]
+          ( "http://www.wikicreole.org/attach/Creole1.0TestCases/creole1.0test.txt"
+          , ""
+          )
+      , Str "."
+      ]
+  , Para
+      [ Str "The"
+      , Space
+      , Str "Creole"
+      , Space
+      , Str "Wiki"
+      , Space
+      , Str "is"
+      , Space
+      , Str "licensed:"
+      , Space
+      , Str "Copyright"
+      , Space
+      , Str "(C)"
+      , Space
+      , Str "by"
+      , Space
+      , Str "the"
+      , Space
+      , Str "contributors."
+      , Space
+      , Str "Some"
+      , Space
+      , Str "rights"
+      , Space
+      , Str "reserved,"
+      , Space
+      , Str "license"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "https://creativecommons.org/licenses/by-sa/1.0/" ]
+          ( "BY-SA" , "" )
+      , Str "."
+      ]
+  ]

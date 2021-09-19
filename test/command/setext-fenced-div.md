@@ -4,6 +4,5 @@
 ---
 :::
 ^D
-[Div ("",["cell"],[])
- [HorizontalRule]]
+[ Div ( "" , [ "cell" ] , [] ) [ HorizontalRule ] ]
 ```

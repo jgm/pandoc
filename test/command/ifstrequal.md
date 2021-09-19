@@ -5,5 +5,12 @@
 \h{a}
 \h{b}
 ^D
-[Para [Emph [Str "no"],SoftBreak,Str "\225",SoftBreak,Str "b"]]
+[ Para
+    [ Emph [ Str "no" ]
+    , SoftBreak
+    , Str "\225"
+    , SoftBreak
+    , Str "b"
+    ]
+]
 ```

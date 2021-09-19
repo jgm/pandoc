@@ -1,418 +1,1431 @@
-Pandoc (Meta {unMeta = fromList []})
-[Header 1 ("header",[],[]) [Str "header"]
-,Header 2 ("header_level_two",[],[]) [Str "header",Space,Str "level",Space,Str "two"]
-,Header 3 ("header_level_3",[],[]) [Str "header",Space,Str "level",Space,Str "3"]
-,Header 4 ("header_level_four",[],[]) [Str "header",Space,Emph [Str "level"],Space,Str "four"]
-,Header 5 ("header_level_5",[],[]) [Str "header",Space,Str "level",Space,Str "5"]
-,Header 6 ("header_level_6",[],[]) [Str "header",Space,Str "level",Space,Str "6"]
-,Para [Str "=======",Space,Str "not",Space,Str "a",Space,Str "header",Space,Str "========"]
-,Para [Code ("",[],[]) "==\160not\160a\160header\160=="]
-,Header 2 ("emph_and_strong",[],[]) [Str "emph",Space,Str "and",Space,Str "strong"]
-,Para [Emph [Str "emph"],Space,Strong [Str "strong"]]
-,Para [Strong [Emph [Str "strong",Space,Str "and",Space,Str "emph"]]]
-,Para [Strong [Emph [Str "emph",Space,Str "inside"],Space,Str "strong"]]
-,Para [Strong [Str "strong",Space,Str "with",Space,Emph [Str "emph"]]]
-,Para [Emph [Strong [Str "strong",Space,Str "inside"],Space,Str "emph"]]
-,Header 2 ("horizontal_rule",[],[]) [Str "horizontal",Space,Str "rule"]
-,Para [Str "top"]
-,HorizontalRule
-,Para [Str "bottom"]
-,HorizontalRule
-,Header 2 ("nowiki",[],[]) [Str "nowiki"]
-,Para [Str "''not",Space,Str "emph''"]
-,Header 2 ("strikeout",[],[]) [Str "strikeout"]
-,Para [Strikeout [Str "This",Space,Str "is",Space,Emph [Str "struck",Space,Str "out"]]]
-,Header 2 ("entities",[],[]) [Str "entities"]
-,Para [Str "hi",Space,Str "&",Space,Str "low"]
-,Para [Str "hi",Space,Str "&",Space,Str "low"]
-,Para [Str "G\246del"]
-,Para [Str "\777\2730"]
-,Header 2 ("comments",[],[]) [Str "comments"]
-,Para [Str "inline",Space,Str "comment"]
-,Para [Str "between",Space,Str "blocks"]
-,Header 2 ("linebreaks",[],[]) [Str "linebreaks"]
-,Para [Str "hi",LineBreak,Str "there"]
-,Para [Str "hi",LineBreak,Str "there"]
-,Header 2 ("indents",[],[]) [Str ":",Space,Str "indents"]
-,Para [Str "hi"]
-,DefinitionList
- [([],
-   [[Plain [Str "there"]]])]
-,Para [Str "bud"]
-,Para [Str "hi"]
-,DefinitionList
- [([],
-   [[DefinitionList
-     [([],
-       [[Plain [Str "there"]]])]]])]
-,Para [Str "bud"]
-,Header 2 ("p_tags",[],[]) [Str "p",Space,Str "tags"]
-,Para [Str "hi",Space,Str "there"]
-,Para [Str "bud"]
-,Para [Str "another"]
-,Header 2 ("raw_html",[],[]) [Str "raw",Space,Str "html"]
-,Para [Str "hi",Space,RawInline (Format "html") "<span style=\"color:red\">",Emph [Str "there"],RawInline (Format "html") "</span>",Str "."]
-,Para [RawInline (Format "html") "<ins>",Str "inserted",RawInline (Format "html") "</ins>"]
-,RawBlock (Format "html") "<div class=\"special\">"
-,Para [Str "hi",Space,Emph [Str "there"]]
-,RawBlock (Format "html") "</div>"
-,Header 2 ("sup_sub_del",[],[]) [Str "sup,",Space,Str "sub,",Space,Str "del"]
-,Para [Str "H",Subscript [Str "2"],Str "O",Space,Str "base",Superscript [Emph [Str "exponent"]],SoftBreak,Strikeout [Str "hello"]]
-,Header 2 ("inline_code",[],[]) [Str "inline",Space,Str "code"]
-,Para [Code ("",[],[]) "*\8594*",Space,Code ("",[],[]) "typed",Space,Code ("",["haskell"],[]) ">>="]
-,Header 2 ("code_blocks",[],[]) [Str "code",Space,Str "blocks"]
-,CodeBlock ("",[],[]) "case xs of\n     (_:_) -> reverse xs\n     []    -> ['*']"
-,CodeBlock ("",["haskell"],[]) "case xs of\n     (_:_) -> reverse xs\n     []    -> ['*']"
-,CodeBlock ("",["ruby","numberLines"],[("startFrom","100")]) "widgets.each do |w|\n  print w.price\nend"
-,Header 2 ("block_quotes",[],[]) [Str "block",Space,Str "quotes"]
-,Para [Str "Regular",Space,Str "paragraph"]
-,BlockQuote
- [Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "block",Space,Str "quote."]
- ,Para [Str "With",Space,Str "two",Space,Str "paragraphs."]]
-,Para [Str "Nother",Space,Str "paragraph."]
-,Header 2 ("external_links",[],[]) [Str "external",Space,Str "links"]
-,Para [Link ("",[],[]) [Emph [Str "Google"],Space,Str "search",Space,Str "engine"] ("http://google.com","")]
-,Para [Link ("",[],[]) [Str "http://pandoc.org"] ("http://pandoc.org","")]
-,Para [Link ("",[],[]) [Str "1"] ("http://google.com",""),Space,Link ("",[],[]) [Str "2"] ("http://yahoo.com","")]
-,Para [Link ("",[],[]) [Str "email",Space,Str "me"] ("mailto:info@example.org","")]
-,Header 2 ("internal_links",[],[]) [Str "internal",Space,Str "links"]
-,Para [Link ("",[],[]) [Str "Help"] ("Help","wikilink")]
-,Para [Link ("",[],[]) [Str "the",Space,Str "help",Space,Str "page"] ("Help","wikilink")]
-,Para [Link ("",[],[]) [Str "Helpers"] ("Help","wikilink")]
-,Para [Link ("",[],[]) [Str "Help"] ("Help","wikilink"),Str "ers"]
-,Para [Link ("",[],[]) [Str "Contents"] ("Help:Contents","wikilink")]
-,Para [Link ("",[],[]) [Str "#My",Space,Str "anchor"] ("#My_anchor","wikilink")]
-,Para [Link ("",[],[]) [Str "and",Space,Str "text"] ("Page#with_anchor","wikilink")]
-,Header 2 ("images",[],[]) [Str "images"]
-,Para [Image ("",[],[]) [Str "caption"] ("example.jpg","fig:caption")]
-,Para [Image ("",[],[]) [Str "the",Space,Emph [Str "caption"],Space,Str "with",Space,Link ("",[],[]) [Str "external",Space,Str "link"] ("http://google.com","")] ("example.jpg","fig:the caption with external link")]
-,Para [Image ("",[],[("width","30"),("height","40")]) [Str "caption"] ("example.jpg","fig:caption")]
-,Para [Image ("",[],[("width","30")]) [Str "caption"] ("example.jpg","fig:caption")]
-,Para [Image ("",[],[("width","30")]) [Str "caption"] ("example.jpg","fig:caption")]
-,Para [Image ("",[],[]) [Str "example.jpg"] ("example.jpg","fig:example.jpg")]
-,Para [Image ("",[],[]) [Str "example_es.jpg"] ("example_es.jpg","fig:example_es.jpg")]
-,Header 2 ("lists",[],[]) [Str "lists"]
-,BulletList
- [[Plain [Str "Start",Space,Str "each",Space,Str "line"]]
- ,[Plain [Str "with",Space,Str "an",Space,Str "asterisk",Space,Str "(*)."]
-  ,BulletList
-   [[Plain [Str "More",Space,Str "asterisks",Space,Str "gives",Space,Str "deeper"]
-    ,BulletList
-     [[Plain [Str "and",Space,Str "deeper",Space,Str "levels."]]]]]]
- ,[Plain [Str "Line",Space,Str "breaks",LineBreak,Str "don't",Space,Str "break",Space,Str "levels."]
-  ,BulletList
-   [[BulletList
-     [[Plain [Str "But",Space,Str "jumping",Space,Str "levels",Space,Str "creates",Space,Str "empty",Space,Str "space."]]]]]]]
-,Para [Str "Any",Space,Str "other",Space,Str "start",Space,Str "ends",Space,Str "the",Space,Str "list."]
-,BulletList
- [[BulletList
-   [[Plain [Str "two"]]]]
- ,[Plain [Str "one"]]]
-,OrderedList (1,DefaultStyle,DefaultDelim)
- [[Plain [Str "Start",Space,Str "each",Space,Str "line"]]
- ,[Plain [Str "with",Space,Str "a",Space,Str "number",Space,Str "sign",Space,Str "(#)."]
-  ,OrderedList (1,DefaultStyle,DefaultDelim)
-   [[Plain [Str "More",Space,Str "number",Space,Str "signs",Space,Str "gives",Space,Str "deeper"]
-    ,OrderedList (1,DefaultStyle,DefaultDelim)
-     [[Plain [Str "and",Space,Str "deeper"]]
-     ,[Plain [Str "levels."]]]]]]
- ,[Plain [Str "Line",Space,Str "breaks",LineBreak,Str "don't",Space,Str "break",Space,Str "levels."]
-  ,OrderedList (1,DefaultStyle,DefaultDelim)
-   [[OrderedList (1,DefaultStyle,DefaultDelim)
-     [[Plain [Str "But",Space,Str "jumping",Space,Str "levels",Space,Str "creates",Space,Str "empty",Space,Str "space."]]]]]]
- ,[Plain [Str "Blank",Space,Str "lines"]]]
-,OrderedList (1,DefaultStyle,DefaultDelim)
- [[Plain [Str "end",Space,Str "the",Space,Str "list",Space,Str "and",Space,Str "start",Space,Str "another."]]]
-,Para [Str "Any",Space,Str "other",Space,Str "start",Space,Str "also",SoftBreak,Str "ends",Space,Str "the",Space,Str "list."]
-,DefinitionList
- [([Str "item",Space,Str "1"],
-   [[Plain [Str "definition",Space,Str "1"]]])
- ,([Str "item",Space,Str "2"],
-   [[Plain [Str "definition",Space,Str "2-1"]]
-   ,[Plain [Str "definition",Space,Str "2-2"]]])]
-,OrderedList (1,DefaultStyle,DefaultDelim)
- [[Plain [Str "one"]]
- ,[Plain [Str "two"]
-  ,BulletList
-   [[Plain [Str "two",Space,Str "point",Space,Str "one"]]
-   ,[Plain [Str "two",Space,Str "point",Space,Str "two"]]]]
- ,[Plain [Str "three"]
-  ,DefinitionList
-   [([Str "three",Space,Str "item",Space,Str "one"],
-     [[Plain [Str "three",Space,Str "def",Space,Str "one"]]])]]
- ,[Plain [Str "four"]
-  ,DefinitionList
-   [([],
-     [[Plain [Str "four",Space,Str "def",Space,Str "one"]]
-     ,[Plain [Str "this",Space,Str "looks",Space,Str "like",Space,Str "a",Space,Str "continuation"]]
-     ,[Plain [Str "and",Space,Str "is",Space,Str "often",Space,Str "used"]]
-     ,[Plain [Str "instead",LineBreak,Str "of",Space,Str "<br/>"]]])]]
- ,[Plain [RawInline (Format "mediawiki") "{{{template\n|author=John\n|title=My Book\n}}}"]
-  ,OrderedList (1,DefaultStyle,DefaultDelim)
-   [[Plain [Str "five",Space,Str "sub",Space,Str "1"]
-    ,OrderedList (1,DefaultStyle,DefaultDelim)
-     [[Plain [Str "five",Space,Str "sub",Space,Str "1",Space,Str "sub",Space,Str "1"]]]]
-   ,[Plain [Str "five",Space,Str "sub",Space,Str "2"]]]]]
-,OrderedList (1,DefaultStyle,DefaultDelim)
- [[Plain [Str "list",Space,Str "item",Space,Emph [Str "emph"]]
-  ,OrderedList (1,DefaultStyle,DefaultDelim)
-   [[Plain [Str "list",Space,Str "item",Space,Str "B1"]]
-   ,[Plain [Str "list",Space,Str "item",Space,Str "B2"]]]
-  ,Para [Str "continuing",Space,Str "list",Space,Str "item",Space,Str "A1"]]
- ,[Plain [Str "list",Space,Str "item",Space,Str "A2"]]]
-,OrderedList (1,DefaultStyle,DefaultDelim)
- [[Plain [Str "abc"]]
- ,[Plain [Str "def"]]
- ,[Plain [Str "ghi"]]]
-,OrderedList (9,DefaultStyle,DefaultDelim)
- [[Plain [Str "Amsterdam"]]
- ,[Plain [Str "Rotterdam"]]
- ,[Plain [Str "The",Space,Str "Hague"]]]
-,Header 2 ("math",[],[]) [Str "math"]
-,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Math InlineMath "x=\\frac{y^\\pi}{z}",Str "."]
-,Para [Str "With",Space,Str "spaces:",Space,Math InlineMath "x=\\frac{y^\\pi}{z}",Str "."]
-,Header 2 ("preformatted_blocks",[],[]) [Str "preformatted",Space,Str "blocks"]
-,Para [Code ("",[],[]) "Start\160each\160line\160with\160a\160space.",LineBreak,Code ("",[],[]) "Text\160is\160",Strong [Code ("",[],[]) "preformatted"],Code ("",[],[]) "\160and",LineBreak,Emph [Code ("",[],[]) "markups"],Code ("",[],[]) "\160",Strong [Emph [Code ("",[],[]) "can"]],Code ("",[],[]) "\160be\160done."]
-,Para [Code ("",[],[]) "\160hell\160\160\160\160\160\160yeah"]
-,Para [Code ("",[],[]) "Start\160with\160a\160space\160in\160the\160first\160column,",LineBreak,Code ("",[],[]) "(before\160the\160<nowiki>).",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "Then\160your\160block\160format\160will\160be",LineBreak,Code ("",[],[]) "\160\160\160\160maintained.",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "This\160is\160good\160for\160copying\160in\160code\160blocks:",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "def\160function():",LineBreak,Code ("",[],[]) "\160\160\160\160\"\"\"documentation\160string\"\"\"",LineBreak,Code ("",[],[]) "",LineBreak,Code ("",[],[]) "\160\160\160\160if\160True:",LineBreak,Code ("",[],[]) "\160\160\160\160\160\160\160\160print\160True",LineBreak,Code ("",[],[]) "\160\160\160\160else:",LineBreak,Code ("",[],[]) "\160\160\160\160\160\160\160\160print\160False"]
-,Para [Str "Not"]
-,RawBlock (Format "html") "<hr/>"
-,Para [Str "preformatted"]
-,Para [Str "Don't",Space,Str "need"]
-,Para [Code ("",[],[]) "a\160blank\160line"]
-,Para [Str "around",Space,Str "a",Space,Str "preformatted",Space,Str "block."]
-,Header 2 ("templates",[],[]) [Str "templates"]
-,RawBlock (Format "mediawiki") "{{Welcome}}"
-,RawBlock (Format "mediawiki") "{{Foo:Bar}}"
-,RawBlock (Format "mediawiki") "{{Thankyou|all your effort|Me}}"
-,Para [Str "Written",Space,RawInline (Format "mediawiki") "{{{date}}}",Space,Str "by",Space,RawInline (Format "mediawiki") "{{{name}}}",Str "."]
-,Header 2 ("tables",[],[]) [Str "tables"]
-,Table ("",[],[]) (Caption Nothing
- [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Orange"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Apple"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Bread"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Pie"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Butter"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Ice",Space,Str "cream"]]]])]
- (TableFoot ("",[],[])
- [])
-,Table ("",[],[]) (Caption Nothing
- [Plain [Str "Food",Space,Str "complements"]])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Para [Str "Orange"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Para [Str "Apple"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Bread"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Pie"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Butter"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Ice",Space,Str "cream"]]]])]
- (TableFoot ("",[],[])
- [])
-,Table ("",[],[]) (Caption Nothing
- [Plain [Str "Food",Space,Str "complements"]])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Para [Str "Orange"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Para [Str "Apple"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Bread"]
-    ,Para [Str "and",Space,Str "cheese"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Pie"]
-    ,OrderedList (1,DefaultStyle,DefaultDelim)
-     [[Plain [Str "apple"]]
-     ,[Plain [Str "carrot"]]]]]])]
- (TableFoot ("",[],[])
- [])
-,Table ("",[],[]) (Caption Nothing
- [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Orange"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Apple"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "more"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Bread"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Pie"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "more"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Butter"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Ice",Space,Str "cream"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "and",Space,Str "more"]]]])]
- (TableFoot ("",[],[])
- [])
-,Table ("",[],[]) (Caption Nothing
- [])
- [(AlignLeft,ColWidth 0.25)
- ,(AlignRight,ColWidth 0.125)
- ,(AlignCenter,ColWidth 0.125)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Para [Str "Left"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Para [Str "Right"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Para [Str "Center"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "left"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "15.00"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "centered"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "more"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "2.0"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "more"]]]])]
- (TableFoot ("",[],[])
- [])
-,Table ("",[],[]) (Caption Nothing
- [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Orange"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Apple"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Bread"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Table ("",[],[]) (Caption Nothing
-     [])
-     [(AlignDefault,ColWidthDefault)
-     ,(AlignDefault,ColWidthDefault)]
-     (TableHead ("",[],[])
-     [Row ("",[],[])
-      [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-       [Para [Str "fruit"]]
-      ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-       [Para [Str "topping"]]]])
-     [(TableBody ("",[],[]) (RowHeadColumns 0)
-      []
-      [Row ("",[],[])
-       [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-        [Para [Str "apple"]]
-       ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-        [Para [Str "ice",Space,Str "cream"]]]])]
-     (TableFoot ("",[],[])
-     [])]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Butter"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Ice",Space,Str "cream"]]]])]
- (TableFoot ("",[],[])
- [])
-,Table ("",[],[]) (Caption Nothing
- [])
- [(AlignDefault,ColWidthDefault)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   []]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Orange"]]]])]
- (TableFoot ("",[],[])
- [])
-,Para [Str "Paragraph",Space,Str "after",Space,Str "the",Space,Str "table."]
-,Table ("",[],[]) (Caption Nothing
- [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Para [Str "fruit"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Para [Str "topping"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "apple"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "ice",Space,Str "cream"]]]])]
- (TableFoot ("",[],[])
- [])
-,Header 2 ("notes",[],[]) [Str "notes"]
-,Para [Str "My",Space,Str "note!",Note [Plain [Str "This."]]]
-,Para [Str "URL",Space,Str "note.",Note [Plain [Link ("",[],[]) [Str "http://docs.python.org/library/functions.html#range"] ("http://docs.python.org/library/functions.html#range","")]]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 1 ( "header" , [] , [] ) [ Str "header" ]
+  , Header
+      2
+      ( "header_level_two" , [] , [] )
+      [ Str "header" , Space , Str "level" , Space , Str "two" ]
+  , Header
+      3
+      ( "header_level_3" , [] , [] )
+      [ Str "header" , Space , Str "level" , Space , Str "3" ]
+  , Header
+      4
+      ( "header_level_four" , [] , [] )
+      [ Str "header"
+      , Space
+      , Emph [ Str "level" ]
+      , Space
+      , Str "four"
+      ]
+  , Header
+      5
+      ( "header_level_5" , [] , [] )
+      [ Str "header" , Space , Str "level" , Space , Str "5" ]
+  , Header
+      6
+      ( "header_level_6" , [] , [] )
+      [ Str "header" , Space , Str "level" , Space , Str "6" ]
+  , Para
+      [ Str "======="
+      , Space
+      , Str "not"
+      , Space
+      , Str "a"
+      , Space
+      , Str "header"
+      , Space
+      , Str "========"
+      ]
+  , Para
+      [ Code ( "" , [] , [] ) "==\160not\160a\160header\160==" ]
+  , Header
+      2
+      ( "emph_and_strong" , [] , [] )
+      [ Str "emph" , Space , Str "and" , Space , Str "strong" ]
+  , Para
+      [ Emph [ Str "emph" ] , Space , Strong [ Str "strong" ] ]
+  , Para
+      [ Strong
+          [ Emph
+              [ Str "strong" , Space , Str "and" , Space , Str "emph" ]
+          ]
+      ]
+  , Para
+      [ Strong
+          [ Emph [ Str "emph" , Space , Str "inside" ]
+          , Space
+          , Str "strong"
+          ]
+      ]
+  , Para
+      [ Strong
+          [ Str "strong"
+          , Space
+          , Str "with"
+          , Space
+          , Emph [ Str "emph" ]
+          ]
+      ]
+  , Para
+      [ Emph
+          [ Strong [ Str "strong" , Space , Str "inside" ]
+          , Space
+          , Str "emph"
+          ]
+      ]
+  , Header
+      2
+      ( "horizontal_rule" , [] , [] )
+      [ Str "horizontal" , Space , Str "rule" ]
+  , Para [ Str "top" ]
+  , HorizontalRule
+  , Para [ Str "bottom" ]
+  , HorizontalRule
+  , Header 2 ( "nowiki" , [] , [] ) [ Str "nowiki" ]
+  , Para [ Str "''not" , Space , Str "emph''" ]
+  , Header 2 ( "strikeout" , [] , [] ) [ Str "strikeout" ]
+  , Para
+      [ Strikeout
+          [ Str "This"
+          , Space
+          , Str "is"
+          , Space
+          , Emph [ Str "struck" , Space , Str "out" ]
+          ]
+      ]
+  , Header 2 ( "entities" , [] , [] ) [ Str "entities" ]
+  , Para [ Str "hi" , Space , Str "&" , Space , Str "low" ]
+  , Para [ Str "hi" , Space , Str "&" , Space , Str "low" ]
+  , Para [ Str "G\246del" ]
+  , Para [ Str "\777\2730" ]
+  , Header 2 ( "comments" , [] , [] ) [ Str "comments" ]
+  , Para [ Str "inline" , Space , Str "comment" ]
+  , Para [ Str "between" , Space , Str "blocks" ]
+  , Header 2 ( "linebreaks" , [] , [] ) [ Str "linebreaks" ]
+  , Para [ Str "hi" , LineBreak , Str "there" ]
+  , Para [ Str "hi" , LineBreak , Str "there" ]
+  , Header
+      2
+      ( "indents" , [] , [] )
+      [ Str ":" , Space , Str "indents" ]
+  , Para [ Str "hi" ]
+  , DefinitionList [ ( [] , [ [ Plain [ Str "there" ] ] ] ) ]
+  , Para [ Str "bud" ]
+  , Para [ Str "hi" ]
+  , DefinitionList
+      [ ( []
+        , [ [ DefinitionList
+                [ ( [] , [ [ Plain [ Str "there" ] ] ] ) ]
+            ]
+          ]
+        )
+      ]
+  , Para [ Str "bud" ]
+  , Header
+      2 ( "p_tags" , [] , [] ) [ Str "p" , Space , Str "tags" ]
+  , Para [ Str "hi" , Space , Str "there" ]
+  , Para [ Str "bud" ]
+  , Para [ Str "another" ]
+  , Header
+      2
+      ( "raw_html" , [] , [] )
+      [ Str "raw" , Space , Str "html" ]
+  , Para
+      [ Str "hi"
+      , Space
+      , RawInline (Format "html") "<span style=\"color:red\">"
+      , Emph [ Str "there" ]
+      , RawInline (Format "html") "</span>"
+      , Str "."
+      ]
+  , Para
+      [ RawInline (Format "html") "<ins>"
+      , Str "inserted"
+      , RawInline (Format "html") "</ins>"
+      ]
+  , RawBlock (Format "html") "<div class=\"special\">"
+  , Para [ Str "hi" , Space , Emph [ Str "there" ] ]
+  , RawBlock (Format "html") "</div>"
+  , Header
+      2
+      ( "sup_sub_del" , [] , [] )
+      [ Str "sup," , Space , Str "sub," , Space , Str "del" ]
+  , Para
+      [ Str "H"
+      , Subscript [ Str "2" ]
+      , Str "O"
+      , Space
+      , Str "base"
+      , Superscript [ Emph [ Str "exponent" ] ]
+      , SoftBreak
+      , Strikeout [ Str "hello" ]
+      ]
+  , Header
+      2
+      ( "inline_code" , [] , [] )
+      [ Str "inline" , Space , Str "code" ]
+  , Para
+      [ Code ( "" , [] , [] ) "*\8594*"
+      , Space
+      , Code ( "" , [] , [] ) "typed"
+      , Space
+      , Code ( "" , [ "haskell" ] , [] ) ">>="
+      ]
+  , Header
+      2
+      ( "code_blocks" , [] , [] )
+      [ Str "code" , Space , Str "blocks" ]
+  , CodeBlock
+      ( "" , [] , [] )
+      "case xs of\n     (_:_) -> reverse xs\n     []    -> ['*']"
+  , CodeBlock
+      ( "" , [ "haskell" ] , [] )
+      "case xs of\n     (_:_) -> reverse xs\n     []    -> ['*']"
+  , CodeBlock
+      ( ""
+      , [ "ruby" , "numberLines" ]
+      , [ ( "startFrom" , "100" ) ]
+      )
+      "widgets.each do |w|\n  print w.price\nend"
+  , Header
+      2
+      ( "block_quotes" , [] , [] )
+      [ Str "block" , Space , Str "quotes" ]
+  , Para [ Str "Regular" , Space , Str "paragraph" ]
+  , BlockQuote
+      [ Para
+          [ Str "This"
+          , Space
+          , Str "is"
+          , Space
+          , Str "a"
+          , Space
+          , Str "block"
+          , Space
+          , Str "quote."
+          ]
+      , Para
+          [ Str "With"
+          , Space
+          , Str "two"
+          , Space
+          , Str "paragraphs."
+          ]
+      ]
+  , Para [ Str "Nother" , Space , Str "paragraph." ]
+  , Header
+      2
+      ( "external_links" , [] , [] )
+      [ Str "external" , Space , Str "links" ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Emph [ Str "Google" ]
+          , Space
+          , Str "search"
+          , Space
+          , Str "engine"
+          ]
+          ( "http://google.com" , "" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "http://pandoc.org" ]
+          ( "http://pandoc.org" , "" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] ) [ Str "1" ] ( "http://google.com" , "" )
+      , Space
+      , Link
+          ( "" , [] , [] ) [ Str "2" ] ( "http://yahoo.com" , "" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "email" , Space , Str "me" ]
+          ( "mailto:info@example.org" , "" )
+      ]
+  , Header
+      2
+      ( "internal_links" , [] , [] )
+      [ Str "internal" , Space , Str "links" ]
+  , Para
+      [ Link
+          ( "" , [] , [] ) [ Str "Help" ] ( "Help" , "wikilink" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "the" , Space , Str "help" , Space , Str "page" ]
+          ( "Help" , "wikilink" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] ) [ Str "Helpers" ] ( "Help" , "wikilink" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] ) [ Str "Help" ] ( "Help" , "wikilink" )
+      , Str "ers"
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "Contents" ]
+          ( "Help:Contents" , "wikilink" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "#My" , Space , Str "anchor" ]
+          ( "#My_anchor" , "wikilink" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "and" , Space , Str "text" ]
+          ( "Page#with_anchor" , "wikilink" )
+      ]
+  , Header 2 ( "images" , [] , [] ) [ Str "images" ]
+  , Para
+      [ Image
+          ( "" , [] , [] )
+          [ Str "caption" ]
+          ( "example.jpg" , "fig:caption" )
+      ]
+  , Para
+      [ Image
+          ( "" , [] , [] )
+          [ Str "the"
+          , Space
+          , Emph [ Str "caption" ]
+          , Space
+          , Str "with"
+          , Space
+          , Link
+              ( "" , [] , [] )
+              [ Str "external" , Space , Str "link" ]
+              ( "http://google.com" , "" )
+          ]
+          ( "example.jpg" , "fig:the caption with external link" )
+      ]
+  , Para
+      [ Image
+          ( "" , [] , [ ( "width" , "30" ) , ( "height" , "40" ) ] )
+          [ Str "caption" ]
+          ( "example.jpg" , "fig:caption" )
+      ]
+  , Para
+      [ Image
+          ( "" , [] , [ ( "width" , "30" ) ] )
+          [ Str "caption" ]
+          ( "example.jpg" , "fig:caption" )
+      ]
+  , Para
+      [ Image
+          ( "" , [] , [ ( "width" , "30" ) ] )
+          [ Str "caption" ]
+          ( "example.jpg" , "fig:caption" )
+      ]
+  , Para
+      [ Image
+          ( "" , [] , [] )
+          [ Str "example.jpg" ]
+          ( "example.jpg" , "fig:example.jpg" )
+      ]
+  , Para
+      [ Image
+          ( "" , [] , [] )
+          [ Str "example_es.jpg" ]
+          ( "example_es.jpg" , "fig:example_es.jpg" )
+      ]
+  , Header 2 ( "lists" , [] , [] ) [ Str "lists" ]
+  , BulletList
+      [ [ Plain
+            [ Str "Start" , Space , Str "each" , Space , Str "line" ]
+        ]
+      , [ Plain
+            [ Str "with"
+            , Space
+            , Str "an"
+            , Space
+            , Str "asterisk"
+            , Space
+            , Str "(*)."
+            ]
+        , BulletList
+            [ [ Plain
+                  [ Str "More"
+                  , Space
+                  , Str "asterisks"
+                  , Space
+                  , Str "gives"
+                  , Space
+                  , Str "deeper"
+                  ]
+              , BulletList
+                  [ [ Plain
+                        [ Str "and"
+                        , Space
+                        , Str "deeper"
+                        , Space
+                        , Str "levels."
+                        ]
+                    ]
+                  ]
+              ]
+            ]
+        ]
+      , [ Plain
+            [ Str "Line"
+            , Space
+            , Str "breaks"
+            , LineBreak
+            , Str "don't"
+            , Space
+            , Str "break"
+            , Space
+            , Str "levels."
+            ]
+        , BulletList
+            [ [ BulletList
+                  [ [ Plain
+                        [ Str "But"
+                        , Space
+                        , Str "jumping"
+                        , Space
+                        , Str "levels"
+                        , Space
+                        , Str "creates"
+                        , Space
+                        , Str "empty"
+                        , Space
+                        , Str "space."
+                        ]
+                    ]
+                  ]
+              ]
+            ]
+        ]
+      ]
+  , Para
+      [ Str "Any"
+      , Space
+      , Str "other"
+      , Space
+      , Str "start"
+      , Space
+      , Str "ends"
+      , Space
+      , Str "the"
+      , Space
+      , Str "list."
+      ]
+  , BulletList
+      [ [ BulletList [ [ Plain [ Str "two" ] ] ] ]
+      , [ Plain [ Str "one" ] ]
+      ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Plain
+            [ Str "Start" , Space , Str "each" , Space , Str "line" ]
+        ]
+      , [ Plain
+            [ Str "with"
+            , Space
+            , Str "a"
+            , Space
+            , Str "number"
+            , Space
+            , Str "sign"
+            , Space
+            , Str "(#)."
+            ]
+        , OrderedList
+            ( 1 , DefaultStyle , DefaultDelim )
+            [ [ Plain
+                  [ Str "More"
+                  , Space
+                  , Str "number"
+                  , Space
+                  , Str "signs"
+                  , Space
+                  , Str "gives"
+                  , Space
+                  , Str "deeper"
+                  ]
+              , OrderedList
+                  ( 1 , DefaultStyle , DefaultDelim )
+                  [ [ Plain [ Str "and" , Space , Str "deeper" ] ]
+                  , [ Plain [ Str "levels." ] ]
+                  ]
+              ]
+            ]
+        ]
+      , [ Plain
+            [ Str "Line"
+            , Space
+            , Str "breaks"
+            , LineBreak
+            , Str "don't"
+            , Space
+            , Str "break"
+            , Space
+            , Str "levels."
+            ]
+        , OrderedList
+            ( 1 , DefaultStyle , DefaultDelim )
+            [ [ OrderedList
+                  ( 1 , DefaultStyle , DefaultDelim )
+                  [ [ Plain
+                        [ Str "But"
+                        , Space
+                        , Str "jumping"
+                        , Space
+                        , Str "levels"
+                        , Space
+                        , Str "creates"
+                        , Space
+                        , Str "empty"
+                        , Space
+                        , Str "space."
+                        ]
+                    ]
+                  ]
+              ]
+            ]
+        ]
+      , [ Plain [ Str "Blank" , Space , Str "lines" ] ]
+      ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Plain
+            [ Str "end"
+            , Space
+            , Str "the"
+            , Space
+            , Str "list"
+            , Space
+            , Str "and"
+            , Space
+            , Str "start"
+            , Space
+            , Str "another."
+            ]
+        ]
+      ]
+  , Para
+      [ Str "Any"
+      , Space
+      , Str "other"
+      , Space
+      , Str "start"
+      , Space
+      , Str "also"
+      , SoftBreak
+      , Str "ends"
+      , Space
+      , Str "the"
+      , Space
+      , Str "list."
+      ]
+  , DefinitionList
+      [ ( [ Str "item" , Space , Str "1" ]
+        , [ [ Plain [ Str "definition" , Space , Str "1" ] ] ]
+        )
+      , ( [ Str "item" , Space , Str "2" ]
+        , [ [ Plain [ Str "definition" , Space , Str "2-1" ] ]
+          , [ Plain [ Str "definition" , Space , Str "2-2" ] ]
+          ]
+        )
+      ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Plain [ Str "one" ] ]
+      , [ Plain [ Str "two" ]
+        , BulletList
+            [ [ Plain
+                  [ Str "two"
+                  , Space
+                  , Str "point"
+                  , Space
+                  , Str "one"
+                  ]
+              ]
+            , [ Plain
+                  [ Str "two"
+                  , Space
+                  , Str "point"
+                  , Space
+                  , Str "two"
+                  ]
+              ]
+            ]
+        ]
+      , [ Plain [ Str "three" ]
+        , DefinitionList
+            [ ( [ Str "three" , Space , Str "item" , Space , Str "one" ]
+              , [ [ Plain
+                      [ Str "three"
+                      , Space
+                      , Str "def"
+                      , Space
+                      , Str "one"
+                      ]
+                  ]
+                ]
+              )
+            ]
+        ]
+      , [ Plain [ Str "four" ]
+        , DefinitionList
+            [ ( []
+              , [ [ Plain
+                      [ Str "four"
+                      , Space
+                      , Str "def"
+                      , Space
+                      , Str "one"
+                      ]
+                  ]
+                , [ Plain
+                      [ Str "this"
+                      , Space
+                      , Str "looks"
+                      , Space
+                      , Str "like"
+                      , Space
+                      , Str "a"
+                      , Space
+                      , Str "continuation"
+                      ]
+                  ]
+                , [ Plain
+                      [ Str "and"
+                      , Space
+                      , Str "is"
+                      , Space
+                      , Str "often"
+                      , Space
+                      , Str "used"
+                      ]
+                  ]
+                , [ Plain
+                      [ Str "instead"
+                      , LineBreak
+                      , Str "of"
+                      , Space
+                      , Str "<br/>"
+                      ]
+                  ]
+                ]
+              )
+            ]
+        ]
+      , [ Plain
+            [ RawInline
+                (Format "mediawiki")
+                "{{{template\n|author=John\n|title=My Book\n}}}"
+            ]
+        , OrderedList
+            ( 1 , DefaultStyle , DefaultDelim )
+            [ [ Plain
+                  [ Str "five" , Space , Str "sub" , Space , Str "1" ]
+              , OrderedList
+                  ( 1 , DefaultStyle , DefaultDelim )
+                  [ [ Plain
+                        [ Str "five"
+                        , Space
+                        , Str "sub"
+                        , Space
+                        , Str "1"
+                        , Space
+                        , Str "sub"
+                        , Space
+                        , Str "1"
+                        ]
+                    ]
+                  ]
+              ]
+            , [ Plain
+                  [ Str "five" , Space , Str "sub" , Space , Str "2" ]
+              ]
+            ]
+        ]
+      ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Plain
+            [ Str "list"
+            , Space
+            , Str "item"
+            , Space
+            , Emph [ Str "emph" ]
+            ]
+        , OrderedList
+            ( 1 , DefaultStyle , DefaultDelim )
+            [ [ Plain
+                  [ Str "list" , Space , Str "item" , Space , Str "B1" ]
+              ]
+            , [ Plain
+                  [ Str "list" , Space , Str "item" , Space , Str "B2" ]
+              ]
+            ]
+        , Para
+            [ Str "continuing"
+            , Space
+            , Str "list"
+            , Space
+            , Str "item"
+            , Space
+            , Str "A1"
+            ]
+        ]
+      , [ Plain
+            [ Str "list" , Space , Str "item" , Space , Str "A2" ]
+        ]
+      ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Plain [ Str "abc" ] ]
+      , [ Plain [ Str "def" ] ]
+      , [ Plain [ Str "ghi" ] ]
+      ]
+  , OrderedList
+      ( 9 , DefaultStyle , DefaultDelim )
+      [ [ Plain [ Str "Amsterdam" ] ]
+      , [ Plain [ Str "Rotterdam" ] ]
+      , [ Plain [ Str "The" , Space , Str "Hague" ] ]
+      ]
+  , Header 2 ( "math" , [] , [] ) [ Str "math" ]
+  , Para
+      [ Str "Here"
+      , Space
+      , Str "is"
+      , Space
+      , Str "some"
+      , Space
+      , Math InlineMath "x=\\frac{y^\\pi}{z}"
+      , Str "."
+      ]
+  , Para
+      [ Str "With"
+      , Space
+      , Str "spaces:"
+      , Space
+      , Math InlineMath "x=\\frac{y^\\pi}{z}"
+      , Str "."
+      ]
+  , Header
+      2
+      ( "preformatted_blocks" , [] , [] )
+      [ Str "preformatted" , Space , Str "blocks" ]
+  , Para
+      [ Code
+          ( "" , [] , [] )
+          "Start\160each\160line\160with\160a\160space."
+      , LineBreak
+      , Code ( "" , [] , [] ) "Text\160is\160"
+      , Strong [ Code ( "" , [] , [] ) "preformatted" ]
+      , Code ( "" , [] , [] ) "\160and"
+      , LineBreak
+      , Emph [ Code ( "" , [] , [] ) "markups" ]
+      , Code ( "" , [] , [] ) "\160"
+      , Strong [ Emph [ Code ( "" , [] , [] ) "can" ] ]
+      , Code ( "" , [] , [] ) "\160be\160done."
+      ]
+  , Para
+      [ Code
+          ( "" , [] , [] ) "\160hell\160\160\160\160\160\160yeah"
+      ]
+  , Para
+      [ Code
+          ( "" , [] , [] )
+          "Start\160with\160a\160space\160in\160the\160first\160column,"
+      , LineBreak
+      , Code ( "" , [] , [] ) "(before\160the\160<nowiki>)."
+      , LineBreak
+      , Code ( "" , [] , [] ) ""
+      , LineBreak
+      , Code
+          ( "" , [] , [] )
+          "Then\160your\160block\160format\160will\160be"
+      , LineBreak
+      , Code ( "" , [] , [] ) "\160\160\160\160maintained."
+      , LineBreak
+      , Code ( "" , [] , [] ) ""
+      , LineBreak
+      , Code
+          ( "" , [] , [] )
+          "This\160is\160good\160for\160copying\160in\160code\160blocks:"
+      , LineBreak
+      , Code ( "" , [] , [] ) ""
+      , LineBreak
+      , Code ( "" , [] , [] ) "def\160function():"
+      , LineBreak
+      , Code
+          ( "" , [] , [] )
+          "\160\160\160\160\"\"\"documentation\160string\"\"\""
+      , LineBreak
+      , Code ( "" , [] , [] ) ""
+      , LineBreak
+      , Code ( "" , [] , [] ) "\160\160\160\160if\160True:"
+      , LineBreak
+      , Code
+          ( "" , [] , [] )
+          "\160\160\160\160\160\160\160\160print\160True"
+      , LineBreak
+      , Code ( "" , [] , [] ) "\160\160\160\160else:"
+      , LineBreak
+      , Code
+          ( "" , [] , [] )
+          "\160\160\160\160\160\160\160\160print\160False"
+      ]
+  , Para [ Str "Not" ]
+  , RawBlock (Format "html") "<hr/>"
+  , Para [ Str "preformatted" ]
+  , Para [ Str "Don't" , Space , Str "need" ]
+  , Para [ Code ( "" , [] , [] ) "a\160blank\160line" ]
+  , Para
+      [ Str "around"
+      , Space
+      , Str "a"
+      , Space
+      , Str "preformatted"
+      , Space
+      , Str "block."
+      ]
+  , Header 2 ( "templates" , [] , [] ) [ Str "templates" ]
+  , RawBlock (Format "mediawiki") "{{Welcome}}"
+  , RawBlock (Format "mediawiki") "{{Foo:Bar}}"
+  , RawBlock
+      (Format "mediawiki") "{{Thankyou|all your effort|Me}}"
+  , Para
+      [ Str "Written"
+      , Space
+      , RawInline (Format "mediawiki") "{{{date}}}"
+      , Space
+      , Str "by"
+      , Space
+      , RawInline (Format "mediawiki") "{{{name}}}"
+      , Str "."
+      ]
+  , Header 2 ( "tables" , [] , [] ) [ Str "tables" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Orange" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Apple" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Bread" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Pie" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Butter" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Ice" , Space , Str "cream" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Table
+      ( "" , [] , [] )
+      (Caption
+         Nothing
+         [ Plain [ Str "Food" , Space , Str "complements" ] ])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Orange" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Apple" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Bread" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Pie" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Butter" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Ice" , Space , Str "cream" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Table
+      ( "" , [] , [] )
+      (Caption
+         Nothing
+         [ Plain [ Str "Food" , Space , Str "complements" ] ])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Orange" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Apple" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Bread" ]
+                  , Para [ Str "and" , Space , Str "cheese" ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Pie" ]
+                  , OrderedList
+                      ( 1 , DefaultStyle , DefaultDelim )
+                      [ [ Plain [ Str "apple" ] ]
+                      , [ Plain [ Str "carrot" ] ]
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Orange" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Apple" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "more" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Bread" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Pie" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "more" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Butter" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Ice" , Space , Str "cream" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "and" , Space , Str "more" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignLeft , ColWidth 0.25 )
+      , ( AlignRight , ColWidth 0.125 )
+      , ( AlignCenter , ColWidth 0.125 )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Left" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Right" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Center" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "left" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "15.00" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "centered" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "more" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "2.0" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "more" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Orange" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Apple" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Bread" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Table
+                      ( "" , [] , [] )
+                      (Caption Nothing [])
+                      [ ( AlignDefault , ColWidthDefault )
+                      , ( AlignDefault , ColWidthDefault )
+                      ]
+                      (TableHead
+                         ( "" , [] , [] )
+                         [ Row
+                             ( "" , [] , [] )
+                             [ Cell
+                                 ( "" , [] , [] )
+                                 AlignDefault
+                                 (RowSpan 1)
+                                 (ColSpan 1)
+                                 [ Para [ Str "fruit" ] ]
+                             , Cell
+                                 ( "" , [] , [] )
+                                 AlignDefault
+                                 (RowSpan 1)
+                                 (ColSpan 1)
+                                 [ Para [ Str "topping" ] ]
+                             ]
+                         ])
+                      [ TableBody
+                          ( "" , [] , [] )
+                          (RowHeadColumns 0)
+                          []
+                          [ Row
+                              ( "" , [] , [] )
+                              [ Cell
+                                  ( "" , [] , [] )
+                                  AlignDefault
+                                  (RowSpan 1)
+                                  (ColSpan 1)
+                                  [ Para [ Str "apple" ] ]
+                              , Cell
+                                  ( "" , [] , [] )
+                                  AlignDefault
+                                  (RowSpan 1)
+                                  (ColSpan 1)
+                                  [ Para
+                                      [ Str "ice"
+                                      , Space
+                                      , Str "cream"
+                                      ]
+                                  ]
+                              ]
+                          ]
+                      ]
+                      (TableFoot ( "" , [] , [] ) [])
+                  ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Butter" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Ice" , Space , Str "cream" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault ) ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Orange" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para
+      [ Str "Paragraph"
+      , Space
+      , Str "after"
+      , Space
+      , Str "the"
+      , Space
+      , Str "table."
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "fruit" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "topping" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "apple" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "ice" , Space , Str "cream" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Header 2 ( "notes" , [] , [] ) [ Str "notes" ]
+  , Para
+      [ Str "My"
+      , Space
+      , Str "note!"
+      , Note [ Plain [ Str "This." ] ]
+      ]
+  , Para
+      [ Str "URL"
+      , Space
+      , Str "note."
+      , Note
+          [ Plain
+              [ Link
+                  ( "" , [] , [] )
+                  [ Str
+                      "http://docs.python.org/library/functions.html#range"
+                  ]
+                  ( "http://docs.python.org/library/functions.html#range"
+                  , ""
+                  )
+              ]
+          ]
+      ]
+  ]

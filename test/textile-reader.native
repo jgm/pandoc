@@ -1,243 +1,1260 @@
-Pandoc (Meta {unMeta = fromList []})
-[Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "set",Space,Str "of",Space,Str "tests",Space,Str "for",Space,Str "pandoc",Space,Str "Textile",Space,Str "Reader.",Space,Str "Part",Space,Str "of",Space,Str "it",Space,Str "comes",LineBreak,Str "from",Space,Str "John",Space,Str "Gruber\8217s",Space,Str "markdown",Space,Str "test",Space,Str "suite."]
-,HorizontalRule
-,Header 1 ("headers",[],[]) [Str "Headers"]
-,Header 2 ("level-2-with-an-embedded-link",[],[]) [Str "Level",Space,Str "2",Space,Str "with",Space,Str "an",Space,Link ("",[],[]) [Str "embedded",Space,Str "link"] ("http://www.example.com","")]
-,Header 3 ("level-3-with-emphasis",[],[]) [Str "Level",Space,Str "3",Space,Str "with",Space,Strong [Str "emphasis"]]
-,Header 4 ("level-4",[],[]) [Str "Level",Space,Str "4"]
-,Header 5 ("level-5",[],[]) [Str "Level",Space,Str "5"]
-,Header 6 ("level-6",[],[]) [Str "Level",Space,Str "6"]
-,Header 1 ("paragraphs",[],[]) [Str "Paragraphs"]
-,Para [Str "Here\8217s",Space,Str "a",Space,Str "regular",Space,Str "paragraph."]
-,Para [Str "Line",Space,Str "breaks",Space,Str "are",Space,Str "preserved",Space,Str "in",Space,Str "textile,",Space,Str "so",Space,Str "you",Space,Str "can",Space,Str "not",Space,Str "wrap",Space,Str "your",Space,Str "very",LineBreak,Str "long",Space,Str "paragraph",Space,Str "with",Space,Str "your",Space,Str "favourite",Space,Str "text",Space,Str "editor",Space,Str "and",Space,Str "have",Space,Str "it",Space,Str "rendered",LineBreak,Str "with",Space,Str "no",Space,Str "break."]
-,Para [Str "Here\8217s",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "bullet."]
-,BulletList
- [[Plain [Str "criminey."]]]
-,Para [Str "There",Space,Str "should",Space,Str "be",Space,Str "a",Space,Str "paragraph",Space,Str "break",Space,Str "between",Space,Str "here"]
-,Para [Str "and",Space,Str "here."]
-,Para [Str "pandoc",Space,Str "converts",Space,Str "textile."]
-,Header 1 ("block-quotes",[],[]) [Str "Block",Space,Str "Quotes"]
-,BlockQuote
- [Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "famous",Space,Str "quote",Space,Str "from",Space,Str "somebody.",Space,Str "He",Space,Str "had",Space,Str "a",Space,Str "lot",Space,Str "of",Space,Str "things",Space,Str "to",LineBreak,Str "say,",Space,Str "so",Space,Str "the",Space,Str "text",Space,Str "is",Space,Str "really",Space,Str "really",Space,Str "long",Space,Str "and",Space,Str "spans",Space,Str "on",Space,Str "multiple",Space,Str "lines."]]
-,Para [Str "And",Space,Str "a",Space,Str "following",Space,Str "paragraph."]
-,Header 1 ("code-blocks",[],[]) [Str "Code",Space,Str "Blocks"]
-,Para [Str "Code:"]
-,CodeBlock ("",[],[]) "    ---- (should be four hyphens)\n\n    sub status {\n        print \"working\";\n    }\n\n    this code block is indented by one tab"
-,Para [Str "And:"]
-,CodeBlock ("",[],[]) "        this code block is indented by two tabs\n\n    These should not be escaped:  \\$ \\\\ \\> \\[ \\{"
-,CodeBlock ("",[],[]) "Code block with .bc\n        continued\n    @</\\"
-,CodeBlock ("",[],[]) "extended code block\n\n        continued"
-,Para [Str "ended",Space,Str "by",Space,Str "paragraph"]
-,Para [Str "Inline",Space,Str "code:",Space,Code ("",[],[]) "<tt>",Str ",",Space,Code ("",[],[]) "@",Str "."]
-,Header 1 ("notextile",[],[]) [Str "Notextile"]
-,Para [Str "A",Space,Str "block",Space,Str "of",Space,Str "text",Space,Str "can",Space,Str "be",Space,Str "protected",Space,Str "with",Space,Str "notextile",Space,Str ":"]
-,Para [Str "\nNo *bold* and\n* no bullet\n"]
-,Para [Str "and",Space,Str "inlines",Space,Str "can",Space,Str "be",Space,Str "protected",Space,Str "with",Space,Str "double *equals (=)* markup."]
-,Header 1 ("lists",[],[]) [Str "Lists"]
-,Header 2 ("unordered",[],[]) [Str "Unordered"]
-,Para [Str "Asterisks",Space,Str "tight:"]
-,BulletList
- [[Plain [Str "asterisk",Space,Str "1"]]
- ,[Plain [Str "asterisk",Space,Str "2"]]
- ,[Plain [Str "asterisk",Space,Str "3"]]]
-,Para [Str "With",Space,Str "line",Space,Str "breaks:"]
-,BulletList
- [[Plain [Str "asterisk",Space,Str "1",LineBreak,Str "newline"]]
- ,[Plain [Str "asterisk",Space,Str "2"]]]
-,Header 2 ("ordered",[],[]) [Str "Ordered"]
-,Para [Str "Tight:"]
-,OrderedList (1,DefaultStyle,DefaultDelim)
- [[Plain [Str "First"]]
- ,[Plain [Str "Second"]]
- ,[Plain [Str "Third"]]]
-,Header 2 ("nested",[],[]) [Str "Nested"]
-,BulletList
- [[Plain [Str "ui",Space,Str "1"]
-  ,BulletList
-   [[Plain [Str "ui",Space,Str "1.1"]
-    ,OrderedList (1,DefaultStyle,DefaultDelim)
-     [[Plain [Str "oi",Space,Str "1.1.1"]]
-     ,[Plain [Str "oi",Space,Str "1.1.2"]]]]
-   ,[Plain [Str "ui",Space,Str "1.2"]]]]
- ,[Plain [Str "ui",Space,Str "2"]
-  ,OrderedList (1,DefaultStyle,DefaultDelim)
-   [[Plain [Str "oi",Space,Str "2.1"]
-    ,BulletList
-     [[Plain [Str "ui",Space,Str "2.1.1"]]
-     ,[Plain [Str "ui",Space,Str "2.1.2"]]]]]]]
-,Header 2 ("issue-1500",[],[]) [Str "Issue",Space,Str "#1500"]
-,BulletList
- [[Plain [Str "one"]]
- ,[Plain [Str "two",LineBreak,Str "->",Space,Str "and",Space,Str "more"]]]
-,Header 2 ("issue-1513",[],[]) [Str "Issue",Space,Str "#1513"]
-,Para [Str "List:"]
-,BulletList
- [[Plain [Str "one"]]
- ,[Plain [Str "two"]]]
-,Header 2 ("definition-list",[],[]) [Str "Definition",Space,Str "List"]
-,DefinitionList
- [([Str "coffee"],
-   [[Plain [Str "Hot",Space,Str "and",Space,Str "black"]]])
- ,([Str "tea"],
-   [[Plain [Str "Also",Space,Str "hot,",Space,Str "but",Space,Str "a",Space,Str "little",Space,Str "less",Space,Str "black"]]])
- ,([Str "milk"],
-   [[Para [Str "Nourishing",Space,Str "beverage",Space,Str "for",Space,Str "baby",Space,Str "cows."]
-    ,Para [Str "Cold",Space,Str "drink",Space,Str "that",Space,Str "goes",Space,Str "great",Space,Str "with",Space,Str "cookies."]]])
- ,([Str "beer"],
-   [[Plain [Str "fresh",Space,Str "and",Space,Str "bitter"]]])]
-,Header 1 ("inline-markup",[],[]) [Str "Inline",Space,Str "Markup"]
-,Para [Str "This",Space,Str "is",Space,Emph [Str "emphasized"],Str ",",Space,Str "and",Space,Str "so",Space,Emph [Str "is",Space,Str "this"],Str ".",LineBreak,Str "This",Space,Str "is",Space,Strong [Str "strong"],Str ",",Space,Str "and",Space,Str "so",Space,Strong [Str "is",Space,Str "this"],Str ".",LineBreak,Str "This",Space,Str "is",Space,Underline [Str "inserted"],Str ",",Space,Str "and",Space,Str "this",Space,Str "is",Space,Strikeout [Str "deleted"],Str ".",LineBreak,Str "Hyphenated-words-are-ok,",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str "strange_underscore_notation.",LineBreak,Str "A",Space,Link ("",[],[]) [Strong [Str "strong",Space,Str "link"]] ("http://www.foobar.com",""),Str "."]
-,Para [Emph [Strong [Str "This",Space,Str "is",Space,Str "strong",Space,Str "and",Space,Str "em."]],LineBreak,Str "So",Space,Str "is",Space,Strong [Emph [Str "this"]],Space,Str "word",Space,Str "and",Space,Emph [Strong [Str "that",Space,Str "one"]],Str ".",LineBreak,Strikeout [Str "This",Space,Str "is",Space,Str "strikeout",Space,Str "and",Space,Strong [Str "strong"]]]
-,Para [Str "Superscripts:",Space,Str "a",Superscript [Str "bc"],Str "d",Space,Str "a",Space,Superscript [Strong [Str "hello"]],Space,Str "a",Superscript [Str "hello",Space,Str "there"],Str ".",LineBreak,Str "Subscripts:",Space,Subscript [Str "here"],Space,Str "H",Space,Subscript [Str "2"],Str "O,",Space,Str "H",Space,Subscript [Str "23"],Str "O,",Space,Str "H",Space,Subscript [Str "many",Space,Str "of",Space,Str "them"],Str "O."]
-,Para [Str "Dashes",Space,Str ":",Space,Str "How",Space,Str "cool",Space,Str "\8212",Space,Str "automatic",Space,Str "dashes."]
-,Para [Str "Ellipses",Space,Str ":",Space,Str "He",Space,Str "thought",Space,Str "and",Space,Str "thought",Space,Str "\8230",Space,Str "and",Space,Str "then",Space,Str "thought",Space,Str "some",Space,Str "more."]
-,Para [Str "Quotes",Space,Str "and",Space,Str "apostrophes",Space,Str ":",Space,Quoted DoubleQuote [Str "I\8217d",Space,Str "like",Space,Str "to",Space,Str "thank",Space,Str "you"],Space,Str "for",Space,Str "example."]
-,Header 1 ("links",[],[]) [Str "Links"]
-,Header 2 ("explicit",[],[]) [Str "Explicit"]
-,Para [Str "Just",Space,Str "a",Space,Link ("",[],[]) [Str "url"] ("http://www.url.com","")]
-,Para [Link ("",[],[]) [Str "Email",Space,Str "link"] ("mailto:nobody@nowhere.net","")]
-,Para [Quoted DoubleQuote [Str "not",Space,Str "a",Space,Str "link"],Str ":",Space,Str "foo"]
-,Para [Str "Automatic",Space,Str "linking",Space,Str "to",Space,Link ("",[],[]) [Str "http://www.example.com"] ("http://www.example.com",""),Str "."]
-,Para [Link ("",[],[]) [Str "Example"] ("http://www.example.com/",""),Str ":",Space,Str "Example",Space,Str "of",Space,Str "a",Space,Str "link",Space,Str "followed",Space,Str "by",Space,Str "a",Space,Str "colon."]
-,Para [Str "A",Space,Str "link",Link ("",[],[]) [Str "with",Space,Str "brackets"] ("http://www.example.com",""),Str "and",Space,Str "no",Space,Str "spaces."]
-,Header 1 ("tables",[],[]) [Str "Tables"]
-,Para [Str "Textile",Space,Str "allows",Space,Str "tables",Space,Str "with",Space,Str "and",Space,Str "without",Space,Str "headers",Space,Str ":"]
-,Header 2 ("without-headers",[],[]) [Str "Without",Space,Str "headers"]
-,Table ("",[],[]) (Caption Nothing
- [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
- (TableHead ("",[],[])
- [])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "name"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "age"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "sex"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "joan"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "24"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "f"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "archie"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "29"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "m"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "bella"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "45"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "f"]]]])]
- (TableFoot ("",[],[])
- [])
-,Para [Str "and",Space,Str "some",Space,Str "text",Space,Str "following",Space,Str "\8230"]
-,Header 2 ("with-headers",[],[]) [Str "With",Space,Str "headers"]
-,Table ("",[],[]) (Caption Nothing
- [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "name"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "age"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "sex"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "joan"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "24"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "f"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "archie"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "29"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "m"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "bella"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "45"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "f"]]]])]
- (TableFoot ("",[],[])
- [])
-,Header 1 ("images",[],[]) [Str "Images"]
-,Para [Str "Textile",Space,Str "inline",Space,Str "image",Space,Str "syntax,",Space,Str "like",LineBreak,Str "here",Space,Image ("",[],[]) [Str "this is the alt text"] ("this_is_an_image.png","this is the alt text"),LineBreak,Str "and",Space,Str "here",Space,Image ("",[],[]) [Str ""] ("this_is_an_image.png",""),Str "."]
-,Header 1 ("attributes",[],[]) [Str "Attributes"]
-,Header 2 ("ident",["bar","foo"],[("style","color:red;"),("lang","en")]) [Str "HTML",Space,Str "and",Space,Str "CSS",Space,Str "attributes",Space,Str "are",Space,Str "parsed",Space,Str "in",Space,Str "headers."]
-,Header 2 ("centered",[],[("style","text-align:center;")]) [Str "Centered"]
-,Header 2 ("right",[],[("style","text-align:right;")]) [Str "Right"]
-,Header 2 ("justified",[],[("lang","en"),("style","color:blue;text-align:justify;")]) [Str "Justified"]
-,Para [Str "as",Space,Str "well",Space,Str "as",Space,Strong [Span ("",["foo"],[]) [Str "inline",Space,Str "attributes"]],Space,Str "of",Space,Span ("",[],[("style","color:red;")]) [Str "all",Space,Str "kind"]]
-,Para [Str "and",Space,Str "paragraph",Space,Str "attributes,",Space,Str "and",Space,Str "table",Space,Str "attributes."]
-,Table ("",[],[]) (Caption Nothing
- [])
- [(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
- (TableHead ("",[],[])
- [])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "name"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "age"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "sex"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "joan"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "24"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "f"]]]])]
- (TableFoot ("",[],[])
- [])
-,Para [Emph [Str "(class#id)",Space,Str "emph"]]
-,Para [Emph [Str "(no",Space,Str "class#id)",Space,Str "emph"]]
-,Header 1 ("entities",[],[]) [Str "Entities"]
-,Para [Str "*",LineBreak,Str "&"]
-,Header 1 ("raw-html",[],[]) [Str "Raw",Space,Str "HTML"]
-,Para [Str "However,",Space,RawInline (Format "html") "<strong>",Space,Str "raw",Space,Str "HTML",Space,Str "inlines",Space,RawInline (Format "html") "</strong>",Space,Str "are",Space,Str "accepted,",Space,Str "as",Space,Str "well",Space,Str "as",Space,Str ":"]
-,RawBlock (Format "html") "<div class=\"foobar\">"
-,Para [Str "any",Space,Strong [Str "Raw",Space,Str "HTML",Space,Str "Block"],Space,Str "with",Space,Str "bold"]
-,RawBlock (Format "html") "</div>"
-,Para [Str "Html",Space,Str "blocks",Space,Str "can"]
-,RawBlock (Format "html") "<div>"
-,Para [Str "interrupt",Space,Str "paragraphs"]
-,RawBlock (Format "html") "</div>"
-,Para [Str "as",Space,Str "well."]
-,Para [Str "Can",Space,Str "you",Space,Str "prove",Space,Str "that",Space,Str "2",Space,Str "<",Space,Str "3",Space,Str "?"]
-,Header 1 ("acronyms-and-marks",[],[]) [Str "Acronyms",Space,Str "and",Space,Str "marks"]
-,Para [Str "PBS (Public Broadcasting System)"]
-,Para [Str "Hi\8482"]
-,Para [Str "Hi",Space,Str "\8482"]
-,Para [Str "\174",Space,Str "Hi\174"]
-,Para [Str "Hi\169\&2008",Space,Str "\169",Space,Str "2008"]
-,Header 1 ("footnotes",[],[]) [Str "Footnotes"]
-,Para [Str "A",Space,Str "note.",Note [Para [Str "The",Space,Str "note",LineBreak,Str "is",Space,Str "here!"]],Space,Str "Another",Space,Str "note",Note [Para [Str "Other",Space,Str "note."]],Str "."]
-,Header 1 ("comment-blocks",[],[]) [Str "Comment",Space,Str "blocks"]
-,Para [Str "not",Space,Str "a",Space,Str "comment."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "set"
+      , Space
+      , Str "of"
+      , Space
+      , Str "tests"
+      , Space
+      , Str "for"
+      , Space
+      , Str "pandoc"
+      , Space
+      , Str "Textile"
+      , Space
+      , Str "Reader."
+      , Space
+      , Str "Part"
+      , Space
+      , Str "of"
+      , Space
+      , Str "it"
+      , Space
+      , Str "comes"
+      , LineBreak
+      , Str "from"
+      , Space
+      , Str "John"
+      , Space
+      , Str "Gruber\8217s"
+      , Space
+      , Str "markdown"
+      , Space
+      , Str "test"
+      , Space
+      , Str "suite."
+      ]
+  , HorizontalRule
+  , Header 1 ( "headers" , [] , [] ) [ Str "Headers" ]
+  , Header
+      2
+      ( "level-2-with-an-embedded-link" , [] , [] )
+      [ Str "Level"
+      , Space
+      , Str "2"
+      , Space
+      , Str "with"
+      , Space
+      , Str "an"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "embedded" , Space , Str "link" ]
+          ( "http://www.example.com" , "" )
+      ]
+  , Header
+      3
+      ( "level-3-with-emphasis" , [] , [] )
+      [ Str "Level"
+      , Space
+      , Str "3"
+      , Space
+      , Str "with"
+      , Space
+      , Strong [ Str "emphasis" ]
+      ]
+  , Header
+      4 ( "level-4" , [] , [] ) [ Str "Level" , Space , Str "4" ]
+  , Header
+      5 ( "level-5" , [] , [] ) [ Str "Level" , Space , Str "5" ]
+  , Header
+      6 ( "level-6" , [] , [] ) [ Str "Level" , Space , Str "6" ]
+  , Header 1 ( "paragraphs" , [] , [] ) [ Str "Paragraphs" ]
+  , Para
+      [ Str "Here\8217s"
+      , Space
+      , Str "a"
+      , Space
+      , Str "regular"
+      , Space
+      , Str "paragraph."
+      ]
+  , Para
+      [ Str "Line"
+      , Space
+      , Str "breaks"
+      , Space
+      , Str "are"
+      , Space
+      , Str "preserved"
+      , Space
+      , Str "in"
+      , Space
+      , Str "textile,"
+      , Space
+      , Str "so"
+      , Space
+      , Str "you"
+      , Space
+      , Str "can"
+      , Space
+      , Str "not"
+      , Space
+      , Str "wrap"
+      , Space
+      , Str "your"
+      , Space
+      , Str "very"
+      , LineBreak
+      , Str "long"
+      , Space
+      , Str "paragraph"
+      , Space
+      , Str "with"
+      , Space
+      , Str "your"
+      , Space
+      , Str "favourite"
+      , Space
+      , Str "text"
+      , Space
+      , Str "editor"
+      , Space
+      , Str "and"
+      , Space
+      , Str "have"
+      , Space
+      , Str "it"
+      , Space
+      , Str "rendered"
+      , LineBreak
+      , Str "with"
+      , Space
+      , Str "no"
+      , Space
+      , Str "break."
+      ]
+  , Para
+      [ Str "Here\8217s"
+      , Space
+      , Str "one"
+      , Space
+      , Str "with"
+      , Space
+      , Str "a"
+      , Space
+      , Str "bullet."
+      ]
+  , BulletList [ [ Plain [ Str "criminey." ] ] ]
+  , Para
+      [ Str "There"
+      , Space
+      , Str "should"
+      , Space
+      , Str "be"
+      , Space
+      , Str "a"
+      , Space
+      , Str "paragraph"
+      , Space
+      , Str "break"
+      , Space
+      , Str "between"
+      , Space
+      , Str "here"
+      ]
+  , Para [ Str "and" , Space , Str "here." ]
+  , Para
+      [ Str "pandoc"
+      , Space
+      , Str "converts"
+      , Space
+      , Str "textile."
+      ]
+  , Header
+      1
+      ( "block-quotes" , [] , [] )
+      [ Str "Block" , Space , Str "Quotes" ]
+  , BlockQuote
+      [ Para
+          [ Str "This"
+          , Space
+          , Str "is"
+          , Space
+          , Str "a"
+          , Space
+          , Str "famous"
+          , Space
+          , Str "quote"
+          , Space
+          , Str "from"
+          , Space
+          , Str "somebody."
+          , Space
+          , Str "He"
+          , Space
+          , Str "had"
+          , Space
+          , Str "a"
+          , Space
+          , Str "lot"
+          , Space
+          , Str "of"
+          , Space
+          , Str "things"
+          , Space
+          , Str "to"
+          , LineBreak
+          , Str "say,"
+          , Space
+          , Str "so"
+          , Space
+          , Str "the"
+          , Space
+          , Str "text"
+          , Space
+          , Str "is"
+          , Space
+          , Str "really"
+          , Space
+          , Str "really"
+          , Space
+          , Str "long"
+          , Space
+          , Str "and"
+          , Space
+          , Str "spans"
+          , Space
+          , Str "on"
+          , Space
+          , Str "multiple"
+          , Space
+          , Str "lines."
+          ]
+      ]
+  , Para
+      [ Str "And"
+      , Space
+      , Str "a"
+      , Space
+      , Str "following"
+      , Space
+      , Str "paragraph."
+      ]
+  , Header
+      1
+      ( "code-blocks" , [] , [] )
+      [ Str "Code" , Space , Str "Blocks" ]
+  , Para [ Str "Code:" ]
+  , CodeBlock
+      ( "" , [] , [] )
+      "    ---- (should be four hyphens)\n\n    sub status {\n        print \"working\";\n    }\n\n    this code block is indented by one tab"
+  , Para [ Str "And:" ]
+  , CodeBlock
+      ( "" , [] , [] )
+      "        this code block is indented by two tabs\n\n    These should not be escaped:  \\$ \\\\ \\> \\[ \\{"
+  , CodeBlock
+      ( "" , [] , [] )
+      "Code block with .bc\n        continued\n    @</\\"
+  , CodeBlock
+      ( "" , [] , [] ) "extended code block\n\n        continued"
+  , Para
+      [ Str "ended" , Space , Str "by" , Space , Str "paragraph" ]
+  , Para
+      [ Str "Inline"
+      , Space
+      , Str "code:"
+      , Space
+      , Code ( "" , [] , [] ) "<tt>"
+      , Str ","
+      , Space
+      , Code ( "" , [] , [] ) "@"
+      , Str "."
+      ]
+  , Header 1 ( "notextile" , [] , [] ) [ Str "Notextile" ]
+  , Para
+      [ Str "A"
+      , Space
+      , Str "block"
+      , Space
+      , Str "of"
+      , Space
+      , Str "text"
+      , Space
+      , Str "can"
+      , Space
+      , Str "be"
+      , Space
+      , Str "protected"
+      , Space
+      , Str "with"
+      , Space
+      , Str "notextile"
+      , Space
+      , Str ":"
+      ]
+  , Para [ Str "\nNo *bold* and\n* no bullet\n" ]
+  , Para
+      [ Str "and"
+      , Space
+      , Str "inlines"
+      , Space
+      , Str "can"
+      , Space
+      , Str "be"
+      , Space
+      , Str "protected"
+      , Space
+      , Str "with"
+      , Space
+      , Str "double *equals (=)* markup."
+      ]
+  , Header 1 ( "lists" , [] , [] ) [ Str "Lists" ]
+  , Header 2 ( "unordered" , [] , [] ) [ Str "Unordered" ]
+  , Para [ Str "Asterisks" , Space , Str "tight:" ]
+  , BulletList
+      [ [ Plain [ Str "asterisk" , Space , Str "1" ] ]
+      , [ Plain [ Str "asterisk" , Space , Str "2" ] ]
+      , [ Plain [ Str "asterisk" , Space , Str "3" ] ]
+      ]
+  , Para
+      [ Str "With" , Space , Str "line" , Space , Str "breaks:" ]
+  , BulletList
+      [ [ Plain
+            [ Str "asterisk"
+            , Space
+            , Str "1"
+            , LineBreak
+            , Str "newline"
+            ]
+        ]
+      , [ Plain [ Str "asterisk" , Space , Str "2" ] ]
+      ]
+  , Header 2 ( "ordered" , [] , [] ) [ Str "Ordered" ]
+  , Para [ Str "Tight:" ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Plain [ Str "First" ] ]
+      , [ Plain [ Str "Second" ] ]
+      , [ Plain [ Str "Third" ] ]
+      ]
+  , Header 2 ( "nested" , [] , [] ) [ Str "Nested" ]
+  , BulletList
+      [ [ Plain [ Str "ui" , Space , Str "1" ]
+        , BulletList
+            [ [ Plain [ Str "ui" , Space , Str "1.1" ]
+              , OrderedList
+                  ( 1 , DefaultStyle , DefaultDelim )
+                  [ [ Plain [ Str "oi" , Space , Str "1.1.1" ] ]
+                  , [ Plain [ Str "oi" , Space , Str "1.1.2" ] ]
+                  ]
+              ]
+            , [ Plain [ Str "ui" , Space , Str "1.2" ] ]
+            ]
+        ]
+      , [ Plain [ Str "ui" , Space , Str "2" ]
+        , OrderedList
+            ( 1 , DefaultStyle , DefaultDelim )
+            [ [ Plain [ Str "oi" , Space , Str "2.1" ]
+              , BulletList
+                  [ [ Plain [ Str "ui" , Space , Str "2.1.1" ] ]
+                  , [ Plain [ Str "ui" , Space , Str "2.1.2" ] ]
+                  ]
+              ]
+            ]
+        ]
+      ]
+  , Header
+      2
+      ( "issue-1500" , [] , [] )
+      [ Str "Issue" , Space , Str "#1500" ]
+  , BulletList
+      [ [ Plain [ Str "one" ] ]
+      , [ Plain
+            [ Str "two"
+            , LineBreak
+            , Str "->"
+            , Space
+            , Str "and"
+            , Space
+            , Str "more"
+            ]
+        ]
+      ]
+  , Header
+      2
+      ( "issue-1513" , [] , [] )
+      [ Str "Issue" , Space , Str "#1513" ]
+  , Para [ Str "List:" ]
+  , BulletList
+      [ [ Plain [ Str "one" ] ] , [ Plain [ Str "two" ] ] ]
+  , Header
+      2
+      ( "definition-list" , [] , [] )
+      [ Str "Definition" , Space , Str "List" ]
+  , DefinitionList
+      [ ( [ Str "coffee" ]
+        , [ [ Plain
+                [ Str "Hot" , Space , Str "and" , Space , Str "black" ]
+            ]
+          ]
+        )
+      , ( [ Str "tea" ]
+        , [ [ Plain
+                [ Str "Also"
+                , Space
+                , Str "hot,"
+                , Space
+                , Str "but"
+                , Space
+                , Str "a"
+                , Space
+                , Str "little"
+                , Space
+                , Str "less"
+                , Space
+                , Str "black"
+                ]
+            ]
+          ]
+        )
+      , ( [ Str "milk" ]
+        , [ [ Para
+                [ Str "Nourishing"
+                , Space
+                , Str "beverage"
+                , Space
+                , Str "for"
+                , Space
+                , Str "baby"
+                , Space
+                , Str "cows."
+                ]
+            , Para
+                [ Str "Cold"
+                , Space
+                , Str "drink"
+                , Space
+                , Str "that"
+                , Space
+                , Str "goes"
+                , Space
+                , Str "great"
+                , Space
+                , Str "with"
+                , Space
+                , Str "cookies."
+                ]
+            ]
+          ]
+        )
+      , ( [ Str "beer" ]
+        , [ [ Plain
+                [ Str "fresh"
+                , Space
+                , Str "and"
+                , Space
+                , Str "bitter"
+                ]
+            ]
+          ]
+        )
+      ]
+  , Header
+      1
+      ( "inline-markup" , [] , [] )
+      [ Str "Inline" , Space , Str "Markup" ]
+  , Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Emph [ Str "emphasized" ]
+      , Str ","
+      , Space
+      , Str "and"
+      , Space
+      , Str "so"
+      , Space
+      , Emph [ Str "is" , Space , Str "this" ]
+      , Str "."
+      , LineBreak
+      , Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Strong [ Str "strong" ]
+      , Str ","
+      , Space
+      , Str "and"
+      , Space
+      , Str "so"
+      , Space
+      , Strong [ Str "is" , Space , Str "this" ]
+      , Str "."
+      , LineBreak
+      , Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Underline [ Str "inserted" ]
+      , Str ","
+      , Space
+      , Str "and"
+      , Space
+      , Str "this"
+      , Space
+      , Str "is"
+      , Space
+      , Strikeout [ Str "deleted" ]
+      , Str "."
+      , LineBreak
+      , Str "Hyphenated-words-are-ok,"
+      , Space
+      , Str "as"
+      , Space
+      , Str "well"
+      , Space
+      , Str "as"
+      , Space
+      , Str "strange_underscore_notation."
+      , LineBreak
+      , Str "A"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Strong [ Str "strong" , Space , Str "link" ] ]
+          ( "http://www.foobar.com" , "" )
+      , Str "."
+      ]
+  , Para
+      [ Emph
+          [ Strong
+              [ Str "This"
+              , Space
+              , Str "is"
+              , Space
+              , Str "strong"
+              , Space
+              , Str "and"
+              , Space
+              , Str "em."
+              ]
+          ]
+      , LineBreak
+      , Str "So"
+      , Space
+      , Str "is"
+      , Space
+      , Strong [ Emph [ Str "this" ] ]
+      , Space
+      , Str "word"
+      , Space
+      , Str "and"
+      , Space
+      , Emph [ Strong [ Str "that" , Space , Str "one" ] ]
+      , Str "."
+      , LineBreak
+      , Strikeout
+          [ Str "This"
+          , Space
+          , Str "is"
+          , Space
+          , Str "strikeout"
+          , Space
+          , Str "and"
+          , Space
+          , Strong [ Str "strong" ]
+          ]
+      ]
+  , Para
+      [ Str "Superscripts:"
+      , Space
+      , Str "a"
+      , Superscript [ Str "bc" ]
+      , Str "d"
+      , Space
+      , Str "a"
+      , Space
+      , Superscript [ Strong [ Str "hello" ] ]
+      , Space
+      , Str "a"
+      , Superscript [ Str "hello" , Space , Str "there" ]
+      , Str "."
+      , LineBreak
+      , Str "Subscripts:"
+      , Space
+      , Subscript [ Str "here" ]
+      , Space
+      , Str "H"
+      , Space
+      , Subscript [ Str "2" ]
+      , Str "O,"
+      , Space
+      , Str "H"
+      , Space
+      , Subscript [ Str "23" ]
+      , Str "O,"
+      , Space
+      , Str "H"
+      , Space
+      , Subscript
+          [ Str "many" , Space , Str "of" , Space , Str "them" ]
+      , Str "O."
+      ]
+  , Para
+      [ Str "Dashes"
+      , Space
+      , Str ":"
+      , Space
+      , Str "How"
+      , Space
+      , Str "cool"
+      , Space
+      , Str "\8212"
+      , Space
+      , Str "automatic"
+      , Space
+      , Str "dashes."
+      ]
+  , Para
+      [ Str "Ellipses"
+      , Space
+      , Str ":"
+      , Space
+      , Str "He"
+      , Space
+      , Str "thought"
+      , Space
+      , Str "and"
+      , Space
+      , Str "thought"
+      , Space
+      , Str "\8230"
+      , Space
+      , Str "and"
+      , Space
+      , Str "then"
+      , Space
+      , Str "thought"
+      , Space
+      , Str "some"
+      , Space
+      , Str "more."
+      ]
+  , Para
+      [ Str "Quotes"
+      , Space
+      , Str "and"
+      , Space
+      , Str "apostrophes"
+      , Space
+      , Str ":"
+      , Space
+      , Quoted
+          DoubleQuote
+          [ Str "I\8217d"
+          , Space
+          , Str "like"
+          , Space
+          , Str "to"
+          , Space
+          , Str "thank"
+          , Space
+          , Str "you"
+          ]
+      , Space
+      , Str "for"
+      , Space
+      , Str "example."
+      ]
+  , Header 1 ( "links" , [] , [] ) [ Str "Links" ]
+  , Header 2 ( "explicit" , [] , [] ) [ Str "Explicit" ]
+  , Para
+      [ Str "Just"
+      , Space
+      , Str "a"
+      , Space
+      , Link
+          ( "" , [] , [] ) [ Str "url" ] ( "http://www.url.com" , "" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "Email" , Space , Str "link" ]
+          ( "mailto:nobody@nowhere.net" , "" )
+      ]
+  , Para
+      [ Quoted
+          DoubleQuote
+          [ Str "not" , Space , Str "a" , Space , Str "link" ]
+      , Str ":"
+      , Space
+      , Str "foo"
+      ]
+  , Para
+      [ Str "Automatic"
+      , Space
+      , Str "linking"
+      , Space
+      , Str "to"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "http://www.example.com" ]
+          ( "http://www.example.com" , "" )
+      , Str "."
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "Example" ]
+          ( "http://www.example.com/" , "" )
+      , Str ":"
+      , Space
+      , Str "Example"
+      , Space
+      , Str "of"
+      , Space
+      , Str "a"
+      , Space
+      , Str "link"
+      , Space
+      , Str "followed"
+      , Space
+      , Str "by"
+      , Space
+      , Str "a"
+      , Space
+      , Str "colon."
+      ]
+  , Para
+      [ Str "A"
+      , Space
+      , Str "link"
+      , Link
+          ( "" , [] , [] )
+          [ Str "with" , Space , Str "brackets" ]
+          ( "http://www.example.com" , "" )
+      , Str "and"
+      , Space
+      , Str "no"
+      , Space
+      , Str "spaces."
+      ]
+  , Header 1 ( "tables" , [] , [] ) [ Str "Tables" ]
+  , Para
+      [ Str "Textile"
+      , Space
+      , Str "allows"
+      , Space
+      , Str "tables"
+      , Space
+      , Str "with"
+      , Space
+      , Str "and"
+      , Space
+      , Str "without"
+      , Space
+      , Str "headers"
+      , Space
+      , Str ":"
+      ]
+  , Header
+      2
+      ( "without-headers" , [] , [] )
+      [ Str "Without" , Space , Str "headers" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "name" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "age" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "sex" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "joan" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "24" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "f" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "archie" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "29" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "m" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "bella" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "45" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "f" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para
+      [ Str "and"
+      , Space
+      , Str "some"
+      , Space
+      , Str "text"
+      , Space
+      , Str "following"
+      , Space
+      , Str "\8230"
+      ]
+  , Header
+      2
+      ( "with-headers" , [] , [] )
+      [ Str "With" , Space , Str "headers" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "name" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "age" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "sex" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "joan" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "24" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "f" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "archie" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "29" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "m" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "bella" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "45" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "f" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Header 1 ( "images" , [] , [] ) [ Str "Images" ]
+  , Para
+      [ Str "Textile"
+      , Space
+      , Str "inline"
+      , Space
+      , Str "image"
+      , Space
+      , Str "syntax,"
+      , Space
+      , Str "like"
+      , LineBreak
+      , Str "here"
+      , Space
+      , Image
+          ( "" , [] , [] )
+          [ Str "this is the alt text" ]
+          ( "this_is_an_image.png" , "this is the alt text" )
+      , LineBreak
+      , Str "and"
+      , Space
+      , Str "here"
+      , Space
+      , Image
+          ( "" , [] , [] ) [ Str "" ] ( "this_is_an_image.png" , "" )
+      , Str "."
+      ]
+  , Header 1 ( "attributes" , [] , [] ) [ Str "Attributes" ]
+  , Header
+      2
+      ( "ident"
+      , [ "bar" , "foo" ]
+      , [ ( "style" , "color:red;" ) , ( "lang" , "en" ) ]
+      )
+      [ Str "HTML"
+      , Space
+      , Str "and"
+      , Space
+      , Str "CSS"
+      , Space
+      , Str "attributes"
+      , Space
+      , Str "are"
+      , Space
+      , Str "parsed"
+      , Space
+      , Str "in"
+      , Space
+      , Str "headers."
+      ]
+  , Header
+      2
+      ( "centered" , [] , [ ( "style" , "text-align:center;" ) ] )
+      [ Str "Centered" ]
+  , Header
+      2
+      ( "right" , [] , [ ( "style" , "text-align:right;" ) ] )
+      [ Str "Right" ]
+  , Header
+      2
+      ( "justified"
+      , []
+      , [ ( "lang" , "en" )
+        , ( "style" , "color:blue;text-align:justify;" )
+        ]
+      )
+      [ Str "Justified" ]
+  , Para
+      [ Str "as"
+      , Space
+      , Str "well"
+      , Space
+      , Str "as"
+      , Space
+      , Strong
+          [ Span
+              ( "" , [ "foo" ] , [] )
+              [ Str "inline" , Space , Str "attributes" ]
+          ]
+      , Space
+      , Str "of"
+      , Space
+      , Span
+          ( "" , [] , [ ( "style" , "color:red;" ) ] )
+          [ Str "all" , Space , Str "kind" ]
+      ]
+  , Para
+      [ Str "and"
+      , Space
+      , Str "paragraph"
+      , Space
+      , Str "attributes,"
+      , Space
+      , Str "and"
+      , Space
+      , Str "table"
+      , Space
+      , Str "attributes."
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "name" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "age" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "sex" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "joan" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "24" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "f" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para [ Emph [ Str "(class#id)" , Space , Str "emph" ] ]
+  , Para
+      [ Emph
+          [ Str "(no" , Space , Str "class#id)" , Space , Str "emph" ]
+      ]
+  , Header 1 ( "entities" , [] , [] ) [ Str "Entities" ]
+  , Para [ Str "*" , LineBreak , Str "&" ]
+  , Header
+      1
+      ( "raw-html" , [] , [] )
+      [ Str "Raw" , Space , Str "HTML" ]
+  , Para
+      [ Str "However,"
+      , Space
+      , RawInline (Format "html") "<strong>"
+      , Space
+      , Str "raw"
+      , Space
+      , Str "HTML"
+      , Space
+      , Str "inlines"
+      , Space
+      , RawInline (Format "html") "</strong>"
+      , Space
+      , Str "are"
+      , Space
+      , Str "accepted,"
+      , Space
+      , Str "as"
+      , Space
+      , Str "well"
+      , Space
+      , Str "as"
+      , Space
+      , Str ":"
+      ]
+  , RawBlock (Format "html") "<div class=\"foobar\">"
+  , Para
+      [ Str "any"
+      , Space
+      , Strong
+          [ Str "Raw" , Space , Str "HTML" , Space , Str "Block" ]
+      , Space
+      , Str "with"
+      , Space
+      , Str "bold"
+      ]
+  , RawBlock (Format "html") "</div>"
+  , Para
+      [ Str "Html" , Space , Str "blocks" , Space , Str "can" ]
+  , RawBlock (Format "html") "<div>"
+  , Para [ Str "interrupt" , Space , Str "paragraphs" ]
+  , RawBlock (Format "html") "</div>"
+  , Para [ Str "as" , Space , Str "well." ]
+  , Para
+      [ Str "Can"
+      , Space
+      , Str "you"
+      , Space
+      , Str "prove"
+      , Space
+      , Str "that"
+      , Space
+      , Str "2"
+      , Space
+      , Str "<"
+      , Space
+      , Str "3"
+      , Space
+      , Str "?"
+      ]
+  , Header
+      1
+      ( "acronyms-and-marks" , [] , [] )
+      [ Str "Acronyms" , Space , Str "and" , Space , Str "marks" ]
+  , Para [ Str "PBS (Public Broadcasting System)" ]
+  , Para [ Str "Hi\8482" ]
+  , Para [ Str "Hi" , Space , Str "\8482" ]
+  , Para [ Str "\174" , Space , Str "Hi\174" ]
+  , Para
+      [ Str "Hi\169\&2008"
+      , Space
+      , Str "\169"
+      , Space
+      , Str "2008"
+      ]
+  , Header 1 ( "footnotes" , [] , [] ) [ Str "Footnotes" ]
+  , Para
+      [ Str "A"
+      , Space
+      , Str "note."
+      , Note
+          [ Para
+              [ Str "The"
+              , Space
+              , Str "note"
+              , LineBreak
+              , Str "is"
+              , Space
+              , Str "here!"
+              ]
+          ]
+      , Space
+      , Str "Another"
+      , Space
+      , Str "note"
+      , Note [ Para [ Str "Other" , Space , Str "note." ] ]
+      , Str "."
+      ]
+  , Header
+      1
+      ( "comment-blocks" , [] , [] )
+      [ Str "Comment" , Space , Str "blocks" ]
+  , Para
+      [ Str "not" , Space , Str "a" , Space , Str "comment." ]
+  ]

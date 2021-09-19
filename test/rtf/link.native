@@ -1,2 +1,9 @@
-Pandoc (Meta {unMeta = fromList []})
-[Para [Link ("",[],[]) [Str "pandoc"] ("http://pandoc.org","")]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "pandoc" ]
+          ( "http://pandoc.org" , "" )
+      ]
+  ]

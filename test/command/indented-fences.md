@@ -5,7 +5,7 @@
 in y
    ```
 ^D
-[CodeBlock ("",["haskell"],[]) "let x = y\nin y"]
+[ CodeBlock ( "" , [ "haskell" ] , [] ) "let x = y\nin y" ]
 `````
 `````
 % pandoc -t native
@@ -16,5 +16,7 @@ y +
  y
 ~~~
 ^D
-[CodeBlock ("",["haskell"],[]) " let x = y\nin y +\ny +\ny"]
+[ CodeBlock
+    ( "" , [ "haskell" ] , [] ) " let x = y\nin y +\ny +\ny"
+]
 `````

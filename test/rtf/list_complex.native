@@ -1,24 +1,64 @@
-Pandoc (Meta {unMeta = fromList [("author",MetaInlines [Str "Cynthia",Space,Str "Johnson"]),("operator",MetaInlines [Str "John",Space,Str "MacFarlane"]),("title",MetaInlines [Str "Text",Space,Str "before",Space,Str "list"])]})
-[OrderedList (1,Decimal,Period)
- [[Para [Str "One"]]
- ,[Para [Str "Two"]
-  ,OrderedList (1,LowerAlpha,Period)
-   [[Para [Str "Three"]]
-   ,[Para [Str "Four"]
-    ,OrderedList (1,LowerRoman,Period)
-     [[Para [Str "Five"]]
-     ,[Para [Str "Six"]
-      ,OrderedList (1,UpperAlpha,Period)
-       [[Para [Str "Seven"]]
-       ,[Para [Str "Eight"]
-        ,OrderedList (1,UpperRoman,Period)
-         [[Para [Str "Nine"]]
-         ,[Para [Str "Ten"]
-          ,BulletList
-           [[Para [Str "Eleven"]]
-           ,[Para [Str "Twelve"]]]]]]]]]]]]]
-,Para [Str "Out",Space,Str "of",Space,Str "list!"]
-,Para [Str "Start",Space,Str "with"]
-,OrderedList (7,Decimal,Period)
- [[Para [Str "Seven",Space,Str "Start"]]
- ,[Para [Str "Eight",Space,Str "Continue"]]]]
+Pandoc
+  Meta
+    { unMeta =
+        fromList
+          [ ( "author"
+            , MetaInlines [ Str "Cynthia" , Space , Str "Johnson" ]
+            )
+          , ( "operator"
+            , MetaInlines [ Str "John" , Space , Str "MacFarlane" ]
+            )
+          , ( "title"
+            , MetaInlines
+                [ Str "Text"
+                , Space
+                , Str "before"
+                , Space
+                , Str "list"
+                ]
+            )
+          ]
+    }
+  [ OrderedList
+      ( 1 , Decimal , Period )
+      [ [ Para [ Str "One" ] ]
+      , [ Para [ Str "Two" ]
+        , OrderedList
+            ( 1 , LowerAlpha , Period )
+            [ [ Para [ Str "Three" ] ]
+            , [ Para [ Str "Four" ]
+              , OrderedList
+                  ( 1 , LowerRoman , Period )
+                  [ [ Para [ Str "Five" ] ]
+                  , [ Para [ Str "Six" ]
+                    , OrderedList
+                        ( 1 , UpperAlpha , Period )
+                        [ [ Para [ Str "Seven" ] ]
+                        , [ Para [ Str "Eight" ]
+                          , OrderedList
+                              ( 1 , UpperRoman , Period )
+                              [ [ Para [ Str "Nine" ] ]
+                              , [ Para [ Str "Ten" ]
+                                , BulletList
+                                    [ [ Para [ Str "Eleven" ] ]
+                                    , [ Para [ Str "Twelve" ] ]
+                                    ]
+                                ]
+                              ]
+                          ]
+                        ]
+                    ]
+                  ]
+              ]
+            ]
+        ]
+      ]
+  , Para
+      [ Str "Out" , Space , Str "of" , Space , Str "list!" ]
+  , Para [ Str "Start" , Space , Str "with" ]
+  , OrderedList
+      ( 7 , Decimal , Period )
+      [ [ Para [ Str "Seven" , Space , Str "Start" ] ]
+      , [ Para [ Str "Eight" , Space , Str "Continue" ] ]
+      ]
+  ]

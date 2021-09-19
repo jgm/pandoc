@@ -1,66 +1,123 @@
-Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "Dave",Space,Str "Winer"]]),("date",MetaInlines [Str "Thu,",Space,Str "14",Space,Str "Jul",Space,Str "2005",Space,Str "23:41:05",Space,Str "GMT"]),("title",MetaInlines [Str "States"])]})
-[Header 1 ("",[],[]) [Str "United",Space,Str "States"]
-,Header 2 ("",[],[]) [Str "Far",Space,Str "West"]
-,Header 3 ("",[],[]) [Str "Alaska"]
-,Header 3 ("",[],[]) [Str "California"]
-,Header 3 ("",[],[]) [Str "Hawaii"]
-,Header 3 ("",[],[]) [Strong [Str "Nevada"]]
-,Para [Str "I",Space,Str "lived",Space,Str "here",Space,Emph [Str "once"],Str "."]
-,Para [Str "Loved",Space,Str "it."]
-,Header 4 ("",[],[]) [Link ("",[],[]) [Str "Reno"] ("http://www.reno.gov","")]
-,Header 4 ("",[],[]) [Str "Las",Space,Str "Vegas"]
-,Header 4 ("",[],[]) [Str "Ely"]
-,Header 4 ("",[],[]) [Str "Gerlach"]
-,Header 3 ("",[],[]) [Str "Oregon"]
-,Header 3 ("",[],[]) [Str "Washington"]
-,Header 2 ("",[],[]) [Str "Great",Space,Str "Plains"]
-,Header 3 ("",[],[]) [Str "Kansas"]
-,Header 3 ("",[],[]) [Str "Nebraska"]
-,Header 3 ("",[],[]) [Str "North",Space,Str "Dakota"]
-,Header 3 ("",[],[]) [Str "Oklahoma"]
-,Header 3 ("",[],[]) [Str "South",Space,Str "Dakota"]
-,Header 2 ("",[],[]) [Str "Mid-Atlantic"]
-,Header 3 ("",[],[]) [Str "Delaware"]
-,Header 3 ("",[],[]) [Str "Maryland"]
-,Header 3 ("",[],[]) [Str "New",Space,Str "Jersey"]
-,Header 3 ("",[],[]) [Str "New",Space,Str "York"]
-,Header 3 ("",[],[]) [Str "Pennsylvania"]
-,Header 2 ("",[],[]) [Str "Midwest"]
-,Header 3 ("",[],[]) [Str "Illinois"]
-,Header 3 ("",[],[]) [Str "Indiana"]
-,Header 3 ("",[],[]) [Str "Iowa"]
-,Header 3 ("",[],[]) [Str "Kentucky"]
-,Header 3 ("",[],[]) [Str "Michigan"]
-,Header 3 ("",[],[]) [Str "Minnesota"]
-,Header 3 ("",[],[]) [Str "Missouri"]
-,Header 3 ("",[],[]) [Str "Ohio"]
-,Header 3 ("",[],[]) [Str "West",Space,Str "Virginia"]
-,Header 3 ("",[],[]) [Str "Wisconsin"]
-,Header 2 ("",[],[]) [Str "Mountains"]
-,Header 3 ("",[],[]) [Str "Colorado"]
-,Header 3 ("",[],[]) [Str "Idaho"]
-,Header 3 ("",[],[]) [Str "Montana"]
-,Header 3 ("",[],[]) [Str "Utah"]
-,Header 3 ("",[],[]) [Str "Wyoming"]
-,Header 2 ("",[],[]) [Str "New",Space,Str "England"]
-,Header 3 ("",[],[]) [Str "Connecticut"]
-,Header 3 ("",[],[]) [Str "Maine"]
-,Header 3 ("",[],[]) [Str "Massachusetts"]
-,Header 3 ("",[],[]) [Str "New",Space,Str "Hampshire"]
-,Header 3 ("",[],[]) [Str "Rhode",Space,Str "Island"]
-,Header 3 ("",[],[]) [Str "Vermont"]
-,Header 2 ("",[],[]) [Str "South"]
-,Header 3 ("",[],[]) [Str "Alabama"]
-,Header 3 ("",[],[]) [Str "Arkansas"]
-,Header 3 ("",[],[]) [Str "Florida"]
-,Header 3 ("",[],[]) [Str "Georgia"]
-,Header 3 ("",[],[]) [Str "Louisiana"]
-,Header 3 ("",[],[]) [Str "Mississippi"]
-,Header 3 ("",[],[]) [Str "North",Space,Str "Carolina"]
-,Header 3 ("",[],[]) [Str "South",Space,Str "Carolina"]
-,Header 3 ("",[],[]) [Str "Tennessee"]
-,Header 3 ("",[],[]) [Str "Virginia"]
-,Header 2 ("",[],[]) [Str "Southwest"]
-,Header 3 ("",[],[]) [Str "Arizona"]
-,Header 3 ("",[],[]) [Str "New",Space,Str "Mexico"]
-,Header 3 ("",[],[]) [Str "Texas"]]
+Pandoc
+  Meta
+    { unMeta =
+        fromList
+          [ ( "author"
+            , MetaList
+                [ MetaInlines [ Str "Dave" , Space , Str "Winer" ] ]
+            )
+          , ( "date"
+            , MetaInlines
+                [ Str "Thu,"
+                , Space
+                , Str "14"
+                , Space
+                , Str "Jul"
+                , Space
+                , Str "2005"
+                , Space
+                , Str "23:41:05"
+                , Space
+                , Str "GMT"
+                ]
+            )
+          , ( "title" , MetaInlines [ Str "States" ] )
+          ]
+    }
+  [ Header
+      1 ( "" , [] , [] ) [ Str "United" , Space , Str "States" ]
+  , Header
+      2 ( "" , [] , [] ) [ Str "Far" , Space , Str "West" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Alaska" ]
+  , Header 3 ( "" , [] , [] ) [ Str "California" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Hawaii" ]
+  , Header 3 ( "" , [] , [] ) [ Strong [ Str "Nevada" ] ]
+  , Para
+      [ Str "I"
+      , Space
+      , Str "lived"
+      , Space
+      , Str "here"
+      , Space
+      , Emph [ Str "once" ]
+      , Str "."
+      ]
+  , Para [ Str "Loved" , Space , Str "it." ]
+  , Header
+      4
+      ( "" , [] , [] )
+      [ Link
+          ( "" , [] , [] )
+          [ Str "Reno" ]
+          ( "http://www.reno.gov" , "" )
+      ]
+  , Header
+      4 ( "" , [] , [] ) [ Str "Las" , Space , Str "Vegas" ]
+  , Header 4 ( "" , [] , [] ) [ Str "Ely" ]
+  , Header 4 ( "" , [] , [] ) [ Str "Gerlach" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Oregon" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Washington" ]
+  , Header
+      2 ( "" , [] , [] ) [ Str "Great" , Space , Str "Plains" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Kansas" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Nebraska" ]
+  , Header
+      3 ( "" , [] , [] ) [ Str "North" , Space , Str "Dakota" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Oklahoma" ]
+  , Header
+      3 ( "" , [] , [] ) [ Str "South" , Space , Str "Dakota" ]
+  , Header 2 ( "" , [] , [] ) [ Str "Mid-Atlantic" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Delaware" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Maryland" ]
+  , Header
+      3 ( "" , [] , [] ) [ Str "New" , Space , Str "Jersey" ]
+  , Header
+      3 ( "" , [] , [] ) [ Str "New" , Space , Str "York" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Pennsylvania" ]
+  , Header 2 ( "" , [] , [] ) [ Str "Midwest" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Illinois" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Indiana" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Iowa" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Kentucky" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Michigan" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Minnesota" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Missouri" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Ohio" ]
+  , Header
+      3 ( "" , [] , [] ) [ Str "West" , Space , Str "Virginia" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Wisconsin" ]
+  , Header 2 ( "" , [] , [] ) [ Str "Mountains" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Colorado" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Idaho" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Montana" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Utah" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Wyoming" ]
+  , Header
+      2 ( "" , [] , [] ) [ Str "New" , Space , Str "England" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Connecticut" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Maine" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Massachusetts" ]
+  , Header
+      3 ( "" , [] , [] ) [ Str "New" , Space , Str "Hampshire" ]
+  , Header
+      3 ( "" , [] , [] ) [ Str "Rhode" , Space , Str "Island" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Vermont" ]
+  , Header 2 ( "" , [] , [] ) [ Str "South" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Alabama" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Arkansas" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Florida" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Georgia" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Louisiana" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Mississippi" ]
+  , Header
+      3 ( "" , [] , [] ) [ Str "North" , Space , Str "Carolina" ]
+  , Header
+      3 ( "" , [] , [] ) [ Str "South" , Space , Str "Carolina" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Tennessee" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Virginia" ]
+  , Header 2 ( "" , [] , [] ) [ Str "Southwest" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Arizona" ]
+  , Header
+      3 ( "" , [] , [] ) [ Str "New" , Space , Str "Mexico" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Texas" ]
+  ]

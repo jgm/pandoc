@@ -1,2 +1,3 @@
-Pandoc (Meta {unMeta = fromList []})
-[Para [Str "\8220hi\8221\8216hi\8217\61623\945\228"]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para [ Str "\8220hi\8221\8216hi\8217\61623\945\228" ] ]

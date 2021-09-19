@@ -7,7 +7,6 @@ Hello
 \end{center}
 
 ^D
-[Div ("",["center"],[])
- [Para [Str "Hello"]]]
+[ Div ( "" , [ "center" ] , [] ) [ Para [ Str "Hello" ] ] ]
 ```
 

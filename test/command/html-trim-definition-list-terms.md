@@ -11,7 +11,15 @@
     <dd>test</dd>
 </dl>
 ^D
-[DefinitionList
- [([Str "foo",SoftBreak,Str "bar",LineBreak,Str "baz"],
-   [[Plain [Str "test"]]])]]
+[ DefinitionList
+    [ ( [ Str "foo"
+        , SoftBreak
+        , Str "bar"
+        , LineBreak
+        , Str "baz"
+        ]
+      , [ [ Plain [ Str "test" ] ] ]
+      )
+    ]
+]
 ```

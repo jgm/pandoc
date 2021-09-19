@@ -6,7 +6,8 @@
 
 \vdots
 ^D
-[Para [Str "\8230"]
-,Para [Str "\8230"]
-,Para [Str "\8942"]]
+[ Para [ Str "\8230" ]
+, Para [ Str "\8230" ]
+, Para [ Str "\8942" ]
+]
 ```

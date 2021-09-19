@@ -4,6 +4,7 @@
 
 \listoftables
 ^D
-[RawBlock (Format "tex") "\\listoffigures"
-,RawBlock (Format "tex") "\\listoftables"]
+[ RawBlock (Format "tex") "\\listoffigures"
+, RawBlock (Format "tex") "\\listoftables"
+]
 ```
