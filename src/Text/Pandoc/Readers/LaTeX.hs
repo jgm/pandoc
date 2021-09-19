@@ -967,6 +967,7 @@ environments = M.union (tableEnvironments blocks inline) $
    , ("toggletrue", braced >>= setToggle True)
    , ("togglefalse", braced >>= setToggle False)
    , ("iftoggle", try $ ifToggle >> block)
+   , ("CSLReferences", braced >> braced >> env "CSLReferences" blocks)
    ]
 
 filecontents :: PandocMonad m => LP m Blocks
