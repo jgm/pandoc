@@ -30,4 +30,4 @@ jobs:
 
       - name: Download and run hlint
         run: |
-          curl -sSL "${hlint_script}" | sh -s .
+          curl -sSL "${hlint_script}" | sh -s src app test
