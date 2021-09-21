@@ -12,6 +12,7 @@ Run commands, and test results, defined in markdown files.
 module Tests.Command (runTest, tests)
 where
 
+import Data.Maybe (fromMaybe)
 import Data.Algorithm.Diff
 import System.Environment (getExecutablePath)
 import qualified Data.ByteString as BS
@@ -90,18 +91,19 @@ extractCode :: Block -> String
 extractCode (CodeBlock _ code) = T.unpack code
 extractCode _                  = ""
 
-dropPercent :: String -> String
-dropPercent ('%':xs) = dropWhile (== ' ') xs
-dropPercent xs       = xs
+dropPercent :: String -> Maybe String
+dropPercent ('%':xs) = Just $ dropWhile (== ' ') xs
+dropPercent _        = Nothing
 
 runCommandTest :: FilePath -> FilePath -> Int -> String -> TestTree
-runCommandTest testExePath fp num code =
+runCommandTest testExePath fp num code = do
   goldenTest testname getExpected getActual compareValues' updateGolden
  where
   testname = "#" <> show num
   codelines = lines code
   (continuations, r1) = span ("\\" `isSuffixOf`) codelines
-  cmd = dropPercent (unwords (map init continuations ++ take 1 r1))
+  cmd = fromMaybe (error "Command test line does not begin with %")
+            (dropPercent (unwords (map init continuations ++ take 1 r1)))
   r2 = drop 1 r1
   (inplines, r3) = break (=="^D") r2
   normlines = takeWhile (/=".") (drop 1 r3)
