@@ -1,5 +1,5 @@
 ```
-pandoc -t beamer
+% pandoc -t beamer
 :::: { .columns }                                
 ::: { .column align=center }
 :::

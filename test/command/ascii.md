@@ -1,19 +1,19 @@
 ```
-pandoc -t html --ascii
+% pandoc -t html --ascii
 äéıå
 ^D
 <p>&#xE4;&#xE9;&#x131;&#xE5;</p>
 ```
 
 ```
-pandoc -t latex --ascii
+% pandoc -t latex --ascii
 äéıå
 ^D
 \"{a}\'{e}\i\r{a}
 ```
 
 ```
-pandoc -t man --ascii
+% pandoc -t man --ascii
 äéıå
 ^D
 .PP
@@ -21,7 +21,7 @@ pandoc -t man --ascii
 ```
 
 ```
-pandoc -t ms --ascii
+% pandoc -t ms --ascii
 äéıå
 ^D
 .LP
@@ -29,7 +29,7 @@ pandoc -t ms --ascii
 ```
 
 ```
-pandoc -t docbook --ascii
+% pandoc -t docbook --ascii
 äéıå
 ^D
 <para>
@@ -38,14 +38,14 @@ pandoc -t docbook --ascii
 ```
 
 ```
-pandoc -t jats --ascii
+% pandoc -t jats --ascii
 äéıå
 ^D
 <p>&#xE4;&#xE9;&#x131;&#xE5;</p>
 ```
 
 ```
-pandoc -t markdown-smart --ascii
+% pandoc -t markdown-smart --ascii
 "äéıå"
 ^D
 &ldquo;&auml;&eacute;&imath;&aring;&rdquo;

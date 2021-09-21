@@ -1,5 +1,5 @@
 ```
-pandoc -f latex -t native
+% pandoc -f latex -t native
 \emph%
 {hi}
 ^D
