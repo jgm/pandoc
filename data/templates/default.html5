@@ -49,6 +49,12 @@ $endfor$
 $if(date)$
 <p class="date">$date$</p>
 $endif$
+$if(abstract)$
+<div class="abstract">
+<p class="abstract">Abstract</p>
+$abstract$
+</div>
+$endif$
 </header>
 $endif$
 $if(toc)$
