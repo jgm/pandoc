@@ -82,7 +82,7 @@ spaceOutInlines ils =
   in (Many left, (fs, Many contents'), Many right)
 
 isSpace :: Inline -> Bool
-isSpace Space = True
+-- isSpace Space = True  -- FIXME without Space do we need to change spaceOutInlines?
 isSpace SoftBreak = True
 isSpace _ = False
 

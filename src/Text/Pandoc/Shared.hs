@@ -357,11 +357,11 @@ extractSpaces :: (Inlines -> Inlines) -> Inlines -> Inlines
 extractSpaces f is =
   let contents = B.unMany is
       left  = case viewl contents of
-                    (Space :< _)     -> B.space
+                    (Str t :< _) | " " `T.isPrefixOf` t -> B.space
                     (SoftBreak :< _) -> B.softbreak
                     _                -> mempty
       right = case viewr contents of
-                    (_ :> Space)     -> B.space
+                    (_ :> Str t) | " " `T.isSuffixOf` t -> B.space
                     (_ :> SoftBreak) -> B.softbreak
                     _                -> mempty in
   (left <> f (B.trimInlines . B.Many $ contents) <> right)
@@ -371,11 +371,10 @@ removeFormatting :: Walkable Inline a => a -> [Inline]
 removeFormatting = query go . walk (deNote . deQuote)
   where go :: Inline -> [Inline]
         go (Str xs)   = [Str xs]
-        go Space      = [Space]
         go SoftBreak  = [SoftBreak]
         go (Code _ x) = [Str x]
         go (Math _ x) = [Str x]
-        go LineBreak  = [Space]
+        go LineBreak  = [Str " "]
         go _          = []
 
 deNote :: Inline -> Inline
@@ -399,7 +398,6 @@ deQuote x = x
 stringify :: Walkable Inline a => a -> T.Text
 stringify = query go . walk (deNote . deQuote)
   where go :: Inline -> T.Text
-        go Space                                       = " "
         go SoftBreak                                   = " "
         go (Str x)                                     = x
         go (Code _ x)                                  = x
@@ -643,9 +641,9 @@ isTightList = all (\item -> firstIsPlain item || null item)
 taskListItemFromAscii :: Extensions -> [Block] -> [Block]
 taskListItemFromAscii = handleTaskListItem fromMd
   where
-    fromMd (Str "[" : Space : Str "]" : Space : is) = Str "☐" : Space : is
-    fromMd (Str "[x]"                 : Space : is) = Str "☒" : Space : is
-    fromMd (Str "[X]"                 : Space : is) = Str "☒" : Space : is
+    fromMd (Str "[ ] " : is) = Str "☐ " : is
+    fromMd (Str "[x] " : is) = Str "☒ " : is
+    fromMd (Str "[X] " : is) = Str "☒ " : is
     fromMd is = is
 
 -- | Convert a list item containing text starting with @U+2610 BALLOT BOX@
@@ -653,8 +651,8 @@ taskListItemFromAscii = handleTaskListItem fromMd
 taskListItemToAscii :: Extensions -> [Block] -> [Block]
 taskListItemToAscii = handleTaskListItem toMd
   where
-    toMd (Str "☐" : Space : is) = rawMd "[ ]" : Space : is
-    toMd (Str "☒" : Space : is) = rawMd "[x]" : Space : is
+    toMd (Str "☐ " : is) = rawMd "[ ] " : is
+    toMd (Str "☒ " : is) = rawMd "[x] " : is
     toMd is = is
     rawMd = RawInline (Format "markdown")
 
@@ -711,24 +709,37 @@ htmlSpanLikeElements = Set.fromList ["kbd", "mark", "dfn"]
 
 -- | Returns the first sentence in a list of inlines, and the rest.
 breakSentence :: [Inline] -> ([Inline], [Inline])
-breakSentence [] = ([],[])
 breakSentence xs =
-  let isSentenceEndInline (Str ys)
-        | Just (_, c) <- T.unsnoc ys = c == '.' || c == '?'
-      isSentenceEndInline LineBreak  = True
-      isSentenceEndInline _          = False
-      (as, bs) = break isSentenceEndInline xs
-  in  case bs of
-        []             -> (as, [])
-        [c]            -> (as ++ [c], [])
-        (c:Space:cs)   -> (as ++ [c], cs)
-        (c:SoftBreak:cs) -> (as ++ [c], cs)
-        (Str ".":Str s@(T.uncons -> Just (')',_)):cs)
-          -> (as ++ [Str ".", Str s], cs)
-        (x@(Str (T.stripPrefix ".)" -> Just _)):cs) -> (as ++ [x], cs)
-        (LineBreak:x@(Str (T.uncons -> Just ('.',_))):cs) -> (as ++[LineBreak], x:cs)
-        (c:cs)         -> (as ++ [c] ++ ds, es)
-          where (ds, es) = breakSentence cs
+  case break isStr xs of
+    (ys, Str t:zs)
+      | Just (t',t'') <- breakOnSentenceEnder t
+      , not (T.null t'') || startsWithSpace zs
+      -> (ys ++ [Str t'],
+          case T.stripStart t'' of
+            t''' | T.null t''' -> zs
+                 | otherwise -> Str t''' : zs)
+    _ -> (xs, [])
+ where
+  isStr (Str _) = True
+  isStr _ = False
+  breakOnSentenceEnder t = -- ". " ".)" "? " "?)" ".$" "! " " !)"
+    let (x,y) = T.break isSentenceEndPunct t
+     in if T.null y
+        then Nothing
+        else case T.uncons (T.drop 1 y) of
+          Nothing -> Just (t, mempty)
+          Just (c,_) | c == ' ' || c == '\r' || c == '\n' || c == ')'
+                  -> Just (x <> T.take 1 y, T.drop 1 y)
+          _ -> (\(w,z) -> (x <> T.take 1 y <> w, z)) <$>
+                  breakOnSentenceEnder (T.drop 1 y)
+  isSentenceEndPunct '.' = True
+  isSentenceEndPunct '?' = True
+  isSentenceEndPunct '!' = True
+  isSentenceEndPunct _   = False
+  startsWithSpace (LineBreak:_) = True
+  startsWithSpace (SoftBreak:_) = True
+  startsWithSpace [] = True
+  startsWithSpace _ = False
 
 -- | Split a list of inlines into sentences.
 splitSentences :: [Inline] -> [[Inline]]
