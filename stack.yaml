@@ -16,6 +16,8 @@ extra-deps:
   commit: b27201c3ac48ffd2853f77152df19b6e2cf36987
 - git: https://github.com/jgm/pandoc-types.git
   commit: fd17cdc8acff3dc5cf54e9b2c1d418c6dc350d7d
+- git: https://github.com/jgm/commonmark-pandoc.git
+  commit: e1a2710cdddf570c458a60360fc1951fa282592a
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10
