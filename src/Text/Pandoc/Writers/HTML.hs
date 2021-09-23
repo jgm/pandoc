@@ -1469,8 +1469,9 @@ inlineToHtml opts inline = do
       if ishtml
          then return $ preEscapedText str
          else if (f == Format "latex" || f == Format "tex") &&
-                allowsMathEnvironments (writerHTMLMathMethod opts) &&
-                isMathEnvironment str
+                 ((allowsMathEnvironments (writerHTMLMathMethod opts) &&
+                   isMathEnvironment str) ||
+                  (allowsRef (writerHTMLMathMethod opts) && isRef str))
                 then inlineToHtml opts $ Math DisplayMath str
                 else do
                   report $ InlineNotRendered inline
@@ -1602,6 +1603,9 @@ inDiv cls x = do
     (if html5 then H5.div else H.div)
                 x ! A.class_ (toValue cls)
 
+isRef :: Text -> Bool
+isRef t = "\\ref{" `T.isPrefixOf` t || "\\eqref{" `T.isPrefixOf` t
+
 isMathEnvironment :: Text -> Bool
 isMathEnvironment s = "\\begin{" `T.isPrefixOf` s &&
                          envName `elem` mathmlenvs
@@ -1640,6 +1644,10 @@ allowsMathEnvironments (KaTeX _)   = True
 allowsMathEnvironments MathML      = True
 allowsMathEnvironments (WebTeX _)  = True
 allowsMathEnvironments _           = False
+
+allowsRef :: HTMLMathMethod -> Bool
+allowsRef (MathJax _) = True
+allowsRef _           = False
 
 -- | List of intrinsic event attributes allowed on all elements in HTML4.
 intrinsicEventsHTML4 :: [Text]
