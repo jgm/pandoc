@@ -541,8 +541,7 @@ blockToParagraphs blk = do
   addLogMessage $ BlockNotRendered blk
   return []
 
--- | Make sure the bullet env gets turned off after the first paragraph, and
--- indent any continuation paragraphs.
+-- | Make sure the bullet env gets turned off after the first para.
 multiParList :: [Block] -> Pres [Paragraph]
 multiParList [] = return []
 multiParList (b:bs) = do

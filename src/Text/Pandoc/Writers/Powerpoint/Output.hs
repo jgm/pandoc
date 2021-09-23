@@ -126,6 +126,7 @@ data WriterEnv = WriterEnv { envRefArchive :: Archive
                            , envSpeakerNotesIdMap :: M.Map Int Int
                            , envInSpeakerNotes :: Bool
                            , envSlideLayouts :: Maybe SlideLayouts
+                           , envOtherStyleIndents :: Maybe Indents
                            }
                  deriving (Show)
 
@@ -145,6 +146,7 @@ instance Default WriterEnv where
                   , envSpeakerNotesIdMap = mempty
                   , envInSpeakerNotes = False
                   , envSlideLayouts = Nothing
+                  , envOtherStyleIndents = Nothing
                   }
 
 type SlideLayouts = SlideLayoutsOf SlideLayout
@@ -181,6 +183,39 @@ getSlideLayouts = asks envSlideLayouts >>= maybe (throwError e) pure
 data Placeholder = Placeholder
   { placeholderType :: PHType
   , index :: Int
+  } deriving (Show, Eq)
+
+-- | Paragraph indentation info.
+data Indents = Indents
+  { level1 :: Maybe LevelIndents
+  , level2 :: Maybe LevelIndents
+  , level3 :: Maybe LevelIndents
+  , level4 :: Maybe LevelIndents
+  , level5 :: Maybe LevelIndents
+  , level6 :: Maybe LevelIndents
+  , level7 :: Maybe LevelIndents
+  , level8 :: Maybe LevelIndents
+  , level9 :: Maybe LevelIndents
+  } deriving (Show, Eq)
+
+levelIndent :: Indents -> Int -> Maybe LevelIndents
+levelIndent is index = getter is
+  where
+    getter = case index of
+      0 -> level1
+      1 -> level2
+      2 -> level3
+      3 -> level4
+      4 -> level5
+      5 -> level6
+      6 -> level7
+      7 -> level8
+      8 -> level9
+      _ -> const Nothing
+
+data LevelIndents = LevelIndents
+  { marL :: EMU
+  , indent :: EMU
   } deriving (Show, Eq)
 
 data MediaInfo = MediaInfo { mInfoFilePath :: FilePath
@@ -580,6 +615,33 @@ presentationToArchive opts meta pres = do
                              , slInReferenceDoc = True
                              }
 
+  master <- getMaster' refArchive distArchive
+
+  let otherStyleIndents = do
+        let ns = elemToNameSpaces master
+        txStyles <- findChild (elemName ns "p" "txStyles") master
+        otherStyle <- findChild (elemName ns "p" "otherStyle") txStyles
+        let makeLevelIndents name = do
+              e <- findChild (elemName ns "a" name) otherStyle
+              pure LevelIndents
+                { indent = fromMaybe (-342900)
+                    (findAttr (QName "indent" Nothing Nothing) e
+                    >>= readTextAsInteger)
+                , marL = fromMaybe 347663
+                    (findAttr (QName "marL" Nothing Nothing) e
+                     >>= readTextAsInteger)
+                }
+        pure Indents
+          { level1 = makeLevelIndents "lvl1pPr"
+          , level2 = makeLevelIndents "lvl2pPr"
+          , level3 = makeLevelIndents "lvl3pPr"
+          , level4 = makeLevelIndents "lvl4pPr"
+          , level5 = makeLevelIndents "lvl5pPr"
+          , level6 = makeLevelIndents "lvl6pPr"
+          , level7 = makeLevelIndents "lvl7pPr"
+          , level8 = makeLevelIndents "lvl8pPr"
+          , level9 = makeLevelIndents "lvl9pPr"
+          }
 
   utctime <- P.getTimestamp
 
@@ -605,6 +667,7 @@ presentationToArchive opts meta pres = do
                 , envSlideIdMap = makeSlideIdMap pres
                 , envSpeakerNotesIdMap = makeSpeakerNotesMap pres
                 , envSlideLayouts = Just layouts
+                , envOtherStyleIndents = otherStyleIndents
                 }
 
   let st = def { stMediaGlobalIds = initialGlobalIds refArchive distArchive
@@ -910,6 +973,10 @@ getMaster :: PandocMonad m => P m Element
 getMaster = do
   refArchive <- asks envRefArchive
   distArchive <- asks envDistArchive
+  getMaster' refArchive distArchive
+
+getMaster' :: PandocMonad m => Archive -> Archive -> m Element
+getMaster' refArchive distArchive =
   parseXml refArchive distArchive "ppt/slideMasters/slideMaster1.xml"
 
 getMasterRels :: PandocMonad m => P m Element
@@ -1196,15 +1263,32 @@ surroundWithMathAlternate element =
 
 paragraphToElement :: PandocMonad m => Paragraph -> P m Element
 paragraphToElement par = do
+  indents <- asks envOtherStyleIndents
   let
-    attrs = [("lvl", tshow $ pPropLevel $ paraProps par)] <>
-            (case pPropMarginLeft (paraProps par) of
-               Just px -> [("marL", tshow $ pixelsToEmu px)]
-               Nothing -> []
-            ) <>
-            (case pPropIndent (paraProps par) of
-               Just px -> [("indent", tshow $ pixelsToEmu px)]
-               Nothing -> []
+    lvl = pPropLevel (paraProps par)
+    attrs = [("lvl", tshow lvl)] <>
+            (case (pPropIndent (paraProps par), pPropMarginLeft (paraProps par)) of
+               (Just px1, Just px2) -> [ ("indent", tshow $ pixelsToEmu px1)
+                                       , ("marL", tshow $ pixelsToEmu px2)
+                                       ]
+               (Just px1, Nothing) -> [("indent", tshow $ pixelsToEmu px1)]
+               (Nothing, Just px2) -> [("marL", tshow $ pixelsToEmu px2)]
+               (Nothing, Nothing) -> fromMaybe [] $ do
+                 indents' <- indents
+                 thisLevel <- levelIndent indents' lvl
+                 nextLevel <- levelIndent indents' (lvl + 1)
+                 let (m, i) =
+                       case pPropBullet (paraProps par) of
+                         Nothing ->
+                           (Just (marL thisLevel), Just 0)
+                         Just (AutoNumbering _) ->
+                           ( Just (marL nextLevel)
+                           , Just (marL thisLevel - marL nextLevel)
+                           )
+                         Just Bullet -> (Nothing, Nothing)
+                 pure ( toList ((,) "indent" . tshow <$> i)
+                      <> toList ((,) "marL" . tshow <$> m)
+                      )
             ) <>
             (case pPropAlign (paraProps par) of
                Just AlgnLeft -> [("algn", "l")]
