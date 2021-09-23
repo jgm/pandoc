@@ -117,9 +117,6 @@ data WriterEnv = WriterEnv { envRefArchive :: Archive
                            , envInList :: Bool
                            , envInNoteSlide :: Bool
                            , envCurSlideId :: Int
-                           -- the difference between the number at
-                           -- the end of the slide file name and
-                           -- the rId number
                            , envPlaceholder :: Placeholder
                            , envSlideIdMap :: M.Map SlideId Int
                            -- maps the slide number to the
