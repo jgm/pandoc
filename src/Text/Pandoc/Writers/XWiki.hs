@@ -152,8 +152,6 @@ inlineToXWiki :: PandocMonad m => Inline -> XWikiReader m Text
 
 inlineToXWiki (Str str) = return $ escapeXWikiString str
 
-inlineToXWiki Space = return " "
-
 -- Special syntax for XWiki 2.0. This won't break table cells
 inlineToXWiki LineBreak = return "\\\\"
 

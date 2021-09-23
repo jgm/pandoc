@@ -161,9 +161,9 @@ cites inline mode multi = try $ do
                              (c:rest) -> c {citationMode = mode} : rest
                              []       -> []
         _            -> map (\a -> a {citationMode = mode}) cs
-  where mprenote (k:ks) = (k:ks) ++ [Space]
+  where mprenote (k:ks) = (k:ks) ++ [Str " "]
         mprenote _ = mempty
-        mpostnote (k:ks) = [Str ",", Space] ++ (k:ks)
+        mpostnote (k:ks) = Str ", " : k : ks
         mpostnote _ = mempty
         addMprenote mpn (k:ks) =
           let mpnfinal = case citationPrefix k of

@@ -268,8 +268,6 @@ inlineToTEI _ il@(RawInline f x) | f == "tei"     = return $ literal x
                                  | otherwise      = empty <$
                                      report (InlineNotRendered il)
 inlineToTEI _ LineBreak = return $ selfClosingTag "lb" []
-inlineToTEI _ Space =
-            return space
 -- because we use \n for LineBreak, we can't do soft breaks:
 inlineToTEI _ SoftBreak =
             return space

@@ -14,7 +14,6 @@ module Text.Pandoc.Readers.Creole ( readCreole
                                   ) where
 
 import Control.Monad.Except (guard, liftM2, throwError)
-import qualified Data.Foldable as F
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -155,9 +154,7 @@ table = try $ do
 para :: PandocMonad m => CRLParser m B.Blocks
 para = fmap (result . mconcat) (many1Till inline endOfParaElement)
  where
-   result content   = if F.all (==Space) content
-                      then mempty
-                      else B.para $ B.trimInlines content
+   result content   = B.para $ B.trimInlines content
 
 endOfParaElement :: PandocMonad m => CRLParser m ()
 endOfParaElement = lookAhead $ endOfInput <|> endOfPara

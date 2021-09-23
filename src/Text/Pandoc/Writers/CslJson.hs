@@ -68,7 +68,6 @@ fromInline (SmallCaps ils) = CslSmallCaps (fromInlines ils)
 fromInline (Quoted _ ils) = CslQuoted (fromInlines ils)
 fromInline (Cite _ ils) = fromInlines ils
 fromInline (Code _ t) = CslText t
-fromInline Space = CslText " "
 fromInline SoftBreak = CslText " "
 fromInline LineBreak = CslText "\n"
 fromInline (Math _ t) = CslText t

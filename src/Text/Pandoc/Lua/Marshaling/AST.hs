@@ -308,7 +308,6 @@ pushInline = \case
   RawInline f cs           -> pushViaConstructor "RawInline" f cs
   SmallCaps inlns          -> pushViaConstructor "SmallCaps" inlns
   SoftBreak                -> pushViaConstructor "SoftBreak"
-  Space                    -> pushViaConstructor "Space"
   Span attr inlns          -> pushViaConstructor "Span" inlns (LuaAttr attr)
   Str str                  -> pushViaConstructor "Str" str
   Strikeout inlns          -> pushViaConstructor "Strikeout" inlns
@@ -336,7 +335,6 @@ peekInline idx = defineHowTo "get Inline value" $ do
     "RawInline"  -> uncurry RawInline <$!> elementContent
     "SmallCaps"  -> SmallCaps <$!> elementContent
     "SoftBreak"  -> return SoftBreak
-    "Space"      -> return Space
     "Span"       -> withAttr Span <$!> elementContent
     -- strict to Lua string is copied before gc
     "Str"        -> Str <$!> elementContent

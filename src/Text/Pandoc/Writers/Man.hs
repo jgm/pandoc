@@ -311,7 +311,6 @@ inlineToMan _ il@(RawInline f str)
 inlineToMan _ LineBreak = return $
   cr <> literal ".PD 0" $$ literal ".P" $$ literal ".PD" <> cr
 inlineToMan _ SoftBreak = return space
-inlineToMan _ Space = return space
 inlineToMan opts (Link _ txt (src, _))
   | not (isURI src) = inlineListToMan opts txt -- skip relative links
   | otherwise       = do

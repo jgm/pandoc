@@ -393,7 +393,6 @@ inlineToRTF il@(RawInline f str)
       return ""
 inlineToRTF LineBreak = return "\\line "
 inlineToRTF SoftBreak = return " "
-inlineToRTF Space = return " "
 inlineToRTF (Link _ text (src, _)) = do
   contents <- inlinesToRTF text
   return $ "{\\field{\\*\\fldinst{HYPERLINK \"" <> codeStringToRTF src <>

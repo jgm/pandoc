@@ -346,8 +346,6 @@ inlineToZimWiki opts SoftBreak =
        WrapAuto     -> return " "
        WrapPreserve -> return "\n"
 
-inlineToZimWiki _ Space = return " "
-
 inlineToZimWiki opts (Link _ txt (src, _)) = do
   inTable <- gets stInTable
   modify $ \s -> s { stInLink = True }

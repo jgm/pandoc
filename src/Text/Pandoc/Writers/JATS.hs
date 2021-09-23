@@ -426,7 +426,6 @@ inlineToJATS _ il@(RawInline f x)
       return empty
 inlineToJATS _ LineBreak = return cr -- not allowed as child of p
 -- see https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/break.html
-inlineToJATS _ Space = return space
 inlineToJATS opts SoftBreak
   | writerWrapText opts == WrapPreserve = return cr
   | otherwise = return space

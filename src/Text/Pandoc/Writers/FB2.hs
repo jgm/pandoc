@@ -423,7 +423,6 @@ toXml (Quoted DoubleQuote ss) = do
   return $ [txt "“"] ++ inner ++ [txt "”"]
 toXml (Cite _ ss) = cMapM toXml ss  -- FIXME: support citation styles
 toXml (Code _ s) = return [el "code" s]
-toXml Space = return [txt " "]
 toXml SoftBreak = return [txt "\n"]
 toXml LineBreak = return [txt "\n"]
 toXml (Math _ formula) = insertMath InlineImage formula
@@ -528,7 +527,6 @@ plain (SmallCaps ss)        = mconcat $ map plain ss
 plain (Quoted _ ss)         = mconcat $ map plain ss
 plain (Cite _ ss)           = mconcat $ map plain ss  -- FIXME
 plain (Code _ s)            = s
-plain Space                 = " "
 plain SoftBreak             = " "
 plain LineBreak             = "\n"
 plain (Math _ s)            = s

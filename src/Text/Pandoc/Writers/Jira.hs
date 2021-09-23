@@ -224,7 +224,6 @@ toJiraInlines inlines = do
                                 pure . singleton $ if preserveBreak
                                   then Jira.Linebreak
                                   else Jira.Space
-        Space              -> pure . singleton $ Jira.Space
         Span attr xs       -> spanToJira attr xs
         Str s              -> pure $ escapeSpecialChars s
         Strikeout xs       -> styled Jira.Strikeout xs

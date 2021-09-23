@@ -451,7 +451,6 @@ inlineToTexinfo SoftBreak = do
       WrapAuto     -> return space
       WrapNone     -> return space
       WrapPreserve -> return cr
-inlineToTexinfo Space = return space
 
 inlineToTexinfo (Link _ txt (src, _))
   | Just ('#', _) <- T.uncons src = do

@@ -456,7 +456,6 @@ inlineToMs opts SoftBreak =
          WrapAuto     -> space
          WrapNone     -> space
          WrapPreserve -> cr
-inlineToMs opts Space = handleNotes opts space
 inlineToMs opts (Link _ txt (T.uncons -> Just ('#',ident), _)) = do
   -- internal link
   contents <- inlineListToMs' opts $ map breakToSpace txt
@@ -538,8 +537,8 @@ resetFirstPara :: PandocMonad m => MS m ()
 resetFirstPara = modify $ \st -> st{ stFirstPara = False }
 
 breakToSpace :: Inline -> Inline
-breakToSpace SoftBreak = Space
-breakToSpace LineBreak = Space
+breakToSpace SoftBreak = Str " "
+breakToSpace LineBreak = Str " "
 breakToSpace x         = x
 
 -- Highlighting

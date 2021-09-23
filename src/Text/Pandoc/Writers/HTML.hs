@@ -460,19 +460,19 @@ defList :: PandocMonad m
 defList opts items = toList H.dl opts (items ++ [nl opts])
 
 isTaskListItem :: [Block] -> Bool
-isTaskListItem (Plain (Str "☐":Space:_):_) = True
-isTaskListItem (Plain (Str "☒":Space:_):_) = True
-isTaskListItem (Para  (Str "☐":Space:_):_) = True
-isTaskListItem (Para  (Str "☒":Space:_):_) = True
+isTaskListItem (Plain (Str "☐ ":_):_) = True
+isTaskListItem (Plain (Str "☒ ":_):_) = True
+isTaskListItem (Para  (Str "☐ ":_):_) = True
+isTaskListItem (Para  (Str "☒ ":_):_) = True
 isTaskListItem _                           = False
 
 listItemToHtml :: PandocMonad m
                => WriterOptions -> [Block] -> StateT WriterState m Html
 listItemToHtml opts bls
-  | Plain (Str "☐":Space:is) : bs <- bls = taskListItem False id  is bs
-  | Plain (Str "☒":Space:is) : bs <- bls = taskListItem True  id  is bs
-  | Para  (Str "☐":Space:is) : bs <- bls = taskListItem False H.p is bs
-  | Para  (Str "☒":Space:is) : bs <- bls = taskListItem True  H.p is bs
+  | Plain (Str "☐ ":is) : bs <- bls = taskListItem False id  is bs
+  | Plain (Str "☒ ":is) : bs <- bls = taskListItem True  id  is bs
+  | Para  (Str "☐ ":is) : bs <- bls = taskListItem False H.p is bs
+  | Para  (Str "☒ ":is) : bs <- bls = taskListItem True  H.p is bs
   | otherwise = blockListToHtml opts bls
   where
     taskListItem checked constr is bs = do
@@ -773,8 +773,8 @@ blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
   let isSec (Div (_,"section":_,_) _) = True
       isSec (Div _ zs)                = any isSec zs
       isSec _                         = False
-  let isPause (Para [Str ".",Space,Str ".",Space,Str "."]) = True
-      isPause _                                            = False
+  let isPause (Para [Str ". . ."]) = True
+      isPause _                    = False
   let fragmentClass = case slideVariant of
                            RevealJsSlides -> "fragment"
                            _              -> "incremental"
@@ -1328,7 +1328,6 @@ inlineToHtml opts inline = do
   html5 <- gets stHtml5
   case inline of
     (Str str)      -> return $ strToHtml str
-    Space          -> return $ strToHtml " "
     SoftBreak      -> return $ case writerWrapText opts of
                                      WrapNone     -> preEscapedText " "
                                      WrapAuto     -> preEscapedText " "

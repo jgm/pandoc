@@ -452,7 +452,6 @@ inlineToICML opts style ident (Quoted DoubleQuote lst) = inlinesToICML opts styl
   mergeStrings opts $ [Str "“"] ++ lst ++ [Str "”"]
 inlineToICML opts style ident (Cite _ lst) = inlinesToICML opts (citeName:style) ident lst
 inlineToICML _    style ident (Code _ str) = charStyle (codeName:style) ident $ literal $ escapeStringForXML str
-inlineToICML _    style ident Space = charStyle style ident space
 inlineToICML opts style ident SoftBreak =
   case writerWrapText opts of
        WrapAuto     -> charStyle style ident space
@@ -503,8 +502,7 @@ footnoteToICML opts style lst =
 -- | Auxiliary function to merge Space elements into the adjacent Strs.
 mergeStrings :: WriterOptions -> [Inline] -> [Inline]
 mergeStrings opts = mergeStrings' . map spaceToStr
-  where spaceToStr Space = Str " "
-        spaceToStr SoftBreak = case writerWrapText opts of
+  where spaceToStr SoftBreak = case writerWrapText opts of
                                     WrapPreserve  -> Str "\n"
                                     _             -> Str " "
         spaceToStr x = x

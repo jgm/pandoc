@@ -478,14 +478,12 @@ transformInlines =  insertBS .
               _           -> False
         surroundComplex _ _ = False
         okAfterComplex :: Inline -> Bool
-        okAfterComplex Space = True
         okAfterComplex SoftBreak = True
         okAfterComplex LineBreak = True
         okAfterComplex (Str (T.uncons -> Just (c,_)))
           = isSpace c || c `elemText` "-.,:;!?\\/'\")]}>–—"
         okAfterComplex _ = False
         okBeforeComplex :: Inline -> Bool
-        okBeforeComplex Space = True
         okBeforeComplex SoftBreak = True
         okBeforeComplex LineBreak = True
         okBeforeComplex (Str (T.unsnoc -> Just (_,c)))
@@ -671,7 +669,6 @@ inlineToRST il@(RawInline f x)
       return $ ":raw-latex:`" <> literal x <> "`"
   | otherwise  = empty <$ report (InlineNotRendered il)
 inlineToRST LineBreak = return cr -- there's no line break in RST (see Para)
-inlineToRST Space = return space
 inlineToRST SoftBreak = do
   wrapText <- gets $ writerWrapText . stOptions
   case wrapText of

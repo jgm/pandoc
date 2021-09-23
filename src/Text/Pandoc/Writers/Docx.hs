@@ -1051,7 +1051,6 @@ inlineToOpenXML opts il = withDirection $ inlineToOpenXML' opts il
 inlineToOpenXML' :: PandocMonad m => WriterOptions -> Inline -> WS m [Content]
 inlineToOpenXML' _ (Str str) =
   map Elem <$> formattedString str
-inlineToOpenXML' opts Space = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts (Span ("",["csl-block"],[]) ils) =
   inlinesToOpenXML opts ils
@@ -1202,9 +1201,12 @@ inlineToOpenXML' opts (Note bs) = do
                    [ mknode "w:rPr" [] footnoteStyle
                    , mknode "w:footnoteRef" [] () ]
   let notemarkerXml = RawInline (Format "openxml") $ ppElement notemarker
-  let insertNoteRef (Plain ils : xs) = Plain (notemarkerXml : Space : ils) : xs
-      insertNoteRef (Para ils  : xs) = Para  (notemarkerXml : Space : ils) : xs
-      insertNoteRef xs               = Para [notemarkerXml] : xs
+  let insertNoteRef (Plain ils : xs) =
+        Plain (notemarkerXml : Str " " : ils) : xs
+      insertNoteRef (Para ils  : xs) =
+        Para  (notemarkerXml : Str " " : ils) : xs
+      insertNoteRef xs =
+        Para [notemarkerXml] : xs
 
   contents <- local (\env -> env{ envListLevel = -1
                                 , envParaProperties = mempty

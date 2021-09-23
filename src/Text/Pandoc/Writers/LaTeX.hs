@@ -365,11 +365,11 @@ blockToLaTeX (Para [Image attr@(ident, _, _) txt (src,tgt)])
                        "\\end{center}"
                 else figure) $$ footnotes
 -- . . . indicates pause in beamer slides
-blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
+blockToLaTeX (Para [Str ". . ."]) = do
   beamer <- gets stBeamer
   if beamer
      then blockToLaTeX (RawBlock "latex" "\\pause")
-     else inlineListToLaTeX [Str ".",Space,Str ".",Space,Str "."]
+     else inlineListToLaTeX [Str ". . ."]
 blockToLaTeX (Para lst) =
   inlineListToLaTeX lst
 blockToLaTeX (LineBlock lns) =
@@ -571,10 +571,10 @@ listItemToLaTeX lst
   -- this will keep the typesetter from throwing an error.
   | (Header{} :_) <- lst =
     (text "\\item ~" $$) . nest 2 <$> blockListToLaTeX lst
-  | Plain (Str "☐":Space:is) : bs <- lst = taskListItem False is bs
-  | Plain (Str "☒":Space:is) : bs <- lst = taskListItem True  is bs
-  | Para  (Str "☐":Space:is) : bs <- lst = taskListItem False is bs
-  | Para  (Str "☒":Space:is) : bs <- lst = taskListItem True  is bs
+  | Plain (Str "☐ ":is) : bs <- lst = taskListItem False is bs
+  | Plain (Str "☒ ":is) : bs <- lst = taskListItem True  is bs
+  | Para  (Str "☐ ":is) : bs <- lst = taskListItem False is bs
+  | Para  (Str "☒ ":is) : bs <- lst = taskListItem True  is bs
   | otherwise = (text "\\item" $$) . nest 2 <$> blockListToLaTeX lst
   where
     taskListItem checked is bs = do
@@ -895,7 +895,6 @@ inlineToLaTeX SoftBreak = do
        WrapAuto     -> return space
        WrapNone     -> return space
        WrapPreserve -> return cr
-inlineToLaTeX Space = return space
 inlineToLaTeX (Link (id',_,_) txt (src,_)) =
    (case T.uncons src of
      Just ('#', ident) -> do

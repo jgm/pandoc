@@ -182,8 +182,6 @@ inlineToCustom :: Inline -> Lua String
 
 inlineToCustom (Str str) = Lua.callFunc "Str" str
 
-inlineToCustom Space = Lua.callFunc "Space"
-
 inlineToCustom SoftBreak = Lua.callFunc "SoftBreak"
 
 inlineToCustom (Emph lst) = Lua.callFunc "Emph" (Stringify lst)

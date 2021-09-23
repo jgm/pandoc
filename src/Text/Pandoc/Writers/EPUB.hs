@@ -788,7 +788,7 @@ pandocToEPUB version opts doc = do
              let num = fromMaybe "" $ lookup "number" kvs
              let tit = if writerNumberSections opts && not (T.null num)
                           then Span ("", ["section-header-number"], [])
-                                [Str num] : Space : ils
+                                [Str num] : Str " " : ils
                           else ils
              src <- case lookup ident reftable of
                       Just x  -> return x

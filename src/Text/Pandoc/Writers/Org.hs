@@ -242,8 +242,8 @@ orderedListItemToOrg marker items = do
 taskListItemToOrg :: Extensions -> [Block] -> [Block]
 taskListItemToOrg = handleTaskListItem toOrg
   where
-    toOrg (Str "☐" : Space : is) = Str "[ ]" : Space : is
-    toOrg (Str "☒" : Space : is) = Str "[X]" : Space : is
+    toOrg (Str "☐ " : is) = Str "[ ] " : is
+    toOrg (Str "☒ " : is) = Str "[X] " : is
     toOrg is = is
 
 -- | Convert definition list item (label, list of blocks) to Org.
@@ -414,7 +414,6 @@ inlineToOrg il@(RawInline f str)
       report $ InlineNotRendered il
       return empty
 inlineToOrg LineBreak = return (text "\\\\" <> cr)
-inlineToOrg Space = return space
 inlineToOrg SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
   case wrapText of

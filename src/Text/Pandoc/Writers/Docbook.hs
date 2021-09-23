@@ -415,7 +415,6 @@ inlineToDocbook _ il@(RawInline f x)
 inlineToDocbook _ LineBreak = return $ literal "\n"
 -- currently ignore, would require the option to add custom
 -- styles to the document
-inlineToDocbook _ Space = return space
 -- because we use \n for LineBreak, we can't do soft breaks:
 inlineToDocbook _ SoftBreak = return space
 inlineToDocbook opts (Link attr txt (src, _))

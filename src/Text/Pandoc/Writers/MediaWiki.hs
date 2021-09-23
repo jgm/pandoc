@@ -439,8 +439,6 @@ inlineToMediaWiki SoftBreak = do
                           then return "\n"
                           else return " "
 
-inlineToMediaWiki Space = return " "
-
 inlineToMediaWiki (Link _ txt (src, _)) = do
   label <- inlineListToMediaWiki txt
   case txt of

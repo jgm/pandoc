@@ -468,8 +468,6 @@ inlineToDokuWiki opts SoftBreak =
        WrapAuto     -> return " "
        WrapPreserve -> return "\n"
 
-inlineToDokuWiki _ Space = return " "
-
 inlineToDokuWiki opts (Link _ txt (src, _)) = do
   label <- inlineListToDokuWiki opts txt
   case txt of

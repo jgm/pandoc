@@ -582,7 +582,6 @@ toChunks o (x : xs)
 
 isChunkable :: Inline -> Bool
 isChunkable (Str _)   = True
-isChunkable Space     = True
 isChunkable SoftBreak = True
 isChunkable _         = False
 
@@ -590,7 +589,6 @@ isChunkable _         = False
 inlineToOpenDocument :: PandocMonad m => WriterOptions -> Inline -> OD m (Doc Text)
 inlineToOpenDocument o ils
   = case ils of
-    Space         -> return space
     SoftBreak
      | writerWrapText o == WrapPreserve
                   -> return $ preformatted "\n"

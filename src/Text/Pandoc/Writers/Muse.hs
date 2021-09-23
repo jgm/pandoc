@@ -447,18 +447,15 @@ normalizeInlineList [] = []
 
 fixNotes :: [Inline] -> [Inline]
 fixNotes []                            = []
-fixNotes (Space : n@Note{} : rest)     = Str " " : n : fixNotes rest
 fixNotes (SoftBreak : n@Note{} : rest) = Str " " : n : fixNotes rest
 fixNotes (x:xs)                        = x : fixNotes xs
 
 startsWithSpace :: [Inline] -> Bool
-startsWithSpace (Space:_)     = True
 startsWithSpace (SoftBreak:_) = True
 startsWithSpace (Str s:_)     = stringStartsWithSpace s
 startsWithSpace _             = False
 
 endsWithSpace :: [Inline] -> Bool
-endsWithSpace [Space]     = True
 endsWithSpace [SoftBreak] = True
 endsWithSpace [Str s]     = stringEndsWithSpace s
 endsWithSpace (_:xs)      = endsWithSpace xs
@@ -495,7 +492,6 @@ fixOrEscape b (Str s) = fixOrEscapeStr b s
                                startsWithMarker isAsciiLower s ||
                                startsWithMarker isAsciiUpper s))
                        || stringStartsWithSpace s
-fixOrEscape _ Space = True
 fixOrEscape _ SoftBreak = True
 fixOrEscape _ _ = False
 
@@ -530,7 +526,10 @@ renderInlineList (x:xs) = do
   opts <- asks envOptions
   let isNewline = (x == SoftBreak && writerWrapText opts == WrapPreserve) || x == LineBreak
   lst' <- local (\env -> env { envInlineStart = isNewline
-                             , envAfterSpace = x == Space || (not topLevel && isNewline)
+                             , envAfterSpace =
+                                 (case x of
+                                    Str t -> T.all isSpace (T.takeEnd 1 t)
+                                    _ -> False) || (not topLevel && isNewline)
                              , envNearAsterisks = False
                              }) $ renderInlineList xs
   if start && fixOrEscape afterSpace x
@@ -653,9 +652,6 @@ inlineToMuse LineBreak = do
   oneline <- asks envOneLine
   modify $ \st -> st { stUseTags = False }
   return $ if oneline then "<br>" else "<br>" <> cr
-inlineToMuse Space = do
-  modify $ \st -> st { stUseTags = False }
-  return space
 inlineToMuse SoftBreak = do
   oneline <- asks envOneLine
   wrapText <- asks $ writerWrapText . envOptions

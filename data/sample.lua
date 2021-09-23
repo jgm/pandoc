@@ -105,10 +105,6 @@ function Str(s)
   return escape(s)
 end
 
-function Space()
-  return " "
-end
-
 function SoftBreak()
   return "\n"
 end
