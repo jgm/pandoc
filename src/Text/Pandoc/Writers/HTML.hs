@@ -1636,6 +1636,7 @@ isMathEnvironment s = "\\begin{" `T.isPrefixOf` s &&
 
 allowsMathEnvironments :: HTMLMathMethod -> Bool
 allowsMathEnvironments (MathJax _) = True
+allowsMathEnvironments (KaTeX _)   = True
 allowsMathEnvironments MathML      = True
 allowsMathEnvironments (WebTeX _)  = True
 allowsMathEnvironments _           = False
