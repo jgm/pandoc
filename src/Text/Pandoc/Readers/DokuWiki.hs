@@ -511,6 +511,6 @@ para = result . mconcat <$> many1Till inline endOfParaElement
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
    endOfPara        = try $ blankline >> skipMany1 blankline
    newBlockElement  = try $ blankline >> void blockElements
-   result content   = if F.all (==Space) content
-                      then mempty
-                      else B.para $ B.trimInlines content
+   result content   = case B.trimInlines content of
+                        ils | null ils -> mempty
+                            | otherwise  -> B.para ils
