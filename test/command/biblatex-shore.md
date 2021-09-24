@@ -49,7 +49,7 @@ references:
   author:
   - family: Shore
     given: Bradd
-  collection-title: new series
+  collection-title: New series
   container-title: American Anthropologist
   id: shore
   issue: 1

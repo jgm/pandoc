@@ -54,7 +54,6 @@ import           Safe                   (readMay)
 import           Text.Printf            (printf)
 import           Text.DocLayout         (literal, hsep, nest, hang, Doc(..),
                                          braces, ($$), cr)
-
 data Variant = Bibtex | Biblatex
   deriving (Show, Eq, Ord)
 
@@ -527,9 +526,9 @@ itemToReference locale variant item = do
     let fixSeriesTitle [Str xs] | isNumber xs =
           [Str (ordinalize locale xs), Space, Str (resolveKey' lang "jourser")]
         fixSeriesTitle xs = xs
-    seriesTitle' <- (Just . B.fromList . fixSeriesTitle .
-                     B.toList . resolveKey lang <$>
-                        getTitle "series") <|>
+
+    seriesTitle' <- (Just . B.fromList . fixSeriesTitle . B.toList
+                       <$> getTitle "series") <|>
                     return Nothing
     shortTitle' <- (Just <$> (guard (not hasMaintitle || isChapterlike) >>
                               getTitle "shorttitle"))
@@ -984,8 +983,12 @@ getTitle f = do
   ils <- getField f
   utc <- gets untitlecase
   lang <- gets localeLang
+  let ils' =
+        if f == "series"
+           then resolveKey lang $ ils
+           else ils
   let processTitle = if utc then unTitlecase (Just lang) else id
-  return $ processTitle ils
+  return $ processTitle ils'
 
 getShortTitle :: Bool -> Text -> Bib (Maybe Inlines)
 getShortTitle requireColon f = do
@@ -1460,14 +1463,14 @@ bookTrans z =
        _                -> [z]
 
 resolveKey :: Lang -> Inlines -> Inlines
-resolveKey lang ils = Walk.walk go ils
+resolveKey lang (Many ils) = Many $ fmap go ils
   where go (Str s) = Str $ resolveKey' lang s
         go x       = x
 
 resolveKey' :: Lang -> Text -> Text
 resolveKey' lang k =
   case Map.lookup (langLanguage lang) biblatexStringMap >>=
-        Map.lookup (T.toLower k) of
+        Map.lookup k of
     Nothing     -> k
     Just (x, _) -> either (const k) stringify $ parseLaTeX lang x
 
