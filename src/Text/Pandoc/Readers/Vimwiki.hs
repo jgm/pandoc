@@ -66,7 +66,7 @@ import qualified Text.Pandoc.Builder as B (blockQuote, bulletList, code,
                                            superscript)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition (Attr, Block (BulletList, OrderedList),
-                               Inline (Space), ListNumberDelim (..),
+                               ListNumberDelim (..),
                                ListNumberStyle (..), Pandoc (..),
                                nullMeta)
 import Text.Pandoc.Options (ReaderOptions)
@@ -155,10 +155,11 @@ header = try $ do
 
 para :: PandocMonad m => VwParser m Blocks
 para = try $ do
-  contents <- trimInlines . mconcat <$> many1 inline
-  if all (==Space) (toList contents)
-     then return mempty
-     else return $ B.para contents
+  contents <- mconcat <$> many1 inline
+  return $
+    case trimInlines contents of
+      ils | null ils -> mempty
+          | otherwise -> B.para ils
 
 hrule :: PandocMonad m => VwParser m Blocks
 hrule = try $ B.horizontalRule <$ (string "----" >> many (char '-') >> newline)
@@ -172,9 +173,10 @@ blockQuote :: PandocMonad m => VwParser m Blocks
 blockQuote = try $ do
   string "    "
   contents <- trimInlines . mconcat <$> many1 inlineBQ
-  if all (==Space) (toList contents)
-     then return mempty
-     else return $ B.blockQuote $ B.plain contents
+  return $
+    case trimInlines contents of
+      ils | null ils -> mempty
+          | otherwise -> B.blockQuote $ B.plain ils
 
 definitionList :: PandocMonad m => VwParser m Blocks
 definitionList = try $
