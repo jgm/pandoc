@@ -182,7 +182,7 @@ isDisplayMath (Math DisplayMath _)          = True
 isDisplayMath (Span _ [Math DisplayMath _]) = True
 isDisplayMath _                             = False
 
--- | Remove leading and trailing 'Space' and 'SoftBreak' elements.
+-- | Remove leading and trailing spaces and 'SoftBreak' elements.
 stripLeadingTrailingSpace :: [Inline] -> [Inline]
 stripLeadingTrailingSpace = go . reverse . go . reverse
   where go (Space:xs)     = xs
@@ -440,7 +440,7 @@ sectionToListItem opts (Div (ident,_,_)
    addNumber  = if T.null num
                    then id
                    else (Span ("",["toc-section-number"],[])
-                           [Str num] :) . (Space :)
+                           [Str num] :) . (Str " " :)
    headerText' = addNumber $ walk (deLink . deNote) ils
    headerLink = if T.null ident
                    then headerText'

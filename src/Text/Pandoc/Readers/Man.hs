@@ -393,7 +393,6 @@ parseCodeBlock = try $ do
 
   getText :: Inline -> T.Text
   getText (Str s)    = s
-  getText Space      = " "
   getText (Code _ s) = s
   getText SoftBreak  = "\n"
   getText LineBreak  = "\n"

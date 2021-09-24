@@ -163,12 +163,12 @@ accentWith :: PandocMonad m
 accentWith tok combiningAccent fallBack = try $ do
   ils <- tok
   case toList ils of
+       [Str " "] -> return $ str $ T.singleton
+                         $ fromMaybe combiningAccent fallBack
        (Str (T.uncons -> Just (x, xs)) : ys) -> return $ fromList $
          -- try to normalize to the combined character:
          Str (Normalize.normalize Normalize.NFC
                (T.pack [x, combiningAccent]) <> xs) : ys
-       [Space] -> return $ str $ T.singleton
-                         $ fromMaybe combiningAccent fallBack
        []      -> return $ str $ T.singleton
                          $ fromMaybe combiningAccent fallBack
        _       -> return ils

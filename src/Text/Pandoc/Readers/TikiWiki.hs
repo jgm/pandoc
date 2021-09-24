@@ -18,7 +18,6 @@ module Text.Pandoc.Readers.TikiWiki ( readTikiWiki
 
 import Control.Monad
 import Control.Monad.Except (throwError)
-import qualified Data.Foldable as F
 import Data.List (dropWhileEnd)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
@@ -176,9 +175,9 @@ para =  fmap (result . mconcat) ( many1Till inline endOfParaElement)
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
    endOfPara        = try $ blankline >> skipMany1 blankline
    newBlockElement  = try $ blankline >> skip blockElements
-   result content   = if F.all (==Space) content
-                      then mempty
-                      else B.para $ B.trimInlines content
+   result content   = case B.trimInlines content of
+                        ils | null ils -> mempty
+                            | otherwise -> B.para ils
 
 -- ;item 1: definition 1
 -- ;item 2: definition 2-1
