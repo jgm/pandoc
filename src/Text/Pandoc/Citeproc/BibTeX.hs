@@ -1256,19 +1256,14 @@ toName opts ils = do
           , nameStaticOrdering      = False
           }
 
+-- Split Str elements so that characters satisfying the
+-- predicate each have their own Str.
 splitStrWhen :: (Char -> Bool) -> [Inline] -> [Inline]
-splitStrWhen _ [] = []
-splitStrWhen p (Str xs : ys) = map Str (go xs) ++ splitStrWhen p ys
-  where go s =
-          let (w,z) = T.break p s
-           in if T.null z
-                 then if T.null w
-                         then []
-                         else [w]
-                 else if T.null w
-                         then (T.take 1 z : go (T.drop 1 z))
-                         else (w : T.take 1 z : go (T.drop 1 z))
-splitStrWhen p (x : ys) = x : splitStrWhen p ys
+splitStrWhen p = foldr go []
+ where
+  go (Str t) = (map Str (T.groupBy goesTogether t) ++)
+  go x = (x :)
+  goesTogether c d   = not (p c || p d)
 
 ordinalize :: Locale -> Text -> Text
 ordinalize locale n =
