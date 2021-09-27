@@ -900,9 +900,9 @@ listItem parseIndentedMarker = try . withContext ListItemState $ do
 prependInlines :: Inline -> Blocks -> Blocks
 prependInlines inlns = B.fromList . prepend . B.toList
   where
-    prepend (Plain is : bs) = Plain (inlns : Space : is) : bs
-    prepend (Para  is : bs) = Para  (inlns : Space : is) : bs
-    prepend bs              = Plain [inlns, Space] : bs
+    prepend (Plain is : bs) = Plain (inlns : Str " " : is) : bs
+    prepend (Para  is : bs) = Para  (inlns : Str " " : is) : bs
+    prepend bs              = Plain [inlns, Str " "] : bs
 
 -- continuation of a list item - indented and separated by blankline or endline.
 -- Note: nested lists are parsed as continuations.

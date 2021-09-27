@@ -17,7 +17,6 @@ module Text.Pandoc.Readers.TWiki ( readTWiki
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum)
-import qualified Data.Foldable as F
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -285,16 +284,15 @@ noautolink = do
     parseContent = parseFromString' $ many block
 
 para :: PandocMonad m => TWParser m B.Blocks
-para = result . mconcat <$> many1Till inline endOfParaElement
+para = result . B.trimInlines . mconcat <$> many1Till inline endOfParaElement
  where
    endOfParaElement = lookAhead $ endOfInput <|> endOfPara <|> newBlockElement
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
    endOfPara        = try $ blankline >> skipMany1 blankline
    newBlockElement  = try $ blankline >> void blockElements
-   result content   = if F.all (==Space) content
-                      then mempty
-                      else B.para $ B.trimInlines content
-
+   result content   = if null content
+                         then mempty
+                         else B.para content
 
 --
 -- inline parsers

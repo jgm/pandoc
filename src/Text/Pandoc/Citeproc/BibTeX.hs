@@ -1174,7 +1174,8 @@ toName _ [Span ("",[],[]) ils] = -- corporate author
  -- extended BibLaTeX name format - see #266
 toName _ ils@(Str ys:_) | T.any (== '=') ys = do
   let commaParts = splitWhen (== Str ",")
-                   . splitStrWhen (\c -> c == ',' || c == '=' || c == '\160')
+                   . splitStrWhen (\c -> c == ',' || c == '=' || c == '\160' ||
+                                         c == ' ')
                    $ ils
   let addPart ag (Str "given" : Str "=" : xs) =
         ag{ nameGiven = case nameGiven ag of
@@ -1208,7 +1209,7 @@ toName opts ils = do
   let useprefix = optionSet "useprefix" opts
   let usecomma  = optionSet "juniorcomma" opts
   let bibtex    = optionSet "bibtex" opts
-  let words' = wordsBy (\x -> x == Space || x == Str "\160")
+  let words' = wordsBy (\x -> x == ' ' || x == Str "\160")
   let commaParts = map words' $ splitWhen (== Str ",")
                               $ splitStrWhen
                                    (\c -> c == ',' || c == '\160') ils

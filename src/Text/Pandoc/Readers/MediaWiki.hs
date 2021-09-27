@@ -199,7 +199,7 @@ block = do
 para :: PandocMonad m => MWParser m Blocks
 para = do
   contents <- trimInlines . mconcat <$> many1 inline
-  if F.all (==Space) contents
+  if null contents
      then return mempty
      else return $ B.para contents
 
@@ -389,7 +389,6 @@ preformatted = try $ do
 encode :: Inlines -> Inlines
 encode = B.fromList . normalizeCode . B.toList . walk strToCode
   where strToCode (Str s) = Code ("",[],[]) s
-        strToCode Space   = Code ("",[],[]) " "
         strToCode  x      = x
         normalizeCode []  = []
         normalizeCode (Code a1 x : Code a2 y : zs) | a1 == a2 =
