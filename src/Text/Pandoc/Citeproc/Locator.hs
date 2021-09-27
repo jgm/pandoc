@@ -51,7 +51,7 @@ maybeAddComma ils@(SoftBreak : _) = ils
 maybeAddComma ils@(Str t : _)
   | Just (c, _) <- T.uncons t
   , isPunctuation c || c == ' ' || c == '\t' = ils
-maybeAddComma ils = Str "," : Space : ils
+maybeAddComma ils = Str ", " : ils
 
 pLocatorDelimited :: LocatorMap -> LocatorParser (Text, Text)
 pLocatorDelimited locMap = try $ do
@@ -218,7 +218,26 @@ pMatchChar msg f = satisfyTok f' <?> msg
         f' _                       = False
 
 pSpace :: LocatorParser Inline
-pSpace = satisfyTok (\t -> isSpacey t || t == Str "\160") <?> "space"
+pSpace = do
+  il <- satisfyTok (\t -> isSpacey t || t == Str "\160") <?> "space"
+  case il of
+    Str t -> do
+      let (x,y) = T.span isSpace t
+      if T.null x
+         then return il
+         else do
+           -- put non-space portion on input stream
+           getInput >>= setInput . ((Str x):)
+           return $ Str y
+    _ -> return il
+ where
+  isSpacey :: Inline -> Bool
+  isSpacey (Str t)   = case T.uncons t of
+                         Just (c, _) -> isSpace c
+                         Nothing -> False
+  isSpacey SoftBreak = True
+  isSpacey _         = False
+
 
 pMath :: LocatorParser Inline
 pMath = satisfyTok isMath
@@ -230,11 +249,6 @@ satisfyTok :: (Inline -> Bool) -> LocatorParser Inline
 satisfyTok f = tokenPrim show (\sp _ _ -> sp) (\tok -> if f tok
                                                           then Just tok
                                                           else Nothing)
-
-isSpacey :: Inline -> Bool
-isSpacey Space     = True
-isSpacey SoftBreak = True
-isSpacey _         = False
 
 isLocatorPunct :: Char -> Bool
 isLocatorPunct '-' = False -- page range
