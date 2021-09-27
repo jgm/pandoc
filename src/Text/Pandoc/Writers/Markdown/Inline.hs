@@ -205,14 +205,10 @@ inlineListToMarkdown opts lst = do
                 -- If a link is followed by another link, or '[', '(' or ':'
                 -- then we don't shortcut
                 Link {}:_                                       -> unshortcutable
-                Space:Link {}:_                                 -> unshortcutable
-                Space:(Str(thead -> Just '[')):_                -> unshortcutable
-                Space:(RawInline _ (thead -> Just '[')):_       -> unshortcutable
-                Space:(Cite _ _):_                              -> unshortcutable
-                SoftBreak:Link {}:_                             -> unshortcutable
-                SoftBreak:(Str(thead -> Just '[')):_            -> unshortcutable
-                SoftBreak:(RawInline _ (thead -> Just '[')):_   -> unshortcutable
-                SoftBreak:(Cite _ _):_                          -> unshortcutable
+                x:Link {}:_ | isWS x                            -> unshortcutable
+                x:(Str(thead -> Just '[')):_ | isWS x           -> unshortcutable
+                x:(RawInline _ (thead -> Just '[')):_ | isWS x  -> unshortcutable
+                x:(Cite _ _):_ | isWS x                         -> unshortcutable
                 LineBreak:Link {}:_                             -> unshortcutable
                 LineBreak:(Str(thead -> Just '[')):_            -> unshortcutable
                 LineBreak:(RawInline _ (thead -> Just '[')):_   -> unshortcutable
@@ -227,7 +223,13 @@ inlineListToMarkdown opts lst = do
                 (RawInline _ (T.stripPrefix " [" -> Just _ )):_ -> unshortcutable
                 _                                               -> shortcutable
             _ -> shortcutable
-          where shortcutable = liftM2 (<>) (inlineToMarkdown opts i) (go is)
+          where isWS (Str t) = T.all isWSChar t
+                isWS SoftBreak = True
+                isWS _  = False
+                isWSChar ' ' = True
+                isWSChar '\t' = True
+                isWSChar _ = False
+                shortcutable = liftM2 (<>) (inlineToMarkdown opts i) (go is)
                 unshortcutable = do
                     iMark <- local
                              (\env -> env { envRefShortcutable = False })
