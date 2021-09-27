@@ -270,7 +270,12 @@ blockToRST (Header level (name,classes,_) inlines) = do
           let headerChar = if level > 5 then ' ' else "=-~^'" !! (level - 1)
           let border = literal $ T.replicate (offset contents) $ T.singleton headerChar
           let anchor | T.null name || name == autoId = empty
-                     | otherwise = ".. _" <> literal name <> ":" $$ blankline
+                     | otherwise = ".. _" <>
+                                   (if T.any (==':') name ||
+                                        T.take 1 name == "_"
+                                       then "`" <> literal name <> "`"
+                                       else literal name) <>
+                                   ":" $$ blankline
           return $ nowrap $ anchor $$ contents $$ border $$ blankline
     else do
           let rub     = "rubric:: " <> contents
