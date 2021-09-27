@@ -1136,7 +1136,6 @@ splitBibs = map (str . T.pack . flip replaceExtension "bib" . T.unpack . trim) .
 alltt :: Blocks -> Blocks
 alltt = walk strToCode
   where strToCode (Str s)   = Code nullAttr s
-        strToCode Space     = RawInline (Format "latex") "\\ "
         strToCode SoftBreak = LineBreak
         strToCode x         = x
 
