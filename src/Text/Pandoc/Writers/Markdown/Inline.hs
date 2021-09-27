@@ -193,6 +193,8 @@ getReference attr label target = do
 -- | Convert list of Pandoc inline elements to markdown.
 inlineListToMarkdown :: PandocMonad m => WriterOptions -> [Inline] -> MD m (Doc Text)
 inlineListToMarkdown opts lst = do
+  undefined
+{-
   inlist <- asks envInList
   go (if inlist then avoidBadWrapsInList lst else lst)
   where go [] = return empty
@@ -616,3 +618,4 @@ toSuperscriptInline (Str s) = Str . T.pack <$> traverse toSuperscript (T.unpack 
 toSuperscriptInline LineBreak = Just LineBreak
 toSuperscriptInline SoftBreak = Just SoftBreak
 toSuperscriptInline _ = Nothing
+-}

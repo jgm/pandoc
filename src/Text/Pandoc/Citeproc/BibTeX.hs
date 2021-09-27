@@ -524,7 +524,8 @@ itemToReference locale variant item = do
 
     -- change numerical series title to e.g. 'series 3'
     let fixSeriesTitle [Str xs] | isNumber xs =
-          [Str (ordinalize locale xs), Space, Str (resolveKey' lang "jourser")]
+          [Str (ordinalize locale xs), Str " ",
+           Str (resolveKey' lang "jourser")]
         fixSeriesTitle xs = xs
 
     seriesTitle' <- (Just . B.fromList . fixSeriesTitle . B.toList
@@ -770,7 +771,7 @@ blocksToInlines bs =
 
 adjustSpans :: Lang -> Inline -> Inline
 adjustSpans lang (Span ("",[],[("bibstring",s)]) _) = Str $ resolveKey' lang s
-adjustSpans _ SoftBreak = Space
+adjustSpans _ SoftBreak =  Str " "
 adjustSpans _ x = x
 
 latex' :: Text -> Bib [Block]
@@ -1088,17 +1089,17 @@ getLiteralList' f = do
       case x' of
         [Para xs]  ->
           return $ B.fromList
-                 $ intercalate [Str ";", Space]
+                 $ intercalate [Str "; "]
                  $ splitByAnd xs
         [Plain xs] ->
           return $ B.fromList
-                 $ intercalate [Str ";", Space]
+                 $ intercalate [Str "; "]
                  $ splitByAnd xs
         _          -> mzero
     Nothing   -> notFound f
 
 splitByAnd :: [Inline] -> [[Inline]]
-splitByAnd = splitOn [Space, Str "and", Space]
+splitByAnd = splitOn [Str " and "]
 
 toLiteralList :: [Block] -> Bib [Inlines]
 toLiteralList [Para xs] =
@@ -1150,7 +1151,7 @@ addSpaceAfterPeriod = go . splitStrWhen (=='.')
       , isLetter c
       , isUpper c
       , isUpper d
-        = Str (T.singleton c):Str ".":Space:go (Str (T.singleton d):xs)
+        = Str (T.singleton c):Str ". ":go (Str (T.singleton d):xs)
     go (x:xs) = x:go xs
 
 emptyName :: Name
@@ -1188,7 +1189,10 @@ toName _ ils@(Str ys:_) | T.any (== '=') ys = do
           , nameDroppingParticle    = Nothing }
       addPart ag (Str "suffix" : Str "=" : xs) =
         ag{ nameSuffix = Just $ stringify xs }
-      addPart ag (Space : xs) = addPart ag xs
+      addPart ag (Str t : xs)
+        = case T.takeWhile (== ' ') t of
+            t' | T.null t' -> addPart ag xs
+               | otherwise -> addPart ag (Str (T.dropWhile (== ' ') t) : xs)
       addPart ag _ = ag
   return $ foldl' addPart emptyName commaParts
 -- First von Last

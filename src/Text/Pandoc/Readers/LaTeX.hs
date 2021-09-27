@@ -523,7 +523,7 @@ ttfamily = code . stringify . toList <$> tok
 processHBox :: Inlines -> Inlines
 processHBox = walk convert
   where
-    convert Space     = Str $ T.singleton $ chr 160 -- non-breakable space
+    convert (Str t)   = Str $ T.map (\c -> if c == ' ' then '\160' else c) t
     convert SoftBreak = Str $ T.singleton $ chr 160 -- non-breakable space
     convert LineBreak = Str ""
     convert x         = x

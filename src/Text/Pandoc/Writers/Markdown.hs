@@ -166,6 +166,8 @@ valToYaml _ = empty
 -- | Return markdown representation of document.
 pandocToMarkdown :: PandocMonad m => WriterOptions -> Pandoc -> MD m Text
 pandocToMarkdown opts (Pandoc meta blocks) = do
+  undefined
+{-
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
@@ -827,3 +829,4 @@ startsWithSpace (Str t : _) =
     _ -> False
 startsWithSpace (SoftBreak : _) = True
 startsWithSpace _ = False
+-}

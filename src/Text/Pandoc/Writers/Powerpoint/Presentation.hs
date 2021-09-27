@@ -830,7 +830,7 @@ makeNoteEntry (n, blks) =
   let enum = Str (tshow n <> ".")
   in
     case blks of
-      (Para ils : blks') -> Para (enum : Space : ils) : blks'
+      (Para ils : blks') -> Para (enum : Str " " : ils) : blks'
       _ -> Para [enum] : blks
 
 forceFontSize :: Pixels -> Pres a -> Pres a
