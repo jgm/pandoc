@@ -1209,7 +1209,7 @@ toName opts ils = do
   let useprefix = optionSet "useprefix" opts
   let usecomma  = optionSet "juniorcomma" opts
   let bibtex    = optionSet "bibtex" opts
-  let words' = wordsBy (\x -> x == ' ' || x == Str "\160")
+  let words' = wordsBy (\x -> x == Str " " || x == Str "\160")
   let commaParts = map words' $ splitWhen (== Str ",")
                               $ splitStrWhen
                                    (\c -> c == ',' || c == '\160') ils
@@ -1261,13 +1261,14 @@ toName opts ils = do
           , nameStaticOrdering      = False
           }
 
--- Split Str elements so that characters satisfying the
--- predicate each have their own Str.
+-- Put p's (and spaces) in their own Str elements.
 splitStrWhen :: (Char -> Bool) -> [Inline] -> [Inline]
 splitStrWhen p = foldr go []
  where
   go (Str t) = (map Str (T.groupBy goesTogether t) ++)
   go x = (x :)
+  goesTogether ' ' _ = False
+  goesTogether _ ' ' = False
   goesTogether c d   = not (p c || p d)
 
 ordinalize :: Locale -> Text -> Text
