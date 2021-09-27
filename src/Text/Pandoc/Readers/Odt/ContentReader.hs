@@ -570,7 +570,7 @@ read_text_seq  = matchingElement NsText "sequence"
 read_spaces      :: InlineMatcher
 read_spaces       = matchingElement NsText "s" (
                           readAttrWithDefault NsText "c" 1 -- how many spaces?
-                      >>^ fromList.(`replicate` Space)
+                      >>^ fromList . (:[]) . Str . (`T.replicate` ' ')
                     )
 --
 read_line_break  :: InlineMatcher

@@ -47,10 +47,10 @@ pLocatorWords locMap = do
 
 maybeAddComma :: [Inline] -> [Inline]
 maybeAddComma [] = []
-maybeAddComma ils@(Space : _) = ils
+maybeAddComma ils@(SoftBreak : _) = ils
 maybeAddComma ils@(Str t : _)
   | Just (c, _) <- T.uncons t
-  , isPunctuation c = ils
+  , isPunctuation c || c == ' ' || c == '\t' = ils
 maybeAddComma ils = Str "," : Space : ils
 
 pLocatorDelimited :: LocatorMap -> LocatorParser (Text, Text)

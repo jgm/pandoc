@@ -46,10 +46,10 @@ import Text.Pandoc.Writers.Markdown.Types (MarkdownVariant(..),
 escapeText :: WriterOptions -> Text -> Text
 escapeText opts = T.pack . go . T.unpack
  where
-  startsWithSpace (' ':_) = True
-  startsWithSpace ('\t':_) = True
-  startsWithSpace [] = True
-  startsWithSpace _ = False
+  stringStartsWithSpace (' ':_) = True
+  stringStartsWithSpace ('\t':_) = True
+  stringStartsWithSpace [] = True
+  stringStartsWithSpace _ = False
   go [] = []
   go (c:cs) =
     case c of
@@ -66,7 +66,7 @@ escapeText opts = T.pack . go . T.unpack
                          -> '\\':'@':go cs
                     _ -> '@':go cs
        '#' | isEnabled Ext_space_in_atx_header opts
-           , startsWithSpace cs
+           , stringStartsWithSpace cs
            -> '\\':'#':go cs
        _ | c `elem` ['\\','`','*','_','[',']'] ->
               '\\':c:go cs

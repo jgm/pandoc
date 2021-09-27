@@ -109,7 +109,13 @@ citeArgumentsList inlineListToLaTeX (CiteGroup pfxs sfxs ids) = do
                 (Str t : r) -> case T.uncons t of
                   Just (x, xs)
                     | T.null xs
-                    , isPunctuation x -> dropWhile (== Space) r
+                    , isPunctuation x ->
+                      case r of
+                        (Str t : rs) ->
+                          case T.dropWhile (== ' ') t of
+                            t' | T.null t' -> rs
+                               | otherwise -> Str t' : rs
+                        _ -> r
                     | isPunctuation x -> Str xs : r
                   _ -> sfxs
                 _   -> sfxs

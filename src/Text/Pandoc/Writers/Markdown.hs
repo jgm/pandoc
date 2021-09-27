@@ -346,9 +346,6 @@ blockToMarkdown' opts (Plain inlines) = do
   let escapeMarker = T.concatMap $ \x -> if x `elemText` ".()"
                                          then T.pack ['\\', x]
                                          else T.singleton x
-  let startsWithSpace (Space:_)     = True
-      startsWithSpace (SoftBreak:_) = True
-      startsWithSpace _             = False
   let inlines' =
         if variant == PlainText
            then inlines
@@ -821,3 +818,12 @@ lineBreakToSpace :: Inline -> Inline
 lineBreakToSpace LineBreak = Space
 lineBreakToSpace SoftBreak = Space
 lineBreakToSpace x         = x
+
+-- | Starts with space or soft break.
+startsWithSpace :: [Inline] -> Bool
+startsWithSpace (Str t : _) =
+  case T.uncons t of
+    Just (c,_) -> c == ' ' || c == '\t' || c == '\r' || c == '\n'
+    _ -> False
+startsWithSpace (SoftBreak : _) = True
+startsWithSpace _ = False

@@ -1199,10 +1199,10 @@ gridTableRow blocks indices = do
 
 removeOneLeadingSpace :: [Text] -> [Text]
 removeOneLeadingSpace xs =
-  if all startsWithSpace xs
+  if all textStartsWithSpace xs
      then map (T.drop 1) xs
      else xs
-   where startsWithSpace t = case T.uncons t of
+   where textStartsWithSpace t = case T.uncons t of
            Nothing     -> True
            Just (c, _) -> c == ' '
 

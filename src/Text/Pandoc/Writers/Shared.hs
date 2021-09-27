@@ -38,7 +38,7 @@ module Text.Pandoc.Writers.Shared (
                      , toLegacyTable
                      )
 where
-import Safe (lastMay)
+import Safe (lastMay, initSafe)
 import qualified Data.ByteString.Lazy as BL
 import Data.Maybe (fromMaybe, isNothing)
 import Control.Monad (zipWithM)
@@ -184,10 +184,29 @@ isDisplayMath _                             = False
 
 -- | Remove leading and trailing spaces and 'SoftBreak' elements.
 stripLeadingTrailingSpace :: [Inline] -> [Inline]
-stripLeadingTrailingSpace = go . reverse . go . reverse
-  where go (Space:xs)     = xs
-        go (SoftBreak:xs) = xs
-        go xs             = xs
+stripLeadingTrailingSpace = stripLeadingSpace . stripTrailingSpace
+  where
+   isWS ' ' = True
+   isWS '\t' = True
+   isWS '\n' = True
+   isWS '\r' = True
+   isWS _ = False
+   stripTrailingSpace ils =
+     case lastMay ils of
+       Just SoftBreak -> stripTrailingSpace $ initSafe ils
+       Just (Str t) ->
+         case T.dropWhileEnd isWS t of
+           t' | T.null t' -> stripTrailingSpace $ initSafe ils
+              | otherwise -> initSafe ils ++ [Str t']
+       _ -> ils
+   stripLeadingSpace ils =
+     case ils of
+       (SoftBreak:ils') -> stripLeadingSpace ils'
+       (Str t:ils') ->
+         case T.dropWhile isWS t of
+           t' | T.null t' -> stripLeadingSpace ils'
+              | otherwise -> Str t' : ils'
+       _ -> ils
 
 -- | Put display math in its own block (for ODT/DOCX).
 fixDisplayMath :: Block -> Block
