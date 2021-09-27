@@ -65,11 +65,11 @@ import Data.Bifunctor (bimap, first)
 import qualified Data.ByteString.Lazy as B
 import Data.Default (Default)
 import Data.List (delete, intersect, foldl')
+import Data.Sequence ((|>), (<|), viewr, viewl, ViewR(..), ViewL(..))
 import Data.Char (isSpace)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Maybe (catMaybes, isJust, fromMaybe)
-import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import Text.Pandoc.Builder as Pandoc
@@ -523,11 +523,29 @@ splitHeaderRows hasFirstRowFormatting rs = bimap reverse reverse $ fst
 
 -- like trimInlines, but also take out linebreaks
 trimSps :: Inlines -> Inlines
-trimSps (Many ils) = Many $ Seq.dropWhileL isSp $Seq.dropWhileR isSp ils
-  where isSp Space     = True
-        isSp SoftBreak = True
-        isSp LineBreak = True
-        isSp _         = False
+trimSps = trimlSps . trimrSps
+ where
+  trimlSps (Many ils) =
+    case viewl ils of
+      SoftBreak :< xs -> trimlSps $ Many xs
+      LineBreak :< xs -> trimlSps $ Many xs
+      Str t :< xs
+        | startsWithSpace t -> Many (Str (T.dropWhile (==' ') t) <| xs)
+      _ -> Many ils
+  trimrSps (Many ils) =
+    case viewr ils of
+      (xs :> SoftBreak) -> trimrSps $ Many xs
+      (xs :> LineBreak) -> trimrSps $ Many xs
+      (xs :> Str t)
+        | endsWithSpace t -> Many (xs |> Str (T.dropWhileEnd (==' ') t))
+      _ -> Many ils
+  startsWithSpace t = case T.uncons t of
+                        Just (' ',_) -> True
+                        _ -> False
+  endsWithSpace t = case T.unsnoc t of
+                        Just (_,' ') -> True
+                        _ -> False
+
 
 extraAttr :: (Eq (StyleName a), HasStyleName a) => a -> Attr
 extraAttr s = ("", [], [("custom-style", fromStyleName $ getStyleName s)])

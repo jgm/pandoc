@@ -375,7 +375,6 @@ inlineToParElems (Subscript ils) =
 inlineToParElems (SmallCaps ils) =
   local (\r -> r{envRunProps = (envRunProps r){rCap = Just SmallCapitals}}) $
   inlinesToParElems ils
-inlineToParElems Space = inlineToParElems (Str " ")
 inlineToParElems SoftBreak = inlineToParElems (Str " ")
 inlineToParElems LineBreak = return [Break]
 inlineToParElems (Link _ ils (url, title)) =
@@ -1060,7 +1059,6 @@ inlineIsBlank
       (Quoted _ ins) -> all inlineIsBlank ins
       (Cite _ _) -> False
       (Code _ txt) -> textIsBlank txt
-      Space -> True
       SoftBreak -> True
       LineBreak -> True
       (Math _ txt) -> textIsBlank txt

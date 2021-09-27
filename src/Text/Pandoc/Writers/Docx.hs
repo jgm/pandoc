@@ -44,7 +44,6 @@ import qualified Text.Pandoc.Class.PandocMonad as P
 import Data.Time
 import Text.Pandoc.UTF8 (fromTextLazy)
 import Text.Pandoc.Definition
-import Text.Pandoc.Generic
 import Text.Pandoc.Highlighting (highlight)
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
@@ -737,11 +736,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
   abstract <- if null abstract'
                  then return []
                  else withParaPropM (pStyleM "Abstract") $ blocksToOpenXML opts abstract'
-  let convertSpace (Str x : Space : Str y : xs) = Str (x <> " " <> y) : xs
-      convertSpace (Str x : Str y : xs)         = Str (x <> y) : xs
-      convertSpace xs                           = xs
-  let blocks' = bottomUp convertSpace blocks
-  doc' <- setFirstPara >> blocksToOpenXML opts blocks'
+  doc' <- setFirstPara >> blocksToOpenXML opts blocks
   notes' <- reverse <$> gets stFootnotes
   comments <- reverse <$> gets stComments
   let toComment (kvs, ils) = do
@@ -882,7 +877,7 @@ blockToOpenXML' opts (Para [Image attr@(imgident,_,_) alt
                                            <> " \\* ARABIC \"><w:r><w:t>"
                                            <> tshow fignum
                                            <> "</w:t></w:r></w:fldSimple>"),
-                                           Str ":", Space] : alt
+                                           Str ": "] : alt
                               else alt
   return $
     Elem (mknode "w:p" [] (map Elem paraProps ++ contents))
