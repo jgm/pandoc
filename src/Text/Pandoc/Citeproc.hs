@@ -228,8 +228,11 @@ insertSpace ils =
         Just (Span ("",["csl-right-inline"],[]) _) ->
           Many $
             Span ("",["csl-left-margin"],[]) (xs ++ case lastMay xs of
-                                                      Just Space -> []
-                                                      _          -> [Space])
+                                                      Just (Str t)
+                                                       | Just (_,' ')
+                                                            <- T.unsnoc t
+                                                       -> []
+                                                      _          -> [Str " "])
             Seq.<| rest
         _ -> ils
     _ -> ils
@@ -369,7 +372,9 @@ isNote (Cite _ [Superscript _]) = True
 isNote _                 = False
 
 isSpacy :: Inline -> Bool
-isSpacy Space     = True
+isSpacy (Str t)   = case T.uncons t of
+                      Just (' ',_) -> True
+                      _ -> False
 isSpacy SoftBreak = True
 isSpacy _         = False
 
@@ -560,17 +565,17 @@ deNote (Note bs) =
   needsPeriod (Str t:_) = case T.uncons t of
                             Nothing    -> False
                             Just (c,_) -> isUpper c
-  needsPeriod (Space:zs) = needsPeriod zs
+  needsPeriod (z:zs) | isSpacy z = needsPeriod zs
   needsPeriod _ = False
 
   noteInParens (Span ("",["csl-note"],[]) ils)
-       = Space : Str "(" :
+       = Str " (" :
          removeFinalPeriod ils ++ [Str ")"]
   noteInParens x = [x]
 
   noteAfterComma needsPer (Span ("",["csl-note"],[]) ils)
     | not (null ils)
-       = Str "," : Space :
+       = Str ", " :
          if needsPer
             then ils
             else removeFinalPeriod ils

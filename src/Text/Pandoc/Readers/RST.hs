@@ -128,12 +128,7 @@ metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
        splitAuthors x                 = x
        splitAuthors'                  = map normalizeSpaces .
                                          splitOnSemi . concatMap factorSemi
-       normalizeSpaces                = reverse . dropWhile isSp . reverse .
-                                         dropWhile isSp
-       isSp Space     = True
-       isSp SoftBreak = True
-       isSp LineBreak = True
-       isSp _         = False
+       normalizeSpaces                = B.toList . trimInlines . B.fromList
        splitOnSemi                    = splitBy (==Str ";")
        factorSemi (Str "")            = []
        factorSemi (Str s)             = case T.break (==';') s of

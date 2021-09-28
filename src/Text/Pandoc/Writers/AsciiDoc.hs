@@ -442,7 +442,6 @@ inlineListToAsciiDoc opts lst = do
            xs' <- go xs
            return (x' <> xs')
        isSpacy :: SpacyLocation -> Inline -> Bool
-       isSpacy _ Space = True
        isSpacy _ LineBreak = True
        isSpacy _ SoftBreak = True
        -- Note that \W characters count as spacy in AsciiDoc
@@ -533,7 +532,6 @@ inlineToAsciiDoc _ il@(RawInline f s)
       report $ InlineNotRendered il
       return empty
 inlineToAsciiDoc _ LineBreak = return $ " +" <> cr
-inlineToAsciiDoc _ Space = return space
 inlineToAsciiDoc opts SoftBreak =
   case writerWrapText opts of
        WrapAuto     -> return space

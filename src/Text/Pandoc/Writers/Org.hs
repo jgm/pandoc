@@ -42,6 +42,9 @@ type Org = StateT WriterState
 -- | Convert Pandoc to Org.
 writeOrg :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeOrg opts document = do
+  undefined
+
+{-
   let st = WriterState { stNotes = [],
                          stHasMath = False,
                          stOptions = opts }
@@ -509,3 +512,4 @@ orgLangIdentifiers =
   , "sqlite"
   , "lilypond"
   , "vala" ]
+-}

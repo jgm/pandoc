@@ -51,6 +51,9 @@ type RST = StateT WriterState
 -- | Convert Pandoc to RST.
 writeRST :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeRST opts document = do
+  undefined
+
+{-
   let st = WriterState { stNotes = [], stLinks = [],
                          stImages = [], stHasMath = False,
                          stHasRawTeX = False, stOptions = opts,
@@ -505,6 +508,8 @@ transformInlines =  insertBS .
         isComplex (Span _ (x:_))  = isComplex x
         isComplex _               = False
 
+-}
+
 -- | Flattens nested inlines. Extracts nested inlines and goes through
 -- them either collapsing them in the outer inline container or
 -- pulling them out of it
@@ -587,6 +592,7 @@ setInlineChildren (Image a _ t) i   = Image a i t
 setInlineChildren (Span a _) i      = Span a i
 setInlineChildren leaf _            = leaf
 
+{-
 inlineListToRST :: PandocMonad m => [Inline] -> RST m (Doc Text)
 inlineListToRST = writeInlines . walk transformInlines
 
@@ -777,3 +783,4 @@ simpleTable opts blocksToDoc headers rows = do
                else hline $$ toRow headerDocs
   let bdy = vcat $ map toRow rowDocs
   return $ hdr $$ hline $$ bdy $$ hline
+-}

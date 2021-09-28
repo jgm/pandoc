@@ -355,9 +355,9 @@ inlineListToConTeXt lst = liftM hcat $ mapM inlineToConTeXt $ addStruts lst
              addStruts xs
         addStruts (x:xs) = x : addStruts xs
         addStruts [] = []
-        isSpacey Space                               = True
-        isSpacey (Str (T.uncons -> Just ('\160',_))) = True
-        isSpacey _                                   = False
+        isSpacey (Str (T.uncons -> Just (c,_))) = c == '\160' || c == ' ' ||
+                                                  c == '\t'
+        isSpacey _                              = False
 
 -- | Convert inline element to ConTeXt
 inlineToConTeXt :: PandocMonad m

@@ -1738,18 +1738,20 @@ str = do
   (do guardEnabled Ext_smart
       abbrevs <- getOption readerAbbreviations
       if result `Set.member` abbrevs
-         then try (do ils <- whitespace
-                      notFollowedBy (() <$ cite <|> () <$ note)
-                      -- ?? lookAhead alphaNum
-                      -- replace space after with nonbreaking space
-                      -- if softbreak, move before abbrev if possible (#4635)
-                      return $ do
-                        ils' <- ils
-                        case B.toList ils' of
-                             [Space] ->
-                                 return (B.str result <> B.str "\160")
-                             _ -> return (B.str result <> ils'))
-                <|> return (return (B.str result))
+         then mzero
+        -- TODO redo abbrevs with no Space elements
+        --      try (do ils <- whitespace
+        --              notFollowedBy (() <$ cite <|> () <$ note)
+        --              -- ?? lookAhead alphaNum
+        --              -- replace space after with nonbreaking space
+        --              -- if softbreak, move before abbrev if possible (#4635)
+        --              return $ do
+        --                ils' <- ils
+        --                case B.toList ils' of
+        --                     [Space] ->
+        --                         return (B.str result <> B.str "\160")
+        --                     _ -> return (B.str result <> ils'))
+        --        <|> return (return (B.str result))
          else return (return (B.str result)))
      <|> return (return (B.str result))
 
