@@ -1732,28 +1732,33 @@ nonEndline = satisfy (/='\n')
 str :: PandocMonad m => MarkdownParser m (F Inlines)
 str = do
   result <- mconcat <$> many1
-             ( T.pack <$> (many1 alphaNum)
-              <|> "." <$ try (char '.' <* notFollowedBy (char '.')) )
+             ( T.pack <$> (many1 (satisfy (\c -> isAlphaNum c ||
+                                                  c == ',' || c == '?' ||
+                                                  c == '(' || c == ')' ||
+                                                  c == '/' )))
+              <|> try (T.pack <$> many1 spaceChar <* notFollowedBy newline)
+              <|> try (T.singleton <$> char '.' <* notFollowedBy (char '.')) )
   updateLastStrPos
-  (do guardEnabled Ext_smart
-      abbrevs <- getOption readerAbbreviations
-      if result `Set.member` abbrevs
-         then mzero
-        -- TODO redo abbrevs with no Space elements
-        --      try (do ils <- whitespace
-        --              notFollowedBy (() <$ cite <|> () <$ note)
-        --              -- ?? lookAhead alphaNum
-        --              -- replace space after with nonbreaking space
-        --              -- if softbreak, move before abbrev if possible (#4635)
-        --              return $ do
-        --                ils' <- ils
-        --                case B.toList ils' of
-        --                     [Space] ->
-        --                         return (B.str result <> B.str "\160")
-        --                     _ -> return (B.str result <> ils'))
-        --        <|> return (return (B.str result))
-         else return (return (B.str result)))
-     <|> return (return (B.str result))
+-- TODO: handle abbreviations as an AST transformation?
+-- Then they could work on other formats, too.
+--  (do guardEnabled Ext_smart
+--      abbrevs <- getOption readerAbbreviations
+--      if result `Set.member` abbrevs
+--         then try (do ils <- whitespace
+--                      notFollowedBy (() <$ cite <|> () <$ note)
+--                      -- ?? lookAhead alphaNum
+--                      -- replace space after with nonbreaking space
+--                      -- if softbreak, move before abbrev if possible (#4635)
+--                      return $ do
+--                        ils' <- ils
+--                        case B.toList ils' of
+--                             [Space] ->
+--                                 return (B.str result <> B.str "\160")
+--                             _ -> return (B.str result <> ils'))
+--               <|> return (return (B.str result))
+--         else return (return (B.str result)))
+--     <|>
+  return (return (B.str result))
 
 -- an endline character that can be treated as a space, not a structural break
 endline :: PandocMonad m => MarkdownParser m (F Inlines)
