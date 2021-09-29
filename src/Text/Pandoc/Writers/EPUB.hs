@@ -659,7 +659,7 @@ pandocToEPUB version opts doc = do
                                    "contributors", "other-credits",
                                    "errata", "revision-history",
                                    "titlepage", "halftitlepage", "seriespage",
-                                   "foreword", "preface",
+                                   "foreword", "preface", "frontispiece",
                                    "seriespage", "titlepage"]
                backMatterTypes = ["appendix", "colophon", "bibliography",
                                   "index"]
