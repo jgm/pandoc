@@ -11,7 +11,9 @@ foo: bim
 ...
 ^D
 Pandoc
-  ( Meta
-    { unMeta = fromList [ ( "foo", MetaInlines [ Str "bim" ] ) ] }
-  ) []
+  Meta
+    { unMeta =
+        fromList [ ( "foo" , MetaInlines [ Str "bim" ] ) ]
+    }
+  []
 ```

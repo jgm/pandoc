@@ -1,18 +1,18 @@
 Pandoc
-  ( Meta { unMeta = fromList [] } )
+  Meta { unMeta = fromList [] }
   [ Para
-    [ Str "le"
-    , Space
-    , Str "caf\233"
-    , Space
-    , Str "o\249"
-    , Space
-    , Str "on"
-    , Space
-    , Str "ne"
-    , Space
-    , Str "fume"
-    , Space
-    , Str "pas"
-    ]
+      [ Str "le"
+      , Space
+      , Str "caf\233"
+      , Space
+      , Str "o\249"
+      , Space
+      , Str "on"
+      , Space
+      , Str "ne"
+      , Space
+      , Str "fume"
+      , Space
+      , Str "pas"
+      ]
   ]

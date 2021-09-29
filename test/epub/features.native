@@ -1,1744 +1,1676 @@
-[ Para
-  [ Span ( "front.xhtml", [], [] ) [] ]
+[ Para [ Span ( "front.xhtml" , [] , [] ) [] ]
 , Div
-  ( "", [ "section" ], [] )
-  [ Header 1
-    ( "", [], [] )
-    [ Str "Reflowable"
-    , Space
-    , Str "EPUB"
-    , Space
-    , Str "3"
-    , Space
-    , Str "Conformance"
-    , Space
-    , Str "Test"
-    , Space
-    , Str "Document:"
-    , Space
-    , Str "0100"
-    ]
-  , Div
-    ( "", [ "section" ], [] )
-    [ Header 2
-      ( "", [], [] )
-      [ Str "Status"
-      , Space
-      , Str "of"
-      , Space
-      , Str "this"
-      , Space
-      , Str "Document"
-      ]
-    , Para
-      [ Str "This"
-      , Space
-      , Str "publication"
-      , Space
-      , Str "is"
-      , Space
-      , Str "currently"
-      , Space
-      , Str "considered"
-      , Space
-      , Span
-        ( "", [ "status" ], [] )
-        [ Str "[UNDER", Space, Str "DEVELOPMENT]" ]
-      , Space
-      , Str "by"
-      , Space
-      , Str "the"
-      , Space
-      , Str "IDPF."
-      ]
-    , Para
-      [ Str "This"
-      , Space
-      , Str "publication"
-      , Space
-      , Str "is"
-      , Space
-      , Str "part"
-      , Space
-      , Str "of"
-      , Space
-      , Str "version"
-      , Space
-      , Span
-        ( "", [ "version" ], [] )
-        [ Str "X.X" ]
-      , Space
-      , Str "of"
-      , Space
-      , Str "the"
-      , Space
-      , Str "EPUB"
-      , Space
-      , Str "3.0"
-      , Space
-      , Str "Compliance"
-      , Space
-      , Str "Test"
-      , Space
-      , Str "Suite"
-      , Space
-      , Str "released"
-      , SoftBreak
-      , Str "on"
-      , Space
-      , RawInline
-        ( Format "html" ) "<time class=\"release\">"
-      , Str "TBD"
-      , RawInline
-        ( Format "html" ) "</time>"
-      , Str "."
-      ]
-    , Para
-      [ Str "Before"
-      , Space
-      , Str "using"
-      , Space
-      , Str "this"
-      , Space
-      , Str "publication"
-      , Space
-      , Str "to"
-      , Space
-      , Str "evaluate"
-      , Space
-      , Str "reading"
-      , Space
-      , Str "systems,"
-      , Space
-      , Str "testers"
-      , Space
-      , Str "are"
-      , Space
-      , Str "strongly"
-      , Space
-      , Str "encouraged"
-      , Space
-      , Str "to"
-      , SoftBreak
-      , Str "verify"
-      , Space
-      , Str "that"
-      , Space
-      , Str "they"
-      , Space
-      , Str "have"
-      , Space
-      , Str "the"
-      , Space
-      , Str "latest"
-      , Space
-      , Str "release"
-      , Space
-      , Str "by"
-      , Space
-      , Str "checking"
-      , Space
-      , Str "the"
-      , Space
-      , Str "current"
-      , Space
-      , Str "release"
-      , Space
-      , Str "version"
-      , Space
-      , Str "and"
-      , Space
-      , Str "date"
-      , Space
-      , Str "of"
-      , SoftBreak
-      , Str "the"
-      , Space
-      , Str "test"
-      , Space
-      , Str "suite"
-      , Space
-      , Str "at"
-      , Space
-      , Link
-        ( "", [], [] )
-        [ Str "TBD" ]
-        ( "http://idpf.org/", "" )
-      ]
-    , Para
-      [ Str "This"
-      , Space
-      , Str "publication"
-      , Space
-      , Str "is"
-      , Space
-      , Str "one"
-      , Space
-      , Str "of"
-      , Space
-      , Str "several"
-      , Space
-      , Str "that"
-      , Space
-      , Str "currently"
-      , Space
-      , Str "comprise"
-      , Space
-      , Str "the"
-      , Space
-      , Str "EPUB"
-      , Space
-      , Str "3"
-      , Space
-      , Str "conformance"
-      , Space
-      , Str "test"
-      , Space
-      , Str "suite"
-      , SoftBreak
-      , Str "for"
-      , Space
-      , Str "reflowable"
-      , Space
-      , Str "content."
-      , Space
-      , Str "The"
-      , Space
-      , Str "complete"
-      , Space
-      , Str "test"
-      , Space
-      , Str "suite"
-      , Space
-      , Str "includes"
-      , Space
-      , Str "all"
-      , Space
-      , Str "of"
-      , Space
-      , Str "the"
-      , Space
-      , Str "following"
-      , Space
-      , Str "publications:"
-      ]
-    , OrderedList
-      ( 1, DefaultStyle, DefaultDelim )
-      [ [ Plain [ Str "." ] ] ]
-    ]
-  , Div
-    ( "", [ "section" ], [] )
-    [ Header 2
-      ( "", [], [] )
-      [ Str "About", Space, Str "this", Space, Str "Document" ]
-    , Para
-      [ Str "This"
-      , Space
-      , Str "document"
-      , Space
-      , Str "focuses"
-      , Space
-      , Str "on"
-      , Space
-      , Str "human-evaluated"
-      , Space
-      , Str "binary"
-      , Space
-      , Str "(pass/fail)"
-      , Space
-      , Str "tests"
-      , Space
-      , Str "in"
-      , Space
-      , Str "a"
-      , SoftBreak
-      , Str "reflowable"
-      , Space
-      , Str "context."
-      , Space
-      , Str "Tests"
-      , Space
-      , Str "for"
-      , Space
-      , Str "fixed-layout"
-      , Space
-      , Str "content"
-      , Space
-      , Str "and"
-      , Space
-      , Str "other"
-      , Space
-      , Str "individual"
-      , Space
-      , Str "tests"
-      , Space
-      , Str "that"
-      , SoftBreak
-      , Str "require"
-      , Space
-      , Str "a"
-      , Space
-      , Str "dedicated"
-      , Space
-      , Str "epub"
-      , Space
-      , Str "file"
-      , Space
-      , Str "are"
-      , Space
-      , Str "available"
-      , Space
-      , Str "in"
-      , Space
-      , Str "additional"
-      , Space
-      , Str "sibling"
-      , Space
-      , Str "documents;"
-      , Space
-      , Str "refer"
-      , Space
-      , Str "to"
-      , SoftBreak
-      , Str "the"
-      , Space
-      , Link
-        ( "", [], [] )
-        [ Str "test", Space, Str "suite", SoftBreak, Str "wiki" ]
-        ( "https://github.com/mgylling/epub-testsuite/wiki/Overview"
-        , ""
-        )
-      , Space
-      , Str "("
-      , Code
-        ( ""
-        , []
-        , []
-        ) "https://github.com/mgylling/epub-testsuite/wiki/Overview"
-      , Str ")"
-      , Space
-      , Str "for"
-      , Space
-      , Str "additional"
-      , SoftBreak
-      , Str "information."
-      ]
-    ]
-  , Div
-    ( "", [ "section" ], [] )
-    [ Header 2
-      ( "", [], [] )
-      [ Str "Conventions" ]
-    , Para
-      [ Str "The"
-      , Space
-      , Str "following"
-      , Space
-      , Str "conventions"
-      , Space
-      , Str "are"
-      , Space
-      , Str "used"
-      , Space
-      , Str "throughout"
-      , Space
-      , Str "the"
-      , Space
-      , Str "document:"
-      ]
-    , DefinitionList
-      [
-        (
-          [ Str "1."
-          , Space
-          , Str "Locating"
-          , Space
-          , Str "a"
-          , Space
-          , Str "test"
-          ]
-        ,
-          [
-            [ Div
-              ( "", [ "ctest" ], [] )
-              [ Para
-                [ Str "Tests"
-                , Space
-                , Str "for"
-                , Space
-                , Emph
-                  [ Str "required" ]
-                , Space
-                , Str "Reading"
-                , Space
-                , Str "System"
-                , Space
-                , Str "functionality"
-                , Space
-                , Str "are"
-                , SoftBreak
-                , Str "preceded"
-                , Space
-                , Str "by"
-                , Space
-                , Str "the"
-                , Space
-                , Str "label:"
-                , Space
-                , Span
-                  ( ""
-                  , [ "nature" ]
-                  ,
-                    [ ( "style", "display: inline; font-size: 100%" ) ]
-                  )
-                  [ Str "[REQUIRED]" ]
-                ]
-              ]
-            , Div
-              ( "", [ "otest" ], [] )
-              [ Para
-                [ Str "Tests"
-                , Space
-                , Str "for"
-                , Space
-                , Emph
-                  [ Str "optional" ]
-                , Space
-                , Str "Reading"
-                , Space
-                , Str "System"
-                , Space
-                , Str "functionality"
-                , Space
-                , Str "are"
-                , SoftBreak
-                , Str "preceded"
-                , Space
-                , Str "by"
-                , Space
-                , Str "the"
-                , Space
-                , Str "label:"
-                , Space
-                , Span
-                  ( ""
-                  , [ "nature" ]
-                  ,
-                    [ ( "style", "display: inline; font-size: 100%" ) ]
-                  )
-                  [ Str "[OPTIONAL]" ]
-                ]
-              ]
+    ( "" , [ "section" ] , [] )
+    [ Header
+        1
+        ( "" , [] , [] )
+        [ Str "Reflowable"
+        , Space
+        , Str "EPUB"
+        , Space
+        , Str "3"
+        , Space
+        , Str "Conformance"
+        , Space
+        , Str "Test"
+        , Space
+        , Str "Document:"
+        , Space
+        , Str "0100"
+        ]
+    , Div
+        ( "" , [ "section" ] , [] )
+        [ Header
+            2
+            ( "" , [] , [] )
+            [ Str "Status"
+            , Space
+            , Str "of"
+            , Space
+            , Str "this"
+            , Space
+            , Str "Document"
             ]
-          ]
-        )
-      ,
-        (
-          [ Str "2."
-          , Space
-          , Str "Performing"
-          , Space
-          , Str "the"
-          , Space
-          , Str "test"
-          ]
-        ,
-          [
-            [ Plain
-              [ Str "Each"
-              , Space
-              , Str "test"
-              , Space
-              , Str "includes"
-              , Space
-              , Str "a"
-              , Space
-              , Str "description"
-              , Space
-              , Str "of"
-              , Space
-              , Str "its"
-              , Space
-              , Str "purpose"
-              , Space
-              , Str "followed"
-              , Space
-              , Str "by"
-              , Space
-              , Str "the"
-              , Space
-              , Str "actual"
-              , Space
-              , Strong
+        , Para
+            [ Str "This"
+            , Space
+            , Str "publication"
+            , Space
+            , Str "is"
+            , Space
+            , Str "currently"
+            , Space
+            , Str "considered"
+            , Space
+            , Span
+                ( "" , [ "status" ] , [] )
+                [ Str "[UNDER" , Space , Str "DEVELOPMENT]" ]
+            , Space
+            , Str "by"
+            , Space
+            , Str "the"
+            , Space
+            , Str "IDPF."
+            ]
+        , Para
+            [ Str "This"
+            , Space
+            , Str "publication"
+            , Space
+            , Str "is"
+            , Space
+            , Str "part"
+            , Space
+            , Str "of"
+            , Space
+            , Str "version"
+            , Space
+            , Span ( "" , [ "version" ] , [] ) [ Str "X.X" ]
+            , Space
+            , Str "of"
+            , Space
+            , Str "the"
+            , Space
+            , Str "EPUB"
+            , Space
+            , Str "3.0"
+            , Space
+            , Str "Compliance"
+            , Space
+            , Str "Test"
+            , Space
+            , Str "Suite"
+            , Space
+            , Str "released"
+            , SoftBreak
+            , Str "on"
+            , Space
+            , RawInline (Format "html") "<time class=\"release\">"
+            , Str "TBD"
+            , RawInline (Format "html") "</time>"
+            , Str "."
+            ]
+        , Para
+            [ Str "Before"
+            , Space
+            , Str "using"
+            , Space
+            , Str "this"
+            , Space
+            , Str "publication"
+            , Space
+            , Str "to"
+            , Space
+            , Str "evaluate"
+            , Space
+            , Str "reading"
+            , Space
+            , Str "systems,"
+            , Space
+            , Str "testers"
+            , Space
+            , Str "are"
+            , Space
+            , Str "strongly"
+            , Space
+            , Str "encouraged"
+            , Space
+            , Str "to"
+            , SoftBreak
+            , Str "verify"
+            , Space
+            , Str "that"
+            , Space
+            , Str "they"
+            , Space
+            , Str "have"
+            , Space
+            , Str "the"
+            , Space
+            , Str "latest"
+            , Space
+            , Str "release"
+            , Space
+            , Str "by"
+            , Space
+            , Str "checking"
+            , Space
+            , Str "the"
+            , Space
+            , Str "current"
+            , Space
+            , Str "release"
+            , Space
+            , Str "version"
+            , Space
+            , Str "and"
+            , Space
+            , Str "date"
+            , Space
+            , Str "of"
+            , SoftBreak
+            , Str "the"
+            , Space
+            , Str "test"
+            , Space
+            , Str "suite"
+            , Space
+            , Str "at"
+            , Space
+            , Link
+                ( "" , [] , [] )
+                [ Str "TBD" ]
+                ( "http://idpf.org/" , "" )
+            ]
+        , Para
+            [ Str "This"
+            , Space
+            , Str "publication"
+            , Space
+            , Str "is"
+            , Space
+            , Str "one"
+            , Space
+            , Str "of"
+            , Space
+            , Str "several"
+            , Space
+            , Str "that"
+            , Space
+            , Str "currently"
+            , Space
+            , Str "comprise"
+            , Space
+            , Str "the"
+            , Space
+            , Str "EPUB"
+            , Space
+            , Str "3"
+            , Space
+            , Str "conformance"
+            , Space
+            , Str "test"
+            , Space
+            , Str "suite"
+            , SoftBreak
+            , Str "for"
+            , Space
+            , Str "reflowable"
+            , Space
+            , Str "content."
+            , Space
+            , Str "The"
+            , Space
+            , Str "complete"
+            , Space
+            , Str "test"
+            , Space
+            , Str "suite"
+            , Space
+            , Str "includes"
+            , Space
+            , Str "all"
+            , Space
+            , Str "of"
+            , Space
+            , Str "the"
+            , Space
+            , Str "following"
+            , Space
+            , Str "publications:"
+            ]
+        , OrderedList
+            ( 1 , DefaultStyle , DefaultDelim )
+            [ [ Plain [ Str "." ] ] ]
+        ]
+    , Div
+        ( "" , [ "section" ] , [] )
+        [ Header
+            2
+            ( "" , [] , [] )
+            [ Str "About"
+            , Space
+            , Str "this"
+            , Space
+            , Str "Document"
+            ]
+        , Para
+            [ Str "This"
+            , Space
+            , Str "document"
+            , Space
+            , Str "focuses"
+            , Space
+            , Str "on"
+            , Space
+            , Str "human-evaluated"
+            , Space
+            , Str "binary"
+            , Space
+            , Str "(pass/fail)"
+            , Space
+            , Str "tests"
+            , Space
+            , Str "in"
+            , Space
+            , Str "a"
+            , SoftBreak
+            , Str "reflowable"
+            , Space
+            , Str "context."
+            , Space
+            , Str "Tests"
+            , Space
+            , Str "for"
+            , Space
+            , Str "fixed-layout"
+            , Space
+            , Str "content"
+            , Space
+            , Str "and"
+            , Space
+            , Str "other"
+            , Space
+            , Str "individual"
+            , Space
+            , Str "tests"
+            , Space
+            , Str "that"
+            , SoftBreak
+            , Str "require"
+            , Space
+            , Str "a"
+            , Space
+            , Str "dedicated"
+            , Space
+            , Str "epub"
+            , Space
+            , Str "file"
+            , Space
+            , Str "are"
+            , Space
+            , Str "available"
+            , Space
+            , Str "in"
+            , Space
+            , Str "additional"
+            , Space
+            , Str "sibling"
+            , Space
+            , Str "documents;"
+            , Space
+            , Str "refer"
+            , Space
+            , Str "to"
+            , SoftBreak
+            , Str "the"
+            , Space
+            , Link
+                ( "" , [] , [] )
                 [ Str "test"
                 , Space
-                , Str "statement,"
+                , Str "suite"
                 , SoftBreak
-                , Str "which"
-                , Space
-                , Str "can"
-                , Space
-                , Str "always"
-                , Space
-                , Str "be"
-                , Space
-                , Str "evaluated"
-                , Space
-                , Str "to"
-                , Space
-                , Str "true"
-                , Space
-                , Str "or"
-                , Space
-                , Str "false"
+                , Str "wiki"
                 ]
-              , Str "."
-              , Space
-              , Str "These"
-              , Space
-              , Str "statements"
-              , Space
-              , Str "typically"
-              , Space
-              , Str "have"
-              , Space
-              , Str "the"
-              , Space
-              , Str "form:"
-              , SoftBreak
-              , Str "\"If"
-              , Space
-              , Str "[some"
-              , Space
-              , Str "condition],"
-              , Space
-              , Str "the"
-              , Space
-              , Str "test"
-              , Space
-              , Str "passes\"."
-              ]
+                ( "https://github.com/mgylling/epub-testsuite/wiki/Overview"
+                , ""
+                )
+            , Space
+            , Str "("
+            , Code
+                ( "" , [] , [] )
+                "https://github.com/mgylling/epub-testsuite/wiki/Overview"
+            , Str ")"
+            , Space
+            , Str "for"
+            , Space
+            , Str "additional"
+            , SoftBreak
+            , Str "information."
             ]
-          ]
-        )
-      ,
-        (
-          [ Str "3."
-          , Space
-          , Str "Scoring"
-          , Space
-          , Str "in"
-          , Space
-          , Str "the"
-          , Space
-          , Str "results"
-          , Space
-          , Str "form"
-          ]
-        ,
-          [
-            [ Plain
-              [ Str "@@@TODO"
-              , Space
-              , Str "provide"
-              , Space
-              , Str "info"
-              , Space
-              , Str "on"
-              , Space
-              , Str "where"
-              , Space
-              , Str "to"
-              , Space
-              , Str "get"
-              , Space
-              , Str "the"
-              , Space
-              , Str "results"
-              , Space
-              , Str "form"
-              ]
-            ]
-          ]
-        )
-      ]
-    ]
-  ]
-, Para
-  [ Span ( "content-mathml-001.xhtml", [], [] ) [] ]
-, Div
-  ( "", [ "section" ], [] )
-  [ Header 2
-    ( "content-mathml-001.xhtml#mathml", [], [] )
-    [ Str "MathML" ]
-  , Div
-    ( "content-mathml-001.xhtml#mathml-010"
-    ,
-      [ "section", "ctest" ]
-    , []
-    )
-    [ Header 2
-      ( "", [], [] )
-      [ Span
-        ( "", [ "nature" ], [] )
-        [ Str "[REQUIRED]" ]
-      , SoftBreak
-      , Span
-        ( "", [ "test-id" ], [] )
-        [ Str "mathml-010" ]
-      , Space
-      , Str "Rendering"
-      ]
-    , Para
-      [ Str "Tests"
-      , Space
-      , Str "whether"
-      , Space
-      , Str "MathML"
-      , Space
-      , Str "equation"
-      , Space
-      , Str "rendering"
-      , Space
-      , Str "is"
-      , Space
-      , Str "supported."
-      ]
-    , Plain
-      [ Math DisplayMath "\\int_{- \\infty}^{\\infty}e^{- x^{2}}\\, dx = \\sqrt{\\pi}"
-      , SoftBreak
-      , Math DisplayMath "\\sum\\limits_{n = 1}^{\\infty}\\frac{1}{n^{2}} = \\frac{\\pi^{2}}{6}"
-      , SoftBreak
-      , Math DisplayMath "x = \\frac{- b \\pm \\sqrt{b^{2} - 4ac}}{2a}"
-      ]
-    , Para
-      [ Str "If"
-      , Space
-      , Str "the"
-      , Space
-      , Str "preceding"
-      , Space
-      , Str "equations"
-      , Space
-      , Str "are"
-      , Space
-      , Str "not"
-      , Space
-      , Str "presented"
-      , Space
-      , Str "as"
-      , Space
-      , Str "linear"
-      , Space
-      , Str "text"
-      , Space
-      , Str "(e.g.,"
-      , Space
-      , Str "x=-b\177b2-4ac2a),"
-      , SoftBreak
-      , Str "the"
-      , Space
-      , Str "test"
-      , Space
-      , Str "passes."
-      ]
-    ]
-  , Div
-    ( "content-mathml-001.xhtml#mathml-020"
-    ,
-      [ "section", "otest" ]
-    , []
-    )
-    [ Header 2
-      ( "", [], [] )
-      [ Span
-        ( "", [ "nature" ], [] )
-        [ Str "[OPTIONAL]" ]
-      , SoftBreak
-      , Span
-        ( "", [ "test-id" ], [] )
-        [ Str "mathml-020" ]
-      , Space
-      , Str "CSS"
-      , Space
-      , Str "Styling"
-      , Space
-      , Str "of"
-      , Space
-      , Str "the"
-      , Space
-      , Code
-        ( "", [], [] ) "math"
-      , Space
-      , Str "element"
-      ]
-    , Para
-      [ Str "Tests"
-      , Space
-      , Str "whether"
-      , Space
-      , Str "basic"
-      , Space
-      , Str "CSS"
-      , Space
-      , Str "styling"
-      , Space
-      , Str "of"
-      , Space
-      , Str "MathML"
-      , Space
-      , Str "is"
-      , Space
-      , Str "supported"
-      , Space
-      , Str "on"
-      , Space
-      , Str "the"
-      , Space
-      , Code
-        ( "", [], [] ) "math"
-      , Space
-      , Str "element."
-      ]
-    , Plain
-      [ Math InlineMath "{2x}{+ y - z}" ]
-    , Para
-      [ Str "The"
-      , Space
-      , Str "test"
-      , Space
-      , Str "passes"
-      , Space
-      , Str "if"
-      , Space
-      , Str "the"
-      , Space
-      , Str "equation"
-      , Space
-      , Str "has"
-      , Space
-      , Str "a"
-      , Space
-      , Str "yellow"
-      , Space
-      , Str "background"
-      , Space
-      , Str "and"
-      , Space
-      , Str "a"
-      , Space
-      , Str "dashed"
-      , Space
-      , Str "border."
-      ]
-    , Para
-      [ Str "If"
-      , Space
-      , Str "the"
-      , Space
-      , Str "reading"
-      , Space
-      , Str "system"
-      , Space
-      , Str "does"
-      , Space
-      , Str "not"
-      , Space
-      , Str "have"
-      , Space
-      , Str "a"
-      , Space
-      , Str "viewport,"
-      , Space
-      , Str "or"
-      , Space
-      , Str "does"
-      , Space
-      , Str "not"
-      , Space
-      , Str "support"
-      , SoftBreak
-      , Str "CSS"
-      , Space
-      , Str "styles,"
-      , Space
-      , Str "this"
-      , Space
-      , Str "test"
-      , Space
-      , Str "should"
-      , Space
-      , Str "be"
-      , Space
-      , Str "marked"
-      , Space
-      , Code
-        ( "", [], [] ) "Not Supported"
-      , Str "."
-      ]
-    ]
-  , Div
-    ( "content-mathml-001.xhtml#mathml-021"
-    ,
-      [ "section", "otest" ]
-    , []
-    )
-    [ Header 2
-      ( "", [], [] )
-      [ Span
-        ( "", [ "nature" ], [] )
-        [ Str "[OPTIONAL]" ]
-      , SoftBreak
-      , Span
-        ( "", [ "test-id" ], [] )
-        [ Str "mathml-021" ]
-      , Space
-      , Str "CSS"
-      , Space
-      , Str "Styling"
-      , Space
-      , Str "of"
-      , Space
-      , Str "the"
-      , Space
-      , Code
-        ( "", [], [] ) "mo"
-      , Space
-      , Str "element"
-      ]
-    , Para
-      [ Str "Tests"
-      , Space
-      , Str "whether"
-      , Space
-      , Str "basic"
-      , Space
-      , Str "CSS"
-      , Space
-      , Str "styling"
-      , Space
-      , Str "of"
-      , Space
-      , Str "MathML"
-      , Space
-      , Str "is"
-      , Space
-      , Str "supported"
-      , Space
-      , Str "on"
-      , Space
-      , Str "the"
-      , Space
-      , Code
-        ( "", [], [] ) "mo"
-      , Space
-      , Str "element."
-      ]
-    , Plain
-      [ Math InlineMath "{2x}{+ y - z}" ]
-    , Para
-      [ Str "The"
-      , Space
-      , Str "test"
-      , Space
-      , Str "passes"
-      , Space
-      , Str "if"
-      , Space
-      , Str "the"
-      , Space
-      , Str "operators"
-      , Space
-      , Str "are"
-      , Space
-      , Str "enlarged"
-      , Space
-      , Str "relative"
-      , Space
-      , Str "to"
-      , Space
-      , Str "the"
-      , Space
-      , Str "other"
-      , Space
-      , Str "symbols"
-      , Space
-      , Str "and"
-      , Space
-      , Str "numbers."
-      ]
-    , Para
-      [ Str "If"
-      , Space
-      , Str "the"
-      , Space
-      , Str "reading"
-      , Space
-      , Str "system"
-      , Space
-      , Str "does"
-      , Space
-      , Str "not"
-      , Space
-      , Str "have"
-      , Space
-      , Str "a"
-      , Space
-      , Str "viewport,"
-      , Space
-      , Str "or"
-      , Space
-      , Str "does"
-      , Space
-      , Str "not"
-      , Space
-      , Str "support"
-      , SoftBreak
-      , Str "CSS"
-      , Space
-      , Str "styles,"
-      , Space
-      , Str "this"
-      , Space
-      , Str "test"
-      , Space
-      , Str "should"
-      , Space
-      , Str "be"
-      , Space
-      , Str "marked"
-      , Space
-      , Code
-        ( "", [], [] ) "Not Supported"
-      , Str "."
-      ]
-    ]
-  , Div
-    ( "content-mathml-001.xhtml#mathml-022"
-    ,
-      [ "section", "otest" ]
-    , []
-    )
-    [ Header 2
-      ( "", [], [] )
-      [ Span
-        ( "", [ "nature" ], [] )
-        [ Str "[OPTIONAL]" ]
-      , SoftBreak
-      , Span
-        ( "", [ "test-id" ], [] )
-        [ Str "mathml-022" ]
-      , Space
-      , Str "CSS"
-      , Space
-      , Str "Styling"
-      , Space
-      , Str "of"
-      , Space
-      , Str "the"
-      , Space
-      , Code
-        ( "", [], [] ) "mi"
-      , Space
-      , Str "element"
-      ]
-    , Para
-      [ Str "Tests"
-      , Space
-      , Str "whether"
-      , Space
-      , Str "basic"
-      , Space
-      , Str "CSS"
-      , Space
-      , Str "styling"
-      , Space
-      , Str "of"
-      , Space
-      , Str "MathML"
-      , Space
-      , Str "is"
-      , Space
-      , Str "supported"
-      , Space
-      , Str "on"
-      , Space
-      , Str "the"
-      , Space
-      , Code
-        ( "", [], [] ) "mi"
-      , Space
-      , Str "element."
-      ]
-    , Plain
-      [ Math InlineMath "{2x}{+ y - z}" ]
-    , Para
-      [ Str "The"
-      , Space
-      , Str "test"
-      , Space
-      , Str "passes"
-      , Space
-      , Str "if"
-      , Space
-      , Str "the"
-      , Space
-      , Str "identifiers"
-      , Space
-      , Str "are"
-      , Space
-      , Str "bolded"
-      , Space
-      , Str "and"
-      , Space
-      , Str "blue."
-      ]
-    , Para
-      [ Str "If"
-      , Space
-      , Str "the"
-      , Space
-      , Str "reading"
-      , Space
-      , Str "system"
-      , Space
-      , Str "does"
-      , Space
-      , Str "not"
-      , Space
-      , Str "have"
-      , Space
-      , Str "a"
-      , Space
-      , Str "viewport,"
-      , Space
-      , Str "or"
-      , Space
-      , Str "does"
-      , Space
-      , Str "not"
-      , Space
-      , Str "support"
-      , SoftBreak
-      , Str "CSS"
-      , Space
-      , Str "styles,"
-      , Space
-      , Str "this"
-      , Space
-      , Str "test"
-      , Space
-      , Str "should"
-      , Space
-      , Str "be"
-      , Space
-      , Str "marked"
-      , Space
-      , Code
-        ( "", [], [] ) "Not Supported"
-      , Str "."
-      ]
-    ]
-  , Div
-    ( "content-mathml-001.xhtml#mathml-023"
-    ,
-      [ "section", "otest" ]
-    , []
-    )
-    [ Header 2
-      ( "", [], [] )
-      [ Span
-        ( "", [ "nature" ], [] )
-        [ Str "[OPTIONAL]" ]
-      , SoftBreak
-      , Span
-        ( "", [ "test-id" ], [] )
-        [ Str "mathml-023" ]
-      , Space
-      , Str "CSS"
-      , Space
-      , Str "Styling"
-      , Space
-      , Str "of"
-      , Space
-      , Str "the"
-      , Space
-      , Code
-        ( "", [], [] ) "mn"
-      , Space
-      , Str "element"
-      ]
-    , Para
-      [ Str "Tests"
-      , Space
-      , Str "whether"
-      , Space
-      , Str "basic"
-      , Space
-      , Str "CSS"
-      , Space
-      , Str "styling"
-      , Space
-      , Str "of"
-      , Space
-      , Str "MathML"
-      , Space
-      , Str "is"
-      , Space
-      , Str "supported"
-      , Space
-      , Str "on"
-      , Space
-      , Str "the"
-      , Space
-      , Code
-        ( "", [], [] ) "mn"
-      , Space
-      , Str "element."
-      ]
-    , Plain
-      [ Math InlineMath "{2x}{+ y - z}" ]
-    , Para
-      [ Str "The"
-      , Space
-      , Str "test"
-      , Space
-      , Str "passes"
-      , Space
-      , Str "if"
-      , Space
-      , Str "the"
-      , Space
-      , Str "number"
-      , Space
-      , Str "2"
-      , Space
-      , Str "is"
-      , Space
-      , Str "italicized"
-      , Space
-      , Str "and"
-      , Space
-      , Str "blue."
-      ]
-    , Para
-      [ Str "If"
-      , Space
-      , Str "the"
-      , Space
-      , Str "reading"
-      , Space
-      , Str "system"
-      , Space
-      , Str "does"
-      , Space
-      , Str "not"
-      , Space
-      , Str "have"
-      , Space
-      , Str "a"
-      , Space
-      , Str "viewport,"
-      , Space
-      , Str "or"
-      , Space
-      , Str "does"
-      , Space
-      , Str "not"
-      , Space
-      , Str "support"
-      , SoftBreak
-      , Str "CSS"
-      , Space
-      , Str "styles,"
-      , Space
-      , Str "this"
-      , Space
-      , Str "test"
-      , Space
-      , Str "should"
-      , Space
-      , Str "be"
-      , Space
-      , Str "marked"
-      , Space
-      , Code
-        ( "", [], [] ) "Not Supported"
-      , Str "."
-      ]
-    ]
-  , Div
-    ( "content-mathml-001.xhtml#mathml-024"
-    ,
-      [ "section", "ctest" ]
-    , []
-    )
-    [ Header 2
-      ( "", [], [] )
-      [ Span
-        ( "", [ "nature" ], [] )
-        [ Str "[REQUIRED]" ]
-      , SoftBreak
-      , Span
-        ( "", [ "test-id" ], [] )
-        [ Str "mathml-024" ]
-      , Str "Horizontal"
-      , Space
-      , Str "stretch,"
-      , Space
-      , Code
-        ( "", [], [] ) "mover"
-      , Str ","
-      , Space
-      , Code
-        ( "", [], [] ) "munder"
-      , Str ","
-      , Space
-      , Str "and"
-      , Space
-      , Code
-        ( "", [], [] ) "mspace"
-      , Space
-      , Str "elements"
-      ]
-    , Para
-      [ Str "Tests"
-      , Space
-      , Str "whether"
-      , Space
-      , Str "horizontal"
-      , Space
-      , Str "stretch,"
-      , Space
-      , Code
-        ( "", [], [] ) "mover"
-      , Str ","
-      , Space
-      , Code
-        ( "", [], [] ) "munder"
-      , Str ","
-      , Space
-      , Code
-        ( "", [], [] ) "mspace"
-      , Space
-      , Str "elements"
-      , Space
-      , Str "are"
-      , Space
-      , Str "supported."
-      ]
-    , Plain
-      [ Math DisplayMath "c = \\overset{\\text{complex\\ number}}{\\overbrace{\\underset{\\text{real}}{\\underbrace{\\mspace{20mu} a\\mspace{20mu}}} + \\underset{\\text{imaginary}}{\\underbrace{\\quad b{\\mathbb{i}}\\quad}}}}" ]
-    , Para
-      [ Str "The"
-      , Space
-      , Str "test"
-      , Space
-      , Str "passes"
-      , Space
-      , Str "if"
-      , Space
-      , Str "the"
-      , Space
-      , Str "rendering"
-      , Space
-      , Str "looks"
-      , Space
-      , Str "like"
-      , Space
-      , Str "."
-      ]
-    ]
-  , Div
-    ( "content-mathml-001.xhtml#mathml-025"
-    ,
-      [ "section", "ctest" ]
-    , []
-    )
-    [ Header 2
-      ( "", [], [] )
-      [ Span
-        ( "", [ "nature" ], [] )
-        [ Str "[REQUIRED]" ]
-      , SoftBreak
-      , Span
-        ( "", [ "test-id" ], [] )
-        [ Str "mathml-025" ]
-      , Str "Testing"
-      , Space
-      , Code
-        ( "", [], [] ) "mtable"
-      , Space
-      , Str "with"
-      , Space
-      , Code
-        ( "", [], [] ) "colspan"
-      , Space
-      , Str "and"
-      , Space
-      , Code
-        ( "", [], [] ) "rowspan"
-      , Space
-      , Str "attributes,"
-      , Space
-      , Str "Hebrew"
-      , Space
-      , Str "and"
-      , Space
-      , Str "Script"
-      , Space
-      , Str "fonts"
-      ]
-    , Para
-      [ Str "Tests"
-      , Space
-      , Str "whether"
-      , Space
-      , Code
-        ( "", [], [] ) "mtable"
-      , Space
-      , Str "with"
-      , Space
-      , Code
-        ( "", [], [] ) "colspan"
-      , Space
-      , Str "and"
-      , Space
-      , Code
-        ( "", [], [] ) "mspace"
-      , Space
-      , Str "attributes"
-      , Space
-      , Str "(column"
-      , Space
-      , Str "and"
-      , Space
-      , Str "row"
-      , Space
-      , Str "spanning)"
-      , Space
-      , Str "are"
-      , Space
-      , Str "supported;"
-      , Space
-      , Str "uses"
-      , Space
-      , Str "Hebrew"
-      , Space
-      , Str "and"
-      , Space
-      , Str "Script"
-      , Space
-      , Str "alphabets."
-      ]
-    , Plain
-      [ Math DisplayMath "\\begin{matrix}\n & {\\operatorname{cov}(\\mathcal{L})} & \\longrightarrow & {\\operatorname{non}(\\mathcal{K})} & \\longrightarrow & {\\operatorname{cof}(\\mathcal{K})} & \\longrightarrow & {\\operatorname{cof}(\\mathcal{L})} & \\longrightarrow & 2^{\\aleph_{0}} \\\\\n & \\uparrow & & \\uparrow & & \\uparrow & & \\uparrow & & \\\\\n & {\\mathfrak{b}} & \\longrightarrow & {\\mathfrak{d}} & & & & & & \\\\\n & \\uparrow & & \\uparrow & & & & & & \\\\\n\\aleph_{1} & \\longrightarrow & {\\operatorname{add}(\\mathcal{L})} & \\longrightarrow & {\\operatorname{add}(\\mathcal{K})} & \\longrightarrow & {\\operatorname{cov}(\\mathcal{K})} & \\longrightarrow & {\\operatorname{non}(\\mathcal{L})} & \\\\\n\\end{matrix}" ]
-    , Para
-      [ Str "The"
-      , Space
-      , Str "test"
-      , Space
-      , Str "passes"
-      , Space
-      , Str "if"
-      , Space
-      , Str "the"
-      , Space
-      , Str "rendering"
-      , Space
-      , Str "looks"
-      , Space
-      , Str "like"
-      , Space
-      , Link
-        ( "", [], [] )
-        [ Str "Cicho\324's", Space, Str "Diagram" ]
-        ( "http://en.wikipedia.org/wiki/Cicho%C5%84's_diagram", "" )
-      , Str ":"
-      , Space
-      , Str "."
-      ]
-    ]
-  , Div
-    ( "content-mathml-001.xhtml#mathml-026"
-    ,
-      [ "section", "ctest" ]
-    , []
-    )
-    [ Header 2
-      ( "", [], [] )
-      [ Span
-        ( "", [ "nature" ], [] )
-        [ Str "[REQUIRED]" ]
-      , SoftBreak
-      , Span
-        ( "", [ "test-id" ], [] )
-        [ Str "mathml-026" ]
-      , Str "BiDi,"
-      , Space
-      , Str "RTL"
-      , Space
-      , Str "and"
-      , Space
-      , Str "Arabic"
-      , Space
-      , Str "alphabets"
-      ]
-    , Para
-      [ Str "Tests"
-      , Space
-      , Str "whether"
-      , Space
-      , Str "right-to-left"
-      , Space
-      , Str "and"
-      , Space
-      , Str "Arabic"
-      , Space
-      , Str "alphabets"
-      , Space
-      , Str "are"
-      , Space
-      , Str "supported."
-      ]
-    , Plain
-      [ Math DisplayMath "{\1583(\1587)} = \\left\\{ \\begin{matrix}\n{\\sum\\limits_{\1646 = 1}^{\1589}\1587^{\1646}} & {\\text{\1573\1584\1575\1603\1575\1606}\1587 > 0} \\\\\n{\\int_{1}^{\1589}{\1587^{\1646}\1569\1587}} & {\\text{\1573\1584\1575\1603\1575\1606}\1587 \\in \1605} \\\\\n{{\1591\1575}\\pi} & {\\text{\1594\1610\1585\1584\1604\1603}\\left( \\text{\1605\1593}\\pi \\simeq 3,141 \\right)} \\\\\n\\end{matrix} \\right." ]
-    , Para
-      [ Str "The"
-      , Space
-      , Str "test"
-      , Space
-      , Str "passes"
-      , Space
-      , Str "if"
-      , Space
-      , Str "the"
-      , Space
-      , Str "rendering"
-      , Space
-      , Str "looks"
-      , Space
-      , Str "like"
-      , Space
-      , Str "the"
-      , Space
-      , Str "following"
-      , Space
-      , Str "image:"
-      ]
-    ]
-  , Div
-    ( "content-mathml-001.xhtml#mathml-027"
-    ,
-      [ "section", "ctest" ]
-    , []
-    )
-    [ Header 2
-      ( "", [], [] )
-      [ Span
-        ( "", [ "nature" ], [] )
-        [ Str "[REQUIRED]" ]
-      , SoftBreak
-      , Span
-        ( "", [ "test-id" ], [] )
-        [ Str "mathml-027" ]
-      , Str "Elementary"
-      , Space
-      , Str "math:"
-      , Space
-      , Str "long"
-      , Space
-      , Str "division"
-      , Space
-      , Str "notation"
-      ]
-    , Para
-      [ Str "Tests"
-      , Space
-      , Str "whether"
-      , Space
-      , Code
-        ( "", [], [] ) "mlongdiv"
-      , Space
-      , Str "elements"
-      , Space
-      , Str "(from"
-      , Space
-      , Str "elementary"
-      , Space
-      , Str "math)"
-      , Space
-      , Str "are"
-      , Space
-      , Str "supported."
-      ]
-    , Plain
-      [ Span
-        ( ""
-        , [ "math" ]
-        ,
-          [ ( "xmlns", "http://www.w3.org/1998/Math/MathML" ) ]
-        )
-        [ SoftBreak
-        , Str "3"
-        , SoftBreak
-        , Str "435.3"
-        , SoftBreak
-        , Str "1306"
-        , SoftBreak
-        , Str "12"
-        , SoftBreak
-        , Str "10"
-        , SoftBreak
-        , Str "9"
-        , SoftBreak
-        , Str "16"
-        , SoftBreak
-        , Str "15"
-        , SoftBreak
-        , Str "1.0"
-        , SoftBreak
-        , Str "9"
-        , SoftBreak
-        , Str "1"
-        , SoftBreak
         ]
-      ]
-    , Para
-      [ Str "The"
-      , Space
-      , Str "test"
-      , Space
-      , Str "passes"
-      , Space
-      , Str "if"
-      , Space
-      , Str "the"
-      , Space
-      , Str "rendering"
-      , Space
-      , Str "looks"
-      , Space
-      , Str "like"
-      , Space
-      , Str "the"
-      , Space
-      , Str "following"
-      , Space
-      , Str "image:"
-      , Space
-      , Str "."
-      ]
+    , Div
+        ( "" , [ "section" ] , [] )
+        [ Header 2 ( "" , [] , [] ) [ Str "Conventions" ]
+        , Para
+            [ Str "The"
+            , Space
+            , Str "following"
+            , Space
+            , Str "conventions"
+            , Space
+            , Str "are"
+            , Space
+            , Str "used"
+            , Space
+            , Str "throughout"
+            , Space
+            , Str "the"
+            , Space
+            , Str "document:"
+            ]
+        , DefinitionList
+            [ ( [ Str "1."
+                , Space
+                , Str "Locating"
+                , Space
+                , Str "a"
+                , Space
+                , Str "test"
+                ]
+              , [ [ Div
+                      ( "" , [ "ctest" ] , [] )
+                      [ Para
+                          [ Str "Tests"
+                          , Space
+                          , Str "for"
+                          , Space
+                          , Emph [ Str "required" ]
+                          , Space
+                          , Str "Reading"
+                          , Space
+                          , Str "System"
+                          , Space
+                          , Str "functionality"
+                          , Space
+                          , Str "are"
+                          , SoftBreak
+                          , Str "preceded"
+                          , Space
+                          , Str "by"
+                          , Space
+                          , Str "the"
+                          , Space
+                          , Str "label:"
+                          , Space
+                          , Span
+                              ( ""
+                              , [ "nature" ]
+                              , [ ( "style"
+                                  , "display: inline; font-size: 100%"
+                                  )
+                                ]
+                              )
+                              [ Str "[REQUIRED]" ]
+                          ]
+                      ]
+                  , Div
+                      ( "" , [ "otest" ] , [] )
+                      [ Para
+                          [ Str "Tests"
+                          , Space
+                          , Str "for"
+                          , Space
+                          , Emph [ Str "optional" ]
+                          , Space
+                          , Str "Reading"
+                          , Space
+                          , Str "System"
+                          , Space
+                          , Str "functionality"
+                          , Space
+                          , Str "are"
+                          , SoftBreak
+                          , Str "preceded"
+                          , Space
+                          , Str "by"
+                          , Space
+                          , Str "the"
+                          , Space
+                          , Str "label:"
+                          , Space
+                          , Span
+                              ( ""
+                              , [ "nature" ]
+                              , [ ( "style"
+                                  , "display: inline; font-size: 100%"
+                                  )
+                                ]
+                              )
+                              [ Str "[OPTIONAL]" ]
+                          ]
+                      ]
+                  ]
+                ]
+              )
+            , ( [ Str "2."
+                , Space
+                , Str "Performing"
+                , Space
+                , Str "the"
+                , Space
+                , Str "test"
+                ]
+              , [ [ Plain
+                      [ Str "Each"
+                      , Space
+                      , Str "test"
+                      , Space
+                      , Str "includes"
+                      , Space
+                      , Str "a"
+                      , Space
+                      , Str "description"
+                      , Space
+                      , Str "of"
+                      , Space
+                      , Str "its"
+                      , Space
+                      , Str "purpose"
+                      , Space
+                      , Str "followed"
+                      , Space
+                      , Str "by"
+                      , Space
+                      , Str "the"
+                      , Space
+                      , Str "actual"
+                      , Space
+                      , Strong
+                          [ Str "test"
+                          , Space
+                          , Str "statement,"
+                          , SoftBreak
+                          , Str "which"
+                          , Space
+                          , Str "can"
+                          , Space
+                          , Str "always"
+                          , Space
+                          , Str "be"
+                          , Space
+                          , Str "evaluated"
+                          , Space
+                          , Str "to"
+                          , Space
+                          , Str "true"
+                          , Space
+                          , Str "or"
+                          , Space
+                          , Str "false"
+                          ]
+                      , Str "."
+                      , Space
+                      , Str "These"
+                      , Space
+                      , Str "statements"
+                      , Space
+                      , Str "typically"
+                      , Space
+                      , Str "have"
+                      , Space
+                      , Str "the"
+                      , Space
+                      , Str "form:"
+                      , SoftBreak
+                      , Str "\"If"
+                      , Space
+                      , Str "[some"
+                      , Space
+                      , Str "condition],"
+                      , Space
+                      , Str "the"
+                      , Space
+                      , Str "test"
+                      , Space
+                      , Str "passes\"."
+                      ]
+                  ]
+                ]
+              )
+            , ( [ Str "3."
+                , Space
+                , Str "Scoring"
+                , Space
+                , Str "in"
+                , Space
+                , Str "the"
+                , Space
+                , Str "results"
+                , Space
+                , Str "form"
+                ]
+              , [ [ Plain
+                      [ Str "@@@TODO"
+                      , Space
+                      , Str "provide"
+                      , Space
+                      , Str "info"
+                      , Space
+                      , Str "on"
+                      , Space
+                      , Str "where"
+                      , Space
+                      , Str "to"
+                      , Space
+                      , Str "get"
+                      , Space
+                      , Str "the"
+                      , Space
+                      , Str "results"
+                      , Space
+                      , Str "form"
+                      ]
+                  ]
+                ]
+              )
+            ]
+        ]
     ]
-  ]
-, Para
-  [ Span ( "content-switch-001.xhtml", [], [] ) [] ]
+, Para [ Span ( "content-mathml-001.xhtml" , [] , [] ) [] ]
 , Div
-  ( "content-switch-001.xhtml#epub-switch", [ "section" ], [] )
-  [ Header 3
-    ( "", [], [] )
-    [ Code ( "", [], [] ) "epub:switch" ]
-  , Div
-    ( "content-switch-001.xhtml#switch-010"
-    ,
-      [ "section", "ctest" ]
+    ( "" , [ "section" ] , [] )
+    [ Header
+        2
+        ( "content-mathml-001.xhtml#mathml" , [] , [] )
+        [ Str "MathML" ]
+    , Div
+        ( "content-mathml-001.xhtml#mathml-010"
+        , [ "section" , "ctest" ]
+        , []
+        )
+        [ Header
+            2
+            ( "" , [] , [] )
+            [ Span ( "" , [ "nature" ] , [] ) [ Str "[REQUIRED]" ]
+            , SoftBreak
+            , Span ( "" , [ "test-id" ] , [] ) [ Str "mathml-010" ]
+            , Space
+            , Str "Rendering"
+            ]
+        , Para
+            [ Str "Tests"
+            , Space
+            , Str "whether"
+            , Space
+            , Str "MathML"
+            , Space
+            , Str "equation"
+            , Space
+            , Str "rendering"
+            , Space
+            , Str "is"
+            , Space
+            , Str "supported."
+            ]
+        , Plain
+            [ Math
+                DisplayMath
+                "\\int_{- \\infty}^{\\infty}e^{- x^{2}}\\, dx = \\sqrt{\\pi}"
+            , SoftBreak
+            , Math
+                DisplayMath
+                "\\sum\\limits_{n = 1}^{\\infty}\\frac{1}{n^{2}} = \\frac{\\pi^{2}}{6}"
+            , SoftBreak
+            , Math
+                DisplayMath
+                "x = \\frac{- b \\pm \\sqrt{b^{2} - 4ac}}{2a}"
+            ]
+        , Para
+            [ Str "If"
+            , Space
+            , Str "the"
+            , Space
+            , Str "preceding"
+            , Space
+            , Str "equations"
+            , Space
+            , Str "are"
+            , Space
+            , Str "not"
+            , Space
+            , Str "presented"
+            , Space
+            , Str "as"
+            , Space
+            , Str "linear"
+            , Space
+            , Str "text"
+            , Space
+            , Str "(e.g.,"
+            , Space
+            , Str "x=-b\177b2-4ac2a),"
+            , SoftBreak
+            , Str "the"
+            , Space
+            , Str "test"
+            , Space
+            , Str "passes."
+            ]
+        ]
+    , Div
+        ( "content-mathml-001.xhtml#mathml-020"
+        , [ "section" , "otest" ]
+        , []
+        )
+        [ Header
+            2
+            ( "" , [] , [] )
+            [ Span ( "" , [ "nature" ] , [] ) [ Str "[OPTIONAL]" ]
+            , SoftBreak
+            , Span ( "" , [ "test-id" ] , [] ) [ Str "mathml-020" ]
+            , Space
+            , Str "CSS"
+            , Space
+            , Str "Styling"
+            , Space
+            , Str "of"
+            , Space
+            , Str "the"
+            , Space
+            , Code ( "" , [] , [] ) "math"
+            , Space
+            , Str "element"
+            ]
+        , Para
+            [ Str "Tests"
+            , Space
+            , Str "whether"
+            , Space
+            , Str "basic"
+            , Space
+            , Str "CSS"
+            , Space
+            , Str "styling"
+            , Space
+            , Str "of"
+            , Space
+            , Str "MathML"
+            , Space
+            , Str "is"
+            , Space
+            , Str "supported"
+            , Space
+            , Str "on"
+            , Space
+            , Str "the"
+            , Space
+            , Code ( "" , [] , [] ) "math"
+            , Space
+            , Str "element."
+            ]
+        , Plain [ Math InlineMath "{2x}{+ y - z}" ]
+        , Para
+            [ Str "The"
+            , Space
+            , Str "test"
+            , Space
+            , Str "passes"
+            , Space
+            , Str "if"
+            , Space
+            , Str "the"
+            , Space
+            , Str "equation"
+            , Space
+            , Str "has"
+            , Space
+            , Str "a"
+            , Space
+            , Str "yellow"
+            , Space
+            , Str "background"
+            , Space
+            , Str "and"
+            , Space
+            , Str "a"
+            , Space
+            , Str "dashed"
+            , Space
+            , Str "border."
+            ]
+        , Para
+            [ Str "If"
+            , Space
+            , Str "the"
+            , Space
+            , Str "reading"
+            , Space
+            , Str "system"
+            , Space
+            , Str "does"
+            , Space
+            , Str "not"
+            , Space
+            , Str "have"
+            , Space
+            , Str "a"
+            , Space
+            , Str "viewport,"
+            , Space
+            , Str "or"
+            , Space
+            , Str "does"
+            , Space
+            , Str "not"
+            , Space
+            , Str "support"
+            , SoftBreak
+            , Str "CSS"
+            , Space
+            , Str "styles,"
+            , Space
+            , Str "this"
+            , Space
+            , Str "test"
+            , Space
+            , Str "should"
+            , Space
+            , Str "be"
+            , Space
+            , Str "marked"
+            , Space
+            , Code ( "" , [] , [] ) "Not Supported"
+            , Str "."
+            ]
+        ]
+    , Div
+        ( "content-mathml-001.xhtml#mathml-021"
+        , [ "section" , "otest" ]
+        , []
+        )
+        [ Header
+            2
+            ( "" , [] , [] )
+            [ Span ( "" , [ "nature" ] , [] ) [ Str "[OPTIONAL]" ]
+            , SoftBreak
+            , Span ( "" , [ "test-id" ] , [] ) [ Str "mathml-021" ]
+            , Space
+            , Str "CSS"
+            , Space
+            , Str "Styling"
+            , Space
+            , Str "of"
+            , Space
+            , Str "the"
+            , Space
+            , Code ( "" , [] , [] ) "mo"
+            , Space
+            , Str "element"
+            ]
+        , Para
+            [ Str "Tests"
+            , Space
+            , Str "whether"
+            , Space
+            , Str "basic"
+            , Space
+            , Str "CSS"
+            , Space
+            , Str "styling"
+            , Space
+            , Str "of"
+            , Space
+            , Str "MathML"
+            , Space
+            , Str "is"
+            , Space
+            , Str "supported"
+            , Space
+            , Str "on"
+            , Space
+            , Str "the"
+            , Space
+            , Code ( "" , [] , [] ) "mo"
+            , Space
+            , Str "element."
+            ]
+        , Plain [ Math InlineMath "{2x}{+ y - z}" ]
+        , Para
+            [ Str "The"
+            , Space
+            , Str "test"
+            , Space
+            , Str "passes"
+            , Space
+            , Str "if"
+            , Space
+            , Str "the"
+            , Space
+            , Str "operators"
+            , Space
+            , Str "are"
+            , Space
+            , Str "enlarged"
+            , Space
+            , Str "relative"
+            , Space
+            , Str "to"
+            , Space
+            , Str "the"
+            , Space
+            , Str "other"
+            , Space
+            , Str "symbols"
+            , Space
+            , Str "and"
+            , Space
+            , Str "numbers."
+            ]
+        , Para
+            [ Str "If"
+            , Space
+            , Str "the"
+            , Space
+            , Str "reading"
+            , Space
+            , Str "system"
+            , Space
+            , Str "does"
+            , Space
+            , Str "not"
+            , Space
+            , Str "have"
+            , Space
+            , Str "a"
+            , Space
+            , Str "viewport,"
+            , Space
+            , Str "or"
+            , Space
+            , Str "does"
+            , Space
+            , Str "not"
+            , Space
+            , Str "support"
+            , SoftBreak
+            , Str "CSS"
+            , Space
+            , Str "styles,"
+            , Space
+            , Str "this"
+            , Space
+            , Str "test"
+            , Space
+            , Str "should"
+            , Space
+            , Str "be"
+            , Space
+            , Str "marked"
+            , Space
+            , Code ( "" , [] , [] ) "Not Supported"
+            , Str "."
+            ]
+        ]
+    , Div
+        ( "content-mathml-001.xhtml#mathml-022"
+        , [ "section" , "otest" ]
+        , []
+        )
+        [ Header
+            2
+            ( "" , [] , [] )
+            [ Span ( "" , [ "nature" ] , [] ) [ Str "[OPTIONAL]" ]
+            , SoftBreak
+            , Span ( "" , [ "test-id" ] , [] ) [ Str "mathml-022" ]
+            , Space
+            , Str "CSS"
+            , Space
+            , Str "Styling"
+            , Space
+            , Str "of"
+            , Space
+            , Str "the"
+            , Space
+            , Code ( "" , [] , [] ) "mi"
+            , Space
+            , Str "element"
+            ]
+        , Para
+            [ Str "Tests"
+            , Space
+            , Str "whether"
+            , Space
+            , Str "basic"
+            , Space
+            , Str "CSS"
+            , Space
+            , Str "styling"
+            , Space
+            , Str "of"
+            , Space
+            , Str "MathML"
+            , Space
+            , Str "is"
+            , Space
+            , Str "supported"
+            , Space
+            , Str "on"
+            , Space
+            , Str "the"
+            , Space
+            , Code ( "" , [] , [] ) "mi"
+            , Space
+            , Str "element."
+            ]
+        , Plain [ Math InlineMath "{2x}{+ y - z}" ]
+        , Para
+            [ Str "The"
+            , Space
+            , Str "test"
+            , Space
+            , Str "passes"
+            , Space
+            , Str "if"
+            , Space
+            , Str "the"
+            , Space
+            , Str "identifiers"
+            , Space
+            , Str "are"
+            , Space
+            , Str "bolded"
+            , Space
+            , Str "and"
+            , Space
+            , Str "blue."
+            ]
+        , Para
+            [ Str "If"
+            , Space
+            , Str "the"
+            , Space
+            , Str "reading"
+            , Space
+            , Str "system"
+            , Space
+            , Str "does"
+            , Space
+            , Str "not"
+            , Space
+            , Str "have"
+            , Space
+            , Str "a"
+            , Space
+            , Str "viewport,"
+            , Space
+            , Str "or"
+            , Space
+            , Str "does"
+            , Space
+            , Str "not"
+            , Space
+            , Str "support"
+            , SoftBreak
+            , Str "CSS"
+            , Space
+            , Str "styles,"
+            , Space
+            , Str "this"
+            , Space
+            , Str "test"
+            , Space
+            , Str "should"
+            , Space
+            , Str "be"
+            , Space
+            , Str "marked"
+            , Space
+            , Code ( "" , [] , [] ) "Not Supported"
+            , Str "."
+            ]
+        ]
+    , Div
+        ( "content-mathml-001.xhtml#mathml-023"
+        , [ "section" , "otest" ]
+        , []
+        )
+        [ Header
+            2
+            ( "" , [] , [] )
+            [ Span ( "" , [ "nature" ] , [] ) [ Str "[OPTIONAL]" ]
+            , SoftBreak
+            , Span ( "" , [ "test-id" ] , [] ) [ Str "mathml-023" ]
+            , Space
+            , Str "CSS"
+            , Space
+            , Str "Styling"
+            , Space
+            , Str "of"
+            , Space
+            , Str "the"
+            , Space
+            , Code ( "" , [] , [] ) "mn"
+            , Space
+            , Str "element"
+            ]
+        , Para
+            [ Str "Tests"
+            , Space
+            , Str "whether"
+            , Space
+            , Str "basic"
+            , Space
+            , Str "CSS"
+            , Space
+            , Str "styling"
+            , Space
+            , Str "of"
+            , Space
+            , Str "MathML"
+            , Space
+            , Str "is"
+            , Space
+            , Str "supported"
+            , Space
+            , Str "on"
+            , Space
+            , Str "the"
+            , Space
+            , Code ( "" , [] , [] ) "mn"
+            , Space
+            , Str "element."
+            ]
+        , Plain [ Math InlineMath "{2x}{+ y - z}" ]
+        , Para
+            [ Str "The"
+            , Space
+            , Str "test"
+            , Space
+            , Str "passes"
+            , Space
+            , Str "if"
+            , Space
+            , Str "the"
+            , Space
+            , Str "number"
+            , Space
+            , Str "2"
+            , Space
+            , Str "is"
+            , Space
+            , Str "italicized"
+            , Space
+            , Str "and"
+            , Space
+            , Str "blue."
+            ]
+        , Para
+            [ Str "If"
+            , Space
+            , Str "the"
+            , Space
+            , Str "reading"
+            , Space
+            , Str "system"
+            , Space
+            , Str "does"
+            , Space
+            , Str "not"
+            , Space
+            , Str "have"
+            , Space
+            , Str "a"
+            , Space
+            , Str "viewport,"
+            , Space
+            , Str "or"
+            , Space
+            , Str "does"
+            , Space
+            , Str "not"
+            , Space
+            , Str "support"
+            , SoftBreak
+            , Str "CSS"
+            , Space
+            , Str "styles,"
+            , Space
+            , Str "this"
+            , Space
+            , Str "test"
+            , Space
+            , Str "should"
+            , Space
+            , Str "be"
+            , Space
+            , Str "marked"
+            , Space
+            , Code ( "" , [] , [] ) "Not Supported"
+            , Str "."
+            ]
+        ]
+    , Div
+        ( "content-mathml-001.xhtml#mathml-024"
+        , [ "section" , "ctest" ]
+        , []
+        )
+        [ Header
+            2
+            ( "" , [] , [] )
+            [ Span ( "" , [ "nature" ] , [] ) [ Str "[REQUIRED]" ]
+            , SoftBreak
+            , Span ( "" , [ "test-id" ] , [] ) [ Str "mathml-024" ]
+            , Str "Horizontal"
+            , Space
+            , Str "stretch,"
+            , Space
+            , Code ( "" , [] , [] ) "mover"
+            , Str ","
+            , Space
+            , Code ( "" , [] , [] ) "munder"
+            , Str ","
+            , Space
+            , Str "and"
+            , Space
+            , Code ( "" , [] , [] ) "mspace"
+            , Space
+            , Str "elements"
+            ]
+        , Para
+            [ Str "Tests"
+            , Space
+            , Str "whether"
+            , Space
+            , Str "horizontal"
+            , Space
+            , Str "stretch,"
+            , Space
+            , Code ( "" , [] , [] ) "mover"
+            , Str ","
+            , Space
+            , Code ( "" , [] , [] ) "munder"
+            , Str ","
+            , Space
+            , Code ( "" , [] , [] ) "mspace"
+            , Space
+            , Str "elements"
+            , Space
+            , Str "are"
+            , Space
+            , Str "supported."
+            ]
+        , Plain
+            [ Math
+                DisplayMath
+                "c = \\overset{\\text{complex\\ number}}{\\overbrace{\\underset{\\text{real}}{\\underbrace{\\mspace{20mu} a\\mspace{20mu}}} + \\underset{\\text{imaginary}}{\\underbrace{\\quad b{\\mathbb{i}}\\quad}}}}"
+            ]
+        , Para
+            [ Str "The"
+            , Space
+            , Str "test"
+            , Space
+            , Str "passes"
+            , Space
+            , Str "if"
+            , Space
+            , Str "the"
+            , Space
+            , Str "rendering"
+            , Space
+            , Str "looks"
+            , Space
+            , Str "like"
+            , Space
+            , Str "."
+            ]
+        ]
+    , Div
+        ( "content-mathml-001.xhtml#mathml-025"
+        , [ "section" , "ctest" ]
+        , []
+        )
+        [ Header
+            2
+            ( "" , [] , [] )
+            [ Span ( "" , [ "nature" ] , [] ) [ Str "[REQUIRED]" ]
+            , SoftBreak
+            , Span ( "" , [ "test-id" ] , [] ) [ Str "mathml-025" ]
+            , Str "Testing"
+            , Space
+            , Code ( "" , [] , [] ) "mtable"
+            , Space
+            , Str "with"
+            , Space
+            , Code ( "" , [] , [] ) "colspan"
+            , Space
+            , Str "and"
+            , Space
+            , Code ( "" , [] , [] ) "rowspan"
+            , Space
+            , Str "attributes,"
+            , Space
+            , Str "Hebrew"
+            , Space
+            , Str "and"
+            , Space
+            , Str "Script"
+            , Space
+            , Str "fonts"
+            ]
+        , Para
+            [ Str "Tests"
+            , Space
+            , Str "whether"
+            , Space
+            , Code ( "" , [] , [] ) "mtable"
+            , Space
+            , Str "with"
+            , Space
+            , Code ( "" , [] , [] ) "colspan"
+            , Space
+            , Str "and"
+            , Space
+            , Code ( "" , [] , [] ) "mspace"
+            , Space
+            , Str "attributes"
+            , Space
+            , Str "(column"
+            , Space
+            , Str "and"
+            , Space
+            , Str "row"
+            , Space
+            , Str "spanning)"
+            , Space
+            , Str "are"
+            , Space
+            , Str "supported;"
+            , Space
+            , Str "uses"
+            , Space
+            , Str "Hebrew"
+            , Space
+            , Str "and"
+            , Space
+            , Str "Script"
+            , Space
+            , Str "alphabets."
+            ]
+        , Plain
+            [ Math
+                DisplayMath
+                "\\begin{matrix}\n & {\\operatorname{cov}(\\mathcal{L})} & \\longrightarrow & {\\operatorname{non}(\\mathcal{K})} & \\longrightarrow & {\\operatorname{cof}(\\mathcal{K})} & \\longrightarrow & {\\operatorname{cof}(\\mathcal{L})} & \\longrightarrow & 2^{\\aleph_{0}} \\\\\n & \\uparrow & & \\uparrow & & \\uparrow & & \\uparrow & & \\\\\n & {\\mathfrak{b}} & \\longrightarrow & {\\mathfrak{d}} & & & & & & \\\\\n & \\uparrow & & \\uparrow & & & & & & \\\\\n\\aleph_{1} & \\longrightarrow & {\\operatorname{add}(\\mathcal{L})} & \\longrightarrow & {\\operatorname{add}(\\mathcal{K})} & \\longrightarrow & {\\operatorname{cov}(\\mathcal{K})} & \\longrightarrow & {\\operatorname{non}(\\mathcal{L})} & \\\\\n\\end{matrix}"
+            ]
+        , Para
+            [ Str "The"
+            , Space
+            , Str "test"
+            , Space
+            , Str "passes"
+            , Space
+            , Str "if"
+            , Space
+            , Str "the"
+            , Space
+            , Str "rendering"
+            , Space
+            , Str "looks"
+            , Space
+            , Str "like"
+            , Space
+            , Link
+                ( "" , [] , [] )
+                [ Str "Cicho\324's" , Space , Str "Diagram" ]
+                ( "http://en.wikipedia.org/wiki/Cicho%C5%84's_diagram"
+                , ""
+                )
+            , Str ":"
+            , Space
+            , Str "."
+            ]
+        ]
+    , Div
+        ( "content-mathml-001.xhtml#mathml-026"
+        , [ "section" , "ctest" ]
+        , []
+        )
+        [ Header
+            2
+            ( "" , [] , [] )
+            [ Span ( "" , [ "nature" ] , [] ) [ Str "[REQUIRED]" ]
+            , SoftBreak
+            , Span ( "" , [ "test-id" ] , [] ) [ Str "mathml-026" ]
+            , Str "BiDi,"
+            , Space
+            , Str "RTL"
+            , Space
+            , Str "and"
+            , Space
+            , Str "Arabic"
+            , Space
+            , Str "alphabets"
+            ]
+        , Para
+            [ Str "Tests"
+            , Space
+            , Str "whether"
+            , Space
+            , Str "right-to-left"
+            , Space
+            , Str "and"
+            , Space
+            , Str "Arabic"
+            , Space
+            , Str "alphabets"
+            , Space
+            , Str "are"
+            , Space
+            , Str "supported."
+            ]
+        , Plain
+            [ Math
+                DisplayMath
+                "{\1583(\1587)} = \\left\\{ \\begin{matrix}\n{\\sum\\limits_{\1646 = 1}^{\1589}\1587^{\1646}} & {\\text{\1573\1584\1575\1603\1575\1606}\1587 > 0} \\\\\n{\\int_{1}^{\1589}{\1587^{\1646}\1569\1587}} & {\\text{\1573\1584\1575\1603\1575\1606}\1587 \\in \1605} \\\\\n{{\1591\1575}\\pi} & {\\text{\1594\1610\1585\1584\1604\1603}\\left( \\text{\1605\1593}\\pi \\simeq 3,141 \\right)} \\\\\n\\end{matrix} \\right."
+            ]
+        , Para
+            [ Str "The"
+            , Space
+            , Str "test"
+            , Space
+            , Str "passes"
+            , Space
+            , Str "if"
+            , Space
+            , Str "the"
+            , Space
+            , Str "rendering"
+            , Space
+            , Str "looks"
+            , Space
+            , Str "like"
+            , Space
+            , Str "the"
+            , Space
+            , Str "following"
+            , Space
+            , Str "image:"
+            ]
+        ]
+    , Div
+        ( "content-mathml-001.xhtml#mathml-027"
+        , [ "section" , "ctest" ]
+        , []
+        )
+        [ Header
+            2
+            ( "" , [] , [] )
+            [ Span ( "" , [ "nature" ] , [] ) [ Str "[REQUIRED]" ]
+            , SoftBreak
+            , Span ( "" , [ "test-id" ] , [] ) [ Str "mathml-027" ]
+            , Str "Elementary"
+            , Space
+            , Str "math:"
+            , Space
+            , Str "long"
+            , Space
+            , Str "division"
+            , Space
+            , Str "notation"
+            ]
+        , Para
+            [ Str "Tests"
+            , Space
+            , Str "whether"
+            , Space
+            , Code ( "" , [] , [] ) "mlongdiv"
+            , Space
+            , Str "elements"
+            , Space
+            , Str "(from"
+            , Space
+            , Str "elementary"
+            , Space
+            , Str "math)"
+            , Space
+            , Str "are"
+            , Space
+            , Str "supported."
+            ]
+        , Plain
+            [ Span
+                ( ""
+                , [ "math" ]
+                , [ ( "xmlns" , "http://www.w3.org/1998/Math/MathML" ) ]
+                )
+                [ SoftBreak
+                , Str "3"
+                , SoftBreak
+                , Str "435.3"
+                , SoftBreak
+                , Str "1306"
+                , SoftBreak
+                , Str "12"
+                , SoftBreak
+                , Str "10"
+                , SoftBreak
+                , Str "9"
+                , SoftBreak
+                , Str "16"
+                , SoftBreak
+                , Str "15"
+                , SoftBreak
+                , Str "1.0"
+                , SoftBreak
+                , Str "9"
+                , SoftBreak
+                , Str "1"
+                , SoftBreak
+                ]
+            ]
+        , Para
+            [ Str "The"
+            , Space
+            , Str "test"
+            , Space
+            , Str "passes"
+            , Space
+            , Str "if"
+            , Space
+            , Str "the"
+            , Space
+            , Str "rendering"
+            , Space
+            , Str "looks"
+            , Space
+            , Str "like"
+            , Space
+            , Str "the"
+            , Space
+            , Str "following"
+            , Space
+            , Str "image:"
+            , Space
+            , Str "."
+            ]
+        ]
+    ]
+, Para [ Span ( "content-switch-001.xhtml" , [] , [] ) [] ]
+, Div
+    ( "content-switch-001.xhtml#epub-switch"
+    , [ "section" ]
     , []
     )
-    [ Header 4
-      ( "", [], [] )
-      [ Span
-        ( "", [ "nature" ], [] )
-        [ Str "[REQUIRED]" ]
-      , Space
-      , Span
-        ( "", [ "test-id" ], [] )
-        [ Str "switch-010" ]
-      , Space
-      , Str "Support"
-      ]
-    , Para
-      [ Str "Tests"
-      , Space
-      , Str "whether"
-      , Space
-      , Str "the"
-      , Space
-      , Code
-        ( "", [], [] ) "epub:switch"
-      , Space
-      , Str "element"
-      , Space
-      , Str "is"
-      , Space
-      , Str "supported."
-      ]
-    , Para
-      [ Str "PASS" ]
-    , Para
-      [ Str "If"
-      , Space
-      , Str "only"
-      , Space
-      , Str "the"
-      , Space
-      , Str "word"
-      , Space
-      , Str "\"PASS\""
-      , Space
-      , Str "is"
-      , Space
-      , Str "rendered"
-      , Space
-      , Str "before"
-      , Space
-      , Str "this"
-      , Space
-      , Str "paragraph,"
-      , Space
-      , Str "the"
-      , Space
-      , Str "test"
-      , Space
-      , Str "passes."
-      , Space
-      , Str "If"
-      , Space
-      , Str "both"
-      , Space
-      , Str "\"PASS\""
-      , Space
-      , Str "and"
-      , Space
-      , Str "\"FAIL\""
-      , Space
-      , Str "are"
-      , Space
-      , Str "rendered,"
-      , Space
-      , Str "or"
-      , Space
-      , Str "neither"
-      , SoftBreak
-      , Str "\"PASS\""
-      , Space
-      , Str "nor"
-      , Space
-      , Str "\"FAIL\""
-      , Space
-      , Str "is"
-      , Space
-      , Str "rendered,"
-      , Space
-      , Str "the"
-      , Space
-      , Str "test"
-      , Space
-      , Str "fails."
-      ]
+    [ Header
+        3 ( "" , [] , [] ) [ Code ( "" , [] , [] ) "epub:switch" ]
+    , Div
+        ( "content-switch-001.xhtml#switch-010"
+        , [ "section" , "ctest" ]
+        , []
+        )
+        [ Header
+            4
+            ( "" , [] , [] )
+            [ Span ( "" , [ "nature" ] , [] ) [ Str "[REQUIRED]" ]
+            , Space
+            , Span ( "" , [ "test-id" ] , [] ) [ Str "switch-010" ]
+            , Space
+            , Str "Support"
+            ]
+        , Para
+            [ Str "Tests"
+            , Space
+            , Str "whether"
+            , Space
+            , Str "the"
+            , Space
+            , Code ( "" , [] , [] ) "epub:switch"
+            , Space
+            , Str "element"
+            , Space
+            , Str "is"
+            , Space
+            , Str "supported."
+            ]
+        , Para [ Str "PASS" ]
+        , Para
+            [ Str "If"
+            , Space
+            , Str "only"
+            , Space
+            , Str "the"
+            , Space
+            , Str "word"
+            , Space
+            , Str "\"PASS\""
+            , Space
+            , Str "is"
+            , Space
+            , Str "rendered"
+            , Space
+            , Str "before"
+            , Space
+            , Str "this"
+            , Space
+            , Str "paragraph,"
+            , Space
+            , Str "the"
+            , Space
+            , Str "test"
+            , Space
+            , Str "passes."
+            , Space
+            , Str "If"
+            , Space
+            , Str "both"
+            , Space
+            , Str "\"PASS\""
+            , Space
+            , Str "and"
+            , Space
+            , Str "\"FAIL\""
+            , Space
+            , Str "are"
+            , Space
+            , Str "rendered,"
+            , Space
+            , Str "or"
+            , Space
+            , Str "neither"
+            , SoftBreak
+            , Str "\"PASS\""
+            , Space
+            , Str "nor"
+            , Space
+            , Str "\"FAIL\""
+            , Space
+            , Str "is"
+            , Space
+            , Str "rendered,"
+            , Space
+            , Str "the"
+            , Space
+            , Str "test"
+            , Space
+            , Str "fails."
+            ]
+        ]
+    , Div
+        ( "content-switch-001.xhtml#switch-020"
+        , [ "section" , "otest" ]
+        , []
+        )
+        [ Header
+            4
+            ( "" , [] , [] )
+            [ Span ( "" , [ "nature" ] , [] ) [ Str "[OPTIONAL]" ]
+            , SoftBreak
+            , Span ( "" , [ "test-id" ] , [] ) [ Str "switch-020" ]
+            , SoftBreak
+            , Str "MathML"
+            , Space
+            , Str "Embedding"
+            ]
+        , Para
+            [ Str "Tests"
+            , Space
+            , Str "whether"
+            , Space
+            , Str "the"
+            , Space
+            , Str "MathML"
+            , Space
+            , Str "namespace"
+            , Space
+            , Str "is"
+            , Space
+            , Str "recognized"
+            , Space
+            , Str "when"
+            , Space
+            , Str "used"
+            , Space
+            , Str "in"
+            , Space
+            , Str "an"
+            , Space
+            , Code ( "" , [] , [] ) "epub:case"
+            , Space
+            , Str "element."
+            ]
+        , Para [ Math InlineMath "{2x}{+ y - z}" ]
+        , Para
+            [ Str "If"
+            , Space
+            , Str "a"
+            , Space
+            , Str "MathML"
+            , Space
+            , Str "equation"
+            , Space
+            , Str "is"
+            , Space
+            , Str "rendered"
+            , Space
+            , Str "before"
+            , Space
+            , Str "this"
+            , Space
+            , Str "paragraph,"
+            , Space
+            , Str "the"
+            , Space
+            , Str "test"
+            , Space
+            , Str "passes."
+            ]
+        , Para
+            [ Str "If"
+            , Space
+            , Str "test"
+            , Space
+            , Code ( "" , [] , [] ) "switch-010"
+            , Space
+            , Str "did"
+            , Space
+            , Str "not"
+            , Space
+            , Str "pass,"
+            , Space
+            , Str "this"
+            , Space
+            , Str "test"
+            , Space
+            , Str "should"
+            , Space
+            , Str "be"
+            , Space
+            , Str "marked"
+            , Space
+            , Code ( "" , [] , [] ) "Not Supported"
+            , Str "."
+            ]
+        ]
     ]
-  , Div
-    ( "content-switch-001.xhtml#switch-020"
-    ,
-      [ "section", "otest" ]
-    , []
-    )
-    [ Header 4
-      ( "", [], [] )
-      [ Span
-        ( "", [ "nature" ], [] )
-        [ Str "[OPTIONAL]" ]
-      , SoftBreak
-      , Span
-        ( "", [ "test-id" ], [] )
-        [ Str "switch-020" ]
-      , SoftBreak
-      , Str "MathML"
-      , Space
-      , Str "Embedding"
-      ]
-    , Para
-      [ Str "Tests"
-      , Space
-      , Str "whether"
-      , Space
-      , Str "the"
-      , Space
-      , Str "MathML"
-      , Space
-      , Str "namespace"
-      , Space
-      , Str "is"
-      , Space
-      , Str "recognized"
-      , Space
-      , Str "when"
-      , Space
-      , Str "used"
-      , Space
-      , Str "in"
-      , Space
-      , Str "an"
-      , Space
-      , Code
-        ( "", [], [] ) "epub:case"
-      , Space
-      , Str "element."
-      ]
-    , Para
-      [ Math InlineMath "{2x}{+ y - z}" ]
-    , Para
-      [ Str "If"
-      , Space
-      , Str "a"
-      , Space
-      , Str "MathML"
-      , Space
-      , Str "equation"
-      , Space
-      , Str "is"
-      , Space
-      , Str "rendered"
-      , Space
-      , Str "before"
-      , Space
-      , Str "this"
-      , Space
-      , Str "paragraph,"
-      , Space
-      , Str "the"
-      , Space
-      , Str "test"
-      , Space
-      , Str "passes."
-      ]
-    , Para
-      [ Str "If"
-      , Space
-      , Str "test"
-      , Space
-      , Code
-        ( "", [], [] ) "switch-010"
-      , Space
-      , Str "did"
-      , Space
-      , Str "not"
-      , Space
-      , Str "pass,"
-      , Space
-      , Str "this"
-      , Space
-      , Str "test"
-      , Space
-      , Str "should"
-      , Space
-      , Str "be"
-      , Space
-      , Str "marked"
-      , Space
-      , Code
-        ( "", [], [] ) "Not Supported"
-      , Str "."
-      ]
-    ]
-  ]
 ]

@@ -1,18 +1,18 @@
 Pandoc
-  ( Meta { unMeta = fromList [] } )
+  Meta { unMeta = fromList [] }
   [ Div
-    ( "", [ "epigraph" ], [] )
-    [ Para [ Str "Body", Space, Str "epigraph" ] ]
+      ( "" , [ "epigraph" ] , [] )
+      [ Para [ Str "Body" , Space , Str "epigraph" ] ]
   , Div
-    ( "", [ "section" ], [] )
-    [ Div
-      ( "", [ "epigraph" ], [] )
-      [ Para [ Str "Section", Space, Str "epigraph" ] ]
-    , Div
-      ( "", [ "section" ], [] )
+      ( "" , [ "section" ] , [] )
       [ Div
-        ( "", [ "epigraph" ], [] )
-        [ Para [ Str "Subsection", Space, Str "epigraph" ] ]
+          ( "" , [ "epigraph" ] , [] )
+          [ Para [ Str "Section" , Space , Str "epigraph" ] ]
+      , Div
+          ( "" , [ "section" ] , [] )
+          [ Div
+              ( "" , [ "epigraph" ] , [] )
+              [ Para [ Str "Subsection" , Space , Str "epigraph" ] ]
+          ]
       ]
-    ]
   ]

@@ -5,12 +5,11 @@
 Hello \textcolor{red}{World}
 ^D
 [ Para
-  [ Str "Hello"
-  , Space
-  , Span
-    ( "", [], [ ( "style", "color: red" ) ] )
-    [ Str "World" ]
-  ]
+    [ Str "Hello"
+    , Space
+    , Span
+        ( "" , [] , [ ( "style" , "color: red" ) ] ) [ Str "World" ]
+    ]
 ]
 ```
 
@@ -19,12 +18,11 @@ Hello \textcolor{red}{World}
 \textcolor{red}{Hello} World
 ^D
 [ Para
-  [ Span
-    ( "", [], [ ( "style", "color: red" ) ] )
-    [ Str "Hello" ]
-  , Space
-  , Str "World"
-  ]
+    [ Span
+        ( "" , [] , [ ( "style" , "color: red" ) ] ) [ Str "Hello" ]
+    , Space
+    , Str "World"
+    ]
 ]
 ```
 
@@ -33,12 +31,12 @@ Hello \textcolor{red}{World}
 Hello \textcolor{blue}{\textbf{World}}
 ^D
 [ Para
-  [ Str "Hello"
-  , Space
-  , Span
-    ( "", [], [ ( "style", "color: blue" ) ] )
-    [ Strong [ Str "World" ] ]
-  ]
+    [ Str "Hello"
+    , Space
+    , Span
+        ( "" , [] , [ ( "style" , "color: blue" ) ] )
+        [ Strong [ Str "World" ] ]
+    ]
 ]
 ```
 
@@ -48,13 +46,13 @@ Hello \textcolor{blue}{\textbf{World}}
 Hello \textcolor{blue}{\textbf{World}}.
 ^D
 [ Para
-  [ Str "Hello"
-  , Space
-  , Span
-    ( "", [], [ ( "style", "color: blue" ) ] )
-    [ Strong [ Str "World" ] ]
-  , Str "."
-  ]
+    [ Str "Hello"
+    , Space
+    , Span
+        ( "" , [] , [ ( "style" , "color: blue" ) ] )
+        [ Strong [ Str "World" ] ]
+    , Str "."
+    ]
 ]
 ```
 
@@ -68,14 +66,12 @@ Hello \textcolor{blue}{\textbf{World}}.
 }
 ^D
 [ Div
-  ( "", [], [ ( "style", "color: orange" ) ] )
-  [ BulletList
-    [
-      [ Para [ Str "Item", Space, Str "1" ] ]
-    ,
-      [ Para [ Str "Item", Space, Str "2" ] ]
+    ( "" , [] , [ ( "style" , "color: orange" ) ] )
+    [ BulletList
+        [ [ Para [ Str "Item" , Space , Str "1" ] ]
+        , [ Para [ Str "Item" , Space , Str "2" ] ]
+        ]
     ]
-  ]
 ]
 ```
 
@@ -110,12 +106,12 @@ Hello \textcolor{blue}{\textbf{World}}.
 Hello \colorbox{red}{World}
 ^D
 [ Para
-  [ Str "Hello"
-  , Space
-  , Span
-    ( "", [], [ ( "style", "background-color: red" ) ] )
-    [ Str "World" ]
-  ]
+    [ Str "Hello"
+    , Space
+    , Span
+        ( "" , [] , [ ( "style" , "background-color: red" ) ] )
+        [ Str "World" ]
+    ]
 ]
 ```
 
@@ -138,12 +134,12 @@ Hello \colorbox{red}{World}
 Hello \colorbox{blue}{\textbf{World}}
 ^D
 [ Para
-  [ Str "Hello"
-  , Space
-  , Span
-    ( "", [], [ ( "style", "background-color: blue" ) ] )
-    [ Strong [ Str "World" ] ]
-  ]
+    [ Str "Hello"
+    , Space
+    , Span
+        ( "" , [] , [ ( "style" , "background-color: blue" ) ] )
+        [ Strong [ Str "World" ] ]
+    ]
 ]
 ```
 
@@ -152,13 +148,13 @@ Hello \colorbox{blue}{\textbf{World}}
 Hello \colorbox{blue}{\textbf{World}}.
 ^D
 [ Para
-  [ Str "Hello"
-  , Space
-  , Span
-    ( "", [], [ ( "style", "background-color: blue" ) ] )
-    [ Strong [ Str "World" ] ]
-  , Str "."
-  ]
+    [ Str "Hello"
+    , Space
+    , Span
+        ( "" , [] , [ ( "style" , "background-color: blue" ) ] )
+        [ Strong [ Str "World" ] ]
+    , Str "."
+    ]
 ]
 ```
 
@@ -174,14 +170,12 @@ Hello \colorbox{blue}{\textbf{World}}.
 }
 ^D
 [ Div
-  ( "", [], [ ( "style", "background-color: orange" ) ] )
-  [ BulletList
-    [
-      [ Para [ Str "Item", Space, Str "1" ] ]
-    ,
-      [ Para [ Str "Item", Space, Str "2" ] ]
+    ( "" , [] , [ ( "style" , "background-color: orange" ) ] )
+    [ BulletList
+        [ [ Para [ Str "Item" , Space , Str "1" ] ]
+        , [ Para [ Str "Item" , Space , Str "2" ] ]
+        ]
     ]
-  ]
 ]
 ```
 
@@ -197,15 +191,13 @@ Hello \colorbox{blue}{\textbf{World}}.
 } some more text
 ^D
 [ Div
-  ( "", [], [ ( "style", "background-color: blue" ) ] )
-  [ BulletList
-    [
-      [ Para [ Str "Item", Space, Str "1" ] ]
-    ,
-      [ Para [ Str "Item", Space, Str "2" ] ]
+    ( "" , [] , [ ( "style" , "background-color: blue" ) ] )
+    [ BulletList
+        [ [ Para [ Str "Item" , Space , Str "1" ] ]
+        , [ Para [ Str "Item" , Space , Str "2" ] ]
+        ]
     ]
-  ]
 , Para
-  [ Str "some", Space, Str "more", Space, Str "text" ]
+    [ Str "some" , Space , Str "more" , Space , Str "text" ]
 ]
 ```

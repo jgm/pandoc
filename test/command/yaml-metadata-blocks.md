@@ -7,9 +7,9 @@ foo:
 ---
 ^D
 Pandoc
-  ( Meta
-    { unMeta = fromList [ ( "foo", MetaMap ( fromList [] ) ) ] }
-  ) []
+  Meta
+    { unMeta = fromList [ ( "foo" , MetaMap (fromList []) ) ] }
+  []
 ```
 ```
 % pandoc -s -t native
@@ -35,46 +35,31 @@ nested:
 ---
 ^D
 Pandoc
-  ( Meta
-    { unMeta = fromList
-      [
-        ( "bool", MetaBool True )
-      ,
-        ( "empty", MetaList [] )
-      ,
-        ( "float", MetaInlines [ Str "1.5" ] )
-      ,
-        ( "int", MetaInlines [ Str "7" ] )
-      ,
-        ( "more", MetaBool False )
-      ,
-        ( "nested"
-        , MetaMap
-          ( fromList
-            [
-              ( "bool", MetaBool True )
-            ,
-              ( "empty", MetaList [] )
-            ,
-              ( "float", MetaInlines [ Str "2.5" ] )
-            ,
-              ( "int", MetaInlines [ Str "8" ] )
-            ,
-              ( "more", MetaBool False )
-            ,
-              ( "nothing", MetaInlines [ Str "null" ] )
-            ,
-              ( "scientific", MetaInlines [ Str "3.7e-5" ] )
-            ]
-          )
-        )
-      ,
-        ( "nothing", MetaInlines [ Str "null" ] )
-      ,
-        ( "scientific", MetaInlines [ Str "3.7e-5" ] )
-      ]
+  Meta
+    { unMeta =
+        fromList
+          [ ( "bool" , MetaBool True )
+          , ( "empty" , MetaList [] )
+          , ( "float" , MetaInlines [ Str "1.5" ] )
+          , ( "int" , MetaInlines [ Str "7" ] )
+          , ( "more" , MetaBool False )
+          , ( "nested"
+            , MetaMap
+                (fromList
+                   [ ( "bool" , MetaBool True )
+                   , ( "empty" , MetaList [] )
+                   , ( "float" , MetaInlines [ Str "2.5" ] )
+                   , ( "int" , MetaInlines [ Str "8" ] )
+                   , ( "more" , MetaBool False )
+                   , ( "nothing" , MetaInlines [ Str "null" ] )
+                   , ( "scientific" , MetaInlines [ Str "3.7e-5" ] )
+                   ])
+            )
+          , ( "nothing" , MetaInlines [ Str "null" ] )
+          , ( "scientific" , MetaInlines [ Str "3.7e-5" ] )
+          ]
     }
-  ) []
+  []
 ```
 ```
 % pandoc -s -t native
@@ -85,20 +70,19 @@ array:
 ---
 ^D
 Pandoc
-  ( Meta
-    { unMeta = fromList
-      [
-        ( "array"
-        , MetaList
-          [ MetaMap
-            ( fromList [ ( "foo", MetaInlines [ Str "bar" ] ) ] )
-          , MetaMap
-            ( fromList [ ( "bool", MetaBool True ) ] )
+  Meta
+    { unMeta =
+        fromList
+          [ ( "array"
+            , MetaList
+                [ MetaMap
+                    (fromList [ ( "foo" , MetaInlines [ Str "bar" ] ) ])
+                , MetaMap (fromList [ ( "bool" , MetaBool True ) ])
+                ]
+            )
           ]
-        )
-      ]
     }
-  ) []
+  []
 ```
 ```
 % pandoc -s -t native --metadata-file command/yaml-metadata.yaml
@@ -107,33 +91,31 @@ title: document
 ---
 ^D
 Pandoc
-  ( Meta
-    { unMeta = fromList
-      [
-        ( "other"
-        , MetaInlines
-          [ Emph [ Str "markdown" ], Space, Str "value" ]
-        )
-      ,
-        ( "title", MetaInlines [ Str "document" ] )
-      ]
+  Meta
+    { unMeta =
+        fromList
+          [ ( "other"
+            , MetaInlines
+                [ Emph [ Str "markdown" ] , Space , Str "value" ]
+            )
+          , ( "title" , MetaInlines [ Str "document" ] )
+          ]
     }
-  ) []
+  []
 ```
 ```
 % pandoc -s -t native --metadata-file command/yaml-metadata.yaml -M title=cmdline
 ^D
 Pandoc
-  ( Meta
-    { unMeta = fromList
-      [
-        ( "other"
-        , MetaInlines
-          [ Emph [ Str "markdown" ], Space, Str "value" ]
-        )
-      ,
-        ( "title", MetaString "cmdline" )
-      ]
+  Meta
+    { unMeta =
+        fromList
+          [ ( "other"
+            , MetaInlines
+                [ Emph [ Str "markdown" ] , Space , Str "value" ]
+            )
+          , ( "title" , MetaString "cmdline" )
+          ]
     }
-  ) []
+  []
 ```

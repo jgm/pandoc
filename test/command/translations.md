@@ -25,5 +25,5 @@
 \figurename~2
 \figurename.
 ^D
-[ Para [ Str "Slika\160\&2", SoftBreak, Str "Slika." ] ]
+[ Para [ Str "Slika\160\&2" , SoftBreak , Str "Slika." ] ]
 ```

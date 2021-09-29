@@ -584,7 +584,8 @@ library
                  unicode-collation     >= 0.1.1    && < 0.2,
                  zip-archive           >= 0.2.3.4  && < 0.5,
                  zlib                  >= 0.5      && < 0.7,
-                 pretty-simple         >= 4.0      && < 4.1
+                 pretty-show           >= 1.10     && < 1.11,
+                 pretty                >= 1.1      && < 1.2
   if os(windows) && arch(i386)
      build-depends: basement >= 0.0.10,
                     foundation >= 0.0.23

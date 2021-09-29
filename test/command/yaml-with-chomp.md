@@ -8,14 +8,13 @@ ml: |-
 ...
 ^D
 Pandoc
-  ( Meta
-    { unMeta = fromList
-      [
-        ( "ml"
-        , MetaBlocks
-          [ Para [ Str "TEST" ], Plain [ Str "BLOCK" ] ]
-        )
-      ]
+  Meta
+    { unMeta =
+        fromList
+          [ ( "ml"
+            , MetaBlocks [ Para [ Str "TEST" ] , Plain [ Str "BLOCK" ] ]
+            )
+          ]
     }
-  ) []
+  []
 ```
