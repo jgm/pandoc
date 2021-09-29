@@ -20,7 +20,9 @@
 </figure>
 ^D
 [ Para
-  [ Image ( "", [], [] ) [ Str "bar" ] ( "foo.png", "fig:voyage" ) ]
+    [ Image
+        ( "" , [] , [] ) [ Str "bar" ] ( "foo.png" , "fig:voyage" )
+    ]
 ]
 ```
 

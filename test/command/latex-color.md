@@ -85,16 +85,14 @@ Hello \textcolor{blue}{\textbf{World}}.
 } some more text
 ^D
 [ Div
-  ( "", [], [ ( "style", "color: blue" ) ] )
-  [ BulletList
-    [
-      [ Para [ Str "Item", Space, Str "1" ] ]
-    ,
-      [ Para [ Str "Item", Space, Str "2" ] ]
+    ( "" , [] , [ ( "style" , "color: blue" ) ] )
+    [ BulletList
+        [ [ Para [ Str "Item" , Space , Str "1" ] ]
+        , [ Para [ Str "Item" , Space , Str "2" ] ]
+        ]
     ]
-  ]
 , Para
-  [ Str "some", Space, Str "more", Space, Str "text" ]
+    [ Str "some" , Space , Str "more" , Space , Str "text" ]
 ]
 ```
 
@@ -120,12 +118,12 @@ Hello \colorbox{red}{World}
 \colorbox{red}{Hello} World
 ^D
 [ Para
-  [ Span
-    ( "", [], [ ( "style", "background-color: red" ) ] )
-    [ Str "Hello" ]
-  , Space
-  , Str "World"
-  ]
+    [ Span
+        ( "" , [] , [ ( "style" , "background-color: red" ) ] )
+        [ Str "Hello" ]
+    , Space
+    , Str "World"
+    ]
 ]
 ```
 
