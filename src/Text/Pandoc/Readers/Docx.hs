@@ -322,6 +322,7 @@ runToInlines (InlineDrawing fp title alt bs ext) = do
   (lift . lift) $ P.insertMedia fp Nothing bs
   return $ imageWith (extentToAttr ext) (T.pack fp) title $ text alt
 runToInlines InlineChart = return $ spanWith ("", ["chart"], []) $ text "[CHART]"
+runToInlines InlineDiagram = return $ spanWith ("", ["diagram"], []) $ text "[DIAGRAM]"
 
 extentToAttr :: Extent -> Attr
 extentToAttr (Just (w, h)) =
@@ -434,6 +435,8 @@ parPartToInlines' (Drawing fp title alt bs ext) = do
   return $ imageWith (extentToAttr ext) (T.pack fp) title $ text alt
 parPartToInlines' Chart =
   return $ spanWith ("", ["chart"], []) $ text "[CHART]"
+parPartToInlines' Diagram =
+  return $ spanWith ("", ["diagram"], []) $ text "[DIAGRAM]"
 parPartToInlines' (InternalHyperLink anchor runs) = do
   ils <- smushInlines <$> mapM runToInlines runs
   return $ link ("#" <> anchor) "" ils
