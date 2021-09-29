@@ -71,8 +71,8 @@ tests = [ testGroup "rubrics"
             flatten (Emph [Str "1", Strong [Str "2"], Str "3"]) @?=
             [Emph [Str "1"], Strong [Str "2"], Emph [Str "3"]]
           , testCase "could introduce trailing spaces" $
-            flatten (Emph [Str "f", Space, Strong [Str "2"]]) @?=
-            [Emph [Str "f", Space], Strong [Str "2"]]
+            flatten (Emph [Str "f ", Strong [Str "2"]]) @?=
+            [Emph [Str "f "], Strong [Str "2"]]
             -- the test above is the reason why we call
             -- stripLeadingTrailingSpace through transformNested after
             -- flatten

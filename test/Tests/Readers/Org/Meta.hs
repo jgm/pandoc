@@ -75,7 +75,7 @@ tests =
     , testGroup "Description"
       [ "Single line" =:
         "#+description: Explanatory text" =?>
-        let description = [Str "Explanatory", Space, Str "text"]
+        let description = [Str "Explanatory text"]
             meta = setMeta "description" (MetaInlines description) nullMeta
         in Pandoc meta mempty
 
@@ -83,9 +83,9 @@ tests =
         T.unlines [ "#+description: /Short/ introduction"
                   , "#+description: to Org-mode"
                   ] =?>
-        let description = [ Emph [Str "Short"], Space, Str "introduction"
+        let description = [ Emph [Str "Short"], Str " introduction"
                           , SoftBreak
-                          , Str "to", Space, Str "Org-mode"
+                          , Str "to Org-mode"
                           ]
             meta = setMeta "description" (MetaInlines description) nullMeta
         in Pandoc meta mempty

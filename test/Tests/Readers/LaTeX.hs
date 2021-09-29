@@ -348,7 +348,7 @@ natbibCitations = testGroup "natbib"
                                 , citationSuffix = [Str "p.\160\&30"]
                                 , citationId = "item2" }
                    ,baseCitation{ citationId = "item3"
-                                , citationPrefix = [Str "see",Space,Str "also"]
+                                , citationPrefix = [Str "see also"]
                                 , citationMode = NormalCitation }
                    ] (rt "\\citetext{\\citeyear{item1}; \\citeyear[p.~30]{item2}; \\citealp[see also][]{item3}}"))
   , "group" =: "\\citetext{\\citealp[see][p.~34--35]{item1}; \\citealp[also][chap. 3]{item3}}"
@@ -358,11 +358,11 @@ natbibCitations = testGroup "natbib"
                    ,baseCitation{ citationMode = NormalCitation
                                 , citationId = "item3"
                                 , citationPrefix = [Str "also"]
-                                , citationSuffix = [Str "chap.",Space,Str "3"] }
+                                , citationSuffix = [Str "chap. 3"] }
                    ] (rt "\\citetext{\\citealp[see][p.~34--35]{item1}; \\citealp[also][chap. 3]{item3}}"))
   , "suffix and locator" =: "\\citep[pp.~33, 35--37, and nowhere else]{item1}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation
-                                , citationSuffix = [Str "pp.\160\&33,",Space,Str "35\8211\&37,",Space,Str "and",Space,Str "nowhere",Space, Str "else"] }] (rt "\\citep[pp.~33, 35--37, and nowhere else]{item1}"))
+                                , citationSuffix = [Str "pp.\160\&33, 35\8211\&37, and nowhere else"] }] (rt "\\citep[pp.~33, 35--37, and nowhere else]{item1}"))
   , "suffix only" =: "\\citep[and nowhere else]{item1}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation
                                 , citationSuffix = toList $ text "and nowhere else" }] (rt "\\citep[and nowhere else]{item1}"))
@@ -375,7 +375,7 @@ natbibCitations = testGroup "natbib"
   , "markup" =: "\\citep[\\emph{see}][p. \\textbf{32}]{item1}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation
                                 , citationPrefix = [Emph [Str "see"]]
-                                , citationSuffix = [Str "p.",Space,
+                                , citationSuffix = [Str "p. ",
                                     Strong [Str "32"]] }] (rt "\\citep[\\emph{see}][p. \\textbf{32}]{item1}"))
   ]
 
@@ -395,7 +395,7 @@ biblatexCitations = testGroup "biblatex"
                                 , citationSuffix = [Str "p.\160\&30"]
                                 , citationId = "item2" }
                    ,baseCitation{ citationId = "item3"
-                                , citationPrefix = [Str "see",Space,Str "also"]
+                                , citationPrefix = [Str "see also"]
                                 , citationMode = NormalCitation }
                    ] (rt "\\textcites{item1}[p.~30]{item2}[see also][]{item3}"))
   , "group" =: "\\autocites[see][p.~34--35]{item1}[also][chap. 3]{item3}"
@@ -405,11 +405,11 @@ biblatexCitations = testGroup "biblatex"
                    ,baseCitation{ citationMode = NormalCitation
                                 , citationId = "item3"
                                 , citationPrefix = [Str "also"]
-                                , citationSuffix = [Str "chap.",Space,Str "3"] }
+                                , citationSuffix = [Str "chap. 3"] }
                    ] (rt "\\autocites[see][p.~34--35]{item1}[also][chap. 3]{item3}"))
   , "suffix and locator" =: "\\autocite[pp.~33, 35--37, and nowhere else]{item1}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation
-                                , citationSuffix = [Str "pp.\160\&33,",Space,Str "35\8211\&37,",Space,Str "and",Space,Str "nowhere",Space, Str "else"] }] (rt "\\autocite[pp.~33, 35--37, and nowhere else]{item1}"))
+                                , citationSuffix = [Str "pp.\160\&33, 35\8211\&37, and nowhere else"] }] (rt "\\autocite[pp.~33, 35--37, and nowhere else]{item1}"))
   , "suffix only" =: "\\autocite[and nowhere else]{item1}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation
                                 , citationSuffix = toList $ text "and nowhere else" }] (rt "\\autocite[and nowhere else]{item1}"))
@@ -422,7 +422,7 @@ biblatexCitations = testGroup "biblatex"
   , "markup" =: "\\autocite[\\emph{see}][p. \\textbf{32}]{item1}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation
                                 , citationPrefix = [Emph [Str "see"]]
-                                , citationSuffix = [Str "p.",Space,
+                                , citationSuffix = [Str "p. ",
                                     Strong [Str "32"]] }] (rt "\\autocite[\\emph{see}][p. \\textbf{32}]{item1}"))
   , "parencite" =: "\\parencite{item1}"
     =?> para (cite [baseCitation{ citationMode = NormalCitation }] (rt "\\parencite{item1}"))
