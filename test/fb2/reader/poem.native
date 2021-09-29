@@ -2,24 +2,16 @@ Pandoc
   Meta { unMeta = fromList [] }
   [ Div
       ( "" , [ "section" ] , [] )
-      [ Header
-          2 ( "" , [] , [] ) [ Str "Poem" , Space , Str "title" ]
+      [ Header 2 ( "" , [] , [] ) [ Str "Poem title" ]
       , Div
           ( "" , [ "epigraph" ] , [] )
-          [ Para [ Str "Poem" , Space , Str "epigraph" ] ]
+          [ Para [ Str "Poem epigraph" ] ]
       , Header 2 ( "" , [ "unnumbered" ] , [] ) [ Str "Subtitle" ]
-      , Header
-          2
-          ( "" , [] , [] )
-          [ Str "First" , Space , Str "stanza" , Space , Str "title" ]
+      , Header 2 ( "" , [] , [] ) [ Str "First stanza title" ]
       , LineBlock
-          [ [ Str "Verse" ]
-          , [ Emph [ Str "More" ] , Space , Str "verse" ]
-          ]
-      , LineBlock
-          [ [ Str "One" , Space , Str "more" , Space , Str "stanza" ]
-          ]
+          [ [ Str "Verse" ] , [ Emph [ Str "More" ] , Str " verse" ] ]
+      , LineBlock [ [ Str "One more stanza" ] ]
       , Para [ Str "Author" ]
-      , Para [ Str "April" , Space , Str "2018" ]
+      , Para [ Str "April 2018" ]
       ]
   ]

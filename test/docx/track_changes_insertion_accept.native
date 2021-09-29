@@ -1,1 +1,5 @@
-[Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "text",Space,Str "with",Space,Str "two",Space,Str "exciting",Space,Str "insertions."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str "This is a text with two exciting insertions." ]
+  ]

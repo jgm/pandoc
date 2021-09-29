@@ -1,1 +1,65 @@
-[Table ("",[],[]) (Caption Nothing []) [(AlignDefault,ColWidthDefault),(AlignDefault,ColWidthDefault)] (TableHead ("",[],[]) [Row ("",[],[]) [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [],Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) []]]) [TableBody ("",[],[]) (RowHeadColumns 0) [] [Row ("",[],[]) [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "A"]],Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "B"]]],Row ("",[],[]) [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "C"]],Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "D"]]]]] (TableFoot ("",[],[]) []),Para []]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "A" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "B" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "C" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "D" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para []
+  ]

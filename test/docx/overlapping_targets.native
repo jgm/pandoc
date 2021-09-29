@@ -1,3 +1,19 @@
-[Para [Link ("",[],[]) [Str "One",Space,Str "link",Space,Str "to",Space,Str "one",Space,Str "target."] ("#Fizz","")]
-,Para [Span ("Fizz",["anchor"],[]) [],Str "This",Space,Str "is",Space,Str "a",Space,Str "target",Space,Str "with",Space,Str "two",Space,Str "names."]
-,Para [Link ("",[],[]) [Str "Another",Space,Str "link",Space,Str "to",Space,Str "the",Space,Str "same",Space,Str "target."] ("#Fizz","")]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "One link to one target." ]
+          ( "#Fizz" , "" )
+      ]
+  , Para
+      [ Span ( "Fizz" , [ "anchor" ] , [] ) []
+      , Str "This is a target with two names."
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "Another link to the same target." ]
+          ( "#Fizz" , "" )
+      ]
+  ]

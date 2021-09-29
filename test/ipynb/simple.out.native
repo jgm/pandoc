@@ -13,36 +13,13 @@ Pandoc
     }
   [ Div
       ( "" , [ "cell" , "markdown" ] , [] )
-      [ Header
-          1
-          ( "lorem-ipsum" , [] , [] )
-          [ Str "Lorem" , Space , Str "ipsum" ]
+      [ Header 1 ( "lorem-ipsum" , [] , [] ) [ Str "Lorem ipsum" ]
       , Para
-          [ Strong [ Str "Lorem" , Space , Str "ipsum" ]
-          , Space
-          , Str "dolor"
-          , Space
-          , Str "sit"
-          , Space
-          , Str "amet,"
-          , Space
-          , Str "consectetur"
-          , Space
-          , Str "adipiscing"
-          , Space
-          , Str "elit."
-          , Space
-          , Str "Nunc"
-          , Space
-          , Str "luctus"
+          [ Strong [ Str "Lorem ipsum" ]
+          , Str
+              " dolor sit amet, consectetur adipiscing elit. Nunc luctus"
           , SoftBreak
-          , Str "bibendum"
-          , Space
-          , Str "felis"
-          , Space
-          , Str "dictum"
-          , Space
-          , Str "sodales."
+          , Str "bibendum felis dictum sodales."
           ]
       ]
   , Div
@@ -76,26 +53,10 @@ Pandoc
       )
       [ Header 2 ( "image" , [] , [] ) [ Str "Image" ]
       , Para
-          [ Str "This"
-          , Space
-          , Str "image"
-          , Space
+          [ Str "This image "
           , Image
-              ( "" , [] , [] )
-              [ Str "the" , Space , Str "moon" ]
-              ( "lalune.jpg" , "" )
-          , Space
-          , Str "will"
-          , Space
-          , Str "be"
-          , Space
-          , Str "included"
-          , Space
-          , Str "as"
-          , Space
-          , Str "a"
-          , Space
-          , Str "cell"
+              ( "" , [] , [] ) [ Str "the moon" ] ( "lalune.jpg" , "" )
+          , Str " will be included as a cell"
           , SoftBreak
           , Str "attachment."
           ]

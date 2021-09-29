@@ -1,4 +1,17 @@
-[Para [Str "This",Space,Str "is",Space,Str "some",Space,Str "text."]
-,Para [Str "This",Space,Str "is",Space,Str "text",Space,Str "with",Space,Str "an",Space,Emph [Str "emphasized"],Space,Str "text",Space,Str "style.",Space,Str "And",Space,Str "this",Space,Str "is",Space,Str "text",Space,Str "with",Space,Str "a",Space,Strong [Str "strengthened"],Space,Str "text",Space,Str "style."]
-,BlockQuote
- [Para [Str "Here",Space,Str "is",Space,Str "a",Space,Str "styled",Space,Str "paragraph",Space,Str "that",Space,Str "inherits",Space,Str "from",Space,Str "Block",Space,Str "Text."]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para [ Str "This is some text." ]
+  , Para
+      [ Str "This is text with an "
+      , Emph [ Str "emphasized" ]
+      , Str " text style. And this is text with a "
+      , Strong [ Str "strengthened" ]
+      , Str " text style."
+      ]
+  , BlockQuote
+      [ Para
+          [ Str
+              "Here is a styled paragraph that inherits from Block Text."
+          ]
+      ]
+  ]

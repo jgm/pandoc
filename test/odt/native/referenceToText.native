@@ -1,1 +1,17 @@
-[Para [Span ("an anchor",[],[]) [],Str "Some",Space,Str "text."],Para [Str "A",Space,Str "reference",Space,Str "to",Space,Link ("",[],[]) [Str "Some",Space,Str "text"] ("#an anchor",""),Str "."],Para [Str "Some",Space,Str "text",LineBreak,Str "Another",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "link",Span ("anchor",[],[]) []]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Span ( "an anchor" , [] , [] ) [] , Str "Some text." ]
+  , Para
+      [ Str "A reference to "
+      , Link
+          ( "" , [] , [] ) [ Str "Some text" ] ( "#an anchor" , "" )
+      , Str "."
+      ]
+  , Para
+      [ Str "Some text"
+      , LineBreak
+      , Str "Another one with a link"
+      , Span ( "anchor" , [] , [] ) []
+      ]
+  ]

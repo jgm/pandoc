@@ -1,3 +1,10 @@
-[Header 1 ("here-is-a-single-header",[],[]) [Str "Here",Space,Str "is",Space,Str "a",Space,Str "single",Space,Str "header"]
-,Div ("",["notes"],[])
- [Para [Str "and",Space,Str "here",Space,Str "are",Space,Str "some",Space,Str "notes"]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header
+      1
+      ( "here-is-a-single-header" , [] , [] )
+      [ Str "Here is a single header" ]
+  , Div
+      ( "" , [ "notes" ] , [] )
+      [ Para [ Str "and here are some notes" ] ]
+  ]

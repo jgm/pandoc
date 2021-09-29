@@ -1,1 +1,21 @@
-[BulletList [[Plain [Str "A",Space,Str "list",Space,Str "item"]],[Plain [Str "A",Space,Str "second"]],[Para [Str "A",Space,Str "third"],BulletList [[Para [Str "New",Space,Str "level!"],BulletList [[Plain [Str "And",Space,Str "another!"]],[Plain [Str "It's",Space,Str "great",Space,Str "up",Space,Str "here!"]]]],[Plain [Str "Oh",Space,Str "noes"]],[Plain [Str "We",Space,Str "fell!"]]]],[Plain [Str "Maybe",Space,Str "someone"]],[Plain [Str "Pushed",Space,Str "us?"]]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ BulletList
+      [ [ Plain [ Str "A list item" ] ]
+      , [ Plain [ Str "A second" ] ]
+      , [ Para [ Str "A third" ]
+        , BulletList
+            [ [ Para [ Str "New level!" ]
+              , BulletList
+                  [ [ Plain [ Str "And another!" ] ]
+                  , [ Plain [ Str "It's great up here!" ] ]
+                  ]
+              ]
+            , [ Plain [ Str "Oh noes" ] ]
+            , [ Plain [ Str "We fell!" ] ]
+            ]
+        ]
+      , [ Plain [ Str "Maybe someone" ] ]
+      , [ Plain [ Str "Pushed us?" ] ]
+      ]
+  ]

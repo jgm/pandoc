@@ -1,4 +1,7 @@
-[Para [Str "Drop",Space,Str "cap."]
-,Para [Str "Next",Space,Str "paragraph."]
-,Para [Str "Drop",Space,Str "cap",Space,Str "in",Space,Str "margin."]
-,Para [Str "Drop",Space,Str "cap",Space,Str "(not",Space,Str "really)."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para [ Str "Drop cap." ]
+  , Para [ Str "Next paragraph." ]
+  , Para [ Str "Drop cap in margin." ]
+  , Para [ Str "Drop cap (not really)." ]
+  ]

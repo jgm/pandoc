@@ -1,2 +1,9 @@
-Pandoc (Meta {unMeta = fromList []})
-[Para [Str "Here",Space,Str "is",Space,Str "one",Space,Str "note.",Note [Para [Str "Here",Space,Str "is",Space,Str "the",Space,Str "note."]],Space,Str "And",Space,Str "one",Space,Str "more",Space,Str "note.",Note [Para [Str "And",Space,Str "another",Space,Str "note."]]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str "Here is one note."
+      , Note [ Para [ Str "Here is the note." ] ]
+      , Str " And one more note."
+      , Note [ Para [ Str "And another note." ] ]
+      ]
+  ]

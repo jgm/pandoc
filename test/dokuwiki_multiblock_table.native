@@ -1,41 +1,116 @@
-[Table ("",[],[]) (Caption Nothing
- [Para [Str "Sample",Space,Str "grid",Space,Str "table."]])
- [(AlignDefault,ColWidth 0.2222222222222222)
- ,(AlignDefault,ColWidth 0.2222222222222222)
- ,(AlignDefault,ColWidth 0.2916666666666667)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "Fruit"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "Price"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "Advantages"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Bananas"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "$1.34"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "built-in",Space,Str "wrapper"]
-    ,Para [Str "potassium"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Oranges"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "$2.10"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [BulletList
-     [[Plain [Str "cures",Space,Str "scurvy"]]
-     ,[Plain [Str "tasty"]]]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Apples"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "$1.10"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Para [Str "Some",Space,Str "text",LineBreak,LineBreak,Str "after",Space,Str "two",Space,Str "linebreaks"]]]])]
- (TableFoot ("",[],[])
- [])]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Table
+      ( "" , [] , [] )
+      (Caption Nothing [ Para [ Str "Sample grid table." ] ])
+      [ ( AlignDefault , ColWidth 0.2222222222222222 )
+      , ( AlignDefault , ColWidth 0.2222222222222222 )
+      , ( AlignDefault , ColWidth 0.2916666666666667 )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Fruit" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Price" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Advantages" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Bananas" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "$1.34" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "built-in wrapper" ]
+                  , Para [ Str "potassium" ]
+                  ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Oranges" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "$2.10" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ BulletList
+                      [ [ Plain [ Str "cures scurvy" ] ]
+                      , [ Plain [ Str "tasty" ] ]
+                      ]
+                  ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Apples" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "$1.10" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Some text"
+                      , LineBreak
+                      , LineBreak
+                      , Str "after two linebreaks"
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  ]

@@ -1,2 +1,10 @@
-[Header 2 ("hello",[],[]) [Str "Hello"]
-,Para [Image ("",[],[]) [Str "An",Space,Str "image"] ("lalune.jpg","fig:")]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 2 ( "hello" , [] , [] ) [ Str "Hello" ]
+  , Para
+      [ Image
+          ( "" , [] , [] )
+          [ Str "An image" ]
+          ( "lalune.jpg" , "fig:" )
+      ]
+  ]

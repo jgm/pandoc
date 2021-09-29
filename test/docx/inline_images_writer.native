@@ -1,2 +1,35 @@
-[Para [Str "This",Space,Str "picture",Space,Image ("",[],[("width","0.4166666666666667in"),("height","0.4166666666666667in")]) [] ("media/rId26.jpg",""),Space,Str "is",Space,Str "an",Space,Str "identicon."]
-,Para [Str "Here",Space,Str "is",Space,Link ("",[],[]) [Str "one",Space,Image ("",[],[("width","0.4166666666666667in"),("height","0.4166666666666667in")]) [] ("media/rId26.jpg",""),Space,Str "that"] ("http://www.google.com",""),Space,Str "links."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str "This picture "
+      , Image
+          ( ""
+          , []
+          , [ ( "width" , "0.4166666666666667in" )
+            , ( "height" , "0.4166666666666667in" )
+            ]
+          )
+          []
+          ( "media/rId26.jpg" , "" )
+      , Str " is an identicon."
+      ]
+  , Para
+      [ Str "Here is "
+      , Link
+          ( "" , [] , [] )
+          [ Str "one "
+          , Image
+              ( ""
+              , []
+              , [ ( "width" , "0.4166666666666667in" )
+                , ( "height" , "0.4166666666666667in" )
+                ]
+              )
+              []
+              ( "media/rId26.jpg" , "" )
+          , Str " that"
+          ]
+          ( "http://www.google.com" , "" )
+      , Str " links."
+      ]
+  ]

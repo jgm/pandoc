@@ -8,150 +8,53 @@ Pandoc
       2
       ( "" , [] , [] )
       [ Span ( "level-2-with-an-embedded-link" , [] , [] ) []
-      , Str "Level"
-      , Space
-      , Str "2"
-      , Space
-      , Str "with"
-      , Space
-      , Str "an"
-      , Space
+      , Str "Level 2 with an "
       , Link
           ( "" , [] , [] )
-          [ Str "embedded" , Space , Str "link" ]
+          [ Str "embedded link" ]
           ( "https://test.example/url" , "" )
       ]
   , Header
       3
       ( "" , [] , [] )
       [ Span ( "level-3-with-emphasis" , [] , [] ) []
-      , Str "Level"
-      , Space
-      , Str "3"
-      , Space
-      , Str "with"
-      , Space
+      , Str "Level 3 with "
       , Emph [ Str "emphasis" ]
       ]
-  , Header
-      4 ( "" , [] , [] ) [ Str "Level" , Space , Str "4" ]
-  , Header
-      5 ( "" , [] , [] ) [ Str "Level" , Space , Str "5" ]
-  , Header
-      6 ( "" , [] , [] ) [ Str "Level" , Space , Str "6" ]
-  , Para
-      [ Str "h0."
-      , Space
-      , Str "this"
-      , Space
-      , Str "is"
-      , Space
-      , Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "header."
-      ]
+  , Header 4 ( "" , [] , [] ) [ Str "Level 4" ]
+  , Header 5 ( "" , [] , [] ) [ Str "Level 5" ]
+  , Header 6 ( "" , [] , [] ) [ Str "Level 6" ]
+  , Para [ Str "h0. this is not a header." ]
   , HorizontalRule
   , Header 1 ( "" , [] , [] ) [ Str "Paragraphs" ]
+  , Para [ Str "Here\8217s a regular paragraph." ]
+  , Para [ Str "Here\8217s one with a bullet. * criminey." ]
   , Para
-      [ Str "Here\8217s"
-      , Space
-      , Str "a"
-      , Space
-      , Str "regular"
-      , Space
-      , Str "paragraph."
-      ]
-  , Para
-      [ Str "Here\8217s"
-      , Space
-      , Str "one"
-      , Space
-      , Str "with"
-      , Space
-      , Str "a"
-      , Space
-      , Str "bullet."
-      , Space
-      , Str "*"
-      , Space
-      , Str "criminey."
-      ]
-  , Para
-      [ Str "There"
-      , Space
-      , Str "should"
-      , Space
-      , Str "be"
-      , Space
-      , Str "a"
-      , Space
-      , Str "hard"
-      , Space
-      , Str "line"
-      , Space
-      , Str "break"
+      [ Str "There should be a hard line break"
       , LineBreak
       , Str "here."
       ]
   , HorizontalRule
-  , Header
-      1 ( "" , [] , [] ) [ Str "Block" , Space , Str "Quotes" ]
-  , Para [ Str "E-mail" , Space , Str "style:" ]
+  , Header 1 ( "" , [] , [] ) [ Str "Block Quotes" ]
+  , Para [ Str "E-mail style:" ]
   , BlockQuote
-      [ Para
-          [ Str "This"
-          , Space
-          , Str "is"
-          , Space
-          , Str "a"
-          , Space
-          , Str "block"
-          , Space
-          , Str "quote."
-          , Space
-          , Str "It"
-          , Space
-          , Str "is"
-          , Space
-          , Str "pretty"
-          , Space
-          , Str "short."
-          ]
+      [ Para [ Str "This is a block quote. It is pretty short." ]
       ]
   , BlockQuote
-      [ Para
-          [ Str "Code"
-          , Space
-          , Str "in"
-          , Space
-          , Str "a"
-          , Space
-          , Str "block"
-          , Space
-          , Str "quote:"
-          ]
+      [ Para [ Str "Code in a block quote:" ]
       , CodeBlock
           ( "" , [ "java" ] , [] )
           "sub status {\n    print \"working\";\n}\n"
-      , Para [ Str "An" , Space , Str "enumeration:" ]
+      , Para [ Str "An enumeration:" ]
       , OrderedList
           ( 1 , DefaultStyle , DefaultDelim )
-          [ [ Para [ Str "item" , Space , Str "one" ] ]
-          , [ Para [ Str "item" , Space , Str "two" ] ]
+          [ [ Para [ Str "item one" ] ]
+          , [ Para [ Str "item two" ] ]
           ]
       ]
-  , Para
-      [ Str "A"
-      , Space
-      , Str "following"
-      , Space
-      , Str "paragraph."
-      ]
+  , Para [ Str "A following paragraph." ]
   , HorizontalRule
-  , Header
-      1 ( "" , [] , [] ) [ Str "Code" , Space , Str "Blocks" ]
+  , Header 1 ( "" , [] , [] ) [ Str "Code Blocks" ]
   , Para [ Str "Code:" ]
   , CodeBlock
       ( "" , [ "java" ] , [] )
@@ -171,15 +74,15 @@ Pandoc
       [ Span ( "unordered" , [] , [] ) [] , Str "Unordered" ]
   , Para [ Str "Asterisks:" ]
   , BulletList
-      [ [ Para [ Str "asterisk" , Space , Str "1" ] ]
-      , [ Para [ Str "asterisk" , Space , Str "2" ] ]
-      , [ Para [ Str "asterisk" , Space , Str "3" ] ]
+      [ [ Para [ Str "asterisk 1" ] ]
+      , [ Para [ Str "asterisk 2" ] ]
+      , [ Para [ Str "asterisk 3" ] ]
       ]
   , Para [ Str "Minuses:" ]
   , BulletList
-      [ [ Para [ Str "Minus" , Space , Str "1" ] ]
-      , [ Para [ Str "Minus" , Space , Str "2" ] ]
-      , [ Para [ Str "Minus" , Space , Str "3" ] ]
+      [ [ Para [ Str "Minus 1" ] ]
+      , [ Para [ Str "Minus 2" ] ]
+      , [ Para [ Str "Minus 3" ] ]
       ]
   , Header 2 ( "" , [] , [] ) [ Str "Ordered" ]
   , OrderedList
@@ -188,55 +91,18 @@ Pandoc
       , [ Para [ Str "Second" ] ]
       , [ Para [ Str "Third" ] ]
       ]
-  , Para
-      [ Str "Linebreak"
-      , Space
-      , Str "in"
-      , Space
-      , Str "paragraph:"
-      ]
+  , Para [ Str "Linebreak in paragraph:" ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
       [ [ Para
-            [ Str "Item"
-            , Space
-            , Str "1,"
-            , Space
-            , Str "line"
-            , Space
-            , Str "one."
+            [ Str "Item 1, line one."
             , LineBreak
-            , Str "Item"
-            , Space
-            , Str "1."
-            , Space
-            , Str "line"
-            , Space
-            , Str "two."
-            , Space
-            , Str "The"
-            , Space
-            , Str "quick"
-            , Space
-            , Str "brown"
-            , Space
-            , Str "fox"
-            , Space
-            , Str "jumped"
-            , Space
-            , Str "over"
-            , Space
-            , Str "the"
-            , Space
-            , Str "lazy"
-            , Space
-            , Str "dog\8217s"
-            , Space
-            , Str "back."
+            , Str
+                "Item 1. line two. The quick brown fox jumped over the lazy dog\8217s back."
             ]
         ]
-      , [ Para [ Str "Item" , Space , Str "2." ] ]
-      , [ Para [ Str "Item" , Space , Str "3." ] ]
+      , [ Para [ Str "Item 2." ] ]
+      , [ Para [ Str "Item 3." ] ]
       ]
   , Header 2 ( "" , [] , [] ) [ Str "Nested" ]
   , BulletList
@@ -248,7 +114,7 @@ Pandoc
             ]
         ]
       ]
-  , Para [ Str "Here\8217s" , Space , Str "another:" ]
+  , Para [ Str "Here\8217s another:" ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
       [ [ Para [ Str "First" ] ]
@@ -261,7 +127,7 @@ Pandoc
         ]
       , [ Para [ Str "Third" ] ]
       ]
-  , Para [ Str "Nested" , Space , Str "enumerations:" ]
+  , Para [ Str "Nested enumerations:" ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
       [ [ Para [ Str "Essential" ]
@@ -282,258 +148,115 @@ Pandoc
       ]
   , HorizontalRule
   , Header
-      1
-      ( "" , [] , [] )
-      [ Str "Linebreaks"
-      , Space
-      , Str "and"
-      , Space
-      , Str "Markup"
-      , Space
-      , Str "in"
-      , Space
-      , Str "Lists"
-      ]
+      1 ( "" , [] , [] ) [ Str "Linebreaks and Markup in Lists" ]
   , BulletList
       [ [ Para
-            [ Strong [ Str "apple" ]
-            , LineBreak
-            , Str "red"
-            , Space
-            , Str "fruit"
-            ]
+            [ Strong [ Str "apple" ] , LineBreak , Str "red fruit" ]
         ]
       , [ Para
-            [ Strong [ Str "orange" ]
-            , LineBreak
-            , Str "orange"
-            , Space
-            , Str "fruit"
-            ]
+            [ Strong [ Str "orange" ] , LineBreak , Str "orange fruit" ]
         ]
       , [ Para
-            [ Strong [ Str "banana" ]
-            , LineBreak
-            , Str "yellow"
-            , Space
-            , Str "fruit"
-            ]
+            [ Strong [ Str "banana" ] , LineBreak , Str "yellow fruit" ]
         ]
       ]
-  , Para
-      [ Str "Multiple"
-      , Space
-      , Str "blocks"
-      , Space
-      , Str "with"
-      , Space
-      , Str "italics:"
-      ]
+  , Para [ Str "Multiple blocks with italics:" ]
   , BulletList
       [ [ Para
             [ Strong [ Emph [ Str "apple" ] ]
             , LineBreak
-            , Str "red"
-            , Space
-            , Str "fruit"
+            , Str "red fruit"
             , LineBreak
-            , Str "contains"
-            , Space
-            , Str "seeds,"
-            , Space
-            , Str "crisp,"
-            , Space
-            , Str "pleasant"
-            , Space
-            , Str "to"
-            , Space
-            , Str "taste"
+            , Str "contains seeds, crisp, pleasant to taste"
             ]
         ]
       , [ Para
             [ Strong [ Emph [ Str "orange" ] ]
             , LineBreak
-            , Str "orange"
-            , Space
-            , Str "fruit"
+            , Str "orange fruit"
             ]
         , CodeBlock
             ( "" , [ "java" ] , [] ) "{ orange code block }\n"
-        , BlockQuote
-            [ Para
-                [ Str "orange"
-                , Space
-                , Str "block"
-                , Space
-                , Str "quote"
-                ]
-            ]
+        , BlockQuote [ Para [ Str "orange block quote" ] ]
         ]
       ]
   , HorizontalRule
-  , Header
-      1
-      ( "" , [] , [] )
-      [ Str "Colored"
-      , Space
-      , Str "Text"
-      , Space
-      , Str "Blocks"
-      ]
+  , Header 1 ( "" , [] , [] ) [ Str "Colored Text Blocks" ]
   , Div
       ( "" , [] , [ ( "color" , "red" ) ] )
-      [ Para
-          [ LineBreak
-          , Str "This"
-          , Space
-          , Str "is"
-          , Space
-          , Str "red."
-          ]
-      ]
-  , Header
-      2 ( "" , [] , [] ) [ Str "Eiffel" , Space , Str "65" ]
+      [ Para [ LineBreak , Str "This is red." ] ]
+  , Header 2 ( "" , [] , [] ) [ Str "Eiffel 65" ]
   , Div
       ( "" , [] , [ ( "color" , "blue" ) ] )
-      [ Para
-          [ LineBreak
-          , Str "da"
-          , Space
-          , Str "ba"
-          , Space
-          , Str "dee"
-          ]
-      ]
+      [ Para [ LineBreak , Str "da ba dee" ] ]
   , HorizontalRule
-  , Header
-      1 ( "" , [] , [] ) [ Str "Inline" , Space , Str "Markup" ]
+  , Header 1 ( "" , [] , [] ) [ Str "Inline Markup" ]
   , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
+      [ Str "This is "
       , Emph [ Str "emphasized" ]
-      , Str ","
-      , Space
-      , Str "and"
-      , Space
-      , Str "so"
-      , Space
-      , Emph [ Str "is" , Space , Str "this" ]
+      , Str ", and so "
+      , Emph [ Str "is this" ]
       , Str "."
       ]
   , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
+      [ Str "This is "
       , Strong [ Str "strong" ]
-      , Str ","
-      , Space
-      , Str "and"
-      , Space
-      , Str "so"
-      , Space
-      , Strong [ Str "is" , Space , Str "this" ]
+      , Str ", and so "
+      , Strong [ Str "is this" ]
       , Str "."
       ]
   , Para
-      [ Str "An"
-      , Space
+      [ Str "An "
       , Emph
           [ Link
               ( "" , [] , [] )
-              [ Str "emphasized" , Space , Str "link" ]
+              [ Str "emphasized link" ]
               ( "https://my.example/url" , "" )
           ]
       , Str "."
       ]
+  , Para [ Strong [ Emph [ Str "This is strong and em." ] ] ]
   , Para
-      [ Strong
-          [ Emph
-              [ Str "This"
-              , Space
-              , Str "is"
-              , Space
-              , Str "strong"
-              , Space
-              , Str "and"
-              , Space
-              , Str "em."
-              ]
-          ]
-      ]
-  , Para
-      [ Str "So"
-      , Space
-      , Str "is"
-      , Space
+      [ Str "So is "
       , Strong [ Emph [ Str "this" ] ]
-      , Space
-      , Str "word."
+      , Str " word."
       ]
   , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "code:"
-      , Space
+      [ Str "This is code: "
       , Code ( "" , [] , [] ) ">"
-      , Str ","
-      , Space
+      , Str ", "
       , Code ( "" , [] , [] ) "$"
-      , Str ","
-      , Space
+      , Str ", "
       , Code ( "" , [] , [] ) "\\"
-      , Str ","
-      , Space
+      , Str ", "
       , Code ( "" , [] , [] ) "\\$"
-      , Str ","
-      , Space
+      , Str ", "
       , Code ( "" , [] , [] ) "<html>"
       , Str "."
       ]
   , Para
       [ Strikeout
-          [ Str "This"
-          , Space
-          , Str "is"
-          , Space
-          , Emph [ Str "strikeout" ]
-          , Str "."
-          ]
+          [ Str "This is " , Emph [ Str "strikeout" ] , Str "." ]
       ]
   , Para
-      [ Str "Superscripts:"
-      , Space
-      , Str "a"
+      [ Str "Superscripts: a"
       , Superscript [ Str "bc" ]
-      , Str "d"
-      , Space
-      , Str "a"
+      , Str "d a"
       , Superscript [ Emph [ Str "hello" ] ]
-      , Space
-      , Str "a"
+      , Str " a"
       , Superscript [ Str "hello\160there" ]
       , Str "."
       ]
   , Para
-      [ Str "Subscripts:"
-      , Space
-      , Str "H"
+      [ Str "Subscripts: H"
       , Subscript [ Str "2" ]
-      , Str "O,"
-      , Space
-      , Str "C"
+      , Str "O, C"
       , Subscript [ Str "6" ]
       , Str "H"
       , Subscript [ Str "12" ]
       , Str "O"
       , Subscript [ Str "6" ]
-      , Str ","
-      , Space
-      , Str "C"
+      , Str ", C"
       , Subscript [ Str "\160n\160" ]
       , Str "H"
       , Subscript [ Emph [ Str "2n" ] ]
@@ -542,76 +265,15 @@ Pandoc
       , Str "."
       ]
   , Para
-      [ Str "These"
-      , Space
-      , Str "should"
-      , Space
-      , Str "not"
-      , Space
-      , Str "be"
-      , Space
-      , Str "superscripts"
-      , Space
-      , Str "or"
-      , Space
-      , Str "subscripts,"
-      , Space
-      , Str "because"
-      , Space
-      , Str "of"
-      , Space
-      , Str "markers"
-      , Space
-      , Str "used"
-      , Space
-      , Str "within"
-      , Space
-      , Str "words:"
-      , Space
-      , Str "a^b"
-      , Space
-      , Str "c^d,"
-      , Space
-      , Str "a~b"
-      , Space
-      , Str "c~d."
+      [ Str
+          "These should not be superscripts or subscripts, because of markers used within words: a^b c^d, a~b c~d."
       ]
   , HorizontalRule
-  , Header
-      1
-      ( "" , [] , [] )
-      [ Str "Dashes,"
-      , Space
-      , Str "and"
-      , Space
-      , Str "emoticons"
-      ]
-  , Para
-      [ Str "Some"
-      , Space
-      , Str "dashes:"
-      , Space
-      , Str "one"
-      , Space
-      , Str "\8211"
-      , Space
-      , Str "two"
-      , Space
-      , Str "\8212"
-      , Space
-      , Str "three."
-      ]
-  , Para
-      [ Str "Sure"
-      , Space
-      , Str "\10004"
-      , LineBreak
-      , Str "Nope"
-      , Space
-      , Str "\10060"
-      ]
-  , Para [ Str "Nice" , Space , Str "\128515" ]
-  , Para [ Str "Capital" , Space , Str "d:D" ]
+  , Header 1 ( "" , [] , [] ) [ Str "Dashes, and emoticons" ]
+  , Para [ Str "Some dashes: one \8211 two \8212 three." ]
+  , Para [ Str "Sure \10004" , LineBreak , Str "Nope \10060" ]
+  , Para [ Str "Nice \128515" ]
+  , Para [ Str "Capital d:D" ]
   , HorizontalRule
   , Header 1 ( "" , [] , [] ) [ Str "Math" ]
   , BulletList
@@ -630,12 +292,7 @@ Pandoc
         ]
       , [ Para [ Emph [ Str "p" ] , Str "-Tree" ] ]
       , [ Para
-            [ Str "Here\8217s"
-            , Space
-            , Str "one"
-            , Space
-            , Str "more:"
-            , Space
+            [ Str "Here\8217s one more: "
             , Emph [ Str "\945" ]
             , Str "\8197+\8197"
             , Emph [ Str "\969" ]
@@ -647,101 +304,41 @@ Pandoc
         ]
       ]
   , HorizontalRule
-  , Header
-      1
-      ( "" , [] , [] )
-      [ Str "Special" , Space , Str "Characters" ]
-  , Para
-      [ Str "Here"
-      , Space
-      , Str "is"
-      , Space
-      , Str "some"
-      , Space
-      , Str "unicode:"
-      ]
+  , Header 1 ( "" , [] , [] ) [ Str "Special Characters" ]
+  , Para [ Str "Here is some unicode:" ]
   , BulletList
-      [ [ Para
-            [ Str "I" , Space , Str "hat:" , Space , Str "\206" ]
-        ]
-      , [ Para
-            [ Str "o" , Space , Str "umlaut:" , Space , Str "\246" ]
-        ]
-      , [ Para [ Str "section:" , Space , Str "\167" ] ]
-      , [ Para
-            [ Str "set"
-            , Space
-            , Str "membership:"
-            , Space
-            , Str "\8712"
-            ]
-        ]
-      , [ Para [ Str "copyright:" , Space , Str "\169" ] ]
+      [ [ Para [ Str "I hat: \206" ] ]
+      , [ Para [ Str "o umlaut: \246" ] ]
+      , [ Para [ Str "section: \167" ] ]
+      , [ Para [ Str "set membership: \8712" ] ]
+      , [ Para [ Str "copyright: \169" ] ]
       ]
-  , Para
-      [ Str "AT&T"
-      , Space
-      , Str "has"
-      , Space
-      , Str "an"
-      , Space
-      , Str "ampersand"
-      , Space
-      , Str "in"
-      , Space
-      , Str "their"
-      , Space
-      , Str "name."
-      ]
-  , Para
-      [ Str "AT&T"
-      , Space
-      , Str "is"
-      , Space
-      , Str "another"
-      , Space
-      , Str "way"
-      , Space
-      , Str "to"
-      , Space
-      , Str "write"
-      , Space
-      , Str "it."
-      ]
-  , Para
-      [ Str "This" , Space , Str "&" , Space , Str "that." ]
-  , Para [ Str "4" , Space , Str "<" , Space , Str "5." ]
-  , Para [ Str "6" , Space , Str ">" , Space , Str "5." ]
-  , Para [ Str "Backslash:" , Space , Str "\\" ]
-  , Para [ Str "Backtick:" , Space , Str "`" ]
-  , Para [ Str "Asterisk:" , Space , Str "*" ]
-  , Para [ Str "Underscore:" , Space , Str "_" ]
-  , Para
-      [ Str "Left" , Space , Str "brace:" , Space , Str "{" ]
-  , Para
-      [ Str "Right" , Space , Str "brace:" , Space , Str "}" ]
-  , Para
-      [ Str "Left" , Space , Str "bracket:" , Space , Str "[" ]
-  , Para
-      [ Str "Right" , Space , Str "bracket:" , Space , Str "]" ]
-  , Para
-      [ Str "Left" , Space , Str "paren:" , Space , Str "(" ]
-  , Para
-      [ Str "Right" , Space , Str "paren:" , Space , Str ")" ]
-  , Para [ Str "Greater-than:" , Space , Str ">" ]
-  , Para [ Str "Hash:" , Space , Str "#" ]
-  , Para [ Str "Period:" , Space , Str "." ]
-  , Para [ Str "Bang:" , Space , Str "!" ]
-  , Para [ Str "Plus:" , Space , Str "+" ]
-  , Para [ Str "Minus:" , Space , Str "-" ]
+  , Para [ Str "AT&T has an ampersand in their name." ]
+  , Para [ Str "AT&T is another way to write it." ]
+  , Para [ Str "This & that." ]
+  , Para [ Str "4 < 5." ]
+  , Para [ Str "6 > 5." ]
+  , Para [ Str "Backslash: \\" ]
+  , Para [ Str "Backtick: `" ]
+  , Para [ Str "Asterisk: *" ]
+  , Para [ Str "Underscore: _" ]
+  , Para [ Str "Left brace: {" ]
+  , Para [ Str "Right brace: }" ]
+  , Para [ Str "Left bracket: [" ]
+  , Para [ Str "Right bracket: ]" ]
+  , Para [ Str "Left paren: (" ]
+  , Para [ Str "Right paren: )" ]
+  , Para [ Str "Greater-than: >" ]
+  , Para [ Str "Hash: #" ]
+  , Para [ Str "Period: ." ]
+  , Para [ Str "Bang: !" ]
+  , Para [ Str "Plus: +" ]
+  , Para [ Str "Minus: -" ]
   , HorizontalRule
   , Header 1 ( "" , [] , [] ) [ Str "Links" ]
   , Header 2 ( "" , [] , [] ) [ Str "Explicit" ]
   , Para
-      [ Str "Just"
-      , Space
-      , Str "a"
-      , Space
+      [ Str "Just a "
       , Link
           ( "" , [] , [] )
           [ Str "URL" ]
@@ -751,41 +348,30 @@ Pandoc
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "File" , Space , Str "URL" ]
+          [ Str "File URL" ]
           ( "file://some/file/name/" , "" )
       , Str "."
       ]
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "IRC" , Space , Str "link" ]
+          [ Str "IRC link" ]
           ( "irc://example.org/pandoc" , "" )
       , Str "."
       ]
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "Email" , Space , Str "link" ]
+          [ Str "Email link" ]
           ( "mailto:nobody@nowhere.invalid" , "" )
       ]
-  , Para
-      [ Str "[Not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "link|not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "URL]."
-      ]
+  , Para [ Str "[Not a link|not a URL]." ]
   , Header 2 ( "" , [] , [] ) [ Str "Reference" ]
   , Para
-      [ Str "With"
-      , Space
+      [ Str "With "
       , Link
           ( "" , [] , [] )
-          [ Str "embedded" , Space , Str "[brackets]" ]
+          [ Str "embedded [brackets]" ]
           ( "https://example.net/url/" , "" )
       , Str "."
       ]
@@ -794,87 +380,34 @@ Pandoc
           ( "" , [] , [] )
           [ Str "https://pandoc.org" ]
           ( "https://pandoc.org" , "" )
-      , Space
-      , Str "by"
-      , Space
-      , Str "itself"
-      , Space
-      , Str "should"
-      , Space
-      , Str "be"
-      , Space
-      , Str "a"
-      , Space
-      , Str "link."
+      , Str " by itself should be a link."
       ]
-  , Header
-      2 ( "" , [] , [] ) [ Str "With" , Space , Str "ampersands" ]
+  , Header 2 ( "" , [] , [] ) [ Str "With ampersands" ]
   , Para
-      [ Str "Here\8217s"
-      , Space
-      , Str "a"
-      , Space
+      [ Str "Here\8217s a "
       , Link
           ( "" , [] , [] )
-          [ Str "link"
-          , Space
-          , Str "with"
-          , Space
-          , Str "an"
-          , Space
-          , Str "ampersand"
-          , Space
-          , Str "in"
-          , Space
-          , Str "the"
-          , Space
-          , Str "URL"
-          ]
+          [ Str "link with an ampersand in the URL" ]
           ( "http://example.com/?foo=1&bar=2" , "" )
       , Str "."
       ]
   , Para
-      [ Str "Here\8217s"
-      , Space
-      , Str "a"
-      , Space
-      , Str "link"
-      , Space
-      , Str "with"
-      , Space
-      , Str "an"
-      , Space
-      , Str "ampersand"
-      , Space
-      , Str "in"
-      , Space
-      , Str "the"
-      , Space
-      , Str "link"
-      , Space
-      , Str "text:"
-      , Space
+      [ Str
+          "Here\8217s a link with an ampersand in the link text: "
       , Link
           ( "" , [] , [] ) [ Str "AT&T" ] ( "http://att.com/" , "" )
       , Str "."
       ]
   , Header 2 ( "" , [] , [] ) [ Str "Autolinks" ]
   , Para
-      [ Str "With"
-      , Space
-      , Str "an"
-      , Space
-      , Str "ampersand:"
-      , Space
+      [ Str "With an ampersand: "
       , Link
           ( "" , [] , [] )
           [ Str "http://example.com/?foo=1&bar=2" ]
           ( "http://example.com/?foo=1&bar=2" , "" )
       ]
   , BulletList
-      [ [ Para
-            [ Str "In" , Space , Str "a" , Space , Str "list?" ]
-        ]
+      [ [ Para [ Str "In a list?" ] ]
       , [ Para
             [ Link
                 ( "" , [] , [] )
@@ -882,15 +415,10 @@ Pandoc
                 ( "http://example.com/" , "" )
             ]
         ]
-      , [ Para [ Str "It" , Space , Str "should." ] ]
+      , [ Para [ Str "It should." ] ]
       ]
   , Para
-      [ Str "An"
-      , Space
-      , Str "e-mail"
-      , Space
-      , Str "address:"
-      , Space
+      [ Str "An e-mail address: "
       , Link
           ( "" , [] , [] )
           [ Str "mailto:nobody@nowhere.invalid" ]
@@ -898,8 +426,7 @@ Pandoc
       ]
   , BlockQuote
       [ Para
-          [ Str "Blockquoted:"
-          , Space
+          [ Str "Blockquoted: "
           , Link
               ( "" , [] , [] )
               [ Str "http://example.com/" ]
@@ -912,36 +439,13 @@ Pandoc
   , HorizontalRule
   , Header 1 ( "" , [] , [] ) [ Str "Images" ]
   , Para
-      [ Str "From"
-      , Space
-      , Str "\"Voyage"
-      , Space
-      , Str "dans"
-      , Space
-      , Str "la"
-      , Space
-      , Str "Lune\""
-      , Space
-      , Str "by"
-      , Space
-      , Str "Georges"
-      , Space
-      , Str "Melies"
-      , Space
-      , Str "(1902):"
+      [ Str
+          "From \"Voyage dans la Lune\" by Georges Melies (1902):"
       ]
   , Para [ Image ( "" , [] , [] ) [] ( "lalune.jpg" , "" ) ]
   , Para
-      [ Str "Here"
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "movie"
-      , Space
+      [ Str "Here is a movie "
       , Image ( "" , [] , [] ) [] ( "movie.jpg" , "" )
-      , Space
-      , Str "icon."
+      , Str " icon."
       ]
   ]

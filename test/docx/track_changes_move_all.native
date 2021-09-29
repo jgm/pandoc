@@ -1,4 +1,25 @@
-[Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "text."]
-,Para [Span ("",["insertion"],[("author","Jesse Rosenthal"),("date","2016-04-16T08:20:00Z")]) [Str "Here",Space,Str "is",Space,Str "the",Space,Str "text",Space,Str "to",Space,Str "be",Space,Str "moved."]]
-,Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "more",Space,Str "text."]
-,Para [Span ("",["deletion"],[("author","Jesse Rosenthal"),("date","2016-04-16T08:20:00Z")]) [Str "Here",Space,Str "is",Space,Str "the",Space,Str "text",Space,Str "to",Space,Str "be",Space,Str "moved."]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para [ Str "Here is some text." ]
+  , Para
+      [ Span
+          ( ""
+          , [ "insertion" ]
+          , [ ( "author" , "Jesse Rosenthal" )
+            , ( "date" , "2016-04-16T08:20:00Z" )
+            ]
+          )
+          [ Str "Here is the text to be moved." ]
+      ]
+  , Para [ Str "Here is some more text." ]
+  , Para
+      [ Span
+          ( ""
+          , [ "deletion" ]
+          , [ ( "author" , "Jesse Rosenthal" )
+            , ( "date" , "2016-04-16T08:20:00Z" )
+            ]
+          )
+          [ Str "Here is the text to be moved." ]
+      ]
+  ]

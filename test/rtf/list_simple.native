@@ -6,5 +6,5 @@ Pandoc
         , BulletList [ [ Para [ Str "sub" ] ] ]
         ]
       ]
-  , BulletList [ [ Para [ Str "new" , Space , Str "list" ] ] ]
+  , BulletList [ [ Para [ Str "new list" ] ] ]
   ]

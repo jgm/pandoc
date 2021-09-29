@@ -1,13 +1,24 @@
-[Header 1 ("a-test-of-headers",[],[]) [Str "A",Space,Str "Test",Space,Str "of",Space,Str "Headers"]
-,Header 2 ("second-level",[],[]) [Str "Second",Space,Str "Level"]
-,Para [Str "Some",Space,Str "plain",Space,Str "text."]
-,Header 3 ("third-level",[],[]) [Str "Third",Space,Str "level"]
-,Para [Str "Some",Space,Str "more",Space,Str "plain",Space,Str "text."]
-,Header 4 ("fourth-level",[],[]) [Str "Fourth",Space,Str "level"]
-,Para [Str "Some",Space,Str "more",Space,Str "plain",Space,Str "text."]
-,Header 5 ("fifth-level",[],[]) [Str "Fifth",Space,Str "level"]
-,Para [Str "Some",Space,Str "more",Space,Str "plain",Space,Str "text."]
-,Header 6 ("sixth-level",[],[]) [Str "Sixth",Space,Str "level"]
-,Para [Str "Some",Space,Str "more",Space,Str "plain",Space,Str "text."]
-,Para [Str "Seventh",Space,Str "level"]
-,Para [Str "Since",Space,Str "no",Space,Str "Heading",Space,Str "7",Space,Str "style",Space,Str "exists",Space,Str "in",Space,Str "styles.xml,",Space,Str "this",Space,Str "gets",Space,Str "converted",Space,Str "to",Space,Str "Span."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header
+      1
+      ( "a-test-of-headers" , [] , [] )
+      [ Str "A Test of Headers" ]
+  , Header
+      2 ( "second-level" , [] , [] ) [ Str "Second Level" ]
+  , Para [ Str "Some plain text." ]
+  , Header 3 ( "third-level" , [] , [] ) [ Str "Third level" ]
+  , Para [ Str "Some more plain text." ]
+  , Header
+      4 ( "fourth-level" , [] , [] ) [ Str "Fourth level" ]
+  , Para [ Str "Some more plain text." ]
+  , Header 5 ( "fifth-level" , [] , [] ) [ Str "Fifth level" ]
+  , Para [ Str "Some more plain text." ]
+  , Header 6 ( "sixth-level" , [] , [] ) [ Str "Sixth level" ]
+  , Para [ Str "Some more plain text." ]
+  , Para [ Str "Seventh level" ]
+  , Para
+      [ Str
+          "Since no Heading 7 style exists in styles.xml, this gets converted to Span."
+      ]
+  ]

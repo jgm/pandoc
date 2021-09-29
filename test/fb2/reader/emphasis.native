@@ -3,33 +3,23 @@ Pandoc
   [ Div
       ( "" , [ "section" ] , [] )
       [ Para
-          [ Str "Plain,"
-          , Space
+          [ Str "Plain, "
           , Strong [ Str "strong" ]
-          , Str ","
-          , Space
+          , Str ", "
           , Emph [ Str "emphasis" ]
-          , Str ","
-          , Space
-          , Strong [ Emph [ Str "strong" , Space , Str "emphasis" ] ]
-          , Str ","
-          , Space
-          , Emph
-              [ Strong [ Str "emphasized" , Space , Str "strong" ] ]
+          , Str ", "
+          , Strong [ Emph [ Str "strong emphasis" ] ]
+          , Str ", "
+          , Emph [ Strong [ Str "emphasized strong" ] ]
           , Str "."
           ]
       , Para
-          [ Str "Strikethrough:"
-          , Space
-          , Strikeout [ Str "deleted" ]
-          ]
+          [ Str "Strikethrough: " , Strikeout [ Str "deleted" ] ]
       , Para
           [ Subscript [ Str "Subscript" ]
-          , Space
-          , Str "and"
-          , Space
+          , Str " and "
           , Superscript [ Str "superscript" ]
           ]
-      , Para [ Str "Some" , Space , Code ( "" , [] , [] ) "code" ]
+      , Para [ Str "Some " , Code ( "" , [] , [] ) "code" ]
       ]
   ]

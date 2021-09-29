@@ -1,5 +1,39 @@
-[Para [Str "Here",Space,Str "are",Space,Str "examples",Space,Str "of",Space,Emph [Str "italics"],Str ",",Space,Strong [Str "bold"],Str ",",Space,Str "and",Space,Strong [Emph [Str "bold",Space,Str "italics"]],Str "."]
-,Para [Str "Here",Space,Str "is",Space,Strikeout [Str "strook-three"],Space,Str "strike-through",Space,Str "and",Space,SmallCaps [Str "small",Space,Str "caps"],Str "."]
-,Para [Str "Here",Space,Str "is",Space,Span ("",["underline"],[]) [Str "some",Space,Emph [Str "underlined"],Space,Strong [Str "text"]],Str "."]
-,Para [Str "We",Space,Str "can",Space,Str "also",Space,Str "do",Space,Str "subscripts",Space,Str "(H",Subscript [Str "2"],Str "0)",Space,Str "and",Space,Str "super",Superscript [Str "script"],Str "."]
-,RawBlock (Format "html") "<!-- Comments don't show up. -->"]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str "Here are examples of "
+      , Emph [ Str "italics" ]
+      , Str ", "
+      , Strong [ Str "bold" ]
+      , Str ", and "
+      , Strong [ Emph [ Str "bold italics" ] ]
+      , Str "."
+      ]
+  , Para
+      [ Str "Here is "
+      , Strikeout [ Str "strook-three" ]
+      , Str " strike-through and "
+      , SmallCaps [ Str "small caps" ]
+      , Str "."
+      ]
+  , Para
+      [ Str "Here is "
+      , Span
+          ( "" , [ "underline" ] , [] )
+          [ Str "some "
+          , Emph [ Str "underlined" ]
+          , Str " "
+          , Strong [ Str "text" ]
+          ]
+      , Str "."
+      ]
+  , Para
+      [ Str "We can also do subscripts (H"
+      , Subscript [ Str "2" ]
+      , Str "0) and super"
+      , Superscript [ Str "script" ]
+      , Str "."
+      ]
+  , RawBlock
+      (Format "html") "<!-- Comments don't show up. -->"
+  ]

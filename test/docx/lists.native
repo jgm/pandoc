@@ -1,18 +1,36 @@
-[Header 2 ("some-nested-lists",[],[]) [Str "Some",Space,Str "nested",Space,Str "lists"]
-,OrderedList (1,Decimal,Period)
- [[Para [Str "one"]]
- ,[Para [Str "two"]
-  ,OrderedList (1,LowerAlpha,DefaultDelim)
-   [[Para [Str "a"]]
-   ,[Para [Str "b"]]]]]
-,BulletList
- [[Para [Str "one"]]
- ,[Para [Str "two"]
-  ,BulletList
-   [[Para [Str "three"]
-    ,BulletList
-     [[Para [Str "four"]
-      ,Para [Str "Sub",Space,Str "paragraph"]]]]]]
- ,[Para [Str "Same",Space,Str "list"]]]
-,BulletList
- [[Plain [Str "Different",Space,Str "list",Space,Str "adjacent",Space,Str "to",Space,Str "the",Space,Str "one",Space,Str "above."]]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header
+      2
+      ( "some-nested-lists" , [] , [] )
+      [ Str "Some nested lists" ]
+  , OrderedList
+      ( 1 , Decimal , Period )
+      [ [ Para [ Str "one" ] ]
+      , [ Para [ Str "two" ]
+        , OrderedList
+            ( 1 , LowerAlpha , DefaultDelim )
+            [ [ Para [ Str "a" ] ] , [ Para [ Str "b" ] ] ]
+        ]
+      ]
+  , BulletList
+      [ [ Para [ Str "one" ] ]
+      , [ Para [ Str "two" ]
+        , BulletList
+            [ [ Para [ Str "three" ]
+              , BulletList
+                  [ [ Para [ Str "four" ]
+                    , Para [ Str "Sub paragraph" ]
+                    ]
+                  ]
+              ]
+            ]
+        ]
+      , [ Para [ Str "Same list" ] ]
+      ]
+  , BulletList
+      [ [ Plain
+            [ Str "Different list adjacent to the one above." ]
+        ]
+      ]
+  ]

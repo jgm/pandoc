@@ -4,21 +4,17 @@ Pandoc
         fromList
           [ ( "author"
             , MetaList
-                [ MetaInlines [ Str "Author" , Space , Str "One" ]
-                , MetaInlines [ Str "Author" , Space , Str "Two" ]
-                , MetaInlines [ Str "Author" , Space , Str "Three" ]
-                , MetaInlines [ Str "Author" , Space , Str "Four" ]
+                [ MetaInlines [ Str "Author One" ]
+                , MetaInlines [ Str "Author Two" ]
+                , MetaInlines [ Str "Author Three" ]
+                , MetaInlines [ Str "Author Four" ]
                 ]
             )
           , ( "title"
             , MetaInlines
                 [ Str "Title"
                 , SoftBreak
-                , Str "spanning"
-                , Space
-                , Str "multiple"
-                , Space
-                , Str "lines"
+                , Str "spanning multiple lines"
                 ]
             )
           ]
@@ -26,54 +22,23 @@ Pandoc
   [ Header
       1
       ( "additional-markdown-reader-tests" , [] , [] )
-      [ Str "Additional"
-      , Space
-      , Str "markdown"
-      , Space
-      , Str "reader"
-      , Space
-      , Str "tests"
-      ]
+      [ Str "Additional markdown reader tests" ]
   , Header
       2
       ( "blank-line-before-url-in-link-reference" , [] , [] )
-      [ Str "Blank"
-      , Space
-      , Str "line"
-      , Space
-      , Str "before"
-      , Space
-      , Str "URL"
-      , Space
-      , Str "in"
-      , Space
-      , Str "link"
-      , Space
-      , Str "reference"
-      ]
+      [ Str "Blank line before URL in link reference" ]
   , Para
       [ Link ( "" , [] , [] ) [ Str "foo" ] ( "/url" , "" )
-      , Space
-      , Str "and"
-      , Space
+      , Str " and "
       , Link ( "" , [] , [] ) [ Str "bar" ] ( "/url" , "title" )
       ]
   , Header
       2
       ( "raw-context-environments" , [] , [] )
-      [ Str "Raw"
-      , Space
-      , Str "ConTeXt"
-      , Space
-      , Str "environments"
-      ]
+      [ Str "Raw ConTeXt environments" ]
   , RawBlock (Format "tex") "\\placeformula \\startformula"
   , Para
-      [ Str "L_{1}"
-      , Space
-      , Str "="
-      , Space
-      , Str "L_{2}"
+      [ Str "L_{1} = L_{2}"
       , SoftBreak
       , RawInline (Format "tex") "\\stopformula"
       ]
@@ -83,28 +48,14 @@ Pandoc
   , Header
       2
       ( "raw-latex-environments" , [] , [] )
-      [ Str "Raw"
-      , Space
-      , Str "LaTeX"
-      , Space
-      , Str "environments"
-      ]
+      [ Str "Raw LaTeX environments" ]
   , RawBlock
       (Format "tex")
       "\\begin{center}\n\\begin{tikzpicture}[baseline={([yshift=+-.5ex]current bounding box.center)}, level distance=24pt]\n\\Tree [.{S} [.NP John\\index{i} ] [.VP [.V likes ] [.NP himself\\index{i,*j} ]]]\n\\end{tikzpicture}\n\\end{center}"
   , Header
       2
       ( "urls-with-spaces-and-punctuation" , [] , [] )
-      [ Str "URLs"
-      , Space
-      , Str "with"
-      , Space
-      , Str "spaces"
-      , Space
-      , Str "and"
-      , Space
-      , Str "punctuation"
-      ]
+      [ Str "URLs with spaces and punctuation" ]
   , Para
       [ Link
           ( "" , [] , [] ) [ Str "foo" ] ( "/bar%20and%20baz" , "" )
@@ -120,9 +71,9 @@ Pandoc
       ]
   , Para
       [ Link ( "" , [] , [] ) [ Str "baz" ] ( "/foo%20foo" , "" )
-      , Space
+      , Str " "
       , Link ( "" , [] , [] ) [ Str "bam" ] ( "/foo%20fee" , "" )
-      , Space
+      , Str " "
       , Link
           ( "" , [] , [] )
           [ Str "bork" ]
@@ -131,74 +82,34 @@ Pandoc
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "Ward\8217s" , Space , Str "method." ]
+          [ Str "Ward\8217s method." ]
           ( "http://en.wikipedia.org/wiki/Ward's_method" , "" )
       ]
   , Header
       2
       ( "horizontal-rules-with-spaces-at-end" , [] , [] )
-      [ Str "Horizontal"
-      , Space
-      , Str "rules"
-      , Space
-      , Str "with"
-      , Space
-      , Str "spaces"
-      , Space
-      , Str "at"
-      , Space
-      , Str "end"
-      ]
+      [ Str "Horizontal rules with spaces at end" ]
   , HorizontalRule
   , HorizontalRule
   , Header
       2
       ( "raw-html-before-header" , [] , [] )
-      [ Str "Raw"
-      , Space
-      , Str "HTML"
-      , Space
-      , Str "before"
-      , Space
-      , Str "header"
-      ]
+      [ Str "Raw HTML before header" ]
   , Para
       [ RawInline (Format "html") "<a>"
       , RawInline (Format "html") "</a>"
       ]
-  , Header
-      3
-      ( "my-header" , [] , [] )
-      [ Str "my" , Space , Str "header" ]
-  , Header
-      2
-      ( "in-math" , [] , [] )
-      [ Str "$" , Space , Str "in" , Space , Str "math" ]
+  , Header 3 ( "my-header" , [] , [] ) [ Str "my header" ]
+  , Header 2 ( "in-math" , [] , [] ) [ Str "$ in math" ]
   , Para [ Math InlineMath "\\$2 + \\$3" ]
   , Para
       [ Math InlineMath "x = \\text{the $n$th root of $y$}" ]
-  , Para
-      [ Str "This"
-      , Space
-      , Str "should"
-      , Space
-      , Str "not"
-      , Space
-      , Str "be"
-      , Space
-      , Str "math:"
-      ]
-  , Para
-      [ Str "$PATH" , Space , Str "90" , Space , Str "$PATH" ]
+  , Para [ Str "This should not be math:" ]
+  , Para [ Str "$PATH 90 $PATH" ]
   , Header
       2
       ( "commented-out-list-item" , [] , [] )
-      [ Str "Commented-out"
-      , Space
-      , Str "list"
-      , Space
-      , Str "item"
-      ]
+      [ Str "Commented-out list item" ]
   , BulletList
       [ [ Plain
             [ Str "one"
@@ -211,18 +122,7 @@ Pandoc
   , Header
       2
       ( "indented-code-at-beginning-of-list" , [] , [] )
-      [ Str "Indented"
-      , Space
-      , Str "code"
-      , Space
-      , Str "at"
-      , Space
-      , Str "beginning"
-      , Space
-      , Str "of"
-      , Space
-      , Str "list"
-      ]
+      [ Str "Indented code at beginning of list" ]
   , BulletList
       [ [ CodeBlock ( "" , [] , [] ) "code\ncode"
         , OrderedList
@@ -232,19 +132,16 @@ Pandoc
             ]
         , BulletList
             [ [ CodeBlock ( "" , [] , [] ) "code\ncode" ]
-            , [ Plain [ Str "no" , Space , Str "code" ] ]
+            , [ Plain [ Str "no code" ] ]
             ]
         ]
       ]
   , Header
       2
       ( "backslash-newline" , [] , [] )
-      [ Str "Backslash" , Space , Str "newline" ]
+      [ Str "Backslash newline" ]
   , Para [ Str "hi" , LineBreak , Str "there" ]
-  , Header
-      2
-      ( "code-spans" , [] , [] )
-      [ Str "Code" , Space , Str "spans" ]
+  , Header 2 ( "code-spans" , [] , [] ) [ Str "Code spans" ]
   , Para [ Code ( "" , [] , [] ) "hi\\" ]
   , Para [ Code ( "" , [] , [] ) "hi there" ]
   , Para [ Code ( "" , [] , [] ) "hi````there" ]
@@ -253,7 +150,7 @@ Pandoc
   , Header
       2
       ( "multilingual-urls" , [] , [] )
-      [ Str "Multilingual" , Space , Str "URLs" ]
+      [ Str "Multilingual URLs" ]
   , Para
       [ Link
           ( "" , [ "uri" ] , [] )
@@ -275,28 +172,16 @@ Pandoc
   , Header
       2
       ( "numbered-examples" , [] , [] )
-      [ Str "Numbered" , Space , Str "examples" ]
+      [ Str "Numbered examples" ]
   , OrderedList
       ( 1 , Example , TwoParens )
-      [ [ Plain [ Str "First" , Space , Str "example." ] ]
-      , [ Plain [ Str "Second" , Space , Str "example." ] ]
+      [ [ Plain [ Str "First example." ] ]
+      , [ Plain [ Str "Second example." ] ]
       ]
-  , Para
-      [ Str "Explanation"
-      , Space
-      , Str "of"
-      , Space
-      , Str "examples"
-      , Space
-      , Str "(2)"
-      , Space
-      , Str "and"
-      , Space
-      , Str "(3)."
-      ]
+  , Para [ Str "Explanation of examples (2) and (3)." ]
   , OrderedList
       ( 3 , Example , TwoParens )
-      [ [ Plain [ Str "Third" , Space , Str "example." ] ] ]
+      [ [ Plain [ Str "Third example." ] ] ]
   , Header 2 ( "macros" , [] , [] ) [ Str "Macros" ]
   , RawBlock
       (Format "tex")
@@ -305,7 +190,7 @@ Pandoc
   , Header
       2
       ( "case-insensitive-references" , [] , [] )
-      [ Str "Case-insensitive" , Space , Str "references" ]
+      [ Str "Case-insensitive references" ]
   , Para
       [ Link ( "" , [] , [] ) [ Str "Fum" ] ( "/fum" , "" ) ]
   , Para
@@ -315,13 +200,13 @@ Pandoc
   , Header
       2
       ( "curly-smart-quotes" , [] , [] )
-      [ Str "Curly" , Space , Str "smart" , Space , Str "quotes" ]
+      [ Str "Curly smart quotes" ]
   , Para [ Quoted DoubleQuote [ Str "Hi" ] ]
   , Para [ Quoted SingleQuote [ Str "Hi" ] ]
   , Header
       2
       ( "consecutive-lists" , [] , [] )
-      [ Str "Consecutive" , Space , Str "lists" ]
+      [ Str "Consecutive lists" ]
   , BulletList
       [ [ Plain [ Str "one" ] ] , [ Plain [ Str "two" ] ] ]
   , OrderedList
@@ -333,195 +218,68 @@ Pandoc
   , Header
       2
       ( "implicit-header-references" , [] , [] )
-      [ Str "Implicit"
-      , Space
-      , Str "header"
-      , Space
-      , Str "references"
-      ]
+      [ Str "Implicit header references" ]
+  , Header 3 ( "my-header-1" , [] , [] ) [ Str "My header" ]
   , Header
-      3
-      ( "my-header-1" , [] , [] )
-      [ Str "My" , Space , Str "header" ]
-  , Header
-      3
-      ( "my-other-header" , [] , [] )
-      [ Str "My" , Space , Str "other" , Space , Str "header" ]
+      3 ( "my-other-header" , [] , [] ) [ Str "My other header" ]
   , Para
-      [ Str "A"
-      , Space
-      , Str "link"
-      , Space
-      , Str "to"
-      , Space
+      [ Str "A link to "
       , Link
-          ( "" , [] , [] )
-          [ Str "My" , Space , Str "header" ]
-          ( "#my-header-1" , "" )
+          ( "" , [] , [] ) [ Str "My header" ] ( "#my-header-1" , "" )
       , Str "."
       ]
   , Para
-      [ Str "Another"
-      , Space
-      , Str "link"
-      , Space
-      , Str "to"
-      , Space
+      [ Str "Another link to "
       , Link ( "" , [] , [] ) [ Str "it" ] ( "#my-header-1" , "" )
       , Str "."
       ]
   , Para
-      [ Str "Should"
-      , Space
-      , Str "be"
-      , Space
+      [ Str "Should be "
       , Link
           ( "" , [] , [] )
-          [ Str "case" , Space , Str "insensitive" ]
+          [ Str "case insensitive" ]
           ( "#my-header-1" , "" )
       , Str "."
       ]
   , Para
-      [ Str "Link"
-      , Space
-      , Str "to"
-      , Space
+      [ Str "Link to "
       , Link
           ( "" , [] , [] )
-          [ Str "Explicit"
-          , Space
-          , Str "header"
-          , Space
-          , Str "attributes"
-          ]
+          [ Str "Explicit header attributes" ]
           ( "#foobar" , "" )
       , Str "."
       ]
   , Para
-      [ Str "But"
-      , Space
-      , Str "this"
-      , Space
-      , Str "is"
-      , Space
-      , Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "link"
-      , Space
-      , Str "to"
-      , Space
+      [ Str "But this is not a link to "
       , Link
-          ( "" , [] , [] )
-          [ Str "My" , Space , Str "other" , Space , Str "header" ]
-          ( "/foo" , "" )
-      , Str ","
-      , Space
-      , Str "since"
-      , Space
-      , Str "the"
-      , Space
-      , Str "reference"
-      , Space
-      , Str "is"
-      , Space
-      , Str "defined."
+          ( "" , [] , [] ) [ Str "My other header" ] ( "/foo" , "" )
+      , Str ", since the reference is defined."
       ]
   , Header
       2
       ( "foobar" , [ "baz" ] , [ ( "key" , "val" ) ] )
-      [ Str "Explicit"
-      , Space
-      , Str "header"
-      , Space
-      , Str "attributes"
-      ]
+      [ Str "Explicit header attributes" ]
   , BlockQuote
       [ Header
           2
           ( "foobar" , [ "baz" ] , [ ( "key" , "val" ) ] )
-          [ Str "Header"
-          , Space
-          , Str "attributes"
-          , Space
-          , Str "inside"
-          , Space
-          , Str "block"
-          , Space
-          , Str "quote"
-          ]
+          [ Str "Header attributes inside block quote" ]
       ]
-  , Header
-      2
-      ( "line-blocks" , [] , [] )
-      [ Str "Line" , Space , Str "blocks" ]
+  , Header 2 ( "line-blocks" , [] , [] ) [ Str "Line blocks" ]
   , LineBlock
-      [ [ Str "But"
-        , Space
-        , Str "can"
-        , Space
-        , Str "a"
-        , Space
-        , Str "bee"
-        , Space
-        , Str "be"
-        , Space
-        , Str "said"
-        , Space
-        , Str "to"
-        , Space
-        , Str "be"
-        ]
-      , [ Str "\160\160\160\160or"
-        , Space
-        , Str "not"
-        , Space
-        , Str "to"
-        , Space
-        , Str "be"
-        , Space
-        , Str "an"
-        , Space
-        , Str "entire"
-        , Space
-        , Str "bee,"
-        ]
-      , [ Str "\160\160\160\160\160\160\160\160when"
-        , Space
-        , Str "half"
-        , Space
-        , Str "the"
-        , Space
-        , Str "bee"
-        , Space
-        , Str "is"
-        , Space
-        , Str "not"
-        , Space
-        , Str "a"
-        , Space
-        , Str "bee,"
+      [ [ Str "But can a bee be said to be" ]
+      , [ Str "\160\160\160\160or not to be an entire bee," ]
+      , [ Str
+            "\160\160\160\160\160\160\160\160when half the bee is not a bee,"
         ]
       , [ Str
-            "\160\160\160\160\160\160\160\160\160\160\160\160due"
-        , Space
-        , Str "to"
-        , Space
-        , Str "some"
-        , Space
-        , Str "ancient"
-        , Space
-        , Str "injury?"
+            "\160\160\160\160\160\160\160\160\160\160\160\160due to some ancient injury?"
         ]
       , []
-      , [ Str "Continuation" , Space , Str "line" ]
-      , [ Str "\160\160and" , Space , Str "another" ]
+      , [ Str "Continuation line" ]
+      , [ Str "\160\160and another" ]
       ]
-  , Header
-      2
-      ( "grid-tables" , [] , [] )
-      [ Str "Grid" , Space , Str "Tables" ]
+  , Header 2 ( "grid-tables" , [] , [] ) [ Str "Grid Tables" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -538,19 +296,19 @@ Pandoc
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Plain [ Str "col" , Space , Str "1" ] ]
+                 [ Plain [ Str "col 1" ] ]
              , Cell
                  ( "" , [] , [] )
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Plain [ Str "col" , Space , Str "2" ] ]
+                 [ Plain [ Str "col 2" ] ]
              , Cell
                  ( "" , [] , [] )
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Plain [ Str "col" , Space , Str "3" ] ]
+                 [ Plain [ Str "col 3" ] ]
              ]
          ])
       [ TableBody
@@ -564,42 +322,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "r1"
-                      , Space
-                      , Str "a"
-                      , SoftBreak
-                      , Str "r1"
-                      , Space
-                      , Str "bis"
-                      ]
-                  ]
+                  [ Plain [ Str "r1 a" , SoftBreak , Str "r1 bis" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "b"
-                      , SoftBreak
-                      , Str "b"
-                      , Space
-                      , Str "2"
-                      ]
-                  ]
+                  [ Plain [ Str "b" , SoftBreak , Str "b 2" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "c"
-                      , SoftBreak
-                      , Str "c"
-                      , Space
-                      , Str "2"
-                      ]
-                  ]
+                  [ Plain [ Str "c" , SoftBreak , Str "c 2" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -608,7 +343,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "r2" , Space , Str "d" ] ]
+                  [ Plain [ Str "r2 d" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -645,42 +380,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "r1"
-                      , Space
-                      , Str "a"
-                      , SoftBreak
-                      , Str "r1"
-                      , Space
-                      , Str "bis"
-                      ]
-                  ]
+                  [ Plain [ Str "r1 a" , SoftBreak , Str "r1 bis" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "b"
-                      , SoftBreak
-                      , Str "b"
-                      , Space
-                      , Str "2"
-                      ]
-                  ]
+                  [ Plain [ Str "b" , SoftBreak , Str "b 2" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "c"
-                      , SoftBreak
-                      , Str "c"
-                      , Space
-                      , Str "2"
-                      ]
-                  ]
+                  [ Plain [ Str "c" , SoftBreak , Str "c 2" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -689,7 +401,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "r2" , Space , Str "d" ] ]
+                  [ Plain [ Str "r2 d" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -706,7 +418,7 @@ Pandoc
           ]
       ]
       (TableFoot ( "" , [] , [] ) [])
-  , Para [ Str "With" , Space , Str "alignments" ]
+  , Para [ Str "With alignments" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -723,19 +435,19 @@ Pandoc
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Plain [ Str "col" , Space , Str "1" ] ]
+                 [ Plain [ Str "col 1" ] ]
              , Cell
                  ( "" , [] , [] )
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Plain [ Str "col" , Space , Str "2" ] ]
+                 [ Plain [ Str "col 2" ] ]
              , Cell
                  ( "" , [] , [] )
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Plain [ Str "col" , Space , Str "3" ] ]
+                 [ Plain [ Str "col 3" ] ]
              ]
          ])
       [ TableBody
@@ -749,42 +461,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "r1"
-                      , Space
-                      , Str "a"
-                      , SoftBreak
-                      , Str "r1"
-                      , Space
-                      , Str "bis"
-                      ]
-                  ]
+                  [ Plain [ Str "r1 a" , SoftBreak , Str "r1 bis" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "b"
-                      , SoftBreak
-                      , Str "b"
-                      , Space
-                      , Str "2"
-                      ]
-                  ]
+                  [ Plain [ Str "b" , SoftBreak , Str "b 2" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "c"
-                      , SoftBreak
-                      , Str "c"
-                      , Space
-                      , Str "2"
-                      ]
-                  ]
+                  [ Plain [ Str "c" , SoftBreak , Str "c 2" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -793,7 +482,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "r2" , Space , Str "d" ] ]
+                  [ Plain [ Str "r2 d" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -810,13 +499,7 @@ Pandoc
           ]
       ]
       (TableFoot ( "" , [] , [] ) [])
-  , Para
-      [ Str "Headless"
-      , Space
-      , Str "with"
-      , Space
-      , Str "alignments"
-      ]
+  , Para [ Str "Headless with alignments" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -836,42 +519,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "r1"
-                      , Space
-                      , Str "a"
-                      , SoftBreak
-                      , Str "r1"
-                      , Space
-                      , Str "bis"
-                      ]
-                  ]
+                  [ Plain [ Str "r1 a" , SoftBreak , Str "r1 bis" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "b"
-                      , SoftBreak
-                      , Str "b"
-                      , Space
-                      , Str "2"
-                      ]
-                  ]
+                  [ Plain [ Str "b" , SoftBreak , Str "b 2" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "c"
-                      , SoftBreak
-                      , Str "c"
-                      , Space
-                      , Str "2"
-                      ]
-                  ]
+                  [ Plain [ Str "c" , SoftBreak , Str "c 2" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -880,7 +540,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "r2" , Space , Str "d" ] ]
+                  [ Plain [ Str "r2 d" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -897,17 +557,7 @@ Pandoc
           ]
       ]
       (TableFoot ( "" , [] , [] ) [])
-  , Para
-      [ Str "Spaces"
-      , Space
-      , Str "at"
-      , Space
-      , Str "ends"
-      , Space
-      , Str "of"
-      , Space
-      , Str "lines"
-      ]
+  , Para [ Str "Spaces at ends of lines" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -927,42 +577,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "r1"
-                      , Space
-                      , Str "a"
-                      , SoftBreak
-                      , Str "r1"
-                      , Space
-                      , Str "bis"
-                      ]
-                  ]
+                  [ Plain [ Str "r1 a" , SoftBreak , Str "r1 bis" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "b"
-                      , SoftBreak
-                      , Str "b"
-                      , Space
-                      , Str "2"
-                      ]
-                  ]
+                  [ Plain [ Str "b" , SoftBreak , Str "b 2" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "c"
-                      , SoftBreak
-                      , Str "c"
-                      , Space
-                      , Str "2"
-                      ]
-                  ]
+                  [ Plain [ Str "c" , SoftBreak , Str "c 2" ] ]
               ]
           , Row
               ( "" , [] , [] )
@@ -971,7 +598,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "r2" , Space , Str "d" ] ]
+                  [ Plain [ Str "r2 d" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -988,17 +615,7 @@ Pandoc
           ]
       ]
       (TableFoot ( "" , [] , [] ) [])
-  , Para
-      [ Str "Multiple"
-      , Space
-      , Str "blocks"
-      , Space
-      , Str "in"
-      , Space
-      , Str "a"
-      , Space
-      , Str "cell"
-      ]
+  , Para [ Str "Multiple blocks in a cell" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -1018,33 +635,24 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Header
-                      1
-                      ( "col-1" , [] , [] )
-                      [ Str "col" , Space , Str "1" ]
-                  , Plain [ Str "col" , Space , Str "1" ]
+                  [ Header 1 ( "col-1" , [] , [] ) [ Str "col 1" ]
+                  , Plain [ Str "col 1" ]
                   ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Header
-                      1
-                      ( "col-2" , [] , [] )
-                      [ Str "col" , Space , Str "2" ]
-                  , Plain [ Str "col" , Space , Str "2" ]
+                  [ Header 1 ( "col-2" , [] , [] ) [ Str "col 2" ]
+                  , Plain [ Str "col 2" ]
                   ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Header
-                      1
-                      ( "col-3" , [] , [] )
-                      [ Str "col" , Space , Str "3" ]
-                  , Plain [ Str "col" , Space , Str "3" ]
+                  [ Header 1 ( "col-3" , [] , [] ) [ Str "col 3" ]
+                  , Plain [ Str "col 3" ]
                   ]
               ]
           , Row
@@ -1054,9 +662,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Para [ Str "r1" , Space , Str "a" ]
-                  , Para [ Str "r1" , Space , Str "bis" ]
-                  ]
+                  [ Para [ Str "r1 a" ] , Para [ Str "r1 bis" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -1064,8 +670,8 @@ Pandoc
                   (ColSpan 1)
                   [ BulletList
                       [ [ Plain [ Str "b" ] ]
-                      , [ Plain [ Str "b" , Space , Str "2" ] ]
-                      , [ Plain [ Str "b" , Space , Str "2" ] ]
+                      , [ Plain [ Str "b 2" ] ]
+                      , [ Plain [ Str "b 2" ] ]
                       ]
                   ]
               , Cell
@@ -1076,20 +682,16 @@ Pandoc
                   [ Plain
                       [ Str "c"
                       , SoftBreak
-                      , Str "c"
-                      , Space
-                      , Str "2"
+                      , Str "c 2"
                       , SoftBreak
-                      , Str "c"
-                      , Space
-                      , Str "2"
+                      , Str "c 2"
                       ]
                   ]
               ]
           ]
       ]
       (TableFoot ( "" , [] , [] ) [])
-  , Para [ Str "Empty" , Space , Str "cells" ]
+  , Para [ Str "Empty cells" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -1122,16 +724,7 @@ Pandoc
   , Header
       2
       ( "entities-in-links-and-titles" , [] , [] )
-      [ Str "Entities"
-      , Space
-      , Str "in"
-      , Space
-      , Str "links"
-      , Space
-      , Str "and"
-      , Space
-      , Str "titles"
-      ]
+      [ Str "Entities in links and titles" ]
   , Para
       [ Link
           ( "" , [] , [] ) [ Str "link" ] ( "/\252rl" , "\246\246!" )
@@ -1157,12 +750,7 @@ Pandoc
   , Header
       2
       ( "parentheses-in-urls" , [] , [] )
-      [ Str "Parentheses"
-      , Space
-      , Str "in"
-      , Space
-      , Str "URLs"
-      ]
+      [ Str "Parentheses in URLs" ]
   , Para
       [ Link ( "" , [] , [] ) [ Str "link" ] ( "/hi(there)" , "" )
       ]
@@ -1178,14 +766,7 @@ Pandoc
   , Header
       2
       ( "backslashes-in-link-references" , [] , [] )
-      [ Str "Backslashes"
-      , Space
-      , Str "in"
-      , Space
-      , Str "link"
-      , Space
-      , Str "references"
-      ]
+      [ Str "Backslashes in link references" ]
   , Para
       [ Link
           ( "" , [] , [] )
@@ -1195,54 +776,25 @@ Pandoc
   , Header
       2
       ( "reference-link-fallbacks" , [] , [] )
-      [ Str "Reference"
-      , Space
-      , Str "link"
-      , Space
-      , Str "fallbacks"
-      ]
+      [ Str "Reference link fallbacks" ]
   , Para
       [ Str "["
-      , Emph [ Str "not" , Space , Str "a" , Space , Str "link" ]
-      , Str "]"
-      , Space
-      , Str "["
+      , Emph [ Str "not a link" ]
+      , Str "] ["
       , Emph [ Str "nope" ]
       , Str "]\8230"
       ]
   , Header
       2
       ( "reference-link-followed-by-a-citation" , [] , [] )
-      [ Str "Reference"
-      , Space
-      , Str "link"
-      , Space
-      , Str "followed"
-      , Space
-      , Str "by"
-      , Space
-      , Str "a"
-      , Space
-      , Str "citation"
-      ]
+      [ Str "Reference link followed by a citation" ]
   , Para
-      [ Str "MapReduce"
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "paradigm"
-      , Space
-      , Str "popularized"
-      , Space
-      , Str "by"
-      , Space
+      [ Str "MapReduce is a paradigm popularized by "
       , Link
           ( "" , [] , [] )
           [ Str "Google" ]
           ( "http://google.com" , "" )
-      , Space
+      , Str " "
       , Cite
           [ Citation
               { citationId = "mapreduce"
@@ -1254,90 +806,34 @@ Pandoc
               }
           ]
           [ Str "[@mapreduce]" ]
-      , Space
-      , Str "as"
-      , Space
-      , Str "its"
+      , Str " as its"
       , SoftBreak
-      , Str "most"
-      , Space
-      , Str "vocal"
-      , Space
-      , Str "proponent."
+      , Str "most vocal proponent."
       ]
   , Header
       2
       ( "empty-reference-links" , [] , [] )
-      [ Str "Empty"
-      , Space
-      , Str "reference"
-      , Space
-      , Str "links"
-      ]
+      [ Str "Empty reference links" ]
   , Para [ Str "bar" ]
   , Para [ Link ( "" , [] , [] ) [ Str "foo2" ] ( "" , "" ) ]
   , Header
       2
       ( "wrapping-shouldnt-introduce-new-list-items" , [] , [] )
-      [ Str "Wrapping"
-      , Space
-      , Str "shouldn\8217t"
-      , Space
-      , Str "introduce"
-      , Space
-      , Str "new"
-      , Space
-      , Str "list"
-      , Space
-      , Str "items"
-      ]
+      [ Str "Wrapping shouldn\8217t introduce new list items" ]
   , BulletList
       [ [ Plain
-            [ Str "blah"
-            , Space
-            , Str "blah"
-            , Space
-            , Str "blah"
-            , Space
-            , Str "blah"
-            , Space
-            , Str "blah"
-            , Space
-            , Str "blah"
-            , Space
-            , Str "blah"
-            , Space
-            , Str "blah"
-            , Space
-            , Str "blah"
-            , Space
-            , Str "blah"
-            , Space
-            , Str "blah"
-            , Space
-            , Str "blah"
-            , Space
-            , Str "blah"
-            , Space
-            , Str "blah"
-            , Space
-            , Str "2015."
+            [ Str
+                "blah blah blah blah blah blah blah blah blah blah blah blah blah blah 2015."
             ]
         ]
       ]
   , Header
-      2
-      ( "bracketed-spans" , [] , [] )
-      [ Str "Bracketed" , Space , Str "spans" ]
+      2 ( "bracketed-spans" , [] , [] ) [ Str "Bracketed spans" ]
   , Para
       [ Span
           ( "id" , [ "class" ] , [ ( "key" , "val" ) ] )
           [ Emph [ Str "foo" ]
-          , Space
-          , Str "bar"
-          , Space
-          , Str "baz"
-          , Space
+          , Str " bar baz "
           , Link ( "" , [] , [] ) [ Str "link" ] ( "url" , "" )
           ]
       ]

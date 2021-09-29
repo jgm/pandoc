@@ -1,8 +1,32 @@
-[Para [Str "No",Space,Str "width",Space,Str "given:"]
-,Para [Image ("",[],[]) [Str "testimg"] ("lalune.jpg","fig:")]
-,Para [Str "With",Space,Str "height",Space,Str "10cm:"]
-,Para [Image ("",[],[("height","10cm")]) [Str "2testimg"] ("lalune.jpg","fig:")]
-,Para [Str "With",Space,Str "width",Space,Str "6cm:"]
-,Para [Image ("",[],[("width","6cm")]) [Str "3testimg"] ("lalune.jpg","fig:")]
-,Header 1 ("with-height-3in-and-width-6in",[],[]) [Str "With",Space,Str "height",Space,Str "3in",Space,Str "and",Space,Str "width",Space,Str "6in:"]
-,Para [Image ("",[],[("width","6in"),("height","3in")]) [Str "4testimg"] ("lalune.jpg","fig:")]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para [ Str "No width given:" ]
+  , Para
+      [ Image
+          ( "" , [] , [] ) [ Str "testimg" ] ( "lalune.jpg" , "fig:" )
+      ]
+  , Para [ Str "With height 10cm:" ]
+  , Para
+      [ Image
+          ( "" , [] , [ ( "height" , "10cm" ) ] )
+          [ Str "2testimg" ]
+          ( "lalune.jpg" , "fig:" )
+      ]
+  , Para [ Str "With width 6cm:" ]
+  , Para
+      [ Image
+          ( "" , [] , [ ( "width" , "6cm" ) ] )
+          [ Str "3testimg" ]
+          ( "lalune.jpg" , "fig:" )
+      ]
+  , Header
+      1
+      ( "with-height-3in-and-width-6in" , [] , [] )
+      [ Str "With height 3in and width 6in:" ]
+  , Para
+      [ Image
+          ( "" , [] , [ ( "width" , "6in" ) , ( "height" , "3in" ) ] )
+          [ Str "4testimg" ]
+          ( "lalune.jpg" , "fig:" )
+      ]
+  ]

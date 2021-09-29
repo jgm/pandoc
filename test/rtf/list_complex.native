@@ -2,21 +2,9 @@ Pandoc
   Meta
     { unMeta =
         fromList
-          [ ( "author"
-            , MetaInlines [ Str "Cynthia" , Space , Str "Johnson" ]
-            )
-          , ( "operator"
-            , MetaInlines [ Str "John" , Space , Str "MacFarlane" ]
-            )
-          , ( "title"
-            , MetaInlines
-                [ Str "Text"
-                , Space
-                , Str "before"
-                , Space
-                , Str "list"
-                ]
-            )
+          [ ( "author" , MetaInlines [ Str "Cynthia Johnson" ] )
+          , ( "operator" , MetaInlines [ Str "John MacFarlane" ] )
+          , ( "title" , MetaInlines [ Str "Text before list" ] )
           ]
     }
   [ OrderedList
@@ -53,12 +41,11 @@ Pandoc
             ]
         ]
       ]
-  , Para
-      [ Str "Out" , Space , Str "of" , Space , Str "list!" ]
-  , Para [ Str "Start" , Space , Str "with" ]
+  , Para [ Str "Out of list!" ]
+  , Para [ Str "Start with" ]
   , OrderedList
       ( 7 , Decimal , Period )
-      [ [ Para [ Str "Seven" , Space , Str "Start" ] ]
-      , [ Para [ Str "Eight" , Space , Str "Continue" ] ]
+      [ [ Para [ Str "Seven Start" ] ]
+      , [ Para [ Str "Eight Continue" ] ]
       ]
   ]

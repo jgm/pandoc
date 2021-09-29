@@ -1,8 +1,15 @@
-[OrderedList (1,Decimal,Period)
- [[OrderedList (1,LowerAlpha,TwoParens)
-   [[Para [Str "foo"]]
-   ,[Para [Str "bar"]]]]]
-,BulletList
- [[BulletList
-   [[Para [Str "foo"]]
-   ,[Para [Str "bar"]]]]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ OrderedList
+      ( 1 , Decimal , Period )
+      [ [ OrderedList
+            ( 1 , LowerAlpha , TwoParens )
+            [ [ Para [ Str "foo" ] ] , [ Para [ Str "bar" ] ] ]
+        ]
+      ]
+  , BulletList
+      [ [ BulletList
+            [ [ Para [ Str "foo" ] ] , [ Para [ Str "bar" ] ] ]
+        ]
+      ]
+  ]

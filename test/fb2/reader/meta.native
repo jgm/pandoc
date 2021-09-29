@@ -4,30 +4,14 @@ Pandoc
         fromList
           [ ( "abstract"
             , MetaBlocks
-                [ Para [ Str "Book" , Space , Str "annotation" ]
-                , Para
-                    [ Str "Second"
-                    , Space
-                    , Str "paragraph"
-                    , Space
-                    , Str "of"
-                    , Space
-                    , Str "book"
-                    , Space
-                    , Str "annotation"
-                    ]
+                [ Para [ Str "Book annotation" ]
+                , Para [ Str "Second paragraph of book annotation" ]
                 ]
             )
           , ( "author"
             , MetaList
-                [ MetaInlines
-                    [ Str "First"
-                    , Space
-                    , Str "Middle"
-                    , Space
-                    , Str "Last"
-                    ]
-                , MetaInlines [ Str "Another" , Space , Str "Author" ]
+                [ MetaInlines [ Str "First Middle Last" ]
+                , MetaInlines [ Str "Another Author" ]
                 ]
             )
           , ( "date" , MetaInlines [ Str "2018" ] )
@@ -38,11 +22,7 @@ Pandoc
                 , MetaString "baz"
                 ]
             )
-          , ( "title"
-            , MetaInlines [ Str "Book" , Space , Str "title" ]
-            )
+          , ( "title" , MetaInlines [ Str "Book title" ] )
           ]
     }
-  [ Header
-      1 ( "" , [] , [] ) [ Str "Body" , Space , Str "title" ]
-  ]
+  [ Header 1 ( "" , [] , [] ) [ Str "Body title" ] ]

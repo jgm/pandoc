@@ -1,7 +1,12 @@
-[OrderedList (1,Decimal,Period)
- [[Para [Str "Foo"]]
- ,[Para [Str "Bar"]]
- ,[Para [Str "Baz"]]]
-,Para [Str "Interruption."]
-,OrderedList (4,Decimal,Period)
- [[Para [Str "Bop"]]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ OrderedList
+      ( 1 , Decimal , Period )
+      [ [ Para [ Str "Foo" ] ]
+      , [ Para [ Str "Bar" ] ]
+      , [ Para [ Str "Baz" ] ]
+      ]
+  , Para [ Str "Interruption." ]
+  , OrderedList
+      ( 4 , Decimal , Period ) [ [ Para [ Str "Bop" ] ] ]
+  ]

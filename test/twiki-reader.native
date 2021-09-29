@@ -4,117 +4,58 @@ Pandoc
   , Header
       2
       ( "header-level-two" , [] , [] )
-      [ Str "header" , Space , Str "level" , Space , Str "two" ]
+      [ Str "header level two" ]
   , Header
-      3
-      ( "header-level-3" , [] , [] )
-      [ Str "header" , Space , Str "level" , Space , Str "3" ]
+      3 ( "header-level-3" , [] , [] ) [ Str "header level 3" ]
   , Header
       4
       ( "header-level-four" , [] , [] )
-      [ Str "header"
-      , Space
-      , Emph [ Str "level" ]
-      , Space
-      , Str "four"
-      ]
+      [ Str "header " , Emph [ Str "level" ] , Str " four" ]
   , Header
-      5
-      ( "header-level-5" , [] , [] )
-      [ Str "header" , Space , Str "level" , Space , Str "5" ]
+      5 ( "header-level-5" , [] , [] ) [ Str "header level 5" ]
   , Header
-      6
-      ( "header-level-6" , [] , [] )
-      [ Str "header" , Space , Str "level" , Space , Str "6" ]
-  , Para
-      [ Str "---+++++++"
-      , Space
-      , Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "header"
-      ]
-  , Para
-      [ Str "--++"
-      , Space
-      , Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "header"
-      ]
+      6 ( "header-level-6" , [] , [] ) [ Str "header level 6" ]
+  , Para [ Str "---+++++++ not a header" ]
+  , Para [ Str "--++ not a header" ]
   , Header
-      1
-      ( "emph-and-strong" , [] , [] )
-      [ Str "emph" , Space , Str "and" , Space , Str "strong" ]
+      1 ( "emph-and-strong" , [] , [] ) [ Str "emph and strong" ]
   , Para
-      [ Emph [ Str "emph" ] , Space , Strong [ Str "strong" ] ]
+      [ Emph [ Str "emph" ] , Str " " , Strong [ Str "strong" ] ]
+  , Para [ Emph [ Strong [ Str "strong and emph" ] ] ]
   , Para
-      [ Emph
-          [ Strong
-              [ Str "strong" , Space , Str "and" , Space , Str "emph" ]
-          ]
-      ]
+      [ Strong [ Emph [ Str "emph inside" ] , Str " strong" ] ]
   , Para
-      [ Strong
-          [ Emph [ Str "emph" , Space , Str "inside" ]
-          , Space
-          , Str "strong"
-          ]
-      ]
+      [ Strong [ Str "strong with " , Emph [ Str "emph" ] ] ]
   , Para
-      [ Strong
-          [ Str "strong"
-          , Space
-          , Str "with"
-          , Space
-          , Emph [ Str "emph" ]
-          ]
-      ]
-  , Para
-      [ Emph
-          [ Strong [ Str "strong" , Space , Str "inside" ]
-          , Space
-          , Str "emph"
-          ]
-      ]
+      [ Emph [ Strong [ Str "strong inside" ] , Str " emph" ] ]
   , Header
-      1
-      ( "horizontal-rule" , [] , [] )
-      [ Str "horizontal" , Space , Str "rule" ]
+      1 ( "horizontal-rule" , [] , [] ) [ Str "horizontal rule" ]
   , Para [ Str "top" ]
   , HorizontalRule
   , Para [ Str "bottom" ]
   , HorizontalRule
   , Header 1 ( "nop" , [] , [] ) [ Str "nop" ]
-  , Para [ Str "_not" , Space , Str "emph_" ]
+  , Para [ Str "_not emph_" ]
   , Header 1 ( "entities" , [] , [] ) [ Str "entities" ]
-  , Para [ Str "hi" , Space , Str "&" , Space , Str "low" ]
-  , Para [ Str "hi" , Space , Str "&" , Space , Str "low" ]
+  , Para [ Str "hi & low" ]
+  , Para [ Str "hi & low" ]
   , Para [ Str "G\246del" ]
   , Para [ Str "\777\2730" ]
   , Header 1 ( "comments" , [] , [] ) [ Str "comments" ]
-  , Para [ Str "inline" , Space , Str "comment" ]
-  , Para [ Str "between" , Space , Str "blocks" ]
+  , Para [ Str "inline comment" ]
+  , Para [ Str "between blocks" ]
   , Header 1 ( "linebreaks" , [] , [] ) [ Str "linebreaks" ]
   , Para [ Str "hi" , LineBreak , Str "there" ]
   , Para [ Str "hi" , LineBreak , Str "there" ]
-  , Header
-      1
-      ( "inline-code" , [] , [] )
-      [ Str "inline" , Space , Str "code" ]
+  , Header 1 ( "inline-code" , [] , [] ) [ Str "inline code" ]
   , Para
       [ Code ( "" , [] , [] ) "*\8594*"
-      , Space
+      , Str " "
       , Code ( "" , [] , [] ) "typed"
-      , Space
+      , Str " "
       , Code ( "" , [ "haskell" ] , [] ) ">>="
       ]
-  , Header
-      1
-      ( "code-blocks" , [] , [] )
-      [ Str "code" , Space , Str "blocks" ]
+  , Header 1 ( "code-blocks" , [] , [] ) [ Str "code blocks" ]
   , CodeBlock
       ( "" , [] , [] )
       "case xs of\n     (_:_) -> reverse xs\n     []    -> ['*']"
@@ -122,44 +63,19 @@ Pandoc
       ( "" , [ "haskell" ] , [] )
       "case xs of\n     (_:_) -> reverse xs\n     []    -> ['*']"
   , Header
-      1
-      ( "block-quotes" , [] , [] )
-      [ Str "block" , Space , Str "quotes" ]
-  , Para [ Str "Regular" , Space , Str "paragraph" ]
+      1 ( "block-quotes" , [] , [] ) [ Str "block quotes" ]
+  , Para [ Str "Regular paragraph" ]
   , BlockQuote
-      [ Para
-          [ Str "This"
-          , Space
-          , Str "is"
-          , Space
-          , Str "a"
-          , Space
-          , Str "block"
-          , Space
-          , Str "quote."
-          ]
-      , Para
-          [ Str "With"
-          , Space
-          , Str "two"
-          , Space
-          , Str "paragraphs."
-          ]
+      [ Para [ Str "This is a block quote." ]
+      , Para [ Str "With two paragraphs." ]
       ]
-  , Para [ Str "Nother" , Space , Str "paragraph." ]
+  , Para [ Str "Nother paragraph." ]
   , Header
-      1
-      ( "external-links" , [] , [] )
-      [ Str "external" , Space , Str "links" ]
+      1 ( "external-links" , [] , [] ) [ Str "external links" ]
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Emph [ Str "Google" ]
-          , Space
-          , Str "search"
-          , Space
-          , Str "engine"
-          ]
+          [ Emph [ Str "Google" ] , Str " search engine" ]
           ( "http://google.com" , "" )
       ]
   , Para
@@ -173,7 +89,7 @@ Pandoc
           ( "" , [] , [] )
           [ Str "http://google.com" ]
           ( "http://google.com" , "" )
-      , Space
+      , Str " "
       , Link
           ( "" , [] , [] )
           [ Str "http://yahoo.com" ]
@@ -182,7 +98,7 @@ Pandoc
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "email" , Space , Str "me" ]
+          [ Str "email me" ]
           ( "mailto:info@example.org" , "" )
       ]
   , Para [ Str "http://google.com" ]
@@ -193,198 +109,63 @@ Pandoc
   , Para [ Str "info@example.org" ]
   , Header 1 ( "lists" , [] , [] ) [ Str "lists" ]
   , BulletList
-      [ [ Plain
-            [ Str "Start" , Space , Str "each" , Space , Str "line" ]
-        ]
-      , [ Plain
-            [ Str "with"
-            , Space
-            , Str "an"
-            , Space
-            , Str "asterisk"
-            , Space
-            , Str "(*)."
-            ]
+      [ [ Plain [ Str "Start each line" ] ]
+      , [ Plain [ Str "with an asterisk (*)." ]
         , BulletList
-            [ [ Plain
-                  [ Str "More"
-                  , Space
-                  , Str "asterisks"
-                  , Space
-                  , Str "gives"
-                  , Space
-                  , Str "deeper"
-                  ]
-              , BulletList
-                  [ [ Plain
-                        [ Str "and"
-                        , Space
-                        , Str "deeper"
-                        , Space
-                        , Str "levels."
-                        ]
-                    ]
-                  ]
+            [ [ Plain [ Str "More asterisks gives deeper" ]
+              , BulletList [ [ Plain [ Str "and deeper levels." ] ] ]
               ]
             ]
         ]
       , [ Plain
-            [ Str "Line"
-            , Space
-            , Str "breaks"
+            [ Str "Line breaks"
             , LineBreak
-            , Str "don't"
-            , Space
-            , Str "break"
-            , Space
-            , Str "levels."
+            , Str "don't break levels."
             ]
         ]
-      , [ Plain
-            [ Str "Continuations"
-            , Space
-            , Str "are"
-            , Space
-            , Str "also"
-            , Space
-            , Str "possible"
-            ]
+      , [ Plain [ Str "Continuations are also possible" ]
         , BulletList
-            [ [ Plain
-                  [ Str "and"
-                  , Space
-                  , Str "do"
-                  , Space
-                  , Str "not"
-                  , Space
-                  , Str "break"
-                  , Space
-                  , Str "the"
-                  , Space
-                  , Str "list"
-                  , Space
-                  , Str "flow"
-                  ]
-              ]
-            ]
+            [ [ Plain [ Str "and do not break the list flow" ] ] ]
         ]
-      , [ Plain [ Str "Level" , Space , Str "one" ] ]
+      , [ Plain [ Str "Level one" ] ]
       ]
-  , Para
-      [ Str "Any"
-      , Space
-      , Str "other"
-      , Space
-      , Str "start"
-      , Space
-      , Str "ends"
-      , Space
-      , Str "the"
-      , Space
-      , Str "list."
-      ]
+  , Para [ Str "Any other start ends the list." ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
-      [ [ Plain
-            [ Str "Start" , Space , Str "each" , Space , Str "line" ]
-        ]
-      , [ Plain
-            [ Str "with"
-            , Space
-            , Str "a"
-            , Space
-            , Str "number"
-            , Space
-            , Str "(1.)."
-            ]
+      [ [ Plain [ Str "Start each line" ] ]
+      , [ Plain [ Str "with a number (1.)." ]
         , OrderedList
             ( 1 , DefaultStyle , DefaultDelim )
-            [ [ Plain
-                  [ Str "More"
-                  , Space
-                  , Str "number"
-                  , Space
-                  , Str "signs"
-                  , Space
-                  , Str "gives"
-                  , Space
-                  , Str "deeper"
-                  ]
+            [ [ Plain [ Str "More number signs gives deeper" ]
               , OrderedList
                   ( 1 , DefaultStyle , DefaultDelim )
-                  [ [ Plain [ Str "and" , Space , Str "deeper" ] ]
+                  [ [ Plain [ Str "and deeper" ] ]
                   , [ Plain [ Str "levels." ] ]
                   ]
               ]
             ]
         ]
       , [ Plain
-            [ Str "Line"
-            , Space
-            , Str "breaks"
+            [ Str "Line breaks"
             , LineBreak
-            , Str "don't"
-            , Space
-            , Str "break"
-            , Space
-            , Str "levels."
+            , Str "don't break levels."
             ]
         ]
-      , [ Plain [ Str "Blank" , Space , Str "lines" ] ]
+      , [ Plain [ Str "Blank lines" ] ]
       ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
-      [ [ Plain
-            [ Str "end"
-            , Space
-            , Str "the"
-            , Space
-            , Str "list"
-            , Space
-            , Str "and"
-            , Space
-            , Str "start"
-            , Space
-            , Str "another."
-            ]
-        ]
-      ]
-  , Para
-      [ Str "Any"
-      , Space
-      , Str "other"
-      , Space
-      , Str "start"
-      , Space
-      , Str "also"
-      , Space
-      , Str "ends"
-      , Space
-      , Str "the"
-      , Space
-      , Str "list."
-      ]
+      [ [ Plain [ Str "end the list and start another." ] ] ]
+  , Para [ Str "Any other start also ends the list." ]
   , DefinitionList
-      [ ( [ Str "item" , Space , Str "1" ]
-        , [ [ Plain [ Str "definition" , Space , Str "1" ] ] ]
+      [ ( [ Str "item 1" ]
+        , [ [ Plain [ Str "definition 1" ] ] ]
         )
-      , ( [ Str "item" , Space , Str "2" ]
-        , [ [ Plain
-                [ Str "definition"
-                , Space
-                , Str "2-1"
-                , Space
-                , Str "definition"
-                , Space
-                , Str "2-2"
-                ]
-            ]
-          ]
+      , ( [ Str "item 2" ]
+        , [ [ Plain [ Str "definition 2-1 definition 2-2" ] ] ]
         )
-      , ( [ Str "item" , Space , Emph [ Str "3" ] ]
-        , [ [ Plain [ Str "definition" , Space , Emph [ Str "3" ] ]
-            ]
-          ]
+      , ( [ Str "item " , Emph [ Str "3" ] ]
+        , [ [ Plain [ Str "definition " , Emph [ Str "3" ] ] ] ]
         )
       ]
   , OrderedList
@@ -392,80 +173,33 @@ Pandoc
       [ [ Plain [ Str "one" ] ]
       , [ Plain [ Str "two" ]
         , BulletList
-            [ [ Plain
-                  [ Str "two"
-                  , Space
-                  , Str "point"
-                  , Space
-                  , Str "one"
-                  ]
-              ]
-            , [ Plain
-                  [ Str "two"
-                  , Space
-                  , Str "point"
-                  , Space
-                  , Str "two"
-                  ]
-              ]
+            [ [ Plain [ Str "two point one" ] ]
+            , [ Plain [ Str "two point two" ] ]
             ]
         ]
       , [ Plain [ Str "three" ]
         , DefinitionList
-            [ ( [ Str "three" , Space , Str "item" , Space , Str "one" ]
-              , [ [ Plain
-                      [ Str "three"
-                      , Space
-                      , Str "def"
-                      , Space
-                      , Str "one"
-                      ]
-                  ]
-                ]
+            [ ( [ Str "three item one" ]
+              , [ [ Plain [ Str "three def one" ] ] ]
               )
             ]
         ]
       , [ Plain [ Str "four" ]
         , DefinitionList
-            [ ( [ Str "four" , Space , Str "def" , Space , Str "one" ]
-              , [ [ Plain
-                      [ Str "this"
-                      , Space
-                      , Str "is"
-                      , Space
-                      , Str "a"
-                      , Space
-                      , Str "continuation"
-                      ]
-                  ]
-                ]
+            [ ( [ Str "four def one" ]
+              , [ [ Plain [ Str "this is a continuation" ] ] ]
               )
             ]
         ]
       , [ Plain [ Str "five" ]
         , OrderedList
             ( 1 , DefaultStyle , DefaultDelim )
-            [ [ Plain
-                  [ Str "five" , Space , Str "sub" , Space , Str "1" ]
+            [ [ Plain [ Str "five sub 1" ]
               , OrderedList
                   ( 1 , DefaultStyle , DefaultDelim )
-                  [ [ Plain
-                        [ Str "five"
-                        , Space
-                        , Str "sub"
-                        , Space
-                        , Str "1"
-                        , Space
-                        , Str "sub"
-                        , Space
-                        , Str "1"
-                        ]
-                    ]
-                  ]
+                  [ [ Plain [ Str "five sub 1 sub 1" ] ] ]
               ]
-            , [ Plain
-                  [ Str "five" , Space , Str "sub" , Space , Str "2" ]
-              ]
+            , [ Plain [ Str "five sub 2" ] ]
             ]
         ]
       ]
@@ -570,7 +304,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "Ice" , Space , Str "cream" ] ]
+                  [ Plain [ Str "Ice cream" ] ]
               ]
           ]
       ]
@@ -631,7 +365,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "Ice" , Space , Str "cream" ] ]
+                  [ Plain [ Str "Ice cream" ] ]
               ]
           ]
       ]
@@ -675,9 +409,7 @@ Pandoc
                       [ Str "Bread"
                       , LineBreak
                       , LineBreak
-                      , Str "and"
-                      , Space
-                      , Str "cheese"
+                      , Str "and cheese"
                       ]
                   ]
               , Cell
@@ -690,9 +422,7 @@ Pandoc
                       , LineBreak
                       , LineBreak
                       , Strong [ Str "apple" ]
-                      , Space
-                      , Str "and"
-                      , Space
+                      , Str " and "
                       , Emph [ Str "carrot" ]
                       ]
                   ]
@@ -790,13 +520,13 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "Ice" , Space , Str "cream" ] ]
+                  [ Plain [ Str "Ice cream" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "and" , Space , Str "more" ] ]
+                  [ Plain [ Str "and more" ] ]
               ]
           ]
       ]

@@ -1,1 +1,34 @@
-[Para [Image ("",[],[]) [Str "HTTPS",Space,Str "image"] ("https://cooluri.com/image.png",""),Space,Image ("",[],[]) [Str "HTTP",Space,Str "image"] ("http://cooluri.com/image.png",""),Space,Image ("",[],[]) [Str "FTP",Space,Str "image"] ("ftp://ftp.cooluri.com/image.png",""),Space,Image ("",[],[]) [Str "Filesystem",Space,Str "image"] ("file:///tmp/coolimage.png",""),Space,Image ("",[],[]) [Str "Relative",Space,Str "image",Space,Str "1"] ("/image.jpg",""),Space,Image ("",[],[]) [Str "Relative",Space,Str "image",Space,Str "2"] ("image.jpg","")]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Image
+          ( "" , [] , [] )
+          [ Str "HTTPS image" ]
+          ( "https://cooluri.com/image.png" , "" )
+      , Str " "
+      , Image
+          ( "" , [] , [] )
+          [ Str "HTTP image" ]
+          ( "http://cooluri.com/image.png" , "" )
+      , Str " "
+      , Image
+          ( "" , [] , [] )
+          [ Str "FTP image" ]
+          ( "ftp://ftp.cooluri.com/image.png" , "" )
+      , Str " "
+      , Image
+          ( "" , [] , [] )
+          [ Str "Filesystem image" ]
+          ( "file:///tmp/coolimage.png" , "" )
+      , Str " "
+      , Image
+          ( "" , [] , [] )
+          [ Str "Relative image 1" ]
+          ( "/image.jpg" , "" )
+      , Str " "
+      , Image
+          ( "" , [] , [] )
+          [ Str "Relative image 2" ]
+          ( "image.jpg" , "" )
+      ]
+  ]

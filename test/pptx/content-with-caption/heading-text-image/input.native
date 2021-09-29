@@ -1,3 +1,11 @@
-[Header 1 ("a-slide",[],[]) [Str "A",Space,Str "slide"]
-,Para [Str "Some",Space,Str "text",Space,Str "here"]
-,Para [Image ("",[],[]) [Str "Followed",Space,Str "by",Space,Str "a",Space,Str "picture"] ("lalune.jpg","fig:")]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 1 ( "a-slide" , [] , [] ) [ Str "A slide" ]
+  , Para [ Str "Some text here" ]
+  , Para
+      [ Image
+          ( "" , [] , [] )
+          [ Str "Followed by a picture" ]
+          ( "lalune.jpg" , "fig:" )
+      ]
+  ]

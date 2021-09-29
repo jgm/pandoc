@@ -1,6 +1,10 @@
-[BulletList
- [[Para [Str "One",Space,Str "level",Space,Str "of",Space,Str "the",Space,Str "list."]]
- ,[Para [Str "Second",Space,Str "level",Space,Str "of",Space,Str "the",Space,Str "list."]
-  ,BulletList
-   [[Para [Str "Next",Space,Str "level",Space,Str "of",Space,Str "the",Space,Str "list"]]]]
- ,[Para [Str "Back",Space,Str "to",Space,Str "the",Space,Str "top",Space,Str "level."]]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ BulletList
+      [ [ Para [ Str "One level of the list." ] ]
+      , [ Para [ Str "Second level of the list." ]
+        , BulletList [ [ Para [ Str "Next level of the list" ] ] ]
+        ]
+      , [ Para [ Str "Back to the top level." ] ]
+      ]
+  ]

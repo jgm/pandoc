@@ -18,344 +18,142 @@ Pandoc
   , Header
       2
       ( "header level two" , [] , [] )
-      [ Str "header" , Space , Str "level" , Space , Str "two" ]
+      [ Str "header level two" ]
   , Header
       3
       ( "header level 3" , [] , [] )
-      [ Str "header"
-      , Space
-      , Code ( "" , [] , [] ) "level"
-      , Space
-      , Str "3"
-      ]
+      [ Str "header " , Code ( "" , [] , [] ) "level" , Str " 3" ]
   , Header
       4
       ( "header level four" , [] , [] )
-      [ Str "header"
-      , Space
-      , Strikeout [ Str "level" ]
-      , Space
-      , Str "four"
-      ]
+      [ Str "header " , Strikeout [ Str "level" ] , Str " four" ]
   , Header
       5
       ( "header level 5" , [] , [] )
-      [ Str "header"
-      , Space
+      [ Str "header "
       , Emph
           [ Span ( "level" , [] , [] ) []
           , Strong [ Str "level" ]
-          , Space
-          , Str "5"
+          , Str " 5"
           ]
       ]
   , Header
-      6
-      ( "header level 6" , [] , [] )
-      [ Str "header" , Space , Str "level" , Space , Str "6" ]
-  , Para
-      [ Str "======="
-      , Space
-      , Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "header"
-      , Space
-      , Str "========"
-      ]
-  , Para
-      [ Str "hi=="
-      , Space
-      , Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "header"
-      , Space
-      , Str "=="
-      ]
-  , Para
-      [ Str "==="
-      , Space
-      , Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "header"
-      , Space
-      , Str "=="
-      ]
-  , Para
-      [ Str "==="
-      , Space
-      , Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "header"
-      , Space
-      , Str "===-"
-      ]
-  , Para
-      [ Str "not" , Space , Str "a" , Space , Str "header:" ]
+      6 ( "header level 6" , [] , [] ) [ Str "header level 6" ]
+  , Para [ Str "======= not a header ========" ]
+  , Para [ Str "hi== not a header ==" ]
+  , Para [ Str "=== not a header ==" ]
+  , Para [ Str "=== not a header ===-" ]
+  , Para [ Str "not a header:" ]
   , Para [ Str "=n=" ]
-  , Para
-      [ Str "==="
-      , Space
-      , Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "header"
-      , Space
-      , Str "===="
-      ]
+  , Para [ Str "=== not a header ====" ]
   , Header
       2
       ( "centred header" , [ "justcenter" ] , [] )
-      [ Str "centred" , Space , Str "header" ]
+      [ Str "centred header" ]
   , Header
       2
       ( "header with some == in between" , [] , [] )
-      [ Str "header"
-      , Space
-      , Str "with"
-      , Space
-      , Str "some"
-      , Space
+      [ Str "header with some "
       , Code ( "" , [] , [] ) "=="
-      , Space
-      , Str "in"
-      , Space
-      , Str "between"
+      , Str " in between"
       ]
   , Header
       2
       ( "header with some == in between" , [] , [] )
-      [ Str "header"
-      , Space
-      , Str "with"
-      , Space
-      , Str "some"
-      , Space
-      , Str "=="
-      , Space
-      , Str "in"
-      , Space
-      , Str "between"
-      ]
+      [ Str "header with some == in between" ]
   , Header
       2
       ( "header with some ==in between" , [] , [] )
-      [ Str "header"
-      , Space
-      , Str "with"
-      , Space
-      , Str "some"
-      , Space
-      , Str "==in"
-      , Space
-      , Str "between"
-      ]
+      [ Str "header with some ==in between" ]
   , Header
       2
       ( "emph strong and strikeout" , [] , [] )
-      [ Str "emph"
-      , Space
-      , Str "strong"
-      , Space
-      , Str "and"
-      , Space
-      , Str "strikeout"
-      ]
+      [ Str "emph strong and strikeout" ]
   , Para
       [ Emph [ Str "emph" ]
-      , Space
+      , Str " "
       , Span ( "strong" , [] , [] ) []
       , Strong [ Str "strong" ]
       ]
   , Para
       [ Span ( "strong and emph" , [] , [] ) []
-      , Strong
-          [ Emph
-              [ Str "strong" , Space , Str "and" , Space , Str "emph" ]
-          ]
+      , Strong [ Emph [ Str "strong and emph" ] ]
       ]
   , Para
       [ Emph
           [ Span ( "emph and strong" , [] , [] ) []
-          , Strong
-              [ Str "emph" , Space , Str "and" , Space , Str "strong" ]
+          , Strong [ Str "emph and strong" ]
           ]
       ]
   , Para
       [ Span ( "emph inside strong" , [] , [] ) []
-      , Strong
-          [ Emph [ Str "emph" , Space , Str "inside" ]
-          , Space
-          , Str "strong"
-          ]
+      , Strong [ Emph [ Str "emph inside" ] , Str " strong" ]
       ]
   , Para
       [ Span ( "strong with emph" , [] , [] ) []
-      , Strong
-          [ Str "strong"
-          , Space
-          , Str "with"
-          , Space
-          , Emph [ Str "emph" ]
-          ]
+      , Strong [ Str "strong with " , Emph [ Str "emph" ] ]
       ]
   , Para
       [ Emph
           [ Span ( "strong inside" , [] , [] ) []
-          , Strong [ Str "strong" , Space , Str "inside" ]
-          , Space
-          , Str "emph"
+          , Strong [ Str "strong inside" ]
+          , Str " emph"
           ]
       ]
   , Para
       [ Emph
-          [ Strikeout [ Str "strikeout" ]
-          , Space
-          , Str "inside"
-          , Space
-          , Str "emph"
-          ]
+          [ Strikeout [ Str "strikeout" ] , Str " inside emph" ]
       ]
   , Para
       [ Strikeout
-          [ Str "This"
-          , Space
-          , Str "is"
-          , Space
-          , Emph [ Str "struck" , Space , Str "out" ]
-          , Space
-          , Str "with"
-          , Space
-          , Str "emph"
+          [ Str "This is "
+          , Emph [ Str "struck out" ]
+          , Str " with emph"
           ]
       ]
   , Para [ Str "*not" , SoftBreak , Str "strong*" ]
-  , Para
-      [ Str "just"
-      , Space
-      , Str "two"
-      , Space
-      , Str "stars:"
-      , Space
-      , Str "**"
-      ]
-  , Para
-      [ Str "just"
-      , Space
-      , Str "two"
-      , Space
-      , Str "underscores:"
-      , Space
-      , Str "__"
-      ]
-  , Para
-      [ Str "just"
-      , Space
-      , Str "four"
-      , Space
-      , Str "~s:"
-      , Space
-      , Str "~~~~"
-      ]
+  , Para [ Str "just two stars: **" ]
+  , Para [ Str "just two underscores: __" ]
+  , Para [ Str "just four ~s: ~~~~" ]
   , Para [ Str "_not" , SoftBreak , Str "emph_" ]
   , Para [ Str "~~not" , SoftBreak , Str "strikeout~~" ]
   , Header
-      2
-      ( "horizontal rule" , [] , [] )
-      [ Str "horizontal" , Space , Str "rule" ]
+      2 ( "horizontal rule" , [] , [] ) [ Str "horizontal rule" ]
   , Para [ Str "top" ]
   , HorizontalRule
   , Para [ Str "middle" ]
   , HorizontalRule
+  , Para [ Str "not a rule-----" ]
   , Para
-      [ Str "not" , Space , Str "a" , Space , Str "rule-----" ]
-  , Para
-      [ Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "rule"
-      , Space
-      , Str "(trailing"
-      , Space
-      , Str "spaces):"
+      [ Str "not a rule (trailing spaces):"
       , SoftBreak
       , Str "-----"
       ]
   , Para
-      [ Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "rule"
-      , Space
-      , Str "(leading"
-      , Space
-      , Str "spaces):"
+      [ Str "not a rule (leading spaces):"
       , SoftBreak
       , Str "----"
       ]
   , Header 2 ( "comments" , [] , [] ) [ Str "comments" ]
+  , Para [ Str "this" , SoftBreak , Str "is %% not secret" ]
+  , Header 2 ( "inline code" , [] , [] ) [ Str "inline code" ]
   , Para
-      [ Str "this"
-      , SoftBreak
-      , Str "is"
-      , Space
-      , Str "%%"
-      , Space
-      , Str "not"
-      , Space
-      , Str "secret"
-      ]
-  , Header
-      2
-      ( "inline code" , [] , [] )
-      [ Str "inline" , Space , Str "code" ]
-  , Para
-      [ Str "Here"
-      , Space
-      , Str "is"
-      , Space
-      , Str "some"
-      , Space
+      [ Str "Here is some "
       , Code ( "" , [] , [] ) "inline code"
       , Str "."
       ]
-  , Para
-      [ Str "Just"
-      , Space
-      , Str "two"
-      , Space
-      , Str "backticks:"
-      , Space
-      , Str "``"
-      ]
+  , Para [ Str "Just two backticks: ``" ]
   , Header
       2
       ( "preformatted text" , [] , [] )
-      [ Str "preformatted" , Space , Str "text" ]
+      [ Str "preformatted text" ]
   , CodeBlock
       ( "" , [] , [] )
       "  Tyger! Tyger! burning bright\n   In the forests of the night,\n    What immortal hand or eye\n     Could frame thy fearful symmetry?\n  In what distant deeps or skies\n   Burnt the fire of thine eyes?\n    On what wings dare he aspire?\n     What the hand dare sieze the fire?"
   , Header
       3
       ( "preformatted text with attributes" , [] , [] )
-      [ Str "preformatted"
-      , Space
-      , Str "text"
-      , Space
-      , Str "with"
-      , Space
-      , Str "attributes"
-      ]
+      [ Str "preformatted text with attributes" ]
   , CodeBlock
       ( ""
       , []
@@ -365,162 +163,41 @@ Pandoc
   , Header
       3
       ( "preformatted text with nested syntax" , [] , [] )
-      [ Str "preformatted"
-      , Space
-      , Str "text"
-      , Space
-      , Str "with"
-      , Space
-      , Str "nested"
-      , Space
-      , Str "syntax"
-      ]
+      [ Str "preformatted text with nested syntax" ]
   , CodeBlock ( "" , [ "sql" ] , [] ) "SELECT * FROM table"
   , Header
       3
       ( "empty preformatted text" , [] , [] )
-      [ Str "empty"
-      , Space
-      , Str "preformatted"
-      , Space
-      , Str "text"
-      ]
+      [ Str "empty preformatted text" ]
   , CodeBlock ( "" , [] , [] ) ""
   , Header
-      2
-      ( "block quotes" , [] , [] )
-      [ Str "block" , Space , Str "quotes" ]
+      2 ( "block quotes" , [] , [] ) [ Str "block quotes" ]
   , BlockQuote
       [ Plain
-          [ Str "(indentation"
-          , Space
-          , Str "4"
-          , Space
-          , Str "spaces)"
-          , Space
-          , Str "This"
-          , Space
-          , Str "would"
-          , Space
-          , Str "be"
-          , Space
-          , Str "a"
-          , Space
-          , Str "blockquote"
-          , Space
-          , Str "in"
-          , Space
-          , Str "Vimwiki."
-          , Space
-          , Str "It"
-          , Space
-          , Str "is"
-          , Space
-          , Str "not"
-          , Space
+          [ Str
+              "(indentation 4 spaces) This would be a blockquote in Vimwiki. It is not "
           , Span ( "highlighted" , [] , [] ) []
           , Strong [ Str "highlighted" ]
-          , Space
-          , Str "in"
-          , Space
-          , Str "Vim"
-          , Space
-          , Str "but"
+          , Str " in Vim but"
           , SoftBreak
-          , Str "(indentation"
-          , Space
-          , Str "1"
-          , Space
-          , Str "space"
-          , Space
-          , Str "followed"
-          , Space
-          , Str "by"
-          , Space
-          , Str "1"
-          , Space
-          , Str "tab"
-          , Space
-          , Str "of"
-          , Space
-          , Str "width"
-          , Space
-          , Str "4)"
-          , Space
-          , Str "could"
-          , Space
-          , Str "be"
-          , Space
-          , Str "styled"
-          , Space
-          , Str "by"
-          , Space
-          , Str "CSS"
-          , Space
-          , Str "in"
-          , Space
-          , Str "HTML."
-          , Space
-          , Str "Blockquotes"
-          , Space
-          , Str "are"
-          , Space
-          , Str "usually"
-          , Space
-          , Str "used"
-          , Space
-          , Str "to"
-          , Space
-          , Str "quote"
-          , Space
-          , Str "a"
+          , Str
+              "(indentation 1 space followed by 1 tab of width 4) could be styled by CSS in HTML. Blockquotes are usually used to quote a"
           , SoftBreak
-          , Str "(indentation"
-          , Space
-          , Str "1"
-          , Space
-          , Str "tab"
-          , Space
-          , Str "of"
-          , Space
-          , Str "width"
-          , Space
-          , Str "4)"
-          , Space
-          , Str "long"
-          , Space
-          , Str "piece"
-          , Space
-          , Str "of"
-          , Space
-          , Str "text"
-          , Space
-          , Str "from"
-          , Space
-          , Str "another"
-          , Space
-          , Str "source."
-          , Space
-          , Strikeout [ Str "blah" , Space , Str "blah" ]
-          , Space
+          , Str
+              "(indentation 1 tab of width 4) long piece of text from another source. "
+          , Strikeout [ Str "blah blah" ]
+          , Str " "
           , Span ( "-blockquote" , [] , [] ) [ Str "" ]
           , Span
               ( "blockquote" , [ "tag" ] , [] ) [ Str "blockquote" ]
           ]
       ]
   , Header
-      2
-      ( "external links" , [] , [] )
-      [ Str "external" , Space , Str "links" ]
+      2 ( "external links" , [] , [] ) [ Str "external links" ]
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Emph [ Str "Google" ]
-          , Space
-          , Str "search"
-          , Space
-          , Str "engine"
-          ]
+          [ Emph [ Str "Google" ] , Str " search engine" ]
           ( "http://google.com" , "" )
       ]
   , Para
@@ -544,7 +221,7 @@ Pandoc
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "email" , Space , Str "me" ]
+          [ Str "email me" ]
           ( "mailto:info@example.org" , "" )
       ]
   , Para
@@ -554,9 +231,7 @@ Pandoc
           ( "mailto:hello@bye.com" , "" )
       ]
   , Header
-      2
-      ( "internal links" , [] , [] )
-      [ Str "internal" , Space , Str "links" ]
+      2 ( "internal links" , [] , [] ) [ Str "internal links" ]
   , Para
       [ Link
           ( "" , [] , [] )
@@ -566,14 +241,7 @@ Pandoc
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "Description"
-          , Space
-          , Str "of"
-          , Space
-          , Str "the"
-          , Space
-          , Str "link"
-          ]
+          [ Str "Description of the link" ]
           ( "This is a link source" , "wikilink" )
       ]
   , Para
@@ -589,64 +257,31 @@ Pandoc
       , SoftBreak
       , Link
           ( "" , [] , [] )
-          [ Str "Other" , Space , Str "files" ]
+          [ Str "Other files" ]
           ( "a subdirectory/" , "wikilink" )
       ]
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "try"
-          , Space
-          , Str "me"
-          , Space
-          , Str "to"
-          , Space
-          , Str "test"
-          , Space
-          , Str "tag"
-          , Space
-          , Str "anchors"
-          ]
+          [ Str "try me to test tag anchors" ]
           ( "#tag-one" , "wikilink" )
       ]
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "try"
-          , Space
-          , Str "me"
-          , Space
-          , Str "to"
-          , Space
-          , Str "test"
-          , Space
-          , Str "header"
-          , Space
-          , Str "anchors"
-          ]
+          [ Str "try me to test header anchors" ]
           ( "#block quotes" , "wikilink" )
       ]
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "try"
-          , Space
-          , Str "me"
-          , Space
-          , Str "to"
-          , Space
-          , Str "test"
-          , Space
-          , Str "strong"
-          , Space
-          , Str "anchors"
-          ]
+          [ Str "try me to test strong anchors" ]
           ( "#strong" , "wikilink" )
       ]
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "Tasks" , Space , Str "for" , Space , Str "tomorrow" ]
+          [ Str "Tasks for tomorrow" ]
           ( "Todo List#Tomorrow" , "wikilink" )
       ]
   , Para
@@ -658,18 +293,13 @@ Pandoc
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "Important" , Space , Str "Data" ]
+          [ Str "Important Data" ]
           ( "file:../assets/data.csv" , "" )
       ]
   , Header
       3
       ( "links with thumbnails" , [] , [] )
-      [ Str "links"
-      , Space
-      , Str "with"
-      , Space
-      , Str "thumbnails"
-      ]
+      [ Str "links with thumbnails" ]
   , Para
       [ Link
           ( "" , [] , [] )
@@ -695,16 +325,11 @@ Pandoc
   , Header
       3
       ( "image with attributes" , [] , [] )
-      [ Str "image"
-      , Space
-      , Str "with"
-      , Space
-      , Str "attributes"
-      ]
+      [ Str "image with attributes" ]
   , Para
       [ Image
           ( "" , [] , [ ( "style" , "width:150px;height:120px;" ) ] )
-          [ Emph [ Str "cool" , Space , Str "stuff" ] ]
+          [ Emph [ Str "cool stuff" ] ]
           ( "lalune.jpg" , "" )
       ]
   , Para
@@ -712,72 +337,27 @@ Pandoc
           ( "" , [] , [ ( "style" , "font-color:red" ) ] )
           [ Span ( "Non-existing" , [] , [] ) []
           , Strong [ Str "Non-existing" ]
-          , Space
-          , Str "image"
+          , Str " image"
           ]
           ( "nonexist.jpg" , "" )
       ]
   , Para
       [ Image
           ( "" , [] , [ ( "style" , "width:150px;height:120px;" ) ] )
-          [ Emph [ Str "cool" , Space , Str "stuff" ] ]
+          [ Emph [ Str "cool stuff" ] ]
           ( "lalune.jpg" , "" )
       ]
   , Header 2 ( "lists" , [] , [] ) [ Str "lists" ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
       [ [ Plain
-            [ Str "ordered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1,"
-            , Space
-            , Str "and"
-            , Space
-            , Str "here"
-            , Space
-            , Str "is"
-            , Space
-            , Str "some"
-            , Space
-            , Str "math"
-            , Space
-            , Str "belonging"
-            , Space
-            , Str "to"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1"
+            [ Str
+                "ordered list item 1, and here is some math belonging to list item 1"
             ]
         , Para [ Math DisplayMath "a^2 + b^2 = c^2" ]
         , Plain
-            [ Str "and"
-            , Space
-            , Str "some"
-            , Space
-            , Str "preformatted"
-            , Space
-            , Str "and"
-            , Space
-            , Str "tables"
-            , Space
-            , Str "belonging"
-            , Space
-            , Str "to"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1"
-            , Space
-            , Str "as"
-            , Space
-            , Str "well"
+            [ Str
+                "and some preformatted and tables belonging to item 1 as well"
             ]
         , CodeBlock ( "" , [] , [] ) "I'm part of item 1."
         , Table
@@ -815,7 +395,7 @@ Pandoc
                         AlignDefault
                         (RowSpan 1)
                         (ColSpan 1)
-                        [ Plain [ Str "this" , Space , Str "table" ] ]
+                        [ Plain [ Str "this table" ] ]
                     , Cell
                         ( "" , [] , [] )
                         AlignDefault
@@ -830,264 +410,69 @@ Pandoc
                         AlignDefault
                         (RowSpan 1)
                         (ColSpan 1)
-                        [ Plain
-                            [ Str "also"
-                            , Space
-                            , Str "a"
-                            , Space
-                            , Str "part"
-                            ]
-                        ]
+                        [ Plain [ Str "also a part" ] ]
                     , Cell
                         ( "" , [] , [] )
                         AlignDefault
                         (RowSpan 1)
                         (ColSpan 1)
-                        [ Plain
-                            [ Str "of"
-                            , Space
-                            , Str "item"
-                            , Space
-                            , Str "1"
-                            ]
-                        ]
+                        [ Plain [ Str "of item 1" ] ]
                     ]
                 ]
             ]
             (TableFoot ( "" , [] , [] ) [])
-        , Plain
-            [ Str "and"
-            , Space
-            , Str "some"
-            , Space
-            , Str "more"
-            , Space
-            , Str "text"
-            , Space
-            , Str "belonging"
-            , Space
-            , Str "to"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1."
-            ]
+        , Plain [ Str "and some more text belonging to item 1." ]
         ]
-      , [ Plain
-            [ Str "ordered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "2"
-            ]
-        ]
+      , [ Plain [ Str "ordered list item 2" ] ]
       ]
   , BulletList
-      [ [ Plain
-            [ Str "Bulleted"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1"
-            ]
-        ]
-      , [ Plain
-            [ Str "Bulleted"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "2"
-            ]
-        ]
+      [ [ Plain [ Str "Bulleted list item 1" ] ]
+      , [ Plain [ Str "Bulleted list item 2" ] ]
       ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
-      [ [ Plain
-            [ Str "Bulleted"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1"
-            ]
-        ]
+      [ [ Plain [ Str "Bulleted list item 1" ] ]
       , [ Plain
-            [ Str "the"
-            , Space
-            , Str "#"
-            , Space
-            , Str "become"
-            , Space
-            , Str "numbers"
-            , Space
-            , Str "when"
-            , Space
-            , Str "converted"
-            , Space
-            , Str "to"
-            , Space
-            , Str "HTML"
-            ]
+            [ Str "the # become numbers when converted to HTML" ]
         ]
       ]
   , BulletList
-      [ [ Plain
-            [ Str "Bulleted"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1"
-            ]
-        ]
-      , [ Plain
-            [ Str "Bulleted"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "2"
-            ]
-        ]
+      [ [ Plain [ Str "Bulleted list item 1" ] ]
+      , [ Plain [ Str "Bulleted list item 2" ] ]
       ]
   , BulletList
-      [ [ Plain [ Str "Item" , Space , Str "1" ] ]
-      , [ Plain [ Str "Item" , Space , Str "2" ]
+      [ [ Plain [ Str "Item 1" ] ]
+      , [ Plain [ Str "Item 2" ]
         , OrderedList
             ( 1 , DefaultStyle , DefaultDelim )
             [ [ Plain
-                  [ Str "Sub"
-                  , Space
-                  , Str "item"
-                  , Space
-                  , Str "1"
-                  , Space
-                  , Str "(indentation"
-                  , Space
-                  , Str "4"
-                  , Space
-                  , Str "spaces)"
+                  [ Str "Sub item 1 (indentation 4 spaces)"
                   , SoftBreak
-                  , Str "Sub"
-                  , Space
-                  , Str "item"
-                  , Space
-                  , Str "1"
-                  , Space
-                  , Str "continued"
-                  , Space
-                  , Str "line."
+                  , Str "Sub item 1 continued line."
                   , SoftBreak
-                  , Str "Sub"
-                  , Space
-                  , Str "item"
-                  , Space
-                  , Str "1"
-                  , Space
-                  , Str "next"
-                  , Space
-                  , Str "continued"
-                  , Space
-                  , Str "line."
+                  , Str "Sub item 1 next continued line."
                   ]
               ]
             , [ Plain
-                  [ Str "Sub"
-                  , Space
-                  , Str "item"
-                  , Space
-                  , Str "2,"
-                  , Space
-                  , Str "as"
-                  , Space
-                  , Str "an"
-                  , Space
-                  , Str "ordered"
-                  , Space
-                  , Str "list"
-                  , Space
-                  , Str "item"
-                  , Space
-                  , Str "even"
-                  , Space
-                  , Str "though"
-                  , Space
-                  , Str "the"
-                  , Space
-                  , Str "identifier"
-                  , Space
-                  , Str "is"
-                  , Space
+                  [ Str
+                      "Sub item 2, as an ordered list item even though the identifier is "
                   , Code ( "" , [] , [] ) "*"
-                  , Space
-                  , Str "(indentation"
-                  , Space
-                  , Str "2"
-                  , Space
-                  , Str "spaces"
-                  , Space
-                  , Str "followed"
-                  , Space
-                  , Str "by"
-                  , Space
-                  , Str "one"
-                  , Space
-                  , Str "tab"
-                  , Space
-                  , Str "of"
-                  , Space
-                  , Str "width"
-                  , Space
-                  , Str "4)"
+                  , Str
+                      " (indentation 2 spaces followed by one tab of width 4)"
                   ]
               ]
             , [ Plain
                   [ Str "etc."
                   , SoftBreak
-                  , Str "Continuation"
-                  , Space
-                  , Str "of"
-                  , Space
-                  , Str "Item"
-                  , Space
-                  , Str "2"
+                  , Str "Continuation of Item 2"
                   , SoftBreak
-                  , Str "Next"
-                  , Space
-                  , Str "continuation"
-                  , Space
-                  , Str "of"
-                  , Space
-                  , Str "Item"
-                  , Space
-                  , Str "2"
+                  , Str "Next continuation of Item 2"
                   ]
               ]
             ]
         ]
       ]
-  , Para
-      [ Str "But"
-      , Space
-      , Str "this"
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "new"
-      , Space
-      , Str "paragraph."
-      ]
+  , Para [ Str "But this is a new paragraph." ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
       [ [ Plain [ Str "1" ]
@@ -1101,434 +486,90 @@ Pandoc
   , Header
       3
       ( "ordered lists with non-# identifiers" , [] , [] )
-      [ Str "ordered"
-      , Space
-      , Str "lists"
-      , Space
-      , Str "with"
-      , Space
-      , Str "non-#"
-      , Space
-      , Str "identifiers"
+      [ Str "ordered lists with non-# identifiers" ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Plain [ Str "Numbered list item 1" ] ]
+      , [ Plain [ Str "Numbered list item 2" ] ]
+      , [ Plain [ Str "Numbered list item 3" ] ]
       ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
-      [ [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1"
-            ]
-        ]
-      , [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "2"
-            ]
-        ]
-      , [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "3"
-            ]
-        ]
+      [ [ Plain [ Str "Numbered list item 1" ] ]
+      , [ Plain [ Str "Numbered list item 2" ] ]
+      , [ Plain [ Str "Numbered list item 3" ] ]
       ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
-      [ [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1"
-            ]
-        ]
-      , [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "2"
-            ]
-        ]
-      , [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "3"
-            ]
-        ]
+      [ [ Plain [ Str "Numbered list item 1" ] ]
+      , [ Plain [ Str "Numbered list item 2" ] ]
+      , [ Plain [ Str "Numbered list item 3" ] ]
       ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
-      [ [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1"
-            ]
-        ]
-      , [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "2"
-            ]
-        ]
-      , [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "3"
-            ]
-        ]
+      [ [ Plain [ Str "Numbered list item 1" ] ]
+      , [ Plain [ Str "Numbered list item 2" ] ]
+      , [ Plain [ Str "Numbered list item 3" ] ]
       ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
-      [ [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1"
-            ]
-        ]
-      , [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "2"
-            ]
-        ]
-      , [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "3"
-            ]
-        ]
+      [ [ Plain [ Str "Numbered list item 1" ] ]
+      , [ Plain [ Str "Numbered list item 2" ] ]
+      , [ Plain [ Str "Numbered list item 3" ] ]
       ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
-      [ [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1"
-            ]
-        ]
-      , [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "2"
-            ]
-        ]
-      , [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "3"
-            ]
-        ]
+      [ [ Plain [ Str "Numbered list item 1" ] ]
+      , [ Plain [ Str "Numbered list item 2" ] ]
+      , [ Plain [ Str "Numbered list item 3" ] ]
       ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
-      [ [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1"
-            ]
-        ]
-      , [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "2"
-            ]
-        ]
-      , [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "3"
-            ]
-        ]
-      ]
-  , OrderedList
-      ( 1 , DefaultStyle , DefaultDelim )
-      [ [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1"
-            ]
-        ]
-      , [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "2"
-            ]
-        ]
-      , [ Plain
-            [ Str "Numbered"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "3"
-            ]
-        ]
+      [ [ Plain [ Str "Numbered list item 1" ] ]
+      , [ Plain [ Str "Numbered list item 2" ] ]
+      , [ Plain [ Str "Numbered list item 3" ] ]
       ]
   , BulletList
-      [ [ Plain
-            [ Str "Bulleted"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "1"
-            ]
-        ]
-      , [ Plain
-            [ Str "Bulleted"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "2"
-            ]
+      [ [ Plain [ Str "Bulleted list item 1" ] ]
+      , [ Plain [ Str "Bulleted list item 2" ]
         , OrderedList
             ( 1 , DefaultStyle , DefaultDelim )
-            [ [ Plain
-                  [ Str "Numbered"
-                  , Space
-                  , Str "list"
-                  , Space
-                  , Str "sub"
-                  , Space
-                  , Str "item"
-                  , Space
-                  , Str "1"
-                  ]
-              ]
-            , [ Plain [ Str "more" , Space , Str "..." ]
+            [ [ Plain [ Str "Numbered list sub item 1" ] ]
+            , [ Plain [ Str "more ..." ]
               , BulletList
-                  [ [ Plain
-                        [ Str "and"
-                        , Space
-                        , Str "more"
-                        , Space
-                        , Str "..."
-                        ]
-                    ]
+                  [ [ Plain [ Str "and more ..." ] ]
                   , [ Plain [ Str "..." ] ]
                   ]
               ]
-            , [ Plain
-                  [ Str "Numbered"
-                  , Space
-                  , Str "list"
-                  , Space
-                  , Str "sub"
-                  , Space
-                  , Str "item"
-                  , Space
-                  , Str "3"
-                  ]
+            , [ Plain [ Str "Numbered list sub item 3" ]
               , OrderedList
                   ( 1 , DefaultStyle , DefaultDelim )
-                  [ [ Plain
-                        [ Str "Numbered"
-                        , Space
-                        , Str "list"
-                        , Space
-                        , Str "sub"
-                        , Space
-                        , Str "sub"
-                        , Space
-                        , Str "item"
-                        , Space
-                        , Str "1"
-                        ]
-                    ]
-                  , [ Plain
-                        [ Str "Numbered"
-                        , Space
-                        , Str "list"
-                        , Space
-                        , Str "sub"
-                        , Space
-                        , Str "sub"
-                        , Space
-                        , Str "item"
-                        , Space
-                        , Str "2"
-                        ]
-                    ]
+                  [ [ Plain [ Str "Numbered list sub sub item 1" ] ]
+                  , [ Plain [ Str "Numbered list sub sub item 2" ] ]
                   ]
               ]
             , [ Plain [ Str "etc." ] ]
             ]
         ]
-      , [ Plain
-            [ Str "Bulleted"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "3"
-            ]
-        ]
+      , [ Plain [ Str "Bulleted list item 3" ] ]
       ]
-  , Header
-      2
-      ( "todo lists" , [] , [] )
-      [ Str "todo" , Space , Str "lists" ]
+  , Header 2 ( "todo lists" , [] , [] ) [ Str "todo lists" ]
   , BulletList
       [ [ Plain
-            [ Span ( "" , [ "done0" ] , [] ) []
-            , Str "task"
-            , Space
-            , Str "1"
-            ]
+            [ Span ( "" , [ "done0" ] , [] ) [] , Str "task 1" ]
         , OrderedList
             ( 1 , DefaultStyle , DefaultDelim )
             [ [ Plain [ Span ( "" , [ "done1" ] , [] ) [] , Str "5" ] ]
             ]
         ]
       , [ Plain [ Span ( "" , [ "done2" ] , [] ) [] , Str "3" ] ]
-      , [ Plain
-            [ Str "[]"
-            , Space
-            , Str "not"
-            , Space
-            , Str "a"
-            , Space
-            , Str "todo"
-            , Space
-            , Str "item"
-            ]
-        ]
-      , [ Plain
-            [ Str "["
-            , Space
-            , Str "]not"
-            , Space
-            , Str "a"
-            , Space
-            , Str "todo"
-            , Space
-            , Str "item"
-            ]
-        ]
-      , [ Plain
-            [ Str "[r]"
-            , Space
-            , Str "not"
-            , Space
-            , Str "a"
-            , Space
-            , Str "todo"
-            , Space
-            , Str "item"
-            ]
-        ]
-      , [ Plain
-            [ Str "["
-            , Space
-            , Str "]"
-            , Space
-            , Str "not"
-            , Space
-            , Str "a"
-            , Space
-            , Str "todo"
-            , Space
-            , Str "item"
-            ]
-        ]
+      , [ Plain [ Str "[] not a todo item" ] ]
+      , [ Plain [ Str "[ ]not a todo item" ] ]
+      , [ Plain [ Str "[r] not a todo item" ] ]
+      , [ Plain [ Str "[ ] not a todo item" ] ]
       , [ Plain
             [ Span ( "" , [ "done2" ] , [] ) []
-            , Str "a"
-            , Space
-            , Str "tab"
-            , Space
-            , Str "in"
-            , Space
-            , Str "the"
-            , Space
-            , Str "todo"
-            , Space
-            , Str "list"
-            , Space
-            , Str "marker"
-            , Space
+            , Str "a tab in the todo list marker "
             , Code ( "" , [] , [] ) "[ ]"
             ]
         , OrderedList
@@ -1591,11 +632,7 @@ Pandoc
             ]
         ]
       , [ Plain
-            [ Span ( "" , [ "done4" ] , [] ) []
-            , Str "task"
-            , Space
-            , Str "2"
-            ]
+            [ Span ( "" , [ "done4" ] , [] ) [] , Str "task 2" ]
         ]
       ]
   , Header 2 ( "math" , [] , [] ) [ Str "math" ]
@@ -1607,29 +644,9 @@ Pandoc
           "\\begin{aligned}\n\\sum_i a_i^2 &= 1 + 1 \\\\\n&= 2.\n\\end{aligned}"
       ]
   , Para
-      [ Str "edge"
-      , Space
-      , Str "case"
-      , Space
-      , Str "(the"
-      , Space
+      [ Str "edge case (the "
       , Code ( "" , [] , [] ) "c^2 + "
-      , Space
-      , Str "after"
-      , Space
-      , Str "the"
-      , Space
-      , Str "multline"
-      , Space
-      , Str "tag"
-      , Space
-      , Str "is"
-      , Space
-      , Str "in"
-      , Space
-      , Str "the"
-      , Space
-      , Str "equation):"
+      , Str " after the multline tag is in the equation):"
       ]
   , Para
       [ Math
@@ -1637,16 +654,7 @@ Pandoc
           "\\begin{gathered}\nc^2 + \na^2 + b^2\n\\end{gathered}"
       ]
   , Para
-      [ Str "edge"
-      , Space
-      , Str "case"
-      , Space
-      , Str "(the"
-      , Space
-      , Str "tag"
-      , Space
-      , Str "is"
-      , Space
+      [ Str "edge case (the tag is "
       , Code ( "" , [] , [] ) "hello%bye"
       , Str ")"
       ]
@@ -1655,41 +663,17 @@ Pandoc
           DisplayMath
           "\\begin{hello%bye}\n\\int_a^b f(x) dx\n\\end{hello%bye}"
       ]
+  , Para [ Str "Just two dollar signs: $$" ]
   , Para
-      [ Str "Just"
-      , Space
-      , Str "two"
-      , Space
-      , Str "dollar"
-      , Space
-      , Str "signs:"
-      , Space
-      , Str "$$"
-      ]
-  , Para
-      [ Str "[not"
-      , Space
-      , Str "math]"
-      , Space
-      , Str "You"
-      , Space
-      , Str "have"
-      , Space
-      , Str "$1"
+      [ Str "[not math] You have $1"
       , SoftBreak
-      , Str "and"
-      , Space
-      , Str "I"
-      , Space
-      , Str "have"
-      , Space
-      , Str "$1."
+      , Str "and I have $1."
       ]
   , Header 2 ( "tags" , [] , [] ) [ Str "tags" ]
   , Para
       [ Span ( "-tag-one" , [] , [] ) [ Str "" ]
       , Span ( "tag-one" , [ "tag" ] , [] ) [ Str "tag-one" ]
-      , Space
+      , Str " "
       , Span ( "-tag-two" , [] , [] ) [ Str "" ]
       , Span ( "tag-two" , [ "tag" ] , [] ) [ Str "tag-two" ]
       ]
@@ -1716,13 +700,13 @@ Pandoc
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Plain [ Str "Temperature" , Space , Str "(low)" ] ]
+                 [ Plain [ Str "Temperature (low)" ] ]
              , Cell
                  ( "" , [] , [] )
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 1)
-                 [ Plain [ Str "Temperature" , Space , Str "(high)" ] ]
+                 [ Plain [ Str "Temperature (high)" ] ]
              ]
          ])
       [ TableBody
@@ -1840,12 +824,7 @@ Pandoc
   , Header
       3
       ( "centered headerless tables" , [] , [] )
-      [ Str "centered"
-      , Space
-      , Str "headerless"
-      , Space
-      , Str "tables"
-      ]
+      [ Str "centered headerless tables" ]
   , Div
       ( "" , [ "center" ] , [] )
       [ Table
@@ -1912,249 +891,91 @@ Pandoc
       ]
   , Header 2 ( "paragraphs" , [] , [] ) [ Str "paragraphs" ]
   , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "first"
-      , Space
-      , Str "paragraph"
+      [ Str "This is first paragraph"
       , SoftBreak
-      , Str "with"
-      , Space
-      , Str "two"
-      , Space
-      , Str "lines."
+      , Str "with two lines."
       ]
   , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "second"
-      , Space
-      , Str "paragraph"
-      , Space
-      , Str "with"
+      [ Str "This is a second paragraph with"
       , SoftBreak
-      , Str "two"
-      , Space
-      , Str "lines"
-      , Space
-      , Str "after"
-      , Space
-      , Str "many"
-      , Space
-      , Str "blank"
-      , Space
-      , Str "lines."
+      , Str "two lines after many blank lines."
       ]
   , Header
-      2
-      ( "definition list" , [] , [] )
-      [ Str "definition" , Space , Str "list" ]
+      2 ( "definition list" , [] , [] ) [ Str "definition list" ]
   , DefinitionList
-      [ ( [ Str "Term" , Space , Str "1" ]
-        , [ [ Plain [ Str "Definition" , Space , Str "1" ] ] ]
+      [ ( [ Str "Term 1" ]
+        , [ [ Plain [ Str "Definition 1" ] ] ]
         )
-      , ( [ Str "Term" , Space , Str "2" ]
-        , [ [ Plain [ Str "Definition" , Space , Str "2" ] ]
-          , [ Plain [ Str "Definition" , Space , Str "3" ] ]
+      , ( [ Str "Term 2" ]
+        , [ [ Plain [ Str "Definition 2" ] ]
+          , [ Plain [ Str "Definition 3" ] ]
           ]
         )
-      , ( [ Str "Term"
-          , Space
-          , Str "::"
-          , Space
+      , ( [ Str "Term :: "
           , Span ( "separated" , [] , [] ) []
           , Strong [ Str "separated" ]
-          , Space
-          , Str "by"
-          , Space
-          , Str "::"
-          , Space
-          , Emph [ Str "double" , Space , Str "colons" ]
+          , Str " by :: "
+          , Emph [ Str "double colons" ]
           ]
         , [ [ Plain [ Str "Def1" ] ] , [ Plain [ Str "Def2" ] ] ]
         )
-      , ( [ Str "Term"
-          , Space
-          , Str "with"
-          , Space
-          , Str "lots"
-          , Space
-          , Str "of"
-          , Space
-          , Str "trailing"
-          , Space
-          , Str "colons:::::::"
-          ]
+      , ( [ Str "Term with lots of trailing colons:::::::" ]
         , [ [ Plain [ Str "Definition" ] ] ]
         )
-      , ( [ Str "::"
-          , Space
-          , Str "This"
-          , Space
-          , Str "is"
-          , Space
-          , Str "::"
-          , Space
-          , Str "A"
-          , Space
-          , Str "term"
-          , Space
-          , Str "(rather"
-          , Space
-          , Str "than"
-          , Space
-          , Str "a"
-          , Space
-          , Str "definition)"
+      , ( [ Str ":: This is :: A term (rather than a definition)"
           ]
-        , [ [ Plain
-                [ Str "and"
-                , Space
-                , Str "this"
-                , Space
-                , Str "is"
-                , Space
-                , Str "a"
-                , Space
-                , Str "definition"
-                ]
-            ]
-          ]
+        , [ [ Plain [ Str "and this is a definition" ] ] ]
         )
-      , ( [ Str "Term"
-          , Space
-          , Str "Without"
-          , Space
-          , Str "definitions"
-          ]
-        , [ [] ]
-        )
-      , ( [ Str "Part"
-          , Space
-          , Str "::"
-          , Space
-          , Str "of"
-          , Space
-          , Str "::"
-          , Space
-          , Str "dt"
-          ]
-        , [ [ Plain
-                [ Str "part" , Space , Str "of" , Space , Str "::dd" ]
-            ]
-          ]
+      , ( [ Str "Term Without definitions" ] , [ [] ] )
+      , ( [ Str "Part :: of :: dt" ]
+        , [ [ Plain [ Str "part of ::dd" ] ] ]
         )
       ]
   , DefinitionList
       [ ( []
-        , [ [ Plain
-                [ Str "Definition"
-                , Space
-                , Str "1"
-                , Space
-                , Str "without"
-                , Space
-                , Str "a"
-                , Space
-                , Str "term"
-                ]
-            ]
-          , [ Plain
-                [ Str "Definition"
-                , Space
-                , Str "2"
-                , Space
-                , Str "without"
-                , Space
-                , Str "a"
-                , Space
-                , Str "term"
-                ]
-            ]
+        , [ [ Plain [ Str "Definition 1 without a term" ] ]
+          , [ Plain [ Str "Definition 2 without a term" ] ]
           ]
         )
       ]
   , DefinitionList
       [ ( [ Str "T1" ] , [ [ Plain [ Str "D1" ] ] ] ) ]
-  , Para [ Str "new" , Space , Str "paragraph" ]
+  , Para [ Str "new paragraph" ]
   , DefinitionList
       [ ( [ Str "T1" ] , [ [ Plain [ Str "D1" ] ] ] ) ]
   , Para [ Str "Not::Definition" ]
-  , Para [ Str "Not" , Space , Str "::Definition" ]
-  , Para [ Str "::Not" , Space , Str "definition" ]
-  , BlockQuote
-      [ Plain [ Str "::" , Space , Str "blockquote" ] ]
-  , BlockQuote
-      [ Plain
-          [ Str "block" , Space , Str "::" , Space , Str "quote" ]
-      ]
+  , Para [ Str "Not ::Definition" ]
+  , Para [ Str "::Not definition" ]
+  , BlockQuote [ Plain [ Str ":: blockquote" ] ]
+  , BlockQuote [ Plain [ Str "block :: quote" ] ]
   , Header
       2
       ( "metadata placeholders" , [] , [] )
-      [ Str "metadata" , Space , Str "placeholders" ]
-  , Para
-      [ Str "%this"
-      , Space
-      , Str "is"
-      , Space
-      , Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "placeholder"
-      ]
+      [ Str "metadata placeholders" ]
+  , Para [ Str "%this is not a placeholder" ]
   , Para
       [ Str "placeholders"
       , SoftBreak
-      , Str "serves"
-      , Space
-      , Str "as"
-      , Space
-      , Str "space"
-      , Space
-      , Str "/"
-      , Space
-      , Str "softbreak"
-      , Space
-      , Str "in"
-      , Space
-      , Str "paragraphs"
+      , Str "serves as space / softbreak in paragraphs"
       ]
-  , Header
-      2
-      ( "sup, sub" , [] , [] )
-      [ Str "sup," , Space , Str "sub" ]
+  , Header 2 ( "sup, sub" , [] , [] ) [ Str "sup, sub" ]
   , Para [ Str "super" , Superscript [ Str "script" ] ]
   , Para [ Str "sub" , Subscript [ Str "script" ] ]
   , Header
-      2
-      ( "the todo mark" , [] , [] )
-      [ Str "the" , Space , Str "todo" , Space , Str "mark" ]
+      2 ( "the todo mark" , [] , [] ) [ Str "the todo mark" ]
   , Para [ Span ( "" , [ "todo" ] , [] ) [ Str "TODO:" ] ]
   , Header
       1
       ( "not implemented yet" , [] , [] )
       [ Emph
           [ Span ( "not implemented yet" , [] , [] ) []
-          , Strong
-              [ Str "not"
-              , Space
-              , Str "implemented"
-              , Space
-              , Str "yet"
-              ]
+          , Strong [ Str "not implemented yet" ]
           ]
       ]
   , Header
       2
       ( "tables with spans" , [] , [] )
-      [ Str "tables" , Space , Str "with" , Space , Str "spans" ]
+      [ Str "tables with spans" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -2311,18 +1132,7 @@ Pandoc
   , Header
       2
       ( "tables with multiple lines of headers" , [] , [] )
-      [ Str "tables"
-      , Space
-      , Str "with"
-      , Space
-      , Str "multiple"
-      , Space
-      , Str "lines"
-      , Space
-      , Str "of"
-      , Space
-      , Str "headers"
-      ]
+      [ Str "tables with multiple lines of headers" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -2402,28 +1212,13 @@ Pandoc
   , Header
       2
       ( "some other placeholders" , [] , [] )
-      [ Str "some"
-      , Space
-      , Str "other"
-      , Space
-      , Str "placeholders"
-      ]
+      [ Str "some other placeholders" ]
   , Para
       [ Code ( "" , [] , [] ) "template"
-      , Space
-      , Str "placeholder"
-      , Space
-      , Str "is"
-      , Space
-      , Str "ignored."
+      , Str " placeholder is ignored."
       ]
   , Para
       [ Code ( "" , [] , [] ) "nohtml"
-      , Space
-      , Str "placeholder"
-      , Space
-      , Str "is"
-      , Space
-      , Str "ignored."
+      , Str " placeholder is ignored."
       ]
   ]

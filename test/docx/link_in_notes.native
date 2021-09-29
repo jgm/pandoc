@@ -1,1 +1,15 @@
-[Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "test",Note [Para [Link ("",[],[]) [Str "http://wikipedia.org/"] ("http://wikipedia.org/","")]],Str "."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str "This is a test"
+      , Note
+          [ Para
+              [ Link
+                  ( "" , [] , [] )
+                  [ Str "http://wikipedia.org/" ]
+                  ( "http://wikipedia.org/" , "" )
+              ]
+          ]
+      , Str "."
+      ]
+  ]

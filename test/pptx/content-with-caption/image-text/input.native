@@ -1,2 +1,10 @@
-[Para [Image ("",[],[]) [Str "The",Space,Str "picture",Space,Str "first"] ("lalune.jpg","fig:")]
-,Para [Str "Then",Space,Str "some",Space,Str "text",Space,Str "here"]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Image
+          ( "" , [] , [] )
+          [ Str "The picture first" ]
+          ( "lalune.jpg" , "fig:" )
+      ]
+  , Para [ Str "Then some text here" ]
+  ]

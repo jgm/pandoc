@@ -1,4 +1,10 @@
-[Para [Str "I",Space,Str "want",Space,Str "some",Space,Str "text",Space,Str "to",Space,Str "have",Space,Str "a",Space,Str "comment",Space,Str "on",Space,Str "it."]
-,Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "new",Space,Str "paragraph."]
-,Para [Str "And",Space,Str "so",Space,Str "is",Space,Str "this."]
-,Para [Str "One",Space,Str "more.",Space,Str "And",Space,Str "this",Space,Str "is",Space,Str "one",Space,Str "with",Space,Str "a",Space,Str "comment",Space,Str "in",Space,Str "a",Space,Str "comment."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para [ Str "I want some text to have a comment on it." ]
+  , Para [ Str "This is a new paragraph." ]
+  , Para [ Str "And so is this." ]
+  , Para
+      [ Str
+          "One more. And this is one with a comment in a comment."
+      ]
+  ]

@@ -1,18 +1,3 @@
 Pandoc
   Meta { unMeta = fromList [] }
-  [ Para
-      [ Str "le"
-      , Space
-      , Str "caf\233"
-      , Space
-      , Str "o\249"
-      , Space
-      , Str "on"
-      , Space
-      , Str "ne"
-      , Space
-      , Str "fume"
-      , Space
-      , Str "pas"
-      ]
-  ]
+  [ Para [ Str "le caf\233 o\249 on ne fume pas" ] ]

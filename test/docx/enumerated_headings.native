@@ -1,4 +1,7 @@
-[Header 1 ("h1",[],[]) [Str "H1"]
-,Header 2 ("h2",[],[]) [Str "H2"]
-,Header 3 ("h3",[],[]) [Str "H3"]
-,Para [Str "And",Space,Str "some",Space,Str "text"]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 1 ( "h1" , [] , [] ) [ Str "H1" ]
+  , Header 2 ( "h2" , [] , [] ) [ Str "H2" ]
+  , Header 3 ( "h3" , [] , [] ) [ Str "H3" ]
+  , Para [ Str "And some text" ]
+  ]

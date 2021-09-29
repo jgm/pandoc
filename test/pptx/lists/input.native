@@ -1,18 +1,32 @@
-[Header 1 ("lists",[],[]) [Str "Lists"]
-,BulletList
- [[Para [Str "Bulleted",Space,Str "bulleted",Space,Str "lists."]]
- ,[Para [Str "And",Space,Str "go",Space,Str "to",Space,Str "arbitrary",Space,Str "depth."]
-  ,BulletList
-   [[Para [Str "Like",Space,Str "this"]
-    ,BulletList
-     [[Plain [Str "Or",Space,Str "this"]]]]
-   ,[Para [Str "Back",Space,Str "to",Space,Str "here."]]]]]
-,Header 1 ("lists-continued",[],[]) [Str "Lists",Space,Str "(continued)"]
-,Para [Str "Lists",Space,Str "can",Space,Str "also",Space,Str "be",Space,Str "numbered:"]
-,OrderedList (1,Decimal,Period)
- [[Para [Str "Tomatoes"]]
- ,[Para [Str "Potatoes",Space,Str "of",Space,Str "various",Space,Str "sorts"]
-  ,OrderedList (1,LowerAlpha,Period)
-   [[Para [Str "sweet",Space,Str "potatoes"]]
-   ,[Para [Str "russet",Space,Str "potates"]]]]
- ,[Para [Str "Tornadoes,",Space,Str "for",Space,Str "the",Space,Str "rhyme."]]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 1 ( "lists" , [] , [] ) [ Str "Lists" ]
+  , BulletList
+      [ [ Para [ Str "Bulleted bulleted lists." ] ]
+      , [ Para [ Str "And go to arbitrary depth." ]
+        , BulletList
+            [ [ Para [ Str "Like this" ]
+              , BulletList [ [ Plain [ Str "Or this" ] ] ]
+              ]
+            , [ Para [ Str "Back to here." ] ]
+            ]
+        ]
+      ]
+  , Header
+      1
+      ( "lists-continued" , [] , [] )
+      [ Str "Lists (continued)" ]
+  , Para [ Str "Lists can also be numbered:" ]
+  , OrderedList
+      ( 1 , Decimal , Period )
+      [ [ Para [ Str "Tomatoes" ] ]
+      , [ Para [ Str "Potatoes of various sorts" ]
+        , OrderedList
+            ( 1 , LowerAlpha , Period )
+            [ [ Para [ Str "sweet potatoes" ] ]
+            , [ Para [ Str "russet potates" ] ]
+            ]
+        ]
+      , [ Para [ Str "Tornadoes, for the rhyme." ] ]
+      ]
+  ]

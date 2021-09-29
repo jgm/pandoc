@@ -2,164 +2,70 @@ Pandoc
   Meta
     { unMeta =
         fromList
-          [ ( "title"
-            , MetaInlines
-                [ Str "An"
-                , Space
-                , Str "Example"
-                , Space
-                , Str "Book"
-                ]
-            )
-          ]
+          [ ( "title" , MetaInlines [ Str "An Example Book" ] ) ]
     }
-  [ Header
-      1
-      ( "ch01" , [] , [] )
-      [ Str "XRef" , Space , Str "Samples" ]
+  [ Header 1 ( "ch01" , [] , [] ) [ Str "XRef Samples" ]
   , Para
-      [ Str "This"
-      , Space
-      , Str "paragraph"
-      , Space
-      , Str "demonstrates"
-      , Space
-      , Str "several"
-      , Space
-      , Str "features"
-      , Space
-      , Str "of"
+      [ Str "This paragraph demonstrates several features of"
       , SoftBreak
       , Str "XRef."
       ]
   , BulletList
       [ [ Para
-            [ Str "A"
-            , Space
-            , Str "straight"
-            , Space
-            , Str "link"
-            , Space
-            , Str "generates"
-            , Space
-            , Str "the"
+            [ Str "A straight link generates the"
             , SoftBreak
-            , Str "cross-reference"
-            , Space
-            , Str "text:"
-            , Space
+            , Str "cross-reference text: "
             , Link
                 ( "" , [] , [] )
-                [ Str "The"
-                , Space
-                , Str "Second"
-                , Space
-                , Str "Chapter"
-                ]
+                [ Str "The Second Chapter" ]
                 ( "#ch02" , "" )
             , Str "."
             ]
         ]
       , [ Para
-            [ Str "A"
-            , Space
-            , Str "link"
-            , Space
-            , Str "to"
-            , Space
-            , Str "an"
-            , Space
-            , Str "element"
-            , Space
-            , Str "with"
-            , Space
-            , Str "an"
+            [ Str "A link to an element with an"
             , SoftBreak
             , Str "XRefLabel:"
             , SoftBreak
             , Link
                 ( "" , [] , [] )
-                [ Str "Chapter"
-                , Space
-                , Str "the"
-                , Space
-                , Str "Third"
-                ]
+                [ Str "Chapter the Third" ]
                 ( "#ch03" , "" )
             , Str "."
             ]
         ]
       , [ Para
-            [ Str "A"
-            , Space
-            , Str "link"
-            , Space
-            , Str "with"
-            , Space
-            , Str "an"
+            [ Str "A link with an"
             , SoftBreak
             , Str "EndTerm:"
             , SoftBreak
-            , Link
-                ( "" , [] , [] )
-                [ Str "Chapter" , Space , Str "4" ]
-                ( "#ch04" , "" )
+            , Link ( "" , [] , [] ) [ Str "Chapter 4" ] ( "#ch04" , "" )
             , Str "."
             ]
         ]
       , [ Para
-            [ Str "A"
-            , Space
-            , Str "link"
-            , Space
-            , Str "to"
-            , Space
-            , Str "an"
+            [ Str "A link to an"
             , SoftBreak
-            , Str "cmdsynopsis"
-            , Space
-            , Str "element:"
-            , Space
+            , Str "cmdsynopsis element: "
             , Link ( "" , [] , [] ) [ Str "chgrp" ] ( "#cmd01" , "" )
             , Str "."
             ]
         ]
       , [ Para
-            [ Str "A"
-            , Space
-            , Str "link"
-            , Space
-            , Str "to"
-            , Space
-            , Str "an"
+            [ Str "A link to an"
             , SoftBreak
-            , Str "funcsynopsis"
-            , Space
-            , Str "element:"
-            , Space
+            , Str "funcsynopsis element: "
             , Link ( "" , [] , [] ) [ Str "max" ] ( "#func01" , "" )
             , Str "."
             ]
         ]
       ]
-  , Header
-      1
-      ( "ch02" , [] , [] )
-      [ Str "The" , Space , Str "Second" , Space , Str "Chapter" ]
-  , Para
-      [ Str "Some" , Space , Str "content" , Space , Str "here" ]
-  , Header
-      1
-      ( "ch03" , [] , [] )
-      [ Str "The" , Space , Str "Third" , Space , Str "Chapter" ]
-  , Para
-      [ Str "Some" , Space , Str "content" , Space , Str "here" ]
-  , Header
-      1
-      ( "ch04" , [] , [] )
-      [ Str "The" , Space , Str "Fourth" , Space , Str "Chapter" ]
-  , Para
-      [ Str "Some" , Space , Str "content" , Space , Str "here" ]
+  , Header 1 ( "ch02" , [] , [] ) [ Str "The Second Chapter" ]
+  , Para [ Str "Some content here" ]
+  , Header 1 ( "ch03" , [] , [] ) [ Str "The Third Chapter" ]
+  , Para [ Str "Some content here" ]
+  , Header 1 ( "ch04" , [] , [] ) [ Str "The Fourth Chapter" ]
+  , Para [ Str "Some content here" ]
   , Plain [ Str "chgrp" ]
   , Plain [ Str "-R" ]
   , Plain [ Str "-H" ]

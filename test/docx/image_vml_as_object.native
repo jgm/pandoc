@@ -1,2 +1,6 @@
-[Para [Str "Test",Space,Str "with",Space,Str "object",Space,Str "as",Space,Str "image:"]
-,Para [Image ("",[],[]) [] ("media/image1.emf","")]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para [ Str "Test with object as image:" ]
+  , Para
+      [ Image ( "" , [] , [] ) [] ( "media/image1.emf" , "" ) ]
+  ]

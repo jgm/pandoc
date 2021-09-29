@@ -1,9 +1,20 @@
-Pandoc (Meta {unMeta = fromList []})
-[Header 1 ("two-column-layout",[],[]) [Str "Two-Column",Space,Str "Layout"]
-,Div ("",["columns"],[])
- [Div ("",["column"],[])
-  [Para [Str "One",Space,Str "paragraph."]
-  ,Para [Str "Another",Space,Str "paragraph."]]
- ,Div ("",["column"],[])
-  [Para [Str "Second",Space,Str "column",Space,Str "paragraph."]
-  ,Para [Str "Another",Space,Str "second",Space,Str "paragraph."]]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header
+      1
+      ( "two-column-layout" , [] , [] )
+      [ Str "Two-Column Layout" ]
+  , Div
+      ( "" , [ "columns" ] , [] )
+      [ Div
+          ( "" , [ "column" ] , [] )
+          [ Para [ Str "One paragraph." ]
+          , Para [ Str "Another paragraph." ]
+          ]
+      , Div
+          ( "" , [ "column" ] , [] )
+          [ Para [ Str "Second column paragraph." ]
+          , Para [ Str "Another second paragraph." ]
+          ]
+      ]
+  ]

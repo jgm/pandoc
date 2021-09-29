@@ -1,3 +1,20 @@
-Pandoc (Meta {unMeta = fromList []})
-[Header 1 ("test",[],[]) [Str "Test"]
-,Para [Str "This",Space,Str "is",Space,Emph [Str "italic"],Str ",",Space,Strong [Str "bold"],Str ",",Space,Underline [Str "underlined"],Str ",",Space,Emph [Underline [Str "italic",Space,Str "underlined"]],Str ",",Space,Strong [Underline [Str "bold",Space,Str "underlined"]],Str ",",Space,Emph [Strong [Underline [Str "bold",Space,Str "italic",Space,Str "underlined"]]],Str "."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header 1 ( "test" , [] , [] ) [ Str "Test" ]
+  , Para
+      [ Str "This is "
+      , Emph [ Str "italic" ]
+      , Str ", "
+      , Strong [ Str "bold" ]
+      , Str ", "
+      , Underline [ Str "underlined" ]
+      , Str ", "
+      , Emph [ Underline [ Str "italic underlined" ] ]
+      , Str ", "
+      , Strong [ Underline [ Str "bold underlined" ] ]
+      , Str ", "
+      , Emph
+          [ Strong [ Underline [ Str "bold italic underlined" ] ] ]
+      , Str "."
+      ]
+  ]

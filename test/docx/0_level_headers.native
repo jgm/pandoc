@@ -1,52 +1,123 @@
-[Table ("",[],[]) (Caption Nothing
- [])
- [(AlignDefault,ColWidth 1.0)]
- (TableHead ("",[],[])
- [])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    []]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "User\8217s",Space,Str "Guide"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    []]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    []]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    []]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "11",Space,Str "August",Space,Str "2017"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    []]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    []]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    []]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    []]])]
- (TableFoot ("",[],[])
- [])
-,Para [Str "CONTENTS"]
-,Para [Strong [Str "Section",Space,Str "Page"]]
-,Para [Str "FIGURES",Space,Str "iv"]
-,Para [Str "TABLES",Space,Str "v"]
-,Para [Str "SECTION",Space,Str "1",Space,Str "Introduction",Space,Str "2"]
-,Header 1 ("figures",["Heading-0"],[]) [Str "FIGURES"]
-,Para [Strong [Str "Figure",Space,Str "Page"]]
-,Para [Strong [Str "No",Space,Str "table",Space,Str "of",Space,Str "figures",Space,Str "entries",Space,Str "found."]]
-,Header 1 ("tables",["Heading-0"],[]) [Str "TABLES"]
-,Para [Strong [Str "Table",Space,Str "Page"]]
-,Para [Strong [Str "No",Space,Str "table",Space,Str "of",Space,Str "figures",Space,Str "entries",Space,Str "found."]]
-,Header 1 ("introduction",[],[]) [Str "Introduction"]
-,Para [Str "Nothing",Space,Str "to",Space,Str "introduce,",Space,Str "yet."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidth 1.0 ) ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  []
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "User\8217s Guide" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  []
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  []
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  []
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "11 August 2017" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  []
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  []
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  []
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  []
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para [ Str "CONTENTS" ]
+  , Para [ Strong [ Str "Section Page" ] ]
+  , Para [ Str "FIGURES iv" ]
+  , Para [ Str "TABLES v" ]
+  , Para [ Str "SECTION 1 Introduction 2" ]
+  , Header
+      1 ( "figures" , [ "Heading-0" ] , [] ) [ Str "FIGURES" ]
+  , Para [ Strong [ Str "Figure Page" ] ]
+  , Para
+      [ Strong [ Str "No table of figures entries found." ] ]
+  , Header
+      1 ( "tables" , [ "Heading-0" ] , [] ) [ Str "TABLES" ]
+  , Para [ Strong [ Str "Table Page" ] ]
+  , Para
+      [ Strong [ Str "No table of figures entries found." ] ]
+  , Header
+      1 ( "introduction" , [] , [] ) [ Str "Introduction" ]
+  , Para [ Str "Nothing to introduce, yet." ]
+  ]

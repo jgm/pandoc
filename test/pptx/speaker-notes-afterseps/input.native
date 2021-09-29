@@ -1,63 +1,164 @@
-[Para [Image ("",[],[]) [Str "The",Space,Str "moon"] ("lalune.jpg","fig:")]
-,Div ("",["notes"],[])
- [Para [Str "chicken",Space,Str "and",Space,Str "dumplings"]]
-,Table ("",[],[]) (Caption Nothing
- [Para [Str "Demonstration",Space,Str "of",Space,Str "simple",Space,Str "table",Space,Str "syntax,",Space,Str "with",Space,Str "alignment"]])
- [(AlignRight,ColWidthDefault)
- ,(AlignLeft,ColWidthDefault)
- ,(AlignCenter,ColWidthDefault)
- ,(AlignDefault,ColWidthDefault)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "Right"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "Left"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "Center"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "Default"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "12"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "12"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "12"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "12"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "123"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "123"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "123"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "123"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "1"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "1"]]]])]
- (TableFoot ("",[],[])
- [])
-,Div ("",["notes"],[])
- [Para [Str "foo",Space,Str "bar"]]
-,Div ("",["columns"],[])
- [Div ("",["column"],[])
-  [BulletList
-   [[Para [Str "some",Space,Str "stuff"]]
-   ,[Para [Str "some",Space,Str "more",Space,Str "stuff"]]]
-  ,Div ("",["notes"],[])
-   [Para [Str "Some",Space,Str "notes",Space,Str "inside",Space,Str "a",Space,Str "column"]]]
- ,Div ("",["column"],[])
-  [Para [Str "Some",Space,Str "other",Space,Emph [Str "stuff"]]]]
-,Div ("",["notes"],[])
- [Para [Str "Some",Space,Str "notes",Space,Str "outside",Space,Str "the",Space,Str "column"]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Image
+          ( "" , [] , [] )
+          [ Str "The moon" ]
+          ( "lalune.jpg" , "fig:" )
+      ]
+  , Div
+      ( "" , [ "notes" ] , [] )
+      [ Para [ Str "chicken and dumplings" ] ]
+  , Table
+      ( "" , [] , [] )
+      (Caption
+         Nothing
+         [ Para
+             [ Str
+                 "Demonstration of simple table syntax, with alignment"
+             ]
+         ])
+      [ ( AlignRight , ColWidthDefault )
+      , ( AlignLeft , ColWidthDefault )
+      , ( AlignCenter , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Right" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Left" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Center" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Default" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Div ( "" , [ "notes" ] , [] ) [ Para [ Str "foo bar" ] ]
+  , Div
+      ( "" , [ "columns" ] , [] )
+      [ Div
+          ( "" , [ "column" ] , [] )
+          [ BulletList
+              [ [ Para [ Str "some stuff" ] ]
+              , [ Para [ Str "some more stuff" ] ]
+              ]
+          , Div
+              ( "" , [ "notes" ] , [] )
+              [ Para [ Str "Some notes inside a column" ] ]
+          ]
+      , Div
+          ( "" , [ "column" ] , [] )
+          [ Para [ Str "Some other " , Emph [ Str "stuff" ] ] ]
+      ]
+  , Div
+      ( "" , [ "notes" ] , [] )
+      [ Para [ Str "Some notes outside the column" ] ]
+  ]

@@ -1,2 +1,5 @@
-[Para [Strong [Str "Foo",Space,Str "bar."]]
-,Para [Str "Fizz",Space,Str "pop."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para [ Strong [ Str "Foo bar." ] ]
+  , Para [ Str "Fizz pop." ]
+  ]

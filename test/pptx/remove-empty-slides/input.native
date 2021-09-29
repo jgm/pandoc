@@ -1,5 +1,12 @@
-[Para [Str "Content"]
-,Para [Image ("",[],[]) [] ("lalune.jpg",""),Space,RawInline (Format "html") "<!--  -->"]
-,HorizontalRule
-,HorizontalRule
-,Para [Str "More",Space,Str "content"]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para [ Str "Content" ]
+  , Para
+      [ Image ( "" , [] , [] ) [] ( "lalune.jpg" , "" )
+      , Str " "
+      , RawInline (Format "html") "<!--  -->"
+      ]
+  , HorizontalRule
+  , HorizontalRule
+  , Para [ Str "More content" ]
+  ]

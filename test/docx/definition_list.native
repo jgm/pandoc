@@ -1,7 +1,14 @@
-[DefinitionList
- [([Str "Term",Space,Str "1"],
-   [[Para [Str "Definition",Space,Str "1"]]])
- ,([Str "Term",Space,Str "2",Space,Str "with",Space,Emph [Str "inline",Space,Str "markup"]],
-   [[Para [Str "Definition",Space,Str "2"]
-    ,CodeBlock ("",[],[]) "{ some code, part of Definition 2 }"
-    ,Para [Str "Third",Space,Str "paragraph",Space,Str "of",Space,Str "definition",Space,Str "2."]]])]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ DefinitionList
+      [ ( [ Str "Term 1" ] , [ [ Para [ Str "Definition 1" ] ] ] )
+      , ( [ Str "Term 2 with " , Emph [ Str "inline markup" ] ]
+        , [ [ Para [ Str "Definition 2" ]
+            , CodeBlock
+                ( "" , [] , [] ) "{ some code, part of Definition 2 }"
+            , Para [ Str "Third paragraph of definition 2." ]
+            ]
+          ]
+        )
+      ]
+  ]

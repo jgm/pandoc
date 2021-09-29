@@ -6,35 +6,13 @@ Pandoc
       , []
       , []
       )
-      [ Str "Will"
-      , Space
-      , Str "appear"
-      , Space
-      , Str "because"
-      , Space
-      , Str "it"
-      , Space
-      , Str "is"
-      , Space
-      , Str "the"
-      , Space
-      , Str "ancestor"
-      , Space
-      , Str "of"
-      , Space
-      , Str "something"
-      , Space
-      , Str "tagged"
-      , Space
-      , Str "\"yes\""
+      [ Str
+          "Will appear because it is the ancestor of something tagged \"yes\""
       ]
   , Header
       2
       ( "will-appear" , [] , [] )
-      [ Str "Will"
-      , Space
-      , Str "appear"
-      , Space
+      [ Str "Will appear "
       , Span
           ( "" , [ "tag" ] , [ ( "tag-name" , "yes" ) ] )
           [ SmallCaps [ Str "yes" ] ]
@@ -45,59 +23,19 @@ Pandoc
       , []
       , []
       )
-      [ Str "Will"
-      , Space
-      , Str "appear"
-      , Space
-      , Str "since"
-      , Space
-      , Str "the"
-      , Space
-      , Str "entire"
-      , Space
-      , Str "subtree"
-      , Space
-      , Str "of"
-      , Space
-      , Str "something"
-      , Space
-      , Str "selected"
-      , Space
-      , Str "will"
-      , Space
-      , Str "appear"
+      [ Str
+          "Will appear since the entire subtree of something selected will appear"
       ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
-      [ [ Para [ Str "Will" , Space , Str "appear" ] ] ]
+      [ [ Para [ Str "Will appear" ] ] ]
   , Header
       2
       ( "will-appear-because-it-is-the-ancestor-of-something-listed-in-select-tags"
       , []
       , []
       )
-      [ Str "Will"
-      , Space
-      , Str "appear"
-      , Space
-      , Str "because"
-      , Space
-      , Str "it"
-      , Space
-      , Str "is"
-      , Space
-      , Str "the"
-      , Space
-      , Str "ancestor"
-      , Space
-      , Str "of"
-      , Space
-      , Str "something"
-      , Space
-      , Str "listed"
-      , Space
-      , Str "in"
-      , Space
-      , Str "SELECT-TAGS"
+      [ Str
+          "Will appear because it is the ancestor of something listed in SELECT-TAGS"
       ]
   ]

@@ -1,1 +1,32 @@
-Pandoc (Meta {unMeta = fromList []}) [OrderedList (1,Decimal,Period) [[Plain [Str "A",Space,Str "list",Space,Str "item"]],[Plain [Str "A",Space,Str "second"]],[Para [Str "A",Space,Str "third"],OrderedList (1,Decimal,Period) [[Para [Str "New",Space,Str "level!"],OrderedList (1,Decimal,Period) [[Plain [Str "And",Space,Str "another!"]],[Plain [Str "It's",Space,Str "great",Space,Str "up",Space,Str "here!"]]]],[Plain [Str "Oh",Space,Str "noes"]],[Plain [Str "We",Space,Str "fell!"]]]],[Plain [Str "Maybe",Space,Str "someone"]],[Plain [Str "Pushed",Space,Str "us?"]]],Para [],OrderedList (4,Decimal,Period) [[Plain [Str "Start",Space,Str "new",Space,Str "list,",Space,Str "but",Space,Str "a",Space,Str "different",Space,Str "starting",Space,Str "point."]] ,[Plain [Str "Because",Space,Str "we",Space,Str "can."]]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ OrderedList
+      ( 1 , Decimal , Period )
+      [ [ Plain [ Str "A list item" ] ]
+      , [ Plain [ Str "A second" ] ]
+      , [ Para [ Str "A third" ]
+        , OrderedList
+            ( 1 , Decimal , Period )
+            [ [ Para [ Str "New level!" ]
+              , OrderedList
+                  ( 1 , Decimal , Period )
+                  [ [ Plain [ Str "And another!" ] ]
+                  , [ Plain [ Str "It's great up here!" ] ]
+                  ]
+              ]
+            , [ Plain [ Str "Oh noes" ] ]
+            , [ Plain [ Str "We fell!" ] ]
+            ]
+        ]
+      , [ Plain [ Str "Maybe someone" ] ]
+      , [ Plain [ Str "Pushed us?" ] ]
+      ]
+  , Para []
+  , OrderedList
+      ( 4 , Decimal , Period )
+      [ [ Plain
+            [ Str "Start new list, but a different starting point." ]
+        ]
+      , [ Plain [ Str "Because we can." ] ]
+      ]
+  ]

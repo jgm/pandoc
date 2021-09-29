@@ -1,2 +1,15 @@
-[Para [Str "An",Space,Str "image:"]
-,Para [Image ("",[],[("width","0.4166666666666667in"),("height","0.4166666666666667in")]) [Str "He",Space,Str "realizes",Space,Str "he's",Space,Str "making",Space,Str "the",Space,Str "file-size",Space,Str "too",Space,Str "big."] ("media/rId25.jpg","An unhappy fish.")]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para [ Str "An image:" ]
+  , Para
+      [ Image
+          ( ""
+          , []
+          , [ ( "width" , "0.4166666666666667in" )
+            , ( "height" , "0.4166666666666667in" )
+            ]
+          )
+          [ Str "He realizes he's making the file-size too big." ]
+          ( "media/rId25.jpg" , "An unhappy fish." )
+      ]
+  ]

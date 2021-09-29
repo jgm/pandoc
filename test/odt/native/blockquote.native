@@ -1,1 +1,5 @@
-[Para [Str "Normal"],BlockQuote [Para [Str "Indented",Space,Str "(1cm)"]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para [ Str "Normal" ]
+  , BlockQuote [ Para [ Str "Indented (1cm)" ] ]
+  ]

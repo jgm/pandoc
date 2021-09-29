@@ -1,973 +1,827 @@
-[ Para
-    [ Str "Simple"
-    , Space
-    , Str "table"
-    , Space
-    , Str "with"
-    , Space
-    , Str "caption:"
-    ]
-, Table
-    ( "" , [] , [] )
-    (Caption
-       Nothing
-       [ Plain
-           [ Str "Demonstration"
-           , Space
-           , Str "of"
-           , Space
-           , Str "simple"
-           , Space
-           , Str "table"
-           , Space
-           , Str "syntax."
-           ]
-       ])
-    [ ( AlignDefault , ColWidthDefault )
-    , ( AlignDefault , ColWidthDefault )
-    , ( AlignDefault , ColWidthDefault )
-    , ( AlignDefault , ColWidthDefault )
-    ]
-    (TableHead
-       ( "" , [] , [] )
-       [ Row
-           ( "" , [] , [] )
-           [ Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Right" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Left" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Center" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Default" ] ]
-           ]
-       ])
-    [ TableBody
-        ( "" , [] , [] )
-        (RowHeadColumns 0)
-        []
-        [ Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            ]
-        , Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            ]
-        , Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            ]
-        ]
-    ]
-    (TableFoot ( "" , [] , [] ) [])
-, Para
-    [ Str "Simple"
-    , Space
-    , Str "table"
-    , Space
-    , Str "without"
-    , Space
-    , Str "caption:"
-    ]
-, Table
-    ( "" , [] , [] )
-    (Caption Nothing [])
-    [ ( AlignDefault , ColWidthDefault )
-    , ( AlignDefault , ColWidthDefault )
-    , ( AlignDefault , ColWidthDefault )
-    , ( AlignDefault , ColWidthDefault )
-    ]
-    (TableHead
-       ( "" , [] , [] )
-       [ Row
-           ( "" , [] , [] )
-           [ Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Right" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Left" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Center" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Default" ] ]
-           ]
-       ])
-    [ TableBody
-        ( "" , [] , [] )
-        (RowHeadColumns 0)
-        []
-        [ Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            ]
-        , Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            ]
-        , Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            ]
-        ]
-    ]
-    (TableFoot ( "" , [] , [] ) [])
-, Para
-    [ Str "Simple"
-    , Space
-    , Str "table"
-    , Space
-    , Str "indented"
-    , Space
-    , Str "two"
-    , Space
-    , Str "spaces:"
-    ]
-, Table
-    ( "" , [] , [] )
-    (Caption
-       Nothing
-       [ Plain
-           [ Str "Demonstration"
-           , Space
-           , Str "of"
-           , Space
-           , Str "simple"
-           , Space
-           , Str "table"
-           , Space
-           , Str "syntax."
-           ]
-       ])
-    [ ( AlignDefault , ColWidthDefault )
-    , ( AlignDefault , ColWidthDefault )
-    , ( AlignDefault , ColWidthDefault )
-    , ( AlignDefault , ColWidthDefault )
-    ]
-    (TableHead
-       ( "" , [] , [] )
-       [ Row
-           ( "" , [] , [] )
-           [ Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Right" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Left" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Center" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Default" ] ]
-           ]
-       ])
-    [ TableBody
-        ( "" , [] , [] )
-        (RowHeadColumns 0)
-        []
-        [ Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            ]
-        , Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            ]
-        , Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            ]
-        ]
-    ]
-    (TableFoot ( "" , [] , [] ) [])
-, Para
-    [ Str "Multiline"
-    , Space
-    , Str "table"
-    , Space
-    , Str "with"
-    , Space
-    , Str "caption:"
-    ]
-, Table
-    ( "" , [] , [] )
-    (Caption
-       Nothing
-       [ Plain
-           [ Str "Here\8217s"
-           , Space
-           , Str "the"
-           , Space
-           , Str "caption."
-           , Space
-           , Str "It"
-           , Space
-           , Str "may"
-           , Space
-           , Str "span"
-           , Space
-           , Str "multiple"
-           , Space
-           , Str "lines."
-           ]
-       ])
-    [ ( AlignDefault , ColWidth 0.15 )
-    , ( AlignDefault , ColWidth 0.1375 )
-    , ( AlignDefault , ColWidth 0.1625 )
-    , ( AlignDefault , ColWidth 0.35 )
-    ]
-    (TableHead
-       ( "" , [] , [] )
-       [ Row
-           ( "" , [] , [] )
-           [ Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Centered" , SoftBreak , Str "Header" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Left" , SoftBreak , Str "Aligned" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Right" , SoftBreak , Str "Aligned" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Default" , Space , Str "aligned" ] ]
-           ]
-       ])
-    [ TableBody
-        ( "" , [] , [] )
-        (RowHeadColumns 0)
-        []
-        [ Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "First" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "row" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12.0" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain
-                    [ Str "Example"
-                    , Space
-                    , Str "of"
-                    , Space
-                    , Str "a"
-                    , Space
-                    , Str "row"
-                    , Space
-                    , Str "that"
-                    , SoftBreak
-                    , Str "spans"
-                    , Space
-                    , Str "multiple"
-                    , Space
-                    , Str "lines."
-                    ]
-                ]
-            ]
-        , Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "Second" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "row" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "5.0" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain
-                    [ Str "Here\8217s"
-                    , Space
-                    , Str "another"
-                    , Space
-                    , Str "one."
-                    , Space
-                    , Str "Note"
-                    , SoftBreak
-                    , Str "the"
-                    , Space
-                    , Str "blank"
-                    , Space
-                    , Str "line"
-                    , Space
-                    , Str "between"
-                    , SoftBreak
-                    , Str "rows."
-                    ]
-                ]
-            ]
-        ]
-    ]
-    (TableFoot ( "" , [] , [] ) [])
-, Para
-    [ Str "Multiline"
-    , Space
-    , Str "table"
-    , Space
-    , Str "without"
-    , Space
-    , Str "caption:"
-    ]
-, Table
-    ( "" , [] , [] )
-    (Caption Nothing [])
-    [ ( AlignDefault , ColWidth 0.15 )
-    , ( AlignDefault , ColWidth 0.1375 )
-    , ( AlignDefault , ColWidth 0.1625 )
-    , ( AlignDefault , ColWidth 0.35 )
-    ]
-    (TableHead
-       ( "" , [] , [] )
-       [ Row
-           ( "" , [] , [] )
-           [ Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Centered" , SoftBreak , Str "Header" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Left" , SoftBreak , Str "Aligned" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Right" , SoftBreak , Str "Aligned" ] ]
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               [ Plain [ Str "Default" , Space , Str "aligned" ] ]
-           ]
-       ])
-    [ TableBody
-        ( "" , [] , [] )
-        (RowHeadColumns 0)
-        []
-        [ Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "First" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "row" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12.0" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain
-                    [ Str "Example"
-                    , Space
-                    , Str "of"
-                    , Space
-                    , Str "a"
-                    , Space
-                    , Str "row"
-                    , Space
-                    , Str "that"
-                    , SoftBreak
-                    , Str "spans"
-                    , Space
-                    , Str "multiple"
-                    , Space
-                    , Str "lines."
-                    ]
-                ]
-            ]
-        , Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "Second" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "row" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "5.0" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain
-                    [ Str "Here\8217s"
-                    , Space
-                    , Str "another"
-                    , Space
-                    , Str "one."
-                    , Space
-                    , Str "Note"
-                    , SoftBreak
-                    , Str "the"
-                    , Space
-                    , Str "blank"
-                    , Space
-                    , Str "line"
-                    , Space
-                    , Str "between"
-                    , SoftBreak
-                    , Str "rows."
-                    ]
-                ]
-            ]
-        ]
-    ]
-    (TableFoot ( "" , [] , [] ) [])
-, Para
-    [ Str "Table"
-    , Space
-    , Str "without"
-    , Space
-    , Str "column"
-    , Space
-    , Str "headers:"
-    ]
-, Table
-    ( "" , [] , [] )
-    (Caption Nothing [])
-    [ ( AlignDefault , ColWidthDefault )
-    , ( AlignDefault , ColWidthDefault )
-    , ( AlignDefault , ColWidthDefault )
-    , ( AlignDefault , ColWidthDefault )
-    ]
-    (TableHead
-       ( "" , [] , [] )
-       [ Row
-           ( "" , [] , [] )
-           [ Cell ( "" , [] , [] ) AlignDefault (RowSpan 1) (ColSpan 1) []
-           , Cell ( "" , [] , [] ) AlignDefault (RowSpan 1) (ColSpan 1) []
-           , Cell ( "" , [] , [] ) AlignDefault (RowSpan 1) (ColSpan 1) []
-           , Cell ( "" , [] , [] ) AlignDefault (RowSpan 1) (ColSpan 1) []
-           ]
-       ])
-    [ TableBody
-        ( "" , [] , [] )
-        (RowHeadColumns 0)
-        []
-        [ Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12" ] ]
-            ]
-        , Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "123" ] ]
-            ]
-        , Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "1" ] ]
-            ]
-        ]
-    ]
-    (TableFoot ( "" , [] , [] ) [])
-, Para
-    [ Str "Multiline"
-    , Space
-    , Str "table"
-    , Space
-    , Str "without"
-    , Space
-    , Str "column"
-    , Space
-    , Str "headers:"
-    ]
-, Table
-    ( "" , [] , [] )
-    (Caption Nothing [])
-    [ ( AlignDefault , ColWidth 0.15 )
-    , ( AlignDefault , ColWidth 0.1375 )
-    , ( AlignDefault , ColWidth 0.1625 )
-    , ( AlignDefault , ColWidth 0.35 )
-    ]
-    (TableHead ( "" , [] , [] ) [])
-    [ TableBody
-        ( "" , [] , [] )
-        (RowHeadColumns 0)
-        []
-        [ Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "First" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "row" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "12.0" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain
-                    [ Str "Example"
-                    , Space
-                    , Str "of"
-                    , Space
-                    , Str "a"
-                    , Space
-                    , Str "row"
-                    , Space
-                    , Str "that"
-                    , SoftBreak
-                    , Str "spans"
-                    , Space
-                    , Str "multiple"
-                    , Space
-                    , Str "lines."
-                    ]
-                ]
-            ]
-        , Row
-            ( "" , [] , [] )
-            [ Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "Second" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "row" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain [ Str "5.0" ] ]
-            , Cell
-                ( "" , [] , [] )
-                AlignDefault
-                (RowSpan 1)
-                (ColSpan 1)
-                [ Plain
-                    [ Str "Here\8217s"
-                    , Space
-                    , Str "another"
-                    , Space
-                    , Str "one."
-                    , Space
-                    , Str "Note"
-                    , SoftBreak
-                    , Str "the"
-                    , Space
-                    , Str "blank"
-                    , Space
-                    , Str "line"
-                    , Space
-                    , Str "between"
-                    , SoftBreak
-                    , Str "rows."
-                    ]
-                ]
-            ]
-        ]
-    ]
-    (TableFoot ( "" , [] , [] ) [])
-]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para [ Str "Simple table with caption:" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption
+         Nothing
+         [ Plain [ Str "Demonstration of simple table syntax." ] ])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Right" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Left" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Center" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Default" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para [ Str "Simple table without caption:" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Right" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Left" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Center" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Default" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para [ Str "Simple table indented two spaces:" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption
+         Nothing
+         [ Plain [ Str "Demonstration of simple table syntax." ] ])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Right" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Left" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Center" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Default" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para [ Str "Multiline table with caption:" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption
+         Nothing
+         [ Plain
+             [ Str "Here\8217s the caption. It may span multiple lines."
+             ]
+         ])
+      [ ( AlignDefault , ColWidth 0.15 )
+      , ( AlignDefault , ColWidth 0.1375 )
+      , ( AlignDefault , ColWidth 0.1625 )
+      , ( AlignDefault , ColWidth 0.35 )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Centered" , SoftBreak , Str "Header" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Left" , SoftBreak , Str "Aligned" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Right" , SoftBreak , Str "Aligned" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Default aligned" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "First" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "row" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12.0" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "Example of a row that"
+                      , SoftBreak
+                      , Str "spans multiple lines."
+                      ]
+                  ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Second" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "row" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "5.0" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "Here\8217s another one. Note"
+                      , SoftBreak
+                      , Str "the blank line between"
+                      , SoftBreak
+                      , Str "rows."
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para [ Str "Multiline table without caption:" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidth 0.15 )
+      , ( AlignDefault , ColWidth 0.1375 )
+      , ( AlignDefault , ColWidth 0.1625 )
+      , ( AlignDefault , ColWidth 0.35 )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Centered" , SoftBreak , Str "Header" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Left" , SoftBreak , Str "Aligned" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Right" , SoftBreak , Str "Aligned" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Default aligned" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "First" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "row" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12.0" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "Example of a row that"
+                      , SoftBreak
+                      , Str "spans multiple lines."
+                      ]
+                  ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Second" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "row" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "5.0" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "Here\8217s another one. Note"
+                      , SoftBreak
+                      , Str "the blank line between"
+                      , SoftBreak
+                      , Str "rows."
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para [ Str "Table without column headers:" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "123" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para [ Str "Multiline table without column headers:" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidth 0.15 )
+      , ( AlignDefault , ColWidth 0.1375 )
+      , ( AlignDefault , ColWidth 0.1625 )
+      , ( AlignDefault , ColWidth 0.35 )
+      ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "First" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "row" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "12.0" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "Example of a row that"
+                      , SoftBreak
+                      , Str "spans multiple lines."
+                      ]
+                  ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Second" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "row" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "5.0" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "Here\8217s another one. Note"
+                      , SoftBreak
+                      , Str "the blank line between"
+                      , SoftBreak
+                      , Str "rows."
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  ]

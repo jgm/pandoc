@@ -1,2 +1,27 @@
-Pandoc (Meta {unMeta = fromList [("author",MetaList [MetaInlines [Str "A.",Space,Str "M."]]),("description",MetaInlines [Str "Short",Space,RawInline (Format "html") "<i>",Str "description",RawInline (Format "html") "</i>",Space,Str "&."]),("keywords",MetaList [MetaInlines [Str "keyword",Space,Str "1"],MetaInlines [Str "keyword",Space,Str "2"]]),("subject",MetaInlines [Str "This",Space,Str "is",Space,Str "the",Space,Str "subject"]),("title",MetaInlines [Str "Testing",Space,Str "custom",Space,Str "properties"])]})
-[Para [Str "Testing",Space,Str "document",Space,Str "properties"]]
+Pandoc
+  Meta
+    { unMeta =
+        fromList
+          [ ( "author" , MetaList [ MetaInlines [ Str "A. M." ] ] )
+          , ( "description"
+            , MetaInlines
+                [ Str "Short "
+                , RawInline (Format "html") "<i>"
+                , Str "description"
+                , RawInline (Format "html") "</i>"
+                , Str " &."
+                ]
+            )
+          , ( "keywords"
+            , MetaList
+                [ MetaInlines [ Str "keyword 1" ]
+                , MetaInlines [ Str "keyword 2" ]
+                ]
+            )
+          , ( "subject" , MetaInlines [ Str "This is the subject" ] )
+          , ( "title"
+            , MetaInlines [ Str "Testing custom properties" ]
+            )
+          ]
+    }
+  [ Para [ Str "Testing document properties" ] ]

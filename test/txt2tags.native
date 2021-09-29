@@ -5,379 +5,73 @@ Pandoc
           [ ( "author" , MetaList [ MetaInlines [ Str "author" ] ] )
           , ( "date" , MetaInlines [ Str "date" ] )
           , ( "includeconf" , MetaString "rules.conf" )
-          , ( "title"
-            , MetaInlines
-                [ Str "Txt2tags"
-                , Space
-                , Str "Markup"
-                , Space
-                , Str "Rules"
-                ]
-            )
+          , ( "title" , MetaInlines [ Str "Txt2tags Markup Rules" ] )
           ]
     }
   [ Para
-      [ Str "This"
-      , Space
-      , Str "document"
-      , Space
-      , Str "describes"
-      , Space
-      , Str "all"
-      , Space
-      , Str "the"
-      , Space
-      , Str "details"
-      , Space
-      , Str "about"
-      , Space
-      , Str "each"
-      , Space
-      , Str "txt2tags"
-      , Space
-      , Str "mark."
+      [ Str
+          "This document describes all the details about each txt2tags mark."
       , SoftBreak
-      , Str "The"
-      , Space
-      , Str "target"
-      , Space
-      , Str "audience"
-      , Space
-      , Str "are"
-      , Space
+      , Str "The target audience are "
       , Strong [ Str "experienced" ]
-      , Space
-      , Str "users."
-      , Space
-      , Str "You"
-      , Space
-      , Str "may"
-      , Space
-      , Str "find"
-      , Space
-      , Str "it"
+      , Str " users. You may find it"
       , SoftBreak
-      , Str "useful"
-      , Space
-      , Str "if"
-      , Space
-      , Str "you"
-      , Space
-      , Str "want"
-      , Space
-      , Str "to"
-      , Space
-      , Str "master"
-      , Space
-      , Str "the"
-      , Space
-      , Str "marks"
-      , Space
-      , Str "or"
-      , Space
-      , Str "solve"
-      , Space
-      , Str "a"
-      , Space
-      , Str "specific"
-      , Space
-      , Str "problem"
+      , Str
+          "useful if you want to master the marks or solve a specific problem"
       , SoftBreak
-      , Str "about"
-      , Space
-      , Str "a"
-      , Space
-      , Str "mark."
+      , Str "about a mark."
       ]
   , Para
-      [ Str "If"
-      , Space
-      , Str "you"
-      , Space
-      , Str "are"
-      , Space
-      , Str "new"
-      , Space
-      , Str "to"
-      , Space
-      , Str "txt2tags"
-      , Space
-      , Str "or"
-      , Space
-      , Str "just"
-      , Space
-      , Str "want"
-      , Space
-      , Str "to"
-      , Space
-      , Str "know"
-      , Space
-      , Str "which"
-      , Space
-      , Str "are"
-      , Space
-      , Str "the"
+      [ Str
+          "If you are new to txt2tags or just want to know which are the"
       , SoftBreak
-      , Str "available"
-      , Space
-      , Str "marks,"
-      , Space
-      , Str "please"
-      , Space
-      , Str "read"
-      , Space
-      , Str "the"
-      , Space
+      , Str "available marks, please read the "
       , Link
-          ( "" , [] , [] )
-          [ Str "Markup" , Space , Str "Demo" ]
-          ( "MARKUPDEMO" , "" )
+          ( "" , [] , [] ) [ Str "Markup Demo" ] ( "MARKUPDEMO" , "" )
       , Str "."
       ]
   , Para
-      [ Str "Note"
-      , Space
-      , Str "1:"
-      , Space
-      , Str "This"
-      , Space
-      , Str "document"
-      , Space
-      , Str "is"
-      , Space
-      , Str "generated"
-      , Space
-      , Str "directly"
-      , Space
-      , Str "from"
-      , Space
-      , Str "the"
-      , Space
-      , Str "txt2tags"
+      [ Str
+          "Note 1: This document is generated directly from the txt2tags"
       , SoftBreak
-      , Str "test-suite."
-      , Space
-      , Str "All"
-      , Space
-      , Str "the"
-      , Space
-      , Str "rules"
-      , Space
-      , Str "mentioned"
-      , Space
-      , Str "here"
-      , Space
-      , Str "are"
-      , Space
-      , Str "100%"
-      , Space
-      , Str "in"
-      , Space
-      , Str "sync"
-      , Space
-      , Str "with"
-      , Space
-      , Str "the"
+      , Str
+          "test-suite. All the rules mentioned here are 100% in sync with the"
       , SoftBreak
-      , Str "current"
-      , Space
-      , Str "program"
-      , Space
-      , Str "code."
+      , Str "current program code."
       ]
   , Para
-      [ Str "Note"
-      , Space
-      , Str "2:"
-      , Space
-      , Str "A"
-      , Space
-      , Str "good"
-      , Space
-      , Str "practice"
-      , Space
-      , Str "is"
-      , Space
-      , Str "to"
-      , Space
-      , Str "consult"
-      , Space
+      [ Str "Note 2: A good practice is to consult "
       , Link
-          ( "" , [] , [] )
-          [ Str "the" , Space , Str "sources" ]
-          ( "rules.t2t" , "" )
-      , Space
-      , Str "when"
+          ( "" , [] , [] ) [ Str "the sources" ] ( "rules.t2t" , "" )
+      , Str " when"
       , SoftBreak
-      , Str "reading,"
-      , Space
-      , Str "to"
-      , Space
-      , Str "see"
-      , Space
-      , Str "how"
-      , Space
-      , Str "the"
-      , Space
-      , Str "texts"
-      , Space
-      , Str "were"
-      , Space
-      , Str "made."
+      , Str "reading, to see how the texts were made."
       ]
-  , Para
-      [ Str "Table" , Space , Str "of" , Space , Str "Contents:" ]
+  , Para [ Str "Table of Contents:" ]
   , HorizontalRule
   , Header 1 ( "paragraph" , [] , [] ) [ Str "Paragraph" ]
   , Para
-      [ Str "A"
-      , Space
-      , Str "paragraph"
-      , Space
-      , Str "is"
-      , Space
-      , Str "composed"
-      , Space
-      , Str "by"
-      , Space
-      , Str "one"
-      , Space
-      , Str "or"
-      , Space
-      , Str "more"
-      , Space
-      , Str "lines."
+      [ Str "A paragraph is composed by one or more lines."
       , SoftBreak
-      , Str "A"
-      , Space
-      , Str "blank"
-      , Space
-      , Str "line"
-      , Space
-      , Str "(or"
-      , Space
-      , Str "a"
-      , Space
-      , Str "table,"
-      , Space
-      , Str "or"
-      , Space
-      , Str "a"
-      , Space
-      , Str "list)"
-      , Space
-      , Str "ends"
-      , Space
-      , Str "the"
+      , Str "A blank line (or a table, or a list) ends the"
       , SoftBreak
-      , Str "current"
-      , Space
-      , Str "paragraph."
+      , Str "current paragraph."
+      ]
+  , Para [ Str "Leading and trailing spaces are ignored." ]
+  , Para
+      [ Str "A comment line can be placed inside a paragraph."
+      , SoftBreak
+      , Str "It will not affect it."
       ]
   , Para
-      [ Str "Leading"
-      , Space
-      , Str "and"
-      , Space
-      , Str "trailing"
-      , Space
-      , Str "spaces"
-      , Space
-      , Str "are"
-      , Space
-      , Str "ignored."
-      ]
-  , Para
-      [ Str "A"
-      , Space
-      , Str "comment"
-      , Space
-      , Str "line"
-      , Space
-      , Str "can"
-      , Space
-      , Str "be"
-      , Space
-      , Str "placed"
-      , Space
-      , Str "inside"
-      , Space
-      , Str "a"
-      , Space
-      , Str "paragraph."
+      [ Str "The end of the file (EOF) closes the"
       , SoftBreak
-      , Str "It"
-      , Space
-      , Str "will"
-      , Space
-      , Str "not"
-      , Space
-      , Str "affect"
-      , Space
-      , Str "it."
-      ]
-  , Para
-      [ Str "The"
-      , Space
-      , Str "end"
-      , Space
-      , Str "of"
-      , Space
-      , Str "the"
-      , Space
-      , Str "file"
-      , Space
-      , Str "(EOF)"
-      , Space
-      , Str "closes"
-      , Space
-      , Str "the"
-      , SoftBreak
-      , Str "currently"
-      , Space
-      , Str "open"
-      , Space
-      , Str "paragraph."
+      , Str "currently open paragraph."
       ]
   , Header 1 ( "comment" , [] , [] ) [ Str "Comment" ]
+  , Para [ Str "% not on the line beginning (at column 2)" ]
   , Para
-      [ Str "%"
-      , Space
-      , Str "not"
-      , Space
-      , Str "on"
-      , Space
-      , Str "the"
-      , Space
-      , Str "line"
-      , Space
-      , Str "beginning"
-      , Space
-      , Str "(at"
-      , Space
-      , Str "column"
-      , Space
-      , Str "2)"
-      ]
-  , Para
-      [ Str "some"
-      , Space
-      , Str "text"
-      , Space
-      , Str "%"
-      , Space
-      , Str "half"
-      , Space
-      , Str "line"
-      , Space
-      , Str "comments"
-      , Space
-      , Str "are"
-      , Space
-      , Str "not"
-      , Space
-      , Str "allowed"
-      ]
+      [ Str "some text % half line comments are not allowed" ]
   , Header 1 ( "line" , [] , [] ) [ Str "Line" ]
   , HorizontalRule
   , HorizontalRule
@@ -393,426 +87,226 @@ Pandoc
   , Para
       [ Strikeout [ Str "-----" ]
       , SoftBreak
-      , Strikeout [ Str "-------" , Space , Str "--------" ]
+      , Strikeout [ Str "------- --------" ]
       ]
   , Para [ Strikeout [ Str "-------+--------" ] ]
   , Para
-      [ Str "("
-      , Space
+      [ Str "( "
       , Strikeout [ Str "----------------" ]
-      , Space
-      , Str ")"
+      , Str " )"
       ]
   , Header 1 ( "inline" , [] , [] ) [ Str "Inline" ]
   , Para
-      [ Str "i)"
-      , Space
+      [ Str "i) "
       , Strong [ Str "b" ]
-      , Space
+      , Str " "
       , Emph [ Str "i" ]
-      , Space
+      , Str " "
       , Underline [ Str "u" ]
-      , Space
+      , Str " "
       , Strikeout [ Str "s" ]
-      , Space
+      , Str " "
       , Code ( "" , [] , [] ) "m"
-      , Space
-      , Str "r"
-      , Space
+      , Str " r "
       , RawInline (Format "html") "t"
       , SoftBreak
-      , Str "i)"
-      , Space
+      , Str "i) "
       , Strong [ Str "bo" ]
-      , Space
+      , Str " "
       , Emph [ Str "it" ]
-      , Space
+      , Str " "
       , Underline [ Str "un" ]
-      , Space
+      , Str " "
       , Strikeout [ Str "st" ]
-      , Space
+      , Str " "
       , Code ( "" , [] , [] ) "mo"
-      , Space
-      , Str "ra"
-      , Space
+      , Str " ra "
       , RawInline (Format "html") "tg"
       , SoftBreak
-      , Str "i)"
-      , Space
+      , Str "i) "
       , Strong [ Str "bold" ]
-      , Space
+      , Str " "
       , Emph [ Str "ital" ]
-      , Space
+      , Str " "
       , Underline [ Str "undr" ]
-      , Space
+      , Str " "
       , Strikeout [ Str "strk" ]
-      , Space
+      , Str " "
       , Code ( "" , [] , [] ) "mono"
-      , Space
-      , Str "raw"
-      , Space
+      , Str " raw "
       , RawInline (Format "html") "tggd"
       , SoftBreak
-      , Str "i)"
-      , Space
-      , Strong [ Str "bo" , Space , Str "ld" ]
-      , Space
-      , Emph [ Str "it" , Space , Str "al" ]
-      , Space
-      , Underline [ Str "un" , Space , Str "dr" ]
-      , Space
-      , Strikeout [ Str "st" , Space , Str "rk" ]
-      , Space
+      , Str "i) "
+      , Strong [ Str "bo ld" ]
+      , Str " "
+      , Emph [ Str "it al" ]
+      , Str " "
+      , Underline [ Str "un dr" ]
+      , Str " "
+      , Strikeout [ Str "st rk" ]
+      , Str " "
       , Code ( "" , [] , [] ) "mo no"
-      , Space
-      , Str "r"
-      , Space
-      , Str "aw"
-      , Space
+      , Str " r aw "
       , RawInline (Format "html") "tg gd"
       , SoftBreak
-      , Str "i)"
-      , Space
-      , Strong [ Str "bo" , Space , Str "*" , Space , Str "ld" ]
-      , Space
-      , Emph [ Str "it" , Space , Str "/" , Space , Str "al" ]
-      , Space
-      , Underline
-          [ Str "un" , Space , Str "_" , Space , Str "dr" ]
-      , Space
-      , Strikeout
-          [ Str "st" , Space , Str "-" , Space , Str "rk" ]
-      , Space
+      , Str "i) "
+      , Strong [ Str "bo * ld" ]
+      , Str " "
+      , Emph [ Str "it / al" ]
+      , Str " "
+      , Underline [ Str "un _ dr" ]
+      , Str " "
+      , Strikeout [ Str "st - rk" ]
+      , Str " "
       , Code ( "" , [] , [] ) "mo ` no"
-      , Space
-      , Str "r"
-      , Space
-      , Str "\""
-      , Space
-      , Str "aw"
-      , Space
+      , Str " r \" aw "
       , RawInline (Format "html") "tg ' gd"
       , SoftBreak
-      , Str "i)"
-      , Space
-      , Strong [ Str "bo" , Space , Str "**ld" ]
-      , Space
-      , Emph [ Str "it" , Space , Str "//al" ]
-      , Space
-      , Underline [ Str "un" , Space , Str "__dr" ]
-      , Space
-      , Strikeout [ Str "st" , Space , Str "--rk" ]
-      , Space
+      , Str "i) "
+      , Strong [ Str "bo **ld" ]
+      , Str " "
+      , Emph [ Str "it //al" ]
+      , Str " "
+      , Underline [ Str "un __dr" ]
+      , Str " "
+      , Strikeout [ Str "st --rk" ]
+      , Str " "
       , Code ( "" , [] , [] ) "mo ``no"
-      , Space
-      , Str "r"
-      , Space
-      , Str "\"\"aw"
-      , Space
+      , Str " r \"\"aw "
       , RawInline (Format "html") "tg ''gd"
       , SoftBreak
-      , Str "i)"
-      , Space
-      , Strong [ Str "bo" , Space , Str "**" , Space , Str "ld" ]
-      , Space
-      , Emph [ Str "it" , Space , Str "//" , Space , Str "al" ]
-      , Space
-      , Underline
-          [ Str "un" , Space , Str "__" , Space , Str "dr" ]
-      , Space
-      , Strikeout
-          [ Str "st" , Space , Str "--" , Space , Str "rk" ]
-      , Space
+      , Str "i) "
+      , Strong [ Str "bo ** ld" ]
+      , Str " "
+      , Emph [ Str "it // al" ]
+      , Str " "
+      , Underline [ Str "un __ dr" ]
+      , Str " "
+      , Strikeout [ Str "st -- rk" ]
+      , Str " "
       , Code ( "" , [] , [] ) "mo `` no"
-      , Space
-      , Str "r"
-      , Space
-      , Str "\"\""
-      , Space
-      , Str "aw"
-      , Space
+      , Str " r \"\" aw "
       , RawInline (Format "html") "tg '' gd"
       , SoftBreak
-      , Str "i)"
-      , Space
+      , Str "i) "
       , Strong [ Str "**bold**" ]
-      , Space
+      , Str " "
       , Emph [ Str "//ital//" ]
-      , Space
+      , Str " "
       , Underline [ Str "__undr__" ]
-      , Space
+      , Str " "
       , Strikeout [ Str "--strk--" ]
-      , Space
+      , Str " "
       , Code ( "" , [] , [] ) "``mono``"
-      , Space
-      , Str "\"\"raw\"\""
-      , Space
+      , Str " \"\"raw\"\" "
       , RawInline (Format "html") "''tggd''"
       , SoftBreak
-      , Str "i)"
-      , Space
+      , Str "i) "
       , Strong [ Str "*bold*" ]
-      , Space
+      , Str " "
       , Emph [ Str "/ital/" ]
-      , Space
+      , Str " "
       , Underline [ Str "_undr_" ]
-      , Space
+      , Str " "
       , Strikeout [ Str "-strk-" ]
-      , Space
+      , Str " "
       , Code ( "" , [] , [] ) "`mono`"
-      , Space
-      , Str "\"raw\""
-      , Space
+      , Str " \"raw\" "
       , RawInline (Format "html") "'tggd'"
       ]
   , Para
-      [ Str "i)"
-      , Space
+      [ Str "i) "
       , Strong [ Str "*" ]
-      , Space
+      , Str " "
       , Emph [ Str "/" ]
-      , Space
+      , Str " "
       , Underline [ Str "_" ]
-      , Space
+      , Str " "
       , Strikeout [ Str "-" ]
-      , Space
+      , Str " "
       , Code ( "" , [] , [] ) "`"
-      , Space
-      , Str "\""
-      , Space
+      , Str " \" "
       , RawInline (Format "html") "'"
       , SoftBreak
-      , Str "i)"
-      , Space
+      , Str "i) "
       , Strong [ Str "**" ]
-      , Space
+      , Str " "
       , Emph [ Str "//" ]
-      , Space
+      , Str " "
       , Underline [ Str "__" ]
-      , Space
+      , Str " "
       , Strikeout [ Str "--" ]
-      , Space
+      , Str " "
       , Code ( "" , [] , [] ) "``"
-      , Space
-      , Str "\"\""
-      , Space
+      , Str " \"\" "
       , RawInline (Format "html") "''"
       , SoftBreak
-      , Str "i)"
-      , Space
+      , Str "i) "
       , Strong [ Str "***" ]
-      , Space
+      , Str " "
       , Emph [ Str "///" ]
-      , Space
+      , Str " "
       , Underline [ Str "___" ]
-      , Space
+      , Str " "
       , Strikeout [ Str "---" ]
-      , Space
+      , Str " "
       , Code ( "" , [] , [] ) "```"
-      , Space
-      , Str "\"\"\""
-      , Space
+      , Str " \"\"\" "
       , RawInline (Format "html") "'''"
       , SoftBreak
-      , Str "i)"
-      , Space
+      , Str "i) "
       , Strong [ Str "****" ]
-      , Space
+      , Str " "
       , Emph [ Str "////" ]
-      , Space
+      , Str " "
       , Underline [ Str "____" ]
-      , Space
+      , Str " "
       , Strikeout [ Str "----" ]
-      , Space
+      , Str " "
       , Code ( "" , [] , [] ) "````"
-      , Space
-      , Str "\"\"\"\""
-      , Space
+      , Str " \"\"\"\" "
       , RawInline (Format "html") "''''"
       , SoftBreak
-      , Str "i)"
-      , Space
+      , Str "i) "
       , Strong [ Str "*****" ]
-      , Space
+      , Str " "
       , Emph [ Str "/////" ]
-      , Space
+      , Str " "
       , Underline [ Str "_____" ]
-      , Space
+      , Str " "
       , Strikeout [ Str "-----" ]
-      , Space
+      , Str " "
       , Code ( "" , [] , [] ) "`````"
-      , Space
-      , Str "\"\"\"\"\""
-      , Space
+      , Str " \"\"\"\"\" "
       , RawInline (Format "html") "'''''"
       , SoftBreak
-      , Str "i)"
-      , Space
+      , Str "i) "
       , Strong [ Str "******" ]
-      , Space
+      , Str " "
       , Emph [ Str "//////" ]
-      , Space
+      , Str " "
       , Underline [ Str "______" ]
-      , Space
+      , Str " "
       , Strikeout [ Str "------" ]
-      , Space
+      , Str " "
       , Code ( "" , [] , [] ) "``````"
-      , Space
-      , Str "\"\"\"\"\"\""
-      , Space
+      , Str " \"\"\"\"\"\" "
       , RawInline (Format "html") "''''''"
       ]
   , Para
-      [ Str "i)"
-      , Space
-      , Str "****"
-      , Space
-      , Str "////"
-      , Space
-      , Str "____"
-      , Space
-      , Str "----"
-      , Space
-      , Str "````"
-      , Space
-      , Str "\"\"\"\""
-      , Space
-      , Str "''''"
+      [ Str "i) **** //// ____ ---- ```` \"\"\"\" ''''"
       , SoftBreak
-      , Str "i)"
-      , Space
-      , Str "**"
-      , Space
-      , Str "**"
-      , Space
-      , Str "//"
-      , Space
-      , Str "//"
-      , Space
-      , Str "__"
-      , Space
-      , Str "__"
-      , Space
-      , Str "--"
-      , Space
-      , Str "--"
-      , Space
-      , Str "``"
-      , Space
-      , Str "``"
-      , Space
-      , Str "\"\""
-      , Space
-      , Str "\"\""
-      , Space
-      , Str "''"
-      , Space
-      , Str "''"
+      , Str "i) ** ** // // __ __ -- -- `` `` \"\" \"\" '' ''"
       ]
   , Para
-      [ Str "i)"
-      , Space
-      , Str "**"
-      , Space
-      , Str "bold**"
-      , Space
-      , Str "//"
-      , Space
-      , Str "ital//"
-      , Space
-      , Str "__"
-      , Space
-      , Str "undr__"
-      , Space
-      , Str "--"
-      , Space
-      , Str "strk--"
-      , Space
-      , Str "``"
-      , Space
-      , Str "mono``"
-      , Space
-      , Str "\"\""
-      , Space
-      , Str "raw\"\""
-      , Space
-      , Str "''"
-      , Space
-      , Str "tggd''"
+      [ Str
+          "i) ** bold** // ital// __ undr__ -- strk-- `` mono`` \"\" raw\"\" '' tggd''"
       , SoftBreak
-      , Str "i)"
-      , Space
-      , Str "**bold"
-      , Space
-      , Str "**"
-      , Space
-      , Str "//ital"
-      , Space
-      , Str "//"
-      , Space
-      , Str "__undr"
-      , Space
-      , Str "__"
-      , Space
-      , Str "--strk"
-      , Space
-      , Str "--"
-      , Space
-      , Str "``mono"
-      , Space
-      , Str "``"
-      , Space
-      , Str "\"\"raw"
-      , Space
-      , Str "\"\""
-      , Space
-      , Str "''tggd"
-      , Space
-      , Str "''"
+      , Str
+          "i) **bold ** //ital // __undr __ --strk -- ``mono `` \"\"raw \"\" ''tggd ''"
       , SoftBreak
-      , Str "i)"
-      , Space
-      , Str "**"
-      , Space
-      , Str "bold"
-      , Space
-      , Str "**"
-      , Space
-      , Str "//"
-      , Space
-      , Str "ital"
-      , Space
-      , Str "//"
-      , Space
-      , Str "__"
-      , Space
-      , Str "undr"
-      , Space
-      , Str "__"
-      , Space
-      , Str "--"
-      , Space
-      , Str "strk"
-      , Space
-      , Str "--"
-      , Space
-      , Str "``"
-      , Space
-      , Str "mono"
-      , Space
-      , Str "``"
-      , Space
-      , Str "\"\""
-      , Space
-      , Str "raw"
-      , Space
-      , Str "\"\""
-      , Space
-      , Str "''"
-      , Space
-      , Str "tggd"
-      , Space
-      , Str "''"
+      , Str
+          "i) ** bold ** // ital // __ undr __ -- strk -- `` mono `` \"\" raw \"\" '' tggd ''"
       ]
   , Header 1 ( "link" , [] , [] ) [ Str "Link" ]
   , Para
@@ -831,25 +325,14 @@ Pandoc
           ( "" , [] , [] )
           [ Str "mailto:user@domain.com" ]
           ( "user@domain.com" , "" )
-      , Str "."
-      , Space
-      , Str "any"
-      , Space
-      , Str "text."
+      , Str ". any text."
       , SoftBreak
-      , Str "any"
-      , Space
-      , Str "text:"
-      , Space
+      , Str "any text: "
       , Link
           ( "" , [] , [] )
           [ Str "mailto:user@domain.com" ]
           ( "user@domain.com" , "" )
-      , Str "."
-      , Space
-      , Str "any"
-      , Space
-      , Str "text."
+      , Str ". any text."
       , SoftBreak
       , Link
           ( "" , [] , [] ) [ Str "label" ] ( "user@domain.com" , "" )
@@ -945,80 +428,47 @@ Pandoc
           ( "" , [] , [] )
           [ Str "http://www.domain.com." ]
           ( "http://www.domain.com." , "" )
-      , Space
-      , Str "any"
-      , Space
-      , Str "text."
+      , Str " any text."
       , SoftBreak
       , Link
           ( "" , [] , [] )
           [ Str "http://www.domain.com," ]
           ( "http://www.domain.com," , "" )
-      , Space
-      , Str "any"
-      , Space
-      , Str "text."
+      , Str " any text."
       , SoftBreak
       , Link
           ( "" , [] , [] )
           [ Str "http://www.domain.com/dir/." ]
           ( "http://www.domain.com/dir/." , "" )
-      , Space
-      , Str "any"
-      , Space
-      , Str "text."
+      , Str " any text."
       , SoftBreak
-      , Str "any"
-      , Space
-      , Str "text:"
-      , Space
+      , Str "any text: "
       , Link
           ( "" , [] , [] )
           [ Str "http://www.domain.com." ]
           ( "http://www.domain.com." , "" )
-      , Space
-      , Str "any"
-      , Space
-      , Str "text."
+      , Str " any text."
       , SoftBreak
-      , Str "any"
-      , Space
-      , Str "text:"
-      , Space
+      , Str "any text: "
       , Link
           ( "" , [] , [] )
           [ Str "http://www.domain.com/dir/." ]
           ( "http://www.domain.com/dir/." , "" )
-      , Space
-      , Str "any"
-      , Space
-      , Str "text."
+      , Str " any text."
       , SoftBreak
-      , Str "any"
-      , Space
-      , Str "text:"
-      , Space
+      , Str "any text: "
       , Link
           ( "" , [] , [] )
           [ Str "http://www.domain.com/dir/index.html." ]
           ( "http://www.domain.com/dir/index.html." , "" )
-      , Space
-      , Str "any"
-      , Space
-      , Str "text."
+      , Str " any text."
       , SoftBreak
-      , Str "any"
-      , Space
-      , Str "text:"
-      , Space
+      , Str "any text: "
       , Link
           ( "" , [] , [] )
           [ Str "http://www.domain.com/dir/index.html," ]
           ( "http://www.domain.com/dir/index.html," , "" )
-      , Space
-      , Str "any"
-      , Space
-      , Str "text."
+      , Str " any text."
       , SoftBreak
       , Link
           ( "" , [] , [] )
@@ -1039,45 +489,27 @@ Pandoc
           ( "" , [] , [] )
           [ Str "http://www.domain.com/dir/#anchor." ]
           ( "http://www.domain.com/dir/#anchor." , "" )
-      , Space
-      , Str "any"
-      , Space
-      , Str "text."
+      , Str " any text."
       , SoftBreak
       , Link
           ( "" , [] , [] )
           [ Str "http://www.domain.com/dir/index.html#anchor." ]
           ( "http://www.domain.com/dir/index.html#anchor." , "" )
-      , Space
-      , Str "any"
-      , Space
-      , Str "text."
+      , Str " any text."
       , SoftBreak
-      , Str "any"
-      , Space
-      , Str "text:"
-      , Space
+      , Str "any text: "
       , Link
           ( "" , [] , [] )
           [ Str "http://www.domain.com/dir/#anchor." ]
           ( "http://www.domain.com/dir/#anchor." , "" )
-      , Space
-      , Str "any"
-      , Space
-      , Str "text."
+      , Str " any text."
       , SoftBreak
-      , Str "any"
-      , Space
-      , Str "text:"
-      , Space
+      , Str "any text: "
       , Link
           ( "" , [] , [] )
           [ Str "http://www.domain.com/dir/index.html#anchor." ]
           ( "http://www.domain.com/dir/index.html#anchor." , "" )
-      , Space
-      , Str "any"
-      , Space
-      , Str "text."
+      , Str " any text."
       , SoftBreak
       , Link
           ( "" , [] , [] )
@@ -1162,10 +594,7 @@ Pandoc
       , Link
           ( "" , [] , [] ) [ Str "label" ] ( "www.domain.com" , "" )
       , SoftBreak
-      , Str "["
-      , Space
-      , Str "label"
-      , Space
+      , Str "[ label "
       , Link
           ( "" , [] , [] )
           [ Str "www.domain.com" ]
@@ -1173,107 +602,63 @@ Pandoc
       , Str "]"
       , SoftBreak
       , Link
-          ( "" , [] , [] )
-          [ Str "label" , Space ]
-          ( "www.domain.com" , "" )
+          ( "" , [] , [] ) [ Str "label " ] ( "www.domain.com" , "" )
       , SoftBreak
       , Link
           ( "" , [] , [] )
-          [ Str "anchor" , Space ]
+          [ Str "anchor " ]
           ( "http://www.domain.com/dir/index.html#anchor." , "" )
       , SoftBreak
       , Link
           ( "" , [] , [] )
-          [ Str "login" , Space ]
+          [ Str "login " ]
           ( "http://user:password@domain.com/bla.html" , "" )
       , SoftBreak
       , Link
           ( "" , [] , [] )
-          [ Str "form" , Space ]
+          [ Str "form " ]
           ( "http://www.domain.com/bla.cgi?a=a@a.a&b=a+b+c." , "" )
       , SoftBreak
       , Link
           ( "" , [] , [] )
-          [ Str "form" , Space , Str "&" , Space , Str "anchor" ]
+          [ Str "form & anchor" ]
           ( "http://www.domain.com/bla.cgi?a=a@a.a&b=a+b+c.#anchor"
           , ""
           )
       , SoftBreak
       , Link
           ( "" , [] , [] )
-          [ Str "login"
-          , Space
-          , Str "&"
-          , Space
-          , Str "form"
-          , Space
-          ]
+          [ Str "login & form " ]
           ( "http://user:password@domain.com/bla.cgi?a=a@a.a&b=a+b+c."
           , ""
           )
       , SoftBreak
       , Link
-          ( "" , [] , [] )
-          [ Str "local"
-          , Space
-          , Str "link"
-          , Space
-          , Str "up"
-          , Space
-          ]
-          ( ".." , "" )
+          ( "" , [] , [] ) [ Str "local link up " ] ( ".." , "" )
       , SoftBreak
       , Link
           ( "" , [] , [] )
-          [ Str "local"
-          , Space
-          , Str "link"
-          , Space
-          , Str "file"
-          , Space
-          ]
+          [ Str "local link file " ]
           ( "bla.html" , "" )
       , SoftBreak
       , Link
           ( "" , [] , [] )
-          [ Str "local"
-          , Space
-          , Str "link"
-          , Space
-          , Str "anchor"
-          , Space
-          ]
+          [ Str "local link anchor " ]
           ( "#anchor" , "" )
       , SoftBreak
       , Link
           ( "" , [] , [] )
-          [ Str "local"
-          , Space
-          , Str "link"
-          , Space
-          , Str "file/anchor"
-          ]
+          [ Str "local link file/anchor" ]
           ( "bla.html#anchor" , "" )
       , SoftBreak
       , Link
           ( "" , [] , [] )
-          [ Str "local"
-          , Space
-          , Str "link"
-          , Space
-          , Str "file/anchor"
-          ]
+          [ Str "local link file/anchor" ]
           ( "bla.html#anchor." , "" )
       , SoftBreak
       , Link
           ( "" , [] , [] )
-          [ Str "local"
-          , Space
-          , Str "link"
-          , Space
-          , Str "img"
-          , Space
-          ]
+          [ Str "local link img " ]
           ( "abc.gif" , "" )
       , SoftBreak
       , Link
@@ -1323,24 +708,16 @@ Pandoc
           ( "" , [] , [] )
           [ Str "http://L1.com" ]
           ( "http://L1.com" , "" )
-      , Space
-      , Str "!"
-      , Space
+      , Str " ! "
       , Link
           ( "" , [] , [] )
           [ Str "mailto:L2@www.com" ]
           ( "L2@www.com" , "" )
-      , Space
-      , Str "!"
-      , Space
+      , Str " ! "
       , Link ( "" , [] , [] ) [ Str "L3" ] ( "www.com" , "" )
-      , Space
-      , Str "!"
-      , Space
+      , Str " ! "
       , Link ( "" , [] , [] ) [ Str "L4" ] ( "w@ww.com" , "" )
-      , Space
-      , Str "!"
-      , Space
+      , Str " ! "
       , Link
           ( "" , [] , [] ) [ Str "www.L5.com" ] ( "www.L5.com" , "" )
       , SoftBreak
@@ -1381,17 +758,14 @@ Pandoc
       , Link
           ( "" , [] , [] ) [ Str "label" ] ( "FTP.DOMAIN.COM" , "" )
       , SoftBreak
-      , Str "[label"
-      , Space
+      , Str "[label "
       , Link
           ( "" , [] , [] )
           [ Str "www.domain.com" ]
           ( "www.domain.com" , "" )
-      , Space
-      , Str "]"
+      , Str " ]"
       , SoftBreak
-      , Str "[label]"
-      , Space
+      , Str "[label] "
       , Link
           ( "" , [] , [] )
           [ Str "www.domain.com" ]
@@ -1408,45 +782,15 @@ Pandoc
       ]
   , Para
       [ Image ( "" , [] , [] ) [] ( "img.png" , "" )
-      , Space
-      , Str "Image"
-      , Space
-      , Str "at"
-      , Space
-      , Str "the"
-      , Space
-      , Str "line"
-      , Space
-      , Str "beginning."
+      , Str " Image at the line beginning."
       ]
   , Para
-      [ Str "Image"
-      , Space
-      , Str "in"
-      , Space
-      , Str "the"
-      , Space
-      , Str "middle"
-      , Space
+      [ Str "Image in the middle "
       , Image ( "" , [] , [] ) [] ( "img.png" , "" )
-      , Space
-      , Str "of"
-      , Space
-      , Str "the"
-      , Space
-      , Str "line."
+      , Str " of the line."
       ]
   , Para
-      [ Str "Image"
-      , Space
-      , Str "at"
-      , Space
-      , Str "the"
-      , Space
-      , Str "line"
-      , Space
-      , Str "end."
-      , Space
+      [ Str "Image at the line end. "
       , Image ( "" , [] , [] ) [] ( "img.png" , "" )
       ]
   , Para
@@ -1461,392 +805,120 @@ Pandoc
       , Image ( "" , [] , [] ) [] ( "img.png" , "" )
       ]
   , Para
-      [ Str "Images"
-      , Space
+      [ Str "Images "
       , Image ( "" , [] , [] ) [] ( "img.png" , "" )
-      , Space
-      , Str "mixed"
-      , Space
+      , Str " mixed "
       , Image ( "" , [] , [] ) [] ( "img.png" , "" )
-      , Space
-      , Str "with"
-      , Space
+      , Str " with "
       , Image ( "" , [] , [] ) [] ( "img.png" , "" )
-      , Space
-      , Str "text."
+      , Str " text."
       ]
   , Para
-      [ Str "Images"
-      , Space
-      , Str "glued"
-      , Space
-      , Str "together:"
-      , Space
+      [ Str "Images glued together: "
       , Image ( "" , [] , [] ) [] ( "img.png" , "" )
       , Image ( "" , [] , [] ) [] ( "img.png" , "" )
       , Image ( "" , [] , [] ) [] ( "img.png" , "" )
       , Str "."
       ]
-  , Para [ Str "[img.png" , Space , Str "]" ]
-  , Para [ Str "[" , Space , Str "img.png]" ]
-  , Para [ Str "[" , Space , Str "img.png" , Space , Str "]" ]
-  , Header
-      1
-      ( "numtitle" , [] , [] )
-      [ Str "Numbered" , Space , Str "Title" ]
-  , Header
-      1
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "1" ]
-  , Header
-      2
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "2" ]
-  , Header
-      3
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Header
-      4
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "4" ]
-  , Header
-      5
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "5" ]
-  , Header
-      1
-      ( "lab_el-1" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "1" ]
-  , Header
-      2
-      ( "lab_el-2" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "2" ]
-  , Header
-      3
-      ( "lab_el-3" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Header
-      4
-      ( "lab_el-4" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "4" ]
-  , Header
-      5
-      ( "lab_el-5" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "5" ]
-  , Header
-      3
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Header
-      3
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Header
-      3
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Header
-      3
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Header
-      3
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Header
-      3
-      ( "lab_el-9" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Para [ Str "+Not" , Space , Str "Title" ]
-  , Para [ Str "++Not" , Space , Str "Title+" ]
+  , Para [ Str "[img.png ]" ]
+  , Para [ Str "[ img.png]" ]
+  , Para [ Str "[ img.png ]" ]
+  , Header 1 ( "numtitle" , [] , [] ) [ Str "Numbered Title" ]
+  , Header 1 ( "" , [] , [] ) [ Str "Title Level 1" ]
+  , Header 2 ( "" , [] , [] ) [ Str "Title Level 2" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Title Level 3" ]
+  , Header 4 ( "" , [] , [] ) [ Str "Title Level 4" ]
+  , Header 5 ( "" , [] , [] ) [ Str "Title Level 5" ]
+  , Header 1 ( "lab_el-1" , [] , [] ) [ Str "Title Level 1" ]
+  , Header 2 ( "lab_el-2" , [] , [] ) [ Str "Title Level 2" ]
+  , Header 3 ( "lab_el-3" , [] , [] ) [ Str "Title Level 3" ]
+  , Header 4 ( "lab_el-4" , [] , [] ) [ Str "Title Level 4" ]
+  , Header 5 ( "lab_el-5" , [] , [] ) [ Str "Title Level 5" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Title Level 3" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Title Level 3" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Title Level 3" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Title Level 3" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Title Level 3" ]
+  , Header 3 ( "lab_el-9" , [] , [] ) [ Str "Title Level 3" ]
+  , Para [ Str "+Not Title" ]
+  , Para [ Str "++Not Title+" ]
   , Para
-      [ Str "+++Not"
-      , Space
-      , Str "Title++++"
+      [ Str "+++Not Title++++"
       , SoftBreak
-      , Str "++++++Not"
-      , Space
-      , Str "Title"
-      , Space
-      , Str "6++++++"
+      , Str "++++++Not Title 6++++++"
       ]
   , Para
-      [ Str "+++++++Not"
-      , Space
-      , Str "Title"
-      , Space
-      , Str "7+++++++"
+      [ Str "+++++++Not Title 7+++++++"
       , SoftBreak
-      , Str "+Not"
-      , Space
-      , Str "Title+"
-      , Space
-      , Str "[label1]"
+      , Str "+Not Title+ [label1]"
       , SoftBreak
-      , Str "+Not"
-      , Space
-      , Str "Title+["
-      , Space
-      , Str "label"
-      , Space
-      , Str "]"
+      , Str "+Not Title+[ label ]"
       , SoftBreak
-      , Str "+Not"
-      , Space
-      , Str "Title+[la/bel]"
+      , Str "+Not Title+[la/bel]"
       ]
   , Header 1 ( "title" , [] , [] ) [ Str "Title" ]
-  , Header
-      1
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "1" ]
-  , Header
-      2
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "2" ]
-  , Header
-      3
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Header
-      4
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "4" ]
-  , Header
-      5
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "5" ]
-  , Header
-      1
-      ( "lab_el-1" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "1" ]
-  , Header
-      2
-      ( "lab_el-2" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "2" ]
-  , Header
-      3
-      ( "lab_el-3" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Header
-      4
-      ( "lab_el-4" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "4" ]
-  , Header
-      5
-      ( "lab_el-5" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "5" ]
-  , Header
-      3
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Header
-      3
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Header
-      3
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Header
-      3
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Header
-      3
-      ( "" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Header
-      3
-      ( "lab_el-9" , [] , [] )
-      [ Str "Title" , Space , Str "Level" , Space , Str "3" ]
-  , Para [ Str "=Not" , Space , Str "Title" ]
-  , Para [ Str "==Not" , Space , Str "Title=" ]
+  , Header 1 ( "" , [] , [] ) [ Str "Title Level 1" ]
+  , Header 2 ( "" , [] , [] ) [ Str "Title Level 2" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Title Level 3" ]
+  , Header 4 ( "" , [] , [] ) [ Str "Title Level 4" ]
+  , Header 5 ( "" , [] , [] ) [ Str "Title Level 5" ]
+  , Header 1 ( "lab_el-1" , [] , [] ) [ Str "Title Level 1" ]
+  , Header 2 ( "lab_el-2" , [] , [] ) [ Str "Title Level 2" ]
+  , Header 3 ( "lab_el-3" , [] , [] ) [ Str "Title Level 3" ]
+  , Header 4 ( "lab_el-4" , [] , [] ) [ Str "Title Level 4" ]
+  , Header 5 ( "lab_el-5" , [] , [] ) [ Str "Title Level 5" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Title Level 3" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Title Level 3" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Title Level 3" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Title Level 3" ]
+  , Header 3 ( "" , [] , [] ) [ Str "Title Level 3" ]
+  , Header 3 ( "lab_el-9" , [] , [] ) [ Str "Title Level 3" ]
+  , Para [ Str "=Not Title" ]
+  , Para [ Str "==Not Title=" ]
   , Para
-      [ Str "===Not"
-      , Space
-      , Str "Title===="
+      [ Str "===Not Title===="
       , SoftBreak
-      , Str "======Not"
-      , Space
-      , Str "Title"
-      , Space
-      , Str "6======"
+      , Str "======Not Title 6======"
       ]
   , Para
-      [ Str "=======Not"
-      , Space
-      , Str "Title"
-      , Space
-      , Str "7======="
+      [ Str "=======Not Title 7======="
       , SoftBreak
-      , Str "=Not"
-      , Space
-      , Str "Title="
-      , Space
-      , Str "[label1]"
+      , Str "=Not Title= [label1]"
       , SoftBreak
-      , Str "=Not"
-      , Space
-      , Str "Title=["
-      , Space
-      , Str "label"
-      , Space
-      , Str "]"
+      , Str "=Not Title=[ label ]"
       , SoftBreak
-      , Str "=Not"
-      , Space
-      , Str "Title=[la/bel]"
+      , Str "=Not Title=[la/bel]"
       ]
   , Header 1 ( "quote" , [] , [] ) [ Str "Quote" ]
   , BlockQuote
       [ Para
-          [ Str "To"
-          , Space
-          , Str "quote"
-          , Space
-          , Str "a"
-          , Space
-          , Str "paragraph,"
-          , Space
-          , Str "just"
-          , Space
-          , Str "prefix"
-          , Space
-          , Str "it"
-          , Space
-          , Str "by"
-          , Space
-          , Str "a"
-          , Space
-          , Str "TAB"
+          [ Str "To quote a paragraph, just prefix it by a TAB"
           , SoftBreak
-          , Str "character."
-          , Space
-          , Str "All"
-          , Space
-          , Str "the"
-          , Space
-          , Str "lines"
-          , Space
-          , Str "of"
-          , Space
-          , Str "the"
-          , Space
-          , Str "paragraph"
-          , Space
-          , Str "must"
+          , Str "character. All the lines of the paragraph must"
           , SoftBreak
-          , Str "begin"
-          , Space
-          , Str "with"
-          , Space
-          , Str "a"
-          , Space
-          , Str "TAB."
+          , Str "begin with a TAB."
           ]
       ]
-  , Para
-      [ Str "Any"
-      , Space
-      , Str "non-tabbed"
-      , Space
-      , Str "line"
-      , Space
-      , Str "closes"
-      , Space
-      , Str "the"
-      , Space
-      , Str "quote"
-      , Space
-      , Str "block."
-      ]
+  , Para [ Str "Any non-tabbed line closes the quote block." ]
   , BlockQuote
       [ Para
-          [ Str "The"
-          , Space
-          , Str "number"
-          , Space
-          , Str "of"
-          , Space
-          , Str "leading"
-          , Space
-          , Str "TABs"
-          , Space
-          , Str "identifies"
-          , Space
-          , Str "the"
-          , Space
-          , Str "quote"
+          [ Str "The number of leading TABs identifies the quote"
           , SoftBreak
-          , Str "block"
-          , Space
-          , Str "depth."
-          , Space
-          , Str "This"
-          , Space
-          , Str "is"
-          , Space
-          , Str "quote"
-          , Space
-          , Str "level"
-          , Space
-          , Str "1."
+          , Str "block depth. This is quote level 1."
           ]
       , BlockQuote
           [ Para
-              [ Str "With"
-              , Space
-              , Str "two"
-              , Space
-              , Str "TABs,"
-              , Space
-              , Str "we"
-              , Space
-              , Str "are"
-              , Space
-              , Str "on"
-              , Space
-              , Str "the"
-              , Space
-              , Str "quote"
+              [ Str "With two TABs, we are on the quote"
               , SoftBreak
-              , Str "level"
-              , Space
-              , Str "2."
+              , Str "level 2."
               ]
           , BlockQuote
               [ Para
-                  [ Str "The"
-                  , Space
-                  , Str "more"
-                  , Space
-                  , Str "TABs,"
-                  , Space
-                  , Str "more"
-                  , Space
-                  , Str "deep"
-                  , Space
-                  , Str "is"
+                  [ Str "The more TABs, more deep is"
                   , SoftBreak
-                  , Str "the"
-                  , Space
-                  , Str "quote"
-                  , Space
-                  , Str "level."
+                  , Str "the quote level."
                   ]
-              , BlockQuote
-                  [ Para
-                      [ Str "There"
-                      , Space
-                      , Str "isn't"
-                      , Space
-                      , Str "a"
-                      , Space
-                      , Str "limit."
-                      ]
-                  ]
+              , BlockQuote [ Para [ Str "There isn't a limit." ] ]
               ]
           ]
       ]
@@ -1855,360 +927,101 @@ Pandoc
           [ BlockQuote
               [ BlockQuote
                   [ Para
-                      [ Str "This"
-                      , Space
-                      , Str "quote"
-                      , Space
-                      , Str "starts"
-                      , Space
-                      , Str "at"
+                      [ Str "This quote starts at"
                       , SoftBreak
-                      , Str "level"
-                      , Space
-                      , Str "4."
+                      , Str "level 4."
                       ]
                   ]
-              , Para
-                  [ Str "Then"
-                  , Space
-                  , Str "its"
-                  , Space
-                  , Str "depth"
-                  , Space
-                  , Str "is"
-                  , Space
-                  , Str "decreased."
-                  ]
+              , Para [ Str "Then its depth is decreased." ]
               ]
-          , Para
-              [ Str "Counting"
-              , Space
-              , Str "down,"
-              , Space
-              , Str "one"
-              , Space
-              , Str "by"
-              , Space
-              , Str "one."
-              ]
+          , Para [ Str "Counting down, one by one." ]
           ]
-      , Para
-          [ Str "Until"
-          , Space
-          , Str "the"
-          , Space
-          , Str "level"
-          , Space
-          , Str "1."
-          ]
+      , Para [ Str "Until the level 1." ]
       ]
   , BlockQuote
       [ BlockQuote
           [ BlockQuote
               [ Para
-                  [ Str "Unlike"
-                  , Space
-                  , Str "lists,"
-                  , Space
-                  , Str "any"
-                  , Space
-                  , Str "quote"
-                  , Space
-                  , Str "block"
-                  , Space
-                  , Str "is"
+                  [ Str "Unlike lists, any quote block is"
                   , SoftBreak
-                  , Str "independent,"
-                  , Space
-                  , Str "not"
-                  , Space
-                  , Str "part"
-                  , Space
-                  , Str "of"
-                  , Space
-                  , Str "a"
-                  , Space
-                  , Str "tree."
+                  , Str "independent, not part of a tree."
                   ]
               ]
           ]
       , Para
-          [ Str "The"
-          , Space
-          , Str "TAB"
-          , Space
-          , Str "count"
-          , Space
-          , Str "don't"
-          , Space
-          , Str "need"
-          , Space
-          , Str "to"
-          , Space
-          , Str "be"
-          , Space
-          , Str "incremental"
+          [ Str "The TAB count don't need to be incremental"
           , SoftBreak
-          , Str "by"
-          , Space
-          , Str "one."
+          , Str "by one."
           ]
       , BlockQuote
           [ BlockQuote
               [ BlockQuote
                   [ Para
-                      [ Str "The"
-                      , Space
-                      , Str "nesting"
-                      , Space
-                      , Str "don't"
-                      , Space
-                      , Str "need"
+                      [ Str "The nesting don't need"
                       , SoftBreak
-                      , Str "to"
-                      , Space
-                      , Str "follow"
-                      , Space
-                      , Str "any"
-                      , Space
-                      , Str "rule."
+                      , Str "to follow any rule."
                       ]
                   ]
               ]
           , Para
-              [ Str "Quotes"
-              , Space
-              , Str "can"
-              , Space
-              , Str "be"
-              , Space
-              , Str "opened"
-              , Space
-              , Str "and"
-              , Space
-              , Str "closed"
+              [ Str "Quotes can be opened and closed"
               , SoftBreak
-              , Str "in"
-              , Space
-              , Str "any"
-              , Space
-              , Str "way."
+              , Str "in any way."
               ]
           , BlockQuote
-              [ BlockQuote
-                  [ BlockQuote
-                      [ Para [ Str "You" , Space , Str "choose." ] ]
-                  ]
+              [ BlockQuote [ BlockQuote [ Para [ Str "You choose." ] ] ]
               ]
           ]
       ]
   , BlockQuote
       [ Para
-          [ Str "Some"
-          , Space
-          , Str "targets"
-          , Space
-          , Str "(as"
-          , Space
-          , Str "sgml)"
-          , Space
-          , Str "don't"
-          , Space
-          , Str "support"
-          , Space
-          , Str "the"
+          [ Str "Some targets (as sgml) don't support the"
           , SoftBreak
-          , Str "nesting"
-          , Space
-          , Str "of"
-          , Space
-          , Str "quotes."
-          , Space
-          , Str "There"
-          , Space
-          , Str "is"
-          , Space
-          , Str "only"
-          , Space
-          , Str "one"
-          , Space
-          , Str "quote"
+          , Str "nesting of quotes. There is only one quote"
           , SoftBreak
           , Str "level."
           ]
       , BlockQuote
           [ Para
-              [ Str "In"
-              , Space
-              , Str "this"
-              , Space
-              , Str "case,"
-              , Space
-              , Str "no"
-              , Space
-              , Str "matter"
-              , Space
-              , Str "how"
-              , Space
-              , Str "much"
+              [ Str "In this case, no matter how much"
               , SoftBreak
-              , Str "TABs"
-              , Space
-              , Str "are"
-              , Space
-              , Str "used"
-              , Space
-              , Str "to"
-              , Space
-              , Str "define"
-              , Space
-              , Str "the"
-              , Space
-              , Str "quote"
+              , Str "TABs are used to define the quote"
               , SoftBreak
-              , Str "block,"
-              , Space
-              , Str "it"
-              , Space
-              , Str "always"
-              , Space
-              , Str "will"
-              , Space
-              , Str "be"
-              , Space
-              , Str "level"
-              , Space
-              , Str "1."
+              , Str "block, it always will be level 1."
               ]
           ]
       ]
   , BlockQuote
       [ Para
-          [ Str "Spaces"
-          , Space
-          , Str "AFTER"
-          , Space
-          , Str "the"
-          , Space
-          , Str "TAB"
-          , Space
-          , Str "character"
-          , Space
-          , Str "are"
-          , Space
-          , Str "allowed."
+          [ Str "Spaces AFTER the TAB character are allowed."
           , SoftBreak
-          , Str "But"
-          , Space
-          , Str "be"
-          , Space
-          , Str "careful,"
-          , Space
-          , Str "it"
-          , Space
-          , Str "can"
-          , Space
-          , Str "be"
-          , Space
-          , Str "confusing."
+          , Str "But be careful, it can be confusing."
           ]
       ]
   , Para
-      [ Str "Spaces"
-      , Space
-      , Str "BEFORE"
-      , Space
-      , Str "the"
-      , Space
-      , Str "TAB"
-      , Space
-      , Str "character"
+      [ Str "Spaces BEFORE the TAB character"
       , SoftBreak
-      , Str "invalidate"
-      , Space
-      , Str "the"
-      , Space
-      , Str "mark."
-      , Space
-      , Str "It's"
-      , Space
-      , Str "not"
-      , Space
-      , Str "quote."
+      , Str "invalidate the mark. It's not quote."
       ]
   , BlockQuote
       [ Para
-          [ Str "Paragraph"
-          , Space
-          , Str "breaks"
-          , Space
-          , Str "inside"
-          , Space
-          , Str "a"
-          , Space
-          , Str "quote"
-          , Space
-          , Str "aren't"
+          [ Str "Paragraph breaks inside a quote aren't"
           , SoftBreak
           , Str "possible."
           ]
       , Para
-          [ Str "This"
-          , Space
-          , Str "sample"
-          , Space
-          , Str "are"
-          , Space
-          , Str "two"
-          , Space
-          , Str "separated"
-          , Space
-          , Str "quoted"
+          [ Str "This sample are two separated quoted"
           , SoftBreak
-          , Str "paragraphs,"
-          , Space
-          , Str "not"
-          , Space
-          , Str "a"
-          , Space
-          , Str "quote"
-          , Space
-          , Str "block"
-          , Space
-          , Str "with"
+          , Str "paragraphs, not a quote block with"
           , SoftBreak
-          , Str "two"
-          , Space
-          , Str "paragraphs"
-          , Space
-          , Str "inside."
+          , Str "two paragraphs inside."
           ]
       ]
   , BlockQuote
       [ Para
-          [ Str "The"
-          , Space
-          , Str "end"
-          , Space
-          , Str "of"
-          , Space
-          , Str "the"
-          , Space
-          , Str "file"
-          , Space
-          , Str "(EOF)"
-          , Space
-          , Str "closes"
-          , Space
-          , Str "the"
+          [ Str "The end of the file (EOF) closes the"
           , SoftBreak
-          , Str "currently"
-          , Space
-          , Str "open"
-          , Space
-          , Str "quote"
-          , Space
-          , Str "block."
+          , Str "currently open quote block."
           ]
       ]
   , Header 1 ( "raw" , [] , [] ) [ Str "Raw" ]
@@ -2222,56 +1035,15 @@ Pandoc
           "Trailing spaces and TABs after the area marks\nare allowed, but not encouraged nor documented.\n"
       ]
   , Para
-      [ Str "\"\"\"Not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "raw"
-      , Space
-      , Str "line,"
-      , Space
-      , Str "need"
-      , Space
-      , Str "one"
-      , Space
-      , Str "space"
-      , Space
-      , Str "after"
-      , Space
-      , Str "mark."
-      ]
+      [ Str "\"\"\"Not a raw line, need one space after mark." ]
   , Para
       [ Str "\"\"\""
       , SoftBreak
-      , Str "Not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "raw"
-      , Space
-      , Str "area."
+      , Str "Not a raw area."
       , SoftBreak
-      , Str "The"
-      , Space
-      , Str "marks"
-      , Space
-      , Str "must"
-      , Space
-      , Str "be"
-      , Space
-      , Str "at"
-      , Space
-      , Str "the"
-      , Space
-      , Str "line"
-      , Space
-      , Str "beginning,"
+      , Str "The marks must be at the line beginning,"
       , SoftBreak
-      , Str "no"
-      , Space
-      , Str "leading"
-      , Space
-      , Str "spaces."
+      , Str "no leading spaces."
       , SoftBreak
       , Str "\"\"\""
       ]
@@ -2291,573 +1063,155 @@ Pandoc
       ( "" , [] , [] )
       "Trailing spaces and TABs after the area marks\nare allowed, but not encouraged nor documented.\n"
   , Para
-      [ Str "```Not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "verbatim"
-      , Space
-      , Str "line,"
-      , Space
-      , Str "need"
-      , Space
-      , Str "one"
-      , Space
-      , Str "space"
-      , Space
-      , Str "after"
-      , Space
-      , Str "mark."
-      ]
+      [ Str "```Not a verbatim line, need one space after mark." ]
   , Para
       [ Str "```"
       , SoftBreak
-      , Str "Not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "verbatim"
-      , Space
-      , Str "area."
+      , Str "Not a verbatim area."
       , SoftBreak
-      , Str "The"
-      , Space
-      , Str "marks"
-      , Space
-      , Str "must"
-      , Space
-      , Str "be"
-      , Space
-      , Str "at"
-      , Space
-      , Str "the"
-      , Space
-      , Str "line"
-      , Space
-      , Str "beginning,"
+      , Str "The marks must be at the line beginning,"
       , SoftBreak
-      , Str "no"
-      , Space
-      , Str "leading"
-      , Space
-      , Str "spaces."
+      , Str "no leading spaces."
       , SoftBreak
       , Str "```"
       ]
   , CodeBlock
       ( "" , [] , [] )
       "The end of the file (EOF) closes\nthe currently open verbatim area.\n"
-  , Header
-      1
-      ( "deflist" , [] , [] )
-      [ Str "Definition" , Space , Str "List" ]
+  , Header 1 ( "deflist" , [] , [] ) [ Str "Definition List" ]
   , DefinitionList
-      [ ( [ Str "Definition" , Space , Str "list" ]
-        , [ [ Plain
-                [ Str "A"
-                , Space
-                , Str "list"
-                , Space
-                , Str "with"
-                , Space
-                , Str "terms"
-                ]
-            ]
-          ]
+      [ ( [ Str "Definition list" ]
+        , [ [ Plain [ Str "A list with terms" ] ] ]
         )
-      , ( [ Str "Start"
-          , Space
-          , Str "term"
-          , Space
-          , Str "with"
-          , Space
-          , Str "colon"
-          ]
-        , [ [ Plain
-                [ Str "And"
-                , Space
-                , Str "its"
-                , Space
-                , Str "definition"
-                , Space
-                , Str "follows"
-                ]
-            ]
-          ]
+      , ( [ Str "Start term with colon" ]
+        , [ [ Plain [ Str "And its definition follows" ] ] ]
         )
       ]
-  , Header
-      1
-      ( "numlist" , [] , [] )
-      [ Str "Numbered" , Space , Str "List" ]
+  , Header 1 ( "numlist" , [] , [] ) [ Str "Numbered List" ]
   , Para
-      [ Str "See"
-      , Space
+      [ Str "See "
       , Link ( "" , [] , [] ) [ Str "List" ] ( "#list" , "" )
-      , Str ","
-      , Space
-      , Str "the"
-      , Space
-      , Str "same"
-      , Space
-      , Str "rules"
-      , Space
-      , Str "apply."
+      , Str ", the same rules apply."
       ]
   , Header 1 ( "list" , [] , [] ) [ Str "List" ]
   , BulletList
-      [ [ Plain
-            [ Str "Use"
-            , Space
-            , Str "the"
-            , Space
-            , Str "hyphen"
-            , Space
-            , Str "to"
-            , Space
-            , Str "prefix"
-            , Space
-            , Str "list"
-            , Space
-            , Str "items."
-            ]
+      [ [ Plain [ Str "Use the hyphen to prefix list items." ] ]
+      , [ Plain
+            [ Str "There must be one space after the hyphen." ]
         ]
       , [ Plain
-            [ Str "There"
-            , Space
-            , Str "must"
-            , Space
-            , Str "be"
-            , Space
-            , Str "one"
-            , Space
-            , Str "space"
-            , Space
-            , Str "after"
-            , Space
-            , Str "the"
-            , Space
-            , Str "hyphen."
-            ]
-        ]
-      , [ Plain
-            [ Str "The"
-            , Space
-            , Str "list"
-            , Space
-            , Str "is"
-            , Space
-            , Str "closed"
-            , Space
-            , Str "by"
-            , Space
-            , Str "two"
-            , Space
-            , Str "consecutive"
-            , Space
-            , Str "blank"
-            , Space
-            , Str "lines."
-            ]
+            [ Str "The list is closed by two consecutive blank lines." ]
         ]
       ]
   , BulletList
       [ [ Plain
-            [ Str "The"
-            , Space
-            , Str "list"
-            , Space
-            , Str "can"
-            , Space
-            , Str "be"
-            , Space
-            , Str "indented"
-            , Space
-            , Str "on"
-            , Space
-            , Str "the"
-            , Space
-            , Str "source"
-            , Space
-            , Str "document."
-            ]
+            [ Str "The list can be indented on the source document." ]
         ]
-      , [ Plain
-            [ Str "You"
-            , Space
-            , Str "can"
-            , Space
-            , Str "use"
-            , Space
-            , Str "any"
-            , Space
-            , Str "number"
-            , Space
-            , Str "of"
-            , Space
-            , Str "spaces."
-            ]
-        ]
-      , [ Plain
-            [ Str "The"
-            , Space
-            , Str "result"
-            , Space
-            , Str "will"
-            , Space
-            , Str "be"
-            , Space
-            , Str "the"
-            , Space
-            , Str "same."
-            ]
-        ]
+      , [ Plain [ Str "You can use any number of spaces." ] ]
+      , [ Plain [ Str "The result will be the same." ] ]
       ]
   , BulletList
       [ [ Para
-            [ Str "Let"
-            , Space
-            , Str "one"
-            , Space
-            , Str "blank"
-            , Space
-            , Str "line"
-            , Space
-            , Str "between"
-            , Space
-            , Str "the"
-            , Space
-            , Str "list"
-            , Space
-            , Str "items."
-            ]
+            [ Str "Let one blank line between the list items." ]
+        ]
+      , [ Para [ Str "It will be maintained on the conversion." ]
+        ]
+      , [ Para [ Str "Some targets don't support this behavior." ]
         ]
       , [ Para
-            [ Str "It"
-            , Space
-            , Str "will"
-            , Space
-            , Str "be"
-            , Space
-            , Str "maintained"
-            , Space
-            , Str "on"
-            , Space
-            , Str "the"
-            , Space
-            , Str "conversion."
-            ]
-        ]
-      , [ Para
-            [ Str "Some"
-            , Space
-            , Str "targets"
-            , Space
-            , Str "don't"
-            , Space
-            , Str "support"
-            , Space
-            , Str "this"
-            , Space
-            , Str "behavior."
-            ]
-        ]
-      , [ Para
-            [ Str "This"
-            , Space
-            , Str "one"
-            , Space
-            , Str "was"
-            , Space
-            , Str "separated"
-            , Space
-            , Str "by"
-            , Space
-            , Str "a"
-            , Space
-            , Str "line"
-            , Space
-            , Str "with"
-            , Space
-            , Str "blanks."
+            [ Str "This one was separated by a line with blanks."
             , SoftBreak
-            , Str "You"
-            , Space
-            , Str "can"
-            , Space
-            , Str "also"
-            , Space
-            , Str "put"
-            , Space
-            , Str "a"
-            , Space
-            , Str "blank"
-            , Space
-            , Str "line"
-            , Space
-            , Str "inside"
+            , Str "You can also put a blank line inside"
             ]
-        , Para
-            [ Str "the"
-            , Space
-            , Str "item"
-            , Space
-            , Str "contents"
-            , Space
-            , Str "and"
-            , Space
-            , Str "it"
-            , Space
-            , Str "will"
-            , Space
-            , Str "be"
-            , Space
-            , Str "preserved."
-            ]
+        , Para [ Str "the item contents and it will be preserved." ]
         ]
       ]
+  , Para [ Str "-This is not a list (no space)" ]
+  , Para [ Str "- This is not a list (more than one space)" ]
   , Para
-      [ Str "-This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "list"
-      , Space
-      , Str "(no"
-      , Space
-      , Str "space)"
-      ]
-  , Para
-      [ Str "-"
-      , Space
-      , Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "list"
-      , Space
-      , Str "(more"
-      , Space
-      , Str "than"
-      , Space
-      , Str "one"
-      , Space
-      , Str "space)"
-      ]
-  , Para
-      [ Str "-"
-      , Space
-      , Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "list"
-      , Space
-      , Str "(a"
-      , Space
-      , Str "TAB"
-      , Space
-      , Str "instead"
-      , Space
-      , Str "the"
-      , Space
-      , Str "space)"
-      ]
+      [ Str "- This is not a list (a TAB instead the space)" ]
   , BulletList
-      [ [ BulletList
-            [ [ Plain
-                  [ Str "This"
-                  , Space
-                  , Str "is"
-                  , Space
-                  , Str "a"
-                  , Space
-                  , Str "list"
-                  ]
-              ]
-            ]
-        ]
+      [ [ BulletList [ [ Plain [ Str "This is a list" ] ] ] ]
       , [ OrderedList
             ( 1 , DefaultStyle , DefaultDelim )
-            [ [ Plain
-                  [ Str "This"
-                  , Space
-                  , Str "is"
-                  , Space
-                  , Str "a"
-                  , Space
-                  , Str "list"
+            [ [ Plain [ Str "This is a list" ] ] ]
+        ]
+      , [ DefinitionList [ ( [ Str "This is a list" ] , [ [] ] ) ]
+        ]
+      ]
+  , BulletList
+      [ [ Plain [ Str "This is the \"mother\" list first item." ]
+        ]
+      , [ Plain
+            [ Str "Here is the second, but inside this item," ]
+        , BulletList
+            [ [ Plain [ Str "there is a sublist, with its own items." ]
+              ]
+            , [ Plain [ Str "Note that the items of the same sublist" ]
+              ]
+            , [ Plain [ Str "must have the same indentation." ]
+              , BulletList
+                  [ [ Plain
+                        [ Str "And this can go on, opening sublists." ]
+                    , BulletList
+                        [ [ Plain
+                              [ Str "Just add leading spaces before the"
+                              ]
+                          ]
+                        , [ Plain
+                              [ Str
+                                  "hyphen and sublists will be opened."
+                              ]
+                          ]
+                        , [ Plain
+                              [ Str
+                                  "The two blank lines closes them all."
+                              ]
+                          ]
+                        ]
+                    ]
                   ]
               ]
-            ]
-        ]
-      , [ DefinitionList
-            [ ( [ Str "This"
-                , Space
-                , Str "is"
-                , Space
-                , Str "a"
-                , Space
-                , Str "list"
-                ]
-              , [ [] ]
-              )
             ]
         ]
       ]
   , BulletList
       [ [ Plain
-            [ Str "This"
-            , Space
-            , Str "is"
-            , Space
-            , Str "the"
-            , Space
-            , Str "\"mother\""
-            , Space
-            , Str "list"
-            , Space
-            , Str "first"
-            , Space
-            , Str "item."
+            [ Str "When nesting lists, the additional spaces are free."
             ]
         ]
-      , [ Plain
-            [ Str "Here"
-            , Space
-            , Str "is"
-            , Space
-            , Str "the"
-            , Space
-            , Str "second,"
-            , Space
-            , Str "but"
-            , Space
-            , Str "inside"
-            , Space
-            , Str "this"
-            , Space
-            , Str "item,"
-            ]
+      , [ Plain [ Str "You can add just one," ]
         , BulletList
-            [ [ Plain
-                  [ Str "there"
-                  , Space
-                  , Str "is"
-                  , Space
-                  , Str "a"
-                  , Space
-                  , Str "sublist,"
-                  , Space
-                  , Str "with"
-                  , Space
-                  , Str "its"
-                  , Space
-                  , Str "own"
-                  , Space
-                  , Str "items."
-                  ]
-              ]
-            , [ Plain
-                  [ Str "Note"
-                  , Space
-                  , Str "that"
-                  , Space
-                  , Str "the"
-                  , Space
-                  , Str "items"
-                  , Space
-                  , Str "of"
-                  , Space
-                  , Str "the"
-                  , Space
-                  , Str "same"
-                  , Space
-                  , Str "sublist"
-                  ]
-              ]
-            , [ Plain
-                  [ Str "must"
-                  , Space
-                  , Str "have"
-                  , Space
-                  , Str "the"
-                  , Space
-                  , Str "same"
-                  , Space
-                  , Str "indentation."
-                  ]
+            [ [ Plain [ Str "or many." ]
               , BulletList
                   [ [ Plain
-                        [ Str "And"
-                        , Space
-                        , Str "this"
-                        , Space
-                        , Str "can"
-                        , Space
-                        , Str "go"
-                        , Space
-                        , Str "on,"
-                        , Space
-                        , Str "opening"
-                        , Space
-                        , Str "sublists."
+                        [ Str
+                            "What matters is to put more than the previous."
+                        ]
+                    ]
+                  , [ Plain
+                        [ Str
+                            "But remember that the other items of the same list"
+                        ]
+                    ]
+                  , [ Plain [ Str "must use the same indentation." ] ]
+                  ]
+              ]
+            ]
+        ]
+      ]
+  , BulletList
+      [ [ Plain [ Str "There is not a depth limit," ]
+        , BulletList
+            [ [ Plain [ Str "you can go deeper and deeper." ]
+              , BulletList
+                  [ [ Plain
+                        [ Str "But some targets may have restrictions."
                         ]
                     , BulletList
                         [ [ Plain
-                              [ Str "Just"
-                              , Space
-                              , Str "add"
-                              , Space
-                              , Str "leading"
-                              , Space
-                              , Str "spaces"
-                              , Space
-                              , Str "before"
-                              , Space
-                              , Str "the"
-                              ]
-                          ]
-                        , [ Plain
-                              [ Str "hyphen"
-                              , Space
-                              , Str "and"
-                              , Space
-                              , Str "sublists"
-                              , Space
-                              , Str "will"
-                              , Space
-                              , Str "be"
-                              , Space
-                              , Str "opened."
-                              ]
-                          ]
-                        , [ Plain
-                              [ Str "The"
-                              , Space
-                              , Str "two"
-                              , Space
-                              , Str "blank"
-                              , Space
-                              , Str "lines"
-                              , Space
-                              , Str "closes"
-                              , Space
-                              , Str "them"
-                              , Space
-                              , Str "all."
+                              [ Str
+                                  "The LaTeX maximum is here, 4 levels."
                               ]
                           ]
                         ]
@@ -2868,654 +1222,141 @@ Pandoc
         ]
       ]
   , BulletList
-      [ [ Plain
-            [ Str "When"
-            , Space
-            , Str "nesting"
-            , Space
-            , Str "lists,"
-            , Space
-            , Str "the"
-            , Space
-            , Str "additional"
-            , Space
-            , Str "spaces"
-            , Space
-            , Str "are"
-            , Space
-            , Str "free."
-            ]
+      [ [ Plain [ Str "Reverse nesting doesn't work." ] ]
+      , [ Plain
+            [ Str "Because a sublist *must* have a mother list." ]
         ]
       , [ Plain
-            [ Str "You"
-            , Space
-            , Str "can"
-            , Space
-            , Str "add"
-            , Space
-            , Str "just"
-            , Space
-            , Str "one,"
-            ]
+            [ Str "It's the list concept, not a txt2tags limitation." ]
+        ]
+      , [ Plain
+            [ Str "All this sublists will be bumped to mother lists." ]
+        ]
+      , [ Plain [ Str "At level 1, like this one." ] ]
+      ]
+  , BulletList
+      [ [ Plain [ Str "Level 1" ]
         , BulletList
-            [ [ Plain [ Str "or" , Space , Str "many." ]
+            [ [ Plain [ Str "Level 2" ]
               , BulletList
-                  [ [ Plain
-                        [ Str "What"
-                        , Space
-                        , Str "matters"
-                        , Space
-                        , Str "is"
-                        , Space
-                        , Str "to"
-                        , Space
-                        , Str "put"
-                        , Space
-                        , Str "more"
-                        , Space
-                        , Str "than"
-                        , Space
-                        , Str "the"
-                        , Space
-                        , Str "previous."
-                        ]
+                  [ [ Plain [ Str "Level 3" ]
+                    , BulletList [ [ Plain [ Str "Level 4" ] ] ]
                     ]
-                  , [ Plain
-                        [ Str "But"
-                        , Space
-                        , Str "remember"
-                        , Space
-                        , Str "that"
-                        , Space
-                        , Str "the"
-                        , Space
-                        , Str "other"
-                        , Space
-                        , Str "items"
-                        , Space
-                        , Str "of"
-                        , Space
-                        , Str "the"
-                        , Space
-                        , Str "same"
-                        , Space
-                        , Str "list"
-                        ]
-                    ]
-                  , [ Plain
-                        [ Str "must"
-                        , Space
-                        , Str "use"
-                        , Space
-                        , Str "the"
-                        , Space
-                        , Str "same"
-                        , Space
-                        , Str "indentation."
-                        ]
-                    ]
+                  , [ Plain [ Str "Level 3 -- (closed Level 4)" ] ]
                   ]
               ]
+            , [ Plain [ Str "Level 2 -- (closed Level 3)" ] ]
             ]
         ]
+      , [ Plain [ Str "Level 1 -- (closed Level 2)" ] ]
       ]
   , BulletList
-      [ [ Plain
-            [ Str "There"
-            , Space
-            , Str "is"
-            , Space
-            , Str "not"
-            , Space
-            , Str "a"
-            , Space
-            , Str "depth"
-            , Space
-            , Str "limit,"
-            ]
+      [ [ Plain [ Str "Level 1" ]
         , BulletList
-            [ [ Plain
-                  [ Str "you"
-                  , Space
-                  , Str "can"
-                  , Space
-                  , Str "go"
-                  , Space
-                  , Str "deeper"
-                  , Space
-                  , Str "and"
-                  , Space
-                  , Str "deeper."
-                  ]
+            [ [ Plain [ Str "Level 2" ]
               , BulletList
-                  [ [ Plain
-                        [ Str "But"
-                        , Space
-                        , Str "some"
-                        , Space
-                        , Str "targets"
-                        , Space
-                        , Str "may"
-                        , Space
-                        , Str "have"
-                        , Space
-                        , Str "restrictions."
-                        ]
-                    , BulletList
-                        [ [ Plain
-                              [ Str "The"
-                              , Space
-                              , Str "LaTeX"
-                              , Space
-                              , Str "maximum"
-                              , Space
-                              , Str "is"
-                              , Space
-                              , Str "here,"
-                              , Space
-                              , Str "4"
-                              , Space
-                              , Str "levels."
-                              ]
-                          ]
-                        ]
+                  [ [ Plain [ Str "Level 3" ]
+                    , BulletList [ [ Plain [ Str "Level 4" ] ] ]
                     ]
                   ]
               ]
             ]
         ]
-      ]
-  , BulletList
-      [ [ Plain
-            [ Str "Reverse"
-            , Space
-            , Str "nesting"
-            , Space
-            , Str "doesn't"
-            , Space
-            , Str "work."
-            ]
-        ]
       , [ Plain
-            [ Str "Because"
-            , Space
-            , Str "a"
-            , Space
-            , Str "sublist"
-            , Space
-            , Str "*must*"
-            , Space
-            , Str "have"
-            , Space
-            , Str "a"
-            , Space
-            , Str "mother"
-            , Space
-            , Str "list."
-            ]
-        ]
-      , [ Plain
-            [ Str "It's"
-            , Space
-            , Str "the"
-            , Space
-            , Str "list"
-            , Space
-            , Str "concept,"
-            , Space
-            , Str "not"
-            , Space
-            , Str "a"
-            , Space
-            , Str "txt2tags"
-            , Space
-            , Str "limitation."
-            ]
-        ]
-      , [ Plain
-            [ Str "All"
-            , Space
-            , Str "this"
-            , Space
-            , Str "sublists"
-            , Space
-            , Str "will"
-            , Space
-            , Str "be"
-            , Space
-            , Str "bumped"
-            , Space
-            , Str "to"
-            , Space
-            , Str "mother"
-            , Space
-            , Str "lists."
-            ]
-        ]
-      , [ Plain
-            [ Str "At"
-            , Space
-            , Str "level"
-            , Space
-            , Str "1,"
-            , Space
-            , Str "like"
-            , Space
-            , Str "this"
-            , Space
-            , Str "one."
-            ]
+            [ Str "Level 1 -- (closed Level 4, Level 3 and Level 2)" ]
         ]
       ]
   , BulletList
-      [ [ Plain [ Str "Level" , Space , Str "1" ]
+      [ [ Para [ Str "Level 1" ]
         , BulletList
-            [ [ Plain [ Str "Level" , Space , Str "2" ]
-              , BulletList
-                  [ [ Plain [ Str "Level" , Space , Str "3" ]
-                    , BulletList
-                        [ [ Plain [ Str "Level" , Space , Str "4" ] ] ]
-                    ]
-                  , [ Plain
-                        [ Str "Level"
-                        , Space
-                        , Str "3"
-                        , Space
-                        , Str "--"
-                        , Space
-                        , Str "(closed"
-                        , Space
-                        , Str "Level"
-                        , Space
-                        , Str "4)"
-                        ]
-                    ]
-                  ]
+            [ [ Para [ Str "Level 2 -- blank BEFORE and AFTER (in)" ]
+              , BulletList [ [ Plain [ Str "Level 3" ] ] ]
               ]
-            , [ Plain
-                  [ Str "Level"
-                  , Space
-                  , Str "2"
-                  , Space
-                  , Str "--"
-                  , Space
-                  , Str "(closed"
-                  , Space
-                  , Str "Level"
-                  , Space
-                  , Str "3)"
-                  ]
-              ]
-            ]
-        ]
-      , [ Plain
-            [ Str "Level"
-            , Space
-            , Str "1"
-            , Space
-            , Str "--"
-            , Space
-            , Str "(closed"
-            , Space
-            , Str "Level"
-            , Space
-            , Str "2)"
             ]
         ]
       ]
+  , BulletList [ [ Plain [ Str "Level 4" ] ] ]
   , BulletList
-      [ [ Plain [ Str "Level" , Space , Str "1" ]
-        , BulletList
-            [ [ Plain [ Str "Level" , Space , Str "2" ]
-              , BulletList
-                  [ [ Plain [ Str "Level" , Space , Str "3" ]
-                    , BulletList
-                        [ [ Plain [ Str "Level" , Space , Str "4" ] ] ]
-                    ]
-                  ]
-              ]
-            ]
-        ]
-      , [ Plain
-            [ Str "Level"
-            , Space
-            , Str "1"
-            , Space
-            , Str "--"
-            , Space
-            , Str "(closed"
-            , Space
-            , Str "Level"
-            , Space
-            , Str "4,"
-            , Space
-            , Str "Level"
-            , Space
-            , Str "3"
-            , Space
-            , Str "and"
-            , Space
-            , Str "Level"
-            , Space
-            , Str "2)"
-            ]
-        ]
-      ]
-  , BulletList
-      [ [ Para [ Str "Level" , Space , Str "1" ]
+      [ [ Para [ Str "Level 3" ] ]
+      , [ Para [ Str "Level 2 -- blank BEFORE and AFTER (out)" ] ]
+      , [ Para [ Str "Level 1" ]
         , BulletList
             [ [ Para
-                  [ Str "Level"
-                  , Space
-                  , Str "2"
-                  , Space
-                  , Str "--"
-                  , Space
-                  , Str "blank"
-                  , Space
-                  , Str "BEFORE"
-                  , Space
-                  , Str "and"
-                  , Space
-                  , Str "AFTER"
-                  , Space
-                  , Str "(in)"
+                  [ Str
+                      "Level 2 -- blank BEFORE (spaces) and AFTER (TAB)"
                   ]
-              , BulletList
-                  [ [ Plain [ Str "Level" , Space , Str "3" ] ] ]
-              ]
-            ]
-        ]
-      ]
-  , BulletList [ [ Plain [ Str "Level" , Space , Str "4" ] ] ]
-  , BulletList
-      [ [ Para [ Str "Level" , Space , Str "3" ] ]
-      , [ Para
-            [ Str "Level"
-            , Space
-            , Str "2"
-            , Space
-            , Str "--"
-            , Space
-            , Str "blank"
-            , Space
-            , Str "BEFORE"
-            , Space
-            , Str "and"
-            , Space
-            , Str "AFTER"
-            , Space
-            , Str "(out)"
-            ]
-        ]
-      , [ Para [ Str "Level" , Space , Str "1" ]
-        , BulletList
-            [ [ Para
-                  [ Str "Level"
-                  , Space
-                  , Str "2"
-                  , Space
-                  , Str "--"
-                  , Space
-                  , Str "blank"
-                  , Space
-                  , Str "BEFORE"
-                  , Space
-                  , Str "(spaces)"
-                  , Space
-                  , Str "and"
-                  , Space
-                  , Str "AFTER"
-                  , Space
-                  , Str "(TAB)"
-                  ]
-              , BulletList
-                  [ [ Plain [ Str "Level" , Space , Str "3" ] ] ]
+              , BulletList [ [ Plain [ Str "Level 3" ] ] ]
               ]
             ]
         ]
       ]
   , BulletList
-      [ [ Plain [ Str "Level" , Space , Str "1" ]
+      [ [ Plain [ Str "Level 1" ]
         , BulletList
-            [ [ Plain [ Str "Level" , Space , Str "2" ]
+            [ [ Plain [ Str "Level 2" ]
               , BulletList
-                  [ [ Plain [ Str "Level" , Space , Str "3" ]
+                  [ [ Plain [ Str "Level 3" ]
                     , BulletList
-                        [ [ Plain [ Str "Level" , Space , Str "4" ] ]
-                        , [ Plain
-                              [ Str "Level"
-                              , Space
-                              , Str "3.5"
-                              , Space
-                              , Str "???"
-                              ]
-                          ]
+                        [ [ Plain [ Str "Level 4" ] ]
+                        , [ Plain [ Str "Level 3.5 ???" ] ]
                         ]
                     ]
-                  , [ Plain [ Str "Level" , Space , Str "3" ] ]
-                  , [ Plain
-                        [ Str "Level"
-                        , Space
-                        , Str "2.5"
-                        , Space
-                        , Str "???"
-                        ]
-                    ]
+                  , [ Plain [ Str "Level 3" ] ]
+                  , [ Plain [ Str "Level 2.5 ???" ] ]
                   ]
               ]
-            , [ Plain [ Str "Level" , Space , Str "2" ] ]
-            , [ Plain
-                  [ Str "Level"
-                  , Space
-                  , Str "1.5"
-                  , Space
-                  , Str "???"
-                  ]
-              ]
+            , [ Plain [ Str "Level 2" ] ]
+            , [ Plain [ Str "Level 1.5 ???" ] ]
             ]
         ]
-      , [ Plain [ Str "Level" , Space , Str "1" ] ]
+      , [ Plain [ Str "Level 1" ] ]
       ]
   , BulletList
       [ [ Plain
-            [ Str "This"
-            , Space
-            , Str "list"
-            , Space
-            , Str "is"
-            , Space
-            , Str "closed"
-            , Space
-            , Str "by"
-            , Space
-            , Str "a"
-            , Space
-            , Str "line"
-            , Space
-            , Str "with"
-            , Space
-            , Str "spaces"
-            , Space
-            , Str "and"
-            , Space
-            , Str "other"
-            , Space
-            , Str "with"
-            , Space
-            , Str "TABs"
+            [ Str
+                "This list is closed by a line with spaces and other with TABs"
             ]
         ]
       ]
   , BulletList
       [ [ Plain
-            [ Str "This"
-            , Space
-            , Str "list"
-            , Space
-            , Str "is"
-            , Space
-            , Str "NOT"
-            , Space
-            , Str "closed"
-            , Space
-            , Str "by"
-            , Space
-            , Str "two"
-            , Space
-            , Str "comment"
-            , Space
-            , Str "lines"
-            ]
+            [ Str "This list is NOT closed by two comment lines" ]
         ]
       ]
   , BulletList
       [ [ Plain
-            [ Str "This"
-            , Space
-            , Str "list"
-            , Space
-            , Str "is"
-            , Space
-            , Str "closed"
-            , Space
-            , Str "by"
-            , Space
-            , Str "a"
-            , Space
-            , Str "line"
-            , Space
-            , Str "with"
-            , Space
-            , Str "spaces"
-            , Space
-            , Str "and"
-            , Space
-            , Str "TAB,"
-            ]
+            [ Str "This list is closed by a line with spaces and TAB," ]
         ]
-      , [ Plain
-            [ Str "then"
-            , Space
-            , Str "a"
-            , Space
-            , Str "comment"
-            , Space
-            , Str "line,"
-            , Space
-            , Str "then"
-            , Space
-            , Str "an"
-            , Space
-            , Str "empty"
-            , Space
-            , Str "line."
-            ]
+      , [ Plain [ Str "then a comment line, then an empty line." ]
         ]
       ]
   , BulletList
-      [ [ Plain [ Str "Level" , Space , Str "1" ]
+      [ [ Plain [ Str "Level 1" ]
         , BulletList
-            [ [ Plain [ Str "Level" , Space , Str "2" ]
-              , BulletList
-                  [ [ Plain [ Str "Level" , Space , Str "3" ] ] ]
-              , Plain
-                  [ Str "-"
-                  , SoftBreak
-                  , Str "Level"
-                  , Space
-                  , Str "2"
-                  ]
+            [ [ Plain [ Str "Level 2" ]
+              , BulletList [ [ Plain [ Str "Level 3" ] ] ]
+              , Plain [ Str "-" , SoftBreak , Str "Level 2" ]
               ]
             ]
-        , Plain
-            [ Str "-" , SoftBreak , Str "Level" , Space , Str "1" ]
+        , Plain [ Str "-" , SoftBreak , Str "Level 1" ]
         ]
       ]
   , Para [ Str "-" ]
   , BulletList
-      [ [ Plain
-            [ Str "Empty"
-            , Space
-            , Str "item"
-            , Space
-            , Str "with"
-            , Space
-            , Str "trailing"
-            , Space
-            , Str "spaces."
-            ]
-        ]
-      ]
+      [ [ Plain [ Str "Empty item with trailing spaces." ] ] ]
   , Para [ Str "-" ]
   , BulletList
-      [ [ Plain
-            [ Str "Empty"
-            , Space
-            , Str "item"
-            , Space
-            , Str "with"
-            , Space
-            , Str "trailing"
-            , Space
-            , Str "TAB."
-            ]
-        ]
-      ]
+      [ [ Plain [ Str "Empty item with trailing TAB." ] ] ]
   , Para [ Str "-" ]
   , BulletList
-      [ [ Plain
-            [ Str "If"
-            , Space
-            , Str "the"
-            , Space
-            , Str "end"
-            , Space
-            , Str "of"
-            , Space
-            , Str "the"
-            , Space
-            , Str "file"
-            , Space
-            , Str "(EOF)"
-            , Space
-            , Str "is"
-            , Space
-            , Str "hit,"
-            ]
+      [ [ Plain [ Str "If the end of the file (EOF) is hit," ]
         , BulletList
             [ [ Plain
-                  [ Str "all"
-                  , Space
-                  , Str "the"
-                  , Space
-                  , Str "currently"
-                  , Space
-                  , Str "opened"
-                  , Space
-                  , Str "list"
-                  , Space
-                  , Str "are"
-                  , Space
-                  , Str "closed,"
-                  ]
+                  [ Str "all the currently opened list are closed," ]
               , BulletList
                   [ [ Plain
-                        [ Str "just"
-                        , Space
-                        , Str "like"
-                        , Space
-                        , Str "when"
-                        , Space
-                        , Str "using"
-                        , Space
-                        , Str "the"
-                        , Space
-                        , Str "two"
-                        , Space
-                        , Str "blank"
-                        , Space
-                        , Str "lines."
+                        [ Str
+                            "just like when using the two blank lines."
                         ]
                     ]
                   ]
@@ -3540,7 +1381,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "Cell" , Space , Str "1" ] ]
+                  [ Plain [ Str "Cell 1" ] ]
               ]
           ]
       ]
@@ -3564,19 +1405,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "Cell" , Space , Str "1" ] ]
+                  [ Plain [ Str "Cell 1" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "Cell" , Space , Str "2" ] ]
+                  [ Plain [ Str "Cell 2" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "Cell" , Space , Str "3" ] ]
+                  [ Plain [ Str "Cell 3" ] ]
               ]
           ]
       ]
@@ -3600,44 +1441,24 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "Cell" , Space , Str "1" ] ]
+                  [ Plain [ Str "Cell 1" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "Cell" , Space , Str "2" ] ]
+                  [ Plain [ Str "Cell 2" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "Cell" , Space , Str "3" ] ]
+                  [ Plain [ Str "Cell 3" ] ]
               ]
           ]
       ]
       (TableFoot ( "" , [] , [] ) [])
-  , Para
-      [ Str "||"
-      , Space
-      , Str "Cell"
-      , Space
-      , Str "1"
-      , Space
-      , Str "|"
-      , Space
-      , Str "Cell"
-      , Space
-      , Str "2"
-      , Space
-      , Str "|"
-      , Space
-      , Str "Cell"
-      , Space
-      , Str "3"
-      , Space
-      , Str "|"
-      ]
+  , Para [ Str "|| Cell 1 | Cell 2 | Cell 3 |" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -3657,19 +1478,19 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "Cell" , Space , Str "1" ] ]
+                  [ Plain [ Str "Cell 1" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "Cell" , Space , Str "2" ] ]
+                  [ Plain [ Str "Cell 2" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain [ Str "Cell" , Space , Str "3" ] ]
+                  [ Plain [ Str "Cell 3" ] ]
               ]
           ]
       ]
@@ -4509,18 +2330,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "/"
-                      , Space
-                      , Str "/"
-                      , Space
-                      , Str "/"
-                      , Space
-                      , Str "/"
-                      , Space
-                      , Str "/"
-                      ]
-                  ]
+                  [ Plain [ Str "/ / / / /" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -4547,26 +2357,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "/"
-                      , Space
-                      , Str "/"
-                      , Space
-                      , Str "/"
-                      , Space
-                      , Str "/"
-                      , Space
-                      , Str "/"
-                      , Space
-                      , Str "/"
-                      , Space
-                      , Str "/"
-                      , Space
-                      , Str "/"
-                      , Space
-                      , Str "/"
-                      ]
-                  ]
+                  [ Plain [ Str "/ / / / / / / / /" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -4671,16 +2462,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "="
-                      , Space
-                      , Str "="
-                      , Space
-                      , Str "="
-                      , Space
-                      , Str "="
-                      ]
-                  ]
+                  [ Plain [ Str "= = = =" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -5257,43 +3039,9 @@ Pandoc
       ]
       (TableFoot ( "" , [] , [] ) [])
   , Para [ Str "|this|is|not|a|table|" ]
-  , Para
-      [ Str "|this|"
-      , Space
-      , Str "is|"
-      , Space
-      , Str "not|"
-      , Space
-      , Str "a|"
-      , Space
-      , Str "table|"
-      ]
-  , Para
-      [ Str "|this"
-      , Space
-      , Str "|is"
-      , Space
-      , Str "|not"
-      , Space
-      , Str "|a"
-      , Space
-      , Str "|table"
-      , Space
-      , Str "|"
-      ]
-  , Para
-      [ Str "|"
-      , Space
-      , Str "this\t|"
-      , Space
-      , Str "is\t|"
-      , Space
-      , Str "not\t|"
-      , Space
-      , Str "a\t|"
-      , Space
-      , Str "table\t|"
-      ]
+  , Para [ Str "|this| is| not| a| table|" ]
+  , Para [ Str "|this |is |not |a |table |" ]
+  , Para [ Str "| this\t| is\t| not\t| a\t| table\t|" ]
   , HorizontalRule
-  , Para [ Str "The" , Space , Str "End." ]
+  , Para [ Str "The End." ]
   ]

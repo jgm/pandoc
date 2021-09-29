@@ -1,2 +1,5 @@
-[Para [Str "Some",Space,Str "text",Space,Str "separated",Space,Str "by",Space,Str "a",Space,Str "tab."]
-,Para [Str "Tab-indented",Space,Str "text."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para [ Str "Some text separated by a tab." ]
+  , Para [ Str "Tab-indented text." ]
+  ]

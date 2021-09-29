@@ -1,2 +1,37 @@
-[Para [Str "This",Space,Str "picture",Space,Image ("",[],[("width","0.8888888888888888in"),("height","0.8888888888888888in")]) [Str "This",Space,Str "one",Space,Str "is",Space,Str "green",Space,Str "and",Space,Str "looks",Space,Str "like",Space,Str "Sideshow",Space,Str "Bob."] ("media/image1.jpg","First identicon"),Space,Str "is",Space,Str "an",Space,Str "identicon."]
-,Para [Str "Here",Space,Str "is",Space,Link ("",[],[]) [Str "one",Space,Image ("",[],[("width","0.8888888888888888in"),("height","0.8888888888888888in")]) [Str "This",Space,Str "one",Space,Str "is",Space,Str "reddish,",Space,Str "and",Space,Str "looks",Space,Str "like",Space,Str "a",Space,Str "heart",Space,Str "that",Space,Str "has",Space,Str "leaked",Space,Str "out."] ("media/image2.jpg","Second identicon"),Space,Str "that"] ("http://www.google.com",""),Space,Str "links."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str "This picture "
+      , Image
+          ( ""
+          , []
+          , [ ( "width" , "0.8888888888888888in" )
+            , ( "height" , "0.8888888888888888in" )
+            ]
+          )
+          [ Str "This one is green and looks like Sideshow Bob." ]
+          ( "media/image1.jpg" , "First identicon" )
+      , Str " is an identicon."
+      ]
+  , Para
+      [ Str "Here is "
+      , Link
+          ( "" , [] , [] )
+          [ Str "one "
+          , Image
+              ( ""
+              , []
+              , [ ( "width" , "0.8888888888888888in" )
+                , ( "height" , "0.8888888888888888in" )
+                ]
+              )
+              [ Str
+                  "This one is reddish, and looks like a heart that has leaked out."
+              ]
+              ( "media/image2.jpg" , "Second identicon" )
+          , Str " that"
+          ]
+          ( "http://www.google.com" , "" )
+      , Str " links."
+      ]
+  ]

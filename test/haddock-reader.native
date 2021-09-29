@@ -1,34 +1,10 @@
 Pandoc
   Meta { unMeta = fromList [] }
   [ Para
-      [ Str "This"
-      , Space
-      , Str "file"
-      , Space
-      , Str "tests"
-      , Space
-      , Str "the"
-      , Space
-      , Str "Pandoc"
-      , Space
-      , Str "reader"
-      , Space
-      , Str "for"
-      , Space
-      , Str "Haddock."
+      [ Str "This file tests the Pandoc reader for Haddock."
       , SoftBreak
-      , Str "We've"
-      , Space
-      , Str "borrowed"
-      , Space
-      , Str "examples"
-      , Space
-      , Str "from"
-      , Space
-      , Str "Haddock's"
-      , Space
-      , Str "documentation:"
-      , Space
+      , Str
+          "We've borrowed examples from Haddock's documentation: "
       , Link
           ( "" , [] , [] )
           [ Str "http://www.haskell.org/haddock/doc/html/ch03s08.html"
@@ -39,137 +15,25 @@ Pandoc
       , Str "."
       ]
   , Para
-      [ Str "The"
-      , Space
-      , Str "following"
-      , Space
-      , Str "characters"
-      , Space
-      , Str "have"
-      , Space
-      , Str "special"
-      , Space
-      , Str "meanings"
-      , Space
-      , Str "in"
-      , Space
-      , Str "Haddock,"
-      , Space
-      , Str "/,"
-      , Space
-      , Str "',"
-      , Space
-      , Str "`,"
-      , Space
-      , Str "\","
-      , Space
-      , Str "@,"
-      , Space
-      , Str "<,"
-      , Space
-      , Str "so"
-      , Space
-      , Str "they"
-      , Space
-      , Str "must"
-      , Space
-      , Str "be"
-      , Space
-      , Str "escaped."
+      [ Str
+          "The following characters have special meanings in Haddock, /, ', `, \", @, <, so they must be escaped."
       ]
   , Para
-      [ Str "*"
-      , Space
-      , Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "paragraph,"
-      , Space
-      , Str "not"
-      , Space
-      , Str "a"
-      , Space
-      , Str "list"
-      , Space
-      , Str "item."
+      [ Str "* This is a paragraph, not a list item."
       , SoftBreak
-      , Str ">"
-      , Space
-      , Str "This"
-      , Space
-      , Str "sentence"
-      , Space
-      , Str "is"
-      , Space
-      , Str "not"
-      , Space
-      , Str "code."
+      , Str "> This sentence is not code."
       , SoftBreak
-      , Str ">>>"
-      , Space
-      , Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "not"
-      , Space
-      , Str "an"
-      , Space
-      , Str "example."
+      , Str ">>> This is not an example."
       ]
   , Para
-      [ Str "The"
-      , Space
-      , Str "references"
-      , Space
-      , Str "\955,"
-      , Space
-      , Str "\955"
-      , Space
-      , Str "and"
-      , Space
-      , Str "\955"
-      , Space
-      , Str "all"
-      , Space
-      , Str "represent"
-      , Space
-      , Str "the"
-      , Space
-      , Str "lower-case"
-      , Space
-      , Str "letter"
-      , Space
-      , Str "lambda."
+      [ Str
+          "The references \955, \955 and \955 all represent the lower-case letter lambda."
       ]
-  , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "code"
-      , Space
-      , Str "block:"
-      ]
+  , Para [ Str "This is a code block:" ]
   , CodeBlock
       ( "" , [] , [] )
       "map :: (a -> b) -> [a] -> [b]\nmap _ []     = []\nmap f (x:xs) = f x : map f xs"
-  , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "another"
-      , Space
-      , Str "code"
-      , Space
-      , Str "block:"
-      ]
+  , Para [ Str "This is another code block:" ]
   , Para
       [ Code ( "" , [] , [] ) "f x = x + x."
       , LineBreak
@@ -182,25 +46,17 @@ Pandoc
       , LineBreak
       , Code ( "" , [] , [] ) "\"Hello World\""
       ]
-  , Para
-      [ Str "Haddock"
-      , Space
-      , Str "supports"
-      , Space
-      , Str "REPL"
-      , Space
-      , Str "examples:"
-      ]
+  , Para [ Str "Haddock supports REPL examples:" ]
   , Para
       [ Code ( "" , [ "prompt" ] , [] ) ">>>"
-      , Space
+      , Str " "
       , Code ( "" , [ "haskell" , "expr" ] , [] ) "fib 10"
       , LineBreak
       , Code ( "" , [ "result" ] , [] ) "55"
       ]
   , Para
       [ Code ( "" , [ "prompt" ] , [] ) ">>>"
-      , Space
+      , Str " "
       , Code
           ( "" , [ "haskell" , "expr" ] , [] )
           "putStrLn \"foo\\nbar\""
@@ -210,139 +66,46 @@ Pandoc
       , Code ( "" , [ "result" ] , [] ) "bar"
       ]
   , Para
-      [ Str "That"
-      , Space
-      , Str "was"
-      , Space
-      , Emph [ Str "really" , Space , Str "cool" ]
+      [ Str "That was "
+      , Emph [ Str "really cool" ]
       , Str "!"
       , SoftBreak
-      , Str "I"
-      , Space
-      , Str "had"
-      , Space
-      , Str "no"
-      , Space
-      , Str "idea"
-      , Space
+      , Str "I had no idea "
       , Code ( "" , [] , [] ) "fib 10 = 55"
       , Str "."
       ]
   , Para
-      [ Str "This"
-      , Space
-      , Str "module"
-      , Space
-      , Str "defines"
-      , Space
-      , Str "the"
-      , Space
-      , Str "type"
-      , Space
+      [ Str "This module defines the type "
       , Code ( "" , [ "haskell" , "identifier" ] , [] ) "T"
       , Str "."
       , SoftBreak
-      , Str "The"
-      , Space
-      , Str "identifier"
-      , Space
+      , Str "The identifier "
       , Code ( "" , [ "haskell" , "identifier" ] , [] ) "M.T"
-      , Space
-      , Str "is"
-      , Space
-      , Str "not"
-      , Space
-      , Str "in"
-      , Space
-      , Str "scope"
+      , Str " is not in scope"
       , SoftBreak
-      , Str "I"
-      , Space
-      , Str "don't"
-      , Space
-      , Str "have"
-      , Space
-      , Str "to"
-      , Space
-      , Str "escape"
-      , Space
-      , Str "my"
-      , Space
-      , Str "apostrophes;"
-      , Space
-      , Str "great,"
-      , Space
-      , Str "isn't"
-      , Space
-      , Str "it?"
+      , Str
+          "I don't have to escape my apostrophes; great, isn't it?"
       , SoftBreak
-      , Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "reference"
-      , Space
-      , Str "to"
-      , Space
-      , Str "the"
-      , Space
+      , Str "This is a reference to the "
       , Code ( "" , [ "haskell" , "module" ] , [] ) "Foo"
-      , Space
-      , Str "module."
+      , Str " module."
       ]
-  , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "bulleted"
-      , Space
-      , Str "list:"
-      ]
+  , Para [ Str "This is a bulleted list:" ]
   , BulletList
-      [ [ Para [ Str "first" , Space , Str "item" ] ]
-      , [ Para [ Str "second" , Space , Str "item" ] ]
+      [ [ Para [ Str "first item" ] ]
+      , [ Para [ Str "second item" ] ]
       ]
-  , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "an"
-      , Space
-      , Str "enumerated"
-      , Space
-      , Str "list:"
-      ]
+  , Para [ Str "This is an enumerated list:" ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
-      [ [ Para [ Str "first" , Space , Str "item" ] ]
-      , [ Para [ Str "second" , Space , Str "item" ] ]
+      [ [ Para [ Str "first item" ] ]
+      , [ Para [ Str "second item" ] ]
       ]
-  , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "definition"
-      , Space
-      , Str "list:"
-      ]
+  , Para [ Str "This is a definition list:" ]
   , DefinitionList
       [ ( [ Code ( "" , [] , [] ) "foo" ]
         , [ [ Para
-                [ Str "The"
-                , Space
-                , Str "description"
-                , Space
-                , Str "of"
-                , Space
+                [ Str "The description of "
                 , Code ( "" , [] , [] ) "foo"
                 , Str "."
                 ]
@@ -351,12 +114,7 @@ Pandoc
         )
       , ( [ Code ( "" , [] , [] ) "bar" ]
         , [ [ Para
-                [ Str "The"
-                , Space
-                , Str "description"
-                , Space
-                , Str "of"
-                , Space
+                [ Str "The description of "
                 , Code ( "" , [] , [] ) "bar"
                 , Str "."
                 ]
@@ -365,14 +123,7 @@ Pandoc
         )
       ]
   , Para
-      [ Str "Here"
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "link:"
-      , Space
+      [ Str "Here is a link: "
       , Link
           ( "" , [] , [] )
           [ Str "http://haskell.org" ]
@@ -383,19 +134,12 @@ Pandoc
           ( "" , [] , [] )
           [ Str "Haskell" ]
           ( "http://haskell.org" , "http://haskell.org" )
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "fun"
-      , Space
-      , Str "language!"
+      , Str " is a fun language!"
       ]
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "Click" , Space , Str "Here!" ]
+          [ Str "Click Here!" ]
           ( "http://example.com" , "http://example.com" )
       ]
   ]

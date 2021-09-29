@@ -1,1 +1,12 @@
-[Para [Image ("",[],[("width","5.292cm"),("height","5.292cm")]) [Str "Abbildung",Space,Str "1:",Space,Str "Image",Space,Str "caption"] ("Pictures/10000000000000FA000000FAD6A15225.jpg","fig:")]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Image
+          ( ""
+          , []
+          , [ ( "width" , "5.292cm" ) , ( "height" , "5.292cm" ) ]
+          )
+          [ Str "Abbildung 1: Image caption" ]
+          ( "Pictures/10000000000000FA000000FAD6A15225.jpg" , "fig:" )
+      ]
+  ]

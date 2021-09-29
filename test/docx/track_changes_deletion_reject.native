@@ -1,1 +1,7 @@
-[Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "text",Space,Str "with",Space,Str "an",Space,Str "excessively",Space,Str "modified",Space,Str "deletion."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str
+          "This is a text with an excessively modified deletion."
+      ]
+  ]

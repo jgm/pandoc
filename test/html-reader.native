@@ -3,308 +3,76 @@ Pandoc
     { unMeta =
         fromList
           [ ( "generator" , MetaInlines [ Str "pandoc" ] )
-          , ( "title"
-            , MetaInlines
-                [ Str "Pandoc"
-                , Space
-                , Str "Test"
-                , Space
-                , Str "Suite"
-                ]
-            )
+          , ( "title" , MetaInlines [ Str "Pandoc Test Suite" ] )
           ]
     }
   [ Header
       1
       ( "pandoc-test-suite" , [ "title" ] , [] )
-      [ Str "Pandoc" , Space , Str "Test" , Space , Str "Suite" ]
+      [ Str "Pandoc Test Suite" ]
   , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "set"
-      , Space
-      , Str "of"
-      , Space
-      , Str "tests"
-      , Space
-      , Str "for"
-      , Space
-      , Str "pandoc."
-      , Space
-      , Str "Most"
-      , Space
-      , Str "of"
-      , Space
-      , Str "them"
-      , Space
-      , Str "are"
-      , Space
-      , Str "adapted"
-      , Space
-      , Str "from"
-      , Space
-      , Str "John"
-      , Space
-      , Str "Gruber's"
-      , Space
-      , Str "markdown"
-      , Space
-      , Str "test"
-      , Space
-      , Str "suite."
+      [ Str
+          "This is a set of tests for pandoc. Most of them are adapted from John Gruber's markdown test suite."
       ]
   , HorizontalRule
   , Header 1 ( "headers" , [] , [] ) [ Str "Headers" ]
   , Header
       2
       ( "level-2-with-an-embedded-link" , [] , [] )
-      [ Str "Level"
-      , Space
-      , Str "2"
-      , Space
-      , Str "with"
-      , Space
-      , Str "an"
-      , Space
+      [ Str "Level 2 with an "
       , Link
-          ( "" , [] , [] )
-          [ Str "embedded" , Space , Str "link" ]
-          ( "/url" , "" )
+          ( "" , [] , [] ) [ Str "embedded link" ] ( "/url" , "" )
       ]
   , Header
       3
       ( "level-3-with-emphasis" , [] , [] )
-      [ Str "Level"
-      , Space
-      , Str "3"
-      , Space
-      , Str "with"
-      , Space
-      , Emph [ Str "emphasis" ]
-      ]
-  , Header
-      4 ( "level-4" , [] , [] ) [ Str "Level" , Space , Str "4" ]
-  , Header
-      5 ( "level-5" , [] , [] ) [ Str "Level" , Space , Str "5" ]
-  , Header
-      1 ( "level-1" , [] , [] ) [ Str "Level" , Space , Str "1" ]
+      [ Str "Level 3 with " , Emph [ Str "emphasis" ] ]
+  , Header 4 ( "level-4" , [] , [] ) [ Str "Level 4" ]
+  , Header 5 ( "level-5" , [] , [] ) [ Str "Level 5" ]
+  , Header 1 ( "level-1" , [] , [] ) [ Str "Level 1" ]
   , Header
       2
       ( "level-2-with-emphasis" , [] , [] )
-      [ Str "Level"
-      , Space
-      , Str "2"
-      , Space
-      , Str "with"
-      , Space
-      , Emph [ Str "emphasis" ]
-      ]
-  , Header
-      3 ( "level-3" , [] , [] ) [ Str "Level" , Space , Str "3" ]
-  , Para
-      [ Str "with"
-      , Space
-      , Str "no"
-      , Space
-      , Str "blank"
-      , Space
-      , Str "line"
-      ]
-  , Header
-      2 ( "level-2" , [] , [] ) [ Str "Level" , Space , Str "2" ]
-  , Para
-      [ Str "with"
-      , Space
-      , Str "no"
-      , Space
-      , Str "blank"
-      , Space
-      , Str "line"
-      ]
+      [ Str "Level 2 with " , Emph [ Str "emphasis" ] ]
+  , Header 3 ( "level-3" , [] , [] ) [ Str "Level 3" ]
+  , Para [ Str "with no blank line" ]
+  , Header 2 ( "level-2" , [] , [] ) [ Str "Level 2" ]
+  , Para [ Str "with no blank line" ]
   , HorizontalRule
   , Header 1 ( "paragraphs" , [] , [] ) [ Str "Paragraphs" ]
+  , Para [ Str "Here's a regular paragraph." ]
   , Para
-      [ Str "Here's"
-      , Space
-      , Str "a"
-      , Space
-      , Str "regular"
-      , Space
-      , Str "paragraph."
+      [ Str
+          "In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item."
       ]
+  , Para [ Str "Here's one with a bullet. * criminey." ]
   , Para
-      [ Str "In"
-      , Space
-      , Str "Markdown"
-      , Space
-      , Str "1.0.0"
-      , Space
-      , Str "and"
-      , Space
-      , Str "earlier."
-      , Space
-      , Str "Version"
-      , Space
-      , Str "8."
-      , Space
-      , Str "This"
-      , Space
-      , Str "line"
-      , Space
-      , Str "turns"
-      , Space
-      , Str "into"
-      , Space
-      , Str "a"
-      , Space
-      , Str "list"
-      , Space
-      , Str "item."
-      , Space
-      , Str "Because"
-      , Space
-      , Str "a"
-      , Space
-      , Str "hard-wrapped"
-      , Space
-      , Str "line"
-      , Space
-      , Str "in"
-      , Space
-      , Str "the"
-      , Space
-      , Str "middle"
-      , Space
-      , Str "of"
-      , Space
-      , Str "a"
-      , Space
-      , Str "paragraph"
-      , Space
-      , Str "looked"
-      , Space
-      , Str "like"
-      , Space
-      , Str "a"
-      , Space
-      , Str "list"
-      , Space
-      , Str "item."
-      ]
-  , Para
-      [ Str "Here's"
-      , Space
-      , Str "one"
-      , Space
-      , Str "with"
-      , Space
-      , Str "a"
-      , Space
-      , Str "bullet."
-      , Space
-      , Str "*"
-      , Space
-      , Str "criminey."
-      ]
-  , Para
-      [ Str "There"
-      , Space
-      , Str "should"
-      , Space
-      , Str "be"
-      , Space
-      , Str "a"
-      , Space
-      , Str "hard"
-      , Space
-      , Str "line"
-      , Space
-      , Str "break"
+      [ Str "There should be a hard line break"
       , LineBreak
       , Str "here."
       ]
   , HorizontalRule
   , Header
-      1
-      ( "block-quotes" , [] , [] )
-      [ Str "Block" , Space , Str "Quotes" ]
-  , Para [ Str "E-mail" , Space , Str "style:" ]
+      1 ( "block-quotes" , [] , [] ) [ Str "Block Quotes" ]
+  , Para [ Str "E-mail style:" ]
   , BlockQuote
-      [ Para
-          [ Str "This"
-          , Space
-          , Str "is"
-          , Space
-          , Str "a"
-          , Space
-          , Str "block"
-          , Space
-          , Str "quote."
-          , Space
-          , Str "It"
-          , Space
-          , Str "is"
-          , Space
-          , Str "pretty"
-          , Space
-          , Str "short."
-          ]
+      [ Para [ Str "This is a block quote. It is pretty short." ]
       ]
   , BlockQuote
-      [ Para
-          [ Str "Code"
-          , Space
-          , Str "in"
-          , Space
-          , Str "a"
-          , Space
-          , Str "block"
-          , Space
-          , Str "quote:"
-          ]
+      [ Para [ Str "Code in a block quote:" ]
       , CodeBlock
           ( "" , [] , [] ) "sub status {\n    print \"working\";\n}"
-      , Para [ Str "A" , Space , Str "list:" ]
+      , Para [ Str "A list:" ]
       , OrderedList
           ( 1 , DefaultStyle , DefaultDelim )
-          [ [ Plain [ Str "item" , Space , Str "one" ] ]
-          , [ Plain [ Str "item" , Space , Str "two" ] ]
+          [ [ Plain [ Str "item one" ] ]
+          , [ Plain [ Str "item two" ] ]
           ]
-      , Para
-          [ Str "Nested"
-          , Space
-          , Str "block"
-          , Space
-          , Str "quotes:"
-          ]
+      , Para [ Str "Nested block quotes:" ]
       , BlockQuote [ Para [ Str "nested" ] ]
       , BlockQuote [ Para [ Str "nested" ] ]
       ]
-  , Para
-      [ Str "This"
-      , Space
-      , Str "should"
-      , Space
-      , Str "not"
-      , Space
-      , Str "be"
-      , Space
-      , Str "a"
-      , Space
-      , Str "block"
-      , Space
-      , Str "quote:"
-      , Space
-      , Str "2"
-      , Space
-      , Str ">"
-      , Space
-      , Str "1."
-      ]
+  , Para [ Str "This should not be a block quote: 2 > 1." ]
   , Para [ Str "Box-style:" ]
   , BlockQuote
       [ Para [ Str "Example:" ]
@@ -314,60 +82,21 @@ Pandoc
   , BlockQuote
       [ OrderedList
           ( 1 , DefaultStyle , DefaultDelim )
-          [ [ Plain [ Str "do" , Space , Str "laundry" ] ]
-          , [ Plain
-                [ Str "take"
-                , Space
-                , Str "out"
-                , Space
-                , Str "the"
-                , Space
-                , Str "trash"
-                ]
-            ]
+          [ [ Plain [ Str "do laundry" ] ]
+          , [ Plain [ Str "take out the trash" ] ]
           ]
       ]
-  , Para
-      [ Str "Here's"
-      , Space
-      , Str "a"
-      , Space
-      , Str "nested"
-      , Space
-      , Str "one:"
-      ]
+  , Para [ Str "Here's a nested one:" ]
   , BlockQuote
-      [ Para [ Str "Joe" , Space , Str "said:" ]
-      , BlockQuote
-          [ Para
-              [ Str "Don't" , Space , Str "quote" , Space , Str "me." ]
-          ]
+      [ Para [ Str "Joe said:" ]
+      , BlockQuote [ Para [ Str "Don't quote me." ] ]
       ]
-  , Para
-      [ Str "And"
-      , Space
-      , Str "a"
-      , Space
-      , Str "following"
-      , Space
-      , Str "paragraph."
-      ]
+  , Para [ Str "And a following paragraph." ]
   , HorizontalRule
   , Header
-      1
-      ( "inline-quotes" , [] , [] )
-      [ Str "Inline" , Space , Str "quotes" ]
+      1 ( "inline-quotes" , [] , [] ) [ Str "Inline quotes" ]
   , Para
-      [ Str "Normal"
-      , Space
-      , Str "text"
-      , Space
-      , Str "but"
-      , Space
-      , Str "then"
-      , Space
-      , Str "a"
-      , Space
+      [ Str "Normal text but then a "
       , Quoted
           DoubleQuote
           [ Span
@@ -378,37 +107,18 @@ Pandoc
                   )
                 ]
               )
-              [ Str "inline" , Space , Str "quote" ]
+              [ Str "inline quote" ]
           ]
       , Str "."
       ]
   , Para
       [ Quoted
           DoubleQuote
-          [ Str "Missing"
-          , Space
-          , Str "a"
-          , Space
-          , Str "cite"
-          , Space
-          , Str "attribute"
-          , Space
-          , Str "means"
-          , Space
-          , Str "its"
-          , Space
-          , Str "just"
-          , Space
-          , Str "normal"
-          , Space
-          , Str "text"
+          [ Str "Missing a cite attribute means its just normal text"
           ]
       ]
   , HorizontalRule
-  , Header
-      1
-      ( "code-blocks" , [] , [] )
-      [ Str "Code" , Space , Str "Blocks" ]
+  , Header 1 ( "code-blocks" , [] , [] ) [ Str "Code Blocks" ]
   , Para [ Str "Code:" ]
   , CodeBlock
       ( "" , [] , [] )
@@ -420,41 +130,41 @@ Pandoc
   , HorizontalRule
   , Header 1 ( "lists" , [] , [] ) [ Str "Lists" ]
   , Header 2 ( "unordered" , [] , [] ) [ Str "Unordered" ]
-  , Para [ Str "Asterisks" , Space , Str "tight:" ]
+  , Para [ Str "Asterisks tight:" ]
   , BulletList
-      [ [ Plain [ Str "asterisk" , Space , Str "1" ] ]
-      , [ Plain [ Str "asterisk" , Space , Str "2" ] ]
-      , [ Plain [ Str "asterisk" , Space , Str "3" ] ]
+      [ [ Plain [ Str "asterisk 1" ] ]
+      , [ Plain [ Str "asterisk 2" ] ]
+      , [ Plain [ Str "asterisk 3" ] ]
       ]
-  , Para [ Str "Asterisks" , Space , Str "loose:" ]
+  , Para [ Str "Asterisks loose:" ]
   , BulletList
-      [ [ Para [ Str "asterisk" , Space , Str "1" ] ]
-      , [ Para [ Str "asterisk" , Space , Str "2" ] ]
-      , [ Para [ Str "asterisk" , Space , Str "3" ] ]
+      [ [ Para [ Str "asterisk 1" ] ]
+      , [ Para [ Str "asterisk 2" ] ]
+      , [ Para [ Str "asterisk 3" ] ]
       ]
-  , Para [ Str "Pluses" , Space , Str "tight:" ]
+  , Para [ Str "Pluses tight:" ]
   , BulletList
-      [ [ Plain [ Str "Plus" , Space , Str "1" ] ]
-      , [ Plain [ Str "Plus" , Space , Str "2" ] ]
-      , [ Plain [ Str "Plus" , Space , Str "3" ] ]
+      [ [ Plain [ Str "Plus 1" ] ]
+      , [ Plain [ Str "Plus 2" ] ]
+      , [ Plain [ Str "Plus 3" ] ]
       ]
-  , Para [ Str "Pluses" , Space , Str "loose:" ]
+  , Para [ Str "Pluses loose:" ]
   , BulletList
-      [ [ Para [ Str "Plus" , Space , Str "1" ] ]
-      , [ Para [ Str "Plus" , Space , Str "2" ] ]
-      , [ Para [ Str "Plus" , Space , Str "3" ] ]
+      [ [ Para [ Str "Plus 1" ] ]
+      , [ Para [ Str "Plus 2" ] ]
+      , [ Para [ Str "Plus 3" ] ]
       ]
-  , Para [ Str "Minuses" , Space , Str "tight:" ]
+  , Para [ Str "Minuses tight:" ]
   , BulletList
-      [ [ Plain [ Str "Minus" , Space , Str "1" ] ]
-      , [ Plain [ Str "Minus" , Space , Str "2" ] ]
-      , [ Plain [ Str "Minus" , Space , Str "3" ] ]
+      [ [ Plain [ Str "Minus 1" ] ]
+      , [ Plain [ Str "Minus 2" ] ]
+      , [ Plain [ Str "Minus 3" ] ]
       ]
-  , Para [ Str "Minuses" , Space , Str "loose:" ]
+  , Para [ Str "Minuses loose:" ]
   , BulletList
-      [ [ Para [ Str "Minus" , Space , Str "1" ] ]
-      , [ Para [ Str "Minus" , Space , Str "2" ] ]
-      , [ Para [ Str "Minus" , Space , Str "3" ] ]
+      [ [ Para [ Str "Minus 1" ] ]
+      , [ Para [ Str "Minus 2" ] ]
+      , [ Para [ Str "Minus 3" ] ]
       ]
   , Header 2 ( "ordered" , [] , [] ) [ Str "Ordered" ]
   , Para [ Str "Tight:" ]
@@ -471,68 +181,33 @@ Pandoc
       , [ Plain [ Str "Two" ] ]
       , [ Plain [ Str "Three" ] ]
       ]
-  , Para
-      [ Str "Loose" , Space , Str "using" , Space , Str "tabs:" ]
+  , Para [ Str "Loose using tabs:" ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
       [ [ Para [ Str "First" ] ]
       , [ Para [ Str "Second" ] ]
       , [ Para [ Str "Third" ] ]
       ]
-  , Para
-      [ Str "and" , Space , Str "using" , Space , Str "spaces:" ]
+  , Para [ Str "and using spaces:" ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
       [ [ Para [ Str "One" ] ]
       , [ Para [ Str "Two" ] ]
       , [ Para [ Str "Three" ] ]
       ]
-  , Para [ Str "Multiple" , Space , Str "paragraphs:" ]
+  , Para [ Str "Multiple paragraphs:" ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
-      [ [ Para
-            [ Str "Item"
-            , Space
-            , Str "1,"
-            , Space
-            , Str "graf"
-            , Space
-            , Str "one."
-            ]
+      [ [ Para [ Str "Item 1, graf one." ]
         , Para
-            [ Str "Item"
-            , Space
-            , Str "1."
-            , Space
-            , Str "graf"
-            , Space
-            , Str "two."
-            , Space
-            , Str "The"
-            , Space
-            , Str "quick"
-            , Space
-            , Str "brown"
-            , Space
-            , Str "fox"
-            , Space
-            , Str "jumped"
-            , Space
-            , Str "over"
-            , Space
-            , Str "the"
-            , Space
-            , Str "lazy"
-            , Space
-            , Str "dog's"
-            , Space
-            , Str "back."
+            [ Str
+                "Item 1. graf two. The quick brown fox jumped over the lazy dog's back."
             ]
         ]
-      , [ Para [ Str "Item" , Space , Str "2." ] ]
-      , [ Para [ Str "Item" , Space , Str "3." ] ]
+      , [ Para [ Str "Item 2." ] ]
+      , [ Para [ Str "Item 3." ] ]
       ]
-  , Para [ Str "List" , Space , Str "styles:" ]
+  , Para [ Str "List styles:" ]
   , OrderedList ( 1 , DefaultStyle , DefaultDelim ) []
   , OrderedList ( 1 , LowerRoman , DefaultDelim ) []
   , OrderedList ( 1 , LowerRoman , DefaultDelim ) []
@@ -549,7 +224,7 @@ Pandoc
             ]
         ]
       ]
-  , Para [ Str "Here's" , Space , Str "another:" ]
+  , Para [ Str "Here's another:" ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
       [ [ Plain [ Str "First" ] ]
@@ -562,17 +237,7 @@ Pandoc
         ]
       , [ Plain [ Str "Third" ] ]
       ]
-  , Para
-      [ Str "Same"
-      , Space
-      , Str "thing"
-      , Space
-      , Str "but"
-      , Space
-      , Str "with"
-      , Space
-      , Str "paragraphs:"
-      ]
+  , Para [ Str "Same thing but with paragraphs:" ]
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
       [ [ Para [ Str "First" ] ]
@@ -586,84 +251,19 @@ Pandoc
       , [ Para [ Str "Third" ] ]
       ]
   , Header
-      2
-      ( "tabs-and-spaces" , [] , [] )
-      [ Str "Tabs" , Space , Str "and" , Space , Str "spaces" ]
+      2 ( "tabs-and-spaces" , [] , [] ) [ Str "Tabs and spaces" ]
   , BulletList
-      [ [ Para
-            [ Str "this"
-            , Space
-            , Str "is"
-            , Space
-            , Str "a"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "indented"
-            , Space
-            , Str "with"
-            , Space
-            , Str "tabs"
-            ]
-        ]
-      , [ Para
-            [ Str "this"
-            , Space
-            , Str "is"
-            , Space
-            , Str "a"
-            , Space
-            , Str "list"
-            , Space
-            , Str "item"
-            , Space
-            , Str "indented"
-            , Space
-            , Str "with"
-            , Space
-            , Str "spaces"
-            ]
+      [ [ Para [ Str "this is a list item indented with tabs" ] ]
+      , [ Para [ Str "this is a list item indented with spaces" ]
         , BulletList
             [ [ Para
-                  [ Str "this"
-                  , Space
-                  , Str "is"
-                  , Space
-                  , Str "an"
-                  , Space
-                  , Str "example"
-                  , Space
-                  , Str "list"
-                  , Space
-                  , Str "item"
-                  , Space
-                  , Str "indented"
-                  , Space
-                  , Str "with"
-                  , Space
-                  , Str "tabs"
+                  [ Str
+                      "this is an example list item indented with tabs"
                   ]
               ]
             , [ Para
-                  [ Str "this"
-                  , Space
-                  , Str "is"
-                  , Space
-                  , Str "an"
-                  , Space
-                  , Str "example"
-                  , Space
-                  , Str "list"
-                  , Space
-                  , Str "item"
-                  , Space
-                  , Str "indented"
-                  , Space
-                  , Str "with"
-                  , Space
-                  , Str "spaces"
+                  [ Str
+                      "this is an example list item indented with spaces"
                   ]
               ]
             ]
@@ -672,43 +272,22 @@ Pandoc
   , Header
       2
       ( "fancy-list-markers" , [] , [] )
-      [ Str "Fancy" , Space , Str "list" , Space , Str "markers" ]
+      [ Str "Fancy list markers" ]
   , OrderedList
       ( 2 , Decimal , DefaultDelim )
-      [ [ Plain
-            [ Str "begins" , Space , Str "with" , Space , Str "2" ]
-        ]
-      , [ Para [ Str "and" , Space , Str "now" , Space , Str "3" ]
-        , Para
-            [ Str "with"
-            , Space
-            , Str "a"
-            , Space
-            , Str "continuation"
-            ]
+      [ [ Plain [ Str "begins with 2" ] ]
+      , [ Para [ Str "and now 3" ]
+        , Para [ Str "with a continuation" ]
         , OrderedList
             ( 4 , LowerRoman , DefaultDelim )
             [ [ Plain
-                  [ Str "sublist"
-                  , Space
-                  , Str "with"
-                  , Space
-                  , Str "roman"
-                  , Space
-                  , Str "numerals,"
-                  , Space
-                  , Str "starting"
-                  , Space
-                  , Str "with"
-                  , Space
-                  , Str "4"
-                  ]
+                  [ Str "sublist with roman numerals, starting with 4" ]
               ]
-            , [ Plain [ Str "more" , Space , Str "items" ]
+            , [ Plain [ Str "more items" ]
               , OrderedList
                   ( 1 , UpperAlpha , DefaultDelim )
-                  [ [ Plain [ Str "a" , Space , Str "subsublist" ] ]
-                  , [ Plain [ Str "a" , Space , Str "subsublist" ] ]
+                  [ [ Plain [ Str "a subsublist" ] ]
+                  , [ Plain [ Str "a subsublist" ] ]
                   ]
               ]
             ]
@@ -717,34 +296,16 @@ Pandoc
   , Para [ Str "Nesting:" ]
   , OrderedList
       ( 1 , UpperAlpha , DefaultDelim )
-      [ [ Plain [ Str "Upper" , Space , Str "Alpha" ]
+      [ [ Plain [ Str "Upper Alpha" ]
         , OrderedList
             ( 1 , UpperRoman , DefaultDelim )
-            [ [ Plain [ Str "Upper" , Space , Str "Roman." ]
+            [ [ Plain [ Str "Upper Roman." ]
               , OrderedList
                   ( 6 , Decimal , DefaultDelim )
-                  [ [ Plain
-                        [ Str "Decimal"
-                        , Space
-                        , Str "start"
-                        , Space
-                        , Str "with"
-                        , Space
-                        , Str "6"
-                        ]
+                  [ [ Plain [ Str "Decimal start with 6" ]
                     , OrderedList
                         ( 3 , LowerAlpha , DefaultDelim )
-                        [ [ Plain
-                              [ Str "Lower"
-                              , Space
-                              , Str "alpha"
-                              , Space
-                              , Str "with"
-                              , Space
-                              , Str "paren"
-                              ]
-                          ]
-                        ]
+                        [ [ Plain [ Str "Lower alpha with paren" ] ] ]
                     ]
                   ]
               ]
@@ -765,196 +326,89 @@ Pandoc
   , Header 2 ( "definition" , [] , [] ) [ Str "Definition" ]
   , DefinitionList
       [ ( [ Str "Violin" ]
-        , [ [ Plain
-                [ Str "Stringed"
-                , Space
-                , Str "musical"
-                , Space
-                , Str "instrument."
-                ]
-            ]
-          , [ Plain [ Str "Torture" , Space , Str "device." ] ]
+        , [ [ Plain [ Str "Stringed musical instrument." ] ]
+          , [ Plain [ Str "Torture device." ] ]
           ]
         )
       , ( [ Str "Cello" , LineBreak , Str "Violoncello" ]
-        , [ [ Plain
-                [ Str "Low-voiced"
-                , Space
-                , Str "stringed"
-                , Space
-                , Str "instrument."
-                ]
-            ]
-          ]
+        , [ [ Plain [ Str "Low-voiced stringed instrument." ] ] ]
         )
       ]
   , HorizontalRule
   , Header
-      1
-      ( "inline-markup" , [] , [] )
-      [ Str "Inline" , Space , Str "Markup" ]
+      1 ( "inline-markup" , [] , [] ) [ Str "Inline Markup" ]
   , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
+      [ Str "This is "
       , Emph [ Str "emphasized" ]
-      , Str ","
-      , Space
-      , Str "and"
-      , Space
-      , Str "so"
-      , Space
-      , Emph [ Str "is" , Space , Str "this" ]
+      , Str ", and so "
+      , Emph [ Str "is this" ]
       , Str "."
       ]
   , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
+      [ Str "This is "
       , Strong [ Str "strong" ]
-      , Str ","
-      , Space
-      , Str "and"
-      , Space
-      , Str "so"
-      , Space
-      , Strong [ Str "is" , Space , Str "this" ]
+      , Str ", and so "
+      , Strong [ Str "is this" ]
       , Str "."
       ]
   , Para
-      [ Str "Empty"
-      , Space
+      [ Str "Empty "
       , Strong []
-      , Space
-      , Str "and"
-      , Space
+      , Str " and "
       , Emph []
       , Str "."
       ]
   , Para
-      [ Str "An"
-      , Space
+      [ Str "An "
       , Emph
           [ Link
-              ( "" , [] , [] )
-              [ Str "emphasized" , Space , Str "link" ]
-              ( "/url" , "" )
+              ( "" , [] , [] ) [ Str "emphasized link" ] ( "/url" , "" )
           ]
       , Str "."
       ]
+  , Para [ Strong [ Emph [ Str "This is strong and em." ] ] ]
   , Para
-      [ Strong
-          [ Emph
-              [ Str "This"
-              , Space
-              , Str "is"
-              , Space
-              , Str "strong"
-              , Space
-              , Str "and"
-              , Space
-              , Str "em."
-              ]
-          ]
-      ]
-  , Para
-      [ Str "So"
-      , Space
-      , Str "is"
-      , Space
+      [ Str "So is "
       , Strong [ Emph [ Str "this" ] ]
-      , Space
-      , Str "word."
+      , Str " word."
       ]
+  , Para [ Strong [ Emph [ Str "This is strong and em." ] ] ]
   , Para
-      [ Strong
-          [ Emph
-              [ Str "This"
-              , Space
-              , Str "is"
-              , Space
-              , Str "strong"
-              , Space
-              , Str "and"
-              , Space
-              , Str "em."
-              ]
-          ]
-      ]
-  , Para
-      [ Str "So"
-      , Space
-      , Str "is"
-      , Space
+      [ Str "So is "
       , Strong [ Emph [ Str "this" ] ]
-      , Space
-      , Str "word."
+      , Str " word."
       ]
   , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , Str "code:"
-      , Space
+      [ Str "This is code: "
       , Code ( "" , [] , [] ) ">"
-      , Str ","
-      , Space
+      , Str ", "
       , Code ( "" , [] , [] ) "$"
-      , Str ","
-      , Space
+      , Str ", "
       , Code ( "" , [] , [] ) "\\"
-      , Str ","
-      , Space
+      , Str ", "
       , Code ( "" , [] , [] ) "\\$"
-      , Str ","
-      , Space
+      , Str ", "
       , Code ( "" , [] , [] ) "<html>"
       , Str "."
       ]
   , Para
-      [ Str "This"
-      , Space
-      , Str "is"
-      , Space
-      , SmallCaps [ Str "small" , Space , Str "caps" ]
+      [ Str "This is "
+      , SmallCaps [ Str "small caps" ]
       , Str "."
       ]
   , Para
-      [ Str "These"
-      , Space
-      , Str "are"
-      , Space
-      , Str "all"
-      , Space
-      , Str "underlined:"
-      , Space
+      [ Str "These are all underlined: "
       , Underline [ Str "foo" ]
-      , Space
-      , Str "and"
-      , Space
+      , Str " and "
       , Underline [ Str "bar" ]
       , Str "."
       ]
   , Para
-      [ Str "These"
-      , Space
-      , Str "are"
-      , Space
-      , Str "all"
-      , Space
-      , Str "strikethrough:"
-      , Space
+      [ Str "These are all strikethrough: "
       , Strikeout [ Str "foo" ]
-      , Str ","
-      , Space
+      , Str ", "
       , Strikeout [ Str "bar" ]
-      , Str ","
-      , Space
-      , Str "and"
-      , Space
+      , Str ", and "
       , Strikeout [ Str "baz" ]
       , Str "."
       ]
@@ -962,563 +416,211 @@ Pandoc
   , Header
       1
       ( "smart-quotes-ellipses-dashes" , [] , [] )
-      [ Str "Smart"
-      , Space
-      , Str "quotes,"
-      , Space
-      , Str "ellipses,"
-      , Space
-      , Str "dashes"
+      [ Str "Smart quotes, ellipses, dashes" ]
+  , Para
+      [ Str "\"Hello,\" said the spider. \"'Shelob' is my name.\""
+      ]
+  , Para [ Str "'A', 'B', and 'C' are letters." ]
+  , Para
+      [ Str
+          "'Oak,' 'elm,' and 'beech' are names of trees. So is 'pine.'"
       ]
   , Para
-      [ Str "\"Hello,\""
-      , Space
-      , Str "said"
-      , Space
-      , Str "the"
-      , Space
-      , Str "spider."
-      , Space
-      , Str "\"'Shelob'"
-      , Space
-      , Str "is"
-      , Space
-      , Str "my"
-      , Space
-      , Str "name.\""
+      [ Str
+          "'He said, \"I want to go.\"' Were you alive in the 70's?"
       ]
   , Para
-      [ Str "'A',"
-      , Space
-      , Str "'B',"
-      , Space
-      , Str "and"
-      , Space
-      , Str "'C'"
-      , Space
-      , Str "are"
-      , Space
-      , Str "letters."
-      ]
-  , Para
-      [ Str "'Oak,'"
-      , Space
-      , Str "'elm,'"
-      , Space
-      , Str "and"
-      , Space
-      , Str "'beech'"
-      , Space
-      , Str "are"
-      , Space
-      , Str "names"
-      , Space
-      , Str "of"
-      , Space
-      , Str "trees."
-      , Space
-      , Str "So"
-      , Space
-      , Str "is"
-      , Space
-      , Str "'pine.'"
-      ]
-  , Para
-      [ Str "'He"
-      , Space
-      , Str "said,"
-      , Space
-      , Str "\"I"
-      , Space
-      , Str "want"
-      , Space
-      , Str "to"
-      , Space
-      , Str "go.\"'"
-      , Space
-      , Str "Were"
-      , Space
-      , Str "you"
-      , Space
-      , Str "alive"
-      , Space
-      , Str "in"
-      , Space
-      , Str "the"
-      , Space
-      , Str "70's?"
-      ]
-  , Para
-      [ Str "Here"
-      , Space
-      , Str "is"
-      , Space
-      , Str "some"
-      , Space
-      , Str "quoted"
-      , Space
-      , Str "'"
+      [ Str "Here is some quoted '"
       , Code ( "" , [] , [] ) "code"
-      , Str "'"
-      , Space
-      , Str "and"
-      , Space
-      , Str "a"
-      , Space
-      , Str "\""
+      , Str "' and a \""
       , Link
           ( "" , [] , [] )
-          [ Str "quoted" , Space , Str "link" ]
+          [ Str "quoted link" ]
           ( "http://example.com/?foo=1&bar=2" , "" )
       , Str "\"."
       ]
   , Para
-      [ Str "Some"
-      , Space
-      , Str "dashes:"
-      , Space
-      , Str "one---two"
-      , Space
-      , Str "---"
-      , Space
-      , Str "three--four"
-      , Space
-      , Str "--"
-      , Space
-      , Str "five."
-      ]
+      [ Str "Some dashes: one---two --- three--four -- five." ]
   , Para
-      [ Str "Dashes"
-      , Space
-      , Str "between"
-      , Space
-      , Str "numbers:"
-      , Space
-      , Str "5-7,"
-      , Space
-      , Str "255-66,"
-      , Space
-      , Str "1987-1999."
-      ]
-  , Para
-      [ Str "Ellipses...and."
-      , Space
-      , Str "."
-      , Space
-      , Str ".and"
-      , Space
-      , Str "."
-      , Space
-      , Str "."
-      , Space
-      , Str "."
-      , Space
-      , Str "."
-      ]
+      [ Str "Dashes between numbers: 5-7, 255-66, 1987-1999." ]
+  , Para [ Str "Ellipses...and. . .and . . . ." ]
   , HorizontalRule
   , Header 1 ( "latex" , [] , [] ) [ Str "LaTeX" ]
   , BulletList
       [ [ Plain [ Str "\\cite[22-23]{smith.1899}" ] ]
       , [ Plain [ Str "\\doublespacing" ] ]
       , [ Plain [ Str "$2+2=4$" ] ]
-      , [ Plain
-            [ Str "$x" , Space , Str "\\in" , Space , Str "y$" ]
-        ]
-      , [ Plain
-            [ Str "$\\alpha"
-            , Space
-            , Str "\\wedge"
-            , Space
-            , Str "\\omega$"
-            ]
-        ]
+      , [ Plain [ Str "$x \\in y$" ] ]
+      , [ Plain [ Str "$\\alpha \\wedge \\omega$" ] ]
       , [ Plain [ Str "$223$" ] ]
       , [ Plain [ Str "$p$-Tree" ] ]
       , [ Plain
-            [ Str "$\\frac{d}{dx}f(x)=\\lim_{h\\to"
-            , Space
-            , Str "0}\\frac{f(x+h)-f(x)}{h}$"
+            [ Str
+                "$\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}$"
             ]
         ]
       , [ Plain
-            [ Str "Here's"
-            , Space
-            , Str "one"
-            , Space
-            , Str "that"
-            , Space
-            , Str "has"
-            , Space
-            , Str "a"
-            , Space
-            , Str "line"
-            , Space
-            , Str "break"
-            , Space
-            , Str "in"
-            , Space
-            , Str "it:"
-            , Space
-            , Str "$\\alpha"
-            , Space
-            , Str "+"
-            , Space
-            , Str "\\omega"
-            , Space
-            , Str "\\times"
-            , Space
-            , Str "x^2$."
+            [ Str
+                "Here's one that has a line break in it: $\\alpha + \\omega \\times x^2$."
             ]
         ]
       ]
-  , Para
-      [ Str "These"
-      , Space
-      , Str "shouldn't"
-      , Space
-      , Str "be"
-      , Space
-      , Str "math:"
-      ]
+  , Para [ Str "These shouldn't be math:" ]
   , BulletList
       [ [ Plain
-            [ Str "To"
-            , Space
-            , Str "get"
-            , Space
-            , Str "the"
-            , Space
-            , Str "famous"
-            , Space
-            , Str "equation,"
-            , Space
-            , Str "write"
-            , Space
+            [ Str "To get the famous equation, write "
             , Code ( "" , [] , [] ) "$e = mc^2$"
             , Str "."
             ]
         ]
       , [ Plain
-            [ Str "$22,000"
-            , Space
-            , Str "is"
-            , Space
-            , Str "a"
-            , Space
+            [ Str "$22,000 is a "
             , Emph [ Str "lot" ]
-            , Space
-            , Str "of"
-            , Space
-            , Str "money."
-            , Space
-            , Str "So"
-            , Space
-            , Str "is"
-            , Space
-            , Str "$34,000."
-            , Space
-            , Str "(It"
-            , Space
-            , Str "worked"
-            , Space
-            , Str "if"
-            , Space
-            , Str "\"lot\""
-            , Space
-            , Str "is"
-            , Space
-            , Str "emphasized.)"
+            , Str
+                " of money. So is $34,000. (It worked if \"lot\" is emphasized.)"
             ]
         ]
       , [ Plain
-            [ Str "Escaped"
-            , Space
+            [ Str "Escaped "
             , Code ( "" , [] , [] ) "$"
-            , Str ":"
-            , Space
-            , Str "$73"
-            , Space
-            , Emph
-                [ Str "this"
-                , Space
-                , Str "should"
-                , Space
-                , Str "be"
-                , Space
-                , Str "emphasized"
-                ]
-            , Space
-            , Str "23$."
+            , Str ": $73 "
+            , Emph [ Str "this should be emphasized" ]
+            , Str " 23$."
             ]
         ]
       ]
+  , Para [ Str "Here's a LaTeX table:" ]
   , Para
-      [ Str "Here's"
-      , Space
-      , Str "a"
-      , Space
-      , Str "LaTeX"
-      , Space
-      , Str "table:"
-      ]
-  , Para
-      [ Str "\\begin{tabular}{|l|l|}\\hline"
-      , Space
-      , Str "Animal"
-      , Space
-      , Str "&"
-      , Space
-      , Str "Number"
-      , Space
-      , Str "\\\\"
-      , Space
-      , Str "\\hline"
-      , Space
-      , Str "Dog"
-      , Space
-      , Str "&"
-      , Space
-      , Str "2"
-      , Space
-      , Str "\\\\"
-      , Space
-      , Str "Cat"
-      , Space
-      , Str "&"
-      , Space
-      , Str "1"
-      , Space
-      , Str "\\\\"
-      , Space
-      , Str "\\hline"
-      , Space
-      , Str "\\end{tabular}"
+      [ Str
+          "\\begin{tabular}{|l|l|}\\hline Animal & Number \\\\ \\hline Dog & 2 \\\\ Cat & 1 \\\\ \\hline \\end{tabular}"
       ]
   , HorizontalRule
   , Header
       1
       ( "special-characters" , [] , [] )
-      [ Str "Special" , Space , Str "Characters" ]
-  , Para
-      [ Str "Here"
-      , Space
-      , Str "is"
-      , Space
-      , Str "some"
-      , Space
-      , Str "unicode:"
-      ]
+      [ Str "Special Characters" ]
+  , Para [ Str "Here is some unicode:" ]
   , BulletList
-      [ [ Plain
-            [ Str "I" , Space , Str "hat:" , Space , Str "\206" ]
-        ]
-      , [ Plain
-            [ Str "o" , Space , Str "umlaut:" , Space , Str "\246" ]
-        ]
-      , [ Plain [ Str "section:" , Space , Str "\167" ] ]
-      , [ Plain
-            [ Str "set"
-            , Space
-            , Str "membership:"
-            , Space
-            , Str "\8712"
-            ]
-        ]
-      , [ Plain [ Str "copyright:" , Space , Str "\169" ] ]
+      [ [ Plain [ Str "I hat: \206" ] ]
+      , [ Plain [ Str "o umlaut: \246" ] ]
+      , [ Plain [ Str "section: \167" ] ]
+      , [ Plain [ Str "set membership: \8712" ] ]
+      , [ Plain [ Str "copyright: \169" ] ]
       ]
-  , Para
-      [ Str "AT&T"
-      , Space
-      , Str "has"
-      , Space
-      , Str "an"
-      , Space
-      , Str "ampersand"
-      , Space
-      , Str "in"
-      , Space
-      , Str "their"
-      , Space
-      , Str "name."
-      ]
-  , Para
-      [ Str "AT&T"
-      , Space
-      , Str "is"
-      , Space
-      , Str "another"
-      , Space
-      , Str "way"
-      , Space
-      , Str "to"
-      , Space
-      , Str "write"
-      , Space
-      , Str "it."
-      ]
-  , Para
-      [ Str "This" , Space , Str "&" , Space , Str "that." ]
-  , Para [ Str "4" , Space , Str "<" , Space , Str "5." ]
-  , Para [ Str "6" , Space , Str ">" , Space , Str "5." ]
-  , Para [ Str "Backslash:" , Space , Str "\\" ]
-  , Para [ Str "Backtick:" , Space , Str "`" ]
-  , Para [ Str "Asterisk:" , Space , Str "*" ]
-  , Para [ Str "Underscore:" , Space , Str "_" ]
-  , Para
-      [ Str "Left" , Space , Str "brace:" , Space , Str "{" ]
-  , Para
-      [ Str "Right" , Space , Str "brace:" , Space , Str "}" ]
-  , Para
-      [ Str "Left" , Space , Str "bracket:" , Space , Str "[" ]
-  , Para
-      [ Str "Right" , Space , Str "bracket:" , Space , Str "]" ]
-  , Para
-      [ Str "Left" , Space , Str "paren:" , Space , Str "(" ]
-  , Para
-      [ Str "Right" , Space , Str "paren:" , Space , Str ")" ]
-  , Para [ Str "Greater-than:" , Space , Str ">" ]
-  , Para [ Str "Hash:" , Space , Str "#" ]
-  , Para [ Str "Period:" , Space , Str "." ]
-  , Para [ Str "Bang:" , Space , Str "!" ]
-  , Para [ Str "Plus:" , Space , Str "+" ]
-  , Para [ Str "Minus:" , Space , Str "-" ]
+  , Para [ Str "AT&T has an ampersand in their name." ]
+  , Para [ Str "AT&T is another way to write it." ]
+  , Para [ Str "This & that." ]
+  , Para [ Str "4 < 5." ]
+  , Para [ Str "6 > 5." ]
+  , Para [ Str "Backslash: \\" ]
+  , Para [ Str "Backtick: `" ]
+  , Para [ Str "Asterisk: *" ]
+  , Para [ Str "Underscore: _" ]
+  , Para [ Str "Left brace: {" ]
+  , Para [ Str "Right brace: }" ]
+  , Para [ Str "Left bracket: [" ]
+  , Para [ Str "Right bracket: ]" ]
+  , Para [ Str "Left paren: (" ]
+  , Para [ Str "Right paren: )" ]
+  , Para [ Str "Greater-than: >" ]
+  , Para [ Str "Hash: #" ]
+  , Para [ Str "Period: ." ]
+  , Para [ Str "Bang: !" ]
+  , Para [ Str "Plus: +" ]
+  , Para [ Str "Minus: -" ]
   , HorizontalRule
   , Header 1 ( "links" , [] , [] ) [ Str "Links" ]
   , Header 2 ( "explicit" , [] , [] ) [ Str "Explicit" ]
   , Para
-      [ Str "Just"
-      , Space
-      , Str "a"
-      , Space
+      [ Str "Just a "
       , Link ( "" , [] , [] ) [ Str "URL" ] ( "/url/" , "" )
       , Str "."
       ]
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "URL" , Space , Str "and" , Space , Str "title" ]
+          [ Str "URL and title" ]
           ( "/url/" , "title" )
       , Str "."
       ]
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "URL" , Space , Str "and" , Space , Str "title" ]
+          [ Str "URL and title" ]
           ( "/url/" , "title preceded by two spaces" )
       , Str "."
       ]
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "URL" , Space , Str "and" , Space , Str "title" ]
+          [ Str "URL and title" ]
           ( "/url/" , "title preceded by a tab" )
       , Str "."
       ]
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "URL" , Space , Str "and" , Space , Str "title" ]
+          [ Str "URL and title" ]
           ( "/url/" , "title with \"quotes\" in it" )
       ]
   , Para
       [ Link
           ( "" , [] , [] )
-          [ Str "URL" , Space , Str "and" , Space , Str "title" ]
+          [ Str "URL and title" ]
           ( "/url/" , "title with single quotes" )
       ]
-  , Para
-      [ Str "Email"
-      , Space
-      , Str "link"
-      , Space
-      , Str "(nobody"
-      , Space
-      , Str "[at]"
-      , Space
-      , Str "nowhere.net)"
-      ]
+  , Para [ Str "Email link (nobody [at] nowhere.net)" ]
   , Para
       [ Link ( "" , [] , [] ) [ Str "Empty" ] ( "" , "" )
       , Str "."
       ]
   , Header 2 ( "reference" , [] , [] ) [ Str "Reference" ]
   , Para
-      [ Str "Foo"
-      , Space
+      [ Str "Foo "
       , Link ( "" , [] , [] ) [ Str "bar" ] ( "/url/" , "" )
       , Str "."
       ]
   , Para
-      [ Str "Foo"
-      , Space
+      [ Str "Foo "
       , Link ( "" , [] , [] ) [ Str "bar" ] ( "/url/" , "" )
       , Str "."
       ]
   , Para
-      [ Str "Foo"
-      , Space
+      [ Str "Foo "
       , Link ( "" , [] , [] ) [ Str "bar" ] ( "/url/" , "" )
       , Str "."
       ]
   , Para
-      [ Str "With"
-      , Space
+      [ Str "With "
       , Link
           ( "" , [] , [] )
-          [ Str "embedded" , Space , Str "[brackets]" ]
+          [ Str "embedded [brackets]" ]
           ( "/url/" , "" )
       , Str "."
       ]
   , Para
       [ Link ( "" , [] , [] ) [ Str "b" ] ( "/url/" , "" )
-      , Space
-      , Str "by"
-      , Space
-      , Str "itself"
-      , Space
-      , Str "should"
-      , Space
-      , Str "be"
-      , Space
-      , Str "a"
-      , Space
-      , Str "link."
+      , Str " by itself should be a link."
       ]
   , Para
-      [ Str "Indented"
-      , Space
+      [ Str "Indented "
       , Link ( "" , [] , [] ) [ Str "once" ] ( "/url" , "" )
       , Str "."
       ]
   , Para
-      [ Str "Indented"
-      , Space
+      [ Str "Indented "
       , Link ( "" , [] , [] ) [ Str "twice" ] ( "/url" , "" )
       , Str "."
       ]
   , Para
-      [ Str "Indented"
-      , Space
+      [ Str "Indented "
       , Link ( "" , [] , [] ) [ Str "thrice" ] ( "/url" , "" )
       , Str "."
       ]
-  , Para
-      [ Str "This"
-      , Space
-      , Str "should"
-      , Space
-      , Str "[not]"
-      , Space
-      , Str "be"
-      , Space
-      , Str "a"
-      , Space
-      , Str "link."
-      ]
+  , Para [ Str "This should [not] be a link." ]
   , CodeBlock ( "" , [] , [] ) "[not]: /url"
   , Para
-      [ Str "Foo"
-      , Space
+      [ Str "Foo "
       , Link
           ( "" , [] , [] )
           [ Str "bar" ]
@@ -1526,8 +628,7 @@ Pandoc
       , Str "."
       ]
   , Para
-      [ Str "Foo"
-      , Space
+      [ Str "Foo "
       , Link
           ( "" , [] , [] )
           [ Str "biz" ]
@@ -1535,54 +636,17 @@ Pandoc
       , Str "."
       ]
   , Header
-      2
-      ( "with-ampersands" , [] , [] )
-      [ Str "With" , Space , Str "ampersands" ]
+      2 ( "with-ampersands" , [] , [] ) [ Str "With ampersands" ]
   , Para
-      [ Str "Here's"
-      , Space
-      , Str "a"
-      , Space
+      [ Str "Here's a "
       , Link
           ( "" , [] , [] )
-          [ Str "link"
-          , Space
-          , Str "with"
-          , Space
-          , Str "an"
-          , Space
-          , Str "ampersand"
-          , Space
-          , Str "in"
-          , Space
-          , Str "the"
-          , Space
-          , Str "URL"
-          ]
+          [ Str "link with an ampersand in the URL" ]
           ( "http://example.com/?foo=1&bar=2" , "" )
       , Str "."
       ]
   , Para
-      [ Str "Here's"
-      , Space
-      , Str "a"
-      , Space
-      , Str "link"
-      , Space
-      , Str "with"
-      , Space
-      , Str "an"
-      , Space
-      , Str "amersand"
-      , Space
-      , Str "in"
-      , Space
-      , Str "the"
-      , Space
-      , Str "link"
-      , Space
-      , Str "text:"
-      , Space
+      [ Str "Here's a link with an amersand in the link text: "
       , Link
           ( "" , [] , [] )
           [ Str "AT&T" ]
@@ -1590,53 +654,31 @@ Pandoc
       , Str "."
       ]
   , Para
-      [ Str "Here's"
-      , Space
-      , Str "an"
-      , Space
+      [ Str "Here's an "
       , Link
           ( "" , [] , [] )
-          [ Str "inline" , Space , Str "link" ]
+          [ Str "inline link" ]
           ( "/script?foo=1&bar=2" , "" )
       , Str "."
       ]
   , Para
-      [ Str "Here's"
-      , Space
-      , Str "an"
-      , Space
+      [ Str "Here's an "
       , Link
           ( "" , [] , [] )
-          [ Str "inline"
-          , Space
-          , Str "link"
-          , Space
-          , Str "in"
-          , Space
-          , Str "pointy"
-          , Space
-          , Str "braces"
-          ]
+          [ Str "inline link in pointy braces" ]
           ( "/script?foo=1&bar=2" , "" )
       , Str "."
       ]
   , Header 2 ( "autolinks" , [] , [] ) [ Str "Autolinks" ]
   , Para
-      [ Str "With"
-      , Space
-      , Str "an"
-      , Space
-      , Str "ampersand:"
-      , Space
+      [ Str "With an ampersand: "
       , Link
           ( "" , [] , [] )
           [ Str "http://example.com/?foo=1&bar=2" ]
           ( "http://example.com/?foo=1&bar=2" , "" )
       ]
   , BulletList
-      [ [ Plain
-            [ Str "In" , Space , Str "a" , Space , Str "list?" ]
-        ]
+      [ [ Plain [ Str "In a list?" ] ]
       , [ Plain
             [ Link
                 ( "" , [] , [] )
@@ -1644,25 +686,12 @@ Pandoc
                 ( "http://example.com/" , "" )
             ]
         ]
-      , [ Plain [ Str "It" , Space , Str "should." ] ]
+      , [ Plain [ Str "It should." ] ]
       ]
-  , Para
-      [ Str "An"
-      , Space
-      , Str "e-mail"
-      , Space
-      , Str "address:"
-      , Space
-      , Str "nobody"
-      , Space
-      , Str "[at]"
-      , Space
-      , Str "nowhere.net"
-      ]
+  , Para [ Str "An e-mail address: nobody [at] nowhere.net" ]
   , BlockQuote
       [ Para
-          [ Str "Blockquoted:"
-          , Space
+          [ Str "Blockquoted: "
           , Link
               ( "" , [] , [] )
               [ Str "http://example.com/" ]
@@ -1670,16 +699,7 @@ Pandoc
           ]
       ]
   , Para
-      [ Str "Auto-links"
-      , Space
-      , Str "should"
-      , Space
-      , Str "not"
-      , Space
-      , Str "occur"
-      , Space
-      , Str "here:"
-      , Space
+      [ Str "Auto-links should not occur here: "
       , Code ( "" , [] , [] ) "<http://example.com/>"
       ]
   , CodeBlock
@@ -1687,23 +707,8 @@ Pandoc
   , HorizontalRule
   , Header 1 ( "images" , [] , [] ) [ Str "Images" ]
   , Para
-      [ Str "From"
-      , Space
-      , Str "\"Voyage"
-      , Space
-      , Str "dans"
-      , Space
-      , Str "la"
-      , Space
-      , Str "Lune\""
-      , Space
-      , Str "by"
-      , Space
-      , Str "Georges"
-      , Space
-      , Str "Melies"
-      , Space
-      , Str "(1902):"
+      [ Str
+          "From \"Voyage dans la Lune\" by Georges Melies (1902):"
       ]
   , Para
       [ Image
@@ -1712,279 +717,57 @@ Pandoc
           ( "lalune.jpg" , "Voyage dans la Lune" )
       ]
   , Para
-      [ Str "Here"
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "movie"
-      , Space
+      [ Str "Here is a movie "
       , Image
           ( "" , [] , [] ) [ Str "movie" ] ( "movie.jpg" , "" )
-      , Space
-      , Str "icon."
+      , Str " icon."
       ]
   , HorizontalRule
   , Header 1 ( "footnotes" , [] , [] ) [ Str "Footnotes" ]
   , Para
-      [ Str "Here"
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "footnote"
-      , Space
-      , Str "reference"
+      [ Str "Here is a footnote reference"
       , Link ( "" , [] , [] ) [ Str "(1)" ] ( "#note_1" , "" )
-      , Str ","
-      , Space
-      , Str "and"
-      , Space
-      , Str "another"
+      , Str ", and another"
       , Link
           ( "" , [] , [] )
           [ Str "(longnote)" ]
           ( "#note_longnote" , "" )
-      , Str "."
-      , Space
-      , Str "This"
-      , Space
-      , Str "should"
-      , Space
+      , Str ". This should "
       , Emph [ Str "not" ]
-      , Space
-      , Str "be"
-      , Space
-      , Str "a"
-      , Space
-      , Str "footnote"
-      , Space
-      , Str "reference,"
-      , Space
-      , Str "because"
-      , Space
-      , Str "it"
-      , Space
-      , Str "contains"
-      , Space
-      , Str "a"
-      , Space
-      , Str "space^(my"
-      , Space
-      , Str "note)."
+      , Str
+          " be a footnote reference, because it contains a space^(my note)."
       ]
   , Para
       [ Link ( "" , [] , [] ) [ Str "(1)" ] ( "#ref_1" , "" )
-      , Space
-      , Str "Here"
-      , Space
-      , Str "is"
-      , Space
-      , Str "the"
-      , Space
-      , Str "footnote."
-      , Space
-      , Str "It"
-      , Space
-      , Str "can"
-      , Space
-      , Str "go"
-      , Space
-      , Str "anywhere"
-      , Space
-      , Str "in"
-      , Space
-      , Str "the"
-      , Space
-      , Str "document,"
-      , Space
-      , Str "not"
-      , Space
-      , Str "just"
-      , Space
-      , Str "at"
-      , Space
-      , Str "the"
-      , Space
-      , Str "end."
+      , Str
+          " Here is the footnote. It can go anywhere in the document, not just at the end."
       ]
   , Para
       [ Link
           ( "" , [] , [] )
           [ Str "(longnote)" ]
           ( "#ref_longnote" , "" )
-      , Space
-      , Str "Here's"
-      , Space
-      , Str "the"
-      , Space
-      , Str "other"
-      , Space
-      , Str "note."
-      , Space
-      , Str "This"
-      , Space
-      , Str "one"
-      , Space
-      , Str "contains"
-      , Space
-      , Str "multiple"
-      , Space
-      , Str "blocks."
+      , Str
+          " Here's the other note. This one contains multiple blocks."
       ]
   , Para
-      [ Str "Caret"
-      , Space
-      , Str "characters"
-      , Space
-      , Str "are"
-      , Space
-      , Str "used"
-      , Space
-      , Str "to"
-      , Space
-      , Str "indicate"
-      , Space
-      , Str "that"
-      , Space
-      , Str "the"
-      , Space
-      , Str "blocks"
-      , Space
-      , Str "all"
-      , Space
-      , Str "belong"
-      , Space
-      , Str "to"
-      , Space
-      , Str "a"
-      , Space
-      , Str "single"
-      , Space
-      , Str "footnote"
-      , Space
-      , Str "(as"
-      , Space
-      , Str "with"
-      , Space
-      , Str "block"
-      , Space
-      , Str "quotes)."
+      [ Str
+          "Caret characters are used to indicate that the blocks all belong to a single footnote (as with block quotes)."
       ]
   , CodeBlock ( "" , [] , [] ) "  { <code> }"
   , Para
-      [ Str "If"
-      , Space
-      , Str "you"
-      , Space
-      , Str "want,"
-      , Space
-      , Str "you"
-      , Space
-      , Str "can"
-      , Space
-      , Str "use"
-      , Space
-      , Str "a"
-      , Space
-      , Str "caret"
-      , Space
-      , Str "at"
-      , Space
-      , Str "the"
-      , Space
-      , Str "beginning"
-      , Space
-      , Str "of"
-      , Space
-      , Str "every"
-      , Space
-      , Str "line,"
-      , Space
-      , Str "as"
-      , Space
-      , Str "with"
-      , Space
-      , Str "blockquotes,"
-      , Space
-      , Str "but"
-      , Space
-      , Str "all"
-      , Space
-      , Str "that"
-      , Space
-      , Str "you"
-      , Space
-      , Str "need"
-      , Space
-      , Str "is"
-      , Space
-      , Str "a"
-      , Space
-      , Str "caret"
-      , Space
-      , Str "at"
-      , Space
-      , Str "the"
-      , Space
-      , Str "beginning"
-      , Space
-      , Str "of"
-      , Space
-      , Str "the"
-      , Space
-      , Str "first"
-      , Space
-      , Str "line"
-      , Space
-      , Str "of"
-      , Space
-      , Str "the"
-      , Space
-      , Str "block"
-      , Space
-      , Str "and"
-      , Space
-      , Str "any"
-      , Space
-      , Str "preceding"
-      , Space
-      , Str "blank"
-      , Space
-      , Str "lines."
+      [ Str
+          "If you want, you can use a caret at the beginning of every line, as with blockquotes, but all that you need is a caret at the beginning of the first line of the block and any preceding blank lines."
       ]
-  , Para
-      [ Str "text"
-      , Space
-      , Emph [ Str "Leading" , Space , Str "space" ]
-      ]
-  , Para
-      [ Emph [ Str "Trailing" , Space , Str "space" ]
-      , Space
-      , Str "text"
-      ]
-  , Para
-      [ Str "text"
-      , Space
-      , Emph [ Str "Leading" , Space , Str "spaces" ]
-      ]
-  , Para
-      [ Emph [ Str "Trailing" , Space , Str "spaces" ]
-      , Space
-      , Str "text"
-      ]
+  , Para [ Str "text " , Emph [ Str "Leading space" ] ]
+  , Para [ Emph [ Str "Trailing space" ] , Str " text" ]
+  , Para [ Str "text " , Emph [ Str "Leading spaces" ] ]
+  , Para [ Emph [ Str "Trailing spaces" ] , Str " text" ]
   , Header 1 ( "tables" , [] , [] ) [ Str "Tables" ]
   , Header
       2
       ( "tables-with-headers" , [] , [] )
-      [ Str "Tables"
-      , Space
-      , Str "with"
-      , Space
-      , Str "Headers"
-      ]
+      [ Str "Tables with Headers" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -2147,7 +930,7 @@ Pandoc
       ]
       (TableFoot ( "" , [] , [] ) [])
   , HorizontalRule
-  , Para [ Str "Row" , Space , Str "headers" ]
+  , Para [ Str "Row headers" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -2725,12 +1508,7 @@ Pandoc
   , Header
       2
       ( "tables-without-headers" , [] , [] )
-      [ Str "Tables"
-      , Space
-      , Str "without"
-      , Space
-      , Str "Headers"
-      ]
+      [ Str "Tables without Headers" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -2789,8 +1567,7 @@ Pandoc
       ]
       (TableFoot ( "" , [] , [] ) [])
   , HorizontalRule
-  , Para
-      [ Str "tbody" , Space , Str "tags" , Space , Str "omitted" ]
+  , Para [ Str "tbody tags omitted" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -2849,7 +1626,7 @@ Pandoc
       ]
       (TableFoot ( "" , [] , [] ) [])
   , HorizontalRule
-  , Para [ Str "empty" , Space , Str "head" ]
+  , Para [ Str "empty head" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -2908,15 +1685,7 @@ Pandoc
       ]
       (TableFoot ( "" , [] , [] ) [])
   , HorizontalRule
-  , Para
-      [ Str "explicit"
-      , Space
-      , Str "body"
-      , Space
-      , Str "and"
-      , Space
-      , Str "foot"
-      ]
+  , Para [ Str "explicit body and foot" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -2979,12 +1748,7 @@ Pandoc
   , Header
       2
       ( "colspans-and-rowspans" , [] , [] )
-      [ Str "Colspans"
-      , Space
-      , Str "and"
-      , Space
-      , Str "Rowspans"
-      ]
+      [ Str "Colspans and Rowspans" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -3004,9 +1768,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 2)
-                  [ Plain
-                      [ Str "1" , Space , Str "and" , Space , Str "2" ]
-                  ]
+                  [ Plain [ Str "1 and 2" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -3021,16 +1783,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 1)
                   (ColSpan 3)
-                  [ Plain
-                      [ Str "4,"
-                      , Space
-                      , Str "5,"
-                      , Space
-                      , Str "and"
-                      , Space
-                      , Str "6"
-                      ]
-                  ]
+                  [ Plain [ Str "4, 5, and 6" ] ]
               ]
           ]
       ]
@@ -3066,9 +1819,7 @@ Pandoc
                   AlignDefault
                   (RowSpan 2)
                   (ColSpan 1)
-                  [ Plain
-                      [ Str "1" , Space , Str "and" , Space , Str "4" ]
-                  ]
+                  [ Plain [ Str "1 and 4" ] ]
               , Cell
                   ( "" , [] , [] )
                   AlignDefault
@@ -3117,7 +1868,7 @@ Pandoc
                  AlignDefault
                  (RowSpan 1)
                  (ColSpan 3)
-                 [ Plain [ Str "Cat" , Space , Str "X" ] ]
+                 [ Plain [ Str "Cat X" ] ]
              ]
          ])
       [ TableBody
@@ -3172,18 +1923,8 @@ Pandoc
              ]
          ])
   , Header
-      2
-      ( "tag-omission" , [] , [] )
-      [ Str "Tag" , Space , Str "omission" ]
-  , Para
-      [ Str "thead,"
-      , Space
-      , Str "tbody,"
-      , Space
-      , Str "and"
-      , Space
-      , Str "tfoot"
-      ]
+      2 ( "tag-omission" , [] , [] ) [ Str "Tag omission" ]
+  , Para [ Str "thead, tbody, and tfoot" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -3267,18 +2008,6 @@ Pandoc
              ]
          ])
   , Header
-      2
-      ( "empty-tables" , [] , [] )
-      [ Str "Empty" , Space , Str "Tables" ]
-  , Para
-      [ Str "This"
-      , Space
-      , Str "section"
-      , Space
-      , Str "should"
-      , Space
-      , Str "be"
-      , Space
-      , Str "empty."
-      ]
+      2 ( "empty-tables" , [] , [] ) [ Str "Empty Tables" ]
+  , Para [ Str "This section should be empty." ]
   ]

@@ -1,2 +1,5 @@
-[Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "split"]
-,Para [Str "Paragraph."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para [ Str "This is a split" ]
+  , Para [ Str "Paragraph." ]
+  ]

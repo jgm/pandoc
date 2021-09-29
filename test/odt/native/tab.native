@@ -1,1 +1,7 @@
-[Para [Str "Three",Space,Str "tabs",Space,Str "between",Space,Str "A",Space,Str "and",Space,Str "B",Space,Str "will",Space,Str "be",Space,Str "converted",Space,Str "to",Space,Str "one",Space,Str "Space:",Space,Str "A",Space,Str "B."]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str
+          "Three tabs between A and B will be converted to one Space: A B."
+      ]
+  ]

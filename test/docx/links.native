@@ -1,7 +1,48 @@
-[Header 2 ("an-internal-link-and-an-external-link",[],[]) [Str "An",Space,Str "internal",Space,Str "link",Space,Str "and",Space,Str "an",Space,Str "external",Space,Str "link"]
-,Para [Str "An",Space,Link ("",[],[]) [Str "external",Space,Str "link"] ("http://google.com",""),Space,Str "to",Space,Str "a",Space,Str "popular",Space,Str "website."]
-,Para [Str "An",Space,Link ("",[],[]) [Str "external",Space,Str "link"] ("http://pandoc.org/README.html#synopsis",""),Space,Str "to",Space,Str "a",Space,Str "website",Space,Str "with",Space,Str "an",Space,Str "anchor."]
-,Para [Str "An",Space,Link ("",[],[]) [Str "internal",Space,Str "link"] ("#a-section-for-testing-link-targets",""),Space,Str "to",Space,Str "a",Space,Str "section",Space,Str "header."]
-,Para [Str "An",Space,Link ("",[],[]) [Str "internal",Space,Str "link"] ("#my_bookmark",""),Space,Str "to",Space,Str "a",Space,Str "bookmark."]
-,Header 2 ("a-section-for-testing-link-targets",[],[]) [Str "A",Space,Str "section",Space,Str "for",Space,Str "testing",Space,Str "link",Space,Str "targets"]
-,Para [Str "A",Space,Str "bookmark",Space,Str "right",Space,Span ("my_bookmark",["anchor"],[]) [],Str "here"]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header
+      2
+      ( "an-internal-link-and-an-external-link" , [] , [] )
+      [ Str "An internal link and an external link" ]
+  , Para
+      [ Str "An "
+      , Link
+          ( "" , [] , [] )
+          [ Str "external link" ]
+          ( "http://google.com" , "" )
+      , Str " to a popular website."
+      ]
+  , Para
+      [ Str "An "
+      , Link
+          ( "" , [] , [] )
+          [ Str "external link" ]
+          ( "http://pandoc.org/README.html#synopsis" , "" )
+      , Str " to a website with an anchor."
+      ]
+  , Para
+      [ Str "An "
+      , Link
+          ( "" , [] , [] )
+          [ Str "internal link" ]
+          ( "#a-section-for-testing-link-targets" , "" )
+      , Str " to a section header."
+      ]
+  , Para
+      [ Str "An "
+      , Link
+          ( "" , [] , [] )
+          [ Str "internal link" ]
+          ( "#my_bookmark" , "" )
+      , Str " to a bookmark."
+      ]
+  , Header
+      2
+      ( "a-section-for-testing-link-targets" , [] , [] )
+      [ Str "A section for testing link targets" ]
+  , Para
+      [ Str "A bookmark right "
+      , Span ( "my_bookmark" , [ "anchor" ] , [] ) []
+      , Str "here"
+      ]
+  ]

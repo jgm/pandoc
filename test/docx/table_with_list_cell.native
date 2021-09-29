@@ -1,25 +1,60 @@
-[Table ("",[],[]) (Caption Nothing
- [])
- [(AlignDefault,ColWidth 0.5)
- ,(AlignDefault,ColWidth 0.5)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "Cell",Space,Str "with",Space,Str "text"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "Cell",Space,Str "with",Space,Str "text"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [BulletList
-     [[Para [Str "Cell",Space,Str "with"]]
-     ,[Para [Str "A"]]
-     ,[Para [Str "Bullet",Space,Str "list"]]]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [OrderedList (1,Decimal,Period)
-     [[Para [Str "Cell",Space,Str "with"]]
-     ,[Para [Str "A"]]
-     ,[Para [Str "Numbered",Space,Str "list."]]]]]])]
- (TableFoot ("",[],[])
- [])]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidth 0.5 )
+      , ( AlignDefault , ColWidth 0.5 )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Cell with text" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Cell with text" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ BulletList
+                      [ [ Para [ Str "Cell with" ] ]
+                      , [ Para [ Str "A" ] ]
+                      , [ Para [ Str "Bullet list" ] ]
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ OrderedList
+                      ( 1 , Decimal , Period )
+                      [ [ Para [ Str "Cell with" ] ]
+                      , [ Para [ Str "A" ] ]
+                      , [ Para [ Str "Numbered list." ] ]
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  ]

@@ -1,130 +1,21 @@
 Pandoc
   Meta { unMeta = fromList [] }
   [ Para
-      [ Str "Mead's"
-      , Space
-      , Str "landmark"
-      , Space
-      , Str "study"
-      , Space
-      , Str "has"
-      , Space
-      , Str "been"
-      , Space
-      , Str "amply"
-      , Space
-      , Str "annotated."
+      [ Str "Mead's landmark study has been amply annotated."
       , Note
           [ Para
-              [ Str "See"
-              , Space
-              , Str "Sahlins,"
-              , Space
-              , Str "Bateson,"
-              , Space
-              , Str "and"
-              , Space
-              , Str "Geertz"
-              , Space
-              , Str "for"
-              , Space
-              , Str "a"
-              , Space
-              , Str "complete"
-              , Space
-              , Str "bibliography."
+              [ Str
+                  "See Sahlins, Bateson, and Geertz for a complete bibliography."
               ]
           ]
-      , Space
-      , Str "It"
-      , Space
-      , Str "was"
-      , Space
-      , Str "her"
-      , Space
-      , Str "work"
-      , Space
-      , Str "in"
-      , Space
-      , Str "America"
-      , Space
-      , Str "during"
-      , Space
-      , Str "the"
-      , Space
-      , Str "Second"
-      , Space
-      , Str "World"
-      , Space
-      , Str "War,"
-      , Space
-      , Str "however,"
-      , Space
-      , Str "that"
-      , Space
-      , Str "forms"
-      , Space
-      , Str "the"
-      , Space
-      , Str "basis"
-      , Space
-      , Str "for"
-      , Space
-      , Str "the"
-      , Space
-      , Str "paper."
-      , Space
-      , Str "As"
-      , Space
-      , Str "others"
-      , Space
-      , Str "have"
-      , Space
-      , Str "noted,"
+      , Str
+          " It was her work in America during the Second World War, however, that forms the basis for the paper. As others have noted,"
       , Note
           [ Para
-              [ Str "A"
-              , Space
-              , Str "complete"
-              , Space
-              , Str "bibliography"
-              , Space
-              , Str "will"
-              , Space
-              , Str "be"
-              , Space
-              , Str "found"
-              , Space
-              , Str "at"
-              , Space
-              , Str "the"
-              , Space
-              , Str "end"
-              , Space
-              , Str "of"
-              , Space
-              , Str "this"
-              , Space
-              , Str "chapter."
+              [ Str
+                  "A complete bibliography will be found at the end of this chapter."
               ]
           ]
-      , Space
-      , Str "this"
-      , Space
-      , Str "period"
-      , Space
-      , Str "was"
-      , Space
-      , Str "a"
-      , Space
-      , Str "turning"
-      , Space
-      , Str "point"
-      , Space
-      , Str "for"
-      , Space
-      , Str "Margaret"
-      , Space
-      , Str "Mead."
+      , Str " this period was a turning point for Margaret Mead."
       ]
   ]

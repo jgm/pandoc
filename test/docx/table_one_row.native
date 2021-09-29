@@ -1,18 +1,39 @@
-[Table ("",[],[]) (Caption Nothing
- [])
- [(AlignDefault,ColWidth 0.3333333333333333)
- ,(AlignDefault,ColWidth 0.3333333333333333)
- ,(AlignDefault,ColWidth 0.3333333333333333)]
- (TableHead ("",[],[])
- [])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "One"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "Row"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "Table"]]]])]
- (TableFoot ("",[],[])
- [])]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidth 0.3333333333333333 )
+      , ( AlignDefault , ColWidth 0.3333333333333333 )
+      , ( AlignDefault , ColWidth 0.3333333333333333 )
+      ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "One" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Row" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Table" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  ]

@@ -1,2 +1,10 @@
-[Header 1 ("anchor-header",[],[]) [Str "Anchor",Space,Str "Header"]
-,Para [Str "A",Space,Link ("",[],[]) [Str "link"] ("#anchor-header","")]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header
+      1 ( "anchor-header" , [] , [] ) [ Str "Anchor Header" ]
+  , Para
+      [ Str "A "
+      , Link
+          ( "" , [] , [] ) [ Str "link" ] ( "#anchor-header" , "" )
+      ]
+  ]

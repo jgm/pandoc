@@ -1,37 +1,81 @@
-[Para [Str "For",Space,Str "each",Space,Str "initiative",Space,Str "below",Space,Str "is",Space,Str "outlined",Space,Str "the",Space,Str "goals,",Space,Str "an",Space,Str "approximate",Space,Str "roadmap",Space,Str "which",Space,Str "will",Space,Str "likely",Space,Str "change",Space,Str "as",Space,Str "we",Space,Str "iterate,",Space,Str "signals/metrics",Space,Str "to",Space,Str "measure",Space,Str "success,",Space,Str "and",Space,Str "initial",Space,Str "workitems",Space,Str "with",Space,Str "a",Space,Str "rough",Space,Strong [Str "schedule"],Space,Str "and",Space,Str "contacts",Space,Str "where",Space,Str "available:"]
-,Para [Str "\160"]
-,OrderedList (1,Decimal,Period)
- [[BlockQuote
-   [Para [Str "State",Space,Str "of",Space,Str "Documentation"]]]]
-,BlockQuote
- [Para [Strong [Str "Goal:",Space,Str "Baseline",Space,Str "and",Space,Str "ongoing",Space,Str "metrics",Space,Str "tracking",Space,Str "doc",Space,Str "usefulness",Space,Str "and",Space,Str "completeness."]]
- ,Para [Str "\160"]]
-,OrderedList (2,Decimal,Period)
- [[BlockQuote
-   [Para [Str "Content",Space,Str "Migration"]]]]
-,BlockQuote
- [Para [Str "Goal:",Space,Str "Content",Space,Str "is",Space,Str "accessible",Space,Str "to",Space,Str "new",Space,Str "employees",Space,Str "and",Space,Str "is",Space,Str "better",Space,Str "organized/archived."]
- ,Para [Str "\160"]]
-,OrderedList (3,Decimal,Period)
- [[BlockQuote
-   [Para [Str "Wiki",Space,Str "(xl)"]]]]
-,BlockQuote
- [Para [Strong [Str "Goal:",Space,Str "Useful",Space,Str "documentation",Space,Str "that",Space,Str "is",Space,Str "archived,",Space,Str "searchable",Space,Str "and",Space,Str "easy",Space,Str "to",Space,Str "create"]]
- ,Para [Str "\160\160"]]
-,OrderedList (4,Decimal,Period)
- [[BlockQuote
-   [Para [Str "XL",Space,Str "Code",Space,Str "Autoreview",Space,Str "Bot",Space,Str "(XLCRBot)."]]]]
-,BlockQuote
- [Para [Strong [Str "Goal:",Space,Str "Feedback",Space,Str "on",Space,Str "basic",Space,Str "violations",Space,Str "in",Space,Str "seconds",Space,Str "or",Space,Str "minutes",Space,Str "at",Space,Str "most",Space,Str "in",Space,Str "either",Space,Str "VS",Space,Str "or",Space,Str "Codeflow."]]]
-,OrderedList (5,Decimal,Period)
- [[BlockQuote
-   [Para [Str "Code",Space,Str "documentation"]]]]
-,BlockQuote
- [Para [Strong [Str "Goal:",Space,Str "Useful,",Space,Str "consistent,",Space,Str "tool",Space,Str "supported",Space,Str "comments"]]]
-,Para [Strong [Str "\160"],Str "\160"]
-,OrderedList (6,Decimal,Period)
- [[BlockQuote
-   [Para [Str "Education",Space,Str "efforts"]]]]
-,BlockQuote
- [Para [Strong [Str "Goal:",Space,Str "Broad,",Space,Str "discoverable",Space,Str "channels",Space,Str "for",Space,Str "updates",Space,Str "and",Space,Str "news"]]]
-,Para [Strong [Str "\160"]]]
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str
+          "For each initiative below is outlined the goals, an approximate roadmap which will likely change as we iterate, signals/metrics to measure success, and initial workitems with a rough "
+      , Strong [ Str "schedule" ]
+      , Str " and contacts where available:"
+      ]
+  , Para [ Str "\160" ]
+  , OrderedList
+      ( 1 , Decimal , Period )
+      [ [ BlockQuote [ Para [ Str "State of Documentation" ] ] ] ]
+  , BlockQuote
+      [ Para
+          [ Strong
+              [ Str
+                  "Goal: Baseline and ongoing metrics tracking doc usefulness and completeness."
+              ]
+          ]
+      , Para [ Str "\160" ]
+      ]
+  , OrderedList
+      ( 2 , Decimal , Period )
+      [ [ BlockQuote [ Para [ Str "Content Migration" ] ] ] ]
+  , BlockQuote
+      [ Para
+          [ Str
+              "Goal: Content is accessible to new employees and is better organized/archived."
+          ]
+      , Para [ Str "\160" ]
+      ]
+  , OrderedList
+      ( 3 , Decimal , Period )
+      [ [ BlockQuote [ Para [ Str "Wiki (xl)" ] ] ] ]
+  , BlockQuote
+      [ Para
+          [ Strong
+              [ Str
+                  "Goal: Useful documentation that is archived, searchable and easy to create"
+              ]
+          ]
+      , Para [ Str "\160\160" ]
+      ]
+  , OrderedList
+      ( 4 , Decimal , Period )
+      [ [ BlockQuote
+            [ Para [ Str "XL Code Autoreview Bot (XLCRBot)." ] ]
+        ]
+      ]
+  , BlockQuote
+      [ Para
+          [ Strong
+              [ Str
+                  "Goal: Feedback on basic violations in seconds or minutes at most in either VS or Codeflow."
+              ]
+          ]
+      ]
+  , OrderedList
+      ( 5 , Decimal , Period )
+      [ [ BlockQuote [ Para [ Str "Code documentation" ] ] ] ]
+  , BlockQuote
+      [ Para
+          [ Strong
+              [ Str "Goal: Useful, consistent, tool supported comments"
+              ]
+          ]
+      ]
+  , Para [ Strong [ Str "\160" ] , Str "\160" ]
+  , OrderedList
+      ( 6 , Decimal , Period )
+      [ [ BlockQuote [ Para [ Str "Education efforts" ] ] ] ]
+  , BlockQuote
+      [ Para
+          [ Strong
+              [ Str
+                  "Goal: Broad, discoverable channels for updates and news"
+              ]
+          ]
+      ]
+  , Para [ Strong [ Str "\160" ] ]
+  ]
