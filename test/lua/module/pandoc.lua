@@ -198,9 +198,7 @@ return {
       local expected = pandoc.Pandoc({
           pandoc.Para {
             pandoc.Emph { pandoc.Str 'Hello' },
-            pandoc.Str ',',
-            pandoc.Space(),
-            pandoc.Str 'World!'
+            pandoc.Str ', World!'
           }
       })
       assert.are_same(expected, pandoc.read(valid_markdown))

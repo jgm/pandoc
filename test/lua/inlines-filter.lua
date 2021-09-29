@@ -12,7 +12,7 @@ function Inlines (inlns)
   -- Remove spaces before string "World"
   for i = #inlns-1,1,-1 do
     if isWorldAfterSpace(inlns[i], inlns[i+1]) then
-      inlns[i] = pandoc.Space()
+      inlns[i] = pandoc.Str(" ")
     end
   end
   return inlns
