@@ -229,7 +229,6 @@ blockToRTF :: PandocMonad m
            -> Alignment -- ^ alignment
            -> Block     -- ^ block to convert
            -> m Text
-blockToRTF _ _ Null = return ""
 blockToRTF indent alignment (Div _ bs) =
   blocksToRTF indent alignment bs
 blockToRTF indent alignment (Plain lst) =

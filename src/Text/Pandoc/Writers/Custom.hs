@@ -116,8 +116,6 @@ docToCustom opts (Pandoc (Meta metamap) blocks) = do
 blockToCustom :: Block         -- ^ Block element
               -> Lua String
 
-blockToCustom Null = return ""
-
 blockToCustom (Plain inlines) = Lua.callFunc "Plain" (Stringify inlines)
 
 blockToCustom (Para [Image attr txt (src,tit)]) =

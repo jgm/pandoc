@@ -948,7 +948,6 @@ blockToInlines (Table _ _ _ (TableHead _ hbd) bodies (TableFoot _ fbd)) =
     unTableBody (TableBody _ _ hd bd) = hd <> bd
     unTableBodies = concatMap unTableBody
 blockToInlines (Div _ blks) = blocksToInlines' blks
-blockToInlines Null = mempty
 
 blocksToInlinesWithSep :: Inlines -> [Block] -> Inlines
 blocksToInlinesWithSep sep =

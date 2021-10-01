@@ -313,7 +313,6 @@ blockToMarkdown' :: PandocMonad m
                  => WriterOptions -- ^ Options
                  -> Block         -- ^ Block element
                  -> MD m (Doc Text)
-blockToMarkdown' _ Null = return empty
 blockToMarkdown' opts (Div attrs ils) = do
   contents <- blockListToMarkdown opts ils
   variant <- asks envVariant
@@ -812,7 +811,7 @@ blockListToMarkdown opts blocks = do
       isListBlock (DefinitionList _) = True
       isListBlock _                  = False
       commentSep
-        | variant == PlainText        = Null
+        | variant == PlainText        = RawBlock "html" "<!-- -->\n"
         | isEnabled Ext_raw_html opts = RawBlock "html" "<!-- -->\n"
         | otherwise                   = RawBlock "markdown" "&nbsp;\n"
   mconcat <$> mapM (blockToMarkdown opts) (fixBlocks blocks)

@@ -251,7 +251,6 @@ codeAttr opts (ident,classes,kvs) = (lang, attr)
 
 -- | Convert a Pandoc block element to JATS.
 blockToJATS :: PandocMonad m => WriterOptions -> Block -> JATS m (Doc Text)
-blockToJATS _ Null = return empty
 blockToJATS opts (Div (id',"section":_,kvs) (Header _lvl _ ils : xs)) = do
   let idAttr = [ ("id", writerIdentifierPrefix opts <> escapeNCName id')
                | not (T.null id')]
