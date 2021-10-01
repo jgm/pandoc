@@ -21,6 +21,7 @@ module Text.Pandoc.Readers.Docx.Parse.Styles (
   , CharStyle
   , ParaStyleId(..)
   , ParStyle(..)
+  , ParIndentation(..)
   , RunStyle(..)
   , HasStyleName
   , StyleName
@@ -37,6 +38,7 @@ module Text.Pandoc.Readers.Docx.Parse.Styles (
   , fromStyleName
   , fromStyleId
   , stringToInteger
+  , getIndentation
   , getNumInfo
   , elemToRunStyle
   , defaultRunStyle
@@ -115,7 +117,13 @@ data RunStyle = RunStyle { isBold       :: Maybe Bool
                          }
                 deriving Show
 
+data ParIndentation = ParIndentation { leftParIndent    :: Maybe Integer
+                                     , rightParIndent   :: Maybe Integer
+                                     , hangingParIndent :: Maybe Integer}
+                      deriving Show
+
 data ParStyle = ParStyle { headingLev    :: Maybe (ParaStyleName, Int)
+                         , indent        :: Maybe ParIndentation
                          , numInfo       :: Maybe (T.Text, T.Text)
                          , psParentStyle :: Maybe ParStyle
                          , pStyleName    :: ParaStyleName
@@ -290,6 +298,23 @@ getHeaderLevel ns element
   , n > 0 = Just (styleName, fromInteger n)
 getHeaderLevel _ _ = Nothing
 
+getIndentation :: NameSpaces -> Element -> Maybe ParIndentation
+getIndentation ns el = do
+  indElement <- findChildByName ns "w" "pPr" el >>=
+                findChildByName ns "w" "ind"
+  return $ ParIndentation
+    {
+      leftParIndent = findAttrByName ns "w" "left" indElement <|>
+                      findAttrByName ns "w" "start" indElement >>=
+                      stringToInteger
+    , rightParIndent = findAttrByName ns "w" "right" indElement <|>
+                       findAttrByName ns "w" "end" indElement >>=
+                       stringToInteger
+    , hangingParIndent = (findAttrByName ns "w" "hanging" indElement >>= stringToInteger) <|>
+                         fmap negate
+                           (findAttrByName ns "w" "firstLine" indElement >>= stringToInteger)
+    }
+
 getElementStyleName :: Coercible T.Text a => NameSpaces -> Element -> Maybe a
 getElementStyleName ns el = coerce <$>
   ((findChildByName ns "w" "name" el >>= findAttrByName ns "w" "val")
@@ -314,6 +339,7 @@ elemToParStyleData ns element parentStyle
   = Just $ ParStyle
       {
         headingLev = getHeaderLevel ns element
+      , indent = getIndentation ns element
       , numInfo = getNumInfo ns element
       , psParentStyle = parentStyle
       , pStyleName = styleName

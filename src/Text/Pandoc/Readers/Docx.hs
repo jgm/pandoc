@@ -535,34 +535,36 @@ trimSps (Many ils) = Many $ Seq.dropWhileL isSp $Seq.dropWhileR isSp ils
 extraAttr :: (Eq (StyleName a), HasStyleName a) => a -> Attr
 extraAttr s = ("", [], [("custom-style", fromStyleName $ getStyleName s)])
 
-parStyleToTransform :: PandocMonad m => ParagraphStyle -> DocxContext m (Blocks -> Blocks)
-parStyleToTransform pPr = case pStyle pPr of
-  c@(getStyleName -> styleName):cs
-    | styleName `elem` divsToKeep -> do
-        let pPr' = pPr { pStyle = cs }
-        transform <- parStyleToTransform pPr'
-        return $ divWith ("", [normalizeToClassName styleName], []) . transform
-    | styleName `elem` listParagraphStyles -> do
-        let pPr' = pPr { pStyle = cs, indentation = Nothing}
-        transform <- parStyleToTransform pPr'
-        return $ divWith ("", [normalizeToClassName styleName], []) . transform
-    | otherwise -> do
-        let pPr' = pPr { pStyle = cs }
-        transform <- parStyleToTransform pPr'
-        styles <- asks (isEnabled Ext_styles . docxOptions)
-        return $
-          (if styles then divWith (extraAttr c) else id)
-          . (if isBlockQuote c then blockQuote else id)
-          . transform
-  []
-    | Just left <- indentation pPr >>= leftParIndent -> do
-        let pPr' = pPr { indentation = Nothing }
-            hang = fromMaybe 0 $ indentation pPr >>= hangingParIndent
-        transform <- parStyleToTransform pPr'
-        return $ if (left - hang) > 0
-                 then blockQuote . transform
-                 else transform
-    | otherwise -> return id
+paragraphStyleToTransform :: PandocMonad m => ParagraphStyle -> DocxContext m (Blocks -> Blocks)
+paragraphStyleToTransform pPr =
+  let stylenames = map getStyleName (pStyle pPr)
+      transform = if (`elem` listParagraphStyles) `any` stylenames || relativeIndent pPr <= 0
+                  then id
+                  else blockQuote
+  in do
+    extStylesEnabled <- asks (isEnabled Ext_styles . docxOptions)
+    return $ foldr (\parStyle transform' ->
+        (parStyleToTransform extStylesEnabled parStyle) . transform'
+      ) transform (pStyle pPr)
+
+parStyleToTransform :: Bool -> ParStyle -> Blocks -> Blocks
+parStyleToTransform extStylesEnabled parStyle@(getStyleName -> styleName)
+  | (styleName `elem` divsToKeep) || (styleName `elem` listParagraphStyles) =
+      divWith ("", [normalizeToClassName styleName], [])
+  | otherwise =
+      (if extStylesEnabled then divWith (extraAttr parStyle) else id)
+      . (if isBlockQuote parStyle then blockQuote else id)
+
+-- The relative indent is the indentation minus the indentation of the parent style.
+-- This tells us whether this paragraph in particular was indented more and thus
+-- should be considered a block quote.
+relativeIndent :: ParagraphStyle -> Integer
+relativeIndent pPr =
+  let pStyleLeft = fromMaybe 0 $ pStyleIndentation pPr >>= leftParIndent
+      pStyleHang = fromMaybe 0 $ pStyleIndentation pPr >>= hangingParIndent
+      left = fromMaybe pStyleLeft $ indentation pPr >>= leftParIndent
+      hang = fromMaybe pStyleHang $ indentation pPr >>= hangingParIndent
+  in (left - hang) - (pStyleLeft - pStyleHang)
 
 normalizeToClassName :: (FromStyleName a) => a -> T.Text
 normalizeToClassName = T.map go . fromStyleName
@@ -581,7 +583,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
       local (\s -> s{ docxInBidi = True })
         (bodyPartToBlocks (Paragraph pPr' parparts))
   | isCodeDiv pPr = do
-      transform <- parStyleToTransform pPr
+      transform <- paragraphStyleToTransform pPr
       return $
         transform $
         codeBlock $
@@ -608,7 +610,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
                           else prevParaIls <> space) <> ils'
                   handleInsertion = do
                     modify $ \s -> s {docxPrevPara = mempty}
-                    transform <- parStyleToTransform pPr'
+                    transform <- paragraphStyleToTransform pPr'
                     return $ transform $ paraOrPlain ils''
               opts <- asks docxOptions
               case (pChange pPr', readerTrackChanges opts) of
@@ -623,7 +625,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
                    , AllChanges) -> do
                       let attr = ("", ["paragraph-insertion"], addAuthorAndDate cAuthor cDate)
                           insertMark = spanWith attr mempty
-                      transform <- parStyleToTransform pPr'
+                      transform <- paragraphStyleToTransform pPr'
                       return $ transform $
                         paraOrPlain $ ils'' <> insertMark
                   (Just (TrackedChange Deletion _), AcceptChanges) -> do
@@ -635,7 +637,7 @@ bodyPartToBlocks (Paragraph pPr parparts)
                    , AllChanges) -> do
                       let attr = ("", ["paragraph-deletion"], addAuthorAndDate cAuthor cDate)
                           insertMark = spanWith attr mempty
-                      transform <- parStyleToTransform pPr'
+                      transform <- paragraphStyleToTransform pPr'
                       return $ transform $
                         paraOrPlain $ ils'' <> insertMark
                   _ -> handleInsertion

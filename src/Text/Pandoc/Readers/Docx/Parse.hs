@@ -50,6 +50,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , archiveToDocxWithWarnings
                                       , getStyleNames
                                       , pHeading
+                                      , pStyleIndentation
                                       , constructBogusParStyleData
                                       , leftBiasedMergeRunStyle
                                       , rowsToRowspans
@@ -193,11 +194,6 @@ data Notes = Notes NameSpaces
 
 data Comments = Comments NameSpaces (M.Map T.Text Element)
               deriving Show
-
-data ParIndentation = ParIndentation { leftParIndent    :: Maybe Integer
-                                     , rightParIndent   :: Maybe Integer
-                                     , hangingParIndent :: Maybe Integer}
-                      deriving Show
 
 data ChangeType = Insertion | Deletion
                 deriving Show
@@ -439,6 +435,7 @@ getStyleNames = fmap getStyleName
 constructBogusParStyleData :: ParaStyleName -> ParStyle
 constructBogusParStyleData stName = ParStyle
   { headingLev = Nothing
+  , indent = Nothing
   , numInfo = Nothing
   , psParentStyle = Nothing
   , pStyleName = stName
@@ -673,20 +670,6 @@ elemToCell ns element | isElem ns "w" "tc" element =
     return $ Cell (fromMaybe 1 gridSpan) vMerge cellContents
 elemToCell _ _ = throwError WrongElem
 
-elemToParIndentation :: NameSpaces -> Element -> Maybe ParIndentation
-elemToParIndentation ns element | isElem ns "w" "ind" element =
- Just ParIndentation {
-    leftParIndent =
-       findAttrByName ns "w" "left" element >>=
-       stringToInteger
-    , rightParIndent =
-      findAttrByName ns "w" "right" element >>=
-      stringToInteger
-    , hangingParIndent =
-      findAttrByName ns "w" "hanging" element >>=
-      stringToInteger }
-elemToParIndentation _ _ = Nothing
-
 testBitMask :: Text -> Int -> Bool
 testBitMask bitMaskS n =
   case (reads ("0x" ++ T.unpack bitMaskS) :: [(Int, String)]) of
@@ -698,6 +681,9 @@ pHeading = getParStyleField headingLev . pStyle
 
 pNumInfo :: ParagraphStyle -> Maybe (T.Text, T.Text)
 pNumInfo = getParStyleField numInfo . pStyle
+
+pStyleIndentation :: ParagraphStyle -> Maybe ParIndentation
+pStyleIndentation style = (getParStyleField indent . pStyle) style
 
 elemToBodyPart :: NameSpaces -> Element -> D BodyPart
 elemToBodyPart ns element
@@ -1086,8 +1072,7 @@ elemToParagraphStyle ns element sty
     in ParagraphStyle
       {pStyle = mapMaybe (`M.lookup` sty) style
       , indentation =
-          findChildByName ns "w" "ind" pPr >>=
-          elemToParIndentation ns
+          getIndentation ns element
       , dropCap =
           case
             findChildByName ns "w" "framePr" pPr >>=

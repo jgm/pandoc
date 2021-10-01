@@ -1,0 +1,4 @@
+[Header 1 ("indentation-blockquotes",[],[]) [Str "Indentation",Space,Str "blockquotes"]
+,Para [Str "Normal",Space,Str "list",Space,Str "paragraph"]
+,Para [Str "List",Space,Str "paragraph",Space,Str "with",Space,Str "less",Space,Str "indent"]
+,BlockQuote [Para [Str "List",Space,Str "paragraph",Space,Str "with",Space,Str "more",Space,Str "indent"]]]

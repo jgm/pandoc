@@ -306,6 +306,10 @@ tests = [ testGroup "document"
             "docx/block_quotes.docx"
             "docx/block_quotes_parse_indent.native"
           , testCompare
+            "blockquotes (parsing indent relative to the indent of the parent style as blockquote)"
+            "docx/relative_indentation_blockquotes.docx"
+            "docx/relative_indentation_blockquotes.native"
+          , testCompare
             "hanging indents"
             "docx/hanging_indent.docx"
             "docx/hanging_indent.native"
