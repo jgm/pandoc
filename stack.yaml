@@ -11,15 +11,15 @@ extra-deps:
 - skylighting-0.12
 - doctemplates-0.10
 - git: https://github.com/jgm/texmath.git
-  commit: 0b6febf13cd229e178fccf7216c0548a3b81cf8c
+  commit: 9243169ebf84fb555d37750b0cf758c1cf9827dc
 - git: https://github.com/jgm/pandoc-types.git
-  commit: aed20ed845edf98110995217d66d4627a1824eea
+  commit: 906e5afcc6bc0d7a85d71c986cf2928f1bb7989e
 - git: https://github.com/jgm/commonmark-hs.git
-  commit: e1a2710cdddf570c458a60360fc1951fa282592a
+  commit: bb866b569618f7a9c12579f608116bf60010c9ac
   subdirs:
   - commonmark-pandoc
 - git: https://github.com/jgm/citeproc.git
-  commit: d301ff5ebd3dad5476d70463b0fc9ffe30161ecf
+  commit: 22d5755231c97f749f2df4ec7eca639d6cc9c891
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10
