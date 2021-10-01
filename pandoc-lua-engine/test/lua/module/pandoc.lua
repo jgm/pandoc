@@ -113,9 +113,6 @@ return {
       test('pandoc.LineBlock is a function', function ()
         assert.are_equal(type(pandoc.LineBlock), 'function')
       end),
-      test('pandoc.Null is a function', function ()
-        assert.are_equal(type(pandoc.Null), 'function')
-      end),
       test('pandoc.OrderedList is a function', function ()
         assert.are_equal(type(pandoc.OrderedList), 'function')
       end),

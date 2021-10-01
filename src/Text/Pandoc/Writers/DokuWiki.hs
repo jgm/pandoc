@@ -100,8 +100,6 @@ blockToDokuWiki :: PandocMonad m
                 -> Block         -- ^ Block element
                 -> DokuWiki m Text
 
-blockToDokuWiki _ Null = return ""
-
 blockToDokuWiki opts (Div _attrs bs) = do
   contents <- blockListToDokuWiki opts bs
   return $ contents <> "\n"

@@ -100,8 +100,6 @@ blockToTextile :: PandocMonad m
                -> Block         -- ^ Block element
                -> TW m Text
 
-blockToTextile _ Null = return ""
-
 blockToTextile opts (Div attr bs) = do
   let startTag = render Nothing $ tagWithAttrs "div" attr
   let endTag = "</div>"

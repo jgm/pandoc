@@ -84,8 +84,6 @@ blockToMediaWiki :: PandocMonad m
                  => Block         -- ^ Block element
                  -> MediaWikiWriter m Text
 
-blockToMediaWiki Null = return ""
-
 blockToMediaWiki (Div attrs bs) = do
   contents <- blockListToMediaWiki bs
   return $ render Nothing (tagWithAttrs "div" attrs) <> "\n\n" <>

@@ -279,7 +279,6 @@ blockToMuse (Table _ blkCapt specs thead tbody tfoot) =
               (length aligns :| length widths : map length (headers:rows))
     isSimple = onlySimpleTableCells (headers : rows) && all (== 0) widths
 blockToMuse (Div _ bs) = flatBlockListToMuse bs
-blockToMuse Null = return empty
 blockToMuse (Figure attr capt body) = do
   blockToMuse (figureDiv attr capt body)
 

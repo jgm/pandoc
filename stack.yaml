@@ -29,9 +29,9 @@ extra-deps:
 - git: https://github.com/jgm/citeproc
   commit: a73c7d1c00c993b8a20daf5a932afae16f889c83
 - git: https://github.com/jgm/pandoc-types
-  commit: 6ac717718396bdca510cbdc6d211bbea408444cc
+  commit: 8c7bc6c66d22538711171b8cfd0e5f3d48de39fd
 - git: https://github.com/pandoc/pandoc-lua-marshal
-  commit: 6e8c834acdf6d3551c58b71fe361faa7d3590838
+  commit: 76a568e98c424b1e35a80f26f5998136adbeb165
 - git: https://github.com/jgm/commonmark-hs
   commit: d0f3097e55471aa640d76d0188ba707cbece71b1
   subdirs: [commonmark-pandoc]

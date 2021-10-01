@@ -99,7 +99,6 @@ imageToTEI opts attr src = return $ selfClosingTag "graphic" $
 
 -- | Convert a Pandoc block element to TEI.
 blockToTEI :: PandocMonad m => WriterOptions -> Block -> m (Doc Text)
-blockToTEI _ Null = return empty
 blockToTEI opts (Div attr@(_,"section":_,_) (Header lvl _ ils : xs)) =
   do
   -- TEI doesn't allow sections with no content, so insert some if needed

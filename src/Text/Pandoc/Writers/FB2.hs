@@ -361,7 +361,6 @@ blockToXml (Table _ blkCapt specs thead tbody tfoot) = do
       align_str AlignCenter  = "center"
       align_str AlignRight   = "right"
       align_str AlignDefault = "left"
-blockToXml Null = return []
 blockToXml (Figure _attr (Caption _ longcapt) body) =
   let alt = blocksToInlines longcapt
       addAlt (Image imgattr [] tgt) = Image imgattr alt tgt

@@ -103,7 +103,6 @@ toJiraBlocks blocks = do
         Para xs              -> singleton . Jira.Para <$> toJiraInlines xs
         Plain xs             -> singleton . Jira.Para <$> toJiraInlines xs
         RawBlock fmt cs      -> rawBlockToJira fmt cs
-        Null                 -> return mempty
         Table _ blkCapt specs thead tbody tfoot -> singleton <$> do
           let (_, _, _, hd, body) = toLegacyTable blkCapt specs thead tbody tfoot
           headerRow <- if all null hd

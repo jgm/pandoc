@@ -28,7 +28,7 @@ import Data.Aeson (Value(..), Object, Result(..), fromJSON, (.:?), withObject)
 import Data.Aeson.Types (parse)
 import Text.Pandoc.Shared (tshow, blocksToInlines)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
-import Text.Pandoc.Definition hiding (Null)
+import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Parsing hiding (tableWith, parse)
 
@@ -42,7 +42,6 @@ yamlBsToMeta pMetaValue bstr = do
   case Yaml.decodeAllEither' bstr of
        Right (Object o:_) -> fmap Meta <$> yamlMap pMetaValue o
        Right [] -> return . return $ mempty
-       Right [Null] -> return . return $ mempty
        Right _  -> Prelude.fail "expected YAML object"
        Left err' -> do
          throwError $ PandocParseError
