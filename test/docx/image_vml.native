@@ -1,4 +1,3 @@
 [Header 1 ("vml-image",[],[]) [Strong [Str "VML",Space,Str "Image"]]
-,BlockQuote
- [Para [Str "It",Space,Str "should",Space,Str "follow",Space,Str "below:"]
- ,Para [Image ("",[],[]) [] ("media/image4.jpeg","")]]]
+,Para [Str "It",Space,Str "should",Space,Str "follow",Space,Str "below:"]
+,Para [Image ("",[],[]) [] ("media/image4.jpeg","")]]
