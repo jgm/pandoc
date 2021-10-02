@@ -68,10 +68,10 @@ data XMLDifference
 data Comparison a = Comparison { good :: a, mine :: a }
   deriving (Show)
 
-displayDiff :: Content -> Content -> String
+displayDiff :: Element -> Element -> String
 displayDiff elemA elemB =
   showDiff (1,1)
-    (getDiff (lines $ showContent elemA) (lines $ showContent elemB))
+    (getDiff (lines $ ppElement elemA) (lines $ ppElement elemB))
 
 goldenArchive :: FilePath -> IO Archive
 goldenArchive fp = toArchive . BL.fromStrict <$> BS.readFile fp
@@ -137,7 +137,7 @@ compareXMLFile' fp goldenArch testArch = do
       display difference = "Non-matching xml in "
         ++ fp ++ ":\n"
         ++ "* " ++ show difference ++ "\n"
-        ++ displayDiff testContent goldenContent
+        ++ displayDiff testXMLDoc goldenXMLDoc
 
 
   maybe (Right ()) (Left . display) (compareXML goldenContent testContent)
