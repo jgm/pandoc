@@ -36,6 +36,7 @@ module Text.Pandoc.Writers.Shared (
                      , toTableOfContents
                      , endsWithPlain
                      , toLegacyTable
+                     , breakable
                      )
 where
 import Safe (lastMay, initSafe)
@@ -48,6 +49,7 @@ import Data.List (groupBy, intersperse, transpose, foldl')
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import Data.Text.Conversions (FromText(..))
 import qualified Data.Map as M
+import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as Builder
 import Text.Pandoc.Definition
@@ -538,3 +540,20 @@ toLegacyTable (Caption _ cbody) specs thead tbodies tfoot
 
     getComponents (Cell _ _ (RowSpan h) (ColSpan w) body)
       = (h, w, body)
+
+-- | Create a breakable 'Doc' from a text.  Only regular spaces
+-- are break points (not tabs or nonbreaking spaces).
+breakable :: Text -> Doc Text
+breakable t
+  | T.any (== ' ') t = mconcat $ foldr go mempty (T.split (==' ') t)
+  | otherwise = Text (realLength t) t
+ where
+  go "" xs =
+    case xs of
+      BreakingSpace : _ -> xs
+      _ -> BreakingSpace : xs
+  go t' xs = Text (realLength t') t' :
+    case xs of
+      [] -> xs
+      (BreakingSpace : _) -> xs
+      _ -> BreakingSpace : xs
