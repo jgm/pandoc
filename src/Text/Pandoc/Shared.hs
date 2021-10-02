@@ -718,6 +718,9 @@ breakSentence xs =
           case T.stripStart t'' of
             t''' | T.null t''' -> zs
                  | otherwise -> Str t''' : zs)
+      | otherwise ->
+        let (as, bs) = breakSentence zs
+         in (ys ++ Str t : as, bs)
     _ -> (xs, [])
  where
   isStr (Str _) = True
