@@ -765,13 +765,14 @@ M.SoftBreak = M.Inline:create_constructor(
   function() return {} end
 )
 
---- Create a Space inline element
+--- Create a Space inline element (deprecated: just use Str(" "))
 -- @function Space
 -- @treturn Inline space element
 M.Space = M.Inline:create_constructor(
-  "Space",
-  function() return {} end
+  "Str",
+  function() return {c = " "} end
 )
+
 
 --- Creates a Span inline element
 -- @function Span
