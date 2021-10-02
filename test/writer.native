@@ -24,8 +24,7 @@ Pandoc
       2
       ( "level-2-with-an-embedded-link" , [] , [] )
       [ Str "Level 2 with an "
-      , Link
-          ( "" , [] , [] ) [ Str "embedded link" ] ( "/url" , "" )
+      , Link ( "" , [] , [] ) [ Str "embedded link" ] ( "/url" , "" )
       ]
   , Header
       3
@@ -193,9 +192,7 @@ Pandoc
   , BulletList
       [ [ Plain [ Str "Tab" ]
         , BulletList
-            [ [ Plain [ Str "Tab" ]
-              , BulletList [ [ Plain [ Str "Tab" ] ] ]
-              ]
+            [ [ Plain [ Str "Tab" ] , BulletList [ [ Plain [ Str "Tab" ] ] ] ]
             ]
         ]
       ]
@@ -315,29 +312,20 @@ Pandoc
   , Para [ Str "M.A.\160\&2007" ]
   , Para [ Str "B. Williams" ]
   , HorizontalRule
-  , Header
-      1
-      ( "definition-lists" , [] , [] )
-      [ Str "Definition Lists" ]
+  , Header 1 ( "definition-lists" , [] , [] ) [ Str "Definition Lists" ]
   , Para [ Str "Tight using spaces:" ]
   , DefinitionList
       [ ( [ Str "apple" ] , [ [ Plain [ Str "red fruit" ] ] ] )
       , ( [ Str "orange" ]
         , [ [ Plain [ Str "orange fruit" ] ] ]
         )
-      , ( [ Str "banana" ]
-        , [ [ Plain [ Str "yellow fruit" ] ] ]
-        )
+      , ( [ Str "banana" ] , [ [ Plain [ Str "yellow fruit" ] ] ])
       ]
   , Para [ Str "Tight using tabs:" ]
   , DefinitionList
       [ ( [ Str "apple" ] , [ [ Plain [ Str "red fruit" ] ] ] )
-      , ( [ Str "orange" ]
-        , [ [ Plain [ Str "orange fruit" ] ] ]
-        )
-      , ( [ Str "banana" ]
-        , [ [ Plain [ Str "yellow fruit" ] ] ]
-        )
+      , ( [ Str "orange" ] , [ [ Plain [ Str "orange fruit" ] ] ] )
+      , ( [ Str "banana" ] , [ [ Plain [ Str "yellow fruit" ] ] ] )
       ]
   , Para [ Str "Loose:" ]
   , DefinitionList
@@ -476,8 +464,7 @@ Pandoc
   , RawBlock (Format "html") "<hr class=\"foo\" id=\"bar\" />"
   , RawBlock (Format "html") "<hr class=\"foo\" id=\"bar\">"
   , HorizontalRule
-  , Header
-      1 ( "inline-markup" , [] , [] ) [ Str "Inline Markup" ]
+  , Header 1 ( "inline-markup" , [] , [] ) [ Str "Inline Markup" ]
   , Para
       [ Str "This is "
       , Emph [ Str "emphasized" ]
@@ -495,9 +482,7 @@ Pandoc
   , Para
       [ Str "An "
       , Emph
-          [ Link
-              ( "" , [] , [] ) [ Str "emphasized link" ] ( "/url" , "" )
-          ]
+          [ Link ( "" , [] , [] ) [ Str "emphasized link" ] ( "/url" , "" ) ]
       , Str "."
       ]
   , Para [ Strong [ Emph [ Str "This is strong and em." ] ] ]
@@ -586,9 +571,7 @@ Pandoc
   , Para
       [ Quoted
           SingleQuote
-          [ Str "He said, "
-          , Quoted DoubleQuote [ Str "I want to go." ]
-          ]
+          [ Str "He said, " , Quoted DoubleQuote [ Str "I want to go." ] ]
       , Str " Were you alive in the"
       , SoftBreak
       , Str "70\8217s?"
@@ -980,9 +963,7 @@ Pandoc
   , OrderedList
       ( 1 , Decimal , Period )
       [ [ Plain
-            [ Str "And in list items."
-            , Note [ Para [ Str "In list." ] ]
-            ]
+            [ Str "And in list items." , Note [ Para [ Str "In list." ] ] ]
         ]
       ]
   , Para
