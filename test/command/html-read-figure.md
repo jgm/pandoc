@@ -58,7 +58,7 @@
 [ Para
     [ Image
         ( "" , [] , [] )
-        [ Str "bar" , Space , Strong [ Str "baz" ] ]
+        [ Str "bar " , Strong [ Str "baz" ] ]
         ( "foo.png" , "fig:voyage" )
     ]
 ]
