@@ -31,6 +31,8 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 
+import Debug.Trace (trace)
+
 data WriterState =
   WriterState { stNotes   :: [[Block]]
               , stHasMath :: Bool
@@ -41,10 +43,7 @@ type Org = StateT WriterState
 
 -- | Convert Pandoc to Org.
 writeOrg :: PandocMonad m => WriterOptions -> Pandoc -> m Text
-writeOrg opts document = do
-  undefined
-
-{-
+writeOrg opts document = trace "TODO replace fixMarkers!" $ do
   let st = WriterState { stNotes = [],
                          stHasMath = False,
                          stOptions = opts }
@@ -353,22 +352,23 @@ blockListToOrg blocks = vcat <$> mapM blockToOrg blocks
 inlineListToOrg :: PandocMonad m
                 => [Inline]
                 -> Org m (Doc Text)
-inlineListToOrg lst = hcat <$> mapM inlineToOrg (fixMarkers lst)
-  where -- Prevent note refs and list markers from wrapping, see #4171
-        -- and #7132.
-        fixMarkers [] = []
-        fixMarkers (Space : x : rest) | shouldFix x =
-          Str " " : x : fixMarkers rest
-        fixMarkers (SoftBreak : x : rest) | shouldFix x =
-          Str " " : x : fixMarkers rest
-        fixMarkers (x : rest) = x : fixMarkers rest
-
-        shouldFix Note{} = True    -- Prevent footnotes
-        shouldFix (Str "-") = True -- Prevent bullet list items
-        shouldFix (Str x)          -- Prevent ordered list items
-          | Just (cs, c) <- T.unsnoc x = T.all isDigit cs &&
-                                         (c == '.' || c == ')')
-        shouldFix _ = False
+inlineListToOrg = fmap hcat . mapM inlineToOrg
+-- TODO
+--   where -- Prevent note refs and list markers from wrapping, see #4171
+--         -- and #7132.
+--         fixMarkers [] = []
+--         fixMarkers (Space : x : rest) | shouldFix x =
+--           Str " " : x : fixMarkers rest
+--         fixMarkers (SoftBreak : x : rest) | shouldFix x =
+--           Str " " : x : fixMarkers rest
+--         fixMarkers (x : rest) = x : fixMarkers rest
+-- 
+--         shouldFix Note{} = True    -- Prevent footnotes
+--         shouldFix (Str "-") = True -- Prevent bullet list items
+--         shouldFix (Str x)          -- Prevent ordered list items
+--           | Just (cs, c) <- T.unsnoc x = T.all isDigit cs &&
+--                                          (c == '.' || c == ')')
+--         shouldFix _ = False
 
 -- | Convert Pandoc inline element to Org.
 inlineToOrg :: PandocMonad m => Inline -> Org m (Doc Text)
@@ -512,4 +512,3 @@ orgLangIdentifiers =
   , "sqlite"
   , "lilypond"
   , "vala" ]
--}
