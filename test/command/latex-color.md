@@ -5,8 +5,7 @@
 Hello \textcolor{red}{World}
 ^D
 [ Para
-    [ Str "Hello"
-    , Space
+    [ Str "Hello "
     , Span
         ( "" , [] , [ ( "style" , "color: red" ) ] ) [ Str "World" ]
     ]
@@ -20,8 +19,7 @@ Hello \textcolor{red}{World}
 [ Para
     [ Span
         ( "" , [] , [ ( "style" , "color: red" ) ] ) [ Str "Hello" ]
-    , Space
-    , Str "World"
+    , Str " World"
     ]
 ]
 ```
@@ -31,8 +29,7 @@ Hello \textcolor{red}{World}
 Hello \textcolor{blue}{\textbf{World}}
 ^D
 [ Para
-    [ Str "Hello"
-    , Space
+    [ Str "Hello "
     , Span
         ( "" , [] , [ ( "style" , "color: blue" ) ] )
         [ Strong [ Str "World" ] ]
@@ -46,8 +43,7 @@ Hello \textcolor{blue}{\textbf{World}}
 Hello \textcolor{blue}{\textbf{World}}.
 ^D
 [ Para
-    [ Str "Hello"
-    , Space
+    [ Str "Hello "
     , Span
         ( "" , [] , [ ( "style" , "color: blue" ) ] )
         [ Strong [ Str "World" ] ]
@@ -68,9 +64,7 @@ Hello \textcolor{blue}{\textbf{World}}.
 [ Div
     ( "" , [] , [ ( "style" , "color: orange" ) ] )
     [ BulletList
-        [ [ Para [ Str "Item" , Space , Str "1" ] ]
-        , [ Para [ Str "Item" , Space , Str "2" ] ]
-        ]
+        [ [ Para [ Str "Item 1" ] ] , [ Para [ Str "Item 2" ] ] ]
     ]
 ]
 ```
@@ -87,12 +81,9 @@ Hello \textcolor{blue}{\textbf{World}}.
 [ Div
     ( "" , [] , [ ( "style" , "color: blue" ) ] )
     [ BulletList
-        [ [ Para [ Str "Item" , Space , Str "1" ] ]
-        , [ Para [ Str "Item" , Space , Str "2" ] ]
-        ]
+        [ [ Para [ Str "Item 1" ] ] , [ Para [ Str "Item 2" ] ] ]
     ]
-, Para
-    [ Str "some" , Space , Str "more" , Space , Str "text" ]
+, Para [ Str "some more text" ]
 ]
 ```
 
@@ -104,8 +95,7 @@ Hello \textcolor{blue}{\textbf{World}}.
 Hello \colorbox{red}{World}
 ^D
 [ Para
-    [ Str "Hello"
-    , Space
+    [ Str "Hello "
     , Span
         ( "" , [] , [ ( "style" , "background-color: red" ) ] )
         [ Str "World" ]
@@ -121,8 +111,7 @@ Hello \colorbox{red}{World}
     [ Span
         ( "" , [] , [ ( "style" , "background-color: red" ) ] )
         [ Str "Hello" ]
-    , Space
-    , Str "World"
+    , Str " World"
     ]
 ]
 ```
@@ -132,8 +121,7 @@ Hello \colorbox{red}{World}
 Hello \colorbox{blue}{\textbf{World}}
 ^D
 [ Para
-    [ Str "Hello"
-    , Space
+    [ Str "Hello "
     , Span
         ( "" , [] , [ ( "style" , "background-color: blue" ) ] )
         [ Strong [ Str "World" ] ]
@@ -146,8 +134,7 @@ Hello \colorbox{blue}{\textbf{World}}
 Hello \colorbox{blue}{\textbf{World}}.
 ^D
 [ Para
-    [ Str "Hello"
-    , Space
+    [ Str "Hello "
     , Span
         ( "" , [] , [ ( "style" , "background-color: blue" ) ] )
         [ Strong [ Str "World" ] ]
@@ -170,9 +157,7 @@ Hello \colorbox{blue}{\textbf{World}}.
 [ Div
     ( "" , [] , [ ( "style" , "background-color: orange" ) ] )
     [ BulletList
-        [ [ Para [ Str "Item" , Space , Str "1" ] ]
-        , [ Para [ Str "Item" , Space , Str "2" ] ]
-        ]
+        [ [ Para [ Str "Item 1" ] ] , [ Para [ Str "Item 2" ] ] ]
     ]
 ]
 ```
@@ -191,11 +176,8 @@ Hello \colorbox{blue}{\textbf{World}}.
 [ Div
     ( "" , [] , [ ( "style" , "background-color: blue" ) ] )
     [ BulletList
-        [ [ Para [ Str "Item" , Space , Str "1" ] ]
-        , [ Para [ Str "Item" , Space , Str "2" ] ]
-        ]
+        [ [ Para [ Str "Item 1" ] ] , [ Para [ Str "Item 2" ] ] ]
     ]
-, Para
-    [ Str "some" , Space , Str "more" , Space , Str "text" ]
+, Para [ Str "some more text" ]
 ]
 ```
