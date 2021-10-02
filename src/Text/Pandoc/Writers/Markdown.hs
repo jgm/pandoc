@@ -166,8 +166,6 @@ valToYaml _ = empty
 -- | Return markdown representation of document.
 pandocToMarkdown :: PandocMonad m => WriterOptions -> Pandoc -> MD m Text
 pandocToMarkdown opts (Pandoc meta blocks) = do
-  undefined
-{-
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
@@ -817,8 +815,8 @@ blockListToMarkdown opts blocks = do
   mconcat <$> mapM (blockToMarkdown opts) (fixBlocks blocks)
 
 lineBreakToSpace :: Inline -> Inline
-lineBreakToSpace LineBreak = Space
-lineBreakToSpace SoftBreak = Space
+lineBreakToSpace LineBreak = Str " "
+lineBreakToSpace SoftBreak = Str " "
 lineBreakToSpace x         = x
 
 -- | Starts with space or soft break.
@@ -829,4 +827,3 @@ startsWithSpace (Str t : _) =
     _ -> False
 startsWithSpace (SoftBreak : _) = True
 startsWithSpace _ = False
--}
