@@ -36,40 +36,19 @@
                AlignDefault
                (RowSpan 1)
                (ColSpan 1)
-               [ Plain
-                   [ Str "Column"
-                   , Space
-                   , Str "Heading"
-                   , Space
-                   , Str "1"
-                   ]
-               ]
+               [ Plain [ Str "Column Heading 1" ] ]
            , Cell
                ( "" , [] , [] )
                AlignDefault
                (RowSpan 1)
                (ColSpan 1)
-               [ Plain
-                   [ Str "Column"
-                   , Space
-                   , Str "Heading"
-                   , Space
-                   , Str "2"
-                   ]
-               ]
+               [ Plain [ Str "Column Heading 2" ] ]
            , Cell
                ( "" , [] , [] )
                AlignDefault
                (RowSpan 1)
                (ColSpan 1)
-               [ Plain
-                   [ Str "Column"
-                   , Space
-                   , Str "Heading"
-                   , Space
-                   , Str "3"
-                   ]
-               ]
+               [ Plain [ Str "Column Heading 3" ] ]
            ]
        ])
     [ TableBody
@@ -83,19 +62,19 @@
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "1.1" ] ]
+                [ Plain [ Str "Cell 1.1" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "1.2" ] ]
+                [ Plain [ Str "Cell 1.2" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "1.3" ] ]
+                [ Plain [ Str "Cell 1.3" ] ]
             ]
         , Row
             ( "" , [] , [] )
@@ -104,19 +83,19 @@
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "2.1" ] ]
+                [ Plain [ Str "Cell 2.1" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "2.2" ] ]
+                [ Plain [ Str "Cell 2.2" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "2.3" ] ]
+                [ Plain [ Str "Cell 2.3" ] ]
             ]
         , Row
             ( "" , [] , [] )
@@ -125,19 +104,19 @@
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "3.1" ] ]
+                [ Plain [ Str "Cell 3.1" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "3.2" ] ]
+                [ Plain [ Str "Cell 3.2" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "3.3" ] ]
+                [ Plain [ Str "Cell 3.3" ] ]
             ]
         ]
     ]
@@ -183,40 +162,19 @@
                AlignDefault
                (RowSpan 1)
                (ColSpan 1)
-               [ Plain
-                   [ Str "Column"
-                   , Space
-                   , Str "Heading"
-                   , Space
-                   , Str "1"
-                   ]
-               ]
+               [ Plain [ Str "Column Heading 1" ] ]
            , Cell
                ( "" , [] , [] )
                AlignDefault
                (RowSpan 1)
                (ColSpan 1)
-               [ Plain
-                   [ Str "Column"
-                   , Space
-                   , Str "Heading"
-                   , Space
-                   , Str "2"
-                   ]
-               ]
+               [ Plain [ Str "Column Heading 2" ] ]
            , Cell
                ( "" , [] , [] )
                AlignDefault
                (RowSpan 1)
                (ColSpan 1)
-               [ Plain
-                   [ Str "Column"
-                   , Space
-                   , Str "Heading"
-                   , Space
-                   , Str "3"
-                   ]
-               ]
+               [ Plain [ Str "Column Heading 3" ] ]
            ]
        ])
     [ TableBody
@@ -230,19 +188,19 @@
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "1.1" ] ]
+                [ Plain [ Str "Cell 1.1" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "1.2" ] ]
+                [ Plain [ Str "Cell 1.2" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "1.3" ] ]
+                [ Plain [ Str "Cell 1.3" ] ]
             ]
         , Row
             ( "" , [] , [] )
@@ -251,19 +209,19 @@
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "2.1" ] ]
+                [ Plain [ Str "Cell 2.1" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "2.2" ] ]
+                [ Plain [ Str "Cell 2.2" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "2.3" ] ]
+                [ Plain [ Str "Cell 2.3" ] ]
             ]
         , Row
             ( "" , [] , [] )
@@ -272,19 +230,19 @@
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "3.1" ] ]
+                [ Plain [ Str "Cell 3.1" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "3.2" ] ]
+                [ Plain [ Str "Cell 3.2" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "3.3" ] ]
+                [ Plain [ Str "Cell 3.3" ] ]
             ]
         ]
     ]
@@ -330,40 +288,19 @@
                AlignDefault
                (RowSpan 1)
                (ColSpan 1)
-               [ Plain
-                   [ Str "Column"
-                   , Space
-                   , Str "Heading"
-                   , Space
-                   , Str "1"
-                   ]
-               ]
+               [ Plain [ Str "Column Heading 1" ] ]
            , Cell
                ( "" , [] , [] )
                AlignDefault
                (RowSpan 1)
                (ColSpan 1)
-               [ Plain
-                   [ Str "Column"
-                   , Space
-                   , Str "Heading"
-                   , Space
-                   , Str "2"
-                   ]
-               ]
+               [ Plain [ Str "Column Heading 2" ] ]
            , Cell
                ( "" , [] , [] )
                AlignDefault
                (RowSpan 1)
                (ColSpan 1)
-               [ Plain
-                   [ Str "Column"
-                   , Space
-                   , Str "Heading"
-                   , Space
-                   , Str "3"
-                   ]
-               ]
+               [ Plain [ Str "Column Heading 3" ] ]
            ]
        ])
     [ TableBody
@@ -377,19 +314,19 @@
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "1.1" ] ]
+                [ Plain [ Str "Cell 1.1" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "1.2" ] ]
+                [ Plain [ Str "Cell 1.2" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "1.3" ] ]
+                [ Plain [ Str "Cell 1.3" ] ]
             ]
         , Row
             ( "" , [] , [] )
@@ -398,19 +335,19 @@
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "2.1" ] ]
+                [ Plain [ Str "Cell 2.1" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "2.2" ] ]
+                [ Plain [ Str "Cell 2.2" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "2.3" ] ]
+                [ Plain [ Str "Cell 2.3" ] ]
             ]
         , Row
             ( "" , [] , [] )
@@ -419,19 +356,19 @@
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "3.1" ] ]
+                [ Plain [ Str "Cell 3.1" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "3.2" ] ]
+                [ Plain [ Str "Cell 3.2" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Cell" , Space , Str "3.3" ] ]
+                [ Plain [ Str "Cell 3.3" ] ]
             ]
         ]
     ]

@@ -13,14 +13,14 @@ Pandoc
     { unMeta =
         fromList
           [ ( "title"
-            , MetaInlines [ Str "My" , Space , Str "title" ]
+            , MetaInlines [ Str "My title" ]
             )
           ]
     }
   [ Header
       2
       ( "first-heading" , [] , [] )
-      [ Str "First" , Space , Str "heading" ]
+      [ Str "First heading" ]
   , Header 3 ( "second" , [] , [] ) [ Str "Second" ]
   ]
 ```
@@ -41,19 +41,10 @@ Pandoc
   Meta
     { unMeta =
         fromList
-          [ ( "title"
-            , MetaInlines [ Str "First" , Space , Str "heading" ]
-            )
-          ]
+          [ ( "title" , MetaInlines [ Str "First heading" ] ) ]
     }
   [ Header 1 ( "second" , [] , [] ) [ Str "Second" ]
-  , Para
-      [ Str "Another"
-      , Space
-      , Str "top-level"
-      , Space
-      , Str "heading"
-      ]
+  , Para [ Str "Another top-level heading" ]
   ]
 ```
 

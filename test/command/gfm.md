@@ -75,8 +75,7 @@ gfm tests:
 % pandoc -f gfm -t native
 ~~stricken out~~
 ^D
-[ Para [ Strikeout [ Str "stricken" , Space , Str "out" ] ]
-]
+[ Para [ Strikeout [ Str "stricken out" ] ] ]
 ```
 
 ```
@@ -125,30 +124,68 @@ My:thumbsup:emoji:heart:
 
 ```
 % pandoc -t gfm -f native
-[Table ("",[],[]) (Caption Nothing
- [Plain [Str "The",Space,Str "caption."]])
- [(AlignDefault,ColWidthDefault)
- ,(AlignRight,ColWidthDefault)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "Fruit"]]
-  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-   [Plain [Str "Price"]]]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "apple"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "0.13"]]]
-  ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "orange"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "1.12"]]]])]
- (TableFoot ("",[],[])
- [])]
+[ Table
+    ( "" , [] , [] )
+    (Caption Nothing [ Plain [ Str "The caption." ] ])
+    [ ( AlignDefault , ColWidthDefault )
+    , ( AlignRight , ColWidthDefault )
+    ]
+    (TableHead
+       ( "" , [] , [] )
+       [ Row
+           ( "" , [] , [] )
+           [ Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "Fruit" ] ]
+           , Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "Price" ] ]
+           ]
+       ])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "apple" ] ]
+            , Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "0.13" ] ]
+            ]
+        , Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "orange" ] ]
+            , Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "1.12" ] ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
+]
 ^D
 | Fruit  | Price |
 |--------|------:|
@@ -193,8 +230,8 @@ hi
 - [x] bar
 ^D
 [ BulletList
-    [ [ Plain [ Str "\9744" , Space , Str "foo" ] ]
-    , [ Plain [ Str "\9746" , Space , Str "bar" ] ]
+    [ [ Plain [ Str "\9744 foo" ] ]
+    , [ Plain [ Str "\9746 bar" ] ]
     ]
 ]
 ```
@@ -205,9 +242,8 @@ hi
 - [x] bar
 ^D
 [ BulletList
-    [ [ Plain [ Str "[" , Space , Str "]" , Space , Str "foo" ]
-      ]
-    , [ Plain [ Str "[x]" , Space , Str "bar" ] ]
+    [ [ Plain [ Str "[ ] foo" ] ]
+    , [ Plain [ Str "[x] bar" ] ]
     ]
 ]
 ```

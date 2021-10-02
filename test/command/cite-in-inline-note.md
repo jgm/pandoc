@@ -6,8 +6,7 @@ foo^[bar [@doe]]
     [ Str "foo"
     , Note
         [ Para
-            [ Str "bar"
-            , Space
+            [ Str "bar "
             , Cite
                 [ Citation
                     { citationId = "doe"

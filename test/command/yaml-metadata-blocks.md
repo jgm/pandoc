@@ -96,7 +96,7 @@ Pandoc
         fromList
           [ ( "other"
             , MetaInlines
-                [ Emph [ Str "markdown" ] , Space , Str "value" ]
+                [ Emph [ Str "markdown" ] , Str " value" ]
             )
           , ( "title" , MetaInlines [ Str "document" ] )
           ]
@@ -112,7 +112,7 @@ Pandoc
         fromList
           [ ( "other"
             , MetaInlines
-                [ Emph [ Str "markdown" ] , Space , Str "value" ]
+                [ Emph [ Str "markdown" ] , Str " value" ]
             )
           , ( "title" , MetaString "cmdline" )
           ]

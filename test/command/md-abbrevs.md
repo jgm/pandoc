@@ -15,7 +15,6 @@ If you don't want this to happen you can escape the period:
 % pandoc -t native
 Hi Mr\. Bob
 ^D
-[ Para [ Str "Hi" , Space , Str "Mr." , Space , Str "Bob" ]
-]
+[ Para [ Str "Hi Mr. Bob" ] ]
 ```
 

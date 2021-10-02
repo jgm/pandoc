@@ -7,14 +7,12 @@
 [ Para
     [ Span ( "" , [ "lettrine" ] , [] ) [ Str "A" ]
     , SmallCaps [ Str "category" ]
-    , Space
-    , Str "is"
+    , Str " is"
     ]
 , Para
     [ Span ( "" , [ "lettrine" ] , [] ) [ Str "A" ]
     , SmallCaps [ Str "category" ]
-    , Space
-    , Str "is"
+    , Str " is"
     ]
 ]
 ```

@@ -9,7 +9,7 @@ Visible
 \end{document}
 ^D
 [ Para [ Str "Visible" ]
-, Para [ Emph [ Str "hi" , Space , Str "there" ] ]
+, Para [ Emph [ Str "hi there" ] ]
 , Para [ Str "Visible" ]
 ]
 ```

@@ -78,24 +78,8 @@ Accuracy~\eqref{eq:Accuracy} is the proportion, measuring true results among all
         )
         [ Str "[eq:Accuracy]" ]
         ( "#eq:Accuracy" , "" )
-    , Space
-    , Str "is"
-    , Space
-    , Str "the"
-    , Space
-    , Str "proportion,"
-    , Space
-    , Str "measuring"
-    , Space
-    , Str "true"
-    , Space
-    , Str "results"
-    , Space
-    , Str "among"
-    , Space
-    , Str "all"
-    , Space
-    , Str "results."
+    , Str
+        " is the proportion, measuring true results among all results."
     ]
 , Para
     [ Math
@@ -122,8 +106,7 @@ Figure \ref{fig:Logo} illustrated the SVG logo
         ( "command/SVG_logo.svg" , "fig:" )
     ]
 , Para
-    [ Str "Figure"
-    , Space
+    [ Str "Figure "
     , Link
         ( ""
         , []
@@ -133,14 +116,7 @@ Figure \ref{fig:Logo} illustrated the SVG logo
         )
         [ Str "1" ]
         ( "#fig:Logo" , "" )
-    , Space
-    , Str "illustrated"
-    , Space
-    , Str "the"
-    , Space
-    , Str "SVG"
-    , Space
-    , Str "logo"
+    , Str " illustrated the SVG logo"
     ]
 ]
 ```
@@ -198,8 +174,7 @@ Figure \ref{fig:Logo3} illustrated the SVG logo
         ( "command/SVG_logo3.svg" , "fig:" )
     ]
 , Para
-    [ Str "Figure"
-    , Space
+    [ Str "Figure "
     , Link
         ( ""
         , []
@@ -209,18 +184,10 @@ Figure \ref{fig:Logo3} illustrated the SVG logo
         )
         [ Str "1.1" ]
         ( "#fig:Logo" , "" )
-    , Space
-    , Str "illustrated"
-    , Space
-    , Str "the"
-    , Space
-    , Str "SVG"
-    , Space
-    , Str "logo"
+    , Str " illustrated the SVG logo"
     ]
 , Para
-    [ Str "Figure"
-    , Space
+    [ Str "Figure "
     , Link
         ( ""
         , []
@@ -230,18 +197,10 @@ Figure \ref{fig:Logo3} illustrated the SVG logo
         )
         [ Str "1.2" ]
         ( "#fig:Logo2" , "" )
-    , Space
-    , Str "illustrated"
-    , Space
-    , Str "the"
-    , Space
-    , Str "SVG"
-    , Space
-    , Str "logo"
+    , Str " illustrated the SVG logo"
     ]
 , Para
-    [ Str "Figure"
-    , Space
+    [ Str "Figure "
     , Link
         ( ""
         , []
@@ -251,14 +210,7 @@ Figure \ref{fig:Logo3} illustrated the SVG logo
         )
         [ Str "2.1" ]
         ( "#fig:Logo3" , "" )
-    , Space
-    , Str "illustrated"
-    , Space
-    , Str "the"
-    , Space
-    , Str "SVG"
-    , Space
-    , Str "logo"
+    , Str " illustrated the SVG logo"
     ]
 ]
 ```
@@ -272,9 +224,7 @@ Figure \ref{fig:Logo3} illustrated the SVG logo
     [ Span
         ( "section" , [] , [ ( "label" , "section" ) ] )
         [ Str "[section]" ]
-    , Space
-    , Str "Section"
-    , Space
+    , Str " Section "
     , Link
         ( ""
         , []

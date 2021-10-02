@@ -13,33 +13,18 @@
 </bibliomixed>
 </bibliodiv>
 ^D
-[ Header
-    1
-    ( "" , [] , [] )
-    [ Str "Document" , Space , Str "References" ]
+[ Header 1 ( "" , [] , [] ) [ Str "Document References" ]
 , Para
     [ Span ( "refTheFirst" , [] , [] ) []
-    , Str "[1]"
-    , Space
-    , Str "First"
-    , Space
-    , Str "reference"
+    , Str "[1] First reference"
     ]
 , Para
     [ Span ( "refTheSecond" , [] , [] ) []
-    , Str "[2]"
-    , Space
-    , Str "Second"
-    , Space
-    , Str "reference"
+    , Str "[2] Second reference"
     ]
 , Para
     [ Span ( "refTheThird" , [] , [] ) []
-    , Str "[3]"
-    , Space
-    , Str "Third"
-    , Space
-    , Str "reference"
+    , Str "[3] Third reference"
     ]
 ]
 ```

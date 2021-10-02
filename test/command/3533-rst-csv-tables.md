@@ -59,14 +59,7 @@
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain
-                    [ Str "On"
-                    , Space
-                    , Str "a"
-                    , Space
-                    , Str "stick!"
-                    ]
-                ]
+                [ Plain [ Str "On a stick!" ] ]
             ]
         , Row
             ( "" , [] , [] )
@@ -75,7 +68,7 @@
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "Crunchy" , Space , Str "Frog" ] ]
+                [ Plain [ Str "Crunchy Frog" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
@@ -88,31 +81,9 @@
                 (RowSpan 1)
                 (ColSpan 1)
                 [ Plain
-                    [ Str "If"
-                    , Space
-                    , Str "we"
-                    , Space
-                    , Str "took"
-                    , Space
-                    , Str "the"
-                    , Space
-                    , Str "bones"
-                    , Space
-                    , Str "out,"
-                    , Space
-                    , Str "it"
-                    , Space
-                    , Str "wouldn't"
-                    , Space
-                    , Str "be"
+                    [ Str "If we took the bones out, it wouldn't be"
                     , SoftBreak
-                    , Str "crunchy,"
-                    , Space
-                    , Str "now"
-                    , Space
-                    , Str "would"
-                    , Space
-                    , Str "it?"
+                    , Str "crunchy, now would it?"
                     ]
                 ]
             ]

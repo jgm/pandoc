@@ -21,14 +21,7 @@
             , citationHash = 0
             }
         ]
-        [ Str "@a"
-        , Space
-        , Str "[p."
-        , Space
-        , Str "33;"
-        , Space
-        , Str "@b]"
-        ]
+        [ Str "@a [p. 33; @b]" ]
     ]
 ]
 ```

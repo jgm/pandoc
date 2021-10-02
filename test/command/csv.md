@@ -53,7 +53,7 @@ Apple,25 cents,33
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "25" , Space , Str "cents" ] ]
+                [ Plain [ Str "25 cents" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
@@ -68,13 +68,13 @@ Apple,25 cents,33
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "\"Navel\"" , Space , Str "Orange" ] ]
+                [ Plain [ Str "\"Navel\" Orange" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
                 (RowSpan 1)
                 (ColSpan 1)
-                [ Plain [ Str "35" , Space , Str "cents" ] ]
+                [ Plain [ Str "35 cents" ] ]
             , Cell
                 ( "" , [] , [] )
                 AlignDefault
