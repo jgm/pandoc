@@ -97,8 +97,8 @@ tests = map (localOption (QuickCheckTests 20))
   , testCase "Count inlines via metatable catch-all" $
     assertFilterConversion "filtering with metatable catch-all failed"
       "metatable-catch-all.lua"
-      (doc . para $ "four words, three spaces")
-      (doc . para $ str "7")
+      (doc . para $ "four words, " <> emph "three spaces")
+      (doc . para $ str "3")
 
   , testCase "Count blocks via Block-specific catch-all" $
     assertFilterConversion "filtering with Block catch-all failed"
