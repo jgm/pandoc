@@ -868,7 +868,7 @@ inlineToLaTeX (Quoted qt lst) = do
       isQuoted _              = False
 inlineToLaTeX (Str str) = do
   setEmptyLine False
-  liftM literal $ stringToLaTeX TextString str
+  liftM breakable $ stringToLaTeX TextString str
 inlineToLaTeX (Math InlineMath str) = do
   setEmptyLine False
   return $ "\\(" <> literal (handleMathComment str) <> "\\)"
