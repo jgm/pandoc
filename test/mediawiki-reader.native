@@ -431,7 +431,6 @@ Pandoc
       , LineBreak
       , Code ( "" , [] , [] ) "(before\160the\160<nowiki>)."
       , LineBreak
-      , Code ( "" , [] , [] ) ""
       , LineBreak
       , Code
           ( "" , [] , [] )
@@ -439,13 +438,11 @@ Pandoc
       , LineBreak
       , Code ( "" , [] , [] ) "\160\160\160\160maintained."
       , LineBreak
-      , Code ( "" , [] , [] ) ""
       , LineBreak
       , Code
           ( "" , [] , [] )
           "This\160is\160good\160for\160copying\160in\160code\160blocks:"
       , LineBreak
-      , Code ( "" , [] , [] ) ""
       , LineBreak
       , Code ( "" , [] , [] ) "def\160function():"
       , LineBreak
@@ -453,7 +450,6 @@ Pandoc
           ( "" , [] , [] )
           "\160\160\160\160\"\"\"documentation\160string\"\"\""
       , LineBreak
-      , Code ( "" , [] , [] ) ""
       , LineBreak
       , Code ( "" , [] , [] ) "\160\160\160\160if\160True:"
       , LineBreak
