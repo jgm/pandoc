@@ -11,16 +11,9 @@ title: My title
 Pandoc
   Meta
     { unMeta =
-        fromList
-          [ ( "title"
-            , MetaInlines [ Str "My title" ]
-            )
-          ]
+        fromList [ ( "title" , MetaInlines [ Str "My title" ]) ]
     }
-  [ Header
-      2
-      ( "first-heading" , [] , [] )
-      [ Str "First heading" ]
+  [ Header 2 ( "first-heading" , [] , [] ) [ Str "First heading" ]
   , Header 3 ( "second" , [] , [] ) [ Str "Second" ]
   ]
 ```

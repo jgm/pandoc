@@ -2,8 +2,7 @@
 , Table
     ( "" , [] , [] )
     (Caption
-       Nothing
-       [ Plain [ Str "Demonstration of simple table syntax." ] ])
+       Nothing [ Plain [ Str "Demonstration of simple table syntax." ] ])
     [ ( AlignDefault , ColWidthDefault )
     , ( AlignDefault , ColWidthDefault )
     , ( AlignDefault , ColWidthDefault )
@@ -258,8 +257,7 @@
 , Table
     ( "" , [] , [] )
     (Caption
-       Nothing
-       [ Plain [ Str "Demonstration of simple table syntax." ] ])
+       Nothing [ Plain [ Str "Demonstration of simple table syntax." ] ])
     [ ( AlignDefault , ColWidthDefault )
     , ( AlignDefault , ColWidthDefault )
     , ( AlignDefault , ColWidthDefault )
@@ -625,30 +623,10 @@
        ( "" , [] , [] )
        [ Row
            ( "" , [] , [] )
-           [ Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               []
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               []
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               []
-           , Cell
-               ( "" , [] , [] )
-               AlignDefault
-               (RowSpan 1)
-               (ColSpan 1)
-               []
+           [ Cell ( "" , [] , [] ) AlignDefault (RowSpan 1) (ColSpan 1) []
+           , Cell ( "" , [] , [] ) AlignDefault (RowSpan 1) (ColSpan 1) []
+           , Cell ( "" , [] , [] ) AlignDefault (RowSpan 1) (ColSpan 1) []
+           , Cell ( "" , [] , [] ) AlignDefault (RowSpan 1) (ColSpan 1) []
            ]
        ])
     [ TableBody
