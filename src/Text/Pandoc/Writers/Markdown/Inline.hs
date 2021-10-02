@@ -423,7 +423,7 @@ inlineToMarkdown opts (Str str) = do
              (if variant == PlainText
                  then id
                  else escapeText opts) $ str
-  return $ literal str'
+  return $ breakable str'
 inlineToMarkdown opts (Math InlineMath str) =
   case writerHTMLMathMethod opts of
        WebTeX url -> inlineToMarkdown opts
