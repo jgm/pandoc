@@ -193,10 +193,8 @@ getReference attr label target = do
 -- | Convert list of Pandoc inline elements to markdown.
 inlineListToMarkdown :: PandocMonad m => WriterOptions -> [Inline] -> MD m (Doc Text)
 inlineListToMarkdown opts lst = do
-  undefined
-{-
   inlist <- asks envInList
-  go (if inlist then avoidBadWrapsInList lst else lst)
+  go (if inlist then {- TODO avoidBadWrapsInList -} lst else lst)
   where go [] = return empty
         go (x@Math{}:y@(Str t):zs)
           | T.all isDigit (T.take 1 t) -- starts with digit -- see #7058
@@ -239,6 +237,7 @@ inlineListToMarkdown opts lst = do
                     fmap (iMark <>) (go is)
                 thead = fmap fst . T.uncons
 
+{-
 isSp :: Inline -> Bool
 isSp Space     = True
 isSp SoftBreak = True
@@ -259,6 +258,7 @@ avoidBadWrapsInList (s:Str cs:Space:xs)
 avoidBadWrapsInList [s, Str cs]
   | isSp s && isOrderedListMarker cs = [Str $ " " <> cs]
 avoidBadWrapsInList (x:xs) = x : avoidBadWrapsInList xs
+-}
 
 isOrderedListMarker :: Text -> Bool
 isOrderedListMarker xs = not (T.null xs) && (T.last xs `elem` ['.',')']) &&
@@ -488,9 +488,10 @@ inlineToMarkdown opts LineBreak = do
           if isEnabled Ext_escaped_line_breaks opts
              then "\\" <> cr
              else "  " <> cr
-inlineToMarkdown _ Space = do
-  escapeSpaces <- asks envEscapeSpaces
-  return $ if escapeSpaces then "\\ " else space
+-- TODO escape spaces in Str...
+-- inlineToMarkdown _ Space = do
+--   escapeSpaces <- asks envEscapeSpaces
+--   return $ if escapeSpaces then "\\ " else space
 inlineToMarkdown opts SoftBreak = do
   escapeSpaces <- asks envEscapeSpaces
   let space' = if escapeSpaces then "\\ " else space
@@ -604,7 +605,6 @@ makeMathPlainer = walk go
   go x         = x
 
 toSubscriptInline :: Inline -> Maybe Inline
-toSubscriptInline Space = Just Space
 toSubscriptInline (Span attr ils) = Span attr <$> traverse toSubscriptInline ils
 toSubscriptInline (Str s) = Str . T.pack <$> traverse toSubscript (T.unpack s)
 toSubscriptInline LineBreak = Just LineBreak
@@ -612,10 +612,8 @@ toSubscriptInline SoftBreak = Just SoftBreak
 toSubscriptInline _ = Nothing
 
 toSuperscriptInline :: Inline -> Maybe Inline
-toSuperscriptInline Space = Just Space
 toSuperscriptInline (Span attr ils) = Span attr <$> traverse toSuperscriptInline ils
 toSuperscriptInline (Str s) = Str . T.pack <$> traverse toSuperscript (T.unpack s)
 toSuperscriptInline LineBreak = Just LineBreak
 toSuperscriptInline SoftBreak = Just SoftBreak
 toSuperscriptInline _ = Nothing
--}

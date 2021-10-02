@@ -548,12 +548,8 @@ breakable t
   | T.any (== ' ') t = mconcat $ foldr go mempty (T.split (==' ') t)
   | otherwise = Text (realLength t) t
  where
-  go "" xs =
-    case xs of
-      BreakingSpace : _ -> xs
-      _ -> BreakingSpace : xs
+  go "" xs = BreakingSpace : xs
   go t' xs = Text (realLength t') t' :
     case xs of
       [] -> xs
-      (BreakingSpace : _) -> xs
       _ -> BreakingSpace : xs
