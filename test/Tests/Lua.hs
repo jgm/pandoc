@@ -32,6 +32,7 @@ import Text.Pandoc.Filter (Filter (LuaFilter), applyFilters)
 import Text.Pandoc.Lua (runLua)
 import Text.Pandoc.Options (def)
 import Text.Pandoc.Shared (pandocVersion)
+import Text.Pandoc.Definition
 
 import qualified Control.Monad.Catch as Catch
 import qualified Foreign.Lua as Lua
@@ -135,7 +136,8 @@ tests = map (localOption (QuickCheckTests 20))
       assertFilterConversion "List of inlines"
       "inlines-filter.lua"
       (doc $ para ("Hello," <> linebreak <> "World! Wassup?"))
-      (doc $ para "Hello, World! Wassup?")
+      (Pandoc (Meta {unMeta = mempty})
+        [Para [Str "Hello,",Str " ",Str "World! Wassup?"]])
 
   , testCase "Filter list of blocks" $
       assertFilterConversion "List of blocks"

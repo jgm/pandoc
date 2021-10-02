@@ -95,8 +95,7 @@ Pandoc
     { unMeta =
         fromList
           [ ( "other"
-            , MetaInlines
-                [ Emph [ Str "markdown" ] , Str " value" ]
+            , MetaInlines [ Emph [ Str "markdown" ] , Str " value" ]
             )
           , ( "title" , MetaInlines [ Str "document" ] )
           ]

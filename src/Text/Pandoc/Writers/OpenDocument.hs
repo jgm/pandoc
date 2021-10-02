@@ -220,8 +220,8 @@ inQuotes :: QuoteType -> Doc Text -> Doc Text
 inQuotes SingleQuote s = char '\8216' <> s <> char '\8217'
 inQuotes DoubleQuote s = char '\8220' <> s <> char '\8221'
 
-handleSpaces :: Text -> Doc Text
-handleSpaces s = case T.uncons s of
+handleSpaces :: Bool -> Text -> Doc Text
+handleSpaces allowWrap s = case T.uncons s of
   Just (' ', _) -> genTag s
   Just ('\t',x) -> selfClosingTag "text:tab" [] <> rm x
   _             -> rm s
@@ -229,7 +229,7 @@ handleSpaces s = case T.uncons s of
     genTag = T.span (==' ') >>> tag . T.length *** rm >>> uncurry (<>)
     tag n  = when (n /= 0) $ selfClosingTag "text:s" [("text:c", tshow n)]
     rm t   = case T.uncons t of
-      Just ( ' ',xs) -> char ' ' <> genTag xs
+      Just ( ' ',xs) -> (if allowWrap then space else char ' ') <> genTag xs
       Just ('\t',xs) -> selfClosingTag "text:tab" [] <> genTag xs
       Just (   x,xs) -> char x <> rm xs
       Nothing        -> empty
@@ -293,7 +293,7 @@ withParagraphStyle _ _ [] = return empty
 inPreformattedTags :: PandocMonad m => Text -> OD m (Doc Text)
 inPreformattedTags s = do
   n <- paraStyle [("style:parent-style-name","Preformatted_20_Text")]
-  return . inParagraphTagsWithStyle ("P" <> tshow n) . handleSpaces $ s
+  return . inParagraphTagsWithStyle ("P" <> tshow n) . handleSpaces False $ s
 
 orderedListToOpenDocument :: PandocMonad m
                           => WriterOptions -> Int -> [[Block]] -> OD m (Doc Text)
@@ -595,7 +595,7 @@ inlineToOpenDocument o ils
      | otherwise  -> return space
     Span attr xs  -> mkSpan attr xs
     LineBreak     -> return $ selfClosingTag "text:line-break" []
-    Str         s -> return $ handleSpaces $ escapeStringForXML s
+    Str         s -> return $ handleSpaces True $ escapeStringForXML s
     Emph        l -> withTextStyle Italic $ inlinesToOpenDocument o l
     Underline   l -> withTextStyle Under  $ inlinesToOpenDocument o l
     Strong      l -> withTextStyle Bold   $ inlinesToOpenDocument o l
@@ -632,7 +632,7 @@ inlineToOpenDocument o ils
       toHlTok (toktype,tok) =
         inTags False "text:span" [("text:style-name", T.pack $ show toktype)] $ preformatted tok
       unhighlighted s = inlinedCode $ preformatted s
-      preformatted s = handleSpaces $ escapeStringForXML s
+      preformatted s = handleSpaces False $ escapeStringForXML s
       inlinedCode s = return $ inTags False "text:span" [("text:style-name", "Source_Text")] s
       mkImg (_, _, kvs) s _ = do
                id' <- gets stImageId
