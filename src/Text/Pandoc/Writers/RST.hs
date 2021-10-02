@@ -51,9 +51,6 @@ type RST = StateT WriterState
 -- | Convert Pandoc to RST.
 writeRST :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeRST opts document = do
-  undefined
-
-{-
   let st = WriterState { stNotes = [], stLinks = [],
                          stImages = [], stHasMath = False,
                          stHasRawTeX = False, stOptions = opts,
@@ -448,9 +445,11 @@ transformInlines =  insertBS .
         hasContents (Link _ [] ("", ""))  = False
         hasContents (Image _ [] ("", "")) = False
         hasContents _                     = True
+        dropInitialSpace (Str t : xs)     = Str (T.dropWhile (==' ') t) : xs
+        dropInitialSpace xs               = xs
         -- remove spaces after displaymath, as they screw up indentation:
         removeSpaceAfterDisplayMath (Math DisplayMath x : zs) =
-              Math DisplayMath x : dropWhile (==Space) zs
+              Math DisplayMath x : dropInitialSpace zs
         removeSpaceAfterDisplayMath (x:xs) = x : removeSpaceAfterDisplayMath xs
         removeSpaceAfterDisplayMath [] = []
         insertBS :: [Inline] -> [Inline] -- insert '\ ' where needed
@@ -507,8 +506,6 @@ transformInlines =  insertBS .
         isComplex (Cite _ (x:_))  = isComplex x
         isComplex (Span _ (x:_))  = isComplex x
         isComplex _               = False
-
--}
 
 -- | Flattens nested inlines. Extracts nested inlines and goes through
 -- them either collapsing them in the outer inline container or
@@ -592,7 +589,6 @@ setInlineChildren (Image a _ t) i   = Image a i t
 setInlineChildren (Span a _) i      = Span a i
 setInlineChildren leaf _            = leaf
 
-{-
 inlineListToRST :: PandocMonad m => [Inline] -> RST m (Doc Text)
 inlineListToRST = writeInlines . walk transformInlines
 
@@ -783,4 +779,3 @@ simpleTable opts blocksToDoc headers rows = do
                else hline $$ toRow headerDocs
   let bdy = vcat $ map toRow rowDocs
   return $ hdr $$ hline $$ bdy $$ hline
--}
