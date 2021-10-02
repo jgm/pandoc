@@ -530,14 +530,22 @@ trimSps = trimlSps . trimrSps
       SoftBreak :< xs -> trimlSps $ Many xs
       LineBreak :< xs -> trimlSps $ Many xs
       Str t :< xs
-        | startsWithSpace t -> Many (Str (T.dropWhile (==' ') t) <| xs)
+        | startsWithSpace t ->
+          let t' = T.dropWhile (==' ') t
+           in if T.null t'
+                 then trimlSps $ Many xs
+                 else Many (Str t' <| xs)
       _ -> Many ils
   trimrSps (Many ils) =
     case viewr ils of
       (xs :> SoftBreak) -> trimrSps $ Many xs
       (xs :> LineBreak) -> trimrSps $ Many xs
       (xs :> Str t)
-        | endsWithSpace t -> Many (xs |> Str (T.dropWhileEnd (==' ') t))
+        | endsWithSpace t ->
+          let t' = T.dropWhileEnd (==' ') t
+           in if T.null t'
+                 then trimrSps $ Many xs
+                 else Many (xs |> Str t')
       _ -> Many ils
   startsWithSpace t = case T.uncons t of
                         Just (' ',_) -> True
