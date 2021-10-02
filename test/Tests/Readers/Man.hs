@@ -82,7 +82,7 @@ tests = [
       "\\-\\ \\\\\\[lq]\\[rq]\\[em]\\[en]\\*(lq\\*(rq"
       =?>para (text "- \\“”—–“”")
     , "replace2" =:
-      "\\t\\e\\`\\^\\|\\'" =?>para (text "\\`\8202\8198'")
+      "\\t\\e\\`\\^\\|\\'" =?>para (text "\t\\`\8202\8198'")
     , "comment  with \\\"" =:
       "Foo \\\" bar\n" =?>para (text "Foo")
     , "comment with \\#" =:
