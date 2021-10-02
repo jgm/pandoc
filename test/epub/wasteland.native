@@ -1,1100 +1,1098 @@
-Pandoc
-  Meta { unMeta = fromList [] }
-  [ Para
-      [ Image ( "" , [] , [] ) [] ( "wasteland-cover.jpg" , "" ) ]
-  , Para [ Span ( "wasteland-content.xhtml" , [] , [] ) [] ]
-  , Div
-      ( "wasteland-content.xhtml#frontmatter"
-      , [ "section" , "frontmatter" ]
-      , []
-      )
-      []
-  , Div
-      ( "wasteland-content.xhtml#bodymatter"
-      , [ "section" , "bodymatter" ]
-      , []
-      )
-      [ Div
-          ( "wasteland-content.xhtml#ch1" , [ "section" ] , [] )
-          [ Header
-              2 ( "" , [] , [] ) [ Str "I. THE BURIAL OF THE DEAD" ]
-          , Div
-              ( "" , [ "linegroup" ] , [] )
-              [ Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "April is the cruellest month, breeding" ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "Lilacs out of the dead land, mixing" ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "Memory and desire, stirring" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "Dull roots with spring rain." ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "Winter kept us warm, covering" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "Earth in forgetful snow, feeding" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "A little life with dried tubers." ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Summer surprised us, coming over the Starnbergersee"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "With a shower of rain; we stopped in the colonnade,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "And went on in sunlight, into the Hofgarten,"
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "10" ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "And drank coffee, and talked for an hour."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [ ( "lang" , "de" ) ] )
-                  [ Plain
-                      [ Str
-                          "Bin gar keine Russin, stamm' aus Litauen, echt"
-                      , SoftBreak
-                      , Str "deutsch."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "And when we were children, staying at the archduke's,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "My cousin's, he took me out on a sled," ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "And I was frightened. He said, Marie," ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Marie, hold on tight. And down we went." ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "In the mountains, there you feel free." ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "I read, much of the night, and go south in the winter."
-                      ]
-                  ]
-              ]
-          , Div
-              ( "" , [ "linegroup" ] , [] )
-              [ Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "What are the roots that clutch, what branches grow"
-                      ]
-                  ]
-              , Div
-                  ( "wasteland-content.xhtml#ln20" , [] , [] )
-                  [ Plain
-                      [ Str "Out of this stony rubbish? Son of man,"
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "20" ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "You cannot say, or guess, for you know only"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "A heap of broken images, where the sun beats,"
-                      ]
-                  ]
-              , Div
-                  ( "wasteland-content.xhtml#ln23" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "And the dead tree gives no shelter, the cricket no relief,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "And the dry stone no sound of water. Only"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "There is shadow under this red rock," ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "(Come in under the shadow of this red rock),"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "And I will show you something different from either"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Your shadow at morning striding behind you"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Or your shadow at evening rising to meet you;"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "I will show you fear in a handful of dust."
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "30" ]
-                      ]
-                  ]
-              , BlockQuote
-                  [ Div
-                      ( "" , [] , [] )
-                      [ Div
-                          ( "wasteland-content.xhtml#ln31" , [] , [] )
-                          [ Plain [ Str "Frisch weht der Wind" ] ]
-                      , Div
-                          ( "" , [] , [] )
-                          [ Plain [ Str "Der Heimat zu" ] ]
-                      , Div
-                          ( "" , [] , [] )
-                          [ Plain [ Str "Mein Irisch Kind," ] ]
-                      , Div
-                          ( "" , [] , [] )
-                          [ Plain [ Str "Wo weilest du?" ] ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "\"You gave me hyacinths first a year ago;"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "\"They called me the hyacinth girl.\"" ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "\8213Yet when we came back, late, from the Hyacinth"
-                      , SoftBreak
-                      , Str "garden,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Your arms full, and your hair wet, I could not"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Speak, and my eyes failed, I was neither" ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Living nor dead, and I knew nothing,"
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "40" ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Looking into the heart of light, the silence."
-                      ]
-                  ]
-              , Div
-                  ( "wasteland-content.xhtml#ln42"
-                  , []
-                  , [ ( "lang" , "de" ) ]
-                  )
-                  [ Plain
-                      [ Emph [ Str "Od' und leer das Meer" ] , Str "." ]
-                  ]
-              ]
-          , Div
-              ( "" , [ "linegroup" ] , [] )
-              [ Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Madame Sosostris, famous clairvoyante," ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "Had a bad cold, nevertheless" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Is known to be the wisest woman in Europe,"
-                      ]
-                  ]
-              , Div
-                  ( "wasteland-content.xhtml#ln46" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "With a wicked pack of cards. Here, said she,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Is your card, the drowned Phoenician Sailor,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "(Those are pearls that were his eyes. Look!)"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Here is Belladonna, the Lady of the Rocks,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "The lady of situations."
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "50" ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Here is the man with three staves, and here the Wheel,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "And here is the one-eyed merchant, and this card,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Which is blank, is something he carries on his back,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Which I am forbidden to see. I do not find"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "The Hanged Man. Fear death by water." ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "I see crowds of people, walking round in a ring."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Thank you. If you see dear Mrs. Equitone,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Tell her I bring the horoscope myself:" ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "One must be so careful these days." ] ]
-              ]
-          , Div
-              ( "" , [ "linegroup" ] , [] )
-              [ Div
-                  ( "wasteland-content.xhtml#ln60" , [] , [] )
-                  [ Plain
-                      [ Str "Unreal City,"
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "60" ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Under the brown fog of a winter dawn," ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "A crowd flowed over London Bridge, so many,"
-                      ]
-                  ]
-              , Div
-                  ( "wasteland-content.xhtml#ln63" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "I had not thought death had undone so many."
-                      ]
-                  ]
-              , Div
-                  ( "wasteland-content.xhtml#ln64" , [] , [] )
-                  [ Plain
-                      [ Str "Sighs, short and infrequent, were exhaled,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "And each man fixed his eyes before his feet."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Flowed up the hill and down King William Street,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "To where Saint Mary Woolnoth kept the hours"
-                      ]
-                  ]
-              , Div
-                  ( "wasteland-content.xhtml#ln68" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "With a dead sound on the final stroke of nine."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "There I saw one I knew, and stopped him, crying"
-                      , SoftBreak
-                      , Str "\"Stetson!"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "\"You who were with me in the ships at Mylae!"
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "70" ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "\"That corpse you planted last year in your garden,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "\"Has it begun to sprout? Will it bloom this year?"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "\"Or has the sudden frost disturbed its bed?"
-                      ]
-                  ]
-              ]
-          , Div
-              ( "" , [ "linegroup" ] , [] )
-              [ Div
-                  ( "wasteland-content.xhtml#ln74" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "\"Oh keep the Dog far hence, that's friend to men,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "\"Or with his nails he'll dig it up again!"
-                      ]
-                  ]
-              , Div
-                  ( "wasteland-content.xhtml#ln76" , [] , [] )
-                  [ Plain
-                      [ Str "\"You! "
-                      , Span
-                          ( "" , [] , [ ( "lang" , "fr" ) ] )
-                          [ Str "hypocrite lecteur! - mon semblable, -"
-                          , SoftBreak
-                          , Str "mon frere"
-                          ]
-                      , Str " !\""
-                      ]
-                  ]
-              ]
-          ]
-      , Div
-          ( "wasteland-content.xhtml#ch2" , [ "section" ] , [] )
-          [ Header 2 ( "" , [] , [] ) [ Str "II. A GAME OF CHESS" ]
-          , Div
-              ( "" , [ "linegroup" ] , [] )
-              [ Div
-                  ( "wasteland-content.xhtml#ln77" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "The Chair she sat in, like a burnished throne,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Glowed on the marble, where the glass" ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Held up by standards wrought with fruited vines"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "From which a golden Cupidon peeped out"
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "80" ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "(Another hid his eyes behind his wing)" ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Doubled the flames of sevenbranched candelabra"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "Reflecting light upon the table as" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "The glitter of her jewels rose to meet it,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "From satin cases poured in rich profusion;"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "In vials of ivory and coloured glass" ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Unstoppered, lurked her strange synthetic perfumes,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Unguent, powdered, or liquid - troubled, confused"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "And drowned the sense in odours; stirred by the air"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "That freshened from the window, these ascended"
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "90" ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "In fattening the prolonged candle-flames,"
-                      ]
-                  ]
-              , Div
-                  ( "wasteland-content.xhtml#ln92" , [] , [] )
-                  [ Plain
-                      [ Str "Flung their smoke into the laquearia," ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Stirring the pattern on the coffered ceiling."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "Huge sea-wood fed with copper" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Burned green and orange, framed by the coloured stone,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "In which sad light a carved dolphin swam."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Above the antique mantel was displayed" ]
-                  ]
-              , Div
-                  ( "wasteland-content.xhtml#ln98" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "As though a window gave upon the sylvan scene"
-                      ]
-                  ]
-              , Div
-                  ( "wasteland-content.xhtml#ln99" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "The change of Philomel, by the barbarous king"
-                      ]
-                  ]
-              , Div
-                  ( "wasteland-content.xhtml#ln100" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "So rudely forced; yet there the nightingale"
-                      , SoftBreak
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "100" ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Filled all the desert with inviolable voice"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "And still she cried, and still the world pursues,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "\"Jug Jug\" to dirty ears." ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "And other withered stumps of time" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Were told upon the walls; staring forms" ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Leaned out, leaning, hushing the room enclosed."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "Footsteps shuffled on the stair." ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Under the firelight, under the brush, her hair"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "Spread out in fiery points" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Glowed into words, then would be savagely still."
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "110" ]
-                      ]
-                  ]
-              ]
-          , Div
-              ( "" , [ "linegroup" ] , [] )
-              [ Div
-                  ( "" , [ "linegroup" ] , [] )
-                  [ Div
-                      ( "" , [] , [] )
-                      [ Plain
-                          [ Str
-                              "\"My nerves are bad to-night. Yes, bad. Stay with me."
-                          ]
-                      ]
-                  , Div
-                      ( "" , [] , [] )
-                      [ Plain
-                          [ Str
-                              "\"Speak to me. Why do you never speak. Speak."
-                          ]
-                      ]
-                  , Div
-                      ( "" , [] , [] )
-                      [ Plain
-                          [ Str
-                              "\"What are you thinking of? What thinking? What?"
-                          ]
-                      ]
-                  , Div
-                      ( "" , [] , [] )
-                      [ Plain
-                          [ Str
-                              "\"I never know what you are thinking. Think.\""
-                          ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [ "linegroup" ] , [] )
-                  [ Div
-                      ( "wasteland-content.xhtml#ln115" , [] , [] )
-                      [ Plain [ Str "I think we are in rats' alley" ] ]
-                  , Div
-                      ( "" , [] , [] )
-                      [ Plain
-                          [ Str "Where the dead men lost their bones." ]
-                      ]
-                  ]
-              ]
-          , Div
-              ( "" , [ "linegroup" ] , [] )
-              [ Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "\"What is that noise?\"" ] ]
-              , Div
-                  ( "wasteland-content.xhtml#ln118"
-                  , [ "indent" ]
-                  , []
-                  )
-                  [ Plain [ Str "The wind under the door." ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "\"What is that noise now? What is the wind doing?\""
-                      ]
-                  ]
-              , Div
-                  ( "" , [ "indent" ] , [] )
-                  [ Plain
-                      [ Str "Nothing again nothing."
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "120" ]
-                      ]
-                  ]
-              ]
-          , Div
-              ( "" , [ "linegroup" ] , [] )
-              [ Div ( "" , [] , [] ) [ Plain [ Str "\"Do" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "\"You know nothing? Do you see nothing? Do you remember"
-                      ]
-                  ]
-              , Div ( "" , [] , [] ) [ Plain [ Str "\"Nothing?\"" ] ]
-              ]
-          , Div
-              ( "" , [ "linegroup" ] , [] )
-              [ Div ( "" , [] , [] ) [ Plain [ Str "I remember" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "Those are pearls that were his eyes." ]
-                  ]
-              , Div
-                  ( "wasteland-content.xhtml#ln126" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "\"Are you alive, or not? Is there nothing in your head?\""
-                      ]
-                  ]
-              , Div ( "" , [] , [] ) [ Plain [ Str "But" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "O O O O that Shakespeherian Rag\8213" ]
-                  ]
-              , Div ( "" , [] , [] ) [ Plain [ Str "It's so elegant" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "So intelligent"
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "130" ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "\"What shall I do now? What shall I do?\""
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "I shall rush out as I am, and walk the street"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "\"With my hair down, so. What shall we do to-morrow?"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "\"What shall we ever do?\"" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "The hot water at ten." ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "And if it rains, a closed car at four." ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "And we shall play a game of chess," ] ]
-              , Div
-                  ( "wasteland-content.xhtml#ln138" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Pressing lidless eyes and waiting for a knock upon the door."
-                      ]
-                  ]
-              ]
-          , Div
-              ( "" , [ "linegroup" ] , [] )
-              [ Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "When Lil's husband got demobbed, I said -"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "I didn't mince my words, I said to her myself,"
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "140" ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "HURRY UP PLEASE ITS TIME" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Now Albert's coming back, make yourself a bit smart."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "He'll want to know what you done with that money he gave"
-                      , SoftBreak
-                      , Str "you"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "To get yourself some teeth. He did, I was there."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "You have them all out, Lil, and get a nice set,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "He said, I swear, I can't bear to look at you."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "And no more can't I, I said, and think of poor Albert,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "He's been in the army four years, he wants a good time,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "And if you don't give it him, there's others will, I"
-                      , SoftBreak
-                      , Str "said."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Oh is there, she said. Something o' that, I said."
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "150" ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Then I'll know who to thank, she said, and give me a straight"
-                      , SoftBreak
-                      , Str "look."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "HURRY UP PLEASE ITS TIME" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "If you don't like it you can get on with it, I said."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "Others can pick and choose if you can't." ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "But if Albert makes off, it won't be for lack of"
-                      , SoftBreak
-                      , Str "telling."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "You ought to be ashamed, I said, to look so antique."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "(And her only thirty-one.)" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "I can't help it, she said, pulling a long face,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "It's them pills I took, to bring it off, she said."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "(She's had five already, and nearly died of young George.)"
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "160" ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "The chemist said it would be all right, but I've never been the"
-                      , SoftBreak
-                      , Str "same."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str "You "
-                      , Emph [ Str "are" ]
-                      , Str " a proper fool, I said."
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Well, if Albert won't leave you alone, there it is, I"
-                      , SoftBreak
-                      , Str "said,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "What you get married for if you don't want children?"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "HURRY UP PLEASE ITS TIME" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Well, that Sunday Albert was home, they had a hot"
-                      , SoftBreak
-                      , Str "gammon,"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "And they asked me in to dinner, to get the beauty of it"
-                      , SoftBreak
-                      , Str "hot\8213"
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "HURRY UP PLEASE ITS TIME" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "HURRY UP PLEASE ITS TIME" ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Goonight Bill. Goonight Lou. Goonight May. Goonight."
-                      , Span ( "" , [ "lnum" ] , [] ) [ Str "170" ]
-                      ]
-                  ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain [ Str "Ta ta. Goonight. Goonight." ] ]
-              , Div
-                  ( "" , [] , [] )
-                  [ Plain
-                      [ Str
-                          "Good night, ladies, good night, sweet ladies, good night, good"
-                      , SoftBreak
-                      , Str "night."
-                      ]
-                  ]
-              ]
-          ]
-      ]
-  ]
+[ Para
+    [ Image ( "" , [] , [] ) [] ( "wasteland-cover.jpg" , "" ) ]
+, Para [ Span ( "wasteland-content.xhtml" , [] , [] ) [] ]
+, Div
+    ( "wasteland-content.xhtml#frontmatter"
+    , [ "section" , "frontmatter" ]
+    , []
+    )
+    []
+, Div
+    ( "wasteland-content.xhtml#bodymatter"
+    , [ "section" , "bodymatter" ]
+    , []
+    )
+    [ Div
+        ( "wasteland-content.xhtml#ch1" , [ "section" ] , [] )
+        [ Header
+            2 ( "" , [] , [] ) [ Str "I. THE BURIAL OF THE DEAD" ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "April is the cruellest month, breeding" ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "Lilacs out of the dead land, mixing" ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "Memory and desire, stirring" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "Dull roots with spring rain." ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "Winter kept us warm, covering" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "Earth in forgetful snow, feeding" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "A little life with dried tubers." ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Summer surprised us, coming over the Starnbergersee"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "With a shower of rain; we stopped in the colonnade,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "And went on in sunlight, into the Hofgarten,"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "10" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And drank coffee, and talked for an hour."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [ ( "lang" , "de" ) ] )
+                [ Plain
+                    [ Str
+                        "Bin gar keine Russin, stamm' aus Litauen, echt"
+                    , SoftBreak
+                    , Str "deutsch."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "And when we were children, staying at the archduke's,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "My cousin's, he took me out on a sled," ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And I was frightened. He said, Marie," ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Marie, hold on tight. And down we went." ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "In the mountains, there you feel free." ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "I read, much of the night, and go south in the winter."
+                    ]
+                ]
+            ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "What are the roots that clutch, what branches grow"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln20" , [] , [] )
+                [ Plain
+                    [ Str "Out of this stony rubbish? Son of man,"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "20" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "You cannot say, or guess, for you know only"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "A heap of broken images, where the sun beats,"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln23" , [] , [] )
+                [ Plain
+                    [ Str
+                        "And the dead tree gives no shelter, the cricket no relief,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And the dry stone no sound of water. Only"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "There is shadow under this red rock," ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "(Come in under the shadow of this red rock),"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "And I will show you something different from either"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Your shadow at morning striding behind you"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Or your shadow at evening rising to meet you;"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "I will show you fear in a handful of dust."
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "30" ]
+                    ]
+                ]
+            , BlockQuote
+                [ Div
+                    ( "" , [] , [] )
+                    [ Div
+                        ( "wasteland-content.xhtml#ln31" , [] , [] )
+                        [ Plain [ Str "Frisch weht der Wind" ] ]
+                    , Div
+                        ( "" , [] , [] )
+                        [ Plain [ Str "Der Heimat zu" ] ]
+                    , Div
+                        ( "" , [] , [] )
+                        [ Plain [ Str "Mein Irisch Kind," ] ]
+                    , Div
+                        ( "" , [] , [] )
+                        [ Plain [ Str "Wo weilest du?" ] ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"You gave me hyacinths first a year ago;"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"They called me the hyacinth girl.\"" ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "\8213Yet when we came back, late, from the Hyacinth"
+                    , SoftBreak
+                    , Str "garden,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Your arms full, and your hair wet, I could not"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Speak, and my eyes failed, I was neither" ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Living nor dead, and I knew nothing,"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "40" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Looking into the heart of light, the silence."
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln42"
+                , []
+                , [ ( "lang" , "de" ) ]
+                )
+                [ Plain
+                    [ Emph [ Str "Od' und leer das Meer" ] , Str "." ]
+                ]
+            ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Madame Sosostris, famous clairvoyante," ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "Had a bad cold, nevertheless" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Is known to be the wisest woman in Europe,"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln46" , [] , [] )
+                [ Plain
+                    [ Str
+                        "With a wicked pack of cards. Here, said she,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Is your card, the drowned Phoenician Sailor,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "(Those are pearls that were his eyes. Look!)"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Here is Belladonna, the Lady of the Rocks,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "The lady of situations."
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "50" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Here is the man with three staves, and here the Wheel,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "And here is the one-eyed merchant, and this card,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Which is blank, is something he carries on his back,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Which I am forbidden to see. I do not find"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "The Hanged Man. Fear death by water." ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "I see crowds of people, walking round in a ring."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Thank you. If you see dear Mrs. Equitone,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Tell her I bring the horoscope myself:" ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "One must be so careful these days." ] ]
+            ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "wasteland-content.xhtml#ln60" , [] , [] )
+                [ Plain
+                    [ Str "Unreal City,"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "60" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Under the brown fog of a winter dawn," ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "A crowd flowed over London Bridge, so many,"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln63" , [] , [] )
+                [ Plain
+                    [ Str
+                        "I had not thought death had undone so many."
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln64" , [] , [] )
+                [ Plain
+                    [ Str "Sighs, short and infrequent, were exhaled,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "And each man fixed his eyes before his feet."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Flowed up the hill and down King William Street,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "To where Saint Mary Woolnoth kept the hours"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln68" , [] , [] )
+                [ Plain
+                    [ Str
+                        "With a dead sound on the final stroke of nine."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "There I saw one I knew, and stopped him, crying"
+                    , SoftBreak
+                    , Str "\"Stetson!"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "\"You who were with me in the ships at Mylae!"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "70" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "\"That corpse you planted last year in your garden,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "\"Has it begun to sprout? Will it bloom this year?"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "\"Or has the sudden frost disturbed its bed?"
+                    ]
+                ]
+            ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "wasteland-content.xhtml#ln74" , [] , [] )
+                [ Plain
+                    [ Str
+                        "\"Oh keep the Dog far hence, that's friend to men,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"Or with his nails he'll dig it up again!"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln76" , [] , [] )
+                [ Plain
+                    [ Str "\"You! "
+                    , Span
+                        ( "" , [] , [ ( "lang" , "fr" ) ] )
+                        [ Str "hypocrite lecteur! - mon semblable, -"
+                        , SoftBreak
+                        , Str "mon frere"
+                        ]
+                    , Str " !\""
+                    ]
+                ]
+            ]
+        ]
+    , Div
+        ( "wasteland-content.xhtml#ch2" , [ "section" ] , [] )
+        [ Header 2 ( "" , [] , [] ) [ Str "II. A GAME OF CHESS" ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "wasteland-content.xhtml#ln77" , [] , [] )
+                [ Plain
+                    [ Str
+                        "The Chair she sat in, like a burnished throne,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Glowed on the marble, where the glass" ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Held up by standards wrought with fruited vines"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "From which a golden Cupidon peeped out"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "80" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "(Another hid his eyes behind his wing)" ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Doubled the flames of sevenbranched candelabra"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "Reflecting light upon the table as" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "The glitter of her jewels rose to meet it,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "From satin cases poured in rich profusion;"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "In vials of ivory and coloured glass" ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Unstoppered, lurked her strange synthetic perfumes,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Unguent, powdered, or liquid - troubled, confused"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "And drowned the sense in odours; stirred by the air"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "That freshened from the window, these ascended"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "90" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "In fattening the prolonged candle-flames,"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln92" , [] , [] )
+                [ Plain
+                    [ Str "Flung their smoke into the laquearia," ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Stirring the pattern on the coffered ceiling."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "Huge sea-wood fed with copper" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Burned green and orange, framed by the coloured stone,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "In which sad light a carved dolphin swam."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Above the antique mantel was displayed" ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln98" , [] , [] )
+                [ Plain
+                    [ Str
+                        "As though a window gave upon the sylvan scene"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln99" , [] , [] )
+                [ Plain
+                    [ Str
+                        "The change of Philomel, by the barbarous king"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln100" , [] , [] )
+                [ Plain
+                    [ Str
+                        "So rudely forced; yet there the nightingale"
+                    , SoftBreak
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "100" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Filled all the desert with inviolable voice"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "And still she cried, and still the world pursues,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "\"Jug Jug\" to dirty ears." ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "And other withered stumps of time" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Were told upon the walls; staring forms" ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Leaned out, leaning, hushing the room enclosed."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "Footsteps shuffled on the stair." ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Under the firelight, under the brush, her hair"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "Spread out in fiery points" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Glowed into words, then would be savagely still."
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "110" ]
+                    ]
+                ]
+            ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "" , [ "linegroup" ] , [] )
+                [ Div
+                    ( "" , [] , [] )
+                    [ Plain
+                        [ Str
+                            "\"My nerves are bad to-night. Yes, bad. Stay with me."
+                        ]
+                    ]
+                , Div
+                    ( "" , [] , [] )
+                    [ Plain
+                        [ Str
+                            "\"Speak to me. Why do you never speak. Speak."
+                        ]
+                    ]
+                , Div
+                    ( "" , [] , [] )
+                    [ Plain
+                        [ Str
+                            "\"What are you thinking of? What thinking? What?"
+                        ]
+                    ]
+                , Div
+                    ( "" , [] , [] )
+                    [ Plain
+                        [ Str
+                            "\"I never know what you are thinking. Think.\""
+                        ]
+                    ]
+                ]
+            , Div
+                ( "" , [ "linegroup" ] , [] )
+                [ Div
+                    ( "wasteland-content.xhtml#ln115" , [] , [] )
+                    [ Plain [ Str "I think we are in rats' alley" ] ]
+                , Div
+                    ( "" , [] , [] )
+                    [ Plain
+                        [ Str "Where the dead men lost their bones." ]
+                    ]
+                ]
+            ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "" , [] , [] )
+                [ Plain [ Str "\"What is that noise?\"" ] ]
+            , Div
+                ( "wasteland-content.xhtml#ln118"
+                , [ "indent" ]
+                , []
+                )
+                [ Plain [ Str "The wind under the door." ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "\"What is that noise now? What is the wind doing?\""
+                    ]
+                ]
+            , Div
+                ( "" , [ "indent" ] , [] )
+                [ Plain
+                    [ Str "Nothing again nothing."
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "120" ]
+                    ]
+                ]
+            ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div ( "" , [] , [] ) [ Plain [ Str "\"Do" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "\"You know nothing? Do you see nothing? Do you remember"
+                    ]
+                ]
+            , Div ( "" , [] , [] ) [ Plain [ Str "\"Nothing?\"" ] ]
+            ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div ( "" , [] , [] ) [ Plain [ Str "I remember" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "Those are pearls that were his eyes." ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln126" , [] , [] )
+                [ Plain
+                    [ Str
+                        "\"Are you alive, or not? Is there nothing in your head?\""
+                    ]
+                ]
+            , Div ( "" , [] , [] ) [ Plain [ Str "But" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "O O O O that Shakespeherian Rag\8213" ]
+                ]
+            , Div ( "" , [] , [] ) [ Plain [ Str "It's so elegant" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "So intelligent"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "130" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"What shall I do now? What shall I do?\""
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "I shall rush out as I am, and walk the street"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "\"With my hair down, so. What shall we do to-morrow?"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "\"What shall we ever do?\"" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "The hot water at ten." ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And if it rains, a closed car at four." ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "And we shall play a game of chess," ] ]
+            , Div
+                ( "wasteland-content.xhtml#ln138" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Pressing lidless eyes and waiting for a knock upon the door."
+                    ]
+                ]
+            ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "When Lil's husband got demobbed, I said -"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "I didn't mince my words, I said to her myself,"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "140" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "HURRY UP PLEASE ITS TIME" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Now Albert's coming back, make yourself a bit smart."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "He'll want to know what you done with that money he gave"
+                    , SoftBreak
+                    , Str "you"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "To get yourself some teeth. He did, I was there."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "You have them all out, Lil, and get a nice set,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "He said, I swear, I can't bear to look at you."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "And no more can't I, I said, and think of poor Albert,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "He's been in the army four years, he wants a good time,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "And if you don't give it him, there's others will, I"
+                    , SoftBreak
+                    , Str "said."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Oh is there, she said. Something o' that, I said."
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "150" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Then I'll know who to thank, she said, and give me a straight"
+                    , SoftBreak
+                    , Str "look."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "HURRY UP PLEASE ITS TIME" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "If you don't like it you can get on with it, I said."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Others can pick and choose if you can't." ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "But if Albert makes off, it won't be for lack of"
+                    , SoftBreak
+                    , Str "telling."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "You ought to be ashamed, I said, to look so antique."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "(And her only thirty-one.)" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "I can't help it, she said, pulling a long face,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "It's them pills I took, to bring it off, she said."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "(She's had five already, and nearly died of young George.)"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "160" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "The chemist said it would be all right, but I've never been the"
+                    , SoftBreak
+                    , Str "same."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "You "
+                    , Emph [ Str "are" ]
+                    , Str " a proper fool, I said."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Well, if Albert won't leave you alone, there it is, I"
+                    , SoftBreak
+                    , Str "said,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "What you get married for if you don't want children?"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "HURRY UP PLEASE ITS TIME" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Well, that Sunday Albert was home, they had a hot"
+                    , SoftBreak
+                    , Str "gammon,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "And they asked me in to dinner, to get the beauty of it"
+                    , SoftBreak
+                    , Str "hot\8213"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "HURRY UP PLEASE ITS TIME" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "HURRY UP PLEASE ITS TIME" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Goonight Bill. Goonight Lou. Goonight May. Goonight."
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "170" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain [ Str "Ta ta. Goonight. Goonight." ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str
+                        "Good night, ladies, good night, sweet ladies, good night, good"
+                    , SoftBreak
+                    , Str "night."
+                    ]
+                ]
+            ]
+        ]
+    ]
+]

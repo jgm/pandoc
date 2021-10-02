@@ -438,7 +438,7 @@ inlinesToICML opts style ident lst = vcat `fmap` mapM (inlineToICML opts style i
 
 -- | Convert an inline element to ICML.
 inlineToICML :: PandocMonad m => WriterOptions -> Style -> Text -> Inline -> WS m (Doc Text)
-inlineToICML _    style ident (Str str) = charStyle style ident $ breakable $ escapeStringForXML str
+inlineToICML _    style ident (Str str) = charStyle style ident $ literal $ escapeStringForXML str
 inlineToICML opts style ident (Emph lst) = inlinesToICML opts (emphName:style) ident lst
 inlineToICML opts style ident (Underline lst) = inlinesToICML opts (underlineName:style) ident lst
 inlineToICML opts style ident (Strong lst) = inlinesToICML opts (strongName:style) ident lst
