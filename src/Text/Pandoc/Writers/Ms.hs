@@ -428,8 +428,8 @@ inlineToMs opts (Str str) = do
                   _            -> empty
   smallcaps <- gets stSmallCaps
   if smallcaps
-     then return $ shim <> literal (toSmallCaps opts str)
-     else return $ shim <> literal (escapeStr opts str)
+     then return $ shim <> breakable (toSmallCaps opts str)
+     else return $ shim <> breakable (escapeStr opts str)
 inlineToMs opts (Math InlineMath str) = do
   modify $ \st -> st{ stHasInlineMath = True }
   res <- convertMath writeEqn InlineMath str

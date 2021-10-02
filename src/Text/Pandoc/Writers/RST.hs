@@ -656,7 +656,7 @@ inlineToRST (Code _ str) = do
        else "``" <> literal (trim str) <> "``"
 inlineToRST (Str str) = do
   opts <- gets stOptions
-  return $ literal $
+  return $ breakable $
     (if isEnabled Ext_smart opts
         then unsmartify opts
         else id) $ escapeText opts str

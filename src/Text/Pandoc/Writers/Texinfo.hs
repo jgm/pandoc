@@ -435,7 +435,7 @@ inlineToTexinfo (Quoted DoubleQuote lst) = do
 
 inlineToTexinfo (Cite _ lst) =
   inlineListToTexinfo lst
-inlineToTexinfo (Str str) = return $ literal (stringToTexinfo str)
+inlineToTexinfo (Str str) = return $ breakable (stringToTexinfo str)
 inlineToTexinfo (Math _ str) = return $ inCmd "math" $ literal str
 inlineToTexinfo il@(RawInline f str)
   | f == "latex" || f == "tex" =

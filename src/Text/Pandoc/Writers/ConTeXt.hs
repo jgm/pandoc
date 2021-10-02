@@ -398,7 +398,7 @@ inlineToConTeXt (Quoted DoubleQuote lst) = do
 inlineToConTeXt (Cite _ lst) = inlineListToConTeXt lst
 inlineToConTeXt (Str str) = do
   opts <- gets stOptions
-  return $ literal $ stringToConTeXt opts str
+  return $ breakable $ stringToConTeXt opts str
 inlineToConTeXt (Math InlineMath str) =
   return $ char '$' <> literal str <> char '$'
 inlineToConTeXt (Math DisplayMath str) =

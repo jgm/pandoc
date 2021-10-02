@@ -360,7 +360,7 @@ inlinesToDocbook opts lst = hcat <$> mapM (inlineToDocbook opts) lst
 
 -- | Convert an inline element to Docbook.
 inlineToDocbook :: PandocMonad m => WriterOptions -> Inline -> DB m (Doc Text)
-inlineToDocbook _ (Str str) = return $ literal $ escapeStringForXML str
+inlineToDocbook _ (Str str) = return $ breakable $ escapeStringForXML str
 inlineToDocbook opts (Emph lst) =
   inTagsSimple "emphasis" <$> inlinesToDocbook opts lst
 inlineToDocbook opts (Underline lst) =

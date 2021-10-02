@@ -394,7 +394,7 @@ inlinesToJATS opts lst = hcat <$> mapM (inlineToJATS opts) (fixCitations lst)
 
 -- | Convert an inline element to JATS.
 inlineToJATS :: PandocMonad m => WriterOptions -> Inline -> JATS m (Doc Text)
-inlineToJATS _ (Str str) = return $ text $ T.unpack $ escapeStringForXML str
+inlineToJATS _ (Str str) = return $ breakable $ escapeStringForXML str
 inlineToJATS opts (Emph lst) =
   inTagsSimple "italic" <$> inlinesToJATS opts lst
 inlineToJATS opts (Underline lst) =

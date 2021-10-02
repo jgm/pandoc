@@ -403,7 +403,7 @@ inlineToOrg (Quoted DoubleQuote lst) = do
   return $ "\"" <> contents <> "\""
 inlineToOrg (Cite _  lst) = inlineListToOrg lst
 inlineToOrg (Code _ str) = return $ "=" <> literal str <> "="
-inlineToOrg (Str str) = return . literal $ escapeString str
+inlineToOrg (Str str) = return . breakable $ escapeString str
 inlineToOrg (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath

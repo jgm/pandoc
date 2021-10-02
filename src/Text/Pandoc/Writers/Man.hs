@@ -296,8 +296,8 @@ inlineToMan opts (Cite _ lst) =
 inlineToMan opts (Code _ str) =
   withFontFeature 'C' (return (literal $ escString opts str))
 inlineToMan opts (Str str@(T.uncons -> Just ('.',_))) =
-  return $ afterBreak "\\&" <> literal (escString opts str)
-inlineToMan opts (Str str) = return $ literal $ escString opts str
+  return $ afterBreak "\\&" <> breakable (escString opts str)
+inlineToMan opts (Str str) = return $ breakable $ escString opts str
 inlineToMan opts (Math InlineMath str) =
   lift (texMathToInlines InlineMath str) >>= inlineListToMan opts
 inlineToMan opts (Math DisplayMath str) = do

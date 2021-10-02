@@ -573,7 +573,7 @@ inlineToMuse (Str str) = do
   escapedStr <- conditionalEscapeText $ replaceNewlines str
   let useTags = isAlphaNum $ T.last escapedStr -- escapedStr is never empty because empty strings are escaped
   modify $ \st -> st { stUseTags = useTags }
-  return $ literal escapedStr
+  return $ breakable escapedStr
 inlineToMuse (Emph [Strong lst]) = do
   useTags <- gets stUseTags
   let lst' = normalizeInlineList lst

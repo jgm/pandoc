@@ -245,7 +245,7 @@ inlineToHaddock opts (Quoted DoubleQuote lst) = do
 inlineToHaddock _ (Code _ str) =
   return $ "@" <> literal (escapeString str) <> "@"
 inlineToHaddock _ (Str str) =
-  return $ literal $ escapeString str
+  return $ breakable $ escapeString str
 inlineToHaddock _ (Math mt str) =
   return $ case mt of
     DisplayMath -> cr <> "\\[" <> literal str <> "\\]" <> cr

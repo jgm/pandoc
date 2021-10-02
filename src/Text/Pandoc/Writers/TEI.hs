@@ -229,7 +229,7 @@ inlinesToTEI opts lst = hcat <$> mapM (inlineToTEI opts) lst
 
 -- | Convert an inline element to TEI.
 inlineToTEI :: PandocMonad m => WriterOptions -> Inline -> m (Doc Text)
-inlineToTEI _ (Str str) = return $ literal $ escapeStringForXML str
+inlineToTEI _ (Str str) = return $ breakable $ escapeStringForXML str
 inlineToTEI opts (Emph lst) =
   inTags False "hi" [("rendition","simple:italic")] <$> inlinesToTEI opts lst
 inlineToTEI opts (Underline lst) =

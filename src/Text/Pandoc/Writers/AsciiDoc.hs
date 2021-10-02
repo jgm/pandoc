@@ -505,7 +505,7 @@ inlineToAsciiDoc _ (Code _ str) = do
     if isAsciidoctor
        then text "`+" <> contents <> "+`"
        else text "`"  <> contents <> "`"
-inlineToAsciiDoc _ (Str str) = return $ literal $ escapeString str
+inlineToAsciiDoc _ (Str str) = return $ breakable $ escapeString str
 inlineToAsciiDoc _ (Math InlineMath str) = do
   isAsciidoctor <- gets asciidoctorVariant
   modify $ \st -> st{ hasMath = True }
