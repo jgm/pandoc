@@ -1,28 +1,26 @@
-Pandoc
-  Meta { unMeta = fromList [] }
-  [ Header 1 ( "lhs-test" , [] , [] ) [ Str "lhs test" ]
-  , Para
-      [ Code ( "" , [] , [] ) "unsplit"
-      , Str
-          " is an arrow that takes a pair of values and combines them to"
-      , SoftBreak
-      , Str "return a single value:"
-      ]
-  , CodeBlock
-      ( "" , [ "haskell" , "literate" ] , [] )
-      "unsplit :: (Arrow a) => (b -> c -> d) -> a (b, c) d\nunsplit = arr . uncurry\n          -- arr (\\op (x,y) -> x `op` y)"
-  , Para
-      [ Code ( "" , [] , [] ) "(***)"
-      , Str
-          " combines two arrows into a new arrow by running the two arrows on a"
-      , SoftBreak
-      , Str
-          "pair of values (one arrow on the first item of the pair and one arrow on the"
-      , SoftBreak
-      , Str "second item of the pair)."
-      ]
-  , CodeBlock
-      ( "" , [] , [] ) "f *** g = first f >>> second g"
-  , Para [ Str "Block quote:" ]
-  , BlockQuote [ Para [ Str "foo bar" ] ]
-  ]
+[ Header 1 ( "lhs-test" , [] , [] ) [ Str "lhs test" ]
+, Para
+    [ Code ( "" , [] , [] ) "unsplit"
+    , Str
+        " is an arrow that takes a pair of values and combines them to"
+    , SoftBreak
+    , Str "return a single value:"
+    ]
+, CodeBlock
+    ( "" , [ "haskell" , "literate" ] , [] )
+    "unsplit :: (Arrow a) => (b -> c -> d) -> a (b, c) d\nunsplit = arr . uncurry\n          -- arr (\\op (x,y) -> x `op` y)"
+, Para
+    [ Code ( "" , [] , [] ) "(***)"
+    , Str
+        " combines two arrows into a new arrow by running the two arrows on a"
+    , SoftBreak
+    , Str
+        "pair of values (one arrow on the first item of the pair and one arrow on the"
+    , SoftBreak
+    , Str "second item of the pair)."
+    ]
+, CodeBlock
+    ( "" , [] , [] ) "f *** g = first f >>> second g"
+, Para [ Str "Block quote:" ]
+, BlockQuote [ Para [ Str "foo bar" ] ]
+]

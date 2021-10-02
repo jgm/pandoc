@@ -1735,10 +1735,11 @@ str = do
              ( T.pack <$> (many1 (satisfy (\c -> isAlphaNum c ||
                                                   c == ',' || c == '?' ||
                                                   c == '(' || c == ')' ||
-                                                  c == '/' )))
+                                                  c == '/' )) <*
+                              updateLastStrPos)
               <|> try (T.pack <$> many1 spaceChar <* notFollowedBy newline)
-              <|> try (T.singleton <$> char '.' <* notFollowedBy (char '.')) )
-  updateLastStrPos
+              <|> try (T.singleton <$> char '.' <*
+                           notFollowedBy (char '.') <* updateLastStrPos) )
 -- TODO: handle abbreviations as an AST transformation?
 -- Then they could work on other formats, too.
 --  (do guardEnabled Ext_smart
