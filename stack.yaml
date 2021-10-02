@@ -13,7 +13,7 @@ extra-deps:
 - git: https://github.com/jgm/texmath.git
   commit: 9243169ebf84fb555d37750b0cf758c1cf9827dc
 - git: https://github.com/jgm/pandoc-types.git
-  commit: 906e5afcc6bc0d7a85d71c986cf2928f1bb7989e
+  commit: 39048c9be4922771b378154f72557a5a57739d37
 - git: https://github.com/jgm/commonmark-hs.git
   commit: bb866b569618f7a9c12579f608116bf60010c9ac
   subdirs:
