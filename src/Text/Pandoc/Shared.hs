@@ -129,6 +129,7 @@ import Text.Pandoc.Extensions (Extensions, Extension(..), extensionEnabled)
 import Text.Pandoc.Generic (bottomUp)
 import Text.DocLayout (charWidth)
 import Text.Pandoc.Walk
+import Text.Regex.TDFA
 
 -- | Version number of pandoc library.
 pandocVersion :: T.Text
@@ -725,20 +726,12 @@ breakSentence xs =
  where
   isStr (Str _) = True
   isStr _ = False
-  breakOnSentenceEnder t = -- ". " ".)" "? " "?)" ".$" "! " " !)"
-    let (x,y) = T.break isSentenceEndPunct t
-     in if T.null y
-        then Nothing
-        else case T.uncons (T.drop 1 y) of
-          Nothing -> Just (t, mempty)
-          Just (c,_) | c == ' ' || c == '\r' || c == '\n' || c == ')'
-                  -> Just (x <> T.take 1 y, T.drop 1 y)
-          _ -> (\(w,z) -> (x <> T.take 1 y <> w, z)) <$>
-                  breakOnSentenceEnder (T.drop 1 y)
-  isSentenceEndPunct '.' = True
-  isSentenceEndPunct '?' = True
-  isSentenceEndPunct '!' = True
-  isSentenceEndPunct _   = False
+  -- ". " ".)" "? " "?)" "." "! " " !)"
+  breakOnSentenceEnder t =
+    let (t1, t2, t3) = t =~ ("[.?!][)]*( +|$)" :: T.Text)
+    in  if T.null t2
+           then Nothing
+           else Just (t1 <> t2, t3)
   startsWithSpace (LineBreak:_) = True
   startsWithSpace (SoftBreak:_) = True
   startsWithSpace [] = True
