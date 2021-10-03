@@ -1521,7 +1521,6 @@ inline = do
      '&'     -> return . B.singleton <$> charRef
      ':'     -> emoji
      _       -> mzero)
-   <|> bareURL
    <|> str
    <|> symbol) <?> "inline"
 
@@ -1735,26 +1734,36 @@ str = do
   abbrevs <- getOption readerAbbreviations
   isSmart <- extensionEnabled Ext_smart <$> getOption readerExtensions
   let tryAbbrev t =
-         if t `Set.member` abbrevs
+         if isSmart && t `Set.member` abbrevs
             then try (do char ' ' <* notFollowedBy (char ' ')
                          return $ t <> "\160")
                  <|> return t
             else return t
+  let tryBareURI t = mzero
+
+  let isNormalChar c = isAlphaNum c || c == ',' || c == '?' ||
+                       c == '(' || c == ')' || c == '/'
   let nonSpaceChunk = do
-        t <- T.pack <$> many1 (satisfy (\c -> isAlphaNum c ||
-                                                  c == ',' || c == '?' ||
-                                                  c == '(' || c == ')' ||
-                                                  c == '/' )
-                        <|> try (char '.' <* notFollowedBy (char '.')))
+        t <- T.pack <$> many1
+                (satisfy isNormalChar
+                 <|>
+                 try (char '.' <* notFollowedBy (char '.')))
         updateLastStrPos
-        if isSmart
-           then B.str <$> tryAbbrev t
-           else return $ B.str t
+        tryBareURI t <|> (B.str <$> tryAbbrev t)
   let spaceChunk = try $ do
         _ <- many1 spaceChar
         notFollowedBy newline
         return B.space
   return . mconcat <$> many1 (nonSpaceChunk <|> spaceChunk)
+
+bareURL :: PandocMonad m => MarkdownParser m (F Inlines)
+bareURL = do
+  guardEnabled Ext_autolink_bare_uris
+  getState >>= guard . stateAllowLinks
+  try $ do
+    (cls, (orig, src)) <- (("uri",) <$> uri) <|> (("email",) <$> emailAddress)
+    notFollowedBy $ try $ spaces >> htmlTag (~== TagClose ("a" :: Text))
+    return $ return $ B.linkWith ("",[cls],[]) src "" (B.str orig)
 
 -- an endline character that can be treated as a space, not a structural break
 endline :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -1913,15 +1922,6 @@ dropBrackets = dropRB . dropLB
         dropRB xs                          = xs
         dropLB (T.uncons -> Just ('[',xs)) = xs
         dropLB xs                          = xs
-
-bareURL :: PandocMonad m => MarkdownParser m (F Inlines)
-bareURL = do
-  guardEnabled Ext_autolink_bare_uris
-  getState >>= guard . stateAllowLinks
-  try $ do
-    (cls, (orig, src)) <- (("uri",) <$> uri) <|> (("email",) <$> emailAddress)
-    notFollowedBy $ try $ spaces >> htmlTag (~== TagClose ("a" :: Text))
-    return $ return $ B.linkWith ("",[cls],[]) src "" (B.str orig)
 
 autoLink :: PandocMonad m => MarkdownParser m (F Inlines)
 autoLink = try $ do
