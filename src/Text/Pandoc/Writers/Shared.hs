@@ -46,7 +46,7 @@ import Data.Maybe (fromMaybe, isNothing)
 import Control.Monad (zipWithM)
 import Data.Foldable (toList)
 import Data.Aeson (ToJSON (..), encode)
-import Data.Char (chr, ord, isSpace, isUpper)
+import Data.Char (chr, ord, isSpace)
 import Data.List (groupBy, intersperse, transpose, foldl')
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import Data.Text.Conversions (FromText(..))
@@ -565,7 +565,7 @@ splitSentences = go . toList
  where
   go [] = mempty
   go (Text len t : BreakingSpace : xs) =
-     if isSentenceEnding t && isSentenceBeginning xs
+     if isSentenceEnding t
         then Text len t <> NewLine <> go xs
         else Text len t <> BreakingSpace <> go xs
   go (x:xs) = x <> go xs
@@ -583,10 +583,3 @@ splitSentences = go . toList
              Just (_,d) -> d == '.' || d == '!' || d == '?'
              _ -> False
       _ -> False
-
-  isSentenceBeginning [] = True
-  isSentenceBeginning (Text _len t : _) =
-    case T.uncons t of
-      Just (c,_) -> isUpper c
-      _ -> False
-  isSentenceBeginning _ = False

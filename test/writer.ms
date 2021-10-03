@@ -962,13 +962,7 @@ Footnotes
 .pdfhref O 1 "Footnotes"
 .pdfhref M "footnotes"
 .LP
-Here is a footnote reference,\**
-.FS
-Here is the footnote.
-It can go anywhere after the footnote reference.
-It need not be placed at the end of the document.
-.FE
-and another.\**
+Here is a footnote reference,\** and another.\**
 .FS
 Here\[cq]s the long note.
 This one contains multiple blocks.
@@ -984,6 +978,11 @@ list items).
 .LP
 If you want, you can indent every line, but you can also be lazy and just indent
 the first line of each block.
+.FE
+.FS
+Here is the footnote.
+It can go anywhere after the footnote reference.
+It need not be placed at the end of the document.
 .FE
 This should \f[I]not\f[R] be a footnote reference, because it contains a
 space.[\[ha]my note] Here is an inline note.\**

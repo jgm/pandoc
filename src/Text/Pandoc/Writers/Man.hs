@@ -109,10 +109,10 @@ blockToMan :: PandocMonad m
 blockToMan _ Null = return empty
 blockToMan opts (Div _ bs) = blockListToMan opts bs
 blockToMan opts (Plain inlines) =
-  inlineListToMan opts inlines
+  splitSentences <$> inlineListToMan opts inlines
 blockToMan opts (Para inlines) = do
   contents <- inlineListToMan opts inlines
-  return $ text ".PP" $$ contents
+  return $ text ".PP" $$ splitSentences contents
 blockToMan opts (LineBlock lns) =
   blockToMan opts $ linesToPara lns
 blockToMan _ b@(RawBlock f str)
