@@ -68,7 +68,6 @@ module Text.Pandoc.Shared (
                      makeMeta,
                      eastAsianLineBreakFilter,
                      htmlSpanLikeElements,
-                     splitSentences,
                      filterIpynbOutput,
                      -- * TagSoup HTML handling
                      renderTags',
@@ -706,49 +705,6 @@ eastAsianLineBreakFilter = bottomUp go
 -- the element tag itself.
 htmlSpanLikeElements :: Set.Set T.Text
 htmlSpanLikeElements = Set.fromList ["kbd", "mark", "dfn"]
-
--- | Returns the first sentence in a list of inlines, and the rest.
-breakSentence :: [Inline] -> ([Inline], [Inline])
-breakSentence xs =
-  case break isStr xs of
-    (ys, Str t:zs)
-      | Just (t',t'') <- breakOnSentenceEnder t
-      , not (T.null t'') || startsWithSpace zs
-      -> (ys ++ [Str t'],
-          case T.stripStart t'' of
-            t''' | T.null t''' -> zs
-                 | otherwise -> Str t''' : zs)
-      | otherwise ->
-        let (as, bs) = breakSentence zs
-         in (ys ++ Str t : as, bs)
-    _ -> (xs, [])
- where
-  isStr (Str _) = True
-  isStr _ = False
-  breakOnSentenceEnder t = -- ". " ".)" "? " "?)" ".$" "! " " !)"
-    let (x,y) = T.break isSentenceEndPunct t
-     in if T.null y
-        then Nothing
-        else case T.uncons (T.drop 1 y) of
-          Nothing -> Just (t, mempty)
-          Just (c,_) | c == ' ' || c == '\r' || c == '\n' || c == ')'
-                  -> Just (x <> T.take 1 y, T.drop 1 y)
-          _ -> (\(w,z) -> (x <> T.take 1 y <> w, z)) <$>
-                  breakOnSentenceEnder (T.drop 1 y)
-  isSentenceEndPunct '.' = True
-  isSentenceEndPunct '?' = True
-  isSentenceEndPunct '!' = True
-  isSentenceEndPunct _   = False
-  startsWithSpace (LineBreak:_) = True
-  startsWithSpace (SoftBreak:_) = True
-  startsWithSpace [] = True
-  startsWithSpace _ = False
-
--- | Split a list of inlines into sentences.
-splitSentences :: [Inline] -> [[Inline]]
-splitSentences xs =
-  let (sent, rest) = breakSentence xs
-  in  if null rest then [sent] else sent : splitSentences rest
 
 -- | Process ipynb output cells.  If mode is Nothing,
 -- remove all output.  If mode is Just format, select
