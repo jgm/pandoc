@@ -36,6 +36,8 @@ module Text.Pandoc.Writers.Shared (
                      , toTableOfContents
                      , endsWithPlain
                      , toLegacyTable
+                     , breakable
+                     , splitSentences
                      )
 where
 import Safe (lastMay)
@@ -49,6 +51,7 @@ import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import Data.Text.Conversions (FromText(..))
 import qualified Data.Map as M
 import qualified Data.Text as T
+import Data.Text (Text)
 import qualified Text.Pandoc.Builder as Builder
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
@@ -119,13 +122,13 @@ metaValueToVal _ inlineWriter (MetaInlines is) = SimpleVal <$> inlineWriter is
 
 
 -- | Retrieve a field value from a template context.
-getField   :: FromContext a b => T.Text -> Context a -> Maybe b
+getField   :: FromContext a b => Text -> Context a -> Maybe b
 getField field (Context m) = M.lookup field m >>= fromVal
 
 -- | Set a field of a template context.  If the field already has a value,
 -- convert it into a list with the new value appended to the old value(s).
 -- This is a utility function to be used in preparing template contexts.
-setField   :: ToContext a b => T.Text -> b -> Context a -> Context a
+setField   :: ToContext a b => Text -> b -> Context a -> Context a
 setField field val (Context m) =
   Context $ M.insertWith combine field (toVal val) m
  where
@@ -135,21 +138,21 @@ setField field val (Context m) =
 -- | Reset a field of a template context.  If the field already has a
 -- value, the new value replaces it.
 -- This is a utility function to be used in preparing template contexts.
-resetField :: ToContext a b => T.Text -> b -> Context a -> Context a
+resetField :: ToContext a b => Text -> b -> Context a -> Context a
 resetField field val (Context m) =
   Context (M.insert field (toVal val) m)
 
 -- | Set a field of a template context if it currently has no value.
 -- If it has a value, do nothing.
 -- This is a utility function to be used in preparing template contexts.
-defField   :: ToContext a b => T.Text -> b -> Context a -> Context a
+defField   :: ToContext a b => Text -> b -> Context a -> Context a
 defField field val (Context m) =
   Context (M.insertWith f field (toVal val) m)
   where
     f _newval oldval = oldval
 
 -- | Get the contents of the `lang` metadata field or variable.
-getLang :: WriterOptions -> Meta -> Maybe T.Text
+getLang :: WriterOptions -> Meta -> Maybe Text
 getLang opts meta =
   case lookupContext "lang" (writerVariables opts) of
         Just s -> Just s
@@ -162,7 +165,7 @@ getLang opts meta =
                _                                 -> Nothing
 
 -- | Produce an HTML tag with the given pandoc attributes.
-tagWithAttrs :: HasChars a => T.Text -> Attr -> Doc a
+tagWithAttrs :: HasChars a => Text -> Attr -> Doc a
 tagWithAttrs tag (ident,classes,kvs) = hsep
   ["<" <> text (T.unpack tag)
   ,if T.null ident
@@ -213,7 +216,7 @@ fixDisplayMath x = x
 
 -- | Converts a Unicode character into the ASCII sequence used to
 -- represent the character in "smart" Markdown.
-unsmartify :: WriterOptions -> T.Text -> T.Text
+unsmartify :: WriterOptions -> Text -> Text
 unsmartify opts = T.concatMap $ \c -> case c of
   '\8217' -> "'"
   '\8230' -> "..."
@@ -345,7 +348,7 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
 
 -- | Retrieve the metadata value for a given @key@
 -- and convert to Bool.
-lookupMetaBool :: T.Text -> Meta -> Bool
+lookupMetaBool :: Text -> Meta -> Bool
 lookupMetaBool key meta =
   case lookupMeta key meta of
       Just (MetaBlocks _)  -> True
@@ -356,7 +359,7 @@ lookupMetaBool key meta =
 
 -- | Retrieve the metadata value for a given @key@
 -- and extract blocks.
-lookupMetaBlocks :: T.Text -> Meta -> [Block]
+lookupMetaBlocks :: Text -> Meta -> [Block]
 lookupMetaBlocks key meta =
   case lookupMeta key meta of
          Just (MetaBlocks bs)   -> bs
@@ -366,7 +369,7 @@ lookupMetaBlocks key meta =
 
 -- | Retrieve the metadata value for a given @key@
 -- and extract inlines.
-lookupMetaInlines :: T.Text -> Meta -> [Inline]
+lookupMetaInlines :: Text -> Meta -> [Inline]
 lookupMetaInlines key meta =
   case lookupMeta key meta of
          Just (MetaString s)           -> [Str s]
@@ -377,7 +380,7 @@ lookupMetaInlines key meta =
 
 -- | Retrieve the metadata value for a given @key@
 -- and convert to String.
-lookupMetaString :: T.Text -> Meta -> T.Text
+lookupMetaString :: Text -> Meta -> Text
 lookupMetaString key meta =
   case lookupMeta key meta of
          Just (MetaString s)    -> s
@@ -519,3 +522,44 @@ toLegacyTable (Caption _ cbody) specs thead tbodies tfoot
 
     getComponents (Cell _ _ (RowSpan h) (ColSpan w) body)
       = (h, w, body)
+
+-- | Create a breakable 'Doc' from a text.  Only regular spaces
+-- are break points (not tabs or nonbreaking spaces).
+breakable :: Text -> Doc Text
+breakable t
+  | T.any (== ' ') t = mconcat $ foldr go mempty (T.split (==' ') t)
+  | otherwise = Text (realLength t) t
+ where
+  go "" xs =
+   case xs of
+     BreakingSpace : _ -> xs
+     _ -> BreakingSpace : xs
+  go t' xs = Text (realLength t') t' :
+    case xs of
+      [] -> xs
+      BreakingSpace : _ -> xs
+      _ -> BreakingSpace : xs
+
+splitSentences :: Doc Text -> Doc Text
+splitSentences = go . toList
+ where
+  go [] = mempty
+  go (Text len t : BreakingSpace : xs) =
+     if isSentenceEnding t
+        then Text len t <> NewLine <> go xs
+        else Text len t <> BreakingSpace <> go xs
+  go (x:xs) = x <> go xs
+
+  toList (Concat (Concat a b) c) = toList (Concat a (Concat b c))
+  toList (Concat a b) = a : toList b
+  toList x = [x]
+
+  isSentenceEnding t =
+    case T.unsnoc t of
+      Just (t',c)
+        | c == '.' || c == '!' || c == '?' -> True
+        | c == ')' || c == ']' || c == '"' || c == '\x201D' ->
+           case T.unsnoc t' of
+             Just (_,d) -> d == '.' || d == '!' || d == '?'
+             _ -> False
+      _ -> False

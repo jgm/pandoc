@@ -142,7 +142,7 @@ blockToMs opts (Div (ident,cls,kvs) bs) = do
        setFirstPara
        return $ anchor $$ res
 blockToMs opts (Plain inlines) =
-  inlineListToMs' opts inlines
+  splitSentences <$> inlineListToMs' opts inlines
 blockToMs opts (Para [Image attr alt (src,_tit)])
   | let ext = takeExtension (T.unpack src) in (ext == ".ps" || ext == ".eps") = do
   let (mbW,mbH) = (inPoints opts <$> dimension Width attr,
@@ -155,7 +155,7 @@ blockToMs opts (Para [Image attr alt (src,_tit)])
                               space <>
                               doubleQuotes (literal (tshow (floor hp :: Int)))
                        _ -> empty
-  capt <- inlineListToMs' opts alt
+  capt <- splitSentences <$> inlineListToMs' opts alt
   return $ nowrap (literal ".PSPIC -C " <>
              doubleQuotes (literal (escapeStr opts src)) <>
              sizeAttrs) $$
@@ -166,7 +166,8 @@ blockToMs opts (Para inlines) = do
   firstPara <- gets stFirstPara
   resetFirstPara
   contents <- inlineListToMs' opts inlines
-  return $ literal (if firstPara then ".LP" else ".PP") $$ contents
+  return $ literal (if firstPara then ".LP" else ".PP") $$
+           splitSentences contents
 blockToMs _ b@(RawBlock f str)
   | f == Format "ms" = return $ literal str
   | otherwise        = do
