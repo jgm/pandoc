@@ -1733,28 +1733,27 @@ str :: PandocMonad m => MarkdownParser m (F Inlines)
 str = do
   abbrevs <- getOption readerAbbreviations
   isSmart <- extensionEnabled Ext_smart <$> getOption readerExtensions
+
   let tryAbbrev t =
          if isSmart && t `Set.member` abbrevs
             then try (do char ' ' <* notFollowedBy (char ' ')
                          return $ t <> "\160")
                  <|> return t
             else return t
-  let tryBareURI t = mzero
 
-  let isNormalChar c = isAlphaNum c || c == ',' || c == '?' ||
-                       c == '(' || c == ')' || c == '/'
-  let nonSpaceChunk = do
-        t <- T.pack <$> many1
-                (satisfy isNormalChar
-                 <|>
-                 try (char '.' <* notFollowedBy (char '.')))
-        updateLastStrPos
-        tryBareURI t <|> (B.str <$> tryAbbrev t)
+  let isNormalChar c = isAlphaNum c || c == ',' || c == '?' || c == '+'
+  let nonSpaceChunk = bareURL <|>
+        (do t <- T.pack <$> many1
+                  (satisfy isNormalChar
+                   <|>
+                   try (char '.' <* notFollowedBy (char '.')))
+            updateLastStrPos
+            return . B.str <$> tryAbbrev t)
   let spaceChunk = try $ do
         _ <- many1 spaceChar
         notFollowedBy newline
-        return B.space
-  return . mconcat <$> many1 (nonSpaceChunk <|> spaceChunk)
+        return (return B.space)
+  mconcat <$> many1 (nonSpaceChunk <|> spaceChunk)
 
 bareURL :: PandocMonad m => MarkdownParser m (F Inlines)
 bareURL = do
