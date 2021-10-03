@@ -49,7 +49,6 @@ import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
 import Text.Pandoc.XML (fromEntities)
 import Text.Pandoc.Readers.Metadata (yamlBsToMeta, yamlBsToRefs, yamlMetaBlock)
-import Text.Regex.TDFA
 -- import Debug.Trace (traceShowId)
 
 type MarkdownParser m = ParserT Sources ParserState m
