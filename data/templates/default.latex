@@ -4,11 +4,6 @@
 $if(colorlinks)$
 \PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
 $endif$
-$if(dir)$
-$if(latex-dir-rtl)$
-\PassOptionsToPackage{RTLdocument}{bidi}
-$endif$
-$endif$
 $if(CJKmainfont)$
 \PassOptionsToPackage{space}{xeCJK}
 $endif$
@@ -16,9 +11,6 @@ $endif$
 \documentclass[
 $if(fontsize)$
   $fontsize$,
-$endif$
-$if(lang)$
-  $babel-lang$,
 $endif$
 $if(papersize)$
   $papersize$paper,
@@ -370,23 +362,28 @@ $if(csl-refs)$
 \newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
 \newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 $endif$
-$for(header-includes)$
-$header-includes$
-$endfor$
 $if(lang)$
-\usepackage[$for(babel-otherlangs)$$babel-otherlangs$,$endfor$main=$babel-lang$]{babel}
+\ifXeTeX
+\usepackage[bidi=default]{babel}
+\fi
+\ifLuaTeX
+\usepackage[bidi=basic]{babel}
+\fi
+\babelprovide[main,import]{$babel-lang$}
+$for(babel-otherlangs)$
+\babelprovide[import]{$babel-otherlangs$}
+$endfor$
 % get rid of language-specific shorthands (see #6817):
 \let\LanguageShortHands\languageshorthands
 \def\languageshorthands#1{}
 $endif$
+$for(header-includes)$
+$header-includes$
+$endfor$
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
 $if(dir)$
-\ifXeTeX
-  % Load bidi as late as possible as it modifies e.g. graphicx
-  \usepackage{bidi}
-\fi
 \ifPDFTeX
   \TeXXeTstate=1
   \newcommand{\RL}[1]{\beginR #1\endR}
