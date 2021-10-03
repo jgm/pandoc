@@ -691,10 +691,13 @@ header when requesting a document from a URL:
     directory or fall back on a system default.  To see the
     system default, use
     `pandoc --print-default-data-file=abbreviations`.  The only
-    use pandoc makes of this list is in the Markdown reader.
-    Strings found in this list will be followed by a nonbreaking
-    space, and the period will not produce sentence-ending space
-    in formats like LaTeX.  The strings may not contain spaces.
+    use pandoc makes of this list is in the Markdown reader,
+    and only if the `smart` extension is enabled.
+    A single space following a string on this list will be
+    transformed into a nonbreaking space (so, to defeat this
+    feature you can use two spaces after a period).
+    As a result, the period will not produce sentence-ending space
+    in formats like LaTeX.  The abbreviations may not contain spaces.
 
 [`pandocfilters`]: https://github.com/jgm/pandocfilters
 [PHP]: https://github.com/vinai/pandocfilters-php

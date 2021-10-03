@@ -2,6 +2,7 @@
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {- |
    Module      : Text.Pandoc.Readers.Markdown
    Copyright   : Copyright (C) 2006-2021 John MacFarlane
@@ -1731,35 +1732,33 @@ nonEndline = satisfy (/='\n')
 
 str :: PandocMonad m => MarkdownParser m (F Inlines)
 str = do
-  result <- mconcat <$> many1
-             ( T.pack <$> (many1 (satisfy (\c -> isAlphaNum c ||
+  abbrevs <- getOption readerAbbreviations
+  isSmart <- extensionEnabled Ext_smart <$> getOption readerExtensions
+  let tryAbbrev t =
+         if t `Set.member` abbrevs
+            then try (do char ' ' <* notFollowedBy (char ' ')
+                         return $ t <> "\160")
+  --               <|>
+  --               try (do lookAhead newline
+  --                       guardDisabled Ext_hard_line_breaks
+  --                       guardDisabled Ext_ignore_line_breaks
+  --                       endline
+  --                       -- move soft break before abbrev (#4635)
+  --                       return $ "\n" <> t <> "\160")
+                 <|> return t
+            else return t
+  let nonSpaceChunk = do
+        t <- T.pack <$> many1 (satisfy (\c -> isAlphaNum c ||
                                                   c == ',' || c == '?' ||
                                                   c == '(' || c == ')' ||
-                                                  c == '/' )) <*
-                              updateLastStrPos)
-              <|> try (T.pack <$> many1 spaceChar <* notFollowedBy newline)
-              <|> try (T.singleton <$> char '.' <*
-                           notFollowedBy (char '.') <* updateLastStrPos) )
--- TODO: handle abbreviations as an AST transformation?
--- Then they could work on other formats, too.
---  (do guardEnabled Ext_smart
---      abbrevs <- getOption readerAbbreviations
---      if result `Set.member` abbrevs
---         then try (do ils <- whitespace
---                      notFollowedBy (() <$ cite <|> () <$ note)
---                      -- ?? lookAhead alphaNum
---                      -- replace space after with nonbreaking space
---                      -- if softbreak, move before abbrev if possible (#4635)
---                      return $ do
---                        ils' <- ils
---                        case B.toList ils' of
---                             [Space] ->
---                                 return (B.str result <> B.str "\160")
---                             _ -> return (B.str result <> ils'))
---               <|> return (return (B.str result))
---         else return (return (B.str result)))
---     <|>
-  return (return (B.str result))
+                                                  c == '/' )
+                        <|> try (char '.' <* notFollowedBy (char '.')))
+        updateLastStrPos
+        if isSmart
+           then tryAbbrev t
+           else return t
+  let spaceChunk = T.pack <$> (try (many1 spaceChar <* notFollowedBy newline))
+  return . B.text . mconcat <$> many1 (nonSpaceChunk <|> spaceChunk)
 
 -- an endline character that can be treated as a space, not a structural break
 endline :: PandocMonad m => MarkdownParser m (F Inlines)
