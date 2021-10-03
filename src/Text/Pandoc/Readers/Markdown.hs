@@ -1738,13 +1738,6 @@ str = do
          if t `Set.member` abbrevs
             then try (do char ' ' <* notFollowedBy (char ' ')
                          return $ t <> "\160")
-  --               <|>
-  --               try (do lookAhead newline
-  --                       guardDisabled Ext_hard_line_breaks
-  --                       guardDisabled Ext_ignore_line_breaks
-  --                       endline
-  --                       -- move soft break before abbrev (#4635)
-  --                       return $ "\n" <> t <> "\160")
                  <|> return t
             else return t
   let nonSpaceChunk = do
@@ -1755,10 +1748,13 @@ str = do
                         <|> try (char '.' <* notFollowedBy (char '.')))
         updateLastStrPos
         if isSmart
-           then tryAbbrev t
-           else return t
-  let spaceChunk = T.pack <$> (try (many1 spaceChar <* notFollowedBy newline))
-  return . B.text . mconcat <$> many1 (nonSpaceChunk <|> spaceChunk)
+           then B.str <$> tryAbbrev t
+           else return $ B.str t
+  let spaceChunk = try $ do
+        _ <- many1 spaceChar
+        notFollowedBy newline
+        return B.space
+  return . mconcat <$> many1 (nonSpaceChunk <|> spaceChunk)
 
 -- an endline character that can be treated as a space, not a structural break
 endline :: PandocMonad m => MarkdownParser m (F Inlines)
