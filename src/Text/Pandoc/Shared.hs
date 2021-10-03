@@ -68,7 +68,6 @@ module Text.Pandoc.Shared (
                      makeMeta,
                      eastAsianLineBreakFilter,
                      htmlSpanLikeElements,
-                     splitSentences,
                      filterIpynbOutput,
                      -- * TagSoup HTML handling
                      renderTags',
@@ -708,33 +707,6 @@ eastAsianLineBreakFilter = bottomUp go
 -- the element tag itself.
 htmlSpanLikeElements :: Set.Set T.Text
 htmlSpanLikeElements = Set.fromList ["kbd", "mark", "dfn"]
-
--- | Returns the first sentence in a list of inlines, and the rest.
-breakSentence :: [Inline] -> ([Inline], [Inline])
-breakSentence [] = ([],[])
-breakSentence xs =
-  let isSentenceEndInline (Str ys)
-        | Just (_, c) <- T.unsnoc ys = c == '.' || c == '?'
-      isSentenceEndInline LineBreak  = True
-      isSentenceEndInline _          = False
-      (as, bs) = break isSentenceEndInline xs
-  in  case bs of
-        []             -> (as, [])
-        [c]            -> (as ++ [c], [])
-        (c:Space:cs)   -> (as ++ [c], cs)
-        (c:SoftBreak:cs) -> (as ++ [c], cs)
-        (Str ".":Str s@(T.uncons -> Just (')',_)):cs)
-          -> (as ++ [Str ".", Str s], cs)
-        (x@(Str (T.stripPrefix ".)" -> Just _)):cs) -> (as ++ [x], cs)
-        (LineBreak:x@(Str (T.uncons -> Just ('.',_))):cs) -> (as ++[LineBreak], x:cs)
-        (c:cs)         -> (as ++ [c] ++ ds, es)
-          where (ds, es) = breakSentence cs
-
--- | Split a list of inlines into sentences.
-splitSentences :: [Inline] -> [[Inline]]
-splitSentences xs =
-  let (sent, rest) = breakSentence xs
-  in  if null rest then [sent] else sent : splitSentences rest
 
 -- | Process ipynb output cells.  If mode is Nothing,
 -- remove all output.  If mode is Just format, select

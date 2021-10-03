@@ -142,7 +142,7 @@ blockToMs opts (Div (ident,cls,kvs) bs) = do
        setFirstPara
        return $ anchor $$ res
 blockToMs opts (Plain inlines) =
-  liftM vcat $ mapM (inlineListToMs' opts) $ splitSentences inlines
+  inlineListToMs' opts inlines
 blockToMs opts (Para [Image attr alt (src,_tit)])
   | let ext = takeExtension (T.unpack src) in (ext == ".ps" || ext == ".eps") = do
   let (mbW,mbH) = (inPoints opts <$> dimension Width attr,
@@ -165,8 +165,7 @@ blockToMs opts (Para [Image attr alt (src,_tit)])
 blockToMs opts (Para inlines) = do
   firstPara <- gets stFirstPara
   resetFirstPara
-  contents <- liftM vcat $ mapM (inlineListToMs' opts) $
-    splitSentences inlines
+  contents <- inlineListToMs' opts inlines
   return $ literal (if firstPara then ".LP" else ".PP") $$ contents
 blockToMs _ b@(RawBlock f str)
   | f == Format "ms" = return $ literal str
