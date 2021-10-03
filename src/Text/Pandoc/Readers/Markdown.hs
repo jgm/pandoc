@@ -65,22 +65,7 @@ readMarkdown opts s = do
   parsed <- readWithM parseMarkdown def{ stateOptions = opts }
                 (ensureFinalNewlines 3 (toSources s))
   case parsed of
-    Right result -> do
-      if extensionEnabled Ext_smart (readerExtensions opts)
-         then do
-           let escForRegex = T.replace "." "\\."
-           let re = T.intercalate "|"
-                     (map escForRegex (Set.toList (readerAbbreviations opts)))
-           let fixAbbrev (Str t) = Str (fixAbbrev' t)
-               fixAbbrev x = x
-               fixAbbrev' t =
-                 let (a,b,c) = t =~ re
-                 in  case T.uncons c of
-                       Just (' ', t') ->
-                         a <> b <> "\160" <> fixAbbrev' t'
-                       _ -> t
-           return $ walk fixAbbrev result
-         else  return result
+    Right result -> return result
     Left e       -> throwError e
 
 -- | Read a YAML string and convert it to pandoc metadata.
