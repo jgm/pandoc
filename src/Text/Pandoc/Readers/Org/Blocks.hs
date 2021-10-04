@@ -873,8 +873,8 @@ checkbox = do
       , SemicheckedBox <$ char '-'
       ]
 
-checkboxToInlines :: Checkbox -> Inline
-checkboxToInlines = B.Str . \case
+checkboxToInlines :: Checkbox -> Inlines
+checkboxToInlines b = B.str $ case b of
   UncheckedBox   -> "☐"
   SemicheckedBox -> "☐"
   CheckedBox     -> "☒"
@@ -897,12 +897,14 @@ listItem parseIndentedMarker = try . withContext ListItemState $ do
 
 -- | Prepend inlines to blocks, adding them to the first paragraph or
 -- creating a new Plain element if necessary.
-prependInlines :: Inline -> Blocks -> Blocks
-prependInlines inlns = B.fromList . prepend . B.toList
+prependInlines :: Inlines -> Blocks -> Blocks
+prependInlines il = prepend . B.toList
   where
-    prepend (Plain is : bs) = Plain (inlns : Str " " : is) : bs
-    prepend (Para  is : bs) = Para  (inlns : Str " " : is) : bs
-    prepend bs              = Plain [inlns, Str " "] : bs
+    prepend (Plain is : bs) = B.plain (il <> B.str " " <> B.fromList is) <>
+                                 B.fromList bs
+    prepend (Para  is : bs) = B.para  (il <> B.str " " <> B.fromList is) <>
+                                 B.fromList bs
+    prepend bs              = B.plain (il <> B.str " ") <> B.fromList bs
 
 -- continuation of a list item - indented and separated by blankline or endline.
 -- Note: nested lists are parsed as continuations.

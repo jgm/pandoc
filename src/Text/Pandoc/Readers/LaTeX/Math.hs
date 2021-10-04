@@ -200,7 +200,7 @@ addTitle :: Inlines -> Blocks -> Blocks
 addTitle ils bs =
   case B.toList bs of
     (Para xs : rest)
-      -> B.fromList (Para (B.toList ils ++ (Str " " : xs)) : rest)
+      -> B.para (ils <> B.str " " <> B.fromList xs) <> B.fromList rest
     _ -> B.para ils <> bs
 
 addQed :: Blocks -> Blocks
