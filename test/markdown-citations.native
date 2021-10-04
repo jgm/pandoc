@@ -115,8 +115,7 @@
               [ Para
                   [ Cite
                       [ Citation
-                          { citationId =
-                              "\1087\1091\1085\1082\1090\&3"
+                          { citationId = "\1087\1091\1085\1082\1090\&3"
                           , citationPrefix = []
                           , citationSuffix = [ Str "p.\160\&12" ]
                           , citationMode = AuthorInText
@@ -128,8 +127,7 @@
                   , Str " and a citation without locators "
                   , Cite
                       [ Citation
-                          { citationId =
-                              "\1087\1091\1085\1082\1090\&3"
+                          { citationId = "\1087\1091\1085\1082\1090\&3"
                           , citationPrefix = []
                           , citationSuffix = []
                           , citationMode = NormalCitation
@@ -200,8 +198,7 @@
                           , citationHash = 0
                           }
                       , Citation
-                          { citationId =
-                              "\1087\1091\1085\1082\1090\&3"
+                          { citationId = "\1087\1091\1085\1082\1090\&3"
                           , citationPrefix = []
                           , citationSuffix = []
                           , citationMode = NormalCitation

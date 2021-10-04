@@ -640,9 +640,13 @@ isTightList = all (\item -> firstIsPlain item || null item)
 taskListItemFromAscii :: Extensions -> [Block] -> [Block]
 taskListItemFromAscii = handleTaskListItem fromMd
   where
-    fromMd (Str "[ ] " : is) = Str "☐ " : is
-    fromMd (Str "[x] " : is) = Str "☒ " : is
-    fromMd (Str "[X] " : is) = Str "☒ " : is
+    fromMd (Str t : is)
+      | "[ ] " `T.isPrefixOf` t
+      = B.toList $ B.str "☐ " <> B.str (T.drop 3 t) <> B.fromList is
+      | "[x] " `T.isPrefixOf` t
+      = B.toList $ B.str "☒ " <> B.str (T.drop 3 t) <> B.fromList is
+      | "[X] " `T.isPrefixOf` t
+      = B.toList $ B.str "☒ " <> B.str (T.drop 3 t) <> B.fromList is
     fromMd is = is
 
 -- | Convert a list item containing text starting with @U+2610 BALLOT BOX@
@@ -650,10 +654,13 @@ taskListItemFromAscii = handleTaskListItem fromMd
 taskListItemToAscii :: Extensions -> [Block] -> [Block]
 taskListItemToAscii = handleTaskListItem toMd
   where
-    toMd (Str "☐ " : is) = rawMd "[ ] " : is
-    toMd (Str "☒ " : is) = rawMd "[x] " : is
+    toMd (Str t : is)
+      | "☐ " `T.isPrefixOf` t
+      = B.toList $ rawMd "[ ] " <> B.str (T.drop 2 t) <> B.fromList is
+      | "☒ " `T.isPrefixOf` t
+      = B.toList $ rawMd "[x] " <> B.str (T.drop 2 t) <> B.fromList is
     toMd is = is
-    rawMd = RawInline (Format "markdown")
+    rawMd = B.rawInline "markdown"
 
 handleTaskListItem :: ([Inline] -> [Inline]) -> Extensions -> [Block] -> [Block]
 handleTaskListItem handleInlines exts bls =
