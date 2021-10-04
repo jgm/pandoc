@@ -609,7 +609,7 @@ This & that.
 
 4 \< 5.
 
-6 \> 5.
+6 > 5.
 
 Backslash: \\
 
@@ -631,9 +631,9 @@ Left paren: (
 
 Right paren: )
 
-Greater-than: \>
+Greater-than: >
 
-Hash: \#
+Hash: #
 
 Period: .
 
