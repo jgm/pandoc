@@ -414,7 +414,11 @@ inlineToMarkdown opts (Code attr str) = do
                   (marker <> spacer <> str <> spacer <> marker) <> attrs
 inlineToMarkdown opts (Str str) = do
   variant <- asks envVariant
-  let str' = (if writerPreferAscii opts
+  escapeSpaces <- asks envEscapeSpaces
+  let str' = (if escapeSpaces
+                 then T.replace " " "\\ "
+                 else id) .
+             (if writerPreferAscii opts
                  then toHtml5Entities
                  else id) .
              (if isEnabled Ext_smart opts
@@ -488,10 +492,6 @@ inlineToMarkdown opts LineBreak = do
           if isEnabled Ext_escaped_line_breaks opts
              then "\\" <> cr
              else "  " <> cr
--- TODO escape spaces in Str...
--- inlineToMarkdown _ Space = do
---   escapeSpaces <- asks envEscapeSpaces
---   return $ if escapeSpaces then "\\ " else space
 inlineToMarkdown opts SoftBreak = do
   escapeSpaces <- asks envEscapeSpaces
   let space' = if escapeSpaces then "\\ " else space
