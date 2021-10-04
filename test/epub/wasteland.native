@@ -411,7 +411,20 @@
                     , Str "of"
                     , Space
                     , Str "man,"
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "Line" , Space , Str "20." ]
+                                ( "#wasteland-content.xhtml#ln20" , "" )
+                            , Space
+                            , Str "Cf."
+                            , Space
+                            , Str "Ezekiel"
+                            , Space
+                            , Str "2:1."
+                            ]
+                        ]
                     , Span ( "" , [ "lnum" ] , [] ) [ Str "20" ]
                     ]
                 ]
@@ -483,7 +496,20 @@
                     , Str "no"
                     , Space
                     , Str "relief,"
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "23." ]
+                                ( "#wasteland-content.xhtml#ln23" , "" )
+                            , Space
+                            , Str "Cf."
+                            , Space
+                            , Str "Ecclesiastes"
+                            , Space
+                            , Str "12:5."
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -648,7 +674,30 @@
                             , Str "der"
                             , Space
                             , Str "Wind"
-                            , Str ""
+                            , Note
+                                [ Para
+                                    [ Link
+                                        ( "" , [] , [] )
+                                        [ Str "31." ]
+                                        ( "#wasteland-content.xhtml#ln31"
+                                        , ""
+                                        )
+                                    , Space
+                                    , Str "V."
+                                    , Space
+                                    , Str "Tristan"
+                                    , Space
+                                    , Str "und"
+                                    , Space
+                                    , Str "Isolde,"
+                                    , Space
+                                    , Str "i,"
+                                    , Space
+                                    , Str "verses"
+                                    , Space
+                                    , Str "5-8."
+                                    ]
+                                ]
                             ]
                         ]
                     , Div
@@ -844,7 +893,22 @@
                         , Str "Meer"
                         ]
                     , Str "."
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "42." ]
+                                ( "#wasteland-content.xhtml#ln42" , "" )
+                            , Space
+                            , Str "Id."
+                            , Space
+                            , Str "iii,"
+                            , Space
+                            , Str "verse"
+                            , Space
+                            , Str "24."
+                            ]
+                        ]
                     ]
                 ]
             ]
@@ -918,7 +982,246 @@
                     , Str "said"
                     , Space
                     , Str "she,"
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "46." ]
+                                ( "#wasteland-content.xhtml#ln46" , "" )
+                            , Space
+                            , Str "I"
+                            , Space
+                            , Str "am"
+                            , Space
+                            , Str "not"
+                            , Space
+                            , Str "familiar"
+                            , Space
+                            , Str "with"
+                            , Space
+                            , Str "the"
+                            , Space
+                            , Str "exact"
+                            , Space
+                            , Str "constitution"
+                            , Space
+                            , Str "of"
+                            , Space
+                            , Str "the"
+                            , Space
+                            , Str "Tarot"
+                            , Space
+                            , Str "pack"
+                            , Space
+                            , Str "of"
+                            , SoftBreak
+                            , Str "cards,"
+                            , Space
+                            , Str "from"
+                            , Space
+                            , Str "which"
+                            , Space
+                            , Str "I"
+                            , Space
+                            , Str "have"
+                            , Space
+                            , Str "obviously"
+                            , Space
+                            , Str "departed"
+                            , Space
+                            , Str "to"
+                            , Space
+                            , Str "suit"
+                            , Space
+                            , Str "my"
+                            , Space
+                            , Str "own"
+                            , Space
+                            , Str "convenience."
+                            , SoftBreak
+                            , Str "The"
+                            , Space
+                            , Str "Hanged"
+                            , Space
+                            , Str "Man,"
+                            , Space
+                            , Str "a"
+                            , Space
+                            , Str "member"
+                            , Space
+                            , Str "of"
+                            , Space
+                            , Str "the"
+                            , Space
+                            , Str "traditional"
+                            , Space
+                            , Str "pack,"
+                            , Space
+                            , Str "fits"
+                            , Space
+                            , Str "my"
+                            , Space
+                            , Str "purpose"
+                            , Space
+                            , Str "in"
+                            , Space
+                            , Str "two"
+                            , SoftBreak
+                            , Str "ways:"
+                            , Space
+                            , Str "because"
+                            , Space
+                            , Str "he"
+                            , Space
+                            , Str "is"
+                            , Space
+                            , Str "associated"
+                            , Space
+                            , Str "in"
+                            , Space
+                            , Str "my"
+                            , Space
+                            , Str "mind"
+                            , Space
+                            , Str "with"
+                            , Space
+                            , Str "the"
+                            , Space
+                            , Str "Hanged"
+                            , Space
+                            , Str "God"
+                            , Space
+                            , Str "of"
+                            , Space
+                            , Str "Frazer,"
+                            , SoftBreak
+                            , Str "and"
+                            , Space
+                            , Str "because"
+                            , Space
+                            , Str "I"
+                            , Space
+                            , Str "associate"
+                            , Space
+                            , Str "him"
+                            , Space
+                            , Str "with"
+                            , Space
+                            , Str "the"
+                            , Space
+                            , Str "hooded"
+                            , Space
+                            , Str "figure"
+                            , Space
+                            , Str "in"
+                            , Space
+                            , Str "the"
+                            , Space
+                            , Str "passage"
+                            , Space
+                            , Str "of"
+                            , Space
+                            , Str "the"
+                            , SoftBreak
+                            , Str "disciples"
+                            , Space
+                            , Str "to"
+                            , Space
+                            , Str "Emmaus"
+                            , Space
+                            , Str "in"
+                            , Space
+                            , Str "Part"
+                            , Space
+                            , Str "V."
+                            , Space
+                            , Str "The"
+                            , Space
+                            , Str "Phoenician"
+                            , Space
+                            , Str "Sailor"
+                            , Space
+                            , Str "and"
+                            , Space
+                            , Str "the"
+                            , Space
+                            , Str "Merchant"
+                            , SoftBreak
+                            , Str "appear"
+                            , Space
+                            , Str "later;"
+                            , Space
+                            , Str "also"
+                            , Space
+                            , Str "the"
+                            , Space
+                            , Str "\"crowds"
+                            , Space
+                            , Str "of"
+                            , Space
+                            , Str "people,\""
+                            , Space
+                            , Str "and"
+                            , Space
+                            , Str "Death"
+                            , Space
+                            , Str "by"
+                            , Space
+                            , Str "Water"
+                            , Space
+                            , Str "is"
+                            , SoftBreak
+                            , Str "executed"
+                            , Space
+                            , Str "in"
+                            , Space
+                            , Str "Part"
+                            , Space
+                            , Str "IV."
+                            , Space
+                            , Str "The"
+                            , Space
+                            , Str "Man"
+                            , Space
+                            , Str "with"
+                            , Space
+                            , Str "Three"
+                            , Space
+                            , Str "Staves"
+                            , Space
+                            , Str "(an"
+                            , Space
+                            , Str "authentic"
+                            , Space
+                            , Str "member"
+                            , Space
+                            , Str "of"
+                            , SoftBreak
+                            , Str "the"
+                            , Space
+                            , Str "Tarot"
+                            , Space
+                            , Str "pack)"
+                            , Space
+                            , Str "I"
+                            , Space
+                            , Str "associate,"
+                            , Space
+                            , Str "quite"
+                            , Space
+                            , Str "arbitrarily,"
+                            , Space
+                            , Str "with"
+                            , Space
+                            , Str "the"
+                            , Space
+                            , Str "Fisher"
+                            , Space
+                            , Str "King"
+                            , SoftBreak
+                            , Str "himself."
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -1195,7 +1498,51 @@
                     [ Str "Unreal"
                     , Space
                     , Str "City,"
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "60." ]
+                                ( "#wasteland-content.xhtml#ln60" , "" )
+                            , Space
+                            , Str "Cf."
+                            , Space
+                            , Str "Baudelaire:"
+                            ]
+                        , BlockQuote
+                            [ Para
+                                [ Str "\"Fourmillante"
+                                , Space
+                                , Str "cite;,"
+                                , Space
+                                , Str "cite;"
+                                , Space
+                                , Str "pleine"
+                                , Space
+                                , Str "de"
+                                , Space
+                                , Str "reves,"
+                                , LineBreak
+                                , Str "Ou"
+                                , Space
+                                , Str "le"
+                                , Space
+                                , Str "spectre"
+                                , Space
+                                , Str "en"
+                                , SoftBreak
+                                , Str "plein"
+                                , Space
+                                , Str "jour"
+                                , Space
+                                , Str "raccroche"
+                                , Space
+                                , Str "le"
+                                , Space
+                                , Str "passant.\""
+                                ]
+                            ]
+                        ]
                     , Span ( "" , [ "lnum" ] , [] ) [ Str "60" ]
                     ]
                 ]
@@ -1259,7 +1606,55 @@
                     , Str "so"
                     , Space
                     , Str "many."
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "63." ]
+                                ( "#wasteland-content.xhtml#ln63" , "" )
+                            , Space
+                            , Str "Cf."
+                            , Space
+                            , Str "Inferno,"
+                            , Space
+                            , Str "iii."
+                            , Space
+                            , Str "55-7."
+                            ]
+                        , BlockQuote
+                            [ Para
+                                [ Str "\"si"
+                                , Space
+                                , Str "lunga"
+                                , Space
+                                , Str "tratta"
+                                , LineBreak
+                                , Str "di"
+                                , Space
+                                , Str "gente,"
+                                , Space
+                                , Str "ch'io"
+                                , Space
+                                , Str "non"
+                                , Space
+                                , Str "avrei"
+                                , Space
+                                , Str "mai"
+                                , Space
+                                , Str "creduto"
+                                , LineBreak
+                                , Str "che"
+                                , SoftBreak
+                                , Str "morte"
+                                , Space
+                                , Str "tanta"
+                                , Space
+                                , Str "n'avesse"
+                                , Space
+                                , Str "disfatta.\""
+                                ]
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -1276,7 +1671,59 @@
                     , Str "were"
                     , Space
                     , Str "exhaled,"
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "64." ]
+                                ( "#wasteland-content.xhtml#ln64" , "" )
+                            , Space
+                            , Str "Cf."
+                            , Space
+                            , Str "Inferno,"
+                            , Space
+                            , Str "iv."
+                            , Space
+                            , Str "25-7:"
+                            ]
+                        , BlockQuote
+                            [ Para
+                                [ Str "\"Quivi,"
+                                , Space
+                                , Str "secondo"
+                                , Space
+                                , Str "che"
+                                , Space
+                                , Str "per"
+                                , Space
+                                , Str "ascoltahre,"
+                                , LineBreak
+                                , Str "\"non"
+                                , Space
+                                , Str "avea"
+                                , Space
+                                , Str "pianto,"
+                                , Space
+                                , Str "ma'"
+                                , Space
+                                , Str "che"
+                                , Space
+                                , Str "di"
+                                , SoftBreak
+                                , Str "sospiri,"
+                                , LineBreak
+                                , Str "\"che"
+                                , Space
+                                , Str "l'aura"
+                                , Space
+                                , Str "eterna"
+                                , Space
+                                , Str "facevan"
+                                , Space
+                                , Str "tremare.\""
+                                ]
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -1365,7 +1812,28 @@
                     , Str "of"
                     , Space
                     , Str "nine."
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "68." ]
+                                ( "#wasteland-content.xhtml#ln68" , "" )
+                            , Space
+                            , Str "A"
+                            , Space
+                            , Str "phenomenon"
+                            , Space
+                            , Str "which"
+                            , Space
+                            , Str "I"
+                            , Space
+                            , Str "have"
+                            , Space
+                            , Str "often"
+                            , Space
+                            , Str "noticed."
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -1510,7 +1978,30 @@
                     , Str "to"
                     , Space
                     , Str "men,"
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "74." ]
+                                ( "#wasteland-content.xhtml#ln74" , "" )
+                            , Space
+                            , Str "Cf."
+                            , Space
+                            , Str "the"
+                            , Space
+                            , Str "Dirge"
+                            , Space
+                            , Str "in"
+                            , Space
+                            , Str "Webster's"
+                            , Space
+                            , Str "White"
+                            , Space
+                            , Str "Devil"
+                            , Space
+                            , Str "."
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -1560,7 +2051,28 @@
                         ]
                     , Space
                     , Str "!\""
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "76." ]
+                                ( "#wasteland-content.xhtml#ln76" , "" )
+                            , Space
+                            , Str "V."
+                            , Space
+                            , Str "Baudelaire,"
+                            , Space
+                            , Str "Preface"
+                            , Space
+                            , Str "to"
+                            , Space
+                            , Str "Fleurs"
+                            , Space
+                            , Str "du"
+                            , Space
+                            , Str "Mal."
+                            ]
+                        ]
                     ]
                 ]
             ]
@@ -1602,7 +2114,30 @@
                     , Str "burnished"
                     , Space
                     , Str "throne,"
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "77." ]
+                                ( "#wasteland-content.xhtml#ln77" , "" )
+                            , Space
+                            , Str "Cf."
+                            , Space
+                            , Str "Antony"
+                            , Space
+                            , Str "and"
+                            , Space
+                            , Str "Cleopatra,"
+                            , Space
+                            , Str "II."
+                            , Space
+                            , Str "ii.,"
+                            , Space
+                            , Str "l."
+                            , Space
+                            , Str "190."
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -1875,7 +2410,47 @@
                     , Str "the"
                     , Space
                     , Str "laquearia,"
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "92." ]
+                                ( "#wasteland-content.xhtml#ln92" , "" )
+                            , Space
+                            , Str "Laquearia."
+                            , Space
+                            , Str "V."
+                            , Space
+                            , Str "Aeneid,"
+                            , Space
+                            , Str "I."
+                            , Space
+                            , Str "726:"
+                            ]
+                        , BlockQuote
+                            [ Para
+                                [ Str "dependent"
+                                , Space
+                                , Str "lychni"
+                                , Space
+                                , Str "laquearibus"
+                                , Space
+                                , Str "aureis"
+                                , Space
+                                , Str "incensi,"
+                                , Space
+                                , Str "et"
+                                , Space
+                                , Str "noctem"
+                                , SoftBreak
+                                , Str "flammis"
+                                , LineBreak
+                                , Str "funalia"
+                                , Space
+                                , Str "vincunt."
+                                ]
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -1988,7 +2563,30 @@
                     , Str "sylvan"
                     , Space
                     , Str "scene"
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "98." ]
+                                ( "#wasteland-content.xhtml#ln98" , "" )
+                            , Space
+                            , Str "Sylvan"
+                            , Space
+                            , Str "scene."
+                            , Space
+                            , Str "V."
+                            , Space
+                            , Str "Milton,"
+                            , Space
+                            , Str "Paradise"
+                            , Space
+                            , Str "Lost,"
+                            , Space
+                            , Str "iv."
+                            , Space
+                            , Str "140."
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -2009,7 +2607,24 @@
                     , Str "barbarous"
                     , Space
                     , Str "king"
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "99." ]
+                                ( "#wasteland-content.xhtml#ln99" , "" )
+                            , Space
+                            , Str "V."
+                            , Space
+                            , Str "Ovid,"
+                            , Space
+                            , Str "Metamorphoses,"
+                            , Space
+                            , Str "vi,"
+                            , Space
+                            , Str "Philomela."
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -2028,7 +2643,26 @@
                     , Str "the"
                     , Space
                     , Str "nightingale"
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "100." ]
+                                ( "#wasteland-content.xhtml#ln100"
+                                , ""
+                                )
+                            , Space
+                            , Str "Cf."
+                            , Space
+                            , Str "Part"
+                            , Space
+                            , Str "III,"
+                            , Space
+                            , Str "l."
+                            , Space
+                            , Str "204."
+                            ]
+                        ]
                     , SoftBreak
                     , Span ( "" , [ "lnum" ] , [] ) [ Str "100" ]
                     ]
@@ -2318,7 +2952,26 @@
                         , Str "rats'"
                         , Space
                         , Str "alley"
-                        , Str ""
+                        , Note
+                            [ Para
+                                [ Link
+                                    ( "" , [] , [] )
+                                    [ Str "115." ]
+                                    ( "#wasteland-content.xhtml#ln115"
+                                    , ""
+                                    )
+                                , Space
+                                , Str "Cf."
+                                , Space
+                                , Str "Part"
+                                , Space
+                                , Str "III,"
+                                , Space
+                                , Str "l."
+                                , Space
+                                , Str "195."
+                                ]
+                            ]
                         ]
                     ]
                 , Div
@@ -2367,7 +3020,37 @@
                     , Str "the"
                     , Space
                     , Str "door."
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "118." ]
+                                ( "#wasteland-content.xhtml#ln118"
+                                , ""
+                                )
+                            , Space
+                            , Str "Cf."
+                            , Space
+                            , Str "Webster:"
+                            ]
+                        , BlockQuote
+                            [ Para
+                                [ Str "\"Is"
+                                , Space
+                                , Str "the"
+                                , Space
+                                , Str "wind"
+                                , Space
+                                , Str "in"
+                                , Space
+                                , Str "that"
+                                , Space
+                                , Str "door"
+                                , Space
+                                , Str "still?\""
+                                ]
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -2482,7 +3165,28 @@
                     , Str "your"
                     , Space
                     , Str "head?\""
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "126." ]
+                                ( "#wasteland-content.xhtml#ln126"
+                                , ""
+                                )
+                            , Space
+                            , Str "Cf."
+                            , Space
+                            , Str "Part"
+                            , Space
+                            , Str "I,"
+                            , Space
+                            , Str "l."
+                            , Space
+                            , Str "37,"
+                            , Space
+                            , Str "48."
+                            ]
+                        ]
                     ]
                 ]
             , Div ( "" , [] , [] ) [ Plain [ Str "But" ] ]
@@ -2689,7 +3393,36 @@
                     , Str "the"
                     , Space
                     , Str "door."
-                    , Str ""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "138." ]
+                                ( "#wasteland-content.xhtml#ln138"
+                                , ""
+                                )
+                            , Space
+                            , Str "Cf."
+                            , Space
+                            , Str "the"
+                            , Space
+                            , Str "game"
+                            , Space
+                            , Str "of"
+                            , Space
+                            , Str "chess"
+                            , Space
+                            , Str "in"
+                            , Space
+                            , Str "Middleton's"
+                            , Space
+                            , Str "Women"
+                            , Space
+                            , Str "beware"
+                            , Space
+                            , Str "Women."
+                            ]
+                        ]
                     ]
                 ]
             ]
@@ -3486,6 +4219,331 @@
                     , SoftBreak
                     , Str "night."
                     ]
+                ]
+            ]
+        ]
+    ]
+, Div
+    ( "wasteland-content.xhtml#backmatter"
+    , [ "section" , "backmatter" ]
+    , []
+    )
+    [ Div
+        ( "wasteland-content.xhtml#rearnotes"
+        , [ "section" , "rearnotes" ]
+        , []
+        )
+        [ Header
+            2
+            ( "" , [] , [] )
+            [ Str "NOTES"
+            , Space
+            , Str "ON"
+            , Space
+            , Str "\"THE"
+            , Space
+            , Str "WASTE"
+            , Space
+            , Str "LAND\""
+            ]
+        , Para
+            [ Str "Not"
+            , Space
+            , Str "only"
+            , Space
+            , Str "the"
+            , Space
+            , Str "title,"
+            , Space
+            , Str "but"
+            , Space
+            , Str "the"
+            , Space
+            , Str "plan"
+            , Space
+            , Str "and"
+            , Space
+            , Str "a"
+            , Space
+            , Str "good"
+            , Space
+            , Str "deal"
+            , Space
+            , Str "of"
+            , Space
+            , Str "the"
+            , Space
+            , Str "incidental"
+            , Space
+            , Str "symbolism"
+            , Space
+            , Str "of"
+            , SoftBreak
+            , Str "the"
+            , Space
+            , Str "poem"
+            , Space
+            , Str "were"
+            , Space
+            , Str "suggested"
+            , Space
+            , Str "by"
+            , Space
+            , Str "Miss"
+            , Space
+            , Str "Jessie"
+            , Space
+            , Str "L."
+            , Space
+            , Str "Weston's"
+            , Space
+            , Str "book"
+            , Space
+            , Str "on"
+            , Space
+            , Str "the"
+            , Space
+            , Str "Grail"
+            , Space
+            , Str "legend:"
+            , SoftBreak
+            , Str "From"
+            , Space
+            , Str "Ritual"
+            , Space
+            , Str "to"
+            , Space
+            , Str "Romance"
+            ]
+        , Para
+            [ Str "Indeed,"
+            , Space
+            , Str "so"
+            , Space
+            , Str "deeply"
+            , Space
+            , Str "am"
+            , Space
+            , Str "I"
+            , Space
+            , Str "indebted,"
+            , Space
+            , Str "Miss"
+            , Space
+            , Str "Weston's"
+            , Space
+            , Str "book"
+            , Space
+            , Str "will"
+            , Space
+            , Str "elucidate"
+            , Space
+            , Str "the"
+            , SoftBreak
+            , Str "difficulties"
+            , Space
+            , Str "of"
+            , Space
+            , Str "the"
+            , Space
+            , Str "poem"
+            , Space
+            , Str "much"
+            , Space
+            , Str "better"
+            , Space
+            , Str "than"
+            , Space
+            , Str "my"
+            , Space
+            , Str "notes"
+            , Space
+            , Str "can"
+            , Space
+            , Str "do;"
+            , Space
+            , Str "and"
+            , Space
+            , Str "I"
+            , Space
+            , Str "recommend"
+            , Space
+            , Str "it"
+            , SoftBreak
+            , Str "(apart"
+            , Space
+            , Str "from"
+            , Space
+            , Str "the"
+            , Space
+            , Str "great"
+            , Space
+            , Str "interest"
+            , Space
+            , Str "of"
+            , Space
+            , Str "the"
+            , Space
+            , Str "book"
+            , Space
+            , Str "itself)"
+            , Space
+            , Str "to"
+            , Space
+            , Str "any"
+            , Space
+            , Str "who"
+            , Space
+            , Str "think"
+            , Space
+            , Str "such"
+            , SoftBreak
+            , Str "elucidation"
+            , Space
+            , Str "of"
+            , Space
+            , Str "the"
+            , Space
+            , Str "poem"
+            , Space
+            , Str "worth"
+            , Space
+            , Str "the"
+            , Space
+            , Str "trouble."
+            , Space
+            , Str "To"
+            , Space
+            , Str "another"
+            , Space
+            , Str "work"
+            , Space
+            , Str "of"
+            , Space
+            , Str "anthropology"
+            , Space
+            , Str "I"
+            , Space
+            , Str "am"
+            , SoftBreak
+            , Str "indebted"
+            , Space
+            , Str "in"
+            , Space
+            , Str "general,"
+            , Space
+            , Str "one"
+            , Space
+            , Str "which"
+            , Space
+            , Str "has"
+            , Space
+            , Str "influenced"
+            , Space
+            , Str "our"
+            , Space
+            , Str "generation"
+            , Space
+            , Str "profoundly;"
+            , Space
+            , Str "I"
+            , Space
+            , Str "mean"
+            , SoftBreak
+            , Str "The"
+            , Space
+            , Str "Golden"
+            , Space
+            , Str "Bough;"
+            , Space
+            , Str "I"
+            , Space
+            , Str "have"
+            , Space
+            , Str "used"
+            , Space
+            , Str "especially"
+            , Space
+            , Str "the"
+            , Space
+            , Str "two"
+            , Space
+            , Str "volumes"
+            , Space
+            , Str "Adonis,"
+            , Space
+            , Str "Attis,"
+            , Space
+            , Str "Osiris."
+            , SoftBreak
+            , Str "Anyone"
+            , Space
+            , Str "who"
+            , Space
+            , Str "is"
+            , Space
+            , Str "acquainted"
+            , Space
+            , Str "with"
+            , Space
+            , Str "these"
+            , Space
+            , Str "works"
+            , Space
+            , Str "will"
+            , Space
+            , Str "immediately"
+            , Space
+            , Str "recognise"
+            , Space
+            , Str "in"
+            , Space
+            , Str "the"
+            , Space
+            , Str "poem"
+            , SoftBreak
+            , Str "certain"
+            , Space
+            , Str "references"
+            , Space
+            , Str "to"
+            , Space
+            , Str "vegetation"
+            , Space
+            , Str "ceremonies."
+            ]
+        , Div
+            ( "" , [ "section" ] , [] )
+            [ Header
+                3
+                ( "" , [] , [] )
+                [ Str "I."
+                , Space
+                , Str "THE"
+                , Space
+                , Str "BURIAL"
+                , Space
+                , Str "OF"
+                , Space
+                , Str "THE"
+                , Space
+                , Str "DEAD"
+                ]
+            ]
+        , Div
+            ( "" , [ "section" ] , [] )
+            [ Header
+                3
+                ( "" , [] , [] )
+                [ Str "II."
+                , Space
+                , Str "A"
+                , Space
+                , Str "GAME"
+                , Space
+                , Str "OF"
+                , Space
+                , Str "CHESS"
                 ]
             ]
         ]
