@@ -5,6 +5,7 @@ on:
     branches:
     - '*'
     - '!rc/*'
+    - '!nospace'
     paths-ignore:
     - 'doc/**'
     - 'MANUAL.txt'
