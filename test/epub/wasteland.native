@@ -120,6 +120,15 @@
                 ( "wasteland-content.xhtml#ln20" , [] , [] )
                 [ Plain
                     [ Str "Out of this stony rubbish? Son of man,"
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "Line 20." ]
+                                ( "#wasteland-content.xhtml#ln20" , "" )
+                            , Str " Cf. Ezekiel 2:1."
+                            ]
+                        ]
                     , Span ( "" , [ "lnum" ] , [] ) [ Str "20" ]
                     ]
                 ]
@@ -141,6 +150,15 @@
                 [ Plain
                     [ Str
                         "And the dead tree gives no shelter, the cricket no relief,"
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "23." ]
+                                ( "#wasteland-content.xhtml#ln23" , "" )
+                            , Str " Cf. Ecclesiastes 12:5."
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -188,7 +206,22 @@
                     ( "" , [] , [] )
                     [ Div
                         ( "wasteland-content.xhtml#ln31" , [] , [] )
-                        [ Plain [ Str "Frisch weht der Wind" ] ]
+                        [ Plain
+                            [ Str "Frisch weht der Wind"
+                            , Note
+                                [ Para
+                                    [ Link
+                                        ( "" , [] , [] )
+                                        [ Str "31." ]
+                                        ( "#wasteland-content.xhtml#ln31"
+                                        , ""
+                                        )
+                                    , Str
+                                        " V. Tristan und Isolde, i, verses 5-8."
+                                    ]
+                                ]
+                            ]
+                        ]
                     , Div
                         ( "" , [] , [] )
                         [ Plain [ Str "Der Heimat zu" ] ]
@@ -250,7 +283,18 @@
                 , [ ( "lang" , "de" ) ]
                 )
                 [ Plain
-                    [ Emph [ Str "Od' und leer das Meer" ] , Str "." ]
+                    [ Emph [ Str "Od' und leer das Meer" ]
+                    , Str "."
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "42." ]
+                                ( "#wasteland-content.xhtml#ln42" , "" )
+                            , Str " Id. iii, verse 24."
+                            ]
+                        ]
+                    ]
                 ]
             ]
         , Div
@@ -271,6 +315,42 @@
                 ( "wasteland-content.xhtml#ln46" , [] , [] )
                 [ Plain
                     [ Str "With a wicked pack of cards. Here, said she,"
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "46." ]
+                                ( "#wasteland-content.xhtml#ln46" , "" )
+                            , Str
+                                " I am not familiar with the exact constitution of the Tarot pack of"
+                            , SoftBreak
+                            , Str
+                                "cards, from which I have obviously departed to suit my own convenience."
+                            , SoftBreak
+                            , Str
+                                "The Hanged Man, a member of the traditional pack, fits my purpose in two"
+                            , SoftBreak
+                            , Str
+                                "ways: because he is associated in my mind with the Hanged God of Frazer,"
+                            , SoftBreak
+                            , Str
+                                "and because I associate him with the hooded figure in the passage of the"
+                            , SoftBreak
+                            , Str
+                                "disciples to Emmaus in Part V. The Phoenician Sailor and the Merchant"
+                            , SoftBreak
+                            , Str
+                                "appear later; also the \"crowds of people,\" and Death by Water is"
+                            , SoftBreak
+                            , Str
+                                "executed in Part IV. The Man with Three Staves (an authentic member of"
+                            , SoftBreak
+                            , Str
+                                "the Tarot pack) I associate, quite arbitrarily, with the Fisher King"
+                            , SoftBreak
+                            , Str "himself."
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -352,6 +432,26 @@
                 ( "wasteland-content.xhtml#ln60" , [] , [] )
                 [ Plain
                     [ Str "Unreal City,"
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "60." ]
+                                ( "#wasteland-content.xhtml#ln60" , "" )
+                            , Str " Cf. Baudelaire:"
+                            ]
+                        , BlockQuote
+                            [ Para
+                                [ Str
+                                    "\"Fourmillante cite;, cite; pleine de reves,"
+                                , LineBreak
+                                , Str "Ou le spectre en"
+                                , SoftBreak
+                                , Str
+                                    "plein jour raccroche le passant.\""
+                                ]
+                            ]
+                        ]
                     , Span ( "" , [ "lnum" ] , [] ) [ Str "60" ]
                     ]
                 ]
@@ -369,12 +469,56 @@
                 ( "wasteland-content.xhtml#ln63" , [] , [] )
                 [ Plain
                     [ Str "I had not thought death had undone so many."
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "63." ]
+                                ( "#wasteland-content.xhtml#ln63" , "" )
+                            , Str " Cf. Inferno, iii. 55-7."
+                            ]
+                        , BlockQuote
+                            [ Para
+                                [ Str "\"si lunga tratta"
+                                , LineBreak
+                                , Str
+                                    "di gente, ch'io non avrei mai creduto"
+                                , LineBreak
+                                , Str "che"
+                                , SoftBreak
+                                , Str "morte tanta n'avesse disfatta.\""
+                                ]
+                            ]
+                        ]
                     ]
                 ]
             , Div
                 ( "wasteland-content.xhtml#ln64" , [] , [] )
                 [ Plain
-                    [ Str "Sighs, short and infrequent, were exhaled," ]
+                    [ Str "Sighs, short and infrequent, were exhaled,"
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "64." ]
+                                ( "#wasteland-content.xhtml#ln64" , "" )
+                            , Str " Cf. Inferno, iv. 25-7:"
+                            ]
+                        , BlockQuote
+                            [ Para
+                                [ Str
+                                    "\"Quivi, secondo che per ascoltahre,"
+                                , LineBreak
+                                , Str "\"non avea pianto, ma' che di"
+                                , SoftBreak
+                                , Str "sospiri,"
+                                , LineBreak
+                                , Str
+                                    "\"che l'aura eterna facevan tremare.\""
+                                ]
+                            ]
+                        ]
+                    ]
                 ]
             , Div
                 ( "" , [] , [] )
@@ -400,6 +544,16 @@
                 [ Plain
                     [ Str
                         "With a dead sound on the final stroke of nine."
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "68." ]
+                                ( "#wasteland-content.xhtml#ln68" , "" )
+                            , Str
+                                " A phenomenon which I have often noticed."
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -447,6 +601,16 @@
                 [ Plain
                     [ Str
                         "\"Oh keep the Dog far hence, that's friend to men,"
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "74." ]
+                                ( "#wasteland-content.xhtml#ln74" , "" )
+                            , Str
+                                " Cf. the Dirge in Webster's White Devil ."
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -465,6 +629,16 @@
                         , Str "mon frere"
                         ]
                     , Str " !\""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "76." ]
+                                ( "#wasteland-content.xhtml#ln76" , "" )
+                            , Str
+                                " V. Baudelaire, Preface to Fleurs du Mal."
+                            ]
+                        ]
                     ]
                 ]
             ]
@@ -479,6 +653,16 @@
                 [ Plain
                     [ Str
                         "The Chair she sat in, like a burnished throne,"
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "77." ]
+                                ( "#wasteland-content.xhtml#ln77" , "" )
+                            , Str
+                                " Cf. Antony and Cleopatra, II. ii., l. 190."
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -562,7 +746,28 @@
                 ]
             , Div
                 ( "wasteland-content.xhtml#ln92" , [] , [] )
-                [ Plain [ Str "Flung their smoke into the laquearia," ]
+                [ Plain
+                    [ Str "Flung their smoke into the laquearia,"
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "92." ]
+                                ( "#wasteland-content.xhtml#ln92" , "" )
+                            , Str " Laquearia. V. Aeneid, I. 726:"
+                            ]
+                        , BlockQuote
+                            [ Para
+                                [ Str
+                                    "dependent lychni laquearibus aureis incensi, et noctem"
+                                , SoftBreak
+                                , Str "flammis"
+                                , LineBreak
+                                , Str "funalia vincunt."
+                                ]
+                            ]
+                        ]
+                    ]
                 ]
             , Div
                 ( "" , [] , [] )
@@ -595,6 +800,16 @@
                 [ Plain
                     [ Str
                         "As though a window gave upon the sylvan scene"
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "98." ]
+                                ( "#wasteland-content.xhtml#ln98" , "" )
+                            , Str
+                                " Sylvan scene. V. Milton, Paradise Lost, iv. 140."
+                            ]
+                        ]
                     ]
                 ]
             , Div
@@ -602,12 +817,33 @@
                 [ Plain
                     [ Str
                         "The change of Philomel, by the barbarous king"
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "99." ]
+                                ( "#wasteland-content.xhtml#ln99" , "" )
+                            , Str
+                                " V. Ovid, Metamorphoses, vi, Philomela."
+                            ]
+                        ]
                     ]
                 ]
             , Div
                 ( "wasteland-content.xhtml#ln100" , [] , [] )
                 [ Plain
                     [ Str "So rudely forced; yet there the nightingale"
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "100." ]
+                                ( "#wasteland-content.xhtml#ln100"
+                                , ""
+                                )
+                            , Str " Cf. Part III, l. 204."
+                            ]
+                        ]
                     , SoftBreak
                     , Span ( "" , [ "lnum" ] , [] ) [ Str "100" ]
                     ]
@@ -702,7 +938,21 @@
                 ( "" , [ "linegroup" ] , [] )
                 [ Div
                     ( "wasteland-content.xhtml#ln115" , [] , [] )
-                    [ Plain [ Str "I think we are in rats' alley" ] ]
+                    [ Plain
+                        [ Str "I think we are in rats' alley"
+                        , Note
+                            [ Para
+                                [ Link
+                                    ( "" , [] , [] )
+                                    [ Str "115." ]
+                                    ( "#wasteland-content.xhtml#ln115"
+                                    , ""
+                                    )
+                                , Str " Cf. Part III, l. 195."
+                                ]
+                            ]
+                        ]
+                    ]
                 , Div
                     ( "" , [] , [] )
                     [ Plain
@@ -717,7 +967,27 @@
                 [ Plain [ Str "\"What is that noise?\"" ] ]
             , Div
                 ( "wasteland-content.xhtml#ln118" , [ "indent" ] , [] )
-                [ Plain [ Str "The wind under the door." ] ]
+                [ Plain
+                    [ Str "The wind under the door."
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "118." ]
+                                ( "#wasteland-content.xhtml#ln118"
+                                , ""
+                                )
+                            , Str " Cf. Webster:"
+                            ]
+                        , BlockQuote
+                            [ Para
+                                [ Str
+                                    "\"Is the wind in that door still?\""
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
             , Div
                 ( "" , [] , [] )
                 [ Plain
@@ -756,6 +1026,17 @@
                 [ Plain
                     [ Str
                         "\"Are you alive, or not? Is there nothing in your head?\""
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "126." ]
+                                ( "#wasteland-content.xhtml#ln126"
+                                , ""
+                                )
+                            , Str " Cf. Part I, l. 37, 48."
+                            ]
+                        ]
                     ]
                 ]
             , Div ( "" , [] , [] ) [ Plain [ Str "But" ] ]
@@ -807,6 +1088,18 @@
                 [ Plain
                     [ Str
                         "Pressing lidless eyes and waiting for a knock upon the door."
+                    , Note
+                        [ Para
+                            [ Link
+                                ( "" , [] , [] )
+                                [ Str "138." ]
+                                ( "#wasteland-content.xhtml#ln138"
+                                , ""
+                                )
+                            , Str
+                                " Cf. the game of chess in Middleton's Women beware Women."
+                            ]
+                        ]
                     ]
                 ]
             ]
@@ -1042,6 +1335,61 @@
                     ]
                 ]
             ]
+        ]
+    ]
+, Div
+    ( "wasteland-content.xhtml#backmatter"
+    , [ "section" , "backmatter" ]
+    , []
+    )
+    [ Div
+        ( "wasteland-content.xhtml#rearnotes"
+        , [ "section" , "rearnotes" ]
+        , []
+        )
+        [ Header
+            2 ( "" , [] , [] ) [ Str "NOTES ON \"THE WASTE LAND\"" ]
+        , Para
+            [ Str
+                "Not only the title, but the plan and a good deal of the incidental symbolism of"
+            , SoftBreak
+            , Str
+                "the poem were suggested by Miss Jessie L. Weston's book on the Grail legend:"
+            , SoftBreak
+            , Str "From Ritual to Romance"
+            ]
+        , Para
+            [ Str
+                "Indeed, so deeply am I indebted, Miss Weston's book will elucidate the"
+            , SoftBreak
+            , Str
+                "difficulties of the poem much better than my notes can do; and I recommend it"
+            , SoftBreak
+            , Str
+                "(apart from the great interest of the book itself) to any who think such"
+            , SoftBreak
+            , Str
+                "elucidation of the poem worth the trouble. To another work of anthropology I am"
+            , SoftBreak
+            , Str
+                "indebted in general, one which has influenced our generation profoundly; I mean"
+            , SoftBreak
+            , Str
+                "The Golden Bough; I have used especially the two volumes Adonis, Attis, Osiris."
+            , SoftBreak
+            , Str
+                "Anyone who is acquainted with these works will immediately recognise in the poem"
+            , SoftBreak
+            , Str "certain references to vegetation ceremonies."
+            ]
+        , Div
+            ( "" , [ "section" ] , [] )
+            [ Header
+                3 ( "" , [] , [] ) [ Str "I. THE BURIAL OF THE DEAD" ]
+            ]
+        , Div
+            ( "" , [ "section" ] , [] )
+            [ Header 3 ( "" , [] , [] ) [ Str "II. A GAME OF CHESS" ] ]
         ]
     ]
 ]
