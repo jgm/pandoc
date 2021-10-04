@@ -348,15 +348,7 @@ instance Default PicProps where
 --------------------------------------------------
 
 inlinesToParElems :: [Inline] -> Pres [ParaElem]
-inlinesToParElems = concatMapM inlineToParElems . consolidateStrs
- where
-  -- we combine Str + Space combinations, because this makes
-  -- the resulting ooxml much more compact, with fewer independent
-  -- text run elements
-  consolidateStrs [] = []
-  consolidateStrs (Str t : Space : ils) = consolidateStrs (Str (t <> " ") : ils)
-  consolidateStrs (Space : Str t : ils) = consolidateStrs (Str (" " <> t) : ils)
-  consolidateStrs (il : ils) = il : consolidateStrs ils
+inlinesToParElems ils = concatMapM inlineToParElems ils
 
 inlineToParElems :: Inline -> Pres [ParaElem]
 inlineToParElems (Str s) = do
