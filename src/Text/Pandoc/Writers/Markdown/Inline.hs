@@ -190,11 +190,11 @@ getReference attr label target = do
                                          (stKeys s) })
                     return lab'
 
+
+
 -- | Convert list of Pandoc inline elements to markdown.
 inlineListToMarkdown :: PandocMonad m => WriterOptions -> [Inline] -> MD m (Doc Text)
-inlineListToMarkdown opts lst = do
-  inlist <- asks envInList
-  go (if inlist then {- TODO avoidBadWrapsInList -} lst else lst)
+inlineListToMarkdown opts = go
   where go [] = return empty
         go (x@Math{}:y@(Str t):zs)
           | T.all isDigit (T.take 1 t) -- starts with digit -- see #7058
@@ -237,28 +237,26 @@ inlineListToMarkdown opts lst = do
                     fmap (iMark <>) (go is)
                 thead = fmap fst . T.uncons
 
-{-
-isSp :: Inline -> Bool
-isSp Space     = True
-isSp SoftBreak = True
-isSp _         = False
+-- Remove breaking spaces that might cause bad wraps.
+avoidBadWraps :: Bool -> Doc Text -> Doc Text
+avoidBadWraps inListItem = go . toList
+ where
+  go [] = mempty
+  go (BreakingSpace : Text len t : xs)
+    = case T.uncons t of
+        Just (c,_)
+          | c == '>'
+             || ((c == '-' || c == '*' || c == '+') && len == 1)
+             || (inListItem && isOrderedListMarker t)
+             || (t == "1." || t == "1)")
+            -> Text (len + 1) (" " <> t) <> go xs
+        _   -> BreakingSpace <> Text len t <> go xs
+  go (x:xs) = x <> go xs
 
-avoidBadWrapsInList :: [Inline] -> [Inline]
-avoidBadWrapsInList [] = []
-avoidBadWrapsInList (s:Str (T.uncons -> Just ('>',cs)):xs) | isSp s =
-  Str (" >" <> cs) : avoidBadWrapsInList xs
-avoidBadWrapsInList [s, Str (T.uncons -> Just (c, cs))]
-  | T.null cs && isSp s && c `elem` ['-','*','+'] = [Str $ T.pack [' ', c]]
-avoidBadWrapsInList (s:Str (T.uncons -> Just (c, cs)):Space:xs)
-  | T.null cs && isSp s && c `elem` ['-','*','+'] =
-    Str (T.pack [' ', c]) : Space : avoidBadWrapsInList xs
-avoidBadWrapsInList (s:Str cs:Space:xs)
-  | isSp s && isOrderedListMarker cs =
-    Str (" " <> cs) : Space : avoidBadWrapsInList xs
-avoidBadWrapsInList [s, Str cs]
-  | isSp s && isOrderedListMarker cs = [Str $ " " <> cs]
-avoidBadWrapsInList (x:xs) = x : avoidBadWrapsInList xs
--}
+  toList (Concat (Concat a b) c) = toList (Concat a (Concat b c))
+  toList (Concat a b) = a : toList b
+  toList x = [x]
+
 
 isOrderedListMarker :: Text -> Bool
 isOrderedListMarker xs = not (T.null xs) && (T.last xs `elem` ['.',')']) &&
@@ -415,6 +413,7 @@ inlineToMarkdown opts (Code attr str) = do
 inlineToMarkdown opts (Str str) = do
   variant <- asks envVariant
   escapeSpaces <- asks envEscapeSpaces
+  inlist <- asks envInList
   let str' = (if escapeSpaces
                  then T.replace " " "\\ "
                  else id) .
@@ -427,7 +426,7 @@ inlineToMarkdown opts (Str str) = do
              (if variant == PlainText
                  then id
                  else escapeText opts) $ str
-  return $ breakable str'
+  return $ avoidBadWraps inlist $ breakable str'
 inlineToMarkdown opts (Math InlineMath str) =
   case writerHTMLMathMethod opts of
        WebTeX url -> inlineToMarkdown opts
