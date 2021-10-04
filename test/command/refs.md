@@ -3,8 +3,7 @@
 Figure \ref{fig:1}
 ^D
 [ Para
-    [ Str "Figure"
-    , Space
+    [ Str "Figure "
     , Link
         ( ""
         , []
@@ -23,8 +22,7 @@ Figure \ref{fig:1}
 Figure \cref{fig:1}
 ^D
 [ Para
-    [ Str "Figure"
-    , Space
+    [ Str "Figure "
     , Link
         ( ""
         , []
@@ -43,8 +41,7 @@ Figure \cref{fig:1}
 Figure \vref{fig:1}
 ^D
 [ Para
-    [ Str "Figure"
-    , Space
+    [ Str "Figure "
     , Link
         ( ""
         , []

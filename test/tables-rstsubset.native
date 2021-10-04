@@ -387,8 +387,7 @@
     (Caption
        Nothing
        [ Plain
-           [ Str "Here\8217s the caption. It may span multiple lines."
-           ]
+           [ Str "Here\8217s the caption. It may span multiple lines." ]
        ])
     [ ( AlignDefault , ColWidth 0.15 )
     , ( AlignDefault , ColWidth 0.1375 )
