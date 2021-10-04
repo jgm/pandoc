@@ -15,9 +15,7 @@ Pandoc
           ]
     }
   [ Header
-      1
-      ( "level-one-header" , [] , [] )
-      [ Str "Level one header" ]
+      1 ( "level-one-header" , [] , [] ) [ Str "Level one header" ]
   , Para
       [ Str
           "This is a set of tests for pandoc. Most of them are adapted from"
@@ -25,9 +23,7 @@ Pandoc
       , Str "John Gruber\8217s markdown test suite."
       ]
   , Header
-      2
-      ( "level-two-header" , [] , [] )
-      [ Str "Level two header" ]
+      2 ( "level-two-header" , [] , [] ) [ Str "Level two header" ]
   , Header 3 ( "level-three" , [] , [] ) [ Str "Level three" ]
   , Header
       4
@@ -56,8 +52,7 @@ Pandoc
   , HorizontalRule
   , Para [ Str "Another:" ]
   , HorizontalRule
-  , Header
-      1 ( "block-quotes" , [] , [] ) [ Str "Block Quotes" ]
+  , Header 1 ( "block-quotes" , [] , [] ) [ Str "Block Quotes" ]
   , Para [ Str "Here\8217s a block quote:" ]
   , BlockQuote
       [ Para
@@ -79,14 +74,10 @@ Pandoc
       , Para [ Str "List in a block quote:" ]
       , OrderedList
           ( 1 , Decimal , Period )
-          [ [ Plain [ Str "item one" ] ]
-          , [ Plain [ Str "item two" ] ]
-          ]
+          [ [ Plain [ Str "item one" ] ] , [ Plain [ Str "item two" ] ] ]
       , Para [ Str "Nested block quotes:" ]
       , BlockQuote
-          [ Para [ Str "nested" ]
-          , BlockQuote [ Para [ Str "nested" ] ]
-          ]
+          [ Para [ Str "nested" ] , BlockQuote [ Para [ Str "nested" ] ] ]
       ]
   , Header 1 ( "code-blocks" , [] , [] ) [ Str "Code Blocks" ]
   , Para [ Str "Code:" ]
@@ -101,8 +92,7 @@ Pandoc
       "this block is indented by two tabs\n\nThese should not be escaped:  \\$ \\\\ \\> \\[ \\{"
   , Para [ Str "And:" ]
   , CodeBlock
-      ( "" , [ "python" ] , [] )
-      "def my_function(x):\n    return x + 1"
+      ( "" , [ "python" ] , [] ) "def my_function(x):\n    return x + 1"
   , Para
       [ Str
           "If we use the highlight directive, we can specify a default language"
@@ -203,9 +193,7 @@ Pandoc
   , BulletList
       [ [ Plain [ Str "Tab" ]
         , BulletList
-            [ [ Plain [ Str "Tab" ]
-              , BulletList [ [ Plain [ Str "Tab" ] ] ]
-              ]
+            [ [ Plain [ Str "Tab" ] , BulletList [ [ Plain [ Str "Tab" ] ] ] ]
             ]
         ]
       ]
@@ -225,9 +213,7 @@ Pandoc
       , [ Para [ Str "Third" ] ]
       ]
   , Header
-      2
-      ( "fancy-list-markers" , [] , [] )
-      [ Str "Fancy list markers" ]
+      2 ( "fancy-list-markers" , [] , [] ) [ Str "Fancy list markers" ]
   , OrderedList
       ( 2 , Decimal , TwoParens )
       [ [ Para [ Str "begins with 2" ] ]
@@ -235,9 +221,7 @@ Pandoc
         , Para [ Str "with a continuation" ]
         , OrderedList
             ( 4 , LowerRoman , Period )
-            [ [ Plain
-                  [ Str "sublist with roman numerals, starting with 4" ]
-              ]
+            [ [ Plain [ Str "sublist with roman numerals, starting with 4" ] ]
             , [ Plain [ Str "more items" ]
               , OrderedList
                   ( 1 , UpperAlpha , TwoParens )
@@ -273,8 +257,7 @@ Pandoc
       [ [ Plain [ Str "Autonumber." ] ]
       , [ Plain [ Str "More." ]
         , OrderedList
-            ( 1 , DefaultStyle , DefaultDelim )
-            [ [ Plain [ Str "Nested." ] ] ]
+            ( 1 , DefaultStyle , DefaultDelim ) [ [ Plain [ Str "Nested." ] ] ]
         ]
       ]
   , Para [ Str "Autonumbering with explicit start:" ]
@@ -283,9 +266,7 @@ Pandoc
       [ [ Plain [ Str "item 1" ] ] , [ Plain [ Str "item 2" ] ] ]
   , Header 2 ( "definition" , [] , [] ) [ Str "Definition" ]
   , DefinitionList
-      [ ( [ Str "term 1" ]
-        , [ [ Para [ Str "Definition 1." ] ] ]
-        )
+      [ ( [ Str "term 1" ] , [ [ Para [ Str "Definition 1." ] ] ] )
       , ( [ Str "term 2" ]
         , [ [ Para [ Str "Definition 2, paragraph 1." ]
             , Para [ Str "Definition 2, paragraph 2." ]
@@ -317,11 +298,7 @@ Pandoc
       [ ( [ Str "address" ] , [ [ Para [ Str "61 Main St." ] ] ] )
       , ( [ Str "city" ]
         , [ [ Para
-                [ Emph [ Str "Nowhere" ]
-                , Str ", MA,"
-                , SoftBreak
-                , Str "USA"
-                ]
+                [ Emph [ Str "Nowhere" ] , Str ", MA," , SoftBreak , Str "USA" ]
             ]
           ]
         )
@@ -338,8 +315,7 @@ Pandoc
   , RawBlock
       (Format "latex")
       "\\begin{tabular}{|l|l|}\\hline\nAnimal & Number \\\\ \\hline\nDog    & 2      \\\\\nCat    & 1      \\\\ \\hline\n\\end{tabular}"
-  , Header
-      1 ( "inline-markup" , [] , [] ) [ Str "Inline Markup" ]
+  , Header 1 ( "inline-markup" , [] , [] ) [ Str "Inline Markup" ]
   , Para
       [ Str "This is "
       , Emph [ Str "emphasized" ]
@@ -368,9 +344,7 @@ Pandoc
       , Str "."
       ]
   , Header
-      1
-      ( "special-characters" , [] , [] )
-      [ Str "Special Characters" ]
+      1 ( "special-characters" , [] , [] ) [ Str "Special Characters" ]
   , Para [ Str "Here is some unicode:" ]
   , BulletList
       [ [ Plain [ Str "I hat: \206" ] ]
@@ -412,11 +386,9 @@ Pandoc
       ]
   , Para
       [ Str "Two anonymous links: "
-      , Link
-          ( "" , [] , [] ) [ Str "the first" ] ( "/url1/" , "" )
+      , Link ( "" , [] , [] ) [ Str "the first" ] ( "/url1/" , "" )
       , Str " and "
-      , Link
-          ( "" , [] , [] ) [ Str "the second" ] ( "/url2/" , "" )
+      , Link ( "" , [] , [] ) [ Str "the second" ] ( "/url2/" , "" )
       ]
   , Para
       [ Str "Reference links: "
@@ -444,8 +416,7 @@ Pandoc
       , Str "."
       ]
   , Para
-      [ Str
-          "Here\8217s a link with an amersand in the link text: "
+      [ Str "Here\8217s a link with an amersand in the link text: "
       , Link ( "" , [] , [] ) [ Str "AT&T" ] ( "/url/" , "" )
       , Str "."
       ]
@@ -471,9 +442,7 @@ Pandoc
       , Str " by Georges Melies (1902):"
       ]
   , Para
-      [ Image
-          ( "" , [] , [] ) [ Str "image" ] ( "lalune.jpg" , "" )
-      ]
+      [ Image ( "" , [] , [] ) [ Str "image" ] ( "lalune.jpg" , "" ) ]
   , Para
       [ Image
           ( "" , [] , [ ( "height" , "2343px" ) ] )
@@ -482,17 +451,14 @@ Pandoc
       ]
   , Para
       [ Str "Here is a movie "
-      , Image
-          ( "" , [] , [] ) [ Str "movie" ] ( "movie.jpg" , "" )
+      , Image ( "" , [] , [] ) [ Str "movie" ] ( "movie.jpg" , "" )
       , Str " icon."
       ]
   , Para
       [ Str "And an "
       , Link
           ( "" , [] , [] )
-          [ Image
-              ( "" , [] , [] ) [ Str "A movie" ] ( "movie.jpg" , "" )
-          ]
+          [ Image ( "" , [] , [] ) [ Str "A movie" ] ( "movie.jpg" , "" ) ]
           ( "/url" , "" )
       , Str "."
       ]
@@ -514,8 +480,7 @@ Pandoc
       , [ Str "Continuation line" ]
       , [ Str "\160\160and another" ]
       ]
-  , Header
-      1 ( "simple-tables" , [] , [] ) [ Str "Simple Tables" ]
+  , Header 1 ( "simple-tables" , [] , [] ) [ Str "Simple Tables" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -608,24 +573,9 @@ Pandoc
          ( "" , [] , [] )
          [ Row
              ( "" , [] , [] )
-             [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 []
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 []
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 []
+             [ Cell ( "" , [] , [] ) AlignDefault (RowSpan 1) (ColSpan 1) []
+             , Cell ( "" , [] , [] ) AlignDefault (RowSpan 1) (ColSpan 1) []
+             , Cell ( "" , [] , [] ) AlignDefault (RowSpan 1) (ColSpan 1) []
              ]
          ])
       [ TableBody
@@ -927,20 +877,15 @@ Pandoc
   , Para [ Note [ Para [ Str "Note with one line." ] ] ]
   , Para
       [ Note
-          [ Para
-              [ Str "Note with" , SoftBreak , Str "continuation line." ]
-          ]
+          [ Para [ Str "Note with" , SoftBreak , Str "continuation line." ] ]
       ]
   , Para
       [ Note
-          [ Para [ Str "Note with" ]
-          , Para [ Str "continuation block." ]
-          ]
+          [ Para [ Str "Note with" ] , Para [ Str "continuation block." ] ]
       ]
   , Para
       [ Note
-          [ Para
-              [ Str "Note with" , SoftBreak , Str "continuation line" ]
+          [ Para [ Str "Note with" , SoftBreak , Str "continuation line" ]
           , Para [ Str "and a second para." ]
           ]
       ]
@@ -966,12 +911,9 @@ Pandoc
       , Math DisplayMath "F &= \\gamma \\alpha^2"
       ]
   , Para [ Str "All done." ]
-  , Header
-      1 ( "default-role" , [] , [] ) [ Str "Default-Role" ]
+  , Header 1 ( "default-role" , [] , [] ) [ Str "Default-Role" ]
   , Para
-      [ Str
-          "Try changing the default role to a few different things."
-      ]
+      [ Str "Try changing the default role to a few different things." ]
   , Header
       2
       ( "doesnt-break-title-parsing" , [] , [] )
@@ -992,9 +934,7 @@ Pandoc
       , Str "."
       ]
   , Para
-      [ Math DisplayMath "\\alpha = beta"
-      , Math DisplayMath "E = mc^2"
-      ]
+      [ Math DisplayMath "\\alpha = beta" , Math DisplayMath "E = mc^2" ]
   , Para
       [ Str "Some "
       , Superscript [ Str "of" ]
@@ -1008,15 +948,13 @@ Pandoc
   , Para
       [ Str "And now "
       , Span
-          ( "" , [ "title-ref" ] , [] )
-          [ Str "some-invalid-string-3231231" ]
+          ( "" , [ "title-ref" ] , [] ) [ Str "some-invalid-string-3231231" ]
       , Str " is nonsense."
       ]
   , Para
       [ Str "And now with "
       , RawInline
-          (Format "html")
-          "<b>inline</b> <span id=\"test\">HTML</span>"
+          (Format "html") "<b>inline</b> <span id=\"test\">HTML</span>"
       , Str "."
       ]
   , Para
@@ -1033,8 +971,7 @@ Pandoc
       ]
   , Para
       [ Str "Different indirect C "
-      , Code
-          ( "" , [ "c" , "different-indirect" ] , [] ) "int x = 15;"
+      , Code ( "" , [ "c" , "different-indirect" ] , [] ) "int x = 15;"
       , Str "."
       ]
   , Header

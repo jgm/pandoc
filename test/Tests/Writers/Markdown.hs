@@ -232,7 +232,7 @@ shortcutLinkRefsTests =
                       ]
      , "Reference link is followed by space and text in brackets"
           =:  para (link "/url" "" "link" <> " [text in brackets]")
-          =?> unlines [ "[link][] \\[text in brackets\\]"
+          =?> unlines [ "[link] \\[text in brackets\\]"
                       , ""
                       , "  [link]: /url"
                       ]
