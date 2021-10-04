@@ -15,7 +15,7 @@ extra-deps:
 - git: https://github.com/jgm/pandoc-types.git
   commit: 39048c9be4922771b378154f72557a5a57739d37
 - git: https://github.com/jgm/commonmark-hs.git
-  commit: bb866b569618f7a9c12579f608116bf60010c9ac
+  commit: 8d243cdf67ee673a09ceab26948422d784796859
   subdirs:
   - commonmark-pandoc
 - git: https://github.com/jgm/citeproc.git
