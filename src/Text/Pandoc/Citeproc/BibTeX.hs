@@ -1100,8 +1100,12 @@ getLiteralList' f = do
 
 splitByAnd :: [Inline] -> [Inlines]
 splitByAnd =
-  map B.fromList . splitWhen (== Str " and ") . foldr splitOnAnd []
+  map B.fromList . splitWhen (== Str " and ") . foldr splitOnAnd [] .
+    normalize . map softBreakToSpace
  where
+  normalize = B.toList . mconcat . map B.singleton
+  softBreakToSpace SoftBreak = Str " "
+  softBreakToSpace x = x
   splitOnAnd (Str t) =
     (intersperse (Str " and ") (map Str (T.splitOn " and " t)) ++)
   splitOnAnd x = (x :)
