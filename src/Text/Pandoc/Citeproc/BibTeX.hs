@@ -49,7 +49,7 @@ import qualified Data.Sequence          as Seq
 import           Data.Char              (isAlphaNum, isDigit, isLetter,
                                          isUpper, toLower, toUpper,
                                          isLower, isPunctuation)
-import           Data.List              (foldl', intercalate, intersperse)
+import           Data.List              (foldl', intersperse)
 import           Safe                   (readMay)
 import           Text.Printf            (printf)
 import           Text.DocLayout         (literal, hsep, nest, hang, Doc(..),
@@ -1088,22 +1088,27 @@ getLiteralList' f = do
       x' <- latex' x
       case x' of
         [Para xs]  ->
-          return $ B.fromList
-                 $ intercalate [Str "; "]
+          return $ mconcat
+                 $ intersperse (B.str "; ")
                  $ splitByAnd xs
         [Plain xs] ->
-          return $ B.fromList
-                 $ intercalate [Str "; "]
+          return $ mconcat
+                 $ intersperse (B.str "; ")
                  $ splitByAnd xs
         _          -> mzero
     Nothing   -> notFound f
 
-splitByAnd :: [Inline] -> [[Inline]]
-splitByAnd = splitOn [Str " and "]
+splitByAnd :: [Inline] -> [Inlines]
+splitByAnd =
+  map B.fromList . splitWhen (== Str " and ") . foldr splitOnAnd []
+ where
+  splitOnAnd (Str t) =
+    (intersperse (Str " and ") (map Str (T.splitOn " and " t)) ++)
+  splitOnAnd x = (x :)
 
 toLiteralList :: [Block] -> Bib [Inlines]
 toLiteralList [Para xs] =
-  return $ map B.fromList $ splitByAnd xs
+  return $ splitByAnd xs
 toLiteralList [Plain xs] = toLiteralList [Para xs]
 toLiteralList _ = mzero
 
@@ -1132,8 +1137,9 @@ getNameList opts  f = do
 
 toNameList :: Options -> [Block] -> Bib [Name]
 toNameList opts [Para xs] =
-  filter (/= emptyName) <$> mapM (toName opts . addSpaceAfterPeriod)
-                                    (splitByAnd xs)
+  filter (/= emptyName) <$>
+    mapM (toName opts . addSpaceAfterPeriod . B.toList)
+         (splitByAnd xs)
 toNameList opts [Plain xs] = toNameList opts [Para xs]
 toNameList _ _ = mzero
 
