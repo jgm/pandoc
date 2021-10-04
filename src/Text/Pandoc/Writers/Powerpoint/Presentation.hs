@@ -348,7 +348,7 @@ instance Default PicProps where
 --------------------------------------------------
 
 inlinesToParElems :: [Inline] -> Pres [ParaElem]
-inlinesToParElems ils = concatMapM inlineToParElems ils
+inlinesToParElems = concatMapM inlineToParElems
 
 inlineToParElems :: Inline -> Pres [ParaElem]
 inlineToParElems (Str s) = do
