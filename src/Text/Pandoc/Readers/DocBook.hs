@@ -19,7 +19,7 @@ import Data.Foldable (asum)
 import Data.Generics
 import Data.List (intersperse,elemIndex)
 import Data.List.NonEmpty (nonEmpty)
-import Data.Maybe (fromMaybe,mapMaybe)
+import Data.Maybe (catMaybes,fromMaybe,mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -1079,6 +1079,17 @@ elementToStr :: Content -> Content
 elementToStr (Elem e') = Text $ CData CDataText (strContentRecursive e') Nothing
 elementToStr x = x
 
+indextermNaryTextAsAttr :: Text -> Element -> Maybe (Text, Text)
+indextermNaryTextAsAttr n e = case findChild q e of
+        Nothing -> Nothing
+        Just naryEl -> Just (n, (strContent naryEl))
+        where q = QName n (Just "http://docbook.org/ns/docbook") Nothing
+
+attrValueAsOptionalAttr :: Text -> Element -> Maybe (Text, Text)
+attrValueAsOptionalAttr n e = case attrValue n e of
+        "" -> Nothing
+        _ -> Just (n, attrValue n e)
+
 parseInline :: PandocMonad m => Content -> DB m Inlines
 parseInline (Text (CData _ s _)) = return $ text s
 parseInline (CRef ref) =
@@ -1093,6 +1104,19 @@ parseInline (Elem e) =
           if ident /= "" || classes /= []
             then innerInlines (spanWith (ident,classes,[]))
             else innerInlines id
+        "indexterm" -> do
+          let ident = attrValue "id" e
+          let classes = T.words $ attrValue "role" e
+          let attrs =
+                [ indextermNaryTextAsAttr "primary" e
+                , indextermNaryTextAsAttr "secondary" e
+                , indextermNaryTextAsAttr "tertiary" e
+                , attrValueAsOptionalAttr "significance" e
+                , attrValueAsOptionalAttr "startref" e
+                , attrValueAsOptionalAttr "scope" e
+                , attrValueAsOptionalAttr "class" e
+                ]
+          return $ spanWith (ident, ("indexterm" : classes), (catMaybes attrs)) mempty
         "equation" -> equation e displayMath
         "informalequation" -> equation e displayMath
         "inlineequation" -> equation e math
