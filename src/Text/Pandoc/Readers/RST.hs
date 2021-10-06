@@ -2,6 +2,8 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE DeriveAnyClass      #-}
 {- |
    Module      : Text.Pandoc.Readers.RST
    Copyright   : Copyright (C) 2006-2021 John MacFarlane
@@ -39,9 +41,41 @@ import Text.Pandoc.Shared
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Time.Format
 import System.FilePath (takeDirectory)
+import Control.Monad.Trans (lift)
+import Control.Monad.State (StateT, modify, runStateT)
+import Control.Monad.Reader (ReaderT, ask, runReaderT, local)
+import qualified Data.Set as Set
+import Data.Default (Default)
+import GHC.Generics (Generic)
 
 -- TODO:
 -- [ ] .. parsed-literal
+
+type WithOracle s m = StateT s (ReaderT s m)
+
+withOracle :: Monad m => WithOracle s m a -> s -> m a
+withOracle action startingState = do
+  let r = runStateT action startingState
+  fst <$> runReaderT (do (_, st) <- r
+                         local (const st) r) startingState
+
+
+updateOracle :: Monad m => (a -> a) -> ParserT s u (WithOracle a m) ()
+updateOracle f = lift $ modify f
+
+askOracle :: Monad m => ParserT s u (WithOracle a m) a
+askOracle = lift ask
+
+data Oracle =
+  Oracle
+  { oracleNotes :: M.Map Text Blocks
+  , oracleKeys  :: M.Map Key (Target, Attr)
+  , oracleSubstitutions :: M.Map Key Inlines
+  , oracleIdentifiers :: Set.Set Text
+  , oracleCitations :: M.Map Text Text }
+  deriving (Show, Default, Generic)
+
+type RSTParser m = ParserT Sources ParserState (WithOracle Oracle m)
 
 -- | Parse reStructuredText string and return Pandoc document.
 readRST :: (PandocMonad m, ToSources a)
@@ -49,13 +83,16 @@ readRST :: (PandocMonad m, ToSources a)
         -> a
         -> m Pandoc
 readRST opts s = do
-  parsed <- readWithM parseRST def{ stateOptions = opts }
-               (ensureFinalNewlines 2 (toSources s))
+  let sources = ensureFinalNewlines 2 $ toSources s
+  parsed <- withOracle (runParserT
+                          parseRST
+                          def{ stateOptions = opts }
+                          (initialSourceName sources)
+                          sources) def
   case parsed of
     Right result -> return result
-    Left e       -> throwError e
+    Left e       -> throwError $ PandocParsecError sources e
 
-type RSTParser m = ParserT Sources ParserState m
 
 --
 -- Constants and data structure definitions
@@ -146,24 +183,17 @@ metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
 
 parseRST :: PandocMonad m => RSTParser m Pandoc
 parseRST = do
-  optional blanklines -- skip blank lines at beginning of file
-  startPos <- getPosition
-  -- go through once just to get list of reference keys and notes
-  -- docMinusKeys is the raw document with blanks where the keys were...
-  let chunk = referenceKey
-              <|> anchorDef
+  let chunk = anchorDef
               <|> noteBlock
               <|> citationBlock
               <|> (snd <$> withRaw comment)
               <|> headerBlock
               <|> lineClump
-  docMinusKeys <- Sources <$>
-                  manyTill (do pos <- getPosition
-                               t <- chunk
-                               return (pos, t)) eof
-  -- UGLY: we collapse source position information.
-  -- TODO: fix the parser to use the F monad instead of two passes
-  setInput docMinusKeys
+  startPos <- getPosition
+  oldInput <- getInput
+  optional blanklines -- skip blank lines at beginning of file
+  _ <- manyTill chunk eof
+  setInput oldInput
   setPosition startPos
   st' <- getState
   let reversedNotes = stateNotes st'
@@ -212,6 +242,7 @@ block = choice [ codeBlock
                , table
                , list
                , lhsCodeBlock
+               , referenceKey
                , para
                , mempty <$ blanklines
                ] <?> "block"
@@ -1096,14 +1127,11 @@ simpleReferenceName = do
 referenceName :: PandocMonad m => RSTParser m Text
 referenceName = quotedReferenceName <|> simpleReferenceName
 
-referenceKey :: PandocMonad m => RSTParser m Text
+referenceKey :: PandocMonad m => RSTParser m Blocks
 referenceKey = do
-  startPos <- getPosition
   choice [substKey, anonymousKey, regularKey]
   optional blanklines
-  endPos <- getPosition
-  -- return enough blanks to replace key
-  return $ T.replicate (sourceLine endPos - sourceLine startPos) "\n"
+  return mempty
 
 targetURI :: Monad m => ParserT Sources st m Text
 targetURI = do
@@ -1136,8 +1164,8 @@ substKey = try $ do
              [Para ils] -> return $ B.fromList ils
              _          -> mzero
   let key = toKey $ stripFirstAndLast ref
-  updateState $ \s -> s{ stateSubstitutions =
-                          M.insert key il $ stateSubstitutions s }
+  updateOracle $ \o -> o{ oracleSubstitutions =
+                          M.insert key il $ oracleSubstitutions o }
 
 anonymousKey :: Monad m => RSTParser m ()
 anonymousKey = try $ do
@@ -1145,10 +1173,10 @@ anonymousKey = try $ do
   src <- targetURI
   -- we need to ensure that the keys are ordered by occurrence in
   -- the document.
-  numKeys <- M.size . stateKeys <$> getState
+  numKeys <- M.size . oracleKeys <$> askOracle
   let key = toKey $ "_" <> T.pack (show numKeys)
-  updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
-                          stateKeys s }
+  updateOracle $ \o -> o{ oracleKeys = M.insert key ((src,""), nullAttr) $
+                          oracleKeys o }
 
 referenceNames :: PandocMonad m => RSTParser m [Text]
 referenceNames = do
@@ -1178,8 +1206,8 @@ regularKey = try $ do
   guard $ not (T.null src)
   let keys = map toKey refs
   forM_ keys $ \key ->
-    updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
-                            stateKeys s }
+    updateOracle $ \o -> o{ oracleKeys = M.insert key ((src,""), nullAttr) $
+                            oracleKeys o }
 
 anchorDef :: PandocMonad m => RSTParser m Text
 anchorDef = try $ do
@@ -1553,8 +1581,7 @@ referenceLink = try $ do
   let label' = B.text ref
   let isAnonKey (Key (T.uncons -> Just ('_',_))) = True
       isAnonKey _                                = False
-  state <- getState
-  let keyTable = stateKeys state
+  keyTable <- oracleKeys <$> askOracle
   key <- option (toKey ref) $
                 do char '_'
                    let anonKeys = sort $ filter isAnonKey $ M.keys keyTable
@@ -1563,8 +1590,9 @@ referenceLink = try $ do
                         (k:_) -> return k
   ((src,tit), attr) <- lookupKey [] key
   -- if anonymous link, remove key so it won't be used again
-  when (isAnonKey key) $ updateState $ \s ->
-                          s{ stateKeys = M.delete key keyTable }
+  -- TODO FIXME how to deal with this?
+  -- when (isAnonKey key) $ updateState $ \s ->
+  --                         s{ stateKeys = M.delete key keyTable }
   return $ B.linkWith attr src tit label'
 
 -- We keep a list of oldkeys so we can detect lookup loops.
@@ -1606,8 +1634,7 @@ autoLink = autoURI <|> autoEmail
 subst :: PandocMonad m => RSTParser m Inlines
 subst = try $ do
   (_,ref) <- withRaw $ enclosed (char '|') (char '|') inline
-  state <- getState
-  let substTable = stateSubstitutions state
+  substTable <- oracleSubstitutions <$> askOracle
   let key = toKey $ stripFirstAndLast ref
   case M.lookup key substTable of
        Nothing     -> do
