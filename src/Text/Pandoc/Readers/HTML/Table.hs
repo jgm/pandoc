@@ -16,7 +16,7 @@ HTML table parser.
 module Text.Pandoc.Readers.HTML.Table (pTable) where
 
 import Control.Applicative ((<|>))
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isJust)
 import Data.Either (lefts, rights)
 import Data.List.NonEmpty (nonEmpty)
 import Data.Text (Text)
@@ -27,12 +27,13 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Parsing
   ( eof, lookAhead, many, many1, manyTill, option, optional
-  , optionMaybe, skipMany, try)
+  , optionMaybe, skipMany, try )
 import Text.Pandoc.Readers.HTML.Parsing
 import Text.Pandoc.Readers.HTML.Types (TagParser)
 import Text.Pandoc.Shared (onlySimpleTableCells, safeRead)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
+import Control.Monad (guard)
 
 -- | Parses a @<col>@ element, returning the column's width.
 -- An Either value is used:  Left i means a "relative length" with
@@ -183,11 +184,13 @@ pTableBody :: PandocMonad m
            -> TagParser m TableBody
 pTableBody block = try $ do
   skipMany pBlank
-  attribs <- option [] $ getAttribs <$> pSatisfy (matchTagOpen "tbody" [])
-             <* skipMany pBlank
+  mbattribs <- option Nothing $ Just . getAttribs <$>
+                 pSatisfy (matchTagOpen "tbody" []) <* skipMany pBlank
   bodyheads <- many (pHeaderRow block)
-  (rowheads, rows) <- unzip <$> many1 (pRow block <* skipMany pBlank)
+  (rowheads, rows) <- unzip <$> many (pRow block <* skipMany pBlank)
   optional $ pSatisfy (matchTagClose "tbody")
+  guard $ isJust mbattribs || not (null bodyheads && null rows)
+  let attribs = fromMaybe [] mbattribs
   return $ TableBody (toAttr attribs) (foldr max 0 rowheads) bodyheads rows
   where
     getAttribs (TagOpen _ attribs) = attribs

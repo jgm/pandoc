@@ -102,7 +102,6 @@ isRawFormat f =
 blockToOrg :: PandocMonad m
            => Block         -- ^ Block element
            -> Org m (Doc Text)
-blockToOrg Null = return empty
 blockToOrg (Div attr bs) = divToOrg attr bs
 blockToOrg (Plain inlines) = inlineListToOrg inlines
 -- title beginning with fig: indicates that the image is a figure

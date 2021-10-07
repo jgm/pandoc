@@ -6,6 +6,11 @@
 \h{b}
 ^D
 [ Para
-  [ Emph [ Str "no" ], SoftBreak, Str "\225", SoftBreak, Str "b" ]
+    [ Emph [ Str "no" ]
+    , SoftBreak
+    , Str "\225"
+    , SoftBreak
+    , Str "b"
+    ]
 ]
 ```

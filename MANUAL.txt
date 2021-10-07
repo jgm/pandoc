@@ -2189,7 +2189,7 @@ Currently the following pipes are predefined:
     and AsciiDoc metadata; repeat as for `author`, above
 
 `subject`
-:   document subject, included in ODT, PDF, docx and pptx metadata
+:   document subject, included in ODT, PDF, docx, EPUB, and pptx metadata
 
 `description`
 :   document description, included in ODT, docx and pptx metadata. Some
@@ -3749,8 +3749,8 @@ or two spaces.
 A term may have multiple definitions, and each definition may
 consist of one or more block elements (paragraph, code block,
 list, etc.), each indented four spaces or one tab stop.  The
-body of the definition (including the first line, aside from the
-colon or tilde) should be indented four spaces. However, as with
+body of the definition (not including the first line)
+should be indented four spaces. However, as with
 other Markdown lists, you can "lazily" omit indentation except
 at the beginning of a paragraph or other block element:
 
@@ -6189,7 +6189,12 @@ The following fields are recognized:
     language if nothing is specified.
 
 `subject`
-  ~ A string value or a list of such values.
+  ~ Either a string value, or an object with fields `text`, `authority`,
+    and `term`, or a list of such objects. Valid values for `authority`
+    are either a [reserved authority value] (currently `AAT`, `BIC`,
+    `BISAC`, `CLC`, `DDC`, `CLIL`, `EuroVoc`, `MEDTOP`, `LCSH`, `NDC`,
+    `Thema`, `UDC`, and `WGS`) or an absolute IRI identifying a custom
+    scheme. Valid values for `term` are defined by the scheme.
 
 `description`
   ~ A string value.
@@ -6239,6 +6244,7 @@ The following fields are recognized:
     - `scroll-axis`: `vertical`|`horizontal`|`default`
 
 [MARC relators]: https://loc.gov/marc/relators/relaterm.html
+[reserved authority value]: https://idpf.github.io/epub-registries/authorities/
 [`spine` element]: http://idpf.org/epub/301/spec/epub-publications.html#sec-spine-elem
 
 ## The `epub:type` attribute
@@ -6278,6 +6284,7 @@ halftitlepage                     frontmatter
 seriespage                        frontmatter
 foreword                          frontmatter
 preface                           frontmatter
+frontispiece                      frontmatter
 appendix                          backmatter
 colophon                          backmatter
 bibliography                      backmatter

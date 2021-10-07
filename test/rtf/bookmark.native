@@ -1,11 +1,11 @@
 Pandoc
-  ( Meta { unMeta = fromList [] } )
+  Meta { unMeta = fromList [] }
   [ Para
-    [ Span ( "bookmark_1", [], [] ) [ Str "Bookmark_1" ] ]
+      [ Span ( "bookmark_1" , [] , [] ) [ Str "Bookmark_1" ] ]
   , Para
-    [ Link
-      ( "", [], [] )
-      [ Str "click", Space, Str "me" ]
-      ( "#bookmark_1", "" )
-    ]
+      [ Link
+          ( "" , [] , [] )
+          [ Str "click" , Space , Str "me" ]
+          ( "#bookmark_1" , "" )
+      ]
   ]

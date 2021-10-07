@@ -322,6 +322,7 @@ data ParPart = PlainRun Run
              | ExternalHyperLink URL [Run]
              | Drawing FilePath T.Text T.Text B.ByteString Extent -- title, alt
              | Chart                                              -- placeholder for now
+             | Diagram                                            -- placeholder for now
              | PlainOMath [Exp]
              | Field FieldInfo [Run]
              | NullParPart      -- when we need to return nothing, but
@@ -333,6 +334,7 @@ data Run = Run RunStyle [RunElem]
          | Endnote [BodyPart]
          | InlineDrawing FilePath T.Text T.Text B.ByteString Extent -- title, alt
          | InlineChart          -- placeholder
+         | InlineDiagram        -- placeholder
            deriving Show
 
 data RunElem = TextRun T.Text | LnBrk | Tab | SoftHyphen | NoBreakHyphen
@@ -821,6 +823,13 @@ elemToParPart ns element
   , Just imagedataElem <- findChildByName ns "v" "imagedata" shapeElem
   , Just drawingId <- findAttrByName ns "r" "id" imagedataElem
   = expandDrawingId drawingId >>= (\(fp, bs) -> return $ Drawing fp "" "" bs Nothing)
+-- Diagram
+elemToParPart ns element
+  | isElem ns "w" "r" element
+  , Just drawingElem <- findChildByName ns "w" "drawing" element
+  , d_ns <- "http://schemas.openxmlformats.org/drawingml/2006/diagram"
+  , Just _ <- findElement (QName "relIds" (Just d_ns) (Just "dgm")) drawingElem
+  = return Diagram
 -- Chart
 elemToParPart ns element
   | isElem ns "w" "r" element
@@ -987,6 +996,11 @@ childElemToRun ns element
   , c_ns <- "http://schemas.openxmlformats.org/drawingml/2006/chart"
   , Just _ <- findElement (QName "chart" (Just c_ns) (Just "c")) element
   = return InlineChart
+childElemToRun ns element
+  | isElem ns "w" "drawing" element
+  , c_ns <- "http://schemas.openxmlformats.org/drawingml/2006/diagram"
+  , Just _ <- findElement (QName "relIds" (Just c_ns) (Just "dgm")) element
+  = return InlineDiagram
 childElemToRun ns element
   | isElem ns "w" "footnoteReference" element
   , Just fnId <- findAttrByName ns "w" "id" element = do

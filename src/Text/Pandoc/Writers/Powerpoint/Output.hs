@@ -1088,6 +1088,12 @@ makePicElements layout picProps mInfo titleText alt = do
             return [picShape, cap]
     else return [picShape]
 
+consolidateRuns :: [ParaElem] -> [ParaElem]
+consolidateRuns [] = []
+consolidateRuns (Run pr1 s1 : Run pr2 s2 : xs)
+  | pr1 == pr2 = consolidateRuns (Run pr1 (s1 <> s2) : xs)
+consolidateRuns (x:xs) = x : consolidateRuns xs
+
 
 paraElemToElements :: PandocMonad m => ParaElem -> P m [Content]
 paraElemToElements Break = return [Elem $ mknode "a:br" [] ()]
@@ -1223,9 +1229,8 @@ paragraphToElement par = do
                  [mknode "a:buAutoNum" (autoNumAttrs attrs') ()]
                Nothing -> [mknode "a:buNone" [] ()]
             )
-  paras <- mapM paraElemToElements (paraElems par)
-  return $ mknode "a:p" [] $
-    [Elem $ mknode "a:pPr" attrs props] <> concat paras
+  paras <- mconcat <$> mapM paraElemToElements (consolidateRuns (paraElems par))
+  return $ mknode "a:p" [] $ [Elem $ mknode "a:pPr" attrs props] <> paras
 
 shapeToElement :: PandocMonad m => Element -> Shape -> P m (Maybe ShapeId, Element)
 shapeToElement layout (TextBox paras)

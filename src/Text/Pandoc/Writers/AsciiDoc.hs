@@ -140,7 +140,6 @@ blockToAsciiDoc :: PandocMonad m
                 => WriterOptions -- ^ Options
                 -> Block         -- ^ Block element
                 -> ADW m (Doc Text)
-blockToAsciiDoc _ Null = return empty
 blockToAsciiDoc opts (Div (id',"section":_,_)
                        (Header level (_,cls,kvs) ils : xs)) = do
   hdr <- blockToAsciiDoc opts (Header level (id',cls,kvs) ils)

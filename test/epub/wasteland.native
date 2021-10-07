@@ -1,3509 +1,3493 @@
 [ Para
-  [ Image ( "", [], [] ) [] ( "wasteland-cover.jpg", "" ) ]
-, Para
-  [ Span ( "wasteland-content.xhtml", [], [] ) [] ]
+    [ Image ( "" , [] , [] ) [] ( "wasteland-cover.jpg" , "" ) ]
+, Para [ Span ( "wasteland-content.xhtml" , [] , [] ) [] ]
 , Div
-  ( "wasteland-content.xhtml#frontmatter"
-  ,
-    [ "section", "frontmatter" ]
-  , []
-  ) []
+    ( "wasteland-content.xhtml#frontmatter"
+    , [ "section" , "frontmatter" ]
+    , []
+    )
+    []
 , Div
-  ( "wasteland-content.xhtml#bodymatter"
-  ,
-    [ "section", "bodymatter" ]
-  , []
-  )
-  [ Div
-    ( "wasteland-content.xhtml#ch1", [ "section" ], [] )
-    [ Header 2
-      ( "", [], [] )
-      [ Str "I."
-      , Space
-      , Str "THE"
-      , Space
-      , Str "BURIAL"
-      , Space
-      , Str "OF"
-      , Space
-      , Str "THE"
-      , Space
-      , Str "DEAD"
-      ]
+    ( "wasteland-content.xhtml#bodymatter"
+    , [ "section" , "bodymatter" ]
+    , []
+    )
+    [ Div
+        ( "wasteland-content.xhtml#ch1" , [ "section" ] , [] )
+        [ Header
+            2
+            ( "" , [] , [] )
+            [ Str "I."
+            , Space
+            , Str "THE"
+            , Space
+            , Str "BURIAL"
+            , Space
+            , Str "OF"
+            , Space
+            , Str "THE"
+            , Space
+            , Str "DEAD"
+            ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "April"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "cruellest"
+                    , Space
+                    , Str "month,"
+                    , Space
+                    , Str "breeding"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Lilacs"
+                    , Space
+                    , Str "out"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "dead"
+                    , Space
+                    , Str "land,"
+                    , Space
+                    , Str "mixing"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Memory"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "desire,"
+                    , Space
+                    , Str "stirring"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Dull"
+                    , Space
+                    , Str "roots"
+                    , Space
+                    , Str "with"
+                    , Space
+                    , Str "spring"
+                    , Space
+                    , Str "rain."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Winter"
+                    , Space
+                    , Str "kept"
+                    , Space
+                    , Str "us"
+                    , Space
+                    , Str "warm,"
+                    , Space
+                    , Str "covering"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Earth"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "forgetful"
+                    , Space
+                    , Str "snow,"
+                    , Space
+                    , Str "feeding"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "A"
+                    , Space
+                    , Str "little"
+                    , Space
+                    , Str "life"
+                    , Space
+                    , Str "with"
+                    , Space
+                    , Str "dried"
+                    , Space
+                    , Str "tubers."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Summer"
+                    , Space
+                    , Str "surprised"
+                    , Space
+                    , Str "us,"
+                    , Space
+                    , Str "coming"
+                    , Space
+                    , Str "over"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "Starnbergersee"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "With"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "shower"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "rain;"
+                    , Space
+                    , Str "we"
+                    , Space
+                    , Str "stopped"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "colonnade,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "went"
+                    , Space
+                    , Str "on"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "sunlight,"
+                    , Space
+                    , Str "into"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "Hofgarten,"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "10" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "drank"
+                    , Space
+                    , Str "coffee,"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "talked"
+                    , Space
+                    , Str "for"
+                    , Space
+                    , Str "an"
+                    , Space
+                    , Str "hour."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [ ( "lang" , "de" ) ] )
+                [ Plain
+                    [ Str "Bin"
+                    , Space
+                    , Str "gar"
+                    , Space
+                    , Str "keine"
+                    , Space
+                    , Str "Russin,"
+                    , Space
+                    , Str "stamm'"
+                    , Space
+                    , Str "aus"
+                    , Space
+                    , Str "Litauen,"
+                    , Space
+                    , Str "echt"
+                    , SoftBreak
+                    , Str "deutsch."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "when"
+                    , Space
+                    , Str "we"
+                    , Space
+                    , Str "were"
+                    , Space
+                    , Str "children,"
+                    , Space
+                    , Str "staying"
+                    , Space
+                    , Str "at"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "archduke's,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "My"
+                    , Space
+                    , Str "cousin's,"
+                    , Space
+                    , Str "he"
+                    , Space
+                    , Str "took"
+                    , Space
+                    , Str "me"
+                    , Space
+                    , Str "out"
+                    , Space
+                    , Str "on"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "sled,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "was"
+                    , Space
+                    , Str "frightened."
+                    , Space
+                    , Str "He"
+                    , Space
+                    , Str "said,"
+                    , Space
+                    , Str "Marie,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Marie,"
+                    , Space
+                    , Str "hold"
+                    , Space
+                    , Str "on"
+                    , Space
+                    , Str "tight."
+                    , Space
+                    , Str "And"
+                    , Space
+                    , Str "down"
+                    , Space
+                    , Str "we"
+                    , Space
+                    , Str "went."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "In"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "mountains,"
+                    , Space
+                    , Str "there"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "feel"
+                    , Space
+                    , Str "free."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "I"
+                    , Space
+                    , Str "read,"
+                    , Space
+                    , Str "much"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "night,"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "go"
+                    , Space
+                    , Str "south"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "winter."
+                    ]
+                ]
+            ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "What"
+                    , Space
+                    , Str "are"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "roots"
+                    , Space
+                    , Str "that"
+                    , Space
+                    , Str "clutch,"
+                    , Space
+                    , Str "what"
+                    , Space
+                    , Str "branches"
+                    , Space
+                    , Str "grow"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln20" , [] , [] )
+                [ Plain
+                    [ Str "Out"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "this"
+                    , Space
+                    , Str "stony"
+                    , Space
+                    , Str "rubbish?"
+                    , Space
+                    , Str "Son"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "man,"
+                    , Str ""
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "20" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "You"
+                    , Space
+                    , Str "cannot"
+                    , Space
+                    , Str "say,"
+                    , Space
+                    , Str "or"
+                    , Space
+                    , Str "guess,"
+                    , Space
+                    , Str "for"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "know"
+                    , Space
+                    , Str "only"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "A"
+                    , Space
+                    , Str "heap"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "broken"
+                    , Space
+                    , Str "images,"
+                    , Space
+                    , Str "where"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "sun"
+                    , Space
+                    , Str "beats,"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln23" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "dead"
+                    , Space
+                    , Str "tree"
+                    , Space
+                    , Str "gives"
+                    , Space
+                    , Str "no"
+                    , Space
+                    , Str "shelter,"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "cricket"
+                    , Space
+                    , Str "no"
+                    , Space
+                    , Str "relief,"
+                    , Str ""
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "dry"
+                    , Space
+                    , Str "stone"
+                    , Space
+                    , Str "no"
+                    , Space
+                    , Str "sound"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "water."
+                    , Space
+                    , Str "Only"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "There"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "shadow"
+                    , Space
+                    , Str "under"
+                    , Space
+                    , Str "this"
+                    , Space
+                    , Str "red"
+                    , Space
+                    , Str "rock,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "(Come"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "under"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "shadow"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "this"
+                    , Space
+                    , Str "red"
+                    , Space
+                    , Str "rock),"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "will"
+                    , Space
+                    , Str "show"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "something"
+                    , Space
+                    , Str "different"
+                    , Space
+                    , Str "from"
+                    , Space
+                    , Str "either"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Your"
+                    , Space
+                    , Str "shadow"
+                    , Space
+                    , Str "at"
+                    , Space
+                    , Str "morning"
+                    , Space
+                    , Str "striding"
+                    , Space
+                    , Str "behind"
+                    , Space
+                    , Str "you"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Or"
+                    , Space
+                    , Str "your"
+                    , Space
+                    , Str "shadow"
+                    , Space
+                    , Str "at"
+                    , Space
+                    , Str "evening"
+                    , Space
+                    , Str "rising"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "meet"
+                    , Space
+                    , Str "you;"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "I"
+                    , Space
+                    , Str "will"
+                    , Space
+                    , Str "show"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "fear"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "handful"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "dust."
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "30" ]
+                    ]
+                ]
+            , BlockQuote
+                [ Div
+                    ( "" , [] , [] )
+                    [ Div
+                        ( "wasteland-content.xhtml#ln31" , [] , [] )
+                        [ Plain
+                            [ Str "Frisch"
+                            , Space
+                            , Str "weht"
+                            , Space
+                            , Str "der"
+                            , Space
+                            , Str "Wind"
+                            , Str ""
+                            ]
+                        ]
+                    , Div
+                        ( "" , [] , [] )
+                        [ Plain
+                            [ Str "Der"
+                            , Space
+                            , Str "Heimat"
+                            , Space
+                            , Str "zu"
+                            ]
+                        ]
+                    , Div
+                        ( "" , [] , [] )
+                        [ Plain
+                            [ Str "Mein"
+                            , Space
+                            , Str "Irisch"
+                            , Space
+                            , Str "Kind,"
+                            ]
+                        ]
+                    , Div
+                        ( "" , [] , [] )
+                        [ Plain
+                            [ Str "Wo"
+                            , Space
+                            , Str "weilest"
+                            , Space
+                            , Str "du?"
+                            ]
+                        ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"You"
+                    , Space
+                    , Str "gave"
+                    , Space
+                    , Str "me"
+                    , Space
+                    , Str "hyacinths"
+                    , Space
+                    , Str "first"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "year"
+                    , Space
+                    , Str "ago;"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"They"
+                    , Space
+                    , Str "called"
+                    , Space
+                    , Str "me"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "hyacinth"
+                    , Space
+                    , Str "girl.\""
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\8213Yet"
+                    , Space
+                    , Str "when"
+                    , Space
+                    , Str "we"
+                    , Space
+                    , Str "came"
+                    , Space
+                    , Str "back,"
+                    , Space
+                    , Str "late,"
+                    , Space
+                    , Str "from"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "Hyacinth"
+                    , SoftBreak
+                    , Str "garden,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Your"
+                    , Space
+                    , Str "arms"
+                    , Space
+                    , Str "full,"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "your"
+                    , Space
+                    , Str "hair"
+                    , Space
+                    , Str "wet,"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "could"
+                    , Space
+                    , Str "not"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Speak,"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "my"
+                    , Space
+                    , Str "eyes"
+                    , Space
+                    , Str "failed,"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "was"
+                    , Space
+                    , Str "neither"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Living"
+                    , Space
+                    , Str "nor"
+                    , Space
+                    , Str "dead,"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "knew"
+                    , Space
+                    , Str "nothing,"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "40" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Looking"
+                    , Space
+                    , Str "into"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "heart"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "light,"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "silence."
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln42"
+                , []
+                , [ ( "lang" , "de" ) ]
+                )
+                [ Plain
+                    [ Emph
+                        [ Str "Od'"
+                        , Space
+                        , Str "und"
+                        , Space
+                        , Str "leer"
+                        , Space
+                        , Str "das"
+                        , Space
+                        , Str "Meer"
+                        ]
+                    , Str "."
+                    , Str ""
+                    ]
+                ]
+            ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Madame"
+                    , Space
+                    , Str "Sosostris,"
+                    , Space
+                    , Str "famous"
+                    , Space
+                    , Str "clairvoyante,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Had"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "bad"
+                    , Space
+                    , Str "cold,"
+                    , Space
+                    , Str "nevertheless"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Is"
+                    , Space
+                    , Str "known"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "be"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "wisest"
+                    , Space
+                    , Str "woman"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "Europe,"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln46" , [] , [] )
+                [ Plain
+                    [ Str "With"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "wicked"
+                    , Space
+                    , Str "pack"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "cards."
+                    , Space
+                    , Str "Here,"
+                    , Space
+                    , Str "said"
+                    , Space
+                    , Str "she,"
+                    , Str ""
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Is"
+                    , Space
+                    , Str "your"
+                    , Space
+                    , Str "card,"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "drowned"
+                    , Space
+                    , Str "Phoenician"
+                    , Space
+                    , Str "Sailor,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "(Those"
+                    , Space
+                    , Str "are"
+                    , Space
+                    , Str "pearls"
+                    , Space
+                    , Str "that"
+                    , Space
+                    , Str "were"
+                    , Space
+                    , Str "his"
+                    , Space
+                    , Str "eyes."
+                    , Space
+                    , Str "Look!)"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Here"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "Belladonna,"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "Lady"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "Rocks,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "The"
+                    , Space
+                    , Str "lady"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "situations."
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "50" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Here"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "man"
+                    , Space
+                    , Str "with"
+                    , Space
+                    , Str "three"
+                    , Space
+                    , Str "staves,"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "here"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "Wheel,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "here"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "one-eyed"
+                    , Space
+                    , Str "merchant,"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "this"
+                    , Space
+                    , Str "card,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Which"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "blank,"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "something"
+                    , Space
+                    , Str "he"
+                    , Space
+                    , Str "carries"
+                    , Space
+                    , Str "on"
+                    , Space
+                    , Str "his"
+                    , Space
+                    , Str "back,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Which"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "am"
+                    , Space
+                    , Str "forbidden"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "see."
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "do"
+                    , Space
+                    , Str "not"
+                    , Space
+                    , Str "find"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "The"
+                    , Space
+                    , Str "Hanged"
+                    , Space
+                    , Str "Man."
+                    , Space
+                    , Str "Fear"
+                    , Space
+                    , Str "death"
+                    , Space
+                    , Str "by"
+                    , Space
+                    , Str "water."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "I"
+                    , Space
+                    , Str "see"
+                    , Space
+                    , Str "crowds"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "people,"
+                    , Space
+                    , Str "walking"
+                    , Space
+                    , Str "round"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "ring."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Thank"
+                    , Space
+                    , Str "you."
+                    , Space
+                    , Str "If"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "see"
+                    , Space
+                    , Str "dear"
+                    , Space
+                    , Str "Mrs."
+                    , Space
+                    , Str "Equitone,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Tell"
+                    , Space
+                    , Str "her"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "bring"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "horoscope"
+                    , Space
+                    , Str "myself:"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "One"
+                    , Space
+                    , Str "must"
+                    , Space
+                    , Str "be"
+                    , Space
+                    , Str "so"
+                    , Space
+                    , Str "careful"
+                    , Space
+                    , Str "these"
+                    , Space
+                    , Str "days."
+                    ]
+                ]
+            ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "wasteland-content.xhtml#ln60" , [] , [] )
+                [ Plain
+                    [ Str "Unreal"
+                    , Space
+                    , Str "City,"
+                    , Str ""
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "60" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Under"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "brown"
+                    , Space
+                    , Str "fog"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "winter"
+                    , Space
+                    , Str "dawn,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "A"
+                    , Space
+                    , Str "crowd"
+                    , Space
+                    , Str "flowed"
+                    , Space
+                    , Str "over"
+                    , Space
+                    , Str "London"
+                    , Space
+                    , Str "Bridge,"
+                    , Space
+                    , Str "so"
+                    , Space
+                    , Str "many,"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln63" , [] , [] )
+                [ Plain
+                    [ Str "I"
+                    , Space
+                    , Str "had"
+                    , Space
+                    , Str "not"
+                    , Space
+                    , Str "thought"
+                    , Space
+                    , Str "death"
+                    , Space
+                    , Str "had"
+                    , Space
+                    , Str "undone"
+                    , Space
+                    , Str "so"
+                    , Space
+                    , Str "many."
+                    , Str ""
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln64" , [] , [] )
+                [ Plain
+                    [ Str "Sighs,"
+                    , Space
+                    , Str "short"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "infrequent,"
+                    , Space
+                    , Str "were"
+                    , Space
+                    , Str "exhaled,"
+                    , Str ""
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "each"
+                    , Space
+                    , Str "man"
+                    , Space
+                    , Str "fixed"
+                    , Space
+                    , Str "his"
+                    , Space
+                    , Str "eyes"
+                    , Space
+                    , Str "before"
+                    , Space
+                    , Str "his"
+                    , Space
+                    , Str "feet."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Flowed"
+                    , Space
+                    , Str "up"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "hill"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "down"
+                    , Space
+                    , Str "King"
+                    , Space
+                    , Str "William"
+                    , Space
+                    , Str "Street,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "To"
+                    , Space
+                    , Str "where"
+                    , Space
+                    , Str "Saint"
+                    , Space
+                    , Str "Mary"
+                    , Space
+                    , Str "Woolnoth"
+                    , Space
+                    , Str "kept"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "hours"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln68" , [] , [] )
+                [ Plain
+                    [ Str "With"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "dead"
+                    , Space
+                    , Str "sound"
+                    , Space
+                    , Str "on"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "final"
+                    , Space
+                    , Str "stroke"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "nine."
+                    , Str ""
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "There"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "saw"
+                    , Space
+                    , Str "one"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "knew,"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "stopped"
+                    , Space
+                    , Str "him,"
+                    , Space
+                    , Str "crying"
+                    , SoftBreak
+                    , Str "\"Stetson!"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"You"
+                    , Space
+                    , Str "who"
+                    , Space
+                    , Str "were"
+                    , Space
+                    , Str "with"
+                    , Space
+                    , Str "me"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "ships"
+                    , Space
+                    , Str "at"
+                    , Space
+                    , Str "Mylae!"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "70" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"That"
+                    , Space
+                    , Str "corpse"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "planted"
+                    , Space
+                    , Str "last"
+                    , Space
+                    , Str "year"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "your"
+                    , Space
+                    , Str "garden,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"Has"
+                    , Space
+                    , Str "it"
+                    , Space
+                    , Str "begun"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "sprout?"
+                    , Space
+                    , Str "Will"
+                    , Space
+                    , Str "it"
+                    , Space
+                    , Str "bloom"
+                    , Space
+                    , Str "this"
+                    , Space
+                    , Str "year?"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"Or"
+                    , Space
+                    , Str "has"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "sudden"
+                    , Space
+                    , Str "frost"
+                    , Space
+                    , Str "disturbed"
+                    , Space
+                    , Str "its"
+                    , Space
+                    , Str "bed?"
+                    ]
+                ]
+            ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "wasteland-content.xhtml#ln74" , [] , [] )
+                [ Plain
+                    [ Str "\"Oh"
+                    , Space
+                    , Str "keep"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "Dog"
+                    , Space
+                    , Str "far"
+                    , Space
+                    , Str "hence,"
+                    , Space
+                    , Str "that's"
+                    , Space
+                    , Str "friend"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "men,"
+                    , Str ""
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"Or"
+                    , Space
+                    , Str "with"
+                    , Space
+                    , Str "his"
+                    , Space
+                    , Str "nails"
+                    , Space
+                    , Str "he'll"
+                    , Space
+                    , Str "dig"
+                    , Space
+                    , Str "it"
+                    , Space
+                    , Str "up"
+                    , Space
+                    , Str "again!"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln76" , [] , [] )
+                [ Plain
+                    [ Str "\"You!"
+                    , Space
+                    , Span
+                        ( "" , [] , [ ( "lang" , "fr" ) ] )
+                        [ Str "hypocrite"
+                        , Space
+                        , Str "lecteur!"
+                        , Space
+                        , Str "-"
+                        , Space
+                        , Str "mon"
+                        , Space
+                        , Str "semblable,"
+                        , Space
+                        , Str "-"
+                        , SoftBreak
+                        , Str "mon"
+                        , Space
+                        , Str "frere"
+                        ]
+                    , Space
+                    , Str "!\""
+                    , Str ""
+                    ]
+                ]
+            ]
+        ]
     , Div
-      ( "", [ "linegroup" ], [] )
-      [ Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "April"
-          , Space
-          , Str "is"
-          , Space
-          , Str "the"
-          , Space
-          , Str "cruellest"
-          , Space
-          , Str "month,"
-          , Space
-          , Str "breeding"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Lilacs"
-          , Space
-          , Str "out"
-          , Space
-          , Str "of"
-          , Space
-          , Str "the"
-          , Space
-          , Str "dead"
-          , Space
-          , Str "land,"
-          , Space
-          , Str "mixing"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Memory"
-          , Space
-          , Str "and"
-          , Space
-          , Str "desire,"
-          , Space
-          , Str "stirring"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Dull"
-          , Space
-          , Str "roots"
-          , Space
-          , Str "with"
-          , Space
-          , Str "spring"
-          , Space
-          , Str "rain."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Winter"
-          , Space
-          , Str "kept"
-          , Space
-          , Str "us"
-          , Space
-          , Str "warm,"
-          , Space
-          , Str "covering"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Earth"
-          , Space
-          , Str "in"
-          , Space
-          , Str "forgetful"
-          , Space
-          , Str "snow,"
-          , Space
-          , Str "feeding"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "A"
-          , Space
-          , Str "little"
-          , Space
-          , Str "life"
-          , Space
-          , Str "with"
-          , Space
-          , Str "dried"
-          , Space
-          , Str "tubers."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Summer"
-          , Space
-          , Str "surprised"
-          , Space
-          , Str "us,"
-          , Space
-          , Str "coming"
-          , Space
-          , Str "over"
-          , Space
-          , Str "the"
-          , Space
-          , Str "Starnbergersee"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "With"
-          , Space
-          , Str "a"
-          , Space
-          , Str "shower"
-          , Space
-          , Str "of"
-          , Space
-          , Str "rain;"
-          , Space
-          , Str "we"
-          , Space
-          , Str "stopped"
-          , Space
-          , Str "in"
-          , Space
-          , Str "the"
-          , Space
-          , Str "colonnade,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "went"
-          , Space
-          , Str "on"
-          , Space
-          , Str "in"
-          , Space
-          , Str "sunlight,"
-          , Space
-          , Str "into"
-          , Space
-          , Str "the"
-          , Space
-          , Str "Hofgarten,"
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "10" ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "drank"
-          , Space
-          , Str "coffee,"
-          , Space
-          , Str "and"
-          , Space
-          , Str "talked"
-          , Space
-          , Str "for"
-          , Space
-          , Str "an"
-          , Space
-          , Str "hour."
-          ]
-        ]
-      , Div
-        ( "", [], [ ( "lang", "de" ) ] )
-        [ Plain
-          [ Str "Bin"
-          , Space
-          , Str "gar"
-          , Space
-          , Str "keine"
-          , Space
-          , Str "Russin,"
-          , Space
-          , Str "stamm'"
-          , Space
-          , Str "aus"
-          , Space
-          , Str "Litauen,"
-          , Space
-          , Str "echt"
-          , SoftBreak
-          , Str "deutsch."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "when"
-          , Space
-          , Str "we"
-          , Space
-          , Str "were"
-          , Space
-          , Str "children,"
-          , Space
-          , Str "staying"
-          , Space
-          , Str "at"
-          , Space
-          , Str "the"
-          , Space
-          , Str "archduke's,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "My"
-          , Space
-          , Str "cousin's,"
-          , Space
-          , Str "he"
-          , Space
-          , Str "took"
-          , Space
-          , Str "me"
-          , Space
-          , Str "out"
-          , Space
-          , Str "on"
-          , Space
-          , Str "a"
-          , Space
-          , Str "sled,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "I"
-          , Space
-          , Str "was"
-          , Space
-          , Str "frightened."
-          , Space
-          , Str "He"
-          , Space
-          , Str "said,"
-          , Space
-          , Str "Marie,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Marie,"
-          , Space
-          , Str "hold"
-          , Space
-          , Str "on"
-          , Space
-          , Str "tight."
-          , Space
-          , Str "And"
-          , Space
-          , Str "down"
-          , Space
-          , Str "we"
-          , Space
-          , Str "went."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "In"
-          , Space
-          , Str "the"
-          , Space
-          , Str "mountains,"
-          , Space
-          , Str "there"
-          , Space
-          , Str "you"
-          , Space
-          , Str "feel"
-          , Space
-          , Str "free."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "I"
-          , Space
-          , Str "read,"
-          , Space
-          , Str "much"
-          , Space
-          , Str "of"
-          , Space
-          , Str "the"
-          , Space
-          , Str "night,"
-          , Space
-          , Str "and"
-          , Space
-          , Str "go"
-          , Space
-          , Str "south"
-          , Space
-          , Str "in"
-          , Space
-          , Str "the"
-          , Space
-          , Str "winter."
-          ]
-        ]
-      ]
-    , Div
-      ( "", [ "linegroup" ], [] )
-      [ Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "What"
-          , Space
-          , Str "are"
-          , Space
-          , Str "the"
-          , Space
-          , Str "roots"
-          , Space
-          , Str "that"
-          , Space
-          , Str "clutch,"
-          , Space
-          , Str "what"
-          , Space
-          , Str "branches"
-          , Space
-          , Str "grow"
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln20", [], [] )
-        [ Plain
-          [ Str "Out"
-          , Space
-          , Str "of"
-          , Space
-          , Str "this"
-          , Space
-          , Str "stony"
-          , Space
-          , Str "rubbish?"
-          , Space
-          , Str "Son"
-          , Space
-          , Str "of"
-          , Space
-          , Str "man,"
-          , Str ""
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "20" ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "You"
-          , Space
-          , Str "cannot"
-          , Space
-          , Str "say,"
-          , Space
-          , Str "or"
-          , Space
-          , Str "guess,"
-          , Space
-          , Str "for"
-          , Space
-          , Str "you"
-          , Space
-          , Str "know"
-          , Space
-          , Str "only"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "A"
-          , Space
-          , Str "heap"
-          , Space
-          , Str "of"
-          , Space
-          , Str "broken"
-          , Space
-          , Str "images,"
-          , Space
-          , Str "where"
-          , Space
-          , Str "the"
-          , Space
-          , Str "sun"
-          , Space
-          , Str "beats,"
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln23", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "the"
-          , Space
-          , Str "dead"
-          , Space
-          , Str "tree"
-          , Space
-          , Str "gives"
-          , Space
-          , Str "no"
-          , Space
-          , Str "shelter,"
-          , Space
-          , Str "the"
-          , Space
-          , Str "cricket"
-          , Space
-          , Str "no"
-          , Space
-          , Str "relief,"
-          , Str ""
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "the"
-          , Space
-          , Str "dry"
-          , Space
-          , Str "stone"
-          , Space
-          , Str "no"
-          , Space
-          , Str "sound"
-          , Space
-          , Str "of"
-          , Space
-          , Str "water."
-          , Space
-          , Str "Only"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "There"
-          , Space
-          , Str "is"
-          , Space
-          , Str "shadow"
-          , Space
-          , Str "under"
-          , Space
-          , Str "this"
-          , Space
-          , Str "red"
-          , Space
-          , Str "rock,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "(Come"
-          , Space
-          , Str "in"
-          , Space
-          , Str "under"
-          , Space
-          , Str "the"
-          , Space
-          , Str "shadow"
-          , Space
-          , Str "of"
-          , Space
-          , Str "this"
-          , Space
-          , Str "red"
-          , Space
-          , Str "rock),"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "I"
-          , Space
-          , Str "will"
-          , Space
-          , Str "show"
-          , Space
-          , Str "you"
-          , Space
-          , Str "something"
-          , Space
-          , Str "different"
-          , Space
-          , Str "from"
-          , Space
-          , Str "either"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Your"
-          , Space
-          , Str "shadow"
-          , Space
-          , Str "at"
-          , Space
-          , Str "morning"
-          , Space
-          , Str "striding"
-          , Space
-          , Str "behind"
-          , Space
-          , Str "you"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Or"
-          , Space
-          , Str "your"
-          , Space
-          , Str "shadow"
-          , Space
-          , Str "at"
-          , Space
-          , Str "evening"
-          , Space
-          , Str "rising"
-          , Space
-          , Str "to"
-          , Space
-          , Str "meet"
-          , Space
-          , Str "you;"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "I"
-          , Space
-          , Str "will"
-          , Space
-          , Str "show"
-          , Space
-          , Str "you"
-          , Space
-          , Str "fear"
-          , Space
-          , Str "in"
-          , Space
-          , Str "a"
-          , Space
-          , Str "handful"
-          , Space
-          , Str "of"
-          , Space
-          , Str "dust."
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "30" ]
-          ]
-        ]
-      , BlockQuote
-        [ Div
-          ( "", [], [] )
-          [ Div
-            ( "wasteland-content.xhtml#ln31", [], [] )
-            [ Plain
-              [ Str "Frisch"
-              , Space
-              , Str "weht"
-              , Space
-              , Str "der"
-              , Space
-              , Str "Wind"
-              , Str ""
-              ]
+        ( "wasteland-content.xhtml#ch2" , [ "section" ] , [] )
+        [ Header
+            2
+            ( "" , [] , [] )
+            [ Str "II."
+            , Space
+            , Str "A"
+            , Space
+            , Str "GAME"
+            , Space
+            , Str "OF"
+            , Space
+            , Str "CHESS"
             ]
-          , Div
-            ( "", [], [] )
-            [ Plain
-              [ Str "Der", Space, Str "Heimat", Space, Str "zu" ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "wasteland-content.xhtml#ln77" , [] , [] )
+                [ Plain
+                    [ Str "The"
+                    , Space
+                    , Str "Chair"
+                    , Space
+                    , Str "she"
+                    , Space
+                    , Str "sat"
+                    , Space
+                    , Str "in,"
+                    , Space
+                    , Str "like"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "burnished"
+                    , Space
+                    , Str "throne,"
+                    , Str ""
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Glowed"
+                    , Space
+                    , Str "on"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "marble,"
+                    , Space
+                    , Str "where"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "glass"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Held"
+                    , Space
+                    , Str "up"
+                    , Space
+                    , Str "by"
+                    , Space
+                    , Str "standards"
+                    , Space
+                    , Str "wrought"
+                    , Space
+                    , Str "with"
+                    , Space
+                    , Str "fruited"
+                    , Space
+                    , Str "vines"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "From"
+                    , Space
+                    , Str "which"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "golden"
+                    , Space
+                    , Str "Cupidon"
+                    , Space
+                    , Str "peeped"
+                    , Space
+                    , Str "out"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "80" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "(Another"
+                    , Space
+                    , Str "hid"
+                    , Space
+                    , Str "his"
+                    , Space
+                    , Str "eyes"
+                    , Space
+                    , Str "behind"
+                    , Space
+                    , Str "his"
+                    , Space
+                    , Str "wing)"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Doubled"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "flames"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "sevenbranched"
+                    , Space
+                    , Str "candelabra"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Reflecting"
+                    , Space
+                    , Str "light"
+                    , Space
+                    , Str "upon"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "table"
+                    , Space
+                    , Str "as"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "The"
+                    , Space
+                    , Str "glitter"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "her"
+                    , Space
+                    , Str "jewels"
+                    , Space
+                    , Str "rose"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "meet"
+                    , Space
+                    , Str "it,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "From"
+                    , Space
+                    , Str "satin"
+                    , Space
+                    , Str "cases"
+                    , Space
+                    , Str "poured"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "rich"
+                    , Space
+                    , Str "profusion;"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "In"
+                    , Space
+                    , Str "vials"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "ivory"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "coloured"
+                    , Space
+                    , Str "glass"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Unstoppered,"
+                    , Space
+                    , Str "lurked"
+                    , Space
+                    , Str "her"
+                    , Space
+                    , Str "strange"
+                    , Space
+                    , Str "synthetic"
+                    , Space
+                    , Str "perfumes,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Unguent,"
+                    , Space
+                    , Str "powdered,"
+                    , Space
+                    , Str "or"
+                    , Space
+                    , Str "liquid"
+                    , Space
+                    , Str "-"
+                    , Space
+                    , Str "troubled,"
+                    , Space
+                    , Str "confused"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "drowned"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "sense"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "odours;"
+                    , Space
+                    , Str "stirred"
+                    , Space
+                    , Str "by"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "air"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "That"
+                    , Space
+                    , Str "freshened"
+                    , Space
+                    , Str "from"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "window,"
+                    , Space
+                    , Str "these"
+                    , Space
+                    , Str "ascended"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "90" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "In"
+                    , Space
+                    , Str "fattening"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "prolonged"
+                    , Space
+                    , Str "candle-flames,"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln92" , [] , [] )
+                [ Plain
+                    [ Str "Flung"
+                    , Space
+                    , Str "their"
+                    , Space
+                    , Str "smoke"
+                    , Space
+                    , Str "into"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "laquearia,"
+                    , Str ""
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Stirring"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "pattern"
+                    , Space
+                    , Str "on"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "coffered"
+                    , Space
+                    , Str "ceiling."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Huge"
+                    , Space
+                    , Str "sea-wood"
+                    , Space
+                    , Str "fed"
+                    , Space
+                    , Str "with"
+                    , Space
+                    , Str "copper"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Burned"
+                    , Space
+                    , Str "green"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "orange,"
+                    , Space
+                    , Str "framed"
+                    , Space
+                    , Str "by"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "coloured"
+                    , Space
+                    , Str "stone,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "In"
+                    , Space
+                    , Str "which"
+                    , Space
+                    , Str "sad"
+                    , Space
+                    , Str "light"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "carved"
+                    , Space
+                    , Str "dolphin"
+                    , Space
+                    , Str "swam."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Above"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "antique"
+                    , Space
+                    , Str "mantel"
+                    , Space
+                    , Str "was"
+                    , Space
+                    , Str "displayed"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln98" , [] , [] )
+                [ Plain
+                    [ Str "As"
+                    , Space
+                    , Str "though"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "window"
+                    , Space
+                    , Str "gave"
+                    , Space
+                    , Str "upon"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "sylvan"
+                    , Space
+                    , Str "scene"
+                    , Str ""
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln99" , [] , [] )
+                [ Plain
+                    [ Str "The"
+                    , Space
+                    , Str "change"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "Philomel,"
+                    , Space
+                    , Str "by"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "barbarous"
+                    , Space
+                    , Str "king"
+                    , Str ""
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln100" , [] , [] )
+                [ Plain
+                    [ Str "So"
+                    , Space
+                    , Str "rudely"
+                    , Space
+                    , Str "forced;"
+                    , Space
+                    , Str "yet"
+                    , Space
+                    , Str "there"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "nightingale"
+                    , Str ""
+                    , SoftBreak
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "100" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Filled"
+                    , Space
+                    , Str "all"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "desert"
+                    , Space
+                    , Str "with"
+                    , Space
+                    , Str "inviolable"
+                    , Space
+                    , Str "voice"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "still"
+                    , Space
+                    , Str "she"
+                    , Space
+                    , Str "cried,"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "still"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "world"
+                    , Space
+                    , Str "pursues,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"Jug"
+                    , Space
+                    , Str "Jug\""
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "dirty"
+                    , Space
+                    , Str "ears."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "other"
+                    , Space
+                    , Str "withered"
+                    , Space
+                    , Str "stumps"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "time"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Were"
+                    , Space
+                    , Str "told"
+                    , Space
+                    , Str "upon"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "walls;"
+                    , Space
+                    , Str "staring"
+                    , Space
+                    , Str "forms"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Leaned"
+                    , Space
+                    , Str "out,"
+                    , Space
+                    , Str "leaning,"
+                    , Space
+                    , Str "hushing"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "room"
+                    , Space
+                    , Str "enclosed."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Footsteps"
+                    , Space
+                    , Str "shuffled"
+                    , Space
+                    , Str "on"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "stair."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Under"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "firelight,"
+                    , Space
+                    , Str "under"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "brush,"
+                    , Space
+                    , Str "her"
+                    , Space
+                    , Str "hair"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Spread"
+                    , Space
+                    , Str "out"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "fiery"
+                    , Space
+                    , Str "points"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Glowed"
+                    , Space
+                    , Str "into"
+                    , Space
+                    , Str "words,"
+                    , Space
+                    , Str "then"
+                    , Space
+                    , Str "would"
+                    , Space
+                    , Str "be"
+                    , Space
+                    , Str "savagely"
+                    , Space
+                    , Str "still."
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "110" ]
+                    ]
+                ]
             ]
-          , Div
-            ( "", [], [] )
-            [ Plain
-              [ Str "Mein", Space, Str "Irisch", Space, Str "Kind," ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "" , [ "linegroup" ] , [] )
+                [ Div
+                    ( "" , [] , [] )
+                    [ Plain
+                        [ Str "\"My"
+                        , Space
+                        , Str "nerves"
+                        , Space
+                        , Str "are"
+                        , Space
+                        , Str "bad"
+                        , Space
+                        , Str "to-night."
+                        , Space
+                        , Str "Yes,"
+                        , Space
+                        , Str "bad."
+                        , Space
+                        , Str "Stay"
+                        , Space
+                        , Str "with"
+                        , Space
+                        , Str "me."
+                        ]
+                    ]
+                , Div
+                    ( "" , [] , [] )
+                    [ Plain
+                        [ Str "\"Speak"
+                        , Space
+                        , Str "to"
+                        , Space
+                        , Str "me."
+                        , Space
+                        , Str "Why"
+                        , Space
+                        , Str "do"
+                        , Space
+                        , Str "you"
+                        , Space
+                        , Str "never"
+                        , Space
+                        , Str "speak."
+                        , Space
+                        , Str "Speak."
+                        ]
+                    ]
+                , Div
+                    ( "" , [] , [] )
+                    [ Plain
+                        [ Str "\"What"
+                        , Space
+                        , Str "are"
+                        , Space
+                        , Str "you"
+                        , Space
+                        , Str "thinking"
+                        , Space
+                        , Str "of?"
+                        , Space
+                        , Str "What"
+                        , Space
+                        , Str "thinking?"
+                        , Space
+                        , Str "What?"
+                        ]
+                    ]
+                , Div
+                    ( "" , [] , [] )
+                    [ Plain
+                        [ Str "\"I"
+                        , Space
+                        , Str "never"
+                        , Space
+                        , Str "know"
+                        , Space
+                        , Str "what"
+                        , Space
+                        , Str "you"
+                        , Space
+                        , Str "are"
+                        , Space
+                        , Str "thinking."
+                        , Space
+                        , Str "Think.\""
+                        ]
+                    ]
+                ]
+            , Div
+                ( "" , [ "linegroup" ] , [] )
+                [ Div
+                    ( "wasteland-content.xhtml#ln115" , [] , [] )
+                    [ Plain
+                        [ Str "I"
+                        , Space
+                        , Str "think"
+                        , Space
+                        , Str "we"
+                        , Space
+                        , Str "are"
+                        , Space
+                        , Str "in"
+                        , Space
+                        , Str "rats'"
+                        , Space
+                        , Str "alley"
+                        , Str ""
+                        ]
+                    ]
+                , Div
+                    ( "" , [] , [] )
+                    [ Plain
+                        [ Str "Where"
+                        , Space
+                        , Str "the"
+                        , Space
+                        , Str "dead"
+                        , Space
+                        , Str "men"
+                        , Space
+                        , Str "lost"
+                        , Space
+                        , Str "their"
+                        , Space
+                        , Str "bones."
+                        ]
+                    ]
+                ]
             ]
-          , Div
-            ( "", [], [] )
-            [ Plain
-              [ Str "Wo", Space, Str "weilest", Space, Str "du?" ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"What"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "that"
+                    , Space
+                    , Str "noise?\""
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln118" , [ "indent" ] , [] )
+                [ Plain
+                    [ Str "The"
+                    , Space
+                    , Str "wind"
+                    , Space
+                    , Str "under"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "door."
+                    , Str ""
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"What"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "that"
+                    , Space
+                    , Str "noise"
+                    , Space
+                    , Str "now?"
+                    , Space
+                    , Str "What"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "wind"
+                    , Space
+                    , Str "doing?\""
+                    ]
+                ]
+            , Div
+                ( "" , [ "indent" ] , [] )
+                [ Plain
+                    [ Str "Nothing"
+                    , Space
+                    , Str "again"
+                    , Space
+                    , Str "nothing."
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "120" ]
+                    ]
+                ]
             ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\"You"
-          , Space
-          , Str "gave"
-          , Space
-          , Str "me"
-          , Space
-          , Str "hyacinths"
-          , Space
-          , Str "first"
-          , Space
-          , Str "a"
-          , Space
-          , Str "year"
-          , Space
-          , Str "ago;"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\"They"
-          , Space
-          , Str "called"
-          , Space
-          , Str "me"
-          , Space
-          , Str "the"
-          , Space
-          , Str "hyacinth"
-          , Space
-          , Str "girl.\""
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\8213Yet"
-          , Space
-          , Str "when"
-          , Space
-          , Str "we"
-          , Space
-          , Str "came"
-          , Space
-          , Str "back,"
-          , Space
-          , Str "late,"
-          , Space
-          , Str "from"
-          , Space
-          , Str "the"
-          , Space
-          , Str "Hyacinth"
-          , SoftBreak
-          , Str "garden,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Your"
-          , Space
-          , Str "arms"
-          , Space
-          , Str "full,"
-          , Space
-          , Str "and"
-          , Space
-          , Str "your"
-          , Space
-          , Str "hair"
-          , Space
-          , Str "wet,"
-          , Space
-          , Str "I"
-          , Space
-          , Str "could"
-          , Space
-          , Str "not"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Speak,"
-          , Space
-          , Str "and"
-          , Space
-          , Str "my"
-          , Space
-          , Str "eyes"
-          , Space
-          , Str "failed,"
-          , Space
-          , Str "I"
-          , Space
-          , Str "was"
-          , Space
-          , Str "neither"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Living"
-          , Space
-          , Str "nor"
-          , Space
-          , Str "dead,"
-          , Space
-          , Str "and"
-          , Space
-          , Str "I"
-          , Space
-          , Str "knew"
-          , Space
-          , Str "nothing,"
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "40" ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Looking"
-          , Space
-          , Str "into"
-          , Space
-          , Str "the"
-          , Space
-          , Str "heart"
-          , Space
-          , Str "of"
-          , Space
-          , Str "light,"
-          , Space
-          , Str "the"
-          , Space
-          , Str "silence."
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln42", [], [ ( "lang", "de" ) ] )
-        [ Plain
-          [ Emph
-            [ Str "Od'"
-            , Space
-            , Str "und"
-            , Space
-            , Str "leer"
-            , Space
-            , Str "das"
-            , Space
-            , Str "Meer"
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div ( "" , [] , [] ) [ Plain [ Str "\"Do" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"You"
+                    , Space
+                    , Str "know"
+                    , Space
+                    , Str "nothing?"
+                    , Space
+                    , Str "Do"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "see"
+                    , Space
+                    , Str "nothing?"
+                    , Space
+                    , Str "Do"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "remember"
+                    ]
+                ]
+            , Div ( "" , [] , [] ) [ Plain [ Str "\"Nothing?\"" ] ]
             ]
-          , Str "."
-          , Str ""
-          ]
-        ]
-      ]
-    , Div
-      ( "", [ "linegroup" ], [] )
-      [ Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Madame"
-          , Space
-          , Str "Sosostris,"
-          , Space
-          , Str "famous"
-          , Space
-          , Str "clairvoyante,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Had"
-          , Space
-          , Str "a"
-          , Space
-          , Str "bad"
-          , Space
-          , Str "cold,"
-          , Space
-          , Str "nevertheless"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Is"
-          , Space
-          , Str "known"
-          , Space
-          , Str "to"
-          , Space
-          , Str "be"
-          , Space
-          , Str "the"
-          , Space
-          , Str "wisest"
-          , Space
-          , Str "woman"
-          , Space
-          , Str "in"
-          , Space
-          , Str "Europe,"
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln46", [], [] )
-        [ Plain
-          [ Str "With"
-          , Space
-          , Str "a"
-          , Space
-          , Str "wicked"
-          , Space
-          , Str "pack"
-          , Space
-          , Str "of"
-          , Space
-          , Str "cards."
-          , Space
-          , Str "Here,"
-          , Space
-          , Str "said"
-          , Space
-          , Str "she,"
-          , Str ""
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Is"
-          , Space
-          , Str "your"
-          , Space
-          , Str "card,"
-          , Space
-          , Str "the"
-          , Space
-          , Str "drowned"
-          , Space
-          , Str "Phoenician"
-          , Space
-          , Str "Sailor,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "(Those"
-          , Space
-          , Str "are"
-          , Space
-          , Str "pearls"
-          , Space
-          , Str "that"
-          , Space
-          , Str "were"
-          , Space
-          , Str "his"
-          , Space
-          , Str "eyes."
-          , Space
-          , Str "Look!)"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Here"
-          , Space
-          , Str "is"
-          , Space
-          , Str "Belladonna,"
-          , Space
-          , Str "the"
-          , Space
-          , Str "Lady"
-          , Space
-          , Str "of"
-          , Space
-          , Str "the"
-          , Space
-          , Str "Rocks,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "The"
-          , Space
-          , Str "lady"
-          , Space
-          , Str "of"
-          , Space
-          , Str "situations."
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "50" ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Here"
-          , Space
-          , Str "is"
-          , Space
-          , Str "the"
-          , Space
-          , Str "man"
-          , Space
-          , Str "with"
-          , Space
-          , Str "three"
-          , Space
-          , Str "staves,"
-          , Space
-          , Str "and"
-          , Space
-          , Str "here"
-          , Space
-          , Str "the"
-          , Space
-          , Str "Wheel,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "here"
-          , Space
-          , Str "is"
-          , Space
-          , Str "the"
-          , Space
-          , Str "one-eyed"
-          , Space
-          , Str "merchant,"
-          , Space
-          , Str "and"
-          , Space
-          , Str "this"
-          , Space
-          , Str "card,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Which"
-          , Space
-          , Str "is"
-          , Space
-          , Str "blank,"
-          , Space
-          , Str "is"
-          , Space
-          , Str "something"
-          , Space
-          , Str "he"
-          , Space
-          , Str "carries"
-          , Space
-          , Str "on"
-          , Space
-          , Str "his"
-          , Space
-          , Str "back,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Which"
-          , Space
-          , Str "I"
-          , Space
-          , Str "am"
-          , Space
-          , Str "forbidden"
-          , Space
-          , Str "to"
-          , Space
-          , Str "see."
-          , Space
-          , Str "I"
-          , Space
-          , Str "do"
-          , Space
-          , Str "not"
-          , Space
-          , Str "find"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "The"
-          , Space
-          , Str "Hanged"
-          , Space
-          , Str "Man."
-          , Space
-          , Str "Fear"
-          , Space
-          , Str "death"
-          , Space
-          , Str "by"
-          , Space
-          , Str "water."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "I"
-          , Space
-          , Str "see"
-          , Space
-          , Str "crowds"
-          , Space
-          , Str "of"
-          , Space
-          , Str "people,"
-          , Space
-          , Str "walking"
-          , Space
-          , Str "round"
-          , Space
-          , Str "in"
-          , Space
-          , Str "a"
-          , Space
-          , Str "ring."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Thank"
-          , Space
-          , Str "you."
-          , Space
-          , Str "If"
-          , Space
-          , Str "you"
-          , Space
-          , Str "see"
-          , Space
-          , Str "dear"
-          , Space
-          , Str "Mrs."
-          , Space
-          , Str "Equitone,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Tell"
-          , Space
-          , Str "her"
-          , Space
-          , Str "I"
-          , Space
-          , Str "bring"
-          , Space
-          , Str "the"
-          , Space
-          , Str "horoscope"
-          , Space
-          , Str "myself:"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "One"
-          , Space
-          , Str "must"
-          , Space
-          , Str "be"
-          , Space
-          , Str "so"
-          , Space
-          , Str "careful"
-          , Space
-          , Str "these"
-          , Space
-          , Str "days."
-          ]
-        ]
-      ]
-    , Div
-      ( "", [ "linegroup" ], [] )
-      [ Div
-        ( "wasteland-content.xhtml#ln60", [], [] )
-        [ Plain
-          [ Str "Unreal"
-          , Space
-          , Str "City,"
-          , Str ""
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "60" ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Under"
-          , Space
-          , Str "the"
-          , Space
-          , Str "brown"
-          , Space
-          , Str "fog"
-          , Space
-          , Str "of"
-          , Space
-          , Str "a"
-          , Space
-          , Str "winter"
-          , Space
-          , Str "dawn,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "A"
-          , Space
-          , Str "crowd"
-          , Space
-          , Str "flowed"
-          , Space
-          , Str "over"
-          , Space
-          , Str "London"
-          , Space
-          , Str "Bridge,"
-          , Space
-          , Str "so"
-          , Space
-          , Str "many,"
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln63", [], [] )
-        [ Plain
-          [ Str "I"
-          , Space
-          , Str "had"
-          , Space
-          , Str "not"
-          , Space
-          , Str "thought"
-          , Space
-          , Str "death"
-          , Space
-          , Str "had"
-          , Space
-          , Str "undone"
-          , Space
-          , Str "so"
-          , Space
-          , Str "many."
-          , Str ""
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln64", [], [] )
-        [ Plain
-          [ Str "Sighs,"
-          , Space
-          , Str "short"
-          , Space
-          , Str "and"
-          , Space
-          , Str "infrequent,"
-          , Space
-          , Str "were"
-          , Space
-          , Str "exhaled,"
-          , Str ""
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "each"
-          , Space
-          , Str "man"
-          , Space
-          , Str "fixed"
-          , Space
-          , Str "his"
-          , Space
-          , Str "eyes"
-          , Space
-          , Str "before"
-          , Space
-          , Str "his"
-          , Space
-          , Str "feet."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Flowed"
-          , Space
-          , Str "up"
-          , Space
-          , Str "the"
-          , Space
-          , Str "hill"
-          , Space
-          , Str "and"
-          , Space
-          , Str "down"
-          , Space
-          , Str "King"
-          , Space
-          , Str "William"
-          , Space
-          , Str "Street,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "To"
-          , Space
-          , Str "where"
-          , Space
-          , Str "Saint"
-          , Space
-          , Str "Mary"
-          , Space
-          , Str "Woolnoth"
-          , Space
-          , Str "kept"
-          , Space
-          , Str "the"
-          , Space
-          , Str "hours"
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln68", [], [] )
-        [ Plain
-          [ Str "With"
-          , Space
-          , Str "a"
-          , Space
-          , Str "dead"
-          , Space
-          , Str "sound"
-          , Space
-          , Str "on"
-          , Space
-          , Str "the"
-          , Space
-          , Str "final"
-          , Space
-          , Str "stroke"
-          , Space
-          , Str "of"
-          , Space
-          , Str "nine."
-          , Str ""
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "There"
-          , Space
-          , Str "I"
-          , Space
-          , Str "saw"
-          , Space
-          , Str "one"
-          , Space
-          , Str "I"
-          , Space
-          , Str "knew,"
-          , Space
-          , Str "and"
-          , Space
-          , Str "stopped"
-          , Space
-          , Str "him,"
-          , Space
-          , Str "crying"
-          , SoftBreak
-          , Str "\"Stetson!"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\"You"
-          , Space
-          , Str "who"
-          , Space
-          , Str "were"
-          , Space
-          , Str "with"
-          , Space
-          , Str "me"
-          , Space
-          , Str "in"
-          , Space
-          , Str "the"
-          , Space
-          , Str "ships"
-          , Space
-          , Str "at"
-          , Space
-          , Str "Mylae!"
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "70" ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\"That"
-          , Space
-          , Str "corpse"
-          , Space
-          , Str "you"
-          , Space
-          , Str "planted"
-          , Space
-          , Str "last"
-          , Space
-          , Str "year"
-          , Space
-          , Str "in"
-          , Space
-          , Str "your"
-          , Space
-          , Str "garden,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\"Has"
-          , Space
-          , Str "it"
-          , Space
-          , Str "begun"
-          , Space
-          , Str "to"
-          , Space
-          , Str "sprout?"
-          , Space
-          , Str "Will"
-          , Space
-          , Str "it"
-          , Space
-          , Str "bloom"
-          , Space
-          , Str "this"
-          , Space
-          , Str "year?"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\"Or"
-          , Space
-          , Str "has"
-          , Space
-          , Str "the"
-          , Space
-          , Str "sudden"
-          , Space
-          , Str "frost"
-          , Space
-          , Str "disturbed"
-          , Space
-          , Str "its"
-          , Space
-          , Str "bed?"
-          ]
-        ]
-      ]
-    , Div
-      ( "", [ "linegroup" ], [] )
-      [ Div
-        ( "wasteland-content.xhtml#ln74", [], [] )
-        [ Plain
-          [ Str "\"Oh"
-          , Space
-          , Str "keep"
-          , Space
-          , Str "the"
-          , Space
-          , Str "Dog"
-          , Space
-          , Str "far"
-          , Space
-          , Str "hence,"
-          , Space
-          , Str "that's"
-          , Space
-          , Str "friend"
-          , Space
-          , Str "to"
-          , Space
-          , Str "men,"
-          , Str ""
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\"Or"
-          , Space
-          , Str "with"
-          , Space
-          , Str "his"
-          , Space
-          , Str "nails"
-          , Space
-          , Str "he'll"
-          , Space
-          , Str "dig"
-          , Space
-          , Str "it"
-          , Space
-          , Str "up"
-          , Space
-          , Str "again!"
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln76", [], [] )
-        [ Plain
-          [ Str "\"You!"
-          , Space
-          , Span
-            ( "", [], [ ( "lang", "fr" ) ] )
-            [ Str "hypocrite"
-            , Space
-            , Str "lecteur!"
-            , Space
-            , Str "-"
-            , Space
-            , Str "mon"
-            , Space
-            , Str "semblable,"
-            , Space
-            , Str "-"
-            , SoftBreak
-            , Str "mon"
-            , Space
-            , Str "frere"
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "" , [] , [] )
+                [ Plain [ Str "I" , Space , Str "remember" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Those"
+                    , Space
+                    , Str "are"
+                    , Space
+                    , Str "pearls"
+                    , Space
+                    , Str "that"
+                    , Space
+                    , Str "were"
+                    , Space
+                    , Str "his"
+                    , Space
+                    , Str "eyes."
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln126" , [] , [] )
+                [ Plain
+                    [ Str "\"Are"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "alive,"
+                    , Space
+                    , Str "or"
+                    , Space
+                    , Str "not?"
+                    , Space
+                    , Str "Is"
+                    , Space
+                    , Str "there"
+                    , Space
+                    , Str "nothing"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "your"
+                    , Space
+                    , Str "head?\""
+                    , Str ""
+                    ]
+                ]
+            , Div ( "" , [] , [] ) [ Plain [ Str "But" ] ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "O"
+                    , Space
+                    , Str "O"
+                    , Space
+                    , Str "O"
+                    , Space
+                    , Str "O"
+                    , Space
+                    , Str "that"
+                    , Space
+                    , Str "Shakespeherian"
+                    , Space
+                    , Str "Rag\8213"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "It's"
+                    , Space
+                    , Str "so"
+                    , Space
+                    , Str "elegant"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "So"
+                    , Space
+                    , Str "intelligent"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "130" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"What"
+                    , Space
+                    , Str "shall"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "do"
+                    , Space
+                    , Str "now?"
+                    , Space
+                    , Str "What"
+                    , Space
+                    , Str "shall"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "do?\""
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "I"
+                    , Space
+                    , Str "shall"
+                    , Space
+                    , Str "rush"
+                    , Space
+                    , Str "out"
+                    , Space
+                    , Str "as"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "am,"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "walk"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "street"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"With"
+                    , Space
+                    , Str "my"
+                    , Space
+                    , Str "hair"
+                    , Space
+                    , Str "down,"
+                    , Space
+                    , Str "so."
+                    , Space
+                    , Str "What"
+                    , Space
+                    , Str "shall"
+                    , Space
+                    , Str "we"
+                    , Space
+                    , Str "do"
+                    , Space
+                    , Str "to-morrow?"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "\"What"
+                    , Space
+                    , Str "shall"
+                    , Space
+                    , Str "we"
+                    , Space
+                    , Str "ever"
+                    , Space
+                    , Str "do?\""
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "The"
+                    , Space
+                    , Str "hot"
+                    , Space
+                    , Str "water"
+                    , Space
+                    , Str "at"
+                    , Space
+                    , Str "ten."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "if"
+                    , Space
+                    , Str "it"
+                    , Space
+                    , Str "rains,"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "closed"
+                    , Space
+                    , Str "car"
+                    , Space
+                    , Str "at"
+                    , Space
+                    , Str "four."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "we"
+                    , Space
+                    , Str "shall"
+                    , Space
+                    , Str "play"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "game"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "chess,"
+                    ]
+                ]
+            , Div
+                ( "wasteland-content.xhtml#ln138" , [] , [] )
+                [ Plain
+                    [ Str "Pressing"
+                    , Space
+                    , Str "lidless"
+                    , Space
+                    , Str "eyes"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "waiting"
+                    , Space
+                    , Str "for"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "knock"
+                    , Space
+                    , Str "upon"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "door."
+                    , Str ""
+                    ]
+                ]
             ]
-          , Space
-          , Str "!\""
-          , Str ""
-          ]
+        , Div
+            ( "" , [ "linegroup" ] , [] )
+            [ Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "When"
+                    , Space
+                    , Str "Lil's"
+                    , Space
+                    , Str "husband"
+                    , Space
+                    , Str "got"
+                    , Space
+                    , Str "demobbed,"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "said"
+                    , Space
+                    , Str "-"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "I"
+                    , Space
+                    , Str "didn't"
+                    , Space
+                    , Str "mince"
+                    , Space
+                    , Str "my"
+                    , Space
+                    , Str "words,"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "said"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "her"
+                    , Space
+                    , Str "myself,"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "140" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "HURRY"
+                    , Space
+                    , Str "UP"
+                    , Space
+                    , Str "PLEASE"
+                    , Space
+                    , Str "ITS"
+                    , Space
+                    , Str "TIME"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Now"
+                    , Space
+                    , Str "Albert's"
+                    , Space
+                    , Str "coming"
+                    , Space
+                    , Str "back,"
+                    , Space
+                    , Str "make"
+                    , Space
+                    , Str "yourself"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "bit"
+                    , Space
+                    , Str "smart."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "He'll"
+                    , Space
+                    , Str "want"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "know"
+                    , Space
+                    , Str "what"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "done"
+                    , Space
+                    , Str "with"
+                    , Space
+                    , Str "that"
+                    , Space
+                    , Str "money"
+                    , Space
+                    , Str "he"
+                    , Space
+                    , Str "gave"
+                    , SoftBreak
+                    , Str "you"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "To"
+                    , Space
+                    , Str "get"
+                    , Space
+                    , Str "yourself"
+                    , Space
+                    , Str "some"
+                    , Space
+                    , Str "teeth."
+                    , Space
+                    , Str "He"
+                    , Space
+                    , Str "did,"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "was"
+                    , Space
+                    , Str "there."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "You"
+                    , Space
+                    , Str "have"
+                    , Space
+                    , Str "them"
+                    , Space
+                    , Str "all"
+                    , Space
+                    , Str "out,"
+                    , Space
+                    , Str "Lil,"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "get"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "nice"
+                    , Space
+                    , Str "set,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "He"
+                    , Space
+                    , Str "said,"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "swear,"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "can't"
+                    , Space
+                    , Str "bear"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "look"
+                    , Space
+                    , Str "at"
+                    , Space
+                    , Str "you."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "no"
+                    , Space
+                    , Str "more"
+                    , Space
+                    , Str "can't"
+                    , Space
+                    , Str "I,"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "said,"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "think"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "poor"
+                    , Space
+                    , Str "Albert,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "He's"
+                    , Space
+                    , Str "been"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "army"
+                    , Space
+                    , Str "four"
+                    , Space
+                    , Str "years,"
+                    , Space
+                    , Str "he"
+                    , Space
+                    , Str "wants"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "good"
+                    , Space
+                    , Str "time,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "if"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "don't"
+                    , Space
+                    , Str "give"
+                    , Space
+                    , Str "it"
+                    , Space
+                    , Str "him,"
+                    , Space
+                    , Str "there's"
+                    , Space
+                    , Str "others"
+                    , Space
+                    , Str "will,"
+                    , Space
+                    , Str "I"
+                    , SoftBreak
+                    , Str "said."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Oh"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "there,"
+                    , Space
+                    , Str "she"
+                    , Space
+                    , Str "said."
+                    , Space
+                    , Str "Something"
+                    , Space
+                    , Str "o'"
+                    , Space
+                    , Str "that,"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "said."
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "150" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Then"
+                    , Space
+                    , Str "I'll"
+                    , Space
+                    , Str "know"
+                    , Space
+                    , Str "who"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "thank,"
+                    , Space
+                    , Str "she"
+                    , Space
+                    , Str "said,"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "give"
+                    , Space
+                    , Str "me"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "straight"
+                    , SoftBreak
+                    , Str "look."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "HURRY"
+                    , Space
+                    , Str "UP"
+                    , Space
+                    , Str "PLEASE"
+                    , Space
+                    , Str "ITS"
+                    , Space
+                    , Str "TIME"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "If"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "don't"
+                    , Space
+                    , Str "like"
+                    , Space
+                    , Str "it"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "can"
+                    , Space
+                    , Str "get"
+                    , Space
+                    , Str "on"
+                    , Space
+                    , Str "with"
+                    , Space
+                    , Str "it,"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "said."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Others"
+                    , Space
+                    , Str "can"
+                    , Space
+                    , Str "pick"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "choose"
+                    , Space
+                    , Str "if"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "can't."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "But"
+                    , Space
+                    , Str "if"
+                    , Space
+                    , Str "Albert"
+                    , Space
+                    , Str "makes"
+                    , Space
+                    , Str "off,"
+                    , Space
+                    , Str "it"
+                    , Space
+                    , Str "won't"
+                    , Space
+                    , Str "be"
+                    , Space
+                    , Str "for"
+                    , Space
+                    , Str "lack"
+                    , Space
+                    , Str "of"
+                    , SoftBreak
+                    , Str "telling."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "You"
+                    , Space
+                    , Str "ought"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "be"
+                    , Space
+                    , Str "ashamed,"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "said,"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "look"
+                    , Space
+                    , Str "so"
+                    , Space
+                    , Str "antique."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "(And"
+                    , Space
+                    , Str "her"
+                    , Space
+                    , Str "only"
+                    , Space
+                    , Str "thirty-one.)"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "I"
+                    , Space
+                    , Str "can't"
+                    , Space
+                    , Str "help"
+                    , Space
+                    , Str "it,"
+                    , Space
+                    , Str "she"
+                    , Space
+                    , Str "said,"
+                    , Space
+                    , Str "pulling"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "long"
+                    , Space
+                    , Str "face,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "It's"
+                    , Space
+                    , Str "them"
+                    , Space
+                    , Str "pills"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "took,"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "bring"
+                    , Space
+                    , Str "it"
+                    , Space
+                    , Str "off,"
+                    , Space
+                    , Str "she"
+                    , Space
+                    , Str "said."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "(She's"
+                    , Space
+                    , Str "had"
+                    , Space
+                    , Str "five"
+                    , Space
+                    , Str "already,"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Str "nearly"
+                    , Space
+                    , Str "died"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "young"
+                    , Space
+                    , Str "George.)"
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "160" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "The"
+                    , Space
+                    , Str "chemist"
+                    , Space
+                    , Str "said"
+                    , Space
+                    , Str "it"
+                    , Space
+                    , Str "would"
+                    , Space
+                    , Str "be"
+                    , Space
+                    , Str "all"
+                    , Space
+                    , Str "right,"
+                    , Space
+                    , Str "but"
+                    , Space
+                    , Str "I've"
+                    , Space
+                    , Str "never"
+                    , Space
+                    , Str "been"
+                    , Space
+                    , Str "the"
+                    , SoftBreak
+                    , Str "same."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "You"
+                    , Space
+                    , Emph [ Str "are" ]
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "proper"
+                    , Space
+                    , Str "fool,"
+                    , Space
+                    , Str "I"
+                    , Space
+                    , Str "said."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Well,"
+                    , Space
+                    , Str "if"
+                    , Space
+                    , Str "Albert"
+                    , Space
+                    , Str "won't"
+                    , Space
+                    , Str "leave"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "alone,"
+                    , Space
+                    , Str "there"
+                    , Space
+                    , Str "it"
+                    , Space
+                    , Str "is,"
+                    , Space
+                    , Str "I"
+                    , SoftBreak
+                    , Str "said,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "What"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "get"
+                    , Space
+                    , Str "married"
+                    , Space
+                    , Str "for"
+                    , Space
+                    , Str "if"
+                    , Space
+                    , Str "you"
+                    , Space
+                    , Str "don't"
+                    , Space
+                    , Str "want"
+                    , Space
+                    , Str "children?"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "HURRY"
+                    , Space
+                    , Str "UP"
+                    , Space
+                    , Str "PLEASE"
+                    , Space
+                    , Str "ITS"
+                    , Space
+                    , Str "TIME"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Well,"
+                    , Space
+                    , Str "that"
+                    , Space
+                    , Str "Sunday"
+                    , Space
+                    , Str "Albert"
+                    , Space
+                    , Str "was"
+                    , Space
+                    , Str "home,"
+                    , Space
+                    , Str "they"
+                    , Space
+                    , Str "had"
+                    , Space
+                    , Str "a"
+                    , Space
+                    , Str "hot"
+                    , SoftBreak
+                    , Str "gammon,"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "And"
+                    , Space
+                    , Str "they"
+                    , Space
+                    , Str "asked"
+                    , Space
+                    , Str "me"
+                    , Space
+                    , Str "in"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "dinner,"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "get"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "beauty"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "it"
+                    , SoftBreak
+                    , Str "hot\8213"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "HURRY"
+                    , Space
+                    , Str "UP"
+                    , Space
+                    , Str "PLEASE"
+                    , Space
+                    , Str "ITS"
+                    , Space
+                    , Str "TIME"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "HURRY"
+                    , Space
+                    , Str "UP"
+                    , Space
+                    , Str "PLEASE"
+                    , Space
+                    , Str "ITS"
+                    , Space
+                    , Str "TIME"
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Goonight"
+                    , Space
+                    , Str "Bill."
+                    , Space
+                    , Str "Goonight"
+                    , Space
+                    , Str "Lou."
+                    , Space
+                    , Str "Goonight"
+                    , Space
+                    , Str "May."
+                    , Space
+                    , Str "Goonight."
+                    , Span ( "" , [ "lnum" ] , [] ) [ Str "170" ]
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Ta"
+                    , Space
+                    , Str "ta."
+                    , Space
+                    , Str "Goonight."
+                    , Space
+                    , Str "Goonight."
+                    ]
+                ]
+            , Div
+                ( "" , [] , [] )
+                [ Plain
+                    [ Str "Good"
+                    , Space
+                    , Str "night,"
+                    , Space
+                    , Str "ladies,"
+                    , Space
+                    , Str "good"
+                    , Space
+                    , Str "night,"
+                    , Space
+                    , Str "sweet"
+                    , Space
+                    , Str "ladies,"
+                    , Space
+                    , Str "good"
+                    , Space
+                    , Str "night,"
+                    , Space
+                    , Str "good"
+                    , SoftBreak
+                    , Str "night."
+                    ]
+                ]
+            ]
         ]
-      ]
     ]
-  , Div
-    ( "wasteland-content.xhtml#ch2", [ "section" ], [] )
-    [ Header 2
-      ( "", [], [] )
-      [ Str "II."
-      , Space
-      , Str "A"
-      , Space
-      , Str "GAME"
-      , Space
-      , Str "OF"
-      , Space
-      , Str "CHESS"
-      ]
-    , Div
-      ( "", [ "linegroup" ], [] )
-      [ Div
-        ( "wasteland-content.xhtml#ln77", [], [] )
-        [ Plain
-          [ Str "The"
-          , Space
-          , Str "Chair"
-          , Space
-          , Str "she"
-          , Space
-          , Str "sat"
-          , Space
-          , Str "in,"
-          , Space
-          , Str "like"
-          , Space
-          , Str "a"
-          , Space
-          , Str "burnished"
-          , Space
-          , Str "throne,"
-          , Str ""
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Glowed"
-          , Space
-          , Str "on"
-          , Space
-          , Str "the"
-          , Space
-          , Str "marble,"
-          , Space
-          , Str "where"
-          , Space
-          , Str "the"
-          , Space
-          , Str "glass"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Held"
-          , Space
-          , Str "up"
-          , Space
-          , Str "by"
-          , Space
-          , Str "standards"
-          , Space
-          , Str "wrought"
-          , Space
-          , Str "with"
-          , Space
-          , Str "fruited"
-          , Space
-          , Str "vines"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "From"
-          , Space
-          , Str "which"
-          , Space
-          , Str "a"
-          , Space
-          , Str "golden"
-          , Space
-          , Str "Cupidon"
-          , Space
-          , Str "peeped"
-          , Space
-          , Str "out"
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "80" ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "(Another"
-          , Space
-          , Str "hid"
-          , Space
-          , Str "his"
-          , Space
-          , Str "eyes"
-          , Space
-          , Str "behind"
-          , Space
-          , Str "his"
-          , Space
-          , Str "wing)"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Doubled"
-          , Space
-          , Str "the"
-          , Space
-          , Str "flames"
-          , Space
-          , Str "of"
-          , Space
-          , Str "sevenbranched"
-          , Space
-          , Str "candelabra"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Reflecting"
-          , Space
-          , Str "light"
-          , Space
-          , Str "upon"
-          , Space
-          , Str "the"
-          , Space
-          , Str "table"
-          , Space
-          , Str "as"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "The"
-          , Space
-          , Str "glitter"
-          , Space
-          , Str "of"
-          , Space
-          , Str "her"
-          , Space
-          , Str "jewels"
-          , Space
-          , Str "rose"
-          , Space
-          , Str "to"
-          , Space
-          , Str "meet"
-          , Space
-          , Str "it,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "From"
-          , Space
-          , Str "satin"
-          , Space
-          , Str "cases"
-          , Space
-          , Str "poured"
-          , Space
-          , Str "in"
-          , Space
-          , Str "rich"
-          , Space
-          , Str "profusion;"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "In"
-          , Space
-          , Str "vials"
-          , Space
-          , Str "of"
-          , Space
-          , Str "ivory"
-          , Space
-          , Str "and"
-          , Space
-          , Str "coloured"
-          , Space
-          , Str "glass"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Unstoppered,"
-          , Space
-          , Str "lurked"
-          , Space
-          , Str "her"
-          , Space
-          , Str "strange"
-          , Space
-          , Str "synthetic"
-          , Space
-          , Str "perfumes,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Unguent,"
-          , Space
-          , Str "powdered,"
-          , Space
-          , Str "or"
-          , Space
-          , Str "liquid"
-          , Space
-          , Str "-"
-          , Space
-          , Str "troubled,"
-          , Space
-          , Str "confused"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "drowned"
-          , Space
-          , Str "the"
-          , Space
-          , Str "sense"
-          , Space
-          , Str "in"
-          , Space
-          , Str "odours;"
-          , Space
-          , Str "stirred"
-          , Space
-          , Str "by"
-          , Space
-          , Str "the"
-          , Space
-          , Str "air"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "That"
-          , Space
-          , Str "freshened"
-          , Space
-          , Str "from"
-          , Space
-          , Str "the"
-          , Space
-          , Str "window,"
-          , Space
-          , Str "these"
-          , Space
-          , Str "ascended"
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "90" ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "In"
-          , Space
-          , Str "fattening"
-          , Space
-          , Str "the"
-          , Space
-          , Str "prolonged"
-          , Space
-          , Str "candle-flames,"
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln92", [], [] )
-        [ Plain
-          [ Str "Flung"
-          , Space
-          , Str "their"
-          , Space
-          , Str "smoke"
-          , Space
-          , Str "into"
-          , Space
-          , Str "the"
-          , Space
-          , Str "laquearia,"
-          , Str ""
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Stirring"
-          , Space
-          , Str "the"
-          , Space
-          , Str "pattern"
-          , Space
-          , Str "on"
-          , Space
-          , Str "the"
-          , Space
-          , Str "coffered"
-          , Space
-          , Str "ceiling."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Huge"
-          , Space
-          , Str "sea-wood"
-          , Space
-          , Str "fed"
-          , Space
-          , Str "with"
-          , Space
-          , Str "copper"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Burned"
-          , Space
-          , Str "green"
-          , Space
-          , Str "and"
-          , Space
-          , Str "orange,"
-          , Space
-          , Str "framed"
-          , Space
-          , Str "by"
-          , Space
-          , Str "the"
-          , Space
-          , Str "coloured"
-          , Space
-          , Str "stone,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "In"
-          , Space
-          , Str "which"
-          , Space
-          , Str "sad"
-          , Space
-          , Str "light"
-          , Space
-          , Str "a"
-          , Space
-          , Str "carved"
-          , Space
-          , Str "dolphin"
-          , Space
-          , Str "swam."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Above"
-          , Space
-          , Str "the"
-          , Space
-          , Str "antique"
-          , Space
-          , Str "mantel"
-          , Space
-          , Str "was"
-          , Space
-          , Str "displayed"
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln98", [], [] )
-        [ Plain
-          [ Str "As"
-          , Space
-          , Str "though"
-          , Space
-          , Str "a"
-          , Space
-          , Str "window"
-          , Space
-          , Str "gave"
-          , Space
-          , Str "upon"
-          , Space
-          , Str "the"
-          , Space
-          , Str "sylvan"
-          , Space
-          , Str "scene"
-          , Str ""
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln99", [], [] )
-        [ Plain
-          [ Str "The"
-          , Space
-          , Str "change"
-          , Space
-          , Str "of"
-          , Space
-          , Str "Philomel,"
-          , Space
-          , Str "by"
-          , Space
-          , Str "the"
-          , Space
-          , Str "barbarous"
-          , Space
-          , Str "king"
-          , Str ""
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln100", [], [] )
-        [ Plain
-          [ Str "So"
-          , Space
-          , Str "rudely"
-          , Space
-          , Str "forced;"
-          , Space
-          , Str "yet"
-          , Space
-          , Str "there"
-          , Space
-          , Str "the"
-          , Space
-          , Str "nightingale"
-          , Str ""
-          , SoftBreak
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "100" ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Filled"
-          , Space
-          , Str "all"
-          , Space
-          , Str "the"
-          , Space
-          , Str "desert"
-          , Space
-          , Str "with"
-          , Space
-          , Str "inviolable"
-          , Space
-          , Str "voice"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "still"
-          , Space
-          , Str "she"
-          , Space
-          , Str "cried,"
-          , Space
-          , Str "and"
-          , Space
-          , Str "still"
-          , Space
-          , Str "the"
-          , Space
-          , Str "world"
-          , Space
-          , Str "pursues,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\"Jug"
-          , Space
-          , Str "Jug\""
-          , Space
-          , Str "to"
-          , Space
-          , Str "dirty"
-          , Space
-          , Str "ears."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "other"
-          , Space
-          , Str "withered"
-          , Space
-          , Str "stumps"
-          , Space
-          , Str "of"
-          , Space
-          , Str "time"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Were"
-          , Space
-          , Str "told"
-          , Space
-          , Str "upon"
-          , Space
-          , Str "the"
-          , Space
-          , Str "walls;"
-          , Space
-          , Str "staring"
-          , Space
-          , Str "forms"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Leaned"
-          , Space
-          , Str "out,"
-          , Space
-          , Str "leaning,"
-          , Space
-          , Str "hushing"
-          , Space
-          , Str "the"
-          , Space
-          , Str "room"
-          , Space
-          , Str "enclosed."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Footsteps"
-          , Space
-          , Str "shuffled"
-          , Space
-          , Str "on"
-          , Space
-          , Str "the"
-          , Space
-          , Str "stair."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Under"
-          , Space
-          , Str "the"
-          , Space
-          , Str "firelight,"
-          , Space
-          , Str "under"
-          , Space
-          , Str "the"
-          , Space
-          , Str "brush,"
-          , Space
-          , Str "her"
-          , Space
-          , Str "hair"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Spread"
-          , Space
-          , Str "out"
-          , Space
-          , Str "in"
-          , Space
-          , Str "fiery"
-          , Space
-          , Str "points"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Glowed"
-          , Space
-          , Str "into"
-          , Space
-          , Str "words,"
-          , Space
-          , Str "then"
-          , Space
-          , Str "would"
-          , Space
-          , Str "be"
-          , Space
-          , Str "savagely"
-          , Space
-          , Str "still."
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "110" ]
-          ]
-        ]
-      ]
-    , Div
-      ( "", [ "linegroup" ], [] )
-      [ Div
-        ( "", [ "linegroup" ], [] )
-        [ Div
-          ( "", [], [] )
-          [ Plain
-            [ Str "\"My"
-            , Space
-            , Str "nerves"
-            , Space
-            , Str "are"
-            , Space
-            , Str "bad"
-            , Space
-            , Str "to-night."
-            , Space
-            , Str "Yes,"
-            , Space
-            , Str "bad."
-            , Space
-            , Str "Stay"
-            , Space
-            , Str "with"
-            , Space
-            , Str "me."
-            ]
-          ]
-        , Div
-          ( "", [], [] )
-          [ Plain
-            [ Str "\"Speak"
-            , Space
-            , Str "to"
-            , Space
-            , Str "me."
-            , Space
-            , Str "Why"
-            , Space
-            , Str "do"
-            , Space
-            , Str "you"
-            , Space
-            , Str "never"
-            , Space
-            , Str "speak."
-            , Space
-            , Str "Speak."
-            ]
-          ]
-        , Div
-          ( "", [], [] )
-          [ Plain
-            [ Str "\"What"
-            , Space
-            , Str "are"
-            , Space
-            , Str "you"
-            , Space
-            , Str "thinking"
-            , Space
-            , Str "of?"
-            , Space
-            , Str "What"
-            , Space
-            , Str "thinking?"
-            , Space
-            , Str "What?"
-            ]
-          ]
-        , Div
-          ( "", [], [] )
-          [ Plain
-            [ Str "\"I"
-            , Space
-            , Str "never"
-            , Space
-            , Str "know"
-            , Space
-            , Str "what"
-            , Space
-            , Str "you"
-            , Space
-            , Str "are"
-            , Space
-            , Str "thinking."
-            , Space
-            , Str "Think.\""
-            ]
-          ]
-        ]
-      , Div
-        ( "", [ "linegroup" ], [] )
-        [ Div
-          ( "wasteland-content.xhtml#ln115", [], [] )
-          [ Plain
-            [ Str "I"
-            , Space
-            , Str "think"
-            , Space
-            , Str "we"
-            , Space
-            , Str "are"
-            , Space
-            , Str "in"
-            , Space
-            , Str "rats'"
-            , Space
-            , Str "alley"
-            , Str ""
-            ]
-          ]
-        , Div
-          ( "", [], [] )
-          [ Plain
-            [ Str "Where"
-            , Space
-            , Str "the"
-            , Space
-            , Str "dead"
-            , Space
-            , Str "men"
-            , Space
-            , Str "lost"
-            , Space
-            , Str "their"
-            , Space
-            , Str "bones."
-            ]
-          ]
-        ]
-      ]
-    , Div
-      ( "", [ "linegroup" ], [] )
-      [ Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\"What"
-          , Space
-          , Str "is"
-          , Space
-          , Str "that"
-          , Space
-          , Str "noise?\""
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln118", [ "indent" ], [] )
-        [ Plain
-          [ Str "The"
-          , Space
-          , Str "wind"
-          , Space
-          , Str "under"
-          , Space
-          , Str "the"
-          , Space
-          , Str "door."
-          , Str ""
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\"What"
-          , Space
-          , Str "is"
-          , Space
-          , Str "that"
-          , Space
-          , Str "noise"
-          , Space
-          , Str "now?"
-          , Space
-          , Str "What"
-          , Space
-          , Str "is"
-          , Space
-          , Str "the"
-          , Space
-          , Str "wind"
-          , Space
-          , Str "doing?\""
-          ]
-        ]
-      , Div
-        ( "", [ "indent" ], [] )
-        [ Plain
-          [ Str "Nothing"
-          , Space
-          , Str "again"
-          , Space
-          , Str "nothing."
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "120" ]
-          ]
-        ]
-      ]
-    , Div
-      ( "", [ "linegroup" ], [] )
-      [ Div
-        ( "", [], [] )
-        [ Plain [ Str "\"Do" ] ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\"You"
-          , Space
-          , Str "know"
-          , Space
-          , Str "nothing?"
-          , Space
-          , Str "Do"
-          , Space
-          , Str "you"
-          , Space
-          , Str "see"
-          , Space
-          , Str "nothing?"
-          , Space
-          , Str "Do"
-          , Space
-          , Str "you"
-          , Space
-          , Str "remember"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain [ Str "\"Nothing?\"" ] ]
-      ]
-    , Div
-      ( "", [ "linegroup" ], [] )
-      [ Div
-        ( "", [], [] )
-        [ Plain [ Str "I", Space, Str "remember" ] ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Those"
-          , Space
-          , Str "are"
-          , Space
-          , Str "pearls"
-          , Space
-          , Str "that"
-          , Space
-          , Str "were"
-          , Space
-          , Str "his"
-          , Space
-          , Str "eyes."
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln126", [], [] )
-        [ Plain
-          [ Str "\"Are"
-          , Space
-          , Str "you"
-          , Space
-          , Str "alive,"
-          , Space
-          , Str "or"
-          , Space
-          , Str "not?"
-          , Space
-          , Str "Is"
-          , Space
-          , Str "there"
-          , Space
-          , Str "nothing"
-          , Space
-          , Str "in"
-          , Space
-          , Str "your"
-          , Space
-          , Str "head?\""
-          , Str ""
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain [ Str "But" ] ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "O"
-          , Space
-          , Str "O"
-          , Space
-          , Str "O"
-          , Space
-          , Str "O"
-          , Space
-          , Str "that"
-          , Space
-          , Str "Shakespeherian"
-          , Space
-          , Str "Rag\8213"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain [ Str "It's", Space, Str "so", Space, Str "elegant" ] ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "So"
-          , Space
-          , Str "intelligent"
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "130" ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\"What"
-          , Space
-          , Str "shall"
-          , Space
-          , Str "I"
-          , Space
-          , Str "do"
-          , Space
-          , Str "now?"
-          , Space
-          , Str "What"
-          , Space
-          , Str "shall"
-          , Space
-          , Str "I"
-          , Space
-          , Str "do?\""
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "I"
-          , Space
-          , Str "shall"
-          , Space
-          , Str "rush"
-          , Space
-          , Str "out"
-          , Space
-          , Str "as"
-          , Space
-          , Str "I"
-          , Space
-          , Str "am,"
-          , Space
-          , Str "and"
-          , Space
-          , Str "walk"
-          , Space
-          , Str "the"
-          , Space
-          , Str "street"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\"With"
-          , Space
-          , Str "my"
-          , Space
-          , Str "hair"
-          , Space
-          , Str "down,"
-          , Space
-          , Str "so."
-          , Space
-          , Str "What"
-          , Space
-          , Str "shall"
-          , Space
-          , Str "we"
-          , Space
-          , Str "do"
-          , Space
-          , Str "to-morrow?"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "\"What"
-          , Space
-          , Str "shall"
-          , Space
-          , Str "we"
-          , Space
-          , Str "ever"
-          , Space
-          , Str "do?\""
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "The"
-          , Space
-          , Str "hot"
-          , Space
-          , Str "water"
-          , Space
-          , Str "at"
-          , Space
-          , Str "ten."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "if"
-          , Space
-          , Str "it"
-          , Space
-          , Str "rains,"
-          , Space
-          , Str "a"
-          , Space
-          , Str "closed"
-          , Space
-          , Str "car"
-          , Space
-          , Str "at"
-          , Space
-          , Str "four."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "we"
-          , Space
-          , Str "shall"
-          , Space
-          , Str "play"
-          , Space
-          , Str "a"
-          , Space
-          , Str "game"
-          , Space
-          , Str "of"
-          , Space
-          , Str "chess,"
-          ]
-        ]
-      , Div
-        ( "wasteland-content.xhtml#ln138", [], [] )
-        [ Plain
-          [ Str "Pressing"
-          , Space
-          , Str "lidless"
-          , Space
-          , Str "eyes"
-          , Space
-          , Str "and"
-          , Space
-          , Str "waiting"
-          , Space
-          , Str "for"
-          , Space
-          , Str "a"
-          , Space
-          , Str "knock"
-          , Space
-          , Str "upon"
-          , Space
-          , Str "the"
-          , Space
-          , Str "door."
-          , Str ""
-          ]
-        ]
-      ]
-    , Div
-      ( "", [ "linegroup" ], [] )
-      [ Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "When"
-          , Space
-          , Str "Lil's"
-          , Space
-          , Str "husband"
-          , Space
-          , Str "got"
-          , Space
-          , Str "demobbed,"
-          , Space
-          , Str "I"
-          , Space
-          , Str "said"
-          , Space
-          , Str "-"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "I"
-          , Space
-          , Str "didn't"
-          , Space
-          , Str "mince"
-          , Space
-          , Str "my"
-          , Space
-          , Str "words,"
-          , Space
-          , Str "I"
-          , Space
-          , Str "said"
-          , Space
-          , Str "to"
-          , Space
-          , Str "her"
-          , Space
-          , Str "myself,"
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "140" ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "HURRY"
-          , Space
-          , Str "UP"
-          , Space
-          , Str "PLEASE"
-          , Space
-          , Str "ITS"
-          , Space
-          , Str "TIME"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Now"
-          , Space
-          , Str "Albert's"
-          , Space
-          , Str "coming"
-          , Space
-          , Str "back,"
-          , Space
-          , Str "make"
-          , Space
-          , Str "yourself"
-          , Space
-          , Str "a"
-          , Space
-          , Str "bit"
-          , Space
-          , Str "smart."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "He'll"
-          , Space
-          , Str "want"
-          , Space
-          , Str "to"
-          , Space
-          , Str "know"
-          , Space
-          , Str "what"
-          , Space
-          , Str "you"
-          , Space
-          , Str "done"
-          , Space
-          , Str "with"
-          , Space
-          , Str "that"
-          , Space
-          , Str "money"
-          , Space
-          , Str "he"
-          , Space
-          , Str "gave"
-          , SoftBreak
-          , Str "you"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "To"
-          , Space
-          , Str "get"
-          , Space
-          , Str "yourself"
-          , Space
-          , Str "some"
-          , Space
-          , Str "teeth."
-          , Space
-          , Str "He"
-          , Space
-          , Str "did,"
-          , Space
-          , Str "I"
-          , Space
-          , Str "was"
-          , Space
-          , Str "there."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "You"
-          , Space
-          , Str "have"
-          , Space
-          , Str "them"
-          , Space
-          , Str "all"
-          , Space
-          , Str "out,"
-          , Space
-          , Str "Lil,"
-          , Space
-          , Str "and"
-          , Space
-          , Str "get"
-          , Space
-          , Str "a"
-          , Space
-          , Str "nice"
-          , Space
-          , Str "set,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "He"
-          , Space
-          , Str "said,"
-          , Space
-          , Str "I"
-          , Space
-          , Str "swear,"
-          , Space
-          , Str "I"
-          , Space
-          , Str "can't"
-          , Space
-          , Str "bear"
-          , Space
-          , Str "to"
-          , Space
-          , Str "look"
-          , Space
-          , Str "at"
-          , Space
-          , Str "you."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "no"
-          , Space
-          , Str "more"
-          , Space
-          , Str "can't"
-          , Space
-          , Str "I,"
-          , Space
-          , Str "I"
-          , Space
-          , Str "said,"
-          , Space
-          , Str "and"
-          , Space
-          , Str "think"
-          , Space
-          , Str "of"
-          , Space
-          , Str "poor"
-          , Space
-          , Str "Albert,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "He's"
-          , Space
-          , Str "been"
-          , Space
-          , Str "in"
-          , Space
-          , Str "the"
-          , Space
-          , Str "army"
-          , Space
-          , Str "four"
-          , Space
-          , Str "years,"
-          , Space
-          , Str "he"
-          , Space
-          , Str "wants"
-          , Space
-          , Str "a"
-          , Space
-          , Str "good"
-          , Space
-          , Str "time,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "if"
-          , Space
-          , Str "you"
-          , Space
-          , Str "don't"
-          , Space
-          , Str "give"
-          , Space
-          , Str "it"
-          , Space
-          , Str "him,"
-          , Space
-          , Str "there's"
-          , Space
-          , Str "others"
-          , Space
-          , Str "will,"
-          , Space
-          , Str "I"
-          , SoftBreak
-          , Str "said."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Oh"
-          , Space
-          , Str "is"
-          , Space
-          , Str "there,"
-          , Space
-          , Str "she"
-          , Space
-          , Str "said."
-          , Space
-          , Str "Something"
-          , Space
-          , Str "o'"
-          , Space
-          , Str "that,"
-          , Space
-          , Str "I"
-          , Space
-          , Str "said."
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "150" ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Then"
-          , Space
-          , Str "I'll"
-          , Space
-          , Str "know"
-          , Space
-          , Str "who"
-          , Space
-          , Str "to"
-          , Space
-          , Str "thank,"
-          , Space
-          , Str "she"
-          , Space
-          , Str "said,"
-          , Space
-          , Str "and"
-          , Space
-          , Str "give"
-          , Space
-          , Str "me"
-          , Space
-          , Str "a"
-          , Space
-          , Str "straight"
-          , SoftBreak
-          , Str "look."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "HURRY"
-          , Space
-          , Str "UP"
-          , Space
-          , Str "PLEASE"
-          , Space
-          , Str "ITS"
-          , Space
-          , Str "TIME"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "If"
-          , Space
-          , Str "you"
-          , Space
-          , Str "don't"
-          , Space
-          , Str "like"
-          , Space
-          , Str "it"
-          , Space
-          , Str "you"
-          , Space
-          , Str "can"
-          , Space
-          , Str "get"
-          , Space
-          , Str "on"
-          , Space
-          , Str "with"
-          , Space
-          , Str "it,"
-          , Space
-          , Str "I"
-          , Space
-          , Str "said."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Others"
-          , Space
-          , Str "can"
-          , Space
-          , Str "pick"
-          , Space
-          , Str "and"
-          , Space
-          , Str "choose"
-          , Space
-          , Str "if"
-          , Space
-          , Str "you"
-          , Space
-          , Str "can't."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "But"
-          , Space
-          , Str "if"
-          , Space
-          , Str "Albert"
-          , Space
-          , Str "makes"
-          , Space
-          , Str "off,"
-          , Space
-          , Str "it"
-          , Space
-          , Str "won't"
-          , Space
-          , Str "be"
-          , Space
-          , Str "for"
-          , Space
-          , Str "lack"
-          , Space
-          , Str "of"
-          , SoftBreak
-          , Str "telling."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "You"
-          , Space
-          , Str "ought"
-          , Space
-          , Str "to"
-          , Space
-          , Str "be"
-          , Space
-          , Str "ashamed,"
-          , Space
-          , Str "I"
-          , Space
-          , Str "said,"
-          , Space
-          , Str "to"
-          , Space
-          , Str "look"
-          , Space
-          , Str "so"
-          , Space
-          , Str "antique."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "(And"
-          , Space
-          , Str "her"
-          , Space
-          , Str "only"
-          , Space
-          , Str "thirty-one.)"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "I"
-          , Space
-          , Str "can't"
-          , Space
-          , Str "help"
-          , Space
-          , Str "it,"
-          , Space
-          , Str "she"
-          , Space
-          , Str "said,"
-          , Space
-          , Str "pulling"
-          , Space
-          , Str "a"
-          , Space
-          , Str "long"
-          , Space
-          , Str "face,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "It's"
-          , Space
-          , Str "them"
-          , Space
-          , Str "pills"
-          , Space
-          , Str "I"
-          , Space
-          , Str "took,"
-          , Space
-          , Str "to"
-          , Space
-          , Str "bring"
-          , Space
-          , Str "it"
-          , Space
-          , Str "off,"
-          , Space
-          , Str "she"
-          , Space
-          , Str "said."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "(She's"
-          , Space
-          , Str "had"
-          , Space
-          , Str "five"
-          , Space
-          , Str "already,"
-          , Space
-          , Str "and"
-          , Space
-          , Str "nearly"
-          , Space
-          , Str "died"
-          , Space
-          , Str "of"
-          , Space
-          , Str "young"
-          , Space
-          , Str "George.)"
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "160" ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "The"
-          , Space
-          , Str "chemist"
-          , Space
-          , Str "said"
-          , Space
-          , Str "it"
-          , Space
-          , Str "would"
-          , Space
-          , Str "be"
-          , Space
-          , Str "all"
-          , Space
-          , Str "right,"
-          , Space
-          , Str "but"
-          , Space
-          , Str "I've"
-          , Space
-          , Str "never"
-          , Space
-          , Str "been"
-          , Space
-          , Str "the"
-          , SoftBreak
-          , Str "same."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "You"
-          , Space
-          , Emph
-            [ Str "are" ]
-          , Space
-          , Str "a"
-          , Space
-          , Str "proper"
-          , Space
-          , Str "fool,"
-          , Space
-          , Str "I"
-          , Space
-          , Str "said."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Well,"
-          , Space
-          , Str "if"
-          , Space
-          , Str "Albert"
-          , Space
-          , Str "won't"
-          , Space
-          , Str "leave"
-          , Space
-          , Str "you"
-          , Space
-          , Str "alone,"
-          , Space
-          , Str "there"
-          , Space
-          , Str "it"
-          , Space
-          , Str "is,"
-          , Space
-          , Str "I"
-          , SoftBreak
-          , Str "said,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "What"
-          , Space
-          , Str "you"
-          , Space
-          , Str "get"
-          , Space
-          , Str "married"
-          , Space
-          , Str "for"
-          , Space
-          , Str "if"
-          , Space
-          , Str "you"
-          , Space
-          , Str "don't"
-          , Space
-          , Str "want"
-          , Space
-          , Str "children?"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "HURRY"
-          , Space
-          , Str "UP"
-          , Space
-          , Str "PLEASE"
-          , Space
-          , Str "ITS"
-          , Space
-          , Str "TIME"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Well,"
-          , Space
-          , Str "that"
-          , Space
-          , Str "Sunday"
-          , Space
-          , Str "Albert"
-          , Space
-          , Str "was"
-          , Space
-          , Str "home,"
-          , Space
-          , Str "they"
-          , Space
-          , Str "had"
-          , Space
-          , Str "a"
-          , Space
-          , Str "hot"
-          , SoftBreak
-          , Str "gammon,"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "And"
-          , Space
-          , Str "they"
-          , Space
-          , Str "asked"
-          , Space
-          , Str "me"
-          , Space
-          , Str "in"
-          , Space
-          , Str "to"
-          , Space
-          , Str "dinner,"
-          , Space
-          , Str "to"
-          , Space
-          , Str "get"
-          , Space
-          , Str "the"
-          , Space
-          , Str "beauty"
-          , Space
-          , Str "of"
-          , Space
-          , Str "it"
-          , SoftBreak
-          , Str "hot\8213"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "HURRY"
-          , Space
-          , Str "UP"
-          , Space
-          , Str "PLEASE"
-          , Space
-          , Str "ITS"
-          , Space
-          , Str "TIME"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "HURRY"
-          , Space
-          , Str "UP"
-          , Space
-          , Str "PLEASE"
-          , Space
-          , Str "ITS"
-          , Space
-          , Str "TIME"
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Goonight"
-          , Space
-          , Str "Bill."
-          , Space
-          , Str "Goonight"
-          , Space
-          , Str "Lou."
-          , Space
-          , Str "Goonight"
-          , Space
-          , Str "May."
-          , Space
-          , Str "Goonight."
-          , Span
-            ( "", [ "lnum" ], [] )
-            [ Str "170" ]
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Ta"
-          , Space
-          , Str "ta."
-          , Space
-          , Str "Goonight."
-          , Space
-          , Str "Goonight."
-          ]
-        ]
-      , Div
-        ( "", [], [] )
-        [ Plain
-          [ Str "Good"
-          , Space
-          , Str "night,"
-          , Space
-          , Str "ladies,"
-          , Space
-          , Str "good"
-          , Space
-          , Str "night,"
-          , Space
-          , Str "sweet"
-          , Space
-          , Str "ladies,"
-          , Space
-          , Str "good"
-          , Space
-          , Str "night,"
-          , Space
-          , Str "good"
-          , SoftBreak
-          , Str "night."
-          ]
-        ]
-      ]
-    ]
-  ]
 ]

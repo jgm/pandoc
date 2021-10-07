@@ -5,10 +5,21 @@ flags: +embed_data_files
 source-repository-package
   type: git
   location: https://github.com/jgm/citeproc.git
-  tag: b27201c3ac48ffd2853f77152df19b6e2cf36987
+  tag: 673a7fb643d24a3bb0f60f8f29e189c0ba7ef15b
 
 source-repository-package
   type: git
   location: https://github.com/jgm/texmath.git
-  tag: 19700530733707284bb41f24add757f19ca23430
+  tag: c046e6e5a93510f2c37dbc700f82a2c53ed87b5f
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/pandoc-types.git
+  tag: f796401eaaab780f83c562e97dbb8c8d4b9974d1
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/commonmark-hs.git
+  tag: 3cba9f874db7516f49d221a94171b4af010b5bea
+  subdir: commonmark-pandoc
 

@@ -3,7 +3,6 @@
 \PassOptionsToPackage{hyphens}{url}
 %
 \documentclass[
-  english,
 ]{article}
 \usepackage{amsmath,amssymb}
 \usepackage{lmodern}
@@ -45,16 +44,23 @@
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \setcounter{secnumdepth}{-\maxdimen} % remove section numbering
-\usepackage[ngerman,british,nswissgerman,spanish,french,main=english]{babel}
+\ifXeTeX
+\usepackage[bidi=default]{babel}
+\fi
+\ifLuaTeX
+\usepackage[bidi=basic]{babel}
+\fi
+\babelprovide[main,import]{english}
+\babelprovide[import]{ngerman}
+\babelprovide[import]{british}
+\babelprovide[import]{nswissgerman}
+\babelprovide[import]{spanish}
+\babelprovide[import]{french}
 % get rid of language-specific shorthands (see #6817):
 \let\LanguageShortHands\languageshorthands
 \def\languageshorthands#1{}
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
-\fi
-\ifXeTeX
-  % Load bidi as late as possible as it modifies e.g. graphicx
-  \usepackage{bidi}
 \fi
 \ifPDFTeX
   \TeXXeTstate=1

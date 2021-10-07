@@ -54,7 +54,7 @@ references:
   author:
   - family: Gillies
     given: Alexander
-  collection-title: new series
+  collection-title: New series
   container-title: Publications of the English Goethe Society
   id: gillies
   issued: 1933

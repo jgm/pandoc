@@ -30,7 +30,9 @@ C\colonhyp\bshyp{}Windows\bshyp
 % pandoc -f latex -t native
 \nohyphens{Pneumonoultramicroscopicsilicovolcanoconiosis}
 ^D
-[ Para [ Str "Pneumonoultramicroscopicsilicovolcanoconiosis" ] ]
+[ Para
+    [ Str "Pneumonoultramicroscopicsilicovolcanoconiosis" ]
+]
 ```
 
 ```
@@ -38,9 +40,10 @@ C\colonhyp\bshyp{}Windows\bshyp
 \textnhtt{Pneumonoultramicroscopicsilicovolcanoconiosis}
 ^D
 [ Para
-  [ Code
-    ( "", [], [] ) "Pneumonoultramicroscopicsilicovolcanoconiosis"
-  ]
+    [ Code
+        ( "" , [] , [] )
+        "Pneumonoultramicroscopicsilicovolcanoconiosis"
+    ]
 ]
 ```
 
@@ -49,9 +52,10 @@ C\colonhyp\bshyp{}Windows\bshyp
 \nhttfamily{Pneumonoultramicroscopicsilicovolcanoconiosis}
 ^D
 [ Para
-  [ Code
-    ( "", [], [] ) "Pneumonoultramicroscopicsilicovolcanoconiosis"
-  ]
+    [ Code
+        ( "" , [] , [] )
+        "Pneumonoultramicroscopicsilicovolcanoconiosis"
+    ]
 ]
 ```
 

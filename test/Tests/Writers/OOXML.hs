@@ -23,15 +23,15 @@ compareXML :: Content -> Content -> Maybe XMLDifference
 -- We make a special exception for times at the moment, and just pass
 -- them because we can't control the utctime when running IO. Besides,
 -- so long as we have two times, we're okay.
-compareXML (Elem myElem) (Elem goodElem)
+compareXML (Elem goodElem) (Elem myElem)
   | (QName "created" _ (Just "dcterms")) <- elName myElem
   , (QName "created" _ (Just "dcterms")) <- elName goodElem =
       Nothing
-compareXML (Elem myElem) (Elem goodElem)
+compareXML (Elem goodElem) (Elem myElem)
   | (QName "modified" _ (Just "dcterms")) <- elName myElem
   , (QName "modified" _ (Just "dcterms")) <- elName goodElem =
       Nothing
-compareXML (Elem myElem) (Elem goodElem) =
+compareXML (Elem goodElem) (Elem myElem) =
   (if elName myElem == elName goodElem
    then Nothing
    else Just
@@ -46,16 +46,16 @@ compareXML (Elem myElem) (Elem goodElem) =
                  , good = sort (elAttribs goodElem)
                  })))
   <|> asum (zipWith compareXML (elContent myElem) (elContent goodElem))
-compareXML (Text myCData) (Text goodCData) =
+compareXML (Text goodCData) (Text myCData) =
   (if cdVerbatim myCData == cdVerbatim goodCData
     && cdData myCData == cdData goodCData
    then Nothing
    else Just (CDatasDiffer (Comparison { mine = myCData, good = goodCData })))
-compareXML (CRef myStr) (CRef goodStr) =
+compareXML (CRef goodStr) (CRef myStr) =
   if myStr == goodStr
   then Nothing
   else Just (CRefsDiffer (Comparison { mine = myStr, good = goodStr }))
-compareXML m g = Just (OtherContentsDiffer (Comparison {mine = m, good = g}))
+compareXML g m = Just (OtherContentsDiffer (Comparison {mine = m, good = g}))
 
 data XMLDifference
   = ElemNamesDiffer (Comparison QName)
@@ -68,10 +68,10 @@ data XMLDifference
 data Comparison a = Comparison { good :: a, mine :: a }
   deriving (Show)
 
-displayDiff :: Content -> Content -> String
+displayDiff :: Element -> Element -> String
 displayDiff elemA elemB =
   showDiff (1,1)
-    (getDiff (lines $ showContent elemA) (lines $ showContent elemB))
+    (getDiff (lines $ ppElement elemA) (lines $ ppElement elemB))
 
 goldenArchive :: FilePath -> IO Archive
 goldenArchive fp = toArchive . BL.fromStrict <$> BS.readFile fp
@@ -137,7 +137,7 @@ compareXMLFile' fp goldenArch testArch = do
       display difference = "Non-matching xml in "
         ++ fp ++ ":\n"
         ++ "* " ++ show difference ++ "\n"
-        ++ displayDiff testContent goldenContent
+        ++ displayDiff testXMLDoc goldenXMLDoc
 
 
   maybe (Right ()) (Left . display) (compareXML goldenContent testContent)

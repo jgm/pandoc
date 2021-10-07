@@ -9,17 +9,14 @@ public class World {
 \end{lstlisting}
 ^D
 [ CodeBlock
-  ( "lst:Hello-World"
-  , [ "java" ]
-  ,
-    [
-      ( "language", "Java" )
-    ,
-      ( "caption", "Java Example" )
-    ,
-      ( "label", "lst:Hello-World" )
-    ]
-  ) "public class World {\n    public static void main(String[] args) {\n        System.out.println(\"Hello World\");\n    }\n}"
+    ( "lst:Hello-World"
+    , [ "java" ]
+    , [ ( "language" , "Java" )
+      , ( "caption" , "Java Example" )
+      , ( "label" , "lst:Hello-World" )
+      ]
+    )
+    "public class World {\n    public static void main(String[] args) {\n        System.out.println(\"Hello World\");\n    }\n}"
 ]
 ```
 
@@ -34,18 +31,14 @@ public class World {
 \end{lstlisting}
 ^D
 [ CodeBlock
-  ( "lst:Hello-World"
-  , [ "java" ]
-  ,
-    [
-      ( "language", "Java" )
-    ,
-      ( "escapechar", "|" )
-    ,
-      ( "caption", "Java Example" )
-    ,
-      ( "label", "lst:Hello-World" )
-    ]
-  ) "public class World {\n    public static void main(String[] args) {\n        System.out.println(\"Hello World\");\n    }\n}"
+    ( "lst:Hello-World"
+    , [ "java" ]
+    , [ ( "language" , "Java" )
+      , ( "escapechar" , "|" )
+      , ( "caption" , "Java Example" )
+      , ( "label" , "lst:Hello-World" )
+      ]
+    )
+    "public class World {\n    public static void main(String[] args) {\n        System.out.println(\"Hello World\");\n    }\n}"
 ]
 ```

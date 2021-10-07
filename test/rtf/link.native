@@ -1,5 +1,9 @@
 Pandoc
-  ( Meta { unMeta = fromList [] } )
+  Meta { unMeta = fromList [] }
   [ Para
-    [ Link ( "", [], [] ) [ Str "pandoc" ] ( "http://pandoc.org", "" ) ]
+      [ Link
+          ( "" , [] , [] )
+          [ Str "pandoc" ]
+          ( "http://pandoc.org" , "" )
+      ]
   ]

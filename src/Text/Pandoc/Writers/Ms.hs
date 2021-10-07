@@ -110,7 +110,6 @@ blockToMs :: PandocMonad m
           => WriterOptions -- ^ Options
           -> Block         -- ^ Block element
           -> MS m (Doc Text)
-blockToMs _ Null = return empty
 blockToMs opts (Div (ident,cls,kvs) bs) = do
   let anchor = if T.null ident
                   then empty

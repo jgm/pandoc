@@ -353,6 +353,7 @@ getDefaultExtensions "gfm"             = extensionsFromList
   , Ext_task_lists
   , Ext_emoji
   , Ext_yaml_metadata_block
+  , Ext_footnotes
   ]
 getDefaultExtensions "commonmark"      = extensionsFromList
                                           [Ext_raw_html]

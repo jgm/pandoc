@@ -14,47 +14,48 @@
 </informaltable>
 ^D
 [ Table
-  ( "", [], [] )
-  ( Caption Nothing [] )
-  [
-    ( AlignDefault, ColWidthDefault )
-  ,
-    ( AlignDefault, ColWidthDefault )
-  ,
-    ( AlignDefault, ColWidthDefault )
-  ,
-    ( AlignDefault, ColWidthDefault )
-  ]
-  ( TableHead ( "", [], [] ) [] )
-  [ TableBody
-    ( "", [], [] )
-    ( RowHeadColumns 0 ) []
-    [ Row
-      ( "", [], [] )
-      [ Cell
-        ( "", [], [] ) AlignCenter
-        ( RowSpan 1 )
-        ( ColSpan 1 )
-        [ Para [ Str "1" ] ]
-      , Cell
-        ( "", [], [] ) AlignLeft
-        ( RowSpan 1 )
-        ( ColSpan 1 )
-        [ Para [ Str "2" ] ]
-      , Cell
-        ( "", [], [] ) AlignRight
-        ( RowSpan 1 )
-        ( ColSpan 1 )
-        [ Para [ Str "3" ] ]
-      , Cell
-        ( "", [], [] ) AlignDefault
-        ( RowSpan 1 )
-        ( ColSpan 1 )
-        [ Para [ Str "4" ] ]
-      ]
+    ( "" , [] , [] )
+    (Caption Nothing [])
+    [ ( AlignDefault , ColWidthDefault )
+    , ( AlignDefault , ColWidthDefault )
+    , ( AlignDefault , ColWidthDefault )
+    , ( AlignDefault , ColWidthDefault )
     ]
-  ]
-  ( TableFoot ( "", [], [] ) [] )
+    (TableHead ( "" , [] , [] ) [])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignCenter
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Para [ Str "1" ] ]
+            , Cell
+                ( "" , [] , [] )
+                AlignLeft
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Para [ Str "2" ] ]
+            , Cell
+                ( "" , [] , [] )
+                AlignRight
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Para [ Str "3" ] ]
+            , Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Para [ Str "4" ] ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
 ]
 ```
 ```
