@@ -7,7 +7,6 @@ import System.FilePath
 import Text.DocTemplates (ToContext(toVal), Context(..))
 import qualified Data.Map as M
 import Data.Text (pack)
-import Data.List (unzip4)
 
 -- templating is important enough, and can break enough things, that
 -- we want to run all our tests with both default formatting and a
@@ -17,11 +16,9 @@ modifyPptxName :: FilePath -> String -> FilePath
 modifyPptxName fp suffix =
   addExtension (takeDirectory fp ++ suffix) "pptx"
 
-pptxTests :: String -> WriterOptions -> FilePath -> FilePath -> (TestTree, TestTree, TestTree, TestTree)
+pptxTests :: String -> WriterOptions -> FilePath -> FilePath -> (TestTree, TestTree)
 pptxTests name opts native pptx =
   let referenceDoc = "pptx/reference-depth.pptx"
-      movedLayoutsReferenceDoc = "pptx/reference-moved-layouts.pptx"
-      deletedLayoutsReferenceDoc = "pptx/reference-deleted-layouts.pptx"
   in
     ( ooxmlTest
       writePowerpoint
@@ -35,28 +32,14 @@ pptxTests name opts native pptx =
       opts{writerReferenceDoc=Just referenceDoc}
       native
       (modifyPptxName pptx "/templated")
-    , ooxmlTest
-      writePowerpoint
-      name
-      opts{writerReferenceDoc=Just movedLayoutsReferenceDoc}
-      native
-      (modifyPptxName pptx "/moved-layouts")
-    , ooxmlTest
-      writePowerpoint
-      name
-      opts{writerReferenceDoc=Just deletedLayoutsReferenceDoc}
-      native
-      (modifyPptxName pptx "/deleted-layouts")
     )
 
-groupPptxTests :: [(TestTree, TestTree, TestTree, TestTree)] -> [TestTree]
+groupPptxTests :: [(TestTree, TestTree)] -> [TestTree]
 groupPptxTests pairs =
-  let (noRefs, refs, movedLayouts, deletedLayouts) = unzip4 pairs
+  let (noRefs, refs) = unzip pairs
   in
     [ testGroup "Default slide formatting" noRefs
     , testGroup "With `--reference-doc` pptx file" refs
-    , testGroup "With layouts in reference doc moved" movedLayouts
-    , testGroup "With layouts in reference doc deleted" deletedLayouts
     ]
 
 
@@ -272,5 +255,17 @@ tests = let
       def { writerReferenceDoc = Just "pptx/footer/higher-slide-number/reference.pptx"}
       "pptx/footer/input.native"
       "pptx/footer/higher-slide-number/output.pptx"
+    , ooxmlTest
+      writePowerpoint
+      "Layouts can be moved around in reference doc"
+      def {writerReferenceDoc = Just "pptx/reference-moved-layouts.pptx"}
+      "pptx/layouts/input.native"
+      "pptx/layouts/moved.pptx"
+    , ooxmlTest
+      writePowerpoint
+      "Layouts can be missing from the reference doc"
+      def {writerReferenceDoc = Just "pptx/reference-deleted-layouts.pptx"}
+      "pptx/layouts/input.native"
+      "pptx/layouts/deleted.pptx"
     ]
   in regularTests <> referenceSpecificTests

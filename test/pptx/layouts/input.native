@@ -1,0 +1,23 @@
+Pandoc (Meta {unMeta = fromList [("title",MetaInlines [Str "Testing",Space,Str "Layouts"])]})
+[Header 2 ("slide-1",[],[]) [Str "Slide",Space,Str "1"]
+,Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "title",Space,Str "and",Space,Str "content",Space,Str "slide"]
+,Header 2 ("slide-2",[],[]) [Str "Slide",Space,Str "2"]
+,Div ("",["columns"],[])
+ [Div ("",["column"],[])
+  [Para [Str "This"]]
+ ,Div ("",["column"],[])
+  [Para [Str "\8230is",Space,Str "a",Space,Str "two-column",Space,Str "slide"]]]
+,Header 2 ("slide-3",[],[]) [Str "Slide",Space,Str "3"]
+,Para [Str "This",Space,Str "slide",Space,Str "is",Space,Str "a",Space,Str "Content",Space,Str "with",Space,Str "Caption",Space,Str "slide"]
+,Para [Image ("",[],[]) [Str "Content"] ("lalune.jpg","fig:")]
+,Header 2 ("slide-4",[],[]) [Str "Slide",Space,Str "4"]
+,Div ("",["columns"],[])
+ [Div ("",["column"],[])
+  [Para [Str "This",Space,Str "slide",Space,Str "is",Space,Str "a",Space,Str "Comparison",Space,Str "slide:"]
+  ,Para [Image ("",[],[]) [Str "Content"] ("lalune.jpg","fig:")]]
+ ,Div ("",["column"],[])
+  [Para [Str "Here",Space,Str "is",Space,Str "some",Space,Str "other",Space,Str "text"]]]
+,Header 1 ("section-header",[],[]) [Str "Section",Space,Str "header"]
+,Header 2 ("section",[],[]) []
+,Div ("",["notes"],[])
+ [Para [Str "This",Space,Str "is",Space,Str "a",Space,Str "blank",Space,Str "slide"]]]
