@@ -51,7 +51,6 @@ $if(date)$
 $endif$
 $if(abstract)$
 <div class="abstract">
-<p class="abstract">Abstract</p>
 $abstract$
 </div>
 $endif$
