@@ -29,7 +29,8 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, setMeta, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad, fetchItem, getTimestamp)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, fetchItem, getTimestamp, setVerbosity,
+                                       getVerbosity)
 import Text.Pandoc.CSV (CSVOptions (..), defaultCSVOptions, parseCSV)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
@@ -43,7 +44,7 @@ import Data.Time.Format
 import System.FilePath (takeDirectory)
 import Control.Monad.Trans (lift)
 import Control.Monad.State (StateT, modify, runStateT)
-import Control.Monad.Reader (ReaderT, ask, runReaderT, local)
+import Control.Monad.Reader (ReaderT, ask, runReaderT)
 import qualified Data.Set as Set
 import Data.Default (Default)
 import GHC.Generics (Generic)
@@ -53,12 +54,14 @@ import GHC.Generics (Generic)
 
 type WithOracle s m = StateT s (ReaderT s m)
 
-withOracle :: Monad m => WithOracle s m a -> s -> m a
+withOracle :: PandocMonad m => WithOracle s m a -> s -> m a
 withOracle action startingState = do
   let r = runStateT action startingState
-  fst <$> runReaderT (do (_, st) <- r
-                         local (const st) r) startingState
-
+  verbosity <- getVerbosity
+  setVerbosity ERROR  -- avoid misleading warnings for missing keys
+  st <- snd <$> runReaderT r startingState
+  setVerbosity verbosity
+  fst <$> runReaderT r st
 
 updateOracle :: Monad m => (a -> a) -> ParserT s u (WithOracle a m) ()
 updateOracle f = lift $ modify f
@@ -233,6 +236,7 @@ block :: PandocMonad m => RSTParser m Blocks
 block = choice [ codeBlock
                , blockQuote
                , fieldList
+               , referenceKey
                , directive
                , anchor
                , comment
@@ -242,7 +246,6 @@ block = choice [ codeBlock
                , table
                , list
                , lhsCodeBlock
-               , referenceKey
                , para
                , mempty <$ blanklines
                ] <?> "block"
@@ -1600,8 +1603,7 @@ lookupKey :: PandocMonad m
           => [Key] -> Key -> RSTParser m ((Text, Text), Attr)
 lookupKey oldkeys key = do
   pos <- getPosition
-  state <- getState
-  let keyTable = stateKeys state
+  keyTable <- oracleKeys <$> askOracle
   case M.lookup key keyTable of
        Nothing  -> do
          let Key key' = key
