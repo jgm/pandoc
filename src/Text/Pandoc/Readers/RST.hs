@@ -186,25 +186,25 @@ metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
 
 parseRST :: PandocMonad m => RSTParser m Pandoc
 parseRST = do
-  let chunk = anchorDef
-              <|> noteBlock
-              <|> citationBlock
-              <|> (snd <$> withRaw comment)
-              <|> headerBlock
-              <|> lineClump
-  startPos <- getPosition
-  oldInput <- getInput
-  optional blanklines -- skip blank lines at beginning of file
-  _ <- manyTill chunk eof
-  setInput oldInput
-  setPosition startPos
-  st' <- getState
-  let reversedNotes = stateNotes st'
-  updateState $ \s -> s { stateNotes = reverse reversedNotes
-                        , stateIdentifiers = mempty }
-  -- now parse it for real...
+--  let chunk = anchorDef
+--              <|> noteBlock
+--              <|> citationBlock
+--              <|> (snd <$> withRaw comment)
+--              <|> headerBlock
+--              <|> lineClump
+--  startPos <- getPosition
+--  oldInput <- getInput
+--  optional blanklines -- skip blank lines at beginning of file
+--  _ <- manyTill chunk eof
+--  setInput oldInput
+--  setPosition startPos
+--  st' <- getState
+--  let reversedNotes = stateNotes st'
+--  updateState $ \s -> s { stateNotes = reverse reversedNotes
+--                        , stateIdentifiers = mempty }
+--  -- now parse it for real...
   blocks <- B.toList <$> parseBlocks
-  citations <- sort . M.toList . stateCitations <$> getState
+  citations <- sort . M.toList . oracleCitations <$> askOracle
   citationItems <- mapM parseCitation citations
   let refBlock = [Div ("citations",[],[]) $
                  B.toList $ B.definitionList citationItems | not (null citationItems)]
@@ -237,6 +237,8 @@ block = choice [ codeBlock
                , blockQuote
                , fieldList
                , referenceKey
+               , noteBlock
+               , citationBlock
                , directive
                , anchor
                , comment
@@ -339,7 +341,10 @@ doubleHeader = do
         Just ind -> (headerTable, ind + 1)
         Nothing  -> (headerTable ++ [DoubleHeader c], length headerTable + 1)
   setState (state { stateHeaderTable = headerTable' })
-  attr <- registerHeader nullAttr txt
+  attr@(ident,_,_) <- registerHeader nullAttr txt
+  let key = toKey (stringify txt)
+  updateOracle $ \o -> o { oracleKeys = M.insert key (("#" <> ident,""), nullAttr)
+                          $ oracleKeys o }
   return $ B.headerWith attr level txt
 
 doubleHeader' :: PandocMonad m => RSTParser m (Inlines, Char)
@@ -368,7 +373,10 @@ singleHeader = do
         Just ind -> (headerTable, ind + 1)
         Nothing  -> (headerTable ++ [SingleHeader c], length headerTable + 1)
   setState (state { stateHeaderTable = headerTable' })
-  attr <- registerHeader nullAttr txt
+  attr@(ident,_,_) <- registerHeader nullAttr txt
+  let key = toKey (stringify txt)
+  updateOracle $ \o -> o { oracleKeys = M.insert key (("#" <> ident,""), nullAttr)
+                          $ oracleKeys o }
   return $ B.headerWith attr level txt
 
 singleHeader' :: PandocMonad m => RSTParser m (Inlines, Char)
@@ -1057,22 +1065,22 @@ codeblock ident classes fields lang rmTrailingNewlines body =
 --- note block
 ---
 
-noteBlock :: Monad m => RSTParser m Text
+noteBlock :: Monad m => RSTParser m Blocks
 noteBlock = try $ do
   (ref, raw, replacement) <- noteBlock' noteMarker
-  updateState $ \s -> s { stateNotes = (ref, raw) : stateNotes s }
-  -- return blanks so line count isn't affected
-  return replacement
+  contents <- parseFromString' parseBlocks raw
+  updateOracle $ \o -> o { oracleNotes =
+                             M.insert ref contents $ oracleNotes o }
+  return mempty
 
-citationBlock :: Monad m => RSTParser m Text
+citationBlock :: Monad m => RSTParser m Blocks
 citationBlock = try $ do
   (ref, raw, replacement) <- noteBlock' citationMarker
-  updateState $ \s ->
-     s { stateCitations = M.insert ref raw (stateCitations s),
-         stateKeys = M.insert (toKey ref) (("#" <> ref,""), ("",["citation"],[]))
-                               (stateKeys s) }
-  -- return blanks so line count isn't affected
-  return replacement
+  updateOracle $ \o ->
+     o { oracleCitations = M.insert ref raw (oracleCitations o),
+         oracleKeys = M.insert (toKey ref) (("#" <> ref,""), ("",["citation"],[]))
+                               (oracleKeys o) }
+  return mempty
 
 noteBlock' :: Monad m
            => RSTParser m Text -> RSTParser m (Text, Text, Text)
@@ -1212,19 +1220,13 @@ regularKey = try $ do
     updateOracle $ \o -> o{ oracleKeys = M.insert key ((src,""), nullAttr) $
                             oracleKeys o }
 
-anchorDef :: PandocMonad m => RSTParser m Text
-anchorDef = try $ do
-  (refs, raw) <- withRaw $ try (referenceNames <* blanklines)
-  forM_ refs $ \rawkey ->
-    updateState $ \s -> s { stateKeys =
-       M.insert (toKey rawkey) (("#" <> rawkey,""), nullAttr) $ stateKeys s }
-  -- keep this for 2nd round of parsing, where we'll add the divs (anchor)
-  return raw
-
 anchor :: PandocMonad m => RSTParser m Blocks
 anchor = try $ do
   refs <- referenceNames
   blanklines
+  forM_ refs $ \rawkey ->
+    updateOracle $ \o -> o{ oracleKeys =
+       M.insert (toKey rawkey) (("#" <> rawkey,""), nullAttr) $ oracleKeys o }
   b <- block
   let addDiv ref = B.divWith (ref, [], [])
   let emptySpanWithId id' = Span (id',[],[]) []
@@ -1239,16 +1241,6 @@ anchor = try $ do
                 -- we avoid generating divs for headers,
                 -- because it hides them from promoteHeader, see #4240
        _ -> return $ foldr addDiv b refs
-
-headerBlock :: PandocMonad m => RSTParser m Text
-headerBlock = do
-  ((txt, _), raw) <- withRaw (doubleHeader' <|> singleHeader')
-  (ident,_,_) <- registerHeader nullAttr txt
-  let key = toKey (stringify txt)
-  updateState $ \s -> s { stateKeys = M.insert key (("#" <> ident,""), nullAttr)
-                          $ stateKeys s }
-  return raw
-
 
 --
 -- tables
@@ -1650,26 +1642,24 @@ note = try $ do
   optional whitespace
   ref <- noteMarker
   char '_'
-  state <- getState
-  let notes = stateNotes state
-  case lookup ref notes of
+  notes <- oracleNotes <$> askOracle
+  case M.lookup ref notes of
     Nothing   -> do
       pos <- getPosition
       logMessage $ ReferenceNotFound ref pos
       return mempty
-    Just raw  -> do
+    Just blocks  -> do
       -- We temporarily empty the note list while parsing the note,
       -- so that we don't get infinite loops with notes inside notes...
       -- Note references inside other notes are allowed in reST, but
       -- not yet in this implementation.
-      updateState $ \st -> st{ stateNotes = [] }
-      contents <- parseFromString' parseBlocks raw
+      -- updateState $ \st -> st{ stateNotes = [] }  -- TODO FIXME need a new method
       let newnotes = if ref == "*" || ref == "#" -- auto-numbered
                         -- delete the note so the next auto-numbered note
                         -- doesn't get the same contents:
                         then deleteFirstsBy (==) notes [(ref,raw)]
                         else notes
-      updateState $ \st -> st{ stateNotes = newnotes }
+      -- updateOracle $ \o -> o{ oracleNotes = newnotes } -- TODO FIXME
       return $ B.note contents
 
 smart :: PandocMonad m => RSTParser m Inlines
