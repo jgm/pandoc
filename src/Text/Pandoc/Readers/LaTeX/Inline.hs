@@ -35,7 +35,7 @@ import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.Extensions (extensionEnabled, Extension(..))
 import Text.Pandoc.Parsing (getOption, updateState, getState, notFollowedBy,
                             manyTill, getInput, setInput, incSourceColumn,
-                            option, many1, try)
+                            option, many1)
 import Data.Char (isDigit)
 import Text.Pandoc.Highlighting (fromListingsLanguage,)
 import Data.Maybe (maybeToList, fromMaybe)
@@ -160,8 +160,8 @@ romanNumeralArg = spaces *> (parser <|> inBraces)
 
 accentWith :: PandocMonad m
            => LP m Inlines -> Char -> Maybe Char -> LP m Inlines
-accentWith tok combiningAccent fallBack = try $ do
-  ils <- tok
+accentWith tok combiningAccent fallBack = do
+  ils <- option mempty tok
   case toList ils of
        (Str (T.uncons -> Just (x, xs)) : ys) -> return $ fromList $
          -- try to normalize to the combined character:
