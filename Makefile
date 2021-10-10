@@ -27,7 +27,7 @@ quick:
 quick-cabal:
 	cabal v2-build -j8 --ghc-options '$(GHCOPTS)' --disable-optimization --enable-tests
 	cabal v2-test --disable-optimization --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)"
-	echo "Path to built executable:" && cabal exec -- sh -c 'command -v pandoc'
+	echo "Path to built executable:" && cabal exec -- sh -c 'command -v pandoc' | sed -e 's!x/pandoc/build!x/pandoc/noopt/build!'
 
 full-cabal:
 	cabal v2-configure . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files +trypandoc' --enable-tests --enable-benchmarks
