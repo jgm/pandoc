@@ -11,6 +11,7 @@ extra-deps:
 - skylighting-0.12
 - doctemplates-0.10
 - emojis-0.1.2
+- doclayout-0.3.1
 - git: https://github.com/jgm/pandoc-types.git
   commit: f796401eaaab780f83c562e97dbb8c8d4b9974d1
 - git: https://github.com/jgm/texmath.git
