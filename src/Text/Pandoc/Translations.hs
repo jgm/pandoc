@@ -31,7 +31,6 @@ module Text.Pandoc.Translations (
 where
 import Data.Aeson.Types (Value(..), FromJSON(..))
 import qualified Data.Aeson.Types as Aeson
-import qualified Data.HashMap.Strict as HM
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.YAML as YAML
@@ -83,8 +82,8 @@ instance YAML.FromYAML Term where
   parseYAML invalid = YAML.typeMismatch "Term" invalid
 
 instance FromJSON Translations where
-  parseJSON (Object hm) = do
-    xs <- mapM addItem (HM.toList hm)
+  parseJSON o@(Object hm) = do
+    xs <- parseJSON o >>= mapM addItem . M.toList
     return $ Translations (M.fromList xs)
     where addItem (k,v) =
             case safeRead k of
