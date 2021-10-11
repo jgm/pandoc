@@ -23,11 +23,15 @@ siunitxCommands :: PandocMonad m
                  => LP m Inlines -> M.Map Text (LP m Inlines)
 siunitxCommands tok = M.fromList
   [ ("si", dosi tok)
+  , ("unit", dosi tok) -- v3 version of si
   , ("SI", doSI tok)
+  , ("qty", doSI tok) -- v3 version of SI
   , ("SIrange", doSIrange True tok)
+  , ("qtyrange", doSIrange True tok) -- v3 version of SIrange
+  , ("SIlist", doSIlist tok)
+  , ("qtylist", doSIlist tok) -- v3 version of SIlist
   , ("numrange", doSIrange False tok)
   , ("numlist", doSInumlist)
-  , ("SIlist", doSIlist tok)
   , ("num", doSInum)
   , ("ang", doSIang)
   ]
