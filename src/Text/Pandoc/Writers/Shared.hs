@@ -36,7 +36,6 @@ module Text.Pandoc.Writers.Shared (
                      , toTableOfContents
                      , endsWithPlain
                      , toLegacyTable
-                     , breakable
                      , splitSentences
                      )
 where
@@ -522,23 +521,6 @@ toLegacyTable (Caption _ cbody) specs thead tbodies tfoot
 
     getComponents (Cell _ _ (RowSpan h) (ColSpan w) body)
       = (h, w, body)
-
--- | Create a breakable 'Doc' from a text.  Only regular spaces
--- are break points (not tabs or nonbreaking spaces).
-breakable :: Text -> Doc Text
-breakable t
-  | T.any (== ' ') t = mconcat $ foldr go mempty (T.split (==' ') t)
-  | otherwise = Text (realLength t) t
- where
-  go "" xs =
-   case xs of
-     BreakingSpace : _ -> xs
-     _ -> BreakingSpace : xs
-  go t' xs = Text (realLength t') t' :
-    case xs of
-      [] -> xs
-      BreakingSpace : _ -> xs
-      _ -> BreakingSpace : xs
 
 splitSentences :: Doc Text -> Doc Text
 splitSentences = go . toList
