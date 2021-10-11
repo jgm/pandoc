@@ -82,7 +82,7 @@ instance YAML.FromYAML Term where
   parseYAML invalid = YAML.typeMismatch "Term" invalid
 
 instance FromJSON Translations where
-  parseJSON o@(Object hm) = do
+  parseJSON o@(Object{}) = do
     xs <- parseJSON o >>= mapM addItem . M.toList
     return $ Translations (M.fromList xs)
     where addItem (k,v) =
