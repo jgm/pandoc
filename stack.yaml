@@ -13,7 +13,7 @@ extra-deps:
 - emojis-0.1.2
 - doclayout-0.3.1.1
 - git: https://github.com/jgm/pandoc-types.git
-  commit: f796401eaaab780f83c562e97dbb8c8d4b9974d1
+  commit: 87711e7e60a3981da0f1cc3df9e57f1134f1b82e
 - git: https://github.com/jgm/texmath.git
   commit: c046e6e5a93510f2c37dbc700f82a2c53ed87b5f
 - git: https://github.com/jgm/citeproc.git
