@@ -19,8 +19,8 @@ extra-deps:
 - git: https://github.com/jgm/citeproc.git
   commit: 673a7fb643d24a3bb0f60f8f29e189c0ba7ef15b
 - git: https://github.com/jgm/commonmark-hs.git
-  commit: 3cba9f874db7516f49d221a94171b4af010b5bea
-  subdirs: [commonmark-pandoc]
+  commit: 7d34a747cd2d8668451909a722eb9ce16d1f4852
+  subdirs: [commonmark, commonmark-pandoc]
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10

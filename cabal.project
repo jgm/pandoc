@@ -20,6 +20,12 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/commonmark-hs.git
-  tag: 3cba9f874db7516f49d221a94171b4af010b5bea
+  tag: 7d34a747cd2d8668451909a722eb9ce16d1f4852
+  subdir: commonmark
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/commonmark-hs.git
+  tag: 7d34a747cd2d8668451909a722eb9ce16d1f4852
   subdir: commonmark-pandoc
 
