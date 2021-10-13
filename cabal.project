@@ -16,7 +16,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/pandoc-types.git
-  tag: 87711e7e60a3981da0f1cc3df9e57f1134f1b82e
+  tag: 99402a46361a3e52805935b1fbe9dfe54f852d6a
 
 source-repository-package
   type: git

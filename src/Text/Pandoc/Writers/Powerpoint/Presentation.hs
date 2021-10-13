@@ -1041,6 +1041,7 @@ blockIsBlank
       HorizontalRule -> True
       Table{} -> False
       Div _ bls -> all blockIsBlank bls
+      Null -> True
 
 textIsBlank :: T.Text -> Bool
 textIsBlank = T.all isSpace

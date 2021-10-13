@@ -154,6 +154,7 @@ toLabel z = T.concatMap go z
 
 -- | Convert Pandoc block element to ConTeXt.
 blockToConTeXt :: PandocMonad m => Block -> WM m (Doc Text)
+blockToConTeXt Null = return empty
 blockToConTeXt (Div attr@(_,"section":_,_)
                  (Header level _ title' : xs)) = do
   header' <- sectionHeader attr level title'

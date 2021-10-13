@@ -165,6 +165,7 @@ pushBlock = \case
   LineBlock blcks          -> pushViaConstructor "LineBlock" blcks
   OrderedList lstAttr list -> pushViaConstructor "OrderedList" list
                                                  (LuaListAttributes lstAttr)
+  Null                     -> pushViaConstructor "Null"
   Para blcks               -> pushViaConstructor "Para" blcks
   Plain blcks              -> pushViaConstructor "Plain" blcks
   RawBlock f cs            -> pushViaConstructor "RawBlock" f cs
@@ -188,6 +189,7 @@ peekBlock idx = defineHowTo "get Block value" $! do
       "OrderedList"    -> (\(LuaListAttributes lstAttr, lst) ->
                              OrderedList lstAttr lst)
                           <$!> elementContent
+      "Null"           -> return Null
       "Para"           -> Para <$!> elementContent
       "Plain"          -> Plain <$!> elementContent
       "RawBlock"       -> uncurry RawBlock <$!> elementContent

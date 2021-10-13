@@ -358,6 +358,7 @@ blockToXml (Table _ blkCapt specs thead tbody tfoot) = do
       align_str AlignCenter  = "center"
       align_str AlignRight   = "right"
       align_str AlignDefault = "left"
+blockToXml Null = return []
 
 -- Replace plain text with paragraphs and add line break after paragraphs.
 -- It is used to convert plain text from tight list items to paragraphs.

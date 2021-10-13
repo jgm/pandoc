@@ -74,6 +74,8 @@ blockListToXWiki blocks =
 
 blockToXWiki :: PandocMonad m => Block -> XWikiReader m Text
 
+blockToXWiki Null = return ""
+
 blockToXWiki (Div (id', _, _) blocks) = do
   content <- blockListToXWiki blocks
   return $ genAnchor id' <> content
