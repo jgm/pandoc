@@ -38,6 +38,22 @@ tests = [ testGroup "emphasis"
                para (singleQuoted (strong (text "foo"))) =?>
                  "`**foo**'"
           ]
+        , testGroup "blocks"
+          [ testAsciidoc "code block without line numbers" $
+               codeBlockWith ("", [ "haskell" ], []) "foo" =?> unlines
+                                           [ "[source,haskell]"
+                                           , "----"
+                                           , "foo"
+                                           , "----"
+                                           ]
+          , testAsciidoc "code block with line numbers" $
+               codeBlockWith ("", [ "haskell", "numberLines" ], []) "foo" =?> unlines
+                                           [ "[source%linesnum,haskell]"
+                                           , "----"
+                                           , "foo"
+                                           , "----"
+                                           ]
+          ]
         , testGroup "tables"
           [ testAsciidoc "empty cells" $
                simpleTable [] [[mempty],[mempty]] =?> unlines
