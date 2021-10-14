@@ -907,6 +907,7 @@ parseBlock (Elem e) =
            let classes' = case attrValue "language" e of
                                 "" -> []
                                 x  -> [x]
+                ++ ["numberLines" | attrValue "linenumbering" e == "numbered"]
            return $ codeBlockWith (attrValue "id" e, classes', [])
                   $ trimNl $ strContentRecursive e
          parseBlockquote = do
