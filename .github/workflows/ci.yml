@@ -180,7 +180,7 @@ jobs:
 
     - name: Test pdf creation with pdf-engine
       run: |
-          cabal v2-run --disable-optimization pandoc -- --pdf-engine=${{ matrix.pdfengine }} -o out.pdf
+          cabal v2-run --disable-optimization pandoc -- --pdf-engine=${{ matrix.pdfengine }} -o out.pdf doc/getting-started.md
 
   windows:
 
