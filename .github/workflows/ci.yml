@@ -131,9 +131,10 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        - pdfengine: xelatex
-        - pdfengine: lualatex
-        - pdfengine: pdflatex
+        pdfengine:
+          - xelatex
+          - lualatex
+          - pdflatex
 
     steps:
     - uses: actions/checkout@v2
