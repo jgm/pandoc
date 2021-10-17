@@ -125,6 +125,62 @@ jobs:
           ! grep -q ": *[Ww]arning:" build.log || exit 1
           cabal ${{ matrix.versions.prefix }}test ${{ matrix.versions.cabalopts }} --disable-optimization ${{ matrix.versions.testopts }}
 
+  linux-pdf:
+
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: true
+      matrix:
+        - pdfengine: xelatex
+        - pdfengine: lualatex
+        - pdfengine: pdflatex
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install recent cabal/ghc
+      uses: haskell/actions/setup@v1
+      with:
+        ghc-version: 8.10.4
+        cabal-version: 3.2
+
+    # needed by memory
+    - name: Install numa
+      run: sudo apt-get install libnuma-dev
+
+    # needed by memory
+    - name: Install texlive
+      run: sudo apt-get install texlive-latex-recommended
+
+    # declare/restore cached things
+    # caching doesn't work for scheduled runs yet
+    # https://github.com/actions/cache/issues/63
+
+    - name: Cache cabal global package db
+      id:   cabal-global
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cabal
+        key: ${{ runner.os }}-8.10.4-3.2-cabal-global-${{ hashFiles('cabal.project') }}
+
+    - name: Cache cabal work
+      id:   cabal-local
+      uses: actions/cache@v2
+      with:
+        path: |
+          dist-newstyle
+        key: ${{ runner.os }}-8.10.4-3.2-cabal-local
+
+    - name: Install dependencies
+      run: |
+          cabal v2-update
+          cabal v2-build --dependencies-only --enable-tests --disable-optimization
+
+    - name: Test pdf creation with pdf-engine
+      run: |
+          cabal v2-run --disable-optimization pandoc -- --pdf-engine=${{ matrix.pdfengine }} -o out.pdf
+
   windows:
 
     runs-on: windows-2019
