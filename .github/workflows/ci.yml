@@ -129,7 +129,7 @@ jobs:
 
     runs-on: ubuntu-18.04
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         pdfengine:
           - xelatex
@@ -149,9 +149,9 @@ jobs:
     - name: Install numa
       run: sudo apt-get install libnuma-dev
 
-    # needed by memory
+    # needed to test pdf creation
     - name: Install texlive
-      run: sudo apt-get install texlive-latex-recommended
+      run: sudo apt-get install texlive-base texlive-latex-recommended texlive-xetex
 
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet
