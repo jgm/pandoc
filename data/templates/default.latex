@@ -363,11 +363,10 @@ $if(csl-refs)$
 \newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 $endif$
 $if(lang)$
-\ifXeTeX
-\usepackage[bidi=default]{babel}
-\fi
 \ifLuaTeX
 \usepackage[bidi=basic]{babel}
+\else
+\usepackage[bidi=default]{babel}
 \fi
 \babelprovide[main,import]{$babel-lang$}
 $for(babel-otherlangs)$

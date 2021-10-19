@@ -398,6 +398,7 @@ blockToOpenDocument o = \case
     b@(RawBlock f s) -> if f == Format "opendocument"
                         then return $ text $ T.unpack s
                         else empty <$ report (BlockNotRendered b)
+    Null             -> return empty
     where
       defList       b = do setInDefinitionList True
                            r <- vcat  <$> mapM (deflistItemToOpenDocument o) b

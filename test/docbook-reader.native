@@ -266,6 +266,9 @@ Pandoc
           ]
       , CodeBlock
           ( "" , [] , [] ) "sub status {\n    print \"working\";\n}"
+      , CodeBlock
+          ( "" , [ "numberLines" ] , [] )
+          "sub status {\n    print \"working with line numbers\";\n}"
       , CodeBlock ( "" , [] , [] ) "% ls"
       , Para [ Str "A" , Space , Str "list:" ]
       , OrderedList

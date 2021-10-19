@@ -985,7 +985,7 @@ getTitle f = do
   lang <- gets localeLang
   let ils' =
         if f == "series"
-           then resolveKey lang $ ils
+           then resolveKey lang ils
            else ils
   let processTitle = if utc then unTitlecase (Just lang) else id
   return $ processTitle ils'

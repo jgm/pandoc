@@ -44,11 +44,10 @@
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \setcounter{secnumdepth}{-\maxdimen} % remove section numbering
-\ifXeTeX
-\usepackage[bidi=default]{babel}
-\fi
 \ifLuaTeX
 \usepackage[bidi=basic]{babel}
+\else
+\usepackage[bidi=default]{babel}
 \fi
 \babelprovide[main,import]{english}
 \babelprovide[import]{ngerman}

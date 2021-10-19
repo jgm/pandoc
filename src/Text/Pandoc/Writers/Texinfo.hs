@@ -115,6 +115,8 @@ blockToTexinfo :: PandocMonad m
                => Block     -- ^ Block to convert
                -> TI m (Doc Text)
 
+blockToTexinfo Null = return empty
+
 blockToTexinfo (Div _ bs) = blockListToTexinfo bs
 
 blockToTexinfo (Plain lst) =

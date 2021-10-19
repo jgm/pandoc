@@ -106,6 +106,7 @@ blockToMan :: PandocMonad m
            => WriterOptions -- ^ Options
            -> Block         -- ^ Block element
            -> StateT WriterState m (Doc Text)
+blockToMan _ Null = return empty
 blockToMan opts (Div _ bs) = blockListToMan opts bs
 blockToMan opts (Plain inlines) =
   splitSentences <$> inlineListToMan opts inlines

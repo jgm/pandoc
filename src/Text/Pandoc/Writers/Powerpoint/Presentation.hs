@@ -500,27 +500,23 @@ blockToParagraphs (Header _ (ident, _, _) ils) = do
 blockToParagraphs (BulletList blksLst) = do
   pProps <- asks envParaProps
   incremental <- listShouldBeIncremental
-  let lvl = pPropLevel pProps
   local (\env -> env{ envInList = True
-                    , envParaProps = pProps{ pPropLevel = lvl + 1
-                                           , pPropBullet = Just Bullet
+                    , envParaProps = pProps{ pPropBullet = Just Bullet
                                            , pPropMarginLeft = Nothing
                                            , pPropIndent = Nothing
                                            , pPropIncremental = incremental
                                            }}) $
-    concatMapM multiParBullet blksLst
+    concatMapM multiParList blksLst
 blockToParagraphs (OrderedList listAttr blksLst) = do
   pProps <- asks envParaProps
   incremental <- listShouldBeIncremental
-  let lvl = pPropLevel pProps
   local (\env -> env{ envInList = True
-                    , envParaProps = pProps{ pPropLevel = lvl + 1
-                                           , pPropBullet = Just (AutoNumbering listAttr)
+                    , envParaProps = pProps{ pPropBullet = Just (AutoNumbering listAttr)
                                            , pPropMarginLeft = Nothing
                                            , pPropIndent = Nothing
                                            , pPropIncremental = incremental
                                            }}) $
-    concatMapM multiParBullet blksLst
+    concatMapM multiParList blksLst
 blockToParagraphs (DefinitionList entries) = do
   incremental <- listShouldBeIncremental
   let go :: ([Inline], [[Block]]) -> Pres [Paragraph]
@@ -545,14 +541,20 @@ blockToParagraphs blk = do
   addLogMessage $ BlockNotRendered blk
   return []
 
--- Make sure the bullet env gets turned off after the first para.
-multiParBullet :: [Block] -> Pres [Paragraph]
-multiParBullet [] = return []
-multiParBullet (b:bs) = do
+-- | Make sure the bullet env gets turned off after the first para.
+multiParList :: [Block] -> Pres [Paragraph]
+multiParList [] = return []
+multiParList (b:bs) = do
   pProps <- asks envParaProps
   p <- blockToParagraphs b
-  ps <- local (\env -> env{envParaProps = pProps{pPropBullet = Nothing}}) $
-    concatMapM blockToParagraphs bs
+  let level = pPropLevel pProps
+  ps <- local (\env -> env
+                { envParaProps = pProps
+                  { pPropBullet = Nothing
+                  , pPropLevel = level + 1
+                  }
+                })
+        $ concatMapM blockToParagraphs bs
   return $ p ++ ps
 
 cellToParagraphs :: Alignment -> SimpleCell -> Pres [Paragraph]
@@ -1041,6 +1043,7 @@ blockIsBlank
       HorizontalRule -> True
       Table{} -> False
       Div _ bls -> all blockIsBlank bls
+      Null -> True
 
 textIsBlank :: T.Text -> Bool
 textIsBlank = T.all isSpace

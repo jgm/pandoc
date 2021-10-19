@@ -1,6 +1,7 @@
 packages: pandoc.cabal
 tests: True
 flags: +embed_data_files
+-- constraints: aeson >= 2.0.1.0
 
 source-repository-package
   type: git
@@ -15,11 +16,29 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/pandoc-types.git
-  tag: f796401eaaab780f83c562e97dbb8c8d4b9974d1
+  tag: 99402a46361a3e52805935b1fbe9dfe54f852d6a
 
 source-repository-package
   type: git
   location: https://github.com/jgm/commonmark-hs.git
-  tag: 3cba9f874db7516f49d221a94171b4af010b5bea
+  tag: 7d34a747cd2d8668451909a722eb9ce16d1f4852
+  subdir: commonmark
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/commonmark-hs.git
+  tag: 7d34a747cd2d8668451909a722eb9ce16d1f4852
   subdir: commonmark-pandoc
+
+-- Needed to build with aeson 2
+
+-- source-repository-package
+--   type: git
+--   location: https://github.com/hasufell/aeson-pretty.git
+--   tag: e902ab866bb41d990b66af3644aeb352ff7aaf6f
+
+-- source-repository-package
+--   type: git
+--   location: https://github.com/jgm/ipynb.git
+--   tag: 1f1ddb29227335091a3a158b9aeeeb47a372c683
 

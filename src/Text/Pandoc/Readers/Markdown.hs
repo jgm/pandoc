@@ -198,6 +198,7 @@ inlinesInBalancedBrackets =
         go openBrackets =
           (() <$ (escapedChar <|>
                 code <|>
+                math <|>
                 rawHtmlInline <|>
                 rawLaTeXInline') >> go openBrackets)
           <|>

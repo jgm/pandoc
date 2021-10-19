@@ -102,6 +102,11 @@ sub status {
     print &quot;working&quot;;
 }
 </programlisting>
+    <programlisting linenumbering="numbered">
+sub status {
+    print &quot;working with line numbers&quot;;
+}
+</programlisting>
     <screen>
 % <command>ls</command>
 </screen>

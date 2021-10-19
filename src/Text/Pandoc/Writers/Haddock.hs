@@ -90,6 +90,7 @@ blockToHaddock :: PandocMonad m
                => WriterOptions -- ^ Options
                -> Block         -- ^ Block element
                -> StateT WriterState m (Doc Text)
+blockToHaddock _ Null = return empty
 blockToHaddock opts (Div _ ils) = do
   contents <- blockListToHaddock opts ils
   return $ contents <> blankline

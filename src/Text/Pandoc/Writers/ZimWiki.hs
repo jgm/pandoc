@@ -78,6 +78,8 @@ escapeText = T.replace "__" "''__''" .
 -- | Convert Pandoc block element to ZimWiki.
 blockToZimWiki :: PandocMonad m => WriterOptions -> Block -> ZW m Text
 
+blockToZimWiki _ Null = return ""
+
 blockToZimWiki opts (Div _attrs bs) = do
   contents <- blockListToZimWiki opts bs
   return $ contents <> "\n"
