@@ -74,7 +74,6 @@ formatFromFilePath x =
     ".s5"       -> Just "s5"
     ".t2t"      -> Just "t2t"
     ".tei"      -> Just "tei"
-    ".tei.xml"  -> Just "tei"
     ".tex"      -> Just "latex"
     ".texi"     -> Just "texinfo"
     ".texinfo"  -> Just "texinfo"
