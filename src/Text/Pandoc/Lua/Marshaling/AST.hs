@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
@@ -40,6 +41,7 @@ import Control.Monad ((<$!>), (>=>))
 import HsLua hiding (Operation (Div))
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.Util (pushViaConstr', pushViaConstructor)
+import Text.Pandoc.Lua.Marshaling.Attr (peekAttr, pushAttr)
 import Text.Pandoc.Lua.Marshaling.List (pushPandocList)
 
 import qualified HsLua as Lua
@@ -413,19 +415,6 @@ peekInline = retrieving "Inline" . \idx -> do
     "Superscript"-> mkBlock Superscript peekInlines
     Name tag -> Lua.failPeek ("Unknown inline type: " <> tag)
 
-pushAttr :: forall e. LuaError e => Attr -> LuaE e ()
-pushAttr (id', classes, kv) = pushViaConstr' @e "Attr"
-  [ pushText id'
-  , pushList pushText classes
-  , pushList (pushPair pushText pushText) kv
-  ]
-
-peekAttr :: LuaError e => Peeker e Attr
-peekAttr = retrieving "Attr" . peekTriple
-  peekText
-  (peekList peekText)
-  (peekList (peekPair peekText peekText))
-
 pushListAttributes :: forall e. LuaError e => ListAttributes -> LuaE e ()
 pushListAttributes (start, style, delimiter) =
     pushViaConstr' "ListAttributes"
@@ -450,3 +439,6 @@ instance Peekable Meta where
 
 instance Peekable Pandoc where
   peek = forcePeek . peekPandoc
+
+instance {-# OVERLAPPING #-} Peekable Attr where
+  peek = forcePeek . peekAttr

@@ -29,6 +29,7 @@ import Text.Pandoc.Lua.Filter (SingletonsList (..), walkInlines,
                                walkInlineLists, walkBlocks, walkBlockLists)
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Marshaling.AST
+import Text.Pandoc.Lua.Marshaling.Attr (mkAttr, mkAttributeList)
 import Text.Pandoc.Lua.Marshaling.List (List (..))
 import Text.Pandoc.Lua.PandocLua (PandocLua, addFunction, liftPandocLua,
                                   loadDefaultModule)
@@ -54,6 +55,8 @@ pushModule = do
   addFunction "walk_inline" (walkElement peekInline pushInline)
   -- Constructors
   addFunction "Pandoc" mkPandoc
+  addFunction "Attr" (liftPandocLua mkAttr)
+  addFunction "AttributeList" (liftPandocLua mkAttributeList)
   return 1
 
 walkElement :: (Walkable (SingletonsList Inline) a,
