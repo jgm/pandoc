@@ -1,6 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Lua.ErrorConversion
    Copyright   : © 2020-2021 Albert Krewinkel
@@ -13,49 +12,37 @@ Define how Lua errors are converted into @'PandocError'@ Haskell
 exceptions, and /vice versa/.
 -}
 module Text.Pandoc.Lua.ErrorConversion
-  ( errorConversion
+  ( addContextToException
   ) where
 
-import Foreign.Lua (Lua (..), NumResults)
+import HsLua (LuaError, LuaE, top)
+import HsLua.Marshalling (resultToEither, runPeek)
+import HsLua.Class.Peekable (PeekError (..))
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Lua.Marshaling.PandocError (pushPandocError, peekPandocError)
 
-import qualified Control.Monad.Catch as Catch
 import qualified Data.Text as T
-import qualified Foreign.Lua as Lua
+import qualified HsLua as Lua
 
--- | Conversions between Lua errors and Haskell exceptions, assuming
--- that all exceptions are of type @'PandocError'@.
-errorConversion :: Lua.ErrorConversion
-errorConversion = Lua.ErrorConversion
-  { Lua.addContextToException = addContextToException
-  , Lua.alternative           = alternative
-  , Lua.errorToException      = errorToException
-  , Lua.exceptionToError      = exceptionToError
-  }
+addContextToException :: ()
+addContextToException = undefined
 
--- | Convert a Lua error, which must be at the top of the stack, into a
--- @'PandocError'@, popping the value from the stack.
-errorToException :: forall a . Lua.State -> IO a
-errorToException l = Lua.unsafeRunWith l $ do
-  err <- peekPandocError Lua.stackTop
-  Lua.pop 1
-  Catch.throwM err
+-- | Retrieve a @'PandocError'@ from the Lua stack.
+popPandocError :: LuaE PandocError PandocError
+popPandocError = do
+  errResult <- runPeek $ peekPandocError top
+  case resultToEither errResult of
+    Right x -> return x
+    Left err -> return $ PandocLuaError (T.pack err)
 
--- | Try the first op -- if it doesn't succeed, run the second.
-alternative :: forall a . Lua a -> Lua a -> Lua a
-alternative x y = Catch.try x >>= \case
-  Left (_ :: PandocError) -> y
-  Right x' -> return x'
+-- Ensure conversions between Lua errors and 'PandocError' exceptions
+-- are possible.
+instance LuaError PandocError where
+  popException = popPandocError
+  pushException = pushPandocError
+  luaException = PandocLuaError . T.pack
 
--- | Add more context to an error
-addContextToException :: forall a . String -> Lua a -> Lua a
-addContextToException ctx op = op `Catch.catch` \case
-  PandocLuaError msg -> Catch.throwM $ PandocLuaError (T.pack ctx <> msg)
-  e -> Catch.throwM e
-
--- | Catch a @'PandocError'@ exception and raise it as a Lua error.
-exceptionToError :: Lua NumResults -> Lua NumResults
-exceptionToError op = op `Catch.catch` \e -> do
-  pushPandocError e
-  Lua.error
+instance PeekError PandocError where
+  messageFromException = \case
+    PandocLuaError m -> T.unpack m
+    err -> show err

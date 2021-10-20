@@ -1,3 +1,6 @@
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE TypeApplications     #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.SimpleTable
    Copyright   : © 2020-2021 Albert Krewinkel
@@ -16,12 +19,11 @@ module Text.Pandoc.Lua.Marshaling.SimpleTable
   )
   where
 
-import Foreign.Lua (Lua, Peekable, Pushable, StackIndex)
+import Control.Monad ((<$!>))
+import HsLua as Lua
 import Text.Pandoc.Definition
-import Text.Pandoc.Lua.Util (defineHowTo, pushViaConstructor, rawField)
-import Text.Pandoc.Lua.Marshaling.AST ()
-
-import qualified Foreign.Lua as Lua
+import Text.Pandoc.Lua.Util (pushViaConstructor)
+import Text.Pandoc.Lua.Marshaling.AST
 
 -- | A simple (legacy-style) table.
 data SimpleTable = SimpleTable
@@ -32,16 +34,10 @@ data SimpleTable = SimpleTable
   , simpleTableBody :: [[[Block]]]
   }
 
-instance Pushable SimpleTable where
-  push = pushSimpleTable
-
-instance Peekable SimpleTable where
-  peek = peekSimpleTable
-
 -- | Push a simple table to the stack by calling the
 -- @pandoc.SimpleTable@ constructor.
-pushSimpleTable :: SimpleTable -> Lua ()
-pushSimpleTable tbl = pushViaConstructor "SimpleTable"
+pushSimpleTable :: forall e. LuaError e => SimpleTable -> LuaE e ()
+pushSimpleTable tbl = pushViaConstructor @e "SimpleTable"
   (simpleTableCaption tbl)
   (simpleTableAlignments tbl)
   (simpleTableColumnWidths tbl)
@@ -49,11 +45,10 @@ pushSimpleTable tbl = pushViaConstructor "SimpleTable"
   (simpleTableBody tbl)
 
 -- | Retrieve a simple table from the stack.
-peekSimpleTable :: StackIndex -> Lua SimpleTable
-peekSimpleTable idx = defineHowTo "get SimpleTable" $
-  SimpleTable
-    <$> rawField idx "caption"
-    <*> rawField idx "aligns"
-    <*> rawField idx "widths"
-    <*> rawField idx "headers"
-    <*> rawField idx "rows"
+peekSimpleTable :: forall e. LuaError e => Peeker e SimpleTable
+peekSimpleTable idx = retrieving "SimpleTable" $ SimpleTable
+  <$!> peekFieldRaw peekInlines "caption" idx
+  <*>  peekFieldRaw (peekList peekRead) "aligns" idx
+  <*>  peekFieldRaw (peekList peekRealFloat) "widths" idx
+  <*>  peekFieldRaw (peekList peekBlocks) "headers" idx
+  <*>  peekFieldRaw (peekList (peekList peekBlocks)) "rows" idx

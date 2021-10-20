@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -13,67 +12,60 @@
 
 Marshaling instance for ReaderOptions and its components.
 -}
-module Text.Pandoc.Lua.Marshaling.ReaderOptions () where
+module Text.Pandoc.Lua.Marshaling.ReaderOptions
+  ( peekReaderOptions
+  , pushReaderOptions
+  ) where
 
-import Data.Data (showConstr, toConstr)
-import Foreign.Lua (Lua, Pushable)
-import Text.Pandoc.Extensions (Extensions)
-import Text.Pandoc.Lua.Marshaling.AnyValue (AnyValue (..))
-import Text.Pandoc.Lua.Marshaling.CommonState ()
-import Text.Pandoc.Options (ReaderOptions (..), TrackChanges)
-
-import qualified Data.Set as Set
-import qualified Data.Text as Text
-import qualified Foreign.Lua as Lua
-import qualified Text.Pandoc.Lua.Util as LuaUtil
+import HsLua as Lua
+import Text.Pandoc.Lua.Marshaling.List (pushPandocList)
+import Text.Pandoc.Options (ReaderOptions (..))
 
 --
 -- Reader Options
 --
-instance Pushable Extensions where
-  push exts = Lua.push (show exts)
 
-instance Pushable TrackChanges where
-  push = Lua.push . showConstr . toConstr
+peekReaderOptions :: LuaError e => Peeker e ReaderOptions
+peekReaderOptions = peekUD typeReaderOptions
 
-instance Pushable ReaderOptions where
-  push ro = do
-    let ReaderOptions
-          (extensions            :: Extensions)
-          (standalone            :: Bool)
-          (columns               :: Int)
-          (tabStop               :: Int)
-          (indentedCodeClasses   :: [Text.Text])
-          (abbreviations         :: Set.Set Text.Text)
-          (defaultImageExtension :: Text.Text)
-          (trackChanges          :: TrackChanges)
-          (stripComments         :: Bool)
-          = ro
-    Lua.newtable
-    LuaUtil.addField "extensions" extensions
-    LuaUtil.addField "standalone" standalone
-    LuaUtil.addField "columns" columns
-    LuaUtil.addField "tab_stop" tabStop
-    LuaUtil.addField "indented_code_classes" indentedCodeClasses
-    LuaUtil.addField "abbreviations" abbreviations
-    LuaUtil.addField "default_image_extension" defaultImageExtension
-    LuaUtil.addField "track_changes" trackChanges
-    LuaUtil.addField "strip_comments" stripComments
+pushReaderOptions :: LuaError e => Pusher e ReaderOptions
+pushReaderOptions = pushUD typeReaderOptions
 
-    -- add metatable
-    let indexReaderOptions :: AnyValue -> AnyValue -> Lua Lua.NumResults
-        indexReaderOptions _tbl (AnyValue key) = do
-          Lua.ltype key >>= \case
-            Lua.TypeString -> Lua.peek key >>= \case
-              ("defaultImageExtension" :: Text.Text)
-                                    -> Lua.push defaultImageExtension
-              "indentedCodeClasses" -> Lua.push indentedCodeClasses
-              "stripComments" -> Lua.push stripComments
-              "tabStop" -> Lua.push tabStop
-              "trackChanges" -> Lua.push trackChanges
-              _ -> Lua.pushnil
-            _ -> Lua.pushnil
-          return 1
-    Lua.newtable
-    LuaUtil.addFunction "__index" indexReaderOptions
-    Lua.setmetatable (Lua.nthFromTop 2)
+typeReaderOptions :: LuaError e => DocumentedType e ReaderOptions
+typeReaderOptions = deftype "pandoc ReaderOptions"
+  [ operation Tostring luaShow
+  ]
+  [ readonly "extensions" ""
+      ( pushString . show
+      , readerExtensions)
+  , readonly "standalone" ""
+      ( pushBool
+      , readerStandalone)
+  , readonly "columns" ""
+      ( pushIntegral
+      , readerColumns)
+  , readonly "tab_stop" ""
+      ( pushIntegral
+      , readerTabStop)
+  , readonly "indented_code_classes" ""
+      ( pushPandocList pushText
+      , readerIndentedCodeClasses)
+  , readonly "abbreviations" ""
+      ( pushSet pushText
+      , readerAbbreviations)
+  , readonly "track_changes" ""
+      ( pushString . show
+      , readerTrackChanges)
+  , readonly "strip_comments" ""
+      ( pushBool
+      , readerStripComments)
+  , readonly "default_image_extension" ""
+      ( pushText
+      , readerDefaultImageExtension)
+  ]
+
+luaShow :: LuaError e => DocumentedFunction e
+luaShow = defun "__tostring"
+  ### liftPure show
+  <#> udparam typeReaderOptions "state" "object to print in native format"
+  =#> functionResult pushString "string" "Haskell representation"

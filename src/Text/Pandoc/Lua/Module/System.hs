@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.System
    Copyright   : © 2019-2021 Albert Krewinkel
@@ -12,22 +14,31 @@ module Text.Pandoc.Lua.Module.System
   ( pushModule
   ) where
 
-import Foreign.Lua (Lua, NumResults)
-import Foreign.Lua.Module.System (arch, env, getwd, os,
-                                  with_env, with_tmpdir, with_wd)
-import Text.Pandoc.Lua.Util (addFunction, addField)
+import HsLua hiding (pushModule)
+import HsLua.Module.System
+  (arch, env, getwd, os, with_env, with_tmpdir, with_wd)
+import Text.Pandoc.Error (PandocError)
+import Text.Pandoc.Lua.ErrorConversion ()
 
-import qualified Foreign.Lua as Lua
+import qualified HsLua as Lua
 
 -- | Push the pandoc.system module on the Lua stack.
-pushModule :: Lua NumResults
+pushModule :: LuaE PandocError NumResults
 pushModule = do
-  Lua.newtable
-  addField "arch" arch
-  addField "os" os
-  addFunction "environment" env
-  addFunction "get_working_directory" getwd
-  addFunction "with_environment" with_env
-  addFunction "with_temporary_directory" with_tmpdir
-  addFunction "with_working_directory" with_wd
+  Lua.pushModule $ Module
+    { moduleName = "system"
+    , moduleDescription = "system functions"
+    , moduleFields =
+        [ arch
+        , os
+        ]
+    , moduleFunctions =
+        [ setName "environment" env
+        , setName "get_working_directory" getwd
+        , setName "with_environment" with_env
+        , setName "with_temporary_directory" with_tmpdir
+        , setName "with_working_directory" with_wd
+        ]
+    , moduleOperations = []
+    }
   return 1

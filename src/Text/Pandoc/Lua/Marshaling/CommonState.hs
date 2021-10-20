@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.CommonState
@@ -11,92 +9,62 @@
 
 Instances to marshal (push) and unmarshal (peek) the common state.
 -}
-module Text.Pandoc.Lua.Marshaling.CommonState () where
+module Text.Pandoc.Lua.Marshaling.CommonState
+  ( typeCommonState
+  , peekCommonState
+  , pushCommonState
+  ) where
 
-import Foreign.Lua (Lua, Peekable, Pushable)
-import Foreign.Lua.Types.Peekable (reportValueOnFailure)
-import Foreign.Lua.Userdata (ensureUserdataMetatable, pushAnyWithMetatable,
-                             toAnyWithName)
+import HsLua.Core
+import HsLua.Marshalling
+import HsLua.Packaging
 import Text.Pandoc.Class (CommonState (..))
 import Text.Pandoc.Logging (LogMessage, showLogMessage)
-import Text.Pandoc.Lua.Marshaling.AnyValue (AnyValue (..))
+import Text.Pandoc.Lua.Marshaling.List (pushPandocList)
 
-import qualified Data.Map as Map
-import qualified Data.Text as Text
-import qualified Foreign.Lua as Lua
-import qualified Text.Pandoc.Lua.Util as LuaUtil
+-- | Lua type used for the @CommonState@ object.
+typeCommonState :: LuaError e => DocumentedType e CommonState
+typeCommonState = deftype "pandoc CommonState" []
+  [ readonly "input_files" "input files passed to pandoc"
+      (pushPandocList pushString, stInputFiles)
 
--- | Name used by Lua for the @CommonState@ type.
-commonStateTypeName :: String
-commonStateTypeName = "Pandoc CommonState"
+  , readonly "output_file" "the file to which pandoc will write"
+      (maybe pushnil pushString, stOutputFile)
 
-instance Peekable CommonState where
-  peek idx = reportValueOnFailure commonStateTypeName
-             (`toAnyWithName` commonStateTypeName) idx
+  , readonly "log" "list of log messages"
+      (pushPandocList (pushUD typeLogMessage), stLog)
 
-instance Pushable CommonState where
-  push st = pushAnyWithMetatable pushCommonStateMetatable st
-   where
-    pushCommonStateMetatable = ensureUserdataMetatable commonStateTypeName $ do
-      LuaUtil.addFunction "__index" indexCommonState
-      LuaUtil.addFunction "__pairs" pairsCommonState
+  , readonly "request_headers" "headers to add for HTTP requests"
+      (pushPandocList (pushPair pushText pushText), stRequestHeaders)
 
-indexCommonState :: CommonState -> AnyValue -> Lua Lua.NumResults
-indexCommonState st (AnyValue idx) = Lua.ltype idx >>= \case
-  Lua.TypeString -> 1 <$ (Lua.peek idx >>= pushField)
-  _ -> 1 <$ Lua.pushnil
- where
-  pushField :: Text.Text -> Lua ()
-  pushField name = case lookup name commonStateFields of
-    Just pushValue -> pushValue st
-    Nothing -> Lua.pushnil
+  , readonly "resource_path"
+      "path to search for resources like included images"
+      (pushPandocList pushString, stResourcePath)
 
-pairsCommonState :: CommonState -> Lua Lua.NumResults
-pairsCommonState st = do
-  Lua.pushHaskellFunction nextFn
-  Lua.pushnil
-  Lua.pushnil
-  return 3
- where
-  nextFn :: AnyValue -> AnyValue -> Lua Lua.NumResults
-  nextFn _ (AnyValue idx) =
-    Lua.ltype idx >>= \case
-      Lua.TypeNil -> case commonStateFields of
-        []  -> 2 <$ (Lua.pushnil *> Lua.pushnil)
-        (key, pushValue):_ -> 2 <$ (Lua.push key *> pushValue st)
-      Lua.TypeString -> do
-        key <- Lua.peek idx
-        case tail $ dropWhile ((/= key) . fst) commonStateFields of
-          []                     -> 2 <$ (Lua.pushnil *> Lua.pushnil)
-          (nextKey, pushValue):_ -> 2 <$ (Lua.push nextKey *> pushValue st)
-      _ -> 2 <$ (Lua.pushnil *> Lua.pushnil)
+  , readonly "source_url" "absolute URL + dir of 1st source file"
+      (maybe pushnil pushText, stSourceURL)
 
-commonStateFields :: [(Text.Text, CommonState -> Lua ())]
-commonStateFields =
-  [ ("input_files", Lua.push . stInputFiles)
-  , ("output_file", Lua.push . Lua.Optional . stOutputFile)
-  , ("log", Lua.push . stLog)
-  , ("request_headers", Lua.push . Map.fromList . stRequestHeaders)
-  , ("resource_path", Lua.push . stResourcePath)
-  , ("source_url", Lua.push . Lua.Optional . stSourceURL)
-  , ("user_data_dir", Lua.push . Lua.Optional . stUserDataDir)
-  , ("trace", Lua.push . stTrace)
-  , ("verbosity", Lua.push . show . stVerbosity)
+  , readonly "user_data_dir" "directory to search for data files"
+      (maybe pushnil pushString, stUserDataDir)
+
+  , readonly "trace" "controls whether tracing messages are issued"
+      (pushBool, stTrace)
+
+  , readonly "verbosity" "verbosity level"
+      (pushString . show, stVerbosity)
   ]
 
--- | Name used by Lua for the @CommonState@ type.
-logMessageTypeName :: String
-logMessageTypeName = "Pandoc LogMessage"
+peekCommonState :: LuaError e => Peeker e CommonState
+peekCommonState = peekUD typeCommonState
 
-instance Peekable LogMessage where
-  peek idx = reportValueOnFailure logMessageTypeName
-             (`toAnyWithName` logMessageTypeName) idx
+pushCommonState :: LuaError e => Pusher e CommonState
+pushCommonState = pushUD typeCommonState
 
-instance Pushable LogMessage where
-  push msg = pushAnyWithMetatable pushLogMessageMetatable msg
-   where
-    pushLogMessageMetatable = ensureUserdataMetatable logMessageTypeName $
-      LuaUtil.addFunction "__tostring" tostringLogMessage
-
-tostringLogMessage :: LogMessage -> Lua Text.Text
-tostringLogMessage = return . showLogMessage
+typeLogMessage :: LuaError e => DocumentedType e LogMessage
+typeLogMessage = deftype "pandoc LogMessage"
+  [ operation Index $ defun "__tostring"
+      ### liftPure showLogMessage
+      <#> udparam typeLogMessage "msg" "object"
+      =#> functionResult pushText "string" "stringified log message"
+  ]
+  mempty -- no members

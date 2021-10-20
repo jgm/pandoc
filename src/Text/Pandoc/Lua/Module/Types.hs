@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Types
    Copyright   : © 2019-2021 Albert Krewinkel
@@ -13,56 +14,41 @@ module Text.Pandoc.Lua.Module.Types
   ) where
 
 import Data.Version (Version)
-import Foreign.Lua (Lua, NumResults)
-import Text.Pandoc.Definition
-import Text.Pandoc.Lua.Marshaling.AST (LuaAttr, LuaListAttributes)
+import HsLua (LuaE, NumResults, Peeker, Pusher)
+import Text.Pandoc.Error (PandocError)
+import Text.Pandoc.Lua.ErrorConversion ()
+import Text.Pandoc.Lua.Marshaling.AST
 import Text.Pandoc.Lua.Marshaling.Version ()
 import Text.Pandoc.Lua.Util (addFunction)
 
-import qualified Foreign.Lua as Lua
+import qualified HsLua as Lua
 
--- | Push the pandoc.system module on the Lua stack.
-pushModule :: Lua NumResults
+-- | Push the pandoc.types module on the Lua stack.
+pushModule :: LuaE PandocError NumResults
 pushModule = do
   Lua.newtable
-  addFunction "Version" (return :: Version -> Lua Version)
+  addFunction "Version" (return :: Version -> LuaE PandocError Version)
   pushCloneTable
-  Lua.setfield (Lua.nthFromTop 2) "clone"
+  Lua.setfield (Lua.nth 2) "clone"
   return 1
 
-pushCloneTable :: Lua NumResults
+pushCloneTable :: LuaE PandocError NumResults
 pushCloneTable = do
   Lua.newtable
-  addFunction "Attr" cloneAttr
-  addFunction "Block" cloneBlock
-  addFunction "Citation" cloneCitation
-  addFunction "Inline" cloneInline
-  addFunction "Meta" cloneMeta
-  addFunction "MetaValue" cloneMetaValue
-  addFunction "ListAttributes" cloneListAttributes
-  addFunction "Pandoc" clonePandoc
+  addFunction "Attr"      $ cloneWith peekAttr pushAttr
+  addFunction "Block"     $ cloneWith peekBlock pushBlock
+  addFunction "Citation"  $ cloneWith peekCitation Lua.push
+  addFunction "Inline"    $ cloneWith peekInline pushInline
+  addFunction "Meta"      $ cloneWith peekMeta Lua.push
+  addFunction "MetaValue" $ cloneWith peekMetaValue pushMetaValue
+  addFunction "ListAttributes" $ cloneWith peekListAttributes pushListAttributes
+  addFunction "Pandoc"    $ cloneWith peekPandoc pushPandoc
   return 1
 
-cloneAttr :: LuaAttr -> Lua LuaAttr
-cloneAttr = return
-
-cloneBlock :: Block -> Lua Block
-cloneBlock = return
-
-cloneCitation :: Citation -> Lua Citation
-cloneCitation = return
-
-cloneInline :: Inline -> Lua Inline
-cloneInline = return
-
-cloneListAttributes :: LuaListAttributes -> Lua LuaListAttributes
-cloneListAttributes = return
-
-cloneMeta :: Meta -> Lua Meta
-cloneMeta = return
-
-cloneMetaValue :: MetaValue -> Lua MetaValue
-cloneMetaValue = return
-
-clonePandoc :: Pandoc -> Lua Pandoc
-clonePandoc = return
+cloneWith :: Peeker PandocError a
+          -> Pusher PandocError a
+          -> LuaE PandocError NumResults
+cloneWith peeker pusher = do
+  x <- Lua.forcePeek $ peeker (Lua.nthBottom 1)
+  pusher x
+  return (Lua.NumResults 1)

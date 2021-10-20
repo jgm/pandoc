@@ -16,133 +16,92 @@ default comparison operators (like @>@ and @<=@).
 module Text.Pandoc.Lua.Marshaling.Version
   ( peekVersion
   , pushVersion
+  , peekVersionFuzzy
   )
   where
 
-import Data.Text (Text)
 import Data.Maybe (fromMaybe)
 import Data.Version (Version (..), makeVersion, parseVersion, showVersion)
-import Foreign.Lua (Lua, Optional (..), NumResults,
-                    Peekable, Pushable, StackIndex)
-import Foreign.Lua.Types.Peekable (reportValueOnFailure)
-import Foreign.Lua.Userdata (ensureUserdataMetatable, pushAnyWithMetatable,
-                             toAnyWithName)
-import Safe (atMay, lastMay)
-import Text.Pandoc.Lua.Marshaling.AnyValue (AnyValue (..))
+import HsLua as Lua
+import Safe (lastMay)
 import Text.ParserCombinators.ReadP (readP_to_S)
+import qualified Text.Pandoc.UTF8 as UTF8
 
-import qualified Foreign.Lua as Lua
-import qualified Text.Pandoc.Lua.Util as LuaUtil
-
--- | Push a @'Version'@ element to the Lua stack.
-pushVersion :: Version -> Lua ()
-pushVersion version = pushAnyWithMetatable pushVersionMT version
- where
-  pushVersionMT = ensureUserdataMetatable versionTypeName $ do
-    LuaUtil.addFunction "__eq" __eq
-    LuaUtil.addFunction "__le" __le
-    LuaUtil.addFunction "__lt" __lt
-    LuaUtil.addFunction "__len" __len
-    LuaUtil.addFunction "__index" __index
-    LuaUtil.addFunction "__pairs" __pairs
-    LuaUtil.addFunction "__tostring" __tostring
+instance Peekable Version where
+  peek = forcePeek . peekVersionFuzzy
 
 instance Pushable Version where
   push = pushVersion
 
-peekVersion :: StackIndex -> Lua Version
-peekVersion idx = Lua.ltype idx >>= \case
+-- | Push a @'Version'@ element to the Lua stack.
+pushVersion :: LuaError e => Pusher e Version
+pushVersion = pushUD typeVersion
+
+peekVersionFuzzy :: LuaError e => Peeker e Version
+peekVersionFuzzy idx = retrieving "Version" $ liftLua (Lua.ltype idx) >>= \case
+  Lua.TypeUserdata -> peekVersion idx
   Lua.TypeString -> do
-    versionStr <- Lua.peek idx
+    versionStr <- peekString idx
     let parses = readP_to_S parseVersion versionStr
     case lastMay parses of
       Just (v, "") -> return v
-      _  -> Lua.throwMessage $ "could not parse as Version: " ++ versionStr
+      _  -> Lua.failPeek $
+            UTF8.fromString $ "could not parse as Version: " ++ versionStr
 
-  Lua.TypeUserdata ->
-    reportValueOnFailure versionTypeName
-                         (`toAnyWithName` versionTypeName)
-                         idx
   Lua.TypeNumber -> do
-    n <- Lua.peek idx
-    return (makeVersion [n])
+    (makeVersion . (:[])) <$> peekIntegral idx
 
   Lua.TypeTable ->
-    makeVersion <$> Lua.peek idx
+    makeVersion <$> peekList peekIntegral idx
 
   _ ->
-    Lua.throwMessage "could not peek Version"
+    Lua.failPeek "could not peek Version"
 
-instance Peekable Version where
-  peek = peekVersion
+peekVersion :: LuaError e => Peeker e Version
+peekVersion = peekUD typeVersion
 
--- | Name used by Lua for the @CommonState@ type.
-versionTypeName :: String
-versionTypeName = "HsLua Version"
-
-__eq :: Version -> Version -> Lua Bool
-__eq v1 v2 = return (v1 == v2)
-
-__le :: Version -> Version -> Lua Bool
-__le v1 v2 = return (v1 <= v2)
-
-__lt :: Version -> Version -> Lua Bool
-__lt v1 v2 = return (v1 < v2)
-
--- | Get number of version components.
-__len :: Version -> Lua Int
-__len = return . length . versionBranch
-
--- | Access fields.
-__index :: Version -> AnyValue -> Lua NumResults
-__index v (AnyValue k) = do
-  ty <- Lua.ltype k
-  case ty of
-    Lua.TypeNumber -> do
-      n <- Lua.peek k
-      let versionPart = atMay (versionBranch v) (n - 1)
-      Lua.push (Lua.Optional versionPart)
-      return 1
-    Lua.TypeString -> do
-      (str :: Text) <- Lua.peek k
-      if str == "must_be_at_least"
-        then 1 <$ Lua.pushHaskellFunction must_be_at_least
-        else 1 <$ Lua.pushnil
-    _ -> 1 <$ Lua.pushnil
-
--- | Create iterator.
-__pairs :: Version -> Lua NumResults
-__pairs v = do
-  Lua.pushHaskellFunction nextFn
-  Lua.pushnil
-  Lua.pushnil
-  return 3
- where
-  nextFn :: AnyValue -> Optional Int -> Lua Lua.NumResults
-  nextFn _ (Optional key) =
-    case key of
-      Nothing -> case versionBranch v of
-                   []  -> 2 <$ (Lua.pushnil *> Lua.pushnil)
-                   n:_ -> 2 <$ (Lua.push (1 :: Int) *> Lua.push n)
-      Just n  -> case atMay (versionBranch v) n of
-                   Nothing -> 2 <$ (Lua.pushnil *> Lua.pushnil)
-                   Just b  -> 2 <$ (Lua.push (n + 1) *> Lua.push b)
-
--- | Convert to string.
-__tostring :: Version -> Lua String
-__tostring v = return (showVersion v)
-
--- | Default error message when a version is too old. This message is
--- formatted in Lua with the expected and actual versions as arguments.
-versionTooOldMessage :: String
-versionTooOldMessage = "expected version %s or newer, got %s"
+typeVersion :: LuaError e => DocumentedType e Version
+typeVersion = deftype "Version"
+  [ operation Eq $ defun "__eq"
+    ### liftPure2 (==)
+    <#> parameter peekVersionFuzzy "Version" "v1" ""
+    <#> parameter peekVersionFuzzy "Version" "v2" ""
+    =#> functionResult pushBool "boolean" "true iff v1 == v2"
+  , operation Lt $ defun "__lt"
+    ### liftPure2 (<)
+    <#> parameter peekVersionFuzzy "Version" "v1" ""
+    <#> parameter peekVersionFuzzy "Version" "v2" ""
+    =#> functionResult pushBool "boolean" "true iff v1 < v2"
+  , operation Le $ defun "__le"
+    ### liftPure2 (<=)
+    <#> parameter peekVersionFuzzy "Version" "v1" ""
+    <#> parameter peekVersionFuzzy "Version" "v2" ""
+    =#> functionResult pushBool "boolean" "true iff v1 <= v2"
+  , operation Len $ defun "__len"
+    ### liftPure (length . versionBranch)
+    <#> parameter peekVersionFuzzy "Version" "v1" ""
+    =#> functionResult pushIntegral "integer" "number of version components"
+  , operation Tostring $ defun "__tostring"
+    ### liftPure showVersion
+    <#> parameter peekVersionFuzzy "Version" "version" ""
+    =#> functionResult pushString "string" "stringified version"
+  ]
+  [ method $ defun "must_be_at_least"
+    ### must_be_at_least
+    <#> parameter peekVersionFuzzy "Version" "self" "version to check"
+    <#> parameter peekVersionFuzzy "Version" "reference" "minimum version"
+    <#> optionalParameter peekString "string" "msg" "alternative message"
+    =?> "Returns no result, and throws an error if this version is older than reference"
+  ]
 
 -- | Throw an error if this version is older than the given version.
 -- FIXME: This function currently requires the string library to be
 -- loaded.
-must_be_at_least :: Version -> Version -> Optional String -> Lua NumResults
-must_be_at_least actual expected optMsg = do
-  let msg = fromMaybe versionTooOldMessage (fromOptional optMsg)
+must_be_at_least :: LuaError e
+                 => Version -> Version -> Maybe String
+                 -> LuaE e NumResults
+must_be_at_least actual expected mMsg = do
+  let msg = fromMaybe versionTooOldMessage mMsg
   if expected <= actual
     then return 0
     else do
@@ -152,3 +111,8 @@ must_be_at_least actual expected optMsg = do
       Lua.push (showVersion actual)
       Lua.call 3 1
       Lua.error
+
+-- | Default error message when a version is too old. This message is
+-- formatted in Lua with the expected and actual versions as arguments.
+versionTooOldMessage :: String
+versionTooOldMessage = "expected version %s or newer, got %s"
