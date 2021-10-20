@@ -204,7 +204,7 @@ tests = map (localOption (QuickCheckTests 20))
                 [Para [Str "ignored"]])
       Lua.getfield Lua.top "attr"
       Lua.liftIO . assertEqual "no accessor" (("hi", ["moin"], []) :: Attr)
-        =<< Lua.peek Lua.top
+        =<< Lua.peek @Attr Lua.top
 
   , testCase "module `pandoc.system` is present" . runLuaTest $ do
       Lua.getglobal' "pandoc.system"

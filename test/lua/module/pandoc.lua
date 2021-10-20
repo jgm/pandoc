@@ -11,34 +11,32 @@ end
 return {
   group 'Attr' {
     group 'Constructor' {
+      test('pandoc.Attr is a function', function ()
+        assert.are_equal(type(pandoc.Attr), 'function')
+      end),
       test('returns null-Attr if no arguments are given', function ()
         local attr = pandoc.Attr()
         assert.are_equal(attr.identifier, '')
         assert.are_same(attr.classes, {})
-        assert.are_same(attr.attributes, {})
+        assert.are_same(#attr.attributes, 0)
       end),
       test(
         'accepts string-indexed table or list of pairs as attributes',
         function ()
-          local attributes_list = pandoc.List:new {{'one', '1'}, {'two', '2'}}
-          local attr_from_list = pandoc.Attr('', {}, attributes_list:clone())
+          local attributes_list = {{'one', '1'}, {'two', '2'}}
+          local attr_from_list = pandoc.Attr('', {}, attributes_list)
 
-          assert.are_same(
-            pandoc.List:new(attr_from_list.attributes),
-            attributes_list
-          )
+          assert.are_equal(attr_from_list.attributes.one, '1')
+          assert.are_equal(attr_from_list.attributes.two, '2')
 
           local attributes_table = {one = '1', two = '2'}
           local attr_from_table = pandoc.Attr('', {}, attributes_table)
-
-          local assoc_list_from_table =
-            pandoc.List:new(attr_from_table.attributes)
-          -- won't work in general, but does in this special case
-          table.sort(assoc_list_from_table, function(x, y) return x[1]<y[1] end)
-          assert.are_same(
-            assoc_list_from_table,
-            attributes_list
+          assert.are_equal(
+            attr_from_table.attributes,
+            pandoc.AttributeList(attributes_table)
           )
+          assert.are_equal(attr_from_table.attributes.one, '1')
+          assert.are_equal(attr_from_table.attributes.two, '2')
         end
       )
     },
@@ -53,27 +51,41 @@ return {
         assert.are_same(attributes[1], {'a', '1'})
         assert.are_same(attributes[2], {'b', '2'})
       end),
+      test('allows replacing a pair', function ()
+        local attributes = pandoc.AttributeList{{'a', '1'}, {'b', '2'}}
+        attributes[1] = {'t','five'}
+        assert.are_same(attributes[1], {'t', 'five'})
+        assert.are_same(attributes[2], {'b', '2'})
+      end),
+      test('allows to remove a pair', function ()
+         local attributes = pandoc.AttributeList{{'a', '1'}, {'b', '2'}}
+         attributes[1] = nil
+         assert.are_equal(#attributes, 1)
+      end),
       test('adds entries by field name', function ()
         local attributes = pandoc.Attr('',{}, {{'c', '1'}, {'d', '2'}}).attributes
         attributes.e = '3'
         assert.are_same(
+          attributes,
           -- checking the full AttributeList would "duplicate" entries
-          setmetatable(attributes, nil),
-          {{'c', '1'}, {'d', '2'}, {'e', '3'}}
+          pandoc.AttributeList{{'c', '1'}, {'d', '2'}, {'e', '3'}}
         )
       end),
       test('deletes entries by field name', function ()
         local attributes = pandoc.Attr('',{}, {a = '1', b = '2'}).attributes
         attributes.a = nil
         assert.is_nil(attributes.a)
-        local assoc_list = setmetatable(attributes, nil)
-        assert.are_same(assoc_list, {{'b', '2'}})
+        assert.are_same(attributes, pandoc.AttributeList{{'b', '2'}})
       end),
       test('remains unchanged if deleted key did not exist', function ()
         local assoc_list = pandoc.List:new {{'alpha', 'x'}, {'beta', 'y'}}
-        local attributes = pandoc.Attr('', {}, assoc_list:clone()).attributes
+        local attributes = pandoc.Attr('', {}, assoc_list).attributes
         attributes.a = nil
-        assert.are_same(pandoc.List:new(attributes), assoc_list)
+        local new_assoc_list = pandoc.List()
+        for k, v in pairs(attributes) do
+          new_assoc_list:insert({k, v})
+        end
+        assert.are_same(new_assoc_list, assoc_list)
       end),
       test('gives key-value pairs when iterated-over', function ()
         local attributes = {width = '11', height = '22', name = 'test'}
@@ -110,6 +122,7 @@ return {
         }
         local span = pandoc.Span 'test'
         span.attr = html_attributes
+        span = span:clone() -- normalize
         assert.are_equal(span.attr.identifier, 'the-id')
         assert.are_equal(span.attr.classes[1], 'class1')
         assert.are_equal(span.attr.classes[2], 'class2')

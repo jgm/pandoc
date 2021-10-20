@@ -776,6 +776,7 @@ library
                    Text.Pandoc.Lua.Init,
                    Text.Pandoc.Lua.Marshaling,
                    Text.Pandoc.Lua.Marshaling.AST,
+                   Text.Pandoc.Lua.Marshaling.Attr,
                    Text.Pandoc.Lua.Marshaling.CommonState,
                    Text.Pandoc.Lua.Marshaling.Context,
                    Text.Pandoc.Lua.Marshaling.List,
