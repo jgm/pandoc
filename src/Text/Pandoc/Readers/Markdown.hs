@@ -327,6 +327,7 @@ referenceKey :: PandocMonad m => MarkdownParser m (F Blocks)
 referenceKey = try $ do
   pos <- getPosition
   skipNonindentSpaces
+  notFollowedBy (void cite)
   (_,raw) <- reference
   char ':'
   skipSpaces >> optional newline >> skipSpaces >> notFollowedBy (char '[')
@@ -1781,8 +1782,8 @@ endline = try $ do
 -- a reference label for a link
 reference :: PandocMonad m => MarkdownParser m (F Inlines, Text)
 reference = do
-  guardDisabled Ext_footnotes <|> notFollowedBy' (string "[^")
-  guardDisabled Ext_citations <|> notFollowedBy' (string "[@")
+  -- guardDisabled Ext_footnotes <|> notFollowedBy' (string "[^")
+  -- guardDisabled Ext_citations <|> notFollowedBy' (string "[@")
   withRaw $ trimInlinesF <$> inlinesInBalancedBrackets
 
 parenthesizedChars :: PandocMonad m => MarkdownParser m Text
@@ -2201,6 +2202,7 @@ normalCite = try $ do
   citations <- citeList
   spnl
   char ']'
+  notFollowedBy (oneOf "{([")  -- not a link or a bracketed span
   return citations
 
 suffix :: PandocMonad m => MarkdownParser m (F Inlines)
