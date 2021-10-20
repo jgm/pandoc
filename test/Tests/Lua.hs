@@ -217,7 +217,7 @@ tests = map (localOption (QuickCheckTests 20))
       eitherPandoc <- Catch.try (peek @Pandoc Lua.top)
       case eitherPandoc of
         Left (PandocLuaError msg) -> do
-          let expectedMsg = "table expected, got boolean\n"
+          let expectedMsg = "Pandoc expected, got boolean\n"
                 <> "\twhile retrieving Pandoc value"
           Lua.liftIO $ assertEqual "unexpected error message" expectedMsg msg
         Left e -> error ("Expected a Lua error, but got " <> show e)

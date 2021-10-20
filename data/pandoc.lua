@@ -311,26 +311,6 @@ local function ensureAttr(attr)
 end
 
 ------------------------------------------------------------------------
---- Pandoc Document
--- @section document
-
---- A complete pandoc document
--- @function Pandoc
--- @tparam      {Block,...} blocks      document content
--- @tparam[opt] Meta        meta        document meta data
-M.Pandoc = AstElement:make_subtype'Pandoc'
-M.Pandoc.behavior.clone = M.types.clone.Pandoc
-function M.Pandoc:new (blocks, meta)
-  return {
-    blocks = ensureList(blocks),
-    meta = meta or {},
-  }
-end
-
--- DEPRECATED synonym:
-M.Doc = M.Pandoc
-
-------------------------------------------------------------------------
 -- Meta
 -- @section Meta
 

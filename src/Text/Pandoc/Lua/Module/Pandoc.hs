@@ -15,6 +15,7 @@ module Text.Pandoc.Lua.Module.Pandoc
   ) where
 
 import Prelude hiding (read)
+import Control.Applicative (optional)
 import Control.Monad ((>=>), when)
 import Control.Monad.Except (throwError)
 import Data.Default (Default (..))
@@ -23,7 +24,7 @@ import HsLua as Lua hiding (pushModule)
 import HsLua.Class.Peekable (PeekError)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Class.PandocIO (runIO)
-import Text.Pandoc.Definition (Block, Inline)
+import Text.Pandoc.Definition
 import Text.Pandoc.Lua.Filter (SingletonsList (..), walkInlines,
                                walkInlineLists, walkBlocks, walkBlockLists)
 import Text.Pandoc.Lua.Marshaling ()
@@ -51,6 +52,8 @@ pushModule = do
   addFunction "pipe" pipe
   addFunction "walk_block" (walkElement peekBlock pushBlock)
   addFunction "walk_inline" (walkElement peekInline pushInline)
+  -- Constructors
+  addFunction "Pandoc" mkPandoc
   return 1
 
 walkElement :: (Walkable (SingletonsList Inline) a,
@@ -142,3 +145,12 @@ pushPipeError pipeErr = do
           , if output == mempty then BSL.pack "<no output>" else output
           ]
         return (NumResults 1)
+
+mkPandoc :: PandocLua NumResults
+mkPandoc = liftPandocLua $ do
+  doc <- forcePeek $ do
+    blks <- peekBlocks (nthBottom 1)
+    mMeta <- optional $ peekMeta (nthBottom 2)
+    pure $ Pandoc (fromMaybe nullMeta mMeta) blks
+  pushPandoc doc
+  return 1
