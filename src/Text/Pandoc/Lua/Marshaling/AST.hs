@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE TupleSections        #-}
 {-# LANGUAGE TypeApplications     #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.AST
@@ -21,12 +22,18 @@ module Text.Pandoc.Lua.Marshaling.AST
   , peekBlocks
   , peekCaption
   , peekCitation
+  , peekFormat
   , peekInline
   , peekInlines
   , peekListAttributes
   , peekMeta
   , peekMetaValue
   , peekPandoc
+  , peekMathType
+  , peekQuoteType
+
+  , peekFuzzyInlines
+  , peekFuzzyBlocks
 
   , pushAttr
   , pushBlock
@@ -37,9 +44,13 @@ module Text.Pandoc.Lua.Marshaling.AST
   ) where
 
 import Control.Applicative ((<|>), optional)
+import Control.Monad.Catch (throwM)
 import Control.Monad ((<$!>), (>=>))
+import Data.Data (showConstr, toConstr)
+import Data.Text (Text)
 import HsLua hiding (Operation (Div))
 import Text.Pandoc.Definition
+import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Lua.Util (pushViaConstr', pushViaConstructor)
 import Text.Pandoc.Lua.Marshaling.Attr (peekAttr, pushAttr)
 import Text.Pandoc.Lua.Marshaling.List (pushPandocList)
@@ -94,10 +105,13 @@ instance Pushable Inline where
 
 -- Citation
 instance Pushable Citation where
-  push (Citation cid prefix suffix mode noteNum hash) =
-    pushViaConstr' "Citation"
-    [ push cid, push mode, push prefix, push suffix, push noteNum, push hash
-    ]
+  push = pushCitation
+
+pushCitation :: LuaError e => Pusher e Citation
+pushCitation (Citation cid prefix suffix mode noteNum hash) =
+  pushViaConstr' "Citation"
+  [ push cid, push mode, push prefix, push suffix, push noteNum, push hash
+  ]
 
 peekCitation :: LuaError e => Peeker e Citation
 peekCitation = fmap (retrieving "Citation")
@@ -119,7 +133,10 @@ instance Pushable CitationMode where
   push = Lua.push . show
 
 instance Pushable Format where
-  push (Format f) = Lua.push f
+  push = pushFormat
+
+pushFormat :: LuaError e => Pusher e Format
+pushFormat (Format f) = pushText f
 
 peekFormat :: LuaError e => Peeker e Format
 peekFormat idx = Format <$!> peekText idx
@@ -134,7 +151,19 @@ instance Pushable MathType where
   push = Lua.push . show
 
 instance Pushable QuoteType where
-  push = Lua.push . show
+  push = pushQuoteType
+
+pushMathType :: LuaError e => Pusher e MathType
+pushMathType = pushString . show
+
+peekMathType :: LuaError e => Peeker e MathType
+peekMathType = peekRead
+
+pushQuoteType :: LuaError e => Pusher e QuoteType
+pushQuoteType = pushString . show
+
+peekQuoteType :: LuaError e => Peeker e QuoteType
+peekQuoteType = peekRead
 
 -- | Push an meta value element to the top of the lua stack.
 pushMetaValue :: LuaError e => MetaValue -> LuaE e ()
@@ -354,66 +383,213 @@ peekCell = fmap (retrieving "Cell")
   blks <- peekFieldRaw peekBlocks "contents" idx
   return $! Cell attr algn rs cs blks
 
+getInlineText :: Inline -> Possible Text
+getInlineText = \case
+  Code _ lst      -> Actual lst
+  Math _ str      -> Actual str
+  RawInline _ raw -> Actual raw
+  Str s           -> Actual s
+  _               -> Absent
+
+setInlineText :: Inline -> Text -> Possible Inline
+setInlineText = \case
+  Code attr _     -> Actual . Code attr
+  Math mt _       -> Actual . Math mt
+  RawInline f _   -> Actual . RawInline f
+  Str _           -> Actual . Str
+  _               -> const Absent
+
+data Content
+  = ContentBlocks [Block]
+  | ContentInlines [Inline]
+
+setInlineContent :: Inline -> Content -> Possible Inline
+setInlineContent = \case
+  -- inline content
+  Cite cs _     -> Actual . Cite cs . inlineContent
+  Emph _        -> Actual . Emph . inlineContent
+  Quoted qt _   -> Actual . Quoted qt . inlineContent
+  SmallCaps _   -> Actual . SmallCaps . inlineContent
+  Span attr _   -> Actual . Span attr . inlineContent
+  Strong _      -> Actual . Strong . inlineContent
+  Subscript _   -> Actual . Subscript . inlineContent
+  Superscript _ -> Actual . Superscript . inlineContent
+  Underline _   -> Actual . Underline . inlineContent
+  -- block content
+  Note _        -> Actual . Note . blockContent
+  _             -> const Absent
+  where
+    inlineContent = \case
+      ContentInlines inlns -> inlns
+      ContentBlocks _      -> throwM $
+                              PandocLuaError "expected Inlines, got Blocks"
+    blockContent = \case
+      ContentBlocks blks -> blks
+      ContentInlines []  -> []
+      ContentInlines _   -> throwM $
+                            PandocLuaError "expected Blocks, got Inlines"
+
+getInlineContent :: Inline -> Possible Content
+getInlineContent = \case
+  Cite _ inlns      -> Actual $ ContentInlines inlns
+  Emph inlns        -> Actual $ ContentInlines inlns
+  Quoted _ inlns    -> Actual $ ContentInlines inlns
+  SmallCaps inlns   -> Actual $ ContentInlines inlns
+  Span _ inlns      -> Actual $ ContentInlines inlns
+  Strong inlns      -> Actual $ ContentInlines inlns
+  Subscript inlns   -> Actual $ ContentInlines inlns
+  Superscript inlns -> Actual $ ContentInlines inlns
+  Underline inlns   -> Actual $ ContentInlines inlns
+  Note blks         -> Actual $ ContentBlocks blks
+  _                 -> Absent
+
+-- title
+getInlineTitle :: Inline -> Possible Text
+getInlineTitle = \case
+  Image _ _ (_, tit) -> Actual tit
+  Link _ _ (_, tit)  -> Actual tit
+  _                  -> Absent
+
+setInlineTitle :: Inline -> Text -> Possible Inline
+setInlineTitle = \case
+  Image attr capt (src, _) -> Actual . Image attr capt . (src,)
+  Link attr capt (src, _)  -> Actual . Link attr capt . (src,)
+  _                        -> const Absent
+
+-- attr
+getInlineAttr :: Inline -> Possible Attr
+getInlineAttr = \case
+  Code attr _    -> Actual attr
+  Image attr _ _ -> Actual attr
+  Link attr _ _  -> Actual attr
+  Span attr _    -> Actual attr
+  _              -> Absent
+
+setInlineAttr :: Inline -> Attr -> Possible Inline
+setInlineAttr = \case
+  Code _ cs       -> Actual . (`Code` cs)
+  Image _ cpt tgt -> Actual . \attr -> Image attr cpt tgt
+  Link _ cpt tgt  -> Actual . \attr -> Link attr cpt tgt
+  Span _ inlns    -> Actual . (`Span` inlns)
+  _               -> const Absent
+
+showInline :: LuaError e => DocumentedFunction e
+showInline = defun "show"
+  ### liftPure (show @Inline)
+  <#> parameter peekInline "inline" "Inline" "Object"
+  =#> functionResult pushString "string" "stringified Inline"
+
+pushContent :: LuaError e => Pusher e Content
+pushContent = \case
+  ContentBlocks blks -> pushPandocList pushBlock blks
+  ContentInlines inlns -> pushPandocList pushInline inlns
+
+peekContent :: LuaError e => Peeker e Content
+peekContent idx =
+  (ContentInlines <$!> peekList peekInline idx) <|>
+  (ContentBlocks  <$!> peekList peekBlock idx)
+
+typeInline :: LuaError e => DocumentedType e Inline
+typeInline = deftype "Inline"
+  [ operation Tostring showInline
+  , operation Eq $ defun "__eq"
+      ### liftPure2 (==)
+      <#> parameter peekInline "a" "Inline" ""
+      <#> parameter peekInline "b" "Inline" ""
+      =#> functionResult pushBool "boolean" "whether the two are equal"
+  ]
+  [ possibleProperty "attr" "element attributes"
+      (pushAttr, getInlineAttr)
+      (peekAttr, setInlineAttr)
+  , possibleProperty "caption" "image caption"
+      (pushPandocList pushInline, \case
+          Image _ capt _ -> Actual capt
+          _              -> Absent)
+      (peekInlines, \case
+          Image attr _ target -> Actual . (\capt -> Image attr capt target)
+          _                   -> const Absent)
+  , possibleProperty "citations" "list of citations"
+      (pushPandocList pushCitation, \case {Cite cs _ -> Actual cs; _ -> Absent})
+      (peekList peekCitation, \case
+          Cite _ inlns -> Actual . (`Cite` inlns)
+          _            -> const Absent)
+  , possibleProperty "content" "element contents"
+      (pushContent, getInlineContent)
+      (peekContent, setInlineContent)
+  , possibleProperty "format" "format of raw text"
+      (pushFormat, \case {RawInline fmt _ -> Actual fmt; _ -> Absent})
+      (peekFormat, \case
+          RawInline _ txt -> Actual . (`RawInline` txt)
+          _ -> const Absent)
+  , possibleProperty "mathtype" "math rendering method"
+      (pushMathType, \case {Math mt _ -> Actual mt; _ -> Absent})
+      (peekMathType, \case
+          Math _ txt -> Actual . (`Math` txt)
+          _          -> const Absent)
+  , possibleProperty "quotetype" "type of quotes (single or double)"
+      (pushQuoteType, \case {Quoted qt _ -> Actual qt; _ -> Absent})
+      (peekQuoteType, \case
+          Quoted _ inlns  -> Actual . (`Quoted` inlns)
+          _               -> const Absent)
+  , possibleProperty "src" "image source"
+      (pushText, \case
+          Image _ _ (src, _) -> Actual src
+          _                  -> Absent)
+      (peekText, \case
+          Image attr capt (_, title) -> Actual . Image attr capt . (,title)
+          _                          -> const Absent)
+  , possibleProperty "target" "link target URL"
+      (pushText, \case
+          Link _ _ (tgt, _) -> Actual tgt
+          _                 -> Absent)
+      (peekText, \case
+          Link attr capt (_, title) -> Actual . Image attr capt . (,title)
+          _                         -> const Absent)
+  , possibleProperty "title" "title text"
+      (pushText, getInlineTitle)
+      (peekText, setInlineTitle)
+  , possibleProperty "text" "text contents"
+      (pushText, getInlineText)
+      (peekText, setInlineText)
+  , readonly "tag" "type of Inline"
+      (pushString, showConstr . toConstr )
+
+  , alias "t" "tag" ["tag"]
+  , alias "c" "content" ["content"]
+  , alias "identifier" "element identifier"       ["attr", "identifier"]
+  , alias "classes"    "element classes"          ["attr", "classes"]
+  , alias "attributes" "other element attributes" ["attr", "attributes"]
+
+  , method $ defun "clone"
+      ### return
+      <#> parameter peekInline "inline" "Inline" "self"
+      =#> functionResult pushInline "Inline" "cloned Inline"
+  ]
+
 -- | Push an inline element to the top of the lua stack.
 pushInline :: forall e. LuaError e => Inline -> LuaE e ()
-pushInline = \case
-  Cite citations lst       -> pushViaConstructor @e "Cite" lst citations
-  Code attr lst            -> pushViaConstr' @e "Code"
-                              [push lst, pushAttr attr]
-  Emph inlns               -> pushViaConstructor @e "Emph" inlns
-  Underline inlns          -> pushViaConstructor @e "Underline" inlns
-  Image attr alt (src,tit) -> pushViaConstr' @e "Image"
-                              [push alt, push src, push tit, pushAttr attr]
-  LineBreak                -> pushViaConstructor @e "LineBreak"
-  Link attr lst (src,tit)  -> pushViaConstr' @e "Link"
-                              [push lst, push src, push tit, pushAttr attr]
-  Note blcks               -> pushViaConstructor @e "Note" blcks
-  Math mty str             -> pushViaConstructor @e "Math" mty str
-  Quoted qt inlns          -> pushViaConstructor @e "Quoted" qt inlns
-  RawInline f cs           -> pushViaConstructor @e "RawInline" f cs
-  SmallCaps inlns          -> pushViaConstructor @e "SmallCaps" inlns
-  SoftBreak                -> pushViaConstructor @e "SoftBreak"
-  Space                    -> pushViaConstructor @e "Space"
-  Span attr inlns          -> pushViaConstr' @e "Span"
-                              [push inlns, pushAttr attr]
-  Str str                  -> pushViaConstructor @e "Str" str
-  Strikeout inlns          -> pushViaConstructor @e "Strikeout" inlns
-  Strong inlns             -> pushViaConstructor @e "Strong" inlns
-  Subscript inlns          -> pushViaConstructor @e "Subscript" inlns
-  Superscript inlns        -> pushViaConstructor @e "Superscript" inlns
+pushInline = pushUD typeInline
 
 -- | Return the value at the given index as inline if possible.
 peekInline :: forall e. LuaError e => Peeker e Inline
-peekInline = retrieving "Inline" . \idx -> do
-  -- Get the contents of an AST element.
-  let mkBlock :: (a -> Inline) -> Peeker e a -> Peek e Inline
-      mkBlock f p = f <$!> peekFieldRaw p "c" idx
-  LuaUtil.getTag idx >>= \case
-    "Cite"       -> mkBlock (uncurry Cite) $
-                    peekPair (peekList peekCitation) peekInlines
-    "Code"       -> mkBlock (uncurry Code) (peekPair peekAttr peekText)
-    "Emph"       -> mkBlock Emph peekInlines
-    "Underline"  -> mkBlock Underline peekInlines
-    "Image"      -> mkBlock (\(attr, lst, tgt) -> Image attr lst tgt)
-                    $ peekTriple peekAttr peekInlines
-                                 (peekPair peekText peekText)
-    "Link"       -> mkBlock (\(attr, lst, tgt) -> Link attr lst tgt) $
-                    peekTriple peekAttr peekInlines (peekPair peekText peekText)
-    "LineBreak"  -> return LineBreak
-    "Note"       -> mkBlock Note peekBlocks
-    "Math"       -> mkBlock (uncurry Math) (peekPair peekRead peekText)
-    "Quoted"     -> mkBlock (uncurry Quoted) (peekPair peekRead peekInlines)
-    "RawInline"  -> mkBlock (uncurry RawInline) (peekPair peekFormat peekText)
-    "SmallCaps"  -> mkBlock SmallCaps peekInlines
-    "SoftBreak"  -> return SoftBreak
-    "Space"      -> return Space
-    "Span"       -> mkBlock (uncurry Span) (peekPair peekAttr peekInlines)
-    "Str"        -> mkBlock Str peekText
-    "Strikeout"  -> mkBlock Strikeout peekInlines
-    "Strong"     -> mkBlock Strong peekInlines
-    "Subscript"  -> mkBlock Subscript peekInlines
-    "Superscript"-> mkBlock Superscript peekInlines
-    Name tag -> Lua.failPeek ("Unknown inline type: " <> tag)
+peekInline = retrieving "Inline" . \idx -> peekUD typeInline idx
+
+-- | Try extra-hard to return the value at the given index as a list of
+-- inlines.
+peekFuzzyInlines :: LuaError e => Peeker e [Inline]
+peekFuzzyInlines = choice
+  [ peekList peekInline
+  , fmap pure . peekInline
+  , \idx -> pure . Str <$!> peekText idx
+  ]
+
+peekFuzzyBlocks :: LuaError e => Peeker e [Block]
+peekFuzzyBlocks = choice
+  [ peekList peekBlock
+  , fmap pure . peekBlock
+  , \idx -> pure . Plain . pure . Str <$!> peekText idx
+  ]
+
 
 pushListAttributes :: forall e. LuaError e => ListAttributes -> LuaE e ()
 pushListAttributes (start, style, delimiter) =

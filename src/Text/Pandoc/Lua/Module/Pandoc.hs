@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Pandoc
    Copyright   : Copyright © 2017-2021 Albert Krewinkel
@@ -16,7 +17,7 @@ module Text.Pandoc.Lua.Module.Pandoc
 
 import Prelude hiding (read)
 import Control.Applicative (optional)
-import Control.Monad ((>=>), when)
+import Control.Monad ((>=>), forM_, when)
 import Control.Monad.Except (throwError)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
@@ -54,10 +55,115 @@ pushModule = do
   addFunction "walk_block" (walkElement peekBlock pushBlock)
   addFunction "walk_inline" (walkElement peekInline pushInline)
   -- Constructors
-  addFunction "Pandoc" mkPandoc
   addFunction "Attr" (liftPandocLua mkAttr)
   addFunction "AttributeList" (liftPandocLua mkAttributeList)
+  addFunction "Pandoc" mkPandoc
+  liftPandocLua $ do
+    let addConstr fn = do
+          pushName (functionName fn)
+          pushDocumentedFunction fn
+          rawset (nth 3)
+    forM_ inlineConstructors addConstr
+    -- add constructors to Inlines.constructor
+    newtable  -- constructor
+    forM_ (inlineConstructors @PandocError) $ \fn -> do
+      let name = functionName fn
+      pushName name
+      pushName name
+      rawget (nth 4)
+      rawset (nth 3)
+    -- set as pandoc.Inline.constructor
+    pushName "Inline"
+    newtable *> pushName "constructor" *> pushvalue (nth 4) *> rawset (nth 3)
+    rawset (nth 4)
+    pop 1 -- remaining constructor table
   return 1
+
+inlineConstructors :: LuaError e =>  [DocumentedFunction e]
+inlineConstructors =
+  [ defun "Cite"
+    ### liftPure2 Cite
+    <#> parameter (peekList peekCitation) "citations" "list of Citations" ""
+    <#> parameter peekFuzzyInlines "content" "Inline" "placeholder content"
+    =#> functionResult pushInline "Inline" "cite element"
+  , defun "Code"
+    ### liftPure2 (flip Code)
+    <#> parameter peekText "code" "string" "code string"
+    <#> parameter peekAttr "attr" "Attr" "additional attributes"
+    =#> functionResult pushInline "Inline" "code element"
+  , mkInlinesConstr "Emph" Emph
+  , defun "Image"
+    ### liftPure4 (\caption src mtitle mattr ->
+                     let attr = fromMaybe nullAttr mattr
+                         title = fromMaybe mempty mtitle
+                     in Image attr caption (src, title))
+    <#> parameter peekFuzzyInlines "Inlines" "caption" "image caption / alt"
+    <#> parameter peekText "string" "src" "path/URL of the image file"
+    <#> optionalParameter peekText "string" "title" "brief image description"
+    <#> optionalParameter peekAttr "Attr" "attr" "image attributes"
+    =#> functionResult pushInline "Inline" "image element"
+  , defun "LineBreak"
+    ### return LineBreak
+    =#> functionResult pushInline "Inline" "line break"
+  , defun "Link"
+    ### liftPure4 (\content target mtitle mattr ->
+                     let attr = fromMaybe nullAttr mattr
+                         title = fromMaybe mempty mtitle
+                     in Link attr content (target, title))
+    <#> parameter peekFuzzyInlines "Inlines" "content" "text for this link"
+    <#> parameter peekText "string" "target" "the link target"
+    <#> optionalParameter peekText "string" "title" "brief link description"
+    <#> optionalParameter peekAttr "Attr" "attr" "link attributes"
+    =#> functionResult pushInline "Inline" "link element"
+  , defun "Math"
+    ### liftPure2 Math
+    <#> parameter peekMathType "quotetype" "Math" "rendering method"
+    <#> parameter peekText "text" "string" "math content"
+    =#> functionResult pushInline "Inline" "math element"
+  , defun "Note"
+    ### liftPure Note
+    <#> parameter peekFuzzyBlocks "content" "Blocks" "note content"
+    =#> functionResult pushInline "Inline" "note"
+  , defun "Quoted"
+    ### liftPure2 Quoted
+    <#> parameter peekQuoteType "quotetype" "QuoteType" "type of quotes"
+    <#> parameter peekFuzzyInlines "content" "Inlines" "inlines in quotes"
+    =#> functionResult pushInline "Inline" "quoted element"
+  , defun "RawInline"
+    ### liftPure2 RawInline
+    <#> parameter peekFormat "format" "Format" "format of content"
+    <#> parameter peekText "text" "string" "string content"
+    =#> functionResult pushInline "Inline" "raw inline element"
+  , mkInlinesConstr "SmallCaps" SmallCaps
+  , defun "SoftSpace"
+    ### return SoftBreak
+    =#> functionResult pushInline "Inline" "soft break"
+  , defun "Space"
+    ### return Space
+    =#> functionResult pushInline "Inline" "new space"
+  , defun "Span"
+    ### liftPure2 (\inlns mattr -> Span (fromMaybe nullAttr mattr) inlns)
+    <#> parameter peekFuzzyInlines "content" "Inlines" "inline content"
+    <#> optionalParameter peekAttr "attr" "Attr" "additional attributes"
+    =#> functionResult pushInline "Inline" "span element"
+  , defun "Str"
+    ### liftPure (\s -> s `seq` Str s)
+    <#> parameter peekText "text" "string" ""
+    =#> functionResult pushInline "Inline" "new Str object"
+  , mkInlinesConstr "Strong" Strong
+  , mkInlinesConstr "Strikeout" Strikeout
+  , mkInlinesConstr "Subscript" Subscript
+  , mkInlinesConstr "Superscript" Superscript
+  , mkInlinesConstr "Underline" Underline
+  ]
+
+mkInlinesConstr :: LuaError e
+                => Name -> ([Inline] -> Inline) -> DocumentedFunction e
+mkInlinesConstr name constr = defun name
+  ### liftPure (\x -> x `seq` constr x)
+  <#> parameter peekFuzzyInlines "content" "Inlines" ""
+  =#> functionResult pushInline "Inline" "new object"
+
 
 walkElement :: (Walkable (SingletonsList Inline) a,
                 Walkable (SingletonsList Block) a,
