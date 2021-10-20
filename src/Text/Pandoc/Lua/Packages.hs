@@ -1,3 +1,6 @@
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 {- |
    Module      : Text.Pandoc.Lua.Packages
    Copyright   : Copyright © 2017-2021 Albert Krewinkel
@@ -13,12 +16,13 @@ module Text.Pandoc.Lua.Packages
   ) where
 
 import Control.Monad (forM_)
-import Foreign.Lua (NumResults)
+import HsLua (NumResults)
+import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua, loadDefaultModule)
 
-import qualified Foreign.Lua as Lua
-import qualified Foreign.Lua.Module.Path as Path
-import qualified Foreign.Lua.Module.Text as Text
+import qualified HsLua as Lua
+import qualified HsLua.Module.Path as Path
+import qualified HsLua.Module.Text as Text
 import qualified Text.Pandoc.Lua.Module.Pandoc as Pandoc
 import qualified Text.Pandoc.Lua.Module.MediaBag as MediaBag
 import qualified Text.Pandoc.Lua.Module.System as System
@@ -30,8 +34,8 @@ installPandocPackageSearcher :: PandocLua ()
 installPandocPackageSearcher = liftPandocLua $ do
   Lua.getglobal' "package.searchers"
   shiftArray
-  Lua.pushHaskellFunction pandocPackageSearcher
-  Lua.rawseti (Lua.nthFromTop 2) 1
+  Lua.pushHaskellFunction $ Lua.toHaskellFunction pandocPackageSearcher
+  Lua.rawseti (Lua.nth 2) 1
   Lua.pop 1           -- remove 'package.searchers' from stack
  where
   shiftArray = forM_ [4, 3, 2, 1] $ \i -> do
@@ -42,14 +46,16 @@ installPandocPackageSearcher = liftPandocLua $ do
 pandocPackageSearcher :: String -> PandocLua NumResults
 pandocPackageSearcher pkgName =
   case pkgName of
-    "pandoc"          -> pushWrappedHsFun Pandoc.pushModule
-    "pandoc.mediabag" -> pushWrappedHsFun MediaBag.pushModule
-    "pandoc.path"     -> pushWrappedHsFun Path.pushModule
-    "pandoc.system"   -> pushWrappedHsFun System.pushModule
-    "pandoc.types"    -> pushWrappedHsFun Types.pushModule
-    "pandoc.utils"    -> pushWrappedHsFun Utils.pushModule
-    "text"            -> pushWrappedHsFun Text.pushModule
-    "pandoc.List"     -> pushWrappedHsFun (loadDefaultModule pkgName)
+    "pandoc"          -> pushWrappedHsFun $ Lua.toHaskellFunction @PandocError Pandoc.pushModule
+    "pandoc.mediabag" -> pushWrappedHsFun $ Lua.toHaskellFunction @PandocError MediaBag.pushModule
+    "pandoc.path"     -> pushWrappedHsFun
+      (Lua.NumResults 1 <$ Lua.pushModule @PandocError Path.documentedModule)
+    "pandoc.system"   -> pushWrappedHsFun $ Lua.toHaskellFunction System.pushModule
+    "pandoc.types"    -> pushWrappedHsFun $ Lua.toHaskellFunction @PandocError Types.pushModule
+    "pandoc.utils"    -> pushWrappedHsFun $ Lua.toHaskellFunction @PandocError Utils.pushModule
+    "text"            -> pushWrappedHsFun
+      (Lua.NumResults 1 <$ Lua.pushModule @PandocError Text.documentedModule)
+    "pandoc.List"     -> pushWrappedHsFun $ Lua.toHaskellFunction @PandocError (loadDefaultModule pkgName)
     _                 -> reportPandocSearcherFailure
  where
   pushWrappedHsFun f = liftPandocLua $ do

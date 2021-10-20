@@ -12,8 +12,8 @@ Marshaling instance for doctemplates Context and its components.
 -}
 module Text.Pandoc.Lua.Marshaling.Context () where
 
-import qualified Foreign.Lua as Lua
-import Foreign.Lua (Pushable)
+import qualified HsLua as Lua
+import HsLua (Pushable)
 import Text.DocTemplates (Context(..), Val(..), TemplateTarget)
 import Text.DocLayout (render)
 

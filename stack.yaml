@@ -12,6 +12,19 @@ extra-deps:
 - doctemplates-0.10
 - emojis-0.1.2
 - doclayout-0.3.1.1
+- hslua-2.0.0
+- hslua-classes-2.0.0
+- hslua-core-2.0.0
+- hslua-marshalling-2.0.0
+- hslua-module-path-1.0.0
+- hslua-module-system-1.0.0
+- hslua-module-text-1.0.0
+- hslua-module-version-1.0.0
+- hslua-objectorientation-2.0.0
+- hslua-packaging-2.0.0
+- lua-2.0.0
+- tasty-hslua-1.0.0
+- tasty-lua-1.0.0
 - git: https://github.com/jgm/pandoc-types.git
   commit: 99402a46361a3e52805935b1fbe9dfe54f852d6a
 - git: https://github.com/jgm/texmath.git
@@ -26,5 +39,3 @@ ghc-options:
 resolver: lts-18.10
 nix:
   packages: [zlib]
-
-

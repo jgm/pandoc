@@ -55,31 +55,6 @@ return {
       end),
     },
 
-    group 'list-like behavior' {
-      test('can access version component numbers', function ()
-        local version = Version '2.7.3'
-        assert.is_nil(version[0])
-        assert.are_equal(version[1], 2)
-        assert.are_equal(version[2], 7)
-        assert.are_equal(version[3], 3)
-      end),
-      test('can be iterated over', function ()
-        local version_list = {2, 7, 3}
-        local final_index = 0
-        for i, v in pairs(Version(version_list)) do
-          assert.are_equal(v, version_list[i])
-          final_index = i
-        end
-        assert.are_equal(final_index, 3)
-      end),
-      test('length is the number of components', function ()
-        assert.are_equal(#(Version '0'), 1)
-        assert.are_equal(#(Version '1.6'), 2)
-        assert.are_equal(#(Version '8.7.5'), 3)
-        assert.are_equal(#(Version '2.9.1.5'), 4)
-      end)
-    },
-
     group 'conversion to string' {
       test('converting from and to string is a noop', function ()
         local version_string = '1.19.4'

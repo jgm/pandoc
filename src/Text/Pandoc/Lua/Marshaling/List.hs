@@ -1,7 +1,8 @@
-{-# LANGUAGE DeriveDataTypeable   #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {- |
 Module      : Text.Pandoc.Lua.Marshaling.List
 Copyright   : © 2012-2021 John MacFarlane
@@ -14,27 +15,30 @@ Marshaling/unmarshaling instances for @pandoc.List@s.
 -}
 module Text.Pandoc.Lua.Marshaling.List
   ( List (..)
+  , peekList'
+  , pushPandocList
   ) where
 
+import Control.Monad ((<$!>))
 import Data.Data (Data)
-import Foreign.Lua (Peekable, Pushable)
+import HsLua (LuaError, Peeker, Pusher, Pushable (push), peekList, pushList)
 import Text.Pandoc.Walk (Walkable (..))
-import Text.Pandoc.Lua.Util (defineHowTo, pushViaConstructor)
-
-import qualified Foreign.Lua as Lua
+import Text.Pandoc.Lua.Util (pushViaConstr')
 
 -- | List wrapper which is marshalled as @pandoc.List@.
 newtype List a = List { fromList :: [a] }
   deriving (Data, Eq, Show)
 
 instance Pushable a => Pushable (List a) where
-  push (List xs) =
-    pushViaConstructor "List" xs
+  push (List xs) = pushPandocList push xs
 
-instance Peekable a => Peekable (List a) where
-  peek idx = defineHowTo "get List" $ do
-    xs <- Lua.peek idx
-    return $ List xs
+-- | Pushes a list as a numerical Lua table, setting a metatable that offers a
+-- number of convenience functions.
+pushPandocList :: LuaError e => Pusher e a -> Pusher e [a]
+pushPandocList pushItem xs = pushViaConstr' "List" [pushList pushItem xs]
+
+peekList' :: LuaError e => Peeker e a -> Peeker e (List a)
+peekList' p = (List <$!>) . peekList p
 
 -- List is just a wrapper, so we can reuse the walk instance for
 -- unwrapped Hasekll lists.

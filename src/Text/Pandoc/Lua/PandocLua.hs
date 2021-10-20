@@ -28,20 +28,19 @@ module Text.Pandoc.Lua.PandocLua
 
 import Control.Monad.Catch (MonadCatch, MonadMask, MonadThrow)
 import Control.Monad.Except (MonadError (catchError, throwError))
-import Control.Monad.IO.Class (MonadIO (liftIO))
-import Foreign.Lua (Lua (..), NumResults, Pushable, ToHaskellFunction)
+import Control.Monad.IO.Class (MonadIO)
+import HsLua as Lua
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..), readDefaultDataFile)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
-import Text.Pandoc.Lua.ErrorConversion (errorConversion)
+import Text.Pandoc.Lua.Marshaling.CommonState (peekCommonState)
 
 import qualified Control.Monad.Catch as Catch
 import qualified Data.Text as T
-import qualified Foreign.Lua as Lua
 import qualified Text.Pandoc.Class.IO as IO
 
 -- | Type providing access to both, pandoc and Lua operations.
-newtype PandocLua a = PandocLua { unPandocLua :: Lua a }
+newtype PandocLua a = PandocLua { unPandocLua :: LuaE PandocError a }
   deriving
     ( Applicative
     , Functor
@@ -53,7 +52,7 @@ newtype PandocLua a = PandocLua { unPandocLua :: Lua a }
     )
 
 -- | Lift a @'Lua'@ operation into the @'PandocLua'@ type.
-liftPandocLua :: Lua a -> PandocLua a
+liftPandocLua :: LuaE PandocError a -> PandocLua a
 liftPandocLua = PandocLua
 
 -- | Evaluate a @'PandocLua'@ computation, running all contained Lua
@@ -62,7 +61,7 @@ runPandocLua :: (PandocMonad m, MonadIO m) => PandocLua a -> m a
 runPandocLua pLua = do
   origState <- getCommonState
   globals <- defaultGlobals
-  (result, newState) <- liftIO . Lua.run' errorConversion . unPandocLua $ do
+  (result, newState) <- liftIO . Lua.run . unPandocLua $ do
     putCommonState origState
     liftPandocLua $ setGlobals globals
     r <- pLua
@@ -71,17 +70,17 @@ runPandocLua pLua = do
   putCommonState newState
   return result
 
-instance {-# OVERLAPPING #-} ToHaskellFunction (PandocLua NumResults) where
-  toHsFun _narg = unPandocLua
+instance {-# OVERLAPPING #-} Exposable PandocError (PandocLua NumResults) where
+  partialApply _narg = unPandocLua
 
-instance Pushable a => ToHaskellFunction (PandocLua a) where
-  toHsFun _narg x = 1 <$ (unPandocLua x >>= Lua.push)
+instance Pushable a => Exposable PandocError (PandocLua a) where
+  partialApply _narg x = 1 <$ (unPandocLua x >>= Lua.push)
 
 -- | Add a function to the table at the top of the stack, using the given name.
-addFunction :: ToHaskellFunction a => String -> a -> PandocLua ()
+addFunction :: Exposable PandocError a => Name -> a -> PandocLua ()
 addFunction name fn = liftPandocLua $ do
-  Lua.push name
-  Lua.pushHaskellFunction fn
+  Lua.pushName name
+  Lua.pushHaskellFunction $ toHaskellFunction fn
   Lua.rawset (-3)
 
 -- | Load a pure Lua module included with pandoc. Leaves the result on
@@ -93,8 +92,8 @@ addFunction name fn = liftPandocLua $ do
 loadDefaultModule :: String -> PandocLua NumResults
 loadDefaultModule name = do
   script <- readDefaultDataFile (name <> ".lua")
-  status <- liftPandocLua $ Lua.dostring script
-  if status == Lua.OK
+  result <- liftPandocLua $ Lua.dostring script
+  if result == Lua.OK
     then return (1 :: NumResults)
     else do
       msg <- liftPandocLua Lua.popValue
@@ -135,7 +134,7 @@ instance PandocMonad PandocLua where
 
   getCommonState = PandocLua $ do
     Lua.getglobal "PANDOC_STATE"
-    Lua.peek Lua.stackTop
+    forcePeek $ peekCommonState Lua.top
   putCommonState = PandocLua . setGlobals . (:[]) . PANDOC_STATE
 
   logOutput = IO.logOutput

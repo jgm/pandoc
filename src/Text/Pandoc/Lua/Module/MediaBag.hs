@@ -15,18 +15,19 @@ module Text.Pandoc.Lua.Module.MediaBag
 
 import Prelude hiding (lookup)
 import Control.Monad (zipWithM_)
-import Foreign.Lua (Lua, NumResults, Optional)
+import HsLua (LuaE, NumResults, Optional)
+import HsLua.Marshalling (pushIterator)
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Class.PandocMonad (fetchItem, getMediaBag, modifyCommonState,
                                       setMediaBag)
+import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshaling ()
-import Text.Pandoc.Lua.Marshaling.MediaBag (pushIterator)
 import Text.Pandoc.Lua.PandocLua (PandocLua (..), liftPandocLua, addFunction)
 import Text.Pandoc.MIME (MimeType)
 
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
-import qualified Foreign.Lua as Lua
+import qualified HsLua as Lua
 import qualified Text.Pandoc.MediaBag as MB
 
 --
@@ -65,7 +66,15 @@ insert fp optionalMime contents = do
 
 -- | Returns iterator values to be used with a Lua @for@ loop.
 items :: PandocLua NumResults
-items = getMediaBag >>= liftPandocLua . pushIterator
+items = do
+  mb <- getMediaBag
+  liftPandocLua $ do
+    let pushItem (fp, mimetype, contents) = do
+          Lua.pushString fp
+          Lua.pushText mimetype
+          Lua.pushByteString $ BL.toStrict contents
+          return (Lua.NumResults 3)
+    pushIterator pushItem (MB.mediaItems mb)
 
 lookup :: FilePath
        -> PandocLua NumResults
@@ -86,7 +95,7 @@ list = do
     zipWithM_ addEntry [1..] dirContents
   return 1
  where
-  addEntry :: Lua.Integer -> (FilePath, MimeType, Int) -> Lua ()
+  addEntry :: Lua.Integer -> (FilePath, MimeType, Int) -> LuaE PandocError ()
   addEntry idx (fp, mimeType, contentLength) = do
     Lua.newtable
     Lua.push ("path" :: T.Text) *> Lua.push fp *> Lua.rawset (-3)
