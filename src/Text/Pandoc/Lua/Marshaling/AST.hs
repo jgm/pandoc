@@ -48,7 +48,9 @@ import Control.Monad.Catch (throwM)
 import Control.Monad ((<$!>), (>=>))
 import Data.Data (showConstr, toConstr)
 import Data.Text (Text)
+import Data.Version (Version)
 import HsLua hiding (Operation (Div))
+import HsLua.Module.Version (peekVersionFuzzy)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Lua.Util (pushViaConstr', pushViaConstructor)
@@ -615,6 +617,9 @@ instance Peekable Meta where
 
 instance Peekable Pandoc where
   peek = forcePeek . peekPandoc
+
+instance Peekable Version where
+  peek = forcePeek . peekVersionFuzzy
 
 instance {-# OVERLAPPING #-} Peekable Attr where
   peek = forcePeek . peekAttr

@@ -23,6 +23,7 @@ import Data.Default (def)
 import Data.Version (Version)
 import HsLua as Lua hiding (pushModule)
 import HsLua.Class.Peekable (PeekError)
+import HsLua.Module.Version (peekVersionFuzzy, pushVersion)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshaling ()
@@ -32,7 +33,6 @@ import Text.Pandoc.Lua.Marshaling.AST
 import Text.Pandoc.Lua.Marshaling.List (pushPandocList)
 import Text.Pandoc.Lua.Marshaling.SimpleTable
   ( SimpleTable (..), peekSimpleTable, pushSimpleTable )
-import Text.Pandoc.Lua.Marshaling.Version (peekVersionFuzzy, pushVersion)
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua))
 
 import qualified Data.Digest.Pure.SHA as SHA

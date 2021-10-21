@@ -15,6 +15,7 @@ module Text.Pandoc.Lua.Global
   ) where
 
 import HsLua as Lua
+import HsLua.Module.Version (pushVersion)
 import Paths_pandoc (version)
 import Text.Pandoc.Class.CommonState (CommonState)
 import Text.Pandoc.Definition (Pandoc (Pandoc), pandocTypesVersion)
@@ -48,7 +49,7 @@ setGlobal global = case global of
     Lua.push format
     Lua.setglobal "FORMAT"
   PANDOC_API_VERSION -> do
-    Lua.push pandocTypesVersion
+    pushVersion pandocTypesVersion
     Lua.setglobal "PANDOC_API_VERSION"
   PANDOC_DOCUMENT doc -> do
     pushUD typePandocLazy  doc
@@ -63,7 +64,7 @@ setGlobal global = case global of
     pushCommonState commonState
     Lua.setglobal "PANDOC_STATE"
   PANDOC_VERSION              -> do
-    Lua.push version
+    pushVersion version
     Lua.setglobal "PANDOC_VERSION"
 
 -- | Readonly and lazy pandoc objects.
