@@ -13,21 +13,21 @@ module Text.Pandoc.Lua.Module.Types
   ( pushModule
   ) where
 
-import Data.Version (Version)
 import HsLua (LuaE, NumResults, Peeker, Pusher)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.ErrorConversion ()
 import Text.Pandoc.Lua.Marshaling.AST
-import Text.Pandoc.Lua.Marshaling.Version ()
 import Text.Pandoc.Lua.Util (addFunction)
 
 import qualified HsLua as Lua
+import qualified HsLua.Module.Version as Version
 
 -- | Push the pandoc.types module on the Lua stack.
 pushModule :: LuaE PandocError NumResults
 pushModule = do
   Lua.newtable
-  addFunction "Version" (return :: Version -> LuaE PandocError Version)
+  Lua.pushName "Version" *> Lua.pushModule Version.documentedModule
+    *> Lua.rawset (Lua.nth 3)
   pushCloneTable
   Lua.setfield (Lua.nth 2) "clone"
   return 1
