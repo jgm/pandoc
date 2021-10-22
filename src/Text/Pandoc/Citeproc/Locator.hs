@@ -5,6 +5,7 @@ module Text.Pandoc.Citeproc.Locator
   ( parseLocator )
 where
 import Citeproc.Types
+import Text.Pandoc.Citeproc.Util (splitStrWhen)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.List (foldl')
@@ -246,18 +247,6 @@ isLocatorSep :: Char -> Bool
 isLocatorSep ',' = True
 isLocatorSep ';' = True
 isLocatorSep _   = False
-
-splitStrWhen :: (Char -> Bool) -> [Inline] -> [Inline]
-splitStrWhen _ [] = []
-splitStrWhen p (Str xs : ys) = go (T.unpack xs) ++ splitStrWhen p ys
-  where
-   go [] = []
-   go s = case break p s of
-             ([],[])     -> []
-             (zs,[])     -> [Str $ T.pack zs]
-             ([],w:ws) -> Str (T.singleton w) : go ws
-             (zs,w:ws) -> Str (T.pack zs) : Str (T.singleton w) : go ws
-splitStrWhen p (x : ys) = x : splitStrWhen p ys
 
 --
 -- Locator Map

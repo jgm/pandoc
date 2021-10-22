@@ -1,9 +1,21 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Pandoc.Citeproc.Util
- ( toIETF )
+ ( splitStrWhen
+ , toIETF )
 where
+import qualified Data.Text as T
 import Data.Text (Text)
+import Text.Pandoc.Definition
+
+-- Split Str elements so that characters satisfying the
+-- predicate each have their own Str.
+splitStrWhen :: (Char -> Bool) -> [Inline] -> [Inline]
+splitStrWhen p = foldr go []
+ where
+  go (Str t) = (map Str (T.groupBy goesTogether t) ++)
+  go x = (x :)
+  goesTogether c d   = not (p c || p d)
 
 toIETF :: Text -> Text
 toIETF "english"         = "en-US" -- "en-EN" unavailable in CSL

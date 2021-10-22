@@ -34,7 +34,7 @@ import Text.Pandoc.Class (runPure)
 import qualified Text.Pandoc.Walk       as Walk
 import Citeproc.Types
 import Citeproc.Pandoc ()
-import Text.Pandoc.Citeproc.Util (toIETF)
+import Text.Pandoc.Citeproc.Util (toIETF, splitStrWhen)
 import Text.Pandoc.Citeproc.Data (biblatexStringMap)
 import Data.Default
 import           Data.Text              (Text)
@@ -1255,15 +1255,6 @@ toName opts ils = do
           , nameCommaSuffix         = usecomma
           , nameStaticOrdering      = False
           }
-
--- Split Str elements so that characters satisfying the
--- predicate each have their own Str.
-splitStrWhen :: (Char -> Bool) -> [Inline] -> [Inline]
-splitStrWhen p = foldr go []
- where
-  go (Str t) = (map Str (T.groupBy goesTogether t) ++)
-  go x = (x :)
-  goesTogether c d   = not (p c || p d)
 
 ordinalize :: Locale -> Text -> Text
 ordinalize locale n =
