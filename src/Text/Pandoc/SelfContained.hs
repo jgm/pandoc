@@ -60,18 +60,6 @@ convertTags :: PandocMonad m => [Tag T.Text] -> m [Tag T.Text]
 convertTags [] = return []
 convertTags (t@TagOpen{}:ts)
   | fromAttrib "data-external" t == "1" = (t:) <$> convertTags ts
-convertTags (t@(TagOpen tagname as):ts)
-  | any (isSourceAttribute tagname) as
-     = do
-       as' <- mapM processAttribute as
-       rest <- convertTags ts
-       return $ TagOpen tagname as' : rest
-  where processAttribute (x,y) =
-           if isSourceAttribute tagname (x,y)
-              then do
-                enc <- getDataURI (fromAttrib "type" t) y
-                return (x, enc)
-              else return (x,y)
 convertTags (t@(TagOpen "script" as):TagClose "script":ts) =
   case fromAttrib "src" t of
        ""  -> (t:) <$> convertTags ts
@@ -125,6 +113,18 @@ convertTags (t@(TagOpen "link" as):ts) =
                       return $ TagOpen "link"
                        (("href",makeDataURI (mime, bs)) :
                          [(x,y) | (x,y) <- as, x /= "href"]) : rest
+convertTags (t@(TagOpen tagname as):ts)
+  | any (isSourceAttribute tagname) as
+     = do
+       as' <- mapM processAttribute as
+       rest <- convertTags ts
+       return $ TagOpen tagname as' : rest
+  where processAttribute (x,y) =
+           if isSourceAttribute tagname (x,y)
+              then do
+                enc <- getDataURI (fromAttrib "type" t) y
+                return (x, enc)
+              else return (x,y)
 convertTags (t:ts) = (t:) <$> convertTags ts
 
 cssURLs :: PandocMonad m
