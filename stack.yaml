@@ -25,8 +25,7 @@ extra-deps:
 - lua-2.0.0
 - tasty-hslua-1.0.0
 - tasty-lua-1.0.0
-- git: https://github.com/jgm/pandoc-types.git
-  commit: 99402a46361a3e52805935b1fbe9dfe54f852d6a
+- pandoc-types-1.22.1
 - git: https://github.com/jgm/texmath.git
   commit: 19700530733707284bb41f24add757f19ca23430
 - git: https://github.com/jgm/citeproc.git
