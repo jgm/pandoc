@@ -10,11 +10,6 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/jgm/texmath.git
-  tag: c046e6e5a93510f2c37dbc700f82a2c53ed87b5f
-
-source-repository-package
-  type: git
   location: https://github.com/jgm/commonmark-hs.git
   tag: 7d34a747cd2d8668451909a722eb9ce16d1f4852
   subdir: commonmark

@@ -26,8 +26,7 @@ extra-deps:
 - tasty-hslua-1.0.0
 - tasty-lua-1.0.0
 - pandoc-types-1.22.1
-- git: https://github.com/jgm/texmath.git
-  commit: 19700530733707284bb41f24add757f19ca23430
+- texmath-0.12.3.2
 - git: https://github.com/jgm/citeproc.git
   commit: 673a7fb643d24a3bb0f60f8f29e189c0ba7ef15b
 - git: https://github.com/jgm/commonmark-hs.git
