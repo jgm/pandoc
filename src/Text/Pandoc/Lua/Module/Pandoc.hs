@@ -18,6 +18,7 @@ module Text.Pandoc.Lua.Module.Pandoc
 import Prelude hiding (read)
 import Control.Applicative (optional)
 import Control.Monad ((>=>), forM_, when)
+import Control.Monad.Catch (catch, throwM)
 import Control.Monad.Except (throwError)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
@@ -206,6 +207,7 @@ pipe :: String           -- ^ path to executable
      -> PandocLua NumResults
 pipe command args input = liftPandocLua $ do
   (ec, output) <- Lua.liftIO $ pipeProcess Nothing command args input
+    `catch` (throwM . PandocIOError "pipe")
   case ec of
     ExitSuccess -> 1 <$ Lua.push output
     ExitFailure n -> do
