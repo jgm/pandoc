@@ -283,12 +283,11 @@
   * Text.Pandoc.Writers.Shared:
 
     + Export `splitSentences` as a Doc Text transform [API change].
-      Use this in man/ms.
-
-      We used to attempt automatic sentence splitting in man and ms
-      output, since sentence-ending periods need to be followed by
-      two spaces or a newline in these formats.  But it's difficult
-      to do this reliably at the level of `[Inline]`.
+      Use this in man/ms.  We used to attempt automatic sentence
+      splitting in man and ms output, since sentence-ending
+      periods need to be followed by two spaces or a newline in
+      these formats.  But it's difficult to do this reliably at
+      the level of `[Inline]`.
 
   * Text.Pandoc.Translations: small revisions for compatibility
     with aeson 2.
