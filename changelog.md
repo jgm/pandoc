@@ -1,4 +1,4 @@
-[#](#) Revision history for pandoc
+# Revision history for pandoc
 
 ## pandoc 2.15 (NODATE)
 
@@ -384,6 +384,7 @@
       associative attribute list that is used as the third component of
       `Attr` values. Values of this type can often be passed to constructors
       instead of `Attr` values.
+    + Convert IOErrors to PandocErrors in `pandoc.pipe` function (#7523).
 
   * Text.Pandoc.PDF:  Previously we had to run `runIOorExplode` inside
     `withTempDir`.  Now that PandocIO is an instance of MonadMask, this is
@@ -410,7 +411,8 @@
     syntaxes that include keyword lists from different syntaxes.
 
   * Use citeproc 0.6, commonmark 0.2.2.1, commonmark-extensions 0.2.2,
-    texmath 0.12.3.2.
+    texmath 0.12.3.2, ipynb 0.1.0.2.  (These changes also allow
+    building with aeson >= 2.)
 
   * Require doclayout >= 0.3.1.1.  This fixes recognition of "real widths"
     of emoji characters, which is important for tabular layout.
