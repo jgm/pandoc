@@ -238,7 +238,7 @@ tests =
                 , "  :setting: foo"
                 , "  :END:"
                 ] =?>
-      (mempty::Blocks)
+      (setMeta "setting" ("foo" :: T.Text) (doc mempty))
 
   , "Logbook drawer" =:
       T.unlines [ "  :LogBook:"
