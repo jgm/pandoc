@@ -352,7 +352,11 @@
     to any instance of PandocMonad and MonadIO [API change].
     The type of `runLua` is now
 
-        (PandocMonad m, MonadIO m) => Lua a -> m (Either PandocError a)
+        (PandocMonad m, MonadIO m) =>
+        LuaE PandocError a -> m (Either PandocError a)
+
+    The change from `Lua` to `LuaE PandocError` is due to the switch to
+    hslua-2.0; see next item.
 
   * Lua modules (Albert Krewinkel):
 
@@ -380,7 +384,6 @@
       associative attribute list that is used as the third component of
       `Attr` values. Values of this type can often be passed to constructors
       instead of `Attr` values.
-    + `AttributeList` values can no longer be indexed numerically.
 
   * Text.Pandoc.PDF:  Previously we had to run `runIOorExplode` inside
     `withTempDir`.  Now that PandocIO is an instance of MonadMask, this is
