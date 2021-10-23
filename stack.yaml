@@ -27,11 +27,9 @@ extra-deps:
 - tasty-lua-1.0.0
 - pandoc-types-1.22.1
 - texmath-0.12.3.2
-- git: https://github.com/jgm/citeproc.git
-  commit: 673a7fb643d24a3bb0f60f8f29e189c0ba7ef15b
-- git: https://github.com/jgm/commonmark-hs.git
-  commit: 7d34a747cd2d8668451909a722eb9ce16d1f4852
-  subdirs: [commonmark, commonmark-pandoc]
+- commonmark-0.2.1.1
+- commonmark-extensions-0.2.2
+- citeproc-0.6
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10

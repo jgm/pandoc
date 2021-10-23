@@ -3,23 +3,6 @@ tests: True
 flags: +embed_data_files
 -- constraints: aeson >= 2.0.1.0
 
-source-repository-package
-  type: git
-  location: https://github.com/jgm/citeproc.git
-  tag: 673a7fb643d24a3bb0f60f8f29e189c0ba7ef15b
-
-source-repository-package
-  type: git
-  location: https://github.com/jgm/commonmark-hs.git
-  tag: 7d34a747cd2d8668451909a722eb9ce16d1f4852
-  subdir: commonmark
-
-source-repository-package
-  type: git
-  location: https://github.com/jgm/commonmark-hs.git
-  tag: 7d34a747cd2d8668451909a722eb9ce16d1f4852
-  subdir: commonmark-pandoc
-
 -- Needed to build with aeson 2
 
 -- source-repository-package
