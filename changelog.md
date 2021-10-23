@@ -352,6 +352,34 @@
 
         (PandocMonad m, MonadIO m) => Lua a -> m (Either PandocError a)
 
+  * Lua modules (Albert Krewinkel):
+
+    + Switch to hslua-2.0.  The new HsLua version takes a somewhat different
+      approach to marshalling and unmarshalling, relying less on typeclasses
+      and more on specialized types. This allows for better performance and
+      improved error messages.  Furthermore, new abstractions allow to
+      document the code and exposed functions.
+    + Marshal Version values, Inline elements, Attr elements,
+      and Pandoc elements as userdata.
+    + Remove deprecated inline constructors `DoubleQuoted`,
+      `SingleQuoted`, `DisplayMath`, and `InlineMath`.
+    + Attr values are no longer normalized when assigned to an Inline
+      element property.
+    + It's no longer possible to access parts of Inline elements via
+      numerical indexes. E.g., `pandoc.Span('test')[2]` used to give
+      `pandoc.Str 'test'`, but yields `nil` now. This was undocumented
+      behavior not intended to be used in user scripts. Use named properties
+      instead.
+    + Accessing `.c` to get a JSON-like tuple of all components no longer
+      works. This was undocumented behavior.
+    + Only known properties can be set on an element value. Trying to set a
+      different property will now raise an error.
+    + Adds a new `pandoc.AttributeList()` constructor, which creates the
+      associative attribute list that is used as the third component of
+      `Attr` values. Values of this type can often be passed to constructors
+      instead of `Attr` values.
+    + `AttributeList` values can no longer be indexed numerically.
+
   * Text.Pandoc.PDF:  Previously we had to run `runIOorExplode` inside
     `withTempDir`.  Now that PandocIO is an instance of MonadMask, this is
     no longer necessary.
@@ -367,15 +395,17 @@
     so we can run this with any instance of PandocMonad and MonadIO,
     not just PandocIO.
 
+  * Use `simpleFigure` builder in readers  and `SimpleFigure`
+    pattern synonym in writers (Aner Lucero).
+
   * Allow time 1.12.
 
   * Use skylighting-0.12, skylighting-core-0.12.
     This fixes highlighting issues with typescript, scala, and other
     syntaxes that include keyword lists from different syntaxes.
 
-  * Use latest dev version of texmath.
-
-  * Use dev version of citeproc.
+  * Use citeproc 0.6, commonmark 0.2.2.1, commonmark-extensions 0.2.2,
+    texmath 0.12.3.2.
 
   * Require doclayout >= 0.3.1.1.  This fixes recognition of "real widths"
     of emoji characters, which is important for tabular layout.
