@@ -107,7 +107,10 @@
       considered the end of the parent field.
     + Add placeholder for word diagram instead of just omitting it (Ezwal).
 
-  * Org reader: don't parse a list as first item in a list item (#7557).
+  * Org reader:
+
+    + Don't parse a list as first item in a list item (#7557).
+    + Allow an initial `:PROPERTIES:` drawer to add to metadata (#7520).
 
   * Docx writer:
 
