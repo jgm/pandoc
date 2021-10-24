@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.15 (NODATE)
+## pandoc 2.15 (2021-10-23)
 
   * Add `--sandbox` option  (#5045).
 
