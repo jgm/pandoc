@@ -4,10 +4,9 @@
 
   * Add `--sandbox` option  (#5045).
 
-    + Add sandbox feature for readers.  When this option is used,
-      readers and writers only have access to input files (and
-      other files specified directly on command line).  This restriction
-      is enforced in the type system.
+    + Add sandbox feature.  When this option is used, readers and writers
+      only have access to input files (and other files specified directly on
+      command line).  This restriction is enforced in the type system.
     + Filters, PDF production, custom writers are unaffected.  This
       feature only insulates the actual readers and writers, not
       the pipeline around them in Text.Pandoc.App.
