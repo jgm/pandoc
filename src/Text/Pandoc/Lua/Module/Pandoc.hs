@@ -64,6 +64,7 @@ pushModule = do
           pushName (functionName fn)
           pushDocumentedFunction fn
           rawset (nth 3)
+    forM_ otherConstructors addConstr
     forM_ inlineConstructors addConstr
     -- add constructors to Inlines.constructor
     newtable  -- constructor
@@ -165,6 +166,28 @@ mkInlinesConstr name constr = defun name
   <#> parameter peekFuzzyInlines "content" "Inlines" ""
   =#> functionResult pushInline "Inline" "new object"
 
+otherConstructors :: LuaError e => [DocumentedFunction e]
+otherConstructors =
+  [ defun "Citation"
+    ### (\cid mode mprefix msuffix mnote_num mhash ->
+          cid `seq` mode `seq` mprefix `seq` msuffix `seq`
+          mnote_num `seq` mhash `seq` return $! Citation
+            { citationId = cid
+            , citationMode = mode
+            , citationPrefix = fromMaybe mempty mprefix
+            , citationSuffix = fromMaybe mempty msuffix
+            , citationNoteNum = fromMaybe 0 mnote_num
+            , citationHash = fromMaybe 0 mhash
+            })
+    <#> parameter peekText "string" "cid" "citation ID (e.g. bibtex key)"
+    <#> parameter peekRead "citation mode" "mode" "citation rendering mode"
+    <#> optionalParameter peekFuzzyInlines "prefix" "Inlines" ""
+    <#> optionalParameter peekFuzzyInlines "suffix" "Inlines" ""
+    <#> optionalParameter peekIntegral "note_num" "integer" "note number"
+    <#> optionalParameter peekIntegral "hash" "integer" "hash number"
+    =#> functionResult pushCitation "Citation" "new citation object"
+    #? "Creates a single citation."
+  ]
 
 walkElement :: (Walkable (SingletonsList Inline) a,
                 Walkable (SingletonsList Block) a,

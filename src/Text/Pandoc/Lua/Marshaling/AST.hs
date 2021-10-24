@@ -37,6 +37,7 @@ module Text.Pandoc.Lua.Marshaling.AST
 
   , pushAttr
   , pushBlock
+  , pushCitation
   , pushInline
   , pushListAttributes
   , pushMetaValue
@@ -109,24 +110,35 @@ instance Pushable Inline where
 instance Pushable Citation where
   push = pushCitation
 
-pushCitation :: LuaError e => Pusher e Citation
-pushCitation (Citation cid prefix suffix mode noteNum hash) =
-  pushViaConstr' "Citation"
-  [ push cid, push mode, push prefix, push suffix, push noteNum, push hash
+typeCitation :: LuaError e => DocumentedType e Citation
+typeCitation = deftype "Citation" []
+  [ property "id" "citation ID / key"
+      (pushText, citationId)
+      (peekText, \citation cid -> citation{ citationId = cid })
+  , property "mode" "citation mode"
+      (pushString . show, citationMode)
+      (peekRead, \citation mode -> citation{ citationMode = mode })
+  , property "prefix" "citation prefix"
+      (pushInlines, citationPrefix)
+      (peekInlines, \citation prefix -> citation{ citationPrefix = prefix })
+  , property "suffix" "citation suffix"
+      (pushInlines, citationSuffix)
+      (peekInlines, \citation suffix -> citation{ citationPrefix = suffix })
+  , property "note_num" "note number"
+      (pushIntegral, citationNoteNum)
+      (peekIntegral, \citation noteNum -> citation{ citationNoteNum = noteNum })
+  , property "hash" "hash number"
+      (pushIntegral, citationHash)
+      (peekIntegral, \citation hash -> citation{ citationHash = hash })
+  , method $ defun "clone" ### return <#> udparam typeCitation "obj" ""
+    =#> functionResult pushCitation "Citation" "copy of obj"
   ]
 
-peekCitation :: LuaError e => Peeker e Citation
-peekCitation = fmap (retrieving "Citation")
-  . typeChecked "table" Lua.istable $ \idx -> do
-      idx' <- liftLua $ absindex idx
-      Citation
-        <$!> peekFieldRaw peekText "id" idx'
-        <*>  peekFieldRaw (peekList peekInline) "prefix" idx'
-        <*>  peekFieldRaw (peekList peekInline) "suffix" idx'
-        <*>  peekFieldRaw peekRead "mode" idx'
-        <*>  peekFieldRaw peekIntegral "note_num" idx'
-        <*>  peekFieldRaw peekIntegral "hash" idx'
+pushCitation :: LuaError e => Pusher e Citation
+pushCitation = pushUD typeCitation
 
+peekCitation :: LuaError e => Peeker e Citation
+peekCitation = peekUD typeCitation
 
 instance Pushable Alignment where
   push = Lua.pushString . show
@@ -288,6 +300,9 @@ peekBlocks = peekList peekBlock
 
 peekInlines :: LuaError e => Peeker e [Inline]
 peekInlines = peekList peekInline
+
+pushInlines :: LuaError e => Pusher e [Inline]
+pushInlines = pushPandocList pushInline
 
 -- | Push Caption element
 pushCaption :: LuaError e => Caption -> LuaE e ()

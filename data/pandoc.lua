@@ -557,29 +557,6 @@ for _, blk in pairs(M.Block.constructor) do
   augment_attr_setter(blk.behavior.setters)
 end
 
--- Citation
-M.Citation = AstElement:make_subtype'Citation'
-M.Citation.behavior.clone = M.types.clone.Citation
-
---- Creates a single citation.
--- @function Citation
--- @tparam      string       id       citation identifier (like a bibtex key)
--- @tparam      AuthorInText|SuppressAuthor|NormalCitation mode citation mode
--- @tparam[opt] {Inline,...} prefix   citation prefix
--- @tparam[opt] {Inline,...} suffix   citation suffix
--- @tparam[opt] int          note_num note number
--- @tparam[opt] int          hash  hash number
-function M.Citation:new (id, mode, prefix, suffix, note_num, hash)
-  return {
-    id = id,
-    mode = mode,
-    prefix = ensureList(prefix or {}),
-    suffix = ensureList(suffix or {}),
-    note_num = note_num or 0,
-    hash = hash or 0,
-  }
-end
-
 -- ListAttributes
 M.ListAttributes = AstElement:make_subtype 'ListAttributes'
 M.ListAttributes.behavior.clone = M.types.clone.ListAttributes

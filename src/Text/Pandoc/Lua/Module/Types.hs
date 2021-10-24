@@ -37,7 +37,6 @@ pushCloneTable = do
   Lua.newtable
   addFunction "Attr"      $ cloneWith peekAttr pushAttr
   addFunction "Block"     $ cloneWith peekBlock pushBlock
-  addFunction "Citation"  $ cloneWith peekCitation Lua.push
   addFunction "Inline"    $ cloneWith peekInline pushInline
   addFunction "Meta"      $ cloneWith peekMeta Lua.push
   addFunction "MetaValue" $ cloneWith peekMetaValue pushMetaValue

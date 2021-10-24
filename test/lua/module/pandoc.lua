@@ -176,6 +176,8 @@ return {
       local cloned = cite:clone()
       cite.id = 'newton'
       assert.are_same(cloned.id, 'leibniz')
+      assert.are_same(cite.id, 'newton')
+      assert.are_same(cite.mode, cloned.mode)
     end),
   },
 
