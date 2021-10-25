@@ -17,102 +17,61 @@ module Text.Pandoc.Readers.Metadata (
   yamlMetaBlock,
   yamlMap ) where
 
-import Control.Monad
+
 import Control.Monad.Except (throwError)
-import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString as B
 import qualified Data.Map as M
-import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.YAML as YAML
-import qualified Data.YAML.Event as YE
+import qualified Data.Yaml as Yaml
+import Data.Aeson (Value(..), Object, Result(..), fromJSON, (.:?), withObject)
+import Data.Aeson.Types (parse)
+import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
-import Text.Pandoc.Definition
+import Text.Pandoc.Definition hiding (Null)
 import Text.Pandoc.Error
-import Text.Pandoc.Parsing hiding (tableWith)
-import Text.Pandoc.Shared
-import qualified Data.Text.Lazy as TL
+import Text.Pandoc.Parsing hiding (tableWith, parse)
+
+
 import qualified Text.Pandoc.UTF8 as UTF8
 
 yamlBsToMeta :: (PandocMonad m, HasLastStrPosition st)
              => ParserT Sources st m (Future st MetaValue)
-             -> BL.ByteString
+             -> B.ByteString
              -> ParserT Sources st m (Future st Meta)
 yamlBsToMeta pMetaValue bstr = do
-  case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
-       Right (YAML.Doc (YAML.Mapping _ _ o):_)
-                -> fmap Meta <$> yamlMap pMetaValue o
-       Right [] -> return . return $ mempty
-       Right [YAML.Doc (YAML.Scalar _ YAML.SNull)]
-                -> return . return $ mempty
-       -- the following is what we get from a comment:
-       Right [YAML.Doc (YAML.Scalar _ (YAML.SUnknown _ ""))]
-                -> return . return $ mempty
+  case Yaml.decodeAllEither' bstr of
+       Right (Object o:_) -> fmap Meta <$> yamlMap pMetaValue o
+       Right [Null] -> return . return $ mempty
        Right _  -> Prelude.fail "expected YAML object"
-       Left (yamlpos, err')
-                -> do pos <- getPosition
-                      setPosition $ incSourceLine
-                            (setSourceColumn pos (YE.posColumn yamlpos))
-                            (YE.posLine yamlpos - 1)
-                      Prelude.fail err'
-
-fakePos :: YAML.Pos
-fakePos = YAML.Pos (-1) (-1) 1 0
-
-lookupYAML :: Text
-           -> YAML.Node YE.Pos
-           -> Maybe (YAML.Node YE.Pos)
-lookupYAML t (YAML.Mapping _ _ m) =
-  M.lookup (YAML.Scalar fakePos (YAML.SUnknown YE.untagged t)) m
-    `mplus`
-    M.lookup (YAML.Scalar fakePos (YAML.SStr t)) m
-lookupYAML _ _ = Nothing
+       Left err' -> do
+         throwError $ PandocParseError
+                    $ T.pack $ Yaml.prettyPrintParseException err'
 
 -- Returns filtered list of references.
 yamlBsToRefs :: (PandocMonad m, HasLastStrPosition st)
              => ParserT Sources st m (Future st MetaValue)
              -> (Text -> Bool) -- ^ Filter for id
-             -> BL.ByteString
+             -> B.ByteString
              -> ParserT Sources st m (Future st [MetaValue])
 yamlBsToRefs pMetaValue idpred bstr =
-  case YAML.decodeNode' YAML.failsafeSchemaResolver False False bstr of
-       Right (YAML.Doc o@YAML.Mapping{}:_)
-                -> case lookupYAML "references" o of
-                     Just (YAML.Sequence _ _ ns) -> do
-                       let g n = case lookupYAML "id" n of
-                                    Just n' ->
-                                      case nodeToKey n' of
-                                        Nothing -> False
-                                        Just t -> idpred t ||
-                                          case lookupYAML "other-ids" n of
-                                            Just (YAML.Sequence _ _ ns') ->
-                                              let ts' = mapMaybe nodeToKey ns'
-                                               in any idpred ts'
-                                            _ -> False
-                                    Nothing   -> False
-                       sequence <$>
-                         mapM (yamlToMetaValue pMetaValue) (filter g ns)
-                     Just _ ->
-                       Prelude.fail "expecting sequence in 'references' field"
-                     Nothing ->
-                       Prelude.fail "expecting 'references' field"
-
-       Right [] -> return . return $ mempty
-       Right [YAML.Doc (YAML.Scalar _ YAML.SNull)]
-                -> return . return $ mempty
-       Right _  -> Prelude.fail "expecting YAML object"
-       Left (yamlpos, err')
-                -> do pos <- getPosition
-                      setPosition $ incSourceLine
-                            (setSourceColumn pos (YE.posColumn yamlpos))
-                            (YE.posLine yamlpos - 1)
-                      Prelude.fail err'
-
-
-nodeToKey :: YAML.Node YE.Pos -> Maybe Text
-nodeToKey (YAML.Scalar _ (YAML.SStr t))       = Just t
-nodeToKey (YAML.Scalar _ (YAML.SUnknown _ t)) = Just t
-nodeToKey _                                   = Nothing
+  case Yaml.decodeEither' bstr of
+       Right (Object m) -> do
+         let isSelected (String t) = idpred t
+             isSelected _ = False
+         let hasSelectedId (Object o) =
+               case parse (withObject "ref" (.:? "id")) (Object o) of
+                 Success (Just id') -> isSelected id'
+                 _ -> False
+             hasSelectedId _ = False
+         case parse (withObject "metadata" (.:? "references")) (Object m) of
+           Success (Just refs) -> sequence <$>
+                 mapM (yamlToMetaValue pMetaValue) (filter hasSelectedId refs)
+           _ -> return $ return []
+       Right _ -> return . return $ []
+       Left err' -> do
+         throwError $ PandocParseError
+                    $ T.pack $ Yaml.prettyPrintParseException err'
 
 normalizeMetaValue :: (PandocMonad m, HasLastStrPosition st)
                    => ParserT Sources st m (Future st MetaValue)
@@ -133,47 +92,36 @@ normalizeMetaValue pMetaValue x =
         isSpaceChar '\t' = True
         isSpaceChar _    = False
 
-checkBoolean :: Text -> Maybe Bool
-checkBoolean t
-  | t == T.pack "true" || t == T.pack "True" || t == T.pack "TRUE" = Just True
-  | t == T.pack "false" || t == T.pack "False" || t == T.pack "FALSE" = Just False
-  | otherwise = Nothing
-
 yamlToMetaValue :: (PandocMonad m, HasLastStrPosition st)
                 => ParserT Sources st m (Future st MetaValue)
-                -> YAML.Node YE.Pos
+                -> Value
                 -> ParserT Sources st m (Future st MetaValue)
-yamlToMetaValue pMetaValue (YAML.Scalar _ x) =
-  case x of
-       YAML.SStr t       -> normalizeMetaValue pMetaValue t
-       YAML.SBool b      -> return $ return $ MetaBool b
-       YAML.SFloat d     -> return $ return $ MetaString $ tshow d
-       YAML.SInt i       -> return $ return $ MetaString $ tshow i
-       YAML.SUnknown _ t ->
-         case checkBoolean t of
-           Just b        -> return $ return $ MetaBool b
-           Nothing       -> normalizeMetaValue pMetaValue t
-       YAML.SNull        -> return $ return $ MetaString ""
-
-yamlToMetaValue pMetaValue (YAML.Sequence _ _ xs) =
-  fmap MetaList . sequence
-  <$> mapM (yamlToMetaValue pMetaValue) xs
-yamlToMetaValue pMetaValue (YAML.Mapping _ _ o) =
-  fmap MetaMap <$> yamlMap pMetaValue o
-yamlToMetaValue _ _ = return $ return $ MetaString ""
+yamlToMetaValue pMetaValue v =
+  case v of
+       String t -> normalizeMetaValue pMetaValue t
+       Bool b -> return $ return $ MetaBool b
+       Number d -> normalizeMetaValue pMetaValue $
+         case fromJSON v of
+           Success (x :: Int) -> tshow x
+           _ -> tshow d
+       Null -> return $ return $ MetaString ""
+       Array{} -> do
+         case fromJSON v of
+           Error err' -> throwError $ PandocParseError $ T.pack err'
+           Success xs -> fmap MetaList . sequence <$>
+                          mapM (yamlToMetaValue pMetaValue) xs
+       Object o -> fmap MetaMap <$> yamlMap pMetaValue o
 
 yamlMap :: (PandocMonad m, HasLastStrPosition st)
         => ParserT Sources st m (Future st MetaValue)
-        -> M.Map (YAML.Node YE.Pos) (YAML.Node YE.Pos)
+        -> Object
         -> ParserT Sources st m (Future st (M.Map Text MetaValue))
 yamlMap pMetaValue o = do
-    kvs <- forM (M.toList o) $ \(key, v) -> do
-             k <- maybe (throwError $ PandocParseError
-                            "Non-string key in YAML mapping")
-                        return $ nodeToKey key
-             return (k, v)
-    let kvs' = filter (not . ignorable . fst) kvs
-    fmap M.fromList . sequence <$> mapM toMeta kvs'
+    case fromJSON (Object o) of
+      Error err' -> throwError $ PandocParseError $ T.pack err'
+      Success (m' :: M.Map Text Value) -> do
+        let kvs = filter (not . ignorable . fst) $ M.toList m'
+        fmap M.fromList . sequence <$> mapM toMeta kvs
   where
     ignorable t = "_" `T.isSuffixOf` t
     toMeta (k, v) = do
@@ -194,7 +142,7 @@ yamlMetaBlock parser = try $ do
   -- by including --- and ..., we allow yaml blocks with just comments:
   let rawYaml = T.unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
-  yamlBsToMeta parser $ UTF8.fromTextLazy $ TL.fromStrict rawYaml
+  yamlBsToMeta parser $ UTF8.fromText rawYaml
 
 stopLine :: Monad m => ParserT Sources st m ()
 stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()

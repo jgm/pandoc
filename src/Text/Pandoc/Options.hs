@@ -34,7 +34,6 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , defaultKaTeXURL
                            ) where
 import Control.Applicative ((<|>))
-import Data.Char (toLower)
 import Data.Maybe (fromMaybe)
 import Data.Data (Data)
 import Data.Default
@@ -46,10 +45,9 @@ import Skylighting (SyntaxMap, defaultSyntaxMap)
 import Text.DocTemplates (Context(..), Template)
 import Text.Pandoc.Extensions
 import Text.Pandoc.Highlighting (Style, pygments)
-import Text.Pandoc.Shared (camelCaseStrToHyphenated)
-import Data.Aeson.TH (deriveJSON, defaultOptions, Options(..),
-                      SumEncoding(..))
-import Data.YAML
+import Text.Pandoc.UTF8 (toStringLazy)
+import Data.Aeson.TH (deriveJSON)
+import Data.Aeson
 
 class HasSyntaxExtensions a where
   getExtensions :: a -> Extensions
@@ -106,9 +104,9 @@ data HTMLMathMethod = PlainMath
                     | KaTeX Text                -- url of KaTeX files
                     deriving (Show, Read, Eq, Data, Typeable, Generic)
 
-instance FromYAML HTMLMathMethod where
-   parseYAML node =
-     (withMap "HTMLMathMethod" $ \m -> do
+instance FromJSON HTMLMathMethod where
+   parseJSON node =
+     (withObject "HTMLMathMethod" $ \m -> do
         method <- m .: "method"
         mburl <- m .:? "url"
         case method :: Text of
@@ -121,28 +119,48 @@ instance FromYAML HTMLMathMethod where
           "katex" -> return $ KaTeX $
                          fromMaybe defaultKaTeXURL mburl
           _ -> fail $ "Unknown HTML math method " ++ show method) node
-       <|> (withStr "HTMLMathMethod" $ \method ->
-             case method of
-               "plain" -> return PlainMath
-               "webtex" -> return $ WebTeX ""
-               "gladtex" -> return GladTeX
-               "mathml" -> return MathML
-               "mathjax" -> return $ MathJax defaultMathJaxURL
-               "katex" -> return $ KaTeX defaultKaTeXURL
-               _  -> fail $ "Unknown HTML math method " ++ show method) node
+       <|> (case node of
+               String "plain" -> return PlainMath
+               String "webtex" -> return $ WebTeX ""
+               String "gladtex" -> return GladTeX
+               String "mathml" -> return MathML
+               String "mathjax" -> return $ MathJax defaultMathJaxURL
+               String "katex" -> return $ KaTeX defaultKaTeXURL
+               _ -> fail $ "Unknown HTML math method " <>
+                             toStringLazy (encode node))
+
+instance ToJSON HTMLMathMethod where
+  toJSON PlainMath = String "plain"
+  toJSON (WebTeX "") = String "webtex"
+  toJSON (WebTeX url) = object ["method" .= String "webtex",
+                                "url" .= String url]
+  toJSON GladTeX = String "gladtex"
+  toJSON MathML = String "mathml"
+  toJSON (MathJax "") = String "mathjax"
+  toJSON (MathJax url) = object ["method" .= String "mathjax",
+                                 "url" .= String url]
+  toJSON (KaTeX "") = String "katex"
+  toJSON (KaTeX url) = object ["method" .= String "katex",
+                               "url" .= String url]
 
 data CiteMethod = Citeproc                        -- use citeproc to render them
                   | Natbib                        -- output natbib cite commands
                   | Biblatex                      -- output biblatex cite commands
                 deriving (Show, Read, Eq, Data, Typeable, Generic)
 
-instance FromYAML CiteMethod where
-  parseYAML = withStr "Citeproc" $ \t ->
-    case t of
-      "citeproc" -> return Citeproc
-      "natbib"   -> return Natbib
-      "biblatex" -> return Biblatex
-      _          -> fail $ "Unknown citation method " ++ show t
+instance FromJSON CiteMethod where
+  parseJSON v =
+    case v of
+      String "citeproc" -> return Citeproc
+      String "natbib"   -> return Natbib
+      String "biblatex" -> return Biblatex
+      _                 -> fail $ "Unknown citation method: " <>
+                                    toStringLazy (encode v)
+
+instance ToJSON CiteMethod where
+  toJSON Citeproc = String "citeproc"
+  toJSON Natbib = String "natbib"
+  toJSON Biblatex = String "biblatex"
 
 -- | Methods for obfuscating email addresses in HTML.
 data ObfuscationMethod = NoObfuscation
@@ -150,13 +168,18 @@ data ObfuscationMethod = NoObfuscation
                        | JavascriptObfuscation
                        deriving (Show, Read, Eq, Data, Typeable, Generic)
 
-instance FromYAML ObfuscationMethod where
-  parseYAML = withStr "Citeproc" $ \t ->
-    case t of
-      "none"       -> return NoObfuscation
-      "references" -> return ReferenceObfuscation
-      "javascript" -> return JavascriptObfuscation
-      _            -> fail $ "Unknown obfuscation method " ++ show t
+instance FromJSON ObfuscationMethod where
+  parseJSON v =
+    case v of
+      String "none"       -> return NoObfuscation
+      String "references" -> return ReferenceObfuscation
+      String "javascript" -> return JavascriptObfuscation
+      _ -> fail $ "Unknown obfuscation method " ++ toStringLazy (encode v)
+
+instance ToJSON ObfuscationMethod where
+   toJSON NoObfuscation = String "none"
+   toJSON ReferenceObfuscation = String "references"
+   toJSON JavascriptObfuscation = String "javascript"
 
 -- | Varieties of HTML slide shows.
 data HTMLSlideVariant = S5Slides
@@ -173,13 +196,22 @@ data TrackChanges = AcceptChanges
                   | AllChanges
                   deriving (Show, Read, Eq, Data, Typeable, Generic)
 
-instance FromYAML TrackChanges where
-  parseYAML = withStr "TrackChanges" $ \t ->
-    case t of
-      "accept"     -> return AcceptChanges
-      "reject"     -> return RejectChanges
-      "all"        -> return AllChanges
-      _            -> fail $ "Unknown track changes method " ++ show t
+-- update in doc/filters.md if this changes:
+instance FromJSON TrackChanges where
+  parseJSON v =
+    case v of
+      String "accept"     -> return AcceptChanges
+      String "reject"     -> return RejectChanges
+      String "all"        -> return AllChanges
+      String "accept-changes" -> return AcceptChanges
+      String "reject-changes" -> return RejectChanges
+      String "all-changes"    -> return AllChanges
+      _  -> fail $ "Unknown track changes method " <> toStringLazy (encode v)
+
+instance ToJSON TrackChanges where
+  toJSON AcceptChanges = String "accept-changes"
+  toJSON RejectChanges = String "reject-changes"
+  toJSON AllChanges = String "all-changes"
 
 -- | Options for wrapping text in the output.
 data WrapOption = WrapAuto        -- ^ Automatically wrap to width
@@ -187,14 +219,21 @@ data WrapOption = WrapAuto        -- ^ Automatically wrap to width
                 | WrapPreserve    -- ^ Preserve wrapping of input source
                 deriving (Show, Read, Eq, Data, Typeable, Generic)
 
-instance FromYAML WrapOption where
-  parseYAML = withStr "WrapOption" $ \t ->
-    case t of
-      "auto"     -> return WrapAuto
-      "none"     -> return WrapNone
-      "preserve" -> return WrapPreserve
-      _          -> fail $ "Unknown wrap method " ++ show t
+instance FromJSON WrapOption where
+  parseJSON v =
+    case v of
+      String "auto"      -> return WrapAuto
+      String "wrap-auto" -> return WrapAuto
+      String "none"      -> return WrapNone
+      String "wrap-none" -> return WrapNone
+      String "preserve"  -> return WrapPreserve
+      String "wrap-preserve" -> return WrapPreserve
+      _ -> fail $ "Unknown wrap method " <> toStringLazy (encode v)
 
+instance ToJSON WrapOption where
+  toJSON WrapAuto = "wrap-auto"
+  toJSON WrapNone = "wrap-none"
+  toJSON WrapPreserve = "wrap-preserve"
 
 -- | Options defining the type of top-level headers.
 data TopLevelDivision = TopLevelPart      -- ^ Top-level headers become parts
@@ -204,15 +243,24 @@ data TopLevelDivision = TopLevelPart      -- ^ Top-level headers become parts
                                           --   heuristics
                       deriving (Show, Read, Eq, Data, Typeable, Generic)
 
-instance FromYAML TopLevelDivision where
-  parseYAML = withStr "TopLevelDivision" $ \t ->
-    case t of
-      "part"     -> return TopLevelPart
-      "chapter"  -> return TopLevelChapter
-      "section"  -> return TopLevelSection
-      "default"  -> return TopLevelDefault
-      _          -> fail $ "Unknown top level division " ++ show t
+instance FromJSON TopLevelDivision where
+  parseJSON v =
+      case v of
+        String "part"              -> return TopLevelPart
+        String "top-level-part"    -> return TopLevelPart
+        String "chapter"           -> return TopLevelChapter
+        String "top-level-chapter" -> return TopLevelChapter
+        String "section"           -> return TopLevelSection
+        String "top-level-section" -> return TopLevelSection
+        String "default"           -> return TopLevelDefault
+        String "top-level-default" -> return TopLevelDefault
+        _ -> fail $ "Unknown top level division " <> toStringLazy (encode v)
 
+instance ToJSON TopLevelDivision where
+  toJSON TopLevelPart = "top-level-part"
+  toJSON TopLevelChapter = "top-level-chapter"
+  toJSON TopLevelSection = "top-level-section"
+  toJSON TopLevelDefault = "top-level-default"
 
 -- | Locations for footnotes and references in markdown output
 data ReferenceLocation = EndOfBlock    -- ^ End of block
@@ -220,14 +268,21 @@ data ReferenceLocation = EndOfBlock    -- ^ End of block
                        | EndOfDocument -- ^ at end of document
                        deriving (Show, Read, Eq, Data, Typeable, Generic)
 
-instance FromYAML ReferenceLocation where
-  parseYAML = withStr "ReferenceLocation" $ \t ->
-    case t of
-      "block"    -> return EndOfBlock
-      "section"  -> return EndOfSection
-      "document" -> return EndOfDocument
-      _          -> fail $ "Unknown reference location " ++ show t
+instance FromJSON ReferenceLocation where
+  parseJSON v =
+    case v of
+      String "block"           -> return EndOfBlock
+      String "end-of-block"    -> return EndOfBlock
+      String "section"         -> return EndOfSection
+      String "end-of-section"  -> return EndOfSection
+      String "document"        -> return EndOfDocument
+      String "end-of-document" -> return EndOfDocument
+      _ -> fail $ "Unknown reference location " <> toStringLazy (encode v)
 
+instance ToJSON ReferenceLocation where
+   toJSON EndOfBlock = "end-of-block"
+   toJSON EndOfSection = "end-of-section"
+   toJSON EndOfDocument = "end-of-document"
 
 -- | Options for writers
 data WriterOptions = WriterOptions
@@ -316,42 +371,6 @@ defaultKaTeXURL :: Text
 defaultKaTeXURL = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/"
 
 -- Update documentation in doc/filters.md if this is changed.
-$(deriveJSON defaultOptions{ constructorTagModifier =
-                               camelCaseStrToHyphenated
-                           } ''TrackChanges)
-
-$(deriveJSON defaultOptions{ constructorTagModifier =
-                               camelCaseStrToHyphenated
-                           } ''WrapOption)
-
-$(deriveJSON defaultOptions{ constructorTagModifier =
-                               camelCaseStrToHyphenated . drop 8
-                           } ''TopLevelDivision)
-
-$(deriveJSON defaultOptions{ constructorTagModifier =
-                               camelCaseStrToHyphenated
-                           } ''ReferenceLocation)
-
--- Update documentation in doc/filters.md if this is changed.
 $(deriveJSON defaultOptions ''ReaderOptions)
-
-$(deriveJSON defaultOptions{
-   constructorTagModifier = map toLower,
-   sumEncoding = TaggedObject{
-                    tagFieldName = "method",
-                    contentsFieldName = "url" }
-                           } ''HTMLMathMethod)
-
-$(deriveJSON defaultOptions{ constructorTagModifier =
-                               camelCaseStrToHyphenated
-                           } ''CiteMethod)
-
-$(deriveJSON defaultOptions{ constructorTagModifier =
-                            \case
-                                    "NoObfuscation"         -> "none"
-                                    "ReferenceObfuscation"  -> "references"
-                                    "JavascriptObfuscation" -> "javascript"
-                                    _                       -> "none"
-                           } ''ObfuscationMethod)
 
 $(deriveJSON defaultOptions ''HTMLSlideVariant)

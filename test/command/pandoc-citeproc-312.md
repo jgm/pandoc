@@ -6,7 +6,7 @@ nocite: '@*'
 references:
 - author:
   - literal: NN
-  id: Y
+  id: 'Y'
   issued:
   - year: 1950
   title: 'Date: Year'

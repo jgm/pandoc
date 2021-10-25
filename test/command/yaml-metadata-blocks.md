@@ -51,11 +51,11 @@ Pandoc
                    , ( "float" , MetaInlines [ Str "2.5" ] )
                    , ( "int" , MetaInlines [ Str "8" ] )
                    , ( "more" , MetaBool False )
-                   , ( "nothing" , MetaInlines [ Str "null" ] )
+                   , ( "nothing" , MetaString "" )
                    , ( "scientific" , MetaInlines [ Str "3.7e-5" ] )
                    ])
             )
-          , ( "nothing" , MetaInlines [ Str "null" ] )
+          , ( "nothing" , MetaString "" )
           , ( "scientific" , MetaInlines [ Str "3.7e-5" ] )
           ]
     }

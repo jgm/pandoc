@@ -40,7 +40,7 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             ReferenceLocation (EndOfDocument),
                             ObfuscationMethod (NoObfuscation),
                             CiteMethod (Citeproc))
-import Text.Pandoc.Class (readFileLazy, fileExists, setVerbosity, report,
+import Text.Pandoc.Class (readFileStrict, fileExists, setVerbosity, report,
                           PandocMonad(lookupEnv), getUserDataDir)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocSomeError))
 import Text.Pandoc.Shared (camelCaseStrToHyphenated, defaultUserDataDir,
@@ -54,21 +54,13 @@ import Data.Default (def)
 import qualified Data.Text as T
 import qualified Data.Map as M
 import Text.Pandoc.Definition (Meta(..), MetaValue(..))
-import Data.Aeson (defaultOptions, Options(..))
+import Data.Aeson (defaultOptions, Options(..), Result(..), fromJSON)
 import Data.Aeson.TH (deriveJSON)
 import Control.Applicative ((<|>))
-import Data.YAML
+import Data.Yaml
 
 -- | The type of line-endings to be used when writing plain-text.
 data LineEnding = LF | CRLF | Native deriving (Show, Generic)
-
-instance FromYAML LineEnding where
-  parseYAML = withStr "LineEnding" $ \t ->
-    case T.toLower t of
-      "lf"     -> return LF
-      "crlf"   -> return CRLF
-      "native" -> return Native
-      _        -> fail $ "Unknown line ending type " ++ show t
 
 -- | How to handle output blocks in ipynb.
 data IpynbOutput =
@@ -76,14 +68,6 @@ data IpynbOutput =
   | IpynbOutputNone
   | IpynbOutputBest
   deriving (Show, Generic)
-
-instance FromYAML IpynbOutput where
-  parseYAML = withStr "LineEnding" $ \t ->
-    case t of
-      "none"  -> return IpynbOutputNone
-      "all"   -> return IpynbOutputAll
-      "best"  -> return IpynbOutputBest
-      _       -> fail $ "Unknown ipynb output type " ++ show t
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -163,9 +147,12 @@ data Opt = Opt
     , optSandbox               :: Bool
     } deriving (Generic, Show)
 
-instance FromYAML (Opt -> Opt) where
-  parseYAML (Mapping _ _ m) = chain doOpt (M.toList m)
-  parseYAML n = failAtNode n "Expected a mapping"
+instance FromJSON (Opt -> Opt) where
+  parseJSON (Object m) =
+    case fromJSON (Object m) of
+      Error err' -> fail err'
+      Success (m' :: M.Map Text Value) -> chain doOpt (M.toList m')
+  parseJSON _ = fail "Expected a mapping"
 
 data DefaultsState = DefaultsState
     {
@@ -174,22 +161,21 @@ data DefaultsState = DefaultsState
     } deriving (Show)
 
 instance (PandocMonad m, MonadIO m)
-      => FromYAML (Opt -> StateT DefaultsState m Opt) where
-  parseYAML (Mapping _ _ m) = do
-    let opts = M.mapKeys toText m
-    dataDir <- case M.lookup "data-dir" opts of
-      Nothing -> return Nothing
-      Just v -> Just . unpack <$> parseYAML v
-    f <- parseOptions (M.toList m)
-    case M.lookup "defaults" opts of
-      Just v -> do
-        g <- parseDefaults v dataDir
-        return  $ g >=> f >=> resolveVarsInOpt
-      Nothing -> return $ f >=> resolveVarsInOpt
-    where
-      toText (Scalar _ (SStr s)) = s
-      toText _ = ""
-  parseYAML n = failAtNode n "Expected a mapping"
+      => FromJSON (Opt -> StateT DefaultsState m Opt) where
+  parseJSON (Object o) =
+    case fromJSON (Object o) of
+      Error err' -> fail err'
+      Success (opts :: M.Map Text Value) -> do
+        dataDir <- case M.lookup "data-dir" opts of
+          Nothing -> return Nothing
+          Just v -> Just . unpack <$> parseJSON v
+        f <- parseOptions (M.toList opts)
+        case M.lookup "defaults" opts of
+          Just v -> do
+            g <- parseDefaults v dataDir
+            return  $ g >=> f >=> resolveVarsInOpt
+          Nothing -> return $ f >=> resolveVarsInOpt
+  parseJSON _ = fail "Expected a mapping"
 
 resolveVarsInOpt :: forall m. (PandocMonad m, MonadIO m)
                  => Opt -> StateT DefaultsState m Opt
@@ -303,7 +289,7 @@ resolveVarsInOpt
 
 
 parseDefaults :: (PandocMonad m, MonadIO m)
-              => Node Pos
+              => Value
               -> Maybe FilePath
               -> Parser (Opt -> StateT DefaultsState m Opt)
 parseDefaults n dataDir = parseDefsNames n >>= \ds -> return $ \o -> do
@@ -322,11 +308,11 @@ parseDefaults n dataDir = parseDefsNames n >>= \ds -> return $ \o -> do
         "Error: Circular defaults file reference in " ++
         "'" ++ defsParent ++ "'"
     else foldM applyDefaults o defsChildren
-  where parseDefsNames x = (parseYAML x >>= \xs -> return $ map unpack xs)
-                       <|> (parseYAML x >>= \x' -> return [unpack x'])
+  where parseDefsNames x = (parseJSON x >>= \xs -> return $ map unpack xs)
+                       <|> (parseJSON x >>= \x' -> return [unpack x'])
 
 parseOptions :: Monad m
-             => [(Node Pos, Node Pos)]
+             => [(Text, Value)]
              -> Parser (Opt -> StateT DefaultsState m Opt)
 parseOptions ns = do
   f <- chain doOpt' ns
@@ -336,269 +322,267 @@ chain :: Monad m => (a -> m (b -> b)) -> [a] -> m (b -> b)
 chain f = foldM g id
   where g o n = f n >>= \o' -> return $ o' . o
 
-doOpt' :: (Node Pos, Node Pos) -> Parser (Opt -> Opt)
-doOpt' (k',v) = do
-  k <- parseStringKey k'
+doOpt' :: (Text, Value) -> Parser (Opt -> Opt)
+doOpt' (k,v) = do
   case k of
     "defaults" -> return id
-    _ -> doOpt (k',v)
+    _ -> doOpt (k,v)
 
-doOpt :: (Node Pos, Node Pos) -> Parser (Opt -> Opt)
-doOpt (k',v) = do
-  k <- parseStringKey k'
+doOpt :: (Text, Value) -> Parser (Opt -> Opt)
+doOpt (k,v) = do
   case k of
     "tab-stop" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTabStop = x })
+      parseJSON v >>= \x -> return (\o -> o{ optTabStop = x })
     "preserve-tabs" ->
-      parseYAML v >>= \x -> return (\o -> o{ optPreserveTabs = x })
+      parseJSON v >>= \x -> return (\o -> o{ optPreserveTabs = x })
     "standalone" ->
-      parseYAML v >>= \x -> return (\o -> o{ optStandalone = x })
+      parseJSON v >>= \x -> return (\o -> o{ optStandalone = x })
     "table-of-contents" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTableOfContents = x })
+      parseJSON v >>= \x -> return (\o -> o{ optTableOfContents = x })
     "toc" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTableOfContents = x })
+      parseJSON v >>= \x -> return (\o -> o{ optTableOfContents = x })
     "from" ->
-      parseYAML v >>= \x -> return (\o -> o{ optFrom = x })
+      parseJSON v >>= \x -> return (\o -> o{ optFrom = x })
     "reader" ->
-      parseYAML v >>= \x -> return (\o -> o{ optFrom = x })
+      parseJSON v >>= \x -> return (\o -> o{ optFrom = x })
     "to" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTo = x })
+      parseJSON v >>= \x -> return (\o -> o{ optTo = x })
     "writer" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTo = x })
+      parseJSON v >>= \x -> return (\o -> o{ optTo = x })
     "shift-heading-level-by" ->
-      parseYAML v >>= \x -> return (\o -> o{ optShiftHeadingLevelBy = x })
+      parseJSON v >>= \x -> return (\o -> o{ optShiftHeadingLevelBy = x })
     "template" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTemplate = unpack <$> x })
+      parseJSON v >>= \x -> return (\o -> o{ optTemplate = unpack <$> x })
     "variables" ->
-      parseYAML v >>= \x -> return (\o -> o{ optVariables =
+      parseJSON v >>= \x -> return (\o -> o{ optVariables =
                                                x <> optVariables o })
       -- Note: x comes first because <> for Context is left-biased union
       -- and we want to favor later default files. See #5988.
     "metadata" ->
       yamlToMeta v >>= \x -> return (\o -> o{ optMetadata = optMetadata o <> x })
     "metadata-files" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
                         return (\o -> o{ optMetadataFiles =
                                            optMetadataFiles o <>
                                            map unpack x })
     "metadata-file" -> -- allow either a list or a single value
-      (parseYAML v >>= \x -> return (\o -> o{ optMetadataFiles =
+      (parseJSON v >>= \x -> return (\o -> o{ optMetadataFiles =
                                                 optMetadataFiles o <>
                                                 map unpack x }))
       <|>
-      (parseYAML v >>= \x ->
+      (parseJSON v >>= \x ->
                         return (\o -> o{ optMetadataFiles =
                                            optMetadataFiles o <>[unpack x] }))
     "output-file" ->
-      parseYAML v >>= \x -> return (\o -> o{ optOutputFile = unpack <$> x })
+      parseJSON v >>= \x -> return (\o -> o{ optOutputFile = unpack <$> x })
     "input-files" ->
-      parseYAML v >>= \x -> return (\o -> o{ optInputFiles =
+      parseJSON v >>= \x -> return (\o -> o{ optInputFiles =
                                               optInputFiles o <>
                                                 (map unpack <$> x) })
     "input-file" -> -- allow either a list or a single value
-      (parseYAML v >>= \x -> return (\o -> o{ optInputFiles =
+      (parseJSON v >>= \x -> return (\o -> o{ optInputFiles =
                                                 optInputFiles o <>
                                                   (map unpack <$> x) }))
       <|>
-      (parseYAML v >>= \x -> return (\o -> o{ optInputFiles =
+      (parseJSON v >>= \x -> return (\o -> o{ optInputFiles =
                                                 optInputFiles o <>
                                                 ((\z -> [unpack z]) <$> x)
                                             }))
     "number-sections" ->
-      parseYAML v >>= \x -> return (\o -> o{ optNumberSections = x })
+      parseJSON v >>= \x -> return (\o -> o{ optNumberSections = x })
     "number-offset" ->
-      parseYAML v >>= \x -> return (\o -> o{ optNumberOffset = x })
+      parseJSON v >>= \x -> return (\o -> o{ optNumberOffset = x })
     "section-divs" ->
-      parseYAML v >>= \x -> return (\o -> o{ optSectionDivs = x })
+      parseJSON v >>= \x -> return (\o -> o{ optSectionDivs = x })
     "incremental" ->
-      parseYAML v >>= \x -> return (\o -> o{ optIncremental = x })
+      parseJSON v >>= \x -> return (\o -> o{ optIncremental = x })
     "self-contained" ->
-      parseYAML v >>= \x -> return (\o -> o{ optSelfContained = x })
+      parseJSON v >>= \x -> return (\o -> o{ optSelfContained = x })
     "html-q-tags" ->
-      parseYAML v >>= \x -> return (\o -> o{ optHtmlQTags = x })
+      parseJSON v >>= \x -> return (\o -> o{ optHtmlQTags = x })
     "highlight-style" ->
-      parseYAML v >>= \x -> return (\o -> o{ optHighlightStyle = x })
+      parseJSON v >>= \x -> return (\o -> o{ optHighlightStyle = x })
     "syntax-definition" ->
-      (parseYAML v >>= \x ->
+      (parseJSON v >>= \x ->
                 return (\o -> o{ optSyntaxDefinitions =
                                    optSyntaxDefinitions o <> map unpack x }))
       <|>
-      (parseYAML v >>= \x ->
+      (parseJSON v >>= \x ->
              return (\o -> o{ optSyntaxDefinitions =
                                  optSyntaxDefinitions o <> [unpack x] }))
     "syntax-definitions" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
              return (\o -> o{ optSyntaxDefinitions =
                                 optSyntaxDefinitions o <> map unpack x })
     "top-level-division" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTopLevelDivision = x })
+      parseJSON v >>= \x -> return (\o -> o{ optTopLevelDivision = x })
     "html-math-method" ->
-      parseYAML v >>= \x -> return (\o -> o{ optHTMLMathMethod = x })
+      parseJSON v >>= \x -> return (\o -> o{ optHTMLMathMethod = x })
     "abbreviations" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
              return (\o -> o{ optAbbreviations = unpack <$> x })
     "reference-doc" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
              return (\o -> o{ optReferenceDoc = unpack <$> x })
     "epub-subdirectory" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
              return (\o -> o{ optEpubSubdirectory = unpack x })
     "epub-metadata" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
              return (\o -> o{ optEpubMetadata = unpack <$> x })
     "epub-fonts" ->
-      parseYAML v >>= \x -> return (\o -> o{ optEpubFonts = optEpubFonts o <>
+      parseJSON v >>= \x -> return (\o -> o{ optEpubFonts = optEpubFonts o <>
                                                map unpack x })
     "epub-chapter-level" ->
-      parseYAML v >>= \x -> return (\o -> o{ optEpubChapterLevel = x })
+      parseJSON v >>= \x -> return (\o -> o{ optEpubChapterLevel = x })
     "epub-cover-image" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
              return (\o -> o{ optEpubCoverImage = unpack <$> x })
     "toc-depth" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTOCDepth = x })
+      parseJSON v >>= \x -> return (\o -> o{ optTOCDepth = x })
     "dump-args" ->
-      parseYAML v >>= \x -> return (\o -> o{ optDumpArgs = x })
+      parseJSON v >>= \x -> return (\o -> o{ optDumpArgs = x })
     "ignore-args" ->
-      parseYAML v >>= \x -> return (\o -> o{ optIgnoreArgs = x })
+      parseJSON v >>= \x -> return (\o -> o{ optIgnoreArgs = x })
     "verbosity" ->
-      parseYAML v >>= \x -> return (\o -> o{ optVerbosity = x })
+      parseJSON v >>= \x -> return (\o -> o{ optVerbosity = x })
     "trace" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTrace = x })
+      parseJSON v >>= \x -> return (\o -> o{ optTrace = x })
     "log-file" ->
-      parseYAML v >>= \x -> return (\o -> o{ optLogFile = unpack <$> x })
+      parseJSON v >>= \x -> return (\o -> o{ optLogFile = unpack <$> x })
     "fail-if-warnings" ->
-      parseYAML v >>= \x -> return (\o -> o{ optFailIfWarnings = x })
+      parseJSON v >>= \x -> return (\o -> o{ optFailIfWarnings = x })
     "reference-links" ->
-      parseYAML v >>= \x -> return (\o -> o{ optReferenceLinks = x })
+      parseJSON v >>= \x -> return (\o -> o{ optReferenceLinks = x })
     "reference-location" ->
-      parseYAML v >>= \x -> return (\o -> o{ optReferenceLocation = x })
+      parseJSON v >>= \x -> return (\o -> o{ optReferenceLocation = x })
     "dpi" ->
-      parseYAML v >>= \x -> return (\o -> o{ optDpi = x })
+      parseJSON v >>= \x -> return (\o -> o{ optDpi = x })
     "wrap" ->
-      parseYAML v >>= \x -> return (\o -> o{ optWrap = x })
+      parseJSON v >>= \x -> return (\o -> o{ optWrap = x })
     "columns" ->
-      parseYAML v >>= \x -> return (\o -> o{ optColumns = x })
+      parseJSON v >>= \x -> return (\o -> o{ optColumns = x })
     "filters" ->
-      parseYAML v >>= \x -> return (\o -> o{ optFilters = optFilters o <> x })
+      parseJSON v >>= \x -> return (\o -> o{ optFilters = optFilters o <> x })
     "citeproc" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
         if x
            then return (\o -> o{ optFilters = CiteprocFilter : optFilters o })
            else return id
     "email-obfuscation" ->
-      parseYAML v >>= \x -> return (\o -> o{ optEmailObfuscation = x })
+      parseJSON v >>= \x -> return (\o -> o{ optEmailObfuscation = x })
     "identifier-prefix" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
              return (\o -> o{ optIdentifierPrefix = x })
     "strip-empty-paragraphs" ->
-      parseYAML v >>= \x -> return (\o -> o{ optStripEmptyParagraphs = x })
+      parseJSON v >>= \x -> return (\o -> o{ optStripEmptyParagraphs = x })
     "indented-code-classes" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
              return (\o -> o{ optIndentedCodeClasses = x })
     "data-dir" ->
-      parseYAML v >>= \x -> return (\o -> o{ optDataDir = unpack <$> x })
+      parseJSON v >>= \x -> return (\o -> o{ optDataDir = unpack <$> x })
     "cite-method" ->
-      parseYAML v >>= \x -> return (\o -> o{ optCiteMethod = x })
+      parseJSON v >>= \x -> return (\o -> o{ optCiteMethod = x })
     "listings" ->
-      parseYAML v >>= \x -> return (\o -> o{ optListings = x })
+      parseJSON v >>= \x -> return (\o -> o{ optListings = x })
     "pdf-engine" ->
-      parseYAML v >>= \x -> return (\o -> o{ optPdfEngine = unpack <$> x })
+      parseJSON v >>= \x -> return (\o -> o{ optPdfEngine = unpack <$> x })
     "pdf-engine-opts" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
              return (\o -> o{ optPdfEngineOpts = map unpack x })
     "pdf-engine-opt" ->
-      (parseYAML v >>= \x ->
+      (parseJSON v >>= \x ->
              return (\o -> o{ optPdfEngineOpts = map unpack x }))
       <|>
-      (parseYAML v >>= \x ->
+      (parseJSON v >>= \x ->
              return (\o -> o{ optPdfEngineOpts = [unpack x] }))
     "slide-level" ->
-      parseYAML v >>= \x -> return (\o -> o{ optSlideLevel = x })
+      parseJSON v >>= \x -> return (\o -> o{ optSlideLevel = x })
     "atx-headers" ->
-      parseYAML v >>= \x -> return (\o -> o{ optSetextHeaders = not x })
+      parseJSON v >>= \x -> return (\o -> o{ optSetextHeaders = not x })
     "markdown-headings" ->
-      parseYAML v >>= \x -> return (\o ->
+      parseJSON v >>= \x -> return (\o ->
         case T.toLower x of
           "atx"    -> o{ optSetextHeaders = False }
           "setext" -> o{ optSetextHeaders = True }
           _        -> o)
     "ascii" ->
-      parseYAML v >>= \x -> return (\o -> o{ optAscii = x })
+      parseJSON v >>= \x -> return (\o -> o{ optAscii = x })
     "default-image-extension" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
              return (\o -> o{ optDefaultImageExtension = x })
     "extract-media" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
              return (\o -> o{ optExtractMedia = unpack <$> x })
     "track-changes" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTrackChanges = x })
+      parseJSON v >>= \x -> return (\o -> o{ optTrackChanges = x })
     "file-scope" ->
-      parseYAML v >>= \x -> return (\o -> o{ optFileScope = x })
+      parseJSON v >>= \x -> return (\o -> o{ optFileScope = x })
     "title-prefix" ->
-      parseYAML v >>= \x -> return (\o -> o{ optTitlePrefix = x,
+      parseJSON v >>= \x -> return (\o -> o{ optTitlePrefix = x,
                                              optStandalone = True })
     "css" ->
-      (parseYAML v >>= \x -> return (\o -> o{ optCss = optCss o <>
+      (parseJSON v >>= \x -> return (\o -> o{ optCss = optCss o <>
                                                  map unpack x }))
       <|>
-      (parseYAML v >>= \x -> return (\o -> o{ optCss = optCss o <>
+      (parseJSON v >>= \x -> return (\o -> o{ optCss = optCss o <>
                                                 [unpack x] }))
     "bibliography" ->
-      (parseYAML v >>= \x -> return (\o ->
+      (parseJSON v >>= \x -> return (\o ->
                                o{ optBibliography = optBibliography o <>
                                                       map unpack x }))
       <|>
-      (parseYAML v >>= \x -> return (\o ->
+      (parseJSON v >>= \x -> return (\o ->
                                o{ optBibliography = optBibliography o <>
                                                        [unpack x] }))
     "csl" ->
-      parseYAML v >>= \x -> return (\o -> o{ optCSL = unpack <$> x })
+      parseJSON v >>= \x -> return (\o -> o{ optCSL = unpack <$> x })
     "citation-abbreviations" ->
-      parseYAML v >>= \x -> return (\o -> o{ optCitationAbbreviations =
+      parseJSON v >>= \x -> return (\o -> o{ optCitationAbbreviations =
                                                   unpack <$> x })
     "ipynb-output" ->
-      parseYAML v >>= \x -> return (\o -> o{ optIpynbOutput = x })
+      parseJSON v >>= \x -> return (\o -> o{ optIpynbOutput = x })
     "include-before-body" ->
-      (parseYAML v >>= \x ->
+      (parseJSON v >>= \x ->
              return (\o -> o{ optIncludeBeforeBody =
                                 optIncludeBeforeBody o <> map unpack x }))
       <|>
-      (parseYAML v >>= \x ->
+      (parseJSON v >>= \x ->
              return (\o -> o{ optIncludeBeforeBody =
                                 optIncludeBeforeBody o <> [unpack x] }))
     "include-after-body" ->
-      (parseYAML v >>= \x ->
+      (parseJSON v >>= \x ->
              return (\o -> o{ optIncludeAfterBody =
                                 optIncludeAfterBody o <> map unpack x }))
       <|>
-      (parseYAML v >>= \x ->
+      (parseJSON v >>= \x ->
              return (\o -> o{ optIncludeAfterBody =
                                 optIncludeAfterBody o <> [unpack x] }))
     "include-in-header" ->
-      (parseYAML v >>= \x ->
+      (parseJSON v >>= \x ->
              return (\o -> o{ optIncludeInHeader =
                                 optIncludeInHeader o <> map unpack x }))
       <|>
-      (parseYAML v >>= \x ->
+      (parseJSON v >>= \x ->
              return (\o -> o{ optIncludeInHeader =
                                 optIncludeInHeader o <> [unpack x] }))
     "resource-path" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
              return (\o -> o{ optResourcePath = map unpack x <>
                                  optResourcePath o })
     "request-headers" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
              return (\o -> o{ optRequestHeaders = x })
     "no-check-certificate" ->
-      parseYAML v >>= \x ->
+      parseJSON v >>= \x ->
              return (\o -> o{ optNoCheckCertificate = x })
     "eol" ->
-      parseYAML v >>= \x -> return (\o -> o{ optEol = x })
+      parseJSON v >>= \x -> return (\o -> o{ optEol = x })
     "strip-comments" ->
-      parseYAML v >>= \x -> return (\o -> o  { optStripComments = x })
+      parseJSON v >>= \x -> return (\o -> o  { optStripComments = x })
     "sandbox" ->
-      parseYAML v >>= \x -> return (\o -> o  { optSandbox = x })
-    _ -> failAtNode k' $ "Unknown option " ++ show k
+      parseJSON v >>= \x -> return (\o -> o  { optSandbox = x })
+    _ -> fail $ "Unknown option " ++ show k
 
 -- | Defaults for command-line options.
 defaultOpts :: Opt
@@ -679,18 +663,12 @@ defaultOpts = Opt
     , optSandbox               = False
     }
 
-parseStringKey ::  Node Pos -> Parser Text
-parseStringKey k = case k of
-  Scalar _ (SStr t) -> return t
-  Scalar _ _ -> failAtNode k "Non-string key"
-  _ -> failAtNode k "Non-scalar key"
-
-yamlToMeta :: Node Pos -> Parser Meta
-yamlToMeta (Mapping _ _ m) =
-    either (fail . show) return $ runEverything (yamlMap pMetaString m)
-  where
-    pMetaString = pure . MetaString <$> P.manyChar P.anyChar
-    runEverything p =
+yamlToMeta :: Value -> Parser Meta
+yamlToMeta (Object o) =
+  either (fail . show) return $ runEverything (yamlMap pMetaString o)
+ where
+  pMetaString = pure . MetaString <$> P.manyChar P.anyChar
+  runEverything p =
       runPure (P.readWithM p (def :: P.ParserState) ("" :: Text))
       >>= fmap (Meta . flip P.runF def)
 yamlToMeta _ = return mempty
@@ -703,14 +681,12 @@ applyDefaults :: (PandocMonad m, MonadIO m)
 applyDefaults opt file = do
   setVerbosity $ optVerbosity opt
   modify $ \defsState -> defsState{ curDefaults = Just file }
-  inp <- readFileLazy file
-  case decode1 inp of
+  inp <- readFileStrict file
+  case decodeEither' inp of
       Right f -> f opt
-      Left (errpos, errmsg)  -> throwError $
-         PandocParseError $ T.pack $
-         "Error parsing " ++ file ++ " line " ++
-          show (posLine errpos) ++ " column " ++
-          show (posColumn errpos) ++ ":\n" ++ errmsg
+      Left err'  -> throwError $
+         PandocParseError
+             $ T.pack $ Data.Yaml.prettyPrintParseException err'
 
 fullDefaultsPath :: (PandocMonad m, MonadIO m)
                  => Maybe FilePath

@@ -268,7 +268,7 @@ getRefs locale format idpred mbfp raw = do
       rs <- yamlToRefs idpred
               def{ readerExtensions = pandocExtensions }
               (T.unpack <$> mbfp)
-              (L.fromStrict raw)
+              raw
       return $ mapMaybe metaValueToReference rs
 
 -- assumes we walk in same order as query
