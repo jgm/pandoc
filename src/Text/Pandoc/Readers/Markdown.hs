@@ -28,7 +28,7 @@ import Data.Maybe
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString as BS
 import System.FilePath (addExtension, takeExtension, takeDirectory)
 import qualified System.FilePath.Windows as Windows
 import qualified System.FilePath.Posix as Posix
@@ -72,14 +72,12 @@ readMarkdown opts s = do
 yamlToMeta :: PandocMonad m
            => ReaderOptions
            -> Maybe FilePath
-           -> BL.ByteString
+           -> BS.ByteString
            -> m Meta
 yamlToMeta opts mbfp bstr = do
   let parser = do
         oldPos <- getPosition
-        case mbfp of
-          Nothing -> return ()
-          Just fp -> setPosition $ initialPos fp
+        setPosition $ initialPos (fromMaybe "" mbfp)
         meta <- yamlBsToMeta (fmap B.toMetaValue <$> parseBlocks) bstr
         setPosition oldPos
         return $ runF meta defaultParserState
@@ -95,7 +93,7 @@ yamlToRefs :: PandocMonad m
            => (Text -> Bool)
            -> ReaderOptions
            -> Maybe FilePath
-           -> BL.ByteString
+           -> BS.ByteString
            -> m [MetaValue]
 yamlToRefs idpred opts mbfp bstr = do
   let parser = do

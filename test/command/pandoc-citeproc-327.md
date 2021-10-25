@@ -45,7 +45,7 @@ I referenced something here^\[1\]^
 ::: {#ref-LiLiaoDongWanHaiYuDiQiDongWuCiJiShengChanLiYanJiuJiShengJingGuaYiXingPingJie2017 .csl-entry}
 [\[1\] ]{.csl-left-margin}[李轶平, 于旭光, 孙明, 等.
 [辽东湾海域底栖动物次级生产力研究及生境适宜性评价](http://kns.cnki.net/kns/detail/detail.aspx?QueryID=4&CurRec=4&recid=&FileName=CHAN201706006&DbName=CJFDLAST2018&DbCode=CJFQ&yx=Y&pr=&URLID=21.1110.S.20171129.1725.006)\[J\].
-水产科学, 2017(06): 728--734.]{.csl-right-inline}
+水产科学, 2017(6): 728--734.]{.csl-right-inline}
 :::
 :::
 ```

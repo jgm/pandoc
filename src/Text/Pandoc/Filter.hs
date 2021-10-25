@@ -19,7 +19,7 @@ module Text.Pandoc.Filter
   ) where
 
 import System.CPUTime (getCPUTime)
-import Data.Aeson.TH (deriveJSON, defaultOptions)
+import Data.Aeson
 import GHC.Generics (Generic)
 import Text.Pandoc.Class (report, getVerbosity, PandocMonad)
 import Text.Pandoc.Definition (Pandoc)
@@ -29,7 +29,6 @@ import Text.Pandoc.Citeproc (processCitations)
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Filter.Lua as LuaFilter
 import qualified Text.Pandoc.Filter.Path as Path
-import Data.YAML
 import qualified Data.Text as T
 import System.FilePath (takeExtension)
 import Control.Applicative ((<|>))
@@ -42,9 +41,9 @@ data Filter = LuaFilter FilePath
             | CiteprocFilter -- built-in citeproc
             deriving (Show, Generic)
 
-instance FromYAML Filter where
- parseYAML node =
-  (withMap "Filter" $ \m -> do
+instance FromJSON Filter where
+ parseJSON node =
+  (withObject "Filter" $ \m -> do
     ty <- m .: "type"
     fp <- m .:? "path"
     let missingPath = fail $ "Expected 'path' for filter of type " ++ show ty
@@ -55,7 +54,7 @@ instance FromYAML Filter where
       "json" -> filterWithPath JSONFilter fp
       _      -> fail $ "Unknown filter type " ++ show (ty :: T.Text)) node
   <|>
-  (withStr "Filter" $ \t -> do
+  (withText "Filter" $ \t -> do
     let fp = T.unpack t
     if fp == "citeproc"
        then return CiteprocFilter
@@ -63,6 +62,13 @@ instance FromYAML Filter where
          case takeExtension fp of
            ".lua"  -> LuaFilter fp
            _       -> JSONFilter fp) node
+
+instance ToJSON Filter where
+ toJSON CiteprocFilter = object [ "type" .= String "citeproc" ]
+ toJSON (LuaFilter fp) = object [ "type" .= String "lua",
+                                  "path" .= String (T.pack fp) ]
+ toJSON (JSONFilter fp) = object [ "type" .= String "json",
+                                   "path" .= String (T.pack fp) ]
 
 -- | Modify the given document using a filter.
 applyFilters :: (PandocMonad m, MonadIO m)
@@ -96,5 +102,3 @@ expandFilterPath :: (PandocMonad m, MonadIO m) => Filter -> m Filter
 expandFilterPath (LuaFilter fp) = LuaFilter <$> Path.expandFilterPath fp
 expandFilterPath (JSONFilter fp) = JSONFilter <$> Path.expandFilterPath fp
 expandFilterPath CiteprocFilter = return CiteprocFilter
-
-$(deriveJSON defaultOptions ''Filter)
