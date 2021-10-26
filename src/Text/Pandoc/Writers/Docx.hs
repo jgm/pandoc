@@ -880,8 +880,7 @@ blockToOpenXML' opts (SimpleFigure attr@(imgident, _, _) alt (src, tit)) = do
                                            ("<w:fldSimple w:instr=\"SEQ Figure"
                                            <> " \\* ARABIC \"><w:r><w:t>"
                                            <> tshow fignum
-                                           <> "</w:t></w:r></w:fldSimple>"),
-                                           Str ":", Space] : alt
+                                           <> "</w:t></w:r></w:fldSimple>")] : Str ": " : alt
                               else alt
   return $
     Elem (mknode "w:p" [] (map Elem paraProps ++ contents))
