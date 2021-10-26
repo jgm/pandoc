@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications  #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Pandoc
@@ -20,8 +21,10 @@ import Control.Applicative ((<|>), optional)
 import Control.Monad ((>=>), (<$!>), forM_, when)
 import Control.Monad.Catch (catch, throwM)
 import Control.Monad.Except (throwError)
+import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
+import Data.Proxy (Proxy (Proxy))
 import Data.Text (Text)
 import HsLua as Lua hiding (Div, pushModule)
 import HsLua.Class.Peekable (PeekError)
@@ -87,6 +90,9 @@ pushModule = do
           pop 1 -- remaining constructor table
     addConstructorTable (blockConstructors @PandocError)
     addConstructorTable (inlineConstructors @PandocError)
+    -- Add string constants
+    forM_ stringConstants $ \c -> do
+      pushString c *> pushString c *> rawset (nth 3)
   return 1
 
 inlineConstructors :: LuaError e =>  [DocumentedFunction e]
@@ -306,6 +312,17 @@ otherConstructors =
 
   , mkListAttributes
   ]
+
+stringConstants :: [String]
+stringConstants =
+  let constrs :: forall a. Data a => Proxy a -> [String]
+      constrs _ = map showConstr . dataTypeConstrs . dataTypeOf @a $ undefined
+  in    constrs (Proxy @ListNumberStyle)
+     ++ constrs (Proxy @ListNumberDelim)
+     ++ constrs (Proxy @QuoteType)
+     ++ constrs (Proxy @MathType)
+     ++ constrs (Proxy @Alignment)
+     ++ constrs (Proxy @CitationMode)
 
 walkElement :: (Walkable (SingletonsList Inline) a,
                 Walkable (SingletonsList Block) a,
