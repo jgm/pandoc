@@ -85,7 +85,6 @@ putConstructorsInRegistry :: PandocLua ()
 putConstructorsInRegistry = liftPandocLua $ do
   constrsToReg $ Pandoc.Meta mempty
   constrsToReg $ Pandoc.MetaList mempty
-  putInReg "ListAttributes"  -- used for ListAttributes type alias
   putInReg "List"  -- pandoc.List
   putInReg "SimpleTable"  -- helper for backward-compatible table handling
  where

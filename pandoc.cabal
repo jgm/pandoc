@@ -781,6 +781,7 @@ library
                    Text.Pandoc.Lua.Marshaling.CommonState,
                    Text.Pandoc.Lua.Marshaling.Context,
                    Text.Pandoc.Lua.Marshaling.List,
+                   Text.Pandoc.Lua.Marshaling.ListAttributes,
                    Text.Pandoc.Lua.Marshaling.PandocError,
                    Text.Pandoc.Lua.Marshaling.ReaderOptions,
                    Text.Pandoc.Lua.Marshaling.SimpleTable,

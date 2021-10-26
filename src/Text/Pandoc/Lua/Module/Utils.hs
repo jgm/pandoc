@@ -29,7 +29,8 @@ import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Marshaling.AST
   ( peekBlock, peekInline, peekPandoc, pushBlock, pushInline, pushPandoc
-  , peekAttr, peekListAttributes, peekMeta, peekMetaValue)
+  , peekAttr, peekMeta, peekMetaValue)
+import Text.Pandoc.Lua.Marshaling.ListAttributes (peekListAttributes)
 import Text.Pandoc.Lua.Marshaling.List (pushPandocList)
 import Text.Pandoc.Lua.Marshaling.SimpleTable
   ( SimpleTable (..), peekSimpleTable, pushSimpleTable )

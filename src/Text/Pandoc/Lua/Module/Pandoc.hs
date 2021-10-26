@@ -34,6 +34,8 @@ import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Marshaling.AST
 import Text.Pandoc.Lua.Marshaling.Attr (mkAttr, mkAttributeList)
 import Text.Pandoc.Lua.Marshaling.List (List (..))
+import Text.Pandoc.Lua.Marshaling.ListAttributes ( mkListAttributes
+                                                 , peekListAttributes)
 import Text.Pandoc.Lua.PandocLua (PandocLua, addFunction, liftPandocLua,
                                   loadDefaultModule)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
@@ -301,6 +303,8 @@ otherConstructors =
     <#> optionalParameter peekIntegral "hash" "integer" "hash number"
     =#> functionResult pushCitation "Citation" "new citation object"
     #? "Creates a single citation."
+
+  , mkListAttributes
   ]
 
 walkElement :: (Walkable (SingletonsList Inline) a,

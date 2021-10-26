@@ -31,7 +31,6 @@ module Text.Pandoc.Lua.Marshaling.AST
   , peekInlineFuzzy
   , peekInlines
   , peekInlinesFuzzy
-  , peekListAttributes
   , peekMeta
   , peekMetaValue
   , peekPandoc
@@ -63,6 +62,8 @@ import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Lua.Util (pushViaConstr')
 import Text.Pandoc.Lua.Marshaling.Attr (peekAttr, pushAttr)
 import Text.Pandoc.Lua.Marshaling.List (pushPandocList)
+import Text.Pandoc.Lua.Marshaling.ListAttributes
+  (peekListAttributes, pushListAttributes)
 
 import qualified HsLua as Lua
 import qualified Text.Pandoc.Lua.Util as LuaUtil
@@ -793,17 +794,6 @@ peekBlocksFuzzy = choice
   [ peekList peekBlockFuzzy
   , (<$!>) pure . peekBlockFuzzy
   ]
-
-pushListAttributes :: forall e. LuaError e => ListAttributes -> LuaE e ()
-pushListAttributes (start, style, delimiter) =
-    pushViaConstr' "ListAttributes"
-    [ push start, push style, push delimiter ]
-
-peekListAttributes :: LuaError e => Peeker e ListAttributes
-peekListAttributes = retrieving "ListAttributes" . peekTriple
-  peekIntegral
-  peekRead
-  peekRead
 
 -- * Orphan Instances
 

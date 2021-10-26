@@ -37,7 +37,6 @@ pushCloneTable = do
   Lua.newtable
   addFunction "Meta"      $ cloneWith peekMeta Lua.push
   addFunction "MetaValue" $ cloneWith peekMetaValue pushMetaValue
-  addFunction "ListAttributes" $ cloneWith peekListAttributes pushListAttributes
   return 1
 
 cloneWith :: Peeker PandocError a
