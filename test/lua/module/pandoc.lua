@@ -261,6 +261,67 @@ return {
       end)
     }
   },
+  group 'Other types' {
+    group 'SimpleTable' {
+      test('can access properties', function ()
+        local spc = pandoc.Space()
+        local caption = {pandoc.Str 'Languages', spc, pandoc.Str 'overview.'}
+        local aligns = {pandoc.AlignDefault, pandoc.AlignDefault}
+        local widths = {0, 0} -- let pandoc determine col widths
+        local headers = {{pandoc.Plain({pandoc.Str "Language"})},
+          {pandoc.Plain({pandoc.Str "Typing"})}}
+        local rows = {
+          {{pandoc.Plain "Haskell"}, {pandoc.Plain "static"}},
+          {{pandoc.Plain "Lua"}, {pandoc.Plain "Dynamic"}},
+        }
+        local simple_table = pandoc.SimpleTable(
+          caption,
+          aligns,
+          widths,
+          headers,
+          rows
+        )
+        assert.are_same(simple_table.caption, caption)
+        assert.are_same(simple_table.aligns, aligns)
+        assert.are_same(simple_table.widths, widths)
+        assert.are_same(simple_table.headers, headers)
+        assert.are_same(simple_table.rows, rows)
+      end),
+      test('can modify properties', function ()
+        local new_table = pandoc.SimpleTable(
+          {'Languages'},
+          {pandoc.AlignDefault, pandoc.AlignDefault},
+          {0.5, 0.5},
+          {{pandoc.Plain({pandoc.Str "Language"})},
+           {pandoc.Plain({pandoc.Str "Typing"})}},
+          {
+            {{pandoc.Plain "Haskell"}, {pandoc.Plain "static"}},
+            {{pandoc.Plain "Lua"}, {pandoc.Plain "Dynamic"}},
+          }
+        )
+
+        new_table.caption = {pandoc.Str 'Good', pandoc.Space(),
+                             pandoc.Str 'languages'}
+        new_table.aligns[1] = pandoc.AlignLeft
+        new_table.widths = {0, 0}
+        new_table.headers[2] = {pandoc.Plain{pandoc.Str 'compiled/interpreted'}}
+        new_table.rows[1][2] = {pandoc.Plain{pandoc.Str 'both'}}
+        new_table.rows[2][2] = {pandoc.Plain{pandoc.Str 'interpreted'}}
+
+        local expected_table = pandoc.SimpleTable(
+          {pandoc.Str 'Good', pandoc.Space(), pandoc.Str 'languages'},
+          {pandoc.AlignLeft, pandoc.AlignDefault},
+          {0, 0},
+          {{pandoc.Plain 'Language'}, {pandoc.Plain 'compiled/interpreted'}},
+          {
+            {{pandoc.Plain 'Haskell'}, {pandoc.Plain 'both'}},
+            {{pandoc.Plain 'Lua'}, {pandoc.Plain 'interpreted'}}
+          }
+        )
+        assert.are_same(expected_table, new_table)
+      end)
+    }
+  },
 
   group 'clone' {
     test('clones Attr', function ()

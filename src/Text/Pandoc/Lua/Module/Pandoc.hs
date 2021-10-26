@@ -39,6 +39,7 @@ import Text.Pandoc.Lua.Marshaling.Attr (mkAttr, mkAttributeList)
 import Text.Pandoc.Lua.Marshaling.List (List (..))
 import Text.Pandoc.Lua.Marshaling.ListAttributes ( mkListAttributes
                                                  , peekListAttributes)
+import Text.Pandoc.Lua.Marshaling.SimpleTable (mkSimpleTable)
 import Text.Pandoc.Lua.PandocLua (PandocLua, addFunction, liftPandocLua,
                                   loadDefaultModule)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
@@ -311,6 +312,7 @@ otherConstructors =
     #? "Creates a single citation."
 
   , mkListAttributes
+  , mkSimpleTable
   ]
 
 stringConstants :: [String]
