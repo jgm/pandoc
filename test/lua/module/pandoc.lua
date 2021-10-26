@@ -98,6 +98,126 @@ return {
         assert.are_equal(count, 3)
       end)
     },
+    group "Block elements" {
+      group "BulletList" {
+        test('access items via property `content`', function ()
+          local para = pandoc.Para 'one'
+          local blist = pandoc.BulletList{{para}}
+          assert.are_same({{para}}, blist.content)
+        end),
+        test('property `content` uses fuzzy marshalling', function ()
+          local old = pandoc.Plain 'old'
+          local new = pandoc.Plain 'new'
+          local blist = pandoc.BulletList{{old}}
+          blist.content = {{new}}
+          assert.are_same({{new}}, blist:clone().content)
+          blist.content = new
+          assert.are_same({{new}}, blist:clone().content)
+        end),
+      },
+      group "OrderedList" {
+        test('access items via property `content`', function ()
+          local para = pandoc.Plain 'one'
+          local olist = pandoc.OrderedList{{para}}
+          assert.are_same({{para}}, olist.content)
+        end),
+        test('forgiving constructor', function ()
+          local plain = pandoc.Plain 'old'
+          local olist = pandoc.OrderedList({plain}, {3, 'Example', 'Period'})
+          local listAttribs = pandoc.ListAttributes(3, 'Example', 'Period')
+          assert.are_same(olist.listAttributes, listAttribs)
+        end),
+        test('has list attribute aliases', function ()
+          local olist = pandoc.OrderedList({}, {4, 'Decimal', 'OneParen'})
+          assert.are_equal(olist.start, 4)
+          assert.are_equal(olist.style, 'Decimal')
+          assert.are_equal(olist.delimiter, 'OneParen')
+        end)
+      },
+      group 'DefinitionList' {
+        test('access items via property `content`', function ()
+          local deflist = pandoc.DefinitionList{
+            {'apple', {{pandoc.Plain 'fruit'}, {pandoc.Plain 'company'}}},
+            {pandoc.Str 'coffee', 'Best when hot.'}
+          }
+          assert.are_equal(#deflist.content, 2)
+          assert.are_same(deflist.content[1][1], {pandoc.Str 'apple'})
+          assert.are_same(deflist.content[1][2][2],
+                           {pandoc.Plain{pandoc.Str 'company'}})
+          assert.are_same(deflist.content[2][2],
+                           {{pandoc.Plain{pandoc.Str 'Best when hot.'}}})
+        end),
+        test('modify items via property `content`', function ()
+          local deflist = pandoc.DefinitionList{
+            {'apple', {{{'fruit'}}, {{'company'}}}}
+          }
+          deflist.content[1][1] = pandoc.Str 'orange'
+          deflist.content[1][2][1] = {pandoc.Plain 'tasty fruit'}
+          local newlist = pandoc.DefinitionList{
+            { {pandoc.Str 'orange'},
+              {{pandoc.Plain 'tasty fruit'}, {pandoc.Plain 'company'}}
+            }
+          }
+          assert.are_equal(deflist, newlist)
+        end),
+      },
+      group 'Para' {
+        test('access inline via property `content`', function ()
+          local para = pandoc.Para{'Moin, ', pandoc.Space(), 'Sylt!'}
+          assert.are_same(
+            para.content,
+            {pandoc.Str 'Moin, ', pandoc.Space(), pandoc.Str 'Sylt!'}
+          )
+        end),
+        test('modifying `content` changes the element', function ()
+          local para = pandoc.Para{'Moin, ', pandoc.Space(), pandoc.Str 'Sylt!'}
+
+          para.content[3] = 'Hamburg!'
+          assert.are_same(
+            para:clone().content,
+            {pandoc.Str 'Moin, ', pandoc.Space(), pandoc.Str 'Hamburg!'}
+          )
+
+          para.content = 'Huh'
+          assert.are_same(
+            para:clone().content,
+            {pandoc.Str 'Huh'}
+          )
+          end),
+      },
+      group 'LineBlock' {
+        test('access lines via property `content`', function ()
+          local spc = pandoc.Space()
+          local lineblock = pandoc.LineBlock{
+            {'200', spc, 'Main', spc, 'St.'},
+            {'Berkeley', spc, 'CA', spc, '94718'}
+          }
+          assert.are_equal(#lineblock.content, 2) -- has two lines
+          assert.are_same(lineblock.content[2][1], pandoc.Str 'Berkeley')
+        end),
+        test('modifying `content` alter the element', function ()
+          local spc = pandoc.Space()
+          local lineblock = pandoc.LineBlock{
+            {'200', spc, 'Main', spc, 'St.'},
+            {'Berkeley', spc, 'CA', spc, '94718'}
+          }
+          lineblock.content[1][1] = '404'
+          assert.are_same(
+            lineblock:clone().content[1],
+            {pandoc.Str '404', spc, pandoc.Str 'Main', spc, pandoc.Str 'St.'}
+          )
+
+          lineblock.content = {{'line1'}, {'line2'}}
+          assert.are_same(
+            lineblock:clone(),
+            pandoc.LineBlock{
+              {pandoc.Str 'line1'},
+              {pandoc.Str 'line2'}
+            }
+          )
+        end)
+      }
+    },
     group 'HTML-like attribute tables' {
       test('in element constructor', function ()
         local html_attributes = {

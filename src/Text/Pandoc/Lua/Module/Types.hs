@@ -35,13 +35,9 @@ pushModule = do
 pushCloneTable :: LuaE PandocError NumResults
 pushCloneTable = do
   Lua.newtable
-  addFunction "Attr"      $ cloneWith peekAttr pushAttr
-  addFunction "Block"     $ cloneWith peekBlock pushBlock
-  addFunction "Inline"    $ cloneWith peekInline pushInline
   addFunction "Meta"      $ cloneWith peekMeta Lua.push
   addFunction "MetaValue" $ cloneWith peekMetaValue pushMetaValue
   addFunction "ListAttributes" $ cloneWith peekListAttributes pushListAttributes
-  addFunction "Pandoc"    $ cloneWith peekPandoc pushPandoc
   return 1
 
 cloneWith :: Peeker PandocError a

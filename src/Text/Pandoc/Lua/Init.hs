@@ -83,12 +83,8 @@ initLuaState = do
 -- stack.
 putConstructorsInRegistry :: PandocLua ()
 putConstructorsInRegistry = liftPandocLua $ do
-  constrsToReg $ Pandoc.Pandoc mempty mempty
-  constrsToReg $ Pandoc.Str mempty
-  constrsToReg $ Pandoc.Para mempty
   constrsToReg $ Pandoc.Meta mempty
   constrsToReg $ Pandoc.MetaList mempty
-  constrsToReg $ Pandoc.Citation mempty mempty mempty Pandoc.AuthorInText 0 0
   putInReg "ListAttributes"  -- used for ListAttributes type alias
   putInReg "List"  -- pandoc.List
   putInReg "SimpleTable"  -- helper for backward-compatible table handling
