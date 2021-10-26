@@ -98,8 +98,8 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
 addLabel :: Text -> Text -> Int -> [Block] -> [Block]
 addLabel tableid tablename tablenum bs =
   case bs of
-    (Para ils : rest)  -> Para (label : Space : ils) : rest
-    (Plain ils : rest) -> Plain (label : Space : ils) : rest
+    (Para ils : rest)  -> Para (label : Str ": " : ils) : rest
+    (Plain ils : rest) -> Plain (label : Str ": " : ils) : rest
     _ -> Para [label] : bs
  where
   label = Span (tableid,[],[])
@@ -108,8 +108,7 @@ addLabel tableid tablename tablenum bs =
                ("<w:fldSimple w:instr=\"SEQ Table"
                <> " \\* ARABIC \"><w:r><w:t>"
                <> tshow tablenum
-               <> "</w:t></w:r></w:fldSimple>"),
-             Str ":"]
+               <> "</w:t></w:r></w:fldSimple>")]
 
 -- | Parts of a table
 data RowType = HeadRow | BodyRow | FootRow
