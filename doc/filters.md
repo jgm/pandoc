@@ -460,36 +460,36 @@ filter.
 
     Object fields:
 
-    `readerAbbreviations`
+    `abbreviations`
     :   set of known abbreviations (array of strings).
 
-    `readerColumns`
+    `columns`
     :   number of columns in terminal; an integer.
 
-    `readerDefaultImageExtension`
+    default-image-extension`
     :   default extension for images; a string.
 
-    `readerExtensions`
+    `extensions`
     :   integer representation of the syntax extensions bit
         field.
 
-    `readerIndentedCodeClasses`
+    `indented-code-classes`
     :   default classes for indented code blocks; array of
         strings.
 
-    `readerStandalone`
+    `standalone`
     :   whether the input was a standalone document with header;
         either `true` or `false`.
 
-    `readerStripComments`
+    `strip-comments`
     :   HTML comments are stripped instead of parsed as raw HTML;
         either `true` or `false`.
 
-    `readerTabStop`
+    `tab-stop`
     :   width (i.e. equivalent number of spaces) of tab stops;
         integer.
 
-    `readerTrackChanges`
+    `track-changes`
     :   track changes setting for docx; one of
         `"accept-changes"`, `"reject-changes"`, and
         `"all-changes"`.

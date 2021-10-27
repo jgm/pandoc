@@ -37,6 +37,7 @@ import Control.Applicative ((<|>))
 import Data.Maybe (fromMaybe)
 import Data.Data (Data)
 import Data.Default
+import Data.Char (toLower)
 import Data.Text (Text)
 import qualified Data.Set as Set
 import Data.Typeable (Typeable)
@@ -371,6 +372,9 @@ defaultKaTeXURL :: Text
 defaultKaTeXURL = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/"
 
 -- Update documentation in doc/filters.md if this is changed.
-$(deriveJSON defaultOptions ''ReaderOptions)
+$(deriveJSON defaultOptions{ fieldLabelModifier =
+                               camelTo2 '-' . drop 6 }
+                            ''ReaderOptions)
 
-$(deriveJSON defaultOptions ''HTMLSlideVariant)
+$(deriveJSON defaultOptions{ constructorTagModifier = map toLower }
+  ''HTMLSlideVariant)
