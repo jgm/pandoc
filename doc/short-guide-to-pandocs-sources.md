@@ -190,9 +190,9 @@ describes the multiple ways in which the document can be altered.
 Document traversal happens through the `Walkable` class in module
 `Text.Pandoc.Walk` ([*pandoc-types* package]).
 
-## Transitions
+## Transformations
 
-Transitions are simple modifications controllable through
+Transformations are simple modifications controllable through
 command-line options.
 
 ## Filters
