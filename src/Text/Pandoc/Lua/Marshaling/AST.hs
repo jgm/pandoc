@@ -732,7 +732,7 @@ typeInline = deftype "Inline"
           Link _ _ (tgt, _) -> Actual tgt
           _                 -> Absent)
       (peekText, \case
-          Link attr capt (_, title) -> Actual . Image attr capt . (,title)
+          Link attr capt (_, title) -> Actual . Link attr capt . (,title)
           _                         -> const Absent)
   , possibleProperty "title" "title text"
       (pushText, getInlineTitle)
