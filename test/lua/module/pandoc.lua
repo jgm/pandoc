@@ -40,6 +40,13 @@ return {
         end
       )
     },
+    group 'Properties' {
+      test('has t and tag property', function ()
+        local attr = pandoc.Attr('')
+        assert.are_equal(attr.t, 'Attr')
+        assert.are_equal(attr.tag, 'Attr')
+      end)
+    },
     group 'AttributeList' {
       test('allows access via fields', function ()
         local attributes = pandoc.Attr('', {}, {{'a', '1'}, {'b', '2'}}).attributes

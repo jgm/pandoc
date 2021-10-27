@@ -56,6 +56,10 @@ typeAttr = deftype "Attr"
     ### return
     <#> parameter peekAttr "attr" "Attr" ""
     =#> functionResult pushAttr "Attr" "new Attr element"
+  , readonly "tag" "element type tag (always 'Attr')"
+      (pushText, const "Attr")
+
+  , alias "t" "alias for `tag`" ["tag"]
   ]
 
 pushAttr :: LuaError e => Pusher e Attr
