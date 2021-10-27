@@ -140,10 +140,20 @@ valToYaml (SimpleVal x)
   | otherwise =
       if hasNewlines x
          then hang 0 ("|" <> cr) x
-         else if isNothing $ foldM needsDoubleQuotes True x
-           then "\"" <> fmap escapeInDoubleQuotes x <> "\""
-           else x
+         else case x of
+                Text _ t | isSpecialString t ->
+                         "\"" <> fmap escapeInDoubleQuotes x <> "\""
+                _ | isNothing (foldM needsDoubleQuotes True x) ->
+                         "\"" <> fmap escapeInDoubleQuotes x <> "\""
+                  | otherwise -> x
     where
+      isSpecialString t = Set.member t specialStrings
+      specialStrings = Set.fromList
+       ["y", "Y", "yes", "Yes", "YES", "n", "N",
+        "no", "No", "NO", "true", "True", "TRUE",
+        "false", "False", "FALSE", "on", "On", "ON",
+        "off", "Off", "OFF", "null", "Null",
+        "NULL", "~", "*"]
       needsDoubleQuotes isFirst t
         = if T.any isBadAnywhere t ||
              (isFirst && T.any isYamlPunct (T.take 1 t))
