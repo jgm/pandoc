@@ -40,31 +40,8 @@ import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Safe (readMay)
 import Text.Parsec
-import Data.Aeson.TH (deriveJSON, defaultOptions)
-
-newtype Extensions = Extensions Integer
-  deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
-
-instance Semigroup Extensions where
-  (Extensions a) <> (Extensions b) = Extensions (a .|. b)
-instance Monoid Extensions where
-  mempty = Extensions 0
-  mappend = (<>)
-
-extensionsFromList :: [Extension] -> Extensions
-extensionsFromList = foldr enableExtension emptyExtensions
-
-emptyExtensions :: Extensions
-emptyExtensions = Extensions 0
-
-extensionEnabled :: Extension -> Extensions -> Bool
-extensionEnabled x (Extensions exts) = testBit exts (fromEnum x)
-
-enableExtension :: Extension -> Extensions -> Extensions
-enableExtension x (Extensions exts) = Extensions (setBit exts (fromEnum x))
-
-disableExtension :: Extension -> Extensions -> Extensions
-disableExtension x (Extensions exts) = Extensions (clearBit exts (fromEnum x))
+import Data.Aeson.TH (deriveJSON)
+import Data.Aeson
 
 -- | Individually selectable syntax extensions.
 data Extension =
@@ -161,6 +138,40 @@ data Extension =
     | Ext_xrefs_number        -- ^ Use xrefs with numbers
     | Ext_yaml_metadata_block -- ^ YAML metadata block
     deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
+
+$(deriveJSON defaultOptions{ constructorTagModifier = drop 4 } ''Extension)
+
+newtype Extensions = Extensions Integer
+  deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
+
+instance Semigroup Extensions where
+  (Extensions a) <> (Extensions b) = Extensions (a .|. b)
+instance Monoid Extensions where
+  mempty = Extensions 0
+  mappend = (<>)
+
+instance FromJSON Extensions where
+  parseJSON =
+    return . foldr enableExtension emptyExtensions . fromJSON
+
+instance ToJSON Extensions where
+  toJSON exts = toJSON $
+    [ext | ext <- [minBound..maxBound], extensionEnabled ext exts]
+
+extensionsFromList :: [Extension] -> Extensions
+extensionsFromList = foldr enableExtension emptyExtensions
+
+emptyExtensions :: Extensions
+emptyExtensions = Extensions 0
+
+extensionEnabled :: Extension -> Extensions -> Bool
+extensionEnabled x (Extensions exts) = testBit exts (fromEnum x)
+
+enableExtension :: Extension -> Extensions -> Extensions
+enableExtension x (Extensions exts) = Extensions (setBit exts (fromEnum x))
+
+disableExtension :: Extension -> Extensions -> Extensions
+disableExtension x (Extensions exts) = Extensions (clearBit exts (fromEnum x))
 
 -- | Extensions to be used with pandoc-flavored markdown.
 pandocExtensions :: Extensions
@@ -618,5 +629,3 @@ parseFormatSpec = parse formatSpec ""
                         '+' -> (ext : extsToEnable, extsToDisable)
                         _   -> (extsToEnable, ext : extsToDisable)
 
-$(deriveJSON defaultOptions ''Extension)
-$(deriveJSON defaultOptions ''Extensions)

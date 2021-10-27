@@ -29,7 +29,7 @@ import Control.Monad.Except (MonadIO, liftIO, throwError, (>=>), foldM)
 import Control.Monad.State.Strict (StateT, modify, gets)
 import System.FilePath ( addExtension, (</>), takeExtension, takeDirectory )
 import System.Directory ( canonicalizePath )
-import Data.Char (isLower, toLower)
+import Data.Char (toLower)
 import Data.Maybe (fromMaybe)
 import GHC.Generics hiding (Meta)
 import Text.Pandoc.Filter (Filter (..))
@@ -43,8 +43,7 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
 import Text.Pandoc.Class (readFileStrict, fileExists, setVerbosity, report,
                           PandocMonad(lookupEnv), getUserDataDir)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocSomeError))
-import Text.Pandoc.Shared (camelCaseStrToHyphenated, defaultUserDataDir,
-                           findM, ordNub)
+import Text.Pandoc.Shared (defaultUserDataDir, findM, ordNub)
 import qualified Text.Pandoc.Parsing as P
 import Text.Pandoc.Readers.Metadata (yamlMap)
 import Text.Pandoc.Class.PandocPure
@@ -54,7 +53,7 @@ import Data.Default (def)
 import qualified Data.Text as T
 import qualified Data.Map as M
 import Text.Pandoc.Definition (Meta(..), MetaValue(..))
-import Data.Aeson (defaultOptions, Options(..), Result(..), fromJSON)
+import Data.Aeson (defaultOptions, Options(..), Result(..), fromJSON, camelTo2)
 import Data.Aeson.TH (deriveJSON)
 import Control.Applicative ((<|>))
 import Data.Yaml
@@ -62,12 +61,20 @@ import Data.Yaml
 -- | The type of line-endings to be used when writing plain-text.
 data LineEnding = LF | CRLF | Native deriving (Show, Generic)
 
+-- see https://github.com/jgm/pandoc/pull/4083
+-- using generic deriving caused long compilation times
+$(deriveJSON
+   defaultOptions{ constructorTagModifier = map toLower } ''LineEnding)
+
 -- | How to handle output blocks in ipynb.
 data IpynbOutput =
     IpynbOutputAll
   | IpynbOutputNone
   | IpynbOutputBest
   deriving (Show, Generic)
+
+$(deriveJSON
+   defaultOptions{ fieldLabelModifier = map toLower . drop 11 } ''IpynbOutput)
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -146,6 +153,9 @@ data Opt = Opt
     , optCitationAbbreviations :: Maybe FilePath -- ^ Citation abbreviations
     , optSandbox               :: Bool
     } deriving (Generic, Show)
+
+$(deriveJSON
+   defaultOptions{ fieldLabelModifier = camelTo2 '-' . drop 3 } ''Opt)
 
 instance FromJSON (Opt -> Opt) where
   parseJSON (Object m) =
@@ -714,14 +724,3 @@ cyclic :: Ord a => [[a]] -> Bool
 cyclic = any hasDuplicate
   where
     hasDuplicate xs = length (ordNub xs) /= length xs
-
--- see https://github.com/jgm/pandoc/pull/4083
--- using generic deriving caused long compilation times
-$(deriveJSON
-   defaultOptions{ fieldLabelModifier = drop 11 . map toLower } ''IpynbOutput)
-$(deriveJSON
-   defaultOptions{ fieldLabelModifier = map toLower } ''LineEnding)
-$(deriveJSON
-   defaultOptions{ fieldLabelModifier =
-                      camelCaseStrToHyphenated . dropWhile isLower
-                 } ''Opt)
