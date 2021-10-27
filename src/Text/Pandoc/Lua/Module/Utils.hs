@@ -185,10 +185,10 @@ peekAstElement = retrieving "pandoc AST element" . choice
   [ (fmap PandocElement . peekPandoc)
   , (fmap InlineElement . peekInline)
   , (fmap BlockElement . peekBlock)
+  , (fmap MetaValueElement . peekMetaValue)
   , (fmap AttrElement . peekAttr)
   , (fmap ListAttributesElement . peekListAttributes)
   , (fmap MetaElement . peekMeta)
-  , (fmap MetaValueElement . peekMetaValue)
   ]
 
 -- | Converts an old/simple table into a normal table block element.
