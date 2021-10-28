@@ -71,7 +71,7 @@ peekAttribs idx = liftLua (ltype idx) >>= \case
   TypeTable    -> liftLua (rawlen idx) >>= \case
     0 -> peekKeyValuePairs peekText peekText idx
     _ -> peekList (peekPair peekText peekText) idx
-  _            -> fail "unsupported type"
+  _            -> failPeek "unsupported type"
 
 pushAttribs :: LuaError e => Pusher e [(Text, Text)]
 pushAttribs = pushUD typeAttributeList
@@ -139,7 +139,7 @@ peekAttribute idx = (AttributeValue <$!> peekText idx)
 
 lookupKey :: [(Text,Text)] -> Maybe Key -> Maybe Attribute
 lookupKey !kvs = \case
-  Just (StringKey str) -> AttributeValue <$> lookup str kvs
+  Just (StringKey str) -> AttributeValue <$!> lookup str kvs
   Just (IntKey n)      -> AttributePair <$!> atMay kvs (n - 1)
   Nothing              -> Nothing
 
