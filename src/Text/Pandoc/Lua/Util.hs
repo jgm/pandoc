@@ -18,7 +18,6 @@ Lua utility functions.
 module Text.Pandoc.Lua.Util
   ( getTag
   , addField
-  , addFunction
   , callWithTraceback
   , dofileWithTraceback
   , pushViaConstr'
@@ -34,14 +33,6 @@ addField key value = do
   Lua.push key
   Lua.push value
   Lua.rawset (Lua.nth 3)
-
--- | Add a function to the table at the top of the stack, using the
--- given name.
-addFunction :: Exposable e a => String -> a -> LuaE e ()
-addFunction name fn = do
-  Lua.push name
-  Lua.pushHaskellFunction $ toHaskellFunction fn
-  Lua.rawset (-3)
 
 -- | Get the tag of a value. This is an optimized and specialized version of
 -- @Lua.getfield idx "tag"@. It only checks for the field on the table at index

@@ -204,26 +204,30 @@ peekAttrTable idx = do
       return $ ident `seq` classes `seq` attribs `seq`
         (ident, classes, attribs)
 
-mkAttr :: LuaError e => LuaE e NumResults
-mkAttr = do
-  attr <- ltype (nthBottom 1) >>= \case
-    TypeString -> forcePeek $ do
-      mident <- optional (peekText (nthBottom 1))
-      mclass <- optional (peekList peekText (nthBottom 2))
-      mattribs <- optional (peekAttribs (nthBottom 3))
-      return (fromMaybe "" mident, fromMaybe [] mclass, fromMaybe [] mattribs)
-    TypeTable  -> forcePeek $ peekAttrTable (nthBottom 1)
-    TypeUserdata -> forcePeek $ peekUD typeAttr (nthBottom 1) <|> do
-      attrList <- peekUD typeAttributeList (nthBottom 1)
-      return ("", [], attrList)
-    TypeNil    -> pure nullAttr
-    TypeNone   -> pure nullAttr
-    x          -> failLua $ "Cannot create Attr from " ++ show x
-  pushAttr attr
-  return 1
+-- | Constructor for 'Attr'.
+mkAttr :: LuaError e => DocumentedFunction e
+mkAttr = defun "Attr"
+  ### (ltype (nthBottom 1) >>= \case
+          TypeString -> forcePeek $ do
+            mident <- optional (peekText (nthBottom 1))
+            mclass <- optional (peekList peekText (nthBottom 2))
+            mattribs <- optional (peekAttribs (nthBottom 3))
+            return ( fromMaybe "" mident
+                   , fromMaybe [] mclass
+                   , fromMaybe [] mattribs)
+          TypeTable  -> forcePeek $ peekAttrTable (nthBottom 1)
+          TypeUserdata -> forcePeek $ peekUD typeAttr (nthBottom 1) <|> do
+            attrList <- peekUD typeAttributeList (nthBottom 1)
+            return ("", [], attrList)
+          TypeNil    -> pure nullAttr
+          TypeNone   -> pure nullAttr
+          x          -> failLua $ "Cannot create Attr from " ++ show x)
+  =#> functionResult pushAttr "Attr" "new Attr object"
 
-mkAttributeList :: LuaError e => LuaE e NumResults
-mkAttributeList = do
-  attribs <- forcePeek $ peekAttribs (nthBottom 1)
-  pushUD typeAttributeList attribs
-  return 1
+-- | Constructor for 'AttributeList'.
+mkAttributeList :: LuaError e => DocumentedFunction e
+mkAttributeList = defun "AttributeList"
+  ### return
+  <#> parameter peekAttribs "table|AttributeList" "attribs" "an attribute list"
+  =#> functionResult (pushUD typeAttributeList) "AttributeList"
+        "new AttributeList object"

@@ -10,34 +10,52 @@
 Pandoc data type constructors.
 -}
 module Text.Pandoc.Lua.Module.Types
-  ( pushModule
+  ( documentedModule
   ) where
 
-import HsLua (LuaE, NumResults, Peeker, Pusher)
+import HsLua ( LuaE, NumResults, Peeker, Pusher, Module (..), Field (..)
+             , defun, functionResult, parameter, (###), (<#>), (=#>))
+import HsLua.Module.Version (peekVersionFuzzy, pushVersion)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.ErrorConversion ()
 import Text.Pandoc.Lua.Marshaling.AST
-import Text.Pandoc.Lua.Util (addFunction)
 
 import qualified HsLua as Lua
-import qualified HsLua.Module.Version as Version
 
 -- | Push the pandoc.types module on the Lua stack.
-pushModule :: LuaE PandocError NumResults
-pushModule = do
-  Lua.newtable
-  Lua.pushName "Version" *> Lua.pushModule Version.documentedModule
-    *> Lua.rawset (Lua.nth 3)
-  pushCloneTable
-  Lua.setfield (Lua.nth 2) "clone"
-  return 1
-
-pushCloneTable :: LuaE PandocError NumResults
-pushCloneTable = do
-  Lua.newtable
-  addFunction "Meta"      $ cloneWith peekMeta Lua.push
-  addFunction "MetaValue" $ cloneWith peekMetaValue pushMetaValue
-  return 1
+documentedModule :: Module PandocError
+documentedModule = Module
+  { moduleName = "pandoc.types"
+  , moduleDescription =
+      "Constructors for types that are not part of the pandoc AST."
+  , moduleFields =
+    [ Field
+      { fieldName = "clone"
+      , fieldDescription = "DEPRECATED! Helper functions for element cloning."
+      , fieldPushValue = do
+          Lua.newtable
+          addFunction "Meta" $ cloneWith peekMeta pushMeta
+          addFunction "MetaValue" $ cloneWith peekMetaValue pushMetaValue
+      }
+    ]
+  , moduleFunctions =
+      [ defun "Version"
+        ### return
+        <#> parameter peekVersionFuzzy "string|integer|{integer,...}|Version"
+              "version_specifier"
+              (mconcat [ "either a version string like `'2.7.3'`, "
+                       , "a single integer like `2`, "
+                       , "list of integers like `{2,7,3}`, "
+                       , "or a Version object"
+                       ])
+        =#> functionResult pushVersion "Version" "A new Version object."
+      ]
+  , moduleOperations = []
+  }
+ where addFunction name fn = do
+         Lua.pushName name
+         Lua.pushHaskellFunction fn
+         Lua.rawset (Lua.nth 3)
 
 cloneWith :: Peeker PandocError a
           -> Pusher PandocError a

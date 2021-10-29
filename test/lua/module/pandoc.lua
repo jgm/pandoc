@@ -408,6 +408,12 @@ return {
       })
       assert.are_same(expected, pandoc.read(valid_markdown))
     end),
+    test('unsupported extension', function ()
+      assert.error_matches(
+        function () pandoc.read('foo', 'gfm+empty_paragraphs') end,
+        'Extension empty_paragraphs not supported for gfm'
+      )
+    end),
     test('failing read', function ()
       assert.error_matches(
         function () pandoc.read('foo', 'nosuchreader') end,

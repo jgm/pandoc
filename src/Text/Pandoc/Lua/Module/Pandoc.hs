@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -14,11 +15,12 @@ Pandoc module for lua.
 -}
 module Text.Pandoc.Lua.Module.Pandoc
   ( pushModule
+  , documentedModule
   ) where
 
 import Prelude hiding (read)
-import Control.Applicative ((<|>), optional)
-import Control.Monad ((>=>), (<$!>), forM_, when)
+import Control.Applicative ((<|>))
+import Control.Monad ((<$!>), forM_, when)
 import Control.Monad.Catch (catch, throwM)
 import Control.Monad.Except (throwError)
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
@@ -26,13 +28,14 @@ import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
 import Data.Proxy (Proxy (Proxy))
 import Data.Text (Text)
-import HsLua as Lua hiding (Div, pushModule)
+import HsLua hiding (Div, pushModule)
 import HsLua.Class.Peekable (PeekError)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Class.PandocIO (runIO)
 import Text.Pandoc.Definition
-import Text.Pandoc.Lua.Filter (SingletonsList (..), walkInlines,
-                               walkInlineLists, walkBlocks, walkBlockLists)
+import Text.Pandoc.Lua.Filter (SingletonsList (..), LuaFilter, peekLuaFilter,
+                               walkInlines, walkInlineLists,
+                               walkBlocks, walkBlockLists)
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Marshaling.AST
 import Text.Pandoc.Lua.Marshaling.Attr (mkAttr, mkAttributeList)
@@ -40,13 +43,15 @@ import Text.Pandoc.Lua.Marshaling.List (List (..))
 import Text.Pandoc.Lua.Marshaling.ListAttributes ( mkListAttributes
                                                  , peekListAttributes)
 import Text.Pandoc.Lua.Marshaling.SimpleTable (mkSimpleTable)
-import Text.Pandoc.Lua.PandocLua (PandocLua, addFunction, liftPandocLua,
+import Text.Pandoc.Lua.Module.Utils (sha1)
+import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua,
                                   loadDefaultModule)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.Readers (Reader (..), getReader)
 import Text.Pandoc.Walk (Walkable)
 
+import qualified HsLua as Lua
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.Text as T
@@ -57,44 +62,73 @@ import Text.Pandoc.Error
 -- module to be loadable.
 pushModule :: PandocLua NumResults
 pushModule = do
+  liftPandocLua $ Lua.pushModule documentedModule
   loadDefaultModule "pandoc"
-  addFunction "read" read
-  addFunction "pipe" pipe
-  addFunction "walk_block" (walkElement peekBlock pushBlock)
-  addFunction "walk_inline" (walkElement peekInline pushInline)
-  -- Constructors
-  addFunction "Attr" (liftPandocLua mkAttr)
-  addFunction "AttributeList" (liftPandocLua mkAttributeList)
-  addFunction "Pandoc" mkPandoc
+  let copyNext = do
+        hasNext <- next (nth 2)
+        if not hasNext
+          then return ()
+          else do
+            pushvalue (nth 2)
+            insert (nth 2)
+            rawset (nth 5) -- pandoc module
+            copyNext
   liftPandocLua $ do
-    let addConstr fn = do
-          pushName (functionName fn)
-          pushDocumentedFunction fn
-          rawset (nth 3)
-    forM_ otherConstructors addConstr
-    forM_ blockConstructors addConstr
-    forM_ inlineConstructors addConstr
-    let addConstructorTable constructors = do
-          -- add constructors to Inlines.constructor
-          newtable  -- constructor
-          forM_ constructors $ \fn -> do
-            let name = functionName fn
-            pushName name
-            pushName name
-            rawget (nth 4)
-            rawset (nth 3)
-          -- set as pandoc.Inline.constructor
-          pushName "Inline"
-          newtable *> pushName "constructor" *>
-            pushvalue (nth 4) *> rawset (nth 3)
-          rawset (nth 4)
-          pop 1 -- remaining constructor table
-    addConstructorTable (blockConstructors @PandocError)
-    addConstructorTable (inlineConstructors @PandocError)
-    -- Add string constants
-    forM_ stringConstants $ \c -> do
-      pushString c *> pushString c *> rawset (nth 3)
+    pushnil  -- initial key
+    copyNext
+    pop 1
+
   return 1
+
+documentedModule :: Module PandocError
+documentedModule = Module
+  { moduleName = "pandoc"
+  , moduleDescription = T.unlines
+    [ "Lua functions for pandoc scripts; includes constructors for"
+    , "document elements, functions to parse text in a given"
+    , "format, and functions to filter and modify a subtree."
+    ]
+  , moduleFields = stringConstants ++ [inlineField, blockField]
+  , moduleOperations = []
+  , moduleFunctions = mconcat
+      [ functions
+      , otherConstructors
+      , blockConstructors
+      , inlineConstructors
+      ]
+  }
+
+-- | Inline table field
+inlineField :: Field PandocError
+inlineField = Field
+  { fieldName = "Inline"
+  , fieldDescription = "Inline constructors, nested under 'constructors'."
+  -- the nesting happens for historical reasons and should probably be
+  -- changed.
+  , fieldPushValue = pushWithConstructorsSubtable inlineConstructors
+  }
+
+-- | @Block@ module field
+blockField :: Field PandocError
+blockField = Field
+  { fieldName = "Block"
+  , fieldDescription = "Inline constructors, nested under 'constructors'."
+  -- the nesting happens for historical reasons and should probably be
+  -- changed.
+  , fieldPushValue = pushWithConstructorsSubtable blockConstructors
+  }
+
+pushWithConstructorsSubtable :: [DocumentedFunction PandocError]
+                             -> LuaE PandocError ()
+pushWithConstructorsSubtable constructors = do
+  newtable -- Field table
+  newtable -- constructor table
+  pushName "constructor" *> pushvalue (nth 2) *> rawset (nth 4)
+  forM_ constructors $ \fn -> do
+    pushName (functionName fn)
+    pushDocumentedFunction fn
+    rawset (nth 3)
+  pop 1 -- pop constructor table
 
 inlineConstructors :: LuaError e =>  [DocumentedFunction e]
 inlineConstructors =
@@ -291,7 +325,13 @@ mkInlinesConstr name constr = defun name
 
 otherConstructors :: LuaError e => [DocumentedFunction e]
 otherConstructors =
-  [ defun "Citation"
+  [ defun "Pandoc"
+    ### liftPure2 (\blocks mMeta -> Pandoc (fromMaybe nullMeta mMeta) blocks)
+    <#> parameter peekBlocksFuzzy "Blocks" "blocks" "document contents"
+    <#> optionalParameter peekMeta "Meta" "meta" "document metadata"
+    =#> functionResult pushPandoc "Pandoc" "new Pandoc document"
+
+  , defun "Citation"
     ### (\cid mode mprefix msuffix mnote_num mhash ->
           cid `seq` mode `seq` mprefix `seq` msuffix `seq`
           mnote_num `seq` mhash `seq` return $! Citation
@@ -311,68 +351,93 @@ otherConstructors =
     =#> functionResult pushCitation "Citation" "new citation object"
     #? "Creates a single citation."
 
+  , mkAttr
+  , mkAttributeList
   , mkListAttributes
   , mkSimpleTable
   ]
 
-stringConstants :: [String]
+stringConstants :: [Field e]
 stringConstants =
   let constrs :: forall a. Data a => Proxy a -> [String]
       constrs _ = map showConstr . dataTypeConstrs . dataTypeOf @a $ undefined
-  in    constrs (Proxy @ListNumberStyle)
-     ++ constrs (Proxy @ListNumberDelim)
-     ++ constrs (Proxy @QuoteType)
-     ++ constrs (Proxy @MathType)
-     ++ constrs (Proxy @Alignment)
-     ++ constrs (Proxy @CitationMode)
+      nullaryConstructors = mconcat
+        [ constrs (Proxy @ListNumberStyle)
+        , constrs (Proxy @ListNumberDelim)
+        , constrs (Proxy @QuoteType)
+        , constrs (Proxy @MathType)
+        , constrs (Proxy @Alignment)
+        , constrs (Proxy @CitationMode)
+        ]
+      toField s = Field
+        { fieldName = T.pack s
+        , fieldDescription = T.pack s
+        , fieldPushValue = pushString s
+        }
+  in map toField nullaryConstructors
 
 walkElement :: (Walkable (SingletonsList Inline) a,
                 Walkable (SingletonsList Block) a,
                 Walkable (List Inline) a,
                 Walkable (List Block) a)
-            => Peeker PandocError a -> Pusher PandocError a
-            -> LuaE PandocError NumResults
-walkElement peek' push' = do
-  x <- forcePeek $ peek' (nthBottom 1)
-  f <- peek (nthBottom 2)
-  let walk' =  walkInlines f
-           >=> walkInlineLists f
-           >=> walkBlocks f
-           >=> walkBlockLists f
-  walk' x >>= push'
-  return (NumResults 1)
+            => a -> LuaFilter -> LuaE PandocError a
+walkElement x f = walkInlines f x
+              >>= walkInlineLists f
+              >>= walkBlocks f
+              >>= walkBlockLists f
 
-read :: T.Text -> Optional T.Text -> PandocLua NumResults
-read content formatSpecOrNil = liftPandocLua $ do
-  let formatSpec = fromMaybe "markdown" (Lua.fromOptional formatSpecOrNil)
-  res <- Lua.liftIO . runIO $
-           getReader formatSpec >>= \(rdr,es) ->
-             case rdr of
-               TextReader r ->
-                 r def{ readerExtensions = es } content
-               _ -> throwError $ PandocSomeError
-                      "Only textual formats are supported"
-  case res of
-    Right pd -> (1 :: NumResults) <$ Lua.push pd -- success, push Pandoc
-    Left  (PandocUnknownReaderError f) -> Lua.raiseError $
-       "Unknown reader: " <> f
-    Left  (PandocUnsupportedExtensionError e f) -> Lua.raiseError $
-       "Extension " <> e <> " not supported for " <> f
-    Left  e      -> Lua.raiseError $ show e
+functions :: [DocumentedFunction PandocError]
+functions =
+  [ defun "pipe"
+    ### (\command args input -> do
+            (ec, output) <- Lua.liftIO $ pipeProcess Nothing command args input
+                            `catch` (throwM . PandocIOError "pipe")
+            case ec of
+              ExitSuccess -> 1 <$ Lua.pushLazyByteString output
+              ExitFailure n -> do
+                pushPipeError (PipeError (T.pack command) n output)
+                Lua.error)
+    <#> parameter peekString "string" "command" "path to executable"
+    <#> parameter (peekList peekString) "{string,...}" "args"
+          "list of arguments"
+    <#> parameter peekLazyByteString "string" "input"
+          "input passed to process via stdin"
+    =?> "output string, or error triple"
 
--- | Pipes input through a command.
-pipe :: String           -- ^ path to executable
-     -> [String]         -- ^ list of arguments
-     -> BL.ByteString    -- ^ input passed to process via stdin
-     -> PandocLua NumResults
-pipe command args input = liftPandocLua $ do
-  (ec, output) <- Lua.liftIO $ pipeProcess Nothing command args input
-    `catch` (throwM . PandocIOError "pipe")
-  case ec of
-    ExitSuccess -> 1 <$ Lua.push output
-    ExitFailure n -> do
-      pushPipeError (PipeError (T.pack command) n output)
-      Lua.error
+  , defun "read"
+    ### (\content mformatspec -> do
+            let formatSpec = fromMaybe "markdown" mformatspec
+            res <- Lua.liftIO . runIO $ getReader formatSpec >>= \case
+              (TextReader r, es) -> r def{ readerExtensions = es } content
+              _ -> throwError $ PandocSomeError
+                   "Only textual formats are supported"
+            case res of
+              Right pd -> return pd -- success, got a Pandoc document
+              Left  (PandocUnknownReaderError f) ->
+                Lua.failLua . T.unpack $ "Unknown reader: " <> f
+              Left  (PandocUnsupportedExtensionError e f) ->
+                Lua.failLua . T.unpack $
+                "Extension " <> e <> " not supported for " <> f
+              Left e ->
+                throwM e)
+    <#> parameter peekText "string" "content" "text to parse"
+    <#> optionalParameter peekText "string" "formatspec" "format and extensions"
+    =#> functionResult pushPandoc "Pandoc" "result document"
+
+  , sha1
+
+  , defun "walk_block"
+    ### walkElement
+    <#> parameter peekBlockFuzzy "Block" "block" "element to traverse"
+    <#> parameter peekLuaFilter "LuaFilter" "filter" "filter functions"
+    =#> functionResult pushBlock "Block" "modified Block"
+
+  , defun "walk_inline"
+    ### walkElement
+    <#> parameter peekInlineFuzzy "Inline" "inline" "element to traverse"
+    <#> parameter peekLuaFilter "LuaFilter" "filter" "filter functions"
+    =#> functionResult pushInline "Inline" "modified Inline"
+  ]
 
 data PipeError = PipeError
   { pipeErrorCommand :: T.Text
@@ -416,12 +481,3 @@ pushPipeError pipeErr = do
           , if output == mempty then BSL.pack "<no output>" else output
           ]
         return (NumResults 1)
-
-mkPandoc :: PandocLua NumResults
-mkPandoc = liftPandocLua $ do
-  doc <- forcePeek $ do
-    blks <- peekBlocksFuzzy (nthBottom 1)
-    mMeta <- optional $ peekMeta (nthBottom 2)
-    pure $ Pandoc (fromMaybe nullMeta mMeta) blks
-  pushPandoc doc
-  return 1

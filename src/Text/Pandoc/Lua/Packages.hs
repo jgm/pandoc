@@ -16,7 +16,6 @@ module Text.Pandoc.Lua.Packages
   ) where
 
 import Control.Monad (forM_)
-import HsLua (NumResults)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua, loadDefaultModule)
 
@@ -43,24 +42,27 @@ installPandocPackageSearcher = liftPandocLua $ do
     Lua.rawseti (-2) (i + 1)
 
 -- | Load a pandoc module.
-pandocPackageSearcher :: String -> PandocLua NumResults
+pandocPackageSearcher :: String -> PandocLua Lua.NumResults
 pandocPackageSearcher pkgName =
   case pkgName of
     "pandoc"          -> pushWrappedHsFun $ Lua.toHaskellFunction @PandocError Pandoc.pushModule
-    "pandoc.mediabag" -> pushWrappedHsFun $ Lua.toHaskellFunction @PandocError MediaBag.pushModule
-    "pandoc.path"     -> pushWrappedHsFun
-      (Lua.NumResults 1 <$ Lua.pushModule @PandocError Path.documentedModule)
-    "pandoc.system"   -> pushWrappedHsFun $ Lua.toHaskellFunction System.pushModule
-    "pandoc.types"    -> pushWrappedHsFun $ Lua.toHaskellFunction @PandocError Types.pushModule
-    "pandoc.utils"    -> pushWrappedHsFun $ Lua.toHaskellFunction @PandocError Utils.pushModule
-    "text"            -> pushWrappedHsFun
-      (Lua.NumResults 1 <$ Lua.pushModule @PandocError Text.documentedModule)
-    "pandoc.List"     -> pushWrappedHsFun $ Lua.toHaskellFunction @PandocError (loadDefaultModule pkgName)
+    "pandoc.mediabag" -> pushModuleLoader MediaBag.documentedModule
+    "pandoc.path"     -> pushModuleLoader Path.documentedModule
+    "pandoc.system"   -> pushModuleLoader System.documentedModule
+    "pandoc.types"    -> pushModuleLoader Types.documentedModule
+    "pandoc.utils"    -> pushModuleLoader Utils.documentedModule
+    "text"            -> pushModuleLoader Text.documentedModule
+    "pandoc.List"     -> pushWrappedHsFun . Lua.toHaskellFunction @PandocError $
+                         loadDefaultModule pkgName
     _                 -> reportPandocSearcherFailure
  where
+  pushModuleLoader mdl = liftPandocLua $ do
+    Lua.pushHaskellFunction $
+      Lua.NumResults 1 <$ Lua.pushModule @PandocError mdl
+    return (Lua.NumResults 1)
   pushWrappedHsFun f = liftPandocLua $ do
     Lua.pushHaskellFunction f
     return 1
   reportPandocSearcherFailure = liftPandocLua $ do
     Lua.push ("\n\t" <> pkgName <> "is not one of pandoc's default packages")
-    return (1 :: NumResults)
+    return (Lua.NumResults 1)

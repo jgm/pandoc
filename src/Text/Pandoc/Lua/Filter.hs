@@ -14,6 +14,7 @@ Types and functions for running Lua filters.
 -}
 module Text.Pandoc.Lua.Filter ( LuaFilterFunction
                               , LuaFilter
+                              , peekLuaFilter
                               , runFilterFile
                               , walkInlines
                               , walkInlineLists
@@ -68,20 +69,24 @@ newtype LuaFilterFunction = LuaFilterFunction Lua.Reference
 newtype LuaFilter = LuaFilter (Map Name LuaFilterFunction)
 
 instance Peekable LuaFilter where
-  peek idx = do
-    let constrs = listOfInlinesFilterName
-                : listOfBlocksFilterName
-                : metaFilterName
-                : pandocFilterNames
-                ++ blockElementNames
-                ++ inlineElementNames
-    let go constr acc = do
-          Lua.getfield idx constr
-          filterFn <- registerFilterFunction
-          return $ case filterFn of
-            Nothing -> acc
-            Just fn -> Map.insert constr fn acc
-    LuaFilter <$!> foldrM go Map.empty constrs
+  peek = Lua.forcePeek . peekLuaFilter
+
+-- | Retrieves a LuaFilter object from the stack.
+peekLuaFilter :: LuaError e => Peeker e LuaFilter
+peekLuaFilter idx = do
+  let constrs = listOfInlinesFilterName
+              : listOfBlocksFilterName
+              : metaFilterName
+              : pandocFilterNames
+              ++ blockElementNames
+              ++ inlineElementNames
+  let go constr acc = Lua.liftLua $ do
+        Lua.getfield idx constr
+        filterFn <- registerFilterFunction
+        return $ case filterFn of
+          Nothing -> acc
+          Just fn -> Map.insert constr fn acc
+  LuaFilter <$!> foldrM go Map.empty constrs
 
 -- | Register the function at the top of the stack as a filter function in the
 -- registry.

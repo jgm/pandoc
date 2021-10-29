@@ -22,7 +22,6 @@ module Text.Pandoc.Lua.PandocLua
   ( PandocLua (..)
   , runPandocLua
   , liftPandocLua
-  , addFunction
   , loadDefaultModule
   ) where
 
@@ -75,13 +74,6 @@ instance {-# OVERLAPPING #-} Exposable PandocError (PandocLua NumResults) where
 
 instance Pushable a => Exposable PandocError (PandocLua a) where
   partialApply _narg x = 1 <$ (unPandocLua x >>= Lua.push)
-
--- | Add a function to the table at the top of the stack, using the given name.
-addFunction :: Exposable PandocError a => Name -> a -> PandocLua ()
-addFunction name fn = liftPandocLua $ do
-  Lua.pushName name
-  Lua.pushHaskellFunction $ toHaskellFunction fn
-  Lua.rawset (-3)
 
 -- | Load a pure Lua module included with pandoc. Leaves the result on
 -- the stack and returns @NumResults 1@.

@@ -45,125 +45,19 @@ local utils = M.utils
 -- @section
 -- @local
 
---- Create a new indexing function.
--- @param template function template
--- @param indices list of indices, starting with the most deeply nested
--- @return newly created function
--- @local
-function make_indexing_function(template, ...)
-  local indices = {...}
-  local loadstring = loadstring or load
-  local bracketed = {}
-  for i = 1, #indices do
-    local idx = indices[#indices - i + 1]
-    bracketed[i] = type(idx) == 'number'
-      and string.format('[%d]', idx)
-      or string.format('.%s', idx)
-  end
-  local fnstr = string.format('return ' .. template, table.concat(bracketed))
-  return assert(loadstring(fnstr))()
-end
-
---- Create accessor functions using a function template.
--- @param fn_template function template in which '%s' is replacd with indices
--- @param accessors list of accessors
--- @return mapping from accessor names to accessor functions
--- @local
-local function create_accessor_functions (fn_template, accessors)
-  local res = {}
-  function add_accessors(acc, ...)
-    if type(acc) == 'string' then
-      res[acc] = make_indexing_function(fn_template, ...)
-    elseif type(acc) == 'table' and #acc == 0 and next(acc) then
-      -- Named substructure: the given names are accessed via the substructure,
-      -- but the accessors are also added to the result table, enabling direct
-      -- access from the parent element. Mainly used for `attr`.
-      local name, substructure = next(acc)
-      res[name] = make_indexing_function(fn_template, ...)
-      for _, subname in ipairs(substructure) do
-        res[subname] = make_indexing_function(fn_template, subname, ...)
-      end
-    else
-      for i = 1, #(acc or {}) do
-        add_accessors(acc[i], i, ...)
-      end
-    end
-  end
-  add_accessors(accessors)
-  return res
-end
-
---- Get list of top-level fields from field descriptor table.
--- E.g.: `top_level_fields{'foo', {bar='baz'}, {'qux', 'quux'}}`
--- gives {'foo, 'bar', 'qux', 'quux'}
--- @local
-local function top_level_fields (fields)
-  local result = List:new{}
-  for _, v in ipairs(fields) do
-    if type(v) == 'string' then
-      table.insert(result, v)
-    elseif type(v) == 'table' and #v == 0 and next(v) then
-      table.insert(result, (next(v)))
-    else
-      result:extend(top_level_fields(v))
-    end
-  end
-  return result
-end
-
---- Creates a function which behaves like next, but respects field names.
--- @local
-local function make_next_function (fields)
-  local field_indices = {}
-  for i, f in ipairs(fields) do
-    field_indices[f] = i
-  end
-
-  return function (t, field)
-    local raw_idx = field == nil and 0 or field_indices[field]
-    local next_field = fields[raw_idx + 1]
-    return next_field, t[next_field]
-  end
-end
-
 --- Create a new table which allows to access numerical indices via accessor
 -- functions.
 -- @local
-local function create_accessor_behavior (tag, accessors)
+local function create_accessor_behavior (tag)
   local behavior = {tag = tag}
-  behavior.getters = create_accessor_functions(
-    'function (x) return x.c%s end',
-    accessors
-  )
-  behavior.setters = create_accessor_functions(
-    'function (x, v) x.c%s = v end',
-    accessors
-  )
   behavior.__eq = utils.equals
   behavior.__index = function(t, k)
-    if getmetatable(t).getters[k] then
-      return getmetatable(t).getters[k](t)
-    elseif k == "t" then
+    if k == "t" then
       return getmetatable(t)["tag"]
-    else
-      return getmetatable(t)[k]
-    end
-  end
-  behavior.__newindex = function(t, k, v)
-    if getmetatable(t).setters[k] then
-      getmetatable(t).setters[k](t, v)
-    else
-      rawset(t, k, v)
     end
   end
   behavior.__pairs = function (t)
-    if accessors == nil then
-      return next, t
-    end
-    local iterable_fields = type(accessors) == 'string'
-      and {accessors}
-      or top_level_fields(accessors)
-    return make_next_function(iterable_fields), t
+    return next, t
   end
   return behavior
 end
@@ -242,8 +136,8 @@ end
 -- @param fn Function to be called when constructing a new element
 -- @param accessors names to use as accessors for numerical fields
 -- @return function that constructs a new element
-function AstElement:create_constructor(tag, fn, accessors)
-  local constr = self:make_subtype(tag, create_accessor_behavior(tag, accessors))
+function AstElement:create_constructor(tag, fn)
+  local constr = self:make_subtype(tag, create_accessor_behavior(tag))
   function constr:new(...)
     return setmetatable(fn(...), self.behavior)
   end
@@ -347,9 +241,5 @@ end
 function M.MetaBool(bool)
   return bool
 end
-
-------------------------------------------------------------------------
--- Functions which have moved to different modules
-M.sha1 = utils.sha1
 
 return M
