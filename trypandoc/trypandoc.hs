@@ -52,12 +52,12 @@ app req respond = do
   let result = case runPure $ reader (tabFilter 4 text) >>= writer of
                     Right s   -> s
                     Left  err -> error (show err)
-  let output = encode $ object [ T.pack "html" .= result
-                               , T.pack "name" .=
+  let output = encode $ object [ "html" .= result
+                               , "name" .=
                                   if fromFormat == "markdown_strict"
                                      then T.pack "pandoc (strict)"
                                      else T.pack "pandoc"
-                               , T.pack "version" .= pandocVersion]
+                               , "version" .= pandocVersion]
   respond $ responseLBS status200 [(hContentType,"text/json; charset=UTF-8")] output
 
 checkLength :: Text -> IO Text
