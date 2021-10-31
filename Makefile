@@ -87,7 +87,7 @@ check: checkdocs check-cabal
 checkdocs:
 	! grep -q -n -e "\t" MANUAL.txt changelog.md
 
-debpkg: man/pandoc.1
+debpkg:
 	docker run -v `pwd`:/mnt \
                    -v `pwd`/linux/artifacts:/artifacts \
 		   --user $(id -u):$(id -g) \
