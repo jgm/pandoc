@@ -3117,4 +3117,11 @@ Pandoc
       , Space
       , Str "flattened."
       ]
+  , Header
+      1
+      ( "titleabbrev"
+      , []
+      , [ ( "titleabbrev" , "Abbr. title" ) ]
+      )
+      [ Str "Abbreviated" , Space , Str "title" ]
   ]

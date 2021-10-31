@@ -156,7 +156,7 @@ Pandoc
       [ Str "Some" , Space , Str "content" , Space , Str "here" ]
   , Header
       1
-      ( "ch04" , [] , [] )
+      ( "ch04" , [] , [ ( "titleabbrev" , "Chapter 4" ) ] )
       [ Str "The" , Space , Str "Fourth" , Space , Str "Chapter" ]
   , Para
       [ Str "Some" , Space , Str "content" , Space , Str "here" ]

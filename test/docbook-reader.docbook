@@ -1615,4 +1615,8 @@ or here: &lt;http://example.com/&gt;
     <indexterm><primary>food</primary><secondary>big <foreignphrase>baguette</foreignphrase> <strong>supreme</strong></secondary></indexterm>Nested content in index term elements is flattened.
   </para>
 </sect1>
+<sect1 id="titleabbrev">
+  <title>Abbreviated title</title>
+  <titleabbrev>Abbr. title</titleabbrev>
+</sect1>
 </article>

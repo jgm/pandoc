@@ -19,7 +19,7 @@ import Data.Foldable (asum)
 import Data.Generics
 import Data.List (intersperse,elemIndex)
 import Data.List.NonEmpty (nonEmpty)
-import Data.Maybe (catMaybes,fromMaybe,mapMaybe)
+import Data.Maybe (catMaybes,fromMaybe,mapMaybe,maybeToList)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -829,7 +829,7 @@ parseBlock (Elem e) =
         "section" -> gets dbSectionLevel >>= sect . (+1)
         "simplesect" ->
           gets dbSectionLevel >>=
-          sectWith (attrValue "id" e,["unnumbered"],[]) . (+1)
+          sectWith(attrValue "id" e) ["unnumbered"] [] . (+1)
         "refsect1" -> sect 1
         "refsect2" -> sect 2
         "refsect3" -> sect 3
@@ -994,8 +994,8 @@ parseBlock (Elem e) =
                                      (TableHead nullAttr $ toHeaderRow headrows)
                                      [TableBody nullAttr 0 [] $ map toRow bodyrows]
                                      (TableFoot nullAttr [])
-         sect n = sectWith (attrValue "id" e,[],[]) n
-         sectWith attr n = do
+         sect n = sectWith(attrValue "id" e) [] [] n
+         sectWith elId classes attrs n = do
            isbook <- gets dbBook
            let n' = if isbook || n == 0 then n + 1 else n
            headerText <- case filterChild (named "title") e `mplus`
@@ -1006,7 +1006,14 @@ parseBlock (Elem e) =
            modify $ \st -> st{ dbSectionLevel = n }
            b <- getBlocks e
            modify $ \st -> st{ dbSectionLevel = n - 1 }
-           return $ headerWith attr n' headerText <> b
+           return $ headerWith (elId, classes, maybeToList titleabbrevElAsAttr++attrs) n' headerText <> b
+         titleabbrevElAsAttr = do
+           txt <- case filterChild (named "titleabbrev") e `mplus`
+                            (filterChild (named "info") e >>=
+                                filterChild (named "titleabbrev")) of
+                            Just t  -> Just ("titleabbrev", strContentRecursive t)
+                            Nothing -> Nothing
+           return txt
          lineItems = mapM getInlines $ filterChildren (named "line") e
          -- | Admonitions are parsed into a div. Following other Docbook tools that output HTML,
          -- we parse the optional title as a div with the @title@ class, and give the
