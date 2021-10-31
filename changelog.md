@@ -1,5 +1,95 @@
 # Revision history for pandoc
 
+## pandoc 2.16 (2021-10-31)
+
+  * Switch back from HsYAML to yaml for parsing YAML metadata (#6084).
+    HsYAML is around 20 times slower in parsing large YAML bibliographies.
+    In addition, HsYAML is not being actively maintained.  This sets us back
+    in our attempts to free ourselves from C dependencies (#4535).  But I
+    don't see a good alternative until a faster pure Haskell parser is available.
+    Notes:
+
+    + We've removed the FromYAML instances for all types that had them, since
+      this is a HsYAML-specific typeclass [API change].  (The yaml package just
+      uses From/ToJSON instead of having a dedicated From/ToYAML class.)
+    + Unlike HsYAML (in the configuration we were using), yaml parses 'Y', 'N',
+      'Yes', 'No', 'On', 'Off' as boolean values.  Users may need to quote these
+      when they are meant to be interpreted as strings.  Similarly, 'null' is
+      parsed as a YAML null value (and will be treated as an empty string by
+      pandoc rather than the string 'null').  Quoting it will force it to be
+      interpreted as a string.
+    + Some tests had to be adjusted accordingly.
+    + Pandoc now behaves in a more useful way when the YAML metadata contains
+      escaping errors: instead of just failng silently and falling back to
+      some other interpretation of the section, it raises a YAML parsing error.
+
+  * Markdown writer: Ensure that special values are quoted in YAML metadata.
+    These include "Y", "yes", "on", and "off", which are now (with yaml library)
+    considered boolean values, as well as "null".
+
+  * Change JSON encodings of some types.
+
+    + For LineEnding use lowercase constructors, e.g. `crlf`, `native`.
+    + For HTMLSlideVariant use lowercase constructors.
+    + For ReaderOptions use e.g. `default-image-extension`
+      instead of `readerDefaultImageExtension` for field names.
+    + For Extension, use e.g. `tex_math_dollars` instead of
+      `Ext_tex_math_dollars` as constructor.
+    + For Extensions, use an array of Extensions, instead of
+      an object wrapping the tag `Extensions` and an integer.
+      (The integer representation is not supposed to be part of the
+      public API.)
+    + For Opt, use field names like `tab-stop` instead of `optTabStop`.
+
+  * Docx writer:
+
+    + Add IDs to native_numbering test (Tristan Stenner).
+    + Move ": " out of the caption bookmark (Tristan Stenner).
+      This is needed so that native references to the figure are included as
+      "As seen in Figure X, it is..." instead of "As seen in [Figure: X, it is..."
+
+  * Lua (Albert Krewinkel, except as noted):
+
+    + Use hslua module abstraction where possible.
+    + Fix placement of tests for Block elements in pandoc module tests
+    + Increase strictness when getting attribute keys
+    + Re-add `t` and `tag` property to Attr values.
+      Removal of these properties from Attr values was a regression.
+    + Fix `pandoc.utils.stringify` regression.  The `pandoc.utils.stringify`
+      function returned empty strings when called with a string argument.
+    + Fix a copy/paste bug in Lua marshalling code (John MacFarlane, #7639).
+      This caused links to be changed to figures when Lua filters changed
+      link properties.
+    + Generate constants in module pandoc programmatically.
+    + Marshal SimpleTable, ListAttributes, Citation, and Block values as
+      userdata objects.  Properties of Block values are marshalled lazily,
+      which generally improves performance considerably. Script users may also
+      notice the following differences:
+
+      - Block element properties can no longer be accessed by numerical
+        indexing of the `.c` field. The `.c` property now serves as an alias
+        for `.content`, so some filter that used this undocumented method
+        for property access may continue to work, while others will need to
+        be updated and use proper property names.
+      - The marshalled Block elements now have a `show` method, and a
+        `__tostring` metamethod. Both return the Haskell string
+        representation of the element.
+      - Block values now have the Lua type `userdata` instead of `table`.
+
+  * Add a short guide to pandoc's sources (Albert Krewinkel).
+
+  * Fix epub files in epub reader tests, so that they are valid
+    according to epubcheck (#7586).
+
+  * Allow time 1.13.
+
+  * Require latest skylighting (0.12.1).
+
+  * Fix build on GHC 9.2 (Joseph C. Sible).
+
+  * Fix trypandoc so it builds with aeson > 2.
+
+
 ## pandoc 2.15 (2021-10-23)
 
   * Add `--sandbox` option  (#5045).
