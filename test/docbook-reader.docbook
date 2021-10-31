@@ -1598,4 +1598,16 @@ or here: &lt;http://example.com/&gt;
     </step>
   </procedure>
 </sect1>
+<sect1 id="indexterms">
+  <title>Index terms</title>
+  <para>
+    In the simplest case, index terms<indexterm><primary>index term</primary></indexterm> consists of just a <code>&lt;primary&gt;</code> element, but <indexterm><primary>index term</primary><secondary>multi-level</secondary></indexterm> they can also consist of a <code>&lt;primary&gt;</code> <emph>and</emph> <code>&lt;secondary&gt;</code> element, and <indexterm><primary>index term</primary><secondary>multi-level</secondary><tertiary>3-level</tertiary></indexterm> can even include a <code>&lt;tertiary&gt;</code> term.
+  </para>
+  <para>
+    Index terms can also refer to other index terms: <indexterm><primary>index cross referencing</primary></indexterm><indexterm><primary>index term</primary><secondary>cross references</secondary><see>index cross referencing</see></indexterm>exclusively, using the <code>&lt;see&gt;</code> tag; or <indexterm><primary>index cross referencing</primary><seealso>cross referencing</seealso></indexterm> as a reference to related terms, using the <code>&lt;seealso&gt;</code> tag.
+  </para>
+  <para>
+    <indexterm><primary>food</primary><secondary>big <foreignphrase>baguette</foreignphrase> <strong>supreme</strong></secondary></indexterm>Nested content in index term elements is flattened.
+  </para>
+</sect1>
 </article>

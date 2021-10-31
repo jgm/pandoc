@@ -1079,10 +1079,10 @@ elementToStr :: Content -> Content
 elementToStr (Elem e') = Text $ CData CDataText (strContentRecursive e') Nothing
 elementToStr x = x
 
-indextermNaryTextAsAttr :: Text -> Element -> Maybe (Text, Text)
-indextermNaryTextAsAttr n e = case findChild q e of
+childElTextAsAttr :: Text -> Element -> Maybe (Text, Text)
+childElTextAsAttr n e = case findChild q e of
         Nothing -> Nothing
-        Just naryEl -> Just (n, strContent naryEl)
+        Just childEl -> Just (n, strContentRecursive childEl)
         where q = QName n (Just "http://docbook.org/ns/docbook") Nothing
 
 attrValueAsOptionalAttr :: Text -> Element -> Maybe (Text, Text)
@@ -1108,13 +1108,22 @@ parseInline (Elem e) =
           let ident = attrValue "id" e
           let classes = T.words $ attrValue "role" e
           let attrs =
-                [ indextermNaryTextAsAttr "primary" e
-                , indextermNaryTextAsAttr "secondary" e
-                , indextermNaryTextAsAttr "tertiary" e
+                -- In DocBook, <primary>, <secondary>, <tertiary>, <see>, and <seealso>
+                -- have mixed content models. However, because we're representing these
+                -- elements in Pandoc's AST as attributes of a phrase, we flatten all
+                -- the descendant content of these elements.
+                [ childElTextAsAttr "primary" e
+                , childElTextAsAttr "secondary" e
+                , childElTextAsAttr "tertiary" e
+                , childElTextAsAttr "see" e
+                , childElTextAsAttr "seealso" e
                 , attrValueAsOptionalAttr "significance" e
                 , attrValueAsOptionalAttr "startref" e
                 , attrValueAsOptionalAttr "scope" e
                 , attrValueAsOptionalAttr "class" e
+                -- We don't do anything with the "pagenum" attribute, because these only
+                -- occur within literal <index> sections, which is not supported by Pandoc,
+                -- because Pandoc has no concept of pages.
                 ]
           return $ spanWith (ident, ("indexterm" : classes), (catMaybes attrs)) mempty
         "equation" -> equation e displayMath
