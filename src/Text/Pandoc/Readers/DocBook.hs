@@ -1082,7 +1082,7 @@ elementToStr x = x
 indextermNaryTextAsAttr :: Text -> Element -> Maybe (Text, Text)
 indextermNaryTextAsAttr n e = case findChild q e of
         Nothing -> Nothing
-        Just naryEl -> Just (n, (strContent naryEl))
+        Just naryEl -> Just (n, strContent naryEl)
         where q = QName n (Just "http://docbook.org/ns/docbook") Nothing
 
 attrValueAsOptionalAttr :: Text -> Element -> Maybe (Text, Text)
