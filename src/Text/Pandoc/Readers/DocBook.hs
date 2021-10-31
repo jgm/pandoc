@@ -316,7 +316,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] postcode - A postal code in an address
 [x] preface - Introductory matter preceding the first chapter of a book
 [ ] prefaceinfo - Meta-information for a Preface
-[ ] primary - The primary word or phrase under which an index term should be
+[x] primary - The primary word or phrase under which an index term should be
     sorted
 [ ] primaryie - A primary term in an index entry, not in the text
 [ ] printhistory - The printing history of a document
@@ -385,7 +385,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [o] screeninfo - Information about how a screen shot was produced
 [ ] screenshot - A representation of what the user sees or might see on a
     computer screen
-[ ] secondary - A secondary word or phrase in an index term
+[x] secondary - A secondary word or phrase in an index term
 [ ] secondaryie - A secondary term in an index entry, rather than in the text
 [x] sect1 - A top-level section of document
 [x] sect1info - Meta-information for a Sect1
@@ -461,7 +461,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] td - A table entry in an HTML table
 [x] term - The word or phrase being defined or described in a variable list
 [ ] termdef - An inline term definition
-[ ] tertiary - A tertiary word or phrase in an index term
+[x] tertiary - A tertiary word or phrase in an index term
 [ ] tertiaryie - A tertiary term in an index entry, rather than in the text
 [ ] textdata - Pointer to external text data
 [ ] textobject - A wrapper for a text description of an object and its
