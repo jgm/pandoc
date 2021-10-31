@@ -148,6 +148,16 @@ return {
       end)
     }
   },
+  group "Inline elements" {
+    test('Link has property `content`', function ()
+      local link = pandoc.Link('example', 'https://example.org')
+      assert.are_same(link.content, {pandoc.Str 'example'})
+
+      link.content = 'commercial'
+      link.target = 'https://example.com'
+      assert.are_equal(link, pandoc.Link('commercial', 'https://example.com'))
+    end)
+  },
   group "Block elements" {
     group "BulletList" {
       test('access items via property `content`', function ()

@@ -608,6 +608,7 @@ setInlineContent = \case
   -- inline content
   Cite cs _     -> Actual . Cite cs . inlineContent
   Emph _        -> Actual . Emph . inlineContent
+  Link a _ tgt  -> Actual . (\inlns -> Link a inlns tgt) . inlineContent
   Quoted qt _   -> Actual . Quoted qt . inlineContent
   SmallCaps _   -> Actual . SmallCaps . inlineContent
   Span attr _   -> Actual . Span attr . inlineContent
@@ -633,6 +634,7 @@ getInlineContent :: Inline -> Possible Content
 getInlineContent = \case
   Cite _ inlns      -> Actual $ ContentInlines inlns
   Emph inlns        -> Actual $ ContentInlines inlns
+  Link _ inlns _    -> Actual $ ContentInlines inlns
   Quoted _ inlns    -> Actual $ ContentInlines inlns
   SmallCaps inlns   -> Actual $ ContentInlines inlns
   Span _ inlns      -> Actual $ ContentInlines inlns
