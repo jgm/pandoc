@@ -22,6 +22,7 @@ import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua, loadDefaultModule)
 import qualified HsLua as Lua
 import qualified HsLua.Module.Path as Path
 import qualified HsLua.Module.Text as Text
+import qualified Lua.LPeg as LPeg
 import qualified Text.Pandoc.Lua.Module.Pandoc as Pandoc
 import qualified Text.Pandoc.Lua.Module.MediaBag as MediaBag
 import qualified Text.Pandoc.Lua.Module.System as System
@@ -35,6 +36,9 @@ installPandocPackageSearcher = liftPandocLua $ do
   shiftArray
   Lua.pushHaskellFunction $ Lua.toHaskellFunction pandocPackageSearcher
   Lua.rawseti (Lua.nth 2) 1
+  -- add lpeg searcher as last searcher
+  Lua.pushHaskellFunction $ Lua.state >>= Lua.liftIO . LPeg.lpeg_searcher
+  Lua.rawseti (Lua.nth 2) 6
   Lua.pop 1           -- remove 'package.searchers' from stack
  where
   shiftArray = forM_ [4, 3, 2, 1] $ \i -> do
@@ -64,5 +68,5 @@ pandocPackageSearcher pkgName =
     Lua.pushHaskellFunction f
     return 1
   reportPandocSearcherFailure = liftPandocLua $ do
-    Lua.push ("\n\t" <> pkgName <> "is not one of pandoc's default packages")
+    Lua.push ("\n\t" <> pkgName <> " is not one of pandoc's default packages")
     return (Lua.NumResults 1)

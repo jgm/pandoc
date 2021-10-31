@@ -12,6 +12,7 @@ extra-deps:
 - doctemplates-0.10
 - emojis-0.1.2
 - doclayout-0.3.1.1
+- lpeg-1.0.0
 - hslua-2.0.0
 - hslua-classes-2.0.0
 - hslua-core-2.0.0
