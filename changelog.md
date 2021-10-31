@@ -60,6 +60,8 @@
     + Fix a copy/paste bug in Lua marshalling code (John MacFarlane, #7639).
       This caused links to be changed to figures when Lua filters changed
       link properties.
+    + Re-add `content` property to Link elements (#7647).
+      This was a regression introduced in version 2.15.
     + Generate constants in module pandoc programmatically.
     + Marshal SimpleTable, ListAttributes, Citation, and Block values as
       userdata objects.  Properties of Block values are marshalled lazily,
