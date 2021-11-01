@@ -245,6 +245,29 @@ return {
         )
         end),
     },
+    group 'Header' {
+      test('access inlines via property `content`', function ()
+        local header = pandoc.Header(1, 'test')
+        assert.are_same(header.content, {pandoc.Str 'test'})
+
+        header.content = {'new text'}
+        assert.are_equal(header, pandoc.Header(1, 'new text'))
+      end),
+      test('access Attr via property `attr`', function ()
+        local header = pandoc.Header(1, 'test', {'my-test'})
+        assert.are_same(header.attr, pandoc.Attr{'my-test'})
+
+        header.attr = 'second-test'
+        assert.are_equal(header, pandoc.Header(1, 'test', 'second-test'))
+      end),
+      test('access level via property `level`', function ()
+        local header = pandoc.Header(3, 'test')
+        assert.are_same(header.level, 3)
+
+        header.level = 2
+        assert.are_equal(header, pandoc.Header(2, 'test'))
+      end),
+    },
     group 'LineBlock' {
       test('access lines via property `content`', function ()
         local spc = pandoc.Space()

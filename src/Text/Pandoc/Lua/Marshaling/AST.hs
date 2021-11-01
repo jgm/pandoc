@@ -340,6 +340,7 @@ getBlockContent = \case
   -- inline content
   Para inlns          -> Actual $ ContentInlines inlns
   Plain inlns         -> Actual $ ContentInlines inlns
+  Header _ _ inlns    -> Actual $ ContentInlines inlns
   -- inline content
   BlockQuote blks     -> Actual $ ContentBlocks blks
   Div _ blks          -> Actual $ ContentBlocks blks
@@ -357,6 +358,7 @@ setBlockContent = \case
   -- inline content
   Para _           -> Actual . Para . inlineContent
   Plain _          -> Actual . Plain . inlineContent
+  Header attr lvl _ -> Actual . Header attr lvl . inlineContent
   -- block content
   BlockQuote _     -> Actual . BlockQuote . blockContent
   Div attr _       -> Actual . Div attr . blockContent
