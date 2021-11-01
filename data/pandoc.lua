@@ -55,6 +55,7 @@ local function create_accessor_behavior (tag)
     if k == "t" then
       return getmetatable(t)["tag"]
     end
+    return getmetatable(t)[k]
   end
   behavior.__pairs = function (t)
     return next, t

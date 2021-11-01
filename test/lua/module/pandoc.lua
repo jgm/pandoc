@@ -278,6 +278,19 @@ return {
       end)
     },
   },
+  group 'MetaValue elements' {
+    test('MetaList elements behave like lists', function ()
+      local metalist = pandoc.MetaList{}
+      assert.are_equal(type(metalist.insert), 'function')
+      assert.are_equal(type(metalist.remove), 'function')
+    end),
+    test('MetaList, MetaMap, MetaInlines, MetaBlocks have `t` tag', function ()
+      assert.are_equal((pandoc.MetaList{}).t, 'MetaList')
+      assert.are_equal((pandoc.MetaMap{}).t, 'MetaMap')
+      assert.are_equal((pandoc.MetaInlines{}).t, 'MetaInlines')
+      assert.are_equal((pandoc.MetaBlocks{}).t, 'MetaBlocks')
+    end)
+  },
   group 'Other types' {
     group 'SimpleTable' {
       test('can access properties', function ()
