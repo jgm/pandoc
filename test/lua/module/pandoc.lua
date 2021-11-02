@@ -149,14 +149,82 @@ return {
     }
   },
   group "Inline elements" {
-    test('Link has property `content`', function ()
-      local link = pandoc.Link('example', 'https://example.org')
-      assert.are_same(link.content, {pandoc.Str 'example'})
+    group 'Cite' {
+      test('has property `content`', function ()
+        local cite = pandoc.Cite({}, {pandoc.Emph 'important'})
+        assert.are_same(cite.content, {pandoc.Emph {pandoc.Str 'important'}})
 
-      link.content = 'commercial'
-      link.target = 'https://example.com'
-      assert.are_equal(link, pandoc.Link('commercial', 'https://example.com'))
-    end)
+        cite.content = 'boring'
+        assert.are_equal(cite, pandoc.Cite({}, {pandoc.Str 'boring'}))
+      end),
+      test('has list of citations in property `cite`', function ()
+        local citations = {
+          pandoc.Citation('einstein1905', 'NormalCitation')
+        }
+        local cite = pandoc.Cite(citations, 'relativity')
+        assert.are_same(cite.citations, citations)
+
+        local new_citations = {
+          citations[1],
+          pandoc.Citation('Poincaré1905', 'NormalCitation')
+        }
+        cite.citations = new_citations
+        assert.are_equal(cite, pandoc.Cite(new_citations, {'relativity'}))
+      end),
+    },
+    group 'Code' {
+      test('has property `attr`', function ()
+        local code = pandoc.Code('true', {id='true', foo='bar'})
+        assert.are_equal(code.attr, pandoc.Attr('true', {}, {{'foo', 'bar'}}))
+
+        code.attr = {id='t', fubar='quux'}
+        assert.are_equal(
+          pandoc.Code('true', pandoc.Attr('t', {}, {{'fubar', 'quux'}})),
+          code
+        )
+      end),
+      test('has property `text`', function ()
+        local code = pandoc.Code('true')
+        -- assert.are_equal(code.text, 'true')
+
+        -- code.text = '1 + 1'
+        -- assert.are_equal(pandoc.Code('1 + 1'), code)
+      end),
+    },
+    group 'Link' {
+      test('has property `content`', function ()
+        local link = pandoc.Link('example', 'https://example.org')
+        assert.are_same(link.content, {pandoc.Str 'example'})
+
+        link.content = 'commercial'
+        link.target = 'https://example.com'
+        assert.are_equal(link, pandoc.Link('commercial', 'https://example.com'))
+      end),
+      test('has property `target`', function ()
+        local link = pandoc.Link('example', 'https://example.org')
+        assert.are_same(link.content, {pandoc.Str 'example'})
+
+        link.target = 'https://example.com'
+        assert.are_equal(link, pandoc.Link('example', 'https://example.com'))
+      end),
+      test('has property `title`', function ()
+        local link = pandoc.Link('here', 'https://example.org', 'example')
+        assert.are_same(link.title, 'example')
+
+        link.title = 'a'
+        assert.are_equal(link, pandoc.Link('here', 'https://example.org', 'a'))
+      end),
+      test('has property `attr`', function ()
+        local link = pandoc.Link('up', '../index.html', '', {'up', {'nav'}})
+        assert.are_same(link.attr, pandoc.Attr {'up', {'nav'}})
+
+        link.attr = pandoc.Attr {'up', {'nav', 'button'}}
+        assert.are_equal(
+          pandoc.Link('up', '../index.html', nil, {'up', {'nav', 'button'}}),
+          link
+        )
+      end)
+    }
   },
   group "Block elements" {
     group 'BlockQuote' {
