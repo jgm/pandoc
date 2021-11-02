@@ -454,7 +454,7 @@ getDefaultReferenceDocx = do
                "word/theme/theme1.xml"]
   let toLazy = BL.fromChunks . (:[])
   let pathToEntry path = do
-        epochtime <- floor . utcTimeToPOSIXSeconds <$> getCurrentTime
+        epochtime <- floor . utcTimeToPOSIXSeconds <$> getTimestamp
         contents <- toLazy <$> readDataFile ("docx/" ++ path)
         return $ toEntry path epochtime contents
   datadir <- getUserDataDir
