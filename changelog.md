@@ -35,6 +35,7 @@
     + Ensure Block elements have all expected properties.
     + Ensure Inline elements have all expected properties.
 
+  * Allow tasty-bench 0.3.x.
 
 ## pandoc 2.16 (2021-10-31)
 
