@@ -625,6 +625,7 @@ setInlineContent = \case
   Quoted qt _   -> Actual . Quoted qt . inlineContent
   SmallCaps _   -> Actual . SmallCaps . inlineContent
   Span attr _   -> Actual . Span attr . inlineContent
+  Strikeout _   -> Actual . Strikeout . inlineContent
   Strong _      -> Actual . Strong . inlineContent
   Subscript _   -> Actual . Subscript . inlineContent
   Superscript _ -> Actual . Superscript . inlineContent
@@ -651,6 +652,7 @@ getInlineContent = \case
   Quoted _ inlns    -> Actual $ ContentInlines inlns
   SmallCaps inlns   -> Actual $ ContentInlines inlns
   Span _ inlns      -> Actual $ ContentInlines inlns
+  Strikeout inlns   -> Actual $ ContentInlines inlns
   Strong inlns      -> Actual $ ContentInlines inlns
   Subscript inlns   -> Actual $ ContentInlines inlns
   Superscript inlns -> Actual $ ContentInlines inlns

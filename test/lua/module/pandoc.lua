@@ -191,14 +191,49 @@ return {
         assert.are_equal(pandoc.Code('1 + 1'), code)
       end),
     },
+    group 'Emph' {
+      test('has property `content`', function ()
+        local elem = pandoc.Emph{'two', pandoc.Space(), 'words'}
+        assert.are_same(
+          elem.content,
+          {pandoc.Str 'two', pandoc.Space(), pandoc.Str 'words'}
+        )
+        elem.content = {'word'}
+        assert.are_equal(elem, pandoc.Emph{'word'})
+      end)
+    },
     group 'Image' {
       test('has property `caption`', function ()
         local img = pandoc.Image('example', 'a.png')
         assert.are_same(img.caption, {pandoc.Str 'example'})
 
-        img.caption = {pandoc.Str 'A'}
-        assert.are_equal(img, pandoc.Image({pandoc.Str 'A'}, 'a.png'))
+        img.caption = 'A'
+        assert.are_equal(img, pandoc.Image({'A'}, 'a.png'))
       end),
+      test('has property `src`', function ()
+        local img = pandoc.Image('example', 'sample.png')
+        assert.are_same(img.src, 'sample.png')
+
+        img.src = 'example.svg'
+        assert.are_equal(img, pandoc.Image('example', 'example.svg'))
+      end),
+      test('has property `title`', function ()
+        local img = pandoc.Image('here', 'img.gif', 'example')
+        assert.are_same(img.title, 'example')
+
+        img.title = 'a'
+        assert.are_equal(img, pandoc.Image('here', 'img.gif', 'a'))
+      end),
+      test('has property `attr`', function ()
+        local img = pandoc.Image('up', 'upwards.png', '', {'up', {'point'}})
+        assert.are_same(img.attr, pandoc.Attr {'up', {'point'}})
+
+        img.attr = pandoc.Attr {'up', {'point', 'button'}}
+        assert.are_equal(
+          pandoc.Image('up', 'upwards.png', nil, {'up', {'point', 'button'}}),
+          img
+        )
+      end)
     },
     group 'Link' {
       test('has property `content`', function ()
@@ -233,7 +268,62 @@ return {
           link
         )
       end)
-    }
+    },
+    group 'Strikeout' {
+      test('has property `content`', function ()
+        local elem = pandoc.Strikeout{'two', pandoc.Space(), 'words'}
+        assert.are_same(
+          elem.content,
+          {pandoc.Str 'two', pandoc.Space(), pandoc.Str 'words'}
+        )
+        elem.content = {'word'}
+        assert.are_equal(elem, pandoc.Strikeout{'word'})
+      end)
+    },
+    group 'Strong' {
+      test('has property `content`', function ()
+        local elem = pandoc.Strong{'two', pandoc.Space(), 'words'}
+        assert.are_same(
+          elem.content,
+          {pandoc.Str 'two', pandoc.Space(), pandoc.Str 'words'}
+        )
+        elem.content = {'word'}
+        assert.are_equal(elem, pandoc.Strong{'word'})
+      end)
+    },
+    group 'Subscript' {
+      test('has property `content`', function ()
+        local elem = pandoc.Subscript{'two', pandoc.Space(), 'words'}
+        assert.are_same(
+          elem.content,
+          {pandoc.Str 'two', pandoc.Space(), pandoc.Str 'words'}
+        )
+        elem.content = {'word'}
+        assert.are_equal(elem, pandoc.Subscript{'word'})
+      end)
+    },
+    group 'Superscript' {
+      test('has property `content`', function ()
+        local elem = pandoc.Superscript{'two', pandoc.Space(), 'words'}
+        assert.are_same(
+          elem.content,
+          {pandoc.Str 'two', pandoc.Space(), pandoc.Str 'words'}
+        )
+        elem.content = {'word'}
+        assert.are_equal(elem, pandoc.Superscript{'word'})
+      end)
+    },
+    group 'Underline' {
+      test('has property `content`', function ()
+        local elem = pandoc.Underline{'two', pandoc.Space(), 'words'}
+        assert.are_same(
+          elem.content,
+          {pandoc.Str 'two', pandoc.Space(), pandoc.Str 'words'}
+        )
+        elem.content = {'word'}
+        assert.are_equal(elem, pandoc.Underline{'word'})
+      end)
+    },
   },
   group "Block elements" {
     group 'BlockQuote' {
