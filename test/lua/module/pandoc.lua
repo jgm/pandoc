@@ -185,10 +185,10 @@ return {
       end),
       test('has property `text`', function ()
         local code = pandoc.Code('true')
-        -- assert.are_equal(code.text, 'true')
+        assert.are_equal(code.text, 'true')
 
-        -- code.text = '1 + 1'
-        -- assert.are_equal(pandoc.Code('1 + 1'), code)
+        code.text = '1 + 1'
+        assert.are_equal(pandoc.Code('1 + 1'), code)
       end),
     },
     group 'Link' {

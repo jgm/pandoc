@@ -42,6 +42,10 @@ typeAttr = deftype "Attr"
     <#> parameter peekAttr "a1" "Attr" ""
     <#> parameter peekAttr "a2" "Attr" ""
     =#> functionResult pushBool "boolean" "whether the two are equal"
+  , operation Tostring $ lambda
+    ### liftPure show
+    <#> parameter peekAttr "Attr" "attr" ""
+    =#> functionResult pushString "string" "native Haskell representation"
   ]
   [ property "identifier" "element identifier"
       (pushText, \(ident,_,_) -> ident)
