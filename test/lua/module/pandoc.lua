@@ -159,7 +159,26 @@ return {
     end)
   },
   group "Block elements" {
-    group "BulletList" {
+    group 'BlockQuote' {
+      test('access content via property `content`', function ()
+        local elem = pandoc.BlockQuote{'word'}
+        assert.are_same(elem.content, {pandoc.Plain 'word'})
+        assert.are_equal(type(elem.content), 'table')
+
+        elem.content = {
+          pandoc.Para{pandoc.Str 'one'},
+          pandoc.Para{pandoc.Str 'two'}
+        }
+        assert.are_equal(
+          pandoc.BlockQuote{
+            pandoc.Para 'one',
+            pandoc.Para 'two'
+          },
+          elem
+        )
+      end),
+    },
+    group 'BulletList' {
       test('access items via property `content`', function ()
         local para = pandoc.Para 'one'
         local blist = pandoc.BulletList{{para}}
@@ -175,23 +194,25 @@ return {
         assert.are_same({{new}}, blist:clone().content)
       end),
     },
-    group "OrderedList" {
-      test('access items via property `content`', function ()
-        local para = pandoc.Plain 'one'
-        local olist = pandoc.OrderedList{{para}}
-        assert.are_same({{para}}, olist.content)
+    group 'CodeBlock' {
+      test('access code via property `text`', function ()
+        local cb = pandoc.CodeBlock('return true')
+        assert.are_equal(cb.text, 'return true')
+        assert.are_equal(type(cb.text), 'string')
+
+        cb.text = 'return nil'
+        assert.are_equal(cb, pandoc.CodeBlock('return nil'))
       end),
-      test('forgiving constructor', function ()
-        local plain = pandoc.Plain 'old'
-        local olist = pandoc.OrderedList({plain}, {3, 'Example', 'Period'})
-        local listAttribs = pandoc.ListAttributes(3, 'Example', 'Period')
-        assert.are_same(olist.listAttributes, listAttribs)
-      end),
-      test('has list attribute aliases', function ()
-        local olist = pandoc.OrderedList({}, {4, 'Decimal', 'OneParen'})
-        assert.are_equal(olist.start, 4)
-        assert.are_equal(olist.style, 'Decimal')
-        assert.are_equal(olist.delimiter, 'OneParen')
+      test('access Attr via property `attr`', function ()
+        local cb = pandoc.CodeBlock('true', {'my-code', {'lua'}})
+        assert.are_equal(cb.attr, pandoc.Attr{'my-code', {'lua'}})
+        assert.are_equal(type(cb.attr), 'userdata')
+
+        cb.attr = pandoc.Attr{'my-other-code', {'java'}}
+        assert.are_equal(
+          pandoc.CodeBlock('true', {'my-other-code', {'java'}}),
+          cb
+        )
       end)
     },
     group 'DefinitionList' {
@@ -221,29 +242,35 @@ return {
         assert.are_equal(deflist, newlist)
       end),
     },
-    group 'Para' {
-      test('access inline via property `content`', function ()
-        local para = pandoc.Para{'Moin, ', pandoc.Space(), 'Sylt!'}
-        assert.are_same(
-          para.content,
-          {pandoc.Str 'Moin, ', pandoc.Space(), pandoc.Str 'Sylt!'}
+    group 'Div' {
+      test('access content via property `content`', function ()
+        local elem = pandoc.Div{pandoc.BlockQuote{pandoc.Plain 'word'}}
+        assert.are_same(elem.content, {pandoc.BlockQuote{'word'}})
+        assert.are_equal(type(elem.content), 'table')
+
+        elem.content = {
+          pandoc.Para{pandoc.Str 'one'},
+          pandoc.Para{pandoc.Str 'two'}
+        }
+        assert.are_equal(
+          pandoc.Div{
+            pandoc.Para 'one',
+            pandoc.Para 'two'
+          },
+          elem
         )
       end),
-      test('modifying `content` changes the element', function ()
-        local para = pandoc.Para{'Moin, ', pandoc.Space(), pandoc.Str 'Sylt!'}
+      test('access Attr via property `attr`', function ()
+        local div = pandoc.Div('word', {'my-div', {'sample'}})
+        assert.are_equal(div.attr, pandoc.Attr{'my-div', {'sample'}})
+        assert.are_equal(type(div.attr), 'userdata')
 
-        para.content[3] = 'Hamburg!'
-        assert.are_same(
-          para:clone().content,
-          {pandoc.Str 'Moin, ', pandoc.Space(), pandoc.Str 'Hamburg!'}
+        div.attr = pandoc.Attr{'my-other-div', {'example'}}
+        assert.are_equal(
+          pandoc.Div('word', {'my-other-div', {'example'}}),
+          div
         )
-
-        para.content = 'Huh'
-        assert.are_same(
-          para:clone().content,
-          {pandoc.Str 'Huh'}
-        )
-        end),
+      end)
     },
     group 'Header' {
       test('access inlines via property `content`', function ()
@@ -300,6 +327,139 @@ return {
         )
       end)
     },
+    group 'OrderedList' {
+      test('access items via property `content`', function ()
+        local para = pandoc.Plain 'one'
+        local olist = pandoc.OrderedList{{para}}
+        assert.are_same({{para}}, olist.content)
+      end),
+      test('forgiving constructor', function ()
+        local plain = pandoc.Plain 'old'
+        local olist = pandoc.OrderedList({plain}, {3, 'Example', 'Period'})
+        local listAttribs = pandoc.ListAttributes(3, 'Example', 'Period')
+        assert.are_same(olist.listAttributes, listAttribs)
+      end),
+      test('has list attribute aliases', function ()
+        local olist = pandoc.OrderedList({}, {4, 'Decimal', 'OneParen'})
+        assert.are_equal(olist.start, 4)
+        assert.are_equal(olist.style, 'Decimal')
+        assert.are_equal(olist.delimiter, 'OneParen')
+      end)
+                        },
+    group 'Para' {
+      test('access inline via property `content`', function ()
+        local para = pandoc.Para{'Moin, ', pandoc.Space(), 'Sylt!'}
+        assert.are_same(
+          para.content,
+          {pandoc.Str 'Moin, ', pandoc.Space(), pandoc.Str 'Sylt!'}
+        )
+      end),
+      test('modifying `content` changes the element', function ()
+        local para = pandoc.Para{'Moin, ', pandoc.Space(), pandoc.Str 'Sylt!'}
+
+        para.content[3] = 'Hamburg!'
+        assert.are_same(
+          para:clone().content,
+          {pandoc.Str 'Moin, ', pandoc.Space(), pandoc.Str 'Hamburg!'}
+        )
+
+        para.content = 'Huh'
+        assert.are_same(
+          para:clone().content,
+          {pandoc.Str 'Huh'}
+        )
+      end),
+    },
+    group 'RawBlock' {
+      test('access raw content via property `text`', function ()
+        local raw = pandoc.RawBlock('markdown', '- one')
+        assert.are_equal(type(raw.text), 'string')
+        assert.are_equal(raw.text, '- one')
+
+        raw.text = '+ one'
+        assert.are_equal(raw, pandoc.RawBlock('markdown', '+ one'))
+      end),
+      test('access Format via property `format`', function ()
+        local raw = pandoc.RawBlock('markdown', '* hi')
+        assert.are_equal(type(raw.format), 'string')
+        assert.are_equal(raw.format, 'markdown')
+
+        raw.format = 'org'
+        assert.are_equal(pandoc.RawBlock('org', '* hi'), raw)
+      end)
+    },
+    group 'Table' {
+      test('access Attr via property `attr`', function ()
+        local caption = {long = {pandoc.Plain 'cap'}}
+        local tbl = pandoc.Table(caption, {}, {{}, {}}, {}, {{}, {}},
+                                 {'my-tbl', {'a'}})
+        assert.are_equal(tbl.attr, pandoc.Attr{'my-tbl', {'a'}})
+
+        tbl.attr = pandoc.Attr{'my-other-tbl', {'b'}}
+        assert.are_equal(
+          pandoc.Table(caption, {}, {{}, {}}, {}, {{}, {}},
+                       {'my-other-tbl', {'b'}}),
+          tbl
+        )
+      end),
+      test('access caption via property `caption`', function ()
+        local caption = {long = {pandoc.Plain 'cap'}}
+        local tbl = pandoc.Table(caption, {}, {{}, {}}, {}, {{}, {}})
+        assert.are_same(tbl.caption, {long = {pandoc.Plain 'cap'}})
+
+        tbl.caption.short = 'brief'
+        tbl.caption.long  = {pandoc.Plain 'extended'}
+
+        local new_caption = {
+          short = 'brief',
+          long = {pandoc.Plain 'extended'}
+        }
+        assert.are_equal(
+          pandoc.Table(new_caption, {}, {{}, {}}, {}, {{}, {}}),
+          tbl
+        )
+      end),
+      test('access column specifiers via property `colspecs`', function ()
+        local colspecs = {{pandoc.AlignCenter, 1}}
+        local tbl = pandoc.Table({long = {}}, colspecs, {{}, {}}, {}, {{}, {}})
+        assert.are_same(tbl.colspecs, colspecs)
+
+        tbl.colspecs[1][1] = pandoc.AlignRight
+        tbl.colspecs[1][2] = nil
+
+        local new_colspecs = {{pandoc.AlignRight}}
+        assert.are_equal(
+          pandoc.Table({long = {}}, new_colspecs, {{}, {}}, {}, {{}, {}}),
+          tbl
+        )
+      end),
+      test('access table head via property `head`', function ()
+        local head = {pandoc.Attr{'tbl-head'}, {}}
+        local tbl = pandoc.Table({long = {}}, {}, head, {}, {{}, {}})
+        assert.are_same(tbl.head, head)
+
+        tbl.head[1] = pandoc.Attr{'table-head'}
+
+        local new_head = {'table-head', {}}
+        assert.are_equal(
+          pandoc.Table({long = {}}, {}, new_head, {}, {{}, {}}),
+          tbl
+        )
+      end),
+      test('access table head via property `head`', function ()
+        local foot = {{id = 'tbl-foot'}, {}}
+        local tbl = pandoc.Table({long = {}}, {}, {{}, {}}, {}, foot)
+        assert.are_same(tbl.foot, {pandoc.Attr('tbl-foot'), {}})
+
+        tbl.foot[1] = pandoc.Attr{'table-foot'}
+
+        local new_foot = {'table-foot', {}}
+        assert.are_equal(
+          pandoc.Table({long = {}}, {}, {{}, {}}, {}, new_foot),
+          tbl
+        )
+      end)
+    },
   },
   group 'MetaValue elements' {
     test('MetaList elements behave like lists', function ()
@@ -312,6 +472,12 @@ return {
       assert.are_equal((pandoc.MetaMap{}).t, 'MetaMap')
       assert.are_equal((pandoc.MetaInlines{}).t, 'MetaInlines')
       assert.are_equal((pandoc.MetaBlocks{}).t, 'MetaBlocks')
+    end),
+    test('`tag` is an alias for `t``', function ()
+      assert.are_equal((pandoc.MetaList{}).tag, (pandoc.MetaList{}).t)
+      assert.are_equal((pandoc.MetaMap{}).tag, (pandoc.MetaMap{}).t)
+      assert.are_equal((pandoc.MetaInlines{}).tag, (pandoc.MetaInlines{}).t)
+      assert.are_equal((pandoc.MetaBlocks{}).tag, (pandoc.MetaBlocks{}).t)
     end)
   },
   group 'Other types' {
