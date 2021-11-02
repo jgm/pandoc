@@ -481,6 +481,22 @@ return {
     end)
   },
   group 'Other types' {
+    group 'Citation' {
+      test('checks equality by comparing Haskell values', function()
+        assert.are_equal(
+          pandoc.Citation('a', pandoc.NormalCitation),
+          pandoc.Citation('a', pandoc.NormalCitation)
+        )
+        assert.is_falsy(
+          pandoc.Citation('a', pandoc.NormalCitation) ==
+          pandoc.Citation('a', pandoc.AuthorInText)
+        )
+        assert.is_falsy(
+          pandoc.Citation('a', pandoc.NormalCitation) ==
+          pandoc.Citation('b', pandoc.NormalCitation)
+        )
+      end),
+    },
     group 'SimpleTable' {
       test('can access properties', function ()
         local spc = pandoc.Space()

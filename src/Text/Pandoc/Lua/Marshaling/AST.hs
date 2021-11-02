@@ -111,7 +111,18 @@ instance Pushable Block where
   push = pushBlock
 
 typeCitation :: LuaError e => DocumentedType e Citation
-typeCitation = deftype "Citation" []
+typeCitation = deftype "Citation"
+  [ operation Eq $ lambda
+    ### liftPure2 (==)
+    <#> parameter (optional . peekCitation) "Citation" "a" ""
+    <#> parameter (optional . peekCitation) "Citation" "b" ""
+    =#> functionResult pushBool "boolean" "true iff the citations are equal"
+
+  , operation Tostring $ lambda
+    ### liftPure show
+    <#> parameter peekCitation "Citation" "citation" ""
+    =#> functionResult pushString "string" "native Haskell representation"
+  ]
   [ property "id" "citation ID / key"
       (pushText, citationId)
       (peekText, \citation cid -> citation{ citationId = cid })
