@@ -269,6 +269,87 @@ return {
         )
       end)
     },
+    group 'Math' {
+      test('has property `text`', function ()
+        local elem = pandoc.Math(pandoc.InlineMath, 'x^2')
+        assert.are_same(elem.text, 'x^2')
+        elem.text = 'a + b'
+        assert.are_equal(elem, pandoc.Math(pandoc.InlineMath, 'a + b'))
+      end),
+      test('has property `mathtype`', function ()
+        local elem = pandoc.Math(pandoc.InlineMath, 'x^2')
+        assert.are_same(elem.mathtype, 'InlineMath')
+        elem.mathtype = pandoc.DisplayMath
+        assert.are_equal(elem, pandoc.Math(pandoc.DisplayMath, 'x^2'))
+      end),
+    },
+    group 'Note' {
+      test('has property `content`', function ()
+        local elem = pandoc.Note{pandoc.Para {'two', pandoc.Space(), 'words'}}
+        assert.are_same(
+          elem.content,
+          {pandoc.Para {pandoc.Str 'two', pandoc.Space(), pandoc.Str 'words'}}
+        )
+        elem.content = pandoc.Plain 'word'
+        assert.are_equal(elem, pandoc.Note{'word'})
+      end)
+    },
+    group 'Quoted' {
+      test('has property `content`', function ()
+        local elem = pandoc.Quoted('SingleQuote', pandoc.Emph{'emph'})
+        assert.are_same(
+          elem.content,
+          {pandoc.Emph{pandoc.Str 'emph'}}
+        )
+        elem.content = {'word'}
+        assert.are_equal(elem, pandoc.Quoted(pandoc.SingleQuote, {'word'}))
+      end),
+      test('has property `quotetype`', function ()
+        local elem = pandoc.Quoted('SingleQuote', 'a')
+        assert.are_same(elem.quotetype, pandoc.SingleQuote)
+        elem.quotetype = 'DoubleQuote'
+        assert.are_equal(elem, pandoc.Quoted(pandoc.DoubleQuote, {'a'}))
+      end)
+    },
+    group 'SmallCaps' {
+      test('has property `content`', function ()
+        local elem = pandoc.SmallCaps{'two', pandoc.Space(), 'words'}
+        assert.are_same(
+          elem.content,
+          {pandoc.Str 'two', pandoc.Space(), pandoc.Str 'words'}
+        )
+        elem.content = {'word'}
+        assert.are_equal(elem, pandoc.SmallCaps{'word'})
+      end)
+    },
+    group 'Span' {
+      test('has property `attr`', function ()
+        local elem = pandoc.Span('one', {'', {'number'}})
+        assert.are_same(
+          elem.attr,
+          pandoc.Attr('', {'number'})
+        )
+        elem.attr = {'', {}, {{'a', 'b'}}}
+        assert.are_equal(elem, pandoc.Span({'one'}, {a='b'}))
+      end),
+      test('has property `content`', function ()
+        local elem = pandoc.Span{'two', pandoc.Space(), 'words'}
+        assert.are_same(
+          elem.content,
+          {pandoc.Str 'two', pandoc.Space(), pandoc.Str 'words'}
+        )
+        elem.content = {'word'}
+        assert.are_equal(elem, pandoc.Span{'word'})
+      end)
+    },
+    group 'Str' {
+      test('has property `text`', function ()
+        local elem = pandoc.Str 'nein'
+        assert.are_same(elem.text, 'nein')
+        elem.text = 'doch'
+        assert.are_equal(elem, pandoc.Str 'doch')
+      end)
+    },
     group 'Strikeout' {
       test('has property `content`', function ()
         local elem = pandoc.Strikeout{'two', pandoc.Space(), 'words'}
