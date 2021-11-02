@@ -710,7 +710,7 @@ typeInline = deftype "Inline"
       (pushPandocList pushInline, \case
           Image _ capt _ -> Actual capt
           _              -> Absent)
-      (peekInlines, \case
+      (peekInlinesFuzzy, \case
           Image attr _ target -> Actual . (\capt -> Image attr capt target)
           _                   -> const Absent)
   , possibleProperty "citations" "list of citations"

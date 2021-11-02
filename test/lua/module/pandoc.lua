@@ -191,6 +191,15 @@ return {
         assert.are_equal(pandoc.Code('1 + 1'), code)
       end),
     },
+    group 'Image' {
+      test('has property `caption`', function ()
+        local img = pandoc.Image('example', 'a.png')
+        assert.are_same(img.caption, {pandoc.Str 'example'})
+
+        img.caption = {pandoc.Str 'A'}
+        assert.are_equal(img, pandoc.Image({pandoc.Str 'A'}, 'a.png'))
+      end),
+    },
     group 'Link' {
       test('has property `content`', function ()
         local link = pandoc.Link('example', 'https://example.org')
