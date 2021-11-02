@@ -1,5 +1,41 @@
 # Revision history for pandoc
 
+## pandoc 2.16.1 (2021-11-02)
+
+
+  * Docx reader:  don't let first line indents trigger block quotes (#7655).
+    This fixes a regression introduced in pandoc 2.15.
+
+  * Docx writer: use `getTimestamp` for modification times in
+    reference.docx (#7654).  This ensures that when `SOURCE_DATE_EPOCH` is
+    set, the modification times of files taken from the reference.docx will
+    be set deterministically, allowing for reproducible builds.
+
+  * Lua subsystem (Albert Krewinkel):
+
+    + Load module `pandoc.path` on startup (#7524).  Previously the module
+      always had to be loaded via `require 'pandoc.path'`.
+    + Fix typo in SoftBreak constructor.
+    + Re-add `content` property to Strikeout elements.
+      Fixes a regression introduced in 2.15.
+    + Be more forgiving when retrieving the Image `caption` property.
+      Fixes a regression introduced in 2.15.
+    + Display Attr values using their native Haskell representation.
+    + Allow omitting the 2nd parameter in pandoc.Code constructor.
+      Fixes a regression introduced in 2.15 which required users to always
+      specify an Attr value when constructing a Code element.
+    + Allow to compare, show Citation values.  Comparisons of Citation
+      values are performed in Haskell; values are equal if they represent
+      the same Haskell value. Converting a Citation value to a string
+      now yields its native Haskell string representation.
+    + Restore List behavior of MetaList (#7650).  Fixes a regression
+      introduced in 2.16 which had MetaList elements lose
+      the `pandoc.List` properties.
+    + Restore `content` property on Header elements.
+    + Ensure Block elements have all expected properties.
+    + Ensure Inline elements have all expected properties.
+
+
 ## pandoc 2.16 (2021-10-31)
 
   * Switch back from HsYAML to yaml for parsing YAML metadata (#6084).
