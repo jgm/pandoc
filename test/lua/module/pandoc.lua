@@ -322,6 +322,12 @@ return {
         assert.are_equal(elem, pandoc.SmallCaps{'word'})
       end)
     },
+    group 'SoftBreak' {
+      test('can be constructed', function ()
+        local sb = pandoc.SoftBreak()
+        assert.are_equal(sb.t, 'SoftBreak')
+      end)
+    },
     group 'Span' {
       test('has property `attr`', function ()
         local elem = pandoc.Span('one', {'', {'number'}})

@@ -186,7 +186,7 @@ inlineConstructors =
     <#> parameter peekText "text" "string" "string content"
     =#> functionResult pushInline "Inline" "raw inline element"
   , mkInlinesConstr "SmallCaps" SmallCaps
-  , defun "SoftSpace"
+  , defun "SoftBreak"
     ### return SoftBreak
     =#> functionResult pushInline "Inline" "soft break"
   , defun "Space"
