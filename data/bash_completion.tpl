@@ -4,7 +4,7 @@
 
 _pandoc()
 {
-    local cur prev opts lastc informats outformats datafiles
+    local cur prev opts lastc informats outformats highlight_styles datafiles
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
@@ -57,8 +57,16 @@ _pandoc()
              COMPREPLY=( $(compgen -W "section chapter part" -- ${cur}) )
              return 0
              ;;
-         --highlight-style)
+         --highlight-style|--print-highlight-style)
              COMPREPLY=( $(compgen -W "${highlight_styles}" -- ${cur}) )
+             return 0
+             ;;
+         --eol)
+             COMPREPLY=( $(compgen -W "crlf lf native" -- ${cur}) )
+             return 0
+             ;;
+         --markdown-headings)
+             COMPREPLY=( $(compgen -W "setext atx" -- ${cur}) )
              return 0
              ;;
          *)
