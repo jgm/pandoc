@@ -64,5 +64,5 @@ pandocPackageSearcher pkgName =
     Lua.pushHaskellFunction f
     return 1
   reportPandocSearcherFailure = liftPandocLua $ do
-    Lua.push ("\n\t" <> pkgName <> "is not one of pandoc's default packages")
+    Lua.push ("\n\t" <> pkgName <> " is not one of pandoc's default packages")
     return (Lua.NumResults 1)
