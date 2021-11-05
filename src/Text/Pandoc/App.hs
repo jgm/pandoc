@@ -68,6 +68,7 @@ import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
          defaultUserDataDir, tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
+import Text.Pandoc.Readers.Custom (readCustom)
 import qualified Text.Pandoc.UTF8 as UTF8
 #ifndef _WINDOWS
 import System.Posix.IO (stdOutput)
@@ -154,11 +155,13 @@ convertWithOpts opts = do
                             -> ByteStringReader $ \o t -> sandbox files (r o t)
 
     (reader, readerExts) <-
-      if optSandbox opts
-         then case runPure (getReader readerName) of
-                Left e -> throwError e
-                Right (r, rexts) -> return (makeSandboxed r, rexts)
-         else getReader readerName
+      if ".lua" `T.isSuffixOf` readerName
+         then return (TextReader (readCustom (T.unpack readerName)), mempty)
+         else if optSandbox opts
+                 then case runPure (getReader readerName) of
+                        Left e -> throwError e
+                        Right (r, rexts) -> return (makeSandboxed r, rexts)
+                 else getReader readerName
 
     outputSettings <- optToOutputSettings opts
     let format = outputFormat outputSettings
