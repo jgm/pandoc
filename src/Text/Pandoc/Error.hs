@@ -171,34 +171,34 @@ handleError (Left e) =
   exitCode =
     case e of
       PandocIOError{} -> 1
+      PandocFailOnWarningError{} -> 3
+      PandocAppError{} -> 4
+      PandocTemplateError{} -> 5
+      PandocOptionError{} -> 6
+      PandocUnknownReaderError{} -> 21
+      PandocUnknownWriterError{} -> 22
+      PandocUnsupportedExtensionError{} -> 23
+      PandocCiteprocError{} -> 24
+      PandocBibliographyError{} -> 25
+      PandocEpubSubdirectoryError{} -> 31
+      PandocPDFError{} -> 43
+      PandocXMLError{} -> 44
+      PandocPDFProgramNotFoundError{} -> 47
       PandocHttpError{} -> 61
       PandocShouldNeverHappenError{} -> 62
       PandocSomeError{} -> 63
       PandocParseError{} -> 64
       PandocParsecError{} -> 65
       PandocMakePDFError{} -> 66
-      PandocOptionError{} -> 6
       PandocSyntaxMapError{} -> 67
-      PandocFailOnWarningError{} -> 3
-      PandocPDFProgramNotFoundError{} -> 47
-      PandocPDFError{} -> 43
-      PandocXMLError{} -> 44
       PandocFilterError{} -> 83
       PandocLuaError{} -> 84
-      PandocCouldNotFindDataFileError{} -> 97
-      PandocResourceNotFound{} -> 99
-      PandocTemplateError{} -> 5
-      PandocAppError{} -> 4
-      PandocEpubSubdirectoryError{} -> 31
       PandocMacroLoop{} -> 91
       PandocUTF8DecodingError{} -> 92
       PandocIpynbDecodingError{} -> 93
       PandocUnsupportedCharsetError{} -> 94
-      PandocUnknownReaderError{} -> 21
-      PandocUnknownWriterError{} -> 22
-      PandocUnsupportedExtensionError{} -> 23
-      PandocCiteprocError{} -> 24
-      PandocBibliographyError{} -> 25
+      PandocCouldNotFindDataFileError{} -> 97
+      PandocResourceNotFound{} -> 99
 
 err :: Int -> Text -> IO a
 err exitCode msg = do
