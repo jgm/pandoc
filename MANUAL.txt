@@ -1480,6 +1480,7 @@ Nonzero exit codes have the following meanings:
 
  Code Error
 ----- ------------------------------------
+    1 PandocIOError
     3 PandocFailOnWarningError
     4 PandocAppError
     5 PandocTemplateError
@@ -1501,6 +1502,7 @@ Nonzero exit codes have the following meanings:
    66 PandocMakePDFError
    67 PandocSyntaxMapError
    83 PandocFilterError
+   84 PandocLuaError
    91 PandocMacroLoop
    92 PandocUTF8DecodingError
    93 PandocIpynbDecodingError
