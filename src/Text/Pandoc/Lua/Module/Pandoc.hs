@@ -138,9 +138,9 @@ inlineConstructors =
     <#> parameter peekInlinesFuzzy "content" "Inline" "placeholder content"
     =#> functionResult pushInline "Inline" "cite element"
   , defun "Code"
-    ### liftPure2 (flip Code)
+    ### liftPure2 (\text mattr -> Code (fromMaybe nullAttr mattr) text)
     <#> parameter peekText "code" "string" "code string"
-    <#> parameter peekAttr "attr" "Attr" "additional attributes"
+    <#> optionalParameter peekAttr "attr" "Attr" "additional attributes"
     =#> functionResult pushInline "Inline" "code element"
   , mkInlinesConstr "Emph" Emph
   , defun "Image"
@@ -186,7 +186,7 @@ inlineConstructors =
     <#> parameter peekText "text" "string" "string content"
     =#> functionResult pushInline "Inline" "raw inline element"
   , mkInlinesConstr "SmallCaps" SmallCaps
-  , defun "SoftSpace"
+  , defun "SoftBreak"
     ### return SoftBreak
     =#> functionResult pushInline "Inline" "soft break"
   , defun "Space"

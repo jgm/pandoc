@@ -459,7 +459,8 @@ inlineToMarkdown opts il@(RawInline f str) = do
          literal (T.replicate numticks "`") <> literal "{=" <> literal fmt <> literal "}"
   let renderEmpty = mempty <$ report (InlineNotRendered il)
   case variant of
-    PlainText -> renderEmpty
+    PlainText
+      | f == "plain" -> return $ literal str
     Commonmark
       | f `elem` ["gfm", "commonmark", "commonmark_x", "markdown"]
          -> return $ literal str

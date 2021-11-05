@@ -19,7 +19,7 @@ REVISION?=1
 # For gauge:
 # BENCHARGS?=--small --ci=0.90 --match=pattern $(PATTERN)
 # For tasty-bench:
-BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
+BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 
 quick:
 	stack install --ghc-options='$(GHCOPTS)' --system-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
@@ -87,7 +87,7 @@ check: checkdocs check-cabal
 checkdocs:
 	! grep -q -n -e "\t" MANUAL.txt changelog.md
 
-debpkg: man/pandoc.1
+debpkg:
 	docker run -v `pwd`:/mnt \
                    -v `pwd`/linux/artifacts:/artifacts \
 		   --user $(id -u):$(id -g) \

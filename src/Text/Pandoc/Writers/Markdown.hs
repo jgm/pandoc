@@ -399,7 +399,8 @@ blockToMarkdown' opts b@(RawBlock f str) = do
          (literal "```" <> literal "\n")
   let renderEmpty = mempty <$ report (BlockNotRendered b)
   case variant of
-    PlainText -> renderEmpty
+    PlainText
+      | f == "plain" -> return $ literal str <> literal "\n"
     Commonmark
       | f `elem` ["gfm", "commonmark", "commonmark_x", "markdown"]
          -> return $ literal str <> literal "\n"

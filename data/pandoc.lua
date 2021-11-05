@@ -27,6 +27,7 @@ local M = {}
 -- Re-export bundled modules
 M.List = require 'pandoc.List'
 M.mediabag = require 'pandoc.mediabag'
+M.path = require 'pandoc.path'
 M.system = require 'pandoc.system'
 M.types = require 'pandoc.types'
 M.utils = require 'pandoc.utils'
@@ -55,6 +56,7 @@ local function create_accessor_behavior (tag)
     if k == "t" then
       return getmetatable(t)["tag"]
     end
+    return getmetatable(t)[k]
   end
   behavior.__pairs = function (t)
     return next, t

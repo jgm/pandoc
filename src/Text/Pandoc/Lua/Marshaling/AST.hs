@@ -111,7 +111,18 @@ instance Pushable Block where
   push = pushBlock
 
 typeCitation :: LuaError e => DocumentedType e Citation
-typeCitation = deftype "Citation" []
+typeCitation = deftype "Citation"
+  [ operation Eq $ lambda
+    ### liftPure2 (==)
+    <#> parameter (optional . peekCitation) "Citation" "a" ""
+    <#> parameter (optional . peekCitation) "Citation" "b" ""
+    =#> functionResult pushBool "boolean" "true iff the citations are equal"
+
+  , operation Tostring $ lambda
+    ### liftPure show
+    <#> parameter peekCitation "Citation" "citation" ""
+    =#> functionResult pushString "string" "native Haskell representation"
+  ]
   [ property "id" "citation ID / key"
       (pushText, citationId)
       (peekText, \citation cid -> citation{ citationId = cid })
@@ -340,6 +351,7 @@ getBlockContent = \case
   -- inline content
   Para inlns          -> Actual $ ContentInlines inlns
   Plain inlns         -> Actual $ ContentInlines inlns
+  Header _ _ inlns    -> Actual $ ContentInlines inlns
   -- inline content
   BlockQuote blks     -> Actual $ ContentBlocks blks
   Div _ blks          -> Actual $ ContentBlocks blks
@@ -357,6 +369,7 @@ setBlockContent = \case
   -- inline content
   Para _           -> Actual . Para . inlineContent
   Plain _          -> Actual . Plain . inlineContent
+  Header attr lvl _ -> Actual . Header attr lvl . inlineContent
   -- block content
   BlockQuote _     -> Actual . BlockQuote . blockContent
   Div attr _       -> Actual . Div attr . blockContent
@@ -612,6 +625,7 @@ setInlineContent = \case
   Quoted qt _   -> Actual . Quoted qt . inlineContent
   SmallCaps _   -> Actual . SmallCaps . inlineContent
   Span attr _   -> Actual . Span attr . inlineContent
+  Strikeout _   -> Actual . Strikeout . inlineContent
   Strong _      -> Actual . Strong . inlineContent
   Subscript _   -> Actual . Subscript . inlineContent
   Superscript _ -> Actual . Superscript . inlineContent
@@ -638,6 +652,7 @@ getInlineContent = \case
   Quoted _ inlns    -> Actual $ ContentInlines inlns
   SmallCaps inlns   -> Actual $ ContentInlines inlns
   Span _ inlns      -> Actual $ ContentInlines inlns
+  Strikeout inlns   -> Actual $ ContentInlines inlns
   Strong inlns      -> Actual $ ContentInlines inlns
   Subscript inlns   -> Actual $ ContentInlines inlns
   Superscript inlns -> Actual $ ContentInlines inlns
@@ -697,7 +712,7 @@ typeInline = deftype "Inline"
       (pushPandocList pushInline, \case
           Image _ capt _ -> Actual capt
           _              -> Absent)
-      (peekInlines, \case
+      (peekInlinesFuzzy, \case
           Image attr _ target -> Actual . (\capt -> Image attr capt target)
           _                   -> const Absent)
   , possibleProperty "citations" "list of citations"

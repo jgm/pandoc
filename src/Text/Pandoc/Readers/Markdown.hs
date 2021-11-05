@@ -186,26 +186,18 @@ litChar = escapedChar'
 -- including inlines between balanced pairs of square brackets.
 inlinesInBalancedBrackets :: PandocMonad m => MarkdownParser m (F Inlines)
 inlinesInBalancedBrackets =
-  try $ char '[' >> withRaw (go 1) >>=
-          parseFromString inlines . stripBracket . snd
-  where stripBracket t = case T.unsnoc t of
-          Just (t', ']') -> t'
-          _              -> t
-        go :: PandocMonad m => Int -> MarkdownParser m ()
-        go 0 = return ()
-        go openBrackets =
-          (() <$ (escapedChar <|>
-                code <|>
-                math <|>
-                rawHtmlInline <|>
-                rawLaTeXInline') >> go openBrackets)
-          <|>
-          (do char ']'
-              Control.Monad.when (openBrackets > 1) $ go (openBrackets - 1))
-          <|>
-          (char '[' >> go (openBrackets + 1))
-          <|>
-          (anyChar >> go openBrackets)
+  mconcat <$> try (char '[' >> go (1 :: Int))
+  where
+   go n =
+     (:) <$> (note <|> cite <|> bracketedSpan <|> link) <*> go n
+     <|>
+     (char '[' *> ((:) <$> pure (pure (B.str "[")) <*> go (n + 1)))
+     <|>
+     (char ']' *> (if n > 1
+                      then (:) <$> pure (pure (B.str "]")) <*> go (n - 1)
+                      else pure []))
+     <|>
+     (:) <$> inline <*> go n
 
 --
 -- document structure

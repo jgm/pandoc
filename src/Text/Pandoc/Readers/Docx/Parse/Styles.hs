@@ -310,9 +310,8 @@ getIndentation ns el = do
     , rightParIndent = findAttrByName ns "w" "right" indElement <|>
                        findAttrByName ns "w" "end" indElement >>=
                        stringToInteger
-    , hangingParIndent = (findAttrByName ns "w" "hanging" indElement >>= stringToInteger) <|>
-                         fmap negate
-                           (findAttrByName ns "w" "firstLine" indElement >>= stringToInteger)
+    , hangingParIndent = findAttrByName ns "w" "hanging" indElement >>=
+                         stringToInteger
     }
 
 getElementStyleName :: Coercible T.Text a => NameSpaces -> Element -> Maybe a
