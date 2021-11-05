@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua
@@ -24,6 +25,7 @@ import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Lua.Packages (installPandocPackageSearcher)
 import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua, runPandocLua)
 import qualified Data.Text as T
+import qualified Lua.LPeg as LPeg
 import qualified Text.Pandoc.Definition as Pandoc
 import qualified Text.Pandoc.Lua.Module.Pandoc as ModulePandoc
 
@@ -45,6 +47,7 @@ initLuaState = do
   liftPandocLua Lua.openlibs
   installPandocPackageSearcher
   initPandocModule
+  requireGlobalModules
   loadInitScript "init.lua"
  where
   initPandocModule :: PandocLua ()
@@ -53,8 +56,8 @@ initLuaState = do
     ModulePandoc.pushModule
     -- register as loaded module
     liftPandocLua $ do
-      Lua.pushvalue Lua.top
       Lua.getfield Lua.registryindex Lua.loaded
+      Lua.pushvalue (Lua.nth 2)
       Lua.setfield (Lua.nth 2) "pandoc"
       Lua.pop 1
     -- copy constructors into registry
@@ -72,6 +75,29 @@ initLuaState = do
       throwM . PandocLuaError . (prefix <>) $ case err of
         PandocLuaError msg -> msg
         _                  -> T.pack $ show err
+
+  requireGlobalModules :: PandocLua ()
+  requireGlobalModules = liftPandocLua $ do
+    Lua.pushcfunction LPeg.luaopen_lpeg_ptr
+    Lua.pcall 0 1 Nothing >>= \case
+      Lua.OK -> do
+        -- Success. Register as a loaded module.
+        -- Get table "_LOADED" from registry, add entry.
+        _ <- Lua.getfield Lua.registryindex Lua.loaded
+        Lua.pushvalue (Lua.nth 2)
+        Lua.setfield (Lua.nth 2) "lpeg"
+        Lua.pop 1  -- pop _LOADED
+
+      _ -> do
+        -- Maybe LPeg was not compiled into the program. Try loading via
+        -- the normal package loading mechanism.
+        pop 1 -- ignore error message
+        Lua.getglobal "require"
+        Lua.pushName "lpeg"
+        Lua.call 1 1   -- throws an exception if the module is not found
+
+    -- Module on top of stack. Register as global
+    Lua.setglobal "lpeg"
 
 -- | AST elements are marshaled via normal constructor functions in the
 -- @pandoc@ module. However, accessing Lua globals from Haskell is
