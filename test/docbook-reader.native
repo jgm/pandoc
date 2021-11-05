@@ -2930,4 +2930,191 @@ Pandoc
             [ Str "A" , Space , Str "Final" , Space , Str "Step" ]
         ]
       ]
+  , Header
+      1
+      ( "indexterms" , [] , [] )
+      [ Str "Index" , Space , Str "terms" ]
+  , Para
+      [ Str "In"
+      , Space
+      , Str "the"
+      , Space
+      , Str "simplest"
+      , Space
+      , Str "case,"
+      , Space
+      , Str "index"
+      , Space
+      , Str "terms"
+      , Span
+          ( "" , [ "indexterm" ] , [ ( "primary" , "index term" ) ] )
+          []
+      , Space
+      , Str "consists"
+      , Space
+      , Str "of"
+      , Space
+      , Str "just"
+      , Space
+      , Str "a"
+      , Space
+      , Code ( "" , [] , [] ) "<primary>"
+      , Space
+      , Str "element,"
+      , Space
+      , Str "but"
+      , Space
+      , Span
+          ( ""
+          , [ "indexterm" ]
+          , [ ( "primary" , "index term" )
+            , ( "secondary" , "multi-level" )
+            ]
+          )
+          []
+      , Space
+      , Str "they"
+      , Space
+      , Str "can"
+      , Space
+      , Str "also"
+      , Space
+      , Str "consist"
+      , Space
+      , Str "of"
+      , Space
+      , Str "a"
+      , Space
+      , Code ( "" , [] , [] ) "<primary>"
+      , Space
+      , Str "and"
+      , Space
+      , Code ( "" , [] , [] ) "<secondary>"
+      , Space
+      , Str "element,"
+      , Space
+      , Str "and"
+      , Space
+      , Span
+          ( ""
+          , [ "indexterm" ]
+          , [ ( "primary" , "index term" )
+            , ( "secondary" , "multi-level" )
+            , ( "tertiary" , "3-level" )
+            ]
+          )
+          []
+      , Space
+      , Str "can"
+      , Space
+      , Str "even"
+      , Space
+      , Str "include"
+      , Space
+      , Str "a"
+      , Space
+      , Code ( "" , [] , [] ) "<tertiary>"
+      , Space
+      , Str "term."
+      ]
+  , Para
+      [ Str "Index"
+      , Space
+      , Str "terms"
+      , Space
+      , Str "can"
+      , Space
+      , Str "also"
+      , Space
+      , Str "refer"
+      , Space
+      , Str "to"
+      , Space
+      , Str "other"
+      , Space
+      , Str "index"
+      , Space
+      , Str "terms:"
+      , Space
+      , Span
+          ( ""
+          , [ "indexterm" ]
+          , [ ( "primary" , "index cross referencing" ) ]
+          )
+          []
+      , Span
+          ( ""
+          , [ "indexterm" ]
+          , [ ( "primary" , "index term" )
+            , ( "secondary" , "cross references" )
+            , ( "see" , "index cross referencing" )
+            ]
+          )
+          []
+      , Str "exclusively,"
+      , Space
+      , Str "using"
+      , Space
+      , Str "the"
+      , Space
+      , Code ( "" , [] , [] ) "<see>"
+      , Space
+      , Str "tag;"
+      , Space
+      , Str "or"
+      , Space
+      , Span
+          ( ""
+          , [ "indexterm" ]
+          , [ ( "primary" , "index cross referencing" )
+            , ( "seealso" , "cross referencing" )
+            ]
+          )
+          []
+      , Space
+      , Str "as"
+      , Space
+      , Str "a"
+      , Space
+      , Str "reference"
+      , Space
+      , Str "to"
+      , Space
+      , Str "related"
+      , Space
+      , Str "terms,"
+      , Space
+      , Str "using"
+      , Space
+      , Str "the"
+      , Space
+      , Code ( "" , [] , [] ) "<seealso>"
+      , Space
+      , Str "tag."
+      ]
+  , Para
+      [ Span
+          ( ""
+          , [ "indexterm" ]
+          , [ ( "primary" , "food" )
+            , ( "secondary" , "big baguette supreme" )
+            ]
+          )
+          []
+      , Str "Nested"
+      , Space
+      , Str "content"
+      , Space
+      , Str "in"
+      , Space
+      , Str "index"
+      , Space
+      , Str "term"
+      , Space
+      , Str "elements"
+      , Space
+      , Str "is"
+      , Space
+      , Str "flattened."
+      ]
   ]

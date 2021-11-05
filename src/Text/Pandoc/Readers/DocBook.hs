@@ -19,7 +19,7 @@ import Data.Foldable (asum)
 import Data.Generics
 import Data.List (intersperse,elemIndex)
 import Data.List.NonEmpty (nonEmpty)
-import Data.Maybe (fromMaybe,mapMaybe)
+import Data.Maybe (catMaybes,fromMaybe,mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -316,7 +316,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] postcode - A postal code in an address
 [x] preface - Introductory matter preceding the first chapter of a book
 [ ] prefaceinfo - Meta-information for a Preface
-[ ] primary - The primary word or phrase under which an index term should be
+[x] primary - The primary word or phrase under which an index term should be
     sorted
 [ ] primaryie - A primary term in an index entry, not in the text
 [ ] printhistory - The printing history of a document
@@ -385,7 +385,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [o] screeninfo - Information about how a screen shot was produced
 [ ] screenshot - A representation of what the user sees or might see on a
     computer screen
-[ ] secondary - A secondary word or phrase in an index term
+[x] secondary - A secondary word or phrase in an index term
 [ ] secondaryie - A secondary term in an index entry, rather than in the text
 [x] sect1 - A top-level section of document
 [x] sect1info - Meta-information for a Sect1
@@ -461,7 +461,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] td - A table entry in an HTML table
 [x] term - The word or phrase being defined or described in a variable list
 [ ] termdef - An inline term definition
-[ ] tertiary - A tertiary word or phrase in an index term
+[x] tertiary - A tertiary word or phrase in an index term
 [ ] tertiaryie - A tertiary term in an index entry, rather than in the text
 [ ] textdata - Pointer to external text data
 [ ] textobject - A wrapper for a text description of an object and its
@@ -1080,6 +1080,17 @@ elementToStr :: Content -> Content
 elementToStr (Elem e') = Text $ CData CDataText (strContentRecursive e') Nothing
 elementToStr x = x
 
+childElTextAsAttr :: Text -> Element -> Maybe (Text, Text)
+childElTextAsAttr n e = case findChild q e of
+        Nothing -> Nothing
+        Just childEl -> Just (n, strContentRecursive childEl)
+        where q = QName n (Just "http://docbook.org/ns/docbook") Nothing
+
+attrValueAsOptionalAttr :: Text -> Element -> Maybe (Text, Text)
+attrValueAsOptionalAttr n e = case attrValue n e of
+        "" -> Nothing
+        _ -> Just (n, attrValue n e)
+
 parseInline :: PandocMonad m => Content -> DB m Inlines
 parseInline (Text (CData _ s _)) = return $ text s
 parseInline (CRef ref) =
@@ -1094,6 +1105,28 @@ parseInline (Elem e) =
           if ident /= "" || classes /= []
             then innerInlines (spanWith (ident,classes,[]))
             else innerInlines id
+        "indexterm" -> do
+          let ident = attrValue "id" e
+          let classes = T.words $ attrValue "role" e
+          let attrs =
+                -- In DocBook, <primary>, <secondary>, <tertiary>, <see>, and <seealso>
+                -- have mixed content models. However, because we're representing these
+                -- elements in Pandoc's AST as attributes of a phrase, we flatten all
+                -- the descendant content of these elements.
+                [ childElTextAsAttr "primary" e
+                , childElTextAsAttr "secondary" e
+                , childElTextAsAttr "tertiary" e
+                , childElTextAsAttr "see" e
+                , childElTextAsAttr "seealso" e
+                , attrValueAsOptionalAttr "significance" e
+                , attrValueAsOptionalAttr "startref" e
+                , attrValueAsOptionalAttr "scope" e
+                , attrValueAsOptionalAttr "class" e
+                -- We don't do anything with the "pagenum" attribute, because these only
+                -- occur within literal <index> sections, which is not supported by Pandoc,
+                -- because Pandoc has no concept of pages.
+                ]
+          return $ spanWith (ident, ("indexterm" : classes), (catMaybes attrs)) mempty
         "equation" -> equation e displayMath
         "informalequation" -> equation e displayMath
         "inlineequation" -> equation e math
