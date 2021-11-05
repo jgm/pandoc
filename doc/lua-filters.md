@@ -245,6 +245,16 @@ variables.
     variable is of type [CommonState] and
     is read-only.
 
+## Global modules
+
+There are two modules which are preloaded and accessible through
+global variables. The first is `pandoc`, which is described in the
+next section. The other is `lpeg`, a package based on Parsing
+Expression Grammars (PEG). See the official [LPeg homepage] for
+details.
+
+[LPeg homepage]: http://www.inf.puc-rio.br/~roberto/lpeg/
+
 # Pandoc Module
 
 The `pandoc` Lua module is loaded into the filter's Lua
