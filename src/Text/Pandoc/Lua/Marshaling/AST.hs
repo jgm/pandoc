@@ -85,6 +85,10 @@ typePandoc = deftype "Pandoc"
      <#> parameter (optional . peekPandoc) "doc1" "pandoc" ""
      <#> parameter (optional . peekPandoc) "doc2" "pandoc" ""
      =#> functionResult pushBool "boolean" "true iff the two values are equal"
+  , operation Tostring $ lambda
+    ### liftPure show
+    <#> parameter peekPandoc "Pandoc" "doc" ""
+    =#> functionResult pushString "string" "native Haskell representation"
   ]
   [ property "blocks" "list of blocks"
       (pushPandocList pushBlock, \(Pandoc _ blks) -> blks)
