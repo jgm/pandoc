@@ -109,7 +109,7 @@ readerOptionsMembers =
 -- | Retrieves a 'ReaderOptions' object from a table on the stack, using
 -- the default values for all missing fields.
 --
--- Internally, this push the defaults reader options, sets each
+-- Internally, this pushes the default reader options, sets each
 -- key/value pair of the table in the userdata value, then retrieves the
 -- object again. This will update all fields and complain about unknown
 -- keys.
@@ -128,3 +128,6 @@ peekReaderOptionsTable idx = retrieving "ReaderOptions (table)" $ do
     pushnil -- first key
     setFields
   peekUD typeReaderOptions top
+
+instance Pushable ReaderOptions where
+  push = pushReaderOptions
