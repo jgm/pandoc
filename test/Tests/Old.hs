@@ -199,6 +199,9 @@ tests pandocPath =
       "testsuite.native" "writer.custom"
     , test' "tables" ["-f", "native", "-t", "../data/sample.lua"]
       "tables.native" "tables.custom"
+    , test' "doclayout" [ "-f", "native", "-t", "lua/writers/md-doclayout.lua"
+                        , "--columns", "78"]
+      "testsuite.native" "writer.custom-doclayout"
     ]
   , testGroup "man"
     [ test' "reader" ["-r", "man", "-w", "native", "-s"]

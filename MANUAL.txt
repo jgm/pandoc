@@ -6940,10 +6940,14 @@ If you want your custom reader to have access to reader options
 (e.g. the tab stop setting), you give your Reader function a
 second `options` parameter.
 
-A custom writer is a Lua script that defines a function
-that specifies how to render each element in a Pandoc AST.
-To see a documented example which you can modify according
-to your needs:
+A custom writer is a Lua script that defines a function that
+specifies how to render each element in a Pandoc AST.  Each
+of these functions must return either a string, or a `Doc`
+element created through the `pandoc.doclayout` Lua module.
+Whether pandoc passes strings or `Doc` values to the
+functions can be controlled through the
+`PANDOC_USE_DOCLAYOUT` variable.  To get a documented example
+which you can modify according to your needs, do
 
     pandoc --print-default-data-file sample.lua
 

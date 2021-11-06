@@ -3742,6 +3742,335 @@ Usage:
       print('type of metavalue `author`:', pandoc.utils.type(meta.author))
     end
 
+# Module pandoc.doclayout
+
+`doclayout` is a prettyprinting library for laying out text
+documents. It is useful to create prettified raw text output.
+
+## Rendering
+
+### render {#pandoc.doclayout.render}
+
+`render (doc[, colwidth])`
+
+Render the `Doc` using the given column width.
+
+Parameters:
+
+`doc`
+:   Doc to render
+
+`colwidth`
+:   Maximum number of characters per line
+
+## Doc construction and combination
+
+All functions return a fresh `Doc` element.
+
+### after_break {#pandoc.doclayout.after_break}
+
+`after_break (doc)`
+
+Creates a `Doc` which is conditionally included only if it comes
+at the beginning of a line.
+
+### before_non_blank {#pandoc.doclayout.before_non_blank}
+
+`before_non_blank (doc)`
+
+Conditionally includes the given `Doc` unless it is followed by a
+blank space.
+
+### blankline {#pandoc.doclayout.blankline}
+
+`blankline`
+
+Inserts a blank line unless one exists already.
+
+### blanklines {#pandoc.doclayout.blanklines}
+
+`blanklines (n)`
+
+Insert blank lines unless they exist already.
+
+Parameters:
+
+`n`
+:   Number of blank lines to insert.
+
+### braces {#pandoc.doclayout.braces}
+
+`braces (doc)`
+
+Puts a `Doc` in curly braces.
+
+### brackets {#pandoc.doclayout.brackets}
+
+`brackets (doc)`
+
+Puts a `Doc` in square brackets.
+
+### cblock {#pandoc.doclayout.cblock}
+
+`cblock (width, doc)`
+
+Like `lblock` but aligned centered.
+
+Parameters:
+
+`width`
+:   Width of the created block, in characters
+
+`doc`
+:   Contents of the block ([Doc])
+
+### chomp {#pandoc.doclayout.chomp}
+
+`chomp (doc)`
+
+Chomps trailing blank space off of a `Doc`.
+
+### concat {#pandoc.doclayout.concat}
+
+`concat (docs[, sep])`
+
+Concatenate the given `Doc`s, interspersing `sep` if specified.
+
+Parameters:
+
+`docs`
+:   List of `Doc`s
+
+`sep`
+:   Separator `Doc`
+
+### cr {#pandoc.doclayout.cr}
+
+`cr`
+
+A carriage return. Does nothing if we're at the beginning of a
+line; otherwise inserts a newline.
+
+### double_quotes {#pandoc.doclayout.double_quotes}
+
+`double_quotes (doc)`
+
+Wraps a `Doc` in double quotes
+
+### empty {#pandoc.doclayout.empty}
+
+`empty`
+
+The empty document.
+
+### flush {#pandoc.doclayout.flush}
+
+`flush (doc)`
+
+Makes a `Doc` flush against the left margin.
+
+### hang {#pandoc.doclayout.hang}
+
+`hang (indent, start, doc)`
+
+Creates a hanging indent.
+
+Parameters:
+
+`indent`
+:   Indentation width in characters
+
+`start`
+:   Start, printed unindented
+
+`doc`
+:   Doc which is indented by `indent` spaces on every line.
+
+### inside {#pandoc.doclayout.inside}
+
+`inside (start, end, contents)`
+
+Encloses a `Doc` inside a start and end `Doc`.
+
+Parameters:
+
+`start`
+:   Doc before contents
+
+`end`
+:   Doc after contents
+
+`contents`
+:   Contents Doc
+
+### lblock {#pandoc.doclayout.lblock}
+
+`lblock (width, doc)`
+
+Creates a block with the given width and content, aligned to the
+left.
+
+Parameters:
+
+`width`
+:   Width of the created block, in characters
+
+`doc`
+:   Contents of the block ([Doc])
+
+
+### literal {#pandoc.doclayout.literal}
+
+`literal (string)`
+
+Creates a `Doc` from a string.
+
+### nest {#pandoc.doclayout.nest}
+
+`nest (indent)`
+
+Indents a `Doc` by the specified number of spaces.
+
+Parameters:
+
+`indent`
+:   Indentation width.
+
+### nestle {#pandoc.doclayout.nestle}
+
+`nestle (doc)`
+
+Removes leading blank lines from a `Doc`.
+
+### nowrap {#pandoc.doclayout.nowrap}
+
+`nowrap (doc)`
+
+Makes a `Doc` non-reflowable.
+
+### parens {#pandoc.doclayout.parens}
+
+`parens (doc)`
+
+Puts a `Doc` in parentheses.
+
+### prefixed {#pandoc.doclayout.prefixed}
+
+`prefixed (prefix, doc)`
+
+Uses the specified string as a prefix for every line of the
+inside document (except the first, if not at the beginning of the
+line).
+
+Parameters:
+
+`prefix`
+:   Prefix to prepend to each line
+
+`doc`
+:   Inside Doc.
+
+### quotes {#pandoc.doclayout.quotes}
+
+`quotes (doc)`
+
+Wraps a `Doc` in single quotes.
+
+### rblock {#pandoc.doclayout.rblock}
+
+`rblock (indent, doc)`
+
+Like `lblock` but aligned to the right.
+
+Parameters:
+
+`width`
+:   Width of the created block, in characters
+
+`doc`
+:   Contents of the block ([Doc])
+
+### space {#pandoc.doclayout.space}
+
+`space`
+
+A breaking (reflowable) space.
+
+### vfill {#pandoc.doclayout.vfill}
+
+`vfill`
+
+Creates an expandable border that, when placed next to a box,
+expands to the height of the box.
+
+Parameters:
+
+`text`
+:   Border text
+
+## Operators
+
+### `..` {#pandoc.doclayout.__concat}
+
+Concatenate two `Doc` elements.
+
+### `+` {#pandoc.doclayout.__add}
+
+Concatenate two `Doc`s, inserting a reflowable space between them.
+
+### `/` {#pandoc.doclayout.__div}
+
+If `a` and `b` are `Doc` elements, then `a / b` puts `a` above `b`.
+
+### `//` {#pandoc.doclayout.__idiv}
+
+If `a` and `b` are `Doc` elements, then `a // b` puts `a` above
+`b`, inserting a blank line between them.
+
+## Document Querying
+
+### is_empty {#pandoc.doclayout.is_empty}
+
+`is_empty (doc)`
+
+Returns `true` iff `doc` is the empty document, `false`
+otherwise.
+
+### min_offset {#pandoc.doclayout.min_offset}
+
+`min_offset (doc)`
+
+Returns the minimal width of a @'Doc'@ when reflowed at breakable
+spaces.
+
+### update_column {#pandoc.doclayout.update_column}
+
+`update_column (doc, i)`
+
+Returns the column that would be occupied by the last laid out
+character.
+
+### height {#pandoc.doclayout.height}
+
+`height (doc)`
+
+Returns the height of a block or other Doc.
+
+### real_length {#pandoc.doclayout.real_length}
+
+`real_length (str)`
+
+Returns the real length of a string in a monospace font: 0 for a
+combining character, 1, for a regular character, 2 for an East
+Asian wide character.
+
+### offset {#pandoc.doclayout.offset}
+
+`offset (doc)`
+
+Returns the width of a `Doc` (as number of characters).
+
+
 # Module pandoc.mediabag
 
 The `pandoc.mediabag` module allows accessing pandoc's media

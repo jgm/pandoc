@@ -21,6 +21,7 @@ import Text.Pandoc.Lua.Marshal.List (pushListModule)
 import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua)
 
 import qualified HsLua as Lua
+import qualified HsLua.Module.DocLayout as DocLayout
 import qualified HsLua.Module.Path as Path
 import qualified HsLua.Module.Text as Text
 import qualified Text.Pandoc.Lua.Module.Pandoc as Pandoc
@@ -48,6 +49,7 @@ pandocPackageSearcher :: String -> PandocLua Lua.NumResults
 pandocPackageSearcher pkgName =
   case pkgName of
     "pandoc"          -> pushModuleLoader Pandoc.documentedModule
+    "pandoc.doclayout"-> pushModuleLoader DocLayout.documentedModule
     "pandoc.mediabag" -> pushModuleLoader MediaBag.documentedModule
     "pandoc.path"     -> pushModuleLoader Path.documentedModule
     "pandoc.system"   -> pushModuleLoader System.documentedModule

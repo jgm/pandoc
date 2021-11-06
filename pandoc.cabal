@@ -359,6 +359,7 @@ extra-source-files:
                  test/writer.xwiki
                  test/writer.muse
                  test/writer.custom
+                 test/writer.custom-doclayout
                  test/writers-lang-and-dir.latex
                  test/writers-lang-and-dir.context
                  test/dokuwiki_inline_formatting.dokuwiki
@@ -408,6 +409,7 @@ extra-source-files:
                  test/lua/module/*.lua
                  test/lua/module/partial.test
                  test/lua/module/tiny.epub
+                 test/lua/writers/*.lua
 source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
@@ -483,6 +485,7 @@ library
                  hslua                 >= 2.1      && < 2.2,
                  hslua-aeson           >= 2.1      && < 2.2,
                  hslua-marshalling     >= 2.1      && < 2.2,
+                 hslua-module-doclayout >= 1.0.1   && < 1.1,
                  hslua-module-path     >= 1.0      && < 1.1,
                  hslua-module-system   >= 1.0      && < 1.1,
                  hslua-module-text     >= 1.0      && < 1.1,
