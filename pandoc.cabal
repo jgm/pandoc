@@ -642,6 +642,7 @@ library
                    Text.Pandoc.Readers.Ipynb,
                    Text.Pandoc.Readers.CSV,
                    Text.Pandoc.Readers.RTF,
+                   Text.Pandoc.Readers.Custom,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.Docbook,
