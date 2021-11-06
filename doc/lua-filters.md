@@ -2742,7 +2742,33 @@ format, and functions to filter and modify a subtree.
 [`sha1`]{#pandoc.sha1}
 
 :   Alias for [`pandoc.utils.sha1`](#pandoc.utils.sha1)
-    (DEPRECATED).
+    (DEPRECATED, use `pandoc.utils.sha1` instead).
+
+## Other constructors
+
+[`ReaderOptions (opts)`]{#pandoc.readeroptions}
+
+:   Creates a new [ReaderOptions] value.
+
+    Parameters
+
+    `opts`:
+    :   Either a table with a subset of the properties of a
+        [ReaderOptions] object, or another ReaderOptions object.
+        Uses the defaults specified in the manual for all
+        properties that are not explicitly specified. Throws an
+        error if a table contains properties which are not present
+        in a ReaderOptions object. ([ReaderOptions]|table)
+
+    Returns: new [ReaderOptions] object
+
+    Usage:
+
+        -- copy of the reader options that were defined on the command line.
+        local cli_opts = pandoc.ReaderOptions(PANDOC_READER_OPTIONS)
+
+        -- default reader options, but columns set to 66.
+        local short_colums_opts = pandoc.ReaderOptions {columns = 66}
 
 ## Helper functions
 
@@ -2815,17 +2841,23 @@ Returns: the transformed inline element
 
 ### read {#pandoc.read}
 
-`read (markup[, format])`
+`read (markup[, format[, reader_options]])`
 
 Parse the given string into a Pandoc document.
 
 Parameters:
 
 `markup`:
-:   the markup to be parsed
+:   the markup to be parsed (string)
 
 `format`:
-:   format specification, defaults to `"markdown"`.
+:   format specification, defaults to `"markdown"` (string)
+
+`reader_options`:
+:   options passed to the reader; may be a ReaderOptions object or
+    a table with a subset of the keys and values of a
+    ReaderOptions object; defaults to the default values
+    documented in the manual. ([ReaderOptions]|table)
 
 Returns: pandoc document
 
@@ -2837,6 +2869,8 @@ Usage:
     local block = document.blocks[1]
     -- The inline element in that block is an `Emph`
     assert(block.content[1].t == "Emph")
+
+[ReaderOptions]: #type-readeroptions
 
 # Module pandoc.utils
 
