@@ -6596,9 +6596,9 @@ is available by default. To see a sample custom reader:
 
     pandoc --print-default-data-file reader.lua
 
-Reader options are available via the global variable
-`PANDOC_READER_OPTIONS`, as expalined in the [Lua filters
-documentation].
+If you want your custom reader to have access to reader options
+(e.g. the tab stop setting), you give your Reader function a
+second `options` parameter.
 
 A custom writer is a Lua script that defines a function
 that specifies how to render each element in a Pandoc AST.

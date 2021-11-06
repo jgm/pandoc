@@ -33,9 +33,7 @@ readCustom :: (PandocMonad m, MonadIO m, ToSources s)
             => FilePath -> ReaderOptions -> s -> m Pandoc
 readCustom luaFile opts sources = do
   let input = sourcesToText $ toSources sources
-  let globals = [ PANDOC_SCRIPT_FILE luaFile
-                , PANDOC_READER_OPTIONS opts
-                ]
+  let globals = [ PANDOC_SCRIPT_FILE luaFile ]
   res <- runLua $ do
     setGlobals globals
     stat <- dofileWithTraceback luaFile
@@ -43,13 +41,14 @@ readCustom luaFile opts sources = do
     -- to handle this more gracefully):
     when (stat /= Lua.OK)
       Lua.throwErrorAsException
-    parseCustom input
+    parseCustom input opts
   case res of
     Left msg -> throw msg
     Right doc -> return doc
 
 parseCustom :: forall e. PeekError e
             => Text
+            -> ReaderOptions
             -> LuaE e Pandoc
 parseCustom = invoke @e "Reader"
 

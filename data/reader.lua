@@ -82,6 +82,6 @@ G = P{ "Pandoc",
   Special = S"`\\" / pandoc.Str;
 }
 
-function Reader(input)
+function Reader(input, opts)
   return lpeg.match(G, input)
 end
