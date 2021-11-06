@@ -42,6 +42,8 @@ import Text.Pandoc.Lua.Marshaling.Attr (mkAttr, mkAttributeList)
 import Text.Pandoc.Lua.Marshaling.List (List (..))
 import Text.Pandoc.Lua.Marshaling.ListAttributes ( mkListAttributes
                                                  , peekListAttributes)
+import Text.Pandoc.Lua.Marshaling.ReaderOptions ( peekReaderOptions
+                                                , pushReaderOptions)
 import Text.Pandoc.Lua.Marshaling.SimpleTable (mkSimpleTable)
 import Text.Pandoc.Lua.Module.Utils (sha1)
 import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua,
@@ -355,6 +357,12 @@ otherConstructors =
   , mkAttributeList
   , mkListAttributes
   , mkSimpleTable
+
+  , defun "ReaderOptions"
+    ### liftPure id
+    <#> parameter peekReaderOptions "ReaderOptions|table" "opts" "reader options"
+    =#> functionResult pushReaderOptions "ReaderOptions" "new object"
+    #? "Creates a new ReaderOptions value."
   ]
 
 stringConstants :: [Field e]
@@ -405,10 +413,12 @@ functions =
     =?> "output string, or error triple"
 
   , defun "read"
-    ### (\content mformatspec -> do
+    ### (\content mformatspec mreaderOptions -> do
             let formatSpec = fromMaybe "markdown" mformatspec
+                readerOptions = fromMaybe def mreaderOptions
             res <- Lua.liftIO . runIO $ getReader formatSpec >>= \case
-              (TextReader r, es) -> r def{ readerExtensions = es } content
+              (TextReader r, es) -> r readerOptions{ readerExtensions = es }
+                                      content
               _ -> throwError $ PandocSomeError
                    "Only textual formats are supported"
             case res of
@@ -422,6 +432,8 @@ functions =
                 throwM e)
     <#> parameter peekText "string" "content" "text to parse"
     <#> optionalParameter peekText "string" "formatspec" "format and extensions"
+    <#> optionalParameter peekReaderOptions "ReaderOptions" "reader_options"
+          "reader options"
     =#> functionResult pushPandoc "Pandoc" "result document"
 
   , sha1

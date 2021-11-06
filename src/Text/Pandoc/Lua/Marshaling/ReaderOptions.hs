@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -15,8 +16,10 @@ Marshaling instance for ReaderOptions and its components.
 module Text.Pandoc.Lua.Marshaling.ReaderOptions
   ( peekReaderOptions
   , pushReaderOptions
+  , pushReaderOptionsReadonly
   ) where
 
+import Data.Default (def)
 import HsLua as Lua
 import Text.Pandoc.Lua.Marshaling.List (pushPandocList)
 import Text.Pandoc.Options (ReaderOptions (..))
@@ -25,47 +28,103 @@ import Text.Pandoc.Options (ReaderOptions (..))
 -- Reader Options
 --
 
+-- | Retrieve a ReaderOptions value, either from a normal ReaderOptions
+-- value, from a read-only object, or from a table with the same
+-- keys as a ReaderOptions object.
 peekReaderOptions :: LuaError e => Peeker e ReaderOptions
-peekReaderOptions = peekUD typeReaderOptions
+peekReaderOptions = retrieving "ReaderOptions" . \idx ->
+  liftLua (ltype idx) >>= \case
+    TypeUserdata -> choice [ peekUD typeReaderOptions
+                           , peekUD typeReaderOptionsReadonly
+                           ]
+                           idx
+    TypeTable    -> peekReaderOptionsTable idx
+    _            -> failPeek =<<
+                    typeMismatchMessage "ReaderOptions userdata or table" idx
 
+-- | Pushes a ReaderOptions value as userdata object.
 pushReaderOptions :: LuaError e => Pusher e ReaderOptions
 pushReaderOptions = pushUD typeReaderOptions
 
-typeReaderOptions :: LuaError e => DocumentedType e ReaderOptions
-typeReaderOptions = deftype "pandoc ReaderOptions"
-  [ operation Tostring luaShow
+-- | Pushes a ReaderOptions object, but makes it read-only.
+pushReaderOptionsReadonly :: LuaError e => Pusher e ReaderOptions
+pushReaderOptionsReadonly = pushUD typeReaderOptionsReadonly
+
+-- | ReaderOptions object type for read-only values.
+typeReaderOptionsReadonly :: LuaError e => DocumentedType e ReaderOptions
+typeReaderOptionsReadonly = deftype "ReaderOptions (read-only)"
+  [ operation Tostring $ lambda
+    ### liftPure show
+    <#> udparam typeReaderOptions "opts" "options to print in native format"
+    =#> functionResult pushString "string" "Haskell representation"
+  , operation Newindex $ lambda
+    ### (failLua "This ReaderOptions value is read-only.")
+    =?> "Throws an error when called, i.e., an assignment is made."
   ]
-  [ readonly "extensions" ""
-      ( pushString . show
-      , readerExtensions)
-  , readonly "standalone" ""
-      ( pushBool
-      , readerStandalone)
-  , readonly "columns" ""
-      ( pushIntegral
-      , readerColumns)
-  , readonly "tab_stop" ""
-      ( pushIntegral
-      , readerTabStop)
-  , readonly "indented_code_classes" ""
-      ( pushPandocList pushText
-      , readerIndentedCodeClasses)
-  , readonly "abbreviations" ""
-      ( pushSet pushText
-      , readerAbbreviations)
-  , readonly "track_changes" ""
-      ( pushString . show
-      , readerTrackChanges)
-  , readonly "strip_comments" ""
-      ( pushBool
-      , readerStripComments)
-  , readonly "default_image_extension" ""
-      ( pushText
-      , readerDefaultImageExtension)
+  readerOptionsMembers
+
+-- | 'ReaderOptions' object type.
+typeReaderOptions :: LuaError e => DocumentedType e ReaderOptions
+typeReaderOptions = deftype "ReaderOptions"
+  [ operation Tostring $ lambda
+    ### liftPure show
+    <#> udparam typeReaderOptions "opts" "options to print in native format"
+    =#> functionResult pushString "string" "Haskell representation"
+  ]
+  readerOptionsMembers
+
+-- | Member properties of 'ReaderOptions' Lua values.
+readerOptionsMembers :: LuaError e
+                     => [Member e (DocumentedFunction e) ReaderOptions]
+readerOptionsMembers =
+  [ property "abbreviations" ""
+      (pushSet pushText, readerAbbreviations)
+      (peekSet peekText, \opts x -> opts{ readerAbbreviations = x })
+  , property "columns" ""
+      (pushIntegral, readerColumns)
+      (peekIntegral, \opts x -> opts{ readerColumns = x })
+  , property "default_image_extension" ""
+      (pushText, readerDefaultImageExtension)
+      (peekText, \opts x -> opts{ readerDefaultImageExtension = x })
+  , property "extensions" ""
+      (pushString . show, readerExtensions)
+      (peekRead, \opts x -> opts{ readerExtensions = x })
+  , property "indented_code_classes" ""
+      (pushPandocList pushText, readerIndentedCodeClasses)
+      (peekList peekText, \opts x -> opts{ readerIndentedCodeClasses = x })
+  , property "strip_comments" ""
+      (pushBool, readerStripComments)
+      (peekBool, \opts x -> opts{ readerStripComments = x })
+  , property "standalone" ""
+      (pushBool, readerStandalone)
+      (peekBool, \opts x -> opts{ readerStandalone = x })
+  , property "tab_stop" ""
+      (pushIntegral, readerTabStop)
+      (peekIntegral, \opts x -> opts{ readerTabStop = x })
+  , property "track_changes" ""
+      (pushString . show, readerTrackChanges)
+      (peekRead, \opts x -> opts{ readerTrackChanges = x })
   ]
 
-luaShow :: LuaError e => DocumentedFunction e
-luaShow = defun "__tostring"
-  ### liftPure show
-  <#> udparam typeReaderOptions "state" "object to print in native format"
-  =#> functionResult pushString "string" "Haskell representation"
+-- | Retrieves a 'ReaderOptions' object from a table on the stack, using
+-- the default values for all missing fields.
+--
+-- Internally, this push the defaults reader options, sets each
+-- key/value pair of the table in the userdata value, then retrieves the
+-- object again. This will update all fields and complain about unknown
+-- keys.
+peekReaderOptionsTable :: LuaError e => Peeker e ReaderOptions
+peekReaderOptionsTable idx = retrieving "ReaderOptions (table)" $ do
+  liftLua $ do
+    absidx <- absindex idx
+    pushUD typeReaderOptions def
+    let setFields = do
+          next absidx >>= \case
+            False -> return () -- all fields were copied
+            True -> do
+              pushvalue (nth 2) *> insert (nth 2)
+              settable (nth 4) -- set in userdata object
+              setFields
+    pushnil -- first key
+    setFields
+  peekUD typeReaderOptions top

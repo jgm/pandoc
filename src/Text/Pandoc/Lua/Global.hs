@@ -22,7 +22,7 @@ import Text.Pandoc.Definition (Pandoc (Pandoc), pandocTypesVersion)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Marshaling.CommonState (pushCommonState)
-import Text.Pandoc.Lua.Marshaling.ReaderOptions (pushReaderOptions)
+import Text.Pandoc.Lua.Marshaling.ReaderOptions (pushReaderOptionsReadonly)
 import Text.Pandoc.Options (ReaderOptions)
 
 import qualified Data.Text as Text
@@ -55,7 +55,7 @@ setGlobal global = case global of
     pushUD typePandocLazy  doc
     Lua.setglobal "PANDOC_DOCUMENT"
   PANDOC_READER_OPTIONS ropts -> do
-    pushReaderOptions ropts
+    pushReaderOptionsReadonly ropts
     Lua.setglobal "PANDOC_READER_OPTIONS"
   PANDOC_SCRIPT_FILE filePath -> do
     Lua.push filePath
