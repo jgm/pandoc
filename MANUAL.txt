@@ -6594,7 +6594,7 @@ of the functions that are available for creating pandoc
 AST elements.  For parsing, the [lpeg] parsing library
 is available by default. To see a sample custom reader:
 
-    pandoc --print-default-data-file reader.lua
+    pandoc --print-default-data-file creole.lua
 
 If you want your custom reader to have access to reader options
 (e.g. the tab stop setting), you give your Reader function a
