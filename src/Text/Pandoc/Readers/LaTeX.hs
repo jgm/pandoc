@@ -390,8 +390,8 @@ inlineCommands = M.unions
                                unescapeURL .
                                removeDoubleQuotes $ untokenize src)
     -- hyperref
-    , ("url", (\url -> link url "" (str url)) . unescapeURL . untokenize <$>
-                    bracedUrl)
+    , ("url", (\url -> linkWith ("",["uri"],[]) url "" (str url))
+                        . unescapeURL . untokenize <$> bracedUrl)
     , ("nolinkurl", code . unescapeURL . untokenize <$> bracedUrl)
     , ("href", do url <- bracedUrl
                   sp

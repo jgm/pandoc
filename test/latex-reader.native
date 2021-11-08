@@ -1868,7 +1868,7 @@ Pandoc
       , Str "ampersand:"
       , Space
       , Link
-          ( "" , [] , [] )
+          ( "" , [ "uri" ] , [] )
           [ Str "http://example.com/?foo=1&bar=2" ]
           ( "http://example.com/?foo=1&bar=2" , "" )
       ]
@@ -1878,7 +1878,7 @@ Pandoc
         ]
       , [ Para
             [ Link
-                ( "" , [] , [] )
+                ( "" , [ "uri" ] , [] )
                 [ Str "http://example.com/" ]
                 ( "http://example.com/" , "" )
             ]
@@ -1902,7 +1902,7 @@ Pandoc
           [ Str "Blockquoted:"
           , Space
           , Link
-              ( "" , [] , [] )
+              ( "" , [ "uri" ] , [] )
               [ Str "http://example.com/" ]
               ( "http://example.com/" , "" )
           ]
