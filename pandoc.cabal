@@ -563,7 +563,7 @@ library
                  http-types            >= 0.8      && < 0.13,
                  ipynb                 >= 0.1.0.2  && < 0.2,
                  jira-wiki-markup      >= 1.4      && < 1.5,
-                 lpeg                  >= 1.0      && < 1.1,
+                 lpeg                  >= 1.0.1    && < 1.1,
                  mtl                   >= 2.2      && < 2.3,
                  network               >= 2.6,
                  network-uri           >= 2.6      && < 2.8,

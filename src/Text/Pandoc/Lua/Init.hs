@@ -46,6 +46,7 @@ initLuaState :: PandocLua ()
 initLuaState = do
   liftPandocLua Lua.openlibs
   installPandocPackageSearcher
+  installLpegSearcher
   initPandocModule
   requireGlobalModules
   loadInitScript "init.lua"
@@ -98,6 +99,13 @@ initLuaState = do
 
     -- Module on top of stack. Register as global
     Lua.setglobal "lpeg"
+
+  installLpegSearcher :: PandocLua ()
+  installLpegSearcher = liftPandocLua $ do
+    Lua.getglobal' "package.searchers"
+    Lua.pushHaskellFunction $ Lua.state >>= liftIO . LPeg.lpeg_searcher
+    Lua.rawseti (Lua.nth 2) . (+1) . fromIntegral =<< Lua.rawlen (Lua.nth 2)
+    Lua.pop 1  -- remove 'package.searchers' from stack
 
 -- | AST elements are marshaled via normal constructor functions in the
 -- @pandoc@ module. However, accessing Lua globals from Haskell is
