@@ -124,7 +124,7 @@ stringToLaTeX context zs = do
          '\160' -> emits "~"
          '\x200B' -> emits "\\hspace{0pt}"  -- zero-width space
          '\x202F' -> emits "\\,"
-         '\x2026' -> emitcseq "\\ldots"
+         '\x2026' | ligatures -> emitcseq "\\ldots"
          '\x2018' | ligatures -> emitquote "`"
          '\x2019' | ligatures -> emitquote "'"
          '\x201C' | ligatures -> emitquote "``"
