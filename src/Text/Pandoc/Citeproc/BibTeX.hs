@@ -48,7 +48,7 @@ import           Control.Monad.RWS      hiding ((<>))
 import qualified Data.Sequence          as Seq
 import           Data.Char              (isAlphaNum, isDigit, isLetter,
                                          isUpper, toLower, toUpper,
-                                         isLower, isPunctuation)
+                                         isLower, isPunctuation, isSpace)
 import           Data.List              (foldl', intercalate, intersperse)
 import           Safe                   (readMay)
 import           Text.Printf            (printf)
@@ -804,30 +804,34 @@ bibEntries = do
   skipMany nonEntry
   many (bibItem <* skipMany nonEntry)
  where nonEntry = bibSkip <|>
+                  comment <|>
                   try (char '@' >>
                        (bibComment <|> bibPreamble <|> bibString))
 
 bibSkip :: BibParser ()
-bibSkip = skipMany1 (satisfy (/='@'))
+bibSkip = skipMany1 (satisfy (\c -> c /='@' && c /='%'))
+
+comment :: BibParser ()
+comment = char '%' *> void anyLine
 
 bibComment :: BibParser ()
 bibComment = do
   cistring "comment"
-  spaces
+  spaces'
   void inBraces <|> bibSkip <|> return ()
 
 bibPreamble :: BibParser ()
 bibPreamble = do
   cistring "preamble"
-  spaces
+  spaces'
   void inBraces
 
 bibString :: BibParser ()
 bibString = do
   cistring "string"
-  spaces
+  spaces'
   char '{'
-  spaces
+  spaces'
   (k,v) <- entField
   char '}'
   updateState (\(l,m) -> (l, Map.insert k v m))
@@ -840,10 +844,11 @@ inBraces :: BibParser Text
 inBraces = do
   char '{'
   res <- manyTill
-         (  take1WhileP (\c -> c /= '{' && c /= '}' && c /= '\\')
+         (  take1WhileP (\c -> c /= '{' && c /= '}' && c /= '\\' && c /= '%')
         <|> (char '\\' >> (  (char '{' >> return "\\{")
                          <|> (char '}' >> return "\\}")
                          <|> return "\\"))
+        <|> ("" <$ (char '%' >> anyLine))
         <|> (braced <$> inBraces)
          ) (char '}')
   return $ T.concat res
@@ -855,8 +860,9 @@ inQuotes :: BibParser Text
 inQuotes = do
   char '"'
   T.concat <$> manyTill
-             ( take1WhileP (\c -> c /= '{' && c /= '"' && c /= '\\')
+             ( take1WhileP (\c -> c /= '{' && c /= '"' && c /= '\\' && c /= '%')
                <|> (char '\\' >> T.cons '\\' . T.singleton <$> anyChar)
+               <|> ("" <$ (char '%' >> anyLine))
                <|> braced <$> inBraces
             ) (char '"')
 
@@ -869,32 +875,35 @@ isBibtexKeyChar :: Char -> Bool
 isBibtexKeyChar c =
   isAlphaNum c || c `elem` (".:;?!`'()$/*@_+=-[]*&" :: [Char])
 
+spaces' :: BibParser ()
+spaces' = skipMany (void (satisfy isSpace) <|> comment)
+
 bibItem :: BibParser Item
 bibItem = do
   char '@'
   pos <- getPosition
   enttype <- T.toLower <$> take1WhileP isLetter
-  spaces
+  spaces'
   char '{'
-  spaces
+  spaces'
   entid <- take1WhileP isBibtexKeyChar
-  spaces
+  spaces'
   char ','
-  spaces
-  entfields <- entField `sepEndBy` (char ',' >> spaces)
-  spaces
+  spaces'
+  entfields <- entField `sepEndBy` (char ',' >> spaces')
+  spaces'
   char '}'
   return $ Item entid pos enttype (Map.fromList entfields)
 
 entField :: BibParser (Text, Text)
 entField = do
   k <- fieldName
-  spaces
+  spaces'
   char '='
-  spaces
+  spaces'
   vs <- (expandString <|> inQuotes <|> inBraces <|> rawWord) `sepBy`
-            try (spaces >> char '#' >> spaces)
-  spaces
+            try (spaces' >> char '#' >> spaces')
+  spaces'
   return (k, T.concat vs)
 
 resolveAlias :: Text -> Text
