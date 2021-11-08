@@ -51,13 +51,6 @@ local function ListItem(lev, ch)
   return parser
 end
 
-local re = require're'
-x = re.compile[[
-      listname <- {| {:tag: '' -> 'list':} (name s)* |}
-      name <- {| {:tag: '' -> 'id':} {[a-z][a-z]*} |}
-      s <- ' '*
-]]
-
 -- Grammar
 G = P{ "Doc",
   Doc = Ct(V"Block"^0)
