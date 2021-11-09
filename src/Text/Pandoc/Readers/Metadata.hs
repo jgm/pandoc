@@ -42,6 +42,7 @@ yamlBsToMeta :: (PandocMonad m, HasLastStrPosition st)
 yamlBsToMeta pMetaValue bstr = do
   case Yaml.decodeAllEither' bstr of
        Right (Object o:_) -> fmap Meta <$> yamlMap pMetaValue o
+       Right [] -> return . return $ mempty
        Right [Null] -> return . return $ mempty
        Right _  -> Prelude.fail "expected YAML object"
        Left err' -> do
