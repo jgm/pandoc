@@ -135,9 +135,9 @@ pushWithConstructorsSubtable constructors = do
 inlineConstructors :: LuaError e =>  [DocumentedFunction e]
 inlineConstructors =
   [ defun "Cite"
-    ### liftPure2 Cite
-    <#> parameter (peekList peekCitation) "citations" "list of Citations" ""
+    ### liftPure2 (flip Cite)
     <#> parameter peekInlinesFuzzy "content" "Inline" "placeholder content"
+    <#> parameter (peekList peekCitation) "citations" "list of Citations" ""
     =#> functionResult pushInline "Inline" "cite element"
   , defun "Code"
     ### liftPure2 (\text mattr -> Code (fromMaybe nullAttr mattr) text)

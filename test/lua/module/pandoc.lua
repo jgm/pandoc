@@ -151,17 +151,17 @@ return {
   group "Inline elements" {
     group 'Cite' {
       test('has property `content`', function ()
-        local cite = pandoc.Cite({}, {pandoc.Emph 'important'})
+        local cite = pandoc.Cite({pandoc.Emph 'important'}, {})
         assert.are_same(cite.content, {pandoc.Emph {pandoc.Str 'important'}})
 
         cite.content = 'boring'
-        assert.are_equal(cite, pandoc.Cite({}, {pandoc.Str 'boring'}))
+        assert.are_equal(cite, pandoc.Cite({pandoc.Str 'boring'}, {}))
       end),
       test('has list of citations in property `cite`', function ()
         local citations = {
           pandoc.Citation('einstein1905', 'NormalCitation')
         }
-        local cite = pandoc.Cite(citations, 'relativity')
+        local cite = pandoc.Cite('relativity', citations)
         assert.are_same(cite.citations, citations)
 
         local new_citations = {
@@ -169,7 +169,7 @@ return {
           pandoc.Citation('Poincaré1905', 'NormalCitation')
         }
         cite.citations = new_citations
-        assert.are_equal(cite, pandoc.Cite(new_citations, {'relativity'}))
+        assert.are_equal(cite, pandoc.Cite({'relativity'}, new_citations))
       end),
     },
     group 'Code' {
