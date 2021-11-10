@@ -1,5 +1,5 @@
 packages: pandoc.cabal
 tests: True
 flags: +embed_data_files
-constraints: aeson >= 2.0.1.0
+constraints: aeson >= 2.0.1.0, transformers >= 0.5.6
 
