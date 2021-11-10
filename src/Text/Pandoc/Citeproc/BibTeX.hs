@@ -844,11 +844,10 @@ inBraces :: BibParser Text
 inBraces = do
   char '{'
   res <- manyTill
-         (  take1WhileP (\c -> c /= '{' && c /= '}' && c /= '\\' && c /= '%')
-        <|> (char '\\' >> (  (char '{' >> return "\\{")
-                         <|> (char '}' >> return "\\}")
-                         <|> return "\\"))
-        <|> ("" <$ (char '%' >> anyLine))
+         (  take1WhileP (\c -> c /= '{' && c /= '}' && c /= '\\')
+        <|> (char '\\' >> (do c <- oneOf "{}"
+                              return $ T.pack ['\\',c])
+                         <|> return "\\")
         <|> (braced <$> inBraces)
          ) (char '}')
   return $ T.concat res
