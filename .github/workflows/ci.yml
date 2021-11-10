@@ -43,20 +43,10 @@ jobs:
       fail-fast: true
       matrix:
         versions:
-          - ghc: '8.2.2'
-            cabal: '2.4'
-            prefix: 'v2-'
-            cabalopts: ''
-            testopts: ''
-          - ghc: '8.4.4'
-            cabal: '2.4'
-            prefix: 'v2-'
-            cabalopts: '-f-embed_data_files'
-            testopts: ''
           - ghc: '8.6.5'
             cabal: '3.2'
             prefix: ''
-            cabalopts: ''
+            cabalopts: '-f-embed_data_files'
             testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
           - ghc: '8.8.4'
             cabal: '3.2'

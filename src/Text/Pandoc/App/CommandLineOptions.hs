@@ -33,9 +33,7 @@ import Data.Bifunctor (second)
 import Data.Char (toLower)
 import Data.List (intercalate, sort, foldl')
 #ifdef _WINDOWS
-#if MIN_VERSION_base(4,12,0)
 import Data.List (isPrefixOf)
-#endif
 #endif
 import Data.Maybe (fromMaybe, isJust)
 import Data.Text (Text)
@@ -1078,14 +1076,10 @@ readMetaValue s
 -- beginning with \\ to \\?\UNC\. -- See #5127.
 normalizePath :: FilePath -> FilePath
 #ifdef _WINDOWS
-#if MIN_VERSION_base(4,12,0)
 normalizePath fp =
   if "\\\\" `isPrefixOf` fp && not ("\\\\?\\" `isPrefixOf` fp)
     then "\\\\?\\UNC\\" ++ drop 2 fp
     else fp
-#else
-normalizePath = id
-#endif
 #else
 normalizePath = id
 #endif
