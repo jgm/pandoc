@@ -1231,9 +1231,15 @@ inlineToOpenXML' opts (Link _ txt (src,_)) = do
                         M.insert src i extlinks }
               return i
   return [ Elem $ mknode "w:hyperlink" [("r:id",id')] contents ]
-inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
+inlineToOpenXML' opts (Image attr@(imgident, _, kvs) alt (src, title)) = do
   pageWidth <- asks envPrintWidth
   imgs <- gets stImages
+  inlineImageStyle <- case lookup dynamicStyleKey kvs of
+                           Just (fromString . T.unpack -> styleName) -> do
+                                                cStyleMap <- gets (smCharStyle . stStyleMaps)
+                                                let sty' = getStyleIdFromName styleName cStyleMap
+                                                return sty'
+                           Nothing -> return "none"
   let
     stImage = M.lookup (T.unpack src) imgs
     generateImgElt (ident, _fp, mt, img) = do
@@ -1313,8 +1319,8 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
               , spPr
               ]
             ]
-        imgElt = mknode "w:r" [] $
-          mknode "w:drawing" [] $
+        imgElt = mknode "w:r" [] [ mknode "w:rPr" []
+                                   [ mknode "w:rStyle" [("w:val", fromStyleId inlineImageStyle)] ()], mknode "w:drawing" [] $
             mknode "wp:inline" []
               [ mknode "wp:extent" [("cx",tshow xemu),("cy",tshow yemu)] ()
               , mknode "wp:effectExtent"
@@ -1327,6 +1333,7 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
                 ] ()
               , graphic
               ]
+            ]
       return [Elem imgElt]
 
   wrapBookmark imgident =<< case stImage of
