@@ -53,9 +53,9 @@ Metadata Values
     `equal-contrib`
     :   boolean attribute used to mark authors who contributed
         equally to the work. The
-        [`equal-contrib`][attr:equal-contrib] attribute is added
-        to the author's [`<contrib>`] element if this is set to a
-        truthy value.
+        [`equal-contrib`][attr:equal-contrib] attribute, set to
+        `yes`, is added to the author's [`<contrib>`] element if
+        this is set to a truthy value.
 
     `cor-id`
     :   identifier linking to the contributor's correspondence

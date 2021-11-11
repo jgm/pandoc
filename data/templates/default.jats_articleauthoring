@@ -19,7 +19,7 @@ $endif$
 $if(author)$
 <contrib-group>
 $for(author)$
-<contrib contrib-type="author"$if(author.equal-contrib)$ equal-contrib="true"$endif$>
+<contrib contrib-type="author"$if(author.equal-contrib)$ equal-contrib="yes"$endif$>
 $if(author.orcid)$
 <contrib-id contrib-id-type="orcid">$author.orcid$</contrib-id>
 $endif$
