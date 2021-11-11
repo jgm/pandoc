@@ -245,15 +245,28 @@ variables.
     variable is of type [CommonState] and
     is read-only.
 
-## Global modules
+`pandoc`
+:   The *pandoc* module, described in the next section, is
+    available through the global `pandoc`. The other modules
+    described herein are loaded as subfields under their
+    respective name.
 
-There are two modules which are preloaded and accessible through
-global variables. The first is `pandoc`, which is described in the
-next section. The other is `lpeg`, a package based on Parsing
-Expression Grammars (PEG). See the official [LPeg homepage] for
-details.
+`lpeg`
+:   This variable holds the `lpeg` module, a package based on
+    Parsing Expression Grammars (PEG). It provides excellent
+    parsing utilities and is documented on the official [LPeg
+    homepage]. Pandoc will try to load the module through the
+    normal package mechanism, and fall back to a built-in version
+    if necessary.
+
+`re`
+:   Contains the LPeg.re module, which is built on top of LPeg and
+    offers an implementation of a [regex engine]. Pandoc will try
+    to load the module through the normal package mechanism, and
+    fall back to a built-in version if necessary.
 
 [LPeg homepage]: http://www.inf.puc-rio.br/~roberto/lpeg/
+[regex engine]: http://www.inf.puc-rio.br/~roberto/lpeg/re.html
 
 # Pandoc Module
 
