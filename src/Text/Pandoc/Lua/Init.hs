@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua
@@ -14,7 +13,7 @@ module Text.Pandoc.Lua.Init
   ( runLua
   ) where
 
-import Control.Monad (when)
+import Control.Monad (forM_, when)
 import Control.Monad.Catch (throwM, try)
 import Control.Monad.Trans (MonadIO (..))
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
@@ -46,8 +45,8 @@ initLuaState :: PandocLua ()
 initLuaState = do
   liftPandocLua Lua.openlibs
   installPandocPackageSearcher
-  installLpegSearcher
   initPandocModule
+  installLpegSearcher
   requireGlobalModules
   loadInitScript "init.lua"
  where
@@ -78,27 +77,18 @@ initLuaState = do
         _                  -> T.pack $ show err
 
   requireGlobalModules :: PandocLua ()
-  requireGlobalModules = liftPandocLua $ do
-    Lua.pushcfunction LPeg.luaopen_lpeg_ptr
-    Lua.pcall 0 1 Nothing >>= \case
-      Lua.OK -> do
-        -- Success. Register as a loaded module.
-        -- Get table "_LOADED" from registry, add entry.
-        _ <- Lua.getfield Lua.registryindex Lua.loaded
-        Lua.pushvalue (Lua.nth 2)
-        Lua.setfield (Lua.nth 2) "lpeg"
-        Lua.pop 1  -- pop _LOADED
-
-      _ -> do
-        -- Maybe LPeg was not compiled into the program. Try loading via
-        -- the normal package loading mechanism.
-        pop 1 -- ignore error message
+  requireGlobalModules = liftPandocLua $
+    forM_ ["lpeg", "re"] $ \pkgname -> do
+        -- Try loading via the normal package loading mechanism, which
+        -- includes the custom LPeg searcher as a last resort. This
+        -- means the system installation of the package, should it be
+        -- available, is preferred.
         Lua.getglobal "require"
-        Lua.pushName "lpeg"
+        Lua.pushName pkgname
         Lua.call 1 1   -- throws an exception if the module is not found
 
-    -- Module on top of stack. Register as global
-    Lua.setglobal "lpeg"
+        -- Module on top of stack. Register as global
+        Lua.setglobal pkgname
 
   installLpegSearcher :: PandocLua ()
   installLpegSearcher = liftPandocLua $ do
