@@ -56,6 +56,7 @@ testLegacyTable :: [TestTree]
 testLegacyTable =
   [ testCase "decomposes a table with head" $ gen1 @?= expect1
   , testCase "decomposes a table without head" $ gen2 @?= expect2
+  , testCase "decomposes the table from issue 7683" $ gen3 @?= expect3
   ]
   where
     pln = toList . plain . str
@@ -110,3 +111,18 @@ testLegacyTable =
                 ,[pln "j", mempty, mempty]]
               )
     gen2 = toLegacyTable emptyCaption spec1 (th []) [body1] (tf footRows1)
+
+    spec3 = replicate 4 (AlignDefault, ColWidthDefault)
+    body3 = tb 0
+      []
+      [[cl "a" 2 1, cl "b" 1 2, cl "c" 2 1]
+      ,[cl "d" 1 1, cl "e" 1 1]
+      ]
+    expect3 = ( []
+              , replicate 4 AlignDefault
+              , replicate 4 0
+              , []
+              , [[pln "a", pln "b", mempty, pln "c"]
+                ,[mempty, pln "d", pln "e", mempty]]
+              )
+    gen3 = toLegacyTable emptyCaption spec3 (th []) [body3] (tf [])

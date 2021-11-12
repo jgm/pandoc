@@ -508,7 +508,7 @@ toLegacyTable (Caption _ cbody) specs thead tbodies tfoot
       = let (h, w, cBody) = getComponents c
             cRowPieces = cBody : replicate (w - 1) mempty
             cPendingPieces = replicate w $ replicate (h - 1) mempty
-            pendingPieces' = dropWhile null pendingPieces
+            pendingPieces' = drop w pendingPieces
             (pendingPieces'', rowPieces) = placeCutCells pendingPieces' cells'
         in (cPendingPieces <> pendingPieces'', cRowPieces <> rowPieces)
       | otherwise = ([], [])
