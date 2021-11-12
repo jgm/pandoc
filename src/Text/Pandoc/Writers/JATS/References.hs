@@ -70,6 +70,7 @@ referenceToJATS _opts ref = do
     , "pages"           `varInTag` "page-range"
     , "ISBN"            `varInTag` "isbn"
     , "ISSN"            `varInTag` "issn"
+    , "URL"             `varInTag` "uri"
     , varInTagWith "doi"  "pub-id" [("pub-id-type", "doi")]
     , varInTagWith "pmid" "pub-id" [("pub-id-type", "pmid")]
     ]
