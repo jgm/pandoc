@@ -551,6 +551,7 @@ inlineToJATS _ (Image (ident,_,kvs) _ (src, tit)) = do
   return $ selfClosingTag "inline-graphic" attr
 
 isParaOrList :: Block -> Bool
+isParaOrList SimpleFigure{}   = False  -- implicit figures are not paragraphs
 isParaOrList Para{}           = True
 isParaOrList Plain{}          = True
 isParaOrList BulletList{}     = True

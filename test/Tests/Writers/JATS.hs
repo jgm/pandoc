@@ -61,21 +61,39 @@ tests =
                 , "</fn></p>"
                 ])
     ]
-  , "bullet list" =: bulletList [ plain $ text "first"
-                                , plain $ text "second"
-                                , plain $ text "third"
-                                ]
-    =?> "<list list-type=\"bullet\">\n\
-        \  <list-item>\n\
-        \    <p>first</p>\n\
-        \  </list-item>\n\
-        \  <list-item>\n\
-        \    <p>second</p>\n\
-        \  </list-item>\n\
-        \  <list-item>\n\
-        \    <p>third</p>\n\
-        \  </list-item>\n\
-        \</list>"
+  , testGroup "bullet list"
+    [ "plain items" =: bulletList [ plain $ text "first"
+                                  , plain $ text "second"
+                                  , plain $ text "third"
+                                  ]
+      =?> "<list list-type=\"bullet\">\n\
+          \  <list-item>\n\
+          \    <p>first</p>\n\
+          \  </list-item>\n\
+          \  <list-item>\n\
+          \    <p>second</p>\n\
+          \  </list-item>\n\
+          \  <list-item>\n\
+          \    <p>third</p>\n\
+          \  </list-item>\n\
+          \</list>"
+
+    , "item with implicit figure" =:
+      bulletList [ simpleFigure (text "caption") "a.png" "" ] =?>
+      T.unlines
+        [ "<list list-type=\"bullet\">"
+        , "  <list-item>"
+        , "    <p specific-use=\"wrapper\">"
+        , "      <fig>"
+        , "        <caption><p>caption</p></caption>"
+        , "        <graphic mimetype=\"image\" mime-subtype=\"png\"" <>
+          " xlink:href=\"a.png\" xlink:title=\"\" />"
+        , "      </fig>"
+        , "    </p>"
+        , "  </list-item>"
+        , "</list>"
+        ]
+    ]
   , testGroup "definition lists"
     [ "with internal link" =: definitionList [(link "#go" "" (str "testing"),
                                                [plain (text "hi there")])] =?>
