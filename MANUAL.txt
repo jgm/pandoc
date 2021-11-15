@@ -5334,7 +5334,7 @@ For elements that accept attributes, a `data-pos` attribute
 is added; other elements are placed in a surrounding
 Div or Span elemnet with a `data-pos` attribute.
 
-#### Extension: `short_subsuperscript` ####
+#### Extension: `short_subsuperscripts` ####
 
 Parse multimarkdown style subscripts and superscripts, which start with
 a '~' or '^' character, respectively, and include the alphanumeric sequence
