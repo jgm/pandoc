@@ -60,6 +60,24 @@ Figure \vref{fig:1}
 
 ```
 % pandoc -f latex -t native
+\autoref{fig:flowchart}
+^D
+[ Para
+    [ Link
+        ( ""
+        , []
+        , [ ( "reference-type" , "autoref" )
+          , ( "reference" , "fig:flowchart" )
+          ]
+        )
+        [ Str "[fig:flowchart]" ]
+        ( "#fig:flowchart" , "" )
+    ]
+]
+```
+
+```
+% pandoc -f latex -t native
 Accuracy~\eqref{eq:Accuracy} is the proportion, measuring true results among all results.
 
 \begin{equation}
