@@ -339,6 +339,7 @@ refCommands = M.fromList
   , ("cref", rawInlineOr "cref" $ doref "ref")       -- from cleveref.sty
   , ("vref", rawInlineOr "vref" $ doref "ref+page")  -- from varioref.sty
   , ("eqref", rawInlineOr "eqref" $ doref "eqref")   -- from amsmath.sty
+  , ("autoref", rawInlineOr "autoref" $ doref "autoref") -- from hyperref.sty
   ]
 
 acronymCommands :: PandocMonad m => M.Map Text (LP m Inlines)
