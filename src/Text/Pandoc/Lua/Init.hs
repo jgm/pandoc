@@ -47,7 +47,8 @@ initLuaState = do
   liftPandocLua Lua.openlibs
   installPandocPackageSearcher
   initPandocModule
-  requireGlobalModules
+  installLpegSearcher
+  setGlobalModules
   loadInitScript "init.lua"
  where
   initPandocModule :: PandocLua ()
@@ -76,32 +77,31 @@ initLuaState = do
         PandocLuaError msg -> msg
         _                  -> T.pack $ show err
 
-  requireGlobalModules :: PandocLua ()
-  requireGlobalModules = liftPandocLua $
+  setGlobalModules :: PandocLua ()
+  setGlobalModules = liftPandocLua $
     forM_ [ ("lpeg", LPeg.luaopen_lpeg_ptr)
           , ("re", LPeg.luaopen_re_ptr)
           ] $
       \(pkgname, luaopen) -> do
-        -- Try loading via the normal package loading mechanism, and
-        -- fall back to manual module loading if the normal mechanism
-        -- fails. This means the system installation of the package,
-        -- should it be available, is preferred.
-        Lua.getglobal "require"
-        Lua.pushName pkgname
-        Lua.pcall 1 1 Nothing >>= \case
+        Lua.pushcfunction luaopen
+        Lua.pcall 0 1 Nothing >>= \case
           OK -> pure ()          -- all good, loading succeeded
-          _  -> do               -- default mechanism failed, load included lib
+          _  -> do               -- built-in library failed, load system lib
             Lua.pop 1  -- ignore error message
-            Lua.pushcfunction luaopen
-            Lua.call 0 1  -- Throws an exception if loading failed again!
-            -- Success. Add module to table @_LOADED@ in the registry
-            _ <- Lua.getfield Lua.registryindex Lua.loaded
-            Lua.pushvalue (Lua.nth 2)  -- push module to top
-            Lua.setfield (Lua.nth 2) pkgname
-            Lua.pop 1  -- pop _LOADED
+            -- Try loading via the normal package loading mechanism.
+            Lua.getglobal "require"
+            Lua.pushName pkgname
+            Lua.call 1 1  -- Throws an exception if loading failed again!
 
         -- Module on top of stack. Register as global
         Lua.setglobal pkgname
+
+  installLpegSearcher :: PandocLua ()
+  installLpegSearcher = liftPandocLua $ do
+    Lua.getglobal' "package.searchers"
+    Lua.pushHaskellFunction $ Lua.state >>= liftIO . LPeg.lpeg_searcher
+    Lua.rawseti (Lua.nth 2) . (+1) . fromIntegral =<< Lua.rawlen (Lua.nth 2)
+    Lua.pop 1  -- remove 'package.searchers' from stack
 
 -- | AST elements are marshaled via normal constructor functions in the
 -- @pandoc@ module. However, accessing Lua globals from Haskell is

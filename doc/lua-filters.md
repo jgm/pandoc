@@ -253,17 +253,26 @@ variables.
 
 `lpeg`
 :   This variable holds the `lpeg` module, a package based on
-    Parsing Expression Grammars (PEG). It provides excellent
+    Parsing Expression Grammars (PEG).  It provides excellent
     parsing utilities and is documented on the official [LPeg
-    homepage]. Pandoc will try to load the module through the
-    normal package mechanism, and fall back to a built-in version
-    if necessary.
+    homepage].  Pandoc uses a built-int version of the library,
+    unless it has been configured by the package maintainer to
+    rely on a system-wide installation.
+
+    Note that the result of `require 'lpeg'` is not necessarily
+    equal to this value; the `require` mechanism prefers the
+    system's lpeg library over the built-in version.
 
 `re`
-:   Contains the LPeg.re module, which is built on top of LPeg and
-    offers an implementation of a [regex engine]. Pandoc will try
-    to load the module through the normal package mechanism, and
-    fall back to a built-in version if necessary.
+:   Contains the LPeg.re module, which is built on top of LPeg
+    and offers an implementation of a [regex engine].  Pandoc
+    uses a built-in version of the library, unless it has been
+    configured by the package maintainer to rely on a system-wide
+    installation.
+
+    Note that the result of `require 're` is not necessarily
+    equal to this value; the `require` mechanism prefers the
+    system's lpeg library over the built-in version.
 
 [LPeg homepage]: http://www.inf.puc-rio.br/~roberto/lpeg/
 [regex engine]: http://www.inf.puc-rio.br/~roberto/lpeg/re.html

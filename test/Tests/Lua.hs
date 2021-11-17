@@ -17,7 +17,7 @@ module Tests.Lua ( runLuaTest, tests ) where
 import Control.Monad (when)
 import HsLua as Lua hiding (Operation (Div), error)
 import System.FilePath ((</>))
-import Test.Tasty (TestTree, localOption)
+import Test.Tasty (TestTree, testGroup, localOption)
 import Test.Tasty.HUnit ((@=?), Assertion, HasCallStack, assertEqual, testCase)
 import Test.Tasty.QuickCheck (QuickCheckTests (..), ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
@@ -211,13 +211,23 @@ tests = map (localOption (QuickCheckTests 20))
       ty <- Lua.ltype Lua.top
       Lua.liftIO $ assertEqual "module should be a table" Lua.TypeTable ty
 
-  , testCase "module 'lpeg' is loaded into a global" . runLuaTest $ do
-      s <- Lua.dostring "assert(type(lpeg)=='table');assert(lpeg==require'lpeg')"
-      Lua.liftIO $ Lua.OK @=? s
+  , testGroup "global modules"
+    [ testCase "module 'lpeg' is loaded into a global" . runLuaTest $ do
+        s <- Lua.dostring "assert(type(lpeg)=='table')"
+        Lua.liftIO $ Lua.OK @=? s
 
-  , testCase "module 're' is available" . runLuaTest $ do
-      s <- Lua.dostring "require 're'"
-      Lua.liftIO $ Lua.OK @=? s
+    , testCase "module 're' is loaded into a global" . runLuaTest $ do
+        s <- Lua.dostring "assert(type(re)=='table')"
+        Lua.liftIO $ Lua.OK @=? s
+
+    , testCase "module 'lpeg' is available via `require`" . runLuaTest $ do
+        s <- Lua.dostring "require 'lpeg'"
+        Lua.liftIO $ Lua.OK @=? s
+
+    , testCase "module 're' is available via `require`" . runLuaTest $ do
+        s <- Lua.dostring "require 're'"
+        Lua.liftIO $ Lua.OK @=? s
+    ]
 
   , testCase "informative error messages" . runLuaTest $ do
       Lua.pushboolean True
