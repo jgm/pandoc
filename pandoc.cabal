@@ -11,8 +11,7 @@ bug-reports:     https://github.com/jgm/pandoc/issues
 stability:       alpha
 homepage:        https://pandoc.org
 category:        Text
-tested-with:     GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5,
-                 GHC == 8.8.4, GHC == 8.10.2, GHC == 9.0.1
+tested-with:     GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.1
 synopsis:        Conversion between markup formats
 description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
@@ -507,10 +506,6 @@ library
                  yaml                  >= 0.11     && < 0.12,
                  zip-archive           >= 0.2.3.4  && < 0.5,
                  zlib                  >= 0.5      && < 0.7
-  if os(windows) && arch(i386)
-     build-depends: basement >= 0.0.10,
-                    foundation >= 0.0.23
-                    -- basement 0.0.9 won't build on 32-bit windows.
   if !os(windows)
     build-depends:  unix >= 2.4 && < 2.8
   if flag(embed_data_files)
