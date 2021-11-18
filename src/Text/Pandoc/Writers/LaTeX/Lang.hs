@@ -43,7 +43,7 @@ toBabel (Lang "en" _ (Just "US") _ _ _) = "american"
 toBabel (Lang "fr" _ (Just "CA") _ _ _) = "canadien"
 toBabel (Lang "fra" _ _ vars _ _)
   | "aca" `elem` vars                   = "acadian"
-toBabel (Lang "grc" _ _ _ _ _)          = "polutonikogreek"
+toBabel (Lang "grc" _ _ _ _ _)          = "ancientgreek"
 toBabel (Lang "hsb" _ _ _ _ _)          = "uppersorbian"
 toBabel (Lang "la" _ _ vars _ _)
   | "x-classic" `elem` vars             = "classiclatin"
