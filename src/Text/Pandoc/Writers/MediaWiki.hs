@@ -128,10 +128,16 @@ blockToMediaWiki b@(RawBlock f str)
 
 blockToMediaWiki HorizontalRule = return "\n-----\n"
 
-blockToMediaWiki (Header level _ inlines) = do
+blockToMediaWiki (Header level (ident,_,_) inlines) = do
+  opts <- gets stOptions
+  let autoId = uniqueIdent (writerExtensions opts) inlines mempty
   contents <- inlineListToMediaWiki inlines
   let eqs = T.replicate level "="
-  return $ eqs <> " " <> contents <> " " <> eqs <> "\n"
+  return $
+    (if T.null ident || autoId == ident
+        then ""
+        else "<span id=\"" <> ident <> "\"></span>\n")
+    <> eqs <> " " <> contents <> " " <> eqs <> "\n"
 
 blockToMediaWiki (CodeBlock (_,classes,keyvals) str) = do
   let at  = Set.fromList classes `Set.intersection` highlightingLangs
