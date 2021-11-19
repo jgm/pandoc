@@ -3,24 +3,33 @@ This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
 
 -----
 
+<span id="headers"></span>
 = Headers =
 
+<span id="level-2-with-an-embedded-link"></span>
 == Level 2 with an [[url|embedded link]] ==
 
+<span id="level-3-with-emphasis"></span>
 === Level 3 with ''emphasis'' ===
 
+<span id="level-4"></span>
 ==== Level 4 ====
 
+<span id="level-5"></span>
 ===== Level 5 =====
 
+<span id="level-1"></span>
 = Level 1 =
 
+<span id="level-2-with-emphasis"></span>
 == Level 2 with ''emphasis'' ==
 
+<span id="level-3"></span>
 === Level 3 ===
 
 with no blank line
 
+<span id="level-2"></span>
 == Level 2 ==
 
 with no blank line
@@ -28,6 +37,7 @@ with no blank line
 
 -----
 
+<span id="paragraphs"></span>
 = Paragraphs =
 
 Here’s a regular paragraph.
@@ -42,6 +52,7 @@ here.
 
 -----
 
+<span id="block-quotes"></span>
 = Block Quotes =
 
 E-mail style:
@@ -71,6 +82,7 @@ And a following paragraph.
 
 -----
 
+<span id="code-blocks"></span>
 = Code Blocks =
 
 Code:
@@ -90,8 +102,10 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</pre>
 
 -----
 
+<span id="lists"></span>
 = Lists =
 
+<span id="unordered"></span>
 == Unordered ==
 
 Asterisks tight:
@@ -130,6 +144,7 @@ Minuses loose:
 * Minus 2
 * Minus 3
 
+<span id="ordered"></span>
 == Ordered ==
 
 Tight:
@@ -164,6 +179,7 @@ Multiple paragraphs:
 <li><p>Item 2.</p></li>
 <li><p>Item 3.</p></li></ol>
 
+<span id="nested"></span>
 == Nested ==
 
 * Tab
@@ -188,6 +204,7 @@ Same thing but with paragraphs:
 #* Foe
 # Third
 
+<span id="tabs-and-spaces"></span>
 == Tabs and spaces ==
 
 * this is a list item indented with tabs
@@ -195,6 +212,7 @@ Same thing but with paragraphs:
 ** this is an example list item indented with tabs
 ** this is an example list item indented with spaces
 
+<span id="fancy-list-markers"></span>
 == Fancy list markers ==
 
 <ol start="2" style="list-style-type: decimal;">
@@ -239,6 +257,7 @@ B. Williams
 
 -----
 
+<span id="definition-lists"></span>
 = Definition Lists =
 
 Tight using spaces:
@@ -307,6 +326,7 @@ Blank line after term, indented marker, alternate markers:
 ;# sublist
 ;# sublist
 
+<span id="html-blocks"></span>
 = HTML Blocks =
 
 Simple block on one line:
@@ -416,6 +436,7 @@ Hr’s:
 
 -----
 
+<span id="inline-markup"></span>
 = Inline Markup =
 
 This is ''emphasized'', and so ''is this''.
@@ -445,6 +466,7 @@ These should not be superscripts or subscripts, because of the unescaped spaces:
 
 -----
 
+<span id="smart-quotes-ellipses-dashes"></span>
 = Smart quotes, ellipses, dashes =
 
 “Hello,” said the spider. “‘Shelob’ is my name.”
@@ -466,6 +488,7 @@ Ellipses…and…and….
 
 -----
 
+<span id="latex"></span>
 = LaTeX =
 
 * 
@@ -490,6 +513,7 @@ Here’s a LaTeX table:
 
 -----
 
+<span id="special-characters"></span>
 = Special Characters =
 
 Here is some unicode:
@@ -545,8 +569,10 @@ Minus: -
 
 -----
 
+<span id="links"></span>
 = Links =
 
+<span id="explicit"></span>
 == Explicit ==
 
 Just a [[url/|URL]].
@@ -567,6 +593,7 @@ Just a [[url/|URL]].
 
 [[|Empty]].
 
+<span id="reference"></span>
 == Reference ==
 
 Foo [[url/|bar]].
@@ -588,6 +615,7 @@ Foo [[url/|bar]].
 
 Foo [[url/|biz]].
 
+<span id="with-ampersands"></span>
 == With ampersands ==
 
 Here’s a [http://example.com/?foo=1&bar=2 link with an ampersand in the URL].
@@ -598,6 +626,7 @@ Here’s an [[script?foo=1&bar=2|inline link]].
 
 Here’s an [[script?foo=1&bar=2|inline link in pointy braces]].
 
+<span id="autolinks"></span>
 == Autolinks ==
 
 With an ampersand: http://example.com/?foo=1&bar=2
@@ -616,6 +645,7 @@ Auto-links should not occur here: <code>&lt;http://example.com/&gt;</code>
 
 -----
 
+<span id="images"></span>
 = Images =
 
 From “Voyage dans la Lune” by Georges Melies (1902):
@@ -627,6 +657,7 @@ Here is a movie [[File:movie.jpg|movie]] icon.
 
 -----
 
+<span id="footnotes"></span>
 = Footnotes =
 
 Here is a footnote reference,<ref>Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.</ref> and another.<ref>Here’s the long note. This one contains multiple blocks.

@@ -130,7 +130,7 @@ blockToMediaWiki HorizontalRule = return "\n-----\n"
 
 blockToMediaWiki (Header level (ident,_,_) inlines) = do
   opts <- gets stOptions
-  let autoId = uniqueIdent (writerExtensions opts) inlines mempty
+  let autoId = T.replace " " "_" $ stringify inlines
   contents <- inlineListToMediaWiki inlines
   let eqs = T.replicate level "="
   return $
