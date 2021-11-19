@@ -263,17 +263,6 @@ variables.
     equal to this value; the `require` mechanism prefers the
     system's lpeg library over the built-in version.
 
-`re`
-:   Contains the LPeg.re module, which is built on top of LPeg
-    and offers an implementation of a [regex engine].  Pandoc
-    uses a built-in version of the library, unless it has been
-    configured by the package maintainer to rely on a system-wide
-    installation.
-
-    Note that the result of `require 're` is not necessarily
-    equal to this value; the `require` mechanism prefers the
-    system's lpeg library over the built-in version.
-
 [LPeg homepage]: http://www.inf.puc-rio.br/~roberto/lpeg/
 [regex engine]: http://www.inf.puc-rio.br/~roberto/lpeg/re.html
 
@@ -3756,3 +3745,17 @@ Parameters:
 Returns:
 
 -   A new [Version] object.
+
+# Module re
+
+Pandoc ships with the LPeg.re module, which is built on top of
+LPeg and offers an implementation of a regex engine. 
+
+This module ships with pandoc, but is not loaded by default. It
+can be loaded via the normal `require` mechanism, e.g.:
+
+    re = require 're'
+    
+See the official [`re` website][re] for more info on this module.
+
+[re]: http://www.inf.puc-rio.br/~roberto/lpeg/re.html

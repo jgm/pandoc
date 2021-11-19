@@ -79,9 +79,7 @@ initLuaState = do
 
   setGlobalModules :: PandocLua ()
   setGlobalModules = liftPandocLua $
-    forM_ [ ("lpeg", LPeg.luaopen_lpeg_ptr)
-          , ("re", LPeg.luaopen_re_ptr)
-          ] $
+    forM_ [ ("lpeg", LPeg.luaopen_lpeg_ptr) ] $
       \(pkgname, luaopen) -> do
         Lua.pushcfunction luaopen
         Lua.pcall 0 1 Nothing >>= \case
