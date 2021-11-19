@@ -633,6 +633,7 @@ toAttrs kvs = do
          return (keys, attrs)
        else return (Set.insert k keys, addAttr html5 mbEpubVersion k v attrs)
   addAttr html5 mbEpubVersion x y
+    | T.null x = id  -- see #7546
     | html5
       = if x `Set.member` (html5Attributes <> rdfaAttributes)
              || T.any (== ':') x -- e.g. epub: namespace
