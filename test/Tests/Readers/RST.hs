@@ -179,6 +179,15 @@ tests = [ "line block with blank line" =:
           , "custom code role with language field"
             =: ".. role:: lhs(code)\n    :language: haskell\n\n:lhs:`a`"
             =?> para (codeWith ("", ["lhs", "haskell"], []) "a")
+          , "custom role with class field"
+            =: ".. role:: classy\n    :class: myclass\n\n:classy:`a`"
+            =?> para (spanWith ("", ["myclass"], []) "a")
+          , "custom role with class field containing multiple whitespace-separated classes"
+            =: ".. role:: classy\n    :class: myclass1 myclass2\n       myclass3\n\n:classy:`a`"
+            =?> para (spanWith ("", ["myclass1", "myclass2", "myclass3"], []) "a")
+          , "custom role with inherited class field"
+            =: ".. role:: classy\n    :class: myclass1\n.. role:: classier(classy)\n    :class: myclass2\n\n:classier:`a`"
+            =?> para (spanWith ("", ["myclass2", "myclass1"], []) "a")
           , "custom role with unspecified parent role"
             =: ".. role:: classy\n\n:classy:`text`"
             =?> para (spanWith ("", ["classy"], []) "text")
