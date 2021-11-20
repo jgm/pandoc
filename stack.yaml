@@ -32,9 +32,7 @@ extra-deps:
 - citeproc-0.6
 - aeson-pretty-0.8.9
 - ipynb-0.1.0.2
-# - texmath-0.12.3.2
-- git: https://github.com/jgm/texmath.git
-  commit: 674bcbaec03e5550f155623de6662953bd157625
+- texmath-0.12.3.3
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10
