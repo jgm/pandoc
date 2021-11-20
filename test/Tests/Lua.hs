@@ -221,11 +221,13 @@ tests = map (localOption (QuickCheckTests 20))
         Lua.liftIO $ Lua.OK @=? s
 
     , testCase "module 'lpeg' is available via `require`" . runLuaTest $ do
-        s <- Lua.dostring "require 'lpeg'"
+        s <- Lua.dostring
+              "package.path = ''; package.cpath = ''; require 'lpeg'"
         Lua.liftIO $ Lua.OK @=? s
 
     , testCase "module 're' is available via `require`" . runLuaTest $ do
-        s <- Lua.dostring "require 're'"
+        s <- Lua.dostring
+               "package.path = ''; package.cpath = ''; require 're'"
         Lua.liftIO $ Lua.OK @=? s
     ]
 
