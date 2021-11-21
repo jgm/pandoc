@@ -1,5 +1,167 @@
 # Revision history for pandoc
 
+## pandoc 2.16.2 PROVISIONAL (DATE)
+
+  * Add interface for custom readers written in Lua (#7669).
+    Users can now do `-f myreader.lua` and pandoc will treat the
+    script myreader.lua as a custom reader, which parses an input
+    string to a pandoc AST, using the pandoc module defined for
+    Lua filters.  A sample custom reader can be found in data/creole.lua.
+    Also see documentation in `doc/custom-readers.md`.
+
+  * New module Text.Pandoc.Readers.Custom, exporting `readCustom` [API change].
+
+  * Allow `plain` to be used in raw attribute syntax.
+
+  * Accept empty `--metadata-file` (#7675).
+    This was a regression from 2.15 behavior.
+
+  * Markdown reader: Improve inlinesInBalancedBrackets.
+    This is just a small improvement in terms of performance, but it's simpler
+    and more direct code.  Also, we avoid parsing interparagraph spaces in
+    balanced brackets, as the original did.
+
+  * BibTeX reader: Properly handle commented lines in BibTeX/BibLaTeX (#7668).
+
+  * RST reader: handle class attribute for for custom roles (#7699,
+    willj-dev).  Previously the class attribute was ignored, and the name
+    of the role used as the class.
+
+  * DocBook reader:
+
+    + Add `<titleabbr>` support (Rowan Rodrik van der Molen).
+    + Support for `<indexterm>` (#7607, Rowan Rodrik van der Molen).
+
+  * LaTeX reader:
+
+    + Add rudimentary support for `\autoref` (#7693).
+    + Add 'uri' class when parsing `\url`, for consistency
+      with treatment of autolinks in other formats (#7672).
+
+  * JATS reader: Capture `alt-text` in figures (#7703, Albert Krewinkel
+    and Aner Lucero).
+
+  * MediaWiki writer: use HTML spans for anchors when header has id (#7697).
+    We need to generate a span when the header's ID doesn't match
+    the one MediaWiki would generate automatically.  Note that MediaWiki's
+    generation scheme is different from pandoc's (it uses uppercase letters,
+    and `_` instead of `-`, for example).  This means that in going from
+    markdown -> mediawiki, we'll now get spans before almost every heading,
+    unless explicit identifiers are used that correspond to the ones MediaWiki
+    auto-generates.  This is uglier output but it's necessary for internal
+    links to work properly.
+
+  * Markdown writer: don't create autolinks when this loses information
+    (#7692).  Previously we sometimes lost attributes when rendering links
+    as autolinks.
+
+  * JATS writer:
+
+    + Ensure figures are wrapped with `<p>` in list items
+      (Albert Krewinkel).  This prevents the generation of invalid output.
+    + Add URL to element citation entries (Albert Krewinkel).
+      The URL of a reference, if present, is added in tag `<uri>` to
+      element-citation entries.
+
+  * HTML writer: Don't create invalid `data-` attribute for empty
+    attribute key (#7546).
+
+  * LaTeX writer:
+
+    + Babel mappings: use `ancientgreek` for `grc`.
+    + With `-t latex-smart`, don't generate `\ldots` from ellipsis (#7674).
+      Instead just use unicode ellipsis.
+
+  * JATS template: fix equal-contrib attribute (Albert Krewinkel).
+    The standard requires the value to be either `yes` or `no`, but is was
+    set to `true` for authors who contributed equally.
+
+  * reveal.js template: Add `disableLayout` variable (Christophe Dervieux).
+
+  * Text.Pandoc.Error: sort errors in `handleError` by exit code
+    (Albert Krewinkel).
+
+  * Text.Pandoc.Writers.Shared: Improve toLegacyTable (#7683,
+    Christian Despres).
+
+  * Lua subsystem:
+
+    + Include lpeg module (#7649, Albert Krewinkel).  Compiles the `lpeg`
+      library (Parsing Expression Grammars For Lua) into
+      the program.  Package maintainers may choose to rely on package
+      dependencies to make lpeg available, in which case they can compile
+      the with the constraint `lpeg +rely-on-shared-lpeg-library`.
+      `lpeg` and `re` are always made available in global variables,
+      without the need for a `require`.
+
+    + Set `lpeg` and `re` as globals; allow shared lib access via require
+      The `lpeg` and `re` modules are loaded into globals of the respective
+      name, but they are not necessarily registered as loaded packages. This
+      ensures that
+
+      - the built-in library versions are preferred when setting the globals,
+      - a shared library is used if pandoc has been compiled without `lpeg`,
+        and
+      - the `require` mechanism can be used to load the shared library if
+        available, falling back to the internal version if possible and
+        necessary.
+
+    + Fix argument order in constructor `pandoc.Cite` (Albert Krewinkel).
+      This restores the old behavior; argument order had been switched
+      accidentally in pandoc 2.15.
+
+    + Add Pushable instance for `ReaderOptions` (Albert Krewinkel).
+
+    + Allow to pass custom reader options to `pandoc.read` as an
+      optional third argument (#7656, Albert Krewinkel).
+      The object can either be a table or a ReaderOptions value
+      like `PANDOC_READER_OPTIONS`. Creating new ReaderOptions objects is
+      possible through the new constructor `pandoc.ReaderOptions`.
+
+    + Display Pandoc values using their native Haskell representation
+      (Albert Krewinkel).
+
+    + Require latest hslua (2.0.1) (#7661, #7657, Albert Krewinkel).
+      This fixes issues with
+
+      - misleading error messages when a required function parameter is
+        omitted;
+      - absent properties still being listed in the output of `pairs`; and
+      - alias accessing leading to errors instead of returning `nil`, e.g.
+        with `(pandoc.Str '').identifier`.
+
+    + Add missing space in "package not found" message (#7658, Albert
+      Krewinkel).
+
+  * Update build files (#7696, Fabián Heredia Montiel).
+    Drop old windows 32-bit constraints.
+    Update cabal `tested-with` field to correspond to `ci.yml` matrix
+
+  * Remove unneeded package dependencies from benchmark target.
+
+  * Require ghc >= 8.6, base >= 4.12.
+    This allows us to get rid of the old custom prelude and
+    some crufty cpp.  But the primary reason for this is that
+    conduit has bumped its base lower bound to 4.12, making it
+    impossible for us to support lower base versions.
+
+  * Require Cabal 2.4.  Use wildcards to ensure that all pptx tests are
+    included (#7677).
+
+  * Update bash_completion.tpl (S.P.H.).
+
+  * Add `data/creole.lua` as sample custom reader.
+
+  * Add doc/custom-readers.md.
+
+  * doc/lua-filters.md: add section on global modules, including lpeg
+    (Albert Krewinkel).
+
+  * MANUAL.txt: update table of exit codes and corresponding errors
+    (Albert Krewinkel).
+
+  * Use released texmath.
+
 ## pandoc 2.16.1 (2021-11-02)
 
 
