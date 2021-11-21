@@ -38,8 +38,7 @@
     + Add 'uri' class when parsing `\url`, for consistency
       with treatment of autolinks in other formats (#7672).
 
-  * JATS reader: Capture `alt-text` in figures (#7703, Albert Krewinkel
-    and Aner Lucero).
+  * JATS reader: Capture `alt-text` in figures (#7703, Aner Lucero).
 
   * MediaWiki writer: use HTML spans for anchors when header has id (#7697).
     We need to generate a span when the header's ID doesn't match
@@ -94,7 +93,7 @@
       `lpeg` and `re` are always made available in global variables,
       without the need for a `require`.
 
-    + Set `lpeg` and `re` as globals; allow shared lib access via require
+    + Set `lpeg` and `re` as globals; allow shared lib access via `require`.
       The `lpeg` and `re` modules are loaded into globals of the respective
       name, but they are not necessarily registered as loaded packages. This
       ensures that
@@ -152,10 +151,7 @@
 
   * Add `data/creole.lua` as sample custom reader.
 
-  * Add doc/custom-readers.md.
-
-  * doc/lua-filters.md: add section on global modules, including lpeg
-    (Albert Krewinkel).
+  * Add `doc/custom-readers.md`.
 
   * MANUAL.txt: update table of exit codes and corresponding errors
     (Albert Krewinkel).
