@@ -89,6 +89,7 @@
 - Ethan Riley
 - Étienne Bersac
 - Ezwal
+- Fabián Heredia Montiel
 - Félix Baylac-Jacqué
 - Felix Yan
 - Florian Beeres
@@ -242,9 +243,11 @@
 - Raniere Silva
 - Raymond Ehlers
 - Recai Oktaş
+- Rowan Rodrik van der Molen
 - Roland Hieber
 - Roman Beránek
 - RyanGlScott
+- S.P.H
 - Salim B
 - Samuel Tardieu
 - Sascha Wilde
@@ -341,4 +344,5 @@
 - timo-a
 - vijayphoenix
 - wiefling
+- willj-dev
 - wuffi
