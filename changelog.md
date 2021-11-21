@@ -54,6 +54,12 @@
     (#7692).  Previously we sometimes lost attributes when rendering links
     as autolinks.
 
+  * Text.Pandoc.Readers.Metadata: allow multiple YAML documents when parsing
+    YAML for `yamlBsToRefs`.  Some people use `---` as the end delimiter in
+    YAML bibliography files, which causes the `yaml` library to emit an
+    error unless we explicitly allow multiple YAML documents (and just
+    consider the first).
+
   * JATS writer:
 
     + Ensure figures are wrapped with `<p>` in list items
