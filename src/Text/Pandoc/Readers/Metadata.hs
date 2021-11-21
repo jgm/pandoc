@@ -56,8 +56,8 @@ yamlBsToRefs :: (PandocMonad m, HasLastStrPosition st)
              -> B.ByteString
              -> ParserT Sources st m (Future st [MetaValue])
 yamlBsToRefs pMetaValue idpred bstr =
-  case Yaml.decodeEither' bstr of
-       Right (Object m) -> do
+  case Yaml.decodeAllEither' bstr of
+       Right (Object m : _) -> do
          let isSelected (String t) = idpred t
              isSelected _ = False
          let hasSelectedId (Object o) =
