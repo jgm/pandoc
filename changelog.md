@@ -4,9 +4,9 @@
 
   * Add interface for custom readers written in Lua (#7669).
     Users can now do `-f myreader.lua` and pandoc will treat the
-    script myreader.lua as a custom reader, which parses an input
+    script `myreader.lua` as a custom reader, which parses an input
     string to a pandoc AST, using the pandoc module defined for
-    Lua filters.  A sample custom reader can be found in data/creole.lua.
+    Lua filters.  A sample custom reader can be found in `data/creole.lua`.
     Also see documentation in `doc/custom-readers.md`.
 
   * New module Text.Pandoc.Readers.Custom, exporting `readCustom` [API change].
@@ -46,7 +46,7 @@
     the one MediaWiki would generate automatically.  Note that MediaWiki's
     generation scheme is different from pandoc's (it uses uppercase letters,
     and `_` instead of `-`, for example).  This means that in going from
-    markdown -> mediawiki, we'll now get spans before almost every heading,
+    markdown to mediawiki, we'll now get spans before almost every heading,
     unless explicit identifiers are used that correspond to the ones MediaWiki
     auto-generates.  This is uglier output but it's necessary for internal
     links to work properly.
