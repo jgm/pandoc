@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.16.2 PROVISIONAL (DATE)
+## pandoc 2.16.2 (2021-11-21)
 
   * Add interface for custom readers written in Lua (#7669).
     Users can now do `-f myreader.lua` and pandoc will treat the
@@ -16,7 +16,7 @@
   * Accept empty `--metadata-file` (#7675).
     This was a regression from 2.15 behavior.
 
-  * Markdown reader: Improve inlinesInBalancedBrackets.
+  * Markdown reader: Improve `inlinesInBalancedBrackets`.
     This is just a small improvement in terms of performance, but it's simpler
     and more direct code.  Also, we avoid parsing interparagraph spaces in
     balanced brackets, as the original did.
@@ -72,7 +72,7 @@
     + With `-t latex-smart`, don't generate `\ldots` from ellipsis (#7674).
       Instead just use unicode ellipsis.
 
-  * JATS template: fix equal-contrib attribute (Albert Krewinkel).
+  * JATS template: fix `equal-contrib` attribute (Albert Krewinkel).
     The standard requires the value to be either `yes` or `no`, but is was
     set to `true` for authors who contributed equally.
 
@@ -160,7 +160,7 @@
   * MANUAL.txt: update table of exit codes and corresponding errors
     (Albert Krewinkel).
 
-  * Use released texmath.
+  * Use latest texmath.
 
 ## pandoc 2.16.1 (2021-11-02)
 
