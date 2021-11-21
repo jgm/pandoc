@@ -1,4 +1,4 @@
-# Revision history for pandoc
+## Revision history for pandoc
 
 ## pandoc 2.16.2 (2021-11-21)
 
@@ -147,13 +147,16 @@
   * Require Cabal 2.4.  Use wildcards to ensure that all pptx tests are
     included (#7677).
 
-  * Update bash_completion.tpl (S.P.H.).
+  * Update `bash_completion.tpl` (S.P.H.).
 
   * Add `data/creole.lua` as sample custom reader.
 
-  * Add `doc/custom-readers.md`.
+  * Add `doc/custom-readers.md` and `doc/custom-writers.md`.
 
-  * MANUAL.txt: update table of exit codes and corresponding errors
+  * `doc/lua-filters.md`: add section on global modules, including lpeg
+    (Albert Krewinkel).
+
+  * `MANUAL.txt`: update table of exit codes and corresponding errors
     (Albert Krewinkel).
 
   * Use latest texmath.
