@@ -597,3 +597,55 @@ links](http://www.wikicreole.org), give the link a
 [different](internal links) name.
 ```
 
+# Example: parsing JSON from an API
+
+This custom reader consumes the JSON output of
+<https://www.reddit.com/r/haskell.json> and produces
+a document containing the current top articles on the
+Haskell subreddit.
+
+It assumes that the `luajson` library is available.  (It can be
+installed using `luarocks install luajson`---but be sure you are
+installing it for Lua 5.3, which is the version packaged with
+pandoc.)
+
+
+```lua
+-- consumes the output of https://www.reddit.com/r/haskell.json
+
+local json = require'json'  -- luajson must be available
+
+local function read_inlines(raw)
+  local doc = pandoc.read(raw, "commonmark")
+  return pandoc.utils.blocks_to_inlines(doc.blocks)
+end
+
+local function read_blocks(raw)
+  local doc = pandoc.read(raw, "commonmark")
+  return doc.blocks
+end
+
+function Reader(input)
+
+  local parsed = json.decode(input)
+  local blocks = {}
+
+  for _,entry in ipairs(parsed.data.children) do
+    local d = entry.data
+    table.insert(blocks, pandoc.Header(2,
+                  pandoc.Link(read_inlines(d.title), d.url)))
+    for _,block in ipairs(read_blocks(d.selftext)) do
+      table.insert(blocks, block)
+    end
+  end
+
+  return pandoc.Pandoc(blocks)
+
+end
+```
+
+Similar code can be used to consume JSON output from other APIs.
+
+Note that the content of the text fields is markdown, so we
+convert it using `pandoc.read()`.
+
