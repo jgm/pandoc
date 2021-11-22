@@ -357,6 +357,7 @@ formatFromExtension fp = case dropWhile (== '.') $ takeExtension fp of
                            "bib"      -> Just Format_biblatex
                            "json"     -> Just Format_json
                            "yaml"     -> Just Format_yaml
+                           "yml"      -> Just Format_yaml
                            _          -> Nothing
 
 
