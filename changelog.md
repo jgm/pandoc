@@ -1,4 +1,4 @@
-## Revision history for pandoc
+# Revision history for pandoc
 
 ## pandoc 2.16.2 (2021-11-21)
 
