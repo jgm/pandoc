@@ -29,8 +29,8 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshaling ()
 import Text.Pandoc.Lua.Marshaling.AST
-  ( peekBlock, peekInline, peekPandoc, pushBlock, pushInline, pushPandoc
-  , peekAttr, peekMeta, peekMetaValue)
+  ( peekBlock, peekInline, peekPandoc, pushBlock, pushInline, pushInlines
+  ,  pushPandoc, peekAttr, peekMeta, peekMetaValue)
 import Text.Pandoc.Lua.Marshaling.ListAttributes (peekListAttributes)
 import Text.Pandoc.Lua.Marshaling.List (pushPandocList)
 import Text.Pandoc.Lua.Marshaling.SimpleTable
@@ -121,6 +121,14 @@ documentedModule = Module
       ### unPandocLua . stringify
       <#> parameter peekAstElement "AST element" "elem" "some pandoc AST element"
       =#> functionResult pushText "string" "stringified element"
+
+    , defun "text"
+      ### liftPure (B.toList . B.text)
+      <#> parameter peekText "string" "words" "markup-less inlines text"
+      =#> functionResult pushInlines "Inlines" "list of inline elements"
+      #? ("Converts a string to `Inlines`, treating interword spaces as " <>
+          "`Space`s or `SoftBreak`s.  If you want a `Str` with literal " <>
+          "spaces, use `pandoc.Str`.")
 
     , defun "from_simple_table"
       ### from_simple_table

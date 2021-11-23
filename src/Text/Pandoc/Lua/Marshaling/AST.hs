@@ -44,6 +44,7 @@ module Text.Pandoc.Lua.Marshaling.AST
   , pushBlock
   , pushCitation
   , pushInline
+  , pushInlines
   , pushListAttributes
   , pushMeta
   , pushMetaValue

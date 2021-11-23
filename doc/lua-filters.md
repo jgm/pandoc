@@ -3082,6 +3082,24 @@ Usage:
     -- outputs "Moin"
     print(pandoc.utils.stringify(inline))
 
+### text {#pandoc.utils.text}
+
+`text (words)`
+
+Converts a string to `Inlines`, treating interword spaces as
+`Space`s or `SoftBreak`s. If you want a single `Str` with literal
+spaces, use `pandoc.Str`.
+
+Parameters:
+
+`words`
+:  markup-less text (string)
+
+Returns:
+
+-   List of inline elements split into words (Inlines)
+
+
 ### to\_roman\_numeral {#pandoc.utils.to_roman_numeral}
 
 `to_roman_numeral (integer)`
