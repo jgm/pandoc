@@ -208,19 +208,6 @@ local types =
     VIDEO = "graphic"
   }
 
-local function inlines(s)
-  local ils = {}
-  for t in string.gmatch(s, "%S+") do
-    if #ils == 0 then
-      ils = {pandoc.Str(t)}
-    else
-      table.insert(ils, pandoc.Space())
-      table.insert(ils, pandoc.Str(t))
-    end
-  end
-  return pandoc.MetaInlines(ils)
-end
-
 local function clean(refpairs)
   local ref = {}
   for i = 1, #refpairs do
@@ -249,28 +236,28 @@ local function clean(refpairs)
       end
     elseif k == "AU" or k == "A1" or k == "A2" or k == "A3" then
       if ref.author then
-        table.insert(ref.author, inlines(v))
+        table.insert(ref.author, v)
       else
-        ref.author = {inlines(v)}
+        ref.author = {v}
       end
     elseif k == "TI" or k == "T1" or k == "CT" or
             (k == "BT" and ref.type == "book") then
-      ref.title = inlines(v)
+      ref.title = v
     elseif k == "ET" then
-      ref.edition = inlines(v)
+      ref.edition = v
     elseif k == "NV" then
-      ref["number-of-volumes"] = inlines(v)
+      ref["number-of-volumes"] = v
     elseif k == "AB" then
-      ref.abstract = inlines(v)
+      ref.abstract = v
     elseif k == "ED" then
       if ref.editor then
-        table.insert(ref.editor, inlines(v))
+        table.insert(ref.editor, v)
       else
-        ref.editor = {inlines(v)}
+        ref.editor = {v}
       end
     elseif k == "JO" or k == "JF" or k == "T2" or
              (k == "BT" and ref.type ~= "book") then
-      ref["container-title"] = inlines(v)
+      ref["container-title"] = v
     elseif k == "PY" or k == "Y1" then
       ref.issued = v
     elseif k == "IS" then
