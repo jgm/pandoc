@@ -480,7 +480,10 @@ return {
         assert.are_same(deflist.content[1][2][2],
                          {pandoc.Plain{pandoc.Str 'company'}})
         assert.are_same(deflist.content[2][2],
-                         {{pandoc.Plain{pandoc.Str 'Best when hot.'}}})
+                        {{pandoc.Plain{
+                            pandoc.Str 'Best', pandoc.Space(),
+                            pandoc.Str 'when', pandoc.Space(),
+                            pandoc.Str 'hot.'}}})
       end),
       test('modify items via property `content`', function ()
         local deflist = pandoc.DefinitionList{
@@ -532,7 +535,7 @@ return {
         assert.are_same(header.content, {pandoc.Str 'test'})
 
         header.content = {'new text'}
-        assert.are_equal(header, pandoc.Header(1, 'new text'))
+        assert.are_equal(header, pandoc.Header(1, {'new text'}))
       end),
       test('access Attr via property `attr`', function ()
         local header = pandoc.Header(1, 'test', {'my-test'})
@@ -968,5 +971,26 @@ return {
       )
       assert.are_equal('1234', table.concat(acc))
     end)
+  },
+
+  group 'Marshal' {
+    group 'Inlines' {
+      test('Strings are broken into words', function ()
+        assert.are_equal(
+          pandoc.Emph 'Nice, init?',
+          pandoc.Emph{pandoc.Str 'Nice,', pandoc.Space(), pandoc.Str 'init?'}
+        )
+      end)
+    },
+    group 'Blocks' {
+      test('Strings are broken into words and wrapped in Plain', function ()
+        assert.are_equal(
+          pandoc.Div{
+            pandoc.Plain{pandoc.Str 'Nice,', pandoc.Space(), pandoc.Str 'init?'}
+          },
+          pandoc.Div{'Nice, init?'}
+        )
+      end)
+    }
   }
 }

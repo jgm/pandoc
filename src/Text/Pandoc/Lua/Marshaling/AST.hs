@@ -67,6 +67,7 @@ import Text.Pandoc.Lua.Marshaling.ListAttributes
   (peekListAttributes, pushListAttributes)
 
 import qualified HsLua as Lua
+import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Lua.Util as LuaUtil
 
 instance Pushable Pandoc where
@@ -796,10 +797,12 @@ peekInlineFuzzy = retrieving "Inline" . choice
 -- | Try extra-hard to return the value at the given index as a list of
 -- inlines.
 peekInlinesFuzzy :: LuaError e => Peeker e [Inline]
-peekInlinesFuzzy = choice
-  [ peekList peekInlineFuzzy
-  , fmap pure . peekInlineFuzzy
-  ]
+peekInlinesFuzzy idx = liftLua (ltype idx) >>= \case
+  TypeString -> B.toList . B.text <$> peekText idx
+  _ -> choice
+       [ peekList peekInlineFuzzy
+       , fmap pure . peekInlineFuzzy
+       ] idx
 
 -- | Try extra hard to retrieve a Block value from the stack. Treats bar
 -- Inline elements as if they were wrapped in 'Plain'.
