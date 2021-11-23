@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ViewPatterns        #-}
@@ -21,8 +22,8 @@ module Text.Pandoc.Readers.Markdown (
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
+import Text.DocLayout (realLength)
 import Data.List (transpose, elemIndex, sortOn, foldl')
-import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Set as Set
@@ -39,6 +40,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad (..), report)
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Emoji (emojiToInline)
 import Text.Pandoc.Error
+import Safe.Foldable (maximumBounded)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Walk (walk)
@@ -1351,26 +1353,30 @@ pipeTable = try $ do
   nonindentSpaces
   lookAhead nonspaceChar
   (heads,(aligns, seplengths)) <- (,) <$> pipeTableRow <*> pipeBreak
-  let heads' = take (length aligns) <$> heads
+  let cellContents = parseFromString' pipeTableCell . trim
+  let numcols = length aligns
+  let heads' = take numcols heads
   lines' <- many pipeTableRow
-  let lines'' = map (take (length aligns) <$>) lines'
-  let maxlength = maximum $
-       fmap (\x -> T.length . stringify $ runF x def) (heads' :| lines'')
-  numColumns <- getOption readerColumns
-  let widths = if maxlength > numColumns
+  let lines'' = map (take numcols) lines'
+  let lineWidths = map (sum . map realLength) (heads' : lines'')
+  columns <- getOption readerColumns
+  -- add numcols + 1 for the pipes themselves
+  let widths = if maximumBounded (sum seplengths : lineWidths) + (numcols + 1) > columns
                   then map (\len ->
                          fromIntegral len / fromIntegral (sum seplengths))
                          seplengths
                   else replicate (length aligns) 0.0
-  return (aligns, widths, toHeaderRow <$> heads', map toRow <$> sequence lines'')
+  (headCells :: F [Blocks]) <- sequence <$> mapM cellContents heads'
+  (rows :: F [[Blocks]]) <- sequence <$> mapM (fmap sequence . mapM cellContents) lines''
+  return (aligns, widths, toHeaderRow <$> headCells, map toRow <$> rows)
 
 sepPipe :: PandocMonad m => MarkdownParser m ()
 sepPipe = try $ do
   char '|' <|> char '+'
   notFollowedBy blankline
 
--- parse a row, also returning probable alignments for org-table cells
-pipeTableRow :: PandocMonad m => MarkdownParser m (F [Blocks])
+-- parse a row, returning raw cell contents
+pipeTableRow :: PandocMonad m => MarkdownParser m [Text]
 pipeTableRow = try $ do
   scanForPipe
   skipMany spaceChar
@@ -1378,13 +1384,11 @@ pipeTableRow = try $ do
   -- split into cells
   let chunk = void (code <|> math <|> rawHtmlInline <|> escapedChar <|> rawLaTeXInline')
        <|> void (noneOf "|\n\r")
-  let cellContents = withRaw (many chunk) >>=
-        parseFromString' pipeTableCell . trim . snd
-  cells <- cellContents `sepEndBy1` char '|'
+  cells <- (snd <$> withRaw (many chunk)) `sepEndBy1` char '|'
   -- surrounding pipes needed for a one-column table:
   guard $ not (length cells == 1 && not openPipe)
   blankline
-  return $ sequence cells
+  return cells
 
 pipeTableCell :: PandocMonad m => MarkdownParser m (F Blocks)
 pipeTableCell =

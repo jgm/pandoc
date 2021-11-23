@@ -4055,12 +4055,12 @@ legal (though ugly) pipe table:
     orange|3.09
 
 The cells of pipe tables cannot contain block elements like paragraphs
-and lists, and cannot span multiple lines.  If a pipe table contains a
-row whose Markdown content is wider than the column width (see
-`--columns`), then the table will take up the full text width and
-the cell contents will wrap, with the relative cell widths determined
-by the number of dashes in the line separating the table header from
-the table body. (For example `---|-` would make the first column 3/4
+and lists, and cannot span multiple lines.  If any line of the
+markdown source is longer than the column width (see `--columns`),
+then the table will take up the full text width and the cell
+contents will wrap, with the relative cell widths determined by
+the number of dashes in the line separating the table header
+from the table body. (For example `---|-` would make the first column 3/4
 and the second column 1/4 of the full text width.)
 On the other hand, if no lines are wider than column width, then
 cell contents will not be wrapped, and the cells will be sized
