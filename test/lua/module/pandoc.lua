@@ -735,7 +735,25 @@ return {
       assert.are_equal((pandoc.MetaMap{}).tag, (pandoc.MetaMap{}).t)
       assert.are_equal((pandoc.MetaInlines{}).tag, (pandoc.MetaInlines{}).t)
       assert.are_equal((pandoc.MetaBlocks{}).tag, (pandoc.MetaBlocks{}).t)
-    end)
+    end),
+  },
+  group 'Meta' {
+    test('inline list is treated as MetaInlines', function ()
+      local meta = pandoc.Pandoc({}, {test = {pandoc.Emph 'check'}}).meta
+      assert.are_same(meta.test, {pandoc.Emph{pandoc.Str 'check'}})
+    end),
+    test('inline element is treated as MetaInlines singleton', function ()
+      local meta = pandoc.Pandoc({}, {test = pandoc.Emph 'check'}).meta
+      assert.are_same(meta.test, {pandoc.Emph{pandoc.Str 'check'}})
+    end),
+    test('block list is treated as MetaBlocks', function ()
+      local meta = pandoc.Pandoc({}, {test = {pandoc.Plain 'check'}}).meta
+      assert.are_same(meta.test, {pandoc.Plain{pandoc.Str 'check'}})
+    end),
+    test('block element is treated as MetaBlocks singleton', function ()
+      local meta = pandoc.Pandoc({}, {test = pandoc.Plain 'check'}).meta
+      assert.are_same(meta.test, {pandoc.Plain{pandoc.Str 'check'}})
+    end),
   },
   group 'Other types' {
     group 'Citation' {

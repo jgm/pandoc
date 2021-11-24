@@ -247,6 +247,9 @@ peekMetaValue = retrieving "MetaValue $ " . \idx -> do
       optional (LuaUtil.getTag idx) >>= \case
         Just tag -> peekTagged tag
         Nothing  -> peekUntagged
+    Lua.TypeUserdata -> -- Allow singleton Inline or Block elements
+      (MetaInlines . (:[]) <$!> peekInline idx) <|>
+      (MetaBlocks . (:[]) <$!> peekBlock idx)
     _        -> failPeek "could not get meta value"
 
 typeBlock :: LuaError e => DocumentedType e Block
