@@ -30,7 +30,7 @@ module Text.Pandoc.Readers.HTML.Parsing
   )
 where
 
-import Control.Monad (void, mzero)
+import Control.Monad (void, mzero, mplus)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Text.HTML.TagSoup
@@ -220,9 +220,10 @@ maybeFromAttrib _ _ = Nothing
 
 mkAttr :: [(Text, Text)] -> Attr
 mkAttr attr = (attribsId, attribsClasses, attribsKV)
-  where attribsId = fromMaybe "" $ lookup "id" attr
+  where attribsId = fromMaybe "" $ lookup "id" attr `mplus` lookup "name" attr
         attribsClasses = T.words (fromMaybe "" $ lookup "class" attr) <> epubTypes
-        attribsKV = filter (\(k,_) -> k /= "class" && k /= "id") attr
+        attribsKV = filter (\(k,_) -> k /= "class" && k /= "id" && k /= "name")
+                           attr
         epubTypes = T.words $ fromMaybe "" $ lookup "epub:type" attr
 
 toAttr :: [(Text, Text)] -> Attr

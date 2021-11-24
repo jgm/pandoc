@@ -643,7 +643,7 @@ pQ = do
   case lookup "cite" attrs of
     Just url -> do
       let uid = fromMaybe mempty $
-                   lookup "name" attrs <> lookup "id" attrs
+                   lookup "name" attrs <|> lookup "id" attrs
       let cls = maybe [] T.words $ lookup "class" attrs
       url' <- canonicalizeUrl url
       makeQuote $ B.spanWith (uid, cls, [("cite", escapeURI url')])
@@ -705,20 +705,18 @@ pLineBreak = do
 
 pLink :: PandocMonad m => TagParser m Inlines
 pLink = try $ do
-  tag <- pSatisfy $ tagOpenLit "a" (const True)
+  tag@(TagOpen _ attr') <- pSatisfy $ tagOpenLit "a" (const True)
   let title = fromAttrib "title" tag
-  -- take id from id attribute if present, otherwise name
-  let uid = fromMaybe (fromAttrib "name" tag) $
-               maybeFromAttrib "id" tag
-  let cls = T.words $ fromAttrib "class" tag
+  let attr = toAttr $ filter (\(k,_) -> k /= "title" && k /= "href") attr'
   lab <- mconcat <$> manyTill inline (pCloses "a")
   -- check for href; if href, then a link, otherwise a span
   case maybeFromAttrib "href" tag of
        Nothing   ->
-         return $ extractSpaces (B.spanWith (uid, cls, [])) lab
+         return $ extractSpaces (B.spanWith attr) lab
        Just url' -> do
          url <- canonicalizeUrl url'
-         return $ extractSpaces (B.linkWith (uid, cls, []) (escapeURI url) title) lab
+         return $ extractSpaces
+                   (B.linkWith attr (escapeURI url) title) lab
 
 pImage :: PandocMonad m => TagParser m Inlines
 pImage = do
