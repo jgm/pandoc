@@ -287,9 +287,7 @@ Figure \ref{fig:Logo3} illustrated the SVG logo
 \label{section} Section \ref{section}
 ^D
 [ Para
-    [ Span
-        ( "section" , [] , [ ( "label" , "section" ) ] )
-        [ Str "[section]" ]
+    [ Span ( "section" , [] , [ ( "label" , "section" ) ] ) []
     , Space
     , Str "Section"
     , Space

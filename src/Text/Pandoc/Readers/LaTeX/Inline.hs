@@ -56,8 +56,7 @@ dolabel = do
   let refstr = untokenize v
   updateState $ \st ->
     st{ sLastLabel = Just refstr }
-  return $ spanWith (refstr,[],[("label", refstr)])
-    $ inBrackets $ str $ untokenize v
+  return $ spanWith (refstr,[],[("label", refstr)]) mempty
 
 doref :: PandocMonad m => Text -> LP m Inlines
 doref cls = do
