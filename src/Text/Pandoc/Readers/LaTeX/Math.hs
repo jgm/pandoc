@@ -142,14 +142,15 @@ newtheorem inline = do
 theoremEnvironment :: PandocMonad m
                    => LP m Blocks -> LP m Inlines -> Text -> LP m Blocks
 theoremEnvironment blocks opt name = do
+  resetCaption
   tmap <- sTheoremMap <$> getState
   case M.lookup name tmap of
     Nothing -> mzero
     Just tspec -> do
        optTitle <- option mempty $ (\x -> space <> "(" <> x <> ")") <$> opt
-       mblabel <- option Nothing $ Just . untokenize <$>
-                   try (spaces >> controlSeq "label" >> spaces >> braced)
        bs <- env name blocks
+       mblabel <- sLastLabel <$> getState
+
        number <-
          if theoremNumber tspec
             then do
@@ -182,6 +183,7 @@ theoremEnvironment blocks opt name = do
        let title = titleEmph (theoremName tspec <> number)
                       <> optTitle <> "." <> space
        return $ divWith (fromMaybe "" mblabel, [name], []) $ addTitle title
+              $ maybe id removeLabel mblabel
               $ case theoremStyle tspec of
                   PlainStyle -> walk italicize bs
                   _          -> bs

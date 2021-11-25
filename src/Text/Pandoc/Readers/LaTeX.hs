@@ -1101,7 +1101,8 @@ addImageCaption = walkM go
           case sCaption st of
             Nothing -> return p
             Just figureCaption -> do
-              let attr' = case sLastLabel st of
+              let mblabel = sLastLabel st
+              let attr' = case mblabel of
                             Just lab -> (lab, cls, kvs)
                             Nothing  -> attr
               case attr' of
@@ -1113,7 +1114,9 @@ addImageCaption = walkM go
                           , sLabels = M.insert ident
                                      [Str (renderDottedNum num)] (sLabels st) }
 
-              return $ SimpleFigure attr' (B.toList figureCaption) (src, tit)
+              return $ SimpleFigure attr'
+                       (maybe id removeLabel mblabel (B.toList figureCaption))
+                       (src, tit)
         go x = return x
 
 coloredBlock :: PandocMonad m => Text -> LP m Blocks

@@ -368,7 +368,9 @@ addTableCaption = walkM go
                         ((_,classes,kvs), Just ident) ->
                            (ident,classes,kvs)
                         _ -> attr
-          return $ addAttrDiv attr' $ Table nullAttr capt spec th tb tf
+          return $ addAttrDiv attr'
+                 $ maybe id removeLabel mblabel
+                 $ Table nullAttr capt spec th tb tf
         go x = return x
 
 -- TODO: For now we add a Div to contain table attributes, since

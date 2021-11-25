@@ -90,6 +90,7 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , resetCaption
   , env
   , addMeta
+  , removeLabel
   ) where
 
 import Control.Applicative (many, (<|>))
@@ -119,6 +120,7 @@ import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
                                         ArgSpec (..), Tok (..), TokType (..))
 import Text.Pandoc.Shared
 import Text.Parsec.Pos
+import Text.Pandoc.Walk
 
 newtype DottedNum = DottedNum [Int]
   deriving (Show, Eq)
@@ -1067,3 +1069,16 @@ tokWith inlineParser = try $ spaces >>
 addMeta :: PandocMonad m => ToMetaValue a => Text -> a -> LP m ()
 addMeta field val = updateState $ \st ->
    st{ sMeta = addMetaField field val $ sMeta st }
+
+-- remove label spans to avoid duplicated identifier
+removeLabel :: Walkable [Inline] a => Text -> a -> a
+removeLabel lbl = walk go
+ where
+  go (Span (_,_,kvs) _ : rest)
+    | Just lbl' <- lookup "label" kvs
+    , lbl' == lbl = go (dropWhile isSpaceOrSoftBreak rest)
+  go (x:xs) = x : go xs
+  go [] = []
+  isSpaceOrSoftBreak Space = True
+  isSpaceOrSoftBreak SoftBreak = True
+  isSpaceOrSoftBreak _ = False
