@@ -170,9 +170,7 @@ theoremEnvironment blocks opt name = do
                  Just ident ->
                    updateState $ \s ->
                      s{ sLabels = M.insert ident
-                         (B.toList $
-                           theoremName tspec <> "\160" <>
-                           str (renderDottedNum num)) (sLabels s) }
+                         (B.toList $ str (renderDottedNum num)) (sLabels s) }
                  Nothing -> return ()
                return $ space <> B.text (renderDottedNum num)
             else return mempty
@@ -182,12 +180,12 @@ theoremEnvironment blocks opt name = do
                          RemarkStyle     -> B.emph
        let title = titleEmph (theoremName tspec <> number)
                       <> optTitle <> "." <> space
-       return $ divWith (fromMaybe "" mblabel, [name], []) $ addTitle title
+       return $ divWith (fromMaybe "" mblabel, [name], [])
+              $ addTitle title
               $ maybe id removeLabel mblabel
               $ case theoremStyle tspec of
                   PlainStyle -> walk italicize bs
                   _          -> bs
-
 
 
 proof :: PandocMonad m => LP m Blocks -> LP m Inlines -> LP m Blocks
