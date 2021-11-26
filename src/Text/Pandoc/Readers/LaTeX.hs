@@ -284,7 +284,7 @@ lit = pure . str
 blockquote :: PandocMonad m => Bool -> Maybe Text -> LP m Blocks
 blockquote cvariant mblang = do
   citepar <- if cvariant
-                then (\xs -> para (cite xs mempty))
+                then (\xs -> para (cite (map fst xs) mempty))
                        <$> cites inline NormalCitation False
                 else option mempty $ para <$> bracketed inline
   let lang = mblang >>= babelLangToBCP47

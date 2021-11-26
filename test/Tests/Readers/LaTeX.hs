@@ -166,7 +166,7 @@ tests = [ testGroup "basic"
                                   , simpleCell (plain "Two")
                                   ]
                    , Row nullAttr [ simpleCell (plain "Three") ]
-                   , Row nullAttr [ simpleCell (plain "Four") 
+                   , Row nullAttr [ simpleCell (plain "Four")
                                   , simpleCell (plain "Five")
                                   , simpleCell (plain "Six")
                                   , simpleCell (plain "Seven")
@@ -174,8 +174,8 @@ tests = [ testGroup "basic"
                    ]
           , "Table with multicolumn header" =:
             T.unlines [ "\\begin{tabular}{ |l|l| }"
-                      , "\\hline\\multicolumn{2}{|c|}{Header}\\\\" 
-                      , "\\hline key & val\\\\" 
+                      , "\\hline\\multicolumn{2}{|c|}{Header}\\\\"
+                      , "\\hline key & val\\\\"
                       , "\\hline\\end{tabular}"
                       ] =?>
             table emptyCaption
@@ -384,10 +384,16 @@ biblatexCitations = testGroup "biblatex"
   [ "textcite" =: "\\textcite{item1}"
     =?> para (cite [baseCitation] (rt "\\textcite{item1}"))
   , "textcite with multiple citations" =: "\\textcite{item1,item2}"
-    =?> para (cite [baseCitation] (rt "\\textcite{item1,item2}") <>
+    =?> para (cite [baseCitation] (rt "\\textcite{item1}") <>
               str "," <>
               space <>
-              cite [baseCitation {citationId = "item2"}] (rt "\\textcite{item1,item2}")
+              cite [baseCitation {citationId = "item2"}] (rt "\\textcite{item2}")
+             )
+  , "textcite with multiple citations and suffix" =: "\\textcite[suffix]{item1,item2}"
+    =?> para (cite [baseCitation] (rt "\\textcite{item1}") <>
+              str "," <>
+              space <>
+              cite [baseCitation {citationId = "item2", citationSuffix = toList $ text "suffix"}] (rt "\\textcite[suffix]{item2}")
              )
   , "suffix" =: "\\textcite[p.~30]{item1}"
     =?> para
