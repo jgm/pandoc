@@ -23,7 +23,7 @@ extra-deps:
 - hslua-module-version-1.0.0
 - hslua-objectorientation-2.0.1
 - hslua-packaging-2.0.0
-- lua-2.0.1
+- lua-2.0.2
 - tasty-hslua-1.0.0
 - tasty-lua-1.0.0
 - pandoc-types-1.22.1
@@ -33,6 +33,8 @@ extra-deps:
 - aeson-pretty-0.8.9
 - ipynb-0.1.0.2
 - texmath-0.12.3.3
+- git: https://github.com/tarleb/hslua-pandoc-types.git
+  commit: 56387e543c48cc5518a77c2a271ff211653f2a36
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10

@@ -20,9 +20,9 @@ import Paths_pandoc (version)
 import Text.Pandoc.Class.CommonState (CommonState)
 import Text.Pandoc.Definition (Pandoc (Pandoc), pandocTypesVersion)
 import Text.Pandoc.Error (PandocError)
-import Text.Pandoc.Lua.Marshaling ()
-import Text.Pandoc.Lua.Marshaling.CommonState (pushCommonState)
-import Text.Pandoc.Lua.Marshaling.ReaderOptions (pushReaderOptionsReadonly)
+import Text.Pandoc.Lua.Marshal.CommonState (pushCommonState)
+import Text.Pandoc.Lua.Marshal.ReaderOptions (pushReaderOptionsReadonly)
+import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Options (ReaderOptions)
 
 import qualified Data.Text as Text

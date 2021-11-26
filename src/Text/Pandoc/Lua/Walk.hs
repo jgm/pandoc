@@ -1,7 +1,9 @@
-{-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE DeriveTraversable     #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {- |
 Module      : Text.Pandoc.Lua.Walk
 Copyright   : © 2012-2021 John MacFarlane,
@@ -14,12 +16,17 @@ Walking documents in a filter-suitable way.
 -}
 module Text.Pandoc.Lua.Walk
   ( SingletonsList (..)
+  , List (..)
   )
 where
 
 import Control.Monad ((<=<))
+import Data.Data (Data)
+import HsLua (Pushable (push))
+import Text.Pandoc.Lua.Marshal.AST (pushBlocks, pushInlines)
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
+
 
 -- | Helper type which allows to traverse trees in order, while splicing in
 -- trees.
@@ -156,3 +163,21 @@ querySingletonsList :: (Monoid c, Walkable (SingletonsList a) a)
 querySingletonsList f =
   let f' x = f (SingletonsList [x]) `mappend` query f x
   in mconcat . map f'
+
+
+-- | List wrapper where each list is processed as a whole, but special
+-- pushed to Lua in type-dependent ways.
+--
+-- The walk instance is basically that of unwrapped Haskell lists.
+newtype List a = List { fromList :: [a] }
+  deriving (Data, Eq, Show)
+
+instance Pushable (List Block) where
+  push (List xs) = pushBlocks xs
+
+instance Pushable (List Inline) where
+  push (List xs) = pushInlines xs
+
+instance Walkable [a] b => Walkable (List a) b where
+  walkM f = walkM (fmap fromList . f . List)
+  query f = query (f . List)

@@ -19,7 +19,7 @@ import HsLua (LuaError, LuaE, top)
 import HsLua.Marshalling (resultToEither, runPeek)
 import HsLua.Class.Peekable (PeekError (..))
 import Text.Pandoc.Error (PandocError (PandocLuaError))
-import Text.Pandoc.Lua.Marshaling.PandocError (pushPandocError, peekPandocError)
+import Text.Pandoc.Lua.Marshal.PandocError (pushPandocError, peekPandocError)
 
 import qualified Data.Text as T
 import qualified HsLua as Lua

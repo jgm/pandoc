@@ -17,7 +17,8 @@ module Text.Pandoc.Lua.Packages
 
 import Control.Monad (forM_)
 import Text.Pandoc.Error (PandocError)
-import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua, loadDefaultModule)
+import Text.Pandoc.Lua.Marshal.List (pushListModule)
+import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua)
 
 import qualified HsLua as Lua
 import qualified HsLua.Module.Path as Path
@@ -45,7 +46,7 @@ installPandocPackageSearcher = liftPandocLua $ do
 pandocPackageSearcher :: String -> PandocLua Lua.NumResults
 pandocPackageSearcher pkgName =
   case pkgName of
-    "pandoc"          -> pushWrappedHsFun $ Lua.toHaskellFunction @PandocError Pandoc.pushModule
+    "pandoc"          -> pushModuleLoader Pandoc.documentedModule
     "pandoc.mediabag" -> pushModuleLoader MediaBag.documentedModule
     "pandoc.path"     -> pushModuleLoader Path.documentedModule
     "pandoc.system"   -> pushModuleLoader System.documentedModule
@@ -53,7 +54,7 @@ pandocPackageSearcher pkgName =
     "pandoc.utils"    -> pushModuleLoader Utils.documentedModule
     "text"            -> pushModuleLoader Text.documentedModule
     "pandoc.List"     -> pushWrappedHsFun . Lua.toHaskellFunction @PandocError $
-                         loadDefaultModule pkgName
+                         (Lua.NumResults 1 <$ pushListModule @PandocError)
     _                 -> reportPandocSearcherFailure
  where
   pushModuleLoader mdl = liftPandocLua $ do

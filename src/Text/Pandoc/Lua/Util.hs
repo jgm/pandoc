@@ -1,9 +1,4 @@
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeApplications      #-}
 {- |
    Module      : Text.Pandoc.Lua.Util
    Copyright   : © 2012-2021 John MacFarlane,
@@ -16,14 +11,12 @@
 Lua utility functions.
 -}
 module Text.Pandoc.Lua.Util
-  ( getTag
-  , addField
+  ( addField
   , callWithTraceback
   , dofileWithTraceback
-  , pushViaConstr'
   ) where
 
-import Control.Monad (unless, when)
+import Control.Monad (when)
 import HsLua
 import qualified HsLua as Lua
 
@@ -33,26 +26,6 @@ addField key value = do
   Lua.push key
   Lua.push value
   Lua.rawset (Lua.nth 3)
-
--- | Get the tag of a value. This is an optimized and specialized version of
--- @Lua.getfield idx "tag"@. It only checks for the field on the table at index
--- @idx@ and on its metatable, also ignoring any @__index@ value on the
--- metatable.
-getTag :: LuaError e => Peeker e Name
-getTag idx = do
-  -- push metatable or just the table
-  liftLua $ do
-    Lua.getmetatable idx >>= \hasMT -> unless hasMT (Lua.pushvalue idx)
-    Lua.pushName "tag"
-    Lua.rawget (Lua.nth 2)
-  Lua.peekName Lua.top `lastly` Lua.pop 2  -- table/metatable and `tag` field
-
-pushViaConstr' :: forall e. LuaError e => Name -> [LuaE e ()] -> LuaE e ()
-pushViaConstr' fnname pushArgs = do
-  pushName @e ("pandoc." <> fnname)
-  rawget @e registryindex
-  sequence_ pushArgs
-  call @e (fromIntegral (length pushArgs)) 1
 
 -- | Like @'Lua.pcall'@, but uses a predefined error handler which adds a
 -- traceback on error.
