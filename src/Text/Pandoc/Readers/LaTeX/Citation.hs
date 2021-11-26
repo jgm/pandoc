@@ -45,7 +45,7 @@ citationCommands inline =
   , ("autocite*", citation "autocite*" SuppressAuthor False)
   , ("cite*", citation "cite*" SuppressAuthor False)
   , ("parencite*", citation "parencite*" SuppressAuthor False)
-  , ("textcite", multipleCites "textcite" AuthorInText False)
+  , ("textcite", multipleCites "textcite" AuthorInText True)
   , ("citet", citation "citet" AuthorInText False)
   , ("citet*", citation "citet*" AuthorInText False)
   , ("citealt", citation "citealt" AuthorInText False)
