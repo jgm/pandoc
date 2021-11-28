@@ -19,8 +19,14 @@ return {
       test('pandoc.AttributeList is a function', function ()
         assert.are_equal(type(pandoc.AttributeList), 'function')
       end),
+      test('pandoc.Blocks is a function', function ()
+        assert.are_equal(type(pandoc.Blocks), 'function')
+      end),
       test('pandoc.Citation is a function', function ()
         assert.are_equal(type(pandoc.Citation), 'function')
+      end),
+      test('pandoc.Inlines is a function', function ()
+        assert.are_equal(type(pandoc.Inlines), 'function')
       end),
       test('pandoc.SimpleTable is a function', function ()
         assert.are_equal(type(pandoc.SimpleTable), 'function')

@@ -117,7 +117,9 @@ otherConstructors =
   , mkMeta
   , mkAttr
   , mkAttributeList
+  , mkBlocks
   , mkCitation
+  , mkInlines
   , mkListAttributes
   , mkSimpleTable
 

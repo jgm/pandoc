@@ -2074,7 +2074,7 @@ format, and functions to filter and modify a subtree.
 
     Returns: [MetaBool] object
 
-## Blocks
+## Block
 
 [`BlockQuote (content)`]{#pandoc.blockquote}
 
@@ -2253,6 +2253,20 @@ format, and functions to filter and modify a subtree.
     :   element attributes
 
     Returns: [Table](#type-table) object
+
+## Blocks
+
+[`Blocks (block_like_elements)`]{#pandoc.blocks}
+
+:   Creates a [Blocks](#type-blocks) list.
+
+    Parameters:
+
+    `block_like_elements`:
+    :   List where each element can be treated as a [Block]
+        value, or a single such value.
+
+    Returns: [Blocks] list
 
 ## Inline
 
@@ -2542,6 +2556,27 @@ format, and functions to filter and modify a subtree.
     :   inline content
 
     Returns: [Underline](#type-underline) object
+
+## Inlines
+
+[`Inlines (inline_like_elements)`]{#pandoc.inlines}
+
+:   Converts its argument into an [Inlines](#type-inlines) list:
+
+    -   copies a list of [Inline] elements into a fresh list; any
+        string `s` within the list is treated as `pandoc.Str(s)`;
+    -   turns a single [Inline] into a singleton list;
+    -   splits a string into `Str`-wrapped words, treating
+        interword spaces as `Space`s or `SoftBreak`s.
+
+    Parameters:
+
+    `inline_like_elements`:
+    :   List where each element can be treated as an [Inline]
+        values, or just a single such value.
+
+    Returns: [Inlines] list
+
 
 ## Element components
 
