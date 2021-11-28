@@ -33,10 +33,9 @@ import Data.String (IsString (fromString))
 import HsLua as Lua
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError)
-import Text.Pandoc.Lua.Marshaling ()
-import Text.Pandoc.Lua.Marshaling.AST
-import Text.Pandoc.Lua.Marshaling.List (List (..), peekList')
-import Text.Pandoc.Lua.Walk (SingletonsList (..))
+import Text.Pandoc.Lua.Marshal.AST
+import Text.Pandoc.Lua.Orphans ()
+import Text.Pandoc.Lua.Walk (List (..), SingletonsList (..))
 import Text.Pandoc.Walk (Walkable (walkM))
 
 import qualified Data.Map.Strict as Map
@@ -196,7 +195,8 @@ walkInlineLists :: Walkable (List Inline) a
                 => LuaFilter -> a -> LuaE PandocError a
 walkInlineLists lf =
   let f :: List Inline -> LuaE PandocError (List Inline)
-      f = runOnValue listOfInlinesFilterName (peekList' peekInline) lf
+      f = runOnValue listOfInlinesFilterName peekListOfInlines lf
+      peekListOfInlines idx = List <$!> (peekInlinesFuzzy idx)
   in if lf `contains` listOfInlinesFilterName
      then walkM f
      else return
@@ -214,7 +214,8 @@ walkBlockLists :: Walkable (List Block) a
                => LuaFilter -> a -> LuaE PandocError a
 walkBlockLists lf =
   let f :: List Block -> LuaE PandocError (List Block)
-      f = runOnValue listOfBlocksFilterName (peekList' peekBlock) lf
+      f = runOnValue listOfBlocksFilterName peekListOfBlocks lf
+      peekListOfBlocks idx = List <$!> (peekBlocksFuzzy idx)
   in if lf `contains` listOfBlocksFilterName
      then walkM f
      else return

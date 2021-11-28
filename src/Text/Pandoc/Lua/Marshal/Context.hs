@@ -10,7 +10,7 @@
 
 Marshaling instance for doctemplates Context and its components.
 -}
-module Text.Pandoc.Lua.Marshaling.Context () where
+module Text.Pandoc.Lua.Marshal.Context () where
 
 import qualified HsLua as Lua
 import HsLua (Pushable)

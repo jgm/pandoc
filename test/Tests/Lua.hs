@@ -238,7 +238,7 @@ tests = map (localOption (QuickCheckTests 20))
       case eitherPandoc of
         Left (PandocLuaError msg) -> do
           let expectedMsg = "Pandoc expected, got boolean\n"
-                <> "\twhile retrieving Pandoc value"
+                <> "\twhile retrieving Pandoc"
           Lua.liftIO $ assertEqual "unexpected error message" expectedMsg msg
         Left e -> error ("Expected a Lua error, but got " <> show e)
         Right _ -> error "Getting a Pandoc element from a bool should fail."
@@ -266,7 +266,6 @@ roundtripEqual x = (x ==) <$> roundtripped
 
 runLuaTest :: HasCallStack => Lua.LuaE PandocError a -> IO a
 runLuaTest op = runIOorExplode $ do
-  setUserDataDir (Just "../data")
   res <- runLua op
   case res of
     Left e -> error (show e)

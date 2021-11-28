@@ -21,8 +21,8 @@ import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Class.PandocMonad (fetchItem, getMediaBag, modifyCommonState,
                                       setMediaBag)
 import Text.Pandoc.Error (PandocError)
-import Text.Pandoc.Lua.Marshaling ()
-import Text.Pandoc.Lua.Marshaling.List (pushPandocList)
+import Text.Pandoc.Lua.Marshal.List (pushPandocList)
+import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Lua.PandocLua (unPandocLua)
 import Text.Pandoc.MIME (MimeType)
 

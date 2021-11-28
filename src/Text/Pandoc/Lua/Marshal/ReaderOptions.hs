@@ -13,7 +13,7 @@
 
 Marshaling instance for ReaderOptions and its components.
 -}
-module Text.Pandoc.Lua.Marshaling.ReaderOptions
+module Text.Pandoc.Lua.Marshal.ReaderOptions
   ( peekReaderOptions
   , pushReaderOptions
   , pushReaderOptionsReadonly
@@ -21,7 +21,7 @@ module Text.Pandoc.Lua.Marshaling.ReaderOptions
 
 import Data.Default (def)
 import HsLua as Lua
-import Text.Pandoc.Lua.Marshaling.List (pushPandocList)
+import Text.Pandoc.Lua.Marshal.List (pushPandocList)
 import Text.Pandoc.Options (ReaderOptions (..))
 
 --

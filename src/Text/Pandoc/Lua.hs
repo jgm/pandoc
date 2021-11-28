@@ -20,4 +20,4 @@ module Text.Pandoc.Lua
 import Text.Pandoc.Lua.Filter (runFilterFile)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Init (runLua)
-import Text.Pandoc.Lua.Marshaling ()
+import Text.Pandoc.Lua.Orphans ()

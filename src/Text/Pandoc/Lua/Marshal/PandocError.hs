@@ -3,16 +3,16 @@
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TypeApplications     #-}
 {- |
-   Module      : Text.Pandoc.Lua.Marshaling.PandocError
+   Module      : Text.Pandoc.Lua.Marshal.PandocError
    Copyright   : © 2020-2021 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
    Stability   : alpha
 
-Marshaling of @'PandocError'@ values.
+Marshal of @'PandocError'@ values.
 -}
-module Text.Pandoc.Lua.Marshaling.PandocError
+module Text.Pandoc.Lua.Marshal.PandocError
   ( peekPandocError
   , pushPandocError
   , typePandocError
