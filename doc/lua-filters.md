@@ -804,68 +804,31 @@ determined via [`pandoc.utils.equals`].
 
 ## MetaValue {#type-metavalue}
 
-Document meta information items.
+Document meta information items. This is not a separate type, but
+describes a set of types that can be used in places were a
+MetaValue is expected. The types correspond to the following
+Haskell type constructors:
 
-Object equality is determined via [`pandoc.utils.equals`].
+- boolean → MetaBool
+- string → MetaString
+- Inlines → MetaInlines
+- Blocks → MetaBlocks
+- List/integer indexed table → MetaList
+- string-indexed table → MetaMap
 
-### MetaBlocks {#type-metablocks}
-
-A list of blocks usable as meta value ([List] of [Blocks]).
-
-Fields:
-
-`tag`, `t`
-:   the literal `MetaBlocks` (string)
-
-### MetaBool {#type-metabool}
-
-Alias for Lua boolean, i.e. the values `true` and `false`.
-
-### MetaInlines {#type-metainlines}
-
-List of inlines used in metadata ([List] of [Inlines])
-
-Values of this type can be created with the
-[`pandoc.MetaInlines`](#pandoc.metainlines) constructor.
-
-Fields:
-
-`tag`, `t`
-:   the literal `MetaInlines` (string)
-
-### MetaList {#type-metalist}
-
-A list of other metadata values ([List] of [MetaValues]).
-
-Values of this type can be created with the
-[`pandoc.MetaList`](#pandoc.metalist) constructor.
-
-Fields:
-
-`tag`, `t`
-:   the literal `MetaList` (string)
-
-All methods available for [List]s can be used on this type as
-well.
-
-### MetaMap {#type-metamap}
-
-A string-indexed map of meta-values. (table).
-
-Values of this type can be created with the
-[`pandoc.MetaMap`](#pandoc.metamap) constructor.
-
-Fields:
-
-`tag`, `t`
-:   the literal `MetaMap` (string)
-
-*Note*: The fields will be shadowed if the map contains a field
-with the same name as those listed.
-
-### MetaString {#type-metastring}
-
-Plain Lua string value (string).
+The corresponding constructors
+[`pandoc.MetaBool`](#pandoc.metabool),
+[`pandoc.MetaString`](#pandoc.metastring),
+[`pandoc.MetaInlines`](#pandoc.metainlines),
+[`pandoc.MetaBlocks`](#pandoc.metablocks),
+[`pandoc.MetaList`](#pandoc.metalist), and
+[`pandoc.MetaMap`](#pandoc.metamap)
+can be used to ensure that a value is treated in the intended
+way. E.g., an empty table is normally treated as a `MetaMap`, but
+can be made into an empty `MetaList` by calling
+`pandoc.MetaList{}`. However, the same can be accomplished by
+using the generic functions like `pandoc.List`, `pandoc.Inlines`,
+or `pandoc.Blocks`.
 
 ## Block {#type-block}
 
@@ -1165,9 +1128,23 @@ left-aligned, right-aligned, and centered, respectively. The
 default alignment is `AlignDefault` (often equivalent to
 centered).
 
+## Blocks {#type-blocks}
+
+List of [Block] elements, with the same methods as a generic
+[List](#type-list). It is usually not necessary to create values
+of this type in user scripts, as pandoc can convert other types
+into Blocks wherever a value of this type is expected:
+
+-   a list of [Block] (or Block-like) values is used directly;
+-   a single [Inlines] value is wrapped into a [Plain] element;
+-   string values are turned into an [Inlines] value by splitting
+    the string into words (see [Inlines](#type-inlines)), and
+    then wrapping the result into a Plain singleton.
+
 ## Inline {#type-inline}
 
-Object equality is determined via [`pandoc.utils.equals`].
+Object equality is determined by checking the Haskell
+representation for equality.
 
 ### Cite {#type-cite}
 
@@ -1534,6 +1511,20 @@ Fields:
 
 `tag`, `t`
 :   the literal `Underline` (string)
+
+## Inlines {#type-inlines}
+
+List of [Inline] elements, with the same methods as a generic
+[List](#type-list). It is usually not necessary to create values
+of this type in user scripts, as pandoc can convert other types
+into Blocks wherever a value of this type is expected:
+
+-   lists of [Inline] (or Inline-like) values are used directly;
+-   single [Inline] values are converted into a list containing
+    just that element;
+-   String values are split into words, converting line breaks
+    into [SoftBreak](#type-softbreak) elements, and other
+    whitespace characters into [Spaces](#type-space).
 
 
 ## Element components
@@ -1916,6 +1907,7 @@ Usage:
 [LogMessage]: #type-logmessage
 [Pandoc]: #type-pandoc
 [Para]: #type-para
+[Plain]: #type-plain
 [Rows]: #type-row
 [SimpleTable]: #type-simpletable
 [Table]: #type-table
@@ -2010,69 +2002,81 @@ format, and functions to filter and modify a subtree.
 
 [`MetaBlocks (blocks)`]{#pandoc.metablocks}
 
-:   Meta blocks
+:   Creates a value to be used as a MetaBlocks value in meta
+    data; creates a copy of the input list via `pandoc.Blocks`,
+    discarding all non-list keys.
 
     Parameters:
 
     `blocks`:
     :   blocks
 
-    Returns: [MetaBlocks] object
+    Returns: [Blocks](#type-blocks)
 
 [`MetaInlines (inlines)`]{#pandoc.metainlines}
 
-:   Meta inlines
+:   Creates a value to be used as a MetaInlines value in meta
+    data; creates a copy of the input list via `pandoc.Inlines`,
+    discarding all non-list keys.
 
     Parameters:
 
     `inlines`:
     :   inlines
 
-    Returns: [MetaInlines] object
+    Returns: [Inlines](#types-inlines)
 
 [`MetaList (meta_values)`]{#pandoc.metalist}
 
-:   Meta list
+:   Creates a value to be used as a MetaList in meta data;
+    creates a copy of the input list via `pandoc.List`,
+    discarding all non-list keys.
 
     Parameters:
 
     `meta_values`:
     :   list of meta values
 
-    Returns: [MetaList] object
+    Returns: [List]
 
 [`MetaMap (key_value_map)`]{#pandoc.metamap}
 
-:   Meta map
+:   Creates a value to be used as a MetaMap in meta data; creates
+    a copy of the input table, keeping only pairs with string
+    keys and discards all other keys.
 
     Parameters:
 
     `key_value_map`:
     :   a string-indexed map of meta values
 
-    Returns: [MetaMap] object
+    Returns: table
 
 [`MetaString (str)`]{#pandoc.metastring}
 
-:   Creates string to be used in meta data.
+:   Creates a value to be used as a MetaString in meta data; this
+    is the identity function for boolean values and exists only
+    for completeness.
 
     Parameters:
 
     `str`:
     :   string value
 
-    Returns: [MetaString] object
+    Returns: string
 
 [`MetaBool (bool)`]{#pandoc.metabool}
 
-:   Creates boolean to be used in meta data.
+:   Creates a value to be used as MetaBool in meta data; this is
+    the identity function for boolean values and exists only for
+    completeness.
 
     Parameters:
 
     `bool`:
     :   boolean value
 
-    Returns: [MetaBool] object
+    Returns: boolean
 
 ## Block
 
