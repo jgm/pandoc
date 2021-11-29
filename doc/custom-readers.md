@@ -14,7 +14,7 @@ install any additional software to do this.
 
 [Lua]: https://www.lua.org
 
-A custom writer is a Lua file that defines a function
+A custom reader is a Lua file that defines a function
 called `Reader`, which takes two arguments:
 
 - a string, the raw input to be parsed
