@@ -115,14 +115,6 @@ documentedModule = Module
       <#> parameter peekAstElement "AST element" "elem" "some pandoc AST element"
       =#> functionResult pushText "string" "stringified element"
 
-    , defun "text"
-      ### liftPure (B.toList . B.text)
-      <#> parameter peekText "string" "words" "markup-less inlines text"
-      =#> functionResult pushInlines "Inlines" "list of inline elements"
-      #? ("Converts a string to `Inlines`, treating interword spaces as " <>
-          "`Space`s or `SoftBreak`s.  If you want a `Str` with literal " <>
-          "spaces, use `pandoc.Str`.")
-
     , defun "from_simple_table"
       ### from_simple_table
       <#> parameter peekSimpleTable "SimpleTable" "simple_tbl" ""

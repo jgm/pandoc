@@ -82,34 +82,6 @@ return {
     end)
   },
 
-  group 'text' {
-    test('string is converted to inlines', function ()
-      local expected = {
-        pandoc.Str 'Madness', pandoc.Space(), pandoc.Str '-', pandoc.Space(),
-        pandoc.Str 'Our', pandoc.Space(), pandoc.Str 'House'
-      }
-      assert.are_same(pandoc.utils.text('Madness - Our House'), expected)
-    end),
-    test('tabs are treated as space', function ()
-      local expected = {
-        pandoc.Str 'Linkin', pandoc.Space(), pandoc.Str 'Park', pandoc.Space(),
-        pandoc.Str '-', pandoc.Space(), pandoc.Str 'Papercut'
-      }
-      assert.are_same(pandoc.utils.text('Linkin Park\t-\tPapercut'), expected)
-    end),
-    test('newlines are treated as softbreaks', function ()
-      local expected = {
-        pandoc.Str 'Porcupine', pandoc.Space(), pandoc.Str 'Tree',
-        pandoc.SoftBreak(), pandoc.Str '-', pandoc.SoftBreak(),
-        pandoc.Str 'Blackest',  pandoc.Space(), pandoc.Str 'Eyes'
-      }
-      assert.are_same(
-        pandoc.utils.text('Porcupine Tree\n-\nBlackest Eyes'),
-        expected
-      )
-    end),
-  },
-
   group 'to_roman_numeral' {
     test('convertes number', function ()
       assert.are_equal('MDCCCLXXXVIII', utils.to_roman_numeral(1888))
