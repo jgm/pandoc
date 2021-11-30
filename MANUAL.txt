@@ -5332,7 +5332,7 @@ for regular emphasis, add extra blank space around headings.
 Include source position attributes when parsing `commonmark`.
 For elements that accept attributes, a `data-pos` attribute
 is added; other elements are placed in a surrounding
-Div or Span elemnet with a `data-pos` attribute.
+Div or Span element with a `data-pos` attribute.
 
 #### Extension: `short_subsuperscripts` ####
 
