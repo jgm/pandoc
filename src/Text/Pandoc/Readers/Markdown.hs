@@ -1775,8 +1775,7 @@ endline = try $ do
 -- a reference label for a link
 reference :: PandocMonad m => MarkdownParser m (F Inlines, Text)
 reference = do
-  -- guardDisabled Ext_footnotes <|> notFollowedBy' (string "[^")
-  -- guardDisabled Ext_citations <|> notFollowedBy' (string "[@")
+  guardDisabled Ext_footnotes <|> notFollowedBy' (string "[^")
   withRaw $ trimInlinesF <$> inlinesInBalancedBrackets
 
 parenthesizedChars :: PandocMonad m => MarkdownParser m Text
