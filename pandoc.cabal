@@ -15,31 +15,35 @@ tested-with:     GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.1
 synopsis:        Conversion between markup formats
 description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
-                 this library. It can read several dialects of Markdown and
-                 (subsets of) HTML, reStructuredText, LaTeX, DocBook, JATS,
-                 MediaWiki markup, DokuWiki markup, TWiki markup,
-                 TikiWiki markup, Jira markup, Creole 1.0, Haddock markup,
-                 OPML, Emacs Org-Mode, Emacs Muse, txt2tags, ipynb (Jupyter
-                 notebooks), Vimwiki, Word Docx, ODT, EPUB, FictionBook2,
-                 roff man, Textile, BibTeX, BibLaTeX, CSL JSON,
-                 , and CSV, and it can write Markdown,
-                 reStructuredText, XHTML, HTML 5, LaTeX, ConTeXt, DocBook,
-                 JATS, OPML, TEI, OpenDocument, ODT, Word docx,
-                 PowerPoint pptx, RTF, MediaWiki, DokuWiki, XWiki,
-                 ZimWiki, Textile, Jira, roff man, roff ms, plain text,
-                 Emacs Org-Mode, AsciiDoc, Haddock markup,
-                 EPUB (v2 and v3), ipynb, FictionBook2,
-                 InDesign ICML, Muse, CSL JSON, LaTeX beamer slides,
-                 and several kinds of HTML/JavaScript slide shows
-                 (S5, Slidy, Slideous, DZSlides, reveal.js).
+                 this library. The formats it can handle include
                  .
-                 In contrast to most existing tools for converting Markdown
-                 to HTML, pandoc has a modular design: it consists of a set of
-                 readers, which parse text in a given format and produce a
-                 native representation of the document, and a set of writers,
-                 which convert this native representation into a target
-                 format. Thus, adding an input or output format requires
-                 only adding a reader or writer.
+                 - light markup formats (many variants of Markdown,
+                   reStructuredText, AsciiDoc, Org-mode, Muse, Textile,
+                   txt2tags)
+                 - HTML formats (HTML 4 and 5)
+                 - Ebook formats (EPUB v2 and v3, FB2)
+                 - Documentation formats (GNU TexInfo, Haddock)
+                 - Roff formats (man, ms)
+                 - TeX formats (LaTeX, ConTeXt)
+                 - XML formats (DocBook 4 and 5, JATS, TEI Simple, OpenDocument)
+                 - Outline formats (OPML)
+                 - Bibliography formats (BibTeX, BibLaTeX, CSL JSON, CSL YAML)
+                 - Word processor formats (Docx, RTF, ODT)
+                 - Interactive notebook formats (Jupyter notebook ipynb)
+                 - Page layout formats (InDesign ICML)
+                 - Wiki markup formats (MediaWiki, DokuWiki, TikiWiki, TWiki,
+                   Vimwiki, XWiki, ZimWiki, Jira wiki, Creole)
+                 - Slide show formats (LaTeX Beamer, PowerPoint, Slidy,
+                   reveal.js, Slideous, S5, DZSlides)
+                 - Data formats (CSV tables)
+                 - PDF (via external programs such as pdflatex or wkhtmltopdf)
+                 .
+                 Pandoc can convert mathematical content in documents
+                 between TeX, MathML, Word equations, roff eqn, and plain text.
+                 It includes a powerful system for automatic citations
+                 and bibliographies, and it can be customized extensively
+                 using templates, filters, and custom readers and writers
+                 written in Lua.
 data-files:
                  -- templates
                  data/templates/styles.html
