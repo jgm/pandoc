@@ -1,3 +1,5 @@
+# Revision history for pandoc
+
 ## pandoc 2.16.2 (2021-11-21)
 
   * Add interface for custom readers written in Lua (#7669).
