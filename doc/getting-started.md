@@ -212,6 +212,7 @@ Now save your file as `test1.md` in the directory
 
 Note:  If you use plain text a lot, you'll want a better editor than
 `Notepad` or `TextEdit`.  You might want to look at
+[Visual Studio Code](https://code.visualstudio.com/) or
 [Sublime Text](https://www.sublimetext.com/) or (if you're willing
 to put in some time learning an unfamiliar interface)
 [Vim](https://www.vim.org) or [Emacs](https://www.gnu.org/software/emacs).
