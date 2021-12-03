@@ -18,6 +18,7 @@ Markdown:  <https://daringfireball.net/projects/markdown/>
 module Text.Pandoc.Writers.Markdown (
   writeMarkdown,
   writeCommonMark,
+  writeMarkua,
   writePlain) where
 import Control.Monad.Reader
 import Control.Monad.State.Strict
@@ -42,7 +43,10 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.DocTemplates (Val(..), Context(..), FromContext(..))
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
-import Text.Pandoc.Writers.Markdown.Inline (inlineListToMarkdown, linkAttributes, attrsToMarkdown)
+import Text.Pandoc.Writers.Markdown.Inline (inlineListToMarkdown, 
+                                            linkAttributes, 
+                                            attrsToMarkdown, 
+                                            attrsToMarkua)
 import Text.Pandoc.Writers.Markdown.Types (MarkdownVariant(..),
                                            WriterState(..),
                                            WriterEnv(..),
@@ -76,6 +80,26 @@ writeCommonMark opts document =
                    enableExtension Ext_all_symbols_escapable $
                    enableExtension Ext_intraword_underscores $
                      writerExtensions opts }
+
+-- | Convert Pandoc to Markua.
+writeMarkua :: PandocMonad m => WriterOptions -> Pandoc -> m Text
+writeMarkua opts document =
+  evalMD (pandocToMarkdown opts' document) def{ envVariant = Markua } def
+ where
+  opts' = opts{   writerExtensions =
+                  enableExtension Ext_hard_line_breaks $
+                  enableExtension Ext_pipe_tables $
+                  -- required for fancy list enumerators
+                  enableExtension Ext_fancy_lists $
+                  enableExtension Ext_startnum $
+                  enableExtension Ext_strikeout $
+                  enableExtension Ext_subscript $
+                  enableExtension Ext_superscript $
+                  enableExtension Ext_definition_lists $
+                  enableExtension Ext_smart $
+                  enableExtension Ext_footnotes
+                    mempty }
+
 
 pandocTitleBlock :: Doc Text -> [Doc Text] -> Doc Text -> Doc Text
 pandocTitleBlock tit auths dat =
@@ -327,8 +351,15 @@ blockToMarkdown' opts (Div attrs ils) = do
   contents <- blockListToMarkdown opts ils
   variant <- asks envVariant
   return $
-    case () of
-         _ | isEnabled Ext_fenced_divs opts &&
+     case () of
+         _ | variant == Markua -> 
+                   case () of
+                        () | "blurb" `elem` classes' -> prefixed "B> " contents <> blankline
+                           | "aside" `elem` classes' -> prefixed "A> " contents <> blankline
+                           -- | necessary to enable option to create a bibliography
+                           | (take 3 (T.unpack id')) == "ref" -> contents <> blankline
+                           | otherwise -> contents <> blankline
+           | isEnabled Ext_fenced_divs opts &&
              attrs /= nullAttr ->
                 let attrsToMd = if variant == Commonmark
                                 then attrsToMarkdown
@@ -408,6 +439,7 @@ blockToMarkdown' opts b@(RawBlock f str) = do
       | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
                   "markdown_mmd", "markdown_strict"]
          -> return $ literal str <> literal "\n"
+    Markua -> renderEmpty
     _ | isEnabled Ext_raw_attribute opts -> rawAttribBlock
       | f `elem` ["html", "html5", "html4"]
       , isEnabled Ext_markdown_attribute opts
@@ -419,17 +451,19 @@ blockToMarkdown' opts b@(RawBlock f str) = do
       , isEnabled Ext_raw_tex opts
          -> return $ literal str <> literal "\n"
     _ -> renderEmpty
-blockToMarkdown' opts HorizontalRule =
-  return $ blankline <> literal (T.replicate (writerColumns opts) "-") <> blankline
+blockToMarkdown' opts HorizontalRule = do
+  variant <- asks envVariant
+  let indicator = case variant of
+                        Markua -> "* * *"
+                        _ -> T.replicate (writerColumns opts) "-"
+  return $ blankline <> literal indicator <> blankline
 blockToMarkdown' opts (Header level attr inlines) = do
-
   -- first, if we're putting references at the end of a section, we
   -- put them here.
   blkLevel <- asks envBlockLevel
   refs <- if writerReferenceLocation opts == EndOfSection && blkLevel == 1
           then notesAndRefs opts
           else return empty
-
   variant <- asks envVariant
   -- we calculate the id that would be used by auto_identifiers
   -- so we know whether to print an explicit identifier
@@ -442,7 +476,8 @@ blockToMarkdown' opts (Header level attr inlines) = do
                                  && id' == autoId -> empty
                    (id',_,_)   | isEnabled Ext_mmd_header_identifiers opts ->
                                     space <> brackets (literal id')
-                   _ | isEnabled Ext_header_attributes opts ||
+                   _ | variant == Markua -> attrsToMarkua attr
+                     | isEnabled Ext_header_attributes opts ||
                        isEnabled Ext_attributes opts ->
                                     space <> attrsToMarkdown attr
                      | otherwise -> empty
@@ -476,6 +511,8 @@ blockToMarkdown' opts (Header level attr inlines) = do
             -- ghc interprets '#' characters in column 1 as linenum specifiers.
             _ | variant == PlainText || isEnabled Ext_literate_haskell opts ->
                 contents <> blankline
+            _ | variant == Markua -> attr' <> cr <> literal (T.replicate level "#") 
+                                        <> space <> contents <> blankline
             _ -> literal (T.replicate level "#") <> space <> contents <> attr' <> blankline
 
   return $ refs <> hdr
@@ -492,9 +529,11 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
           backticks <> attrs <> cr <> literal str <> cr <> backticks <> blankline
            | isEnabled Ext_fenced_code_blocks opts ->
           tildes <> attrs <> cr <> literal str <> cr <> tildes <> blankline
-     _ -> nest (writerTabStop opts) (literal str) <> blankline
+     _ | variant == Markua -> blankline <> attrsToMarkua attribs <> cr <> backticks <> cr <> 
+                                literal str <> cr <> backticks <> cr <> blankline
+       | otherwise -> nest (writerTabStop opts) (literal str) <> blankline
    where
-     endlineLen c = maybe 3 ((+1) . maximum) $ nonEmpty $
+     endlineLen c = maybe 3 ((+1) . maximum) $ nonEmpty
                         [T.length ln
                          | ln <- map trim (T.lines str)
                          , T.pack [c,c,c] `T.isPrefixOf` ln
@@ -581,24 +620,29 @@ blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
   return $ nst (tbl $$ caption'') $$ blankline
 blockToMarkdown' opts (BulletList items) = do
   contents <- inList $ mapM (bulletListItemToMarkdown opts) items
-  return $ (if isTightList items then vcat else vsep) contents <> blankline
+  return $ (if isTightList items then vcat else vsep) 
+                  contents <> blankline
 blockToMarkdown' opts (OrderedList (start,sty,delim) items) = do
   variant <- asks envVariant
   let start' = if variant == Commonmark || isEnabled Ext_startnum opts
                   then start
                   else 1
   let sty'   = if isEnabled Ext_fancy_lists opts then sty else DefaultStyle
-  let delim' = if isEnabled Ext_fancy_lists opts
-                  then delim
-                  else if variant == Commonmark &&
-                           (delim == OneParen || delim == TwoParens)
-                       then OneParen -- commonmark only supports one paren
-                       else DefaultDelim
+  let delim' | isEnabled Ext_fancy_lists opts =
+               case variant of 
+                   -- Markua supports 'fancy' enumerators, but no TwoParens
+                   Markua -> if delim == TwoParens then OneParen else delim
+                   _ -> delim
+             | variant == Commonmark && --commonmark only supports one paren
+                   (delim == OneParen || delim == TwoParens) = OneParen
+             | otherwise = DefaultDelim
   let attribs = (start', sty', delim')
   let markers  = orderedListMarkers attribs
-  let markers' = map (\m -> if T.length m < 3
-                               then m <> T.replicate (3 - T.length m) " "
-                               else m) markers
+  let markers' = case variant of
+                        Markua -> markers
+                        _ -> map (\m -> if T.length m < 3
+                                   then m <> T.replicate (3 - T.length m) " "
+                                   else m) markers
   contents <- inList $
               zipWithM (orderedListItemToMarkdown opts) markers' items
   return $ (if isTightList items then vcat else vsep) contents <> blankline
@@ -712,10 +756,13 @@ itemEndsWithTightList bs =
 -- | Convert bullet list item (list of blocks) to markdown.
 bulletListItemToMarkdown :: PandocMonad m => WriterOptions -> [Block] -> MD m (Doc Text)
 bulletListItemToMarkdown opts bs = do
+  variant <- asks envVariant
   let exts = writerExtensions opts
   contents <- blockListToMarkdown opts $ taskListItemToAscii exts bs
   let sps = T.replicate (writerTabStop opts - 2) " "
-  let start = literal $ "- " <> sps
+  let start = case variant of
+              Markua -> literal "* "
+              _      -> literal $ "- " <> sps
   -- remove trailing blank line if item ends with a tight list
   let contents' = if itemEndsWithTightList bs
                      then chomp contents <> cr
@@ -725,19 +772,22 @@ bulletListItemToMarkdown opts bs = do
 -- | Convert ordered list item (a list of blocks) to markdown.
 orderedListItemToMarkdown :: PandocMonad m
                           => WriterOptions -- ^ options
-                          -> Text        -- ^ list item marker
+                          -> Text          -- ^ list item marker
                           -> [Block]       -- ^ list item (list of blocks)
                           -> MD m (Doc Text)
 orderedListItemToMarkdown opts marker bs = do
   let exts = writerExtensions opts
   contents <- blockListToMarkdown opts $ taskListItemToAscii exts bs
+  variant <- asks envVariant
   let sps = case writerTabStop opts - T.length marker of
                    n | n > 0 -> literal $ T.replicate n " "
                    _ -> literal " "
   let ind = if isEnabled Ext_four_space_rule opts
                then writerTabStop opts
                else max (writerTabStop opts) (T.length marker + 1)
-  let start = literal marker <> sps
+  let start = case variant of
+              Markua -> literal marker <> " "
+              _      -> literal marker <> sps
   -- remove trailing blank line if item ends with a tight list
   let contents' = if itemEndsWithTightList bs
                      then chomp contents <> cr
@@ -756,7 +806,10 @@ definitionListItemToMarkdown opts (label, defs) = do
      then do
        let tabStop = writerTabStop opts
        variant <- asks envVariant
-       let leader  = if variant == PlainText then "   " else ":  "
+       let leader  = case variant of
+                        PlainText -> "   "
+                        Markua -> ":"
+                        _ -> ":  "
        let sps = case writerTabStop opts - 3 of
                       n | n > 0   -> literal $ T.replicate n " "
                       _ -> literal " "
@@ -827,6 +880,7 @@ blockListToMarkdown opts blocks = do
       isListBlock _                  = False
       commentSep
         | variant == PlainText        = Null
+        | variant == Markua           = Null
         | isEnabled Ext_raw_html opts = RawBlock "html" "<!-- -->\n"
         | otherwise                   = RawBlock "markdown" "&nbsp;\n"
   mconcat <$> mapM (blockToMarkdown opts) (fixBlocks blocks)

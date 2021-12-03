@@ -51,6 +51,7 @@ module Text.Pandoc.Writers
     , writeLaTeX
     , writeMan
     , writeMarkdown
+    , writeMarkua
     , writeMediaWiki
     , writeMs
     , writeMuse
@@ -190,6 +191,7 @@ writers = [
   ,("csljson"      , TextWriter writeCslJson)
   ,("bibtex"       , TextWriter writeBibTeX)
   ,("biblatex"     , TextWriter writeBibLaTeX)
+  ,("markua"       , TextWriter writeMarkua)
   ]
 
 -- | Retrieve writer, extensions based on formatSpec (format+extensions).
