@@ -44,32 +44,35 @@ import Text.Pandoc.Writers.Markdown.Types (MarkdownVariant(..),
 
 -- | Escape special characters for Markdown.
 escapeText :: WriterOptions -> Text -> Text
-escapeText opts = T.pack . go . T.unpack
+escapeText opts = T.pack . go' . T.unpack
  where
   startsWithSpace (' ':_) = True
   startsWithSpace ('\t':_) = True
   startsWithSpace [] = True
   startsWithSpace _ = False
+  go' ('#':cs)
+    | isEnabled Ext_space_in_atx_header opts
+    = if startsWithSpace (dropWhile (=='#') cs)
+         then '\\':'#':go cs
+         else '#':go cs
+    | otherwise = '\\':'#':go cs
+  go' ('@':cs)
+    | isEnabled Ext_citations opts =
+        case cs of
+             (d:_)
+               | isAlphaNum d || d == '_' || d == '{'
+                  -> '\\':'@':go cs
+             _ -> '@':go cs
+  go' cs = go cs
   go [] = []
   go (c:cs) =
     case c of
-       '<' | isEnabled Ext_all_symbols_escapable opts ->
-              '\\' : '<' : go cs
-           | otherwise -> "&lt;" ++ go cs
-       '>' | isEnabled Ext_all_symbols_escapable opts ->
-              '\\' : '>' : go cs
-           | otherwise -> "&gt;" ++ go cs
-       '@' | isEnabled Ext_citations opts ->
-               case cs of
-                    (d:_)
-                      | isAlphaNum d || d == '_' || d == '{'
-                         -> '\\':'@':go cs
-                    _ -> '@':go cs
-       '#' | isEnabled Ext_space_in_atx_header opts
-           , startsWithSpace cs
-           -> '\\':'#':go cs
        _ | c `elem` ['\\','`','*','_','[',']'] ->
               '\\':c:go cs
+       '>' | isEnabled Ext_all_symbols_escapable opts -> '\\':'>':go cs
+           | otherwise -> "&gt;" ++ go cs
+       '<' | isEnabled Ext_all_symbols_escapable opts -> '\\':'<':go cs
+           | otherwise -> "&lt;" ++ go cs
        '|' | isEnabled Ext_pipe_tables opts -> '\\':'|':go cs
        '^' | isEnabled Ext_superscript opts -> '\\':'^':go cs
        '~' | isEnabled Ext_subscript opts ||
@@ -90,8 +93,6 @@ escapeText opts = T.pack . go . T.unpack
                   | isEnabled Ext_intraword_underscores opts
                   , isAlphaNum c
                   , isAlphaNum x -> c : '_' : x : go xs
-                '#':xs           -> c : '#' : go xs
-                '>':xs           -> c : '>' : go xs
                 _                -> c : go cs
 
 attrsToMarkdown :: Attr -> Doc Text
