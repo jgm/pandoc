@@ -588,7 +588,12 @@ blockToMarkdown' opts (OrderedList (start,sty,delim) items) = do
                   then start
                   else 1
   let sty'   = if isEnabled Ext_fancy_lists opts then sty else DefaultStyle
-  let delim' = if isEnabled Ext_fancy_lists opts then delim else DefaultDelim
+  let delim' = if isEnabled Ext_fancy_lists opts
+                  then delim
+                  else if variant == Commonmark &&
+                           (delim == OneParen || delim == TwoParens)
+                       then OneParen -- commonmark only supports one paren
+                       else DefaultDelim
   let attribs = (start', sty', delim')
   let markers  = orderedListMarkers attribs
   let markers' = map (\m -> if T.length m < 3
