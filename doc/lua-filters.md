@@ -523,8 +523,9 @@ will output:
 
 This is the filter we use when converting `MANUAL.txt` to man
 pages. It converts level-1 headers to uppercase (using
-`walk_block` to transform inline elements inside headers),
-removes footnotes, and replaces links with regular text.
+[`walk`](#type-block:walk) to transform inline elements inside
+headers), removes footnotes, and replaces links with regular
+text.
 
 ``` lua
 -- we use preloaded text to get a UTF-8 aware 'upper' function
@@ -532,10 +533,11 @@ local text = require('text')
 
 function Header(el)
     if el.level == 1 then
-      return pandoc.walk_block(el, {
+      return el:walk {
         Str = function(el)
             return pandoc.Str(text.upper(el.text))
-        end })
+        end
+      }
     end
 end
 
@@ -611,7 +613,7 @@ wordcount = {
 
 function Pandoc(el)
     -- skip metadata, just count body:
-    pandoc.walk_block(pandoc.Div(el.blocks), wordcount)
+    el.blocks:walk(wordcount)
     print(words .. " words in body")
     os.exit(0)
 end
@@ -793,6 +795,35 @@ determined via [`pandoc.utils.equals`].
 `meta`
 :   document meta information ([Meta] object)
 
+
+### walk {#type-pandoc:walk}
+
+`walk(self, lua_filter)`
+
+Applies a Lua filter to the Pandoc element. Just as for
+full-document filters, the order in which elements are handled
+are Inline → Inlines → Block → Blocks → Meta → Pandoc.
+
+Parameters:
+
+`self`
+:   the element ([Pandoc](#type-pandoc))
+
+`lua_filter`
+:   map of filter functions (table)
+
+Result:
+
+-   filtered document ([Pandoc][])
+
+Usage:
+
+    -- returns `pandoc.Pandoc{pandoc.Para{pandoc.Str 'Bye'}}`
+    return pandoc.Pandoc{pandoc.Para('Hi')}:walk {
+      Str = function (_) return 'Bye' end,
+    }
+
+
 ## Meta {#type-meta}
 
 Meta information on a document; string-indexed collection of
@@ -833,6 +864,40 @@ or `pandoc.Blocks`.
 ## Block {#type-block}
 
 Object equality is determined via [`pandoc.utils.equals`].
+
+### Common Methods
+
+#### walk {#type-block:walk}
+
+`walk(self, lua_filter)`
+
+Applies a Lua filter to the block element. Just as for
+full-document filters, the order in which elements are handled
+are Inline → Inlines → Block → Blocks.
+
+Note that the filter is applied to the subtree, but not to the
+element itself. The rationale is that the element might be
+deleted by the filter, leading to possibly unexpected results.
+
+Parameters:
+
+`self`
+:   the element ([Block](#type-block))
+
+`lua_filter`
+:   map of filter functions (table)
+
+Result:
+
+-   filtered block ([Block][])
+
+Usage:
+
+    -- returns `pandoc.Para{pandoc.Str 'Bye'}`
+    return pandoc.Para('Hi'):walk {
+      Str = function (_) return 'Bye' end,
+    }
+
 
 ### BlockQuote {#type-blockquote}
 
@@ -1141,10 +1206,79 @@ into Blocks wherever a value of this type is expected:
     the string into words (see [Inlines](#type-inlines)), and
     then wrapping the result into a Plain singleton.
 
+### Methods
+
+Lists of type `Blocks` share all methods available in generic
+lists, see the [`pandoc.List` module](#module-pandoc.list).
+
+Additionally, the following methods are available on Blocks
+values:
+
+#### walk {#type-blocks:walk}
+
+`walk(self, lua_filter)`
+
+Applies a Lua filter to the Blocks list. Just as for
+full-document filters, the order in which elements are handled
+are are Inline → Inlines → Block → Blocks. The filter is applied
+to all list items *and* to the list itself.
+
+Parameters:
+
+`self`
+:   the list ([Blocks](#type-blocks))
+
+`lua_filter`
+:   map of filter functions (table)
+
+Result:
+
+-   filtered list ([Blocks](#type-blocks))
+
+Usage:
+
+    -- returns `pandoc.Blocks{pandoc.Para('Salve!')}`
+    return pandoc.Blocks{pandoc.Plain('Salve!)}:walk {
+      Plain = function (p) return pandoc.Para(p.content) end,
+    }
+
 ## Inline {#type-inline}
 
 Object equality is determined by checking the Haskell
 representation for equality.
+
+### Common Methods
+
+#### walk {#type-inline:walk}
+
+`walk(self, lua_filter)`
+
+Applies a Lua filter to the Inline element. Just as for
+full-document filters, the order in which elements are handled
+are are Inline → Inlines → Block → Blocks.
+
+Note that the filter is applied to the subtree, but *not* to the
+element itself. The rationale is that the element might be
+deleted by the filter, leading to possibly unexpected results.
+
+Parameters:
+
+`self`
+:   the element ([Inline](#type-inline))
+
+`lua_filter`
+:   map of filter functions (table)
+
+Result:
+
+-   filtered inline element ([Inline][])
+
+Usage:
+
+    -- returns `pandoc.SmallCaps('SPQR)`
+    return pandoc.SmallCaps('spqr'):walk {
+      Str = function (s) return string.upper(s.text) end,
+    }
 
 ### Cite {#type-cite}
 
@@ -1525,6 +1659,43 @@ into Blocks wherever a value of this type is expected:
 -   String values are split into words, converting line breaks
     into [SoftBreak](#type-softbreak) elements, and other
     whitespace characters into [Spaces](#type-space).
+
+### Methods
+
+Lists of type `Inlines` share all methods available in generic
+lists, see the [`pandoc.List` module](#module-pandoc.list).
+
+Additionally, the following methods are available on *Inlines*
+values:
+
+#### walk {#type-inlines:walk}
+
+`walk(self, lua_filter)`
+
+Applies a Lua filter to the Inlines list. Just as for
+full-document filters, the order in which elements are handled
+are are Inline → Inlines → Block → Blocks. The filter is applied
+to all list items *and* to the list itself.
+
+Parameters:
+
+`self`
+:   the list ([Inlines](#type-inlines))
+
+`lua_filter`
+:   map of filter functions (table)
+
+Result:
+
+-   filtered list ([Inlines](#type-inlines))
+
+Usage:
+
+    -- returns `pandoc.Inlines{pandoc.SmallCaps('SPQR)}`
+    return pandoc.Inlines{pandoc.Emph('spqr')}:walk {
+      Str = function (s) return string.upper(s.text) end,
+      Emph = function (e) return pandoc.SmallCaps(e.content) end,
+    }
 
 
 ## Element components

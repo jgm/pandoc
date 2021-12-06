@@ -31,20 +31,16 @@ import HsLua.Class.Peekable (PeekError)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Class.PandocIO (runIO)
 import Text.Pandoc.Definition
-import Text.Pandoc.Lua.Filter (List (..), SingletonsList (..), LuaFilter,
-                               peekLuaFilter,
-                               walkInlines, walkInlineLists,
-                               walkBlocks, walkBlockLists)
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Lua.Marshal.AST
+import Text.Pandoc.Lua.Marshal.Filter (peekFilter)
 import Text.Pandoc.Lua.Marshal.ReaderOptions ( peekReaderOptions
-                                                , pushReaderOptions)
+                                             , pushReaderOptions)
 import Text.Pandoc.Lua.Module.Utils (sha1)
 import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.Readers (Reader (..), getReader)
-import Text.Pandoc.Walk (Walkable)
 
 import qualified HsLua as Lua
 import qualified Data.ByteString.Lazy as BL
@@ -149,16 +145,6 @@ stringConstants =
         }
   in map toField nullaryConstructors
 
-walkElement :: (Walkable (SingletonsList Inline) a,
-                Walkable (SingletonsList Block) a,
-                Walkable (List Inline) a,
-                Walkable (List Block) a)
-            => a -> LuaFilter -> LuaE PandocError a
-walkElement x f = walkInlines f x
-              >>= walkInlineLists f
-              >>= walkBlocks f
-              >>= walkBlockLists f
-
 functions :: [DocumentedFunction PandocError]
 functions =
   [ defun "pipe"
@@ -206,15 +192,21 @@ functions =
   , defun "walk_block"
     ### walkElement
     <#> parameter peekBlockFuzzy "Block" "block" "element to traverse"
-    <#> parameter peekLuaFilter "LuaFilter" "filter" "filter functions"
+    <#> parameter peekFilter "Filter" "lua_filter" "filter functions"
     =#> functionResult pushBlock "Block" "modified Block"
 
   , defun "walk_inline"
     ### walkElement
     <#> parameter peekInlineFuzzy "Inline" "inline" "element to traverse"
-    <#> parameter peekLuaFilter "LuaFilter" "filter" "filter functions"
+    <#> parameter peekFilter "Filter" "lua_filter" "filter functions"
     =#> functionResult pushInline "Inline" "modified Inline"
   ]
+ where
+  walkElement x f =
+        walkInlineSplicing f x
+    >>= walkInlinesStraight f
+    >>= walkBlockSplicing f
+    >>= walkBlocksStraight f
 
 data PipeError = PipeError
   { pipeErrorCommand :: T.Text
