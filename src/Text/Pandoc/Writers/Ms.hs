@@ -21,7 +21,7 @@ TODO:
 
 module Text.Pandoc.Writers.Ms ( writeMs ) where
 import Control.Monad.State.Strict
-import Data.Char (isLower, isUpper, ord)
+import Data.Char (isAscii, isLower, isUpper, ord)
 import Data.List (intercalate, intersperse)
 import Data.List.NonEmpty (nonEmpty)
 import qualified Data.Map as Map
@@ -46,6 +46,8 @@ import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Writers.Roff
 import Text.Printf (printf)
 import Text.TeXMath (writeEqn)
+import qualified Data.Text.Encoding as TE
+import qualified Data.ByteString as B
 
 -- | Convert Pandoc to Ms.
 writeMs :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -87,6 +89,21 @@ pandocToMs opts (Pandoc meta blocks) = do
 escapeStr :: WriterOptions -> Text -> Text
 escapeStr opts =
   escapeString (if writerPreferAscii opts then AsciiOnly else AllowUTF8)
+
+-- In PDFs we need to escape parentheses and backslash.
+-- In PDF we need to encode as UTF-16 BE.
+escapePDFString :: Text -> Text
+escapePDFString t
+  | T.all isAscii t =
+    T.replace "(" "\\(" .  T.replace ")" "\\)" . T.replace "\\" "\\\\" $ t
+  | otherwise = ("\\376\\377" <>) .  -- add bom
+    mconcat . map encodeChar .  T.unpack $ t
+ where
+  encodeChar c =
+    if isAscii c && c /= '\\' && c /= '(' && c /= ')'
+       then "\\000" <> T.singleton c
+       else mconcat . map toOctal . B.unpack . TE.encodeUtf16BE $ T.singleton c
+  toOctal n = "\\" <> T.pack (printf "%03o" n)
 
 escapeUri :: Text -> Text
 escapeUri = T.pack . escapeURIString (\c -> c /= '@' && isAllowedInURI c) . T.unpack
@@ -196,7 +213,7 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
                                       (if T.null secnum
                                           then ""
                                           else "  ") <>
-                                      escapeStr opts (stringify inlines))
+                                      escapePDFString (stringify inlines))
   let backlink = nowrap (literal ".pdfhref L -D " <>
        doubleQuotes (literal (toAscii ident)) <> space <> literal "\\") <> cr <>
        literal " -- "
