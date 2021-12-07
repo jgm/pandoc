@@ -87,7 +87,7 @@ makePDF program pdfargs writer opts doc =
     "pdfroff" -> do
       source <- writer opts doc
       let args   = ["-ms", "-mpdfmark", "-mspdf",
-                    "-e", "-t", "-k", "-KUTF-8", "-i"] ++ pdfargs
+                    "-e", "-t", "-Dutf8", "--no-toc-relocation", "-i"] ++ pdfargs
       generic2pdf program args source
     baseProg -> do
       withTempDir "tex2pdf." $ \tmpdir' -> do
