@@ -7,3 +7,8 @@ constraints: aeson >= 2.0.1.0
 --   type: git
 --   location: https://github.com/jgm/texmath.git
 --   tag: 674bcbaec03e5550f155623de6662953bd157625
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/ipynb.git
+  tag: 62f1a5180a61bc89c06982d8b869b1f254208699

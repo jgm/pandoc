@@ -77,7 +77,10 @@ cellToBlocks opts lang c = do
   let Source ts = cellSource c
   let source = mconcat ts
   let kvs = jsonMetaToPairs (cellMetadata c)
-  let attachments = maybe mempty M.toList $ cellAttachments c
+  let attachments = case cellAttachments c of
+                      Nothing -> mempty
+                      Just (MimeAttachments m) -> M.toList m
+  let ident = fromMaybe mempty $ cellId c
   mapM_ addAttachment attachments
   case cellType c of
     Ipynb.Markdown -> do
@@ -86,12 +89,12 @@ cellToBlocks opts lang c = do
                else do
                  Pandoc _ bs <- walk fixImage <$> readMarkdown opts source
                  return bs
-      return $ B.divWith ("",["cell","markdown"],kvs)
+      return $ B.divWith (ident,["cell","markdown"],kvs)
              $ B.fromList bs
     Ipynb.Heading lev -> do
       Pandoc _ bs <- readMarkdown opts
         (T.replicate lev "#" <> " " <> source)
-      return $ B.divWith ("",["cell","markdown"],kvs)
+      return $ B.divWith (ident,["cell","markdown"],kvs)
              $ B.fromList bs
     Ipynb.Raw -> do
       -- we use ipynb to indicate no format given (a wildcard in nbformat)
@@ -108,11 +111,12 @@ cellToBlocks opts lang c = do
               "text/restructuredtext" -> "rst"
               "text/asciidoc"         -> "asciidoc"
               _                       -> format
-      return $ B.divWith ("",["cell","raw"],kvs) $ B.rawBlock format' source
+      return $ B.divWith (ident,["cell","raw"],kvs)
+             $ B.rawBlock format' source
     Ipynb.Code{ codeOutputs = outputs, codeExecutionCount = ec } -> do
       outputBlocks <- mconcat <$> mapM outputToBlock outputs
       let kvs' = maybe kvs (\x -> ("execution_count", tshow x):kvs) ec
-      return $ B.divWith ("",["cell","code"],kvs') $
+      return $ B.divWith (ident,["cell","code"],kvs') $
         B.codeBlockWith ("",[lang],[]) source
         <> outputBlocks
 
@@ -161,7 +165,7 @@ outputToBlock Err{ errName = ename,
 -- the output format.
 handleData :: PandocMonad m
            => JSONMeta -> MimeBundle -> m B.Blocks
-handleData metadata (MimeBundle mb) =
+handleData (JSONMeta metadata) (MimeBundle mb) =
   mconcat <$> mapM dataBlock (M.toList mb)
 
   where
@@ -209,7 +213,7 @@ handleData metadata (MimeBundle mb) =
     dataBlock _ = return mempty
 
 jsonMetaToMeta :: JSONMeta -> M.Map Text MetaValue
-jsonMetaToMeta = M.map valueToMetaValue
+jsonMetaToMeta (JSONMeta m) = M.map valueToMetaValue m
   where
     valueToMetaValue :: Value -> MetaValue
     valueToMetaValue x@Object{} =
@@ -228,11 +232,11 @@ jsonMetaToMeta = M.map valueToMetaValue
     valueToMetaValue Aeson.Null = MetaString ""
 
 jsonMetaToPairs :: JSONMeta -> [(Text, Text)]
-jsonMetaToPairs = M.toList . M.map
+jsonMetaToPairs (JSONMeta m) = M.toList . M.map
   (\case
       String t
         | not (T.all isDigit t)
         , t /= "true"
         , t /= "false"
                  -> t
-      x          -> T.pack $ UTF8.toStringLazy $ Aeson.encode x)
+      x          -> T.pack $ UTF8.toStringLazy $ Aeson.encode x) $ m

@@ -32,10 +32,11 @@ extra-deps:
 - commonmark-extensions-0.2.2
 - citeproc-0.6
 - aeson-pretty-0.8.9
-- ipynb-0.1.0.2
 - texmath-0.12.3.3
 - unicode-transforms-0.4.0
 - unicode-data-0.2.0
+- git: https://github.com/jgm/ipynb.git
+  commit: 62f1a5180a61bc89c06982d8b869b1f254208699
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10

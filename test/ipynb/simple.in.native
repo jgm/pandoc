@@ -1,15 +1,15 @@
 Pandoc (Meta {unMeta = fromList [("jupyter",MetaMap (fromList [("nbformat",MetaInlines [Str "4"]),("nbformat_minor",MetaInlines [Str "5"])]))]})
-[Div ("",["cell","markdown"],[])
+[Div ("uid1",["cell","markdown"],[])
  [Header 1 ("lorem-ipsum",[],[]) [Str "Lorem",Space,Str "ipsum"]
  ,Para [Strong [Str "Lorem",Space,Str "ipsum"],Space,Str "dolor",Space,Str "sit",Space,Str "amet,",Space,Str "consectetur",Space,Str "adipiscing",Space,Str "elit.",Space,Str "Nunc",Space,Str "luctus",SoftBreak,Str "bibendum",Space,Str "felis",Space,Str "dictum",Space,Str "sodales."]]
-,Div ("",["cell","code"],[])
+,Div ("uid2",["cell","code"],[])
  [CodeBlock ("",["python"],[]) "print(\"hello\")"]
-,Div ("",["cell","markdown"],[])
+,Div ("uid3",["cell","markdown"],[])
  [Header 2 ("pyout",[],[]) [Str "Pyout"]]
-,Div ("",["cell","code"],[("execution_count","2")])
+,Div ("uid4",["cell","code"],[("execution_count","2")])
  [CodeBlock ("",["python"],[]) "from IPython.display import HTML\nHTML(\"\"\"\n<script>\nconsole.log(\"hello\");\n</script>\n<b>HTML</b>\n\"\"\")"
- ,Div ("",["output","execute_result"],[("execution_count","2")])
+ ,Div ("uid5",["output","execute_result"],[("execution_count","2")])
   [RawBlock (Format "html") "<script>\nconsole.log(\"hello\");\n</script>\n<b>HTML</b>\nhello"]]
-,Div ("",["cell","markdown"],[("tags","[\"foo\",\"bar\"]")])
+,Div ("uid6",["cell","markdown"],[("tags","[\"foo\",\"bar\"]")])
  [Header 2 ("image",[],[]) [Str "Image"]
  ,Para [Str "This",Space,Str "image",Space,Image ("",[],[]) [Str "the",Space,Str "moon"] ("lalune.jpg",""),Space,Str "will",Space,Str "be",Space,Str "included",Space,Str "as",Space,Str "a",Space,Str "cell",SoftBreak,Str "attachment."]]]

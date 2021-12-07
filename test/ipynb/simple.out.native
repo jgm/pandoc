@@ -12,7 +12,7 @@ Pandoc
           ]
     }
   [ Div
-      ( "" , [ "cell" , "markdown" ] , [] )
+      ( "uid1" , [ "cell" , "markdown" ] , [] )
       [ Header
           1
           ( "lorem-ipsum" , [] , [] )
@@ -46,13 +46,13 @@ Pandoc
           ]
       ]
   , Div
-      ( "" , [ "cell" , "code" ] , [] )
+      ( "uid2" , [ "cell" , "code" ] , [] )
       [ CodeBlock ( "" , [ "python" ] , [] ) "print(\"hello\")" ]
   , Div
-      ( "" , [ "cell" , "markdown" ] , [] )
+      ( "uid3" , [ "cell" , "markdown" ] , [] )
       [ Header 2 ( "pyout" , [] , [] ) [ Str "Pyout" ] ]
   , Div
-      ( ""
+      ( "uid4"
       , [ "cell" , "code" ]
       , [ ( "execution_count" , "2" ) ]
       )
@@ -70,7 +70,7 @@ Pandoc
           ]
       ]
   , Div
-      ( ""
+      ( "uid6"
       , [ "cell" , "markdown" ]
       , [ ( "tags" , "[\"foo\",\"bar\"]" ) ]
       )

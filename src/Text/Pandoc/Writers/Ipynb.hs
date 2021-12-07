@@ -37,6 +37,8 @@ import qualified Data.ByteString.Lazy as BL
 import Data.Aeson.Encode.Pretty (Config(..), defConfig,
            encodePretty', keyOrder, Indent(Spaces))
 import Text.DocLayout (literal)
+import Text.Pandoc.UUID (getRandomUUID)
+import Data.Char (isAscii, isAlphaNum)
 
 writeIpynb :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeIpynb opts d = do
@@ -79,7 +81,7 @@ pandocToNotebook opts (Pandoc meta blocks) = do
   let metadata = case fromJSON metadata' of
                    Error _ -> mempty -- TODO warning here? shouldn't happen
                    Success x -> x
-  cells <- extractCells opts blocks
+  cells <- extractCells nbformat opts blocks
   return $ Notebook{
        notebookMetadata = metadata
      , notebookFormat = nbformat
@@ -97,23 +99,26 @@ addAttachment (Image attr lab (src,tit))
   return $ Image attr lab ("attachment:" <> src, tit)
 addAttachment x = return x
 
-extractCells :: PandocMonad m => WriterOptions -> [Block] -> m [Ipynb.Cell a]
-extractCells _ [] = return []
-extractCells opts (Div (_id,classes,kvs) xs : bs)
+extractCells :: PandocMonad m
+             => (Int, Int) -> WriterOptions -> [Block] -> m [Ipynb.Cell a]
+extractCells _ _ [] = return []
+extractCells nbformat opts (Div (ident,classes,kvs) xs : bs)
   | "cell" `elem` classes
   , "markdown" `elem` classes = do
       let meta = pairsToJSONMeta kvs
       (newdoc, attachments) <-
         runStateT (walkM addAttachment (Pandoc nullMeta xs)) mempty
       source <- writeMarkdown opts{ writerTemplate = Nothing } newdoc
+      uuid <- uuidFrom nbformat ident
       (Ipynb.Cell{
           cellType = Markdown
+        , cellId = uuid
         , cellSource = Source $ breakLines $ T.stripEnd source
         , cellMetadata = meta
         , cellAttachments = if M.null attachments
                                then Nothing
-                               else Just attachments } :)
-            <$> extractCells opts bs
+                               else Just $ MimeAttachments attachments } :)
+            <$> extractCells nbformat opts bs
   | "cell" `elem` classes
   , "code" `elem` classes = do
       let (codeContent, rest) =
@@ -123,14 +128,16 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
       let meta = pairsToJSONMeta kvs
       outputs <- catMaybes <$> mapM blockToOutput rest
       let exeCount = lookup "execution_count" kvs >>= safeRead
+      uuid <- uuidFrom nbformat ident
       (Ipynb.Cell{
           cellType = Ipynb.Code {
                 codeExecutionCount = exeCount
               , codeOutputs = outputs
               }
+        , cellId = uuid
         , cellSource = Source $ breakLines codeContent
         , cellMetadata = meta
-        , cellAttachments = Nothing } :) <$> extractCells opts bs
+        , cellAttachments = Nothing } :) <$> extractCells nbformat opts bs
   | "cell" `elem` classes
   , "raw" `elem` classes =
       case consolidateAdjacentRawBlocks xs of
@@ -150,33 +157,54 @@ extractCells opts (Div (_id,classes,kvs) xs : bs)
                   "rst"      -> "text/restructuredtext"
                   "asciidoc" -> "text/asciidoc"
                   _          -> f
+          uuid <- uuidFrom nbformat ident
           (Ipynb.Cell{
               cellType = Raw
+            , cellId = uuid
             , cellSource = Source $ breakLines raw
             , cellMetadata = if format' == "ipynb" -- means no format given
                                 then mempty
-                                else M.insert "raw_mimetype"
+                                else JSONMeta $ M.insert "raw_mimetype"
                                        (Aeson.String format') mempty
-            , cellAttachments = Nothing } :) <$> extractCells opts bs
-        _ -> extractCells opts bs
-extractCells opts (CodeBlock (_id,classes,kvs) raw : bs)
+            , cellAttachments = Nothing } :) <$> extractCells nbformat opts bs
+        _ -> extractCells nbformat opts bs
+extractCells nbformat opts (CodeBlock (ident,classes,kvs) raw : bs)
   | "code" `elem` classes = do
       let meta = pairsToJSONMeta kvs
       let exeCount = lookup "execution_count" kvs >>= safeRead
+      uuid <- uuidFrom nbformat ident
       (Ipynb.Cell{
           cellType = Ipynb.Code {
                 codeExecutionCount = exeCount
               , codeOutputs = []
               }
+        , cellId = uuid
         , cellSource = Source $ breakLines raw
         , cellMetadata = meta
-        , cellAttachments = Nothing } :) <$> extractCells opts bs
-extractCells opts (b:bs) = do
+        , cellAttachments = Nothing } :) <$> extractCells nbformat opts bs
+extractCells nbformat opts (b:bs) = do
       let isCodeOrDiv (CodeBlock (_,cl,_) _) = "code" `elem` cl
           isCodeOrDiv (Div (_,cl,_) _)       = "cell" `elem` cl
           isCodeOrDiv _                      = False
       let (mds, rest) = break isCodeOrDiv bs
-      extractCells opts (Div ("",["cell","markdown"],[]) (b:mds) : rest)
+      extractCells nbformat opts
+        (Div ("",["cell","markdown"],[]) (b:mds) : rest)
+
+-- Return Nothing if nbformat < 4.5.
+-- Otherwise construct a UUID, using the existing identifier
+-- if it is a valid UUID, otherwise constructing a new one.
+uuidFrom :: PandocMonad m => (Int, Int) -> Text -> m (Maybe Text)
+uuidFrom nbformat ident =
+  if nbformat >= (4,5)
+     then
+       if isValidUUID ident
+          then return $ Just ident
+          else Just . T.pack . drop 9 . show <$> getRandomUUID
+     else return Nothing
+ where
+  isValidUUID t = not (T.null t) && T.length t <= 64 &&
+                  T.all isValidUUIDChar t
+  isValidUUIDChar c = isAscii c && (isAlphaNum c || c == '-' || c == '_')
 
 blockToOutput :: PandocMonad m => Block -> m (Maybe (Output a))
 blockToOutput (Div (_,["output","stream",sname],_) (CodeBlock _ t:_)) =
@@ -229,7 +257,7 @@ extractData bs = do
     go (mmap, meta) b = (mmap, meta) <$ report (BlockNotRendered b)
 
 pairsToJSONMeta :: [(Text, Text)] -> JSONMeta
-pairsToJSONMeta kvs =
+pairsToJSONMeta kvs = JSONMeta $
   M.fromList [(k, case Aeson.decode (UTF8.fromTextLazy $ TL.fromStrict v) of
                            Just val -> val
                            Nothing  -> String v)
