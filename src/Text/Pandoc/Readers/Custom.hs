@@ -17,7 +17,6 @@ Supports custom parsers written in Lua which produce a Pandoc AST.
 module Text.Pandoc.Readers.Custom ( readCustom ) where
 import Control.Exception
 import Control.Monad (when)
-import Data.Text (Text)
 import HsLua as Lua hiding (Operation (Div), render)
 import HsLua.Class.Peekable (PeekError)
 import Control.Monad.IO.Class (MonadIO)
@@ -26,13 +25,13 @@ import Text.Pandoc.Lua (Global (..), runLua, setGlobals)
 import Text.Pandoc.Lua.Util (dofileWithTraceback)
 import Text.Pandoc.Options
 import Text.Pandoc.Class (PandocMonad)
-import Text.Pandoc.Sources (ToSources(..), sourcesToText)
+import Text.Pandoc.Sources (Sources, ToSources(..))
 
 -- | Convert custom markup to Pandoc.
 readCustom :: (PandocMonad m, MonadIO m, ToSources s)
             => FilePath -> ReaderOptions -> s -> m Pandoc
-readCustom luaFile opts sources = do
-  let input = sourcesToText $ toSources sources
+readCustom luaFile opts srcs = do
+  let input = toSources srcs
   let globals = [ PANDOC_SCRIPT_FILE luaFile ]
   res <- runLua $ do
     setGlobals globals
@@ -47,8 +46,7 @@ readCustom luaFile opts sources = do
     Right doc -> return doc
 
 parseCustom :: forall e. PeekError e
-            => Text
+            => Sources
             -> ReaderOptions
             -> LuaE e Pandoc
 parseCustom = invoke @e "Reader"
-

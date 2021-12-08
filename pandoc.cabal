@@ -694,6 +694,7 @@ library
                    Text.Pandoc.Lua.Marshal.Context,
                    Text.Pandoc.Lua.Marshal.PandocError,
                    Text.Pandoc.Lua.Marshal.ReaderOptions,
+                   Text.Pandoc.Lua.Marshal.Sources,
                    Text.Pandoc.Lua.Module.MediaBag,
                    Text.Pandoc.Lua.Module.Pandoc,
                    Text.Pandoc.Lua.Module.System,
