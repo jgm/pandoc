@@ -186,5 +186,5 @@ G = P{ "Doc",
 }
 
 function Reader(input, reader_options)
-  return lpeg.match(G, input)
+  return lpeg.match(G, tostring(input))
 end

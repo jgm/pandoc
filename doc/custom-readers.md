@@ -17,7 +17,7 @@ install any additional software to do this.
 A custom reader is a Lua file that defines a function
 called `Reader`, which takes two arguments:
 
-- a string, the raw input to be parsed
+- the raw input to be parsed, as a list of sources
 - optionally, a table of reader options, e.g.
   `{ columns = 62, standalone = true }`.
 
@@ -27,6 +27,16 @@ which is automatically in scope.  (Indeed, all of the utility
 functions that are available for [Lua filters] are available
 in custom readers, too.)
 
+Each source item corresponds to a file or stream passed to pandoc
+containing its text and name. E.g., if a single file `input.txt`
+is passed to pandoc, then the list of sources will contain just a
+single element `s`, where `s.name == 'input.txt'` and `s.text`
+contains the file contents as a string.
+
+The sources list, as well as each of its elements, can be
+converted to a string via the Lua standard library function
+`tostring`.
+
 [Lua filters]: https://pandoc.org/lua-filters.html
 [`pandoc` module]: https://pandoc.org/lua-filters.html#module-pandoc
 
@@ -34,12 +44,20 @@ A minimal example would be
 
 ```lua
 function Reader(input)
-  return pandoc.Pandoc({ pandoc.CodeBlock(input) })
+  return pandoc.Pandoc({ pandoc.CodeBlock(tostring(input)) })
 end
 ```
 
-This just returns a document containing a big code block with
-all of the input.
+This just returns a document containing a big code block with all
+of the input. Or, to create a separate code block for each input
+file, one might write
+
+``` lua
+function Reader(input)
+  return pandoc.Pandoc(input:map(
+    function (s) return pandoc.CodeBlock(s.text) end))
+end
+```
 
 In a nontrivial reader, you'll want to parse the input.
 You can do this using standard Lua library functions
@@ -84,7 +102,7 @@ G = P{ "Pandoc",
 }
 
 function Reader(input)
-  return lpeg.match(G, input)
+  return lpeg.match(G, tostring(input))
 end
 ```
 
@@ -277,7 +295,7 @@ function Reader(input, reader_options)
   local refs = {}
   local thisref = {}
   local ids = {}
-  for line in string.gmatch(input, "[^\n]*") do
+  for line in string.gmatch(tostring(input), "[^\n]*") do
     key, val = string.match(line, "([A-Z][A-Z0-9])  %- (.*)")
     if key == "ER" then
       -- clean up fields
@@ -550,7 +568,7 @@ G = P{ "Doc",
 }
 
 function Reader(input, reader_options)
-  return lpeg.match(G, input)
+  return lpeg.match(G, tostring(input))
 end
 ```
 
@@ -614,7 +632,7 @@ end
 
 function Reader(input)
 
-  local parsed = json.decode(input)
+  local parsed = json.decode(tostring(input))
   local blocks = {}
 
   for _,entry in ipairs(parsed.data.children) do
@@ -636,3 +654,24 @@ Similar code can be used to consume JSON output from other APIs.
 Note that the content of the text fields is markdown, so we
 convert it using `pandoc.read()`.
 
+
+# Example: syntax-highlighted code files
+
+This is a reader that puts the content of each input file into a
+code block, sets the file's extension as the block's class to
+enable code highlighting, and places the filename as a header
+above each code block.
+
+``` lua
+function to_code_block (source)
+  local _, lang = pandoc.path.split_extension(source.name)
+  return pandoc.Div{
+    pandoc.Header(1, source.name == '' and '<stdin>' or source.name),
+    pandoc.CodeBlock(source.text, {class=lang}),
+  }
+end
+
+function Reader (input, opts)
+  return pandoc.Pandoc(input:map(to_code_block))
+end
+```
