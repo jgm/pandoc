@@ -36,7 +36,7 @@ extra-deps:
 - unicode-transforms-0.4.0
 - unicode-data-0.2.0
 - git: https://github.com/jgm/ipynb.git
-  commit: 62f1a5180a61bc89c06982d8b869b1f254208699
+  commit: 00246af10885c2ad4413ace4f69a7e6c88297a08
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10
