@@ -26,13 +26,14 @@ import Text.Pandoc.Lua (Global (..), runLua, setGlobals)
 import Text.Pandoc.Lua.Util (dofileWithTraceback)
 import Text.Pandoc.Options
 import Text.Pandoc.Class (PandocMonad)
-import Text.Pandoc.Sources (ToSources(..), sourcesToText)
+import Text.Pandoc.Sources (Sources, ToSources(..), sourcesToText)
 
 -- | Convert custom markup to Pandoc.
 readCustom :: (PandocMonad m, MonadIO m, ToSources s)
             => FilePath -> ReaderOptions -> s -> m Pandoc
-readCustom luaFile opts sources = do
-  let input = sourcesToText $ toSources sources
+readCustom luaFile opts srcs = do
+  let sources = toSources srcs
+  let input = sourcesToText sources
   let globals = [ PANDOC_SCRIPT_FILE luaFile ]
   res <- runLua $ do
     setGlobals globals
@@ -41,7 +42,7 @@ readCustom luaFile opts sources = do
     -- to handle this more gracefully):
     when (stat /= Lua.OK)
       Lua.throwErrorAsException
-    parseCustom input opts
+    parseCustom input opts sources
   case res of
     Left msg -> throw msg
     Right doc -> return doc
@@ -49,6 +50,6 @@ readCustom luaFile opts sources = do
 parseCustom :: forall e. PeekError e
             => Text
             -> ReaderOptions
+            -> Sources
             -> LuaE e Pandoc
 parseCustom = invoke @e "Reader"
-
