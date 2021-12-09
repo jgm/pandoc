@@ -66,6 +66,13 @@ and fast [lpeg] parsing library, which is automatically in scope.
 You can also use external Lua libraries (for example,
 an XML parser).
 
+A previous pandoc version passed a raw string instead of a list
+of sources to the Reader function. Reader functions that rely on
+this are obsolete, but still supported: Pandoc analyzes any
+script error, detecting when code assumed the old behavior. The
+code is rerun with raw string input in this case, thereby
+ensuring backwards compatibility.
+
 [patterns]: http://lua-users.org/wiki/PatternsTutorial
 [lpeg]: http://www.inf.puc-rio.br/~roberto/lpeg/
 
