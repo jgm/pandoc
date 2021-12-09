@@ -51,7 +51,7 @@ writeIpynb opts d = do
                  "cell_type", "output_type",
                  "execution_count", "metadata",
                  "outputs", "source",
-                 "data", "name", "text" ] }
+                 "data", "name", "text" ] <> compare }
          $ notebook
 
 pandocToNotebook :: PandocMonad m
