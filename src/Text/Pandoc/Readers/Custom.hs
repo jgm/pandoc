@@ -1,8 +1,5 @@
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.Readers.Custom
    Copyright   : Copyright (C) 2021 John MacFarlane
@@ -18,20 +15,23 @@ module Text.Pandoc.Readers.Custom ( readCustom ) where
 import Control.Exception
 import Control.Monad (when)
 import HsLua as Lua hiding (Operation (Div), render)
-import HsLua.Class.Peekable (PeekError)
 import Control.Monad.IO.Class (MonadIO)
 import Text.Pandoc.Definition
+import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Logging
 import Text.Pandoc.Lua (Global (..), runLua, setGlobals)
-import Text.Pandoc.Lua.Util (dofileWithTraceback)
+import Text.Pandoc.Lua.PandocLua
+import Text.Pandoc.Lua.Marshal.Pandoc (peekPandoc)
+import Text.Pandoc.Lua.Util (dofileWithTraceback, callWithTraceback,
+                             pcallWithTraceback)
 import Text.Pandoc.Options
-import Text.Pandoc.Class (PandocMonad)
-import Text.Pandoc.Sources (Sources, ToSources(..))
+import Text.Pandoc.Sources (ToSources(..), sourcesToText)
+import qualified Data.Text as T
 
 -- | Convert custom markup to Pandoc.
 readCustom :: (PandocMonad m, MonadIO m, ToSources s)
             => FilePath -> ReaderOptions -> s -> m Pandoc
 readCustom luaFile opts srcs = do
-  let input = toSources srcs
   let globals = [ PANDOC_SCRIPT_FILE luaFile ]
   res <- runLua $ do
     setGlobals globals
@@ -40,13 +40,44 @@ readCustom luaFile opts srcs = do
     -- to handle this more gracefully):
     when (stat /= Lua.OK)
       Lua.throwErrorAsException
-    parseCustom input opts
+    parseCustom
   case res of
     Left msg -> throw msg
     Right doc -> return doc
-
-parseCustom :: forall e. PeekError e
-            => Sources
-            -> ReaderOptions
-            -> LuaE e Pandoc
-parseCustom = invoke @e "Reader"
+ where
+  parseCustom = do
+    let input = toSources srcs
+    getglobal "Reader"
+    push input
+    push opts
+    pcallWithTraceback 2 1 >>= \case
+      OK -> forcePeek $ peekPandoc top
+      ErrRun -> do
+        -- Caught a runtime error. Check if parsing might work if we
+        -- pass a string instead of a Sources list, then retry.
+        runPeek (peekText top) >>= \case
+          Failure {} ->
+            -- not a string error object. Bail!
+            throwErrorAsException
+          Success errmsg -> do
+            if "string expected, got pandoc Sources" `T.isInfixOf` errmsg
+              then do
+                pop 1
+                _ <- unPandocLua $ do
+                  report $ Deprecated "old Reader function signature" $
+                    T.unlines
+                    [ "Reader functions should accept a sources list; "
+                    , "functions expecting `string` input are deprecated. "
+                    , "Use `tostring` to convert the first argument to a "
+                    , "string."
+                    ]
+                getglobal "Reader"
+                push $ sourcesToText input  -- push sources as string
+                push opts
+                callWithTraceback 2 1
+                forcePeek $ peekPandoc top
+              else
+                -- nothing we can do here
+                throwErrorAsException
+      _ ->  -- not a runtime error, we won't be able to recover from that
+        throwErrorAsException

@@ -13,6 +13,7 @@ Lua utility functions.
 module Text.Pandoc.Lua.Util
   ( addField
   , callWithTraceback
+  , pcallWithTraceback
   , dofileWithTraceback
   ) where
 
