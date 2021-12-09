@@ -219,6 +219,12 @@ tests pandocPath =
                       "--markdown-headings=setext", "-t",
                       "ipynb-raw_html-raw_tex+raw_attribute", "-s"]
       "ipynb/simple.in.native" "ipynb/simple.ipynb"
+    , test' "reader" ["-t", "native", "-f", "ipynb",
+                      "--ipynb-output=all"]
+      "ipynb/mime.ipynb" "ipynb/mime.native"
+    , test' "writer" ["-f", "native", "-t", "ipynb",
+                      "--wrap=preserve"]
+      "ipynb/mime.native" "ipynb/mime.out.ipynb"
     ]
   ]
  where
