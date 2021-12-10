@@ -14,12 +14,10 @@ Unit and integration tests for pandoc's Lua subsystem.
 -}
 module Tests.Lua ( runLuaTest, tests ) where
 
-import Control.Monad (when)
 import HsLua as Lua hiding (Operation (Div), error)
 import System.FilePath ((</>))
-import Test.Tasty (TestTree, testGroup, localOption)
+import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit ((@=?), Assertion, HasCallStack, assertEqual, testCase)
-import Test.Tasty.QuickCheck (QuickCheckTests (..), ioProperty, testProperty)
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder (bulletList, definitionList, displayMath, divWith,
                             doc, doubleQuoted, emph, header, lineBlock,
@@ -28,7 +26,7 @@ import Text.Pandoc.Builder (bulletList, definitionList, displayMath, divWith,
                             HasMeta (setMeta))
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Definition (Attr, Block (BlockQuote, Div, Para), Pandoc,
-                               Inline (Emph, Str), Meta, pandocTypesVersion)
+                               Inline (Emph, Str), pandocTypesVersion)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Filter (Filter (LuaFilter), applyFilters)
 import Text.Pandoc.Lua (runLua)
@@ -40,20 +38,8 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 
 tests :: [TestTree]
-tests = map (localOption (QuickCheckTests 20))
-  [ testProperty "inline elements can be round-tripped through the lua stack" $
-    ioProperty . roundtripEqual @Inline
-
-  , testProperty "block elements can be round-tripped through the lua stack" $
-    ioProperty . roundtripEqual @Block
-
-  , testProperty "meta blocks can be round-tripped through the lua stack" $
-    ioProperty . roundtripEqual @Meta
-
-  , testProperty "documents can be round-tripped through the lua stack" $
-    ioProperty . roundtripEqual @Pandoc
-
-  , testCase "macro expansion via filter" $
+tests =
+  [ testCase "macro expansion via filter" $
     assertFilterConversion "a '{{helloworld}}' string is expanded"
       "strmacro.lua"
       (doc . para $ str "{{helloworld}}")
@@ -250,19 +236,6 @@ assertFilterConversion msg filterPath docIn expectedDoc = do
     setUserDataDir (Just "../data")
     applyFilters def [LuaFilter ("lua" </> filterPath)] ["HTML"] docIn
   assertEqual msg expectedDoc actualDoc
-
-roundtripEqual :: forall a. (Eq a, Lua.Pushable a, Lua.Peekable a)
-               => a -> IO Bool
-roundtripEqual x = (x ==) <$> roundtripped
- where
-  roundtripped :: IO a
-  roundtripped = runLuaTest $ do
-    oldSize <- Lua.gettop
-    Lua.push x
-    size <- Lua.gettop
-    when (size - oldSize /= 1) $
-      error ("not exactly one additional element on the stack: " ++ show size)
-    Lua.peek Lua.top
 
 runLuaTest :: HasCallStack => Lua.LuaE PandocError a -> IO a
 runLuaTest op = runIOorExplode $ do
