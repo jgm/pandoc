@@ -26,6 +26,7 @@ extra-deps:
 - lua-2.0.2
 - tasty-hslua-1.0.0
 - tasty-lua-1.0.0
+- pandoc-lua-marshal-0.1.2
 - pandoc-types-1.22.1
 - commonmark-0.2.1.1
 - commonmark-extensions-0.2.2
@@ -36,8 +37,6 @@ extra-deps:
 - unicode-data-0.2.0
 - git: https://github.com/jgm/ipynb.git
   commit: 00246af10885c2ad4413ace4f69a7e6c88297a08
-- git: https://github.com/pandoc/pandoc-lua-marshal.git
-  commit: c24be07a51a6fd5ea2e1ec244b8caf220cea5ce4
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10

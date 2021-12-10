@@ -1769,6 +1769,15 @@ Fields:
 :   number of rows occupied by the cell; the height of the cell
     (integer).
 
+`identifier`
+:   alias for `attr.identifier` (string)
+
+`classes`
+:   alias for `attr.classes` ([List] of strings)
+
+`attributes`
+:   alias for `attr.attributes` ([Attributes])
+
 ### Citation {#type-citation}
 
 Single citation entry
