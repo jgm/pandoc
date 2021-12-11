@@ -383,9 +383,12 @@ extra-source-files:
                  test/pptx/*.pptx
                  test/pptx/**/*.pptx
                  test/pptx/**/*.native
+                 test/ipynb/*.native
                  test/ipynb/*.in.native
                  test/ipynb/*.out.native
                  test/ipynb/*.ipynb
+                 test/ipynb/*.out.ipynb
+                 test/ipynb/*.out.html
                  test/txt2tags.t2t
                  test/twiki-reader.twiki
                  test/tikiwiki-reader.tikiwiki

@@ -225,6 +225,8 @@ tests pandocPath =
     , test' "writer" ["-f", "native", "-t", "ipynb",
                       "--wrap=preserve"]
       "ipynb/mime.native" "ipynb/mime.out.ipynb"
+    , test' "reader" ["-f", "ipynb", "-t", "html"]
+      "ipynb/rank.ipynb" "ipynb/rank.out.html"
     ]
   ]
  where
