@@ -679,7 +679,7 @@ header when requesting a document from a URL:
     necessary, and adjust the images references in the document
     so they point to the extracted files.  Media are downloaded,
     read from the file system, or extracted from a binary
-    container (e.g. docx), as needed.  The original file paths
+    container (e.g. docx, ipynb), as needed.  The original file paths
     are used if they are relative paths not containing `..`.
     Otherwise filenames are constructed from the SHA1 hash of
     the contents.
@@ -6440,6 +6440,14 @@ notebooks.  For example, `--wrap=preserve` will preserve
 soft line breaks in Markdown cells; `--atx-headers` will
 cause ATX-style headings to be used; and `--preserve-tabs` will
 prevent tabs from being turned to spaces.
+
+## Image media
+
+When the ipynb input has media such as svg, png, pdf,
+you may want to use `--self-contained` for any of the supported
+output formats including HTML, or use `--extract-media` in general.
+
+## Javascript media
 
 When converting from ipynb, some Jupyter extensions,
 especially those that uses javascript for visualization,
