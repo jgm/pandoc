@@ -727,17 +727,17 @@ filterIpynbOutput mode = walk go
                  where
                   rank (RawBlock (Format "html") _)
                     | fmt == Format "html" = 1 :: Int
-                    | fmt == Format "markdown" = 2
-                    | otherwise = 3
+                    | fmt == Format "markdown" = 3
+                    | otherwise = 4
                   rank (RawBlock (Format "latex") _)
                     | fmt == Format "latex" = 1
-                    | fmt == Format "markdown" = 2
-                    | otherwise = 3
+                    | fmt == Format "markdown" = 3
+                    | otherwise = 4
                   rank (RawBlock f _)
                     | fmt == f = 1
-                    | otherwise = 3
-                  rank (Para [Image{}]) = 1
-                  rank _ = 2
+                    | otherwise = 4
+                  rank (Para [Image{}]) = 2
+                  rank _ = 3
                   removeANSI (CodeBlock attr code) =
                     CodeBlock attr (removeANSIEscapes code)
                   removeANSI x = x
