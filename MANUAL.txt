@@ -6441,6 +6441,27 @@ soft line breaks in Markdown cells; `--atx-headers` will
 cause ATX-style headings to be used; and `--preserve-tabs` will
 prevent tabs from being turned to spaces.
 
+When converting from ipynb, some Jupyter extensions,
+especially those that uses javascript for visualization,
+expects the presence of
+[`require.js`](https://github.com/requirejs/requirejs).
+In this case when converting say from ipynb to html,
+you can add the following
+either via `header-includes` in metadata or
+`--include-in-header` on the command line:
+
+```
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js">
+</script>
+```
+
+such as
+
+```
+pandoc -s -o require.html require.ipynb \
+-V header-includes='<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>'
+```
+
 # Syntax highlighting
 
 Pandoc will automatically highlight syntax in [fenced code blocks] that
