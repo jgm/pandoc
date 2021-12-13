@@ -174,7 +174,7 @@ This functionality has been added in pandoc 2.9.2.
 
 [Inlines filter example]: #remove-spaces-before-citations
 
-## Traversal Order
+## Traversal order
 
 The traversal order of filters can be selected by setting the key
 `traverse` to either `'topdown'` or `'typewise'`; the default is
@@ -230,7 +230,7 @@ depth-first from the root towards the leaves, and all in a single
 run.
 
 For example, a block list `[Plain [Str "a"], Para [Str
-"b"]]`{.haskell} will be try the following filter functions, in
+"b"]]`{.haskell} will try the following filter functions, in
 order: `Blocks`, `Plain`, `Inlines`, `Str`, `Para`, `Inlines`,
 `Str`.
 
@@ -846,8 +846,9 @@ determined via [`pandoc.utils.equals`].
 `walk(self, lua_filter)`
 
 Applies a Lua filter to the Pandoc element. Just as for
-full-document filters, the order in which elements are handled
-are Inline → Inlines → Block → Blocks → Meta → Pandoc.
+full-document filters, the order in which elements are traversed
+can be controlled by setting the `traverse` field of the filter;
+see the section on [traversal order][Traversal order].
 
 Parameters:
 
@@ -910,19 +911,21 @@ or `pandoc.Blocks`.
 
 Object equality is determined via [`pandoc.utils.equals`].
 
-### Common Methods
+### Common methods
 
 #### walk {#type-block:walk}
 
 `walk(self, lua_filter)`
 
 Applies a Lua filter to the block element. Just as for
-full-document filters, the order in which elements are handled
-are Inline → Inlines → Block → Blocks.
+full-document filters, the order in which elements are traversed
+can be controlled by setting the `traverse` field of the filter;
+see the section on [traversal order][Traversal order].
 
 Note that the filter is applied to the subtree, but not to the
-element itself. The rationale is that the element might be
-deleted by the filter, leading to possibly unexpected results.
+`self` block element. The rationale is that otherwise the element
+could be deleted by the filter, or replaced with multiple block
+elements, which might lead to possibly unexpected results.
 
 Parameters:
 
@@ -1264,9 +1267,9 @@ values:
 `walk(self, lua_filter)`
 
 Applies a Lua filter to the Blocks list. Just as for
-full-document filters, the order in which elements are handled
-are are Inline → Inlines → Block → Blocks. The filter is applied
-to all list items *and* to the list itself.
+full-document filters, the order in which elements are traversed
+can be controlled by setting the `traverse` field of the filter;
+see the section on [traversal order][Traversal order].
 
 Parameters:
 
@@ -1292,19 +1295,21 @@ Usage:
 Object equality is determined by checking the Haskell
 representation for equality.
 
-### Common Methods
+### Common methods
 
 #### walk {#type-inline:walk}
 
 `walk(self, lua_filter)`
 
 Applies a Lua filter to the Inline element. Just as for
-full-document filters, the order in which elements are handled
-are are Inline → Inlines → Block → Blocks.
+full-document filters, the order in which elements are traversed
+can be controlled by setting the `traverse` field of the filter;
+see the section on [traversal order][Traversal order].
 
-Note that the filter is applied to the subtree, but *not* to the
-element itself. The rationale is that the element might be
-deleted by the filter, leading to possibly unexpected results.
+Note that the filter is applied to the subtree, but not to the
+`self` inline element. The rationale is that otherwise the
+element could be deleted by the filter, or replaced with multiple
+inline elements, which might lead to possibly unexpected results.
 
 Parameters:
 
