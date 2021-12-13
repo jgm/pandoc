@@ -3,6 +3,11 @@ tests: True
 flags: +embed_data_files
 constraints: aeson >= 2.0.1.0
 
+source-repository-package
+  type: git
+  location: https://github.com/pandoc/pandoc-lua-marshal
+  tag: 98e3de5087bb533fadbb89720f83f7f7cc3be5bf
+
 -- source-repository-package
 --   type: git
 --   location: https://github.com/jgm/texmath.git

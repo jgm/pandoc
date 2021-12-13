@@ -109,7 +109,8 @@ element filtering function. In other words, filter entries will
 be called for each corresponding element in the document,
 getting the respective element as input.
 
-The return of a filter function must be one of the following:
+The return value of a filter function must be one of the
+following:
 
 -   nil: this means that the object should remain unchanged.
 -   a pandoc object: this must be of the same type as the input
@@ -173,7 +174,26 @@ This functionality has been added in pandoc 2.9.2.
 
 [Inlines filter example]: #remove-spaces-before-citations
 
-## Execution Order
+## Traversal Order
+
+The traversal order of filters can be selected by setting the key
+`traverse` to either `'topdown'` or `'typewise'`; the default is
+`'typewise'`.
+
+Example:
+
+``` lua
+local filter = {
+  traverse = 'topdown',
+  -- ... filter functions ...
+}
+return {filter}
+```
+
+Support for this was added in pandoc 2.16.3; previous versions
+ignore the `traverse` setting.
+
+### Typewise traversal
 
 Element filter functions within a filter set are called in a
 fixed order, skipping any which are not present:
@@ -202,6 +222,31 @@ Filter sets are applied in the order in which they are returned.
 All functions in set (1) are thus run before those in (2),
 causing the filter function for *Meta* to be run before the
 filtering of *Str* elements is started.
+
+### Topdown traversal
+
+It is sometimes more natural to traverse the document tree
+depth-first from the root towards the leaves, and all in a single
+run.
+
+For example, a block list `[Plain [Str "a"], Para [Str
+"b"]]`{.haskell} will be try the following filter functions, in
+order: `Blocks`, `Plain`, `Inlines`, `Str`, `Para`, `Inlines`,
+`Str`.
+
+Topdown traversals can be cut short by returning `false` as a
+second value from the filter function. No child-element of
+the returned element is processed in that case.
+
+For example, to exclude the contents of a footnote from being
+processed, one might write
+
+``` lua
+traverse = 'topdown'
+function Note (n)
+  return n, false
+end
+```
 
 ## Global variables
 
