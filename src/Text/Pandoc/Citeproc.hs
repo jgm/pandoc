@@ -7,13 +7,15 @@
 module Text.Pandoc.Citeproc
   ( processCitations,
     getReferences,
-    getStyle
+    getStyle,
+    getCiteprocLang
   )
 where
 
 import Citeproc
 import Citeproc.Pandoc ()
-import Text.Pandoc.Citeproc.Locator (parseLocator)
+import Text.Pandoc.Citeproc.Locator (parseLocator, toLocatorMap,
+                                     LocatorInfo(..))
 import Text.Pandoc.Citeproc.CslJson (cslJsonToReferences)
 import Text.Pandoc.Citeproc.BibTeX (readBibtexString, Variant(..))
 import Text.Pandoc.Citeproc.MetaValue (metaValueToReference, metaValueToText)
@@ -49,12 +51,10 @@ import qualified Data.Text as T
 import System.FilePath (takeExtension)
 import Safe (lastMay, initSafe)
 
-
 processCitations  :: PandocMonad m => Pandoc -> m Pandoc
 processCitations (Pandoc meta bs) = do
   style <- getStyle (Pandoc meta bs)
-
-  mblang <- getLang meta
+  mblang <- getCiteprocLang meta
   let locale = Citeproc.mergeLocales mblang style
 
   refs <- getReferences (Just locale) (Pandoc meta bs)
@@ -166,10 +166,9 @@ getStyle (Pandoc meta _) = do
 
 
 -- Retrieve citeproc lang based on metadata.
-getLang :: PandocMonad m => Meta -> m (Maybe Lang)
-getLang meta = maybe (return Nothing) bcp47LangToIETF
-                 ((lookupMeta "lang" meta <|> lookupMeta "locale" meta) >>=
-                   metaValueToText)
+getCiteprocLang :: PandocMonad m => Meta -> m (Maybe Lang)
+getCiteprocLang meta = maybe (return Nothing) bcp47LangToIETF
+  ((lookupMeta "lang" meta <|> lookupMeta "locale" meta) >>= metaValueToText)
 
 -- | Get references defined inline in the metadata and via an external
 -- bibliography.  Only references that are actually cited in the document
@@ -181,7 +180,7 @@ getReferences mblocale (Pandoc meta bs) = do
   locale <- case mblocale of
                 Just l  -> return l
                 Nothing -> do
-                  mblang <- getLang meta
+                  mblang <- getCiteprocLang meta
                   case mblang of
                     Just lang -> return $ either mempty id $ getLocale lang
                     Nothing   -> return mempty
@@ -307,17 +306,15 @@ fromPandocCitations :: Locale
                     -> [CitationItem Inlines]
 fromPandocCitations locale otherIdsMap = concatMap go
  where
+  locmap = toLocatorMap locale
   go c =
-    let (loclab, suffix) = parseLocator locale (citationSuffix c)
-        (mblab, mbloc) = case loclab of
-                           Just (loc, lab) -> (Just loc, Just lab)
-                           Nothing         -> (Nothing, Nothing)
+    let (mblocinfo, suffix) = parseLocator locmap (citationSuffix c)
         cit = CitationItem
                { citationItemId = fromMaybe
                    (ItemId $ Pandoc.citationId c)
                    (M.lookup (Pandoc.citationId c) otherIdsMap)
-               , citationItemLabel = mblab
-               , citationItemLocator = mbloc
+               , citationItemLabel = locatorLabel <$> mblocinfo
+               , citationItemLocator = locatorLoc <$> mblocinfo
                , citationItemType = NormalCite
                , citationItemPrefix = case citationPrefix c of
                                         [] -> Nothing
