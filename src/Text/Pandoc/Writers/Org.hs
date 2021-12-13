@@ -29,22 +29,32 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
+import Text.Pandoc.Citeproc.Locator (parseLocator, toLocatorMap, LocatorMap,
+                                      LocatorInfo(..))
+import Text.Pandoc.Citeproc (getCiteprocLang, getStyle)
+import qualified Citeproc as Citeproc
 import Text.Pandoc.Writers.Shared
 
 data WriterState =
   WriterState { stNotes   :: [[Block]]
               , stHasMath :: Bool
               , stOptions :: WriterOptions
+              , stLocatorMap :: LocatorMap
               }
 
 type Org = StateT WriterState
 
 -- | Convert Pandoc to Org.
 writeOrg :: PandocMonad m => WriterOptions -> Pandoc -> m Text
-writeOrg opts document = do
+writeOrg opts document@(Pandoc meta _) = do
+  style <- getStyle document
+  mblang <- getCiteprocLang meta
+  let locmap = toLocatorMap $ Citeproc.mergeLocales mblang style
+
   let st = WriterState { stNotes = [],
                          stHasMath = False,
-                         stOptions = opts }
+                         stOptions = opts,
+                         stLocatorMap = locmap }
   evalStateT (pandocToOrg document) st
 
 -- | Return Org representation of document.
@@ -103,7 +113,12 @@ blockToOrg :: PandocMonad m
            => Block         -- ^ Block element
            -> Org m (Doc Text)
 blockToOrg Null = return empty
-blockToOrg (Div attr bs) = divToOrg attr bs
+blockToOrg (Div attr@(ident,_,_) bs) = do
+  opts <- gets stOptions
+  -- Strip off bibliography if citations enabled
+  if ident == "refs" && isEnabled Ext_citations opts
+     then return mempty
+     else divToOrg attr bs
 blockToOrg (Plain inlines) = inlineListToOrg inlines
 blockToOrg (SimpleFigure attr txt (src, tit)) = do
       capt <- if null txt
@@ -402,9 +417,18 @@ inlineToOrg (Cite cs lst) = do
      then do
        let renderCiteItem c = do
              citePref <- inlineListToOrg (citationPrefix c)
-             citeSuff <- inlineListToOrg (citationSuffix c)
+             locmap <- gets stLocatorMap
+             let (locinfo, suffix) = parseLocator locmap (citationSuffix c)
+             citeSuff <- inlineListToOrg suffix
+             let locator = case locinfo of
+                            Just info -> literal $
+                              T.replace "\160" " " $
+                              T.replace "{" "" $
+                              T.replace "}" "" $ locatorRaw info
+                            Nothing -> mempty
              return $ hsep [ citePref
                            , ("@" <> literal (citationId c))
+                           , locator
                            , citeSuff ]
        citeItems <- mconcat . intersperse "; " <$> mapM renderCiteItem cs
        let sty = case cs of
