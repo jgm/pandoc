@@ -396,7 +396,27 @@ inlineToOrg (Quoted SingleQuote lst) = do
 inlineToOrg (Quoted DoubleQuote lst) = do
   contents <- inlineListToOrg lst
   return $ "\"" <> contents <> "\""
-inlineToOrg (Cite _  lst) = inlineListToOrg lst
+inlineToOrg (Cite cs lst) = do
+  opts <- gets stOptions
+  if isEnabled Ext_citations opts
+     then do
+       let renderCiteItem c = do
+             citePref <- inlineListToOrg (citationPrefix c)
+             citeSuff <- inlineListToOrg (citationSuffix c)
+             return $ hsep [ citePref
+                           , ("@" <> literal (citationId c))
+                           , citeSuff ]
+       citeItems <- mconcat . intersperse "; " <$> mapM renderCiteItem cs
+       let sty = case cs of
+                   (d:_)
+                     | citationMode d == AuthorInText
+                     -> literal "/t"
+                   [d]
+                     | citationMode d == SuppressAuthor
+                     -> literal "/na"
+                   _ -> mempty
+       return $ "[cite" <> sty <> ":" <> citeItems <> "]"
+     else inlineListToOrg lst
 inlineToOrg (Code _ str) = return $ "=" <> literal str <> "="
 inlineToOrg (Str str) = return . literal $ escapeString str
 inlineToOrg (Math t str) = do
