@@ -2216,7 +2216,7 @@ suffix = try $ do
 
 prefix :: PandocMonad m => MarkdownParser m (F Inlines)
 prefix = trimInlinesF . mconcat <$>
-  manyTill inline (char ']'
+  manyTill (notFollowedBy (char ';') >> inline) (char ']'
    <|> lookAhead
          (try $ do optional (try (char ';' >> spnl))
                    citeKey True
