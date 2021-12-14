@@ -32,10 +32,9 @@ import Text.TeXMath (DisplayType (..), readTeX, writePandoc)
 import Text.Pandoc.Sources (ToSources(..))
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
 
-import Control.Monad (guard, mplus, mzero, unless, void, when)
+import Control.Monad (guard, mplus, mzero, unless, when)
 import Control.Monad.Trans (lift)
 import Data.Char (isAlphaNum, isSpace)
-import Data.List (intersperse)
 import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -148,31 +147,56 @@ endline = try $ do
 -- Citations
 --
 
--- The state of citations is a bit confusing due to the lack of an official
--- syntax and multiple syntaxes coexisting.  The pandocOrgCite syntax was the
--- first to be implemented here and is almost identical to Markdown's citation
--- syntax.  The org-ref package is in wide use to handle citations, but the
--- syntax is a bit limiting and not quite as simple to write.  The
--- semi-official Org-mode citation syntax is based on John MacFarlane's Pandoc
--- sytax and Org-oriented enhancements contributed by Richard Lawrence and
--- others.  It's dubbed Berkeley syntax due the place of activity of its main
--- contributors.  All this should be consolidated once an official Org-mode
--- citation syntax has emerged.
+-- We first try to parse official org-cite citations, then fall
+-- back to org-ref citations (which are still in wide use).
 
 cite :: PandocMonad m => OrgParser m (F Inlines)
-cite = try $ berkeleyCite <|> do
+cite = try $ do
   guardEnabled Ext_citations
   (cs, raw) <- withRaw $ choice
-               [ pandocOrgCite
+               [ orgCite
                , orgRefCite
-               , berkeleyTextualCite
                ]
   return $ flip B.cite (B.text raw) <$> cs
 
--- | A citation in Pandoc Org-mode style (@[prefix \@citekey suffix]@).
-pandocOrgCite :: PandocMonad m => OrgParser m (F [Citation])
-pandocOrgCite = try $
+-- | A citation in org-cite style
+orgCite :: PandocMonad m => OrgParser m (F [Citation])
+orgCite = try $
   char '[' *> skipSpaces *> citeList <* skipSpaces <* char ']'
+
+citeList :: PandocMonad m => OrgParser m (F [Citation])
+citeList = sequence <$> sepEndBy1 citation (try $ char ';' *> skipSpaces)
+
+citation :: PandocMonad m => OrgParser m (F Citation)
+citation = try $ do
+  pref <- prefix
+  (suppress_author, key) <- citeKey False
+  suff <- suffix
+  return $ do
+    x <- pref
+    y <- suff
+    return Citation
+      { citationId      = key
+      , citationPrefix  = B.toList x
+      , citationSuffix  = B.toList y
+      , citationMode    = if suppress_author
+                          then SuppressAuthor
+                          else NormalCitation
+      , citationNoteNum = 0
+      , citationHash    = 0
+      }
+ where
+   prefix = trimInlinesF . mconcat <$>
+            manyTill inline (char ']' <|> (']' <$ lookAhead (citeKey False)))
+   suffix = try $ do
+     hasSpace <- option False (notFollowedBy nonspaceChar >> return True)
+     skipSpaces
+     rest <- trimInlinesF . mconcat <$>
+             many (notFollowedBy (oneOf ";]") *> inline)
+     return $ if hasSpace
+              then (B.space <>) <$> rest
+              else rest
+
 
 orgRefCite :: PandocMonad m => OrgParser m (F [Citation])
 orgRefCite = try $ choice
@@ -200,100 +224,6 @@ normalOrgRefCite = try $ do
      , citationNoteNum = 0
      , citationHash    = 0
      }
-
--- | Read an Berkeley-style Org-mode citation.  Berkeley citation style was
--- develop and adjusted to Org-mode style by John MacFarlane and Richard
--- Lawrence, respectively, both philosophers at UC Berkeley.
-berkeleyCite :: PandocMonad m => OrgParser m (F Inlines)
-berkeleyCite = try $ do
-  bcl <- berkeleyCitationList
-  return $ do
-    parens <- berkeleyCiteParens <$> bcl
-    prefix <- berkeleyCiteCommonPrefix <$> bcl
-    suffix <- berkeleyCiteCommonSuffix <$> bcl
-    citationList <- berkeleyCiteCitations <$> bcl
-    return $
-      if parens
-      then toCite
-           . maybe id (alterFirst . prependPrefix) prefix
-           . maybe id (alterLast . appendSuffix) suffix
-           $ citationList
-      else maybe mempty (<> " ") prefix
-             <> toListOfCites (map toInTextMode citationList)
-             <> maybe mempty (", " <>) suffix
- where
-   toCite :: [Citation] -> Inlines
-   toCite cs = B.cite cs mempty
-
-   toListOfCites :: [Citation] -> Inlines
-   toListOfCites = mconcat . intersperse ", " . map (\c -> B.cite [c] mempty)
-
-   toInTextMode :: Citation -> Citation
-   toInTextMode c = c { citationMode = AuthorInText }
-
-   alterFirst, alterLast :: (a -> a) -> [a] -> [a]
-   alterFirst _ []     = []
-   alterFirst f (c:cs) = f c : cs
-   alterLast  f = reverse . alterFirst f . reverse
-
-   prependPrefix, appendSuffix :: Inlines -> Citation -> Citation
-   prependPrefix pre c = c { citationPrefix = B.toList pre <> citationPrefix c }
-   appendSuffix  suf c = c { citationSuffix = citationSuffix c <> B.toList suf }
-
-data BerkeleyCitationList = BerkeleyCitationList
-  { berkeleyCiteParens       :: Bool
-  , berkeleyCiteCommonPrefix :: Maybe Inlines
-  , berkeleyCiteCommonSuffix :: Maybe Inlines
-  , berkeleyCiteCitations    :: [Citation]
-  }
-berkeleyCitationList :: PandocMonad m => OrgParser m (F BerkeleyCitationList)
-berkeleyCitationList = try $ do
-  char '['
-  parens <- choice [ False <$ berkeleyBareTag, True <$ berkeleyParensTag ]
-  char ':'
-  skipSpaces
-  commonPrefix <- optionMaybe (try $ citationListPart <* char ';')
-  citations    <- citeList
-  commonSuffix <- optionMaybe (try citationListPart)
-  char ']'
-  return (BerkeleyCitationList parens
-    <$> sequence commonPrefix
-    <*> sequence commonSuffix
-    <*> citations)
- where
-   citationListPart :: PandocMonad m => OrgParser m (F Inlines)
-   citationListPart = fmap (trimInlinesF . mconcat) . try . many1 $ do
-     notFollowedBy' $ citeKey False
-     notFollowedBy (oneOf ";]")
-     inline
-
-berkeleyBareTag :: PandocMonad m => OrgParser m ()
-berkeleyBareTag = try $ void berkeleyBareTag'
-
-berkeleyParensTag :: PandocMonad m => OrgParser m ()
-berkeleyParensTag = try . void $ enclosedByPair1 '(' ')' berkeleyBareTag'
-
-berkeleyBareTag' :: PandocMonad m => OrgParser m ()
-berkeleyBareTag' = try $ void (string "cite")
-
-berkeleyTextualCite :: PandocMonad m => OrgParser m (F [Citation])
-berkeleyTextualCite = try $ do
-  (suppressAuthor, key) <- citeKey False
-  returnF . return $ Citation
-    { citationId      = key
-    , citationPrefix  = mempty
-    , citationSuffix  = mempty
-    , citationMode    = if suppressAuthor then SuppressAuthor else AuthorInText
-    , citationNoteNum = 0
-    , citationHash    = 0
-    }
-
--- The following is what a Berkeley-style bracketed textual citation parser
--- would look like.  However, as these citations are a subset of Pandoc's Org
--- citation style, this isn't used.
--- berkeleyBracketedTextualCite :: PandocMonad m => OrgParser m (F [Citation])
--- berkeleyBracketedTextualCite = try . (fmap head) $
---   enclosedByPair1 '[' ']' berkeleyTextualCite
 
 -- | Read a link-like org-ref style citation.  The citation includes pre and
 -- post text.  However, multiple citations are not possible due to limitations
@@ -344,39 +274,6 @@ orgRefCiteMode =
     , ("citet*", AuthorInText)
     , ("citeyear", SuppressAuthor)
     ]
-
-citeList :: PandocMonad m => OrgParser m (F [Citation])
-citeList = sequence <$> sepEndBy1 citation (try $ char ';' *> skipSpaces)
-
-citation :: PandocMonad m => OrgParser m (F Citation)
-citation = try $ do
-  pref <- prefix
-  (suppress_author, key) <- citeKey False
-  suff <- suffix
-  return $ do
-    x <- pref
-    y <- suff
-    return Citation
-      { citationId      = key
-      , citationPrefix  = B.toList x
-      , citationSuffix  = B.toList y
-      , citationMode    = if suppress_author
-                          then SuppressAuthor
-                          else NormalCitation
-      , citationNoteNum = 0
-      , citationHash    = 0
-      }
- where
-   prefix = trimInlinesF . mconcat <$>
-            manyTill inline (char ']' <|> (']' <$ lookAhead (citeKey False)))
-   suffix = try $ do
-     hasSpace <- option False (notFollowedBy nonspaceChar >> return True)
-     skipSpaces
-     rest <- trimInlinesF . mconcat <$>
-             many (notFollowedBy (oneOf ";]") *> inline)
-     return $ if hasSpace
-              then (B.space <>) <$> rest
-              else rest
 
 footnote :: PandocMonad m => OrgParser m (F Inlines)
 footnote = try $ do

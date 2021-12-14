@@ -169,53 +169,6 @@ tests =
       in (para $ cite [citation] "[[citep:Dominik201408][See page 20::, for example]]")
     ]
 
-  , testGroup "Berkeley-style citations" $
-    let pandocCite = Citation
-          { citationId = "Pandoc"
-          , citationPrefix = mempty
-          , citationSuffix = mempty
-          , citationMode = NormalCitation
-          , citationNoteNum = 0
-          , citationHash = 0
-          }
-        pandocInText = pandocCite { citationMode = AuthorInText }
-        dominikCite = Citation
-          { citationId = "Dominik201408"
-          , citationPrefix = mempty
-          , citationSuffix = mempty
-          , citationMode = NormalCitation
-          , citationNoteNum = 0
-          , citationHash = 0
-          }
-        dominikInText = dominikCite { citationMode = AuthorInText }
-    in
-      [ "Berkeley-style in-text citation" =:
-        "See @Dominik201408." =?>
-        para ("See "
-               <> cite [dominikInText] "@Dominik201408"
-               <> ".")
-
-      , "Berkeley-style parenthetical citation list" =:
-        "[(cite): see; @Dominik201408;also @Pandoc; and others]" =?>
-        let pandocCite'  = pandocCite {
-                             citationPrefix = toList "also"
-                           , citationSuffix = toList "and others"
-                           }
-            dominikCite' = dominikCite {
-                             citationPrefix = toList "see"
-                           }
-        in (para $ cite [dominikCite', pandocCite'] "")
-
-      , "Berkeley-style plain citation list" =:
-        "[cite: See; @Dominik201408; and @Pandoc; and others]" =?>
-        let pandocCite' = pandocInText { citationPrefix = toList "and" }
-        in (para $ "See "
-             <> cite [dominikInText] ""
-             <> "," <> space
-             <> cite [pandocCite'] ""
-             <> "," <> space <> "and others")
-    ]
-
   , "LaTeX citation" =:
     "\\cite{Coffee}" =?>
     let citation = Citation
