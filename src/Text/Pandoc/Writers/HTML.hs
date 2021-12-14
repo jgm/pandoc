@@ -61,6 +61,7 @@ import Text.Pandoc.XML (escapeStringForXML, fromEntities, toEntities,
 import qualified Text.Blaze.XHtml5 as H5
 import qualified Text.Blaze.XHtml5.Attributes as A5
 import Control.Monad.Except (throwError)
+import Skylighting.Types (backgroundColor, Color(), Color(RGB))
 import System.FilePath (takeBaseName)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import qualified Text.Blaze.XHtml1.Transitional as H
@@ -329,12 +330,16 @@ pandocToHtml opts (Pandoc meta blocks) = do
                           | otherwise -> mempty
                     Nothing -> mempty
   let mCss :: Maybe [Text] = lookupContext "css" metadata
+  let isLightTheme = case writerHighlightStyle opts of
+                       Just sty -> maybe True isLight (backgroundColor sty)
+                       Nothing  -> False
   let context =   (if stHighlighting st
                       then case writerHighlightStyle opts of
                                 Just sty -> defField "highlighting-css"
                                               (T.pack $ styleToCss sty)
                                 Nothing  -> id
                       else id) .
+                  (defField "invert-highlighting-css-in-dark-mode" isLightTheme) .
                   (if stCsl st
                       then defField "csl-css" True .
                            (case stCslEntrySpacing st of
@@ -425,6 +430,13 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   defField "html5" (stHtml5 st) $
                   metadata
   return (thebody, context)
+
+-- | calculate linear luminance (Y_linear) and see whether it's greater than half
+-- see https://en.wikipedia.org/wiki/Grayscale
+isLight :: Color -> Bool
+isLight (RGB r g b) = 0.2126*(f r) + 0.7152*(f g) + 0.0722*(f b) > (127::Double)
+  where
+    f = realToFrac
 
 -- | Like Text.XHtml's identifier, but adds the writerIdentifierPrefix
 prefixedId :: WriterOptions -> Text -> Attribute
