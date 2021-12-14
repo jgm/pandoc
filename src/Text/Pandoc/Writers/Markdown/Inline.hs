@@ -531,8 +531,10 @@ inlineToMarkdown opts (Cite (c:cs) lst)
            sdoc <- inlineListToMarkdown opts sinlines
            let k' = literal (modekey m <> "@" <> maybeInBraces k)
                r = case sinlines of
-                        Str (T.uncons -> Just (y,_)):_ | y `elem` (",;]@" :: String) -> k' <> sdoc
-                        _                                         -> k' <+> sdoc
+                        Str (T.uncons -> Just (y,_)):_
+                          | y `elem` (",;]@" :: String) -> k' <> sdoc
+                        Space:_                         -> k' <> sdoc
+                        _                               -> k' <+> sdoc
            return $ pdoc <+> r
         modekey SuppressAuthor = "-"
         modekey _              = ""
