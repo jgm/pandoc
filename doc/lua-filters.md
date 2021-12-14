@@ -1812,12 +1812,12 @@ Fields:
 :   cell contents (list of [Blocks]).
 
 `col_span`
-:   number of columns occupied by the cell; the height of the cell
-    (integer).
+:   number of columns spanned by the cell; the width of the cell
+    in columns (integer).
 
 `row_span`
-:   number of rows occupied by the cell; the height of the cell
-    (integer).
+:   number of rows spanned by the cell; the height of the cell in
+    rows (integer).
 
 `identifier`
 :   alias for `attr.identifier` (string)
@@ -2830,6 +2830,33 @@ format, and functions to filter and modify a subtree.
     :   table containing string keys and values
 
     Returns: [Attr](#type-attr) object
+
+[`Cell (blocks[, align[, rowspan[, colspan[, attr]]]])`]{#pandoc.attr}
+
+:   Create a new table cell.
+
+    Parameters:
+
+    `blocks`:
+    :   cell contents (list of [Blocks])
+
+    `align`:
+    :   text alignment; defaults to `AlignDefault` (Alignment)
+
+    `rowspan`:
+    :   number of rows occupied by the cell; defaults to `1`
+        (integer)
+
+    `colspan`:
+    :   number of columns spanned by the cell; defaults to `1`
+        (integer)
+
+    `attr`:
+    :   cell attributes ([Attr](#type-attr))
+
+    Returns:
+
+    -   [Cell](#type-cell) object
 
 [`Citation (id, mode[, prefix[, suffix[, note_num[, hash]]]])`]{#pandoc.citation}
 
