@@ -19,9 +19,9 @@ import Text.Pandoc.Builder
 
 tests :: [TestTree]
 tests =
-  [ testGroup "Markdown-style citations"
+  [ testGroup "Org-cite citations"
     [ "Citation" =:
-      "[@nonexistent]" =?>
+      "[cite:@nonexistent]" =?>
       let citation = Citation
                      { citationId = "nonexistent"
                      , citationPrefix = []
@@ -29,10 +29,10 @@ tests =
                      , citationMode = NormalCitation
                      , citationNoteNum = 0
                      , citationHash = 0}
-      in (para $ cite [citation] "[@nonexistent]")
+      in (para $ cite [citation] "[cite:@nonexistent]")
 
     , "Citation containing text" =:
-      "[see @item1 p. 34-35]" =?>
+      "[cite:see @item1 p. 34-35]" =?>
       let citation = Citation
                      { citationId = "item1"
                      , citationPrefix = [Str "see"]
@@ -40,7 +40,37 @@ tests =
                      , citationMode = NormalCitation
                      , citationNoteNum = 0
                      , citationHash = 0}
-      in (para $ cite [citation] "[see @item1 p. 34-35]")
+      in (para $ cite [citation] "[cite:see @item1 p. 34-35]")
+
+    , "Author-in-text citation with locator and suffix" =:
+      "[cite/t:see @item1 p. 34-35 and *passim*; @item2]" =?>
+      let citations =
+            [ Citation
+                { citationId = "item1"
+                , citationPrefix = [ Str "see" ]
+                , citationSuffix =
+                    [ Str "p."
+                    , Space
+                    , Str "34-35"
+                    , Space
+                    , Str "and"
+                    , Space
+                    , Strong [ Str "passim" ]
+                    ]
+                , citationMode = AuthorInText
+                , citationNoteNum = 0
+                , citationHash = 0
+                }
+            , Citation
+                { citationId = "item2"
+                , citationPrefix = []
+                , citationSuffix = []
+                , citationMode = NormalCitation
+                , citationNoteNum = 0
+                , citationHash = 0
+                }
+            ]
+      in (para $ cite citations "[cite/t:see @item1 p. 34-35 and *passim*; @item2]")
     ]
 
   , testGroup "org-ref citations"

@@ -31,8 +31,8 @@ import Text.Pandoc.Readers.LaTeX (inlineCommand, rawLaTeXInline)
 import Text.TeXMath (DisplayType (..), readTeX, writePandoc)
 import Text.Pandoc.Sources (ToSources(..))
 import qualified Text.TeXMath.Readers.MathML.EntityMap as MathMLEntityMap
-
-import Control.Monad (guard, mplus, mzero, unless, when)
+import Safe (lastMay)
+import Control.Monad (guard, mplus, mzero, unless, when, void)
 import Control.Monad.Trans (lift)
 import Data.Char (isAlphaNum, isSpace)
 import qualified Data.Map as M
@@ -150,53 +150,174 @@ endline = try $ do
 -- We first try to parse official org-cite citations, then fall
 -- back to org-ref citations (which are still in wide use).
 
+-- | A citation in org-cite style
+orgCite :: PandocMonad m => OrgParser m (F [Citation])
+orgCite = try $ do
+  string "[cite"
+  (sty, _variants) <- citeStyle
+  char ':'
+  spnl
+  globalPref <- option mempty (try (citePrefix <* char ';'))
+  items <- citeItems
+  globalSuff <- option mempty (try (char ';' *> citeSuffix))
+  spnl
+  char ']'
+  return $ adjustCiteStyle sty .
+           addPrefixToFirstItem globalPref .
+           addSuffixToLastItem globalSuff $ items
+
+adjustCiteStyle :: CiteStyle -> (F [Citation]) -> (F [Citation])
+adjustCiteStyle sty cs = do
+  cs' <- cs
+  case cs' of
+    [] -> return []
+    (d:ds)  -- TODO needs refinement
+      -> case sty of
+         TextStyle -> return $ d{ citationMode = AuthorInText
+                                , citationSuffix = dropWhile (== Space)
+                                    (citationSuffix d)} : ds
+         NoAuthorStyle -> return $ d{ citationMode = SuppressAuthor } : ds
+         _ -> return (d:ds)
+
+addPrefixToFirstItem :: (F Inlines) -> (F [Citation]) -> (F [Citation])
+addPrefixToFirstItem aff cs = do
+  cs' <- cs
+  aff' <- aff
+  case cs' of
+    [] -> return []
+    (d:ds) -> return (d{ citationPrefix =
+                          B.toList aff' <> citationPrefix d }:ds)
+
+addSuffixToLastItem :: (F Inlines) -> (F [Citation]) -> (F [Citation])
+addSuffixToLastItem aff cs = do
+  cs' <- cs
+  aff' <- aff
+  case lastMay cs' of
+    Nothing -> return cs'
+    Just d  ->
+      return (init cs' ++ [d{ citationSuffix =
+                                citationSuffix d <> B.toList aff' }])
+
+citeItems :: PandocMonad m => OrgParser m (F [Citation])
+citeItems = sequence <$> citeItem `sepBy1` (char ';')
+
+citeItem :: PandocMonad m => OrgParser m (F Citation)
+citeItem = do
+  pref <- citePrefix
+  itemKey <- orgCiteKey
+  suff <- citeSuffix
+  return $ do
+    pre' <- pref
+    suf' <- suff
+    return Citation
+      { citationId      = itemKey
+      , citationPrefix  = B.toList pre'
+      , citationSuffix  = B.toList suf'
+      , citationMode    = NormalCitation
+      , citationNoteNum = 0
+      , citationHash    = 0
+      }
+
+orgCiteKey :: PandocMonad m => OrgParser m Text
+orgCiteKey = do
+  char '@'
+  T.pack <$> many1 (satisfy orgCiteKeyChar)
+
+orgCiteKeyChar :: Char -> Bool
+orgCiteKeyChar c =
+  isAlphaNum c || c `elem` ['.',':','?','!','`','\'','/','*','@','+','|',
+                            '(',')','{','}','<','>','&','_','^','$','#',
+                            '%','~','-']
+
+rawAffix :: PandocMonad m => Bool -> OrgParser m Text
+rawAffix isPrefix = snd <$> withRaw
+  (many
+   (affixChar
+     <|>
+     try (void (char '[' >> rawAffix isPrefix >> char ']'))))
+ where
+   affixChar = void $ satisfy $ \c ->
+     not (c == '^' || c == ';' || c == '[' || c == ']') &&
+     (not isPrefix || c /= '@')
+
+citePrefix :: PandocMonad m => OrgParser m (F Inlines)
+citePrefix =
+  rawAffix True >>= parseFromString (trimInlinesF . mconcat <$> many inline)
+
+citeSuffix :: PandocMonad m => OrgParser m (F Inlines)
+citeSuffix =
+  rawAffix False >>= parseFromString parseSuffix
+ where
+   parseSuffix = do
+     hasSpace <- option False
+              (True <$ try (spaceChar >> skipSpaces >> lookAhead nonspaceChar))
+     ils <- trimInlinesF . mconcat <$> many inline
+     return $ if hasSpace
+                 then (B.space <>) <$> ils
+                 else ils
+
+citeStyle :: PandocMonad m => OrgParser m (CiteStyle, [CiteVariant])
+citeStyle = option (DefStyle, []) $ do
+  sty <- option DefStyle $ try $ char '/' *> orgCiteStyle
+  variants <- option [] $ try $ char '/' *> orgCiteVariants
+  return (sty, variants)
+
+orgCiteStyle :: PandocMonad m => OrgParser m CiteStyle
+orgCiteStyle = choice $ map try
+  [ NoAuthorStyle <$ string "noauthor"
+  , NoAuthorStyle <$ string "na"
+  , LocatorsStyle <$ string "locators"
+  , LocatorsStyle <$ char 'l'
+  , NociteStyle <$ string "nocite"
+  , NociteStyle <$ char 'n'
+  , TextStyle <$ string "text"
+  , TextStyle <$ char 't'
+  ]
+
+orgCiteVariants :: PandocMonad m => OrgParser m [CiteVariant]
+orgCiteVariants =
+  (fullnameVariant `sepBy1` (char '-')) <|> (many1 onecharVariant)
+ where
+  fullnameVariant = choice $ map try
+     [ Bare <$ string "bare"
+     , Caps <$ string "caps"
+     , Full <$ string "full"
+     ]
+  onecharVariant = choice
+     [ Bare <$ char 'b'
+     , Caps <$ char 'c'
+     , Full <$ char 'f'
+     ]
+
+data CiteStyle =
+    NoAuthorStyle
+  | LocatorsStyle
+  | NociteStyle
+  | TextStyle
+  | DefStyle
+  deriving Show
+
+data CiteVariant =
+    Caps
+  | Bare
+  | Full
+  deriving Show
+
+
+spnl :: PandocMonad m => OrgParser m ()
+spnl =
+  skipSpaces *> optional (newline *> notFollowedBy blankline *> skipSpaces)
+
 cite :: PandocMonad m => OrgParser m (F Inlines)
-cite = try $ do
+cite = do
   guardEnabled Ext_citations
-  (cs, raw) <- withRaw $ choice
+  (cs, raw) <- withRaw $ try $ choice
                [ orgCite
                , orgRefCite
                ]
   return $ flip B.cite (B.text raw) <$> cs
 
--- | A citation in org-cite style
-orgCite :: PandocMonad m => OrgParser m (F [Citation])
-orgCite = try $
-  char '[' *> skipSpaces *> citeList <* skipSpaces <* char ']'
-
-citeList :: PandocMonad m => OrgParser m (F [Citation])
-citeList = sequence <$> sepEndBy1 citation (try $ char ';' *> skipSpaces)
-
-citation :: PandocMonad m => OrgParser m (F Citation)
-citation = try $ do
-  pref <- prefix
-  (suppress_author, key) <- citeKey False
-  suff <- suffix
-  return $ do
-    x <- pref
-    y <- suff
-    return Citation
-      { citationId      = key
-      , citationPrefix  = B.toList x
-      , citationSuffix  = B.toList y
-      , citationMode    = if suppress_author
-                          then SuppressAuthor
-                          else NormalCitation
-      , citationNoteNum = 0
-      , citationHash    = 0
-      }
- where
-   prefix = trimInlinesF . mconcat <$>
-            manyTill inline (char ']' <|> (']' <$ lookAhead (citeKey False)))
-   suffix = try $ do
-     hasSpace <- option False (notFollowedBy nonspaceChar >> return True)
-     skipSpaces
-     rest <- trimInlinesF . mconcat <$>
-             many (notFollowedBy (oneOf ";]") *> inline)
-     return $ if hasSpace
-              then (B.space <>) <$> rest
-              else rest
-
+-- org-ref
 
 orgRefCite :: PandocMonad m => OrgParser m (F [Citation])
 orgRefCite = try $ choice
