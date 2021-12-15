@@ -22,6 +22,7 @@ import Data.List (intersect, intersperse, partition, transpose)
 import Data.List.NonEmpty (nonEmpty)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Map as M
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
@@ -29,32 +30,23 @@ import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
-import Text.Pandoc.Citeproc.Locator (parseLocator, toLocatorMap, LocatorMap,
-                                      LocatorInfo(..))
-import Text.Pandoc.Citeproc (getCiteprocLang, getStyle)
-import qualified Citeproc as Citeproc
+import Text.Pandoc.Citeproc.Locator (parseLocator, LocatorMap(..), LocatorInfo(..))
 import Text.Pandoc.Writers.Shared
 
 data WriterState =
   WriterState { stNotes   :: [[Block]]
               , stHasMath :: Bool
               , stOptions :: WriterOptions
-              , stLocatorMap :: LocatorMap
               }
 
 type Org = StateT WriterState
 
 -- | Convert Pandoc to Org.
 writeOrg :: PandocMonad m => WriterOptions -> Pandoc -> m Text
-writeOrg opts document@(Pandoc meta _) = do
-  style <- getStyle document
-  mblang <- getCiteprocLang meta
-  let locmap = toLocatorMap $ Citeproc.mergeLocales mblang style
-
+writeOrg opts document = do
   let st = WriterState { stNotes = [],
                          stHasMath = False,
-                         stOptions = opts,
-                         stLocatorMap = locmap }
+                         stOptions = opts }
   evalStateT (pandocToOrg document) st
 
 -- | Return Org representation of document.
@@ -417,7 +409,6 @@ inlineToOrg (Cite cs lst) = do
      then do
        let renderCiteItem c = do
              citePref <- inlineListToOrg (citationPrefix c)
-             locmap <- gets stLocatorMap
              let (locinfo, suffix) = parseLocator locmap (citationSuffix c)
              citeSuff <- inlineListToOrg suffix
              let locator = case locinfo of
@@ -552,3 +543,60 @@ orgLangIdentifiers =
   , "sqlite"
   , "lilypond"
   , "vala" ]
+
+-- taken from oc-csl.el in the org source tree:
+locmap :: LocatorMap
+locmap = LocatorMap $ M.fromList
+  [ ("bk."       , "book")
+  , ("bks."      , "book")
+  , ("book"      , "book")
+  , ("chap."     , "chapter")
+  , ("chaps."    , "chapter")
+  , ("chapter"   , "chapter")
+  , ("col."      , "column")
+  , ("cols."     , "column")
+  , ("column"    , "column")
+  , ("figure"    , "figure")
+  , ("fig."      , "figure")
+  , ("figs."     , "figure")
+  , ("folio"     , "folio")
+  , ("fol."      , "folio")
+  , ("fols."     , "folio")
+  , ("number"    , "number")
+  , ("no."       , "number")
+  , ("nos."      , "number")
+  , ("line"      , "line")
+  , ("l."        , "line")
+  , ("ll."       , "line")
+  , ("note"      , "note")
+  , ("n."        , "note")
+  , ("nn."       , "note")
+  , ("opus"      , "opus")
+  , ("op."       , "opus")
+  , ("opp."      , "opus")
+  , ("page"      , "page")
+  , ("p"         , "page")
+  , ("p."        , "page")
+  , ("pp."       , "page")
+  , ("paragraph" , "paragraph")
+  , ("para."     , "paragraph")
+  , ("paras."    , "paragraph")
+  , ("¶"         , "paragraph")
+  , ("¶¶"        , "paragraph")
+  , ("part"      , "part")
+  , ("pt."       , "part")
+  , ("pts."      , "part")
+  , ("§"         , "section")
+  , ("§§"        , "section")
+  , ("section"   , "section")
+  , ("sec."      , "section")
+  , ("secs."     , "section")
+  , ("sub verbo" , "sub verbo")
+  , ("s.v."      , "sub verbo")
+  , ("s.vv."     , "sub verbo")
+  , ("verse"     , "verse")
+  , ("v."        , "verse")
+  , ("vv."       , "verse")
+  , ("volume"    , "volume")
+  , ("vol."      , "volume")
+  , ("vols."     , "volume") ]
