@@ -8,10 +8,10 @@ source-repository-package
   location: https://github.com/pandoc/pandoc-lua-marshal
   tag: 98e3de5087bb533fadbb89720f83f7f7cc3be5bf
 
--- source-repository-package
---   type: git
---   location: https://github.com/jgm/texmath.git
---   tag: 674bcbaec03e5550f155623de6662953bd157625
+source-repository-package
+  type: git
+  location: https://github.com/jgm/texmath.git
+  tag: 46df85d747f4f233157d3476683264232a4f58be
 
 source-repository-package
   type: git

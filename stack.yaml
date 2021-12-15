@@ -31,9 +31,10 @@ extra-deps:
 - commonmark-extensions-0.2.2
 - citeproc-0.6
 - aeson-pretty-0.8.9
-- texmath-0.12.3.3
 - unicode-transforms-0.4.0
 - unicode-data-0.2.0
+- git: https://github.com/jgm/texmath.git
+  commit: 46df85d747f4f233157d3476683264232a4f58be
 - git: https://github.com/jgm/ipynb.git
   commit: 00246af10885c2ad4413ace4f69a7e6c88297a08
 - git: https://github.com/pandoc/pandoc-lua-marshal
