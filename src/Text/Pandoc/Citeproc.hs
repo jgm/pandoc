@@ -7,8 +7,6 @@
 module Text.Pandoc.Citeproc
   ( processCitations,
     getReferences,
-    getStyle,
-    getCiteprocLang
   )
 where
 
