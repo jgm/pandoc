@@ -25,9 +25,11 @@ import Data.Version (Version)
 import HsLua as Lua
 import HsLua.Class.Peekable (PeekError)
 import HsLua.Module.Version (peekVersionFuzzy, pushVersion)
+import Text.Pandoc.Citeproc (getReferences)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshal.AST
+import Text.Pandoc.Lua.Marshal.Reference
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua))
 
 import qualified Data.Digest.Pure.SHA as SHA
@@ -94,6 +96,18 @@ documentedModule = Module
             "v" "version description"
       =#> functionResult pushVersion "Version" "new Version object"
       #? "Creates a Version object."
+
+    , defun "references"
+      ### (unPandocLua . getReferences Nothing)
+      <#> parameter peekPandoc "Pandoc" "doc" "document"
+      =#> functionResult (pushPandocList pushReference) "table"
+            "lift of references"
+      #? mconcat
+         [ "Get references defined inline in the metadata and via an external "
+         , "bibliography.  Only references that are actually cited in the "
+         , "document (either with a genuine citation or with `nocite`) are "
+         , "returned. URL variables are converted to links."
+         ]
 
     , defun "run_json_filter"
       ### (\doc filterPath margs -> do

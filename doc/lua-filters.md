@@ -3301,6 +3301,38 @@ Usage:
     }
     local newblocks = pandoc.utils.make_sections(true, 1, blocks)
 
+### references {#pandoc.references}
+
+`references (doc)`
+
+Get references defined inline in the metadata and via an external
+bibliography. Only references that are actually cited in the
+document (either with a genuine citation or with `nocite`) are
+returned. URL variables are converted to links.
+
+The structure used represent reference values corresponds to that
+used in CSL JSON; the return value can be use as `references`
+metadata, which is one of the values used by pandoc and citeproc
+when generating bibliographies.
+
+Parameters:
+
+`doc`:
+:   document ([Pandoc](#type-pandoc))
+
+Returns:
+
+-   list of references. (table)
+
+Usage:
+
+    -- Include all cited references in document
+    function Pandoc (doc)
+      doc.meta.references = pandoc.utils.references(doc)
+      doc.meta.bibliography = nil
+      return doc
+    end
+
 ### run\_json\_filter {#pandoc.utils.run_json_filter}
 
 `run_json_filter (doc, filter[, args])`
