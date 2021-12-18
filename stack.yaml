@@ -9,7 +9,7 @@ packages:
 extra-deps:
 - skylighting-core-0.12.1
 - skylighting-0.12.1
-- doctemplates-0.10
+- doctemplates-0.10.0.1
 - emojis-0.1.2
 - doclayout-0.3.1.1
 - lpeg-1.0.1
@@ -28,7 +28,7 @@ extra-deps:
 - tasty-lua-1.0.0
 - pandoc-types-1.22.1
 - commonmark-0.2.1.1
-- commonmark-extensions-0.2.2
+- commonmark-extensions-0.2.2.1
 - citeproc-0.6
 - aeson-pretty-0.8.9
 - unicode-transforms-0.4.0
