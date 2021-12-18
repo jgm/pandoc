@@ -1,4 +1,4 @@
-[ ] use 'policeman' to check API changes and version update
+[ ] make check
 [ ] make README.md and commit if needed
 [ ] make man/pandoc.1 and commit if needed
 [ ] Finalize changelog
