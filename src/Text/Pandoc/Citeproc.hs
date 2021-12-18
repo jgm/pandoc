@@ -543,7 +543,7 @@ deNote (Note bs) =
   addParens [] = []
   addParens (Cite (c:cs) ils : zs)
     | citationMode c == AuthorInText
-      = Cite (c:cs) (concatMap (noteAfterComma (needsPeriod zs)) ils) :
+      = Cite (c:cs) (addCommas (needsPeriod zs) ils) :
         addParens zs
     | otherwise
       = Cite (c:cs) (concatMap noteInParens ils) : addParens zs
@@ -564,13 +564,19 @@ deNote (Note bs) =
          removeFinalPeriod ils ++ [Str ")"]
   noteInParens x = [x]
 
-  noteAfterComma needsPer (Span ("",["csl-note"],[]) ils)
-    | not (null ils)
-       = Str "," : Space :
-         if needsPer
-            then ils
-            else removeFinalPeriod ils
-  noteAfterComma _ x = [x]
+  -- We want to add a comma before a CSL note citation, but not
+  -- before the author name, and not before the first citation
+  -- if it doesn't begin with an author name.
+  addCommas = addCommas' True -- boolean == "at beginning"
+
+  addCommas' _ _ [] = []
+  addCommas' atBeginning needsPer
+    (Span ("",["csl-note"],[]) ils : rest)
+      | not (null ils)
+       = (if atBeginning then id else ([Str "," , Space] ++)) $
+         (if needsPer then ils else removeFinalPeriod ils) ++
+         addCommas' False needsPer rest
+  addCommas' _ needsPer (il : rest) = il : addCommas' False needsPer rest
 
 deNote x = x
 
