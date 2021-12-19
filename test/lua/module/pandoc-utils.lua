@@ -106,14 +106,14 @@ return {
         {long = {pandoc.Plain {
                    pandoc.Str "the", pandoc.Space(), pandoc.Str "caption"}}},
         {{pandoc.AlignDefault, nil}},
-        {pandoc.Attr(), {{pandoc.Attr(), {simple_cell{pandoc.Plain "head1"}}}}},
+        pandoc.TableHead{pandoc.Row{simple_cell{pandoc.Plain "head1"}}},
         {{
             attr = pandoc.Attr(),
-            body = {{pandoc.Attr(), {simple_cell{pandoc.Plain "cell1"}}}},
+            body = {pandoc.Row{simple_cell{pandoc.Plain "cell1"}}},
             head = {},
             row_head_columns = 0
         }},
-        {pandoc.Attr(), {}},
+        pandoc.TableFoot(),
         pandoc.Attr()
       )
       local stbl = utils.to_simple_table(tbl)

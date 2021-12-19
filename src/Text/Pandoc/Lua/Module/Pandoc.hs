@@ -116,6 +116,9 @@ otherConstructors =
   , mkBlocks
   , mkCitation
   , mkCell
+  , mkRow
+  , mkTableHead
+  , mkTableFoot
   , mkInlines
   , mkListAttributes
   , mkSimpleTable
