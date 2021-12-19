@@ -18,9 +18,10 @@ import HsLua as Lua
 import HsLua.Module.Version (pushVersion)
 import Paths_pandoc (version)
 import Text.Pandoc.Class.CommonState (CommonState)
-import Text.Pandoc.Definition (Pandoc (Pandoc), pandocTypesVersion)
+import Text.Pandoc.Definition (Pandoc, pandocTypesVersion)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshal.CommonState (pushCommonState)
+import Text.Pandoc.Lua.Marshal.Pandoc (pushPandoc)
 import Text.Pandoc.Lua.Marshal.ReaderOptions (pushReaderOptionsReadonly)
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Options (ReaderOptions)
@@ -52,7 +53,7 @@ setGlobal global = case global of
     pushVersion pandocTypesVersion
     Lua.setglobal "PANDOC_API_VERSION"
   PANDOC_DOCUMENT doc -> do
-    pushUD typePandocLazy  doc
+    pushPandoc doc
     Lua.setglobal "PANDOC_DOCUMENT"
   PANDOC_READER_OPTIONS ropts -> do
     pushReaderOptionsReadonly ropts
@@ -66,10 +67,3 @@ setGlobal global = case global of
   PANDOC_VERSION              -> do
     pushVersion version
     Lua.setglobal "PANDOC_VERSION"
-
--- | Readonly and lazy pandoc objects.
-typePandocLazy :: LuaError e => DocumentedType e Pandoc
-typePandocLazy = deftype "Pandoc (lazy)" []
-  [ readonly "meta" "document metadata" (push, \(Pandoc meta _) -> meta)
-  , readonly "blocks" "content blocks" (push, \(Pandoc _ blocks) -> blocks)
-  ]
