@@ -887,7 +887,7 @@ MetaValue is expected. The types correspond to the following
 Haskell type constructors:
 
 - boolean → MetaBool
-- string → MetaString
+- string or number → MetaString
 - Inlines → MetaInlines
 - Blocks → MetaBlocks
 - List/integer indexed table → MetaList
