@@ -55,7 +55,10 @@ processCitations (Pandoc meta bs) = do
   mblang <- getCiteprocLang meta
   let locale = Citeproc.mergeLocales mblang style
 
-  refs <- getReferences (Just locale) (Pandoc meta bs)
+  let addQuoteSpan (Quoted _ xs) = Span ("",["csl-quoted"],[]) xs
+      addQuoteSpan x = x
+  refs <- map (walk addQuoteSpan) <$>
+          getReferences (Just locale) (Pandoc meta bs)
 
   let otherIdsMap = foldr (\ref m ->
                              case T.words . extractText <$>
@@ -206,10 +209,7 @@ getReferences mblocale (Pandoc meta bs) = do
                         Just fp -> getRefsFromBib locale idpred fp
                         Nothing -> return []
                     Nothing -> return []
-  let addQuoteSpan (Quoted _ xs) = Span ("",["csl-quoted"],[]) xs
-      addQuoteSpan x = x
-  return $ map (legacyDateRanges . walk addQuoteSpan)
-               (externalRefs ++ inlineRefs)
+  return $ map legacyDateRanges (externalRefs ++ inlineRefs)
             -- note that inlineRefs can override externalRefs
 
 
