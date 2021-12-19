@@ -1876,8 +1876,6 @@ List attributes
 Values of this type can be created with the
 [`pandoc.ListAttributes`](#pandoc.listattributes) constructor.
 
-Object equality is determined via [`pandoc.utils.equals`].
-
 Fields:
 
 `start`
@@ -1896,10 +1894,13 @@ Fields:
 
 A table row.
 
-Tuple fields:
+Fields:
 
-1. row attributes
-2. row cells (list of [Cells])
+`attr`
+:   element attributes ([Attr][])
+
+`cells`
+:   list of table cells ([List][] of [Cell][]s)
 
 ### TableBody {#type-tablebody}
 
@@ -1909,35 +1910,59 @@ number of row header columns.
 Fields:
 
 `attr`
-:   table body attributes ([Attr])
+:   table body attributes ([Attr][])
 
 `body`
-:   table body rows (list of [Rows])
+:   table body rows ([List][] of [Row][]s)
 
 `head`
-:   intermediate head (list of [Rows])
+:   intermediate head ([List][] of [Row][]s)
 
 `row_head_columns`
 :   number of columns taken up by the row head of each row of a
-    [TableBody]. The row body takes up the remaining columns.
+    [TableBody][]. The row body takes up the remaining columns.
 
 ### TableFoot {#type-tablefoot}
 
 The foot of a table.
 
-This is a pair with the following components:
+Fields:
 
-1. attributes
-2. foot rows ([Rows])
+`attr`
+:   element attributes ([Attr][])
+
+`rows`
+:   list of rows ([List][] of [Row][]s)
+
+`identifier`
+:   alias for `attr.identifier` (string)
+
+`classes`
+:   alias for `attr.classes` ([List][] of strings)
+
+`attributes`
+:   alias for `attr.attributes` ([Attributes][])
 
 ### TableHead {#type-tablehead}
 
 The head of a table.
 
-This is a pair with the following components:
+Fields:
 
-1. attributes
-2. head rows ([Rows])
+`attr`
+:   element attributes ([Attr][])
+
+`rows`
+:   list of rows ([List][] of [Row][]s)
+
+`identifier`
+:   alias for `attr.identifier` (string)
+
+`classes`
+:   alias for `attr.classes` ([List][] of strings)
+
+`attributes`
+:   alias for `attr.attributes` ([Attributes][])
 
 ## ReaderOptions {#type-readeroptions}
 
@@ -2120,6 +2145,7 @@ Usage:
 [Block]: #type-block
 [Blocks]: #type-block
 [Caption]: #type-caption
+[Cell]: #type-cell
 [Cells]: #type-cell
 [Citation]: #type-citation
 [Citations]: #type-citation
@@ -2138,6 +2164,7 @@ Usage:
 [Pandoc]: #type-pandoc
 [Para]: #type-para
 [Plain]: #type-plain
+[Row]: #type-row
 [Rows]: #type-row
 [SimpleTable]: #type-simpletable
 [Table]: #type-table
@@ -2900,6 +2927,42 @@ format, and functions to filter and modify a subtree.
     :   delimiter of list numbers
 
     Returns: [ListAttributes](#type-listattributes) object
+
+[`Row ([cells[, attr]])`]{#pandoc.row}
+
+:   Creates a table row.
+
+    Parameters:
+
+    `cells`:
+    :   list of table cells in this row
+
+    `attr`:
+    :   row attributes
+
+[`TableFoot ([rows[, attr]])`]{#pandoc.tablefoot}
+
+:   Creates a table foot.
+
+    Parameters:
+
+    `rows`:
+    :   list of table rows
+
+    `attr`:
+    :   table foot attributes
+
+[`TableHead ([rows[, attr]])`]{#pandoc.tablehead}
+
+:   Creates a table head.
+
+    Parameters:
+
+    `rows`:
+    :   list of table rows
+
+    `attr`:
+    :   table head attributes
 
 ## Legacy types
 

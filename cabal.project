@@ -6,7 +6,7 @@ constraints: aeson >= 2.0.1.0
 source-repository-package
   type: git
   location: https://github.com/pandoc/pandoc-lua-marshal
-  tag: 98e3de5087bb533fadbb89720f83f7f7cc3be5bf
+  tag: 45e53d9dce37d20f8e30e0d297a43c5b4c4a6831
 
 source-repository-package
   type: git
