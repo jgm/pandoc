@@ -54,6 +54,7 @@ formatFromFilePath x =
     ".lhs"      -> Just "markdown+lhs"
     ".ltx"      -> Just "latex"
     ".markdown" -> Just "markdown"
+    ".markua"   -> Just "markua"
     ".mkdn"     -> Just "markdown"
     ".mkd"      -> Just "markdown"
     ".mdwn"     -> Just "markdown"

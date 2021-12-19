@@ -50,6 +50,7 @@ import qualified Tests.Writers.Powerpoint
 import qualified Tests.Writers.RST
 import qualified Tests.Writers.AnnotatedTable
 import qualified Tests.Writers.TEI
+import qualified Tests.Writers.Markua
 import Text.Pandoc.Shared (inDirectory)
 
 tests :: FilePath -> TestTree
@@ -72,6 +73,7 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "Docx" Tests.Writers.Docx.tests
           , testGroup "RST" Tests.Writers.RST.tests
           , testGroup "TEI" Tests.Writers.TEI.tests
+          , testGroup "markua" Tests.Writers.Markua.tests
           , testGroup "Muse" Tests.Writers.Muse.tests
           , testGroup "FB2" Tests.Writers.FB2.tests
           , testGroup "PowerPoint" Tests.Writers.Powerpoint.tests

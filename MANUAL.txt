@@ -316,6 +316,7 @@ header when requesting a document from a URL:
     - `markdown_mmd` ([MultiMarkdown])
     - `markdown_phpextra` ([PHP Markdown Extra])
     - `markdown_strict` (original unextended [Markdown])
+    - `markua` ([Markua])
     - `mediawiki` ([MediaWiki markup])
     - `ms` ([roff ms])
     - `muse` ([Muse]),
@@ -502,6 +503,7 @@ header when requesting a document from a URL:
 [CSL JSON]: https://citeproc-js.readthedocs.io/en/latest/csl-json/markup.html
 [BibTeX]: https://ctan.org/pkg/bibtex
 [BibLaTeX]: https://ctan.org/pkg/biblatex
+[Markua]: https://leanpub.com/markua/read
 
 ## Reader options {.options}
 

@@ -228,6 +228,7 @@ tests pandocPath =
     , test' "reader" ["-f", "ipynb", "-t", "html"]
       "ipynb/rank.ipynb" "ipynb/rank.out.html"
     ]
+  , testGroup "markua" [ testGroup "writer" $ writerTests' "markua"]
   ]
  where
     test'           = test pandocPath

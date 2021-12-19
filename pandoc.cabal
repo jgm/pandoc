@@ -90,6 +90,7 @@ data-files:
                  data/templates/default.epub3
                  data/templates/article.jats_publishing
                  data/templates/affiliations.jats
+                 data/templates/default.markua
                  -- translations
                  data/translations/*.yaml
                  -- source files for reference.docx
@@ -825,6 +826,7 @@ test-suite test-pandoc
                   Tests.Writers.Docx
                   Tests.Writers.RST
                   Tests.Writers.TEI
+                  Tests.Writers.Markua
                   Tests.Writers.Muse
                   Tests.Writers.FB2
                   Tests.Writers.Powerpoint

@@ -25,6 +25,7 @@ module Text.Pandoc.Shared (
                      ordNub,
                      findM,
                      -- * Text processing
+                     inquotes,
                      tshow,
                      elemText,
                      notElemText,
@@ -185,6 +186,10 @@ findM p = foldr go (pure Nothing)
 --
 -- Text processing
 --
+
+-- | Wrap double quotes around a Text
+inquotes :: T.Text -> T.Text
+inquotes txt = T.cons '\"' (T.snoc txt '\"')
 
 tshow :: Show a => a -> T.Text
 tshow = T.pack . show
