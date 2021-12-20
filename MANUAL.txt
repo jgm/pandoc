@@ -790,7 +790,6 @@ header when requesting a document from a URL:
     preserve the wrapping from the source document (that is,
     where there are nonsemantic newlines in the source, there
     will be nonsemantic newlines in the output as well).
-    Automatic wrapping does not currently work in HTML output.
     In `ipynb` output, this option affects wrapping of the
     contents of markdown cells.
 

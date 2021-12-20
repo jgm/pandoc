@@ -39,7 +39,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Network.URI (URI (..), parseURIReference)
 import Numeric (showHex)
-import Text.DocLayout (render, literal)
+import Text.DocLayout (render, literal, Doc)
 import Text.Blaze.Internal (MarkupM (Empty), customLeaf, customParent)
 import Text.DocTemplates (FromContext (lookupContext), Context (..))
 import Text.Blaze.Html hiding (contents)
@@ -70,6 +70,7 @@ import Text.Pandoc.Class.PandocPure (runPure)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (mediaCategory)
+import Text.Pandoc.Writers.Blaze (layoutMarkup)
 import Text.TeXMath
 import Text.XML.Light (elChildren, unode, unqual)
 import qualified Text.XML.Light as XML
@@ -160,7 +161,8 @@ writeHtmlStringForEPUB :: PandocMonad m
                        -> m Text
 writeHtmlStringForEPUB version o = writeHtmlString'
                       defaultWriterState{ stHtml5 = version == EPUB3,
-                                          stEPUBVersion = Just version } o
+                                          stEPUBVersion = Just version }
+                      o{ writerWrapText = WrapNone }
 
 -- | Convert Pandoc document to Reveal JS HTML slide show.
 writeRevealJs :: PandocMonad m
@@ -207,17 +209,23 @@ writeHtmlString' :: PandocMonad m
                  => WriterState -> WriterOptions -> Pandoc -> m Text
 writeHtmlString' st opts d = do
   (body, context) <- evalStateT (pandocToHtml opts d) st
+  let colwidth = case writerWrapText opts of
+                    WrapAuto -> Just (writerColumns opts)
+                    _ -> Nothing
   (if writerPreferAscii opts
       then toEntities
       else id) <$>
     case writerTemplate opts of
-       Nothing -> return $ renderHtml' body
+       Nothing -> return $
+         case colwidth of
+           Nothing -> renderHtml' body  -- optimization, skip layout
+           Just cols -> render (Just cols) $ layoutMarkup body
        Just tpl -> do
          -- warn if empty lang
          when (isNothing (getField "lang" context :: Maybe Text)) $
            report NoLangSpecified
          -- check for empty pagetitle
-         context' <-
+         (context' :: Context Text) <-
             case getField "pagetitle" context of
                  Just (s :: Text) | not (T.null s) -> return context
                  _ -> do
@@ -228,9 +236,9 @@ writeHtmlString' st opts d = do
                            Just []    -> "Untitled"
                            Just (x:_) -> takeBaseName $ T.unpack x
                    report $ NoTitleElement fallback
-                   return $ resetField "pagetitle" fallback context
-         return $ render Nothing $ renderTemplate tpl
-             (defField "body" (renderHtml' body) context')
+                   return $ resetField "pagetitle" (literal fallback) context
+         return $ render colwidth $ renderTemplate tpl
+             (defField "body" (layoutMarkup body) context')
 
 writeHtml' :: PandocMonad m => WriterState -> WriterOptions -> Pandoc -> m Html
 writeHtml' st opts d =
@@ -252,13 +260,13 @@ pandocToHtml opts (Pandoc meta blocks) = do
   let slideLevel = fromMaybe (getSlideLevel blocks) $ writerSlideLevel opts
   modify $ \st -> st{ stSlideLevel = slideLevel }
   metadata <- metaToContext opts
-              (fmap (literal . renderHtml') . blockListToHtml opts)
-              (fmap (literal . renderHtml') . inlineListToHtml opts)
+              (fmap layoutMarkup . blockListToHtml opts)
+              (fmap layoutMarkup . inlineListToHtml opts)
               meta
   let stringifyHTML = escapeStringForXML . stringify
-  let authsMeta = map stringifyHTML $ docAuthors meta
+  let authsMeta = map (literal . stringifyHTML) $ docAuthors meta
   let dateMeta  = stringifyHTML $ docDate meta
-  let descriptionMeta = escapeStringForXML $
+  let descriptionMeta = literal $ escapeStringForXML $
                           lookupMetaString "description" meta
   slideVariant <- gets stSlideVariant
   let sects = adjustNumbers opts $
@@ -267,7 +275,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                  then blocks
                  else prepSlides slideLevel blocks
   toc <- if writerTableOfContents opts && slideVariant /= S5Slides
-            then fmap renderHtml' <$> tableOfContents opts sects
+            then fmap layoutMarkup <$> tableOfContents opts sects
             else return Nothing
   blocks' <- blockListToHtml opts sects
   notes <- do
@@ -281,7 +289,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
         return notes
   st <- get
   let thebody = blocks' >> notes
-  let math = case writerHTMLMathMethod opts of
+  let math = layoutMarkup $ case writerHTMLMathMethod opts of
         MathJax url
           | slideVariant /= RevealJsSlides ->
           -- mathjax is handled via a special plugin in revealjs
@@ -298,7 +306,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
           nl opts
           let katexFlushLeft =
                 case lookupContext "classoption" metadata of
-                  Just clsops | "fleqn" `elem` (clsops :: [Text]) -> "true"
+                  Just clsops | "fleqn" `elem` (clsops :: [Doc Text]) -> "true"
                   _ -> "false"
           H.script $ text $ T.unlines [
               "document.addEventListener(\"DOMContentLoaded\", function () {"
@@ -324,15 +332,16 @@ pandocToHtml opts (Pandoc meta blocks) = do
                     Just s | not (stHtml5 st) ->
                       H.script ! A.type_ "text/javascript"
                         $ preEscapedString
-                          ("/*<![CDATA[*/\n" ++ T.unpack s ++
+                          ("/*<![CDATA[*/\n" <> T.unpack s <>
                           "/*]]>*/\n")
                           | otherwise -> mempty
                     Nothing -> mempty
   let mCss :: Maybe [Text] = lookupContext "css" metadata
-  let context =   (if stHighlighting st
+  let context :: Context Text
+      context =   (if stHighlighting st
                       then case writerHighlightStyle opts of
                                 Just sty -> defField "highlighting-css"
-                                              (T.pack $ styleToCss sty)
+                                            (literal $ T.pack $ styleToCss sty)
                                 Nothing  -> id
                       else id) .
                   (if stCsl st
@@ -342,15 +351,15 @@ pandocToHtml opts (Pandoc meta blocks) = do
                               Just 0  -> id
                               Just n  ->
                                 defField "csl-entry-spacing"
-                                  (tshow n <> "em"))
+                                  (literal $ tshow n <> "em"))
                       else id) .
                   (if stMath st
-                      then defField "math" (renderHtml' math)
+                      then defField "math" math
                       else id) .
                   (case writerHTMLMathMethod opts of
                         MathJax u -> defField "mathjax" True .
                                      defField "mathjaxurl"
-                                       (T.takeWhile (/='?') u)
+                                       (literal $ T.takeWhile (/='?') u)
                         _         -> defField "mathjax" False) .
                   (case writerHTMLMathMethod opts of
                         PlainMath -> defField "displaymath-css" True
@@ -361,11 +370,12 @@ pandocToHtml opts (Pandoc meta blocks) = do
                            -- template can't distinguish False/undefined
                          defField "controls" True .
                          defField "controlsTutorial" True .
-                         defField "controlsLayout" ("bottom-right" :: Text) .
-                         defField "controlsBackArrows" ("faded" :: Text) .
+                         defField "controlsLayout"
+                           ("bottom-right" :: Doc Text) .
+                         defField "controlsBackArrows" ("faded" :: Doc Text) .
                          defField "progress" True .
                          defField "slideNumber" False .
-                         defField "showSlideNumber" ("all" :: Text) .
+                         defField "showSlideNumber" ("all" :: Doc Text) .
                          defField "hashOneBasedIndex" False .
                          defField "hash" True .
                          defField "respondToHashChanges" True .
@@ -377,7 +387,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          defField "touch" True .
                          defField "loop" False .
                          defField "rtl" False .
-                         defField "navigationMode" ("default" :: Text) .
+                         defField "navigationMode" ("default" :: Doc Text) .
                          defField "shuffle" False .
                          defField "fragments" True .
                          defField "fragmentInURL" True .
@@ -385,22 +395,22 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          defField "help" True .
                          defField "pause" True .
                          defField "showNotes" False .
-                         defField "autoPlayMedia" ("null" :: Text) .
-                         defField "preloadIframes" ("null" :: Text) .
-                         defField "autoSlide" ("0" :: Text) .
+                         defField "autoPlayMedia" ("null" :: Doc Text) .
+                         defField "preloadIframes" ("null" :: Doc Text) .
+                         defField "autoSlide" ("0" :: Doc Text) .
                          defField "autoSlideStoppable" True .
-                         defField "autoSlideMethod" ("null" :: Text) .
-                         defField "defaultTiming" ("null" :: Text) .
+                         defField "autoSlideMethod" ("null" :: Doc Text) .
+                         defField "defaultTiming" ("null" :: Doc Text) .
                          defField "mouseWheel" False .
-                         defField "display" ("block" :: Text) .
+                         defField "display" ("block" :: Doc Text) .
                          defField "hideInactiveCursor" True .
-                         defField "hideCursorTime" ("5000" :: Text) .
+                         defField "hideCursorTime" ("5000" :: Doc Text) .
                          defField "previewLinks" False .
-                         defField "transition" ("slide" :: Text) .
-                         defField "transitionSpeed" ("default" :: Text) .
-                         defField "backgroundTransition" ("fade" :: Text) .
-                         defField "viewDistance" ("3" :: Text) .
-                         defField "mobileViewDistance" ("2" :: Text)
+                         defField "transition" ("slide" :: Doc Text) .
+                         defField "transitionSpeed" ("default" :: Doc Text) .
+                         defField "backgroundTransition" ("fade" :: Doc Text) .
+                         defField "viewDistance" ("3" :: Doc Text) .
+                         defField "mobileViewDistance" ("2" :: Doc Text)
                       else id) .
                   defField "document-css" (isNothing mCss && slideVariant == NoSlides) .
                   defField "quotes" (stQuotes st) .
@@ -410,18 +420,18 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   maybe id (defField "toc") toc .
                   maybe id (defField "table-of-contents") toc .
                   defField "author-meta" authsMeta .
-                  maybe id (defField "date-meta")
+                  maybe id (defField "date-meta" . literal)
                     (normalizeDate dateMeta) .
                   defField "description-meta" descriptionMeta .
                   defField "pagetitle"
-                      (stringifyHTML . docTitle $ meta) .
-                  defField "idprefix" (writerIdentifierPrefix opts) .
+                      (literal . stringifyHTML . docTitle $ meta) .
+                  defField "idprefix" (literal $ writerIdentifierPrefix opts) .
                   -- these should maybe be set in pandoc.hs
                   defField "slidy-url"
-                    ("https://www.w3.org/Talks/Tools/Slidy2" :: Text) .
-                  defField "slideous-url" ("slideous" :: Text) .
-                  defField "revealjs-url" ("https://unpkg.com/reveal.js@^4/" :: Text) $
-                  defField "s5-url" ("s5/default" :: Text) .
+                    ("https://www.w3.org/Talks/Tools/Slidy2" :: Doc Text) .
+                  defField "slideous-url" ("slideous" :: Doc Text) .
+                  defField "revealjs-url" ("https://unpkg.com/reveal.js@^4/" :: Doc Text) $
+                  defField "s5-url" ("s5/default" :: Doc Text) .
                   defField "html5" (stHtml5 st) $
                   metadata
   return (thebody, context)
@@ -705,12 +715,11 @@ figure opts attr@(_, _, attrList) txt (s,tit) = do
   img <- inlineToHtml opts (Image attr alt (s,tit))
   capt <- if null txt
              then return mempty
-             else tocapt `fmap` inlineListToHtml opts txt
+             else (nl opts <>) . tocapt <$> inlineListToHtml opts txt
+  let inner = mconcat [nl opts, img, capt, nl opts]
   return $ if html5
-              then H5.figure $ mconcat
-                    [nl opts, img, capt, nl opts]
-              else H.div ! A.class_ "figure" $ mconcat
-                    [nl opts, img, nl opts, capt, nl opts]
+              then H5.figure inner
+              else H.div ! A.class_ "figure" $ inner
 
 
 adjustNumbers :: WriterOptions -> [Block] -> [Block]
@@ -1332,7 +1341,7 @@ inlineToHtml opts inline = do
     Space          -> return $ strToHtml " "
     SoftBreak      -> return $ case writerWrapText opts of
                                      WrapNone     -> preEscapedText " "
-                                     WrapAuto     -> preEscapedText " "
+                                     WrapAuto     -> " "
                                      WrapPreserve -> preEscapedText "\n"
     LineBreak      -> return $ do
                         if html5 then H5.br else H.br

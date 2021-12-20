@@ -688,6 +688,7 @@ library
                    Text.Pandoc.Writers.Markdown.Types,
                    Text.Pandoc.Writers.Markdown.Inline,
                    Text.Pandoc.Writers.Roff,
+                   Text.Pandoc.Writers.Blaze,
                    Text.Pandoc.Writers.Powerpoint.Presentation,
                    Text.Pandoc.Writers.Powerpoint.Output,
                    Text.Pandoc.Lua.ErrorConversion,

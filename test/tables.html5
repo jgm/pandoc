@@ -121,7 +121,8 @@
 <td style="text-align: center;">Second</td>
 <td style="text-align: left;">row</td>
 <td style="text-align: right;">5.0</td>
-<td style="text-align: left;">Here’s another one. Note the blank line between rows.</td>
+<td style="text-align: left;">Here’s another one. Note the blank line between
+rows.</td>
 </tr>
 </tbody>
 </table>
@@ -152,7 +153,8 @@
 <td style="text-align: center;">Second</td>
 <td style="text-align: left;">row</td>
 <td style="text-align: right;">5.0</td>
-<td style="text-align: left;">Here’s another one. Note the blank line between rows.</td>
+<td style="text-align: left;">Here’s another one. Note the blank line between
+rows.</td>
 </tr>
 </tbody>
 </table>
