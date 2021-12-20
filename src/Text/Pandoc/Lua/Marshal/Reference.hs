@@ -55,13 +55,20 @@ pushName = pushAsTable
   , ("non-dropping-particle" , pushTextOrNil . nameNonDroppingParticle)
   , ("suffix"                , pushTextOrNil . nameSuffix)
   , ("literal"               , pushTextOrNil . nameLiteral)
-  , ("comma-suffix"          , pushBool . nameCommaSuffix)
-  , ("static-ordering"       , pushBool . nameStaticOrdering)
+  , ("comma-suffix"          , pushBoolOrNil . nameCommaSuffix)
+  , ("static-ordering"       , pushBoolOrNil . nameStaticOrdering)
   ]
   where
     pushTextOrNil = \case
       Nothing -> pushnil
       Just xs -> pushText xs
+
+-- | Pushes a boolean, but uses @nil@ instead of @false@; table fields
+-- are not set unless the value is true.
+pushBoolOrNil :: Pusher e Bool
+pushBoolOrNil = \case
+  False -> pushnil
+  True  -> pushBool True
 
 -- | Pushes a 'Variable' as string.
 pushVariable :: Pusher e Variable
@@ -80,14 +87,13 @@ pushVal = \case
 pushDate :: LuaError e => Pusher e Date
 pushDate = pushAsTable
   [ ("date-parts", pushPandocList pushDateParts . dateParts)
-  , ("circa", pushBool . dateCirca)
+  , ("circa", pushBoolOrNil . dateCirca)
   , ("season", maybe pushnil pushIntegral . dateSeason)
   , ("literal", maybe pushnil pushText . dateLiteral)
   ]
  where
-   -- date parts are integers, but we push them as strings, as meta
-   -- values can't handle integers yet.
-   pushDateParts (DateParts dp) = pushPandocList (pushString . show) dp
+   -- date parts are lists of Int values
+   pushDateParts (DateParts dp) = pushPandocList pushIntegral dp
 
 -- | Helper funtion to push an object as a table.
 pushAsTable :: LuaError e

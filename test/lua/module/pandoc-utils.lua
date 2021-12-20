@@ -62,6 +62,31 @@ return {
     end),
   },
 
+  group 'references' {
+    test('gets references from doc', function ()
+      local ref = {
+        ['author'] = {
+          {given = 'Max', family = 'Mustermann'}
+        },
+        ['container-title'] = pandoc.Inlines('JOSS'),
+        ['id']     = 'test',
+        ['issued'] = {['date-parts'] = {{2021}}},
+        ['title']  = pandoc.Inlines{
+          pandoc.Quoted('DoubleQuote', 'Interesting'),
+          pandoc.Space(),
+          'work'
+        },
+        ['type']   = 'article-journal',
+      }
+      local nocite = pandoc.Cite(
+        '@test',
+        {pandoc.Citation('test', 'NormalCitation')}
+      )
+      local doc = pandoc.Pandoc({}, {nocite = nocite, references = {ref}})
+      assert.are_same({ref}, pandoc.utils.references(doc))
+    end)
+  },
+
   group 'sha1' {
     test('hashing', function ()
       local ref_hash = '0a0a9f2a6772942557ab5355d76af442f8f65e01'

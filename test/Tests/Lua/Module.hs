@@ -29,7 +29,7 @@ tests =
                   ("lua" </> "module" </> "pandoc-path.lua")
   , testPandocLua "pandoc.types"
                   ("lua" </> "module" </> "pandoc-types.lua")
-  , testPandocLua "pandoc.util"
+  , testPandocLua "pandoc.utils"
                   ("lua" </> "module" </> "pandoc-utils.lua")
   ]
 
