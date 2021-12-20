@@ -156,10 +156,12 @@
 <h2 class="author">Anonymous</h2>
 <h3 class="date">July 17, 2006</h3>
 </div>
-<p>This is a set of tests for pandoc. Most of them are adapted from John Gruber’s markdown test suite.</p>
+<p>This is a set of tests for pandoc. Most of them are adapted from John
+Gruber’s markdown test suite.</p>
 <hr />
 <h1 id="headers">Headers</h1>
-<h2 id="level-2-with-an-embedded-link">Level 2 with an <a href="/url">embedded link</a></h2>
+<h2 id="level-2-with-an-embedded-link">Level 2 with an <a href="/url">embedded
+link</a></h2>
 <h3 id="level-3-with-emphasis">Level 3 with <em>emphasis</em></h3>
 <h4 id="level-4">Level 4</h4>
 <h5 id="level-5">Level 5</h5>
@@ -172,7 +174,9 @@
 <hr />
 <h1 id="paragraphs">Paragraphs</h1>
 <p>Here’s a regular paragraph.</p>
-<p>In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.</p>
+<p>In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
+Because a hard-wrapped line in the middle of a paragraph looked like a list
+item.</p>
 <p>Here’s one with a bullet. * criminey.</p>
 <p>There should be a hard line break<br />
 here.</p>
@@ -283,7 +287,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</code></pre>
 <p>Multiple paragraphs:</p>
 <ol style="list-style-type: decimal">
 <li><p>Item 1, graf one.</p>
-<p>Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.</p></li>
+<p>Item 1. graf two. The quick brown fox jumped over the lazy dog’s
+back.</p></li>
 <li><p>Item 2.</p></li>
 <li><p>Item 3.</p></li>
 </ol>
@@ -540,18 +545,22 @@ Blah
 <p>So is <strong><em>this</em></strong> word.</p>
 <p><strong><em>This is strong and em.</em></strong></p>
 <p>So is <strong><em>this</em></strong> word.</p>
-<p>This is code: <code>&gt;</code>, <code>$</code>, <code>\</code>, <code>\$</code>, <code>&lt;html&gt;</code>.</p>
+<p>This is code: <code>&gt;</code>, <code>$</code>, <code>\</code>,
+<code>\$</code>, <code>&lt;html&gt;</code>.</p>
 <p><del>This is <em>strikeout</em>.</del></p>
-<p>Superscripts: a<sup>bc</sup>d a<sup><em>hello</em></sup> a<sup>hello there</sup>.</p>
+<p>Superscripts: a<sup>bc</sup>d a<sup><em>hello</em></sup>
+a<sup>hello there</sup>.</p>
 <p>Subscripts: H<sub>2</sub>O, H<sub>23</sub>O, H<sub>many of them</sub>O.</p>
-<p>These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.</p>
+<p>These should not be superscripts or subscripts, because of the unescaped
+spaces: a^b c^d, a~b c~d.</p>
 <hr />
 <h1 id="smart-quotes-ellipses-dashes">Smart quotes, ellipses, dashes</h1>
 <p>“Hello,” said the spider. “‘Shelob’ is my name.”</p>
 <p>‘A’, ‘B’, and ‘C’ are letters.</p>
 <p>‘Oak,’ ‘elm,’ and ‘beech’ are names of trees. So is ‘pine.’</p>
 <p>‘He said, “I want to go.”’ Were you alive in the 70’s?</p>
-<p>Here is some quoted ‘<code>code</code>’ and a “<a href="http://example.com/?foo=1&amp;bar=2">quoted link</a>”.</p>
+<p>Here is some quoted ‘<code>code</code>’ and a “<a
+href="http://example.com/?foo=1&amp;bar=2">quoted link</a>”.</p>
 <p>Some dashes: one—two — three—four — five.</p>
 <p>Dashes between numbers: 5–7, 255–66, 1987–1999.</p>
 <p>Ellipses…and…and….</p>
@@ -564,13 +573,16 @@ Blah
 <li><span class="math inline"><em>α</em> ∧ <em>ω</em></span></li>
 <li><span class="math inline">223</span></li>
 <li><span class="math inline"><em>p</em></span>-Tree</li>
-<li>Here’s some display math: <span class="math display">$$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$</span></li>
-<li>Here’s one that has a line break in it: <span class="math inline"><em>α</em> + <em>ω</em> × <em>x</em><sup>2</sup></span>.</li>
+<li>Here’s some display math: <span class="math
+display">$$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$</span></li>
+<li>Here’s one that has a line break in it: <span class="math
+inline"><em>α</em> + <em>ω</em> × <em>x</em><sup>2</sup></span>.</li>
 </ul>
 <p>These shouldn’t be math:</p>
 <ul>
 <li>To get the famous equation, write <code>$e = mc^2$</code>.</li>
-<li>$22,000 is a <em>lot</em> of money. So is $34,000. (It worked if “lot” is emphasized.)</li>
+<li>$22,000 is a <em>lot</em> of money. So is $34,000. (It worked if “lot” is
+emphasized.)</li>
 <li>Shoes ($20) and socks ($5).</li>
 <li>Escaped <code>$</code>: $73 <em>this should be emphasized</em> 23$.</li>
 </ul>
@@ -613,7 +625,8 @@ Blah
 <p><a href="/url/" title="title">URL and title</a>.</p>
 <p><a href="/url/" title="title preceded by two spaces">URL and title</a>.</p>
 <p><a href="/url/" title="title preceded by a tab">URL and title</a>.</p>
-<p><a href="/url/" title="title with &quot;quotes&quot; in it">URL and title</a></p>
+<p><a href="/url/" title="title with &quot;quotes&quot; in it">URL and
+title</a></p>
 <p><a href="/url/" title="title with single quotes">URL and title</a></p>
 <p><a href="/url/with_underscore">with_underscore</a></p>
 <p><a href="mailto:nobody@nowhere.net">Email link</a></p>
@@ -630,22 +643,29 @@ Blah
 <p>Foo <a href="/url/" title="Title with &quot;quotes&quot; inside">bar</a>.</p>
 <p>Foo <a href="/url/" title="Title with &quot;quote&quot; inside">biz</a>.</p>
 <h2 id="with-ampersands">With ampersands</h2>
-<p>Here’s a <a href="http://example.com/?foo=1&amp;bar=2">link with an ampersand in the URL</a>.</p>
-<p>Here’s a link with an amersand in the link text: <a href="http://att.com/" title="AT&amp;T">AT&amp;T</a>.</p>
+<p>Here’s a <a href="http://example.com/?foo=1&amp;bar=2">link with an ampersand
+in the URL</a>.</p>
+<p>Here’s a link with an amersand in the link text: <a href="http://att.com/"
+title="AT&amp;T">AT&amp;T</a>.</p>
 <p>Here’s an <a href="/script?foo=1&amp;bar=2">inline link</a>.</p>
-<p>Here’s an <a href="/script?foo=1&amp;bar=2">inline link in pointy braces</a>.</p>
+<p>Here’s an <a href="/script?foo=1&amp;bar=2">inline link in pointy
+braces</a>.</p>
 <h2 id="autolinks">Autolinks</h2>
-<p>With an ampersand: <a href="http://example.com/?foo=1&amp;bar=2" class="uri">http://example.com/?foo=1&amp;bar=2</a></p>
+<p>With an ampersand: <a href="http://example.com/?foo=1&amp;bar=2"
+class="uri">http://example.com/?foo=1&amp;bar=2</a></p>
 <ul>
 <li>In a list?</li>
 <li><a href="http://example.com/" class="uri">http://example.com/</a></li>
 <li>It should.</li>
 </ul>
-<p>An e-mail address: <a href="mailto:nobody@nowhere.net" class="email">nobody@nowhere.net</a></p>
+<p>An e-mail address: <a href="mailto:nobody@nowhere.net"
+class="email">nobody@nowhere.net</a></p>
 <blockquote>
-<p>Blockquoted: <a href="http://example.com/" class="uri">http://example.com/</a></p>
+<p>Blockquoted: <a href="http://example.com/"
+class="uri">http://example.com/</a></p>
 </blockquote>
-<p>Auto-links should not occur here: <code>&lt;http://example.com/&gt;</code></p>
+<p>Auto-links should not occur here:
+<code>&lt;http://example.com/&gt;</code></p>
 <pre><code>or here: &lt;http://example.com/&gt;</code></pre>
 <hr />
 <h1 id="images">Images</h1>
@@ -657,23 +677,36 @@ Blah
 <p>Here is a movie <img src="movie.jpg" alt="movie" /> icon.</p>
 <hr />
 <h1 id="footnotes">Footnotes</h1>
-<p>Here is a footnote reference,<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> and another.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> This should <em>not</em> be a footnote reference, because it contains a space.[^my note] Here is an inline note.<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
+<p>Here is a footnote reference,<a href="#fn1" class="footnote-ref"
+id="fnref1"><sup>1</sup></a> and another.<a href="#fn2" class="footnote-ref"
+id="fnref2"><sup>2</sup></a> This should <em>not</em> be a footnote reference,
+because it contains a space.[^my note] Here is an inline note.<a href="#fn3"
+class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
 <blockquote>
-<p>Notes can go in quotes.<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a></p>
+<p>Notes can go in quotes.<a href="#fn4" class="footnote-ref"
+id="fnref4"><sup>4</sup></a></p>
 </blockquote>
 <ol style="list-style-type: decimal">
-<li>And in list items.<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></li>
+<li>And in list items.<a href="#fn5" class="footnote-ref"
+id="fnref5"><sup>5</sup></a></li>
 </ol>
 <p>This paragraph should not be part of the note, as it is not indented.</p>
 <div class="footnotes footnotes-end-of-document">
 <hr />
 <ol>
-<li id="fn1"><p>Here is the footnote. It can go anywhere after the footnote reference. It need not be placed at the end of the document.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn1"><p>Here is the footnote. It can go anywhere after the footnote
+reference. It need not be placed at the end of the document.<a href="#fnref1"
+class="footnote-back">↩︎</a></p></li>
 <li id="fn2"><p>Here’s the long note. This one contains multiple blocks.</p>
-<p>Subsequent blocks are indented to show that they belong to the footnote (as with list items).</p>
+<p>Subsequent blocks are indented to show that they belong to the footnote (as
+with list items).</p>
 <pre><code>  { &lt;code&gt; }</code></pre>
-<p>If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
-<li id="fn3"><p>This is <em>easier</em> to type. Inline notes may contain <a href="http://google.com">links</a> and <code>]</code> verbatim characters, as well as [bracketed text].<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<p>If you want, you can indent every line, but you can also be lazy and just
+indent the first line of each block.<a href="#fnref2"
+class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>This is <em>easier</em> to type. Inline notes may contain <a
+href="http://google.com">links</a> and <code>]</code> verbatim characters, as
+well as [bracketed text].<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
 <li id="fn4"><p>In quote.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
 <li id="fn5"><p>In list.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
 </ol>
