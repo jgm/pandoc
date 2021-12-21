@@ -38,7 +38,7 @@ extra-deps:
 - git: https://github.com/jgm/ipynb.git
   commit: 00246af10885c2ad4413ace4f69a7e6c88297a08
 - git: https://github.com/pandoc/pandoc-lua-marshal
-  commit: 45e53d9dce37d20f8e30e0d297a43c5b4c4a6831
+  commit: f81ec19006cc4d0476f199d1fb913bac4af0a0d8
 - git: https://github.com/jgm/commonmark-hs
   commit: 4d460b206e0b1872376db86cadf7a4567eeddaed
   subdir: commonmark-pandoc

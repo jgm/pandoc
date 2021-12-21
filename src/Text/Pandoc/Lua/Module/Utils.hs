@@ -61,9 +61,9 @@ documentedModule = Module
       =#> functionResult pushInlines "list of inlines" ""
 
     , defun "equals"
-      ### liftPure2 (==)
-      <#> parameter peekAstElement "AST element" "elem1" ""
-      <#> parameter peekAstElement "AST element" "elem2" ""
+      ### equal
+      <#> parameter pure "AST element" "elem1" ""
+      <#> parameter pure "AST element" "elem2" ""
       =#> functionResult pushBool "boolean" "true iff elem1 == elem2"
 
     , defun "make_sections"

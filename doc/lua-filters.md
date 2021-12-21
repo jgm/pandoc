@@ -831,8 +831,8 @@ Usage:
 Pandoc document
 
 Values of this type can be created with the
-[`pandoc.Pandoc`](#pandoc.pandoc) constructor. Object equality is
-determined via [`pandoc.utils.equals`].
+[`pandoc.Pandoc`](#pandoc.pandoc) constructor. Pandoc values are
+equal in Lua if and only if they are equal in Haskell.
 
 `blocks`
 :   document content ([List] of [Blocks])
@@ -876,8 +876,8 @@ Meta information on a document; string-indexed collection of
 [MetaValues].
 
 Values of this type can be created with the
-[`pandoc.Meta`](#pandoc.meta) constructor. Object equality is
-determined via [`pandoc.utils.equals`].
+[`pandoc.Meta`](#pandoc.meta) constructor. Meta values are equal
+in Lua if and only if they are equal in Haskell.
 
 ## MetaValue {#type-metavalue}
 
@@ -909,7 +909,8 @@ or `pandoc.Blocks`.
 
 ## Block {#type-block}
 
-Object equality is determined via [`pandoc.utils.equals`].
+Block values are equal in Lua if and only if they are equal in
+Haskell.
 
 ### Common methods
 
@@ -1292,8 +1293,8 @@ Usage:
 
 ## Inline {#type-inline}
 
-Object equality is determined by checking the Haskell
-representation for equality.
+Inline values are equal in Lua if and only if they are equal in
+Haskell.
 
 ### Common methods
 
@@ -1741,7 +1742,7 @@ Result:
 
 Usage:
 
-    -- returns `pandoc.Inlines{pandoc.SmallCaps('SPQR)}`
+    -- returns `pandoc.Inlines{pandoc.SmallCaps('SPQR')}`
     return pandoc.Inlines{pandoc.Emph('spqr')}:walk {
       Str = function (s) return string.upper(s.text) end,
       Emph = function (e) return pandoc.SmallCaps(e.content) end,
@@ -1766,7 +1767,8 @@ This also works when using the `attr` setter:
     local span = pandoc.Span 'text'
     span.attr = {id = 'text', class = 'a b', other_attribute = '1'}
 
-Object equality is determined via [`pandoc.utils.equals`].
+Attr values are equal in Lua if and only if they are equal in
+Haskell.
 
 Fields:
 
@@ -1783,6 +1785,9 @@ Fields:
 
 List of key/value pairs. Values can be accessed by using keys as
 indices to the list table.
+
+Attributes values are equal in Lua if and only if they are equal
+in Haskell.
 
 ### Caption {#type-caption}
 
@@ -1835,7 +1840,8 @@ Single citation entry
 Values of this type can be created with the
 [`pandoc.Citation`](#pandoc.citation) constructor.
 
-Object equality is determined via [`pandoc.utils.equals`].
+Citation values are equal in Lua if and only if they are equal in
+Haskell.
 
 Fields:
 
@@ -2115,7 +2121,7 @@ Values of this type can be created with the
 `must_be_at_least(actual, expected [, error_message])`
 
 Raise an error message if the actual version is older than the
-expected version; does nothing if actual is equal to or newer
+expected version; does nothing if `actual` is equal to or newer
 than the expected version.
 
 Parameters:
@@ -2173,7 +2179,6 @@ Usage:
 [TableFoot]: #type-tablefoot
 [TableHead]: #type-tablehead
 [Version]: #type-version
-[`pandoc.utils.equals`]: #pandoc.utils.equals
 
 # Module text
 
@@ -3308,12 +3313,13 @@ Test equality of AST elements. Elements in Lua are considered
 equal if and only if the objects obtained by unmarshaling are
 equal.
 
+**This function is deprecated.** Use the normal Lua `==` equality
+operator instead.
+
 Parameters:
 
 `element1`, `element2`:
-:   Objects to be compared. Acceptable input types are [Pandoc],
-    [Meta], [MetaValue], [Block], [Inline], [Attr],
-    [ListAttributes], and [Citation].
+:   Objects to be compared (any type)
 
 Returns:
 
