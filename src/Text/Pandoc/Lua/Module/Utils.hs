@@ -57,7 +57,7 @@ documentedModule = Module
             "blocks" ""
       <#> optionalParameter (peekList peekInline) "list of inlines"
             "inline" ""
-      =#> functionResult (pushPandocList pushInline) "list of inlines" ""
+      =#> functionResult pushInlines "list of inlines" ""
 
     , defun "equals"
       ### liftPure2 (==)
@@ -72,7 +72,7 @@ documentedModule = Module
                     "integer or nil" "baselevel" ""
       <#> parameter (peekList peekBlock) "list of blocks"
             "blocks" "document blocks to process"
-      =#> functionResult (pushPandocList pushBlock) "list of Blocks"
+      =#> functionResult pushBlocks "list of Blocks"
             "processes blocks"
 
     , defun "normalize_date"
