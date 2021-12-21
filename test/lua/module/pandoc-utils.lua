@@ -116,6 +116,46 @@ return {
     end)
   },
 
+  group 'type' {
+    test('nil', function ()
+      assert.are_equal(utils.type(nil), 'nil')
+    end),
+    test('boolean', function ()
+      assert.are_equal(utils.type(true), 'boolean')
+      assert.are_equal(utils.type(false), 'boolean')
+    end),
+    test('number', function ()
+      assert.are_equal(utils.type(5), 'number')
+      assert.are_equal(utils.type(-3.02), 'number')
+    end),
+    test('string', function ()
+      assert.are_equal(utils.type(''), 'string')
+      assert.are_equal(utils.type('asdf'), 'string')
+    end),
+    test('plain table', function ()
+      assert.are_equal(utils.type({}), 'table')
+    end),
+    test('List', function ()
+      assert.are_equal(utils.type(pandoc.List{}), 'List')
+    end),
+    test('Inline', function ()
+      assert.are_equal(utils.type(pandoc.Str 'a'), 'Inline')
+      assert.are_equal(utils.type(pandoc.Emph 'emphasized'), 'Inline')
+    end),
+    test('Inlines', function ()
+      assert.are_equal(utils.type(pandoc.Inlines{pandoc.Str 'a'}), 'Inlines')
+      assert.are_equal(utils.type(pandoc.Inlines{pandoc.Emph 'b'}), 'Inlines')
+    end),
+    test('Blocks', function ()
+      assert.are_equal(utils.type(pandoc.Para 'a'), 'Block')
+      assert.are_equal(utils.type(pandoc.CodeBlock 'true'), 'Block')
+    end),
+    test('Inlines', function ()
+      assert.are_equal(utils.type(pandoc.Blocks{'a'}), 'Blocks')
+      assert.are_equal(utils.type(pandoc.Blocks{pandoc.CodeBlock 'b'}), 'Blocks')
+    end),
+  },
+
   group 'to_simple_table' {
     test('convertes Table', function ()
       function simple_cell (blocks)

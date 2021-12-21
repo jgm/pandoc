@@ -1863,7 +1863,8 @@ Fields:
 Column alignment and width specification for a single table
 column.
 
-This is a pair with the following components:
+This is a pair, i.e., a plain table, with the following
+components:
 
 1. cell alignment ([Alignment]).
 2. table column width, as a fraction of the total table width
@@ -3506,6 +3507,39 @@ Usage:
     simple.caption = pandoc.SmallCaps(simple.caption)
     -- create normal table block again
     table = pandoc.utils.from_simple_table(simple)
+
+### type {#pandoc.utils.type}
+
+`type (value)`
+
+Pandoc-friendly version of Lua's default `type` function,
+returning the type of a value. This function works with all types
+listed in section [Lua type reference][], except if noted
+otherwise.
+
+The function works by checking the metafield `__name`. If the
+argument has a string-valued metafield `__name`, then it returns
+that string. Otherwise it behaves just like the normal `type`
+function.
+
+Parameters:
+
+`value`
+:   any Lua value
+
+Returns:
+
+-   type of the given value (string)
+
+Usage:
+
+    -- Prints one of 'string', 'boolean', 'Inlines', 'Blocks',
+    -- 'table', and 'nil', corresponding to the Haskell constructors
+    -- MetaString, MetaBool, MetaInlines, MetaBlocks, MetaMap,
+    -- and an unset value, respectively.
+    function Meta (meta)
+      print('type of metavalue `author`:', pandoc.utils.type(meta.author))
+    end
 
 # Module pandoc.mediabag
 

@@ -21,6 +21,7 @@ import Control.Applicative ((<|>))
 import Control.Monad ((<$!>))
 import Data.Data (showConstr, toConstr)
 import Data.Default (def)
+import Data.Maybe (fromMaybe)
 import Data.Version (Version)
 import HsLua as Lua
 import HsLua.Class.Peekable (PeekError)
@@ -145,6 +146,17 @@ documentedModule = Module
       <#> parameter peekTable "Block" "tbl" "a table"
       =#> functionResult pushSimpleTable "SimpleTable" "SimpleTable object"
       #? "Converts a table into an old/simple table."
+
+    , defun "type"
+      ### (\idx -> getmetafield idx "__name" >>= \case
+              TypeString -> fromMaybe mempty <$> tostring top
+              _ -> ltype idx >>= typename)
+      <#> parameter pure "any" "object" ""
+      =#> functionResult pushByteString "string" "type of the given value"
+    #? ("Pandoc-friendly version of Lua's default `type` function, " <>
+        "returning the type of a value. If the argument has a " <>
+        "string-valued metafield `__name`, then it gives that string. " <>
+        "Otherwise it behaves just like the normal `type` function.")
     ]
   }
 
