@@ -15,5 +15,11 @@ source-repository-package
 
 source-repository-package
   type: git
+  location: https://github.com/jgm/commonmark-hs
+  tag: 4d460b206e0b1872376db86cadf7a4567eeddaed
+  subdir: commonmark-pandoc
+
+source-repository-package
+  type: git
   location: https://github.com/jgm/ipynb.git
   tag: 00246af10885c2ad4413ace4f69a7e6c88297a08
