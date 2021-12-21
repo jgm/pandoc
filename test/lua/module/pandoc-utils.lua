@@ -39,6 +39,46 @@ return {
     end)
   },
 
+  group 'equals' {
+    test('compares Pandoc elements', function ()
+      assert.is_truthy(
+        utils.equals(pandoc.Pandoc{'foo'}, pandoc.Pandoc{'foo'})
+      )
+    end),
+    test('compares Block elements', function ()
+      assert.is_truthy(
+        utils.equals(pandoc.Plain{'foo'}, pandoc.Plain{'foo'})
+      )
+      assert.is_falsy(
+        utils.equals(pandoc.Para{'foo'}, pandoc.Plain{'foo'})
+      )
+    end),
+    test('compares Inline elements', function ()
+      assert.is_truthy(
+        utils.equals(pandoc.Emph{'foo'}, pandoc.Emph{'foo'})
+      )
+      assert.is_falsy(
+        utils.equals(pandoc.Emph{'foo'}, pandoc.Strong{'foo'})
+      )
+    end),
+    test('compares Inline with Block elements', function ()
+      assert.is_falsy(
+        utils.equals(pandoc.Emph{'foo'}, pandoc.Plain{'foo'})
+      )
+      assert.is_falsy(
+        utils.equals(pandoc.Para{'foo'}, pandoc.Strong{'foo'})
+      )
+    end),
+    test('compares Pandoc with Block elements', function ()
+      assert.is_falsy(
+        utils.equals(pandoc.Pandoc{'foo'}, pandoc.Plain{'foo'})
+      )
+      assert.is_falsy(
+        utils.equals(pandoc.Para{'foo'}, pandoc.Pandoc{'foo'})
+      )
+    end),
+  },
+
   group 'make_sections' {
     test('sanity check', function ()
       local blks = {
