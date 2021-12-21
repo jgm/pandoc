@@ -24,7 +24,6 @@ import Data.Default (def)
 import Data.Maybe (fromMaybe)
 import Data.Version (Version)
 import HsLua as Lua
-import HsLua.Class.Peekable (PeekError)
 import HsLua.Module.Version (peekVersionFuzzy, pushVersion)
 import Text.Pandoc.Citeproc (getReferences)
 import Text.Pandoc.Definition
@@ -35,6 +34,7 @@ import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua))
 
 import qualified Data.Digest.Pure.SHA as SHA
 import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
@@ -126,8 +126,8 @@ documentedModule = Module
       =#> functionResult pushPandoc "Pandoc" "filtered document"
 
     , defun "stringify"
-      ### unPandocLua . stringify
-      <#> parameter peekAstElement "AST element" "elem" "some pandoc AST element"
+      ### stringify
+      <#> parameter pure "AST element" "elem" "some pandoc AST element"
       =#> functionResult pushText "string" "stringified element"
 
     , defun "from_simple_table"
@@ -172,43 +172,25 @@ sha1 = defun "sha1"
 -- | Convert pandoc structure to a string with formatting removed.
 -- Footnotes are skipped (since we don't want their contents in link
 -- labels).
-stringify :: AstElement -> PandocLua T.Text
-stringify el = return $ case el of
-  PandocElement pd -> Shared.stringify pd
-  InlineElement i  -> Shared.stringify i
-  BlockElement b   -> Shared.stringify b
-  MetaElement m    -> Shared.stringify m
-  CitationElement c  -> Shared.stringify c
-  MetaValueElement m -> stringifyMetaValue m
-  _                  -> mempty
-
-stringifyMetaValue :: MetaValue -> T.Text
-stringifyMetaValue mv = case mv of
-  MetaBool b   -> T.toLower $ T.pack (show b)
-  MetaString s -> s
-  _            -> Shared.stringify mv
-
-data AstElement
-  = PandocElement Pandoc
-  | MetaElement Meta
-  | BlockElement Block
-  | InlineElement Inline
-  | MetaValueElement MetaValue
-  | AttrElement Attr
-  | ListAttributesElement ListAttributes
-  | CitationElement Citation
-  deriving (Eq, Show)
-
-peekAstElement :: PeekError e => Peeker e AstElement
-peekAstElement = retrieving "pandoc AST element" . choice
-  [ (fmap PandocElement . peekPandoc)
-  , (fmap InlineElement . peekInline)
-  , (fmap BlockElement . peekBlock)
-  , (fmap MetaValueElement . peekMetaValue)
-  , (fmap AttrElement . peekAttr)
-  , (fmap ListAttributesElement . peekListAttributes)
-  , (fmap MetaElement . peekMeta)
-  ]
+stringify :: LuaError e => StackIndex -> LuaE e T.Text
+stringify idx = forcePeek . retrieving "stringifyable element" $
+  choice
+  [ (fmap Shared.stringify . peekPandoc)
+  , (fmap Shared.stringify . peekInline)
+  , (fmap Shared.stringify . peekBlock)
+  , (fmap Shared.stringify . peekCitation)
+  , (fmap stringifyMetaValue . peekMetaValue)
+  , (fmap (const "") . peekAttr)
+  , (fmap (const "") . peekListAttributes)
+  ] idx
+ where
+  stringifyMetaValue :: MetaValue -> T.Text
+  stringifyMetaValue mv = case mv of
+    MetaBool b   -> T.toLower $ T.pack (show b)
+    MetaString s -> s
+    MetaList xs  -> mconcat $ map stringifyMetaValue xs
+    MetaMap m    -> mconcat $ map (stringifyMetaValue . snd) (Map.toList m)
+    _            -> Shared.stringify mv
 
 -- | Converts an old/simple table into a normal table block element.
 from_simple_table :: SimpleTable -> LuaE PandocError NumResults

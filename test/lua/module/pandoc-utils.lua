@@ -181,12 +181,11 @@ return {
     end),
     test('Meta', function ()
       local meta = pandoc.Meta{
-        a = pandoc.Inlines 'a text',
-        b = 'movie',
+        a = pandoc.Inlines 'funny and ',
+        b = 'good movie',
         c = pandoc.List{pandoc.Inlines{pandoc.Str '!'}}
       }
-      -- nested MetaString values are not stringified.
-      assert.are_equal('a text!', utils.stringify(meta))
+      assert.are_equal('funny and good movie!', utils.stringify(meta))
     end),
   },
 
