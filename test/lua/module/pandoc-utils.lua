@@ -135,7 +135,7 @@ return {
   },
 
   group 'stringify' {
-    test('inlines', function ()
+    test('Inline', function ()
       local inline = pandoc.Emph{
         pandoc.Str 'Cogito',
         pandoc.Space(),
@@ -144,7 +144,50 @@ return {
         pandoc.Str 'sum.',
       }
       assert.are_equal('Cogito ergo sum.', utils.stringify(inline))
-    end)
+    end),
+    test('Block', function ()
+      local block = pandoc.Para{
+        pandoc.Str 'Make',
+        pandoc.Space(),
+        pandoc.Str 'it',
+        pandoc.Space(),
+        pandoc.Str 'so.',
+      }
+      assert.are_equal('Make it so.', utils.stringify(block))
+    end),
+    test('boolean', function ()
+      assert.are_equal('true', utils.stringify(true))
+      assert.are_equal('false', utils.stringify(false))
+    end),
+    test('number', function ()
+      assert.are_equal('5', utils.stringify(5))
+      assert.are_equal('23.23', utils.stringify(23.23))
+    end),
+    test('Attr', function ()
+      local attr = pandoc.Attr('foo', {'bar'}, {a = 'b'})
+      assert.are_equal('', utils.stringify(attr))
+    end),
+    test('List', function ()
+      local list = pandoc.List{pandoc.Str 'a', pandoc.Blocks('b')}
+      assert.are_equal('ab', utils.stringify(list))
+    end),
+    test('Blocks', function ()
+      local blocks = pandoc.Blocks{pandoc.Para 'a', pandoc.Header(1, 'b')}
+      assert.are_equal('ab', utils.stringify(blocks))
+    end),
+    test('Inlines', function ()
+      local inlines = pandoc.Inlines{pandoc.Str 'a', pandoc.Subscript('b')}
+      assert.are_equal('ab', utils.stringify(inlines))
+    end),
+    test('Meta', function ()
+      local meta = pandoc.Meta{
+        a = pandoc.Inlines 'a text',
+        b = 'movie',
+        c = pandoc.List{pandoc.Inlines{pandoc.Str '!'}}
+      }
+      -- nested MetaString values are not stringified.
+      assert.are_equal('a text!', utils.stringify(meta))
+    end),
   },
 
   group 'to_roman_numeral' {
