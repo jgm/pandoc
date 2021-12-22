@@ -296,6 +296,7 @@ extra-source-files:
                  test/tables.ms
                  test/tables.plain
                  test/tables.markdown
+                 test/tables.markua
                  test/tables.mediawiki
                  test/tables.tei
                  test/tables.textile
@@ -331,6 +332,7 @@ extra-source-files:
                  test/writer.man
                  test/writer.ms
                  test/writer.markdown
+                 test/writer.markua
                  test/writer.plain
                  test/writer.mediawiki
                  test/writer.textile
