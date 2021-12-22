@@ -336,11 +336,20 @@ Metadata Values
 :   Additional notes concerning the whole article. Added to the
     article's frontmatter via the [`<notes>`][elem:notes] element.
 
+`subtitle`
+:   Subordinate part of the document title. Added to the
+    document's front matter as a
+    [`<subtitle>`][elem:article-title] element.
+
 `tags`
 :   list of keywords. Items are used as contents of the
     [`<kwd>`][elem:kwd] element; the elements are grouped in a
     [`<kwd-group>`][elem:kwd-group] with the
     [`kwd-group-type`][attr:kwd-group-type] value `author`.
+
+`title`
+:   The article title. Added to the document's front matter via the
+    [`<article-title>`][elem:article-title] element.
 
 Required Metadata
 -----------------
@@ -378,6 +387,7 @@ Required metadata values:
 [elem:abstract]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/abstract.html
 [elem:article-id]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/article-id.html
 [elem:article-meta]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/article-meta.html
+[elem:article-title]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/article-title.html
 [elem:copyright-holder]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/copyright-holder.html
 [elem:copyright-statement]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/copyright-statement.html
 [elem:copyright-year]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/copyright-year.html
@@ -400,6 +410,7 @@ Required metadata values:
 [elem:string-name]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/string-name.html
 [elem:subj-group]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/subj-group.html
 [elem:subject]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/subject.html
+[elem:subtitle]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/subtitle.html
 [elem:surname]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/surname.html
 [elem:xref]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/xref.html
 
